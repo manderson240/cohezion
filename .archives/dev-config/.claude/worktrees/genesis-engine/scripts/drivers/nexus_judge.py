@@ -3,8 +3,9 @@ import json
 import logging
 from pathlib import Path
 
-from cohezion.core.time_keeper import get_time_keeper
 from cohezion.swarm.agents.base import BaseAgent
+
+from cohezion.core.time_keeper import get_time_keeper
 
 
 logging.basicConfig(level=logging.INFO, format="%(asctime)s - [NEXUS_JUDGE] - %(message)s")
@@ -101,9 +102,7 @@ class NexusJudge(BaseAgent):
                 json_str = response_str[start:end]
                 result = json.loads(json_str)
             else:
-                logger.warning(
-                    f"    - Failed to parse JSON from Judge. Payload: {response_str[:100]}..."
-                )
+                logger.warning(f"    - Failed to parse JSON from Judge. Payload: {response_str[:100]}...")
                 return
 
             grade = float(result.get("grade", 0.0))
@@ -139,9 +138,7 @@ class NexusJudge(BaseAgent):
                 # Reward Agent (Compound Engineering: Economic Yield)
                 # We assume the creator is 'NexusDaemon' for now
                 self._credit_manager.credit("NexusDaemon", 50)
-                logger.info(
-                    f"    🏆 CANONIZED! (Grade {grade}) | +50 Credits awarded to NexusDaemon"
-                )
+                logger.info(f"    🏆 CANONIZED! (Grade {grade}) | +50 Credits awarded to NexusDaemon")
             elif is_verified:
                 # Small reward for passing
                 self._credit_manager.credit("NexusDaemon", 10)

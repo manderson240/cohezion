@@ -327,9 +327,7 @@ def generate_input(batchsize: int, qseqlen: int, kvseqlen: int, tp: int, seed: i
         "mxfp4": (Tensor, Tensor)     — kv_buffer fp4x2 + fp8_e8m0 scale
       }
     """
-    assert TOTAL_NUM_HEADS % tp == 0, (
-        f"TOTAL_NUM_HEADS ({TOTAL_NUM_HEADS}) must be divisible by tp ({tp})"
-    )
+    assert TOTAL_NUM_HEADS % tp == 0, f"TOTAL_NUM_HEADS ({TOTAL_NUM_HEADS}) must be divisible by tp ({tp})"
     num_heads = TOTAL_NUM_HEADS // tp
 
     gen = torch.Generator(device="cuda")

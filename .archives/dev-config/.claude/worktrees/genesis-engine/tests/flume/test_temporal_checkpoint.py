@@ -7,6 +7,7 @@ from pathlib import Path
 import numpy as np
 import pytest
 
+
 try:
     import torch
 
@@ -130,9 +131,7 @@ class TestJourneyTrackerTemporalCheckpoint:
 
     def test_journey_tracker_uses_checkpoint_when_available(self, tmp_path: Path, monkeypatch) -> None:
         """JourneyTracker._temporal_encoder loads from checkpoint if it exists."""
-        import torch
 
-        from cohezion.flume.temporal_encoder import TemporalDecoder, TemporalEncoder
 
         # Create a real checkpoint in a temp location
         ckpt_dir = tmp_path / "checkpoints_v2"

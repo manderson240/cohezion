@@ -20,7 +20,6 @@ import csv
 import re
 from dataclasses import dataclass, field
 from pathlib import Path
-from typing import Dict, List, Optional, Tuple
 from xml.etree import ElementTree as ET
 
 
@@ -95,23 +94,23 @@ class PartyConfig:
     module: str
     party_csv: str
     agent_count: int
-    agents_included: List[str]
+    agents_included: list[str]
 
 
 @dataclass
 class TraceabilityMatrix:
     """Complete traceability matrix."""
 
-    agent_workflow: List[Dict] = field(default_factory=list)
-    workflow_task: List[Dict] = field(default_factory=list)
-    workflow_chain: List[Dict] = field(default_factory=list)
-    party_module: List[Dict] = field(default_factory=list)
+    agent_workflow: list[dict] = field(default_factory=list)
+    workflow_task: list[dict] = field(default_factory=list)
+    workflow_chain: list[dict] = field(default_factory=list)
+    party_module: list[dict] = field(default_factory=list)
 
 
 class TraceabilityEngine(BaseEngine):
     """Main traceability extraction engine."""
 
-    def __init__(self, project_root: Optional[Path] = None, config: Optional[EngineConfig] = None):
+    def __init__(self, project_root: Path | None = None, config: EngineConfig | None = None):
         # Support both old API and new DI pattern
         if config:
             super().__init__(config)
@@ -127,31 +126,31 @@ class TraceabilityEngine(BaseEngine):
         self.config_dir = self.bmad_root / "_config"
 
         # Storage
-        self.agents: List[Agent] = []
-        self.workflows: List[Workflow] = []
-        self.tasks: List[Task] = []
-        self.invocations: List[Invocation] = []
-        self.chains: List[WorkflowChain] = []
-        self.party_configs: List[PartyConfig] = []
+        self.agents: list[Agent] = []
+        self.workflows: list[Workflow] = []
+        self.tasks: list[Task] = []
+        self.invocations: list[Invocation] = []
+        self.chains: list[WorkflowChain] = []
+        self.party_configs: list[PartyConfig] = []
 
         self.logger.info("TraceabilityEngine initialized")
 
         # Storage
-        self.agents: List[Agent] = []
-        self.workflows: List[Workflow] = []
-        self.tasks: List[Task] = []
-        self.invocations: List[Invocation] = []
-        self.chains: List[WorkflowChain] = []
-        self.party_configs: List[PartyConfig] = []
+        self.agents: list[Agent] = []
+        self.workflows: list[Workflow] = []
+        self.tasks: list[Task] = []
+        self.invocations: list[Invocation] = []
+        self.chains: list[WorkflowChain] = []
+        self.party_configs: list[PartyConfig] = []
 
-    def load_agent_manifest(self) -> List[Agent]:
+    def load_agent_manifest(self) -> list[Agent]:
         """Parse agent-manifest.csv."""
         manifest_path = self.config_dir / "agent-manifest.csv"
         if not manifest_path.exists():
             raise FileNotFoundError(f"Agent manifest not found: {manifest_path}")
 
         agents = []
-        with open(manifest_path, "r", encoding="utf-8") as f:
+        with open(manifest_path, encoding="utf-8") as f:
             reader = csv.DictReader(f)
             for row in reader:
                 agent = Agent(
@@ -170,14 +169,14 @@ class TraceabilityEngine(BaseEngine):
         self.agents = agents
         return agents
 
-    def load_workflow_manifest(self) -> List[Workflow]:
+    def load_workflow_manifest(self) -> list[Workflow]:
         """Parse workflow-manifest.csv."""
         manifest_path = self.config_dir / "workflow-manifest.csv"
         if not manifest_path.exists():
             raise FileNotFoundError(f"Workflow manifest not found: {manifest_path}")
 
         workflows = []
-        with open(manifest_path, "r", encoding="utf-8") as f:
+        with open(manifest_path, encoding="utf-8") as f:
             reader = csv.DictReader(f)
             for row in reader:
                 workflow = Workflow(
@@ -191,14 +190,14 @@ class TraceabilityEngine(BaseEngine):
         self.workflows = workflows
         return workflows
 
-    def load_task_manifest(self) -> List[Task]:
+    def load_task_manifest(self) -> list[Task]:
         """Parse task-manifest.csv."""
         manifest_path = self.config_dir / "task-manifest.csv"
         if not manifest_path.exists():
             raise FileNotFoundError(f"Task manifest not found: {manifest_path}")
 
         tasks = []
-        with open(manifest_path, "r", encoding="utf-8") as f:
+        with open(manifest_path, encoding="utf-8") as f:
             reader = csv.DictReader(f)
             for row in reader:
                 task = Task(
@@ -214,14 +213,14 @@ class TraceabilityEngine(BaseEngine):
         self.tasks = tasks
         return tasks
 
-    def find_workflow_xml_files(self) -> List[Path]:
+    def find_workflow_xml_files(self) -> list[Path]:
         """Find all workflow XML files (instructions.xml, workflow.xml, workflow.yaml)."""
         xml_files = []
         for pattern in ["**/instructions.xml", "**/workflow.xml", "**/workflow.yaml"]:
             xml_files.extend(self.discover_python_files(self.bmad_root, pattern))
         return xml_files
 
-    def extract_invocations_from_xml(self, xml_path: Path) -> List[Invocation]:
+    def extract_invocations_from_xml(self, xml_path: Path) -> list[Invocation]:
         """Extract invoke-* tags from workflow XML."""
         invocations = []
 
@@ -294,12 +293,12 @@ class TraceabilityEngine(BaseEngine):
 
         return invocations
 
-    def extract_workflow_references_from_yaml(self, yaml_path: Path) -> List[Invocation]:
+    def extract_workflow_references_from_yaml(self, yaml_path: Path) -> list[Invocation]:
         """Extract workflow references from workflow.yaml files."""
         invocations = []
 
         try:
-            with open(yaml_path, "r", encoding="utf-8") as f:
+            with open(yaml_path, encoding="utf-8") as f:
                 content = f.read()
 
             # Look for workflow references in description or other fields
@@ -342,11 +341,11 @@ class TraceabilityEngine(BaseEngine):
                 return parts[workflow_idx + 1]
         return xml_path.stem
 
-    def find_party_csv_files(self) -> List[Path]:
+    def find_party_csv_files(self) -> list[Path]:
         """Find all default-party.csv files."""
         return list(self.bmad_root.glob("**/default-party.csv"))
 
-    def extract_party_configs(self) -> List[PartyConfig]:
+    def extract_party_configs(self) -> list[PartyConfig]:
         """Parse all default-party.csv files."""
         party_files = self.find_party_csv_files()
         configs = []
@@ -357,7 +356,7 @@ class TraceabilityEngine(BaseEngine):
             module = parts[0] if parts else "unknown"
 
             agents = []
-            with open(party_path, "r", encoding="utf-8") as f:
+            with open(party_path, encoding="utf-8") as f:
                 reader = csv.DictReader(f)
                 for row in reader:
                     agents.append(row["name"].strip('"'))
@@ -373,7 +372,7 @@ class TraceabilityEngine(BaseEngine):
         self.party_configs = configs
         return configs
 
-    def build_agent_workflow_matrix(self) -> List[Dict]:
+    def build_agent_workflow_matrix(self) -> list[dict]:
         """Build Agent → Workflow mapping matrix."""
         matrix = []
 
@@ -399,7 +398,7 @@ class TraceabilityEngine(BaseEngine):
         self.matrix_agent_workflow = matrix
         return matrix
 
-    def build_workflow_task_matrix(self) -> List[Dict]:
+    def build_workflow_task_matrix(self) -> list[dict]:
         """Build Workflow → Task mapping matrix."""
         matrix = []
 
@@ -417,7 +416,7 @@ class TraceabilityEngine(BaseEngine):
         self.matrix_workflow_task = matrix
         return matrix
 
-    def build_workflow_chain_matrix(self) -> List[Dict]:
+    def build_workflow_chain_matrix(self) -> list[dict]:
         """Build Workflow → Workflow chain matrix."""
         matrix = []
 
@@ -435,7 +434,7 @@ class TraceabilityEngine(BaseEngine):
         self.matrix_workflow_chain = matrix
         return matrix
 
-    def build_party_module_matrix(self) -> List[Dict]:
+    def build_party_module_matrix(self) -> list[dict]:
         """Build Party → Module mapping matrix."""
         matrix = []
 
@@ -451,12 +450,12 @@ class TraceabilityEngine(BaseEngine):
         self.matrix_party_module = matrix
         return matrix
 
-    def detect_cycles(self) -> List[Tuple[str, str]]:
+    def detect_cycles(self) -> list[tuple[str, str]]:
         """Detect circular workflow dependencies."""
         cycles = []
 
         # Build adjacency list
-        graph: Dict[str, List[str]] = {}
+        graph: dict[str, list[str]] = {}
         for chain in self.chains:
             if chain.parent_workflow not in graph:
                 graph[chain.parent_workflow] = []
@@ -466,7 +465,7 @@ class TraceabilityEngine(BaseEngine):
         visited = set()
         rec_stack = set()
 
-        def dfs(node: str, path: List[str]) -> Optional[Tuple[str, str]]:
+        def dfs(node: str, path: list[str]) -> tuple[str, str] | None:
             visited.add(node)
             rec_stack.add(node)
 
@@ -490,14 +489,14 @@ class TraceabilityEngine(BaseEngine):
 
         return cycles
 
-    def detect_orphan_agents(self) -> List[str]:
+    def detect_orphan_agents(self) -> list[str]:
         """Find agents with no workflow assignments."""
         assigned_agents = {row["agent_name"] for row in self.matrix_agent_workflow}
         all_agents = {agent.name for agent in self.agents}
         orphans = all_agents - assigned_agents
         return list(orphans)
 
-    def detect_orphan_workflows(self) -> List[str]:
+    def detect_orphan_workflows(self) -> list[str]:
         """Find workflows with no agent assignments."""
         assigned_workflows = {row["workflow_name"] for row in self.matrix_agent_workflow}
         all_workflows = {workflow.name for workflow in self.workflows}
@@ -563,7 +562,7 @@ class TraceabilityEngine(BaseEngine):
 
         return matrix
 
-    def write_matrices(self, matrix: TraceabilityMatrix) -> Dict[str, Path]:
+    def write_matrices(self, matrix: TraceabilityMatrix) -> dict[str, Path]:
         """Write all matrices to CSV files."""
         output_files = {}
 

@@ -3,6 +3,7 @@
 Target: <100K parameters, processes 30x30 grids with 10 color values.
 Evaluated on ARC-AGI training tasks to estimate accuracy.
 """
+
 from __future__ import annotations
 
 import json

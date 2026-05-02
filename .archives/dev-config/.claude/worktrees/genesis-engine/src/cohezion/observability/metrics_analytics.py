@@ -298,9 +298,7 @@ class MetricsAnalytics:
             Recommendation text
         """
         if total_rate < 0.70:
-            return (
-                "Cache hit rate is low. Consider warming cache or adjusting thresholds."
-            )
+            return "Cache hit rate is low. Consider warming cache or adjusting thresholds."
         elif l2_rate < 20:
             return "L2 semantic cache underutilized. Adjust similarity threshold or check query patterns."
         else:
@@ -360,9 +358,7 @@ class MetricsAnalytics:
 
         # Positive feedback
         if not recommendations:
-            recommendations.append(
-                "✅ All systems operating within healthy parameters."
-            )
+            recommendations.append("✅ All systems operating within healthy parameters.")
 
         return recommendations
 

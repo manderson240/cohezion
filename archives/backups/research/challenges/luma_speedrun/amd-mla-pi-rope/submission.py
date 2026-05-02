@@ -50,20 +50,19 @@ from __future__ import annotations
 
 import math
 import os
-import sys
-from typing import Tuple, Optional
 from dataclasses import dataclass
 
 import torch
 import torch.nn.functional as F
 
+
 # POPCORN environment setup
 os.environ["PYTORCH_ROCM_ARCH"] = "gfx950"
 os.environ["CXX"] = "clang++"
 
-from aiter import mla_decode_fwd
-from aiter import get_mla_metadata_info_v1, get_mla_metadata_v1, mla_reduce_v1
+from aiter import get_mla_metadata_info_v1, get_mla_metadata_v1, mla_decode_fwd
 from task import input_t, output_t
+
 
 # =============================================================================
 # PI-RoPE Configuration
@@ -96,7 +95,7 @@ def compute_rope_frequencies(
     max_len: int,
     base: float = 10000.0,
     device: str = "cuda",
-) -> Tuple[torch.Tensor, torch.Tensor]:
+) -> tuple[torch.Tensor, torch.Tensor]:
     """Compute RoPE frequency bases.
 
     Args:
@@ -226,7 +225,7 @@ def apply_mla_pi_rope(
     kv_rope: torch.Tensor,
     kv_seq_len: int,
     config: PIRoPEConfig,
-) -> Tuple[torch.Tensor, torch.Tensor, torch.Tensor, torch.Tensor]:
+) -> tuple[torch.Tensor, torch.Tensor, torch.Tensor, torch.Tensor]:
     """Apply PI-RoPE to MLA inputs.
 
     Args:
@@ -364,7 +363,7 @@ def custom_kernel(data: input_t) -> output_t:
 
         return output
 
-    except Exception as e:
+    except Exception:
         # Fallback: standard MLA without PI-RoPE
         # This ensures correctness even if PI-RoPE fails
 
@@ -395,7 +394,7 @@ def custom_kernel(data: input_t) -> output_t:
 
             return output
 
-        except Exception as fallback_e:
+        except Exception:
             # Ultimate fallback: manual attention computation
             device = q_nope.device
             q_len = q_nope.shape[2]

@@ -10,41 +10,39 @@ Tests verify:
 5. Pattern learning persists to vault MCP
 """
 
+from unittest.mock import AsyncMock, MagicMock
+
 import pytest
 import pytest_asyncio
-from unittest.mock import AsyncMock, MagicMock, patch
-from datetime import datetime
+
+from cohezion.compound.executor import CompoundExecutor
+from cohezion.core.mcp_client import MCPClient
 
 # Integration targets:
 from cohezion.swarm.compute_backend_router import (
-    BackendType,
     ComputeBackendRouter,
-    BackendStatus,
 )
 from cohezion.swarm.model_pool_manager import ModelPoolManager
-from cohezion.swarm.cost_aware_router import CostAwareRouter
-from cohezion.compound.executor import CompoundExecutor
-from cohezion.core.mcp_client import MCPClient
 
 
 class TestCircuitBreakerIntegration:
     """Tests: Circuit breakers integrate with ComputeBackendRouter."""
-    
+
     @pytest_asyncio.fixture
     async def router(self):
         """Create backend router for integration."""
         return ComputeBackendRouter.get_default()
-    
+
     @pytest.mark.asyncio
     async def test_circuit_breaker_blocks_in_router(self, router):
         """Circuit breaker state should be respected by router."""
         # Given: GPU_ROCM circuit is OPEN
         # When: Router selects backend
         # Then: Should skip GPU_ROCM, select alternative
-        
+
         # IMPLEMENT: Check router respects circuit breaker
         pass  # TODO: Implement
-    
+
     @pytest.mark.asyncio
     async def test_circuit_breaker_recover_updates_router(self, router):
         """When circuit closes, router should use backend again."""
@@ -52,7 +50,7 @@ class TestCircuitBreakerIntegration:
         # When: Router selects backend for compatible model
         # Then: Should include GPU_ROCM in options
         pass  # TODO: Implement
-    
+
     @pytest.mark.asyncio
     async def test_router_health_checks_update_circuits(self, router):
         """Router health probes should drive circuit breaker state."""
@@ -64,12 +62,12 @@ class TestCircuitBreakerIntegration:
 
 class TestProactiveWarmingIntegration:
     """Tests: Proactive warming integrates with ModelPoolManager."""
-    
+
     @pytest_asyncio.fixture
     async def pool_manager(self):
         """Create model pool manager."""
         return ModelPoolManager()
-    
+
     @pytest.mark.asyncio
     async def test_proactive_warming_preloads_to_pool(self, pool_manager):
         """Proactive trigger should pre-load models into pool."""
@@ -77,7 +75,7 @@ class TestProactiveWarmingIntegration:
         # When: Proactive trigger fires
         # Then: ModelPoolManager should have code models pre-warmed
         pass  # TODO: Implement
-    
+
     @pytest.mark.asyncio
     async def test_warmed_models_available_for_routing(self, pool_manager):
         """Pre-warmed models should be immediately available."""
@@ -85,7 +83,7 @@ class TestProactiveWarmingIntegration:
         # When: Routing request for code task
         # Then: Should not wait for model loading
         pass  # TODO: Implement
-    
+
     @pytest.mark.asyncio
     async def test_proactive_respects_pool_limits(self, pool_manager):
         """Proactive warming should not exceed pool size limits."""
@@ -97,7 +95,7 @@ class TestProactiveWarmingIntegration:
 
 class TestAdaptiveRoutingIntegration:
     """Tests: Adaptive router integrates with CostAwareRouter."""
-    
+
     @pytest.mark.asyncio
     async def test_adaptive_considers_cost_in_routing(self):
         """Adaptive routing should factor in cost constraints."""
@@ -105,7 +103,7 @@ class TestAdaptiveRoutingIntegration:
         # When: Routing code task (could use NPU-free or GPU-expensive)
         # Then: Should prefer NPU (cheaper) despite similar latency
         pass  # TODO: Implement
-    
+
     @pytest.mark.asyncio
     async def test_cost_aware_falls_back_to_cheaper(self):
         """When expensive fails, fall back to cheaper."""
@@ -113,7 +111,7 @@ class TestAdaptiveRoutingIntegration:
         # When: Circuit breaker opens GPU_VULKAN
         # Then: Should route to NPU (cheaper) not Cloud (expensive)
         pass  # TODO: Implement
-    
+
     @pytest.mark.asyncio
     async def test_quality_score_considers_cost_efficiency(self):
         """Quality score should include cost efficiency."""
@@ -125,12 +123,12 @@ class TestAdaptiveRoutingIntegration:
 
 class TestVaultIntegration:
     """Tests: Pattern learning persists to Vault MCP."""
-    
+
     @pytest_asyncio.fixture
     async def mcp_client(self):
         """Create or mock MCP client."""
         return MagicMock(spec=MCPClient)
-    
+
     @pytest.mark.asyncio
     async def test_patterns_persisted_to_vault(self, mcp_client):
         """Detected patterns should be written to vault."""
@@ -138,25 +136,25 @@ class TestVaultIntegration:
         # When: Learning cycle completes
         # Then: mcp_client.write_to_vault called with pattern
         mcp_client.write_to_vault = AsyncMock()
-        
+
         # IMPLEMENT: Verify persistence
         # await system._persist_pattern(pattern)
         # mcp_client.write_to_vault.assert_called_once()
         pass  # TODO: Implement
-    
+
     @pytest.mark.asyncio
     async def test_vault_guidance_loaded_on_startup(self, mcp_client):
         """Should query vault for prior patterns on startup."""
         # Given: Previous sessions' patterns in vault
         # When: System initializes
         # Then: Should load patterns via mcp_client.find_relevant_context
-        mcp_client.find_relevant_context = AsyncMock(return_value=[
-            {"pattern": "code-heavy-9am", "confidence": 0.95}
-        ])
-        
+        mcp_client.find_relevant_context = AsyncMock(
+            return_value=[{"pattern": "code-heavy-9am", "confidence": 0.95}]
+        )
+
         # IMPLEMENT: Verify loading
         pass  # TODO: Implement
-    
+
     @pytest.mark.asyncio
     async def test_similar_tasks_use_vault_patterns(self, mcp_client):
         """Similar tasks should benefit from vaulted patterns."""
@@ -168,12 +166,12 @@ class TestVaultIntegration:
 
 class TestCompoundExecutorIntegration:
     """Tests: Dynamic system integrates with CompoundExecutor."""
-    
+
     @pytest_asyncio.fixture
     async def compound_executor(self, mcp_client):
         """Create compound executor with dynamic system."""
         return CompoundExecutor(mcp_client=mcp_client)
-    
+
     @pytest.mark.asyncio
     async def test_compound_executor_uses_dynamic_routing(self, compound_executor):
         """CompoundExecutor should use dynamic multi-agent routing."""
@@ -181,7 +179,7 @@ class TestCompoundExecutorIntegration:
         # When: compound_executor.execute_task called
         # Then: Should use multi-agent bridge for routing
         pass  # TODO: Implement
-    
+
     @pytest.mark.asyncio
     async def test_skill_refiner_gets_dynamic_feedback(self, compound_executor):
         """SkillRefiner should receive dynamic execution outcomes."""
@@ -189,7 +187,7 @@ class TestCompoundExecutorIntegration:
         # When: Outcomes recorded
         # Then: Should feed into skill refinement
         pass  # TODO: Implement
-    
+
     @pytest.mark.asyncio
     async def test_journey_tracker_records_dynamic_decisions(self, compound_executor):
         """Journey tracker should record agent routing decisions."""
@@ -201,7 +199,7 @@ class TestCompoundExecutorIntegration:
 
 class TestEventSystemIntegration:
     """Tests: Event system integrates with existing monitoring."""
-    
+
     @pytest.mark.asyncio
     async def test_circuit_events_logged(self, caplog):
         """Circuit breaker events should be logged."""
@@ -209,7 +207,7 @@ class TestEventSystemIntegration:
         # When: Event emitted
         # Then: Should appear in logs
         pass  # TODO: Implement
-    
+
     @pytest.mark.asyncio
     async def test_pattern_events_tracked(self):
         """Pattern detection events should be tracked."""
@@ -217,7 +215,7 @@ class TestEventSystemIntegration:
         # When: Event emitted
         # Then: Should be trackable via metrics
         pass  # TODO: Implement
-    
+
     @pytest.mark.asyncio
     async def test_custom_handlers_can_be_registered(self):
         """Users should be able to register custom event handlers."""
@@ -225,11 +223,11 @@ class TestEventSystemIntegration:
         # When: Circuit opens
         # Then: Custom handler should be called
         handler_called = False
-        
+
         def custom_handler(event, data):
             nonlocal handler_called
             handler_called = True
-        
+
         # IMPLEMENT: Register and trigger
         # engine.register_event_handler(SystemEvent.CIRCUIT_OPENED, custom_handler)
         # emit_event(SystemEvent.CIRCUIT_OPENED, {})
@@ -239,7 +237,7 @@ class TestEventSystemIntegration:
 
 class TestEndToEndIntegration:
     """Tests: Full integration scenarios."""
-    
+
     @pytest.mark.asyncio
     async def test_code_task_at_9am_uses_warmed_agent(self):
         """E2E: 9 AM code task uses pre-warmed CodeSpecialist."""
@@ -247,7 +245,7 @@ class TestEndToEndIntegration:
         # Input: "Write a Python function to sort"
         # Expected: CodeSpecialist on NPU, latency <100ms
         pass  # TODO: Implement (full E2E)
-    
+
     @pytest.mark.asyncio
     async def test_gpu_failure_triggers_npu_fallback(self):
         """E2E: GPU failure automatically falls back to NPU."""
@@ -255,7 +253,7 @@ class TestEndToEndIntegration:
         # Input: Task requiring large model
         # Expected: Routes to NPU (smaller model) instead of failing
         pass  # TODO: Implement (full E2E)
-    
+
     @pytest.mark.asyncio
     async def test_learning_improves_over_time(self):
         """E2E: System gets better at routing over multiple executions."""

@@ -84,9 +84,7 @@ class TEEKeyManager:
         )
         _SECURITY_EVENTS.append(event.to_dict())
         logger.warning("TEE security event: %s", event.details)
-        raise PermissionError(
-            f"TEE boundary violation: key {key_id!r} is not accessible from userspace"
-        )
+        raise PermissionError(f"TEE boundary violation: key {key_id!r} is not accessible from userspace")
 
     def has_key(self, key_id: str) -> bool:
         return key_id in _TEE_NAMESPACE

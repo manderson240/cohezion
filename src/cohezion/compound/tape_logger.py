@@ -8,7 +8,7 @@ import json
 import threading
 from collections.abc import Iterator
 from dataclasses import asdict, dataclass
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from pathlib import Path
 
 
@@ -39,7 +39,7 @@ class TapeLogger:
         if not self._enabled:
             return ""
         self._tape_dir.mkdir(parents=True, exist_ok=True)
-        ts = datetime.now(timezone.utc).strftime("%Y%m%dT%H%M%S")
+        ts = datetime.now(UTC).strftime("%Y%m%dT%H%M%S")
         self._tape_path = self._tape_dir / f"{execution_id}_{ts}.jsonl"
         self._sequence = 0
         self._handle = self._tape_path.open("a", encoding="utf-8")
@@ -61,7 +61,7 @@ class TapeLogger:
         with self._lock:
             entry = TapeEntry(
                 sequence=self._sequence,
-                timestamp=datetime.now(timezone.utc).isoformat(),
+                timestamp=datetime.now(UTC).isoformat(),
                 model=model,
                 prompt=prompt,
                 response=response,

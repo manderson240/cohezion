@@ -7,11 +7,12 @@ This file is the entry point for the Kaggle evaluation system.
 import sys
 from pathlib import Path
 
+
 # Add solver to path
 sys.path.insert(0, str(Path(__file__).parent))
 
-from solver import AIMO3SimpleSolver
 import aimo_3_gateway
+from solver import AIMO3SimpleSolver
 
 
 class SubmissionInferenceServer(AIMO3SimpleSolver):
@@ -35,7 +36,6 @@ if __name__ == "__main__":
         print("=" * 50)
 
         # Test on reference problems
-        import ollama
         import polars as pl
 
         ref_df = pl.read_csv("../aimo3_data/reference.csv")

@@ -52,19 +52,21 @@ Expected Performance:
 """
 
 from __future__ import annotations
-import os
+
 import math
+import os
+
 
 os.environ["PYTORCH_ROCM_ARCH"] = "gfx950"
 os.environ["CXX"] = "clang++"
 
-import torch
-from task import input_t, output_t
-
 import aiter
+import torch
 from aiter import dtypes as aiter_dtypes
 from aiter.ops.triton.quant import dynamic_mxfp4_quant
 from aiter.utility.fp4_utils import e8m0_shuffle
+from task import input_t, output_t
+
 
 # Low-rank configuration
 DEFAULT_RANK = 64  # Default approximation rank

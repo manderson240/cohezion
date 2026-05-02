@@ -10,7 +10,6 @@ Usage:
 from __future__ import annotations
 
 import argparse
-import json
 import logging
 import os
 import sys
@@ -18,6 +17,7 @@ from datetime import UTC, datetime
 from pathlib import Path
 
 import httpx
+
 
 logging.basicConfig(level=logging.INFO, format="%(message)s")
 logger = logging.getLogger(__name__)
@@ -321,8 +321,8 @@ def generate_dashboard(dreaming: dict, graph: dict, data_mesh: dict) -> str:
         [
             "## 🌙 Dreaming System",
             "",
-            f"| Metric | Value |",
-            f"|--------|-------|",
+            "| Metric | Value |",
+            "|--------|-------|",
             f"| Total Dream Synapses | {dreaming['total_dreams']:,} |",
             f"| High-Quality Dreams | {dreaming['quality_dreams']:,} |",
             f"| Recent Dreams (7d) | {dreaming['recent_dreams']:,} |",
@@ -336,8 +336,8 @@ def generate_dashboard(dreaming: dict, graph: dict, data_mesh: dict) -> str:
         [
             "## 🕸️ Knowledge Graph",
             "",
-            f"| Metric | Value | Target |",
-            f"|--------|-------|--------|",
+            "| Metric | Value | Target |",
+            "|--------|-------|--------|",
             f"| Neurons | {graph['neurons']:,} | — |",
             f"| Synapses | {graph['synapses']:,} | — |",
             f"| Orphans | {graph['orphans']:,} ({graph['orphan_ratio']:.1%}) | <10% |",
@@ -354,8 +354,8 @@ def generate_dashboard(dreaming: dict, graph: dict, data_mesh: dict) -> str:
         [
             "## 🏗️ Data Mesh",
             "",
-            f"| Metric | Value |",
-            f"|--------|-------|",
+            "| Metric | Value |",
+            "|--------|-------|",
             f"| Total Products | {data_mesh['total_products']:,} |",
             f"| Healthy | {data_mesh['healthy_products']:,} |",
             f"| SLA Violations | {data_mesh['sla_violations']:,} |",

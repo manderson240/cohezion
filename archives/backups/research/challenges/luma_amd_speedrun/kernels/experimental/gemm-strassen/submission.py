@@ -25,10 +25,11 @@ Applied to GPU: Blocked recursive implementation with size cutoff.
 """
 
 from __future__ import annotations
+
 import os
 import sys
+
 import torch
-from typing import Tuple, Optional
 from aiter import dtypes
 from aiter.ops.triton.quant import dynamic_mxfp4_quant
 from aiter.utility.fp4_utils import e8m0_shuffle

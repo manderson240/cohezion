@@ -289,9 +289,7 @@ def main() -> int:
     """Main entry point."""
     parser = argparse.ArgumentParser(description="Triage untracked files")
     parser.add_argument("--fix", action="store_true", help="Apply fixes (track category B)")
-    parser.add_argument(
-        "--dry-run", action="store_true", default=True, help="Show what would be done"
-    )
+    parser.add_argument("--dry-run", action="store_true", default=True, help="Show what would be done")
     parser.add_argument("--output", choices=["text", "json"], default="text", help="Output format")
     args = parser.parse_args()
 
@@ -300,10 +298,7 @@ def main() -> int:
     if args.output == "json":
         import json
 
-        output = {
-            cat.value: [{"path": r.path, "reason": r.reason} for r in results[cat]]
-            for cat in Category
-        }
+        output = {cat.value: [{"path": r.path, "reason": r.reason} for r in results[cat]] for cat in Category}
         print(json.dumps(output, indent=2))
     else:
         print_report(results)

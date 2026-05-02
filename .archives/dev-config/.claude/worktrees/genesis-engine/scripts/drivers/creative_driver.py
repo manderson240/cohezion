@@ -129,10 +129,7 @@ class CreativeDriver:
             self.state.update(avg)
 
         self.total_completed += len(inputs)
-        logger.info(
-            f"[CREATIVE] Batch completed. Total: {self.total_completed}. Crisis: {crisis['name']}"
-        )
-
+        logger.info(f"[CREATIVE] Batch completed. Total: {self.total_completed}. Crisis: {crisis['name']}")
 
 
 if __name__ == "__main__":

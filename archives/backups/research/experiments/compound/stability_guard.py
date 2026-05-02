@@ -6,11 +6,11 @@ If coherence < 0.5, it triggers a refinement loop via the Compound Executor.
 from __future__ import annotations
 
 import logging
-from typing import Any, Dict, Tuple
+
 from pydantic import BaseModel
 
-from cohezion.swarm.providers.gemma4_provider import GenerationResult
 from cohezion.flume.manifolds.translator import ManifoldProjection
+
 
 logger = logging.getLogger(__name__)
 

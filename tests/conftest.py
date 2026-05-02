@@ -14,6 +14,7 @@ from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
 
+
 # Block heavy ML libraries from loading their C extensions into this process at
 # import time.  sklearn (via transformers) and torch use different BLAS allocators;
 # loading them in the wrong order causes a SIGSEGV.  The segfault was traced to
@@ -37,6 +38,7 @@ if "transformers" not in sys.modules:
     # Import and expose PretrainedConfig/PreTrainedModel as real classes
     try:
         import transformers as _real_tr
+
         _mock_tr.PretrainedConfig = _real_tr.PretrainedConfig
         _mock_tr.PreTrainedModel = _real_tr.PreTrainedModel
     except Exception:

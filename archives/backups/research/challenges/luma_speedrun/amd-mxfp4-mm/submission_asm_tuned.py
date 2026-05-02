@@ -5,10 +5,11 @@
 
 import os
 
+
 os.environ["PYTORCH_ROCM_ARCH"] = "gfx950"
 
-import torch
 import aiter
+import torch
 from aiter import dtypes
 from aiter.ops.triton.quant import dynamic_mxfp4_quant
 from aiter.utility.fp4_utils import e8m0_shuffle

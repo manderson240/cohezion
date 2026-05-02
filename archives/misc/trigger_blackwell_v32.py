@@ -1,7 +1,9 @@
 import asyncio
-import os
 import logging
+import os
+
 from cohezion.integrations.kaggle_submission_improved import KaggleSubmissionOrchestrator
+
 
 logging.basicConfig(level=logging.INFO)
 

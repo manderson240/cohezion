@@ -182,9 +182,7 @@ class RedisSemanticCache(SemanticCache):
                 redis_key = self._get_redis_key(full_prompt)
                 data = self._redis_client.get(redis_key)
                 if data:
-                    response_dict = json.loads(
-                        data.decode() if isinstance(data, bytes) else data
-                    )
+                    response_dict = json.loads(data.decode() if isinstance(data, bytes) else data)
                     self.hits_l0 += 1
                     logger.debug(f"L0 hit for {prompt[:30]}...")
                     return response_dict.get("response")
@@ -273,9 +271,7 @@ class RedisSemanticCache(SemanticCache):
         stats["redis_endpoint"] = f"{self.redis_host}:{self.redis_port}"
 
         # Adjust overall hit rate to include L0 hits
-        total_hits = (
-            stats["l1_hits"] + stats["l2_hits"] + stats["l3_hits"] + self.hits_l0
-        )
+        total_hits = stats["l1_hits"] + stats["l2_hits"] + stats["l3_hits"] + self.hits_l0
         total_requests = stats["total_requests"] + self.hits_l0 + self.misses_l0
         if total_requests > 0:
             stats["overall_hit_rate"] = (total_hits / total_requests) * 100

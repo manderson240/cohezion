@@ -318,9 +318,7 @@ class ThermalTimeSeriesCollector:
             logger.debug(f"Failed to record batch thermal: {e}")
 
 
-def load_jsonl_history(
-    history_path: Path | None = None, days: int = 7
-) -> list[dict]:
+def load_jsonl_history(history_path: Path | None = None, days: int = 7) -> list[dict]:
     """Load thermal samples from JSONL (synchronous).
 
     Parameters

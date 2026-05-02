@@ -20,7 +20,7 @@ import time
 from dataclasses import dataclass, field
 from datetime import datetime
 from pathlib import Path
-from typing import Any, Dict, List, Optional
+from typing import Any
 
 from failure_logger import FailureLogger, FailureType
 from knower_auditor import KnowerAuditor
@@ -71,10 +71,10 @@ class CompoundState:
     best_coherence: float = 0.0
     failures_logged: int = 0
     mutations_applied: int = 0
-    thermal_events: List[Dict] = field(default_factory=list)
-    checkpoints: List[Dict] = field(default_factory=list)
+    thermal_events: list[dict] = field(default_factory=list)
+    checkpoints: list[dict] = field(default_factory=list)
 
-    def to_dict(self) -> Dict[str, Any]:
+    def to_dict(self) -> dict[str, Any]:
         return {
             "start_time": self.start_time,
             "cycles_completed": self.cycles_completed,
@@ -98,7 +98,7 @@ class AIMOCompoundDriver:
     - Failure-driven improvement
     """
 
-    def __init__(self, config: Optional[CompoundConfig] = None):
+    def __init__(self, config: CompoundConfig | None = None):
         self.config = config or self._default_config()
         self.config.journey_id = (
             self.config.journey_id or f"aimo_{datetime.now().strftime('%Y%m%d_%H%M%S')}"
@@ -122,7 +122,7 @@ class AIMOCompoundDriver:
         if self.config.enable_vault:
             self.vault_dir.mkdir(parents=True, exist_ok=True)
 
-        logger.info(f"AIMO Compound Driver initialized")
+        logger.info("AIMO Compound Driver initialized")
         logger.info(f"  Journey ID: {self.config.journey_id}")
         logger.info(f"  Duration: {self.config.duration_hours}h")
         logger.info(f"  Ralph threshold: {self.config.coherence_threshold}")
@@ -132,7 +132,7 @@ class AIMOCompoundDriver:
     def _default_config(self) -> CompoundConfig:
         return CompoundConfig()
 
-    def check_thermal_state(self) -> Dict[str, Any]:
+    def check_thermal_state(self) -> dict[str, Any]:
         """Check current thermal state."""
         # Simulated - would integrate with hardware_monitor in production
         return {
@@ -141,7 +141,7 @@ class AIMOCompoundDriver:
             "safe_to_continue": True,
         }
 
-    def save_checkpoint(self, cycle_result: Dict[str, Any]):
+    def save_checkpoint(self, cycle_result: dict[str, Any]):
         """Save checkpoint to disk and vault."""
         checkpoint = {
             "timestamp": time.time(),
@@ -164,7 +164,7 @@ class AIMOCompoundDriver:
         self.state.checkpoints.append(checkpoint)
         logger.info(f"  Checkpoint saved: cycle {self.state.cycles_completed}")
 
-    def load_latest_checkpoint(self) -> Optional[Dict[str, Any]]:
+    def load_latest_checkpoint(self) -> dict[str, Any] | None:
         """Load latest checkpoint for resume."""
         checkpoints = list(self.checkpoint_dir.glob("checkpoint_*.json"))
         if not checkpoints:
@@ -184,7 +184,7 @@ class AIMOCompoundDriver:
         )
         return passed, coherence
 
-    def log_failure(self, problem_id: str, failure_type: str, context: Dict[str, Any]):
+    def log_failure(self, problem_id: str, failure_type: str, context: dict[str, Any]):
         """Log failure to vault."""
         self.failure_logger.log_failure(
             failure_type=FailureType(failure_type),
@@ -196,7 +196,7 @@ class AIMOCompoundDriver:
         )
         self.state.failures_logged += 1
 
-    def propose_mutation(self, failures: List[Dict[str, Any]]) -> str:
+    def propose_mutation(self, failures: list[dict[str, Any]]) -> str:
         """Propose mutation based on failure analysis."""
         if not failures:
             return "No failures - maintain strategy"
@@ -224,7 +224,7 @@ class AIMOCompoundDriver:
         self.state.mutations_applied += 1
         return True
 
-    def run_benchmark(self, problem_ids: Optional[List[str]] = None) -> Dict[str, Any]:
+    def run_benchmark(self, problem_ids: list[str] | None = None) -> dict[str, Any]:
         """Run benchmark on reference problems."""
         from kaggle_benchmark_runner import KaggleBenchmarkRunner
 
@@ -259,7 +259,7 @@ class AIMOCompoundDriver:
         summary = runner._compute_summary(results)
         return summary
 
-    def run_cycle(self) -> Dict[str, Any]:
+    def run_cycle(self) -> dict[str, Any]:
         """Run single compound research cycle."""
         cycle_start = time.time()
         self.state.cycles_completed += 1
@@ -323,10 +323,10 @@ class AIMOCompoundDriver:
 
         return result
 
-    def run_journey(self) -> List[Dict[str, Any]]:
+    def run_journey(self) -> list[dict[str, Any]]:
         """Run complete compound research journey."""
         logger.info(f"\n{'=' * 60}")
-        logger.info(f"AIMO Compound Research Journey")
+        logger.info("AIMO Compound Research Journey")
         logger.info(f"{'=' * 60}")
         logger.info(f"Journey ID: {self.config.journey_id}")
         logger.info(f"Duration: {self.config.duration_hours}h")
@@ -361,10 +361,10 @@ class AIMOCompoundDriver:
 
         return results
 
-    def _print_summary(self, results: List[Dict[str, Any]]):
+    def _print_summary(self, results: list[dict[str, Any]]):
         """Print journey summary."""
         logger.info(f"\n{'=' * 60}")
-        logger.info(f"Journey Summary")
+        logger.info("Journey Summary")
         logger.info(f"{'=' * 60}")
         logger.info(f"Journey ID: {self.config.journey_id}")
         logger.info(f"Cycles: {len(results)}")
@@ -422,7 +422,7 @@ def main():
     results = driver.run_journey()
 
     print(f"\n{'=' * 60}")
-    print(f"Journey Complete")
+    print("Journey Complete")
     print(f"{'=' * 60}")
     print(f"Cycles: {len(results)}")
     if results:

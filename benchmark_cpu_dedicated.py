@@ -16,11 +16,14 @@ def main():
 
     # Find model file
     import glob
+
     model_files = glob.glob(MODEL_PATH)
     if not model_files:
         print("Model not found, using any available small model...")
         # Fallback to find any small GGUF
-        all_models = glob.glob("/var/lib/lemonade/.cache/huggingface/hub/**/Qwen*.gguf", recursive=True)
+        all_models = glob.glob(
+            "/var/lib/lemonade/.cache/huggingface/hub/**/Qwen*.gguf", recursive=True
+        )
         if all_models:
             model_path = all_models[0]
         else:
@@ -39,16 +42,21 @@ def main():
     proc = subprocess.Popen(
         [
             "/var/lib/lemonade/.cache/lemonade/bin/llamacpp/cpu/llama-server",
-            "-m", model_path,
-            "--port", "8005",
-            "-t", "16",  # 16 threads
-            "-ngl", "0",  # No GPU layers (CPU only)
-            "--ctx-size", "4096",
+            "-m",
+            model_path,
+            "--port",
+            "8005",
+            "-t",
+            "16",  # 16 threads
+            "-ngl",
+            "0",  # No GPU layers (CPU only)
+            "--ctx-size",
+            "4096",
             "-fa",  # Flash attention
         ],
         stdout=subprocess.DEVNULL,
         stderr=subprocess.DEVNULL,
-        env=env
+        env=env,
     )
 
     # Wait for server
@@ -79,14 +87,14 @@ def main():
                 json={
                     "model": "Qwen3-0.6B",
                     "messages": [{"role": "user", "content": f"Write haiku {i}"}],
-                    "max_tokens": 40
+                    "max_tokens": 40,
                 },
-                timeout=30
+                timeout=30,
             )
             data = resp.json()
             tokens = data.get("usage", {}).get("completion_tokens", 0)
             total_tokens += tokens
-            print(f"  Request {i+1}: {tokens} tokens")
+            print(f"  Request {i + 1}: {tokens} tokens")
         except Exception as e:
             print(f"  Error: {e}")
 
@@ -100,6 +108,7 @@ def main():
 
     proc.terminate()
     proc.wait()
+
 
 if __name__ == "__main__":
     main()

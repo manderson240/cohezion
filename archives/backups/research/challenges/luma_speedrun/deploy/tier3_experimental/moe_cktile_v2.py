@@ -13,8 +13,10 @@ Target: <130µs (aggressive improvement over ~154µs)
 """
 
 from __future__ import annotations
+
 import os
 import sys
+
 
 os.environ["AITER_USE_NT"] = "1"
 os.environ.setdefault("AITER_JIT_DIR", "/tmp/aiter_jit_cache")
@@ -25,10 +27,11 @@ if _AITER_JIT_DIR not in sys.path:
     sys.path.insert(0, _AITER_JIT_DIR)
 
 import torch
-from torch.utils.cpp_extension import load_inline
 from aiter import ActivationType, QuantType
 from aiter.fused_moe import fused_moe
 from task import input_t, output_t
+from torch.utils.cpp_extension import load_inline
+
 
 # ─── Advanced HIP Kernel: FlatMM Pattern with LDS Bridge ───────────────────
 # Inspired by CK-Tile flatmm composable primitives

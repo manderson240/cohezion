@@ -211,9 +211,7 @@ class OllamaEmbedder:
 class SimpleSurrealStore:
     """Minimal SurrealDB wrapper for document chunks."""
 
-    def __init__(
-        self, url: str = "ws://localhost:8000/rpc", namespace: str = "bmad", database: str = "docs"
-    ):
+    def __init__(self, url: str = "ws://localhost:8000/rpc", namespace: str = "bmad", database: str = "docs"):
         self.url = url
         self.namespace = namespace
         self.database = database
@@ -379,9 +377,7 @@ class DocumentIndexer:
             "total_tokens": total_tokens,
         }
 
-    async def retrieve(
-        self, query: str, library_id: str | None = None, max_tokens: int = 2000
-    ) -> dict:
+    async def retrieve(self, query: str, library_id: str | None = None, max_tokens: int = 2000) -> dict:
         """Retrieve relevant chunks for a query."""
         logger.info(f"Retrieving docs for: '{query}' from {library_id or 'all'}")
 
@@ -389,9 +385,7 @@ class DocumentIndexer:
         query_embedding = await self.embedder.embed(query)
 
         # Search
-        chunks = await self.store.search_similar(
-            query_embedding, library_id, limit=10, max_tokens=max_tokens
-        )
+        chunks = await self.store.search_similar(query_embedding, library_id, limit=10, max_tokens=max_tokens)
 
         total_tokens = sum(c.token_count for c in chunks)
 

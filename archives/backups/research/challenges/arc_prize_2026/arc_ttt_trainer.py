@@ -1,7 +1,7 @@
-import torch
-import torch.optim as optim
-import torch.nn.functional as F
 import numpy as np
+import torch
+import torch.nn.functional as F
+import torch.optim as optim
 from arc_jepa import ARCWorldModel
 
 

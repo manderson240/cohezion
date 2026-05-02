@@ -7,7 +7,9 @@ import re
 from dataclasses import dataclass
 from typing import Any
 
+
 logger = logging.getLogger(__name__)
+
 
 @dataclass
 class FailureAnalysis:
@@ -15,6 +17,7 @@ class FailureAnalysis:
     suggested_mutation: str
     learning_id: str
     is_recoverable: bool
+
 
 class OuroborosFailureAnalyzer:
     """Analyzes execution logs to extract learnings and suggest self-healing mutations."""
@@ -24,7 +27,7 @@ class OuroborosFailureAnalyzer:
 
     def analyze(self, logs: str, target: str) -> FailureAnalysis:
         """Analyze logs and return actionable insights."""
-        
+
         # Heuristic-based analysis fallback if no model provider
         root_cause = "Unknown failure"
         suggested_mutation = "Investigate log context"
@@ -46,12 +49,13 @@ class OuroborosFailureAnalyzer:
             suggested_mutation = "Switch to stable Transformers backend or match PyTorch versions"
 
         logger.info(f"[Ouroboros] Failure analyzed: {root_cause}")
-        
+
         return FailureAnalysis(
             root_cause=root_cause,
             suggested_mutation=suggested_mutation,
             learning_id=f"ouro_{target}_{int(time.time())}",
-            is_recoverable=is_recoverable
+            is_recoverable=is_recoverable,
         )
+
 
 import time

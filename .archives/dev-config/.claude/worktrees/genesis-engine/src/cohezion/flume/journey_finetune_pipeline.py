@@ -48,9 +48,7 @@ class JourneyToFinetuneConverter:
         logger.info(f"High-quality journeys: {len(high_quality)}/{len(experiences)}")
 
         if len(high_quality) < 10:
-            logger.warning(
-                f"Only {len(high_quality)} high-quality samples, padding with synthetic..."
-            )
+            logger.warning(f"Only {len(high_quality)} high-quality samples, padding with synthetic...")
             high_quality = self._pad_with_synthetic(high_quality, max_samples)
 
         # Convert to finetuning format
@@ -92,9 +90,7 @@ class JourneyToFinetuneConverter:
                             "skill": skill,
                             "phi_score": phi,
                             "mission": mission,
-                            "trajectory_12d": trajectory[:12]
-                            if isinstance(trajectory, list)
-                            else [],
+                            "trajectory_12d": trajectory[:12] if isinstance(trajectory, list) else [],
                         },
                     }
                 )
@@ -122,11 +118,7 @@ Response format: Show your reasoning, code, and verification steps."""
         convergence = exp.get("trajectory_convergence", 0.0)
 
         trajectory = exp.get("trajectory", [])
-        traj_str = (
-            ", ".join([f"{v:.3f}" for v in trajectory[:6]])
-            if isinstance(trajectory, list)
-            else "unknown"
-        )
+        traj_str = ", ".join([f"{v:.3f}" for v in trajectory[:6]]) if isinstance(trajectory, list) else "unknown"
 
         return f"""## Execution Result
 

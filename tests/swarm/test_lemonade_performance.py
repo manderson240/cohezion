@@ -6,20 +6,20 @@ to validate AMD Lemonade Challenge requirements.
 from __future__ import annotations
 
 import asyncio
-import time
 import logging
+from unittest.mock import MagicMock
+
 import numpy as np
-from typing import Any, Dict, List
 from pydantic import BaseModel
 
-from cohezion.swarm.providers.gemma4_provider import Gemma4Provider, GenerationResult
+from cohezion.agents.specialists.ecoresilience_agent import EcoResilienceAgent
+from cohezion.compound.executor import CompoundExecutor
+from cohezion.compound.resilience_loop import EcoResilienceCompoundLoop
+from cohezion.compound.stability_guard import HIHOStabilityGuard
 from cohezion.flume.manifolds.translator import ManifoldTranslator
 from cohezion.flume.vae_encoder import FlumeVAEEncoder
-from cohezion.agents.specialists.ecoresilience_agent import EcoResilienceAgent
-from cohezion.compound.stability_guard import HIHOStabilityGuard
-from cohezion.compound.resilience_loop import EcoResilienceCompoundLoop
-from cohezion.compound.executor import CompoundExecutor
-from unittest.mock import MagicMock
+from cohezion.swarm.providers.gemma4_provider import Gemma4Provider, GenerationResult
+
 
 logging.basicConfig(level=logging.INFO, format="%(levelname)s: %(message)s")
 logger = logging.getLogger(__name__)
@@ -36,7 +36,7 @@ class SwarmBenchmark:
     """Benchmarks the end-to-end latency and throughput of the EcoResilience loop."""
 
     def __init__(self):
-        self.results: List[BenchmarkResult] = []
+        self.results: list[BenchmarkResult] = []
 
         # Setup Infrastructure
         self.provider = Gemma4Provider({"timeout": 300})

@@ -79,25 +79,23 @@ class LemonadeProvider(ModelProvider):
 
         try:
             async with session.post(
-                f"{self.base_url}/v1/chat/completions",
-                json=payload,
-                timeout=self.timeout
+                f"{self.base_url}/v1/chat/completions", json=payload, timeout=self.timeout
             ) as resp:
                 resp.raise_for_status()
                 data = await resp.json()
-                
+
                 content = data["choices"][0]["message"]["content"]
                 usage = data.get("usage", {})
-                
+
                 latency_ms = (time.monotonic() - start_time) * 1000
-                
+
                 return GenerationResult(
                     text=content,
                     model=model,
                     latency_ms=latency_ms,
                     input_tokens=usage.get("prompt_tokens", 0),
                     output_tokens=usage.get("completion_tokens", 0),
-                    success=True
+                    success=True,
                 )
         except Exception as e:
             logger.error("Lemonade generation failed: %s", e)
@@ -106,7 +104,7 @@ class LemonadeProvider(ModelProvider):
                 model=model,
                 latency_ms=(time.monotonic() - start_time) * 1000,
                 success=False,
-                error=str(e)
+                error=str(e),
             )
 
     async def close(self) -> None:

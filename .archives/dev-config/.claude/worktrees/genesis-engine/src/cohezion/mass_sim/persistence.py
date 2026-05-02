@@ -21,7 +21,6 @@ if TYPE_CHECKING:
     )
 
 
-
 logger = logging.getLogger(__name__)
 
 # New tables for mass simulation

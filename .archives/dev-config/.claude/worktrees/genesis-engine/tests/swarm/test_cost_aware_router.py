@@ -67,9 +67,7 @@ class TestQueryComplexityAnalyzer:
         for query in non_simple_queries:
             complexity = analyzer.analyze(query)
             # Medium or complex is acceptable - should not be simple
-            assert complexity in [QueryComplexity.MEDIUM, QueryComplexity.COMPLEX], (
-                f"Failed for: {query}"
-            )
+            assert complexity in [QueryComplexity.MEDIUM, QueryComplexity.COMPLEX], f"Failed for: {query}"
 
     def test_token_estimation(self):
         """Test token estimation accuracy."""
@@ -81,9 +79,7 @@ class TestQueryComplexityAnalyzer:
         assert 1 <= est_short <= 10
 
         # Medium query: ~20-40 tokens
-        medium = (
-            "Write a Python function to calculate fibonacci numbers recursively with memoization"
-        )
+        medium = "Write a Python function to calculate fibonacci numbers recursively with memoization"
         est_medium = analyzer._estimate_tokens(medium)
         assert 10 <= est_medium <= 50
 
@@ -112,13 +108,7 @@ class TestQueryComplexityAnalyzer:
         assert stats["simple_pct"] > 0  # At least 2 simple queries
         assert stats["medium_pct"] >= 0  # May have medium
         # Don't require complex since it's keyword-dependent
-        assert (
-            abs(
-                sum([stats["simple_pct"], stats["medium_pct"], stats["complex_pct"]])
-                - 100.0
-            )
-            < 0.1
-        )
+        assert abs(sum([stats["simple_pct"], stats["medium_pct"], stats["complex_pct"]]) - 100.0) < 0.1
 
 
 class TestCostAwareRouter:
@@ -195,9 +185,7 @@ class TestCostAwareRouter:
     def test_cost_tracking(self, router):
         """Test cost recording and aggregation."""
         router.record_execution("phi3:mini", actual_tokens=150, duration_ms=1000.0)
-        router.record_execution(
-            "qwen3-coder:32b", actual_tokens=300, duration_ms=2000.0
-        )
+        router.record_execution("qwen3-coder:32b", actual_tokens=300, duration_ms=2000.0)
         router.record_execution("deepseek-r1:8b", actual_tokens=600, duration_ms=5000.0)
 
         # All local models should have $0 cost
@@ -353,9 +341,7 @@ class TestCostAwareRouterChaosTest:
 
             if can_proceed:
                 # Simulate execution
-                router.record_execution(
-                    decision.model, decision.estimated_tokens, 100.0
-                )
+                router.record_execution(decision.model, decision.estimated_tokens, 100.0)
 
         # Check enforcer state
         budget_ok, _ = enforcer.check_budget(tracker.total_cost_usd)

@@ -18,7 +18,8 @@ import contextlib
 import dataclasses
 import functools
 import uuid
-from typing import Any, Iterator, Self
+from collections.abc import Iterator
+from typing import Any, Self
 
 from kaggle_benchmarks import actors, events, utils
 from kaggle_benchmarks.messages import Message
@@ -31,9 +32,7 @@ class Chat:
 
     history: list[Message | Self] = dataclasses.field(default_factory=list)
     name: str = "chat"
-    _id_suffix: str = dataclasses.field(
-        default_factory=lambda: uuid.uuid4().hex[:8], init=False
-    )
+    _id_suffix: str = dataclasses.field(default_factory=lambda: uuid.uuid4().hex[:8], init=False)
     sender: actors.Actor = actors.system  # added to mach Message's structural type
 
     _status: utils.Status = utils.Status.PENDING
@@ -121,9 +120,7 @@ def emits_message(func):
             if result not in chat.history:
                 chat.append(result)
         else:
-            chat.append(
-                Message(result, sender=self, is_visible_to_llm=is_visible_to_llm)
-            )
+            chat.append(Message(result, sender=self, is_visible_to_llm=is_visible_to_llm))
         return result
 
     return wrapper

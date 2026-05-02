@@ -19,8 +19,8 @@ from __future__ import annotations
 
 import csv
 import os
-import sys
 from pathlib import Path
+
 
 PROJECT_ROOT = Path(os.environ.get("PROJECT_ROOT", Path.cwd()))
 BMAD_DIR = PROJECT_ROOT / "_bmad"
@@ -45,6 +45,7 @@ WARN = "\033[33m⚠\033[0m"
 
 # ── Check 1: Symlink Consistency ──────────────────────────────────────────────
 
+
 def check_symlinks() -> bool:
     """All .pi/skills/bmad-* must be valid symlinks to .claude/skills/bmad-*."""
     pi_skills = PROJECT_ROOT / ".pi" / "skills"
@@ -53,7 +54,9 @@ def check_symlinks() -> bool:
 
     for link in sorted(pi_skills.glob("bmad-*")):
         if not link.is_symlink():
-            print(f"  {WARN} {link.name} — not a symlink (should point to .claude/skills/{link.name})")
+            print(
+                f"  {WARN} {link.name} — not a symlink (should point to .claude/skills/{link.name})"
+            )
             ok = False
             continue
 
@@ -66,7 +69,9 @@ def check_symlinks() -> bool:
         # Verify it points to .claude/skills/ (canonical source)
         expected_parent = claude_skills.resolve()
         if target.parent != expected_parent:
-            print(f"  {WARN} {link.name} — points to {target.parent.name}/ instead of .claude/skills/")
+            print(
+                f"  {WARN} {link.name} — points to {target.parent.name}/ instead of .claude/skills/"
+            )
         else:
             print(f"  {WIRED} {link.name} → .claude/skills/{link.name}")
 
@@ -74,6 +79,7 @@ def check_symlinks() -> bool:
 
 
 # ── Check 2: Catalog Schema ────────────────────────────────────────────────────
+
 
 def check_catalog_schema() -> bool:
     """bmad-help.csv must have the expected column headers."""
@@ -90,10 +96,24 @@ def check_catalog_schema() -> bool:
                 return False
 
             # v6.3.0 standard headers
-            expected = {"module", "phase", "name", "code", "sequence", "workflow-file",
-                        "command", "required", "agent-name", "agent-command",
-                        "agent-display-name", "agent-title", "options", "description",
-                        "output-location", "outputs"}
+            expected = {
+                "module",
+                "phase",
+                "name",
+                "code",
+                "sequence",
+                "workflow-file",
+                "command",
+                "required",
+                "agent-name",
+                "agent-command",
+                "agent-display-name",
+                "agent-title",
+                "options",
+                "description",
+                "output-location",
+                "outputs",
+            }
 
             missing = expected - set(headers)
             if missing:
@@ -106,8 +126,12 @@ def check_catalog_schema() -> bool:
             if rows:
                 first_phase = rows[0].get("phase", "")
                 if first_phase.startswith("bmad-"):
-                    print(f"  {BROKE} bmad-help.csv has v6.3.0 column shift — 'phase' column contains skill IDs")
-                    print(f"         Run: cp .worktrees/*/bmad/_bmad/_config/bmad-help.csv _bmad/_config/")
+                    print(
+                        f"  {BROKE} bmad-help.csv has v6.3.0 column shift — 'phase' column contains skill IDs"
+                    )
+                    print(
+                        "         Run: cp .worktrees/*/bmad/_bmad/_config/bmad-help.csv _bmad/_config/"
+                    )
                     return False
 
             return True
@@ -117,6 +141,7 @@ def check_catalog_schema() -> bool:
 
 
 # ── Check 3: Phase Lock Integrity ──────────────────────────────────────────────
+
 
 def check_phase_locks() -> bool:
     """Phase lock files must be consistent (owned session matches branch)."""
@@ -140,10 +165,11 @@ def check_phase_locks() -> bool:
 
 # ── Check 4: Artifact Frontmatter ──────────────────────────────────────────────
 
+
 def check_artifact_frontmatter() -> bool:
     """Planning artifacts should have BMAD frontmatter with stepsCompleted."""
     if not PLANNING_DIR.exists():
-        print(f"  ·  No planning-artifacts/ directory yet")
+        print("  ·  No planning-artifacts/ directory yet")
         return True
 
     ok = True
@@ -166,6 +192,7 @@ def check_artifact_frontmatter() -> bool:
 
 # ── Check 5: Manifest Sync ────────────────────────────────────────────────────
 
+
 def check_manifest_sync() -> bool:
     """The BMAD manifest should reflect what's actually on disk."""
     manifest_path = BMAD_DIR / "_config" / "manifest.yaml"
@@ -184,13 +211,16 @@ def check_manifest_sync() -> bool:
         with open(skill_manifest, newline="", encoding="utf-8") as f:
             csv_lines = sum(1 for _ in csv.DictReader(f))
         if csv_lines != len(bmad_skills):
-            print(f"  {WARN} skill-manifest.csv has {csv_lines} entries but {len(bmad_skills)} skills on disk")
+            print(
+                f"  {WARN} skill-manifest.csv has {csv_lines} entries but {len(bmad_skills)} skills on disk"
+            )
         else:
             print(f"  {WIRED} skill-manifest.csv in sync ({csv_lines} entries)")
     return True
 
 
 # ── Main ─────────────────────────────────────────────────────────────────────────
+
 
 def main() -> int:
     """Run all BMAD guard checks. Returns 0 on pass, 1 on hard failure."""

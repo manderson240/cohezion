@@ -47,20 +47,21 @@ Expected Performance:
 """
 
 from __future__ import annotations
+
 import os
-import math
+
 
 os.environ["PYTORCH_ROCM_ARCH"] = "gfx950"
 os.environ["CXX"] = "clang++"
 
+import aiter
 import torch
 import torch.fft as fft
-from task import input_t, output_t
-
-import aiter
 from aiter import dtypes as aiter_dtypes
 from aiter.ops.triton.quant import dynamic_mxfp4_quant
 from aiter.utility.fp4_utils import e8m0_shuffle
+from task import input_t, output_t
+
 
 # FFT configuration
 FFT_BLOCK_SIZE = 256  # Size for FFT-based multiplication

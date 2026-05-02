@@ -9,15 +9,16 @@ Optimizations:
 
 import os
 
+
 # Force aiter to bypass cached tune configs and re-tune for these shapes
 os.environ["AITER_BYPASS_TUNE_CONFIG"] = "1"
 
-import torch
 import aiter
 from aiter import dtypes
 from aiter.ops.triton.quant import dynamic_mxfp4_quant
 from aiter.utility.fp4_utils import e8m0_shuffle
 from task import input_t, output_t
+
 
 # Cache for pre-allocated output tensors
 _out_cache: dict = {}

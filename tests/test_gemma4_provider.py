@@ -1,6 +1,6 @@
 """Tests for Gemma4Provider — Google Gemma 4 model provider implementation."""
 
-from unittest.mock import AsyncMock, MagicMock, patch
+from unittest.mock import AsyncMock, MagicMock
 
 import pytest
 

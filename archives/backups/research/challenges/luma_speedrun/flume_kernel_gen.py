@@ -9,8 +9,7 @@ space systematically, guided by our discovered constraints.
 """
 
 import subprocess
-import json
-import os
+
 
 OLLAMA_MODELS = [
     "deepseek-v3.2:cloud",  # Strong reasoning

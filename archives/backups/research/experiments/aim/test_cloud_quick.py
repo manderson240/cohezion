@@ -17,7 +17,7 @@ def main():
     print("=" * 60)
     print("QUICK CLOUD VALIDATION")
     print("=" * 60)
-    print(f"Model: qwen3.5:cloud")
+    print("Model: qwen3.5:cloud")
     print(f"Testing {len(TEST_PROBLEMS)} trivial problems...\n")
 
     # Use cloud model for fast validation

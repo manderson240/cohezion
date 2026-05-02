@@ -274,8 +274,10 @@ class SelfHealingSystem:
 
         # Check Heartbeats
         try:
-            from cohezion.reliability.heartbeat import get_heartbeats
             import time
+
+            from cohezion.reliability.heartbeat import get_heartbeats
+
             heartbeats = get_heartbeats()
             current_time = time.time()
             for daemon, ts in heartbeats.items():

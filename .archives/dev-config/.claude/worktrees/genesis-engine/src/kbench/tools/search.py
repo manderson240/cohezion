@@ -35,9 +35,7 @@ class SearchBackendWikipedia(SearchBackendBase):
         self.language = language
         self.client = utils.build_httpx_client("wikipedia")
 
-    def search_wikipedia_articles(
-        self, search_query: str, number_of_results=10
-    ) -> list[dict[str, str]]:
+    def search_wikipedia_articles(self, search_query: str, number_of_results=10) -> list[dict[str, str]]:
         """Searches for Wikipedia articles based on a query.
 
         Args:

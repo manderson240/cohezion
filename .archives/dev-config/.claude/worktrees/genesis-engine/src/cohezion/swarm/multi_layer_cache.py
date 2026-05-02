@@ -167,9 +167,7 @@ class SemanticCacheStore:
         if not self._entries:
             return
 
-        lru_key = min(
-            self._entries.keys(), key=lambda k: self._entries[k].last_accessed
-        )
+        lru_key = min(self._entries.keys(), key=lambda k: self._entries[k].last_accessed)
         del self._entries[lru_key]
         del self._embeddings[lru_key]
         self._stats["evictions"] += 1

@@ -4,11 +4,13 @@
 import sys
 from pathlib import Path
 
+
 sys.path.insert(0, str(Path(__file__).parent.parent / "src"))
 
-from cohezion.compound.executor import CompoundExecutor, ExecutorFactory
+from cohezion.compound.executor import CompoundExecutor
 from cohezion.core.mcp_client import MCPClient, MCPConfig
 from cohezion.registry.skill_registry import search_skills
+
 
 def test_skill_lookup():
     """Test skill registry queries."""
@@ -25,6 +27,7 @@ def test_skill_lookup():
     print(f"\nFound {len(results)} skills for 'compound engineering':")
     for r in results[:3]:
         print(f"  - {r['name']}: {r['description'][:60]}...")
+
 
 def test_compound_executor():
     """Test compound executor initialization."""
@@ -47,7 +50,7 @@ def test_compound_executor():
         enable_alignment_analysis=True,
     )
 
-    print(f"Executor created successfully")
+    print("Executor created successfully")
     print(f"  - Skill refiner: {executor.skill_refiner is not None}")
     print(f"  - Guardrails: {executor.guardrail_pipeline is not None}")
     print(f"  - Alignment analyzer: {executor.alignment_analyzer is not None}")
@@ -58,7 +61,7 @@ def test_compound_executor():
         task_description="Optimize AMD GPU kernels for MoE inference",
         operation_type="generate",
         project="genesis-engine",
-        top_k=3
+        top_k=3,
     )
     print(f"Suggested {len(suggestions)} skills:")
     for skill, score in suggestions:
@@ -67,12 +70,12 @@ def test_compound_executor():
     # Test experience guidance
     print("\n--- Testing Experience Guidance ---")
     guidance = executor.get_experience_guidance(
-        task_description="AMD GPU kernel optimization",
-        project="genesis-engine"
+        task_description="AMD GPU kernel optimization", project="genesis-engine"
     )
     print(f"Guidance keys: {list(guidance.keys())}")
 
     print("\n✅ All tests passed!")
+
 
 def main():
     print("=" * 60)
@@ -85,6 +88,7 @@ def main():
     print("\n" + "=" * 60)
     print("🚀 Genesis Engine components are operational!")
     print("=" * 60)
+
 
 if __name__ == "__main__":
     main()

@@ -5,6 +5,7 @@ import time
 
 import polars as pl
 
+
 # Add official classes to path
 sys.path.insert(0, os.path.join(os.getcwd(), "input"))
 from base_specialist import BaseSpecialist
@@ -13,6 +14,7 @@ from knower_auditor import KnowerAuditor
 
 # Import our local components
 from swarm_coordinator import SwarmCoordinator
+
 
 # Global state for production swarm
 _coordinator = None

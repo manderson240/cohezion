@@ -1,6 +1,6 @@
 import os
 import sys
-import subprocess
+
 
 print("=== Kaggle Environment Check ===")
 print(f"Python version: {sys.version}")

@@ -137,9 +137,7 @@ class CharterAlignedSkillScorer:
         except Exception as e:
             logger.warning("Failed to persist skill metric to SurrealDB: %s", e)
 
-    async def get_trending_skills(
-        self, days: int = 7, limit: int = 10
-    ) -> list[CharterSkillScore]:
+    async def get_trending_skills(self, days: int = 7, limit: int = 10) -> list[CharterSkillScore]:
         """Get top skills by Charter-aligned effectiveness over time period."""
 
         end_date = datetime.now()

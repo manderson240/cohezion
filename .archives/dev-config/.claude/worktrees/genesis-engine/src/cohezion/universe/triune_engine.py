@@ -66,9 +66,7 @@ class TriuneSimulationEngine:
 
         # 3. Persistence
         try:
-            await self.surreal_logger.log_trajectory(
-                trajectory_id=trajectory_id, state=self.state, coherence=coherence
-            )
+            await self.surreal_logger.log_trajectory(trajectory_id=trajectory_id, state=self.state, coherence=coherence)
 
             await self.obsidian_mcp.store_state_summary(
                 trajectory_id=trajectory_id, state=self.state, coherence=coherence

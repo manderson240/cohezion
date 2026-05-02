@@ -26,14 +26,16 @@ Grouped Query: "GQA: Training Generalized Multi-Query Transformer Models" (Ainsl
 """
 
 from __future__ import annotations
+
+import math
 import os
 import sys
-import math
+from typing import Literal
+
 import torch
 import torch.nn.functional as F
-from typing import Literal, Optional
-from aiter import dtypes as aiter_dtypes
 from task import input_t, output_t
+
 
 os.environ["AITER_MLA_USE_PERSISTENT"] = "1"
 os.environ["AITER_USE_NT"] = "1"
@@ -61,7 +63,7 @@ class MultiQueryAttention:
         self,
         num_heads: int,
         head_dim: int,
-        num_kv_heads: Optional[int] = None,
+        num_kv_heads: int | None = None,
         mode: Literal["mqa", "gqa", "mha"] = "gqa",
     ):
         """
@@ -131,7 +133,7 @@ class MultiQueryAttention:
         q: torch.Tensor,
         k: torch.Tensor,
         v: torch.Tensor,
-        scale: Optional[float] = None,
+        scale: float | None = None,
         causal: bool = True,
     ) -> torch.Tensor:
         """
@@ -197,7 +199,7 @@ class MultiQueryAttention:
 
 
 # Global MQA instance
-_MQA_INSTANCE: Optional[MultiQueryAttention] = None
+_MQA_INSTANCE: MultiQueryAttention | None = None
 
 
 def _get_mqa(num_heads: int, head_dim: int) -> MultiQueryAttention:

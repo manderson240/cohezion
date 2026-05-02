@@ -61,10 +61,7 @@ async def demo_hitl_steering():
     )
 
     result = await coordinator.broadcast_intent(mission)
-    print(
-        f"\n[SYSTEM PULSE]\nStatus: {result['status']}\nAlignment: {result['consensus_strength']}"
-    )
-
+    print(f"\n[SYSTEM PULSE]\nStatus: {result['status']}\nAlignment: {result['consensus_strength']}")
 
 
 if __name__ == "__main__":

@@ -1,12 +1,12 @@
 import asyncio
-import os
 import logging
 import time
-from datetime import datetime, timedelta
+from datetime import datetime
 from pathlib import Path
 
+from cohezion.core.persistence.surreal_client import PhysicsState, SurrealClient, UniverseNode
 from cohezion.integrations.kaggle_api import KaggleAPI
-from cohezion.core.persistence.surreal_client import SurrealClient, UniverseNode, PhysicsState
+
 
 # Setup logging
 LOG_DIR = Path("logs/overnight")

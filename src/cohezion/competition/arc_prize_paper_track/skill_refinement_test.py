@@ -19,7 +19,8 @@ import json
 import random
 import sys
 from pathlib import Path
-from typing import Any, Dict, List, Tuple
+from typing import Any
+
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 
@@ -38,7 +39,7 @@ def task_signature(task: dict) -> str:
     return f"{inp_h}x{inp_w}_to_{out_h}x{out_w}_c{colors}"
 
 
-def run_with_fixed_strategies(tasks: list, budget: int = 2000) -> Tuple[int, int]:
+def run_with_fixed_strategies(tasks: list, budget: int = 2000) -> tuple[int, int]:
     """Run solver with fixed _select_strategies."""
     solved = 0
     for task in tasks:
@@ -46,7 +47,10 @@ def run_with_fixed_strategies(tasks: list, budget: int = 2000) -> Tuple[int, int
             ops = arc_solver.get_all_ops(task["train"])
             program = arc_solver.search_program(task["train"], max_depth=3, ops=ops, budget=budget)
             if program and all(
-                grids_equal(arc_solver.apply_program(arc_solver.deepcopy_grid(ex["input"]), program), ex["output"])
+                grids_equal(
+                    arc_solver.apply_program(arc_solver.deepcopy_grid(ex["input"]), program),
+                    ex["output"],
+                )
                 for ex in task["train"]
             ):
                 solved += 1
@@ -57,11 +61,11 @@ def run_with_fixed_strategies(tasks: list, budget: int = 2000) -> Tuple[int, int
 
 def run_with_skill_refinement(
     train_tasks: list, test_tasks: list, budget: int = 2000
-) -> Dict[str, Any]:
+) -> dict[str, Any]:
     """Run solver where test_tasks benefit from strategy mapping learned on train_tasks."""
 
     # Phase 1: Learn from train tasks
-    strategy_success: Dict[str, List[str]] = {}
+    strategy_success: dict[str, list[str]] = {}
 
     for task in train_tasks:
         try:
@@ -91,9 +95,10 @@ def run_with_skill_refinement(
             pass
 
     # Build most-common strategy per signature
-    learned_strategies: Dict[str, str] = {}
+    learned_strategies: dict[str, str] = {}
     for sig, names in strategy_success.items():
         from collections import Counter
+
         most_common = Counter(names).most_common(1)
         if most_common:
             learned_strategies[sig] = most_common[0][0]
@@ -129,7 +134,9 @@ def run_with_skill_refinement(
         "baseline_solved": baseline_solved,
         "learned_solved": learned_solved,
         "improvement": learned_solved - baseline_solved,
-        "improvement_pct": round((learned_solved - baseline_solved) / max(len(test_tasks), 1) * 100, 1),
+        "improvement_pct": round(
+            (learned_solved - baseline_solved) / max(len(test_tasks), 1) * 100, 1
+        ),
     }
 
 
@@ -156,8 +163,8 @@ if __name__ == "__main__":
 
     # Baseline
     baseline_solved, total = run_with_fixed_strategies(test[:50], budget=1000)
-    print(f"\nBaseline (first 50 test tasks, budget=1000):")
-    print(f"  Solved: {baseline_solved}/{total} = {baseline_solved/total*100:.1f}%")
+    print("\nBaseline (first 50 test tasks, budget=1000):")
+    print(f"  Solved: {baseline_solved}/{total} = {baseline_solved / total * 100:.1f}%")
 
     # Refined
     result = run_with_skill_refinement(train, test[:50], budget=1000)

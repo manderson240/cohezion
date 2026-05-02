@@ -38,7 +38,5 @@ class GeminiSpecialist(PlatformSpecialist):
             "Local Gemma 4 provider is preferred for Google-flavored prompts when available.",
         ),
         prime_skill_ref="src/cohezion/skills/gemini-specialist.md",
-        canonical_modules=(
-            "cohezion.swarm.providers.gemma4_provider",
-        ),
+        canonical_modules=("cohezion.swarm.providers.gemma4_provider",),
     )

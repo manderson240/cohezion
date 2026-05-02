@@ -11,12 +11,14 @@ from __future__ import annotations
 
 import random
 from collections import deque
-from typing import Any, Dict, List, Optional, Tuple
+from typing import Any
 
 import numpy as np
 
 
-def find_regions(grid: List[List[int]], min_size: int = 4, max_size: int = 256) -> List[Dict[str, Any]]:
+def find_regions(
+    grid: list[list[int]], min_size: int = 4, max_size: int = 256
+) -> list[dict[str, Any]]:
     """Find connected-component regions in the grid."""
     arr = np.array(grid)
     h, w = arr.shape
@@ -44,17 +46,19 @@ def find_regions(grid: List[List[int]], min_size: int = 4, max_size: int = 256) 
             if min_size <= len(pixels) <= max_size:
                 xs = [p[0] for p in pixels]
                 ys = [p[1] for p in pixels]
-                regions.append({
-                    "color": int(color),
-                    "pixels": len(pixels),
-                    "center_x": int(sum(xs) / len(xs)),
-                    "center_y": int(sum(ys) / len(ys)),
-                    "bbox": (min(xs), min(ys), max(xs), max(ys)),
-                })
+                regions.append(
+                    {
+                        "color": int(color),
+                        "pixels": len(pixels),
+                        "center_x": int(sum(xs) / len(xs)),
+                        "center_y": int(sum(ys) / len(ys)),
+                        "bbox": (min(xs), min(ys), max(xs), max(ys)),
+                    }
+                )
     return regions
 
 
-def find_player(grid: List[List[int]]) -> Optional[Tuple[int, int]]:
+def find_player(grid: list[list[int]]) -> tuple[int, int] | None:
     """Find player as a small non-background region near center."""
     regions = find_regions(grid, min_size=1, max_size=16)
     if not regions:
@@ -75,7 +79,9 @@ def find_player(grid: List[List[int]]) -> Optional[Tuple[int, int]]:
     return (best["center_x"], best["center_y"])
 
 
-def find_target_regions(grid: List[List[int]], player_pos: Optional[Tuple[int, int]]) -> List[Dict[str, Any]]:
+def find_target_regions(
+    grid: list[list[int]], player_pos: tuple[int, int] | None
+) -> list[dict[str, Any]]:
     """Find regions that might be targets (exits, keys, etc.)."""
     regions = find_regions(grid, min_size=2, max_size=64)
     if not regions or player_pos is None:
@@ -99,18 +105,19 @@ class GoalAwareExplorer:
     def __init__(self, game_id: str, max_actions: int = 400):
         self.game_id = game_id
         self.max_actions = max_actions
-        self.action_effects: Dict[str, Dict[str, Any]] = {}
+        self.action_effects: dict[str, dict[str, Any]] = {}
         self.tested: set = set()
-        self.player_positions: List[Tuple[int, int]] = []
+        self.player_positions: list[tuple[int, int]] = []
         self.explored = False
         self.phase = "EXPLORATION"  # EXPLORATION -> NAVIGATION -> INTERACTION
-        self.target_regions: List[Dict[str, Any]] = []
-        self.current_target: Optional[Tuple[int, int]] = None
+        self.target_regions: list[dict[str, Any]] = []
+        self.current_target: tuple[int, int] | None = None
         self.stuck_counter = 0
 
     def observe(self, action_name: str, prev_grid: Any, next_grid: Any, obs: Any) -> None:
         """Observe effect of an action."""
         import numpy as np
+
         prev_arr = np.array(prev_grid) if prev_grid is not None else np.array([])
         next_arr = np.array(next_grid) if next_grid is not None else np.array([])
 
@@ -140,12 +147,14 @@ class GoalAwareExplorer:
         if next_grid is not None:
             self.target_regions = find_target_regions(next_grid, next_player)
 
-    def choose_action(self, available_actions: List[Any], obs: Any) -> Any:
+    def choose_action(self, available_actions: list[Any], obs: Any) -> Any:
         """Choose action based on current phase."""
         from arcengine import GameAction
 
         names = [a.name for a in available_actions]
-        simple_actions = [a for a in available_actions if a.name.startswith("ACTION") and a.name != "ACTION6"]
+        simple_actions = [
+            a for a in available_actions if a.name.startswith("ACTION") and a.name != "ACTION6"
+        ]
 
         # Phase 1: Systematic exploration
         if not self.explored:
@@ -210,7 +219,7 @@ class GoalAwareExplorer:
         return GameAction.RESET
 
 
-def run_goal_aware_explorer(game_id: str, max_actions: int = 400) -> Dict[str, Any]:
+def run_goal_aware_explorer(game_id: str, max_actions: int = 400) -> dict[str, Any]:
     """Run one episode with the goal-aware explorer."""
     import arc_agi
     from arcengine import GameAction, GameState
@@ -251,15 +260,18 @@ def run_goal_aware_explorer(game_id: str, max_actions: int = 400) -> Dict[str, A
 
 if __name__ == "__main__":
     import logging
+
     logging.basicConfig(level=logging.INFO, format="%(levelname)s: %(message)s")
 
     results = []
     for game_id in ["r11l", "ls20", "lp85"]:
         result = run_goal_aware_explorer(game_id)
         results.append(result)
-        print(f"\n{game_id}: wins={result['wins']}, score={result['score']}, "
-              f"actions={result['actions']}, phase={result['phase']}, "
-              f"targets={result['targets_found']}, stuck={result['stuck']}")
+        print(
+            f"\n{game_id}: wins={result['wins']}, score={result['score']}, "
+            f"actions={result['actions']}, phase={result['phase']}, "
+            f"targets={result['targets_found']}, stuck={result['stuck']}"
+        )
 
     # Compute average score for METRIC
     total_score = sum(r["score"] for r in results)

@@ -16,9 +16,7 @@ async def test_navigator():
     print(f"\nStart Text: {start_text}")
 
     print("\nTesting Branching Prediction (Scenario: fractal_nexus)...")
-    branches = navigator.predict_branches(
-        start_text, num_branches=2, steps=3, scenario="fractal_nexus"
-    )
+    branches = navigator.predict_branches(start_text, num_branches=2, steps=3, scenario="fractal_nexus")
 
     for i, branch in enumerate(branches):
         print(f"\nBranch {i + 1}:")

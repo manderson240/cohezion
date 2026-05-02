@@ -1,9 +1,8 @@
+from pathlib import Path
+
 import librosa
 import numpy as np
-import torch
 import torchaudio
-import matplotlib.pyplot as plt
-from pathlib import Path
 
 
 def test_audio_pipeline(audio_path):

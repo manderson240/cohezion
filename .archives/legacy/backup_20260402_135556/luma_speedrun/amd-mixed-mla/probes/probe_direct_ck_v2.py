@@ -45,7 +45,7 @@ print(f"PROBE v2: {len(_co_files)} .co files in {_CO_DIR}", file=sys.stderr)
 def _mangle_kernel_name(basename: str) -> bytes:
     """Convert .co filename to C++ mangled kernel name."""
     name = basename.replace(".co", "")
-    return f"_ZN5aiter{len(name)}{name}E".encode("utf-8")
+    return f"_ZN5aiter{len(name)}{name}E".encode()
 
 
 # ── Probe: Get function handles for ALL MLA kernels ──
@@ -102,7 +102,7 @@ try:
         # List all symbols
         print(f"\nPROBE v2: Loaded JIT .so: {_JIT_SO}", file=sys.stderr)
     else:
-        print(f"\nPROBE v2: JIT .so not found (may need build first)", file=sys.stderr)
+        print("\nPROBE v2: JIT .so not found (may need build first)", file=sys.stderr)
 except Exception as e:
     print(f"\nPROBE v2: JIT .so load failed: {e}", file=sys.stderr)
 
@@ -130,7 +130,7 @@ for co in _reduce_cos[:5]:
 
 # ── Probe: List all subdirs in hsa/gfx950/ ──
 _hsa_dirs = [d for d in glob.glob("/home/runner/aiter/hsa/gfx950/*/") if os.path.isdir(d)]
-print(f"\nPROBE v2: HSA subdirectories:", file=sys.stderr)
+print("\nPROBE v2: HSA subdirectories:", file=sys.stderr)
 for d in sorted(_hsa_dirs):
     count = len(glob.glob(os.path.join(d, "*.co")))
     print(f"  {os.path.basename(d.rstrip('/'))}: {count} .co files", file=sys.stderr)

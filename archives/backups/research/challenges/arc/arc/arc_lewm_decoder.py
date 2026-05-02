@@ -7,11 +7,11 @@ Reverse of the encoder architecture with transposed convolutions.
 from __future__ import annotations
 
 import logging
-from typing import Callable
 
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
+
 
 logger = logging.getLogger(__name__)
 
@@ -61,10 +61,9 @@ class ARCGridDecoder(nn.Module):
         )
 
         # Stage 1: 256 -> 128 (upsample x2)
-        self.stage1_res = nn.ModuleList([
-            ResidualBlockTranspose(256, dropout=dropout)
-            for _ in range(num_res_blocks)
-        ])
+        self.stage1_res = nn.ModuleList(
+            [ResidualBlockTranspose(256, dropout=dropout) for _ in range(num_res_blocks)]
+        )
         self.stage1_up = nn.Sequential(
             nn.ConvTranspose2d(256, 128, kernel_size=4, stride=2, padding=1, bias=False),
             nn.BatchNorm2d(128),
@@ -72,10 +71,9 @@ class ARCGridDecoder(nn.Module):
         )
 
         # Stage 2: 128 -> 64 (upsample x2)
-        self.stage2_res = nn.ModuleList([
-            ResidualBlockTranspose(128, dropout=dropout)
-            for _ in range(num_res_blocks)
-        ])
+        self.stage2_res = nn.ModuleList(
+            [ResidualBlockTranspose(128, dropout=dropout) for _ in range(num_res_blocks)]
+        )
         self.stage2_up = nn.Sequential(
             nn.ConvTranspose2d(128, 64, kernel_size=4, stride=2, padding=1, bias=False),
             nn.BatchNorm2d(64),
@@ -83,10 +81,9 @@ class ARCGridDecoder(nn.Module):
         )
 
         # Stage 3: 64 -> 32 (upsample x2)
-        self.stage3_res = nn.ModuleList([
-            ResidualBlockTranspose(64, dropout=dropout)
-            for _ in range(num_res_blocks)
-        ])
+        self.stage3_res = nn.ModuleList(
+            [ResidualBlockTranspose(64, dropout=dropout) for _ in range(num_res_blocks)]
+        )
         self.stage3_up = nn.Sequential(
             nn.ConvTranspose2d(64, 32, kernel_size=4, stride=2, padding=1, bias=False),
             nn.BatchNorm2d(32),
@@ -399,11 +396,11 @@ class ARCWorldModel(nn.Module):
 
 
 # Import here to avoid circular dependency
-from .arc_lewm_encoder import ARCActionEncoder, ARCPredictor, ARCCausalMask
+from .arc_lewm_encoder import ARCActionEncoder, ARCCausalMask, ARCPredictor
 
 
 __all__ = [
     "ARCGridDecoder",
-    "ResidualBlockTranspose",
     "ARCWorldModel",
+    "ResidualBlockTranspose",
 ]

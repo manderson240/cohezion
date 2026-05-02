@@ -105,9 +105,7 @@ class NeuralAudioStream:
         """Simulate stream failure — Observatory should continue in degraded mode."""
         self._status = AudioStreamStatus.DEGRADED
         self._error = error
-        logger.warning(
-            "Audio stream dropped: %s. Observatory continuing in visuals-only mode.", error
-        )
+        logger.warning("Audio stream dropped: %s. Observatory continuing in visuals-only mode.", error)
         return self._state()
 
     def reconnect(self) -> AudioStreamState:

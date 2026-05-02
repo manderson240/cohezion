@@ -1,4 +1,5 @@
 """NeuroGolf hybrid: DSL solver first, conv net fallback."""
+
 from __future__ import annotations
 
 import json
@@ -9,8 +10,9 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 
+
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
-from arc_solver import search_program, apply_program, grids_equal
+from arc_solver import apply_program, grids_equal, search_program
 
 
 class TinyConvARCV3(nn.Module):
@@ -176,12 +178,14 @@ if __name__ == "__main__":
                 hybrid_solved += 1
 
         if (i + 1) % 10 == 0:
-            print(f"Progress: {i+1}/{len(task_ids)} — dsl={dsl_solved} conv={conv_solved} hybrid={hybrid_solved} fallback={fallback_solved}")
+            print(
+                f"Progress: {i + 1}/{len(task_ids)} — dsl={dsl_solved} conv={conv_solved} hybrid={hybrid_solved} fallback={fallback_solved}"
+            )
 
     n = len(task_ids)
-    print(f"\nDSL:        {dsl_solved}/{n} = {dsl_solved/n*100:.1f}%")
-    print(f"Conv:       {conv_solved}/{n} = {conv_solved/n*100:.1f}%")
-    print(f"Fallback:   {fallback_solved}/{n} = {fallback_solved/n*100:.1f}%")
-    print(f"Hybrid:     {hybrid_solved}/{n} = {hybrid_solved/n*100:.1f}%")
+    print(f"\nDSL:        {dsl_solved}/{n} = {dsl_solved / n * 100:.1f}%")
+    print(f"Conv:       {conv_solved}/{n} = {conv_solved / n * 100:.1f}%")
+    print(f"Fallback:   {fallback_solved}/{n} = {fallback_solved / n * 100:.1f}%")
+    print(f"Hybrid:     {hybrid_solved}/{n} = {hybrid_solved / n * 100:.1f}%")
     print(f"Both agree: {both_solved}/{n}")
-    print(f"METRIC eval_accuracy={hybrid_solved/n*100:.1f}")
+    print(f"METRIC eval_accuracy={hybrid_solved / n * 100:.1f}")

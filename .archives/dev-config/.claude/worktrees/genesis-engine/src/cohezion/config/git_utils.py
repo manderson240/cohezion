@@ -58,9 +58,7 @@ class GitUtils:
             logger.warning(f"Failed to get commit time for {file_path}: {e}")
         return None
 
-    def is_manual_edit(
-        self, file_path: Path, orchestrator_name: str = "config"
-    ) -> bool:
+    def is_manual_edit(self, file_path: Path, orchestrator_name: str = "config") -> bool:
         """Check if file was manually edited vs auto-generated.
 
         Args:
@@ -214,11 +212,7 @@ class GitUtils:
                 text=True,
                 timeout=5,
             )
-            current_branch = (
-                branch_result.stdout.strip()
-                if branch_result.returncode == 0
-                else "unknown"
-            )
+            current_branch = branch_result.stdout.strip() if branch_result.returncode == 0 else "unknown"
 
             # Get dirty status
             dirty_result = subprocess.run(
@@ -233,9 +227,7 @@ class GitUtils:
             return {
                 "branch": current_branch,
                 "dirty": is_dirty,
-                "changed_files": len(dirty_result.stdout.strip().split("\n"))
-                if is_dirty
-                else 0,
+                "changed_files": len(dirty_result.stdout.strip().split("\n")) if is_dirty else 0,
             }
 
         except Exception as e:

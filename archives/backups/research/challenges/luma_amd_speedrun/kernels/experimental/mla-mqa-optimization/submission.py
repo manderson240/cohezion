@@ -51,15 +51,17 @@ Reference: "Fast Transformer Decoding: One Write-Head is All You Need"
 """
 
 from __future__ import annotations
+
+import math
 import os
 import sys
-import math
+from dataclasses import dataclass
+from typing import Literal
+
 import torch
 import torch.nn.functional as F
-from typing import Literal, Optional, Tuple
-from dataclasses import dataclass
-from aiter import mla_decode_fwd
 from task import input_t, output_t
+
 
 os.environ["AITER_MLA_USE_PERSISTENT"] = "1"
 os.environ["AITER_USE_NT"] = "1"
@@ -136,7 +138,7 @@ class RotaryPositionEmbedding:
 
     def get_rotary_embedding(
         self, seq_len: int, device: torch.device
-    ) -> Tuple[torch.Tensor, torch.Tensor]:
+    ) -> tuple[torch.Tensor, torch.Tensor]:
         """
         Compute cos/sin embeddings for sequence positions.
 
@@ -226,7 +228,7 @@ class MultiQueryAttentionOptimized:
         q: torch.Tensor,
         k: torch.Tensor,
         v: torch.Tensor,
-    ) -> Tuple[torch.Tensor, torch.Tensor, torch.Tensor]:
+    ) -> tuple[torch.Tensor, torch.Tensor, torch.Tensor]:
         """
         Reshape tensors for grouped query attention computation.
 
@@ -257,8 +259,8 @@ class MultiQueryAttentionOptimized:
         q: torch.Tensor,
         k: torch.Tensor,
         v: torch.Tensor,
-        attention_mask: Optional[torch.Tensor] = None,
-        scale: Optional[float] = None,
+        attention_mask: torch.Tensor | None = None,
+        scale: float | None = None,
     ) -> torch.Tensor:
         """
         Compute attention with grouped query heads.
@@ -305,7 +307,7 @@ class MultiQueryAttentionOptimized:
         q: torch.Tensor,
         k_cache: torch.Tensor,
         v_cache: torch.Tensor,
-        position_ids: Optional[torch.Tensor] = None,
+        position_ids: torch.Tensor | None = None,
     ) -> torch.Tensor:
         """
         Optimized decode step with MQA/GQA.
@@ -371,13 +373,13 @@ class MultiQueryAttentionOptimized:
 
 
 # Global MQA instance for state persistence
-_MQA_INSTANCE: Optional[MultiQueryAttentionOptimized] = None
+_MQA_INSTANCE: MultiQueryAttentionOptimized | None = None
 
 
 def _get_mqa(
     num_heads: int,
     head_dim: int,
-    num_kv_heads: Optional[int] = None,
+    num_kv_heads: int | None = None,
     mode: Literal["mha", "gqa", "mqa"] = "gqa",
 ) -> MultiQueryAttentionOptimized:
     """

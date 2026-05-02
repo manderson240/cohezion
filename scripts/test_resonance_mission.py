@@ -6,14 +6,13 @@ generating rich multimodal assets (images, diagrams, audio) via Gemma 4.
 
 import asyncio
 import json
-import os
 from pathlib import Path
 from unittest.mock import AsyncMock
 
 from cohezion.agents.ecoresilience_agent import EcoResilienceAgent
-from cohezion.swarm.resonance import SwarmOrchestrator, ResonanceProtocol
+from cohezion.mcp.env_data_mcp import fetch_copernicus_data, fetch_noaa_data
 from cohezion.swarm.orchestrator import Agent, Task
-from cohezion.mcp.env_data_mcp import fetch_noaa_data, fetch_copernicus_data
+from cohezion.swarm.resonance import ResonanceProtocol, SwarmOrchestrator
 
 
 # Mocking the nanobanana call for the script

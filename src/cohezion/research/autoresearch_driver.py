@@ -16,14 +16,11 @@ import json
 import logging
 import math
 import re
-import os
 import subprocess
 import time
-from collections.abc import Callable
 from dataclasses import dataclass, field
 from datetime import datetime
 from pathlib import Path
-from typing import Any
 
 import numpy as np
 
@@ -112,12 +109,13 @@ def _load_tree(target: str, hypotheses: list[str]) -> dict:
         "total_trials": 0,
         "nodes": {
             h: {
-                "hypothesis": h, 
-                "wins": 0, 
-                "trials": 0, 
+                "hypothesis": h,
+                "wins": 0,
+                "trials": 0,
                 "metric_values": [],
-                "z_vector": encoder.encode(h).tolist()
-            } for h in hypotheses
+                "z_vector": encoder.encode(h).tolist(),
+            }
+            for h in hypotheses
         },
     }
     path.write_text(json.dumps(tree, indent=2))
@@ -131,47 +129,47 @@ def _save_tree(target: str, tree: dict) -> None:
 
 def _ucb1_select(tree: dict) -> str:
     """Select hypothesis by Trajectory-Aware UCB1.
-    
+
     Incorporates:
     1. Standard UCB1 (mean reward + exploration)
     2. Latent distance to known 'wins' (FLUME guided)
     """
     total = max(tree["total_trials"], 1)
     best_h, best_score = None, -float("inf")
-    
+
     # 1. Gather all 'wins' (nodes with wins > 0)
     win_vectors = [
-        np.array(node["z_vector"]) 
-        for node in tree["nodes"].values() 
+        np.array(node["z_vector"])
+        for node in tree["nodes"].values()
         if node.get("wins", 0) > 0 and "z_vector" in node
     ]
-    
+
     # Simple index selection for unvisited
     for h, node in tree["nodes"].items():
         if node["trials"] == 0:
             return h
-            
+
     for h, node in tree["nodes"].items():
         mean = sum(node["metric_values"]) / node["trials"]
-        
+
         # Standard UCB1 exploration term
         exploration = UCB_C * math.sqrt(math.log(total) / node["trials"])
-        
+
         # Latent guidance: prefer nodes closer to known successes
         latent_bonus = 0.0
         if win_vectors and "z_vector" in node:
             current_vec = np.array(node["z_vector"])
             # Calculate mean distance to wins (similarity)
             similarities = [np.dot(current_vec, wv) for win_vec in win_vectors for wv in [win_vec]]
-            latent_bonus = max(similarities) * 0.2 # 20% influence from latent similarity
-        
+            latent_bonus = max(similarities) * 0.2  # 20% influence from latent similarity
+
         score = mean + exploration + latent_bonus
         if score > best_score:
             best_score, best_h = score, h
-            
+
     if best_h:
         return best_h
-        
+
     # Final fallback if best_h is still None (e.g. empty tree)
     try:
         return next(iter(tree["nodes"]))
@@ -183,17 +181,18 @@ def _update_tree(tree: dict, outcome: ExperimentOutcome, reward: float) -> None:
     """Update node statistics and global trial count."""
     tree["total_trials"] += 1
     node = tree["nodes"].setdefault(
-        outcome.hypothesis, {
-            "hypothesis": outcome.hypothesis, 
-            "wins": 0, 
-            "trials": 0, 
+        outcome.hypothesis,
+        {
+            "hypothesis": outcome.hypothesis,
+            "wins": 0,
+            "trials": 0,
             "metric_values": [],
-            "z_vector": outcome.z_vector
-        }
+            "z_vector": outcome.z_vector,
+        },
     )
     node["trials"] += 1
     node["metric_values"].append(reward)
-    if reward > 0.5: # Consider > 0.5 reward a 'win'
+    if reward > 0.5:  # Consider > 0.5 reward a 'win'
         node["wins"] += 1
 
 
@@ -279,65 +278,82 @@ class AutoresearchDriver:
     async def run_kaggle_experiment(self, hypothesis: str, run_id: str) -> tuple[float, str, str]:
         """Specialized execution for Kaggle targets."""
         logger.info(f"[Kaggle] Pushing kernel for {self.target}...")
-        
+
         # Mapping target to kernel ID and directory
         config_map = {
             "aimo": {
                 "id": "manderson240/aimo-3-mrs-swarm-transformers-v39",
-                "dir": "sandbox/aimo/kaggle_kernel"
+                "dir": "sandbox/aimo/kaggle_kernel",
             },
-            "agi": {
-                "id": "manderson240/cohezion-agi-benchmark-swarm",
-                "dir": "sandbox"
-            }
+            "agi": {"id": "manderson240/cohezion-agi-benchmark-swarm", "dir": "sandbox"},
         }
-        
+
         if self.target not in config_map:
             return float("nan"), "error", f"Target {self.target} not in Kaggle config map"
-            
+
         kernel_id = config_map[self.target]["id"]
         kernel_dir = config_map[self.target]["dir"]
-        
+
         try:
             # 1. Update script with hypothesis (simplified for now)
             # 2. Push kernel
             subprocess.run(["kaggle", "kernels", "push", "-p", kernel_dir], check=True)
-            
+
             # 3. Poll for completion
             logger.info(f"[Kaggle] Polling kernel {kernel_id} for max {self.budget_seconds}s...")
             start_poll = time.time()
             last_heartbeat = 0
             while time.time() - start_poll < self.budget_seconds:
                 now = time.time()
-                if now - last_heartbeat > 300: # Log every 5 mins
+                if now - last_heartbeat > 300:  # Log every 5 mins
                     elapsed_min = (now - start_poll) / 60
-                    logger.info(f"  [Kaggle Heartbeat] Still polling {kernel_id}... ({elapsed_min:.1f}m elapsed)")
+                    logger.info(
+                        f"  [Kaggle Heartbeat] Still polling {kernel_id}... ({elapsed_min:.1f}m elapsed)"
+                    )
                     last_heartbeat = now
 
-                status_proc = subprocess.run(["kaggle", "kernels", "status", kernel_id], capture_output=True, text=True)
+                status_proc = subprocess.run(
+                    ["kaggle", "kernels", "status", kernel_id], capture_output=True, text=True
+                )
                 status = status_proc.stdout
-                
+
                 if "complete" in status.lower():
                     logger.info(f"✅ [Kaggle] Kernel {kernel_id} execution complete.")
                     # 4. Fetch score
                     if self.target == "aimo":
-                        sub_proc = subprocess.run(["kaggle", "competitions", "submissions", "-c", "ai-mathematical-olympiad-progress-prize-3"], capture_output=True, text=True)
+                        sub_proc = subprocess.run(
+                            [
+                                "kaggle",
+                                "competitions",
+                                "submissions",
+                                "-c",
+                                "ai-mathematical-olympiad-progress-prize-3",
+                            ],
+                            capture_output=True,
+                            text=True,
+                        )
                         # Extract score from first line
                         # Format example: submission.parquet  2026-04-11 15:22:42  Fortress Swarm  COMPLETE  42
                         m = re.search(r"COMPLETE\s+(\d+)", sub_proc.stdout)
                         score = float(m.group(1)) if m else 0.0
                         logger.info(f"  [Kaggle] Score extracted: {score}")
-                        return score, "improvement" if score > (self._baseline or 0) else "regression", sub_proc.stdout
+                        return (
+                            score,
+                            "improvement" if score > (self._baseline or 0) else "regression",
+                            sub_proc.stdout,
+                        )
                     else:
                         return 1.0, "improvement", "AGI benchmark complete"
-                        
+
                 elif "error" in status.lower():
                     logger.error(f"❌ [Kaggle] Kernel {kernel_id} failed.")
-                    log_proc = subprocess.run(["kaggle", "kernels", "output", kernel_id], capture_output=True, text=True)
+                    log_proc = subprocess.run(
+                        ["kaggle", "kernels", "output", kernel_id], capture_output=True, text=True
+                    )
                     return float("nan"), "error", status + "\n" + log_proc.stdout
-                    
-                time.sleep(60) # Poll every minute
-            
+
+                time.sleep(60)  # Poll every minute
+
             return float("nan"), "error", "Timeout"
         except Exception as e:
             return float("nan"), "error", str(e)
@@ -348,7 +364,7 @@ class AutoresearchDriver:
 
         run_id = f"ar_{uuid.uuid4().hex[:8]}"
         start = time.perf_counter()
-        
+
         z_vector = self.encoder.encode(hypothesis).tolist()
 
         if self.target in ("aimo", "agi"):
@@ -364,7 +380,11 @@ class AutoresearchDriver:
                 )
                 logs = proc.stdout + proc.stderr
                 metric_val = _extract_metric(logs, self.metric_name)
-                status = "improvement" if (self._baseline is None or metric_val > self._baseline) else "regression"
+                status = (
+                    "improvement"
+                    if (self._baseline is None or metric_val > self._baseline)
+                    else "regression"
+                )
             except Exception as e:
                 metric_val, status, logs = float("nan"), "error", str(e)
 
@@ -382,12 +402,12 @@ class AutoresearchDriver:
             metric_value=metric_val,
             wall_time_s=wall_time,
             status=status,
-            z_vector=z_vector
+            z_vector=z_vector,
         )
-        
+
         if status == "improvement":
             self._baseline = metric_val
-            
+
         await _persist_to_surreal(outcome)
         return outcome
 

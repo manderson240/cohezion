@@ -16,11 +16,9 @@ print(f"DEBUG: cohezion_core loaded from: {cohezion_core.__file__}")
 from cohezion_core import FlumePhysics  # noqa: E402
 
 
-
 print(f"DEBUG: FlumePhysics dir: {dir(FlumePhysics)}")
 
 import cohezion.flume.predictor  # noqa: E402
-
 
 
 print(f"DEBUG: predictor loaded from: {cohezion.flume.predictor.__file__}")

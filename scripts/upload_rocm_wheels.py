@@ -1,7 +1,6 @@
+import json
 import os
 import subprocess
-import json
-from pathlib import Path
 
 
 def download_wheels(packages, output_dir):
@@ -30,9 +29,8 @@ def create_kaggle_dataset(output_dir, dataset_name):
     metadata = {
         "title": dataset_name,
         "id": f"manderson240/{dataset_name.lower().replace(' ', '-')}",
-        "licenses": [{"name": "CC0-1.0"}]
+        "licenses": [{"name": "CC0-1.0"}],
     }
-
 
     with open(os.path.join(output_dir, "dataset-metadata.json"), "w") as f:
         json.dump(metadata, f, indent=2)

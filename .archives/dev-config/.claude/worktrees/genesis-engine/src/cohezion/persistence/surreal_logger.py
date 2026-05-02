@@ -32,9 +32,7 @@ class SurrealTrajectoryLogger:
         self.namespace = namespace
         self.database = database
 
-    async def log_trajectory(
-        self, trajectory_id: str, state: TriuneState, coherence: float
-    ) -> None:
+    async def log_trajectory(self, trajectory_id: str, state: TriuneState, coherence: float) -> None:
         """
         Persists a single trajectory point to SurrealDB.
 
@@ -66,9 +64,7 @@ class SurrealTrajectoryLogger:
                 await db.signin({"user": user, "pass": password})
 
                 await db.create("trajectory", data)
-                logger.debug(
-                    f"Successfully persisted trajectory point {trajectory_id} to SurrealDB."
-                )
+                logger.debug(f"Successfully persisted trajectory point {trajectory_id} to SurrealDB.")
             except Exception as e:
                 logger.error(f"Failed to persist trajectory to SurrealDB: {e}")
                 raise

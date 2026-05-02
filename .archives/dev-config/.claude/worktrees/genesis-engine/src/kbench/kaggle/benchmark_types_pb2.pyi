@@ -29,26 +29,22 @@ import google.protobuf.struct_pb2
 import google.protobuf.timestamp_pb2
 
 if sys.version_info >= (3, 10):
-    import typing as typing_extensions
+    pass
 else:
-    import typing_extensions
+    pass
 
 DESCRIPTOR: google.protobuf.descriptor.FileDescriptor
 
 class _BenchmarkTaskRunResultType:
     ValueType = typing.NewType("ValueType", builtins.int)
-    V: typing_extensions.TypeAlias = ValueType
+    type V = ValueType
 
 class _BenchmarkTaskRunResultTypeEnumTypeWrapper(
-    google.protobuf.internal.enum_type_wrapper._EnumTypeWrapper[
-        _BenchmarkTaskRunResultType.ValueType
-    ],
+    google.protobuf.internal.enum_type_wrapper._EnumTypeWrapper[_BenchmarkTaskRunResultType.ValueType],
     builtins.type,
 ):
     DESCRIPTOR: google.protobuf.descriptor.EnumDescriptor
-    BENCHMARK_TASK_RUN_RESULT_TYPE_UNSPECIFIED: (
-        _BenchmarkTaskRunResultType.ValueType
-    )  # 0
+    BENCHMARK_TASK_RUN_RESULT_TYPE_UNSPECIFIED: _BenchmarkTaskRunResultType.ValueType  # 0
     """In practice, this could probably default to AGGREGATED since there's no
     need to specify a type if there's only public results.
     """
@@ -63,9 +59,7 @@ class _BenchmarkTaskRunResultTypeEnumTypeWrapper(
     PRIVATE: _BenchmarkTaskRunResultType.ValueType  # 3
     """The results just from the private split"""
 
-class BenchmarkTaskRunResultType(
-    _BenchmarkTaskRunResultType, metaclass=_BenchmarkTaskRunResultTypeEnumTypeWrapper
-): ...
+class BenchmarkTaskRunResultType(_BenchmarkTaskRunResultType, metaclass=_BenchmarkTaskRunResultTypeEnumTypeWrapper): ...
 
 BENCHMARK_TASK_RUN_RESULT_TYPE_UNSPECIFIED: BenchmarkTaskRunResultType.ValueType  # 0
 """In practice, this could probably default to AGGREGATED since there's no
@@ -81,18 +75,14 @@ For non-split Tasks, this is the same as AGGREGATED
 """
 PRIVATE: BenchmarkTaskRunResultType.ValueType  # 3
 """The results just from the private split"""
-Global___BenchmarkTaskRunResultType: typing_extensions.TypeAlias = (
-    BenchmarkTaskRunResultType
-)
+type Global___BenchmarkTaskRunResultType = BenchmarkTaskRunResultType
 
 class _BenchmarkTaskRunState:
     ValueType = typing.NewType("ValueType", builtins.int)
-    V: typing_extensions.TypeAlias = ValueType
+    type V = ValueType
 
 class _BenchmarkTaskRunStateEnumTypeWrapper(
-    google.protobuf.internal.enum_type_wrapper._EnumTypeWrapper[
-        _BenchmarkTaskRunState.ValueType
-    ],
+    google.protobuf.internal.enum_type_wrapper._EnumTypeWrapper[_BenchmarkTaskRunState.ValueType],
     builtins.type,
 ):
     DESCRIPTOR: google.protobuf.descriptor.EnumDescriptor
@@ -102,65 +92,43 @@ class _BenchmarkTaskRunStateEnumTypeWrapper(
     BENCHMARK_TASK_RUN_STATE_COMPLETED: _BenchmarkTaskRunState.ValueType  # 3
     BENCHMARK_TASK_RUN_STATE_ERRORED: _BenchmarkTaskRunState.ValueType  # 4
 
-class BenchmarkTaskRunState(
-    _BenchmarkTaskRunState, metaclass=_BenchmarkTaskRunStateEnumTypeWrapper
-): ...
+class BenchmarkTaskRunState(_BenchmarkTaskRunState, metaclass=_BenchmarkTaskRunStateEnumTypeWrapper): ...
 
 BENCHMARK_TASK_RUN_STATE_UNSPECIFIED: BenchmarkTaskRunState.ValueType  # 0
 BENCHMARK_TASK_RUN_STATE_QUEUED: BenchmarkTaskRunState.ValueType  # 1
 BENCHMARK_TASK_RUN_STATE_RUNNING: BenchmarkTaskRunState.ValueType  # 2
 BENCHMARK_TASK_RUN_STATE_COMPLETED: BenchmarkTaskRunState.ValueType  # 3
 BENCHMARK_TASK_RUN_STATE_ERRORED: BenchmarkTaskRunState.ValueType  # 4
-Global___BenchmarkTaskRunState: typing_extensions.TypeAlias = BenchmarkTaskRunState
+type Global___BenchmarkTaskRunState = BenchmarkTaskRunState
 
 class _BenchmarkTaskRunAssertionStatus:
     ValueType = typing.NewType("ValueType", builtins.int)
-    V: typing_extensions.TypeAlias = ValueType
+    type V = ValueType
 
 class _BenchmarkTaskRunAssertionStatusEnumTypeWrapper(
-    google.protobuf.internal.enum_type_wrapper._EnumTypeWrapper[
-        _BenchmarkTaskRunAssertionStatus.ValueType
-    ],
+    google.protobuf.internal.enum_type_wrapper._EnumTypeWrapper[_BenchmarkTaskRunAssertionStatus.ValueType],
     builtins.type,
 ):
     DESCRIPTOR: google.protobuf.descriptor.EnumDescriptor
-    BENCHMARK_TASK_RUN_ASSERTION_STATUS_UNSPECIFIED: (
-        _BenchmarkTaskRunAssertionStatus.ValueType
-    )  # 0
-    BENCHMARK_TASK_RUN_ASSERTION_STATUS_PASSED: (
-        _BenchmarkTaskRunAssertionStatus.ValueType
-    )  # 1
-    BENCHMARK_TASK_RUN_ASSERTION_STATUS_FAILED: (
-        _BenchmarkTaskRunAssertionStatus.ValueType
-    )  # 2
-    BENCHMARK_TASK_RUN_ASSERTION_STATUS_ERRORED: (
-        _BenchmarkTaskRunAssertionStatus.ValueType
-    )  # 3
+    BENCHMARK_TASK_RUN_ASSERTION_STATUS_UNSPECIFIED: _BenchmarkTaskRunAssertionStatus.ValueType  # 0
+    BENCHMARK_TASK_RUN_ASSERTION_STATUS_PASSED: _BenchmarkTaskRunAssertionStatus.ValueType  # 1
+    BENCHMARK_TASK_RUN_ASSERTION_STATUS_FAILED: _BenchmarkTaskRunAssertionStatus.ValueType  # 2
+    BENCHMARK_TASK_RUN_ASSERTION_STATUS_ERRORED: _BenchmarkTaskRunAssertionStatus.ValueType  # 3
 
 class BenchmarkTaskRunAssertionStatus(
     _BenchmarkTaskRunAssertionStatus,
     metaclass=_BenchmarkTaskRunAssertionStatusEnumTypeWrapper,
 ): ...
 
-BENCHMARK_TASK_RUN_ASSERTION_STATUS_UNSPECIFIED: (
-    BenchmarkTaskRunAssertionStatus.ValueType
-)  # 0
-BENCHMARK_TASK_RUN_ASSERTION_STATUS_PASSED: (
-    BenchmarkTaskRunAssertionStatus.ValueType
-)  # 1
-BENCHMARK_TASK_RUN_ASSERTION_STATUS_FAILED: (
-    BenchmarkTaskRunAssertionStatus.ValueType
-)  # 2
-BENCHMARK_TASK_RUN_ASSERTION_STATUS_ERRORED: (
-    BenchmarkTaskRunAssertionStatus.ValueType
-)  # 3
-Global___BenchmarkTaskRunAssertionStatus: typing_extensions.TypeAlias = (
-    BenchmarkTaskRunAssertionStatus
-)
+BENCHMARK_TASK_RUN_ASSERTION_STATUS_UNSPECIFIED: BenchmarkTaskRunAssertionStatus.ValueType  # 0
+BENCHMARK_TASK_RUN_ASSERTION_STATUS_PASSED: BenchmarkTaskRunAssertionStatus.ValueType  # 1
+BENCHMARK_TASK_RUN_ASSERTION_STATUS_FAILED: BenchmarkTaskRunAssertionStatus.ValueType  # 2
+BENCHMARK_TASK_RUN_ASSERTION_STATUS_ERRORED: BenchmarkTaskRunAssertionStatus.ValueType  # 3
+type Global___BenchmarkTaskRunAssertionStatus = BenchmarkTaskRunAssertionStatus
 
 class _ContentRole:
     ValueType = typing.NewType("ValueType", builtins.int)
-    V: typing_extensions.TypeAlias = ValueType
+    type V = ValueType
 
 class _ContentRoleEnumTypeWrapper(
     google.protobuf.internal.enum_type_wrapper._EnumTypeWrapper[_ContentRole.ValueType],
@@ -204,7 +172,7 @@ Equivalent of SYSTEM_1 in go/gemini-proto-roles.
 """
 CONTENT_ROLE_CONTEXT: ContentRole.ValueType  # 5
 """Additional documents or information relevant to this conversation."""
-Global___ContentRole: typing_extensions.TypeAlias = ContentRole
+type Global___ContentRole = ContentRole
 
 @typing.final
 class BenchmarkTaskVersion(google.protobuf.message.Message):
@@ -303,19 +271,15 @@ class BenchmarkTaskVersion(google.protobuf.message.Message):
         self, oneof_group: typing.Literal["_description", b"_description"]
     ) -> typing.Literal["description"] | None: ...
     @typing.overload
-    def WhichOneof(
-        self, oneof_group: typing.Literal["_id", b"_id"]
-    ) -> typing.Literal["id"] | None: ...
+    def WhichOneof(self, oneof_group: typing.Literal["_id", b"_id"]) -> typing.Literal["id"] | None: ...
     @typing.overload
-    def WhichOneof(
-        self, oneof_group: typing.Literal["_task_id", b"_task_id"]
-    ) -> typing.Literal["task_id"] | None: ...
+    def WhichOneof(self, oneof_group: typing.Literal["_task_id", b"_task_id"]) -> typing.Literal["task_id"] | None: ...
     @typing.overload
     def WhichOneof(
         self, oneof_group: typing.Literal["_version_number", b"_version_number"]
     ) -> typing.Literal["version_number"] | None: ...
 
-Global___BenchmarkTaskVersion: typing_extensions.TypeAlias = BenchmarkTaskVersion
+type Global___BenchmarkTaskVersion = BenchmarkTaskVersion
 
 @typing.final
 class BenchmarkTaskRun(google.protobuf.message.Message):
@@ -383,9 +347,7 @@ class BenchmarkTaskRun(google.protobuf.message.Message):
     @property
     def conversations(
         self,
-    ) -> google.protobuf.internal.containers.RepeatedCompositeFieldContainer[
-        Global___Conversation
-    ]:
+    ) -> google.protobuf.internal.containers.RepeatedCompositeFieldContainer[Global___Conversation]:
         """Conversations between various roles in LLM interactions. Nested within these
         conversations is the content needed to build the 'output' section for various
         visualizations.
@@ -394,9 +356,7 @@ class BenchmarkTaskRun(google.protobuf.message.Message):
     @property
     def results(
         self,
-    ) -> google.protobuf.internal.containers.RepeatedCompositeFieldContainer[
-        Global___BenchmarkTaskRunResult
-    ]:
+    ) -> google.protobuf.internal.containers.RepeatedCompositeFieldContainer[Global___BenchmarkTaskRunResult]:
         """This captures the aggregated results for the task (as well as any public/private
         split results when applicable)
         """
@@ -404,9 +364,7 @@ class BenchmarkTaskRun(google.protobuf.message.Message):
     @property
     def assertions(
         self,
-    ) -> google.protobuf.internal.containers.RepeatedCompositeFieldContainer[
-        Global___BenchmarkTaskRunAssertion
-    ]:
+    ) -> google.protobuf.internal.containers.RepeatedCompositeFieldContainer[Global___BenchmarkTaskRunAssertion]:
         """If applicable, any assertions made during the run. Note that any tasks that
         produce purely numerical values likely won't have assertions.
         """
@@ -414,9 +372,7 @@ class BenchmarkTaskRun(google.protobuf.message.Message):
     @property
     def subruns(
         self,
-    ) -> google.protobuf.internal.containers.RepeatedCompositeFieldContainer[
-        Global___BenchmarkTaskRun
-    ]:
+    ) -> google.protobuf.internal.containers.RepeatedCompositeFieldContainer[Global___BenchmarkTaskRun]:
         """Subtasks in a tree structure."""
 
     def __init__(
@@ -432,8 +388,7 @@ class BenchmarkTaskRun(google.protobuf.message.Message):
         end_time: google.protobuf.timestamp_pb2.Timestamp | None = ...,
         conversations: collections.abc.Iterable[Global___Conversation] | None = ...,
         results: collections.abc.Iterable[Global___BenchmarkTaskRunResult] | None = ...,
-        assertions: collections.abc.Iterable[Global___BenchmarkTaskRunAssertion]
-        | None = ...,
+        assertions: collections.abc.Iterable[Global___BenchmarkTaskRunAssertion] | None = ...,
         subruns: collections.abc.Iterable[Global___BenchmarkTaskRun] | None = ...,
         error_message: builtins.str | None = ...,
         creator_user_id: builtins.int | None = ...,
@@ -527,7 +482,7 @@ class BenchmarkTaskRun(google.protobuf.message.Message):
         self, oneof_group: typing.Literal["run_id", b"run_id"]
     ) -> typing.Literal["id", "py_run_id"] | None: ...
 
-Global___BenchmarkTaskRun: typing_extensions.TypeAlias = BenchmarkTaskRun
+type Global___BenchmarkTaskRun = BenchmarkTaskRun
 
 @typing.final
 class BenchmarkTaskRunResult(google.protobuf.message.Message):
@@ -591,7 +546,7 @@ class BenchmarkTaskRunResult(google.protobuf.message.Message):
         self, oneof_group: typing.Literal["result", b"result"]
     ) -> typing.Literal["numeric_result", "boolean_result", "dict_result"] | None: ...
 
-Global___BenchmarkTaskRunResult: typing_extensions.TypeAlias = BenchmarkTaskRunResult
+type Global___BenchmarkTaskRunResult = BenchmarkTaskRunResult
 
 @typing.final
 class NumericResult(google.protobuf.message.Message):
@@ -636,7 +591,7 @@ class NumericResult(google.protobuf.message.Message):
         oneof_group: typing.Literal["_confidence_interval", b"_confidence_interval"],
     ) -> typing.Literal["confidence_interval"] | None: ...
 
-Global___NumericResult: typing_extensions.TypeAlias = NumericResult
+type Global___NumericResult = NumericResult
 
 @typing.final
 class Conversation(google.protobuf.message.Message):
@@ -652,9 +607,7 @@ class Conversation(google.protobuf.message.Message):
     @property
     def requests(
         self,
-    ) -> google.protobuf.internal.containers.RepeatedCompositeFieldContainer[
-        Global___ModelRequest
-    ]:
+    ) -> google.protobuf.internal.containers.RepeatedCompositeFieldContainer[Global___ModelRequest]:
         """All requests made in this conversation"""
 
     @property
@@ -671,9 +624,7 @@ class Conversation(google.protobuf.message.Message):
         metrics: Global___ModelUsageMetrics | None = ...,
         model_version_slug: builtins.str = ...,
     ) -> None: ...
-    def HasField(
-        self, field_name: typing.Literal["metrics", b"metrics"]
-    ) -> builtins.bool: ...
+    def HasField(self, field_name: typing.Literal["metrics", b"metrics"]) -> builtins.bool: ...
     def ClearField(
         self,
         field_name: typing.Literal[
@@ -688,7 +639,7 @@ class Conversation(google.protobuf.message.Message):
         ],
     ) -> None: ...
 
-Global___Conversation: typing_extensions.TypeAlias = Conversation
+type Global___Conversation = Conversation
 
 @typing.final
 class ModelRequest(google.protobuf.message.Message):
@@ -702,9 +653,7 @@ class ModelRequest(google.protobuf.message.Message):
     @property
     def contents(
         self,
-    ) -> google.protobuf.internal.containers.RepeatedCompositeFieldContainer[
-        Global___Content
-    ]: ...
+    ) -> google.protobuf.internal.containers.RepeatedCompositeFieldContainer[Global___Content]: ...
     @property
     def metrics(self) -> Global___ModelUsageMetrics: ...
     def __init__(
@@ -714,17 +663,13 @@ class ModelRequest(google.protobuf.message.Message):
         metrics: Global___ModelUsageMetrics | None = ...,
         id: builtins.str = ...,
     ) -> None: ...
-    def HasField(
-        self, field_name: typing.Literal["metrics", b"metrics"]
-    ) -> builtins.bool: ...
+    def HasField(self, field_name: typing.Literal["metrics", b"metrics"]) -> builtins.bool: ...
     def ClearField(
         self,
-        field_name: typing.Literal[
-            "contents", b"contents", "id", b"id", "metrics", b"metrics"
-        ],
+        field_name: typing.Literal["contents", b"contents", "id", b"id", "metrics", b"metrics"],
     ) -> None: ...
 
-Global___ModelRequest: typing_extensions.TypeAlias = ModelRequest
+type Global___ModelRequest = ModelRequest
 
 @typing.final
 class ModelUsageMetrics(google.protobuf.message.Message):
@@ -808,16 +753,12 @@ class ModelUsageMetrics(google.protobuf.message.Message):
     @typing.overload
     def WhichOneof(
         self,
-        oneof_group: typing.Literal[
-            "_input_tokens_cost_nanodollars", b"_input_tokens_cost_nanodollars"
-        ],
+        oneof_group: typing.Literal["_input_tokens_cost_nanodollars", b"_input_tokens_cost_nanodollars"],
     ) -> typing.Literal["input_tokens_cost_nanodollars"] | None: ...
     @typing.overload
     def WhichOneof(
         self,
-        oneof_group: typing.Literal[
-            "_output_tokens_cost_nanodollars", b"_output_tokens_cost_nanodollars"
-        ],
+        oneof_group: typing.Literal["_output_tokens_cost_nanodollars", b"_output_tokens_cost_nanodollars"],
     ) -> typing.Literal["output_tokens_cost_nanodollars"] | None: ...
     @typing.overload
     def WhichOneof(
@@ -826,12 +767,10 @@ class ModelUsageMetrics(google.protobuf.message.Message):
     @typing.overload
     def WhichOneof(
         self,
-        oneof_group: typing.Literal[
-            "_total_backend_latency_ms", b"_total_backend_latency_ms"
-        ],
+        oneof_group: typing.Literal["_total_backend_latency_ms", b"_total_backend_latency_ms"],
     ) -> typing.Literal["total_backend_latency_ms"] | None: ...
 
-Global___ModelUsageMetrics: typing_extensions.TypeAlias = ModelUsageMetrics
+type Global___ModelUsageMetrics = ModelUsageMetrics
 
 @typing.final
 class ConversationRequestIdentifier(google.protobuf.message.Message):
@@ -849,14 +788,10 @@ class ConversationRequestIdentifier(google.protobuf.message.Message):
     ) -> None: ...
     def ClearField(
         self,
-        field_name: typing.Literal[
-            "conversation_id", b"conversation_id", "request_id", b"request_id"
-        ],
+        field_name: typing.Literal["conversation_id", b"conversation_id", "request_id", b"request_id"],
     ) -> None: ...
 
-Global___ConversationRequestIdentifier: typing_extensions.TypeAlias = (
-    ConversationRequestIdentifier
-)
+type Global___ConversationRequestIdentifier = ConversationRequestIdentifier
 
 @typing.final
 class BenchmarkTaskRunAssertion(google.protobuf.message.Message):
@@ -889,10 +824,7 @@ class BenchmarkTaskRunAssertion(google.protobuf.message.Message):
         failure_message: builtins.str | None = ...,
         line_number: builtins.int = ...,
         definition: builtins.str = ...,
-        conversation_request_ids: collections.abc.Iterable[
-            Global___ConversationRequestIdentifier
-        ]
-        | None = ...,
+        conversation_request_ids: collections.abc.Iterable[Global___ConversationRequestIdentifier] | None = ...,
     ) -> None: ...
     def HasField(
         self,
@@ -926,9 +858,7 @@ class BenchmarkTaskRunAssertion(google.protobuf.message.Message):
         self, oneof_group: typing.Literal["_failure_message", b"_failure_message"]
     ) -> typing.Literal["failure_message"] | None: ...
 
-Global___BenchmarkTaskRunAssertion: typing_extensions.TypeAlias = (
-    BenchmarkTaskRunAssertion
-)
+type Global___BenchmarkTaskRunAssertion = BenchmarkTaskRunAssertion
 
 @typing.final
 class BenchmarkModelVersion(google.protobuf.message.Message):
@@ -1015,7 +945,7 @@ class BenchmarkModelVersion(google.protobuf.message.Message):
         self, oneof_group: typing.Literal["_knowledge_cutoff", b"_knowledge_cutoff"]
     ) -> typing.Literal["knowledge_cutoff"] | None: ...
 
-Global___BenchmarkModelVersion: typing_extensions.TypeAlias = BenchmarkModelVersion
+type Global___BenchmarkModelVersion = BenchmarkModelVersion
 
 @typing.final
 class Content(google.protobuf.message.Message):
@@ -1036,9 +966,7 @@ class Content(google.protobuf.message.Message):
     @property
     def parts(
         self,
-    ) -> google.protobuf.internal.containers.RepeatedCompositeFieldContainer[
-        Global___Part
-    ]:
+    ) -> google.protobuf.internal.containers.RepeatedCompositeFieldContainer[Global___Part]:
         """List of parts that constitute a single message. Each part may have
         a different IANA MIME type.
         """
@@ -1079,15 +1007,13 @@ class Content(google.protobuf.message.Message):
         ],
     ) -> None: ...
     @typing.overload
-    def WhichOneof(
-        self, oneof_group: typing.Literal["_role", b"_role"]
-    ) -> typing.Literal["role"] | None: ...
+    def WhichOneof(self, oneof_group: typing.Literal["_role", b"_role"]) -> typing.Literal["role"] | None: ...
     @typing.overload
     def WhichOneof(
         self, oneof_group: typing.Literal["_sender_name", b"_sender_name"]
     ) -> typing.Literal["sender_name"] | None: ...
 
-Global___Content: typing_extensions.TypeAlias = Content
+type Global___Content = Content
 
 @typing.final
 class Part(google.protobuf.message.Message):
@@ -1143,7 +1069,7 @@ class Part(google.protobuf.message.Message):
         self, oneof_group: typing.Literal["data", b"data"]
     ) -> typing.Literal["text", "inline_data", "file_data"] | None: ...
 
-Global___Part: typing_extensions.TypeAlias = Part
+type Global___Part = Part
 
 @typing.final
 class Blob(google.protobuf.message.Message):
@@ -1204,9 +1130,7 @@ class Blob(google.protobuf.message.Message):
         ],
     ) -> None: ...
     @typing.overload
-    def WhichOneof(
-        self, oneof_group: typing.Literal["_data", b"_data"]
-    ) -> typing.Literal["data"] | None: ...
+    def WhichOneof(self, oneof_group: typing.Literal["_data", b"_data"]) -> typing.Literal["data"] | None: ...
     @typing.overload
     def WhichOneof(
         self, oneof_group: typing.Literal["_display_name", b"_display_name"]
@@ -1216,7 +1140,7 @@ class Blob(google.protobuf.message.Message):
         self, oneof_group: typing.Literal["_mime_type", b"_mime_type"]
     ) -> typing.Literal["mime_type"] | None: ...
 
-Global___Blob: typing_extensions.TypeAlias = Blob
+type Global___Blob = Blob
 
 @typing.final
 class FileData(google.protobuf.message.Message):
@@ -1287,4 +1211,4 @@ class FileData(google.protobuf.message.Message):
         self, oneof_group: typing.Literal["_mime_type", b"_mime_type"]
     ) -> typing.Literal["mime_type"] | None: ...
 
-Global___FileData: typing_extensions.TypeAlias = FileData
+type Global___FileData = FileData

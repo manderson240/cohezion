@@ -272,12 +272,14 @@ class TestGuardrailFactoryIntegration:
         mock_vault_logger.return_value = mock_logger_instance
 
         # Call audit
-        await _audit_to_vault({
-            "action": "block",
-            "guard": "constitutional",
-            "reason": "Test block",
-            "context": {"agent_id": "test"},
-        })
+        await _audit_to_vault(
+            {
+                "action": "block",
+                "guard": "constitutional",
+                "reason": "Test block",
+                "context": {"agent_id": "test"},
+            }
+        )
 
         # Verify vault logger was instantiated
         mock_vault_logger.assert_called_once()

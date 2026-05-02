@@ -29,9 +29,7 @@ class PlasmaSwarmRouter:
 
     def __init__(self, router: DynamicModelRouter | None = None) -> None:
         self.router: DynamicModelRouter = router or DynamicModelRouter()
-        self.circuit: CircuitBreaker = get_circuit(
-            "plasma_swarm_router", failure_threshold=2, recovery_timeout=60.0
-        )
+        self.circuit: CircuitBreaker = get_circuit("plasma_swarm_router", failure_threshold=2, recovery_timeout=60.0)
 
     async def predict_topology(self, request: EvoTopologyRequest) -> str:
         """Predict EVO generation topologies based on the fohatic_impulse."""

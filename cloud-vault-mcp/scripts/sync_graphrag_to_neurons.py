@@ -67,7 +67,9 @@ def compute_stage(word_count: int) -> str:
     return "mature"
 
 
-def compute_activation(word_count: int, stage: str, tags: list, created_at: str) -> float:
+def compute_activation(
+    word_count: int, stage: str, tags: list, created_at: str
+) -> float:
     """Composite activation score matching reactor.py logic."""
     stage_scores = {"embryo": 0.1, "seedling": 0.3, "growing": 0.6, "mature": 1.0}
     stage_score = stage_scores.get(stage, 0.2)
@@ -132,13 +134,19 @@ async def main():
 
     async with httpx.AsyncClient(timeout=30.0) as client:
         # 1. Get pre-sync counts
-        pre = await query(client, "SELECT count() FROM neuron GROUP ALL; SELECT count() FROM synapse GROUP ALL;")
+        pre = await query(
+            client,
+            "SELECT count() FROM neuron GROUP ALL; SELECT count() FROM synapse GROUP ALL;",
+        )
         pre_neurons = pre[0]["result"][0]["count"] if pre[0]["result"] else 0
         pre_synapses = pre[1]["result"][0]["count"] if pre[1]["result"] else 0
         logger.info(f"Pre-sync: {pre_neurons} neurons, {pre_synapses} synapses")
 
         # 2. Fetch all vault_memory records
-        vm_result = await query(client, "SELECT id, type, path, title, content, tags, created_at FROM vault_memory;")
+        vm_result = await query(
+            client,
+            "SELECT id, type, path, title, content, tags, created_at FROM vault_memory;",
+        )
         records = vm_result[0]["result"]
         logger.info(f"Found {len(records)} vault_memory records")
 
@@ -193,7 +201,9 @@ async def main():
             ok_count = sum(1 for r in results if r.get("status") == "OK")
             neuron_count += ok_count
 
-            logger.info(f"  Batch {i // batch_size + 1}: {ok_count}/{len(batch)} neurons upserted")
+            logger.info(
+                f"  Batch {i // batch_size + 1}: {ok_count}/{len(batch)} neurons upserted"
+            )
 
         logger.info(f"Total neurons upserted: {neuron_count}")
 
@@ -218,8 +228,12 @@ async def main():
                     continue
 
                 # Convert vault_memory IDs to neuron IDs
-                source_vm_str = str(source_vm) if not isinstance(source_vm, str) else source_vm
-                target_vm_str = str(target_vm) if not isinstance(target_vm, str) else target_vm
+                source_vm_str = (
+                    str(source_vm) if not isinstance(source_vm, str) else source_vm
+                )
+                target_vm_str = (
+                    str(target_vm) if not isinstance(target_vm, str) else target_vm
+                )
 
                 source_id = id_map.get(source_vm_str)
                 target_id = id_map.get(target_vm_str)
@@ -236,24 +250,32 @@ async def main():
                 ok_count = sum(1 for r in results if r.get("status") == "OK")
                 synapse_count += ok_count
 
-            logger.info(f"  Edge batch {i // batch_size + 1}: {min(len(batch), len(statements))} processed")
+            logger.info(
+                f"  Edge batch {i // batch_size + 1}: {min(len(batch), len(statements))} processed"
+            )
 
         logger.info(f"Total synapses created: {synapse_count}")
 
         # 5. Update synapse_in/synapse_out counts on neurons
         logger.info("\nUpdating synapse counts...")
-        await query(client, """
+        await query(
+            client,
+            """
             UPDATE neuron SET synapse_out = (SELECT count() FROM synapse WHERE in = $parent.id GROUP ALL)[0].count ?? 0;
             UPDATE neuron SET synapse_in = (SELECT count() FROM synapse WHERE out = $parent.id GROUP ALL)[0].count ?? 0;
-        """)
+        """,
+        )
 
         # 6. Post-sync counts
-        post = await query(client, """
+        post = await query(
+            client,
+            """
             SELECT count() FROM neuron GROUP ALL;
             SELECT count() FROM synapse GROUP ALL;
             SELECT cluster_id, count() AS n FROM neuron GROUP BY cluster_id ORDER BY n DESC;
             SELECT stage, count() AS n FROM neuron GROUP BY stage;
-        """)
+        """,
+        )
         post_neurons = post[0]["result"][0]["count"] if post[0]["result"] else 0
         post_synapses = post[1]["result"][0]["count"] if post[1]["result"] else 0
 

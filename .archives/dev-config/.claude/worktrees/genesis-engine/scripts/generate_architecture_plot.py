@@ -109,9 +109,7 @@ def generate_arch_plot():
     )
 
     # Save
-    output_dir = Path(
-        "/home/mike-anderson/.gemini/antigravity/brain/1b98adc2-8dce-436b-bac3-d27890e7ce04/assets"
-    )
+    output_dir = Path("/home/mike-anderson/.gemini/antigravity/brain/1b98adc2-8dce-436b-bac3-d27890e7ce04/assets")
     output_dir.mkdir(parents=True, exist_ok=True)
 
     fig.write_html(str(output_dir / "overnight_architecture_interactive.html"))

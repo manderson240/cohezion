@@ -10,12 +10,11 @@ from __future__ import annotations
 import asyncio
 import json
 import logging
-from collections import defaultdict
 from dataclasses import dataclass, field
-from pathlib import Path
 from typing import Any
 
 import httpx
+
 
 logger = logging.getLogger(__name__)
 
@@ -263,7 +262,10 @@ class CrisisCompoundAgent:
         # Alignment
         score += sum(a.alignment_score for a in actions) / len(actions) * 0.4
         # Resource adequacy
-        score += min(1.0, sum(len(a.resources_deployed) for a in actions) / len(scenario.reports) / 3) * 0.3
+        score += (
+            min(1.0, sum(len(a.resources_deployed) for a in actions) / len(scenario.reports) / 3)
+            * 0.3
+        )
         return min(1.0, score)
 
     def _extract_lessons(
@@ -285,14 +287,15 @@ class CrisisCompoundAgent:
         for category in self.skill_library:
             # Find all outcomes for this category
             related = [
-                o for o in self.outcome_history
-                if any(a.action_type == category for a in o.actions)
+                o for o in self.outcome_history if any(a.action_type == category for a in o.actions)
             ]
             if not related:
                 continue
             avg_eff = sum(o.effectiveness for o in related) / len(related)
             if avg_eff < 0.7:
-                self.skill_library[category] += f" (refined: improve response speed, current avg effectiveness {avg_eff:.2f})"
+                self.skill_library[category] += (
+                    f" (refined: improve response speed, current avg effectiveness {avg_eff:.2f})"
+                )
                 self.refinement_log.append(f"Refined {category}: effectiveness {avg_eff:.2f}")
                 updated[category] = self.skill_library[category]
         return updated
@@ -301,11 +304,13 @@ class CrisisCompoundAgent:
         total_actions = len(self.response_history)
         avg_alignment = (
             sum(a.alignment_score for a in self.response_history) / total_actions
-            if total_actions else 0
+            if total_actions
+            else 0
         )
         avg_effectiveness = (
             sum(o.effectiveness for o in self.outcome_history) / len(self.outcome_history)
-            if self.outcome_history else 0
+            if self.outcome_history
+            else 0
         )
         return {
             "scenarios_processed": len(self.outcome_history),
@@ -323,12 +328,14 @@ async def run_demo() -> dict[str, Any]:
 
     for scenario in SCENARIOS:
         outcome = await agent.process_scenario(scenario)
-        outcomes.append({
-            "name": outcome.scenario_name,
-            "actions": len(outcome.actions),
-            "effectiveness": round(outcome.effectiveness, 3),
-            "lessons": outcome.lessons[:3],
-        })
+        outcomes.append(
+            {
+                "name": outcome.scenario_name,
+                "actions": len(outcome.actions),
+                "effectiveness": round(outcome.effectiveness, 3),
+                "lessons": outcome.lessons[:3],
+            }
+        )
 
     # Refine after all scenarios
     refinements = agent.refine_skills()

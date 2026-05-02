@@ -20,7 +20,8 @@ import inspect
 import re
 import textwrap
 import uuid
-from typing import Any, Callable, Iterable, Type
+from collections.abc import Callable, Iterable
+from typing import Any
 
 import panel as pn
 import pydantic
@@ -49,11 +50,7 @@ class AssertionResult:
         ]
 
         if not self.passed:
-            objects.append(
-                pn.pane.Markdown(
-                    f"Failed assertion with expectation: {self.expectation}"
-                )
-            )
+            objects.append(pn.pane.Markdown(f"Failed assertion with expectation: {self.expectation}"))
 
         if self.details:
             source_code = self.details.get("source_code")
@@ -95,9 +92,7 @@ def _get_assert_expression(depth: int = 2) -> tuple[int, str | None]:
         if frame.f_back:
             frame = frame.f_back
         else:
-            raise GetAssertExpressionError(
-                f"Call stack depth insufficient (requested {depth}, actual < {i + 1})."
-            )
+            raise GetAssertExpressionError(f"Call stack depth insufficient (requested {depth}, actual < {i + 1}).")
 
     frame_info = inspect.getframeinfo(frame, context=1)
 
@@ -109,9 +104,7 @@ def _get_assert_expression(depth: int = 2) -> tuple[int, str | None]:
     )
 
 
-def assertion_handler(
-    assertion_type_name: str | None = None, raises_assertion_error: bool = False
-):
+def assertion_handler(assertion_type_name: str | None = None, raises_assertion_error: bool = False):
     """
     Decorator factory for creating custom assertion logic functions.
 
@@ -171,9 +164,7 @@ def assertion_handler(
             _report_assert_result(final_result)
 
             if raises_assertion_error and not final_result.passed:
-                raise AssertionError(
-                    f"Failed assertion with expectation: {final_result.expectation}"
-                )
+                raise AssertionError(f"Failed assertion with expectation: {final_result.expectation}")
             return final_result
 
         return wrapper
@@ -380,8 +371,7 @@ def assert_not_contains_regex(
 
     return AssertionResult(
         passed=passed,
-        expectation=expectation
-        or f"Expected pattern '{pattern}' not found in '{text}'",
+        expectation=expectation or f"Expected pattern '{pattern}' not found in '{text}'",
     )
 
 
@@ -450,7 +440,7 @@ def assess_response_with_judge(
     response_text: str,
     judge_llm: Any,
     prompt_fn: Callable[[Iterable[str], str], str] | None = None,
-    output_schema: Type[Any] = AssessReport,
+    output_schema: type[Any] = AssessReport,
 ) -> Any:
     """
     Assess if an LLM response satisfies requirements using a Judge LLM.

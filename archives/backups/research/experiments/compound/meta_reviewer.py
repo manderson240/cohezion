@@ -6,10 +6,12 @@ used by the Triune Reviewer to prevent bias and maintain rigorous standards.
 from __future__ import annotations
 
 import logging
-from typing import Any, Dict, List, Tuple
-from pydantic import BaseModel, Field
+from typing import Any
 
-from cohezion.swarm.providers.gemma4_provider import Gemma4Provider, GenerationResult
+from pydantic import BaseModel
+
+from cohezion.swarm.providers.gemma4_provider import Gemma4Provider
+
 
 logger = logging.getLogger(__name__)
 
@@ -18,7 +20,7 @@ class PromptAuditResult(BaseModel):
     """Result of a prompt adversarial review."""
 
     prompt_id: str
-    vulnerabilities: List[str]
+    vulnerabilities: list[str]
     bias_score: float  # 0.0 to 1.0
     rigor_score: float  # 0.0 to 1.0
     suggested_revision: str | None = None
@@ -82,7 +84,7 @@ class MetaReviewer:
                 is_approved=False,
             )
 
-    async def audit_triune_system(self, reviewer_instance: Any) -> Dict[str, PromptAuditResult]:
+    async def audit_triune_system(self, reviewer_instance: Any) -> dict[str, PromptAuditResult]:
         """Audits all personas in a TriuneReviewer instance."""
         results = {}
         for persona_id, prompt in reviewer_instance.personas.items():

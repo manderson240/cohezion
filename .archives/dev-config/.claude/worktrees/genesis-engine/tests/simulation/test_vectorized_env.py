@@ -1,15 +1,14 @@
 """Tests for the Vectorized Environment and Curriculum Scheduler."""
 
 import numpy as np
-import pytest
 
+from cohezion.simulation.rl_framework import NUM_ACTIONS, STATE_DIM
 from cohezion.simulation.vectorized_env import (
     CurriculumConfig,
     CurriculumScheduler,
     ScheduleType,
     VectorizedHihoEnv,
 )
-from cohezion.simulation.rl_framework import NUM_ACTIONS, STATE_DIM
 
 
 # ---------------------------------------------------------------------------
@@ -110,7 +109,8 @@ class TestCurriculumScheduler:
 
     def test_warmup_phase_no_change(self):
         config = CurriculumConfig(
-            initial_difficulty=0.1, warmup_episodes=10,
+            initial_difficulty=0.1,
+            warmup_episodes=10,
             schedule_type=ScheduleType.ADAPTIVE,
         )
         scheduler = CurriculumScheduler(config)

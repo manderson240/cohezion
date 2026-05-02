@@ -36,22 +36,21 @@ Reference: "Tensor Ring Decomposition", arXiv 2016.
 """
 
 from __future__ import annotations
+
 import os
+
 
 os.environ["PYTORCH_ROCM_ARCH"] = "gfx950"
 os.environ["CXX"] = "clang++"
 
-import torch
-import torch.linalg as la
-import math
-from typing import List, Tuple
-from torch.utils.cpp_extension import load_inline
-from task import input_t, output_t
 
+import aiter
+import torch
 from aiter import dtypes
 from aiter.ops.triton.quant import dynamic_mxfp4_quant
 from aiter.utility.fp4_utils import e8m0_shuffle
-import aiter
+from task import input_t, output_t
+from torch.utils.cpp_extension import load_inline
 
 
 class TensorRingCore:
@@ -80,10 +79,10 @@ class TensorRingDecomposition:
             rank: TR rank (all cores have same rank)
         """
         self.rank = rank
-        self.cores: List[TensorRingCore] = []
-        self.shape: Tuple[int, ...] = ()
+        self.cores: list[TensorRingCore] = []
+        self.shape: tuple[int, ...] = ()
 
-    def _reshape_to_tensor(self, matrix: torch.Tensor, target_dims: List[int]) -> torch.Tensor:
+    def _reshape_to_tensor(self, matrix: torch.Tensor, target_dims: list[int]) -> torch.Tensor:
         """Reshape matrix to high-dimensional tensor.
 
         Args:
@@ -105,7 +104,7 @@ class TensorRingDecomposition:
 
         return matrix_flat.reshape(target_dims)
 
-    def decompose(self, tensor: torch.Tensor, rank: int = None) -> "TensorRingDecomposition":
+    def decompose(self, tensor: torch.Tensor, rank: int = None) -> TensorRingDecomposition:
         """Compute TR decomposition via ALS.
 
         Args:
@@ -176,7 +175,7 @@ class TensorRingDecomposition:
 
         return result.reshape(self.shape)
 
-    def element(self, indices: Tuple[int, ...]) -> float:
+    def element(self, indices: tuple[int, ...]) -> float:
         """Compute single element via trace.
 
         X(i1, i2, ..., id) = trace(G1[i1] @ G2[i2] @ ... @ Gd[id])
@@ -210,7 +209,7 @@ class TensorRingDecomposition:
 class MatrixTensorRing:
     """Apply TR decomposition to matrices via reshaping."""
 
-    def __init__(self, row_factors: List[int], col_factors: List[int]):
+    def __init__(self, row_factors: list[int], col_factors: list[int]):
         """
         Args:
             row_factors: Factorization of rows
@@ -220,7 +219,7 @@ class MatrixTensorRing:
         self.col_factors = col_factors
         self.tr: Optional[TensorRingDecomposition] = None
 
-    def factorize(self, matrix: torch.Tensor, rank: int = 8) -> "MatrixTensorRing":
+    def factorize(self, matrix: torch.Tensor, rank: int = 8) -> MatrixTensorRing:
         """Factorize matrix via TR.
 
         Args:
@@ -291,10 +290,10 @@ __global__ void tr_contract_kernel(
     int idx = blockIdx.x * blockDim.x + threadIdx.x;
     // Simplified: just compute one element
     if (idx >= 1) return;  // Placeholder
-    
+
     // Full TR contraction is complex
     // This would involve sequential matrix multiplications
-    
+
     y[0] = x[0];  // Placeholder
 }
 
@@ -370,8 +369,8 @@ def custom_kernel(data: input_t) -> output_t:
         expected_M = torch.prod(torch.tensor(row_factors)).item()
         expected_K = torch.prod(torch.tensor(col_factors)).item()
 
-        if M != expected_M or K != expected_K:
-            print(f"[Tensor Ring] Dimension mismatch, using standard")
+        if expected_M != M or expected_K != K:
+            print("[Tensor Ring] Dimension mismatch, using standard")
             Aq, Asc = dynamic_mxfp4_quant(A.contiguous())
             Ash = e8m0_shuffle(Asc).view(dtypes.fp8_e8m0)
             return aiter.gemm_a4w4(

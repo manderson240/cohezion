@@ -15,7 +15,7 @@ import time
 from collections import OrderedDict
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Any, Dict, Optional
+from typing import Any
 
 
 @dataclass
@@ -31,7 +31,7 @@ class CacheEntry:
     access_count: int = 1
     model_name: str = ""
 
-    def to_dict(self) -> Dict[str, Any]:
+    def to_dict(self) -> dict[str, Any]:
         return {
             "key": self.key,
             "problem_hash": self.problem_hash,
@@ -44,7 +44,7 @@ class CacheEntry:
         }
 
     @classmethod
-    def from_dict(cls, data: Dict[str, Any]) -> "CacheEntry":
+    def from_dict(cls, data: dict[str, Any]) -> "CacheEntry":
         return cls(**data)
 
 
@@ -73,7 +73,7 @@ class SemanticCache:
         max_entries: int = 256,
         ttl_seconds: float = 3600 * 24,  # 24 hours
         cache_dir: str = "data/cache",
-        vault_path: Optional[str] = None,
+        vault_path: str | None = None,
     ):
         self.max_entries = max_entries
         self.ttl_seconds = ttl_seconds
@@ -106,7 +106,7 @@ class SemanticCache:
         """Compute full hash for problem."""
         return hashlib.sha256(problem_text.encode()).hexdigest()
 
-    def get(self, problem_text: str) -> Optional[CacheEntry]:
+    def get(self, problem_text: str) -> CacheEntry | None:
         """Get cached entry for problem."""
         key = self._compute_key(problem_text)
 
@@ -213,7 +213,7 @@ class SemanticCache:
         with open(vault_file, "w") as f:
             json.dump(entry.to_dict(), f, indent=2)
 
-    def _load_from_l2(self, key: str) -> Optional[CacheEntry]:
+    def _load_from_l2(self, key: str) -> CacheEntry | None:
         """Load from L2 disk cache."""
         cache_file = self.cache_dir / f"{key}.json"
         if not cache_file.exists():
@@ -223,7 +223,7 @@ class SemanticCache:
             data = json.load(f)
             return CacheEntry.from_dict(data)
 
-    def _load_l2_index(self) -> Dict[str, Any]:
+    def _load_l2_index(self) -> dict[str, Any]:
         """Load L2 index."""
         index_file = self.cache_dir / "index.json"
         if not index_file.exists():
@@ -238,7 +238,7 @@ class SemanticCache:
         with open(index_file, "w") as f:
             json.dump(self.l2_index, f, indent=2)
 
-    def get_stats(self) -> Dict[str, Any]:
+    def get_stats(self) -> dict[str, Any]:
         """Get cache statistics."""
         total = self.hits + self.misses
         hit_rate = self.hits / total if total > 0 else 0.0
@@ -339,14 +339,14 @@ class CachePersistence:
 
 
 # Global cache instance
-_global_cache: Optional[SemanticCache] = None
+_global_cache: SemanticCache | None = None
 
 
 def get_cache(
     max_entries: int = 256,
     ttl_seconds: float = 3600 * 24,
     cache_dir: str = "data/cache",
-    vault_path: Optional[str] = None,
+    vault_path: str | None = None,
 ) -> SemanticCache:
     """Get or create global cache instance."""
     global _global_cache

@@ -41,9 +41,11 @@ from cohezion.compound.holographic_projection import (
     MODULATION_PROFILES,
     _try_load_flume_encoder,
     _try_load_temporal_encoder,
+)
+from cohezion.compound.holographic_projection import (
     encode_step_sequence as _encode_step_sequence,
-    holographic_project as _holographic_project,
-    step_to_axiomatic,
+)
+from cohezion.compound.holographic_projection import (
     text_to_latent as _text_to_latent,
 )
 
@@ -246,10 +248,7 @@ class JourneyTracker:
             latent[i] = (hash_bytes[byte_idx] / 255.0) * 0.5 + 0.25 * np.sin(phase) + 0.25 * np.cos(phase * 2)
 
         # Normalize to [-1, 1]
-        latent = (
-            2.0 * (latent - np.min(latent)) / (np.max(latent) - np.min(latent) + 1e-8)
-            - 1.0
-        )
+        latent = 2.0 * (latent - np.min(latent)) / (np.max(latent) - np.min(latent) + 1e-8) - 1.0
 
         return latent
 
@@ -319,9 +318,7 @@ class JourneyTracker:
             12D axiomatic vector
         """
         # Get modulation profile
-        operation_str = (
-            operation_type if isinstance(operation_type, str) else operation_type.value
-        )
+        operation_str = operation_type if isinstance(operation_type, str) else operation_type.value
         modulation = self._modulation_profiles.get(
             operation_str,
             self._modulation_profiles[OperationType.TRANSFORM.value],
@@ -440,9 +437,7 @@ class JourneyTracker:
 
         coherences = np.array([p.coherence for p in points])
         efficiencies = np.array([p.efficiency for p in points])
-        phi_scores = np.array(
-            [(p.metadata or {}).get("phi_score", 0.0) for p in points]
-        )
+        phi_scores = np.array([(p.metadata or {}).get("phi_score", 0.0) for p in points])
 
         dimensions = np.array([p.dimensions for p in points])
         if len(dimensions) > 1:

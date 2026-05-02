@@ -143,9 +143,7 @@ class DynamicConcurrencyGate:
             # Phase 3 Sprint 2: Check 30-minute thermal prediction
             if self.enable_thermal_prediction and self._thermal_predictor:
                 try:
-                    predicted_temp, confidence = self._thermal_predictor.predict_temperature_ahead(
-                        30
-                    )
+                    predicted_temp, confidence = self._thermal_predictor.predict_temperature_ahead(30)
 
                     # Pre-emptive throttling based on prediction
                     if predicted_temp > 90.0 and confidence > 0.5:
@@ -238,9 +236,7 @@ class DynamicConcurrencyGate:
         """
         decision = self._last_decision
         return {
-            "current_concurrency": (
-                decision.safe_concurrency if decision else self.base_concurrency
-            ),
+            "current_concurrency": (decision.safe_concurrency if decision else self.base_concurrency),
             "base_concurrency": self.base_concurrency,
             "adjustment_count": self._adjustment_count,
             "last_vram_percent": decision.vram_percent if decision else 0.0,

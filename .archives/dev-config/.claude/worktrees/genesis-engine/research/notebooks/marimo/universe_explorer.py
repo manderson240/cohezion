@@ -232,11 +232,7 @@ def __(df, mo, selected_idx):
         if row["novelty"] > 0.7:
             highlights.append("✨ **Novelty Breakthrough**: A high-novelty thought has been imprinted.")
 
-        narrative = (
-            "\n\n".join(highlights)
-            if highlights
-            else "The cosmic engine is stable. Homeostasis maintained."
-        )
+        narrative = "\n\n".join(highlights) if highlights else "The cosmic engine is stable. Homeostasis maintained."
 
         return mo.md(f"""
         ### 🧑‍🔬 The Physicist's Perspective

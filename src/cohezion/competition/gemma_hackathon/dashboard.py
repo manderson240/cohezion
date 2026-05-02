@@ -2,11 +2,7 @@
 
 from __future__ import annotations
 
-import asyncio
-import json
-import sys
 from dataclasses import dataclass
-from pathlib import Path
 from typing import Any
 
 
@@ -62,4 +58,6 @@ if __name__ == "__main__":
 
     result = run_training_loop(episodes=8)
     print(render_training_progress(result["training_results"]))
-    print(f"Total improvement: alignment +{result['improvement']['alignment']:.3f}, effectiveness +{result['improvement']['effectiveness']:.3f}")
+    print(
+        f"Total improvement: alignment +{result['improvement']['alignment']:.3f}, effectiveness +{result['improvement']['effectiveness']:.3f}"
+    )

@@ -9,6 +9,7 @@ sys.path.append(str(Path(__name__).parent / "src"))
 
 from cohezion.swarm.agents.analyst import AnalystAgent
 from cohezion.swarm.agents.memory_agent import MemoryAgent
+
 from cohezion.swarm.swarm_types import Perspective, SwarmConfig
 
 
@@ -25,9 +26,7 @@ async def main():
     mission_context = "Mission 'Ghost Sparrow' concluded in December 2025. Key finding: The Fractal Toroidal interface requires a 0.52 stability offset to prevent brane-drift."
     print(f"Storing: {mission_context}")
     # Call ollama via analyst to get it into the persistent memory (via BaseAgent's auto-persistence)
-    await analyst._call_ollama(
-        f"Summarize this mission result: {mission_context}", ignore_cache=True
-    )
+    await analyst._call_ollama(f"Summarize this mission result: {mission_context}", ignore_cache=True)
 
     # 2. Retrieve via MemoryAgent
     print("\n--- Testing Recursive Recall ---")

@@ -83,7 +83,7 @@ def git_repo(tmp_path: Path) -> Path:
 
 
 @pytest.fixture
-def data_temp_dir() -> Generator[Path, None, None]:
+def data_temp_dir() -> Generator[Path]:
     """Create temporary directory under data/ for security compliance.
 
     ResearchConfig requires paths within data/ directory (Issue #12).
@@ -157,6 +157,7 @@ def reset_singletons():
 
     # Reset JourneyTracker singleton to prevent trajectory/cache pollution
     import cohezion.compound.journey_tracker as jt_module
+
     jt_module._journey_tracker_instance = None
 
     # Clear ALL logger handlers and filters to prevent test pollution.

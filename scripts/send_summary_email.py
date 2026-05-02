@@ -80,7 +80,7 @@ Full summary below:
 {summary}
 """
 
-    html_body = f"""<html><body style="font-family: monospace; background: #0a0a09; color: #faf9f5; padding: 20px;">
+    html_body = """<html><body style="font-family: monospace; background: #0a0a09; color: #faf9f5; padding: 20px;">
 <h1 style="color: #10b981;">Cohezion — Application Package Ready</h1>
 
 <h2>Live Links</h2>

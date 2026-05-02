@@ -11,7 +11,7 @@ import json
 import time
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Any, Dict, List
+from typing import Any
 
 from base_specialist import BaseSpecialist
 from flume_navigator import FLUMEProfilerNavigator
@@ -51,15 +51,15 @@ class Epic6BenchmarkRunner:
         self.profiler = PerformanceProfiler()
         self.flume = FLUMEProfilerNavigator()
 
-        self.results: List[BenchmarkResult] = []
+        self.results: list[BenchmarkResult] = []
         self.start_time = time.time()
 
-    def _load_problems(self, path: str) -> List[Dict[str, Any]]:
+    def _load_problems(self, path: str) -> list[dict[str, Any]]:
         """Load reference problems from JSON."""
-        with open(path, "r") as f:
+        with open(path) as f:
             return json.load(f)
 
-    def run_benchmark(self, problem_ids: List[str] = None) -> Dict[str, Any]:
+    def run_benchmark(self, problem_ids: list[str] = None) -> dict[str, Any]:
         """
         Run benchmark on specified problems (or all if None).
 
@@ -70,7 +70,7 @@ class Epic6BenchmarkRunner:
         else:
             problems = [p for p in self.reference_problems if p["id"] in problem_ids]
 
-        print(f"=== Epic 6 Benchmark Runner ===")
+        print("=== Epic 6 Benchmark Runner ===")
         print(f"Running {len(problems)} reference problems...")
         print()
 
@@ -92,7 +92,7 @@ class Epic6BenchmarkRunner:
 
         return summary
 
-    def _run_single_problem(self, problem: Dict[str, Any]) -> BenchmarkResult:
+    def _run_single_problem(self, problem: dict[str, Any]) -> BenchmarkResult:
         """Run single problem through complete pipeline."""
         problem_start = time.time()
 
@@ -196,7 +196,7 @@ class Epic6BenchmarkRunner:
             reasoning_chain=response1[:200] + "..." if len(response1) > 200 else response1,
         )
 
-    def _compute_summary(self) -> Dict[str, Any]:
+    def _compute_summary(self) -> dict[str, Any]:
         """Compute summary metrics."""
         if not self.results:
             return {"error": "No results"}
@@ -230,7 +230,7 @@ class Epic6BenchmarkRunner:
             "all_targets_met": accuracy >= 1.0 and stability_ratio >= 0.90 and avg_time <= 165.0,
         }
 
-    def _print_summary(self, summary: Dict[str, Any]):
+    def _print_summary(self, summary: dict[str, Any]):
         """Print summary report."""
         print("=== Epic 6 Benchmark Summary ===")
         print(f"Total problems: {summary['total_problems']}")

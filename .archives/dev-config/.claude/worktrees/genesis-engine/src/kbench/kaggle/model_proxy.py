@@ -43,9 +43,7 @@ class ModelProxy:
 
         if api == "genai":
             if not resolved_base_url:
-                raise ValueError(
-                    "MODEL_PROXY_URL must be set via parameter or environment variable."
-                )
+                raise ValueError("MODEL_PROXY_URL must be set via parameter or environment variable.")
             resolved_base_url = re.sub(r"/openapi", "/genai", resolved_base_url)
             client = genai.Client(
                 api_key=resolved_api_key,

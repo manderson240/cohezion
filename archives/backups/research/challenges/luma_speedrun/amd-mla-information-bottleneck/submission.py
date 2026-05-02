@@ -25,22 +25,19 @@ Reference: "Deep Variational Information Bottleneck", ICLR 2017.
 """
 
 from __future__ import annotations
+
 import os
+
 
 os.environ["PYTORCH_ROCM_ARCH"] = "gfx950"
 os.environ["CXX"] = "clang++"
 
+import math
+
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
-import math
-from typing import Tuple
-from torch.utils.cpp_extension import load_inline
 from task import input_t, output_t
-
-import aiter
-from aiter import dtypes as aiter_dtypes
-from aiter import get_mla_metadata_info_v1, get_mla_metadata_v1, mla_reduce_v1
 
 
 class InformationBottleneckEncoder(nn.Module):
@@ -55,7 +52,7 @@ class InformationBottleneckEncoder(nn.Module):
         self.fc_mu = nn.Linear(input_dim, compressed_dim)
         self.fc_logvar = nn.Linear(input_dim, compressed_dim)
 
-    def forward(self, x: torch.Tensor) -> Tuple[torch.Tensor, torch.Tensor]:
+    def forward(self, x: torch.Tensor) -> tuple[torch.Tensor, torch.Tensor]:
         """Encode with variational compression.
 
         Args:
@@ -107,7 +104,7 @@ class IBCompressedAttention:
 
     def compress_kv(
         self, keys: torch.Tensor, values: torch.Tensor
-    ) -> Tuple[torch.Tensor, torch.Tensor, torch.Tensor]:
+    ) -> tuple[torch.Tensor, torch.Tensor, torch.Tensor]:
         """Compress KV cache via information bottleneck.
 
         Args:
@@ -135,7 +132,7 @@ class IBCompressedAttention:
 
     def attention_with_compression(
         self, queries: torch.Tensor, keys: torch.Tensor, values: torch.Tensor
-    ) -> Tuple[torch.Tensor, torch.Tensor]:
+    ) -> tuple[torch.Tensor, torch.Tensor]:
         """Compute attention with IB compression.
 
         Args:

@@ -36,16 +36,13 @@ This is a research kernel exploring custom HIP dispatch for MoE.
 from __future__ import annotations
 
 import os
-import sys
-import math
 
 import torch
-from torch.utils.cpp_extension import load_inline
-
 from aiter import ActivationType, QuantType
 from aiter.fused_moe import fused_moe
-from reference import ref_kernel
 from task import input_t, output_t
+from torch.utils.cpp_extension import load_inline
+
 
 # Compilation flags for gfx950 (MI355X)
 os.environ["CXX"] = "clang++"
@@ -124,75 +121,75 @@ void warp_routed_moe_stage1_kernel(
     // Warp identification
     const int warp_id = threadIdx.x / WARP_SIZE;
     const int lane_id = threadIdx.x % WARP_SIZE;
-    
+
     // Each warp handles a range of experts
     // Expert assignment: warp 0 -> experts [0, 1, ...], etc.
     const int experts_per_warp = (num_experts + NUM_WARPS - 1) / NUM_WARPS;
     const int expert_start = warp_id * experts_per_warp;
     const int expert_end = min(expert_start + experts_per_warp, num_experts);
-    
+
     // Process each expert assigned to this warp
     for (int e = expert_start; e < expert_end; e++) {
         const int num_tokens = num_valid_ids[e];
         if (num_tokens <= 0) continue;
-        
+
         // Get the sorted position for this expert
         int sorted_pos = 0;
         for (int i = 0; i < e; i++) {
             int padded = ((num_valid_ids[i] + block_size - 1) / block_size) * block_size;
             sorted_pos += padded;
         }
-        
+
         // Process tokens in this expert
         // Each warp processes tokens in parallel
         for (int t = lane_id; t < num_tokens; t += WARP_SIZE) {
             int token_idx = sorted_token_ids[sorted_pos + t];
             if (token_idx < 0) continue;  // Padding token
-            
+
             float weight = sorted_weights[sorted_pos + t];
-            
+
             // Compute: Gate(hidden[token_idx]) * Up(hidden[token_idx])
             // Each lane handles a portion of d_expert
             int out_cols = d_expert * 2;  // Gate + Up concatenated
-            
+
             for (int col = lane_id; col < out_cols; col += WARP_SIZE) {
                 float acc = 0.0f;
-                
+
                 // Matrix-vector multiply: hidden[token_idx] @ gate_up_weights[e]
                 // FP4 weights, BF16 input, E8M0 scales
                 int k_blocks = d_hidden / 32;  // Scale per 32 elements
-                
+
                 for (int kb = 0; kb < k_blocks; kb++) {
                     // Get scale for this block
                     uint8_t scale_val = gate_up_scales[e * k_blocks + kb];
                     float scale_f = e8m0_to_f32(scale_val);
-                    
+
                     // Compute 32 elements
                     for (int k = 0; k < 32; k++) {
                         int k_idx = kb * 32 + k;
                         if (k_idx >= d_hidden) break;
-                        
+
                         float a_val = __bfloat162float(hidden_states[token_idx * d_hidden + k_idx]);
-                        
+
                         // Load FP4 weight (2 values per byte)
                         uint8_t packed = gate_up_weights[
                             (e * out_cols + col) * (d_hidden / 2) + (k_idx / 2)
                         ];
                         uint8_t nibble = (k_idx & 1) ? (packed >> 4) : (packed & 0xF);
                         float w_val = fp4_to_f32(nibble) * scale_f;
-                        
+
                         acc += a_val * w_val;
                     }
                 }
-                
+
                 // Apply SiLU to gate portion (first d_expert columns)
                 if (col < d_expert) {
                     acc = silu(acc);
                 }
-                
+
                 // Apply top-k weight
                 acc *= weight;
-                
+
                 // Store to intermediate
                 int out_idx = (sorted_pos + t) * d_expert + (col % d_expert);
                 intermediate[out_idx] = __float2bfloat16(acc);
@@ -221,52 +218,52 @@ void warp_routed_moe_stage2_kernel(
 ) {
     const int warp_id = threadIdx.x / WARP_SIZE;
     const int lane_id = threadIdx.x % WARP_SIZE;
-    
+
     const int experts_per_warp = (num_experts + NUM_WARPS - 1) / NUM_WARPS;
     const int expert_start = warp_id * experts_per_warp;
     const int expert_end = min(expert_start + experts_per_warp, num_experts);
-    
+
     // Accumulator for output (per-token accumulation across experts)
     // Use warp shuffle for reduction
     for (int e = expert_start; e < expert_end; e++) {
         const int num_tokens = num_valid_ids[e];
         if (num_tokens <= 0) continue;
-        
+
         int sorted_pos = 0;
         for (int i = 0; i < e; i++) {
             int padded = ((num_valid_ids[i] + block_size - 1) / block_size) * block_size;
             sorted_pos += padded;
         }
-        
+
         for (int t = 0; t < num_tokens; t++) {
             int token_idx = sorted_token_ids[sorted_pos + t];
             if (token_idx < 0) continue;
-            
+
             // Each lane computes a portion of d_hidden
             for (int col = lane_id; col < d_hidden; col += WARP_SIZE) {
                 float acc = 0.0f;
-                
+
                 int k_blocks = d_expert / 32;
                 for (int kb = 0; kb < k_blocks; kb++) {
                     uint8_t scale_val = down_scales[e * k_blocks + kb];
                     float scale_f = e8m0_to_f32(scale_val);
-                    
+
                     for (int k = 0; k < 32; k++) {
                         int k_idx = kb * 32 + k;
                         if (k_idx >= d_expert) break;
-                        
+
                         float a_val = __bfloat162float(intermediate[(sorted_pos + t) * d_expert + k_idx]);
-                        
+
                         uint8_t packed = down_weights[
                             (e * d_hidden + col) * (d_expert / 2) + (k_idx / 2)
                         ];
                         uint8_t nibble = (k_idx & 1) ? (packed >> 4) : (packed & 0xF);
                         float w_val = fp4_to_f32(nibble) * scale_f;
-                        
+
                         acc += a_val * w_val;
                     }
                 }
-                
+
                 // Accumulate to output (atomic add for multi-expert aggregation)
                 // Use warp shuffle for intra-warp reduction first
                 float warp_sum = acc;
@@ -274,7 +271,7 @@ void warp_routed_moe_stage2_kernel(
                 for (int offset = WARP_SIZE / 2; offset > 0; offset /= 2) {
                     warp_sum += __shfl_xor(warp_sum, offset);
                 }
-                
+
                 // Only lane 0 writes the accumulated result
                 if (lane_id == 0) {
                     // Convert token_idx to batch index
@@ -308,10 +305,10 @@ void warp_routed_moe(
     int bs = hidden_states.size(0);
     int max_num_tokens = sorted_token_ids.size(0) / num_experts * num_experts;
     int block_size = 32;
-    
+
     dim3 grid(1);  // Single block for warp specialization
     dim3 threads(BLOCK_SIZE);
-    
+
     // Stage 1: Gate + Up
     warp_routed_moe_stage1_kernel<<<grid, threads>>>(
         (__hip_bfloat16*)hidden_states.data_ptr(),
@@ -439,7 +436,7 @@ def custom_kernel(data: input_t) -> output_t:
 
         return output
 
-    except Exception as e:
+    except Exception:
         # Fallback to baseline
         pass
 

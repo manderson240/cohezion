@@ -337,9 +337,7 @@ class TestExecuteGraphWiring:
         workflow = _make_workflow([spec])
 
         orchestrator = ExecutionOrchestrator()
-        report = await orchestrator.execute_graph(
-            workflow, initial_input={"data": "test"}, flux_aggregator=flux
-        )
+        report = await orchestrator.execute_graph(workflow, initial_input={"data": "test"}, flux_aggregator=flux)
 
         assert report.status == "completed"
         # Engine should have recorded the node completion to history

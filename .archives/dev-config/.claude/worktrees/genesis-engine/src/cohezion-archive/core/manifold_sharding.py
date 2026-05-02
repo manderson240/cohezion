@@ -94,9 +94,7 @@ class DistributedManifold:
             for shard in self._shards:
                 if shard.shard_id == shard_id:
                     if len(new_data) != shard.size:
-                        raise ValueError(
-                            f"Shard {shard_id} expects {shard.size} dims, got {len(new_data)}"
-                        )
+                        raise ValueError(f"Shard {shard_id} expects {shard.size} dims, got {len(new_data)}")
                     shard.data = list(new_data)
                     self._pointer_flips += 1
                     return

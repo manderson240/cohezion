@@ -103,7 +103,7 @@ class ModelPoolManager:
                     model.size_gb = meta.get("size", 0) / (1024**3)
             elif name in lemonade_map:
                 # Lemonade models are considered local but potentially NPU/GPU accelerated
-                model.size_gb = 0.0 # TODO: Get actual size from Lemonade if possible
+                model.size_gb = 0.0  # TODO: Get actual size from Lemonade if possible
             else:
                 model.loaded = False
                 model.healthy = False
@@ -237,14 +237,14 @@ class ModelPoolManager:
         try:
             # Check if this model is routed to Lemonade
             # (Simple heuristic: check lemonade_config.yaml or model name)
-            is_lemonade = "gemma4:26b-moe" in model_name # Default for now
+            is_lemonade = "gemma4:26b-moe" in model_name  # Default for now
 
             if is_lemonade:
                 url = f"http://{self.lemonade.host}:{self.lemonade.port}/v1/chat/completions"
                 payload = {
                     "model": model_name,
                     "messages": [{"role": "user", "content": _HEALTH_PROMPT}],
-                    "max_tokens": 5
+                    "max_tokens": 5,
                 }
             else:
                 url = f"{self._ollama_host}/api/generate"
@@ -451,7 +451,9 @@ class ModelPoolManager:
         """Query private Lemonade server for installed models."""
         try:
             async with httpx.AsyncClient(timeout=10.0) as client:
-                resp = await client.get(f"http://{self.lemonade.host}:{self.lemonade.port}/api/v1/models")
+                resp = await client.get(
+                    f"http://{self.lemonade.host}:{self.lemonade.port}/api/v1/models"
+                )
                 resp.raise_for_status()
                 # Lemonade API returns a list of models
                 return resp.json().get("data", [])

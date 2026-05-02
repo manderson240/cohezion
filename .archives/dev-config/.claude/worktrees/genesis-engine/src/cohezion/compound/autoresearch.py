@@ -137,9 +137,7 @@ class AutoresearchEngine:
         # Sort by priority (descending)
         return sorted(opportunities, key=lambda x: x.priority, reverse=True)
 
-    async def generate_research_plan(
-        self, opportunities: list[ImprovementOpportunity]
-    ) -> dict[str, Any]:
+    async def generate_research_plan(self, opportunities: list[ImprovementOpportunity]) -> dict[str, Any]:
         """Generate a research plan based on opportunities.
 
         Args:
@@ -175,9 +173,7 @@ class RetrospectionEngine:
     def __init__(self, vault_path: str = "cloud-vault-mcp/vault"):
         self.vault_path = Path(vault_path)
 
-    async def capture_learning(
-        self, execution_result: dict[str, Any], mcp_client=None
-    ) -> str | None:
+    async def capture_learning(self, execution_result: dict[str, Any], mcp_client=None) -> str | None:
         """Capture learning from execution to vault.
 
         Args:
@@ -400,9 +396,7 @@ class ExperientialLearningLoop:
         self.refiner = SkillRefiner()
         self.learning_buffer = []
 
-    async def process_execution(
-        self, execution_result: dict[str, Any], mcp_client=None
-    ) -> dict[str, Any]:
+    async def process_execution(self, execution_result: dict[str, Any], mcp_client=None) -> dict[str, Any]:
         """Process a single execution through the learning loop.
 
         Args:
@@ -446,9 +440,7 @@ class ExperientialLearningLoop:
                 for r in self.learning_buffer
             ) / len(self.learning_buffer)
 
-            avg_tokens = sum(r.get("tokens_used", 0) for r in self.learning_buffer) / len(
-                self.learning_buffer
-            )
+            avg_tokens = sum(r.get("tokens_used", 0) for r in self.learning_buffer) / len(self.learning_buffer)
 
             metrics = {
                 "cache_hit_rate": avg_cache_hit,

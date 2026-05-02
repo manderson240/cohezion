@@ -45,16 +45,14 @@ This is a research kernel exploring algorithmic optimizations.
 from __future__ import annotations
 
 import os
-import math
-from typing import Any
 
 import torch
-from torch.utils.cpp_extension import load_inline
-
-from aiter import gemm_a4w4, dtypes
+from aiter import dtypes, gemm_a4w4
 from aiter.ops.triton.quant import dynamic_mxfp4_quant
 from aiter.utility.fp4_utils import e8m0_shuffle
 from task import input_t, output_t
+from torch.utils.cpp_extension import load_inline
+
 
 os.environ["CXX"] = "clang++"
 
@@ -115,7 +113,7 @@ __global__ void mat_add_kernel(
 ) {
     int row = blockIdx.y * BLOCK_SIZE + threadIdx.y;
     int col = blockIdx.x * BLOCK_SIZE + threadIdx.x;
-    
+
     if (row < M && col < N) {
         float a = bf16_to_f32(A[row * N + col]);
         float b = bf16_to_f32(B[row * N + col]);
@@ -132,7 +130,7 @@ __global__ void mat_sub_kernel(
 ) {
     int row = blockIdx.y * BLOCK_SIZE + threadIdx.y;
     int col = blockIdx.x * BLOCK_SIZE + threadIdx.x;
-    
+
     if (row < M && col < N) {
         float a = bf16_to_f32(A[row * N + col]);
         float b = bf16_to_f32(B[row * N + col]);
@@ -151,7 +149,7 @@ __global__ void naive_gemm_kernel(
 ) {
     int row = blockIdx.y * BLOCK_SIZE + threadIdx.y;
     int col = blockIdx.x * BLOCK_SIZE + threadIdx.x;
-    
+
     if (row < M && col < N) {
         float sum = 0.0f;
         for (int k = 0; k < K; k++) {
@@ -159,7 +157,7 @@ __global__ void naive_gemm_kernel(
             float b = bf16_to_f32(B[k * N + col]);
             sum += a * b;
         }
-        
+
         float c_val = beta * bf16_to_f32(C[row * N + col]);
         C[row * N + col] = f32_to_bf16(alpha * sum + c_val);
     }
@@ -178,49 +176,49 @@ __device__ void strassen_recursive(
     if (M <= BASE_SIZE || N <= BASE_SIZE || K <= BASE_SIZE || depth <= 0) {
         dim3 threads(BLOCK_SIZE, BLOCK_SIZE);
         dim3 grid((N + BLOCK_SIZE - 1) / BLOCK_SIZE, (M + BLOCK_SIZE - 1) / BLOCK_SIZE);
-        
+
         naive_gemm_kernel<<<grid, threads>>>(
             A, B, C, M, N, K, 1.0f, 0.0f
         );
         return;
     }
-    
+
     // Partition matrices
     int m1 = M / 2;
     int n1 = N / 2;
     int k1 = K / 2;
-    
+
     // Pointers to quadrants
     const __hip_bfloat16 *A11 = A;
     const __hip_bfloat16 *A12 = A + k1;
     const __hip_bfloat16 *A21 = A + m1 * K;
     const __hip_bfloat16 *A22 = A + m1 * K + k1;
-    
+
     const __hip_bfloat16 *B11 = B;
     const __hip_bfloat16 *B12 = B + n1;
     const __hip_bfloat16 *B21 = B + k1 * N;
     const __hip_bfloat16 *B22 = B + k1 * N + n1;
-    
+
     __hip_bfloat16 *C11 = C;
     __hip_bfloat16 *C12 = C + n1;
     __hip_bfloat16 *C21 = C + m1 * N;
     __hip_bfloat16 *C22 = C + m1 * N + n1;
-    
+
     // Strassen would require temporaries for the 7 M matrices
     // For HIP device code, we use shared memory or a workspace
     // This is a simplified version - full implementation needs workspace allocation
-    
+
     // For now, fall back to naive for simplicity
     // A full Strassen implementation would:
     // 1. Allocate workspace for 7 M matrices (m1×n1 each)
     // 2. Compute sums/differences for inputs to each M
     // 3. Recursively call strassen_recursive for each M
     // 4. Combine results
-    
+
     // Simplified: just do naive GEMM
     dim3 threads(BLOCK_SIZE, BLOCK_SIZE);
     dim3 grid((N + BLOCK_SIZE - 1) / BLOCK_SIZE, (M + BLOCK_SIZE - 1) / BLOCK_SIZE);
-    
+
     naive_gemm_kernel<<<grid, threads>>>(
         A, B, C, M, N, K, 1.0f, 0.0f
     );
@@ -238,7 +236,7 @@ void strassen_gemm(
     if (M <= BASE_SIZE || N <= BASE_SIZE || K <= BASE_SIZE) {
         dim3 threads(BLOCK_SIZE, BLOCK_SIZE);
         dim3 grid((N + BLOCK_SIZE - 1) / BLOCK_SIZE, (M + BLOCK_SIZE - 1) / BLOCK_SIZE);
-        
+
         naive_gemm_kernel<<<grid, threads>>>(
             (__hip_bfloat16*)A.data_ptr(),
             (__hip_bfloat16*)B.data_ptr(),
@@ -247,11 +245,11 @@ void strassen_gemm(
         );
         return;
     }
-    
+
     // For large matrices, use Strassen (simplified to naive for this prototype)
     dim3 threads(BLOCK_SIZE, BLOCK_SIZE);
     dim3 grid((N + BLOCK_SIZE - 1) / BLOCK_SIZE, (M + BLOCK_SIZE - 1) / BLOCK_SIZE);
-    
+
     naive_gemm_kernel<<<grid, threads>>>(
         (__hip_bfloat16*)A.data_ptr(),
         (__hip_bfloat16*)B.data_ptr(),
@@ -341,7 +339,7 @@ def custom_kernel(data: input_t) -> output_t:
 
             return C
 
-    except Exception as e:
+    except Exception:
         # Fall through to baseline
         pass
 

@@ -8,11 +8,11 @@ Parallel expert processing with thread-level parallelism
 POPCORN: amd-moe-mxfp4
 """
 
-import torch
-from task import input_t, output_t
-from reference import ref_kernel
 import aiter
+import torch
 from aiter import dtypes
+from reference import ref_kernel
+from task import input_t, output_t
 
 
 def custom_kernel(data: input_t) -> output_t:
@@ -146,12 +146,12 @@ def custom_kernel(data: input_t) -> output_t:
                     is_shuffled=True,
                 )
 
-            except Exception as e:
+            except Exception:
                 # Fallback to reference on any error
                 return ref_kernel(data)
 
         return output
 
-    except Exception as e:
+    except Exception:
         # Comprehensive error handling - fallback to reference
         return ref_kernel(data)

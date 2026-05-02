@@ -36,7 +36,6 @@ from pathlib import Path
 from typing import Any
 
 import numpy as np
-
 from cohezion.monitoring import PrometheusMetrics, get_metrics, start_metrics_server
 
 
@@ -57,9 +56,7 @@ class SignificantJourneyConfig:
     max_concurrent: int = 4  # Respect Ollama limits
     skills: list[str] = field(default_factory=lambda: ["JOURNEY_TRACKING_PRIME"])
     output_dir: Path = field(default_factory=lambda: Path("data/significant_journeys"))
-    checkpoint_dir: Path = field(
-        default_factory=lambda: Path("data/significant_journeys/checkpoints")
-    )
+    checkpoint_dir: Path = field(default_factory=lambda: Path("data/significant_journeys/checkpoints"))
     enable_retries: bool = True
     max_retries: int = 3
     retry_delay: float = 2.0
@@ -210,12 +207,8 @@ class SkillTaskGenerator:
 
         template = random.choice(templates.get(complexity, templates["medium"]))
 
-        topics = self._extract_topics(
-            skill.get("domain_expertise", "") + " " + skill.get("key_concepts", "")
-        )
-        topic = (
-            random.choice(topics) if topics else skill_name.replace("_PRIME", "").replace("_", " ")
-        )
+        topics = self._extract_topics(skill.get("domain_expertise", "") + " " + skill.get("key_concepts", ""))
+        topic = random.choice(topics) if topics else skill_name.replace("_PRIME", "").replace("_", " ")
         related = random.choice(topics) if len(topics) > 1 else "existing methodologies"
 
         return template.format(
@@ -369,9 +362,7 @@ class MetricsCollector:
             "phi_above_0_75": sum(1 for p in self.phi_scores if p > 0.75) / len(self.phi_scores)
             if self.phi_scores
             else 0,
-            "mean_duration": sum(self.journey_times) / len(self.journey_times)
-            if self.journey_times
-            else 0,
+            "mean_duration": sum(self.journey_times) / len(self.journey_times) if self.journey_times else 0,
             "elapsed_seconds": time.time() - self.start_time,
         }
 
@@ -493,9 +484,7 @@ class RealExecutionDriver:
                 # Compute trajectory
                 latent = tracker.text_to_latent(step_task)
                 projection = tracker.holographic_project(latent)
-                modulation = tracker._modulation_profiles.get(
-                    "analyze", tracker._modulation_profiles["transform"]
-                )
+                modulation = tracker._modulation_profiles.get("analyze", tracker._modulation_profiles["transform"])
 
                 quality_weight = 0.5 * coherence + 0.5 * efficiency
                 trajectory = projection * (1.0 - quality_weight) + modulation * quality_weight
@@ -551,12 +540,8 @@ class RealExecutionDriver:
             start_time=start_time,
             end_time=end_time,
             final_phi=sum(phi_scores) / len(phi_scores) if phi_scores else 0.0,
-            final_coherence=sum(coherence_scores) / len(coherence_scores)
-            if coherence_scores
-            else 0.0,
-            final_efficiency=sum(efficiency_scores) / len(efficiency_scores)
-            if efficiency_scores
-            else 0.0,
+            final_coherence=sum(coherence_scores) / len(coherence_scores) if coherence_scores else 0.0,
+            final_efficiency=sum(efficiency_scores) / len(efficiency_scores) if efficiency_scores else 0.0,
             success=all(s.success for s in steps),
             total_tokens=sum(len(s.task_description.split()) for s in steps) * 2,
             metadata={
@@ -731,18 +716,12 @@ def main():
     """CLI entry point."""
     parser = argparse.ArgumentParser(description="Significant Journey Driver v2")
     parser.add_argument("--count", type=int, default=100, help="Number of journeys")
-    parser.add_argument(
-        "--skills", type=str, default="JOURNEY_TRACKING_PRIME", help="Comma-separated skills"
-    )
+    parser.add_argument("--skills", type=str, default="JOURNEY_TRACKING_PRIME", help="Comma-separated skills")
     parser.add_argument("--output-dir", type=Path, default=Path("data/significant_journeys"))
     parser.add_argument("--max-concurrent", type=int, default=4, help="Max concurrent executions")
     parser.add_argument("--resume-from", type=int, help="Resume from checkpoint count")
-    parser.add_argument(
-        "--enable-surrealdb", action="store_true", help="Enable SurrealDB persistence"
-    )
-    parser.add_argument(
-        "--enable-metrics", action="store_true", default=True, help="Enable Prometheus metrics"
-    )
+    parser.add_argument("--enable-surrealdb", action="store_true", help="Enable SurrealDB persistence")
+    parser.add_argument("--enable-metrics", action="store_true", default=True, help="Enable Prometheus metrics")
     parser.add_argument("--disable-metrics", action="store_true", help="Disable Prometheus metrics")
     parser.add_argument("--metrics-port", type=int, default=9090, help="Prometheus metrics port")
 

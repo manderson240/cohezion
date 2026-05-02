@@ -10,12 +10,12 @@ Key insight: We can compute attention in two passes:
 This reduces computation while maintaining accuracy.
 """
 
-import torch
-import torch.nn.functional as F
 import math
 
-from aiter import mla_decode_fwd
+import torch
+import torch.nn.functional as F
 from task import input_t, output_t
+
 
 SM_SCALE = 1.0 / math.sqrt(576)
 QK_HEAD_DIM = 576
@@ -116,7 +116,7 @@ def custom_kernel(data: input_t) -> output_t:
 
         return torch.cat(outputs, dim=0)
 
-    except Exception as e:
+    except Exception:
         from reference import ref_kernel
 
         return ref_kernel(data)

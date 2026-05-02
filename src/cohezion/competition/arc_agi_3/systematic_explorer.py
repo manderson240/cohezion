@@ -10,19 +10,19 @@ This agent improves on random by:
 from __future__ import annotations
 
 import random
-from typing import Any, Dict, List, Optional, Tuple
+from typing import Any
 
 import numpy as np
 
 
-def grid_diff(prev: Any, next: Any) -> Tuple[int, Optional[Tuple[int, int]]]:
+def grid_diff(prev: Any, next: Any) -> tuple[int, tuple[int, int] | None]:
     """Count changed pixels and detect movement direction."""
     prev_arr = np.array(prev) if prev is not None else np.array([])
     next_arr = np.array(next) if next is not None else np.array([])
     if prev_arr.size == 0 or next_arr.size == 0 or prev_arr.shape != next_arr.shape:
         return 0, None
-    prev = prev_arr.tolist() if hasattr(prev_arr, 'tolist') else prev
-    next = next_arr.tolist() if hasattr(next_arr, 'tolist') else next
+    prev = prev_arr.tolist() if hasattr(prev_arr, "tolist") else prev
+    next = next_arr.tolist() if hasattr(next_arr, "tolist") else next
 
     diff_count = 0
     movement = None
@@ -34,7 +34,7 @@ def grid_diff(prev: Any, next: Any) -> Tuple[int, Optional[Tuple[int, int]]]:
     return diff_count, movement
 
 
-def find_player_pos(grid: List[List[int]]) -> Optional[Tuple[int, int]]:
+def find_player_pos(grid: list[list[int]]) -> tuple[int, int] | None:
     """Find player as small distinct colored region near center."""
     arr = np.array(grid)
     h, w = arr.shape
@@ -66,14 +66,18 @@ class SystematicExplorer:
     def __init__(self, game_id: str, max_actions: int = 400):
         self.game_id = game_id
         self.max_actions = max_actions
-        self.action_effects: Dict[str, Dict[str, Any]] = {}
+        self.action_effects: dict[str, dict[str, Any]] = {}
         self.tested_actions: set[str] = set()
-        self.player_positions: List[Tuple[int, int]] = []
-        self.last_grid: Optional[List[List[int]]] = None
+        self.player_positions: list[tuple[int, int]] = []
+        self.last_grid: list[list[int]] | None = None
         self.exploration_mode = True
 
     def observe_action(
-        self, action_name: str, prev_grid: List[List[int]], next_grid: List[List[int]], state_name: str
+        self,
+        action_name: str,
+        prev_grid: list[list[int]],
+        next_grid: list[list[int]],
+        state_name: str,
     ) -> None:
         """Record what an action did."""
         diff, _ = grid_diff(prev_grid, next_grid)
@@ -92,7 +96,7 @@ class SystematicExplorer:
         if next_player:
             self.player_positions.append(next_player)
 
-    def choose_action(self, available_actions: List[Any], obs: Any) -> Any:
+    def choose_action(self, available_actions: list[Any], obs: Any) -> Any:
         """Choose action based on current knowledge."""
         from arcengine import GameAction
 
@@ -122,7 +126,7 @@ class SystematicExplorer:
         return random.choice(available_actions)
 
 
-def run_systematic_explorer(game_id: str, max_actions: int = 400) -> Dict[str, Any]:
+def run_systematic_explorer(game_id: str, max_actions: int = 400) -> dict[str, Any]:
     """Run one game with the systematic explorer."""
     import arc_agi
     from arcengine import GameAction, GameState
@@ -165,13 +169,18 @@ def run_systematic_explorer(game_id: str, max_actions: int = 400) -> Dict[str, A
 
 if __name__ == "__main__":
     import logging
+
     logging.basicConfig(level=logging.INFO, format="%(levelname)s: %(message)s")
 
     for game_id in ["r11l", "ls20", "lp85"]:
         result = run_systematic_explorer(game_id)
-        print(f"\n{game_id}: wins={result['wins']}, score={result['score']}, "
-              f"actions={result['actions']}, explored={result['exploration_complete']}")
+        print(
+            f"\n{game_id}: wins={result['wins']}, score={result['score']}, "
+            f"actions={result['actions']}, explored={result['exploration_complete']}"
+        )
         if result["action_effects"]:
             for name, effect in result["action_effects"].items():
-                print(f"  {name}: diff={effect['diff_pixels']}px, "
-                      f"player={effect['next_player']}, state={effect['state']}")
+                print(
+                    f"  {name}: diff={effect['diff_pixels']}px, "
+                    f"player={effect['next_player']}, state={effect['state']}"
+                )

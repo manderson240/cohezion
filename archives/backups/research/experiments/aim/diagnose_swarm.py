@@ -18,7 +18,7 @@ def diagnose():
 
     answer = specialist.extract_answer(response)
     print(f"Extracted Answer: {answer}")
-    print(f"Expected Answer: 16")
+    print("Expected Answer: 16")
 
 
 if __name__ == "__main__":

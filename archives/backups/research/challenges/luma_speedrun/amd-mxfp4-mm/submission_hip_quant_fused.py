@@ -13,10 +13,10 @@ This saves one kernel launch (~1-2µs on ranked runner).
 Combined with gemm_a4w4 (NOT _asm) which is ranked-optimal at 13.4µs.
 """
 
-import torch
 import aiter
 from aiter import dtypes
 from task import input_t, output_t
+
 
 # Try the HIP quant path
 try:

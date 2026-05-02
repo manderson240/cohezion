@@ -1,11 +1,9 @@
-import time
-import subprocess
 import datetime
-from datetime import timezone
+import subprocess
 
 
 def run_cmd(cmd):
-    print(f"[{datetime.datetime.now(timezone.utc).isoformat()}] Running: {cmd}")
+    print(f"[{datetime.datetime.now(datetime.UTC).isoformat()}] Running: {cmd}")
     res = subprocess.run(cmd, shell=True, capture_output=True, text=True)
     print(res.stdout)
     if res.stderr:

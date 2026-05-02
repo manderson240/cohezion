@@ -27,15 +27,15 @@ References:
 """
 
 from __future__ import annotations
+
 import os
 import sys
-import math
+
 import torch
-from typing import Tuple, Optional
 from aiter import ActivationType, QuantType
 from reference import ref_kernel
 from task import input_t, output_t
-import aiter
+
 
 # Environment optimization for non-temporal loads on MI355X
 os.environ["AITER_USE_NT"] = "1"
@@ -88,7 +88,7 @@ def _compute_quantization_aware_scores(
 
 def _analyze_activation_quantizability(
     hidden_states: torch.Tensor,
-) -> Tuple[torch.Tensor, torch.Tensor]:
+) -> tuple[torch.Tensor, torch.Tensor]:
     """
     Analyze input activations for quantization characteristics.
 
@@ -115,7 +115,7 @@ def _select_quantization_strategy(
     topk_ids: torch.Tensor,
     topk_weights: torch.Tensor,
     quant_threshold: float = 0.5,
-) -> Tuple[torch.Tensor, torch.Tensor, torch.Tensor]:
+) -> tuple[torch.Tensor, torch.Tensor, torch.Tensor]:
     """
     Select per-token quantization strategy based on expert quantizability.
 

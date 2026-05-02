@@ -20,7 +20,7 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
-from typing import Dict, List, NamedTuple, Tuple, TypedDict
+from typing import NamedTuple, TypedDict
 
 import numpy as np
 from arcengine import (
@@ -31,6 +31,7 @@ from arcengine import (
     RenderableUserDisplay,
     Sprite,
 )
+
 
 sprites = {
     "ahdesifykt": Sprite(
@@ -21235,25 +21236,27 @@ class rnbcvtkqiw(NamedTuple):
 class thembpsuoz(TypedDict):
     """."""
 
-    qcmzcjocmj: Dict[int, rnbcvtkqiw]
+    qcmzcjocmj: dict[int, rnbcvtkqiw]
     oxbwsencfv: int
 
 
 def qfvvosdkqr(
-    wcbywgdovp: Dict[str, Dict[str, List[List[int]]]],
-) -> Dict[str, Dict[str, thembpsuoz]]:
+    wcbywgdovp: dict[str, dict[str, list[list[int]]]],
+) -> dict[str, dict[str, thembpsuoz]]:
     """."""
-    zzdjlqxdnf: Dict[str, Dict[str, thembpsuoz]] = {}
+    zzdjlqxdnf: dict[str, dict[str, thembpsuoz]] = {}
     for uwtopyjnbz, vpuoorisew in wcbywgdovp.items():
-        ccqkbwunoh: Dict[str, thembpsuoz] = {}
+        ccqkbwunoh: dict[str, thembpsuoz] = {}
         for ihcexiqgys, axevtouupo in vpuoorisew.items():
-            qcmzcjocmj: Dict[int, rnbcvtkqiw] = {}
+            qcmzcjocmj: dict[int, rnbcvtkqiw] = {}
             oxbwsencfv = 0
             for y, pxycedmqtn in enumerate(axevtouupo):
                 for x, rchyrnavey in enumerate(pxycedmqtn):
                     if rchyrnavey != -1:
                         if rchyrnavey in qcmzcjocmj:
-                            raise ValueError(f"Duplicate number {rchyrnavey} in map '{ihcexiqgys}' of level '{uwtopyjnbz}'")
+                            raise ValueError(
+                                f"Duplicate number {rchyrnavey} in map '{ihcexiqgys}' of level '{uwtopyjnbz}'"
+                            )
                         qcmzcjocmj[rchyrnavey] = rnbcvtkqiw(y, x)
                         if rchyrnavey > oxbwsencfv:
                             oxbwsencfv = rchyrnavey
@@ -21266,15 +21269,15 @@ def chmfaflqhy(
     uwtopyjnbz: str,
     ihcexiqgys: str,
     kiofvrbmju: bool,
-    uopmnplcnv: Dict[str, Dict[str, thembpsuoz]],
-) -> List[Tuple[rnbcvtkqiw, rnbcvtkqiw]]:
+    uopmnplcnv: dict[str, dict[str, thembpsuoz]],
+) -> list[tuple[rnbcvtkqiw, rnbcvtkqiw]]:
     """."""
     gdmraryfrp: thembpsuoz = uopmnplcnv[uwtopyjnbz][ihcexiqgys]
-    qcmzcjocmj: Dict[int, rnbcvtkqiw] = gdmraryfrp["qcmzcjocmj"]
+    qcmzcjocmj: dict[int, rnbcvtkqiw] = gdmraryfrp["qcmzcjocmj"]
     oxbwsencfv: int = gdmraryfrp["oxbwsencfv"]
     if oxbwsencfv <= 1:
         return []
-    nvjnzzyham: List[Tuple[rnbcvtkqiw, rnbcvtkqiw]] = []
+    nvjnzzyham: list[tuple[rnbcvtkqiw, rnbcvtkqiw]] = []
     for acnxhwymfw, pmpudfwvhx in qcmzcjocmj.items():
         ibwabdeure: int
         if kiofvrbmju:
@@ -21289,7 +21292,7 @@ def chmfaflqhy(
 class fonypcnqmf(RenderableUserDisplay):
     """."""
 
-    rrhqvpezjr: List[Tuple[int, int]]
+    rrhqvpezjr: list[tuple[int, int]]
 
     def __init__(self, bnlfrvxkob: int, zigwldrikf: int = 1, level_index: int = 0):
         self.bnlfrvxkob = bnlfrvxkob
@@ -21314,9 +21317,9 @@ class fonypcnqmf(RenderableUserDisplay):
         self.level_index = min(level_index - 1, zigwldrikf - 1)
 
     @staticmethod
-    def xuyldyuchy() -> List[Tuple[int, int]]:
+    def xuyldyuchy() -> list[tuple[int, int]]:
         """."""
-        cbymhlqajy: List[Tuple[int, int]] = []
+        cbymhlqajy: list[tuple[int, int]] = []
         for y in range(0, 64):
             cbymhlqajy.append((0, y))
         return cbymhlqajy
@@ -21332,7 +21335,9 @@ class fonypcnqmf(RenderableUserDisplay):
             start_x = 10 + i * 5
             start_y = 1
             for sbgijpvxnc in range(4):
-                frame[start_y, start_x + sbgijpvxnc] = cqizedfwrl if i <= self.level_index else sayxoyjqpt
+                frame[start_y, start_x + sbgijpvxnc] = (
+                    cqizedfwrl if i <= self.level_index else sayxoyjqpt
+                )
         return frame
 
 
@@ -21382,10 +21387,15 @@ class Lp85(ARCBaseGame):
                 return sprite
         return None
 
-    def pubeyzotzr(self, x: int, y: int) -> List[Sprite] | None:
+    def pubeyzotzr(self, x: int, y: int) -> list[Sprite] | None:
         sprites = []
         for sprite in self.current_level._sprites:
-            if x >= sprite.x and y >= sprite.y and (x < sprite.x + sprite.width) and (y < sprite.y + sprite.height):
+            if (
+                x >= sprite.x
+                and y >= sprite.y
+                and (x < sprite.x + sprite.width)
+                and (y < sprite.y + sprite.height)
+            ):
                 sprites.append(sprite)
         if len(sprites) > 0:
             return sprites
@@ -21402,7 +21412,11 @@ class Lp85(ARCBaseGame):
                 cwpawmamb = self.pubeyzotzr(yrtwgqlvm, ejftlnclv)
                 if cwpawmamb is not None:
                     for pnrmgmcmh in cwpawmamb:
-                        if pnrmgmcmh is not None and pnrmgmcmh.tags is not None and ("button" in pnrmgmcmh.tags[0]):
+                        if (
+                            pnrmgmcmh is not None
+                            and pnrmgmcmh.tags is not None
+                            and ("button" in pnrmgmcmh.tags[0])
+                        ):
                             vctdsvnwjd = True
                             qrjqfnfrjr = pnrmgmcmh.tags[0].split("_")
                             if len(qrjqfnfrjr) == 3:
@@ -21446,6 +21460,9 @@ class Lp85(ARCBaseGame):
                 return False
         ngnionqsbv = self.current_level.get_sprites_by_tag("fdgmtkfrxl")
         for praflotbfn in ngnionqsbv:
-            if self.current_level.get_sprite_at(praflotbfn.x + 1, praflotbfn.y + 1, "goal-o") is None:
+            if (
+                self.current_level.get_sprite_at(praflotbfn.x + 1, praflotbfn.y + 1, "goal-o")
+                is None
+            ):
                 return False
         return True

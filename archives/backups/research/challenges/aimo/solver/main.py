@@ -6,19 +6,18 @@ Uses standard Kaggle evaluation templates.
 
 import os
 import sys
-import json
+
 
 # Add parent directory to path for imports
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 # Import Kaggle evaluation infrastructure
 sys.path.insert(0, "/kaggle/input/ai-mathematical-olympiad-progress-prize-3")
-from kaggle_evaluation.core.templates import InferenceServer
-from kaggle_evaluation.core.relay import Client
+import re
 
 import polars as pl
 import requests
-import re
+from kaggle_evaluation.core.templates import InferenceServer
 
 
 class AIMO3InferenceServer(InferenceServer):

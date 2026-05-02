@@ -2,8 +2,7 @@
 
 from __future__ import annotations
 
-import asyncio
-from unittest.mock import AsyncMock, MagicMock
+from unittest.mock import AsyncMock
 
 import pytest
 
@@ -14,7 +13,7 @@ from cohezion.graph.nodes import (
     ToolNode,
     WorkflowNode,
 )
-from cohezion.graph.types import NodeSpec, NodeStatus
+from cohezion.graph.types import NodeSpec
 
 
 class TestWorkflowNodeABC:

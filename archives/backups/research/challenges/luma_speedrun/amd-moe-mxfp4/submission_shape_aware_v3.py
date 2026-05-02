@@ -17,11 +17,10 @@ from __future__ import annotations
 
 import os
 
+
 os.environ["AITER_USE_NT"] = "1"
 
 import torch
-
-import aiter
 from aiter import ActivationType, QuantType
 from aiter.fused_moe import fused_moe, moe_sorting_fwd
 from task import input_t, output_t
@@ -169,7 +168,7 @@ def custom_kernel(data: input_t) -> output_t:
             intermediate_pad=intermediate_pad,
         )
         return output
-    except Exception as e:
+    except Exception:
         # Fallback: try without shape-aware env
         os.environ.pop("AITER_KSPLIT", None)
         return fused_moe(

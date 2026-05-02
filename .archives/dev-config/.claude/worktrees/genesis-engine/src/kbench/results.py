@@ -15,6 +15,7 @@
 import pprint
 from typing import TYPE_CHECKING, Any, Generic, TypeVar, get_args
 
+
 T = TypeVar("T")
 
 if TYPE_CHECKING:

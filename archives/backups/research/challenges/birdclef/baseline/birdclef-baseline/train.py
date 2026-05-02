@@ -1,11 +1,8 @@
-import os
-import gc
-import json
+import pandas as pd
 import torch
 import torch.nn as nn
-import pandas as pd
-import numpy as np
-from torch.utils.data import Dataset, DataLoader
+from torch.utils.data import DataLoader, Dataset
+
 from cohezion.models.birdclef_baseline import BirdCLEFBaseline
 
 

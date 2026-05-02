@@ -5,8 +5,6 @@ import pytest
 
 from cohezion.physics.invariant_checker import (
     InvariantChecker,
-    InvariantReport,
-    ObligationResult,
     ObligationStatus,
 )
 

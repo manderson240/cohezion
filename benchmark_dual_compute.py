@@ -18,7 +18,7 @@ def start_flm_server(model: str, port: int) -> subprocess.Popen:
     return subprocess.Popen(
         ["/usr/bin/flm", "serve", model, "--port", str(port), "--pmode", "performance"],
         stdout=subprocess.DEVNULL,
-        stderr=subprocess.DEVNULL
+        stderr=subprocess.DEVNULL,
     )
 
 
@@ -48,9 +48,9 @@ def benchmark_npu_concurrent(port: int, concurrency: int) -> dict:
                 json={
                     "model": "gemma3:4b",
                     "messages": [{"role": "user", "content": p}],
-                    "max_tokens": 40
+                    "max_tokens": 40,
                 },
-                timeout=60
+                timeout=60,
             )
             responses.append(resp)
         except Exception as e:
@@ -67,12 +67,7 @@ def benchmark_npu_concurrent(port: int, concurrency: int) -> dict:
             pass
 
     tps = total_tokens / (elapsed / 1000) if elapsed > 0 else 0
-    return {
-        "concurrency": concurrency,
-        "tps": tps,
-        "tokens": total_tokens,
-        "time_ms": elapsed
-    }
+    return {"concurrency": concurrency, "tps": tps, "tokens": total_tokens, "time_ms": elapsed}
 
 
 def benchmark_cpu_lemonade() -> dict:
@@ -110,9 +105,9 @@ def benchmark_cpu_lemonade() -> dict:
                 json={
                     "model": model,
                     "messages": [{"role": "user", "content": f"Write haiku {i}"}],
-                    "max_tokens": 40
+                    "max_tokens": 40,
                 },
-                timeout=30
+                timeout=30,
             )
             data = resp.json()
             tokens = data.get("usage", {}).get("completion_tokens", 0)
@@ -121,12 +116,7 @@ def benchmark_cpu_lemonade() -> dict:
         elapsed = (time.time() - start) * 1000
         tps = total_tokens / (elapsed / 1000) if elapsed > 0 else 0
 
-        return {
-            "model": model,
-            "tps": tps,
-            "tokens": total_tokens,
-            "time_ms": elapsed
-        }
+        return {"model": model, "tps": tps, "tokens": total_tokens, "time_ms": elapsed}
 
     except Exception as e:
         return {"error": str(e), "tps": 0}
@@ -164,7 +154,9 @@ def main():
             print(f"\n   Testing concurrency={conc}...")
             result = benchmark_npu_concurrent(8004, conc)
             npu_results.append(result)
-            print(f"     {result['tps']:.1f} TPS ({result['tokens']} tokens in {result['time_ms']:.0f}ms)")
+            print(
+                f"     {result['tps']:.1f} TPS ({result['tokens']} tokens in {result['time_ms']:.0f}ms)"
+            )
 
         results["npu"] = npu_results
 

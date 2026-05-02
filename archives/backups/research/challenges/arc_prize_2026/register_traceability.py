@@ -1,5 +1,6 @@
 import asyncio
 from pathlib import Path
+
 from cohezion.knowledge_graph.bidirectional_linker import (
     get_knowledge_graph,
     link_doc_to_code,

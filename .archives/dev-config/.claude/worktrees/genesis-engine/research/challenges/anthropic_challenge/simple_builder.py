@@ -39,9 +39,7 @@ class SimpleKernelBuilder:
         addr = self.scratch_ptr
         self.scratch_names[addr] = (name, size)
         self.scratch_ptr += size
-        assert self.scratch_ptr <= SCRATCH_SIZE, (
-            f"OOM: {self.scratch_ptr} > {SCRATCH_SIZE}"
-        )
+        assert self.scratch_ptr <= SCRATCH_SIZE, f"OOM: {self.scratch_ptr} > {SCRATCH_SIZE}"
         return addr
 
     def get_const(self, val):
@@ -51,9 +49,7 @@ class SimpleKernelBuilder:
             self.global_const_map[val] = addr
         return self.global_const_map[val]
 
-    def build_kernel(
-        self, forest_height, n_nodes, batch_size, rounds, hash_stages, forest=None
-    ):
+    def build_kernel(self, forest_height, n_nodes, batch_size, rounds, hash_stages, forest=None):
         # 1. Globals
         p_idx_base = self.alloc("p_idx_base")
         p_val_base = self.alloc("p_val_base")
@@ -118,9 +114,7 @@ class SimpleKernelBuilder:
             batch_states.append(s)
 
         # Barrier for Initial Pause: Read header pointers
-        self.packer.add_slot(
-            "flow", ("pause",), reads=(p_idx_base, p_val_base, p_forest_base)
-        )
+        self.packer.add_slot("flow", ("pause",), reads=(p_idx_base, p_val_base, p_forest_base))
         self.packer.barrier()
 
         # 3. Load Phase

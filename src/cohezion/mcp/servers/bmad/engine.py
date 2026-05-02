@@ -25,7 +25,7 @@ class BMADEngine:
         self.data_path = Path(data_path)
         self.project_root = self._find_project_root()
         self._modules: dict[str, dict] = {}
-        self._skills: dict[str, dict] = {}      # skill name → metadata + resolved paths
+        self._skills: dict[str, dict] = {}  # skill name → metadata + resolved paths
         self._agents: dict[str, dict] = {}
         self._catalog: list[dict[str, Any]] = []  # raw rows from bmad-help.csv
         self._load_index()
@@ -108,12 +108,15 @@ class BMADEngine:
         for module_dir in self.data_path.iterdir():
             if module_dir.is_dir() and not module_dir.name.startswith("_"):
                 name = module_dir.name
-                self._modules.setdefault(name, {
-                    "name": name,
-                    "path": str(module_dir),
-                    "skills": [],
-                    "agents": [],
-                })
+                self._modules.setdefault(
+                    name,
+                    {
+                        "name": name,
+                        "path": str(module_dir),
+                        "skills": [],
+                        "agents": [],
+                    },
+                )
 
         # --- Module help CSVs ---
         for mod_name, mod_info in self._modules.items():
@@ -169,7 +172,7 @@ class BMADEngine:
                     if raw_phase and raw_phase.startswith("bmad-"):
                         # v6.3.0 layout — remap the misnamed columns
                         row["skill"] = raw_phase
-                        row["phase"] = raw_required          # actual phase
+                        row["phase"] = raw_required  # actual phase
                         row["name"] = raw.get("name", "")
                         row["code"] = raw.get("code", "")
                         row["description"] = raw.get("sequence", "")
@@ -281,11 +284,13 @@ class BMADEngine:
             steps = []
             for steps_dir in Path(resolved).glob("steps-*"):
                 for step_file in sorted(steps_dir.glob("*.md")):
-                    steps.append({
-                        "name": step_file.stem,
-                        "path": str(step_file),
-                        "content": step_file.read_text(),
-                    })
+                    steps.append(
+                        {
+                            "name": step_file.stem,
+                            "path": str(step_file),
+                            "content": step_file.read_text(),
+                        }
+                    )
             if steps:
                 result["steps"] = steps
 
@@ -400,12 +405,14 @@ class BMADEngine:
         for name, info in self._skills.items():
             if module and info.get("module") != module:
                 continue
-            results.append({
-                "name": name,
-                "description": info.get("description", ""),
-                "module": info.get("module", ""),
-                "resolved": bool(info.get("resolved_path")),
-            })
+            results.append(
+                {
+                    "name": name,
+                    "description": info.get("description", ""),
+                    "module": info.get("module", ""),
+                    "resolved": bool(info.get("resolved_path")),
+                }
+            )
         return results
 
     def list_workflows(
@@ -419,11 +426,13 @@ class BMADEngine:
                 if module and info.get("module") != module:
                     continue
                 if info.get("workflow_md"):
-                    results.append({
-                        "id": name,
-                        "module": info.get("module", ""),
-                        "name": name,
-                    })
+                    results.append(
+                        {
+                            "id": name,
+                            "module": info.get("module", ""),
+                            "name": name,
+                        }
+                    )
             return results
 
         results = []
@@ -441,16 +450,18 @@ class BMADEngine:
             if phase and entry_phase.lower() != phase.lower():
                 continue
 
-            results.append({
-                "id": entry_skill or entry.get("name", ""),
-                "module": entry_module,
-                "name": entry.get("name", entry_skill),
-                "phase": entry_phase,
-                "code": entry.get("code", ""),
-                "required": entry.get("is_required", False),
-                "description": entry.get("description", ""),
-                "agent": entry.get("agent_display_name", ""),
-            })
+            results.append(
+                {
+                    "id": entry_skill or entry.get("name", ""),
+                    "module": entry_module,
+                    "name": entry.get("name", entry_skill),
+                    "phase": entry_phase,
+                    "code": entry.get("code", ""),
+                    "required": entry.get("is_required", False),
+                    "description": entry.get("description", ""),
+                    "agent": entry.get("agent_display_name", ""),
+                }
+            )
         return results
 
     def list_agents(self, module: str | None = None) -> list[dict[str, Any]]:
@@ -459,14 +470,16 @@ class BMADEngine:
         for aid, info in self._agents.items():
             if module and info.get("module") != module:
                 continue
-            results.append({
-                "id": aid,
-                "module": info.get("module", ""),
-                "name": info.get("displayName", aid),
-                "title": info.get("title", ""),
-                "icon": info.get("icon", ""),
-                "role": info.get("role", ""),
-            })
+            results.append(
+                {
+                    "id": aid,
+                    "module": info.get("module", ""),
+                    "name": info.get("displayName", aid),
+                    "title": info.get("title", ""),
+                    "icon": info.get("icon", ""),
+                    "role": info.get("role", ""),
+                }
+            )
         return results
 
     # ------------------------------------------------------------------
@@ -487,10 +500,29 @@ class BMADEngine:
 
         # Keywords
         keywords = [
-            "product", "prd", "brief", "story", "sprint", "architecture",
-            "game", "test", "testing", "brainstorm", "create", "design",
-            "research", "market", "domain", "technical", "code review",
-            "ux", "epic", "implementation", "dev", "retrospective", "help",
+            "product",
+            "prd",
+            "brief",
+            "story",
+            "sprint",
+            "architecture",
+            "game",
+            "test",
+            "testing",
+            "brainstorm",
+            "create",
+            "design",
+            "research",
+            "market",
+            "domain",
+            "technical",
+            "code review",
+            "ux",
+            "epic",
+            "implementation",
+            "dev",
+            "retrospective",
+            "help",
         ]
         for kw in keywords:
             if kw in context_lower:
@@ -498,7 +530,16 @@ class BMADEngine:
 
         # Module suggestions
         module_keywords = {
-            "bmm": ["product", "prd", "story", "sprint", "architecture", "brief", "epic", "implementation"],
+            "bmm": [
+                "product",
+                "prd",
+                "story",
+                "sprint",
+                "architecture",
+                "brief",
+                "epic",
+                "implementation",
+            ],
             "gds": ["game", "gdd", "playtest"],
             "cis": ["brainstorm", "creative", "innovation", "storytelling", "problem"],
             "tea": ["test", "testing", "qa", "automation", "tdd"],
@@ -546,15 +587,17 @@ class BMADEngine:
             # Match against query keywords
             match_terms = f"{name} {skill} {desc}".lower()
             if any(kw in match_terms for kw in query_lower.split() if len(kw) > 2):
-                recommendations["suggested_skills"].append({
-                    "skill": skill,
-                    "name": name,
-                    "phase": phase,
-                    "required": is_required,
-                    "description": desc[:80],
-                    "code": entry.get("code", ""),
-                    "agent": entry.get("agent_display_name", ""),
-                })
+                recommendations["suggested_skills"].append(
+                    {
+                        "skill": skill,
+                        "name": name,
+                        "phase": phase,
+                        "required": is_required,
+                        "description": desc[:80],
+                        "code": entry.get("code", ""),
+                        "agent": entry.get("agent_display_name", ""),
+                    }
+                )
 
         # General help pattern
         if any(kw in query_lower for kw in ["what should i do", "next", "help", "start", "begin"]):
@@ -571,14 +614,16 @@ class BMADEngine:
 
                 if phase not in recommendations["phases"]:
                     recommendations["phases"][phase] = []
-                recommendations["phases"][phase].append({
-                    "skill": skill,
-                    "name": name,
-                    "code": entry.get("code", ""),
-                    "required": is_required,
-                    "description": desc[:80],
-                    "agent": entry.get("agent_display_name", ""),
-                })
+                recommendations["phases"][phase].append(
+                    {
+                        "skill": skill,
+                        "name": name,
+                        "code": entry.get("code", ""),
+                        "required": is_required,
+                        "description": desc[:80],
+                        "agent": entry.get("agent_display_name", ""),
+                    }
+                )
 
             recommendations["reasoning"] = (
                 "Here's the BMad Method workflow. Follow the phases in order, "
@@ -592,17 +637,22 @@ class BMADEngine:
 
         # Fallback
         if not recommendations["suggested_skills"] and not recommendations["phases"]:
-            first_steps = [e for e in self._catalog
-                          if e.get("phase", "").startswith("1-") or e.get("phase") == "anytime"]
+            first_steps = [
+                e
+                for e in self._catalog
+                if e.get("phase", "").startswith("1-") or e.get("phase") == "anytime"
+            ]
             for entry in first_steps[:5]:
                 skill = entry.get("skill", entry.get("name", ""))
                 name = entry.get("name", "")
-                recommendations["suggested_skills"].append({
-                    "skill": skill,
-                    "name": name,
-                    "phase": entry.get("phase", ""),
-                    "description": entry.get("description", "")[:80],
-                })
+                recommendations["suggested_skills"].append(
+                    {
+                        "skill": skill,
+                        "name": name,
+                        "phase": entry.get("phase", ""),
+                        "description": entry.get("description", "")[:80],
+                    }
+                )
             recommendations["reasoning"] = "Start with analysis-phase or anytime skills."
             recommendations["suggested_commands"] = ["bmad_help", "bmad_list_workflows"]
 
@@ -664,6 +714,7 @@ class BMADEngine:
     def generate_session_id(self) -> str:
         """Generate a new session ID."""
         import uuid
+
         return str(uuid.uuid4())
 
     async def index_project(self, project_path: str, include_patterns: list[str]) -> dict[str, Any]:

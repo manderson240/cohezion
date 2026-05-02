@@ -4,6 +4,7 @@ import logging
 from cohezion.swarm.agents.analyst import AnalystAgent
 from cohezion.swarm.agents.architect_agent import ArchitectAgent
 from cohezion.swarm.agents.critic import CriticAgent
+
 from cohezion.swarm.swarm_types import Perspective, SwarmConfig
 
 

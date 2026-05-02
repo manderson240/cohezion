@@ -193,8 +193,7 @@ async def get_research_status(session_id: str):
             status="running" if agent.session.active else "completed",
             experiments_completed=agent.session.experiments_completed,
             best_metric=_sanitize_metric(agent.session.best_metric),
-            experiments_remaining=agent.config.max_experiments
-            - agent.session.experiments_completed,
+            experiments_remaining=agent.config.max_experiments - agent.session.experiments_completed,
         )
 
     # Check multi-agent session

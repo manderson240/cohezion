@@ -8,14 +8,16 @@ import logging
 import sys
 from pathlib import Path
 
+
 # Add src to path
 sys.path.append(str(Path.cwd() / "src"))
 
-from cohezion.reliability.viscoelastic import ViscoelasticController
-from cohezion.audio.narrator import CosmoNarrator
 from cohezion.audio.moshi_client import MoshiClient
-from cohezion.compound.aimo_reasoning import AIMOScaler, ProcessRewardModel
+from cohezion.audio.narrator import CosmoNarrator
+from cohezion.compound.aimo_reasoning import AIMOScaler
 from cohezion.physics.flier_routing import FLIERRouter
+from cohezion.reliability.viscoelastic import ViscoelasticController
+
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)

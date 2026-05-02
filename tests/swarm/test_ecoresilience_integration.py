@@ -2,19 +2,21 @@ from __future__ import annotations
 
 import asyncio
 import logging
-import numpy as np
 from unittest.mock import AsyncMock, MagicMock
 
-from cohezion.swarm.providers.gemma4_provider import Gemma4Provider, GenerationResult
+import numpy as np
+
+from cohezion.agents.specialists.ecoresilience_agent import EcoResilienceAgent
+from cohezion.compound.executor import CompoundExecutor
+from cohezion.compound.resilience_loop import EcoResilienceCompoundLoop
+from cohezion.compound.stability_guard import HIHOStabilityGuard
 from cohezion.flume.manifolds.translator import ManifoldTranslator
 from cohezion.flume.vae_encoder import FlumeVAEEncoder
-from cohezion.agents.specialists.ecoresilience_agent import EcoResilienceAgent
-from cohezion.compound.stability_guard import HIHOStabilityGuard
-from cohezion.compound.resilience_loop import EcoResilienceCompoundLoop
-from cohezion.compound.executor import CompoundExecutor
+from cohezion.swarm.providers.gemma4_provider import Gemma4Provider, GenerationResult
+
 
 # Necessary to fix the import in the test file if it was mangled
-from cohezion.swarm.providers.model_provider import GenerationResult as GenResult
+
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)

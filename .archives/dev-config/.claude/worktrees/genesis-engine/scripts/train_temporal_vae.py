@@ -14,7 +14,6 @@ import json
 import logging
 from pathlib import Path
 
-import numpy as np
 import torch
 import torch.nn.functional as F
 from torch.utils.data import DataLoader
@@ -24,6 +23,7 @@ from cohezion.flume.trajectory_dataset import (
     TrajectorySequenceDataset,
     collate_sequences,
 )
+
 
 logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s %(message)s")
 logger = logging.getLogger(__name__)

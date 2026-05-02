@@ -13,19 +13,22 @@ from __future__ import annotations
 import json
 import logging
 from pathlib import Path
-from typing import Any, Dict, List
+from typing import Any
+
 
 logger = logging.getLogger(__name__)
 
 
-def load_cross_project_learnings(path: Path = Path("data/arc_agi_3/cross_project_learnings.json")) -> List[Dict[str, Any]]:
+def load_cross_project_learnings(
+    path: Path = Path("data/arc_agi_3/cross_project_learnings.json"),
+) -> list[dict[str, Any]]:
     """Load the experiential learning output."""
     if not path.exists():
         return []
     return json.loads(path.read_text())
 
 
-def analyze_state_abstraction_failure(learnings: List[Dict[str, Any]]) -> Dict[str, Any]:
+def analyze_state_abstraction_failure(learnings: list[dict[str, Any]]) -> dict[str, Any]:
     """Ouroboros detection: State abstraction is too granular.
 
     The experiential agent learned only 4-5 states per game across
@@ -54,12 +57,12 @@ def analyze_state_abstraction_failure(learnings: List[Dict[str, Any]]) -> Dict[s
     return diagnosis
 
 
-def generate_ouroboros_report(learnings: List[Dict[str, Any]]) -> Dict[str, Any]:
+def generate_ouroboros_report(learnings: list[dict[str, Any]]) -> dict[str, Any]:
     """Generate a full Ouroboros failure analysis + healing plan."""
     state_abstraction = analyze_state_abstraction_failure(learnings)
 
     # Additional analysis
-    avg_reward_by_game: Dict[str, float] = {}
+    avg_reward_by_game: dict[str, float] = {}
     for l in learnings:
         total_reward = sum(float(a[1]) for a in l.get("best_actions", []))
         avg_reward_by_game[l["game_id"]] = total_reward
@@ -100,25 +103,25 @@ def generate_ouroboros_report(learnings: List[Dict[str, Any]]) -> Dict[str, Any]
     return report
 
 
-def update_cohezion_skills(report: Dict[str, Any]) -> None:
+def update_cohezion_skills(report: dict[str, Any]) -> None:
     """Feed learnings into PRIME skill system."""
     skill_path = Path("src/cohezion/skills/ARC_INTERACTIVE_REASONING.md")
 
     content = f"""# ARC Interactive Reasoning Skill
 
 **Auto-generated from experiential learning spike**
-**Date:** {report['timestamp']}
+**Date:** {report["timestamp"]}
 
 ## Principles Learned
 
-{chr(10).join(f"- {p}" for p in report['principles_for_cohezion'])}
+{chr(10).join(f"- {p}" for p in report["principles_for_cohezion"])}
 
 ## Known Failure Modes
 
 ### State Abstraction Failure
-- **Symptom:** {report['state_abstraction']['symptom']}
-- **Root Cause:** {report['state_abstraction']['root_cause']}
-- **Healing Action:** {report['state_abstraction']['healing_action']}
+- **Symptom:** {report["state_abstraction"]["symptom"]}
+- **Root Cause:** {report["state_abstraction"]["root_cause"]}
+- **Healing Action:** {report["state_abstraction"]["healing_action"]}
 
 ## Action Preferences (Empirical)
 
@@ -139,7 +142,7 @@ def update_cohezion_skills(report: Dict[str, Any]) -> None:
     logger.info(f"Updated Cohezion skill: {skill_path}")
 
 
-def update_mycelium_map(report: Dict[str, Any]) -> None:
+def update_mycelium_map(report: dict[str, Any]) -> None:
     """Distribute knowledge to Mycelium for cross-project use."""
     mycelium_entry = {
         "source": "arc_agi_3_experiential_spike",
@@ -162,10 +165,11 @@ def update_mycelium_map(report: Dict[str, Any]) -> None:
     logger.info(f"Updated Mycelium map: {map_path}")
 
 
-def update_dynamic_levers(report: Dict[str, Any]) -> None:
+def update_dynamic_levers(report: dict[str, Any]) -> None:
     """Adjust dynamic levers based on experiential findings."""
     try:
         from cohezion.swarm.dynamic_levers import create_default_lever_system
+
         lever_system = create_default_lever_system()
         lever_system.pull("deterministic_ratio", 0.05)
         lever_system.push("parallel_discovery_workers", 2)

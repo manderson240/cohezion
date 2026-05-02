@@ -25,15 +25,15 @@ Reference: "Communication-Efficient Learning of Deep Networks", AISTATS 2017.
 """
 
 from __future__ import annotations
+
 import os
-from typing import Dict, List, Tuple
 from dataclasses import dataclass
+
 
 os.environ["AITER_USE_NT"] = "1"
 os.environ["AITER_KSPLIT"] = "2"
 
 import torch
-import torch.nn.functional as F
 from aiter import ActivationType, QuantType
 from aiter.fused_moe import fused_moe
 from task import input_t, output_t
@@ -44,7 +44,7 @@ class ClientState:
     """State for federated client."""
 
     client_id: str
-    expert_weights: Dict[int, torch.Tensor]  # Local expert updates
+    expert_weights: dict[int, torch.Tensor]  # Local expert updates
     data_distribution: torch.Tensor  # Distribution over data
 
 
@@ -56,13 +56,13 @@ class FederatedMoE:
         self.num_clients = num_clients
 
         # Global model
-        self.global_experts: Dict[int, torch.Tensor] = {}
+        self.global_experts: dict[int, torch.Tensor] = {}
 
         # Client states
-        self.clients: Dict[str, ClientState] = {}
+        self.clients: dict[str, ClientState] = {}
 
         # Expert assignment per client
-        self.client_expert_map: Dict[str, List[int]] = {}
+        self.client_expert_map: dict[str, list[int]] = {}
 
     def register_client(self, client_id: str) -> None:
         """Register new federated client."""
@@ -78,7 +78,7 @@ class FederatedMoE:
             data_distribution=torch.ones(experts_per_client) / experts_per_client,
         )
 
-    def local_update(self, client_id: str, local_data: torch.Tensor) -> Dict[int, torch.Tensor]:
+    def local_update(self, client_id: str, local_data: torch.Tensor) -> dict[int, torch.Tensor]:
         """Perform local expert update.
 
         Args:
@@ -101,8 +101,8 @@ class FederatedMoE:
         return updates
 
     def secure_aggregation(
-        self, client_updates: Dict[str, Dict[int, torch.Tensor]]
-    ) -> Dict[int, torch.Tensor]:
+        self, client_updates: dict[str, dict[int, torch.Tensor]]
+    ) -> dict[int, torch.Tensor]:
         """Aggregate client updates securely.
 
         Uses secure multi-party computation or differential privacy.

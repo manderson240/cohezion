@@ -52,17 +52,17 @@ NumPy/TensorFlow/PyTorch einsum implementations
 """
 
 from __future__ import annotations
+
+import math
 import os
 import sys
-import math
-import torch
-from typing import Dict, List, Optional, Tuple, Union, Callable
+from collections.abc import Callable
 from dataclasses import dataclass
-from functools import lru_cache
-from aiter import gemm_a4w4
+
+import torch
+from aiter import dtypes, gemm_a4w4
 from aiter.ops.triton.quant import dynamic_mxfp4_quant
 from aiter.utility.fp4_utils import e8m0_shuffle
-from aiter import dtypes
 from task import input_t, output_t
 
 
@@ -78,7 +78,7 @@ class ContractionPath:
         subscripts: Original einsum subscripts
     """
 
-    contraction_order: List[Tuple[int, int]]
+    contraction_order: list[tuple[int, int]]
     total_flops: int
     peak_memory: int
     subscripts: str
@@ -121,9 +121,9 @@ class TensorContractionOptimizer:
         """
         self.optimize_path = optimize_path
         self.use_cache = use_cache
-        self._subscript_cache: Dict[str, Callable] = {}
+        self._subscript_cache: dict[str, Callable] = {}
 
-    def parse_subscripts(self, subscripts: str) -> Tuple[List[str], str]:
+    def parse_subscripts(self, subscripts: str) -> tuple[list[str], str]:
         """
         Parse einsum subscript string into input and output specs.
 
@@ -145,8 +145,8 @@ class TensorContractionOptimizer:
 
     def find_contraction_path(
         self,
-        shapes: List[Tuple[int, ...]],
-        input_subs: List[str],
+        shapes: list[tuple[int, ...]],
+        input_subs: list[str],
         output_sub: str,
     ) -> ContractionPath:
         """
@@ -239,8 +239,8 @@ class TensorContractionOptimizer:
 
     def _score_contraction(
         self,
-        shape_a: Tuple[int, ...],
-        shape_b: Tuple[int, ...],
+        shape_a: tuple[int, ...],
+        shape_b: tuple[int, ...],
         sub_a: str,
         sub_b: str,
     ) -> float:
@@ -271,11 +271,11 @@ class TensorContractionOptimizer:
 
     def _compute_contracted_shape(
         self,
-        shape_a: Tuple[int, ...],
-        shape_b: Tuple[int, ...],
+        shape_a: tuple[int, ...],
+        shape_b: tuple[int, ...],
         sub_a: str,
         sub_b: str,
-    ) -> Tuple[Tuple[int, ...], str]:
+    ) -> tuple[tuple[int, ...], str]:
         """
         Compute the shape and subscripts after contracting two tensors.
 
@@ -307,8 +307,8 @@ class TensorContractionOptimizer:
 
     def _estimate_flops(
         self,
-        shapes: List[Tuple[int, ...]],
-        input_subs: List[str],
+        shapes: list[tuple[int, ...]],
+        input_subs: list[str],
         output_sub: str,
     ) -> int:
         """
@@ -407,8 +407,8 @@ class TensorContractionOptimizer:
     def _execute_path(
         self,
         path: ContractionPath,
-        operands: Tuple[torch.Tensor, ...],
-        input_subs: List[str],
+        operands: tuple[torch.Tensor, ...],
+        input_subs: list[str],
         output_sub: str,
     ) -> torch.Tensor:
         """
@@ -454,8 +454,8 @@ class TensorContractionOptimizer:
 def contract_with_mxfp4(
     a: torch.Tensor,
     b: torch.Tensor,
-    a_scale: Optional[torch.Tensor] = None,
-    b_scale: Optional[torch.Tensor] = None,
+    a_scale: torch.Tensor | None = None,
+    b_scale: torch.Tensor | None = None,
 ) -> torch.Tensor:
     """
     Execute tensor contraction with MXFP4 quantization.
@@ -490,7 +490,7 @@ def contract_with_mxfp4(
 
 
 # Global optimizer instance
-_OPTIMIZER: Optional[TensorContractionOptimizer] = None
+_OPTIMIZER: TensorContractionOptimizer | None = None
 
 
 def _get_optimizer() -> TensorContractionOptimizer:

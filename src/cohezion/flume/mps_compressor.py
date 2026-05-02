@@ -4,8 +4,9 @@ Compresses large weight matrices (like Embeddings) into low-rank cores.
 """
 
 import logging
+
 import numpy as np
-from typing import List, Tuple
+
 
 logger = logging.getLogger(__name__)
 
@@ -14,7 +15,7 @@ class MPSCompressor:
     def __init__(self, bond_dim: int = 64):
         self.bond_dim = bond_dim
 
-    def compress_matrix(self, matrix: np.ndarray, shape: Tuple[int, ...]) -> List[np.ndarray]:
+    def compress_matrix(self, matrix: np.ndarray, shape: tuple[int, ...]) -> list[np.ndarray]:
         """
         Decomposes a matrix into a chain of MPS cores.
         matrix: The weight matrix to compress.
@@ -67,7 +68,7 @@ class MPSCompressor:
         return cores
 
     def reconstruct_matrix(
-        self, cores: List[np.ndarray], original_shape: Tuple[int, int]
+        self, cores: list[np.ndarray], original_shape: tuple[int, int]
     ) -> np.ndarray:
         """Reconstructs the original matrix from MPS cores."""
         res = cores[0]

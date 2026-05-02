@@ -1,5 +1,5 @@
 import re
-from typing import Any, Dict
+from typing import Any
 
 import sympy
 
@@ -17,7 +17,7 @@ class SymbolicExecutor:
             "isprime": sympy.isprime,
         }
 
-    def execute(self, code: str) -> Dict[str, Any]:
+    def execute(self, code: str) -> dict[str, Any]:
         local_vars = {}
         try:
             exec(code, {**self.namespace}, local_vars)

@@ -148,7 +148,7 @@ def initialize_cohezion_environment() -> bool:
         initialize_cohezion_environment._initialized = True
         return True
 
-    except Exception as e:
+    except Exception:
         # Never let initialization failures break Cohezion
         # Fail silently to ensure Cohezion always works
         return False  # Indicate initialization was attempted but failed

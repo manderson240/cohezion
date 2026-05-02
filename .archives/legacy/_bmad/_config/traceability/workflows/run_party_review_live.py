@@ -91,7 +91,7 @@ async def invoke_agent(
         # Prepare agent-specific parameters
         params = {
             "query": f"Review {target_files} for {agent_config['perspective']}",
-            "context": f"Multi-agent adversarial code review",
+            "context": "Multi-agent adversarial code review",
             "session_id": f"party-review-{datetime.now().isoformat()}",
         }
 
@@ -118,7 +118,7 @@ async def invoke_agent(
             "metrics": result.get("metrics", {}),
         }
 
-    except asyncio.TimeoutError:
+    except TimeoutError:
         print(f"    ⏱️  {agent_name} timed out")
         return {
             "agent": agent_name,
@@ -307,7 +307,7 @@ async def main():
 
     # Summary
     high_count = len([f for f in findings if f.get("severity") == "HIGH"])
-    print(f"\n📊 Summary:")
+    print("\n📊 Summary:")
     print(f"  HIGH findings: {high_count}")
     print(f"  Total findings: {len(findings)}")
 

@@ -139,9 +139,7 @@ class GitHubService:
             logger.exception(f"Error creating issue: {e}")
             return None
 
-    async def list_issues(
-        self, owner: str, repo: str, state: str = "open", limit: int = 10
-    ) -> list[dict]:
+    async def list_issues(self, owner: str, repo: str, state: str = "open", limit: int = 10) -> list[dict]:
         """List issues in a repository."""
         session = await self._get_session()
         url = f"{GITHUB_API_BASE}/repos/{owner}/{repo}/issues"
@@ -348,11 +346,7 @@ async def tool_github_create_issue(request: web.Request) -> web.Response:
             )
         else:
             return web.json_response(
-                {
-                    "error": result.get("error", "Failed to create issue")
-                    if result
-                    else "Unknown error"
-                },
+                {"error": result.get("error", "Failed to create issue") if result else "Unknown error"},
                 status=500,
             )
     except Exception as e:

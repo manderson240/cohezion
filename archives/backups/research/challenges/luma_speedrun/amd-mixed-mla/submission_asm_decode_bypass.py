@@ -18,11 +18,11 @@ This submission uses:
 - qseqlen=1 to signal decode mode
 """
 
-import torch
 import aiter
-from aiter import dtypes as aiter_dtypes
+import torch
 from aiter import get_mla_metadata_info_v1, get_mla_metadata_v1, mla_reduce_v1
 from task import input_t, output_t
+
 
 NUM_HEADS = 16
 NUM_KV_HEADS = 1

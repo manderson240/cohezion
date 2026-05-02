@@ -9,12 +9,10 @@ from __future__ import annotations
 
 import asyncio
 import json
-import subprocess
 import sys
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 from datetime import datetime
 from pathlib import Path
-from typing import Any
 
 
 @dataclass
@@ -194,7 +192,7 @@ class ParallelOrchestrator:
                         error_log=stderr.decode()[-500:],
                     )
 
-            except asyncio.TimeoutError:
+            except TimeoutError:
                 proc.kill()
                 runtime = (datetime.now() - start).total_seconds()
                 return AgentResult(

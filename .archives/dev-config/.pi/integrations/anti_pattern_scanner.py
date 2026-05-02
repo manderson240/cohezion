@@ -14,9 +14,10 @@ import json
 import logging
 import re
 import subprocess
-from dataclasses import asdict, dataclass
+from dataclasses import dataclass
 from pathlib import Path
 from typing import Any
+
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
@@ -261,7 +262,7 @@ def export_pr_skill_definition(report: AntiPatternGuardianReport):
 
     skill_content = """---
 name: anti-pattern-guardian
-description: Automated detection and remediation of codebase anti-patterns. 
+description: Automated detection and remediation of codebase anti-patterns.
   Scans for AGENTS.md documented issues including mock isolation, async blocking,
   singleton pollution, and bare exception handlers. Use when reviewing code or
   setting up CI quality gates.
@@ -332,7 +333,7 @@ Add to pre-commit hooks:
 ### Critical Pattern
 - Always scan before major refactoring
 - Fix critical anti-patterns first
-- Document exceptions in code comments  
+- Document exceptions in code comments
 
 ## CITATIONS
 - AGENTS.md (source of truth for anti-patterns)
@@ -384,7 +385,6 @@ def main():
 
     # Update skill index
     logger.info("\nReindexing skills...")
-    import subprocess
 
     subprocess.run(["python3", ".pi/integrations/index_skills.py"], check=False)
 

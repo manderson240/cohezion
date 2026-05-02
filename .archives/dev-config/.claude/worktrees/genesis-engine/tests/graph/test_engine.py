@@ -2,15 +2,12 @@
 
 from __future__ import annotations
 
-import asyncio
-
 import pytest
 
 from cohezion.graph.engine import WorkflowEngine
-from cohezion.graph.nodes import AgentNode, CustomNode, LogicSwitchNode
+from cohezion.graph.nodes import CustomNode, LogicSwitchNode
 from cohezion.graph.types import (
     EdgeSpec,
-    NodeResult,
     NodeSpec,
     NodeStatus,
     WorkflowSpec,
@@ -117,8 +114,10 @@ class TestWorkflowExecution:
         wf = _make_spec(nodes, edges)
 
         for spec in nodes:
+
             async def doubler(inputs, _s=spec):
                 return {"val": inputs.get("val", 0) * 2}
+
             engine.register_node(CustomNode(spec, forward_fn=doubler))
 
         result = await engine.execute(wf, {"val": 1})
@@ -136,7 +135,9 @@ class TestWorkflowExecution:
             NodeSpec(id="n1", name="start", node_type="custom", pull_keys=[], push_keys=["data"]),
             NodeSpec(id="n2", name="branch_a", node_type="custom", pull_keys=["data"], push_keys=["a_result"]),
             NodeSpec(id="n3", name="branch_b", node_type="custom", pull_keys=["data"], push_keys=["b_result"]),
-            NodeSpec(id="n4", name="merge", node_type="custom", pull_keys=["a_result", "b_result"], push_keys=["final"]),
+            NodeSpec(
+                id="n4", name="merge", node_type="custom", pull_keys=["a_result", "b_result"], push_keys=["final"]
+            ),
         ]
         edges = [
             EdgeSpec(id="e1", sender_id="n1", receiver_id="n2", keys=["data"]),

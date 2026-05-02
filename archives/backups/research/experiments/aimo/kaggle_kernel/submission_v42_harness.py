@@ -1,18 +1,9 @@
 import gc
-import json
-import math
 import os
 import re
-import subprocess
-import sys
 import time
-import traceback
 from collections import Counter
-from dataclasses import dataclass
-from pathlib import Path
-from typing import Any, Dict, List, Optional, Set
 
-import numpy as np
 import polars as pl
 import sympy
 import torch
@@ -43,7 +34,6 @@ class PreFlightJury:
     @staticmethod
     def test_libs():
         try:
-            import transformers, polars
 
             return True
         except:

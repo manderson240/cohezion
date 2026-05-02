@@ -3,16 +3,16 @@ Training script for BirdCLEF 2026 baseline
 """
 
 import os
+
 import numpy as np
 import pandas as pd
 import torch
 import torch.nn as nn
-from torch.utils.data import DataLoader
-from sklearn.model_selection import StratifiedKFold
 from sklearn.metrics import roc_auc_score
+from sklearn.model_selection import StratifiedKFold
+from submission import CONFIG, BirdCLEFDataset, BirdCLEFModel
+from torch.utils.data import DataLoader
 from tqdm import tqdm
-
-from submission import BirdCLEFModel, BirdCLEFDataset, CONFIG
 
 
 def train_epoch(model, loader, criterion, optimizer, device):

@@ -8,16 +8,18 @@ from __future__ import annotations
 
 import logging
 import random
-from typing import Any, Dict, List, Optional
+from typing import Any
 
 import ollama
+
 
 logger = logging.getLogger(__name__)
 
 
-def grid_to_ascii(grid: List[List[int]], max_size: int = 32) -> str:
+def grid_to_ascii(grid: list[list[int]], max_size: int = 32) -> str:
     """Convert grid to compact ASCII for LLM reasoning."""
     import numpy as np
+
     arr = np.array(grid)
     h, w = arr.shape
 
@@ -44,11 +46,11 @@ class Phi4Agent:
     def __init__(self, game_id: str, max_actions: int = 100):
         self.game_id = game_id
         self.max_actions = max_actions
-        self.history: List[Dict[str, Any]] = []
+        self.history: list[dict[str, Any]] = []
         self.wins = 0
         self.actions_taken = 0
 
-    def choose_action(self, obs: Any, available_actions: List[str]) -> str:
+    def choose_action(self, obs: Any, available_actions: list[str]) -> str:
         """Ask phi4 to reason about next action."""
         if not available_actions:
             return "RESET"
@@ -59,8 +61,10 @@ class Phi4Agent:
 
         # Build recent history summary
         recent = []
-        for h in self.history[-self.MAX_HISTORY:]:
-            recent.append(f"- {h['action']} -> state={h['state']}, levels={h['levels']}, reward={h.get('reward', 0)}")
+        for h in self.history[-self.MAX_HISTORY :]:
+            recent.append(
+                f"- {h['action']} -> state={h['state']}, levels={h['levels']}, reward={h.get('reward', 0)}"
+            )
         history_str = "\n".join(recent) if recent else "(no prior actions)"
 
         prompt = f"""You are an AI agent playing a puzzle game on a grid.
@@ -93,14 +97,16 @@ Return ONLY the action name, nothing else. Example: ACTION1"""
             return random.choice(available_actions)
 
     def observe(self, action_name: str, obs: Any) -> None:
-        self.history.append({
-            "action": action_name,
-            "state": obs.state.name if hasattr(obs, "state") else "?",
-            "levels": obs.levels_completed if hasattr(obs, "levels_completed") else 0,
-        })
+        self.history.append(
+            {
+                "action": action_name,
+                "state": obs.state.name if hasattr(obs, "state") else "?",
+                "levels": obs.levels_completed if hasattr(obs, "levels_completed") else 0,
+            }
+        )
 
 
-def run_phi4_agent(game_id: str, max_actions: int = 50) -> Dict[str, Any]:
+def run_phi4_agent(game_id: str, max_actions: int = 50) -> dict[str, Any]:
     """Run phi4 agent on one game."""
     import arc_agi
     from arcengine import GameAction, GameState

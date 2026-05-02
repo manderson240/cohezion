@@ -64,7 +64,9 @@ def parse_prime_skill(skill_path: Path) -> dict:
     return {
         "name": skill_name,
         "legacy_name": skill_path.stem,
-        "description": metadata.get("description", domain_expertise[:200] if domain_expertise else ""),
+        "description": metadata.get(
+            "description", domain_expertise[:200] if domain_expertise else ""
+        ),
         "domain_expertise": domain_expertise,
         "concepts": sections.get("KEY_TEXTS_&_CONCEPTS", ""),
         "instructions": instructions,
@@ -109,9 +111,9 @@ def convert_to_hermes_format(skill_data: dict) -> str:
 name: {name}
 description: {description}
 metadata:
-  version: "{skill_data['version']}"
+  version: "{skill_data["version"]}"
   project: cohezion
-  legacy-name: {skill_data['legacy_name']}
+  legacy-name: {skill_data["legacy_name"]}
   converted: true
   tags:
     - cohezion
@@ -121,7 +123,7 @@ metadata:
 # SKILL: {name}
 
 ## Domain Expertise
-{skill_data['domain_expertise']}
+{skill_data["domain_expertise"]}
 
 ## Key Concepts
 {concepts}
@@ -130,14 +132,14 @@ metadata:
 {instructions}
 
 ## Version
-v{skill_data['version']} — Converted from {skill_data['legacy_name']}
+v{skill_data["version"]} — Converted from {skill_data["legacy_name"]}
 
 ## See Also
 {see_also}
 
 ## Notes
 This skill was auto-converted from the PRIME skill system.
-Refer to src/cohezion/skills/{skill_data['legacy_name']}.md for full original content.
+Refer to src/cohezion/skills/{skill_data["legacy_name"]}.md for full original content.
 """
 
 
@@ -289,7 +291,9 @@ def verify_geometric_correspondences():
     hiho = 1.0 - abs(coherence - 0.5) * 2
 
     print(f"Verification: {checks_passed}/{checks_total} checks passed")
-    print(f"Coherence: {coherence:.2f} ({'HIHO-stable' if 0.4 <= coherence <= 0.7 else 'unstable'})")
+    print(
+        f"Coherence: {coherence:.2f} ({'HIHO-stable' if 0.4 <= coherence <= 0.7 else 'unstable'})"
+    )
     print(f"HIHO score: {hiho:.2f}")
 
     if hiho >= 0.7:
@@ -325,9 +329,7 @@ def write_skill_file(output_name: str, content: str) -> Path:
 
 
 def main():
-    parser = argparse.ArgumentParser(
-        description="Convert PRIME skills to Hermes format"
-    )
+    parser = argparse.ArgumentParser(description="Convert PRIME skills to Hermes format")
     parser.add_argument(
         "--skill",
         help="Specific skill to convert (e.g., COMPOUND_ENGINEERING_PRIME)",

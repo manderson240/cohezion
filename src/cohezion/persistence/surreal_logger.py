@@ -1,8 +1,9 @@
 import datetime
 import logging
 
-from cohezion.universe.triune_manifold import TriuneState
 from surrealdb import AsyncSurreal
+
+from cohezion.universe.triune_manifold import TriuneState
 
 
 logger = logging.getLogger(__name__)

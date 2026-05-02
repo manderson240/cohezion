@@ -57,11 +57,7 @@ class ManifoldEncoder(nn.Module):
 
     def __init__(self):
         super().__init__()
-        self.encoder = nn.Sequential(
-            nn.Linear(12, 128),
-            nn.ReLU(),
-            nn.Linear(128, 64)
-        )
+        self.encoder = nn.Sequential(nn.Linear(12, 128), nn.ReLU(), nn.Linear(128, 64))
 
     def forward(self, state):
         # Apply mirror/flip transformation
@@ -74,11 +70,7 @@ class ActionEncoder(nn.Module):
 
     def __init__(self, input_dim=256):
         super().__init__()
-        self.encoder = nn.Sequential(
-            nn.Linear(input_dim, 128),
-            nn.ReLU(),
-            nn.Linear(128, 64)
-        )
+        self.encoder = nn.Sequential(nn.Linear(input_dim, 128), nn.ReLU(), nn.Linear(128, 64))
 
     def forward(self, action):
         return self.encoder(action)
@@ -89,11 +81,7 @@ class Predictor(nn.Module):
 
     def __init__(self):
         super().__init__()
-        self.predictor = nn.Sequential(
-            nn.Linear(128, 256),
-            nn.ReLU(),
-            nn.Linear(256, 64)
-        )
+        self.predictor = nn.Sequential(nn.Linear(128, 256), nn.ReLU(), nn.Linear(256, 64))
 
     def forward(self, state_emb, action_emb):
         combined = torch.cat((state_emb, action_emb), dim=-1)
@@ -114,5 +102,6 @@ class JEPAWorldModel(nn.Module):
         action_emb = self.action_encoder(action)
         predicted_next_emb = self.predictor(state_emb, action_emb)
         return predicted_next_emb
+
 
 # Additional code for training and evaluation would follow here.

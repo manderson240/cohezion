@@ -7,9 +7,8 @@ Implements the 12-Parameter Quadrature Model.
 from __future__ import annotations
 
 import logging
-import numpy as np
-from dataclasses import dataclass, field
-from typing import Dict, Any
+from dataclasses import dataclass
+
 
 logger = logging.getLogger(__name__)
 
@@ -35,7 +34,7 @@ class QuadratureNexus:
         self.state = QuadratureState()
         self.history = []
 
-    def update_state(self, metrics: Dict[str, float]):
+    def update_state(self, metrics: dict[str, float]):
         """Updates the Nexus state based on system telemetry."""
         # Map telemetry to 12 parameters
         self.state.awareness = metrics.get("active_agents", 1) / 10.0

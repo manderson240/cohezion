@@ -41,7 +41,5 @@ class ClaudeSpecialist(PlatformSpecialist):
             ),
         ),
         prime_skill_ref="src/cohezion/skills/claude-specialist.md",
-        canonical_modules=(
-            "cohezion.swarm.cost_aware_router",
-        ),
+        canonical_modules=("cohezion.swarm.cost_aware_router",),
     )

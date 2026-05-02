@@ -27,9 +27,7 @@ class TestTokenCountingEdgeCases:
     def test_very_large_token_count_million_tokens(self):
         """Test with 1M token query."""
         router = CostAwareRouter()
-        decision, can_proceed = router.select_model(
-            query="x" * 10000
-        )  # Scaled down for test
+        decision, can_proceed = router.select_model(query="x" * 10000)  # Scaled down for test
         assert decision is not None or can_proceed is not None
 
     def test_zero_token_query(self):
@@ -289,9 +287,7 @@ class TestNumericalEdgeCases:
         reset_anomaly_detector()
         detector = get_anomaly_detector()
 
-        alert = detector.detect_spike(
-            actual_cost=1000.0, forecasted_cost=500.0, model="expensive"
-        )
+        alert = detector.detect_spike(actual_cost=1000.0, forecasted_cost=500.0, model="expensive")
 
         assert alert is not None or alert is None
 
@@ -300,9 +296,7 @@ class TestNumericalEdgeCases:
         reset_anomaly_detector()
         detector = get_anomaly_detector()
 
-        alert = detector.detect_spike(
-            actual_cost=0.00001, forecasted_cost=0.00001, model="cheap"
-        )
+        alert = detector.detect_spike(actual_cost=0.00001, forecasted_cost=0.00001, model="cheap")
 
         assert alert is not None or alert is None
 
@@ -323,9 +317,7 @@ class TestEmptyDataSetEdgeCases:
         reset_anomaly_detector()
         detector = get_anomaly_detector()
 
-        alert = detector.detect_spike(
-            actual_cost=0.50, forecasted_cost=0.40, model="new-model"
-        )
+        alert = detector.detect_spike(actual_cost=0.50, forecasted_cost=0.40, model="new-model")
 
         assert alert is not None or alert is None
 

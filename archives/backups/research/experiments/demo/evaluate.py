@@ -278,7 +278,7 @@ def compute_all_metrics(episodes: list[dict]) -> dict[str, dict]:
 def print_results(results: dict[str, dict]):
     """Print a formatted table of results."""
     print(f"\n{'=' * 78}")
-    print(f"  FLUME Capability Metrics (6 metrics, bootstrap 95% CI, n=10000)")
+    print("  FLUME Capability Metrics (6 metrics, bootstrap 95% CI, n=10000)")
     print(f"{'=' * 78}\n")
 
     header = f"  {'Metric':<28} {'Mean':>8} {'95% CI':>20} {'Std':>8}  {'Scale'}"
@@ -391,7 +391,7 @@ def main():
     if not args.no_plot:
         plot_radar(results, output_dir / "capability_radar.png")
 
-    print(f"\n  Next: uv run python export_dataset.py")
+    print("\n  Next: uv run python export_dataset.py")
 
 
 if __name__ == "__main__":

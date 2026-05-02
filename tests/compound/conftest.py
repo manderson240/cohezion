@@ -1,8 +1,8 @@
 """Fixtures for compound integration tests."""
 
-import pytest
-import pytest_asyncio
 from unittest.mock import MagicMock
+
+import pytest_asyncio
 
 from cohezion.core.mcp_client import MCPClient
 

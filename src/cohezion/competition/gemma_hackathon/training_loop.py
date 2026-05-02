@@ -2,10 +2,9 @@
 
 from __future__ import annotations
 
-import asyncio
 import json
 import random
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 from typing import Any
 
 
@@ -66,12 +65,14 @@ def run_training_loop(episodes: int = 8) -> dict[str, Any]:
     results = []
     for i in range(1, episodes + 1):
         result = simulate_episode(i)
-        results.append({
-            "episode": result.episode,
-            "avg_alignment": result.avg_alignment,
-            "avg_effectiveness": result.avg_effectiveness,
-            "refinements": len(result.refinements),
-        })
+        results.append(
+            {
+                "episode": result.episode,
+                "avg_alignment": result.avg_alignment,
+                "avg_effectiveness": result.avg_effectiveness,
+                "refinements": len(result.refinements),
+            }
+        )
 
     # Final state
     final = simulate_episode(episodes)

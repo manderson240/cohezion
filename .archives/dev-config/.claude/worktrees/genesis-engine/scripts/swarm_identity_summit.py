@@ -57,9 +57,7 @@ async def run_summit():
     results = {}
 
     # 1. Architects' Vision
-    architect_vision = await prompt_agent(
-        "Architect", ROSTER["Architect"], base_prompt.format("Architect")
-    )
+    architect_vision = await prompt_agent("Architect", ROSTER["Architect"], base_prompt.format("Architect"))
     results["Architect"] = architect_vision
 
     # 2. Engineer's Implementation Logic (incorporating Architect's vision)
@@ -85,9 +83,7 @@ async def run_summit():
         for role, res in results.items():
             f.write(f"## {role}\n{res}\n\n")
 
-    console.print(
-        Panel("[bold #38ef7d]SUMMIT COMPLETE. SWARM IDENTITY CRYSTALLIZED.[/bold #38ef7d]")
-    )
+    console.print(Panel("[bold #38ef7d]SUMMIT COMPLETE. SWARM IDENTITY CRYSTALLIZED.[/bold #38ef7d]"))
     console.print(f"Results persisted at: {output_path}")
 
 

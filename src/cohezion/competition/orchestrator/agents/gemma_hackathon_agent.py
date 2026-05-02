@@ -1,4 +1,5 @@
 """Gemma-4-Good Hackathon specialist agent — kernel review and social-good angle."""
+
 from __future__ import annotations
 
 import logging
@@ -71,9 +72,7 @@ Writeup (first 2000 chars):
 Score each dimension 1-10. Identify top 3 missing pieces.
 Respond in JSON with keys: technical_depth_score, impact_score, storytelling_score, demo_completeness_score, overall_readiness_score, top_3_missing, strengths."""
 
-        parsed = self.dispatcher.generate_structured(
-            self.SYSTEM_PROMPT, prompt, schema
-        )
+        parsed = self.dispatcher.generate_structured(self.SYSTEM_PROMPT, prompt, schema)
         return {
             "action": "review_submission",
             "review": parsed,
@@ -100,9 +99,7 @@ Respond in JSON with keys: technical_depth_score, impact_score, storytelling_sco
 
 Evaluate how well it serves people or the planet."""
 
-        parsed = self.dispatcher.generate_structured(
-            self.SYSTEM_PROMPT, prompt, schema
-        )
+        parsed = self.dispatcher.generate_structured(self.SYSTEM_PROMPT, prompt, schema)
         return {
             "action": "impact_assessment",
             "assessment": parsed,
@@ -155,9 +152,7 @@ Calculate:
 
 Respond in JSON. Be honest."""
 
-        parsed = self.dispatcher.generate_structured(
-            self.SYSTEM_PROMPT, prompt, schema
-        )
+        parsed = self.dispatcher.generate_structured(self.SYSTEM_PROMPT, prompt, schema)
         return {
             "action": "check_requirements",
             "result": parsed,

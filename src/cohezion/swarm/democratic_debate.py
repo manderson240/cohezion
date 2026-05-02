@@ -16,6 +16,7 @@ from typing import TYPE_CHECKING, Any
 
 import aiofiles
 
+
 if TYPE_CHECKING:
     from cohezion.swarm.token_client import TokenEfficientClient
 

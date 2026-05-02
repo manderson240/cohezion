@@ -25,21 +25,21 @@ Reference: "ZeRO-Infinity: Breaking GPU Memory Wall", SC 2021.
 """
 
 from __future__ import annotations
+
 import os
+
 
 os.environ["PYTORCH_ROCM_ARCH"] = "gfx950"
 os.environ["CXX"] = "clang++"
 
-import torch
-import torch.distributed as dist
-from typing import List, Optional
-from torch.utils.cpp_extension import load_inline
-from task import input_t, output_t
 
+import aiter
+import torch
 from aiter import dtypes
 from aiter.ops.triton.quant import dynamic_mxfp4_quant
 from aiter.utility.fp4_utils import e8m0_shuffle
-import aiter
+from task import input_t, output_t
+from torch.utils.cpp_extension import load_inline
 
 
 class ZeROInfinityShard:
@@ -56,8 +56,8 @@ class ZeROInfinityShard:
         self.offload_to_cpu = offload_to_cpu
 
         # Partitioned weights storage
-        self.local_shard: Optional[torch.Tensor] = None
-        self.cpu_offload: Optional[torch.Tensor] = None
+        self.local_shard: torch.Tensor | None = None
+        self.cpu_offload: torch.Tensor | None = None
 
     def partition_weights(self, full_weights: torch.Tensor) -> torch.Tensor:
         """Partition weights across GPUs.
@@ -120,13 +120,13 @@ class ZeROInfinityShard:
 class ZeROOptimizer:
     """Optimizer with ZeRO-Infinity memory optimization."""
 
-    def __init__(self, params: List[torch.Tensor], lr: float = 1e-3, num_gpus: int = 8):
+    def __init__(self, params: list[torch.Tensor], lr: float = 1e-3, num_gpus: int = 8):
         self.params = params
         self.lr = lr
         self.num_gpus = num_gpus
 
         # Partitioned optimizer states
-        self.state_shards: List[Optional[torch.Tensor]] = [None] * len(params)
+        self.state_shards: list[torch.Tensor | None] = [None] * len(params)
 
     def step(self) -> None:
         """Optimizer step with partitioned states."""
@@ -176,7 +176,7 @@ __global__ void all_gather_kernel(
 ) {
     int idx = blockIdx.x * blockDim.x + threadIdx.x;
     if (idx >= local_size) return;
-    
+
     // Copy local shard to correct position
     int global_idx = rank * local_size + idx;
     full_weights[global_idx] = local_shard[idx];

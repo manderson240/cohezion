@@ -46,9 +46,7 @@ def purge_history_candidates(dry_run=True):
         if len(files_to_remove) > 10:
             logger.info(f"... and {len(files_to_remove) - 10} more.")
     else:
-        logger.info(
-            f"Removing {len(files_to_remove)} files from git index (keeping local copies)..."
-        )
+        logger.info(f"Removing {len(files_to_remove)} files from git index (keeping local copies)...")
         # Process in batches to avoid command line length limits
         batch_size = 50
         for i in range(0, len(files_to_remove), batch_size):
@@ -105,9 +103,7 @@ def cleanup_artifacts():
                     total_size += size
                 except Exception as e:
                     logger.error(f"Failed to delete {p}: {e}")
-            elif p.is_dir() and (
-                p.name == "node_modules" or p.name == "__pycache__" or p.name.endswith("_cache")
-            ):
+            elif p.is_dir() and (p.name == "node_modules" or p.name == "__pycache__" or p.name.endswith("_cache")):
                 import shutil
 
                 try:

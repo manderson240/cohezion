@@ -32,11 +32,13 @@ import dataclasses
 import datetime
 import inspect
 import json
-from typing import Generator, Generic, TypeVar, overload
+from collections.abc import Generator
+from typing import Generic, TypeVar, overload
 
 import pydantic
 
 from kaggle_benchmarks import utils
+
 
 handlers = []
 T = TypeVar("T")
@@ -46,10 +48,7 @@ class RenderablePydanticModel(pydantic.BaseModel):
     """Base pydantic model that renderable in markdown."""
 
     def _repr_markdown_(self):
-        return "\n".join(
-            f"## {key.title().replace('_', '')}\n{value}"
-            for key, value in self.model_dump().items()
-        )
+        return "\n".join(f"## {key.title().replace('_', '')}\n{value}" for key, value in self.model_dump().items())
 
     def get_payload(self):
         return self.model_dump_json()
@@ -146,13 +145,9 @@ def pyndantic_like(model: pydantic.BaseModel):
     )
 
     try:
-        return model.model_validate_json(
-            utils.extract_code_block(response, name="json")
-        )
+        return model.model_validate_json(utils.extract_code_block(response, name="json"))
     except pydantic.ValidationError as e:
-        raise ResponseParsingError(
-            value=response, error=e.errors(), schema=model
-        ) from e
+        raise ResponseParsingError(value=response, error=e.errors(), schema=model) from e
 
 
 @handler(criterion=dataclasses.is_dataclass)
@@ -173,14 +168,10 @@ def root_model_handler(cls):
         value = json.loads(utils.extract_code_block(response, name="json"))
         return cls(**value)
     except json.JSONDecodeError as e:
-        raise ResponseParsingError(
-            value=response, error=f"Invalid JSON {e}", schema=model_cls
-        ) from e
+        raise ResponseParsingError(value=response, error=f"Invalid JSON {e}", schema=model_cls) from e
 
     except pydantic.ValidationError as e:
-        raise ResponseParsingError(
-            value=response, error=e.errors(), schema=model_cls
-        ) from e
+        raise ResponseParsingError(value=response, error=e.errors(), schema=model_cls) from e
 
 
 @handler(types=(float, int, datetime.datetime, bool))
@@ -192,13 +183,9 @@ def primitive_type_handler(cls):
         model,
     )
     try:
-        return model.model_validate_json(
-            utils.extract_code_block(response, name="json")
-        ).value
+        return model.model_validate_json(utils.extract_code_block(response, name="json")).value
     except pydantic.ValidationError as e:
-        raise ResponseParsingError(
-            value=response, error=e.errors(), schema=model
-        ) from e
+        raise ResponseParsingError(value=response, error=e.errors(), schema=model) from e
 
 
 @handler(types=str)

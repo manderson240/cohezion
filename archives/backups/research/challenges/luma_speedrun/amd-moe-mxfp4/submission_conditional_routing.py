@@ -24,12 +24,13 @@ Expected: 40-60% speedup by skipping MoE for 50-70% of tokens
 from __future__ import annotations
 
 import os
+
 import torch
 import torch.nn.functional as F
-from typing import Tuple
 from aiter import ActivationType, QuantType
 from aiter.fused_moe import fused_moe
 from task import input_t, output_t
+
 
 # Environment
 os.environ["AITER_USE_NT"] = "1"

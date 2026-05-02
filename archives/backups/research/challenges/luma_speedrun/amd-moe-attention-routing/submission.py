@@ -25,10 +25,10 @@ from __future__ import annotations
 
 import os
 import sys
-from typing import Tuple
 
 import torch
 import torch.nn.functional as F
+
 
 # POPCORN environment setup
 os.environ["AITER_USE_NT"] = "1"
@@ -37,6 +37,7 @@ os.environ["AITER_KSPLIT"] = "1"  # Moderate splitting for attention overhead
 from aiter import ActivationType, QuantType
 from aiter.fused_moe import fused_moe
 from task import input_t, output_t
+
 
 # =============================================================================
 # Configuration Constants
@@ -55,7 +56,7 @@ def compute_attention_routing(
     hidden_states: torch.Tensor,
     expert_centroids: torch.Tensor,
     temperature: float = 1.0,
-) -> Tuple[torch.Tensor, torch.Tensor]:
+) -> tuple[torch.Tensor, torch.Tensor]:
     """Compute attention-based routing scores.
 
     Args:

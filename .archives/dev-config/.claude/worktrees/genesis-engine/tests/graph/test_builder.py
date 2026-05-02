@@ -2,10 +2,6 @@
 
 from __future__ import annotations
 
-from dataclasses import dataclass, field
-
-import pytest
-
 from cohezion.graph.builder import WorkflowBuilder
 from cohezion.graph.types import WorkflowSpec
 from cohezion.swarm.team_orchestrator import AgentSpec, TaskSpec, TeamPlan
@@ -22,7 +18,9 @@ class TestFromTeamPlan:
             ],
             tasks=[
                 TaskSpec(id="t1", subject="Find papers", description="Search arxiv", assigned_to="researcher"),
-                TaskSpec(id="t2", subject="Write summary", description="Summarize", assigned_to="writer", blocked_by=["t1"]),
+                TaskSpec(
+                    id="t2", subject="Write summary", description="Summarize", assigned_to="writer", blocked_by=["t1"]
+                ),
             ],
         )
         builder = WorkflowBuilder()

@@ -41,12 +41,10 @@ def stop_existing_server():
     # Find and terminate existing process
     try:
         result = subprocess.run(
-            ["pgrep", "-f", "llama-server.*vulkan.*8002"],
-            capture_output=True,
-            text=True
+            ["pgrep", "-f", "llama-server.*vulkan.*8002"], capture_output=True, text=True
         )
         if result.returncode == 0 and result.stdout.strip():
-            pids = result.stdout.strip().split('\n')
+            pids = result.stdout.strip().split("\n")
             for pid in pids:
                 if pid:
                     print(f"  Stopping PID {pid}...")
@@ -78,19 +76,29 @@ def start_optimized_server():
     print("\n=== Step 3: Starting Optimized Server ===")
 
     cmd = [
-        "lemonade", "serve", MODEL,
-        "--backend", "vulkan",
-        "--port", str(PORT),
-        "--ctx-size", "4096",
-        "--cache-type-k", "q8_0",
-        "--cache-type-v", "q8_0",
+        "lemonade",
+        "serve",
+        MODEL,
+        "--backend",
+        "vulkan",
+        "--port",
+        str(PORT),
+        "--ctx-size",
+        "4096",
+        "--cache-type-k",
+        "q8_0",
+        "--cache-type-v",
+        "q8_0",
         "--flash-attn",
         "--no-mmap",
         "--context-shift",
-        "--keep", "16",
-        "--reasoning-format", "auto",
+        "--keep",
+        "16",
+        "--reasoning-format",
+        "auto",
         "--no-webui",
-        "-ngl", "99",
+        "-ngl",
+        "99",
     ]
 
     print(f"  Command: {' '.join(cmd)}")
@@ -142,11 +150,7 @@ def quick_benchmark():
 
     def make_request():
         start = time.time()
-        r = requests.post(
-            f"http://localhost:{PORT}/v1/chat/completions",
-            json=payload,
-            timeout=30
-        )
+        r = requests.post(f"http://localhost:{PORT}/v1/chat/completions", json=payload, timeout=30)
         elapsed = time.time() - start
         tokens = r.json().get("usage", {}).get("completion_tokens", 0)
         return {"elapsed": elapsed, "tokens": tokens}
@@ -199,12 +203,7 @@ def check_gpu_utilization():
     print("\n=== Step 7: GPU Utilization ===")
 
     try:
-        result = subprocess.run(
-            ["rocm-smi"],
-            capture_output=True,
-            text=True,
-            timeout=5
-        )
+        result = subprocess.run(["rocm-smi"], capture_output=True, text=True, timeout=5)
         if result.returncode == 0:
             print(result.stdout[:500])
     except:

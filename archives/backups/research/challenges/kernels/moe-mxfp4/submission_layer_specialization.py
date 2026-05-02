@@ -9,10 +9,12 @@ Layer-aware strategies optimize for these different needs.
 POPCORN: amd-moe-mxfp4
 """
 
+import os
+import sys
+
 import torch
 import torch.nn.functional as F
-import sys
-import os
+
 
 _AITER_JIT_BUILD = "/home/runner/aiter/aiter/jit/build"
 for _mod in (

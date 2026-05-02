@@ -18,9 +18,7 @@ async def test_engine_initialization(initial_state):
     mock_surreal = AsyncMock()
     mock_obsidian = AsyncMock()
 
-    engine = TriuneSimulationEngine(
-        state=initial_state, surreal_logger=mock_surreal, obsidian_mcp=mock_obsidian
-    )
+    engine = TriuneSimulationEngine(state=initial_state, surreal_logger=mock_surreal, obsidian_mcp=mock_obsidian)
 
     assert engine.state == initial_state
     assert engine.surreal_logger == mock_surreal
@@ -33,9 +31,7 @@ async def test_engine_step_persistence(initial_state):
     mock_surreal = AsyncMock()
     mock_obsidian = AsyncMock()
 
-    engine = TriuneSimulationEngine(
-        state=initial_state, surreal_logger=mock_surreal, obsidian_mcp=mock_obsidian
-    )
+    engine = TriuneSimulationEngine(state=initial_state, surreal_logger=mock_surreal, obsidian_mcp=mock_obsidian)
 
     # We provide a dummy 'environment' for coherence calculation
     dummy_env = torch.ones(12)
@@ -60,9 +56,7 @@ async def test_engine_step_persistence_failure(initial_state):
     mock_surreal.log_trajectory.side_effect = Exception("Surreal Failure")
     mock_obsidian = AsyncMock()
 
-    engine = TriuneSimulationEngine(
-        state=initial_state, surreal_logger=mock_surreal, obsidian_mcp=mock_obsidian
-    )
+    engine = TriuneSimulationEngine(state=initial_state, surreal_logger=mock_surreal, obsidian_mcp=mock_obsidian)
 
     with pytest.raises(Exception, match="Surreal Failure"):
         await engine.step(dt=0.1, environment=torch.ones(12), trajectory_id="fail_test")

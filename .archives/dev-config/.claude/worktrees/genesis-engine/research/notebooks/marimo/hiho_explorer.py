@@ -55,9 +55,7 @@ def _(mo):
 @app.cell
 def _(mo, Path, json):
     # Load mass simulation results
-    results_path = Path(
-        "/home/mike-anderson/dev/cohezion/src/cohezion/knowledge_graph/hiho_results.json"
-    )
+    results_path = Path("/home/mike-anderson/dev/cohezion/src/cohezion/knowledge_graph/hiho_results.json")
     if results_path.exists():
         results = json.loads(results_path.read_text())
         mo.md(f"""

@@ -25,10 +25,9 @@ Expected: 2-3x speedup for block sizes 32-128
 from __future__ import annotations
 
 import os
-import math
+
 import torch
 import torch.fft as fft
-from typing import Tuple, List
 from task import input_t, output_t
 
 
@@ -54,7 +53,7 @@ class BlockCirculantMatrix:
     def decompose(
         self,
         matrix: torch.Tensor,
-    ) -> Tuple[torch.Tensor, torch.Tensor]:
+    ) -> tuple[torch.Tensor, torch.Tensor]:
         """Decompose matrix into block-circulant form.
 
         Args:
@@ -108,7 +107,7 @@ class BlockCirculantMatrix:
         self,
         a: torch.Tensor,
         block_eigenvalues: torch.Tensor,
-        original_dims: Tuple[int, ...],
+        original_dims: tuple[int, ...],
     ) -> torch.Tensor:
         """Multiply A with block-circulant B.
 

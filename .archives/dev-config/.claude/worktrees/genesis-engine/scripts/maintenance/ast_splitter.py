@@ -80,12 +80,7 @@ class Splitter:
 
                 item_seg = ast.get_source_segment(self.source, item)
                 if item_seg:
-                    content = (
-                        "from __future__ import annotations\n\n"
-                        + "\n".join(import_lines)
-                        + "\n\n"
-                        + item_seg
-                    )
+                    content = "from __future__ import annotations\n\n" + "\n".join(import_lines) + "\n\n" + item_seg
                     new_files[new_path] = content
                     split_names.append(item.name)
                     print(f"  -> Target: {new_path} ({item_len} lines)")
@@ -114,9 +109,7 @@ class Splitter:
                 # Find which file it went to
                 for p in new_files:
                     if item_name.lower() in p.name:
-                        remaining_source_parts.insert(
-                            len(import_lines) + 1, f"from . {p.stem} import {item_name}"
-                        )
+                        remaining_source_parts.insert(len(import_lines) + 1, f"from . {p.stem} import {item_name}")
                         break
 
             self.path.write_text("\n\n".join(remaining_source_parts))

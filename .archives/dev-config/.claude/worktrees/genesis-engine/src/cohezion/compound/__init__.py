@@ -28,6 +28,21 @@ from cohezion.compound.compat import (
     ExecutionResult,
     ExecutorFactory,
 )
+from cohezion.compound.compat import (
+    ExecutionResult as LegacyExecutionResult,
+)
+from cohezion.compound.core.batch_processor import (
+    BatchProcessor,
+    BatchResult,
+    SimpleBatch,
+)
+from cohezion.compound.core.executor import (
+    CompoundExecutor as NewCompoundExecutor,
+)
+from cohezion.compound.core.executor import (
+    ExecutionConfig,
+    execute_simple,
+)
 from cohezion.compound.exp_persistence.journey import JourneyPersistence
 from cohezion.compound.exp_persistence.vault import (
     ExecutionContext,
@@ -85,34 +100,6 @@ from cohezion.compound.model_quality_classifier import (
     QualityPredictor,
     RecommendedAction,
 )
-from cohezion.compound.models import CompoundCycleReport, CompoundCycleResult
-from cohezion.compound.prompt_optimizer import PromptOptimizer
-from cohezion.compound.request_alignment_analyzer import (
-    ConstraintType,
-    ConstraintViolation,
-    CriterionFailure,
-    DriftSignal,
-    ExecutionAlignment,
-    ExecutionConstraint,
-    HumanRequest,
-    IntentType,
-    SuccessCriterion,
-)
-from cohezion.compound.compat import (
-    ExecutionResult as LegacyExecutionResult,
-)
-from cohezion.compound.core.batch_processor import (
-    BatchProcessor,
-    BatchResult,
-    SimpleBatch,
-)
-from cohezion.compound.core.executor import (
-    CompoundExecutor as NewCompoundExecutor,
-)
-from cohezion.compound.core.executor import (
-    ExecutionConfig,
-    execute_simple,
-)
 
 # ============================================================================
 # New Simplified Core (Phase 1) - Clean implementations
@@ -120,6 +107,8 @@ from cohezion.compound.core.executor import (
 from cohezion.compound.models import (
     AnalysisReport,
     BatchConfig,
+    CompoundCycleReport,
+    CompoundCycleResult,
     ExecutionContext,
     ExecutionMetrics,
     ExecutionResult,
@@ -136,6 +125,18 @@ from cohezion.compound.persistence.vault import (
     SimplePersistence,
     VaultPersister,
 )
+from cohezion.compound.prompt_optimizer import PromptOptimizer
+from cohezion.compound.request_alignment_analyzer import (
+    ConstraintType,
+    ConstraintViolation,
+    CriterionFailure,
+    DriftSignal,
+    ExecutionAlignment,
+    ExecutionConstraint,
+    HumanRequest,
+    IntentType,
+    SuccessCriterion,
+)
 
 # ============================================================================
 # New Simplified Skills (Phase 1)
@@ -147,55 +148,22 @@ from cohezion.compound.skills.selector import (
     SkillSelector,
 )
 
-from cohezion.compound.core.executor import (
-    CompoundExecutor as NewCompoundExecutor,
-    ExecutionConfig,
-    execute_simple,
-)
-
-from cohezion.compound.core.batch_processor import (
-    BatchProcessor,
-    BatchResult,
-    SimpleBatch,
-)
 
 # ============================================================================
 # New Simplified Analytics (Phase 1)
 # ============================================================================
 
-from cohezion.compound.analytics.engine import (
-    AnalysisConfig,
-    ExecutionAnalyzer,
-    SimpleAnalyzer,
-)
 
-from cohezion.compound.analytics.metrics import (
-    MetricsCollector,
-    MetricsSnapshot,
-    SimpleMetrics,
-)
 
 # ============================================================================
 # New Simplified Skills (Phase 1)
 # ============================================================================
 
-from cohezion.compound.skills.selector import (
-    SkillMatch,
-    SkillRefiner,
-    SkillSelector,
-    SimpleSkills,
-)
 
 # ============================================================================
 # New Simplified Persistence (Phase 1)
 # ============================================================================
 
-from cohezion.compound.persistence.vault import (
-    PersistenceConfig,
-    SessionPersister,
-    SimplePersistence,
-    VaultPersister,
-)
 
 
 # ============================================================================

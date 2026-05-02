@@ -1,4 +1,5 @@
 """NeuroGolf specialist agent — analysis and submission for tiny NN competition."""
+
 from __future__ import annotations
 
 import logging

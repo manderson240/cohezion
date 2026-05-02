@@ -1,6 +1,5 @@
 import json
 import re
-from typing import Dict, Optional
 
 import requests
 from adversary_agent import AdversaryAgent
@@ -13,7 +12,7 @@ class BaseSpecialist:
     Integrates Adversarial TDD for high-fidelity reasoning.
     """
 
-    def __init__(self, name: str, model_name: Optional[str] = None, timeout: int = 300):
+    def __init__(self, name: str, model_name: str | None = None, timeout: int = 300):
         self.name = name
         # COMPLIANT MODELS: Open-weight, released before March 15, 2026
         self.default_models = {
@@ -31,12 +30,12 @@ class BaseSpecialist:
         self.adversary = AdversaryAgent()
         self.timeout = timeout  # 5 minutes for reasoning models (default 300)
 
-    def _load_prompts(self) -> Dict[str, str]:
-        with open("specialist_prompts.json", "r") as f:
+    def _load_prompts(self) -> dict[str, str]:
+        with open("specialist_prompts.json") as f:
             return json.load(f)
 
     def _load_vault(self) -> str:
-        with open("math_knowledge_vault.json", "r") as f:
+        with open("math_knowledge_vault.json") as f:
             vault = json.load(f)
             vault_str = "\n".join(
                 [
@@ -87,7 +86,7 @@ class BaseSpecialist:
                             break
                 return "".join(chunks) if chunks else "\\boxed{0}"
             except Exception as e:
-                return f"Error calling cloud model: {str(e)}"
+                return f"Error calling cloud model: {e!s}"
 
         # 2. Standard Ollama Flow (local models)
         messages = [
@@ -208,9 +207,9 @@ class BaseSpecialist:
             return initial_text
 
         except Exception as e:
-            return f"Error calling Ollama: {str(e)}"
+            return f"Error calling Ollama: {e!s}"
 
-    def extract_answer(self, response_text: str) -> Optional[int]:
+    def extract_answer(self, response_text: str) -> int | None:
         # CRITICAL: Check for error BEFORE regex extraction (Story 1.2)
         if response_text.startswith("Error"):
             return 0

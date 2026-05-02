@@ -64,7 +64,7 @@ def add_rotation_transforms(g: Grid) -> list[Grid]:
         transpose,
         rotate_90,
         rotate_180,
-        rotate_270
+        rotate_270,
     ]
     return [transform(g) for transform in transformations]
 
@@ -79,15 +79,14 @@ BASE_OPS: list[tuple[str, Program]] = [
     ("rot270", rotate_270),
 ]
 
+
 # Example usage of add_rotation_transforms
 def test_add_rotation_transforms():
-    grid = [
-        [1, 2],
-        [3, 4]
-    ]
+    grid = [[1, 2], [3, 4]]
     results = add_rotation_transforms(grid)
     for result in results:
         print(result)
+
 
 # Uncomment the line below to test the function
 # test_add_rotation_transforms()

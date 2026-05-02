@@ -29,9 +29,7 @@ def audit():
         psi = pickle.load(f)
 
     N = 36
-    qasm_path = (
-        "/home/mike-anderson/dev/cohezion/src/cohezion/physics/quantum/P1_little_dimple.qasm"
-    )
+    qasm_path = "/home/mike-anderson/dev/cohezion/src/cohezion/physics/quantum/P1_little_dimple.qasm"
 
     site_to_qubit = list(range(N))
     qubit_to_site = list(range(N))

@@ -126,9 +126,7 @@ class VaultIntegrityChecker:
 
             # Check for unclosed brackets
             if content.count("[") != content.count("]"):
-                issues.append(
-                    f"Mismatched brackets: [{content.count('[')} vs ]{content.count(']')}"
-                )
+                issues.append(f"Mismatched brackets: [{content.count('[')} vs ]{content.count(']')}")
 
             # Check for valid YAML frontmatter
             if content.startswith("---"):

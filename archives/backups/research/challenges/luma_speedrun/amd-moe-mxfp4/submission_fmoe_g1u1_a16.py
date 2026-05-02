@@ -4,11 +4,12 @@
 """MoE: Try fmoe_g1u1_a16 (discovered on runner, untested)."""
 
 from __future__ import annotations
+
 import os
+
 
 os.environ["AITER_USE_NT"] = "1"
 
-import torch
 import aiter
 from aiter import ActivationType, QuantType
 from aiter.fused_moe import fused_moe

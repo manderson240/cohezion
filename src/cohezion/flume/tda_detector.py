@@ -4,8 +4,9 @@ Detects "Topological Snaps" (circular logic) in reasoning trajectories.
 """
 
 import logging
+
 import numpy as np
-from typing import List
+
 
 logger = logging.getLogger(__name__)
 
@@ -14,7 +15,7 @@ class TDADetector:
     def __init__(self, threshold: float = 0.85):
         self.threshold = threshold
 
-    def detect_circular_logic(self, embeddings: List[np.ndarray]) -> bool:
+    def detect_circular_logic(self, embeddings: list[np.ndarray]) -> bool:
         """
         Calculates if the trajectory of embeddings forms a closed loop.
         Approximates Betti-1 topological features using distance matrices.
@@ -58,7 +59,7 @@ class TDADetector:
 
         return False
 
-    def calculate_coherence(self, embeddings: List[np.ndarray]) -> float:
+    def calculate_coherence(self, embeddings: list[np.ndarray]) -> float:
         """
         Calculates the HIHO Coherence of the trajectory.
         0.5 is the attractor for stable precipitation.

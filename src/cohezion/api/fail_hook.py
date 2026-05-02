@@ -1,5 +1,7 @@
-import requests
 import time
+
+import requests
+
 
 async def async_failure():
     # Blocking call in async path

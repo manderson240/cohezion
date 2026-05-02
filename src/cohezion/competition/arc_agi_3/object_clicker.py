@@ -8,12 +8,14 @@ from __future__ import annotations
 
 import random
 from collections import deque
-from typing import Any, Dict, List, Optional, Tuple
+from typing import Any
 
 import numpy as np
 
 
-def find_click_targets(grid: List[List[int]], min_size: int = 2, max_size: int = 256) -> List[Dict[str, Any]]:
+def find_click_targets(
+    grid: list[list[int]], min_size: int = 2, max_size: int = 256
+) -> list[dict[str, Any]]:
     """Find all distinct click targets (non-background regions)."""
     arr = np.array(grid)
     h, w = arr.shape
@@ -40,18 +42,22 @@ def find_click_targets(grid: List[List[int]], min_size: int = 2, max_size: int =
             if min_size <= len(pixels) <= max_size:
                 xs = [p[0] for p in pixels]
                 ys = [p[1] for p in pixels]
-                targets.append({
-                    "color": int(color),
-                    "pixels": len(pixels),
-                    "cx": int(sum(xs) / len(xs)),
-                    "cy": int(sum(ys) / len(ys)),
-                    "min_x": min(xs), "max_x": max(xs),
-                    "min_y": min(ys), "max_y": max(ys),
-                })
+                targets.append(
+                    {
+                        "color": int(color),
+                        "pixels": len(pixels),
+                        "cx": int(sum(xs) / len(xs)),
+                        "cy": int(sum(ys) / len(ys)),
+                        "min_x": min(xs),
+                        "max_x": max(xs),
+                        "min_y": min(ys),
+                        "max_y": max(ys),
+                    }
+                )
     return targets
 
 
-def run_object_clicker(game_id: str, max_actions: int = 60) -> Dict[str, Any]:
+def run_object_clicker(game_id: str, max_actions: int = 60) -> dict[str, Any]:
     import arc_agi
     from arcengine import GameAction, GameState
 
@@ -69,7 +75,13 @@ def run_object_clicker(game_id: str, max_actions: int = 60) -> Dict[str, Any]:
         if grid is not None and not targets:
             targets = find_click_targets(grid)
             # Sort by distinctiveness (unique colors first, medium size)
-            targets.sort(key=lambda t: (t["pixels"] > 100, t["pixels"] < 4, -len([x for x in targets if x["color"] == t["color"]])))
+            targets.sort(
+                key=lambda t: (
+                    t["pixels"] > 100,
+                    t["pixels"] < 4,
+                    -len([x for x in targets if x["color"] == t["color"]]),
+                )
+            )
 
         if targets and target_idx < len(targets):
             t = targets[target_idx]
@@ -111,5 +123,7 @@ def run_object_clicker(game_id: str, max_actions: int = 60) -> Dict[str, Any]:
 if __name__ == "__main__":
     for game_id in ["r11l", "lp85"]:
         result = run_object_clicker(game_id)
-        print(f"{game_id}: wins={result['wins']}, score={result['score']}, "
-              f"actions={result['actions']}, targets={result['targets_found']}, clicked={result['targets_clicked']}")
+        print(
+            f"{game_id}: wins={result['wins']}, score={result['score']}, "
+            f"actions={result['actions']}, targets={result['targets_found']}, clicked={result['targets_clicked']}"
+        )

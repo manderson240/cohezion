@@ -8,11 +8,12 @@ Skip low-attention positions with dynamic sparsity mask
 POPCORN: amd-mixed-mla
 """
 
-import torch
-from task import input_t, output_t
-from reference import ref_kernel
 import aiter
+import torch
 from aiter.ops.triton.quant import dynamic_fp8_quant
+from reference import ref_kernel
+from task import input_t, output_t
+
 
 # Cache for metadata to avoid recomputation
 _metadata_cache: dict = {}
@@ -250,6 +251,6 @@ def custom_kernel(data: input_t) -> output_t:
 
             return output
 
-    except Exception as e:
+    except Exception:
         # Fallback to reference on any error
         return ref_kernel(data)

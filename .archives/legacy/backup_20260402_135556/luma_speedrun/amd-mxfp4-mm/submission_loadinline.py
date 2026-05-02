@@ -18,14 +18,14 @@ References:
 - CK-Tile gfx950 MXFP4 support
 """
 
-import torch
-from torch.utils.cpp_extension import load_inline
-
 import aiter
+import torch
 from aiter import dtypes
 from aiter.ops.triton.quant import dynamic_mxfp4_quant
 from aiter.utility.fp4_utils import e8m0_shuffle
 from task import input_t, output_t
+from torch.utils.cpp_extension import load_inline
+
 
 # ──── HIP C++ source: Tiled MXFP4 GEMM ──────────────────────────────────────
 HIP_SOURCE = r"""

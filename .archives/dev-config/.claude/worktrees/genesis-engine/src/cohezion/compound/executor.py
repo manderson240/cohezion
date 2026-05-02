@@ -14,7 +14,6 @@ import time
 from collections.abc import Callable
 from dataclasses import dataclass
 from datetime import datetime
-from pathlib import Path
 from typing import TYPE_CHECKING, Any
 
 from cohezion.compound.context_integration import CompoundContextMixin
@@ -377,7 +376,7 @@ class CompoundExecutor(CompoundContextMixin):
             start_time=start_time,
             mcp_client=self.mcp_client,
         )
-        
+
         # Load context automatically if not already done (shoshen-minded automation)
         if not self._context_loaded:
             try:
@@ -408,26 +407,18 @@ class CompoundExecutor(CompoundContextMixin):
                 logger.debug("Universe bridge start failed (non-blocking): %s", e)
 
         # Step 1: Get experience guidance (enhanced with trajectory search)
-        guidance = self.get_experience_guidance(
-            task_description, project, operation_type
-        )
+        guidance = self.get_experience_guidance(task_description, project, operation_type)
         logger.debug("Experience guidance: %s", guidance)
 
         # Step 1.5: Parse request for alignment analysis (if enabled)
         # Skip in degradation mode to conserve resources
         parsed_request = None
         _alignment_patterns = None
-        if (
-            self._enable_alignment_analysis
-            and self.alignment_analyzer
-            and not self._degradation_mode
-        ):
+        if self._enable_alignment_analysis and self.alignment_analyzer and not self._degradation_mode:
             try:
                 request_text = human_request or task_description
                 parsed_request = self.alignment_analyzer.parse_request(request_text)
-                _alignment_patterns = self.alignment_analyzer.query_alignment_patterns(
-                    task_description, project
-                )
+                _alignment_patterns = self.alignment_analyzer.query_alignment_patterns(task_description, project)
                 logger.debug(
                     "Parsed request: intent=%s (confidence=%.2f), %d constraints, %d criteria",
                     parsed_request.intent.value,
@@ -578,11 +569,7 @@ class CompoundExecutor(CompoundContextMixin):
             logger.debug("Anomaly detection failed (non-blocking): %s", e, exc_info=True)
 
         # Step 5.5: Analyze request-execution alignment (if enabled)
-        if (
-            self._enable_alignment_analysis
-            and self.alignment_analyzer
-            and parsed_request
-        ):
+        if self._enable_alignment_analysis and self.alignment_analyzer and parsed_request:
             try:
                 from cohezion.compound.inflection_detector import Severity
 
@@ -682,9 +669,7 @@ class CompoundExecutor(CompoundContextMixin):
                     duration_seconds=duration_seconds,
                     token_metrics=token_metrics,
                 )
-                retrospection_context = self._retrospection_engine.analyze_execution_result(
-                    temp_result, skill_name
-                )
+                retrospection_context = self._retrospection_engine.analyze_execution_result(temp_result, skill_name)
                 if retrospection_context is not None:
                     should_refine = retrospection_context.get("should_refine", True)
                     if retrospection_context.get("insights"):
@@ -692,9 +677,7 @@ class CompoundExecutor(CompoundContextMixin):
                 logger.debug(
                     "Retrospection: should_refine=%s, compound=%.3f",
                     should_refine,
-                    retrospection_context.get("compound_score", 0.0)
-                    if retrospection_context
-                    else 0.0,
+                    retrospection_context.get("compound_score", 0.0) if retrospection_context else 0.0,
                 )
             except Exception as e:
                 logger.debug("Retrospection failed (non-blocking): %s", e, exc_info=True)
@@ -732,9 +715,7 @@ class CompoundExecutor(CompoundContextMixin):
         # Coherence outside band with CRITICAL alert -> enter degradation mode
         coherence_val = metrics.get("coherence", 0.5)
         if 0.4 <= coherence_val <= 0.6 and self._degradation_mode:
-            logger.info(
-                "Cohesion returned to HIHO band (%.2f), exiting degradation mode", coherence_val
-            )
+            logger.info("Cohesion returned to HIHO band (%.2f), exiting degradation mode", coherence_val)
             self._degradation_mode = False
 
         if self._degradation_detector:
@@ -761,9 +742,7 @@ class CompoundExecutor(CompoundContextMixin):
                             alert.message,
                         )
                     # Log critical alerts to vault and enter degradation mode
-                    critical_alerts = [
-                        a for a in alerts if a.severity.value == "CRITICAL"
-                    ]
+                    critical_alerts = [a for a in alerts if a.severity.value == "CRITICAL"]
                     if critical_alerts:
                         self._degradation_mode = True
                         metrics["execution_degraded"] = True
@@ -944,9 +923,7 @@ class CompoundExecutor(CompoundContextMixin):
         if "api_calls" in metrics_after and "api_calls" in metrics_before:
             delta["api_calls_made"] = metrics_after["api_calls"] - metrics_before["api_calls"]
         if "cache_hits" in metrics_after and "cache_hits" in metrics_before:
-            delta["cache_hits"] = (
-                metrics_after["cache_hits"] - metrics_before["cache_hits"]
-            )
+            delta["cache_hits"] = metrics_after["cache_hits"] - metrics_before["cache_hits"]
         if "cache_misses" in metrics_after and "cache_misses" in metrics_before:
             delta["cache_misses"] = metrics_after["cache_misses"] - metrics_before["cache_misses"]
 

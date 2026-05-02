@@ -23,12 +23,14 @@ Benchmark shapes and expected routing:
 
 import os
 
+
 os.environ["PYTORCH_ROCM_ARCH"] = "gfx950"
 os.environ["CXX"] = "clang++"
 
 import torch
-from torch.utils.cpp_extension import load_inline
 from task import input_t, output_t
+from torch.utils.cpp_extension import load_inline
+
 
 # ============================================================================
 # Shared HIP utilities (inlined into both kernels via preprocessor)

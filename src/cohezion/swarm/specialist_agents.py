@@ -21,6 +21,7 @@ from cohezion.swarm.compute_backend_router import (
 @dataclass
 class AgentMetadata:
     """Metadata for dynamic agent registration."""
+
     name: str
     version: str = "1.0.0"
     description: str = ""
@@ -42,6 +43,7 @@ class AgentMetadata:
 @dataclass
 class ToolDefinition:
     """Tool definition for GAIA-style tool registry."""
+
     name: str
     description: str
     func: Callable
@@ -74,6 +76,7 @@ class ToolRegistry:
                 tool_name = name or f.__name__
                 self._register_tool(tool_name, f, description, schema)
                 return f
+
             return decorator
         else:
             # Used as function
@@ -162,6 +165,7 @@ class ToolRegistry:
 
 class ToolNotFoundError(Exception):
     """Raised when tool is not found."""
+
     pass
 
 
@@ -260,8 +264,7 @@ class SpecialistAgent:
             if self.tool_registry.has_tool(tool_name):
                 try:
                     tool_outputs[tool_name] = await self.tool_registry.execute(
-                        tool_name,
-                        **context.get("tool_args", {})
+                        tool_name, **context.get("tool_args", {})
                     )
                 except Exception as e:
                     tool_outputs[tool_name] = {"error": str(e)}
@@ -312,9 +315,7 @@ class SpecialistAgent:
         latencies = perf["latency_samples"]
         return {
             "total_calls": perf.get("total_calls", 0),
-            "success_rate": (
-                perf.get("successful_calls", 0) / max(perf.get("total_calls", 1), 1)
-            ),
+            "success_rate": (perf.get("successful_calls", 0) / max(perf.get("total_calls", 1), 1)),
             "avg_latency_ms": sum(latencies) / len(latencies),
             "min_latency_ms": min(latencies),
             "max_latency_ms": max(latencies),
@@ -464,10 +465,7 @@ def get_specialist(name: str) -> SpecialistAgent | None:
 
 def list_validated_specialists() -> list[SpecialistAgent]:
     """List all validated specialists."""
-    return [
-        agent for agent in VALIDATED_SPECIALISTS.values()
-        if agent.validated
-    ]
+    return [agent for agent in VALIDATED_SPECIALISTS.values() if agent.validated]
 
 
 def list_all_specialists() -> list[SpecialistAgent]:

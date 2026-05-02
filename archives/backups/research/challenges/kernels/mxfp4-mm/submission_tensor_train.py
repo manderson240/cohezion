@@ -18,23 +18,25 @@ Author: Sprint Final Variant
 
 from __future__ import annotations
 
+import math
 import os
 import sys
-import math
+
 import torch
-import torch.nn.functional as F
+
 
 os.environ["PYTORCH_ROCM_ARCH"] = "gfx950"
 os.environ["CXX"] = "clang++"
 
 from torch.utils.cpp_extension import load_inline
 
+
 try:
     from task import input_t, output_t
 except ImportError:
-    from typing import Tuple, Any
+    from typing import Any
 
-    input_t = Tuple[Any, ...]
+    input_t = tuple[Any, ...]
     output_t = torch.Tensor
 
 
@@ -255,32 +257,32 @@ __global__ void tt_matvec_kernel(
 ) {
     int row = blockIdx.x * blockDim.x + threadIdx.x;
     if (row >= rows) return;
-    
+
     // Simplified TT matvec: reconstruct row on the fly
     // Full implementation would cache intermediate results
-    
+
     float accum = 0.0f;
-    
+
     // For each column
     for (int col = 0; col < cols; col++) {
         // Compute TT element at (row, col)
         float tt_val = 1.0f;
-        
+
         // Multiply through cores
         for (int c = 0; c < num_cores; c++) {
             int r_left = core_shapes[c * 3 + 0];
             int n = core_shapes[c * 3 + 1];
             int r_right = core_shapes[c * 3 + 2];
-            
+
             // Extract appropriate element from core
             // Simplified: just use identity for now
             tt_val *= 1.0f;  // Placeholder
         }
-        
+
         float x_val = __bfloat162float(x[col]);
         accum += tt_val * x_val;
     }
-    
+
     y[row] = __float2bfloat16(accum);
 }
 
@@ -295,7 +297,7 @@ void tt_matvec(
 ) {
     int threads = 256;
     int blocks = (rows + threads - 1) / threads;
-    
+
     tt_matvec_kernel<<<blocks, threads>>>(
         (float*)tt_cores.data_ptr(),
         (__hip_bfloat16*)x.data_ptr(),
@@ -414,9 +416,9 @@ def custom_kernel(data: input_t) -> output_t:
     # Fallback to aiter GEMM
     try:
         import aiter
+        from aiter import dtypes
         from aiter.ops.triton.quant import dynamic_mxfp4_quant
         from aiter.utility.fp4_utils import e8m0_shuffle
-        from aiter import dtypes
 
         A_q, A_scale_e8m0 = dynamic_mxfp4_quant(A.contiguous())
         A_scale_sh = e8m0_shuffle(A_scale_e8m0).view(dtypes.fp8_e8m0)
@@ -440,9 +442,9 @@ def ref_kernel(data: input_t) -> output_t:
 
     try:
         import aiter
+        from aiter import dtypes
         from aiter.ops.triton.quant import dynamic_mxfp4_quant
         from aiter.utility.fp4_utils import e8m0_shuffle
-        from aiter import dtypes
 
         A_q, A_scale_e8m0 = dynamic_mxfp4_quant(A.contiguous())
         A_scale_sh = e8m0_shuffle(A_scale_e8m0).view(dtypes.fp8_e8m0)
@@ -510,9 +512,9 @@ if __name__ == "__main__":
             print(f"  Max diff: {diff:.6f}")
 
             if diff < 0.5:
-                print(f"  ✓ PASSED")
+                print("  ✓ PASSED")
             else:
-                print(f"  ✗ FAILED")
+                print("  ✗ FAILED")
 
         except Exception as e:
             print(f"  ✗ ERROR: {e}")

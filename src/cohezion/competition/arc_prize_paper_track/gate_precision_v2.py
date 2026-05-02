@@ -14,10 +14,11 @@ import sys
 from pathlib import Path
 from typing import Any
 
+
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 
 import arc_solver
-from arc_solver import apply_program, deepcopy_grid, grids_equal
+from arc_solver import deepcopy_grid, grids_equal
 
 
 def structural_alignment_score(candidate_output: Any, expected: Any) -> float:
@@ -45,6 +46,7 @@ def structural_alignment_score(candidate_output: Any, expected: Any) -> float:
 
     # Background consistency
     from collections import Counter
+
     out_bg = Counter(c for row in candidate_output for c in row).most_common(1)
     exp_bg = Counter(c for row in expected for c in row).most_common(1)
     bg_score = 1.0 if out_bg and exp_bg and out_bg[0][0] == exp_bg[0][0] else 0.0
@@ -121,18 +123,22 @@ if __name__ == "__main__":
     correct_scores = [s for _, s in COLLECTED["correct"]]
     wrong_scores = [s for _, s in COLLECTED["wrong"]]
 
-    print(f"\n{'='*60}")
-    print(f"ALIGNMENT GATE PRECISION (50 tasks, budget=5000)")
-    print(f"{'='*60}")
+    print(f"\n{'=' * 60}")
+    print("ALIGNMENT GATE PRECISION (50 tasks, budget=5000)")
+    print(f"{'=' * 60}")
     print(f"Correct programs tested: {len(correct_scores)}")
     print(f"Wrong programs tested:   {len(wrong_scores)}")
 
     if correct_scores:
-        print(f"Correct scores: μ={sum(correct_scores)/len(correct_scores):.3f}, "
-              f"min={min(correct_scores):.3f}, max={max(correct_scores):.3f}")
+        print(
+            f"Correct scores: μ={sum(correct_scores) / len(correct_scores):.3f}, "
+            f"min={min(correct_scores):.3f}, max={max(correct_scores):.3f}"
+        )
     if wrong_scores:
-        print(f"Wrong scores:   μ={sum(wrong_scores)/len(wrong_scores):.3f}, "
-              f"min={min(wrong_scores):.3f}, max={max(wrong_scores):.3f}")
+        print(
+            f"Wrong scores:   μ={sum(wrong_scores) / len(wrong_scores):.3f}, "
+            f"min={min(wrong_scores):.3f}, max={max(wrong_scores):.3f}"
+        )
 
     # Threshold analysis
     best_f1 = 0

@@ -11,7 +11,6 @@ Tests verify:
 Run with: pytest tests/test_tri_compute_orchestrator.py -v
 """
 
-
 # Add path for imports
 import sys
 import time
@@ -21,7 +20,7 @@ import numpy as np
 import pytest
 
 
-sys.path.insert(0, '/home/mike-anderson/dev/cohezion/src')
+sys.path.insert(0, "src")
 
 from cohezion.inference.tri_compute_orchestrator import (
     ComputeTask,
@@ -51,13 +50,14 @@ class TestNPUInferenceEngine:
         npu = NPUInferenceEngine()
 
         # Mock the inference call to avoid actual network request
-        with patch.object(npu, 'infer', return_value="""
+        with patch.object(
+            npu,
+            "infer",
+            return_value="""
             {"n_inference_calls": 100, "particle_count": 1000}
-        """):
-            params = npu.generate_experiment_params(
-                phase=1,
-                previous_results={}
-            )
+        """,
+        ):
+            params = npu.generate_experiment_params(phase=1, previous_results={})
 
         assert "phase" in params
         assert params["phase"] == 1
@@ -71,7 +71,7 @@ class TestNPUInferenceEngine:
         # Mock the actual HTTP call
         mock_response = {"choices": [{"message": {"content": "test response"}}]}
 
-        with patch('aiohttp.ClientSession.post') as mock_post:
+        with patch("aiohttp.ClientSession.post") as mock_post:
             mock_post.return_value.__aenter__ = AsyncMock(
                 return_value=AsyncMock(json=AsyncMock(return_value=mock_response))
             )
@@ -97,10 +97,7 @@ class TestiGPUSimulationEngine:
         igpu = iGPUSimulationEngine()
 
         # Create mock agents
-        agents = [
-            {"latent": np.random.randn(256), "coherence": 0.5}
-            for _ in range(10)
-        ]
+        agents = [{"latent": np.random.randn(256), "coherence": 0.5} for _ in range(10)]
 
         result = igpu.simulate_flume_batch(agents, n_steps=10)
 
@@ -223,11 +220,14 @@ class TestTriComputeOrchestrator:
         )
 
         # Mock the actual compute calls to avoid dependencies
-        with patch.object(orch.npu, 'infer', return_value="{}"), \
-             patch.object(orch.igpu, 'run_simulation_batch', return_value=[
-                 ComputeTask("test", "igpu", {}, result={"simulated": True})
-             ]):
-
+        with (
+            patch.object(orch.npu, "infer", return_value="{}"),
+            patch.object(
+                orch.igpu,
+                "run_simulation_batch",
+                return_value=[ComputeTask("test", "igpu", {}, result={"simulated": True})],
+            ),
+        ):
             result = await orch.run_phase(phase)
 
         assert result is not None

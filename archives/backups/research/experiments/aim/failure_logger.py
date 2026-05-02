@@ -12,7 +12,7 @@ from dataclasses import asdict, dataclass
 from datetime import datetime
 from enum import Enum
 from pathlib import Path
-from typing import Any, Dict, List, Optional
+from typing import Any
 
 
 class FailureType(Enum):
@@ -37,13 +37,13 @@ class FailureRecord:
     problem_id: str
     problem_text: str
     timestamp: str
-    context: Dict[str, Any]
+    context: dict[str, Any]
     root_cause: str
     remediation_pattern: str
-    stack_trace: Optional[str] = None
-    response_text: Optional[str] = None
-    expected_answer: Optional[int] = None
-    actual_answer: Optional[int] = None
+    stack_trace: str | None = None
+    response_text: str | None = None
+    expected_answer: int | None = None
+    actual_answer: int | None = None
 
 
 class FailureLogger:
@@ -68,14 +68,14 @@ class FailureLogger:
         Path(self.vault_path).mkdir(parents=True, exist_ok=True)
         Path(self.local_path).mkdir(parents=True, exist_ok=True)
 
-        self.failure_log: List[FailureRecord] = []
+        self.failure_log: list[FailureRecord] = []
 
     def log_failure(
         self,
         failure_type: FailureType,
         problem_id: str,
         problem_text: str,
-        context: Dict[str, Any],
+        context: dict[str, Any],
         root_cause: str,
         remediation_pattern: str,
         response_text: str = None,
@@ -213,13 +213,13 @@ class FailureLogger:
 
         return md
 
-    def get_all_failures(self, failure_type: FailureType = None) -> List[FailureRecord]:
+    def get_all_failures(self, failure_type: FailureType = None) -> list[FailureRecord]:
         """Get all logged failures, optionally filtered by type."""
         if failure_type:
             return [f for f in self.failure_log if f.failure_type == failure_type.value]
         return self.failure_log
 
-    def get_failure_summary(self) -> Dict[str, Any]:
+    def get_failure_summary(self) -> dict[str, Any]:
         """Get summary of failures."""
         by_type = {}
         for failure in self.failure_log:
@@ -270,7 +270,7 @@ class FailureDetector:
         """Detect extraction failure."""
         return answer == 0 and "\\boxed" not in response
 
-    def detect_routing_error(self, specialists: List[str], problem_text: str) -> bool:
+    def detect_routing_error(self, specialists: list[str], problem_text: str) -> bool:
         """Detect routing error (wrong specialist)."""
         # Heuristic: if problem clearly matches a domain but specialist doesn't
         keywords = {
@@ -309,7 +309,7 @@ class FailureDetector:
         problem_text: str,
         response: str,
         answer: int,
-        specialists: List[str],
+        specialists: list[str],
         ans1: int = None,
         ans2: int = None,
         ans3: int = None,

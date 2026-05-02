@@ -9,7 +9,6 @@ import requests
 from aiohttp import web
 
 
-
 logger = logging.getLogger(__name__)
 
 MCP_PORT = int(os.getenv("MCP_PORT", "8373"))

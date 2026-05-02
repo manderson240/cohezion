@@ -1,6 +1,7 @@
+import os
+
 import bluequbit
 import qiskit
-import os
 
 
 def estimate_large_problems():

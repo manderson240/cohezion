@@ -7,8 +7,6 @@ Key insight: Multiple small kernels have significant launch overhead.
 Fusing them reduces dispatch cost.
 """
 
-import torch
-import sys
 
 import aiter
 from aiter import dtypes
@@ -58,7 +56,7 @@ def custom_kernel(data: input_t) -> output_t:
 
         return output
 
-    except Exception as e:
+    except Exception:
         from reference import ref_kernel
 
         return ref_kernel(data)

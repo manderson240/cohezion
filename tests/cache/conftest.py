@@ -14,6 +14,7 @@ is already in sys.modules as a mock so no real import ever occurs.
 import sys
 from unittest.mock import MagicMock
 
+
 if "sentence_transformers" not in sys.modules:
     _mock_st = MagicMock()
     _mock_st.SentenceTransformer = MagicMock

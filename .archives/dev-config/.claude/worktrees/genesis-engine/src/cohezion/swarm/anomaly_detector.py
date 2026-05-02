@@ -137,9 +137,7 @@ class ModelCostHistory:
         mean_x = sum(recent_times) / n
         mean_y = sum(recent_costs) / n
 
-        numerator = sum(
-            (t - mean_x) * (c - mean_y) for t, c in zip(recent_times, recent_costs, strict=True)
-        )
+        numerator = sum((t - mean_x) * (c - mean_y) for t, c in zip(recent_times, recent_costs, strict=True))
         denominator = sum((t - mean_x) ** 2 for t in recent_times)
 
         if denominator == 0:

@@ -9,10 +9,10 @@ import logging
 import time
 
 import numpy as np
-
-from cohezion.core.persistence.surreal_client import get_surreal_client
 from cohezion.physics.substrate_loom import LoomConfig, SubstrateLoom
 from cohezion.physics.xla_bridge import XlaPhysicsEngine
+
+from cohezion.core.persistence.surreal_client import get_surreal_client
 
 
 logging.basicConfig(level=logging.INFO)
@@ -87,12 +87,8 @@ async def run_cosmogenesis(duration_minutes: float = 1.0, num_agents: int = 1000
     finally:
         total_time = time.time() - start_time
         final_avg_fps = steps / total_time
-        logger.info(
-            f"🏁 Cosmogenesis complete. Total Steps: {steps} | Final Avg FPS: {final_avg_fps:.2f}"
-        )
-        logger.info(
-            f"📊 Traceability: FR-21 (Planetary Cosmogenesis) fulfilled at scale {num_agents}"
-        )
+        logger.info(f"🏁 Cosmogenesis complete. Total Steps: {steps} | Final Avg FPS: {final_avg_fps:.2f}")
+        logger.info(f"📊 Traceability: FR-21 (Planetary Cosmogenesis) fulfilled at scale {num_agents}")
         loom.unlink()
 
 

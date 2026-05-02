@@ -135,9 +135,7 @@ class SecurityScanner:
                     vuln = Vulnerability(
                         id=f"SECRET-{secret_type.upper()}",
                         title=f"Potential {secret_type.replace('_', ' ').title()} Exposed",
-                        severity="critical"
-                        if secret_type in ["private_key", "aws_secret_key"]
-                        else "high",
+                        severity="critical" if secret_type in ["private_key", "aws_secret_key"] else "high",
                         description=f"Found potential {secret_type.replace('_', ' ')} in code",
                         file=str(file_path),
                         line=line_num,

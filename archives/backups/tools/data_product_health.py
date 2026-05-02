@@ -12,7 +12,6 @@ Usage:
 from __future__ import annotations
 
 import argparse
-import json
 import logging
 import os
 import sys
@@ -20,6 +19,7 @@ from datetime import UTC, datetime
 from pathlib import Path
 
 import httpx
+
 
 logging.basicConfig(level=logging.INFO, format="%(message)s")
 logger = logging.getLogger(__name__)
@@ -207,8 +207,8 @@ def generate_health_report(products: list[dict]) -> str:
 
     lines.extend(
         [
-            f"| Metric | Value |",
-            f"|--------|-------|",
+            "| Metric | Value |",
+            "|--------|-------|",
             f"| Total Products | {total} |",
             f"| Healthy (SLA Met) | {healthy} ({100 * healthy / total:.1f}%) |"
             if total > 0

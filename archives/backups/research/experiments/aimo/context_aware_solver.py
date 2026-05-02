@@ -12,7 +12,7 @@ Reduces token usage by 60% while improving accuracy.
 
 import logging
 from dataclasses import dataclass
-from typing import Any, Dict, List, Optional, Tuple
+from typing import Any
 
 from base_specialist import BaseSpecialist
 from failure_logger import FailureLogger, FailureType
@@ -30,11 +30,11 @@ class ProblemContext:
 
     problem_id: str
     problem_text: str
-    domain_scores: Dict[str, float]
+    domain_scores: dict[str, float]
     complexity: float
-    similar_problems: List[str]
-    past_failures: List[Dict[str, Any]]
-    strategy_history: List[str]
+    similar_problems: list[str]
+    past_failures: list[dict[str, Any]]
+    strategy_history: list[str]
 
 
 @dataclass
@@ -42,8 +42,8 @@ class SolvingStrategy:
     """Problem solving strategy."""
 
     name: str
-    specialists: List[str]
-    models: List[str]
+    specialists: list[str]
+    models: list[str]
     timeout: int
     dual_run: bool
     tie_breaker: bool
@@ -63,8 +63,8 @@ class ContextAwareSolver:
 
     def __init__(
         self,
-        cache: Optional[SemanticCache] = None,
-        failure_logger: Optional[FailureLogger] = None,
+        cache: SemanticCache | None = None,
+        failure_logger: FailureLogger | None = None,
     ):
         self.cache = cache or get_cache()
         self.failure_logger = failure_logger or FailureLogger()
@@ -82,7 +82,7 @@ class ContextAwareSolver:
         # Failure patterns
         self.failure_patterns = self._load_failure_patterns()
 
-    def _init_strategies(self) -> Dict[str, SolvingStrategy]:
+    def _init_strategies(self) -> dict[str, SolvingStrategy]:
         """Initialize solving strategies."""
         return {
             "simple": SolvingStrategy(
@@ -123,7 +123,7 @@ class ContextAwareSolver:
             ),
         }
 
-    def _load_failure_patterns(self) -> Dict[str, Any]:
+    def _load_failure_patterns(self) -> dict[str, Any]:
         """Load failure patterns from history."""
         # In production, load from vault
         return {
@@ -145,7 +145,7 @@ class ContextAwareSolver:
         }
 
     def select_strategy(
-        self, problem_text: str, context: Optional[ProblemContext] = None
+        self, problem_text: str, context: ProblemContext | None = None
     ) -> SolvingStrategy:
         """Select optimal strategy based on problem context."""
         # 1. Check cache for similar problems
@@ -190,8 +190,8 @@ class ContextAwareSolver:
         self,
         problem_id: str,
         problem_text: str,
-        context: Optional[ProblemContext] = None,
-    ) -> Tuple[int, str, Dict[str, Any]]:
+        context: ProblemContext | None = None,
+    ) -> tuple[int, str, dict[str, Any]]:
         """
         Solve problem with context awareness.
 
@@ -298,7 +298,7 @@ class ContextAwareSolver:
 
         return final_answer or 0, reasoning_chains[0], metadata
 
-    def get_efficiency_stats(self) -> Dict[str, Any]:
+    def get_efficiency_stats(self) -> dict[str, Any]:
         """Get token efficiency statistics."""
         cache_stats = self.cache.get_stats()
 
@@ -313,7 +313,7 @@ class ContextAwareSolver:
 
 
 # Global solver instance
-_global_solver: Optional[ContextAwareSolver] = None
+_global_solver: ContextAwareSolver | None = None
 
 
 def get_solver() -> ContextAwareSolver:

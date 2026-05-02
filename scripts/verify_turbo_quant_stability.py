@@ -16,9 +16,7 @@ def verify_stability():
     recovered = tq.decompress_kv(compressed)
 
     metrics = harness.verify_quantization(
-        original, recovered,
-        context_name="TurboQuant-CPU-Ref",
-        perfect_mean=True
+        original, recovered, context_name="TurboQuant-CPU-Ref", perfect_mean=True
     )
 
     print("\n--- Turbo Quant Stability Verification ---")
@@ -28,7 +26,10 @@ def verify_stability():
     print(f"Coherence Recovered: {metrics['coherence_quantized']:.4f}")
     print(f"Stability Delta: {metrics['stability_delta']:.4f}")
 
-    assert metrics['stability_delta'] <= 0.005, f"Stability delta {metrics['stability_delta']} exceeds tolerance 0.005"
+    assert metrics["stability_delta"] <= 0.005, (
+        f"Stability delta {metrics['stability_delta']} exceeds tolerance 0.005"
+    )
+
 
 if __name__ == "__main__":
     verify_stability()

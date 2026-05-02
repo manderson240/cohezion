@@ -19,14 +19,16 @@ GShard: Massive scale MoE with expert parallelism.
 """
 
 from __future__ import annotations
+
 import os
 import sys
+
 import torch
-from typing import Dict, List, Tuple
 from aiter import ActivationType, QuantType
 from aiter.fused_moe import fused_moe
 from reference import ref_kernel
 from task import input_t, output_t
+
 
 os.environ["AITER_USE_NT"] = "1"
 
@@ -71,7 +73,7 @@ class GShardRouter:
 
     def route_to_shards(
         self, hidden_states: torch.Tensor, topk_ids: torch.Tensor, topk_weights: torch.Tensor
-    ) -> Dict[int, Tuple[torch.Tensor, torch.Tensor, torch.Tensor]]:
+    ) -> dict[int, tuple[torch.Tensor, torch.Tensor, torch.Tensor]]:
         """
         Route tokens to expert shards.
 
@@ -125,8 +127,8 @@ class GShardRouter:
 
     def merge_from_shards(
         self,
-        shard_outputs: Dict[int, torch.Tensor],
-        token_counts: Dict[int, int],
+        shard_outputs: dict[int, torch.Tensor],
+        token_counts: dict[int, int],
         batch_size: int,
         d_hidden: int,
     ) -> torch.Tensor:
@@ -154,7 +156,7 @@ class GShardRouter:
 
         return output
 
-    def get_load_balance_stats(self) -> Dict[str, float]:
+    def get_load_balance_stats(self) -> dict[str, float]:
         """Get load balancing statistics across shards."""
         return {
             "num_experts": self.num_experts,

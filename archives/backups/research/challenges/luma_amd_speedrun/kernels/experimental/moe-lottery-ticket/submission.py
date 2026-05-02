@@ -36,15 +36,16 @@ Applied to MoE: Finding sparse expert subsets that win the initialization lotter
 """
 
 from __future__ import annotations
+
 import os
 import sys
-import math
+from dataclasses import dataclass
+
 import torch
-from typing import Dict, List, Optional, Tuple, Set
-from dataclasses import dataclass, field
 from aiter import ActivationType, QuantType
 from aiter.fused_moe import fused_moe
 from task import input_t, output_t
+
 
 os.environ["AITER_USE_NT"] = "1"
 
@@ -62,7 +63,7 @@ class ExpertTicket:
         cumulative_magnitude: Sum of expert weight magnitudes
     """
 
-    active_experts: Set[int]
+    active_experts: set[int]
     iteration: int
     test_accuracy: float = 0.0
     rewind_step: int = 0
@@ -132,11 +133,11 @@ class LotteryTicketPruner:
 
         # Magnitude tracking: accumulated L1 norm per expert
         # Shape: [num_experts], initialized to 0
-        self.expert_magnitudes: Dict[int, float] = {i: 0.0 for i in range(num_experts)}
-        self.expert_usage_counts: Dict[int, int] = {i: 0 for i in range(num_experts)}
+        self.expert_magnitudes: dict[int, float] = dict.fromkeys(range(num_experts), 0.0)
+        self.expert_usage_counts: dict[int, int] = dict.fromkeys(range(num_experts), 0)
 
         # Ticket history
-        self.tickets: List[ExpertTicket] = []
+        self.tickets: list[ExpertTicket] = []
         self.current_ticket: ExpertTicket = ExpertTicket(
             active_experts=set(range(num_experts)),
             iteration=0,
@@ -149,9 +150,7 @@ class LotteryTicketPruner:
         self.pruning_complete = False
 
         # Weight snapshots for rewinding (expert_id -> weight snapshot)
-        self.weight_snapshots: Dict[int, Optional[torch.Tensor]] = {
-            i: None for i in range(num_experts)
-        }
+        self.weight_snapshots: dict[int, torch.Tensor | None] = dict.fromkeys(range(num_experts))
 
     def update_magnitudes_from_tokens(
         self,
@@ -285,7 +284,7 @@ class LotteryTicketPruner:
         self,
         topk_ids: torch.Tensor,
         topk_weights: torch.Tensor,
-    ) -> Tuple[torch.Tensor, torch.Tensor]:
+    ) -> tuple[torch.Tensor, torch.Tensor]:
         """
         Remap expert selections to only include active experts.
 
@@ -336,7 +335,7 @@ class LotteryTicketPruner:
 
         return remapped_ids, topk_weights
 
-    def get_ticket_summary(self) -> Dict[str, any]:
+    def get_ticket_summary(self) -> dict[str, any]:
         """
         Get summary of lottery ticket search status.
 
@@ -355,7 +354,7 @@ class LotteryTicketPruner:
 
 
 # Global pruner instance for state persistence across calls
-_PRUNER_INSTANCE: Optional[LotteryTicketPruner] = None
+_PRUNER_INSTANCE: LotteryTicketPruner | None = None
 
 
 def _get_pruner(num_experts: int) -> LotteryTicketPruner:

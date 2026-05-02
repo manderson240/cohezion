@@ -26,9 +26,7 @@ def load_default_model() -> LLMChat:
     if "MODEL_PROXY_URL" in os.environ:
         return load_model(os.environ["LLM_DEFAULT"])
 
-    raise RuntimeError(
-        "Environment variable MODEL_PROXY_URL is not set. Did you forget to create .env file?"
-    )
+    raise RuntimeError("Environment variable MODEL_PROXY_URL is not set. Did you forget to create .env file?")
 
 
 def load_judge_model() -> LLMChat:
@@ -42,22 +40,14 @@ def load_judge_model() -> LLMChat:
 
 def load_available_models() -> dict[str, LLMChat]:
     llms_available = os.environ.get("LLMS_AVAILABLE", "")
-    return {
-        model_name: load_model(model_name)
-        for model_name in llms_available.split(",")
-        if model_name
-    }
+    return {model_name: load_model(model_name) for model_name in llms_available.split(",") if model_name}
 
 
 def load_model(model_name: str, api: str = "openai") -> LLMChat:
     if "MODEL_PROXY_API_KEY" not in os.environ:
-        raise RuntimeError(
-            "The MODEL_PROXY_API_KEY environment variable should be provided"
-        )
+        raise RuntimeError("The MODEL_PROXY_API_KEY environment variable should be provided")
     if "MODEL_PROXY_URL" not in os.environ:
-        raise RuntimeError(
-            "The MODEL_PROXY_URL environment variable should be provided"
-        )
+        raise RuntimeError("The MODEL_PROXY_URL environment variable should be provided")
     return ModelProxy(
         model=model_name,
         api_key=os.environ["MODEL_PROXY_API_KEY"],

@@ -1,12 +1,19 @@
 """Test qwen3.5 cloud model on a few equation problems."""
+
 import csv
-import ollama
 import random
+
+import ollama
+
 
 with open("/tmp/train.csv") as f:
     rows = list(csv.DictReader(f))
 
-eqs = [r for r in rows if "equation" in r["prompt"].lower() or "transformation rules" in r["prompt"].lower()]
+eqs = [
+    r
+    for r in rows
+    if "equation" in r["prompt"].lower() or "transformation rules" in r["prompt"].lower()
+]
 
 # Test on a small sample
 random.seed(42)
@@ -16,11 +23,11 @@ correct = 0
 for r in sample:
     prompt = r["prompt"]
     answer = r["answer"].strip()
-    
+
     # Format prompt for the model: show ALL examples + test + request answer
     system_msg = "You are solving a reasoning puzzle. Reply with ONLY the answer, nothing else. No explanations. Just the final answer."
     user_msg = prompt + "\n\nThe numerical answer is:"
-    
+
     try:
         response = ollama.chat(
             model="qwen3.5:cloud",

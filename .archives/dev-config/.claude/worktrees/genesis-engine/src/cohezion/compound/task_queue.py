@@ -255,9 +255,7 @@ class TaskQueue:
         self.metrics.total_flushed += flushed
         self.metrics.current_depth = self.size()
 
-        logger.warning(
-            f"Flushed {flushed} tasks (priority < {priority_threshold.name})"
-        )
+        logger.warning(f"Flushed {flushed} tasks (priority < {priority_threshold.name})")
 
         return flushed
 
@@ -286,9 +284,7 @@ class TaskQueue:
         int
             Number of tasks in queue
         """
-        return (
-            len(self._critical_queue) + len(self._normal_queue) + len(self._low_queue)
-        )
+        return len(self._critical_queue) + len(self._normal_queue) + len(self._low_queue)
 
     def is_empty(self) -> bool:
         """Check if queue is empty.

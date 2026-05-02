@@ -210,9 +210,7 @@ class AgentAuthManager:
             True if revoked, False if not found
         """
         # Find credential by agent_id
-        tokens_to_revoke = [
-            token for token, cred in self.token_cache.items() if cred.agent_id == agent_id
-        ]
+        tokens_to_revoke = [token for token, cred in self.token_cache.items() if cred.agent_id == agent_id]
 
         if not tokens_to_revoke:
             logger.warning("No credentials found for agent %s", agent_id)

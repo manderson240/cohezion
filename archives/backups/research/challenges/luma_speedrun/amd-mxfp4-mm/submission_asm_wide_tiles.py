@@ -34,8 +34,8 @@ For M=64: 7168/256=28 blocks, 7168/512=14 blocks, 7168/1024=7 blocks.
   Fewer blocks = better occupancy when M is already small.
 """
 
-import torch
 import aiter
+import torch
 from aiter import dtypes
 from aiter.ops.triton.quant import dynamic_mxfp4_quant
 from aiter.utility.fp4_utils import e8m0_shuffle

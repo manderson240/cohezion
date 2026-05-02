@@ -7,10 +7,12 @@ Key insight: Many tokens have one dominant expert. We can skip
 computation for experts with weights below threshold.
 """
 
+import os
+import sys
+
 import torch
 import torch.nn.functional as F
-import sys
-import os
+
 
 _AITER_JIT_BUILD = "/home/runner/aiter/aiter/jit/build"
 for _mod in (
@@ -126,7 +128,7 @@ def custom_kernel(data: input_t) -> output_t:
 
         return output
 
-    except Exception as e:
+    except Exception:
         from reference import ref_kernel
 
         return ref_kernel(data)

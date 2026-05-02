@@ -2,11 +2,13 @@
 
 Generates submission.csv from test.csv using the hybrid symbolic+model solver.
 """
+
 from __future__ import annotations
 
 import csv
 import sys
 from pathlib import Path
+
 
 sys.path.insert(0, str(Path(__file__).parent))
 from solve import solve

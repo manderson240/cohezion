@@ -2,7 +2,7 @@
 
 import os
 import sys
-from datetime import datetime, timedelta, timezone
+from datetime import UTC, datetime, timedelta
 from unittest.mock import MagicMock, patch
 
 import pytest
@@ -142,33 +142,33 @@ class TestFindRelevantContext:
 
 class TestRelevanceScore:
     def test_fresh_document_scores_higher(self):
-        fresh = relevance_score(5, datetime.now(timezone.utc).isoformat(), 10)
+        fresh = relevance_score(5, datetime.now(UTC).isoformat(), 10)
         stale = relevance_score(
             5,
-            (datetime.now(timezone.utc) - timedelta(days=180)).isoformat(),
+            (datetime.now(UTC) - timedelta(days=180)).isoformat(),
             10,
         )
         assert fresh > stale
 
     def test_half_life_at_90_days(self):
         score_90d = relevance_score(
-            1, (datetime.now(timezone.utc) - timedelta(days=90)).isoformat(), 0
+            1, (datetime.now(UTC) - timedelta(days=90)).isoformat(), 0
         )
-        score_fresh = relevance_score(1, datetime.now(timezone.utc).isoformat(), 0)
+        score_fresh = relevance_score(1, datetime.now(UTC).isoformat(), 0)
         assert 0.45 < (score_90d / score_fresh) < 0.55
 
     def test_access_count_boost(self):
-        high_access = relevance_score(5, datetime.now(timezone.utc).isoformat(), 100)
-        low_access = relevance_score(5, datetime.now(timezone.utc).isoformat(), 1)
+        high_access = relevance_score(5, datetime.now(UTC).isoformat(), 100)
+        low_access = relevance_score(5, datetime.now(UTC).isoformat(), 1)
         assert high_access > low_access
 
     def test_unknown_age_gets_half_weight(self):
         unknown = relevance_score(5, "", 0)
-        fresh = relevance_score(5, datetime.now(timezone.utc).isoformat(), 0)
+        fresh = relevance_score(5, datetime.now(UTC).isoformat(), 0)
         assert 0.45 < (unknown / fresh) < 0.55
 
     def test_zero_match_count(self):
-        assert relevance_score(0, datetime.now(timezone.utc).isoformat(), 10) == 0.0
+        assert relevance_score(0, datetime.now(UTC).isoformat(), 10) == 0.0
 
     def test_graceful_on_invalid_date(self):
         score = relevance_score(5, "not-a-date", 0)
@@ -176,19 +176,19 @@ class TestRelevanceScore:
 
     def test_zero_access_count_boost_floors_at_one(self):
 
-        score = relevance_score(5, datetime.now(timezone.utc).isoformat(), 0)
+        score = relevance_score(5, datetime.now(UTC).isoformat(), 0)
         # log1p(0)=0 → boost clamped to 1.0, decay≈1.0 when fresh
         assert abs(score - 5 * 1.0 * 1.0) < 0.05
 
     def test_custom_half_life(self):
         score_30d = relevance_score(
             1,
-            (datetime.now(timezone.utc) - timedelta(days=30)).isoformat(),
+            (datetime.now(UTC) - timedelta(days=30)).isoformat(),
             0,
             half_life_days=30.0,
         )
         score_fresh = relevance_score(
-            1, datetime.now(timezone.utc).isoformat(), 0, half_life_days=30.0
+            1, datetime.now(UTC).isoformat(), 0, half_life_days=30.0
         )
         assert 0.45 < (score_30d / score_fresh) < 0.55
 
@@ -215,9 +215,8 @@ class TestFindRelevantContextDecay:
 
         with patch.object(
             compound_mocked, "_fetch_neuron_metadata_batch", return_value={}
-        ):
-            with patch.object(compound_mocked, "_track_access"):
-                results = compound_mocked.find_relevant_context("test")
+        ), patch.object(compound_mocked, "_track_access"):
+            results = compound_mocked.find_relevant_context("test")
 
         assert len(results) == 2
         # foo.md has 2 match hits per directory → higher match_count than bar.md
@@ -229,7 +228,7 @@ class TestFindRelevantContextDecay:
             {"path": "decisions/new.md", "snippet": "hit"},
             {"path": "decisions/old.md", "snippet": "hit"},
         ]
-        now = datetime.now(timezone.utc)
+        now = datetime.now(UTC)
         metadata = {
             "decisions/new.md": {
                 "path": "decisions/new.md",
@@ -245,9 +244,8 @@ class TestFindRelevantContextDecay:
 
         with patch.object(
             compound_mocked, "_fetch_neuron_metadata_batch", return_value=metadata
-        ):
-            with patch.object(compound_mocked, "_track_access"):
-                results = compound_mocked.find_relevant_context("test")
+        ), patch.object(compound_mocked, "_track_access"):
+            results = compound_mocked.find_relevant_context("test")
 
         assert results[0]["path"] == "decisions/new.md"
 
@@ -258,9 +256,8 @@ class TestFindRelevantContextDecay:
 
         with patch.object(
             compound_mocked, "_fetch_neuron_metadata_batch", return_value={}
-        ):
-            with patch.object(compound_mocked, "_track_access"):
-                results = compound_mocked.find_relevant_context("foo")
+        ), patch.object(compound_mocked, "_track_access"):
+            results = compound_mocked.find_relevant_context("foo")
 
         assert "relevance_score" in results[0]
         assert results[0]["relevance_score"] > 0
@@ -270,9 +267,8 @@ class TestFindRelevantContextDecay:
 
         with patch.object(
             compound_mocked, "_fetch_neuron_metadata_batch", return_value={}
-        ):
-            with patch.object(compound_mocked, "_track_access"):
-                results = compound_mocked.find_relevant_context("nothing")
+        ), patch.object(compound_mocked, "_track_access"):
+            results = compound_mocked.find_relevant_context("nothing")
 
         assert results == []
 
@@ -283,9 +279,8 @@ class TestFindRelevantContextDecay:
 
         with patch.object(
             compound_mocked, "_fetch_neuron_metadata_batch", return_value={}
-        ):
-            with patch.object(compound_mocked, "_track_access") as mock_track:
-                compound_mocked.find_relevant_context("test")
+        ), patch.object(compound_mocked, "_track_access") as mock_track:
+            compound_mocked.find_relevant_context("test")
 
         mock_track.assert_called_once_with(["decisions/a.md"])
 

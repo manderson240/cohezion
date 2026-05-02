@@ -3,9 +3,8 @@
 
 """Probe: Check if hf-rocm-kernels or hipBLASLt are available on runner."""
 
-import torch
-from aiter import dtypes
 import aiter
+from aiter import dtypes
 from aiter.ops.triton.quant import dynamic_mxfp4_quant
 from aiter.utility.fp4_utils import e8m0_shuffle
 from task import input_t, output_t
@@ -25,21 +24,21 @@ def custom_kernel(data: input_t) -> output_t:
     try:
         import hipblas
 
-        print(f"[PROBE] hipblas available")
+        print("[PROBE] hipblas available")
     except ImportError:
         print("[PROBE] hipblas NOT available")
 
     try:
         import hipblaslt
 
-        print(f"[PROBE] hipblaslt available")
+        print("[PROBE] hipblaslt available")
     except ImportError:
         print("[PROBE] hipblaslt NOT available")
 
     try:
         from torch._C import _hipblaslt
 
-        print(f"[PROBE] torch._C._hipblaslt available")
+        print("[PROBE] torch._C._hipblaslt available")
     except (ImportError, AttributeError):
         print("[PROBE] torch._C._hipblaslt NOT available")
 

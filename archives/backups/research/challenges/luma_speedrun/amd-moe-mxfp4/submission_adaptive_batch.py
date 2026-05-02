@@ -24,11 +24,12 @@ Expected: 15-25% throughput improvement
 from __future__ import annotations
 
 import os
+
 import torch
-from typing import List, Tuple
 from aiter import ActivationType, QuantType
 from aiter.fused_moe import fused_moe
 from task import input_t, output_t
+
 
 os.environ["AITER_USE_NT"] = "1"
 
@@ -46,7 +47,7 @@ class AdaptiveBatchMoE:
         self.max_batch = max_batch
         self.target_occupancy = target_occupancy
         self._current_batch_size = 64
-        self._batch_history: List[int] = []
+        self._batch_history: list[int] = []
 
     def compute_optimal_batch(
         self,

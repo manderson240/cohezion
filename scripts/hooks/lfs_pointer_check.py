@@ -20,6 +20,7 @@ from __future__ import annotations
 import sys
 from pathlib import Path
 
+
 LFS_POINTER_MAGIC = b"version https://git-lfs"
 MIN_CHECK_BYTES = 1024  # skip files smaller than this — not worth LFS tracking
 

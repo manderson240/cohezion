@@ -7,9 +7,9 @@ If torch.compile can fuse the quant+shuffle+gemm into a single graph,
 it would eliminate ~2µs Python overhead per call.
 """
 
+import aiter
 import torch
 from aiter import dtypes
-import aiter
 from aiter.ops.triton.quant import dynamic_mxfp4_quant
 from aiter.utility.fp4_utils import e8m0_shuffle
 from task import input_t, output_t

@@ -1,12 +1,14 @@
+import random
+
+import numpy as np
 import torch
 import torch.optim as optim
-import numpy as np
-import random
+from arc_axiomatic import ARCAxiomaticProjector, compute_hiho_stability
 from arc_gym_wrapper import ARCGymEnv
 from arc_jepa import ARCWorldModel
-from arc_axiomatic import ARCAxiomaticProjector, compute_hiho_stability
-from cohezion.swarm.topological_router import TopologicalRouter, TopologicalRegime
+
 from cohezion.physics.spinor import SpinorState
+from cohezion.swarm.topological_router import TopologicalRegime, TopologicalRouter
 
 
 class ARCTopologicalNavigator:

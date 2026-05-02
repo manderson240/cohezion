@@ -4,6 +4,7 @@ Adds row/col position encoding to input channels at negligible cost.
 Hypothesis: some ARC tasks (border, mirror, gravity) depend on absolute position.
 Current model lacks positional awareness beyond local conv receptive fields.
 """
+
 from __future__ import annotations
 
 import json
@@ -31,8 +32,12 @@ class CoordConvARCSolver(nn.Module):
         self.embed = nn.Embedding(colors, hidden)
 
         # Coordinate grids (fixed, not learned)
-        self.register_buffer("row_grid", torch.arange(max_size).float().view(1, 1, max_size, 1) / max_size)
-        self.register_buffer("col_grid", torch.arange(max_size).float().view(1, 1, 1, max_size) / max_size)
+        self.register_buffer(
+            "row_grid", torch.arange(max_size).float().view(1, 1, max_size, 1) / max_size
+        )
+        self.register_buffer(
+            "col_grid", torch.arange(max_size).float().view(1, 1, 1, max_size) / max_size
+        )
 
         # Conv layers operate on hidden+2 channels (embed + row + col)
         in_ch = hidden + 2
@@ -141,7 +146,7 @@ if __name__ == "__main__":
         if sol and grids_equal(pred, sol[0]):
             solved += 1
         if (i + 1) % 10 == 0:
-            print(f"Progress: {i+1}/{len(task_ids)} — solved {solved}")
+            print(f"Progress: {i + 1}/{len(task_ids)} — solved {solved}")
 
     acc = solved / len(task_ids) * 100
     print(f"\nCoordConv: {solved}/{len(task_ids)} = {acc:.1f}%")

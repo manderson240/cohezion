@@ -16,11 +16,11 @@ Constraints enforced:
 - B weight and B_scale cached across calls (same weight every inference step)
 """
 
+import aiter
 import torch
 import triton
 import triton.language as tl
 from aiter import dtypes
-import aiter
 from aiter.ops.triton.quant import dynamic_mxfp4_quant
 from aiter.utility.fp4_utils import e8m0_shuffle
 from task import input_t, output_t

@@ -1,9 +1,11 @@
-import os
 import json
+import os
 import subprocess
 import sys
+
 from batch_solver import BatchSolver
 from dotenv import load_dotenv
+
 
 load_dotenv(".env")
 
@@ -35,13 +37,13 @@ def run_paid_refinement_sprint():
     results_file = "conductor/tracks/yale_peaked_20260404/interim_results.json"
     results = {}
     if os.path.exists(results_file):
-        with open(results_file, "r") as f:
+        with open(results_file) as f:
             results = json.load(f)
 
     # ---------------------------------------------------------
     # BATCH 1: P5-P8 | Device: mps.gpu | Bond Dim: 256 | Shots: 5k
     # ---------------------------------------------------------
-    print(f"\n🚀 EXECUTING BATCH 1 (P5-P8) | mps.gpu | Bond Dim: 256 | Shots: 5k...")
+    print("\n🚀 EXECUTING BATCH 1 (P5-P8) | mps.gpu | Bond Dim: 256 | Shots: 5k...")
     batch1_results = solver.solve_all(
         p5_p8_problems, shots=5000, device="mps.gpu", bond_dim=256, allow_paid=True
     )
@@ -50,7 +52,7 @@ def run_paid_refinement_sprint():
     # ---------------------------------------------------------
     # BATCH 2: P10 | Device: mps.gpu | Bond Dim: 512 | Shots: 10k
     # ---------------------------------------------------------
-    print(f"\n🚀 EXECUTING BATCH 2 (P10) | mps.gpu | Bond Dim: 512 | Shots: 10k...")
+    print("\n🚀 EXECUTING BATCH 2 (P10) | mps.gpu | Bond Dim: 512 | Shots: 10k...")
     batch2_results = solver.solve_all(
         {"P10": p9_p10_problems["P10"]},
         shots=10000,
@@ -63,7 +65,7 @@ def run_paid_refinement_sprint():
     # ---------------------------------------------------------
     # BATCH 3: P9 | Device: mps.gpu | Bond Dim: 512 | Shots: 15k
     # ---------------------------------------------------------
-    print(f"\n🚀 EXECUTING BATCH 3 (P9) | mps.gpu | Bond Dim: 512 | Shots: 15k...")
+    print("\n🚀 EXECUTING BATCH 3 (P9) | mps.gpu | Bond Dim: 512 | Shots: 15k...")
     batch3_results = solver.solve_all(
         {"P9": p9_p10_problems["P9"]}, shots=15000, device="mps.gpu", bond_dim=512, allow_paid=True
     )
@@ -73,7 +75,7 @@ def run_paid_refinement_sprint():
     with open(results_file, "w") as f:
         json.dump(results, f, indent=2)
 
-    print(f"\n✅ All batches synced. Regenerating final submission report...")
+    print("\n✅ All batches synced. Regenerating final submission report...")
     subprocess.run(
         [sys.executable, "conductor/tracks/yale_peaked_20260404/submission_generator.py"]
     )

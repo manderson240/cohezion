@@ -9,12 +9,12 @@ savings from the MXFP4 KV cache.
 """
 
 import torch
-from torch.utils.cpp_extension import load_inline
-import aiter
-from aiter.mla import mla_decode_fwd
 from aiter import dtypes as aiter_dtypes
 from aiter import get_mla_metadata_info_v1, get_mla_metadata_v1
+from aiter.mla import mla_decode_fwd
 from task import input_t, output_t
+from torch.utils.cpp_extension import load_inline
+
 
 # Architecture Constants
 NUM_HEADS = 16
@@ -61,7 +61,7 @@ __global__ void dequant_mxfp4_to_fp8_kernel(
     uint8_t packed = mxfp4_data[idx / 2];
     uint8_t val = (col % 2 == 0) ? (packed & 0xF) : (packed >> 4);
     float scale = e8m0_to_f32(mxfp4_scale[scale_idx]);
-    
+
     float dequant = unpack_fp4(val) * scale;
     output_fp8[idx] = __hip_fp8_e4m3(dequant);
 }
@@ -72,7 +72,7 @@ void launch_dequant_mla(
     int total_elements = output_fp8.numel();
     int threads = 256;
     int blocks = (total_elements + threads - 1) / threads;
-    
+
     dequant_mxfp4_to_fp8_kernel<<<blocks, threads, 0, 0>>>(
         mxfp4_data.data_ptr<uint8_t>(),
         mxfp4_scale.data_ptr<uint8_t>(),

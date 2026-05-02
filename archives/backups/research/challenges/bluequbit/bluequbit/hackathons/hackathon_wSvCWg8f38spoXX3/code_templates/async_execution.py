@@ -3,11 +3,11 @@ BlueQubit Async Execution Template
 Demonstrates non-blocking job submission
 """
 
-import os
 import time
-from dotenv import load_dotenv
+
 import bluequbit
 import qiskit
+from dotenv import load_dotenv
 
 
 def execute_async_circuit(num_qubits: int = 10):
@@ -48,7 +48,7 @@ def execute_async_circuit(num_qubits: int = 10):
 
     # Wait for completion (blocking)
     result = bq.wait(job.job_id)
-    print(f"\nExecution complete!")
+    print("\nExecution complete!")
     print(f"Results: {result.get_counts()}")
 
     return result
@@ -82,4 +82,4 @@ def cancel_job_example():
 if __name__ == "__main__":
     # Test async execution
     result = execute_async_circuit(num_qubits=10)
-    print(f"\n✓ Async execution complete")
+    print("\n✓ Async execution complete")

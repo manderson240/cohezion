@@ -19,7 +19,6 @@ import sys
 from dataclasses import asdict, dataclass, field
 from datetime import datetime
 from pathlib import Path
-from typing import List, Optional, Tuple
 
 
 # Add traceability directory to path for both module and script execution
@@ -62,8 +61,8 @@ class TechDebtMetrics:
     fixme_count: int = 0
     hack_count: int = 0
     xxx_count: int = 0
-    high_complexity_files: List[str] = field(default_factory=list)
-    long_files: List[str] = field(default_factory=list)
+    high_complexity_files: list[str] = field(default_factory=list)
+    long_files: list[str] = field(default_factory=list)
 
 
 @dataclass
@@ -85,7 +84,7 @@ class GitHealthMetrics:
     stale_branches: int = 0
     untracked_files: int = 0
     uncommitted_changes: int = 0
-    large_files: List[str] = field(default_factory=list)
+    large_files: list[str] = field(default_factory=list)
     merge_conflicts: int = 0
 
 
@@ -96,8 +95,8 @@ class DocumentationHealthMetrics:
     total_modules: int = 0
     documented_modules: int = 0
     doc_coverage_percent: float = 0.0
-    missing_readmes: List[str] = field(default_factory=list)
-    outdated_docs: List[str] = field(default_factory=list)
+    missing_readmes: list[str] = field(default_factory=list)
+    outdated_docs: list[str] = field(default_factory=list)
 
 
 @dataclass
@@ -114,15 +113,15 @@ class RepoHealthReport:
     documentation_health: DocumentationHealthMetrics = field(
         default_factory=DocumentationHealthMetrics
     )
-    critical_issues: List[str] = field(default_factory=list)
-    warnings: List[str] = field(default_factory=list)
-    recommendations: List[str] = field(default_factory=list)
+    critical_issues: list[str] = field(default_factory=list)
+    warnings: list[str] = field(default_factory=list)
+    recommendations: list[str] = field(default_factory=list)
 
 
 class RepoHealthEngine:
     """Repository health monitoring engine."""
 
-    def __init__(self, project_root: Optional[Path] = None, config: Optional[EngineConfig] = None):
+    def __init__(self, project_root: Path | None = None, config: EngineConfig | None = None):
         # Support both old API and new DI pattern
         if config:
             self.config = config
@@ -145,8 +144,8 @@ class RepoHealthEngine:
         self.output_dir.mkdir(parents=True, exist_ok=True)
 
     def run_command(
-        self, cmd: List[str], timeout: Optional[int] = None, capture_output: bool = True
-    ) -> Tuple[int, str, str]:
+        self, cmd: list[str], timeout: int | None = None, capture_output: bool = True
+    ) -> tuple[int, str, str]:
         """Run shell command with error handling."""
         import subprocess
 
@@ -168,8 +167,8 @@ class RepoHealthEngine:
             return -1, "", str(e)
 
     def run_command(
-        self, cmd: List[str], timeout: Optional[int] = None, capture_output: bool = True
-    ) -> Tuple[int, str, str]:
+        self, cmd: list[str], timeout: int | None = None, capture_output: bool = True
+    ) -> tuple[int, str, str]:
         """Run shell command with enhanced error handling."""
         import subprocess
 
@@ -225,7 +224,7 @@ class RepoHealthEngine:
         return metrics
 
     def check_test_health(
-        self, skip_full_run: bool = False, cached_coverage: Optional[float] = None
+        self, skip_full_run: bool = False, cached_coverage: float | None = None
     ) -> TestHealthMetrics:
         """Check test health."""
         metrics = TestHealthMetrics()

@@ -11,6 +11,7 @@ Key optimizations:
 
 import os
 
+
 os.environ["AITER_JIT_DIR"] = "/tmp/aiter_jit_cache"
 os.environ["AITER_BYPASS_TUNE_CONFIG"] = "1"
 os.environ["PYTORCH_ROCM_ARCH"] = "gfx950"
@@ -22,7 +23,6 @@ if _AITER_JIT_DIR not in os.environ.get("PYTHONPATH", ""):
     if _AITER_JIT_DIR not in sys.path:
         sys.path.insert(0, _AITER_JIT_DIR)
 
-import torch
 import aiter
 from aiter import dtypes
 from aiter.ops.triton.quant import dynamic_mxfp4_quant

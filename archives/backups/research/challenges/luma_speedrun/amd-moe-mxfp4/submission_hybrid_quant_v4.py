@@ -26,14 +26,14 @@ from __future__ import annotations
 
 import os
 
+
 os.environ["AITER_USE_NT"] = "1"
 
 import torch
-
-import aiter
-from aiter import ActivationType, QuantType, dtypes
+from aiter import ActivationType, QuantType
 from aiter.fused_moe import fused_moe
 from task import input_t, output_t
+
 
 # Weight threshold for "active" expert classification
 # Experts with cumulative topk_weight contribution above this use FP8
@@ -226,7 +226,7 @@ def custom_kernel(data: input_t) -> output_t:
 
         return output_active
 
-    except Exception as e:
+    except Exception:
         # FALLBACK: Use baseline fused_moe with standard settings
         # This is the proven-correct path from reference_implementation.py
 

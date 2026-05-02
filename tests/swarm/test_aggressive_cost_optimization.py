@@ -8,6 +8,7 @@ Tests aggressive mode that achieves ≥30% cost reduction by:
 
 import pytest
 
+
 # Model names: Lemonade (primary) + legacy Ollama
 SIMPLE_MODELS = {"Phi-4-mini-instruct-Hybrid", "phi3:mini"}
 MEDIUM_MODELS = {"Qwen3-8B-Hybrid", "qwen3-coder:32b", "Phi-4-mini-instruct-Hybrid", "phi3:mini"}

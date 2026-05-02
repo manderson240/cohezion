@@ -14,7 +14,7 @@ from __future__ import annotations
 
 import json
 import logging
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from pathlib import Path
 
 import numpy as np
@@ -243,9 +243,7 @@ class ExperienceCollector:
                 elif isinstance(data, list):
                     for item in data:
                         if isinstance(item, dict) and len(records) < max_samples:
-                            records.append(
-                                self._normalize_vault_record(item, json_path.stem)
-                            )
+                            records.append(self._normalize_vault_record(item, json_path.stem))
             except Exception as e:
                 logger.debug("Skipping vault file %s: %s", json_path, e)
 
@@ -282,7 +280,7 @@ class ExperienceCollector:
         """
         self.execution_log_dir.mkdir(parents=True, exist_ok=True)
         record = {
-            "timestamp": datetime.now(timezone.utc).isoformat(),
+            "timestamp": datetime.now(UTC).isoformat(),
             "task_description": task_description,
             "operation_type": operation_type,
             "metrics": metrics,

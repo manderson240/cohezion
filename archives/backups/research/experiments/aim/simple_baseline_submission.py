@@ -87,4 +87,4 @@ def run_submission(test_csv="input/test.csv", output_file="output/baseline_submi
 
 if __name__ == "__main__":
     results = run_submission()
-    print(f"\nBaseline submission complete")
+    print("\nBaseline submission complete")

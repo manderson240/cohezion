@@ -22,6 +22,7 @@ from typing import Any, Self
 import dotenv
 import panel as pn
 
+
 base_dir = Path(__file__).parent.parent.parent
 dotenv.load_dotenv(override=True)
 
@@ -48,37 +49,25 @@ class Config:
     )
 
     enable_caching: bool = dataclasses.field(
-        default_factory=lambda: string_to_bool(
-            os.environ.get("ENABLE_LOCAL_CACHING", "False")
-        )
+        default_factory=lambda: string_to_bool(os.environ.get("ENABLE_LOCAL_CACHING", "False"))
     )
 
     cache_directory: Path = dataclasses.field(
-        default_factory=lambda: Path(
-            os.environ.get("CACHE_DIRECTORY", base_dir / ".cache")
-        )
+        default_factory=lambda: Path(os.environ.get("CACHE_DIRECTORY", base_dir / ".cache"))
     )
 
     cache_timeout_seconds: int = dataclasses.field(
-        default_factory=lambda: int(
-            os.environ.get("CACHE_TIMEOUT_SECONDS", str(7 * 24 * 60 * 60))
-        )
+        default_factory=lambda: int(os.environ.get("CACHE_TIMEOUT_SECONDS", str(7 * 24 * 60 * 60)))
     )
 
     interactive_mode: bool = dataclasses.field(
-        default_factory=lambda: string_to_bool(
-            os.environ.get("INTERACTIVE_UI", "False")
-        )
+        default_factory=lambda: string_to_bool(os.environ.get("INTERACTIVE_UI", "False"))
     )
     ui_handler: Any = None
 
-    _ui_theme: str = dataclasses.field(
-        default_factory=lambda: os.environ.get("UI_THEME", "default")
-    )
+    _ui_theme: str = dataclasses.field(default_factory=lambda: os.environ.get("UI_THEME", "default"))
     suppress_ui_warnings: bool = dataclasses.field(
-        default_factory=lambda: string_to_bool(
-            os.environ.get("SUPPRESS_UI_WARNINGS", "true")
-        )
+        default_factory=lambda: string_to_bool(os.environ.get("SUPPRESS_UI_WARNINGS", "true"))
     )
     continue_with_exceptions: bool = dataclasses.field(
         default_factory=lambda: (

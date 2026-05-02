@@ -256,9 +256,7 @@ async def tool_get_field(request: web.Request) -> web.Response:
         sim_id = data.get("simulation_id", "")
         sim = get_simulation(sim_id)
         field = sim.get_field_at(data.get("position", [0.0, 0.0, 0.0]))
-        return web.json_response(
-            {"tool": "plasma_get_field", "simulation_id": sim_id, "field": field}
-        )
+        return web.json_response({"tool": "plasma_get_field", "simulation_id": sim_id, "field": field})
     except Exception as e:
         logger.exception("Get field failed")
         return web.json_response({"error": str(e)}, status=500)

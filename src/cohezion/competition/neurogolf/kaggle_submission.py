@@ -3,6 +3,7 @@
 Self-contained script for Kaggle notebook submission.
 Submits predictions for all eval tasks using the best tiny conv model.
 """
+
 from __future__ import annotations
 
 import json

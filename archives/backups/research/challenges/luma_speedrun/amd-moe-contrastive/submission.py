@@ -26,13 +26,12 @@ Date: 2026-04-06
 
 from __future__ import annotations
 
-import math
 import os
 import sys
-from typing import Tuple
 
 import torch
 import torch.nn.functional as F
+
 
 # POPCORN environment setup
 os.environ["AITER_USE_NT"] = "1"
@@ -41,6 +40,7 @@ os.environ["AITER_KSPLIT"] = "1"
 from aiter import ActivationType, QuantType
 from aiter.fused_moe import fused_moe
 from task import input_t, output_t
+
 
 # =============================================================================
 # Configuration Constants
@@ -124,7 +124,7 @@ def contrastive_routing(
     expert_prototypes: torch.Tensor,
     memory_bank: ExpertMemoryBank | None = None,
     temperature: float = CONTRASTIVE_TEMPERATURE,
-) -> Tuple[torch.Tensor, torch.Tensor, torch.Tensor]:
+) -> tuple[torch.Tensor, torch.Tensor, torch.Tensor]:
     """Compute contrastive expert routing scores.
 
     Args:

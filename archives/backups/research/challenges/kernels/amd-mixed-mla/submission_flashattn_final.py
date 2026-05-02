@@ -11,24 +11,26 @@ Expected: ~45-55µs (vs ~70µs baseline for small/medium batches)
 
 from __future__ import annotations
 
+import math
 import os
 import sys
-import math
+
 import torch
-import torch.nn.functional as F
+
 
 os.environ["PYTORCH_ROCM_ARCH"] = "gfx950"
 os.environ["CXX"] = "clang++"
 
 from torch.utils.cpp_extension import load_inline
 
+
 # Import task types
 try:
     from task import input_t, output_t, sm_scale
 except ImportError:
-    from typing import Tuple, Any
+    from typing import Any
 
-    input_t = Tuple[Any, ...]
+    input_t = tuple[Any, ...]
     output_t = torch.Tensor
     sm_scale = 1.0 / math.sqrt(576)
 
@@ -319,7 +321,7 @@ def custom_kernel(data: input_t) -> output_t:
     if _FLASH_KERNEL_AVAILABLE and bs >= 8:
         try:
             return flash_mla_custom(q, kv, sm_scale_val)
-        except Exception as e:
+        except Exception:
             # Fallback to torch on kernel error
             pass
 
@@ -371,9 +373,9 @@ if __name__ == "__main__":
             print(f"  Max diff: {diff:.6f}")
 
             if diff < 0.5:
-                print(f"  ✓ PASSED")
+                print("  ✓ PASSED")
             else:
-                print(f"  ✗ FAILED (diff too large)")
+                print("  ✗ FAILED (diff too large)")
 
         except Exception as e:
             print(f"  ✗ ERROR: {e}")

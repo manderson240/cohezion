@@ -40,18 +40,20 @@ Performance Characteristics:
 """
 
 from __future__ import annotations
+
 import os
-import math
+
 
 os.environ["PYTORCH_ROCM_ARCH"] = "gfx950"
 os.environ["CXX"] = "clang++"
 
 import torch
-from torch.utils.cpp_extension import load_inline
 from aiter import dtypes
 from aiter.ops.triton.quant import dynamic_mxfp4_quant
 from aiter.utility.fp4_utils import e8m0_shuffle
 from task import input_t, output_t
+from torch.utils.cpp_extension import load_inline
+
 
 # Tile size configurations
 TILE_CONFIGS = {
@@ -127,12 +129,12 @@ def _get_mixed_tiling_kernel(config_name: str):
     #include <torch/extension.h>
     #include <hip/hip_runtime.h>
     #include <hip/hip_bf16.h>
-    
+
     #define TILE_M {TILE_M}
     #define TILE_N {TILE_N}
     #define TILE_K {TILE_K}
     #define WAVESIZE 64
-    
+
     // Mixed-tiling GEMM kernel
     __global__ __launch_bounds__({TILE_M * TILE_N if TILE_M * TILE_N <= 256 else 256})
     void mixed_gemm_<{config_name}>(
@@ -144,57 +146,57 @@ def _get_mixed_tiling_kernel(config_name: str):
         int tile_m = blockIdx.y * TILE_M;
         int tile_n = blockIdx.x * TILE_N;
         int tid = threadIdx.x;
-        
+
         // Determine position within tile
         int local_m = tid / TILE_N;
         int local_n = tid % TILE_N;
-        
+
         // Accumulator
         float acc = 0.0f;
-        
+
         // Iterate over K dimension
         for (int k = 0; k < K; k += TILE_K) {{
             // Load A tile
             __shared__ __hip_bfloat16 A_shared[TILE_M][TILE_K];
-            
-            // Load B tile  
+
+            // Load B tile
             __shared__ __hip_bfloat16 B_shared[TILE_N][TILE_K];
-            
+
             // Collaborative load
             int a_row = tile_m + local_m;
             int b_row = tile_n + local_n;
-            
+
             if (a_row < M && local_n < TILE_K && k + local_n < K) {{
                 A_shared[local_m][local_n] = A[a_row * K + k + local_n];
             }}
-            
+
             if (b_row < N && local_m < TILE_K && k + local_m < K) {{
                 B_shared[local_n][local_m] = B[b_row * K + k + local_m];
             }}
-            
+
             __syncthreads();
-            
+
             // Compute partial dot product
             if (a_row < M && b_row < N) {{
                 #pragma unroll
                 for (int kk = 0; kk < TILE_K && k + kk < K; kk++) {{
-                    acc += __bfloat162float(A_shared[local_m][kk]) * 
+                    acc += __bfloat162float(A_shared[local_m][kk]) *
                            __bfloat162float(B_shared[local_n][kk]);
                 }}
             }}
-            
+
             __syncthreads();
         }}
-        
+
         // Write output
         int out_m = tile_m + local_m;
         int out_n = tile_n + local_n;
-        
+
         if (out_m < M && out_n < N) {{
             C[out_m * N + out_n] = (__hip_bfloat16)acc;
         }}
     }}
-    
+
     void launch_mixed_gemm_<{config_name}>(
         torch::Tensor A, torch::Tensor B, torch::Tensor C,
         int M, int N, int K
@@ -202,7 +204,7 @@ def _get_mixed_tiling_kernel(config_name: str):
         dim3 grid((N + TILE_N - 1) / TILE_N, (M + TILE_M - 1) / TILE_M);
         int threads = TILE_M * TILE_N;
         if (threads > 256) threads = 256;
-        
+
         mixed_gemm_<{config_name}><<<grid, threads>>>(
             reinterpret_cast<const __hip_bfloat16*>(A.data_ptr()),
             reinterpret_cast<const __hip_bfloat16*>(B.data_ptr()),

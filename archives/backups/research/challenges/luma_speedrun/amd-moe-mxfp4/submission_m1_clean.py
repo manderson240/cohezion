@@ -8,11 +8,12 @@ No modifications — pure reference path.
 """
 
 from __future__ import annotations
+
 import os
+
 
 os.environ["AITER_USE_NT"] = "1"
 
-import torch
 from aiter import ActivationType, QuantType
 from aiter.fused_moe import fused_moe
 from task import input_t, output_t

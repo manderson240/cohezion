@@ -35,17 +35,19 @@ def build_parser() -> argparse.ArgumentParser:
     parser.add_argument("--n-samples", type=int, default=10000)
     # I/O
     parser.add_argument("--checkpoint-dir", default="data/flume/checkpoints")
-    parser.add_argument("--load-data", default=None, metavar="PATH",
-                        help="Load pre-computed embeddings from .npz instead of generating them")
-    parser.add_argument("--save-data", default=None, metavar="PATH",
-                        help="Save embeddings to .npz after generation / loading")
-    parser.add_argument("--load-checkpoint", default=None, metavar="PATH",
-                        help="Resume from a saved checkpoint (.pt)")
+    parser.add_argument(
+        "--load-data",
+        default=None,
+        metavar="PATH",
+        help="Load pre-computed embeddings from .npz instead of generating them",
+    )
+    parser.add_argument(
+        "--save-data", default=None, metavar="PATH", help="Save embeddings to .npz after generation / loading"
+    )
+    parser.add_argument("--load-checkpoint", default=None, metavar="PATH", help="Resume from a saved checkpoint (.pt)")
     # Behaviour flags
-    parser.add_argument("--evaluate", action="store_true",
-                        help="Write evaluation_results.json after training")
-    parser.add_argument("--require-ollama", action="store_true",
-                        help="Fail with exit 1 if Ollama is not reachable")
+    parser.add_argument("--evaluate", action="store_true", help="Write evaluation_results.json after training")
+    parser.add_argument("--require-ollama", action="store_true", help="Fail with exit 1 if Ollama is not reachable")
     # Legacy / compat
     parser.add_argument("--synthetic", action="store_true", help="Use synthetic data")
     return parser
@@ -54,6 +56,7 @@ def build_parser() -> argparse.ArgumentParser:
 def _load_npz(path: str):
     """Load embeddings (and optional pairs) from a .npz file."""
     import numpy as np
+
     d = np.load(path)
     embeddings = d["embeddings"]
     pairs = d["pairs"] if "pairs" in d else None
@@ -72,6 +75,7 @@ def _build_dataset(args: argparse.Namespace):
     if args.require_ollama:
         try:
             import urllib.request
+
             urllib.request.urlopen("http://localhost:11434/api/tags", timeout=3)
         except Exception as exc:
             log.error("Ollama not reachable and --require-ollama was set: %s", exc)
@@ -88,6 +92,7 @@ def _build_dataset(args: argparse.Namespace):
     try:
         from cohezion.flume.data_pipeline import TrainingDataPipeline
         from cohezion.flume.embedding_provider import OllamaEmbeddingProvider
+
         provider = OllamaEmbeddingProvider()
         pipeline = TrainingDataPipeline(embedding_provider=provider)
         result = pipeline.prepare(n_synthetic=args.n_samples)
@@ -104,7 +109,6 @@ def _build_dataset(args: argparse.Namespace):
 
 def _train(model, embeddings, pairs, args: argparse.Namespace, checkpoint_dir: Path):
     """Run training loop; return final metrics dict."""
-    import numpy as np
     import torch
     import torch.nn.functional as F
     from torch.utils.data import DataLoader, TensorDataset
@@ -143,10 +147,15 @@ def _train(model, embeddings, pairs, args: argparse.Namespace, checkpoint_dir: P
             n += bs
 
         epoch_loss = total_loss / n
-        metrics = {"epoch": epoch + 1, "loss": epoch_loss,
-                   "kl": total_kl / n, "recon": total_recon / n}
-        log.info("Epoch %d/%d | loss=%.4f | kl=%.4f | recon=%.4f",
-                 epoch + 1, args.epochs, epoch_loss, total_kl / n, total_recon / n)
+        metrics = {"epoch": epoch + 1, "loss": epoch_loss, "kl": total_kl / n, "recon": total_recon / n}
+        log.info(
+            "Epoch %d/%d | loss=%.4f | kl=%.4f | recon=%.4f",
+            epoch + 1,
+            args.epochs,
+            epoch_loss,
+            total_kl / n,
+            total_recon / n,
+        )
 
         if epoch_loss < best_loss:
             best_loss = epoch_loss
@@ -160,24 +169,25 @@ def _train(model, embeddings, pairs, args: argparse.Namespace, checkpoint_dir: P
 
 def _evaluate(model, embeddings, checkpoint_dir: Path):
     """Run quick evaluation and write evaluation_results.json."""
-    import numpy as np
     import torch
     import torch.nn.functional as F
 
     device = next(model.parameters()).device
     model.eval()
     with torch.no_grad():
-        x = torch.from_numpy(embeddings[:min(200, len(embeddings))]).float().to(device)
+        x = torch.from_numpy(embeddings[: min(200, len(embeddings))]).float().to(device)
         mu, logvar = model.encode(x)
         z = model.reparameterize(mu, logvar)
         recon = model.decode(z)
         kl = -0.5 * (1 + logvar - mu.pow(2) - logvar.exp()).sum(dim=1).mean().item()
         cos_sim = F.cosine_similarity(recon, x, dim=1).mean().item()
 
-    n_passed = sum([
-        kl > 0.01,
-        cos_sim > 0.5,
-    ])
+    n_passed = sum(
+        [
+            kl > 0.01,
+            cos_sim > 0.5,
+        ]
+    )
     results = {
         "kl_value": round(kl, 6),
         "reconstruction_cosine_sim": round(cos_sim, 6),
@@ -185,8 +195,7 @@ def _evaluate(model, embeddings, checkpoint_dir: Path):
     }
     out = checkpoint_dir / "evaluation_results.json"
     out.write_text(json.dumps(results, indent=2))
-    log.info("Evaluation: kl=%.4f cos_sim=%.4f n_passed=%d — written to %s",
-             kl, cos_sim, n_passed, out)
+    log.info("Evaluation: kl=%.4f cos_sim=%.4f n_passed=%d — written to %s", kl, cos_sim, n_passed, out)
     return results
 
 
@@ -209,6 +218,7 @@ def main() -> int:
     # Optionally save embeddings
     if args.save_data:
         import numpy as np
+
         save_path = Path(args.save_data)
         save_kwargs: dict = {"embeddings": embeddings}
         if pairs is not None:
@@ -218,6 +228,7 @@ def main() -> int:
 
     # Build model
     import torch
+
     from cohezion.flume.vae import FlumeVAE
 
     input_dim = embeddings.shape[1]

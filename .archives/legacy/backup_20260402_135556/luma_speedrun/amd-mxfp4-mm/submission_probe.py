@@ -1,15 +1,15 @@
 """Probe: list f4gemm kernels + check for bf16-input paths."""
 
-import os
 import glob
-import sys
+import os
 
-import torch
 import aiter
+import torch
 from aiter import dtypes
 from aiter.ops.triton.quant import dynamic_mxfp4_quant
 from aiter.utility.fp4_utils import e8m0_shuffle
 from task import input_t, output_t
+
 
 # Probe: list all available f4gemm kernels
 _cos = sorted(glob.glob("/home/runner/aiter/hsa/gfx950/f4gemm/*.co"))
@@ -31,7 +31,7 @@ except ImportError:
 try:
     from aiter import hipblaslt_gemm
 
-    print(f"hipblaslt_gemm available")
+    print("hipblaslt_gemm available")
 except (ImportError, AttributeError):
     print("hipblaslt_gemm not available")
 
@@ -39,7 +39,7 @@ except (ImportError, AttributeError):
 try:
     from aiter import gemm_a4w4_blockscale
 
-    print(f"gemm_a4w4_blockscale available")
+    print("gemm_a4w4_blockscale available")
 except (ImportError, AttributeError):
     print("gemm_a4w4_blockscale not available")
 

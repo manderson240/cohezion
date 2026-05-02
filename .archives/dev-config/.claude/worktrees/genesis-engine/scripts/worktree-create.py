@@ -136,7 +136,7 @@ def main():
         print(json.dumps(result, indent=2))
     else:
         if result["success"]:
-            print(f"Worktree created successfully:")
+            print("Worktree created successfully:")
             print(f"  Path: {result['path']}")
             print(f"  Branch: {result['branch']}")
             print(f"  Base: {result['base_branch']}")

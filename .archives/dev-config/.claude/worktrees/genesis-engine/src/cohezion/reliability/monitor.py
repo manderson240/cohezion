@@ -387,9 +387,7 @@ class ResourceMonitor:
             vram = vitals["vram_percent"]
 
             # 1. Calculate Viscous Adjustment (Maxwellian Relaxation)
-            viscous_correction = self.viscoelastic_controller.calculate_dilation_adjustment(
-                cpu, ram, vram
-            )
+            viscous_correction = self.viscoelastic_controller.calculate_dilation_adjustment(cpu, ram, vram)
 
             # 2. Determine Base Dilation Factor (Tiered Thresholds)
             if cpu > 90 or ram > 90 or vram > 90:

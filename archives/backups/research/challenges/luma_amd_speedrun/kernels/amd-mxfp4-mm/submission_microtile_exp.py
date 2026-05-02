@@ -35,15 +35,15 @@ from __future__ import annotations
 import os
 import sys
 
+
 os.environ["PYTORCH_ROCM_ARCH"] = "gfx950"
 os.environ["CXX"] = "clang++"
 
 import torch
-import torch.nn.functional as F
+from reference import ref_kernel
+from task import input_t, output_t
 from torch.utils.cpp_extension import load_inline
 
-from task import input_t, output_t
-from reference import ref_kernel
 
 # =============================================================================
 # HIP Kernel: Warp-Level Micro-Tiling
@@ -82,10 +82,10 @@ __device__ inline void mfma_32x32x64_fp4(
     typedef int a_vec_t __attribute__((ext_vector_type(8)));
     typedef int b_vec_t __attribute__((ext_vector_type(8)));
     typedef float c_vec_t __attribute__((ext_vector_type(16)));
-    
+
     a_vec_t a_vec, b_vec;
     c_vec_t c_vec;
-    
+
     // Load registers
     #pragma unroll
     for (int i = 0; i < 8; i++) {
@@ -96,7 +96,7 @@ __device__ inline void mfma_32x32x64_fp4(
     for (int i = 0; i < 16; i++) {
         c_vec[i] = c_reg[i];
     }
-    
+
     // MFMA intrinsic - FP4 E2M1
     c_vec = __builtin_amdgcn_mfma_scale_f32_32x32x64_f8f6f4(
         a_vec, b_vec, c_vec,
@@ -104,7 +104,7 @@ __device__ inline void mfma_32x32x64_fp4(
         4,    // blgp = FP4 E2M1
         0, sa, 0, sb
     );
-    
+
     // Store back
     #pragma unroll
     for (int i = 0; i < 16; i++) {
@@ -127,55 +127,55 @@ __global__ void warp_microtile_gemm(
     const int tid = threadIdx.x;      // 0-63 within warp
     const int wid = threadIdx.y;      // warp index within block
     const int warps_per_block = blockDim.y;
-    
+
     // Global warp ID
     int global_warp = blockIdx.x * warps_per_block + wid;
     int total_warps = gridDim.x * warps_per_block;
-    
+
     // Tiles are 32x32, each warp handles one tile
     int tiles_m = (M + 31) / 32;
     int tiles_n = (N + 31) / 32;
     int total_tiles = tiles_m * tiles_n;
-    
+
     // Each warp processes multiple tiles in round-robin fashion
     for (int tile_id = global_warp; tile_id < total_tiles; tile_id += total_warps) {
         int tile_m = tile_id / tiles_n;
         int tile_n = tile_id % tiles_n;
-        
+
         int m_start = tile_m * 32;
         int n_start = tile_n * 32;
         int m_size = min(32, M - m_start);
         int n_size = min(32, N - n_start);
-        
+
         // Thread position within MFMA tile
         // Lane mapping for MFMA 32x32x64 output
         int lane_row = (tid >> 5) * 4 + (tid & 3) + ((tid >> 2) & 7) * 4;
         int lane_col = tid & 31;
-        
+
         // Accumulator in registers (16 floats per thread for 32x32 output)
         float accum[16];
         #pragma unroll
         for (int i = 0; i < 16; i++) accum[i] = 0.0f;
-        
+
         // K-dimension tiles (64 FP4 elements = 32 bytes = 1 scale group)
         int k_tiles = K / 64;
-        
+
         // Register buffers for A and B
         int a_reg[8];
         int b_reg[8];
-        
+
         for (int kt = 0; kt < k_tiles; kt++) {
             int k_start = kt * 64;
-            
+
             // Load A tile (32 rows x 64 K)
             // Thread loads its portion based on lane id
             int a_row = m_start + (tid & 31);
             int a_k_off = k_start / 2 + (tid >> 5) * 16;
-            
+
             // Zero registers first
             #pragma unroll
             for (int i = 0; i < 8; i++) a_reg[i] = 0;
-            
+
             // Load FP4 data
             if (a_row < m_start + m_size) {
                 const uint8_t* a_ptr = A_q + a_row * (K / 2) + a_k_off;
@@ -187,15 +187,15 @@ __global__ void warp_microtile_gemm(
                     }
                 }
             }
-            
+
             // Load B tile (32 cols x 64 K)
             // B is stored as [N, K/2] row-major
             int b_col = n_start + (tid & 31);
             int b_k_off = k_start / 2 + (tid >> 5) * 16;
-            
+
             #pragma unroll
             for (int i = 0; i < 8; i++) b_reg[i] = 0;
-            
+
             if (b_col < n_start + n_size) {
                 const uint8_t* b_ptr = B_q + b_col * (K / 2) + b_k_off;
                 uint8_t* b_bytes = (uint8_t*)b_reg;
@@ -206,25 +206,25 @@ __global__ void warp_microtile_gemm(
                     }
                 }
             }
-            
+
             // Load scales
             // A scale: [M, K/32], each group of 32 K values shares 1 scale
             // B scale: [N, K/32]
             int scale_k = kt * 2 + (tid >> 5);
             int sa = 127;  // Default scale = 1.0
             int sb = 127;
-            
+
             if (a_row < M && scale_k < K / 32) {
                 sa = A_scale[a_row * (K / 32) + scale_k];
             }
             if (b_col < N && scale_k < K / 32) {
                 sb = B_scale[b_col * (K / 32) + scale_k];
             }
-            
+
             // Execute MFMA
             mfma_32x32x64_fp4(a_reg, b_reg, accum, sa, sb);
         }
-        
+
         // Write output using MFMA output mapping
         // c_reg[r] -> D[row][col] where:
         //   col = tid % 32
@@ -233,7 +233,7 @@ __global__ void warp_microtile_gemm(
         for (int r = 0; r < 16; r++) {
             int out_row = m_start + (r & 3) + (r >> 2) * 8 + (tid >> 5) * 4;
             int out_col = n_start + (tid & 31);
-            
+
             if (out_row < M && out_col < N) {
                 C[out_row * N + out_col] = (__hip_bfloat16)accum[r];
             }
@@ -253,10 +253,10 @@ void launch_microtile_gemm(
     // Launch configuration
     int warps_per_block = 8;  // 8 warps = 512 threads per block
     int num_blocks = 128;      // Sufficient for MI355X
-    
+
     dim3 threads(64, warps_per_block);  // 64 threads per warp
     dim3 blocks(num_blocks);
-    
+
     warp_microtile_gemm<<<blocks, threads>>>(
         A_q.data_ptr<uint8_t>(),
         B_q.data_ptr<uint8_t>(),

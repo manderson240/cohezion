@@ -74,9 +74,7 @@ class QuadratureController:
     def __init__(self):
         self.streams = self._init_streams()
         self.trajectories: list[TrajectoryPoint] = []
-        self.output_file = Path(
-            "src/cohezion/knowledge_graph/universe_nodes/flume_trajectories.jsonl"
-        )
+        self.output_file = Path("src/cohezion/knowledge_graph/universe_nodes/flume_trajectories.jsonl")
         self.output_file.parent.mkdir(parents=True, exist_ok=True)
 
         # Initialize FLUME encoder if available
@@ -260,9 +258,7 @@ class QuadratureController:
         response = f"In the {stream.domain} domain, we observe that {words[0]} interacts with {words[1]} to produce emergent {words[2]}. "
         response += f"This manifests as a {random.choice(['stable', 'dynamic', 'evolving', 'crystalline'])} pattern "
         response += f"with {random.choice(['high', 'moderate', 'optimal'])} coherence. "
-        response += (
-            f"Step {step}: The trajectory continues through the {stream.domain.lower()} manifold."
-        )
+        response += f"Step {step}: The trajectory continues through the {stream.domain.lower()} manifold."
 
         return response
 

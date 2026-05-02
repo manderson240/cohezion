@@ -8,23 +8,25 @@ from __future__ import annotations
 
 import asyncio
 import logging
-from typing import Any, Callable, Dict, List, Optional
+from collections.abc import Callable
+from typing import Any
 
-from cohezion.reliability import get_circuit
 from cohezion.data_mesh.journey_telemetry import FlumeJourneyEvent
 
+
 logger = logging.getLogger(__name__)
+
 
 class TelemetryBus:
     """
     Asynchronous event bus for telemetry.
     Uses an internal queue to ensure zero-latency for the producer.
     """
-    
+
     def __init__(self, queue_size: int = 1000):
         self._queue: asyncio.Queue[FlumeJourneyEvent] = asyncio.Queue(maxsize=queue_size)
-        self._subscribers: List[Callable[[FlumeJourneyEvent], Any]] = []
-        self._worker_task: Optional[asyncio.Task] = None
+        self._subscribers: list[Callable[[FlumeJourneyEvent], Any]] = []
+        self._worker_task: asyncio.Task | None = None
         self._running = False
 
     async def start(self):
@@ -62,8 +64,10 @@ class TelemetryBus:
         while self._running:
             try:
                 event = await self._queue.get()
-                print(f"[DEBUG] TelemetryBus: Processing event {event.event_id} for {len(self._subscribers)} subscribers")
-                
+                print(
+                    f"[DEBUG] TelemetryBus: Processing event {event.event_id} for {len(self._subscribers)} subscribers"
+                )
+
                 # Distribute to subscribers (e.g., SurrealDB, Ouroboros)
                 for subscriber in self._subscribers:
                     try:
@@ -74,7 +78,7 @@ class TelemetryBus:
                             subscriber(event)
                     except Exception as e:
                         logger.error("❌ Telemetry Bus subscriber error: %s", e)
-                
+
                 self._queue.task_done()
             except asyncio.CancelledError:
                 break
@@ -86,8 +90,10 @@ class TelemetryBus:
         """Register a callback for telemetry events."""
         self._subscribers.append(callback)
 
+
 # Singleton
 _BUS = None
+
 
 def get_telemetry_bus() -> TelemetryBus:
     global _BUS

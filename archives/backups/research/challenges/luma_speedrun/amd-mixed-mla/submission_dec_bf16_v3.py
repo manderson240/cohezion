@@ -31,6 +31,7 @@ import torch
 from aiter.mla import mla_decode_fwd
 from task import input_t, output_t
 
+
 NUM_HEADS = 16
 NUM_KV_HEADS = 1
 QK_HEAD_DIM = 576

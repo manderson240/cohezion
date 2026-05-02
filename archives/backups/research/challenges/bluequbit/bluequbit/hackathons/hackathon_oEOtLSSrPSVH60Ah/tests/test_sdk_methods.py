@@ -3,11 +3,11 @@ BlueQubit SDK Method Testing Suite
 Tests all 13 SDK methods for hackathon readiness
 """
 
-import os
 from pathlib import Path
-from dotenv import load_dotenv
+
 import bluequbit
 import qiskit
+from dotenv import load_dotenv
 
 
 def test_basic_run():
@@ -45,7 +45,7 @@ def test_async_execution():
     counts = result.get_counts()
 
     assert len(counts) > 0, "No counts returned"
-    print(f"  ✓ Async execution successful")
+    print("  ✓ Async execution successful")
     return True
 
 
@@ -64,7 +64,7 @@ def test_cancel():
 
     try:
         bq.cancel(job.job_id)
-        print(f"  ✓ Cancel successful")
+        print("  ✓ Cancel successful")
     except Exception as e:
         print(f"  ℹ Cancel may have completed: {e}")
 

@@ -37,9 +37,7 @@ async def test_store_state_summary_success(triune_state):
             mock_session_class.return_value.__aenter__.return_value = mock_session
 
             client = ObsidianMemoryMCP()
-            await client.store_state_summary(
-                trajectory_id="test_traj_456", state=triune_state, coherence=0.5
-            )
+            await client.store_state_summary(trajectory_id="test_traj_456", state=triune_state, coherence=0.5)
 
             # Verify call_tool was invoked with vault_write
             mock_session.call_tool.assert_called_once()
@@ -73,6 +71,4 @@ async def test_store_state_summary_failure(triune_state):
             # In Python 3.11+, ExceptionGroup might be raised by anyio TaskGroups
             # but here we're mocking the call_tool directly.
             with pytest.raises(Exception, match="Tool Execution Error"):
-                await client.store_state_summary(
-                    trajectory_id="test_traj_err", state=triune_state, coherence=0.5
-                )
+                await client.store_state_summary(trajectory_id="test_traj_err", state=triune_state, coherence=0.5)

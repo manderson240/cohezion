@@ -23,13 +23,13 @@ pmc:
   # GPU Utilization
   - GPUBusy
   - VALUUtilization
-  
+
   # Memory metrics
   - TCC_HIT_sum
   - TCC_MISS_sum
   - TCC_EA_RDREQ_32B_sum
   - TCC_EA_WRREQ_32B_sum
-  
+
   # Shader engine
   - VALUInstCount
   - SALUInstCount
@@ -41,7 +41,7 @@ pmc:
     config_path.write_text(profile_cfg)
 
     # Create test script
-    test_script = '''#!/usr/bin/env python3
+    test_script = """#!/usr/bin/env python3
 import asyncio
 import aiohttp
 import time
@@ -68,7 +68,7 @@ async def main():
             await r.json()
 
 asyncio.run(main())
-'''
+"""
 
     script_path = Path("/tmp/inference_test.py")
     script_path.write_text(test_script)
@@ -79,12 +79,18 @@ asyncio.run(main())
     try:
         # Run rocprof
         result = subprocess.run(
-            ["rocprof", "-i", str(config_path),
-             "-o", "/tmp/rocprof_results.csv",
-             "python3", str(script_path)],
+            [
+                "rocprof",
+                "-i",
+                str(config_path),
+                "-o",
+                "/tmp/rocprof_results.csv",
+                "python3",
+                str(script_path),
+            ],
             capture_output=True,
             text=True,
-            timeout=120
+            timeout=120,
         )
 
         print("\nROCm Profiling Complete")
@@ -93,7 +99,7 @@ asyncio.run(main())
         # Parse results
         results_csv = Path("/tmp/rocprof_results.csv")
         if results_csv.exists():
-            lines = results_csv.read_text().strip().split('\n')
+            lines = results_csv.read_text().strip().split("\n")
             print(f"\nCollected {len(lines)} profiling records")
 
             # Show header and first few lines
@@ -106,12 +112,7 @@ asyncio.run(main())
                     print(f"... and {len(lines) - 5} more")
 
         print("\nROCm SMI Status:")
-        smi_result = subprocess.run(
-            ["rocm-smi"],
-            capture_output=True,
-            text=True,
-            timeout=10
-        )
+        smi_result = subprocess.run(["rocm-smi"], capture_output=True, text=True, timeout=10)
         print(smi_result.stdout[:1000] if smi_result.stdout else "N/A")
 
         return True

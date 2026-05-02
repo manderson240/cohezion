@@ -7,9 +7,9 @@ NT caused stream errors on GEMM. May be neutral/harmful for MoE too.
 """
 
 from __future__ import annotations
+
 import os
 
-import torch
 from aiter import ActivationType, QuantType
 from aiter.fused_moe import fused_moe
 from task import input_t, output_t

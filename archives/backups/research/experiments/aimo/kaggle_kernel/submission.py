@@ -1,7 +1,6 @@
 import os
 import re
 import sys
-from typing import Optional
 
 import polars as pl
 import torch
@@ -82,7 +81,7 @@ def extract_answer(text: str) -> int:
 
 
 def predict(
-    id_: pl.DataFrame, question: pl.DataFrame, answer: Optional[pl.DataFrame] = None
+    id_: pl.DataFrame, question: pl.DataFrame, answer: pl.DataFrame | None = None
 ) -> pl.DataFrame:
     # Ensure model is loaded on the first call
     if global_model is None:

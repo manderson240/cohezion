@@ -6,11 +6,9 @@ Offloads appropriate tasks to Gemma4 (local/free) while reserving
 kimik2.5:cloud for complex tasks. Extends cloud availability.
 """
 
-import subprocess
 import json
+import subprocess
 import sys
-from pathlib import Path
-from typing import Optional
 
 
 # Task classification
@@ -101,7 +99,7 @@ def query_kimik(prompt: str) -> str:
     return f"[CLOUD TASK] {prompt[:50]}..."
 
 
-def route_task(prompt: str, force_model: Optional[str] = None) -> dict:
+def route_task(prompt: str, force_model: str | None = None) -> dict:
     """Route task to appropriate model."""
 
     model = force_model or classify_task(prompt)
@@ -218,7 +216,7 @@ if __name__ == "__main__":
     task_type = sys.argv[1]
 
     if len(sys.argv) > 2:
-        with open(sys.argv[2], "r") as f:
+        with open(sys.argv[2]) as f:
             task_input = f.read()
     else:
         task_input = sys.stdin.read()

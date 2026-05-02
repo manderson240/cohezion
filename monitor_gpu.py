@@ -6,7 +6,7 @@ Uses AMD ROCm SMI to monitor GPU metrics during inference.
 Usage:
     # Terminal 1: Start monitoring
     python monitor_gpu.py
-    
+
     # Terminal 2: Run benchmark
     python benchmark_quick.py
 """
@@ -30,10 +30,10 @@ class GPUMetrics:
     def from_rocm_smi(cls, smi_output: str) -> Optional["GPUMetrics"]:
         """Parse ROCm SMI output."""
         try:
-            lines = smi_output.strip().split('\n')
+            lines = smi_output.strip().split("\n")
             data_line = None
             for line in lines:
-                if line.startswith('0') and '1' in line:  # Device 0, Node 1
+                if line.startswith("0") and "1" in line:  # Device 0, Node 1
                     data_line = line
                     break
 
@@ -44,9 +44,9 @@ class GPUMetrics:
             return cls(
                 timestamp=time.time(),
                 gpu_use=float(parts[6]) if len(parts) > 6 else 0,
-                vram_use=float(parts[11].rstrip('%')) if len(parts) > 11 else 0,
-                power=float(parts[4].rstrip('W')) if len(parts) > 4 else 0,
-                temperature=float(parts[3].rstrip('°C')) if len(parts) > 3 else 0,
+                vram_use=float(parts[11].rstrip("%")) if len(parts) > 11 else 0,
+                power=float(parts[4].rstrip("W")) if len(parts) > 4 else 0,
+                temperature=float(parts[3].rstrip("°C")) if len(parts) > 3 else 0,
             )
         except Exception:
             return None
@@ -68,12 +68,7 @@ def monitor_gpu(duration: int = 60, interval: float = 0.5):
     while time.time() - start_time < duration:
         try:
             # Get GPU metrics
-            result = subprocess.run(
-                ["rocm-smi"],
-                capture_output=True,
-                text=True,
-                timeout=2
-            )
+            result = subprocess.run(["rocm-smi"], capture_output=True, text=True, timeout=2)
 
             metrics = GPUMetrics.from_rocm_smi(result.stdout)
 
@@ -81,17 +76,26 @@ def monitor_gpu(duration: int = 60, interval: float = 0.5):
                 metrics_history.append(metrics)
 
                 # Determine status
-                status = "IDLE" if metrics.gpu_use < 10 else \
-                         "LOW" if metrics.gpu_use < 40 else \
-                         "MODERATE" if metrics.gpu_use < 70 else \
-                         "HIGH" if metrics.gpu_use < 90 else "SATURATED"
+                status = (
+                    "IDLE"
+                    if metrics.gpu_use < 10
+                    else "LOW"
+                    if metrics.gpu_use < 40
+                    else "MODERATE"
+                    if metrics.gpu_use < 70
+                    else "HIGH"
+                    if metrics.gpu_use < 90
+                    else "SATURATED"
+                )
 
-                print(f"{time.time() - start_time:>6.1f} "
-                      f"{metrics.gpu_use:>6.1f} "
-                      f"{metrics.vram_use:>7.1f} "
-                      f"{metrics.power:>7.1f}W "
-                      f"{metrics.temperature:>5.1f}°C "
-                      f"{status:>10}")
+                print(
+                    f"{time.time() - start_time:>6.1f} "
+                    f"{metrics.gpu_use:>6.1f} "
+                    f"{metrics.vram_use:>7.1f} "
+                    f"{metrics.power:>7.1f}W "
+                    f"{metrics.temperature:>5.1f}°C "
+                    f"{status:>10}"
+                )
             else:
                 print(f"{time.time() - start_time:>6.1f} [NO DATA]")
 
@@ -135,10 +139,12 @@ if __name__ == "__main__":
     import argparse
 
     parser = argparse.ArgumentParser(description="Monitor GPU utilization")
-    parser.add_argument("-d", "--duration", type=int, default=60,
-                        help="Monitoring duration in seconds")
-    parser.add_argument("-i", "--interval", type=float, default=0.5,
-                        help="Sample interval in seconds")
+    parser.add_argument(
+        "-d", "--duration", type=int, default=60, help="Monitoring duration in seconds"
+    )
+    parser.add_argument(
+        "-i", "--interval", type=float, default=0.5, help="Sample interval in seconds"
+    )
     args = parser.parse_args()
 
     try:

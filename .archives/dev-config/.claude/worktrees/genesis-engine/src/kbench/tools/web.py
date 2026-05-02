@@ -23,6 +23,7 @@ from playwright.async_api import async_playwright
 from kaggle_benchmarks import actors, chats
 from kaggle_benchmarks.envs import LocalEnvironment
 
+
 # required as jupyter runs its own asyncio loop
 nest_asyncio.apply()
 

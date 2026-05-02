@@ -5,16 +5,18 @@ Bridges Traditional Ecological Knowledge (TEK) with Unified Physics (12D Manifol
 from __future__ import annotations
 
 import logging
+from typing import Any
+
 import numpy as np
-from typing import Any, Dict, List, Optional, Tuple
-from pydantic import BaseModel, Field
+from pydantic import BaseModel
 
 from cohezion.agents.base import BaseAgent
-from cohezion.swarm.providers.gemma4_provider import Gemma4Provider
-from cohezion.flume.manifolds.translator import ManifoldTranslator, ManifoldProjection
-from cohezion.compound.triune_reviewer import TriuneReviewer
 from cohezion.compound.copernicus_bridge import CopernicusState
+from cohezion.compound.triune_reviewer import TriuneReviewer
+from cohezion.flume.manifolds.translator import ManifoldTranslator
 from cohezion.flume.spectral_encoder import SpectralEncoder
+from cohezion.swarm.providers.gemma4_provider import Gemma4Provider
+
 
 logger = logging.getLogger(__name__)
 
@@ -23,8 +25,8 @@ class ResilienceState(BaseModel):
     """State of the ecosystem resilience simulation."""
 
     model_config = {"arbitrary_types_allowed": True}
-    tek_insights: List[str] = []
-    manifold_coords: Optional[np.ndarray] = None
+    tek_insights: list[str] = []
+    manifold_coords: np.ndarray | None = None
     stability_score: float = 0.0
     proposed_strategy: str = ""
     is_stable: bool = False
@@ -57,7 +59,7 @@ class EcoResilienceAgent(BaseAgent):
         return await self.execute_cycle(input_text)
 
     async def execute_cycle(
-        self, input_text: str, copernicus_state: Optional[CopernicusState] = None, **kwargs
+        self, input_text: str, copernicus_state: CopernicusState | None = None, **kwargs
     ) -> str:
         """Runs the full EcoResilience loop with integrated Triune Review and Live Sensing.
 
@@ -147,7 +149,7 @@ class EcoResilienceAgent(BaseAgent):
 
         return res_steer.response
 
-    def get_current_status(self) -> Dict[str, Any]:
+    def get_current_status(self) -> dict[str, Any]:
         """Returns the agent's state for traceability."""
         return {
             "stability": self.state.stability_score,

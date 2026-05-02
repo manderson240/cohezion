@@ -19,12 +19,13 @@ Model mapping:
 """
 
 import json
+import os
 import socketserver
-from http.server import HTTPServer, BaseHTTPRequestHandler
+import sys
 import urllib.request
 import uuid
-import sys
-import os
+from http.server import BaseHTTPRequestHandler, HTTPServer
+
 
 OLLAMA_BASE = os.environ.get("OLLAMA_HOST", "http://localhost:11434")
 

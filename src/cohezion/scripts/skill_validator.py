@@ -13,16 +13,17 @@ Exit codes:
 - 1: Validation errors found
 - 2: System error
 """
+
 from __future__ import annotations
 
 import json
-import re
 import sys
 from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Any
 
 import yaml
+
 
 SKILLS_DIR = Path("src/cohezion/skills")
 REQUIRED_FIELDS = {"id", "domain", "version"}
@@ -212,14 +213,14 @@ class SkillValidator:
         error_count = sum(len(r.errors) for r in self.results)
         warning_count = sum(len(r.warnings) for r in self.results)
 
-        print(f"\n{'='*60}")
-        print(f"SKILL VALIDATION REPORT")
-        print(f"{'='*60}")
+        print(f"\n{'=' * 60}")
+        print("SKILL VALIDATION REPORT")
+        print(f"{'=' * 60}")
         print(f"Total skills: {len(self.results)}")
-        print(f"Valid: {valid_count} ({100*valid_count//len(self.results)}%)")
+        print(f"Valid: {valid_count} ({100 * valid_count // len(self.results)}%)")
         print(f"Errors: {error_count}")
         print(f"Warnings: {warning_count}")
-        print(f"{'='*60}")
+        print(f"{'=' * 60}")
 
         # Show invalid skills
         invalid = [r for r in self.results if not r.valid]
@@ -240,13 +241,14 @@ class SkillValidator:
                 for warn in r.warnings:
                     print(f"    WARNING: {warn}")
 
-        print(f"\n{'='*60}")
+        print(f"\n{'=' * 60}")
 
     def export_results(self, output_path: Path) -> None:
         """Export validation results to JSON."""
+
         def clean_value(v):
             """Make value JSON serializable."""
-            if hasattr(v, 'isoformat'):  # datetime/date
+            if hasattr(v, "isoformat"):  # datetime/date
                 return v.isoformat()
             if isinstance(v, Path):
                 return str(v)

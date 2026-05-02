@@ -6,9 +6,7 @@ Grounded in existing src/cohezion components.
 """
 
 import asyncio
-import logging
 import sys
-import time
 from datetime import datetime, timedelta
 from pathlib import Path
 
@@ -19,14 +17,9 @@ sys.path.insert(0, str(PROJECT_ROOT / "src"))
 
 import trackio
 
-from cohezion.simulation.enhanced_simulator import EnhancedSimulator
-from cohezion.swarm.compound_client import get_compound_client
-
-
 # Import our components
-from cohezion.monitoring.ratchet_monitor import RatchetMonitor
+from cohezion.swarm.compound_client import get_compound_client
 from cohezion.swarm.hiho_vector_engine import HihoVectorEngine
-from cohezion.swarm.rzero_challenger import RZeroChallengerSolver
 
 
 # January 2026 SLM Swarm (8+ models as requested)
@@ -78,7 +71,7 @@ class OvernightMission:
         Analyze these 12D simulation results from our R-Zero Triad:
         Avg Stability: {stability:.4f}
         Approved Ratio: {stats.get("approval_rate", 0):.2f}
-        
+
         Instruction:
         - Identify one 'Stabilization Pattern' for the 12D manifold.
         - Propose a 'Compound Engineering' learning.

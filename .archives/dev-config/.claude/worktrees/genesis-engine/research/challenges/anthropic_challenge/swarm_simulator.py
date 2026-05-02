@@ -213,9 +213,7 @@ class SwarmController:
                         cycles = res["cycles"]
                         load = res["config"]["load_slots"]
                         sld = res["config"]["smart_load_depth"]
-                        logger.info(
-                            f"Sim {res['simulation_id']}: {cycles} cycles (Load={load}, SmartLoad={sld})"
-                        )
+                        logger.info(f"Sim {res['simulation_id']}: {cycles} cycles (Load={load}, SmartLoad={sld})")
 
                         if cycles < 1487 and load == 2:
                             logger.info(">>> GRAIL FOUND! <<<")

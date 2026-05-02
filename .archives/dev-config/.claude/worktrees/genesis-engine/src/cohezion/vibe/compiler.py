@@ -58,21 +58,18 @@ class VibeCompiler:
 
         # Assign stable IDs to nodes (name → id)
         name_to_id: dict[str, str] = {
-            node.name: f"{self._prefix}-node-{uuid.uuid4().hex[:8]}"
-            for node in vibe_spec.node_descriptions
+            node.name: f"{self._prefix}-node-{uuid.uuid4().hex[:8]}" for node in vibe_spec.node_descriptions
         }
 
         # Validate edges reference known nodes
         for edge in vibe_spec.edge_descriptions:
             if edge.from_name not in name_to_id:
                 raise ValueError(
-                    f"Edge references unknown source node '{edge.from_name}'. "
-                    f"Known nodes: {list(name_to_id)}"
+                    f"Edge references unknown source node '{edge.from_name}'. Known nodes: {list(name_to_id)}"
                 )
             if edge.to_name not in name_to_id:
                 raise ValueError(
-                    f"Edge references unknown target node '{edge.to_name}'. "
-                    f"Known nodes: {list(name_to_id)}"
+                    f"Edge references unknown target node '{edge.to_name}'. Known nodes: {list(name_to_id)}"
                 )
 
         # Build NodeSpec list

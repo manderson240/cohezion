@@ -4,11 +4,12 @@
 """MoE: Probe fmoe_g1u1_a16 + fmoe_g1u1_fp4 + try different quant_type options."""
 
 from __future__ import annotations
+
 import os
+
 
 os.environ["AITER_USE_NT"] = "1"
 
-import torch
 import aiter
 from aiter import ActivationType, QuantType
 from aiter.fused_moe import fused_moe

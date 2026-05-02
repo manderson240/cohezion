@@ -25,8 +25,20 @@ class TestEndToEndGraphExecution:
             ],
             tasks=[
                 TaskSpec(id="t1", subject="Find papers", description="Search arxiv", assigned_to="researcher"),
-                TaskSpec(id="t2", subject="Analyze papers", description="Extract insights", assigned_to="analyzer", blocked_by=["t1"]),
-                TaskSpec(id="t3", subject="Write summary", description="Compile report", assigned_to="writer", blocked_by=["t2"]),
+                TaskSpec(
+                    id="t2",
+                    subject="Analyze papers",
+                    description="Extract insights",
+                    assigned_to="analyzer",
+                    blocked_by=["t1"],
+                ),
+                TaskSpec(
+                    id="t3",
+                    subject="Write summary",
+                    description="Compile report",
+                    assigned_to="writer",
+                    blocked_by=["t2"],
+                ),
             ],
         )
 

@@ -21,10 +21,11 @@ from cohezion.inference.turboquant.quantizer import ProdQuantized, TurboQuantPro
 
 class ValueQuantized(NamedTuple):
     """Quantized value cache (bit-packed)."""
-    data: torch.Tensor       # (..., n_tokens, packed_d) bit-packed quantized values
-    scales: torch.Tensor     # (..., n_tokens, n_groups) scale per group
-    zeros: torch.Tensor      # (..., n_tokens, n_groups) zero point per group
-    bits: int = 2            # quantization bits (for unpacking)
+
+    data: torch.Tensor  # (..., n_tokens, packed_d) bit-packed quantized values
+    scales: torch.Tensor  # (..., n_tokens, n_groups) scale per group
+    zeros: torch.Tensor  # (..., n_tokens, n_groups) zero point per group
+    bits: int = 2  # quantization bits (for unpacking)
 
 
 def unpack_values(vq: ValueQuantized) -> torch.Tensor:
@@ -36,7 +37,9 @@ def unpack_values(vq: ValueQuantized) -> torch.Tensor:
         v1 = (packed >> 2) & 0x03
         v2 = (packed >> 4) & 0x03
         v3 = (packed >> 6) & 0x03
-        return torch.stack([v0, v1, v2, v3], dim=-1).reshape(*packed.shape[:-1], packed.shape[-1] * 4)
+        return torch.stack([v0, v1, v2, v3], dim=-1).reshape(
+            *packed.shape[:-1], packed.shape[-1] * 4
+        )
     elif bits == 4:
         v0 = packed & 0x0F
         v1 = (packed >> 4) & 0x0F
@@ -251,9 +254,13 @@ class TurboQuantKVCache:
         else:
             # Concatenate along sequence dimension
             self.key_quantized = ProdQuantized(
-                mse_indices=torch.cat([self.key_quantized.mse_indices, new_key_q.mse_indices], dim=-2),
+                mse_indices=torch.cat(
+                    [self.key_quantized.mse_indices, new_key_q.mse_indices], dim=-2
+                ),
                 qjl_signs=torch.cat([self.key_quantized.qjl_signs, new_key_q.qjl_signs], dim=-2),
-                residual_norms=torch.cat([self.key_quantized.residual_norms, new_key_q.residual_norms], dim=-1),
+                residual_norms=torch.cat(
+                    [self.key_quantized.residual_norms, new_key_q.residual_norms], dim=-1
+                ),
                 norms=torch.cat([self.key_quantized.norms, new_key_q.norms], dim=-1),
                 mse_bits=new_key_q.mse_bits,
             )
@@ -308,7 +315,7 @@ class TurboQuantKVCache:
         # Quantized values
         if self.value_quantized is not None:
             n_quant = self.value_quantized.data.shape[-2]
-            w_quant = attn_weights[..., col_offset:col_offset + n_quant]
+            w_quant = attn_weights[..., col_offset : col_offset + n_quant]
             v_dequant = dequantize_values(self.value_quantized, self.value_group_size)
             output_parts.append(torch.matmul(w_quant, v_dequant))
             col_offset += n_quant
@@ -316,7 +323,7 @@ class TurboQuantKVCache:
         # Buffer values (full precision)
         if self.value_buffer is not None:
             n_buf = self.value_buffer.shape[-2]
-            w_buf = attn_weights[..., col_offset:col_offset + n_buf]
+            w_buf = attn_weights[..., col_offset : col_offset + n_buf]
             output_parts.append(torch.matmul(w_buf, self.value_buffer))
 
         return sum(output_parts)
@@ -327,7 +334,9 @@ class TurboQuantKVCache:
 
         if self.key_quantized is not None:
             # MSE indices: bit-packed uint8
-            info["quantized_keys"] += self.key_quantized.mse_indices.nelement()  # already packed bytes
+            info["quantized_keys"] += (
+                self.key_quantized.mse_indices.nelement()
+            )  # already packed bytes
             # QJL packed signs: 1 bit per coord, packed 8 per byte
             info["quantized_keys"] += self.key_quantized.qjl_signs.nelement()
             # Norms: float16 each (could use float16 for storage)

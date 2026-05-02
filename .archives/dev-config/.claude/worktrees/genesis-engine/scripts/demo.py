@@ -34,9 +34,7 @@ def demo_mass_sim() -> None:
 
         from cohezion.mass_sim.agent_factory import AgentFactory
     except ImportError:
-        print(
-            "  [SKIP] Rust extension not built. Run: cd src/cohezion_core && maturin develop --release"
-        )
+        print("  [SKIP] Rust extension not built. Run: cd src/cohezion_core && maturin develop --release")
         return
 
     z_dim = 256

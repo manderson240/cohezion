@@ -17,16 +17,14 @@ This matches the pattern in aiter/op_tests/test_moe_blockscale.py exactly.
 
 from __future__ import annotations
 
-import torch
-from einops import rearrange
-
 import aiter
+import torch
 from aiter import dtypes
 from aiter.fused_moe import moe_sorting
+from aiter.ops.quant import pertoken_quant
 from aiter.ops.shuffle import shuffle_weight
 from aiter.utility import fp4_utils
-from aiter.ops.quant import pertoken_quant
-
+from einops import rearrange
 from task import input_t, output_t
 
 

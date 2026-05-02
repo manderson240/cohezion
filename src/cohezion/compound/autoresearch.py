@@ -15,7 +15,8 @@ This module provides:
 import json
 import logging
 from dataclasses import dataclass, field
-from datetime import datetime as dt_class, timezone
+from datetime import UTC
+from datetime import datetime as dt_class
 from pathlib import Path
 from typing import Any
 
@@ -37,7 +38,7 @@ class ExecutionMetrics:
     coherence: float
     success: bool
     skill_used: str | None = None
-    timestamp: str = field(default_factory=lambda: dt_class.now(timezone.utc).isoformat())
+    timestamp: str = field(default_factory=lambda: dt_class.now(UTC).isoformat())
     lessons: list[str] = field(default_factory=list)
 
 
@@ -168,7 +169,7 @@ class AutoresearchEngine:
             )
 
         return {
-            "title": f"MCP Optimization Research Plan ({dt_class.now(timezone.utc).strftime('%Y-%m-%d')})",
+            "title": f"MCP Optimization Research Plan ({dt_class.now(UTC).strftime('%Y-%m-%d')})",
             "experiments": experiments,
             "estimated_effort": "medium",
             "expected_roi": "12x token efficiency improvement",
@@ -204,7 +205,7 @@ class VaultLearningCapture:
             # Build learning entry
             learning = {
                 "title": f"Session Learning: {execution_result.get('request', 'Unknown')[:50]}",
-                "timestamp": dt_class.now(timezone.utc).isoformat(),
+                "timestamp": dt_class.now(UTC).isoformat(),
                 "metrics": {
                     "tokens_used": execution_result.get("tokens_used", 0),
                     "cache_hits": execution_result.get("cache_hits", 0),
@@ -233,7 +234,7 @@ class VaultLearningCapture:
                         method="Automated capture",
                         result="success" if learning["success"] else "failure",
                         learnings=lessons_str,
-                        **learning["metrics"]
+                        **learning["metrics"],
                     )
                     logger.info(f"Vault capture success: {path}")
                 except Exception as vault_e:
@@ -244,6 +245,7 @@ class VaultLearningCapture:
                 try:
                     # Generate a learning ID
                     import hashlib
+
                     l_id = f"L_{hashlib.sha256(learning['title'].encode()).hexdigest()[:8]}"
 
                     logger.info(f"Storing learning in SurrealDB: {l_id}...")
@@ -254,8 +256,8 @@ class VaultLearningCapture:
                             "title": learning["title"],
                             "content": json.dumps(learning, indent=2),
                             "pattern": learning.get("skill_used", "general"),
-                            "score": float(learning["metrics"].get("coherence", 0.7))
-                        }
+                            "score": float(learning["metrics"].get("coherence", 0.7)),
+                        },
                     )
                     logger.info("SurrealDB storage success.")
                 except Exception as db_e:
@@ -265,12 +267,14 @@ class VaultLearningCapture:
                     logger.info(f"Learning captured to vault and database: {path}")
                 return path
             else:
-                logger.warning("No mcp_client provided to capture_learning, falling back to local file.")
+                logger.warning(
+                    "No mcp_client provided to capture_learning, falling back to local file."
+                )
                 # Fallback to local file
                 fallback_path = (
                     self.vault_path
                     / "logs"
-                    / f"learning_{dt_class.now(timezone.utc).strftime('%Y%m%d_%H%M%S')}.json"
+                    / f"learning_{dt_class.now(UTC).strftime('%Y%m%d_%H%M%S')}.json"
                 )
                 fallback_path.parent.mkdir(parents=True, exist_ok=True)
                 fallback_path.write_text(json.dumps(learning, indent=2))
@@ -382,7 +386,7 @@ class AsyncMetricsSkillRefiner:
         # Log refinement to vault
         if mcp_client and refinements:
             await mcp_client.vault_write(
-                f"cerebellum/skill-refinements/{skill_name}_{dt_class.now(timezone.utc).strftime('%Y%m%d')}.md",
+                f"cerebellum/skill-refinements/{skill_name}_{dt_class.now(UTC).strftime('%Y%m%d')}.md",
                 json.dumps(
                     {
                         "skill": skill_name,

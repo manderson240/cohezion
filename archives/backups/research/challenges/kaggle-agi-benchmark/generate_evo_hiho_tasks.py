@@ -1,7 +1,6 @@
 import argparse
 import asyncio
 import json
-import re
 from pathlib import Path
 
 from cohezion.compound.session_manager import CompoundSessionManager
@@ -53,7 +52,7 @@ Create a new, unique task now.
 async def generate_batch(num_tasks: int = 5):
     # Load existing tasks if any
     if BENCHMARK_FILE.exists():
-        with open(BENCHMARK_FILE, "r") as f:
+        with open(BENCHMARK_FILE) as f:
             try:
                 tasks = json.load(f)
             except:

@@ -10,7 +10,7 @@ Breakthrough insight from reading game source:
 from __future__ import annotations
 
 import random
-from typing import Any, Dict, List, Optional, Tuple
+from typing import Any
 
 import numpy as np
 
@@ -26,15 +26,20 @@ class ActionAwareAgent:
         self.stuck = 0
 
         # Click state
-        self.click_grid: Dict[Tuple[int, int], Dict[str, Any]] = {}
-        self.click_positions: List[Tuple[int, int]] = []
+        self.click_grid: dict[tuple[int, int], dict[str, Any]] = {}
+        self.click_positions: list[tuple[int, int]] = []
         self.click_idx = 0
 
         # Direction state
-        self.player_trail: List[Optional[Tuple[int, int]]] = []
-        self.recent_diffs: Dict[str, List[int]] = {"ACTION1": [], "ACTION2": [], "ACTION3": [], "ACTION4": []}
+        self.player_trail: list[tuple[int, int] | None] = []
+        self.recent_diffs: dict[str, list[int]] = {
+            "ACTION1": [],
+            "ACTION2": [],
+            "ACTION3": [],
+            "ACTION4": [],
+        }
 
-    def find_player_by_motion(self, prev_grid: Any, next_grid: Any) -> Optional[Tuple[int, int]]:
+    def find_player_by_motion(self, prev_grid: Any, next_grid: Any) -> tuple[int, int] | None:
         """Find player by tracking which pixels moved consistently."""
         if prev_grid is None or next_grid is None:
             return None
@@ -57,7 +62,7 @@ class ActionAwareAgent:
             return (mx, my)
         return None
 
-    def init_click_positions(self, grid_shape: Tuple[int, int]) -> None:
+    def init_click_positions(self, grid_shape: tuple[int, int]) -> None:
         """Create systematic click positions across the grid."""
         h, w = grid_shape
         # Create a sparse grid of click positions
@@ -69,13 +74,16 @@ class ActionAwareAgent:
         self.click_positions = positions
         self.click_idx = 0
 
-    def choose_action(self, obs: Any, available_actions: List[Any], env_action_space: List[Any]) -> Any:
+    def choose_action(
+        self, obs: Any, available_actions: list[Any], env_action_space: list[Any]
+    ) -> Any:
         """Choose action based on game type and state."""
-        from arcengine import GameAction
 
         action_names = [a.name for a in available_actions]
         self.click_mode = "ACTION6" in action_names and len(action_names) == 1
-        self.direction_mode = any(n in action_names for n in ["ACTION1", "ACTION2", "ACTION3", "ACTION4"])
+        self.direction_mode = any(
+            n in action_names for n in ["ACTION1", "ACTION2", "ACTION3", "ACTION4"]
+        )
 
         if self.click_mode:
             return self._choose_click_action(obs)
@@ -104,14 +112,18 @@ class ActionAwareAgent:
         action.set_data({"x": 32, "y": 32})
         return action
 
-    def _choose_direction_action(self, action_space: List[Any]) -> Any:
+    def _choose_direction_action(self, action_space: list[Any]) -> Any:
         from arcengine import GameAction
 
         # Simple strategy: cycle through directions to explore
         directions = ["ACTION1", "ACTION2", "ACTION3", "ACTION4"]
         available = [a for a in directions if a in [ac.name for ac in action_space]]
         if not available:
-            return GameAction.from_name("ACTION5") if any(a.name == "ACTION5" for a in action_space) else GameAction.ACTION1
+            return (
+                GameAction.from_name("ACTION5")
+                if any(a.name == "ACTION5" for a in action_space)
+                else GameAction.ACTION1
+            )
 
         # Rotate directions
         idx = (self.stuck // 5) % len(available)
@@ -132,7 +144,7 @@ class ActionAwareAgent:
             self.player_trail.append(player)
 
 
-def run_action_aware_agent(game_id: str, max_actions: int = 400) -> Dict[str, Any]:
+def run_action_aware_agent(game_id: str, max_actions: int = 400) -> dict[str, Any]:
     import arc_agi
     from arcengine import GameAction, GameState
 
@@ -171,10 +183,13 @@ def run_action_aware_agent(game_id: str, max_actions: int = 400) -> Dict[str, An
 
 if __name__ == "__main__":
     import logging
+
     logging.basicConfig(level=logging.INFO, format="%(levelname)s: %(message)s")
 
     for game_id in ["r11l", "ls20", "lp85"]:
         result = run_action_aware_agent(game_id)
-        print(f"\n{game_id}: wins={result['wins']}, score={result['score']}, "
-              f"actions={result['actions']}, mode={result['mode']}, "
-              f"clicks={result['click_positions_tested']}")
+        print(
+            f"\n{game_id}: wins={result['wins']}, score={result['score']}, "
+            f"actions={result['actions']}, mode={result['mode']}, "
+            f"clicks={result['click_positions_tested']}"
+        )

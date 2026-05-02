@@ -24,6 +24,7 @@ logger = logging.getLogger(__name__)
 @dataclass
 class ModelCapability:
     """Capability scoring for a model (0-1 scale)."""
+
     reasoning: float = 0.5
     coding: float = 0.5
     creativity: float = 0.5
@@ -35,6 +36,7 @@ class ModelCapability:
 @dataclass
 class ModelCard:
     """Model card with optimization parameters."""
+
     model_id: str
     family: str  # gemma, qwen, llama, etc.
     variant: str  # 4b, 8b, 26b, etc.
@@ -90,7 +92,7 @@ class ModelCardRegistry:
                 "reasoning": "You are a reasoning specialist. Think step-by-step and show your work.",
                 "coding": "You are a coding expert. Write clean, efficient, well-commented code.",
                 "default": "You are a helpful assistant with strong reasoning capabilities.",
-            }
+            },
         )
 
         # Gemma-4 family
@@ -117,7 +119,7 @@ class ModelCardRegistry:
                 "creative": "You are a creative assistant with good judgment. Balance creativity with accuracy.",
                 "coding": "You are a coding specialist. Ensure all code is complete and syntactically correct.",
                 "default": "You are a helpful, harmless, and honest assistant.",
-            }
+            },
         )
 
         # Qwen3 family
@@ -140,7 +142,7 @@ class ModelCardRegistry:
                 "coding": "You are a coding specialist. Write correct, efficient code with proper error handling.",
                 "reasoning": "You are a logical reasoning assistant. Think step by step.",
                 "default": "You are a helpful assistant.",
-            }
+            },
         )
 
         # Small fast models
@@ -162,7 +164,7 @@ class ModelCardRegistry:
             context_window=2048,
             system_templates={
                 "default": "You are a fast, efficient assistant. Give direct, concise answers.",
-            }
+            },
         )
 
     def get_card(self, model_id: str) -> ModelCard | None:
@@ -204,14 +206,14 @@ class ContextEngineer:
     ) -> dict[str, Any]:
         """
         Craft optimized prompt configuration for a model.
-        
+
         Args:
             model_id: The model identifier
             user_prompt: The user's input prompt
             task_type: reasoning, coding, creative, default
             complexity: low, medium, high
             system_override: Optional system prompt override
-            
+
         Returns:
             Dict with messages, temperature, and model-specific params
         """
@@ -222,8 +224,7 @@ class ContextEngineer:
 
         # Select system prompt based on task type
         system_prompt = system_override or card.system_templates.get(
-            task_type,
-            card.system_templates.get("default", "You are a helpful assistant.")
+            task_type, card.system_templates.get("default", "You are a helpful assistant.")
         )
 
         # Adjust for complexity
@@ -279,7 +280,9 @@ class ContextEngineer:
 
         return base
 
-    def _generic_prompt(self, model_id: str, user_prompt: str, system: str | None) -> dict[str, Any]:
+    def _generic_prompt(
+        self, model_id: str, user_prompt: str, system: str | None
+    ) -> dict[str, Any]:
         """Fallback for unknown models."""
         return {
             "model": model_id,
@@ -302,13 +305,13 @@ class QualityMonitor:
 
         # Basic metrics
         words = len(text.split())
-        sentences = text.count('.') + text.count('!') + text.count('?')
+        sentences = text.count(".") + text.count("!") + text.count("?")
 
         # Substance score
         scores["substance"] = min(words / 20, 1.0) if words > 5 else 0.0
 
         # Structure score
-        has_structure = any(c in text for c in ['\n', '-', '*', '1.', '2.'])
+        has_structure = any(c in text for c in ["\n", "-", "*", "1.", "2."])
         scores["structure"] = 1.0 if has_structure else 0.5
 
         # Task-specific scoring
@@ -325,18 +328,18 @@ class QualityMonitor:
     def _score_code(self, text: str) -> float:
         """Score code quality."""
         score = 0.0
-        if '```' in text or any(kw in text for kw in ['def ', 'class ', 'import ']):
+        if "```" in text or any(kw in text for kw in ["def ", "class ", "import "]):
             score += 0.5
-        if text.count('\n') > 3:
+        if text.count("\n") > 3:
             score += 0.3
-        if any(c in text for c in ['#', '//', '/*']):
+        if any(c in text for c in ["#", "//", "/*"]):
             score += 0.2
         return min(score, 1.0)
 
     def _score_reasoning(self, text: str) -> float:
         """Score reasoning quality."""
         score = 0.0
-        markers = ['because', 'therefore', 'step', 'first', 'second', 'reason', 'conclusion']
+        markers = ["because", "therefore", "step", "first", "second", "reason", "conclusion"]
         for marker in markers:
             if marker in text.lower():
                 score += 0.15
@@ -346,7 +349,7 @@ class QualityMonitor:
 class AutoHarness:
     """
     Self-tuning harness that automatically optimizes for quality+throughput.
-    
+
     The autoharness:
     1. Discovers model capabilities through test probes
     2. Maintains optimal parameter sets per task type
@@ -379,9 +382,7 @@ class AutoHarness:
         """Get optimized payload for the model-task combination."""
 
         # Start with engineered base
-        payload = self.engineer.engineer_prompt(
-            self.model_id, user_prompt, task_type, complexity
-        )
+        payload = self.engineer.engineer_prompt(self.model_id, user_prompt, task_type, complexity)
 
         # Apply learned parameters if available
         key = f"{task_type}_{complexity}"
@@ -397,8 +398,7 @@ class AutoHarness:
                 # Prefer speed-optimized params
                 payload["temperature"] = learned.get("temperature_speed", payload["temperature"])
                 payload["max_tokens"] = min(
-                    payload["max_tokens"],
-                    learned.get("max_tokens_speed", payload["max_tokens"])
+                    payload["max_tokens"], learned.get("max_tokens_speed", payload["max_tokens"])
                 )
 
         # Exploration: occasionally try different params
@@ -409,12 +409,14 @@ class AutoHarness:
 
     def feedback(self, result: dict[str, Any], quality_scores: dict[str, float]):
         """Provide feedback to improve future optimizations."""
-        self._quality_history.append({
-            "params": result.get("params", {}),
-            "quality": quality_scores,
-            "latency_ms": result.get("latency_ms", 0),
-            "tokens": result.get("tokens", 0),
-        })
+        self._quality_history.append(
+            {
+                "params": result.get("params", {}),
+                "quality": quality_scores,
+                "latency_ms": result.get("latency_ms", 0),
+                "tokens": result.get("tokens", 0),
+            }
+        )
 
         # Update optimal params every 10 samples
         if len(self._quality_history) >= 10:
@@ -423,6 +425,7 @@ class AutoHarness:
     def _should_explore(self) -> bool:
         """Decide whether to explore new parameters."""
         import random
+
         return random.random() < self._exploration_rate
 
     def _explore_variation(self, payload: dict[str, Any], task_type: str) -> dict[str, Any]:
@@ -432,9 +435,9 @@ class AutoHarness:
         variant = payload.copy()
 
         # Vary temperature
-        variant["temperature"] = max(0.0, min(1.0,
-            payload["temperature"] + random.uniform(-0.1, 0.1)
-        ))
+        variant["temperature"] = max(
+            0.0, min(1.0, payload["temperature"] + random.uniform(-0.1, 0.1))
+        )
 
         # Vary max_tokens for speed testing
         if random.random() < 0.5:
@@ -448,23 +451,28 @@ class AutoHarness:
             return
 
         # Sort by quality and speed
-        by_quality = sorted(self._quality_history,
-                           key=lambda x: x["quality"].get("overall", 0), reverse=True)
-        by_speed = sorted(self._quality_history,
-                         key=lambda x: x["tokens"] / max(x["latency_ms"], 1), reverse=True)
+        by_quality = sorted(
+            self._quality_history, key=lambda x: x["quality"].get("overall", 0), reverse=True
+        )
+        by_speed = sorted(
+            self._quality_history, key=lambda x: x["tokens"] / max(x["latency_ms"], 1), reverse=True
+        )
 
         # Extract best for each goal
         if by_quality:
             best_q = by_quality[0]
-            self._optimal_params.setdefault("default", {})["temperature_quality"] = \
-                best_q["params"].get("temperature", 0.7)
+            self._optimal_params.setdefault("default", {})["temperature_quality"] = best_q[
+                "params"
+            ].get("temperature", 0.7)
 
         if by_speed:
             best_s = by_speed[0]
-            self._optimal_params.setdefault("default", {})["temperature_speed"] = \
-                best_s["params"].get("temperature", 0.7)
-            self._optimal_params["default"]["max_tokens_speed"] = \
-                best_s["params"].get("max_tokens", 512)
+            self._optimal_params.setdefault("default", {})["temperature_speed"] = best_s[
+                "params"
+            ].get("temperature", 0.7)
+            self._optimal_params["default"]["max_tokens_speed"] = best_s["params"].get(
+                "max_tokens", 512
+            )
 
         # Clear old history
         self._quality_history = self._quality_history[-20:]
@@ -499,16 +507,13 @@ if __name__ == "__main__":
     ]
 
     for model in models:
-        print(f"\n{'='*60}")
+        print(f"\n{'=' * 60}")
         print(f"Model: {model}")
-        print(f"{'='*60}")
+        print(f"{'=' * 60}")
 
         for task in ["coding", "reasoning", "creative"]:
             payload = engineer.engineer_prompt(
-                model,
-                "Explain recursion with an example.",
-                task_type=task,
-                complexity="high"
+                model, "Explain recursion with an example.", task_type=task, complexity="high"
             )
             print(f"\n{task.upper()}:")
             print(f"  Temp: {payload['temperature']}")

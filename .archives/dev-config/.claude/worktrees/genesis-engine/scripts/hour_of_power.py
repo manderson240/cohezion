@@ -88,9 +88,7 @@ class HourOfPowerDriver:
 
         # Gaia Action
         if random.random() < 0.2:
-            res = await self.gaia.process(
-                f"Epoch: {epoch}. Maintain homeostasis for: {vital_signs}"
-            )
+            res = await self.gaia.process(f"Epoch: {epoch}. Maintain homeostasis for: {vital_signs}")
             self._log_event(f"Gaia: {res[:50]}...")
             if "CRITICAL" in res.upper():
                 await self.dispatcher.dispatch("Gaia Alert", res[:200], color=0xFF6B6B)

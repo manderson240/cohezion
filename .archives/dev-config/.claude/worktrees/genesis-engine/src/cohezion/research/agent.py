@@ -227,9 +227,7 @@ class ResearchAgent:
             # Update session
             self.session.experiments_completed += 1
 
-            logger.info(
-                f"Experiment {exp_id} complete: {self.session.experiments_completed}/{max_exp}"
-            )
+            logger.info(f"Experiment {exp_id} complete: {self.session.experiments_completed}/{max_exp}")
 
         logger.info(f"Research session complete: {self.session}")
         return self.session

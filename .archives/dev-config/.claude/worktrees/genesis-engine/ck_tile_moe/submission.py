@@ -14,19 +14,19 @@ Optimizations for MI355X:
 - Pre-shuffled weight layout for coalesced access
 """
 
-import os
-import sys
-import subprocess
-import tempfile
 import ctypes
-from pathlib import Path
+import os
+import subprocess
+import sys
+import tempfile
+
 
 # CK-Tile headers location
 CK_TILE_INCLUDE = "/opt/rocm/include"
 HIPCC = "/opt/rocm/bin/hipcc"
 
 # CK-Tile MoE Kernel Source Code
-CK_TILE_MOE_KERNEL = r'''
+CK_TILE_MOE_KERNEL = r"""
 // SPDX-License-Identifier: MIT
 // CK-Tile Fused MoE Kernel for MI355X (gfx950)
 
@@ -230,7 +230,8 @@ PYBIND11_MODULE(ck_tile_moe, m) {
             py::arg("output")
         );
 }
-'''
+"""
+
 
 # Alternative: Direct HIP kernel wrapper for Python
 def get_hip_kernel_source():
@@ -254,7 +255,7 @@ def compile_kernel(output_path: str = None, arch: str = "gfx950") -> str:
 
     # Write kernel source to temp file
     source_path = os.path.join(tempfile.gettempdir(), "ck_tile_moe.cpp")
-    with open(source_path, 'w') as f:
+    with open(source_path, "w") as f:
         f.write(CK_TILE_MOE_KERNEL)
 
     # Compile command
@@ -271,7 +272,8 @@ def compile_kernel(output_path: str = None, arch: str = "gfx950") -> str:
         "-I/usr/include/python3.10",  # Adjust for your Python version
         "-I/usr/local/include/pybind11" if os.path.exists("/usr/local/include/pybind11") else "",
         source_path,
-        "-o", output_path,
+        "-o",
+        output_path,
         "-lhiprtc" if arch == "gfx950" else "",
     ]
 
@@ -282,16 +284,11 @@ def compile_kernel(output_path: str = None, arch: str = "gfx950") -> str:
     print(f"Command: {' '.join(compile_cmd)}")
 
     try:
-        result = subprocess.run(
-            compile_cmd,
-            capture_output=True,
-            text=True,
-            check=True
-        )
+        result = subprocess.run(compile_cmd, capture_output=True, text=True, check=True)
         print(f"Compilation successful: {output_path}")
         return output_path
     except subprocess.CalledProcessError as e:
-        print(f"Compilation failed:")
+        print("Compilation failed:")
         print(f"stdout: {e.stdout}")
         print(f"stderr: {e.stderr}")
         raise RuntimeError(f"Failed to compile kernel: {e}")
@@ -330,15 +327,15 @@ class CkTileMoeKernel:
 
     def forward(
         self,
-        input_act,           # [num_tokens, hidden_size] - fp16
-        gate_up_weights,     # [experts, 2*intermediate, hidden] - mxfp4
-        down_weights,        # [experts, hidden, intermediate] - mxfp4
-        gate_up_scales,      # [experts, 2*intermediate] - e8m0
-        down_scales,         # [experts, hidden] - e8m0
-        sorted_token_ids,    # [max_num_tokens_padded] - int32
-        sorted_weights,      # [max_num_tokens_padded] - fp16
-        sorted_expert_ids,   # [num_sorted_tiles] - int32
-        num_sorted_tiles,    # [1] - int32
+        input_act,  # [num_tokens, hidden_size] - fp16
+        gate_up_weights,  # [experts, 2*intermediate, hidden] - mxfp4
+        down_weights,  # [experts, hidden, intermediate] - mxfp4
+        gate_up_scales,  # [experts, 2*intermediate] - e8m0
+        down_scales,  # [experts, hidden] - e8m0
+        sorted_token_ids,  # [max_num_tokens_padded] - int32
+        sorted_weights,  # [max_num_tokens_padded] - fp16
+        sorted_expert_ids,  # [num_sorted_tiles] - int32
+        num_sorted_tiles,  # [1] - int32
         hidden_size: int,
         intermediate_size: int,
         num_tokens: int,
@@ -418,11 +415,11 @@ def main():
     print(f"  Target: {info['target_arch']}")
 
     print("\nBlock Shape Configuration:")
-    for key, value in info['block_shape'].items():
+    for key, value in info["block_shape"].items():
         print(f"  {key}: {value}")
 
     print("\nFeatures:")
-    for feature in info['features']:
+    for feature in info["features"]:
         print(f"  - {feature}")
 
     print("\n" + "=" * 60)

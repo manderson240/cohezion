@@ -1,4 +1,5 @@
 """Compare Ollama phi4 vs Lemonade Gemma-4 TPS."""
+
 from __future__ import annotations
 
 import time

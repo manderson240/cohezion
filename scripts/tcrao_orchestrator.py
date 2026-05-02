@@ -72,6 +72,7 @@ ARC_COMPETITIONS = {
 # K-SEARCH TREE
 # ════════════════════════════════════════════════════════════════
 
+
 @dataclass
 class ExperimentOutcome:
     run_id: str
@@ -101,7 +102,9 @@ def _load_tree(target: str, hypotheses: list[str]) -> dict:
         "target": target,
         "total_trials": 0,
         "best_score": float("-inf"),
-        "nodes": {h: {"hypothesis": h, "wins": 0, "trials": 0, "metric_values": []} for h in hypotheses},
+        "nodes": {
+            h: {"hypothesis": h, "wins": 0, "trials": 0, "metric_values": []} for h in hypotheses
+        },
     }
 
 
@@ -136,9 +139,8 @@ def _update_tree(tree: dict, outcome: ExperimentOutcome, reward: float) -> None:
 
     direction = TARGETS[outcome.target]["direction"]
     best = tree.get("best_score", float("-inf"))
-    is_improved = (
-        (direction == "maximize" and outcome.metric_value > best)
-        or (direction == "minimize" and outcome.metric_value < best)
+    is_improved = (direction == "maximize" and outcome.metric_value > best) or (
+        direction == "minimize" and outcome.metric_value < best
     )
     if is_improved:
         tree["best_score"] = outcome.metric_value
@@ -148,16 +150,21 @@ def _update_tree(tree: dict, outcome: ExperimentOutcome, reward: float) -> None:
 # LOCAL LLM INFERENCE (Tri-Compute)
 # ════════════════════════════════════════════════════════════════
 
+
 def _igpu_infer(prompt: str, max_tokens: int = 4096) -> str | None:
     """iGPU via Lemonade (Gemma-4-E4B on port 13307)."""
     try:
         import requests
+
         resp = requests.post(
             LEMONADE_URL,
             json={
                 "model": "gemma-4-e4b-it",
                 "messages": [
-                    {"role": "system", "content": "You are a reasoning specialist. Think step-by-step."},
+                    {
+                        "role": "system",
+                        "content": "You are a reasoning specialist. Think step-by-step.",
+                    },
                     {"role": "user", "content": prompt},
                 ],
                 "max_tokens": max_tokens,
@@ -174,9 +181,15 @@ def _cpu_infer(prompt: str, model: str = "phi4:latest", max_tokens: int = 2048) 
     """CPU via Ollama fallback."""
     try:
         import requests
+
         resp = requests.post(
             OLLAMA_URL,
-            json={"model": model, "prompt": prompt, "stream": False, "options": {"num_predict": max_tokens, "temperature": 0.3}},
+            json={
+                "model": model,
+                "prompt": prompt,
+                "stream": False,
+                "options": {"num_predict": max_tokens, "temperature": 0.3},
+            },
             timeout=90,
         )
         return resp.json().get("response")
@@ -215,6 +228,7 @@ def tri_infer(prompt: str, max_tokens: int = 2048, required: bool = True) -> str
 # CODE SYNTHESIS (AutoResearch)
 # ════════════════════════════════════════════════════════════════
 
+
 def _generate_code_variant(target: str, hypothesis: str) -> tuple[str, dict[str, Any], str]:
     """Generate a code variant for the target using tri-compute LLM."""
     info = TARGETS[target]
@@ -239,7 +253,9 @@ Current code (first 1500 chars):
     # Parse config delta
     delta = {"_raw": hypothesis}
     if "batch" in hypothesis:
-        delta["batch_size"] = int(re.search(r"(\d+)", hypothesis).group(1)) if re.search(r"(\d+)", hypothesis) else 32
+        delta["batch_size"] = (
+            int(re.search(r"(\d+)", hypothesis).group(1)) if re.search(r"(\d+)", hypothesis) else 32
+        )
     if "lr" in hypothesis or "rate" in hypothesis:
         num = re.search(r"([\d.e-]+)", hypothesis)
         delta["learning_rate"] = float(num.group(1)) if num else 1e-4
@@ -257,6 +273,7 @@ Current code (first 1500 chars):
 # AUTOHARNESS (Verification before eval)
 # ════════════════════════════════════════════════════════════════
 
+
 def _verify_code(code: str, target: str) -> tuple[bool, str]:
     """Quick pre-flight: check syntax, imports, and basic structure."""
     if not code or not code.strip():
@@ -267,6 +284,7 @@ def _verify_code(code: str, target: str) -> tuple[bool, str]:
     tmp.write_text(code)
     try:
         import py_compile
+
         py_compile.compile(tmp, doraise=True)
         return True, "Syntax OK"
     except py_compile.PyCompileError as e:
@@ -279,6 +297,7 @@ def _verify_code(code: str, target: str) -> tuple[bool, str]:
 # EVALUATION
 # ════════════════════════════════════════════════════════════════
 
+
 def _evaluate_arc_solver(code: str, timeout: int = 60) -> tuple[float, str]:
     """Real ARC evaluation using local eval harness."""
     # Write variant to temp file
@@ -287,8 +306,16 @@ def _evaluate_arc_solver(code: str, timeout: int = 60) -> tuple[float, str]:
 
     try:
         proc = subprocess.run(
-            [sys.executable, str(COHEZION_ROOT / "scripts" / "eval_arc_solver.py"),
-             "--solver", str(tmp_solver), "--budget", "3000", "--max-depth", "3"],
+            [
+                sys.executable,
+                str(COHEZION_ROOT / "scripts" / "eval_arc_solver.py"),
+                "--solver",
+                str(tmp_solver),
+                "--budget",
+                "3000",
+                "--max-depth",
+                "3",
+            ],
             capture_output=True,
             text=True,
             timeout=timeout,
@@ -339,7 +366,10 @@ def _metric_to_reward(target: str, value: float) -> float:
 # AUTORESEARCH LOOP (Main)
 # ════════════════════════════════════════════════════════════════
 
-def run_autoresearch(target: str, hypotheses: list[str], iterations: int = 1) -> list[ExperimentOutcome]:
+
+def run_autoresearch(
+    target: str, hypotheses: list[str], iterations: int = 1
+) -> list[ExperimentOutcome]:
     tree = _load_tree(target, hypotheses)
     outcomes: list[ExperimentOutcome] = []
     info = TARGETS[target]
@@ -348,7 +378,7 @@ def run_autoresearch(target: str, hypotheses: list[str], iterations: int = 1) ->
 
     for i in range(iterations):
         hypothesis = _ucb1_select(tree)
-        _LOGGER.info(f"[{i+1}/{iterations}] Hypothesis='{hypothesis}'")
+        _LOGGER.info(f"[{i + 1}/{iterations}] Hypothesis='{hypothesis}'")
 
         start = time.perf_counter()
 
@@ -363,9 +393,14 @@ def run_autoresearch(target: str, hypotheses: list[str], iterations: int = 1) ->
         if not ok:
             _LOGGER.warning(f"Harness FAILED: {msg}")
             outcome = ExperimentOutcome(
-                run_id=f"tcrao_{uuid.uuid4().hex[:8]}", target=target,
-                hypothesis=hypothesis, config_delta=delta, metric_value=0.0,
-                wall_time_s=time.perf_counter() - start, status="error", compute_tier=tier,
+                run_id=f"tcrao_{uuid.uuid4().hex[:8]}",
+                target=target,
+                hypothesis=hypothesis,
+                config_delta=delta,
+                metric_value=0.0,
+                wall_time_s=time.perf_counter() - start,
+                status="error",
+                compute_tier=tier,
             )
             _update_tree(tree, outcome, 0.0)
             outcomes.append(outcome)
@@ -387,9 +422,14 @@ def run_autoresearch(target: str, hypotheses: list[str], iterations: int = 1) ->
         status = "improvement" if is_improved else "regression" if metric_value > 0 else "error"
 
         outcome = ExperimentOutcome(
-            run_id=f"tcrao_{uuid.uuid4().hex[:8]}", target=target,
-            hypothesis=hypothesis, config_delta=delta, metric_value=metric_value,
-            wall_time_s=wall_time, status=status, compute_tier=tier,
+            run_id=f"tcrao_{uuid.uuid4().hex[:8]}",
+            target=target,
+            hypothesis=hypothesis,
+            config_delta=delta,
+            metric_value=metric_value,
+            wall_time_s=wall_time,
+            status=status,
+            compute_tier=tier,
         )
 
         reward = _metric_to_reward(target, metric_value)
@@ -412,6 +452,7 @@ def run_autoresearch(target: str, hypotheses: list[str], iterations: int = 1) ->
 # ════════════════════════════════════════════════════════════════
 # AUTOPERSIST (Vault logging)
 # ════════════════════════════════════════════════════════════════
+
 
 def persist_to_vault(outcomes: list[ExperimentOutcome]) -> None:
     VAULT_DIR.mkdir(parents=True, exist_ok=True)
@@ -454,6 +495,7 @@ timestamp: {o.timestamp}
 
 if __name__ == "__main__":
     import argparse
+
     parser = argparse.ArgumentParser(description="Tri-Compute AutoResearch Orchestrator")
     parser.add_argument("--target", choices=list(TARGETS.keys()), default="arc_solver")
     parser.add_argument("--iterations", type=int, default=2, help="Experiments per target per run")

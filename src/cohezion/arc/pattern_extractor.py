@@ -47,18 +47,19 @@ Program = Callable[[Grid], Grid | None]
 # CompoundRule dataclass
 # ---------------------------------------------------------------------------
 
+
 @dataclass(frozen=True, slots=True)
 class CompoundRule:
     """A verified transformation rule extracted by compound engineering."""
 
-    name: str                          # e.g. "color_map + gravity_down"
-    ops: tuple[str, ...]               # ordered primitive names
-    confidence: float                    # 0..1, compound consensus score
-    train_coverage: float              # fraction of train examples matched
-    strategy_votes: int                # how many search strategies agreed
-    hiho_score: float                 # geometric coherence of the rule
-    latent_delta: tuple[float, ...]   # mean 256-D delta vector (latent analogy)
-    signature: str                     # deterministic SHA-256 of op sequence
+    name: str  # e.g. "color_map + gravity_down"
+    ops: tuple[str, ...]  # ordered primitive names
+    confidence: float  # 0..1, compound consensus score
+    train_coverage: float  # fraction of train examples matched
+    strategy_votes: int  # how many search strategies agreed
+    hiho_score: float  # geometric coherence of the rule
+    latent_delta: tuple[float, ...]  # mean 256-D delta vector (latent analogy)
+    signature: str  # deterministic SHA-256 of op sequence
 
     def to_dict(self) -> dict[str, Any]:
         return {
@@ -89,6 +90,7 @@ class CompoundRule:
 # ---------------------------------------------------------------------------
 # Primitive registry (inline fallback so extractor works even if solver import fails)
 # ---------------------------------------------------------------------------
+
 
 def _identity(g: Grid) -> Grid:
     return [r[:] for r in g]
@@ -134,6 +136,7 @@ def _invert_colors(g: Grid) -> Grid | None:
 
 def _most_common_color(g: Grid) -> int:
     from collections import Counter
+
     cnt = Counter(c for row in g for c in row)
     return cnt.most_common(1)[0][0] if cnt else 0
 
@@ -228,6 +231,7 @@ def _gravity_up(g: Grid) -> Grid | None:
 
 # Parametric color-map wrapper
 
+
 def _color_map(g: Grid, train: list[dict[str, Grid]]) -> Grid | None:
     """Learn a color mapping from input->output statistics across all train pairs."""
     mapping: dict[int, int] = {}
@@ -255,12 +259,14 @@ def _color_map(g: Grid, train: list[dict[str, Grid]]) -> Grid | None:
 def _make_replace(old: int, new: int):
     def fn(g: Grid) -> Grid | None:
         return _replace_color(g, old, new)
+
     return fn
 
 
 def _make_color_map(train: list[dict[str, Grid]]):
     def fn(g: Grid) -> Grid | None:
         return _color_map(g, train)
+
     return fn
 
 
@@ -279,6 +285,7 @@ def _make_upsample(n: int):
             for _ in range(n):
                 result.append(new_row)
         return result
+
     return fn
 
 
@@ -290,12 +297,14 @@ def _make_downsample(n: int):
         if rows % n != 0 or cols % n != 0:
             return None
         return [[g[r][c] for c in range(0, cols, n)] for r in range(0, rows, n)]
+
     return fn
 
 
 # ---------------------------------------------------------------------------
 # Strategy builders
 # ---------------------------------------------------------------------------
+
 
 def _build_strategy(name: str, train: list[dict[str, Grid]]) -> list[tuple[str, Program]]:
     """Return a focused list of primitives for a named strategy."""
@@ -308,11 +317,20 @@ def _build_strategy(name: str, train: list[dict[str, Grid]]) -> list[tuple[str, 
         ("rot180", _rot180),
     ]
 
-    color: list[tuple[str, Program]] = base + [
-        ("invert", _invert_colors),
-        ("remove_bg", _remove_bg),
-        ("fill_holes", _fill_holes),
-    ] + [(f"replace_{old}_{new}", _make_replace(old, new)) for old in range(10) for new in range(10) if old != new]
+    color: list[tuple[str, Program]] = (
+        base
+        + [
+            ("invert", _invert_colors),
+            ("remove_bg", _remove_bg),
+            ("fill_holes", _fill_holes),
+        ]
+        + [
+            (f"replace_{old}_{new}", _make_replace(old, new))
+            for old in range(10)
+            for new in range(10)
+            if old != new
+        ]
+    )
 
     geo = base + [
         ("mirror_h", _mirror_h),
@@ -354,6 +372,7 @@ def _make_parametric_scale() -> list[tuple[str, Program]]:
 # ---------------------------------------------------------------------------
 # Pattern Extractor
 # ---------------------------------------------------------------------------
+
 
 class PatternExtractor:
     """
@@ -449,7 +468,9 @@ class PatternExtractor:
     # ------------------------------------------------------------------
     # Search core
     # ------------------------------------------------------------------
-    def _search(self, train: list[dict[str, Grid]], ops: list[tuple[str, Program]]) -> list[tuple[str, Program]] | None:
+    def _search(
+        self, train: list[dict[str, Grid]], ops: list[tuple[str, Program]]
+    ) -> list[tuple[str, Program]] | None:
         self._counter[0] = 0
         for depth in range(1, self.max_depth + 1):
             result = self._dfs(train, depth, ops)
@@ -509,7 +530,9 @@ class PatternExtractor:
                 matched += 1
         return matched / len(train)
 
-    def _compute_hiho(self, train: list[dict[str, Grid]], program: list[tuple[str, Program]]) -> float:
+    def _compute_hiho(
+        self, train: list[dict[str, Grid]], program: list[tuple[str, Program]]
+    ) -> float:
         """Average HIHO coherence over transformed outputs."""
         try:
             import numpy as np
@@ -527,7 +550,9 @@ class PatternExtractor:
                 hihos.append(enc.get("hiho", 0.5))
         return float(np.mean(hihos)) if hihos else 0.5
 
-    def _compute_latent_delta(self, train: list[dict[str, Grid]], program: list[tuple[str, Program]]) -> list[float]:
+    def _compute_latent_delta(
+        self, train: list[dict[str, Grid]], program: list[tuple[str, Program]]
+    ) -> list[float]:
         """Mean latent_12 delta between input and output across train examples."""
         try:
             import numpy as np
@@ -577,7 +602,9 @@ if __name__ == "__main__":
     rules = extractor.extract(task)
     print(f"Extracted {len(rules)} rule(s)")
     for r in rules:
-        print(f"  {r.name} | conf={r.confidence:.2f} | votes={r.strategy_votes} | hiho={r.hiho_score:.3f}")
+        print(
+            f"  {r.name} | conf={r.confidence:.2f} | votes={r.strategy_votes} | hiho={r.hiho_score:.3f}"
+        )
     # Expect invert to appear with high confidence
     assert any("invert" in r.name for r in rules), "Expected invert rule"
     print("PatternExtractor OK")

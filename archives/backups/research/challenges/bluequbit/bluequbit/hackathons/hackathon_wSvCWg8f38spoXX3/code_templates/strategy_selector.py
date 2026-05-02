@@ -6,11 +6,12 @@ Automatically selects best strategy based on problem characteristics
 import sys
 from pathlib import Path
 
+
 sys.path.insert(0, str(Path(__file__).parent))
 
-from enum import Enum
 from dataclasses import dataclass
-from typing import Dict, List, Optional, Callable
+from enum import Enum
+
 import qiskit
 from circuit_library import CircuitLibrary
 
@@ -32,14 +33,14 @@ class StrategyRecommendation:
 
     challenge_type: ChallengeType
     primary_strategy: str
-    secondary_strategy: Optional[str]
+    secondary_strategy: str | None
     device: str
     shots: int
-    bond_dimension: Optional[int]
+    bond_dimension: int | None
     estimated_time: str
     estimated_cost: str
     confidence: float
-    justification: List[str]
+    justification: list[str]
 
 
 class StrategySelector:
@@ -62,10 +63,10 @@ class StrategySelector:
 
     def analyze_challenge(
         self,
-        circuit: Optional[qiskit.QuantumCircuit] = None,
-        n_qubits: Optional[int] = None,
-        target: Optional[str] = None,
-        objective: Optional[str] = None,
+        circuit: qiskit.QuantumCircuit | None = None,
+        n_qubits: int | None = None,
+        target: str | None = None,
+        objective: str | None = None,
     ) -> ChallengeType:
         """
         Analyze challenge characteristics to determine type.
@@ -302,8 +303,8 @@ class StrategySelector:
     def execute_strategy(
         self,
         recommendation: StrategyRecommendation,
-        circuit: Optional[qiskit.QuantumCircuit] = None,
-    ) -> Dict:
+        circuit: qiskit.QuantumCircuit | None = None,
+    ) -> dict:
         """
         Execute the recommended strategy.
 
@@ -453,7 +454,7 @@ def demo_strategy_selector():
             challenge_type, test["n_qubits"], budget=test["budget"]
         )
 
-        print(f"\nRecommendation:")
+        print("\nRecommendation:")
         print(f"  Primary Strategy: {recommendation.primary_strategy}")
         print(f"  Secondary Strategy: {recommendation.secondary_strategy}")
         print(f"  Device: {recommendation.device}")
@@ -463,13 +464,13 @@ def demo_strategy_selector():
         print(f"  Estimated Cost: {recommendation.estimated_cost}")
         print(f"  Confidence: {recommendation.confidence:.1%}")
 
-        print(f"\nJustification:")
+        print("\nJustification:")
         for j in recommendation.justification:
             print(f"  • {j}")
 
         # Execute
         result = selector.execute_strategy(recommendation)
-        print(f"\nExecution Plan:")
+        print("\nExecution Plan:")
         for step in result.get("steps", []):
             print(f"  {step}")
 

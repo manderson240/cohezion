@@ -150,8 +150,7 @@ class ResourceGuard:
             return GuardrailResult(
                 action=GuardrailAction.BLOCK,
                 reason=(
-                    f"System at capacity ({self.current_requests}/"
-                    f"{self.max_concurrent_requests})"
+                    f"System at capacity ({self.current_requests}/{self.max_concurrent_requests})"
                 ),
                 guard_name="resource",
             )

@@ -26,15 +26,15 @@ Reference: "The Lottery Ticket Hypothesis", ICLR 2019.
 """
 
 from __future__ import annotations
+
 import os
-from typing import Dict, List, Set, Tuple
 from dataclasses import dataclass
+
 
 os.environ["AITER_USE_NT"] = "1"
 os.environ["AITER_KSPLIT"] = "2"
 
 import torch
-import torch.nn.functional as F
 from aiter import ActivationType, QuantType
 from aiter.fused_moe import fused_moe
 from task import input_t, output_t
@@ -64,10 +64,10 @@ class LotteryTicketFinder:
         self.pruning_rate = pruning_rate
 
         self.current_sparsity = 0.0
-        self.tickets: List[LotteryTicket] = []
+        self.tickets: list[LotteryTicket] = []
 
     def compute_importance_scores(
-        self, hidden_states: torch.Tensor, expert_outputs: List[torch.Tensor]
+        self, hidden_states: torch.Tensor, expert_outputs: list[torch.Tensor]
     ) -> torch.Tensor:
         """Compute importance scores for expert connections.
 
@@ -101,7 +101,7 @@ class LotteryTicketFinder:
         return new_mask
 
     def find_ticket(
-        self, hidden_states: torch.Tensor, expert_outputs: List[torch.Tensor]
+        self, hidden_states: torch.Tensor, expert_outputs: list[torch.Tensor]
     ) -> LotteryTicket:
         """Find a winning lottery ticket.
 
@@ -133,7 +133,7 @@ class LotteryTicketFinder:
 
     def apply_ticket(
         self, topk_weights: torch.Tensor, topk_ids: torch.Tensor, ticket: LotteryTicket
-    ) -> Tuple[torch.Tensor, torch.Tensor]:
+    ) -> tuple[torch.Tensor, torch.Tensor]:
         """Apply winning ticket to routing.
 
         Args:
@@ -161,11 +161,11 @@ class LotteryTicketFinder:
 
 def _lottery_ticket_routing(
     hidden_states: torch.Tensor,
-    expert_outputs: List[torch.Tensor],
+    expert_outputs: list[torch.Tensor],
     topk_weights: torch.Tensor,
     topk_ids: torch.Tensor,
     num_experts: int,
-) -> Tuple[torch.Tensor, torch.Tensor]:
+) -> tuple[torch.Tensor, torch.Tensor]:
     """Apply lottery ticket pruning to routing.
 
     Returns:

@@ -5,18 +5,13 @@ using InVEST biophysical grounding.
 
 from __future__ import annotations
 
-import asyncio
 import logging
-import numpy as np
-from typing import Any, Dict, List, Tuple, Optional
-from pydantic import BaseModel, Field
 
-from cohezion.compound.eco_symphony import EcoResilienceCompoundEngine, CompoundEcoSymphony
-from cohezion.compound.invest.bridge import InVESTBridge, InvestState
-from cohezion.agents.specialists.ecoresilience_agent import EcoResilienceAgent
-from cohezion.compound.resilience_loop import EcoResilienceCompoundLoop
-from cohezion.compound.stability_guard import HIHOStabilityGuard
-from cohezion.compound.meta_reviewer import MetaReviewer
+from pydantic import BaseModel
+
+from cohezion.compound.eco_symphony import EcoResilienceCompoundEngine
+from cohezion.compound.invest.bridge import InVESTBridge
+
 
 logger = logging.getLogger(__name__)
 
@@ -71,7 +66,7 @@ class ScenarioModeler:
             is_stable=symphony.manifold_state.stability,
         )
 
-    async def run_tradeoff_analysis(self, scenarios: Dict[str, str]) -> List[ScenarioOutcome]:
+    async def run_tradeoff_analysis(self, scenarios: dict[str, str]) -> list[ScenarioOutcome]:
         """
         Evaluates multiple scenarios and identifies the optimal tradeoff.
         """

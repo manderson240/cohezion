@@ -31,14 +31,14 @@ from __future__ import annotations
 
 import os
 
+
 os.environ["AITER_USE_NT"] = "1"
 
 import torch
-
-import aiter
 from aiter import ActivationType, QuantType
 from aiter.fused_moe import fused_moe
 from task import input_t, output_t
+
 
 # Thresholds for early-exit decisions
 DOMINANCE_THRESHOLD = 0.55  # If one expert has weight > 55%, consider early exit
@@ -215,7 +215,7 @@ def custom_kernel(data: input_t) -> output_t:
 
         return output
 
-    except Exception as e:
+    except Exception:
         # FALLBACK: Use baseline fused_moe
         # The baseline is proven correct in reference_implementation.py
 

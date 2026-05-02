@@ -34,15 +34,16 @@ from __future__ import annotations
 import math
 import os
 import sys
-from typing import Tuple
 
 import torch
+
 
 # POPCORN environment setup
 os.environ["PYTORCH_ROCM_ARCH"] = "gfx950"
 
 from aiter import gemm_a4w4
 from task import input_t, output_t
+
 
 # =============================================================================
 # Configuration Constants
@@ -161,7 +162,7 @@ def fwht_2d_butterfly(x: torch.Tensor, normalize: bool = True) -> torch.Tensor:
 
 def quantize_to_fp4_hadamard(
     x: torch.Tensor, scale: torch.Tensor | None = None
-) -> Tuple[torch.Tensor, torch.Tensor]:
+) -> tuple[torch.Tensor, torch.Tensor]:
     """Quantize tensor to FP4 in Hadamard domain.
 
         Quantizing in Hadamard domain can preserve more structure compared

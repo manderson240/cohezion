@@ -37,9 +37,11 @@ logger = logging.getLogger(__name__)
 # DATA STRUCTURES
 # ==========================================
 
+
 @dataclass
 class ExecutionResult:
     """Result of a task execution."""
+
     task_id: str
     success: bool
     output: str
@@ -51,17 +53,21 @@ class ExecutionResult:
     degraded: bool = False
     metadata: dict = field(default_factory=dict)
 
+
 @dataclass
 class CoherenceReading:
     """HIHO coherence measurement."""
+
     timestamp: float
     value: float  # 0.0-1.0
     regime: str  # sub-HIHO, HIHO-stable, super-HIHO
     recommendation: str
 
+
 @dataclass
 class WorkflowSession:
     """Tracks a complete compound engineering session."""
+
     session_id: str
     start_time: float
     executions: list[ExecutionResult] = field(default_factory=list)
@@ -69,9 +75,11 @@ class WorkflowSession:
     learnings: list[dict] = field(default_factory=list)
     skill_refinements: list[dict] = field(default_factory=list)
 
+
 # ==========================================
 # SKILL 1: COMPOUND ENGINEERING (Core Loop)
 # ==========================================
+
 
 class CompoundEngine:
     """Execute → Retrospect → Refine loop."""
@@ -203,9 +211,11 @@ class CompoundEngine:
 
         return min(1.0, coherence)
 
+
 # ==========================================
 # SKILL 2: HIHO STABILITY
 # ==========================================
+
 
 class HIHOMonitor:
     """Monitor and maintain 0.5 coherence point."""
@@ -240,9 +250,11 @@ class HIHOMonitor:
             return coherence - random.uniform(0.05, 0.15)
         return coherence
 
+
 # ==========================================
 # SKILL 3: FLUME (Experience Encoding)
 # ==========================================
+
 
 class FlumeEncoder:
     """Encode experiences to 256D vectors."""
@@ -296,9 +308,11 @@ class FlumeEncoder:
 
         return sorted(similar, key=lambda x: x["similarity"], reverse=True)
 
+
 # ==========================================
 # SKILL 4: MODEL ROUTING
 # ==========================================
+
 
 class ModelRouter:
     """Intelligent local LLM selection."""
@@ -347,9 +361,11 @@ class ModelRouter:
         # In real implementation: subprocess.run(["ollama", "list"], ...)
         return True
 
+
 # ==========================================
 # SKILL 5: RETROSPECTIVE (Pattern Extraction)
 # ==========================================
+
 
 class RetrospectionEngine:
     """Extract patterns and refine skills."""
@@ -409,22 +425,26 @@ class RetrospectionEngine:
         suggestions = []
         for domain, learnings in by_domain.items():
             if len(learnings) >= 3:
-                suggestions.append({
-                    "skill_name": f"{domain.upper()}_PRIME",
-                    "reason": f"{len(learnings)} learnings accumulated",
-                    "suggested_additions": [l["title"] for l in learnings[:5]],
-                })
+                suggestions.append(
+                    {
+                        "skill_name": f"{domain.upper()}_PRIME",
+                        "reason": f"{len(learnings)} learnings accumulated",
+                        "suggested_additions": [l["title"] for l in learnings[:5]],
+                    }
+                )
 
         return suggestions
+
 
 # ==========================================
 # AGENTIC WORKFLOW: AUTO-IMPROVING CODE REVIEW
 # ==========================================
 
+
 class AutoImprovingCodeReviewAgent:
     """
     Code review agent that continuously improves using compound engineering.
-    
+
     Each code review:
     1. Checks alignment before execution
     2. Monitors HIHO stability throughout
@@ -451,24 +471,25 @@ class AutoImprovingCodeReviewAgent:
     async def review_code(self, code_snippet: str, context: str = "") -> dict:
         """
         Review code with compound engineering.
-        
+
         Args:
             code_snippet: Code to review
             context: Additional context
-            
+
         Returns:
             Review results with learnings
         """
         # Step 1: Alignment Check (COMPOUND ENGINEERING)
         task = f"Review code: {context}\n\n{code_snippet[:200]}"
         alignment = self.compound.check_alignment(
-            task,
-            ["code_review", "security_analysis", "style_check"]
+            task, ["code_review", "security_analysis", "style_check"]
         )
 
-        logger.info(f"Alignment: {alignment['coherence']:.2f} (proceed={alignment['should_proceed']})")
+        logger.info(
+            f"Alignment: {alignment['coherence']:.2f} (proceed={alignment['should_proceed']})"
+        )
 
-        if not alignment['should_proceed']:
+        if not alignment["should_proceed"]:
             return {
                 "proceeded": False,
                 "reason": f"Low alignment: {alignment['issues']}",
@@ -513,7 +534,9 @@ class AutoImprovingCodeReviewAgent:
         hiho_reading = self.hiho.diagnose(result.coherence)
         self.session.coherence_history.append(hiho_reading)
 
-        logger.info(f"HIHO: {result.coherence:.2f} → {hiho_reading.regime} ({hiho_reading.recommendation})")
+        logger.info(
+            f"HIHO: {result.coherence:.2f} → {hiho_reading.regime} ({hiho_reading.recommendation})"
+        )
 
         if hiho_reading.recommendation == "inject_langevin_noise":
             result.coherence = self.hiho.apply_damping(result.coherence)
@@ -561,8 +584,10 @@ class AutoImprovingCodeReviewAgent:
         successful = sum(1 for e in self.session.executions if e.success)
         avg_coherence = sum(e.coherence for e in self.session.executions) / total_execs
 
-        logger.info(f"Session retro: {successful}/{total_execs} successful, "
-                   f"avg_coherence={avg_coherence:.2f}")
+        logger.info(
+            f"Session retro: {successful}/{total_execs} successful, "
+            f"avg_coherence={avg_coherence:.2f}"
+        )
 
         # Suggest skill refinements
         refinements = self.retro.suggest_skill_refinement(self.session)
@@ -575,15 +600,19 @@ class AutoImprovingCodeReviewAgent:
             "total_executions": total_execs,
             "success_rate": successful / total_execs,
             "avg_coherence": avg_coherence,
-            "hiho_stable": sum(1 for h in self.session.coherence_history
-                            if h.regime == "HIHO-stable") / len(self.session.coherence_history),
+            "hiho_stable": sum(
+                1 for h in self.session.coherence_history if h.regime == "HIHO-stable"
+            )
+            / len(self.session.coherence_history),
             "learnings_extracted": len(self.session.learnings),
             "skill_refinements_suggested": len(refinements),
         }
 
+
 # ==========================================
 # DEMONSTRATION
 # ==========================================
+
 
 async def main():
     """Run the agentic workflow demonstration."""
@@ -600,16 +629,14 @@ async def main():
     # Test cases: vary in quality to demonstrate compound loop
     test_snippets = [
         # Clear, specific (high alignment)
-        ("def process_data(data):\n    return [x*2 for x in data]",
-         "Data processing function"),
-
+        ("def process_data(data):\n    return [x*2 for x in data]", "Data processing function"),
         # Vague (low alignment)
-        ("x = 5\ny = 10",
-         "Something with variables"),
-
+        ("x = 5\ny = 10", "Something with variables"),
         # Complex (moderate alignment)
-        ("import json\n\nclass Config:\n    def load(self, path):\n        with open(path) as f:\n            return json.load(f)",
-         "Configuration loader"),
+        (
+            "import json\n\nclass Config:\n    def load(self, path):\n        with open(path) as f:\n            return json.load(f)",
+            "Configuration loader",
+        ),
     ]
 
     print(f"Processing {len(test_snippets)} code reviews...")
@@ -627,7 +654,7 @@ async def main():
             print(f"  Compound Score: {result['analysis']['compound_score']:.3f}")
             print(f"  Similar experiences: {result['similar_experiences']}")
 
-            if result['analysis']['should_refine']:
+            if result["analysis"]["should_refine"]:
                 print("  ✓ Learning extracted")
         else:
             print(f"  Status: ✗ Blocked ({result['reason']})")
@@ -655,6 +682,7 @@ async def main():
     print("  ✓ cohezion-model-routing (task classification, model selection)")
     print("  ✓ cohezion-retrospective (pattern extraction, refinements)")
     print("=" * 70)
+
 
 if __name__ == "__main__":
     asyncio.run(main())

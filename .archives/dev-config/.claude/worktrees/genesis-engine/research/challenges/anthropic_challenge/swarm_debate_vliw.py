@@ -56,11 +56,7 @@ def swarm_debate():
         journey.append({"round": 1, "role": role, "response": resp})
 
     # Round 2: Rebuttal and Cross-Pollination
-    full_context = (
-        core_context
-        + "\n"
-        + "\n".join([f"{j['role']}: {j['response'][:1000]}" for j in journey])
-    )
+    full_context = core_context + "\n" + "\n".join([f"{j['role']}: {j['response'][:1000]}" for j in journey])
     for role, model in specialists.items():
         prompt = f"Role: {role}. Review these proposals:\n{full_context}\nPoint out flaws and refine the architecture. How do we beat the 4-cycle memory wall?"
         resp = call_ollama(model, prompt)

@@ -24,9 +24,10 @@ Expected: 20-40% throughput improvement for batched workloads
 from __future__ import annotations
 
 import os
+
 import torch
-from typing import List
 from task import input_t, output_t
+
 
 # Try aiter
 try:
@@ -46,7 +47,7 @@ class BatchedGEMM:
 
     def stack_into_batch(
         self,
-        matrices: List[torch.Tensor],
+        matrices: list[torch.Tensor],
     ) -> torch.Tensor:
         """Stack matrices into batch dimension.
 
@@ -77,9 +78,9 @@ class BatchedGEMM:
 
     def compute_grouped(
         self,
-        a_list: List[torch.Tensor],
-        b_list: List[torch.Tensor],
-    ) -> List[torch.Tensor]:
+        a_list: list[torch.Tensor],
+        b_list: list[torch.Tensor],
+    ) -> list[torch.Tensor]:
         """Compute grouped GEMM via batching.
 
         Args:

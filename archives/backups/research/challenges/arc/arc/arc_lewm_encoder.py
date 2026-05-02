@@ -7,11 +7,11 @@ fixed-dimensional latent embeddings suitable for JEPA world model training.
 from __future__ import annotations
 
 import logging
-from typing import Callable
 
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
+
 
 logger = logging.getLogger(__name__)
 
@@ -158,9 +158,7 @@ class ARCGridEncoder(nn.Module):
                 if m.bias is not None:
                     nn.init.constant_(m.bias, 0)
 
-    def forward(
-        self, x: torch.Tensor
-    ) -> tuple[torch.Tensor, torch.Tensor, torch.Tensor]:
+    def forward(self, x: torch.Tensor) -> tuple[torch.Tensor, torch.Tensor, torch.Tensor]:
         """Encode ARC grid tensor to latent embedding.
 
         Args:
@@ -324,12 +322,14 @@ class ARCPredictor(nn.Module):
         ]
 
         for _ in range(num_layers - 1):
-            layers.extend([
-                nn.Linear(hidden_dim, hidden_dim),
-                nn.LayerNorm(hidden_dim),
-                nn.GELU(),
-                nn.Dropout(dropout),
-            ])
+            layers.extend(
+                [
+                    nn.Linear(hidden_dim, hidden_dim),
+                    nn.LayerNorm(hidden_dim),
+                    nn.GELU(),
+                    nn.Dropout(dropout),
+                ]
+            )
 
         layers.append(nn.Linear(hidden_dim, embed_dim))
 
@@ -344,9 +344,7 @@ class ARCPredictor(nn.Module):
                 if m.bias is not None:
                     nn.init.zeros_(m.bias)
 
-    def forward(
-        self, state_emb: torch.Tensor, action_emb: torch.Tensor
-    ) -> torch.Tensor:
+    def forward(self, state_emb: torch.Tensor, action_emb: torch.Tensor) -> torch.Tensor:
         """Predict next embedding.
 
         Args:
@@ -419,10 +417,10 @@ class ARCCausalMask(nn.Module):
 
 
 __all__ = [
-    "ARCGridEncoder",
     "ARCActionEncoder",
-    "ARCPredictor",
     "ARCCausalMask",
+    "ARCGridEncoder",
+    "ARCPredictor",
     "AdaptiveGridPool",
     "ResidualBlock",
 ]

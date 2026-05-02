@@ -157,9 +157,7 @@ class BaseAgent(ABC):
             content += ":" + ":".join(images[:3])  # Use first 3 images for keying
         return hashlib.sha256(content.encode()).hexdigest()
 
-    async def _get_cached(
-        self, prompt: str, images: list[str] | None = None
-    ) -> dict[str, Any] | None:
+    async def _get_cached(self, prompt: str, images: list[str] | None = None) -> dict[str, Any] | None:
         """Retrieve a cached response if available and not expired."""
         key = self._cache_key(prompt, images)
         cache_file = self.cache_dir / f"{key}.json"
@@ -215,9 +213,7 @@ class BaseAgent(ABC):
             "confidence": confidence,
             "alignment_score": alignment_score,
             "narration": narration,
-            "images_hash": hashlib.sha256(":".join(images).encode()).hexdigest()
-            if images
-            else None,
+            "images_hash": hashlib.sha256(":".join(images).encode()).hexdigest() if images else None,
             "timestamp": time.time(),
         }
         cache_file.write_text(json.dumps(data, ensure_ascii=False))
@@ -284,9 +280,7 @@ class BaseAgent(ABC):
 
         # Parse results
         results = self._batch_mgr.parse_batch_response(str(response))
-        logger.info(
-            f"✅ Batch processing complete. {len(results)}/{batch['count']} results parsed."
-        )
+        logger.info(f"✅ Batch processing complete. {len(results)}/{batch['count']} results parsed.")
 
         return results
 
@@ -364,9 +358,7 @@ class BaseAgent(ABC):
         # 1. Input Security Check (LLM01, LLM07)
         security_analysis = self._security_guard.analyze(prompt)
         if security_analysis.threat_level == ThreatLevel.MALICIOUS:
-            logger.error(
-                f"⚠️ SECURITY BLOCK: Malicious input detected: {security_analysis.matched_patterns}"
-            )
+            logger.error(f"⚠️ SECURITY BLOCK: Malicious input detected: {security_analysis.matched_patterns}")
             await tk.log_event(
                 agent_name=self.__class__.__name__,
                 event_type="SECURITY_BLOCK",
@@ -386,9 +378,7 @@ class BaseAgent(ABC):
 
         if not self._credit_manager.can_afford(agent_id, active_model):
             active_model = self._credit_manager.get_best_affordable_model(agent_id, active_model)
-            logger.warning(
-                f"Agent {agent_id} cannot afford {self.model_name}. Downgraded to {active_model}."
-            )
+            logger.warning(f"Agent {agent_id} cannot afford {self.model_name}. Downgraded to {active_model}.")
 
         self._metrics["total_calls"] += 1
         monitor = get_resource_monitor()
@@ -470,16 +460,12 @@ class BaseAgent(ABC):
                 # Check for stability well breakthrough
                 if phi_score >= self.config.min_phi_threshold:
                     final_result = result
-                    logger.info(
-                        f"✨ Stability Well reached in round {round_idx + 1} (Phi: {phi_score:.2f})"
-                    )
+                    logger.info(f"✨ Stability Well reached in round {round_idx + 1} (Phi: {phi_score:.2f})")
                     break
 
                 # Prepare refinement or exit
                 if round_idx < self.config.max_refinement_rounds - 1:
-                    logger.info(
-                        f"🔄 Low coherence ({phi_score:.2f}). Triggering refinement round {round_idx + 2}..."
-                    )
+                    logger.info(f"🔄 Low coherence ({phi_score:.2f}). Triggering refinement round {round_idx + 2}...")
                     current_prompt = (
                         f"{effective_prompt}\n\n"
                         f"PREVIOUS ATTEMPT: {result}\n\n"
@@ -522,9 +508,7 @@ class BaseAgent(ABC):
             logger.debug(f"FLUME encoding unavailable, skipping: {e}")
 
         # 2.5 Journey Narration
-        narration = self._narrator.generate_narration(
-            self.__class__.__name__, prompt[:100], final_result
-        )
+        narration = self._narrator.generate_narration(self.__class__.__name__, prompt[:100], final_result)
         await self._narrator.narrate(narration)
 
         # Persistence & Cache
@@ -755,9 +739,7 @@ Provide output in JSON format: {{"phi_score": 0.85, "confidence": 0.90}}
             **self._metrics,
             "model": self.model_name,
             "cache_hit_rate": (self._metrics["cache_hits"] / max(1, self._metrics["total_calls"])),
-            "avg_latency_ms": (
-                self._metrics["total_latency_ms"] / max(1, self._metrics["total_calls"])
-            ),
+            "avg_latency_ms": (self._metrics["total_latency_ms"] / max(1, self._metrics["total_calls"])),
             "timestamp": get_time_keeper().now_iso,
         }
 
@@ -775,16 +757,12 @@ Provide output in JSON format: {{"phi_score": 0.85, "confidence": 0.90}}
 
             # Check if agent has maintenance capabilities
             agent_caps = self.registry.get_capabilities(self.__class__.__name__)
-            is_maintenance = any(
-                cap in policy.get("maintenance_capabilities", []) for cap in agent_caps
-            )
+            is_maintenance = any(cap in policy.get("maintenance_capabilities", []) for cap in agent_caps)
 
             if is_maintenance and policy.get("policy") == "local_first":
                 # Route to local model
                 self.model_name = policy.get("default_local_model", "qwen3-coder:32b")
-                logger.info(
-                    f"🛡️ Local Routing: Agent {self.__class__.__name__} routed to {self.model_name}"
-                )
+                logger.info(f"🛡️ Local Routing: Agent {self.__class__.__name__} routed to {self.model_name}")
             else:
                 self.model_name = model_name
         except Exception as e:
@@ -804,9 +782,7 @@ Provide output in JSON format: {{"phi_score": 0.85, "confidence": 0.90}}
 
         try:
             # Step 1: Query SurrealDB for the latest SESSION_SNAPSHOT or MISSION_PULSE
-            latest_pulse = await self._db.query(
-                "SELECT * FROM mission_pulse ORDER BY timestamp DESC LIMIT 1"
-            )
+            latest_pulse = await self._db.query("SELECT * FROM mission_pulse ORDER BY timestamp DESC LIMIT 1")
 
             # Check if query returned valid results
             if not latest_pulse or len(latest_pulse) == 0:
@@ -814,9 +790,7 @@ Provide output in JSON format: {{"phi_score": 0.85, "confidence": 0.90}}
 
             if latest_pulse:
                 pulse_data = latest_pulse[0]
-                logger.info(
-                    f"MRP: Reached consensus with latest pulse from {pulse_data.get('timestamp')}"
-                )
+                logger.info(f"MRP: Reached consensus with latest pulse from {pulse_data.get('timestamp')}")
 
             # Phase 6: Experience Replay (Semantic Memory Recovery)
             experience = await self._universe.get_experience_replay(self.__class__.__name__)
@@ -863,9 +837,7 @@ Provide output in JSON format: {{"phi_score": 0.85, "confidence": 0.90}}
 
         try:
             # 1. Start Universe Journey
-            self._current_journey = await self._universe.start_journey(
-                agent_name=agent_name, intent=query
-            )
+            self._current_journey = await self._universe.start_journey(agent_name=agent_name, intent=query)
 
             # 2. Execute actual processing
             result = await process_func(query)

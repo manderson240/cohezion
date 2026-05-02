@@ -6,11 +6,11 @@ Explore ongoing hackathon oEOtLSSrPSVH60Ah
 import sys
 from pathlib import Path
 
+
 sys.path.insert(0, str(Path(__file__).parent / "code_templates"))
 
-from dotenv import load_dotenv
 import bluequbit
-import qiskit
+from dotenv import load_dotenv
 
 
 def explore_challenge():

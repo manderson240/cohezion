@@ -1,6 +1,4 @@
-import kagglehub
 import os
-from pathlib import Path
 
 
 def test_kagglehub_usage():

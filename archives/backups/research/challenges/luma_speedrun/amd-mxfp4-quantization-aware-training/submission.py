@@ -31,22 +31,23 @@ Reference: "Quantization and Training of Neural Networks", arXiv 2017.
 """
 
 from __future__ import annotations
+
 import os
+
 
 os.environ["PYTORCH_ROCM_ARCH"] = "gfx950"
 os.environ["CXX"] = "clang++"
 
+
+import aiter
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
-from typing import Tuple, Optional
-from torch.utils.cpp_extension import load_inline
-from task import input_t, output_t
-
 from aiter import dtypes
 from aiter.ops.triton.quant import dynamic_mxfp4_quant
 from aiter.utility.fp4_utils import e8m0_shuffle
-import aiter
+from task import input_t, output_t
+from torch.utils.cpp_extension import load_inline
 
 
 class FakeQuantize(torch.autograd.Function):
@@ -74,7 +75,7 @@ class FakeQuantize(torch.autograd.Function):
         return x_fake
 
     @staticmethod
-    def backward(ctx, grad_output: torch.Tensor) -> Tuple[torch.Tensor, torch.Tensor, None, None]:
+    def backward(ctx, grad_output: torch.Tensor) -> tuple[torch.Tensor, torch.Tensor, None, None]:
         """Straight-through estimator."""
         x, scale = ctx.saved_tensors
 
@@ -152,7 +153,7 @@ class QATLinear(nn.Module):
 
         return output
 
-    def get_quantized_weight(self) -> Tuple[torch.Tensor, torch.Tensor]:
+    def get_quantized_weight(self) -> tuple[torch.Tensor, torch.Tensor]:
         """Get quantized weight for inference."""
         with torch.no_grad():
             w_scale = self.weight_scale.get_scale()
@@ -203,15 +204,15 @@ __global__ void fake_quantize_kernel(
 ) {
     int idx = blockIdx.x * blockDim.x + threadIdx.x;
     if (idx >= N) return;
-    
+
     float s = scale[0];
     float val = input[idx];
-    
+
     // Quantize
     float qmax = (1 << num_bits) - 1;
     float qval = roundf(val / s);
     qval = fmaxf(0.0f, fminf(qval, qmax));
-    
+
     // Dequantize (fake)
     output[idx] = qval * s;
 }
@@ -225,7 +226,7 @@ __global__ void qat_gemm_kernel(
 ) {
     int row = blockIdx.y * blockDim.y + threadIdx.y;
     int col = blockIdx.x * blockDim.x + threadIdx.x;
-    
+
     if (row < M && col < N) {
         float sum = 0.0f;
         for (int k = 0; k < K; k++) {
@@ -261,7 +262,7 @@ void launch_qat_gemm(
 """
 
 CPP_SOURCE = """
-void launch_fake_quant(torch::Tensor input, torch::Tensor output, 
+void launch_fake_quant(torch::Tensor input, torch::Tensor output,
                        torch::Tensor scale, int num_bits);
 void launch_qat_gemm(torch::Tensor A, torch::Tensor B, torch::Tensor C,
                      int M, int N, int K);

@@ -1,11 +1,10 @@
 import abc
-import json
 import logging
 import os
 import re
 import sys
 from pathlib import Path
-from typing import Any, Dict, List, Optional, Tuple
+
 
 # Configuration
 PROJECT_ROOT = Path(__file__).resolve().parent.parent.parent.parent
@@ -25,14 +24,14 @@ class Guardian(abc.ABC):
         self.name = name
         self.logger = logging.getLogger(name)
         self.project_root = PROJECT_ROOT
-        self.violations: List[str] = []
+        self.violations: list[str] = []
 
     @abc.abstractmethod
     def run(self, auto_heal: bool = False) -> bool:
         """Execute the guard logic. Returns True if successful (no violations)."""
         pass
 
-    def log_violation(self, message: str, location: Optional[str] = None, fatal: bool = True):
+    def log_violation(self, message: str, location: str | None = None, fatal: bool = True):
         """Record a violation."""
         full_msg = f"{location}: {message}" if location else message
         if fatal:
@@ -55,19 +54,19 @@ class GuardianRegistry:
     """Registry to manage and run all Cohezion Guards."""
 
     def __init__(self):
-        self.guards: List[Guardian] = []
+        self.guards: list[Guardian] = []
 
     def register(self, guard: Guardian):
         self.guards.append(guard)
 
-    def discover_and_register_all(self, scripts_dir: Optional[Path] = None):
+    def discover_and_register_all(self, scripts_dir: Path | None = None):
         """Dynamically discover and register all Guardian subclasses in the given directory."""
         import importlib.util
         import inspect
 
         if scripts_dir is None:
             scripts_dir = PROJECT_ROOT / "src" / "cohezion" / "governance" / "scripts"
-        
+
         if not scripts_dir.exists():
             logging.warning(f"Scripts directory not found: {scripts_dir}")
             return
@@ -76,16 +75,20 @@ class GuardianRegistry:
             if filename.endswith(".py") and not filename.startswith("__"):
                 module_name = f"cohezion.governance.scripts.{filename[:-3]}"
                 filepath = scripts_dir / filename
-                
+
                 try:
                     spec = importlib.util.spec_from_file_location(module_name, filepath)
                     if spec and spec.loader:
                         module = importlib.util.module_from_spec(spec)
                         sys.modules[module_name] = module
                         spec.loader.exec_module(module)
-                        
+
                         for name, obj in inspect.getmembers(module, inspect.isclass):
-                            if issubclass(obj, Guardian) and obj is not Guardian and obj.__module__ == module_name:
+                            if (
+                                issubclass(obj, Guardian)
+                                and obj is not Guardian
+                                and obj.__module__ == module_name
+                            ):
                                 try:
                                     self.register(obj())
                                 except Exception as e:

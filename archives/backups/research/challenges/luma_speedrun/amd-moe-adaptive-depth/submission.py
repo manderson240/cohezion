@@ -41,17 +41,19 @@ Expected Performance:
 """
 
 from __future__ import annotations
-import os
+
 import math
+import os
+
 
 os.environ["AITER_USE_NT"] = "1"
 
 import torch
 import torch.nn as nn
-import torch.nn.functional as F
 from aiter import ActivationType, QuantType
 from aiter.fused_moe import fused_moe
 from task import input_t, output_t
+
 
 # Adaptive depth configuration
 CONFIDENCE_THRESHOLD = 0.9  # Exit when confidence exceeds this

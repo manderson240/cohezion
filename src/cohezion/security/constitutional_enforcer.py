@@ -15,6 +15,7 @@ import re
 from dataclasses import dataclass
 from enum import Enum
 
+
 logger = logging.getLogger(__name__)
 
 
@@ -138,7 +139,7 @@ class ConstitutionalGuardrail:
     def __init__(self, enforcer: ConstitutionalEnforcer | None = None):
         self._enforcer = enforcer or ConstitutionalEnforcer()
 
-    async def check(self, text: str, context: dict | None = None) -> "GuardrailResult":
+    async def check(self, text: str, context: dict | None = None) -> GuardrailResult:
         """Check text against constitutional constraints.
 
         Returns BLOCK with violation details, or ALLOW if safe.

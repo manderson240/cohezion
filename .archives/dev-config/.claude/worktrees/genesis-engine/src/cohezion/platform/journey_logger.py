@@ -179,9 +179,7 @@ class JourneyLogger:
             hiho_stable=journey_data.get("hiho_stable", False),
             flume_trajectory=journey_data.get("flume_state_end", []),
             decisions_made=[d["decision"] for d in journey_data.get("decisions_made", [])],
-            learnings_extracted=[
-                entry["learning"] for entry in journey_data.get("learnings_extracted", [])
-            ],
+            learnings_extracted=[entry["learning"] for entry in journey_data.get("learnings_extracted", [])],
             outcome=journey_data.get("outcome", ""),
             metadata=journey_data.get("metadata", {}),
         )
@@ -221,9 +219,7 @@ class JourneyLogger:
                     hiho_stable=j.get("hiho_stable", False),
                     flume_trajectory=j.get("flume_state_end", []),
                     decisions_made=[d["decision"] for d in j.get("decisions_made", [])],
-                    learnings_extracted=[
-                        entry["learning"] for entry in j.get("learnings_extracted", [])
-                    ],
+                    learnings_extracted=[entry["learning"] for entry in j.get("learnings_extracted", [])],
                     outcome=j.get("outcome", ""),
                     metadata=j.get("metadata", {}),
                 )

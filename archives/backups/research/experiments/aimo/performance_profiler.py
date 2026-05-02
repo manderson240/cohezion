@@ -9,7 +9,7 @@ import json
 import time
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Any, Dict, List
+from typing import Any
 
 
 @dataclass
@@ -38,36 +38,36 @@ class PerformanceProfiler:
         self.total_time_limit = total_time_limit
         self.problem_count = problem_count
         self.time_per_problem = total_time_limit / problem_count  # ~163.6s
-        self.metrics_log: List[PerformanceMetrics] = []
+        self.metrics_log: list[PerformanceMetrics] = []
         self.start_time = time.time()
         self.problems_solved = 0
 
-    def start_problem(self, problem_id: str) -> Dict[str, float]:
+    def start_problem(self, problem_id: str) -> dict[str, float]:
         """Start timing for a problem."""
         return {
             "problem_start": time.time(),
             "routing_start": time.time(),
         }
 
-    def end_routing(self, timings: Dict[str, float]) -> Dict[str, float]:
+    def end_routing(self, timings: dict[str, float]) -> dict[str, float]:
         """End routing timing."""
         timings["routing_end"] = time.time()
         timings["run1_start"] = time.time()
         return timings
 
-    def end_run1(self, timings: Dict[str, float]) -> Dict[str, float]:
+    def end_run1(self, timings: dict[str, float]) -> dict[str, float]:
         """End Run 1 timing."""
         timings["run1_end"] = time.time()
         timings["run2_start"] = time.time()
         return timings
 
-    def end_run2(self, timings: Dict[str, float]) -> Dict[str, float]:
+    def end_run2(self, timings: dict[str, float]) -> dict[str, float]:
         """End Run 2 timing."""
         timings["run2_end"] = time.time()
         timings["audit_start"] = time.time()
         return timings
 
-    def end_audit(self, timings: Dict[str, float]) -> Dict[str, float]:
+    def end_audit(self, timings: dict[str, float]) -> dict[str, float]:
         """End audit timing."""
         timings["audit_end"] = time.time()
         timings["problem_end"] = time.time()
@@ -76,7 +76,7 @@ class PerformanceProfiler:
     def record_metrics(
         self,
         problem_id: str,
-        timings: Dict[str, float],
+        timings: dict[str, float],
         tie_breaker: bool = False,
         success: bool = True,
     ) -> PerformanceMetrics:
@@ -110,7 +110,7 @@ class PerformanceProfiler:
 
         return metrics
 
-    def check_time_budget(self) -> Dict[str, Any]:
+    def check_time_budget(self) -> dict[str, Any]:
         """Check if we're within time budget."""
         elapsed = time.time() - self.start_time
         remaining_time = self.total_time_limit - elapsed

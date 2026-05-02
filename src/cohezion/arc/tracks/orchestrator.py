@@ -27,6 +27,7 @@ from cohezion.arc.grid_pipeline import verify_pipeline_sanity
 
 def _timestamp() -> str:
     from datetime import datetime
+
     return datetime.utcnow().isoformat()
 
 
@@ -138,7 +139,9 @@ class MultiTrackOrchestrator:
         self.runs.append(runp)
         try:
             # Paper track wraps whichever base pipeline succeeded first
-            base_pipe = p2 if run2.status == "success" else (p3 if run3.status == "success" else None)
+            base_pipe = (
+                p2 if run2.status == "success" else (p3 if run3.status == "success" else None)
+            )
             pp = PaperTrackPipeline(
                 output_dir=self.output_dir / "paper",
                 base_pipeline=base_pipe,
@@ -155,12 +158,15 @@ class MultiTrackOrchestrator:
             "deadline": self.DEADLINE,
             "prize_pool_usd": self.PRIZE_POOL_TOTAL,
             "elapsed_sec": round(global_elapsed, 2),
-            "tracks": [{
-                "name": r.track_name,
-                "status": r.status,
-                "summary": r.summary,
-                "errors": r.errors,
-            } for r in self.runs],
+            "tracks": [
+                {
+                    "name": r.track_name,
+                    "status": r.status,
+                    "summary": r.summary,
+                    "errors": r.errors,
+                }
+                for r in self.runs
+            ],
         }
         if verbose:
             print(f"[Orchestrator] All tracks complete in {global_elapsed:.1f}s")
@@ -208,6 +214,7 @@ class MultiTrackOrchestrator:
                 results[r.track_name] = {"valid": False, "errors": ["submission.json missing"]}
                 continue
             from cohezion.arc.submission import verify_submission
+
             results[r.track_name] = verify_submission(sub, data)
         return results
 

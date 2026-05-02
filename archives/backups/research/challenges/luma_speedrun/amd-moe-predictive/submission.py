@@ -35,9 +35,9 @@ from __future__ import annotations
 import os
 import sys
 from collections import defaultdict, deque
-from typing import Optional
 
 import torch
+
 
 os.environ["AITER_USE_NT"] = "1"
 
@@ -157,8 +157,8 @@ class PrefetchManager:
 
 
 # Global predictor instance (persistent across calls in same session)
-_predictor: Optional[ExpertPredictor] = None
-_prefetch_mgr: Optional[PrefetchManager] = None
+_predictor: ExpertPredictor | None = None
+_prefetch_mgr: PrefetchManager | None = None
 
 
 def _get_predictor(num_experts: int = 256) -> ExpertPredictor:

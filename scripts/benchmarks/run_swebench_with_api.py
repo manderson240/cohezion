@@ -32,6 +32,7 @@ from datetime import datetime
 from pathlib import Path
 from typing import Any
 
+
 # Add src to path
 sys.path.insert(0, str(Path(__file__).parent.parent.parent))
 
@@ -119,7 +120,7 @@ Generate the patch now:"""
             if success:
                 logger.info(f"  ✓ Patch generated ({len(patch)} chars)")
             else:
-                logger.info(f"  ✗ No valid patch")
+                logger.info("  ✗ No valid patch")
 
             return {
                 "instance_id": instance_id,
@@ -240,11 +241,11 @@ Examples:
   # Quick test (3 issues)
   export OPENAI_API_KEY="sk-..."
   uv run python %(prog)s --max-issues 3
-  
+
   # Anthropic (more capable but expensive)
   export ANTHROPIC_API_KEY="sk-ant-..."
   uv run python %(prog)s --provider anthropic --max-issues 5
-  
+
   # Run on full test set
   uv run python %(prog)s --dataset test --max-issues 100
         """,
@@ -286,7 +287,7 @@ Examples:
 
         return 0 if results["metrics"]["pass_at_1"] > 0 else 1
 
-    except Exception as e:
+    except Exception:
         logger.exception("Evaluation failed")
         return 1
 

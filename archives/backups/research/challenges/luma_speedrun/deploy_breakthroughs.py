@@ -4,10 +4,10 @@
 This script submits the stream-aware custom HIP breakthroughs for MLA, MoE, and GEMM.
 """
 
-import time
 import subprocess
-import sys
+import time
 from pathlib import Path
+
 
 # Breakthrough variants
 BREAKTHROUGHS = [
@@ -57,7 +57,7 @@ def submit(kernel, path, mode="benchmark"):
 
 
 def deploy():
-    print(f"Starting Deep Breakthrough Deployment & Testing...")
+    print("Starting Deep Breakthrough Deployment & Testing...")
 
     # Phase 1: Benchmark all to verify performance and correctness
     print("\n--- PHASE 1: BENCHMARKING ---")

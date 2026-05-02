@@ -149,11 +149,7 @@ def test_check_import_drift_flags_missing_module(tmp_path) -> None:
 
 def test_check_import_drift_ignores_non_cohezion_imports(tmp_path) -> None:
     caller = tmp_path / "caller.py"
-    caller.write_text(
-        "import os\n"
-        "from pathlib import Path\n"
-        "from third_party_lib import function\n"
-    )
+    caller.write_text("import os\nfrom pathlib import Path\nfrom third_party_lib import function\n")
     # We only care about cohezion.* drift; external libs are not our concern
     assert h._check_import_drift(caller, tmp_path) == []
 

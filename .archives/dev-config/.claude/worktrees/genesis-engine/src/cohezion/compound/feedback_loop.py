@@ -193,8 +193,7 @@ class CompoundFeedbackLoop:
                 attempt_number=current_retry + 1,
                 strategy=self._select_retry_strategy(current_retry, anomaly, available_alternative_skills),
                 skill_used=current_skill,
-                success=execution_result.success
-                and anomaly.score > self.critical_threshold,
+                success=execution_result.success and anomaly.score > self.critical_threshold,
                 anomaly_detected=anomaly,
                 execution_result=execution_result,
             )

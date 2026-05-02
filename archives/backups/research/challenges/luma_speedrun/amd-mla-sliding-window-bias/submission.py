@@ -45,19 +45,20 @@ Expected Performance:
 """
 
 from __future__ import annotations
-import os
+
 import math
+import os
+
 
 os.environ["PYTORCH_ROCM_ARCH"] = "gfx950"
 os.environ["CXX"] = "clang++"
 
-import torch
-import torch.nn as nn
-from task import input_t, output_t
-
 import aiter
+import torch
 from aiter import dtypes as aiter_dtypes
 from aiter import get_mla_metadata_info_v1, get_mla_metadata_v1, mla_reduce_v1
+from task import input_t, output_t
+
 
 # MLA configuration
 NUM_HEADS = 16

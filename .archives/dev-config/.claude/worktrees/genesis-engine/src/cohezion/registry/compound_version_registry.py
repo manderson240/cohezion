@@ -69,9 +69,7 @@ class CompoundVersionRegistry:
             auto_healed=auto_healed,
         )
         self._entries.append(entry)
-        logger.info(
-            "Registered version %s (from %s) for epics %s", version, previous_version, epic_ids
-        )
+        logger.info("Registered version %s (from %s) for epics %s", version, previous_version, epic_ids)
         return entry
 
     def query_by_epic(self, epic_id: str) -> list[VersionEntry]:

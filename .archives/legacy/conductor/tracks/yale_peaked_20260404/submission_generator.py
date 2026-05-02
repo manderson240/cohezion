@@ -10,7 +10,7 @@ def generate_report():
         print("Results file not found.")
         return
 
-    with open(results_file, "r") as f:
+    with open(results_file) as f:
         results = json.load(f)
 
     # Sort keys P1, P2, ... P10

@@ -48,16 +48,17 @@ Various works on continuous relaxation.
 """
 
 from __future__ import annotations
+
 import os
 import sys
-import math
+from dataclasses import dataclass
+
 import torch
 import torch.nn.functional as F
-from typing import Dict, Optional, Tuple
-from dataclasses import dataclass
 from aiter import ActivationType, QuantType
 from aiter.fused_moe import fused_moe
 from task import input_t, output_t
+
 
 os.environ["AITER_USE_NT"] = "1"
 
@@ -173,12 +174,12 @@ class GradientBasedRouter:
 
         # Router weights (normally learned, here we simulate routing logic)
         self.current_step = 0
-        self.expert_usage_stats: Dict[int, int] = {i: 0 for i in range(num_experts)}
+        self.expert_usage_stats: dict[int, int] = dict.fromkeys(range(num_experts), 0)
 
     def compute_soft_routing(
         self,
         router_logits: torch.Tensor,
-        temperature: Optional[float] = None,
+        temperature: float | None = None,
     ) -> torch.Tensor:
         """
         Compute soft routing weights via temperature-scaled softmax.
@@ -203,8 +204,8 @@ class GradientBasedRouter:
     def apply_topk_mask(
         self,
         soft_weights: torch.Tensor,
-        k: Optional[int] = None,
-    ) -> Tuple[torch.Tensor, torch.Tensor]:
+        k: int | None = None,
+    ) -> tuple[torch.Tensor, torch.Tensor]:
         """
         Apply hard top-k mask to soft weights.
 
@@ -287,7 +288,7 @@ class GradientBasedRouter:
         original_topk_weights: torch.Tensor,
         original_topk_ids: torch.Tensor,
         training: bool = True,
-    ) -> Tuple[torch.Tensor, torch.Tensor, Optional[torch.Tensor]]:
+    ) -> tuple[torch.Tensor, torch.Tensor, torch.Tensor | None]:
         """
         Route tokens using gradient-based soft selection.
 
@@ -381,7 +382,7 @@ class GradientBasedRouter:
 
 
 # Global router instance for state persistence
-_ROUTER_INSTANCE: Optional[GradientBasedRouter] = None
+_ROUTER_INSTANCE: GradientBasedRouter | None = None
 
 
 def _get_router(num_experts: int, top_k: int) -> GradientBasedRouter:

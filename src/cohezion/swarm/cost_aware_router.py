@@ -312,8 +312,9 @@ class CostAwareRouter:
         if cls._profiles_cache is not None:
             return cls._profiles_cache
 
-        import yaml
         from pathlib import Path
+
+        import yaml
 
         # __file__ = src/cohezion/swarm/cost_aware_router.py
         # parents[3] = repo root (src/ → cohezion/ → swarm/ → file)
@@ -449,8 +450,9 @@ class CostAwareRouter:
             # tier_routing may be in the raw YAML (top-level, not in a model section)
             if not tier_cfg:
                 # Re-read raw YAML for tier_routing (it's top-level, not in profiles)
-                import yaml
                 from pathlib import Path
+
+                import yaml
 
                 config_path = Path(__file__).parents[3] / "config" / "model_profiles.yaml"
                 if not config_path.exists():

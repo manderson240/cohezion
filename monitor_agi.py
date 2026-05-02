@@ -10,21 +10,22 @@ import time
 from datetime import datetime
 
 
-log_file = 'agi_v4.log'
-results_file = 'agi_v4_results.json'
+log_file = "agi_v4.log"
+results_file = "agi_v4_results.json"
 
-print('='*70)
-print('AGI OVERNIGHT - LIVE MONITOR')
-print('='*70)
-print('Reading from:', log_file)
-print('Analysis every 30 seconds')
-print('='*70)
+print("=" * 70)
+print("AGI OVERNIGHT - LIVE MONITOR")
+print("=" * 70)
+print("Reading from:", log_file)
+print("Analysis every 30 seconds")
+print("=" * 70)
 print()
 
 cycles = 0
 coherence_values = []
 start_time = time.time()
 last_size = 0
+
 
 def analyze_state():
     """Analyze current AGI state."""
@@ -44,36 +45,37 @@ def analyze_state():
 
     # Parse recent entries
     for line in lines[-10:]:  # Last 10 lines
-        if 'Iter:' in line and 'Coherence:' in line:
+        if "Iter:" in line and "Coherence:" in line:
             try:
-                parts = line.split('|')
-                iter_part = [p for p in parts if 'Iter:' in p][0]
-                coh_part = [p for p in parts if 'Coherence:' in p][0]
+                parts = line.split("|")
+                iter_part = [p for p in parts if "Iter:" in p][0]
+                coh_part = [p for p in parts if "Coherence:" in p][0]
 
-                cycles = int(iter_part.split(':')[1].strip().replace(',', ''))
-                coherence = float(coh_part.split(':')[1].strip())
+                cycles = int(iter_part.split(":")[1].strip().replace(",", ""))
+                coherence = float(coh_part.split(":")[1].strip())
                 coherence_values.append(coherence)
             except:
                 pass
 
-    return {'cycles': cycles, 'coherence_values': coherence_values[-100:]}
+    return {"cycles": cycles, "coherence_values": coherence_values[-100:]}
+
 
 def print_analysis(state):
     """Print current analysis."""
     if not state:
         return
 
-    now = datetime.now().strftime('%H:%M:%S')
+    now = datetime.now().strftime("%H:%M:%S")
     elapsed = (time.time() - start_time) / 60
 
     print(f"\n[{now}] ANALYSIS:")
     print(f"  Total cycles: {state['cycles']:,}")
     print(f"  Elapsed: {elapsed:.1f} minutes")
 
-    if state['coherence_values']:
-        recent = state['coherence_values'][-10:]
+    if state["coherence_values"]:
+        recent = state["coherence_values"][-10:]
         avg_coh = sum(recent) / len(recent)
-        var_coh = sum((x - avg_coh)**2 for x in recent) / len(recent)
+        var_coh = sum((x - avg_coh) ** 2 for x in recent) / len(recent)
 
         print(f"  Recent coherence: {avg_coh:.6f} (var: {var_coh:.2e})")
 
@@ -86,8 +88,9 @@ def print_analysis(state):
             print("  → Still exploring phase space")
 
     # Rate calculation
-    rate = state['cycles'] / max(elapsed, 0.1)
+    rate = state["cycles"] / max(elapsed, 0.1)
     print(f"  Cycle rate: {rate:,.0f} cycles/min")
+
 
 # Monitor loop
 print("Monitoring... (Ctrl+C to stop)")

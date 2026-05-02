@@ -32,9 +32,7 @@ def create_flask_api_task() -> EvaluatedTask:
             FileContentCriterion("models.py", expected_pattern=r"from sqlalchemy"),
             FileContentCriterion("requirements.txt", expected_pattern=r"Flask"),
             FileContentCriterion("requirements.txt", expected_pattern=r"SQLAlchemy"),
-            CommandSucceededCriterion(
-                command_pattern="python -c 'from app import app; print(app)'"
-            ),
+            CommandSucceededCriterion(command_pattern="python -c 'from app import app; print(app)'"),
         ],
         metadata={
             "category": "web_development",
@@ -57,9 +55,7 @@ def data_pipeline_task() -> EvaluatedTask:
             FileExistsCriterion("pipeline.py"),
             FileExistsCriterion("data/input.csv"),
             FileContentCriterion("pipeline.py", expected_pattern=r"import pandas as pd"),
-            FileContentCriterion(
-                "pipeline.py", expected_pattern=r"def extract|def transform|def load"
-            ),
+            FileContentCriterion("pipeline.py", expected_pattern=r"def extract|def transform|def load"),
             FileExistsCriterion("output"),
         ],
         metadata={
@@ -106,9 +102,7 @@ def git_workflow_automation_task() -> EvaluatedTask:
         criteria=[
             FileExistsCriterion(".git/hooks/pre-commit"),
             FileExistsCriterion(".git/hooks/pre-push"),
-            FileContentCriterion(
-                ".git/hooks/pre-commit", expected_pattern=r"#!/bin/bash|#!/bin/sh"
-            ),
+            FileContentCriterion(".git/hooks/pre-commit", expected_pattern=r"#!/bin/bash|#!/bin/sh"),
             FileContentCriterion(".git/hooks/pre-commit", expected_pattern=r"pytest|black|flake8"),
         ],
         metadata={

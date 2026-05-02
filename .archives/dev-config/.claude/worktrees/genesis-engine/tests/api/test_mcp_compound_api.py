@@ -4,9 +4,9 @@ Tests MCP tool endpoints with mocked dependencies.
 """
 
 import json
-import pytest
 from unittest.mock import AsyncMock, MagicMock, patch
-from pathlib import Path
+
+import pytest
 
 
 pytestmark = pytest.mark.asyncio
@@ -25,9 +25,7 @@ class TestMCPCompoundAPI:
             "session_id": "test-session-123",
             "cache_entries_loaded": 128,
         }
-        mock.check_alignment.return_value = MagicMock(
-            coherence=0.75, should_proceed=True, issues=[]
-        )
+        mock.check_alignment.return_value = MagicMock(coherence=0.75, should_proceed=True, issues=[])
         mock.end_session.return_value = {"session_id": "test-session-123", "duration_seconds": 3600}
         return mock
 
@@ -165,9 +163,7 @@ async def execute(request):
         from cohezion.mcp.compound_server import skill_refinement_apply
 
         # Test invalid skill_name (path traversal attempt)
-        result = await skill_refinement_apply(
-            skill_name="../etc/passwd", refinement_type="token_optimization"
-        )
+        result = await skill_refinement_apply(skill_name="../etc/passwd", refinement_type="token_optimization")
 
         assert result["status"] == "error"
         assert "invalid" in result["error"].lower()
@@ -177,9 +173,7 @@ async def execute(request):
         """[P0] Skill refinement validates refinement_type."""
         from cohezion.mcp.compound_server import skill_refinement_apply
 
-        result = await skill_refinement_apply(
-            skill_name="TOKEN_EFFICIENCY_PRIME", refinement_type="invalid_type"
-        )
+        result = await skill_refinement_apply(skill_name="TOKEN_EFFICIENCY_PRIME", refinement_type="invalid_type")
 
         assert result["status"] == "error"
         assert "refinement_type" in result["error"].lower()
@@ -206,9 +200,9 @@ class TestMCPCompoundIntegrationFlow:
     async def test_session_lifecycle(self):
         """[P0] Complete session start → check → end workflow."""
         from cohezion.mcp.compound_server import (
-            compound_start_session,
             compound_check_alignment,
             compound_end_session,
+            compound_start_session,
         )
 
         # Mock session manager to return dict-like objects
@@ -223,9 +217,7 @@ class TestMCPCompoundIntegrationFlow:
             # Set up mock for start_session
             start_mock = MagicMock()
             start_mock.start_session.return_value = mock_summary
-            start_mock.check_alignment.return_value = MagicMock(
-                coherence=0.8, should_proceed=True, issues=[]
-            )
+            start_mock.check_alignment.return_value = MagicMock(coherence=0.8, should_proceed=True, issues=[])
             start_mock.end_session.return_value = mock_summary
 
             # Import and patch
@@ -240,9 +232,7 @@ class TestMCPCompoundIntegrationFlow:
                 assert start_result["status"] == "success"
 
                 # Check alignment
-                align_result = await compound_check_alignment(
-                    request="Test workflow", threshold=0.5
-                )
+                align_result = await compound_check_alignment(request="Test workflow", threshold=0.5)
                 assert align_result["status"] == "success"
 
                 # End session
@@ -254,7 +244,7 @@ class TestMCPCompoundIntegrationFlow:
     @pytest.mark.fast
     async def test_adversarial_review_workflow(self):
         """[P0] Ralph Lopps → Multiperspective review chain."""
-        from cohezion.mcp.compound_server import ralph_lopps_review, multiperspective_review
+        from cohezion.mcp.compound_server import multiperspective_review, ralph_lopps_review
 
         code_sample = """
 def process_items(items):

@@ -13,6 +13,7 @@ from typing import Any
 
 import numpy as np
 
+
 logger = logging.getLogger(__name__)
 
 # Holographic projection constants
@@ -136,6 +137,7 @@ def encode_step_sequence(
     if temporal_encoder is not None:
         try:
             import torch
+
             from cohezion.flume.trajectory_dataset import _record_to_step
 
             step_vecs = np.stack([_record_to_step(s) for s in steps])
@@ -179,9 +181,7 @@ def holographic_project(
         return projection_cache[latent_hash]
 
     num_chunks = HASH_DIMS // CHUNK_SIZE
-    chunk_means = np.array(
-        [np.mean(latent_2048d[i * CHUNK_SIZE : (i + 1) * CHUNK_SIZE]) for i in range(num_chunks)]
-    )
+    chunk_means = np.array([np.mean(latent_2048d[i * CHUNK_SIZE : (i + 1) * CHUNK_SIZE]) for i in range(num_chunks)])
 
     indices = np.linspace(0, len(chunk_means) - 1, AXIOMATIC_DIMS)
     result_12d = np.interp(indices, np.arange(len(chunk_means)), chunk_means)

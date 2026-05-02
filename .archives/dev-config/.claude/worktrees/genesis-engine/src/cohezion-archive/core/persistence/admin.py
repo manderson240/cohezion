@@ -87,9 +87,7 @@ class DBAdmin:
             logger.error(f"❌ Snapshot failed: {e}")
             raise
 
-    async def batch_ingest(
-        self, table_name: str, records: list[dict[str, Any]], batch_size: int = 1000
-    ):
+    async def batch_ingest(self, table_name: str, records: list[dict[str, Any]], batch_size: int = 1000):
         """
         Robust batch ingestion with Adaptive Binary Split strategy.
         If a batch fails, we split it to isolate the error (e.g. duplicate ID).

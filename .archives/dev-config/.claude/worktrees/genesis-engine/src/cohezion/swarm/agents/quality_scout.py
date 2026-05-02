@@ -67,10 +67,7 @@ class QualityScout(BaseScout):
                                 file_path=rel_path,
                                 line_range=(node.lineno, node.end_lineno),
                                 confidence=1.0,
-                                code_snippet=ast.get_source_segment(
-                                    path.read_text(), node
-                                )
-                                or "",
+                                code_snippet=ast.get_source_segment(path.read_text(), node) or "",
                                 severity="low",
                             )
                         )
@@ -89,20 +86,14 @@ class QualityScout(BaseScout):
                                 file_path=rel_path,
                                 line_range=(node.lineno, node.end_lineno),
                                 confidence=1.0,
-                                code_snippet=ast.get_source_segment(
-                                    path.read_text(), node
-                                )
-                                or "",
+                                code_snippet=ast.get_source_segment(path.read_text(), node) or "",
                                 severity="medium",
                             )
                         )
 
                     # Bare except check
                     for body_node in ast.walk(node):
-                        if (
-                            isinstance(body_node, ast.ExceptHandler)
-                            and body_node.type is None
-                        ):
+                        if isinstance(body_node, ast.ExceptHandler) and body_node.type is None:
                             findings.append(
                                 Finding(
                                     type="anti_pattern",

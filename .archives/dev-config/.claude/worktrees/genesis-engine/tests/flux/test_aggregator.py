@@ -6,7 +6,7 @@ import pytest
 
 from cohezion.flux.aggregator import FluxAggregator
 from cohezion.flux.provider import FluxProvider
-from cohezion.flux.types import FluxBlock, FluxContext, FluxSource
+from cohezion.flux.types import FluxBlock, FluxSource
 
 
 class MockProvider(FluxProvider):
@@ -33,11 +33,13 @@ class TestFluxAggregator:
         cache_blocks = [FluxBlock(content="cache B", source=FluxSource.CACHE, relevance_score=0.8)]
         history_blocks = [FluxBlock(content="history C", source=FluxSource.HISTORY, relevance_score=0.7)]
 
-        agg = FluxAggregator([
-            MockProvider(FluxSource.VAULT, vault_blocks),
-            MockProvider(FluxSource.CACHE, cache_blocks),
-            MockProvider(FluxSource.HISTORY, history_blocks),
-        ])
+        agg = FluxAggregator(
+            [
+                MockProvider(FluxSource.VAULT, vault_blocks),
+                MockProvider(FluxSource.CACHE, cache_blocks),
+                MockProvider(FluxSource.HISTORY, history_blocks),
+            ]
+        )
         ctx = await agg.get_context("test", top_k=10)
         assert len(ctx.blocks) == 3
         # Should be sorted by relevance
@@ -49,10 +51,12 @@ class TestFluxAggregator:
         block1 = FluxBlock(content="same content", source=FluxSource.VAULT, relevance_score=0.9)
         block2 = FluxBlock(content="same content", source=FluxSource.CACHE, relevance_score=0.7)
 
-        agg = FluxAggregator([
-            MockProvider(FluxSource.VAULT, [block1]),
-            MockProvider(FluxSource.CACHE, [block2]),
-        ])
+        agg = FluxAggregator(
+            [
+                MockProvider(FluxSource.VAULT, [block1]),
+                MockProvider(FluxSource.CACHE, [block2]),
+            ]
+        )
         ctx = await agg.get_context("test")
         assert len(ctx.blocks) == 1
         # Should keep the higher-scored one
@@ -63,10 +67,12 @@ class TestFluxAggregator:
         vault = [FluxBlock(content="vault", source=FluxSource.VAULT, relevance_score=0.9)]
         cache = [FluxBlock(content="cache", source=FluxSource.CACHE, relevance_score=0.8)]
 
-        agg = FluxAggregator([
-            MockProvider(FluxSource.VAULT, vault),
-            MockProvider(FluxSource.CACHE, cache),
-        ])
+        agg = FluxAggregator(
+            [
+                MockProvider(FluxSource.VAULT, vault),
+                MockProvider(FluxSource.CACHE, cache),
+            ]
+        )
         ctx = await agg.get_context("test", sources=[FluxSource.VAULT])
         assert len(ctx.blocks) == 1
         assert ctx.blocks[0].source == FluxSource.VAULT
@@ -74,8 +80,7 @@ class TestFluxAggregator:
     @pytest.mark.asyncio
     async def test_top_k_limit(self):
         blocks = [
-            FluxBlock(content=f"block {i}", source=FluxSource.VAULT, relevance_score=1.0 - i * 0.1)
-            for i in range(10)
+            FluxBlock(content=f"block {i}", source=FluxSource.VAULT, relevance_score=1.0 - i * 0.1) for i in range(10)
         ]
         agg = FluxAggregator([MockProvider(FluxSource.VAULT, blocks)])
         ctx = await agg.get_context("test", top_k=3)
@@ -96,12 +101,16 @@ class TestFluxAggregator:
     async def test_token_estimation(self):
         blocks = [
             FluxBlock(content="short", source=FluxSource.VAULT, relevance_score=0.9),
-            FluxBlock(content="this is a longer content block with more words", source=FluxSource.CACHE, relevance_score=0.8),
+            FluxBlock(
+                content="this is a longer content block with more words", source=FluxSource.CACHE, relevance_score=0.8
+            ),
         ]
-        agg = FluxAggregator([
-            MockProvider(FluxSource.VAULT, [blocks[0]]),
-            MockProvider(FluxSource.CACHE, [blocks[1]]),
-        ])
+        agg = FluxAggregator(
+            [
+                MockProvider(FluxSource.VAULT, [blocks[0]]),
+                MockProvider(FluxSource.CACHE, [blocks[1]]),
+            ]
+        )
         ctx = await agg.get_context("test")
         assert ctx.total_tokens_estimated > 0
 
@@ -126,14 +135,17 @@ class TestFluxAggregator:
 
         class FailingProvider(FluxProvider):
             source = FluxSource.SURREAL
+
             async def get_context(self, query, top_k=5, **kwargs):
                 raise ConnectionError("DB down")
 
         good_blocks = [FluxBlock(content="still works", source=FluxSource.VAULT, relevance_score=0.9)]
-        agg = FluxAggregator([
-            FailingProvider(),
-            MockProvider(FluxSource.VAULT, good_blocks),
-        ])
+        agg = FluxAggregator(
+            [
+                FailingProvider(),
+                MockProvider(FluxSource.VAULT, good_blocks),
+            ]
+        )
         ctx = await agg.get_context("test")
         assert len(ctx.blocks) == 1
         assert ctx.blocks[0].content == "still works"

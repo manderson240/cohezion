@@ -22,7 +22,9 @@ from typing import Any
 
 # === Path setup for Cohezion imports ===
 SCRIPT_DIR = Path(__file__).resolve().parent
-PROJECT_ROOT = SCRIPT_DIR.parents[2]  # src/cohezion/integrations/ -> src/cohezion/ -> src/ -> project_root
+PROJECT_ROOT = SCRIPT_DIR.parents[
+    2
+]  # src/cohezion/integrations/ -> src/cohezion/ -> src/ -> project_root
 cohezion_src = PROJECT_ROOT / "src"
 if str(cohezion_src) not in sys.path:
     sys.path.insert(0, str(cohezion_src))
@@ -48,16 +50,19 @@ def _try_imports():
     global _resource_monitor, _hallucination_resolver, _offload_manager
     try:
         from cohezion.reliability.monitor import ResourceMonitor
+
         _resource_monitor = ResourceMonitor()
     except Exception:
         pass
     try:
         from cohezion.reliability.resolver import HallucinationResolver
+
         _hallucination_resolver = HallucinationResolver()
     except Exception:
         pass
     try:
         from cohezion.reliability.offload_manager import OffloadManager
+
         _offload_manager = OffloadManager()
     except Exception:
         pass
@@ -89,11 +94,13 @@ def _cohezion_skill_registry() -> dict[str, Any]:
             category = "orchestration"
         elif "ARC" in first_lines or "prize" in first_lines.lower():
             category = "competition"
-        registry["skills"].append({
-            "name": name,
-            "category": category,
-            "path": str(fpath),
-        })
+        registry["skills"].append(
+            {
+                "name": name,
+                "category": category,
+                "path": str(fpath),
+            }
+        )
         registry["categories"].add(category)
 
     registry["categories"] = sorted(registry["categories"])
@@ -108,18 +115,23 @@ def _list_local_hermes_skills():
         content = root.read_text(encoding="utf-8", errors="ignore").splitlines()[:20]
         text = "\n".join(content)
         # Look for cohezion tag/project in frontmatter
-        is_cohezion = any(tag in text for tag in ["project: cohezion", "cohezion", "legacy-name:", "converted: true"])
+        is_cohezion = any(
+            tag in text
+            for tag in ["project: cohezion", "cohezion", "legacy-name:", "converted: true"]
+        )
         if not is_cohezion:
             continue
         rel = root.relative_to(hermes_skills_dir)
         parts = rel.parts
         skill_name = parts[-2] if len(parts) >= 2 else root.parent.name
         category = parts[0] if parts else "unknown"
-        skills.append({
-            "name": skill_name,
-            "category": category,
-            "full_path": str(root),
-        })
+        skills.append(
+            {
+                "name": skill_name,
+                "category": category,
+                "full_path": str(root),
+            }
+        )
     return skills
 
 
@@ -137,11 +149,13 @@ def _crawl_tree(root: str, max_depth: int = 4, pattern: str = "*.py") -> list[di
                 lines = sum(1 for _ in f)
         except Exception:
             lines = 0
-        results.append({
-            "path": str(p.relative_to(root_path)),
-            "lines": lines,
-            "depth": depth,
-        })
+        results.append(
+            {
+                "path": str(p.relative_to(root_path)),
+                "lines": lines,
+                "depth": depth,
+            }
+        )
     return results
 
 
@@ -162,6 +176,7 @@ def _resolve_python() -> str:
 def _run_command(cmd_parts: list[str], timeout: int = 60) -> dict:
     """Execute a subprocess command synchronously."""
     import subprocess  # local import to avoid circular deps
+
     # Inject PYTHONPATH so cohezion imports work
     env = os.environ.copy()
     src_path = str(PROJECT_ROOT / "src")
@@ -232,7 +247,8 @@ def _tools_list() -> list[dict[str, Any]]:
                 "List all Cohezion PRIME skills and categories. "
                 "Use this before selecting a skill to execute."
             ),
-            "inputSchema": {"type": "object", "properties": {}}},
+            "inputSchema": {"type": "object", "properties": {}},
+        },
         {
             "name": "cohezion_get_skill",
             "description": (
@@ -347,10 +363,16 @@ def _tools_list() -> list[dict[str, Any]]:
 # === MCP Tool Handlers ===
 def _handle_crawl(args: dict) -> dict:
     sub = args.get("subdirectory", "").strip().strip("/")
-    root = Path(PROJECT_ROOT) / "src" / "cohezion" / sub if sub else Path(PROJECT_ROOT) / "src" / "cohezion"
+    root = (
+        Path(PROJECT_ROOT) / "src" / "cohezion" / sub
+        if sub
+        else Path(PROJECT_ROOT) / "src" / "cohezion"
+    )
     if not root.exists():
         return {"error": f"Path not found: {root}"}
-    tree = _crawl_tree(str(root), max_depth=args.get("max_depth", 4), pattern=args.get("pattern", "*.py"))
+    tree = _crawl_tree(
+        str(root), max_depth=args.get("max_depth", 4), pattern=args.get("pattern", "*.py")
+    )
     total_lines = sum(n["lines"] for n in tree)
     return {
         "root": str(root.relative_to(PROJECT_ROOT)),
@@ -378,7 +400,7 @@ def _handle_get_skill(args: dict) -> dict:
     lines = fpath.read_text(encoding="utf-8").splitlines()
     limit = args.get("max_lines", 200)
     offset = max(0, args.get("offset", 1) - 1)
-    chunk = lines[offset:offset + limit]
+    chunk = lines[offset : offset + limit]
     return {
         "skill_name": name,
         "total_lines": len(lines),
@@ -401,6 +423,7 @@ def _handle_port_skill(args: dict) -> dict:
         cmd_parts.append("--dry-run")
 
     import subprocess
+
     try:
         result = subprocess.run(cmd_parts, capture_output=True, text=True, timeout=30)
         return {
@@ -461,7 +484,7 @@ def _handle_read_source(args: dict) -> dict:
         return {"error": str(e)}
     offset = max(0, args.get("offset", 1) - 1)
     limit = args.get("limit", 100)
-    chunk = lines[offset:offset + limit]
+    chunk = lines[offset : offset + limit]
     return {
         "path": rel,
         "total_lines": len(lines),
@@ -499,22 +522,30 @@ def run_mcp_stdio():
         method = request.get("method", "")
 
         if method == "initialize":
-            print(json.dumps({
-                "jsonrpc": "2.0",
-                "id": req_id,
-                "result": {
-                    "protocolVersion": "2024-11-05",
-                    "capabilities": {"tools": {}},
-                    "serverInfo": {"name": "cohezion-hermes-bridge", "version": "1.0.0"},
-                },
-            }))
+            print(
+                json.dumps(
+                    {
+                        "jsonrpc": "2.0",
+                        "id": req_id,
+                        "result": {
+                            "protocolVersion": "2024-11-05",
+                            "capabilities": {"tools": {}},
+                            "serverInfo": {"name": "cohezion-hermes-bridge", "version": "1.0.0"},
+                        },
+                    }
+                )
+            )
 
         elif method == "tools/list":
-            print(json.dumps({
-                "jsonrpc": "2.0",
-                "id": req_id,
-                "result": {"tools": _tools_list()},
-            }))
+            print(
+                json.dumps(
+                    {
+                        "jsonrpc": "2.0",
+                        "id": req_id,
+                        "result": {"tools": _tools_list()},
+                    }
+                )
+            )
 
         elif method == "tools/call":
             params = request.get("params", {})
@@ -525,25 +556,39 @@ def run_mcp_stdio():
                 if handler is None:
                     raise ValueError(f"Unknown tool: {name}")
                 result = handler(arguments)
-                print(json.dumps({
-                    "jsonrpc": "2.0",
-                    "id": req_id,
-                    "result": {"content": [{"type": "text", "text": json.dumps(result, indent=2)}]},
-                }))
+                print(
+                    json.dumps(
+                        {
+                            "jsonrpc": "2.0",
+                            "id": req_id,
+                            "result": {
+                                "content": [{"type": "text", "text": json.dumps(result, indent=2)}]
+                            },
+                        }
+                    )
+                )
             except Exception as exc:
                 logger.error("Tool call error: %s", exc)
-                print(json.dumps({
-                    "jsonrpc": "2.0",
-                    "id": req_id,
-                    "error": {"code": -32000, "message": str(exc)},
-                }))
+                print(
+                    json.dumps(
+                        {
+                            "jsonrpc": "2.0",
+                            "id": req_id,
+                            "error": {"code": -32000, "message": str(exc)},
+                        }
+                    )
+                )
 
         else:
-            print(json.dumps({
-                "jsonrpc": "2.0",
-                "id": req_id,
-                "error": {"code": -32601, "message": f"Method '{method}' not found"},
-            }))
+            print(
+                json.dumps(
+                    {
+                        "jsonrpc": "2.0",
+                        "id": req_id,
+                        "error": {"code": -32601, "message": f"Method '{method}' not found"},
+                    }
+                )
+            )
 
         sys.stdout.flush()
 

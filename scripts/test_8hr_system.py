@@ -39,7 +39,7 @@ async def test_thermal_manager():
     )
 
     async with ThermalCheckpointManager(config) as manager:
-        print(f"✓ Thermal manager initialized")
+        print("✓ Thermal manager initialized")
         print(f"  Pause threshold: {manager.config.pause_temp}°C")
         print(f"  Resume threshold: {manager.config.resume_temp}°C")
 
@@ -51,7 +51,7 @@ async def test_thermal_manager():
             hypotheses_completed=5,
             total_hypotheses=20,
         )
-        print(f"✓ Test checkpoint created")
+        print("✓ Test checkpoint created")
 
         # Load it back
         loaded = await manager._load_latest_checkpoint("test_journey")
@@ -68,7 +68,7 @@ async def test_tdp_tracker():
     config = TDPConfig(envelope=TDPEnvelope(tdp_watts=120.0, duration_hours=8.0))
 
     async with TDPBudgetTracker(config) as tracker:
-        print(f"✓ TDP tracker initialized")
+        print("✓ TDP tracker initialized")
         print(f"  Budget: {tracker.config.envelope.total_watt_hours:.1f} Wh")
 
         # Sample power
@@ -86,7 +86,7 @@ async def test_executor():
     print("\n=== Testing ThermalAutoresearchExecutor ===")
 
     executor = ThermalAutoresearchExecutor()
-    print(f"✓ Executor initialized")
+    print("✓ Executor initialized")
     print(f"  Domains: {len(executor.config.domains)}")
     print(f"  Total duration: {executor.config.total_duration_hours} hours")
 

@@ -28,6 +28,7 @@ from typing import Any
 
 class SycophancyRisk(Enum):
     """Risk levels of sycophantic behavior."""
+
     LOW = "low"
     MEDIUM = "medium"
     HIGH = "high"
@@ -55,7 +56,7 @@ class AntiSycophancyGuard:
     def check_sycophancy_risk(self) -> SycophancyRisk:
         """
         Assess current sycophancy risk level.
-        
+
         Risk signals:
         - Too many consecutive "improvements" (cherry-picking)
         - Never discarding experiments (overfitting)
@@ -101,21 +102,25 @@ class AntiSycophancyGuard:
             self.consecutive_improvements = 0
 
             # Record negative result (important!)
-            self.negative_results.append({
-                "timestamp": metrics.get("timestamp", "unknown"),
-                "reason": metrics.get("discard_reason", "unspecified"),
-                "metrics": metrics,
-            })
+            self.negative_results.append(
+                {
+                    "timestamp": metrics.get("timestamp", "unknown"),
+                    "reason": metrics.get("discard_reason", "unspecified"),
+                    "metrics": metrics,
+                }
+            )
 
-        self.blind_evaluations.append({
-            "status": status,
-            "metrics": metrics,
-        })
+        self.blind_evaluations.append(
+            {
+                "status": status,
+                "metrics": metrics,
+            }
+        )
 
     def get_adversarial_feedback(self) -> list[str]:
         """
         Generate adversarial feedback to challenge assumptions.
-        
+
         Returns critical questions to ask about current trajectory.
         """
         feedback = []
@@ -152,7 +157,7 @@ class AntiSycophancyGuard:
 class BlindEvaluator:
     """
     Blind evaluation system.
-    
+
     Prevents gaming by hiding expected outcomes from the optimizer.
     Uses commit hashes to verify predictions before revealing ground truth.
     """
@@ -160,13 +165,12 @@ class BlindEvaluator:
     def __init__(self, ground_truth_store: Path | None = None):
         self.store = ground_truth_store or Path(".autoharness/ground_truth.json")
         self.predictions: dict[str, str] = {}  # hash -> predicted outcome
-        self.results: dict[str, Any] = {}      # hash -> actual outcome
+        self.results: dict[str, Any] = {}  # hash -> actual outcome
 
-    def commit_prediction(self, experiment_config: dict,
-                           predicted_tps: float) -> str:
+    def commit_prediction(self, experiment_config: dict, predicted_tps: float) -> str:
         """
         Commit to a prediction before running experiment.
-        
+
         Returns a hash that can be used to verify after experiment.
         """
         # Create hash from config
@@ -184,7 +188,7 @@ class BlindEvaluator:
     def reveal_result(self, commitment: str, actual_tps: float) -> dict:
         """
         Reveal actual result and compare to prediction.
-        
+
         This prevents post-hoc rationalization of "success".
         """
         if commitment not in self.predictions:
@@ -201,7 +205,11 @@ class BlindEvaluator:
             "predicted": predicted,
             "actual": actual_tps,
             "error_pct": error,
-            "assessment": "accurate" if within_10pct else "overconfident" if predicted > actual_tps else "underconfident",
+            "assessment": "accurate"
+            if within_10pct
+            else "overconfident"
+            if predicted > actual_tps
+            else "underconfident",
         }
 
         return {
@@ -214,7 +222,7 @@ class BlindEvaluator:
     def calibration_score(self) -> float:
         """
         Calculate calibration score.
-        
+
         Well-calibrated = predictions match outcomes.
         Overconfident = always predict high.
         Underconfident = always predict low.
@@ -222,15 +230,14 @@ class BlindEvaluator:
         if not self.results:
             return 0.0
 
-        accurate_count = sum(1 for r in self.results.values()
-                            if r["assessment"] == "accurate")
+        accurate_count = sum(1 for r in self.results.values() if r["assessment"] == "accurate")
         return accurate_count / len(self.results)
 
 
 class NegativeResultReporter:
     """
     Explicitly track and report negative results.
-    
+
     Scientific progress requires knowing what doesn't work.
     Sycophancy hides negative results to appear more successful.
     """
@@ -239,8 +246,7 @@ class NegativeResultReporter:
         self.workspace = workspace or Path.home() / ".autoharness" / "negative_results"
         self.workspace.mkdir(parents=True, exist_ok=True)
 
-    def record_negative(self, experiment: dict, reason: str,
-                        lessons: str = ""):
+    def record_negative(self, experiment: dict, reason: str, lessons: str = ""):
         """
         Record a negative result with lessons learned.
         """
@@ -301,7 +307,7 @@ class NegativeResultReporter:
 class MultiMetricTradeoffAnalyzer:
     """
     Analyze tradeoffs across multiple metrics.
-    
+
     Can't game all metrics simultaneously - they're often in conflict:
     - Throughput vs Quality
     - Speed vs Cost
@@ -318,7 +324,7 @@ class MultiMetricTradeoffAnalyzer:
     def find_pareto_frontier(self) -> list[dict]:
         """
         Find Pareto-optimal experiments.
-        
+
         An experiment is Pareto-optimal if no other experiment
         dominates it in all metrics.
         """
@@ -373,10 +379,12 @@ class MultiMetricTradeoffAnalyzer:
 
         # Check for suspicious single-metric optimization
         if len(self.experiments) > 3:
-            tps_variance = max(e.get("tokens_per_sec", 0) for e in self.experiments) - \
-                          min(e.get("tokens_per_sec", 0) for e in self.experiments)
-            quality_variance = max(e.get("quality_score", 0) for e in self.experiments) - \
-                             min(e.get("quality_score", 0) for e in self.experiments)
+            tps_variance = max(e.get("tokens_per_sec", 0) for e in self.experiments) - min(
+                e.get("tokens_per_sec", 0) for e in self.experiments
+            )
+            quality_variance = max(e.get("quality_score", 0) for e in self.experiments) - min(
+                e.get("quality_score", 0) for e in self.experiments
+            )
 
             if tps_variance > 50 and quality_variance < 0.1:
                 lines.append(
@@ -392,7 +400,7 @@ class MultiMetricTradeoffAnalyzer:
 class SycophancyResistantExperimentRunner:
     """
     Experiment runner with anti-sycophancy guards.
-    
+
     Combines all guards into a single interface.
     """
 
@@ -406,11 +414,11 @@ class SycophancyResistantExperimentRunner:
     def run_experiment(self, config: dict, runner: Callable) -> dict:
         """
         Run experiment with full anti-sycophancy protection.
-        
+
         Args:
             config: Experiment configuration
             runner: Function that runs the experiment
-        
+
         Returns:
             Result with anti-sycophancy annotations
         """
@@ -422,35 +430,31 @@ class SycophancyResistantExperimentRunner:
         result = runner(config)
 
         # Step 3: Reveal and compare
-        blind_result = self.blind_eval.reveal_result(
-            commitment,
-            result.get("tokens_per_sec", 0)
-        )
+        blind_result = self.blind_eval.reveal_result(commitment, result.get("tokens_per_sec", 0))
 
         # Step 4: Check if we were gaming the expectation
         if blind_result["assessment"] == "overconfident":
             result["sycophancy_flag"] = "predicted higher than achieved - check expectation bias"
 
         # Step 5: Record with guard
-        self.sycophancy_guard.record_result(
-            result.get("status", "unknown"),
-            result
-        )
+        self.sycophancy_guard.record_result(result.get("status", "unknown"), result)
 
         # Step 6: If negative, record why
         if result.get("status") == "discard":
             self.negative_reporter.record_negative(
                 result,
                 reason=result.get("asi", {}).get("rollback_reason", "unspecified"),
-                lessons=result.get("asi", {}).get("next_action_hint", "")
+                lessons=result.get("asi", {}).get("next_action_hint", ""),
             )
 
         # Step 7: Add to tradeoff analysis
-        self.tradeoff_analyzer.add_experiment({
-            "tokens_per_sec": result.get("tokens_per_sec", 0),
-            "quality_score": result.get("quality_score", 0),
-            "config": config,
-        })
+        self.tradeoff_analyzer.add_experiment(
+            {
+                "tokens_per_sec": result.get("tokens_per_sec", 0),
+                "quality_score": result.get("quality_score", 0),
+                "config": config,
+            }
+        )
 
         # Step 8: Attach anti-sycophancy warnings
         result["anti_sycophancy"] = {
@@ -513,9 +517,9 @@ if __name__ == "__main__":
             }
 
         result = runner.run_experiment(config, fake_runner)
-        print(f"Experiment {i+1}: {result['status']}")
+        print(f"Experiment {i + 1}: {result['status']}")
         print(f"  Risk: {result['anti_sycophancy']['risk_level']}")
-        if result['anti_sycophancy']['adversarial_feedback']:
+        if result["anti_sycophancy"]["adversarial_feedback"]:
             print(f"  ⚠️ {result['anti_sycophancy']['adversarial_feedback'][0]}")
 
     print(runner.full_report())

@@ -326,9 +326,7 @@ class FeatureFlagManager:
             updated_by,
         )
 
-    def ramp_up(
-        self, flag: FeatureFlag, percentage: float, updated_by: str = "admin"
-    ) -> None:
+    def ramp_up(self, flag: FeatureFlag, percentage: float, updated_by: str = "admin") -> None:
         """Gradually increase rollout percentage.
 
         Args:
@@ -405,12 +403,8 @@ class FeatureFlagManager:
         """
         total_flags = len(self.flags)
         enabled_flags = sum(1 for c in self.flags.values() if c.enabled)
-        full_rollout = sum(
-            1 for c in self.flags.values() if c.rollout_stage == RolloutStage.FULL
-        )
-        canary = sum(
-            1 for c in self.flags.values() if c.rollout_stage == RolloutStage.CANARY
-        )
+        full_rollout = sum(1 for c in self.flags.values() if c.rollout_stage == RolloutStage.FULL)
+        canary = sum(1 for c in self.flags.values() if c.rollout_stage == RolloutStage.CANARY)
 
         return {
             "total_flags": total_flags,

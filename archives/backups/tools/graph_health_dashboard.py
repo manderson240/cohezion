@@ -11,7 +11,6 @@ Usage:
 from __future__ import annotations
 
 import argparse
-import json
 import logging
 import os
 import sys
@@ -19,6 +18,7 @@ from datetime import UTC, datetime
 from pathlib import Path
 
 import httpx
+
 
 logging.basicConfig(level=logging.INFO, format="%(message)s")
 logger = logging.getLogger(__name__)
@@ -167,8 +167,8 @@ def generate_dashboard(metrics: dict) -> str:
         "",
         "## Overview",
         "",
-        f"| Metric | Value |",
-        f"|--------|-------|",
+        "| Metric | Value |",
+        "|--------|-------|",
         f"| Neurons | {metrics['neurons']:,} |",
         f"| Synapses | {metrics['synapses']:,} |",
         f"| Orphans | {metrics['orphans']:,} ({metrics['orphan_ratio'] * 100:.1f}%) |",

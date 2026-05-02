@@ -45,7 +45,7 @@ async def test_quality():
         results = []
 
         for case in test_cases:
-            print(f"\n{'='*70}")
+            print(f"\n{'=' * 70}")
             print(f"Testing: {case['name']}")
             print(f"System: {case['system'][:60]}...")
             print(f"Temperature: {case['temperature']}")
@@ -57,11 +57,11 @@ async def test_quality():
                 json={
                     "model": model,
                     "messages": [
-                        {"role": "system", "content": case['system']},
+                        {"role": "system", "content": case["system"]},
                         {"role": "user", "content": prompt},
                     ],
-                    "temperature": case['temperature'],
-                    "top_p": case['top_p'],
+                    "temperature": case["temperature"],
+                    "top_p": case["top_p"],
                     "max_tokens": 100,
                 },
                 timeout=aiohttp.ClientTimeout(total=30),
@@ -79,22 +79,39 @@ async def test_quality():
                 # Simple quality: does it answer the question?
                 has_substance = len(text.split()) > 10
                 has_engineer = "engineer" in text.lower() or "engineering" in text.lower()
-                has_quality = any(w in text.lower() for w in ["skill", "learn", "problem", "code", "communication"])
+                has_quality = any(
+                    w in text.lower()
+                    for w in ["skill", "learn", "problem", "code", "communication"]
+                )
 
                 quality_pass = has_substance and has_engineer
 
                 print("\nQuality Check:")
-                print(f"  Has substance (>10 words): {has_substance} ✓" if has_substance else "  Has substance: ✗")
-                print(f"  Mentions engineering: {has_engineer} ✓" if has_engineer else "  Mentions engineering: ✗")
-                print(f"  Has quality markers: {has_quality} ✓" if has_quality else "  Has quality markers: ✗")
+                print(
+                    f"  Has substance (>10 words): {has_substance} ✓"
+                    if has_substance
+                    else "  Has substance: ✗"
+                )
+                print(
+                    f"  Mentions engineering: {has_engineer} ✓"
+                    if has_engineer
+                    else "  Mentions engineering: ✗"
+                )
+                print(
+                    f"  Has quality markers: {has_quality} ✓"
+                    if has_quality
+                    else "  Has quality markers: ✗"
+                )
                 print(f"  OVERALL: {'PASS ✓' if quality_pass else 'FAIL ✗'}")
 
-                results.append({
-                    "name": case['name'],
-                    "tps": tps,
-                    "quality_pass": quality_pass,
-                    "tokens": tokens,
-                })
+                results.append(
+                    {
+                        "name": case["name"],
+                        "tps": tps,
+                        "quality_pass": quality_pass,
+                        "tokens": tokens,
+                    }
+                )
 
         # Summary
         print("\n" + "=" * 70)
@@ -104,25 +121,29 @@ async def test_quality():
         print("-" * 70)
 
         for r in results:
-            status = "PASS ✓" if r['quality_pass'] else "FAIL ✗"
+            status = "PASS ✓" if r["quality_pass"] else "FAIL ✗"
             print(f"{r['name']:<35} {r['tps']:<10.1f} {status:<10}")
 
         # Findings
-        baseline = next((r for r in results if "Baseline" in r['name']), None)
-        optimized = next((r for r in results if "Optimized" in r['name']), None)
-        throughput = next((r for r in results if "Throughput" in r['name']), None)
+        baseline = next((r for r in results if "Baseline" in r["name"]), None)
+        optimized = next((r for r in results if "Optimized" in r["name"]), None)
+        throughput = next((r for r in results if "Throughput" in r["name"]), None)
 
         if baseline and throughput:
-            tps_drop = ((baseline['tps'] - throughput['tps']) / baseline['tps'] * 100) if baseline['tps'] > 0 else 0
+            tps_drop = (
+                ((baseline["tps"] - throughput["tps"]) / baseline["tps"] * 100)
+                if baseline["tps"] > 0
+                else 0
+            )
 
-            print(f"\n{'='*70}")
+            print(f"\n{'=' * 70}")
             print("FINDINGS")
-            print(f"{'='*70}")
+            print(f"{'=' * 70}")
             print("Throughput optimization impact:")
             print(f"  TPS change: {tps_drop:+.1f}%")
             print(f"  Quality maintained: {baseline['quality_pass'] == throughput['quality_pass']}")
 
-            if all(r['quality_pass'] for r in results):
+            if all(r["quality_pass"] for r in results):
                 print("\n✓ All strategies produce quality outputs")
             else:
                 print("\n⚠ Some strategies failed quality check")

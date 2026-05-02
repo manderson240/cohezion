@@ -10,8 +10,10 @@ Target: <140µs (improvement over ~154µs fused_moe baseline)
 """
 
 from __future__ import annotations
+
 import os
 import sys
+
 
 # Environment variables BEFORE any aiter import
 os.environ["AITER_USE_NT"] = "1"
@@ -23,11 +25,11 @@ _AITER_JIT_DIR = "/home/runner/aiter/aiter/jit"
 if _AITER_JIT_DIR not in sys.path:
     sys.path.insert(0, _AITER_JIT_DIR)
 
-import torch
-from torch.utils.cpp_extension import load_inline
 from aiter import ActivationType, QuantType
 from aiter.fused_moe import fused_moe
 from task import input_t, output_t
+from torch.utils.cpp_extension import load_inline
+
 
 # ─── HIP Kernel Source: MFMA-based MoE Stage 1 (Gate+Up) ────────────────────
 # Uses CDNA4 scaled MFMA intrinsic for MXFP4 computation
@@ -342,7 +344,7 @@ def _get_mfma_module():
                 ],
             )
             _HAS_MFMA_KERNELS = True
-        except Exception as e:
+        except Exception:
             _HAS_MFMA_KERNELS = False
             _module = None
     return _module

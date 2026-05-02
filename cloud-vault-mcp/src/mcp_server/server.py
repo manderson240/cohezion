@@ -859,6 +859,7 @@ def create_server(config: ServerConfig) -> FastMCP:
         logger.warning("Pocket TTS not available (pip install pocket-tts)")
 
     from .vault_graph.tools import register_read_tools, register_write_tools
+
     register_read_tools(mcp)
     if config.surrealdb_enabled:
         register_write_tools(mcp)

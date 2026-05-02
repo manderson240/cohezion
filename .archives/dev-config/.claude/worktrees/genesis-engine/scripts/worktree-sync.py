@@ -150,7 +150,7 @@ def main():
         print(json.dumps(result, indent=2))
     else:
         if result["success"]:
-            print(f"Worktree synced successfully:")
+            print("Worktree synced successfully:")
             print(f"  Slug: {result['slug']}")
             print(f"  Branch: {result['branch']}")
             print(f"  Base: {result['base_branch']}")

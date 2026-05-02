@@ -1,5 +1,6 @@
-import aiter
 import sys
+
+import aiter
 
 
 def custom_kernel(data):

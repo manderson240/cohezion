@@ -22,7 +22,7 @@ import time
 from dataclasses import dataclass
 from datetime import datetime
 from pathlib import Path
-from typing import Any, Optional
+from typing import Any
 
 
 logger = logging.getLogger("ralph_integrator")
@@ -76,8 +76,8 @@ class RalphLoopIntegrator:
     def __init__(
         self,
         kernel: str,
-        config: Optional[dict[str, Any]] = None,
-        vault_path: Optional[str] = None,
+        config: dict[str, Any] | None = None,
+        vault_path: str | None = None,
     ):
         self.kernel = kernel
         self.config = {**RALPH_CONFIG, **(config or {})}
@@ -88,7 +88,7 @@ class RalphLoopIntegrator:
         self.best_coherence: float = 0.0
         self.stagnation_count: int = 0
         self.breakthrough_achieved: bool = False
-        self.breakthrough_cycle: Optional[int] = None
+        self.breakthrough_cycle: int | None = None
 
         self.coherence_history: list[CoherenceRecord] = []
         self.mutation_log: list[str] = []
@@ -369,7 +369,7 @@ class RalphLoopIntegrator:
 def create_ralph_driver(
     kernel: str,
     base_driver_path: str,
-    config: Optional[dict[str, Any]] = None,
+    config: dict[str, Any] | None = None,
 ) -> str:
     """
     Create a Ralph-enhanced driver for a kernel.
@@ -411,15 +411,15 @@ RALPH_CONFIG = {{
 
 def run_{kernel}_cycle(cycle_num: int) -> tuple[bool, float]:
     """Run one optimization cycle for {kernel}.
-    
+
     Returns (success, result_us).
     """
     # Import here to avoid circular deps
     from driver import run_cycle, load_tree, save_tree, rate_limiter, KERNEL_DIRS
-    
+
     kernel_dir = Path(".") / "autoresearch"
     tree = load_tree("{kernel}")
-    
+
     # Run the standard cycle
     success, summary = run_cycle(
         "{kernel}",
@@ -427,14 +427,14 @@ def run_{kernel}_cycle(cycle_num: int) -> tuple[bool, float]:
         rate_limiter,
         dry_run=False,
     )
-    
+
     # Extract result from summary
     # Format: "{{kernel}}: {{geomean:.1f}}µs ..."
     try:
         geomean = float(summary.split(":")[1].split("µs")[0].strip())
     except:
         geomean = float("inf")
-    
+
     save_tree(tree)
     return success, geomean
 
@@ -445,23 +445,23 @@ def main():
         config=RALPH_CONFIG,
         vault_path="{vault_path}",
     )
-    
+
     log.info(f"Starting Ralph Loop for {kernel}")
     log.info(f"Target: {{RALPH_CONFIG['leaderboard_targets']['{kernel}']}}µs")
-    
+
     max_iterations = {RALPH_CONFIG["max_iterations"]}
-    
+
     for i in range(max_iterations):
         cycle_num = i + 1
-        
+
         # Load tree for this cycle
         from driver import load_tree
         tree = load_tree("{kernel}")
-        
+
         # Get previous best
         stats = tree.get_stats()
         prev_best = stats.get("best_us", float("inf"))
-        
+
         # Run cycle
         from driver import run_cycle, save_tree, rate_limiter
         success, summary = run_cycle(
@@ -471,33 +471,33 @@ def main():
             dry_run=False,
         )
         save_tree(tree)
-        
+
         # Extract result
         try:
             result_us = float(summary.split(":")[1].split("µs")[0].strip())
         except:
             result_us = float("inf")
-        
+
         # Run Ralph gate
         from ralph_integrator import RALPH_CONFIG as CONFIG
-        
+
         # Simple coherence check
         improvement = ((prev_best - result_us) / prev_best * 100) if prev_best != float("inf") and prev_best > 0 else 0
         coherence = 0.5 if improvement >= 5 else 0.3
-        
+
         log.info(f"Cycle {{cycle_num}}: {{result_us:.1f}}µs (coherence={{coherence:.2f}})")
-        
+
         if result_us <= CONFIG["leaderboard_targets"]["{kernel}"]:
             log.info(f"BREAKTHROUGH! {{result_us:.1f}}µs <= {{CONFIG['leaderboard_targets']['{kernel}']}}µs target")
             break
-        
+
         if cycle_num >= max_iterations:
             log.info(f"Max iterations ({{max_iterations}}) reached")
             break
-    
+
     summary = integrator.get_summary()
     log.info(f"Final summary: {{summary}}")
-    
+
     return summary
 
 

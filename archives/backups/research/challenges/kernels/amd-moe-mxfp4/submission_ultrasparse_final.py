@@ -13,8 +13,10 @@ from __future__ import annotations
 
 import os
 import sys
+
 import torch
 import torch.nn.functional as F
+
 
 # Environment setup BEFORE aiter import
 os.environ["AITER_JIT_DIR"] = "/tmp/aiter_jit_cache"
@@ -34,17 +36,17 @@ for _mod in (
 import aiter
 from aiter import ActivationType, dtypes
 from aiter.ops.triton.quant import dynamic_mxfp4_quant
-from aiter.ops.triton.quant.fused_mxfp4_quant import fused_dynamic_mxfp4_quant_moe_sort
 from aiter.utility.fp4_utils import e8m0_shuffle
+
 
 # Import task types
 try:
     from task import input_t, output_t
 except ImportError:
     # Fallback type definitions for standalone testing
-    from typing import Tuple, Any
+    from typing import Any
 
-    input_t = Tuple[Any, ...]
+    input_t = tuple[Any, ...]
     output_t = torch.Tensor
 
 
@@ -169,7 +171,7 @@ def custom_kernel(data: input_t) -> output_t:
         )
         return output
 
-    except Exception as e:
+    except Exception:
         # Fallback: standard fused_moe without mask
         output = aiter.fused_moe(
             hidden_states=x_q,

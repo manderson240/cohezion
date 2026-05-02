@@ -100,9 +100,7 @@ class OneHourTest:
                 progress = (elapsed / 3600) * 100
 
                 logger.info(
-                    f"⏱️  Progress: {progress:.1f}% | "
-                    f"Cycles: {self.cycle_count} | "
-                    f"Remaining: {remaining / 60:.1f} min"
+                    f"⏱️  Progress: {progress:.1f}% | Cycles: {self.cycle_count} | Remaining: {remaining / 60:.1f} min"
                 )
 
                 # Wait before next cycle (10 min interval)
@@ -150,9 +148,7 @@ class OneHourTest:
         duration = self.end_time - self.start_time
 
         # Memory stats
-        avg_memory = sum(m["current_mb"] for m in self.memory_samples) / max(
-            len(self.memory_samples), 1
-        )
+        avg_memory = sum(m["current_mb"] for m in self.memory_samples) / max(len(self.memory_samples), 1)
         peak_memory = max((m["peak_mb"] for m in self.memory_samples), default=0)
 
         # Gateway status

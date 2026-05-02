@@ -11,15 +11,6 @@ import logging
 from datetime import datetime
 from pathlib import Path
 
-from cohezion.core.persistence.surreal_client import (
-    PhysicsState,
-    SurrealClient,
-    UniverseNode,
-)
-from cohezion.flume.git_encoder import GitEncoder
-
-# Relative imports
-from cohezion.healing.deep_audit import DeepAuditor
 from cohezion.swarm.agents.code_simplification_agent import CodeSimplificationAgent
 from cohezion.swarm.agents.git_health_agent import GitHealthAgent
 from cohezion.swarm.git_health import (
@@ -29,6 +20,16 @@ from cohezion.swarm.git_health import (
     get_unpushed_commits,
 )
 from cohezion.swarm.journey_tracker import AgentType, get_journey_tracker
+
+from cohezion.core.persistence.surreal_client import (
+    PhysicsState,
+    SurrealClient,
+    UniverseNode,
+)
+from cohezion.flume.git_encoder import GitEncoder
+
+# Relative imports
+from cohezion.healing.deep_audit import DeepAuditor
 from cohezion.swarm.swarm_types import SwarmConfig
 
 

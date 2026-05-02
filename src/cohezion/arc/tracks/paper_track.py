@@ -142,8 +142,12 @@ class PaperTrackPipeline:
             total_tasks=base_summary.get("max_tasks", base_summary.get("tasks", 0)),
             accuracy=base_verify.get("accuracy", 0.0),
             solver_config={
-                "max_depth": getattr(self.base_pipeline, "builder", None).max_depth if hasattr(self.base_pipeline, "builder") else None,
-                "budget": getattr(self.base_pipeline, "builder", None).budget if hasattr(self.base_pipeline, "builder") else None,
+                "max_depth": getattr(self.base_pipeline, "builder", None).max_depth
+                if hasattr(self.base_pipeline, "builder")
+                else None,
+                "budget": getattr(self.base_pipeline, "builder", None).budget
+                if hasattr(self.base_pipeline, "builder")
+                else None,
             },
         )
         self.results.append(result)
@@ -185,10 +189,10 @@ class PaperTrackPipeline:
     def _generate_readme(self, base_summary: dict[str, Any], base_verify: dict[str, Any]) -> str:
         return f"""# ARC Paper Track Submission
 
-**Track**: {self.TRACK_NAME}  
-**Base Pipeline**: {self.results[0].track_name if self.results else 'n/a'}  
-**Tasks Solved**: {base_summary.get('tasks', 0)}  
-**Submission Valid**: {base_verify.get('valid', False)}  
+**Track**: {self.TRACK_NAME}
+**Base Pipeline**: {self.results[0].track_name if self.results else "n/a"}
+**Tasks Solved**: {base_summary.get("tasks", 0)}
+**Submission Valid**: {base_verify.get("valid", False)}
 
 ## Quick Start
 
@@ -217,12 +221,14 @@ Cohezion Research — November 2026
             for tid, preds in sub.items():
                 for pi, pred in enumerate(preds):
                     lines.append(
-                        json.dumps({
-                            "task_id": tid,
-                            "test_index": pi,
-                            "attempt_1": pred.get("attempt_1"),
-                            "attempt_2": pred.get("attempt_2"),
-                        })
+                        json.dumps(
+                            {
+                                "task_id": tid,
+                                "test_index": pi,
+                                "attempt_1": pred.get("attempt_1"),
+                                "attempt_2": pred.get("attempt_2"),
+                            }
+                        )
                     )
         return "\n".join(lines)
 
@@ -240,8 +246,12 @@ Cohezion Research — November 2026
         tex = self.output_dir / "paper.tex"
         pdf = self.output_dir / "paper.pdf"
         try:
-            subprocess.run(["pdflatex", "-output-directory", str(self.output_dir), str(tex)],
-                           check=True, capture_output=True, timeout=120)
+            subprocess.run(
+                ["pdflatex", "-output-directory", str(self.output_dir), str(tex)],
+                check=True,
+                capture_output=True,
+                timeout=120,
+            )
             return pdf
         except (FileNotFoundError, subprocess.CalledProcessError, subprocess.TimeoutExpired):
             return None
@@ -253,6 +263,7 @@ Cohezion Research — November 2026
 
 if __name__ == "__main__":
     import argparse
+
     parser = argparse.ArgumentParser(description="ARC Paper Track Pipeline")
     parser.add_argument("--output-dir", type=Path, required=True)
     parser.add_argument("--compile", action="store_true", help="Run pdflatex on paper.tex")

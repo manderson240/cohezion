@@ -24,11 +24,12 @@ Expected: 20-30% throughput improvement on batch processing
 from __future__ import annotations
 
 import os
+
 import torch
-from typing import List, Tuple
 from aiter import ActivationType, QuantType
 from aiter.fused_moe import fused_moe
 from task import input_t, output_t
+
 
 # Environment
 os.environ["AITER_USE_NT"] = "1"
@@ -50,14 +51,14 @@ class PipelinedExpertExecution:
         """
         self.num_stages = num_stages
         self.micro_batch_size = micro_batch_size
-        self._pipeline_buffers: List[torch.Tensor] = []
+        self._pipeline_buffers: list[torch.Tensor] = []
 
     def split_microbatches(
         self,
         hidden_states: torch.Tensor,
         topk_weights: torch.Tensor,
         topk_ids: torch.Tensor,
-    ) -> List[Tuple[torch.Tensor, torch.Tensor, torch.Tensor]]:
+    ) -> list[tuple[torch.Tensor, torch.Tensor, torch.Tensor]]:
         """Split batch into micro-batches.
 
         Args:
@@ -85,7 +86,7 @@ class PipelinedExpertExecution:
 
     def execute_pipelined(
         self,
-        micro_batches: List[Tuple],
+        micro_batches: list[tuple],
         gate_up_weight: torch.Tensor,
         down_weight: torch.Tensor,
         config: dict,

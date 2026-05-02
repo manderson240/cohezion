@@ -195,9 +195,7 @@ class ConfigurationOrchestrator:
                             logger.warning(f"{filename} size violation: {violation_check['violations']}")
 
                             # Archive old sections
-                            archive_result = await self.archiver.archive_old_sections(
-                                file_path
-                            )
+                            archive_result = await self.archiver.archive_old_sections(file_path)
 
                             # Log archival
                             if archive_result.get("archived"):
@@ -214,9 +212,7 @@ class ConfigurationOrchestrator:
                                     payload={
                                         "config_event": ConfigEvent.ARCHIVE_TRIGGERED.name,
                                         "file": filename,
-                                        "sections_archived": archive_result[
-                                            "sections_archived"
-                                        ],
+                                        "sections_archived": archive_result["sections_archived"],
                                     },
                                 )
                                 self.monitor.event_bus.publish(config_event)

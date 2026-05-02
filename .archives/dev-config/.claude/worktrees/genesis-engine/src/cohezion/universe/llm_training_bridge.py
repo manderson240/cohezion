@@ -161,9 +161,7 @@ class TrajectoryToReward:
 
         # Consistency bonus: low coherence variance = stable journey
         coherences = [s.coherence for s in trajectory.steps]
-        consistency = (
-            max(0.0, 1.0 - float(np.std(coherences)) * 4.0) if len(coherences) > 1 else 0.5
-        )
+        consistency = max(0.0, 1.0 - float(np.std(coherences)) * 4.0) if len(coherences) > 1 else 0.5
 
         # Precipitation bonus
         precipitation = 1.0 if trajectory.precipitation_achieved else 0.0

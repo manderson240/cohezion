@@ -8,7 +8,6 @@ From tritonblas-matmul-fp4-api skill:
 """
 
 import torch
-
 from task import input_t, output_t
 
 
@@ -43,7 +42,7 @@ def custom_kernel(data: input_t) -> output_t:
         matmul_fp4(A_packed, B_packed, C, A_scale_bytes, B_scale_bytes)
         return C
 
-    except Exception as e:
+    except Exception:
         # Fallback to aiter
         import aiter
         from aiter import dtypes

@@ -77,7 +77,7 @@ def main():
 
     # Create submission DataFrame
     submission_df = pl.DataFrame(results)
-    print(f"\nSubmission DataFrame:")
+    print("\nSubmission DataFrame:")
     print(submission_df)
 
     # Save to parquet

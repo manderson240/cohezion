@@ -13,7 +13,8 @@
 # limitations under the License.
 
 import itertools
-from typing import Any, Iterable, Iterator, TypeVar
+from collections.abc import Iterable, Iterator
+from typing import Any, TypeVar
 
 import pandas as pd
 from joblib import Parallel, delayed
@@ -22,6 +23,7 @@ from tqdm.auto import tqdm
 from kaggle_benchmarks import contexts
 from kaggle_benchmarks._config import config
 from kaggle_benchmarks.orchestration import task_queue
+
 
 T = TypeVar("T")
 
@@ -88,10 +90,7 @@ def evaluate_function(
                 verbose=7 if not config.disable_tqdm() else 0,
                 timeout=timeout,
             ) as parallel:
-                tasks = (
-                    delayed(run_on_row)(item, main_context)
-                    for item in evaluation_data.iterrows()
-                )
+                tasks = (delayed(run_on_row)(item, main_context) for item in evaluation_data.iterrows())
 
                 results_iterator = parallel(tasks)
 

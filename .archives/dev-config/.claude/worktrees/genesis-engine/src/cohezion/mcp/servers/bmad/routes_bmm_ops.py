@@ -257,9 +257,7 @@ async def tool_bmad_bmm_performance_optimization(request: web.Request) -> web.Re
             {
                 "tool": "bmad_bmm_performance_optimization",
                 "bottleneck": bottleneck,
-                "recommendations": optimizations.get(
-                    bottleneck, ["Profile code", "Add monitoring"]
-                ),
+                "recommendations": optimizations.get(bottleneck, ["Profile code", "Add monitoring"]),
                 "tools": ["cProfile", "py-spy", "Prometheus", "Jaeger"],
             }
         )

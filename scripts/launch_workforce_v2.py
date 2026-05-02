@@ -1,15 +1,14 @@
-import httpx
 import asyncio
+
+import httpx
+
 
 API_URL = "http://localhost:8080/api/eigent/workforce"
 
+
 async def launch_journey(role, task, duration=7.0):
     print(f"Launching journey for {role}...")
-    payload = {
-        "role": role,
-        "task": task,
-        "duration_days": duration
-    }
+    payload = {"role": role, "task": task, "duration_days": duration}
     async with httpx.AsyncClient(timeout=30.0) as client:
         try:
             response = await client.post(API_URL, json=payload)
@@ -20,19 +19,21 @@ async def launch_journey(role, task, duration=7.0):
             print(f"Failed to launch {role}: {e}")
             return None
 
+
 async def main():
     tasks = [
         ("Manifold Analyst", "Simulate and map 12D topological drift over 168 hours.", 7.0),
         ("Code Surgeon", "Audit src/ for anti-patterns and propose self-healing mutations.", 7.0),
         ("HIHO Simulator", "Validate 0.5 coherence stability in a toroidal vortex manifold.", 7.0),
-        ("Sovereign Documenter", "Generate weekly insight reports from agent findings.", 7.0)
+        ("Sovereign Documenter", "Generate weekly insight reports from agent findings.", 7.0),
     ]
-    
+
     results = await asyncio.gather(*[launch_journey(r, t, d) for r, t, d in tasks])
     print("\nWorkforce v2 Launch Summary:")
     for res in results:
         if res:
             print(f" - {res['agent_id']}: {res['status']}")
+
 
 if __name__ == "__main__":
     asyncio.run(main())

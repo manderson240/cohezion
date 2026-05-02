@@ -1,7 +1,8 @@
-import os
-import json
 import hashlib
+import json
+import os
 from concurrent.futures import ThreadPoolExecutor, as_completed
+
 from solve_peaked_circuit import solve_peaked_circuit
 
 
@@ -20,7 +21,7 @@ class BatchSolver:
         """
         Creates a SHA-256 hash of the problem's parameters and circuit content.
         """
-        with open(path, "r") as f:
+        with open(path) as f:
             content = f.read()
 
         # Salt the hash with the parameters
@@ -33,7 +34,7 @@ class BatchSolver:
         """
         cache_path = os.path.join(self.cache_dir, f"{h}.json")
         if os.path.exists(cache_path):
-            with open(cache_path, "r") as f:
+            with open(cache_path) as f:
                 return json.load(f)
         return None
 

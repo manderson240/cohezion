@@ -319,12 +319,8 @@ class TeamOrchestrator:
             tools=tools,
             disallowed_tools=disallowed,
             model=model,
-            instructions="\n".join(instructions_parts)
-            if instructions_parts
-            else f"Expert in {spec.name}.",
-            ollama_model=self._select_ollama_model(
-                [c.lower() for c in spec.concepts] if spec.concepts else []
-            ),
+            instructions="\n".join(instructions_parts) if instructions_parts else f"Expert in {spec.name}.",
+            ollama_model=self._select_ollama_model([c.lower() for c in spec.concepts] if spec.concepts else []),
         )
 
     def _tools_for_role(self, role: str) -> tuple[list[str], list[str]]:

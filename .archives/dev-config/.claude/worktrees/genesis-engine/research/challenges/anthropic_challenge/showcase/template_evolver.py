@@ -21,17 +21,13 @@ class TemplateEvolver:
             "/home/mike-anderson/dev/cohezion/src/cohezion/knowledge_graph/TEMPLATE_EVOLUTION.md"
         )
 
-    def __init__(
-        self, templates_dir: str = "/home/mike-anderson/dev/cohezion/templates/"
-    ):
+    def __init__(self, templates_dir: str = "/home/mike-anderson/dev/cohezion/templates/"):
         self.templates_dir = Path(templates_dir)
         self.evolution_log_path = Path(
             "/home/mike-anderson/dev/cohezion/src/cohezion/knowledge_graph/TEMPLATE_EVOLUTION.md"
         )
 
-    def analyze_retrospective(
-        self, retro_content: str, template_name: str = "skill.md"
-    ) -> bool:
+    def analyze_retrospective(self, retro_content: str, template_name: str = "skill.md") -> bool:
         """
         Scans a retrospective for "Missing Template Section" or "New Best Practice" and patches the template.
         """
@@ -62,9 +58,7 @@ class TemplateEvolver:
 
         # Avoid duplicate patching
         if improvement[:50] in content:
-            logger.info(
-                f"Improvement already present in {template_path.name}. Skipping."
-            )
+            logger.info(f"Improvement already present in {template_path.name}. Skipping.")
             return False
 
         # Strategy: Append to the end of the ## INSTRUCTION section or before ## VERSION

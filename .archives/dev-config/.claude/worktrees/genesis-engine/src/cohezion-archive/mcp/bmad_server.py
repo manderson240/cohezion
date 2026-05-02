@@ -151,9 +151,7 @@ async def bmad_bmm_create_prd(
 
     # Update session
     if session_id:
-        await get_session_manager().update_session(
-            session_id, {"last_action": "create_prd", "prd_created": True}
-        )
+        await get_session_manager().update_session(session_id, {"last_action": "create_prd", "prd_created": True})
 
     return {
         "prd_content": prd_content,

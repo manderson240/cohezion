@@ -21,7 +21,7 @@ def format_submission():
         print(f"Source file {SOURCE_FILE.name} not found. Run generate script first.")
         return
 
-    with open(SOURCE_FILE, "r") as f:
+    with open(SOURCE_FILE) as f:
         data = json.load(f)
 
     # In our generator, we already structure it as train/test

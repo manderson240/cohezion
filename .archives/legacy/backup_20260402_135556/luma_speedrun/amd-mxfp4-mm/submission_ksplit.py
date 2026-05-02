@@ -15,12 +15,10 @@ Competition shapes:
   M=256, N=3072, K=1536  -> large M, try KSPLIT=0
 """
 
-import os
 
 # Don't set KSPLIT globally — let aiter auto-select
 # But DO try to ensure we use the ASM path (fastest)
 
-import torch
 import aiter
 from aiter import dtypes
 from aiter.ops.triton.quant import dynamic_mxfp4_quant

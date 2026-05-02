@@ -25,10 +25,11 @@ Blocked algorithms for matrix computations.
 """
 
 from __future__ import annotations
+
 import os
 import sys
+
 import torch
-from typing import Tuple, Optional
 from aiter import dtypes
 from aiter.ops.triton.quant import dynamic_mxfp4_quant
 from aiter.utility.fp4_utils import e8m0_shuffle
@@ -61,7 +62,7 @@ class BlockedCholeskyGEMM:
         self.block_size = block_size
         self.use_preconditioning = use_preconditioning
 
-    def cholesky_decompose(self, block: torch.Tensor) -> Optional[torch.Tensor]:
+    def cholesky_decompose(self, block: torch.Tensor) -> torch.Tensor | None:
         """
         Compute Cholesky decomposition of a matrix block.
 

@@ -112,9 +112,7 @@ class ResilientOllamaClient:
 
             except Exception as e:
                 if attempt == self.max_retries - 1:
-                    raise RuntimeError(
-                        f"Ollama request failed after {self.max_retries} retries: {e}"
-                    ) from e
+                    raise RuntimeError(f"Ollama request failed after {self.max_retries} retries: {e}") from e
 
                 wait_time = 0.5 * (2**attempt)
                 logger.warning(
@@ -201,9 +199,7 @@ class TokenEfficientClient:
 
         # Initialize cache - persistent by default for session restore
         if use_persistent_cache:
-            persistent_cache = PersistentTokenCache(
-                cache_dir=cache_dir, persistence_enabled=True, auto_restore=True
-            )
+            persistent_cache = PersistentTokenCache(cache_dir=cache_dir, persistence_enabled=True, auto_restore=True)
             self.batch_processor = BatchProcessor(self, self.config, cache=persistent_cache)
         else:
             self.batch_processor = BatchProcessor(self, self.config)

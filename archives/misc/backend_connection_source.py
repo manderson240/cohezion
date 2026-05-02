@@ -9,6 +9,7 @@ from pathlib import Path
 from .http_utils import request_retriable
 from .version import __version__
 
+
 logger = logging.getLogger("bluequbit-python-sdk")
 
 

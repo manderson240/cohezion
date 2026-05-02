@@ -35,7 +35,6 @@ import argparse
 import asyncio
 import sys
 import time
-from pathlib import Path
 
 
 def _step(n: int, total: int, msg: str) -> None:

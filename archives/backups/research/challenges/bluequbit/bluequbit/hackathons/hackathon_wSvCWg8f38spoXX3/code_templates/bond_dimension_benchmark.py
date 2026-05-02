@@ -6,16 +6,15 @@ Find optimal MPS bond dimension for given circuit characteristics
 import sys
 from pathlib import Path
 
+
 sys.path.insert(0, str(Path(__file__).parent))
 
-from dataclasses import dataclass
-from typing import List, Dict, Tuple
 import time
-import numpy as np
+from dataclasses import dataclass
 
-from dotenv import load_dotenv
 import bluequbit
 import qiskit
+from dotenv import load_dotenv
 
 
 @dataclass
@@ -48,10 +47,10 @@ class BondDimensionBenchmark:
     def benchmark_bond_dimensions(
         self,
         circuit: qiskit.QuantumCircuit,
-        bond_dims: List[int] = None,
+        bond_dims: list[int] = None,
         shots: int = 10000,
         device: str = "mps.cpu",
-    ) -> List[BenchmarkResult]:
+    ) -> list[BenchmarkResult]:
         """
         Benchmark multiple bond dimensions.
 
@@ -83,7 +82,7 @@ class BondDimensionBenchmark:
         results = []
 
         print(f"\n{'=' * 70}")
-        print(f"Bond Dimension Benchmark")
+        print("Bond Dimension Benchmark")
         print(f"{'=' * 70}")
         print(f"Circuit: {n_qubits} qubits, depth {circuit.depth()}")
         print(f"Device: {device}, Shots: {shots}")
@@ -133,7 +132,7 @@ class BondDimensionBenchmark:
 
         return results
 
-    def _estimate_fidelity(self, counts: Dict) -> float:
+    def _estimate_fidelity(self, counts: dict) -> float:
         """
         Estimate fidelity from measurement counts.
 
@@ -157,8 +156,8 @@ class BondDimensionBenchmark:
         return fidelity
 
     def recommend_bond_dimension(
-        self, results: List[BenchmarkResult], min_fidelity: float = 0.95
-    ) -> Tuple[int, Dict]:
+        self, results: list[BenchmarkResult], min_fidelity: float = 0.95
+    ) -> tuple[int, dict]:
         """
         Recommend optimal bond dimension.
 
@@ -203,10 +202,10 @@ class BondDimensionBenchmark:
 
         return recommendation, analysis
 
-    def print_report(self, results: List[BenchmarkResult], recommendation: int, analysis: Dict):
+    def print_report(self, results: list[BenchmarkResult], recommendation: int, analysis: dict):
         """Print benchmark report."""
         print(f"\n{'=' * 70}")
-        print(f"Bond Dimension Benchmark Report")
+        print("Bond Dimension Benchmark Report")
         print(f"{'=' * 70}")
 
         print(f"\n{'Bond Dim':<12} {'Runtime':<12} {'Fidelity':<12} {'Status':<10}")
@@ -222,7 +221,7 @@ class BondDimensionBenchmark:
                 print(f"{r.bond_dim:<12} {'N/A':<12} {'N/A':<12} {'✗':<10} ({r.error[:30]}...)")
 
         print(f"\n{'=' * 70}")
-        print(f"Analysis:")
+        print("Analysis:")
         print(f"  Recommended bond dimension: {analysis.get('recommended', 'N/A')}")
         print(f"  Fastest setting: {analysis.get('fastest_result', 'N/A')}")
         print(f"  Highest fidelity: {analysis.get('highest_fidelity', 'N/A')}")

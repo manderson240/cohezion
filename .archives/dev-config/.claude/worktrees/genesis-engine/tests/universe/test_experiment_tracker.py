@@ -1,13 +1,11 @@
 """Tests for the Experiment Tracker."""
 
-import json
 from pathlib import Path
 
 import numpy as np
 import pytest
 
 from cohezion.universe.experiment_tracker import (
-    CheckpointRef,
     ExperimentRun,
     ExperimentTracker,
     MetricEntry,
@@ -70,7 +68,9 @@ class TestRunConfig:
 class TestExperimentRun:
     def test_get_final_metrics(self):
         run = ExperimentRun(
-            run_id="r1", name="test", config=RunConfig(42, {}, {}, {}),
+            run_id="r1",
+            name="test",
+            config=RunConfig(42, {}, {}, {}),
         )
         run.metrics["reward"] = [
             MetricEntry(step=0, name="reward", value=1.0),
@@ -82,7 +82,9 @@ class TestExperimentRun:
 
     def test_get_metric_series(self):
         run = ExperimentRun(
-            run_id="r1", name="test", config=RunConfig(42, {}, {}, {}),
+            run_id="r1",
+            name="test",
+            config=RunConfig(42, {}, {}, {}),
         )
         run.metrics["loss"] = [
             MetricEntry(step=0, name="loss", value=1.0),
@@ -93,7 +95,9 @@ class TestExperimentRun:
 
     def test_summary(self):
         run = ExperimentRun(
-            run_id="r1", name="test", config=RunConfig(42, {}, {}, {}),
+            run_id="r1",
+            name="test",
+            config=RunConfig(42, {}, {}, {}),
             tags={"type": "baseline"},
         )
         s = run.summary()

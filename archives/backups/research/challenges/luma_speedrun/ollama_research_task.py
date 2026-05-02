@@ -8,9 +8,11 @@ This script runs independently of Claude, using local Ollama models to:
 Usage: python3 luma_speedrun/ollama_research_task.py
 """
 
-import json, time, os
-from urllib.request import Request, urlopen
+import json
+import time
 from pathlib import Path
+from urllib.request import Request, urlopen
+
 
 OLLAMA_URL = "http://localhost:11434/api/generate"
 MODEL = "gemma4:31b"
@@ -45,10 +47,10 @@ def ask_ollama(prompt, max_tokens=4096):
 
 # Task 1: Research FP4 MFMA 32x32 register layout
 print(f"[{time.strftime('%H:%M:%S')}] Task 1: Researching FP4 MFMA register layout...")
-q1 = """You are an AMD GPU kernel optimization expert. 
+q1 = """You are an AMD GPU kernel optimization expert.
 
 I have verified that the BF16 MFMA 16x16x16 instruction (__builtin_amdgcn_mfma_f32_16x16x16bf16_1k) on AMD gfx950 (MI355X) has this output mapping:
-- c_reg[j] maps to output C[(tid/16)*4 + j][tid % 16]  
+- c_reg[j] maps to output C[(tid/16)*4 + j][tid % 16]
 - That is: 4 consecutive ROWS at a single COLUMN per thread
 
 Now I need the output mapping for the FP4 MFMA 32x32x64 instruction:
@@ -87,7 +89,7 @@ The current GEMM pipeline is:
 3. A_scale_sh = e8m0_shuffle(A_scale)
 4. result = gemm_a4w4(A_fp4, B_shuffle, A_scale_sh, B_scale_sh)
 
-How would I use per_1x32_f4_quant_hip to replace step 2? 
+How would I use per_1x32_f4_quant_hip to replace step 2?
 What is the likely function signature based on the name pattern?
 Could this save the ~5us Triton dispatch overhead?
 

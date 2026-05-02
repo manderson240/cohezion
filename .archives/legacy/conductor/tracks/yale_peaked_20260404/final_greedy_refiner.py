@@ -1,8 +1,10 @@
-import os
 import json
+import os
+
 import bluequbit
 import qiskit
 from dotenv import load_dotenv
+
 
 load_dotenv(".env")
 
@@ -31,7 +33,7 @@ def refine_bitstrings():
         print("❌ Run the QPU sprint first.")
         return
 
-    with open("conductor/tracks/yale_peaked_20260404/quantum_candidates.json", "r") as f:
+    with open("conductor/tracks/yale_peaked_20260404/quantum_candidates.json") as f:
         candidates = json.load(f)
 
     bq = bluequbit.init()

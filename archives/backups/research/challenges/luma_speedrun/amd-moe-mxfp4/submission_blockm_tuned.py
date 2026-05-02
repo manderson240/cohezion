@@ -25,7 +25,9 @@ and let aiter's internal dispatch handle everything.
 """
 
 from __future__ import annotations
+
 import os
+
 
 # Non-temporal memory hints (proven 10% improvement from vault)
 os.environ["AITER_USE_NT"] = "1"
@@ -34,6 +36,7 @@ import torch
 from aiter import ActivationType, QuantType
 from aiter.fused_moe import fused_moe
 from task import input_t, output_t
+
 
 # Pre-allocate output cache
 _out_cache: dict[tuple, torch.Tensor] = {}

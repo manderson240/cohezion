@@ -6,11 +6,9 @@ Compound Engineering Approach - Each round builds on previous
 
 import json
 import time
-from pathlib import Path
-from dataclasses import dataclass, asdict
-from typing import List, Dict, Any
+from dataclasses import asdict, dataclass
 from datetime import datetime
-import hashlib
+from pathlib import Path
 
 
 @dataclass
@@ -23,8 +21,8 @@ class ExtractionRound:
     skills_extracted: int
     patterns_found: int
     knowledge_items: int
-    insights: List[str]
-    previous_round_insights_used: List[str]
+    insights: list[str]
+    previous_round_insights_used: list[str]
     timestamp: str
 
 
@@ -36,7 +34,7 @@ class CompoundKnowledgeExtractor:
 
     def __init__(self, base_path: str):
         self.base_path = Path(base_path)
-        self.rounds: List[ExtractionRound] = []
+        self.rounds: list[ExtractionRound] = []
         self.all_skills = []
         self.all_patterns = []
         self.all_knowledge = []
@@ -143,7 +141,7 @@ class CompoundKnowledgeExtractor:
 
         return source_type, source_id
 
-    def _select_relevant_insights(self, round_num: int) -> List[str]:
+    def _select_relevant_insights(self, round_num: int) -> list[str]:
         """Select insights from previous rounds to guide current extraction"""
         if round_num == 1:
             return []  # First round has no previous insights
@@ -154,7 +152,7 @@ class CompoundKnowledgeExtractor:
         return self.insights_accumulator[start_idx:]
 
     def _extract(
-        self, source_type: str, source_id: str, insights: List[str], round_num: int
+        self, source_type: str, source_id: str, insights: list[str], round_num: int
     ) -> tuple:
         """
         Perform actual extraction
@@ -186,7 +184,7 @@ class CompoundKnowledgeExtractor:
 
         return skills, patterns, knowledge, new_insights
 
-    def _extract_bluequbit(self, insights: List[str], round_num: int) -> tuple:
+    def _extract_bluequbit(self, insights: list[str], round_num: int) -> tuple:
         """Extract from BlueQubit ecosystem"""
         # Use previous insights to focus extraction
         heavy_output_insights = [i for i in insights if "heavy" in i.lower()]
@@ -227,7 +225,7 @@ class CompoundKnowledgeExtractor:
 
         return skills, patterns, knowledge, new_insights
 
-    def _extract_qiskit(self, insights: List[str], round_num: int) -> tuple:
+    def _extract_qiskit(self, insights: list[str], round_num: int) -> tuple:
         """Extract from Qiskit ecosystem"""
         skills = [
             {
@@ -264,7 +262,7 @@ class CompoundKnowledgeExtractor:
 
         return skills, patterns, knowledge, new_insights
 
-    def _extract_academic(self, insights: List[str], round_num: int) -> tuple:
+    def _extract_academic(self, insights: list[str], round_num: int) -> tuple:
         """Extract from academic papers"""
         skills = [
             {
@@ -301,12 +299,12 @@ class CompoundKnowledgeExtractor:
 
         return skills, patterns, knowledge, new_insights
 
-    def _extract_github(self, insights: List[str], round_num: int) -> tuple:
+    def _extract_github(self, insights: list[str], round_num: int) -> tuple:
         """Extract from GitHub repositories"""
         skills, patterns, knowledge, new_insights = self._extract_generic(insights, round_num)
         return skills, patterns, knowledge, new_insights
 
-    def _extract_errors(self, insights: List[str], round_num: int) -> tuple:
+    def _extract_errors(self, insights: list[str], round_num: int) -> tuple:
         """Extract error patterns and solutions"""
         skills = [
             {
@@ -343,7 +341,7 @@ class CompoundKnowledgeExtractor:
 
         return skills, patterns, knowledge, new_insights
 
-    def _extract_optimizations(self, insights: List[str], round_num: int) -> tuple:
+    def _extract_optimizations(self, insights: list[str], round_num: int) -> tuple:
         """Extract optimization techniques"""
         skills = [
             {
@@ -380,7 +378,7 @@ class CompoundKnowledgeExtractor:
 
         return skills, patterns, knowledge, new_insights
 
-    def _extract_generic(self, insights: List[str], round_num: int) -> tuple:
+    def _extract_generic(self, insights: list[str], round_num: int) -> tuple:
         """Generic extraction for other source types"""
         skills = [
             {
@@ -598,7 +596,7 @@ class CompoundKnowledgeExtractor:
             f"- **{category}:** {count} items" for category, count in counts.items()
         )
 
-    def _count_by_platform(self) -> Dict[str, int]:
+    def _count_by_platform(self) -> dict[str, int]:
         """Count items by platform"""
         counts = {}
         for skill in self.all_skills:
@@ -606,7 +604,7 @@ class CompoundKnowledgeExtractor:
             counts[platform] = counts.get(platform, 0) + 1
         return counts
 
-    def _count_by_category(self) -> Dict[str, int]:
+    def _count_by_category(self) -> dict[str, int]:
         """Count items by category"""
         counts = {}
         for skill in self.all_skills:

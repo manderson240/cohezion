@@ -195,9 +195,7 @@ class AuditLogger:
 
         # Set default date range (last 90 days)
         if not start_date:
-            start_date = datetime.now(UTC) - timedelta(
-                days=self.retention_days
-            )
+            start_date = datetime.now(UTC) - timedelta(days=self.retention_days)
         if not end_date:
             end_date = datetime.now(UTC)
 
@@ -284,9 +282,7 @@ class AuditLogger:
                 for entry in entries:
                     row = asdict(entry)
                     row["action"] = row["action"].value
-                    row["details"] = (
-                        json.dumps(row["details"]) if row["details"] else ""
-                    )
+                    row["details"] = json.dumps(row["details"]) if row["details"] else ""
                     writer.writerow(row)
 
             return output.getvalue()
@@ -317,9 +313,7 @@ class AuditLogger:
                 date_str = log_file.stem.replace("audit_", "")
 
                 try:
-                    file_date = datetime.fromisoformat(date_str).replace(
-                        tzinfo=UTC
-                    )
+                    file_date = datetime.fromisoformat(date_str).replace(tzinfo=UTC)
 
                     if file_date < cutoff_date:
                         log_file.unlink()

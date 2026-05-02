@@ -4,11 +4,11 @@ from __future__ import annotations
 
 import json
 from collections import Counter
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 from pathlib import Path
 from typing import Any
 
-from arc_solver import Grid, Program, grids_equal
+from arc_solver import Grid
 
 
 @dataclass
@@ -70,9 +70,7 @@ def extract_signature(task_train: list[dict[str, Grid]]) -> TaskSignature:
     # Simple symmetry: check if grid equals its transpose
     sym = 0.0
     if rows_in == cols_in and rows_in > 1:
-        matches = sum(
-            1 for r in range(rows_in) for c in range(cols_in) if inp[r][c] == inp[c][r]
-        )
+        matches = sum(1 for r in range(rows_in) for c in range(cols_in) if inp[r][c] == inp[c][r])
         sym = matches / (rows_in * cols_in)
 
     # Approximate object count (non-background connected components)
@@ -203,7 +201,9 @@ class ExperienceVault:
     def add(self, entry: ExperienceEntry) -> None:
         self.entries.append(entry)
 
-    def find_similar(self, sig: TaskSignature, top_k: int = 5) -> list[tuple[float, ExperienceEntry]]:
+    def find_similar(
+        self, sig: TaskSignature, top_k: int = 5
+    ) -> list[tuple[float, ExperienceEntry]]:
         """Find top-k most similar solved experiences."""
         solved = [e for e in self.entries if e.solved]
         scored = [(sig_distance(sig, e.signature), e) for e in solved]

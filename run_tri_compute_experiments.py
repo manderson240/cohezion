@@ -20,7 +20,7 @@ from pathlib import Path
 
 
 # Add paths
-sys.path.insert(0, '/home/mike-anderson/dev/cohezion/src')
+sys.path.insert(0, "/home/mike-anderson/dev/cohezion/src")
 
 import numpy as np
 
@@ -34,9 +34,9 @@ from cohezion.inference.tri_compute_orchestrator import (
 class PhaseConnectionExperiments:
     """
     Implementation of phase connection experiments.
-    
+
     Phase 0: Baseline inference (NPU optimization)
-    Phase 1: FLUME latent dynamics (iGPU batch evolution)  
+    Phase 1: FLUME latent dynamics (iGPU batch evolution)
     Phase 2: EVO coupling (iGPU N-body, NPU validation)
     Phase 3: MHD plasma (iGPU field updates, NPU flux description)
     Phase 4: SWIFT cosmology (iGPU export, CPU SWIFT run)
@@ -91,8 +91,7 @@ class PhaseConnectionExperiments:
 
         # Generate random latent vectors
         agents = [
-            {"latent": np.random.randn(256) * 0.1 + 0.5, "coherence": 0.5}
-            for _ in range(n_agents)
+            {"latent": np.random.randn(256) * 0.1 + 0.5, "coherence": 0.5} for _ in range(n_agents)
         ]
 
         # Batch evolution
@@ -101,7 +100,7 @@ class PhaseConnectionExperiments:
         igpu_time = (time.time() - start) * 1000
 
         print(f"  Evolved {n_agents} agents × 100 steps in {igpu_time:.1f}ms")
-        print(f"  Throughput: {n_agents * 100 / (igpu_time/1000):.0f} agents/sec")
+        print(f"  Throughput: {n_agents * 100 / (igpu_time / 1000):.0f} agents/sec")
 
         # NPU task: Evaluate coherence
         npu = NPUInferenceEngine()
@@ -198,7 +197,7 @@ class PhaseConnectionExperiments:
 
         # Generate EVO ICs
         print("  Generating 1000 EVO particles...")
-        system = AgenticMHDSystem(n_evos=1000, grid_size=(64,64,64))
+        system = AgenticMHDSystem(n_evos=1000, grid_size=(64, 64, 64))
 
         ics_path = "/tmp/evos_swift_ics.hdf5"
         system.generate_swift_ics(ics_path)
@@ -285,9 +284,11 @@ class PhaseConnectionExperiments:
 
     def _wrap_phase(self, phase_id: int, phase_fn):
         """Wrap phase with timing."""
+
         async def wrapper():
             self.start_time = time.time()
             return await phase_fn()
+
         return wrapper
 
 
@@ -295,17 +296,8 @@ async def main():
     parser = argparse.ArgumentParser(
         description="Run Phase Connection Experiments with Tri-Compute"
     )
-    parser.add_argument(
-        "--phase",
-        type=int,
-        choices=range(6),
-        help="Run specific phase only (0-5)"
-    )
-    parser.add_argument(
-        "--full",
-        action="store_true",
-        help="Run all phases sequentially"
-    )
+    parser.add_argument("--phase", type=int, choices=range(6), help="Run specific phase only (0-5)")
+    parser.add_argument("--full", action="store_true", help="Run all phases sequentially")
 
     args = parser.parse_args()
 

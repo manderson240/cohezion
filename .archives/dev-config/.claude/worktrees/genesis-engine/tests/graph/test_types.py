@@ -2,8 +2,6 @@
 
 from __future__ import annotations
 
-import pytest
-
 from cohezion.graph.types import (
     EdgeSpec,
     NodeResult,
@@ -135,8 +133,12 @@ class TestWorkflowSpec:
             NodeSpec(id="n2", name="b", node_type="tool", pull_keys=[], push_keys=[]),
         ]
         wf = WorkflowSpec(
-            id="wf-1", name="test", nodes=nodes, edges=[],
-            entry_node_id="n1", exit_node_ids=["n2"],
+            id="wf-1",
+            name="test",
+            nodes=nodes,
+            edges=[],
+            entry_node_id="n1",
+            exit_node_ids=["n2"],
         )
         assert wf.get_node("n1").name == "a"
         assert wf.get_node("n2").node_type == "tool"
@@ -153,8 +155,12 @@ class TestWorkflowSpec:
             EdgeSpec(id="e2", sender_id="n2", receiver_id="n3", keys=["y"]),
         ]
         wf = WorkflowSpec(
-            id="wf-1", name="chain", nodes=nodes, edges=edges,
-            entry_node_id="n1", exit_node_ids=["n3"],
+            id="wf-1",
+            name="chain",
+            nodes=nodes,
+            edges=edges,
+            entry_node_id="n1",
+            exit_node_ids=["n3"],
         )
         adj = wf.adjacency_list()
         assert adj["n1"] == ["n2"]
@@ -172,8 +178,12 @@ class TestWorkflowSpec:
             EdgeSpec(id="e2", sender_id="n2", receiver_id="n3", keys=[]),
         ]
         wf = WorkflowSpec(
-            id="wf-1", name="fan-in", nodes=nodes, edges=edges,
-            entry_node_id="n1", exit_node_ids=["n3"],
+            id="wf-1",
+            name="fan-in",
+            nodes=nodes,
+            edges=edges,
+            entry_node_id="n1",
+            exit_node_ids=["n3"],
         )
         preds = wf.predecessors("n3")
         assert set(preds) == {"n1", "n2"}
@@ -186,8 +196,12 @@ class TestWorkflowSpec:
         ]
         edges = [EdgeSpec(id="e1", sender_id="n1", receiver_id="n2", keys=["x"])]
         wf = WorkflowSpec(
-            id="wf-1", name="test", nodes=nodes, edges=edges,
-            entry_node_id="n1", exit_node_ids=["n2"],
+            id="wf-1",
+            name="test",
+            nodes=nodes,
+            edges=edges,
+            entry_node_id="n1",
+            exit_node_ids=["n2"],
         )
         d = wf.to_dict()
         restored = WorkflowSpec.from_dict(d)
@@ -234,12 +248,18 @@ class TestWorkflowResult:
     def test_workflow_result(self):
         node_results = {
             "n1": NodeResult(
-                node_id="n1", status=NodeStatus.COMPLETED,
-                output={"x": 1}, metrics={}, duration_ms=100,
+                node_id="n1",
+                status=NodeStatus.COMPLETED,
+                output={"x": 1},
+                metrics={},
+                duration_ms=100,
             ),
             "n2": NodeResult(
-                node_id="n2", status=NodeStatus.COMPLETED,
-                output={"y": 2}, metrics={}, duration_ms=200,
+                node_id="n2",
+                status=NodeStatus.COMPLETED,
+                output={"y": 2},
+                metrics={},
+                duration_ms=200,
             ),
         }
         result = WorkflowResult(

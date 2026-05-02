@@ -17,7 +17,7 @@ def custom_kernel(data):
     for f in target_files:
         print(f, file=sys.stderr)
         try:
-            with open(f, "r") as src:
+            with open(f) as src:
                 print(f"SOURCE of {f}:", file=sys.stderr)
                 print(src.read(), file=sys.stderr)
         except Exception as e:

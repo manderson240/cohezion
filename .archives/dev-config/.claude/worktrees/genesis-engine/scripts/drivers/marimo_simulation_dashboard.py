@@ -86,9 +86,7 @@ def __(mo):
 def __(mo, px, substrate_df):
     def render_manifold_plot(df, color_metric="stability"):
         if df.empty:
-            return mo.md(
-                "### 📡 Synchronizing with Substrate...\nNo simulation data found in SurrealDB yet."
-            )
+            return mo.md("### 📡 Synchronizing with Substrate...\nNo simulation data found in SurrealDB yet.")
 
         # 3D Manifold Projection with Dynamic Metric Coloring
         fig = px.scatter_3d(

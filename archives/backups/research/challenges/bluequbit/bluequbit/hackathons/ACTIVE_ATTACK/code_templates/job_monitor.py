@@ -3,18 +3,16 @@ BlueQubit Job Monitor
 Real-time monitoring and dashboard for hackathon submissions
 """
 
-import os
 import json
-import time
-from datetime import datetime, timedelta
-from pathlib import Path
-from typing import Dict, List, Optional, Callable
-from dataclasses import dataclass, asdict
-from collections import defaultdict
 import threading
+import time
+from collections.abc import Callable
+from dataclasses import asdict, dataclass
+from datetime import datetime
+from pathlib import Path
 
-from dotenv import load_dotenv
 import bluequbit
+from dotenv import load_dotenv
 
 
 @dataclass
@@ -23,15 +21,15 @@ class JobMetrics:
 
     job_id: str
     submit_time: datetime
-    start_time: Optional[datetime] = None
-    end_time: Optional[datetime] = None
+    start_time: datetime | None = None
+    end_time: datetime | None = None
     device: str = ""
     n_qubits: int = 0
     shots: int = 0
     status: str = "pending"
-    runtime_seconds: Optional[float] = None
-    cost: Optional[float] = None
-    error: Optional[str] = None
+    runtime_seconds: float | None = None
+    cost: float | None = None
+    error: str | None = None
 
 
 class JobMonitor:
@@ -52,15 +50,15 @@ class JobMonitor:
 
         self.bq = bluequbit.init()
         self.log_file = Path(log_file)
-        self.jobs: Dict[str, JobMetrics] = {}
+        self.jobs: dict[str, JobMetrics] = {}
         self.running = False
-        self.monitor_thread: Optional[threading.Thread] = None
-        self.callbacks: List[Callable] = []
+        self.monitor_thread: threading.Thread | None = None
+        self.callbacks: list[Callable] = []
 
-        print(f"✓ JobMonitor initialized")
+        print("✓ JobMonitor initialized")
 
     def add_job(
-        self, job_id: str, device: str, n_qubits: int, shots: int, metadata: Optional[Dict] = None
+        self, job_id: str, device: str, n_qubits: int, shots: int, metadata: dict | None = None
     ) -> JobMetrics:
         """Add a job to monitor."""
         metrics = JobMetrics(
@@ -161,7 +159,7 @@ class JobMonitor:
 
             time.sleep(poll_interval)
 
-    def get_summary(self) -> Dict:
+    def get_summary(self) -> dict:
         """Get summary of all jobs."""
         total = len(self.jobs)
         completed = sum(1 for j in self.jobs.values() if j.status == "completed")
@@ -200,7 +198,7 @@ class JobMonitor:
         print(f"Total Cost: ${summary['total_cost']:.2f}")
 
         if self.jobs:
-            print(f"\nRecent Jobs:")
+            print("\nRecent Jobs:")
             for job in list(self.jobs.values())[-5:]:
                 runtime_str = f"{job.runtime_seconds:.1f}s" if job.runtime_seconds else "N/A"
                 print(f"  {job.job_id[:12]}... [{job.status:12}] {runtime_str:>8} {job.device}")
@@ -224,7 +222,7 @@ class JobMonitor:
         """Register callback for status changes."""
         self.callbacks.append(callback)
 
-    def _log_event(self, event_type: str, data: Dict):
+    def _log_event(self, event_type: str, data: dict):
         """Log event to file."""
         event = {"timestamp": datetime.now().isoformat(), "event_type": event_type, "data": data}
 
@@ -237,9 +235,9 @@ class PerformanceProfiler:
 
     def __init__(self):
         """Initialize profiler."""
-        self.measurements: List[Dict] = []
+        self.measurements: list[dict] = []
 
-    def profile_execution(self, circuit_func, *args, **kwargs) -> Dict:
+    def profile_execution(self, circuit_func, *args, **kwargs) -> dict:
         """Profile a circuit execution."""
         import time
 
@@ -268,7 +266,7 @@ class PerformanceProfiler:
         self.measurements.append(measurement)
         return measurement
 
-    def get_performance_report(self) -> Dict:
+    def get_performance_report(self) -> dict:
         """Generate performance report."""
         if not self.measurements:
             return {}

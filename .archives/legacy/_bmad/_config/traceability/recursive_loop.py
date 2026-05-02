@@ -39,13 +39,13 @@ def compare_snapshots(prev_snapshot: Path, curr_snapshot: Path) -> dict:
     prev_data = {}
     curr_data = {}
 
-    with open(prev_snapshot, "r") as f:
+    with open(prev_snapshot) as f:
         for line in f:
             if "," in line:
                 key, val = line.strip().split(",", 1)
                 prev_data[key] = val
 
-    with open(curr_snapshot, "r") as f:
+    with open(curr_snapshot) as f:
         for line in f:
             if "," in line:
                 key, val = line.strip().split(",", 1)

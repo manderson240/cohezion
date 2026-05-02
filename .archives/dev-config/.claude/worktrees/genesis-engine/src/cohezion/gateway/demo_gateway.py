@@ -86,9 +86,7 @@ class DemoGateway:
         combined = f"{prompt}|{system}|{model}"
         return hashlib.sha256(combined.encode()).hexdigest()
 
-    def _calculate_cost(
-        self, model: str, input_tokens: int, output_tokens: int
-    ) -> float:
+    def _calculate_cost(self, model: str, input_tokens: int, output_tokens: int) -> float:
         """Calculate simulated cost."""
         costs = self.MODEL_COSTS.get(model, {"input": 0.001, "output": 0.002})
         input_cost = input_tokens * costs["input"] / 1000

@@ -117,12 +117,8 @@ class ActionRecommendation:
     message: str  # Human-readable explanation
     priority: str  # "LOW", "MEDIUM", "HIGH"
     confidence: float  # 0.0-1.0
-    alternative_models: list[str] = field(
-        default_factory=list
-    )  # If action=SWITCH_MODEL
-    parameter_suggestions: dict[str, Any] = field(
-        default_factory=dict
-    )  # If action=ADJUST
+    alternative_models: list[str] = field(default_factory=list)  # If action=SWITCH_MODEL
+    parameter_suggestions: dict[str, Any] = field(default_factory=dict)  # If action=ADJUST
 
 
 class QualityPredictor:
@@ -235,9 +231,7 @@ class QualityPredictor:
             logger.debug(f"Forecast failed: {e}, using average")
             return float(np.mean(recent)), 0.3, 999
 
-    def forecast_success_rate(
-        self, steps_ahead: int = 3, window: int = 5
-    ) -> tuple[float, float]:
+    def forecast_success_rate(self, steps_ahead: int = 3, window: int = 5) -> tuple[float, float]:
         """Forecast success rate N steps ahead.
 
         Args:
@@ -365,9 +359,7 @@ class ModelQualityClassifier:
             )
 
         # Get predictions
-        pred_coherence, coh_conf, steps_to_crit = predictor.forecast_coherence(
-            num_steps_ahead
-        )
+        pred_coherence, coh_conf, steps_to_crit = predictor.forecast_coherence(num_steps_ahead)
         coh_trend = predictor.get_trend(predictor.coherence_history)
 
         pred_success, success_conf = predictor.forecast_success_rate(num_steps_ahead)

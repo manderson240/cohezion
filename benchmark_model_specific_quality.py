@@ -4,7 +4,7 @@
 Optimizes per-model based on model cards and strengths:
 - Gemma-4-26B-A4B: MoE reasoning, 256K context, thinking mode
 - Qwen3-8B: Coding specialist, Q4_1 quantization
-- DeepSeek: Reasoning chains, 
+- DeepSeek: Reasoning chains,
 Uses Gaia SDK patterns and context harnesses for quality over raw speed.
 """
 
@@ -18,6 +18,7 @@ import aiohttp
 @dataclass
 class ModelProfile:
     """Model-specific optimization profile."""
+
     name: str
     strengths: list[str]
     weaknesses: list[str]
@@ -33,8 +34,8 @@ class ModelProfile:
 MODEL_PROFILES = {
     "DeepSeek-Qwen3-8B-GGUF": ModelProfile(
         name="DeepSeek-Qwen3-8B",
-        strengths=["reasoning","instruction_following","multilingual"],
-        weaknesses=["long_context","creative_writing"],
+        strengths=["reasoning", "instruction_following", "multilingual"],
+        weaknesses=["long_context", "creative_writing"],
         optimal_system="You are a precise reasoning assistant. Use step-by-step logic. Be concise and factual.",
         temperature=0.3,  # Lower for reasoning
         top_p=0.9,
@@ -44,8 +45,8 @@ MODEL_PROFILES = {
     ),
     "gemma-4-26B": ModelProfile(
         name="Gemma-4-26B-A4B",
-        strengths=["complex_reasoning","moE_architecture"," vision"],
-        weaknesses=["memory_intensive","slow_prefill"],
+        strengths=["complex_reasoning", "moE_architecture", " vision"],
+        weaknesses=["memory_intensive", "slow_prefill"],
         optimal_system="You are an expert analyst. Provide structured, thorough responses with clear reasoning.",
         temperature=0.7,
         top_p=0.95,
@@ -55,8 +56,8 @@ MODEL_PROFILES = {
     ),
     "Qwen3-0.6B": ModelProfile(
         name="Qwen3-0.6B",
-        strengths=["speed","low_latency","simple_tasks"],
-        weaknesses=["reasoning","nuance","complex_instructions"],
+        strengths=["speed", "low_latency", "simple_tasks"],
+        weaknesses=["reasoning", "nuance", "complex_instructions"],
         optimal_system="You are a fast, efficient assistant. Give direct, short answers.",
         temperature=0.5,
         top_p=0.9,
@@ -163,14 +164,16 @@ class QualityBenchmark:
                         # Quality heuristics
                         quality_score = self._assess_quality(text)
 
-                        results.append({
-                            "task": task,
-                            "tokens": tokens,
-                            "latency_ms": elapsed,
-                            "tps": tokens / (elapsed / 1000) if elapsed > 0 else 0,
-                            "quality": quality_score,
-                            "length": len(text.split()),
-                        })
+                        results.append(
+                            {
+                                "task": task,
+                                "tokens": tokens,
+                                "latency_ms": elapsed,
+                                "tps": tokens / (elapsed / 1000) if elapsed > 0 else 0,
+                                "quality": quality_score,
+                                "length": len(text.split()),
+                            }
+                        )
                 except Exception as e:
                     results.append({"task": task, "error": str(e)})
 
@@ -201,15 +204,15 @@ class QualityBenchmark:
         words = text.split()
         if len(words) > 20:  # Has substance
             score += 1.0
-        if text.count('.') > 2:  # Multiple sentences
+        if text.count(".") > 2:  # Multiple sentences
             score += 1.0
         if any(c.isupper() for c in text[:5]):  # Starts properly
             score += 0.5
 
         # Reasoning indicators
-        if any(w in text.lower() for w in ['because', 'therefore', 'step', 'first', 'second']):
+        if any(w in text.lower() for w in ["because", "therefore", "step", "first", "second"]):
             score += 1.5  # Has reasoning markers
-        if any(w in text.lower() for w in ['however', 'although', 'but', 'instead']):
+        if any(w in text.lower() for w in ["however", "although", "but", "instead"]):
             score += 0.5  # Shows nuance
 
         return score
@@ -238,11 +241,11 @@ async def main():
     model_id = "DeepSeek-Qwen3-8B-GGUF"
     profile = MODEL_PROFILES.get(model_id, MODEL_PROFILES["DeepSeek-Qwen3-8B-GGUF"])
 
-    print(f"\n{'='*70}")
+    print(f"\n{'=' * 70}")
     print(f"Testing: {profile.name}")
     print(f"Profile: temp={profile.temperature}, top_p={profile.top_p}")
     print(f"Strengths: {', '.join(profile.strengths)}")
-    print(f"{'='*70}\n")
+    print(f"{'=' * 70}\n")
 
     result = await benchmark.benchmark_model_quality(model_id, profile, test_tasks)
 
@@ -253,19 +256,21 @@ async def main():
     print(f"  Tasks completed: {result['tasks']}")
 
     # Show sample outputs
-    print(f"\n{'='*70}")
+    print(f"\n{'=' * 70}")
     print("SAMPLE OUTPUTS")
-    print(f"{'='*70}")
+    print(f"{'=' * 70}")
 
-    for r in result['results'][:2]:
-        if 'error' not in r:
+    for r in result["results"][:2]:
+        if "error" not in r:
             print(f"\nTask: {r['task']}")
-            print(f"Quality: {r['quality']:.1f} | Tokens: {r['tokens']} | Latency: {r['latency_ms']:.1f}ms")
+            print(
+                f"Quality: {r['quality']:.1f} | Tokens: {r['tokens']} | Latency: {r['latency_ms']:.1f}ms"
+            )
 
     # Quality vs Baseline comparison
-    print(f"\n{'='*70}")
+    print(f"\n{'=' * 70}")
     print("COMPARISON: Quality-Optimized vs Baseline")
-    print(f"{'='*70}")
+    print(f"{'=' * 70}")
     print("Optimized Settings:")
     print(f"  - System: {profile.optimal_system[:60]}...")
     print(f"  - Temperature: {profile.temperature} (vs 0.7 default)")

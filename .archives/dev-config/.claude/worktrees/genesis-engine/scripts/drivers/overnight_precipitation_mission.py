@@ -38,8 +38,9 @@ mock_package("transformers")
 # Add src to path
 sys.path.insert(0, str(Path(__file__).parent.parent.parent / "src"))
 
-from cohezion.core.persistence.surreal_client import get_surreal_client
 from cohezion.mcp.email_notifier import EmailNotifier, NotificationConfig
+
+from cohezion.core.persistence.surreal_client import get_surreal_client
 from cohezion.reliability.monitor import get_resource_monitor
 from cohezion.simulation.fractal_universe import FractalSimulator
 from cohezion.universe.engine import AxiomaticState, UniverseSimulationEngine
@@ -60,9 +61,7 @@ class HourlyReporter:
         config.recipient_email = recipient
         self.notifier = EmailNotifier(config=config)
 
-    async def generate_snapshot(
-        self, journey_id: str, step: int, axiomatic: AxiomaticState, phi: float
-    ):
+    async def generate_snapshot(self, journey_id: str, step: int, axiomatic: AxiomaticState, phi: float):
         timestamp = datetime.now().strftime("%Y%m%d_%H%M")
         h_score = 1.0 - abs(axiomatic.coherence_score() - 0.5) * 2
 
@@ -158,16 +157,12 @@ async def run_overnight_mission(hours: int = 8):
             # 3.5 INFLECTION POINT: Trigger Solar Flare on High-Phi
             if leader.coherence > 0.9:
                 engine.trigger_solar_flare(intensity=leader.coherence)
-                logger.info(
-                    f"✨ Breakthrough detected (Phi: {leader.coherence:.2f}). Solar Flare ignited."
-                )
+                logger.info(f"✨ Breakthrough detected (Phi: {leader.coherence:.2f}). Solar Flare ignited.")
 
             # 4. Hourly Reporting
             current_hour = datetime.now().hour
             if current_hour != last_report_hour:
-                await reporter.generate_snapshot(
-                    journey.id, step, point.axiomatic, leader.coherence
-                )
+                await reporter.generate_snapshot(journey.id, step, point.axiomatic, leader.coherence)
                 last_report_hour = current_hour
 
             step += 1

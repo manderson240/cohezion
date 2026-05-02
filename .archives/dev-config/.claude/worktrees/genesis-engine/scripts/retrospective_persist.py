@@ -17,7 +17,6 @@ from pathlib import Path
 from surrealdb import AsyncSurreal
 
 
-
 async def save_overnight_artifacts():
     """Save key overnight mission results to SurrealDB."""
 
@@ -48,9 +47,7 @@ async def save_overnight_artifacts():
         print("  ✓ Saved final report to overnight_mission", flush=True)
 
     # 2. Save Matsumoto synthesis
-    matsumoto_path = Path(
-        "/home/mike-anderson/dev/cohezion/data/overnight/matsumoto_analysis/matsumoto_synthesis.json"
-    )
+    matsumoto_path = Path("/home/mike-anderson/dev/cohezion/data/overnight/matsumoto_analysis/matsumoto_synthesis.json")
     if matsumoto_path.exists():
         synthesis = json.loads(matsumoto_path.read_text())
         await db.create(
@@ -96,9 +93,7 @@ async def save_overnight_artifacts():
         print("  ✓ Saved Learning 59 to learnings", flush=True)
 
     # 4. Save image metadata
-    assets_dir = Path(
-        "/home/mike-anderson/.gemini/antigravity/brain/1b98adc2-8dce-436b-bac3-d27890e7ce04/assets"
-    )
+    assets_dir = Path("/home/mike-anderson/.gemini/antigravity/brain/1b98adc2-8dce-436b-bac3-d27890e7ce04/assets")
     for img_path in assets_dir.glob("*.png"):
         await db.create(
             "generated_images",

@@ -8,10 +8,9 @@ By prefetching upcoming tiles while computing current tiles,
 we can hide memory latency.
 """
 
-import torch
-import sys
 
 import aiter
+import torch
 from aiter import dtypes
 from aiter.ops.triton.quant import dynamic_mxfp4_quant
 from task import input_t, output_t
@@ -115,7 +114,7 @@ def custom_kernel(data: input_t) -> output_t:
 
         return output
 
-    except Exception as e:
+    except Exception:
         from reference import ref_kernel
 
         return ref_kernel(data)

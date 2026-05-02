@@ -20,4 +20,5 @@ from kaggle_benchmarks.envs.docker import DockerEnvironment
 from kaggle_benchmarks.envs.environment import Environment, RunResult
 from kaggle_benchmarks.envs.local import LocalEnvironment
 
+
 current = LocalEnvironment()

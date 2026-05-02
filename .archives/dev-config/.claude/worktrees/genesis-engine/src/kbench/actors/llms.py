@@ -91,7 +91,8 @@ import enum
 import json
 import mimetypes
 import typing
-from typing import Any, Iterator, TypeVar
+from collections.abc import Iterator
+from typing import Any, TypeVar
 
 import openai
 from google import genai
@@ -100,6 +101,7 @@ from google.genai import types
 from kaggle_benchmarks import actors, chats, messages, prompting, utils
 from kaggle_benchmarks._config import config
 from kaggle_benchmarks.content_types import images
+
 
 T = TypeVar("T")
 
@@ -195,15 +197,11 @@ class LLMChat(actors.Actor):
                 if self.support_structured_outputs:
                     kwargs["response_format"] = schema
                 else:
-                    temp_messages.append(
-                        messages.Message(sender=actors.system, content=msg)
-                    )
+                    temp_messages.append(messages.Message(sender=actors.system, content=msg))
             case None:
                 pass
             case _:
-                temp_messages.append(
-                    messages.Message(sender=actors.system, content=schema_instructions)
-                )
+                temp_messages.append(messages.Message(sender=actors.system, content=schema_instructions))
 
         response = messages.Message(
             sender=self,
@@ -211,9 +209,7 @@ class LLMChat(actors.Actor):
             _status=utils.Status.RUNNING,
         )
 
-        raw_messages = [
-            msg for msg in chat.messages if msg.is_visible_to_llm
-        ] + temp_messages
+        raw_messages = [msg for msg in chat.messages if msg.is_visible_to_llm] + temp_messages
 
         invoke_response = self.invoke(
             raw_messages,
@@ -235,9 +231,7 @@ class LLMChat(actors.Actor):
 
         try:
             h.send(answer)  # must raise StopIteration by returning the parsed value
-            raise prompting.SchemaError(
-                f"Generator for {schema!r} yielded multiple values, expected only one."
-            )
+            raise prompting.SchemaError(f"Generator for {schema!r} yielded multiple values, expected only one.")
         except prompting.ResponseParsingError as e:
             chat.append(
                 messages.Message(
@@ -268,9 +262,7 @@ class OpenAI(LLMChat):
         self.model = model
         self.client = client
 
-    def _get_usage_meta(
-        self, usage: openai.types.CompletionUsage | None
-    ) -> dict[str, Any]:
+    def _get_usage_meta(self, usage: openai.types.CompletionUsage | None) -> dict[str, Any]:
         """Extracts token usage metadata from an OpenAI response object."""
         if usage is None:
             return {}
@@ -305,9 +297,7 @@ class OpenAI(LLMChat):
             for message in messages
         ]
 
-    def _get_stream_response(
-        self, response_stream: openai.Stream
-    ) -> Iterator[LLMResponse]:
+    def _get_stream_response(self, response_stream: openai.Stream) -> Iterator[LLMResponse]:
         """Yields LLMResponse objects from a streaming response."""
         for chunk in response_stream:
             if not chunk.choices:
@@ -325,9 +315,7 @@ class OpenAI(LLMChat):
                 meta=self._get_usage_meta(chunk.usage),
             )
 
-    def _call_api(
-        self, messages: list[dict[str, str]], **kwargs
-    ) -> LLMResponse | Iterator[LLMResponse]:
+    def _call_api(self, messages: list[dict[str, str]], **kwargs) -> LLMResponse | Iterator[LLMResponse]:
         if self.support_structured_outputs and "response_format" in kwargs:
             # quickfix for nested models in ModelProxy API
             if utils.has_nested_models(kwargs["response_format"]):
@@ -416,11 +404,7 @@ class GoogleGenAI(LLMChat):
                             mime_type = mimetypes.guess_type(url)[0] or "image/jpeg"
 
                         if image_bytes:
-                            parts.append(
-                                types.Part.from_bytes(
-                                    data=image_bytes, mime_type=mime_type
-                                )
-                            )
+                            parts.append(types.Part.from_bytes(data=image_bytes, mime_type=mime_type))
             else:
                 # Fallback for any other unexpected payload types
                 parts.append(types.Part(text=str(payload)))
@@ -429,9 +413,7 @@ class GoogleGenAI(LLMChat):
 
         return raw_messages
 
-    def _get_stream_response(
-        self, response_stream: Iterator[types.GenerateContentResponse]
-    ) -> Iterator[LLMResponse]:
+    def _get_stream_response(self, response_stream: Iterator[types.GenerateContentResponse]) -> Iterator[LLMResponse]:
         # We currently only support text outputs
         for chunk in response_stream:
             yield LLMResponse(
@@ -474,9 +456,7 @@ class GoogleGenAI(LLMChat):
             )
             return self._get_stream_response(response_stream)
         else:
-            response = self.client.models.generate_content(
-                model=self.model, contents=contents, config=config
-            )
+            response = self.client.models.generate_content(model=self.model, contents=contents, config=config)
             # Handle cases where the model refuses to respond
             if not response.candidates:
                 return LLMResponse(

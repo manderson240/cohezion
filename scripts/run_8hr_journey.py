@@ -146,7 +146,7 @@ def load_checkpoint(checkpoint_id: str) -> dict[str, Any] | None:
         return None
 
     try:
-        with open(checkpoint_file, "r") as f:
+        with open(checkpoint_file) as f:
             return json.load(f)
     except Exception as e:
         logger.error(f"Failed to load checkpoint: {e}")
@@ -194,19 +194,19 @@ def parse_args() -> argparse.Namespace:
 Examples:
   # Run full 8-hour journey in hybrid mode (recommended)
   python run_8hr_journey.py
-  
+
   # Run in simulation mode (no external dependencies)
   python run_8hr_journey.py --mode simulate
-  
+
   # Run only GPU kernel and FLUME domains
   python run_8hr_journey.py --domains gpu_kernel,flume
-  
+
   # Resume from checkpoint
   python run_8hr_journey.py --resume journey_12345
-  
+
   # Aggressive thermal protection
   python run_8hr_journey.py --pause-temp 85 --resume-temp 75
-  
+
   # Power efficiency mode
   python run_8hr_journey.py --power-profile efficiency
         """,
@@ -362,11 +362,11 @@ async def main() -> int:
     # Dry run
     if args.dry_run:
         logger.info("Dry run mode - validating configuration...")
-        logger.info(f"Configuration valid!")
+        logger.info("Configuration valid!")
         logger.info(f"  Total duration: {config.total_duration_hours} hours")
         logger.info(f"  Domains: {len(config.domains)}")
-        logger.info(f"  Thermal protection: enabled")
-        logger.info(f"  TDP tracking: enabled")
+        logger.info("  Thermal protection: enabled")
+        logger.info("  TDP tracking: enabled")
         return 0
 
     # Execute
@@ -383,7 +383,7 @@ async def main() -> int:
 
         # Print summary
         print(f"\n{'=' * 80}")
-        print(f"JOURNEY SUMMARY")
+        print("JOURNEY SUMMARY")
         print(f"{'=' * 80}")
         print(f"Journey ID: {result['journey_id']}")
         print(f"Completed: {result['completed']}")

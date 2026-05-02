@@ -79,9 +79,7 @@ class CellularAutomataEngine:
 class ChaosTheoryParameters(BaseModel):
     """Parameters for Chaos Theory semantic butterfly effects."""
 
-    lyapunov_exponent: float = Field(
-        default=0.9, description="Lyapunov exponent (λ > 0 implies chaos)"
-    )
+    lyapunov_exponent: float = Field(default=0.9, description="Lyapunov exponent (λ > 0 implies chaos)")
     sensitivity: float = Field(default=1e-5, description="Initial perturbation size")
     time_step: float = Field(default=0.01, description="Evolution time step")
 
@@ -134,9 +132,7 @@ class MagnetohydrodynamicsEngine:
         vec = latent_vector.copy()
 
         if RUST_CORE_AVAILABLE:
-            cohezion_physics_core.apply_mhd_forces_simd(
-                vec, evo.magnetic_helicity, evo.toroidal_moment, dt
-            )
+            cohezion_physics_core.apply_mhd_forces_simd(vec, evo.magnetic_helicity, evo.toroidal_moment, dt)
             evo.charge_density *= np.exp(-dt * (1.0 - evo.coherence))
             return vec
 

@@ -238,7 +238,7 @@ def main():
     logger.info("=" * 60)
     logger.info("Autonomous Traceability Daemon")
     logger.info(
-        f"Mode: {args.foreground and 'foreground' or args.background and 'background' or 'hook'}"
+        f"Mode: {(args.foreground and 'foreground') or (args.background and 'background') or 'hook'}"
     )
     logger.info(f"Interval: {args.interval} minutes")
     logger.info("=" * 60)

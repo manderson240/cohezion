@@ -86,9 +86,7 @@ async def main():
         # Optional: Delete chunk after successful ingest to save space?
         # file_path.unlink()
 
-    logger.info(
-        f"Migration Complete. Total: {total_ingested}. Time: {time.time() - start_time:.2f}s"
-    )
+    logger.info(f"Migration Complete. Total: {total_ingested}. Time: {time.time() - start_time:.2f}s")
     await dba.close()
 
 

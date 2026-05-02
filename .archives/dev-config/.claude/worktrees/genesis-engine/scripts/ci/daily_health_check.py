@@ -117,9 +117,7 @@ class HealthChecker:
         """Run bandit security scan."""
         logger.info("Running security scan...")
 
-        returncode, stdout, stderr = self.run_command(
-            ["uv", "run", "bandit", "-r", "src/cohezion", "-f", "json", "-q"]
-        )
+        returncode, stdout, stderr = self.run_command(["uv", "run", "bandit", "-r", "src/cohezion", "-f", "json", "-q"])
 
         try:
             data = json.loads(stdout) if stdout else {"results": []}
@@ -139,9 +137,7 @@ class HealthChecker:
             score = 1.0 if high_count == 0 else max(0.0, 0.5 - (high_count * 0.1))
             passed = high_count == 0 and medium_count == 0
 
-            details = [
-                f"  - {r.get('test_id')}: {r.get('issue_text', '')[:80]}" for r in results[:5]
-            ]
+            details = [f"  - {r.get('test_id')}: {r.get('issue_text', '')[:80]}" for r in results[:5]]
 
             return HealthCheckResult(
                 category=HealthCategory.SECURITY,
@@ -308,9 +304,7 @@ class HealthChecker:
         untracked_files = [l[3:] for l in stdout.split("\n") if l.startswith("??")]
 
         # Get security issues by severity
-        security_check = next(
-            (r for r in self.results if r.category == HealthCategory.SECURITY), None
-        )
+        security_check = next((r for r in self.results if r.category == HealthCategory.SECURITY), None)
         security_issues = {"HIGH": 0, "MEDIUM": 0, "LOW": 0}
         if security_check and "security_issues" in dir(security_check):
             security_issues = security_check.security_issues  # type: ignore
@@ -343,16 +337,12 @@ class HealthChecker:
                     )
 
         # Prioritize security
-        security_failed = any(
-            r for r in self.results if not r.passed and r.category == HealthCategory.SECURITY
-        )
+        security_failed = any(r for r in self.results if not r.passed and r.category == HealthCategory.SECURITY)
         if security_failed:
             recommendations.insert(0, "🔴 SECURITY ISSUES DETECTED - Address first")
 
         # Add untracked files recommendation if high
-        untracked_check = next(
-            (r for r in self.results if r.category == HealthCategory.UNTRACKED), None
-        )
+        untracked_check = next((r for r in self.results if r.category == HealthCategory.UNTRACKED), None)
         if untracked_check and not untracked_check.passed:
             recommendations.append(
                 f"📦 {len(untracked_check.details)} untracked files need triage. "
@@ -377,17 +367,11 @@ class HealthChecker:
                 "security_medium": report.security_issues.get("MEDIUM", 0),
                 "security_low": report.security_issues.get("LOW", 0),
                 "untracked_count": len(report.untracked_files),
-                "lint_errors": sum(
-                    1 for r in report.checks if r.category == HealthCategory.LINT and not r.passed
-                ),
+                "lint_errors": sum(1 for r in report.checks if r.category == HealthCategory.LINT and not r.passed),
                 "type_errors": sum(
-                    1
-                    for r in report.checks
-                    if r.category == HealthCategory.TYPE_CHECK and not r.passed
+                    1 for r in report.checks if r.category == HealthCategory.TYPE_CHECK and not r.passed
                 ),
-                "test_failures": sum(
-                    1 for r in report.checks if r.category == HealthCategory.TESTS and not r.passed
-                ),
+                "test_failures": sum(1 for r in report.checks if r.category == HealthCategory.TESTS and not r.passed),
                 "recommendations": report.recommendations,
             }
 
@@ -430,9 +414,7 @@ class HealthChecker:
 """
             for check in report.checks:
                 status = "✅" if check.passed else "❌"
-                content += (
-                    f"| {check.category.value} | {status} | {check.score:.2f} | {check.message} |\n"
-                )
+                content += f"| {check.category.value} | {status} | {check.score:.2f} | {check.message} |\n"
 
             content += f"""
 ## Security Issues

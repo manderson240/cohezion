@@ -174,9 +174,7 @@ def custom_kernel_fp8(data: input_t) -> output_t:
             out_dtype=torch.float32,
         )
         # raw_scores: (seq_q*16, seq_kv)
-        scores = raw_scores.view(seq_q, num_heads, seq_kv).permute(
-            1, 0, 2
-        )  # (nhead, seq_q, seq_kv)
+        scores = raw_scores.view(seq_q, num_heads, seq_kv).permute(1, 0, 2)  # (nhead, seq_q, seq_kv)
         scores = scores * sm_scale
         scores = F.softmax(scores, dim=-1)
 

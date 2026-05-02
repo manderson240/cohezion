@@ -4,7 +4,7 @@ import json
 import logging
 import os
 import re
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from pathlib import Path
 
 from mcp.server.fastmcp import FastMCP
@@ -247,7 +247,7 @@ async def vault_audit() -> str:
     broken_links = []
     stale_notes = []
     no_tags = []
-    now = datetime.now(tz=timezone.utc)
+    now = datetime.now(tz=UTC)
     all_notes = {p.stem for p in VAULT_PATH.rglob("*.md")}
 
     for md_file in VAULT_PATH.rglob("*.md"):
@@ -267,7 +267,7 @@ async def vault_audit() -> str:
             no_tags.append(rel)
 
         # Staleness (90+ days since modification)
-        mtime = datetime.fromtimestamp(md_file.stat().st_mtime, tz=timezone.utc)
+        mtime = datetime.fromtimestamp(md_file.stat().st_mtime, tz=UTC)
         if (now - mtime).days > 90:
             stale_notes.append(rel)
 

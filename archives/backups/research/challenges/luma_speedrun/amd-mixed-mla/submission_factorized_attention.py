@@ -21,12 +21,13 @@ Expected: 30-50% speedup on attention computation with minor quality tradeoff
 
 from __future__ import annotations
 
-import os
 import math
+import os
+
 import torch
 import torch.nn.functional as F
-from typing import Tuple
 from task import input_t, output_t
+
 
 # Environment
 os.environ["AITER_USE_NT"] = "1"

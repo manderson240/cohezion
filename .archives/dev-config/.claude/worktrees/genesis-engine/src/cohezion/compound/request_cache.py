@@ -116,9 +116,7 @@ class RequestCache:
             self._l1_misses += 1
             return None
 
-    def get_semantic(
-        self, request_text: str, threshold: float | None = None
-    ) -> AgentTask | None:
+    def get_semantic(self, request_text: str, threshold: float | None = None) -> AgentTask | None:
         """Get cached task via string similarity (L2, 0 tokens, ~5ms).
 
         Uses word overlap similarity to find similar cached requests.
@@ -247,9 +245,7 @@ class RequestCache:
 
         l1_hit_rate = (self._l1_hits / total_l1 * 100) if total_l1 > 0 else 0.0
         l2_hit_rate = (self._l2_hits / total_l2 * 100) if total_l2 > 0 else 0.0
-        combined_hit_rate = (
-            ((self._l1_hits + self._l2_hits) / total * 100) if total > 0 else 0.0
-        )
+        combined_hit_rate = ((self._l1_hits + self._l2_hits) / total * 100) if total > 0 else 0.0
 
         # Estimate average tokens per request
         # L1/L2 hits: 0 tokens, misses: ~250 tokens (LLM fallback)

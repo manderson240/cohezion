@@ -31,9 +31,9 @@ Reference: "DARTS: Differentiable Architecture Search", ICLR 2019.
 """
 
 from __future__ import annotations
+
 import os
-import math
-from typing import Dict, List, Tuple, Optional
+
 
 os.environ["AITER_USE_NT"] = "1"
 os.environ["AITER_KSPLIT"] = "2"
@@ -54,7 +54,7 @@ class ArchitectureSearchSpace:
         self.topk_choices = [1, 2, 4, 8]
         self.activation_choices = ["silu", "gelu", "relu"]
 
-    def sample_random(self) -> Dict[str, int]:
+    def sample_random(self) -> dict[str, int]:
         """Sample a random architecture from search space."""
         import random
 
@@ -65,7 +65,7 @@ class ArchitectureSearchSpace:
             "activation": random.choice(self.activation_choices),
         }
 
-    def get_hardware_cost(self, arch: Dict[str, int], batch_size: int) -> float:
+    def get_hardware_cost(self, arch: dict[str, int], batch_size: int) -> float:
         """Predict hardware cost (latency in ms) for architecture.
 
         Based on empirical model:
@@ -102,7 +102,7 @@ class DifferentiableArchitectureSampler:
         self.d_expert_logits = torch.zeros(len(search_space.d_expert_choices))
         self.topk_logits = torch.zeros(len(search_space.topk_choices))
 
-    def sample(self, device: str = "cuda") -> Tuple[Dict[str, int], torch.Tensor]:
+    def sample(self, device: str = "cuda") -> tuple[dict[str, int], torch.Tensor]:
         """Sample architecture using Gumbel-Softmax.
 
         Returns:
@@ -129,7 +129,7 @@ class DifferentiableArchitectureSampler:
 
         return arch, relaxation.to(device)
 
-    def get_best(self) -> Dict[str, int]:
+    def get_best(self) -> dict[str, int]:
         """Get best architecture (argmax of probabilities)."""
         num_experts_idx = self.num_experts_logits.argmax().item()
         d_expert_idx = self.d_expert_logits.argmax().item()
@@ -152,7 +152,7 @@ class HardwareAwareObjective:
     def compute(
         self,
         loss: torch.Tensor,
-        arch: Dict[str, int],
+        arch: dict[str, int],
         search_space: ArchitectureSearchSpace,
         batch_size: int,
     ) -> torch.Tensor:
@@ -192,7 +192,7 @@ class ProgressiveShrinking:
         self.total_steps = total_steps
         self.warmup_steps = warmup_steps
 
-    def get_supported_architectures(self, step: int) -> List[Dict[str, int]]:
+    def get_supported_architectures(self, step: int) -> list[dict[str, int]]:
         """Get list of architectures supported at current step.
 
         Early: Only large architectures
@@ -228,7 +228,7 @@ class ProgressiveShrinking:
             ]
 
 
-def _architecture_projection(arch: Dict[str, int], available_config: Dict) -> Dict[str, int]:
+def _architecture_projection(arch: dict[str, int], available_config: dict) -> dict[str, int]:
     """Project architecture to available configuration.
 
     Args:

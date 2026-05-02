@@ -69,10 +69,7 @@ class WeatherService:
     async def search_cities(self, query: str, limit: int = 10) -> list[dict]:
         """Search for cities."""
         # Example implementation
-        return [
-            {"name": f"{query} City {i}", "country": "US", "lat": 40.0, "lon": -74.0}
-            for i in range(min(limit, 5))
-        ]
+        return [{"name": f"{query} City {i}", "country": "US", "lat": 40.0, "lon": -74.0} for i in range(min(limit, 5))]
 
 
 # Global service instance

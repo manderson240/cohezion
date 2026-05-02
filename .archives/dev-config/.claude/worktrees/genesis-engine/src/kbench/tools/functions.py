@@ -13,7 +13,8 @@
 # limitations under the License.
 
 import inspect
-from typing import Any, Callable
+from collections.abc import Callable
+from typing import Any
 
 import pydantic
 from google.genai import types
@@ -29,9 +30,7 @@ def get_function_schema(func: Callable) -> dict:
     fields = {}
 
     for name, param in sig.parameters.items():
-        annotation = (
-            param.annotation if param.annotation != inspect.Parameter.empty else Any
-        )
+        annotation = param.annotation if param.annotation != inspect.Parameter.empty else Any
         default = param.default if param.default != inspect.Parameter.empty else ...
 
         fields[name] = (annotation, default)
@@ -40,9 +39,7 @@ def get_function_schema(func: Callable) -> dict:
         DynamicModel = pydantic.create_model(f"{func.__name__}", **fields)
         return DynamicModel.model_json_schema()
     except pydantic.PydanticSchemaGenerationError as e:
-        raise ToolSchemaError(
-            "Unable to generate json schema for function {func.__name__} arguments", e
-        )
+        raise ToolSchemaError("Unable to generate json schema for function {func.__name__} arguments", e)
 
 
 def function_to_openai_tool(func: Callable) -> dict:

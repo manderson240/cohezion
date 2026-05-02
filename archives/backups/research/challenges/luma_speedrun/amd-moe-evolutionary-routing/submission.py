@@ -35,11 +35,12 @@ Reference: "Evolutionary Strategies for Neural Architecture Search", 2024.
 """
 
 from __future__ import annotations
+
+import copy
 import os
 import random
-import copy
-from typing import List, Dict, Tuple, Callable
-from dataclasses import dataclass, field
+from dataclasses import dataclass
+
 
 os.environ["AITER_USE_NT"] = "1"
 os.environ["AITER_KSPLIT"] = "2"
@@ -74,7 +75,7 @@ class EvolutionaryOperators:
         self.crossover_rate = crossover_rate
         self.tournament_size = tournament_size
 
-    def tournament_select(self, population: List[RoutingPolicy], k: int = None) -> RoutingPolicy:
+    def tournament_select(self, population: list[RoutingPolicy], k: int = None) -> RoutingPolicy:
         """Tournament selection: pick best of k random individuals."""
         if k is None:
             k = self.tournament_size
@@ -84,7 +85,7 @@ class EvolutionaryOperators:
 
     def crossover(
         self, parent1: RoutingPolicy, parent2: RoutingPolicy
-    ) -> Tuple[RoutingPolicy, RoutingPolicy]:
+    ) -> tuple[RoutingPolicy, RoutingPolicy]:
         """Uniform crossover between two routing policies.
 
         Each token's routing is inherited from one parent.
@@ -205,7 +206,7 @@ class EvolutionaryRouting:
         self.operators = EvolutionaryOperators()
         self.evaluator = FitnessEvaluator()
 
-        self.population: List[RoutingPolicy] = []
+        self.population: list[RoutingPolicy] = []
         self.best_policy: Optional[RoutingPolicy] = None
         self.generation = 0
 
@@ -269,7 +270,7 @@ class EvolutionaryRouting:
 
     def get_routing_for_inference(
         self, default_weights: torch.Tensor, topk: int
-    ) -> Tuple[torch.Tensor, torch.Tensor]:
+    ) -> tuple[torch.Tensor, torch.Tensor]:
         """Get routing weights and indices for inference.
 
         Uses best evolved policy if available, otherwise default.
@@ -287,7 +288,7 @@ class EvolutionaryRouting:
 
 
 def _evaluate_policy_fitness(
-    policy: RoutingPolicy, hidden_states: torch.Tensor, expert_outputs: List[torch.Tensor]
+    policy: RoutingPolicy, hidden_states: torch.Tensor, expert_outputs: list[torch.Tensor]
 ) -> float:
     """Evaluate fitness of a routing policy.
 

@@ -5,8 +5,8 @@ pipeline with persistent async scheduling — potentially faster than ASM for
 some shapes.
 """
 
-import torch
 import aiter
+import torch
 from aiter import dtypes
 from aiter.ops.triton.quant import dynamic_mxfp4_quant
 from aiter.utility.fp4_utils import e8m0_shuffle
@@ -33,7 +33,7 @@ def custom_kernel(data: input_t) -> output_t:
             dtype=dtypes.bf16,
         )
         return result
-    except Exception as e:
+    except Exception:
         pass
 
     # Try with different arg patterns

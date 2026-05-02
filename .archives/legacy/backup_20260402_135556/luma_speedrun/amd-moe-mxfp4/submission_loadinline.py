@@ -15,6 +15,7 @@ Target: <130us (eliminate Python overhead, then <120us with LDS bridge)
 import os
 import sys
 
+
 os.environ.setdefault("AITER_JIT_DIR", "/tmp/aiter_jit_cache")
 
 _AITER_JIT_DIR = "/home/runner/aiter/aiter/jit"
@@ -29,11 +30,11 @@ for _mod in (
     if _p not in sys.path:
         sys.path.insert(0, _p)
 
-from torch.utils.cpp_extension import load_inline
-
 from aiter import ActivationType, QuantType
 from aiter.fused_moe import fused_moe
 from task import input_t, output_t
+from torch.utils.cpp_extension import load_inline
+
 
 # ─── HIP source: fused input preparation ────────────────────────────────
 # Eliminates multiple Python ops: contiguity check, padding computation,

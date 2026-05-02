@@ -68,7 +68,7 @@ class MathResearchHarness:
 
             return accuracy, stability
         except Exception as e:
-            print(f"[RESEARCH] Experiment Failed: {str(e)}")
+            print(f"[RESEARCH] Experiment Failed: {e!s}")
             return 0.0, 0.0
 
     def propose_mutation(self, current_prompts: dict):
@@ -92,7 +92,7 @@ Current Specialist Prompts:
 Recent Research History:
 {history}
 
-Based on the failures and successes above, propose a specific improvement to the prompts. 
+Based on the failures and successes above, propose a specific improvement to the prompts.
 Focus on ONE architectural change (e.g. better chain-of-thought, tool usage, or verification).
 Output the new full prompts JSON only.
 """

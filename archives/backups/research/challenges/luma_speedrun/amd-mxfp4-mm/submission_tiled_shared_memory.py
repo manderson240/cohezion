@@ -24,9 +24,10 @@ Expected: 30-50% speedup for memory-bound shapes
 from __future__ import annotations
 
 import os
+
 import torch
-from typing import Tuple
 from task import input_t, output_t
+
 
 # Try aiter
 try:

@@ -4,12 +4,10 @@ Quantum Knowledge Extractor
 Automated extraction of skills, patterns, and knowledge from quantum computing resources
 """
 
-import json
 import re
-from pathlib import Path
-from typing import Dict, List, Any
-from dataclasses import dataclass, asdict
+from dataclasses import dataclass
 from datetime import datetime
+from pathlib import Path
 
 
 @dataclass
@@ -23,8 +21,8 @@ class QuantumSkill:
     difficulty: str  # beginner, intermediate, advanced
     description: str
     code_example: str
-    prerequisites: List[str]
-    use_cases: List[str]
+    prerequisites: list[str]
+    use_cases: list[str]
     extracted_from: str
     created_at: str
 
@@ -39,10 +37,10 @@ class QuantumPattern:
     description: str
     context: str
     solution: str
-    applicability: List[str]
-    examples: List[str]
-    counter_examples: List[str]
-    related_patterns: List[str]
+    applicability: list[str]
+    examples: list[str]
+    counter_examples: list[str]
+    related_patterns: list[str]
     extracted_from: str
 
 
@@ -56,8 +54,8 @@ class QuantumKnowledge:
     content: str
     source: str
     verified: bool
-    tags: List[str]
-    references: List[str]
+    tags: list[str]
+    references: list[str]
 
 
 class KnowledgeExtractor:
@@ -67,9 +65,9 @@ class KnowledgeExtractor:
         self.vault_path = Path(vault_path)
         self.vault_path.mkdir(parents=True, exist_ok=True)
         self.extraction_count = 0
-        self.skills: List[QuantumSkill] = []
-        self.patterns: List[QuantumPattern] = []
-        self.knowledge: List[QuantumKnowledge] = []
+        self.skills: list[QuantumSkill] = []
+        self.patterns: list[QuantumPattern] = []
+        self.knowledge: list[QuantumKnowledge] = []
 
     def extract_skill_from_code(self, code: str, source: str, platform: str) -> QuantumSkill:
         """Extract skill from code example"""
@@ -139,9 +137,9 @@ class KnowledgeExtractor:
         filepath = self.vault_path / "cerebellum" / "quantum" / "skills" / f"{skill.id}.md"
         content = f"""# {skill.name}
 
-**Category:** {skill.category}  
-**Platform:** {skill.platform}  
-**Difficulty:** {skill.difficulty}  
+**Category:** {skill.category}
+**Platform:** {skill.platform}
+**Difficulty:** {skill.difficulty}
 **Source:** {skill.extracted_from}
 
 ## Description
@@ -170,7 +168,7 @@ class KnowledgeExtractor:
         filepath = self.vault_path / "cerebellum" / "quantum" / "patterns" / f"{pattern.id}.md"
         content = f"""# {pattern.name}
 
-**Type:** {pattern.pattern_type}  
+**Type:** {pattern.pattern_type}
 **Source:** {pattern.extracted_from}
 
 ## Description
@@ -202,8 +200,8 @@ class KnowledgeExtractor:
         filepath = self.vault_path / "cortex" / "quantum" / "concepts" / f"{knowledge.id}.md"
         content = f"""# {knowledge.topic}
 
-**Domain:** {knowledge.domain}  
-**Source:** {knowledge.source}  
+**Domain:** {knowledge.domain}
+**Source:** {knowledge.source}
 **Verified:** {"✅" if knowledge.verified else "⚠️"}
 
 ## Content
@@ -285,14 +283,14 @@ class KnowledgeExtractor:
         if comment_lines:
             return comment_lines[0].replace("#", "").strip()[:200]
 
-        return f"Skill extracted from code example"
+        return "Skill extracted from code example"
 
-    def _extract_prerequisites(self, code: str) -> List[str]:
+    def _extract_prerequisites(self, code: str) -> list[str]:
         """Extract prerequisites from imports"""
         imports = re.findall(r"(?:import|from) ([a-zA-Z_][a-zA-Z0-9_]*)", code)
         return list(set(imports))
 
-    def _extract_use_cases(self, code: str) -> List[str]:
+    def _extract_use_cases(self, code: str) -> list[str]:
         """Extract use cases from code"""
         use_cases = []
 
@@ -320,7 +318,7 @@ class KnowledgeExtractor:
         else:
             return "general"
 
-    def _extract_applicability(self, description: str) -> List[str]:
+    def _extract_applicability(self, description: str) -> list[str]:
         """Extract applicability from description"""
         # Common applicability patterns
         contexts = []
@@ -349,13 +347,13 @@ import qiskit
 def solve_peaked_circuit(circuit_path):
     """Extract heavy output from peaked circuit using MPS simulation"""
     bq = bluequbit.init()
-    
+
     with open(circuit_path) as f:
         qc = qiskit.QuantumCircuit.from_qasm_str(f.read())
-    
+
     result = bq.run(qc, device='mps.cpu', shots=100000)
     counts = result.get_counts()
-    
+
     return max(counts, key=counts.get)
 '''
 

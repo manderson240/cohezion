@@ -27,10 +27,10 @@ class TurboQuantCPU:
     def compress_kv(self, x: torch.Tensor) -> dict[str, Any]:
         """
         Compresses a KV-cache segment using PolarQuant.
-        
+
         Args:
             x: [seq_len, head_dim] tensor in FP16/BF16/FP32
-            
+
         Returns:
             Dictionary containing quantized codes and metadata.
         """
@@ -65,7 +65,7 @@ class TurboQuantCPU:
         mean_deltas_tensor = orig_chunk_means - quant_chunk_means
 
         # Convert to list of tensors for backward compatibility with metadata dict
-        mean_deltas = [mean_deltas_tensor[:, i:i+1, :] for i in range(n_chunks)]
+        mean_deltas = [mean_deltas_tensor[:, i : i + 1, :] for i in range(n_chunks)]
 
         return {
             "quantized_codes": x_quant,
@@ -75,7 +75,7 @@ class TurboQuantCPU:
             "mean_deltas": mean_deltas,
             "n_chunks": n_chunks,
             "chunk_size": chunk_size,
-            "scale_factor": scale_factor
+            "scale_factor": scale_factor,
         }
 
     def decompress_kv(self, compressed: dict[str, Any]) -> torch.Tensor:
@@ -97,7 +97,7 @@ class TurboQuantCPU:
 
         # Stack mean deltas for vectorized addition
         # mean_deltas is a list of [batch, 1, 1] tensors
-        all_deltas = torch.cat(mean_deltas, dim=1) # [batch, n_chunks, 1]
+        all_deltas = torch.cat(mean_deltas, dim=1)  # [batch, n_chunks, 1]
 
         # Reshape to [batch, n_chunks, chunk_size] to apply deltas in parallel
         orig_shape = x_quant.shape
@@ -114,9 +114,11 @@ class TurboQuantCPU:
 
         return x_recovered
 
+
 def measure_coherence_loss(original: torch.Tensor, recovered: torch.Tensor) -> float:
     """Calculates Mean Absolute Error between original and recovered tensors."""
     return torch.mean(torch.abs(original - recovered)).item()
+
 
 if __name__ == "__main__":
     # Demo/Self-test
@@ -135,6 +137,8 @@ if __name__ == "__main__":
     # Original: 1024 * 128 * 16 bits (FP16)
     # Quantized: 1024 * 128 * 4 bits (Int8 usage for 3.5-bit logic) + 1024 * 32 bits (Mag FP32)
     orig_bits = test_kv.nelement() * 16
-    quant_bits = compressed["quantized_codes"].nelement() * 4 + compressed["magnitudes"].nelement() * 32
+    quant_bits = (
+        compressed["quantized_codes"].nelement() * 4 + compressed["magnitudes"].nelement() * 32
+    )
     ratio = orig_bits / quant_bits
     print(f"Estimated compression ratio: {ratio:.2f}x")

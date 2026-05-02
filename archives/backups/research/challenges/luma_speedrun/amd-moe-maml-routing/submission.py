@@ -32,9 +32,10 @@ Reference: "Model-Agnostic Meta-Learning", ICML 2017.
 """
 
 from __future__ import annotations
+
 import os
-from typing import Dict, List, Tuple, Optional
 from dataclasses import dataclass
+
 
 os.environ["AITER_USE_NT"] = "1"
 os.environ["AITER_KSPLIT"] = "2"
@@ -86,13 +87,13 @@ class MAMLRouter:
         self.meta_weights = torch.randn(hidden_dim, num_experts) * 0.02
 
         # Task-specific adaptation cache
-        self.task_cache: Dict[str, torch.Tensor] = {}
+        self.task_cache: dict[str, torch.Tensor] = {}
 
     def inner_loop_adapt(
         self,
         hidden_states: torch.Tensor,
-        expert_outputs: List[torch.Tensor],
-        target: Optional[torch.Tensor] = None,
+        expert_outputs: list[torch.Tensor],
+        target: torch.Tensor | None = None,
     ) -> torch.Tensor:
         """Inner loop: Adapt router to current batch.
 
@@ -130,7 +131,7 @@ class MAMLRouter:
 
         return fast_weights
 
-    def meta_update(self, batch_losses: List[torch.Tensor]) -> None:
+    def meta_update(self, batch_losses: list[torch.Tensor]) -> None:
         """Outer loop: Meta-update across batches.
 
         Second-order MAML: differentiate through inner loop.
@@ -169,8 +170,8 @@ class FastAdaptationCache:
 
     def __init__(self, cache_size: int = 100):
         self.cache_size = cache_size
-        self.cache: Dict[str, torch.Tensor] = {}
-        self.access_count: Dict[str, int] = {}
+        self.cache: dict[str, torch.Tensor] = {}
+        self.access_count: dict[str, int] = {}
 
     def get_key(self, hidden_states: torch.Tensor) -> str:
         """Generate cache key from hidden states."""
@@ -197,7 +198,7 @@ class FastAdaptationCache:
 
 
 def _compute_support_loss(
-    hidden_states: torch.Tensor, support_set: torch.Tensor, expert_outputs: List[torch.Tensor]
+    hidden_states: torch.Tensor, support_set: torch.Tensor, expert_outputs: list[torch.Tensor]
 ) -> torch.Tensor:
     """Compute loss on support set for few-shot adaptation.
 
@@ -221,7 +222,7 @@ def _compute_support_loss(
 
 def _maml_routing(
     hidden_states: torch.Tensor, num_experts: int, topk: int, device: str = "cuda"
-) -> Tuple[torch.Tensor, torch.Tensor]:
+) -> tuple[torch.Tensor, torch.Tensor]:
     """Apply MAML-based routing with fast adaptation.
 
     Args:

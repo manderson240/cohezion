@@ -219,3 +219,66 @@ class OuroborosBridge:
             "ouroboros_rules": self._engine.get_latest_system_rules(),
             "trigger_history": self._trigger.get_training_history(),
         }
+
+    async def check_journey_anomaly(
+        self,
+        evo_biographies: list[dict],
+        consensus_threshold: float = 0.85,
+    ) -> list[PhysicsAnomaly]:
+        """Check EVO journey records for low-consensus deliberations (E4).
+
+        For each EVO biography below the consensus threshold, consumes an
+        Ouroboros exhaust event. This connects the Quadrature Nexus deliberation
+        feedback loop to the Ouroboros self-healing system.
+
+        Args:
+            evo_biographies: List of EVO biography dicts from FlumeJourneyEvent.metadata
+            consensus_threshold: Proposals below this trigger exhaust (default: Nexus threshold)
+
+        Returns:
+            List of PhysicsAnomaly objects for low-consensus deliberations
+        """
+        anomalies: list[PhysicsAnomaly] = []
+        for bio in evo_biographies:
+            agent_id = bio.get("agent_id", "unknown")
+            evo_coherence = bio.get("evo_coherence_metric", 0.0)
+            mean_coherence = bio.get("mean_coherence", 0.5)
+
+            # Low EVO coherence = the deliberation failed to reach consensus
+            # Below HIHO baseline (0.5) with margin → low-consensus anomaly
+            if evo_coherence < consensus_threshold - 0.35:
+                anomaly = PhysicsAnomaly(
+                    source="quadrature_nexus",
+                    severity=1.0 - evo_coherence,
+                    metric_name="evo_coherence_metric",
+                    metric_value=evo_coherence,
+                    threshold=consensus_threshold - 0.35,
+                )
+                self._anomalies.append(anomaly)
+                anomalies.append(anomaly)
+
+                exhaust = ExecutionExhaust(
+                    task_id=f"nexus_{agent_id}",
+                    error_message=None,
+                    coherence_drop=0.5 - mean_coherence,
+                    token_usage=0,
+                    diagnostics={
+                        "anomaly": anomaly.to_dict(),
+                        "evo_biography": bio,
+                        "source": "quadrature_nexus_low_consensus",
+                    },
+                )
+                triggered = await self._engine.consume_exhaust(exhaust)
+                self._record_healing(
+                    f"nexus_{agent_id}",
+                    triggered,
+                    "nexus_consensus_healing_initiated" if triggered else "nexus_exhaust_deferred",
+                )
+                logger.info(
+                    "Ouroboros exhaust for low-consensus EVO %s (evo_coherence=%.3f, triggered=%s)",
+                    agent_id,
+                    evo_coherence,
+                    triggered,
+                )
+
+        return anomalies

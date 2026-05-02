@@ -137,9 +137,7 @@ class EvalAwarenessDefense:
         for _hash, canary in self.canary_store.items():
             if canary.token in reasoning_text:
                 result.canary_leaked = True
-                result.contamination_sources.append(
-                    f"Canary {canary.token[:20]}... found in output"
-                )
+                result.contamination_sources.append(f"Canary {canary.token[:20]}... found in output")
 
         # 3. URL trace contamination check
         url_patterns = re.findall(r"https?://[^\s<>\"']+", reasoning_text)
@@ -164,13 +162,9 @@ class EvalAwarenessDefense:
         result.is_aware = result.confidence >= (1.0 - self.sensitivity)
 
         if result.is_aware:
-            result.recommendation = (
-                "BLOCK: Agent shows eval-awareness behavior. Invalidate this evaluation run."
-            )
+            result.recommendation = "BLOCK: Agent shows eval-awareness behavior. Invalidate this evaluation run."
         elif result.detected_patterns:
-            result.recommendation = (
-                "WARN: Potential eval-awareness patterns detected. Review reasoning chain manually."
-            )
+            result.recommendation = "WARN: Potential eval-awareness patterns detected. Review reasoning chain manually."
         else:
             result.recommendation = "PASS: No eval-awareness detected."
 
@@ -224,13 +218,9 @@ class EvalAwarenessDefense:
                     "/products/",
                 ]
             ):
-                query_in_url = any(
-                    word in url.lower() for word in search_queries[i].lower().split()[:3]
-                )
+                query_in_url = any(word in url.lower() for word in search_queries[i].lower().split()[:3])
                 if query_in_url and "0 results" in title.lower():
-                    warnings.append(
-                        f"Inter-agent trace: {url[:80]} (auto-generated from prior agent search)"
-                    )
+                    warnings.append(f"Inter-agent trace: {url[:80]} (auto-generated from prior agent search)")
 
         return warnings
 

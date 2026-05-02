@@ -9,10 +9,10 @@ Implements the empirically-determined optimal configuration:
 
 Usage:
     client = LemonadeClient()
-    
+
     # Single request (≤4 concurrent optimal)
     result = await client.generate("prompt")
-    
+
     # Multiple requests (auto-batched)
     results = await client.generate_batch(["p1", "p2", "p3", "p4", "p5"])
 """
@@ -30,6 +30,7 @@ import aiohttp
 @dataclass
 class GenerationResult:
     """Result from a generation request."""
+
     content: str
     tokens: int
     latency_ms: float
@@ -39,7 +40,7 @@ class GenerationResult:
 
 class LemonadeClient:
     """Production-optimized client for Lemonade inference server.
-    
+
     Optimized for AMD Ryzen AI MAX+ 395 with Lemonade Vulkan backend.
     Throughput: 125-139 TPS burst, ~107 TPS sustained.
     """
@@ -95,8 +96,7 @@ class LemonadeClient:
 
         try:
             async with self._session.get(
-                f"{self.base_url}/v1/models",
-                timeout=aiohttp.ClientTimeout(total=10)
+                f"{self.base_url}/v1/models", timeout=aiohttp.ClientTimeout(total=10)
             ) as resp:
                 if resp.status == 200:
                     data = await resp.json()
@@ -122,7 +122,7 @@ class LemonadeClient:
             "model": model,
             "messages": [
                 {"role": "system", "content": system},
-                {"role": "user", "content": prompt}
+                {"role": "user", "content": prompt},
             ],
             "max_tokens": max_tokens,
             "temperature": temperature,
@@ -134,7 +134,7 @@ class LemonadeClient:
             async with self._session.post(
                 f"{self.base_url}/v1/chat/completions",
                 json=payload,
-                timeout=aiohttp.ClientTimeout(total=self.timeout)
+                timeout=aiohttp.ClientTimeout(total=self.timeout),
             ) as resp:
                 resp.raise_for_status()
                 data = await resp.json()
@@ -170,10 +170,10 @@ class LemonadeClient:
         show_progress: bool = False,
     ) -> list[GenerationResult]:
         """Execute multiple requests with optimal batching.
-        
+
         For ≤4 requests: single concurrent batch
         For >4 requests: explicit batching with gather() per batch
-        
+
         Args:
             prompts: List of prompts to process
             system: System prompt for all requests
@@ -181,7 +181,7 @@ class LemonadeClient:
             max_tokens: Max tokens per generation
             temperature: Sampling temperature
             show_progress: Print progress to stderr
-        
+
         Returns:
             List of GenerationResult (same order as prompts)
         """
@@ -193,27 +193,23 @@ class LemonadeClient:
 
         # Small batches (≤optimal): single gather
         if len(prompts) <= self.optimal_concurrency:
-            tasks = [
-                self.generate(p, system, model, max_tokens, temperature)
-                for p in prompts
-            ]
+            tasks = [self.generate(p, system, model, max_tokens, temperature) for p in prompts]
             return await asyncio.gather(*tasks)
 
         # Large batches: explicit batching
         results: list[GenerationResult] = []
 
         for i in range(0, len(prompts), self.optimal_concurrency):
-            batch = prompts[i:i + self.optimal_concurrency]
+            batch = prompts[i : i + self.optimal_concurrency]
 
             if show_progress:
-                print(f"Processing batch {i//self.optimal_concurrency + 1}/"
-                      f"{(len(prompts) + self.optimal_concurrency - 1)//self.optimal_concurrency}...",
-                      file=__import__('sys').stderr)
+                print(
+                    f"Processing batch {i // self.optimal_concurrency + 1}/"
+                    f"{(len(prompts) + self.optimal_concurrency - 1) // self.optimal_concurrency}...",
+                    file=__import__("sys").stderr,
+                )
 
-            tasks = [
-                self.generate(p, system, model, max_tokens, temperature)
-                for p in batch
-            ]
+            tasks = [self.generate(p, system, model, max_tokens, temperature) for p in batch]
             batch_results = await asyncio.gather(*tasks)
             results.extend(batch_results)
 
@@ -225,14 +221,11 @@ class LemonadeClient:
         max_tokens: int = 40,
     ) -> dict[str, Any]:
         """Run quick throughput benchmark.
-        
+
         Returns:
             Dict with tokens_per_sec, total_time_ms, total_tokens, etc.
         """
-        prompts = [
-            f"Write a haiku about machine learning topic {i}."
-            for i in range(num_requests)
-        ]
+        prompts = [f"Write a haiku about machine learning topic {i}." for i in range(num_requests)]
 
         start = time.monotonic()
         results = await self.generate_batch(prompts, max_tokens=max_tokens)
@@ -277,7 +270,7 @@ async def main():
             if result.success:
                 print(result.content)
             else:
-                print(f"Error: {result.error}", file=__import__('sys').stderr)
+                print(f"Error: {result.error}", file=__import__("sys").stderr)
                 return 1
         else:
             print("Usage: lemonade_client.py --benchmark [-n N] | <prompt>")

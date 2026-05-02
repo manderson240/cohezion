@@ -19,11 +19,12 @@ Expected: 5-15% speedup on gate computation (small but additive gain)
 from __future__ import annotations
 
 import os
-import math
+
 import torch
 from aiter import ActivationType, QuantType
 from aiter.fused_moe import fused_moe
 from task import input_t, output_t
+
 
 # Environment setup for NT mode
 os.environ["AITER_USE_NT"] = "1"

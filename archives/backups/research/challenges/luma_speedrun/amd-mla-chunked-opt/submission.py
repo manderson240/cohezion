@@ -41,20 +41,21 @@ Performance Characteristics:
 """
 
 from __future__ import annotations
+
 import os
-import math
+
 
 os.environ["PYTORCH_ROCM_ARCH"] = "gfx950"
 os.environ["CXX"] = "clang++"
 
-import torch
-from torch.utils.cpp_extension import load_inline
-from task import input_t, output_t
-
 # Import aiter for fallback
 import aiter
+import torch
 from aiter import dtypes as aiter_dtypes
 from aiter import get_mla_metadata_info_v1, get_mla_metadata_v1, mla_reduce_v1
+from task import input_t, output_t
+from torch.utils.cpp_extension import load_inline
+
 
 # Chunked processing configuration
 CHUNK_SIZE = 512  # Tokens per chunk (tuned for L2 cache)
@@ -82,13 +83,13 @@ def _get_chunked_kernel():
     #include <torch/extension.h>
     #include <hip/hip_runtime.h>
     #include <hip/hip_bf16.h>
-    
+
     #define NUM_HEADS 16
     #define QK_DIM 576
     #define V_DIM 512
     #define WAVESIZE 64
     #define BLOCK_SIZE 256
-    
+
     // Process a chunk of KV cache
     __global__ __launch_bounds__(BLOCK_SIZE, 2)
     void mla_chunked_attention(
@@ -105,9 +106,9 @@ def _get_chunked_kernel():
         int q_idx = blockIdx.x;      // Query index
         int head_id = blockIdx.y;    // Head index
         int tid = threadIdx.x;
-        
+
         if (q_idx >= total_q) return;
-        
+
         // Load Q for this query+head
         __shared__ float q_shared[QK_DIM];
         const __hip_bfloat16* q_ptr = Q + (q_idx * NUM_HEADS + head_id) * QK_DIM;
@@ -115,41 +116,41 @@ def _get_chunked_kernel():
             q_shared[i] = __bfloat162float(q_ptr[i]);
         }
         __syncthreads();
-        
+
         // Online softmax state
         float running_max = -1e30f;
         float running_sum = 0.0f;
-        
+
         // V accumulator
         float v_acc[V_DIM / BLOCK_SIZE + 1];
         #pragma unroll
         for (int i = 0; i < V_DIM / BLOCK_SIZE + 1; i++) {
             v_acc[i] = 0.0f;
         }
-        
+
         // Process KV entries in this chunk
         for (int kv_local = 0; kv_local < chunk_size; kv_local++) {
             const __hip_bfloat16* kv_ptr = KV_chunk + kv_local * QK_DIM;
-            
+
             // Compute Q@K^T (thread-cooperative dot)
             float dot = 0.0f;
             for (int d = tid; d < QK_DIM; d += BLOCK_SIZE) {
                 dot += q_shared[d] * __bfloat162float(kv_ptr[d]);
             }
-            
+
             // Warp reduction
             #pragma unroll
             for (int offset = WAVESIZE / 2; offset > 0; offset >>= 1) {
                 dot += __shfl_xor(dot, offset, WAVESIZE);
             }
-            
+
             // Cross-warp reduction
             __shared__ float warp_sums[4];
             if ((tid % WAVESIZE) == 0) {
                 warp_sums[tid / WAVESIZE] = dot;
             }
             __syncthreads();
-            
+
             float score;
             if (tid == 0) {
                 score = (warp_sums[0] + warp_sums[1] + warp_sums[2] + warp_sums[3]) * sm_scale;
@@ -157,16 +158,16 @@ def _get_chunked_kernel():
             }
             __syncthreads();
             score = warp_sums[0];
-            
+
             // Online softmax update
             float old_max = running_max;
             float new_max = fmaxf(old_max, score);
             float exp_score = expf(score - new_max);
             float correction = expf(old_max - new_max);
-            
+
             running_sum = running_sum * correction + exp_score;
             running_max = new_max;
-            
+
             // Accumulate weighted V
             float weight = exp_score;
             int v_per_thread = (V_DIM + BLOCK_SIZE - 1) / BLOCK_SIZE;
@@ -177,23 +178,23 @@ def _get_chunked_kernel():
                 }
             }
         }
-        
+
         // Write partial results
         int out_base = (q_idx * NUM_HEADS + head_id);
-        
+
         for (int vi = 0; vi < v_per_thread; vi++) {
             int v_idx = tid * v_per_thread + vi;
             if (v_idx < V_DIM) {
                 partial_out[out_base * V_DIM + v_idx] = v_acc[vi];
             }
         }
-        
+
         if (tid == 0) {
             partial_max[out_base] = running_max;
             partial_lse[out_base] = logf(running_sum) + running_max;
         }
     }
-    
+
     // Reduce partial results across chunks
     __global__ void mla_chunk_reduce(
         const float* __restrict__ chunk_out,    // [num_chunks, total_q, NUM_HEADS, V_DIM]
@@ -206,12 +207,12 @@ def _get_chunked_kernel():
         int idx = blockIdx.x * blockDim.x + threadIdx.x;
         int total_elements = total_q * NUM_HEADS * V_DIM;
         if (idx >= total_elements) return;
-        
+
         int v_idx = idx % V_DIM;
         int head_q = idx / V_DIM;
         int head_id = head_q % NUM_HEADS;
         int q_idx = head_q / NUM_HEADS;
-        
+
         // Find global max across chunks
         float global_max = -1e30f;
         for (int c = 0; c < num_chunks; c++) {
@@ -219,7 +220,7 @@ def _get_chunked_kernel():
             float m = chunk_max[base];
             global_max = fmaxf(global_max, m);
         }
-        
+
         // Merge weighted sums
         float total_weight = 0.0f;
         float total_v = 0.0f;
@@ -227,15 +228,15 @@ def _get_chunked_kernel():
             int base = ((c * total_q + q_idx) * NUM_HEADS + head_id);
             float m = chunk_max[base];
             float lse = chunk_lse[base];
-            
+
             float w = expf(lse - global_max);
             total_weight += w;
             total_v += chunk_out[base * V_DIM + v_idx] * expf(m - global_max);
         }
-        
+
         output[idx] = (__hip_bfloat16)(total_v / total_weight);
     }
-    
+
     void launch_chunked_mla(
         torch::Tensor Q, torch::Tensor KV,
         torch::Tensor partial_out, torch::Tensor partial_max,
@@ -251,7 +252,7 @@ def _get_chunked_kernel():
             partial_lse.data_ptr<float>(),
             chunk_start, chunk_size, total_q, sm_scale);
     }
-    
+
     void launch_reduce(
         torch::Tensor chunk_out, torch::Tensor chunk_max,
         torch::Tensor chunk_lse, torch::Tensor output,

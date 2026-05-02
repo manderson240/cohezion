@@ -401,9 +401,7 @@ def draw_figure_4():
     # Intermediate points
     for i, (x_pt, y_pt) in enumerate(zip(traj_x[::10], traj_y[::10])):
         ax.plot(x_pt, y_pt, "b.", markersize=10)
-        if i == 0:
-            ax.text(x_pt, y_pt + 0.3, f"Step {i}", ha="center", fontsize=8)
-        elif i == len(traj_x[::10]) - 1:
+        if i == 0 or i == len(traj_x[::10]) - 1:
             ax.text(x_pt, y_pt + 0.3, f"Step {i}", ha="center", fontsize=8)
 
     # Interpolation arrow
@@ -779,7 +777,7 @@ if __name__ == "__main__":
     draw_figure_7()
     draw_figure_8()
 
-    print(f"\n=== Complete ===")
+    print("\n=== Complete ===")
     print(f"Generated 8 patent figures in: {FIGURE_DIR.absolute()}")
     print("\nFigures:")
     for i, fig_file in enumerate(sorted(FIGURE_DIR.glob("fig*.png")), 1):

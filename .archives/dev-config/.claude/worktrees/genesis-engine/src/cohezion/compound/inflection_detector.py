@@ -101,9 +101,7 @@ class InflectionDetector:
         if "coherence" in result.metrics:
             coherence = result.metrics["coherence"]
             if coherence < self.coherence_threshold:
-                issues.append(
-                    f"Coherence low: {coherence:.2f} < {self.coherence_threshold}"
-                )
+                issues.append(f"Coherence low: {coherence:.2f} < {self.coherence_threshold}")
                 score *= 0.6
 
             # Track coherence history
@@ -115,9 +113,7 @@ class InflectionDetector:
             if len(self.coherence_history) >= 4:
                 # Compare last value to average of previous values
                 current = self.coherence_history[-1]
-                previous_avg = sum(self.coherence_history[:-1]) / (
-                    len(self.coherence_history) - 1
-                )
+                previous_avg = sum(self.coherence_history[:-1]) / (len(self.coherence_history) - 1)
                 if previous_avg > 0 and current < previous_avg * 0.8:  # 20% drop
                     issues.append(f"Coherence trend down: {current:.2f} < {previous_avg:.2f}")
                     score *= 0.7

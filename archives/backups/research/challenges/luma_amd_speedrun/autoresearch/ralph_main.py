@@ -260,10 +260,10 @@ class RalphLoop:
             mutation = ""
             if stagnation:
                 mutation = "R-Zero: stagnation detected"
-                log.info(f"  → Triggering R-Zero challenger")
+                log.info("  → Triggering R-Zero challenger")
             elif not gate_passed:
                 mutation = f"Low coherence ({record.coherence:.2f} < {self.coherence_threshold})"
-                log.info(f"  → Proposing mutation")
+                log.info("  → Proposing mutation")
 
             # Log to vault
             self.log_cycle(record, mutation)
@@ -415,7 +415,7 @@ def main():
     for kernel, result in results.items():
         log.info(f"  {kernel}: {result['best_us']:.1f}µs (target: {result['target_us']:.1f}µs)")
         if result["breakthrough"]:
-            log.info(f"    → BREAKTHROUGH!")
+            log.info("    → BREAKTHROUGH!")
         else:
             gap = result.get("gap_to_target")
             if gap:

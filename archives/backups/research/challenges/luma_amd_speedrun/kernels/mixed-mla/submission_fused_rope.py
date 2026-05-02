@@ -36,17 +36,12 @@ This is a research kernel exploring fused position encoding + attention.
 
 from __future__ import annotations
 
-import os
-import math
-from typing import Any
-
 import torch
-from torch.utils.cpp_extension import load_inline
-
 from aiter import dtypes as aiter_dtypes
-from aiter import get_mla_metadata_info_v1, get_mla_metadata_v1
 from reference import ref_kernel
 from task import input_t, output_t
+from torch.utils.cpp_extension import load_inline
+
 
 # Constants
 SM_SCALE = 1.0 / (576**0.5)
@@ -155,88 +150,88 @@ void fused_rope_attention_kernel(
     const int bid = blockIdx.x;
     const int wid = tid / 64;  // warp id
     const int lid = tid % 64;  // lane id
-    
+
     // Each block handles one (batch, query position)
     int batch_idx = bid / qseqlen;
     int q_pos = bid % qseqlen;
-    
+
     if (batch_idx >= bs) return;
-    
+
     // Get KV range for this batch
     int kv_start = kv_indptr[batch_idx];
     int kv_end = kv_indptr[batch_idx + 1];
     int kv_len = kv_end - kv_start;
-    
+
     // Q index
     int q_idx = batch_idx * qseqlen + q_pos;
-    
+
     // Each warp processes one head
     for (int head = wid; head < nheads; head += blockDim.x / 64) {
         // Load Q for this head and apply RoPE on-the-fly
         // Store in registers
         float q_rotated[HEAD_DIM];
-        
+
         #pragma unroll
         for (int d = lid; d < HEAD_DIM; d += 64) {
             // Load Q from FP8 and dequantize
             uint8_t q_val = q_fp8[q_idx * nheads * HEAD_DIM + head * HEAD_DIM + d];
             float q_f = fp8_to_f32(q_val) * q_scale[0];
-            
+
             // Apply RoPE rotation (every pair of dimensions)
             if ((d & 1) == 0) {  // Even dimension
                 int dim_pair = d / 2;
                 float cos_val, sin_val;
                 compute_rope_rotation(q_pos, dim_pair, rope_base, HEAD_DIM, cos_val, sin_val);
-                
+
                 // We need the next dimension too for rotation
-                uint8_t q_val_next = (d + 1 < HEAD_DIM) ? 
+                uint8_t q_val_next = (d + 1 < HEAD_DIM) ?
                     q_fp8[q_idx * nheads * HEAD_DIM + head * HEAD_DIM + d + 1] : 0;
                 float q_f_next = fp8_to_f32(q_val_next) * q_scale[0];
-                
+
                 q_rotated[d] = apply_rope(q_f, q_f_next, cos_val, sin_val);
             }
         }
-        
+
         // Compute attention scores: Q @ K^T
         // K also needs RoPE rotation
         float max_score = -1e9f;
         float scores[64];  // Max 64 KV positions per thread
-        
+
         #pragma unroll
         for (int kv_iter = 0; kv_iter < kv_len; kv_iter += 64) {
             int kv_pos = kv_iter + lid;
             if (kv_pos >= kv_len) break;
-            
+
             int kv_idx = kv_start + kv_pos;
             int kv_head = head / (nheads / num_kv_heads);  // GQA
-            
+
             // Compute Q @ K for this KV position
             float score = 0.0f;
-            
+
             #pragma unroll
             for (int d = 0; d < HEAD_DIM; d += 2) {
                 // Load K and apply RoPE
                 uint8_t k_val = kv_fp8[kv_idx * num_kv_heads * HEAD_DIM + kv_head * HEAD_DIM + d];
-                uint8_t k_val_next = (d + 1 < HEAD_DIM) ? 
+                uint8_t k_val_next = (d + 1 < HEAD_DIM) ?
                     kv_fp8[kv_idx * num_kv_heads * HEAD_DIM + kv_head * HEAD_DIM + d + 1] : 0;
-                
+
                 float k_f = fp8_to_f32(k_val) * kv_scale[0];
                 float k_f_next = fp8_to_f32(k_val_next) * kv_scale[0];
-                
+
                 // RoPE rotation for K
                 int dim_pair = d / 2;
                 float cos_val, sin_val;
                 compute_rope_rotation(kv_pos, dim_pair, rope_base, HEAD_DIM, cos_val, sin_val);
                 float k_rotated = apply_rope(k_f, k_f_next, cos_val, sin_val);
-                
+
                 score += q_rotated[d] * k_rotated;
             }
-            
+
             score *= sm_scale;
             scores[kv_iter / 64] = score;
             max_score = fmaxf(max_score, score);
         }
-        
+
         // Softmax: compute exp(score - max) and sum
         float sum_exp = 0.0f;
         #pragma unroll
@@ -246,58 +241,58 @@ void fused_rope_attention_kernel(
                 sum_exp += scores[i];
             }
         }
-        
+
         // Warp reduction for sum
         #pragma unroll
         for (int offset = 32; offset > 0; offset /= 2) {
             sum_exp += __shfl_xor(sum_exp, offset);
         }
         sum_exp = __shfl(sum_exp, 0);  // Broadcast to all lanes
-        
+
         // Normalize scores
         #pragma unroll
         for (int i = 0; i < 64; i++) {
             scores[i] /= sum_exp;
         }
-        
+
         // Compute weighted sum: scores @ V
         float output_acc[V_DIM];
         #pragma unroll
         for (int v = 0; v < V_DIM; v++) {
             output_acc[v] = 0.0f;
         }
-        
+
         // V projection (V shares memory with K in MLA, uses last V_DIM elements)
         #pragma unroll
         for (int kv_iter = 0; kv_iter < kv_len; kv_iter += 64) {
             int kv_pos = kv_iter + lid;
             if (kv_pos >= kv_len) break;
-            
+
             int kv_idx = kv_start + kv_pos;
             int kv_head = head / (nheads / num_kv_heads);
-            
+
             float weight = scores[kv_iter / 64];
-            
+
             #pragma unroll
             for (int v = 0; v < V_DIM; v += 64) {
                 int v_idx = v + lid;
                 if (v_idx >= V_DIM) break;
-                
+
                 // V starts after K in the KV cache (decoupled MLA layout)
                 uint8_t v_val = kv_fp8[kv_idx * num_kv_heads * V_DIM + kv_head * V_DIM + v_idx];
                 float v_f = fp8_to_f32(v_val) * kv_scale[0];
-                
+
                 output_acc[v_idx] += weight * v_f;
             }
         }
-        
+
         // Write output
         #pragma unroll
         for (int v = 0; v < V_DIM; v += 64) {
             int v_idx = v + lid;
             if (v_idx >= V_DIM) break;
-            
-            output[q_idx * nheads * V_DIM + head * V_DIM + v_idx] = 
+
+            output[q_idx * nheads * V_DIM + head * V_DIM + v_idx] =
                 f32_to_bf16(output_acc[v_idx]);
         }
     }
@@ -321,10 +316,10 @@ void fused_rope_attention(
 ) {
     int num_kv_heads = 1;  // MLA uses 1 KV head
     float rope_base = 10000.0f;
-    
+
     dim3 grid(bs * qseqlen);
     dim3 threads(256);  // 4 warps per block
-    
+
     fused_rope_attention_kernel<<<grid, threads>>>(
         (uint8_t*)q.data_ptr(),
         (uint8_t*)kv.data_ptr(),
@@ -414,7 +409,7 @@ def custom_kernel(data: input_t) -> output_t:
 
         return output
 
-    except Exception as e:
+    except Exception:
         # Fallback to reference
         pass
 

@@ -8,6 +8,7 @@ from typing import Any
 
 import numpy as np
 import torch
+
 from cohezion.core.silicon_guard import get_silicon_guard
 
 
@@ -55,11 +56,11 @@ class TurboQuantHarness:
         return 1.0 - abs(coherence - 0.5) * 2.0
 
     def verify_quantization(
-        self, 
-        original: torch.Tensor, 
+        self,
+        original: torch.Tensor,
         dequantized: torch.Tensor,
         context_name: str = "tensor",
-        perfect_mean: bool = False
+        perfect_mean: bool = False,
     ) -> dict[str, Any]:
         """
         Verify the integrity of a quantization-dequantization cycle with hardware safety.
@@ -69,7 +70,11 @@ class TurboQuantHarness:
         pressure = guard.check_safety()
         if pressure.is_throttled:
             logger.error("🛑 VERIFICATION HALTED: Silicon Overload Detected [%s]", pressure.reason)
-            return {"success": False, "error": f"Silicon Overload: {pressure.reason}", "metrics": {}}
+            return {
+                "success": False,
+                "error": f"Silicon Overload: {pressure.reason}",
+                "metrics": {},
+            }
 
         # 1. Numerical Parity (Mean Absolute Error)
         mae = float(torch.mean(torch.abs(original - dequantized)))
@@ -84,9 +89,8 @@ class TurboQuantHarness:
         stability_quant = self.get_hiho_stability(coh_quant)
         stability_delta = abs(stability_orig - stability_quant)
 
-        success = (
-            mae <= self.tolerance_mae and
-            (perfect_mean or stability_delta <= self.tolerance_hiho)
+        success = mae <= self.tolerance_mae and (
+            perfect_mean or stability_delta <= self.tolerance_hiho
         )
 
         metrics = {
@@ -98,18 +102,22 @@ class TurboQuantHarness:
             "stability_original": stability_orig,
             "stability_quantized": stability_quant,
             "stability_delta": stability_delta,
-            "success": success
+            "success": success,
         }
 
         if not success:
             logger.warning(
                 "⚠️ TurboQuant Integrity Check Failed [%s]: MAE=%.4f, StabilityDelta=%.4f",
-                context_name, mae, stability_delta
+                context_name,
+                mae,
+                stability_delta,
             )
         else:
             logger.info(
                 "✅ TurboQuant Integrity Check Passed [%s]: MAE=%.4f, StabilityDelta=%.4f",
-                context_name, mae, stability_delta
+                context_name,
+                mae,
+                stability_delta,
             )
 
         return metrics

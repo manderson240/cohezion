@@ -3,16 +3,14 @@ BlueQubit Tutorial: Solving Peaked Circuits
 Learn from official SDK examples
 """
 
-import sys
+import json
+import time
 from pathlib import Path
 
-import time
-import json
-import numpy as np
-
-from dotenv import load_dotenv
 import bluequbit
+import numpy as np
 import qiskit
+from dotenv import load_dotenv
 
 
 class PeakedCircuitTutorial:
@@ -64,11 +62,11 @@ class PeakedCircuitTutorial:
         for gate, count in sorted(gate_counts.items()):
             print(f"  {gate}: {count}")
 
-        print(f"\nKey observations:")
-        print(f"  • Single-qubit rotations (ry, rz): Control local state")
-        print(f"  • RZZ gates: Create Ising-type entanglement")
-        print(f"  • CZ gates: Additional entangling layer")
-        print(f"  • Ring topology: Each qubit connected to neighbors")
+        print("\nKey observations:")
+        print("  • Single-qubit rotations (ry, rz): Control local state")
+        print("  • RZZ gates: Create Ising-type entanglement")
+        print("  • CZ gates: Additional entangling layer")
+        print("  • Ring topology: Each qubit connected to neighbors")
 
         # Configure
         print(f"\n{'=' * 70}")
@@ -79,11 +77,11 @@ class PeakedCircuitTutorial:
         bond_dim = 64 if n_qubits <= 10 else 128
         shots = 100000
 
-        print(f"Configuration:")
-        print(f"  Device: mps.cpu")
+        print("Configuration:")
+        print("  Device: mps.cpu")
         print(f"  Bond dimension: {bond_dim}")
         print(f"  Shots: {shots}")
-        print(f"  Threshold: 0.5")
+        print("  Threshold: 0.5")
 
         # Execute
         print(f"\n{'=' * 70}")
@@ -112,7 +110,7 @@ class PeakedCircuitTutorial:
         uniform_prob = 1.0 / (2**n_qubits)
         threshold_prob = 0.5 * uniform_prob
 
-        print(f"Analysis:")
+        print("Analysis:")
         print(f"  Total shots: {total}")
         print(f"  Uniform probability: {uniform_prob:.2e}")
         print(f"  Threshold (0.5×uniform): {threshold_prob:.2e}")
@@ -133,12 +131,12 @@ class PeakedCircuitTutorial:
         noise = np.sqrt(uniform_prob * (1 - uniform_prob))
         snr = signal / noise if noise > 0 else 0
 
-        print(f"\n🏆 WINNING BITSTRING:")
+        print("\n🏆 WINNING BITSTRING:")
         print(f"  Bitstring: {top[0]}")
         print(f"  Probability: {top[1]:.6f}")
         print(f"  SNR: {snr:.2f} sigma")
 
-        print(f"\nTop 5 heavy outputs:")
+        print("\nTop 5 heavy outputs:")
         for bitstring, prob in sorted(heavy.items(), key=lambda x: x[1], reverse=True)[:5]:
             marker = " ← WINNER" if bitstring == top[0] else ""
             print(f"  {bitstring}: {prob:.6f}{marker}")

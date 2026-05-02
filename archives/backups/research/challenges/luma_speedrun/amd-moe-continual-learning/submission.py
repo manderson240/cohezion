@@ -31,11 +31,12 @@ Reference: "Progressive Neural Networks", DeepMind 2016.
 """
 
 from __future__ import annotations
-import os
-from typing import Dict, List, Set, Tuple, Optional
-from dataclasses import dataclass, field
-from collections import defaultdict
+
 import json
+import os
+from collections import defaultdict
+from dataclasses import dataclass, field
+
 
 os.environ["AITER_USE_NT"] = "1"
 os.environ["AITER_KSPLIT"] = "2"
@@ -52,16 +53,16 @@ class TaskExpertMapping:
     """Mapping between tasks and experts."""
 
     task_id: str
-    expert_ids: Set[int] = field(default_factory=set)
+    expert_ids: set[int] = field(default_factory=set)
     frozen: bool = False
-    importance_scores: Dict[int, float] = field(default_factory=dict)
+    importance_scores: dict[int, float] = field(default_factory=dict)
 
     def add_expert(self, expert_id: int, importance: float = 1.0) -> None:
         """Add expert to task mapping."""
         self.expert_ids.add(expert_id)
         self.importance_scores[expert_id] = importance
 
-    def get_important_experts(self, threshold: float = 0.5) -> Set[int]:
+    def get_important_experts(self, threshold: float = 0.5) -> set[int]:
         """Get experts with importance above threshold."""
         return {eid for eid, imp in self.importance_scores.items() if imp >= threshold}
 
@@ -79,17 +80,17 @@ class ContinualLearningRouter:
         self.max_tasks = max_tasks
 
         # Task-expert mappings
-        self.task_mappings: Dict[str, TaskExpertMapping] = {}
+        self.task_mappings: dict[str, TaskExpertMapping] = {}
 
         # Expert usage statistics
-        self.expert_usage_count: Dict[int, int] = defaultdict(int)
-        self.expert_task_history: Dict[int, List[str]] = defaultdict(list)
+        self.expert_usage_count: dict[int, int] = defaultdict(int)
+        self.expert_task_history: dict[int, list[str]] = defaultdict(list)
 
         # Current task
-        self.current_task: Optional[str] = None
+        self.current_task: str | None = None
 
         # Frozen experts (never updated)
-        self.frozen_experts: Set[int] = set()
+        self.frozen_experts: set[int] = set()
 
     def set_task(self, task_id: str) -> None:
         """Set current task for routing."""
@@ -119,7 +120,7 @@ class ContinualLearningRouter:
 
         return best_task
 
-    def select_experts(self, task_id: str, topk: int = 2) -> Set[int]:
+    def select_experts(self, task_id: str, topk: int = 2) -> set[int]:
         """Select experts for given task.
 
         Args:
@@ -186,7 +187,7 @@ class ContinualLearningRouter:
 
             print(f"[Continual Learning] Frozen {len(important)} experts for task {task_id}")
 
-    def compute_routing_mask(self, batch_size: int, selected_experts: Set[int]) -> torch.Tensor:
+    def compute_routing_mask(self, batch_size: int, selected_experts: set[int]) -> torch.Tensor:
         """Compute mask for expert selection.
 
         Args:
@@ -223,7 +224,7 @@ class ContinualLearningRouter:
 
     def load_checkpoint(self, path: str) -> None:
         """Load continual learning state."""
-        with open(path, "r") as f:
+        with open(path) as f:
             state = json.load(f)
 
         self.frozen_experts = set(state["frozen_experts"])
@@ -238,8 +239,8 @@ class ElasticWeightConsolidation:
 
     def __init__(self, lambda_ewc: float = 1.0):
         self.lambda_ewc = lambda_ewc
-        self.fisher_information: Dict[int, torch.Tensor] = {}
-        self.optimal_params: Dict[int, torch.Tensor] = {}
+        self.fisher_information: dict[int, torch.Tensor] = {}
+        self.optimal_params: dict[int, torch.Tensor] = {}
 
     def compute_fisher_information(self, expert_id: int, gradients: torch.Tensor) -> None:
         """Compute Fisher Information for expert."""
@@ -269,8 +270,8 @@ class ElasticWeightConsolidation:
 
 
 def _continual_routing(
-    hidden_states: torch.Tensor, num_experts: int, topk: int, task_hint: Optional[str] = None
-) -> Tuple[torch.Tensor, torch.Tensor, Optional[torch.Tensor]]:
+    hidden_states: torch.Tensor, num_experts: int, topk: int, task_hint: str | None = None
+) -> tuple[torch.Tensor, torch.Tensor, torch.Tensor | None]:
     """Apply continual learning routing.
 
     Args:

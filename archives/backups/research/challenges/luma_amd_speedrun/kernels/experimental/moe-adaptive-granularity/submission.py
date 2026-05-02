@@ -20,10 +20,12 @@ Experimental Status: Exploratory - tests virtual expert partitioning.
 
 from __future__ import annotations
 
-import torch
-import sys
 import os
+import sys
 from typing import TYPE_CHECKING
+
+import torch
+
 
 if TYPE_CHECKING:
     from task import input_t, output_t
@@ -39,7 +41,6 @@ for _mod in (
         sys.path.insert(0, _p)
 
 import aiter
-from aiter import dtypes
 
 
 def custom_kernel(data: input_t) -> output_t:

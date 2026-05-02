@@ -7,8 +7,9 @@ from pathlib import Path
 # Add src to path
 sys.path.append(str(Path.cwd() / "src"))
 
-from cohezion.core.credit_manager import get_credit_manager
 from cohezion.swarm.agents.quantum_agent import QuantumAgent
+
+from cohezion.core.credit_manager import get_credit_manager
 from cohezion.swarm.swarm_types import SwarmConfig
 
 

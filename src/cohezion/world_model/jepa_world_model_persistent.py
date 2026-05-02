@@ -6,18 +6,18 @@ Extends base JEPAWorldModel with trajectory storage and dream rollouts.
 Usage:
     from cohezion.world_model.jepa_world_model import JEPAWorldModel, generate_synthetic_training_data
     from cohezion.persistence.genesis_persistence import SurrealDBConnection
-    
+
     db = SurrealDBConnection()
     model = JEPAWorldModelPersistent(
         db_connection=db,
         state_dim=12,
         action_dim=12
     )
-    
+
     # Training with auto-storage
     data = generate_synthetic_training_data(n_samples=100)
     metrics = model.train_epoch_with_persistence(data)
-    
+
     # Dream rollouts
     imagined = model.dream_rollout(n_steps=50)
 """
@@ -36,7 +36,7 @@ class JEPAWorldModelPersistent(JEPAWorldModel):
     def __init__(self, db_connection=None, *args, buffer_size: int = 100, **kwargs):
         """
         Initialize with SurrealDB connection.
-        
+
         Args:
             db_connection: SurrealDBConnection or None for local-only mode
             buffer_size: Number of trajectories to buffer before DB flush
@@ -52,20 +52,20 @@ class JEPAWorldModelPersistent(JEPAWorldModel):
         action: np.ndarray,
         next_state: np.ndarray,
         reward: float = 0.0,
-        info: dict | None = None
+        info: dict | None = None,
     ) -> bool:
         """
         Store a single trajectory transition.
-        
+
         Buffers locally and flushes to SurrealDB when buffer is full.
         """
         trajectory = {
-            'state': state.tolist() if hasattr(state, 'tolist') else state,
-            'action': action.tolist() if hasattr(action, 'tolist') else action,
-            'next_state': next_state.tolist() if hasattr(next_state, 'tolist') else next_state,
-            'reward': float(reward),
-            'timestamp': time.time(),
-            'info': info or {}
+            "state": state.tolist() if hasattr(state, "tolist") else state,
+            "action": action.tolist() if hasattr(action, "tolist") else action,
+            "next_state": next_state.tolist() if hasattr(next_state, "tolist") else next_state,
+            "reward": float(reward),
+            "timestamp": time.time(),
+            "info": info or {},
         }
 
         self.trajectory_buffer.append(trajectory)
@@ -81,15 +81,15 @@ class JEPAWorldModelPersistent(JEPAWorldModel):
 
         try:
             # Store to SurrealDB if method exists
-            if hasattr(self.db, 'create'):
+            if hasattr(self.db, "create"):
                 for traj in self.trajectory_buffer:
-                    self.db.create('trajectory', traj)
-            elif hasattr(self.db, 'store'):
+                    self.db.create("trajectory", traj)
+            elif hasattr(self.db, "store"):
                 for traj in self.trajectory_buffer:
                     self.db.store(traj)
             else:
                 # Store to internal list
-                if not hasattr(self.db, '_trajectories'):
+                if not hasattr(self.db, "_trajectories"):
                     self.db._trajectories = []
                 self.db._trajectories.extend(self.trajectory_buffer)
 
@@ -99,11 +99,7 @@ class JEPAWorldModelPersistent(JEPAWorldModel):
             print(f"Error flushing buffer: {e}")
             return False
 
-    def load_trajectories(
-        self,
-        n: int = 100,
-        filter_func: Callable | None = None
-    ) -> list[dict]:
+    def load_trajectories(self, n: int = 100, filter_func: Callable | None = None) -> list[dict]:
         """Load trajectories from SurrealDB."""
         if self.db is None:
             return []
@@ -114,11 +110,11 @@ class JEPAWorldModelPersistent(JEPAWorldModel):
                 self._flush_buffer()
 
             # Load from database
-            if hasattr(self.db, 'query'):
-                trajs = self.db.query(f'SELECT * FROM trajectory LIMIT {n}')
-            elif hasattr(self.db, 'load'):
+            if hasattr(self.db, "query"):
+                trajs = self.db.query(f"SELECT * FROM trajectory LIMIT {n}")
+            elif hasattr(self.db, "load"):
                 trajs = self.db.load(n)
-            elif hasattr(self.db, '_trajectories'):
+            elif hasattr(self.db, "_trajectories"):
                 trajs = self.db._trajectories[-n:]
             else:
                 trajs = []
@@ -132,19 +128,16 @@ class JEPAWorldModelPersistent(JEPAWorldModel):
             return []
 
     def dream_rollout(
-        self,
-        n_steps: int = 50,
-        temperature: float = 0.7,
-        start_state: np.ndarray | None = None
+        self, n_steps: int = 50, temperature: float = 0.7, start_state: np.ndarray | None = None
     ) -> list[dict]:
         """
         Generate imagined trajectory using world model.
-        
+
         Args:
             n_steps: Number of steps to imagine
             temperature: 0=deterministic, 1=highly random
             start_state: Starting state (or sample from history)
-            
+
         Returns:
             List of imagined trajectory steps
         """
@@ -159,7 +152,7 @@ class JEPAWorldModelPersistent(JEPAWorldModel):
 
         # Determine starting state
         if start_state is None:
-            start_state = np.array(past[-1]['next_state'])
+            start_state = np.array(past[-1]["next_state"])
 
         # Generate imagined trajectory
         imagined = []
@@ -168,7 +161,7 @@ class JEPAWorldModelPersistent(JEPAWorldModel):
         for step in range(n_steps):
             # Sample action from past trajectories
             if past:
-                action = np.array(past[np.random.randint(len(past))]['action'])
+                action = np.array(past[np.random.randint(len(past))]["action"])
             else:
                 action = np.random.randn(self.action_dim) * 0.1
 
@@ -179,13 +172,15 @@ class JEPAWorldModelPersistent(JEPAWorldModel):
             noise = np.random.randn(*next_state.shape) * temperature * 0.1
             next_state = next_state + noise
 
-            imagined.append({
-                'state': state.copy(),
-                'action': action.copy(),
-                'next_state': next_state.copy(),
-                'step': step,
-                'imagined': True
-            })
+            imagined.append(
+                {
+                    "state": state.copy(),
+                    "action": action.copy(),
+                    "next_state": next_state.copy(),
+                    "step": step,
+                    "imagined": True,
+                }
+            )
 
             state = next_state
 
@@ -193,23 +188,16 @@ class JEPAWorldModelPersistent(JEPAWorldModel):
 
     def _synthetic_dream(self, n_steps: int) -> list[dict]:
         """Fallback synthetic dream rollouts."""
-        return [
-            {'step': i, 'synthetic': True}
-            for i in range(n_steps)
-        ]
+        return [{"step": i, "synthetic": True} for i in range(n_steps)]
 
-    def train_epoch_with_persistence(
-        self,
-        data: list,
-        batch_size: int = 32
-    ) -> dict:
+    def train_epoch_with_persistence(self, data: list, batch_size: int = 32) -> dict:
         """
         Train and store trajectories to SurrealDB.
-        
+
         Args:
             data: List of (state, action, next_state, reward) tuples
             batch_size: Training batch size
-            
+
         Returns:
             Training metrics
         """
@@ -227,10 +215,7 @@ class JEPAWorldModelPersistent(JEPAWorldModel):
                 continue
 
             self.store_trajectory(
-                np.array(state),
-                np.array(action),
-                np.array(next_state),
-                float(reward)
+                np.array(state), np.array(action), np.array(next_state), float(reward)
             )
 
         # Flush remaining buffer

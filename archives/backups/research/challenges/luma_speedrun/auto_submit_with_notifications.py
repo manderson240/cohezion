@@ -9,10 +9,10 @@ Usage:
 import argparse
 import json
 import subprocess
-import sys
 import time
 from datetime import datetime
 from pathlib import Path
+
 
 # Configuration
 EMAIL = "manderson240@gmail.com"
@@ -79,12 +79,12 @@ Content-Type: text/plain; charset=utf-8
             ["mail", "-s", subject, EMAIL], input=body, capture_output=True, text=True, timeout=10
         )
         if result.returncode == 0:
-            print(f"  📧 Email sent via mail command")
+            print("  📧 Email sent via mail command")
             return True
     except Exception:
         pass
 
-    print(f"  ⚠ Email notification failed (no sendmail/mail available)")
+    print("  ⚠ Email notification failed (no sendmail/mail available)")
     return False
 
 
@@ -144,11 +144,11 @@ def submit_kernel(kernel: str, mode: str = "test") -> tuple[bool, float | None]:
             print(f"  ✅ {kernel}: {timing:.3f}µs")
             return True, timing
         else:
-            print(f"  ⚠ Submission succeeded but couldn't extract timing")
+            print("  ⚠ Submission succeeded but couldn't extract timing")
             return True, None
 
     except subprocess.TimeoutExpired:
-        print(f"  ⏱ Submission timed out")
+        print("  ⏱ Submission timed out")
         return False, None
     except Exception as e:
         print(f"  ❌ Error: {e}")
@@ -195,7 +195,7 @@ def run_continuous_submissions(kernel: str, interval: int = 3600):
     print(f"\n🚀 Starting continuous submission for {kernel.upper()}")
     print(f"   Check interval: {interval} seconds ({interval / 60:.0f} minutes)")
     print(f"   Notifications: {EMAIL}")
-    print(f"   Press Ctrl+C to stop\n")
+    print("   Press Ctrl+C to stop\n")
 
     cycle = 0
 
@@ -210,7 +210,7 @@ def run_continuous_submissions(kernel: str, interval: int = 3600):
         test_success, _ = submit_kernel(kernel, "test")
 
         if not test_success:
-            print(f"  ⚠ Test failed, skipping benchmark")
+            print("  ⚠ Test failed, skipping benchmark")
             time.sleep(interval)
             continue
 
@@ -219,26 +219,26 @@ def run_continuous_submissions(kernel: str, interval: int = 3600):
         bench_success, timing = submit_kernel(kernel, "benchmark")
 
         if not bench_success:
-            print(f"  ⚠ Benchmark failed")
+            print("  ⚠ Benchmark failed")
             time.sleep(interval)
             continue
 
         if timing is None:
-            print(f"  ⚠ Couldn't extract timing")
+            print("  ⚠ Couldn't extract timing")
             time.sleep(interval)
             continue
 
         # Step 3: Check if improved
         if check_improvement(kernel, timing):
-            print(f"  🎉 IMPROVEMENT! Submitting to leaderboard...")
+            print("  🎉 IMPROVEMENT! Submitting to leaderboard...")
 
             # Step 4: Submit to leaderboard
             lb_success, _ = submit_kernel(kernel, "leaderboard")
 
             if lb_success:
-                print(f"  ✅ Leaderboard submission complete!")
+                print("  ✅ Leaderboard submission complete!")
             else:
-                print(f"  ⚠ Leaderboard submission failed")
+                print("  ⚠ Leaderboard submission failed")
         else:
             current_best = BEST_TIMES[kernel]["best_submitted"]
             gap = (

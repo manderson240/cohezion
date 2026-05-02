@@ -6,23 +6,23 @@ End-to-end validation of all hackathon tools and SDK
 import sys
 from pathlib import Path
 
+
 sys.path.insert(0, str(Path(__file__).parent))
 
-import time
 import json
+import time
 from datetime import datetime
-from typing import Dict, List, Tuple
+
+import bluequbit
+import qiskit
+from circuit_library import CircuitLibrary
 
 # Import all our tools
 from dotenv import load_dotenv
-import bluequbit
-import qiskit
-
-from circuit_library import CircuitLibrary
 from heavy_output_detection import find_heavy_output
-from submission_pipeline import SubmissionPipeline
 from job_monitor import JobMonitor
-from strategy_selector import StrategySelector, ChallengeType
+from strategy_selector import ChallengeType, StrategySelector
+from submission_pipeline import SubmissionPipeline
 
 
 class IntegrationTestSuite:
@@ -44,11 +44,11 @@ class IntegrationTestSuite:
         load_dotenv(project_root / ".env")
 
         self.bq = bluequbit.init()
-        self.results: List[Dict] = []
+        self.results: list[dict] = []
 
         print("✓ IntegrationTestSuite initialized")
 
-    def run_all_tests(self) -> Dict:
+    def run_all_tests(self) -> dict:
         """Execute all integration tests."""
         print("\n" + "=" * 70)
         print("BlueQubit Integration Test Suite")
@@ -253,7 +253,7 @@ class IntegrationTestSuite:
             print(f"  ⚠ Pennylane integration: {e}")
             # Don't fail the test for Pennylane issues
 
-    def _generate_report(self, passed: int, failed: int) -> Dict:
+    def _generate_report(self, passed: int, failed: int) -> dict:
         """Generate final test report."""
         total = passed + failed
 
@@ -282,7 +282,7 @@ class IntegrationTestSuite:
         print(f"Failed: {failed} ✗")
         print(f"Pass Rate: {report['summary']['pass_rate']:.1%}")
         print(f"Recommendation: {report['recommendation']}")
-        print(f"\nReport saved to: integration_test_report.json")
+        print("\nReport saved to: integration_test_report.json")
         print("=" * 70)
 
         return report

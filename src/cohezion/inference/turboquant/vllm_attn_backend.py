@@ -10,7 +10,6 @@ from __future__ import annotations
 import logging
 
 import torch
-
 import turboquant.integration.vllm as _new_backend
 
 
@@ -123,7 +122,11 @@ def enable_no_alloc(
             return orig_get_specs(self)
 
         def _worker_install_tq(worker):
-            from cohezion.inference.turboquant.vllm_attn_backend import MODE_ACTIVE, install_turboquant_hooks
+            from cohezion.inference.turboquant.vllm_attn_backend import (
+                MODE_ACTIVE,
+                install_turboquant_hooks,
+            )
+
             tq_states = install_turboquant_hooks(
                 worker.model_runner,
                 key_bits=cfg["key_bits"],
@@ -163,6 +166,7 @@ def enable_no_alloc(
             print(f"[TurboQuant] Installed no_alloc hooks: {hooks}", flush=True)
         except Exception as e:
             import traceback
+
             print(f"[TurboQuant] collective_rpc FAILED: {e}", flush=True)
             traceback.print_exc()
         return orig_get_specs(self)
@@ -188,11 +192,13 @@ def enable_no_alloc(
             if cfg:
                 try:
                     import sys
-                    sys.path.insert(0, '/tmp')
+
+                    sys.path.insert(0, "/tmp")
                     from cohezion.inference.turboquant.vllm_attn_backend import (
                         MODE_ACCUMULATE,
                         install_turboquant_hooks,
                     )
+
                     tq = install_turboquant_hooks(
                         self_worker.model_runner,
                         key_bits=cfg["key_bits"],
@@ -208,6 +214,7 @@ def enable_no_alloc(
                 except Exception as e:
                     with open("/tmp/tq_debug.log", "a") as f:
                         import traceback
+
                         f.write(f"TQ FAIL pid={os.getpid()}: {e}\n")
                         traceback.print_exc(file=f)
                         f.flush()

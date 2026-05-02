@@ -22,7 +22,7 @@ async def generate_gpu(
             "model": "DeepSeek-Qwen3-8B-GGUF",
             "messages": [
                 {"role": "system", "content": "You are a helpful assistant."},
-                {"role": "user", "content": prompt}
+                {"role": "user", "content": prompt},
             ],
             "max_tokens": max_tokens,
             "temperature": 0.7,
@@ -33,7 +33,7 @@ async def generate_gpu(
         async with session.post(
             "http://localhost:8002/v1/chat/completions",
             json=payload,
-            timeout=aiohttp.ClientTimeout(total=120)
+            timeout=aiohttp.ClientTimeout(total=120),
         ) as resp:
             resp.raise_for_status()
             data = await resp.json()
@@ -58,7 +58,7 @@ async def generate_cpu(
             "model": "phi4:latest",
             "messages": [
                 {"role": "system", "content": "You are a helpful assistant."},
-                {"role": "user", "content": prompt}
+                {"role": "user", "content": prompt},
             ],
             "stream": False,
             "options": {"num_thread": 8, "temperature": 0.7},
@@ -68,7 +68,7 @@ async def generate_cpu(
         async with session.post(
             "http://localhost:11434/api/chat",
             json=payload,
-            timeout=aiohttp.ClientTimeout(total=300)
+            timeout=aiohttp.ClientTimeout(total=300),
         ) as resp:
             resp.raise_for_status()
             data = await resp.json()
@@ -125,14 +125,14 @@ async def run_dual_benchmark(
     print(f"  Tokens:       {gpu_tokens}")
     print(f"  Avg time:     {gpu_time:.1f}ms")
     if gpu_time > 0:
-        print(f"  Est. TPS:     {gpu_tokens / (gpu_time/1000):.1f}")
+        print(f"  Est. TPS:     {gpu_tokens / (gpu_time / 1000):.1f}")
 
     print("\nCPU (Ollama / Phi4-14B):")
     print(f"  Success:      {cpu_success}/{num_per_unit}")
     print(f"  Tokens:       {cpu_tokens}")
     print(f"  Avg time:     {cpu_time:.1f}ms")
     if cpu_time > 0:
-        print(f"  Est. TPS:     {cpu_tokens / (cpu_time/1000):.1f}")
+        print(f"  Est. TPS:     {cpu_tokens / (cpu_time / 1000):.1f}")
 
     print("\n" + "=" * 70)
     print("COMBINED (Parallel Execution):")
@@ -142,12 +142,12 @@ async def run_dual_benchmark(
     print("=" * 70)
 
     print(f"\nMETRIC tokens_per_sec={combined_tps:.1f}")
-    print(f"METRIC gpu_tps={gpu_tokens / (gpu_time/1000) if gpu_time > 0 else 0:.1f}")
+    print(f"METRIC gpu_tps={gpu_tokens / (gpu_time / 1000) if gpu_time > 0 else 0:.1f}")
 
     return {
         "tokens_per_sec": combined_tps,
-        "gpu_tps": gpu_tokens / (gpu_time/1000) if gpu_time > 0 else 0,
-        "cpu_tps": cpu_tokens / (cpu_time/1000) if cpu_time > 0 else 0,
+        "gpu_tps": gpu_tokens / (gpu_time / 1000) if gpu_time > 0 else 0,
+        "cpu_tps": cpu_tokens / (cpu_time / 1000) if cpu_time > 0 else 0,
         "wall_time_ms": total_time_ms,
     }
 

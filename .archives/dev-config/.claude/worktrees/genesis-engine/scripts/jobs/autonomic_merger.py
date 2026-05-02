@@ -57,9 +57,7 @@ async def main():
         if lint_result.returncode == 0:
             logger.info("✅ Refinement valid. Committing...")
             run_command(f"git add {target_skill}", cwd=PROJECT_ROOT)
-            run_command(
-                f"git commit -m 'Autonomic refinement: {patch_file.name}'", cwd=PROJECT_ROOT
-            )
+            run_command(f"git commit -m 'Autonomic refinement: {patch_file.name}'", cwd=PROJECT_ROOT)
             # In production: run_command(f"git push origin {branch_name}")
             # Then: gh pr create ...
         else:

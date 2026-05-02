@@ -1,6 +1,7 @@
-import unittest
-import sys
 import os
+import sys
+import unittest
+
 
 # Ensure we can import from the kernel directory
 sys.path.append(os.path.join(os.getcwd(), "sandbox/aimo/kaggle_kernel"))

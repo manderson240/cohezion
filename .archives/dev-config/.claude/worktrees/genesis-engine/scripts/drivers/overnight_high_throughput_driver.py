@@ -6,13 +6,13 @@ from datetime import datetime, timedelta
 from pathlib import Path
 
 import psutil
+from cohezion.mcp.email_notifier import EmailNotifier
 
 from cohezion.core.persistence.surreal_client import (
     PhysicsState,
     SurrealClient,
     UniverseNode,
 )
-from cohezion.mcp.email_notifier import EmailNotifier
 from cohezion.simulation.enhanced_simulator import (
     EnhancedSimulationResult,
     EnhancedSimulator,
@@ -52,9 +52,7 @@ class MissionController:
 
     async def run(self):
         """Main mission loop."""
-        logger.info(
-            f"🚀 Mission 'The Great Convergence' started. Targeting {self.target_end_time.isoformat()}"
-        )
+        logger.info(f"🚀 Mission 'The Great Convergence' started. Targeting {self.target_end_time.isoformat()}")
 
         await self.db.connect()
 
@@ -169,9 +167,7 @@ class MissionController:
 
     async def _perform_evolutionary_refinement(self):
         """Perform 'Survival of the Fittest' selection and Skill Refinement."""
-        logger.info(
-            f"🧬 Performing Evolutionary Refinement at {self.total_completed} simulations..."
-        )
+        logger.info(f"🧬 Performing Evolutionary Refinement at {self.total_completed} simulations...")
 
         # 1. Fetch top performing nodes
         try:
@@ -182,9 +178,7 @@ class MissionController:
 
             if top_nodes:
                 self.ancestral_strains = [n["content"] for n in top_nodes]
-                logger.info(
-                    f"Updated Ancestral Strains with {len(self.ancestral_strains)} high-performers."
-                )
+                logger.info(f"Updated Ancestral Strains with {len(self.ancestral_strains)} high-performers.")
 
             # 2. Automated Skill Synthesis (Mock for now, would use an LLM expert)
             await self._synthesize_new_skill(top_nodes)

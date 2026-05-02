@@ -192,7 +192,7 @@ class RealWorkProcessor:
             self.completed.append({"item": item, "result": result})
             return {"item": item, "result": result}
 
-        except asyncio.TimeoutError:
+        except TimeoutError:
             logger.error(f"⏱️ Timeout: {item['description']}")
             return {"item": item, "result": {"status": "timeout"}}
         except Exception as e:

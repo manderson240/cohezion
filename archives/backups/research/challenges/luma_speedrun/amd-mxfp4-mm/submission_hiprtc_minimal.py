@@ -8,7 +8,9 @@ Tests if _compile_kernel produces working kernels on runner.
 
 import os
 import sys
+
 import torch
+
 
 # Environment setup
 os.environ["AITER_JIT_DIR"] = "/tmp/aiter_jit_cache"

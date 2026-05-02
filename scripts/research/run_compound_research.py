@@ -25,14 +25,15 @@ import asyncio
 import json
 import logging
 import sys
-from datetime import datetime
 from pathlib import Path
 from typing import Any
+
 
 # Add src to path
 sys.path.insert(0, str(Path(__file__).parent.parent.parent / "src"))
 
-from cohezion.swarm.research_orchestrator import ResearchOrchestrator, run_research
+from cohezion.swarm.research_orchestrator import ResearchOrchestrator
+
 
 logging.basicConfig(level=logging.INFO, format="%(asctime)s [%(levelname)s] %(message)s")
 logger = logging.getLogger(__name__)
@@ -116,7 +117,7 @@ async def research_cycle(
             + COHEZION_RESEARCH_TOPICS["compound_engineering"][:3]
         )
 
-    logger.info(f"Starting Cohezion research cycle")
+    logger.info("Starting Cohezion research cycle")
     logger.info(f"Focus: {focus_areas or 'default (mythos + compound)'}")
     logger.info(f"Topics: {topics}")
 
@@ -167,7 +168,7 @@ async def continuous_mode(
 
             # Brief analysis
             if results["syntheses"]:
-                logger.info(f"\n🔍 Top actionable insight:")
+                logger.info("\n🔍 Top actionable insight:")
                 top = results["syntheses"][0]
                 logger.info(f"   {top['id']}: {top['description'][:150]}...")
 
@@ -189,13 +190,13 @@ def analyze_research_output(results_file: Path) -> None:
     print(f"Total findings: {data['metadata']['total_findings']}")
 
     # Source breakdown
-    print(f"\nSources:")
+    print("\nSources:")
     for source, findings in data["by_source"].items():
         print(f"  {source}: {len(findings)} items")
 
     # Top synthesis
     if data["syntheses"]:
-        print(f"\n💡 Top insights:")
+        print("\n💡 Top insights:")
         for s in data["syntheses"][:5]:
             print(f"  [{s['type'].upper()}] {s['id']}")
             print(f"      Confidence: {s['confidence']:.0%}")
@@ -268,13 +269,13 @@ async def main():
         print(f"Compound insights: {len(results['syntheses'])}")
 
         if results["syntheses"]:
-            print(f"\n🎯 Top actions for Cohezion:")
+            print("\n🎯 Top actions for Cohezion:")
             for i, s in enumerate(results["syntheses"][:3], 1):
                 print(f"\n{i}. [{s['type'].upper()}] {s['id']}")
                 print(f"   Confidence: {s['confidence']:.0%} | Effort: {s['effort']}")
                 print(f"   {s['description'][:120]}...")
 
-        print(f"\n💾 Results saved to: data/research_orchestrator/")
+        print("\n💾 Results saved to: data/research_orchestrator/")
 
     return 0
 

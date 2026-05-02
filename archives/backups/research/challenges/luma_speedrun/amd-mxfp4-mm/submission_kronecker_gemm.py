@@ -24,10 +24,10 @@ Expected: 50-80% parameter reduction, 2-4x speedup for structured matrices
 from __future__ import annotations
 
 import os
-import math
+
 import torch
-from typing import Tuple, List, Optional
 from task import input_t, output_t
+
 
 # Try to import aiter for fallback
 try:
@@ -53,14 +53,14 @@ class KroneckerFactorization:
             max_rank: Maximum rank for factorization
         """
         self.max_rank = max_rank
-        self._factor_cache: dict[int, Tuple[torch.Tensor, torch.Tensor]] = {}
+        self._factor_cache: dict[int, tuple[torch.Tensor, torch.Tensor]] = {}
 
     def factorize(
         self,
         w: torch.Tensor,
         m1: int,
         n1: int,
-    ) -> Tuple[torch.Tensor, torch.Tensor]:
+    ) -> tuple[torch.Tensor, torch.Tensor]:
         """Factorize matrix W into Kronecker product W1 ⊗ W2.
 
         Args:
@@ -144,7 +144,7 @@ class KroneckerFactorization:
     def multi_kron_matmul(
         self,
         x: torch.Tensor,
-        factors: List[torch.Tensor],
+        factors: list[torch.Tensor],
     ) -> torch.Tensor:
         """Compute matmul with nested Kronecker product.
 
@@ -172,7 +172,7 @@ class KroneckerGEMM:
 
     def __init__(self):
         self.factorizer = KroneckerFactorization(max_rank=16)
-        self._factor_cache: dict[int, Tuple[torch.Tensor, ...]] = {}
+        self._factor_cache: dict[int, tuple[torch.Tensor, ...]] = {}
         self._stats = {
             "kronecker_calls": 0,
             "standard_calls": 0,
@@ -182,7 +182,7 @@ class KroneckerGEMM:
     def try_kronecker_decomposition(
         self,
         w: torch.Tensor,
-    ) -> Optional[Tuple[torch.Tensor, torch.Tensor]]:
+    ) -> tuple[torch.Tensor, torch.Tensor] | None:
         """Try to decompose weight matrix into Kronecker factors.
 
         Args:

@@ -92,11 +92,7 @@ class AgentNode(WorkflowNode):
         try:
             query = self._build_context_query(inputs)
             ctx = await self._flux.get_context(query, top_k=self._FLUX_TOP_K)  # type: ignore[union-attr]
-            return [
-                block.content
-                for block in ctx.blocks
-                if block.relevance_score >= self._FLUX_MIN_RELEVANCE
-            ]
+            return [block.content for block in ctx.blocks if block.relevance_score >= self._FLUX_MIN_RELEVANCE]
         except Exception:
             logger.debug("FLUX context injection failed for node '%s' (non-blocking)", self.spec.id)
             return []

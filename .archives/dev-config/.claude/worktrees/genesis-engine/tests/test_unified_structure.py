@@ -8,6 +8,7 @@ from pathlib import Path
 
 import pytest
 
+
 # Add src to path if not already there
 SRC_PATH = Path(__file__).parent.parent / "src"
 if str(SRC_PATH) not in sys.path:

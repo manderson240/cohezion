@@ -87,14 +87,8 @@ class BaseScout(ABC):
         """Structurally analyze file without LLM costs."""
         try:
             tree = ast.parse(path.read_text())
-            classes = [
-                node.name for node in ast.walk(tree) if isinstance(node, ast.ClassDef)
-            ]
-            functions = [
-                node.name
-                for node in ast.walk(tree)
-                if isinstance(node, ast.FunctionDef)
-            ]
+            classes = [node.name for node in ast.walk(tree) if isinstance(node, ast.ClassDef)]
+            functions = [node.name for node in ast.walk(tree) if isinstance(node, ast.FunctionDef)]
             imports = []
             for node in ast.walk(tree):
                 if isinstance(node, ast.Import):

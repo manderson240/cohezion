@@ -2,12 +2,13 @@ import asyncio
 import json
 import os
 import sys
-from pathlib import Path
+
 
 # Add src to path
 sys.path.append(os.path.join(os.getcwd(), "src"))
 
 from cohezion.core.mcp_client import create_mcp_client
+
 
 async def final_retrospective():
     # Final consolidated learnings from the April 22nd sprint
@@ -27,28 +28,29 @@ async def final_retrospective():
             "L380: 12D Journey Telemetry - Decoupled non-blocking bus ensures zero-latency impact on core orchestration during high-frequency capture.",
             "L381: Challenge Persistence - Post-mortem capture of Luma and Yale tracks ensures competitive wisdom survives hackathon deadlines.",
             "L382: BirdCLEF 2026 Phase 1 - Audio Spectrogram Transformers and Mamba SSMs are the new SOTA for bioacoustic monitoring.",
-            "L383: AutoHarness Mandate - Deterministic data validation hooks prevent 'garbage in' during 15GB+ dataset acquisition."
-        ]
+            "L383: AutoHarness Mandate - Deterministic data validation hooks prevent 'garbage in' during 15GB+ dataset acquisition.",
+        ],
     }
-    
+
     print("Initiating Final Knowledge Precipitation...")
     try:
         # Use the compound server directly
         client = create_mcp_client(server_url="http://localhost:8379", api_key="cohezion-dev-key")
         await client.connect()
-        
+
         # Precipitate to Vault and Database
         response = await client._call_tool(
             "learning_process_execution",
             {
                 "execution_result_json": json.dumps(result),
-                "server_url": "http://localhost:8360" # Target vault
-            }
+                "server_url": "http://localhost:8360",  # Target vault
+            },
         )
         print("Success:", json.dumps(response, indent=2))
         await client.close()
     except Exception as e:
         print("Precipitation Failed:", e)
+
 
 if __name__ == "__main__":
     asyncio.run(final_retrospective())

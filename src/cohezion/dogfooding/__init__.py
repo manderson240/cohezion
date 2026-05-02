@@ -10,24 +10,24 @@ Production-ready dogfooding infrastructure including:
 Usage:
     # Daily cycle
     python -m cohezion.dogfooding.daily_cycle
-    
+
     # Production hardening
     python -m cohezion.dogfooding.production_hardening
 """
 
 __version__ = "1.0.0"
 __all__ = [
-    "DailyDogfoodingCycle",
-    "ProductionHardening",
     "CIIntegration",
-    "PerformanceMonitor",
+    "DailyDogfoodingCycle",
     "DisasterRecovery",
+    "PerformanceMonitor",
+    "ProductionHardening",
 ]
 
 from .daily_cycle import DailyDogfoodingCycle
 from .production_hardening import (
-    ProductionHardening,
     CIIntegration,
-    PerformanceMonitor,
     DisasterRecovery,
+    PerformanceMonitor,
+    ProductionHardening,
 )

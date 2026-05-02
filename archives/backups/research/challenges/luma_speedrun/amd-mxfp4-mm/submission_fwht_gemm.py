@@ -24,11 +24,12 @@ Expected: 3-5x speedup for power-of-2 dimensions
 
 from __future__ import annotations
 
-import os
 import math
+import os
+
 import torch
-from typing import Optional
 from task import input_t, output_t
+
 
 # Try aiter fallback
 try:

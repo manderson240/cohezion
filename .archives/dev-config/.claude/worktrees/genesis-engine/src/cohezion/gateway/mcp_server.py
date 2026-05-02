@@ -37,7 +37,6 @@ from cohezion.gateway.demo_gateway import DemoGateway
 from cohezion.security.credentials import get_credentials
 
 
-
 logger = logging.getLogger(__name__)
 logging.basicConfig(
     level=logging.INFO,
@@ -62,8 +61,7 @@ class GatewayManager:
         """Initialize default demo gateway with local Ollama."""
         # Primary: Vault Warden, Fallback: Environment
         ollama_url = (
-            get_credentials().get_secret("COHEZION_OLLAMA_URL", env_var="OLLAMA_BASE_URL")
-            or "http://localhost:11434"
+            get_credentials().get_secret("COHEZION_OLLAMA_URL", env_var="OLLAMA_BASE_URL") or "http://localhost:11434"
         )
 
         self.gateways[self.default_gateway_id] = DemoGateway(
@@ -344,11 +342,7 @@ async def call_tool(name: str, arguments: dict[str, Any]) -> list[TextContent]:
             ]
 
         else:
-            return [
-                TextContent(
-                    type="text", text=json.dumps({"error": f"Unknown tool: {name}"})
-                )
-            ]
+            return [TextContent(type="text", text=json.dumps({"error": f"Unknown tool: {name}"}))]
 
     except Exception as e:
         logger.error(f"Tool error: {e}")

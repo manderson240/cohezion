@@ -127,9 +127,7 @@ def sync():
             col_abs = headers.index("Key Abstractions") + 1
             col_int = headers.index("Integration") + 1
         except ValueError:
-            logger.warning(
-                "Headers not found exactly, assuming B=Status, C=Abstractions, D=Integration"
-            )
+            logger.warning("Headers not found exactly, assuming B=Status, C=Abstractions, D=Integration")
             col_status = 2
             col_abs = 3
             col_int = 4

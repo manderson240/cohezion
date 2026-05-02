@@ -73,9 +73,7 @@ def load_qasm_manual(qasm_path):
 
 
 def audit():
-    qasm_path = (
-        "/home/mike-anderson/dev/cohezion/src/cohezion/physics/quantum/P1_little_dimple.qasm"
-    )
+    qasm_path = "/home/mike-anderson/dev/cohezion/src/cohezion/physics/quantum/P1_little_dimple.qasm"
     candidates = {
         "Rank1_BigE": "011110010001001111111111100101100010",
         "Rank1_LittleE": "011110010001001111111111100101100010"[::-1],

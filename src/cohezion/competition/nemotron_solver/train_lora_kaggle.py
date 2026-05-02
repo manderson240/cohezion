@@ -18,14 +18,9 @@ Usage:
 """
 
 import csv
-import json
 import math
 import os
 import re
-import sys
-import time
-from pathlib import Path
-from typing import Optional
 
 import torch
 from datasets import Dataset
@@ -33,16 +28,15 @@ from peft import LoraConfig, TaskType, get_peft_model
 from transformers import (
     AutoModelForCausalLM,
     AutoTokenizer,
-    TrainingArguments,
     Trainer,
-    DataCollatorForSeq2Seq,
+    TrainingArguments,
 )
+
 
 # ── Constants ────────────────────────────────────────────────────────────
 MODEL_ID = "nvidia/NVIDIA-Nemotron-3-Nano-30B-A3B-BF16"
 PROMPT_SUFFIX = (
-    "\nPlease put your final answer inside `\\boxed{}`. "
-    "For example: `\\boxed{your answer}`"
+    "\nPlease put your final answer inside `\\boxed{}`. For example: `\\boxed{your answer}`"
 )
 TOKEN_LIMIT = 4096  # Reduced for GPU memory
 IGNORE_INDEX = -100
@@ -286,7 +280,7 @@ def solve_bit_manip(examples, test_in: str) -> str:
                     bit = (test_val >> val) & 1
                     if invert:
                         bit = 1 - bit
-                result |= (bit << out_bit)
+                result |= bit << out_bit
             return f"{result:08b}"
         except:
             pass
@@ -317,10 +311,10 @@ def solve_bit_manip(examples, test_in: str) -> str:
     unary_ops = [
         ("not", lambda x: (~x) & 0xFF),
         ("reverse", lambda x: int(f"{x:08b}"[::-1], 2)),
-        ("shift_left_1", lambda x: ((x << 1) & 0xFF)),
-        ("shift_right_1", lambda x: (x >> 1)),
+        ("shift_left_1", lambda x: (x << 1) & 0xFF),
+        ("shift_right_1", lambda x: x >> 1),
         ("rot_left_1", lambda x: ((x << 1) & 0xFF) | (x >> 7)),
-        ("rot_right_1", lambda x: ((x >> 1) | ((x & 1) << 7))),
+        ("rot_right_1", lambda x: (x >> 1) | ((x & 1) << 7)),
     ]
     for name, op in unary_ops:
         ok = True
@@ -337,22 +331,120 @@ def solve_bit_manip(examples, test_in: str) -> str:
 
 
 _ENCRYPTION_VOCAB = [
-    "the", "follows", "dragon", "teacher", "writes", "creates", "draws",
-    "student", "rabbit", "studies", "discovers", "secret", "found", "mouse",
-    "dreams", "chases", "reads", "king", "sees", "watches", "queen", "hatter",
-    "knight", "explores", "bird", "imagines", "wizard", "turtle", "castle",
-    "cat", "alice", "garden", "princess", "colorful", "puzzle", "bright",
-    "forest", "book", "clever", "key", "dark", "mirror", "treasure",
-    "silver", "beyond", "inside", "in", "hidden", "curious", "around",
-    "above", "wise", "potion", "near", "door", "golden", "under", "through",
-    "mysterious", "magical", "strange", "story", "crystal", "message", "map",
-    "ancient", "village", "mountain", "wonderland", "cave", "school", "valley",
-    "island", "palace", "library", "ocean", "tower", "diamond", "crown",
-    "river", "bridge", "cloud", "star", "moon", "sun", "fire",
-    "water", "earth", "wind", "shadow", "light", "path", "road", "tree",
-    "flower", "grass", "stone", "sand", "snow", "rain", "storm",
-    "whisper", "laughter", "silence", "echo", "song", "dance", "music",
-    "magic", "spell", "herb", "gem", "jewel", "ring",
+    "the",
+    "follows",
+    "dragon",
+    "teacher",
+    "writes",
+    "creates",
+    "draws",
+    "student",
+    "rabbit",
+    "studies",
+    "discovers",
+    "secret",
+    "found",
+    "mouse",
+    "dreams",
+    "chases",
+    "reads",
+    "king",
+    "sees",
+    "watches",
+    "queen",
+    "hatter",
+    "knight",
+    "explores",
+    "bird",
+    "imagines",
+    "wizard",
+    "turtle",
+    "castle",
+    "cat",
+    "alice",
+    "garden",
+    "princess",
+    "colorful",
+    "puzzle",
+    "bright",
+    "forest",
+    "book",
+    "clever",
+    "key",
+    "dark",
+    "mirror",
+    "treasure",
+    "silver",
+    "beyond",
+    "inside",
+    "in",
+    "hidden",
+    "curious",
+    "around",
+    "above",
+    "wise",
+    "potion",
+    "near",
+    "door",
+    "golden",
+    "under",
+    "through",
+    "mysterious",
+    "magical",
+    "strange",
+    "story",
+    "crystal",
+    "message",
+    "map",
+    "ancient",
+    "village",
+    "mountain",
+    "wonderland",
+    "cave",
+    "school",
+    "valley",
+    "island",
+    "palace",
+    "library",
+    "ocean",
+    "tower",
+    "diamond",
+    "crown",
+    "river",
+    "bridge",
+    "cloud",
+    "star",
+    "moon",
+    "sun",
+    "fire",
+    "water",
+    "earth",
+    "wind",
+    "shadow",
+    "light",
+    "path",
+    "road",
+    "tree",
+    "flower",
+    "grass",
+    "stone",
+    "sand",
+    "snow",
+    "rain",
+    "storm",
+    "whisper",
+    "laughter",
+    "silence",
+    "echo",
+    "song",
+    "dance",
+    "music",
+    "magic",
+    "spell",
+    "herb",
+    "gem",
+    "jewel",
+    "ring",
 ]
 
 
@@ -379,7 +471,11 @@ def solve_encryption(examples, test_in: str) -> str:
         for i, (tw, pw) in enumerate(zip(test_in.split(), result_words)):
             if "?" not in pw:
                 continue
-            matches = [w for w in _ENCRYPTION_VOCAB if len(w) == len(pw) and all(p == "?" or p == w for p, w in zip(pw, w))]
+            matches = [
+                w
+                for w in _ENCRYPTION_VOCAB
+                if len(w) == len(pw) and all(p == "?" or p == w for p, w in zip(pw, w))
+            ]
             if len(matches) == 1:
                 best = matches[0]
                 for c_in, c_out in zip(tw, best):
@@ -401,8 +497,7 @@ def solve_equations(examples, test_in: str) -> str:
     if delete_set:
         pred = "".join(c for c in test_in if c not in delete_set)
         all_match = all(
-            "".join(c for c in inp if c not in delete_set) == out
-            for inp, out in examples
+            "".join(c for c in inp if c not in delete_set) == out for inp, out in examples
         )
         if all_match:
             return pred
@@ -519,14 +614,16 @@ def build_training_data(train_csv_path: str) -> tuple[list[dict], dict]:
             else:
                 reasoning = f"Analyzing this step by step.\n\\boxed{{{answer}}}"
             completion = f"{reasoning}\n\n\\boxed{{{answer}}}<|im_end|>"
-            training_data.append({
-                "id": pid,
-                "category": category,
-                "prompt": prompt,
-                "completion": completion,
-                "answer": answer,
-                "verified": verified,
-            })
+            training_data.append(
+                {
+                    "id": pid,
+                    "category": category,
+                    "prompt": prompt,
+                    "completion": completion,
+                    "answer": answer,
+                    "verified": verified,
+                }
+            )
     return training_data, stats
 
 
@@ -539,15 +636,15 @@ def tokenize_with_mask(prompt_text, completion_text, tokenizer, max_length=TOKEN
         add_generation_prompt=True,
         enable_thinking=True,
     )
-    if hasattr(prompt_ids, 'keys') and 'input_ids' in prompt_ids:
-        prompt_ids = list(prompt_ids['input_ids'])
+    if hasattr(prompt_ids, "keys") and "input_ids" in prompt_ids:
+        prompt_ids = list(prompt_ids["input_ids"])
     completion_ids = tokenizer.encode(completion_text, add_special_tokens=False)
     input_ids = prompt_ids + completion_ids
     labels = [IGNORE_INDEX] * len(prompt_ids) + completion_ids
     if len(input_ids) > max_length:
         input_ids = input_ids[:max_length]
         labels = labels[:max_length]
-    return {"input_ids": input_ids, "attention_mask": [1]*len(input_ids), "labels": labels}
+    return {"input_ids": input_ids, "attention_mask": [1] * len(input_ids), "labels": labels}
 
 
 # ══════════════════════════════════════════════════════════════════════════
@@ -556,8 +653,14 @@ def tokenize_with_mask(prompt_text, completion_text, tokenizer, max_length=TOKEN
 def main():
     # Detect Kaggle environment
     KAGGLE_INPUT = "/kaggle/input/nvidia-nemotron-model-reasoning-challenge"
-    TRAIN_CSV = os.path.join(KAGGLE_INPUT, "train.csv") if os.path.exists(KAGGLE_INPUT) else "train.csv"
-    OUTPUT_DIR = "/kaggle/working/nemotron_lora" if os.path.exists("/kaggle/working") else "./nemotron_lora_output"
+    TRAIN_CSV = (
+        os.path.join(KAGGLE_INPUT, "train.csv") if os.path.exists(KAGGLE_INPUT) else "train.csv"
+    )
+    OUTPUT_DIR = (
+        "/kaggle/working/nemotron_lora"
+        if os.path.exists("/kaggle/working")
+        else "./nemotron_lora_output"
+    )
     os.makedirs(OUTPUT_DIR, exist_ok=True)
 
     print("=" * 60)
@@ -569,7 +672,7 @@ def main():
     training_data, stats = build_training_data(TRAIN_CSV)
     total = sum(s["total"] for s in stats.values())
     verified = sum(s["correct"] for s in stats.values())
-    print(f"  Total: {total}, Verified: {verified} ({verified/total*100:.1f}%)")
+    print(f"  Total: {total}, Verified: {verified} ({verified / total * 100:.1f}%)")
 
     # Step 2: Load tokenizer and model
     print(f"\n[2/5] Loading model: {MODEL_ID}")
@@ -597,16 +700,34 @@ def main():
         all_masks.append(tok["attention_mask"])
         all_labels.append(tok["labels"])
         all_cats.append(entry["category"])
-    dataset = Dataset.from_dict({"input_ids": all_ids, "attention_mask": all_masks, "labels": all_labels, "category": all_cats})
+    dataset = Dataset.from_dict(
+        {
+            "input_ids": all_ids,
+            "attention_mask": all_masks,
+            "labels": all_labels,
+            "category": all_cats,
+        }
+    )
     split = dataset.train_test_split(test_size=0.05, seed=42)
     print(f"  Train: {len(split['train'])}, Eval: {len(split['test'])}")
 
     # Step 4: Setup LoRA
     print("\n[4/5] Setting up LoRA (rank=32)...")
     peft_config = LoraConfig(
-        r=32, lora_alpha=64,
-        target_modules=["q_proj", "k_proj", "v_proj", "o_proj", "gate_proj", "up_proj", "down_proj"],
-        lora_dropout=0.05, bias="none", task_type=TaskType.CAUSAL_LM,
+        r=32,
+        lora_alpha=64,
+        target_modules=[
+            "q_proj",
+            "k_proj",
+            "v_proj",
+            "o_proj",
+            "gate_proj",
+            "up_proj",
+            "down_proj",
+        ],
+        lora_dropout=0.05,
+        bias="none",
+        task_type=TaskType.CAUSAL_LM,
     )
     model = get_peft_model(model, peft_config)
     model.print_trainable_parameters()
@@ -640,6 +761,7 @@ def main():
         def __init__(self, tokenizer, max_length=TOKEN_LIMIT):
             self.tokenizer = tokenizer
             self.max_length = max_length
+
         def __call__(self, features):
             batch = {
                 "input_ids": [],
@@ -647,10 +769,10 @@ def main():
                 "labels": [],
             }
             for f in features:
-                ids = f["input_ids"][:self.max_length]
+                ids = f["input_ids"][: self.max_length]
                 batch["input_ids"].append(ids)
-                batch["attention_mask"].append([1]*len(ids))
-                batch["labels"].append(f["labels"][:self.max_length])
+                batch["attention_mask"].append([1] * len(ids))
+                batch["labels"].append(f["labels"][: self.max_length])
             # Pad
             max_len = max(len(ids) for ids in batch["input_ids"])
             pad_id = self.tokenizer.pad_token_id or 0
@@ -680,13 +802,14 @@ def main():
 
     # Create submission.zip
     import zipfile
+
     submission_path = os.path.join(OUTPUT_DIR, "submission.zip")
     with zipfile.ZipFile(submission_path, "w") as zf:
         for fname in ["adapter_config.json", "adapter_model.safetensors"]:
             fpath = os.path.join(adapter_dir, fname)
             if os.path.exists(fpath):
                 zf.write(fpath, fname)
-                print(f"  Added {fname} ({os.path.getsize(fpath)/1e6:.1f} MB)")
+                print(f"  Added {fname} ({os.path.getsize(fpath) / 1e6:.1f} MB)")
     print(f"\nSubmission saved to: {submission_path}")
 
     # Evaluate on first 100 training examples
@@ -707,16 +830,16 @@ def main():
             ).to(model.device)
             with torch.no_grad():
                 outputs = model.generate(inputs, max_new_tokens=256, do_sample=False)
-            response = tokenizer.decode(outputs[0][inputs.shape[-1]:], skip_special_tokens=True)
+            response = tokenizer.decode(outputs[0][inputs.shape[-1] :], skip_special_tokens=True)
             boxed = re.findall(r"\\boxed\{([^}]*)(?:\}|$)", response)
             predicted = boxed[-1].strip() if boxed else response.strip().split("\n")[-1]
             total_eval += 1
             if compare_answers(predicted, ground_truth):
                 correct += 1
-        except Exception as e:
+        except Exception:
             total_eval += 1
     if total_eval > 0:
-        print(f"  Eval: {correct}/{total_eval} ({correct/total_eval*100:.1f}%)")
+        print(f"  Eval: {correct}/{total_eval} ({correct / total_eval * 100:.1f}%)")
 
     print(f"\nTraining complete. Adapter at: {adapter_dir}")
     print(f"Submission: {submission_path}")

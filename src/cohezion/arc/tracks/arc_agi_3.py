@@ -31,6 +31,7 @@ def _default_grid(rows: int = 1, cols: int = 1) -> Grid:
 @dataclass
 class InteractiveAttempt:
     """Single attempt within an interactive session."""
+
     attempt_num: int  # 1 or 2
     grid: Grid
     feedback: str  # e.g. "correct", "wrong_shape", "wrong_colors"
@@ -42,6 +43,7 @@ class InteractiveAttempt:
 @dataclass
 class ARCAGI3Result:
     """Result container for ARC-AGI-3 interactive track."""
+
     task_id: str
     test_index: int
     attempts: list[InteractiveAttempt]
@@ -194,9 +196,7 @@ class ARCAGI3Pipeline:
             for ti, test_ex in enumerate(task.get("test", [])):
                 test_input = test_ex["input"]
                 # Attempt 1
-                pred1, prov1 = self.builder._predict_with_rules(
-                    tid, ti, test_input, rules
-                )
+                pred1, prov1 = self.builder._predict_with_rules(tid, ti, test_input, rules)
                 feedback = "unknown"
                 gold = golds[ti] if ti < len(golds) else None
                 if gold is not None:
@@ -216,7 +216,9 @@ class ARCAGI3Pipeline:
                     reward = self.ATTEMPT_1_WEIGHT
                     pred2 = pred1
                 else:
-                    pred2 = _refine_prediction(pred1, feedback, test_input, rules, self.builder.extractor)
+                    pred2 = _refine_prediction(
+                        pred1, feedback, test_input, rules, self.builder.extractor
+                    )
                     if gold is not None and grids_equal(pred2, gold):
                         reward = self.ATTEMPT_2_WEIGHT
 

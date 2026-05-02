@@ -1,6 +1,5 @@
 import os
 import sys
-import glob
 
 
 def custom_kernel(data):

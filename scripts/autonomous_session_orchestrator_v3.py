@@ -162,7 +162,7 @@ class RealWorkProcessor:
                 item.status = "failed"
                 logger.warning(f"⚠️  Failed: {item.description}")
 
-        except asyncio.TimeoutError:
+        except TimeoutError:
             item.status = "timeout"
             item.result = {"error": "Timeout after 120s"}
             logger.error(f"⏱️ Timeout: {item.description}")

@@ -241,9 +241,7 @@ class TestSemanticCacheL3Integration:
             "response": "Response from vault that should be promoted to L1",
             "timestamp": 1234567890.0,
         }
-        mcp_client.vault_data["cache_patterns/vault_test.json"] = json.dumps(
-            cache_pattern
-        )
+        mcp_client.vault_data["cache_patterns/vault_test.json"] = json.dumps(cache_pattern)
         mcp_client.vault_search_results = [{"path": "cache_patterns/vault_test.json"}]
 
         cache = SemanticCache(mcp_client=mcp_client)

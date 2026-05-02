@@ -129,7 +129,7 @@ class AutonomyEngine:
 
     def record_violation(self, agent_id: str, severity: float = 0.1) -> AutonomyTier:
         """Record a deterministic violation (e.g. CI failure).
-        
+
         This reactively drops the agent's coherence history to trigger demotion.
         Severity 0.1 is a warning, 0.5 is major, 1.0 is critical.
         """
@@ -138,7 +138,7 @@ class AutonomyEngine:
         penalty_count = PROMOTION_WINDOW if severity > 0.5 else 1
         for _ in range(penalty_count):
             state.coherence_history.append(0.0)
-        
+
         logger.warning("Autonomy: VIOLATION recorded for %s (severity %s)", agent_id, severity)
         return self._check_demotion(state)
 

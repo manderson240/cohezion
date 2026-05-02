@@ -1,7 +1,9 @@
 #!POPCORN leaderboard amd-mixed-mla
 #!POPCORN gpu MI355X
-import aiter, inspect, torch
-from task import input_t, output_t
+import inspect
+
+import aiter
+import torch
 
 
 def custom_kernel(data):

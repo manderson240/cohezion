@@ -27,7 +27,6 @@ if TYPE_CHECKING:
     from cohezion.universe.sandbox_profiles import SandboxProfile
 
 
-
 logger = logging.getLogger(__name__)
 
 

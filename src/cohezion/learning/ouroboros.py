@@ -7,7 +7,7 @@ to systematically rewrite internal execution PRDs and system prompts.
 from __future__ import annotations
 
 import logging
-from typing import Any, Optional
+from typing import Any
 
 from pydantic import BaseModel
 

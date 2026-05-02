@@ -1,7 +1,8 @@
-import sys
-import os
 import argparse
+import os
+import sys
 from pathlib import Path
+
 
 # Add project root and challenge dir to path
 sys.path.append(os.getcwd())
@@ -9,7 +10,7 @@ sys.path.append(str(Path("research/challenges/birdclef-2026")))
 
 try:
     import torch
-    from submission import predict, CONFIG
+    from submission import CONFIG, predict
 except ImportError as e:
     print(f"Import error: {e}")
     sys.exit(1)
@@ -26,7 +27,7 @@ def test_birdclef_baseline(audio_path, device=None):
     # Run prediction
     try:
         results = predict(audio_path, config=config)
-        print(f"Prediction successful!")
+        print("Prediction successful!")
         print(f"Number of files processed: {len(results)}")
         for file_id, scores in results.items():
             print(f"File: {file_id}")

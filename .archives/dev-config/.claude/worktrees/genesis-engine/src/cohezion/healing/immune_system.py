@@ -213,9 +213,7 @@ class ActuatorSystem:
         try:
             # Run specific test file if possible, or project suite
             # We use --tb=no to reduce noise
-            res = subprocess.run(
-                ["uv", "run", "pytest", "-q", "--tb=no"], capture_output=True, text=True
-            )
+            res = subprocess.run(["uv", "run", "pytest", "-q", "--tb=no"], capture_output=True, text=True)
             if res.returncode == 0:
                 logger.info("✅ Ouroboros: Patch verified successfully.")
                 return True

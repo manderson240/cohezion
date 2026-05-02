@@ -12,12 +12,14 @@ Compound Engineering Approach:
 """
 
 from __future__ import annotations
+
 import os
+
 import torch
 from aiter import ActivationType, QuantType
-from task import input_t, output_t
-import aiter
 from aiter.fused_moe import fused_moe
+from task import input_t, output_t
+
 
 # MI355X Hardware Optimization
 os.environ["AITER_USE_NT"] = "1"
@@ -139,7 +141,7 @@ def custom_kernel(data: input_t) -> output_t:
     except Exception as e:
         import sys
 
-        print(f"MoE Execution Error: {str(e)}", file=sys.stderr)
+        print(f"MoE Execution Error: {e!s}", file=sys.stderr)
         return fused_moe(
             hidden_states,
             gate_up_weight_shuffled,

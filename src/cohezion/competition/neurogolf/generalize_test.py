@@ -1,6 +1,7 @@
 """NeuroGolf generalization test: train on train pairs, predict test outputs.
 Uses arc-agi_training_challenges.json + arc-agi_training_solutions.json.
 """
+
 from __future__ import annotations
 
 import json
@@ -110,7 +111,7 @@ if __name__ == "__main__":
         if sol and grids_equal(pred, sol[0]):
             solved += 1
         if (i + 1) % 20 == 0:
-            print(f"Progress: {i+1}/{len(tasks)} — solved {solved}")
+            print(f"Progress: {i + 1}/{len(tasks)} — solved {solved}")
 
     acc = solved / len(tasks) * 100
     print(f"\nGeneralized {solved}/{len(tasks)} test tasks = {acc:.1f}%")

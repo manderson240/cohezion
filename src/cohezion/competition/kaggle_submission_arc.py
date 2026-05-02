@@ -15,6 +15,7 @@ import json
 import sys
 from pathlib import Path
 
+
 # Add repo root to path (self-contained)
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 
@@ -30,7 +31,9 @@ def solve_task(train: list, budget: int = 5000, max_depth: int = 3) -> list | No
         return None
     # Validate on train examples
     if not all(
-        grids_equal(arc_solver.apply_program(arc_solver.deepcopy_grid(ex["input"]), program), ex["output"])
+        grids_equal(
+            arc_solver.apply_program(arc_solver.deepcopy_grid(ex["input"]), program), ex["output"]
+        )
         for ex in train
     ):
         return None
@@ -70,7 +73,7 @@ def main() -> None:
             pass
 
         if (idx + 1) % 100 == 0:
-            print(f"Progress: {idx+1}/{total} tasks processed")
+            print(f"Progress: {idx + 1}/{total} tasks processed")
 
     with open(out_path, "w") as f:
         json.dump(submission, f)

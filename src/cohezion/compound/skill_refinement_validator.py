@@ -7,7 +7,7 @@ pre-mutation baselines and blocks regressions before they propagate.
 
 import logging
 from dataclasses import dataclass
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 
 
 logger = logging.getLogger(__name__)
@@ -23,7 +23,7 @@ class RefinementMetrics:
 
     @staticmethod
     def now_iso() -> str:
-        return datetime.now(timezone.utc).isoformat()
+        return datetime.now(UTC).isoformat()
 
 
 class SkillRefinementValidator:

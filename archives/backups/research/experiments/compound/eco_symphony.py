@@ -7,16 +7,16 @@ from __future__ import annotations
 
 import logging
 import uuid
-from typing import Any, Dict, List, Optional, Tuple
-from pydantic import BaseModel, Field
 
-from cohezion.compound.resilience_loop import EcoResilienceCompoundLoop
-from cohezion.compound.stability_guard import HIHOStabilityGuard, StabilityCheckResult
-from cohezion.compound.triune_reviewer import TriuneReviewResult
-from cohezion.compound.meta_reviewer import MetaReviewer
-from cohezion.compound.invest.bridge import InVESTBridge, InvestState
+from pydantic import BaseModel
+
 from cohezion.agents.specialists.ecoresilience_agent import EcoResilienceAgent
+from cohezion.compound.invest.bridge import InVESTBridge
+from cohezion.compound.meta_reviewer import MetaReviewer
+from cohezion.compound.resilience_loop import EcoResilienceCompoundLoop
+from cohezion.compound.stability_guard import HIHOStabilityGuard
 from cohezion.flume.manifolds.translator import ManifoldProjection
+
 
 logger = logging.getLogger(__name__)
 
@@ -30,7 +30,7 @@ class CompoundEcoSymphony(BaseModel):
     review_consensus: float
     stability_score: float
     iterations: int
-    refinement_history: List[str] = []
+    refinement_history: list[str] = []
 
 
 class EcoResilienceCompoundEngine:

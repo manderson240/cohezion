@@ -5,6 +5,7 @@ from pathlib import Path
 
 from cohezion.gaia.interface import get_planetary_interface
 from cohezion.swarm.agents.gaia_agent import GaiaAgent
+
 from cohezion.swarm.swarm_types import SwarmConfig
 
 

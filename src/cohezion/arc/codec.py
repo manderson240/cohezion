@@ -61,6 +61,7 @@ def _projection_256d() -> np.ndarray:
 # Geometric helpers
 # ---------------------------------------------------------------------------
 
+
 def _validate_grid(g: Grid) -> tuple[int, int]:
     """Return (rows, cols) after validating ARC invariants."""
     if not isinstance(g, list) or not g:
@@ -113,6 +114,7 @@ def _hiho_coherence(arr: np.ndarray) -> float:
 # Core codec class
 # ---------------------------------------------------------------------------
 
+
 class ARCCodec:
     """Encode / decode single ARC grids with deterministic FLUME 256-D latents."""
 
@@ -124,6 +126,7 @@ class ARCCodec:
                 from cohezion.flume.grid_encoder import (
                     ARCGridEncoder,  # type: ignore[import-not-found]
                 )
+
                 self._flume_encoder = ARCGridEncoder(latent_dim=256, max_grid_size=MAX_SIZE)
                 self._flume_encoder.eval()
             except Exception:
@@ -240,6 +243,7 @@ class ARCCodec:
 # ---------------------------------------------------------------------------
 # Task-level convenience wrappers
 # ---------------------------------------------------------------------------
+
 
 def encode_task(task: dict[str, Any]) -> dict[str, Any]:
     """

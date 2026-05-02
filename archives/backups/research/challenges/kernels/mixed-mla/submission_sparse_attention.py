@@ -9,13 +9,12 @@ By computing approximate attention first, we can identify and skip
 low-contribution positions in the full computation.
 """
 
+import math
+
 import torch
 import torch.nn.functional as F
-import math
-import sys
-
-import aiter
 from task import input_t, output_t
+
 
 # Constants
 SM_SCALE = 1.0 / math.sqrt(576)  # QK_HEAD_DIM = 576
@@ -169,7 +168,7 @@ def custom_kernel(data: input_t) -> output_t:
 
         return final_output
 
-    except Exception as e:
+    except Exception:
         from reference import ref_kernel
 
         return ref_kernel(data)

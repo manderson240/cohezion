@@ -263,16 +263,9 @@ class TestMonitoringAndMetrics:
         }
 
         # Check alert conditions
-        should_warn_error = (
-            current_metrics["error_rate"] > alert_thresholds["error_rate_warning"]
-        )
-        should_critical_error = (
-            current_metrics["error_rate"] > alert_thresholds["error_rate_critical"]
-        )
-        should_warn_latency = (
-            current_metrics["latency_change"]
-            > alert_thresholds["latency_degradation_warning"]
-        )
+        should_warn_error = current_metrics["error_rate"] > alert_thresholds["error_rate_warning"]
+        should_critical_error = current_metrics["error_rate"] > alert_thresholds["error_rate_critical"]
+        should_warn_latency = current_metrics["latency_change"] > alert_thresholds["latency_degradation_warning"]
 
         assert should_warn_error is False
         assert should_critical_error is False
@@ -418,9 +411,7 @@ class TestRollbackProcedures:
         self.system_state["version"] = "5.0.0"
 
         rollback_time_ms = (time.time() - start_time) * 1000
-        assert rollback_time_ms < 100, (
-            f"Rollback took {rollback_time_ms}ms, exceeds 100ms target"
-        )
+        assert rollback_time_ms < 100, f"Rollback took {rollback_time_ms}ms, exceeds 100ms target"
 
     def test_rollback_data_integrity(self):
         """Test data integrity maintained during rollback."""
@@ -557,9 +548,7 @@ class TestProductionDeploymentChecklist:
         }
 
         total_tests = sum(task["tests"] for task in phase_6_tasks.values())
-        complete_tasks = sum(
-            1 for task in phase_6_tasks.values() if task["status"] == "COMPLETE"
-        )
+        complete_tasks = sum(1 for task in phase_6_tasks.values() if task["status"] == "COMPLETE")
 
         assert complete_tasks == 8
         assert total_tests == 302  # 49+25+47+25+25+35+31+31+34 = 302

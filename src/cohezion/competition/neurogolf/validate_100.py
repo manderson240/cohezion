@@ -1,6 +1,7 @@
 """Validate best NeuroGolf config on 100 ARC training tasks.
 Best config from sweep: hidden=48, 84,106 params, Adam, 200 steps.
 """
+
 from __future__ import annotations
 
 import json
@@ -90,7 +91,7 @@ if __name__ == "__main__":
         if evaluate(model, task):
             solved += 1
         if (i + 1) % 20 == 0:
-            print(f"Progress: {i+1}/{len(tasks)} — solved {solved}")
+            print(f"Progress: {i + 1}/{len(tasks)} — solved {solved}")
 
     acc = solved / len(tasks) * 100
     print(f"\nSolved {solved}/{len(tasks)} = {acc:.1f}%")

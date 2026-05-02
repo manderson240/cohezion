@@ -22,9 +22,14 @@ Retains:
 """
 
 import torch
-from aiter import get_mla_metadata_info_v1, get_mla_metadata_v1
-from aiter import mla_decode_stage1_asm_fwd, mla_reduce_v1
+from aiter import (
+    get_mla_metadata_info_v1,
+    get_mla_metadata_v1,
+    mla_decode_stage1_asm_fwd,
+    mla_reduce_v1,
+)
 from task import input_t, output_t
+
 
 NUM_HEADS = 16
 NUM_KV_HEADS = 1

@@ -1,6 +1,7 @@
 import json
 from pathlib import Path
 
+
 # Paths
 BASE_DIR = Path(__file__).parent
 TRAIN_PY = Path("scripts/train_birdclef_tf_baseline.py")
@@ -42,4 +43,4 @@ notebook = {
 with open("birdclef-baseline/birdclef_baseline.ipynb", "w") as f:
     json.dump(notebook, f, indent=1)
 
-print(f"BirdCLEF TF Notebook rebuilt.")
+print("BirdCLEF TF Notebook rebuilt.")

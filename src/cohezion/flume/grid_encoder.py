@@ -43,16 +43,14 @@ class ARCGridEncoder(nn.Module):
         # Static 12D projection matrix (256D -> 12D)
         # Using a deterministic seed for cross-session consistency
         rng = np.random.default_rng(seed=42)
-        self.proj_12d = torch.from_numpy(
-            rng.standard_normal((12, latent_dim)).astype(np.float32)
-        )
+        self.proj_12d = torch.from_numpy(rng.standard_normal((12, latent_dim)).astype(np.float32))
 
     def project_to_12d(self, z: torch.Tensor) -> torch.Tensor:
         """Down-project 256D latent to 12D axiomatic state."""
         # Ensure z is [batch, latent_dim]
         if z.dim() == 1:
             z = z.unsqueeze(0)
-        
+
         # Linear projection + tanh normalization to [-1, 1] range
         state_12d = torch.matmul(z, self.proj_12d.t().to(z.device))
         return torch.tanh(state_12d)
@@ -79,21 +77,22 @@ class ARCGridEncoder(nn.Module):
         # --- JOURNEY TELEMETRY INSTRUMENTATION ---
         try:
             state_12d = self.project_to_12d(z)
-            
+
+            from datetime import datetime
+
             from cohezion.core.telemetry_bus import get_telemetry_bus
             from cohezion.data_mesh.journey_telemetry import (
-                FlumeJourneyEvent, 
-                QuadratureFabrics, 
-                RZeroMetrics, 
-                SwarmExpert, 
-                HardwareTier
+                FlumeJourneyEvent,
+                HardwareTier,
+                QuadratureFabrics,
+                RZeroMetrics,
+                SwarmExpert,
             )
-            from datetime import datetime
-            
+
             # Compute coherence as distance from HIHO (0.5)
             # In [-1, 1] tanh space, 0.5 is represented as 0.0 for this simple mock
             coherence = float(1.0 - torch.mean(torch.abs(state_12d)).item())
-            
+
             bus = get_telemetry_bus()
             event = FlumeJourneyEvent(
                 event_id=f"grid_{int(datetime.now().timestamp())}",
@@ -106,18 +105,19 @@ class ARCGridEncoder(nn.Module):
                 expert_stream=SwarmExpert.BIOLOGIST,
                 hardware_tier=HardwareTier.NPU,
                 latency_ms=0.0,
-                r_zero=RZeroMetrics(success_rate=1.0, iteration_count=1, difficulty_adjustment=1.0)
+                r_zero=RZeroMetrics(success_rate=1.0, iteration_count=1, difficulty_adjustment=1.0),
             )
-            
+
             import asyncio
+
             try:
                 loop = asyncio.get_event_loop()
                 if loop.is_running():
                     loop.create_task(bus.emit(event))
             except RuntimeError:
                 pass
-        except Exception as te:
-            # We use logger from the module level if available, but ARCGridEncoder 
+        except Exception:
+            # We use logger from the module level if available, but ARCGridEncoder
             # module didn't define it. We'll use a local fallback if needed.
             pass
 

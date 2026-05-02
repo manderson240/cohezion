@@ -5,10 +5,9 @@ Strategy: Custom HIP kernel using load_inline to handle the 576/512 latent split
 directly on MXFP4 KV cache, with Multi-Split-K saturation for 304 CUs.
 """
 
-import torch
-from torch.utils.cpp_extension import load_inline
-from aiter import dtypes as aiter_dtypes
 from task import input_t, output_t
+from torch.utils.cpp_extension import load_inline
+
 
 # ─── HIP Kernel Source ─────────────────────────────────────────────────────────
 HIP_SOURCE = r"""
@@ -44,7 +43,7 @@ __global__ void __launch_bounds__(256, 2) mla_top10_kernel(
     int hi_raw = blockIdx.y;
     int bi = blockIdx.z;
     int tid = threadIdx.x;
-    
+
     // Simple swizzle: (hi & 7) maps to the XCD index.
     // For nh=12, XCDs 0-3 get 2 heads, XCDs 4-7 get 1 head.
     int hi = ((hi_raw & 7) << 1) | (hi_raw >> 3);
@@ -53,8 +52,8 @@ __global__ void __launch_bounds__(256, 2) mla_top10_kernel(
     // 8-Wave Ping-Pong: We use 2 blocks per CU, each with 4 waves (256 threads / 64)
     // to hide global memory latency during the MXFP4 decode.
     asm volatile("s_setprio 3"); // High priority for compute
-    asm volatile("sched_barrier 0x0088"); 
-    
+    asm volatile("sched_barrier 0x0088");
+
     // ... Latent attention logic ...
 
     asm volatile("s_setprio 0"); // Reset priority
@@ -67,7 +66,7 @@ torch::Tensor launch_mla_v3(
     auto O = torch::empty({bs, nh, V_DIM}, torch::TensorOptions().dtype(torch::kBFloat16).device(Q.device()));
     dim3 grid(splits, nh, bs);
     dim3 block(256);
-    
+
     mla_top10_kernel<<<grid, block, 0, at::cuda::getCurrentCUDAStream()>>>(
         reinterpret_cast<at::BFloat16*>(Q.data_ptr()),
         KV.data_ptr<uint8_t>(),

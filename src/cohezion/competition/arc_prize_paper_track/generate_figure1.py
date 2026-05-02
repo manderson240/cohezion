@@ -2,10 +2,9 @@
 
 from __future__ import annotations
 
-import matplotlib.pyplot as plt
 import matplotlib.patches as mpatches
-from matplotlib.patches import FancyBboxPatch, FancyArrowPatch
-import numpy as np
+import matplotlib.pyplot as plt
+from matplotlib.patches import FancyBboxPatch
 
 
 def draw_compound_loop():
@@ -27,12 +26,19 @@ def draw_compound_loop():
 
     for label, x, y, color in phases:
         box = FancyBboxPatch(
-            (x - 0.8, y - 0.4), 1.6, 0.8,
+            (x - 0.8, y - 0.4),
+            1.6,
+            0.8,
             boxstyle="round,pad=0.05,rounding_size=0.1",
-            facecolor=color, edgecolor="black", linewidth=1.5, alpha=0.85
+            facecolor=color,
+            edgecolor="black",
+            linewidth=1.5,
+            alpha=0.85,
         )
         ax.add_patch(box)
-        ax.text(x, y, label, ha="center", va="center", fontsize=10, fontweight="bold", color="white")
+        ax.text(
+            x, y, label, ha="center", va="center", fontsize=10, fontweight="bold", color="white"
+        )
 
     # Arrows between phases (circular flow)
     arrow_style = "Simple,head_width=8,head_length=6"
@@ -51,18 +57,32 @@ def draw_compound_loop():
     ax.text(7.75, 3.75, "analyze", fontsize=7, ha="center", color="#555")
 
     # Refinement -> Alignment (wrap around)
-    ax.annotate("", xy=(1.5, 4.6), xytext=(9.0, 4.6),
-                arrowprops=dict(arrowstyle=arrow_style, color="#333333", linewidth=2,
-                                connectionstyle="arc3,rad=-0.3"))
+    ax.annotate(
+        "",
+        xy=(1.5, 4.6),
+        xytext=(9.0, 4.6),
+        arrowprops=dict(
+            arrowstyle=arrow_style, color="#333333", linewidth=2, connectionstyle="arc3,rad=-0.3"
+        ),
+    )
     ax.text(5.25, 5.1, "feedback", fontsize=7, ha="center", color="#555")
 
     # Central annotations
-    ax.text(5, 2.3, "Journey Tracker logs every state transition\nExperience Vault stores canonical task signatures\nSkill Library grows via recursive refinement",
-            ha="center", va="center", fontsize=9, style="italic",
-            bbox=dict(boxstyle="round,pad=0.3", facecolor="#f0f0f0", edgecolor="#999"))
+    ax.text(
+        5,
+        2.3,
+        "Journey Tracker logs every state transition\nExperience Vault stores canonical task signatures\nSkill Library grows via recursive refinement",
+        ha="center",
+        va="center",
+        fontsize=9,
+        style="italic",
+        bbox=dict(boxstyle="round,pad=0.3", facecolor="#f0f0f0", edgecolor="#999"),
+    )
 
     # Decision diamonds (governance checks)
-    diamond_kw = dict(marker="D", markersize=14, color="#9013FE", markeredgecolor="black", markeredgewidth=1.2)
+    diamond_kw = dict(
+        marker="D", markersize=14, color="#9013FE", markeredgecolor="black", markeredgewidth=1.2
+    )
     ax.plot(2.75, 2.8, **diamond_kw)
     ax.text(2.75, 2.25, "HIHO\ncheck", ha="center", fontsize=7, color="#555")
 

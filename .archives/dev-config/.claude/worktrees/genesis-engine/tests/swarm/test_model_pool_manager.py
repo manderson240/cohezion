@@ -115,9 +115,7 @@ class TestModelPoolManager:
     @pytest.mark.asyncio
     async def test_initialize_marks_loaded_models(self, pool: ModelPoolManager):
         """Initialize should reconcile with Ollama and mark running models."""
-        tags_resp = _mock_httpx_ok(
-            {"models": [{"name": "hot-model:latest", "size": 5 * 1024**3}]}
-        )
+        tags_resp = _mock_httpx_ok({"models": [{"name": "hot-model:latest", "size": 5 * 1024**3}]})
         ps_resp = _mock_httpx_ok({"models": [{"name": "hot-model:latest"}]})
 
         with patch("httpx.AsyncClient") as MockClient:

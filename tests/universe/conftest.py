@@ -12,7 +12,6 @@ Fix: patch _register_with_monitor and _deregister_from_monitor in tests that
 call run_simulation() so ResourceMonitor is never instantiated during anyio tests.
 """
 
-from unittest.mock import MagicMock
 
 import pytest
 

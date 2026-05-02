@@ -7,10 +7,12 @@ Key insight: Some experts are accessed frequently (hot), others rarely (cold).
 Different code paths can optimize for each case.
 """
 
+import os
+import sys
+
 import torch
 import torch.nn.functional as F
-import sys
-import os
+
 
 _AITER_JIT_BUILD = "/home/runner/aiter/aiter/jit/build"
 for _mod in (
@@ -136,7 +138,7 @@ def custom_kernel(data: input_t) -> output_t:
 
         return output
 
-    except Exception as e:
+    except Exception:
         from reference import ref_kernel
 
         return ref_kernel(data)

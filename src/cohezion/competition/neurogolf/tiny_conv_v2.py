@@ -5,6 +5,7 @@ Changes from v1:
 - Slightly wider hidden dim (32)
 - Optional 1x1 bottleneck
 """
+
 from __future__ import annotations
 
 import json

@@ -154,17 +154,13 @@ class ConfigTemplateManager:
         init_path = generated_dir / "__init__.py"
         if not init_path.exists():
             init_path.write_text(
-                '"""Auto-generated agents from PRIME skill definitions."""\n\n'
-                "__all__: list[str] = []\n",
+                '"""Auto-generated agents from PRIME skill definitions."""\n\n__all__: list[str] = []\n',
                 encoding="utf-8",
             )
 
         # Generate executable agent
         agent_source = self.engine.generate_executable_agent(spec)
-        version_header = (
-            f"# Generated from {spec.name} v{spec.version}"
-            f" at {time.strftime('%Y-%m-%dT%H:%M:%S')}\n"
-        )
+        version_header = f"# Generated from {spec.name} v{spec.version} at {time.strftime('%Y-%m-%dT%H:%M:%S')}\n"
         agent_source = version_header + agent_source
         agent_path = generated_dir / f"{snake_name}_agent.py"
         agent_path.write_text(agent_source, encoding="utf-8")
@@ -224,8 +220,7 @@ class ConfigTemplateManager:
         init_path = generated_dir / "__init__.py"
         if not init_path.exists():
             init_path.write_text(
-                '"""Auto-generated agents from PRIME skill definitions."""\n\n'
-                "__all__: list[str] = []\n",
+                '"""Auto-generated agents from PRIME skill definitions."""\n\n__all__: list[str] = []\n',
                 encoding="utf-8",
             )
 

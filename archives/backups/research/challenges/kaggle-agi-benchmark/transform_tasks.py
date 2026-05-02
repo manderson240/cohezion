@@ -1,8 +1,9 @@
 import re
 
+
 file_path = "kaggle-agi-benchmark/evaluator_kbench.py"
 
-with open(file_path, "r") as f:
+with open(file_path) as f:
     content = f.read()
 
 # Pattern to find tasks
@@ -67,7 +68,7 @@ def agi_cognitive_framework_overall(llm) -> float:
         social_irony_sarcasm_10, social_reciprocity_11, social_group_dynamics_12,
         social_attribution_13, social_moral_reasoning_14, social_empathy_15
     ]
-    
+
     passed = 0
     for task in tasks:
         try:
@@ -75,7 +76,7 @@ def agi_cognitive_framework_overall(llm) -> float:
                 passed += 1
         except Exception as e:
             print(f"Error running task {task}: {e}")
-            
+
     return float(passed / len(tasks)) if tasks else 0.0"""
 
 new_content = re.sub(overall_task_pattern, overall_replacement, new_content, flags=re.DOTALL)

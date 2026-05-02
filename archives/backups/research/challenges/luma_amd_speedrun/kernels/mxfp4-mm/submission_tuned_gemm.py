@@ -84,7 +84,7 @@ def custom_kernel(data: input_t) -> output_t:
         print("hipblas: NOT available", file=sys.stderr)
 
     try:
-        import hipblaslt  # noqa: F401
+        import hipblaslt
 
         print("hipblaslt available!", file=sys.stderr)
         hb_attrs = [a for a in dir(hipblaslt) if not a.startswith("_")]

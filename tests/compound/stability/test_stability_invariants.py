@@ -5,13 +5,13 @@ during la-phase transitions.
 
 from __future__ import annotations
 
-import pytest
 import numpy as np
-from unittest.mock import AsyncMock, patch
+import pytest
 
 from cohezion.compound.stability_guard import HIHOStabilityGuard
-from cohezion.flume.manifolds.translator import ManifoldTranslator, ManifoldProjection
+from cohezion.flume.manifolds.translator import ManifoldProjection, ManifoldTranslator
 from cohezion.flume.vae_encoder import FlumeVAEEncoder
+
 
 # INVARIANT: Manifold coherence must never drop below 0.4 for a stable state.
 STABILITY_THRESHOLD = 0.4

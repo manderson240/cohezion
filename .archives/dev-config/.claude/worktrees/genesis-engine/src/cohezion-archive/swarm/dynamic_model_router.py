@@ -87,12 +87,7 @@ class MemoryBandwidthAnalyzer:
         cache_bonus = model_config.cache_hit_rate * 0.3  # L3 cache provides up to 30% boost
         quantization_factor = self.get_quantization_factor(model_config.quantization)
 
-        estimated_tps = (
-            model_config.expected_tps
-            * base_bandwidth_factor
-            * (1 + cache_bonus)
-            * quantization_factor
-        )
+        estimated_tps = model_config.expected_tps * base_bandwidth_factor * (1 + cache_bonus) * quantization_factor
 
         # Apply memory pressure scaling
         memory_pressure = self.analyze_memory_pressure()
@@ -295,17 +290,13 @@ class DynamicModelRouter:
 
         if scored_models:
             optimal_model = scored_models[0][1]
-            logger.info(
-                f"Selected {optimal_model.name} for {task_type} - Score: {scored_models[0][1]}"
-            )
+            logger.info(f"Selected {optimal_model.name} for {task_type} - Score: {scored_models[0][1]}")
             return optimal_model
         else:
             # Fallback to safest option
             return self.models["qwen3:8b"]
 
-    def calculate_model_score(
-        self, model: ModelConfig, request: dict[str, Any], memory_pressure: float
-    ) -> float:
+    def calculate_model_score(self, model: ModelConfig, request: dict[str, Any], memory_pressure: float) -> float:
         """Compound scoring algorithm for model selection"""
         score = 0.0
 
@@ -394,9 +385,7 @@ class DynamicModelRouter:
             "result": result,
             "model_used": model.name,
             "execution_time": execution_time,
-            "tokens_per_second": len(result.get("text", "")) / execution_time
-            if execution_time > 0
-            else 0,
+            "tokens_per_second": len(result.get("text", "")) / execution_time if execution_time > 0 else 0,
         }
 
     def calculate_dynamic_context_limit(self, model: ModelConfig) -> int:
@@ -428,9 +417,7 @@ class DynamicModelRouter:
 
         return min(soft_cap, model.context_max)
 
-    async def ollama_generate(
-        self, model: ModelConfig, request: dict[str, Any], max_context: int
-    ) -> dict[str, Any]:
+    async def ollama_generate(self, model: ModelConfig, request: dict[str, Any], max_context: int) -> dict[str, Any]:
         """Execute Ollama generation via HTTP API.
 
         Uses ``httpx.AsyncClient`` to POST to ``/api/generate`` on the
@@ -500,9 +487,7 @@ class DynamicModelRouter:
         if len(self.performance_history) > 1000:
             self.performance_history = self.performance_history[-1000:]
 
-        logger.info(
-            f"Recorded performance: {model.name} - {performance_data['tokens_per_second']:.1f} t/s"
-        )
+        logger.info(f"Recorded performance: {model.name} - {performance_data['tokens_per_second']:.1f} t/s")
 
 
 @safe_singleton
@@ -553,10 +538,7 @@ async def main():
     ]
 
     for request in test_requests:
-        logger.info(
-            f"\n🎯 Processing request: {request['task_type']} "
-            f"for IDE priority {request['ide_priority']}"
-        )
+        logger.info(f"\n🎯 Processing request: {request['task_type']} for IDE priority {request['ide_priority']}")
         result = await router.execute_request(request)
         logger.info(
             f"✅ Completed with {result['model_used']} "

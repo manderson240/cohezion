@@ -285,11 +285,11 @@ async def main():
         logger.info(f"{'=' * 60}")
         logger.info(f"  Neurons:  {pre_neurons} → {post_neurons}")
         logger.info(f"  Synapses: {pre_synapses} → {post_synapses}")
-        logger.info(f"\n  By cluster:")
+        logger.info("\n  By cluster:")
         for r in post[2]["result"]:
             cid = r.get("cluster_id") or "(none)"
             logger.info(f"    {cid:20s}: {r['n']}")
-        logger.info(f"\n  By stage:")
+        logger.info("\n  By stage:")
         for r in post[3]["result"]:
             logger.info(f"    {r['stage']:20s}: {r['n']}")
         logger.info(f"\n  Elapsed: {elapsed:.1f}s")

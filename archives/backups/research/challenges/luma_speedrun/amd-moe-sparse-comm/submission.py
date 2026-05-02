@@ -28,9 +28,9 @@ from __future__ import annotations
 
 import os
 import sys
-from typing import Optional
 
 import torch
+
 
 os.environ["AITER_USE_NT"] = "1"
 

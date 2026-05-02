@@ -31,9 +31,7 @@ async def check_mcp_health():
                 logger.info("✅ Cloud Vault MCP Server is HEALTHY.")
                 return True
             else:
-                logger.error(
-                    f"❌ Cloud Vault MCP Server health check failed: {response.status_code}"
-                )
+                logger.error(f"❌ Cloud Vault MCP Server health check failed: {response.status_code}")
                 return False
     except Exception as e:
         logger.error(f"❌ Could not connect to Cloud Vault MCP Server: {e}")
@@ -75,9 +73,7 @@ async def record_session_journey():
         p2 = tracker.track_execution(m2_result, m2_task, OperationType.ANALYZE.value)
 
         # Milestone 3: API Decoupling & Hardening (Phase 16)
-        m3_task = (
-            "Refactor API to services (flume, rl, skills) and implement PatternScout hardening."
-        )
+        m3_task = "Refactor API to services (flume, rl, skills) and implement PatternScout hardening."
         m3_result = ExecutionResult(
             success=True,
             output="Dismantled God Object in api/__init__.py. Promoted 2 PRIME skills.",

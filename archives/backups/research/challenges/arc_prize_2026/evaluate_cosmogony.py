@@ -1,8 +1,10 @@
 import json
 import os
 import time
+
 import numpy as np
 from arc_cosmogony_synthesizer import CosmogonySynthesizer
+
 from cohezion.compound.tdd_adversarial.tdd_integration import TDDIntegration
 
 
@@ -15,14 +17,14 @@ class CosmogonyEvaluator:
 
     def load_task(self, task_id):
         path = os.path.join(self.data_dir, f"{task_id}.json")
-        with open(path, "r") as f:
+        with open(path) as f:
             return json.load(f)
 
     def solve_task(self, task_id):
         task = self.load_task(task_id)
-        print(f"\n==========================================")
+        print("\n==========================================")
         print(f"Solving Task: {task_id}")
-        print(f"==========================================")
+        print("==========================================")
 
         # 1. Synthesize rule using training pairs
         train_pairs = task["train"]
@@ -84,7 +86,7 @@ class CosmogonyEvaluator:
             except Exception as e:
                 print(f"Error on task {task_id}: {e}")
 
-        print(f"\n--- Final Results ---")
+        print("\n--- Final Results ---")
         print(f"Total Tasks: {limit}")
         print(f"Tasks Passed: {passed}")
         print(f"Accuracy: {(passed / limit) * 100:.2f}%")

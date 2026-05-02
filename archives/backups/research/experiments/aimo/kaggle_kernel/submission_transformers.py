@@ -1,23 +1,15 @@
 import gc
-import json
-import math
 import os
 import re
-import subprocess
-import sys
 import time
-import traceback
-import signal
 from collections import Counter
-from dataclasses import dataclass
-from pathlib import Path
-from typing import Any, Dict, List, Optional, Set
 
 import numpy as np
 import polars as pl
 import sympy
 import torch
 from transformers import AutoModelForCausalLM, AutoTokenizer
+
 
 # --- 0. Stability Reference ---
 # This script implements the Cohezion Kaggle Stability Protocol (April 2026).
@@ -48,7 +40,6 @@ class PreFlightJury:
     @staticmethod
     def test_libs():
         try:
-            import transformers, polars
 
             return True
         except:

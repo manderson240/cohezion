@@ -21,20 +21,23 @@ Best for: Large M where cache locality matters
 """
 
 from __future__ import annotations
+
 import os
+
 
 os.environ["PYTORCH_ROCM_ARCH"] = "gfx950"
 os.environ["CXX"] = "clang++"
 
+import aiter
 import torch
 import torch.nn.functional as F
-from task import input_t, output_t
 
 # Import aiter for fallback
 from aiter import dtypes
 from aiter.ops.triton.quant import dynamic_mxfp4_quant
 from aiter.utility.fp4_utils import e8m0_shuffle
-import aiter
+from task import input_t, output_t
+
 
 # Block sizes for tiling
 BLOCK_M = 32

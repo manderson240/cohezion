@@ -116,9 +116,9 @@ def run_training(n_episodes: int = 50, seed: int = 0, max_steps: int = 200) -> d
 
     print(f"\n{'=' * 70}")
     print(f"  Training: {n_episodes} episodes, max {max_steps} steps each")
-    print(f"  Manifold: 12D Riemannian, Lagrangian dynamics, HIHO attractor")
-    print(f"  Observation: 19D (12D state + 3D Bloch vector + 4D fiber base)")
-    print(f"  Action: 12D continuous velocity perturbation")
+    print("  Manifold: 12D Riemannian, Lagrangian dynamics, HIHO attractor")
+    print("  Observation: 19D (12D state + 3D Bloch vector + 4D fiber base)")
+    print("  Action: 12D continuous velocity perturbation")
     print(f"{'=' * 70}\n")
 
     header = f"{'Ep':>4} | {'Steps':>5} | {'Coherence':>9} | {'Reward':>8} | {'HIHO dev':>8} | {'Charge':>7} | {'YM Action':>9} | {'Term':>4}"
@@ -256,7 +256,7 @@ def main():
 
     print(f"\n  Trajectory data saved to: {output_path}")
     print(f"  File size: {output_path.stat().st_size / 1024:.1f} KB")
-    print(f"\n  Next: uv run python evaluate.py")
+    print("\n  Next: uv run python evaluate.py")
 
 
 if __name__ == "__main__":

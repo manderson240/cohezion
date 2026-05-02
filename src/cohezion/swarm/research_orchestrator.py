@@ -22,7 +22,6 @@ Usage:
 
 from __future__ import annotations
 
-import aiofiles
 import asyncio
 import hashlib
 import json
@@ -32,6 +31,7 @@ from datetime import datetime
 from pathlib import Path
 from typing import Any
 
+import aiofiles
 import httpx
 
 

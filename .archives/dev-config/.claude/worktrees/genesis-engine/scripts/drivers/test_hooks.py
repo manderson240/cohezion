@@ -41,9 +41,7 @@ def verify_hooks():
         print("✅ Hook verified successfully")
 
         # Cleanup
-        (Path("src/cohezion/knowledge_graph/entities/test_hook_entity.json")).unlink(
-            missing_ok=True
-        )
+        (Path("src/cohezion/knowledge_graph/entities/test_hook_entity.json")).unlink(missing_ok=True)
         return True
     else:
         print("❌ Hook FAILED to trigger")

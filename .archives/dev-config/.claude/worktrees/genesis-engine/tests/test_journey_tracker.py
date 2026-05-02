@@ -81,9 +81,7 @@ class TestJourneyTrackerSmoke:
 class TestJourneyPersistenceSmoke:
     """Verify JourneyPersistence JSONL save/load round-trip."""
 
-    @pytest.mark.skip(
-        reason="JourneyPersistence API changed - tests need rewrite for new persist_batch/parquet API"
-    )
+    @pytest.mark.skip(reason="JourneyPersistence API changed - tests need rewrite for new persist_batch/parquet API")
     @pytest.mark.asyncio
     async def test_save_load_roundtrip(self, tmp_path) -> None:
         from cohezion.compound.exp_persistence.journey import JourneyPersistence
@@ -105,9 +103,7 @@ class TestJourneyPersistenceSmoke:
         assert len(loaded) == 1
         assert loaded[0]["id"] == "journey_smoke_001"
 
-    @pytest.mark.skip(
-        reason="JourneyPersistence API changed - tests need rewrite for new persist_batch/parquet API"
-    )
+    @pytest.mark.skip(reason="JourneyPersistence API changed - tests need rewrite for new persist_batch/parquet API")
     @pytest.mark.asyncio
     async def test_save_trajectory_point(self, tmp_path) -> None:
         from cohezion.compound.exp_persistence.journey import JourneyPersistence

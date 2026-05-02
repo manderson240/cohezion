@@ -18,19 +18,16 @@ from __future__ import annotations
 
 import os
 
+
 os.environ["AITER_USE_NT"] = "1"
 
-import functools
-import torch
-from einops import rearrange
-
 import aiter
+import torch
 from aiter import dtypes
 from aiter.fused_moe import moe_sorting
+from aiter.ops.quant import pertoken_quant
 from aiter.ops.shuffle import shuffle_weight
 from aiter.utility import fp4_utils
-from aiter.ops.quant import pertoken_quant
-
 from task import input_t, output_t
 
 
@@ -235,8 +232,8 @@ def custom_kernel(data: input_t) -> output_t:
 
     if not can_use_fp8:
         # Fall back to baseline for incompatible shapes
-        from aiter.fused_moe import fused_moe
         from aiter import ActivationType, QuantType
+        from aiter.fused_moe import fused_moe
 
         hidden_pad = d_hidden_pad - d_hidden
         intermediate_pad = d_expert_pad - d_expert
@@ -321,8 +318,8 @@ def custom_kernel(data: input_t) -> output_t:
     except Exception as e:
         # Fall back to baseline on error
         print(f"[fp8_blockscale] Error: {e}, falling back to baseline")
-        from aiter.fused_moe import fused_moe
         from aiter import ActivationType, QuantType
+        from aiter.fused_moe import fused_moe
 
         hidden_pad = d_hidden_pad - d_hidden
         intermediate_pad = d_expert_pad - d_expert

@@ -391,9 +391,7 @@ async def tool_hf_inference(request: web.Request) -> web.Response:
             return web.json_response({"error": "model_id and inputs are required"}, status=400)
 
         if not HF_API_TOKEN:
-            return web.json_response(
-                {"error": "HF_API_TOKEN environment variable required for inference"}, status=401
-            )
+            return web.json_response({"error": "HF_API_TOKEN environment variable required for inference"}, status=401)
 
         service = get_service()
         result = await service.get_inference_api(model_id, inputs)

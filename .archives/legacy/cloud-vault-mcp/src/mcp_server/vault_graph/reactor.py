@@ -52,7 +52,7 @@ def compute_recency_score(modified_date: str | None) -> float:
 
 def build_briefing(neurons: list[dict[str, Any]], n_synapses: int) -> str:
     """Build the metabolism/graph-briefing.md content string."""
-    now = datetime.datetime.now(datetime.timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
+    now = datetime.datetime.now(datetime.UTC).strftime("%Y-%m-%dT%H:%M:%SZ")
     n_neurons = len(neurons)
 
     top_bridging = sorted(

@@ -122,7 +122,9 @@ def solve_task(task: dict[str, Any], time_budget: float = 30.0) -> np.ndarray | 
     return apply_chain(test_input, best_chain)
 
 
-def evaluate_on_subset(subset: str = "training", limit: int | None = None, time_per_task: float = 30.0) -> dict[str, Any]:
+def evaluate_on_subset(
+    subset: str = "training", limit: int | None = None, time_per_task: float = 30.0
+) -> dict[str, Any]:
     """Run solver on ARC subset and return metrics."""
     from cohezion.arc.data_loader import load_all
 
@@ -154,7 +156,9 @@ def update_ksearch(chain: list[str], score: float) -> None:
     """Log result to K-Search tree for future warm-start."""
     data = _load_ksearch()
     key = "_".join(chain)
-    node = data["nodes"].setdefault(key, {"hypothesis": key, "wins": 0, "trials": 0, "metric_values": []})
+    node = data["nodes"].setdefault(
+        key, {"hypothesis": key, "wins": 0, "trials": 0, "metric_values": []}
+    )
     node["trials"] += 1
     node["metric_values"].append(score)
     if score >= 1.0:
@@ -166,7 +170,6 @@ def update_ksearch(chain: list[str], score: float) -> None:
 # ── CLI ─────────────────────────────────────────────────────────
 
 if __name__ == "__main__":
-
     print("ARC Prize 2026 Autoresearch Solver")
     print("Running eval on training subset (limit=20)...")
     metrics = evaluate_on_subset("training", limit=20, time_per_task=10.0)

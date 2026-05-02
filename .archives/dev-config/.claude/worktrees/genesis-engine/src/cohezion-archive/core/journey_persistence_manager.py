@@ -87,9 +87,7 @@ class JourneyPersistenceManager:
 
         latency_ms = (time.perf_counter() - t0) * 1000
         if latency_ms > LATENCY_TARGET_MS:
-            logger.warning(
-                "Persistence latency %.2fms exceeds target %dms", latency_ms, LATENCY_TARGET_MS
-            )
+            logger.warning("Persistence latency %.2fms exceeds target %dms", latency_ms, LATENCY_TARGET_MS)
 
         return PersistenceResult(
             node_id=node.node_id,

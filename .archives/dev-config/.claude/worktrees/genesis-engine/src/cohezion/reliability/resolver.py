@@ -38,9 +38,7 @@ class HallucinationResolver:
         path_matches = re.findall(r"(/[a-zA-Z0-9_\-\./]+)", text)
         for path in path_matches:
             if (
-                "/home/" in path
-                and not path.startswith(self.ground_truth["project_root"])
-                and "mike-anderson" in path
+                "/home/" in path and not path.startswith(self.ground_truth["project_root"]) and "mike-anderson" in path
             ) and not os.path.exists(path):
                 issues.append(f"Referenced non-existent absolute path: {path}")
 

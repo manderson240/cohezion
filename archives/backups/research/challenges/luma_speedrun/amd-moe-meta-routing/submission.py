@@ -43,16 +43,14 @@ Date: 2026-04-06
 
 from __future__ import annotations
 
-import math
 import os
-import sys
-from typing import Tuple, Dict, List, Optional
-from dataclasses import dataclass, field
 from collections import deque
+from dataclasses import dataclass, field
 
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
+
 
 # POPCORN environment setup
 os.environ["AITER_USE_NT"] = "1"
@@ -61,6 +59,7 @@ os.environ["AITER_KSPLIT"] = "1"
 from aiter import ActivationType, QuantType
 from aiter.fused_moe import fused_moe
 from task import input_t, output_t
+
 
 # =============================================================================
 # Configuration Constants
@@ -196,7 +195,7 @@ class HyperNetwork(nn.Module):
 
     def forward(
         self, task_embedding: torch.Tensor
-    ) -> Tuple[torch.Tensor, torch.Tensor, torch.Tensor]:
+    ) -> tuple[torch.Tensor, torch.Tensor, torch.Tensor]:
         """Generate router parameters from task embedding.
 
         Args:
@@ -296,7 +295,7 @@ class ContextualBanditRouter(nn.Module):
 # Global Meta-Router State
 # =============================================================================
 
-_meta_state: Dict[str, any] = {
+_meta_state: dict[str, any] = {
     "initialized": False,
     "task_encoder": None,
     "hypernet": None,
@@ -356,7 +355,7 @@ def meta_routing(
     base_topk_weights: torch.Tensor,
     base_topk_ids: torch.Tensor,
     num_experts: int,
-) -> Tuple[torch.Tensor, torch.Tensor]:
+) -> tuple[torch.Tensor, torch.Tensor]:
     """Apply meta-learned routing adaptation.
 
     Args:
@@ -420,7 +419,7 @@ def meta_routing(
 
         return adapted_weights, adapted_ids
 
-    except Exception as e:
+    except Exception:
         # Fallback to base routing on error
         return base_topk_weights, base_topk_ids
 
@@ -492,7 +491,7 @@ def custom_kernel(data: input_t) -> output_t:
 
         return output
 
-    except Exception as e:
+    except Exception:
         # Fallback: standard fused_moe
         return fused_moe(
             hidden_states,

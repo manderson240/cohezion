@@ -26,13 +26,13 @@ HipKittens principles to the aiter API surface:
 Performance Target: <20µs via API-level HipKittens-style optimization
 """
 
-import os
-import torch
 import aiter
+import torch
 from aiter import dtypes
 from aiter.ops.triton.quant import dynamic_mxfp4_quant
 from aiter.utility.fp4_utils import e8m0_shuffle
 from task import input_t, output_t
+
 
 # HipKittens-inspired constants for MI355X (gfx950)
 # Based on CDNA4 architecture: 304 CUs, 8 XCDs

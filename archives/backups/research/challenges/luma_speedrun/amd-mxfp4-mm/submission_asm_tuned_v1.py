@@ -21,12 +21,13 @@ Note: 192x128 kernel only wins for M ∈ {192, 384, 512, 768, 1024, 1152} — ne
 benchmark shapes (max M=256 at N=3072 uses 32x128 per tuning data).
 """
 
-import torch
 import aiter
+import torch
 from aiter import dtypes
 from aiter.ops.triton.quant import dynamic_mxfp4_quant
 from aiter.utility.fp4_utils import e8m0_shuffle
 from task import input_t, output_t
+
 
 # Kernel mangled names — match exactly what's in the .co files
 _KERNEL_32x128 = "_ZN5aiter41f4gemm_bf16_per1x32Fp4_BpreShuffle_32x128E"

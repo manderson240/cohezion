@@ -31,9 +31,7 @@ async def deep_dive():
     total_nodes = count_data[0].get("count", 0) if count_data else 0
 
     # 2. Model Distribution
-    res_models = await client.query(
-        "SELECT metadata.model as model, count() FROM universe_nodes GROUP BY model"
-    )
+    res_models = await client.query("SELECT metadata.model as model, count() FROM universe_nodes GROUP BY model")
     models_data = get_res(res_models)
     model_dist = {row["model"]: row["count"] for row in models_data if "model" in row}
 

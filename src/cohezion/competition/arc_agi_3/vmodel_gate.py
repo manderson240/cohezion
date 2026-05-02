@@ -9,13 +9,13 @@ from __future__ import annotations
 
 import json
 import logging
-import os
 import subprocess
 import sys
 import time
 from dataclasses import dataclass, field
 from pathlib import Path
-from typing import Any, Dict, List, Optional, Tuple
+from typing import Any
+
 
 logger = logging.getLogger(__name__)
 
@@ -65,7 +65,7 @@ class BaselineResult:
     states_visited: int
     timestamp: str = field(default_factory=lambda: time.strftime("%Y-%m-%dT%H:%M:%SZ"))
 
-    def to_dict(self) -> Dict[str, Any]:
+    def to_dict(self) -> dict[str, Any]:
         return {
             "agent_type": self.agent_type,
             "game_id": self.game_id,
@@ -93,11 +93,11 @@ class VModelGate:
     5. Triggers next phase automatically
     """
 
-    def __init__(self, config: Optional[VModelGateConfig] = None):
+    def __init__(self, config: VModelGateConfig | None = None):
         self.config = config or VModelGateConfig()
         self.results_dir = Path("data/arc_agi_3/baselines")
         self.results_dir.mkdir(parents=True, exist_ok=True)
-        self.baselines: List[BaselineResult] = []
+        self.baselines: list[BaselineResult] = []
 
     def _has_local_phi4(self) -> bool:
         """Check if phi4 is available locally for LLM baselines."""
@@ -112,9 +112,7 @@ class VModelGate:
         except Exception:
             return False
 
-    def run_random_baseline(
-        self, game_id: str = "r11l", max_steps: int = 200
-    ) -> BaselineResult:
+    def run_random_baseline(self, game_id: str = "r11l", max_steps: int = 200) -> BaselineResult:
         """Run random agent baseline on a single game."""
         logger.info(f"Running random baseline on {game_id}")
 
@@ -168,7 +166,7 @@ class VModelGate:
 
     def run_local_llm_baseline(
         self, game_id: str = "r11l", max_actions: int = 80
-    ) -> Optional[BaselineResult]:
+    ) -> BaselineResult | None:
         """Run LLM baseline using local phi4 via Ollama.
 
         Falls back to None if phi4 not available.
@@ -195,7 +193,7 @@ class VModelGate:
         states: set[int] = set()
         actions_taken = 0
         games_won = 0
-        history: List[str] = []
+        history: list[str] = []
 
         # Build action mapping for LLM
         action_names = {
@@ -276,7 +274,7 @@ Return ONLY the action name (e.g. ACTION1)."""
         self.baselines.append(result)
         return result
 
-    def _summarize_grid(self, grid: List[List[int]], sample_size: int = 8) -> str:
+    def _summarize_grid(self, grid: list[list[int]], sample_size: int = 8) -> str:
         """Create a text summary of a grid for LLM prompting."""
         rows = min(len(grid), sample_size)
         cols = min(len(grid[0]), sample_size) if grid else 0
@@ -286,13 +284,13 @@ Return ONLY the action name (e.g. ACTION1)."""
             lines.append(line)
         return "\n".join(lines)
 
-    def evaluate_go_no_go(self) -> Tuple[str, Dict[str, Any]]:
+    def evaluate_go_no_go(self) -> tuple[str, dict[str, Any]]:
         """Evaluate GO/NO-GO criteria based on baseline results.
 
         Returns:
             (decision, evidence_dict)
         """
-        evidence: Dict[str, Any] = {
+        evidence: dict[str, Any] = {
             "days_until_deadline": self.config.days_until_deadline(),
             "baselines_run": len(self.baselines),
             "random_scores": [],
@@ -380,7 +378,7 @@ Return ONLY the action name (e.g. ACTION1)."""
         with open(trigger_path, "a") as f:
             f.write(json.dumps(event) + "\n")
 
-    def run_full_gate(self, games: Optional[List[str]] = None) -> Tuple[str, Dict[str, Any]]:
+    def run_full_gate(self, games: list[str] | None = None) -> tuple[str, dict[str, Any]]:
         """Execute the full V-Model gate: baselines + decision + trigger.
 
         This is the main entry point for the hook.

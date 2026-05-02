@@ -4,6 +4,7 @@ Treats 30x30 grid as 900 sequential tokens.
 Hypothesis: attention may better learn compositional transformations (mirror, rotate, gravity)
 than local convolutions.
 """
+
 from __future__ import annotations
 
 import json
@@ -17,7 +18,14 @@ import torch.nn.functional as F
 class TinyTransformerARCSolver(nn.Module):
     """Tiny transformer for ARC grids. ~54K params."""
 
-    def __init__(self, colors: int = 10, hidden: int = 32, heads: int = 2, layers: int = 2, grid_size: int = 30):
+    def __init__(
+        self,
+        colors: int = 10,
+        hidden: int = 32,
+        heads: int = 2,
+        layers: int = 2,
+        grid_size: int = 30,
+    ):
         super().__init__()
         self.colors = colors
         self.hidden = hidden
@@ -120,7 +128,7 @@ if __name__ == "__main__":
         if sol and grids_equal(pred, sol[0]):
             solved += 1
         if (i + 1) % 20 == 0:
-            print(f"Progress: {i+1}/{len(task_ids)} — solved {solved}")
+            print(f"Progress: {i + 1}/{len(task_ids)} — solved {solved}")
 
     acc = solved / len(task_ids) * 100
     print(f"\nTransformer: {solved}/{len(task_ids)} = {acc:.1f}%")

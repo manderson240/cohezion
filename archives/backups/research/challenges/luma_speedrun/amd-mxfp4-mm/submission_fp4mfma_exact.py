@@ -14,15 +14,17 @@ D output: row = (r%4) + (r/4)*8 + (tid/32)*4, col = tid%32
 
 import os
 
+
 os.environ["PYTORCH_ROCM_ARCH"] = "gfx950"
 os.environ["CXX"] = "clang++"
 
 import torch
-from torch.utils.cpp_extension import load_inline
 from aiter import dtypes
 from aiter.ops.triton.quant import dynamic_mxfp4_quant
 from aiter.utility.fp4_utils import e8m0_shuffle
 from task import input_t, output_t
+from torch.utils.cpp_extension import load_inline
+
 
 HIP_SOURCE = r"""
 #include <torch/extension.h>

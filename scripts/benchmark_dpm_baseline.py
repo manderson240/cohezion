@@ -1,15 +1,17 @@
 import asyncio
 import logging
 import sys
-import numpy as np
-import time
 from pathlib import Path
+
+import numpy as np
+
 
 # Add src to path
 sys.path.append(str(Path.cwd() / "src"))
 
-from cohezion.compound.aimo_reasoning import AIMOScaler, ReasoningNode
 from cohezion.compound.agi_reasoning import AGIEvaluator
+from cohezion.compound.aimo_reasoning import AIMOScaler
+
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
@@ -41,7 +43,7 @@ class MockReasoningModel:
             or (system_prompt and "Operator Note" in system_prompt)
             or "[STEER]" in prompt
         ):
-            print(f"  [LOG] PROMPT ECHO: Steering detected in LLM call.")
+            print("  [LOG] PROMPT ECHO: Steering detected in LLM call.")
 
         if "generate a verifier" in prompt or "verify_action" in prompt or "Target Code:" in prompt:
             return "```python\ndef verify_action(state, action):\n    return True\n```"

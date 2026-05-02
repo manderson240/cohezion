@@ -99,8 +99,7 @@ class QualityScout(BaseScout):
                                     file_path=rel_path,
                                     line_range=(body_node.lineno, body_node.end_lineno),
                                     confidence=1.0,
-                                    code_snippet=ast.get_source_segment(path.read_text(), body_node)
-                                    or "",
+                                    code_snippet=ast.get_source_segment(path.read_text(), body_node) or "",
                                     severity="high",
                                 )
                             )
@@ -114,9 +113,7 @@ class QualityScout(BaseScout):
         """Calculate maximum nesting depth of a node."""
         depths = [current_depth]
         for child in ast.iter_child_nodes(node):
-            if isinstance(
-                child, (ast.If, ast.While, ast.For, ast.AsyncFor, ast.Try, ast.With, ast.AsyncWith)
-            ):
+            if isinstance(child, (ast.If, ast.While, ast.For, ast.AsyncFor, ast.Try, ast.With, ast.AsyncWith)):
                 depths.append(self._get_nesting_depth(child, current_depth + 1))
             else:
                 depths.append(self._get_nesting_depth(child, current_depth))

@@ -7,10 +7,9 @@ Key insight: Quantization is element-wise and can be vectorized
 across 256-bit vectors (8 bf16 elements) for better throughput.
 """
 
-import torch
-import sys
 
 import aiter
+import torch
 from aiter import dtypes
 from aiter.ops.triton.quant import dynamic_mxfp4_quant
 from aiter.utility.fp4_utils import e8m0_shuffle
@@ -74,7 +73,7 @@ def custom_kernel(data: input_t) -> output_t:
 
         return output
 
-    except Exception as e:
+    except Exception:
         from reference import ref_kernel
 
         return ref_kernel(data)

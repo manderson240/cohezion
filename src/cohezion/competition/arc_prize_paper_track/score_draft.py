@@ -5,6 +5,7 @@ from __future__ import annotations
 from pathlib import Path
 from typing import Any
 
+
 SECTIONS = [
     ("abstract", 15),
     ("introduction", 10),
@@ -25,66 +26,106 @@ def score_draft(path: str) -> dict[str, Any]:
     abs_match = text.lower().find("abstract") >= 0
     if abs_match:
         abs_score = 8
-        if "alignment gate" in text.lower()[:800]: abs_score += 2
-        if "skill refinement" in text.lower()[:800]: abs_score += 2
-        if len(text) > 3000: abs_score += 3
+        if "alignment gate" in text.lower()[:800]:
+            abs_score += 2
+        if "skill refinement" in text.lower()[:800]:
+            abs_score += 2
+        if len(text) > 3000:
+            abs_score += 3
         scores["abstract"] = min(15, abs_score)
     else:
         scores["abstract"] = 0
 
     # Introduction
     intro_score = 5 if "## 1. Introduction" in text else 0
-    if "chollet" in text.lower(): intro_score += 2
-    if "arc-agi-2" in text.lower(): intro_score += 2
-    if "novel" in text.lower() or "new" in text.lower(): intro_score += 1
+    if "chollet" in text.lower():
+        intro_score += 2
+    if "arc-agi-2" in text.lower():
+        intro_score += 2
+    if "novel" in text.lower() or "new" in text.lower():
+        intro_score += 1
     scores["introduction"] = min(10, intro_score)
 
     # Architecture: formal definitions, subsections, diagrams mentioned
     arch_score = 5 if "## 3. Theoretical Foundation" in text or "## 3. Architecture" in text else 0
-    if "alignment gate" in text.lower(): arch_score += 3
-    if "journey tracker" in text.lower(): arch_score += 2
-    if "skill refinement" in text.lower(): arch_score += 2
-    if "## 4." in text and text.count("## 4.") >= 1: arch_score += 3
-    if "formal" in text.lower() or "theorem" in text.lower() or "definition" in text.lower(): arch_score += 3
-    if "diagram" in text.lower() or "figure" in text.lower(): arch_score += 2
+    if "alignment gate" in text.lower():
+        arch_score += 3
+    if "journey tracker" in text.lower():
+        arch_score += 2
+    if "skill refinement" in text.lower():
+        arch_score += 2
+    if "## 4." in text and text.count("## 4.") >= 1:
+        arch_score += 3
+    if "formal" in text.lower() or "theorem" in text.lower() or "definition" in text.lower():
+        arch_score += 3
+    if "diagram" in text.lower() or "figure" in text.lower():
+        arch_score += 2
     scores["architecture"] = min(20, arch_score)
 
     # Results: actual data, tables, numbers
-    results_score = 2 if "## 5. Application" in text or "## 5. Results" in text or "## 5. Experimental" in text else 0
-    if "%" in text: results_score += 3
-    if "solve rate" in text.lower(): results_score += 3
-    if "table" in text.lower(): results_score += 3
-    if "ablation" in text.lower(): results_score += 4
+    results_score = (
+        2
+        if "## 5. Application" in text or "## 5. Results" in text or "## 5. Experimental" in text
+        else 0
+    )
+    if "%" in text:
+        results_score += 3
+    if "solve rate" in text.lower():
+        results_score += 3
+    if "table" in text.lower():
+        results_score += 3
+    if "ablation" in text.lower():
+        results_score += 4
     scores["results"] = min(15, results_score)
 
     # Novelty: explicit differentiation from prior work
     nov_score = 3 if "## 6." in text else 0
-    if "unlike" in text.lower() or "compared" in text.lower(): nov_score += 3
-    if "arc prize" in text.lower(): nov_score += 3
-    if "metacognitive" in text.lower(): nov_score += 3
-    if "open-ended" in text.lower(): nov_score += 3
+    if "unlike" in text.lower() or "compared" in text.lower():
+        nov_score += 3
+    if "arc prize" in text.lower():
+        nov_score += 3
+    if "metacognitive" in text.lower():
+        nov_score += 3
+    if "open-ended" in text.lower():
+        nov_score += 3
     scores["novelty"] = min(15, nov_score)
 
     # Artifacts
     art_score = 3 if "## 7." in text else 0
-    if "github" in text.lower() or "open source" in text.lower(): art_score += 3
-    if "license" in text.lower(): art_score += 2
-    if "mit" in text.lower() or "apache" in text.lower(): art_score += 2
+    if "github" in text.lower() or "open source" in text.lower():
+        art_score += 3
+    if "license" in text.lower():
+        art_score += 2
+    if "mit" in text.lower() or "apache" in text.lower():
+        art_score += 2
     scores["artifacts"] = min(10, art_score)
 
     # References: count citation entries
     ref_count = 0
     if "## References" in text:
         after_ref = text.split("## References")[-1]
-        ref_count = len([l for l in after_ref.split("\n") if l.strip() and l.strip()[0].isalpha() and "20" in l])
+        ref_count = len(
+            [l for l in after_ref.split("\n") if l.strip() and l.strip()[0].isalpha() and "20" in l]
+        )
     scores["references"] = min(5, ref_count)
 
     # Prior Work
     pw_score = 0
     if "## 2. Prior Work" in text or "## 2. Related Work" in text or "## Prior Work" in text:
         pw_score = 5
-        if "arChitects" in text.lower() or "dreamcoder" in text.lower(): pw_score += 3
-        if len([l for l in text.split("## 2. Prior Work")[-1].split("\n") if l.strip() and l.strip()[0].isalpha()]) > 5: pw_score += 2
+        if "arChitects" in text.lower() or "dreamcoder" in text.lower():
+            pw_score += 3
+        if (
+            len(
+                [
+                    l
+                    for l in text.split("## 2. Prior Work")[-1].split("\n")
+                    if l.strip() and l.strip()[0].isalpha()
+                ]
+            )
+            > 5
+        ):
+            pw_score += 2
     scores["prior_work"] = min(10, pw_score)
 
     total = sum(scores[s] for s, _ in SECTIONS)

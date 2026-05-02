@@ -8,12 +8,13 @@ The Triton kernel may have different autotuning for competition shapes.
 Falls back to CK ASM baseline on any error.
 """
 
-import torch
 import aiter
+import torch
 from aiter import dtypes
 from aiter.ops.triton.quant import dynamic_mxfp4_quant
 from aiter.utility.fp4_utils import e8m0_shuffle
 from task import input_t, output_t
+
 
 # Try Triton GEMM path
 _triton_gemm = None

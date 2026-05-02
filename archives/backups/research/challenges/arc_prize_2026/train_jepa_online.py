@@ -2,7 +2,6 @@ import torch
 import torch.optim as optim
 from arc_gym_wrapper import ARCGymEnv
 from arc_jepa import ARCWorldModel
-import numpy as np
 
 
 def train_jepa_online(game_id="ls20", num_steps=50):

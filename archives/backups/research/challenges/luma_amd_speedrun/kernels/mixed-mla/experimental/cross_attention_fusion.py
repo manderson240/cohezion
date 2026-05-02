@@ -33,15 +33,15 @@ References:
 """
 
 from __future__ import annotations
-import os
+
 import sys
-import math
+
 import torch
 import torch.nn.functional as F
-from typing import Tuple, Optional, List
 from aiter import dtypes as aiter_dtypes
 from reference import ref_kernel
 from task import input_t, output_t
+
 
 # Constants
 SM_SCALE = 1.0 / (576**0.5)
@@ -61,7 +61,7 @@ _HEAD_GROUP_CACHE: dict = {}
 def _analyze_head_patterns(
     q: torch.Tensor,
     nheads: int,
-) -> Tuple[torch.Tensor, List[List[int]]]:
+) -> tuple[torch.Tensor, list[list[int]]]:
     """
     Analyze query patterns to determine optimal head grouping.
 
@@ -106,7 +106,7 @@ def _analyze_head_patterns(
 
 def _fuse_q_for_group(
     q: torch.Tensor,
-    head_group: List[int],
+    head_group: list[int],
 ) -> torch.Tensor:
     """
     Fuse queries for a head group into compact representation.
@@ -186,8 +186,8 @@ def _fused_group_softmax(
 
 
 def _merge_group_outputs(
-    group_outputs: List[torch.Tensor],
-    head_groups: List[List[int]],
+    group_outputs: list[torch.Tensor],
+    head_groups: list[list[int]],
     nheads: int,
     total_q: int,
 ) -> torch.Tensor:
@@ -273,7 +273,7 @@ def custom_kernel(data: input_t) -> output_t:
         return ref_kernel(data)
 
 
-def _quantize_fp8(tensor: torch.Tensor) -> Tuple[torch.Tensor, torch.Tensor]:
+def _quantize_fp8(tensor: torch.Tensor) -> tuple[torch.Tensor, torch.Tensor]:
     """Quantize tensor to FP8."""
     finfo = torch.finfo(FP8_DTYPE)
     amax = tensor.abs().amax().clamp(min=1e-12)

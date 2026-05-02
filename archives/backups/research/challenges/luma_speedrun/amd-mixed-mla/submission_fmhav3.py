@@ -7,13 +7,14 @@ This might be a single-dispatch attention that eliminates the 2-dispatch overhea
 
 import os
 
+
 os.environ["PYTORCH_ROCM_ARCH"] = "gfx950"
 
-import torch
 import aiter
+import torch
 from aiter import dtypes as aiter_dtypes
 from aiter import get_mla_metadata_info_v1, get_mla_metadata_v1, mla_reduce_v1
-from task import input_t, output_t
+
 
 NUM_HEADS = 16
 NUM_KV_HEADS = 1

@@ -5,9 +5,9 @@
 
 import os
 
+
 os.environ["PYTORCH_ROCM_ARCH"] = "gfx950"
 
-import torch
 import aiter
 from aiter import dtypes
 from aiter.utility.fp4_utils import e8m0_shuffle

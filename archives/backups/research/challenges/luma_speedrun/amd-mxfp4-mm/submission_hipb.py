@@ -7,12 +7,13 @@ hipb_mm supports scaleA/scaleB and bpreshuffle — may work with MXFP4.
 solution_index selects from hipBLASLt's tuned kernel library.
 """
 
+import aiter
 import torch
 from aiter import dtypes
-import aiter
 from aiter.ops.triton.quant import dynamic_mxfp4_quant
 from aiter.utility.fp4_utils import e8m0_shuffle
 from task import input_t, output_t
+
 
 _gemm = aiter.gemm_a4w4
 _quant = dynamic_mxfp4_quant

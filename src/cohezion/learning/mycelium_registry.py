@@ -82,7 +82,10 @@ class MyceliumRegistry:
         for domain, entries in by_domain.items():
             if len(entries) >= self._min_entries:
                 skill_name = f"{domain.upper()}_SYNTHESIZED"
-                content = self._synthesize_content(domain, entries)
+                if domain == "evo_deliberation":
+                    content = self._synthesize_evo_deliberation_skill(entries)
+                else:
+                    content = self._synthesize_content(domain, entries)
                 source_ids = [e.entry_id for e in entries]
 
                 if skill_name in self._skills:
@@ -128,3 +131,102 @@ class MyceliumRegistry:
     def get_audit_history(self) -> list[AuditReport]:
         """Get all audit reports."""
         return list(self._audit_history)
+
+    def ingest_evo_journeys(self, event_metadata_list: list[dict]) -> int:
+        """Ingest EVO journey data from FlumeJourneyEvent.metadata records (E3/E6).
+
+        Each entry is the full metadata dict from a FlumeJourneyEvent, containing
+        `evo_biography`, `voice_scores`, `consensus_score`, and `approved`.
+        Per-voice scores are encoded for the E6 score-adjustment feedback loop.
+
+        Returns the number of entries ingested.
+        """
+        ingested = 0
+        for meta in event_metadata_list:
+            bio = meta.get("evo_biography") or {}
+            voice_scores = meta.get("voice_scores") or {}
+            consensus = meta.get("consensus_score", 0.0)
+            approved = meta.get("approved", False)
+
+            agent_id = bio.get("agent_id", "unknown")
+            evo_coherence = bio.get("evo_coherence_metric", 0.0)
+            lifetime = bio.get("lifetime_ticks", 0)
+            marks = bio.get("witness_marks", [])
+            mark_types = [m.get("mark_type", "?") for m in marks]
+
+            # Encode per-voice scores for E6 learning
+            voice_str = " ".join(f"{k}={v:.3f}" for k, v in sorted(voice_scores.items()))
+            content = (
+                f"EVO {agent_id}: evo_coherence={evo_coherence:.3f} "
+                f"consensus={consensus:.3f} approved={int(approved)} "
+                f"voice_scores=[{voice_str}] "
+                f"lifetime={lifetime} marks=[{','.join(mark_types)}]"
+            )
+            entry = JournalEntry(
+                entry_id=f"evo_{agent_id}_{int(time.time() * 1000)}",
+                content=content,
+                domain="evo_deliberation",
+            )
+            self.ingest_entry(entry)
+            ingested += 1
+
+        logger.debug("MyceliumRegistry: ingested %d EVO journey entries", ingested)
+        return ingested
+
+    def _synthesize_evo_deliberation_skill(self, entries: list[JournalEntry]) -> str:
+        """Synthesize a skill from EVO deliberation journal entries (E3/E6).
+
+        Extracts: mean evo_coherence, approval rate, per-voice mean scores
+        (for E6 score-adjustment feedback), common mark types.
+        """
+        import re
+
+        coherences: list[float] = []
+        mark_type_counts: dict[str, int] = {}
+        voice_score_sums: dict[str, float] = {}
+        voice_score_counts: dict[str, int] = {}
+
+        for entry in entries:
+            m = re.search(r"evo_coherence=(\d+\.\d+)", entry.content)
+            if m:
+                coherences.append(float(m.group(1)))
+            marks_m = re.search(r"marks=\[([^\]]*)\]", entry.content)
+            if marks_m:
+                for mt in marks_m.group(1).split(","):
+                    mt = mt.strip()
+                    if mt:
+                        mark_type_counts[mt] = mark_type_counts.get(mt, 0) + 1
+            # Parse per-voice scores: voice_scores=[architect=0.800 engineer=0.750 ...]
+            vs_m = re.search(r"voice_scores=\[([^\]]*)\]", entry.content)
+            if vs_m:
+                for pair in vs_m.group(1).split():
+                    if "=" in pair:
+                        k, v = pair.split("=", 1)
+                        try:
+                            voice_score_sums[k] = voice_score_sums.get(k, 0.0) + float(v)
+                            voice_score_counts[k] = voice_score_counts.get(k, 0) + 1
+                        except ValueError:
+                            pass
+
+        mean_coh = sum(coherences) / len(coherences) if coherences else 0.0
+        approval_rate = mark_type_counts.get("directive", 0) / max(len(entries), 1)
+        voice_means = {k: voice_score_sums[k] / voice_score_counts[k] for k in voice_score_sums}
+
+        top_marks = sorted(mark_type_counts.items(), key=lambda x: -x[1])
+        voice_lines = [f"- {k}: mean_score={v:.3f}" for k, v in sorted(voice_means.items())]
+        lines = [
+            "# EVO_DELIBERATION Skill (Auto-Synthesized from Nexus Journeys)",
+            "",
+            f"## Pattern Statistics ({len(entries)} deliberations)",
+            f"- Mean EVO coherence: {mean_coh:.3f}",
+            f"- Approval rate: {approval_rate:.1%}",
+            f"- Common outcomes: {', '.join(f'{k}({v})' for k, v in top_marks[:3])}",
+            "",
+            "## Per-Voice Mean Scores (E6 feedback)",
+            *voice_lines,
+            "",
+            "## Extracted Patterns",
+        ]
+        for entry in entries[:5]:
+            lines.append(f"- {entry.content}")
+        return "\n".join(lines)

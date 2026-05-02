@@ -41,6 +41,7 @@ TEST_PROMPTS = {
     "long": "Explain the concept of flash attention in transformer models, including why it reduces memory usage from O(n²) to O(n).",
 }
 
+
 def setup_rocm_env():
     """Configure ROCm environment for gfx1151."""
     os.environ["HSA_OVERRIDE_GFX_VERSION"] = "11.0.0"
@@ -53,12 +54,7 @@ def setup_rocm_env():
 
     # Verify ROCm can see GPU
     try:
-        result = subprocess.run(
-            ["rocminfo"],
-            capture_output=True,
-            text=True,
-            timeout=5
-        )
+        result = subprocess.run(["rocminfo"], capture_output=True, text=True, timeout=5)
         if "gfx1151" in result.stdout or "AMD Radeon" in result.stdout:
             print("  ✓ ROCm GPU detection working")
         else:
@@ -70,15 +66,22 @@ def setup_rocm_env():
 def start_rocm_server(ctx_size: int = 2048) -> subprocess.Popen:
     """Start ROCm backend server as subprocess."""
     cmd = [
-        "lemonade", "serve", MODEL,
-        "--backend", "rocm",
-        "--port", str(ROCM_PORT),
-        "--ctx-size", str(ctx_size),
+        "lemonade",
+        "serve",
+        MODEL,
+        "--backend",
+        "rocm",
+        "--port",
+        str(ROCM_PORT),
+        "--ctx-size",
+        str(ctx_size),
         "--flash-attn",  # Critical for ROCm performance
         "--no-mmap",
-        "--reasoning-format", "auto",
+        "--reasoning-format",
+        "auto",
         "--no-webui",
-        "-ngl", "99",
+        "-ngl",
+        "99",
     ]
 
     print(f"\n🚀 Starting ROCm server (ctx-size={ctx_size})...")
@@ -134,9 +137,7 @@ def test_inference(prompt: str, max_tokens: int = 50, timeout: int = 30) -> dict
 
     def make_request():
         return requests.post(
-            f"http://localhost:{ROCM_PORT}/v1/chat/completions",
-            json=payload,
-            timeout=timeout
+            f"http://localhost:{ROCM_PORT}/v1/chat/completions", json=payload, timeout=timeout
         )
 
     try:
@@ -207,12 +208,12 @@ def benchmark_comparison(n_requests: int = 4) -> dict:
     def make_one():
         start = time.time()
         r = requests.post(
-            f"http://localhost:{ROCM_PORT}/v1/chat/completions",
-            json=payload,
-            timeout=60
+            f"http://localhost:{ROCM_PORT}/v1/chat/completions", json=payload, timeout=60
         )
         elapsed = time.time() - start
-        tokens = r.json().get("usage", {}).get("completion_tokens", 0) if r.status_code == 200 else 0
+        tokens = (
+            r.json().get("usage", {}).get("completion_tokens", 0) if r.status_code == 200 else 0
+        )
         return {"elapsed": elapsed, "tokens": tokens}
 
     try:
@@ -307,13 +308,17 @@ def main():
                 results["tests"]["throughput"] = bench
 
                 if bench.get("success"):
-                    print(f"✓ Throughput: {bench['tps']:.1f} TPS ({bench['tps_per_req']:.1f} per request)")
+                    print(
+                        f"✓ Throughput: {bench['tps']:.1f} TPS ({bench['tps_per_req']:.1f} per request)"
+                    )
                 else:
                     print(f"✗ Throughput test failed: {bench.get('error')}")
 
-            results["status"] = "PASSED" if all(
-                r.get("success") for r in results["tests"].values() if isinstance(r, dict)
-            ) else "PARTIAL"
+            results["status"] = (
+                "PASSED"
+                if all(r.get("success") for r in results["tests"].values() if isinstance(r, dict))
+                else "PARTIAL"
+            )
 
         # Cleanup
         cleanup(server_proc)

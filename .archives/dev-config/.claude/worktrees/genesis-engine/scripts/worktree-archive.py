@@ -67,7 +67,8 @@ def create_bundle(worktree_path: Path, archive_dir: Path, slug: str) -> Path | N
 
         # Create bundle with all refs
         run_git(
-            "bundle", "create",
+            "bundle",
+            "create",
             str(bundle_path),
             "HEAD",
             cwd=worktree_path,
@@ -85,14 +86,8 @@ def archive_manifest(original_manifest: Path, archive_dir: Path, slug: str) -> P
     if original_manifest.exists():
         content = original_manifest.read_text()
         # Update status lines
-        content = content.replace(
-            "**Active**: true",
-            "**Active**: false (archived)"
-        )
-        content = content.replace(
-            "## Status",
-            f"## Status\n- **Archived**: {datetime.now().isoformat()}"
-        )
+        content = content.replace("**Active**: true", "**Active**: false (archived)")
+        content = content.replace("## Status", f"## Status\n- **Archived**: {datetime.now().isoformat()}")
         content += f"\n\n## Archive Info\n- **Archived At**: {datetime.now().isoformat()}\n"
     else:
         content = f"""# Archived Worktree: {slug}
@@ -175,7 +170,7 @@ def main():
         print(json.dumps(result, indent=2))
     else:
         if result["success"]:
-            print(f"Worktree archived successfully:")
+            print("Worktree archived successfully:")
             print(f"  Slug: {result['slug']}")
             print(f"  Archive Dir: {result['archive_dir']}")
             print(f"  Bundle: {result['bundle']}")

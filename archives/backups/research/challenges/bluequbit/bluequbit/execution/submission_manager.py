@@ -7,7 +7,6 @@ Pre-validates everything before using submissions.
 
 import json
 import time
-from typing import Dict, List, Optional, Callable
 from dataclasses import dataclass
 from enum import Enum
 
@@ -26,8 +25,8 @@ class PreSubmissionValidation:
     """Validation results before submission."""
 
     passed: bool
-    checks: Dict[str, bool]
-    warnings: List[str]
+    checks: dict[str, bool]
+    warnings: list[str]
     recommendation: str
 
 
@@ -51,15 +50,15 @@ class SubmissionManager:
         """
         self.max_submissions = max_submissions
         self.used = 0
-        self.submissions: List[Dict] = []
-        self.validation_history: List[PreSubmissionValidation] = []
+        self.submissions: list[dict] = []
+        self.validation_history: list[PreSubmissionValidation] = []
 
-        print(f"✓ SubmissionManager initialized")
+        print("✓ SubmissionManager initialized")
         print(f"  Max submissions: {max_submissions}")
 
     def pre_validate(
         self,
-        result: Dict,
+        result: dict,
         min_snr: float = 2.0,
         min_probability: float = 0.05,
         require_convergence: bool = True,
@@ -127,8 +126,8 @@ class SubmissionManager:
         )
 
     def validate_and_submit(
-        self, result: Dict, confidence_threshold: str = "HIGH"
-    ) -> Optional[Dict]:
+        self, result: dict, confidence_threshold: str = "HIGH"
+    ) -> dict | None:
         """
         Validate and submit if confidence is high enough.
 
@@ -152,13 +151,13 @@ class SubmissionManager:
         validation = self.pre_validate(result)
         self.validation_history.append(validation)
 
-        print(f"Validation:")
+        print("Validation:")
         for check, passed in validation.checks.items():
             status = "✓" if passed else "✗"
             print(f"  {status} {check}")
 
         if validation.warnings:
-            print(f"\nWarnings:")
+            print("\nWarnings:")
             for warning in validation.warnings:
                 print(f"  ⚠️ {warning}")
 
@@ -203,11 +202,11 @@ class SubmissionManager:
 
             return submission
         else:
-            print(f"\n❌ NOT SUBMITTED")
-            print(f"   Fix issues and retry")
+            print("\n❌ NOT SUBMITTED")
+            print("   Fix issues and retry")
             return None
 
-    def get_status(self) -> Dict:
+    def get_status(self) -> dict:
         """Get current submission status."""
         return {
             "used": self.used,
@@ -217,7 +216,7 @@ class SubmissionManager:
             "submissions": self.submissions,
         }
 
-    def get_best_submission(self) -> Optional[Dict]:
+    def get_best_submission(self) -> dict | None:
         """Get best submission so far."""
         if not self.submissions:
             return None

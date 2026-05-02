@@ -1,13 +1,11 @@
-import torch
 import ctypes
 import subprocess
-import os
-from typing import Tuple, Any
-import numpy as np
+
+import torch
 
 
 def custom_kernel(
-    data: Tuple[
+    data: tuple[
         torch.Tensor,
         torch.Tensor,
         torch.Tensor,

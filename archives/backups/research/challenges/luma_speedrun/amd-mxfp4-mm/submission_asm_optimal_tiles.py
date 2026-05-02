@@ -16,12 +16,13 @@ Ranked shapes and optimal tiles:
   M=256, N=3072,  K=1536 → 256x128 (PERFECT M match, single block!)
 """
 
-import torch
 import aiter
+import torch
 from aiter import dtypes
 from aiter.ops.triton.quant import dynamic_mxfp4_quant
 from aiter.utility.fp4_utils import e8m0_shuffle
 from task import input_t, output_t
+
 
 # Kernel name template
 _BASE = "_ZN5aiter{}f4gemm_bf16_per1x32Fp4_BpreShuffle_{}E"

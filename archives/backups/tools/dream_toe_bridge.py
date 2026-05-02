@@ -18,6 +18,7 @@ from datetime import UTC, datetime
 
 import httpx
 
+
 logging.basicConfig(level=logging.INFO, format="%(message)s")
 logger = logging.getLogger(__name__)
 

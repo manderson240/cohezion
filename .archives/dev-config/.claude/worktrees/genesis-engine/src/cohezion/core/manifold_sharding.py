@@ -94,9 +94,7 @@ class DistributedManifold:
             for shard in self._shards:
                 if shard.shard_id == shard_id:
                     if len(new_data) != shard.size:
-                        raise ValueError(
-                            f"Shard {shard_id} expects {shard.size} dims, got {len(new_data)}"
-                        )
+                        raise ValueError(f"Shard {shard_id} expects {shard.size} dims, got {len(new_data)}")
                     shard.data = list(new_data)
                     self._pointer_flips += 1
                     return
@@ -112,7 +110,6 @@ class DistributedManifold:
         #   diff=0   → 0.697 (tight boundary, near HIHO_HIGH)
         #   diff=0.5 → 0.500 (moderate tension, HIHO equilibrium)
         #   diff=1.0 → 0.302 (high tension, near HIHO_LOW)
-        import math as _math
 
         boundary_coherence = []
         for i in range(len(self._shards) - 1):

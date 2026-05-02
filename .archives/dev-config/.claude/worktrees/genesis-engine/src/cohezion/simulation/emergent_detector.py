@@ -63,9 +63,7 @@ class EmergenceReport:
             lines.append("| Cycle | Type | Magnitude | Description |")
             lines.append("|-------|------|-----------|-------------|")
             for e in self.events[:50]:  # Cap display
-                lines.append(
-                    f"| {e.cycle} | {e.event_type} | {e.magnitude:.4f} | {e.description} |"
-                )
+                lines.append(f"| {e.cycle} | {e.event_type} | {e.magnitude:.4f} | {e.description} |")
         else:
             lines.append("*No emergent events detected.*")
         return "\n".join(lines)
@@ -239,9 +237,7 @@ class EmergentDetector:
                         event_type="swarm_synchronization",
                         cycle=t,
                         magnitude=float(sim),
-                        description=(
-                            f"Swarm z-vectors synchronized (mean_sim={sim:.4f}, z={z:.2f})"
-                        ),
+                        description=(f"Swarm z-vectors synchronized (mean_sim={sim:.4f}, z={z:.2f})"),
                         agent_ids=(agent_ids[:5] if agent_ids else []),
                     )
                 )
@@ -280,21 +276,13 @@ class EmergentDetector:
             for cycle_idx in range(t):
                 z = (deviations[cycle_idx] - mean_dev) / std_dev
                 if z > self.novelty_threshold:
-                    aid = (
-                        agent_ids[agent_idx]
-                        if agent_ids and agent_idx < len(agent_ids)
-                        else f"agent_{agent_idx}"
-                    )
+                    aid = agent_ids[agent_idx] if agent_ids and agent_idx < len(agent_ids) else f"agent_{agent_idx}"
                     events.append(
                         EmergentEvent(
                             event_type="novelty_exploration",
                             cycle=cycle_idx,
                             magnitude=float(z),
-                            description=(
-                                f"{aid} entered novel z-space "
-                                f"(z={z:.2f}, "
-                                f"dev={deviations[cycle_idx]:.4f})"
-                            ),
+                            description=(f"{aid} entered novel z-space (z={z:.2f}, dev={deviations[cycle_idx]:.4f})"),
                             agent_ids=[aid],
                         )
                     )
@@ -334,9 +322,7 @@ class EmergentDetector:
                         cycle=cycle,
                         magnitude=float(density_ratio),
                         description=(
-                            f"Spontaneous clustering: "
-                            f"{density_ratio:.1%} of agents "
-                            f"within {threshold:.1f} distance"
+                            f"Spontaneous clustering: {density_ratio:.1%} of agents within {threshold:.1f} distance"
                         ),
                     )
                 )

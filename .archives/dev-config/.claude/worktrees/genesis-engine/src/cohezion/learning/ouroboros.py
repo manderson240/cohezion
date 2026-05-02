@@ -56,9 +56,7 @@ class OuroborosEngine:
         logger.info("Initiating recursive rewrite cycle to prevent future failure.")
 
         # Simulate an LLM call analyzing the failure and updating the prompt
-        new_rule = (
-            f"Prevent failure class observed in {exhaust.task_id} by limiting context window sizes."
-        )
+        new_rule = f"Prevent failure class observed in {exhaust.task_id} by limiting context window sizes."
         rewrite_entry = {
             "source_task": exhaust.task_id,
             "new_rule": new_rule,

@@ -15,10 +15,10 @@ rule-based simulation otherwise — ensuring the notebook always runs and produc
 # COMMAND ----------
 
 import json
-import os
 import random
 from dataclasses import dataclass, field
 from typing import Any
+
 
 SEED = 42
 random.seed(SEED)
@@ -28,9 +28,11 @@ random.seed(SEED)
 # Try to load real Gemma-4B when GPU is available
 # COMMAND ----------
 
+
 def _has_gpu() -> bool:
     try:
         import torch
+
         return torch.cuda.is_available()
     except Exception:
         return False
@@ -43,6 +45,7 @@ def _try_load_gemma() -> Any | None:
     try:
         import torch
         from transformers import pipeline
+
         print("GPU detected. Loading Gemma-4B-it...")
         # Use Gemma 3-4B-it (Kaggle has Gemma weights cached)
         llm = pipeline(
@@ -61,6 +64,7 @@ def _try_load_gemma() -> Any | None:
 # COMMAND ----------
 # Domain models
 # COMMAND ----------
+
 
 @dataclass
 class CrisisReport:
@@ -99,44 +103,80 @@ SCENARIOS = [
     {
         "name": "flood_evacuation",
         "reports": [
-            {"id": "f-001", "category": "flooding", "severity": 8,
-             "location": "Sector 7", "description": "Rising water levels, 200+ families trapped",
-             "affected_population": 1200, "resources_needed": ["boats", "medical", "shelter"]},
-            {"id": "f-002", "category": "flooding", "severity": 5,
-             "location": "Sector 3", "description": "Street flooding, traffic disruption",
-             "affected_population": 50, "resources_needed": ["pumps", "traffic_control"]},
+            {
+                "id": "f-001",
+                "category": "flooding",
+                "severity": 8,
+                "location": "Sector 7",
+                "description": "Rising water levels, 200+ families trapped",
+                "affected_population": 1200,
+                "resources_needed": ["boats", "medical", "shelter"],
+            },
+            {
+                "id": "f-002",
+                "category": "flooding",
+                "severity": 5,
+                "location": "Sector 3",
+                "description": "Street flooding, traffic disruption",
+                "affected_population": 50,
+                "resources_needed": ["pumps", "traffic_control"],
+            },
         ],
     },
     {
         "name": "earthquake_rescue",
         "reports": [
-            {"id": "e-001", "category": "earthquake", "severity": 9,
-             "location": "Downtown", "description": "Building collapse, people trapped",
-             "affected_population": 300, "resources_needed": ["rescue_teams", "medical", "heavy_equipment"]},
+            {
+                "id": "e-001",
+                "category": "earthquake",
+                "severity": 9,
+                "location": "Downtown",
+                "description": "Building collapse, people trapped",
+                "affected_population": 300,
+                "resources_needed": ["rescue_teams", "medical", "heavy_equipment"],
+            },
         ],
     },
     {
         "name": "food_shortage",
         "reports": [
-            {"id": "s-001", "category": "shortage", "severity": 6,
-             "location": "Refugee Camp Alpha", "description": "Food supplies running low for 5000 people",
-             "affected_population": 5000, "resources_needed": ["food", "water", "logistics"]},
+            {
+                "id": "s-001",
+                "category": "shortage",
+                "severity": 6,
+                "location": "Refugee Camp Alpha",
+                "description": "Food supplies running low for 5000 people",
+                "affected_population": 5000,
+                "resources_needed": ["food", "water", "logistics"],
+            },
         ],
     },
     {
         "name": "wildfire_spread",
         "reports": [
-            {"id": "w-001", "category": "wildfire", "severity": 10,
-             "location": "Northern Forest", "description": "Fire spreading toward residential area, 10km/h wind",
-             "affected_population": 8000, "resources_needed": ["firefighters", "air_support", "evacuation_buses"]},
+            {
+                "id": "w-001",
+                "category": "wildfire",
+                "severity": 10,
+                "location": "Northern Forest",
+                "description": "Fire spreading toward residential area, 10km/h wind",
+                "affected_population": 8000,
+                "resources_needed": ["firefighters", "air_support", "evacuation_buses"],
+            },
         ],
     },
     {
         "name": "medical_outbreak",
         "reports": [
-            {"id": "m-001", "category": "disease", "severity": 7,
-             "location": "Urban Clinic East", "description": "Suspected outbreak, 40 cases in 3 days",
-             "affected_population": 200, "resources_needed": ["quarantine", "testing", "medical_staff"]},
+            {
+                "id": "m-001",
+                "category": "disease",
+                "severity": 7,
+                "location": "Urban Clinic East",
+                "description": "Suspected outbreak, 40 cases in 3 days",
+                "affected_population": 200,
+                "resources_needed": ["quarantine", "testing", "medical_staff"],
+            },
         ],
     },
 ]
@@ -163,7 +203,9 @@ def simulate_reasoning(report: CrisisReport, skill: str) -> str:
         "wildfire": f"Immediate: Preemptive evacuation of {report.location}, establish firebreak before containment.",
         "disease": f"Immediate: Community-led contact tracing and isolation protocol at {report.location}.",
     }
-    return templates.get(report.category, f"Deploy all available resources to {report.location} immediately.")
+    return templates.get(
+        report.category, f"Deploy all available resources to {report.location} immediately."
+    )
 
 
 class CrisisCompoundAgent:
@@ -231,7 +273,10 @@ class CrisisCompoundAgent:
             effectiveness = (
                 0.3
                 + (sum(a.alignment_score for a in actions) / len(actions) * 0.4)
-                + (min(1.0, sum(len(a.resources_deployed) for a in actions) / len(actions) / 3) * 0.3)
+                + (
+                    min(1.0, sum(len(a.resources_deployed) for a in actions) / len(actions) / 3)
+                    * 0.3
+                )
             )
         outcome = ScenarioOutcome(
             scenario_name=scenario["name"],
@@ -245,12 +290,16 @@ class CrisisCompoundAgent:
     def refine_skills(self) -> dict[str, str]:
         updated = {}
         for category in self.skill_library:
-            related = [o for o in self.outcome_history if any(a.action_type == category for a in o.actions)]
+            related = [
+                o for o in self.outcome_history if any(a.action_type == category for a in o.actions)
+            ]
             if not related:
                 continue
             avg_eff = sum(o.effectiveness for o in related) / len(related)
             if avg_eff < 0.85:
-                self.skill_library[category] += f" (refined: improve speed, current avg {avg_eff:.2f})"
+                self.skill_library[category] += (
+                    f" (refined: improve speed, current avg {avg_eff:.2f})"
+                )
                 updated[category] = self.skill_library[category]
         return updated
 
@@ -258,9 +307,14 @@ class CrisisCompoundAgent:
         total_actions = sum(len(o.actions) for o in self.outcome_history)
         avg_alignment = (
             sum(a.alignment_score for o in self.outcome_history for a in o.actions) / total_actions
-            if total_actions else 0
+            if total_actions
+            else 0
         )
-        avg_eff = sum(o.effectiveness for o in self.outcome_history) / len(self.outcome_history) if self.outcome_history else 0
+        avg_eff = (
+            sum(o.effectiveness for o in self.outcome_history) / len(self.outcome_history)
+            if self.outcome_history
+            else 0
+        )
         return {
             "inference_mode": self.mode,
             "scenarios": len(self.outcome_history),
@@ -284,12 +338,16 @@ def main():
     outcomes = []
     for scenario in SCENARIOS:
         outcome = agent.process_scenario(scenario)
-        outcomes.append({
-            "name": outcome.scenario_name,
-            "actions": len(outcome.actions),
-            "effectiveness": round(outcome.effectiveness, 3),
-        })
-        print(f"Scenario: {outcome.scenario_name:25s} | Actions: {len(outcome.actions)} | Effectiveness: {outcome.effectiveness:.2f}")
+        outcomes.append(
+            {
+                "name": outcome.scenario_name,
+                "actions": len(outcome.actions),
+                "effectiveness": round(outcome.effectiveness, 3),
+            }
+        )
+        print(
+            f"Scenario: {outcome.scenario_name:25s} | Actions: {len(outcome.actions)} | Effectiveness: {outcome.effectiveness:.2f}"
+        )
 
     # Phase 2: Simulated skill refinement over 8 episodes
     print("\n" + "-" * 70)
@@ -297,13 +355,17 @@ def main():
     print("-" * 70)
     episodes = []
     for ep in range(1, 9):
-        episodes.append({
-            "episode": ep,
-            "avg_alignment": round(0.60 + ep * 0.02 + random.gauss(0, 0.02), 3),
-            "avg_effectiveness": round(0.75 + ep * 0.025 + random.gauss(0, 0.03), 3),
-            "refinements": ep // 2,
-        })
-        print(f"Episode {ep}: alignment={episodes[-1]['avg_alignment']:.3f} effectiveness={episodes[-1]['avg_effectiveness']:.3f}")
+        episodes.append(
+            {
+                "episode": ep,
+                "avg_alignment": round(0.60 + ep * 0.02 + random.gauss(0, 0.02), 3),
+                "avg_effectiveness": round(0.75 + ep * 0.025 + random.gauss(0, 0.03), 3),
+                "refinements": ep // 2,
+            }
+        )
+        print(
+            f"Episode {ep}: alignment={episodes[-1]['avg_alignment']:.3f} effectiveness={episodes[-1]['avg_effectiveness']:.3f}"
+        )
 
     refinement = agent.refine_skills()
     metrics = agent.get_metrics()
@@ -325,7 +387,9 @@ def main():
         "phase2_episodes": episodes,
         "phase2_improvement": {
             "alignment": round(episodes[-1]["avg_alignment"] - episodes[0]["avg_alignment"], 3),
-            "effectiveness": round(episodes[-1]["avg_effectiveness"] - episodes[0]["avg_effectiveness"], 3),
+            "effectiveness": round(
+                episodes[-1]["avg_effectiveness"] - episodes[0]["avg_effectiveness"], 3
+            ),
         },
         "refined_skills": agent.skill_library,
     }

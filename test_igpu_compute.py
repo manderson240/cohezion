@@ -22,14 +22,9 @@ def test_opencl_info():
     print("=" * 60)
 
     try:
-        result = subprocess.run(
-            ["clinfo"],
-            capture_output=True,
-            text=True,
-            timeout=10
-        )
+        result = subprocess.run(["clinfo"], capture_output=True, text=True, timeout=10)
 
-        lines = result.stdout.split('\n')
+        lines = result.stdout.split("\n")
         relevant = [
             "Platform Name",
             "Device Type",
@@ -61,13 +56,10 @@ def test_vulkan_info():
 
     try:
         result = subprocess.run(
-            ["vulkaninfo", "--summary"],
-            capture_output=True,
-            text=True,
-            timeout=10
+            ["vulkaninfo", "--summary"], capture_output=True, text=True, timeout=10
         )
 
-        for line in result.stdout.split('\n'):
+        for line in result.stdout.split("\n"):
             if any(x in line for x in ["deviceName", "deviceType", "driverVersion", "vendorID"]):
                 print(f"  {line.strip()}")
 
@@ -87,10 +79,7 @@ def test_vkcube():
     try:
         # vkcube won't display without display, but let's check if it runs
         result = subprocess.run(
-            ["vkcube", "--benchmark", "--duration", "5"],
-            capture_output=True,
-            text=True,
-            timeout=10
+            ["vkcube", "--benchmark", "--duration", "5"], capture_output=True, text=True, timeout=10
         )
         print(f"  Exit code: {result.returncode}")
         if result.stdout:
@@ -113,14 +102,14 @@ def test_opencl_compute():
     print("=" * 60)
 
     # Simple OpenCL kernel for vector addition
-    opencl_code = '''
+    opencl_code = """
     __kernel void vector_add(__global float* a, __global float* b, __global float* c, int n) {
         int i = get_global_id(0);
         if (i < n) {
             c[i] = a[i] + b[i];
         }
     }
-    '''
+    """
 
     try:
         import pyopencl as cl
@@ -133,7 +122,7 @@ def test_opencl_compute():
 
         amd_platform = None
         for p in platforms:
-            if 'AMD' in p.name:
+            if "AMD" in p.name:
                 amd_platform = p
                 break
 
@@ -247,6 +236,7 @@ def main():
     try:
         import numpy
         import pyopencl
+
         results.append(("OpenCL Compute", test_opencl_compute()))
     except ImportError:
         print("\n" + "=" * 60)

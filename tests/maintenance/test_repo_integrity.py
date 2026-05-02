@@ -1,5 +1,3 @@
-import os
-import subprocess
 from pathlib import Path
 
 
@@ -19,7 +17,7 @@ def test_core_files_exist():
 
 def test_gitignore_patterns():
     """Verify that new ignore patterns are present."""
-    with open(".gitignore", "r") as f:
+    with open(".gitignore") as f:
         content = f.read()
 
     assert "*.tar.gz" in content
@@ -37,7 +35,7 @@ def test_no_massive_backup_in_head():
 def test_mined_knowledge_preserved():
     """Verify that mined knowledge is in the mission journal."""
     journal_path = "src/cohezion/knowledge_graph/MISSION_JOURNAL.md"
-    with open(journal_path, "r") as f:
+    with open(journal_path) as f:
         content = f.read()
 
     assert "SESSION 89: REPOSITORY SIZE OPTIMIZATION & REPAIR" in content

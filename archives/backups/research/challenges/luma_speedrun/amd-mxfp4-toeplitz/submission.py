@@ -51,24 +51,21 @@ Date: 2026-04-06
 
 from __future__ import annotations
 
-import math
 import os
-import sys
-from typing import Tuple, Optional, List
 from dataclasses import dataclass
 from enum import Enum
 
 import torch
 import torch.nn.functional as F
 
+
 # POPCORN environment setup
 os.environ["PYTORCH_ROCM_ARCH"] = "gfx950"
 os.environ["CXX"] = "clang++"
 
 from aiter import gemm_a4w4
-from aiter.ops.triton.quant import dynamic_mxfp4_quant
-from aiter.utility.fp4_utils import e8m0_shuffle
 from task import input_t, output_t
+
 
 # =============================================================================
 # Toeplitz Structure Definitions
@@ -471,6 +468,6 @@ def custom_kernel(data: input_t) -> output_t:
             C = torch.matmul(A_bf16, B_bf16.T)
             return C.to(torch.bfloat16)
 
-    except Exception as e:
+    except Exception:
         # Fallback: use aiter's gemm_a4w4
         return gemm_a4w4(A_q, B_q, A_s, B_s)

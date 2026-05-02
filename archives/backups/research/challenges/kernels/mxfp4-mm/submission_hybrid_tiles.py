@@ -13,10 +13,9 @@ This hybrid approach matches the memory hierarchy better than
 uniform square tiles.
 """
 
-import torch
-import sys
 
 import aiter
+import torch
 from aiter import dtypes
 from aiter.ops.triton.quant import dynamic_mxfp4_quant
 from task import input_t, output_t
@@ -51,9 +50,7 @@ def _choose_hybrid_tiles(M: int, N: int, K: int) -> tuple[int, int, int]:
         tile_n = 128
 
     # K must be >= 128 for tl.dot_scaled on gfx950
-    if K <= 128:
-        tile_k = 128
-    elif K <= 256:
+    if K <= 128 or K <= 256:
         tile_k = 128
     elif K <= 512:
         tile_k = 256
@@ -219,7 +216,7 @@ def custom_kernel(data: input_t) -> output_t:
 
         return output
 
-    except Exception as e:
+    except Exception:
         from reference import ref_kernel
 
         return ref_kernel(data)

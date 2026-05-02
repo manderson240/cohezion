@@ -64,6 +64,7 @@ OLLAMA_URL = "http://localhost:11434/api/generate"
 # STATE
 # ════════════════════════════════════════════════════════════════
 
+
 @dataclass
 class ExperimentOutcome:
     run_id: str
@@ -139,7 +140,13 @@ def _load_state() -> dict:
                 return json.loads(lines[-1])
         except Exception:
             pass
-    return {"total_experiments": 0, "best_solve_rate": 0.0, "total_pushed": 0, "last_hypothesis": "", "hypotheses_tested": []}
+    return {
+        "total_experiments": 0,
+        "best_solve_rate": 0.0,
+        "total_pushed": 0,
+        "last_hypothesis": "",
+        "hypotheses_tested": [],
+    }
 
 
 def _save_state(state: dict) -> None:
@@ -152,15 +159,20 @@ def _save_state(state: dict) -> None:
 # LLM INFERENCE
 # ════════════════════════════════════════════════════════════════
 
+
 def _igpu_infer(prompt: str, max_tokens: int = 4096) -> str:
     try:
         import requests
+
         resp = requests.post(
             LEMONADE_URL,
             json={
                 "model": "gemma-4-e4b-it",
                 "messages": [
-                    {"role": "system", "content": "You are a Python expert specializing in ARC-AGI pattern recognition. Output ONLY code wrapped in ```python``` blocks."},
+                    {
+                        "role": "system",
+                        "content": "You are a Python expert specializing in ARC-AGI pattern recognition. Output ONLY code wrapped in ```python``` blocks.",
+                    },
                     {"role": "user", "content": prompt},
                 ],
                 "max_tokens": max_tokens,
@@ -178,9 +190,15 @@ def _igpu_infer(prompt: str, max_tokens: int = 4096) -> str:
 def _cpu_infer(prompt: str, model: str = "phi4:latest", max_tokens: int = 2048) -> str:
     try:
         import requests
+
         resp = requests.post(
             OLLAMA_URL,
-            json={"model": model, "prompt": prompt, "stream": False, "options": {"num_predict": max_tokens, "temperature": 0.3}},
+            json={
+                "model": model,
+                "prompt": prompt,
+                "stream": False,
+                "options": {"num_predict": max_tokens, "temperature": 0.3},
+            },
             timeout=90,
         )
         return resp.json().get("response", "")
@@ -233,11 +251,13 @@ Make the solver more powerful. No explanations outside code block."""
 # HARNESS
 # ════════════════════════════════════════════════════════════════
 
+
 def _verify_syntax(code: str) -> tuple[bool, str]:
     tmp = Path(f"/tmp/arpao_verify_{uuid.uuid4().hex[:8]}.py")
     tmp.write_text(code)
     try:
         import py_compile
+
         py_compile.compile(tmp, doraise=True)
         return True, "Syntax OK"
     except py_compile.PyCompileError as e:
@@ -250,17 +270,24 @@ def _verify_syntax(code: str) -> tuple[bool, str]:
 # EVALUATION
 # ════════════════════════════════════════════════════════════════
 
-def _eval_locally(code: str, max_tasks: int = None, timeout: int = BUDGET_SECONDS) -> tuple[float, int, int, str]:
+
+def _eval_locally(
+    code: str, max_tasks: int = None, timeout: int = BUDGET_SECONDS
+) -> tuple[float, int, int, str]:
     """Run eval_arc_solver.py on the variant."""
     tmp = Path(f"/tmp/arpao_solver_{uuid.uuid4().hex[:8]}.py")
     tmp.write_text(code)
 
     try:
         cmd = [
-            sys.executable, str(ARC_EVAL_SCRIPT),
-            "--solver", str(tmp),
-            "--budget", "3000",
-            "--max-depth", "3",
+            sys.executable,
+            str(ARC_EVAL_SCRIPT),
+            "--solver",
+            str(tmp),
+            "--budget",
+            "3000",
+            "--max-depth",
+            "3",
         ]
         if max_tasks:
             cmd += ["--max-tasks", str(max_tasks)]
@@ -294,7 +321,10 @@ def _eval_locally(code: str, max_tasks: int = None, timeout: int = BUDGET_SECOND
 # KAGGLE PUSH
 # ════════════════════════════════════════════════════════════════
 
-def _push_to_kaggle(code: str, competition: str = "arc-prize-2026-arc-agi-3") -> tuple[float, str, str]:
+
+def _push_to_kaggle(
+    code: str, competition: str = "arc-prize-2026-arc-agi-3"
+) -> tuple[float, str, str]:
     """Push variant to Kaggle and poll for score."""
     import tempfile
     from pathlib import Path
@@ -305,9 +335,14 @@ def _push_to_kaggle(code: str, competition: str = "arc-prize-2026-arc-agi-3") ->
 
         _LOGGER.info(f"Pushing to Kaggle ({competition})...")
         proc = subprocess.run(
-            [sys.executable, str(KAGGLE_SUBMIT_SCRIPT),
-             "--solver", str(solver_path),
-             "--competition", competition],
+            [
+                sys.executable,
+                str(KAGGLE_SUBMIT_SCRIPT),
+                "--solver",
+                str(solver_path),
+                "--competition",
+                competition,
+            ],
             capture_output=True,
             text=True,
             timeout=120,
@@ -354,14 +389,19 @@ _DEFAULT_HYPOTHESES = [
 ]
 
 
-def run_arpao(iterations: int = 2, push_to_kaggle: bool = True, quick_eval: bool = False) -> list[ExperimentOutcome]:
+def run_arpao(
+    iterations: int = 2, push_to_kaggle: bool = True, quick_eval: bool = False
+) -> list[ExperimentOutcome]:
     tree = _load_tree()
     state = _load_state()
     outcomes: list[ExperimentOutcome] = []
 
     # If this is first run, seed hypotheses into tree
     if not tree.get("nodes"):
-        tree["nodes"] = {h: {"hypothesis": h, "wins": 0, "trials": 0, "metric_values": []} for h in _DEFAULT_HYPOTHESES}
+        tree["nodes"] = {
+            h: {"hypothesis": h, "wins": 0, "trials": 0, "metric_values": []}
+            for h in _DEFAULT_HYPOTHESES
+        }
 
     for i in range(iterations):
         # Use locally-tested hypotheses from previous runs
@@ -374,7 +414,7 @@ def run_arpao(iterations: int = 2, push_to_kaggle: bool = True, quick_eval: bool
         else:
             hypothesis = _ucb1_select(tree, all_h)
 
-        _LOGGER.info(f"[{i+1}/{iterations}] Hypothesis='{hypothesis}'")
+        _LOGGER.info(f"[{i + 1}/{iterations}] Hypothesis='{hypothesis}'")
 
         # Generate variant
         code, model = _generate_variant(hypothesis)
@@ -388,9 +428,15 @@ def run_arpao(iterations: int = 2, push_to_kaggle: bool = True, quick_eval: bool
             _LOGGER.warning(f"Harness FAILED: {msg}")
             outcome = ExperimentOutcome(
                 run_id=f"arpao_{uuid.uuid4().hex[:8]}",
-                hypothesis=hypothesis, solve_rate=0.0, correct=0, total=0,
-                wall_time_s=0, status="error", pushed_to_kaggle=False,
-                kaggle_score=None, model_used=model,
+                hypothesis=hypothesis,
+                solve_rate=0.0,
+                correct=0,
+                total=0,
+                wall_time_s=0,
+                status="error",
+                pushed_to_kaggle=False,
+                kaggle_score=None,
+                model_used=model,
             )
             outcomes.append(outcome)
             _update_tree(tree, outcome)
@@ -413,10 +459,14 @@ def run_arpao(iterations: int = 2, push_to_kaggle: bool = True, quick_eval: bool
         kaggle_score = None
         if push_to_kaggle and solve_rate > KAGGLE_PUSH_THRESHOLD:
             kaggle_score, kaggle_status, kernel_id = _push_to_kaggle(code)
-            _LOGGER.info(f"Kaggle: score={kaggle_score}, status={kaggle_status}, kernel={kernel_id}")
+            _LOGGER.info(
+                f"Kaggle: score={kaggle_score}, status={kaggle_status}, kernel={kernel_id}"
+            )
             pushed = kaggle_status == "complete"
         elif push_to_kaggle:
-            _LOGGER.info(f"Solve rate {solve_rate:.4f} < threshold {KAGGLE_PUSH_THRESHOLD}; skipping Kaggle push")
+            _LOGGER.info(
+                f"Solve rate {solve_rate:.4f} < threshold {KAGGLE_PUSH_THRESHOLD}; skipping Kaggle push"
+            )
 
         outcome = ExperimentOutcome(
             run_id=f"arpao_{uuid.uuid4().hex[:8]}",
@@ -462,6 +512,7 @@ def run_arpao(iterations: int = 2, push_to_kaggle: bool = True, quick_eval: bool
 # VAULT ARCHIVE
 # ════════════════════════════════════════════════════════════════
 
+
 def _archive_to_vault(outcome: ExperimentOutcome) -> None:
     VAULT_DIR.mkdir(parents=True, exist_ok=True)
     fname = VAULT_DIR / f"arpao_{outcome.run_id}.md"
@@ -474,7 +525,7 @@ correct: {outcome.correct}
 total: {outcome.total}
 status: {outcome.status}
 pushed_to_kaggle: {outcome.pushed_to_kaggle}
-kaggle_score: {outcome.kaggle_score or 'null'}
+kaggle_score: {outcome.kaggle_score or "null"}
 model_used: {outcome.model_used}
 timestamp: {outcome.timestamp}
 ---
@@ -487,7 +538,7 @@ timestamp: {outcome.timestamp}
 - **Correct**: {outcome.correct}/{outcome.total}
 - **Status**: {outcome.status}
 - **Kaggle pushed**: {outcome.pushed_to_kaggle}
-- **Kaggle score**: {outcome.kaggle_score or 'N/A'}
+- **Kaggle score**: {outcome.kaggle_score or "N/A"}
 
 ---
 """
@@ -500,6 +551,7 @@ timestamp: {outcome.timestamp}
 
 if __name__ == "__main__":
     import argparse
+
     parser = argparse.ArgumentParser(description="ARC Prize AutoResearch Orchestrator")
     parser.add_argument("--iterations", type=int, default=2)
     parser.add_argument("--no-kaggle", action="store_true", help="Skip Kaggle push")

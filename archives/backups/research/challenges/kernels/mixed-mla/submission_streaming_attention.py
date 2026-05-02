@@ -9,10 +9,9 @@ Reduces O(N^2) memory to O(N) for linear scan, O(N log N) for hierarchical.
 POPCORN: amd-mixed-mla
 """
 
+
 import torch
 import torch.nn.functional as F
-import math
-from typing import Optional, Tuple
 from task import input_t, output_t
 
 
@@ -39,7 +38,7 @@ class StreamingAttention:
         key: torch.Tensor,
         value: torch.Tensor,
         scale: float,
-        attention_mask: Optional[torch.Tensor] = None,
+        attention_mask: torch.Tensor | None = None,
     ) -> torch.Tensor:
         """
         Compute attention in streaming fashion.
@@ -131,7 +130,7 @@ class StreamingAttention:
         key: torch.Tensor,
         value: torch.Tensor,
         scale: float,
-        attention_mask: Optional[torch.Tensor],
+        attention_mask: torch.Tensor | None,
     ) -> torch.Tensor:
         """Standard full attention for short sequences."""
         scores = torch.matmul(query, key.transpose(-2, -1)) * scale

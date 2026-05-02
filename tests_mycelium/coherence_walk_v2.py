@@ -1,4 +1,3 @@
-
 import json
 import math
 import random
@@ -21,7 +20,7 @@ for _ in range(200):
     coherence = max(0.0, min(1.0, coherence))
     trajectory.append(round(coherence, 6))
 mean_c = sum(trajectory) / len(trajectory)
-std_c = math.sqrt(sum((c-mean_c)**2 for c in trajectory) / len(trajectory))
+std_c = math.sqrt(sum((c - mean_c) ** 2 for c in trajectory) / len(trajectory))
 result = {
     "target": TARGET,
     "mean": round(mean_c, 6),

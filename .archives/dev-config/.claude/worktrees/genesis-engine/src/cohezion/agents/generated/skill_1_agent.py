@@ -8,10 +8,13 @@ from typing import Any
 from cohezion.core.instruction_expander import ExecutablePlan, PlanStep
 from cohezion.core.plan_executor import ExecutionResult, PlanExecutor
 
+
 _PLAN = ExecutablePlan(
     skill_name="SKILL_1_PRIME",
     steps=[
-        PlanStep(operation="search", params={'search_type': 'capability'}, description="Search for items in category 1"),
+        PlanStep(
+            operation="search", params={"search_type": "capability"}, description="Search for items in category 1"
+        ),
         PlanStep(operation="generate", params={}, description="Generate a summary"),
     ],
     domain="Domain for skill 1.",

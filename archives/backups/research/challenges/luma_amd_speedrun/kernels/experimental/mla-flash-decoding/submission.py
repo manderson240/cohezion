@@ -19,13 +19,14 @@ Flash Decoding: Optimized for inference with KV cache.
 """
 
 from __future__ import annotations
+
+import math
 import os
 import sys
-import math
+
 import torch
-from typing import Optional
-from aiter import dtypes as aiter_dtypes
 from task import input_t, output_t
+
 
 os.environ["AITER_MLA_USE_PERSISTENT"] = "1"
 os.environ["AITER_USE_NT"] = "1"
@@ -125,7 +126,7 @@ class FlashDecodingKernel:
 
 
 # Global flash decoding instance
-_FLASH_DECODE: Optional[FlashDecodingKernel] = None
+_FLASH_DECODE: FlashDecodingKernel | None = None
 
 
 def _get_flash_decode() -> FlashDecodingKernel:

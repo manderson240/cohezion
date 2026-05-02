@@ -3,16 +3,15 @@ BlueQubit Submission Pipeline
 Automated submission, monitoring, and result handling
 """
 
-import os
 import json
 import time
+from dataclasses import dataclass
 from datetime import datetime
 from pathlib import Path
-from typing import Dict, List, Optional
-from dataclasses import dataclass, asdict
-from dotenv import load_dotenv
+
 import bluequbit
 import qiskit
+from dotenv import load_dotenv
 
 
 @dataclass
@@ -20,14 +19,14 @@ class SubmissionResult:
     """Structured submission result."""
 
     job_id: str
-    bitstring: Optional[str]
-    probability: Optional[float]
-    snr: Optional[float]
+    bitstring: str | None
+    probability: float | None
+    snr: float | None
     timestamp: str
     device: str
     shots: int
     status: str
-    metadata: Dict
+    metadata: dict
 
 
 class SubmissionPipeline:
@@ -49,9 +48,9 @@ class SubmissionPipeline:
 
         self.bq = bluequbit.init()
         self.log_file = Path(log_file)
-        self.submissions: List[Dict] = []
+        self.submissions: list[dict] = []
 
-        print(f"✓ SubmissionPipeline initialized")
+        print("✓ SubmissionPipeline initialized")
         print(f"  Log file: {self.log_file}")
 
     def submit_circuit(
@@ -60,7 +59,7 @@ class SubmissionPipeline:
         device: str = "mps.cpu",
         shots: int = 100000,
         async_mode: bool = False,
-        metadata: Optional[Dict] = None,
+        metadata: dict | None = None,
     ) -> str:
         """
         Submit a circuit for execution.
@@ -76,7 +75,7 @@ class SubmissionPipeline:
             job_id: Submission ID
         """
         print(f"\n{'=' * 60}")
-        print(f"Submitting Circuit")
+        print("Submitting Circuit")
         print(f"{'=' * 60}")
         print(f"Qubits: {circuit.num_qubits}")
         print(f"Device: {device}")
@@ -86,7 +85,7 @@ class SubmissionPipeline:
         # Validate circuit size
         if circuit.num_qubits > 17 and shots == 0:
             print(f"⚠ WARNING: Circuit has {circuit.num_qubits} qubits but shots=0")
-            print(f"  Setting shots=1024 for MPS device compatibility")
+            print("  Setting shots=1024 for MPS device compatibility")
             shots = 1024
 
         # Estimate before submission
@@ -120,7 +119,7 @@ class SubmissionPipeline:
 
         return job_id
 
-    def monitor_job(self, job_id: str, poll_interval: int = 5, timeout: int = 600) -> Dict:
+    def monitor_job(self, job_id: str, poll_interval: int = 5, timeout: int = 600) -> dict:
         """
         Monitor job until completion.
 
@@ -145,7 +144,7 @@ class SubmissionPipeline:
                 result = self.bq.get(job_id)
                 counts = result.get_counts()
 
-                print(f"✓ Job completed!")
+                print("✓ Job completed!")
                 print(f"  Runtime: {time.time() - start_time:.1f}s")
                 print(f"  Distinct states: {len(counts)}")
 
@@ -170,8 +169,8 @@ class SubmissionPipeline:
         raise TimeoutError(f"Job {job_id} did not complete within {timeout}s")
 
     def extract_heavy_output(
-        self, counts: Dict, threshold: float = 0.5
-    ) -> Optional[SubmissionResult]:
+        self, counts: dict, threshold: float = 0.5
+    ) -> SubmissionResult | None:
         """
         Extract heavy output from counts.
 
@@ -254,7 +253,7 @@ class SubmissionPipeline:
             heavy.shots = shots
 
             print(f"\n{'=' * 60}")
-            print(f"Heavy Output Extracted")
+            print("Heavy Output Extracted")
             print(f"{'=' * 60}")
             print(f"Bitstring: {heavy.bitstring}")
             print(f"Probability: {heavy.probability:.6f}")
@@ -276,14 +275,14 @@ class SubmissionPipeline:
                 metadata={},
             )
 
-    def _log_submission(self, submission: Dict):
+    def _log_submission(self, submission: dict):
         """Log submission to file."""
         with open(self.log_file, "a") as f:
             f.write(json.dumps(submission) + "\n")
 
         self.submissions.append(submission)
 
-    def get_submission_history(self) -> List[Dict]:
+    def get_submission_history(self) -> list[dict]:
         """Retrieve all submission history."""
         if self.log_file.exists():
             with open(self.log_file) as f:

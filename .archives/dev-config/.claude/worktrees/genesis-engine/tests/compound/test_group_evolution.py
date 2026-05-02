@@ -8,13 +8,11 @@ Tests the core GEA concepts integrated into Cohezion's compound engineering:
 - GroupEvolutionEngine (end-to-end evolution cycle)
 """
 
-import math
 
 import pytest
 
 from cohezion.compound.group_evolution import (
     AgentCandidate,
-    ArchiveEntry,
     EvolutionDirective,
     ExperienceTrace,
     ExperienceTraceType,
@@ -50,7 +48,8 @@ class TestTaskSuccessVector:
     def test_solve_rate(self):
         """Solve rate is fraction of tasks solved."""
         vec = TaskSuccessVector.from_execution_history(
-            agent_id="a", task_ids=["t1", "t2", "t3", "t4"],
+            agent_id="a",
+            task_ids=["t1", "t2", "t3", "t4"],
             results=[True, False, True, True],
         )
         assert vec.solve_rate == pytest.approx(0.75)
@@ -58,18 +57,22 @@ class TestTaskSuccessVector:
     def test_solve_rate_empty(self):
         """Empty vector has zero solve rate."""
         vec = TaskSuccessVector.from_execution_history(
-            agent_id="a", task_ids=[], results=[],
+            agent_id="a",
+            task_ids=[],
+            results=[],
         )
         assert vec.solve_rate == 0.0
 
     def test_cosine_distance_identical(self):
         """Identical vectors have zero distance."""
         vec_a = TaskSuccessVector.from_execution_history(
-            agent_id="a", task_ids=["t1", "t2", "t3"],
+            agent_id="a",
+            task_ids=["t1", "t2", "t3"],
             results=[True, True, False],
         )
         vec_b = TaskSuccessVector.from_execution_history(
-            agent_id="b", task_ids=["t1", "t2", "t3"],
+            agent_id="b",
+            task_ids=["t1", "t2", "t3"],
             results=[True, True, False],
         )
         dist = vec_a.cosine_distance(vec_b)
@@ -78,11 +81,13 @@ class TestTaskSuccessVector:
     def test_cosine_distance_orthogonal(self):
         """Orthogonal vectors have distance 1.0."""
         vec_a = TaskSuccessVector.from_execution_history(
-            agent_id="a", task_ids=["t1", "t2", "t3", "t4"],
+            agent_id="a",
+            task_ids=["t1", "t2", "t3", "t4"],
             results=[True, True, False, False],
         )
         vec_b = TaskSuccessVector.from_execution_history(
-            agent_id="b", task_ids=["t1", "t2", "t3", "t4"],
+            agent_id="b",
+            task_ids=["t1", "t2", "t3", "t4"],
             results=[False, False, True, True],
         )
         dist = vec_a.cosine_distance(vec_b)
@@ -91,25 +96,27 @@ class TestTaskSuccessVector:
     def test_cosine_distance_symmetry(self):
         """Cosine distance is symmetric: d(a,b) == d(b,a)."""
         vec_a = TaskSuccessVector.from_execution_history(
-            agent_id="a", task_ids=["t1", "t2", "t3"],
+            agent_id="a",
+            task_ids=["t1", "t2", "t3"],
             results=[True, False, True],
         )
         vec_b = TaskSuccessVector.from_execution_history(
-            agent_id="b", task_ids=["t1", "t2", "t3"],
+            agent_id="b",
+            task_ids=["t1", "t2", "t3"],
             results=[True, True, False],
         )
-        assert vec_a.cosine_distance(vec_b) == pytest.approx(
-            vec_b.cosine_distance(vec_a), abs=1e-10
-        )
+        assert vec_a.cosine_distance(vec_b) == pytest.approx(vec_b.cosine_distance(vec_a), abs=1e-10)
 
     def test_cosine_distance_range(self):
         """Cosine distance is in [0, 1] for non-negative vectors."""
         vec_a = TaskSuccessVector.from_execution_history(
-            agent_id="a", task_ids=["t1", "t2", "t3"],
+            agent_id="a",
+            task_ids=["t1", "t2", "t3"],
             results=[True, False, True],
         )
         vec_b = TaskSuccessVector.from_execution_history(
-            agent_id="b", task_ids=["t1", "t2", "t3"],
+            agent_id="b",
+            task_ids=["t1", "t2", "t3"],
             results=[False, True, True],
         )
         dist = vec_a.cosine_distance(vec_b)
@@ -128,7 +135,9 @@ class TestNoveltyScorer:
         """Single agent in archive has maximum novelty."""
         scorer = NoveltyScorer(m_neighbors=4)
         agent = TaskSuccessVector.from_execution_history(
-            agent_id="a", task_ids=["t1"], results=[True],
+            agent_id="a",
+            task_ids=["t1"],
+            results=[True],
         )
         novelty = scorer.compute_novelty(agent, [agent])
         assert novelty == 1.0
@@ -138,7 +147,8 @@ class TestNoveltyScorer:
         scorer = NoveltyScorer(m_neighbors=2)
         agents = [
             TaskSuccessVector.from_execution_history(
-                agent_id=f"a{i}", task_ids=["t1", "t2", "t3"],
+                agent_id=f"a{i}",
+                task_ids=["t1", "t2", "t3"],
                 results=[True, True, False],
             )
             for i in range(5)
@@ -151,15 +161,18 @@ class TestNoveltyScorer:
         scorer = NoveltyScorer(m_neighbors=2)
         agents = [
             TaskSuccessVector.from_execution_history(
-                agent_id="a0", task_ids=["t1", "t2", "t3", "t4"],
+                agent_id="a0",
+                task_ids=["t1", "t2", "t3", "t4"],
                 results=[True, True, False, False],
             ),
             TaskSuccessVector.from_execution_history(
-                agent_id="a1", task_ids=["t1", "t2", "t3", "t4"],
+                agent_id="a1",
+                task_ids=["t1", "t2", "t3", "t4"],
                 results=[False, False, True, True],
             ),
             TaskSuccessVector.from_execution_history(
-                agent_id="a2", task_ids=["t1", "t2", "t3", "t4"],
+                agent_id="a2",
+                task_ids=["t1", "t2", "t3", "t4"],
                 results=[True, False, True, False],
             ),
         ]
@@ -172,7 +185,8 @@ class TestNoveltyScorer:
         scorer = NoveltyScorer(m_neighbors=10)
         agents = [
             TaskSuccessVector.from_execution_history(
-                agent_id=f"a{i}", task_ids=["t1", "t2"],
+                agent_id=f"a{i}",
+                task_ids=["t1", "t2"],
                 results=[i % 2 == 0, i % 2 != 0],
             )
             for i in range(3)
@@ -244,25 +258,19 @@ class TestPerformanceNoveltySelector:
 
     def test_performance_only_strategy(self, candidates):
         """Performance-only selects highest performers."""
-        selector = PerformanceNoveltySelector(
-            group_size=2, strategy=SelectionStrategy.PERFORMANCE_ONLY
-        )
+        selector = PerformanceNoveltySelector(group_size=2, strategy=SelectionStrategy.PERFORMANCE_ONLY)
         parents = selector.select_parent_group(candidates)
         assert parents[0].agent_id == "high-perf"
 
     def test_novelty_only_strategy(self, candidates):
         """Novelty-only selects most novel agents."""
-        selector = PerformanceNoveltySelector(
-            group_size=2, strategy=SelectionStrategy.NOVELTY_ONLY
-        )
+        selector = PerformanceNoveltySelector(group_size=2, strategy=SelectionStrategy.NOVELTY_ONLY)
         parents = selector.select_parent_group(candidates)
         assert parents[0].agent_id == "high-novel"
 
     def test_hiho_balanced_strategy(self, candidates):
         """HIHO balanced weights by HIHO score * performance."""
-        selector = PerformanceNoveltySelector(
-            group_size=2, strategy=SelectionStrategy.HIHO_BALANCED
-        )
+        selector = PerformanceNoveltySelector(group_size=2, strategy=SelectionStrategy.HIHO_BALANCED)
         parents = selector.select_parent_group(candidates)
         assert len(parents) == 2
 
@@ -565,15 +573,21 @@ class TestGroupEvolutionEngine:
         # Generation 0: two parents
         for pid in ["p1", "p2"]:
             vec = TaskSuccessVector.from_execution_history(
-                agent_id=pid, task_ids=["t1", "t2"], results=[True, True],
+                agent_id=pid,
+                task_ids=["t1", "t2"],
+                results=[True, True],
             )
             engine.add_to_archive(
-                agent_id=pid, parent_ids=[], success_vector=vec,
+                agent_id=pid,
+                parent_ids=[],
+                success_vector=vec,
             )
 
         # Generation 1: offspring of p1 and p2
         vec = TaskSuccessVector.from_execution_history(
-            agent_id="child-1", task_ids=["t1", "t2"], results=[True, True],
+            agent_id="child-1",
+            task_ids=["t1", "t2"],
+            results=[True, True],
         )
         entry = engine.add_to_archive(
             agent_id="child-1",
@@ -597,9 +611,7 @@ class TestEndToEndEvolution:
         agents = [
             {
                 "agent_id": f"agent-{i}",
-                "execution_results": [
-                    (i + j) % 3 != 0 for j in range(10)
-                ],
+                "execution_results": [(i + j) % 3 != 0 for j in range(10)],
                 "coherence": 0.5,
             }
             for i in range(4)
@@ -646,12 +658,7 @@ class TestEndToEndEvolution:
         for i, parent in enumerate(parents):
             offspring_id = f"offspring-{i}"
             # Offspring might solve different tasks than parent
-            offspring_results = [
-                not r if j % 4 == 0 else r
-                for j, r in enumerate(
-                    agents[i]["execution_results"]
-                )
-            ]
+            offspring_results = [not r if j % 4 == 0 else r for j, r in enumerate(agents[i]["execution_results"])]
             vec = TaskSuccessVector.from_execution_history(
                 agent_id=offspring_id,
                 task_ids=task_ids,

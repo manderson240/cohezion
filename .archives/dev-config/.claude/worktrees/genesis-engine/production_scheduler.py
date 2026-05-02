@@ -22,9 +22,11 @@ from typing import Any
 
 import yaml
 
+
 sys.path.insert(0, "/home/mike-anderson/dev/cohezion/src")
 
 from cohezion.research.token_efficient_squad import TokenEfficientSquad
+
 
 logging.basicConfig(
     level=logging.INFO,
@@ -84,9 +86,7 @@ class ProductionScheduler:
 
         logger.info(f"Loaded {len(self.skills)} skills from config")
 
-    def calculate_weighted_score(
-        self, coherence: float, success: float, time_ms: float, config: SkillConfig
-    ) -> float:
+    def calculate_weighted_score(self, coherence: float, success: float, time_ms: float, config: SkillConfig) -> float:
         """Calculate multi-metric weighted score."""
         time_score = max(0, 1 - (time_ms / 10000))
         return (
@@ -95,9 +95,7 @@ class ProductionScheduler:
             + time_score * config.execution_time_weight
         )
 
-    async def optimize_skill(
-        self, skill_name: str, config: SkillConfig, mode: str = "full"
-    ) -> dict[str, Any]:
+    async def optimize_skill(self, skill_name: str, config: SkillConfig, mode: str = "full") -> dict[str, Any]:
         """Optimize single skill with live execution."""
 
         logger.info(f"\n{'=' * 60}")
@@ -163,12 +161,8 @@ class ProductionScheduler:
                 time_after = time_before * (1 - improvement / 200)
 
                 # Calculate weighted score
-                score_before = self.calculate_weighted_score(
-                    coherence_before, success_before, time_before, config
-                )
-                score_after = self.calculate_weighted_score(
-                    coherence_after, success_after, time_after, config
-                )
+                score_before = self.calculate_weighted_score(coherence_before, success_before, time_before, config)
+                score_after = self.calculate_weighted_score(coherence_after, success_after, time_after, config)
 
                 # Check success
                 success = improvement >= config.threshold
@@ -195,7 +189,7 @@ class ProductionScheduler:
                 }
 
                 # Log results
-                logger.info(f"\n✅ Optimization Complete!")
+                logger.info("\n✅ Optimization Complete!")
                 logger.info(f"  Improvement: {improvement:.1f}%")
                 logger.info(f"  Threshold: {config.threshold}%")
                 logger.info(f"  Success: {success}")
@@ -334,9 +328,7 @@ class ProductionScheduler:
 def main():
     parser = argparse.ArgumentParser(description="Production TokenEfficientSquad Scheduler")
     parser.add_argument("--skill", help="Optimize specific skill")
-    parser.add_argument(
-        "--mode", choices=["full", "quick", "validate"], default="full", help="Optimization mode"
-    )
+    parser.add_argument("--mode", choices=["full", "quick", "validate"], default="full", help="Optimization mode")
     parser.add_argument("--config", default="config/production.yaml", help="Config file path")
     args = parser.parse_args()
 
@@ -347,7 +339,7 @@ def main():
     else:
         result = asyncio.run(scheduler.run_production(mode=args.mode, specific_skill=args.skill))
 
-    print(f"\n🎉 Production run complete")
+    print("\n🎉 Production run complete")
     print(f"   Mode: {result.get('mode', 'unknown')}")
     print(f"   Skills: {result.get('summary', {}).get('skills', 0)}")
     print(f"   Optimized: {result.get('summary', {}).get('optimized', 0)}")

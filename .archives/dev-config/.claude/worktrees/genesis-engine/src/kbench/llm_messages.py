@@ -12,11 +12,13 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 import dataclasses
-from typing import Iterable, Self, TypeVar
+from collections.abc import Iterable
+from typing import Self, TypeVar
 
 from kaggle_benchmarks import chats, messages, utils
 from kaggle_benchmarks import tools as tool_utils
 from kaggle_benchmarks.usage import Usage
+
 
 T = TypeVar("T")
 
@@ -28,9 +30,7 @@ class LLMMessage(messages.Message[T]):
     content: T
     _status: utils.Status = utils.Status.RUNNING
     thinking: str | None = None
-    tool_calls: (
-        list[tool_utils.ToolInvocation | tool_utils.ToolInvocationResult] | None
-    ) = None
+    tool_calls: list[tool_utils.ToolInvocation | tool_utils.ToolInvocationResult] | None = None
     usage: Usage | None = None
     # Used to keep the history that was sent to the LLM and may include response
     # format and tool invocation instructions.
@@ -45,9 +45,7 @@ class LLMMessage(messages.Message[T]):
     @classmethod
     def from_chunks(
         cls,
-        chunks: Iterable[
-            str | tool_utils.ToolInvocation | tool_utils.ToolInvocationResult | Usage
-        ],
+        chunks: Iterable[str | tool_utils.ToolInvocation | tool_utils.ToolInvocationResult | Usage],
         **kwargs,
     ) -> Self:
         """Constructs an LLMMessage iteratively from a stream of chunks."""
@@ -68,10 +66,7 @@ class LLMMessage(messages.Message[T]):
                     tool_calls[:] = [
                         tc
                         for tc in tool_calls
-                        if not (
-                            isinstance(tc, tool_utils.ToolInvocation)
-                            and tc.call_id == chunk.call_id
-                        )
+                        if not (isinstance(tc, tool_utils.ToolInvocation) and tc.call_id == chunk.call_id)
                     ]
                 tool_calls.append(chunk)
                 events.manager.dispatch("new_tool_call", obj, chunk)

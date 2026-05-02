@@ -49,7 +49,7 @@ def submit_variant(kernel, variant_file, mode="test"):
             log(f"  ERROR: {result.stderr[:200]}")
             return False
         else:
-            log(f"  SUCCESS: Submitted")
+            log("  SUCCESS: Submitted")
             return True
 
     except subprocess.TimeoutExpired:

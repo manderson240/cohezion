@@ -25,20 +25,21 @@ Reference: "Training Deep Nets with Sublinear Memory Cost", 2016.
 """
 
 from __future__ import annotations
+
 import os
+
 
 os.environ["PYTORCH_ROCM_ARCH"] = "gfx950"
 os.environ["CXX"] = "clang++"
 
-import torch
-from typing import List, Tuple, Optional
-from torch.utils.cpp_extension import load_inline
-from task import input_t, output_t
 
+import aiter
+import torch
 from aiter import dtypes
 from aiter.ops.triton.quant import dynamic_mxfp4_quant
 from aiter.utility.fp4_utils import e8m0_shuffle
-import aiter
+from task import input_t, output_t
+from torch.utils.cpp_extension import load_inline
 
 
 class CheckpointedGEMM(torch.autograd.Function):
@@ -133,15 +134,15 @@ __global__ void checkpointed_gemm_fwd(
 ) {
     int row = blockIdx.y * blockDim.y + threadIdx.y;
     int col = blockIdx.x * blockDim.x + threadIdx.x;
-    
+
     if (row >= M || col >= N) return;
-    
+
     float sum = 0.0f;
     for (int k = 0; k < K; k++) {
-        sum += __bfloat162float(A[row * K + k]) * 
+        sum += __bfloat162float(A[row * K + k]) *
                __bfloat162float(B[col * K + k]);
     }
-    
+
     C[row * N + col] = (__hip_bfloat16)sum;
 }
 

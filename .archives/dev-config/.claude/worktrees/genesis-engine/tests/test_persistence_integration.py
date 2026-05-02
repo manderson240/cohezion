@@ -153,9 +153,7 @@ class TestAlignmentGatedExecution:
         from cohezion.compound.session_manager import AlignmentResult
 
         with (
-            patch(
-                "cohezion.compound.request_alignment_analyzer.RequestAlignmentAnalyzerFactory"
-            ) as mock_factory,
+            patch("cohezion.compound.request_alignment_analyzer.RequestAlignmentAnalyzerFactory") as mock_factory,
             patch("cohezion.compound.session_manager.get_mcp_client") as mock_get_mcp,
         ):
             mock_get_mcp.return_value = MagicMock()
@@ -177,9 +175,7 @@ class TestAlignmentGatedExecution:
 
     def test_check_alignment_low_coherence(self) -> None:
         with (
-            patch(
-                "cohezion.compound.request_alignment_analyzer.RequestAlignmentAnalyzerFactory"
-            ) as mock_factory,
+            patch("cohezion.compound.request_alignment_analyzer.RequestAlignmentAnalyzerFactory") as mock_factory,
             patch("cohezion.compound.session_manager.get_mcp_client") as mock_get_mcp,
         ):
             mock_get_mcp.return_value = MagicMock()
@@ -202,9 +198,7 @@ class TestAlignmentGatedExecution:
     @pytest.mark.asyncio
     async def test_execute_aligned_proceeds_on_high_coherence(self) -> None:
         with (
-            patch(
-                "cohezion.compound.request_alignment_analyzer.RequestAlignmentAnalyzerFactory"
-            ) as mock_factory,
+            patch("cohezion.compound.request_alignment_analyzer.RequestAlignmentAnalyzerFactory") as mock_factory,
             patch("cohezion.compound.session_manager.get_mcp_client") as mock_get_mcp,
             patch("cohezion.swarm.compound_client.get_compound_client") as mock_get_client,
         ):
@@ -236,9 +230,7 @@ class TestAlignmentGatedExecution:
     @pytest.mark.asyncio
     async def test_execute_aligned_blocks_on_low_coherence(self) -> None:
         with (
-            patch(
-                "cohezion.compound.request_alignment_analyzer.RequestAlignmentAnalyzerFactory"
-            ) as mock_factory,
+            patch("cohezion.compound.request_alignment_analyzer.RequestAlignmentAnalyzerFactory") as mock_factory,
             patch("cohezion.compound.session_manager.get_mcp_client") as mock_get_mcp,
             patch("cohezion.swarm.compound_client.get_compound_client") as mock_get_client,
         ):

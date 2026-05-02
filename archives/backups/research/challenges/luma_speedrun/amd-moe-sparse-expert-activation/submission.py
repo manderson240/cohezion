@@ -42,8 +42,9 @@ Expected Performance:
 """
 
 from __future__ import annotations
+
 import os
-import math
+
 
 os.environ["AITER_USE_NT"] = "1"
 
@@ -52,6 +53,7 @@ import torch.nn.functional as F
 from aiter import ActivationType, QuantType
 from aiter.fused_moe import fused_moe
 from task import input_t, output_t
+
 
 # Sparse activation configuration
 SPARSITY_RATIO = 0.5  # Only 50% of secondary experts are fully computed

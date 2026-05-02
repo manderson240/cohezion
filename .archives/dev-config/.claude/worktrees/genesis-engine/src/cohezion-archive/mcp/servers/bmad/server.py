@@ -76,9 +76,7 @@ class BMADEngine:
                             "name": agent_file.stem,
                         }
 
-        logger.info(
-            f"BMAD: {len(self._modules)} modules, {len(self._workflows)} workflows, {len(self._agents)} agents"
-        )
+        logger.info(f"BMAD: {len(self._modules)} modules, {len(self._workflows)} workflows, {len(self._agents)} agents")
 
     def list_modules(self) -> list[dict]:
         """List all modules."""
@@ -957,9 +955,7 @@ async def tool_bmad_bmm_performance_optimization(request: web.Request) -> web.Re
             {
                 "tool": "bmad_bmm_performance_optimization",
                 "bottleneck": bottleneck,
-                "recommendations": optimizations.get(
-                    bottleneck, ["Profile code", "Add monitoring"]
-                ),
+                "recommendations": optimizations.get(bottleneck, ["Profile code", "Add monitoring"]),
                 "tools": ["cProfile", "py-spy", "Prometheus", "Jaeger"],
             }
         )
@@ -1803,24 +1799,16 @@ async def tool_bmad_recommend(request: web.Request) -> web.Response:
         recommendations = []
 
         if any(word in context_lower for word in ["product", "prd", "requirement"]):
-            recommendations.append(
-                {"tool": "bmad_bmm_create_prd", "reason": "Creating product requirements"}
-            )
+            recommendations.append({"tool": "bmad_bmm_create_prd", "reason": "Creating product requirements"})
 
         if any(word in context_lower for word in ["test", "testing", "qa"]):
-            recommendations.append(
-                {"tool": "bmad_tea_test_design", "reason": "Testing context detected"}
-            )
+            recommendations.append({"tool": "bmad_tea_test_design", "reason": "Testing context detected"})
 
         if any(word in context_lower for word in ["game", "design", "player"]):
-            recommendations.append(
-                {"tool": "bmad_gds_create_game_brief", "reason": "Game development context"}
-            )
+            recommendations.append({"tool": "bmad_gds_create_game_brief", "reason": "Game development context"})
 
         if any(word in context_lower for word in ["brainstorm", "ideate", "creative"]):
-            recommendations.append(
-                {"tool": "bmad_cis_brainstorming", "reason": "Creative ideation needed"}
-            )
+            recommendations.append({"tool": "bmad_cis_brainstorming", "reason": "Creative ideation needed"})
 
         if not recommendations:
             recommendations = [

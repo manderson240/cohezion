@@ -3,10 +3,9 @@ BlueQubit Basic Circuit Execution Template
 Tested and verified on 2026-04-01
 """
 
-import os
-from dotenv import load_dotenv
 import bluequbit
 import qiskit
+from dotenv import load_dotenv
 
 
 def execute_basic_circuit(num_qubits: int = 2, device: str = "mps.cpu"):

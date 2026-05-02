@@ -360,9 +360,11 @@ DEFINE FIELD stability_score ON TABLE universe_nodes VALUE (
             # Do NOT fall back to InMemoryStore on an insecure-credentials refusal — that
             # would mask the misconfiguration. Surface the error loudly and refuse to proceed.
             breaker.record_failure()
-            logger.error("❌ SurrealDB refused: insecure credentials — see InsecureSurrealCredentialsError above.")
+            logger.error(
+                "❌ SurrealDB refused: insecure credentials — see InsecureSurrealCredentialsError above."
+            )
             raise
-        except Exception as e:  # noqa: BLE001 — intentional operational fallback, not a bug hide
+        except Exception as e:
             breaker.record_failure()
             logger.error(f"❌ Failed to connect to SurrealDB: {e}. Falling back to InMemoryStore.")
             self._use_fallback()

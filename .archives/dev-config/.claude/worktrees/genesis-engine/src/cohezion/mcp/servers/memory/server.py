@@ -35,10 +35,7 @@ logger = logging.getLogger(__name__)
 
 MCP_PORT = int(os.getenv("MCP_PORT", "8366"))
 # Primary: Vault Warden, Fallback: Environment
-SURREAL_URL = (
-    get_credentials().get_secret("COHEZION_SURREAL_URL", env_var="SURREAL_URL")
-    or "ws://localhost:8000/rpc"
-)
+SURREAL_URL = get_credentials().get_secret("COHEZION_SURREAL_URL", env_var="SURREAL_URL") or "ws://localhost:8000/rpc"
 
 
 @dataclass
@@ -144,9 +141,7 @@ class MemoryGraph:
         """Create new entity and persist to SurrealDB."""
         entity = Entity(name=name, entity_type=entity_type)
         self.entities[name] = entity
-        logger.debug(
-            "Created entity: %s (%s)", name.replace("\n", " "), entity_type.replace("\n", " ")
-        )
+        logger.debug("Created entity: %s (%s)", name.replace("\n", " "), entity_type.replace("\n", " "))
         db = await self._get_surreal()
         if db is not None:
             try:
@@ -185,16 +180,12 @@ class MemoryGraph:
             return True
         return False
 
-    async def create_relation(
-        self, from_entity: str, to_entity: str, relation_type: str
-    ) -> bool:
+    async def create_relation(self, from_entity: str, to_entity: str, relation_type: str) -> bool:
         """Create relation between entities and persist to SurrealDB."""
         if from_entity not in self.entities or to_entity not in self.entities:
             return False
 
-        relation = Relation(
-            from_entity=from_entity, to_entity=to_entity, relation_type=relation_type
-        )
+        relation = Relation(from_entity=from_entity, to_entity=to_entity, relation_type=relation_type)
         self.relations.append(relation)
         logger.debug(
             "Created relation: %s -%s-> %s",
@@ -397,9 +388,7 @@ async def tool_add_observation(request: web.Request) -> web.Response:
         observation = data.get("observation", "")
 
         if not entity_name or not observation:
-            return web.json_response(
-                {"error": "entityName and observation are required"}, status=400
-            )
+            return web.json_response({"error": "entityName and observation are required"}, status=400)
 
         graph = get_graph()
         success = await graph.add_observation(entity_name, observation)

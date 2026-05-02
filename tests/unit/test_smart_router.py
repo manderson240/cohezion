@@ -291,11 +291,13 @@ class TestExecute:
         mock_response = MagicMock()
         mock_response.status_code = 200
         # json() is awaited, so use AsyncMock
-        mock_response.json = AsyncMock(return_value={
-            "response": "generated text",
-            "eval_count": 50,
-            "prompt_eval_count": 0,
-        })
+        mock_response.json = AsyncMock(
+            return_value={
+                "response": "generated text",
+                "eval_count": 50,
+                "prompt_eval_count": 0,
+            }
+        )
 
         router.client = AsyncMock()
         router.client.post = AsyncMock(return_value=mock_response)

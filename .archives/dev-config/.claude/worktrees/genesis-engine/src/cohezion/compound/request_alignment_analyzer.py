@@ -31,7 +31,6 @@ from cohezion.compound.models import (
 )
 
 
-
 if TYPE_CHECKING:
     from cohezion.compound.executor import ExecutionResult
     from cohezion.compound.inflection_detector import AnomalyDetection
@@ -542,19 +541,12 @@ class RequestAlignmentAnalyzer:
                 import numpy as np
 
                 encoder = self.text_encoder
-                intent_prototype = encoder.encode(
-                    f"This is a {request_intent.value} task"
-                )
-                output_embedding = encoder.encode(
-                    result.output[:500]
-                )  # First 500 chars
+                intent_prototype = encoder.encode(f"This is a {request_intent.value} task")
+                output_embedding = encoder.encode(result.output[:500])  # First 500 chars
 
                 similarity = float(
                     np.dot(intent_prototype, output_embedding)
-                    / (
-                        np.linalg.norm(intent_prototype)
-                        * np.linalg.norm(output_embedding)
-                    )
+                    / (np.linalg.norm(intent_prototype) * np.linalg.norm(output_embedding))
                 )
                 return max(0.0, min(1.0, similarity))
             except Exception as e:
@@ -615,9 +607,7 @@ class RequestAlignmentAnalyzer:
                 quality_metrics = ["coherence", "accuracy", "correctness"]
                 actual_quality = max((metrics.get(m, 0) for m in quality_metrics), default=0.0)
                 if actual_quality < constraint.value:
-                    severity = min(
-                        1.0, (constraint.value - actual_quality) / constraint.value
-                    )
+                    severity = min(1.0, (constraint.value - actual_quality) / constraint.value)
                     violations.append(
                         ConstraintViolation(
                             constraint=constraint,
@@ -880,16 +870,12 @@ class RequestAlignmentAnalyzer:
         try:
             issues = alignment.issues or []
             recommendations = alignment.recommendations or []
-            hypothesis = (
-                f"Request alignment for {request.intent.value} task: {request.raw_text[:100]}"
-            )
+            hypothesis = f"Request alignment for {request.intent.value} task: {request.raw_text[:100]}"
             method = (
                 f"Analyzed request with intent={request.intent.name}, "
                 f"{len(request.constraints or [])} constraints, {len(request.criteria or [])} criteria"
             )
-            result = (
-                f"Misalignment score: {alignment.misalignment_score:.2f} ({len(issues)} issues)"
-            )
+            result = f"Misalignment score: {alignment.misalignment_score:.2f} ({len(issues)} issues)"
             learnings = (
                 f"Execution aligned well with request. Recommendations: {', '.join(alignment.recommendations)}"
                 if alignment.misalignment_score <= 0.3

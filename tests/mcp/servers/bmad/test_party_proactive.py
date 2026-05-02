@@ -1,8 +1,8 @@
 """Tests for Proactive BMad party mode integration."""
 
-import pytest
 from pathlib import Path
-from unittest.mock import AsyncMock, MagicMock, patch
+
+import pytest
 
 
 @pytest.mark.asyncio
@@ -184,9 +184,10 @@ I've scanned your codebase and found {len(suggestions)} alignment opportunities:
 @pytest.mark.fast
 async def test_party_mode_execution_confirmation():
     """Test that party mode requires user confirmation for execution."""
-    from cohezion.mcp.servers.bmad.proactive_monitor import ProactiveMonitor, ProactiveSuggestion
-    import tempfile
     import shutil
+    import tempfile
+
+    from cohezion.mcp.servers.bmad.proactive_monitor import ProactiveMonitor, ProactiveSuggestion
 
     # Create temp directory for test
     test_project = Path(tempfile.mkdtemp())

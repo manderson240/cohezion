@@ -279,13 +279,9 @@ class ConfigSyncEngine:
         changes = []
 
         if vault_content.get("decisions"):
-            changes.append(
-                f"sync {filename} with {len(vault_content['decisions'])} new decisions"
-            )
+            changes.append(f"sync {filename} with {len(vault_content['decisions'])} new decisions")
         elif vault_content.get("patterns"):
-            changes.append(
-                f"sync {filename} with {len(vault_content['patterns'])} patterns"
-            )
+            changes.append(f"sync {filename} with {len(vault_content['patterns'])} patterns")
         else:
             changes.append(f"sync {filename} with latest vault content")
 

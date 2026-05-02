@@ -1,9 +1,11 @@
-import sys
 import os
+import sys
 import unittest
-from unittest.mock import MagicMock, patch, ANY
+from unittest.mock import MagicMock, patch
+
 import polars as pl
 import torch
+
 
 # Ensure we can import from the kernel directory
 sys.path.append(os.path.join(os.getcwd(), "sandbox/aimo/kaggle_kernel"))

@@ -27,8 +27,9 @@ The non-persistent path in mla_decode_fwd:
 """
 
 import torch
-from aiter.mla import mla_decode_fwd, get_meta_param
+from aiter.mla import mla_decode_fwd
 from task import input_t, output_t
+
 
 NUM_HEADS = 16
 NUM_KV_HEADS = 1

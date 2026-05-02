@@ -9,11 +9,8 @@ Charter Compliance:
 
 from __future__ import annotations
 
-import asyncio
-import tempfile
-from pathlib import Path
-
 import pytest
+
 
 # Skip if dependencies not available
 pytest.importorskip("sentence_transformers")
@@ -21,7 +18,6 @@ pytest.importorskip("torch")
 
 from cohezion.integrations.flume_wiki_bridge import FlumeWikiBridge
 from cohezion.integrations.obsidian_wiki import ObsidianWiki
-from cohezion.integrations.wiki_mirix_bridge import WikiMirixBridge
 from cohezion.learning.ouroboros import ExecutionExhaust
 from cohezion.mcp.wiki_mcp import WikiMCP
 from cohezion.ouroboros.wiki_integration import OuroborosWikiBridge

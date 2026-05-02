@@ -24,6 +24,7 @@ import sys
 from datetime import datetime
 from pathlib import Path
 
+
 # Add src to path
 sys.path.insert(0, str(Path(__file__).parent.parent / "src"))
 
@@ -96,7 +97,7 @@ def check_unified_registry() -> dict:
 def check_skill_registry() -> dict:
     """Check skill registry module."""
     try:
-        from cohezion.registry.skill_registry import load_registry, auto_sync
+        from cohezion.registry.skill_registry import auto_sync, load_registry
 
         registry = load_registry()
         skill_count = len(registry)
@@ -134,7 +135,7 @@ def check_compound_executor() -> dict:
     """Check compound executor can be initialized."""
     try:
         from cohezion.compound.executor import CompoundExecutor, ExecutorFactory
-        from cohezion.core.mcp_client import MCPClient, MCPConfig
+        from cohezion.core.mcp_client import MCPConfig
 
         # Check if MCP client can be created (without connecting)
         config = MCPConfig(
@@ -143,15 +144,15 @@ def check_compound_executor() -> dict:
         )
 
         # Factory can create executor
-        factory_ok = hasattr(ExecutorFactory, 'create') and hasattr(ExecutorFactory, 'get_singleton')
+        factory_ok = hasattr(ExecutorFactory, "create") and hasattr(ExecutorFactory, "get_singleton")
 
         # Check executor features
         features = []
-        if hasattr(CompoundExecutor, 'execute_task'):
+        if hasattr(CompoundExecutor, "execute_task"):
             features.append("execute")
-        if hasattr(CompoundExecutor, 'get_experience_guidance'):
+        if hasattr(CompoundExecutor, "get_experience_guidance"):
             features.append("guidance")
-        if hasattr(CompoundExecutor, 'suggest_skills'):
+        if hasattr(CompoundExecutor, "suggest_skills"):
             features.append("skill-suggest")
 
         return {
@@ -167,9 +168,9 @@ def check_autoresearch() -> dict:
     try:
         from cohezion.compound.autoresearch import (
             AutoresearchEngine,
+            ExperientialLearningLoop,
             RetrospectionEngine,
             SkillRefiner,
-            ExperientialLearningLoop,
         )
 
         components = []
@@ -214,6 +215,7 @@ def activate_compound_executor() -> dict:
 
         # Store in module for later access
         import cohezion.compound.executor as executor_module
+
         executor_module._active_executor = executor
 
         return {

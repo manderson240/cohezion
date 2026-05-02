@@ -38,16 +38,15 @@ References:
 
 from __future__ import annotations
 
-import hashlib
 import json
 import logging
 import time
 from dataclasses import dataclass, field
-from datetime import datetime
 from enum import Enum
 from pathlib import Path
 from typing import Any
 from uuid import uuid4
+
 
 logger = logging.getLogger(__name__)
 
@@ -147,9 +146,7 @@ class ToolRegistry:
         """Get schemas for all available tools."""
         return [tool.to_schema() for tool in self._tools.values()]
 
-    def execute(
-        self, call: ToolCall, env_state: dict[str, Any]
-    ) -> ToolResponse:
+    def execute(self, call: ToolCall, env_state: dict[str, Any]) -> ToolResponse:
         """Execute a tool call.
 
         Parameters
@@ -378,9 +375,7 @@ class AgenticEnvironment:
             coherence=self._coherence,
         )
 
-    def step(
-        self, action: ToolCall | str
-    ) -> tuple[EnvObservation, float, bool, dict[str, Any]]:
+    def step(self, action: ToolCall | str) -> tuple[EnvObservation, float, bool, dict[str, Any]]:
         """Execute an agent action in the environment.
 
         Parameters
@@ -472,9 +467,7 @@ class AgenticEnvironment:
 
         return observation, reward, done, info
 
-    def _compute_reward(
-        self, tool_response: ToolResponse | None, success_score: float
-    ) -> float:
+    def _compute_reward(self, tool_response: ToolResponse | None, success_score: float) -> float:
         """Compute step reward.
 
         Reward components:
@@ -596,36 +589,44 @@ class AgenticEnvironment:
         """Register default tools."""
         registry = ToolRegistry()
 
-        registry.register(ToolSpec(
-            name="file_read",
-            description="Read the contents of a file.",
-            parameters={"path": {"type": "string", "description": "File path to read"}},
-            handler=self._tool_file_read,
-        ))
+        registry.register(
+            ToolSpec(
+                name="file_read",
+                description="Read the contents of a file.",
+                parameters={"path": {"type": "string", "description": "File path to read"}},
+                handler=self._tool_file_read,
+            )
+        )
 
-        registry.register(ToolSpec(
-            name="file_write",
-            description="Write content to a file (creates or overwrites).",
-            parameters={
-                "path": {"type": "string", "description": "File path to write"},
-                "content": {"type": "string", "description": "Content to write"},
-            },
-            handler=self._tool_file_write,
-        ))
+        registry.register(
+            ToolSpec(
+                name="file_write",
+                description="Write content to a file (creates or overwrites).",
+                parameters={
+                    "path": {"type": "string", "description": "File path to write"},
+                    "content": {"type": "string", "description": "Content to write"},
+                },
+                handler=self._tool_file_write,
+            )
+        )
 
-        registry.register(ToolSpec(
-            name="file_list",
-            description="List all files in the environment.",
-            parameters={},
-            handler=self._tool_file_list,
-        ))
+        registry.register(
+            ToolSpec(
+                name="file_list",
+                description="List all files in the environment.",
+                parameters={},
+                handler=self._tool_file_list,
+            )
+        )
 
-        registry.register(ToolSpec(
-            name="bash",
-            description="Execute a bash command (simulated).",
-            parameters={"command": {"type": "string", "description": "Command to execute"}},
-            handler=self._tool_bash,
-        ))
+        registry.register(
+            ToolSpec(
+                name="bash",
+                description="Execute a bash command (simulated).",
+                parameters={"command": {"type": "string", "description": "Command to execute"}},
+                handler=self._tool_bash,
+            )
+        )
 
         return registry
 
@@ -732,9 +733,7 @@ class TrajectoryRecorder:
         logger.info("Exported %d trajectories to %s", len(self._trajectories), path)
         return path
 
-    def export_preference_pairs(
-        self, filename: str = "agentic_preferences.jsonl"
-    ) -> Path:
+    def export_preference_pairs(self, filename: str = "agentic_preferences.jsonl") -> Path:
         """Export DPO preference pairs from trajectories.
 
         Pairs successful trajectories (chosen) with failed ones (rejected)
@@ -788,10 +787,7 @@ class TrajectoryRecorder:
             "success_rate": successes / len(self._trajectories),
             "avg_reward": float(sum(rewards) / len(rewards)),
             "avg_steps": float(sum(steps) / len(steps)),
-            "avg_coherence": float(
-                sum(t["final_coherence"] for t in self._trajectories)
-                / len(self._trajectories)
-            ),
+            "avg_coherence": float(sum(t["final_coherence"] for t in self._trajectories) / len(self._trajectories)),
         }
 
 
@@ -811,10 +807,7 @@ def build_coding_scenarios() -> list[TaskScenario]:
                 "It crashes on empty lists. Fix the bug so it returns 0.0 for empty lists."
             ),
             initial_files={
-                "app.py": (
-                    "def calculate_average(numbers):\n"
-                    "    return sum(numbers) / len(numbers)\n"
-                ),
+                "app.py": ("def calculate_average(numbers):\n    return sum(numbers) / len(numbers)\n"),
                 "test_app.py": (
                     "from app import calculate_average\n\n"
                     "def test_normal():\n"

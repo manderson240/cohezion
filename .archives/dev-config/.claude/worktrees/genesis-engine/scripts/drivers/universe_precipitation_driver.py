@@ -111,18 +111,10 @@ class PrecipitationObserver:
         print(f"STABILITY (HIHO 0.5): {h_score:.4f} {'✅' if h_score > 0.8 else '⚠️'}")
         print("-" * 70)
 
-        print(
-            f"SPACE:  X:{axiomatic.spatial_x:+.2f} Y:{axiomatic.spatial_y:+.2f} Z:{axiomatic.spatial_z:+.2f}"
-        )
-        print(
-            f"FIELD:  TMP:{axiomatic.physics:.2f} ELE:{axiomatic.biology:.2f} MAG:{axiomatic.field:.2f}"
-        )
-        print(
-            f"CONTROL: ROT:{axiomatic.logic:.2f} PRE:{axiomatic.quantum:.2f} CHG:{axiomatic.control:.2f}"
-        )
-        print(
-            f"PRECIP:  AWA:{axiomatic.temporal:.2f} PAR:{axiomatic.novelty:.2f} VAL:{axiomatic.precipitation:.2f}"
-        )
+        print(f"SPACE:  X:{axiomatic.spatial_x:+.2f} Y:{axiomatic.spatial_y:+.2f} Z:{axiomatic.spatial_z:+.2f}")
+        print(f"FIELD:  TMP:{axiomatic.physics:.2f} ELE:{axiomatic.biology:.2f} MAG:{axiomatic.field:.2f}")
+        print(f"CONTROL: ROT:{axiomatic.logic:.2f} PRE:{axiomatic.quantum:.2f} CHG:{axiomatic.control:.2f}")
+        print(f"PRECIP:  AWA:{axiomatic.temporal:.2f} PAR:{axiomatic.novelty:.2f} VAL:{axiomatic.precipitation:.2f}")
 
         print("-" * 70)
         params = axiomatic.to_vector()

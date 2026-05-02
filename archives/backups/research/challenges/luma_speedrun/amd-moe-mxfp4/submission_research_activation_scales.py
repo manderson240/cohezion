@@ -10,8 +10,10 @@ Reference: competition-research-untapped/SKILL.md Section 1.2
 """
 
 from __future__ import annotations
+
 import os
 import sys
+
 
 # Environment variables BEFORE any aiter import
 os.environ["AITER_USE_NT"] = "1"
@@ -34,8 +36,8 @@ for _mod in (
 import torch
 from aiter import ActivationType, QuantType
 from aiter.fused_moe import fused_moe
-from task import input_t, output_t
 from reference import ref_kernel
+from task import input_t, output_t
 
 
 def compute_activation_scales(hidden_states: torch.Tensor) -> tuple[torch.Tensor, torch.Tensor]:
@@ -130,7 +132,7 @@ def custom_kernel(data: input_t) -> output_t:
             hidden_pad=hidden_pad,
             intermediate_pad=intermediate_pad,
         )
-    except Exception as e:
+    except Exception:
         # Fallback: Try without activation scales (might not be supported)
         try:
             return fused_moe(

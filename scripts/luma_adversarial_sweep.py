@@ -1,8 +1,8 @@
 import asyncio
-from pathlib import Path
+
 from cohezion.compound.tdd_adversarial.adversarial_review import (
-    get_adversarial_review_system,
     ReviewPerspective,
+    get_adversarial_review_system,
 )
 
 
@@ -17,7 +17,7 @@ async def run_luma_review():
         "luma_speedrun/amd-mixed-mla/submission.py",
     ]
 
-    print(f"🚀 Starting Multiperspective Adversarial Review for Luma Speedrun...")
+    print("🚀 Starting Multiperspective Adversarial Review for Luma Speedrun...")
 
     # We consult specialized perspectives for kernel work
     perspectives = [
@@ -33,7 +33,7 @@ async def run_luma_review():
 
     print(f"\n✅ Review Completed. Overall Score: {session.overall_score:.2f}")
     print(f"🔍 Findings: {len(session.findings)}")
-    print(f"💡 Insights:")
+    print("💡 Insights:")
     for insight in session.insights:
         print(f"  - {insight}")
 

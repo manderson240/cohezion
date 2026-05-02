@@ -3,11 +3,12 @@ Blackwell Handshake (Kaggle G4 Infrastructure).
 Validates and initializes the Blackwell-specific CUDA environment.
 """
 
+import logging
 import os
 import shutil
 import subprocess
-import logging
 from pathlib import Path
+
 
 logger = logging.getLogger(__name__)
 

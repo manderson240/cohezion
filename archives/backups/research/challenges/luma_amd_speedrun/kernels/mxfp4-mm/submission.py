@@ -16,9 +16,10 @@ Slab-allocation and a-priori shape-alignment.
 """
 
 from __future__ import annotations
+
 import torch
-from task import input_t, output_t
 from aiter import dtypes
+from task import input_t, output_t
 
 
 def custom_kernel(data: input_t) -> output_t:

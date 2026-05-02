@@ -23,11 +23,13 @@ Expected: O(n) vs O(n²), 5-10x speedup on long sequences
 
 from __future__ import annotations
 
-import os
 import math
+import os
+
 import torch
 import torch.nn.functional as F
 from task import input_t, output_t
+
 
 os.environ["AITER_USE_NT"] = "1"
 

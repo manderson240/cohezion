@@ -10,8 +10,8 @@ Architecture:
 
 from __future__ import annotations
 
-import numpy as np
 import pytest
+
 
 try:
     import torch
@@ -35,7 +35,7 @@ def encoder():
     return TemporalEncoder(step_dim=STEP_DIM, d_model=D_MODEL, latent_dim=LATENT_DIM)
 
 
-def make_sequence(batch: int, seq_len: int, seed: int = 42) -> "torch.Tensor":
+def make_sequence(batch: int, seq_len: int, seed: int = 42) -> torch.Tensor:
     """Create a random batch of trajectory sequences."""
     import torch
 
@@ -163,7 +163,6 @@ class TestTemporalEncoderGradients:
 
     def test_gradients_flow_through_mu(self, encoder) -> None:
         """Loss on mu produces gradients in encoder parameters."""
-        import torch
 
         encoder.train()
         x = make_sequence(4, 10)

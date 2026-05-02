@@ -1,7 +1,4 @@
-import gymnasium as gym
-import numpy as np
 from arc_gym_wrapper import ARCGymEnv
-import time
 
 
 def run_random_agent(game_id="ls20", num_episodes=5):

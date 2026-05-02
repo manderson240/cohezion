@@ -11,10 +11,10 @@ Based on leader analysis:
 This combines the fastest known quant path with the optimal GEMM dispatch.
 """
 
-import torch
 import aiter
 from aiter import dtypes
 from task import input_t, output_t
+
 
 # Try HIP quant path (single-call quant + shuffle)
 _hip_quant = None
@@ -28,6 +28,7 @@ except ImportError:
 # Fallback imports
 from aiter.ops.triton.quant import dynamic_mxfp4_quant
 from aiter.utility.fp4_utils import e8m0_shuffle
+
 
 # Pre-resolve
 _gemm = aiter.gemm_a4w4

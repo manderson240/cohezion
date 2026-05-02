@@ -487,9 +487,7 @@ class Transaction:
 
         # Change tracking
         self.changes: list[Change] = []
-        self.change_index: dict[str, list[int]] = defaultdict(
-            list
-        )  # path → change indices
+        self.change_index: dict[str, list[int]] = defaultdict(list)  # path → change indices
 
         # Checkpoints
         self.checkpoints: dict[str, Checkpoint] = {}
@@ -687,9 +685,7 @@ class Transaction:
                 duration_seconds=duration,
             )
 
-            logger.info(
-                f"Transaction {self.transaction_id} committed ({len(self.changes)} changes)"
-            )
+            logger.info(f"Transaction {self.transaction_id} committed ({len(self.changes)} changes)")
             return result
 
         except Exception as e:
@@ -702,9 +698,7 @@ class Transaction:
                     pass  # Already rolled back
             raise
 
-    def rollback(
-        self, reason: str = "", restore_to_checkpoint: str | None = None
-    ) -> RollbackResult:
+    def rollback(self, reason: str = "", restore_to_checkpoint: str | None = None) -> RollbackResult:
         """Rollback transaction: restore to snapshot."""
         start = time.time()
 
@@ -722,12 +716,8 @@ class Transaction:
                 raise RuntimeError("No snapshot available for rollback")
 
             # Restore snapshot
-            if not self.backend.restore_snapshot(
-                target_snapshot.snapshot_id, self.working_dir
-            ):
-                logger.warning(
-                    f"Snapshot restore may have failed: {target_snapshot.snapshot_id}"
-                )
+            if not self.backend.restore_snapshot(target_snapshot.snapshot_id, self.working_dir):
+                logger.warning(f"Snapshot restore may have failed: {target_snapshot.snapshot_id}")
 
             # Mark as rolled back
             self.rolled_back = True
@@ -755,9 +745,7 @@ class Transaction:
                 duration_seconds=duration,
             )
 
-            logger.info(
-                f"Transaction {self.transaction_id} rolled back ({changes_undone} changes undone)"
-            )
+            logger.info(f"Transaction {self.transaction_id} rolled back ({changes_undone} changes undone)")
             return result
 
         except Exception as e:

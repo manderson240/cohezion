@@ -71,9 +71,7 @@ class AttributionEngine:
     def __init__(self) -> None:
         self._quarantine: list[AttributedRecord] = []
 
-    def process(
-        self, record: DiscoveryRecord, authors: list[str], license_type: str
-    ) -> AttributedRecord:
+    def process(self, record: DiscoveryRecord, authors: list[str], license_type: str) -> AttributedRecord:
         """Attach attribution and determine license compliance."""
         content_hash = hashlib.sha256(record.source_url.encode()).hexdigest()[:16]
         license_lower = license_type.lower()

@@ -69,9 +69,7 @@ class MCPServerConfig:
             "env_vars": self.env_vars,
             "status": self.status,
             "pid": self.pid,
-            "last_health_check": self.last_health_check.isoformat()
-            if self.last_health_check
-            else None,
+            "last_health_check": self.last_health_check.isoformat() if self.last_health_check else None,
             "restart_count": self.restart_count,
         }
 

@@ -58,21 +58,21 @@ async def retrieve_trained_adapter(notebook_name: str):
         # For actual model retrieval, we'd need to save it during training and then get it
         result = await api.kernels_output(notebook_name, path=str(retrieve_dir))
 
-        print(f"✅ Notebook output retrieved successfully!")
+        print("✅ Notebook output retrieved successfully!")
         print(f"📁 Files saved to: {retrieve_dir.absolute()}")
 
         # List what we retrieved
         files = list(retrieve_dir.iterdir())
         if files:
-            print(f"📄 Retrieved files:")
+            print("📄 Retrieved files:")
             for file in files:
                 print(f"  - {file.name}")
         else:
-            print(f"📄 No files retrieved (this is expected for model outputs)")
-            print(f"💡 To get the actual model, you need to:")
-            print(f"   1. Go to the notebook URL")
-            print(f"   2. Check the output for where the model was saved")
-            print(f"   3. Download the nemotron_lora_adapter directory from the notebook output")
+            print("📄 No files retrieved (this is expected for model outputs)")
+            print("💡 To get the actual model, you need to:")
+            print("   1. Go to the notebook URL")
+            print("   2. Check the output for where the model was saved")
+            print("   3. Download the nemotron_lora_adapter directory from the notebook output")
 
         return True
 

@@ -13,12 +13,12 @@ Key: solution_index selects from hipBLASLt's tuned kernel library.
 Different indices = different kernel configurations = different perf.
 """
 
-import torch
-from aiter import dtypes
 import aiter
+from aiter import dtypes
 from aiter.ops.triton.quant import dynamic_mxfp4_quant
 from aiter.utility.fp4_utils import e8m0_shuffle
 from task import input_t, output_t
+
 
 _best_solution = {}  # Cache best solution per shape
 

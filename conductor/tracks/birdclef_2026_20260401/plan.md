@@ -28,24 +28,26 @@ Initialize Phase 1 (Research & Setup) for the BirdCLEF 2026 Kaggle competition. 
 - Task: Define Schema & AutoHarness
     - [x] Synthesize a deterministic AutoHarness for the audio data loader, ensuring consistent spectrogram generation.
     - [x] Define the submission format (multi-column species probability) and validation schema (Macro-averaged ROC-AUC aligned).
-    - [ ] Integrate Google Perch v2 for 1536-D embedding extraction as the core baseline backbone.
+    - [x] Integrate `ernensbjorn/perch-v2-int8-tflite` for 1536-D embedding extraction.
+    - [x] Integrate `jaycentg/birdclef-2026-perch-embeddings` (456MB parquet ingested) to bypass redundant local computation.
 - Task: Incorporate ARC Lessons & V-Model
     - [x] Plan to orchestrate local SLMs for internal audits of our data processing pipeline, minimizing cloud token usage.
     - [x] Ensure the pipeline captures experiential learning via our newly validated git hook.
+    - [x] Implement ProtoCLR (Prototypical Contrastive Learning) in `src/cohezion/audio/protoclr.py` for domain invariance.
 
 ## Phase 2: The Doer (Apex - Core Implementation)
 - Task: TDD Red Phase
     - [x] Write failing tests for audio loading, augmentation, and model forward pass.
 - Task: Baseline Implementation (Local Quota)
-    - [x] Implement a baseline CNN or Audio Spectrogram Transformer (AST) training script.
+    - [x] Implement `BioacousticEncoder` (1536D -> 256D projection) in `src/cohezion/audio/bioacoustic_encoder.py`.
     - [x] Configure training loop to utilize the local 30h/week heavy GPU quota.
 - Task: Competition Wiring
     - [x] Implement the Kaggle inference/submission notebook structure.
 
 ## Phase 3: The Doer (Apex - Persistence & Healing)
 - Task: Telemetry & Logging
-    - [~] Wire training metrics (loss, val_auc) into the `TelemetryBus` for storage in SurrealDB.
-    - [~] Configure `Ouroboros` to monitor training divergence.
+    - [x] Wire training metrics (loss, val_auc) into the `TelemetryBus` for storage in SurrealDB.
+    - [x] Configure `Ouroboros` to monitor training divergence.
 
 ## Phase 4: The Knower (Ascending - Validation & Persistence)
 - Task: System Validation

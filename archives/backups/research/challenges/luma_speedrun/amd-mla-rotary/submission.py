@@ -31,19 +31,18 @@ Date: 2026-04-06
 
 from __future__ import annotations
 
-import math
 import os
 import sys
-from typing import Tuple
 
 import torch
-import torch.nn.functional as F
+
 
 # POPCORN environment setup
 os.environ["AITER_MLA_FAST_MODE"] = "1"  # Enable fast MLA path
 
 from aiter import mla_decode_fwd
 from task import input_t, output_t
+
 
 # =============================================================================
 # Configuration Constants
@@ -161,7 +160,7 @@ class LearnedRotaryEmbeddings:
         self.cos = torch.cos(angles)
         self.sin = torch.sin(angles)
 
-    def get_for_positions(self, positions: torch.Tensor) -> Tuple[torch.Tensor, torch.Tensor]:
+    def get_for_positions(self, positions: torch.Tensor) -> tuple[torch.Tensor, torch.Tensor]:
         """Get cos/sin values for specific positions.
 
         Args:

@@ -10,10 +10,9 @@ This hybrid applies both optimizations for maximum theoretical speedup.
 POPCORN: amd-mxfp4-mm
 """
 
+
 import torch
 import torch.nn.functional as F
-from typing import Tuple, Optional
-import math
 from task import input_t, output_t
 
 
@@ -48,7 +47,7 @@ class StrassenWinogradGEMM:
         Returns:
             True if hybrid algorithm is beneficial
         """
-        return M >= self.threshold and N >= self.threshold and K >= self.threshold
+        return self.threshold <= M and self.threshold <= N and self.threshold <= K
 
     def strassen_multiply(
         self, A: torch.Tensor, B: torch.Tensor, depth: int = 0, max_depth: int = 3
@@ -95,7 +94,7 @@ class StrassenWinogradGEMM:
             raise ValueError(f"Dimension mismatch: A K={K}, B K={K2}")
 
         # Base case: use standard GEMM for small matrices
-        if depth >= max_depth or M <= self.min_size or N <= self.min_size or K <= self.min_size:
+        if depth >= max_depth or self.min_size >= M or self.min_size >= N or self.min_size >= K:
             return torch.matmul(A, B)
 
         # Pad to even dimensions
@@ -405,6 +404,7 @@ def custom_kernel_fp4(data: input_t) -> output_t:
 
     except Exception as e:
         import logging
+
         import aiter
         from aiter import dtypes
         from aiter.ops.triton.quant import dynamic_mxfp4_quant

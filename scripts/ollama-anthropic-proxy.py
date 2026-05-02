@@ -7,11 +7,11 @@ Converts Anthropic API requests to Ollama native format.
 
 import json
 import threading
-from http.server import HTTPServer, BaseHTTPRequestHandler
-import urllib.request
 import urllib.error
+import urllib.request
 import uuid
-import sys
+from http.server import BaseHTTPRequestHandler, HTTPServer
+
 
 OLLAMA_BASE = "http://localhost:11434"
 MODEL_MAP = {
@@ -171,7 +171,7 @@ def main():
     print(f"Anthropic-to-Ollama proxy on http://127.0.0.1:{port}")
     print(f"Ollama: {OLLAMA_BASE}")
     print(f"Models: {MODEL_MAP}")
-    print(f"\nUsage:")
+    print("\nUsage:")
     print(
         f"  ANTHROPIC_BASE_URL=http://localhost:{port} ANTHROPIC_API_KEY=unused ./target/release/claw"
     )

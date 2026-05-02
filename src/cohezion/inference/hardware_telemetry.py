@@ -24,6 +24,7 @@ from pathlib import Path
 
 class ComputeBackend(Enum):
     """Available compute backends."""
+
     VULKAN_GPU = "vulkan_gpu"
     ROCM_GPU = "rocm_gpu"  # Currently broken on gfx1151
     XDNA2_NPU = "xdna2_npu"
@@ -33,6 +34,7 @@ class ComputeBackend(Enum):
 @dataclass
 class HardwareSnapshot:
     """Single hardware snapshot."""
+
     timestamp: float
     backend: ComputeBackend
 
@@ -54,6 +56,7 @@ class HardwareSnapshot:
 @dataclass
 class UtilizationProfile:
     """Aggregated utilization profile."""
+
     backend: ComputeBackend
     duration_sec: float = 0.0
 
@@ -80,7 +83,7 @@ class UtilizationProfile:
 class HardwareTelemetry:
     """
     Hardware telemetry collector for AMD Strix Halo.
-    
+
     Tracks actual silicon utilization to ensure we're maximizing
     local hardware, not just getting lucky with benchmarks.
     """
@@ -169,17 +172,13 @@ class HardwareTelemetry:
     def _estimate_vulkan_utilization(self) -> float:
         """
         Estimate GPU utilization for Vulkan.
-        
+
         Since Vulkan doesn't expose utilization directly like ROCm,
         we estimate from process CPU time and memory patterns.
         """
         try:
             # Check if llama-server process exists and its state
-            result = subprocess.run(
-                ["pgrep", "-f", "llama-server"],
-                capture_output=True,
-                text=True
-            )
+            result = subprocess.run(["pgrep", "-f", "llama-server"], capture_output=True, text=True)
 
             if result.returncode == 0:
                 # Process running - estimate based on load
@@ -210,7 +209,7 @@ class HardwareTelemetry:
                 ["rocm-smi", "--showtemp", "--showmeminfo", "vram", "--json"],
                 capture_output=True,
                 text=True,
-                timeout=5
+                timeout=5,
             )
 
             if result.returncode == 0:
@@ -239,10 +238,7 @@ class HardwareTelemetry:
         # FLM doesn't expose detailed telemetry yet
         # We check if NPU is active via process
         try:
-            result = subprocess.run(
-                ["pgrep", "-f", "flm"],
-                capture_output=True
-            )
+            result = subprocess.run(["pgrep", "-f", "flm"], capture_output=True)
             if result.returncode == 0:
                 snapshot.utilization_pct = 100.0  # Active
         except Exception:
@@ -336,7 +332,7 @@ class HardwareTelemetry:
 class MultiBackendTelemetry:
     """
     Telemetry collector for all available backends.
-    
+
     Tracks how well we're utilizing all available silicon:
     - GPU (Vulkan): Primary
     - NPU (XDNA2): Secondary
@@ -382,9 +378,15 @@ class MultiBackendTelemetry:
         for backend, profile in self.profiles.items():
             lines.append(f"{backend.value.upper()}:")
             lines.append(f"  Duration: {profile.duration_sec:.1f}s")
-            lines.append(f"  Utilization: {profile.avg_utilization:.1f}% (peak: {profile.peak_utilization:.1f}%)")
-            lines.append(f"  Memory: {profile.avg_memory_used_mb/1024:.1f}GB (peak: {profile.peak_memory_mb/1024:.1f}GB)")
-            lines.append(f"  Temperature: {profile.avg_temperature:.1f}°C (peak: {profile.peak_temperature:.1f}°C)")
+            lines.append(
+                f"  Utilization: {profile.avg_utilization:.1f}% (peak: {profile.peak_utilization:.1f}%)"
+            )
+            lines.append(
+                f"  Memory: {profile.avg_memory_used_mb / 1024:.1f}GB (peak: {profile.peak_memory_mb / 1024:.1f}GB)"
+            )
+            lines.append(
+                f"  Temperature: {profile.avg_temperature:.1f}°C (peak: {profile.peak_temperature:.1f}°C)"
+            )
 
             if profile.throttled_time_sec > 0:
                 lines.append(f"  ⚠️ Throttled: {profile.throttled_time_sec:.1f}s")
@@ -427,7 +429,7 @@ class HardwareAwareAutoharness:
     def run_hardware_aware_experiment(self, config: dict, runner: Callable) -> dict:
         """
         Run experiment with full hardware telemetry.
-        
+
         Returns result enriched with actual hardware utilization data.
         """
         # Start telemetry
@@ -463,9 +465,7 @@ class HardwareAwareAutoharness:
             )
 
             # Utilization efficiency
-            result["hardware"]["utilization_efficiency"] = (
-                gpu_profile.avg_utilization / 100.0
-            )
+            result["hardware"]["utilization_efficiency"] = gpu_profile.avg_utilization / 100.0
 
         return result
 
@@ -488,8 +488,7 @@ if __name__ == "__main__":
     for i in range(3):
         time.sleep(1)
         snap = tel.snapshot()
-        print(f"Snapshot {i+1}: {snap.utilization_pct:.1f}% util, "
-              f"{snap.temperature_c:.1f}°C")
+        print(f"Snapshot {i + 1}: {snap.utilization_pct:.1f}% util, {snap.temperature_c:.1f}°C")
 
     # Finish
     profile = tel.finish()

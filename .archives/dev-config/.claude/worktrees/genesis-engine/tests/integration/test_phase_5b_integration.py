@@ -490,9 +490,7 @@ class TestMultiAgentCoordination:
                 asyncio.create_task(
                     mock_redis_client.set(
                         f"agent-{agent.agent_id}-query",
-                        json.dumps(
-                            {"agent_id": agent.agent_id, "model": agent.model}
-                        ).encode(),
+                        json.dumps({"agent_id": agent.agent_id, "model": agent.model}).encode(),
                         ex=300,
                     )
                 )
@@ -744,9 +742,7 @@ class TestLoadAndChaos:
         assert result == b"working"
 
     @pytest.mark.asyncio
-    async def test_chaos_agent_failure_consensus(
-        self, mock_skill_registry, agent_profiles
-    ):
+    async def test_chaos_agent_failure_consensus(self, mock_skill_registry, agent_profiles):
         """Test consensus voting when one agent fails."""
         # 5 agents voting, 1 fails
         healthy_agents = agent_profiles[:4]
@@ -981,9 +977,7 @@ class TestEndToEndPhase5B:
         phase_5b_cost = baseline_cost * (1.0 - execution_reduction)
 
         # Cost reduction percentage
-        reduction_percent = (
-            (baseline_cost - phase_5b_cost) / (baseline_cost + 0.001) * 100
-        )
+        reduction_percent = (baseline_cost - phase_5b_cost) / (baseline_cost + 0.001) * 100
 
         # Should be non-negative (can't increase cost with local models)
         assert reduction_percent >= 0

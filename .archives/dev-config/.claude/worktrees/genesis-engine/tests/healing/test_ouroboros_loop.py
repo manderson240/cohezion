@@ -71,7 +71,5 @@ async def test_actuator_patch_verification_success():
     mock_result = MagicMock()
     mock_result.returncode = 0
     with patch("subprocess.run", return_value=mock_result):
-        res = await actuator.execute_patch(
-            "src/cohezion/healing/drift_analyzer.py", ["Optimize imports"]
-        )
+        res = await actuator.execute_patch("src/cohezion/healing/drift_analyzer.py", ["Optimize imports"])
     assert res is True

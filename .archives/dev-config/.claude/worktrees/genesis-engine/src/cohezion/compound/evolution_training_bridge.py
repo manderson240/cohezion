@@ -62,9 +62,9 @@ logger = logging.getLogger(__name__)
 
 HIHO = 0.5
 MIN_PHI_FOR_TRAINING = 0.6  # Lower than journey_finetune (0.7) to capture
-                             # diverse evolutionary strategies, not just top performers
+# diverse evolutionary strategies, not just top performers
 MAX_TRAINING_SAMPLES = 5000
-DPO_MIN_MARGIN = 0.05       # Minimum reward gap for meaningful preference pairs
+DPO_MIN_MARGIN = 0.05  # Minimum reward gap for meaningful preference pairs
 
 
 @dataclass
@@ -78,9 +78,7 @@ class EvolutionTrainingConfig:
     include_dpo: bool = True
     include_rewards: bool = True
     include_judgments: bool = True
-    vae_checkpoint_dir: Path = field(
-        default_factory=lambda: Path("data/flume/checkpoints")
-    )
+    vae_checkpoint_dir: Path = field(default_factory=lambda: Path("data/flume/checkpoints"))
     seed: int = 42
 
 
@@ -101,13 +99,13 @@ class EvolutionTrajectory:
     agent_id: str
     generation: int
     parent_ids: list[str]
-    trajectory_12d: np.ndarray        # 12D axiomatic position
-    embedding_256d: np.ndarray        # 256D FLUME encoding
+    trajectory_12d: np.ndarray  # 12D axiomatic position
+    embedding_256d: np.ndarray  # 256D FLUME encoding
     phi_score: float
     coherence: float
-    performance: float                # GEA solve rate
-    novelty: float                    # GEA KNN novelty
-    gea_score: float                  # performance * sqrt(novelty)
+    performance: float  # GEA solve rate
+    novelty: float  # GEA KNN novelty
+    gea_score: float  # performance * sqrt(novelty)
     operation_type: str = "generate"
     task_description: str = ""
     traces: list[ExperienceTrace] = field(default_factory=list)
@@ -190,9 +188,7 @@ class TraceToTrajectoryConverter:
         trajectories: list[EvolutionTrajectory] = []
 
         for candidate in candidates:
-            agent_traces = [
-                t for t in pool.traces if t.agent_id == candidate.agent_id
-            ]
+            agent_traces = [t for t in pool.traces if t.agent_id == candidate.agent_id]
 
             # Aggregate trace quality scores into a phi-like metric
             quality_scores = [t.quality_score for t in agent_traces]
@@ -333,15 +329,10 @@ class EvolutionTrainingSignalGenerator:
             )
 
         # Compute rewards
-        rewards = [
-            _trajectory_reward(t) for t in trajectories
-        ]
+        rewards = [_trajectory_reward(t) for t in trajectories]
 
         # Compute latent novelty
-        novelties = [
-            self.latent_scorer.compute_latent_novelty(t, trajectories)
-            for t in trajectories
-        ]
+        novelties = [self.latent_scorer.compute_latent_novelty(t, trajectories) for t in trajectories]
 
         # DPO preference pairs
         dpo_pairs = self._generate_dpo_pairs(trajectories, rewards)
@@ -377,9 +368,7 @@ class EvolutionTrainingSignalGenerator:
         The margin must exceed dpo_min_margin for the pair to be useful.
         """
         pairs: list[dict[str, Any]] = []
-        scored = sorted(
-            zip(trajectories, rewards, strict=True), key=lambda x: x[1], reverse=True
-        )
+        scored = sorted(zip(trajectories, rewards, strict=True), key=lambda x: x[1], reverse=True)
         n = len(scored)
 
         for i in range(n // 2):
@@ -533,20 +522,15 @@ class EvolutionTrainingExporter:
             paths["rewards"] = path
 
         if signals.judgment_records:
-            path = self._write_jsonl(
-                signals.judgment_records, f"{p}judgments.jsonl"
-            )
+            path = self._write_jsonl(signals.judgment_records, f"{p}judgments.jsonl")
             paths["judgments"] = path
 
         if signals.instruction_tuning:
-            path = self._write_jsonl(
-                signals.instruction_tuning, f"{p}instructions.jsonl"
-            )
+            path = self._write_jsonl(signals.instruction_tuning, f"{p}instructions.jsonl")
             paths["instructions"] = path
 
         logger.info(
-            "Exported training data for generation %d: "
-            "%d DPO pairs, %d rewards, %d judgments, %d instructions",
+            "Exported training data for generation %d: %d DPO pairs, %d rewards, %d judgments, %d instructions",
             signals.generation,
             len(signals.dpo_pairs),
             len(signals.reward_records),
@@ -658,25 +642,18 @@ class EvolutionTrainingPipeline:
 
         # --- Stage 3: Convert to FLUME trajectories ---
         # From the experience pool (current generation)
-        pool_trajectories = self.converter.pool_to_trajectories(
-            pool, candidates
-        )
+        pool_trajectories = self.converter.pool_to_trajectories(pool, candidates)
 
         # From archive entries (accumulated generations)
         archive_trajectories = [
-            self.converter.archive_entry_to_trajectory(
-                entry, trace_sources.get(entry.agent_id, [])
-            )
+            self.converter.archive_entry_to_trajectory(entry, trace_sources.get(entry.agent_id, []))
             for entry in engine.archive
         ]
 
         all_trajectories = pool_trajectories + archive_trajectories
 
         # --- Stage 4: Compute latent novelty ---
-        latent_novelties = [
-            self.latent_scorer.compute_latent_novelty(t, all_trajectories)
-            for t in all_trajectories
-        ]
+        latent_novelties = [self.latent_scorer.compute_latent_novelty(t, all_trajectories) for t in all_trajectories]
 
         # --- Stage 5: Generate training signals ---
         signals = self.signal_generator.generate_signals(
@@ -757,16 +734,11 @@ class EvolutionTrainingPipeline:
 
         # Summarize
         total_dpo = sum(len(r.training_signals.dpo_pairs) for r in results)
-        total_rewards = sum(
-            len(r.training_signals.reward_records) for r in results
-        )
-        total_instructions = sum(
-            len(r.training_signals.instruction_tuning) for r in results
-        )
+        total_rewards = sum(len(r.training_signals.reward_records) for r in results)
+        total_instructions = sum(len(r.training_signals.instruction_tuning) for r in results)
 
         logger.info(
-            "Multi-generation complete (%d rounds): "
-            "%d total DPO pairs, %d reward records, %d instructions",
+            "Multi-generation complete (%d rounds): %d total DPO pairs, %d reward records, %d instructions",
             n_generations,
             total_dpo,
             total_rewards,
@@ -904,12 +876,7 @@ def _trajectory_reward(traj: EvolutionTrajectory) -> float:
         spin = 0.5
 
     # Combine
-    reward = (
-        0.3 * hiho_score
-        + 0.1 * spin
-        + 0.4 * traj.performance
-        + 0.2 * min(traj.novelty, 1.0)
-    )
+    reward = 0.3 * hiho_score + 0.1 * spin + 0.4 * traj.performance + 0.2 * min(traj.novelty, 1.0)
     return float(np.clip(reward, 0.0, 1.0))
 
 

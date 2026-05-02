@@ -4,12 +4,12 @@ BREAKTHROUGH ORCHESTRATOR - Can't Stop Won't Stop
 Aggressive multi-kernel submission with auto-retry and improvement tracking
 """
 
-import subprocess
 import json
+import subprocess
 import time
-import os
 from datetime import datetime
 from pathlib import Path
+
 
 BASE_DIR = Path(
     "/home/mike-anderson/dev/cohezion/.worktrees/luma-breakthrough-sprint/luma_speedrun"
@@ -141,20 +141,20 @@ def run_optimization_cycle():
         # Test
         success, _ = submit_kernel(kernel, "test")
         if not success:
-            print(f"  ❌ Test failed, skipping benchmark")
+            print("  ❌ Test failed, skipping benchmark")
             continue
 
         # Benchmark
         success, timing = submit_kernel(kernel, "benchmark")
         if not timing:
-            print(f"  ⚠ No timing extracted")
+            print("  ⚠ No timing extracted")
             continue
 
         print(f"  📊 Timing: {timing:.2f}µs")
 
         # Check improvement
         if check_improvement(kernel, timing):
-            print(f"  🚀 IMPROVEMENT! Submitting to leaderboard...")
+            print("  🚀 IMPROVEMENT! Submitting to leaderboard...")
             submit_kernel(kernel, "leaderboard")
         else:
             print(f"  📊 No improvement over {CURRENT_BEST.get(kernel, 0):.2f}µs")
@@ -164,8 +164,8 @@ def main():
     """Main execution loop."""
     print("🚀 BREAKTHROUGH ORCHESTRATOR")
     print("   Mode: CAN'T STOP WON'T STOP")
-    print("   Email: {}".format(EMAIL))
-    print("   Log: {}".format(RESULTS_FILE))
+    print(f"   Email: {EMAIL}")
+    print(f"   Log: {RESULTS_FILE}")
     print("")
 
     cycle = 0

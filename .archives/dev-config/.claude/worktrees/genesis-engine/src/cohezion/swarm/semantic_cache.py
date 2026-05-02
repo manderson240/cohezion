@@ -313,10 +313,7 @@ class SemanticCache:
             for key, (cached_embedding, cached_value) in self._embedding_cache.items():
                 similarity = self._cosine_similarity(query_embedding, cached_embedding)
 
-                if (
-                    similarity > best_similarity
-                    and similarity >= self.similarity_threshold
-                ):
+                if similarity > best_similarity and similarity >= self.similarity_threshold:
                     best_similarity = similarity
                     best_hit = SemanticCacheHit(
                         value=cached_value,

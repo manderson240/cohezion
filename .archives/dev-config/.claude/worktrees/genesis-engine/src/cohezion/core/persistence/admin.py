@@ -11,7 +11,6 @@ Provides professional-grade database management capabilities:
 import asyncio
 import json
 import logging
-import re
 from datetime import datetime
 from pathlib import Path
 from typing import Any

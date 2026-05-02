@@ -93,9 +93,7 @@ def generate_input(
     # ── Append shared expert(s): always selected, weight = 1.0 ──
     # Shared experts are indexed as n_routed_experts, n_routed_experts+1, ...
     shared_ids = (
-        torch.arange(n_routed_experts, E_total, device="cuda", dtype=torch.int32)
-        .unsqueeze(0)
-        .expand(M, -1)
+        torch.arange(n_routed_experts, E_total, device="cuda", dtype=torch.int32).unsqueeze(0).expand(M, -1)
     )  # [M, n_shared_experts]
     shared_weights = torch.ones((M, n_shared_experts), device="cuda", dtype=torch.float32)
 

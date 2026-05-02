@@ -38,9 +38,7 @@ def extract_code(text: str, all_blocks: bool = False) -> str:
         Extracted Python code, or the original text if no code blocks found.
     """
     if "```python" in text:
-        return utils.extract_code_block(
-            text, name="python", greedy=False, all_blocks=all_blocks
-        ).strip()
+        return utils.extract_code_block(text, name="python", greedy=False, all_blocks=all_blocks).strip()
     return text
 
 
@@ -150,9 +148,7 @@ class IPythonREPL(actors.Actor):
         self.client.wait_for_ready()
 
     @chats.emits_message
-    def run_code(
-        self, code: str, timeout: int = -1, input: str | None = None
-    ) -> CellOutput:
+    def run_code(self, code: str, timeout: int = -1, input: str | None = None) -> CellOutput:
         code = extract_code(code)
         self.client.execute(code)
 
@@ -166,11 +162,7 @@ class IPythonREPL(actors.Actor):
                 result = msg["content"]["data"]["text/plain"]
                 break
 
-        traceback = "\n".join(
-            "\n".join(m["content"]["traceback"])
-            for m in msgs
-            if m["msg_type"] == "error"
-        ).strip()
+        traceback = "\n".join("\n".join(m["content"]["traceback"]) for m in msgs if m["msg_type"] == "error").strip()
 
         # shell_msg = self.client.get_shell_msg(timeout=timeout)["content"]
         # status = shell_msg["status"] is unrealiable
@@ -179,9 +171,7 @@ class IPythonREPL(actors.Actor):
         return CellOutput(
             status=status,
             output=result,
-            stdout="\n".join(
-                m["content"]["text"] for m in msgs if m["msg_type"] == "stream"
-            ),
+            stdout="\n".join(m["content"]["text"] for m in msgs if m["msg_type"] == "stream"),
             traceback=traceback or None,
         )
 

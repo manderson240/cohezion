@@ -17,7 +17,7 @@ from collections import defaultdict
 from dataclasses import asdict, dataclass
 from datetime import datetime
 from pathlib import Path
-from typing import Any, Dict, List, Optional
+from typing import Any
 
 
 logger = logging.getLogger(__name__)
@@ -37,10 +37,10 @@ class LearningExperience:
     tokens_used: int
     duration_seconds: float
     timestamp: str
-    lessons_learned: List[str]
-    similar_experiences: List[str]
+    lessons_learned: list[str]
+    similar_experiences: list[str]
 
-    def to_dict(self) -> Dict[str, Any]:
+    def to_dict(self) -> dict[str, Any]:
         return asdict(self)
 
 
@@ -67,10 +67,10 @@ class ExperientialLearningEngine:
         self.learning_rate = learning_rate
 
         # Experience storage
-        self.experiences: List[LearningExperience] = []
-        self.success_patterns: Dict[str, List[Dict]] = defaultdict(list)
-        self.failure_patterns: Dict[str, List[Dict]] = defaultdict(list)
-        self.strategy_stats: Dict[str, Dict[str, float]] = defaultdict(
+        self.experiences: list[LearningExperience] = []
+        self.success_patterns: dict[str, list[dict]] = defaultdict(list)
+        self.failure_patterns: dict[str, list[dict]] = defaultdict(list)
+        self.strategy_stats: dict[str, dict[str, float]] = defaultdict(
             lambda: {
                 "attempts": 0,
                 "successes": 0,
@@ -80,7 +80,7 @@ class ExperientialLearningEngine:
         )
 
         # Problem type clustering
-        self.problem_clusters: Dict[str, List[str]] = defaultdict(list)
+        self.problem_clusters: dict[str, list[str]] = defaultdict(list)
 
         # Load existing experiences
         self._load_experiences()
@@ -95,7 +95,7 @@ class ExperientialLearningEngine:
         coherence: float,
         tokens_used: int,
         duration_seconds: float,
-        lessons_learned: Optional[List[str]] = None,
+        lessons_learned: list[str] | None = None,
     ) -> LearningExperience:
         """Record a learning experience."""
         experience_id = f"exp_{int(time.time() * 1000)}_{problem_id}"
@@ -177,7 +177,7 @@ class ExperientialLearningEngine:
         stats["avg_coherence"] = (stats["avg_coherence"] * (n - 1) + experience.coherence) / n
         stats["avg_tokens"] = (stats["avg_tokens"] * (n - 1) + experience.tokens_used) / n
 
-    def _find_similar_experiences(self, problem_type: str, limit: int = 5) -> List[str]:
+    def _find_similar_experiences(self, problem_type: str, limit: int = 5) -> list[str]:
         """Find similar experiences for transfer learning."""
         similar_ids = []
 
@@ -261,7 +261,7 @@ class ExperientialLearningEngine:
 
         return best_strategy or "standard"
 
-    def get_lessons_for_problem(self, problem_type: str) -> List[str]:
+    def get_lessons_for_problem(self, problem_type: str) -> list[str]:
         """Get lessons learned for similar problems."""
         lessons = []
 
@@ -277,7 +277,7 @@ class ExperientialLearningEngine:
 
         return list(set(lessons))  # Deduplicate
 
-    def get_strategy_recommendation(self, problem_type: str) -> Dict[str, Any]:
+    def get_strategy_recommendation(self, problem_type: str) -> dict[str, Any]:
         """Get strategy recommendation with reasoning."""
         best_strategy = self.get_best_strategy(problem_type)
         lessons = self.get_lessons_for_problem(problem_type)
@@ -293,7 +293,7 @@ class ExperientialLearningEngine:
             "similar_problems_solved": len(self.problem_clusters.get(problem_type, [])),
         }
 
-    def get_learning_summary(self) -> Dict[str, Any]:
+    def get_learning_summary(self) -> dict[str, Any]:
         """Get summary of all learning."""
         total = len(self.experiences)
         successes = sum(1 for e in self.experiences if e.success)
@@ -341,7 +341,7 @@ class ExperientialLearningEngine:
 
 
 # Global learning engine instance
-_global_learning_engine: Optional[ExperientialLearningEngine] = None
+_global_learning_engine: ExperientialLearningEngine | None = None
 
 
 def get_learning_engine() -> ExperientialLearningEngine:

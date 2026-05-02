@@ -11,14 +11,13 @@ from __future__ import annotations
 import os
 import sys
 import time
-import inspect
 
 import torch
-import aiter
 from aiter import ActivationType as at
 from aiter import QuantType as qt
 from aiter.fused_moe import fused_moe as fm
 from task import input_t, output_t
+
 
 _probed = False
 

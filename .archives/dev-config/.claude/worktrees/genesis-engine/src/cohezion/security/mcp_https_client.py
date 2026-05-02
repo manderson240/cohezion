@@ -81,9 +81,7 @@ class MCPHTTPSClient:
 
         # Enforce strong TLS versions — explicitly disable insecure protocols
         self._ssl_context.minimum_version = ssl.TLSVersion.TLSv1_2
-        self._ssl_context.options |= (
-            ssl.OP_NO_SSLv2 | ssl.OP_NO_SSLv3 | ssl.OP_NO_TLSv1 | ssl.OP_NO_TLSv1_1
-        )
+        self._ssl_context.options |= ssl.OP_NO_SSLv2 | ssl.OP_NO_SSLv3 | ssl.OP_NO_TLSv1 | ssl.OP_NO_TLSv1_1
 
         return self._ssl_context
 

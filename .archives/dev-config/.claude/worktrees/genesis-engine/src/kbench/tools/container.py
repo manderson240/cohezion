@@ -22,6 +22,7 @@ import docker
 
 from kaggle_benchmarks import actors
 
+
 logger = logging.getLogger(__name__)
 
 
@@ -39,9 +40,7 @@ class DockerContainer(actors.Actor):
             logger.info(f"Image {self.image} not found. Pulling...")
             self.client.images.pull(self.image)
 
-        self.container = self.client.containers.run(
-            self.image, command="tail -f /dev/null", detach=True, tty=True
-        )
+        self.container = self.client.containers.run(self.image, command="tail -f /dev/null", detach=True, tty=True)
 
         start_time = time.time()
         while self.container.status != "running":
@@ -142,4 +141,4 @@ class DockerContainer(actors.Actor):
         except docker.errors.NotFound:
             return f"Error: File {path} not found."
         except Exception as e:
-            return f"Error reading file {path}: {str(e)}"
+            return f"Error reading file {path}: {e!s}"

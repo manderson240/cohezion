@@ -22,12 +22,11 @@ from __future__ import annotations
 import argparse
 import json
 import logging
-import os
 import sys
-import time
 import urllib.request
 from base64 import b64encode
 from pathlib import Path
+
 
 sys.path.insert(0, str(Path(__file__).parent.parent / "src"))
 
@@ -152,7 +151,7 @@ def print_status(kernel: str) -> None:
     print(f"  Runs:      {len(history)} in SurrealDB")
 
     if history:
-        print(f"\n  Recent runs:")
+        print("\n  Recent runs:")
         for h in history[:5]:
             print(
                 f"    {h.get('approach', '?')[:40]:40s} {h.get('time_us', 0):8.1f} us  [{h.get('status', '?')}]"

@@ -12,14 +12,15 @@ Also includes shape-tuned num_kv_splits for ranked shapes.
 
 import os
 
+
 os.environ["HIP_FORCE_DEV_KERNARG"] = "1"
 
 import torch
-import aiter
 from aiter import dtypes as aiter_dtypes
-from aiter import get_mla_metadata_info_v1, get_mla_metadata_v1, mla_reduce_v1
+from aiter import get_mla_metadata_info_v1, get_mla_metadata_v1
 from aiter.mla import mla_decode_fwd
 from task import input_t, output_t
+
 
 NUM_HEADS = 16
 NUM_KV_HEADS = 1

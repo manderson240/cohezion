@@ -7,16 +7,16 @@ This module provides a Python interface to the CK-Tile fused MoE kernel
 optimized for AMD MI355X (gfx950).
 """
 
-import os
 import sys
-import ctypes
+from typing import Any
+
 import numpy as np
-from pathlib import Path
-from typing import Optional, Tuple, Dict, Any
+
 
 # Try to import PyTorch for tensor handling
 try:
     import torch
+
     HAS_TORCH = True
 except ImportError:
     HAS_TORCH = False
@@ -50,7 +50,7 @@ class CKTileMoeConfig:
         self.topk = topk
         self.use_mxfp4 = use_mxfp4
 
-    def to_dict(self) -> Dict[str, Any]:
+    def to_dict(self) -> dict[str, Any]:
         return {
             "hidden_size": self.hidden_size,
             "intermediate_size": self.intermediate_size,
@@ -87,9 +87,9 @@ class CKTileMoeKernel:
 
     def prepare_routing(
         self,
-        topk_ids: np.ndarray,      # [num_tokens, topk] - expert indices
-        topk_weights: np.ndarray,   # [num_tokens, topk] - weights (fp16)
-    ) -> Tuple[np.ndarray, np.ndarray, np.ndarray, np.ndarray]:
+        topk_ids: np.ndarray,  # [num_tokens, topk] - expert indices
+        topk_weights: np.ndarray,  # [num_tokens, topk] - weights (fp16)
+    ) -> tuple[np.ndarray, np.ndarray, np.ndarray, np.ndarray]:
         """
         Prepare routing information for the kernel.
 
@@ -156,13 +156,13 @@ class CKTileMoeKernel:
 
     def forward(
         self,
-        input_act: np.ndarray,           # [num_tokens, hidden_size] fp16
-        gate_up_weights: np.ndarray,      # [experts, 2*interm, hidden] mxfp4
-        down_weights: np.ndarray,          # [experts, hidden, interm] mxfp4
-        gate_up_scales: np.ndarray,       # [experts, 2*interm] e8m0
-        down_scales: np.ndarray,          # [experts, hidden] e8m0
-        topk_ids: np.ndarray,             # [num_tokens, topk]
-        topk_weights: np.ndarray,          # [num_tokens, topk] fp16
+        input_act: np.ndarray,  # [num_tokens, hidden_size] fp16
+        gate_up_weights: np.ndarray,  # [experts, 2*interm, hidden] mxfp4
+        down_weights: np.ndarray,  # [experts, hidden, interm] mxfp4
+        gate_up_scales: np.ndarray,  # [experts, 2*interm] e8m0
+        down_scales: np.ndarray,  # [experts, hidden] e8m0
+        topk_ids: np.ndarray,  # [num_tokens, topk]
+        topk_weights: np.ndarray,  # [num_tokens, topk] fp16
     ) -> np.ndarray:
         """
         Run the fused MoE forward pass.
@@ -187,8 +187,9 @@ class CKTileMoeKernel:
         num_tokens = input_act.shape[0]
 
         # Prepare routing
-        sorted_token_ids, sorted_weights, sorted_expert_ids, num_sorted_tiles = \
-            self.prepare_routing(topk_ids, topk_weights)
+        sorted_token_ids, sorted_weights, sorted_expert_ids, num_sorted_tiles = self.prepare_routing(
+            topk_ids, topk_weights
+        )
 
         # Allocate output
         output = np.zeros_like(input_act)
@@ -198,10 +199,7 @@ class CKTileMoeKernel:
 
         # Placeholder computation for testing structure
         # (This would be replaced by actual CK-Tile kernel call)
-        self._compute_placeholder(
-            input_act, gate_up_weights, down_weights,
-            topk_ids, topk_weights, output
-        )
+        self._compute_placeholder(input_act, gate_up_weights, down_weights, topk_ids, topk_weights, output)
 
         return output
 
@@ -244,7 +242,7 @@ class CKTileMoeKernel:
 
             output[token_idx] = accum.astype(np.float16)
 
-    def get_kernel_info(self) -> Dict[str, Any]:
+    def get_kernel_info(self) -> dict[str, Any]:
         """Get information about the kernel configuration."""
         return {
             "name": "CK-Tile Fused MoE",
@@ -286,6 +284,7 @@ def create_submission_kernel(**kwargs) -> CKTileMoeKernel:
 # Popcorn CLI Submission Interface
 # ============================================================================
 
+
 class SubmissionKernel:
     """
     Standardized submission kernel interface for Popcorn CLI.
@@ -298,12 +297,7 @@ class SubmissionKernel:
         self.config = None
 
     def setup(
-        self,
-        hidden_size: int = 8192,
-        intermediate_size: int = 2048,
-        num_experts: int = 64,
-        topk: int = 6,
-        **kwargs
+        self, hidden_size: int = 8192, intermediate_size: int = 2048, num_experts: int = 64, topk: int = 6, **kwargs
     ):
         """Setup the kernel with configuration."""
         self.config = CKTileMoeConfig(
@@ -328,8 +322,7 @@ class SubmissionKernel:
         if self.kernel is None:
             raise RuntimeError("Kernel not initialized. Call setup() first.")
         return self.kernel.forward(
-            input_act, gate_up_weights, down_weights,
-            gate_up_scales, down_scales, topk_ids, topk_weights
+            input_act, gate_up_weights, down_weights, gate_up_scales, down_scales, topk_ids, topk_weights
         )
 
 
@@ -355,15 +348,15 @@ def main():
     print(f"  Pipeline: {info['pipeline']}")
 
     print("\nConfiguration:")
-    for key, value in info['config'].items():
+    for key, value in info["config"].items():
         print(f"  {key}: {value}")
 
     print("\nBlock Shape:")
-    for key, value in info['block_shape'].items():
+    for key, value in info["block_shape"].items():
         print(f"  {key}: {value}")
 
     print("\nFeatures:")
-    for feature in info['features']:
+    for feature in info["features"]:
         print(f"  - {feature}")
 
     # Test with dummy data
@@ -397,7 +390,7 @@ def main():
     topk_ids = np.random.randint(0, num_experts, size=(num_tokens, topk), dtype=np.int32)
     topk_weights = np.random.rand(num_tokens, topk).astype(np.float16)
 
-    print(f"\nInput shapes:")
+    print("\nInput shapes:")
     print(f"  input_act: {input_act.shape}")
     print(f"  gate_up_weights: {gate_up_weights.shape}")
     print(f"  down_weights: {down_weights.shape}")
@@ -407,8 +400,7 @@ def main():
     # Run kernel (placeholder computation)
     print("\nRunning kernel...")
     output = kernel.forward(
-        input_act, gate_up_weights, down_weights,
-        gate_up_scales, down_scales, topk_ids, topk_weights
+        input_act, gate_up_weights, down_weights, gate_up_scales, down_scales, topk_ids, topk_weights
     )
 
     print(f"Output shape: {output.shape}")

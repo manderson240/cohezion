@@ -96,9 +96,7 @@ class ChangeSet:
 
     def is_empty(self) -> bool:
         """Check if there are no changes."""
-        return (
-            not self.added and not self.modified and not self.deleted and not self.moved
-        )
+        return not self.added and not self.modified and not self.deleted and not self.moved
 
 
 @dataclass

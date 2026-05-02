@@ -5,6 +5,7 @@ from __future__ import annotations
 import json
 import time
 from pathlib import Path
+
 from arc_solver import grids_equal, search_program
 
 
@@ -43,6 +44,7 @@ def evaluate() -> None:
             pred_input = task["test"][0]["input"]
             if program:
                 from arc_solver import apply_program
+
                 pred_attempt1 = apply_program(pred_input, program)
             else:
                 pred_attempt1 = pred_input
@@ -54,7 +56,9 @@ def evaluate() -> None:
             print(f"  Progress {idx + 1}/{total}: {current_rate:.1f}%", flush=True)
 
     print(f"Evaluation tasks: {total}")
-    print(f"Solved by search (depth <= 3): {solved_with_search} ({solved_with_search / total * 100:.1f}%)")
+    print(
+        f"Solved by search (depth <= 3): {solved_with_search} ({solved_with_search / total * 100:.1f}%)"
+    )
     print(f"Correct on eval test: {correct} ({correct / total * 100:.1f}%)")
     print(f"Avg solve time: {sum(times) / len(times):.3f}s")
     print(f"90th percentile time: {sorted(times)[int(len(times) * 0.9)]:.3f}s")

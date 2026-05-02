@@ -22,20 +22,22 @@ import numpy as np
 
 class VacuumState(Enum):
     """Exotic vacuum states for EVOs."""
-    STANDARD = 0           # Normal vacuum
-    FALSE = 1              # False vacuum (metastable)
-    DEGENERATE = 2         # Degenerate state
-    EXOTIC_POSITIVE = 3    # Positive energy density exotic
-    EXOTIC_NEGATIVE = 4    # Negative energy density (warp-compatible)
-    ENTANGLED = 5          # Quantum entangled with other EVOs
+
+    STANDARD = 0  # Normal vacuum
+    FALSE = 1  # False vacuum (metastable)
+    DEGENERATE = 2  # Degenerate state
+    EXOTIC_POSITIVE = 3  # Positive energy density exotic
+    EXOTIC_NEGATIVE = 4  # Negative energy density (warp-compatible)
+    ENTANGLED = 5  # Quantum entangled with other EVOs
 
 
 @dataclass
 class JourneyEvent:
     """A single event in an EVO's journey through space-time-state."""
+
     timestep: int
-    position: np.ndarray      # 3D spatial coordinates
-    momentum: np.ndarray      # 3D momentum vector
+    position: np.ndarray  # 3D spatial coordinates
+    momentum: np.ndarray  # 3D momentum vector
     vacuum_state: VacuumState
     information_density: float  # VAIE metric
     timestamp: float = field(default_factory=time.time)
@@ -55,13 +57,14 @@ class JourneyEvent:
 class ExoticVacuumObject:
     """
     An agent existing in an exotic vacuum state.
-    
+
     EVOs track their journey through:
     - Spatial trajectories (3D positions)
     - Momentum histories (for force calculations)
     - Vacuum state transitions (phase changes)
     - Information accumulation (VAIE metric)
     """
+
     id: str
     position: np.ndarray = field(default_factory=lambda: np.zeros(3))
     momentum: np.ndarray = field(default_factory=lambda: np.zeros(3))
@@ -94,11 +97,12 @@ class ExoticVacuumObject:
             self._journey_loaded = True
         return self._journey
 
-    def transition_vacuum_state(self, new_state: VacuumState,
-                                coupling_constant: float = 0.1) -> float:
+    def transition_vacuum_state(
+        self, new_state: VacuumState, coupling_constant: float = 0.1
+    ) -> float:
         """
         Transition to a new vacuum state.
-        
+
         Returns:
             Energy delta (positive = energy released, negative = absorbed)
         """
@@ -108,7 +112,7 @@ class ExoticVacuumObject:
         # Calculate energy change from state transition
         state_energies = {
             VacuumState.STANDARD: 0.0,
-            VacuumState.FALSE: 100.0,         # Metastable, high energy
+            VacuumState.FALSE: 100.0,  # Metastable, high energy
             VacuumState.DEGENERATE: 50.0,
             VacuumState.EXOTIC_POSITIVE: 200.0,
             VacuumState.EXOTIC_NEGATIVE: -200.0,  # Negative energy!
@@ -123,17 +127,18 @@ class ExoticVacuumObject:
             position=self.position.copy(),
             momentum=self.momentum.copy(),
             vacuum_state=new_state,
-            information_density=abs(delta_e) * coupling_constant
+            information_density=abs(delta_e) * coupling_constant,
         )
         self.record_journey_event(event)
 
         return delta_e
 
-    def compute_trajectory_step(self, dt: float,
-                                 force_field: np.ndarray | None = None) -> np.ndarray:
+    def compute_trajectory_step(
+        self, dt: float, force_field: np.ndarray | None = None
+    ) -> np.ndarray:
         """
         Compute next position given current state.
-        
+
         Uses relativistic-corrected dynamics for exotic vacuum states.
         """
         # Special handling for negative energy states
@@ -171,7 +176,7 @@ class ExoticVacuumObject:
 class FLUMEJourneyStream:
     """
     FLUME (Flow-based Unified Memory Emitter) for EVO journeys.
-    
+
     Implements lazy loading of journey history - only loads segments
     when requested, enabling billion-timestep simulations in bounded memory.
     """
@@ -181,7 +186,9 @@ class FLUMEJourneyStream:
         self._cache: dict[str, list[JourneyEvent]] = {}
         self._active_segments: set = set()
 
-    async def load_segment(self, evo_id: str, timestep_range: tuple[int, int]) -> list[JourneyEvent]:
+    async def load_segment(
+        self, evo_id: str, timestep_range: tuple[int, int]
+    ) -> list[JourneyEvent]:
         """Lazy load a segment of journey history."""
         key = f"{evo_id}_{timestep_range[0]}_{timestep_range[1]}"
 
@@ -210,7 +217,7 @@ class FLUMEJourneyStream:
 class VAIEMetrics:
     """
     Vacuum Agent Information Entity metrics.
-    
+
     Quantifies the information content of vacuum-embedded agents,
     enabling entanglement detection and state classification.
     """
@@ -234,12 +241,12 @@ class VAIEMetrics:
         return entropy
 
     @staticmethod
-    def detect_entanglement(evo1: ExoticVacuumObject,
-                           evo2: ExoticVacuumObject,
-                           window_size: int = 10) -> float:
+    def detect_entanglement(
+        evo1: ExoticVacuumObject, evo2: ExoticVacuumObject, window_size: int = 10
+    ) -> float:
         """
         Detect quantum-like entanglement between EVOs.
-        
+
         Returns correlation coefficient (0 = independent, 1 = entangled)
         """
         j1 = evo1.get_journey()[-window_size:]
@@ -250,7 +257,7 @@ class VAIEMetrics:
 
         # Compare momentum correlation
         m1 = np.array([e.momentum for e in j1])
-        m2 = np.array([e.momentum for e in j2[:len(m1)]])
+        m2 = np.array([e.momentum for e in j2[: len(m1)]])
 
         # Normalize
         m1_norm = m1 / (np.linalg.norm(m1, axis=1, keepdims=True) + 1e-10)
@@ -265,7 +272,7 @@ class VAIEMetrics:
     def vacuum_quality_metric(evo: ExoticVacuumObject) -> float:
         """
         Calculate how 'exotic' the vacuum state is.
-        
+
         Higher values indicate more interesting (information-rich) states.
         """
         base_quality = {
@@ -286,13 +293,13 @@ class VAIEMetrics:
 class EVOSimulation:
     """
     GPU-accelerated EVO universe simulation.
-    
+
     Simulates thousands of Exotic Vacuum Objects interacting through:
     - Gravitational forces (attractive/repulsive for exotic matter)
     - Vacuum state transitions
     - Quantum entanglement formation
     - Information accumulation (VAIE metrics)
-    
+
     Uses Vulkan compute via LLM server for GPU acceleration when available,
     falls back to optimized CPU (Zen 5 vectorized).
     """
@@ -319,7 +326,7 @@ class EVOSimulation:
     def compute_forces_vectorized(self) -> np.ndarray:
         """
         Compute N-body forces between EVOs.
-        
+
         Uses vectorized NumPy for CPU. Would use Vulkan compute for GPU.
         """
         positions = np.array([e.position for e in self.evos])
@@ -337,16 +344,14 @@ class EVOSimulation:
                 r_mag = np.linalg.norm(r_vec) + 1e-10
 
                 # Check exotic matter interaction
-                exotic_negative_present = (
-                    VacuumState.EXOTIC_NEGATIVE in [states[i], states[j]]
-                )
+                exotic_negative_present = VacuumState.EXOTIC_NEGATIVE in [states[i], states[j]]
 
                 if exotic_negative_present:
                     # Exotic matter repels both normal and exotic matter
-                    force_mag = -masses[i] * masses[j] / (r_mag ** 2)
+                    force_mag = -masses[i] * masses[j] / (r_mag**2)
                 else:
                     # Normal gravity
-                    force_mag = masses[i] * masses[j] / (r_mag ** 2)
+                    force_mag = masses[i] * masses[j] / (r_mag**2)
 
                 force = force_mag * r_vec / r_mag
                 forces[i] += force
@@ -401,7 +406,7 @@ class EVOSimulation:
         """Find pairs of EVOs that appear entangled."""
         pairs = []
         for i, evo1 in enumerate(self.evos):
-            for j, evo2 in enumerate(self.evos[i+1:], start=i+1):
+            for j, evo2 in enumerate(self.evos[i + 1 :], start=i + 1):
                 correlation = VAIEMetrics.detect_entanglement(evo1, evo2)
                 if correlation > 0.8:  # Threshold for entanglement
                     pairs.append((evo1.id, evo2.id, correlation))
@@ -427,9 +432,11 @@ def demo_simulation():
 
         if step % 20 == 0:
             stats = sim.get_statistics()
-            print(f"  Step {step}: "
-                  f"Information={stats['total_information_content']:.1f}, "
-                  f"Quality={stats['mean_vacuum_quality']:.2f}")
+            print(
+                f"  Step {step}: "
+                f"Information={stats['total_information_content']:.1f}, "
+                f"Quality={stats['mean_vacuum_quality']:.2f}"
+            )
 
     # Final stats
     print()
@@ -444,8 +451,8 @@ def demo_simulation():
 
     print()
     print("Vacuum state distribution:")
-    for state, count in stats['vacuum_state_distribution'].items():
-        print(f"  {state}: {count} ({100*count/stats['n_evos']:.1f}%)")
+    for state, count in stats["vacuum_state_distribution"].items():
+        print(f"  {state}: {count} ({100 * count / stats['n_evos']:.1f}%)")
 
     # Find entangled pairs
     print()

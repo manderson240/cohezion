@@ -142,9 +142,7 @@ class TestPerturbations:
     def test_coherence_spike_shifts_coherence_up(self, client: TestClient) -> None:
         client.post("/api/universe/tick")
         before = client.get("/api/universe/state").json()["coherence"]
-        resp = client.post(
-            "/api/universe/perturb", json={"kind": "coherence_spike", "magnitude": 0.3}
-        )
+        resp = client.post("/api/universe/perturb", json={"kind": "coherence_spike", "magnitude": 0.3})
         assert resp.status_code == 200
         after = resp.json()["coherence"]
         assert after > before
@@ -152,9 +150,7 @@ class TestPerturbations:
     def test_coherence_collapse_shifts_coherence_down(self, client: TestClient) -> None:
         client.post("/api/universe/tick")
         before = client.get("/api/universe/state").json()["coherence"]
-        resp = client.post(
-            "/api/universe/perturb", json={"kind": "coherence_collapse", "magnitude": 0.3}
-        )
+        resp = client.post("/api/universe/perturb", json={"kind": "coherence_collapse", "magnitude": 0.3})
         assert resp.status_code == 200
         after = resp.json()["coherence"]
         assert after < before
@@ -173,15 +169,11 @@ class TestPerturbations:
     def test_charge_injection_boosts_charge(self, client: TestClient) -> None:
         client.post("/api/universe/tick")
         before_evos = client.get("/api/universe/state").json()["evo_states"]
-        resp = client.post(
-            "/api/universe/perturb", json={"kind": "charge_injection", "magnitude": 0.5}
-        )
+        resp = client.post("/api/universe/perturb", json={"kind": "charge_injection", "magnitude": 0.5})
         assert resp.status_code == 200
         after_evos = resp.json()["evo_states"]
         # At least one EVO should have higher charge
-        assert any(
-            a["charge_density"] > b["charge_density"] for a, b in zip(after_evos, before_evos)
-        )
+        assert any(a["charge_density"] > b["charge_density"] for a, b in zip(after_evos, before_evos))
 
     def test_ca_reset_clears_grid(self, client: TestClient) -> None:
         # Tick to grow the CA fabric
@@ -200,9 +192,7 @@ class TestPerturbations:
         assert resp.status_code == 422
 
     def test_magnitude_clamped_to_safe_range(self, client: TestClient) -> None:
-        resp = client.post(
-            "/api/universe/perturb", json={"kind": "coherence_spike", "magnitude": 999.0}
-        )
+        resp = client.post("/api/universe/perturb", json={"kind": "coherence_spike", "magnitude": 999.0})
         assert resp.status_code == 200
         # Coherence should never exceed 1.0
         for evo in resp.json()["evo_states"]:

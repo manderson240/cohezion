@@ -5,7 +5,7 @@ import grpc
 import kaggle_evaluation_pb2 as kaggle__evaluation__pb2
 
 
-class KaggleEvaluationServiceStub(object):
+class KaggleEvaluationServiceStub:
     """Missing associated documentation comment in .proto file."""
 
     def __init__(self, channel):
@@ -21,7 +21,7 @@ class KaggleEvaluationServiceStub(object):
         )
 
 
-class KaggleEvaluationServiceServicer(object):
+class KaggleEvaluationServiceServicer:
     """Missing associated documentation comment in .proto file."""
 
     def Send(self, request, context):
@@ -46,7 +46,7 @@ def add_KaggleEvaluationServiceServicer_to_server(servicer, server):
 
 
 # This class is part of an EXPERIMENTAL API.
-class KaggleEvaluationService(object):
+class KaggleEvaluationService:
     """Missing associated documentation comment in .proto file."""
 
     @staticmethod

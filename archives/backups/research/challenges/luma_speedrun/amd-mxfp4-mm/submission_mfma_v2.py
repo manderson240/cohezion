@@ -20,12 +20,13 @@ Architecture:
 
 import os
 
+
 os.environ["PYTORCH_ROCM_ARCH"] = "gfx950"
 os.environ["CXX"] = "clang++"
 
 import torch
-from torch.utils.cpp_extension import load_inline
 from task import input_t, output_t
+from torch.utils.cpp_extension import load_inline
 
 
 CPP_WRAPPER = """
@@ -208,7 +209,6 @@ def e8m0_unshuffle(scale_shuffled: torch.Tensor, orig_m: int, orig_n: int) -> to
 
 def custom_kernel(data: input_t) -> output_t:
     """MXFP4 GEMM using MFMA v2 with LDS and multi-tile."""
-    from aiter import dtypes
     from aiter.ops.triton.quant import dynamic_mxfp4_quant
 
     A, B, B_q, B_shuffle, B_scale_sh = data

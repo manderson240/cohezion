@@ -353,9 +353,7 @@ State: Fluid, adaptive, evolving
             for p in self.pattern_discoveries:
                 f.write(f"### {p.name}\n")
                 f.write(f"{p.description}\n\n")
-                f.write(
-                    f"**Frequency**: {p.frequency:,} | **Avg Stability**: {p.avg_stability:.4f}\n\n"
-                )
+                f.write(f"**Frequency**: {p.frequency:,} | **Avg Stability**: {p.avg_stability:.4f}\n\n")
                 f.write(f"**Agent Representation**:\n```\n{p.agent_representation}\n```\n\n")
         logger.info(f"Exported agent report to {report_file}")
 

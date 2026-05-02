@@ -6,11 +6,10 @@ Aligned with BirdCLEF 2026 requirements and Cohezion V-Model standards.
 from __future__ import annotations
 
 from dataclasses import dataclass, field
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from enum import Enum
-from typing import Any, List, Optional
+from typing import Any
 
-import numpy as np
 from pydantic import BaseModel, Field
 
 
@@ -24,29 +23,26 @@ class TaxonomyLevel(str, Enum):
 
 class BirdSpeciesNode(BaseModel):
     """SurrealDB node representation for a bird species."""
-    
+
     species_code: str = Field(..., description="Unique code (e.g., 'rubthr1')")
     scientific_name: str
     common_name: str
-    inat_taxon_id: Optional[int] = None
+    inat_taxon_id: int | None = None
     taxonomy: dict[TaxonomyLevel, str] = Field(default_factory=dict)
-    
+
     def to_surreal_record(self) -> dict[str, Any]:
-        return {
-            "id": f"bird_species:{self.species_code}",
-            **self.model_dump()
-        }
+        return {"id": f"bird_species:{self.species_code}", **self.model_dump()}
 
 
 class AudioSegmentMetadata(BaseModel):
     """Metadata for a 5-second audio window."""
-    
+
     filename: str
     offset_seconds: float
     duration_seconds: float = 5.0
     sample_rate: int = 32000
     primary_label: str
-    secondary_labels: List[str] = Field(default_factory=list)
+    secondary_labels: list[str] = Field(default_factory=list)
     latitude: float
     longitude: float
     date: str
@@ -54,7 +50,7 @@ class AudioSegmentMetadata(BaseModel):
 
 class SpectrogramConfig(BaseModel):
     """Configuration for mel-spectrogram generation."""
-    
+
     n_mels: int = 128
     fmin: int = 0
     fmax: int = 16000
@@ -65,14 +61,14 @@ class SpectrogramConfig(BaseModel):
 @dataclass
 class AudioTelemetryEvent:
     """Event emitted during audio processing/inference."""
-    
+
     metadata: AudioSegmentMetadata
-    timestamp: str = field(default_factory=lambda: datetime.now(timezone.utc).isoformat())
+    timestamp: str = field(default_factory=lambda: datetime.now(UTC).isoformat())
     event_type: str = "audio_inference"
     predictions: dict[str, float] = field(default_factory=dict)
     coherence: float = 0.0
     hardware_tier: str = "cpu"
-    
+
     def to_dict(self) -> dict[str, Any]:
         return {
             "timestamp": self.timestamp,

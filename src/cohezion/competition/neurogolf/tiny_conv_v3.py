@@ -1,5 +1,6 @@
 """NeuroGolf v3: 5-layer conv + batch norm, hidden=40.
 Target: stay under 100K params, improve accuracy above 20%."""
+
 from __future__ import annotations
 
 import json
@@ -96,7 +97,7 @@ if __name__ == "__main__":
         if evaluate(model, task):
             solved += 1
         if (i + 1) % 20 == 0:
-            print(f"Progress: {i+1}/{len(tasks)} — solved {solved}")
+            print(f"Progress: {i + 1}/{len(tasks)} — solved {solved}")
 
     acc = solved / len(tasks) * 100
     print(f"\nSolved {solved}/{len(tasks)} = {acc:.1f}%")

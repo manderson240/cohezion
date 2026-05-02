@@ -1,10 +1,12 @@
 from __future__ import annotations
-import gymnasium as gym
-from gymnasium import spaces
-import numpy as np
+
+from typing import Any
+
 import arc_agi
+import gymnasium as gym
+import numpy as np
 from arcengine import GameAction, GameState
-from typing import Any, Dict, Optional, Tuple, Union
+from gymnasium import spaces
 
 
 class ARCGymEnv(gym.Env):
@@ -33,8 +35,8 @@ class ARCGymEnv(gym.Env):
         )
 
     def reset(
-        self, seed: Optional[int] = None, options: Optional[Dict[str, Any]] = None
-    ) -> Tuple[np.ndarray, Dict[str, Any]]:
+        self, seed: int | None = None, options: dict[str, Any] | None = None
+    ) -> tuple[np.ndarray, dict[str, Any]]:
         """
         Resets the environment.
 
@@ -51,8 +53,8 @@ class ARCGymEnv(gym.Env):
         return self._process_obs(res), self._process_info(res)
 
     def step(
-        self, action: Union[int, Dict[str, Any]]
-    ) -> Tuple[np.ndarray, float, bool, bool, Dict[str, Any]]:
+        self, action: int | dict[str, Any]
+    ) -> tuple[np.ndarray, float, bool, bool, dict[str, Any]]:
         """
         Performs a step in the environment.
 
@@ -101,7 +103,7 @@ class ARCGymEnv(gym.Env):
         padded_grid[: min(h, 64), : min(w, 64)] = grid[:64, :64]
         return padded_grid
 
-    def _process_info(self, res: Any) -> Dict[str, Any]:
+    def _process_info(self, res: Any) -> dict[str, Any]:
         """Extracts metadata for the info dict."""
         return {
             "state": str(res.state),

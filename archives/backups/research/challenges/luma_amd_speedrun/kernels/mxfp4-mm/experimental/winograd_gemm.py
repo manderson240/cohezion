@@ -38,13 +38,13 @@ References:
 """
 
 from __future__ import annotations
-import os
+
 import sys
-import math
+
 import torch
-from typing import Tuple, Optional
-from task import input_t, output_t
 from reference import ref_kernel
+from task import input_t, output_t
+
 
 # Winograd transformation matrices for 2x2 output tiles
 # These are precomputed for F(2x2, 3x3) - 2 outputs from 3 inputs

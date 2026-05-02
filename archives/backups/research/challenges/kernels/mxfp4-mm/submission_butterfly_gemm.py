@@ -18,22 +18,25 @@ Author: Sprint Final Variant
 
 from __future__ import annotations
 
+import math
 import os
 import sys
-import math
+
 import torch
+
 
 os.environ["PYTORCH_ROCM_ARCH"] = "gfx950"
 os.environ["CXX"] = "clang++"
 
 from torch.utils.cpp_extension import load_inline
 
+
 try:
     from task import input_t, output_t
 except ImportError:
-    from typing import Tuple, Any
+    from typing import Any
 
-    input_t = Tuple[Any, ...]
+    input_t = tuple[Any, ...]
     output_t = torch.Tensor
 
 
@@ -202,21 +205,21 @@ __global__ void butterfly_step_kernel(
     int idx = blockIdx.x * blockDim.x + threadIdx.x;
     int pair_idx = idx / stride;
     int offset = idx % stride;
-    
+
     int block_start = pair_idx * 2 * stride;
     int i1 = block_start + offset;
     int i2 = i1 + stride;
-    
+
     if (i2 < n) {
         __hip_bfloat16 a = data[i1];
         __hip_bfloat16 b = data[i2];
-        
+
         float fa = __bfloat162float(a);
         float fb = __bfloat162float(b);
-        
+
         float sum = (fa + fb) * 0.70710678f;   // sqrt(0.5)
         float diff = (fa - fb) * 0.70710678f;
-        
+
         data[i1] = __float2bfloat16(sum);
         data[i2] = __float2bfloat16(diff);
     }
@@ -232,9 +235,9 @@ __global__ void butterfly_matmul_kernel(
 ) {
     int row = blockIdx.y * blockDim.y + threadIdx.y;
     int col = blockIdx.x * blockDim.x + threadIdx.x;
-    
+
     if (row >= M || col >= N) return;
-    
+
     // Load row from A
     float accum = 0.0f;
     for (int k = 0; k < K; k++) {
@@ -242,7 +245,7 @@ __global__ void butterfly_matmul_kernel(
         float b = __bfloat162float(B[col * K + k]);  // B is N x K
         accum += a * b;
     }
-    
+
     C[row * N + col] = __float2bfloat16(accum);
 }
 
@@ -253,7 +256,7 @@ void butterfly_matmul(
 ) {
     dim3 threads(16, 16);
     dim3 blocks((N + 15) / 16, (M + 15) / 16);
-    
+
     butterfly_matmul_kernel<<<blocks, threads>>>(
         (__hip_bfloat16*)A.data_ptr(),
         (__hip_bfloat16*)B.data_ptr(),
@@ -346,7 +349,7 @@ def butterfly_gemm_torch(
     # Future: implement full butterfly decomposition
     C = torch.matmul(A_pad, B_pad.t())
 
-    return C[:, :N] if N < C.shape[1] else C
+    return C[:, :N] if C.shape[1] > N else C
 
 
 def custom_kernel(data: input_t) -> output_t:
@@ -392,9 +395,9 @@ def custom_kernel(data: input_t) -> output_t:
     # Fallback to aiter GEMM
     try:
         import aiter
+        from aiter import dtypes
         from aiter.ops.triton.quant import dynamic_mxfp4_quant
         from aiter.utility.fp4_utils import e8m0_shuffle
-        from aiter import dtypes
 
         A_q, A_scale_e8m0 = dynamic_mxfp4_quant(A.contiguous())
         A_scale_sh = e8m0_shuffle(A_scale_e8m0).view(dtypes.fp8_e8m0)
@@ -419,9 +422,9 @@ def ref_kernel(data: input_t) -> output_t:
 
     try:
         import aiter
+        from aiter import dtypes
         from aiter.ops.triton.quant import dynamic_mxfp4_quant
         from aiter.utility.fp4_utils import e8m0_shuffle
-        from aiter import dtypes
 
         A_q, A_scale_e8m0 = dynamic_mxfp4_quant(A.contiguous())
         A_scale_sh = e8m0_shuffle(A_scale_e8m0).view(dtypes.fp8_e8m0)
@@ -481,9 +484,9 @@ if __name__ == "__main__":
             print(f"  Max diff: {diff:.6f}")
 
             if diff < 0.5:
-                print(f"  ✓ PASSED")
+                print("  ✓ PASSED")
             else:
-                print(f"  ✗ FAILED")
+                print("  ✗ FAILED")
 
         except Exception as e:
             print(f"  ✗ ERROR: {e}")

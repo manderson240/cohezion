@@ -32,12 +32,14 @@ Blog patterns preserved:
 
 import os
 
+
 os.environ["PYTORCH_ROCM_ARCH"] = "gfx950"
 os.environ["CXX"] = "clang++"
 
 import torch
-from torch.utils.cpp_extension import load_inline
 from task import input_t, output_t
+from torch.utils.cpp_extension import load_inline
+
 
 HIP_SOURCE = r"""
 #include <torch/extension.h>

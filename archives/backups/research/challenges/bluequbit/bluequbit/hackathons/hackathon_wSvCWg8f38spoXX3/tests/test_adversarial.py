@@ -6,22 +6,17 @@ Multiperspective adversarial testing for hackathon preparation
 import sys
 from pathlib import Path
 
+
 sys.path.insert(0, str(Path(__file__).parent.parent / "code_templates"))
 
-import time
 import json
 import random
-import numpy as np
+import time
 from datetime import datetime
-from typing import Dict, List, Tuple, Any
-import traceback
 
-from dotenv import load_dotenv
 import bluequbit
 import qiskit
-
-from circuit_library import CircuitLibrary
-from heavy_output_detection import find_heavy_output
+from dotenv import load_dotenv
 
 
 class AdversarialTestSuite:
@@ -42,11 +37,11 @@ class AdversarialTestSuite:
         load_dotenv(project_root / ".env")
 
         self.bq = bluequbit.init()
-        self.results: List[Dict] = []
+        self.results: list[dict] = []
 
         print("✓ AdversarialTestSuite initialized")
 
-    def run_adversarial_tests(self) -> Dict:
+    def run_adversarial_tests(self) -> dict:
         """Run all adversarial test categories."""
         print("\n" + "=" * 70)
         print("BlueQubit Adversarial Test Suite")
@@ -83,7 +78,7 @@ class AdversarialTestSuite:
     # 1. BOUNDARY VALUE ANALYSIS
     # ============================================
 
-    def test_boundary_values(self) -> Tuple[int, int]:
+    def test_boundary_values(self) -> tuple[int, int]:
         """
         Test boundary conditions and edge cases.
 
@@ -140,7 +135,7 @@ class AdversarialTestSuite:
     # 2. FUZZING & RANDOM INPUTS
     # ============================================
 
-    def test_fuzzing(self) -> Tuple[int, int]:
+    def test_fuzzing(self) -> tuple[int, int]:
         """
         Test with random/fuzzed inputs.
 
@@ -184,7 +179,7 @@ class AdversarialTestSuite:
     # 3. FAILURE MODE TESTING
     # ============================================
 
-    def test_failure_modes(self) -> Tuple[int, int]:
+    def test_failure_modes(self) -> tuple[int, int]:
         """
         Test graceful failure handling.
 
@@ -265,7 +260,7 @@ class AdversarialTestSuite:
     # 4. SECURITY INJECTION TESTS
     # ============================================
 
-    def test_security(self) -> Tuple[int, int]:
+    def test_security(self) -> tuple[int, int]:
         """
         Test for security vulnerabilities.
 
@@ -311,7 +306,7 @@ class AdversarialTestSuite:
     # 5. PERFORMANCE STRESS TESTS
     # ============================================
 
-    def test_performance(self) -> Tuple[int, int]:
+    def test_performance(self) -> tuple[int, int]:
         """
         Test performance characteristics.
 
@@ -350,10 +345,10 @@ class AdversarialTestSuite:
         # Check if runtime scales reasonably
         if len(runtimes) >= 2:
             # Should be sub-exponential for MPS
-            print(f"  ✓ Scaling verified")
+            print("  ✓ Scaling verified")
             passed += 1
         else:
-            print(f"  ⚠ Insufficient data for scaling analysis")
+            print("  ⚠ Insufficient data for scaling analysis")
             passed += 1
 
         return passed, failed
@@ -362,7 +357,7 @@ class AdversarialTestSuite:
     # 6. EDGE CASE CIRCUITS
     # ============================================
 
-    def test_edge_cases(self) -> Tuple[int, int]:
+    def test_edge_cases(self) -> tuple[int, int]:
         """
         Test unusual circuit patterns.
 
@@ -437,7 +432,7 @@ class AdversarialTestSuite:
     # REPORTING
     # ============================================
 
-    def _generate_report(self, passed: int, failed: int) -> Dict:
+    def _generate_report(self, passed: int, failed: int) -> dict:
         """Generate adversarial test report."""
         total = passed + failed
 
@@ -478,12 +473,12 @@ class AdversarialTestSuite:
         print(f"Failed: {failed} ✗")
         print(f"Pass Rate: {report['summary']['pass_rate']:.1%}")
         print(f"Adversarial Score: {report['summary']['adversarial_score']}")
-        print(f"\nReport saved to: adversarial_test_report.json")
+        print("\nReport saved to: adversarial_test_report.json")
         print("=" * 70)
 
         return report
 
-    def _generate_recommendations(self, failed: int) -> List[str]:
+    def _generate_recommendations(self, failed: int) -> list[str]:
         """Generate recommendations based on results."""
         recommendations = []
 

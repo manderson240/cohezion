@@ -119,9 +119,7 @@ class TestModelRankerResilience:
         models = ["model-a", "model-b", "model-c"]
         rankings = []
         for _ in range(5):
-            scores = ranker.rank_models(
-                available_models=models, strategy=RankingStrategy.BALANCED
-            )
+            scores = ranker.rank_models(available_models=models, strategy=RankingStrategy.BALANCED)
             rankings.append([m for m, _ in scores])
         first = rankings[0]
         for ranking in rankings[1:]:

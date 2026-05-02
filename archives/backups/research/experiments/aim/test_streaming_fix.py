@@ -17,8 +17,8 @@ def test_simple_problem():
     print(f"Result: {result[:100]}...")
     answer = specialist.extract_answer(result)
     print(f"Extracted: {answer}")
-    print(f"Expected: 12")
-    print(f"PASS" if answer == 12 else "FAIL")
+    print("Expected: 12")
+    print("PASS" if answer == 12 else "FAIL")
 
 
 if __name__ == "__main__":

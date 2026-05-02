@@ -243,7 +243,11 @@ async def bmad_gds_create_game_brief(
         session_id: Optional session ID
     """
     engine = get_engine()
-    skill = engine.load_skill("bmad-gds-create-game-brief") if "bmad-gds-create-game-brief" in engine._skills else engine.load_skill("bmad-gds-game-brief")
+    skill = (
+        engine.load_skill("bmad-gds-create-game-brief")
+        if "bmad-gds-create-game-brief" in engine._skills
+        else engine.load_skill("bmad-gds-game-brief")
+    )
     workflow = engine.load_workflow("gds", "workflows/create-game-brief")
     brief = await engine.execute_workflow(
         workflow,

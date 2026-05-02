@@ -4,9 +4,8 @@ import subprocess
 from datetime import datetime
 from pathlib import Path
 
-from imap_tools import AND, MailBox
-
 from cohezion.mcp.email_notifier import EmailNotifier, NotificationConfig
+from imap_tools import AND, MailBox
 
 
 logger = logging.getLogger("PhoneOrchestrator")

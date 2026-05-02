@@ -30,16 +30,16 @@ from __future__ import annotations
 import os
 import sys
 
+
 # Set ROCm architecture BEFORE importing torch
 os.environ["PYTORCH_ROCM_ARCH"] = "gfx950"
 os.environ["CXX"] = "clang++"
 
 import torch
-import torch.nn.functional as F
+from reference import ref_kernel
+from task import input_t, output_t
 from torch.utils.cpp_extension import load_inline
 
-from task import input_t, output_t
-from reference import ref_kernel
 
 # =============================================================================
 # HIP Kernel: Vectorized MFMA Attention
@@ -58,10 +58,10 @@ __device__ inline float fp8_to_f32(__hip_fp8 e4m3) {
     int exp = (raw >> 3) & 0xF;
     int mant = raw & 0x7;
     float sign = (raw & 0x80) ? -1.0f : 1.0f;
-    
+
     if (exp == 0 && mant == 0) return 0.0f;
     if (exp == 0xF) return (mant == 0) ? sign * INFINITY : 0.0f;  // inf/nan
-    
+
     // E4M3 bias is 7
     float result = (1.0f + mant / 8.0f) * exp2f(exp - 7);
     return sign * result;
@@ -71,22 +71,22 @@ __device__ inline float fp8_to_f32(__hip_fp8 e4m3) {
 // This is the key experimental instruction - treating attention as GEMM
 __device__ inline void mfma_f32_32x32x64_fp8(
     const uint32_t* a_data,    // 32 FP8 elements per thread (K=64)
-    const uint32_t* b_data,    // 32 FP8 elements per thread  
+    const uint32_t* b_data,    // 32 FP8 elements per thread
     float* c_accum,            // 32x32 output accumulator (16 floats per thread)
     float a_scale,
     float b_scale
 ) {
     // Each thread holds 32 FP8 values (packed as 4 uint32_t)
     // Using MFMA intrinsic for mixed-precision GEMM
-    
+
     typedef int a_reg_t __attribute__((ext_vector_type(8)));
     typedef int b_reg_t __attribute__((ext_vector_type(8)));
     typedef float c_reg_t __attribute__((ext_vector_type(16)));
-    
+
     a_reg_t a_reg;
     b_reg_t b_reg;
     c_reg_t c_reg;
-    
+
     // Load packed FP8 data
     for (int i = 0; i < 4; i++) {
         ((uint32_t*)&a_reg)[i] = a_data[i];
@@ -97,28 +97,28 @@ __device__ inline void mfma_f32_32x32x64_fp8(
         ((int*)&a_reg)[i] = 0;
         ((int*)&b_reg)[i] = 0;
     }
-    
+
     // Initialize accumulator from current values
     for (int i = 0; i < 16; i++) {
         c_reg[i] = c_accum[i];
     }
-    
+
     // Compute scale factor (E8M0 style: 2^(scale-127))
     int sa = __float_as_int(a_scale) & 0xFF;
     int sb = __float_as_int(b_scale) & 0xFF;
-    
+
     // MFMA 32x32x64 for FP8
     // Note: This requires gfx950 CDNA4
     c_reg = __builtin_amdgcn_mfma_scale_f32_32x32x64_f8f6f4(
         a_reg, b_reg, c_reg,
         3,    // cbsz = FP8 E4M3 for A
-        3,    // blgp = FP8 E4M3 for B  
+        3,    // blgp = FP8 E4M3 for B
         0,    // neg_a
         sa,   // A scale
         0,    // neg_b
         sb    // B scale
     );
-    
+
     // Store results back
     for (int i = 0; i < 16; i++) {
         c_accum[i] = c_reg[i];
@@ -143,79 +143,79 @@ __global__ void vectorized_mfa_kernel(
     const int tid = threadIdx.x;
     const int wid = threadIdx.y;  // warp id
     const int bid = blockIdx.x;   // batch index
-    
+
     // Each batch item (sequence)
     int q_start = qo_indptr[bid];
     int q_end = qo_indptr[bid + 1];
     int kv_start = kv_indptr[bid];
     int kv_end = kv_indptr[bid + 1];
-    
+
     int num_q = q_end - q_start;
     int num_kv = kv_end - kv_start;
-    
+
     // Each warp handles one (q_position, head)
     int warp_task = blockIdx.y * blockDim.y + wid;
     int q_idx = warp_task / num_heads;
     int head_idx = warp_task % num_heads;
-    
+
     if (q_idx >= num_q) return;
-    
+
     // Global indices
     int global_q = q_start + q_idx;
-    
+
     // Q pointer for this position and head
     const __hip_fp8* q_ptr = q_fp8 + global_q * num_heads * head_dim + head_idx * head_dim;
     float q_s = q_scale[global_q * num_heads + head_idx];
-    
+
     // Attention accumulator (scores for this query vs all K positions)
     // We'll accumulate in registers, then softmax, then multiply by V
     // For simplicity in this experiment, we use a tile-based approach
-    
+
     // Each thread in warp handles partial attention computation
     // 64 threads split the KV dimension
-    
+
     // Phase 1: Compute Q@K^T scores (simplified - no causal mask for experiment)
     float attn_score = 0.0f;
-    
+
     // Tile over KV sequence
     for (int kv_t = 0; kv_t < num_kv; kv_t++) {
         int global_kv = kv_start + kv_t;
-        
+
         // Load KV data (K portion - first half of KV)
         const __hip_fp8* kv_ptr = kv_fp8 + global_kv * num_heads * head_dim + head_idx * head_dim;
         float kv_s = kv_scale[global_kv * num_heads + head_idx];
-        
+
         // Compute dot product Q @ K using MFMA
         // Each thread computes partial dot product
         float local_dot = 0.0f;
-        
+
         // Strided access across head_dim
         for (int d = tid; d < head_dim; d += 64) {
             float q_val = fp8_to_f32(q_ptr[d]);
             float k_val = fp8_to_f32(kv_ptr[d]);  // K is first half
             local_dot += q_val * k_val * q_s * kv_s;
         }
-        
+
         // Warp-level reduction for this KV position
         #pragma unroll
         for (int offset = 32; offset > 0; offset >>= 1) {
             local_dot += __shfl_xor(local_dot, offset);
         }
-        
+
         if (tid == 0) {
             // Thread 0 has the full dot product for this (q, kv) pair
             attn_score = local_dot;
         }
     }
-    
+
     // Phase 2: Softmax normalization (simplified)
     // In full attention, we'd need global softmax across all KV
     // This is where the experimental approach may fail - warp-level softmax
     // only sees partial KV positions
-    
+
     // Phase 3: Multiply scores by V and accumulate to output
     __hip_bfloat16* out_ptr = output + global_q * num_heads * head_dim_o + head_idx * head_dim_o;
-    
+
     // Simplified: just pass through Q (demonstrates the MFMA approach isn't complete)
     // A full implementation would need cross-warp synchronization for softmax
     for (int d = tid; d < head_dim_o && d < head_dim; d += 64) {
@@ -238,27 +238,27 @@ void launch_mfa_kernel(
     int page_size
 ) {
     int batch_size = qo_indptr.size(0) - 1;
-    
+
     // Determine grid dimensions
     // We parallelize over batch and (q_position, head) pairs
     // Use 1 warp per (q, head) for fine-grained parallelism
-    
+
     int max_q = 0;
     for (int b = 0; b < batch_size; b++) {
         int num_q = qo_indptr[b + 1].item<int>() - qo_indptr[b].item<int>();
         max_q = max(max_q, num_q);
     }
-    
+
     int total_tasks = batch_size * max_q * num_heads;
     int warps_per_block = 4;  // 4 warps per block
     int blocks_needed = (total_tasks + warps_per_block - 1) / warps_per_block;
-    
+
     dim3 blocks(blocks_needed);
     dim3 threads(64, warps_per_block);  // 64 threads per warp, 4 warps
-    
+
     // Note: This kernel is incomplete - full attention requires more complex
     // synchronization for softmax. This demonstrates the experimental approach.
-    
+
     vectorized_mfa_kernel<<<blocks, threads>>>(
         reinterpret_cast<const __hip_fp8*>(q_fp8.data_ptr()),
         reinterpret_cast<const __hip_fp8*>(kv_fp8.data_ptr()),

@@ -46,12 +46,14 @@ Fallback: aiter gemm_a4w4 when compile fails.
 
 import os
 
+
 os.environ["PYTORCH_ROCM_ARCH"] = "gfx950"
 os.environ["CXX"] = "clang++"
 
 import torch
-from torch.utils.cpp_extension import load_inline
 from task import input_t, output_t
+from torch.utils.cpp_extension import load_inline
+
 
 # ─── HIP kernel source ────────────────────────────────────────────────────────
 HIP_SOURCE = r"""

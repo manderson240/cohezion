@@ -1,9 +1,11 @@
-import os
 import json
+import os
+import time
+
 import bluequbit
 import qiskit
-import time
 from dotenv import load_dotenv
+
 
 load_dotenv(".env")
 
@@ -80,7 +82,7 @@ def run_final_sprint():
     # Load existing
     results = {}
     if os.path.exists(results_file):
-        with open(results_file, "r") as f:
+        with open(results_file) as f:
             results = json.load(f)
 
     # Final device allocation based on confirmed accessibility and limits

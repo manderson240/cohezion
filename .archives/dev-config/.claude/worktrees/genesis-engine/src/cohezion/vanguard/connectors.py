@@ -157,9 +157,7 @@ class VanguardScout:
 
                 if health.status != SourceHealth.HEALTHY:
                     per_source_failures[connector.source_name] = health.error_message
-                    logger.warning(
-                        "Source %s degraded: %s", connector.source_name, health.error_message
-                    )
+                    logger.warning("Source %s degraded: %s", connector.source_name, health.error_message)
 
             except Exception as e:
                 per_source_failures[connector.source_name] = str(e)

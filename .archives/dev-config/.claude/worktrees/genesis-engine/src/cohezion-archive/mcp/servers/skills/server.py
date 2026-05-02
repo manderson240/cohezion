@@ -127,9 +127,7 @@ async def tool_skills_get(request: web.Request) -> web.Response:
         skill_id = data.get("skill_id", "")
 
         if "/" not in skill_id:
-            return web.json_response(
-                {"error": "Invalid skill_id format. Use owner/repo format."}, status=400
-            )
+            return web.json_response({"error": "Invalid skill_id format. Use owner/repo format."}, status=400)
 
         owner, repo = skill_id.split("/", 1)
 
@@ -232,9 +230,7 @@ async def tool_skills_execute(request: web.Request) -> web.Response:
         skill_id = data.get("skill_id", "")
 
         if "/" not in skill_id:
-            return web.json_response(
-                {"error": "Invalid skill_id format. Use owner/repo format."}, status=400
-            )
+            return web.json_response({"error": "Invalid skill_id format. Use owner/repo format."}, status=400)
 
         owner, repo = skill_id.split("/", 1)
 
@@ -265,9 +261,7 @@ async def tool_skills_execute(request: web.Request) -> web.Response:
                 }
             )
 
-        return web.json_response(
-            {"error": f"Could not fetch skill content: {skill_id}"}, status=404
-        )
+        return web.json_response({"error": f"Could not fetch skill content: {skill_id}"}, status=404)
 
     except Exception as e:
         logger.exception("Error executing skill")

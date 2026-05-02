@@ -26,6 +26,8 @@ sys.path.insert(0, str(Path(__file__).parent.parent.parent / "src"))
 
 import contextlib
 
+from cohezion.simulation.biological_diversity import get_diversity_engine
+
 from cohezion.core.persistence.repositories.journey_repository import JourneyMetrics
 from cohezion.core.persistence.repositories.surreal_journey_repository import (
     AgentJourney,
@@ -33,7 +35,6 @@ from cohezion.core.persistence.repositories.surreal_journey_repository import (
 )
 from cohezion.core.persistence.surreal_client import SurrealClient
 from cohezion.reliability.monitor import get_resource_monitor
-from cohezion.simulation.biological_diversity import get_diversity_engine
 from cohezion.simulation.fractal_universe import UniverseGrid
 
 
@@ -83,9 +84,7 @@ class BBQDriver:
                 if vram > 96.0:
                     # Critical Danger Zone - Deep Sleep
                     if self.current_round % 10 == 0:
-                        logger.warning(
-                            f"🛑 VRAM CRITICAL ({vram}%). Entering COMA MODE (30s sleep)..."
-                        )
+                        logger.warning(f"🛑 VRAM CRITICAL ({vram}%). Entering COMA MODE (30s sleep)...")
                     await asyncio.sleep(30)
                     continue
                 elif vram > 92.0:
@@ -158,9 +157,7 @@ class BBQDriver:
                 "Recalibrating stabilizer agents for phase shift.",
                 "Observing Kordylewski cloud formation.",
             ]
-            narration = (float(coherence) > 0.6 and "High stability achieved.") or random.choice(
-                thoughts
-            )
+            narration = (float(coherence) > 0.6 and "High stability achieved.") or random.choice(thoughts)
 
             step = {
                 "step_id": self.current_round,

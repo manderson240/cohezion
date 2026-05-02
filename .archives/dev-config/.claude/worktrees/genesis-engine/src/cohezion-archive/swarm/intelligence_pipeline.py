@@ -11,9 +11,8 @@ import logging
 from dataclasses import dataclass
 from typing import Any
 
-from pydantic import BaseModel, Field
-
 from cohezion.reliability.circuit_breaker import get_circuit
+from pydantic import BaseModel, Field
 
 
 logger = logging.getLogger(__name__)
@@ -104,10 +103,7 @@ class SandboxManager:
         if self.can_allocate(required_vram):
             self.current_vram_gb += required_vram
             self.active_models.append(model_name)
-            logger.info(
-                f"Allocated {required_vram}GB for {model_name}. "
-                f"Total VRAM: {self.current_vram_gb}GB"
-            )
+            logger.info(f"Allocated {required_vram}GB for {model_name}. Total VRAM: {self.current_vram_gb}GB")
             return True
         logger.warning(
             f"OOM Prevented: Cannot allocate {required_vram}GB for {model_name}. "
@@ -120,10 +116,7 @@ class SandboxManager:
         if model_name in self.active_models:
             self.current_vram_gb -= allocated_vram
             self.active_models.remove(model_name)
-            logger.info(
-                f"Released {allocated_vram}GB from {model_name}. "
-                f"Total VRAM: {self.current_vram_gb}GB"
-            )
+            logger.info(f"Released {allocated_vram}GB from {model_name}. Total VRAM: {self.current_vram_gb}GB")
 
 
 class MixtureOfExpertsRouter:

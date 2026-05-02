@@ -16,7 +16,6 @@ from __future__ import annotations
 import asyncio
 import json
 import logging
-import os
 import signal
 import subprocess
 import sys
@@ -24,7 +23,7 @@ import time
 from dataclasses import dataclass, field
 from datetime import datetime
 from pathlib import Path
-from typing import Any, Optional
+from typing import Any
 
 
 # Configure logging
@@ -57,7 +56,7 @@ class Checkpoint:
         logger.info(f"Checkpoint saved: {path}")
 
     @classmethod
-    def load(cls, path: Path) -> Optional[Checkpoint]:
+    def load(cls, path: Path) -> Checkpoint | None:
         """Load checkpoint from disk."""
         if not path.exists():
             return None
@@ -207,7 +206,7 @@ class OvernightRunner:
             # Generate experiment from previous learnings
             # This would use the kg_search to find patterns
             hypothesis = f"Optimization attempt {self._current_run}"
-            description = f"Auto-generated experiment based on prior results"
+            description = "Auto-generated experiment based on prior results"
 
             try:
                 result = self._run_experiment(description, hypothesis)
@@ -256,8 +255,8 @@ class OvernightRunner:
 
         report = f"""# Overnight Autoresearch Report
 
-**Session**: {self.session_name}  
-**Date**: {datetime.now().isoformat()}  
+**Session**: {self.session_name}
+**Date**: {datetime.now().isoformat()}
 **Runs Completed**: {len(results)}
 
 ## Summary

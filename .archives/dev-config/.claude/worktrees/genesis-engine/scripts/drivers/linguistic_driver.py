@@ -126,9 +126,7 @@ class LinguisticDriver:
         if scores:
             avg = sum(scores) / len(scores)
             if self.state.evolve(avg):
-                logger.info(
-                    f"[LINGUISTIC] Evolved to Epoch {self.state.epoch}. Rate: {self.state.mutation_rate:.2f}"
-                )
+                logger.info(f"[LINGUISTIC] Evolved to Epoch {self.state.epoch}. Rate: {self.state.mutation_rate:.2f}")
 
         self.total_completed += len(inputs)
         # Less noisy logging, only every 1000

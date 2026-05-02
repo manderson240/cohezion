@@ -88,10 +88,7 @@ async def hackernews_adapter(
             data = resp.json()
 
             for hit in data.get("hits", []):
-                url = (
-                    hit.get("url")
-                    or f"https://news.ycombinator.com/item?id={hit.get('objectID', '')}"
-                )
+                url = hit.get("url") or f"https://news.ycombinator.com/item?id={hit.get('objectID', '')}"
                 findings.append(
                     Finding(
                         title=hit.get("title", ""),
@@ -182,11 +179,7 @@ async def arxiv_adapter(
             title = (entry.findtext("atom:title", "", ns) or "").strip()
             summary = (entry.findtext("atom:summary", "", ns) or "").strip()
             link_el = entry.find("atom:link", ns)
-            url = (
-                link_el.get("href", "")
-                if link_el is not None
-                else entry.findtext("atom:id", "", ns) or ""
-            )
+            url = link_el.get("href", "") if link_el is not None else entry.findtext("atom:id", "", ns) or ""
 
             findings.append(
                 Finding(
@@ -255,9 +248,7 @@ async def github_adapter(
                         url=release.get("html_url", ""),
                         source="github_releases",
                         snippet=(release.get("body", "") or "")[:300],
-                        category=_best_category(
-                            repo_name + " " + (release.get("body", "") or ""), focus_areas
-                        ),
+                        category=_best_category(repo_name + " " + (release.get("body", "") or ""), focus_areas),
                     )
                 )
             await asyncio.sleep(API_DELAY)
@@ -314,34 +305,20 @@ async def harvest(config: dict[str, Any]) -> list[Finding]:
     # Run configured source adapters
     if "hackernews" in sources:
         tasks.append(
-            asyncio.create_task(
-                _safe_adapter("hackernews", hackernews_adapter(sources["hackernews"], focus_areas))
-            )
+            asyncio.create_task(_safe_adapter("hackernews", hackernews_adapter(sources["hackernews"], focus_areas)))
         )
     if "reddit" in sources:
-        tasks.append(
-            asyncio.create_task(
-                _safe_adapter("reddit", reddit_adapter(sources["reddit"], focus_areas))
-            )
-        )
+        tasks.append(asyncio.create_task(_safe_adapter("reddit", reddit_adapter(sources["reddit"], focus_areas))))
     if "arxiv" in sources:
-        tasks.append(
-            asyncio.create_task(
-                _safe_adapter("arxiv", arxiv_adapter(sources["arxiv"], focus_areas))
-            )
-        )
+        tasks.append(asyncio.create_task(_safe_adapter("arxiv", arxiv_adapter(sources["arxiv"], focus_areas))))
     if "github_recent" in sources or "github_releases" in sources:
         gh_config = {**sources.get("github_recent", {}), **sources.get("github_releases", {})}
         if "repos" not in gh_config and "github_releases" in sources:
             gh_config["repos"] = sources["github_releases"].get("repos", [])
-        tasks.append(
-            asyncio.create_task(_safe_adapter("github", github_adapter(gh_config, focus_areas)))
-        )
+        tasks.append(asyncio.create_task(_safe_adapter("github", github_adapter(gh_config, focus_areas))))
     if "blog_feeds" in sources:
         tasks.append(
-            asyncio.create_task(
-                _safe_adapter("blog_feeds", blog_feed_adapter(sources["blog_feeds"], focus_areas))
-            )
+            asyncio.create_task(_safe_adapter("blog_feeds", blog_feed_adapter(sources["blog_feeds"], focus_areas)))
         )
 
     results = await asyncio.gather(*tasks)
@@ -351,9 +328,7 @@ async def harvest(config: dict[str, Any]) -> list[Finding]:
         if isinstance(result, list):
             all_findings.extend(result)
 
-    logger.info(
-        "Harvest complete: %d total findings from %d adapters", len(all_findings), len(tasks)
-    )
+    logger.info("Harvest complete: %d total findings from %d adapters", len(all_findings), len(tasks))
     return all_findings
 
 

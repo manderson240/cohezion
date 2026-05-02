@@ -612,9 +612,7 @@ class TestPhase21HooksIntegration:
     def test_post_operation_hooks(self):
         """Test POST_OPERATION stage hooks."""
         integration = HookIntegration(".claude/hooks")
-        post_op_hooks = integration.registry.get_hooks_for_stage(
-            HookStage.POST_OPERATION
-        )
+        post_op_hooks = integration.registry.get_hooks_for_stage(HookStage.POST_OPERATION)
 
         # Should have at least format-on-edit
         assert len(post_op_hooks) >= 0

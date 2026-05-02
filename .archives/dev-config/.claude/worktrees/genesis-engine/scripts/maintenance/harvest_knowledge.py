@@ -116,11 +116,7 @@ def main() -> None:
             master_hashes.add(get_hash("### [" + entry))
 
     # Get all local branches
-    branches = [
-        b.strip()
-        for b in run_git(["branch", "--format=%(refname:short)"]).splitlines()
-        if b.strip()
-    ]
+    branches = [b.strip() for b in run_git(["branch", "--format=%(refname:short)"]).splitlines() if b.strip()]
 
     results = []
     for branch in branches:
@@ -142,9 +138,7 @@ def main() -> None:
                 f"Branch '{r.branch}': {r.new_journeys} new journeys, {r.journal_entries_found} new journal entries"
             )
 
-    logger.info(
-        f"\nTotal Harvested: {total_new_journeys} journeys, {total_new_entries} journal entries."
-    )
+    logger.info(f"\nTotal Harvested: {total_new_journeys} journeys, {total_new_entries} journal entries.")
     logger.info(f"All artifacts saved to: {VAULT_HISTORICAL_PATH}")
 
 

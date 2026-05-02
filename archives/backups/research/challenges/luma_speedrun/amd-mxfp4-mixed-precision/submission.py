@@ -31,21 +31,22 @@ Reference: "Mixed Precision Training", ICLR 2018.
 """
 
 from __future__ import annotations
+
 import os
+
 
 os.environ["PYTORCH_ROCM_ARCH"] = "gfx950"
 os.environ["CXX"] = "clang++"
 
-import torch
-from typing import Dict, List, Tuple, Union
 from enum import Enum, auto
-from torch.utils.cpp_extension import load_inline
-from task import input_t, output_t
 
+import aiter
+import torch
 from aiter import dtypes
 from aiter.ops.triton.quant import dynamic_mxfp4_quant
 from aiter.utility.fp4_utils import e8m0_shuffle
-import aiter
+from task import input_t, output_t
+from torch.utils.cpp_extension import load_inline
 
 
 class PrecisionLevel(Enum):
@@ -78,7 +79,7 @@ class MixedPrecisionManager:
         self.dynamic_loss_scale = True
 
     def select_precision(
-        self, tensor_shape: Tuple[int, ...], tensor_type: str = "activation"
+        self, tensor_shape: tuple[int, ...], tensor_type: str = "activation"
     ) -> PrecisionLevel:
         """Select appropriate precision for tensor.
 
@@ -188,7 +189,7 @@ class AutomaticLossScaler:
         """Scale loss for backward."""
         return loss * self.loss_scale
 
-    def unscale(self, grads: List[torch.Tensor]) -> None:
+    def unscale(self, grads: list[torch.Tensor]) -> None:
         """Unscale gradients."""
         for grad in grads:
             if grad is not None:
@@ -225,22 +226,22 @@ __global__ void mixed_precision_gemm(
 ) {
     int row = blockIdx.y * blockDim.y + threadIdx.y;
     int col = blockIdx.x * blockDim.x + threadIdx.x;
-    
+
     if (row >= M || col >= N) return;
-    
+
     // Get precision for this output element
     int precision = precision_map ? precision_map[row * N + col] : 1;
-    
+
     float sum = 0.0f;
-    
+
     // Different accumulation based on precision
     for (int k = 0; k < K; k++) {
         float a = __bfloat162float(A[row * K + k]);
         float b = __bfloat162float(B[col * K + k]);
-        
+
         sum += a * b;
     }
-    
+
     C[row * N + col] = (__hip_bfloat16)sum;
 }
 

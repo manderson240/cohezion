@@ -12,6 +12,7 @@ from typing import Any
 @dataclass
 class CheckResult:
     """Result of a single health check."""
+
     name: str
     passed: bool
     message: str
@@ -63,7 +64,8 @@ class HealthChecker:
         )
         # Count tests
         import re
-        match = re.search(r'(\d+) passed', output)
+
+        match = re.search(r"(\d+) passed", output)
         test_count = int(match.group(1)) if match else 0
 
         return CheckResult(

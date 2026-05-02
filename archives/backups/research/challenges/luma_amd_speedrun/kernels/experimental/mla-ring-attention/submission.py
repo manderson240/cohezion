@@ -25,13 +25,14 @@ Adapted for MLA decode: Ring-style KV block processing.
 """
 
 from __future__ import annotations
+
+import math
 import os
 import sys
-import math
+
 import torch
-from typing import Optional, Tuple
-from aiter import dtypes as aiter_dtypes
 from task import input_t, output_t
+
 
 os.environ["AITER_MLA_USE_PERSISTENT"] = "1"
 os.environ["AITER_USE_NT"] = "1"
@@ -65,11 +66,11 @@ class RingAttentionBlock:
             block_size: Number of tokens per KV block
         """
         self.block_size = block_size
-        self.online_stats: Optional[Tuple[torch.Tensor, torch.Tensor]] = None
+        self.online_stats: tuple[torch.Tensor, torch.Tensor] | None = None
 
     def compute_block_attention(
         self, q_block: torch.Tensor, k_block: torch.Tensor, v_block: torch.Tensor, scale: float
-    ) -> Tuple[torch.Tensor, torch.Tensor, torch.Tensor]:
+    ) -> tuple[torch.Tensor, torch.Tensor, torch.Tensor]:
         """
         Compute attention for a single KV block.
 
@@ -104,7 +105,7 @@ class RingAttentionBlock:
         new_out: torch.Tensor,
         new_max: torch.Tensor,
         new_sum: torch.Tensor,
-    ) -> Tuple[torch.Tensor, torch.Tensor, torch.Tensor]:
+    ) -> tuple[torch.Tensor, torch.Tensor, torch.Tensor]:
         """
         Merge two attention blocks using online softmax.
 
@@ -205,7 +206,7 @@ class RingAttentionBlock:
 
 
 # Global ring attention instance
-_RING_ATTN: Optional[RingAttentionBlock] = None
+_RING_ATTN: RingAttentionBlock | None = None
 
 
 def _get_ring_attn(block_size: int = 1024) -> RingAttentionBlock:

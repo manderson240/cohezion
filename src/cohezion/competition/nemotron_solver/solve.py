@@ -8,6 +8,7 @@ Approaches each problem type with a tailored symbolic solver:
 - equations: symbol substitution mapping
 - encryption: character frequency/mapping analysis
 """
+
 from __future__ import annotations
 
 import csv
@@ -80,7 +81,12 @@ def parse_examples(prompt: str, ptype: str = "") -> list[tuple[str, str]]:
             if len(parts) == 2:
                 pairs.append((parts[0].strip(), parts[1].strip()))
         # Equations pattern: "X = Y" (only for equation problems)
-        elif ptype == "equations" and " = " in line and not line.startswith("Now") and not line.startswith("Here"):
+        elif (
+            ptype == "equations"
+            and " = " in line
+            and not line.startswith("Now")
+            and not line.startswith("Here")
+        ):
             parts = line.split(" = ")
             if len(parts) == 2:
                 pairs.append((parts[0].strip(), parts[1].strip()))
@@ -197,6 +203,7 @@ def solve_gravity(examples: list[tuple[str, str]], test_t: str) -> str:
             if dec2_count >= dec1_count:
                 return fmt2
     return fmt
+
 
 def _format_number(value: float, examples: list[tuple[str, str]]) -> str:
     """Format a number matching the precision of training examples."""
@@ -358,7 +365,7 @@ def solve_bit_manip(examples: list[tuple[str, str]], test_in: str) -> str:
                     bit = (test_val >> val) & 1
                     if invert:
                         bit = 1 - bit
-                result |= (bit << out_bit)
+                result |= bit << out_bit
             return f"{result:08b}"
         except Exception:
             pass
@@ -379,7 +386,7 @@ def solve_bit_manip(examples: list[tuple[str, str]], test_in: str) -> str:
                         bit = (test_val >> val) & 1
                         if invert:
                             bit = 1 - bit
-                    known_result |= (bit << out_bit)
+                    known_result |= bit << out_bit
 
             # Fallbacks for unknown bits: try 0, 1, same-as-input, not-input
             if len(unknown_bits) <= 4:
@@ -393,7 +400,7 @@ def solve_bit_manip(examples: list[tuple[str, str]], test_in: str) -> str:
                     candidate = known_result
                     for ub in unknown_bits:
                         if fb_fn(test_val, ub):
-                            candidate |= (1 << ub)
+                            candidate |= 1 << ub
                     ok = True
                     for a, b in pairs:
                         ex_result = known_result  # recompute
@@ -408,10 +415,10 @@ def solve_bit_manip(examples: list[tuple[str, str]], test_in: str) -> str:
                                     bit = (a >> val) & 1
                                     if invert:
                                         bit = 1 - bit
-                                ex_result |= (bit << out_bit)
+                                ex_result |= bit << out_bit
                         for ub in unknown_bits:
                             if fb_fn(a, ub):
-                                ex_result |= (1 << ub)
+                                ex_result |= 1 << ub
                         if ex_result != b:
                             ok = False
                             break
@@ -481,23 +488,23 @@ def solve_bit_manip(examples: list[tuple[str, str]], test_in: str) -> str:
         ("not", lambda x: (~x) & 0xFF),
         ("reverse", lambda x: int(f"{x:08b}"[::-1], 2)),
         ("flip", lambda x: x ^ 0xFF),
-        ("shift_left_1", lambda x: ((x << 1) & 0xFF)),
-        ("shift_right_1", lambda x: (x >> 1)),
+        ("shift_left_1", lambda x: (x << 1) & 0xFF),
+        ("shift_right_1", lambda x: x >> 1),
         ("rot_left_1", lambda x: ((x << 1) & 0xFF) | (x >> 7)),
-        ("rot_right_1", lambda x: ((x >> 1) | ((x & 1) << 7))),
-        ("shift_left_2", lambda x: ((x << 2) & 0xFF)),
-        ("shift_right_2", lambda x: (x >> 2)),
+        ("rot_right_1", lambda x: (x >> 1) | ((x & 1) << 7)),
+        ("shift_left_2", lambda x: (x << 2) & 0xFF),
+        ("shift_right_2", lambda x: x >> 2),
         ("rot_left_2", lambda x: ((x << 2) & 0xFF) | (x >> 6)),
-        ("rot_right_2", lambda x: ((x >> 2) | ((x & 0x3) << 6))),
-        ("shift_left_3", lambda x: ((x << 3) & 0xFF)),
-        ("shift_right_3", lambda x: (x >> 3)),
+        ("rot_right_2", lambda x: (x >> 2) | ((x & 0x3) << 6)),
+        ("shift_left_3", lambda x: (x << 3) & 0xFF),
+        ("shift_right_3", lambda x: x >> 3),
         ("rot_left_3", lambda x: ((x << 3) & 0xFF) | (x >> 5)),
-        ("rot_right_3", lambda x: ((x >> 3) | ((x & 0x7) << 5))),
-        ("shift_left_4", lambda x: ((x << 4) & 0xFF)),
-        ("shift_right_4", lambda x: (x >> 4)),
+        ("rot_right_3", lambda x: (x >> 3) | ((x & 0x7) << 5)),
+        ("shift_left_4", lambda x: (x << 4) & 0xFF),
+        ("shift_right_4", lambda x: x >> 4),
         ("rot_left_4", lambda x: ((x << 4) & 0xFF) | (x >> 4)),
-        ("rot_right_4", lambda x: ((x >> 4) | ((x & 0xF) << 4))),
-        ("reverse_nibble", lambda x: (((x & 0x0F) << 4) | ((x & 0xF0) >> 4))),
+        ("rot_right_4", lambda x: (x >> 4) | ((x & 0xF) << 4)),
+        ("reverse_nibble", lambda x: ((x & 0x0F) << 4) | ((x & 0xF0) >> 4)),
         ("not_reverse", lambda x: int(f"{(~x) & 0xFF:08b}"[::-1], 2)),
     ]
 
@@ -661,7 +668,12 @@ def _solve_number_equations(examples: list[tuple[str, str]], test_in: str) -> st
         results.append((sum(da + db), "sum_digits"))
         results.append((abs(sum(da) - sum(db)), "diff_sum"))
         results.append((da[0] * 10 + db[-1] if da and db else 0, "first_last"))
-        results.append((int(str(da[0]) * 2 + str(sum(db)) + str(abs(db[0] - db[-1]))) if da and db else 0, "custom88"))
+        results.append(
+            (
+                int(str(da[0]) * 2 + str(sum(db)) + str(abs(db[0] - db[-1]))) if da and db else 0,
+                "custom88",
+            )
+        )
         results.append((int("".join(map(str, da + db))), "concat"))
         return results
 
@@ -720,34 +732,217 @@ def _solve_number_equations(examples: list[tuple[str, str]], test_in: str) -> st
 # ---------------------------------------------------------------------------
 # Common words observed in the competition's Alice-themed encryption puzzles
 _ENCRYPTION_VOCAB = [
-    "the", "follows", "dragon", "teacher", "writes", "creates", "draws",
-    "student", "rabbit", "studies", "discovers", "secret", "found", "mouse",
-    "dreams", "chases", "reads", "king", "sees", "watches", "queen", "hatter",
-    "knight", "explores", "bird", "imagines", "wizard", "turtle", "castle",
-    "cat", "alice", "garden", "princess", "colorful", "puzzle", "bright",
-    "forest", "book", "clever", "key", "dark", "mirror", "treasure",
-    "silver", "beyond", "inside", "in", "hidden", "curious", "around",
-    "above", "wise", "potion", "near", "door", "golden", "under", "through",
-    "mysterious", "magical", "strange", "story", "crystal", "message", "map",
-    "ancient", "village", "mountain", "wonderland", "cave", "school", "valley",
-    "island", "palace", "library", "ocean", "tower", "diamond", "crown",
-    "river", "bridge", "cloud", "star", "moon", "sun", "fire",
-    "water", "earth", "wind", "shadow", "light", "path", "road", "tree",
-    "flower", "grass", "stone", "sand", "snow", "rain", "storm", "thunder",
-    "whisper", "laughter", "silence", "echo", "song", "dance", "music",
-    "magic", "spell", "herb", "gem", "jewel", "ring",
-    "sword", "shield", "armor", "helmet", "cape", "robe", "hat", "shoe",
-    "boot", "glove", "belt", "bag", "box", "chest", "bottle", "cup",
-    "plate", "bowl", "spoon", "fork", "knife", "candle", "lamp", "torch",
-    "paper", "pen", "ink", "paint", "brush", "canvas", "frame", "picture",
-    "photo", "camera", "film", "tape", "record", "disk", "card", "coin",
-    "dollar", "cent", "euro", "pound", "yen", "price", "cost", "value",
-    "worth", "rich", "poor", "wealth", "gold", "money", "cash", "bank",
-    "shop", "store", "market", "trade", "sell", "buy", "pay", "spend",
-    "save", "keep", "hold", "have", "own", "give", "take", "get",
-    "find", "lose", "search", "seek", "hunt", "track", "trace", "mark",
-    "sign", "signal", "code", "word", "letter", "note", "text", "line",
-    "page", "chapter", "title", "name", "label", "tag", "brand", "logo",
+    "the",
+    "follows",
+    "dragon",
+    "teacher",
+    "writes",
+    "creates",
+    "draws",
+    "student",
+    "rabbit",
+    "studies",
+    "discovers",
+    "secret",
+    "found",
+    "mouse",
+    "dreams",
+    "chases",
+    "reads",
+    "king",
+    "sees",
+    "watches",
+    "queen",
+    "hatter",
+    "knight",
+    "explores",
+    "bird",
+    "imagines",
+    "wizard",
+    "turtle",
+    "castle",
+    "cat",
+    "alice",
+    "garden",
+    "princess",
+    "colorful",
+    "puzzle",
+    "bright",
+    "forest",
+    "book",
+    "clever",
+    "key",
+    "dark",
+    "mirror",
+    "treasure",
+    "silver",
+    "beyond",
+    "inside",
+    "in",
+    "hidden",
+    "curious",
+    "around",
+    "above",
+    "wise",
+    "potion",
+    "near",
+    "door",
+    "golden",
+    "under",
+    "through",
+    "mysterious",
+    "magical",
+    "strange",
+    "story",
+    "crystal",
+    "message",
+    "map",
+    "ancient",
+    "village",
+    "mountain",
+    "wonderland",
+    "cave",
+    "school",
+    "valley",
+    "island",
+    "palace",
+    "library",
+    "ocean",
+    "tower",
+    "diamond",
+    "crown",
+    "river",
+    "bridge",
+    "cloud",
+    "star",
+    "moon",
+    "sun",
+    "fire",
+    "water",
+    "earth",
+    "wind",
+    "shadow",
+    "light",
+    "path",
+    "road",
+    "tree",
+    "flower",
+    "grass",
+    "stone",
+    "sand",
+    "snow",
+    "rain",
+    "storm",
+    "thunder",
+    "whisper",
+    "laughter",
+    "silence",
+    "echo",
+    "song",
+    "dance",
+    "music",
+    "magic",
+    "spell",
+    "herb",
+    "gem",
+    "jewel",
+    "ring",
+    "sword",
+    "shield",
+    "armor",
+    "helmet",
+    "cape",
+    "robe",
+    "hat",
+    "shoe",
+    "boot",
+    "glove",
+    "belt",
+    "bag",
+    "box",
+    "chest",
+    "bottle",
+    "cup",
+    "plate",
+    "bowl",
+    "spoon",
+    "fork",
+    "knife",
+    "candle",
+    "lamp",
+    "torch",
+    "paper",
+    "pen",
+    "ink",
+    "paint",
+    "brush",
+    "canvas",
+    "frame",
+    "picture",
+    "photo",
+    "camera",
+    "film",
+    "tape",
+    "record",
+    "disk",
+    "card",
+    "coin",
+    "dollar",
+    "cent",
+    "euro",
+    "pound",
+    "yen",
+    "price",
+    "cost",
+    "value",
+    "worth",
+    "rich",
+    "poor",
+    "wealth",
+    "gold",
+    "money",
+    "cash",
+    "bank",
+    "shop",
+    "store",
+    "market",
+    "trade",
+    "sell",
+    "buy",
+    "pay",
+    "spend",
+    "save",
+    "keep",
+    "hold",
+    "have",
+    "own",
+    "give",
+    "take",
+    "get",
+    "find",
+    "lose",
+    "search",
+    "seek",
+    "hunt",
+    "track",
+    "trace",
+    "mark",
+    "sign",
+    "signal",
+    "code",
+    "word",
+    "letter",
+    "note",
+    "text",
+    "line",
+    "page",
+    "chapter",
+    "title",
+    "name",
+    "label",
+    "tag",
+    "brand",
+    "logo",
 ]
 
 
@@ -782,7 +977,11 @@ def solve_encryption(examples: list[tuple[str, str]], test_in: str) -> str:
             if "?" not in pw:
                 continue
             pattern = pw.replace("?", "?")
-            matches = [w for w in _ENCRYPTION_VOCAB if len(w) == len(pattern) and _match_pattern(pattern, w)]
+            matches = [
+                w
+                for w in _ENCRYPTION_VOCAB
+                if len(w) == len(pattern) and _match_pattern(pattern, w)
+            ]
             if len(matches) >= 1:  # Accept even ambiguous (pick most frequent)
                 best = matches[0]
                 for c_in, c_out in zip(tw, best):
@@ -839,7 +1038,9 @@ def solve(prompt: str) -> str:
         # Symbolic then model fallback
         result = solve_encryption(examples, test_input)
         # Check if result looks like real words (has vowels)
-        if not any(c in result.lower() for c in "aeiou") or len(result.split()) != len(test_input.split()):
+        if not any(c in result.lower() for c in "aeiou") or len(result.split()) != len(
+            test_input.split()
+        ):
             result = solve_with_model(examples, test_input, ptype)
         return result
     else:
@@ -862,7 +1063,6 @@ def evaluate(train_path: str, sample: int = 0) -> float:
 
 
 if __name__ == "__main__":
-
     data_dir = Path("/tmp")
     if not (data_dir / "train.csv").exists():
         data_dir = Path("/home/mike-anderson/dev/cohezion/data")

@@ -113,9 +113,7 @@ class ModelPoolManager:
         """
         model = self._pool.get(model_name)
         if model is None:
-            logger.warning(
-                "Model %s not in pool config, cannot ensure loaded", model_name
-            )
+            logger.warning("Model %s not in pool config, cannot ensure loaded", model_name)
             return False
 
         # Fast path: already loaded and healthy
@@ -277,10 +275,7 @@ class ModelPoolManager:
         )
 
         for candidate in candidates:
-            if (
-                self._memory.analyze_memory_pressure()
-                < self._config.memory_pressure_threshold
-            ):
+            if self._memory.analyze_memory_pressure() < self._config.memory_pressure_threshold:
                 break
             if await self.evict_model(candidate.name):
                 evicted.append(candidate.name)

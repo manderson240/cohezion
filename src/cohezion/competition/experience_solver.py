@@ -4,7 +4,6 @@ from __future__ import annotations
 
 import json
 import time
-from copy import deepcopy
 from typing import Any
 
 from arc_solver import (
@@ -86,6 +85,7 @@ def run_evaluation(
 
     vault_path = ".pi/experience_arc_train.json"
     import os
+
     if os.path.exists(vault_path) and os.path.getsize(vault_path) > 100:
         vault = ExperienceVault(vault_path)
         print(f"Loaded vault: {vault.stats()}")
@@ -108,6 +108,7 @@ def run_evaluation(
                 solved = pred is not None and grids_equal(pred, sols[0])
 
             from experience_vault import ExperienceEntry
+
             entry = ExperienceEntry(
                 task_id=task_id,
                 signature=sig,
@@ -130,7 +131,9 @@ def run_evaluation(
         task_sols = test_solutions[task_id]
 
         start = time.monotonic()
-        result = solve_with_experience(task, vault, train_challenges, train_solutions, max_depth=3, budget=5000)
+        result = solve_with_experience(
+            task, vault, train_challenges, train_solutions, max_depth=3, budget=5000
+        )
         elapsed = time.monotonic() - start
         times.append(elapsed)
 

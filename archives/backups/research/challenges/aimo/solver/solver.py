@@ -1,6 +1,7 @@
 """Simple AIMO3 solver using local Ollama models."""
 
 import re
+
 import polars as pl
 from kaggle_evaluation.core.templates import InferenceServer
 
@@ -59,11 +60,11 @@ class AIMO3SimpleSolver(InferenceServer):
 
         Strategy: Use LLM to reason and extract final integer.
         """
-        prompt = f"""You are solving a mathematical olympiad problem. 
+        prompt = f"""You are solving a mathematical olympiad problem.
 
 Problem: {problem_text}
 
-Think step-by-step and provide your reasoning. 
+Think step-by-step and provide your reasoning.
 At the end, write your final answer as a single integer on its own line in this exact format:
 
 FINAL ANSWER: <your integer>"""

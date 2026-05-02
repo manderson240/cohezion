@@ -32,16 +32,16 @@ References:
 """
 
 from __future__ import annotations
+
 import os
 import sys
-import math
+
 import torch
 import torch.nn.functional as F
-from typing import Tuple, List, Optional
 from aiter import ActivationType, QuantType
 from reference import ref_kernel
 from task import input_t, output_t
-import aiter
+
 
 os.environ["AITER_USE_NT"] = "1"
 
@@ -58,7 +58,7 @@ def _compute_cluster_assignments(
     d_expert: int,
     gate_up_weight_shuffled: torch.Tensor,
     device: torch.device,
-) -> Tuple[torch.Tensor, torch.Tensor]:
+) -> tuple[torch.Tensor, torch.Tensor]:
     """
     Compute expert cluster assignments using weight-based clustering.
 
@@ -109,7 +109,7 @@ def _coarse_routing(
     cluster_centroids: torch.Tensor,
     num_clusters: int,
     topk_clusters: int = 4,
-) -> Tuple[torch.Tensor, torch.Tensor]:
+) -> tuple[torch.Tensor, torch.Tensor]:
     """
     First-level routing: select expert clusters.
 
@@ -148,7 +148,7 @@ def _fine_routing(
     topk_ids: torch.Tensor,
     topk_weights: torch.Tensor,
     num_experts: int,
-) -> Tuple[torch.Tensor, torch.Tensor]:
+) -> tuple[torch.Tensor, torch.Tensor]:
     """
     Second-level routing: validate and adjust expert selection within clusters.
 

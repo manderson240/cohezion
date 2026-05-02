@@ -11,8 +11,8 @@ from pathlib import Path
 from typing import Any
 
 import numpy as np
-
 from cohezion.core.multimodal_bridge import LOCAL_MULTIMODAL_BRIDGE
+
 from cohezion.core.routing.router import LOCAL_ROUTER
 from cohezion.universe.engine import UniverseSimulationEngine
 from cohezion.universe.sandbox import ContainerizedUniverse
@@ -75,9 +75,7 @@ class ResearchSquad:
 
         # Execute in Sandbox (Simulated for this benchmark driver run)
         sandbox_res = await self.sandbox.execute_code(code_solution)
-        task_state["steps"].append(
-            {"role": "Engineer", "output": sandbox_res.stdout or sandbox_res.stderr}
-        )
+        task_state["steps"].append({"role": "Engineer", "output": sandbox_res.stdout or sandbox_res.stderr})
 
         # --- STEP 3: AUDITOR (Inward Resilience) ---
         # Analyze trajectory drift

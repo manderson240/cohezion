@@ -4,15 +4,16 @@ Using Audio Spectrogram Transformer (AST) for improved bioacoustic classificatio
 """
 
 import os
-import json
+import warnings
+from pathlib import Path
+
 import librosa
 import numpy as np
 import torch
 import torch.nn as nn
-from torch.utils.data import Dataset, DataLoader
-from pathlib import Path
-from transformers import ASTFeatureExtractor, ASTForAudioClassification, ASTConfig
-import warnings
+from torch.utils.data import DataLoader, Dataset
+from transformers import ASTFeatureExtractor, ASTForAudioClassification
+
 
 warnings.filterwarnings("ignore")
 
@@ -95,8 +96,6 @@ def predict(test_audio_path, model_path=None, config=None):
     # Load components once
     print(f"Loading pre-trained AST components from {config['model_name']}...")
     try:
-        from huggingface_hub import configure_http_backend
-        import httpx
 
         # Force a fresh client if needed, or just rely on standard loading with a retry
         feature_extractor = ASTFeatureExtractor.from_pretrained(

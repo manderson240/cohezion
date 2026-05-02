@@ -251,10 +251,7 @@ class TestRecommendationGeneration:
 
         recommendation = skill_refiner._generate_recommendation(metrics, "analyze")
 
-        assert (
-            "efficient" in recommendation.lower()
-            or "baseline" in recommendation.lower()
-        )
+        assert "efficient" in recommendation.lower() or "baseline" in recommendation.lower()
 
     def test_recommend_cache_friendly(self, skill_refiner):
         """Test recommendation for cache-friendly patterns."""

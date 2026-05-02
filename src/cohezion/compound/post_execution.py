@@ -140,7 +140,9 @@ class PostExecutionOrchestrator:
         drr_passed = metrics.get("drr_passed", True)
         if not drr_passed:
             should_refine = False
-            logger.info("Skill refinement blocked: DRR gate failed (%s)", metrics.get("drr_gate", "?"))
+            logger.info(
+                "Skill refinement blocked: DRR gate failed (%s)", metrics.get("drr_gate", "?")
+            )
         if success and self._ex.skill_refiner and should_refine:
             try:
                 exec_result = {
@@ -166,7 +168,15 @@ class PostExecutionOrchestrator:
         self._run_skill_health(skill_name, success, token_metrics, metrics)
 
         # --- Step 7.5: Degradation detection ---
-        self._run_degradation(metrics, duration_seconds, token_metrics, task_description, skill_name, project, decision_paths)
+        self._run_degradation(
+            metrics,
+            duration_seconds,
+            token_metrics,
+            task_description,
+            skill_name,
+            project,
+            decision_paths,
+        )
 
         # --- Step 7.6: Geometric latent mapping ---
         self._run_geometric_mapping(metrics, task_description, project, decision_paths)
@@ -220,10 +230,16 @@ class PostExecutionOrchestrator:
     # =====================================================================
 
     def _make_temp_result(
-        self, *, success: bool, output: str, metrics: dict[str, Any],
-        duration_seconds: float, token_metrics: dict[str, Any] | None,
+        self,
+        *,
+        success: bool,
+        output: str,
+        metrics: dict[str, Any],
+        duration_seconds: float,
+        token_metrics: dict[str, Any] | None,
     ):
         from cohezion.compound.executor import ExecutionResult
+
         return ExecutionResult(
             success=success,
             output=output,
@@ -237,8 +253,18 @@ class PostExecutionOrchestrator:
     # =====================================================================
 
     def _run_alignment_analysis(
-        self, *, parsed_request, success, output, metrics, duration_seconds,
-        token_metrics, task_description, operation_type, project, decision_paths,
+        self,
+        *,
+        parsed_request,
+        success,
+        output,
+        metrics,
+        duration_seconds,
+        token_metrics,
+        task_description,
+        operation_type,
+        project,
+        decision_paths,
     ):
         from cohezion.compound.inflection_detector import AnomalyDetection, Severity
 
@@ -290,7 +316,9 @@ class PostExecutionOrchestrator:
             cohesion_components.append(alignment_data.get("intent_match", 0.5))
         metrics["coherence"] = sum(cohesion_components) / len(cohesion_components)
 
-    def _run_drr_gate(self, metrics: dict[str, Any], skill_name: str, task_description: str) -> None:
+    def _run_drr_gate(
+        self, metrics: dict[str, Any], skill_name: str, task_description: str
+    ) -> None:
         if self._ex._drr_generator:
             try:
                 from cohezion.compound.design_review_report import GateLevel
@@ -339,10 +367,13 @@ class PostExecutionOrchestrator:
             from cohezion.research.autoresearch_driver import AutoresearchDriver
 
             target = (
-                "jepa" if "jepa" in task_description.lower() else
-                "flume_vae" if "flume" in task_description.lower() else
-                "rl_ppo" if any(w in task_description.lower() for w in ("rl", "ppo", "reward")) else
                 "jepa"
+                if "jepa" in task_description.lower()
+                else "flume_vae"
+                if "flume" in task_description.lower()
+                else "rl_ppo"
+                if any(w in task_description.lower() for w in ("rl", "ppo", "reward"))
+                else "jepa"
             )
             driver = AutoresearchDriver(target=target, budget_seconds=60)
             asyncio.ensure_future(driver.run_loop(n_iterations=1))
@@ -351,8 +382,13 @@ class PostExecutionOrchestrator:
             pass
 
     def _run_retrospection(
-        self, success: bool, output: str, metrics: dict[str, Any],
-        duration_seconds: float, token_metrics: dict[str, Any] | None, skill_name: str,
+        self,
+        success: bool,
+        output: str,
+        metrics: dict[str, Any],
+        duration_seconds: float,
+        token_metrics: dict[str, Any] | None,
+        skill_name: str,
     ) -> bool:
         should_refine = True
         if self._ex._retrospection_engine:
@@ -375,8 +411,11 @@ class PostExecutionOrchestrator:
         return should_refine
 
     def _run_skill_health(
-        self, skill_name: str, success: bool,
-        token_metrics: dict[str, Any] | None, metrics: dict[str, Any],
+        self,
+        skill_name: str,
+        success: bool,
+        token_metrics: dict[str, Any] | None,
+        metrics: dict[str, Any],
     ) -> None:
         if not self._ex._skill_health_tracker:
             return
@@ -392,13 +431,20 @@ class PostExecutionOrchestrator:
             logger.warning("Skill health tracking failed: %s", e)
 
     def _run_degradation(
-        self, metrics: dict[str, Any], duration_seconds: float,
-        token_metrics: dict[str, Any] | None, task_description: str,
-        skill_name: str, project: str, decision_paths: list[str],
+        self,
+        metrics: dict[str, Any],
+        duration_seconds: float,
+        token_metrics: dict[str, Any] | None,
+        task_description: str,
+        skill_name: str,
+        project: str,
+        decision_paths: list[str],
     ) -> None:
         coherence_val = metrics.get("coherence", 0.5)
         if 0.4 <= coherence_val <= 0.6 and self._ex._degradation_mode:
-            logger.info("Coherence returned to HIHO band (%.2f), exiting degradation mode", coherence_val)
+            logger.info(
+                "Coherence returned to HIHO band (%.2f), exiting degradation mode", coherence_val
+            )
             self._ex._degradation_mode = False
 
         if not self._ex._degradation_detector:
@@ -412,7 +458,9 @@ class PostExecutionOrchestrator:
                 "success_rate": 1.0 if metrics.get("success", False) else 0.0,
             }
             if token_metrics:
-                degr["combined_hit_rate"] = token_metrics.get("cache_hit_rate", token_metrics.get("combined_hit_rate", 0.0))
+                degr["combined_hit_rate"] = token_metrics.get(
+                    "cache_hit_rate", token_metrics.get("combined_hit_rate", 0.0)
+                )
                 degr["tokens_per_second"] = token_metrics.get("tokens_per_second", 0.0)
             alerts = self._ex._degradation_detector.check_degradation(degr)
             if alerts:
@@ -421,7 +469,9 @@ class PostExecutionOrchestrator:
                 if critical_alerts:
                     self._ex._degradation_mode = True
                     metrics["execution_degraded"] = True
-                    logger.warning("Entering degradation mode: %d CRITICAL alerts", len(critical_alerts))
+                    logger.warning(
+                        "Entering degradation mode: %d CRITICAL alerts", len(critical_alerts)
+                    )
                 for alert in critical_alerts:
                     try:
                         dp = self._ex.log_inflection_point(
@@ -439,8 +489,11 @@ class PostExecutionOrchestrator:
             logger.debug("Degradation detection failed: %s", e)
 
     def _run_geometric_mapping(
-        self, metrics: dict[str, Any], task_description: str,
-        project: str, decision_paths: list[str],
+        self,
+        metrics: dict[str, Any],
+        task_description: str,
+        project: str,
+        decision_paths: list[str],
     ) -> None:
         if not self._ex.geometric_bridge:
             return
@@ -486,7 +539,9 @@ class PostExecutionOrchestrator:
             pass
 
     def _run_model_quality(
-        self, metrics: dict[str, Any], duration_seconds: float,
+        self,
+        metrics: dict[str, Any],
+        duration_seconds: float,
         token_metrics: dict[str, Any] | None,
     ) -> None:
         if not self._ex._model_quality_classifier:
@@ -508,7 +563,10 @@ class PostExecutionOrchestrator:
             logger.debug("Model quality recording failed: %s", e)
 
     def _run_metrics_collection(
-        self, skill_name: str, success: bool, duration_seconds: float,
+        self,
+        skill_name: str,
+        success: bool,
+        duration_seconds: float,
         token_metrics: dict[str, Any] | None,
     ) -> None:
         if not self._ex._metrics_collector:
@@ -527,9 +585,15 @@ class PostExecutionOrchestrator:
             logger.debug("Metrics recording failed: %s", e)
 
     def _run_journey_tracking(
-        self, success: bool, output: str, metrics: dict[str, Any],
-        duration_seconds: float, token_metrics: dict[str, Any] | None,
-        task_description: str, operation_type: str, skill_name: str,
+        self,
+        success: bool,
+        output: str,
+        metrics: dict[str, Any],
+        duration_seconds: float,
+        token_metrics: dict[str, Any] | None,
+        task_description: str,
+        operation_type: str,
+        skill_name: str,
     ) -> bool:
         if not self._ex._journey_tracker:
             return False
@@ -594,7 +658,10 @@ class PostExecutionOrchestrator:
             pass
 
     def _run_universe_bridge_point(
-        self, universe_journey_id: str | None, journey_point_tracked: bool, skill_name: str,
+        self,
+        universe_journey_id: str | None,
+        journey_point_tracked: bool,
+        skill_name: str,
     ) -> None:
         if not self._ex._universe_bridge or not universe_journey_id or not journey_point_tracked:
             return
@@ -612,8 +679,11 @@ class PostExecutionOrchestrator:
             logger.debug("Universe bridge point failed: %s", e)
 
     def _run_complete_universe_journey(
-        self, universe_journey_id: str | None, success: bool,
-        metrics: dict[str, Any], output: str,
+        self,
+        universe_journey_id: str | None,
+        success: bool,
+        metrics: dict[str, Any],
+        output: str,
     ) -> None:
         if not self._ex._universe_bridge or not universe_journey_id:
             return
@@ -628,7 +698,9 @@ class PostExecutionOrchestrator:
         except Exception as e:
             logger.debug("Universe bridge completion failed: %s", e)
 
-    def _run_ouroboros_bridge(self, metrics: dict[str, Any], task_description: str, skill_name: str) -> None:
+    def _run_ouroboros_bridge(
+        self, metrics: dict[str, Any], task_description: str, skill_name: str
+    ) -> None:
         try:
             from cohezion.physics.ouroboros_bridge import OuroborosBridge
 
@@ -681,8 +753,11 @@ class PostExecutionOrchestrator:
             pass
 
     def _run_prompt_artifact_persistence(
-        self, task_description: str, output: str,
-        token_metrics: dict[str, Any] | None, metrics: dict[str, Any],
+        self,
+        task_description: str,
+        output: str,
+        token_metrics: dict[str, Any] | None,
+        metrics: dict[str, Any],
     ) -> None:
         try:
             from cohezion.persistence.genesis_persistence import persist_prompt_artifact
@@ -703,7 +778,11 @@ class PostExecutionOrchestrator:
             pass
 
     def _run_context_policy_outcome(
-        self, _task_profile, _context_budget, success: bool, metrics: dict[str, Any],
+        self,
+        _task_profile,
+        _context_budget,
+        success: bool,
+        metrics: dict[str, Any],
     ) -> None:
         if _task_profile is None or _context_budget is None or not self._ex._context_policy:
             return

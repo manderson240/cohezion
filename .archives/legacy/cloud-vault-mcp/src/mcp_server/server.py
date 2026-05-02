@@ -5,19 +5,20 @@ import logging
 
 from mcp.server.fastmcp import FastMCP
 
+from .agent_context import AgentContextOps
 from .compound_ops import CompoundOps
 from .config import ServerConfig
 from .googlesql_client import GoogleSqlConfig
 from .googlesql_ops import GoogleSqlOps
+from .health import HealthChecker
+from .memory_bridge import VaultMemoryBridge
 from .obsidian_ops import ObsidianOps
-from .vault_ops import VaultOps
+from .ollama_client import OllamaClient
 from .sheets_bridge import SheetsBridge
 from .surrealdb_sync import SurrealDBSync
 from .teleport import CloudTeleportProtocol
-from .memory_bridge import VaultMemoryBridge
-from .agent_context import AgentContextOps
-from .ollama_client import OllamaClient
-from .health import HealthChecker
+from .vault_ops import VaultOps
+
 
 logger = logging.getLogger(__name__)
 

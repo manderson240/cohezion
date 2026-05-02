@@ -225,7 +225,7 @@ class ProductionScheduler:
                 }
 
                 # Log results
-                logger.info(f"\n✅ Optimization Complete!")
+                logger.info("\n✅ Optimization Complete!")
                 logger.info(f"  Improvement: {improvement:.1f}%")
                 logger.info(f"  Threshold: {config.threshold}%")
                 logger.info(f"  Success: {success}")
@@ -395,7 +395,7 @@ def main():
     else:
         result = asyncio.run(scheduler.run_production(mode=args.mode, specific_skill=args.skill))
 
-    print(f"\n🎉 Production run complete")
+    print("\n🎉 Production run complete")
     print(f"   Mode: {result.get('mode', 'unknown')}")
     print(f"   Skills: {result.get('summary', {}).get('skills', 0)}")
     print(f"   Optimized: {result.get('summary', {}).get('optimized', 0)}")

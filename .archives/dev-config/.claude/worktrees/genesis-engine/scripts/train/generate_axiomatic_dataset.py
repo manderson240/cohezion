@@ -36,9 +36,7 @@ def main():
         sections = content.split("## Insight @")
         for section in sections[1:]:
             body = section.strip()
-            dataset.append(
-                {"instruction": "Provide a recent Cohezion autonomic insight.", "output": body}
-            )
+            dataset.append({"instruction": "Provide a recent Cohezion autonomic insight.", "output": body})
 
     # 3. Harvest Pulse Trajectories
     pulses = sorted(PULSE_DIR.glob("pulse_*.json"))

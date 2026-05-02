@@ -32,21 +32,19 @@ Reference: "Random Features for Large-Scale Kernel Machines", NIPS 2007.
 """
 
 from __future__ import annotations
+
 import os
+
 
 os.environ["PYTORCH_ROCM_ARCH"] = "gfx950"
 os.environ["CXX"] = "clang++"
 
-import torch
-import torch.nn.functional as F
 import math
-from typing import Tuple
-from torch.utils.cpp_extension import load_inline
-from task import input_t, output_t
 
-import aiter
+import torch
 from aiter import dtypes as aiter_dtypes
-from aiter import get_mla_metadata_info_v1, get_mla_metadata_v1, mla_reduce_v1
+from task import input_t, output_t
+from torch.utils.cpp_extension import load_inline
 
 
 HIP_SOURCE = r"""
@@ -78,64 +76,64 @@ __global__ void rff_attention_phase1(
     int head_id = blockIdx.y;
     int batch_id = blockIdx.z;
     int tid = threadIdx.x;
-    
+
     int kv_start = kv_indptr[batch_id];
     int kv_end = kv_indptr[batch_id + 1];
     int kv_len = kv_end - kv_start;
-    
+
     if (kv_len == 0) return;
-    
+
     int kv_per_split = (kv_len + num_splits - 1) / num_splits;
     int my_kv_start = kv_start + split_id * kv_per_split;
     int my_kv_end = min(my_kv_start + kv_per_split, kv_end);
     if (my_kv_start >= kv_end) return;
-    
+
     int q_idx = batch_id;
     const __hip_bfloat16* q_ptr = Q + (q_idx * NUM_HEADS + head_id) * QK_DIM;
-    
+
     // Compute RFF for query: φ(q) = [cos(ω^T q), sin(ω^T q)]
     __shared__ float q_features[2 * NUM_FEATURES];
-    
+
     for (int f = tid; f < NUM_FEATURES; f += BLOCK_SIZE) {
         // Compute ω^T q for this feature
         float proj = 0.0f;
         for (int d = 0; d < QK_DIM; d++) {
             proj += omega[f * QK_DIM + d] * __bfloat162float(q_ptr[d]);
         }
-        
+
         // Apply feature map
         q_features[f] = cosf(proj);           // Cosine component
         q_features[f + NUM_FEATURES] = sinf(proj);  // Sine component
     }
     __syncthreads();
-    
+
     // Compute attention via RFF: φ(q)^T φ(k) ≈ exp(q^T k)
     // But we actually compute attention directly with softmax
     // RFF helps with linear approximation
-    
+
     float running_max = -1e30f;
     float running_sum = 0.0f;
     float v_acc[2] = {0.0f, 0.0f};
-    
+
     for (int kv_idx = my_kv_start; kv_idx < my_kv_end; kv_idx++) {
         const __hip_bfloat16* kv_ptr = KV + kv_idx * QK_DIM;
-        
+
         // Compute RFF for key (on-the-fly)
         float k_proj = 0.0f;
         #pragma unroll 4
         for (int d = tid; d < QK_DIM; d += BLOCK_SIZE) {
             // Cooperative reduction
-            float val = omega[tid % NUM_FEATURES * QK_DIM + d] * 
+            float val = omega[tid % NUM_FEATURES * QK_DIM + d] *
                        __bfloat162float(kv_ptr[d]);
             k_proj += val;
         }
-        
+
         // Warp reduction for projection
         #pragma unroll
         for (int offset = WAVESIZE / 2; offset > 0; offset >>= 1) {
             k_proj += __shfl_xor(k_proj, offset, WAVESIZE);
         }
-        
+
         // Approximate kernel via RFF
         // k(q, k) ≈ φ(q)^T φ(k)
         __shared__ float k_features[2 * NUM_FEATURES];
@@ -144,7 +142,7 @@ __global__ void rff_attention_phase1(
             k_features[tid + NUM_FEATURES] = sinf(k_proj);
         }
         __syncthreads();
-        
+
         // Compute approximate kernel value
         float kernel_approx = 0.0f;
         if (tid == 0) {
@@ -154,24 +152,24 @@ __global__ void rff_attention_phase1(
             // Normalize by dimension
             kernel_approx /= (2.0f * NUM_FEATURES);
         }
-        
+
         __shared__ float shared_score;
         if (tid == 0) {
             shared_score = kernel_approx;
         }
         __syncthreads();
-        
+
         float score = shared_score;
-        
+
         // Online softmax update
         float old_max = running_max;
         float new_max = fmaxf(old_max, score);
         float exp_score = expf(score - new_max);
         float correction = expf(old_max - new_max);
-        
+
         running_sum = running_sum * correction + exp_score;
         running_max = new_max;
-        
+
         // Accumulate weighted V
         float weight = exp_score;
         for (int vi = 0; vi < 2; vi++) {
@@ -181,17 +179,17 @@ __global__ void rff_attention_phase1(
             }
         }
     }
-    
+
     // Write partial results
     int out_base = ((split_id * total_q + q_idx) * NUM_HEADS + head_id);
-    
+
     for (int vi = 0; vi < 2; vi++) {
         int v_idx = tid * 2 + vi;
         if (v_idx < V_DIM) {
             partial_out[out_base * V_DIM + v_idx] = v_acc[vi];
         }
     }
-    
+
     if (tid == 0) {
         partial_max[out_base] = running_max;
         partial_lse[out_base] = logf(running_sum) + running_max;
@@ -209,18 +207,18 @@ __global__ void rff_reduce(
     int idx = blockIdx.x * blockDim.x + threadIdx.x;
     int total_elements = total_q * NUM_HEADS * V_DIM;
     if (idx >= total_elements) return;
-    
+
     int v_idx = idx % V_DIM;
     int head_q = idx / V_DIM;
     int head_id = head_q % NUM_HEADS;
     int q_idx = head_q / NUM_HEADS;
-    
+
     float global_max = -1e30f;
     for (int s = 0; s < num_splits; s++) {
         int base = (s * total_q + q_idx) * NUM_HEADS + head_id;
         global_max = fmaxf(global_max, partial_max[base]);
     }
-    
+
     float total_weight = 0.0f;
     float total_v = 0.0f;
     for (int s = 0; s < num_splits; s++) {
@@ -229,13 +227,13 @@ __global__ void rff_reduce(
         total_weight += expf(lse - global_max);
         total_v += partial_out[base * V_DIM + v_idx] * expf(partial_max[base] - global_max);
     }
-    
+
     output[idx] = (__hip_bfloat16)(total_v / total_weight);
 }
 
 void launch_rff_attention(
     torch::Tensor Q, torch::Tensor KV, torch::Tensor omega,
-    torch::Tensor phi_Q, torch::Tensor partial_out, 
+    torch::Tensor phi_Q, torch::Tensor partial_out,
     torch::Tensor partial_max, torch::Tensor partial_lse,
     torch::Tensor output,
     torch::Tensor kv_indptr,
@@ -252,7 +250,7 @@ void launch_rff_attention(
         partial_lse.data_ptr<float>(),
         kv_indptr.data_ptr<int>(),
         batch_size, total_q, num_splits, sm_scale);
-    
+
     int total_elements = total_q * NUM_HEADS * V_DIM;
     rff_reduce<<<(total_elements + 255) / 256, 256>>>(
         partial_out.data_ptr<float>(),

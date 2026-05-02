@@ -8,18 +8,16 @@ Quantum Approximate Optimization Algorithm for combinatorial problems.
 import sys
 from pathlib import Path
 
+
 sys.path.insert(0, str(Path(__file__).parent))
 
 import time
-import numpy as np
-from typing import List, Tuple, Dict, Optional, Callable
-from scipy.optimize import minimize
 
-from dotenv import load_dotenv
 import bluequbit
-import qiskit
-from qiskit import QuantumCircuit, ParameterVector
-from qiskit.circuit.library import EfficientSU2
+import numpy as np
+from dotenv import load_dotenv
+from qiskit import ParameterVector, QuantumCircuit
+from scipy.optimize import minimize
 
 
 class QAOASolver:
@@ -44,11 +42,11 @@ class QAOASolver:
 
     def solve_maxcut(
         self,
-        graph_edges: List[Tuple[int, int]],
+        graph_edges: list[tuple[int, int]],
         n_nodes: int,
         p_layers: int = 1,
         max_iterations: int = 100,
-    ) -> Dict:
+    ) -> dict:
         """
         Solve MaxCut using QAOA.
 
@@ -62,7 +60,7 @@ class QAOASolver:
             dict with optimal parameters and solution
         """
         print(f"\n{'=' * 70}")
-        print(f"QAOA for MaxCut")
+        print("QAOA for MaxCut")
         print(f"{'=' * 70}")
         print(f"Nodes: {n_nodes}")
         print(f"Edges: {len(graph_edges)}")
@@ -81,11 +79,11 @@ class QAOASolver:
 
     def solve_mis(
         self,
-        graph_edges: List[Tuple[int, int]],
+        graph_edges: list[tuple[int, int]],
         n_nodes: int,
         penalty: float = 7.0,
         p_layers: int = 1,
-    ) -> Dict:
+    ) -> dict:
         """
         Solve Maximum Independent Set using QAOA.
 
@@ -99,7 +97,7 @@ class QAOASolver:
             dict with solution
         """
         print(f"\n{'=' * 70}")
-        print(f"QAOA for MIS")
+        print("QAOA for MIS")
         print(f"{'=' * 70}")
 
         # Build Hamiltonian (from Tutorial 4)
@@ -134,7 +132,7 @@ class QAOASolver:
         return result
 
     def _build_qaoa_circuit(
-        self, n_qubits: int, p_layers: int, graph_edges: List[Tuple[int, int]]
+        self, n_qubits: int, p_layers: int, graph_edges: list[tuple[int, int]]
     ) -> QuantumCircuit:
         """Build parameterized QAOA circuit."""
         gammas = ParameterVector("γ", p_layers)
@@ -160,8 +158,8 @@ class QAOASolver:
         return qc
 
     def _maxcut_hamiltonian(
-        self, edges: List[Tuple[int, int]], n_nodes: int
-    ) -> List[Tuple[str, float]]:
+        self, edges: list[tuple[int, int]], n_nodes: int
+    ) -> list[tuple[str, float]]:
         """Build MaxCut Hamiltonian."""
         terms = []
 
@@ -178,10 +176,10 @@ class QAOASolver:
     def _optimize_qaoa(
         self,
         circuit: QuantumCircuit,
-        hamiltonian: List[Tuple[str, float]],
+        hamiltonian: list[tuple[str, float]],
         p_layers: int,
         max_iterations: int = 100,
-    ) -> Dict:
+    ) -> dict:
         """Optimize QAOA parameters."""
         start = time.time()
 

@@ -1,6 +1,5 @@
-import pytest
 import torch
-import numpy as np
+
 from research.challenges.arc_prize_2026.arc_jepa import ARCGameEncoder, ARCPredictor, ARCWorldModel
 
 

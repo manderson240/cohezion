@@ -23,14 +23,15 @@ Expected: 30-50% speedup by skipping 40-60% of expert computations
 
 from __future__ import annotations
 
-import os
 import math
+import os
+
 import torch
 import torch.nn.functional as F
-from typing import Tuple, List
 from aiter import ActivationType, QuantType
 from aiter.fused_moe import fused_moe
 from task import input_t, output_t
+
 
 # Environment
 os.environ["AITER_USE_NT"] = "1"
@@ -83,7 +84,7 @@ class ConfidenceBasedSparsity:
         gate_logits: torch.Tensor,
         topk_weights: torch.Tensor,
         topk_ids: torch.Tensor,
-    ) -> Tuple[torch.Tensor, torch.Tensor, torch.Tensor]:
+    ) -> tuple[torch.Tensor, torch.Tensor, torch.Tensor]:
         """Select experts based on confidence threshold.
 
         Args:

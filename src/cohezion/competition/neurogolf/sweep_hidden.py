@@ -1,4 +1,5 @@
 """NeuroGolf param sweep: find optimal hidden dim under 100K."""
+
 from __future__ import annotations
 
 import json

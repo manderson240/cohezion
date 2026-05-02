@@ -1,8 +1,9 @@
 import json
 import os
-import torch
+
 import numpy as np
-from arc_jepa import ARCWorldModel, ARCGameEncoder
+import torch
+from arc_jepa import ARCGameEncoder
 
 
 class ARCAGI2Evaluator:
@@ -16,7 +17,7 @@ class ARCAGI2Evaluator:
 
     def load_task(self, task_id):
         path = os.path.join(self.data_dir, f"{task_id}.json")
-        with open(path, "r") as f:
+        with open(path) as f:
             return json.load(f)
 
     def solve_task(self, task_id):

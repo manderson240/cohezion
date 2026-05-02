@@ -21,9 +21,10 @@ Reference: All sessions, RESEARCH_MASTER_SUMMARY.md
 """
 
 from __future__ import annotations
+
 import os
 import sys
-import math
+
 
 # ── Environment (CRITICAL: before any aiter import) ──────────────────
 os.environ["AITER_USE_NT"] = "1"  # Non-temporal loads
@@ -46,11 +47,10 @@ for _mod in (
     if _p not in sys.path:
         sys.path.insert(0, _p)
 
-import torch
 from aiter import ActivationType, QuantType
 from aiter.fused_moe import fused_moe
-from task import input_t, output_t
 from reference import ref_kernel
+from task import input_t, output_t
 
 
 # ── Shape-specific optimizations (from grid search) ──────────────────
@@ -156,7 +156,7 @@ def custom_kernel(data: input_t) -> output_t:
             # block_m=block_m_hint if shape_key else None,  # If API supports
         )
         return result
-    except Exception as e:
+    except Exception:
         # Fallback to reference
         try:
             return ref_kernel(data)

@@ -93,9 +93,7 @@ class TrajectorySearchEngine:
         self.collector = collector
         self.encoder = encoder
         self.similarity_threshold = similarity_threshold
-        logger.debug(
-            "Initialized TrajectorySearchEngine (threshold=%.2f)", similarity_threshold
-        )
+        logger.debug("Initialized TrajectorySearchEngine (threshold=%.2f)", similarity_threshold)
 
     def find_similar_trajectories(
         self,

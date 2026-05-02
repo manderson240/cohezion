@@ -13,7 +13,7 @@ async def test_quality():
     # Get actual model name from server
     async with aiohttp.ClientSession() as session, session.get(f"{base_url}/v1/models") as resp:
         data = await resp.json()
-        models = [m['id'] for m in data.get('data', [])]
+        models = [m["id"] for m in data.get("data", [])]
         model = models[0] if models else "unknown"
         print(f"Testing with model: {model}")
 
@@ -42,10 +42,10 @@ async def test_quality():
                 json={
                     "model": model,
                     "messages": [
-                        {"role": "system", "content": cfg['system']},
+                        {"role": "system", "content": cfg["system"]},
                         {"role": "user", "content": prompt},
                     ],
-                    "temperature": cfg['temp'],
+                    "temperature": cfg["temp"],
                     "max_tokens": 10,
                 },
                 timeout=aiohttp.ClientTimeout(total=30),
@@ -64,12 +64,14 @@ async def test_quality():
                 print(f"  Tokens: {tokens} | Time: {elapsed:.0f}ms | TPS: {tps:.1f}")
                 print(f"  Correct: {'✓' if correct else '✗'}")
 
-                results.append({
-                    "name": cfg['name'],
-                    "tps": tps,
-                    "correct": correct,
-                    "text": text,
-                })
+                results.append(
+                    {
+                        "name": cfg["name"],
+                        "tps": tps,
+                        "correct": correct,
+                        "text": text,
+                    }
+                )
 
         # Summary
         print("\n" + "=" * 70)
@@ -80,21 +82,21 @@ async def test_quality():
         for r in results:
             print(f"{r['name']:<15} {r['tps']:<10.1f} {'✓' if r['correct'] else '✗'}")
 
-        correct_count = sum(1 for r in results if r['correct'])
-        avg_tps = sum(r['tps'] for r in results) / len(results)
+        correct_count = sum(1 for r in results if r["correct"])
+        avg_tps = sum(r["tps"] for r in results) / len(results)
 
         print(f"\nCorrect answers: {correct_count}/{len(results)}")
         print(f"Average TPS: {avg_tps:.1f}")
 
         # Conclusion
-        print(f"\n{'='*70}")
+        print(f"\n{'=' * 70}")
         if correct_count == len(results):
             print("✓ All configurations produce CORRECT answers")
             print("→ Throughput optimization does NOT harm accuracy")
         else:
             print("⚠ Some configurations produce INCORRECT answers")
             print("→ Review temperature/system prompt settings")
-        print(f"{'='*70}")
+        print(f"{'=' * 70}")
 
         print(f"\nMETRIC correct_answers={correct_count}")
         print(f"METRIC avg_tps={avg_tps:.1f}")

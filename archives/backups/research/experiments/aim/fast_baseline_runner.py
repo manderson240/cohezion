@@ -12,7 +12,7 @@ import argparse
 import json
 import time
 from pathlib import Path
-from typing import Any, Dict, List
+from typing import Any
 
 from base_specialist import BaseSpecialist
 
@@ -39,12 +39,12 @@ class FastBaselineRunner:
         self.timeout = timeout
         self.specialist = BaseSpecialist("Algebraist", model_name=model_name, timeout=timeout)
 
-    def load_reference_csv(self) -> List[Dict[str, Any]]:
+    def load_reference_csv(self) -> list[dict[str, Any]]:
         """Load reference problems from CSV (handles multi-line problems)."""
         import csv
 
         problems = []
-        with open(self.reference_path, "r", newline="", encoding="utf-8") as f:
+        with open(self.reference_path, newline="", encoding="utf-8") as f:
             reader = csv.DictReader(f)
             for row in reader:
                 answer_str = row.get("answer", "0")
@@ -61,14 +61,14 @@ class FastBaselineRunner:
                 )
         return problems
 
-    def run_benchmark(self) -> Dict[str, Any]:
+    def run_benchmark(self) -> dict[str, Any]:
         """Run benchmark on all reference problems."""
         print("=" * 60)
         print("FAST BASELINE RUNNER - Optimized for Speed")
         print("=" * 60)
         print(f"Model: {self.model_name}")
         print(f"Timeout: {self.timeout}s")
-        print(f"Strategy: Single inference, no adversarial review")
+        print("Strategy: Single inference, no adversarial review")
         print("=" * 60)
 
         problems = self.load_reference_csv()
@@ -90,7 +90,7 @@ class FastBaselineRunner:
 
         return summary
 
-    def _run_single_problem(self, problem: Dict[str, Any]) -> Dict[str, Any]:
+    def _run_single_problem(self, problem: dict[str, Any]) -> dict[str, Any]:
         """Run single problem with fast pipeline."""
         start_time = time.time()
 
@@ -114,7 +114,7 @@ class FastBaselineRunner:
             "response_length": len(response),
         }
 
-    def _compute_summary(self, results: List[Dict[str, Any]]) -> Dict[str, Any]:
+    def _compute_summary(self, results: list[dict[str, Any]]) -> dict[str, Any]:
         """Compute summary metrics."""
         total = len(results)
         correct_count = sum(1 for r in results if r["correct"])
@@ -136,10 +136,10 @@ class FastBaselineRunner:
             "all_targets_met": accuracy >= 0.60 and avg_time <= 200.0,
         }
 
-    def _print_summary(self, summary: Dict[str, Any]):
+    def _print_summary(self, summary: dict[str, Any]):
         """Print summary report."""
         print(f"\n{'=' * 60}")
-        print(f"FAST BASELINE SUMMARY")
+        print("FAST BASELINE SUMMARY")
         print(f"{'=' * 60}")
         print(f"Total problems: {summary['total_problems']}")
         print(

@@ -135,9 +135,7 @@ class IssueScout:
             # We use a custom query to avoid overwriting completed tasks
             try:
                 # Check if exists
-                existing = await self.db.query(
-                    f"SELECT * FROM swarm_tasks WHERE id = '{task['id']}'"
-                )
+                existing = await self.db.query(f"SELECT * FROM swarm_tasks WHERE id = '{task['id']}'")
                 if not existing:
                     await self.db.create("swarm_tasks", task)
                     count += 1

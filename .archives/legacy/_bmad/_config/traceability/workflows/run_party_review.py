@@ -284,7 +284,7 @@ def main():
     high_count = len([f for f in all_findings if f["severity"] == "HIGH"])
     fixed_count = len([f for f in all_findings if f["status"] == "FIXED"])
 
-    print(f"\n📊 Summary:")
+    print("\n📊 Summary:")
     print(f"  HIGH findings: {high_count}")
     print(f"  Fixed: {fixed_count}/{len(all_findings)}")
 

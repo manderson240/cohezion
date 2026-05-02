@@ -473,9 +473,7 @@ class UniverseSimulationEngine:
         distance = target - current
         return current + distance * factor * 0.5  # 0.5 for gentle convergence
 
-    async def precipitate_latent_action(
-        self, journey: UniverseJourney, prompt: str
-    ) -> TrajectoryPoint:
+    async def precipitate_latent_action(self, journey: UniverseJourney, prompt: str) -> TrajectoryPoint:
         """
         TRANSFORMATION: Predict and precipitate the next 'Latent Action'.
         Uses the ManifoldBridge to convert intent into reality.

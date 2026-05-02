@@ -29,14 +29,9 @@ class Usage:
     @property
     def total_cost_nanodollars(self) -> int | None:
         """Total cost in nanodollars (input + output)."""
-        if (
-            self.input_tokens_cost_nanodollars is None
-            and self.output_tokens_cost_nanodollars is None
-        ):
+        if self.input_tokens_cost_nanodollars is None and self.output_tokens_cost_nanodollars is None:
             return None
-        return (self.input_tokens_cost_nanodollars or 0) + (
-            self.output_tokens_cost_nanodollars or 0
-        )
+        return (self.input_tokens_cost_nanodollars or 0) + (self.output_tokens_cost_nanodollars or 0)
 
     def __str__(self) -> str:
         """Returns a human-readable string representation of the usage."""
@@ -70,7 +65,5 @@ class Usage:
                 self.output_tokens_cost_nanodollars,
                 other.output_tokens_cost_nanodollars,
             ),
-            total_backend_latency_ms=add_optional(
-                self.total_backend_latency_ms, other.total_backend_latency_ms
-            ),
+            total_backend_latency_ms=add_optional(self.total_backend_latency_ms, other.total_backend_latency_ms),
         )

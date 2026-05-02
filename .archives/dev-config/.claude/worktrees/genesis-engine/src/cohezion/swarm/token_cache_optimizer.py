@@ -331,9 +331,7 @@ class TokenCacheOptimizer:
             hit_rate = stats["hits"] / stats["total_requests"] if stats["total_requests"] > 0 else 0
 
             if hit_rate < 0.3:
-                model_recs.append(
-                    "Low hit rate - consider tweaking similarity_threshold"
-                )
+                model_recs.append("Low hit rate - consider tweaking similarity_threshold")
 
             if hit_rate > 0.8:
                 model_recs.append("High hit rate - consider expanding cache size")

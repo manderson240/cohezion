@@ -1,8 +1,8 @@
-import os
 import bluequbit
-import qiskit
 import numpy as np
+import qiskit
 from dotenv import load_dotenv
+
 
 # Load environment variables for BlueQubit token
 load_dotenv(".env")

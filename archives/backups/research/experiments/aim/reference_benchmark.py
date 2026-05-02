@@ -40,7 +40,7 @@ def run_benchmark(reference_csv="input/reference.csv"):
     ref_df = pl.read_csv(reference_csv)
 
     print(f"{'=' * 60}")
-    print(f"AIMO Baseline Benchmark")
+    print("AIMO Baseline Benchmark")
     print(f"{'=' * 60}")
     print(f"Problems: {len(ref_df)}")
     print(f"{'=' * 60}\n")
@@ -74,7 +74,7 @@ def run_benchmark(reference_csv="input/reference.csv"):
     accuracy = correct / len(ref_df) if len(ref_df) > 0 else 0
 
     print(f"\n{'=' * 60}")
-    print(f"Baseline Results")
+    print("Baseline Results")
     print(f"{'=' * 60}")
     print(f"Accuracy: {accuracy * 100:.1f}% ({correct}/{len(ref_df)})")
     print(f"{'=' * 60}")

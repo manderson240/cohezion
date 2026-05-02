@@ -13,11 +13,10 @@ from __future__ import annotations
 import asyncio
 import json
 import logging
-import subprocess
-import sys
 from datetime import datetime
 from pathlib import Path
 from typing import Any
+
 
 # Configure logging
 logging.basicConfig(level=logging.INFO, format="%(asctime)s [%(levelname)s] %(message)s")
@@ -108,7 +107,6 @@ class AutoresearchRunner:
 
     async def _run_phase_1_benchmarks(self) -> dict[str, Any]:
         """Phase 1: Create/run benchmarks."""
-        from cohezion.benchmarks.orchestrator import orchestrator
 
         # Quick benchmark run
         logger.info("Running benchmark suite...")
@@ -178,12 +176,12 @@ logger = logging.getLogger(__name__)
 
 class GRPOTrainer:
     """Group Relative Policy Optimization - Mythos uses this."""
-    
+
     def __init__(self, policy: Any, reference_model: Any):
         """Initialize with policy and reference."""
         self.policy = policy
         self.reference = reference_model
-        
+
     async def train_step(self, batch: dict[str, Any]) -> dict[str, Any]:
         """Single GRPO training step."""
         # Simplified implementation
@@ -210,11 +208,11 @@ logger = logging.getLogger(__name__)
 
 class UnifiedAgent:
     """Main agent loop with tool integration."""
-    
+
     def __init__(self, tools: list[Any] | None = None):
         """Initialize with tool set."""
         self.tools = tools or []
-        
+
     async def run_task(self, task: str, env: Any, timeout: int) -> dict[str, Any]:
         """Execute task with tool use."""
         return {"success": False, "steps": 0, "error": "Not implemented"}

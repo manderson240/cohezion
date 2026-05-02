@@ -8,10 +8,10 @@ This variant uses shuffle=False then applies e8m0_shuffle separately.
 The HIP quant kernel may still be faster than the Triton quant kernel.
 """
 
-import torch
 import aiter
 from aiter import dtypes
 from task import input_t, output_t
+
 
 # Try HIP quant path WITHOUT shuffle (shuffle=True is broken)
 _hip_quant = None
@@ -25,6 +25,7 @@ except ImportError:
 # Always need these
 from aiter.ops.triton.quant import dynamic_mxfp4_quant
 from aiter.utility.fp4_utils import e8m0_shuffle
+
 
 _gemm = aiter.gemm_a4w4
 _fp4x2 = dtypes.fp4x2

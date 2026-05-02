@@ -5,8 +5,9 @@ Tests the absolute baseline for raw HIP launches.
 #!POPCORN leaderboard amd-mxfp4-mm
 #!POPCORN gpu MI355X
 
-import torch
 import ctypes
+
+import torch
 from task import input_t, output_t
 
 

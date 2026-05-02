@@ -4,8 +4,9 @@ For variational quantum algorithms (VQA/QAOA)
 """
 
 import os
-from dotenv import load_dotenv
+
 import pennylane as qml
+from dotenv import load_dotenv
 from pennylane import numpy as np
 
 

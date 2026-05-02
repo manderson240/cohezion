@@ -117,9 +117,7 @@ class TestLRUPersistentTokenCacheMemoryBounding:
 
         # After eviction, should be at target utilization or lower
         stats = bounded_cache.get_stats()
-        assert (
-            stats["memory_entries"] <= bounded_cache.max_entries + 1
-        )  # Allow for timing
+        assert stats["memory_entries"] <= bounded_cache.max_entries + 1  # Allow for timing
 
     def test_eviction_triggered_at_threshold(self, bounded_cache):
         """Test eviction tracking and threshold behavior."""

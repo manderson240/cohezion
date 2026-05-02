@@ -10,12 +10,12 @@ Reduce the ~2µs Python overhead between aiter's 11.5µs ref and our 13.4µs:
 4. Cache shuffle result for repeated B
 """
 
-import torch
 import aiter
 from aiter import dtypes
 from aiter.ops.triton.quant import dynamic_mxfp4_quant
 from aiter.utility.fp4_utils import e8m0_shuffle
 from task import input_t, output_t
+
 
 # Pre-resolve function references at module load
 _gemm = aiter.gemm_a4w4

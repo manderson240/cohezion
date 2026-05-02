@@ -10,11 +10,11 @@ Session 91 findings:
 """
 
 import torch
-import aiter
 from aiter import dtypes as aiter_dtypes
 from aiter import get_mla_metadata_info_v1, get_mla_metadata_v1
 from aiter.mla import mla_decode_fwd
 from task import input_t, output_t
+
 
 NUM_HEADS = 16
 NUM_KV_HEADS = 1

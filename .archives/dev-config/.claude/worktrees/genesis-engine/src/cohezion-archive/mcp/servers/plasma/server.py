@@ -174,9 +174,7 @@ class PlasmaSimulation:
         new_exotic = self.generate_exotic_vacuum_object()
 
         # Remove decayed exotic objects
-        self.exotic_objects = [
-            obj for obj in self.exotic_objects if obj.is_active(self.current_time)
-        ]
+        self.exotic_objects = [obj for obj in self.exotic_objects if obj.is_active(self.current_time)]
 
         return {
             "time": self.current_time,

@@ -9,11 +9,12 @@ Symphonic reasoning.
 from __future__ import annotations
 
 import logging
+
 import numpy as np
-from typing import Any, Dict, List, Optional, Tuple
 from pydantic import BaseModel, Field
 
 from cohezion.flume.vae_encoder import FlumeVAEEncoder
+
 
 logger = logging.getLogger(__name__)
 
@@ -26,7 +27,7 @@ class InvestState(BaseModel):
         ..., description="Quantified service value (e.g., tons of C/ha)"
     )
     spatial_resolution: str
-    metrics: Dict[str, float] = Field(default_factory=dict)
+    metrics: dict[str, float] = Field(default_factory=dict)
     tradeoff_index: float = 0.0  # 0.0 (extreme conflict) to 1.0 (perfect synergy)
 
 

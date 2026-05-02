@@ -80,7 +80,12 @@ class OuroborosRecorder:
                 # Persist incrementally
                 if self._cycle_count % 10 == 0:
                     self._persist_snapshot()
-                logger.debug("Ouroboros cycle %d: coherence=%.3f, cpu=%.1f%%", self._cycle_count, snapshot.get("coherence", 0), snapshot["cpu_percent"])
+                logger.debug(
+                    "Ouroboros cycle %d: coherence=%.3f, cpu=%.1f%%",
+                    self._cycle_count,
+                    snapshot.get("coherence", 0),
+                    snapshot["cpu_percent"],
+                )
                 await asyncio.sleep(self.interval)
             except asyncio.CancelledError:
                 break
@@ -111,7 +116,11 @@ class OuroborosRecorder:
             import subprocess
 
             result = subprocess.run(
-                ["nvidia-smi", "--query-gpu=utilization.gpu,memory.used", "--format=csv,noheader,nounits"],
+                [
+                    "nvidia-smi",
+                    "--query-gpu=utilization.gpu,memory.used",
+                    "--format=csv,noheader,nounits",
+                ],
                 capture_output=True,
                 text=True,
                 timeout=2,
@@ -129,7 +138,9 @@ class OuroborosRecorder:
         if not self.snapshots:
             return
         suffix = "final" if final else f"batch_{self._cycle_count}"
-        path = self._output_dir / f"ouroboros_{datetime.now().strftime('%Y%m%d_%H%M%S')}_{suffix}.json"
+        path = (
+            self._output_dir / f"ouroboros_{datetime.now().strftime('%Y%m%d_%H%M%S')}_{suffix}.json"
+        )
         try:
             with open(path, "w") as f:
                 json.dump(

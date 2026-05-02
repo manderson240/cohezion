@@ -29,6 +29,7 @@ from cohezion.swarm.dynamic_agent_registry import (
 @dataclass
 class RoutingDecision:
     """Routing decision with confidence and explanation."""
+
     agent_name: str
     confidence: float
     reasoning: str
@@ -55,6 +56,7 @@ class RoutingDecision:
 @dataclass
 class RoutingHistory:
     """Single routing decision and outcome."""
+
     decision: RoutingDecision
     outcome: dict[str, Any]
     timestamp: datetime = field(default_factory=datetime.now)
@@ -77,37 +79,37 @@ class TaskAnalyzer:
 
     # Pattern matching for task classification
     CODE_PATTERNS = [
-        r'\b(code|program|function|class|script|bug|debug|error|exception)\b',
-        r'\b(python|javascript|rust|go|c\+\+|java|typescript)\b',
-        r'\b(implementation|algorithm|refactor|optimize|compile|build)\b',
-        r'\b(write|create|generate)\s+(?:a|an)?\s*(?:code|function|class|script)\b',
+        r"\b(code|program|function|class|script|bug|debug|error|exception)\b",
+        r"\b(python|javascript|rust|go|c\+\+|java|typescript)\b",
+        r"\b(implementation|algorithm|refactor|optimize|compile|build)\b",
+        r"\b(write|create|generate)\s+(?:a|an)?\s*(?:code|function|class|script)\b",
     ]
 
     LONG_CONTEXT_PATTERNS = [
-        r'\b(summarize|summary|document|paper|article|report|transcript)\b',
-        r'\b(long|extensive|comprehensive|detailed|thorough)\b',
-        r'\b(context|history|conversation|dialogue)\b',
-        r'\b(analyze|review)\s+(?:this|the)\s+(?:document|text|file)\b',
+        r"\b(summarize|summary|document|paper|article|report|transcript)\b",
+        r"\b(long|extensive|comprehensive|detailed|thorough)\b",
+        r"\b(context|history|conversation|dialogue)\b",
+        r"\b(analyze|review)\s+(?:this|the)\s+(?:document|text|file)\b",
     ]
 
     REASONING_PATTERNS = [
-        r'\b(analyze|analysis|reason|evaluate|compare|contrast|assess)\b',
-        r'\b(solve|solution|problem|explain|why|how does|what if)\b',
-        r'\b(break down|step by step|step-by-step|logic)\b',
+        r"\b(analyze|analysis|reason|evaluate|compare|contrast|assess)\b",
+        r"\b(solve|solution|problem|explain|why|how does|what if)\b",
+        r"\b(break down|step by step|step-by-step|logic)\b",
     ]
 
     NOVEL_PATTERNS = [
-        r'\b(experiment|research|explore|novel|innovative|creative)\b',
-        r'\b(try|test|prototype|validate|hypothesis)\b',
+        r"\b(experiment|research|explore|novel|innovative|creative)\b",
+        r"\b(try|test|prototype|validate|hypothesis)\b",
     ]
 
     URGENCY_PATTERNS = [
-        r'\b(urgent|asap|immediately|critical|emergency|quickly)\b',
+        r"\b(urgent|asap|immediately|critical|emergency|quickly)\b",
     ]
 
     def analyze(self, task: str, context: dict | None = None) -> dict[str, Any]:
         """Extract features from task for routing.
-        
+
         Returns feature dictionary with:
         - text: Lowercase task text
         - length: Character length
@@ -141,10 +143,7 @@ class TaskAnalyzer:
 
     def _detect_urgency(self, text: str) -> float:
         """Detect urgency level from text."""
-        urgency_count = sum(
-            1 for pattern in self.URGENCY_PATTERNS
-            if re.search(pattern, text)
-        )
+        urgency_count = sum(1 for pattern in self.URGENCY_PATTERNS if re.search(pattern, text))
         return min(urgency_count / len(self.URGENCY_PATTERNS), 1.0)
 
     def _estimate_tokens(self, context: dict | None) -> int:
@@ -162,7 +161,7 @@ class TaskAnalyzer:
 
 class AdaptiveRouter:
     """Self-learning router that improves over time.
-    
+
     Features:
     - Rule-based initial routing
     - Historical performance tracking
@@ -203,12 +202,12 @@ class AdaptiveRouter:
         strategy: str = "adaptive",
     ) -> RoutingDecision:
         """Route task to optimal agent using adaptive strategy.
-        
+
         Args:
             task: Task description/prompt
             context: Optional context information
             strategy: Routing strategy ("adaptive", "greedy", "explore")
-            
+
         Returns:
             RoutingDecision with confidence and alternatives
         """
@@ -469,7 +468,7 @@ class AdaptiveRouter:
         outcome: dict[str, Any],
     ):
         """Receive feedback to improve routing.
-        
+
         Args:
             decision: The routing decision that was made
             outcome: Execution outcome with latency, quality, success
@@ -497,20 +496,18 @@ class AdaptiveRouter:
         # Success is binary, quality is continuous
         success_score = 1.0 if success else 0.0
 
-        performance = (
-            latency_score * 0.3 +
-            actual_quality * 0.3 +
-            success_score * 0.4
-        )
+        performance = latency_score * 0.3 + actual_quality * 0.3 + success_score * 0.4
 
         new_score = (1 - alpha) * old_score + alpha * performance
         self._success_matrix[decision.agent_name][task_key] = new_score
 
         # Log to history
-        self._history.append(RoutingHistory(
-            decision=decision,
-            outcome=outcome,
-        ))
+        self._history.append(
+            RoutingHistory(
+                decision=decision,
+                outcome=outcome,
+            )
+        )
 
         # Persist weights
         await self._save_weights()

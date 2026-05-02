@@ -20,7 +20,9 @@ sys.path.insert(0, str(Path(__file__).resolve().parent.parent / "src"))
 from cohezion.arc.solver import evaluate_on_subset, update_ksearch
 
 
-TARGET_DEADLINE = datetime.fromisoformat(os.environ.get("ARDeadline", datetime.now().replace(hour=7, minute=0, second=0).isoformat()))
+TARGET_DEADLINE = datetime.fromisoformat(
+    os.environ.get("ARDeadline", datetime.now().replace(hour=7, minute=0, second=0).isoformat())
+)
 CHECKPOINT_PATH = Path.home() / ".cohezion-research/arc_overnight.json"
 REPORT_PATH = Path.home() / ".cohezion-research/arc_overnight_report.md"
 
@@ -55,8 +57,8 @@ def main():
 
     # Progressive search config: fast -> deep
     configs = [
-        {"limit": 20, "time_per_task": 5.0,  "beam_width": 4,  "max_depth": 2},
-        {"limit": 40, "time_per_task": 10.0, "beam_width": 8,  "max_depth": 3},
+        {"limit": 20, "time_per_task": 5.0, "beam_width": 4, "max_depth": 2},
+        {"limit": 40, "time_per_task": 10.0, "beam_width": 8, "max_depth": 3},
         {"limit": 80, "time_per_task": 15.0, "beam_width": 12, "max_depth": 3},
         {"limit": None, "time_per_task": 20.0, "beam_width": 16, "max_depth": 4},
     ]
@@ -70,17 +72,21 @@ def main():
             continue
 
         print(f"\nConfig: {cfg}")
-        metrics = evaluate_on_subset("training", limit=cfg["limit"], time_per_task=cfg["time_per_task"])
+        metrics = evaluate_on_subset(
+            "training", limit=cfg["limit"], time_per_task=cfg["time_per_task"]
+        )
         solve_rate = metrics["solve_rate"]
         state["tasks_done"] += metrics["total"]
         state["total_solved"] += metrics["solved"]
-        state["history"].append({
-            "timestamp": datetime.now().isoformat(),
-            "config": cfg,
-            "solve_rate": solve_rate,
-            "solved": metrics["solved"],
-            "total": metrics["total"],
-        })
+        state["history"].append(
+            {
+                "timestamp": datetime.now().isoformat(),
+                "config": cfg,
+                "solve_rate": solve_rate,
+                "solved": metrics["solved"],
+                "total": metrics["total"],
+            }
+        )
         if solve_rate > state["best_solve_rate"]:
             state["best_solve_rate"] = solve_rate
         _save_checkpoint(state)
@@ -90,7 +96,9 @@ def main():
             if d["match"]:
                 update_ksearch(d.get("chain", []), 1.0)
 
-        print(f"  solve_rate={solve_rate:.2%} | best={state['best_solve_rate']:.2%} | remaining={_seconds_remaining()/3600:.1f}h")
+        print(
+            f"  solve_rate={solve_rate:.2%} | best={state['best_solve_rate']:.2%} | remaining={_seconds_remaining() / 3600:.1f}h"
+        )
 
     # Final report
     report = f"""# ARC Overnight Autoresearch Report

@@ -109,9 +109,7 @@ def render_usage(usage):
 
     if not parts:
         return pn.panel("")
-    return pn.pane.Markdown(
-        f"*{' · '.join(parts)}*", styles={"font-size": "0.8em", "color": "gray"}
-    )
+    return pn.pane.Markdown(f"*{' · '.join(parts)}*", styles={"font-size": "0.8em", "color": "gray"})
 
 
 def render_llm_message(message, **kwargs) -> pn.chat.ChatMessage:
@@ -232,16 +230,10 @@ def render_pivot(pivots, mode):
     df = pd.DataFrame(pivots)
 
     if mode == "tabs":
-        return pn.Tabs(
-            objects=[(str(k), runs.Runs(list(v.values))) for k, v in df.iterrows()]
-        )
+        return pn.Tabs(objects=[(str(k), runs.Runs(list(v.values))) for k, v in df.iterrows()])
     else:
         return pn.widgets.Tabulator(
-            (
-                df.rename(columns=lambda x: str(x))
-                .map(lambda x: x.format_result())
-                .reset_index(names=["ID"])
-            ),
+            (df.rename(columns=lambda x: str(x)).map(lambda x: x.format_result()).reset_index(names=["ID"])),
             row_content=lambda row: pn.Tabs(
                 objects=[(str(name), col[row["ID"]]) for name, col in pivots.items()],
             ),
@@ -255,16 +247,10 @@ def render_groups(groups):
     df = pd.DataFrame(groups.values(), index=[t for t in groups])
 
     def content_fn(row):
-        return pn.Tabs(
-            objects=[
-                (str(k), groups[row["task"]][k]) for k, v in row.items() if k != "task"
-            ]
-        )
+        return pn.Tabs(objects=[(str(k), groups[row["task"]][k]) for k, v in row.items() if k != "task"])
 
     return pn.widgets.Tabulator(
-        df.map(
-            lambda x: x.format_result() if isinstance(x, runs.Run) else x
-        ).reset_index(names=["task"]),
+        df.map(lambda x: x.format_result() if isinstance(x, runs.Run) else x).reset_index(names=["task"]),
         layout="fit_columns",
         sizing_mode="stretch_both",
         row_content=content_fn,
@@ -290,9 +276,7 @@ def render_tool_call(tool_call):
         ]
         title = f"🛠️ {tool_call.name} -> {str(tool_call.output)[:30]}"
     elif isinstance(tool_call, tools.ToolInvocation):
-        content = json_pane(
-            tool_call.arguments, "Arguments", sizing_mode="stretch_width", depth=-1
-        )
+        content = json_pane(tool_call.arguments, "Arguments", sizing_mode="stretch_width", depth=-1)
         title = f"🛠️ {tool_call.name}"
     else:
         raise ValueError(f"Unknown tool call type {tool_call}")

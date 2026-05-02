@@ -18,16 +18,21 @@ def main():
     proc = subprocess.Popen(
         [
             "/var/lib/lemonade/.cache/lemonade/bin/llamacpp/cpu/llama-server",
-            "-m", model_path,
-            "--port", "8008",
-            "-ngl", "0",
-            "-t", "16",
-            "--ctx-size", "2048",
-            "-fa"
+            "-m",
+            model_path,
+            "--port",
+            "8008",
+            "-ngl",
+            "0",
+            "-t",
+            "16",
+            "--ctx-size",
+            "2048",
+            "-fa",
         ],
         stdout=subprocess.PIPE,
         stderr=subprocess.PIPE,
-        env=env
+        env=env,
     )
 
     # Wait for ready
@@ -61,16 +66,16 @@ def main():
                 json={
                     "model": "Qwen3-0.6B-Q4_0",
                     "messages": [{"role": "user", "content": f"Write haiku {i}"}],
-                    "max_tokens": 40
+                    "max_tokens": 40,
                 },
-                timeout=30
+                timeout=30,
             )
             data = resp.json()
             tokens = data.get("usage", {}).get("completion_tokens", 0)
             total_tokens += tokens
-            print(f"  Request {i+1}: {tokens} tokens")
+            print(f"  Request {i + 1}: {tokens} tokens")
         except Exception as e:
-            print(f"  Error on request {i+1}: {e}")
+            print(f"  Error on request {i + 1}: {e}")
 
     elapsed_ms = (time.time() - start) * 1000
     tps = total_tokens / (elapsed_ms / 1000) if elapsed_ms > 0 else 0
@@ -86,6 +91,7 @@ def main():
         proc.wait(timeout=5)
     except:
         proc.kill()
+
 
 if __name__ == "__main__":
     main()

@@ -17,7 +17,6 @@ import re
 import subprocess
 import sys
 from collections import Counter
-from typing import Optional
 
 import polars as pl
 
@@ -174,7 +173,7 @@ def solve_with_majority_vote(problem: str) -> int:
 
 
 def predict(
-    id_: pl.DataFrame, question: pl.DataFrame, answer: Optional[pl.DataFrame] = None
+    id_: pl.DataFrame, question: pl.DataFrame, answer: pl.DataFrame | None = None
 ) -> pl.DataFrame:
     if global_model is None:
         load_model()

@@ -26,22 +26,22 @@ from __future__ import annotations
 
 import os
 
+
 os.environ["AITER_USE_NT"] = "1"
 
 import functools
 
-import torch
 import aiter
+import torch
 from aiter import ActivationType, QuantType, dtypes
 from aiter.fused_moe import (
     fused_moe_2stages,
     get_2stage_cfgs,
     get_inter_dim,
     get_padded_M,
-    quant_remap,
 )
-from aiter.jit.utils.chip_info import get_gfx
 from task import input_t, output_t
+
 
 # --------------------------------------------------------------------------
 # Per-shape sort buffer cache

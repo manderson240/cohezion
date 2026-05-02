@@ -12,20 +12,17 @@ Design Principles:
 import sys
 from pathlib import Path
 
+
 sys.path.insert(0, str(Path(__file__).parent.parent.parent.parent))
 
-import time
 import json
-import numpy as np
-from typing import Dict, List, Optional, Tuple, Callable, Union
-from dataclasses import dataclass, field
+import time
+from dataclasses import dataclass
 from enum import Enum
-import threading
-import queue
 
-from dotenv import load_dotenv
 import bluequbit
 import qiskit
+from dotenv import load_dotenv
 
 
 class ChallengeType(Enum):
@@ -83,7 +80,7 @@ class UniversalSolver:
     6. Produces submission-ready output
     """
 
-    def __init__(self, challenge_id: Optional[str] = None):
+    def __init__(self, challenge_id: str | None = None):
         """Initialize universal solver."""
         project_root = Path(__file__).parent.parent.parent.parent
         load_dotenv(project_root / ".env")
@@ -93,14 +90,14 @@ class UniversalSolver:
         self.config = CompetitionConfig()
 
         # Performance history for learning
-        self.performance_log: List[Dict] = []
+        self.performance_log: list[dict] = []
 
-        print(f"✓ UniversalSolver initialized")
+        print("✓ UniversalSolver initialized")
         print(f"  Challenge ID: {self.challenge_id}")
 
     def auto_solve(
-        self, circuit: Optional[qiskit.QuantumCircuit] = None, description: str = ""
-    ) -> Dict:
+        self, circuit: qiskit.QuantumCircuit | None = None, description: str = ""
+    ) -> dict:
         """
         One-click auto-solver for any challenge.
 
@@ -133,7 +130,7 @@ class UniversalSolver:
 
         return submission
 
-    def _classify_challenge(self, circuit: Optional[qiskit.QuantumCircuit], description: str):
+    def _classify_challenge(self, circuit: qiskit.QuantumCircuit | None, description: str):
         """Auto-classify challenge type from circuit + description."""
         print("\n1. Classifying challenge...")
 
@@ -168,7 +165,7 @@ class UniversalSolver:
         print(f"   Detected: {self.config.challenge_type.value}")
         print(f"   Qubits: {self.config.n_qubits}")
 
-    def _auto_tune_parameters(self, circuit: Optional[qiskit.QuantumCircuit]):
+    def _auto_tune_parameters(self, circuit: qiskit.QuantumCircuit | None):
         """Auto-tune parameters based on challenge type and circuit size."""
         print("\n2. Auto-tuning parameters...")
 
@@ -203,7 +200,7 @@ class UniversalSolver:
         print(f"   Shots: {self.config.shots}")
         print(f"   Threshold: {self.config.threshold}")
 
-    def _execute_strategy(self, circuit: Optional[qiskit.QuantumCircuit]) -> Dict:
+    def _execute_strategy(self, circuit: qiskit.QuantumCircuit | None) -> dict:
         """Execute appropriate strategy based on challenge type."""
         print(f"\n3. Executing strategy: {self.config.challenge_type.value}...")
 
@@ -220,7 +217,7 @@ class UniversalSolver:
             print("   Unknown challenge type - defaulting to peaked strategy")
             return self._strategy_peaked_heavy_output(circuit)
 
-    def _strategy_peaked_heavy_output(self, circuit: Optional[qiskit.QuantumCircuit]) -> Dict:
+    def _strategy_peaked_heavy_output(self, circuit: qiskit.QuantumCircuit | None) -> dict:
         """
         Strategy for peaked heavy output challenges.
 
@@ -257,7 +254,7 @@ class UniversalSolver:
         counts = result.get_counts()
 
         # Find heavy outputs
-        from heavy_output_detection import find_heavy_output, calculate_snr
+        from heavy_output_detection import calculate_snr, find_heavy_output
 
         heavy = find_heavy_output(counts, self.config.threshold)
 
@@ -280,7 +277,7 @@ class UniversalSolver:
                 "error": "No heavy output found",
             }
 
-    def _strategy_vqa(self, circuit: Optional[qiskit.QuantumCircuit]) -> Dict:
+    def _strategy_vqa(self, circuit: qiskit.QuantumCircuit | None) -> dict:
         """Strategy for VQA/VQE optimization challenges."""
         print("   Strategy: Variational Quantum Algorithm")
 
@@ -299,7 +296,7 @@ class UniversalSolver:
             "circuit_depth": circuit.depth(),
         }
 
-    def _strategy_qaoa(self, circuit: Optional[qiskit.QuantumCircuit]) -> Dict:
+    def _strategy_qaoa(self, circuit: qiskit.QuantumCircuit | None) -> dict:
         """Strategy for QAOA/MaxCut challenges."""
         print("   Strategy: QAOA")
 
@@ -309,7 +306,7 @@ class UniversalSolver:
             "shots": self.config.shots,
         }
 
-    def _strategy_state_prep(self, circuit: Optional[qiskit.QuantumCircuit]) -> Dict:
+    def _strategy_state_prep(self, circuit: qiskit.QuantumCircuit | None) -> dict:
         """Strategy for state preparation challenges."""
         print("   Strategy: State Preparation")
 
@@ -319,7 +316,7 @@ class UniversalSolver:
             "shots": 0,  # Statevector mode
         }
 
-    def _package_submission(self, result: Dict) -> Dict:
+    def _package_submission(self, result: dict) -> dict:
         """Package result for submission."""
         submission = {
             "challenge_id": self.challenge_id,
@@ -353,10 +350,10 @@ class SkillCapture:
 
     def __init__(self):
         """Initialize skill capture."""
-        self.skills: Dict[str, Dict] = {}
-        self.templates: Dict[str, str] = {}
+        self.skills: dict[str, dict] = {}
+        self.templates: dict[str, str] = {}
 
-    def capture_skill(self, skill_name: str, description: str, code: str, metadata: Dict):
+    def capture_skill(self, skill_name: str, description: str, code: str, metadata: dict):
         """Capture a new skill."""
         self.skills[skill_name] = {
             "description": description,
@@ -379,7 +376,7 @@ class SkillCapture:
                 self.skills = json.load(f)
             print(f"✓ Loaded {len(self.skills)} skills from {filename}")
         except FileNotFoundError:
-            print(f"ℹ No existing skill library found")
+            print("ℹ No existing skill library found")
 
 
 def demo_universal_solver():

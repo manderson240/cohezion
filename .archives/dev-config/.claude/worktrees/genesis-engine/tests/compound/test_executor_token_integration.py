@@ -71,9 +71,7 @@ class TestCompoundExecutorTokenIntegration:
                 "get_experience_guidance",
                 return_value={"context": "test"},
             ),
-            patch.object(
-                executor.logger, "log_execution_start", return_value="exp_path"
-            ),
+            patch.object(executor.logger, "log_execution_start", return_value="exp_path"),
             patch.object(executor.logger, "log_execution_result") as mock_log_result,
             patch.object(
                 executor.logger,
@@ -298,15 +296,11 @@ class TestExecutorFactory:
             assert executor1 is executor2
             ExecutorFactory.reset_singleton()
 
-    def test_factory_singleton_with_token_client(
-        self, mock_mcp_client, mock_token_client
-    ):
+    def test_factory_singleton_with_token_client(self, mock_mcp_client, mock_token_client):
         """Test factory singleton with token client."""
         with patch("cohezion.compound.exp_persistence.vault.VaultLogger"):
             ExecutorFactory.reset_singleton()
-            executor1 = ExecutorFactory.get_singleton(
-                mock_mcp_client, mock_token_client
-            )
+            executor1 = ExecutorFactory.get_singleton(mock_mcp_client, mock_token_client)
             executor2 = ExecutorFactory.get_singleton(mock_mcp_client)
             assert executor1 is executor2
             assert executor1.token_client == mock_token_client

@@ -631,18 +631,19 @@ class UniverseSimulationEngine:
 
         # Calculate coherence
         coherence = new_axiomatic.coherence_score()
-        
+
         # --- UNIVERSE TELEMETRY INSTRUMENTATION ---
         try:
             old_coherence = current_axiomatic.coherence_score()
             stability_shift = abs(coherence - old_coherence)
-            
+
             # Emit only on significant shift (>= 5% as per spec)
             if stability_shift >= 0.05:
                 import uuid
+
                 from cohezion.core.telemetry_bus import get_telemetry_bus
                 from cohezion.data_mesh.universe_telemetry import UniverseStateEvent
-                
+
                 bus = get_telemetry_bus()
                 event = UniverseStateEvent(
                     event_id=f"ue_{int(time.time())}_{uuid.uuid4().hex[:4]}",
@@ -650,10 +651,11 @@ class UniverseSimulationEngine:
                     state_12d=new_axiomatic.to_vector(),
                     coherence=coherence,
                     stability_shift=stability_shift,
-                    trigger_journey_id=journey.id
+                    trigger_journey_id=journey.id,
                 )
-                
+
                 import asyncio
+
                 try:
                     loop = asyncio.get_event_loop()
                     if loop.is_running():

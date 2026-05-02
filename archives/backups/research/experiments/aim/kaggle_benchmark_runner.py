@@ -11,7 +11,7 @@ compliant open-weight models released before March 15, 2026.
 import argparse
 import json
 import time
-from typing import Any, Dict, List
+from typing import Any
 
 from base_specialist import BaseSpecialist
 from knower_auditor import KnowerAuditor
@@ -38,15 +38,15 @@ class KaggleBenchmarkRunner:
         self.auditor = KnowerAuditor()
         self.model_name = model_name  # Default: compliant deepseek-r1:7b
 
-    def _load_problems(self, path: str) -> List[Dict[str, Any]]:
+    def _load_problems(self, path: str) -> list[dict[str, Any]]:
         """Load reference problems from JSON."""
-        with open(path, "r") as f:
+        with open(path) as f:
             return json.load(f)
 
-    def run_benchmark(self) -> Dict[str, Any]:
+    def run_benchmark(self) -> dict[str, Any]:
         """Run benchmark on all reference problems."""
         print(f"{'=' * 60}")
-        print(f"KAGGLE BENCHMARK RUNNER - COMPLIANT Models")
+        print("KAGGLE BENCHMARK RUNNER - COMPLIANT Models")
         print(f"{'=' * 60}")
         print(f"Running {len(self.reference_problems)} reference problems...")
         print(f"Model: {self.model_name} (open-weight, compliant)")
@@ -68,7 +68,7 @@ class KaggleBenchmarkRunner:
 
         return summary
 
-    def _run_single_problem(self, problem: Dict[str, Any]) -> Dict[str, Any]:
+    def _run_single_problem(self, problem: dict[str, Any]) -> dict[str, Any]:
         """Run single problem through complete pipeline."""
         start_time = time.time()
 
@@ -109,7 +109,7 @@ class KaggleBenchmarkRunner:
         # 4. Tie-breaker if needed (improved - handles None)
         tie_breaker_used = False
         if audit["action"] == "TIE_BREAKER" or final_answer is None:
-            print(f"  [Tie-breaker] Divergence detected, running phi4:latest...")
+            print("  [Tie-breaker] Divergence detected, running phi4:latest...")
             tie_specialist = BaseSpecialist(
                 task.assigned_specialists[0], model_name="phi4:latest", timeout=60
             )
@@ -134,7 +134,7 @@ class KaggleBenchmarkRunner:
             "time": elapsed,
         }
 
-    def _compute_summary(self, results: List[Dict[str, Any]]) -> Dict[str, Any]:
+    def _compute_summary(self, results: list[dict[str, Any]]) -> dict[str, Any]:
         """Compute summary metrics."""
         total = len(results)
         correct_count = sum(1 for r in results if r["correct"])
@@ -162,10 +162,10 @@ class KaggleBenchmarkRunner:
             "all_targets_met": accuracy >= 1.0 and stability_ratio >= 0.90,
         }
 
-    def _print_summary(self, summary: Dict[str, Any]):
+    def _print_summary(self, summary: dict[str, Any]):
         """Print summary report."""
         print(f"\n{'=' * 60}")
-        print(f"BENCHMARK SUMMARY")
+        print("BENCHMARK SUMMARY")
         print(f"{'=' * 60}")
         print(f"Total problems: {summary['total_problems']}")
         print(

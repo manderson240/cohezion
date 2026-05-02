@@ -18,7 +18,7 @@ import json
 import logging
 import os
 import sys
-from pathlib import Path
+
 
 # Setup logging
 logging.basicConfig(level=logging.INFO, format="[%(asctime)s] %(message)s")
@@ -42,7 +42,7 @@ def setup_environment():
     # Install Cohezion from local if available
     try:
         sys.path.insert(0, "/kaggle/input/cohezion-src" if IS_KAGGLE else ".")
-        from cohezion.rl.grpo_trainer import create_grpo_trainer, GRPOConfig
+        from cohezion.rl.grpo_trainer import GRPOConfig, create_grpo_trainer
 
         logger.info("Cohezion imports successful")
         return True
@@ -71,8 +71,8 @@ def train_grpo_mock():
     logger.info("Running mock GRPO training...")
 
     # Simulate training
-    import time
     import random
+    import time
 
     epochs = 3
     steps_per_epoch = 10
@@ -98,8 +98,8 @@ def train_grpo_real():
 
     try:
         import torch
-        from transformers import AutoModelForCausalLM, AutoTokenizer
         from peft import LoraConfig, get_peft_model
+        from transformers import AutoModelForCausalLM, AutoTokenizer
 
         # Configuration
         model_name = "microsoft/DialoGPT-medium"  # Smaller for Kaggle

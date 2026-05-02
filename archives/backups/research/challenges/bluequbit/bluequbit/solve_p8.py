@@ -1,10 +1,12 @@
-import bluequbit
 import os
+
+import bluequbit
 from qiskit.qasm2 import loads
+
 
 cohezion_root = "/home/mike-anderson/dev/cohezion"
 api_token = None
-with open(os.path.join(cohezion_root, ".env"), "r") as f:
+with open(os.path.join(cohezion_root, ".env")) as f:
     for line in f:
         if "BLUEQUBIT_API_TOKEN" in line:
             api_token = line.split("=")[1].strip()
@@ -14,7 +16,7 @@ bq = bluequbit.init(api_token)
 
 # Load P8 circuit
 qasm_path = "hackathons/hackathon_oEOtLSSrPSVH60Ah/problems/P8_grid_888_iswap.qasm"
-with open(qasm_path, "r") as f:
+with open(qasm_path) as f:
     qasm = f.read()
 
 circuit = loads(qasm)

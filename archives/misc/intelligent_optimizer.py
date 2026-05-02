@@ -12,9 +12,9 @@ Rules:
 import json
 import subprocess
 import sys
-from pathlib import Path
-from typing import Dict, Optional, Tuple
 from datetime import datetime
+from pathlib import Path
+
 
 # Configuration
 WORKTREE = Path("/home/mike-anderson/dev/cohezion/.worktrees/luma-breakthrough-sprint")
@@ -69,7 +69,7 @@ def log(msg: str):
         f.write(f"[{timestamp}] {msg}\n")
 
 
-def run_command(cmd: list, timeout: int = 300) -> Tuple[str, int]:
+def run_command(cmd: list, timeout: int = 300) -> tuple[str, int]:
     """Run command and return output + exit code."""
     try:
         result = subprocess.run(cmd, capture_output=True, text=True, timeout=timeout)
@@ -106,7 +106,7 @@ def update_baseline(kernel: str, new_time: float):
     return False
 
 
-def test_variant(kernel: str, variant: str, mode: str = "benchmark") -> Optional[float]:
+def test_variant(kernel: str, variant: str, mode: str = "benchmark") -> float | None:
     """Test variant and return timing if available."""
     config = KERNELS[kernel]
     kernel_dir = WORKTREE / "luma_speedrun" / config["dir"]
@@ -194,7 +194,7 @@ def submit_to_leaderboard(kernel: str, variant: str) -> bool:
         log(f"  Submission ID: {sub_id}")
 
         # Wait for processing
-        log(f"  Waiting for leaderboard run to complete...")
+        log("  Waiting for leaderboard run to complete...")
         import time
 
         time.sleep(180)  # 3 minutes
@@ -204,10 +204,10 @@ def submit_to_leaderboard(kernel: str, variant: str) -> bool:
         check_output, _ = run_command(check_cmd, timeout=30)
 
         if "leaderboard on" in check_output:
-            log(f"  ✅ Leaderboard run confirmed!")
+            log("  ✅ Leaderboard run confirmed!")
             return True
 
-    log(f"  ⚠️ Submission may still be processing")
+    log("  ⚠️ Submission may still be processing")
     return False
 
 
@@ -253,7 +253,7 @@ def optimize_kernel(kernel: str):
         if best_variant:
             log(f"\n❌ No improvement: best={best_time:.2f}µs, baseline={baseline:.2f}µs")
         else:
-            log(f"\n❌ No working variant found")
+            log("\n❌ No working variant found")
 
     return False
 

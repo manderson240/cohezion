@@ -23,12 +23,13 @@ Expected: 40-60% memory bandwidth reduction, 20-30% speedup
 
 from __future__ import annotations
 
-import os
 import math
+import os
+
 import torch
 import torch.nn.functional as F
-from typing import Tuple
 from task import input_t, output_t
+
 
 # Environment
 os.environ["AITER_USE_NT"] = "1"
@@ -51,7 +52,7 @@ class QuantizedKVCache:
         self,
         k: torch.Tensor,
         v: torch.Tensor,
-    ) -> Tuple[torch.Tensor, torch.Tensor, torch.Tensor, torch.Tensor]:
+    ) -> tuple[torch.Tensor, torch.Tensor, torch.Tensor, torch.Tensor]:
         """Quantize KV to INT8.
 
         Args:
@@ -81,7 +82,7 @@ class QuantizedKVCache:
         v_int8: torch.Tensor,
         scale_k: torch.Tensor,
         scale_v: torch.Tensor,
-    ) -> Tuple[torch.Tensor, torch.Tensor]:
+    ) -> tuple[torch.Tensor, torch.Tensor]:
         """Dequantize KV from INT8.
 
         Args:

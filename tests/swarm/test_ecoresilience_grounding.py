@@ -3,12 +3,13 @@
 Verifies that the agent correctly incorporates real-world data from the EnvDataMCP.
 """
 
-import pytest
 import json
 from unittest.mock import AsyncMock, patch
 
+import pytest
+
 from cohezion.agents.ecoresilience_agent import EcoResilienceAgent
-from cohezion.mcp.env_data_mcp import fetch_noaa_data, fetch_copernicus_data
+from cohezion.mcp.env_data_mcp import fetch_copernicus_data, fetch_noaa_data
 
 
 class TestEcoResilienceGrounding:

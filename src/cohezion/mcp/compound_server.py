@@ -8,9 +8,11 @@ This MCP server exposes tools for:
 5. Experiential learning (capture, extract patterns)
 """
 
+import asyncio
 import json
 import logging
 import os
+import re
 from typing import Any
 
 from fastmcp import FastMCP
@@ -305,11 +307,12 @@ async def learning_capture(
     """
     try:
         execution_result = json.loads(execution_result_json)
-        
+
         # Create a fresh client if server_url is provided
         mcp_client = None
         if server_url:
             from cohezion.core.mcp_client import create_mcp_client
+
             api_key = os.getenv("CLOUD_VAULT_API_KEY", "cohezion-dev-key")
             mcp_client = create_mcp_client(server_url=server_url, api_key=api_key)
             await mcp_client.connect()
@@ -345,11 +348,12 @@ async def learning_process_execution(
     """
     try:
         execution_result = json.loads(execution_result_json)
-        
+
         # Create a fresh client if server_url is provided
         mcp_client = None
         if server_url:
             from cohezion.core.mcp_client import create_mcp_client
+
             api_key = os.getenv("CLOUD_VAULT_API_KEY", "cohezion-dev-key")
             logger.info(f"Using provided server_url: {server_url}")
             mcp_client = create_mcp_client(server_url=server_url, api_key=api_key)
@@ -384,7 +388,6 @@ async def skill_refinement_apply(skill_name: str, refinement_type: str) -> dict[
     Returns:
         Refinement result
     """
-    import re
 
     try:
         # Validate skill_name - only allow safe characters
@@ -523,6 +526,207 @@ async def update_context_policy(
         return {"status": "error", "error": str(e)}
 
 
+@mcp.tool()
+async def cohezion_batch_port_skills(
+    skill_names: list[str], dry_run: bool = False
+) -> dict[str, Any]:
+    """Batch-port multiple PRIME skills to Hermes format.
+
+    Args:
+        skill_names: List of PRIME skill stems (e.g. ['FLUME_METHODOLOGY_PRIME'])
+        dry_run: If True, simulate without writing files
+
+    Returns:
+        Summary with total, successes, and per-skill results
+    """
+    project_root = Path(__file__).resolve().parents[3]
+    converter = project_root / "scripts" / "prime_to_hermes_converter.py"
+    if not converter.exists():
+        return {
+            "status": "error",
+            "error": "Converter script not found",
+            "path": str(converter),
+        }
+
+    results = []
+    for name in skill_names:
+        cmd_parts = [sys.executable, str(converter), "--skill", name]
+        if dry_run:
+            cmd_parts.append("--dry-run")
+        try:
+            proc = await asyncio.create_subprocess_exec(
+                *cmd_parts,
+                stdout=asyncio.subprocess.PIPE,
+                stderr=asyncio.subprocess.PIPE,
+            )
+            stdout, stderr = await asyncio.wait_for(proc.communicate(), timeout=30)
+            results.append(
+                {
+                    "name": name,
+                    "success": proc.returncode == 0,
+                    "returncode": proc.returncode,
+                    "stdout": stdout.decode("utf-8", errors="replace"),
+                    "stderr": stderr.decode("utf-8", errors="replace"),
+                }
+            )
+        except asyncio.TimeoutError:
+            results.append(
+                {"name": name, "success": False, "error": "Timeout after 30s"}
+            )
+        except Exception as e:
+            results.append({"name": name, "success": False, "error": str(e)})
+
+    successes = sum(1 for r in results if r.get("success"))
+    return {
+        "status": "success",
+        "total": len(skill_names),
+        "successes": successes,
+        "dry_run": dry_run,
+        "results": results,
+    }
+
+
+@mcp.tool()
+async def cohezion_inspect_codebase(
+    subdirectory: str = "", pattern: str = "*.py", max_depth: int = 4
+) -> dict[str, Any]:
+    """Inspect a Cohezion codebase subdirectory and return file metrics.
+
+    Args:
+        subdirectory: Subdir under src/cohezion/ (e.g. 'flume', 'swarm')
+        pattern: File glob pattern (default '*.py')
+        max_depth: Max recursion depth
+
+    Returns:
+        File count, total lines, depth metrics, and capped tree
+    """
+    project_root = Path(__file__).resolve().parents[3]
+    root = (
+        project_root / "src" / "cohezion" / subdirectory.strip().strip("/")
+        if subdirectory
+        else project_root / "src" / "cohezion"
+    )
+    if not root.exists():
+        return {"status": "error", "error": f"Path not found: {root}"}
+
+    tree: list[dict[str, Any]] = []
+    root_path = root.resolve()
+    for p in root_path.rglob(pattern):
+        depth = len(p.relative_to(root_path).parts) - 1
+        if depth > max_depth:
+            continue
+        try:
+            with open(p, "rb") as f:
+                lines = sum(1 for _ in f)
+        except Exception:
+            lines = 0
+        tree.append(
+            {
+                "path": str(p.relative_to(root_path)),
+                "lines": lines,
+                "depth": depth,
+            }
+        )
+
+    total_lines = sum(n["lines"] for n in tree)
+    max_found = max((n["depth"] for n in tree), default=0)
+    return {
+        "status": "success",
+        "root": str(root.relative_to(project_root)),
+        "files": len(tree),
+        "total_lines": total_lines,
+        "max_depth_found": max_found,
+        "tree": tree[:200],
+    }
+
+
+@mcp.tool()
+async def cohezion_skill_matrix() -> dict[str, Any]:
+    """Return the PRIME skill cross-reference matrix as JSON.
+
+    Returns:
+        Matrix with skills, categories, and local Hermes skill mappings
+    """
+    project_root = Path(__file__).resolve().parents[3]
+    skills_dir = project_root / "src" / "cohezion" / "skills"
+    registry: dict[str, Any] = {"skills": [], "categories": set()}
+
+    if skills_dir.exists():
+        for fpath in sorted(skills_dir.glob("*.md")):
+            stem = fpath.stem
+            # Category inference: PRIME files often uppercase; legacy files lowercase
+            if stem.isupper():
+                category = "prime"
+            else:
+                category = "general"
+            # Derive category from directory or filename heuristics
+            lower = stem.lower()
+            if any(k in lower for k in ("mcp", "bridge", "server")):
+                category = "mcp"
+            elif any(k in lower for k in ("swarm", "orchestration", "team")):
+                category = "orchestration"
+            elif any(k in lower for k in ("mlops", "training", "inference")):
+                category = "mlops"
+            elif any(k in lower for k in ("engineering", "compound", "design")):
+                category = "engineering"
+            elif any(k in lower for k in ("competition", "kaggle", "arc")):
+                category = "competition"
+            registry["skills"].append(
+                {
+                    "name": stem,
+                    "category": category,
+                    "path": str(fpath.relative_to(project_root)),
+                }
+            )
+            registry["categories"].add(category)
+
+    registry["categories"] = sorted(registry["categories"])
+
+    # Local Hermes skills
+    hermes_skills_dir = Path.home() / ".hermes" / "skills"
+    local_skills: list[dict[str, Any]] = []
+    if hermes_skills_dir.exists():
+        for root in hermes_skills_dir.rglob("SKILL.md"):
+            content = root.read_text(encoding="utf-8", errors="ignore").splitlines()[:20]
+            text = "\n".join(content)
+            is_cohezion = any(
+                tag in text
+                for tag in ["project: cohezion", "cohezion", "legacy-name:", "converted: true"]
+            )
+            if not is_cohezion:
+                continue
+            rel = root.relative_to(hermes_skills_dir)
+            parts = rel.parts
+            skill_name = parts[-2] if len(parts) >= 2 else root.parent.name
+            category = parts[0] if parts else "unknown"
+            local_skills.append(
+                {
+                    "name": skill_name,
+                    "category": category,
+                    "full_path": str(root),
+                }
+            )
+
+    # Build cross-reference matrix
+    prime_names = {s["name"] for s in registry["skills"]}
+    local_names = {s["name"] for s in local_skills}
+    matrix = {
+        "prime_total": len(prime_names),
+        "hermes_local_total": len(local_names),
+        "ported": sorted(prime_names & local_names),
+        "not_ported": sorted(prime_names - local_names),
+        "hermes_only": sorted(local_names - prime_names),
+    }
+
+    return {
+        "status": "success",
+        "prime_skills": registry["skills"],
+        "categories": registry["categories"],
+        "local_hermes_skills": local_skills,
+        "matrix": matrix,
+    }
+
+
 async def check_redis_health() -> dict[str, Any]:
     """Check Redis connection health on startup."""
     import os
@@ -545,7 +749,6 @@ async def check_redis_health() -> dict[str, Any]:
 def main():
     """Run the MCP server."""
     # Run Redis health check on startup
-    import asyncio
     import os
 
     health = asyncio.run(check_redis_health())

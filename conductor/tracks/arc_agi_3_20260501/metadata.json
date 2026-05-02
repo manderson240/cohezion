@@ -1,0 +1,8 @@
+{
+  "id": "arc_agi_3_20260501",
+  "name": "ARC-AGI-3: Frontier Agentic Intelligence Challenge",
+  "description": "Transition to interactive, turn-based reasoning benchmarks following ARC-AGI-3 March 2026 release.",
+  "created_at": "2026-05-01T10:55:00Z",
+  "status": "planned",
+  "tags": ["Kaggle", "AGI", "ARC", "Agentic"]
+}

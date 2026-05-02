@@ -41,8 +41,8 @@ Split-K rationale for M=16, K=7168:
   Split-K K_SPLITS=8: 136 programs -> 45% occupancy, K-work parallelised
 """
 
-import torch
 import aiter
+import torch
 from aiter import dtypes
 from aiter.ops.triton.quant import dynamic_mxfp4_quant
 from aiter.utility.fp4_utils import e8m0_shuffle

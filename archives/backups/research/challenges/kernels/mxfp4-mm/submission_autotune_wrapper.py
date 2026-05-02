@@ -15,12 +15,11 @@ Features:
 POPCORN: amd-mxfp4-mm
 """
 
-import torch
-import torch.nn.functional as F
-from typing import Dict, Optional, Tuple, List
+import time
 from dataclasses import dataclass
 from enum import Enum, auto
-import time
+
+import torch
 from task import input_t, output_t
 
 
@@ -71,14 +70,14 @@ class KernelTuner:
     Falls back to safe defaults for unseen shapes.
     """
 
-    def __init__(self, cache_dir: Optional[str] = None):
+    def __init__(self, cache_dir: str | None = None):
         """
         Initialize tuner.
 
         Args:
             cache_dir: Directory to persist tuning cache
         """
-        self.cache: Dict[Tuple[int, int, int], GEMMConfig] = {}
+        self.cache: dict[tuple[int, int, int], GEMMConfig] = {}
         self.warmup_iters = 3
         self.benchmark_iters = 5
         self._initialize_default_configs()
@@ -133,7 +132,7 @@ class KernelTuner:
             block_size=32,
         )
 
-    def _get_shape_key(self, M: int, N: int, K: int) -> Tuple[int, int, int]:
+    def _get_shape_key(self, M: int, N: int, K: int) -> tuple[int, int, int]:
         """
         Create normalized shape key for cache lookup.
 
@@ -220,7 +219,7 @@ class KernelTuner:
         B: torch.Tensor,
         B_shuffle: torch.Tensor,
         B_scale: torch.Tensor,
-        A_scale: Optional[torch.Tensor] = None,
+        A_scale: torch.Tensor | None = None,
     ) -> GEMMConfig:
         """
         Run micro-benchmarks to find best configuration.
@@ -301,7 +300,7 @@ class KernelTuner:
 
         return best_config
 
-    def _generate_candidates(self, M: int, N: int, K: int) -> List[GEMMConfig]:
+    def _generate_candidates(self, M: int, N: int, K: int) -> list[GEMMConfig]:
         """Generate candidate configurations to test."""
         candidates = []
 
@@ -472,7 +471,7 @@ def custom_kernel(data: input_t) -> output_t:
         )
 
 
-def tune_for_shape(M: int, N: int, K: int, iterations: int = 10) -> Dict:
+def tune_for_shape(M: int, N: int, K: int, iterations: int = 10) -> dict:
     """
     Tune GEMM for specific shape and return best configuration.
 

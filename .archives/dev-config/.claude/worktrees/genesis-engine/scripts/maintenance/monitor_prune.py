@@ -11,9 +11,7 @@ def check_progress():
     """Checks the progress of the surgical prune."""
     try:
         # Check process existence
-        result = subprocess.run(
-            ["pgrep", "-f", "surgical_prune.py"], capture_output=True, text=True
-        )
+        result = subprocess.run(["pgrep", "-f", "surgical_prune.py"], capture_output=True, text=True)
         if not result.stdout.strip():
             update_status("DONE", "Process not found (Finished or Failed).")
             return False

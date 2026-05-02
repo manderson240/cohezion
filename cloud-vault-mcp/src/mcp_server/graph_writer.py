@@ -74,7 +74,9 @@ def compute_stage(word_count: int) -> str:
     return "mature"
 
 
-def compute_activation(word_count: int, stage: str, tags: list, created_at: str = "") -> float:
+def compute_activation(
+    word_count: int, stage: str, tags: list, created_at: str = ""
+) -> float:
     """Composite activation score matching reactor.py."""
     stage_scores = {"embryo": 0.1, "seedling": 0.3, "growing": 0.6, "mature": 1.0}
     stage_score = stage_scores.get(stage, 0.2)
@@ -264,9 +266,11 @@ async def batch_upsert_neurons(neurons: list[dict[str, Any]]) -> int:
         content = n.get("content", "")
         word_count = len(content.split()) if content else 0
         stage = compute_stage(word_count)
-        activation = compute_activation(word_count, stage, tags, date.today().isoformat())
+        activation = compute_activation(
+            word_count, stage, tags, date.today().isoformat()
+        )
 
-        safe_id = validate_surreal_id(n['neuron_id'])
+        safe_id = validate_surreal_id(n["neuron_id"])
         stmt = f"""UPSERT {safe_id} SET
             title = '{escape_sql(n["title"])}',
             path = '{escape_sql(n.get("path", ""))}',

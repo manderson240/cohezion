@@ -19,9 +19,7 @@ async def main():
 
     # 1. Test Temporal Mastery
     print("\n--- 1. Testing Temporal Mastery ---")
-    mission_id = await tk.start_mission(
-        "Verify Phase 2", "Validating all platform maturity features."
-    )
+    mission_id = await tk.start_mission("Verify Phase 2", "Validating all platform maturity features.")
     session_id = await tk.start_session(mission_id)
     print(f"Mission: {mission_id}, Session: {session_id}")
 
@@ -35,9 +33,7 @@ async def main():
 
     # Delegate a request for analysis
     print("Delegating 'analyze code' task...")
-    result = await agent.delegate_task(
-        "Provide a technical analysis of async safety", target_agent="AnalystAgent"
-    )
+    result = await agent.delegate_task("Provide a technical analysis of async safety", target_agent="AnalystAgent")
 
     if result:
         print(f"Delegation Success! Received result of length: {len(result.content)}")

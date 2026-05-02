@@ -9,10 +9,7 @@ Tests:
 
 from __future__ import annotations
 
-import asyncio
 import time
-from typing import Any
-from unittest.mock import AsyncMock, MagicMock
 
 import pytest
 
@@ -329,7 +326,7 @@ class TestBaseRepository:
         assert result.items_processed == 5
         assert result.items_failed == 0
         assert len(result.results) == 5
-        assert all(f"batch" in id for id in result.results)
+        assert all("batch" in id for id in result.results)
 
     @pytest.mark.asyncio
     @pytest.mark.fast

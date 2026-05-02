@@ -11,6 +11,7 @@ No external LLM required. Uses only symbolic solvers:
 Expected accuracy on training: ~63.1% (9500-sample validation, no model).
 Hybrid with local Gemma-4 fallback: ~63.95% (model adds only +0.8%).
 """
+
 from __future__ import annotations
 
 import csv
@@ -101,7 +102,9 @@ def _format_number(value: float, examples: list[tuple[str, str]]) -> str:
     fmt = f"{value:.{precision}f}"
     if precision == 1:
         dec2_count = sum(1 for _, out in examples if "." in out and len(out.split(".")[1]) == 2)
-        if dec2_count >= sum(1 for _, out in examples if "." in out and len(out.split(".")[1]) == 1):
+        if dec2_count >= sum(
+            1 for _, out in examples if "." in out and len(out.split(".")[1]) == 1
+        ):
             fmt2 = f"{value:.2f}"
             if fmt2 != fmt:
                 return fmt2
@@ -275,7 +278,7 @@ def solve_bit_manip(examples: list[tuple[str, str]], test_in: str) -> str:
                     bit = (test_val >> val) & 1
                     if invert:
                         bit = 1 - bit
-                result |= (bit << out_bit)
+                result |= bit << out_bit
             return f"{result:08b}"
         except Exception:
             pass
@@ -294,7 +297,7 @@ def solve_bit_manip(examples: list[tuple[str, str]], test_in: str) -> str:
                         bit = (test_val >> val) & 1
                         if invert:
                             bit = 1 - bit
-                    known_result |= (bit << out_bit)
+                    known_result |= bit << out_bit
 
             unknown_bits = [b for b in range(8) if b not in mapping]
             if len(unknown_bits) <= 4:
@@ -308,7 +311,7 @@ def solve_bit_manip(examples: list[tuple[str, str]], test_in: str) -> str:
                     candidate = known_result
                     for ub in unknown_bits:
                         if fb_fn(test_val, ub):
-                            candidate |= (1 << ub)
+                            candidate |= 1 << ub
                     ok = True
                     for a, b in pairs:
                         ex_result = 0
@@ -321,10 +324,10 @@ def solve_bit_manip(examples: list[tuple[str, str]], test_in: str) -> str:
                                     bit = (a >> val) & 1
                                     if invert:
                                         bit = 1 - bit
-                                ex_result |= (bit << out_bit)
+                                ex_result |= bit << out_bit
                         for ub in unknown_bits:
                             if fb_fn(a, ub):
-                                ex_result |= (1 << ub)
+                                ex_result |= 1 << ub
                         if ex_result != b:
                             ok = False
                             break
@@ -391,23 +394,23 @@ def solve_bit_manip(examples: list[tuple[str, str]], test_in: str) -> str:
         ("not", lambda x: (~x) & 0xFF),
         ("reverse", lambda x: int(f"{x:08b}"[::-1], 2)),
         ("flip", lambda x: x ^ 0xFF),
-        ("shift_left_1", lambda x: ((x << 1) & 0xFF)),
-        ("shift_right_1", lambda x: (x >> 1)),
+        ("shift_left_1", lambda x: (x << 1) & 0xFF),
+        ("shift_right_1", lambda x: x >> 1),
         ("rot_left_1", lambda x: ((x << 1) & 0xFF) | (x >> 7)),
-        ("rot_right_1", lambda x: ((x >> 1) | ((x & 1) << 7))),
-        ("shift_left_2", lambda x: ((x << 2) & 0xFF)),
-        ("shift_right_2", lambda x: (x >> 2)),
+        ("rot_right_1", lambda x: (x >> 1) | ((x & 1) << 7)),
+        ("shift_left_2", lambda x: (x << 2) & 0xFF),
+        ("shift_right_2", lambda x: x >> 2),
         ("rot_left_2", lambda x: ((x << 2) & 0xFF) | (x >> 6)),
-        ("rot_right_2", lambda x: ((x >> 2) | ((x & 0x3) << 6))),
-        ("shift_left_3", lambda x: ((x << 3) & 0xFF)),
-        ("shift_right_3", lambda x: (x >> 3)),
+        ("rot_right_2", lambda x: (x >> 2) | ((x & 0x3) << 6)),
+        ("shift_left_3", lambda x: (x << 3) & 0xFF),
+        ("shift_right_3", lambda x: x >> 3),
         ("rot_left_3", lambda x: ((x << 3) & 0xFF) | (x >> 5)),
-        ("rot_right_3", lambda x: ((x >> 3) | ((x & 0x7) << 5))),
-        ("shift_left_4", lambda x: ((x << 4) & 0xFF)),
-        ("shift_right_4", lambda x: (x >> 4)),
+        ("rot_right_3", lambda x: (x >> 3) | ((x & 0x7) << 5)),
+        ("shift_left_4", lambda x: (x << 4) & 0xFF),
+        ("shift_right_4", lambda x: x >> 4),
         ("rot_left_4", lambda x: ((x << 4) & 0xFF) | (x >> 4)),
-        ("rot_right_4", lambda x: ((x >> 4) | ((x & 0xF) << 4))),
-        ("reverse_nibble", lambda x: (((x & 0x0F) << 4) | ((x & 0xF0) >> 4))),
+        ("rot_right_4", lambda x: (x >> 4) | ((x & 0xF) << 4)),
+        ("reverse_nibble", lambda x: ((x & 0x0F) << 4) | ((x & 0xF0) >> 4)),
         ("not_reverse", lambda x: int(f"{(~x) & 0xFF:08b}"[::-1], 2)),
     ]
 
@@ -478,34 +481,217 @@ def solve_bit_manip(examples: list[tuple[str, str]], test_in: str) -> str:
 # Encryption solver with dictionary completion
 # ---------------------------------------------------------------------------
 _ENCRYPTION_VOCAB = [
-    "the", "follows", "dragon", "teacher", "writes", "creates", "draws",
-    "student", "rabbit", "studies", "discovers", "secret", "found", "mouse",
-    "dreams", "chases", "reads", "king", "sees", "watches", "queen", "hatter",
-    "knight", "explores", "bird", "imagines", "wizard", "turtle", "castle",
-    "cat", "alice", "garden", "princess", "colorful", "puzzle", "bright",
-    "forest", "book", "clever", "key", "dark", "mirror", "treasure",
-    "silver", "beyond", "inside", "in", "hidden", "curious", "around",
-    "above", "wise", "potion", "near", "door", "golden", "under", "through",
-    "mysterious", "magical", "strange", "story", "crystal", "message", "map",
-    "ancient", "village", "mountain", "wonderland", "cave", "school", "valley",
-    "island", "palace", "library", "ocean", "tower", "diamond", "crown",
-    "river", "bridge", "cloud", "star", "moon", "sun", "fire",
-    "water", "earth", "wind", "shadow", "light", "path", "road", "tree",
-    "flower", "grass", "stone", "sand", "snow", "rain", "storm", "thunder",
-    "whisper", "laughter", "silence", "echo", "song", "dance", "music",
-    "magic", "spell", "herb", "gem", "jewel", "ring",
-    "sword", "shield", "armor", "helmet", "cape", "robe", "hat", "shoe",
-    "boot", "glove", "belt", "bag", "box", "chest", "bottle", "cup",
-    "plate", "bowl", "spoon", "fork", "knife", "candle", "lamp", "torch",
-    "paper", "pen", "ink", "paint", "brush", "canvas", "frame", "picture",
-    "photo", "camera", "film", "tape", "record", "disk", "card", "coin",
-    "dollar", "cent", "euro", "pound", "yen", "price", "cost", "value",
-    "worth", "rich", "poor", "wealth", "gold", "money", "cash", "bank",
-    "shop", "store", "market", "trade", "sell", "buy", "pay", "spend",
-    "save", "keep", "hold", "have", "own", "give", "take", "get",
-    "find", "lose", "search", "seek", "hunt", "track", "trace", "mark",
-    "sign", "signal", "code", "word", "letter", "note", "text", "line",
-    "page", "chapter", "title", "name", "label", "tag", "brand", "logo",
+    "the",
+    "follows",
+    "dragon",
+    "teacher",
+    "writes",
+    "creates",
+    "draws",
+    "student",
+    "rabbit",
+    "studies",
+    "discovers",
+    "secret",
+    "found",
+    "mouse",
+    "dreams",
+    "chases",
+    "reads",
+    "king",
+    "sees",
+    "watches",
+    "queen",
+    "hatter",
+    "knight",
+    "explores",
+    "bird",
+    "imagines",
+    "wizard",
+    "turtle",
+    "castle",
+    "cat",
+    "alice",
+    "garden",
+    "princess",
+    "colorful",
+    "puzzle",
+    "bright",
+    "forest",
+    "book",
+    "clever",
+    "key",
+    "dark",
+    "mirror",
+    "treasure",
+    "silver",
+    "beyond",
+    "inside",
+    "in",
+    "hidden",
+    "curious",
+    "around",
+    "above",
+    "wise",
+    "potion",
+    "near",
+    "door",
+    "golden",
+    "under",
+    "through",
+    "mysterious",
+    "magical",
+    "strange",
+    "story",
+    "crystal",
+    "message",
+    "map",
+    "ancient",
+    "village",
+    "mountain",
+    "wonderland",
+    "cave",
+    "school",
+    "valley",
+    "island",
+    "palace",
+    "library",
+    "ocean",
+    "tower",
+    "diamond",
+    "crown",
+    "river",
+    "bridge",
+    "cloud",
+    "star",
+    "moon",
+    "sun",
+    "fire",
+    "water",
+    "earth",
+    "wind",
+    "shadow",
+    "light",
+    "path",
+    "road",
+    "tree",
+    "flower",
+    "grass",
+    "stone",
+    "sand",
+    "snow",
+    "rain",
+    "storm",
+    "thunder",
+    "whisper",
+    "laughter",
+    "silence",
+    "echo",
+    "song",
+    "dance",
+    "music",
+    "magic",
+    "spell",
+    "herb",
+    "gem",
+    "jewel",
+    "ring",
+    "sword",
+    "shield",
+    "armor",
+    "helmet",
+    "cape",
+    "robe",
+    "hat",
+    "shoe",
+    "boot",
+    "glove",
+    "belt",
+    "bag",
+    "box",
+    "chest",
+    "bottle",
+    "cup",
+    "plate",
+    "bowl",
+    "spoon",
+    "fork",
+    "knife",
+    "candle",
+    "lamp",
+    "torch",
+    "paper",
+    "pen",
+    "ink",
+    "paint",
+    "brush",
+    "canvas",
+    "frame",
+    "picture",
+    "photo",
+    "camera",
+    "film",
+    "tape",
+    "record",
+    "disk",
+    "card",
+    "coin",
+    "dollar",
+    "cent",
+    "euro",
+    "pound",
+    "yen",
+    "price",
+    "cost",
+    "value",
+    "worth",
+    "rich",
+    "poor",
+    "wealth",
+    "gold",
+    "money",
+    "cash",
+    "bank",
+    "shop",
+    "store",
+    "market",
+    "trade",
+    "sell",
+    "buy",
+    "pay",
+    "spend",
+    "save",
+    "keep",
+    "hold",
+    "have",
+    "own",
+    "give",
+    "take",
+    "get",
+    "find",
+    "lose",
+    "search",
+    "seek",
+    "hunt",
+    "track",
+    "trace",
+    "mark",
+    "sign",
+    "signal",
+    "code",
+    "word",
+    "letter",
+    "note",
+    "text",
+    "line",
+    "page",
+    "chapter",
+    "title",
+    "name",
+    "label",
+    "tag",
+    "brand",
+    "logo",
 ]
 
 
@@ -540,7 +726,11 @@ def solve_encryption(examples: list[tuple[str, str]], test_in: str) -> str:
             if "?" not in pw:
                 continue
             pattern = pw.replace("?", "?")
-            matches = [w for w in _ENCRYPTION_VOCAB if len(w) == len(pattern) and _match_pattern(pattern, w)]
+            matches = [
+                w
+                for w in _ENCRYPTION_VOCAB
+                if len(w) == len(pattern) and _match_pattern(pattern, w)
+            ]
             if len(matches) >= 1:  # Accept even ambiguous (pick most frequent)
                 best = matches[0]
                 for c_in, c_out in zip(tw, best):
@@ -630,6 +820,7 @@ def solve(prompt: str) -> str:
 # Kaggle: read test.csv, write submission.csv
 # ---------------------------------------------------------------------------
 import os
+
 
 if os.path.exists("/kaggle/input/nvidia-nemotron-model-reasoning-challenge/test.csv"):
     with open("/kaggle/input/nvidia-nemotron-model-reasoning-challenge/test.csv") as f:

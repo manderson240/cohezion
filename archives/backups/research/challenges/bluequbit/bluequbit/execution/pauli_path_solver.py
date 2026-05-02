@@ -9,15 +9,15 @@ Ultra-fast expectation value computation using pauli-path device.
 import sys
 from pathlib import Path
 
+
 sys.path.insert(0, str(Path(__file__).parent))
 
 import time
-import numpy as np
-from typing import List, Tuple, Optional
 
-from dotenv import load_dotenv
 import bluequbit
+import numpy as np
 import qiskit
+from dotenv import load_dotenv
 
 
 class PauliPathSolver:
@@ -48,7 +48,7 @@ class PauliPathSolver:
         print(f"  Truncation threshold: {truncation_threshold}")
 
     def compute_expectation(
-        self, circuit: qiskit.QuantumCircuit, observable: List[Tuple[str, float]]
+        self, circuit: qiskit.QuantumCircuit, observable: list[tuple[str, float]]
     ) -> float:
         """
         Compute expectation value using pauli-path.
@@ -77,12 +77,12 @@ class PauliPathSolver:
 
     def build_observable(
         self,
-        indices_x: List[int] = None,
-        indices_y: List[int] = None,
-        indices_z: List[int] = None,
+        indices_x: list[int] = None,
+        indices_y: list[int] = None,
+        indices_z: list[int] = None,
         n_qubits: int = None,
         coefficient: float = 1.0,
-    ) -> List[Tuple[str, float]]:
+    ) -> list[tuple[str, float]]:
         """
         Build Pauli observable from indices.
 
@@ -123,7 +123,7 @@ class PauliPathSolver:
     def solve_vqe_step(
         self,
         ansatz: qiskit.QuantumCircuit,
-        hamiltonian: List[Tuple[str, float]],
+        hamiltonian: list[tuple[str, float]],
         parameters: np.ndarray,
     ) -> float:
         """
@@ -146,7 +146,7 @@ class PauliPathSolver:
         return energy
 
     def benchmark_vs_mps(
-        self, circuit: qiskit.QuantumCircuit, observable: List[Tuple[str, float]]
+        self, circuit: qiskit.QuantumCircuit, observable: list[tuple[str, float]]
     ) -> dict:
         """
         Benchmark pauli-path vs MPS.

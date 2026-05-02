@@ -1,8 +1,8 @@
 import asyncio
 import datetime
-import time
-import subprocess
 import logging
+import subprocess
+
 
 logging.basicConfig(level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s")
 logger = logging.getLogger(__name__)
@@ -16,7 +16,7 @@ async def run_loop():
     while True:
         # Get UTC time and convert to EST (UTC-5) or EDT (UTC-4)
         # April 9/10 is EDT (UTC-4)
-        now_utc = datetime.datetime.now(datetime.timezone.utc)
+        now_utc = datetime.datetime.now(datetime.UTC)
         now_est = now_utc - datetime.timedelta(hours=4)  # EDT
 
         target_time = now_est.replace(hour=7, minute=0, second=0, microsecond=0)

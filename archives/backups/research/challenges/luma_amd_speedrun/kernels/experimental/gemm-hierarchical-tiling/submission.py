@@ -58,16 +58,15 @@ AMD CDNA3/MI300 optimization guides
 """
 
 from __future__ import annotations
+
 import os
 import sys
-import math
-import torch
-from typing import Dict, List, Optional, Tuple
 from dataclasses import dataclass
-from aiter import gemm_a4w4
+
+import torch
+from aiter import dtypes, gemm_a4w4
 from aiter.ops.triton.quant import dynamic_mxfp4_quant
 from aiter.utility.fp4_utils import e8m0_shuffle
-from aiter import dtypes
 from task import input_t, output_t
 
 
@@ -121,7 +120,7 @@ class TileConfig:
     outer_product: bool = True
 
     @classmethod
-    def for_shape(cls, m: int, n: int, k: int) -> "TileConfig":
+    def for_shape(cls, m: int, n: int, k: int) -> TileConfig:
         """
         Create tile configuration optimized for specific matrix shape.
 
@@ -211,7 +210,7 @@ class HierarchicalTilingGEMM:
         m: int,
         n: int,
         k: int,
-    ) -> Tuple[int, int, int]:
+    ) -> tuple[int, int, int]:
         """
         Pad matrix dimensions to tile boundaries.
 
@@ -387,8 +386,8 @@ class HierarchicalTilingGEMM:
         self,
         a: torch.Tensor,
         b: torch.Tensor,
-        a_scale: Optional[torch.Tensor] = None,
-        b_scale: Optional[torch.Tensor] = None,
+        a_scale: torch.Tensor | None = None,
+        b_scale: torch.Tensor | None = None,
     ) -> torch.Tensor:
         """
         Execute hierarchical tiled GEMM.
@@ -438,13 +437,13 @@ class HierarchicalTilingGEMM:
         # Trim padding
         return c_padded[:m, :n].to(a.dtype)
 
-    def get_stats(self) -> Dict[str, int]:
+    def get_stats(self) -> dict[str, int]:
         """Get tiling statistics."""
         return self.stats.copy()
 
 
 # Global tiling instances for reuse
-_TILING_CACHE: Dict[str, HierarchicalTilingGEMM] = {}
+_TILING_CACHE: dict[str, HierarchicalTilingGEMM] = {}
 
 
 def _get_tiling(m: int, n: int, k: int) -> HierarchicalTilingGEMM:

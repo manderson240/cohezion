@@ -3,10 +3,10 @@
 
 """Probe: Try hipb_mm, rocb_mm, compute_gemm_SplitK, deepgemm signatures."""
 
-import torch
 import inspect
-from aiter import dtypes
+
 import aiter
+from aiter import dtypes
 from aiter.ops.triton.quant import dynamic_mxfp4_quant
 from aiter.utility.fp4_utils import e8m0_shuffle
 from task import input_t, output_t

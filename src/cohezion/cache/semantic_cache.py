@@ -325,9 +325,7 @@ class SemanticCache:
             # Rebuild matrix after eviction (infrequent — only when L2 is full)
             self._l2_keys = list(self.l2_cache.keys())
             if self._l2_keys:
-                self._l2_matrix = np.stack(
-                    [self.l2_cache[k].embedding for k in self._l2_keys]
-                )
+                self._l2_matrix = np.stack([self.l2_cache[k].embedding for k in self._l2_keys])
             else:
                 self._l2_matrix = None
 
@@ -338,9 +336,7 @@ class SemanticCache:
         self._l2_keys.append(hash_key)
         row = entry.embedding.reshape(1, -1)
         self._l2_matrix = (
-            np.vstack([self._l2_matrix, row])
-            if self._l2_matrix is not None
-            else row.copy()
+            np.vstack([self._l2_matrix, row]) if self._l2_matrix is not None else row.copy()
         )
 
     def _promote_to_l1(self, hash_key: str, entry: CacheEntry) -> None:

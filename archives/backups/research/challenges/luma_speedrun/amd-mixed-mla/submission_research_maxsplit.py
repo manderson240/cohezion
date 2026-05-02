@@ -11,15 +11,16 @@ Reference: competition-research-untapped/SKILL.md Section 2.2
 """
 
 from __future__ import annotations
+
 import os
-import sys
+
 
 os.environ["AITER_USE_NT"] = "1"
 
-import torch
 from aiter import mla_decode_fwd
-from task import input_t, output_t
 from reference import ref_kernel
+from task import input_t, output_t
+
 
 # Constants from reference
 NUM_HEADS = 16

@@ -10,15 +10,13 @@ Tests various combinations of:
 Task ID: bju6xb5pb
 """
 
-import torch
+
 import pytest
-from typing import Tuple, List
+import torch
+
 
 # Skip all tests if CUDA is not available
-pytestmark = pytest.mark.skipif(
-    not torch.cuda.is_available(),
-    reason="CUDA not available - tests require GPU"
-)
+pytestmark = pytest.mark.skipif(not torch.cuda.is_available(), reason="CUDA not available - tests require GPU")
 
 # DeepSeek R1 MLA constants
 TOTAL_NUM_HEADS = 128
@@ -50,7 +48,7 @@ def generate_test_input(
     kvseqlen: int,
     tp: int,
     seed: int,
-) -> Tuple[torch.Tensor, torch.Tensor]:
+) -> tuple[torch.Tensor, torch.Tensor]:
     """
     Generate test query and KV buffer for MLA decode testing.
 
@@ -68,20 +66,26 @@ def generate_test_input(
     total_kv = batchsize * kvseqlen
 
     # Query
-    q = torch.randn(
-        (total_q, num_heads, QK_HEAD_DIM),
-        dtype=torch.bfloat16,
-        device="cuda",
-        generator=gen,
-    ) * 0.02
+    q = (
+        torch.randn(
+            (total_q, num_heads, QK_HEAD_DIM),
+            dtype=torch.bfloat16,
+            device="cuda",
+            generator=gen,
+        )
+        * 0.02
+    )
 
     # KV buffer
-    kv_buffer = torch.randn(
-        (total_kv, NUM_KV_HEADS, QK_HEAD_DIM),
-        dtype=torch.bfloat16,
-        device="cuda",
-        generator=gen,
-    ) * 0.02
+    kv_buffer = (
+        torch.randn(
+            (total_kv, NUM_KV_HEADS, QK_HEAD_DIM),
+            dtype=torch.bfloat16,
+            device="cuda",
+            generator=gen,
+        )
+        * 0.02
+    )
 
     return q, kv_buffer
 
@@ -162,7 +166,7 @@ class Test5DBlockedPAFormat:
         self,
         block_size: int,
         x: int,
-        test_case: Tuple[int, int, int, int, int],
+        test_case: tuple[int, int, int, int, int],
     ):
         """
         Test that 5D blocked format conversion is reversible.
@@ -180,9 +184,7 @@ class Test5DBlockedPAFormat:
             pytest.skip(f"QK_HEAD_DIM ({QK_HEAD_DIM}) not divisible by x ({x})")
 
         # Generate input
-        q, kv_buffer = generate_test_input(
-            batchsize, qseqlen, kvseqlen, tp, seed
-        )
+        q, kv_buffer = generate_test_input(batchsize, qseqlen, kvseqlen, tp, seed)
 
         # Convert to 5D blocked and back
         kv_blocked = convert_to_5d_blocked(kv_buffer, block_size, x)
@@ -195,7 +197,7 @@ class Test5DBlockedPAFormat:
             QK_HEAD_DIM // x,
             block_size,
             x,
-        ), f"5D blocked shape mismatch"
+        ), "5D blocked shape mismatch"
 
         # Verify data integrity
         torch.testing.assert_close(kv_buffer, kv_recovered, rtol=1e-5, atol=1e-5)
@@ -212,9 +214,7 @@ class Test5DBlockedPAFormat:
         if QK_HEAD_DIM % x != 0:
             pytest.skip("Head dim mismatch")
 
-        q, kv_buffer = generate_test_input(
-            batchsize, qseqlen, kvseqlen, tp, seed
-        )
+        q, kv_buffer = generate_test_input(batchsize, qseqlen, kvseqlen, tp, seed)
 
         # Convert to 5D blocked
         kv_blocked = convert_to_5d_blocked(kv_buffer, block_size, x)
@@ -252,9 +252,7 @@ class Test5DBlockedPAFormat:
             pytest.skip("Head dim mismatch")
 
         # Generate input
-        q, kv_buffer = generate_test_input(
-            batchsize, qseqlen, kvseqlen, tp, seed
-        )
+        q, kv_buffer = generate_test_input(batchsize, qseqlen, kvseqlen, tp, seed)
 
         # Convert to 5D blocked and back (simulating what kernel would do)
         kv_blocked = convert_to_5d_blocked(kv_buffer, block_size, x)
@@ -285,9 +283,7 @@ class Test5DBlockedPAFormat:
         if QK_HEAD_DIM % 8 != 0:
             pytest.skip("Head dim mismatch")
 
-        q, kv_buffer = generate_test_input(
-            batchsize, qseqlen, kvseqlen, tp, seed
-        )
+        q, kv_buffer = generate_test_input(batchsize, qseqlen, kvseqlen, tp, seed)
 
         # block_size=1 should still work
         kv_blocked = convert_to_5d_blocked(kv_buffer, block_size=1, x=8)
@@ -300,9 +296,7 @@ class Test5DBlockedPAFormat:
         """Test x=QK_HEAD_DIM (no head dim splitting) edge case."""
         batchsize, qseqlen, kvseqlen, tp, seed = 4, 1, 64, 8, 4220
 
-        q, kv_buffer = generate_test_input(
-            batchsize, qseqlen, kvseqlen, tp, seed
-        )
+        q, kv_buffer = generate_test_input(batchsize, qseqlen, kvseqlen, tp, seed)
 
         # x=QK_HEAD_DIM means head_dim_split=1
         x = QK_HEAD_DIM
@@ -336,9 +330,7 @@ class Test5DBlockedPerformance:
         if QK_HEAD_DIM % x != 0:
             pytest.skip("Head dim mismatch")
 
-        q, kv_buffer = generate_test_input(
-            batchsize, qseqlen, kvseqlen, tp, seed
-        )
+        q, kv_buffer = generate_test_input(batchsize, qseqlen, kvseqlen, tp, seed)
 
         # Warmup
         for _ in range(3):

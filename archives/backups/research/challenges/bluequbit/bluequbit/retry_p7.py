@@ -1,11 +1,12 @@
-import bluequbit as bq
-from pathlib import Path
 import os
+
+import bluequbit as bq
+
 
 # Load API token
 api_token = os.environ.get("BLUEQUBIT_API_TOKEN")
 if not api_token:
-    with open(".env", "r") as f:
+    with open(".env") as f:
         for line in f:
             if "BLUEQUBIT_API_TOKEN" in line:
                 api_token = line.split("=")[1].strip()
@@ -15,10 +16,10 @@ bq.init(api_token)
 
 # Load circuit
 qasm_path = "hackathons/hackathon_oEOtLSSrPSVH60Ah/problems/P7_heavy_hex_1275.qasm"
-with open(qasm_path, "r") as f:
+with open(qasm_path) as f:
     qasm = f.read()
 
-print(f"P7: 45 qubits - trying with higher bond_dim")
+print("P7: 45 qubits - trying with higher bond_dim")
 
 # Try mps.cpu with bond_dim=32
 try:

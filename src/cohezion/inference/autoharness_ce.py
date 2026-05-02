@@ -35,6 +35,7 @@ logger = logging.getLogger(__name__)
 @dataclass
 class TokenBudget:
     """Token budget tracking for efficiency optimization."""
+
     baseline_tokens: int = 0
     optimized_tokens: int = 0
     reference_savings: int = 0
@@ -76,11 +77,15 @@ class OroborousOptimizer:
     def _save_generation(self):
         """Persist current generation."""
         gen_file = self.store_path / "generation.json"
-        gen_file.write_text(json.dumps({
-            "generation": self.generation,
-            "last_updated": datetime.now().isoformat(),
-            "improvements": len(self.improvements),
-        }))
+        gen_file.write_text(
+            json.dumps(
+                {
+                    "generation": self.generation,
+                    "last_updated": datetime.now().isoformat(),
+                    "improvements": len(self.improvements),
+                }
+            )
+        )
 
     def evolve(self, experiment_result: dict) -> dict:
         """
@@ -122,15 +127,13 @@ class OroborousOptimizer:
             return self._baseline_config()
 
         # Analyze which configurations worked best
-        successful = [i for i in self.improvements
-                      if i.get("outcome") in ("keep", "success")]
+        successful = [i for i in self.improvements if i.get("outcome") in ("keep", "success")]
 
         if not successful:
             return self._baseline_config()
 
         # Extract winning patterns
-        best = max(successful,
-                   key=lambda x: x.get("metric_delta", {}).get("improvement", 0))
+        best = max(successful, key=lambda x: x.get("metric_delta", {}).get("improvement", 0))
 
         # Synthesize evolved config
         return {
@@ -240,8 +243,7 @@ class FlumeDataPipeline:
     def __init__(self):
         self.streams: dict[str, list] = {}
 
-    def create_stream(self, stream_id: str,
-                      reference_files: list[str] = None):
+    def create_stream(self, stream_id: str, reference_files: list[str] = None):
         """
         Create a lazy-loading stream.
         Only loads reference files when explicitly requested.
@@ -292,7 +294,7 @@ class FlumeDataPipeline:
 class CompoundEngineeringAutoHarness:
     """
     Main autoharness integrating Oroborous, Mycelium, and Flume.
-    
+
     Implements token-efficient compound engineering:
     - Baseline: All content in main context
     - Optimized: Conditional/late-sequence content in references/
@@ -325,7 +327,7 @@ class CompoundEngineeringAutoHarness:
                 "name": self.model_id,
                 "capabilities": self._detect_capabilities(),
             },
-            tags=["model", "capability"]
+            tags=["model", "capability"],
         )
 
         # Baseline config node
@@ -336,14 +338,12 @@ class CompoundEngineeringAutoHarness:
                 "temperature": 0.7,
                 "max_tokens": 512,
             },
-            tags=["config", "baseline"]
+            tags=["config", "baseline"],
         )
 
         # Connect
         self.mycelium.connect(
-            f"model:{self.model_id}",
-            f"config:{self.model_id}:baseline",
-            "has_baseline"
+            f"model:{self.model_id}", f"config:{self.model_id}:baseline", "has_baseline"
         )
 
     def _detect_capabilities(self) -> dict:
@@ -355,12 +355,12 @@ class CompoundEngineeringAutoHarness:
             "long_context": 0.7,
         }
 
-    def craft_payload(self, user_prompt: str,
-                      task_type: str = "default",
-                      load_references: list[str] = None) -> dict:
+    def craft_payload(
+        self, user_prompt: str, task_type: str = "default", load_references: list[str] = None
+    ) -> dict:
         """
         Craft optimized payload with token-efficient design.
-        
+
         Pattern from compound-engineering:
         - Base skill: ~685 lines (~9,971 tokens)
         - References: Loaded on demand only
@@ -402,7 +402,7 @@ class CompoundEngineeringAutoHarness:
         """
         Get minimal stub for task type.
         This replaces the full SKILL.md with a 1-3 line stub + backtick path.
-        
+
         Example: "For reasoning tasks, read `references/reasoning-guide.md`"
         """
         stubs = {
@@ -447,17 +447,11 @@ class CompoundEngineeringAutoHarness:
         # Store in knowledge graph
         result_id = f"experiment:{datetime.now().isoformat()}"
         self.mycelium.add_node(
-            result_id,
-            result,
-            tags=["experiment", result.get("status", "unknown")]
+            result_id, result, tags=["experiment", result.get("status", "unknown")]
         )
 
         # Connect to model
-        self.mycelium.connect(
-            f"model:{self.model_id}",
-            result_id,
-            "has_experiment"
-        )
+        self.mycelium.connect(f"model:{self.model_id}", result_id, "has_experiment")
 
         # Evolve via oroborous
         evolution = self.oroborous.evolve(result)
@@ -521,9 +515,9 @@ class CompoundEngineeringAutoHarness:
 
 
 # Global factory
-def create_compound_autoharness(model_id: str,
-                                  workspace: Path | None = None
-                                  ) -> CompoundEngineeringAutoHarness:
+def create_compound_autoharness(
+    model_id: str, workspace: Path | None = None
+) -> CompoundEngineeringAutoHarness:
     """Factory function for creating a compound engineering autoharness."""
     return CompoundEngineeringAutoHarness(model_id, workspace)
 
@@ -536,7 +530,7 @@ if __name__ == "__main__":
     payload = harness.craft_payload(
         "Explain quantum computing",
         task_type="reasoning",
-        load_references=["references/reasoning-guide.md"]
+        load_references=["references/reasoning-guide.md"],
     )
 
     print("Optimized payload:", json.dumps(payload, indent=2))

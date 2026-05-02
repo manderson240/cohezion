@@ -20,14 +20,15 @@ Experimental Status: Exploratory - tests rank-reduced attention approximation.
 
 from __future__ import annotations
 
-import torch
 import math
 from typing import TYPE_CHECKING
+
+import torch
+
 
 if TYPE_CHECKING:
     from task import input_t, output_t
 
-import aiter
 
 # Cached metadata for performance
 _metadata_cache: dict = {}

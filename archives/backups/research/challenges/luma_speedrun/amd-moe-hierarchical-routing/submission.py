@@ -46,8 +46,9 @@ Expected Performance:
 """
 
 from __future__ import annotations
+
 import os
-import math
+
 
 os.environ["AITER_USE_NT"] = "1"
 
@@ -57,6 +58,7 @@ import torch.nn.functional as F
 from aiter import ActivationType, QuantType
 from aiter.fused_moe import fused_moe
 from task import input_t, output_t
+
 
 # Hierarchical routing configuration
 NUM_CLUSTERS = 16  # Number of clusters

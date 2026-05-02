@@ -30,21 +30,21 @@ Reference: "Adaptive Tiling for GPU GEMM", SC 2020.
 """
 
 from __future__ import annotations
+
 import os
+
 
 os.environ["PYTORCH_ROCM_ARCH"] = "gfx950"
 os.environ["CXX"] = "clang++"
 
-import torch
-from typing import Tuple, Dict, List
 from dataclasses import dataclass
-from torch.utils.cpp_extension import load_inline
-from task import input_t, output_t
 
+import aiter
 from aiter import dtypes
 from aiter.ops.triton.quant import dynamic_mxfp4_quant
 from aiter.utility.fp4_utils import e8m0_shuffle
-import aiter
+from task import input_t, output_t
+from torch.utils.cpp_extension import load_inline
 
 
 @dataclass
@@ -71,7 +71,7 @@ class DynamicTileSelector:
         ]
 
         # Cache for previously seen shapes
-        self.shape_cache: Dict[Tuple[int, int, int], TileConfig] = {}
+        self.shape_cache: dict[tuple[int, int, int], TileConfig] = {}
 
     def estimate_occupancy(self, M: int, N: int, K: int, config: TileConfig) -> float:
         """Estimate SM occupancy for given configuration.
@@ -178,37 +178,37 @@ __global__ void dynamic_tiled_gemm(
     // Calculate tile indices
     int tile_row = blockIdx.y;
     int tile_col = blockIdx.x;
-    
+
     // Row and column within tile
     int row = tile_row * tile_m + threadIdx.y;
     int col = tile_col * tile_n + threadIdx.x;
-    
+
     if (row >= M || col >= N) return;
-    
+
     // Accumulate over K dimension
     float sum = 0.0f;
-    
+
     for (int k_base = 0; k_base < K; k_base += tile_k) {
         // Compute partial sum for this k-tile
         int k_end = min(k_base + tile_k, K);
-        
+
         for (int k = k_base; k < k_end; k++) {
             float a = __bfloat162float(A[row * K + k]);
             float b = __bfloat162float(B[col * K + k]);
             sum += a * b;
         }
     }
-    
+
     C[row * N + col] = (__hip_bfloat16)sum;
 }
 
 void launch_dynamic_gemm(
     torch::Tensor A, torch::Tensor B, torch::Tensor C,
     int M, int N, int K, int tile_m, int tile_n, int tile_k) {
-    
+
     dim3 block(16, 16);
     dim3 grid((N + tile_n - 1) / tile_n, (M + tile_m - 1) / tile_m);
-    
+
     dynamic_tiled_gemm<<<grid, block>>>(
         reinterpret_cast<const __hip_bfloat16*>(A.data_ptr()),
         reinterpret_cast<const __hip_bfloat16*>(B.data_ptr()),

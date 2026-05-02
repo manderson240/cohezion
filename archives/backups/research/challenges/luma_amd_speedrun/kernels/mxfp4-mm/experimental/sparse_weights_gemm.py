@@ -41,14 +41,14 @@ References:
 """
 
 from __future__ import annotations
-import os
+
 import sys
-import math
-import torch
-from typing import Tuple, Optional, Dict, List
-from task import input_t, output_t
-from reference import ref_kernel
+
 import aiter
+import torch
+from reference import ref_kernel
+from task import input_t, output_t
+
 
 # Sparsity thresholds
 SPARSITY_THRESHOLD = 0.20  # Minimum sparsity to activate sparse path
@@ -61,7 +61,7 @@ _SPARSITY_CACHE: dict = {}
 
 def _analyze_sparsity_pattern(
     B: torch.Tensor,
-) -> Tuple[float, str, torch.Tensor]:
+) -> tuple[float, str, torch.Tensor]:
     """
     Analyze weight matrix B for sparsity patterns.
 
@@ -105,7 +105,7 @@ def _analyze_sparsity_pattern(
 def _extract_row_sparse_structure(
     B: torch.Tensor,
     sparsity_mask: torch.Tensor,
-) -> Tuple[torch.Tensor, torch.Tensor, torch.Tensor]:
+) -> tuple[torch.Tensor, torch.Tensor, torch.Tensor]:
     """
     Extract row-sparse structure from weight matrix.
 
@@ -173,7 +173,7 @@ def _apply_structured_sparsity(
     B: torch.Tensor,
     block_size: int = 4,
     sparsity_ratio: float = 0.5,
-) -> Tuple[torch.Tensor, torch.Tensor]:
+) -> tuple[torch.Tensor, torch.Tensor]:
     """
     Apply 2:4 structured sparsity pattern to weights.
 

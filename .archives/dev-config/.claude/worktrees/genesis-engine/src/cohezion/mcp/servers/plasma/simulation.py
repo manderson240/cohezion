@@ -48,9 +48,7 @@ class PlasmaSimulation:
         if np.random.random() < 0.1:  # 10% chance per step
             obj = ExoticVacuumObject(
                 id=str(uuid.uuid4())[:8],
-                object_type=np.random.choice(
-                    ["virtual_pair", "vacuum_fluctuation", "quantum_foam", "casimir_effect"]
-                ),
+                object_type=np.random.choice(["virtual_pair", "vacuum_fluctuation", "quantum_foam", "casimir_effect"]),
                 position=np.random.rand(3) * self.grid_size,
                 creation_time=self.current_time,
                 expected_lifetime=np.random.exponential(0.1),
@@ -82,9 +80,7 @@ class PlasmaSimulation:
 
         new_exotic = self.generate_exotic_vacuum_object()
 
-        self.exotic_objects = [
-            obj for obj in self.exotic_objects if obj.is_active(self.current_time)
-        ]
+        self.exotic_objects = [obj for obj in self.exotic_objects if obj.is_active(self.current_time)]
 
         return {
             "time": self.current_time,

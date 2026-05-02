@@ -97,11 +97,7 @@ def validate_changelog(bump_type: BumpType, changelog_path: Path) -> list[str]:
         return issues
 
     content = changelog_path.read_text()
-    if (
-        bump_type >= BumpType.MINOR
-        and "## [Unreleased]" not in content
-        and "## Unreleased" not in content
-    ):
+    if bump_type >= BumpType.MINOR and "## [Unreleased]" not in content and "## Unreleased" not in content:
         issues.append("CHANGELOG.md missing [Unreleased] section for feature/breaking change")
 
     return issues

@@ -1,6 +1,6 @@
-import unittest
 import os
-import qiskit
+import unittest
+
 from analyze_local_problems import analyze_circuit
 
 

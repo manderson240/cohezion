@@ -1,8 +1,10 @@
 #!/usr/bin/env python3
 """Save hackathon data to vault via MCP server"""
 
-import requests
 import json
+
+import requests
+
 
 MCP_URL = "http://localhost:8360/mcp"
 
@@ -87,7 +89,7 @@ summary = """# BlueQubit Hackathon Status - April 2, 2026
 
 ### Solved (Confirmed)
 - P1_little_peak (4 qubits): `1001` - 10 points
-- P2_swift_rise (28 qubits): `1100101101100011011000011100` - 20 points  
+- P2_swift_rise (28 qubits): `1100101101100011011000011100` - 20 points
 - P3_sharp_peak (44 qubits): `01011000100010110011111000001010101010110001` - 50 points
 
 ### In Progress

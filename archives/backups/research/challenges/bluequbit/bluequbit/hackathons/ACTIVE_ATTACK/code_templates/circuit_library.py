@@ -3,10 +3,10 @@ BlueQubit Circuit Library
 Pre-built circuits for common quantum algorithms
 """
 
+
+import numpy as np
 import qiskit
 from qiskit.circuit.random import random_circuit
-from typing import List, Tuple, Optional
-import numpy as np
 
 
 class CircuitLibrary:
@@ -155,7 +155,7 @@ class CircuitLibrary:
 
     @staticmethod
     def variational_circuit(
-        n_qubits: int, depth: int, params: Optional[List[float]] = None
+        n_qubits: int, depth: int, params: list[float] | None = None
     ) -> qiskit.QuantumCircuit:
         """
         Hardware-efficient variational circuit.
@@ -209,7 +209,7 @@ class CircuitLibrary:
 
     @staticmethod
     def qaoa_mixer(
-        n_qubits: int, edges: List[Tuple[int, int]], gamma: float, beta: float
+        n_qubits: int, edges: list[tuple[int, int]], gamma: float, beta: float
     ) -> qiskit.QuantumCircuit:
         """
         QAOA circuit for MaxCut.
@@ -266,7 +266,7 @@ def test_circuit_library():
         print(f"  Depth: {qc.depth()}")
         print(f"  Gates: {len(qc.data)}")
         print(f"  Qubits: {qc.num_qubits}")
-        print(f"  ✓ Created successfully")
+        print("  ✓ Created successfully")
 
     print("\n" + "=" * 60)
     print("All circuits created successfully!")

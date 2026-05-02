@@ -8,24 +8,22 @@ Wires new proactive/reactive system into existing infrastructure:
 - Patterns → Vault MCP
 """
 
-import asyncio
 import logging
-from typing import Any, Callable, Dict, List, Optional
+from collections.abc import Callable
 from datetime import datetime
+from typing import Any
 
 from cohezion.compound.proactive_reactive_engine import (
     ProactiveReactiveEngine,
     SystemEvent,
-    CircuitBreaker,
 )
+from cohezion.core.mcp_client import MCPClient
 from cohezion.swarm.compute_backend_router import (
     BackendType,
     ComputeBackendRouter,
-    BackendStatus,
 )
-from cohezion.swarm.model_pool_manager import ModelPoolManager, get_pool_manager
 from cohezion.swarm.cost_aware_router import CostAwareRouter
-from cohezion.core.mcp_client import MCPClient
+from cohezion.swarm.model_pool_manager import ModelPoolManager, get_pool_manager
 
 
 logger = logging.getLogger(__name__)
@@ -45,7 +43,7 @@ class CircuitBreakerRouterAdapter:
     ):
         self.router = backend_router
         self.engine = proactive_engine
-        self._backend_states: Dict[BackendType, bool] = {}
+        self._backend_states: dict[BackendType, bool] = {}
 
         # Wire events
         self._setup_circuit_events()
@@ -61,7 +59,7 @@ class CircuitBreakerRouterAdapter:
             self._on_circuit_closed,
         )
 
-    async def _on_circuit_opened(self, event: SystemEvent, data: Dict):
+    async def _on_circuit_opened(self, event: SystemEvent, data: dict):
         """When circuit opens, mark backend unavailable in router."""
         backend = data.get("backend")
         if backend and isinstance(backend, BackendType):
@@ -74,7 +72,7 @@ class CircuitBreakerRouterAdapter:
                 status.available = False
                 status.last_updated = datetime.now()
 
-    async def _on_circuit_closed(self, event: SystemEvent, data: Dict):
+    async def _on_circuit_closed(self, event: SystemEvent, data: dict):
         """When circuit closes, restore backend availability."""
         backend = data.get("backend")
         if backend and isinstance(backend, BackendType):
@@ -101,7 +99,7 @@ class CircuitBreakerRouterAdapter:
         # Fall back to router's view
         return self.router.is_backend_available(backend)
 
-    def get_available_backends(self) -> List[BackendType]:
+    def get_available_backends(self) -> list[BackendType]:
         """Get list of available backends respecting circuit breakers."""
         all_backends = [b for b in BackendType]
         return [b for b in all_backends if self.is_backend_available(b)]
@@ -151,7 +149,7 @@ class ProactivePoolAdapter:
             if model:
                 await self.warm_model(model, priority=1.0)
 
-    def _get_warmed_agents(self) -> List[str]:
+    def _get_warmed_agents(self) -> list[str]:
         """Get list of agents that should be warmed."""
         # Check proactive actions for warming
         warmed = []
@@ -177,7 +175,7 @@ class ProactivePoolAdapter:
             if model:
                 await self.warm_model(model, priority=1.0)
 
-    def _agent_to_model(self, agent_name: str) -> Optional[str]:
+    def _agent_to_model(self, agent_name: str) -> str | None:
         """Map agent name to Lemonade model name for pool."""
         mapping = {
             "CodeSpecialist": "CodeLlama-7b-Instruct-hf-Hybrid",
@@ -193,14 +191,14 @@ class AdaptiveCostAdapter:
 
     def __init__(self, cost_router: CostAwareRouter):
         self.cost_router = cost_router
-        self._cost_cache: Dict[str, float] = {}
+        self._cost_cache: dict[str, float] = {}
 
     async def score_with_cost(
         self,
-        agent_scores: Dict[str, float],
+        agent_scores: dict[str, float],
         budget_remaining: float,
         tokens_estimate: int = 1000,
-    ) -> Dict[str, float]:
+    ) -> dict[str, float]:
         """Adjust scores based on cost constraints."""
         adjusted_scores = {}
 
@@ -254,7 +252,7 @@ class EventLoggingAdapter:
 
     def __init__(self, proactive_engine: ProactiveReactiveEngine):
         self.engine = proactive_engine
-        self._custom_handlers: List[Callable] = []
+        self._custom_handlers: list[Callable] = []
         self._register_handlers()
 
     def _register_handlers(self):
@@ -284,7 +282,7 @@ class EventLoggingAdapter:
         """Add user-defined handler for events."""
         self.engine.register_event_handler(event_type, handler)
 
-    async def _log_circuit_event(self, event: SystemEvent, data: Dict):
+    async def _log_circuit_event(self, event: SystemEvent, data: dict):
         """Log circuit breaker events."""
         backend = data.get("backend", "unknown")
         failures = data.get("failures", "N/A")
@@ -297,7 +295,7 @@ class EventLoggingAdapter:
         elif event == SystemEvent.CIRCUIT_CLOSED:
             logger.info(f"✅ CIRCUIT_CLOSED | backend={backend} | recovered, restoring_traffic")
 
-    async def _log_pattern_event(self, event: SystemEvent, data: Dict):
+    async def _log_pattern_event(self, event: SystemEvent, data: dict):
         """Log pattern detection events."""
         pattern_type = data.get("type", "unknown")
         confidence = data.get("confidence", 0.0)
@@ -309,7 +307,7 @@ class EventLoggingAdapter:
             f"will_proactively_warm"
         )
 
-    async def _log_degradation(self, event: SystemEvent, data: Dict):
+    async def _log_degradation(self, event: SystemEvent, data: dict):
         """Log performance degradation events."""
         agent = data.get("agent", "unknown")
         success_rate = data.get("success_rate", 0.0)
@@ -321,7 +319,7 @@ class EventLoggingAdapter:
             f"consider_alternative_fallback"
         )
 
-    async def _log_spike(self, event: SystemEvent, data: Dict):
+    async def _log_spike(self, event: SystemEvent, data: dict):
         """Log workload spike events."""
         severity = data.get("severity", "unknown")
         current_load = data.get("current_load", 0)
@@ -385,7 +383,7 @@ class VaultPatternAdapter:
             except Exception as e:
                 logger.warning(f"VAULT_PERSIST_FAILED: {e}")
 
-    async def load_patterns(self) -> List[Any]:
+    async def load_patterns(self) -> list[Any]:
         """Load previous patterns from vault."""
         try:
             if not hasattr(self.mcp, "find_relevant_context"):
@@ -422,7 +420,7 @@ class VaultPatternAdapter:
             logger.warning(f"VAULT_LOAD_FAILED: {e}")
             return []
 
-    def _deserialize_patterns(self, records: List[Dict]) -> List[Any]:
+    def _deserialize_patterns(self, records: list[dict]) -> list[Any]:
         """Convert vault records back to pattern objects."""
         from cohezion.compound.proactive_reactive_engine import WorkloadPattern
 
@@ -478,9 +476,9 @@ class DynamicSystemCoordinator:
     def __init__(
         self,
         mcp_client: MCPClient,
-        backend_router: Optional[ComputeBackendRouter] = None,
-        pool_manager: Optional[ModelPoolManager] = None,
-        cost_router: Optional[CostAwareRouter] = None,
+        backend_router: ComputeBackendRouter | None = None,
+        pool_manager: ModelPoolManager | None = None,
+        cost_router: CostAwareRouter | None = None,
     ):
         self.mcp = mcp_client
 
@@ -490,8 +488,8 @@ class DynamicSystemCoordinator:
         self.cost_router = cost_router or CostAwareRouter()
 
         # These will be set in initialize()
-        self.proactive_engine: Optional[ProactiveReactiveEngine] = None
-        self.adapters: Dict[str, Any] = {}
+        self.proactive_engine: ProactiveReactiveEngine | None = None
+        self.adapters: dict[str, Any] = {}
 
     async def initialize(self, enable_proactive: bool = True, enable_reactive: bool = True):
         """Initialize dynamic system with all adapters."""
@@ -542,7 +540,7 @@ class DynamicSystemCoordinator:
                 # Apply to engine
                 self.proactive_engine._detected_patterns.extend(patterns)
 
-    async def execute(self, task: str, context: Optional[Dict] = None, **kwargs) -> Any:
+    async def execute(self, task: str, context: dict | None = None, **kwargs) -> Any:
         """Execute task with full dynamic system."""
         if not self.proactive_engine:
             raise RuntimeError("Coordinator not initialized. Call initialize() first.")
@@ -567,7 +565,7 @@ class DynamicSystemCoordinator:
 
         return result
 
-    def get_available_backends(self) -> List[BackendType]:
+    def get_available_backends(self) -> list[BackendType]:
         """Get backends respecting circuit breakers."""
         circuit_adapter = self.adapters.get("circuit")
         if circuit_adapter:

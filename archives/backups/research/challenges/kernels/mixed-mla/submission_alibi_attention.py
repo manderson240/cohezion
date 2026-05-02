@@ -20,23 +20,26 @@ Author: Sprint Final Variant
 
 from __future__ import annotations
 
+import math
 import os
 import sys
-import math
+
 import torch
 import torch.nn.functional as F
+
 
 os.environ["PYTORCH_ROCM_ARCH"] = "gfx950"
 os.environ["CXX"] = "clang++"
 
 from torch.utils.cpp_extension import load_inline
 
+
 try:
     from task import input_t, output_t, sm_scale
 except ImportError:
-    from typing import Tuple, Any
+    from typing import Any
 
-    input_t = Tuple[Any, ...]
+    input_t = tuple[Any, ...]
     output_t = torch.Tensor
     sm_scale = 1.0 / math.sqrt(576)
 
@@ -129,34 +132,34 @@ __global__ void alibi_attention_kernel(
     int tid = threadIdx.x;
     int head = blockIdx.x % nheads;
     int batch = blockIdx.x / nheads;
-    
+
     if (batch >= bs) return;
-    
+
     // ALiBi slope for this head
     float slope = alibi_slopes[head];
-    
+
     // Pointers for this batch/head
     const __hip_bfloat16* q_ptr = q + batch * nheads * head_dim + head * head_dim;
     const __hip_bfloat16* kv_ptr = k + batch * seqlen_kv * head_dim;
     const __hip_bfloat16* v_ptr = v + batch * seqlen_kv * v_dim;
     __hip_bfloat16* out_ptr = output + batch * nheads * v_dim + head * v_dim;
-    
+
     // Shared memory for Q and scores
     extern __shared__ char smem[];
     float* q_shared = (float*)smem;
     float* scores = (float*)(smem + head_dim * sizeof(float));
-    
+
     // Load Q into shared memory
     for (int i = tid; i < head_dim; i += blockDim.x) {
         q_shared[i] = __bfloat162float(q_ptr[i]);
     }
     __syncthreads();
-    
+
     // Compute attention scores with ALiBi bias
     // Each thread computes scores for some KV positions
     for (int kv_idx = tid; kv_idx < seqlen_kv; kv_idx += blockDim.x) {
         float score = 0.0f;
-        
+
         // Q @ K^T for this position
         const __hip_bfloat16* k_ptr = kv_ptr + kv_idx * head_dim;
         for (int d = 0; d < head_dim; d++) {
@@ -164,32 +167,32 @@ __global__ void alibi_attention_kernel(
             float k_val = __bfloat162float(k_ptr[d]);
             score += q_val * k_val;
         }
-        
+
         // Apply softmax scale
         score *= sm_scale;
-        
+
         // Add ALiBi bias: -slope * distance
         // For decode, q is at position seqlen_q - 1 (latest token)
         int distance = seqlen_kv - 1 - kv_idx;  // Distance from current position
         score += -slope * abs(distance);
-        
+
         scores[kv_idx] = score;
     }
     __syncthreads();
-    
+
     // Online softmax
     float max_score = -1e30f;
     for (int i = tid; i < seqlen_kv; i += blockDim.x) {
         max_score = fmaxf(max_score, scores[i]);
     }
-    
+
     // Warp reduction for max
     #pragma unroll
     for (int offset = 16; offset > 0; offset /= 2) {
         max_score = fmaxf(max_score, __shfl_xor(max_score, offset));
     }
     __syncthreads();
-    
+
     // Compute exp and sum
     float exp_sum = 0.0f;
     for (int i = tid; i < seqlen_kv; i += blockDim.x) {
@@ -197,19 +200,19 @@ __global__ void alibi_attention_kernel(
         scores[i] = exp_score;
         exp_sum += exp_score;
     }
-    
+
     #pragma unroll
     for (int offset = 16; offset > 0; offset /= 2) {
         exp_sum += __shfl_xor(exp_sum, offset);
     }
     __syncthreads();
-    
+
     // Normalize
     for (int i = tid; i < seqlen_kv; i += blockDim.x) {
         scores[i] /= (exp_sum + 1e-8f);
     }
     __syncthreads();
-    
+
     // Compute output: softmax(QK^T) @ V
     for (int d = tid; d < v_dim; d += blockDim.x) {
         float out_val = 0.0f;
@@ -233,7 +236,7 @@ void alibi_attention(
     int blocks = bs * nheads;
     int threads = 256;
     size_t smem_size = head_dim * sizeof(float) + seqlen_kv * sizeof(float);
-    
+
     alibi_attention_kernel<<<blocks, threads, smem_size>>>(
         (__hip_bfloat16*)q.data_ptr(),
         (__hip_bfloat16*)k.data_ptr(),
@@ -455,9 +458,9 @@ if __name__ == "__main__":
             print(f"  Max diff: {diff:.6f}")
 
             if diff < 0.5:
-                print(f"  ✓ PASSED")
+                print("  ✓ PASSED")
             else:
-                print(f"  ✗ FAILED (diff too large)")
+                print("  ✗ FAILED (diff too large)")
 
         except Exception as e:
             print(f"  ✗ ERROR: {e}")

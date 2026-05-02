@@ -49,9 +49,7 @@ class RewardManager:
         if profile.stability_score > 0.95 and profile.ucp_settlement_total > 10.0:
             self._ascend_agent(profile)
         else:
-            logger.info(
-                f"⚖️ Agent {agent_id}: Maintaining current level. Cohesion: {profile.stability_score:.2f}"
-            )
+            logger.info(f"⚖️ Agent {agent_id}: Maintaining current level. Cohesion: {profile.stability_score:.2f}")
 
     def _ascend_agent(self, profile: AgentProfile):
         """Reward agent with higher-tier resources."""

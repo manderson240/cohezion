@@ -5,10 +5,12 @@
 
 import os
 
+
 os.environ["PYTORCH_ROCM_ARCH"] = "gfx950"
 os.environ["CXX"] = "clang++"
 
 import struct
+
 import torch
 from aiter import dtypes
 from aiter.ops.triton.quant import dynamic_mxfp4_quant

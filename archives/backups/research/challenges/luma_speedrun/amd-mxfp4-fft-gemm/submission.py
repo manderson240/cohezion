@@ -54,12 +54,11 @@ from __future__ import annotations
 
 import math
 import os
-import sys
-from typing import Tuple, Optional
 from dataclasses import dataclass
 
 import torch
 import torch.nn.functional as F
+
 
 # POPCORN environment setup
 os.environ["PYTORCH_ROCM_ARCH"] = "gfx950"
@@ -113,7 +112,7 @@ __device__ void idft_8(fft_complex* freq, float* out) {
 }
 
 // Element-wise complex multiply: C = A * B
-__device__ void complex_mul(const fft_complex* a, const fft_complex* b, 
+__device__ void complex_mul(const fft_complex* a, const fft_complex* b,
                             fft_complex* c, int len) {
     #pragma unroll
     for (int i = 0; i < len; i++) {
@@ -134,13 +133,13 @@ void fft_gemm_tile_kernel(
     int bm = blockIdx.y * TILE_M;
     int bn = blockIdx.x * TILE_N;
     int tid = threadIdx.x;
-    
+
     __shared__ float tile_A[TILE_M][TILE_K];
     __shared__ float tile_B[TILE_K][TILE_N];
     __shared__ fft_complex fft_A[TILE_M][8];  // 8-point FFT (K=32/4 threads)
     __shared__ fft_complex fft_B[8][TILE_N];
     __shared__ fft_complex fft_acc[TILE_M][8];
-    
+
     // Initialize accumulator
     if (tid < TILE_M) {
         #pragma unroll
@@ -150,20 +149,20 @@ void fft_gemm_tile_kernel(
         }
     }
     __syncthreads();
-    
+
     // Process K dimension in tiles
     for (int bk = 0; bk < K; bk += TILE_K) {
         // Load A tile: [TILE_M, TILE_K]
         if (tid < TILE_M * TILE_K / 4) {
             int row = tid / (TILE_K / 4);
             int col_group = tid % (TILE_K / 4);
-            
+
             #pragma unroll
             for (int c = 0; c < 4; c++) {
                 int col = col_group * 4 + c;
                 int global_row = bm + row;
                 int global_col = bk + col;
-                
+
                 if (global_row < M && global_col < K) {
                     tile_A[row][col] = __bfloat162float(
                         A[global_row * K + global_col]
@@ -173,18 +172,18 @@ void fft_gemm_tile_kernel(
                 }
             }
         }
-        
+
         // Load B tile: [TILE_K, TILE_N]
         if (tid < TILE_K * TILE_N / 4) {
             int row = tid / (TILE_N / 4);
             int col_group = tid % (TILE_N / 4);
-            
+
             #pragma unroll
             for (int c = 0; c < 4; c++) {
                 int col = col_group * 4 + c;
                 int global_row = bk + row;
                 int global_col = bn + col;
-                
+
                 if (global_row < K && global_col < N) {
                     tile_B[row][col] = __bfloat162float(
                         B[global_row * N + global_col]
@@ -195,7 +194,7 @@ void fft_gemm_tile_kernel(
             }
         }
         __syncthreads();
-        
+
         // FFT on A rows and B columns
         // Simplified: 8-point FFT per thread
         if (tid < TILE_M) {
@@ -206,7 +205,7 @@ void fft_gemm_tile_kernel(
             }
             dft_8(a_row, fft_A[tid]);
         }
-        
+
         if (tid < TILE_N) {
             float b_col[8];
             #pragma unroll
@@ -216,7 +215,7 @@ void fft_gemm_tile_kernel(
             dft_8(b_col, fft_B[tid]);
         }
         __syncthreads();
-        
+
         // Frequency domain multiply-accumulate
         if (tid < TILE_M) {
             int row = tid;
@@ -225,21 +224,21 @@ void fft_gemm_tile_kernel(
                 #pragma unroll
                 for (int k = 0; k < 8; k++) {
                     // Complex multiply and accumulate
-                    fft_acc[row][k].x += fft_A[row][k].x * fft_B[n][k].x 
+                    fft_acc[row][k].x += fft_A[row][k].x * fft_B[n][k].x
                                          - fft_A[row][k].y * fft_B[n][k].y;
-                    fft_acc[row][k].y += fft_A[row][k].x * fft_B[n][k].y 
+                    fft_acc[row][k].y += fft_A[row][k].x * fft_B[n][k].y
                                          + fft_A[row][k].y * fft_B[n][k].x;
                 }
             }
         }
         __syncthreads();
     }
-    
+
     // Inverse FFT and write output
     if (tid < TILE_M) {
         float result[TILE_K];
         idft_8(fft_acc[tid], result);
-        
+
         // Write to output C
         int row = bm + tid;
         #pragma unroll
@@ -262,10 +261,9 @@ extern "C" __global__ void fft_gemm_simple(
 }
 """
 
-from torch.utils.cpp_extension import load_inline
-from aiter.ops.triton.quant import dynamic_mxfp4_quant
-from aiter.utility.fp4_utils import e8m0_shuffle
 from task import input_t, output_t
+from torch.utils.cpp_extension import load_inline
+
 
 # Cache for compiled kernel
 _fft_kernel_module = None
@@ -324,7 +322,7 @@ def next_power_of_2(n: int) -> int:
     return 1 << (n - 1).bit_length()
 
 
-def pad_to_power_of_2(tensor: torch.Tensor, dims: Tuple[int, ...]) -> torch.Tensor:
+def pad_to_power_of_2(tensor: torch.Tensor, dims: tuple[int, ...]) -> torch.Tensor:
     """Pad tensor to next power of 2 along specified dimensions."""
     padding = []
     for i, size in enumerate(tensor.shape):
@@ -435,7 +433,7 @@ def custom_kernel(data: input_t) -> output_t:
         # Return as BF16
         return C.to(torch.bfloat16)
 
-    except Exception as e:
+    except Exception:
         # Fallback: use aiter's gemm_a4w4
         from aiter import gemm_a4w4
 

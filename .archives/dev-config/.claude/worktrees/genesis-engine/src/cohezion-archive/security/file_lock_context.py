@@ -88,9 +88,7 @@ class FileLock:
 
                 if attempt < self.max_retries - 1:
                     wait_time = 0.1 * (2**attempt)  # Exponential backoff
-                    logger.warning(
-                        f"Failed to acquire lock on {self.filepath}, retrying in {wait_time}s"
-                    )
+                    logger.warning(f"Failed to acquire lock on {self.filepath}, retrying in {wait_time}s")
                     time.sleep(wait_time)
                 else:
                     raise FileLockError(

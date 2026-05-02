@@ -42,10 +42,10 @@ from __future__ import annotations
 
 import os
 import sys
-from typing import Optional
 
 import torch
 from torch.utils.cpp_extension import load_inline
+
 
 os.environ["PYTORCH_ROCM_ARCH"] = "gfx950"
 os.environ["CXX"] = "clang++"

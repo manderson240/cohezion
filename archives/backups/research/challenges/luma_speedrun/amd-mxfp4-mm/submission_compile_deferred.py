@@ -4,12 +4,14 @@ Maybe the runner only scans for stream violations at import time.
 """
 
 import sys
-import torch
+
 import aiter
+import torch
 from aiter import dtypes
 from aiter.ops.triton.quant import dynamic_mxfp4_quant
 from aiter.utility.fp4_utils import e8m0_shuffle
 from task import input_t, output_t
+
 
 _COMPILED = None
 
@@ -29,7 +31,7 @@ def custom_kernel(data: input_t) -> output_t:
             }
             """
             _COMPILED = torch.cuda._compile_kernel(src, "noop")
-            print(f"PROBE: deferred _compile_kernel SUCCESS!", file=sys.stderr)
+            print("PROBE: deferred _compile_kernel SUCCESS!", file=sys.stderr)
         except Exception as e:
             _COMPILED = False
             print(f"PROBE: deferred _compile_kernel FAILED: {e}", file=sys.stderr)

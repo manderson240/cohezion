@@ -43,7 +43,10 @@ logging.basicConfig(
     handlers=[
         logging.StreamHandler(sys.stdout),
         logging.FileHandler(
-            Path.home() / ".cohezion-research" / "logs" / f"lhao_{datetime.now().strftime('%Y%m%d')}.log"
+            Path.home()
+            / ".cohezion-research"
+            / "logs"
+            / f"lhao_{datetime.now().strftime('%Y%m%d')}.log"
         ),
     ],
 )
@@ -55,15 +58,16 @@ ARC_SOLVER = COHEZION_ROOT / "kaggle-dataset" / "arc_solver.py"
 ARC_EVAL = COHEZION_ROOT / "kaggle-dataset" / "arc_eval_tasks.json"
 KSEARCH_DIR = Path.home() / ".cohezion-research" / "ksearch"
 LHAO_STATE = Path.home() / ".cohezion-research" / "lhao_state.json"
-BUDGET_SECONDS = 300        # 5 minutes per experiment
-ITERATIONS_PER_RUN = 3      # ~15 minutes total per cron invocation
-UCB_C = math.sqrt(2)        # Exploration constant
+BUDGET_SECONDS = 300  # 5 minutes per experiment
+ITERATIONS_PER_RUN = 3  # ~15 minutes total per cron invocation
+UCB_C = math.sqrt(2)  # Exploration constant
 
 # Model endpoints
 OLLAMA_URL = "http://localhost:11434/api/generate"
 LEMONADE_URL = "http://localhost:13307/v1/chat/completions"
 
 # ── K-Search Tree ──────────────────────────────────────────────────
+
 
 @dataclass
 class ExperimentOutcome:
@@ -91,8 +95,7 @@ def _load_tree(hypotheses: list[str]) -> dict:
         "total_trials": 0,
         "best_score": 0.0,
         "nodes": {
-            h: {"hypothesis": h, "wins": 0, "trials": 0, "metric_values": []}
-            for h in hypotheses
+            h: {"hypothesis": h, "wins": 0, "trials": 0, "metric_values": []} for h in hypotheses
         },
     }
     return tree
@@ -135,12 +138,18 @@ def _update_tree(tree: dict, outcome: ExperimentOutcome, reward: float) -> None:
 
 # ── Local LLM Inference ──────────────────────────────────────────
 
+
 def _ollama_generate(prompt: str, model: str = "phi4:latest", max_tokens: int = 2048) -> str:
     """Fast CPU fallback via Ollama."""
     try:
         resp = requests.post(
             OLLAMA_URL,
-            json={"model": model, "prompt": prompt, "stream": False, "options": {"num_predict": max_tokens, "temperature": 0.3}},
+            json={
+                "model": model,
+                "prompt": prompt,
+                "stream": False,
+                "options": {"num_predict": max_tokens, "temperature": 0.3},
+            },
             timeout=60,
         )
         return resp.json().get("response", "")
@@ -157,7 +166,10 @@ def _lemonade_generate(prompt: str, max_tokens: int = 2048) -> str:
             json={
                 "model": "gemma-4-e4b",
                 "messages": [
-                    {"role": "system", "content": "You are a reasoning specialist for ARC-AGI pattern recognition. Think step-by-step and explain your reasoning."},
+                    {
+                        "role": "system",
+                        "content": "You are a reasoning specialist for ARC-AGI pattern recognition. Think step-by-step and explain your reasoning.",
+                    },
                     {"role": "user", "content": prompt},
                 ],
                 "max_tokens": max_tokens,
@@ -258,7 +270,10 @@ def _parse_hypothesis_to_config(hypothesis: str) -> dict[str, Any]:
 
 # ── ARC Evaluation ─────────────────────────────────────────────────
 
-def _evaluate_solver(eval_tasks_path: Path, solver_code: str, timeout: int = 60) -> tuple[float, str]:
+
+def _evaluate_solver(
+    eval_tasks_path: Path, solver_code: str, timeout: int = 60
+) -> tuple[float, str]:
     """Run solver against eval tasks and compute solve rate."""
     solver_path = Path(f"/tmp/lhao_solver_{uuid.uuid4().hex[:8]}.py")
     solver_path.write_text(solver_code)
@@ -295,6 +310,7 @@ def _metric_to_reward(solve_rate: float) -> float:
 
 
 # ── State Persistence ─────────────────────────────────────────────
+
 
 @dataclass
 class LHAOState:
@@ -355,7 +371,11 @@ def _load_or_generate_hypotheses() -> list[str]:
         # Use LLM to propose new hypotheses based on what's working
         tree = _load_tree([])
         winners = [h for h, n in tree.get("nodes", {}).items() if n.get("wins", 0) > 0]
-        losers = [h for h, n in tree.get("nodes", {}).items() if n.get("trials", 0) > 2 and n.get("wins", 0) == 0]
+        losers = [
+            h
+            for h, n in tree.get("nodes", {}).items()
+            if n.get("trials", 0) > 2 and n.get("wins", 0) == 0
+        ]
 
         prompt = f"""Working hypotheses (high reward): {winners}
 Failed hypotheses (0 reward after 2+ trials): {losectors}
@@ -392,7 +412,7 @@ def run_lhao(iterations: int = ITERATIONS_PER_RUN) -> list[ExperimentOutcome]:
 
     for i in range(iterations):
         hypothesis = _ucb1_select(tree)
-        _LOGGER.info(f"Iteration {i+1}/{iterations}: testing hypothesis='{hypothesis}'")
+        _LOGGER.info(f"Iteration {i + 1}/{iterations}: testing hypothesis='{hypothesis}'")
 
         start = time.perf_counter()
 
@@ -406,7 +426,13 @@ def run_lhao(iterations: int = ITERATIONS_PER_RUN) -> list[ExperimentOutcome]:
         solve_rate, logs = _evaluate_solver(ARC_EVAL, variant_code, timeout=BUDGET_SECONDS)
         wall_time = time.perf_counter() - start
 
-        status = "improvement" if solve_rate > state.best_solve_rate else "regression" if solve_rate > 0 else "error"
+        status = (
+            "improvement"
+            if solve_rate > state.best_solve_rate
+            else "regression"
+            if solve_rate > 0
+            else "error"
+        )
 
         outcome = ExperimentOutcome(
             run_id=f"lhao_{uuid.uuid4().hex[:8]}",
@@ -493,7 +519,9 @@ if __name__ == "__main__":
     import argparse
 
     parser = argparse.ArgumentParser(description="Long-Horizon AutoResearch Orchestrator")
-    parser.add_argument("--iterations", type=int, default=ITERATIONS_PER_RUN, help="Experiments per invocation")
+    parser.add_argument(
+        "--iterations", type=int, default=ITERATIONS_PER_RUN, help="Experiments per invocation"
+    )
     parser.add_argument("--no-eval", action="store_true", help="Skip solver evaluation (dry run)")
     parser.add_argument("--vault", action="store_true", default=True, help="Persist to vault")
     args = parser.parse_args()

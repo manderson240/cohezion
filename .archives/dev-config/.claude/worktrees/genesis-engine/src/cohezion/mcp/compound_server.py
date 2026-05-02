@@ -50,9 +50,7 @@ learning_loop = ExperientialLearningLoop()
 
 
 @mcp.tool()
-async def compound_start_session(
-    max_cache_entries: int = 256, enable_persistence: bool = True
-) -> dict[str, Any]:
+async def compound_start_session(max_cache_entries: int = 256, enable_persistence: bool = True) -> dict[str, Any]:
     """Start a compound session with warm-start from vault.
 
     Args:
@@ -246,9 +244,7 @@ async def multiperspective_review(proposal: str) -> dict[str, Any]:
                 "blue_process_optimizations": review["blue"],
                 "green_alternatives": review["green"],
                 "yellow_risks": review["yellow"],
-                "ralph_findings": [
-                    {"severity": f.severity, "description": f.description} for f in review["ralph"]
-                ],
+                "ralph_findings": [{"severity": f.severity, "description": f.description} for f in review["ralph"]],
             },
         }
 
@@ -395,6 +391,7 @@ async def skill_refinement_apply(skill_name: str, refinement_type: str) -> dict[
 async def check_redis_health() -> dict[str, Any]:
     """Check Redis connection health on startup."""
     import os
+
     import redis.asyncio as redis
 
     redis_url = os.environ.get("REDIS_URL", "redis://localhost:6379")

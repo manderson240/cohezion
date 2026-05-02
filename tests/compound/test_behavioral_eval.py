@@ -5,7 +5,6 @@ from __future__ import annotations
 import pytest
 
 from cohezion.compound.behavioral_eval import (
-    BehavioralEvalReport,
     BehavioralEvaluator,
     BehaviorProperty,
     BehaviorTestResult,

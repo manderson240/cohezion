@@ -1,5 +1,5 @@
-import os
 import json
+import os
 import subprocess
 import sys
 
@@ -8,8 +8,8 @@ import sys
 def ensure_deps():
     try:
         import bluequbit
-        import qiskit
         import dotenv
+        import qiskit
     except ImportError:
         print("📦 Installing missing dependencies (bluequbit, qiskit, python-dotenv)...")
         subprocess.check_call(
@@ -19,7 +19,6 @@ def ensure_deps():
 
 ensure_deps()
 
-from batch_solver import BatchSolver
 from solve_peaked_circuit import solve_peaked_circuit
 
 
@@ -43,7 +42,7 @@ def run_free_tier_sprint():
     # Load existing results if they exist
     results = {}
     if os.path.exists("conductor/tracks/yale_peaked_20260404/interim_results.json"):
-        with open("conductor/tracks/yale_peaked_20260404/interim_results.json", "r") as f:
+        with open("conductor/tracks/yale_peaked_20260404/interim_results.json") as f:
             results = json.load(f)
 
     # PROBLEMS TO RUN
@@ -64,7 +63,7 @@ def run_free_tier_sprint():
     for p in ["P9", "P10"]:
         run_queue.append((p, all_problems[p], "mps.cpu", 16))
 
-    print(f"🚀 Starting Extended Refinement Sprint (P5-P10) with Bootstrap Majority Voting...")
+    print("🚀 Starting Extended Refinement Sprint (P5-P10) with Bootstrap Majority Voting...")
 
     from concurrent.futures import ThreadPoolExecutor, as_completed
 
@@ -100,7 +99,7 @@ def run_free_tier_sprint():
             except Exception as e:
                 print(f"❌ Error in {name}: {e}")
 
-    print(f"\n✅ Targeted Free Tier Baseline Sprint Complete.")
+    print("\n✅ Targeted Free Tier Baseline Sprint Complete.")
 
 
 if __name__ == "__main__":

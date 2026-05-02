@@ -12,19 +12,18 @@ Purpose:
 import sys
 from pathlib import Path
 
+
 sys.path.insert(0, str(Path(__file__).parent / "code_templates"))
 
-import time
 import json
+import time
 from datetime import datetime
-from typing import Dict, List, Tuple
 
-from dotenv import load_dotenv
 import bluequbit
 import qiskit
-
 from circuit_library import CircuitLibrary
-from heavy_output_detection import find_heavy_output, calculate_snr
+from dotenv import load_dotenv
+from heavy_output_detection import calculate_snr, find_heavy_output
 from submission_pipeline import SubmissionPipeline
 
 
@@ -49,14 +48,14 @@ class PracticeEnvironment:
         self.lib = CircuitLibrary()
         self.pipeline = SubmissionPipeline(log_file=f"practice_{challenge_id}.jsonl")
 
-        self.results: List[Dict] = []
+        self.results: list[dict] = []
 
         print(f"✓ PracticeEnvironment initialized for challenge: {challenge_id}")
 
     def run_practice_session(self):
         """Run comprehensive practice session."""
         print("\n" + "=" * 70)
-        print(f"BlueQubit Practice Session")
+        print("BlueQubit Practice Session")
         print(f"Challenge: {self.challenge_id}")
         print("=" * 70)
 
@@ -78,7 +77,7 @@ class PracticeEnvironment:
                 print(f"✓ {module_name} complete")
             except Exception as e:
                 print(f"⚠ {module_name} issue: {e}")
-                print(f"  (Non-critical, continuing...)")
+                print("  (Non-critical, continuing...)")
 
         # Generate practice report
         self._generate_practice_report()
@@ -99,7 +98,7 @@ class PracticeEnvironment:
 
         counts = result.get_counts()
 
-        print(f"   ✓ Connection successful")
+        print("   ✓ Connection successful")
         print(f"   ✓ 2-qubit circuit executed in {elapsed:.2f}s")
         print(f"   ✓ Results: {len(counts)} states")
 
@@ -201,7 +200,7 @@ class PracticeEnvironment:
 
         # Print scaling analysis
         if len(benchmarks) >= 2:
-            print(f"\n   Performance Summary:")
+            print("\n   Performance Summary:")
             for b in benchmarks:
                 print(
                     f"     {b['size']:10} {b['qubits']:2}q: {b['runtime']:6.2f}s ({b['shots']} shots)"
@@ -223,12 +222,12 @@ class PracticeEnvironment:
         result = self.pipeline.submit_and_extract(qc, device="mps.cpu", shots=10000, threshold=0.4)
 
         if result.bitstring:
-            print(f"   ✓ Submission complete")
+            print("   ✓ Submission complete")
             print(f"   ✓ Heavy output: {result.bitstring}")
             print(f"   ✓ Probability: {result.probability:.6f}")
             print(f"   ✓ SNR: {result.snr:.2f} sigma")
         else:
-            print(f"   ⚠ No heavy output found")
+            print("   ⚠ No heavy output found")
 
     def _generate_practice_report(self):
         """Generate practice session report."""

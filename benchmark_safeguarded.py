@@ -46,17 +46,12 @@ class SafeguardedBenchmark:
     def check_temperature(self) -> tuple[bool, float]:
         """Check GPU temperature. Returns (safe, temp)."""
         try:
-            result = subprocess.run(
-                ["rocm-smi", "-t"],
-                capture_output=True,
-                text=True,
-                timeout=5
-            )
+            result = subprocess.run(["rocm-smi", "-t"], capture_output=True, text=True, timeout=5)
             # Parse temperature from output
-            for line in result.stdout.split('\n'):
-                if 'Temperature' in line:
+            for line in result.stdout.split("\n"):
+                if "Temperature" in line:
                     # Extract number from line like "Temperature: 65.0°C"
-                    temp_str = line.split(':')[1].strip().rstrip('°C').strip()
+                    temp_str = line.split(":")[1].strip().rstrip("°C").strip()
                     temp = float(temp_str)
                     return temp < self.max_temp, temp
             return True, 0.0
@@ -67,9 +62,7 @@ class SafeguardedBenchmark:
         """Check system responsiveness with quick ping."""
         try:
             result = subprocess.run(
-                ["rocm-smi"],
-                capture_output=True,
-                timeout=self.min_responsiveness
+                ["rocm-smi"], capture_output=True, timeout=self.min_responsiveness
             )
             return True
         except subprocess.TimeoutExpired:
@@ -81,7 +74,7 @@ class SafeguardedBenchmark:
         """Cooldown period between tests."""
         print(f"  Cooling down ({seconds}s)...")
         for i in range(seconds, 0, -1):
-            print(f"    {i}s remaining...", end='\r', flush=True)
+            print(f"    {i}s remaining...", end="\r", flush=True)
             time.sleep(1)
         print(" " * 30)  # Clear line
 
@@ -92,26 +85,32 @@ class SafeguardedBenchmark:
     ) -> BenchmarkResult:
         """Benchmark specific concurrency level with safeguards."""
 
-        print(f"\n{'='*60}")
+        print(f"\n{'=' * 60}")
         print(f"Testing concurrency={concurrency}")
-        print(f"{'='*60}")
+        print(f"{'=' * 60}")
 
         # Pre-flight safety checks
         temp_safe, temp = self.check_temperature()
         if not temp_safe:
             return BenchmarkResult(
                 concurrency=concurrency,
-                tps=0, total_tokens=0, wall_time_ms=0,
-                success=False, aborted=True,
-                reason=f"GPU temperature too high ({temp:.1f}°C > {self.max_temp}°C)"
+                tps=0,
+                total_tokens=0,
+                wall_time_ms=0,
+                success=False,
+                aborted=True,
+                reason=f"GPU temperature too high ({temp:.1f}°C > {self.max_temp}°C)",
             )
 
         if not self.system_responsive():
             return BenchmarkResult(
                 concurrency=concurrency,
-                tps=0, total_tokens=0, wall_time_ms=0,
-                success=False, aborted=True,
-                reason="System not responsive before test"
+                tps=0,
+                total_tokens=0,
+                wall_time_ms=0,
+                success=False,
+                aborted=True,
+                reason="System not responsive before test",
             )
 
         print(f"  Pre-flight: Temp={temp:.1f}°C, System responsive ✓")
@@ -120,41 +119,46 @@ class SafeguardedBenchmark:
         start_time = time.monotonic()
         try:
             result = await asyncio.wait_for(
-                self._run_inference(concurrency, num_requests),
-                timeout=self.max_duration
+                self._run_inference(concurrency, num_requests), timeout=self.max_duration
             )
         except TimeoutError:
             return BenchmarkResult(
                 concurrency=concurrency,
-                tps=0, total_tokens=0, wall_time_ms=0,
-                success=False, aborted=True,
-                reason=f"Timeout after {self.max_duration}s"
+                tps=0,
+                total_tokens=0,
+                wall_time_ms=0,
+                success=False,
+                aborted=True,
+                reason=f"Timeout after {self.max_duration}s",
             )
 
         elapsed = time.monotonic() - start_time
         wall_time_ms = elapsed * 1000
 
         # Check results
-        if not result['success']:
+        if not result["success"]:
             return BenchmarkResult(
                 concurrency=concurrency,
-                tps=0, total_tokens=0, wall_time_ms=wall_time_ms,
-                success=False, aborted=True,
-                reason="Inference failures"
+                tps=0,
+                total_tokens=0,
+                wall_time_ms=wall_time_ms,
+                success=False,
+                aborted=True,
+                reason="Inference failures",
             )
 
-        tps = result['tps']
+        tps = result["tps"]
 
         # Check against rollback threshold
         if self.best_result and tps < self.best_result * self.rollback_threshold:
             return BenchmarkResult(
                 concurrency=concurrency,
                 tps=tps,
-                total_tokens=result['total_tokens'],
+                total_tokens=result["total_tokens"],
                 wall_time_ms=wall_time_ms,
                 success=True,
                 aborted=True,
-                reason=f"TPS degraded {tps/self.best_result*100:.1f}% from best"
+                reason=f"TPS degraded {tps / self.best_result * 100:.1f}% from best",
             )
 
         # Update best result
@@ -168,9 +172,9 @@ class SafeguardedBenchmark:
         return BenchmarkResult(
             concurrency=concurrency,
             tps=tps,
-            total_tokens=result['total_tokens'],
+            total_tokens=result["total_tokens"],
             wall_time_ms=wall_time_ms,
-            success=True
+            success=True,
         )
 
     async def _run_inference(
@@ -195,10 +199,7 @@ class SafeguardedBenchmark:
             except:
                 model = "DeepSeek-Qwen3-8B-GGUF"
 
-        prompts = [
-            f"Write a haiku about ML topic {i % 100}."
-            for i in range(num_requests)
-        ]
+        prompts = [f"Write a haiku about ML topic {i % 100}." for i in range(num_requests)]
 
         connector = aiohttp.TCPConnector(limit=concurrency * 2)
 
@@ -212,7 +213,7 @@ class SafeguardedBenchmark:
                         "messages": [{"role": "user", "content": "Say ready"}],
                         "max_tokens": 10,
                     },
-                    timeout=aiohttp.ClientTimeout(total=30)
+                    timeout=aiohttp.ClientTimeout(total=30),
                 )
             except Exception:
                 pass
@@ -221,19 +222,21 @@ class SafeguardedBenchmark:
             start = time.monotonic()
             tasks = []
             for prompt in prompts[:concurrency]:
-                tasks.append(session.post(
-                    f"{base_url}/v1/chat/completions",
-                    json={
-                        "model": model,
-                        "messages": [
-                            {"role": "system", "content": "You are helpful."},
-                            {"role": "user", "content": prompt}
-                        ],
-                        "max_tokens": 40,
-                        "temperature": 0.7,
-                    },
-                    timeout=aiohttp.ClientTimeout(total=120)
-                ))
+                tasks.append(
+                    session.post(
+                        f"{base_url}/v1/chat/completions",
+                        json={
+                            "model": model,
+                            "messages": [
+                                {"role": "system", "content": "You are helpful."},
+                                {"role": "user", "content": prompt},
+                            ],
+                            "max_tokens": 40,
+                            "temperature": 0.7,
+                        },
+                        timeout=aiohttp.ClientTimeout(total=120),
+                    )
+                )
 
             responses = await asyncio.gather(*tasks, return_exceptions=True)
             wall_time = (time.monotonic() - start) * 1000
@@ -244,7 +247,7 @@ class SafeguardedBenchmark:
             for resp in responses:
                 if isinstance(resp, Exception):
                     continue
-                if hasattr(resp, 'json'):
+                if hasattr(resp, "json"):
                     try:
                         data = await resp.json()
                         usage = data.get("usage", {})
@@ -256,10 +259,10 @@ class SafeguardedBenchmark:
             tps = total_tokens / (wall_time / 1000) if wall_time > 0 else 0
 
             return {
-                'success': success_count == concurrency,
-                'tps': tps,
-                'total_tokens': total_tokens,
-                'wall_time_ms': wall_time,
+                "success": success_count == concurrency,
+                "tps": tps,
+                "total_tokens": total_tokens,
+                "wall_time_ms": wall_time,
             }
 
     async def run_safeguarded_sweep(
@@ -275,7 +278,7 @@ class SafeguardedBenchmark:
         print("Guardrails:")
         print(f"  - Max temp: {self.max_temp}°C")
         print(f"  - Max duration: {self.max_duration}s per test")
-        print(f"  - Rollback threshold: {self.rollback_threshold*100:.0f}% of best")
+        print(f"  - Rollback threshold: {self.rollback_threshold * 100:.0f}% of best")
         print("  - Cooldown between tests: 10s")
         print("=" * 70)
 
@@ -290,9 +293,11 @@ class SafeguardedBenchmark:
                 print(f"\n  ⚠️  ABORTED: {result.reason}")
                 break
             else:
-                print(f"\n  ✓ Complete: {result.tps:.1f} TPS, "
-                      f"{result.total_tokens} tokens, "
-                      f"{result.wall_time_ms/1000:.2f}s")
+                print(
+                    f"\n  ✓ Complete: {result.tps:.1f} TPS, "
+                    f"{result.total_tokens} tokens, "
+                    f"{result.wall_time_ms / 1000:.2f}s"
+                )
 
             # Cooldown before next level
             if level != concurrency_levels[-1]:
@@ -307,8 +312,7 @@ class SafeguardedBenchmark:
 
         for r in results:
             status = "ABORTED" if r.aborted else "COMPLETE"
-            print(f"{r.concurrency:>3} {r.tps:>10.1f} "
-                  f"{r.wall_time_ms/1000:>9.2f}s {status:>20}")
+            print(f"{r.concurrency:>3} {r.tps:>10.1f} {r.wall_time_ms / 1000:>9.2f}s {status:>20}")
 
         # Find optimal
         complete = [r for r in results if not r.aborted]

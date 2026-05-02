@@ -209,8 +209,7 @@ async def _run_config_A_claude_only(
         except (TimeoutError, OSError, json.JSONDecodeError) as exc:
             elapsed_ms = (time.perf_counter() - start) * 1000
             sidecar_entries.append(
-                f"--- prompt {i} (python exception) ---\n"
-                f"{type(exc).__name__}: {exc}\n"
+                f"--- prompt {i} (python exception) ---\n{type(exc).__name__}: {exc}\n"
             )
             report.calls.append(
                 CallResult(
@@ -383,8 +382,7 @@ def _validate_output_path(output: Path) -> Path:
         resolved.relative_to(cwd)
     except ValueError as exc:
         raise ValueError(
-            f"--output {output!s} resolves outside cwd ({cwd!s}); "
-            f"only paths under cwd are allowed"
+            f"--output {output!s} resolves outside cwd ({cwd!s}); only paths under cwd are allowed"
         ) from exc
     return resolved
 
@@ -409,9 +407,7 @@ async def main(n_prompts: int, output: Path) -> int:
     stderr_sidecar = output.parent / f"{output.stem}.config_A.stderr.log"
 
     print("--- Config A (Claude-only baseline) ---")
-    configs.append(
-        await _run_config_A_claude_only(prompts, stderr_sidecar=stderr_sidecar)
-    )
+    configs.append(await _run_config_A_claude_only(prompts, stderr_sidecar=stderr_sidecar))
     print(f"    {len(configs[-1].successes)}/{len(prompts)} ok, ${configs[-1].total_cost_usd:.5f}")
     if stderr_sidecar.exists():
         print(f"    stderr sidecar: {stderr_sidecar}")

@@ -22,9 +22,7 @@ if TYPE_CHECKING:
 def _make_experience(**overrides) -> dict:
     """Create a minimal valid experience dict."""
     base = {
-        "trajectory": np.random.default_rng(42)
-        .normal(0.5, 0.15, 12)
-        .astype(np.float32),
+        "trajectory": np.random.default_rng(42).normal(0.5, 0.15, 12).astype(np.float32),
         "mission_id": "test-mission",
         "agent_id": "test-agent",
         "skill_name": "research",
@@ -61,13 +59,9 @@ class TestVAEExperienceTraining:
             vault_dir=tmp_path / "empty2",
         )
 
-        config = TrainConfig(
-            epochs=1, batch_size=32, checkpoint_dir=str(tmp_path / "ckpt")
-        )
+        config = TrainConfig(epochs=1, batch_size=32, checkpoint_dir=str(tmp_path / "ckpt"))
         trainer = FlumeVAETrainer(config)
-        metrics = trainer.train_from_experiences(
-            collector=collector, min_real_samples=5
-        )
+        metrics = trainer.train_from_experiences(collector=collector, min_real_samples=5)
 
         assert len(metrics) == 1  # 1 epoch
         assert "total" in metrics[0]
@@ -77,18 +71,12 @@ class TestVAEExperienceTraining:
         from cohezion.flume.experience_collector import ExperienceCollector
 
         # Create a collector with mock data via direct dataset
-        config = TrainConfig(
-            epochs=1, batch_size=16, checkpoint_dir=str(tmp_path / "ckpt")
-        )
+        config = TrainConfig(epochs=1, batch_size=16, checkpoint_dir=str(tmp_path / "ckpt"))
         trainer = FlumeVAETrainer(config)
 
         # Train with synthetic fallback (no real data)
-        collector = ExperienceCollector(
-            parquet_dir=tmp_path / "np", vault_dir=tmp_path / "nv"
-        )
-        metrics = trainer.train_from_experiences(
-            collector=collector, min_real_samples=1
-        )
+        collector = ExperienceCollector(parquet_dir=tmp_path / "np", vault_dir=tmp_path / "nv")
+        metrics = trainer.train_from_experiences(collector=collector, min_real_samples=1)
 
         assert len(metrics) == 1
         assert metrics[0]["total"] > 0

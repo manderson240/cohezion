@@ -35,8 +35,9 @@ with context.enter(chat=chats.Chat()) as ctx:
 
 import contextlib
 import dataclasses
+from collections.abc import Iterator
 from contextvars import ContextVar
-from typing import Iterator, Self
+from typing import Self
 
 from kaggle_benchmarks import chats, events, runs, utils
 from kaggle_benchmarks.tasks import NonRecoverableError
@@ -77,10 +78,7 @@ def enter(**kwargs) -> Iterator[Context]:
     except Exception:
         status = utils.Status.FAILED
         # Re-raise it if we are within a run so the exception can be propagated.
-        if parent and parent.run:
-            raise
-        # At root run, optionally re-raise based on config.
-        elif not config.continue_with_exceptions:
+        if (parent and parent.run) or not config.continue_with_exceptions:
             raise
 
     finally:

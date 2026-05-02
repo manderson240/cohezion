@@ -40,17 +40,12 @@ This is a research kernel exploring blocked memory layouts for MLA.
 
 from __future__ import annotations
 
-import os
-import math
-from typing import Any
-
 import torch
-from torch.utils.cpp_extension import load_inline
-
 from aiter import dtypes as aiter_dtypes
-from aiter.mla import mla_decode_fwd, mla_decode_stage1_asm_fwd, mla_reduce_v1
 from reference import ref_kernel
 from task import input_t, output_t
+from torch.utils.cpp_extension import load_inline
+
 
 # Constants
 SM_SCALE = 1.0 / (576**0.5)
@@ -137,25 +132,25 @@ void tiled_mla_attention_kernel(
     const int bid = blockIdx.x;
     const int wid = tid / WARP_SIZE;
     const int lid = tid % WARP_SIZE;
-    
+
     // Each block handles one (batch, query position, head group)
     int batch_idx = bid / qseqlen;
     int q_pos = bid % qseqlen;
-    
+
     if (batch_idx >= bs) return;
-    
+
     int q_idx = batch_idx * qseqlen + q_pos;
-    
+
     // Get KV range for this batch
     int kv_start = kv_indptr[batch_idx];
     int kv_end = kv_indptr[batch_idx + 1];
     int kv_len = kv_end - kv_start;
-    
+
     // Shared memory for tile loading
     __shared__ float q_cache[HEAD_DIM];
     __shared__ float k_tile[TILE_SEQ * TILE_K];
     __shared__ float v_tile[TILE_SEQ * V_DIM];
-    
+
     // Each warp handles one head
     for (int head = wid; head < nheads; head += blockDim.x / WARP_SIZE) {
         // Load Q into shared memory (cooperative load)
@@ -164,96 +159,96 @@ void tiled_mla_attention_kernel(
             q_cache[d] = fp8_to_f32(q_val) * q_scale[0];
         }
         __syncthreads();
-        
+
         // Process KV tiles
         int num_kv_tiles = (kv_len + TILE_SEQ - 1) / TILE_SEQ;
-        
+
         // Accumulators for attention output
         float output_acc[V_DIM];
         float max_score = -1e9f;
         float exp_sum = 0.0f;
-        
+
         #pragma unroll
         for (int i = 0; i < V_DIM; i++) {
             output_acc[i] = 0.0f;
         }
-        
+
         // Iterate over tiles
         for (int tile_idx = 0; tile_idx < num_kv_tiles; tile_idx++) {
             int tile_start = tile_idx * TILE_SEQ;
             int tile_len = min(TILE_SEQ, kv_len - tile_start);
-            
+
             // Load tile into shared memory (cooperative)
             int tile_id = tile_map[batch_idx * num_kv_tiles + tile_idx];
-            
+
             // Load K tile
             for (int pos = tid; pos < tile_len * TILE_K; pos += blockDim.x) {
                 int token_in_tile = pos / TILE_K;
                 int k_in_tile = pos % TILE_K;
-                
+
                 int kv_pos = tile_start + token_in_tile;
                 int kv_head = head / (nheads / num_kv_heads);
-                
+
                 // Access tiled memory layout
                 int tile_offset = tile_id * TILE_SEQ * HEAD_DIM;
                 int kv_offset = tile_offset + token_in_tile * HEAD_DIM + k_in_tile;
-                
+
                 uint8_t k_val = kv_tiles[kv_offset];
                 k_tile[pos] = fp8_to_f32(k_val) * kv_scale[0];
             }
-            
+
             // Load V tile (V_DIM part)
             for (int pos = tid; pos < tile_len * V_DIM; pos += blockDim.x) {
                 int token_in_tile = pos / V_DIM;
                 int v_in_tile = pos % V_DIM;
-                
+
                 int tile_offset = tile_id * TILE_SEQ * V_DIM;
                 int v_offset = tile_offset + token_in_tile * V_DIM + v_in_tile;
-                
+
                 uint8_t v_val = kv_tiles[num_tiles * TILE_SEQ * HEAD_DIM + v_offset];
                 v_tile[pos] = fp8_to_f32(v_val) * kv_scale[0];
             }
             __syncthreads();
-            
+
             // Compute attention scores for this tile
             for (int t = 0; t < tile_len; t++) {
                 float score = 0.0f;
-                
+
                 // Q @ K for this token
                 // Each thread computes a partial sum
                 for (int k = lid; k < TILE_K; k += WARP_SIZE) {
                     score += q_cache[k] * k_tile[t * TILE_K + k];
                 }
-                
+
                 // Warp reduction
                 #pragma unroll
                 for (int offset = WARP_SIZE / 2; offset > 0; offset /= 2) {
                     score += __shfl_xor(score, offset);
                 }
-                
+
                 score *= sm_scale;
-                
+
                 // Online softmax update
                 float new_max = fmaxf(max_score, score);
                 float exp_score = expf(score - new_max);
                 float correction = expf(max_score - new_max);
-                
+
                 // Update output with correction
                 #pragma unroll
                 for (int v = 0; v < V_DIM; v++) {
                     output_acc[v] = output_acc[v] * correction + exp_score * v_tile[t * V_DIM + v];
                 }
-                
+
                 exp_sum = exp_sum * correction + exp_score;
                 max_score = new_max;
             }
             __syncthreads();
         }
-        
+
         // Normalize and write output
         float inv_sum = 1.0f / exp_sum;
         for (int v = lid; v < V_DIM; v += WARP_SIZE) {
-            output[q_idx * nheads * V_DIM + head * V_DIM + v] = 
+            output[q_idx * nheads * V_DIM + head * V_DIM + v] =
                 __float2bfloat16(output_acc[v] * inv_sum);
         }
     }
@@ -277,10 +272,10 @@ void tiled_mla_attention(
     float sm_scale
 ) {
     int num_kv_heads = 1;
-    
+
     dim3 grid(bs * qseqlen);
     dim3 threads(256);
-    
+
     tiled_mla_attention_kernel<<<grid, threads>>>(
         (uint8_t*)q.data_ptr(),
         (uint8_t*)kv_tiles.data_ptr(),
@@ -419,7 +414,7 @@ def custom_kernel(data: input_t) -> output_t:
 
             return output
 
-        except Exception as e:
+        except Exception:
             # Fall through to baseline
             pass
 

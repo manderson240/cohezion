@@ -521,9 +521,7 @@ class DailyHealthDigest:
             else:  # CRITICAL
                 health_scores.append(0.0)
 
-        metrics_health = (
-            sum(health_scores) / len(health_scores) if health_scores else 0.5
-        )
+        metrics_health = sum(health_scores) / len(health_scores) if health_scores else 0.5
 
         # Component 3: Trend Improvement (25% weight)
         trend_7d = await self._calculate_trend(days=7)
@@ -672,9 +670,7 @@ class DailyHealthDigest:
 
         return any(check.status == HealthStatus.CRITICAL for check in health_checks)
 
-    def _determine_overall_status(
-        self, overall_score: float, health_checks: list[HealthCheckResult]
-    ) -> HealthStatus:
+    def _determine_overall_status(self, overall_score: float, health_checks: list[HealthCheckResult]) -> HealthStatus:
         """Determine overall health status from score and checks."""
 
         # If any check is CRITICAL, overall is CRITICAL

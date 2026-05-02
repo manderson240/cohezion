@@ -15,6 +15,7 @@ def test_harness_coherence_calculation():
     coherence_noisy = harness.compute_coherence(z_noisy)
     assert coherence_noisy < 1.0
 
+
 def test_hiho_stability_calculation():
     harness = TurboQuantHarness()
     # 0.5 coherence = 1.0 stability
@@ -23,6 +24,7 @@ def test_hiho_stability_calculation():
     assert harness.get_hiho_stability(0.0) == 0.0
     # 1.0 coherence = 0.0 stability (1.0 - abs(1.0-0.5)*2 = 1.0 - 1.0 = 0.0)
     assert harness.get_hiho_stability(1.0) == 0.0
+
 
 def test_verify_quantization_success():
     harness = TurboQuantHarness(tolerance_mae=0.1, tolerance_hiho=0.1)
@@ -33,6 +35,7 @@ def test_verify_quantization_success():
     result = harness.verify_quantization(original, dequantized)
     assert result["success"] is True
     assert result["mae"] < 0.1
+
 
 def test_verify_quantization_failure():
     harness = TurboQuantHarness(tolerance_mae=0.0001, tolerance_hiho=0.0001)

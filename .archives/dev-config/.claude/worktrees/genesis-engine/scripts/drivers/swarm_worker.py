@@ -57,9 +57,7 @@ class SwarmWorker:
 
             # Fallback to generic fetch if no bloat task
             logger.info("No bloat task found. Fetching generic...")
-            result = await self.db.query(
-                "SELECT * FROM swarm_tasks WHERE status = 'pending' LIMIT 1"
-            )
+            result = await self.db.query("SELECT * FROM swarm_tasks WHERE status = 'pending' LIMIT 1")
             if result and isinstance(result, list):
                 if len(result) > 0 and "result" in result[0]:
                     return result[0]["result"]
@@ -76,9 +74,7 @@ class SwarmWorker:
             if "Clean up" in task["description"] and "bloat" in task["description"]:
                 await self.handle_repo_cleanup(task)
             else:
-                logger.info(
-                    f"⚠️ Task type '{task['type']}' requires manual intervention or advanced model."
-                )
+                logger.info(f"⚠️ Task type '{task['type']}' requires manual intervention or advanced model.")
         except Exception as e:
             logger.error(f"Task Execution Failed: {e}")
 
@@ -99,9 +95,7 @@ class SwarmWorker:
         subprocess.run(["git", "add", "-u"], check=False)
 
         # 3. Clean untracked (Dry Run first)
-        logger.info(
-            "🗑️  Cleaning untracked files (git clean -fdX)... service is effectively restarting state."
-        )
+        logger.info("🗑️  Cleaning untracked files (git clean -fdX)... service is effectively restarting state.")
         # Note: -f (force), -d (directories), -X (only ignored files) -> Wait, 8.6M files might be Ignored OR Untracked.
         # If they are NOT in gitignore, -X won't touch them. -x touches ignored too.
         # We want to remove UNTRACKED files that are NOT ignored?

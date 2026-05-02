@@ -6,6 +6,7 @@ This should combine neural pattern recognition with compositional reasoning.
 
 Uses our existing arc_solver.py primitives.
 """
+
 from __future__ import annotations
 
 import json
@@ -16,9 +17,11 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 
+
 # Add arc_solver to path
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
-from arc_solver import get_all_ops, apply_program, grids_equal
+from arc_solver import apply_program, get_all_ops, grids_equal
+
 
 PRIMITIVES = [name for name, _ in get_all_ops([])]
 print(f"Primitives: {len(PRIMITIVES)}: {PRIMITIVES}")
@@ -124,7 +127,7 @@ if __name__ == "__main__":
                 continue
 
         if (i + 1) % 20 == 0:
-            print(f"Progress: {i+1}/{len(task_ids)} — solved {solved}")
+            print(f"Progress: {i + 1}/{len(task_ids)} — solved {solved}")
 
     acc = solved / len(task_ids) * 100
     print(f"\nSolved {solved}/{len(task_ids)} = {acc:.1f}%")

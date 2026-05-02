@@ -11,15 +11,17 @@ Approach: Use fmoe_fp8_blockscale_g1u1 or fmoe_g1u1_a16 API if available.
 """
 
 from __future__ import annotations
+
 import os
+
 
 os.environ["AITER_USE_NT"] = "1"
 
-import torch
 import aiter
 from aiter import ActivationType, QuantType
 from aiter.fused_moe import fused_moe
 from task import input_t, output_t
+
 
 # Probe for alternative MoE APIs
 _alt_moe = None
@@ -53,17 +55,7 @@ def custom_kernel(data: input_t) -> output_t:
     if _alt_moe is not None:
         api_name, fn = _alt_moe
         try:
-            if api_name == "fmoe_fp8_blockscale_g1u1":
-                return fn(
-                    hidden_states,
-                    gate_up_weight_shuffled,
-                    down_weight_shuffled,
-                    topk_weights,
-                    topk_ids,
-                    w1_scale=gate_up_weight_scale_shuffled,
-                    w2_scale=down_weight_scale_shuffled,
-                )
-            elif api_name == "fmoe_g1u1_a16":
+            if api_name == "fmoe_fp8_blockscale_g1u1" or api_name == "fmoe_g1u1_a16":
                 return fn(
                     hidden_states,
                     gate_up_weight_shuffled,

@@ -15,21 +15,23 @@ from __future__ import annotations
 
 import os
 import sys
-import math
+
 import torch
+
 
 os.environ["PYTORCH_ROCM_ARCH"] = "gfx950"
 os.environ["CXX"] = "clang++"
 
 from torch.utils.cpp_extension import load_inline
 
+
 # Import task types
 try:
     from task import input_t, output_t
 except ImportError:
-    from typing import Tuple, Any
+    from typing import Any
 
-    input_t = Tuple[Any, ...]
+    input_t = tuple[Any, ...]
     output_t = torch.Tensor
 
 
@@ -361,9 +363,9 @@ def custom_kernel(data: input_t) -> output_t:
     # Prepare A quantization
     try:
         import aiter
+        from aiter import dtypes
         from aiter.ops.triton.quant import dynamic_mxfp4_quant
         from aiter.utility.fp4_utils import e8m0_shuffle
-        from aiter import dtypes
 
         A_q_fp4, A_scale_e8m0 = dynamic_mxfp4_quant(A.contiguous())
         A_q = A_q_fp4.view(dtypes.fp4x2)
@@ -422,9 +424,9 @@ def ref_kernel(data: input_t) -> output_t:
 
     try:
         import aiter
+        from aiter import dtypes
         from aiter.ops.triton.quant import dynamic_mxfp4_quant
         from aiter.utility.fp4_utils import e8m0_shuffle
-        from aiter import dtypes
 
         A_q, A_scale_e8m0 = dynamic_mxfp4_quant(A.contiguous())
         A_scale_sh = e8m0_shuffle(A_scale_e8m0).view(dtypes.fp8_e8m0)
@@ -486,9 +488,9 @@ if __name__ == "__main__":
             print(f"  Max diff: {diff:.6f}")
 
             if diff < 0.5:
-                print(f"  ✓ PASSED")
+                print("  ✓ PASSED")
             else:
-                print(f"  ✗ FAILED (diff too large)")
+                print("  ✗ FAILED (diff too large)")
 
         except Exception as e:
             print(f"  ✗ ERROR: {e}")

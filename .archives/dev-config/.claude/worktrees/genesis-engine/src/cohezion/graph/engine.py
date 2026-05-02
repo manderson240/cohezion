@@ -166,10 +166,7 @@ class WorkflowEngine:
                             # Skip conditional edges that don't match the route
                             # returned by this node (e.g. LogicSwitchNode).
                             if edge.condition is not None:
-                                route_matches = any(
-                                    v == edge.condition
-                                    for v in result.output.values()
-                                )
+                                route_matches = any(v == edge.condition for v in result.output.values())
                                 if not route_matches:
                                     continue
                             edge_taken = True
@@ -205,9 +202,7 @@ class WorkflowEngine:
             if exit_id in node_results and node_results[exit_id].status == NodeStatus.COMPLETED:
                 final_output.update(node_results[exit_id].output)
 
-        all_completed = all(
-            s in (NodeStatus.COMPLETED, NodeStatus.SKIPPED) for s in node_states.values()
-        )
+        all_completed = all(s in (NodeStatus.COMPLETED, NodeStatus.SKIPPED) for s in node_states.values())
         has_failure = any(s == NodeStatus.FAILED for s in node_states.values())
 
         if has_failure:

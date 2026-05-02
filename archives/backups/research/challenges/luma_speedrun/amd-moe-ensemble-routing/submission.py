@@ -42,9 +42,10 @@ Expected Performance:
 """
 
 from __future__ import annotations
-import os
+
 import math
-from typing import Callable
+import os
+
 
 os.environ["AITER_USE_NT"] = "1"
 
@@ -54,6 +55,7 @@ import torch.nn.functional as F
 from aiter import ActivationType, QuantType
 from aiter.fused_moe import fused_moe
 from task import input_t, output_t
+
 
 # Ensemble configuration
 ENSEMBLE_SIZE = 3  # Number of routers in ensemble

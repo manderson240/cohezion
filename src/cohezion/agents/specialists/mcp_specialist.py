@@ -53,7 +53,5 @@ class MCPSpecialist(PlatformSpecialist):
             ),
         ),
         prime_skill_ref="src/cohezion/skills/mcp-specialist.md",
-        canonical_modules=(
-            "cloud-vault-mcp",
-        ),
+        canonical_modules=("cloud-vault-mcp",),
     )

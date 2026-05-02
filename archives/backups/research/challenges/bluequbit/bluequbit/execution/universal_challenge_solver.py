@@ -14,20 +14,19 @@ Based on all 6 tutorials - combines:
 import sys
 from pathlib import Path
 
+
 sys.path.insert(0, str(Path(__file__).parent))
 
-import time
 import json
-from typing import Dict, List, Tuple, Optional
+import time
 from dataclasses import dataclass
 from enum import Enum
 
-from dotenv import load_dotenv
 import bluequbit
 import qiskit
-
-from peaked_circuit_solver import PeakedCircuitSolver, PeakedCircuitResult
+from dotenv import load_dotenv
 from pauli_path_solver import PauliPathSolver
+from peaked_circuit_solver import PeakedCircuitSolver
 from qaoa_solver import QAOASolver
 
 
@@ -48,7 +47,7 @@ class SubmissionResult:
 
     submission_number: int
     challenge_type: ChallengeType
-    result: Dict
+    result: dict
     confidence: str
     runtime: float
     timestamp: float
@@ -80,14 +79,14 @@ class UniversalChallengeSolver:
         self.bq = bq
         self.max_submissions = max_submissions
         self.used_submissions = 0
-        self.submission_history: List[SubmissionResult] = []
+        self.submission_history: list[SubmissionResult] = []
 
         # Initialize specialized solvers
         self.peaked_solver = PeakedCircuitSolver(bq)
         self.pauli_path_solver = PauliPathSolver(bq)
         self.qaoa_solver = QAOASolver(bq)
 
-        print(f"✓ UniversalChallengeSolver initialized")
+        print("✓ UniversalChallengeSolver initialized")
         print(f"  Max submissions: {max_submissions}")
 
     def detect_challenge_type(
@@ -136,9 +135,9 @@ class UniversalChallengeSolver:
         self,
         circuit: qiskit.QuantumCircuit,
         description: str = "",
-        graph_edges: Optional[List[Tuple[int, int]]] = None,
-        hamiltonian: Optional[List[Tuple[str, float]]] = None,
-    ) -> Dict:
+        graph_edges: list[tuple[int, int]] | None = None,
+        hamiltonian: list[tuple[str, float]] | None = None,
+    ) -> dict:
         """
         Auto-solve challenge.
 
@@ -152,7 +151,7 @@ class UniversalChallengeSolver:
             Solution dictionary
         """
         print(f"\n{'=' * 70}")
-        print(f"Universal Challenge Solver")
+        print("Universal Challenge Solver")
         print(f"{'=' * 70}")
 
         # Detect type
@@ -183,7 +182,7 @@ class UniversalChallengeSolver:
             print("Unknown type - defaulting to peaked circuit strategy")
             return self._solve_peaked(circuit)
 
-    def _solve_peaked(self, circuit: qiskit.QuantumCircuit) -> Dict:
+    def _solve_peaked(self, circuit: qiskit.QuantumCircuit) -> dict:
         """Solve peaked circuit."""
         result = self.peaked_solver.solve(circuit)
 
@@ -198,9 +197,9 @@ class UniversalChallengeSolver:
     def _solve_qaoa(
         self,
         circuit: qiskit.QuantumCircuit,
-        graph_edges: List[Tuple[int, int]],
+        graph_edges: list[tuple[int, int]],
         challenge_type: ChallengeType,
-    ) -> Dict:
+    ) -> dict:
         """Solve QAOA challenge."""
         n_nodes = circuit.num_qubits
 
@@ -217,8 +216,8 @@ class UniversalChallengeSolver:
         }
 
     def _solve_vqe(
-        self, circuit: qiskit.QuantumCircuit, hamiltonian: List[Tuple[str, float]]
-    ) -> Dict:
+        self, circuit: qiskit.QuantumCircuit, hamiltonian: list[tuple[str, float]]
+    ) -> dict:
         """Solve VQE challenge."""
         # Use Pauli-path for fast evaluation
         energy = self.pauli_path_solver.compute_expectation(circuit, hamiltonian)
@@ -226,16 +225,16 @@ class UniversalChallengeSolver:
         return {"type": "vqe", "ground_state_energy": energy}
 
     def _solve_expectation(
-        self, circuit: qiskit.QuantumCircuit, observable: List[Tuple[str, float]]
-    ) -> Dict:
+        self, circuit: qiskit.QuantumCircuit, observable: list[tuple[str, float]]
+    ) -> dict:
         """Solve expectation value challenge."""
         value = self.pauli_path_solver.compute_expectation(circuit, observable)
 
         return {"type": "expectation", "value": value}
 
     def submit_with_validation(
-        self, result: Dict, min_confidence: str = "MEDIUM"
-    ) -> Optional[SubmissionResult]:
+        self, result: dict, min_confidence: str = "MEDIUM"
+    ) -> SubmissionResult | None:
         """
         Submit with validation (respects submission limit).
 
@@ -285,7 +284,7 @@ class UniversalChallengeSolver:
 
         return submission
 
-    def get_submission_summary(self) -> Dict:
+    def get_submission_summary(self) -> dict:
         """Get summary of all submissions."""
         return {
             "used": self.used_submissions,

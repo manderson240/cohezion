@@ -20,14 +20,14 @@ Current: 22.8us | Leader: 4.3us | Target: <10us
 Source: https://rocm.blogs.amd.com/software-tools-optimization/cdna4-gemm-kernels/README.html
 """
 
-import torch
-from torch.utils.cpp_extension import load_inline
-
 import aiter
+import torch
 from aiter import dtypes
 from aiter.ops.triton.quant import dynamic_mxfp4_quant
 from aiter.utility.fp4_utils import e8m0_shuffle
 from task import input_t, output_t
+from torch.utils.cpp_extension import load_inline
+
 
 HIP_SOURCE = r"""
 #include <torch/extension.h>

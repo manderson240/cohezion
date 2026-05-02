@@ -37,9 +37,7 @@ class TestModelSelectionOptimization:
         for query in simple_queries:
             decision, _ = router.select_model(query)
             # Simple queries cannot be downgraded further, so always phi3 or from optimization
-            assert decision.model in ["phi3:mini", "qwen3-coder:32b"], (
-                f"Failed for: {query}"
-            )
+            assert decision.model in ["phi3:mini", "qwen3-coder:32b"], f"Failed for: {query}"
 
     def test_medium_query_optimizes_to_phi3_for_cost(self, router):
         """Test that medium queries may downgrade to phi3 for cost savings."""
@@ -51,9 +49,7 @@ class TestModelSelectionOptimization:
         for query in medium_queries:
             decision, _ = router.select_model(query)
             # Medium queries may optimize to phi3 if TPS acceptable
-            assert decision.model in ["phi3:mini", "qwen3-coder:32b"], (
-                f"Failed for: {query}"
-            )
+            assert decision.model in ["phi3:mini", "qwen3-coder:32b"], f"Failed for: {query}"
 
     def test_complex_query_optimizes_to_faster_model_for_cost(self, router):
         """Test that complex queries may optimize to faster models for cost/efficiency."""

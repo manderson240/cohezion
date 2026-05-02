@@ -56,9 +56,7 @@ async def migrate_journals() -> None:
                 version = f"hist-{h}"
 
                 # Check for existing version
-                res = await client.query(
-                    "SELECT * FROM version_registry WHERE version = $v", {"v": version}
-                )
+                res = await client.query("SELECT * FROM version_registry WHERE version = $v", {"v": version})
                 if res and res[0]:
                     continue
 

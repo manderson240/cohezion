@@ -1,7 +1,9 @@
 """Tests for GitHub MCP Server."""
 
+from unittest.mock import AsyncMock, MagicMock, patch
+
 import pytest
-from unittest.mock import AsyncMock, patch, MagicMock
+
 from cohezion.mcp.servers.github.server import GitHubService
 
 

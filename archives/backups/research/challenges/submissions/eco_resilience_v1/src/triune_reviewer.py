@@ -5,12 +5,14 @@ to ensure the synthesis is physically stable, ecologically sound, and technicall
 
 from __future__ import annotations
 
-import logging
 import json
-from typing import Any, Dict, List, Tuple, Optional
+import logging
+from typing import Any
+
 from pydantic import BaseModel
 
-from cohezion.swarm.providers.gemma4_provider import Gemma4Provider, GenerationResult
+from cohezion.swarm.providers.gemma4_provider import Gemma4Provider
+
 
 logger = logging.getLogger(__name__)
 
@@ -27,7 +29,7 @@ class ReviewPerspective(BaseModel):
 class TriuneReviewResult(BaseModel):
     """Aggregated result of the triune review."""
 
-    perspectives: List[ReviewPerspective]
+    perspectives: list[ReviewPerspective]
     consensus_score: float
     is_approved: bool
     final_critique: str
@@ -52,7 +54,7 @@ class TriuneReviewer:
 
     async def review(self, strategy: str, manifold_coords: Any) -> TriuneReviewResult:
         """Perform a multi-perspective review of a proposed strategy."""
-        reviews: List[ReviewPerspective] = []
+        reviews: list[ReviewPerspective] = []
 
         coords_str = str(manifold_coords)
 

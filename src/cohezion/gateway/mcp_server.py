@@ -34,7 +34,7 @@ from mcp.server.stdio import stdio_server
 from mcp.types import TextContent, Tool
 
 from cohezion.gateway.demo_gateway import DemoGateway
-from cohezion.governance.autonomy_engine import AutonomyEngine, AutonomyTier, get_autonomy_engine
+from cohezion.governance.autonomy_engine import AutonomyTier, get_autonomy_engine
 from cohezion.security.credentials import get_credentials
 
 
@@ -125,7 +125,10 @@ async def list_tools() -> list[Tool]:
                 "type": "object",
                 "properties": {
                     "prompt": {"type": "string", "description": "User prompt"},
-                    "agent_id": {"type": "string", "description": "ID of the agent calling the tool"},
+                    "agent_id": {
+                        "type": "string",
+                        "description": "ID of the agent calling the tool",
+                    },
                     "model": {
                         "type": "string",
                         "description": "Model name (gpt-4o, claude-3.5-sonnet, etc.)",
@@ -147,7 +150,10 @@ async def list_tools() -> list[Tool]:
             inputSchema={
                 "type": "object",
                 "properties": {
-                    "agent_id": {"type": "string", "description": "ID of the agent calling the tool"},
+                    "agent_id": {
+                        "type": "string",
+                        "description": "ID of the agent calling the tool",
+                    },
                     "gateway_id": {
                         "type": "string",
                         "description": "Gateway instance ID",
@@ -163,7 +169,10 @@ async def list_tools() -> list[Tool]:
             inputSchema={
                 "type": "object",
                 "properties": {
-                    "agent_id": {"type": "string", "description": "ID of the agent calling the tool"},
+                    "agent_id": {
+                        "type": "string",
+                        "description": "ID of the agent calling the tool",
+                    },
                 },
                 "required": ["agent_id"],
             },
@@ -174,7 +183,10 @@ async def list_tools() -> list[Tool]:
             inputSchema={
                 "type": "object",
                 "properties": {
-                    "agent_id": {"type": "string", "description": "ID of the agent calling the tool"},
+                    "agent_id": {
+                        "type": "string",
+                        "description": "ID of the agent calling the tool",
+                    },
                     "gateway_id": {"type": "string", "description": "Gateway ID"},
                     "ollama_url": {
                         "type": "string",
@@ -191,7 +203,10 @@ async def list_tools() -> list[Tool]:
             inputSchema={
                 "type": "object",
                 "properties": {
-                    "agent_id": {"type": "string", "description": "ID of the agent calling the tool"},
+                    "agent_id": {
+                        "type": "string",
+                        "description": "ID of the agent calling the tool",
+                    },
                     "path": {"type": "string", "description": "Path to write to"},
                     "content": {"type": "string", "description": "File content"},
                 },
@@ -204,7 +219,10 @@ async def list_tools() -> list[Tool]:
             inputSchema={
                 "type": "object",
                 "properties": {
-                    "agent_id": {"type": "string", "description": "ID of the agent calling the tool"},
+                    "agent_id": {
+                        "type": "string",
+                        "description": "ID of the agent calling the tool",
+                    },
                     "command": {"type": "string", "description": "Command to execute"},
                 },
                 "required": ["agent_id", "command"],

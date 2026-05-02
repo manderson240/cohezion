@@ -11,12 +11,13 @@ Clean baseline with AITER_USE_NT=1 (required for MoE).
 """
 
 from __future__ import annotations
+
 import os
+
 
 os.environ["HIP_FORCE_DEV_KERNARG"] = "1"
 os.environ["AITER_USE_NT"] = "1"
 
-import torch
 from aiter import ActivationType, QuantType
 from aiter.fused_moe import fused_moe
 from task import input_t, output_t

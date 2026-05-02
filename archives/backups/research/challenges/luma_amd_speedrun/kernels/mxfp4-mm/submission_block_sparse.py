@@ -8,12 +8,12 @@ Exploit structured sparsity in activation matrices
 POPCORN: amd-mxfp4-mm
 """
 
-import torch
-from task import input_t, output_t
-from reference import ref_kernel
 import aiter
+import torch
 from aiter import dtypes
 from aiter.ops.triton.quant import dynamic_mxfp4_quant
+from reference import ref_kernel
+from task import input_t, output_t
 
 
 def custom_kernel(data: input_t) -> output_t:
@@ -114,6 +114,6 @@ def custom_kernel(data: input_t) -> output_t:
 
         return output
 
-    except Exception as e:
+    except Exception:
         # Fallback to reference on any error
         return ref_kernel(data)

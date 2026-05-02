@@ -15,9 +15,11 @@
 import dataclasses
 import json
 import warnings
-from typing import TYPE_CHECKING, Any, Generic, Iterable, TypeVar
+from collections.abc import Iterable
+from typing import TYPE_CHECKING, Any, Generic, TypeVar
 
 from kaggle_benchmarks import events, utils
+
 
 if TYPE_CHECKING:
     from kaggle_benchmarks import actors
@@ -62,12 +64,8 @@ class Message(Generic[T]):
         return Usage(
             input_tokens=self._meta.get("input_tokens"),
             output_tokens=self._meta.get("output_tokens"),
-            input_tokens_cost_nanodollars=self._meta.get(
-                "input_tokens_cost_nanodollars"
-            ),
-            output_tokens_cost_nanodollars=self._meta.get(
-                "output_tokens_cost_nanodollars"
-            ),
+            input_tokens_cost_nanodollars=self._meta.get("input_tokens_cost_nanodollars"),
+            output_tokens_cost_nanodollars=self._meta.get("output_tokens_cost_nanodollars"),
             total_backend_latency_ms=self._meta.get("total_backend_latency_ms"),
         )
 
@@ -75,9 +73,7 @@ class Message(Generic[T]):
     def payload(self) -> str | list[dict]:
         if hasattr(self.content, "get_payload"):
             return self.content.get_payload()
-        if dataclasses.is_dataclass(self.content) and not isinstance(
-            self.content, type
-        ):
+        if dataclasses.is_dataclass(self.content) and not isinstance(self.content, type):
             return json.dumps(dataclasses.asdict(self.content))
         if "raw_content" in self._meta:
             return self._meta["raw_content"]
@@ -150,9 +146,7 @@ class Message(Generic[T]):
 
         events.manager.dispatch("start_streaming", self)
         for chunk in content:
-            chunk_content = (
-                chunk if isinstance(chunk, str) else getattr(chunk, "content", "")
-            )
+            chunk_content = chunk if isinstance(chunk, str) else getattr(chunk, "content", "")
             self.content += chunk_content
             # Token metrics of stream should be reported as of the final chunk, not summed across all chunks.
             if hasattr(chunk, "meta"):

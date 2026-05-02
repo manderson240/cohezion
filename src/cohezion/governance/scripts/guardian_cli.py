@@ -1,6 +1,8 @@
 #!/usr/bin/env python3
 import sys
+
 from cohezion.governance.guardian import GuardianRegistry, get_guardian_cli
+
 
 def main():
     args = get_guardian_cli()
@@ -8,7 +10,6 @@ def main():
 
     # Dynamically register all guards
     registry.discover_and_register_all()
-
 
     # Run logic
     if args.all:
@@ -32,13 +33,26 @@ def main():
             all_violations = []
             for guard in registry.guards:
                 all_violations.extend(guard.violations)
-            
+
             print("\n[!] Auto-healing failed to resolve all violations.")
             print("[!] Triggering Ouroboros self-healing loop...")
             import subprocess
+
             try:
                 # Trigger Agentic Repair via Journey
-                subprocess.run(["uv", "run", "python", "-m", "cohezion", "journey", "start", "Resolve guardian invariant violations: " + ", ".join(all_violations)], check=False)
+                subprocess.run(
+                    [
+                        "uv",
+                        "run",
+                        "python",
+                        "-m",
+                        "cohezion",
+                        "journey",
+                        "start",
+                        "Resolve guardian invariant violations: " + ", ".join(all_violations),
+                    ],
+                    check=False,
+                )
             except Exception as e:
                 print(f"Error triggering Ouroboros: {e}")
         sys.exit(1)

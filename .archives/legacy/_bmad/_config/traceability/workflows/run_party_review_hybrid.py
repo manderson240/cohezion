@@ -384,7 +384,7 @@ async def main():
 
     # Summary
     high_count = len([f for f in findings if f.get("severity") == "HIGH"])
-    print(f"\n📊 Summary:")
+    print("\n📊 Summary:")
     print(f"  HIGH findings: {high_count}")
     print(f"  Total findings: {len(findings)}")
 

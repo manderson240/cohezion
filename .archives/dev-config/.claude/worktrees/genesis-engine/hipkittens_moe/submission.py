@@ -6,13 +6,13 @@ Target: <110µs latency for MoE forward pass
 This is a compact submission format optimized for Popcorn CLI harness.
 """
 
-import os
-import sys
-import subprocess
-import tempfile
 import ctypes
 import json
-from pathlib import Path
+import os
+import subprocess
+import sys
+import tempfile
+
 
 # Configuration
 HIPKITTENS_INCLUDE = "/opt/rocm/include/hipkittens"
@@ -23,7 +23,7 @@ HIPCC = "/opt/rocm/bin/hipcc"
 # HipKittens MoE Kernel (Embedded C++ Source)
 # ==============================================================================
 
-KERNEL_SOURCE = r'''
+KERNEL_SOURCE = r"""
 #include <hip/hip_runtime.h>
 #include <hip/hip_bf16.h>
 
@@ -219,7 +219,7 @@ extern "C" {
         );
     }
 }
-'''
+"""
 
 
 class HipKittensMoeKernel:
@@ -234,15 +234,21 @@ class HipKittensMoeKernel:
         self._lib_path = os.path.join(tempfile.gettempdir(), f"hipkittens_moe_{arch}.so")
         source_path = os.path.join(tempfile.gettempdir(), "hipkittens_moe.cpp")
 
-        with open(source_path, 'w') as f:
+        with open(source_path, "w") as f:
             f.write(KERNEL_SOURCE)
 
         cmd = [
-            HIPCC, "-O3", "-ffast-math",
+            HIPCC,
+            "-O3",
+            "-ffast-math",
             f"--offload-arch={arch}",
-            "-shared", "-fPIC",
-            "-Xcompiler", "-fPIC",
-            source_path, "-o", self._lib_path
+            "-shared",
+            "-fPIC",
+            "-Xcompiler",
+            "-fPIC",
+            source_path,
+            "-o",
+            self._lib_path,
         ]
 
         print(f"Compiling HipKittens MoE kernel for {arch}...")
@@ -261,10 +267,18 @@ class HipKittensMoeKernel:
                 self.compile()
             self._lib = ctypes.CDLL(self._lib_path)
             self._lib.launch_moe.argtypes = [
-                ctypes.c_void_p, ctypes.c_void_p, ctypes.c_void_p,
-                ctypes.c_void_p, ctypes.c_void_p, ctypes.c_void_p,
-                ctypes.c_void_p, ctypes.c_void_p,
-                ctypes.c_int, ctypes.c_int, ctypes.c_int, ctypes.c_void_p
+                ctypes.c_void_p,
+                ctypes.c_void_p,
+                ctypes.c_void_p,
+                ctypes.c_void_p,
+                ctypes.c_void_p,
+                ctypes.c_void_p,
+                ctypes.c_void_p,
+                ctypes.c_void_p,
+                ctypes.c_int,
+                ctypes.c_int,
+                ctypes.c_int,
+                ctypes.c_void_p,
             ]
         return self._lib
 
@@ -294,12 +308,7 @@ def main():
             "target_arch": "gfx950",
             "expected_latency_us": 109.8,
             "status": "ready_for_submission",
-            "features": [
-                "2-stage_fused",
-                "register_resident_intermediate",
-                "mxfp4_dequantize",
-                "silu_fusion"
-            ]
+            "features": ["2-stage_fused", "register_resident_intermediate", "mxfp4_dequantize", "silu_fusion"],
         }
         print(json.dumps(result, indent=2))
         return 0

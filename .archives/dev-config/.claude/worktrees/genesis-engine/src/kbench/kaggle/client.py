@@ -26,7 +26,7 @@ from kaggle_benchmarks.kaggle import serialization
 
 
 def save_proto(message: Any, path: Path):
-    with open(path, "wt") as file:
+    with open(path, "w") as file:
         file.write(json_format.MessageToJson(message))
 
 
@@ -42,9 +42,7 @@ class KaggleClient(clients.Client):
         self.format = format
         self.use_cache = use_cache
 
-    def run_task(
-        self, task: tasks.Task, grid: dict[str, Any], evaluation_data
-    ) -> runs.Runs:
+    def run_task(self, task: tasks.Task, grid: dict[str, Any], evaluation_data) -> runs.Runs:
         return task.evaluate(grid=grid, evaluation_data=evaluation_data)
 
     def register_task(self, task: tasks.Task):
@@ -60,9 +58,7 @@ class KaggleClient(clients.Client):
         try:
             proto_message = serialization.dump_task(task)
         except json_format.ParseError as e:
-            logging.error(
-                f"Could not parse dictionary to BenchmarkTaskVersion for {filepath}. Details: {e}"
-            )
+            logging.error(f"Could not parse dictionary to BenchmarkTaskVersion for {filepath}. Details: {e}")
             raise e
 
         save_proto(proto_message, filepath)
@@ -75,9 +71,7 @@ class KaggleClient(clients.Client):
         try:
             proto_message = serialization.dump_run(run)
         except json_format.ParseError as e:
-            logging.error(
-                f"Could not parse dictionary to BenchmarkTaskRun for {json_file_path}. Details: {e}"
-            )
+            logging.error(f"Could not parse dictionary to BenchmarkTaskRun for {json_file_path}. Details: {e}")
             raise e
 
         save_proto(proto_message, json_file_path)
@@ -89,7 +83,7 @@ class KaggleClient(clients.Client):
         filepath = self._get_run_filepath(run)
         if not filepath.exists():
             return False
-        with open(filepath, "r") as f:
+        with open(filepath) as f:
             run_data = json.load(f)
             if run_data.get("state") != "BENCHMARK_TASK_RUN_STATE_COMPLETED":
                 return False
@@ -97,14 +91,12 @@ class KaggleClient(clients.Client):
 
     def _get_run_filepath(self, run: runs.Run) -> Path:
         """Gets the filepath for a given run's output file."""
-        return self.directory / serialization.generate_run_filename(
-            run.task.name, run.cache_id
-        )
+        return self.directory / serialization.generate_run_filename(run.task.name, run.cache_id)
 
     def load_run_result(self, run: runs.Run) -> Any:
         """Loads the result from a cached run file."""
         filepath = self._get_run_filepath(run)
-        with open(filepath, "r") as f:
+        with open(filepath) as f:
             run_data = json.load(f)
 
         # Assume a single value.

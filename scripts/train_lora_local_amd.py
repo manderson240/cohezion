@@ -32,6 +32,7 @@ EPOCHS = 1
 MAX_SEQ_LEN = 512
 LEARNING_RATE = 2e-4
 
+
 # =========================================
 # PATH DETECTION (works on any OS)
 # =========================================
@@ -41,10 +42,13 @@ def find_file(name, root="/home/mike-anderson/dev"):
             return os.path.join(dirpath, name)
     return None
 
+
 train_path = find_file("train.csv")
 test_path = find_file("test.csv")
-if train_path: TRAIN_CSV = train_path
-if test_path: TEST_CSV = test_path
+if train_path:
+    TRAIN_CSV = train_path
+if test_path:
+    TEST_CSV = test_path
 print(f"Train: {TRAIN_CSV}")
 print(f"Test:  {TEST_CSV}")
 
@@ -85,6 +89,7 @@ else:
 train_df = pd.read_csv(TRAIN_CSV)
 print(f"Loaded {len(train_df)} training rows")
 
+
 # =========================================
 # FORMAT: Problem -> Therefore, answer is \boxed{answer}.
 # =========================================
@@ -92,6 +97,7 @@ def format_example(row):
     prompt = f"Problem: {row['problem']}\n\nTherefore, answer is "
     answer = str(row["answer"])
     return prompt + answer + "."
+
 
 train_texts = train_df.apply(format_example, axis=1).tolist()
 print(f"Prepared {len(train_texts)} training texts")
@@ -105,9 +111,7 @@ if tokenizer.pad_token is None:
     tokenizer.pad_token = tokenizer.eos_token
 
 model = AutoModelForCausalLM.from_pretrained(
-    MODEL_NAME,
-    torch_dtype=torch.bfloat16,
-    device_map="auto"
+    MODEL_NAME, torch_dtype=torch.bfloat16, device_map="auto"
 )
 
 # Gemma uses "gate_proj" not "gate_up_proj"
@@ -127,6 +131,7 @@ model.print_trainable_parameters()
 # =========================================
 dataset = Dataset.from_dict({"text": train_texts})
 
+
 def tokenize(batch):
     out = tokenizer(
         batch["text"],
@@ -137,6 +142,7 @@ def tokenize(batch):
     )
     out["labels"] = out["input_ids"].copy()
     return out
+
 
 tokenized = dataset.map(tokenize, batched=True, remove_columns=["text"])
 
@@ -192,7 +198,9 @@ with zipfile.ZipFile(SUBMISSION_ZIP, "w", zipfile.ZIP_DEFLATED) as zf:
 
 print("\\n=== SUBMISSION READY ===")
 print(f"File: {SUBMISSION_ZIP}")
-print(f"To submit: kaggle competitions submit -c nvidia-nemotron-model-reasoning-challenge -f {SUBMISSION_ZIP} -m 'Local AMD training'")
+print(
+    f"To submit: kaggle competitions submit -c nvidia-nemotron-model-reasoning-challenge -f {SUBMISSION_ZIP} -m 'Local AMD training'"
+)
 
 # Quick size check
 size_mb = os.path.getsize(SUBMISSION_ZIP) / 1024 / 1024

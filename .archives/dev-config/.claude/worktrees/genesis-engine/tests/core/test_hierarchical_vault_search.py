@@ -76,9 +76,7 @@ class TestHierarchicalVaultSearch:
 
     def test_hierarchical_search_combined_criteria(self, mcp_client):
         """Test hierarchical search with multiple criteria."""
-        mock_patterns = [
-            {"path": "patterns/operations/analyze/domains/nlp/skills/core/p1.md"}
-        ]
+        mock_patterns = [{"path": "patterns/operations/analyze/domains/nlp/skills/core/p1.md"}]
 
         with patch.object(mcp_client, "vault_search") as mock_search:
             mock_search.return_value = mock_patterns

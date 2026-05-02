@@ -30,6 +30,7 @@ batch dimension can be exploited, falling back to einsum when needed.
 import torch
 from task import input_t, output_t
 
+
 NUM_HEADS = 16
 QK_HEAD_DIM = 576
 V_HEAD_DIM = 512

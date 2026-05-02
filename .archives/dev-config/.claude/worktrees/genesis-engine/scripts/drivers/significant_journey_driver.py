@@ -150,9 +150,7 @@ class SkillTaskGenerator:
 
         # Extract topics from expertise/concepts
         topics = self._extract_topics(expertise + " " + concepts)
-        topic = (
-            random.choice(topics) if topics else skill_name.replace("_PRIME", "").replace("_", " ")
-        )
+        topic = random.choice(topics) if topics else skill_name.replace("_PRIME", "").replace("_", " ")
 
         # Find related concepts
         related = random.choice(topics) if len(topics) > 1 else "existing approaches"
@@ -270,9 +268,7 @@ class RealExecutionDriver:
                     metadata={
                         "skill": skill,
                         "complexity": complexity,
-                        "tokens_used": result.token_metrics.get("total_tokens", 0)
-                        if result.token_metrics
-                        else 0,
+                        "tokens_used": result.token_metrics.get("total_tokens", 0) if result.token_metrics else 0,
                     },
                 )
                 steps.append(step)
@@ -337,18 +333,14 @@ class RealExecutionDriver:
         """Compute 12D trajectory from execution result."""
         # Extract metrics
         coherence = result.metrics.get("coherence", 0.5)
-        efficiency = (
-            result.token_metrics.get("cache_hit_rate", 0.5) if result.token_metrics else 0.5
-        )
+        efficiency = result.token_metrics.get("cache_hit_rate", 0.5) if result.token_metrics else 0.5
 
         # Generate trajectory using JourneyTracker
         latent = self.tracker.text_to_latent(task)
         projection = self.tracker.holographic_project(latent)
 
         # Modulation (using analyze as default)
-        modulation = self.tracker._modulation_profiles.get(
-            "analyze", self.tracker._modulation_profiles["transform"]
-        )
+        modulation = self.tracker._modulation_profiles.get("analyze", self.tracker._modulation_profiles["transform"])
 
         quality_weight = 0.5 * coherence + 0.5 * efficiency
         trajectory = projection * (1.0 - quality_weight) + modulation * quality_weight
@@ -359,9 +351,7 @@ class RealExecutionDriver:
     def _compute_phi_score(self, result: ExecutionResult) -> float:
         """Compute journey quality score."""
         coherence = result.metrics.get("coherence", 0.5)
-        efficiency = (
-            result.token_metrics.get("cache_hit_rate", 0.5) if result.token_metrics else 0.5
-        )
+        efficiency = result.token_metrics.get("cache_hit_rate", 0.5) if result.token_metrics else 0.5
 
         # Phi = coherence * 0.5 + efficiency * 0.3 + convergence * 0.2
         # For single step, convergence is 1.0
@@ -476,9 +466,7 @@ def main():
     """CLI entry point."""
     parser = argparse.ArgumentParser(description="Significant Journey Capture Driver")
     parser.add_argument("--count", type=int, default=100, help="Number of journeys")
-    parser.add_argument(
-        "--skills", type=str, default="JOURNEY_TRACKING_PRIME", help="Comma-separated skill names"
-    )
+    parser.add_argument("--skills", type=str, default="JOURNEY_TRACKING_PRIME", help="Comma-separated skill names")
     parser.add_argument("--output-dir", type=Path, default=Path("data/significant_journeys"))
     parser.add_argument("--max-concurrent", type=int, default=4, help="Max concurrent executions")
     parser.add_argument("--timeout", type=float, default=30.0, help="Execution timeout")

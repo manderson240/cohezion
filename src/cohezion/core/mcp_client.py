@@ -17,7 +17,7 @@ import httpx
 
 logger = logging.getLogger(__name__)
 
-_mcp_client_instance: "MCPClient" | None = None
+_mcp_client_instance: MCPClient | None = None
 
 
 def _parse_sse_response(text: str) -> dict[str, Any]:
@@ -65,7 +65,7 @@ class MCPClient:
         self._client: httpx.AsyncClient | None = None
         self._session_id: str | None = None
 
-    async def __aenter__(self) -> "MCPClient":
+    async def __aenter__(self) -> MCPClient:
         await self.connect()
         return self
 
@@ -128,7 +128,7 @@ class MCPClient:
         """Invoke an MCP tool via the initialized session."""
         if not self._client:
             await self.connect()
-            
+
         assert self._client is not None
 
         payload = {
@@ -145,17 +145,17 @@ class MCPClient:
         try:
             response = await self._client.post("/mcp", json=payload, headers=headers)
             response.raise_for_status()
-            
+
             result = _parse_sse_response(response.text)
             if "error" in result:
                 raise MCPToolError(f"Tool '{tool_name}' failed: {result['error']}")
-            
+
             # FastMCP returns {content: [{type: 'text', text: '...'}]}
             content = result.get("result", {}).get("content", [])
             if content and content[0].get("type") == "text":
                 return content[0].get("text")
             return result.get("result")
-            
+
         except Exception as e:
             logger.error(f"MCP tool call failed: {e}")
             raise MCPToolError(f"Failed to call tool '{tool_name}': {e}") from e
@@ -192,7 +192,11 @@ class MCPClient:
     async def vault_extract_pattern(
         self, source_path: str, pattern_name: str, description: str, **kwargs
     ) -> str:
-        args = {"source_path": source_path, "pattern_name": pattern_name, "description": description}
+        args = {
+            "source_path": source_path,
+            "pattern_name": pattern_name,
+            "description": description,
+        }
         args.update(kwargs)
         return await self._call_tool("vault_extract_pattern", args)
 

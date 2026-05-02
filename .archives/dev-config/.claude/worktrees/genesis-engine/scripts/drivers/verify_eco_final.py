@@ -19,9 +19,7 @@ async def final_check():
     print(f"Results: {any_eco}")
 
     # 3. Check specific valuation count
-    count_eco = await c.query(
-        "SELECT count() FROM universe_nodes WHERE metadata.eco_valued = true GROUP ALL"
-    )
+    count_eco = await c.query("SELECT count() FROM universe_nodes WHERE metadata.eco_valued = true GROUP ALL")
     print(f"Total Eco-Valued Nodes: {count_eco}")
 
     await c.close()

@@ -31,12 +31,11 @@ Author: Experimental Kernel Series
 
 from __future__ import annotations
 
-import math
 import os
 import sys
-from typing import Optional
 
 import torch
+
 
 os.environ["PYTORCH_ROCM_ARCH"] = "gfx950"
 os.environ["CXX"] = "clang++"
@@ -45,6 +44,7 @@ import aiter
 from aiter import dtypes as aiter_dtypes
 from aiter import get_mla_metadata_info_v1, get_mla_metadata_v1, mla_reduce_v1
 from task import input_t, output_t
+
 
 # Constants from DeepSeek-R1
 NUM_HEADS = 16

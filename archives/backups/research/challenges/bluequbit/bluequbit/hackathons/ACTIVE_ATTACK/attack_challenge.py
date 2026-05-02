@@ -6,22 +6,21 @@ Execute winning strategy on ongoing challenge
 import sys
 from pathlib import Path
 
+
 sys.path.insert(0, str(Path(__file__).parent.parent.parent.parent.parent))
 sys.path.insert(0, str(Path(__file__).parent.parent / "UNIVERSAL_SOLVER"))
 
-import time
 import json
+import time
 from datetime import datetime
 
-from dotenv import load_dotenv
 import bluequbit
-import qiskit
+from dotenv import load_dotenv
+from heavy_output_detection import calculate_snr, detect_heavy_output
+from submission_pipeline import SubmissionPipeline
 
 # Import our winning tools
-from universal_solver import UniversalSolver, ChallengeType
-from circuit_library import CircuitLibrary
-from heavy_output_detection import detect_heavy_output, calculate_snr
-from submission_pipeline import SubmissionPipeline
+from universal_solver import ChallengeType, UniversalSolver
 
 
 class ChallengeAttacker:
@@ -41,7 +40,7 @@ class ChallengeAttacker:
         self.pipeline = SubmissionPipeline(log_file=f"attack_{challenge_id}.jsonl")
 
         print("=" * 70)
-        print(f"🎯 CHALLENGE ATTACK INITIATED")
+        print("🎯 CHALLENGE ATTACK INITIATED")
         print(f"Target: {challenge_id}")
         print("=" * 70)
 
@@ -77,7 +76,7 @@ class ChallengeAttacker:
             try:
                 print(f"  Trying difficulty {difficulty}...", end=" ")
                 circuit = self.bq.get_peaked_circuit(difficulty)
-                print(f"✓ SUCCESS!")
+                print("✓ SUCCESS!")
                 print(f"  Qubits: {circuit.num_qubits}")
                 print(f"  Depth: {circuit.depth()}")
                 return circuit
@@ -107,7 +106,7 @@ class ChallengeAttacker:
         n_qubits = circuit.num_qubits
         depth = circuit.depth()
 
-        print(f"Circuit Analysis:")
+        print("Circuit Analysis:")
         print(f"  Qubits: {n_qubits}")
         print(f"  Depth: {depth}")
         print(f"  Gates: {len(circuit.data)}")
@@ -157,13 +156,13 @@ class ChallengeAttacker:
 
         shots = 100000  # High for statistics
 
-        print(f"  Parameters:")
+        print("  Parameters:")
         print(f"    Bond dimension: {bond_dim}")
         print(f"    Shots: {shots}")
-        print(f"    Threshold: 0.5")
+        print("    Threshold: 0.5")
 
         # Execute
-        print(f"\n  Submitting circuit...")
+        print("\n  Submitting circuit...")
         start = time.time()
 
         result = self.bq.run(
@@ -177,7 +176,7 @@ class ChallengeAttacker:
         print(f"  ✓ {len(counts)} distinct states")
 
         # Find heavy outputs
-        print(f"\n  Analyzing results...")
+        print("\n  Analyzing results...")
         heavy = detect_heavy_output(counts, threshold=0.5)
 
         if not heavy:
@@ -237,11 +236,11 @@ class ChallengeAttacker:
             json.dump(submission, f, indent=2)
 
         print(f"✓ Submission packaged: {filename}")
-        print(f"✓ Ready for upload to BlueQubit")
+        print("✓ Ready for upload to BlueQubit")
 
         # Print submission summary
         if result.get("bitstring"):
-            print(f"\n🏆 SUBMISSION READY:")
+            print("\n🏆 SUBMISSION READY:")
             print(f"  Bitstring: {result['bitstring']}")
             print(f"  Probability: {result['probability']:.6f}")
             print(f"  SNR: {result['snr']:.2f} sigma")

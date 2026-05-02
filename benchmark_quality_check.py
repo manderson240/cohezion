@@ -20,12 +20,12 @@ def evaluate_response_quality(text: str) -> dict:
     """Simple quality heuristics."""
     # Basic metrics
     word_count = len(text.split())
-    sentence_count = text.count('.') + text.count('!') + text.count('?')
+    sentence_count = text.count(".") + text.count("!") + text.count("?")
     avg_word_len = sum(len(w) for w in text.split()) / max(word_count, 1)
 
     # Quality indicators
-    has_punctuation = any(c in text for c in '.,!?;')
-    has_newlines = '\n' in text
+    has_punctuation = any(c in text for c in ".,!?;")
+    has_newlines = "\n" in text
     starts_capital = text and text[0].isupper() if text else False
 
     return {
@@ -37,6 +37,7 @@ def evaluate_response_quality(text: str) -> dict:
         "starts_capital": starts_capital,
         "length_ok": 10 <= word_count <= 200,  # reasonable range
     }
+
 
 async def test_concurrency_quality(concurrency: int) -> dict:
     """Test quality at given concurrency level."""
@@ -55,8 +56,12 @@ async def test_concurrency_quality(concurrency: int) -> dict:
         try:
             await session.post(
                 f"{base_url}/v1/chat/completions",
-                json={"model": "DeepSeek-Qwen3-8B-GGUF", "messages": [{"role": "user", "content": "Hi"}], "max_tokens": 10},
-                timeout=aiohttp.ClientTimeout(total=10)
+                json={
+                    "model": "DeepSeek-Qwen3-8B-GGUF",
+                    "messages": [{"role": "user", "content": "Hi"}],
+                    "max_tokens": 10,
+                },
+                timeout=aiohttp.ClientTimeout(total=10),
             )
         except:
             pass
@@ -67,16 +72,18 @@ async def test_concurrency_quality(concurrency: int) -> dict:
 
         tasks = []
         for prompt in prompts:
-            tasks.append(session.post(
-                f"{base_url}/v1/chat/completions",
-                json={
-                    "model": "DeepSeek-Qwen3-8B-GGUF",
-                    "messages": [{"role": "user", "content": prompt}],
-                    "max_tokens": 100,
-                    "temperature": 0.7,
-                },
-                timeout=aiohttp.ClientTimeout(total=60)
-            ))
+            tasks.append(
+                session.post(
+                    f"{base_url}/v1/chat/completions",
+                    json={
+                        "model": "DeepSeek-Qwen3-8B-GGUF",
+                        "messages": [{"role": "user", "content": prompt}],
+                        "max_tokens": 100,
+                        "temperature": 0.7,
+                    },
+                    timeout=aiohttp.ClientTimeout(total=60),
+                )
+            )
 
         try:
             responses = await asyncio.gather(*tasks)
@@ -116,7 +123,9 @@ async def test_concurrency_quality(concurrency: int) -> dict:
                 "tps": tps,
                 "total_tokens": total_tokens,
                 "elapsed_ms": elapsed,
-                "success_rate": len([q for q in qualities if "error" not in q]) / len(qualities) if qualities else 0,
+                "success_rate": len([q for q in qualities if "error" not in q]) / len(qualities)
+                if qualities
+                else 0,
                 "quality_score": quality_score,
                 "avg_quality": quality_score / len(qualities) if qualities else 0,
                 "samples": len(texts),
@@ -129,6 +138,7 @@ async def test_concurrency_quality(concurrency: int) -> dict:
                 "tps": 0,
                 "quality_score": 0,
             }
+
 
 async def main():
     print("=" * 70)
@@ -144,7 +154,7 @@ async def main():
 
         if "error" not in result:
             print(f"  TPS: {result['tps']:.1f}")
-            print(f"  Success rate: {result['success_rate']*100:.0f}%")
+            print(f"  Success rate: {result['success_rate'] * 100:.0f}%")
             print(f"  Quality score: {result['quality_score']:.1f}")
             print(f"  Samples: {result['samples']}")
         else:
@@ -160,14 +170,20 @@ async def main():
 
     for r in results:
         if "error" not in r:
-            print(f"{r['concurrency']:>6} {r['tps']:>10.1f} {r['success_rate']*100:>9.0f}% {r['avg_quality']:>10.1f}")
+            print(
+                f"{r['concurrency']:>6} {r['tps']:>10.1f} {r['success_rate'] * 100:>9.0f}% {r['avg_quality']:>10.1f}"
+            )
 
     # Quality check
     if len(results) >= 2 and all("error" not in r for r in results):
         conc1_quality = results[0]["avg_quality"]
-        conc4_quality = results[2]["avg_quality"] if len(results) > 2 else results[-1]["avg_quality"]
+        conc4_quality = (
+            results[2]["avg_quality"] if len(results) > 2 else results[-1]["avg_quality"]
+        )
 
-        quality_diff = ((conc4_quality - conc1_quality) / conc1_quality * 100) if conc1_quality > 0 else 0
+        quality_diff = (
+            ((conc4_quality - conc1_quality) / conc1_quality * 100) if conc1_quality > 0 else 0
+        )
 
         print("\n" + "=" * 70)
         print("QUALITY IMPACT ANALYSIS")
@@ -180,6 +196,7 @@ async def main():
             print("\n✓ Quality change within acceptable range (<10%)")
         else:
             print("\n⚠ Quality degradation detected - review needed")
+
 
 if __name__ == "__main__":
     asyncio.run(main())

@@ -5,11 +5,13 @@ Specializes the model on Cohezion Knowledge Graph and Unified Physics.
 """
 
 import os
+
 import torch
 from datasets import load_dataset
-from unsloth import FastLanguageModel
-from trl import SFTTrainer
 from transformers import TrainingArguments
+from trl import SFTTrainer
+from unsloth import FastLanguageModel
+
 
 # Configuration
 MODEL_NAME = "unsloth/gemma-2-9b-it-bnb-4bit"  # Base for specialized tuning

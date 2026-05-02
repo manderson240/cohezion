@@ -9,13 +9,15 @@ Solution: Pad V to match K, run attention, then unpad result.
 
 import os
 
+
 os.environ["PYTORCH_ROCM_ARCH"] = "gfx950"
 
-import torch
 import aiter
+import torch
 from aiter import dtypes as aiter_dtypes
 from aiter import get_mla_metadata_info_v1, get_mla_metadata_v1, mla_reduce_v1
 from task import input_t, output_t
+
 
 NUM_HEADS = 16
 NUM_KV_HEADS = 1
@@ -222,7 +224,7 @@ def _try_fmha_v3_padded(data) -> torch.Tensor | None:
         out = out_tuple[0] if isinstance(out_tuple, tuple) else out_tuple
         return out[:, :, :V_HEAD_DIM].to(torch.bfloat16)
 
-    except Exception as e:
+    except Exception:
         # Log error for debugging but silently fall back
         return None
 

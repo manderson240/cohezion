@@ -1,12 +1,15 @@
 """Debug Gemma-4 response format."""
+
 from __future__ import annotations
 
 import csv
 import sys
 from pathlib import Path
 
+
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent / "orchestrator"))
 from model_dispatcher import ModelDispatcher
+
 
 with open("/tmp/train.csv") as f:
     rows = list(csv.DictReader(f))
@@ -26,6 +29,6 @@ result = dispatcher.generate(
     max_tokens=128,
     temperature=0.0,
 )
-print(f"\nModel response: {repr(result.text)}")
+print(f"\nModel response: {result.text!r}")
 print(f"Tokens used: {result.tokens_used}")
 print(f"Duration: {result.duration_ms}ms")

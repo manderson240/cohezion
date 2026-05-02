@@ -6,7 +6,7 @@ and measures token efficiency of scoped vs global queries.
 
 from __future__ import annotations
 
-from unittest.mock import AsyncMock, MagicMock
+from unittest.mock import AsyncMock
 
 import pytest
 
@@ -382,10 +382,7 @@ class TestEffectivenessEvaluation:
             context = captured.get("_flux_context", [])
             expected = expected_signals[spec.id]
             found = any(expected in block for block in context)
-            assert found, (
-                f"Node {spec.name} should have received '{expected}' "
-                f"but got: {context}"
-            )
+            assert found, f"Node {spec.name} should have received '{expected}' but got: {context}"
 
     @pytest.mark.asyncio
     async def test_no_cross_contamination(self, workflow_roles, role_specific_vault):
@@ -416,8 +413,7 @@ class TestEffectivenessEvaluation:
             wrong_content = cross_check[spec.id]
             contaminated = any(wrong_content in block for block in context)
             assert not contaminated, (
-                f"Node {spec.name} received cross-contaminated context: "
-                f"'{wrong_content}' found in {context}"
+                f"Node {spec.name} received cross-contaminated context: '{wrong_content}' found in {context}"
             )
 
     @pytest.mark.asyncio
@@ -455,8 +451,11 @@ class TestEffectivenessEvaluation:
         scoped_scores: list[float] = []
         for desc in ["Gather background", "Analyse failure patterns", "Synthesise findings"]:
             spec = NodeSpec(
-                id="n", name="node", node_type="agent",
-                pull_keys=[], push_keys=[],
+                id="n",
+                name="node",
+                node_type="agent",
+                pull_keys=[],
+                push_keys=[],
                 attributes={"description": desc},
             )
             ctx = await role_specific_vault(desc, top_k=3)
@@ -470,8 +469,7 @@ class TestEffectivenessEvaluation:
         avg_global = sum(global_scores) / len(global_scores) if global_scores else 0
 
         assert avg_scoped > avg_global, (
-            f"Scoped avg relevance ({avg_scoped:.2f}) should beat "
-            f"global avg ({avg_global:.2f})"
+            f"Scoped avg relevance ({avg_scoped:.2f}) should beat global avg ({avg_global:.2f})"
         )
 
 

@@ -53,7 +53,7 @@ async def check_leaderboard():
 
         if submissions:
             print("\n" + "=" * 80)
-            print(f"🏆 NEMOTRON MODEL REASONING CHALLENGE LEADERBOARD")
+            print("🏆 NEMOTRON MODEL REASONING CHALLENGE LEADERBOARD")
             print("=" * 80)
             print(f"{'Rank':<6} {'Team Name':<25} {'Score':<12} {'Submission Date':<20} {'Status'}")
             print("-" * 80)
@@ -136,11 +136,11 @@ async def check_leaderboard():
                 if best_score is not None:
                     print(f"🏆 Your best score: {best_score:.6f}")
             else:
-                print(f"📭 No entries found from you on the leaderboard yet.")
-                print(f"💡 Make sure to:")
-                print(f"   1. Complete training and retrieve your adapter")
-                print(f"   2. Submit the adapter using the submission script")
-                print(f"   3. Check back here to see your position")
+                print("📭 No entries found from you on the leaderboard yet.")
+                print("💡 Make sure to:")
+                print("   1. Complete training and retrieve your adapter")
+                print("   2. Submit the adapter using the submission script")
+                print("   3. Check back here to see your position")
 
             print("=" * 80)
 

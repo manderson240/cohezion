@@ -21,6 +21,7 @@ from torch.utils.data import Dataset
 
 from cohezion.flume.experience_encoder import OPERATION_TYPES
 
+
 STEP_DIM = 29  # 12 traj + 12 metrics + 5 op_type
 
 # Metric extraction order (fills dims 12-23)
@@ -130,7 +131,7 @@ class TrajectorySequenceDataset(Dataset):
         cls,
         records: list[dict],
         max_seq_len: int = 256,
-    ) -> "TrajectorySequenceDataset":
+    ) -> TrajectorySequenceDataset:
         """Construct dataset from an in-memory list of records."""
         import tempfile
 

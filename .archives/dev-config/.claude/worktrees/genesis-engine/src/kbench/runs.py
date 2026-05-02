@@ -24,6 +24,7 @@ import pandas as pd
 from kaggle_benchmarks import actors, assertions, chats, results, tasks, utils
 from kaggle_benchmarks.actors.llms import LLMChat
 
+
 T = TypeVar("T")
 
 _run_counters_lock = threading.Lock()
@@ -40,9 +41,7 @@ class Run(Generic[T]):
     id: str = ""
     param_id: Any = None
     subruns: "Runs" = dataclasses.field(default_factory=lambda: Runs())
-    assertion_results: list[assertions.AssertionResult] = dataclasses.field(
-        default_factory=list
-    )
+    assertion_results: list[assertions.AssertionResult] = dataclasses.field(default_factory=list)
     start_time: datetime.datetime | None = None
     end_time: datetime.datetime | None = None
     # Whether the result of this run was retrieved from a cache.
@@ -95,9 +94,7 @@ class Run(Generic[T]):
         Additionally, if an `evaluated_subject` is present, its name is appended
         as a suffix to distinguish results across different subjects or actors.
         """
-        actor_param_suffix = (
-            f"_{param.name}" if (param := self.evaluated_subject) else ""
-        )
+        actor_param_suffix = f"_{param.name}" if (param := self.evaluated_subject) else ""
 
         return (
             f"run_param_id_{self.param_id}{actor_param_suffix}"
@@ -107,9 +104,9 @@ class Run(Generic[T]):
 
     @property
     def name(self) -> str:
-        return ", ".join(
-            f"{k}={getattr(v, 'name', v)}" for k, v in self.params.items()
-        ) + (f"/{self.id}" if self.id else "")
+        return ", ".join(f"{k}={getattr(v, 'name', v)}" for k, v in self.params.items()) + (
+            f"/{self.id}" if self.id else ""
+        )
 
     @property
     def parent(self) -> Self | None:
@@ -185,9 +182,7 @@ class Runs(Generic[T], abc.MutableSequence):
     def as_dataframe(self) -> pd.DataFrame:
         return pd.DataFrame(
             [
-                t.params
-                | {"run_id": t.id, "result": t.result}
-                | ({"id": t.param_id} if t.param_id is not None else {})
+                t.params | {"run_id": t.id, "result": t.result} | ({"id": t.param_id} if t.param_id is not None else {})
                 for t in self.runs
             ]
         ).set_index("run_id")

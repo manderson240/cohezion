@@ -4,10 +4,10 @@ from __future__ import annotations
 
 import json
 import re
-from pathlib import Path
 from typing import Any
 
-from arc_solver import Grid, apply_program, deepcopy_grid, grids_equal
+from arc_solver import Grid, deepcopy_grid
+
 
 try:
     from cohezion.integrations.agentverse import LLMExecutor
@@ -15,7 +15,7 @@ except ImportError:
     LLMExecutor = None
 
 
-SYSTEM = '''You are an expert ARC task solver. Given training input/output grid pairs, write a Python function `solve(grid)` that transforms the input to match the output.
+SYSTEM = """You are an expert ARC task solver. Given training input/output grid pairs, write a Python function `solve(grid)` that transforms the input to match the output.
 
 Rules:
 - grid is List[List[int]] where each cell is 0-9
@@ -24,7 +24,7 @@ Rules:
 - Use only standard library
 - The transformation should work for ALL training examples
 
-Respond ONLY with the Python function code (no markdown).'''
+Respond ONLY with the Python function code (no markdown)."""
 
 
 def _encode_grid(g: Grid) -> str:
@@ -33,11 +33,11 @@ def _encode_grid(g: Grid) -> str:
 
 def _extract_function(text: str) -> str | None:
     # Try to extract a function definition
-    match = re.search(r'def\s+solve\s*\(.*?\):.*?(?=\n(?:def|class)\s|\Z)', text, re.DOTALL)
+    match = re.search(r"def\s+solve\s*\(.*?\):.*?(?=\n(?:def|class)\s|\Z)", text, re.DOTALL)
     if match:
         return match.group(0)
     # Try to find any code block
-    match = re.search(r'```python(.*?)```', text, re.DOTALL)
+    match = re.search(r"```python(.*?)```", text, re.DOTALL)
     if match:
         return match.group(1).strip()
     return None
@@ -52,7 +52,7 @@ def llm_solve(task: dict[str, Any]) -> Grid | None:
 
     prompt = "Training examples:\n"
     for i, ex in enumerate(train):
-        prompt += f"Example {i+1}:\n"
+        prompt += f"Example {i + 1}:\n"
         prompt += f"  Input: {_encode_grid(ex['input'])}\n"
         prompt += f"  Output: {_encode_grid(ex['output'])}\n"
 

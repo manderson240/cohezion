@@ -4,12 +4,12 @@
 """MoE: Try per_1x32_f4_quant_hip for faster A quantization + fused_moe."""
 
 from __future__ import annotations
+
 import os
+
 
 os.environ["AITER_USE_NT"] = "1"
 
-import torch
-import aiter
 from aiter import ActivationType, QuantType
 from aiter.fused_moe import fused_moe
 from task import input_t, output_t

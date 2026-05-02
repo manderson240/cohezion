@@ -201,19 +201,14 @@ class CircuitBreaker:
         # If too many consecutive errors, open circuit
         if self.metrics.error_count >= self.error_threshold:
             logger.warning(
-                f"Circuit breaker: {self.model} - "
-                f"{self.metrics.error_count} consecutive errors threshold reached"
+                f"Circuit breaker: {self.model} - {self.metrics.error_count} consecutive errors threshold reached"
             )
             self._transition_to_open()
 
         # If error rate too high (only check after enough samples)
-        if (
-            self.metrics.total_requests >= 10
-            and self.metrics.error_rate >= self.error_rate_threshold
-        ):
+        if self.metrics.total_requests >= 10 and self.metrics.error_rate >= self.error_rate_threshold:
             logger.warning(
-                f"Circuit breaker: {self.model} - "
-                f"error rate {self.metrics.error_rate:.1%} exceeds threshold"
+                f"Circuit breaker: {self.model} - error rate {self.metrics.error_rate:.1%} exceeds threshold"
             )
             self._transition_to_open()
 
@@ -221,8 +216,7 @@ class CircuitBreaker:
         """Record latency spike (slow response detected)."""
         if self.metrics.last_latency_ms > self.latency_threshold_ms:
             logger.warning(
-                f"Circuit breaker: {self.model} - "
-                f"latency spike {self.metrics.last_latency_ms:.0f}ms exceeds threshold"
+                f"Circuit breaker: {self.model} - latency spike {self.metrics.last_latency_ms:.0f}ms exceeds threshold"
             )
             # Don't immediately open, but count as minor issue
             # Could transition to HALF_OPEN if repeated
@@ -265,8 +259,7 @@ class CircuitBreaker:
         """Transition to HALF_OPEN state (testing recovery)."""
         if self.state != CircuitBreakerState.HALF_OPEN:
             logger.info(
-                f"Circuit breaker HALF_OPEN for {self.model}: "
-                f"testing recovery after {self.recovery_timeout_sec}s"
+                f"Circuit breaker HALF_OPEN for {self.model}: testing recovery after {self.recovery_timeout_sec}s"
             )
             self.state = CircuitBreakerState.HALF_OPEN
             self.metrics.error_count = 0
@@ -276,10 +269,7 @@ class CircuitBreaker:
         """Transition to CLOSED state (recovered)."""
         if self.state != CircuitBreakerState.CLOSED:
             downtime_sec = time.time() - (self.opened_at or 0)
-            logger.info(
-                f"Circuit breaker CLOSED for {self.model}: recovered "
-                f"after {downtime_sec:.1f}s downtime"
-            )
+            logger.info(f"Circuit breaker CLOSED for {self.model}: recovered after {downtime_sec:.1f}s downtime")
             self.state = CircuitBreakerState.CLOSED
             self.opened_at = None
             self.metrics.error_count = 0
@@ -479,9 +469,7 @@ class FallbackStrategy:
         logger.error(f"No alternative models available, forced to use primary: {primary_model}")
         return primary_model, True, 0.0
 
-    def detect_model_unavailability(
-        self, model: str, latency_ms: float, error_occurred: bool
-    ) -> bool:
+    def detect_model_unavailability(self, model: str, latency_ms: float, error_occurred: bool) -> bool:
         """Detect if model is becoming unavailable.
 
         Args:
@@ -605,9 +593,7 @@ class FallbackStrategy:
         """
         stats = {
             "total_fallbacks": self.fallback_count,
-            "recent_fallbacks": len(
-                [e for e in self.fallback_history if time.time() - e.timestamp < 3600]
-            ),
+            "recent_fallbacks": len([e for e in self.fallback_history if time.time() - e.timestamp < 3600]),
             "total_cost_saved_usd": self.total_cost_saved,
         }
 

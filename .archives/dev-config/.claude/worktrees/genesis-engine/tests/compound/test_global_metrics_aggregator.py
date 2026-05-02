@@ -678,9 +678,7 @@ class TestCoherenceTrendVisualization:
 
         # Verify trend is increasing
         for i in range(1, len(skill_metrics.coherence_trend)):
-            assert (
-                skill_metrics.coherence_trend[i] >= skill_metrics.coherence_trend[i - 1]
-            )
+            assert skill_metrics.coherence_trend[i] >= skill_metrics.coherence_trend[i - 1]
 
     def test_dashboard_coherence_trending(self, aggregator):
         """Test coherence trending in dashboard snapshot."""

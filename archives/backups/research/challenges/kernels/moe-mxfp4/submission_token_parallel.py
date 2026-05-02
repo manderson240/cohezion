@@ -8,10 +8,12 @@ iterating tokens, batch all tokens for each expert and launch a single
 GEMM per expert.
 """
 
+import os
+import sys
+
 import torch
 import torch.nn.functional as F
-import sys
-import os
+
 
 # Add JIT build path for faster compilation
 _AITER_JIT_BUILD = "/home/runner/aiter/aiter/jit/build"
@@ -26,8 +28,6 @@ for _mod in (
 import aiter
 from aiter import dtypes
 from aiter.ops.triton.quant import dynamic_mxfp4_quant
-from aiter.ops.triton.quant.fused_mxfp4_quant import fused_dynamic_mxfp4_quant_moe_sort
-from aiter.fused_moe import fused_moe
 from task import input_t, output_t
 
 
@@ -171,7 +171,7 @@ def custom_kernel(data: input_t) -> output_t:
 
         return output
 
-    except Exception as e:
+    except Exception:
         # Fallback to reference fused_moe on any error
         from reference import ref_kernel
 

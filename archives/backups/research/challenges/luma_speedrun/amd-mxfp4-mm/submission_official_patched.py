@@ -9,13 +9,12 @@ Aligned with official spec:
 - Matches official 'Leader Pattern'
 """
 
-import torch
 import aiter
-from aiter import QuantType, dtypes
+from aiter import dtypes
 from aiter.ops.triton.quant import dynamic_mxfp4_quant  # #975-patched kernel
 from aiter.utility.fp4_utils import e8m0_shuffle
-from aiter.ops.shuffle import shuffle_weight
 from task import input_t, output_t
+
 
 # Pre-resolve for minimal overhead
 _gemm_fn = aiter.gemm_a4w4

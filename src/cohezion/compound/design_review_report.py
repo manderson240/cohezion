@@ -19,10 +19,11 @@ from __future__ import annotations
 import hashlib
 import logging
 from dataclasses import dataclass, field
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from enum import Enum
 from pathlib import Path
 from typing import Any
+
 
 logger = logging.getLogger(__name__)
 
@@ -64,7 +65,7 @@ class DesignReviewReport:
     left_artifact: str  # Path to spec/plan/code
     right_artifact: str  # Path to test/review/retrospection
     findings: list[Finding] = field(default_factory=list)
-    created_at: datetime = field(default_factory=lambda: datetime.now(timezone.utc))
+    created_at: datetime = field(default_factory=lambda: datetime.now(UTC))
     passed: bool = False
 
     @property

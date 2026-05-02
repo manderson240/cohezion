@@ -1,6 +1,6 @@
-import time
 import subprocess
 import sys
+import time
 
 
 def main():

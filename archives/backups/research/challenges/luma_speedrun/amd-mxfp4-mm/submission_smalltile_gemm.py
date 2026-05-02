@@ -17,16 +17,18 @@ Falls back to aiter baseline on compile failure.
 
 import os
 
+
 os.environ["PYTORCH_ROCM_ARCH"] = "gfx950"
 os.environ["CXX"] = "clang++"
 
+import aiter
 import torch
-from torch.utils.cpp_extension import load_inline
 from aiter import dtypes
 from aiter.ops.triton.quant import dynamic_mxfp4_quant
 from aiter.utility.fp4_utils import e8m0_shuffle
-import aiter
 from task import input_t, output_t
+from torch.utils.cpp_extension import load_inline
+
 
 # Compact HIP kernel — MFMA 32x32x64 FP4 with small tiles
 HIP_SOURCE = r"""

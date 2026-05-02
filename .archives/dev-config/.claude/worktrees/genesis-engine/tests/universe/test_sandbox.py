@@ -108,9 +108,7 @@ class TestContainerizedUniverseInitialization:
 
     def test_docker_connection_failure(self):
         """[P0] Should raise error when Docker unavailable."""
-        with patch(
-            "cohezion.universe.sandbox.docker.from_env", side_effect=Exception("Docker not found")
-        ):
+        with patch("cohezion.universe.sandbox.docker.from_env", side_effect=Exception("Docker not found")):
             with pytest.raises(RuntimeError) as exc_info:
                 ContainerizedUniverse()
 

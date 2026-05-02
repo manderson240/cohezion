@@ -69,9 +69,7 @@ class BMADEngine:
                             "name": agent_file.stem,
                         }
 
-        logger.info(
-            f"BMAD: {len(self._modules)} modules, {len(self._workflows)} workflows, {len(self._agents)} agents"
-        )
+        logger.info(f"BMAD: {len(self._modules)} modules, {len(self._workflows)} workflows, {len(self._agents)} agents")
 
     def list_modules(self) -> list[dict]:
         """List all modules."""

@@ -185,9 +185,7 @@ class AxiomaticState:
             state_after.control,
             state_after.novelty,
         ]
-        displacement = sum(
-            (a - b) ** 2 for a, b in zip(brane_dims_before, brane_dims_after, strict=True)
-        )
+        displacement = sum((a - b) ** 2 for a, b in zip(brane_dims_before, brane_dims_after, strict=True))
         return displacement**0.5
 
     @staticmethod

@@ -116,9 +116,7 @@ class TestEdgeDescription:
         assert edge.condition is None
 
     def test_with_condition(self):
-        edge = EdgeDescription(
-            from_name="gate", to_name="impl", keys=["signal"], condition="signal=='go'"
-        )
+        edge = EdgeDescription(from_name="gate", to_name="impl", keys=["signal"], condition="signal=='go'")
         assert edge.condition == "signal=='go'"
 
 

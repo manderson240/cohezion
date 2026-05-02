@@ -3,6 +3,7 @@
 For each task, try multiple (lr, steps, optimizer) combos and pick best.
 Goal: find if some tasks are sensitive to test-time hyperparameters.
 """
+
 from __future__ import annotations
 
 import json
@@ -127,7 +128,7 @@ if __name__ == "__main__":
             solved += 1
 
         if (i + 1) % 10 == 0:
-            print(f"Progress: {i+1}/{len(task_ids)} — solved {solved}")
+            print(f"Progress: {i + 1}/{len(task_ids)} — solved {solved}")
 
     acc = solved / len(task_ids) * 100
     print(f"\nBest-of-4 configs: {solved}/{len(task_ids)} = {acc:.1f}%")

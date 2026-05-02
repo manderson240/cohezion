@@ -20,23 +20,15 @@ from pathlib import Path
 sys.path.append(str(Path.cwd() / "src"))
 sys.path.append(str(Path.cwd() / "scripts/drivers"))
 
+from cohezion.mcp.email_notifier import EmailNotifier
+from cohezion.swarm.gateway_detector import get_gateway_detector
+from cohezion.swarm.self_improvement_orchestrator import get_orchestrator
 from HITL_CONTEXT_COORDINATOR import CoordinatorIntent, HITLContextCoordinator
 from MYCELIUM_REINFORCEMENT import MyceliumNetwork
 from REWARD_AND_RATCHET_STUB import RewardManager
 
-from cohezion.mcp.email_notifier import EmailNotifier
-from cohezion.swarm.gateway_detector import get_gateway_detector
-from cohezion.swarm.self_improvement_orchestrator import get_orchestrator
 
-
-from cohezion.mcp.email_notifier import EmailNotifier
-from cohezion.swarm.gateway_detector import get_gateway_detector
-from cohezion.swarm.self_improvement_orchestrator import get_orchestrator
-
-
-logging.basicConfig(
-    level=logging.INFO, format="%(asctime)s - [ASCENSION] - %(levelname)s - %(message)s"
-)
+logging.basicConfig(level=logging.INFO, format="%(asctime)s - [ASCENSION] - %(levelname)s - %(message)s")
 logger = logging.getLogger("ASCENSION_ENGINE")
 
 

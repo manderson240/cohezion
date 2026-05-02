@@ -1,4 +1,5 @@
 """Evaluate TinyConvARCSolver on ARC training tasks."""
+
 from __future__ import annotations
 
 import json
@@ -6,7 +7,6 @@ from pathlib import Path
 
 import torch
 import torch.nn.functional as F
-
 from tiny_conv_arc import TinyConvARCSolver
 
 
@@ -85,7 +85,7 @@ if __name__ == "__main__":
         if evaluate_task(base_model, task):
             solved += 1
         if (i + 1) % 10 == 0:
-            print(f"Progress: {i+1}/{len(tasks)} — solved {solved}")
+            print(f"Progress: {i + 1}/{len(tasks)} — solved {solved}")
 
     acc = solved / len(tasks) * 100
     print(f"\nSolved {solved}/{len(tasks)} tasks = {acc:.1f}%")

@@ -5,17 +5,18 @@ import logging
 import os
 import re
 import sys
-import time
 from dataclasses import dataclass
-from typing import Any, Dict, List, Optional
 from pathlib import Path
+
 
 # Add project root to path
 sys.path.append(str(Path(__file__).parents[1]))
 
 from cohezion.research.autoresearch_driver import AutoresearchDriver
 
+
 logger = logging.getLogger(__name__)
+
 
 @dataclass
 class AGIRalphConfig:
@@ -23,10 +24,11 @@ class AGIRalphConfig:
     hiho_threshold: float = 0.5
     max_iterations: int = 10
 
+
 class AGIAutoresearchDriver:
     """Autoresearch driver for Measuring AGI benchmark."""
 
-    def __init__(self, config: Optional[AGIRalphConfig] = None):
+    def __init__(self, config: AGIRalphConfig | None = None):
         self.config = config or AGIRalphConfig()
         self.best_score: float = 0.0
         self.iterations: int = 0
@@ -38,10 +40,10 @@ class AGIAutoresearchDriver:
         log_file = f"agi_ar_run_{self.iterations}.log"
         cmd = f"uv run python -u kaggle-agi-benchmark/evaluator_kbench.py > {log_file} 2>&1"
         os.system(cmd)
-        
+
         # Extract score from log
         try:
-            with open(log_file, "r") as f:
+            with open(log_file) as f:
                 content = f.read()
                 m = re.search(r"Final AGI Cognitive Framework Score: ([\d.]+)", content)
                 return float(m.group(1)) if m else 0.0
@@ -50,23 +52,25 @@ class AGIAutoresearchDriver:
 
     async def run_cycle(self):
         print(f"\n--- AGI Autoresearch Cycle {self.iterations + 1} ---")
-        
+
         # 1. Local Benchmark
         score = await self.run_benchmark()
         print(f"  Local Benchmark Score: {score:.4f}")
-        
+
         # 2. Improvement Gate
         if score > self.best_score:
             print("  🔥 Improvement detected! Submitting benchmark results to Kaggle...")
             self.best_score = score
-            
+
             # Update submission notebook
             # (Assuming notebook generation script handles the data injection)
-            
+
             # Trigger Kaggle Submission
             kaggle_driver = AutoresearchDriver(target="agi")
-            await kaggle_driver.run_kaggle_experiment("improved_reasoning_swarm", f"agi_ar_{self.iterations}")
-            
+            await kaggle_driver.run_kaggle_experiment(
+                "improved_reasoning_swarm", f"agi_ar_{self.iterations}"
+            )
+
         self.iterations += 1
 
     async def run_journey(self):
@@ -75,6 +79,7 @@ class AGIAutoresearchDriver:
             if self.best_score >= 1.0:
                 print("🏆 Perfect score achieved locally. Journey complete.")
                 break
+
 
 if __name__ == "__main__":
     logging.basicConfig(level=logging.INFO)

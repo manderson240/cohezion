@@ -25,14 +25,16 @@ Token choice in MoE: Alternative routing paradigm.
 """
 
 from __future__ import annotations
+
 import os
 import sys
+
 import torch
-from typing import Tuple
 from aiter import ActivationType, QuantType
 from aiter.fused_moe import fused_moe
 from reference import ref_kernel
 from task import input_t, output_t
+
 
 os.environ["AITER_USE_NT"] = "1"
 
@@ -86,7 +88,7 @@ class TokenChoiceRouter:
         scores = torch.matmul(hidden_states, expert_weights.T)
         return torch.softmax(scores, dim=-1)
 
-    def token_to_expert_assignment(self, scores: torch.Tensor) -> Tuple[torch.Tensor, torch.Tensor]:
+    def token_to_expert_assignment(self, scores: torch.Tensor) -> tuple[torch.Tensor, torch.Tensor]:
         """
         Assign tokens to experts based on scores.
 
@@ -123,7 +125,7 @@ class TokenChoiceRouter:
 
     def route_tokens(
         self, hidden_states: torch.Tensor, topk_ids: torch.Tensor, topk_weights: torch.Tensor
-    ) -> Tuple[torch.Tensor, torch.Tensor]:
+    ) -> tuple[torch.Tensor, torch.Tensor]:
         """
         Convert token-choice routing to standard format.
 
@@ -147,7 +149,7 @@ class TokenChoiceRouter:
 
         tokens_per_expert = batch_size * topk // self.num_experts
 
-        expert_counts = {i: 0 for i in range(self.num_experts)}
+        expert_counts = dict.fromkeys(range(self.num_experts), 0)
 
         for b in range(batch_size):
             for k in range(topk):

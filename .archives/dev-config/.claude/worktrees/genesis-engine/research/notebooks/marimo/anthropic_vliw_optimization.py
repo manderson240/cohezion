@@ -139,9 +139,7 @@ def _(mo):
 
 @app.cell
 def _(mo):
-    batch_slider = mo.ui.slider(
-        start=8, stop=256, step=8, value=256, label="Item Batch Size (n=8k)"
-    )
+    batch_slider = mo.ui.slider(start=8, stop=256, step=8, value=256, label="Item Batch Size (n=8k)")
     batch_slider
     return (batch_slider,)
 

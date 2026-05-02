@@ -26,15 +26,17 @@ Applied to MoE: Online importance estimation for expert selection.
 """
 
 from __future__ import annotations
+
 import os
 import sys
-import torch
-from typing import Dict, Optional, Tuple
 from dataclasses import dataclass
+
+import torch
 from aiter import ActivationType, QuantType
 from aiter.fused_moe import fused_moe
 from reference import ref_kernel
 from task import input_t, output_t
+
 
 os.environ["AITER_USE_NT"] = "1"
 
@@ -97,7 +99,7 @@ class ImportanceBasedPruner:
         self.gamma = gamma
 
         # Initialize statistics
-        self.stats: Dict[int, ExpertStats] = {i: ExpertStats() for i in range(num_experts)}
+        self.stats: dict[int, ExpertStats] = {i: ExpertStats() for i in range(num_experts)}
 
         self.current_step = 0
         self.pruned_experts: set[int] = set()
@@ -179,7 +181,7 @@ class ImportanceBasedPruner:
 
     def remap_with_pruning(
         self, topk_ids: torch.Tensor, topk_weights: torch.Tensor
-    ) -> Tuple[torch.Tensor, torch.Tensor]:
+    ) -> tuple[torch.Tensor, torch.Tensor]:
         """
         Remap expert IDs to account for pruning.
 
@@ -217,7 +219,7 @@ class ImportanceBasedPruner:
 
         return remapped_ids, topk_weights
 
-    def get_stats_summary(self) -> Dict[str, float]:
+    def get_stats_summary(self) -> dict[str, float]:
         """Get summary statistics for logging."""
         active = self.get_pruned_mask().sum().item()
         return {
@@ -229,7 +231,7 @@ class ImportanceBasedPruner:
 
 
 # Global pruner instance
-_IMPORTANCE_PRUNER: Optional[ImportanceBasedPruner] = None
+_IMPORTANCE_PRUNER: ImportanceBasedPruner | None = None
 
 
 def _get_pruner(num_experts: int) -> ImportanceBasedPruner:

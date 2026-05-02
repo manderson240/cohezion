@@ -1,9 +1,9 @@
 import asyncio
 import logging
-import sys
-from pathlib import Path
+
 from cohezion.compound.autoharness import AutoHarnessSynthesizer
 from cohezion.integrations.agentverse.llm_executor import LLMExecutor
+
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)

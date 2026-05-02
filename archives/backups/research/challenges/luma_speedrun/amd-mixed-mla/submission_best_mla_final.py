@@ -36,16 +36,17 @@ Benchmarks (expected):
 
 import os
 
+
 os.environ["PYTORCH_ROCM_ARCH"] = "gfx950"
 os.environ["CXX"] = "clang++"
 
-import torch
-from torch.utils.cpp_extension import load_inline
-from task import input_t, output_t
-
 import aiter
+import torch
 from aiter import dtypes as aiter_dtypes
 from aiter import get_mla_metadata_info_v1, get_mla_metadata_v1, mla_reduce_v1
+from task import input_t, output_t
+from torch.utils.cpp_extension import load_inline
+
 
 # =============================================================================
 # HIP KERNEL SOURCE - Optimized BF16 Split-K Attention
@@ -90,69 +91,69 @@ void mla_splitk_bf16_phase1(
     int split_id = blockIdx.x;
     int head_id = blockIdx.y;
     int batch_id = blockIdx.z;
-    
+
     int tid = threadIdx.x;
     int warp_id = tid / WARP_SIZE;
     int lane_id = tid % WARP_SIZE;
-    
+
     // Bounds check
     if (split_id >= num_splits) return;
-    
+
     // KV range for this batch
     int kv_start = kv_indptr[batch_id];
     int kv_end = kv_indptr[batch_id + 1];
     int kv_len = kv_end - kv_start;
-    
+
     // Split assignment - divide KV among splits
     int kv_per_split = (kv_len + num_splits - 1) / num_splits;
     int my_kv_start = kv_start + split_id * kv_per_split;
     int my_kv_end = min(my_kv_start + kv_per_split, kv_end);
-    
+
     // Early exit if this split has no work
     if (my_kv_start >= kv_end) return;
-    
+
     // Q index for this batch (decode: qseqlen=1, so q_idx = batch_id)
     int q_idx = batch_id;
     const __hip_bfloat16* q_ptr = Q + (q_idx * NUM_HEADS + head_id) * QK_DIM;
-    
+
     // =====================================================================
     // LDS CACHE: Load Q into shared memory (cooperative load)
     // 576 floats = 2304 bytes - fits in LDS with room to spare
     // =====================================================================
     __shared__ float q_shared[LDS_Q_SIZE];
     __shared__ float warp_scratch[4];  // 4 warps
-    
+
     // Cooperative Q load: each thread loads ~2.25 elements
     #pragma unroll 3
     for (int i = tid; i < QK_DIM; i += BLOCK_SIZE) {
         q_shared[i] = __bfloat162float(q_ptr[i]);
     }
     __syncthreads();  // Ensure Q is fully loaded
-    
+
     // Online softmax state
     float running_max = -1e30f;
     float running_sum = 0.0f;
-    
+
     // V accumulator - each thread handles 2 elements (512/256 = 2)
     float v_acc[2] = {0.0f, 0.0f};
-    
+
     // =====================================================================
     // MAIN LOOP: Process KV entries in this split
     // =====================================================================
     for (int kv_idx = my_kv_start; kv_idx < my_kv_end; ++kv_idx) {
         const __hip_bfloat16* kv_ptr = KV + kv_idx * QK_DIM;
-        
+
         // Compute Q@K^T: cooperative dot product over 576 dims
         // Each thread handles ~2.25 elements
         float dot = 0.0f;
-        
+
         #pragma unroll 3
         for (int d = tid; d < QK_DIM; d += BLOCK_SIZE) {
             float qval = q_shared[d];
             float kval = __bfloat162float(kv_ptr[d]);
             dot += qval * kval;
         }
-        
+
         // =====================================================================
         // WAVE-LEVEL REDUCTION: Use warp shuffle to sum dot products
         // =====================================================================
@@ -160,13 +161,13 @@ void mla_splitk_bf16_phase1(
         for (int offset = WARP_SIZE / 2; offset > 0; offset >>= 1) {
             dot += __shfl_xor(dot, offset, WARP_SIZE);
         }
-        
+
         // Store warp result to shared memory
         if (lane_id == 0) {
             warp_scratch[warp_id] = dot;
         }
         __syncthreads();
-        
+
         // Final reduction across warps (thread 0 only)
         float score;
         if (tid == 0) {
@@ -176,24 +177,24 @@ void mla_splitk_bf16_phase1(
         }
         __syncthreads();
         score = warp_scratch[0];  // All threads read the score
-        
+
         // =====================================================================
         // ONLINE SOFTMAX UPDATE (numerically stable)
         // =====================================================================
         float old_max = running_max;
         float new_max = fmaxf(old_max, score);
         float exp_score = expf(score - new_max);
-        
+
         // Correction factor for previous sum
         float correction = (old_max > -1e20f) ? expf(old_max - new_max) : 0.0f;
-        
+
         // Update running statistics
         running_sum = running_sum * correction + exp_score;
         running_max = new_max;
-        
+
         // Accumulate weighted V (V = KV[:V_DIM] = first 512 elements)
         float weight = exp_score;
-        
+
         #pragma unroll
         for (int vi = 0; vi < 2; ++vi) {
             int v_idx = tid * 2 + vi;
@@ -203,12 +204,12 @@ void mla_splitk_bf16_phase1(
             }
         }
     }
-    
+
     // =====================================================================
     // WRITE PARTIAL RESULTS to global memory
     // =====================================================================
     int out_base = ((split_id * total_q + q_idx) * NUM_HEADS + head_id);
-    
+
     // Write accumulated V (unnormalized - will be normalized in reduction)
     #pragma unroll
     for (int vi = 0; vi < 2; ++vi) {
@@ -217,7 +218,7 @@ void mla_splitk_bf16_phase1(
             partial_out[out_base * V_DIM + v_idx] = v_acc[vi];
         }
     }
-    
+
     // Thread 0 writes max and LSE
     if (tid == 0) {
         partial_max[out_base] = running_max;
@@ -238,38 +239,38 @@ void mla_splitk_reduce(
 ) {
     int idx = blockIdx.x * blockDim.x + threadIdx.x;
     int total_elements = total_q * NUM_HEADS * V_DIM;
-    
+
     if (idx >= total_elements) return;
-    
+
     // Decode linear index: idx -> (q_idx, head_id, v_idx)
     int v_idx = idx % V_DIM;
     int head_q = idx / V_DIM;
     int head_id = head_q % NUM_HEADS;
     int q_idx = head_q / NUM_HEADS;
-    
+
     // Find global max across all splits
     float global_max = -1e30f;
     for (int s = 0; s < num_splits; ++s) {
         int base = (s * total_q + q_idx) * NUM_HEADS + head_id;
         global_max = fmaxf(global_max, partial_max[base]);
     }
-    
+
     // Merge weighted sums using log-sum-exp formula
     float total_weight = 0.0f;
     float total_v = 0.0f;
-    
+
     for (int s = 0; s < num_splits; ++s) {
         int base = (s * total_q + q_idx) * NUM_HEADS + head_id;
         float m = partial_max[base];
         float lse = partial_lse[base];
-        
+
         // Weight = exp(lse - global_max)
         // lse = log(sum) + m, so exp(lse - global_max) = sum * exp(m - global_max)
         float weight = expf(lse - global_max);
         total_weight += weight;
         total_v += partial_out[base * V_DIM + v_idx] * expf(m - global_max);
     }
-    
+
     // Normalize and write output
     if (total_weight > 0.0f) {
         output[idx] = __float2bfloat16(total_v / total_weight);
@@ -295,7 +296,7 @@ void launch_mla_splitk_bf16(
     // Phase 1: Split-K computation
     // Grid: (num_splits, NUM_HEADS, batch_size)
     dim3 grid1(num_splits, NUM_HEADS, batch_size);
-    
+
     mla_splitk_bf16_phase1<<<grid1, BLOCK_SIZE>>>(
         reinterpret_cast<const __hip_bfloat16*>(Q.data_ptr()),
         reinterpret_cast<const __hip_bfloat16*>(KV.data_ptr()),
@@ -308,12 +309,12 @@ void launch_mla_splitk_bf16(
         num_splits,
         sm_scale
     );
-    
+
     // Phase 2: Reduction across splits
     int total_elements = total_q * NUM_HEADS * V_DIM;
     int threads = 256;
     int blocks = (total_elements + threads - 1) / threads;
-    
+
     mla_splitk_reduce<<<blocks, threads>>>(
         partial_out.data_ptr<float>(),
         partial_max.data_ptr<float>(),

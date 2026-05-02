@@ -185,7 +185,7 @@ def test_reference_problems():
         print(f"⚠ Reference file not found at {ref_path}")
         return
 
-    with open(ref_path, "r") as f:
+    with open(ref_path) as f:
         reader = csv.DictReader(f)
         problems = list(reader)
 
@@ -211,7 +211,7 @@ def test_kernel_syntax():
 
     kernel_path = os.path.join(os.path.dirname(__file__), "submission_sc_tir.py")
 
-    with open(kernel_path, "r") as f:
+    with open(kernel_path) as f:
         code = f.read()
 
     try:

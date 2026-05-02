@@ -24,10 +24,7 @@ logger = logging.getLogger("bmad-mcp")
 app = FastMCP("bmad-method")
 
 BMAD_DATA_PATH = Path(os.getenv("BMAD_DATA_PATH", "_bmad"))
-REDIS_URL = (
-    get_credentials().get_secret("COHEZION_REDIS_URL", env_var="REDIS_URL")
-    or "redis://localhost:6379"
-)
+REDIS_URL = get_credentials().get_secret("COHEZION_REDIS_URL", env_var="REDIS_URL") or "redis://localhost:6379"
 
 _engine: BMADEngine | None = None
 _session_manager: SessionManager | None = None

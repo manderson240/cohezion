@@ -27,6 +27,7 @@ logger = logging.getLogger(__name__)
 @dataclass
 class AgentModule:
     """Dynamically loaded agent module with metadata."""
+
     name: str
     version: str
     class_ref: type[SpecialistAgent]
@@ -58,7 +59,7 @@ class AgentModule:
 
 class DynamicAgentRegistry:
     """Hot-swappable agent registry with runtime loading.
-    
+
     Features:
     - Hot-reload: Update agents without restart
     - Runtime registration: Add agents from Python files
@@ -67,8 +68,7 @@ class DynamicAgentRegistry:
     """
 
     def __init__(self, modules_dir: Path | None = None):
-        self.modules_dir = modules_dir or Path(
-            __file__).parent / "agents" / "modules"
+        self.modules_dir = modules_dir or Path(__file__).parent / "agents" / "modules"
         self._agents: dict[str, AgentModule] = {}
         self._watchers: dict[str, Callable] = {}
         self._file_hashes: dict[str, str] = {}
@@ -99,7 +99,7 @@ class DynamicAgentRegistry:
 
     async def start_watching(self, interval: float | None = None):
         """Start file watcher for hot-reloading.
-        
+
         Args:
             interval: Check interval in seconds (default: 5.0)
         """
@@ -109,10 +109,7 @@ class DynamicAgentRegistry:
 
         self._check_interval = interval or self._check_interval
         self._running = True
-        self._reload_task = asyncio.create_task(
-            self._watch_loop(),
-            name="agent_reload_watcher"
-        )
+        self._reload_task = asyncio.create_task(self._watch_loop(), name="agent_reload_watcher")
         logger.info(f"Started file watcher (interval: {self._check_interval}s)")
 
     async def stop_watching(self):
@@ -190,20 +187,16 @@ class DynamicAgentRegistry:
         except Exception:
             return ""
 
-    async def register_from_file(
-        self,
-        file_path: Path,
-        activate: bool = True
-    ) -> str:
+    async def register_from_file(self, file_path: Path, activate: bool = True) -> str:
         """Register agent from Python file at runtime.
-        
+
         Args:
             file_path: Path to Python file containing agent class
             activate: Whether to activate immediately
-            
+
         Returns:
             Name of registered agent
-            
+
         Raises:
             ValueError: If no valid agent class found
             ImportError: If module cannot be loaded
@@ -213,9 +206,7 @@ class DynamicAgentRegistry:
 
         # Load module
         module_name = file_path.stem
-        spec = importlib.util.spec_from_file_location(
-            module_name, file_path
-        )
+        spec = importlib.util.spec_from_file_location(module_name, file_path)
         if not spec or not spec.loader:
             raise ImportError(f"Cannot load module from {file_path}")
 
@@ -245,9 +236,7 @@ class DynamicAgentRegistry:
                 break
 
         if not agent_class:
-            raise ValueError(
-                f"No SpecialistAgent subclass found in {file_path}"
-            )
+            raise ValueError(f"No SpecialistAgent subclass found in {file_path}")
 
         # Extract name from metadata or class name
         if agent_metadata:
@@ -295,9 +284,7 @@ class DynamicAgentRegistry:
         try:
             await self.register_from_file(file_path)
             new_module = self._agents[name]
-            logger.info(
-                f"Hot-reloaded {name}: {old_version} → {new_module.version}"
-            )
+            logger.info(f"Hot-reloaded {name}: {old_version} → {new_module.version}")
             await self._notify_reload(name, old_module, new_module)
         except Exception as e:
             logger.error(f"Failed to reload {name}: {e}")
@@ -314,11 +301,11 @@ class DynamicAgentRegistry:
 
     async def unregister(self, name: str, force: bool = False) -> bool:
         """Unregister agent.
-        
+
         Args:
             name: Name of agent to unregister
             force: If True, remove immediately; if False, deactivate gracefully
-            
+
         Returns:
             True if successful
         """
@@ -374,16 +361,14 @@ class DynamicAgentRegistry:
         return None
 
     def list_agents(
-        self,
-        active_only: bool = True,
-        capability: str | None = None
+        self, active_only: bool = True, capability: str | None = None
     ) -> list[AgentModule]:
         """List agents with optional filtering.
-        
+
         Args:
             active_only: If True, only return active agents
             capability: If specified, only return agents with this capability
-            
+
         Returns:
             List of matching AgentModule instances
         """
@@ -393,24 +378,15 @@ class DynamicAgentRegistry:
             agents = [a for a in agents if a.active]
 
         if capability:
-            agents = [
-                a for a in agents
-                if capability in a.capabilities
-            ]
+            agents = [a for a in agents if capability in a.capabilities]
 
         return agents
 
-    def list_agent_names(
-        self,
-        active_only: bool = True
-    ) -> list[str]:
+    def list_agent_names(self, active_only: bool = True) -> list[str]:
         """List agent names."""
         return [a.name for a in self.list_agents(active_only=active_only)]
 
-    def get_agents_by_capability(
-        self,
-        capability: str
-    ) -> list[AgentModule]:
+    def get_agents_by_capability(self, capability: str) -> list[AgentModule]:
         """Get all agents with specific capability."""
         return self.list_agents(capability=capability)
 
@@ -418,13 +394,9 @@ class DynamicAgentRegistry:
     # Performance Tracking
     # ═══════════════════════════════════════════════════════════════════
 
-    def update_performance(
-        self,
-        name: str,
-        metrics: dict[str, Any]
-    ):
+    def update_performance(self, name: str, metrics: dict[str, Any]):
         """Update performance stats for adaptive routing.
-        
+
         Args:
             name: Agent name
             metrics: Performance metrics dict
@@ -450,28 +422,21 @@ class DynamicAgentRegistry:
                 "name": name,
                 "active": agent.active,
                 "loaded_at": agent.loaded_at.isoformat(),
-                **agent.performance_stats
+                **agent.performance_stats,
             }
         return None
 
     def get_all_performance(self) -> dict[str, dict[str, Any]]:
         """Get performance for all agents."""
-        return {
-            name: self.get_performance_summary(name)
-            for name in self._agents.keys()
-        }
+        return {name: self.get_performance_summary(name) for name in self._agents.keys()}
 
     # ═══════════════════════════════════════════════════════════════════
     # Watcher Notifications
     # ═══════════════════════════════════════════════════════════════════
 
-    def register_watcher(
-        self,
-        name: str,
-        callback: Callable[[str, str, AgentModule], None]
-    ):
+    def register_watcher(self, name: str, callback: Callable[[str, str, AgentModule], None]):
         """Register callback for agent lifecycle events.
-        
+
         Args:
             name: Watcher identifier
             callback: Function(event_type, agent_name, agent_module)
@@ -485,12 +450,7 @@ class DynamicAgentRegistry:
             del self._watchers[name]
             logger.debug(f"Unregistered watcher: {name}")
 
-    async def _notify_event(
-        self,
-        event_type: str,
-        agent_name: str,
-        module: AgentModule
-    ):
+    async def _notify_event(self, event_type: str, agent_name: str, module: AgentModule):
         """Notify all watchers of event."""
         for watcher_name, callback in self._watchers.items():
             try:
@@ -500,31 +460,18 @@ class DynamicAgentRegistry:
             except Exception as e:
                 logger.error(f"Watcher {watcher_name} failed: {e}")
 
-    async def _notify_registration(
-        self,
-        name: str,
-        module: AgentModule
-    ):
+    async def _notify_registration(self, name: str, module: AgentModule):
         """Notify watchers of registration."""
         await self._notify_event("registered", name, module)
 
-    async def _notify_reload(
-        self,
-        name: str,
-        old_module: AgentModule,
-        new_module: AgentModule
-    ):
+    async def _notify_reload(self, name: str, old_module: AgentModule, new_module: AgentModule):
         """Notify watchers of reload."""
         await self._notify_event("reloaded", name, new_module)
 
     async def _notify_deactivation(self, name: str):
         """Notify watchers of deactivation."""
         if name in self._agents:
-            await self._notify_event(
-                "deactivated",
-                name,
-                self._agents[name]
-            )
+            await self._notify_event("deactivated", name, self._agents[name])
 
     async def _notify_reactivation(self, name: str, module: AgentModule):
         """Notify watchers of reactivation."""
@@ -540,10 +487,7 @@ class DynamicAgentRegistry:
         save_path.parent.mkdir(parents=True, exist_ok=True)
 
         state = {
-            "agents": {
-                name: module.to_dict()
-                for name, module in self._agents.items()
-            },
+            "agents": {name: module.to_dict() for name, module in self._agents.items()},
             "saved_at": datetime.now().isoformat(),
             "check_interval": self._check_interval,
         }

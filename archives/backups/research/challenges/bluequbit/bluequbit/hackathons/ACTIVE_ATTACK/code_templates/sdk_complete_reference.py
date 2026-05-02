@@ -3,12 +3,11 @@ BlueQubit Complete SDK Reference Template
 All SDK methods documented with working examples
 """
 
-import os
-import asyncio
 from pathlib import Path
-from dotenv import load_dotenv
+
 import bluequbit
 import qiskit
+from dotenv import load_dotenv
 
 
 class BlueQubitSDKReference:

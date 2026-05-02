@@ -184,7 +184,7 @@ def custom_kernel(data: input_t) -> output_t:
             intermediate_pad=intermediate_pad,
         )
 
-    except Exception as e:
+    except Exception:
         # Fallback to standard fused_moe
         output = fused_moe(
             hidden_states,

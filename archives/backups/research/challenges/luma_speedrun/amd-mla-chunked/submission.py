@@ -22,17 +22,17 @@ Best for: kv_seqlen > 4096 (where standard attention is memory-bound)
 
 import os
 
+
 os.environ["PYTORCH_ROCM_ARCH"] = "gfx950"
 os.environ["CXX"] = "clang++"
 
-import torch
-import torch.nn.functional as F
-from task import input_t, output_t
-
 # Import aiter for fallback
 import aiter
+import torch
 from aiter import dtypes as aiter_dtypes
 from aiter import get_mla_metadata_info_v1, get_mla_metadata_v1, mla_reduce_v1
+from task import input_t, output_t
+
 
 NUM_HEADS = 16
 QK_HEAD_DIM = 576

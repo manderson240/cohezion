@@ -4,12 +4,13 @@
 """MoE: Probe fmoe_g1u1 (non-a16 variant) and ck_moe_stage1 signatures."""
 
 from __future__ import annotations
-import os
+
 import inspect
+import os
+
 
 os.environ["AITER_USE_NT"] = "1"
 
-import torch
 import aiter
 from aiter import ActivationType, QuantType
 from aiter.fused_moe import fused_moe

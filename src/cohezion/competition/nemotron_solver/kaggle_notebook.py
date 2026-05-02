@@ -1,13 +1,14 @@
-import os
 import csv
+import os
+
 
 INPUT_PATH = None
 for base_path in ["/kaggle/input/nvidia-nemotron-model-reasoning-challenge", "/kaggle/input"]:
     if os.path.exists(base_path):
         for root, dirs, files in os.walk(base_path):
             for f in files:
-                if f.lower().endswith('.csv'):
-                    if 'test' in f.lower():
+                if f.lower().endswith(".csv"):
+                    if "test" in f.lower():
                         INPUT_PATH = root
                         break
             if INPUT_PATH:
@@ -18,7 +19,7 @@ for base_path in ["/kaggle/input/nvidia-nemotron-model-reasoning-challenge", "/k
 if INPUT_PATH is None:
     raise FileNotFoundError("Could not find test.csv in /kaggle/input")
 
-test_files = [f for f in os.listdir(INPUT_PATH) if 'test' in f.lower() and f.endswith('.csv')]
+test_files = [f for f in os.listdir(INPUT_PATH) if "test" in f.lower() and f.endswith(".csv")]
 if not test_files:
     raise FileNotFoundError("No test CSV found")
 
@@ -28,6 +29,7 @@ with open(test_path) as f:
     test_rows = list(csv.DictReader(f))
 
 # ========== Solver code ==========
+
 
 def parse_examples(prompt):
     pairs = []
@@ -103,7 +105,9 @@ def _format_number(value, examples):
     fmt = f"{value:.{precision}f}"
     if precision == 1:
         dec2_count = sum(1 for _, out in examples if "." in out and len(out.split(".")[1]) == 2)
-        if dec2_count >= sum(1 for _, out in examples if "." in out and len(out.split(".")[1]) == 1):
+        if dec2_count >= sum(
+            1 for _, out in examples if "." in out and len(out.split(".")[1]) == 1
+        ):
             fmt2 = f"{value:.2f}"
             if fmt2 != fmt:
                 return fmt2
@@ -270,7 +274,7 @@ def solve_bit_manip(examples, test_in):
                     bit = (test_val >> val) & 1
                     if invert:
                         bit = 1 - bit
-                result |= (bit << out_bit)
+                result |= bit << out_bit
             return f"{result:08b}"
         except Exception:
             pass
@@ -288,15 +292,15 @@ def solve_bit_manip(examples, test_in):
                         for a, b in pairs:
                             val = const
                             for j in subset:
-                                val ^= ((a >> j) & 1)
+                                val ^= (a >> j) & 1
                             if val != ((b >> out_bit) & 1):
                                 ok = False
                                 break
                         if ok:
                             bit_val = const
                             for j in subset:
-                                bit_val ^= ((test_val >> j) & 1)
-                            result |= (bit_val << out_bit)
+                                bit_val ^= (test_val >> j) & 1
+                            result |= bit_val << out_bit
                             matched = True
                             break
                     if matched:
@@ -362,10 +366,10 @@ def solve_bit_manip(examples, test_in):
         ("not", lambda x: (~x) & 0xFF),
         ("reverse", lambda x: int(f"{x:08b}"[::-1], 2)),
         ("flip", lambda x: x ^ 0xFF),
-        ("shift_left_1", lambda x: ((x << 1) & 0xFF)),
-        ("shift_right_1", lambda x: (x >> 1)),
+        ("shift_left_1", lambda x: (x << 1) & 0xFF),
+        ("shift_right_1", lambda x: x >> 1),
         ("rot_left_1", lambda x: ((x << 1) & 0xFF) | (x >> 7)),
-        ("rot_right_1", lambda x: ((x >> 1) | ((x & 1) << 7))),
+        ("rot_right_1", lambda x: (x >> 1) | ((x & 1) << 7)),
     ]
     for name, op in unary_ops:
         ok = True
@@ -383,34 +387,217 @@ def solve_bit_manip(examples, test_in):
 
 
 _ENCRYPTION_VOCAB = [
-    "the", "follows", "dragon", "teacher", "writes", "creates", "draws",
-    "student", "rabbit", "studies", "discovers", "secret", "found", "mouse",
-    "dreams", "chases", "reads", "king", "sees", "watches", "queen", "hatter",
-    "knight", "explores", "bird", "imagines", "wizard", "turtle", "castle",
-    "cat", "alice", "garden", "princess", "colorful", "puzzle", "bright",
-    "forest", "book", "clever", "key", "dark", "mirror", "treasure",
-    "silver", "beyond", "inside", "in", "hidden", "curious", "around",
-    "above", "wise", "potion", "near", "door", "golden", "under", "through",
-    "mysterious", "magical", "strange", "story", "crystal", "message", "map",
-    "ancient", "village", "mountain", "wonderland", "cave", "school", "valley",
-    "island", "palace", "library", "ocean", "tower", "diamond", "crown",
-    "river", "bridge", "cloud", "star", "moon", "sun", "fire",
-    "water", "earth", "wind", "shadow", "light", "path", "road", "tree",
-    "flower", "grass", "stone", "sand", "snow", "rain", "storm", "thunder",
-    "whisper", "laughter", "silence", "echo", "song", "dance", "music",
-    "magic", "spell", "herb", "gem", "jewel", "ring",
-    "sword", "shield", "armor", "helmet", "cape", "robe", "hat", "shoe",
-    "boot", "glove", "belt", "bag", "box", "chest", "bottle", "cup",
-    "plate", "bowl", "spoon", "fork", "knife", "candle", "lamp", "torch",
-    "paper", "pen", "ink", "paint", "brush", "canvas", "frame", "picture",
-    "photo", "camera", "film", "tape", "record", "disk", "card", "coin",
-    "dollar", "cent", "euro", "pound", "yen", "price", "cost", "value",
-    "worth", "rich", "poor", "wealth", "gold", "money", "cash", "bank",
-    "shop", "store", "market", "trade", "sell", "buy", "pay", "spend",
-    "save", "keep", "hold", "have", "own", "give", "take", "get",
-    "find", "lose", "search", "seek", "hunt", "track", "trace", "mark",
-    "sign", "signal", "code", "word", "letter", "note", "text", "line",
-    "page", "chapter", "title", "name", "label", "tag", "brand", "logo",
+    "the",
+    "follows",
+    "dragon",
+    "teacher",
+    "writes",
+    "creates",
+    "draws",
+    "student",
+    "rabbit",
+    "studies",
+    "discovers",
+    "secret",
+    "found",
+    "mouse",
+    "dreams",
+    "chases",
+    "reads",
+    "king",
+    "sees",
+    "watches",
+    "queen",
+    "hatter",
+    "knight",
+    "explores",
+    "bird",
+    "imagines",
+    "wizard",
+    "turtle",
+    "castle",
+    "cat",
+    "alice",
+    "garden",
+    "princess",
+    "colorful",
+    "puzzle",
+    "bright",
+    "forest",
+    "book",
+    "clever",
+    "key",
+    "dark",
+    "mirror",
+    "treasure",
+    "silver",
+    "beyond",
+    "inside",
+    "in",
+    "hidden",
+    "curious",
+    "around",
+    "above",
+    "wise",
+    "potion",
+    "near",
+    "door",
+    "golden",
+    "under",
+    "through",
+    "mysterious",
+    "magical",
+    "strange",
+    "story",
+    "crystal",
+    "message",
+    "map",
+    "ancient",
+    "village",
+    "mountain",
+    "wonderland",
+    "cave",
+    "school",
+    "valley",
+    "island",
+    "palace",
+    "library",
+    "ocean",
+    "tower",
+    "diamond",
+    "crown",
+    "river",
+    "bridge",
+    "cloud",
+    "star",
+    "moon",
+    "sun",
+    "fire",
+    "water",
+    "earth",
+    "wind",
+    "shadow",
+    "light",
+    "path",
+    "road",
+    "tree",
+    "flower",
+    "grass",
+    "stone",
+    "sand",
+    "snow",
+    "rain",
+    "storm",
+    "thunder",
+    "whisper",
+    "laughter",
+    "silence",
+    "echo",
+    "song",
+    "dance",
+    "music",
+    "magic",
+    "spell",
+    "herb",
+    "gem",
+    "jewel",
+    "ring",
+    "sword",
+    "shield",
+    "armor",
+    "helmet",
+    "cape",
+    "robe",
+    "hat",
+    "shoe",
+    "boot",
+    "glove",
+    "belt",
+    "bag",
+    "box",
+    "chest",
+    "bottle",
+    "cup",
+    "plate",
+    "bowl",
+    "spoon",
+    "fork",
+    "knife",
+    "candle",
+    "lamp",
+    "torch",
+    "paper",
+    "pen",
+    "ink",
+    "paint",
+    "brush",
+    "canvas",
+    "frame",
+    "picture",
+    "photo",
+    "camera",
+    "film",
+    "tape",
+    "record",
+    "disk",
+    "card",
+    "coin",
+    "dollar",
+    "cent",
+    "euro",
+    "pound",
+    "yen",
+    "price",
+    "cost",
+    "value",
+    "worth",
+    "rich",
+    "poor",
+    "wealth",
+    "gold",
+    "money",
+    "cash",
+    "bank",
+    "shop",
+    "store",
+    "market",
+    "trade",
+    "sell",
+    "buy",
+    "pay",
+    "spend",
+    "save",
+    "keep",
+    "hold",
+    "have",
+    "own",
+    "give",
+    "take",
+    "get",
+    "find",
+    "lose",
+    "search",
+    "seek",
+    "hunt",
+    "track",
+    "trace",
+    "mark",
+    "sign",
+    "signal",
+    "code",
+    "word",
+    "letter",
+    "note",
+    "text",
+    "line",
+    "page",
+    "chapter",
+    "title",
+    "name",
+    "label",
+    "tag",
+    "brand",
+    "logo",
 ]
 
 
@@ -451,7 +638,11 @@ def solve_encryption(examples, test_in):
             if "?" not in pw:
                 continue
             pattern = pw.replace("?", "?")
-            matches = [w for w in _ENCRYPTION_VOCAB if len(w) == len(pattern) and _match_pattern(pattern, w)]
+            matches = [
+                w
+                for w in _ENCRYPTION_VOCAB
+                if len(w) == len(pattern) and _match_pattern(pattern, w)
+            ]
             if len(matches) >= 1:
                 best = matches[0]
                 for c_in, c_out in zip(tw, best):

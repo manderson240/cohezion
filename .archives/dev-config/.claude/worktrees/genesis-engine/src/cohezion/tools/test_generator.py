@@ -108,9 +108,7 @@ class TestGenerator:
             bases=bases,
         )
 
-    def _extract_function(
-        self, node: ast.FunctionDef | ast.AsyncFunctionDef, is_method: bool = False
-    ) -> FunctionInfo:
+    def _extract_function(self, node: ast.FunctionDef | ast.AsyncFunctionDef, is_method: bool = False) -> FunctionInfo:
         """Extract function information."""
         args = []
         for arg in node.args.args:
@@ -191,9 +189,7 @@ class TestGenerator:
         _module_name = module_info.path.stem
 
         # Import the module under test
-        relative_path = (
-            str(module_info.path).replace("src/", "").replace("/", ".").replace(".py", "")
-        )
+        relative_path = str(module_info.path).replace("src/", "").replace("/", ".").replace(".py", "")
         imports.append(f"from cohezion.{relative_path} import *")
         imports.append("")
 
@@ -214,9 +210,7 @@ class TestGenerator:
             lines.append(f"{self.indent}async def test_{func.name}_basic(self):")
         else:
             lines.append(f"{self.indent}def test_{func.name}_basic(self):")
-        lines.append(
-            f'{self.indent}{self.indent}"""[P0] Should execute {func.name} successfully."""'
-        )
+        lines.append(f'{self.indent}{self.indent}"""[P0] Should execute {func.name} successfully."""')
         lines.append(f"{self.indent}{self.indent}# Arrange")
         for arg in func.args[:3]:  # First 3 args
             lines.append(f"{self.indent}{self.indent}{arg} = None  # TODO: Set appropriate value")
@@ -291,9 +285,7 @@ class TestGenerator:
 
         # Execute
         if method.is_async:
-            lines.append(
-                f"{self.indent}{self.indent}result = await {cls.name.lower()}.{method.name}()"
-            )
+            lines.append(f"{self.indent}{self.indent}result = await {cls.name.lower()}.{method.name}()")
         else:
             lines.append(f"{self.indent}{self.indent}result = {cls.name.lower()}.{method.name}()")
         lines.append("")
@@ -312,9 +304,7 @@ def main():
     parser = argparse.ArgumentParser(description="Generate pytest tests from Python source")
     parser.add_argument("--target", required=True, help="Source file to analyze")
     parser.add_argument("--output", required=True, help="Output test file path")
-    parser.add_argument(
-        "--template", default="comprehensive", choices=["basic", "comprehensive", "minimal"]
-    )
+    parser.add_argument("--template", default="comprehensive", choices=["basic", "comprehensive", "minimal"])
 
     args = parser.parse_args()
 

@@ -598,7 +598,7 @@ def select_kernel(M: int, N: int) -> tuple[str, str]:
     for tile_M, tile_N, _, bpreshuffle, knl_name, co_name in KERNEL_CONFIGS:
         if bpreshuffle != 1:
             continue
-        if M <= tile_M and N <= tile_N and tile_M >= best_tile_M:
+        if tile_M >= M and tile_N >= N and tile_M >= best_tile_M:
             if tile_M > best_tile_M or (tile_M == best_tile_M and tile_N > best_tile_N):
                 best_tile_M = tile_M
                 best_tile_N = tile_N

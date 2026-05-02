@@ -77,13 +77,9 @@ class HIHOUnifiedEngine:
         ca_rule: int = 30,
     ) -> None:
         """Initialize the HIHO unified engine with First Principles component defaults."""
-        logger.info(
-            "Initializing HIHOUnifiedEngine (CA Rule %d, Lyapunov %f)", ca_rule, chaos_lyapunov
-        )
+        logger.info("Initializing HIHOUnifiedEngine (CA Rule %d, Lyapunov %f)", ca_rule, chaos_lyapunov)
         self.ca_engine = CellularAutomataEngine(CellularAutomataState(rule=ca_rule))
-        self.chaos_engine = ChaosTheoryEngine(
-            ChaosTheoryParameters(lyapunov_exponent=chaos_lyapunov)
-        )
+        self.chaos_engine = ChaosTheoryEngine(ChaosTheoryParameters(lyapunov_exponent=chaos_lyapunov))
         self.mhd_engine = MagnetohydrodynamicsEngine()
         self.hiho_engine = HIHOStabilizationEngine()
         self.geometry_engine = SacredGeometryEngine()
@@ -136,9 +132,7 @@ class HIHOUnifiedEngine:
 
             if evo_states and i < len(evo_states):
                 current_evo = evo_states[i]
-                vec = self.mhd_engine.apply_mhd_forces(
-                    current_evo, vec, self.chaos_engine.params.time_step
-                )
+                vec = self.mhd_engine.apply_mhd_forces(current_evo, vec, self.chaos_engine.params.time_step)
                 current_evo, vec = self.hiho_engine.apply_hiho_loop(
                     current_evo, vec, self.chaos_engine.params.time_step
                 )

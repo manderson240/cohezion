@@ -148,15 +148,9 @@ class TestTrajectorySearchEngine:
         # High quality result should have positive guidance
         high_quality = next((r for r in results if r.coherence >= 0.7), None)
         if high_quality:
-            assert (
-                "excellent" in high_quality.guidance.lower()
-                or "high confidence" in high_quality.guidance.lower()
-            )
+            assert "excellent" in high_quality.guidance.lower() or "high confidence" in high_quality.guidance.lower()
 
         # Low quality result should have warning
         low_quality = next((r for r in results if r.coherence < 0.5), None)
         if low_quality:
-            assert (
-                "caution" in low_quality.guidance.lower()
-                or "failed" in low_quality.guidance.lower()
-            )
+            assert "caution" in low_quality.guidance.lower() or "failed" in low_quality.guidance.lower()

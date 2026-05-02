@@ -10,7 +10,6 @@ from cohezion.core.persistence.repositories.skill_repository import Skill
 from cohezion.core.persistence.repositories.surreal_skill_repository import (
     SurrealSkillRepository,
 )
-from cohezion.core.persistence.surreal_client import SurrealClient
 
 
 @pytest.fixture

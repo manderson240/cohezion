@@ -7,10 +7,12 @@ Key insight: Experts often share similar weight patterns. By caching
 and reusing weight data, we can reduce memory bandwidth.
 """
 
+import os
+import sys
+
 import torch
 import torch.nn.functional as F
-import sys
-import os
+
 
 _AITER_JIT_BUILD = "/home/runner/aiter/aiter/jit/build"
 for _mod in (
@@ -151,7 +153,7 @@ def custom_kernel(data: input_t) -> output_t:
 
         return output
 
-    except Exception as e:
+    except Exception:
         from reference import ref_kernel
 
         return ref_kernel(data)

@@ -12,10 +12,10 @@ import json
 import subprocess
 import sys
 import time
-from dataclasses import dataclass, asdict
+from dataclasses import asdict, dataclass
 from datetime import datetime
 from pathlib import Path
-from typing import Any, Optional
+from typing import Any
 
 
 @dataclass
@@ -50,7 +50,7 @@ class OvernightRunner:
         self.checkpoint_path = Path(f".checkpoint_{session_name}.json")
         self.log_path = Path(f"overnight_{session_name}.log")
 
-        self.state: Optional[OvernightState] = None
+        self.state: OvernightState | None = None
         self.start_time = time.time()
 
     def _run_cmd(self, cmd: list[str], capture: bool = True) -> tuple[int, str]:
@@ -74,7 +74,7 @@ class OvernightRunner:
             self.checkpoint_path.write_text(json.dumps(asdict(self.state), indent=2))
             print(f"💾 Checkpoint saved: run {self.state.run_number}")
 
-    def _load_checkpoint(self) -> Optional[OvernightState]:
+    def _load_checkpoint(self) -> OvernightState | None:
         """Load state from checkpoint file."""
         if not self.checkpoint_path.exists():
             return None
@@ -157,9 +157,9 @@ class OvernightRunner:
 
         report = f"""# Overnight Autoresearch Report
 
-**Session**: {self.session_name}  
-**Completed**: {datetime.now().isoformat()}  
-**Duration**: {(time.time() - self.state.start_time) / 3600:.1f} hours  
+**Session**: {self.session_name}
+**Completed**: {datetime.now().isoformat()}
+**Duration**: {(time.time() - self.state.start_time) / 3600:.1f} hours
 **Git Commit**: {self.state.git_commit}
 
 ## Summary

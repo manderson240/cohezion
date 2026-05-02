@@ -476,9 +476,7 @@ class TestSemanticCacheIntegration:
     async def test_cache_performance_metrics(self):
         """Test cache performance with multiple operations."""
         # High similarity threshold to test L1 behavior (no L2 semantic matches)
-        cache = SemanticCache(
-            max_l1_size=10, similarity_threshold=0.9999, mcp_client=None
-        )
+        cache = SemanticCache(max_l1_size=10, similarity_threshold=0.9999, mcp_client=None)
 
         # Put multiple entries
         prompts = [

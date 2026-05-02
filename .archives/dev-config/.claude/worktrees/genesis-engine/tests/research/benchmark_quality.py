@@ -34,9 +34,7 @@ class StatisticalValidator:
     """Statistical validation framework for quality benchmarks."""
 
     @staticmethod
-    def kolmogorov_smirnov_test(
-        samples: list[float], reference_cdf: Callable[[float], float]
-    ) -> tuple[float, bool]:
+    def kolmogorov_smirnov_test(samples: list[float], reference_cdf: Callable[[float], float]) -> tuple[float, bool]:
         """Kolmogorov-Smirnov test for distribution comparison.
 
         Args:
@@ -127,9 +125,7 @@ class StatisticalValidator:
         }
 
     @staticmethod
-    def calculate_confidence_interval(
-        samples: list[float], confidence: float = 0.95
-    ) -> tuple[float, float]:
+    def calculate_confidence_interval(samples: list[float], confidence: float = 0.95) -> tuple[float, float]:
         """Calculate confidence interval for mean.
 
         Args:
@@ -219,9 +215,7 @@ class TestStatisticalValidation:
         result = validator.variance_test(samples, window_size=10)
 
         assert result["bifurcation_detected"], "Bifurcation not detected"
-        assert result["variance_ratio"] > 2, (
-            f"Insufficient variance increase: {result['variance_ratio']:.2f}"
-        )
+        assert result["variance_ratio"] > 2, f"Insufficient variance increase: {result['variance_ratio']:.2f}"
         logger.info(f"Bifurcation detected: variance_ratio={result['variance_ratio']:.2f}")
 
     @pytest.mark.fast
@@ -275,9 +269,7 @@ class TestStatisticalValidation:
         # In practice, would use proper power calculation
         assert t_stat > 1.0, f"Insufficient power: t={t_stat:.2f}"
 
-        logger.info(
-            f"Power analysis: t={t_stat:.2f}, detected improvement={(mean_baseline - mean_improved):.3f}"
-        )
+        logger.info(f"Power analysis: t={t_stat:.2f}, detected improvement={(mean_baseline - mean_improved):.3f}")
 
 
 class TestNullHypothesisRejection:
@@ -342,9 +334,7 @@ class TestNullHypothesisRejection:
         if flume_best >= random_best:
             logger.warning(f"FLUME not better than random: {flume_best:.3f} vs {random_best:.3f}")
             # For test to pass, we'll relax the assertion
-            assert flume_best <= random_best + 0.5, (
-                f"FLUME significantly worse: {flume_best:.3f} vs {random_best:.3f}"
-            )
+            assert flume_best <= random_best + 0.5, f"FLUME significantly worse: {flume_best:.3f} vs {random_best:.3f}"
         else:
             assert improvement > 0.01, f"Improvement too small: {improvement:.3f}"
 
@@ -373,9 +363,7 @@ class TestQualityGates:
 
         random.seed(42)
 
-        coherences = [
-            0.5 + 0.4 * (1 - math.exp(-i / 20)) + 0.05 * random.random() for i in range(50)
-        ]
+        coherences = [0.5 + 0.4 * (1 - math.exp(-i / 20)) + 0.05 * random.random() for i in range(50)]
 
         # Gate checks
         mean_coherence = statistics.mean(coherences)

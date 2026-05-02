@@ -11,10 +11,11 @@ sys.path.append(os.path.abspath("src"))
 
 # Mocking imports if necessary, but trying real ones first
 try:
+    from cohezion.system.sensors.git_health import GitHealthSensor
+
     from cohezion.core.persistence.admin import DBAdmin  # noqa: F401
     from cohezion.reliability.monitor import ResourceMonitor
     from cohezion.simulation.fractal_universe import FlumePhysics  # noqa: F401
-    from cohezion.system.sensors.git_health import GitHealthSensor
 except ImportError as e:
     print(f"⚠️ Import Warning: {e}")
 

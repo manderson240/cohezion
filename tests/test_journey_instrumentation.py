@@ -1,9 +1,11 @@
-import pytest
 import asyncio
-from unittest.mock import MagicMock, patch
-from cohezion.swarm.quadrature_nexus import QuadratureNexus, QuadratureProposal
+
+import pytest
+
 from cohezion.core.telemetry_bus import get_telemetry_bus
 from cohezion.data_mesh.journey_telemetry import FlumeJourneyEvent
+from cohezion.swarm.quadrature_nexus import QuadratureNexus, QuadratureProposal
+
 
 @pytest.mark.asyncio
 async def test_quadrature_nexus_emits_telemetry():
@@ -13,34 +15,35 @@ async def test_quadrature_nexus_emits_telemetry():
     """
     bus = get_telemetry_bus()
     captured_events = []
-    
+
     def subscriber(event: FlumeJourneyEvent):
         captured_events.append(event)
-    
+
     bus.subscribe(subscriber)
     await bus.start()
-    
+
     nexus = QuadratureNexus()
     proposal = QuadratureProposal(
         action="test_action",
         description="Testing telemetry emission",
         context={},
-        submitted_by="test_user"
+        submitted_by="test_user",
     )
-    
+
     # Trigger deliberation
     await nexus.deliberate(proposal)
-    
+
     # Wait for async bus processing
     await asyncio.sleep(0.1)
-    
+
     try:
         assert len(captured_events) > 0, "No telemetry event emitted by QuadratureNexus"
         event = captured_events[0]
-        assert event.journey_id == "test_action" # Or mapped ID
+        assert event.journey_id == "test_action"  # Or mapped ID
         assert event.coherence is not None
     finally:
         await bus.stop()
+
 
 @pytest.mark.asyncio
 async def test_triune_orchestrator_emits_hardware_metadata():

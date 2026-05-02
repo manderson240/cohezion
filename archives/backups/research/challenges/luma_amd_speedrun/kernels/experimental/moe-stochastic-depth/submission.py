@@ -24,15 +24,16 @@ Applied to MoE: Expert-level stochastic depth instead of layer-level.
 """
 
 from __future__ import annotations
+
 import os
 import sys
-import math
+
 import torch
-from typing import Optional
 from aiter import ActivationType, QuantType
 from aiter.fused_moe import fused_moe
 from reference import ref_kernel
 from task import input_t, output_t
+
 
 # Environment optimizations
 os.environ["AITER_USE_NT"] = "1"
@@ -152,7 +153,7 @@ class StochasticExpertDropper:
 
 
 # Global dropper instance (singleton for state persistence across calls)
-_EXPERT_DROPPER: Optional[StochasticExpertDropper] = None
+_EXPERT_DROPPER: StochasticExpertDropper | None = None
 
 
 def _get_dropper() -> StochasticExpertDropper:

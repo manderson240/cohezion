@@ -31,6 +31,7 @@ def _default_grid(rows: int = 1, cols: int = 1) -> Grid:
 @dataclass
 class ARCAGI2Result:
     """Result container for ARC-AGI-2 track."""
+
     task_id: str
     predictions: list[dict[str, Any]]
     source: str  # 'rule' | 'fallback_dsl' | 'fallback_llm' | 'default_zero'
@@ -140,7 +141,12 @@ class ARCAGI2Pipeline:
                 # Compare attempt_1 (or attempt_2) against gold
                 if "attempt_1" in pred and grids_equal(pred["attempt_1"], gold[pi]):
                     correct += 1
-        return {"track": self.TRACK_NAME, "correct": correct, "total": total, "accuracy": round(correct / max(total, 1), 4)}
+        return {
+            "track": self.TRACK_NAME,
+            "correct": correct,
+            "total": total,
+            "accuracy": round(correct / max(total, 1), 4),
+        }
 
     def package(self, extra_files: list[Path] | None = None) -> Path:
         """Create submission_package.zip with manifest and provenance."""

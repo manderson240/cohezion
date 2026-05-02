@@ -11,10 +11,11 @@ import logging
 from datetime import datetime
 from pathlib import Path
 
-from cohezion.healing.deep_audit import DeepAuditor
 from cohezion.swarm.agents.bug_auditor_agent import BugAuditorAgent
 from cohezion.swarm.agents.bug_fixer_agent import BugFixerAgent
 from cohezion.swarm.agents.bug_scout_agent import BugScoutAgent
+
+from cohezion.healing.deep_audit import DeepAuditor
 from cohezion.universe.engine import UniverseSimulationEngine
 
 
@@ -58,9 +59,7 @@ async def run_bug_hunt(target_dir: str, recursive: bool = True):
         logger.info("✅ No critical static analysis issues found.")
         return
 
-    logger.info(
-        f"🔍 Found {len(relevant_issues)} potential hotspots. Dispatched Bug Hunting Swarm..."
-    )
+    logger.info(f"🔍 Found {len(relevant_issues)} potential hotspots. Dispatched Bug Hunting Swarm...")
 
     # 3. Main Swarm Loop
     results = []
@@ -85,9 +84,7 @@ async def run_bug_hunt(target_dir: str, recursive: bool = True):
                 analysis = {"is_bug": "bug" in analysis_text.lower()}
 
             if not analysis.get("is_bug"):
-                logger.info(
-                    f"🍃 [SCOUT] False positive or non-bug in {issue.file_path}:{issue.line}"
-                )
+                logger.info(f"🍃 [SCOUT] False positive or non-bug in {issue.file_path}:{issue.line}")
                 continue
 
             logger.info(f"🚨 [SCOUT] Confirmed BUG in {issue.file_path}:{issue.line}")

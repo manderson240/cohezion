@@ -91,9 +91,7 @@ def autopilot(line):
 
         try:
             # --- Call the potentially slow function ---
-            generated_code = utils.task_autopilot(
-                task_description, assertion_description
-            )
+            generated_code = utils.task_autopilot(task_description, assertion_description)
 
             # --- Update UI with the result ---
             code_display.value = generated_code
@@ -116,9 +114,7 @@ def autopilot(line):
     generate_button.on_click(on_button_clicked)
 
     # Display all UI components in a vertical box
-    ui_container = widgets.VBox(
-        [title, task_box, assertion_box, generate_button, code_display, output_area]
-    )
+    ui_container = widgets.VBox([title, task_box, assertion_box, generate_button, code_display, output_area])
     display(ui_container)
 
 
@@ -148,11 +144,7 @@ def choose(line):
     task_name = None
     task_obj = ipython_shell.user_ns.get(param_str)
 
-    if (
-        task_obj
-        and hasattr(task_obj, "name")
-        and isinstance(getattr(task_obj, "name"), str)
-    ):
+    if task_obj and hasattr(task_obj, "name") and isinstance(task_obj.name, str):
         # It's a valid variable in the namespace that has a .name attribute
         task_name = task_obj.name
     else:
@@ -171,17 +163,11 @@ def choose(line):
 
     files_to_keep = set()
 
-    task_files_to_keep = [
-        f for f in all_task_files if f.name == f"{normalized_task_name}.task.json"
-    ]
+    task_files_to_keep = [f for f in all_task_files if f.name == f"{normalized_task_name}.task.json"]
     files_to_keep.update(task_files_to_keep)
 
     matching_run_files = sorted(
-        (
-            f
-            for f in all_run_files
-            if re.fullmatch(f"{normalized_task_name}.*\\.run\\.json", f.name)
-        ),
+        (f for f in all_run_files if re.fullmatch(f"{normalized_task_name}.*\\.run\\.json", f.name)),
         key=lambda f: f.stat().st_mtime,
     )
     if matching_run_files:

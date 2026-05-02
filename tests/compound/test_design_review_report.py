@@ -9,7 +9,6 @@ import pytest
 
 from cohezion.compound.design_review_report import (
     DRRGenerator,
-    DesignReviewReport,
     Finding,
     FindingSeverity,
     GateLevel,

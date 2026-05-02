@@ -18,7 +18,6 @@ if TYPE_CHECKING:
     from cohezion.universe.sandbox_backends import BackendResult
 
 
-
 logger = logging.getLogger(__name__)
 
 DEFAULT_BASE_DIR = Path("data/simulations")

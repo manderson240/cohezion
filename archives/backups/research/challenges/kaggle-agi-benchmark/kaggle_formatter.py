@@ -20,7 +20,7 @@ def format_kaggle_benchmark() -> None:
     train_data = []
     test_data = []
 
-    with open(BENCHMARK_FILE, "r") as f:
+    with open(BENCHMARK_FILE) as f:
         lines = f.readlines()
 
     # Split 80/20 train/test

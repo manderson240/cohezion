@@ -7,11 +7,12 @@ Key insight: For many sequences, distant tokens have minimal impact.
 A sliding window of 512-1024 tokens captures most relevant context.
 """
 
-import torch
-import torch.nn.functional as F
 import math
 
+import torch
+import torch.nn.functional as F
 from task import input_t, output_t
+
 
 SM_SCALE = 1.0 / math.sqrt(576)
 QK_HEAD_DIM = 576
@@ -96,7 +97,7 @@ def custom_kernel(data: input_t) -> output_t:
 
         return torch.cat(outputs, dim=0)
 
-    except Exception as e:
+    except Exception:
         from reference import ref_kernel
 
         return ref_kernel(data)

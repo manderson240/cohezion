@@ -26,21 +26,22 @@ Reference: "Circulant Binary Convolutional Networks", ICML 2020.
 """
 
 from __future__ import annotations
+
 import os
+
 
 os.environ["PYTORCH_ROCM_ARCH"] = "gfx950"
 os.environ["CXX"] = "clang++"
 
+
+import aiter
 import torch
 import torch.fft
-import math
-from torch.utils.cpp_extension import load_inline
-from task import input_t, output_t
-
 from aiter import dtypes
 from aiter.ops.triton.quant import dynamic_mxfp4_quant
 from aiter.utility.fp4_utils import e8m0_shuffle
-import aiter
+from task import input_t, output_t
+from torch.utils.cpp_extension import load_inline
 
 
 HIP_SOURCE = r"""
@@ -77,7 +78,7 @@ __device__ void fft_radix2(Complex* data, int n, bool invert) {
             data[j] = temp;
         }
     }
-    
+
     // FFT
     for (int len = 2; len <= n; len <<= 1) {
         float ang = 2 * M_PI / len * (invert ? -1 : 1);
@@ -93,7 +94,7 @@ __device__ void fft_radix2(Complex* data, int n, bool invert) {
             }
         }
     }
-    
+
     if (invert) {
         for (int i = 0; i < n; i++) {
             data[i].re /= n;
@@ -112,15 +113,15 @@ __global__ void block_circulant_gemm(
     int tid = threadIdx.x;
     int block_m = blockIdx.y;  // Which M-block
     int block_n = blockIdx.x;  // Which N-block
-    
+
     int num_m_blocks = M / B;
     int num_k_blocks = K / B;
     int num_n_blocks = N / B;
-    
+
     if (block_m >= num_m_blocks || block_n >= num_n_blocks) return;
-    
+
     __shared__ Complex fft_X[64];  // FFT buffer for input block
-    
+
     // Process each K-block
     for (int bk = 0; bk < num_k_blocks; bk++) {
         // Load input block and convert to complex
@@ -136,24 +137,24 @@ __global__ void block_circulant_gemm(
             }
         }
         __syncthreads();
-        
+
         // Compute FFT of input (if power of 2)
         if ((B & (B - 1)) == 0 && B <= 64) {
             // Pad to next power of 2 if needed
             int fft_size = 1;
             while (fft_size < B) fft_size <<= 1;
-            
+
             // Simple FFT (cooperative across threads)
             if (tid == 0) {
                 fft_radix2(fft_X, fft_size, false);
             }
         }
         __syncthreads();
-        
+
         // Load precomputed FFT of weights for this block
         // A_fft shape: [num_m_blocks, num_n_blocks, num_k_blocks, B]
         int weight_idx = ((block_m * num_n_blocks + block_n) * num_k_blocks + bk) * B;
-        
+
         // Element-wise multiply in frequency domain
         for (int i = tid; i < B; i += blockDim.x) {
             if (i < B) {
@@ -162,7 +163,7 @@ __global__ void block_circulant_gemm(
             }
         }
         __syncthreads();
-        
+
         // IFFT
         if ((B & (B - 1)) == 0 && B <= 64) {
             if (tid == 0) {
@@ -170,7 +171,7 @@ __global__ void block_circulant_gemm(
             }
         }
         __syncthreads();
-        
+
         // Accumulate to output
         for (int i = tid; i < B; i += blockDim.x) {
             int out_row = block_m * B + (i / B);
@@ -192,7 +193,7 @@ __global__ void standard_gemm_fp32(
 ) {
     int row = blockIdx.y * blockDim.y + threadIdx.y;
     int col = blockIdx.x * blockDim.x + threadIdx.x;
-    
+
     if (row < M && col < N) {
         float sum = 0.0f;
         for (int k = 0; k < K; k++) {

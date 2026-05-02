@@ -32,9 +32,7 @@ class TestAttributionEngine:
 
     def test_unknown_license_flagged_for_review(self):
         engine = AttributionEngine()
-        attributed = engine.process(
-            _record(), authors=["Carol"], license_type="custom-weird-license"
-        )
+        attributed = engine.process(_record(), authors=["Carol"], license_type="custom-weird-license")
         assert attributed.attribution.status == LicenseStatus.UNKNOWN
         assert attributed.attribution.flagged_for_review is True
 

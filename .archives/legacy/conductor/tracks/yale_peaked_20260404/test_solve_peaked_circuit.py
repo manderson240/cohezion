@@ -1,6 +1,6 @@
-import unittest
 import os
-import bluequbit
+import unittest
+
 from solve_peaked_circuit import solve_peaked_circuit
 
 

@@ -103,6 +103,7 @@ def grid_summary(grid: Grid) -> dict[str, Any]:
 # V-Model Verification Harness
 # ---------------------------------------------------------------------------
 
+
 def verify_roundtrip(grid: Grid) -> tuple[bool, str]:
     """Unit verification: encode then decode returns identical grid."""
     enc = encode_grid(grid)

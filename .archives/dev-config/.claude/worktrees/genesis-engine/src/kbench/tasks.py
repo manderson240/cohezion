@@ -18,11 +18,13 @@ import functools
 import inspect
 import logging
 import time
-from typing import TYPE_CHECKING, Any, Callable, Generic, Iterable, Self, TypeVar
+from collections.abc import Callable, Iterable
+from typing import TYPE_CHECKING, Any, Generic, Self, TypeVar
 
 import pandas as pd
 
 from kaggle_benchmarks import chats, events, results, utils
+
 
 if TYPE_CHECKING:
     from kaggle_benchmarks import runs
@@ -63,9 +65,7 @@ class Task(Generic[T]):
 
         if client.skips_cached_run(run):
             try:
-                logger.info(
-                    f"Skipping run {run.id} for task {self.name} as its output file already exists."
-                )
+                logger.info(f"Skipping run {run.id} for task {self.name} as its output file already exists.")
                 run.cached = True
                 run.status = utils.Status.SUCCESS
                 run.result = client.load_run_result(run)
@@ -101,7 +101,7 @@ class Task(Generic[T]):
             if cached_run is not None:
                 return cached_run
 
-            run.start_time = datetime.datetime.now(datetime.timezone.utc)
+            run.start_time = datetime.datetime.now(datetime.UTC)
 
             with chats.new(self.name, orphan=True) as chat:
                 try:
@@ -124,7 +124,7 @@ class Task(Generic[T]):
                 except Exception as e:
                     run.handle_general_exception(e)
 
-        run.end_time = datetime.datetime.now(datetime.timezone.utc)
+        run.end_time = datetime.datetime.now(datetime.UTC)
 
         if ctx.parent and ctx.parent.run:
             ctx.parent.run.subruns.append(run)
@@ -225,9 +225,7 @@ class Task(Generic[T]):
                 try:
                     all_runs = _evaluate_once()
                 except Exception as e:
-                    logging.warning(
-                        f"An error occurred during evaluation attempt {attempt}: {e}"
-                    )
+                    logging.warning(f"An error occurred during evaluation attempt {attempt}: {e}")
                     # Always re-raise exception because the `continue_with_exceptions``
                     # setting should only apply to the subruns level.
                     raise e
@@ -240,14 +238,9 @@ class Task(Generic[T]):
                     logging.info(f"Retrying in {retry_delay}s...")
                     time.sleep(retry_delay)
 
-            if (
-                attempt == max_attempts
-                and stop_condition
-                and not stop_condition(all_runs)
-            ):
+            if attempt == max_attempts and stop_condition and not stop_condition(all_runs):
                 logging.warning(
-                    f"Maximum number of attempts ({max_attempts}) reached, but stop "
-                    "condition not met. Exiting."
+                    f"Maximum number of attempts ({max_attempts}) reached, but stop condition not met. Exiting."
                 )
 
             return all_runs
@@ -264,11 +257,7 @@ class Task(Generic[T]):
 
             return int(result_df.result.sum()), len(result_df)
 
-        kwargs = (
-            dataclasses.asdict(self)
-            | kwargs
-            | dict(func=func, result_type=results.PassCount)
-        )
+        kwargs = dataclasses.asdict(self) | kwargs | dict(func=func, result_type=results.PassCount)
         return Task(**kwargs)
 
     def _repr_html_(self):
@@ -282,9 +271,7 @@ class Task(Generic[T]):
         """
 
     def partial(self, params: dict[str, Any], **kwargs) -> Self:
-        return dataclasses.replace(
-            self, func=functools.partial(self.func, **params), **kwargs
-        )
+        return dataclasses.replace(self, func=functools.partial(self.func, **params), **kwargs)
 
 
 def _infer_result_type(func: Callable[..., Any]) -> type:
@@ -303,9 +290,7 @@ def _infer_result_type(func: Callable[..., Any]) -> type:
         supported_types_display = []
         for t_key in results.types.keys():
             supported_types_display.append(getattr(t_key, "__name__", str(t_key)))
-        supported_types_str = ", ".join(
-            f"'{s}'" for s in sorted(supported_types_display)
-        )
+        supported_types_str = ", ".join(f"'{s}'" for s in sorted(supported_types_display))
 
         raise TypeError(
             f"Return type annotation '{getattr(return_annotation, '__name__', return_annotation)}' "

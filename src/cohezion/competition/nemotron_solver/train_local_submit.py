@@ -5,6 +5,7 @@ Run on your local machine with Lemonade server (AMD GPU).
 The script trains on the full dataset and outputs submission.zip
 that can be submitted to Kaggle.
 """
+
 import os
 import sys
 import zipfile
@@ -33,6 +34,7 @@ TRAIN_CSV = "/tmp/train.csv"  # Download from Kaggle competition
 OUTPUT_DIR = "/tmp/nemotron_lora_local"
 SUBMISSION_ZIP = "/tmp/submission.zip"
 
+
 def prepare_training_data():
     """Load and format training examples."""
     print("Loading training data...")
@@ -48,6 +50,7 @@ def prepare_training_data():
     print(f"  Prepared {len(texts)} training texts")
     return texts
 
+
 def load_base_model():
     """Load Nemotron base (from local Lemonade or HuggingFace)."""
     model_id = "nvidia/NVIDIA-Nemotron-3-Nano-30B-A3B-BF16"
@@ -58,7 +61,7 @@ def load_base_model():
         tokenizer = AutoTokenizer.from_pretrained(
             model_id,
             trust_remote_code=True,
-            gguf_file=""  # Let it auto-resolve
+            gguf_file="",  # Let it auto-resolve
         )
         model = AutoModelForCausalLM.from_pretrained(
             model_id,
@@ -82,12 +85,21 @@ def load_base_model():
         tokenizer.pad_token = tokenizer.eos_token
     return model, tokenizer
 
+
 def setup_lora(model):
     """Configure LoRA adapter."""
     config = LoraConfig(
         r=32,
         lora_alpha=16,
-        target_modules=["q_proj", "k_proj", "v_proj", "o_proj", "gate_proj", "up_proj", "down_proj"],
+        target_modules=[
+            "q_proj",
+            "k_proj",
+            "v_proj",
+            "o_proj",
+            "gate_proj",
+            "up_proj",
+            "down_proj",
+        ],
         lora_dropout=0.05,
         bias="none",
         task_type=TaskType.CAUSAL_LM,
@@ -95,6 +107,7 @@ def setup_lora(model):
     model = get_peft_model(model, config)
     model.print_trainable_parameters()
     return model, config
+
 
 def train():
     """Main training pipeline."""
@@ -107,6 +120,7 @@ def train():
     # 2. Tokenize
     print("Tokenizing...")
     tokenizer = load_base_model()[1]
+
     def tokenize_fn(examples):
         return tokenizer(examples["text"], truncation=True, max_length=1024, padding="max_length")
 
@@ -167,22 +181,23 @@ def train():
 
     print(f"  Found adapter files: {len(adapter_files)}")
 
-    with zipfile.ZipFile(SUBMISSION_ZIP, 'w', zipfile.ZIP_DEFLATED) as zf:
+    with zipfile.ZipFile(SUBMISSION_ZIP, "w", zipfile.ZIP_DEFLATED) as zf:
         for fpath in adapter_files:
             arcname = os.path.relpath(fpath, OUTPUT_DIR)
             zf.write(fpath, arcname)
             print(f"  Added: {arcname}")
 
-    print(f"\n{'='*60}")
+    print(f"\n{'=' * 60}")
     print(f"SUBMISSION READY: {SUBMISSION_ZIP}")
     print(f"Size: {os.path.getsize(SUBMISSION_ZIP) / 1024:.1f} KB")
-    print(f"{'='*60}")
+    print(f"{'=' * 60}")
 
     # Show zip contents
-    with zipfile.ZipFile(SUBMISSION_ZIP, 'r') as zf:
+    with zipfile.ZipFile(SUBMISSION_ZIP, "r") as zf:
         print("\nZip contents:")
         for name in zf.namelist():
             print(f"  {name}")
+
 
 if __name__ == "__main__":
     train()

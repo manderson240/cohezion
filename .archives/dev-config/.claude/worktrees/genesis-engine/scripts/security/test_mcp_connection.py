@@ -84,9 +84,7 @@ def test_github_api_access() -> bool:
     env_path = Path(__file__).parent.parent.parent / ".env"
     load_dotenv(env_path)
 
-    result = subprocess.run(
-        ["gh", "api", "/user", "--jq", ".login"], capture_output=True, text=True
-    )
+    result = subprocess.run(["gh", "api", "/user", "--jq", ".login"], capture_output=True, text=True)
 
     if result.returncode == 0:
         user = result.stdout.strip()

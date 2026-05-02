@@ -80,18 +80,14 @@ def verbose_allclose(
             i = tuple(index.tolist())
             mismatch_details.append(f"ERROR at {i}: {received[i]} {expected[i]}")
         if num_mismatched > max_print:
-            mismatch_details.append(
-                f"... and {num_mismatched - max_print} more mismatched elements."
-            )
+            mismatch_details.append(f"... and {num_mismatched - max_print} more mismatched elements.")
         return False, mismatch_details
 
     return True, [f"Maximum error: {torch.max(diff)}"]
 
 
 @torch.no_grad()
-def verbose_allequal(
-    received: torch.Tensor, expected: torch.Tensor, max_print: int = 5
-) -> tuple[bool, list[str]]:
+def verbose_allequal(received: torch.Tensor, expected: torch.Tensor, max_print: int = 5) -> tuple[bool, list[str]]:
     """
     Assert that two tensors are element-wise perfectly equal, providing detailed information about mismatches.
 
@@ -117,9 +113,7 @@ def verbose_allequal(
             i = tuple(index.tolist())
             mismatch_details.append(f"ERROR at {i}: {received[i]} {expected[i]}")
         if num_mismatched > max_print:
-            mismatch_details.append(
-                f"... and {num_mismatched - max_print} more mismatched elements."
-            )
+            mismatch_details.append(f"... and {num_mismatched - max_print} more mismatched elements.")
         return False, mismatch_details
 
     return True, []

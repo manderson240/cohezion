@@ -29,6 +29,7 @@ from pathlib import Path
 @dataclass
 class Optimization:
     """Single AMD optimization."""
+
     name: str
     category: str
     description: str
@@ -45,7 +46,7 @@ class Optimization:
 class AMDOptimizationUnlocker:
     """
     Unlock AMD-specific optimizations for Strix Halo.
-    
+
     Hardware: AMD Ryzen AI MAX+ 395 w/ Radeon 8060S (gfx1151)
     Software: ROCm 7.2, Mesa RADV 25.2.8
     """
@@ -72,7 +73,6 @@ class AMDOptimizationUnlocker:
             risk="medium",
             estimated_gain="2-5% TPS, higher temps",
         ),
-
         # ROCm/HIP Backend
         Optimization(
             name="hip_gfx_override",
@@ -101,7 +101,6 @@ class AMDOptimizationUnlocker:
             risk="low",
             estimated_gain="Tool access",
         ),
-
         # Vulkan RADV Optimizations
         Optimization(
             name="radv_perfetto",
@@ -139,7 +138,6 @@ class AMDOptimizationUnlocker:
             risk="low",
             estimated_gain="Cache for large models",
         ),
-
         # Memory/KV Cache
         Optimization(
             name="kv_cache_q8_0",
@@ -168,7 +166,6 @@ class AMDOptimizationUnlocker:
             risk="low",
             estimated_gain="Unlimited context (with shift)",
         ),
-
         # llama.cpp Specific
         Optimization(
             name="flash_attention",
@@ -210,10 +207,7 @@ class AMDOptimizationUnlocker:
     def _get_rocm_version(self) -> str:
         try:
             result = subprocess.run(
-                ["hipcc", "--version"],
-                capture_output=True,
-                text=True,
-                timeout=5
+                ["hipcc", "--version"], capture_output=True, text=True, timeout=5
             )
             return result.stdout.split("\n")[0] if result.returncode == 0 else "Not found"
         except:
@@ -222,10 +216,7 @@ class AMDOptimizationUnlocker:
     def _get_mesa_version(self) -> str:
         try:
             result = subprocess.run(
-                ["vulkaninfo", "--summary"],
-                capture_output=True,
-                text=True,
-                timeout=5
+                ["vulkaninfo", "--summary"], capture_output=True, text=True, timeout=5
             )
             for line in result.stdout.split("\n"):
                 if "driverVersion" in line:
@@ -237,10 +228,7 @@ class AMDOptimizationUnlocker:
     def _get_vulkan_driver(self) -> str:
         try:
             result = subprocess.run(
-                ["vulkaninfo", "--summary"],
-                capture_output=True,
-                text=True,
-                timeout=5
+                ["vulkaninfo", "--summary"], capture_output=True, text=True, timeout=5
             )
             for line in result.stdout.split("\n"):
                 if "driverName" in line and "radv" in line:
@@ -320,9 +308,9 @@ class AMDOptimizationUnlocker:
 
         # llama.cpp recommended args
         lines.append("# Recommended llama.cpp arguments")
-        lines.append('# cache-type-k q8_0 --cache-type-v q8_0 # KV cache quantization')
-        lines.append('# --no-mmap # Faster on UMA')
-        lines.append('# --flash-attn # For long context')
+        lines.append("# cache-type-k q8_0 --cache-type-v q8_0 # KV cache quantization")
+        lines.append("# --no-mmap # Faster on UMA")
+        lines.append("# --flash-attn # For long context")
         lines.append("")
 
         return "\n".join(lines)
@@ -354,12 +342,7 @@ class AMDOptimizationUnlocker:
             # Apply command
             if opt.command and opt.requires_sudo:
                 try:
-                    subprocess.run(
-                        opt.command,
-                        shell=True,
-                        check=True,
-                        timeout=5
-                    )
+                    subprocess.run(opt.command, shell=True, check=True, timeout=5)
                     applied.append(opt.name)
                 except Exception as e:
                     failed.append((opt.name, str(e)))
@@ -391,32 +374,34 @@ class AMDOptimizationUnlocker:
         for var_name, info in state["env_vars"].items():
             status = "✅ SET" if info["active"] else "❌ NOT SET"
             expected = f" (expected: {info['expected']})" if not info["active"] else ""
-            current = info['current'] or "unset"
+            current = info["current"] or "unset"
             lines.append(f"  {var_name}: {current} {status}{expected}")
 
-        lines.extend([
-            "",
-            "--- RECOMMENDED ACTIONS ---",
-            "1. Run with sudo to unlock power profile optimizations",
-            "2. Source the generated env script before running inference",
-            "3. Use KV cache quantization (q8_0) for longer contexts",
-            "4. Try ROCm backend with HSA_OVERRIDE_GFX_VERSION=11.0.0",
-            "5. Enable flash attention for context >2K tokens",
-            "",
-            "--- ESTIMATED GAINS ---",
-            "| Optimization        | Gain        | Risk |",
-            "|---------------------|-------------|------|",
-            "| Power Profile High  | +5-10% TPS  | Low  |",
-            "| RADV_PERFTEST       | +10-15% TPS | Low  |",
-            "| Cooperative Matrix  | +20-30% AI  | Low  |",
-            "| Flash Attention     | +2x long ctx| Low  |",
-            "| KV Q8_0 Cache       | +2x context | Low  |",
-            "| ROCm vs Vulkan      | +0-20%*     | Med  |",
-            "",
-            "*ROCm gain varies by model; may be slower for small models",
-            "",
-            "=" * 70,
-        ])
+        lines.extend(
+            [
+                "",
+                "--- RECOMMENDED ACTIONS ---",
+                "1. Run with sudo to unlock power profile optimizations",
+                "2. Source the generated env script before running inference",
+                "3. Use KV cache quantization (q8_0) for longer contexts",
+                "4. Try ROCm backend with HSA_OVERRIDE_GFX_VERSION=11.0.0",
+                "5. Enable flash attention for context >2K tokens",
+                "",
+                "--- ESTIMATED GAINS ---",
+                "| Optimization        | Gain        | Risk |",
+                "|---------------------|-------------|------|",
+                "| Power Profile High  | +5-10% TPS  | Low  |",
+                "| RADV_PERFTEST       | +10-15% TPS | Low  |",
+                "| Cooperative Matrix  | +20-30% AI  | Low  |",
+                "| Flash Attention     | +2x long ctx| Low  |",
+                "| KV Q8_0 Cache       | +2x context | Low  |",
+                "| ROCm vs Vulkan      | +0-20%*     | Med  |",
+                "",
+                "*ROCm gain varies by model; may be slower for small models",
+                "",
+                "=" * 70,
+            ]
+        )
 
         return "\n".join(lines)
 
@@ -424,33 +409,21 @@ class AMDOptimizationUnlocker:
 def main():
     import argparse
 
-    parser = argparse.ArgumentParser(
-        description="Unlock AMD-specific optimizations for Strix Halo"
+    parser = argparse.ArgumentParser(description="Unlock AMD-specific optimizations for Strix Halo")
+    parser.add_argument("--check", action="store_true", help="Check current optimization state")
+    parser.add_argument(
+        "--apply", action="store_true", help="Apply optimizations (requires sudo for some)"
     )
     parser.add_argument(
-        "--check",
-        action="store_true",
-        help="Check current optimization state"
+        "--dry-run", action="store_true", help="Show what would be applied without doing it"
     )
     parser.add_argument(
-        "--apply",
-        action="store_true",
-        help="Apply optimizations (requires sudo for some)"
-    )
-    parser.add_argument(
-        "--dry-run",
-        action="store_true",
-        help="Show what would be applied without doing it"
-    )
-    parser.add_argument(
-        "--env-script",
-        action="store_true",
-        help="Generate environment setup script"
+        "--env-script", action="store_true", help="Generate environment setup script"
     )
     parser.add_argument(
         "--category",
         choices=["power", "rocm", "vulkan", "memory", "llamacpp"],
-        help="Apply optimizations from specific category only"
+        help="Apply optimizations from specific category only",
     )
 
     args = parser.parse_args()
@@ -468,9 +441,9 @@ def main():
     if args.apply:
         result = unlocker.apply_optimizations(category=args.category)
         print(f"Applied: {len(result['applied'])} optimizations")
-        if result['failed']:
+        if result["failed"]:
             print(f"Failed: {len(result['failed'])} optimizations")
-            for name, reason in result['failed']:
+            for name, reason in result["failed"]:
                 print(f"  - {name}: {reason}")
         return
 

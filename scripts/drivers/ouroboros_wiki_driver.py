@@ -22,7 +22,7 @@ from datetime import datetime
 from pathlib import Path
 
 from cohezion.learning.ouroboros import ExecutionExhaust
-from cohezion.ouroboros.wiki_integration import OuroborosWikiBridge, OuroborosWikiEngine
+from cohezion.ouroboros.wiki_integration import OuroborosWikiEngine
 
 
 logging.basicConfig(

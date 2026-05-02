@@ -24,11 +24,11 @@ Expected: 2-5x speedup for matrices with circulant structure
 from __future__ import annotations
 
 import os
-import math
+
 import torch
 import torch.fft as fft
-from typing import Tuple, Optional
 from task import input_t, output_t
+
 
 # Try to import aiter for fallback
 try:

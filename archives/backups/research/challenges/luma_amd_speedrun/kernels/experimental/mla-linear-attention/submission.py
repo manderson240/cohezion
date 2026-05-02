@@ -25,14 +25,16 @@ Feature maps: ReLU, ELU+1, or learnable feature maps
 """
 
 from __future__ import annotations
+
+import math
 import os
 import sys
-import math
+from collections.abc import Callable
+
 import torch
 import torch.nn.functional as F
-from typing import Optional, Callable
-from aiter import dtypes as aiter_dtypes
 from task import input_t, output_t
+
 
 # Environment optimizations
 os.environ["AITER_MLA_USE_PERSISTENT"] = "1"
@@ -227,7 +229,7 @@ class LinearAttentionKernel:
 
 
 # Global linear attention instance (singleton)
-_LINEAR_ATTN: Optional[LinearAttentionKernel] = None
+_LINEAR_ATTN: LinearAttentionKernel | None = None
 
 
 def _get_linear_attn(feature_dim: int = 64, feature_map: str = "elu") -> LinearAttentionKernel:

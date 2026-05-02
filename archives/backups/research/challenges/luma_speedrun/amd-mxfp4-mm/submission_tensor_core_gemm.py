@@ -24,9 +24,10 @@ Expected: 20-40% speedup over standard paths for targeted shapes
 from __future__ import annotations
 
 import os
+
 import torch
-from typing import Optional
 from task import input_t, output_t
+
 
 # Try aiter
 try:

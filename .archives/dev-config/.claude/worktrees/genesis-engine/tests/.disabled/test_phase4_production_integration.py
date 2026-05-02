@@ -22,10 +22,10 @@ import asyncio
 from typing import Any
 
 import pytest
+from cohezion.deployment.deployment_config import DeploymentConfig, Environment, Region
 
 # Phase 1 imports
 from cohezion.compound.session_manager import InferenceSession, SessionConfig
-from cohezion.deployment.deployment_config import DeploymentConfig, Environment, Region
 
 # Phase 2 imports
 from cohezion.deployment.feature_flags import (

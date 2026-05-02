@@ -12,7 +12,7 @@ print("Starting FLM NPU server...")
 proc = subprocess.Popen(
     ["/usr/bin/flm", "serve", "gemma3:4b", "--port", "8004", "--pmode", "performance"],
     stdout=subprocess.DEVNULL,
-    stderr=subprocess.DEVNULL
+    stderr=subprocess.DEVNULL,
 )
 
 # Wait for server
@@ -43,16 +43,16 @@ for i in range(4):
             json={
                 "model": "gemma3:4b",
                 "messages": [{"role": "user", "content": f"Write haiku {i}"}],
-                "max_tokens": 40
+                "max_tokens": 40,
             },
-            timeout=30
+            timeout=30,
         )
         data = resp.json()
         tokens = data.get("usage", {}).get("completion_tokens", 0)
         total_tokens += tokens
-        print(f"  Request {i+1}: {tokens} tokens")
+        print(f"  Request {i + 1}: {tokens} tokens")
     except Exception as e:
-        print(f"  Request {i+1} failed: {e}")
+        print(f"  Request {i + 1} failed: {e}")
 
 elapsed_ms = (time.time() - start) * 1000
 tps = total_tokens / (elapsed_ms / 1000) if elapsed_ms > 0 else 0

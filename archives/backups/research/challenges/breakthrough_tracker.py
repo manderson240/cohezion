@@ -10,10 +10,9 @@ Captures:
 """
 
 import json
-import subprocess
-from pathlib import Path
 from datetime import datetime
-from typing import Dict, List, Optional
+from pathlib import Path
+
 
 # Directories
 WORKTREE = Path("/home/mike-anderson/dev/cohezion/.worktrees/luma-breakthrough-sprint")
@@ -30,7 +29,7 @@ class BreakthroughTracker:
     def __init__(self):
         self.db = self.load_db()
 
-    def load_db(self) -> Dict:
+    def load_db(self) -> dict:
         """Load or create learning database."""
         if DB_FILE.exists():
             with open(DB_FILE) as f:
@@ -75,7 +74,7 @@ class BreakthroughTracker:
         kernel: str,
         variant: str,
         old_time: float,
-        new_time: Optional[float],
+        new_time: float | None,
         success: bool,
         notes: str,
     ):
@@ -150,7 +149,7 @@ class BreakthroughTracker:
 
         self.save_db()
 
-    def get_breakthrough_candidates(self) -> List[Dict]:
+    def get_breakthrough_candidates(self) -> list[dict]:
         """Return experiments most likely to yield breakthroughs."""
 
         candidates = []
@@ -204,7 +203,7 @@ class BreakthroughTracker:
 
             if c["top_hypothesis"]:
                 h = c["top_hypothesis"]
-                report.append(f"  Top Hypothesis:")
+                report.append("  Top Hypothesis:")
                 report.append(f"    #{h['id']}: {h['name']}")
                 report.append(f"    Expected: +{h['expected_improvement_pct']:.1f}% improvement")
                 report.append(f"    Confidence: {h['confidence']}")

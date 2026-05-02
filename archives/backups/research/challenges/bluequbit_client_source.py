@@ -28,6 +28,7 @@ from .job_result import JobResult
 from .local_execution import run_circuits_local
 from .version import __version__
 
+
 if TYPE_CHECKING:
     import datetime
 

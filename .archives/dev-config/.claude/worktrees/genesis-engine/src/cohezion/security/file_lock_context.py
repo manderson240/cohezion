@@ -72,13 +72,9 @@ class FileLock:
                 start_time = time.time()
                 while True:
                     try:
-                        fcntl.flock(
-                            self._lockfile.fileno(), fcntl.LOCK_EX | fcntl.LOCK_NB
-                        )
+                        fcntl.flock(self._lockfile.fileno(), fcntl.LOCK_EX | fcntl.LOCK_NB)
                         self._acquired = True
-                        logger.debug(
-                            f"Acquired lock on {self.filepath} (attempt {attempt + 1})"
-                        )
+                        logger.debug(f"Acquired lock on {self.filepath} (attempt {attempt + 1})")
                         return
                     except BlockingIOError:
                         if time.time() - start_time > self.timeout:

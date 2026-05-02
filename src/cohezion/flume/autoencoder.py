@@ -205,39 +205,41 @@ class FlumeEncoder(PreTrainedModel):
 
         # --- JOURNEY TELEMETRY INSTRUMENTATION ---
         try:
+            from datetime import datetime
+
             from cohezion.core.telemetry_bus import get_telemetry_bus
             from cohezion.data_mesh.journey_telemetry import (
-                FlumeJourneyEvent, 
-                QuadratureFabrics, 
-                RZeroMetrics, 
-                SwarmExpert, 
-                HardwareTier
+                FlumeJourneyEvent,
+                HardwareTier,
+                QuadratureFabrics,
+                RZeroMetrics,
+                SwarmExpert,
             )
-            from datetime import datetime
-            
+
             bus = get_telemetry_bus()
             # Note: We use a generic journey ID here; it should be correlated by the bus/db
             event = FlumeJourneyEvent(
                 event_id=f"z_{int(datetime.now().timestamp())}_{abs(hash(str(text))) % 10000}",
                 journey_id="flume_inference",
                 z_vector=z[0].tolist() if z.dim() > 1 else z.tolist(),
-                state_12d=[0.0] * 12, # To be filled by down-projection
-                coherence=1.0, # Target perfect coherence for raw latent
+                state_12d=[0.0] * 12,  # To be filled by down-projection
+                coherence=1.0,  # Target perfect coherence for raw latent
                 fabrics=QuadratureFabrics(space=1.0, field=1.0, control=0.0, precipitation=0.0),
                 awareness_parameter=1.0,
                 expert_stream=SwarmExpert.ARCHITECT,
-                hardware_tier=HardwareTier.CPU, # Default for CPU reference
+                hardware_tier=HardwareTier.CPU,  # Default for CPU reference
                 latency_ms=0.0,
-                r_zero=RZeroMetrics(success_rate=1.0, iteration_count=1, difficulty_adjustment=1.0)
+                r_zero=RZeroMetrics(success_rate=1.0, iteration_count=1, difficulty_adjustment=1.0),
             )
             # Use fire-and-forget for local latent capture to avoid blocking
             import asyncio
+
             try:
                 loop = asyncio.get_event_loop()
                 if loop.is_running():
                     loop.create_task(bus.emit(event))
             except RuntimeError:
-                pass # No event loop in this context
+                pass  # No event loop in this context
         except Exception as te:
             logger.debug("Failed to emit latent telemetry: %s", te)
 
@@ -252,18 +254,20 @@ class FlumeEncoder(PreTrainedModel):
         """Full forward pass for training with latent capture."""
         z = self.encoder(input_ids, attention_mask)
         logits = self.decoder(z, input_ids)
-        
+
         # --- JOURNEY TELEMETRY INSTRUMENTATION (Training) ---
         try:
+            from datetime import datetime
+
             from cohezion.core.telemetry_bus import get_telemetry_bus
             from cohezion.data_mesh.journey_telemetry import (
-                FlumeJourneyEvent, 
-                QuadratureFabrics, 
-                RZeroMetrics, 
-                SwarmExpert, 
-                HardwareTier
+                FlumeJourneyEvent,
+                HardwareTier,
+                QuadratureFabrics,
+                RZeroMetrics,
+                SwarmExpert,
             )
-            from datetime import datetime
+
             bus = get_telemetry_bus()
             event = FlumeJourneyEvent(
                 event_id=f"z_train_{int(datetime.now().timestamp())}",
@@ -276,9 +280,10 @@ class FlumeEncoder(PreTrainedModel):
                 expert_stream=SwarmExpert.ENGINEER,
                 hardware_tier=HardwareTier.IGPU,
                 latency_ms=0.0,
-                r_zero=RZeroMetrics(success_rate=0.0, iteration_count=1, difficulty_adjustment=1.0)
+                r_zero=RZeroMetrics(success_rate=0.0, iteration_count=1, difficulty_adjustment=1.0),
             )
             import asyncio
+
             try:
                 loop = asyncio.get_event_loop()
                 if loop.is_running():

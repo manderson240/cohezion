@@ -10,9 +10,7 @@ logger = logging.getLogger("FinalAnalysis")
 
 def analyze():
     checkpoint = "peaked_mps_final.dill"
-    qasm_path = (
-        "/home/mike-anderson/dev/cohezion/src/cohezion/physics/quantum/P1_little_dimple.qasm"
-    )
+    qasm_path = "/home/mike-anderson/dev/cohezion/src/cohezion/physics/quantum/P1_little_dimple.qasm"
 
     logger.info(f"Loading checkpoint {checkpoint}...")
     with open(checkpoint, "rb") as f:

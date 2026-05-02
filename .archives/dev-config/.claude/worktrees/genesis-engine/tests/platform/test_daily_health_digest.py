@@ -277,9 +277,7 @@ def test_run_health_checks_all_healthy(digest):
         loose_objects=50,
         pack_count=1,
     )
-    test = TestMetrics(
-        total_tests=2850, passing_tests=2830, failing_tests=20, pass_rate=0.993
-    )
+    test = TestMetrics(total_tests=2850, passing_tests=2830, failing_tests=20, pass_rate=0.993)
     dep = DependencyMetrics(
         total_dependencies=50,
         outdated_dependencies=2,
@@ -304,9 +302,7 @@ def test_run_health_checks_some_warnings(digest):
         loose_objects=4000,
         pack_count=2,
     )
-    test = TestMetrics(
-        total_tests=100, passing_tests=92, failing_tests=8, pass_rate=0.92
-    )  # Warning
+    test = TestMetrics(total_tests=100, passing_tests=92, failing_tests=8, pass_rate=0.92)  # Warning
     dep = DependencyMetrics(
         total_dependencies=50,
         outdated_dependencies=3,
@@ -330,9 +326,7 @@ def test_run_health_checks_critical(digest):
         loose_objects=20000,
         pack_count=5,
     )
-    test = TestMetrics(
-        total_tests=100, passing_tests=85, failing_tests=15, pass_rate=0.85
-    )  # Critical
+    test = TestMetrics(total_tests=100, passing_tests=85, failing_tests=15, pass_rate=0.85)  # Critical
     dep = DependencyMetrics(
         total_dependencies=50,
         outdated_dependencies=10,
@@ -429,9 +423,7 @@ async def test_calculate_charter_score_perfect_hiho(digest):
         loose_objects=50,
         pack_count=1,
     )
-    test = TestMetrics(
-        total_tests=100, passing_tests=98, failing_tests=2, pass_rate=0.98
-    )
+    test = TestMetrics(total_tests=100, passing_tests=98, failing_tests=2, pass_rate=0.98)
     dep = DependencyMetrics(
         total_dependencies=50,
         outdated_dependencies=1,
@@ -470,9 +462,7 @@ async def test_calculate_charter_score_weights(digest):
         loose_objects=50,
         pack_count=1,
     )
-    test = TestMetrics(
-        total_tests=100, passing_tests=100, failing_tests=0, pass_rate=1.0
-    )
+    test = TestMetrics(total_tests=100, passing_tests=100, failing_tests=0, pass_rate=1.0)
     dep = DependencyMetrics(
         total_dependencies=50,
         outdated_dependencies=0,
@@ -589,9 +579,7 @@ async def test_generate_recommendations_repo_critical(digest):
         loose_objects=20000,
         pack_count=5,
     )
-    test = TestMetrics(
-        total_tests=100, passing_tests=98, failing_tests=2, pass_rate=0.98
-    )
+    test = TestMetrics(total_tests=100, passing_tests=98, failing_tests=2, pass_rate=0.98)
     dep = DependencyMetrics(
         total_dependencies=50,
         outdated_dependencies=1,
@@ -644,9 +632,7 @@ async def test_generate_recommendations_failing_tests(digest):
         loose_objects=50,
         pack_count=1,
     )
-    test = TestMetrics(
-        total_tests=100, passing_tests=85, failing_tests=15, pass_rate=0.85
-    )  # Critical
+    test = TestMetrics(total_tests=100, passing_tests=85, failing_tests=15, pass_rate=0.85)  # Critical
     dep = DependencyMetrics(
         total_dependencies=50,
         outdated_dependencies=1,
@@ -712,9 +698,7 @@ def test_requires_edl_review_healthy(digest):
         )
     ]
 
-    assert (
-        digest._requires_edl_review(overall_score=0.85, health_checks=checks) is False
-    )
+    assert digest._requires_edl_review(overall_score=0.85, health_checks=checks) is False
 
 
 def test_determine_overall_status_critical_check(digest):

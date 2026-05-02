@@ -11,7 +11,6 @@ Usage:
 from __future__ import annotations
 
 import argparse
-import json
 import logging
 import os
 import sys
@@ -19,6 +18,7 @@ from datetime import UTC, datetime
 from pathlib import Path
 
 import httpx
+
 
 logging.basicConfig(level=logging.INFO, format="%(message)s")
 logger = logging.getLogger(__name__)
@@ -181,8 +181,8 @@ def format_impact_report(analysis: dict) -> str:
         "",
         "## Summary",
         "",
-        f"| Metric | Value |",
-        f"|--------|-------|",
+        "| Metric | Value |",
+        "|--------|-------|",
         f"| Upstream Dependencies | {analysis['upstream_count']} |",
         f"| Downstream Consumers | {analysis['downstream_count']} |",
         f"| Gold Tier Dependents | {analysis['gold_dependents']} |",

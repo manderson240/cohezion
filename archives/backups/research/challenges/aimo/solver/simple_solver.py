@@ -2,9 +2,8 @@
 """Simple AIMO3 solver using HTTP requests to local Ollama."""
 
 import re
-import json
+
 import requests
-from typing import List, Dict, Tuple
 
 
 class AIMO3Solver:
@@ -26,7 +25,7 @@ class AIMO3Solver:
         Returns:
             Integer answer (0 if parsing fails)
         """
-        prompt = f"""You are solving a mathematical olympiad problem. 
+        prompt = f"""You are solving a mathematical olympiad problem.
 
 Problem: {problem_text}
 
@@ -83,7 +82,7 @@ Do not include any other text after the FINAL ANSWER line."""
 
     def test_on_reference(
         self, reference_path: str = "../aimo3_data/reference.csv"
-    ) -> Tuple[int, int, float]:
+    ) -> tuple[int, int, float]:
         """
         Test solver on reference problems.
 
@@ -93,7 +92,7 @@ Do not include any other text after the FINAL ANSWER line."""
         import csv
 
         problems = []
-        with open(reference_path, "r") as f:
+        with open(reference_path) as f:
             reader = csv.DictReader(f)
             for row in reader:
                 problems.append(

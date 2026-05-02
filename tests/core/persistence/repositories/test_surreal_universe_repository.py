@@ -6,13 +6,13 @@ from unittest.mock import AsyncMock, patch
 
 import pytest
 
-from cohezion.core.persistence.repositories.universe_repository import (
-    UniverseRepositoryFilter,
-)
 from cohezion.core.persistence.repositories.surreal_universe_repository import (
     SurrealUniverseRepository,
 )
-from cohezion.core.persistence.surreal_client import SurrealClient, UniverseNode
+from cohezion.core.persistence.repositories.universe_repository import (
+    UniverseRepositoryFilter,
+)
+from cohezion.core.persistence.surreal_client import UniverseNode
 
 
 @pytest.fixture

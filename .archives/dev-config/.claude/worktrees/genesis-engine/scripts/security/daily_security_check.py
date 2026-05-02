@@ -307,9 +307,9 @@ def main():
     print(f"📄 Report saved to: {report_file}")
 
     # Critical alert check
-    critical_count = results.get("codeql", {}).get("by_severity", {}).get(
-        "critical", 0
-    ) + results.get("dependabot", {}).get("by_severity", {}).get("critical", 0)
+    critical_count = results.get("codeql", {}).get("by_severity", {}).get("critical", 0) + results.get(
+        "dependabot", {}
+    ).get("by_severity", {}).get("critical", 0)
 
     if critical_count > 0:
         print()

@@ -4,10 +4,9 @@ Test 1: Compile a trivial C++ function that does NO GPU work (just returns input
 Test 2: If that works, try a kernel that uses at::cuda::getCurrentCUDAStream()
 """
 
-import torch
+from task import input_t, output_t
 from torch.utils.cpp_extension import load_inline
 
-from task import input_t, output_t
 
 # Test: C++ wrapper that does NO kernel launch — just returns a clone
 HIP_SOURCE = r"""
@@ -41,11 +40,10 @@ except Exception as e:
 
 def custom_kernel(data: input_t) -> output_t:
     """Minimal test: use load_inline compiled module for a no-op."""
+    import aiter
     from aiter import dtypes
     from aiter.ops.triton.quant import dynamic_mxfp4_quant
     from aiter.utility.fp4_utils import e8m0_shuffle
-
-    import aiter
 
     A, B, B_q, B_shuffle, B_scale_sh = data
 

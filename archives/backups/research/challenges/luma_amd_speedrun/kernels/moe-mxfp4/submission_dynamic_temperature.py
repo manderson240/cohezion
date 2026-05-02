@@ -8,12 +8,12 @@ Adaptive softmax temperature based on token entropy
 POPCORN: amd-moe-mxfp4
 """
 
-import torch
-import math
-from task import input_t, output_t
-from reference import ref_kernel
+
 import aiter
+import torch
 from aiter import dtypes
+from reference import ref_kernel
+from task import input_t, output_t
 
 
 def custom_kernel(data: input_t) -> output_t:
@@ -199,6 +199,6 @@ def custom_kernel(data: input_t) -> output_t:
 
         return output
 
-    except Exception as e:
+    except Exception:
         # Comprehensive error handling - fallback to reference
         return ref_kernel(data)

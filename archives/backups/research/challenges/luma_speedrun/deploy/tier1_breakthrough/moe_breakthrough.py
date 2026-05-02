@@ -5,10 +5,10 @@ Strategy: Custom HIP kernel using load_inline to fuse MoE stages via LDS bridge,
 with Expert-Parallel saturation for 304 CUs and stream synchronization.
 """
 
-import torch
-from torch.utils.cpp_extension import load_inline
 from aiter import ActivationType, QuantType
 from task import input_t, output_t
+from torch.utils.cpp_extension import load_inline
+
 
 # ─── HIP Kernel Source ─────────────────────────────────────────────────────────
 HIP_SOURCE = r"""
@@ -42,9 +42,9 @@ torch::Tensor launch_moe_v3(
     int M, int E, int D, int DI, int topk
 ) {
     auto output = torch::zeros_like(hidden);
-    dim3 grid((M + BLOCK_M - 1) / BLOCK_M, (NUM_CUS + 7) / 8); 
+    dim3 grid((M + BLOCK_M - 1) / BLOCK_M, (NUM_CUS + 7) / 8);
     dim3 block(256);
-    
+
     moe_fused_saturated_kernel<<<grid, block, 0, at::cuda::getCurrentCUDAStream()>>>(
         reinterpret_cast<at::BFloat16*>(hidden.data_ptr()),
         w1.data_ptr<uint8_t>(),

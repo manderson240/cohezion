@@ -5,8 +5,8 @@ Tests for arc_dataset.py, arc_lewm_encoder.py, and arc_lewm_decoder.py.
 
 from __future__ import annotations
 
-import sys
 import json
+import sys
 import tempfile
 from pathlib import Path
 
@@ -15,35 +15,34 @@ import pytest
 import torch
 import torch.nn as nn
 
+
 # Add arc directory to path
 sys.path.insert(0, str(Path(__file__).parent.parent / "arc"))
 
 from arc_dataset import (
-    ARCGridTokenizer,
-    ARCDataset,
     ARCBatchSampler,
-    ARCDataLoader,
+    ARCDataset,
+    ARCGridTokenizer,
 )
-
-from arc_lewm_encoder import (
-    ARCGridEncoder,
-    ARCActionEncoder,
-    ARCPredictor,
-    ARCCausalMask,
-    AdaptiveGridPool,
-    ResidualBlock,
-)
-
 from arc_lewm_decoder import (
     ARCGridDecoder,
-    ResidualBlockTranspose,
     ARCWorldModel,
+    ResidualBlockTranspose,
+)
+from arc_lewm_encoder import (
+    AdaptiveGridPool,
+    ARCActionEncoder,
+    ARCCausalMask,
+    ARCGridEncoder,
+    ARCPredictor,
+    ResidualBlock,
 )
 
 
 # =============================================================================
 # Fixtures
 # =============================================================================
+
 
 @pytest.fixture
 def sample_arc_grid():
@@ -127,6 +126,7 @@ def temp_arc_files(mock_arc_data):
 # ARCGridTokenizer Tests
 # =============================================================================
 
+
 class TestARCGridTokenizer:
     """Tests for ARCGridTokenizer."""
 
@@ -197,6 +197,7 @@ class TestARCGridTokenizer:
 # =============================================================================
 # ARCDataset Tests
 # =============================================================================
+
 
 class TestARCDataset:
     """Tests for ARCDataset."""
@@ -296,6 +297,7 @@ class TestARCDataset:
 # =============================================================================
 # Encoder Tests
 # =============================================================================
+
 
 class TestARCGridEncoder:
     """Tests for ARCGridEncoder."""
@@ -529,6 +531,7 @@ class TestResidualBlock:
 # Decoder Tests
 # =============================================================================
 
+
 class TestARCGridDecoder:
     """Tests for ARCGridDecoder."""
 
@@ -597,6 +600,7 @@ class TestResidualBlockTranspose:
 # =============================================================================
 # Integration Tests
 # =============================================================================
+
 
 class TestARCWorldModel:
     """Integration tests for complete ARC World Model."""
@@ -751,6 +755,7 @@ class TestEndToEnd:
 # =============================================================================
 # Performance Tests
 # =============================================================================
+
 
 @pytest.mark.slow
 class TestPerformance:

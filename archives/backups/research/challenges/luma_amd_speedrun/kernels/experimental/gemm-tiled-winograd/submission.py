@@ -24,10 +24,11 @@ Adapted for GEMM: Winograd-style transformation on matrix tiles.
 """
 
 from __future__ import annotations
+
 import os
 import sys
+
 import torch
-from typing import Tuple
 from aiter import dtypes
 from aiter.ops.triton.quant import dynamic_mxfp4_quant
 from aiter.utility.fp4_utils import e8m0_shuffle
@@ -63,7 +64,7 @@ class WinogradTransform:
         # Precompute transformation matrices
         self.G, self.GT, self.A, self.AT = self._compute_transforms()
 
-    def _compute_transforms(self) -> Tuple[torch.Tensor, torch.Tensor, torch.Tensor, torch.Tensor]:
+    def _compute_transforms(self) -> tuple[torch.Tensor, torch.Tensor, torch.Tensor, torch.Tensor]:
         """Compute Winograd transformation matrices."""
         if self.tile_size == 2:
             # F(2,2) transforms

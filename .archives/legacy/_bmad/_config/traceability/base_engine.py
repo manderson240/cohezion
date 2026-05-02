@@ -19,7 +19,7 @@ import traceback
 from abc import ABC, abstractmethod
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Any, Dict, List, Optional, Tuple
+from typing import Any
 
 
 @dataclass
@@ -50,8 +50,8 @@ class BaseEngine(ABC):
             self.output_dir.mkdir(parents=True, exist_ok=True)
 
     def run_command(
-        self, cmd: List[str], timeout: Optional[int] = None, capture_output: bool = True
-    ) -> Tuple[int, str, str]:
+        self, cmd: list[str], timeout: int | None = None, capture_output: bool = True
+    ) -> tuple[int, str, str]:
         """
         Run shell command with error handling and timeout.
 
@@ -79,7 +79,7 @@ class BaseEngine(ABC):
             self.logger.debug(f"Command completed: {' '.join(cmd[:3])}...")
             return result.returncode, result.stdout, result.stderr
 
-        except subprocess.TimeoutExpired as e:
+        except subprocess.TimeoutExpired:
             self.logger.error(f"Command timed out after {timeout}s: {' '.join(cmd[:3])}")
             return -1, "", f"Timeout after {timeout}s"
 
@@ -96,7 +96,7 @@ class BaseEngine(ABC):
             self.logger.debug(traceback.format_exc())
             return -1, "", str(e)
 
-    def discover_python_files(self, root_dir: Path, pattern: str = "**/*.py") -> List[Path]:
+    def discover_python_files(self, root_dir: Path, pattern: str = "**/*.py") -> list[Path]:
         """
         Discover Python files in directory.
 
@@ -119,8 +119,8 @@ class BaseEngine(ABC):
     def write_csv(
         self,
         file_path: Path,
-        fieldnames: List[str],
-        rows: List[Dict[str, Any]],
+        fieldnames: list[str],
+        rows: list[dict[str, Any]],
         overwrite: bool = True,
     ) -> Path:
         """
@@ -149,7 +149,7 @@ class BaseEngine(ABC):
         self.logger.info(f"Wrote {len(rows)} rows to {file_path}")
         return file_path
 
-    def read_file_safe(self, file_path: Path, encoding: str = "utf-8") -> Optional[str]:
+    def read_file_safe(self, file_path: Path, encoding: str = "utf-8") -> str | None:
         """
         Safely read file with error handling.
 
@@ -162,10 +162,10 @@ class BaseEngine(ABC):
         """
         try:
             return file_path.read_text(encoding=encoding)
-        except FileNotFoundError as e:
+        except FileNotFoundError:
             self.logger.warning(f"File not found: {file_path}")
             return None
-        except PermissionError as e:
+        except PermissionError:
             self.logger.error(f"Permission denied: {file_path}")
             return None
         except UnicodeDecodeError as e:
@@ -176,7 +176,7 @@ class BaseEngine(ABC):
             self.logger.debug(traceback.format_exc())
             return None
 
-    def get_relative_path(self, file_path: Path, base_dir: Optional[Path] = None) -> str:
+    def get_relative_path(self, file_path: Path, base_dir: Path | None = None) -> str:
         """
         Get relative path from base directory.
 
@@ -207,7 +207,7 @@ class BaseEngine(ABC):
         pass
 
     @abstractmethod
-    def write_results(self, results: Any) -> Dict[str, Path]:
+    def write_results(self, results: Any) -> dict[str, Path]:
         """
         Write results to output files.
 

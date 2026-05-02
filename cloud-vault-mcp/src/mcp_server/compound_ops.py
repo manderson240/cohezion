@@ -229,7 +229,9 @@ class CompoundOps:
             from .vault_graph.client import get_graph_client
 
             client = get_graph_client()
-            placeholders = ", ".join(f"'{p.replace(chr(39), chr(92)+chr(39))}'" for p in paths)
+            placeholders = ", ".join(
+                f"'{p.replace(chr(39), chr(92) + chr(39))}'" for p in paths
+            )
             rows = await client.query(
                 f"SELECT path, last_accessed, access_count FROM neuron "
                 f"WHERE path IN [{placeholders}];"

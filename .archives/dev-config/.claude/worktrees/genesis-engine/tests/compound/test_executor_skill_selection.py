@@ -222,9 +222,7 @@ class TestExecutorSkillSelectionIntegrationWithExecution:
                     "get_experience_guidance",
                     return_value={"context": "test"},
                 ),
-                patch.object(
-                    executor.logger, "log_execution_start", return_value="exp_path"
-                ),
+                patch.object(executor.logger, "log_execution_start", return_value="exp_path"),
                 patch.object(executor.logger, "log_execution_result"),
                 patch.object(
                     executor.logger,
@@ -263,9 +261,7 @@ class TestExecutorSkillSelectionIntegrationWithExecution:
                 "get_experience_guidance",
                 return_value={"context": "test"},
             ),
-            patch.object(
-                executor.logger, "log_execution_start", return_value="exp_path"
-            ),
+            patch.object(executor.logger, "log_execution_start", return_value="exp_path"),
             patch.object(executor.logger, "log_execution_result"),
             patch.object(
                 executor.logger,

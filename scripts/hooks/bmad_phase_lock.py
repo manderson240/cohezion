@@ -25,9 +25,9 @@ from __future__ import annotations
 import argparse
 import os
 import subprocess
-import sys
 from datetime import datetime
 from pathlib import Path
+
 
 PROJECT_ROOT = Path(os.environ.get("PROJECT_ROOT", Path.cwd()))
 BMAD_OUTPUT = PROJECT_ROOT / "_bmad-output"
@@ -53,7 +53,10 @@ PHASE_ARTIFACTS = {
 def current_branch() -> str:
     result = subprocess.run(
         ["git", "branch", "--show-current"],
-        capture_output=True, text=True, check=False, timeout=5,
+        capture_output=True,
+        text=True,
+        check=False,
+        timeout=5,
     )
     return result.stdout.strip() or "detached"
 
@@ -71,7 +74,9 @@ def claim(phase: str, owner: str, branch: str) -> int:
         existing_owner = content[0] if content else "?"
         existing_branch = content[1] if len(content) > 1 else "?"
         existing_time = content[2] if len(content) > 2 else "?"
-        print(f"Phase {phase} already locked by {existing_owner} on {existing_branch} at {existing_time}")
+        print(
+            f"Phase {phase} already locked by {existing_owner} on {existing_branch} at {existing_time}"
+        )
         print("Use 'release' first if the previous session is done.")
         return 1
 
@@ -126,7 +131,10 @@ def enforce() -> int:
     # Get staged files
     result = subprocess.run(
         ["git", "diff", "--cached", "--name-only"],
-        capture_output=True, text=True, check=False, timeout=10,
+        capture_output=True,
+        text=True,
+        check=False,
+        timeout=10,
     )
     staged = [f for f in result.stdout.splitlines() if "_bmad-output" in f]
 
@@ -141,6 +149,7 @@ def enforce() -> int:
             lock_file = PHASE_LOCKS[phase]
             # Check if file matches this phase's artifact patterns
             import fnmatch
+
             matched = any(fnmatch.fnmatch(fname, p) for p in patterns)
             if matched and lock_file.exists():
                 content = lock_file.read_text().strip().splitlines()
@@ -151,7 +160,9 @@ def enforce() -> int:
     if violations:
         print("BMAD phase lock violations:")
         for fpath, phase, owner_branch in violations:
-            print(f"  ✗ {fpath} belongs to Phase {phase} (owned by {owner_branch}, you're on {branch})")
+            print(
+                f"  ✗ {fpath} belongs to Phase {phase} (owned by {owner_branch}, you're on {branch})"
+            )
         print("\nClaim the phase first: python scripts/hooks/bmad_phase_lock.py claim {phase}")
         return 1
 

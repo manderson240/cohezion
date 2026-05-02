@@ -4,11 +4,11 @@ FlyDSL Kernel Submission for Popcorn CLI
 AMD MI355X (gfx950) - Fused MoE + Trivial Kernel Tests
 """
 
-import os
-import sys
 import json
+import sys
 import time
 from pathlib import Path
+
 
 # Add FlyDSL path (pre-installed on MI355X runner)
 sys.path.insert(0, "/opt/rocm/lib/python3.10/site-packages")
@@ -17,6 +17,7 @@ try:
     import flydsl.compiler as flyc
     import flydsl.expr as fx
     from flydsl import run_pipeline
+
     FLYDSL_AVAILABLE = True
 except ImportError:
     FLYDSL_AVAILABLE = False
@@ -68,12 +69,7 @@ class FlyDSLMoeKernel:
             # (Simplified for submission - full kernel in fused_moe_kernel.py)
 
         # Compile with JIT
-        self.compiled_kernel = flyc.compile(
-            fused_moe,
-            grid_dim=(128, 8),
-            block_dim=(256,),
-            arch="gfx950"
-        )
+        self.compiled_kernel = flyc.compile(fused_moe, grid_dim=(128, 8), block_dim=(256,), arch="gfx950")
 
         return self
 
@@ -86,20 +82,15 @@ class FlyDSLMoeKernel:
         output = self._allocate_output(tokens.shape[0])
 
         # Launch kernel
-        self.compiled_kernel(
-            tokens, gate_up, down, output,
-            fx.constant(tokens.shape[0])
-        )
+        self.compiled_kernel(tokens, gate_up, down, output, fx.constant(tokens.shape[0]))
 
         return output
 
     def _allocate_output(self, num_tokens):
         """Allocate output tensor"""
         import numpy as np
-        return np.zeros(
-            (num_tokens, self.config["hidden_size"]),
-            dtype=np.float16
-        )
+
+        return np.zeros((num_tokens, self.config["hidden_size"]), dtype=np.float16)
 
 
 class FlyDSLTrivialKernel:
@@ -119,12 +110,7 @@ class FlyDSLTrivialKernel:
             if gid < n:
                 C[gid] = A[gid] + B[gid]
 
-        self.kernel = flyc.compile(
-            vector_add,
-            grid_dim=(4,),
-            block_dim=(256,),
-            arch="gfx950"
-        )
+        self.kernel = flyc.compile(vector_add, grid_dim=(4,), block_dim=(256,), arch="gfx950")
 
         return self
 
@@ -143,10 +129,7 @@ def test_trivial_kernel():
     print("Testing FlyDSL trivial kernel...")
 
     if not FLYDSL_AVAILABLE:
-        return {
-            "status": "skipped",
-            "reason": "FlyDSL not available"
-        }
+        return {"status": "skipped", "reason": "FlyDSL not available"}
 
     try:
         # Create test data
@@ -161,17 +144,10 @@ def test_trivial_kernel():
         expected = A + B
         max_error = np.max(np.abs(C - expected))
 
-        return {
-            "status": "success",
-            "max_error": float(max_error),
-            "verified": max_error < 1e-5
-        }
+        return {"status": "success", "max_error": float(max_error), "verified": max_error < 1e-5}
 
     except Exception as e:
-        return {
-            "status": "error",
-            "error": str(e)
-        }
+        return {"status": "error", "error": str(e)}
 
 
 def test_moe_kernel():
@@ -179,37 +155,22 @@ def test_moe_kernel():
     print("Testing FlyDSL MoE kernel...")
 
     if not FLYDSL_AVAILABLE:
-        return {
-            "status": "skipped",
-            "reason": "FlyDSL not available"
-        }
+        return {"status": "skipped", "reason": "FlyDSL not available"}
 
     try:
         # Configure for DeepSeek-R1 shapes
         kernel = FlyDSLMoeKernel()
-        kernel.setup(
-            num_experts=256,
-            topk=8,
-            hidden_size=7168,
-            intermediate_size=18432
-        )
+        kernel.setup(num_experts=256, topk=8, hidden_size=7168, intermediate_size=18432)
 
         # Compile
         start = time.time()
         kernel.compile()
         compile_time = time.time() - start
 
-        return {
-            "status": "compiled",
-            "compile_time_ms": compile_time * 1000,
-            "config": kernel.config
-        }
+        return {"status": "compiled", "compile_time_ms": compile_time * 1000, "config": kernel.config}
 
     except Exception as e:
-        return {
-            "status": "error",
-            "error": str(e)
-        }
+        return {"status": "error", "error": str(e)}
 
 
 def main():
@@ -218,10 +179,7 @@ def main():
     print("FlyDSL Kernel Submission")
     print("=" * 60)
 
-    results = {
-        "flydsl_available": FLYDSL_AVAILABLE,
-        "tests": {}
-    }
+    results = {"flydsl_available": FLYDSL_AVAILABLE, "tests": {}}
 
     # Test 1: Trivial kernel
     results["tests"]["trivial"] = test_trivial_kernel()

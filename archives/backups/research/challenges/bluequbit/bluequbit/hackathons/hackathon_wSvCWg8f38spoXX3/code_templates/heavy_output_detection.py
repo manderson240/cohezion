@@ -3,12 +3,12 @@ BlueQubit Heavy Output Detection Template
 Based on "Little Dimple" SETI Protocol approach
 """
 
-import os
 from pathlib import Path
-from dotenv import load_dotenv
+
 import bluequbit
-import qiskit
 import numpy as np
+import qiskit
+from dotenv import load_dotenv
 
 
 def find_heavy_output(counts: dict, threshold: float = 0.5) -> dict:
@@ -129,7 +129,7 @@ def detect_heavy_output(
 def print_detection_results(results: dict):
     """Pretty print detection results."""
     print(f"\n{'=' * 60}")
-    print(f"Heavy Output Detection Results")
+    print("Heavy Output Detection Results")
     print(f"{'=' * 60}")
     print(f"Qubits: {results['n_qubits']}")
     print(f"Shots: {results['shots']:,}")
@@ -140,13 +140,13 @@ def print_detection_results(results: dict):
     print(f"Total Heavy Probability: {results['total_heavy_probability']:.6f}")
 
     if "top_bitstring" in results:
-        print(f"\nTop Heavy Output:")
+        print("\nTop Heavy Output:")
         print(f"  Bitstring: {results['top_bitstring']}")
         print(f"  Probability: {results['top_probability']:.6f}")
         print(f"  SNR: {results['snr_sigma']:.2f} sigma")
 
     if results["heavy_outputs"]:
-        print(f"\nAll Heavy Outputs:")
+        print("\nAll Heavy Outputs:")
         for bitstring, prob in sorted(
             results["heavy_outputs"].items(), key=lambda x: x[1], reverse=True
         )[:10]:

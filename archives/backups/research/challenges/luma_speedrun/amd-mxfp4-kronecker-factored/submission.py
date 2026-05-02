@@ -34,22 +34,23 @@ Reference: "Kronecker-Factored Approximate Curvature", ICML 2015.
 """
 
 from __future__ import annotations
+
 import os
+
 
 os.environ["PYTORCH_ROCM_ARCH"] = "gfx950"
 os.environ["CXX"] = "clang++"
 
+import math
+
+import aiter
 import torch
 import torch.linalg as la
-import math
-from typing import Tuple, List, Optional
-from torch.utils.cpp_extension import load_inline
-from task import input_t, output_t
-
 from aiter import dtypes
 from aiter.ops.triton.quant import dynamic_mxfp4_quant
 from aiter.utility.fp4_utils import e8m0_shuffle
-import aiter
+from task import input_t, output_t
+from torch.utils.cpp_extension import load_inline
 
 
 class KroneckerFactorization:
@@ -61,9 +62,9 @@ class KroneckerFactorization:
             max_rank: Maximum rank for each factor (None = auto)
         """
         self.max_rank = max_rank
-        self.factors: List[Tuple[torch.Tensor, torch.Tensor]] = []
+        self.factors: list[tuple[torch.Tensor, torch.Tensor]] = []
 
-    def _find_factorization(self, M: int, K: int) -> Tuple[Tuple[int, int], Tuple[int, int]]:
+    def _find_factorization(self, M: int, K: int) -> tuple[tuple[int, int], tuple[int, int]]:
         """Find good Kronecker factorization dimensions.
 
         Find (a, c) and (b, d) such that:
@@ -102,7 +103,7 @@ class KroneckerFactorization:
 
         return best_factors
 
-    def factorize(self, W: torch.Tensor) -> "KroneckerFactorization":
+    def factorize(self, W: torch.Tensor) -> KroneckerFactorization:
         """Factorize matrix into Kronecker product.
 
         Args:
@@ -221,9 +222,9 @@ class HierarchicalKronecker:
             levels: Number of hierarchical levels
         """
         self.levels = levels
-        self.factorizations: List[KroneckerFactorization] = []
+        self.factorizations: list[KroneckerFactorization] = []
 
-    def factorize(self, W: torch.Tensor) -> "HierarchicalKronecker":
+    def factorize(self, W: torch.Tensor) -> HierarchicalKronecker:
         """Hierarchical factorization."""
         current = W
 
@@ -272,13 +273,13 @@ __global__ void kronecker_multiply_kernel(
     int idx = blockIdx.x * blockDim.x + threadIdx.x;
     int total_out = a * c * batch;
     if (idx >= total_out) return;
-    
+
     // Decode output index
     int out_batch = idx % batch;
     int out_ac = idx / batch;
     int out_c = out_ac % c;
     int out_a = out_ac / c;
-    
+
     // Compute Y[out_a*c + out_c, out_batch]
     float sum = 0.0f;
     for (int bi = 0; bi < b; bi++) {
@@ -289,7 +290,7 @@ __global__ void kronecker_multiply_kernel(
             sum += a_val * b_val * x_val;
         }
     }
-    
+
     Y[out_ac * batch + out_batch] = sum;
 }
 

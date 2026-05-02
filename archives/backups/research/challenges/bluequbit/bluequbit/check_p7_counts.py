@@ -1,9 +1,11 @@
-import bluequbit
 import os
+
+import bluequbit
+
 
 cohezion_root = "/home/mike-anderson/dev/cohezion"
 api_token = None
-with open(os.path.join(cohezion_root, ".env"), "r") as f:
+with open(os.path.join(cohezion_root, ".env")) as f:
     for line in f:
         if "BLUEQUBIT_API_TOKEN" in line:
             api_token = line.split("=")[1].strip()
@@ -18,7 +20,7 @@ counts = result.get_counts()
 sorted_counts = sorted(counts.items(), key=lambda x: x[1], reverse=True)
 
 print(f"Total unique bitstrings: {len(counts)}")
-print(f"\nTop 5 results (raw data):")
+print("\nTop 5 results (raw data):")
 for raw, cnt in sorted_counts[:5]:
     answer = raw[::-1]
     print(f"  Raw: {raw}, Count: {cnt}, Answer: {answer}")

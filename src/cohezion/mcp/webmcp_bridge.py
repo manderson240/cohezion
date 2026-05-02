@@ -51,7 +51,7 @@ class WebMCPBridge:
     async def handle_context(self, request: web.Request) -> web.Response:
         """Returns the model-context.json for MCP discovery."""
         servers = self.registry.list_servers()
-        
+
         # Robust port mapping matching defaults.py and fleet.py
         port_map = {
             "vault": 8360,
@@ -89,11 +89,13 @@ class WebMCPBridge:
             "compound": 8379,
             "cohezion-compound": 8379,
         }
-        
+
         context = {
             "mcpServers": {
                 s.name: {
-                    "url": s.url if s.url and s.url != "local" else f"http://localhost:{port_map.get(s.name, 8360 + servers.index(s))}",
+                    "url": s.url
+                    if s.url and s.url != "local"
+                    else f"http://localhost:{port_map.get(s.name, 8360 + servers.index(s))}",
                     "description": s.description,
                 }
                 for s in servers

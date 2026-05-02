@@ -18,9 +18,7 @@ class AntiPatternScout(BaseScout):
     """
 
     def __init__(self, **kwargs) -> None:
-        super().__init__(
-            model="phi3:mini", **kwargs
-        )  # Use even smaller model for debt detection
+        super().__init__(model="phi3:mini", **kwargs)  # Use even smaller model for debt detection
 
     async def analyze(self, path: Path) -> list[Finding]:
         content = path.read_text()

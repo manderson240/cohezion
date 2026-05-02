@@ -12,12 +12,12 @@ def verify_and_prepare_submissions():
         print("❌ No quantum candidates found. Run the QPU sprint first.")
         return
 
-    with open("conductor/tracks/yale_peaked_20260404/quantum_candidates.json", "r") as f:
+    with open("conductor/tracks/yale_peaked_20260404/quantum_candidates.json") as f:
         candidates_data = json.load(f)
 
     results = {}
     if os.path.exists("conductor/tracks/yale_peaked_20260404/interim_results.json"):
-        with open("conductor/tracks/yale_peaked_20260404/interim_results.json", "r") as f:
+        with open("conductor/tracks/yale_peaked_20260404/interim_results.json") as f:
             results = json.load(f)
 
     print("📊 --- QUANTUM PEAK ANALYSIS ---")

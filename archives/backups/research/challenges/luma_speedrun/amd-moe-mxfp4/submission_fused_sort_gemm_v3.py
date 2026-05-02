@@ -17,15 +17,13 @@ from __future__ import annotations
 
 import os
 
+
 os.environ["AITER_USE_NT"] = "1"
 
-import torch
-
 import aiter
-from aiter import ActivationType, QuantType, dtypes
+import torch
+from aiter import ActivationType, QuantType
 from aiter.fused_moe import fused_moe
-from aiter.ops.shuffle import shuffle_weight
-from aiter.utility import fp4_utils
 from task import input_t, output_t
 
 
@@ -124,7 +122,7 @@ def custom_kernel(data: input_t) -> output_t:
         )
         return result
 
-    except Exception as e:
+    except Exception:
         # Fallback: Try direct CK dispatch with cached buffers
         try:
             from aiter.fused_moe import moe_sorting
@@ -204,11 +202,11 @@ def custom_kernel(data: input_t) -> output_t:
 
                 return output
 
-            except Exception as ck_error:
+            except Exception:
                 # CK failed, return moe_buf from sorting (already has result)
                 return moe_buf
 
-        except Exception as fallback_error:
+        except Exception:
             # Ultimate fallback: standard fused_moe
             return fused_moe(
                 hidden_states,

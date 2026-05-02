@@ -1,7 +1,8 @@
+
 import bluequbit
 import qiskit
 from dotenv import load_dotenv
-import os
+
 
 load_dotenv(".env")
 

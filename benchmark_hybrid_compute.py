@@ -3,7 +3,7 @@
 
 Routes requests to optimal compute unit:
 - CPU (Zen 5): Small models (<3B) - lowest TTFT
-- GPU (Vulkan): Medium models (3B-14B) - highest throughput  
+- GPU (Vulkan): Medium models (3B-14B) - highest throughput
 - NPU (XDNA2): Quantized models - 60-80 TOPS potential
 
 Based on MultiModelOrchestrator compute profiles.
@@ -35,13 +35,19 @@ class ModelProfile:
 # Model routing based on empirical profiles
 COMPUTE_PROFILES = {
     # Small models - CPU optimal (low latency)
-    "phi3:mini": ModelProfile("phi3:mini", 3.8, ComputeUnit.CPU, "http://localhost:11434", "phi3:mini"),
-    "llama3.2:1b": ModelProfile("llama3.2:1b", 1.0, ComputeUnit.CPU, "http://localhost:11434", "llama3.2:1b"),
-
+    "phi3:mini": ModelProfile(
+        "phi3:mini", 3.8, ComputeUnit.CPU, "http://localhost:11434", "phi3:mini"
+    ),
+    "llama3.2:1b": ModelProfile(
+        "llama3.2:1b", 1.0, ComputeUnit.CPU, "http://localhost:11434", "llama3.2:1b"
+    ),
     # Medium models - GPU optimal (Vulcan backend)
-    "qwen3-8b": ModelProfile("qwen3-8b", 8.0, ComputeUnit.GPU, "http://localhost:8002", "DeepSeek-Qwen3-8B-GGUF"),
-    "phi4:latest": ModelProfile("phi4:latest", 3.8, ComputeUnit.GPU, "http://localhost:11434", "phi4:latest"),
-
+    "qwen3-8b": ModelProfile(
+        "qwen3-8b", 8.0, ComputeUnit.GPU, "http://localhost:8002", "DeepSeek-Qwen3-8B-GGUF"
+    ),
+    "phi4:latest": ModelProfile(
+        "phi4:latest", 3.8, ComputeUnit.GPU, "http://localhost:11434", "phi4:latest"
+    ),
     # NPU - Would need quantized ONNX models
     # "phi3:npu": ModelProfile("phi3:npu", 3.8, ComputeUnit.NPU, "http://localhost:8001", "phi3:npu"),
 }
@@ -62,7 +68,7 @@ async def generate_on_unit(
             "model": profile.model_id,
             "messages": [
                 {"role": "system", "content": system},
-                {"role": "user", "content": prompt}
+                {"role": "user", "content": prompt},
             ],
             "stream": False,
             "options": {"num_thread": 8, "temperature": 0.7},
@@ -74,7 +80,7 @@ async def generate_on_unit(
             "model": profile.model_id,
             "messages": [
                 {"role": "system", "content": system},
-                {"role": "user", "content": prompt}
+                {"role": "user", "content": prompt},
             ],
             "max_tokens": max_tokens,
             "temperature": 0.7,
@@ -84,7 +90,9 @@ async def generate_on_unit(
 
     start = time.monotonic()
     try:
-        async with session.post(url, json=payload, timeout=aiohttp.ClientTimeout(total=120)) as resp:
+        async with session.post(
+            url, json=payload, timeout=aiohttp.ClientTimeout(total=120)
+        ) as resp:
             resp.raise_for_status()
             data = await resp.json()
             elapsed_ms = (time.monotonic() - start) * 1000
@@ -218,6 +226,7 @@ async def benchmark_hybrid_parallel(
 
 async def main():
     import argparse
+
     parser = argparse.ArgumentParser()
     parser.add_argument("-n", "--requests", type=int, default=4)
     args = parser.parse_args()

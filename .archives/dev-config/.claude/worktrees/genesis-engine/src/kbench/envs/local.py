@@ -23,9 +23,7 @@ class LocalEnvironment(mixins.TemporalDirectoryMixin):
         super().__init__()
         self.original_dir = os.getcwd()
 
-    def run(
-        self, command: str | list[str], input: str | None = None
-    ) -> environment.RunResult:
+    def run(self, command: str | list[str], input: str | None = None) -> environment.RunResult:
         """Runs a shell command in the temporary directory."""
         result = subprocess.run(
             command,

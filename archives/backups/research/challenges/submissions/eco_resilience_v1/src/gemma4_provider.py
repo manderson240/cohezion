@@ -18,8 +18,9 @@ from cohezion.swarm.providers.ollama_provider import OllamaProvider
 logger = logging.getLogger(__name__)
 
 
-import yaml
 from pathlib import Path
+
+import yaml
 
 
 class Gemma4Provider(OllamaProvider):
@@ -52,7 +53,7 @@ class Gemma4Provider(OllamaProvider):
         """Load the Lemonade silicon mapping config."""
         config_path = Path("src/cohezion/swarm/lemonade_config.yaml")
         if config_path.exists():
-            with open(config_path, "r") as f:
+            with open(config_path) as f:
                 return yaml.safe_load(f)
         return {}
 

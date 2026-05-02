@@ -14,9 +14,11 @@
 
 import dataclasses
 import inspect
-from typing import Any, Callable, Generic, TypeVar
+from collections.abc import Callable
+from typing import Any, Generic, TypeVar
 
 import pydantic
+
 
 T = TypeVar("T")
 
@@ -69,7 +71,7 @@ def describe_tools(tools: list[Callable]) -> str:
                 try:
                     param_str += f": {param.annotation.__name__}"
                 except AttributeError:
-                    param_str += f": {str(param.annotation)}"
+                    param_str += f": {param.annotation!s}"
             if param.default != inspect.Parameter.empty:
                 param_str += f" = {param.default!r}"
             params.append(param_str)
@@ -81,12 +83,10 @@ def describe_tools(tools: list[Callable]) -> str:
             try:
                 return_annotation = f" -> {sig.return_annotation.__name__}"
             except AttributeError:
-                return_annotation = f" -> {str(sig.return_annotation)}"
+                return_annotation = f" -> {sig.return_annotation!s}"
 
         docstring = (tool.__doc__ or "").strip()
-        description = (
-            f"- `{tool.__name__}({param_list_str}){return_annotation}`: {docstring}"
-        )
+        description = f"- `{tool.__name__}({param_list_str}){return_annotation}`: {docstring}"
         descriptions.append(description)
 
     if not descriptions:

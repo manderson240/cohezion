@@ -55,9 +55,7 @@ class ConfigValidator:
             for check_result in checks:
                 report.passed = report.passed and check_result.get("passed", True)
                 if not check_result.get("passed", True):
-                    report.recommendations.extend(
-                        check_result.get("recommendations", [])
-                    )
+                    report.recommendations.extend(check_result.get("recommendations", []))
 
         except Exception as e:
             logger.error(f"Validation error for {file_path}: {e}")
@@ -93,9 +91,7 @@ class ConfigValidator:
                 if field not in frontmatter:
                     return {
                         "passed": False,
-                        "recommendations": [
-                            f"{file_path.name} missing required field: {field}"
-                        ],
+                        "recommendations": [f"{file_path.name} missing required field: {field}"],
                     }
 
             return {"passed": True}

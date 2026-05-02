@@ -14,8 +14,9 @@ import logging
 from datetime import datetime
 from pathlib import Path
 
-from cohezion.core.persistence.surreal_client import SurrealClient
 from cohezion.mcp.email_notifier import EmailNotifier
+
+from cohezion.core.persistence.surreal_client import SurrealClient
 
 
 logging.basicConfig(level=logging.INFO)
@@ -35,9 +36,7 @@ class MissionFinalizer:
 
         # 1. Fetch Data
         pulses = await self.db.query("SELECT * FROM mission_pulse ORDER BY timestamp ASC")
-        reports = await self.db.query(
-            "SELECT * FROM interpretability_reports ORDER BY timestamp ASC"
-        )
+        reports = await self.db.query("SELECT * FROM interpretability_reports ORDER BY timestamp ASC")
 
         # 2. Generate Summary
         summary = self._generate_summary(pulses, reports)

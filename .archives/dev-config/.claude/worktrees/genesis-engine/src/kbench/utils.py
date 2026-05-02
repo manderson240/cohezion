@@ -53,9 +53,7 @@ class UnconditionalCacheTransport(httpx.HTTPTransport):
 
         # Force the header to be cacheable for 1 week
         # This overrides whatever the server said (e.g. no-store)
-        response.headers["Cache-Control"] = (
-            f"public, max-age={self.cache_timeout_seconds}"
-        )
+        response.headers["Cache-Control"] = f"public, max-age={self.cache_timeout_seconds}"
 
         # Remove 'Expires' or 'Pragma' if they exist to avoid conflicts
         response.headers.pop("Pragma", None)
@@ -86,9 +84,7 @@ def build_httpx_client(filename: str = "cache") -> httpx.Client:
     return hishel.httpx.SyncCacheClient(
         policy=policy,
         transport=hishel.httpx.SyncCacheTransport(
-            next_transport=UnconditionalCacheTransport(
-                cache_timeout_seconds=config.cache_timeout_seconds
-            ),
+            next_transport=UnconditionalCacheTransport(cache_timeout_seconds=config.cache_timeout_seconds),
             policy=policy,
         ),
         storage=hishel.SyncSqliteStorage(
@@ -97,9 +93,7 @@ def build_httpx_client(filename: str = "cache") -> httpx.Client:
     )
 
 
-def extract_code_block(
-    text: str, name: str | None = None, greedy: bool = True, all_blocks: bool = False
-) -> str:
+def extract_code_block(text: str, name: str | None = None, greedy: bool = True, all_blocks: bool = False) -> str:
     """Extracts code block(s) from a markdown string.
 
     Args:
@@ -113,9 +107,7 @@ def extract_code_block(
         Extracted code, or the original text if no code blocks found.
     """
     name = name or r"\w*"
-    matches = re.findall(
-        f"```{name}(.+{'' if greedy else '?'})```", text, flags=re.DOTALL
-    )
+    matches = re.findall(f"```{name}(.+{'' if greedy else '?'})```", text, flags=re.DOTALL)
     if matches:
         if all_blocks:
             return "\n\n".join(m.strip() for m in matches)
@@ -133,23 +125,17 @@ def has_nested_models(model: type[pydantic.BaseModel]) -> bool:
 
 def string_diff_as_markdown(str1: str, str2: str, sep: str = "\n") -> str:
     differ = difflib.Differ()
-    diff = sep.join(
-        differ.compare(str1.splitlines(keepends=True), str2.splitlines(keepends=True))
-    )
+    diff = sep.join(differ.compare(str1.splitlines(keepends=True), str2.splitlines(keepends=True)))
 
     return f"""```diff
 {diff}
 ```"""
 
 
-def highlight_matched_spans(
-    text: str, pattern: str, highlight_color: str = "yellow"
-) -> str:
+def highlight_matched_spans(text: str, pattern: str, highlight_color: str = "yellow") -> str:
     def replacer(match):
         matched_text = match.group(0)
-        return (
-            f'<span style="background-color: {highlight_color};">{matched_text}</span>'
-        )
+        return f'<span style="background-color: {highlight_color};">{matched_text}</span>'
 
     return re.sub(pattern, replacer, text)
 
@@ -164,9 +150,7 @@ def _get_model_proxy_env_vars() -> tuple[str, str]:
     api_key = os.environ.get("MODEL_PROXY_API_KEY")
     base_url = os.environ.get("MODEL_PROXY_URL")
     if not api_key or not base_url:
-        raise ValueError(
-            "MODEL_PROXY_API_KEY and MODEL_PROXY_URL must be set in environment variables."
-        )
+        raise ValueError("MODEL_PROXY_API_KEY and MODEL_PROXY_URL must be set in environment variables.")
     return api_key, base_url
 
 
@@ -213,10 +197,7 @@ def task_autopilot(
         quick_start_prompt = (base_dir / "quick_start.md").read_text()
         user_guide_prompt = (base_dir / "user_guide.md").read_text()
     except FileNotFoundError:
-        print(
-            "Could not find quick_start.md for task_autopilot. "
-            "The generated code may be suboptimal."
-        )
+        print("Could not find quick_start.md for task_autopilot. The generated code may be suboptimal.")
         quick_start_prompt = (
             "<!-- The quick start guide was not found, but you should still "
             "generate code based on the user's request and your knowledge of the SDK. -->"

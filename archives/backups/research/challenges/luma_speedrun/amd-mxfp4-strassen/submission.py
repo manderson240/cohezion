@@ -51,18 +51,20 @@ Performance Characteristics:
 """
 
 from __future__ import annotations
+
 import os
-import math
+
 
 os.environ["PYTORCH_ROCM_ARCH"] = "gfx950"
 os.environ["CXX"] = "clang++"
 
 import torch
-from torch.utils.cpp_extension import load_inline
 from aiter import dtypes
 from aiter.ops.triton.quant import dynamic_mxfp4_quant
 from aiter.utility.fp4_utils import e8m0_shuffle
 from task import input_t, output_t
+from torch.utils.cpp_extension import load_inline
+
 
 # Strassen configuration
 STRASSEN_MIN_SIZE = 64  # Minimum size to apply Strassen (below: use standard GEMM)
@@ -85,9 +87,9 @@ def _get_strassen_kernel():
     #include <torch/extension.h>
     #include <hip/hip_runtime.h>
     #include <hip/hip_bf16.h>
-    
+
     #define BLOCK_SIZE 64
-    
+
     // Add two matrices: C = A + B
     __global__ void mat_add(
         const __hip_bfloat16* A,
@@ -103,7 +105,7 @@ def _get_strassen_kernel():
             );
         }
     }
-    
+
     // Subtract two matrices: C = A - B
     __global__ void mat_sub(
         const __hip_bfloat16* A,
@@ -119,7 +121,7 @@ def _get_strassen_kernel():
             );
         }
     }
-    
+
     // Naive matrix multiply: C = A * B
     // For small base case in Strassen recursion
     __global__ void mat_mul_base(
@@ -130,7 +132,7 @@ def _get_strassen_kernel():
     ) {
         int row = blockIdx.y * blockDim.y + threadIdx.y;
         int col = blockIdx.x * blockDim.x + threadIdx.x;
-        
+
         if (row < n && col < n) {
             float sum = 0.0f;
             for (int k = 0; k < n; k++) {
@@ -140,7 +142,7 @@ def _get_strassen_kernel():
             C[row * n + col] = (__hip_bfloat16)sum;
         }
     }
-    
+
     // Strassen combination kernel: compute C quadrants from M1-M7
     __global__ void strassen_combine(
         const __hip_bfloat16* M1,
@@ -155,11 +157,11 @@ def _get_strassen_kernel():
     ) {
         int idx = blockIdx.x * blockDim.x + threadIdx.x;
         int quadrant_size = n * n / 4;
-        
+
         if (idx < quadrant_size * 4) {
             int q = idx / quadrant_size;  // Which quadrant: 0=C11, 1=C12, 2=C21, 3=C22
             int i = idx % quadrant_size;  // Index within quadrant
-            
+
             float m1 = __bfloat162float(M1[i]);
             float m2 = __bfloat162float(M2[i]);
             float m3 = __bfloat162float(M3[i]);
@@ -167,7 +169,7 @@ def _get_strassen_kernel():
             float m5 = __bfloat162float(M5[i]);
             float m6 = __bfloat162float(M6[i]);
             float m7 = __bfloat162float(M7[i]);
-            
+
             float result;
             switch(q) {
                 case 0: // C11 = M1 + M4 - M5 + M7
@@ -185,11 +187,11 @@ def _get_strassen_kernel():
                 default:
                     result = 0.0f;
             }
-            
+
             C[idx] = (__hip_bfloat16)result;
         }
     }
-    
+
     // Helper: add/sub with result placement
     __global__ void strassen_add_sub(
         const __hip_bfloat16* A,
@@ -205,7 +207,7 @@ def _get_strassen_kernel():
             C[idx] = (__hip_bfloat16)(op == 0 ? a + b : a - b);
         }
     }
-    
+
     void launch_add(
         torch::Tensor A, torch::Tensor B, torch::Tensor C, int n
     ) {
@@ -217,7 +219,7 @@ def _get_strassen_kernel():
             n
         );
     }
-    
+
     void launch_sub(
         torch::Tensor A, torch::Tensor B, torch::Tensor C, int n
     ) {
@@ -229,7 +231,7 @@ def _get_strassen_kernel():
             n
         );
     }
-    
+
     void launch_mul_base(
         torch::Tensor A, torch::Tensor B, torch::Tensor C, int n
     ) {
@@ -242,7 +244,7 @@ def _get_strassen_kernel():
             n
         );
     }
-    
+
     void launch_combine(
         torch::Tensor M1, torch::Tensor M2, torch::Tensor M3,
         torch::Tensor M4, torch::Tensor M5, torch::Tensor M6,
@@ -261,7 +263,7 @@ def _get_strassen_kernel():
             n
         );
     }
-    
+
     void launch_add_sub(
         torch::Tensor A, torch::Tensor B, torch::Tensor C,
         int n, int op
@@ -492,7 +494,7 @@ def custom_kernel(data: input_t) -> output_t:
         print("[Strassen] Kernel not available, using fallback")
         try:
             return _aiter_gemm(data)
-        except Exception as e:
+        except Exception:
             return torch.matmul(A, B.t())
 
     try:

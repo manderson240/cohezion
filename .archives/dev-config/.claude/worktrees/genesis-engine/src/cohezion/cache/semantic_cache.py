@@ -194,9 +194,7 @@ class SemanticCache:
         # Hit rate in target range (5-40%)
         return self.similarity_threshold
 
-    async def get(
-        self, prompt: str, system: str | None = None, model: str | None = None
-    ) -> str | None:
+    async def get(self, prompt: str, system: str | None = None, model: str | None = None) -> str | None:
         """Lookup with 3-tier fallback.
 
         Checks L1 (exact), L2 (semantic), then L3 (vault).
@@ -368,9 +366,7 @@ class SemanticCache:
                     path = first_result.get("path", "")
                     if path:
                         try:
-                            content = await loop.run_in_executor(
-                                None, self.mcp_client.vault_read, path
-                            )
+                            content = await loop.run_in_executor(None, self.mcp_client.vault_read, path)
                             # Parse as JSON cache entry
                             cache_data = json.loads(content)
                             response = cache_data.get("response", "")

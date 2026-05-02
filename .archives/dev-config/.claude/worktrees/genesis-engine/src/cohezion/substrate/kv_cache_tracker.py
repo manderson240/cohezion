@@ -129,9 +129,7 @@ class KVCacheTracker:
         base_factor = {4: 0.5, 8: 1.0, 16: 2.0}.get(quantization_bits, 0.5)
 
         # For MoE models, use active parameters
-        effective_params = (
-            active_params_billions if (is_moe and active_params_billions) else model_params_billions
-        )
+        effective_params = active_params_billions if (is_moe and active_params_billions) else model_params_billions
 
         # Calculate
         kv_mb = (context_length / 1000) * effective_params * base_factor
@@ -199,9 +197,7 @@ class KVCacheTracker:
                 )
 
         # Slow path: need to free space
-        return await self._allocate_with_eviction(
-            request_id, model, context_length, kv_required, timeout
-        )
+        return await self._allocate_with_eviction(request_id, model, context_length, kv_required, timeout)
 
     async def _allocate_with_eviction(
         self,
@@ -383,9 +379,7 @@ class KVCacheTracker:
             }
 
         now = datetime.now()
-        oldest = min(
-            (now - entry.created_at).total_seconds() for entry in self.active_caches.values()
-        )
+        oldest = min((now - entry.created_at).total_seconds() for entry in self.active_caches.values())
 
         total_gb = self.get_total_kv_cache_gb()
 

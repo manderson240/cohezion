@@ -6,12 +6,14 @@ If it avoids the "work on another stream" error, we can use MFMA intrinsics.
 """
 
 import sys
-import torch
+
 import aiter
+import torch
 from aiter import dtypes
 from aiter.ops.triton.quant import dynamic_mxfp4_quant
 from aiter.utility.fp4_utils import e8m0_shuffle
 from task import input_t, output_t
+
 
 # Test _compile_kernel with a trivial kernel
 _COMPILED = None

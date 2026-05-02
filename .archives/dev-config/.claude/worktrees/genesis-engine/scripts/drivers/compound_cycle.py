@@ -195,9 +195,7 @@ def run_compound_cycle(dry_run: bool = True):
         logger.error("✗ FAILED: Retrospection insights not in metrics!")
         return False
 
-    logger.info(
-        f"✓ Phase 6 PASSED: Retrospection insights present ({len(retro_insights)} insights)"
-    )
+    logger.info(f"✓ Phase 6 PASSED: Retrospection insights present ({len(retro_insights)} insights)")
 
     # Summary
     logger.info("\n" + "=" * 80)

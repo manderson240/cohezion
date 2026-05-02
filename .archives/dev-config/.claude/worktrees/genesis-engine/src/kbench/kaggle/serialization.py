@@ -19,8 +19,9 @@ import inspect
 import json
 import logging
 import textwrap
+from collections.abc import Callable
 from pathlib import Path
-from typing import Any, Callable, Tuple, Union
+from typing import Any
 
 from google.protobuf import json_format
 
@@ -35,6 +36,7 @@ from kaggle_benchmarks import (
 )
 from kaggle_benchmarks import messages as benchmark_messages
 from kaggle_benchmarks.kaggle import benchmark_types_pb2 as types
+
 
 TASK_FILE_SUFFIX = ".task.json"
 RUN_FILE_SUFFIX = ".run.json"
@@ -108,11 +110,7 @@ def _find_subtask_names(task_obj: tasks.Task) -> list[str]:
         tree = ast.parse(source_code)
 
         for node in ast.walk(tree):
-            if (
-                isinstance(node, ast.Call)
-                and isinstance(node.func, ast.Attribute)
-                and node.func.attr == "run"
-            ):
+            if isinstance(node, ast.Call) and isinstance(node.func, ast.Attribute) and node.func.attr == "run":
                 var_expr = ast.unparse(node.func.value)
                 # We restrict to global subtasks (excluding nested).
                 if "." not in var_expr and var_expr in task_obj.func.__globals__:
@@ -124,9 +122,7 @@ def _find_subtask_names(task_obj: tasks.Task) -> list[str]:
                         subtask_names.append(potential_task_instance.name)
         subtask_names.sort()
     except (TypeError, OSError) as e:
-        logger.warning(
-            f"Could not get source code for task '{task_obj.name}' to find subtasks: {e}"
-        )
+        logger.warning(f"Could not get source code for task '{task_obj.name}' to find subtasks: {e}")
     return subtask_names
 
 
@@ -173,9 +169,7 @@ def prepare_task(task: tasks.Task) -> dict[str, Any]:
         "name": task.name,
         "description": task.description or None,
         "definition": _get_source_code(task.func),
-        "subtask_file_names": [
-            generate_task_filename(subtask_name) for subtask_name in subtask_names
-        ],
+        "subtask_file_names": [generate_task_filename(subtask_name) for subtask_name in subtask_names],
     }
 
 
@@ -212,9 +206,7 @@ def _get_run_state_proto(run_status: utils.Status | str) -> types.BenchmarkTaskR
         utils.Status.SUCCESS: types.BenchmarkTaskRunState.BENCHMARK_TASK_RUN_STATE_COMPLETED,
         utils.Status.FAILED: types.BenchmarkTaskRunState.BENCHMARK_TASK_RUN_STATE_ERRORED,
     }
-    return RUN_STATUS_MAP.get(
-        run_status, types.BenchmarkTaskRunState.BENCHMARK_TASK_RUN_STATE_UNSPECIFIED
-    )
+    return RUN_STATUS_MAP.get(run_status, types.BenchmarkTaskRunState.BENCHMARK_TASK_RUN_STATE_UNSPECIFIED)
 
 
 def _message_to_proto_content(message: benchmark_messages.Message) -> dict[str, Any]:
@@ -227,9 +219,7 @@ def _message_to_proto_content(message: benchmark_messages.Message) -> dict[str, 
         "developer": types.ContentRole.CONTENT_ROLE_DEVELOPER,
         "tool": types.ContentRole.CONTENT_ROLE_CONTEXT,
     }
-    proto_role = ROLE_TO_PROTO_ROLE_MAP.get(
-        message.sender.role, types.ContentRole.CONTENT_ROLE_UNSPECIFIED
-    )
+    proto_role = ROLE_TO_PROTO_ROLE_MAP.get(message.sender.role, types.ContentRole.CONTENT_ROLE_UNSPECIFIED)
 
     part_value: dict[str, Any] = {}  # Holds the 'image' or 'text' part
 
@@ -302,14 +292,8 @@ def _prepare_conversations_data(
         if isinstance(item, benchmark_messages.Message):
             # Associate assertion with its parent chat and the specific request it links to.
             # This allows UI or reporting tools to display assertions within their relevant conversational context.
-            if item.sender.name == "Assertion" and isinstance(
-                item.content, assertions.AssertionResult
-            ):
-                previous_request_id = (
-                    current_conversation_requests[-1]["id"]
-                    if current_conversation_requests
-                    else None
-                )
+            if item.sender.name == "Assertion" and isinstance(item.content, assertions.AssertionResult):
+                previous_request_id = current_conversation_requests[-1]["id"] if current_conversation_requests else None
                 conversation_assertion_map[item.content.id] = (
                     chat.id,
                     previous_request_id,
@@ -325,21 +309,13 @@ def _prepare_conversations_data(
             # The sender role is checked on the original message object.
             # Any messages in after the last "assistant" message will be ignored.
             if item.sender.role == "assistant":
-                if (
-                    current_request_contents
-                ):  # Ensure there's something to form a request
+                if current_request_contents:  # Ensure there's something to form a request
                     request_metrics = {
                         "input_tokens": item._meta.get("input_tokens"),
                         "output_tokens": item._meta.get("output_tokens"),
-                        "input_tokens_cost_nanodollars": item._meta.get(
-                            "input_tokens_cost_nanodollars"
-                        ),
-                        "output_tokens_cost_nanodollars": item._meta.get(
-                            "output_tokens_cost_nanodollars"
-                        ),
-                        "total_backend_latency_ms": item._meta.get(
-                            "total_backend_latency_ms"
-                        ),
+                        "input_tokens_cost_nanodollars": item._meta.get("input_tokens_cost_nanodollars"),
+                        "output_tokens_cost_nanodollars": item._meta.get("output_tokens_cost_nanodollars"),
+                        "total_backend_latency_ms": item._meta.get("total_backend_latency_ms"),
                     }
                     request_counter += 1
                     current_conversation_requests.append(
@@ -359,9 +335,7 @@ def _prepare_conversations_data(
             conversation_assertion_map.update(assertion_map)
             subchat_conversation_entries.extend(conversation_entries)
         else:
-            raise NotImplementedError(
-                f"Unhandled item type in chat history: {type(item)} for chat '{chat.name}'"
-            )
+            raise NotImplementedError(f"Unhandled item type in chat history: {type(item)} for chat '{chat.name}'")
 
     conversation_metrics = {
         "input_tokens": 0,
@@ -376,9 +350,7 @@ def _prepare_conversations_data(
             conversation_metrics["output_tokens"] += metrics.get("output_tokens") or 0
             for field in _OPTIONAL_AGGREGATED_METRICS:
                 if (value := metrics.get(field)) is not None:
-                    conversation_metrics[field] = (
-                        conversation_metrics[field] or 0
-                    ) + value
+                    conversation_metrics[field] = (conversation_metrics[field] or 0) + value
     current_conversation_entry = {
         "id": chat.id,
         "requests": current_conversation_requests,
@@ -393,11 +365,7 @@ def _prepare_conversations_data(
 
 def _is_tuple_result(value: Any) -> bool:
     """Checks if a value is a tuple of two numbers (int or float)."""
-    return (
-        isinstance(value, tuple)
-        and len(value) == 2
-        and all(isinstance(item, (int, float)) for item in value)
-    )
+    return isinstance(value, tuple) and len(value) == 2 and all(isinstance(item, (int, float)) for item in value)
 
 
 def _prepare_results_data(run: runs.Run) -> list[dict[str, Any]]:
@@ -425,9 +393,7 @@ def _prepare_results_data(run: runs.Run) -> list[dict[str, Any]]:
     elif isinstance(run.result, dict):
         result_data = {"dict_result": run.result}
     else:  # Any other unhandled Result type
-        raise NotImplementedError(
-            f"Result type cannot be serialized to show on leaderboard: {type(run.result)}."
-        )
+        raise NotImplementedError(f"Result type cannot be serialized to show on leaderboard: {type(run.result)}.")
 
     result_data |= {"type": types.BenchmarkTaskRunResultType.AGGREGATED}
     return [result_data]
@@ -463,7 +429,7 @@ def _prepare_assertions_data(
 
 def merge_results_from_runfiles(
     run_files: list[str],
-    aggregate_fn: Callable[[list[Any]], Union[bool, float, Tuple[float, float]]],
+    aggregate_fn: Callable[[list[Any]], bool | float | tuple[float, float]],
     output_run_id: str = "Run aggregated",
     output_directory: str | None = None,
     delete_run_files: bool = False,
@@ -497,7 +463,7 @@ def merge_results_from_runfiles(
 
     first_run_data = None
     for run_file in run_files:
-        with open(run_file, "r") as f:
+        with open(run_file) as f:
             run_data = json.load(f)
             if first_run_data is None:
                 first_run_data = run_data
@@ -515,19 +481,13 @@ def merge_results_from_runfiles(
                     first_task_name = first_task_version["name"]
                     first_model_slug = run_data["modelVersion"]["slug"]
                 except (KeyError, TypeError) as e:
-                    raise ValueError(
-                        f"Cannot determine metadata from {run_file}. Malformed data. Error: {e}"
-                    )
+                    raise ValueError(f"Cannot determine metadata from {run_file}. Malformed data. Error: {e}")
             else:
                 # Validate that essential metadata is consistent across all runs and collect results.
                 if run_data["taskVersion"]["name"] != first_task_name:
-                    raise ValueError(
-                        f"Task name mismatch between {run_files[0]} and {run_file}"
-                    )
+                    raise ValueError(f"Task name mismatch between {run_files[0]} and {run_file}")
                 if run_data["modelVersion"]["slug"] != first_model_slug:
-                    raise ValueError(
-                        f"Model version mismatch between {run_files[0]} and {run_file}"
-                    )
+                    raise ValueError(f"Model version mismatch between {run_files[0]} and {run_file}")
 
             # Extract the result dictionary from each run.
             try:
@@ -535,9 +495,7 @@ def merge_results_from_runfiles(
                 individual_result = run_data["results"][0]
                 all_individual_results.append(individual_result)
             except (KeyError, IndexError) as e:
-                raise ValueError(
-                    f"Could not find 'results' in file {run_file}. Malformed data. Error: {e}"
-                )
+                raise ValueError(f"Could not find 'results' in file {run_file}. Malformed data. Error: {e}")
 
     if not first_run_data:
         raise ValueError("No run data found in runfiles!")
@@ -553,13 +511,9 @@ def merge_results_from_runfiles(
 
     match aggregated_result:
         case bool(value):
-            overall_run_data["results"] = [
-                {"booleanResult": value, "type": "AGGREGATED"}
-            ]
+            overall_run_data["results"] = [{"booleanResult": value, "type": "AGGREGATED"}]
         case float(value) | int(value):
-            overall_run_data["results"] = [
-                {"numericResult": {"value": value}, "type": "AGGREGATED"}
-            ]
+            overall_run_data["results"] = [{"numericResult": {"value": value}, "type": "AGGREGATED"}]
         case (float(val), float(ci)):
             overall_run_data["results"] = [
                 {

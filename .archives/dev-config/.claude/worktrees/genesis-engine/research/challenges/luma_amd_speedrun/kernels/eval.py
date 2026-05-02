@@ -203,9 +203,7 @@ def run_testing(logger: PopcornOutput, pool: multiprocessing.Pool, tests: list[T
         return 112
 
 
-def _run_single_benchmark(
-    test: TestCase, recheck: bool, max_repeats: int, max_time_ns: float
-) -> Stats | Any:
+def _run_single_benchmark(test: TestCase, recheck: bool, max_repeats: int, max_time_ns: float) -> Stats | Any:
     """
     Runs one benchmark. Do not call directly.
     """
@@ -259,11 +257,7 @@ def _run_single_benchmark(
             # a) relative error dips below 0.1%
             # b) we exceed the total time limit for benchmarking the kernel
             # c) we exceed 2 minutes of total wallclock time.
-            if (
-                stats.err / stats.mean < 0.001
-                or stats.mean * stats.runs > max_time_ns
-                or total_bm_duration > 120e9
-            ):
+            if stats.err / stats.mean < 0.001 or stats.mean * stats.runs > max_time_ns or total_bm_duration > 120e9:
                 break
 
     return calculate_stats(durations)
@@ -386,9 +380,7 @@ def main():
                     else:
                         passed = False
                         logger.log(f"benchmark.{i}.status", "fail")
-                        logger.log(
-                            f"benchmark.{i}.error", str(result)
-                        )  # TODO: Make sure result implements __str__?
+                        logger.log(f"benchmark.{i}.error", str(result))  # TODO: Make sure result implements __str__?
                         break
 
                 logger.log("check", "pass" if passed else "fail")

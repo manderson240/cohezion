@@ -1,12 +1,11 @@
 #!POPCORN leaderboard amd-mxfp4-mm
 #!POPCORN gpu MI355X
-import os, glob
-from task import input_t, output_t
+import os
+
+import aiter
 from aiter import dtypes
 from aiter.ops.triton.quant import dynamic_mxfp4_quant
 from aiter.utility.fp4_utils import e8m0_shuffle
-import aiter
-import torch
 
 
 def custom_kernel(data):

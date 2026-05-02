@@ -14,9 +14,10 @@ import argparse
 import logging
 import os
 import sys
-from datetime import UTC, datetime, timedelta
+from datetime import UTC, datetime
 
 import httpx
+
 
 logging.basicConfig(level=logging.INFO, format="%(message)s")
 logger = logging.getLogger(__name__)
@@ -84,7 +85,7 @@ def format_markdown(dreams: list[dict]) -> str:
         "",
         "# Dream Insights",
         "",
-        f"Auto-generated report of high-quality dream synapses (score ≥ 0.5) from the last 7 days.",
+        "Auto-generated report of high-quality dream synapses (score ≥ 0.5) from the last 7 days.",
         "",
     ]
 

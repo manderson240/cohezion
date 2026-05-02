@@ -5,8 +5,8 @@ Tests if the high-level aiter.gemm_a4w4 is allowed.
 #!POPCORN leaderboard amd-mxfp4-mm
 #!POPCORN gpu MI355X
 
-import torch
 import aiter
+import torch
 from task import input_t, output_t
 
 

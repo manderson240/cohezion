@@ -10,12 +10,13 @@ No Python-level overhead (no expert_mask computation).
 """
 
 from __future__ import annotations
+
 import os
+
 
 os.environ["AITER_USE_NT"] = "1"
 os.environ["AITER_BYPASS_TUNE_CONFIG"] = "1"
 
-import torch
 from aiter import ActivationType, QuantType
 from aiter.fused_moe import fused_moe
 from task import input_t, output_t

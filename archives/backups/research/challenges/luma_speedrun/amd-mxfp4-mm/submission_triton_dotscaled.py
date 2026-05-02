@@ -13,11 +13,11 @@ Key constraints verified for gfx950 tl.dot_scaled:
 - B_scale_sh is e8m0_shuffled; must unshuffle to [N, K//32] layout first
 """
 
+import aiter
 import torch
 import triton
 import triton.language as tl
 from aiter import dtypes
-import aiter
 from aiter.ops.triton.quant import dynamic_mxfp4_quant
 from aiter.utility.fp4_utils import e8m0_shuffle
 from task import input_t, output_t

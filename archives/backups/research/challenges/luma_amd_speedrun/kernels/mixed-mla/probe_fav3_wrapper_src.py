@@ -7,7 +7,7 @@ def custom_kernel(data):
     )
     print(f"--- Source of {target_file} ---", file=sys.stderr)
     try:
-        with open(target_file, "r") as f:
+        with open(target_file) as f:
             print(f.read(), file=sys.stderr)
     except Exception as e:
         print(f"Error reading file: {e}", file=sys.stderr)

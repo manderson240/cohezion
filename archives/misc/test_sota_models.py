@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
 """Quick benchmark of SOTA small models (Apr 2026+)."""
 
-import subprocess
 import json
+import subprocess
 import time
 
 

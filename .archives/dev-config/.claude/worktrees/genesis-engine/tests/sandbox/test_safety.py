@@ -124,9 +124,7 @@ class TestPreFlightChecker:
 
         assert result.passed is False
         # Should have at least one violation for blocked command
-        blocked_violations = [
-            v for v in result.violations if v.check_name == "blocked_command"
-        ]
+        blocked_violations = [v for v in result.violations if v.check_name == "blocked_command"]
         assert len(blocked_violations) > 0
 
     def test_preflight_blocks_network_when_not_allowed(self, low_risk_policy):
@@ -187,9 +185,7 @@ class TestPreFlightChecker:
         assert len(result.recommendations) > 0
         assert any("Remove blocked command" in rec for rec in result.recommendations)
 
-    def test_preflight_requires_approval_for_high_risk(
-        self, high_risk_policy, safe_request
-    ):
+    def test_preflight_requires_approval_for_high_risk(self, high_risk_policy, safe_request):
         """Should require approval for high-risk policies."""
         checker = PreFlightChecker()
         result = checker.check(safe_request, high_risk_policy)
@@ -421,9 +417,7 @@ class TestConstraintEnforcer:
 class TestSafetyHarness:
     """Test SafetyHarness main coordinator."""
 
-    def test_harness_preflight_integration(
-        self, safety_harness, low_risk_policy, safe_request
-    ):
+    def test_harness_preflight_integration(self, safety_harness, low_risk_policy, safe_request):
         """Harness should coordinate preflight checks."""
         result = safety_harness.preflight_check(safe_request, low_risk_policy)
 
@@ -448,9 +442,7 @@ class TestSafetyHarness:
 
     def test_harness_calculates_risk(self, safety_harness):
         """Harness should calculate risk scores."""
-        score = safety_harness.calculate_risk(
-            "delete_operation", {"network_required": True}
-        )
+        score = safety_harness.calculate_risk("delete_operation", {"network_required": True})
 
         assert isinstance(score, float)
         assert 0.0 <= score <= 1.0

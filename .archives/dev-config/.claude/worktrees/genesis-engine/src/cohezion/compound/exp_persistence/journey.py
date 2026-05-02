@@ -75,9 +75,7 @@ class JourneyPersistence:
                 await self.db.query(f"UPSERT {record_id} CONTENT $data", {"data": data})
                 logger.debug(f"Persisted mission journey to Surreal: {mission_id}")
             except Exception as e:
-                logger.error(
-                    f"SurrealDB persistence failed for mission {data.get('mission_id')}: {e}"
-                )
+                logger.error(f"SurrealDB persistence failed for mission {data.get('mission_id')}: {e}")
 
     async def _flush_to_parquet(self):
         """Persist current buffer to a sharded Parquet file."""

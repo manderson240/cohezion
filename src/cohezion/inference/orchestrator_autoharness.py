@@ -35,6 +35,7 @@ logger = logging.getLogger(__name__)
 
 class TaskPriority(Enum):
     """Task priority levels."""
+
     CRITICAL = 0
     HIGH = 1
     NORMAL = 2
@@ -44,6 +45,7 @@ class TaskPriority(Enum):
 
 class ComputeNodeState(Enum):
     """State of a compute node."""
+
     IDLE = "idle"
     BUSY = "busy"
     THROTTLED = "throttled"  # Thermal/power limiting
@@ -54,6 +56,7 @@ class ComputeNodeState(Enum):
 @dataclass
 class ComputeNode:
     """Heterogeneous compute node (GPU/NPU/CPU)."""
+
     node_id: str
     backend: str  # "vulkan_gpu", "xdna2_npu", "zen5_cpu"
 
@@ -89,7 +92,7 @@ class ComputeNode:
     def health_score(self) -> float:
         """
         Calculate health score (0-1).
-        
+
         Factors:
         - Load (lower is better)
         - Temperature (cooler is better)
@@ -100,7 +103,7 @@ class ComputeNode:
 
         # Load factor
         load = self.active_tasks / max(self.max_concurrency, 1)
-        load_score = 1.0 - (load ** 2)  # Quadratic penalty for saturation
+        load_score = 1.0 - (load**2)  # Quadratic penalty for saturation
 
         # Temperature factor
         temp_score = 1.0
@@ -119,12 +122,13 @@ class ComputeNode:
             ComputeNodeState.OVERLOADED: 0.1,
         }.get(self.state, 0.0)
 
-        return (load_score * 0.5 + temp_score * 0.3 + state_score * 0.2)
+        return load_score * 0.5 + temp_score * 0.3 + state_score * 0.2
 
 
 @dataclass
 class Task:
     """Task to be executed."""
+
     task_id: str
     prompt: str
     task_type: str  # "reasoning", "coding", "embedding", etc.
@@ -156,6 +160,7 @@ class Task:
 @dataclass
 class RoutingDecision:
     """Result of task routing decision."""
+
     task: Task
     node: ComputeNode | None
     strategy: str
@@ -165,7 +170,7 @@ class RoutingDecision:
 class MultiNodeOrchestrator:
     """
     Orchestrates tasks across heterogeneous compute nodes.
-    
+
     Features:
     - Intelligent routing based on task requirements and node state
     - Load balancing across available capacity
@@ -222,7 +227,7 @@ class MultiNodeOrchestrator:
     async def submit_task(self, task: Task) -> str:
         """
         Submit a task to the orchestrator.
-        
+
         Returns task ID for tracking.
         """
         self.tasks[task.task_id] = task
@@ -236,7 +241,7 @@ class MultiNodeOrchestrator:
     async def route_task(self, task: Task) -> RoutingDecision:
         """
         Route a task to the optimal compute node.
-        
+
         Strategy:
         1. Check preferred backend if specified
         2. Find nodes that support task type
@@ -270,7 +275,7 @@ class MultiNodeOrchestrator:
                 task=task,
                 node=None,
                 strategy="failed",
-                reason="No available nodes match requirements"
+                reason="No available nodes match requirements",
             )
 
         # Preferred backend gets priority
@@ -280,8 +285,7 @@ class MultiNodeOrchestrator:
                 available = preferred
 
         # Score and select best node
-        scored = [(n.health_score() + self._latency_match_score(task, n), n)
-                  for n in available]
+        scored = [(n.health_score() + self._latency_match_score(task, n), n) for n in available]
         scored.sort(reverse=True)
 
         best_node = scored[0][1]
@@ -290,7 +294,7 @@ class MultiNodeOrchestrator:
             task=task,
             node=best_node,
             strategy="intelligent_routing",
-            reason=f"Best match: {best_node.backend} with health {best_node.health_score():.2f}"
+            reason=f"Best match: {best_node.backend} with health {best_node.health_score():.2f}",
         )
 
     def _latency_match_score(self, task: Task, node: ComputeNode) -> float:
@@ -308,11 +312,10 @@ class MultiNodeOrchestrator:
         else:
             return 0.0  # Too slow
 
-    async def execute_task(self, task: Task, node: ComputeNode,
-                          executor: Callable) -> Any:
+    async def execute_task(self, task: Task, node: ComputeNode, executor: Callable) -> Any:
         """
         Execute a task on a specific node.
-        
+
         Updates node state and handles failures.
         """
         task.status = "running"
@@ -330,7 +333,7 @@ class MultiNodeOrchestrator:
 
             # Update node performance
             latency_ms = (task.completed_at - task.started_at) * 1000
-            node.avg_latency_ms = (node.avg_latency_ms * 0.9 + latency_ms * 0.1)
+            node.avg_latency_ms = node.avg_latency_ms * 0.9 + latency_ms * 0.1
 
             logger.debug(f"Task {task.task_id} completed on {node.node_id}")
 
@@ -347,11 +350,10 @@ class MultiNodeOrchestrator:
         finally:
             node.active_tasks -= 1
 
-    async def process_queue(self, executor: Callable,
-                            stop_event: asyncio.Event):
+    async def process_queue(self, executor: Callable, stop_event: asyncio.Event):
         """
         Process task queue continuously.
-        
+
         Main orchestration loop.
         """
         while not stop_event.is_set():
@@ -383,11 +385,12 @@ class MultiNodeOrchestrator:
             except TimeoutError:
                 continue
 
-    async def gather_results(self, task_ids: list[str],
-                             timeout_sec: float = 300.0) -> dict[str, Any]:
+    async def gather_results(
+        self, task_ids: list[str], timeout_sec: float = 300.0
+    ) -> dict[str, Any]:
         """
         Gather results from distributed tasks.
-        
+
         Returns results for completed tasks.
         """
         results = {}
@@ -427,9 +430,7 @@ class MultiNodeOrchestrator:
         ]
 
         for node in sorted(self.nodes.values(), key=lambda n: n.node_id):
-            lines.append(
-                f"{node.node_id} ({node.backend}):"
-            )
+            lines.append(f"{node.node_id} ({node.backend}):")
             lines.append(
                 f"  State: {node.state.value} | "
                 f"Active: {node.active_tasks}/{node.max_concurrency} | "
@@ -437,7 +438,7 @@ class MultiNodeOrchestrator:
             )
             lines.append(
                 f"  Temp: {node.temperature_c}°C | "
-                f"Memory: {node.memory_used_mb/1024:.1f}GB | "
+                f"Memory: {node.memory_used_mb / 1024:.1f}GB | "
                 f"TPS: {node.tokens_per_sec:.1f}"
             )
             lines.append("")
@@ -448,14 +449,16 @@ class MultiNodeOrchestrator:
         completed = sum(1 for t in self.tasks.values() if t.status == "completed")
         failed = sum(1 for t in self.tasks.values() if t.status == "failed")
 
-        lines.extend([
-            "--- TASK SUMMARY ---",
-            f"Pending: {pending}",
-            f"Running: {running}",
-            f"Completed: {completed}",
-            f"Failed: {failed}",
-            "",
-        ])
+        lines.extend(
+            [
+                "--- TASK SUMMARY ---",
+                f"Pending: {pending}",
+                f"Running: {running}",
+                f"Completed: {completed}",
+                f"Failed: {failed}",
+                "",
+            ]
+        )
 
         # Utilization
         lines.append("--- CLUSTER UTILIZATION ---")
@@ -483,7 +486,7 @@ class MultiNodeOrchestrator:
 class StrixHaloOrchestrator:
     """
     Pre-configured orchestrator for AMD Strix Halo.
-    
+
     Sets up nodes for GPU, NPU, and CPU automatically.
     """
 
@@ -503,9 +506,7 @@ class StrixHaloOrchestrator:
             max_concurrency=4,  # From saturation curve
             optimal_batch_size=4,
             supports_streaming=True,
-            supported_task_types={
-                "reasoning", "coding", "generation", "embedding"
-            },
+            supported_task_types={"reasoning", "coding", "generation", "embedding"},
         )
         self.orchestrator.register_node(gpu_node)
 
@@ -519,9 +520,7 @@ class StrixHaloOrchestrator:
             max_concurrency=1,  # Sequential only
             optimal_batch_size=1,
             supports_streaming=False,
-            supported_task_types={
-                "inference", "classification"
-            },
+            supported_task_types={"inference", "classification"},
         )
         self.orchestrator.register_node(npu_node)
 
@@ -534,23 +533,24 @@ class StrixHaloOrchestrator:
             max_concurrency=2,  # SMT
             optimal_batch_size=1,
             supports_streaming=True,
-            supported_task_types={
-                "reasoning", "coding"
-            },
+            supported_task_types={"reasoning", "coding"},
         )
         self.orchestrator.register_node(cpu_node)
 
-    async def submit_prompt(self, prompt: str,
-                           task_type: str = "reasoning",
-                           priority: TaskPriority = TaskPriority.NORMAL,
-                           preferred_backend: str | None = None) -> str:
+    async def submit_prompt(
+        self,
+        prompt: str,
+        task_type: str = "reasoning",
+        priority: TaskPriority = TaskPriority.NORMAL,
+        preferred_backend: str | None = None,
+    ) -> str:
         """
         Submit a single prompt.
-        
+
         Returns task ID.
         """
         task = Task(
-            task_id=f"task_{int(time.time()*1000)}_{id(prompt)}",
+            task_id=f"task_{int(time.time() * 1000)}_{id(prompt)}",
             prompt=prompt,
             task_type=task_type,
             priority=priority,
@@ -559,11 +559,10 @@ class StrixHaloOrchestrator:
 
         return await self.orchestrator.submit_task(task)
 
-    async def submit_batch(self, prompts: list[str],
-                          task_type: str = "reasoning") -> list[str]:
+    async def submit_batch(self, prompts: list[str], task_type: str = "reasoning") -> list[str]:
         """
         Submit multiple prompts as batch.
-        
+
         Distributes across available nodes.
         """
         task_ids = []
@@ -594,9 +593,7 @@ if __name__ == "__main__":
         print("Submitting tasks...")
         for i in range(5):
             await orch.submit_prompt(
-                f"Task {i+1}",
-                task_type="reasoning",
-                priority=TaskPriority.NORMAL
+                f"Task {i + 1}", task_type="reasoning", priority=TaskPriority.NORMAL
             )
 
         print(orch.orchestrator.get_orchstration_report())

@@ -92,9 +92,7 @@ class DynamicConcurrencyGate:
 
                 self._thermal_predictor = get_thermal_trend_predictor()
             except Exception as e:
-                logger.debug(
-                    f"Failed to initialize thermal predictor: {e}, disabling prediction"
-                )
+                logger.debug(f"Failed to initialize thermal predictor: {e}, disabling prediction")
                 self.enable_thermal_prediction = False
 
     def get_safe_concurrency(self) -> int:

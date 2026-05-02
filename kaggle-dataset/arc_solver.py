@@ -6,6 +6,7 @@ from collections import Counter
 from collections.abc import Callable
 from typing import Any
 
+
 Grid = list[list[int]]
 Program = Callable[[Grid], Grid | None]
 
@@ -71,6 +72,7 @@ BASE_OPS: list[tuple[str, Program]] = [
 # Object detection
 # ---------------------------------------------------------------------------
 
+
 def _neighbors4(r: int, c: int, rows: int, cols: int) -> list[tuple[int, int]]:
     out = []
     if r > 0:
@@ -96,7 +98,9 @@ def _neighbors8(r: int, c: int, rows: int, cols: int) -> list[tuple[int, int]]:
     return out
 
 
-def find_objects(g: Grid, conn: int = 4) -> tuple[list[set[tuple[int, int]]], dict[tuple[int, int], int]]:
+def find_objects(
+    g: Grid, conn: int = 4
+) -> tuple[list[set[tuple[int, int]]], dict[tuple[int, int], int]]:
     """Find connected components of non-background color."""
     if not g:
         return [], {}
@@ -173,6 +177,7 @@ def grid_to_colors(g: Grid) -> set[int]:
 # Color remapping primitives
 # ---------------------------------------------------------------------------
 
+
 def replace_color(g: Grid, old: int, new: int) -> Grid | None:
     if not any(c == old for row in g for c in row):
         return None
@@ -206,6 +211,7 @@ def invert_colors(g: Grid) -> Grid | None:
 # Geometric / fill primitives
 # ---------------------------------------------------------------------------
 
+
 def pad_to_object(g: Grid) -> Grid | None:
     """Crop to largest non-background object and center it."""
     cropped = crop_to_object(g)
@@ -223,10 +229,7 @@ def fill_holes(g: Grid) -> Grid | None:
     for r in range(1, rows - 1):
         for c in range(1, cols - 1):
             if out[r][c] == bg:
-                neighbors = {
-                    out[r - 1][c], out[r + 1][c],
-                    out[r][c - 1], out[r][c + 1]
-                }
+                neighbors = {out[r - 1][c], out[r + 1][c], out[r][c - 1], out[r][c + 1]}
                 if bg not in neighbors and len(neighbors) == 1:
                     out[r][c] = next(iter(neighbors))
                     changed = True
@@ -267,6 +270,7 @@ def interior(g: Grid) -> Grid | None:
 # Grid scaling / tiling
 # ---------------------------------------------------------------------------
 
+
 def upsample(n: int) -> Program:
     def fn(g: Grid) -> Grid | None:
         if not g:
@@ -274,10 +278,8 @@ def upsample(n: int) -> Program:
         rows, cols = len(g), len(g[0])
         if rows * n > 30 or cols * n > 30:
             return None
-        return [
-            [g[r // n][c // n] for c in range(cols * n)]
-            for r in range(rows * n)
-        ]
+        return [[g[r // n][c // n] for c in range(cols * n)] for r in range(rows * n)]
+
     return fn
 
 
@@ -288,10 +290,8 @@ def downsample(n: int) -> Program:
         rows, cols = len(g), len(g[0])
         if rows % n or cols % n:
             return None
-        return [
-            [g[r * n][c * n] for c in range(cols // n)]
-            for r in range(rows // n)
-        ]
+        return [[g[r * n][c * n] for c in range(cols // n)] for r in range(rows // n)]
+
     return fn
 
 
@@ -328,6 +328,7 @@ def diagonal_symmetry(g: Grid) -> Grid | None:
 # ---------------------------------------------------------------------------
 # Object manipulation
 # ---------------------------------------------------------------------------
+
 
 def move_objects_up(g: Grid) -> Grid | None:
     objects, _ = find_objects(g)
@@ -368,6 +369,7 @@ def order_objects_by_size(g: Grid) -> Grid | None:
 # ---------------------------------------------------------------------------
 # Gravity primitives
 # ---------------------------------------------------------------------------
+
 
 def gravity_down(g: Grid) -> Grid | None:
     if not g:
@@ -445,6 +447,7 @@ def gravity_right(g: Grid) -> Grid | None:
 # Color mapping from training examples
 # ---------------------------------------------------------------------------
 
+
 def infer_color_map(g: Grid, train: list[dict[str, Grid]]) -> Grid | None:
     """Try to infer a consistent color mapping from training examples."""
     mappings: list[dict[int, int]] = []
@@ -475,6 +478,7 @@ def infer_color_map(g: Grid, train: list[dict[str, Grid]]) -> Grid | None:
 def color_map_wrapper(train: list[dict[str, Grid]]) -> Program:
     def fn(g: Grid) -> Grid | None:
         return infer_color_map(g, train)
+
     return fn
 
 
@@ -634,6 +638,7 @@ def tile_grid(g: Grid) -> Grid | None:
 # Primitive registry for meta-search
 # ---------------------------------------------------------------------------
 
+
 def _make_parametric() -> list[tuple[str, Program]]:
     out: list[tuple[str, Program]] = []
     for n in (2, 3):
@@ -719,7 +724,9 @@ def search_program(
         visited = set()
         # Smaller depth but focused ops per strategy
         for depth in range(1, max_depth + 1):
-            result = _search_depth_bfs(train, depth, op_set, budget // len(strategies), visited, None)
+            result = _search_depth_bfs(
+                train, depth, op_set, budget // len(strategies), visited, None
+            )
             if result is not None:
                 return result
 
@@ -750,18 +757,45 @@ def _select_strategies(train: list[dict[str, Grid]]) -> list[tuple[str, list[tup
     color_changed = inp_colors != out_colors
     shape_changed = any(i != o for i, o in zip(inp_shapes, out_shapes))
 
-    geo_ops = [op for op in get_all_ops(train) if op[0] in {
-        "identity", "flip_h", "flip_v", "transpose", "rot90", "rot180", "rot270",
-        "mirror_h", "mirror_v", "diag_sym"
-    }]
-    color_ops = [op for op in get_all_ops(train) if op[0] in {
-        "identity", "invert", "remove_bg", "color_map"
-    }]
-    obj_ops = [op for op in get_all_ops(train) if op[0] in {
-        "identity", "crop_obj", "fill_holes", "border", "interior",
-        "gravity_d", "gravity_u", "gravity_l", "gravity_r",
-        "move_up", "order_objs", "pad_obj"
-    }]
+    geo_ops = [
+        op
+        for op in get_all_ops(train)
+        if op[0]
+        in {
+            "identity",
+            "flip_h",
+            "flip_v",
+            "transpose",
+            "rot90",
+            "rot180",
+            "rot270",
+            "mirror_h",
+            "mirror_v",
+            "diag_sym",
+        }
+    ]
+    color_ops = [
+        op for op in get_all_ops(train) if op[0] in {"identity", "invert", "remove_bg", "color_map"}
+    ]
+    obj_ops = [
+        op
+        for op in get_all_ops(train)
+        if op[0]
+        in {
+            "identity",
+            "crop_obj",
+            "fill_holes",
+            "border",
+            "interior",
+            "gravity_d",
+            "gravity_u",
+            "gravity_l",
+            "gravity_r",
+            "move_up",
+            "order_objs",
+            "pad_obj",
+        }
+    ]
     scale_ops = [op for op in get_all_ops(train) if "upsample" in op[0] or "downsample" in op[0]]
     scale_ops = [("identity", identity)] + scale_ops
 

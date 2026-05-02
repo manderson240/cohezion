@@ -168,9 +168,7 @@ class BudgetCircuitBreaker:
             True if circuit breaker opened, False otherwise
         """
         self.strike_count += 1
-        logger.warning(
-            f"Budget violation recorded: {self.strike_count}/{self.strike_limit}"
-        )
+        logger.warning(f"Budget violation recorded: {self.strike_count}/{self.strike_limit}")
 
         if self.strike_count >= self.strike_limit:
             self.is_open = True
@@ -288,9 +286,7 @@ class BudgetEnforcer:
             return False, "Budget circuit breaker is OPEN (emergency shutoff)"
 
         # Calculate utilization
-        utilization_pct = (
-            (current_cost_usd / self.budget_usd * 100) if self.budget_usd > 0 else 0
-        )
+        utilization_pct = (current_cost_usd / self.budget_usd * 100) if self.budget_usd > 0 else 0
 
         # Evaluate alerts
         status, alert = self.alert_manager.evaluate(utilization_pct)
@@ -345,9 +341,7 @@ class BudgetEnforcer:
         Returns:
             BudgetState snapshot
         """
-        utilization_pct = (
-            (current_cost_usd / self.budget_usd * 100) if self.budget_usd > 0 else 0
-        )
+        utilization_pct = (current_cost_usd / self.budget_usd * 100) if self.budget_usd > 0 else 0
         remaining = self.budget_usd - current_cost_usd
         status, _ = self.alert_manager.evaluate(utilization_pct)
 

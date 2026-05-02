@@ -42,9 +42,7 @@ class VaultLogger:
     def log_execution_start(self, ctx: ExecutionContext) -> str:
         """Log the start of an execution to the Vault."""
         try:
-            path = (
-                f"experiments/{ctx.project}/{ctx.skill_name}/{int(ctx.start_time.timestamp())}.json"
-            )
+            path = f"experiments/{ctx.project}/{ctx.skill_name}/{int(ctx.start_time.timestamp())}.json"
             data = {
                 "project": ctx.project,
                 "skill_name": ctx.skill_name,
@@ -126,9 +124,7 @@ class VaultLogger:
             logger.error(f"Failed to extract pattern to Vault: {e}")
             return ""
 
-    def log_decision_point(
-        self, project: str, title: str, context: str, decision: str, rationale: str
-    ) -> str:
+    def log_decision_point(self, project: str, title: str, context: str, decision: str, rationale: str) -> str:
         """Log a critical decision point to the vault."""
         try:
             timestamp = int(datetime.now().timestamp())
@@ -193,10 +189,7 @@ class VaultLogger:
                 logger.info(f"Architectural insight persisted to Vault: {filename}")
 
             except Exception as e:
-                logger.error(
-                    f"Vault human-readable persistence failed for mission {data.get('mission_id')}: {e}"
-                )
-
+                logger.error(f"Vault human-readable persistence failed for mission {data.get('mission_id')}: {e}")
 
 
 def get_vault_logger() -> VaultLogger:

@@ -20,17 +20,18 @@ Key optimizations:
 
 import os
 
+
 os.environ["PYTORCH_ROCM_ARCH"] = "gfx950"
 os.environ["CXX"] = "clang++"
 
-import torch
-from torch.utils.cpp_extension import load_inline
-from task import input_t, output_t
-
 # Also keep original path as fallback
 import aiter
+import torch
 from aiter import dtypes as aiter_dtypes
 from aiter import get_mla_metadata_info_v1, get_mla_metadata_v1, mla_reduce_v1
+from task import input_t, output_t
+from torch.utils.cpp_extension import load_inline
+
 
 HIP_SOURCE = r"""
 #include <torch/extension.h>

@@ -4,6 +4,7 @@ The pure conv net memorizes training pairs (83%) but generalizes poorly (2%).
 This experiment tests whether meta-training on thousands of task pairs teaches
 a generic "grid transformation" prior, improving test generalization.
 """
+
 from __future__ import annotations
 
 import json
@@ -98,7 +99,7 @@ if __name__ == "__main__":
         random.shuffle(all_pairs)
         losses = []
         for i in range(0, len(all_pairs), batch_size):
-            batch = all_pairs[i:i + batch_size]
+            batch = all_pairs[i : i + batch_size]
             total_loss = 0.0
             for inp_grid, out_grid in batch:
                 inp = pad_grid(inp_grid).unsqueeze(0)
@@ -111,7 +112,7 @@ if __name__ == "__main__":
             avg_loss.backward()
             opt.step()
             losses.append(avg_loss.item())
-        print(f"Epoch {epoch+1}/{epochs} — avg loss: {sum(losses)/len(losses):.4f}")
+        print(f"Epoch {epoch + 1}/{epochs} — avg loss: {sum(losses) / len(losses):.4f}")
 
     # Step 4: Save meta-trained weights
     meta_weights = {k: v.clone() for k, v in model.state_dict().items()}
@@ -150,7 +151,7 @@ if __name__ == "__main__":
         if sol and grids_equal(pred_cropped, sol[0]):
             solved += 1
         if (i + 1) % 20 == 0:
-            print(f"Progress: {i+1}/{len(task_ids)} — solved {solved}")
+            print(f"Progress: {i + 1}/{len(task_ids)} — solved {solved}")
 
     acc = solved / len(task_ids) * 100
     print(f"\nMeta-trained + fine-tuned: {solved}/{len(task_ids)} test tasks = {acc:.1f}%")

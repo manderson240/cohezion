@@ -25,15 +25,16 @@ Applied to MoE: Progressive growth of expert pool capacity.
 """
 
 from __future__ import annotations
+
 import os
 import sys
-import math
+
 import torch
-from typing import Optional, Dict, List, Tuple
 from aiter import ActivationType, QuantType
 from aiter.fused_moe import fused_moe
 from reference import ref_kernel
 from task import input_t, output_t
+
 
 # Environment optimizations
 os.environ["AITER_USE_NT"] = "1"
@@ -78,9 +79,9 @@ class ProgressiveExpertPool:
         self.current_step = 0
 
         # Initialize expert metadata
-        self._expert_performance: Dict[int, float] = {}
-        self._expert_usage_count: Dict[int, int] = {}
-        self._expert_initialized: Dict[int, bool] = {}
+        self._expert_performance: dict[int, float] = {}
+        self._expert_usage_count: dict[int, int] = {}
+        self._expert_initialized: dict[int, bool] = {}
 
         # Mark first 25% as initialized (starting pool)
         start_count = max(1, int(total_experts * self.EXPERT_FRACTIONS[0]))
@@ -187,7 +188,7 @@ class ProgressiveExpertPool:
         """Advance training step counter."""
         self.current_step += 1
 
-    def get_stats(self) -> Dict[str, float]:
+    def get_stats(self) -> dict[str, float]:
         """Get current training statistics."""
         return {
             "step": self.current_step,
@@ -199,7 +200,7 @@ class ProgressiveExpertPool:
 
 
 # Global progressive pool (singleton)
-_PROGRESSIVE_POOL: Optional[ProgressiveExpertPool] = None
+_PROGRESSIVE_POOL: ProgressiveExpertPool | None = None
 
 
 def _get_pool(total_experts: int) -> ProgressiveExpertPool:

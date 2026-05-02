@@ -14,10 +14,7 @@ from datetime import datetime
 # CONFIGURATION: Nexus/Commerce Constants
 UCP_ENDPOINT_GOOGLE = "https://ucp.googleapis.com/v1/agent/procure"
 A2A_MODALITY = "negotiate_credit_backed_asset"
-CREDIT_REPORT_PATH = (
-    "/home/mike-anderson/dev/cohezion/src/cohezion/knowledge_graph/LOAN_QUALIFICATION.txt"
-)
-
+CREDIT_REPORT_PATH = "/home/mike-anderson/dev/cohezion/src/cohezion/knowledge_graph/LOAN_QUALIFICATION.txt"
 
 
 def load_credit_profile():
@@ -58,9 +55,7 @@ def initiate_a2a_negotiation():
     }
 
     # Save the log to the knowledge graph
-    LOG_PATH = (
-        "/home/mike-anderson/dev/cohezion/src/cohezion/knowledge_graph/A2A_PROCUREMENT_LOG.json"
-    )
+    LOG_PATH = "/home/mike-anderson/dev/cohezion/src/cohezion/knowledge_graph/A2A_PROCUREMENT_LOG.json"
     os.makedirs(os.path.dirname(LOG_PATH), exist_ok=True)
     with open(LOG_PATH, "w") as f:
         json.dump(negotiation_log, f, indent=4)

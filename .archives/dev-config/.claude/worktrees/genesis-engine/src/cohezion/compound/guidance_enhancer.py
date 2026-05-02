@@ -140,12 +140,8 @@ class GuidanceEnhancer:
         # Compute aggregate metrics
         all_coherences = [r.coherence for r in trajectory_results]
         all_phi_scores = [r.phi_score for r in trajectory_results]
-        avg_coherence = (
-            sum(all_coherences) / len(all_coherences) if all_coherences else 0.0
-        )
-        avg_phi_score = (
-            sum(all_phi_scores) / len(all_phi_scores) if all_phi_scores else 0.0
-        )
+        avg_coherence = sum(all_coherences) / len(all_coherences) if all_coherences else 0.0
+        avg_phi_score = sum(all_phi_scores) / len(all_phi_scores) if all_phi_scores else 0.0
 
         # Compute confidence (higher if many high-quality results)
         high_quality_count = sum(
@@ -188,14 +184,10 @@ class GuidanceEnhancer:
         recommendations = []
 
         # High-quality trajectories (coherence >= 0.7)
-        high_quality = [
-            r for r in successful if r.coherence >= self.high_quality_threshold
-        ]
+        high_quality = [r for r in successful if r.coherence >= self.high_quality_threshold]
         if high_quality:
             # Sort by quality
-            high_quality.sort(
-                key=lambda r: r.coherence * 0.5 + r.phi_score * 0.5, reverse=True
-            )
+            high_quality.sort(key=lambda r: r.coherence * 0.5 + r.phi_score * 0.5, reverse=True)
             best = high_quality[0]
             recommendations.append(
                 f"Approach similar to '{best.task_description[:50]}...' "

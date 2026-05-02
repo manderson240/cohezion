@@ -9,11 +9,11 @@ just environment variable. Uses the same aiter baseline kernel path.
 
 import os
 
+
 os.environ["AITER_BYPASS_TUNE_CONFIG"] = "1"
 
-import torch
-from aiter import dtypes
 import aiter
+from aiter import dtypes
 from aiter.ops.triton.quant import dynamic_mxfp4_quant
 from aiter.utility.fp4_utils import e8m0_shuffle
 from task import input_t, output_t

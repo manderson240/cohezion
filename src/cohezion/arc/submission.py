@@ -43,6 +43,7 @@ def _default_grid(rows: int = 1, cols: int = 1) -> Grid:
 # Prediction provenance
 # ---------------------------------------------------------------------------
 
+
 @dataclass
 class PredictionProvenance:
     """Tracks exactly how a single test-grid prediction was produced."""
@@ -50,7 +51,7 @@ class PredictionProvenance:
     task_id: str
     test_index: int
     attempt: int  # 1 or 2
-    source: str   # "rule", "fallback_dsl", "fallback_llm", "default_zero"
+    source: str  # "rule", "fallback_dsl", "fallback_llm", "default_zero"
     rule_signature: str | None = None
     rule_confidence: float = 0.0
     rule_name: str | None = None
@@ -72,6 +73,7 @@ class PredictionProvenance:
 # ---------------------------------------------------------------------------
 # Submission builder
 # ---------------------------------------------------------------------------
+
 
 class SubmissionBuilder:
     """
@@ -154,19 +156,19 @@ class SubmissionBuilder:
             # 2. Try top-K rules on every test example
             preds = []
             for ti, test_ex in enumerate(task.get("test", [])):
-                pred, prov = self._predict_with_rules(
-                    tid, ti, test_ex["input"], rules
-                )
+                pred, prov = self._predict_with_rules(tid, ti, test_ex["input"], rules)
                 preds.append(pred)
                 self._provenance.extend(prov)
 
             # 3. Format submission entry
             submission[tid] = []
             for pred in preds:
-                submission[tid].append({
-                    "attempt_1": pred,
-                    "attempt_2": pred,  # identical copy; Kaggle accepts 2 attempts
-                })
+                submission[tid].append(
+                    {
+                        "attempt_1": pred,
+                        "attempt_2": pred,  # identical copy; Kaggle accepts 2 attempts
+                    }
+                )
 
             if verbose:
                 source_counts: dict[str, int] = {}
@@ -186,6 +188,7 @@ class SubmissionBuilder:
     ) -> tuple[Grid, list[PredictionProvenance]]:
         """Try each top rule; fall back to DSL search / LLM / zero grid."""
         import time
+
         start = time.perf_counter()
         provenance: list[PredictionProvenance] = []
 
@@ -272,6 +275,7 @@ class SubmissionBuilder:
             _rot180,
             _transpose,
         )
+
         fn_map = {
             "identity": _identity,
             "transpose": _transpose,
@@ -306,6 +310,7 @@ class SubmissionBuilder:
     def _fallback_dsl(self, test_input: Grid) -> Grid | None:
         """Lightweight DSL search using only inline primitives."""
         from cohezion.arc.pattern_extractor import _build_strategy
+
         synthetic_train = [{"input": test_input, "output": test_input}]  # no gold — identity probe
         ops = _build_strategy("all", synthetic_train)
         # Try a tiny greedy identity probe (depth 1 only for speed)
@@ -320,7 +325,9 @@ class SubmissionBuilder:
         if not self.llm_fallback_path or not self.llm_fallback_path.exists():
             return None
         try:
-            spec = __import__("importlib.util").util.spec_from_file_location("llm_fallback", self.llm_fallback_path)
+            spec = __import__("importlib.util").util.spec_from_file_location(
+                "llm_fallback", self.llm_fallback_path
+            )
             mod = __import__("importlib.util").util.module_from_spec(spec)
             spec.loader.exec_module(mod)
             if hasattr(mod, "generate_program"):
@@ -388,7 +395,9 @@ class SubmissionBuilder:
 
         manifest: dict[str, str] = {}
         for tid, preds in submission.items():
-            manifest[tid] = hashlib.sha256(json.dumps(preds, separators=(",", ":")).encode()).hexdigest()[:16]
+            manifest[tid] = hashlib.sha256(
+                json.dumps(preds, separators=(",", ":")).encode()
+            ).hexdigest()[:16]
 
         readme = self._readme(manifest)
 
@@ -414,7 +423,7 @@ class SubmissionBuilder:
     def _readme(self, manifest: dict[str, str]) -> str:
         return f"""# ARC-AGI-2 Submission Package — Cohezion
 
-Generated: {__import__('datetime').datetime.now().isoformat()}
+Generated: {__import__("datetime").datetime.now().isoformat()}
 Tasks: {len(manifest)}
 Package: submission_package.zip
 
@@ -442,6 +451,7 @@ HIHO 0.5 geometric rigor enforced via FLUME 256-D latent bridge.
 # Verification
 # ---------------------------------------------------------------------------
 
+
 def verify_submission(
     submission_path: Path | str,
     data_dir: Path | str,
@@ -463,13 +473,25 @@ def verify_submission(
 
     if not submission_path.exists():
         errors.append(f"Submission file not found: {submission_path}")
-        return {"valid": False, "errors": errors, "task_count": 0, "grid_count": 0, "attempt_stats": attempt_stats}
+        return {
+            "valid": False,
+            "errors": errors,
+            "task_count": 0,
+            "grid_count": 0,
+            "attempt_stats": attempt_stats,
+        }
 
     try:
         sub = json.loads(submission_path.read_text())
     except json.JSONDecodeError as exc:
         errors.append(f"Invalid JSON: {exc}")
-        return {"valid": False, "errors": errors, "task_count": 0, "grid_count": 0, "attempt_stats": attempt_stats}
+        return {
+            "valid": False,
+            "errors": errors,
+            "task_count": 0,
+            "grid_count": 0,
+            "attempt_stats": attempt_stats,
+        }
 
     challenges_path = data_dir / "arc-agi_test_challenges.json"
     if challenges_path.exists():
@@ -512,7 +534,9 @@ def verify_submission(
                         break
                     for ci, v in enumerate(r):
                         if not isinstance(v, int) or not (0 <= v <= 9):
-                            errors.append(f"Task {tid} test {ti} {attempt_key}: cell ({ri},{ci})={v} invalid")
+                            errors.append(
+                                f"Task {tid} test {ti} {attempt_key}: cell ({ri},{ci})={v} invalid"
+                            )
                             break
 
     valid = len(errors) == 0
@@ -531,6 +555,7 @@ def verify_submission(
 if __name__ == "__main__":
     import argparse
     import sys
+
     parser = argparse.ArgumentParser(description="ARC-AGI-2 Submission Pipeline")
     sub = parser.add_subparsers(dest="cmd")
 

@@ -30,23 +30,23 @@ Reference: "Fast Approximate Matrix Multiplication", J. Sci. Comp. 2020.
 """
 
 from __future__ import annotations
+
 import os
+
 
 os.environ["PYTORCH_ROCM_ARCH"] = "gfx950"
 os.environ["CXX"] = "clang++"
 
+from dataclasses import dataclass
+
+import aiter
 import torch
 import torch.linalg as la
-import math
-from typing import Optional, Tuple, List
-from dataclasses import dataclass
-from torch.utils.cpp_extension import load_inline
-from task import input_t, output_t
-
 from aiter import dtypes
 from aiter.ops.triton.quant import dynamic_mxfp4_quant
 from aiter.utility.fp4_utils import e8m0_shuffle
-import aiter
+from task import input_t, output_t
+from torch.utils.cpp_extension import load_inline
 
 
 @dataclass
@@ -59,10 +59,10 @@ class HNode:
     col_end: int
     is_leaf: bool
     is_low_rank: bool
-    U: Optional[torch.Tensor] = None  # Left factor [size, rank]
-    V: Optional[torch.Tensor] = None  # Right factor [rank, size]
-    full: Optional[torch.Tensor] = None  # Full matrix if not low-rank
-    children: Optional[List["HNode"]] = None  # 4 children if not leaf
+    U: torch.Tensor | None = None  # Left factor [size, rank]
+    V: torch.Tensor | None = None  # Right factor [rank, size]
+    full: torch.Tensor | None = None  # Full matrix if not low-rank
+    children: list[HNode] | None = None  # 4 children if not leaf
 
 
 class HierarchicalMatrix:
@@ -80,7 +80,7 @@ class HierarchicalMatrix:
         self.min_block_size = min_block_size
         self.max_rank = max_rank
         self.admissibility_eta = admissibility_eta
-        self.root: Optional[HNode] = None
+        self.root: HNode | None = None
 
     def _is_admissible(self, row_start: int, row_end: int, col_start: int, col_end: int) -> bool:
         """Check if block is admissible for low-rank approximation.
@@ -101,7 +101,7 @@ class HierarchicalMatrix:
         # Admissible if well-separated (distance > eta * diameter)
         return distance > self.admissibility_eta * max_diam
 
-    def _compress_block(self, W_block: torch.Tensor) -> Tuple[torch.Tensor, torch.Tensor]:
+    def _compress_block(self, W_block: torch.Tensor) -> tuple[torch.Tensor, torch.Tensor]:
         """Compress block to low-rank via truncated SVD.
 
         Args:
@@ -114,7 +114,7 @@ class HierarchicalMatrix:
         U_full, S, Vh_full = la.svd(W_block.float(), full_matrices=False)
 
         # Determine effective rank
-        rank = min(self.max_rank, (S > S[0] * 0.01).sum().item())
+        rank = min(self.max_rank, (S[0] * 0.01 < S).sum().item())
         rank = max(rank, 1)
 
         # Truncate
@@ -127,7 +127,7 @@ class HierarchicalMatrix:
 
         return U.to(W_block.dtype), V.to(W_block.dtype)
 
-    def build(self, W: torch.Tensor) -> "HierarchicalMatrix":
+    def build(self, W: torch.Tensor) -> HierarchicalMatrix:
         """Build hierarchical decomposition of matrix.
 
         Args:
@@ -268,17 +268,17 @@ __global__ void low_rank_multiply_kernel(
 ) {
     // Compute Y = U @ (V @ X)
     // First compute T = V @ X (temp), then Y = U @ T
-    
+
     extern __shared__ float shared_mem[];
     float* temp = shared_mem;  // [r, batch] temporary
-    
+
     int tid = threadIdx.x;
-    
+
     // T = V @ X
     for (int i = tid; i < r * batch; i += blockDim.x) {
         int ri = i / batch;
         int bi = i % batch;
-        
+
         float sum = 0.0f;
         for (int j = 0; j < n; j++) {
             sum += V[ri * n + j] * X[j * batch + bi];
@@ -286,12 +286,12 @@ __global__ void low_rank_multiply_kernel(
         temp[ri * batch + bi] = sum;
     }
     __syncthreads();
-    
+
     // Y = U @ T
     for (int i = tid; i < m * batch; i += blockDim.x) {
         int mi = i / batch;
         int bi = i % batch;
-        
+
         float sum = 0.0f;
         for (int j = 0; j < r; j++) {
             sum += U[mi * r + j] * temp[j * batch + bi];
@@ -309,7 +309,7 @@ __global__ void dense_multiply_kernel(
 ) {
     int row = blockIdx.y * blockDim.y + threadIdx.y;
     int col = blockIdx.x * blockDim.x + threadIdx.x;
-    
+
     if (row < m && col < batch) {
         float sum = 0.0f;
         for (int k = 0; k < n; k++) {

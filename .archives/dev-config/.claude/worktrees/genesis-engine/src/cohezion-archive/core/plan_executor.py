@@ -221,11 +221,7 @@ class PlanExecutor:
         # Extract keywords: words 4+ chars, deduplicated
         words = re.findall(r"\b[a-zA-Z]{4,}\b", context)
         unique = list(dict.fromkeys(words))[:20]  # preserve order
-        output = (
-            f"Transformed ({step.description[:60]}): "
-            f"keywords=[{', '.join(unique)}] | "
-            f"length={len(context)}"
-        )
+        output = f"Transformed ({step.description[:60]}): keywords=[{', '.join(unique)}] | length={len(context)}"
         return output, 0
 
     def _run_persist(self, step: PlanStep, context: str) -> tuple[str, int]:

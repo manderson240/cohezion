@@ -1,7 +1,7 @@
 import ast
 import os
 from pathlib import Path
-from typing import List, Tuple
+
 from cohezion.governance.guardian import Guardian
 
 
@@ -22,10 +22,10 @@ class AsyncGuard(Guardian):
             "urllib.request",
         ]
 
-    def scan_file(self, filepath: Path) -> List[Tuple[int, str]]:
+    def scan_file(self, filepath: Path) -> list[tuple[int, str]]:
         violations = []
         try:
-            with open(filepath, "r", encoding="utf-8") as f:
+            with open(filepath, encoding="utf-8") as f:
                 content = f.read()
             if not content:
                 return []
@@ -99,6 +99,7 @@ class AsyncGuard(Guardian):
                         self.log_violation(f"{msg}", location=f"{filepath}:{lineno}")
 
         return len(self.violations) == 0
+
 
 if __name__ == "__main__":
     guard = AsyncGuard()

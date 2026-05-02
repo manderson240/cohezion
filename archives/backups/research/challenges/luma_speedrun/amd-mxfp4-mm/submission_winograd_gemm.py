@@ -24,10 +24,10 @@ Expected: 2-4x speedup for small tile sizes (2x2, 4x4)
 from __future__ import annotations
 
 import os
-import math
+
 import torch
-from typing import Tuple, Optional
 from task import input_t, output_t
+
 
 # Try aiter fallback
 try:

@@ -1,4 +1,5 @@
 """Unit tests for ARC solver — V-Model Phase 6."""
+
 import numpy as np
 
 from cohezion.arc.solver import _score_chain, beam_search
@@ -38,12 +39,12 @@ def test_chain_apply():
 
 def test_score_chain_perfect():
     # Use case where ONLY gravity_fall matches (rotate_90 does not)
-    train = [{"input": np.array([[1,0],[0,2]]), "output": np.array([[0,0],[1,2]])}]
+    train = [{"input": np.array([[1, 0], [0, 2]]), "output": np.array([[0, 0], [1, 2]])}]
     score = _score_chain(["gravity_fall"], train)
     assert score == 1.0
 
 
 def test_beam_finds_solution():
-    train = [{"input": np.array([[1,0],[0,2]]), "output": np.array([[0,0],[1,2]])}]
+    train = [{"input": np.array([[1, 0], [0, 2]]), "output": np.array([[0, 0], [1, 2]])}]
     chain = beam_search(train, max_depth=1, beam_width=20, time_budget_sec=5.0)
     assert "gravity_fall" in chain

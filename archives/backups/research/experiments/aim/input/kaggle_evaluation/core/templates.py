@@ -4,8 +4,9 @@ import abc
 import os
 import time
 import warnings
+from collections.abc import Generator
 from types import FunctionType
-from typing import Any, Generator, Optional, Tuple, Union
+from typing import Any
 
 import pandas as pd
 import polars as pl
@@ -56,7 +57,7 @@ class Gateway(kaggle_evaluation.core.base_gateway.BaseGateway, abc.ABC):
     def competition_specific_validation(
         self,
         prediction_batch: Any,
-        row_ids: Union[pl.DataFrame, pl.Series, pd.DataFrame, pd.Series],
+        row_ids: pl.DataFrame | pl.Series | pd.DataFrame | pd.Series,
         data_batch: Any,
     ) -> None:
         """Competition specific checks should be added here. Typically you'll want to confirm the predictions are a valid data type at a minimum.
@@ -95,8 +96,8 @@ class InferenceServer(abc.ABC):
 
     def run_local_gateway(
         self,
-        data_paths: Optional[Tuple[str]] = None,
-        file_share_dir: Optional[str] = None,
+        data_paths: tuple[str] | None = None,
+        file_share_dir: str | None = None,
         *args,
         **kwargs,
     ) -> None:

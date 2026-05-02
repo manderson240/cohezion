@@ -9,10 +9,10 @@ This test suite validates Task #4 of Phase 2 Security Hardening:
 """
 
 import json
-import os
 from pathlib import Path
 
 import pytest
+
 
 # Project root resolved from test file location (tests/security/test_precommit_hooks.py)
 PROJECT_ROOT = Path(__file__).resolve().parents[2]

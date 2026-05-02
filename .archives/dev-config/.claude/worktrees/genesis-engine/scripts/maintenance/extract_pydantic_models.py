@@ -27,13 +27,7 @@ def extract_models(file_path: str, output_path: str):
                         models.append(seg)
                     break
 
-    content = (
-        "from __future__ import annotations\n\n"
-        + "\n".join(imports)
-        + "\n\n"
-        + "\n\n".join(models)
-        + "\n"
-    )
+    content = "from __future__ import annotations\n\n" + "\n".join(imports) + "\n\n" + "\n\n".join(models) + "\n"
 
     Path(output_path).write_text(content)
     print(f"Extracted {len(models)} models to {output_path}")

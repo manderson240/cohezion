@@ -11,7 +11,7 @@ import socket
 import time
 from concurrent import futures
 from types import FunctionType
-from typing import Any, Optional, Tuple
+from typing import Any
 
 import grpc
 import numpy as np
@@ -260,10 +260,10 @@ class Client:
 
     def __init__(self, channel_address: str = "localhost") -> None:
         self.channel_address = channel_address
-        self.channel: Optional[grpc.Channel] = None
+        self.channel: grpc.Channel | None = None
         self._made_first_connection = False
         self.endpoint_deadline_seconds = DEFAULT_DEADLINE_SECONDS
-        self.stub: Optional[kaggle_evaluation_grpc.KaggleEvaluationServiceStub] = None
+        self.stub: kaggle_evaluation_grpc.KaggleEvaluationServiceStub | None = None
 
     def _send_with_deadline(self, request) -> kaggle_evaluation_proto.KaggleEvaluationResponse:
         """Sends a message to the server while also:
@@ -354,7 +354,7 @@ class KaggleEvaluationServiceServicer(kaggle_evaluation_grpc.KaggleEvaluationSer
     to requests from the Gateway. The Gateway may also listen for requests from the inference_server in some cases.
     """
 
-    def __init__(self, listeners: Tuple[FunctionType]) -> None:
+    def __init__(self, listeners: tuple[FunctionType]) -> None:
         self.listeners_map = dict((func.__name__, func) for func in listeners)
 
     # pylint: disable=unused-argument

@@ -4,9 +4,9 @@
 """Probe: Check if HipKittens is available on the runner."""
 
 import os
-import torch
-from aiter import dtypes
+
 import aiter
+from aiter import dtypes
 from aiter.ops.triton.quant import dynamic_mxfp4_quant
 from aiter.utility.fp4_utils import e8m0_shuffle
 from task import input_t, output_t

@@ -1,8 +1,7 @@
-import torch
-import numpy as np
 import json
 import os
-from arc_jepa import ARCWorldModel
+
+import numpy as np
 from arc_axiomatic import ARCAxiomaticProjector
 
 
@@ -19,7 +18,7 @@ class ARCManifoldTransfer:
 
     def _load_library(self):
         if os.path.exists(self.library_path):
-            with open(self.library_path, "r") as f:
+            with open(self.library_path) as f:
                 return json.load(f)
         return {}
 

@@ -2,6 +2,7 @@
 
 Measures tokens per second via the ModelDispatcher (OpenAI-compatible API).
 """
+
 from __future__ import annotations
 
 import time
@@ -42,7 +43,9 @@ def main():
         tps = tokens / elapsed if elapsed > 0 else 0
         total_tokens += tokens
         total_time += elapsed
-        print(f"Prompt: {prompt[:40]:40s} | Tokens: {tokens:3d} | Time: {elapsed:.2f}s | TPS: {tps:.1f}")
+        print(
+            f"Prompt: {prompt[:40]:40s} | Tokens: {tokens:3d} | Time: {elapsed:.2f}s | TPS: {tps:.1f}"
+        )
 
     avg_tps = total_tokens / total_time if total_time > 0 else 0
     print(f"\nAverage TPS: {avg_tps:.1f}")

@@ -1,4 +1,4 @@
-from typing import Any, Dict
+from typing import Any
 
 import requests
 
@@ -13,7 +13,7 @@ class AdversaryAgent:
         self.model_name = model_name
         self.ollama_url = "http://localhost:11434/api/chat"
 
-    def review(self, problem_text: str, reasoning: str, code: str) -> Dict[str, Any]:
+    def review(self, problem_text: str, reasoning: str, code: str) -> dict[str, Any]:
         """
         Attempts to find flaws in the proposed reasoning and code.
         """

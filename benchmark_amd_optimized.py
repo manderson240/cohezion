@@ -59,7 +59,7 @@ def benchmark_burst(count: int, label: str) -> dict:
     print(f"  Total tokens: {total_tokens}")
     print(f"  Wall time: {total_time:.2f}s")
     print(f"  Throughput: {tps:.1f} TPS")
-    print(f"  Per-request: {tps/count:.1f} TPS/req")
+    print(f"  Per-request: {tps / count:.1f} TPS/req")
 
     return {
         "count": count,
@@ -87,9 +87,15 @@ def set_amd_optimizations():
 
 def clear_amd_optimizations():
     """Clear AMD environment variables."""
-    for var in ["RADV_PERFTEST", "RADV_COOPERATIVE_MATRIX",
-                "MESA_SHADER_CACHE_DISABLE", "MESA_SHADER_CACHE_MAX_SIZE",
-                "HSA_OVERRIDE_GFX_VERSION", "HIP_VISIBLE_DEVICES", "AMD_DEBUG"]:
+    for var in [
+        "RADV_PERFTEST",
+        "RADV_COOPERATIVE_MATRIX",
+        "MESA_SHADER_CACHE_DISABLE",
+        "MESA_SHADER_CACHE_MAX_SIZE",
+        "HSA_OVERRIDE_GFX_VERSION",
+        "HIP_VISIBLE_DEVICES",
+        "AMD_DEBUG",
+    ]:
         os.environ.pop(var, None)
     print("✓ AMD optimizations DISABLED (baseline)")
 
@@ -131,13 +137,21 @@ def main():
     print(f"{'Metric':<20} {'Baseline':<15} {'Optimized':<15} {'Change':<15}")
     print("-" * 70)
 
-    tps_change = ((optimized['tps'] - baseline['tps']) / baseline['tps']) * 100
-    tps_per_req_change = ((optimized['tps_per_req'] - baseline['tps_per_req']) / baseline['tps_per_req']) * 100
-    time_change = ((baseline['wall_time'] - optimized['wall_time']) / baseline['wall_time']) * 100
+    tps_change = ((optimized["tps"] - baseline["tps"]) / baseline["tps"]) * 100
+    tps_per_req_change = (
+        (optimized["tps_per_req"] - baseline["tps_per_req"]) / baseline["tps_per_req"]
+    ) * 100
+    time_change = ((baseline["wall_time"] - optimized["wall_time"]) / baseline["wall_time"]) * 100
 
-    print(f"{'Throughput (TPS)':<20} {baseline['tps']:<15.1f} {optimized['tps']:<15.1f} {tps_change:+.1f}%")
-    print(f"{'TPS/Request':<20} {baseline['tps_per_req']:<15.1f} {optimized['tps_per_req']:<15.1f} {tps_per_req_change:+.1f}%")
-    print(f"{'Wall Time (s)':<20} {baseline['wall_time']:<15.2f} {optimized['wall_time']:<15.2f} {time_change:+.1f}%")
+    print(
+        f"{'Throughput (TPS)':<20} {baseline['tps']:<15.1f} {optimized['tps']:<15.1f} {tps_change:+.1f}%"
+    )
+    print(
+        f"{'TPS/Request':<20} {baseline['tps_per_req']:<15.1f} {optimized['tps_per_req']:<15.1f} {tps_per_req_change:+.1f}%"
+    )
+    print(
+        f"{'Wall Time (s)':<20} {baseline['wall_time']:<15.2f} {optimized['wall_time']:<15.2f} {time_change:+.1f}%"
+    )
 
     print("-" * 70)
 
@@ -152,12 +166,13 @@ def main():
 
     # Save result
     from datetime import datetime
+
     result = {
         "timestamp": datetime.now().isoformat(),
         "baseline": baseline,
         "optimized": optimized,
         "tps_change_pct": tps_change,
-        "note": "Environment variables must be set BEFORE server starts"
+        "note": "Environment variables must be set BEFORE server starts",
     }
 
     with open("amd_optimization_result.json", "w") as f:

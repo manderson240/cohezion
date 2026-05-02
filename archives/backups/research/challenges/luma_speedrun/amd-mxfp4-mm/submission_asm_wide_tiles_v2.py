@@ -22,8 +22,8 @@ Padding rule: output tensor is padded to ceil(M/tile_M)*tile_M rows.
   tile_M=256 → pad to next multiple of 256
 """
 
-import torch
 import aiter
+import torch
 from aiter import dtypes
 from aiter.ops.triton.quant import dynamic_mxfp4_quant
 from aiter.utility.fp4_utils import e8m0_shuffle

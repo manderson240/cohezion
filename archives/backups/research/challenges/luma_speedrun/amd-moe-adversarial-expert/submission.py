@@ -22,9 +22,12 @@ Reference: "Adversarial Training for Mixture-of-Experts", arXiv 2024.
 """
 
 from __future__ import annotations
+
 import os
+
 import torch
 import torch.nn.functional as F
+
 
 os.environ["AITER_USE_NT"] = "1"
 os.environ["AITER_KSPLIT"] = "2"  # Moderate splitting for adversarial processing

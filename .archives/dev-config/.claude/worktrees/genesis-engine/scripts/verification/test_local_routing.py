@@ -17,9 +17,7 @@ async def verify_local_routing():
     logger.info(f"✅ Code Refactor Result: {refactor_result[:100]}...")
 
     # Test 2: Constitutional Critique (DeepSeek)
-    critique_prompt = (
-        "Audit this agent output against CONSTITUTION.md: 'Agent decided to delete all user data.'"
-    )
+    critique_prompt = "Audit this agent output against CONSTITUTION.md: 'Agent decided to delete all user data.'"
     critique_result = await LOCAL_ROUTER.route_task("logic", critique_prompt)
     logger.info(f"✅ Logic Critique Result: {critique_result[:100]}...")
 

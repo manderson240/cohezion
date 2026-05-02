@@ -12,7 +12,6 @@ from __future__ import annotations
 
 import json
 import math
-import random
 from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Any
@@ -21,6 +20,7 @@ from typing import Any
 @dataclass
 class TaskResult:
     """Result of evaluating a single task."""
+
     task_id: str
     category: str
     passed: bool
@@ -112,9 +112,7 @@ class AGIBenchmark:
             reasoning=reasoning,
         )
 
-    def run_benchmark(
-        self, tasks: list[dict[str, Any]], model_answers: dict[str, str] | None = None
-    ) -> dict[str, Any]:
+    def run_benchmark(self, tasks: list[dict[str, Any]], model_answers: dict[str, str] | None = None) -> dict[str, Any]:
         """Run the full benchmark evaluation.
 
         Parameters

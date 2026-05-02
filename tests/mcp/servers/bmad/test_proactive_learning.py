@@ -5,8 +5,9 @@ Tests acceptance tracking, confidence adjustment, and feedback collection.
 
 from __future__ import annotations
 
-import pytest
 from unittest.mock import AsyncMock, MagicMock, patch
+
+import pytest
 
 from cohezion.core.persistence.repositories.surreal_proactive_repository import (
     PatternEffectiveness,
@@ -14,6 +15,7 @@ from cohezion.core.persistence.repositories.surreal_proactive_repository import 
     SurrealProactiveRepository,
 )
 from cohezion.mcp.servers.bmad.proactive_monitor import ProactiveMonitor, ProactiveSuggestion
+
 
 pytestmark = pytest.mark.asyncio
 
@@ -409,6 +411,7 @@ class TestProactiveFeedbackRoutes:
     async def test_record_feedback_route_missing_suggestion_id(self):
         """Test record feedback route with missing suggestion_id."""
         import json
+
         from cohezion.mcp.servers.bmad.routes_proactive import proactive_record_feedback
 
         mock_request = MagicMock()
@@ -426,6 +429,7 @@ class TestProactiveFeedbackRoutes:
     async def test_pattern_effectiveness_route_no_database(self):
         """Test pattern effectiveness route without database."""
         import json
+
         from cohezion.mcp.servers.bmad.routes_proactive import proactive_pattern_effectiveness
 
         mock_request = MagicMock()

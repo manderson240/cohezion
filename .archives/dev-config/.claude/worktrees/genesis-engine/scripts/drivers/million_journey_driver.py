@@ -119,9 +119,7 @@ class BatchProcessor:
 
             # Apply operation modulation (random for synthetic data)
             operation = np.random.choice(["generate", "analyze", "search", "transform"])
-            modulation = tracker._modulation_profiles.get(
-                operation, tracker._modulation_profiles["transform"]
-            )
+            modulation = tracker._modulation_profiles.get(operation, tracker._modulation_profiles["transform"])
             quality_weight = 0.5 * coherence + 0.5 * efficiency
             trajectory = projection * (1.0 - quality_weight) + modulation * quality_weight
             trajectory = np.clip(trajectory, 0.0, 1.0)
@@ -233,9 +231,7 @@ class ShardPersistence:
             write_statistics=True,
         )
 
-        logger.info(
-            f"Flushed shard {self.shard_count}: {len(self.current_shard)} records to {filename}"
-        )
+        logger.info(f"Flushed shard {self.shard_count}: {len(self.current_shard)} records to {filename}")
 
         self.shard_count += 1
         self.current_shard = []
@@ -332,11 +328,7 @@ class MetricsCollector:
         processed = current_count - self.start_count
 
         sims_per_sec = processed / elapsed if elapsed > 0 else 0
-        eta_seconds = (
-            (self.config.target_simulations - current_count) / sims_per_sec
-            if sims_per_sec > 0
-            else 0
-        )
+        eta_seconds = (self.config.target_simulations - current_count) / sims_per_sec if sims_per_sec > 0 else 0
 
         cpu = psutil.cpu_percent(interval=None)
         ram = psutil.virtual_memory().percent
@@ -416,10 +408,7 @@ class MillionJourneyDriver:
         last_report_time = time.time()
 
         try:
-            while (
-                self._current_count < self.config.target_simulations
-                and not self._shutdown_requested
-            ):
+            while self._current_count < self.config.target_simulations and not self._shutdown_requested:
                 # Resource throttling
                 cpu = psutil.cpu_percent(interval=None)
                 ram = psutil.virtual_memory().percent
@@ -432,8 +421,7 @@ class MillionJourneyDriver:
                 # Queue more batches if needed
                 while (
                     self.batch_processor.queue.qsize() < self.config.worker_count * 2
-                    and self._current_count
-                    + (self.batch_processor.queue.qsize() * self.config.batch_size)
+                    and self._current_count + (self.batch_processor.queue.qsize() * self.config.batch_size)
                     < self.config.target_simulations
                 ):
                     await self.batch_processor.queue.put((batch_id, self._current_count))
@@ -495,15 +483,11 @@ def main():
     parser.add_argument("--target", type=int, default=25_000_000, help="Target simulation count")
     parser.add_argument("--batch-size", type=int, default=10_000, help="Batch size")
     parser.add_argument("--workers", type=int, default=8, help="Worker count")
-    parser.add_argument(
-        "--output-dir", type=Path, default=Path("data/journeys"), help="Output directory"
-    )
+    parser.add_argument("--output-dir", type=Path, default=Path("data/journeys"), help="Output directory")
     parser.add_argument("--resume", action="store_true", help="Resume from latest checkpoint")
     parser.add_argument("--checkpoint", type=int, help="Resume from specific checkpoint count")
     parser.add_argument("--shard-size", type=int, default=100_000, help="Records per Parquet shard")
-    parser.add_argument(
-        "--checkpoint-interval", type=int, default=100_000, help="Checkpoint interval"
-    )
+    parser.add_argument("--checkpoint-interval", type=int, default=100_000, help="Checkpoint interval")
     parser.add_argument("--verbose", "-v", action="store_true", help="Verbose logging")
 
     args = parser.parse_args()

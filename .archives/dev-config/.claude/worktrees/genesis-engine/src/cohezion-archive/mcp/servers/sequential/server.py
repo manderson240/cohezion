@@ -129,9 +129,7 @@ class ThinkingSession:
             "sessionId": self.session_id,
             "createdAt": self.created_at,
             "mainSequence": [t.to_dict() for t in self.thoughts],
-            "branches": {
-                bid: [t.to_dict() for t in thoughts] for bid, thoughts in self.branches.items()
-            },
+            "branches": {bid: [t.to_dict() for t in thoughts] for bid, thoughts in self.branches.items()},
         }
 
 
@@ -218,9 +216,7 @@ async def tool_revise(request: web.Request) -> web.Response:
         new_content = data.get("newThought", "")
 
         if not session_id or not thought_number or not new_content:
-            return web.json_response(
-                {"error": "sessionId, thoughtNumber, and newThought are required"}, status=400
-            )
+            return web.json_response({"error": "sessionId, thoughtNumber, and newThought are required"}, status=400)
 
         session = get_session(session_id)
 
@@ -255,9 +251,7 @@ async def tool_branch(request: web.Request) -> web.Response:
         first_thought = data.get("firstThought", "")
 
         if not session_id or not branch_from or not first_thought:
-            return web.json_response(
-                {"error": "sessionId, branchFrom, and firstThought are required"}, status=400
-            )
+            return web.json_response({"error": "sessionId, branchFrom, and firstThought are required"}, status=400)
 
         session = get_session(session_id)
 

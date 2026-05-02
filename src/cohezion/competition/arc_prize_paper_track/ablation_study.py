@@ -3,23 +3,16 @@
 from __future__ import annotations
 
 import json
+import sys
 from pathlib import Path
 
-import sys
-sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 
-from arc_solver import (
-    BASE_OPS,
-    apply_program,
-    grids_equal,
-    search_program,
-)
+sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 
 # Import all defined primitive functions
 from arc_solver import (
     apply_program,
     border,
-    compress_repeating,
     crop_to_object,
     deduplicate_cols,
     deduplicate_rows,
@@ -34,9 +27,9 @@ from arc_solver import (
     gravity_left,
     gravity_right,
     gravity_up,
+    grids_equal,
     hconcat,
     identity,
-    infer_color_map,
     interior,
     invert_colors,
     mirror_horizontal,
@@ -46,10 +39,10 @@ from arc_solver import (
     pad_to_object,
     remove_background,
     replace_color,
+    rotate_90,
     rotate_180,
     rotate_270,
-    rotate_90,
-    swap_colors,
+    search_program,
     tile_grid,
     transpose,
     upsample,
@@ -168,7 +161,9 @@ if __name__ == "__main__":
     print(f"ABLATION SUMMARY (1000 tasks, {elapsed:.1f}s)")
     print(f"{'=' * 50}")
     for r in results:
-        print(f"  {r['name']:25s} | {r['ops']:2d} ops | {r['correct']:3d}/{r['total']} = {r['rate']:>5}%")
+        print(
+            f"  {r['name']:25s} | {r['ops']:2d} ops | {r['correct']:3d}/{r['total']} = {r['rate']:>5}%"
+        )
 
     # Save results
     with open("ablation_results.json", "w") as f:

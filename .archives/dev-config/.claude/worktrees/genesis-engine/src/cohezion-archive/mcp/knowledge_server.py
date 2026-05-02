@@ -133,9 +133,7 @@ class KnowledgeMCP:
 
     def list_skills(self) -> list[dict[str, str]]:
         """List all available skills."""
-        return [
-            {"name": name, "summary": content[:80]} for name, content in self._skills_cache.items()
-        ]
+        return [{"name": name, "summary": content[:80]} for name, content in self._skills_cache.items()]
 
     def get_entity(self, entity_id: str) -> dict[str, Any] | None:
         """Get entity from knowledge graph."""

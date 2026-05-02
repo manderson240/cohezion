@@ -10,8 +10,10 @@ Reference: competition-research-untapped/SKILL.md Section 3.2
 """
 
 from __future__ import annotations
+
 import os
 import sys
+
 
 os.environ["AITER_USE_NT"] = "1"
 os.environ.setdefault("AITER_JIT_DIR", "/tmp/aiter_jit_cache")
@@ -32,11 +34,11 @@ for _mod in (
 
 import torch
 from aiter import dtypes
-from aiter.ops.triton.quant import dynamic_mxfp4_quant
 from aiter.ops.gemm_op_a4w4 import gemm_a4w4_asm
-from aiter.utility.fp4_utils import e8m0_shuffle
-from task import input_t, output_t
+from aiter.ops.triton.quant import dynamic_mxfp4_quant
 from reference import ref_kernel
+from task import input_t, output_t
+
 
 _fp4x2 = dtypes.fp4x2
 _e8m0 = dtypes.fp8_e8m0

@@ -236,9 +236,7 @@ class TestPhase3CacheIntegration:
         # Skip if VAE encoder is not available (uses fallback hash encoder)
         encoder = get_encoder()
         if not encoder.is_available():
-            pytest.skip(
-                "FLUME VAE encoder not available - skipping semantic discrimination test"
-            )
+            pytest.skip("FLUME VAE encoder not available - skipping semantic discrimination test")
 
         cache = SemanticCache(similarity_threshold=0.80, max_entries=100)
 
@@ -279,9 +277,7 @@ class TestPhase3CacheIntegration:
 
         # Similarity should be high
         sim = encoder.similarity(embed1, embed2)
-        assert sim > 0.5, (
-            f"Expected moderate-to-high similarity for similar topics, got {sim}"
-        )
+        assert sim > 0.5, f"Expected moderate-to-high similarity for similar topics, got {sim}"
 
     @pytest.mark.asyncio
     async def test_cache_statistics(self):

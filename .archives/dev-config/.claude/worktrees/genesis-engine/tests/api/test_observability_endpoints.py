@@ -5,17 +5,17 @@ Covers metrics analytics and system health endpoints.
 
 from __future__ import annotations
 
+from unittest.mock import MagicMock, patch
+
 import pytest
-from unittest.mock import AsyncMock, MagicMock, patch
-from datetime import datetime
 
 from cohezion.api.observability_endpoints import (
-    get_unified_metrics,
     get_cache_analytics,
-    get_token_efficiency,
     get_health_score,
+    get_unified_metrics,
     reset_metrics,
 )
+
 
 @pytest.fixture
 def mock_collector():
@@ -36,6 +36,7 @@ def mock_collector():
     }
     return collector
 
+
 @pytest.fixture
 def mock_analytics():
     analytics = MagicMock()
@@ -43,6 +44,7 @@ def mock_analytics():
     analytics.get_token_efficiency_analytics.return_value = {"tokens_per_sec": 50.0}
     analytics.compute_health_score.return_value = 0.95
     return analytics
+
 
 @pytest.mark.asyncio
 async def test_get_unified_metrics(mock_collector):
@@ -53,29 +55,38 @@ async def test_get_unified_metrics(mock_collector):
         assert "metrics" in result
         assert result["metrics"]["l1_hits"] == 10
 
+
 @pytest.mark.asyncio
 async def test_get_cache_analytics(mock_collector, mock_analytics):
     """[P0] Should return cache analytics."""
-    with patch("cohezion.api.observability_endpoints.get_metrics_collector", return_value=mock_collector), \
-         patch("cohezion.api.observability_endpoints.get_analytics", return_value=mock_analytics):
+    with (
+        patch("cohezion.api.observability_endpoints.get_metrics_collector", return_value=mock_collector),
+        patch("cohezion.api.observability_endpoints.get_analytics", return_value=mock_analytics),
+    ):
         result = await get_cache_analytics()
         assert "cache_performance" in result
         assert result["cache_performance"]["hit_rate"] == 0.8
 
+
 @pytest.mark.asyncio
 async def test_get_health_score(mock_collector, mock_analytics):
     """[P0] Should return system health score."""
-    with patch("cohezion.api.observability_endpoints.get_metrics_collector", return_value=mock_collector), \
-         patch("cohezion.api.observability_endpoints.get_analytics", return_value=mock_analytics):
+    with (
+        patch("cohezion.api.observability_endpoints.get_metrics_collector", return_value=mock_collector),
+        patch("cohezion.api.observability_endpoints.get_analytics", return_value=mock_analytics),
+    ):
         result = await get_health_score()
         assert result["health_score"] == 0.95
         assert result["status"] == "excellent"
 
+
 @pytest.mark.asyncio
 async def test_reset_metrics(mock_collector, mock_analytics):
     """[P0] Should reset metrics."""
-    with patch("cohezion.api.observability_endpoints.get_metrics_collector", return_value=mock_collector), \
-         patch("cohezion.api.observability_endpoints.get_analytics", return_value=mock_analytics):
+    with (
+        patch("cohezion.api.observability_endpoints.get_metrics_collector", return_value=mock_collector),
+        patch("cohezion.api.observability_endpoints.get_analytics", return_value=mock_analytics),
+    ):
         result = await reset_metrics()
         assert result["status"] == "success"
         mock_collector.reset_current_metrics.assert_called_once()

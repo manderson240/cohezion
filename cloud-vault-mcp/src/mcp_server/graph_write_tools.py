@@ -76,7 +76,9 @@ def register_graph_write_tools(mcp: Any, get_surrealdb_client: Any) -> None:
     """Register the four agent-write tools with the FastMCP instance."""
 
     @mcp.tool()
-    def graph_write_latent_synapse(from_neuron_id: str, to_neuron_id: str, reason: str) -> str:
+    def graph_write_latent_synapse(
+        from_neuron_id: str, to_neuron_id: str, reason: str
+    ) -> str:
         """Create a latent (semantically inferred) synapse between two neurons.
 
         Args:
@@ -91,7 +93,9 @@ def register_graph_write_tools(mcp: Any, get_surrealdb_client: Any) -> None:
         return f"Latent synapse created: {from_neuron_id} -> {to_neuron_id}"
 
     @mcp.tool()
-    def graph_write_dream_synapse(from_neuron_id: str, to_neuron_id: str, resonance: str) -> str:
+    def graph_write_dream_synapse(
+        from_neuron_id: str, to_neuron_id: str, resonance: str
+    ) -> str:
         """Create a dream synapse (cross-domain resonance) between two neurons.
 
         Args:

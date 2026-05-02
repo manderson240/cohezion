@@ -5,13 +5,15 @@ to validate the Triune Review's ability to detect instability.
 
 from __future__ import annotations
 
-import pytest
+from unittest.mock import AsyncMock, MagicMock
+
 import numpy as np
-from unittest.mock import MagicMock, AsyncMock
+import pytest
+
 from cohezion.compound.stability_guard import HIHOStabilityGuard
-from cohezion.flume.manifolds.translator import ManifoldTranslator, ManifoldProjection
-from cohezion.flume.vae_encoder import FlumeVAEEncoder
-from cohezion.compound.triune_reviewer import TriuneReviewer, TriuneReviewResult
+from cohezion.compound.triune_reviewer import TriuneReviewer
+from cohezion.flume.manifolds.translator import ManifoldProjection
+
 
 STABILITY_THRESHOLD = 0.4
 

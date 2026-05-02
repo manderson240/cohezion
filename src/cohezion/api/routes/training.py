@@ -5,7 +5,6 @@ Enables Anima Dashboard to visualize compound training loop progression.
 
 from __future__ import annotations
 
-import json
 import logging
 from base64 import b64encode
 from typing import Any

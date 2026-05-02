@@ -29,12 +29,14 @@ Fallback: aiter gemm_a4w4 for M < 128 (small-M shapes not worth large tile overh
 
 import os
 
+
 os.environ["PYTORCH_ROCM_ARCH"] = "gfx950"
 os.environ["CXX"] = "clang++"
 
 import torch
-from torch.utils.cpp_extension import load_inline
 from task import input_t, output_t
+from torch.utils.cpp_extension import load_inline
+
 
 # ---------------------------------------------------------------------------
 # HIP kernel: AMD Blog 8-wave ping-pong with GLOBAL_LOAD_LDS + XOR swizzle

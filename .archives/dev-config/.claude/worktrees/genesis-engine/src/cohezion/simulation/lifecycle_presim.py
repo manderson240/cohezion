@@ -87,16 +87,14 @@ class LifecyclePreSimulator:
             if drop > self._coherence_threshold:
                 coherence_drops.append((i, drop))
                 blocking_errors.append(
-                    f"Coherence drop at step {i} ({steps[i].phase}): "
-                    f"{drop:.3f} > {self._coherence_threshold}"
+                    f"Coherence drop at step {i} ({steps[i].phase}): {drop:.3f} > {self._coherence_threshold}"
                 )
 
         # Check topological knots (self-intersections)
         knots = self._detect_knots(steps)
         for knot in knots:
             blocking_errors.append(
-                f"Topological knot between steps {knot.step_a} and {knot.step_b}: "
-                f"distance {knot.distance:.4f}"
+                f"Topological knot between steps {knot.step_a} and {knot.step_b}: distance {knot.distance:.4f}"
             )
 
         passed = len(blocking_errors) == 0

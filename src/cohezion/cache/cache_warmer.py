@@ -55,9 +55,7 @@ class CacheWarmer:
 
         try:
             # List all cache pattern files from vault
-            pattern_files = self.mcp_client.vault_list(
-                directory="cache_patterns", recursive=True
-            )
+            pattern_files = self.mcp_client.vault_list(directory="cache_patterns", recursive=True)
 
             if not pattern_files:
                 logger.debug("No cache patterns found in vault")
@@ -110,9 +108,7 @@ class CacheWarmer:
         # Try L1 exact match first (fastest)
         l1_result = await self.cache.get(task_description)
         if l1_result:
-            logger.info(
-                "Template match: L1 exact hit for '%s'", task_description[:50]
-            )
+            logger.info("Template match: L1 exact hit for '%s'", task_description[:50])
             return {
                 "response": l1_result,
                 "similarity": 1.0,
@@ -130,9 +126,7 @@ class CacheWarmer:
 
                     for entry in self.cache._l2_cache.values():
                         if entry.embedding is not None:
-                            sim = self.cache._cosine_similarity(
-                                embedding, entry.embedding
-                            )
+                            sim = self.cache._cosine_similarity(embedding, entry.embedding)
                             if sim > best_sim:
                                 best_sim = sim
                                 best_match = entry
@@ -154,9 +148,7 @@ class CacheWarmer:
 
         return None
 
-    async def warm_from_history(
-        self, skill_name: str, min_coherence: float = 0.7
-    ) -> int:
+    async def warm_from_history(self, skill_name: str, min_coherence: float = 0.7) -> int:
         """Warm cache for specific skill from execution history.
 
         Queries vault for all executions of the specified skill,
@@ -176,9 +168,7 @@ class CacheWarmer:
         try:
             # Query vault for execution traces of this skill
             trace_path = f"execution_traces/{skill_name}/"
-            trace_files = self.mcp_client.vault_list(
-                directory=trace_path, recursive=True
-            )
+            trace_files = self.mcp_client.vault_list(directory=trace_path, recursive=True)
 
             if not trace_files:
                 logger.debug(f"No execution traces found for skill: {skill_name}")
@@ -236,20 +226,15 @@ class CacheWarmer:
                     continue
 
             logger.info(
-                f"Warmed cache with {loaded} high-coherence executions "
-                f"for skill '{skill_name}'"
+                f"Warmed cache with {loaded} high-coherence executions for skill '{skill_name}'"
             )
             return loaded
 
         except Exception as e:
-            logger.debug(
-                f"Cache warming from history failed for {skill_name}: {e}"
-            )
+            logger.debug(f"Cache warming from history failed for {skill_name}: {e}")
             return 0
 
-    async def warm_from_recent_executions(
-        self, limit: int = 50, min_coherence: float = 0.7
-    ) -> int:
+    async def warm_from_recent_executions(self, limit: int = 50, min_coherence: float = 0.7) -> int:
         """Warm cache from recent successful executions.
 
         Queries vault for recent high-coherence executions across all skills,
@@ -268,9 +253,7 @@ class CacheWarmer:
 
         try:
             # List all execution traces from vault
-            trace_files = self.mcp_client.vault_list(
-                directory="execution_traces/", recursive=True
-            )
+            trace_files = self.mcp_client.vault_list(directory="execution_traces/", recursive=True)
 
             if not trace_files:
                 logger.debug("No execution traces found in vault")

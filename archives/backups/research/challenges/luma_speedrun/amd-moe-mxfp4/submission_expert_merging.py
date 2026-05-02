@@ -24,12 +24,13 @@ Expected: 20-40% speedup by reducing expert count 32->16 or 256->64
 from __future__ import annotations
 
 import os
+
 import torch
 import torch.nn.functional as F
-from typing import Dict, List, Tuple, Set
 from aiter import ActivationType, QuantType
 from aiter.fused_moe import fused_moe
 from task import input_t, output_t
+
 
 # Environment
 os.environ["AITER_USE_NT"] = "1"
@@ -51,8 +52,8 @@ class ExpertSimilarityAnalyzer:
         """
         self.num_experts = num_experts
         self.similarity_threshold = similarity_threshold
-        self._merge_map: Dict[int, int] = {}  # expert_idx -> merged_group
-        self._merged_weights_cache: Dict[str, torch.Tensor] = {}
+        self._merge_map: dict[int, int] = {}  # expert_idx -> merged_group
+        self._merged_weights_cache: dict[str, torch.Tensor] = {}
 
     def compute_expert_similarity(
         self,
@@ -88,7 +89,7 @@ class ExpertSimilarityAnalyzer:
     def find_merge_groups(
         self,
         similarity: torch.Tensor,
-    ) -> Dict[int, int]:
+    ) -> dict[int, int]:
         """Find groups of experts to merge.
 
         Uses greedy clustering based on similarity threshold.
@@ -129,8 +130,8 @@ class ExpertSimilarityAnalyzer:
         self,
         gate_up_weight: torch.Tensor,
         down_weight: torch.Tensor,
-        merge_map: Dict[int, int],
-    ) -> Tuple[torch.Tensor, torch.Tensor, Dict[int, List[int]]]:
+        merge_map: dict[int, int],
+    ) -> tuple[torch.Tensor, torch.Tensor, dict[int, list[int]]]:
         """Merge experts based on merge map.
 
         Args:
@@ -149,7 +150,7 @@ class ExpertSimilarityAnalyzer:
         rep_to_idx = {rep: i for i, rep in enumerate(group_reps)}
 
         # Group members
-        group_members: Dict[int, List[int]] = {rep: [] for rep in group_reps}
+        group_members: dict[int, list[int]] = {rep: [] for rep in group_reps}
         for expert, rep in merge_map.items():
             group_members[rep].append(expert)
 
@@ -188,8 +189,8 @@ class ExpertSimilarityAnalyzer:
     def remap_routing(
         self,
         topk_ids: torch.Tensor,
-        merge_map: Dict[int, int],
-        rep_to_idx: Dict[int, int],
+        merge_map: dict[int, int],
+        rep_to_idx: dict[int, int],
     ) -> torch.Tensor:
         """Remap routing indices to merged expert space.
 
@@ -224,7 +225,7 @@ class ExpertMergingMoE:
             num_experts=num_experts,
             similarity_threshold=similarity_threshold,
         )
-        self._merge_cache: Dict[int, Tuple] = {}
+        self._merge_cache: dict[int, tuple] = {}
         self._stats = {
             "original_experts": num_experts,
             "merged_experts": num_experts,

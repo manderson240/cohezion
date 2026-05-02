@@ -43,10 +43,12 @@ class TestSurrealFlux:
     @pytest.mark.asyncio
     async def test_returns_blocks_from_surreal_query(self):
         mock_client = AsyncMock()
-        mock_client.query_similar = AsyncMock(return_value=[
-            {"content": "prior run data", "score": 0.85, "id": "node:1"},
-            {"content": "related concept", "score": 0.72, "id": "node:2"},
-        ])
+        mock_client.query_similar = AsyncMock(
+            return_value=[
+                {"content": "prior run data", "score": 0.85, "id": "node:1"},
+                {"content": "related concept", "score": 0.72, "id": "node:2"},
+            ]
+        )
         provider = SurrealFlux(surreal_client=mock_client)
         blocks = await provider.get_context("research patterns", top_k=2)
         assert len(blocks) == 2
@@ -66,10 +68,12 @@ class TestToolFlux:
     @pytest.mark.asyncio
     async def test_returns_blocks_from_capability_search(self):
         mock_cap = MagicMock()
-        mock_cap.find = MagicMock(return_value=[
-            MagicMock(name="web_search", description="Search the web", score=0.9, type="mcp"),
-            MagicMock(name="arxiv_search", description="Search arxiv papers", score=0.8, type="skill"),
-        ])
+        mock_cap.find = MagicMock(
+            return_value=[
+                MagicMock(name="web_search", description="Search the web", score=0.9, type="mcp"),
+                MagicMock(name="arxiv_search", description="Search arxiv papers", score=0.8, type="skill"),
+            ]
+        )
         provider = ToolFlux(capability_registry=mock_cap)
         blocks = await provider.get_context("find research papers")
         assert len(blocks) == 2
@@ -104,10 +108,12 @@ class TestCacheFlux:
     @pytest.mark.asyncio
     async def test_returns_blocks_from_cache(self):
         mock_cache = MagicMock()
-        mock_cache.search_l2 = MagicMock(return_value=[
-            {"content": "cached result A", "score": 0.95},
-            {"content": "cached result B", "score": 0.80},
-        ])
+        mock_cache.search_l2 = MagicMock(
+            return_value=[
+                {"content": "cached result A", "score": 0.95},
+                {"content": "cached result B", "score": 0.80},
+            ]
+        )
         provider = CacheFlux(semantic_cache=mock_cache)
         blocks = await provider.get_context("similar query")
         assert len(blocks) == 2

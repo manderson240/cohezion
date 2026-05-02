@@ -1,11 +1,12 @@
-import json
 import argparse
+import json
 from pathlib import Path
+
 
 def generate_notebook(script_path, output_path):
     script_path = Path(script_path)
     output_path = Path(output_path)
-    
+
     with open(script_path) as f:
         script_content = f.read()
 
@@ -39,10 +40,15 @@ def generate_notebook(script_path, output_path):
 
     print(f"AIMO Notebook created at {output_path} from {script_path}")
 
+
 if __name__ == "__main__":
-    parser = argparse.ArgumentParser(description="Generate Kaggle AIMO notebook from python script.")
+    parser = argparse.ArgumentParser(
+        description="Generate Kaggle AIMO notebook from python script."
+    )
     parser.add_argument("--script", default="submission_v42_harness.py", help="Input python script")
-    parser.add_argument("--output", default="submission_cohezion_v2.ipynb", help="Output notebook path")
+    parser.add_argument(
+        "--output", default="submission_cohezion_v2.ipynb", help="Output notebook path"
+    )
     args = parser.parse_args()
-    
+
     generate_notebook(args.script, args.output)

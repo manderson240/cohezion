@@ -8,12 +8,12 @@ This is the exact path that achieved 13.425µs on the ranked leaderboard.
 No load_inline, no hip_quant, no custom MFMA — pure aiter API.
 """
 
-import torch
 import aiter
 from aiter import dtypes
 from aiter.ops.triton.quant import dynamic_mxfp4_quant
 from aiter.utility.fp4_utils import e8m0_shuffle
 from task import input_t, output_t
+
 
 _gemm = aiter.gemm_a4w4
 _fp4x2 = dtypes.fp4x2

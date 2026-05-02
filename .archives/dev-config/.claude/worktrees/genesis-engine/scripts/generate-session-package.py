@@ -88,9 +88,7 @@ def main():
     args = parser.parse_args()
 
     package = generate_package(args.session, args.phase)
-    output_file = Path(
-        f"/home/mike-anderson/dev/cohezion/SESSION_{args.session}_STARTUP_PACKAGE.md"
-    )
+    output_file = Path(f"/home/mike-anderson/dev/cohezion/SESSION_{args.session}_STARTUP_PACKAGE.md")
     output_file.write_text(package)
     print(f"✅ Generated: {output_file}")
 

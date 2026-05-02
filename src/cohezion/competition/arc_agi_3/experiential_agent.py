@@ -18,9 +18,10 @@ import random
 import time
 from dataclasses import dataclass, field
 from pathlib import Path
-from typing import Any, Dict, List, Optional, Set, Tuple
+from typing import Any
 
 import numpy as np
+
 
 logger = logging.getLogger(__name__)
 
@@ -36,7 +37,7 @@ class Experience:
     levels_completed: int
     timestamp: str = field(default_factory=lambda: time.strftime("%Y-%m-%dT%H:%M:%SZ"))
 
-    def to_dict(self) -> Dict[str, Any]:
+    def to_dict(self) -> dict[str, Any]:
         return {
             "state": self.state_signature,
             "action": self.action,
@@ -52,9 +53,9 @@ class WorldModel:
 
     def __init__(self, game_id: str):
         self.game_id = game_id
-        self.transitions: Dict[str, Dict[str, Tuple[str, float]]] = {}
-        self.state_visits: Dict[str, int] = {}
-        self.experiences: List[Experience] = []
+        self.transitions: dict[str, dict[str, tuple[str, float]]] = {}
+        self.state_visits: dict[str, int] = {}
+        self.experiences: list[Experience] = []
 
     def learn(self, exp: Experience) -> None:
         """Learn from a single experience."""
@@ -65,16 +66,16 @@ class WorldModel:
         self.transitions[exp.state_signature][exp.action] = (exp.next_state_signature, exp.reward)
         self.state_visits[exp.state_signature] = self.state_visits.get(exp.state_signature, 0) + 1
 
-    def predict(self, state_sig: str, action: str) -> Optional[Tuple[str, float]]:
+    def predict(self, state_sig: str, action: str) -> tuple[str, float] | None:
         """Predict next state and reward."""
         return self.transitions.get(state_sig, {}).get(action)
 
-    def get_unexplored_actions(self, state_sig: str, available_actions: List[str]) -> List[str]:
+    def get_unexplored_actions(self, state_sig: str, available_actions: list[str]) -> list[str]:
         """Get actions we haven't tried in this state."""
         known = set(self.transitions.get(state_sig, {}).keys())
         return [a for a in available_actions if a not in known]
 
-    def get_known_states(self) -> Set[str]:
+    def get_known_states(self) -> set[str]:
         return set(self.transitions.keys())
 
     def save(self, path: Path) -> None:
@@ -87,21 +88,23 @@ class WorldModel:
         path.write_text(json.dumps(data))
 
     @classmethod
-    def load(cls, path: Path) -> "WorldModel":
+    def load(cls, path: Path) -> WorldModel:
         data = json.loads(path.read_text())
         wm = cls(data["game_id"])
         for e in data.get("experiences", []):
-            wm.learn(Experience(
-                state_signature=e["state"],
-                action=e["action"],
-                next_state_signature=e["next_state"],
-                reward=e["reward"],
-                levels_completed=e.get("levels", 0),
-            ))
+            wm.learn(
+                Experience(
+                    state_signature=e["state"],
+                    action=e["action"],
+                    next_state_signature=e["next_state"],
+                    reward=e["reward"],
+                    levels_completed=e.get("levels", 0),
+                )
+            )
         return wm
 
 
-def grid_signature(grid: List[List[int]], downsample: int = 4) -> str:
+def grid_signature(grid: list[list[int]], downsample: int = 4) -> str:
     """Create a compact signature of a grid state."""
     arr = np.array(grid)
     h, w = arr.shape
@@ -113,7 +116,7 @@ def grid_signature(grid: List[List[int]], downsample: int = 4) -> str:
     return f"{downsample}x{hashlib.md5(flat).hexdigest()[:8]}"
 
 
-def agent_position(grid: List[List[int]]) -> Optional[Tuple[int, int]]:
+def agent_position(grid: list[list[int]]) -> tuple[int, int] | None:
     """Heuristic: find the 'player' as the most distinct small connected region."""
     arr = np.array(grid)
     unique, counts = np.unique(arr, return_counts=True)
@@ -144,20 +147,20 @@ def compute_reward(
     from arcengine import GameState
 
     next_obs = next_frame
-    if hasattr(next_frame, 'state'):
+    if hasattr(next_frame, "state"):
         if next_frame.state == GameState.WIN:
             return 1.0
         if next_frame.state == GameState.GAME_OVER:
             return -1.0
 
     # Progress heuristics
-    if hasattr(next_frame, 'levels_completed'):
-        if hasattr(prev_frame, 'levels_completed'):
+    if hasattr(next_frame, "levels_completed"):
+        if hasattr(prev_frame, "levels_completed"):
             if next_frame.levels_completed > prev_frame.levels_completed:
                 return 0.5
 
     # Grid change = exploration reward
-    if hasattr(prev_frame, 'frame') and hasattr(next_frame, 'frame'):
+    if hasattr(prev_frame, "frame") and hasattr(next_frame, "frame"):
         prev_grid = np.array(prev_frame.frame[0]) if prev_frame.frame else np.array([])
         next_grid = np.array(next_frame.frame[0]) if next_frame.frame else np.array([])
         if prev_grid.size > 0 and next_grid.size > 0 and prev_grid.shape == next_grid.shape:
@@ -177,9 +180,9 @@ class ExperientialAgent:
         self.plan_depth = plan_depth
         self.world_model = WorldModel(game_id)
         self.episode = 0
-        self.experience_log: List[Experience] = []
+        self.experience_log: list[Experience] = []
 
-    def run_episode(self) -> Dict[str, Any]:
+    def run_episode(self) -> dict[str, Any]:
         """Run one learning episode and return results."""
         import arc_agi
         from arcengine import GameAction, GameState
@@ -188,14 +191,17 @@ class ExperientialAgent:
         env = arc.make(self.game_id)
         obs = env.reset()
 
-        states_visited: Set[str] = set()
+        states_visited: set[str] = set()
         actions_taken = 0
         wins = 0
         total_reward = 0.0
 
         # Phase 1: Systematic exploration (first episode or unknown states)
         exploration_actions = []
-        while actions_taken < self.exploration_budget and obs.state.name not in ["WIN", "GAME_OVER"]:
+        while actions_taken < self.exploration_budget and obs.state.name not in [
+            "WIN",
+            "GAME_OVER",
+        ]:
             state_sig = grid_signature(obs.frame[0])
             states_visited.add(state_sig)
 
@@ -207,7 +213,11 @@ class ExperientialAgent:
                 action_name = random.choice(unexplored)
             else:
                 # Phase 2: Try to plan toward goal using learned model
-                plan = self._plan(state_sig, available, max_depth=min(self.plan_depth, self.exploration_budget - actions_taken))
+                plan = self._plan(
+                    state_sig,
+                    available,
+                    max_depth=min(self.plan_depth, self.exploration_budget - actions_taken),
+                )
                 if plan:
                     action_name = plan[0]
                 else:
@@ -227,7 +237,7 @@ class ExperientialAgent:
                 action=action_name,
                 next_state_signature=next_sig,
                 reward=reward,
-                levels_completed=obs.levels_completed if hasattr(obs, 'levels_completed') else 0,
+                levels_completed=obs.levels_completed if hasattr(obs, "levels_completed") else 0,
             )
             self.world_model.learn(exp)
             self.experience_log.append(exp)
@@ -258,7 +268,9 @@ class ExperientialAgent:
             "scorecard_total_actions": scorecard.total_actions if scorecard else 0,
         }
 
-    def _plan(self, start_sig: str, available_actions: List[str], max_depth: int) -> Optional[List[str]]:
+    def _plan(
+        self, start_sig: str, available_actions: list[str], max_depth: int
+    ) -> list[str] | None:
         """BFS plan using learned world model."""
         from collections import deque
 
@@ -266,9 +278,9 @@ class ExperientialAgent:
             return None
 
         # BFS for shortest path to a known high-reward state
-        frontier: deque[Tuple[str, List[str], int]] = deque([(start_sig, [], 0)])
-        visited: Set[str] = {start_sig}
-        best_plan: Optional[List[str]] = None
+        frontier: deque[tuple[str, list[str], int]] = deque([(start_sig, [], 0)])
+        visited: set[str] = {start_sig}
+        best_plan: list[str] | None = None
         best_reward = -float("inf")
 
         while frontier:
@@ -310,15 +322,15 @@ class ExperientialAgent:
         logger.info(f"Saved {len(self.experience_log)} experiences to {path}")
         return path
 
-    def cross_project_learnings(self) -> Dict[str, Any]:
+    def cross_project_learnings(self) -> dict[str, Any]:
         """Extract cross-project learnings for Cohezion core improvement.
 
         This is the critical feedback loop: what did we learn about
         interactive reasoning that improves CompoundLoop, Ouroboros, etc?
         """
         # Analyze experience for patterns
-        action_rewards: Dict[str, List[float]] = {}
-        state_outcomes: Dict[str, List[float]] = {}
+        action_rewards: dict[str, list[float]] = {}
+        state_outcomes: dict[str, list[float]] = {}
 
         for exp in self.experience_log:
             action_rewards.setdefault(exp.action, []).append(exp.reward)
@@ -333,9 +345,7 @@ class ExperientialAgent:
 
         # Find dangerous states
         dangerous_states = [
-            (s, sum(rs) / len(rs))
-            for s, rs in state_outcomes.items()
-            if sum(rs) / len(rs) < -0.5
+            (s, sum(rs) / len(rs)) for s, rs in state_outcomes.items() if sum(rs) / len(rs) < -0.5
         ]
 
         # Extract principles for Cohezion vault
@@ -344,7 +354,9 @@ class ExperientialAgent:
             principles.append(f"Action {best_actions[0][0]} has highest avg reward")
         if len(dangerous_states) > 0:
             principles.append(f"Identified {len(dangerous_states)} dangerous states")
-        principles.append(f"Built world model with {len(self.world_model.get_known_states())} states")
+        principles.append(
+            f"Built world model with {len(self.world_model.get_known_states())} states"
+        )
 
         return {
             "game_id": self.game_id,
@@ -358,12 +370,12 @@ class ExperientialAgent:
         }
 
 
-def run_experiential_learning_spike(games: List[str], episodes_per_game: int = 3) -> Dict[str, Any]:
+def run_experiential_learning_spike(games: list[str], episodes_per_game: int = 3) -> dict[str, Any]:
     """Run a full experiential learning spike across multiple games."""
     logging.basicConfig(level=logging.INFO, format="%(levelname)s: %(message)s")
 
-    results: Dict[str, List[Dict[str, Any]]] = {}
-    all_learnings: List[Dict[str, Any]] = []
+    results: dict[str, list[dict[str, Any]]] = {}
+    all_learnings: list[dict[str, Any]] = []
 
     for game_id in games:
         logger.info(f"\n{'=' * 50}")

@@ -1,9 +1,11 @@
 #!/usr/bin/env python3
 import asyncio
 import logging
-from cohezion.swarm.team_orchestrator import TeamOrchestrator, TaskSpec
-from cohezion.swarm.team_execution import TeamCompoundExecutor
+
 from cohezion.integrations.agentverse.llm_executor import LLMExecutor
+from cohezion.swarm.team_execution import TeamCompoundExecutor
+from cohezion.swarm.team_orchestrator import TaskSpec, TeamOrchestrator
+
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)

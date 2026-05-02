@@ -6,13 +6,14 @@ Implements the la-phase loop with a HIHO Stability Guard and
 from __future__ import annotations
 
 import logging
-from typing import Any, Dict, Optional
+
 from pydantic import BaseModel
 
-from cohezion.compound.executor import CompoundExecutor
-from cohezion.compound.stability_guard import HIHOStabilityGuard, StabilityCheckResult
 from cohezion.agents.specialists.ecoresilience_agent import EcoResilienceAgent
+from cohezion.compound.executor import CompoundExecutor
+from cohezion.compound.stability_guard import HIHOStabilityGuard
 from cohezion.flume.manifolds.translator import ManifoldProjection
+
 
 logger = logging.getLogger(__name__)
 
@@ -51,7 +52,7 @@ class EcoResilienceCompoundLoop:
         """
         iteration = 0
         current_strategy = ""
-        last_projection: Optional[ManifoldProjection] = None
+        last_projection: ManifoldProjection | None = None
 
         while iteration < max_retries:
             iteration += 1

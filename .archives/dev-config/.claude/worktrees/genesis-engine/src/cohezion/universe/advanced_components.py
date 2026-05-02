@@ -140,9 +140,7 @@ class KordylewskiSwarmEngine:
                 theta_l4 = np.pi / 3.0
                 theta_l5 = -np.pi / 3.0
 
-                helicity = (
-                    evo_states[i].magnetic_helicity if (evo_states and i < len(evo_states)) else 0.0
-                )
+                helicity = evo_states[i].magnetic_helicity if (evo_states and i < len(evo_states)) else 0.0
                 theta = theta_l4 if helicity >= 0 else theta_l5
 
                 c, s = float(np.cos(theta)), float(np.sin(theta))
@@ -185,9 +183,7 @@ class PlasmaMCPEngine:
 
         async with httpx.AsyncClient(timeout=5.0) as client:
             try:
-                resp = await client.post(
-                    f"{self.base_url}/plasma_create_simulation", json={"grid_size": 128}
-                )
+                resp = await client.post(f"{self.base_url}/plasma_create_simulation", json={"grid_size": 128})
                 resp.raise_for_status()
                 data = resp.json()
                 if "simulation_id" in data:

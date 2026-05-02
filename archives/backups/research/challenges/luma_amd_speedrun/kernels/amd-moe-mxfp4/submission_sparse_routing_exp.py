@@ -32,16 +32,16 @@ from __future__ import annotations
 
 import os
 import sys
-from typing import Tuple
+
 
 os.environ["PYTORCH_ROCM_ARCH"] = "gfx950"
 os.environ["CXX"] = "clang++"
 
 import torch
+from reference import ref_kernel
+from task import input_t, output_t
 from torch.utils.cpp_extension import load_inline
 
-from task import input_t, output_t
-from reference import ref_kernel
 
 # =============================================================================
 # HIP Kernel: Sparse Dynamic Expert Routing
@@ -83,43 +83,43 @@ __device__ void warp_gemm_fp4(
     const int tid = threadIdx.x;
     const int wid = threadIdx.y;
     const int lane = tid & 63;
-    
+
     // Each warp handles a 64x64 tile
     // 64 threads = 1 warp, use MFMA 32x32x64
-    
+
     // Thread mapping for output
     int row = m_start + (lane / 32) * 32 + (lane & 3) + ((lane >> 2) & 7) * 4;
     int col = n_start + (lane & 31);
-    
+
     // Initialize accumulator
     float accum[16];
     #pragma unroll
     for (int i = 0; i < 16; i++) accum[i] = 0.0f;
-    
+
     // K-tiling with MFMA
     int k_blocks = K / 64;
-    
+
     for (int kb = 0; kb < k_blocks; kb++) {
         int k_base = kb * 64;
-        
+
         // Compute scale for this block
         int scale_idx_a = (m_start + (lane >> 5) * 32) * (K / 32) + kb * 2 + ((lane & 31) >> 4);
         int scale_idx_b = (n_start + (lane & 31)) * (K / 32) + kb * 2 + ((lane & 31) >> 4);
-        
+
         float scale_a = e8m0_to_f32(A_scale[scale_idx_a]);
         float scale_b = e8m0_to_f32(B_scale[scale_idx_b]);
         float block_scale = scale_a * scale_b;
-        
+
         // Load A and B tiles
         // Simplified: load directly without LDS for sparse experiment
         typedef int a_reg_t __attribute__((ext_vector_type(8)));
         typedef int b_reg_t __attribute__((ext_vector_type(8)));
         typedef float c_reg_t __attribute__((ext_vector_type(16)));
-        
+
         a_reg_t a_reg;
         b_reg_t b_reg;
         c_reg_t c_reg;
-        
+
         // Load A (first 16 bytes used)
         const uint8_t* a_ptr = A_q + (m_start + (lane & 31)) * (K / 2) + k_base / 2 + (lane >> 5) * 16;
         uint8_t* a_bytes = (uint8_t*)&a_reg;
@@ -129,7 +129,7 @@ __device__ void warp_gemm_fp4(
         }
         #pragma unroll
         for (int i = 4; i < 8; i++) ((int*)&a_reg)[i] = 0;
-        
+
         // Load B (first 16 bytes used)
         const uint8_t* b_ptr = B_q + (n_start + (lane & 31)) * (K / 2) + k_base / 2 + (lane >> 5) * 16;
         uint8_t* b_bytes = (uint8_t*)&b_reg;
@@ -139,34 +139,34 @@ __device__ void warp_gemm_fp4(
         }
         #pragma unroll
         for (int i = 4; i < 8; i++) ((int*)&b_reg)[i] = 0;
-        
+
         // Init accumulator
         #pragma unroll
         for (int i = 0; i < 16; i++) c_reg[i] = accum[i];
-        
+
         // Convert scales to int format
         int sa = (scale_a > 0) ? (int)(log2f(scale_a) + 127) : 0;
         int sb = (scale_b > 0) ? (int)(log2f(scale_b) + 127) : 0;
-        
+
         // MFMA 32x32x64 for FP4
         c_reg = __builtin_amdgcn_mfma_scale_f32_32x32x64_f8f6f4(
             a_reg, b_reg, c_reg, 4, 4, 0, sa, 0, sb
         );
-        
+
         // Apply block scale and accumulate
         #pragma unroll
         for (int i = 0; i < 16; i++) {
             accum[i] = c_reg[i] * block_scale;
         }
     }
-    
+
     // Write output
     #pragma unroll
     for (int r = 0; r < 4; r++) {
         for (int c = 0; c < 4; c++) {
             int out_row = m_start + r * 16 + (lane >> 4) * 4 + (lane & 3);
             int out_col = n_start + c * 8 + (lane & 15) / 4 * 8 + (lane & 3);
-            
+
             if (out_row < m_start + m_size && out_col < n_start + n_size) {
                 int idx = r * 4 + c;
                 C[out_row * N + out_col] = (__hip_bfloat16)accum[idx];
@@ -184,14 +184,14 @@ __global__ void count_tokens_per_expert(
     int num_experts
 ) {
     extern __shared__ int s_counts[];
-    
+
     // Initialize counts to 0
     const int tid = threadIdx.x;
     for (int i = tid; i < num_experts; i += blockDim.x) {
         s_counts[i] = 0;
     }
     __syncthreads();
-    
+
     // Each thread processes some tokens
     for (int t = tid; t < num_tokens * topk; t += blockDim.x) {
         int expert = topk_ids[t];
@@ -200,7 +200,7 @@ __global__ void count_tokens_per_expert(
         }
     }
     __syncthreads();
-    
+
     // Write back
     for (int i = tid; i < num_experts; i += blockDim.x) {
         expert_counts[i] = s_counts[i];
@@ -230,37 +230,37 @@ __global__ void sparse_moe_dispatch_kernel(
     const int bid = blockIdx.x;
     const int warp_id = bid * blockDim.y + wid;
     const int total_warps = gridDim.x * blockDim.y;
-    
+
     // Dynamic assignment: warp_id handles expert_id = warp_id, warp_id + total_warps, etc.
     for (int expert_id = warp_id; expert_id < num_experts; expert_id += total_warps) {
         int token_count = expert_counts[expert_id];
-        
+
         // Skip empty experts (sparse optimization)
         if (token_count == 0) continue;
-        
+
         // Gather tokens assigned to this expert
         // Each warp processes its expert independently
         // This is the key sparse optimization - no sorting needed
-        
+
         for (int t = 0; t < num_tokens; t++) {
             // Check all topk slots for this token
             for (int k = 0; k < topk; k++) {
                 int assigned_expert = topk_ids[t * topk + k];
-                
+
                 if (assigned_expert == expert_id) {
                     float weight = topk_weights[t * topk + k];
-                    
+
                     // Process this token through expert
                     // gate_up: [d_model, 2*d_hidden]
                     // down: [d_hidden, d_model]
-                    
+
                     // Step 1: hidden @ gate_up (GEMM)
                     // For simplicity, use warp-level accumulation
                     float intermediate[2];  // Placeholder for actual d_hidden
-                    
+
                     // Step 2: GeLU (simplified)
                     // Step 3: @ down (GEMM)
-                    
+
                     // Accumulate weighted result to output
                     for (int d = tid; d < d_model; d += 64) {
                         float val = (__hip_bfloat16)hidden[t * d_model + d];
@@ -288,28 +288,28 @@ void launch_sparse_moe(
     int num_experts
 ) {
     int num_tokens = hidden.size(0);
-    
+
     // Step 1: Count tokens per expert
-    torch::Tensor expert_counts = torch::zeros({num_experts}, 
+    torch::Tensor expert_counts = torch::zeros({num_experts},
         torch::dtype(torch::kInt32).device(hidden.device()));
-    
+
     dim3 count_threads(256);
     dim3 count_blocks(1);
     size_t shared_size = num_experts * sizeof(int);
-    
+
     count_tokens_per_expert<<<count_blocks, count_threads, shared_size>>>(
         topk_ids.data_ptr<int>(),
         expert_counts.data_ptr<int>(),
         num_tokens, topk, num_experts
     );
-    
+
     // Step 2: Dynamic dispatch
     int warps_per_block = 8;
     int num_blocks = (num_experts + warps_per_block - 1) / warps_per_block;
-    
+
     dim3 threads(64, warps_per_block);
     dim3 blocks(num_blocks);
-    
+
     sparse_moe_dispatch_kernel<<<blocks, threads>>>(
         reinterpret_cast<const __hip_bfloat16*>(hidden.data_ptr()),
         gate_up_q.data_ptr<uint8_t>(),

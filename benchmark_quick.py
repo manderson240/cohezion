@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 """Quick benchmark to confirm optimal throughput."""
+
 import asyncio
 import time
 
@@ -26,26 +27,32 @@ async def main():
 
     async with aiohttp.ClientSession(connector=connector) as session:
         # Warm-up
-        await session.post(url, json={
-            "model": model,
-            "messages": [{"role": "user", "content": "Say ready"}],
-            "max_tokens": 10,
-        })
+        await session.post(
+            url,
+            json={
+                "model": model,
+                "messages": [{"role": "user", "content": "Say ready"}],
+                "max_tokens": 10,
+            },
+        )
 
         # 4 concurrent requests
         prompts = [f"Write a haiku about ML topic {i}." for i in range(4)]
 
         start = time.monotonic()
         tasks = [
-            session.post(url, json={
-                "model": model,
-                "messages": [
-                    {"role": "system", "content": "You are a helpful assistant."},
-                    {"role": "user", "content": p}
-                ],
-                "max_tokens": 40,
-                "temperature": 0.7,
-            })
+            session.post(
+                url,
+                json={
+                    "model": model,
+                    "messages": [
+                        {"role": "system", "content": "You are a helpful assistant."},
+                        {"role": "user", "content": p},
+                    ],
+                    "max_tokens": 40,
+                    "temperature": 0.7,
+                },
+            )
             for p in prompts
         ]
 
@@ -69,6 +76,7 @@ async def main():
         print("METRIC concurrency=4")
 
         return tps
+
 
 if __name__ == "__main__":
     tps = asyncio.run(main())

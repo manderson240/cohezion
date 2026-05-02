@@ -14,15 +14,17 @@ D output: row = (r%4) + (r/4)*8 + (tid/32)*4, col = tid%32
 
 import os
 
+
 os.environ["PYTORCH_ROCM_ARCH"] = "gfx950"
 os.environ["CXX"] = "clang++"
 
 import torch
-from torch.utils.cpp_extension import load_inline
 from aiter import dtypes
 from aiter.ops.triton.quant import dynamic_mxfp4_quant
 from aiter.utility.fp4_utils import e8m0_shuffle
 from task import input_t, output_t
+from torch.utils.cpp_extension import load_inline
+
 
 HIP_SOURCE = r"""
 #include <torch/extension.h>
@@ -41,17 +43,17 @@ typedef float c_reg_t __attribute__((ext_vector_type(16)));
 #define TILE_K_BYTES 32
 #define WAVESIZE 64
 
-__device__ __forceinline__ int e8m0_unshuffle(int idx, int N, int K_scale) { 
-    int row = idx / K_scale; 
-    int col = idx % K_scale; 
-    int i = row, j = col; 
-    return ((i/32)*32 + (j/8)*8 + (i%2)*4 + (j%8/4)*2 + (i%4/2)*1)*K_scale + (j%4); 
+__device__ __forceinline__ int e8m0_unshuffle(int idx, int N, int K_scale) {
+    int row = idx / K_scale;
+    int col = idx % K_scale;
+    int i = row, j = col;
+    return ((i/32)*32 + (j/8)*8 + (i%2)*4 + (j%8/4)*2 + (i%4/2)*1)*K_scale + (j%4);
 }
-__device__ __forceinline__ int e8m0_unshuffle(int idx, int N, int K_scale) { 
-    int row = idx / K_scale; 
-    int col = idx % K_scale; 
-    int i = row, j = col; 
-    return ((i/32)*32 + (j/8)*8 + (i%2)*4 + (j%8/4)*2 + (i%4/2)*1)*K_scale + (j%4); 
+__device__ __forceinline__ int e8m0_unshuffle(int idx, int N, int K_scale) {
+    int row = idx / K_scale;
+    int col = idx % K_scale;
+    int i = row, j = col;
+    return ((i/32)*32 + (j/8)*8 + (i%2)*4 + (j%8/4)*2 + (i%4/2)*1)*K_scale + (j%4);
 }
 __global__ void mxfp4_gemm_exact(
     const uint8_t* __restrict__ A,   // [M, K/2] row-major

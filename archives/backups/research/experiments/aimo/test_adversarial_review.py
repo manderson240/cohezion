@@ -8,7 +8,6 @@ Generates new tests targeting identified gaps.
 import ast
 import os
 from dataclasses import dataclass
-from typing import Dict, List
 
 import pytest
 
@@ -17,10 +16,10 @@ import pytest
 class CritiqueReport:
     """Report from adversarial test review."""
 
-    coverage_gaps: List[str]
-    optimistic_assumptions: List[str]
-    missing_edge_cases: List[str]
-    refinement_actions: List[str]
+    coverage_gaps: list[str]
+    optimistic_assumptions: list[str]
+    missing_edge_cases: list[str]
+    refinement_actions: list[str]
 
 
 class AdversarialTestReviewer:
@@ -30,7 +29,7 @@ class AdversarialTestReviewer:
         self.test_dir = test_dir or os.path.dirname(os.path.abspath(__file__))
         self.test_files = self._discover_test_files()
 
-    def _discover_test_files(self) -> List[str]:
+    def _discover_test_files(self) -> list[str]:
         """Find all test Python files."""
         files = []
         for f in os.listdir(self.test_dir):
@@ -40,7 +39,7 @@ class AdversarialTestReviewer:
 
     def review_test_suite(self, test_file: str) -> CritiqueReport:
         """Review a single test file for gaps."""
-        with open(test_file, "r") as f:
+        with open(test_file) as f:
             content = f.read()
             tree = ast.parse(content)
 
@@ -120,7 +119,7 @@ class AdversarialTestReviewer:
             refinement_actions=actions,
         )
 
-    def review_all_suites(self) -> Dict[str, CritiqueReport]:
+    def review_all_suites(self) -> dict[str, CritiqueReport]:
         """Review all test suites."""
         reports = {}
         for test_file in self.test_files:
@@ -320,7 +319,7 @@ class TestAdversarialReviewIntegration:
         test_count = 0
 
         for test_file in reviewer.test_files:
-            with open(test_file, "r") as f:
+            with open(test_file) as f:
                 content = f.read()
                 test_count += content.count("def test_")
 

@@ -4,15 +4,15 @@ This test verifies that the retry logic with exponential backoff
 and circuit breaker pattern is working correctly.
 """
 
-import asyncio
-import pytest
 from unittest.mock import AsyncMock, MagicMock, patch
+
 import httpx
+import pytest
 
 from cohezion.integrations.agentverse.llm_executor import (
-    LLMExecutor,
-    CircuitBreaker,
     RETRYABLE_STATUS_CODES,
+    CircuitBreaker,
+    LLMExecutor,
 )
 
 
@@ -94,11 +94,10 @@ class TestRetryLogic:
             executor._client,
             "post",
             new=AsyncMock(side_effect=[mock_response_500, mock_response_200]),
-        ):
-            with patch("asyncio.sleep", new=AsyncMock()):
-                result = await executor._generate("Prompt", "test_model")
-                assert result == "Success after retry!"
-                assert executor._client.post.call_count == 2
+        ), patch("asyncio.sleep", new=AsyncMock()):
+            result = await executor._generate("Prompt", "test_model")
+            assert result == "Success after retry!"
+            assert executor._client.post.call_count == 2
 
     @pytest.mark.asyncio
     async def test_retry_on_429_rate_limit(self):
@@ -117,10 +116,9 @@ class TestRetryLogic:
             executor._client,
             "post",
             new=AsyncMock(side_effect=[mock_response_429, mock_response_200]),
-        ):
-            with patch("asyncio.sleep", new=AsyncMock()):
-                result = await executor._generate("Prompt", "test_model")
-                assert result == "Success!"
+        ), patch("asyncio.sleep", new=AsyncMock()):
+            result = await executor._generate("Prompt", "test_model")
+            assert result == "Success!"
 
     @pytest.mark.asyncio
     async def test_circuit_breaker_opens_after_max_retries(self):
@@ -135,13 +133,12 @@ class TestRetryLogic:
             executor._client,
             "post",
             new=AsyncMock(return_value=mock_response_500),
-        ):
-            with patch("asyncio.sleep", new=AsyncMock()):
-                with pytest.raises(RuntimeError) as exc_info:
-                    await executor._generate("Prompt", "test_model", max_retries=3)
+        ), patch("asyncio.sleep", new=AsyncMock()):
+            with pytest.raises(RuntimeError) as exc_info:
+                await executor._generate("Prompt", "test_model", max_retries=3)
 
-                assert "Ollama API error 500" in str(exc_info.value)
-                assert executor._client.post.call_count == 3
+            assert "Ollama API error 500" in str(exc_info.value)
+            assert executor._client.post.call_count == 3
 
     @pytest.mark.asyncio
     async def test_timeout_triggers_retry(self):
@@ -158,12 +155,11 @@ class TestRetryLogic:
                     httpx.TimeoutException("Timeout"),
                 ]
             ),
-        ):
-            with patch("asyncio.sleep", new=AsyncMock()):
-                with pytest.raises(RuntimeError) as exc_info:
-                    await executor._generate("Prompt", "test_model", max_retries=3)
+        ), patch("asyncio.sleep", new=AsyncMock()):
+            with pytest.raises(RuntimeError) as exc_info:
+                await executor._generate("Prompt", "test_model", max_retries=3)
 
-                assert "Timeout calling test_model" in str(exc_info.value)
+            assert "Timeout calling test_model" in str(exc_info.value)
 
 
 class TestCircuitBreakerIntegration:

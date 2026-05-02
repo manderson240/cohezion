@@ -134,9 +134,7 @@ def _write_skill(tmp_path: Path, stem: str, body: str) -> Path:
 
 
 def test_migrate_file_dry_run_does_not_write(tmp_path) -> None:
-    path = _write_skill(
-        tmp_path, "TEST_PRIME", "# SKILL\n\n## DOMAIN EXPERTISE\n\nA test.\n"
-    )
+    path = _write_skill(tmp_path, "TEST_PRIME", "# SKILL\n\n## DOMAIN EXPERTISE\n\nA test.\n")
     original = path.read_text()
     status, _ = m.migrate_file(path, {"TEST_PRIME": {"version": "v1"}}, apply=False)
     assert status == "migrated"
@@ -172,21 +170,15 @@ def test_migrate_file_skips_non_prime(tmp_path) -> None:
 
 
 def test_main_dry_run_exits_0_no_writes(tmp_path, capsys) -> None:
-    _write_skill(
-        tmp_path, "TEST_PRIME", "# SKILL\n\n## DOMAIN EXPERTISE\n\nA test.\n"
-    )
-    (tmp_path / "skill_registry.json").write_text(
-        json.dumps({"TEST_PRIME": {"version": "v1"}})
-    )
+    _write_skill(tmp_path, "TEST_PRIME", "# SKILL\n\n## DOMAIN EXPERTISE\n\nA test.\n")
+    (tmp_path / "skill_registry.json").write_text(json.dumps({"TEST_PRIME": {"version": "v1"}}))
     rc = m.main(["--skills-dir", str(tmp_path)])
     assert rc == 0
     assert not (tmp_path / "TEST_PRIME.md").read_text().startswith("---")
 
 
 def test_main_apply_writes_and_backs_up(tmp_path, capsys) -> None:
-    _write_skill(
-        tmp_path, "TEST_PRIME", "# SKILL\n\n## DOMAIN EXPERTISE\n\nA test.\n"
-    )
+    _write_skill(tmp_path, "TEST_PRIME", "# SKILL\n\n## DOMAIN EXPERTISE\n\nA test.\n")
     (tmp_path / "skill_registry.json").write_text(
         json.dumps({"TEST_PRIME": {"version": "v1", "concepts": ["C1"]}})
     )

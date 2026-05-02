@@ -39,18 +39,19 @@ Performance Characteristics:
 """
 
 from __future__ import annotations
+
 import os
-import math
+
 
 os.environ["PYTORCH_ROCM_ARCH"] = "gfx950"
 
-import torch
-from task import input_t, output_t
-
 # Import aiter for fallback
 import aiter
+import torch
 from aiter import dtypes as aiter_dtypes
 from aiter import get_mla_metadata_info_v1, get_mla_metadata_v1, mla_reduce_v1
+from task import input_t, output_t
+
 
 # Sparse block configuration
 BLOCK_SIZE = 256  # Tokens per block

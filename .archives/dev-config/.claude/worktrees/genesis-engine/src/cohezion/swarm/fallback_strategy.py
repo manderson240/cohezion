@@ -580,9 +580,7 @@ class FallbackStrategy:
         Returns:
             Dict mapping model name → metrics
         """
-        return {
-            model: breaker.metrics for model, breaker in self.circuit_breakers.items()
-        }
+        return {model: breaker.metrics for model, breaker in self.circuit_breakers.items()}
 
     def get_fallback_stats(self) -> dict:
         """Get fallback statistics.

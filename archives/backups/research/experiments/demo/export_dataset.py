@@ -197,7 +197,7 @@ def export_with_bridge(trajectories, output_dir: Path) -> dict[str, Path]:
 
         dataset = ExperienceDataset(output_dir=output_dir)
         paths = dataset.export_all(trajectories)
-        print(f"[OK] Exported via cohezion ExperienceDataset")
+        print("[OK] Exported via cohezion ExperienceDataset")
         return paths
 
     except ImportError:
@@ -338,7 +338,7 @@ def export_standalone(trajectories, output_dir: Path) -> dict[str, Path]:
 def print_export_summary(paths: dict[str, Path]):
     """Print summary of exported data."""
     print(f"\n{'=' * 70}")
-    print(f"  Export Summary")
+    print("  Export Summary")
     print(f"{'=' * 70}\n")
 
     for name, path in paths.items():
@@ -359,11 +359,11 @@ def print_export_summary(paths: dict[str, Path]):
         sample_keys = list(first.keys())
         print(f"  {'':>15} fields: {', '.join(sample_keys)}")
 
-    print(f"\n  Format: JSONL (one JSON object per line)")
-    print(f"  Compatible with: HuggingFace datasets, TRL, DeepSpeed-Chat")
-    print(f"\n  Example usage with HuggingFace datasets:")
-    print(f"    from datasets import load_dataset")
-    print(f"    ds = load_dataset('json', data_files='preferences.jsonl')")
+    print("\n  Format: JSONL (one JSON object per line)")
+    print("  Compatible with: HuggingFace datasets, TRL, DeepSpeed-Chat")
+    print("\n  Example usage with HuggingFace datasets:")
+    print("    from datasets import load_dataset")
+    print("    ds = load_dataset('json', data_files='preferences.jsonl')")
     print(f"{'=' * 70}")
 
 

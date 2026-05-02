@@ -6,6 +6,7 @@ import re
 import sys
 from datetime import datetime
 
+from cohezion.ui.nexus_ui import ConsciousnessIgnition, NexusUI
 from rich.align import Align
 from rich.console import Console
 from rich.layout import Layout
@@ -16,7 +17,6 @@ from rich.table import Table
 from rich.text import Text
 
 from cohezion.branding import Colors
-from cohezion.ui.nexus_ui import ConsciousnessIgnition, NexusUI
 
 
 # Configuration
@@ -221,8 +221,9 @@ class TerminalNexus:
 
 async def cmd_research(args):
     """Run the Nexus Research Miner."""
-    from cohezion.branding import Colors
     from cohezion.swarm.agents.nexus_research_agent import NexusResearchAgent
+
+    from cohezion.branding import Colors
 
     console = Console()
     console.print(

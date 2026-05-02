@@ -9,10 +9,10 @@ MLA Final Push: Hybrid BF16/ASM Strategy.
 """
 
 import torch
-import aiter
-from aiter.mla import mla_decode_stage1_asm_fwd, mla_reduce_v1
 from aiter import get_mla_metadata_info_v1, get_mla_metadata_v1
+from aiter.mla import mla_decode_stage1_asm_fwd, mla_reduce_v1
 from task import input_t, output_t
+
 
 # Architecture Constants
 NUM_HEADS = 16

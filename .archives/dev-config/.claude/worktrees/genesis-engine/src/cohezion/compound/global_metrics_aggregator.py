@@ -153,9 +153,7 @@ class GlobalMetricsAggregator:
         if self._data_dir:
             self._data_dir.mkdir(parents=True, exist_ok=True)
 
-    def record_instance_metrics(
-        self, instance_id: str, metrics: InstanceMetrics
-    ) -> None:
+    def record_instance_metrics(self, instance_id: str, metrics: InstanceMetrics) -> None:
         """Record metrics from a single instance.
 
         Parameters
@@ -195,9 +193,7 @@ class GlobalMetricsAggregator:
         total_executions = metrics.total_tasks
         total_successes = sum(w.successes for w in metrics.waves)
 
-        avg_duration = (
-            metrics.total_duration_ms / len(metrics.waves) if metrics.waves else 0.0
-        )
+        avg_duration = metrics.total_duration_ms / len(metrics.waves) if metrics.waves else 0.0
 
         instance_metrics = InstanceMetrics(
             instance_id=instance_id,

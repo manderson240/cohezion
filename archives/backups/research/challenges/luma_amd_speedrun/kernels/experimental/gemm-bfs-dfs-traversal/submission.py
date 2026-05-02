@@ -26,11 +26,12 @@ Graph-based scheduling for sparse matrices adapted to dense tiled execution.
 """
 
 from __future__ import annotations
+
 import os
 import sys
-import math
+from typing import Literal
+
 import torch
-from typing import Literal, Tuple, List
 from aiter import dtypes
 from aiter.ops.triton.quant import dynamic_mxfp4_quant
 from aiter.utility.fp4_utils import e8m0_shuffle
@@ -121,7 +122,7 @@ class MatrixTraversalScheduler:
         else:
             return "dfs"
 
-    def get_bfs_schedule(self) -> List[List[Tuple[int, int]]]:
+    def get_bfs_schedule(self) -> list[list[tuple[int, int]]]:
         """
         Generate BFS wavefront schedule.
 
@@ -143,7 +144,7 @@ class MatrixTraversalScheduler:
 
         return waves
 
-    def get_dfs_schedule(self) -> List[List[Tuple[int, int, int]]]:
+    def get_dfs_schedule(self) -> list[list[tuple[int, int, int]]]:
         """
         Generate DFS chain schedule.
 
@@ -164,7 +165,7 @@ class MatrixTraversalScheduler:
 
         return chains
 
-    def get_tile_bounds(self, tm: int, tn: int, tk: int = 0) -> Tuple[int, int, int, int, int, int]:
+    def get_tile_bounds(self, tm: int, tn: int, tk: int = 0) -> tuple[int, int, int, int, int, int]:
         """
         Get actual bounds for a tile.
 

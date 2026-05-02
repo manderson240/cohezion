@@ -96,9 +96,7 @@ class PeakedCircuitSolver:
                     theta, phi, lam = params
                     self.circ.apply_gate("U3", theta, phi, lam, q)
 
-            logger.info(
-                f"Circuit loaded manually. Qubits: {self.circ.N}, Gates: {len(self.circ.gates)}"
-            )
+            logger.info(f"Circuit loaded manually. Qubits: {self.circ.N}, Gates: {len(self.circ.gates)}")
 
         except Exception as e:
             logger.error(f"Failed to load circuit: {e}")
@@ -267,9 +265,7 @@ class PeakedCircuitSolver:
                             inplace=True,
                         )
                 except Exception as e:
-                    logger.error(
-                        f"Gate application failed at step {i} (Gate {name}). Target sites: {target_sites}"
-                    )
+                    logger.error(f"Gate application failed at step {i} (Gate {name}). Target sites: {target_sites}")
                     logger.error(f"Tensor Count: {len(psi_mps.tensors)}")
                     raise e
 

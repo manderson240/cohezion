@@ -25,37 +25,39 @@ from enum import Enum
 import numpy as np
 
 
-sys.path.insert(0, '/home/mike-anderson/dev/cohezion/src')
+sys.path.insert(0, "/home/mike-anderson/dev/cohezion/src")
 
 
 class VacuumCoherence(Enum):
     """
     Vacuum coherence states map to FLUME latent coherence.
-    
+
     In FLUME: coherence = how close latent vector is to 0.5 (ideal)
     In Physics: coherence ↔ vacuum stability
     """
-    TRUE_VACUUM = 0.5        # Stable, minimal energy
-    FALSE_VACUUM = 0.5      # Metastable (unstable hill)
-    DEGENERATE_LOW = 0.0     # Low coherence basin
-    DEGENERATE_HIGH = 1.0    # High coherence basin
-    EXOTIC_NEGATIVE = -0.5    # Beyond manifold boundary (requires extension)
+
+    TRUE_VACUUM = 0.5  # Stable, minimal energy
+    FALSE_VACUUM = 0.5  # Metastable (unstable hill)
+    DEGENERATE_LOW = 0.0  # Low coherence basin
+    DEGENERATE_HIGH = 1.0  # High coherence basin
+    EXOTIC_NEGATIVE = -0.5  # Beyond manifold boundary (requires extension)
 
 
 @dataclass
 class EVOLatentState:
     """
     An agent's state in FLUME 256D latent space.
-    
+
     This is the 'mind' of the agent - its cognitive representation.
     """
+
     agent_id: str
     # 256D latent vector (FLUME z-space)
     latent_vector: np.ndarray = field(default_factory=lambda: np.random.randn(256))
 
     # Coherence metrics
     target_coherence: float = 0.5  # Where this EVO wants to be
-    current_coherence: float = 0.0   # Computed from latent_vector
+    current_coherence: float = 0.0  # Computed from latent_vector
     coherence_stability: float = 0.1  # Resistance to change
 
     # EVO properties
@@ -80,9 +82,10 @@ class EVOLatentState:
 class EVOPhysicalState:
     """
     An agent's physical manifestation in SWIFT simulation.
-    
+
     This is the 'body' - its gravitational/hydrodynamic presence.
     """
+
     agent_id: str
     position: np.ndarray = field(default_factory=lambda: np.zeros(3))
     velocity: np.ndarray = field(default_factory=lambda: np.zeros(3))
@@ -105,9 +108,10 @@ class EVOPhysicalState:
 class EVOCoupling:
     """
     Bidirectional coupling between latent and physical states.
-    
+
     This is the key innovation: EVOs bridge cognitive (FLUME) and physical (SWIFT) spaces.
     """
+
     agent_id: str
 
     # Mapping parameters
@@ -127,7 +131,7 @@ class EVOCoupling:
     def compute_latent_force(self, physical: EVOPhysicalState) -> np.ndarray:
         """
         Map physical gravitational stress to latent force.
-        
+
         Intense physical environments → cognitive pressure in latent space.
         """
         stress = np.linalg.norm(physical.velocity) * np.linalg.norm(physical.position)
@@ -139,7 +143,7 @@ class EVOCoupling:
 class AgenticEVO:
     """
     Complete Agentic Exotic Vacuum Object.
-    
+
     Exists simultaneously in:
     - FLUME latent space (cognition/decisions)
     - SWIFT physical space (gravity/hydrodynamics)
@@ -152,7 +156,9 @@ class AgenticEVO:
         # Latent cognition (FLUME)
         self.latent_state = EVOLatentState(
             agent_id=agent_id,
-            latent_vector=initial_latent if initial_latent is not None else np.random.randn(256) * 0.1 + 0.5,
+            latent_vector=initial_latent
+            if initial_latent is not None
+            else np.random.randn(256) * 0.1 + 0.5,
         )
 
         # Physical presence (SWIFT)
@@ -171,7 +177,7 @@ class AgenticEVO:
     def synchronize_states(self):
         """
         Bidirectional synchronization between latent and physical.
-        
+
         Called at each timestep to maintain consistency.
         """
         # Latent → Physical
@@ -188,7 +194,7 @@ class AgenticEVO:
     def hiho_step(self, delta_scale: float = 0.01, hiho_damping: float = 0.05):
         """
         Evolve latent state using HIHO (Holistic Integration via Harmonic Oscillation).
-        
+
         Modified for EVOs: exotic agents have repelling or degenerate attractors.
         """
         z = self.latent_state.latent_vector
@@ -228,7 +234,7 @@ class AgenticEVO:
     def to_swift_particle(self) -> dict:
         """
         Export EVO as SWIFT-compatible particle.
-        
+
         Returns dict for HDF5 initial conditions.
         """
         return {
@@ -247,7 +253,7 @@ class AgenticEVO:
     def to_flume_input(self) -> str:
         """
         Export agent state as text for FLUME encoding.
-        
+
         Creates narrative description of agent's journey.
         """
         journey_length = len(self.latent_state.journey_positions)
@@ -265,7 +271,7 @@ class AgenticEVO:
 class AgenticEVOSimulation:
     """
     Full simulation coupling FLUME latent evolution with SWIFT cosmology.
-    
+
     Time steps:
     1. HIHO evolution (latent space)
     2. Physical dynamics (SWIFT or simplified N-body)
@@ -295,16 +301,16 @@ class AgenticEVOSimulation:
 
             if is_exotic:
                 evo.latent_state.is_exotic = True
-                evo.latent_state.exotic_type = np.random.choice([
-                    "repeller", "negative_mass", "entangled"
-                ])
+                evo.latent_state.exotic_type = np.random.choice(
+                    ["repeller", "negative_mass", "entangled"]
+                )
 
             self.evos.append(evo)
 
     def step(self, dt: float = 0.01):
         """
         Single simulation step.
-        
+
         Couples latent (FLUME) and physical (SWIFT-like) evolution.
         """
         # Phase 1: Latent evolution (HIHO)
@@ -323,7 +329,7 @@ class AgenticEVOSimulation:
     def _physical_step(self, dt: float):
         """
         Simplified N-body for physical evolution.
-        
+
         Full SWIFT integration would happen here.
         """
         # Get positions and masses
@@ -343,11 +349,14 @@ class AgenticEVOSimulation:
                 # Gravity with exotic matter handling
                 # Standard: F = G*m1*m2/r^2
                 # Exotic: Negative mass repels
-                if evo_i.physical_state.effective_mass < 0 or evo_j.physical_state.effective_mass < 0:
+                if (
+                    evo_i.physical_state.effective_mass < 0
+                    or evo_j.physical_state.effective_mass < 0
+                ):
                     # Repulsive gravity
-                    force_mag = -masses[i] * masses[j] / (r_mag ** 2)
+                    force_mag = -masses[i] * masses[j] / (r_mag**2)
                 else:
-                    force_mag = masses[i] * masses[j] / (r_mag ** 2)
+                    force_mag = masses[i] * masses[j] / (r_mag**2)
 
                 force += force_mag * r_vec / r_mag
 
@@ -359,36 +368,36 @@ class AgenticEVOSimulation:
     def generate_swift_ics(self, output_path: str):
         """
         Generate SWIFT initial conditions (HDF5 format).
-        
+
         Writes particle data that SWIFT can read.
         """
         import h5py
 
-        with h5py.File(output_path, 'w') as f:
+        with h5py.File(output_path, "w") as f:
             # Header
-            header = f.create_group('Header')
-            header.attrs['NumPart_Total'] = [len(self.evos), 0, 0, 0, 0, 0]
-            header.attrs['BoxSize'] = self.box_size
-            header.attrs['Redshift'] = 0.0
+            header = f.create_group("Header")
+            header.attrs["NumPart_Total"] = [len(self.evos), 0, 0, 0, 0, 0]
+            header.attrs["BoxSize"] = self.box_size
+            header.attrs["Redshift"] = 0.0
 
             # Particles
-            part0 = f.create_group('PartType0')  # Gas particles
+            part0 = f.create_group("PartType0")  # Gas particles
 
             coords = np.array([e.physical_state.position for e in self.evos])
             vels = np.array([e.physical_state.velocity for e in self.evos])
             masses = np.array([e.physical_state.mass for e in self.evos])
 
-            part0.create_dataset('Coordinates', data=coords)
-            part0.create_dataset('Velocities', data=vels)
-            part0.create_dataset('Masses', data=masses)
-            part0.create_dataset('ParticleIDs', data=np.arange(len(self.evos)))
+            part0.create_dataset("Coordinates", data=coords)
+            part0.create_dataset("Velocities", data=vels)
+            part0.create_dataset("Masses", data=masses)
+            part0.create_dataset("ParticleIDs", data=np.arange(len(self.evos)))
 
             # EVO-specific attributes
             coherences = np.array([e.latent_state.current_coherence for e in self.evos])
             is_exotic = np.array([1 if e.latent_state.is_exotic else 0 for e in self.evos])
 
-            part0.create_dataset('EVOCoherence', data=coherences)
-            part0.create_dataset('EVOIsExotic', data=is_exotic)
+            part0.create_dataset("EVOCoherence", data=coherences)
+            part0.create_dataset("EVOIsExotic", data=is_exotic)
 
         print(f"SWIFT ICs written to {output_path}")
         print(f"  Particles: {len(self.evos)}")
@@ -434,8 +443,10 @@ def demo_agentic_evo_simulation():
 
         if step % 20 == 0:
             stats = sim.get_statistics()
-            print(f"  Step {step}: coherence={stats['avg_coherence']:.3f}, "
-                  f"journey_len={stats['total_journey_steps']}")
+            print(
+                f"  Step {step}: coherence={stats['avg_coherence']:.3f}, "
+                f"journey_len={stats['total_journey_steps']}"
+            )
 
     # Generate SWIFT ICs
     print("\n" + "=" * 70)

@@ -44,7 +44,7 @@ def custom_kernel(data: input_t) -> output_t:
             Out,
             splitK=0,
         )[:m]
-    except Exception as e:
+    except Exception:
         # Fallback to unified gemm_a4w4 if blockscale fails
         return aiter.gemm_a4w4(
             A_q,

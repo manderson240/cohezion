@@ -50,7 +50,14 @@ def grids_equal(a: list, b: list) -> bool:
     return True
 
 
-def evaluate_solver(solver_module, tasks: dict, solutions: dict, max_tasks: int = None, budget: int = 5000, max_depth: int = 3) -> tuple[float, int, int]:
+def evaluate_solver(
+    solver_module,
+    tasks: dict,
+    solutions: dict,
+    max_tasks: int = None,
+    budget: int = 5000,
+    max_depth: int = 3,
+) -> tuple[float, int, int]:
     """
     Evaluate solver on ARC tasks.
 
@@ -125,9 +132,14 @@ def evaluate_solver(solver_module, tasks: dict, solutions: dict, max_tasks: int 
 
 def main():
     import argparse
+
     parser = argparse.ArgumentParser()
-    parser.add_argument("--solver", type=Path, default=DEFAULT_SOLVER, help="Path to arc_solver.py variant")
-    parser.add_argument("--max-tasks", type=int, default=None, help="Max tasks to evaluate (for quick smoke test)")
+    parser.add_argument(
+        "--solver", type=Path, default=DEFAULT_SOLVER, help="Path to arc_solver.py variant"
+    )
+    parser.add_argument(
+        "--max-tasks", type=int, default=None, help="Max tasks to evaluate (for quick smoke test)"
+    )
     parser.add_argument("--budget", type=int, default=5000, help="Search budget per task")
     parser.add_argument("--max-depth", type=int, default=3, help="Max program depth")
     args = parser.parse_args()
@@ -149,8 +161,12 @@ def main():
 
     start = time.time()
     solve_rate, correct, total = evaluate_solver(
-        solver, challenges, solutions,
-        max_tasks=args.max_tasks, budget=args.budget, max_depth=args.max_depth
+        solver,
+        challenges,
+        solutions,
+        max_tasks=args.max_tasks,
+        budget=args.budget,
+        max_depth=args.max_depth,
     )
     elapsed = time.time() - start
 

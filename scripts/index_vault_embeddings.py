@@ -56,7 +56,7 @@ def find_indexable_files(
 
 async def index_file(
     path: Path,
-    model: "GeminiEmbeddingModel",
+    model: GeminiEmbeddingModel,
     dry_run: bool = False,
 ) -> tuple[bool, bool]:
     """Index a single file. Returns (success, was_cached)."""

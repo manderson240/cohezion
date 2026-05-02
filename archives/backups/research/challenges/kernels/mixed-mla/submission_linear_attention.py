@@ -7,10 +7,11 @@ Key insight: Linear attention uses feature maps to transform
 attention into a form computable with cumulative sums.
 """
 
-import torch
 import math
 
+import torch
 from task import input_t, output_t
+
 
 SM_SCALE = 1.0 / math.sqrt(576)
 QK_HEAD_DIM = 576
@@ -96,7 +97,7 @@ def custom_kernel(data: input_t) -> output_t:
 
         return torch.cat(outputs, dim=0)
 
-    except Exception as e:
+    except Exception:
         from reference import ref_kernel
 
         return ref_kernel(data)

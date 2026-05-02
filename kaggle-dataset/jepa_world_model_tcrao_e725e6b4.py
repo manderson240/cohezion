@@ -45,7 +45,9 @@ class ManifoldEncoder(nn.Module):
         super().__init__()
         self.fc1 = nn.Linear(input_dim, 128)
         self.fc2 = nn.Linear(128, embed_dim)
-        self.rotation_transforms = nn.ModuleList([nn.Linear(embed_dim, embed_dim) for _ in range(3)])
+        self.rotation_transforms = nn.ModuleList(
+            [nn.Linear(embed_dim, embed_dim) for _ in range(3)]
+        )
 
     def forward(self, x: torch.Tensor) -> torch.Tensor:
         x = torch.relu(self.fc1(x))

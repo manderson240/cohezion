@@ -5,19 +5,18 @@ Implements Policy Synthesis (AutoHarness) and Topological Routing for cognitive 
 
 from __future__ import annotations
 
-import asyncio
 import logging
-import re
 from dataclasses import dataclass, field
-from typing import Any, Protocol, List
-from pathlib import Path
+from typing import Any, Protocol
 
 import numpy as np
-from cohezion.compound.symbolic_executor import SymbolicExecutor
-from cohezion.flume.tda_detector import TDADetector
-from cohezion.flume.embedding_provider import AsyncOllamaEmbeddingProvider
+
 from cohezion.compound.autoharness import AutoHarnessSynthesizer
+from cohezion.compound.symbolic_executor import SymbolicExecutor
+from cohezion.flume.embedding_provider import AsyncOllamaEmbeddingProvider
+from cohezion.flume.tda_detector import TDADetector
 from cohezion.reliability.viscoelastic import ViscoelasticController
+
 
 logger = logging.getLogger(__name__)
 

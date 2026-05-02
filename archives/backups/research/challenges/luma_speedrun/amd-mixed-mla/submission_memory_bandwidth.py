@@ -24,11 +24,12 @@ Expected: 20-40% speedup on memory-bound shapes
 
 from __future__ import annotations
 
-import os
 import math
+import os
+
 import torch
-from typing import Tuple
 from task import input_t, output_t
+
 
 # Environment
 os.environ["AITER_USE_NT"] = "1"

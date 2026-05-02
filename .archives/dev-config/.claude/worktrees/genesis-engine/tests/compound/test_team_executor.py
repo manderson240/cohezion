@@ -212,9 +212,7 @@ class TestTeamExecutorTopologicalSort:
             AgentTask("task1", "agent1", "Task 1", "generate"),
             AgentTask("task2", "agent2", "Task 2", "analyze", dependencies=["task1"]),
             AgentTask("task3", "agent2", "Task 3", "transform", dependencies=["task1"]),
-            AgentTask(
-                "task4", "agent2", "Task 4", "persist", dependencies=["task2", "task3"]
-            ),
+            AgentTask("task4", "agent2", "Task 4", "persist", dependencies=["task2", "task3"]),
         ]
 
         sorted_tasks = team_executor._topological_sort(tasks)
@@ -248,9 +246,7 @@ class TestDependencyGraph:
             AgentTask("task1", "agent1", "Task 1", "generate"),
             AgentTask("task2", "agent2", "Task 2", "analyze", dependencies=["task1"]),
             AgentTask("task3", "agent2", "Task 3", "transform", dependencies=["task1"]),
-            AgentTask(
-                "task4", "agent2", "Task 4", "persist", dependencies=["task2", "task3"]
-            ),
+            AgentTask("task4", "agent2", "Task 4", "persist", dependencies=["task2", "task3"]),
         ]
 
         graph = team_executor._build_dependency_graph(tasks)
@@ -415,9 +411,7 @@ class TestTaskExecution:
             return_value=[MagicMock(skill_name="skill2", composite_score=0.85)]
         )
 
-        result = await team_executor._execute_task(
-            task, agent, {"task1": parent_result}
-        )
+        result = await team_executor._execute_task(task, agent, {"task1": parent_result})
 
         assert result.success is True
 
@@ -531,11 +525,7 @@ class TestTeamExecution:
     @pytest.mark.asyncio
     async def test_execute_team_single_task(self, team_executor):
         """Test executing a single task."""
-        tasks = [
-            AgentTask(
-                "task1", "agent1", "Generate", "generate", available_skills=["skill1"]
-            )
-        ]
+        tasks = [AgentTask("task1", "agent1", "Generate", "generate", available_skills=["skill1"])]
 
         agent = MagicMock(spec=CompoundExecutor)
         agent.execute_task = MagicMock(
@@ -563,12 +553,8 @@ class TestTeamExecution:
     async def test_execute_team_multiple_tasks(self, team_executor):
         """Test executing multiple independent tasks."""
         tasks = [
-            AgentTask(
-                "task1", "agent1", "Generate", "generate", available_skills=["skill1"]
-            ),
-            AgentTask(
-                "task2", "agent2", "Analyze", "analyze", available_skills=["skill2"]
-            ),
+            AgentTask("task1", "agent1", "Generate", "generate", available_skills=["skill1"]),
+            AgentTask("task2", "agent2", "Analyze", "analyze", available_skills=["skill2"]),
         ]
 
         agent1 = MagicMock(spec=CompoundExecutor)
@@ -610,9 +596,7 @@ class TestTeamExecution:
     async def test_execute_team_with_dependencies(self, team_executor):
         """Test executing tasks with dependencies."""
         tasks = [
-            AgentTask(
-                "task1", "agent1", "Generate", "generate", available_skills=["skill1"]
-            ),
+            AgentTask("task1", "agent1", "Generate", "generate", available_skills=["skill1"]),
             AgentTask(
                 "task2",
                 "agent2",
@@ -679,12 +663,8 @@ class TestTeamExecution:
     async def test_execute_team_partial_failure(self, team_executor):
         """Test handling partial failure."""
         tasks = [
-            AgentTask(
-                "task1", "agent1", "Generate", "generate", available_skills=["skill1"]
-            ),
-            AgentTask(
-                "task2", "agent2", "Analyze", "analyze", available_skills=["skill2"]
-            ),
+            AgentTask("task1", "agent1", "Generate", "generate", available_skills=["skill1"]),
+            AgentTask("task2", "agent2", "Analyze", "analyze", available_skills=["skill2"]),
         ]
 
         agent1 = MagicMock(spec=CompoundExecutor)
@@ -722,9 +702,7 @@ class TestTeamExecutorFactory:
         """Test factory creates team executor."""
         agents = {"agent1": MagicMock(spec=CompoundExecutor)}
 
-        executor = TeamExecutorFactory.create(
-            agents, mock_mcp_client, project="test_project"
-        )
+        executor = TeamExecutorFactory.create(agents, mock_mcp_client, project="test_project")
 
         assert isinstance(executor, TeamExecutor)
         assert len(executor.agents) == 1

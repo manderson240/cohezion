@@ -1,26 +1,27 @@
 from __future__ import annotations
-import numpy as np
+
 import random
+from typing import Any
+
+import numpy as np
 import torch
-import torch.nn.functional as F
-from typing import List, Dict, Any, Optional, Tuple
+from arc_axiomatic import ARCAxiomaticProjector, compute_hiho_stability
 from arc_bioelectric import BioelectricCoupler
 from arc_dsl import ARCDSL
-from arc_jepa import ARCWorldModel
-from arc_ttt_trainer import ARCTTTTrainer
-from arc_manifold_transfer import ARCManifoldTransfer
 from arc_evolutionary_steer import ARCEvolutionarySteer
-from arc_axiomatic import ARCAxiomaticProjector, compute_hiho_stability
+from arc_jepa import ARCWorldModel
+from arc_manifold_transfer import ARCManifoldTransfer
+from arc_ttt_trainer import ARCTTTTrainer
 
 
 class ASTNode:
     """A node in the Abstract Syntax Tree (AST) representing a transformation program."""
 
-    def __init__(self, operation: str, params: Optional[List[Any]] = None):
+    def __init__(self, operation: str, params: list[Any] | None = None):
         self.operation = operation
         self.params = params or []
 
-    def execute(self, grid: np.ndarray, mask: Optional[np.ndarray] = None) -> np.ndarray:
+    def execute(self, grid: np.ndarray, mask: np.ndarray | None = None) -> np.ndarray:
         """Executes the operation on a given grid."""
         try:
             res = grid
@@ -68,7 +69,7 @@ class CosmogonySynthesizer:
         self.transfer = ARCManifoldTransfer()
         self.steer = ARCEvolutionarySteer()
 
-    def synthesize_rule(self, task_id: str, train_pairs: List[Dict[str, Any]]) -> List[ASTNode]:
+    def synthesize_rule(self, task_id: str, train_pairs: list[dict[str, Any]]) -> list[ASTNode]:
         """Runs the spearhead cosmogonic cooling process."""
         print(f"Initiating Refined Cosmogonic Synthesis for Task: {task_id}")
 
@@ -106,8 +107,8 @@ class CosmogonySynthesizer:
         return best_program
 
     def _evolutionary_search(
-        self, train_pairs: List[Dict[str, Any]], seed_summary: Optional[str]
-    ) -> List[ASTNode]:
+        self, train_pairs: list[dict[str, Any]], seed_summary: str | None
+    ) -> list[ASTNode]:
         population = [self._random_ast(random.randint(1, 3)) for _ in range(self.pop_size)]
 
         # Seed population with historical match if available
@@ -156,7 +157,7 @@ class CosmogonySynthesizer:
 
         return scored_population[0][2]
 
-    def _random_ast(self, depth: int = 1) -> List[ASTNode]:
+    def _random_ast(self, depth: int = 1) -> list[ASTNode]:
         program = []
         for _ in range(depth):
             op, num_params = random.choice(self.available_ops)
@@ -173,8 +174,8 @@ class CosmogonySynthesizer:
         return program
 
     def _evaluate(
-        self, program: List[ASTNode], train_pairs: List[Dict[str, Any]]
-    ) -> Tuple[float, float]:
+        self, program: list[ASTNode], train_pairs: list[dict[str, Any]]
+    ) -> tuple[float, float]:
         errors = 0
         total_stability = 0
         for pair in train_pairs:
@@ -200,7 +201,7 @@ class CosmogonySynthesizer:
         avg_stability = total_stability / len(train_pairs)
         return fitness, avg_stability
 
-    def _mutate(self, program: List[ASTNode], rate: float) -> List[ASTNode]:
+    def _mutate(self, program: list[ASTNode], rate: float) -> list[ASTNode]:
         if random.random() > rate:
             return [ASTNode(n.operation, list(n.params)) for n in program]
 
@@ -224,7 +225,7 @@ class CosmogonySynthesizer:
         return new_prog
 
     def execute_program(
-        self, program: List[ASTNode], grid: np.ndarray, mask: Optional[np.ndarray] = None
+        self, program: list[ASTNode], grid: np.ndarray, mask: np.ndarray | None = None
     ) -> np.ndarray:
         """Executes the final precipitated program on a test grid."""
         for node in program:

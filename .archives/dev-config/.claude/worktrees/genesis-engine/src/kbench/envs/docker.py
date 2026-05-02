@@ -44,17 +44,10 @@ class DockerEnvironment(mixins.TemporalDirectoryMixin):
         self.image = image
         self.working_dir = working_dir
 
-        self.mounts = [
-            docker.types.Mount(target, source)
-            for target, source in (mounts or {}).items()
-        ]
+        self.mounts = [docker.types.Mount(target, source) for target, source in (mounts or {}).items()]
 
         # mount working dir to local temporary folder for easier filesystem operations
-        self.mounts.append(
-            docker.types.Mount(
-                target=str(self.directory), source=str(self.working_dir), type="bind"
-            )
-        )
+        self.mounts.append(docker.types.Mount(target=str(self.directory), source=str(self.working_dir), type="bind"))
 
         if client is None:
             client = docker.from_env()
@@ -86,9 +79,7 @@ class DockerEnvironment(mixins.TemporalDirectoryMixin):
             self.container.stop()
             self.container.remove()
 
-    def run(
-        self, command: str | list[str], input: str | None = None
-    ) -> environment.RunResult:
+    def run(self, command: str | list[str], input: str | None = None) -> environment.RunResult:
         """Runs a command in the container."""
         if self.container is None:
             raise RuntimeError("Container was not started")
@@ -99,9 +90,7 @@ class DockerEnvironment(mixins.TemporalDirectoryMixin):
         if not isinstance(command, str):
             command = shlex.join(command)
 
-        result = self.container.exec_run(
-            ["sh", "-c", command], demux=True, workdir=self.working_dir
-        )
+        result = self.container.exec_run(["sh", "-c", command], demux=True, workdir=self.working_dir)
         return environment.RunResult(
             result.exit_code,
             stdout=(result.output[0] or b"").decode(),

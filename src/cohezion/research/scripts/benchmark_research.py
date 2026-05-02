@@ -7,6 +7,7 @@ import time
 from pathlib import Path
 from unittest.mock import Mock
 
+
 # Add src to path
 sys.path.insert(0, str(Path(__file__).parent / "src"))
 
@@ -50,5 +51,5 @@ def benchmark_session(max_experiments: int = 1000) -> float:
 if __name__ == "__main__":
     duration = benchmark_session(1000)
     print(f"METRIC session_duration_s={duration:.6f}")
-    print(f"Session completed: 1000 experiments")
+    print("Session completed: 1000 experiments")
     print(f"Per-experiment: {duration / 1000 * 1e6:.2f} µs")

@@ -14,7 +14,7 @@ Features:
 
 import logging
 from dataclasses import dataclass
-from typing import Any, Dict, List, Optional
+from typing import Any
 
 from failure_logger import FailureLogger
 from knower_auditor import KnowerAuditor
@@ -29,7 +29,7 @@ class RalphLoopConfig:
     """Configuration for Ralph Loop coherence gating."""
 
     coherence_threshold: float = 0.5
-    hiho_threshold: float = 0.45 # Target 0.5, gate at 0.45
+    hiho_threshold: float = 0.45  # Target 0.5, gate at 0.45
     max_iterations: int = 20
     auto_commit: bool = True
     ralph_mode: bool = True
@@ -41,7 +41,7 @@ class AIMOExperiment:
 
     hypothesis_id: str
     hypothesis: str
-    problem_ids: List[str]
+    problem_ids: list[str]
     accuracy: float = 0.0
     stability: float = 0.0
     coherence: float = 0.0
@@ -64,7 +64,7 @@ class AIMOAutoresearchDriver:
 
     def __init__(
         self,
-        ralph_config: Optional[RalphLoopConfig] = None,
+        ralph_config: RalphLoopConfig | None = None,
         benchmark_runner_path: str = "kaggle_benchmark_runner.py",
         failure_log_path: str = "failures",
     ):
@@ -86,7 +86,7 @@ class AIMOAutoresearchDriver:
         logger.info(f"  Ralph coherence threshold: {self.ralph_config.coherence_threshold}")
         logger.info(f"  Max iterations: {self.ralph_config.max_iterations}")
 
-    def run_benchmark(self, problem_ids: Optional[List[str]] = None) -> Dict[str, Any]:
+    def run_benchmark(self, problem_ids: list[str] | None = None) -> dict[str, Any]:
         """
         Run benchmark on reference problems.
 
@@ -131,7 +131,7 @@ class AIMOAutoresearchDriver:
 
         return passed_coherence and passed_hiho
 
-    def propose_mutation(self, failures: List[Dict[str, Any]]) -> str:
+    def propose_mutation(self, failures: list[dict[str, Any]]) -> str:
         """
         Propose mutation based on failure analysis.
 
@@ -198,7 +198,9 @@ class AIMOAutoresearchDriver:
             logger.warning(f"  Unknown mutation: {hypothesis}")
             return False
 
-    async def run_autoresearch_cycle(self, problem_ids: Optional[List[str]] = None) -> Dict[str, Any]:
+    async def run_autoresearch_cycle(
+        self, problem_ids: list[str] | None = None
+    ) -> dict[str, Any]:
         """
         Run single autoresearch cycle:
         1. Benchmark
@@ -217,7 +219,7 @@ class AIMOAutoresearchDriver:
         accuracy = summary.get("accuracy", 0.0)
         stability = summary.get("stability_ratio", 0.0)
 
-        logger.info(f"Benchmark results:")
+        logger.info("Benchmark results:")
         logger.info(f"  Accuracy: {accuracy * 100:.1f}%")
         logger.info(f"  Stability: {stability * 100:.1f}%")
 
@@ -253,20 +255,30 @@ class AIMOAutoresearchDriver:
             summary = self.run_benchmark(problem_ids)
             accuracy = summary.get("accuracy", 0.0)
             stability = summary.get("stability_ratio", 0.0)
-            
+
             # Ralph Loop Coherence Gate
             is_coherent = self.check_ralph_coherence(accuracy, stability)
-            
+
             # Step 7: Kaggle Submission Gate (Only if coherent)
-            if is_coherent and (accuracy > self.best_accuracy or (accuracy == self.best_accuracy and stability > self.best_stability)):
-                logger.info("🔥 Ralph Loop PASSED. Local improvement detected. Triggering Kaggle submission...")
+            if is_coherent and (
+                accuracy > self.best_accuracy
+                or (accuracy == self.best_accuracy and stability > self.best_stability)
+            ):
+                logger.info(
+                    "🔥 Ralph Loop PASSED. Local improvement detected. Triggering Kaggle submission..."
+                )
                 # Use the new AutoresearchDriver bridge
                 from cohezion.research.autoresearch_driver import AutoresearchDriver
-                kaggle_driver = AutoresearchDriver(target="aimo", budget_seconds=3600) # 1hr budget for AIMO kernel
+
+                kaggle_driver = AutoresearchDriver(
+                    target="aimo", budget_seconds=3600
+                )  # 1hr budget for AIMO kernel
                 # We use a dummy hypothesis since the script itself is mutated
-                kaggle_score, status, _ = await kaggle_driver.run_kaggle_experiment("mutation_applied", "ar_aimo_trigger")
+                kaggle_score, status, _ = await kaggle_driver.run_kaggle_experiment(
+                    "mutation_applied", "ar_aimo_trigger"
+                )
                 logger.info(f"Kaggle Leaderboard Score: {kaggle_score}")
-                
+
                 if kaggle_score > 0:
                     self.best_accuracy = accuracy
                     self.best_stability = stability
@@ -284,7 +296,7 @@ class AIMOAutoresearchDriver:
             "hypothesis": hypothesis,
         }
 
-    def _collect_failures(self, summary: Dict[str, Any]) -> List[Dict[str, Any]]:
+    def _collect_failures(self, summary: dict[str, Any]) -> list[dict[str, Any]]:
         """Collect failures from benchmark results."""
         # In production, this would read from failure_logger
         # For now, return synthetic failures based on summary
@@ -312,8 +324,8 @@ class AIMOAutoresearchDriver:
         return failures
 
     async def run_full_journey(
-        self, problem_ids: Optional[List[str]] = None, max_cycles: Optional[int] = None
-    ) -> List[Dict[str, Any]]:
+        self, problem_ids: list[str] | None = None, max_cycles: int | None = None
+    ) -> list[dict[str, Any]]:
         """
         Run complete autoresearch journey.
 
@@ -324,7 +336,7 @@ class AIMOAutoresearchDriver:
         max_cycles = max_cycles or self.ralph_config.max_iterations
 
         logger.info(f"\n{'=' * 60}")
-        logger.info(f"AIMO Autoresearch Journey")
+        logger.info("AIMO Autoresearch Journey")
         logger.info(f"{'=' * 60}")
         logger.info(f"Target: Ralph coherence >= {self.ralph_config.coherence_threshold}")
         logger.info(f"Max cycles: {max_cycles}")
@@ -340,7 +352,7 @@ class AIMOAutoresearchDriver:
                 break
 
         logger.info(f"\n{'=' * 60}")
-        logger.info(f"Journey Summary")
+        logger.info("Journey Summary")
         logger.info(f"{'=' * 60}")
         logger.info(f"Cycles: {len(results)}")
         logger.info(f"Final accuracy: {results[-1]['accuracy'] * 100:.1f}%")
@@ -350,8 +362,8 @@ class AIMOAutoresearchDriver:
 
 
 async def run_aimo_autoresearch(
-    problem_ids: Optional[List[str]] = None, max_cycles: int = 5, coherence_threshold: float = 0.5
-) -> List[Dict[str, Any]]:
+    problem_ids: list[str] | None = None, max_cycles: int = 5, coherence_threshold: float = 0.5
+) -> list[dict[str, Any]]:
     """
     Run AIMO autoresearch journey with Ralph Loop.
 

@@ -114,9 +114,7 @@ class FailureInjector:
                 # Fallback: Remove injected lines if no backup
                 lines = path.read_text().splitlines()
                 new_lines = [
-                    line
-                    for line in lines
-                    if "non_existent_module_xyz" not in line and "x = 1 / 0" not in line
+                    line for line in lines if "non_existent_module_xyz" not in line and "x = 1 / 0" not in line
                 ]
                 path.write_text("\n".join(new_lines) + "\n")
                 logger.info(f"✅ Restored {file_path} by removing injected lines")

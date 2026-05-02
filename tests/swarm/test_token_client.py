@@ -1,7 +1,8 @@
 """Tests for ResilientOllamaClient."""
 
-import pytest
 from unittest.mock import AsyncMock, MagicMock, patch
+
+import pytest
 
 from cohezion.swarm.token_client import ResilientOllamaClient
 

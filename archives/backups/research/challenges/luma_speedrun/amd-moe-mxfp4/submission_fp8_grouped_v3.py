@@ -16,18 +16,17 @@ from __future__ import annotations
 
 import os
 
+
 os.environ["AITER_USE_NT"] = "1"
 
-import torch
-from einops import rearrange
-
 import aiter
+import torch
 from aiter import ActivationType, QuantType, dtypes
 from aiter.fused_moe import fused_moe, moe_sorting
+from aiter.ops.quant import pertoken_quant
 from aiter.ops.shuffle import shuffle_weight
 from aiter.utility import fp4_utils
-from aiter.ops.quant import pertoken_quant
-
+from einops import rearrange
 from task import input_t, output_t
 
 
@@ -243,7 +242,7 @@ def custom_kernel(data: input_t) -> output_t:
             aiter.ActivationType.Silu.value,
         )
         return moe_buf
-    except Exception as e:
+    except Exception:
         # Fallback to baseline
         hidden_pad = config["d_hidden_pad"] - config["d_hidden"]
         intermediate_pad = config["d_expert_pad"] - config["d_expert"]

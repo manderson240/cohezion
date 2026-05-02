@@ -8,14 +8,24 @@ import triton.language as tl
 
 # --- Placeholder Turbo Quant Kernel ---
 
+
 @triton.jit
 def turbo_quant_matmul_kernel(
-    a_ptr, b_ptr, c_ptr,
-    M, N, K,
-    stride_am, stride_ak,
-    stride_bk, stride_bn,
-    stride_cm, stride_cn,
-    BLOCK_SIZE_M: tl.constexpr, BLOCK_SIZE_N: tl.constexpr, BLOCK_SIZE_K: tl.constexpr,
+    a_ptr,
+    b_ptr,
+    c_ptr,
+    M,
+    N,
+    K,
+    stride_am,
+    stride_ak,
+    stride_bk,
+    stride_bn,
+    stride_cm,
+    stride_cn,
+    BLOCK_SIZE_M: tl.constexpr,
+    BLOCK_SIZE_N: tl.constexpr,
+    BLOCK_SIZE_K: tl.constexpr,
     GROUP_SIZE_M: tl.constexpr,
 ):
     """
@@ -53,25 +63,37 @@ def turbo_quant_matmul_kernel(
     c_mask = (offs_cm[:, None] < M) & (offs_cn[None, :] < N)
     tl.store(c_ptrs, c, mask=c_mask)
 
+
 def turbo_matmul(a, b):
     M, K = a.shape
     K, N = b.shape
     c = torch.empty((M, N), device=a.device, dtype=torch.float16)
     grid = lambda META: (
-        triton.cdiv(M, META['BLOCK_SIZE_M']) * triton.cdiv(N, META['BLOCK_SIZE_N']),
+        triton.cdiv(M, META["BLOCK_SIZE_M"]) * triton.cdiv(N, META["BLOCK_SIZE_N"]),
     )
     turbo_quant_matmul_kernel[grid](
-        a, b, c,
-        M, N, K,
-        a.stride(0), a.stride(1),
-        b.stride(0), b.stride(1),
-        c.stride(0), c.stride(1),
-        BLOCK_SIZE_M=128, BLOCK_SIZE_N=128, BLOCK_SIZE_K=32,
+        a,
+        b,
+        c,
+        M,
+        N,
+        K,
+        a.stride(0),
+        a.stride(1),
+        b.stride(0),
+        b.stride(1),
+        c.stride(0),
+        c.stride(1),
+        BLOCK_SIZE_M=128,
+        BLOCK_SIZE_N=128,
+        BLOCK_SIZE_K=32,
         GROUP_SIZE_M=8,
     )
     return c
 
+
 # --- Benchmarking Logic ---
+
 
 def benchmark_kernel(fn, *args, iters=100):
     # Warmup
@@ -86,6 +108,7 @@ def benchmark_kernel(fn, *args, iters=100):
     end = time.perf_counter()
     return (end - start) / iters
 
+
 @pytest.mark.skipif(not torch.cuda.is_available(), reason="ROCm not available")
 def test_turbo_quant_performance_target():
     """
@@ -93,22 +116,25 @@ def test_turbo_quant_performance_target():
     Currently expected to FAIL because TurboQuant is a placeholder.
     """
     M, N, K = 2048, 2048, 2048
-    a = torch.randn((M, K), device='cuda', dtype=torch.float16)
-    b = torch.randn((K, N), device='cuda', dtype=torch.float16)
+    a = torch.randn((M, K), device="cuda", dtype=torch.float16)
+    b = torch.randn((K, N), device="cuda", dtype=torch.float16)
 
     # 1. Standard Benchmark
     std_time = benchmark_kernel(torch.matmul, a, b)
-    print(f"\nStandard MatMul: {std_time*1000:.3f} ms")
+    print(f"\nStandard MatMul: {std_time * 1000:.3f} ms")
 
     # 2. Turbo Quant Benchmark (Initially slow/unoptimized)
     turbo_time = benchmark_kernel(turbo_matmul, a, b)
-    print(f"Turbo Quant MatMul: {turbo_time*1000:.3f} ms")
+    print(f"Turbo Quant MatMul: {turbo_time * 1000:.3f} ms")
 
     improvement = (std_time - turbo_time) / std_time
-    print(f"Improvement: {improvement*100:.1f}%")
+    print(f"Improvement: {improvement * 100:.1f}%")
 
     # Assert 30% target
-    assert improvement >= 0.30, f"Turbo Quant only improved by {improvement*100:.1f}%, target is 30%"
+    assert improvement >= 0.30, (
+        f"Turbo Quant only improved by {improvement * 100:.1f}%, target is 30%"
+    )
+
 
 if __name__ == "__main__":
     pytest.main([__file__])

@@ -5,9 +5,9 @@ If we defer load_inline to the first call of custom_kernel(),
 the compilation happens on the harness's active stream context.
 """
 
-import torch
 
 from task import input_t, output_t
+
 
 # Do NOT compile at import time
 _module = None
@@ -52,11 +52,10 @@ def custom_kernel(data: input_t) -> output_t:
     """Defer load_inline to first call — compiles on harness stream context."""
     global _module
 
+    import aiter
     from aiter import dtypes
     from aiter.ops.triton.quant import dynamic_mxfp4_quant
     from aiter.utility.fp4_utils import e8m0_shuffle
-
-    import aiter
 
     A, B, B_q, B_shuffle, B_scale_sh = data
 

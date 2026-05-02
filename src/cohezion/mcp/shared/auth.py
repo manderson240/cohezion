@@ -17,9 +17,7 @@ def get_mcp_api_key() -> str | None:
     """Get MCP API key with lazy initialization."""
     global _mcp_api_key
     if _mcp_api_key is None:
-        _mcp_api_key = get_credentials().get_secret(
-            "COHEZION_MCP_API_KEY", env_var="MCP_API_KEY"
-        )
+        _mcp_api_key = get_credentials().get_secret("COHEZION_MCP_API_KEY", env_var="MCP_API_KEY")
     return _mcp_api_key
 
 

@@ -3,17 +3,19 @@
 
 """GEMM probe: discover runner APIs, .co files, tuning configs, headers."""
 
-import os, sys, glob
+import glob
+import os
+
 
 os.environ["PYTORCH_ROCM_ARCH"] = "gfx950"
 
-import torch
 import aiter
+import torch
 from aiter import dtypes
 from aiter.ops.triton.quant import dynamic_mxfp4_quant
-from aiter.ops.shuffle import shuffle_weight
 from aiter.utility.fp4_utils import e8m0_shuffle
 from task import input_t, output_t
+
 
 print("=== RUNNER PROBE v2 ===")
 print(f"torch: {torch.__version__}, hip: {getattr(torch.version, 'hip', 'N/A')}")
@@ -52,8 +54,9 @@ for name in [
 # fused_moe
 print("\n=== FUSED_MOE ===")
 try:
-    from aiter.fused_moe import fused_moe as _fm
     import inspect
+
+    from aiter.fused_moe import fused_moe as _fm
 
     print(f"  fused_moe{inspect.signature(_fm)}")
 except Exception as e:

@@ -8,17 +8,17 @@ Winning strategy for peaked circuit challenges.
 import sys
 from pathlib import Path
 
+
 sys.path.insert(0, str(Path(__file__).parent))
 
-import time
 import json
-import numpy as np
-from typing import Dict, Optional
+import time
 from dataclasses import dataclass
 
-from dotenv import load_dotenv
 import bluequbit
+import numpy as np
 import qiskit
+from dotenv import load_dotenv
 
 
 @dataclass
@@ -59,7 +59,7 @@ class PeakedCircuitSolver:
         self,
         circuit: qiskit.QuantumCircuit,
         shots: int = 100000,
-        bond_dimension: Optional[int] = None,
+        bond_dimension: int | None = None,
     ) -> PeakedCircuitResult:
         """
         Solve peaked circuit challenge.
@@ -79,7 +79,7 @@ class PeakedCircuitSolver:
             bond_dimension = self._select_bond_dimension(n_qubits)
 
         print(f"\n{'=' * 70}")
-        print(f"Solving Peaked Circuit")
+        print("Solving Peaked Circuit")
         print(f"{'=' * 70}")
         print(f"Qubits: {n_qubits}")
         print(f"Bond dimension: {bond_dimension}")
@@ -128,8 +128,8 @@ class PeakedCircuitSolver:
             return 512
 
     def _find_heavy_output(
-        self, counts: Dict, n_qubits: int, threshold: float = 0.5
-    ) -> Optional[Dict]:
+        self, counts: dict, n_qubits: int, threshold: float = 0.5
+    ) -> dict | None:
         """
         Find heavy output bitstring.
 
@@ -219,13 +219,13 @@ class PeakedCircuitSolver:
         all_passed = all(checks)
 
         if all_passed:
-            print(f"\n✓ VALIDATED - Ready for submission")
+            print("\n✓ VALIDATED - Ready for submission")
         else:
-            print(f"\n✗ NOT VALIDATED - Review before submission")
+            print("\n✗ NOT VALIDATED - Review before submission")
 
         return all_passed
 
-    def format_submission(self, result: PeakedCircuitResult) -> Dict:
+    def format_submission(self, result: PeakedCircuitResult) -> dict:
         """Format result for submission."""
         return {
             "bitstring": result.bitstring,
@@ -274,7 +274,7 @@ def demo():
 
     if is_valid:
         submission = solver.format_submission(result)
-        print(f"\nSubmission format:")
+        print("\nSubmission format:")
         print(json.dumps(submission, indent=2))
 
     return result

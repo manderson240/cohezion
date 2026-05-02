@@ -27,15 +27,12 @@ batch, ensuring we don't degrade output quality while maximizing speedup.
 from __future__ import annotations
 
 import os
-import sys
-from typing import Any
 
 import torch
-
 from aiter import ActivationType, QuantType
 from aiter.fused_moe import fused_moe
-from reference import ref_kernel
 from task import input_t, output_t
+
 
 os.environ["AITER_USE_NT"] = "1"
 
@@ -310,7 +307,7 @@ def custom_kernel(data: input_t) -> output_t:
 
         return out
 
-    except Exception as e:
+    except Exception:
         # Fallback to baseline fused_moe
         pass
 

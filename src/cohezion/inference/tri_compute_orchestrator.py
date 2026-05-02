@@ -31,6 +31,7 @@ CPU_CORES = 16
 @dataclass
 class ComputeTask:
     """Task to be executed on specific compute unit."""
+
     task_id: str
     task_type: str  # "npu", "igpu", "cpu"
     payload: Any
@@ -45,6 +46,7 @@ class ComputeTask:
 @dataclass
 class ExperimentPhase:
     """Single phase of the experimental framework."""
+
     phase_id: int
     name: str
     npu_workload: Callable  # Inference, pattern recognition
@@ -57,7 +59,7 @@ class ExperimentPhase:
 class NPUInferenceEngine:
     """
     NPU (XDNA2) for local inference and decision-making.
-    
+
     Uses FLM (FastFlowLM) runtime on port 8004.
     Best for: Sequential inference, low-latency decisions
     """
@@ -92,7 +94,7 @@ class NPUInferenceEngine:
         prompt = f"""
         Generate parameters for Phase {phase} experiment.
         Previous results: {json.dumps(previous_results, indent=2)}
-        
+
         Return JSON with:
         - n_inference_calls: int
         - particle_count: int
@@ -104,7 +106,7 @@ class NPUInferenceEngine:
         return {
             "phase": phase,
             "n_inference_calls": 100 + phase * 50,
-            "particle_count": 100 * (2 ** phase),
+            "particle_count": 100 * (2**phase),
             "grid_resolution": 32 * (2 ** (phase // 2)),
             "exotic_fraction": 0.1 + phase * 0.05,
             "timestamp": time.time(),
@@ -114,13 +116,13 @@ class NPUInferenceEngine:
 class iGPUSimulationEngine:
     """
     iGPU (Radeon 8060S) for parallel simulation workloads.
-    
+
     Uses Vulkan compute for:
     - FLUME latent space evolution (batch)
     - EVO physical dynamics (N-body)
     - MHD field updates (grid)
     - SWIFT particle pushing
-    
+
     Best for: Embarrassingly parallel, data-parallel tasks
     """
 
@@ -132,22 +134,23 @@ class iGPUSimulationEngine:
     def simulate_flume_batch(self, agents: list[Any], n_steps: int) -> list[Any]:
         """
         Batch HIHO evolution on GPU using Vulkan compute.
-        
+
         Would dispatch to Vulkan compute shaders.
         For now: vectorized NumPy (simulated)
         """
         # Placeholder: actual implementation uses Vulkan compute
         for _ in range(n_steps):
             for agent in agents:
-                if hasattr(agent, 'hiho_step'):
+                if hasattr(agent, "hiho_step"):
                     agent.hiho_step()
         return agents
 
-    def nbody_gravity(self, positions: np.ndarray, masses: np.ndarray,
-                      dt: float = 0.01) -> np.ndarray:
+    def nbody_gravity(
+        self, positions: np.ndarray, masses: np.ndarray, dt: float = 0.01
+    ) -> np.ndarray:
         """
         N-body gravity on GPU.
-        
+
         O(N^2) force calculation, accelerates on GPU.
         """
         n = len(positions)
@@ -157,17 +160,16 @@ class iGPUSimulationEngine:
         for i in range(n):
             r_vec = positions - positions[i]
             r_mag = np.linalg.norm(r_vec, axis=1) + 1e-10
-            force_mag = masses[i] * masses / (r_mag ** 2)
+            force_mag = masses[i] * masses / (r_mag**2)
             force = (r_vec.T * force_mag).T / r_mag[:, np.newaxis]
             forces[i] = np.sum(force, axis=0)
 
         return forces
 
-    def mhd_field_update(self, b_field: np.ndarray, velocity: np.ndarray,
-                         dt: float) -> np.ndarray:
+    def mhd_field_update(self, b_field: np.ndarray, velocity: np.ndarray, dt: float) -> np.ndarray:
         """
         MHD induction equation on GPU.
-        
+
         ∂B/∂t = ∇ × (v × B)
         """
         # Placeholder: actual would be Vulkan compute
@@ -180,11 +182,7 @@ class iGPUSimulationEngine:
         # Submit to thread pool (which would dispatch to GPU)
         futures = []
         for task in tasks:
-            future = loop.run_in_executor(
-                self.executor,
-                self._execute_simulation_task,
-                task
-            )
+            future = loop.run_in_executor(self.executor, self._execute_simulation_task, task)
             futures.append(future)
 
         results = await asyncio.gather(*futures)
@@ -199,20 +197,12 @@ class iGPUSimulationEngine:
             task_type = payload.get("simulation_type")
 
             if task_type == "flume":
-                result = self.simulate_flume_batch(
-                    payload["agents"],
-                    payload["n_steps"]
-                )
+                result = self.simulate_flume_batch(payload["agents"], payload["n_steps"])
             elif task_type == "nbody":
-                result = self.nbody_gravity(
-                    payload["positions"],
-                    payload["masses"]
-                )
+                result = self.nbody_gravity(payload["positions"], payload["masses"])
             elif task_type == "mhd":
                 result = self.mhd_field_update(
-                    payload["b_field"],
-                    payload["velocity"],
-                    payload["dt"]
+                    payload["b_field"], payload["velocity"], payload["dt"]
                 )
             else:
                 result = {"error": f"Unknown simulation type: {task_type}"}
@@ -231,14 +221,14 @@ class iGPUSimulationEngine:
 class CPUOrchestrationEngine:
     """
     CPU (Zen 5, 16 cores) for orchestration and I/O.
-    
+
     Responsibilities:
     - Task scheduling and dependency management
     - Data marshaling between compute units
     - Result aggregation and analysis
     - File I/O (HDF5, checkpoints)
     - Communication with SurrealDB
-    
+
     Best for: Sequential logic, complex control flow, I/O
     """
 
@@ -248,49 +238,54 @@ class CPUOrchestrationEngine:
         self.task_queue: Queue = Queue()
         self.results: dict[str, ComputeTask] = {}
 
-    def schedule_phase(self, phase: ExperimentPhase,
-                       previous_results: dict) -> list[ComputeTask]:
+    def schedule_phase(self, phase: ExperimentPhase, previous_results: dict) -> list[ComputeTask]:
         """
         Schedule a complete experimental phase across all compute units.
-        
+
         Returns list of tasks for NPU, iGPU, and CPU.
         """
         tasks = []
 
         # Task 1: NPU generates parameters
-        tasks.append(ComputeTask(
-            task_id=f"{phase.phase_id}_npu_params",
-            task_type="npu",
-            payload={
-                "phase": phase.phase_id,
-                "previous_results": previous_results,
-                "generator": phase.npu_workload,
-            },
-            priority=0,
-        ))
+        tasks.append(
+            ComputeTask(
+                task_id=f"{phase.phase_id}_npu_params",
+                task_type="npu",
+                payload={
+                    "phase": phase.phase_id,
+                    "previous_results": previous_results,
+                    "generator": phase.npu_workload,
+                },
+                priority=0,
+            )
+        )
 
         # Task 2: iGPU runs simulation (depends on NPU)
-        tasks.append(ComputeTask(
-            task_id=f"{phase.phase_id}_igpu_sim",
-            task_type="igpu",
-            payload={
-                "simulation_type": "flume" if phase.phase_id <= 2 else "nbody",
-                "depends_on": f"{phase.phase_id}_npu_params",
-                "simulator": phase.igpu_workload,
-            },
-            priority=1,
-        ))
+        tasks.append(
+            ComputeTask(
+                task_id=f"{phase.phase_id}_igpu_sim",
+                task_type="igpu",
+                payload={
+                    "simulation_type": "flume" if phase.phase_id <= 2 else "nbody",
+                    "depends_on": f"{phase.phase_id}_npu_params",
+                    "simulator": phase.igpu_workload,
+                },
+                priority=1,
+            )
+        )
 
-            # Task 3: CPU aggregates and validates
-        tasks.append(ComputeTask(
-            task_id=f"{phase.phase_id}_cpu_validate",
-            task_type="cpu",
-            payload={
-                "validator": phase.cpu_workload,
-                "depends_on": f"{phase.phase_id}_igpu_sim",
-            },
-            priority=2,
-        ))
+        # Task 3: CPU aggregates and validates
+        tasks.append(
+            ComputeTask(
+                task_id=f"{phase.phase_id}_cpu_validate",
+                task_type="cpu",
+                payload={
+                    "validator": phase.cpu_workload,
+                    "depends_on": f"{phase.phase_id}_igpu_sim",
+                },
+                priority=2,
+            )
+        )
 
         return tasks
 
@@ -314,7 +309,7 @@ class CPUOrchestrationEngine:
     def aggregate_results(self, phase_results: list[ComputeTask]) -> dict:
         """
         Aggregate results from all compute units after a phase.
-        
+
         Combines NPU decisions, iGPU simulation outputs, CPU validation.
         """
         aggregated = {
@@ -330,19 +325,22 @@ class CPUOrchestrationEngine:
                 aggregated["npu_params"] = task.result
                 aggregated["timing"]["npu_ms"] = (
                     (task.completed_at - task.started_at) * 1000
-                    if task.completed_at and task.started_at else None
+                    if task.completed_at and task.started_at
+                    else None
                 )
             elif task.task_type == "igpu":
                 aggregated["igpu_result"] = task.result
                 aggregated["timing"]["igpu_ms"] = (
                     (task.completed_at - task.started_at) * 1000
-                    if task.completed_at and task.started_at else None
+                    if task.completed_at and task.started_at
+                    else None
                 )
             elif task.task_type == "cpu":
                 aggregated["cpu_validation"] = task.result
                 aggregated["timing"]["cpu_ms"] = (
                     (task.completed_at - task.started_at) * 1000
-                    if task.completed_at and task.started_at else None
+                    if task.completed_at and task.started_at
+                    else None
                 )
 
         return aggregated
@@ -351,7 +349,7 @@ class CPUOrchestrationEngine:
 class TriComputeOrchestrator:
     """
     Master orchestrator coordinating NPU, iGPU, and CPU.
-    
+
     Pipeline flow for each experimental phase:
     1. CPU schedules phase, dispatches to NPU for parameter generation
     2. NPU returns parameters, CPU dispatches to iGPU for simulation
@@ -374,7 +372,7 @@ class TriComputeOrchestrator:
     async def run_phase(self, phase: ExperimentPhase) -> dict:
         """
         Execute single phase using tri-compute.
-        
+
         Sequence:
         1. NPU: Generate parameters (sequential, fast inference)
         2. iGPU: Run simulation (parallel, batch processing)
@@ -383,10 +381,7 @@ class TriComputeOrchestrator:
         print(f"\n[Tri-Compute] Starting Phase {phase.phase_id}: {phase.name}")
 
         # Get previous results for dependency
-        prev_results = {
-            dep: self.results.get(dep, {})
-            for dep in phase.dependencies
-        }
+        prev_results = {dep: self.results.get(dep, {}) for dep in phase.dependencies}
 
         # Step 1: NPU generates parameters
         print("  [NPU] Generating experiment parameters...")
@@ -409,7 +404,7 @@ class TriComputeOrchestrator:
                 "simulation_type": "flume" if phase.phase_id <= 2 else "nbody",
                 "params": params,
                 "simulator": phase.igpu_workload,
-            }
+            },
         )
 
         igpu_result = await self.igpu.run_simulation_batch([igpu_task])
@@ -443,7 +438,7 @@ class TriComputeOrchestrator:
     async def run_full_experiment(self) -> dict:
         """
         Run all registered phases using tri-compute scheduling.
-        
+
         Each phase uses:
         - NPU for parameter generation (inference)
         - iGPU for simulation (parallel compute)
@@ -471,8 +466,8 @@ class TriComputeOrchestrator:
         print("EXPERIMENT COMPLETE")
         print("=" * 70)
         print(f"Total phases: {len(self.phases)}")
-        print(f"Total time: {total_time:.1f}ms ({total_time/1000:.2f}s)")
-        print(f"Average per phase: {total_time/len(self.phases):.1f}ms")
+        print(f"Total time: {total_time:.1f}ms ({total_time / 1000:.2f}s)")
+        print(f"Average per phase: {total_time / len(self.phases):.1f}ms")
 
         # Compute unit utilization
         npu_time = sum(r.get("npu_time_ms", 0) for r in self.results.values())
@@ -480,9 +475,9 @@ class TriComputeOrchestrator:
         cpu_time = sum(r.get("cpu_time_ms", 0) for r in self.results.values())
 
         print("\nCompute utilization:")
-        print(f"  NPU: {npu_time:.1f}ms ({100*npu_time/total_time:.1f}%)")
-        print(f"  iGPU: {igpu_time:.1f}ms ({100*igpu_time/total_time:.1f}%)")
-        print(f"  CPU: {cpu_time:.1f}ms ({100*cpu_time/total_time:.1f}%)")
+        print(f"  NPU: {npu_time:.1f}ms ({100 * npu_time / total_time:.1f}%)")
+        print(f"  iGPU: {igpu_time:.1f}ms ({100 * igpu_time / total_time:.1f}%)")
+        print(f"  CPU: {cpu_time:.1f}ms ({100 * cpu_time / total_time:.1f}%)")
 
         return self.results
 
@@ -494,7 +489,7 @@ class TriComputeOrchestrator:
     def get_optimal_schedule(self) -> list[ExperimentPhase]:
         """
         Optimize phase ordering for minimal total time.
-        
+
         Considers:
         - NPU sequential bottleneck (12.5 TPS)
         - iGPU concurrency (4 parallel)

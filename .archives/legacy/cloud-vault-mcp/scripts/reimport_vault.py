@@ -29,9 +29,7 @@ def extended_detect_document_type(file_path: Path, vault_path: Path) -> str:
     rel_path = file_path.relative_to(vault_path)
     first_dir = rel_path.parts[0] if len(rel_path.parts) > 1 else ""
 
-    if first_dir == "cortex":
-        return "neuron"
-    elif first_dir == "cerebellum":
+    if first_dir == "cortex" or first_dir == "cerebellum":
         return "neuron"
     elif first_dir == "papers":
         return "paper"

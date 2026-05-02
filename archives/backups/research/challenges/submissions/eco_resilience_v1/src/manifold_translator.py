@@ -7,10 +7,7 @@ Sensing -> FLUME (256D) -> Manifold Projection (12D) -> HIHO Stability Check.
 from __future__ import annotations
 
 import numpy as np
-from typing import Any, Dict, List, Optional, Tuple
 from pydantic import BaseModel, Field
-
-from cohezion.flume.vae_encoder import FlumeVAEEncoder
 
 
 class ManifoldProjection(BaseModel):
@@ -39,7 +36,7 @@ class ManifoldTranslator:
     cohezion-flume latent structure.
     """
 
-    def __init__(self, encoder: Optional[VAEEncoder] = None):
+    def __init__(self, encoder: VAEEncoder | None = None):
         self.encoder = encoder
         # The projection matrix P is a fixed deterministic mapping for the 256D -> 12D projection.
         # We use a seed for reproducibility.
@@ -78,7 +75,7 @@ class ManifoldTranslator:
         projection_inv = np.linalg.pinv(self._projection_matrix)
         return np.dot(projection_inv, coords)
 
-    async def encode_to_manifold(self, text: str) -> Tuple[np.ndarray, ManifoldProjection]:
+    async def encode_to_manifold(self, text: str) -> tuple[np.ndarray, ManifoldProjection]:
         """Helper method to encode text directly to a manifold projection.
 
         Args:

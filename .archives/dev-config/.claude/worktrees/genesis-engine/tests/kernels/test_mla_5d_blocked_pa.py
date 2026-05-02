@@ -16,17 +16,18 @@ Test matrix:
     kv_heads: 1 (MQA pattern)
 """
 
+
 import pytest
 import torch
 import torch.nn.functional as F
-from typing import Tuple, Dict
+
 
 # DeepSeek R1 MLA constants
 KV_LORA_RANK = 512
 QK_ROPE_HEAD_DIM = 64
 QK_HEAD_DIM = KV_LORA_RANK + QK_ROPE_HEAD_DIM  # 576
 V_HEAD_DIM = KV_LORA_RANK  # 512
-SM_SCALE = 1.0 / (QK_HEAD_DIM ** 0.5)
+SM_SCALE = 1.0 / (QK_HEAD_DIM**0.5)
 
 
 class Test5DBlockedPAFormat:
@@ -65,7 +66,11 @@ class Test5DBlockedPAFormat:
         """
         assert head_dim % x == 0, f"head_dim ({head_dim}) must be divisible by x ({x})"
         return torch.randn(
-            num_blocks, kv_heads, head_dim // x, block_size, x,
+            num_blocks,
+            kv_heads,
+            head_dim // x,
+            block_size,
+            x,
             dtype=dtype,
             device=self.device,
         )
@@ -92,9 +97,7 @@ class Test5DBlockedPAFormat:
 
         # Reshape: [num_blocks, kv_heads, head_dim/x, block_size, x]
         #       -> [num_blocks, block_size, kv_heads, head_dim]
-        kv_3d = kv_5d.permute(0, 3, 1, 2, 4).reshape(
-            num_blocks * block_size, kv_heads, head_dim
-        )
+        kv_3d = kv_5d.permute(0, 3, 1, 2, 4).reshape(num_blocks * block_size, kv_heads, head_dim)
         return kv_3d
 
     def convert_standard_to_5d(
@@ -136,10 +139,7 @@ class Test5DBlockedPAFormat:
 
         # Create standard format data
         total_kv = num_blocks * block_size
-        kv_3d_original = torch.randn(
-            total_kv, kv_heads, QK_HEAD_DIM,
-            dtype=torch.bfloat16, device=self.device
-        )
+        kv_3d_original = torch.randn(total_kv, kv_heads, QK_HEAD_DIM, dtype=torch.bfloat16, device=self.device)
 
         # Convert to 5D and back
         kv_5d = self.convert_standard_to_5d(kv_3d_original, block_size, x)
@@ -159,18 +159,14 @@ class Test5DBlockedPAFormat:
         num_blocks = 4
         kv_heads = 1
 
-        kv_5d = self.create_5d_blocked_kv(
-            num_blocks, kv_heads, QK_HEAD_DIM, block_size, x
-        )
+        kv_5d = self.create_5d_blocked_kv(num_blocks, kv_heads, QK_HEAD_DIM, block_size, x)
 
         # Check that block_size dimension is contiguous for vectorized access
         # stride[3] should be x (last dimension size)
-        assert kv_5d.stride(3) == x, \
-            f"Expected stride[3]={x}, got {kv_5d.stride(3)}"
+        assert kv_5d.stride(3) == x, f"Expected stride[3]={x}, got {kv_5d.stride(3)}"
 
         # stride[4] should be 1 (last dimension is contiguous)
-        assert kv_5d.stride(4) == 1, \
-            f"Expected stride[4]=1, got {kv_5d.stride(4)}"
+        assert kv_5d.stride(4) == 1, f"Expected stride[4]=1, got {kv_5d.stride(4)}"
 
     @pytest.mark.parametrize("block_size", [16, 32])
     @pytest.mark.parametrize("x", [8, 16])
@@ -191,16 +187,10 @@ class Test5DBlockedPAFormat:
         total_q = batch_size * q_seq_len
 
         # Create query
-        q = torch.randn(
-            total_q, num_heads, QK_HEAD_DIM,
-            dtype=torch.bfloat16, device=self.device
-        )
+        q = torch.randn(total_q, num_heads, QK_HEAD_DIM, dtype=torch.bfloat16, device=self.device)
 
         # Create KV in standard 3D format
-        kv_3d = torch.randn(
-            batch_size * kv_seq_len, kv_heads, QK_HEAD_DIM,
-            dtype=torch.bfloat16, device=self.device
-        )
+        kv_3d = torch.randn(batch_size * kv_seq_len, kv_heads, QK_HEAD_DIM, dtype=torch.bfloat16, device=self.device)
 
         # Convert to 5D format
         kv_5d = self.convert_standard_to_5d(kv_3d, block_size, x)
@@ -209,16 +199,19 @@ class Test5DBlockedPAFormat:
         # Split by batch for simplicity
         outputs_3d = []
         for b in range(batch_size):
-            q_b = q[b * q_seq_len:(b + 1) * q_seq_len]  # [1, num_heads, 576]
+            q_b = q[b * q_seq_len : (b + 1) * q_seq_len]  # [1, num_heads, 576]
             kv_start = b * kv_seq_len
             kv_end = (b + 1) * kv_seq_len
             kv_b = kv_3d[kv_start:kv_end, 0]  # [kv_seq_len, 576]
 
             # Attention scores
-            scores = torch.matmul(
-                q_b.float().permute(1, 0, 2),  # [num_heads, 1, 576]
-                kv_b.float().T  # [576, kv_seq_len]
-            ) * SM_SCALE  # [num_heads, 1, kv_seq_len]
+            scores = (
+                torch.matmul(
+                    q_b.float().permute(1, 0, 2),  # [num_heads, 1, 576]
+                    kv_b.float().T,  # [576, kv_seq_len]
+                )
+                * SM_SCALE
+            )  # [num_heads, 1, kv_seq_len]
 
             attn_weights = F.softmax(scores, dim=-1)
 
@@ -234,15 +227,12 @@ class Test5DBlockedPAFormat:
         kv_5d_as_3d = self.convert_5d_to_standard(kv_5d)
         outputs_5d = []
         for b in range(batch_size):
-            q_b = q[b * q_seq_len:(b + 1) * q_seq_len]
+            q_b = q[b * q_seq_len : (b + 1) * q_seq_len]
             kv_start = b * kv_seq_len
             kv_end = (b + 1) * kv_seq_len
             kv_b = kv_5d_as_3d[kv_start:kv_end, 0]
 
-            scores = torch.matmul(
-                q_b.float().permute(1, 0, 2),
-                kv_b.float().T
-            ) * SM_SCALE
+            scores = torch.matmul(q_b.float().permute(1, 0, 2), kv_b.float().T) * SM_SCALE
 
             attn_weights = F.softmax(scores, dim=-1)
             v_b = kv_b[:, :V_HEAD_DIM]
@@ -262,9 +252,7 @@ class Test5DBlockedPAFormat:
         kv_heads = 1
 
         # Should create without error
-        kv_5d = self.create_5d_blocked_kv(
-            num_blocks, kv_heads, QK_HEAD_DIM, block_size, x
-        )
+        kv_5d = self.create_5d_blocked_kv(num_blocks, kv_heads, QK_HEAD_DIM, block_size, x)
 
         assert kv_5d.shape[3] == block_size
         assert kv_5d.shape[4] == x
@@ -277,9 +265,7 @@ class Test5DBlockedPAFormat:
         kv_heads = 1
 
         # Should create without error
-        kv_5d = self.create_5d_blocked_kv(
-            num_blocks, kv_heads, QK_HEAD_DIM, block_size, x
-        )
+        kv_5d = self.create_5d_blocked_kv(num_blocks, kv_heads, QK_HEAD_DIM, block_size, x)
 
         assert kv_5d.shape[2] == QK_HEAD_DIM // x
         assert kv_5d.shape[4] == x
@@ -287,22 +273,26 @@ class Test5DBlockedPAFormat:
     def test_format_dimensions(self):
         """Test that all expected dimension combinations work."""
         test_cases = [
-            (1, 4), (1, 8), (1, 16),
-            (16, 4), (16, 8), (16, 16),
-            (32, 4), (32, 8), (32, 16),
-            (64, 4), (64, 8), (64, 16),
+            (1, 4),
+            (1, 8),
+            (1, 16),
+            (16, 4),
+            (16, 8),
+            (16, 16),
+            (32, 4),
+            (32, 8),
+            (32, 16),
+            (64, 4),
+            (64, 8),
+            (64, 16),
         ]
 
         num_blocks = 8
         kv_heads = 1
 
         for block_size, x in test_cases:
-            kv_5d = self.create_5d_blocked_kv(
-                num_blocks, kv_heads, QK_HEAD_DIM, block_size, x
-            )
-            assert kv_5d.shape == (
-                num_blocks, kv_heads, QK_HEAD_DIM // x, block_size, x
-            )
+            kv_5d = self.create_5d_blocked_kv(num_blocks, kv_heads, QK_HEAD_DIM, block_size, x)
+            assert kv_5d.shape == (num_blocks, kv_heads, QK_HEAD_DIM // x, block_size, x)
 
     def test_invalid_dimensions(self):
         """Test that invalid dimension combinations raise errors."""
@@ -323,9 +313,7 @@ class Test5DBlockedPAFormat:
         num_blocks = 32
         kv_heads = 1
 
-        kv_5d = self.create_5d_blocked_kv(
-            num_blocks, kv_heads, QK_HEAD_DIM, block_size, x
-        )
+        kv_5d = self.create_5d_blocked_kv(num_blocks, kv_heads, QK_HEAD_DIM, block_size, x)
 
         assert kv_5d.shape == (32, 1, 36, 1, 16)  # 576/16 = 36
 
@@ -346,14 +334,11 @@ class Test5DBlockedPAFormat:
         num_blocks = sum(num_blocks_per_batch)
 
         # Create blocked KV cache
-        kv_5d = self.create_5d_blocked_kv(
-            num_blocks, 1, QK_HEAD_DIM, block_size, x
-        )
+        kv_5d = self.create_5d_blocked_kv(num_blocks, 1, QK_HEAD_DIM, block_size, x)
 
         # Create indptr for blocked access
         block_indptr = torch.tensor(
-            [0] + list(torch.cumsum(torch.tensor(num_blocks_per_batch), dim=0)),
-            dtype=torch.int32, device=self.device
+            [0] + list(torch.cumsum(torch.tensor(num_blocks_per_batch), dim=0)), dtype=torch.int32, device=self.device
         )
 
         # Verify we can access each batch's blocks
@@ -397,23 +382,19 @@ class Test5DBlockedPAKernelInterface:
 
         # Create KV cache in 5D format
         kv_cache = torch.randn(
-            num_blocks, kv_heads, QK_HEAD_DIM // x, block_size, x,
-            dtype=torch.bfloat16, device=self.device
+            num_blocks, kv_heads, QK_HEAD_DIM // x, block_size, x, dtype=torch.bfloat16, device=self.device
         )
 
         # Block table maps sequences to blocks
         block_table = torch.randint(
-            0, num_blocks, (batch_size, max_blocks_per_seq),
-            dtype=torch.int32, device=self.device
+            0, num_blocks, (batch_size, max_blocks_per_seq), dtype=torch.int32, device=self.device
         )
 
         # Sequence lengths per batch
         seq_lens = torch.tensor([256, 512, 768, 1024], device=self.device)
 
         # Verify shapes
-        assert kv_cache.shape == (
-            num_blocks, kv_heads, QK_HEAD_DIM // x, block_size, x
-        )
+        assert kv_cache.shape == (num_blocks, kv_heads, QK_HEAD_DIM // x, block_size, x)
         assert block_table.shape == (batch_size, max_blocks_per_seq)
 
         # Simulate kernel access pattern: for each position, look up block
@@ -436,8 +417,7 @@ class Test5DBlockedPAKernelInterface:
         kv_heads = 1
 
         kv_cache = torch.randn(
-            num_blocks, kv_heads, QK_HEAD_DIM // x, block_size, x,
-            dtype=torch.bfloat16, device=self.device
+            num_blocks, kv_heads, QK_HEAD_DIM // x, block_size, x, dtype=torch.bfloat16, device=self.device
         )
 
         # Simulate coalesced access: threads in warp access consecutive x elements

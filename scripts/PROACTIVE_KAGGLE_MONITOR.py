@@ -1,10 +1,12 @@
 #!/usr/bin/env python3
-import time
 import json
 import logging
+import time
 from datetime import datetime
 from pathlib import Path
+
 from kaggle.api.kaggle_api_extended import KaggleApi
+
 
 logging.basicConfig(level=logging.INFO, format="%(asctime)s [%(levelname)s] %(message)s")
 logger = logging.getLogger("ProactiveMonitor")

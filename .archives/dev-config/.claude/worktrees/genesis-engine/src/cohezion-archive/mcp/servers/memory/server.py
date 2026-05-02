@@ -97,9 +97,7 @@ class MemoryGraph:
         """Create new entity."""
         entity = Entity(name=name, entity_type=entity_type)
         self.entities[name] = entity
-        logger.debug(
-            "Created entity: %s (%s)", name.replace("\n", " "), entity_type.replace("\n", " ")
-        )
+        logger.debug("Created entity: %s (%s)", name.replace("\n", " "), entity_type.replace("\n", " "))
         return entity
 
     def get_entity(self, name: str) -> Entity | None:
@@ -120,9 +118,7 @@ class MemoryGraph:
         if from_entity not in self.entities or to_entity not in self.entities:
             return False
 
-        relation = Relation(
-            from_entity=from_entity, to_entity=to_entity, relation_type=relation_type
-        )
+        relation = Relation(from_entity=from_entity, to_entity=to_entity, relation_type=relation_type)
         self.relations.append(relation)
         logger.debug(
             "Created relation: %s -%s-> %s",
@@ -310,9 +306,7 @@ async def tool_add_observation(request: web.Request) -> web.Response:
         observation = data.get("observation", "")
 
         if not entity_name or not observation:
-            return web.json_response(
-                {"error": "entityName and observation are required"}, status=400
-            )
+            return web.json_response({"error": "entityName and observation are required"}, status=400)
 
         graph = get_graph()
         success = graph.add_observation(entity_name, observation)

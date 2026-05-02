@@ -4,19 +4,17 @@
 Run: uv run python scripts/test_coherence_mcp.py
 """
 
-import asyncio
-import json
-from pathlib import Path
-
 # Add src to path
 import sys
+from pathlib import Path
+
 
 sys.path.insert(0, str(Path(__file__).parent.parent / "src"))
 
-from cohezion.compound.request_alignment_analyzer import RequestAlignmentAnalyzer
-from cohezion.compound.journey_tracker import JourneyTracker
-from cohezion.swarm.hiho_vector_engine import HihoVectorEngine
 from cohezion.compound.degradation_detector import DegradationDetector
+from cohezion.compound.journey_tracker import JourneyTracker
+from cohezion.compound.request_alignment_analyzer import RequestAlignmentAnalyzer
+from cohezion.swarm.hiho_vector_engine import HihoVectorEngine
 
 
 def test_hiho_engine():
@@ -39,7 +37,7 @@ def test_journey_tracker():
     """Test 12D FLUME trajectory tracking."""
     print("\n=== Journey Tracker (FLUME 12D) ===")
 
-    from cohezion.compound.executor import ExecutionResult, ExecutionMetrics
+    from cohezion.compound.executor import ExecutionMetrics, ExecutionResult
 
     tracker = JourneyTracker(seed=42)
 

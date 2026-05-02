@@ -30,9 +30,7 @@ class RankingStrategy(Enum):
 
     COST_OPTIMIZED = "cost_optimized"  # Prioritize cost (cost×0.5)
     QUALITY_FIRST = "quality_first"  # Prioritize quality (coherence×0.6)
-    BALANCED = (
-        "balanced"  # Balanced weighting (coherence×0.4 + cost×0.3 + latency×0.2 + freshness×0.1)
-    )
+    BALANCED = "balanced"  # Balanced weighting (coherence×0.4 + cost×0.3 + latency×0.2 + freshness×0.1)
 
 
 @dataclass
@@ -131,9 +129,7 @@ class ModelRanker:
             logger.warning(f"Model ranking weights sum to {total_weight}, expected ~1.0. Scores will be normalized.")
 
         # Cache for coherence scores
-        self._coherence_cache: dict[
-            str, tuple[float, float]
-        ] = {}  # model -> (score, timestamp)
+        self._coherence_cache: dict[str, tuple[float, float]] = {}  # model -> (score, timestamp)
 
     def rank_models(
         self,
@@ -249,9 +245,7 @@ class ModelRanker:
         # Normalize latency (0.0-1.0 scale: lower latency = higher score)
         # Assume max acceptable latency is 500ms
         max_latency = 500.0
-        latency_score = (
-            max(0.0, 1.0 - (latency / max_latency)) if max_latency > 0 else 1.0
-        )
+        latency_score = max(0.0, 1.0 - (latency / max_latency)) if max_latency > 0 else 1.0
         latency_score = min(1.0, latency_score)  # Cap at 1.0
 
         # Apply strategy-specific weighting
@@ -306,9 +300,7 @@ class ModelRanker:
         # Fallback to default
         return self.DEFAULT_COHERENCE.get(model, 0.70)
 
-    def _query_vault_coherence(
-        self, model: str, task_description: str
-    ) -> float | None:
+    def _query_vault_coherence(self, model: str, task_description: str) -> float | None:
         """Query vault for model coherence on similar tasks.
 
         Args:

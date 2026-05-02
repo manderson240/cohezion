@@ -4,9 +4,9 @@ Extracts core concepts from Cohezion Knowledge Graph and Physics modules
 to create an Alpaca-style instruction dataset.
 """
 
+import glob
 import json
 import os
-import glob
 
 
 def generate_dataset():
@@ -15,7 +15,7 @@ def generate_dataset():
     # 1. Extract from KEY_LEARNINGS.md
     learnings_path = "src/cohezion/knowledge_graph/KEY_LEARNINGS.md"
     if os.path.exists(learnings_path):
-        with open(learnings_path, "r") as f:
+        with open(learnings_path) as f:
             content = f.read()
             # Simple chunking by learning blocks (simulated)
             sections = content.split("### Learning")
@@ -33,7 +33,7 @@ def generate_dataset():
     physics_files = glob.glob("src/cohezion/physics/*.py")
     for pf in physics_files:
         module_name = os.path.basename(pf).replace(".py", "")
-        with open(pf, "r") as f:
+        with open(pf) as f:
             content = f.read()
             # Extract module docstring
             if '"""' in content:

@@ -122,9 +122,7 @@ class SkillRefiner:
         """Suggest skill refinements based on success patterns."""
         # Find successful uses of this skill
         successes = [
-            (task, result)
-            for task, result in self.feedback_history
-            if task.skill_name == skill_name and result.success
+            (task, result) for task, result in self.feedback_history if task.skill_name == skill_name and result.success
         ]
 
         failures = [

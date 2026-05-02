@@ -9,12 +9,14 @@ from __future__ import annotations
 
 import json
 import logging
+from collections.abc import Callable
 from pathlib import Path
-from typing import Any, Callable
+from typing import Any
 
 import numpy as np
 import torch
 from torch.utils.data import Dataset
+
 
 logger = logging.getLogger(__name__)
 
@@ -35,9 +37,7 @@ class ARCGridTokenizer:
     MAX_GRID_SIZE: int = 32  # Max dimension + padding for safety
 
     @classmethod
-    def grid_to_tensor(
-        cls, grid: list[list[int]], max_size: int | None = None
-    ) -> torch.Tensor:
+    def grid_to_tensor(cls, grid: list[list[int]], max_size: int | None = None) -> torch.Tensor:
         """Convert ARC grid to one-hot tensor (NUM_COLORS, H, W).
 
         Args:
@@ -112,9 +112,7 @@ class ARCGridTokenizer:
             # Pad with zeros (background color)
             pad_h = max_size - h
             pad_w = max_size - w
-            tensor = torch.nn.functional.pad(
-                tensor, (0, pad_w, 0, pad_h), mode="constant", value=0
-            )
+            tensor = torch.nn.functional.pad(tensor, (0, pad_w, 0, pad_h), mode="constant", value=0)
 
         return tensor
 
@@ -169,12 +167,12 @@ class ARCDataset(Dataset):
 
     def _load_data(self) -> None:
         """Load ARC JSON data and create training samples."""
-        with open(self.challenges_path, "r") as f:
+        with open(self.challenges_path) as f:
             challenges = json.load(f)
 
         solutions = None
         if self.solutions_path and self.solutions_path.exists():
-            with open(self.solutions_path, "r") as f:
+            with open(self.solutions_path) as f:
                 solutions = json.load(f)
 
         for task_id, task in challenges.items():
@@ -284,12 +282,8 @@ class ARCDataset(Dataset):
         """
         sample = self.samples[idx]
 
-        state = self.tokenizer.grid_to_tensor(
-            sample["input_grid"], self.max_grid_size
-        )
-        next_state = self.tokenizer.grid_to_tensor(
-            sample["output_grid"], self.max_grid_size
-        )
+        state = self.tokenizer.grid_to_tensor(sample["input_grid"], self.max_grid_size)
+        next_state = self.tokenizer.grid_to_tensor(sample["output_grid"], self.max_grid_size)
         action = torch.from_numpy(sample["action"].copy())
 
         item = {
@@ -376,10 +370,10 @@ class ARCBatchSampler:
         # Default size buckets
         if size_buckets is None:
             size_buckets = [
-                (0, 8),      # Small: 2x2 to 8x8
-                (8, 16),     # Medium: 8x8 to 16x16
-                (16, 24),    # Large: 16x16 to 24x24
-                (24, 32),    # XL: 24x24 to 30x30
+                (0, 8),  # Small: 2x2 to 8x8
+                (8, 16),  # Medium: 8x8 to 16x16
+                (16, 24),  # Large: 16x16 to 24x24
+                (24, 32),  # XL: 24x24 to 30x30
             ]
         self.size_buckets = size_buckets
 
@@ -448,8 +442,8 @@ class ARCDataLoader(torch.utils.data.DataLoader):
 
 
 __all__ = [
-    "ARCGridTokenizer",
-    "ARCDataset",
     "ARCBatchSampler",
     "ARCDataLoader",
+    "ARCDataset",
+    "ARCGridTokenizer",
 ]

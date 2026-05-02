@@ -39,18 +39,20 @@ Performance Characteristics:
 """
 
 from __future__ import annotations
+
 import os
-import math
+
 
 os.environ["PYTORCH_ROCM_ARCH"] = "gfx950"
 os.environ["CXX"] = "clang++"
 
 import torch
-from torch.utils.cpp_extension import load_inline
 from aiter import dtypes
 from aiter.ops.triton.quant import dynamic_mxfp4_quant
 from aiter.utility.fp4_utils import e8m0_shuffle
 from task import input_t, output_t
+from torch.utils.cpp_extension import load_inline
+
 
 # Winograd tile configuration
 # Using F(4, 3) variant: 4 output elements from 3 input elements
@@ -80,16 +82,16 @@ def _get_winograd_kernel():
     #include <torch/extension.h>
     #include <hip/hip_runtime.h>
     #include <hip/hip_bf16.h>
-    
+
     // Winograd F(4,4) transforms for GEMM
     // For tile size 4: transform 4 elements to 6 intermediate elements
-    
+
     #define TILE_M 4
     #define TILE_N 4
     #define TILE_K 4
     #define TRANSFORM_SIZE 6  // TILE_M + TILE_K - 1 for F(4,4)
     #define WAVESIZE 64
-    
+
     // Input transform matrix B^T (4x6)
     // Transforms 4 inputs to 6 intermediate values
     __constant__ float Bt[4][6] = {
@@ -98,8 +100,8 @@ def _get_winograd_kernel():
         {0.0f,  -1.0f,  1.0f,  0.0f,   0.0f,   0.0f},
         {0.0f,  0.0f,   0.0f,  1.0f,   0.0f,   0.0f}
     };
-    
-    // Filter transform matrix G (6x4)  
+
+    // Filter transform matrix G (6x4)
     // Transforms 4 weights to 6 intermediate values
     __constant__ float G[6][4] = {
         {1.0f/4.0f,   0.0f,        0.0f,        0.0f},
@@ -109,7 +111,7 @@ def _get_winograd_kernel():
         {1.0f/24.0f, -1.0f/12.0f,  1.0f/6.0f,   0.0f},
         {0.0f,        0.0f,        0.0f,        1.0f}
     };
-    
+
     // Output transform matrix A^T (6x4)
     // Transforms 6 intermediate values to 4 outputs
     __constant__ float At[6][4] = {
@@ -120,7 +122,7 @@ def _get_winograd_kernel():
         {0.0f,  0.0f,   0.0f,   0.0f},
         {0.0f,  0.0f,   0.0f,   1.0f}
     };
-    
+
     // Apply input transform: 4 elements -> 6 elements
     __device__ void transform_input(const float* in, float* out) {
         for (int i = 0; i < 6; i++) {
@@ -130,8 +132,8 @@ def _get_winograd_kernel():
             }
         }
     }
-    
-    // Apply filter transform: 4 elements -> 6 elements  
+
+    // Apply filter transform: 4 elements -> 6 elements
     __device__ void transform_filter(const float* in, float* out) {
         for (int i = 0; i < 6; i++) {
             out[i] = 0.0f;
@@ -140,7 +142,7 @@ def _get_winograd_kernel():
             }
         }
     }
-    
+
     // Apply output transform: 6 elements -> 4 elements
     __device__ void transform_output(const float* in, float* out) {
         for (int i = 0; i < 4; i++) {
@@ -150,7 +152,7 @@ def _get_winograd_kernel():
             }
         }
     }
-    
+
     // Winograd GEMM kernel
     __global__ __launch_bounds__(256)
     void winograd_gemm(
@@ -162,15 +164,15 @@ def _get_winograd_kernel():
         int tile_m = blockIdx.y * TILE_M;
         int tile_n = blockIdx.x * TILE_N;
         int tid = threadIdx.x;
-        
+
         // Each warp processes one tile
         int warp_id = tid / WAVESIZE;
         int lane_id = tid % WAVESIZE;
-        
+
         // Shared memory for transformed tiles
         __shared__ float A_transform[256][6];  // Max tiles per block
         __shared__ float B_transform[256][6];
-        
+
         // Accumulators for this tile
         float accum[TILE_M][TILE_N];
         for (int i = 0; i < TILE_M; i++) {
@@ -178,49 +180,49 @@ def _get_winograd_kernel():
                 accum[i][j] = 0.0f;
             }
         }
-        
+
         // Process K dimension in tiles
         int num_k_tiles = (K + TILE_K - 1) / TILE_K;
-        
+
         for (int kt = 0; kt < num_k_tiles; kt++) {
             int k_start = kt * TILE_K;
-            
+
             // Load and transform A tile (if in bounds)
             if (lane_id < TILE_M && tile_m + lane_id < M) {
                 float A_tile[4] = {0.0f, 0.0f, 0.0f, 0.0f};
                 for (int k = 0; k < TILE_K && k_start + k < K; k++) {
                     A_tile[k] = __bfloat162float(A[(tile_m + lane_id) * K + k_start + k]);
                 }
-                
+
                 // Transform to intermediate space
                 float A_t[6];
                 transform_input(A_tile, A_t);
-                
+
                 // Store to shared memory
                 for (int i = 0; i < 6; i++) {
                     A_transform[lane_id][i] = A_t[i];
                 }
             }
-            
+
             // Load and transform B tile
             if (lane_id < TILE_N && tile_n + lane_id < N) {
                 float B_tile[4] = {0.0f, 0.0f, 0.0f, 0.0f};
                 for (int k = 0; k < TILE_K && k_start + k < K; k++) {
                     B_tile[k] = __bfloat162float(B[(tile_n + lane_id) * K + k_start + k]);
                 }
-                
+
                 // Transform to intermediate space
                 float B_t[6];
                 transform_filter(B_tile, B_t);
-                
+
                 // Store to shared memory
                 for (int i = 0; i < 6; i++) {
                     B_transform[lane_id][i] = B_t[i];
                 }
             }
-            
+
             __syncthreads();
-            
+
             // Element-wise multiply in transformed space and accumulate
             for (int i = 0; i < TILE_M; i++) {
                 for (int j = 0; j < TILE_N; j++) {
@@ -229,19 +231,19 @@ def _get_winograd_kernel():
                     }
                 }
             }
-            
+
             __syncthreads();
         }
-        
+
         // Inverse transform and write output
         if (tile_m + lane_id / TILE_N < M && tile_n + lane_id % TILE_N < N) {
             int local_m = (lane_id / TILE_N) % TILE_M;
             int local_n = lane_id % TILE_N;
-            
+
             // Transform accumulator from intermediate space
             float output_vals[TILE_M];
             transform_output(accum[local_m], output_vals);
-            
+
             // Write to output
             int out_m = tile_m + local_m;
             int out_n = tile_n + local_n;
@@ -250,7 +252,7 @@ def _get_winograd_kernel():
             }
         }
     }
-    
+
     void launch_winograd(
         torch::Tensor A, torch::Tensor B, torch::Tensor C,
         int M, int N, int K

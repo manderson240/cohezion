@@ -73,8 +73,6 @@ class TestZeroCopyValidator:
         validator.validate_and_read(good)
 
         # Corrupt
-        corrupted = SHMBuffer(
-            data=good.data, declared_dtype="float64", declared_dim=12, checksum="badhash"
-        )
+        corrupted = SHMBuffer(data=good.data, declared_dtype="float64", declared_dim=12, checksum="badhash")
         validator.validate_and_read(corrupted)
         assert len(validator.corruption_events()) == 1

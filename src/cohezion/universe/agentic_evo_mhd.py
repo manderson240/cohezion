@@ -29,12 +29,13 @@ from agentic_evo_swift import (
 class IonizationState(Enum):
     """
     Plasma ionization states for EVOs.
-    
+
     Couples to MHD dynamics and latent coherence.
     """
-    NEUTRAL = 0          # No ionization, no MHD
+
+    NEUTRAL = 0  # No ionization, no MHD
     PARTIALLY_IONIZED = 0.5  # Two-fluid effects
-    FULLY_IONIZED = 1.0   # Ideal MHD regime
+    FULLY_IONIZED = 1.0  # Ideal MHD regime
     EXOTIC_PLASMA = -1.0  # Negative ionization (exotic)
     QUANTUM_DEGENERATE = 2.0  # High density, quantum effects
 
@@ -43,10 +44,11 @@ class IonizationState(Enum):
 class EVOMagneticState:
     """
     Magnetic field state for an EVO agent.
-    
-    Represents local B-field sourced by the agent and 
+
+    Represents local B-field sourced by the agent and
     its magnetic moment in the latent space.
     """
+
     agent_id: str
 
     # Physical magnetic field (Gauss or Tesla)
@@ -60,13 +62,13 @@ class EVOMagneticState:
     # Plasma properties
     ionization_fraction: float = 0.0  # 0 to 1
     ionization_state: IonizationState = IonizationState.NEUTRAL
-    electron_density: float = 0.0       # cm^-3
-    temperature: float = 0.0          # Kelvin
+    electron_density: float = 0.0  # cm^-3
+    temperature: float = 0.0  # Kelvin
 
     # MHD parameters
-    plasma_beta: float = 1.0           # P_thermal / P_magnetic
+    plasma_beta: float = 1.0  # P_thermal / P_magnetic
     alfven_speed: float = 0.0
-    magnetic_reynolds: float = 0.0     # Rm = UL/η
+    magnetic_reynolds: float = 0.0  # Rm = UL/η
 
     # Divergence cleaning (maintain ∇·B = 0)
     div_b_error: float = 0.0
@@ -79,9 +81,9 @@ class EVOMagneticState:
 
     def compute_plasma_beta(self, thermal_pressure: float) -> float:
         """β = 8πP/B², ratio of thermal to magnetic pressure."""
-        b_sq = np.sum(self.B_field ** 2)
+        b_sq = np.sum(self.B_field**2)
         if b_sq <= 0:
-            return float('inf')
+            return float("inf")
         return 8 * np.pi * thermal_pressure / b_sq
 
 
@@ -89,9 +91,10 @@ class EVOMagneticState:
 class MHDField:
     """
     Grid-based MHD field for global magnetic topology.
-    
+
     Represents the cosmic magnetic field in which EVOs evolve.
     """
+
     grid_size: tuple[int, int, int] = (64, 64, 64)
     box_size: float = 1000.0  # Physical size in Mpc or kpc
 
@@ -114,9 +117,7 @@ class MHDField:
 
     def get_b_vector(self, ix: int, iy: int, iz: int) -> np.ndarray:
         """Get B field at grid point."""
-        return np.array([self.Bx[ix, iy, iz],
-                        self.By[ix, iy, iz],
-                        self.Bz[ix, iy, iz]])
+        return np.array([self.Bx[ix, iy, iz], self.By[ix, iy, iz], self.Bz[ix, iy, iz]])
 
     def set_b_vector(self, ix: int, iy: int, iz: int, b: np.ndarray):
         """Set B field at grid point."""
@@ -164,15 +165,16 @@ class MHDField:
 class AgenticEVOMHD(AgenticEVO):
     """
     Agentic EVO with MHD capabilities.
-    
+
     Extends base EVO with:
     - Magnetic field generation
     - Plasma dynamics
     - Alfven wave coupling to latent space
     """
 
-    def __init__(self, agent_id: str, initial_latent: np.ndarray | None = None,
-                 magnetic_moment: float = 1.0):
+    def __init__(
+        self, agent_id: str, initial_latent: np.ndarray | None = None, magnetic_moment: float = 1.0
+    ):
         super().__init__(agent_id, initial_latent)
 
         # Magnetic state
@@ -192,7 +194,7 @@ class AgenticEVOMHD(AgenticEVO):
     def update_ionization(self):
         """
         Update plasma ionization based on latent coherence.
-        
+
         High coherence agents become fully ionized plasma.
         Low coherence remain neutral.
         Exotic agents have exotic ionization.
@@ -224,24 +226,27 @@ class AgenticEVOMHD(AgenticEVO):
     def generate_magnetic_field(self):
         """
         Generate B-field from latent structure.
-        
+
         Idea: Complexity in latent space sources magnetic field.
         High information content = strong field.
         """
         # Compute latent gradient (direction of steepest change)
         if len(self.latent_state.journey_positions) >= 2:
-            latent_velocity = (self.latent_state.journey_positions[-1] -
-                             self.latent_state.journey_positions[-2])
+            latent_velocity = (
+                self.latent_state.journey_positions[-1] - self.latent_state.journey_positions[-2]
+            )
         else:
             latent_velocity = np.zeros(256)
 
         # Project 256D latent motion to 3D physical B-field
         # Simplified: use first 3 principal components
-        b_direction = np.array([
-            np.mean(latent_velocity[0:85]),
-            np.mean(latent_velocity[85:170]),
-            np.mean(latent_velocity[170:256])
-        ])
+        b_direction = np.array(
+            [
+                np.mean(latent_velocity[0:85]),
+                np.mean(latent_velocity[85:170]),
+                np.mean(latent_velocity[170:256]),
+            ]
+        )
 
         # Normalize
         b_norm = np.linalg.norm(b_direction)
@@ -249,9 +254,11 @@ class AgenticEVOMHD(AgenticEVO):
             b_direction /= b_norm
 
         # Field strength from coherence and information
-        b_strength = (self.latent_state.information_content *
-                     (1.0 - self.latent_state.current_coherence) *
-                     self.magnetic_moment)
+        b_strength = (
+            self.latent_state.information_content
+            * (1.0 - self.latent_state.current_coherence)
+            * self.magnetic_moment
+        )
 
         self.magnetic_state.B_field = b_direction * b_strength
         self.magnetic_state.B_magnitude = b_strength
@@ -259,15 +266,18 @@ class AgenticEVOMHD(AgenticEVO):
     def compute_lorentz_force(self) -> np.ndarray:
         """
         F_L = J × B (Lorentz force from currents and field).
-        
+
         Simplified: F = (∇ × B) × B / 4π in CGS
         """
         B = self.magnetic_state.B_field
 
         # Approximate current from curl (need field gradient)
         # Simplified: use stored current density
-        J = self.magnetic_state.current_density if hasattr(
-            self.magnetic_state, 'current_density') else np.zeros(3)
+        J = (
+            self.magnetic_state.current_density
+            if hasattr(self.magnetic_state, "current_density")
+            else np.zeros(3)
+        )
 
         # F = J × B
         F = np.cross(J, B)
@@ -276,7 +286,7 @@ class AgenticEVOMHD(AgenticEVO):
     def alfven_wave_coupling(self, dt: float, global_b_field: np.ndarray):
         """
         Couple agent to Alfven waves in global magnetic field.
-        
+
         Alfven waves propagate information along B-field lines,
         causing correlations in agent journeys.
         """
@@ -285,25 +295,27 @@ class AgenticEVOMHD(AgenticEVO):
         # Project latent velocity onto B-field direction
         latent_v = np.zeros(256)
         if len(self.latent_state.journey_positions) >= 2:
-            latent_v = (self.latent_state.journey_positions[-1] -
-                       self.latent_state.journey_positions[-2]) / dt
+            latent_v = (
+                self.latent_state.journey_positions[-1] - self.latent_state.journey_positions[-2]
+            ) / dt
 
         # Parallel component propagates
         parallel_factor = np.sum(latent_v[:3] * b_unit)
 
         # Alfven coupling: align latent evolution with B-field
         self.latent_state.latent_vector += (
-            self.latent_magnetic_coupling * parallel_factor *
-            np.tile(b_unit, 86)[:256]  # Broadcast to 256D
+            self.latent_magnetic_coupling
+            * parallel_factor
+            * np.tile(b_unit, 86)[:256]  # Broadcast to 256D
         )
 
     def magnetic_reconnection(self, other: AgenticEVOMHD) -> bool:
         """
         Model magnetic reconnection between two EVOs.
-        
+
         Occurs when oppositely directed B-fields come close.
         Releases energy, causes rapid state changes.
-        
+
         Returns:
             True if reconnection occurred
         """
@@ -332,8 +344,7 @@ class AgenticEVOMHD(AgenticEVO):
 
         # Reconnection occurs!
         # Release energy: increase information content
-        energy_release = (np.linalg.norm(b1) * np.linalg.norm(b2) /
-                        (r_mag + 1.0))
+        energy_release = np.linalg.norm(b1) * np.linalg.norm(b2) / (r_mag + 1.0)
 
         self.latent_state.information_content += energy_release
         other.latent_state.information_content += energy_release
@@ -344,11 +355,15 @@ class AgenticEVOMHD(AgenticEVO):
 
         return True
 
-    def hiho_step_mhd(self, delta_scale: float = 0.01, hiho_damping: float = 0.05,
-                     global_b_field: np.ndarray | None = None):
+    def hiho_step_mhd(
+        self,
+        delta_scale: float = 0.01,
+        hiho_damping: float = 0.05,
+        global_b_field: np.ndarray | None = None,
+    ):
         """
         Extended HIHO step with MHD effects.
-        
+
         Adds:
         - Alfven wave propagation
         - Lorentz force on latent evolution
@@ -377,15 +392,19 @@ class AgenticEVOMHD(AgenticEVO):
 class AgenticMHDSystem:
     """
     Full MHD system with Agentic EVOs in plasma.
-    
+
     Combines:
     - Particle-based EVO agents (Lagrangian)
     - Grid-based MHD fields (Eulerian)
     - Bidirectional coupling
     """
 
-    def __init__(self, n_evos: int = 100, grid_size: tuple[int, int, int] = (32, 32, 32),
-                 box_size: float = 1000.0):
+    def __init__(
+        self,
+        n_evos: int = 100,
+        grid_size: tuple[int, int, int] = (32, 32, 32),
+        box_size: float = 1000.0,
+    ):
         self.n_evos = n_evos
         self.box_size = box_size
 
@@ -413,9 +432,7 @@ class AgenticMHDSystem:
 
             if is_exotic:
                 evo.latent_state.is_exotic = True
-                evo.latent_state.exotic_type = np.random.choice([
-                    "repeller", "negative_mass"
-                ])
+                evo.latent_state.exotic_type = np.random.choice(["repeller", "negative_mass"])
 
             # Initial B-field from latent structure
             evo.generate_magnetic_field()
@@ -425,7 +442,7 @@ class AgenticMHDSystem:
     def deposit_b_to_grid(self):
         """
         Deposit agent B-fields to MHD grid (particle-to-grid).
-        
+
         Uses cloud-in-cell or similar weighting.
         """
         nx, ny, nz = self.mhd_field.grid_size
@@ -459,10 +476,15 @@ class AgenticMHDSystem:
             iz = int(pos[2] / dx) % nz
 
             # Count particles in cell
-            count = sum(1 for e in self.evos
-                       if (int(e.physical_state.position[0] / dx) % nx == ix and
-                           int(e.physical_state.position[1] / dx) % ny == iy and
-                           int(e.physical_state.position[2] / dx) % nz == iz))
+            count = sum(
+                1
+                for e in self.evos
+                if (
+                    int(e.physical_state.position[0] / dx) % nx == ix
+                    and int(e.physical_state.position[1] / dx) % ny == iy
+                    and int(e.physical_state.position[2] / dx) % nz == iz
+                )
+            )
 
             if count > 0:
                 self.mhd_field.Bx[ix, iy, iz] /= count
@@ -489,14 +511,14 @@ class AgenticMHDSystem:
             # Update agent's perceived field
             # (Real field is sum of self-generated + external)
             evo.magnetic_state.B_field = (
-                0.7 * evo.magnetic_state.B_field +  # Persistent self-field
-                0.3 * b_at_pos                        # External field
+                0.7 * evo.magnetic_state.B_field  # Persistent self-field
+                + 0.3 * b_at_pos  # External field
             )
 
     def step(self, dt: float = 0.01):
         """
         Full MHD timestep.
-        
+
         Sequence:
         1. Deposit B-fields to grid
         2. Compute MHD derivatives (curl, divergence)
@@ -516,11 +538,9 @@ class AgenticMHDSystem:
         self.interpolate_b_to_particles()
 
         # Phase 4: Evolve each EVO with MHD
-        global_b = np.array([
-            np.mean(self.mhd_field.Bx),
-            np.mean(self.mhd_field.By),
-            np.mean(self.mhd_field.Bz)
-        ])
+        global_b = np.array(
+            [np.mean(self.mhd_field.Bx), np.mean(self.mhd_field.By), np.mean(self.mhd_field.Bz)]
+        )
 
         for evo in self.evos:
             evo.hiho_step_mhd(global_b_field=global_b)
@@ -528,7 +548,7 @@ class AgenticMHDSystem:
         # Phase 5: Reconnection detection
         reconnection_count = 0
         for i, evo_i in enumerate(self.evos):
-            for j, evo_j in enumerate(self.evos[i+1:], start=i+1):
+            for j, evo_j in enumerate(self.evos[i + 1 :], start=i + 1):
                 if evo_i.magnetic_reconnection(evo_j):
                     reconnection_count += 1
 
@@ -561,9 +581,9 @@ class AgenticMHDSystem:
 
                 # Gravity (with exotic repulsion)
                 if masses[i] < 0 or masses[j] < 0:
-                    force_mag = -masses[i] * masses[j] / (r_mag ** 2)
+                    force_mag = -masses[i] * masses[j] / (r_mag**2)
                 else:
-                    force_mag = masses[i] * masses[j] / (r_mag ** 2)
+                    force_mag = masses[i] * masses[j] / (r_mag**2)
 
                 force += force_mag * r_vec / r_mag
 
@@ -578,13 +598,15 @@ class AgenticMHDSystem:
     def get_mhd_statistics(self) -> dict:
         """MHD-specific statistics."""
         ionized_count = sum(
-            1 for e in self.evos
-            if e.magnetic_state.ionization_state in
-            [IonizationState.PARTIALLY_IONIZED, IonizationState.FULLY_IONIZED]
+            1
+            for e in self.evos
+            if e.magnetic_state.ionization_state
+            in [IonizationState.PARTIALLY_IONIZED, IonizationState.FULLY_IONIZED]
         )
 
         exotic_plasma = sum(
-            1 for e in self.evos
+            1
+            for e in self.evos
             if e.magnetic_state.ionization_state == IonizationState.EXOTIC_PLASMA
         )
 
@@ -611,11 +633,7 @@ def demo_mhd_simulation():
     print("=" * 70)
 
     print("\nInitializing 50 MHD-EVOs on 32³ grid...")
-    system = AgenticMHDSystem(
-        n_evos=50,
-        grid_size=(32, 32, 32),
-        box_size=100.0
-    )
+    system = AgenticMHDSystem(n_evos=50, grid_size=(32, 32, 32), box_size=100.0)
 
     # Show initial state
     stats = system.get_mhd_statistics()
@@ -633,10 +651,12 @@ def demo_mhd_simulation():
 
         if step % 10 == 0:
             stats = system.get_mhd_statistics()
-            print(f"  Step {step}: DivB={mhd_info['max_div_b']:.2e}, "
-                  f"Rc={mhd_info['reconnections']}, "
-                  f"<B>={stats['mean_b_field']:.3f}, "
-                  f"β={stats['mean_plasma_beta']:.2f}")
+            print(
+                f"  Step {step}: DivB={mhd_info['max_div_b']:.2e}, "
+                f"Rc={mhd_info['reconnections']}, "
+                f"<B>={stats['mean_b_field']:.3f}, "
+                f"β={stats['mean_plasma_beta']:.2f}"
+            )
 
     # Final stats
     print("\n" + "=" * 70)
@@ -646,9 +666,15 @@ def demo_mhd_simulation():
     stats = system.get_mhd_statistics()
     print(f"Timesteps: {stats['timestep']}")
     print("Final plasma states:")
-    print(f"  Neutral: {sum(1 for e in system.evos if e.magnetic_state.ionization_state == IonizationState.NEUTRAL)}")
-    print(f"  Partially ionized: {sum(1 for e in system.evos if e.magnetic_state.ionization_state == IonizationState.PARTIALLY_IONIZED)}")
-    print(f"  Fully ionized: {sum(1 for e in system.evos if e.magnetic_state.ionization_state == IonizationState.FULLY_IONIZED)}")
+    print(
+        f"  Neutral: {sum(1 for e in system.evos if e.magnetic_state.ionization_state == IonizationState.NEUTRAL)}"
+    )
+    print(
+        f"  Partially ionized: {sum(1 for e in system.evos if e.magnetic_state.ionization_state == IonizationState.PARTIALLY_IONIZED)}"
+    )
+    print(
+        f"  Fully ionized: {sum(1 for e in system.evos if e.magnetic_state.ionization_state == IonizationState.FULLY_IONIZED)}"
+    )
     print(f"  Exotic plasma: {stats['exotic_plasma']}")
     print("\nMagnetic field statistics:")
     print(f"  Mean |B|: {stats['mean_b_field']:.4f}")

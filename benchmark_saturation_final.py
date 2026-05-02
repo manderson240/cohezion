@@ -46,7 +46,7 @@ async def test_concurrency(n: int, verbose: bool = True) -> dict:
                     "messages": [{"role": "user", "content": "ready"}],
                     "max_tokens": 5,
                 },
-                timeout=aiohttp.ClientTimeout(total=30)
+                timeout=aiohttp.ClientTimeout(total=30),
             )
         except:
             pass
@@ -56,18 +56,20 @@ async def test_concurrency(n: int, verbose: bool = True) -> dict:
 
         tasks = []
         for i in range(n):
-            tasks.append(session.post(
-                f"{base_url}/v1/chat/completions",
-                json={
-                    "model": model,
-                    "messages": [
-                        {"role": "system", "content": "You are helpful."},
-                        {"role": "user", "content": f"Task {i}: Write a haiku."}
-                    ],
-                    "max_tokens": 40,
-                },
-                timeout=aiohttp.ClientTimeout(total=60)  # Individual timeout
-            ))
+            tasks.append(
+                session.post(
+                    f"{base_url}/v1/chat/completions",
+                    json={
+                        "model": model,
+                        "messages": [
+                            {"role": "system", "content": "You are helpful."},
+                            {"role": "user", "content": f"Task {i}: Write a haiku."},
+                        ],
+                        "max_tokens": 40,
+                    },
+                    timeout=aiohttp.ClientTimeout(total=60),  # Individual timeout
+                )
+            )
 
         try:
             responses = await asyncio.gather(*tasks, return_exceptions=True)
@@ -132,15 +134,17 @@ async def full_saturation_analysis():
         results.append(result)
 
         # Format output
-        success_rate = result['success'] / result['requested'] * 100
-        status = "✓" if result['success'] == result['requested'] else "✗"
+        success_rate = result["success"] / result["requested"] * 100
+        status = "✓" if result["success"] == result["requested"] else "✗"
 
-        print(f"  {status} N={n}: {result['tps']:>6.1f} TPS, "
-              f"{result['success']}/{result['requested']} success "
-              f"({success_rate:.0f}%)")
+        print(
+            f"  {status} N={n}: {result['tps']:>6.1f} TPS, "
+            f"{result['success']}/{result['requested']} success "
+            f"({success_rate:.0f}%)"
+        )
 
-        if result['errors']:
-            for err in result['errors'][:2]:
+        if result["errors"]:
+            for err in result["errors"][:2]:
                 print(f"      Error: {err[:60]}")
 
         # Small delay between tests
@@ -158,17 +162,23 @@ async def full_saturation_analysis():
     max_tps = 0
 
     for r in results:
-        status = "✓ OPTIMAL" if r['success'] == r['requested'] and r['tps'] > max_tps else \
-                 "✓ Working" if r['success'] == r['requested'] else \
-                 "✗ Failed"
+        status = (
+            "✓ OPTIMAL"
+            if r["success"] == r["requested"] and r["tps"] > max_tps
+            else "✓ Working"
+            if r["success"] == r["requested"]
+            else "✗ Failed"
+        )
 
-        if r['success'] == r['requested'] and r['tps'] > max_tps:
-            max_tps = r['tps']
-            optimal = r['concurrency']
+        if r["success"] == r["requested"] and r["tps"] > max_tps:
+            max_tps = r["tps"]
+            optimal = r["concurrency"]
 
-        print(f"{r['concurrency']:>3} {r['tps']:>10.1f} "
-              f"{r['elapsed_ms']/1000:>9.2f}s "
-              f"{r['success']}/{r['requested']:>4}       {status:>15}")
+        print(
+            f"{r['concurrency']:>3} {r['tps']:>10.1f} "
+            f"{r['elapsed_ms'] / 1000:>9.2f}s "
+            f"{r['success']}/{r['requested']:>4}       {status:>15}"
+        )
 
     print("=" * 70)
     print(f"\nFINDING: Server has EXACTLY {optimal} parallel workers")
@@ -178,8 +188,8 @@ async def full_saturation_analysis():
     # Calculate efficiency
     print("\nEfficiency analysis:")
     for r in results:
-        if r['success'] == r['requested']:
-            per_req_tps = r['tps'] / r['concurrency']
+        if r["success"] == r["requested"]:
+            per_req_tps = r["tps"] / r["concurrency"]
             print(f"  N={r['concurrency']}: {per_req_tps:.1f} TPS/request")
 
     print("\n" + "=" * 70)

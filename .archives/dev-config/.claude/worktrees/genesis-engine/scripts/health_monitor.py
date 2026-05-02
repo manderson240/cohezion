@@ -30,9 +30,7 @@ def run_janitor():
         status = healing.detector.check("repository", "bloat", vitals.get("pending_count", 0), 1000)
 
         if status.status != "healthy":
-            logger.warning(
-                f"⚠️ Repository degradation detected: {status.status}. Triggering autonomous cleanup."
-            )
+            logger.warning(f"⚠️ Repository degradation detected: {status.status}. Triggering autonomous cleanup.")
             subprocess.run(["python3", str(JANITOR_SCRIPT)], cwd=REPO_ROOT, check=True)
 
             # Database pruning

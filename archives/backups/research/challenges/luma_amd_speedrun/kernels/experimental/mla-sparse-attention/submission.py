@@ -25,13 +25,14 @@ LSH Attention: Hash-based sparse attention for long sequences.
 """
 
 from __future__ import annotations
+
+import math
 import os
 import sys
-import math
+
 import torch
-from typing import Tuple, List
-from aiter import dtypes as aiter_dtypes
 from task import input_t, output_t
+
 
 os.environ["AITER_MLA_USE_PERSISTENT"] = "1"
 os.environ["AITER_USE_NT"] = "1"

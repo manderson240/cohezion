@@ -1,6 +1,6 @@
-import unittest
 import os
-import time
+import unittest
+
 from batch_solver import BatchSolver
 
 

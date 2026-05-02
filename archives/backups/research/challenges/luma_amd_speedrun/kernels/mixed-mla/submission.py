@@ -16,10 +16,11 @@ generation tax from the hot path.
 """
 
 from __future__ import annotations
+
 import torch
-from task import input_t, output_t
-import aiter
 from aiter.mla import mla_decode_fwd
+from task import input_t, output_t
+
 
 # Global slab to hold metadata buffers
 _METADATA_SLAB = {}

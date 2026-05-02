@@ -12,10 +12,12 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from typing import Iterable, Literal, TypeVar
+from collections.abc import Iterable
+from typing import Literal, TypeVar
 
 from kaggle_benchmarks import utils
 from kaggle_benchmarks.messages import Message
+
 
 T = TypeVar("T")
 
@@ -33,9 +35,7 @@ class Actor:
         self.role = role
         self.avatar = avatar
 
-    def send(
-        self, message: T | Message[T], is_visible_to_llm: bool = True
-    ) -> Message[T]:
+    def send(self, message: T | Message[T], is_visible_to_llm: bool = True) -> Message[T]:
         return self._send(message, is_visible_to_llm)
 
     def _send(self, message: T | Message[T], is_visible_to_llm: bool) -> Message[T]:
@@ -44,9 +44,7 @@ class Actor:
         if isinstance(message, Message):
             message.is_visible_to_llm = is_visible_to_llm
         else:
-            message = Message(
-                sender=self, content=message, is_visible_to_llm=is_visible_to_llm
-            )
+            message = Message(sender=self, content=message, is_visible_to_llm=is_visible_to_llm)
 
         chats.send(message)
         return message

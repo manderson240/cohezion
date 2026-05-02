@@ -1,8 +1,9 @@
 import asyncio
 import logging
-import numpy as np
+
 from cohezion.compound.autoharness import AutoHarnessSynthesizer
 from cohezion.integrations.agentverse.llm_executor import LLMExecutor
+
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)

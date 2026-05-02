@@ -14,7 +14,6 @@ Tests the repository implementations through the 8-perspective adversarial revie
 from __future__ import annotations
 
 from pathlib import Path
-from typing import Any
 
 import pytest
 
@@ -24,14 +23,6 @@ from cohezion.compound.tdd_adversarial.adversarial_review import (
     ReviewPerspective,
 )
 from cohezion.compound.tdd_adversarial.coordinator import TDDAdversarialCoordinator
-from cohezion.core.persistence.repositories.base import BaseRepository
-from cohezion.core.persistence.repositories.surreal_skill_repository import (
-    SurrealSkillRepository,
-)
-from cohezion.core.persistence.repositories.surreal_universe_repository import (
-    SurrealUniverseRepository,
-)
-from cohezion.core.persistence.surreal_client import SurrealClient
 
 
 @pytest.fixture

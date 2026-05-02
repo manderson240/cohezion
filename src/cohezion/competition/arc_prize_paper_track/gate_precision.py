@@ -12,10 +12,11 @@ from __future__ import annotations
 
 import json
 import random
-from pathlib import Path
-from typing import Any, Dict, List, Tuple
-
 import sys
+from pathlib import Path
+from typing import Any
+
+
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 
 from arc_solver import (
@@ -70,6 +71,7 @@ def structural_alignment_score(candidate_output: Any, expected: Any) -> float:
 
     # 4. Background consistency (most common color)
     from collections import Counter
+
     if candidate_output:
         out_bg = Counter(c for row in candidate_output for c in row).most_common(1)
     else:
@@ -83,7 +85,7 @@ def structural_alignment_score(candidate_output: Any, expected: Any) -> float:
     return (dim_score + color_score + size_score + bg_score) / 4.0
 
 
-def gate_score(program: Any, train_pairs: List[Dict[str, Any]]) -> float:
+def gate_score(program: Any, train_pairs: list[dict[str, Any]]) -> float:
     """Average alignment score across all training pairs."""
     scores = []
     for ex in train_pairs:
@@ -96,7 +98,7 @@ def measure_gate_precision(
     challenges_path: Path,
     solutions_path: Path,
     sample_size: int = 200,
-) -> Dict[str, Any]:
+) -> dict[str, Any]:
     """Measure how well the alignment gate distinguishes correct from wrong programs.
 
     Method:
@@ -173,16 +175,34 @@ def measure_gate_precision(
         "wrong_programs": len(wrong_scores),
         "correct_score_mean": round(sum(correct_scores) / max(len(correct_scores), 1), 3),
         "correct_score_std": round(
-            (sum((s - sum(correct_scores)/max(len(correct_scores),1))**2 for s in correct_scores) / max(len(correct_scores),1))**0.5, 3
-        ) if correct_scores else 0,
+            (
+                sum(
+                    (s - sum(correct_scores) / max(len(correct_scores), 1)) ** 2
+                    for s in correct_scores
+                )
+                / max(len(correct_scores), 1)
+            )
+            ** 0.5,
+            3,
+        )
+        if correct_scores
+        else 0,
         "wrong_score_mean": round(sum(wrong_scores) / max(len(wrong_scores), 1), 3),
         "wrong_score_std": round(
-            (sum((s - sum(wrong_scores)/max(len(wrong_scores),1))**2 for s in wrong_scores) / max(len(wrong_scores),1))**0.5, 3
-        ) if wrong_scores else 0,
+            (
+                sum((s - sum(wrong_scores) / max(len(wrong_scores), 1)) ** 2 for s in wrong_scores)
+                / max(len(wrong_scores), 1)
+            )
+            ** 0.5,
+            3,
+        )
+        if wrong_scores
+        else 0,
         "threshold_results": results,
         "best_precision": max(r["precision"] for r in results.values()),
         "best_recall_at_best_precision": next(
-            r["recall"] for k, r in results.items()
+            r["recall"]
+            for k, r in results.items()
             if r["precision"] == max(rr["precision"] for rr in results.values())
         ),
     }
@@ -197,20 +217,26 @@ if __name__ == "__main__":
         sample_size=100,
     )
 
-    print(f"\n{'='*60}")
-    print(f"ALIGNMENT GATE PRECISION ANALYSIS")
-    print(f"{'='*60}")
+    print(f"\n{'=' * 60}")
+    print("ALIGNMENT GATE PRECISION ANALYSIS")
+    print(f"{'=' * 60}")
     print(f"Tasks tested: {result['tasks_tested']}")
     print(f"Tasks solved: {result['tasks_solved']}")
     print(f"Correct programs: {result['correct_programs']}")
     print(f"Wrong programs: {result['wrong_programs']}")
-    print(f"\nCorrect program alignment scores: "
-          f"μ={result['correct_score_mean']}, σ={result['correct_score_std']}")
-    print(f"Wrong program alignment scores:   "
-          f"μ={result['wrong_score_mean']}, σ={result['wrong_score_std']}")
-    print(f"\nThreshold Analysis:")
+    print(
+        f"\nCorrect program alignment scores: "
+        f"μ={result['correct_score_mean']}, σ={result['correct_score_std']}"
+    )
+    print(
+        f"Wrong program alignment scores:   "
+        f"μ={result['wrong_score_mean']}, σ={result['wrong_score_std']}"
+    )
+    print("\nThreshold Analysis:")
     for thresh, data in result["threshold_results"].items():
-        print(f"  {thresh}: precision={data['precision']}, recall={data['recall']}, "
-              f"TP={data['tp']}, FP={data['fp']}, FN={data['fn']}")
+        print(
+            f"  {thresh}: precision={data['precision']}, recall={data['recall']}, "
+            f"TP={data['tp']}, FP={data['fp']}, FN={data['fn']}"
+        )
     print(f"\nMETRIC alignment_gate_precision={result['best_precision']:.3f}")
     print(f"METRIC alignment_gate_recall={result['best_recall_at_best_precision']:.3f}")

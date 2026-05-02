@@ -145,7 +145,7 @@ class TestStory13PolarsMigration:
         for filename in os.listdir(aimo_dir):
             if filename.endswith(".py") and filename != "test_regression_stability.py":
                 filepath = os.path.join(aimo_dir, filename)
-                with open(filepath, "r") as f:
+                with open(filepath) as f:
                     try:
                         tree = ast.parse(f.read())
                         for node in ast.walk(tree):

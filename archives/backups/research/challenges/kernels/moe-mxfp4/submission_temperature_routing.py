@@ -19,11 +19,13 @@ Author: Sprint Final Variant
 
 from __future__ import annotations
 
+import math
 import os
 import sys
-import math
+
 import torch
 import torch.nn.functional as F
+
 
 # Environment setup
 os.environ["AITER_JIT_DIR"] = "/tmp/aiter_jit_cache"
@@ -44,12 +46,13 @@ from aiter import ActivationType, dtypes
 from aiter.ops.triton.quant import dynamic_mxfp4_quant
 from aiter.utility.fp4_utils import e8m0_shuffle
 
+
 try:
     from task import input_t, output_t
 except ImportError:
-    from typing import Tuple, Any
+    from typing import Any
 
-    input_t = Tuple[Any, ...]
+    input_t = tuple[Any, ...]
     output_t = torch.Tensor
 
 
@@ -337,7 +340,7 @@ def custom_kernel(data: input_t) -> output_t:
         )
         return output
 
-    except Exception as e:
+    except Exception:
         # Fallback
         output = aiter.fused_moe(
             hidden_states=x_q,

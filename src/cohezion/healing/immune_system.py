@@ -11,8 +11,8 @@ import os
 from pathlib import Path
 from typing import Any, ClassVar
 
-from cohezion.core.time_keeper import get_time_keeper
 from cohezion.audio.narrator import get_narrator
+from cohezion.core.time_keeper import get_time_keeper
 
 
 logger = logging.getLogger(__name__)

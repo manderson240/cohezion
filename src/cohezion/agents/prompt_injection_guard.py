@@ -7,6 +7,7 @@ Output of the hijack lands in JourneyTracker/SemanticCache and pollutes future s
 See `.claude/skills/prompt-injection-guard/workflow.md` for the full threat model, rule set,
 and integration points. Use this helper at every ingress of external content into an LLM call.
 """
+
 from __future__ import annotations
 
 

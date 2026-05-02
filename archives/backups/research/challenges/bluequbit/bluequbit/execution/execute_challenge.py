@@ -15,6 +15,7 @@ Based on all 6 tutorials - proven winning strategies.
 import sys
 from pathlib import Path
 
+
 sys.path.insert(0, str(Path(__file__).parent))
 
 import argparse
@@ -22,15 +23,11 @@ import json
 import time
 from pathlib import Path
 
-from dotenv import load_dotenv
 import bluequbit
 import qiskit
-
-from universal_challenge_solver import UniversalChallengeSolver, ChallengeType
+from dotenv import load_dotenv
 from submission_manager import SubmissionManager
-from peaked_circuit_solver import PeakedCircuitSolver
-from pauli_path_solver import PauliPathSolver
-from qaoa_solver import QAOASolver
+from universal_challenge_solver import ChallengeType, UniversalChallengeSolver
 
 
 def parse_graph_file(filepath: str) -> list:
@@ -158,7 +155,7 @@ def main():
     elapsed = time.time() - start_time
 
     print(f"\n✓ Execution complete in {elapsed:.2f}s")
-    print(f"\nResult:")
+    print("\nResult:")
     print(json.dumps(result, indent=2))
 
     # Validate and submit
@@ -172,13 +169,13 @@ def main():
         )
 
         if submission:
-            print(f"\n✅ SUBMISSION SUCCESSFUL")
+            print("\n✅ SUBMISSION SUCCESSFUL")
             print(f"   Submission #{submission['number']}")
         else:
-            print(f"\n❌ SUBMISSION BLOCKED")
-            print(f"   Review validation warnings and retry")
+            print("\n❌ SUBMISSION BLOCKED")
+            print("   Review validation warnings and retry")
     else:
-        print(f"\n⚠️ DRY RUN - Not submitted")
+        print("\n⚠️ DRY RUN - Not submitted")
         validation = submission_manager.pre_validate(result)
         print(f"Would {'SUBMIT' if validation.recommendation == 'SUBMIT' else 'NOT SUBMIT'}")
 

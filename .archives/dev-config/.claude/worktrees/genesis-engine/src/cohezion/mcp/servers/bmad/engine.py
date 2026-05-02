@@ -89,9 +89,7 @@ class BMADEngine:
                     self.data_path / module / path / f"{path.split('/')[-1]}.md",
                     base_dir=self.data_path,
                 ),
-                sanitize_path(
-                    self.data_path / module / "workflows" / f"{path}.md", base_dir=self.data_path
-                ),
+                sanitize_path(self.data_path / module / "workflows" / f"{path}.md", base_dir=self.data_path),
             ]
         except ValueError:
             return {"error": f"Invalid workflow path: {module}/{path}"}
@@ -165,9 +163,7 @@ class BMADEngine:
             for name, info in self._modules.items()
         ]
 
-    def list_workflows(
-        self, module: str | None = None, phase: str | None = None
-    ) -> list[dict[str, Any]]:
+    def list_workflows(self, module: str | None = None, phase: str | None = None) -> list[dict[str, Any]]:
         """List available workflows.
 
         Args:
@@ -267,9 +263,7 @@ class BMADEngine:
                 "bmad_list_agents",
                 "bmad_help",
             ]
-            recommendations["reasoning"] = (
-                "You can explore available workflows, agents, or get general help."
-            )
+            recommendations["reasoning"] = "You can explore available workflows, agents, or get general help."
 
         if "prd" in query_lower or "product" in query_lower:
             recommendations["suggested_commands"].append("bmad_bmm_create_prd")

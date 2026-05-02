@@ -30,16 +30,18 @@ def add_kernel(
     # Write x + y back to DRAM.
     tl.store(output_ptr + offsets, output, mask=mask)
 
+
 def add(x: torch.Tensor, y: torch.Tensor):
     # We need to preallocate the output.
     output = torch.empty_like(x)
     assert x.is_cuda and y.is_cuda and output.is_cuda
     n_elements = output.numel()
     # The LUNCHPAD logic is used to determine how many programs to run.
-    grid = lambda meta: (triton.cdiv(n_elements, meta['BLOCK_SIZE']),)
+    grid = lambda meta: (triton.cdiv(n_elements, meta["BLOCK_SIZE"]),)
     # Finally, we launch the kernel with the (grid, block_size, ...) arguments.
     add_kernel[grid](x, y, output, n_elements, BLOCK_SIZE=1024)
     return output
+
 
 def test_triton_simple():
     if not torch.cuda.is_available():
@@ -47,13 +49,14 @@ def test_triton_simple():
         return
 
     size = 98432
-    x = torch.rand(size, device='cuda')
-    y = torch.rand(size, device='cuda')
+    x = torch.rand(size, device="cuda")
+    y = torch.rand(size, device="cuda")
     output_torch = x + y
     output_triton = add(x, y)
     print(torch.max(torch.abs(output_torch - output_triton)))
     assert torch.allclose(output_torch, output_triton)
     print("Triton simple add PASSED!")
+
 
 if __name__ == "__main__":
     test_triton_simple()

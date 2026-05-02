@@ -22,7 +22,7 @@ import logging
 import time
 from datetime import datetime
 from pathlib import Path
-from typing import Any, Dict, List, Optional
+from typing import Any
 
 from context_aware_solver import get_solver
 from experiential_learning import get_learning_engine
@@ -55,7 +55,7 @@ class AIMOBreakthroughDriver:
         self,
         cache_max_entries: int = 256,
         vault_path: str = "~/vaults/cohezion-vault/regions/cerebrum/aimo",
-        session_id: Optional[str] = None,
+        session_id: str | None = None,
     ):
         self.session_id = session_id or f"breakthrough_{datetime.now().strftime('%Y%m%d_%H%M%S')}"
         self.vault_path = Path(vault_path).expanduser()
@@ -84,9 +84,9 @@ class AIMOBreakthroughDriver:
         # Session state
         self.problems_solved = 0
         self.session_start = time.time()
-        self.session_results: List[Dict[str, Any]] = []
+        self.session_results: list[dict[str, Any]] = []
 
-    def warm_start(self) -> Dict[str, Any]:
+    def warm_start(self) -> dict[str, Any]:
         """Warm start: load cache and learning."""
         logger.info("\nWarming up session...")
 
@@ -108,8 +108,8 @@ class AIMOBreakthroughDriver:
         self,
         problem_id: str,
         problem_text: str,
-        expected_answer: Optional[int] = None,
-    ) -> Dict[str, Any]:
+        expected_answer: int | None = None,
+    ) -> dict[str, Any]:
         """Solve single problem with full context awareness."""
         logger.info(f"\n{'=' * 60}")
         logger.info(f"Problem: {problem_id}")
@@ -187,7 +187,7 @@ class AIMOBreakthroughDriver:
         }
         return max(scores, key=scores.get)
 
-    def _extract_lessons(self, metadata: Dict[str, Any], correct: Optional[bool]) -> List[str]:
+    def _extract_lessons(self, metadata: dict[str, Any], correct: bool | None) -> list[str]:
         """Extract lessons from solving experience."""
         lessons = []
 
@@ -212,8 +212,8 @@ class AIMOBreakthroughDriver:
 
     def run_session(
         self,
-        problems: List[Dict[str, Any]],
-    ) -> Dict[str, Any]:
+        problems: list[dict[str, Any]],
+    ) -> dict[str, Any]:
         """Run breakthrough session on problems."""
         logger.info(f"\n{'=' * 60}")
         logger.info(f"AIMO Breakthrough Session: {self.session_id}")
@@ -251,7 +251,7 @@ class AIMOBreakthroughDriver:
 
         return summary
 
-    def _get_session_summary(self) -> Dict[str, Any]:
+    def _get_session_summary(self) -> dict[str, Any]:
         """Get session summary."""
         duration = time.time() - self.session_start
 
@@ -281,7 +281,7 @@ class AIMOBreakthroughDriver:
             "learning_summary": self.learning_engine.get_learning_summary(),
         }
 
-    def _print_summary(self, summary: Dict[str, Any]):
+    def _print_summary(self, summary: dict[str, Any]):
         """Print session summary."""
         logger.info(f"\n{'=' * 60}")
         logger.info(f"Session Summary: {summary['session_id']}")
@@ -300,7 +300,7 @@ class AIMOBreakthroughDriver:
         logger.info(f"Cost savings: {summary['efficiency_stats']['estimated_cost_savings']}")
         logger.info(f"{'=' * 60}")
 
-    def _save_session(self, summary: Dict[str, Any]):
+    def _save_session(self, summary: dict[str, Any]):
         """Save session results."""
         session_dir = self.vault_path / "sessions"
         session_dir.mkdir(parents=True, exist_ok=True)
@@ -353,7 +353,7 @@ def main():
     summary = driver.run_session(problems)
 
     print(f"\n{'=' * 60}")
-    print(f"Breakthrough Session Complete")
+    print("Breakthrough Session Complete")
     print(f"{'=' * 60}")
     print(f"Accuracy: {summary['accuracy'] * 100:.1f}%")
     print(f"Cache hit rate: {summary['cache_hit_rate'] * 100:.1f}%")

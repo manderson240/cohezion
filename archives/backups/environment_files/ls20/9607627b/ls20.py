@@ -21,7 +21,6 @@
 # SOFTWARE.
 
 import math
-from typing import List, Optional, Set, Tuple
 
 import numpy as np
 from arcengine import (
@@ -33,6 +32,7 @@ from arcengine import (
     RenderableUserDisplay,
     Sprite,
 )
+
 
 "."
 sprites = {
@@ -5652,7 +5652,7 @@ xvzyzqolqz = 5
 class hbuhvkxlhc(RenderableUserDisplay):
     """."""
 
-    bfdcztirdu: List[Tuple[int, int]]
+    bfdcztirdu: list[tuple[int, int]]
 
     def __init__(self, vjhajnbdzr: "Ls20", osgviligwp: int):
         self.vjhajnbdzr = vjhajnbdzr
@@ -5725,7 +5725,7 @@ class twkzhcfelv(xajlyftlyn):
     qeekhxkoad = 8
     boafatmkhi = 6
 
-    def __init__(self, sprite: Sprite, fjzuynaokm: Set[Tuple[int, int]]) -> None:
+    def __init__(self, sprite: Sprite, fjzuynaokm: set[tuple[int, int]]) -> None:
         self.fjzuynaokm = fjzuynaokm
         self.sprite = sprite
         self.sprite.set_blocking(BlockingMode.BOUNDING_BOX)
@@ -5746,7 +5746,7 @@ class twkzhcfelv(xajlyftlyn):
         self.target_x = self.sprite.x
         self.target_y = self.sprite.y
         self.is_pushing = False
-        self.aqxtoxeino: Optional[Sprite] = None
+        self.aqxtoxeino: Sprite | None = None
         self._anim_elapsed = 0
         self._anim_duration = 1
         self._anim_from_x = float(self.sprite.x)
@@ -5843,9 +5843,9 @@ class dboxixicic:
         self._start_x = sprite.x
         self._start_y = sprite.y
         self._dir = 0
-        self._undo_x: Optional[int] = None
-        self._undo_y: Optional[int] = None
-        self._undo_dir: Optional[int] = None
+        self._undo_x: int | None = None
+        self._undo_y: int | None = None
+        self._undo_dir: int | None = None
 
     def bkuguqrpvq(self) -> None:
         self._dir = 0
@@ -5857,7 +5857,7 @@ class dboxixicic:
     def qrttfzbifu(self) -> None:
         self._dir = (self._dir + 2) % 4
 
-    def npdjlrkhsg(self) -> Tuple[int, int]:
+    def npdjlrkhsg(self) -> tuple[int, int]:
         if not self.bfdcztirdu:
             return (0, 0)
         msmljuaejl = (
@@ -5926,7 +5926,7 @@ class dboxixicic:
             return -1
         return int(self.bfdcztirdu.pixels[cgpwxobidt, akcoyirktv])
 
-    def nakogfhyus(self, acdeadlbzx: int) -> Tuple[int, int]:
+    def nakogfhyus(self, acdeadlbzx: int) -> tuple[int, int]:
         if acdeadlbzx == 0:
             return (0, 1)
         if acdeadlbzx == 1:
@@ -6023,32 +6023,32 @@ class Ls20(ARCBaseGame):
         self.current_level.add_sprite(self.aqdxgoyvu)
         self.aqdxgoyvu.set_visible(False)
         self.aqygnziho = 3
-        self.ofoahudlo: List[Sprite] = []
-        self.byotxmvkt: List[Sprite] = []
-        self.alsxlhizr: List[Sprite] = []
+        self.ofoahudlo: list[Sprite] = []
+        self.byotxmvkt: list[Sprite] = []
+        self.alsxlhizr: list[Sprite] = []
         self.ebfuxzbvn = 0
         self.akoadfsur = 0
         self.ltwrkifkx = self.gudziatsk.x
         self.zyoimjaei = self.gudziatsk.y
-        self.wsoslqeku: List[dboxixicic] = []
+        self.wsoslqeku: list[dboxixicic] = []
         for uedjpektbg in self.current_level.get_sprites_by_tag("xfmluydglp"):
             for ocajwvfus in ("ttfwljgohq", "soyhouuebz", "rhsxkxzdjz"):
                 for hasivfwip in self.current_level.get_sprites_by_tag(ocajwvfus):
                     if uedjpektbg.collides_with(hasivfwip, ignoreMode=True):
                         self.wsoslqeku.append(dboxixicic(uedjpektbg, hasivfwip))
-        fjzuynaokm: Set[Tuple[int, int]] = set()
+        fjzuynaokm: set[tuple[int, int]] = set()
         for qoceexndvw in self.current_level.get_sprites_by_tag("ihdgageizm"):
             fjzuynaokm.add((qoceexndvw.x, qoceexndvw.y))
         for grbudvkafa in self.current_level.get_sprites_by_tag("rjlbuycveu"):
             fjzuynaokm.add((grbudvkafa.x, grbudvkafa.y))
-        self.hasivfwip: List[twkzhcfelv] = []
+        self.hasivfwip: list[twkzhcfelv] = []
         for ojwauijaoq in self.current_level.get_sprites_by_tag("gbvqrjtaqo"):
             self.hasivfwip.append(twkzhcfelv(ojwauijaoq, fjzuynaokm))
-        self.euemavvxz: List[xajlyftlyn] = []
+        self.euemavvxz: list[xajlyftlyn] = []
 
     def mrznumynfe(
         self, zccgflmau: int, qoxqcbqfp: int, xzejejszi: int, eutrvdkbx: int
-    ) -> List[Sprite]:
+    ) -> list[Sprite]:
         """."""
         ehiovmywu = self.current_level._sprites
         return [
@@ -6060,7 +6060,7 @@ class Ls20(ARCBaseGame):
             and (xfemxgpuj.y < qoxqcbqfp + eutrvdkbx)
         ]
 
-    def txnfzvzetn(self, juldcpkjse: int, ullicjtklz: int) -> Tuple[bool, bool]:
+    def txnfzvzetn(self, juldcpkjse: int, ullicjtklz: int) -> tuple[bool, bool]:
         ttiyzlpkgh = self.mrznumynfe(juldcpkjse, ullicjtklz, self.gisrhqpee, self.tbwnoxqgc)
         bwdzgjttjp = False
         yubyobdoss = False

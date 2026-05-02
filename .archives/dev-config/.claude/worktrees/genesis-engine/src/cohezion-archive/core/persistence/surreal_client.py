@@ -294,9 +294,7 @@ DEFINE FIELD stability_score ON TABLE universe_nodes VALUE (
             await self._client.use(self.namespace, self.database)
             self._connected = True
             breaker.record_success()
-            logger.info(
-                f"✅ REAL CLIENT: Connected to SurrealDB at {self.url} ({self.namespace}/{self.database})"
-            )
+            logger.info(f"✅ REAL CLIENT: Connected to SurrealDB at {self.url} ({self.namespace}/{self.database})")
             return True
         except Exception as e:
             breaker.record_failure()
@@ -478,17 +476,11 @@ DEFINE FIELD stability_score ON TABLE universe_nodes VALUE (
 
                             if var_name in vars:
                                 target_value = vars[var_name]
-                                all_items = self._client.get_all(
-                                    1000
-                                )  # Assuming all items are nodes for now
+                                all_items = self._client.get_all(1000)  # Assuming all items are nodes for now
 
                                 # Filter based on the field and value
-                                filtered_items = [
-                                    item for item in all_items if item.get(field) == target_value
-                                ]
-                                return [
-                                    filtered_items
-                                ]  # SurrealDB returns a list of results, each a list of records
+                                filtered_items = [item for item in all_items if item.get(field) == target_value]
+                                return [filtered_items]  # SurrealDB returns a list of results, each a list of records
 
                 logger.warning("Query not supported in InMemoryStore")
                 return []
@@ -767,9 +759,7 @@ DEFINE FIELD stability_score ON TABLE universe_nodes VALUE (
             embedding=data.get("embedding"),
             physics_state=physics_state,
             node_type=data.get("node_type", "document"),
-            created_at=datetime.fromisoformat(data["created_at"])
-            if "created_at" in data
-            else datetime.now(),
+            created_at=datetime.fromisoformat(data["created_at"]) if "created_at" in data else datetime.now(),
             metadata=data.get("metadata", {}),
             compressed=compressed,
         )
@@ -834,9 +824,7 @@ class InMemoryStore:
             if embedding:
                 doc_vec = np.array(embedding)
                 # Cosine similarity
-                similarity = np.dot(query_vec, doc_vec) / (
-                    np.linalg.norm(query_vec) * np.linalg.norm(doc_vec) + 1e-8
-                )
+                similarity = np.dot(query_vec, doc_vec) / (np.linalg.norm(query_vec) * np.linalg.norm(doc_vec) + 1e-8)
                 scores.append((similarity, data))
 
         scores.sort(reverse=True, key=lambda x: x[0])
@@ -883,9 +871,7 @@ async def main() -> None:
         if retrieved:
             print(f"Retrieved node: {retrieved.id}")
             print(f"Content: {retrieved.content[:50]}...")
-            print(
-                f"Physics: x={retrieved.physics_state.x}, physics={retrieved.physics_state.physics}"
-            )
+            print(f"Physics: x={retrieved.physics_state.x}, physics={retrieved.physics_state.physics}")
 
     await client.close()
 

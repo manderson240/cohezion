@@ -35,6 +35,7 @@ logger = logging.getLogger(__name__)
 @dataclass
 class ExecutionResult:
     """Result of multi-agent task execution."""
+
     success: bool
     output: str | dict[str, Any]
     agent_name: str
@@ -65,6 +66,7 @@ class ExecutionResult:
 @dataclass
 class TaskContext:
     """Context for task execution."""
+
     task_id: str
     prompt: str
     history: list[dict[str, Any]] = field(default_factory=list)
@@ -76,7 +78,7 @@ class TaskContext:
 
 class MultiAgentOrchestrator:
     """Production multi-agent orchestration system.
-    
+
     Key capabilities:
     - Dynamic agent loading (hot-reload)
     - Adaptive routing (learns optimal agent)
@@ -123,13 +125,13 @@ class MultiAgentOrchestrator:
         fallback_on_error: bool = True,
     ) -> ExecutionResult:
         """Execute task with full orchestration.
-        
+
         Args:
             task: Task description/prompt
             context: Optional execution context
             timeout: Maximum execution time
             fallback_on_error: Whether to try alternatives on failure
-            
+
         Returns:
             ExecutionResult with full details
         """
@@ -144,10 +146,7 @@ class MultiAgentOrchestrator:
             decision = await self.router.route(task, context)
 
             if not decision.agent_name:
-                return self._error_result(
-                    "No suitable agent found",
-                    start_time
-                )
+                return self._error_result("No suitable agent found", start_time)
 
             # 2. Execute with primary agent
             result = await self._execute_with_agent(
@@ -310,11 +309,11 @@ class MultiAgentOrchestrator:
             score += 0.1
 
         # Structure check
-        if '\n' in text and not text.endswith('...'):
+        if "\n" in text and not text.endswith("..."):
             score += 0.1
 
         # Error check
-        if 'error' not in text.lower() and 'failed' not in text.lower():
+        if "error" not in text.lower() and "failed" not in text.lower():
             score += 0.1
 
         # Success boost
@@ -337,7 +336,7 @@ class MultiAgentOrchestrator:
                     "latency_ms": result.latency_ms,
                     "quality_score": result.quality_score,
                     "features": decision.features,
-                }
+                },
             )
         except Exception as e:
             logger.warning(f"Feedback failed: {e}")
@@ -367,12 +366,12 @@ class MultiAgentOrchestrator:
         max_concurrent: int = 5,
     ) -> list[ExecutionResult]:
         """Execute multiple tasks concurrently.
-        
+
         Args:
             tasks: List of task descriptions
             context: Shared context for all tasks
             max_concurrent: Maximum concurrent executions
-            
+
         Returns:
             List of ExecutionResults
         """
@@ -382,9 +381,7 @@ class MultiAgentOrchestrator:
             async with semaphore:
                 return await self.execute(task, context)
 
-        results = await asyncio.gather(
-            *[execute_with_limit(t) for t in tasks]
-        )
+        results = await asyncio.gather(*[execute_with_limit(t) for t in tasks])
 
         return results
 
@@ -394,9 +391,7 @@ class MultiAgentOrchestrator:
 
     def get_stats(self) -> dict[str, Any]:
         """Get orchestration statistics."""
-        success_rate = (
-            self._successful_executions / max(self._total_executions, 1)
-        )
+        success_rate = self._successful_executions / max(self._total_executions, 1)
 
         return {
             "total_executions": self._total_executions,
@@ -435,11 +430,11 @@ class MultiAgentOrchestrator:
         print(f"  Success rate: {stats['success_rate']:.1%}")
 
         print(f"\n🤖 Active Agents: {stats['registry_status']['active_agents']}")
-        for agent in stats['registry_status']['agents']:
+        for agent in stats["registry_status"]["agents"]:
             print(f"  - {agent['name']}: {', '.join(agent['capabilities'][:3])}")
 
-        if stats.get('router_stats'):
-            rs = stats['router_stats']
+        if stats.get("router_stats"):
+            rs = stats["router_stats"]
             print("\n🧠 Routing Intelligence:")
             print(f"  Total routings: {rs.get('total_routings', 0)}")
             print(f"  Average confidence: {rs.get('avg_confidence', 0):.2f}")
@@ -464,11 +459,7 @@ async def get_orchestrator() -> MultiAgentOrchestrator:
     return _orchestrator
 
 
-async def execute_task(
-    task: str,
-    context: dict | None = None,
-    **kwargs
-) -> ExecutionResult:
+async def execute_task(task: str, context: dict | None = None, **kwargs) -> ExecutionResult:
     """Quick execution function."""
     orch = await get_orchestrator()
     return await orch.execute(task, context, **kwargs)
@@ -482,6 +473,7 @@ async def quick_orchestrate(task: str) -> str:
 
 # Example usage
 if __name__ == "__main__":
+
     async def demo():
         """Demonstrate multi-agent orchestration."""
         print("🚀 Multi-Agent Orchestration Demo")

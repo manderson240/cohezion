@@ -28,7 +28,9 @@ from cohezion.arc.transforms import ALL_TRANSFORMS as BASE_TRANSFORMS
 from cohezion.flume.vae_encoder import get_encoder
 
 
-TARGET_DEADLINE = datetime.fromisoformat(os.environ.get("ARDeadline", datetime.now().replace(hour=7, minute=0, second=0).isoformat()))
+TARGET_DEADLINE = datetime.fromisoformat(
+    os.environ.get("ARDeadline", datetime.now().replace(hour=7, minute=0, second=0).isoformat())
+)
 CHECKPOINT = Path.home() / ".cohezion-research/arc_continuous.json"
 REPORT = Path.home() / ".cohezion-research/arc_continuous_report.md"
 
@@ -42,7 +44,14 @@ def _sec_left() -> float:
 def _load() -> dict:
     if CHECKPOINT.exists():
         return json.loads(CHECKPOINT.read_text())
-    return {"best_rate": 0.0, "total_evals": 0, "wins": 0, "discovered_transforms": {}, "flume_cache": {}, "history": []}
+    return {
+        "best_rate": 0.0,
+        "total_evals": 0,
+        "wins": 0,
+        "discovered_transforms": {},
+        "flume_cache": {},
+        "history": [],
+    }
 
 
 def _save(state: dict) -> None:
@@ -82,7 +91,10 @@ def _find_nearest_task(task_id: str, state: dict, all_tasks: dict) -> str | None
             continue
         if tid not in state.get("solved_tasks", {}):
             continue
-        sim = float(np.dot(vec, np.array(tvec)) / (np.linalg.norm(vec) * np.linalg.norm(np.array(tvec)) + 1e-9))
+        sim = float(
+            np.dot(vec, np.array(tvec))
+            / (np.linalg.norm(vec) * np.linalg.norm(np.array(tvec)) + 1e-9)
+        )
         if sim > best_sim:
             best_sim, best_tid = sim, tid
     return best_tid
@@ -91,7 +103,7 @@ def _find_nearest_task(task_id: str, state: dict, all_tasks: dict) -> str | None
 def _generalize_chain(chain: list[str], train_pairs: list[dict]) -> list[str] | None:
     """Try removing last transform to see if shorter chain still works."""
     for i in range(len(chain), 1):
-        shorter = chain[:len(chain)-1] if i < len(chain) else chain
+        shorter = chain[: len(chain) - 1] if i < len(chain) else chain
         if not shorter:
             continue
         if _score_chain(shorter, train_pairs) >= 1.0:
@@ -99,7 +111,9 @@ def _generalize_chain(chain: list[str], train_pairs: list[dict]) -> list[str] | 
     return None
 
 
-def deep_solve(task: dict, task_id: str, state: dict, budget_sec: float = 60.0) -> tuple[list[str] | None, float]:
+def deep_solve(
+    task: dict, task_id: str, state: dict, budget_sec: float = 60.0
+) -> tuple[list[str] | None, float]:
     """Deep beam search with warm-start from nearest successful task."""
     train = task["train"]
     names = list(BASE_TRANSFORMS.keys())
@@ -141,7 +155,7 @@ def deep_solve(task: dict, task_id: str, state: dict, budget_sec: float = 60.0) 
 
 def main():
     print(f"[{datetime.now().isoformat()}] Continuous ARC Autoresearch START")
-    print(f"Deadline: {TARGET_DEADLINE.isoformat()} | Left: {_sec_left()/3600:.1f}h")
+    print(f"Deadline: {TARGET_DEADLINE.isoformat()} | Left: {_sec_left() / 3600:.1f}h")
     state = _load()
     tasks = load_all("training")
     task_ids = list(tasks.keys())
@@ -158,7 +172,11 @@ def main():
     iteration = 0
     while _sec_left() > 60:
         iteration += 1
-        cfg = {"beam": 16 + iteration * 2, "depth": min(5, 2 + iteration // 10), "budget": min(120, 30 + iteration * 2)}
+        cfg = {
+            "beam": 16 + iteration * 2,
+            "depth": min(5, 2 + iteration // 10),
+            "budget": min(120, 30 + iteration * 2),
+        }
         batch_solved = 0
         batch_total = 0
 
@@ -194,23 +212,27 @@ def main():
         rate = batch_solved / max(batch_total, 1)
         if rate > state["best_rate"]:
             state["best_rate"] = rate
-        state["history"].append({
-            "iteration": iteration,
-            "cfg": cfg,
-            "rate": rate,
-            "solved": batch_solved,
-            "total": batch_total,
-        })
+        state["history"].append(
+            {
+                "iteration": iteration,
+                "cfg": cfg,
+                "rate": rate,
+                "solved": batch_solved,
+                "total": batch_total,
+            }
+        )
         _save(state)
-        print(f"Iter {iteration}: {rate:.1%} ({batch_solved}/{batch_total}) | best={state['best_rate']:.1%} | left={_sec_left()/3600:.1f}h")
+        print(
+            f"Iter {iteration}: {rate:.1%} ({batch_solved}/{batch_total}) | best={state['best_rate']:.1%} | left={_sec_left() / 3600:.1f}h"
+        )
 
     # Report
     report = f"""# ARC Continuous Autoresearch Report
 Deadline: {TARGET_DEADLINE.isoformat()}
 Iterations: {iteration}
-Best rate: {state['best_rate']:.2%}
-Total evals: {state['total_evals']}
-Unique tasks solved: {len([k for k in solved_tasks if not k.endswith('_gen')])}
+Best rate: {state["best_rate"]:.2%}
+Total evals: {state["total_evals"]}
+Unique tasks solved: {len([k for k in solved_tasks if not k.endswith("_gen")])}
 """
     REPORT.write_text(report)
     print(f"DONE. Report: {REPORT}")

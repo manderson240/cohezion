@@ -51,11 +51,7 @@ async def main():
         success_score = 0
         if "vector" in output.lower() or "encoder" in output.lower() or "latent" in output.lower():
             success_score += 0.5
-        if (
-            "binary search tree" in output.lower()
-            or "bst" in output.lower()
-            or "node" in output.lower()
-        ):
+        if "binary search tree" in output.lower() or "bst" in output.lower() or "node" in output.lower():
             success_score += 0.5
 
         print(f"Score: {success_score}")

@@ -39,7 +39,12 @@ async def test_tool_graph_stats_returns_stats():
 @pytest.mark.asyncio
 async def test_tool_graph_neighborhood_formats_output():
     mock_data = {
-        "neuron": {"title": "Test", "activation": 0.9, "stage": "mature", "cluster_id": "cortex"},
+        "neuron": {
+            "title": "Test",
+            "activation": 0.9,
+            "stage": "mature",
+            "cluster_id": "cortex",
+        },
         "outbound": [],
         "inbound": [],
         "cluster_top": [],

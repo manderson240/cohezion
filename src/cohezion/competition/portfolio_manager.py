@@ -3,8 +3,8 @@
 from __future__ import annotations
 
 import json
-from dataclasses import dataclass
 from typing import Any
+
 
 COMPETITIONS = [
     {
@@ -87,7 +87,9 @@ def main() -> dict[str, Any]:
     print("SCORING (Expected Value)")
     print("-" * 60)
     for ev, c in scored:
-        print(f"  {c['name']:35s} EV=${ev:>8.0f}  |  prize=${c['prize_usd']:>9,}  |  teams={c['teams']}")
+        print(
+            f"  {c['name']:35s} EV=${ev:>8.0f}  |  prize=${c['prize_usd']:>9,}  |  teams={c['teams']}"
+        )
     print()
 
     # Phase 3: Decision

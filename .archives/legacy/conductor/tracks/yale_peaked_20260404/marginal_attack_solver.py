@@ -1,10 +1,12 @@
-import os
-import bluequbit
-import qiskit
 import json
+import os
 import subprocess
 import sys
+
+import bluequbit
+import qiskit
 from dotenv import load_dotenv
+
 
 # Load environment variables for BlueQubit token
 load_dotenv(".env")
@@ -78,7 +80,7 @@ def run_marginal_sprint():
 
     results = {}
     if os.path.exists("conductor/tracks/yale_peaked_20260404/interim_results.json"):
-        with open("conductor/tracks/yale_peaked_20260404/interim_results.json", "r") as f:
+        with open("conductor/tracks/yale_peaked_20260404/interim_results.json") as f:
             results = json.load(f)
 
     for name, path in all_problems.items():

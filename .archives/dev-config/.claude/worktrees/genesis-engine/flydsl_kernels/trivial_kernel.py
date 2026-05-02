@@ -5,13 +5,16 @@ Verifies basic @kernel decorator and JIT compilation on MI355X
 """
 
 import sys
+
 import numpy as np
+
 
 # FlyDSL imports (available on MI355X Popcorn runner)
 try:
     import flydsl.compiler as flyc
     import flydsl.expr as fx
     from flydsl import run_pipeline
+
     FLYDSL_AVAILABLE = True
 except ImportError:
     print("Warning: FlyDSL not available. This code is designed for MI355X runner.")
@@ -22,13 +25,9 @@ except ImportError:
 # Trivial Vector Addition Kernel
 # ============================================================================
 
+
 @flyc.kernel
-def vector_add_kernel(
-    A: fx.Tensor,
-    B: fx.Tensor,
-    C: fx.Tensor,
-    n: fx.Constexpr[int]
-):
+def vector_add_kernel(A: fx.Tensor, B: fx.Tensor, C: fx.Tensor, n: fx.Constexpr[int]):
     """
     Simple vector addition: C[i] = A[i] + B[i]
     Demonstrates basic FlyDSL @kernel usage
@@ -57,6 +56,7 @@ def vector_add_kernel(
 # MFMA Test Kernel (MI355X specific)
 # ============================================================================
 
+
 @flyc.kernel
 def mfma_test_kernel(
     A: fx.Tensor,  # M x K
@@ -64,7 +64,7 @@ def mfma_test_kernel(
     C: fx.Tensor,  # M x N
     M: fx.Constexpr[int],
     K: fx.Constexpr[int],
-    N: fx.Constexpr[int]
+    N: fx.Constexpr[int],
 ):
     """
     Test MFMA (Matrix Fused Multiply-Add) instructions on MI355X
@@ -110,6 +110,7 @@ def mfma_test_kernel(
 # JIT Compilation and Execution
 # ============================================================================
 
+
 def compile_and_test_vector_add():
     """Compile and test the vector add kernel"""
     print("=" * 60)
@@ -136,10 +137,10 @@ def compile_and_test_vector_add():
         args=[A, B, C, fx.constant(n)],
         grid_dim=(n // block_dim,),
         block_dim=(block_dim,),
-        arch="gfx950"  # MI355X
+        arch="gfx950",  # MI355X
     )
 
-    print(f"✓ Compilation successful!")
+    print("✓ Compilation successful!")
     print(f"  Grid dim: ({n // block_dim},)")
     print(f"  Block dim: ({block_dim},)")
 
@@ -158,7 +159,7 @@ def compile_and_test_vector_add():
     expected = h_A + h_B
     max_error = np.max(np.abs(h_C - expected))
 
-    print(f"✓ Execution completed")
+    print("✓ Execution completed")
     print(f"  Max error: {max_error:.2e}")
 
     if max_error < 1e-5:
@@ -195,13 +196,13 @@ def compile_mfma_kernel():
         grid_dim=(M // 128, N // 64),  # Block tiles
         block_dim=(256,),  # 4 warps
         arch="gfx950",
-        enable_mfma=True
+        enable_mfma=True,
     )
 
-    print(f"✓ MFMA kernel compiled successfully!")
+    print("✓ MFMA kernel compiled successfully!")
     print(f"  Grid: ({M // 128}, {N // 64})")
-    print(f"  Block: (256,)")
-    print(f"  Features: MFMA F32_32x32x64_F8F6F4")
+    print("  Block: (256,)")
+    print("  Features: MFMA F32_32x32x64_F8F6F4")
 
     return True
 
@@ -221,24 +222,20 @@ def print_kernel_info():
             "JIT compilation with disk caching",
             "MFMA instruction support",
             "Layout algebra (Shape, Stride, Layout)",
-            "Hierarchical control (block/warp/thread/instruction)"
+            "Hierarchical control (block/warp/thread/instruction)",
         ],
-        "mfma_instructions": [
-            "mfma_f32_16x16x128_f8f6f4",
-            "mfma_f32_32x32x64_f8f6f4",
-            "mfma_f32_16x16x256_f8f6f4"
-        ]
+        "mfma_instructions": ["mfma_f32_16x16x128_f8f6f4", "mfma_f32_32x32x64_f8f6f4", "mfma_f32_16x16x256_f8f6f4"],
     }
 
     print(f"Framework: {info['framework']} {info['version']}")
     print(f"Target: {info['target']}")
 
     print("\nFeatures:")
-    for feat in info['features']:
+    for feat in info["features"]:
         print(f"  - {feat}")
 
     print("\nMFMA Instructions (CDNA4):")
-    for mfma in info['mfma_instructions']:
+    for mfma in info["mfma_instructions"]:
         print(f"  - {mfma}")
 
     print(f"\nFlyDSL Available: {FLYDSL_AVAILABLE}")
@@ -247,6 +244,7 @@ def print_kernel_info():
 # ============================================================================
 # Main Entry Point
 # ============================================================================
+
 
 def main():
     """Main entry point"""

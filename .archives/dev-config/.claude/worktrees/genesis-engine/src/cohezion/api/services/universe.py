@@ -136,13 +136,9 @@ class UniverseStateService:
         self._hiho = HIHOStabilizationEngine()
 
         # Initialize EVOs at the HIHO boundary (coherence = 0.5)
-        self._evos: list[EvoState] = [
-            EVOInitializationFactory.create_evo(seed=i) for i in range(num_evos)
-        ]
+        self._evos: list[EvoState] = [EVOInitializationFactory.create_evo(seed=i) for i in range(num_evos)]
         # 12D latent vectors for each EVO
-        self._vectors: list[np.ndarray] = [
-            np.random.default_rng(i).standard_normal(12) for i in range(num_evos)
-        ]
+        self._vectors: list[np.ndarray] = [np.random.default_rng(i).standard_normal(12) for i in range(num_evos)]
 
     def tick(self) -> UniverseStateResponse:
         """Advance the simulation by one step and return the new state."""

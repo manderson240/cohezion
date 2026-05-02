@@ -24,16 +24,15 @@ potentially faster because FP8 has wider MFMA throughput than FP4.
 from __future__ import annotations
 
 import functools
-import torch
-from einops import rearrange
 
 import aiter
+import torch
 from aiter import dtypes
 from aiter.fused_moe import moe_sorting
+from aiter.ops.quant import pertoken_quant
 from aiter.ops.shuffle import shuffle_weight
 from aiter.utility import fp4_utils
-from aiter.ops.quant import pertoken_quant
-
+from einops import rearrange
 from task import input_t, output_t
 
 

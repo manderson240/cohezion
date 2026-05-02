@@ -17,6 +17,7 @@ from panel import theme
 
 from kaggle_benchmarks._config import ExecutionMode, config
 
+
 # css overrides to make the HoloViz output work with Kaggle theming.
 global_css = """
 :root {
@@ -79,10 +80,7 @@ class CustomDesign(theme.Material):
     modifiers = {pn.viewable.Viewable: {"stylesheets": [theme.Inherit, stylesheet]}}
 
 
-if (
-    config.execution_mode == ExecutionMode.RUN
-    or config.execution_mode == ExecutionMode.DOC
-):
+if config.execution_mode == ExecutionMode.RUN or config.execution_mode == ExecutionMode.DOC:
     kwargs = {}
 elif config.execution_mode == ExecutionMode.DEV:
     kwargs = dict(comms="vscode")

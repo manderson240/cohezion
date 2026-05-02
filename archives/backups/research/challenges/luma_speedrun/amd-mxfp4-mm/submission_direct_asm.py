@@ -17,6 +17,7 @@ from aiter import dtypes
 from aiter.ops.gemm_op_a4w4 import gemm_a4w4_asm
 from task import input_t, output_t
 
+
 # Try HIP quant path (single kernel for quant + shuffle)
 _hip_quant = None
 try:
@@ -29,6 +30,7 @@ except ImportError:
 # Fallback imports
 from aiter.ops.triton.quant import dynamic_mxfp4_quant
 from aiter.utility.fp4_utils import e8m0_shuffle
+
 
 _fp4x2 = dtypes.fp4x2
 _e8m0 = dtypes.fp8_e8m0

@@ -26,15 +26,16 @@ Noisy top-k gating for load balancing in MoE.
 """
 
 from __future__ import annotations
+
 import os
 import sys
-import math
+
 import torch
-from typing import Tuple, Optional
 from aiter import ActivationType, QuantType
 from aiter.fused_moe import fused_moe
 from reference import ref_kernel
 from task import input_t, output_t
+
 
 os.environ["AITER_USE_NT"] = "1"
 
@@ -114,7 +115,7 @@ class NoisyGating:
 
     def compute_noisy_gates(
         self, topk_ids: torch.Tensor, topk_weights: torch.Tensor, noise_ratio: float = 0.1
-    ) -> Tuple[torch.Tensor, torch.Tensor]:
+    ) -> tuple[torch.Tensor, torch.Tensor]:
         """
         Apply noise to gate selection.
 
@@ -171,7 +172,7 @@ class NoisyGating:
 
 
 # Global noisy gating instance
-_NOISY_GATING: Optional[NoisyGating] = None
+_NOISY_GATING: NoisyGating | None = None
 
 
 def _get_noisy_gating() -> NoisyGating:

@@ -483,4 +483,3 @@ class TestHookifyMCPBridge:
 # Placeholder classes that will be implemented
 # Import real implementation from cohezion.hookify
 # The tests now use the real HookifyValidator
-from cohezion.hookify.validator import HookifyValidator, Rule

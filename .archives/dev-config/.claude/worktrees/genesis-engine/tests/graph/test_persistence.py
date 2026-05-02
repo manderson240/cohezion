@@ -43,8 +43,16 @@ def sample_result():
         workflow_id="wf-test-1",
         status="completed",
         node_results={
-            "n1": NodeResult(node_id="n1", status=NodeStatus.COMPLETED, output={"x": 42}, metrics={"tokens": 100}, duration_ms=500),
-            "n2": NodeResult(node_id="n2", status=NodeStatus.COMPLETED, output={"final": True}, metrics={"tokens": 50}, duration_ms=300),
+            "n1": NodeResult(
+                node_id="n1", status=NodeStatus.COMPLETED, output={"x": 42}, metrics={"tokens": 100}, duration_ms=500
+            ),
+            "n2": NodeResult(
+                node_id="n2",
+                status=NodeStatus.COMPLETED,
+                output={"final": True},
+                metrics={"tokens": 50},
+                duration_ms=300,
+            ),
         },
         final_output={"final": True},
         total_duration_ms=800,
@@ -93,13 +101,20 @@ class TestWorkflowPersistence:
 
         # Create a second run
         wf2 = WorkflowSpec(
-            id="wf-test-2", name="second", nodes=[], edges=[],
-            entry_node_id="", exit_node_ids=[],
+            id="wf-test-2",
+            name="second",
+            nodes=[],
+            edges=[],
+            entry_node_id="",
+            exit_node_ids=[],
         )
         result2 = WorkflowResult(
-            workflow_id="wf-test-2", status="failed",
-            node_results={}, final_output={},
-            total_duration_ms=100, total_tokens=10,
+            workflow_id="wf-test-2",
+            status="failed",
+            node_results={},
+            final_output={},
+            total_duration_ms=100,
+            total_tokens=10,
         )
         persistence.persist_workflow_run(wf2, result2)
 

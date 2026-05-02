@@ -95,9 +95,7 @@ fig.update_layout(
 )
 
 # Save to artifacts
-output_dir = Path(
-    "/home/mike-anderson/.gemini/antigravity/brain/1b98adc2-8dce-436b-bac3-d27890e7ce04/assets"
-)
+output_dir = Path("/home/mike-anderson/.gemini/antigravity/brain/1b98adc2-8dce-436b-bac3-d27890e7ce04/assets")
 output_dir.mkdir(parents=True, exist_ok=True)
 
 # HTML version (interactive)

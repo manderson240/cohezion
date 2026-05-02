@@ -13,7 +13,8 @@ from __future__ import annotations
 
 import logging
 from dataclasses import dataclass, field
-from typing import Any, Dict, List, Optional
+from typing import Any
+
 
 logger = logging.getLogger(__name__)
 
@@ -21,13 +22,14 @@ logger = logging.getLogger(__name__)
 @dataclass
 class SeiOperation:
     """A single blockchain operation with alignment gate."""
+
     tool: str
-    parameters: Dict[str, Any]
-    estimated_gas: Optional[int] = None
+    parameters: dict[str, Any]
+    estimated_gas: int | None = None
     alignment_score: float = 0.0
     risk_level: str = "LOW"
 
-    def to_dict(self) -> Dict[str, Any]:
+    def to_dict(self) -> dict[str, Any]:
         return {
             "tool": self.tool,
             "params": self.parameters,
@@ -40,12 +42,13 @@ class SeiOperation:
 @dataclass
 class SeiCompoundSession:
     """Compound session for Sei blockchain operations."""
+
     session_id: str
     goal: str
-    operations: List[SeiOperation] = field(default_factory=list)
-    completed: List[SeiOperation] = field(default_factory=list)
-    failed: List[SeiOperation] = field(default_factory=list)
-    journey: List[Dict[str, Any]] = field(default_factory=list)
+    operations: list[SeiOperation] = field(default_factory=list)
+    completed: list[SeiOperation] = field(default_factory=list)
+    failed: list[SeiOperation] = field(default_factory=list)
+    journey: list[dict[str, Any]] = field(default_factory=list)
 
     def add_operation(self, op: SeiOperation) -> bool:
         """Add operation after alignment gate check.
@@ -55,14 +58,18 @@ class SeiCompoundSession:
         # Alignment gate: check if operation is aligned with stated goal
         alignment = self._check_alignment(op)
         if alignment < 0.5:
-            logger.warning(f"Operation '{op.tool}' blocked by alignment gate (score={alignment:.2f})")
+            logger.warning(
+                f"Operation '{op.tool}' blocked by alignment gate (score={alignment:.2f})"
+            )
             op.alignment_score = alignment
-            self.journey.append({
-                "phase": "alignment_rejected",
-                "tool": op.tool,
-                "score": alignment,
-                "reason": "Misaligned with session goal",
-            })
+            self.journey.append(
+                {
+                    "phase": "alignment_rejected",
+                    "tool": op.tool,
+                    "score": alignment,
+                    "reason": "Misaligned with session goal",
+                }
+            )
             return False
 
         op.alignment_score = alignment
@@ -75,11 +82,15 @@ class SeiCompoundSession:
         tool_lower = op.tool.lower()
 
         # Heuristic alignment
-        if "balance" in tool_lower and any(w in goal_lower for w in ["check", "balance", "overview", "status"]):
+        if "balance" in tool_lower and any(
+            w in goal_lower for w in ["check", "balance", "overview", "status"]
+        ):
             return 0.9
         if "transfer" in tool_lower and any(w in goal_lower for w in ["send", "pay", "transfer"]):
             return 0.9
-        if "contract" in tool_lower and any(w in goal_lower for w in ["deploy", "contract", "interact"]):
+        if "contract" in tool_lower and any(
+            w in goal_lower for w in ["deploy", "contract", "interact"]
+        ):
             return 0.85
         if "stake" in tool_lower and any(w in goal_lower for w in ["stake", "delegate"]):
             return 0.9
@@ -88,7 +99,7 @@ class SeiCompoundSession:
         # Default: weak alignment
         return 0.6
 
-    def execute_next(self) -> Optional[Dict[str, Any]]:
+    def execute_next(self) -> dict[str, Any] | None:
         """Execute next queued operation."""
         if not self.operations:
             return None
@@ -104,23 +115,27 @@ class SeiCompoundSession:
                 "gas_used": op.estimated_gas,
             }
             self.completed.append(op)
-            self.journey.append({
-                "phase": "executed",
-                "tool": op.tool,
-                "alignment": op.alignment_score,
-                "result": result,
-            })
+            self.journey.append(
+                {
+                    "phase": "executed",
+                    "tool": op.tool,
+                    "alignment": op.alignment_score,
+                    "result": result,
+                }
+            )
             return result
         except Exception as e:
             self.failed.append(op)
-            self.journey.append({
-                "phase": "failed",
-                "tool": op.tool,
-                "error": str(e),
-            })
+            self.journey.append(
+                {
+                    "phase": "failed",
+                    "tool": op.tool,
+                    "error": str(e),
+                }
+            )
             return {"status": "failed", "error": str(e)}
 
-    def get_summary(self) -> Dict[str, Any]:
+    def get_summary(self) -> dict[str, Any]:
         """Session summary for vault persistence."""
         return {
             "session_id": self.session_id,
@@ -129,12 +144,13 @@ class SeiCompoundSession:
             "completed": len(self.completed),
             "failed": len(self.failed),
             "journey_length": len(self.journey),
-            "avg_alignment": sum(op.alignment_score for op in self.completed) / max(len(self.completed), 1),
+            "avg_alignment": sum(op.alignment_score for op in self.completed)
+            / max(len(self.completed), 1),
             "operations": [op.to_dict() for op in self.completed + self.operations + self.failed],
         }
 
 
-def demonstrate_compound_session() -> Dict[str, Any]:
+def demonstrate_compound_session() -> dict[str, Any]:
     """Demonstrate a compound session for a realistic Sei scenario."""
     session = SeiCompoundSession(
         session_id="sei-compound-demo-001",
@@ -215,4 +231,6 @@ if __name__ == "__main__":
     print("\nOperation details:")
     for op in summary["operations"]:
         status = "✅" if op["alignment"] >= 0.5 else "❌ BLOCKED"
-        print(f"  {status} {op['tool']}: alignment={op['alignment']:.2f}, risk={op['risk']}, gas={op['gas']}")
+        print(
+            f"  {status} {op['tool']}: alignment={op['alignment']:.2f}, risk={op['risk']}, gas={op['gas']}"
+        )

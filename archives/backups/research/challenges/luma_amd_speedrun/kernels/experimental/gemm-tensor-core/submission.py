@@ -24,10 +24,11 @@ MI355X (gfx950) MFMA instruction specifications.
 """
 
 from __future__ import annotations
+
 import os
 import sys
+
 import torch
-from typing import Tuple
 from aiter import dtypes
 from aiter.ops.triton.quant import dynamic_mxfp4_quant
 from aiter.utility.fp4_utils import e8m0_shuffle
@@ -59,7 +60,7 @@ class MFMAOptimalLayout:
         self.mfma_n = mfma_n
         self.mfma_k = mfma_k
 
-    def pad_to_mfma(self, m: int, n: int, k: int) -> Tuple[int, int, int]:
+    def pad_to_mfma(self, m: int, n: int, k: int) -> tuple[int, int, int]:
         """Pad dimensions to MFMA tile boundaries."""
         m_padded = ((m + self.mfma_m - 1) // self.mfma_m) * self.mfma_m
         n_padded = ((n + self.mfma_n - 1) // self.mfma_n) * self.mfma_n

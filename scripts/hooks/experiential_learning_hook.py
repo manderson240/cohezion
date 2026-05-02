@@ -272,8 +272,7 @@ def main() -> int:
         lat = record["latency_ms"]
         lid = record["learning_id"]
         print(
-            f"[experiential-learning] recorded {lid} "
-            f"({model_tag}, {lat:.0f}ms, ~{tokens_used}tok)"
+            f"[experiential-learning] recorded {lid} ({model_tag}, {lat:.0f}ms, ~{tokens_used}tok)"
         )
     return 0
 

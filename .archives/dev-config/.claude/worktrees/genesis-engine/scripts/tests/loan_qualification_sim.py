@@ -72,9 +72,7 @@ of the total investment principal in Year 1. This is a low-risk
 autonomous credit event.
 """
     print(report)
-    REPORT_PATH = (
-        "/home/mike-anderson/dev/cohezion/src/cohezion/knowledge_graph/LOAN_QUALIFICATION.txt"
-    )
+    REPORT_PATH = "/home/mike-anderson/dev/cohezion/src/cohezion/knowledge_graph/LOAN_QUALIFICATION.txt"
     os.makedirs(os.path.dirname(REPORT_PATH), exist_ok=True)
     with open(REPORT_PATH, "w") as f:
         f.write(report)

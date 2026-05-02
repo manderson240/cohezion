@@ -14,14 +14,14 @@ and 128-bit B operand, producing 16x16 F32 accumulator output.
 Current: 22.8us | Leader: 4.3us | Target: <8us
 """
 
-import torch
-from torch.utils.cpp_extension import load_inline
-
 import aiter
+import torch
 from aiter import dtypes
 from aiter.ops.triton.quant import dynamic_mxfp4_quant
 from aiter.utility.fp4_utils import e8m0_shuffle
 from task import input_t, output_t
+from torch.utils.cpp_extension import load_inline
+
 
 # ─── MFMA-based GEMM kernel ─────────────────────────────────────────────
 HIP_SOURCE = r"""

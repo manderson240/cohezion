@@ -147,9 +147,7 @@ class TestPromptOptimizer:
         entities = self.optimizer.extract_entities(text)
 
         # Check for CSV file
-        assert any("csv" in f.lower() for f in entities["files"]), (
-            f"Expected CSV file, got: {entities['files']}"
-        )
+        assert any("csv" in f.lower() for f in entities["files"]), f"Expected CSV file, got: {entities['files']}"
         assert "12345" in entities["numbers"]
 
     def test_extract_entities_quoted_strings(self):

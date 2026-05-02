@@ -205,9 +205,7 @@ class TaskManager:
         async with self._lock:
             return self._info.get(task_id)
 
-    async def list_tasks(
-        self, status: TaskStatus | None = None, limit: int = 100
-    ) -> list[TaskInfo]:
+    async def list_tasks(self, status: TaskStatus | None = None, limit: int = 100) -> list[TaskInfo]:
         """List tracked tasks with optional filtering."""
         async with self._lock:
             tasks = list(self._info.values())
@@ -302,9 +300,7 @@ class TaskGroup:
                     return info
                 await asyncio.sleep(0.1)
 
-        results = await asyncio.gather(
-            *[wait_for_task(tid) for tid in self._task_ids], return_exceptions=True
-        )
+        results = await asyncio.gather(*[wait_for_task(tid) for tid in self._task_ids], return_exceptions=True)
 
         return [r for r in results if isinstance(r, TaskInfo)]
 

@@ -4,13 +4,13 @@ Verifies the collaborative integration between Gemma 4 (EcoResilienceAgent),
 Ollama (PhysicsAgent), and Mistral (BiologistAgent) within the Cohezion swarm.
 """
 
-import pytest
 import asyncio
-from unittest.mock import AsyncMock, MagicMock, patch
+from unittest.mock import AsyncMock
 
-from cohezion.agents.ecoresilience_agent import EcoResilienceAgent
+import pytest
+
 from cohezion.swarm.orchestrator import Agent, Task
-from cohezion.swarm.resonance import SwarmOrchestrator, ResonanceProtocol, ResonanceState
+from cohezion.swarm.resonance import ResonanceProtocol, ResonanceState, SwarmOrchestrator
 
 
 class TestEcoResilienceSwarmLoop:

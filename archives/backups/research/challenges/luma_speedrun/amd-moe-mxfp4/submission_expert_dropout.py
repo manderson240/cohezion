@@ -23,12 +23,12 @@ Expected: 10-20% speedup with minimal quality degradation
 from __future__ import annotations
 
 import os
-import math
+
 import torch
-from typing import Callable
 from aiter import ActivationType, QuantType
 from aiter.fused_moe import fused_moe
 from task import input_t, output_t
+
 
 # Environment setup
 os.environ["AITER_USE_NT"] = "1"

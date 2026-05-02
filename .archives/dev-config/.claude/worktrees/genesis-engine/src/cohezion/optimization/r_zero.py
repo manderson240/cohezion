@@ -38,9 +38,7 @@ class LocalModelOptimizer:
             difficulty_adjustment=1.0 if base_rate > 0.8 else 0.8,
         )
         self.metrics_history.append(metrics)
-        logger.info(
-            f"R-Zero metrics updated for {model_name}: SR={base_rate:.2f}, Iter={iterations}"
-        )
+        logger.info(f"R-Zero metrics updated for {model_name}: SR={base_rate:.2f}, Iter={iterations}")
 
     def get_current_multiplier(self) -> float:
         """Get the current difficulty multiplier based on R-Zero metrics."""

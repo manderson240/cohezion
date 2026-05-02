@@ -694,9 +694,7 @@ class TestEdgeCases:
         # When primary unavailable, selects from alternatives
         assert selected in ["phi3:mini", "qwen3-coder:32b", "deepseek-r1:8b"]
         # Should still be considered degraded (not using original choice)
-        assert (
-            degraded is True or selected == "deepseek-r1:8b"
-        )  # Allow fallback or forced primary
+        assert degraded is True or selected == "deepseek-r1:8b"  # Allow fallback or forced primary
 
     def test_empty_available_models(self):
         """Test with empty available models (edge case)."""

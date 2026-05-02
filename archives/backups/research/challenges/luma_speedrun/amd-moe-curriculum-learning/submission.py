@@ -38,15 +38,12 @@ Date: 2026-04-06
 
 from __future__ import annotations
 
-import math
 import os
-import sys
-from typing import Tuple
 from dataclasses import dataclass
 from enum import Enum
 
 import torch
-import torch.nn.functional as F
+
 
 # POPCORN environment setup
 os.environ["AITER_USE_NT"] = "1"
@@ -55,6 +52,7 @@ os.environ["AITER_KSPLIT"] = "1"
 from aiter import ActivationType, QuantType
 from aiter.fused_moe import fused_moe
 from task import input_t, output_t
+
 
 # =============================================================================
 # Configuration Constants
@@ -152,7 +150,7 @@ def apply_curriculum_routing(
     topk_weights: torch.Tensor,
     topk_ids: torch.Tensor,
     phase: CurriculumPhase,
-) -> Tuple[torch.Tensor, torch.Tensor]:
+) -> tuple[torch.Tensor, torch.Tensor]:
     """Apply curriculum constraints to routing decisions.
 
     Args:
@@ -371,7 +369,7 @@ def custom_kernel(data: input_t) -> output_t:
 
         return output
 
-    except Exception as e:
+    except Exception:
         # Fallback: execute standard fused_moe without curriculum
         # This ensures correctness even if curriculum logic fails
         return fused_moe(

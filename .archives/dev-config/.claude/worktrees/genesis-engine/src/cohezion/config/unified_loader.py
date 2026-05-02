@@ -7,11 +7,11 @@ with fallback to worktree research configs if needed.
 from __future__ import annotations
 
 import json
-import os
 from pathlib import Path
 from typing import Any
 
-from cohezion.config.unified import SystemConfig, get_config as get_system_config
+from cohezion.config.unified import SystemConfig
+from cohezion.config.unified import get_config as get_system_config
 
 
 # Unified config paths
@@ -183,11 +183,7 @@ class UnifiedConfig:
         if not hardware_path.exists():
             return []
 
-        return [
-            d.name
-            for d in hardware_path.iterdir()
-            if d.is_dir() and (d / "task.py").exists()
-        ]
+        return [d.name for d in hardware_path.iterdir() if d.is_dir() and (d / "task.py").exists()]
 
     def list_available_trees(self) -> list[str]:
         """List available tree configurations.
@@ -199,10 +195,7 @@ class UnifiedConfig:
         if not trees_path.exists():
             return []
 
-        return [
-            f.stem.replace("_tree", "")
-            for f in trees_path.glob("*_tree.json")
-        ]
+        return [f.stem.replace("_tree", "") for f in trees_path.glob("*_tree.json")]
 
     def clear_cache(self) -> None:
         """Clear all cached configurations."""

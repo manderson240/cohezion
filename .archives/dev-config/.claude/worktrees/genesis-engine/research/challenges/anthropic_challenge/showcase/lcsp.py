@@ -45,9 +45,7 @@ class LCSPPredictor:
         """Initialize predictor weights."""
         # Simple initialization for now - will be replaced with trained weights
         self._encoder_weights = np.random.randn(12, self.latent_dim) * 0.1
-        self._predictor_weights = (
-            np.random.randn(self.latent_dim, self.latent_dim) * 0.1
-        )
+        self._predictor_weights = np.random.randn(self.latent_dim, self.latent_dim) * 0.1
         self._decoder_weights = np.random.randn(self.latent_dim, 12) * 0.1
         self._initialized = True
         logger.info("LCSP Predictor initialized with latent_dim=%d", self.latent_dim)
@@ -115,9 +113,7 @@ class LCSPPredictor:
 if __name__ == "__main__":
     # Quick verification
     predictor = LCSPPredictor()
-    test_state = np.array(
-        [1.0, 0.5, 0.25, 0.7, 0.8, 0.9, 1.0, 0.9, 0.8, 0.7, 0.5, 0.25]
-    )
+    test_state = np.array([1.0, 0.5, 0.25, 0.7, 0.8, 0.9, 1.0, 0.9, 0.8, 0.7, 0.5, 0.25])
     result = predictor.predict(test_state)
     print(f"Input: {test_state}")
     print(f"Predicted: {result.next_state}")

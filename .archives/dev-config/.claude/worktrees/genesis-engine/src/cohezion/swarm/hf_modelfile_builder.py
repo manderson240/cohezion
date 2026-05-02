@@ -70,9 +70,7 @@ class HFModelfileBuilder:
 
 async def main() -> None:
     """CLI Entrypoint for building an Ollama model from HuggingFace."""
-    parser = argparse.ArgumentParser(
-        description="Build custom Ollama models from HuggingFace GGUFs"
-    )
+    parser = argparse.ArgumentParser(description="Build custom Ollama models from HuggingFace GGUFs")
     parser.add_argument(
         "--repo",
         type=str,

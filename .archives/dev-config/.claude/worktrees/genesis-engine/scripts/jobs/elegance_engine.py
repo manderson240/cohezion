@@ -35,9 +35,7 @@ def get_complex_files():
     """Use ruff to find files with high cyclomatic complexity (C901)."""
     try:
         # Check src/cohezion
-        result = run_command(
-            "ruff check src/cohezion --select C901 --format text", cwd=PROJECT_ROOT
-        )
+        result = run_command("ruff check src/cohezion --select C901 --format text", cwd=PROJECT_ROOT)
         files = set()
         for line in result.stdout.split("\n"):
             if "C901" in line and ":" in line:
@@ -83,12 +81,12 @@ async def manifest_elegance():
         prompt = f"""
         You are an ELEGANT_SIMPLICITY_PRIME specialist.
         REFACOR FOR MINIMALISM: {target_file.name}
-        
+
         Current Code:
         ```python
         {code_content}
         ```
-        
+
         Instruction:
         - Rewrite the logic to be "Elegantly Simple".
         - Focus on cyclomatic complexity reduction.

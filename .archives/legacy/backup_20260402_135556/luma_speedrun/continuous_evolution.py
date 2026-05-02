@@ -8,12 +8,13 @@ This script implements a continuous loop:
    than our current best recorded time.
 """
 
-import time
-import subprocess
-import re
 import json
-from pathlib import Path
+import re
+import subprocess
+import time
 from datetime import datetime
+from pathlib import Path
+
 
 # UPDATED: Targeting stable submission.py paths with NEW BEST TIMES
 VARIANTS = {
@@ -40,7 +41,7 @@ STATE_FILE = Path("luma_speedrun/evolution_state.json")
 
 def load_state():
     if STATE_FILE.exists():
-        with open(STATE_FILE, "r") as f:
+        with open(STATE_FILE) as f:
             data = json.load(f)
             # Merge with hardcoded defaults to ensure all keys exist
             for k, v in VARIANTS.items():
@@ -111,7 +112,7 @@ def apply_mutations():
 
 
 def continuous_loop():
-    print(f"Starting Continuous Evolution Pipeline (Resilient Mode)...")
+    print("Starting Continuous Evolution Pipeline (Resilient Mode)...")
     state = load_state()
     save_state(state)  # Initial save
 

@@ -19,11 +19,12 @@ import numpy as np
 # Optional system monitoring
 try:
     import psutil
+
     HAS_PSUTIL = True
 except ImportError:
     HAS_PSUTIL = False
 
-sys.path.insert(0, 'src')
+sys.path.insert(0, "src")
 
 # Target end time: 7 AM EST (UTC-5)
 EST = timezone(timedelta(hours=-5))
@@ -32,13 +33,13 @@ TARGET_END = NOW.replace(hour=7, minute=0, second=0, microsecond=0)
 if TARGET_END <= NOW:
     TARGET_END = TARGET_END + timedelta(days=1)  # Tomorrow 7 AM
 
-print('='*70)
-print('OVERNIGHT CONTINUOUS LEARNING EXPERIMENT')
-print('='*70)
-print('Start:', NOW.strftime('%Y-%m-%d %H:%M:%S %Z'))
-print('End:  ', TARGET_END.strftime('%Y-%m-%d %H:%M:%S %Z'))
-print('Duration:', str(TARGET_END - NOW))
-print('='*70)
+print("=" * 70)
+print("OVERNIGHT CONTINUOUS LEARNING EXPERIMENT")
+print("=" * 70)
+print("Start:", NOW.strftime("%Y-%m-%d %H:%M:%S %Z"))
+print("End:  ", TARGET_END.strftime("%Y-%m-%d %H:%M:%S %Z"))
+print("Duration:", str(TARGET_END - NOW))
+print("=" * 70)
 print()
 
 # Import our systems
@@ -49,13 +50,13 @@ from cohezion.world_model.jepa_world_model_persistent import JEPAWorldModelPersi
 
 
 # Initialize systems
-print('[Initializing Systems]')
+print("[Initializing Systems]")
 model = JEPAWorldModelPersistent(
     db_connection=None,  # Local mode for overnight
     state_dim=12,
     action_dim=12,
     embed_dim=64,  # Reasonable size
-    lr=1e-4
+    lr=1e-4,
 )
 
 hiho = hiho_metric(dim=12, sigma=0.3)
@@ -71,7 +72,7 @@ ext_log_time = start_time + interval_seconds
 iteration = 0
 epoch = 0
 
-print(f'[Starting Training Loop - {interval_seconds}s intervals]')
+print(f"[Starting Training Loop - {interval_seconds}s intervals]")
 print()
 
 try:
@@ -80,25 +81,19 @@ try:
         current_time_est = datetime.now(EST)
         if current_time_est >= TARGET_END:
             print()
-            print('='*70)
-            print('TARGET TIME REACHED: 7 AM EST')
-            print('='*70)
+            print("=" * 70)
+            print("TARGET TIME REACHED: 7 AM EST")
+            print("=" * 70)
             break
 
         # Training iteration
         iteration += 1
 
         # Generate training data
-        data = generate_synthetic_training_data(
-            n_samples=50,
-            state_dim=12
-        )
+        data = generate_synthetic_training_data(n_samples=50, state_dim=12)
 
         # Train with persistence
-        train_metrics = model.train_epoch_with_persistence(
-            data,
-            batch_size=16
-        )
+        train_metrics = model.train_epoch_with_persistence(data, batch_size=16)
         epoch += 1
 
         # Generate dream rollout every 10 epochs
@@ -106,7 +101,7 @@ try:
             dream = model.dream_rollout(n_steps=20, temperature=0.7)
 
             # Compute dream quality metrics
-            imagined_steps = len([d for d in dream if d.get('imagined', False)])
+            imagined_steps = len([d for d in dream if d.get("imagined", False)])
             dream_quality = imagined_steps / len(dream) if dream else 0
         else:
             dream_quality = None
@@ -133,43 +128,45 @@ try:
                 memory_percent = 0
 
             # Model metrics
-            train_loss = train_metrics.get('total_loss', 0)
+            train_loss = train_metrics.get("total_loss", 0)
 
             # Create log entry
             log_entry = {
-                'timestamp': current_time_est.isoformat(),
-                'elapsed_minutes': round(elapsed, 2),
-                'epoch': epoch,
-                'iteration': iteration,
-                'train_loss': round(train_loss, 4),
-                'dream_quality': dream_quality,
-                'geodesic_converged': geodesic_converged,
-                'cpu_percent': cpu_percent,
-                'memory_percent': memory_percent,
-                'trajectories_stored': len(model.trajectory_buffer) +
-                    (len(model.db._trajectories) if hasattr(model.db, '_trajectories') else 0)
+                "timestamp": current_time_est.isoformat(),
+                "elapsed_minutes": round(elapsed, 2),
+                "epoch": epoch,
+                "iteration": iteration,
+                "train_loss": round(train_loss, 4),
+                "dream_quality": dream_quality,
+                "geodesic_converged": geodesic_converged,
+                "cpu_percent": cpu_percent,
+                "memory_percent": memory_percent,
+                "trajectories_stored": len(model.trajectory_buffer)
+                + (len(model.db._trajectories) if hasattr(model.db, "_trajectories") else 0),
             }
 
             metrics_log.append(log_entry)
 
             # Print progress
-            print(f"[{current_time_est.strftime('%H:%M:%S')}] "
-                  f"Epoch {epoch} | Loss: {train_loss:.4f} | "
-                  f"Dream: {dream_quality:.2% if dream_quality else 'N/A'} | "
-                  f"CPU: {cpu_percent}% | Mem: {memory_percent}% | "
-                  f"Elapsed: {elapsed:.1f}min")
+            print(
+                f"[{current_time_est.strftime('%H:%M:%S')}] "
+                f"Epoch {epoch} | Loss: {train_loss:.4f} | "
+                f"Dream: {dream_quality:.2% if dream_quality else 'N/A'} | "
+                f"CPU: {cpu_percent}% | Mem: {memory_percent}% | "
+                f"Elapsed: {elapsed:.1f}min"
+            )
 
             # Write checkpoint
             checkpoint = {
-                'experiment': 'overnight_learning',
-                'start_time': NOW.isoformat(),
-                'current_time': current_time_est.isoformat(),
-                'target_end': TARGET_END.isoformat(),
-                'epoch': epoch,
-                'metrics_log': metrics_log
+                "experiment": "overnight_learning",
+                "start_time": NOW.isoformat(),
+                "current_time": current_time_est.isoformat(),
+                "target_end": TARGET_END.isoformat(),
+                "epoch": epoch,
+                "metrics_log": metrics_log,
             }
 
-            with open('overnight_checkpoint.json', 'w') as f:
+            with open("overnight_checkpoint.json", "w") as f:
                 json.dump(checkpoint, f, indent=2)
 
             # Schedule next log
@@ -180,12 +177,13 @@ try:
 
 except KeyboardInterrupt:
     print()
-    print('Interrupted by user')
+    print("Interrupted by user")
 
 except Exception as e:
     print()
-    print(f'ERROR: {e}')
+    print(f"ERROR: {e}")
     import traceback
+
     traceback.print_exc()
 
 finally:
@@ -193,48 +191,48 @@ finally:
     total_elapsed = (time.time() - start_time) / 60
 
     print()
-    print('='*70)
-    print('EXPERIMENT COMPLETE')
-    print('='*70)
-    print(f'Total Duration: {total_elapsed:.1f} minutes')
-    print(f'Total Epochs: {epoch}')
-    print(f'Total Iterations: {iteration}')
-    print(f'Log Entries: {len(metrics_log)}')
+    print("=" * 70)
+    print("EXPERIMENT COMPLETE")
+    print("=" * 70)
+    print(f"Total Duration: {total_elapsed:.1f} minutes")
+    print(f"Total Epochs: {epoch}")
+    print(f"Total Iterations: {iteration}")
+    print(f"Log Entries: {len(metrics_log)}")
 
     final_loss = 0
     if metrics_log:
-        final_loss = metrics_log[-1].get('train_loss', 0)
-        avg_loss = np.mean([m['train_loss'] for m in metrics_log if 'train_loss' in m])
-        print(f'Final Loss: {final_loss:.4f}')
-        print(f'Avg Loss: {avg_loss:.4f}')
+        final_loss = metrics_log[-1].get("train_loss", 0)
+        avg_loss = np.mean([m["train_loss"] for m in metrics_log if "train_loss" in m])
+        print(f"Final Loss: {final_loss:.4f}")
+        print(f"Avg Loss: {avg_loss:.4f}")
 
         # Save final results
         results = {
-            'experiment': 'overnight_learning',
-            'status': 'complete',
-            'start_time': NOW.isoformat(),
-            'end_time': datetime.now(EST).isoformat(),
-            'target_end': TARGET_END.isoformat(),
-            'total_epochs': epoch,
-            'total_iterations': iteration,
-            'total_duration_minutes': total_elapsed,
-            'final_metrics': {
-                'train_loss': final_loss,
-                'avg_train_loss': avg_loss,
-                'total_log_entries': len(metrics_log)
+            "experiment": "overnight_learning",
+            "status": "complete",
+            "start_time": NOW.isoformat(),
+            "end_time": datetime.now(EST).isoformat(),
+            "target_end": TARGET_END.isoformat(),
+            "total_epochs": epoch,
+            "total_iterations": iteration,
+            "total_duration_minutes": total_elapsed,
+            "final_metrics": {
+                "train_loss": final_loss,
+                "avg_train_loss": avg_loss,
+                "total_log_entries": len(metrics_log),
             },
-            'metrics_log': metrics_log
+            "metrics_log": metrics_log,
         }
 
-        with open('overnight_results.json', 'w') as f:
+        with open("overnight_results.json", "w") as f:
             json.dump(results, f, indent=2)
 
         print()
-        print('Results saved to: overnight_results.json')
+        print("Results saved to: overnight_results.json")
 
-    print('='*70)
+    print("=" * 70)
 
     # Print for autoresearch
     print()
-    print(f'METRIC training_duration={total_elapsed:.0f}')
-    print(f'ASI final_loss={final_loss:.4f} total_epochs={epoch}')
+    print(f"METRIC training_duration={total_elapsed:.0f}")
+    print(f"ASI final_loss={final_loss:.4f} total_epochs={epoch}")

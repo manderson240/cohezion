@@ -26,18 +26,16 @@ Reference: "Efficient Transformers: Relative Positional Bucketing", ACL 2024.
 
 import os
 
+
 os.environ["PYTORCH_ROCM_ARCH"] = "gfx950"
 os.environ["CXX"] = "clang++"
 
-import torch
-import torch.nn.functional as F
 import math
-from torch.utils.cpp_extension import load_inline
-from task import input_t, output_t
 
-import aiter
+import torch
 from aiter import dtypes as aiter_dtypes
-from aiter import get_mla_metadata_info_v1, get_mla_metadata_v1, mla_reduce_v1
+from task import input_t, output_t
+from torch.utils.cpp_extension import load_inline
 
 
 HIP_SOURCE = r"""
@@ -79,69 +77,69 @@ void mla_bucketed_phase1(
     int head_id = blockIdx.y;
     int batch_id = blockIdx.z;
     int tid = threadIdx.x;
-    
+
     // KV range for this batch
     int kv_start = kv_indptr[batch_id];
     int kv_end = kv_indptr[batch_id + 1];
     int kv_len = kv_end - kv_start;
-    
+
     if (kv_len == 0) return;
-    
+
     // Split range
     int kv_per_split = (kv_len + num_splits - 1) / num_splits;
     int my_kv_start = kv_start + split_id * kv_per_split;
     int my_kv_end = min(my_kv_start + kv_per_split, kv_end);
     if (my_kv_start >= kv_end) return;
-    
+
     // Q position for this batch (decode mode: qseqlen=1)
     int q_idx = batch_id;
     int q_pos = q_positions[q_idx];
     const __hip_bfloat16* q_ptr = Q + (q_idx * NUM_HEADS + head_id) * QK_DIM;
-    
+
     // Load Q into shared memory
     __shared__ float q_shared[QK_DIM];
     for (int i = tid; i < QK_DIM; i += BLOCK_SIZE) {
         q_shared[i] = __bfloat162float(q_ptr[i]);
     }
     __syncthreads();
-    
+
     // Online softmax state
     float running_max = -1e30f;
     float running_sum = 0.0f;
-    
+
     // V accumulator
     float v_acc[2] = {0.0f, 0.0f};
-    
+
     // Process KV entries with relative position bucketing
     for (int kv_idx = my_kv_start; kv_idx < my_kv_end; kv_idx++) {
         const __hip_bfloat16* kv_ptr = KV + kv_idx * QK_DIM;
         int kv_pos = kv_positions[kv_idx];
-        
+
         // Compute relative position and bucket
         int rel_pos = abs(q_pos - kv_pos);
         int bucket = get_bucket(rel_pos, num_buckets, kv_len);
-        
+
         // Get bucket embedding (bias term)
         float pos_bias = bucket_embeds[bucket];
-        
+
         // Compute Q@K^T with position bias
         float dot = 0.0f;
         for (int d = tid; d < QK_DIM; d += BLOCK_SIZE) {
             dot += q_shared[d] * __bfloat162float(kv_ptr[d]);
         }
-        
+
         // Warp reduction
         #pragma unroll
         for (int offset = WAVESIZE / 2; offset > 0; offset >>= 1) {
             dot += __shfl_xor(dot, offset, WAVESIZE);
         }
-        
+
         __shared__ float warp_sums[4];
         if ((tid % WAVESIZE) == 0) {
             warp_sums[tid / WAVESIZE] = dot;
         }
         __syncthreads();
-        
+
         float score;
         if (tid == 0) {
             score = (warp_sums[0] + warp_sums[1] + warp_sums[2] + warp_sums[3]) * sm_scale + pos_bias;
@@ -149,16 +147,16 @@ void mla_bucketed_phase1(
         }
         __syncthreads();
         score = warp_sums[0];
-        
+
         // Online softmax update
         float old_max = running_max;
         float new_max = fmaxf(old_max, score);
         float exp_score = expf(score - new_max);
         float correction = expf(old_max - new_max);
-        
+
         running_sum = running_sum * correction + exp_score;
         running_max = new_max;
-        
+
         // Accumulate weighted V
         float weight = exp_score;
         for (int vi = 0; vi < 2; vi++) {
@@ -168,17 +166,17 @@ void mla_bucketed_phase1(
             }
         }
     }
-    
+
     // Write partial results
     int out_base = ((split_id * total_q + q_idx) * NUM_HEADS + head_id);
-    
+
     for (int vi = 0; vi < 2; vi++) {
         int v_idx = tid * 2 + vi;
         if (v_idx < V_DIM) {
             partial_out[out_base * V_DIM + v_idx] = v_acc[vi];
         }
     }
-    
+
     if (tid == 0) {
         partial_max[out_base] = running_max;
         partial_lse[out_base] = logf(running_sum) + running_max;
@@ -196,19 +194,19 @@ __global__ void mla_bucketed_reduce(
     int idx = blockIdx.x * blockDim.x + threadIdx.x;
     int total_elements = total_q * NUM_HEADS * V_DIM;
     if (idx >= total_elements) return;
-    
+
     int v_idx = idx % V_DIM;
     int head_q = idx / V_DIM;
     int head_id = head_q % NUM_HEADS;
     int q_idx = head_q / NUM_HEADS;
-    
+
     // Global max across splits
     float global_max = -1e30f;
     for (int s = 0; s < num_splits; s++) {
         int base = (s * total_q + q_idx) * NUM_HEADS + head_id;
         global_max = fmaxf(global_max, partial_max[base]);
     }
-    
+
     // Merge weighted sums
     float total_weight = 0.0f;
     float total_v = 0.0f;
@@ -218,7 +216,7 @@ __global__ void mla_bucketed_reduce(
         total_weight += expf(lse - global_max);
         total_v += partial_out[base * V_DIM + v_idx] * expf(partial_max[base] - global_max);
     }
-    
+
     output[idx] = (__hip_bfloat16)(total_v / total_weight);
 }
 
@@ -241,7 +239,7 @@ void launch_bucketed_mla(
         q_positions.data_ptr<int>(),
         kv_positions.data_ptr<int>(),
         batch_size, total_q, num_splits, num_buckets, sm_scale);
-    
+
     int total_elements = total_q * NUM_HEADS * V_DIM;
     mla_bucketed_reduce<<<(total_elements + 255) / 256, 256>>>(
         partial_out.data_ptr<float>(),

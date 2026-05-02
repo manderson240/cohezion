@@ -20,9 +20,10 @@ from __future__ import annotations
 
 import os
 import sys
-import math
+
 import torch
 import torch.nn.functional as F
+
 
 # Environment setup BEFORE aiter import
 os.environ["AITER_JIT_DIR"] = "/tmp/aiter_jit_cache"
@@ -44,13 +45,14 @@ from aiter import ActivationType, dtypes
 from aiter.ops.triton.quant import dynamic_mxfp4_quant
 from aiter.utility.fp4_utils import e8m0_shuffle
 
+
 # Import task types
 try:
     from task import input_t, output_t
 except ImportError:
-    from typing import Tuple, Any
+    from typing import Any
 
-    input_t = Tuple[Any, ...]
+    input_t = tuple[Any, ...]
     output_t = torch.Tensor
 
 
@@ -201,7 +203,7 @@ def custom_kernel(data: input_t) -> output_t:
         x_fp4, x_scale_e8m0 = dynamic_mxfp4_quant(hidden_states.contiguous())
         x_q = x_fp4.view(dtypes.fp4x2)
         x_scale = e8m0_shuffle(x_scale_e8m0).view(dtypes.fp8_e8m0)
-    except Exception as e:
+    except Exception:
         # Fallback: use original weights
         x_q = hidden_states
         x_scale = None
@@ -247,7 +249,7 @@ def custom_kernel(data: input_t) -> output_t:
         )
         return output
 
-    except Exception as e:
+    except Exception:
         # Fallback to reference routing
         output = aiter.fused_moe(
             hidden_states=x_q,

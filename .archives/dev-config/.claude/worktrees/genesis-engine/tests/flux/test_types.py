@@ -85,8 +85,10 @@ class TestFluxContext:
 
     def test_empty_context(self):
         ctx = FluxContext(
-            blocks=[], total_tokens_estimated=0,
-            query="test", sources_queried=[],
+            blocks=[],
+            total_tokens_estimated=0,
+            query="test",
+            sources_queried=[],
         )
         assert len(ctx.blocks) == 0
 

@@ -36,6 +36,6 @@ async def test_prepare_kaggle_notebook(tmp_path):
     await manager.prepare_notebook(code="print('training...')", output_path=output_path)
 
     assert output_path.exists()
-    with open(output_path, "r") as f:
+    with open(output_path) as f:
         notebook = json.load(f)
         assert notebook["cells"][0]["source"][0] == "print('training...')"

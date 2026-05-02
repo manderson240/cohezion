@@ -1,10 +1,10 @@
 import json
-import os
+
 
 py_file = "kaggle-agi-benchmark/evaluator_kbench.py"
 ipynb_file = "kaggle-agi-benchmark/evaluator_kbench.ipynb"
 
-with open(py_file, "r") as f:
+with open(py_file) as f:
     py_content = f.read()
 
 cells = [

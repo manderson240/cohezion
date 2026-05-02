@@ -51,11 +51,11 @@ async def submit_adapter_to_competition(adapter_path: Path, message: str = None)
         competition_id = "nvidia-nemotron-model-reasoning-challenge"
         result = await api.submit_adapter(competition_id, adapter_path, message)
 
-        print(f"✅ Adapter submitted successfully!")
+        print("✅ Adapter submitted successfully!")
         print(f"📊 Result: {result}")
 
         # Provide information about where to check results
-        print(f"🔗 Check your submission at:")
+        print("🔗 Check your submission at:")
         print(f"   https://www.kaggle.com/competitions/{competition_id}/submissions")
 
         return True
@@ -88,10 +88,10 @@ async def main():
 
             success = await submit_adapter_to_competition(adapter_path)
             if success:
-                print(f"✅ Submission completed successfully!")
+                print("✅ Submission completed successfully!")
                 break
             else:
-                print(f"❌ Submission failed!")
+                print("❌ Submission failed!")
                 break
 
     if not adapter_found:

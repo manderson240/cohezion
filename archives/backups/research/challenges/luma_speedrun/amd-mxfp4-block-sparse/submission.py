@@ -43,18 +43,20 @@ Performance Characteristics:
 """
 
 from __future__ import annotations
+
 import os
-import math
+
 
 os.environ["PYTORCH_ROCM_ARCH"] = "gfx950"
 os.environ["CXX"] = "clang++"
 
 import torch
-from torch.utils.cpp_extension import load_inline
 from aiter import dtypes
 from aiter.ops.triton.quant import dynamic_mxfp4_quant
 from aiter.utility.fp4_utils import e8m0_shuffle
 from task import input_t, output_t
+from torch.utils.cpp_extension import load_inline
+
 
 # Block sparse configuration
 BLOCK_SIZE = 32  # Block dimension (32x32)
@@ -167,10 +169,10 @@ def _get_block_sparse_kernel():
     #include <torch/extension.h>
     #include <hip/hip_runtime.h>
     #include <hip/hip_bf16.h>
-    
+
     #define BLOCK_SIZE 32
     #define WAVESIZE 64
-    
+
     // Block sparse GEMM: C = A_sparse * B
     __global__ __launch_bounds__(256)
     void block_sparse_gemm(
@@ -184,29 +186,29 @@ def _get_block_sparse_kernel():
         int block_m = blockIdx.y;
         int block_n = blockIdx.x;
         int tid = threadIdx.x;
-        
+
         int local_m = tid / BLOCK_SIZE;
         int local_n = tid % BLOCK_SIZE;
-        
+
         // Accumulator for this output block element
         float acc = 0.0f;
-        
+
         // Iterate over non-zero A blocks in this row
         int row_start = A_row_indices[block_m];
         int row_end = A_row_indices[block_m + 1];
-        
+
         for (int idx = row_start; idx < row_end; idx++) {
             int block_k = A_col_indices[idx];
-            
+
             // Load A block
             const __hip_bfloat16* A_block = A_values + idx * BLOCK_SIZE * BLOCK_SIZE;
             float a_val = __bfloat162float(A_block[local_m * BLOCK_SIZE + local_n]);
-            
+
             // Load corresponding B elements and multiply
             int global_m = block_m * BLOCK_SIZE + local_m;
             int global_n = block_n * BLOCK_SIZE + local_n;
             int global_k = block_k * BLOCK_SIZE + local_n;
-            
+
             if (global_m < num_block_m * BLOCK_SIZE && global_n < num_block_n * BLOCK_SIZE) {
                 for (int k = 0; k < BLOCK_SIZE && global_k + k < K; k++) {
                     float b_val = __bfloat162float(B[(global_n) * K + global_k + k]);
@@ -214,16 +216,16 @@ def _get_block_sparse_kernel():
                 }
             }
         }
-        
+
         // Write output
         int global_m = block_m * BLOCK_SIZE + local_m;
         int global_n = block_n * BLOCK_SIZE + local_n;
-        
+
         if (global_m < num_block_m * BLOCK_SIZE && global_n < num_block_n * BLOCK_SIZE) {
             C[global_m * (num_block_n * BLOCK_SIZE) + global_n] = (__hip_bfloat16)acc;
         }
     }
-    
+
     void launch_block_sparse(
         torch::Tensor A_values, torch::Tensor A_row_indices, torch::Tensor A_col_indices,
         torch::Tensor B, torch::Tensor C,

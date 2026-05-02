@@ -55,9 +55,7 @@ class MCPAuditor:
                 if "shell" in name or "git" in name:
                     # High risk servers need stricter checks
                     security_score = 0.8
-                    issues.append(
-                        "High-risk surface area: requires manual audit of tool arguments."
-                    )
+                    issues.append("High-risk surface area: requires manual audit of tool arguments.")
 
                 if latency > 500:
                     issues.append(f"High latency: {latency:.2f}ms")
@@ -106,9 +104,7 @@ async def run_audit() -> None:
     print("\n--- MCP FLEET AUDIT RESULTS ---")
     for r in results:
         status = "PASSED" if r.healthy and r.security_score > 0.7 else "FAILED"
-        print(
-            f"[{status}] {r.server_name:15} | Latency: {r.latency_ms:6.2f}ms | Score: {r.security_score:.2f}"
-        )
+        print(f"[{status}] {r.server_name:15} | Latency: {r.latency_ms:6.2f}ms | Score: {r.security_score:.2f}")
         for issue in r.issues:
             print(f"  ! {issue}")
 

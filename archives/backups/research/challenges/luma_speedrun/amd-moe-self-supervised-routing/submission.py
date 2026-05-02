@@ -23,8 +23,9 @@ Reference: "Self-Supervised Learning for Router in MoE", NeurIPS 2024.
 """
 
 from __future__ import annotations
+
 import os
-import math
+
 
 os.environ["AITER_USE_NT"] = "1"
 

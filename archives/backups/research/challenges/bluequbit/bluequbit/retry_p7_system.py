@@ -1,16 +1,17 @@
 #!/usr/bin/env python3
 """Retry P7 with better parameters using system Python"""
 
-import bluequbit
 import os
-from qiskit import QuantumCircuit
+
+import bluequbit
 from qiskit.qasm2 import loads
+
 
 # Load API token from parent directory
 cohezion_root = "/home/mike-anderson/dev/cohezion"
 
 api_token = None
-with open(os.path.join(cohezion_root, ".env"), "r") as f:
+with open(os.path.join(cohezion_root, ".env")) as f:
     for line in f:
         if "BLUEQUBIT_API_TOKEN" in line:
             api_token = line.split("=")[1].strip()
@@ -25,7 +26,7 @@ os.chdir(script_dir)
 
 # Load circuit and convert to Qiskit
 qasm_path = "hackathons/hackathon_oEOtLSSrPSVH60Ah/problems/P7_heavy_hex_1275.qasm"
-with open(qasm_path, "r") as f:
+with open(qasm_path) as f:
     qasm = f.read()
 
 # Convert QASM to Qiskit circuit
@@ -54,9 +55,9 @@ try:
         print(f"   Length: {len(answer)} bits")
 
         if prob > 0.002:  # SNR > 2
-            print(f"   ✅ Good result - submit to platform")
+            print("   ✅ Good result - submit to platform")
         else:
-            print(f"   ⚠️ Low probability")
+            print("   ⚠️ Low probability")
 
 except Exception as e:
     print(f"   ❌ Error: {e}")
@@ -78,9 +79,9 @@ try:
         print(f"   Probability: {prob:.4f}")
 
         if prob > 0.002:
-            print(f"   ✅ Good result - submit to platform")
+            print("   ✅ Good result - submit to platform")
         else:
-            print(f"   ⚠️ Low probability")
+            print("   ⚠️ Low probability")
 
 except Exception as e:
     print(f"   ❌ Error: {e}")
@@ -102,9 +103,9 @@ try:
         print(f"   Probability: {prob:.4f}")
 
         if prob > 0.002:
-            print(f"   ✅ Good result - submit to platform")
+            print("   ✅ Good result - submit to platform")
         else:
-            print(f"   ⚠️ Low probability")
+            print("   ⚠️ Low probability")
 
 except Exception as e:
     print(f"   ❌ Error: {e}")

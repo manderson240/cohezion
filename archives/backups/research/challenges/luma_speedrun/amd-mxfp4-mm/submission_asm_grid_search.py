@@ -35,8 +35,9 @@ Falls back to aiter.gemm_a4w4 if no ASM kernel succeeds.
 """
 
 import time
-import torch
+
 import aiter
+import torch
 from aiter import dtypes
 from aiter.ops.triton.quant import dynamic_mxfp4_quant
 from aiter.utility.fp4_utils import e8m0_shuffle

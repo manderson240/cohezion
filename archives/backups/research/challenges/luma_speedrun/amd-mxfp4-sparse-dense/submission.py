@@ -33,16 +33,17 @@ from __future__ import annotations
 
 import os
 import sys
-from typing import Tuple
 
 import torch
 import torch.nn.functional as F
+
 
 # POPCORN environment setup
 os.environ["PYTORCH_ROCM_ARCH"] = "gfx950"
 
 from aiter import gemm_a4w4
 from task import input_t, output_t
+
 
 # =============================================================================
 # Configuration Constants
@@ -62,7 +63,7 @@ FP4_MAX_VALUE = 6.0  # Maximum representable value
 def detect_sparsity_pattern(
     weight_fp4: torch.Tensor,
     threshold: float = SPARSITY_THRESHOLD,
-) -> Tuple[torch.Tensor, torch.Tensor, float]:
+) -> tuple[torch.Tensor, torch.Tensor, float]:
     """Detect sparsity pattern in FP4 weight matrix.
 
     Args:

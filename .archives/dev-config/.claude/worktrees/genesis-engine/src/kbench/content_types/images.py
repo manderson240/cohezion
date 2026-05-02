@@ -122,9 +122,7 @@ def from_url(url: str, caption: str | None = None) -> ImageURL:
     return ImageURL(url, caption=caption)
 
 
-def from_base64(
-    base64: str | bytes, format: str = "jpeg", caption: str | None = None
-) -> ImageBase64:
+def from_base64(base64: str | bytes, format: str = "jpeg", caption: str | None = None) -> ImageBase64:
     """Creates ImageContent directly from a base64 string."""
     if isinstance(base64, bytes):
         base64 = base64.decode("utf-8")
@@ -139,16 +137,12 @@ def from_array(array: np.ndarray) -> ImageBase64:
     pil_img = Image.fromarray(array)
     buff = io.BytesIO()
     pil_img.save(buff, format="JPEG")
-    return ImageBase64(
-        base64.b64encode(buff.getvalue()).decode(), mime_type="image/jpeg"
-    )
+    return ImageBase64(base64.b64encode(buff.getvalue()).decode(), mime_type="image/jpeg")
 
 
 def from_image_url(image_url: ImageURL) -> ImageBase64:
     """Creates ImageBase64 from an ImageURL, downloading and encoding it."""
-    return ImageBase64(
-        image_url.b64_string, image_url.mime_type, caption=image_url.caption
-    )
+    return ImageBase64(image_url.b64_string, image_url.mime_type, caption=image_url.caption)
 
 
 def image_url_to_base64(url: str) -> str:

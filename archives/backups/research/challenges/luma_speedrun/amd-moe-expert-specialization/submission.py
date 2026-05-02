@@ -33,8 +33,9 @@ Performance Target:
 """
 
 from __future__ import annotations
+
 import os
-import math
+
 
 os.environ["AITER_USE_NT"] = "1"
 
@@ -42,6 +43,7 @@ import torch
 from aiter import ActivationType, QuantType
 from aiter.fused_moe import fused_moe
 from task import input_t, output_t
+
 
 # Expert specialization configuration
 EXPERT_SUBSET_RATIO = 0.5  # Use 50% of experts (128 out of 256)

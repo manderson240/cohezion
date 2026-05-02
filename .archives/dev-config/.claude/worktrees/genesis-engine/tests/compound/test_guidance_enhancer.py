@@ -69,10 +69,7 @@ class TestGuidanceEnhancer:
         assert isinstance(enhanced, EnhancedGuidance)
         assert len(enhanced.recommendations) > 0
         # Should mention high-quality tasks
-        assert any(
-            "excellent" in rec.lower() or "high" in rec.lower()
-            for rec in enhanced.recommendations
-        )
+        assert any("excellent" in rec.lower() or "high" in rec.lower() for rec in enhanced.recommendations)
 
     def test_enhance_guidance_generates_warnings_from_failures(self, mock_trajectory_results):
         """Enhancer generates warnings from failed trajectories."""

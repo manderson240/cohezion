@@ -1,6 +1,6 @@
-import torch
 import numpy as np
-from cohezion.swarm.topological_router import TopologicalRouter, TopologicalRegime
+
+from cohezion.swarm.topological_router import TopologicalRegime, TopologicalRouter
 
 
 class ARCEvolutionarySteer:

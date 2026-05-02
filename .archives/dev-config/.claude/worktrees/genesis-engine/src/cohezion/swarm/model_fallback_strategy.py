@@ -157,10 +157,7 @@ class ModelCircuitBreaker:
             self._transition_to_open()
 
         # If error rate too high (only check after enough samples)
-        if (
-            self.metrics.total_requests >= 10
-            and self.metrics.error_rate >= self.error_rate_threshold
-        ):
+        if self.metrics.total_requests >= 10 and self.metrics.error_rate >= self.error_rate_threshold:
             self._transition_to_open()
 
     def allow_request(self) -> bool:
@@ -282,9 +279,7 @@ class ModelFallbackStrategy:
 
         # Degradation tracking
         self.fallback_count: int = 0
-        self.fallback_history: list[
-            tuple[str, str, float]
-        ] = []  # (primary, fallback, time)
+        self.fallback_history: list[tuple[str, str, float]] = []  # (primary, fallback, time)
 
     def select_model(
         self,
@@ -325,9 +320,7 @@ class ModelFallbackStrategy:
             # Check quality loss acceptable
             primary_quality = quality_scores.get(primary_model, 0.7)
             fallback_quality = quality_scores.get(fallback_model, 0.7)
-            quality_loss = (primary_quality - fallback_quality) / max(
-                primary_quality, 0.01
-            )
+            quality_loss = (primary_quality - fallback_quality) / max(primary_quality, 0.01)
 
             if quality_loss <= self.min_quality_loss:
                 # Use fallback
@@ -387,9 +380,7 @@ class ModelFallbackStrategy:
         Returns:
             Dict mapping model → metrics
         """
-        return {
-            model: self._get_breaker(model).metrics for model in self.circuit_breakers
-        }
+        return {model: self._get_breaker(model).metrics for model in self.circuit_breakers}
 
     def _get_breaker(self, model: str) -> ModelCircuitBreaker:
         """Get or create circuit breaker for model.
@@ -431,9 +422,7 @@ class ModelFallbackStrategy:
         """
         stats = {
             "total_fallbacks": self.fallback_count,
-            "recent_fallbacks": len(
-                [ts for _, _, ts in self.fallback_history if time.time() - ts < 3600]
-            ),
+            "recent_fallbacks": len([ts for _, _, ts in self.fallback_history if time.time() - ts < 3600]),
         }
 
         # Count fallback patterns

@@ -1,8 +1,9 @@
-import pytest
-import asyncio
 from unittest.mock import AsyncMock, patch
-from cohezion.swarm.model_pool_manager import ModelPoolManager, get_pool_manager
+
+import pytest
+
 from cohezion.swarm.model_pool_config import ModelTierPolicy, TierConfig
+from cohezion.swarm.model_pool_manager import ModelPoolManager
 
 
 @pytest.mark.fast

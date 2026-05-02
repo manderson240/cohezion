@@ -4,12 +4,7 @@ import wave
 import numpy as np
 
 
-import numpy as np
-
-
-def generate_stability_tone(
-    duration=2.0, freq=432.0, output_path="src/cohezion/api/static/stability_pulse.wav"
-):
+def generate_stability_tone(duration=2.0, freq=432.0, output_path="src/cohezion/api/static/stability_pulse.wav"):
     sample_rate = 44100
     n_samples = int(duration * sample_rate)
     t = np.linspace(0, duration, n_samples)

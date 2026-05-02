@@ -156,9 +156,7 @@ class RZeroSkillPipeline:
 
         return proposals
 
-    def _run_pragmatist(
-        self, content: str, issues: list[str], proposals: list[str]
-    ) -> tuple[str, float]:
+    def _run_pragmatist(self, content: str, issues: list[str], proposals: list[str]) -> tuple[str, float]:
         """Pragmatist validates and scores the skill."""
         score = 100.0
 
@@ -207,9 +205,7 @@ class RZeroSkillPipeline:
         # Details
         report.append("## Detailed Evaluations\n\n")
         for eval in sorted(evaluations, key=lambda e: e.quality_score):
-            status_icon = (
-                "✅" if eval.quality_score >= 80 else ("⚠️" if eval.quality_score >= 60 else "❌")
-            )
+            status_icon = "✅" if eval.quality_score >= 80 else ("⚠️" if eval.quality_score >= 60 else "❌")
             report.append(f"### {status_icon} {eval.skill_path.name}\n")
             report.append(f"**Score:** {eval.quality_score:.1f}/100\n")
             report.append(f"**Verdict:** {eval.pragmatist_verdict}\n\n")
@@ -241,9 +237,7 @@ async def main():
     for skill_path in skills:
         eval_result = pipeline.evaluate_skill(skill_path)
         evaluations.append(eval_result)
-        logger.info(
-            f"{skill_path.name}: {eval_result.quality_score:.1f}/100 - {eval_result.pragmatist_verdict}"
-        )
+        logger.info(f"{skill_path.name}: {eval_result.quality_score:.1f}/100 - {eval_result.pragmatist_verdict}")
 
     # Generate report
     report = pipeline.generate_report(evaluations)

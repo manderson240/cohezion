@@ -24,12 +24,12 @@ Expected: 15-30% throughput improvement with adaptive quality
 from __future__ import annotations
 
 import os
-import math
+
 import torch
-from typing import List, Tuple
 from aiter import ActivationType, QuantType
 from aiter.fused_moe import fused_moe
 from task import input_t, output_t
+
 
 # Environment
 os.environ["AITER_USE_NT"] = "1"
@@ -156,7 +156,7 @@ class DynamicCapacityMoE:
         gate_logits: torch.Tensor,
         hidden_states: torch.Tensor,
         base_budget: int,
-    ) -> Tuple[torch.Tensor, torch.Tensor, torch.Tensor]:
+    ) -> tuple[torch.Tensor, torch.Tensor, torch.Tensor]:
         """Select topk with dynamic capacity per token.
 
         Args:

@@ -117,9 +117,7 @@ def sample_candidates(task_ids: list[str]) -> list[AgentCandidate]:
     ]
     candidates = []
     for name, results, coherence in configs:
-        sv = TaskSuccessVector.from_execution_history(
-            agent_id=f"agent-{name}", task_ids=task_ids, results=results
-        )
+        sv = TaskSuccessVector.from_execution_history(agent_id=f"agent-{name}", task_ids=task_ids, results=results)
         candidates.append(
             AgentCandidate(
                 agent_id=f"agent-{name}",
@@ -156,9 +154,7 @@ def diverse_trajectories() -> list[EvolutionTrajectory]:
     """Create trajectories with intentionally different profiles."""
     rng = np.random.default_rng(123)
     trajectories = []
-    for i, (perf, nov) in enumerate(
-        [(0.9, 0.2), (0.7, 0.5), (0.5, 0.8), (0.3, 0.9), (0.8, 0.3)]
-    ):
+    for i, (perf, nov) in enumerate([(0.9, 0.2), (0.7, 0.5), (0.5, 0.8), (0.3, 0.9), (0.8, 0.3)]):
         traj_12d = rng.uniform(0.0, 1.0, 12)
         # Bias brane dims toward performance (more HIHO-aligned for high perf)
         traj_12d[4:11] = HIHO + (1 - perf) * rng.normal(0, 0.3, 7)
@@ -196,9 +192,7 @@ class TestTraceToTrajectoryConverter:
         sample_traces: list[ExperienceTrace],
     ) -> None:
         converter = TraceToTrajectoryConverter()
-        traj = converter.archive_entry_to_trajectory(
-            sample_archive_entry, sample_traces
-        )
+        traj = converter.archive_entry_to_trajectory(sample_archive_entry, sample_traces)
 
         assert traj.agent_id == "agent-alpha"
         assert traj.generation == 3
@@ -218,9 +212,7 @@ class TestTraceToTrajectoryConverter:
 
         sv = sample_archive_entry.success_vector.successes
         n = min(len(sv), 12)
-        np.testing.assert_array_almost_equal(
-            traj.trajectory_12d[:n], sv[:n]
-        )
+        np.testing.assert_array_almost_equal(traj.trajectory_12d[:n], sv[:n])
 
     def test_embedding_256d_deterministic(
         self,
@@ -236,9 +228,7 @@ class TestTraceToTrajectoryConverter:
         sample_candidates: list[AgentCandidate],
         sample_traces: list[ExperienceTrace],
     ) -> None:
-        pool = GroupExperiencePool(
-            parent_agent_ids=[c.agent_id for c in sample_candidates]
-        )
+        pool = GroupExperiencePool(parent_agent_ids=[c.agent_id for c in sample_candidates])
         for trace in sample_traces:
             pool.traces.append(trace)
 
@@ -254,9 +244,7 @@ class TestTraceToTrajectoryConverter:
         self,
         sample_candidates: list[AgentCandidate],
     ) -> None:
-        pool = GroupExperiencePool(
-            parent_agent_ids=[c.agent_id for c in sample_candidates]
-        )
+        pool = GroupExperiencePool(parent_agent_ids=[c.agent_id for c in sample_candidates])
         converter = TraceToTrajectoryConverter()
         trajectories = converter.pool_to_trajectories(pool, sample_candidates)
 
@@ -272,13 +260,9 @@ class TestTraceToTrajectoryConverter:
 
 
 class TestLatentNoveltyScorer:
-    def test_single_agent_max_novelty(
-        self, sample_trajectory: EvolutionTrajectory
-    ) -> None:
+    def test_single_agent_max_novelty(self, sample_trajectory: EvolutionTrajectory) -> None:
         scorer = LatentNoveltyScorer()
-        novelty = scorer.compute_latent_novelty(
-            sample_trajectory, [sample_trajectory]
-        )
+        novelty = scorer.compute_latent_novelty(sample_trajectory, [sample_trajectory])
         assert novelty == 1.0
 
     def test_identical_embeddings_low_novelty(self) -> None:
@@ -337,18 +321,12 @@ class TestLatentNoveltyScorer:
         novelty = scorer.compute_latent_novelty(agents[0], agents)
         assert novelty > 0.5
 
-    def test_m_neighbors_respected(
-        self, diverse_trajectories: list[EvolutionTrajectory]
-    ) -> None:
+    def test_m_neighbors_respected(self, diverse_trajectories: list[EvolutionTrajectory]) -> None:
         scorer_m2 = LatentNoveltyScorer(m_neighbors=2)
         scorer_m4 = LatentNoveltyScorer(m_neighbors=4)
 
-        n2 = scorer_m2.compute_latent_novelty(
-            diverse_trajectories[0], diverse_trajectories
-        )
-        n4 = scorer_m4.compute_latent_novelty(
-            diverse_trajectories[0], diverse_trajectories
-        )
+        n2 = scorer_m2.compute_latent_novelty(diverse_trajectories[0], diverse_trajectories)
+        n4 = scorer_m4.compute_latent_novelty(diverse_trajectories[0], diverse_trajectories)
         # With more neighbors included, novelty changes
         # (can be higher or lower depending on population structure)
         assert isinstance(n2, float)
@@ -371,9 +349,7 @@ class TestSignalGenerator:
         assert len(signals.reward_records) == 0
         assert len(signals.judgment_records) == 0
 
-    def test_generates_all_signal_types(
-        self, diverse_trajectories: list[EvolutionTrajectory]
-    ) -> None:
+    def test_generates_all_signal_types(self, diverse_trajectories: list[EvolutionTrajectory]) -> None:
         gen = EvolutionTrainingSignalGenerator()
         signals = gen.generate_signals(diverse_trajectories, generation=1)
 
@@ -384,9 +360,7 @@ class TestSignalGenerator:
         # DPO pairs: at most n//2 = 2 pairs from 5 agents
         assert len(signals.dpo_pairs) <= 2
 
-    def test_dpo_chosen_beats_rejected(
-        self, diverse_trajectories: list[EvolutionTrajectory]
-    ) -> None:
+    def test_dpo_chosen_beats_rejected(self, diverse_trajectories: list[EvolutionTrajectory]) -> None:
         gen = EvolutionTrainingSignalGenerator()
         signals = gen.generate_signals(diverse_trajectories)
 
@@ -394,9 +368,7 @@ class TestSignalGenerator:
             assert pair["chosen_reward"] > pair["rejected_reward"]
             assert pair["margin"] >= 0.05
 
-    def test_reward_records_structure(
-        self, diverse_trajectories: list[EvolutionTrajectory]
-    ) -> None:
+    def test_reward_records_structure(self, diverse_trajectories: list[EvolutionTrajectory]) -> None:
         gen = EvolutionTrainingSignalGenerator()
         signals = gen.generate_signals(diverse_trajectories)
 
@@ -408,9 +380,7 @@ class TestSignalGenerator:
             assert "gea_score" in rec
             assert 0.0 <= rec["reward"] <= 1.0
 
-    def test_judgment_records_structure(
-        self, diverse_trajectories: list[EvolutionTrajectory]
-    ) -> None:
+    def test_judgment_records_structure(self, diverse_trajectories: list[EvolutionTrajectory]) -> None:
         gen = EvolutionTrainingSignalGenerator()
         signals = gen.generate_signals(diverse_trajectories)
 
@@ -420,9 +390,7 @@ class TestSignalGenerator:
             assert "reasoning" in rec
             assert 0.0 <= rec["alignment_score"] <= 1.0
 
-    def test_instruction_data_filtered_by_phi(
-        self, diverse_trajectories: list[EvolutionTrajectory]
-    ) -> None:
+    def test_instruction_data_filtered_by_phi(self, diverse_trajectories: list[EvolutionTrajectory]) -> None:
         config = EvolutionTrainingConfig(min_phi_score=0.7)
         gen = EvolutionTrainingSignalGenerator(config)
         signals = gen.generate_signals(diverse_trajectories)
@@ -430,16 +398,12 @@ class TestSignalGenerator:
         for rec in signals.instruction_tuning:
             assert rec["metadata"]["phi_score"] >= 0.7
 
-    def test_avg_reward_computed(
-        self, diverse_trajectories: list[EvolutionTrajectory]
-    ) -> None:
+    def test_avg_reward_computed(self, diverse_trajectories: list[EvolutionTrajectory]) -> None:
         gen = EvolutionTrainingSignalGenerator()
         signals = gen.generate_signals(diverse_trajectories)
         assert 0.0 <= signals.avg_reward <= 1.0
 
-    def test_latent_novelty_mean_computed(
-        self, diverse_trajectories: list[EvolutionTrajectory]
-    ) -> None:
+    def test_latent_novelty_mean_computed(self, diverse_trajectories: list[EvolutionTrajectory]) -> None:
         gen = EvolutionTrainingSignalGenerator()
         signals = gen.generate_signals(diverse_trajectories)
         assert signals.latent_novelty_mean >= 0.0
@@ -557,9 +521,7 @@ class TestEvolutionTrainingPipeline:
         )
         pipeline = EvolutionTrainingPipeline(config)
 
-        results = pipeline.run_multi_generation(
-            engine, trace_sources, task_ids, agents, n_generations=3
-        )
+        results = pipeline.run_multi_generation(engine, trace_sources, task_ids, agents, n_generations=3)
 
         assert len(results) == 3
         # Archive grows across generations
@@ -625,9 +587,7 @@ class TestFitnessEvaluator:
         assert vec.shape == (256,)
         assert vec.dtype == np.float32
 
-    def test_finetuned_model_enters_next_generation(
-        self, task_ids: list[str]
-    ) -> None:
+    def test_finetuned_model_enters_next_generation(self, task_ids: list[str]) -> None:
         """End-to-end: fine-tuned model evaluation becomes GEA candidate."""
         evaluator = FitnessEvaluator()
         eval_result = ModelEvaluationResult(
@@ -671,9 +631,7 @@ class TestHelpers:
         b = np.array([0.0, 1.0, 0.0])
         assert _cosine_distance(a, b) == pytest.approx(1.0, abs=1e-6)
 
-    def test_trajectory_reward_bounded(
-        self, sample_trajectory: EvolutionTrajectory
-    ) -> None:
+    def test_trajectory_reward_bounded(self, sample_trajectory: EvolutionTrajectory) -> None:
         reward = _trajectory_reward(sample_trajectory)
         assert 0.0 <= reward <= 1.0
 
@@ -820,9 +778,7 @@ class TestEndToEnd:
             *agents,
             {
                 "agent_id": new_candidate.agent_id,
-                "execution_results": [
-                    model_eval.task_results.get(tid, False) for tid in task_ids
-                ],
+                "execution_results": [model_eval.task_results.get(tid, False) for tid in task_ids],
                 "coherence": new_candidate.coherence,
             },
         ]

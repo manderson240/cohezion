@@ -11,8 +11,10 @@ Key rules preserved:
 """
 
 from __future__ import annotations
+
 import os
 import sys
+
 
 # Environment variables BEFORE any aiter import
 os.environ["AITER_USE_NT"] = "1"
@@ -32,13 +34,12 @@ for _mod in (
     if _p not in sys.path:
         sys.path.insert(0, _p)
 
-import torch
 from aiter import ActivationType, QuantType
 from aiter.fused_moe import fused_moe
-from task import input_t, output_t
 
 # Import reference for fallback
 from reference import ref_kernel
+from task import input_t, output_t
 
 
 def custom_kernel(data: input_t) -> output_t:

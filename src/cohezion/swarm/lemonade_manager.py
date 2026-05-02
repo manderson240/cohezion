@@ -9,16 +9,15 @@ import subprocess
 import time
 from pathlib import Path
 
+
 logger = logging.getLogger(__name__)
+
 
 class LemonadeManager:
     """Manages the private embeddable Lemonade server instance."""
 
     def __init__(
-        self,
-        base_dir: str | Path | None = None,
-        port: int = 13307,
-        host: str = "localhost"
+        self, base_dir: str | Path | None = None, port: int = 13307, host: str = "localhost"
     ) -> None:
         self.base_dir = Path(base_dir or "vendor/lemonade").absolute()
         self.port = port
@@ -47,19 +46,26 @@ class LemonadeManager:
 
         logger.info("Starting private Lemonade server on port %d...", self.port)
         try:
-            # We use subprocess.Popen instead of asyncio.create_subprocess_exec 
+            # We use subprocess.Popen instead of asyncio.create_subprocess_exec
             # for easier integration with existing synchronous shutdown hooks if needed,
             # but we run it in a way that doesn't block.
             self.process = subprocess.Popen(
-                [str(self._executable), str(self.base_dir), "--port", str(self.port), "--host", self.host],
+                [
+                    str(self._executable),
+                    str(self.base_dir),
+                    "--port",
+                    str(self.port),
+                    "--host",
+                    self.host,
+                ],
                 cwd=self.base_dir,
                 env=env,
                 stdout=subprocess.PIPE,
                 stderr=subprocess.STDOUT,
                 text=True,
-                bufsize=1
+                bufsize=1,
             )
-            
+
             # Brief wait to check for immediate failure
             await asyncio.sleep(2)
             if self.process.poll() is not None:
@@ -101,6 +107,7 @@ class LemonadeManager:
     async def wait_until_ready(self, timeout: float = 30.0) -> bool:
         """Wait for the server to respond to health checks."""
         import httpx
+
         url = f"http://{self.host}:{self.port}/api/v1/models"
         start_time = time.monotonic()
         while time.monotonic() - start_time < timeout:

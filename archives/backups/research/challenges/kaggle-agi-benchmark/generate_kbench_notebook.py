@@ -1,6 +1,7 @@
 import json
 from pathlib import Path
 
+
 # Paths
 BASE_DIR = Path(__file__).parent
 PY_SCRIPT = BASE_DIR / "evaluator_kbench.py"

@@ -25,19 +25,18 @@ Reference: "Neural Ordinary Differential Equations", NeurIPS 2018.
 """
 
 from __future__ import annotations
+
 import os
+
 
 os.environ["PYTORCH_ROCM_ARCH"] = "gfx950"
 os.environ["CXX"] = "clang++"
 
+
 import torch
 import torch.nn as nn
-from typing import Tuple, Optional
-from torch.utils.cpp_extension import load_inline
 from task import input_t, output_t
-
-import aiter
-from aiter import dtypes as aiter_dtypes
+from torch.utils.cpp_extension import load_inline
 
 
 class ODEAttentionFunction(torch.autograd.Function):
@@ -117,27 +116,27 @@ __global__ void ode_attention_step(
     int idx = blockIdx.x * blockDim.x + threadIdx.x;
     int total = batch_size * num_heads * DIM;
     if (idx >= total) return;
-    
+
     // Load current state
     float h_val = __bfloat162float(h[idx]);
-    
+
     // Compute attention score
     float score = 0.0f;
     for (int s = 0; s < seq_len; s++) {
         float k_val = __bfloat162float(k[s * DIM + (idx % DIM)]);
         score += h_val * k_val;
     }
-    
+
     // Softmax (simplified)
     float weight = expf(score) / seq_len;
-    
+
     // Weighted sum of values
     float dh = 0.0f;
     for (int s = 0; s < seq_len; s++) {
         float v_val = __bfloat162float(v[s * DIM + (idx % DIM)]);
         dh += weight * v_val;
     }
-    
+
     // Euler update
     h_next[idx] = (__hip_bfloat16)(h_val + dt * (dh - h_val));
 }
@@ -157,8 +156,8 @@ void launch_ode_step(
 """
 
 CPP_SOURCE = """
-void launch_ode_step(torch::Tensor h, torch::Tensor k, torch::Tensor v, 
-                     torch::Tensor h_next, int batch_size, int seq_len, 
+void launch_ode_step(torch::Tensor h, torch::Tensor k, torch::Tensor v,
+                     torch::Tensor h_next, int batch_size, int seq_len,
                      int num_heads, float dt);
 """
 

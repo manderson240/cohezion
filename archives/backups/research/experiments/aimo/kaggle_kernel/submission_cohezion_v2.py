@@ -1,21 +1,16 @@
 import gc
-import json
 import math
 import os
 import re
 import subprocess
 import sys
 import time
-import traceback
-from collections import Counter
-from dataclasses import dataclass
-from pathlib import Path
-from typing import Any, Dict, List, Optional, Set
+from typing import Any
 
 import numpy as np
 import polars as pl
-import requests
 import sympy
+
 
 # --- 1. Kaggle Infrastructure Handshake ---
 try:
@@ -39,8 +34,8 @@ def install_dependencies():
     """Install vLLM from offline dataset if missing."""
     global HAS_VLLM, HAS_INSTALLED
 
-    import site
     import importlib
+    import site
 
     user_site = site.getusersitepackages()
     if user_site not in sys.path:
@@ -68,7 +63,6 @@ def install_dependencies():
             subprocess.run(cmd, shell=True)
         try:
             importlib.invalidate_caches()
-            from vllm import LLM, SamplingParams
 
             HAS_VLLM = True
             print("vLLM installed successfully.")
@@ -158,7 +152,7 @@ class SymbolicExecutor:
 
 # --- 3. Knower Auditor (Knower) ---
 class KnowerAuditor:
-    def calculate_entropy(self, logprobs: List[Dict]) -> float:
+    def calculate_entropy(self, logprobs: list[dict]) -> float:
         """Calculate token-level entropy from vLLM logprobs."""
         if not logprobs:
             return 0.5
@@ -216,7 +210,7 @@ class BaseSpecialist:
         }
         self.executor = SymbolicExecutor()
 
-    def solve(self, problem_text: str) -> Dict[str, Any]:
+    def solve(self, problem_text: str) -> dict[str, Any]:
         system_prompt = self.prompts.get(
             self.name, "Think step by step. Final answer in \\boxed{X}."
         )

@@ -27,8 +27,7 @@ def get_github_token() -> str:
     global _github_token
     if _github_token is None:
         _github_token = (
-            get_credentials().get_secret("COHEZION_GITHUB_TOKEN", env_var="GITHUB_TOKEN")
-            or ""
+            get_credentials().get_secret("COHEZION_GITHUB_TOKEN", env_var="GITHUB_TOKEN") or ""
         )
     return _github_token
 
@@ -343,7 +342,6 @@ async def github_list_issues(
     service = get_service()
     issues = await service.list_issues(owner, repo, state, labels, limit)
     return {"issues": issues}
-
 
 
 @app.tool()

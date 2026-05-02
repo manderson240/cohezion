@@ -103,9 +103,7 @@ class RetrospectionEngine:
         ]
 
         if metrics.anomalies:
-            parts.append(
-                f"I detected {len(metrics.anomalies)} anomalies that warrant further investigation."
-            )
+            parts.append(f"I detected {len(metrics.anomalies)} anomalies that warrant further investigation.")
 
         return " ".join(parts)
 

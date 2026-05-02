@@ -31,21 +31,22 @@ Reference: "Accelerating Sparse Deep Neural Networks", NVIDIA 2020.
 """
 
 from __future__ import annotations
+
 import os
+
 
 os.environ["PYTORCH_ROCM_ARCH"] = "gfx950"
 os.environ["CXX"] = "clang++"
 
+
+import aiter
 import torch
 import torch.nn as nn
-from typing import Tuple, Optional
-from torch.utils.cpp_extension import load_inline
-from task import input_t, output_t
-
 from aiter import dtypes
 from aiter.ops.triton.quant import dynamic_mxfp4_quant
 from aiter.utility.fp4_utils import e8m0_shuffle
-import aiter
+from task import input_t, output_t
+from torch.utils.cpp_extension import load_inline
 
 
 class StructuredSparseMatrix:
@@ -55,7 +56,7 @@ class StructuredSparseMatrix:
     has exactly 2 non-zero values.
     """
 
-    def __init__(self, shape: Tuple[int, ...]):
+    def __init__(self, shape: tuple[int, ...]):
         self.shape = shape
         self.num_elements = torch.prod(torch.tensor(shape)).item()
 
@@ -63,10 +64,10 @@ class StructuredSparseMatrix:
         self.compressed_shape = (self.num_elements // 2,)
 
         # Values and indices
-        self.values: Optional[torch.Tensor] = None
-        self.indices: Optional[torch.Tensor] = None
+        self.values: torch.Tensor | None = None
+        self.indices: torch.Tensor | None = None
 
-    def from_dense(self, dense: torch.Tensor) -> "StructuredSparseMatrix":
+    def from_dense(self, dense: torch.Tensor) -> StructuredSparseMatrix:
         """Convert dense matrix to 2:4 sparse format.
 
         Args:
@@ -106,7 +107,7 @@ class StructuredSparseMatrix:
 
         return self
 
-    def to_dense(self, original_shape: Tuple[int, ...]) -> torch.Tensor:
+    def to_dense(self, original_shape: tuple[int, ...]) -> torch.Tensor:
         """Convert back to dense format.
 
         Args:
@@ -197,28 +198,28 @@ __global__ void sparse_gemm_2_4(
 ) {
     int row = blockIdx.y * blockDim.y + threadIdx.y;
     int col = blockIdx.x * blockDim.x + threadIdx.x;
-    
+
     if (row >= N || col >= batch) return;
-    
+
     // Each row has K/2 non-zero values, grouped in 4-element blocks
     int row_offset = row * (K / 2);
-    
+
     float sum = 0.0f;
     for (int k = 0; k < K / 4; k++) {
         int group_offset = row_offset + k * 2;
-        
+
         // Load 2 values and their indices
         float val0 = sparse_values[group_offset];
         float val1 = sparse_values[group_offset + 1];
         int idx0 = sparse_indices[group_offset];
         int idx1 = sparse_indices[group_offset + 1];
-        
+
         // Multiply with corresponding x values
         int k_base = k * 4;
         sum += val0 * __bfloat162float(x[(k_base + idx0) * batch + col]);
         sum += val1 * __bfloat162float(x[(k_base + idx1) * batch + col]);
     }
-    
+
     y[row * batch + col] = (__hip_bfloat16)sum;
 }
 
@@ -231,19 +232,19 @@ __global__ void expand_sparse_2_4(
 ) {
     int idx = blockIdx.x * blockDim.x + threadIdx.x;
     if (idx >= num_groups) return;
-    
+
     int group_offset = idx * 2;
     int dense_offset = idx * 4;
-    
+
     // Zero out
     for (int i = 0; i < 4; i++) {
         dense[dense_offset + i] = (__hip_bfloat16)0.0f;
     }
-    
+
     // Place values
-    dense[dense_offset + sparse_indices[group_offset]] = 
+    dense[dense_offset + sparse_indices[group_offset]] =
         (__hip_bfloat16)sparse_values[group_offset];
-    dense[dense_offset + sparse_indices[group_offset + 1]] = 
+    dense[dense_offset + sparse_indices[group_offset + 1]] =
         (__hip_bfloat16)sparse_values[group_offset + 1];
 }
 
@@ -325,7 +326,7 @@ def _check_sparsity_pattern(weight: torch.Tensor, tolerance: float = 0.01) -> bo
 
 def _convert_to_sparse_2_4(
     weight: torch.Tensor,
-) -> Tuple[torch.Tensor, torch.Tensor, Tuple[int, int]]:
+) -> tuple[torch.Tensor, torch.Tensor, tuple[int, int]]:
     """Convert dense weight to 2:4 sparse format.
 
     Args:

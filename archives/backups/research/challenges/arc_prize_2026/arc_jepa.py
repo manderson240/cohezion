@@ -1,9 +1,8 @@
 from __future__ import annotations
+
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
-import numpy as np
-from typing import Optional, Tuple
 
 
 class ARCGameEncoder(nn.Module):
@@ -141,8 +140,8 @@ class ARCWorldModel(nn.Module):
         action: torch.Tensor,
         x: torch.Tensor,
         y: torch.Tensor,
-        grid_next: Optional[torch.Tensor] = None,
-    ) -> Tuple[torch.Tensor, Optional[torch.Tensor]]:
+        grid_next: torch.Tensor | None = None,
+    ) -> tuple[torch.Tensor, torch.Tensor | None]:
         """
         Forward pass for prediction and optional loss calculation.
 

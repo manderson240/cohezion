@@ -1,4 +1,3 @@
-import aiofiles
 import asyncio
 import importlib.util
 import json
@@ -7,6 +6,8 @@ import re
 import sys
 from pathlib import Path
 from typing import Any
+
+import aiofiles
 
 
 # Dynamically load the module from the kaggle-agi-benchmark directory

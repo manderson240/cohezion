@@ -18,7 +18,7 @@ import logging
 import time
 from datetime import datetime
 from pathlib import Path
-from typing import Any, Dict, List, Optional
+from typing import Any
 
 import polars as pl
 from context_aware_solver import get_solver
@@ -46,7 +46,7 @@ class AIMOSubmissionDriver:
         self,
         cache_max_entries: int = 512,
         vault_path: str = "~/vaults/cohezion-vault/regions/cerebrum/aimo",
-        session_id: Optional[str] = None,
+        session_id: str | None = None,
         output_dir: str = "output",
     ):
         self.session_id = session_id or f"submission_{datetime.now().strftime('%Y%m%d_%H%M%S')}"
@@ -75,10 +75,10 @@ class AIMOSubmissionDriver:
         self.coordinator = SwarmCoordinator()
 
         # Submission state
-        self.submission_results: List[Dict[str, Any]] = []
+        self.submission_results: list[dict[str, Any]] = []
         self.submission_start = time.time()
 
-    def warm_start(self) -> Dict[str, Any]:
+    def warm_start(self) -> dict[str, Any]:
         """Warm start: load cache and learning."""
         logger.info("\nWarming up for submission...")
 
@@ -149,7 +149,7 @@ class AIMOSubmissionDriver:
         self,
         test_csv: str = "input/test.csv",
         output_file: str = "output/submission.parquet",
-    ) -> Dict[str, Any]:
+    ) -> dict[str, Any]:
         """
         Run complete submission pipeline.
 
@@ -216,10 +216,10 @@ class AIMOSubmissionDriver:
 
         return summary
 
-    def _print_summary(self, summary: Dict[str, Any]):
+    def _print_summary(self, summary: dict[str, Any]):
         """Print submission summary."""
         logger.info(f"\n{'=' * 60}")
-        logger.info(f"Submission Summary")
+        logger.info("Submission Summary")
         logger.info(f"{'=' * 60}")
         logger.info(f"Session: {summary['session_id']}")
         logger.info(f"Duration: {summary['duration_seconds'] / 60:.1f}m")
@@ -232,7 +232,7 @@ class AIMOSubmissionDriver:
         logger.info(f"Cost savings: {summary['efficiency_stats']['estimated_cost_savings']}")
         logger.info(f"{'=' * 60}")
 
-    def _save_summary(self, summary: Dict[str, Any]):
+    def _save_summary(self, summary: dict[str, Any]):
         """Save submission summary."""
         summary_file = self.output_dir / f"{self.session_id}_summary.json"
         with open(summary_file, "w") as f:
@@ -270,7 +270,7 @@ def main():
     )
 
     print(f"\n{'=' * 60}")
-    print(f"Submission Complete")
+    print("Submission Complete")
     print(f"{'=' * 60}")
     print(f"Output: {summary['output_file']}")
     print(f"Problems: {summary['problems_solved']}")

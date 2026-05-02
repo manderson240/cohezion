@@ -23,16 +23,16 @@ def validate_skills_json(skills_file: Path) -> list[str]:
         errors.append("skills.json must be a dictionary")
         return errors
 
-    if 'skills' not in data:
+    if "skills" not in data:
         errors.append("skills.json must have a 'skills' key")
         return errors
 
-    skills = data['skills']
+    skills = data["skills"]
     if not isinstance(skills, list):
         errors.append("skills must be a list")
         return errors
 
-    required_fields = ['name', 'description']
+    required_fields = ["name", "description"]
     skill_names = []
 
     for i, skill in enumerate(skills):
@@ -40,7 +40,7 @@ def validate_skills_json(skills_file: Path) -> list[str]:
             if field not in skill:
                 errors.append(f"Skill {i}: missing required field '{field}'")
 
-        name = skill.get('name')
+        name = skill.get("name")
         if name:
             skill_names.append(name)
             if skill_names.count(name) > 1:
@@ -54,20 +54,20 @@ def validate_skill_frontmatter(skill_file: Path) -> list[str]:
     errors = []
     content = skill_file.read_text()
 
-    if not content.startswith('---'):
+    if not content.startswith("---"):
         errors.append(f"{skill_file}: Missing frontmatter")
         return errors
 
-    match = re.match(r'^---\n(.*?)\n---', content, re.DOTALL)
+    match = re.match(r"^---\n(.*?)\n---", content, re.DOTALL)
     if not match:
         errors.append(f"{skill_file}: Invalid frontmatter format")
         return errors
 
     frontmatter = match.group(1)
-    required = ['name', 'description']
+    required = ["name", "description"]
 
     for field in required:
-        if f'{field}:' not in frontmatter:
+        if f"{field}:" not in frontmatter:
             errors.append(f"{skill_file}: Missing '{field}' in frontmatter")
 
     return errors
@@ -76,7 +76,7 @@ def validate_skill_frontmatter(skill_file: Path) -> list[str]:
 def main():
     """Run skill validation."""
     repo_root = Path.cwd()
-    skills_file = repo_root / '.claude' / 'skills.json'
+    skills_file = repo_root / ".claude" / "skills.json"
 
     all_errors = []
 
@@ -85,10 +85,10 @@ def main():
         all_errors.extend(validate_skills_json(skills_file))
 
     # Validate skill files
-    skills_dir = repo_root / '.claude'
+    skills_dir = repo_root / ".claude"
     if skills_dir.exists():
-        for skill_file in skills_dir.rglob('*.md'):
-            if skill_file.name == 'README.md':
+        for skill_file in skills_dir.rglob("*.md"):
+            if skill_file.name == "README.md":
                 continue
             all_errors.extend(validate_skill_frontmatter(skill_file))
 

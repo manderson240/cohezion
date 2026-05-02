@@ -5,7 +5,6 @@ from pathlib import Path
 # Add src to path just in case
 sys.path.append(str(Path(__file__).parent.parent / "src"))
 
-from cohezion.mcp.manager.server_manager import get_manager, init_default_servers
 
 
 def main():

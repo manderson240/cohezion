@@ -25,9 +25,10 @@ Reference: "Bayesian Deep Learning", Nature 2019.
 """
 
 from __future__ import annotations
+
 import os
-from typing import Dict, List, Tuple, Optional
 from dataclasses import dataclass
+
 
 os.environ["AITER_USE_NT"] = "1"
 os.environ["AITER_KSPLIT"] = "2"
@@ -80,7 +81,7 @@ class BayesianRouter:
 
         self.num_samples = 0
 
-    def sample_weights(self) -> Tuple[torch.Tensor, torch.Tensor]:
+    def sample_weights(self) -> tuple[torch.Tensor, torch.Tensor]:
         """Sample weights from variational posterior.
 
         Returns:
@@ -159,7 +160,7 @@ class BayesianRouter:
 
 def _bayesian_routing(
     hidden_states: torch.Tensor, num_experts: int, topk: int, device: str = "cuda"
-) -> Tuple[torch.Tensor, torch.Tensor, torch.Tensor]:
+) -> tuple[torch.Tensor, torch.Tensor, torch.Tensor]:
     """Apply Bayesian routing with uncertainty.
 
     Returns:

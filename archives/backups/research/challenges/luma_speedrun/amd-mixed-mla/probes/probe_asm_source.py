@@ -141,7 +141,7 @@ for f in _cpp_sources[:10]:
 # ── Probe: Inspect mla_decode_stage1_asm_fwd signature more carefully ──
 try:
     sig = inspect.signature(mla_decode_stage1_asm_fwd)
-    print(f"\nPROBE: mla_decode_stage1_asm_fwd signature:", file=sys.stderr)
+    print("\nPROBE: mla_decode_stage1_asm_fwd signature:", file=sys.stderr)
     for name, param in sig.parameters.items():
         print(f"  {name}: {param.annotation} = {param.default}", file=sys.stderr)
 except Exception as e:

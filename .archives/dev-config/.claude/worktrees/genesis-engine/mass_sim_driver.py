@@ -82,9 +82,7 @@ def main() -> None:
 
     scale = SCALE_TIERS[args.scale]
     logger.info(f"Scale tier: {scale.name}")
-    logger.info(
-        f"  {scale.n_agents} agents x {scale.n_epochs} epochs x {scale.n_universes} universes"
-    )
+    logger.info(f"  {scale.n_agents} agents x {scale.n_epochs} epochs x {scale.n_universes} universes")
 
     config = SimulationConfig(
         scale=scale,

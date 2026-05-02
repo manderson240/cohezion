@@ -44,13 +44,11 @@ import json
 import re
 import shutil
 import sys
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from pathlib import Path
 
 
-DEFAULT_SKILLS_DIR = (
-    Path(__file__).resolve().parents[1] / "src" / "cohezion" / "skills"
-)
+DEFAULT_SKILLS_DIR = Path(__file__).resolve().parents[1] / "src" / "cohezion" / "skills"
 DEFAULT_REGISTRY = "skill_registry.json"
 
 
@@ -98,11 +96,7 @@ def extract_description(body: str, max_chars: int = 512) -> str:
 
     if not paragraph:
         # Fallback 2: first 2 non-header lines
-        lines = [
-            line
-            for line in body.splitlines()
-            if line.strip() and not line.startswith("#")
-        ]
+        lines = [line for line in body.splitlines() if line.strip() and not line.startswith("#")]
         paragraph = " ".join(lines[:2]) if lines else "Cohezion PRIME skill (description pending)."
 
     # Strip markdown formatting for plain description
@@ -206,7 +200,7 @@ def migrate_file(
 
 def snapshot_backup(skills_dir: Path, backup_root: Path) -> Path:
     """Copy every *.md file (not JSON) into a timestamped backup dir."""
-    stamp = datetime.now(timezone.utc).strftime("%Y-%m-%d-%H%M%S")
+    stamp = datetime.now(UTC).strftime("%Y-%m-%d-%H%M%S")
     target = backup_root / f"skills-pre-migration-{stamp}"
     target.mkdir(parents=True, exist_ok=True)
     for md in skills_dir.glob("*.md"):
@@ -261,7 +255,10 @@ def main(argv: list[str] | None = None) -> int:
             print(f"migrate_skills: could not parse {registry_path}: {exc}", file=sys.stderr)
             return 2
     else:
-        print(f"migrate_skills: no registry at {registry_path}; metadata will be sparse.", file=sys.stderr)
+        print(
+            f"migrate_skills: no registry at {registry_path}; metadata will be sparse.",
+            file=sys.stderr,
+        )
 
     md_files = sorted(skills_dir.glob("*.md"))
     if not md_files:
@@ -284,7 +281,7 @@ def main(argv: list[str] | None = None) -> int:
     for md in md_files:
         try:
             status, detail = migrate_file(md, registry, apply=args.apply)
-        except Exception as exc:  # noqa: BLE001 — best-effort migration; collect failures
+        except Exception as exc:
             status = "error"
             detail = f"exception: {exc}"
             errors.append(f"{md.name}: {detail}")

@@ -4,11 +4,12 @@
 """MoE: Try dispatch_policy=2 (suggested by Ollama gemma4:31b-cloud)."""
 
 from __future__ import annotations
+
 import os
+
 
 os.environ["AITER_USE_NT"] = "1"
 
-import torch
 from aiter import ActivationType, QuantType
 from aiter.fused_moe import fused_moe
 from task import input_t, output_t

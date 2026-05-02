@@ -4,9 +4,9 @@ Dynamic Solution Generator
 Generates solution markdown files from template + data
 """
 
-import json
 from pathlib import Path
 from string import Template
+
 
 # Solution data
 data = {
@@ -138,7 +138,7 @@ if __name__ == "__main__":
     print("GENERATING SOLUTION FILES FROM TEMPLATE")
     print("=" * 70)
 
-    for code in data.keys():
+    for code in data:
         generate_solution(code)
 
     print("\n" + "=" * 70)

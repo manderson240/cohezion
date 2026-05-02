@@ -1,12 +1,12 @@
-import sys
 import platform
+import sys
+
 
 print(f"DEBUG: platform.__file__ = {platform.__file__}")
 print(f"DEBUG: hasattr(platform, 'machine') = {hasattr(platform, 'machine')}")
 print(f"DEBUG: sys.path = {sys.path}")
 
 try:
-    import polars as pl
 
     print("DEBUG: polars imported successfully")
 except Exception as e:

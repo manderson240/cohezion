@@ -8,15 +8,16 @@ This module provides comprehensive testing for converting between:
 The 5D format is used by gen_pa_ps_fwd_asm kernel for optimized paged attention.
 """
 
+from dataclasses import dataclass
+
 import torch
 import torch.nn.functional as F
-from typing import Tuple, Optional
-from dataclasses import dataclass
 
 
 @dataclass
 class BlockedKVConfig:
     """Configuration for 5D blocked KV format."""
+
     num_blocks: int
     kv_heads: int
     head_dim: int
@@ -27,8 +28,7 @@ class BlockedKVConfig:
         """Validate configuration."""
         if self.head_dim % self.x != 0:
             raise ValueError(
-                f"head_dim ({self.head_dim}) must be divisible by x ({self.x}). "
-                f"head_dim % x = {self.head_dim % self.x}"
+                f"head_dim ({self.head_dim}) must be divisible by x ({self.x}). head_dim % x = {self.head_dim % self.x}"
             )
 
     @property
@@ -37,7 +37,7 @@ class BlockedKVConfig:
         return self.num_blocks * self.block_size
 
     @property
-    def shape_5d(self) -> Tuple[int, int, int, int, int]:
+    def shape_5d(self) -> tuple[int, int, int, int, int]:
         """Shape of 5D blocked format."""
         return (
             self.num_blocks,
@@ -48,7 +48,7 @@ class BlockedKVConfig:
         )
 
     @property
-    def shape_3d(self) -> Tuple[int, int, int]:
+    def shape_3d(self) -> tuple[int, int, int]:
         """Shape of standard 3D format."""
         return (self.total_kv, self.kv_heads, self.head_dim)
 
@@ -82,10 +82,7 @@ class KVFormatConverter:
             )
 
         if head_dim % x != 0:
-            raise ValueError(
-                f"head_dim ({head_dim}) must be divisible by x ({x}). "
-                f"head_dim % x = {head_dim % x}"
-            )
+            raise ValueError(f"head_dim ({head_dim}) must be divisible by x ({x}). head_dim % x = {head_dim % x}")
 
         num_blocks = total_kv // block_size
 
@@ -96,9 +93,7 @@ class KVFormatConverter:
         # Step 2: Split head_dim into groups
         # [num_blocks, block_size, kv_heads, head_dim]
         # -> [num_blocks, block_size, kv_heads, head_dim/x, x]
-        kv_grouped = kv_blocked.reshape(
-            num_blocks, block_size, kv_heads, head_dim // x, x
-        )
+        kv_grouped = kv_blocked.reshape(num_blocks, block_size, kv_heads, head_dim // x, x)
 
         # Step 3: Permute to 5D format: [num_blocks, kv_heads, head_dim/x, block_size, x]
         # Current: [num_blocks, block_size, kv_heads, head_dim/x, x]
@@ -159,9 +154,7 @@ class KVFormatConverter:
             True if tensors are equivalent
         """
         if kv_3d_original.shape != kv_3d_recovered.shape:
-            raise ValueError(
-                f"Shape mismatch: {kv_3d_original.shape} vs {kv_3d_recovered.shape}"
-            )
+            raise ValueError(f"Shape mismatch: {kv_3d_original.shape} vs {kv_3d_recovered.shape}")
 
         return torch.allclose(kv_3d_original, kv_3d_recovered, rtol=rtol, atol=atol)
 
@@ -194,9 +187,7 @@ class TestMLAFormatConversion:
         )
 
         # Create original 3D tensor
-        kv_3d = torch.randn(
-            config.shape_3d, dtype=torch.bfloat16, device=self.device
-        )
+        kv_3d = torch.randn(config.shape_3d, dtype=torch.bfloat16, device=self.device)
 
         # Convert to 5D
         kv_5d = self.converter.to_5d(kv_3d, config.block_size, config.x)
@@ -216,16 +207,12 @@ class TestMLAFormatConversion:
         num_blocks = 16
 
         for block_size in block_sizes:
-            kv_3d = torch.randn(
-                num_blocks * block_size, 1, self.QK_HEAD_DIM,
-                dtype=torch.bfloat16, device=self.device
-            )
+            kv_3d = torch.randn(num_blocks * block_size, 1, self.QK_HEAD_DIM, dtype=torch.bfloat16, device=self.device)
 
             kv_5d = self.converter.to_5d(kv_3d, block_size, x)
             kv_3d_recovered = self.converter.from_5d(kv_5d)
 
-            assert self.converter.validate_conversion(kv_3d, kv_3d_recovered), \
-                f"Failed for block_size={block_size}"
+            assert self.converter.validate_conversion(kv_3d, kv_3d_recovered), f"Failed for block_size={block_size}"
 
     def test_conversion_all_x_values(self):
         """Test conversion with all supported x values."""
@@ -234,16 +221,12 @@ class TestMLAFormatConversion:
         num_blocks = 16
 
         for x in x_values:
-            kv_3d = torch.randn(
-                num_blocks * block_size, 1, self.QK_HEAD_DIM,
-                dtype=torch.bfloat16, device=self.device
-            )
+            kv_3d = torch.randn(num_blocks * block_size, 1, self.QK_HEAD_DIM, dtype=torch.bfloat16, device=self.device)
 
             kv_5d = self.converter.to_5d(kv_3d, block_size, x)
             kv_3d_recovered = self.converter.from_5d(kv_5d)
 
-            assert self.converter.validate_conversion(kv_3d, kv_3d_recovered), \
-                f"Failed for x={x}"
+            assert self.converter.validate_conversion(kv_3d, kv_3d_recovered), f"Failed for x={x}"
 
     def test_conversion_full_matrix(self):
         """Test all combinations of block_size × x."""
@@ -254,16 +237,16 @@ class TestMLAFormatConversion:
         for block_size in block_sizes:
             for x in x_values:
                 kv_3d = torch.randn(
-                    num_blocks * block_size, 1, self.QK_HEAD_DIM,
-                    dtype=torch.bfloat16, device=self.device
+                    num_blocks * block_size, 1, self.QK_HEAD_DIM, dtype=torch.bfloat16, device=self.device
                 )
 
                 kv_5d = self.converter.to_5d(kv_3d, block_size, x)
                 kv_3d_recovered = self.converter.from_5d(kv_5d)
 
                 assert kv_5d.shape == (num_blocks, 1, self.QK_HEAD_DIM // x, block_size, x)
-                assert self.converter.validate_conversion(kv_3d, kv_3d_recovered), \
+                assert self.converter.validate_conversion(kv_3d, kv_3d_recovered), (
                     f"Failed for block_size={block_size}, x={x}"
+                )
 
     def test_5d_memory_layout(self):
         """Test that 5D tensor has expected memory layout for kernel access."""
@@ -275,9 +258,7 @@ class TestMLAFormatConversion:
             x=8,
         )
 
-        kv_3d = torch.randn(
-            config.shape_3d, dtype=torch.bfloat16, device=self.device
-        )
+        kv_3d = torch.randn(config.shape_3d, dtype=torch.bfloat16, device=self.device)
         kv_5d = self.converter.to_5d(kv_3d, config.block_size, config.x)
 
         # Expected strides for [num_blocks, kv_heads, head_dim/x, block_size, x]
@@ -285,13 +266,11 @@ class TestMLAFormatConversion:
         assert kv_5d.stride(4) == 1, "Last dimension not contiguous"
 
         # block_size dimension stride should be x
-        assert kv_5d.stride(3) == config.x, \
-            f"Expected stride[3]={config.x}, got {kv_5d.stride(3)}"
+        assert kv_5d.stride(3) == config.x, f"Expected stride[3]={config.x}, got {kv_5d.stride(3)}"
 
         # head_dim/x dimension stride should be block_size * x
         expected_stride = config.block_size * config.x
-        assert kv_5d.stride(2) == expected_stride, \
-            f"Expected stride[2]={expected_stride}, got {kv_5d.stride(2)}"
+        assert kv_5d.stride(2) == expected_stride, f"Expected stride[2]={expected_stride}, got {kv_5d.stride(2)}"
 
     def test_invalid_block_size(self):
         """Test that invalid block_size raises appropriate error."""
@@ -325,9 +304,7 @@ class TestMLAFormatConversion:
             x=16,
         )
 
-        kv_3d = torch.randn(
-            config.shape_3d, dtype=torch.bfloat16, device=self.device
-        )
+        kv_3d = torch.randn(config.shape_3d, dtype=torch.bfloat16, device=self.device)
 
         kv_5d = self.converter.to_5d(kv_3d, config.block_size, config.x)
         assert kv_5d.shape == (32, 1, 36, 1, 16)  # 576/16=36
@@ -345,9 +322,7 @@ class TestMLAFormatConversion:
             x=8,
         )
 
-        kv_3d = torch.randn(
-            config.shape_3d, dtype=torch.bfloat16, device=self.device
-        )
+        kv_3d = torch.randn(config.shape_3d, dtype=torch.bfloat16, device=self.device)
 
         kv_5d = self.converter.to_5d(kv_3d, config.block_size, config.x)
         assert kv_5d.shape == config.shape_5d
@@ -365,28 +340,19 @@ class TestMLAFormatConversion:
         x = 8
 
         # Create query and KV
-        q = torch.randn(
-            batch_size * q_seq_len, num_heads, self.QK_HEAD_DIM,
-            dtype=torch.bfloat16, device=self.device
-        )
-        kv_3d = torch.randn(
-            batch_size * kv_seq_len, 1, self.QK_HEAD_DIM,
-            dtype=torch.bfloat16, device=self.device
-        )
+        q = torch.randn(batch_size * q_seq_len, num_heads, self.QK_HEAD_DIM, dtype=torch.bfloat16, device=self.device)
+        kv_3d = torch.randn(batch_size * kv_seq_len, 1, self.QK_HEAD_DIM, dtype=torch.bfloat16, device=self.device)
 
         # Compute attention with original 3D format
         outputs_3d = []
         for b in range(batch_size):
-            q_b = q[b * q_seq_len:(b + 1) * q_seq_len]
-            kv_b = kv_3d[b * kv_seq_len:(b + 1) * kv_seq_len, 0]
+            q_b = q[b * q_seq_len : (b + 1) * q_seq_len]
+            kv_b = kv_3d[b * kv_seq_len : (b + 1) * kv_seq_len, 0]
 
-            scores = torch.matmul(
-                q_b.float().permute(1, 0, 2),
-                kv_b.float().T
-            ) * (1.0 / (self.QK_HEAD_DIM ** 0.5))
+            scores = torch.matmul(q_b.float().permute(1, 0, 2), kv_b.float().T) * (1.0 / (self.QK_HEAD_DIM**0.5))
 
             attn_weights = F.softmax(scores, dim=-1)
-            v_b = kv_b[:, :self.V_HEAD_DIM]
+            v_b = kv_b[:, : self.V_HEAD_DIM]
             output = torch.matmul(attn_weights, v_b)
             outputs_3d.append(output.permute(1, 0, 2).to(torch.bfloat16))
 
@@ -398,16 +364,13 @@ class TestMLAFormatConversion:
 
         outputs_converted = []
         for b in range(batch_size):
-            q_b = q[b * q_seq_len:(b + 1) * q_seq_len]
-            kv_b = kv_3d_converted[b * kv_seq_len:(b + 1) * kv_seq_len, 0]
+            q_b = q[b * q_seq_len : (b + 1) * q_seq_len]
+            kv_b = kv_3d_converted[b * kv_seq_len : (b + 1) * kv_seq_len, 0]
 
-            scores = torch.matmul(
-                q_b.float().permute(1, 0, 2),
-                kv_b.float().T
-            ) * (1.0 / (self.QK_HEAD_DIM ** 0.5))
+            scores = torch.matmul(q_b.float().permute(1, 0, 2), kv_b.float().T) * (1.0 / (self.QK_HEAD_DIM**0.5))
 
             attn_weights = F.softmax(scores, dim=-1)
-            v_b = kv_b[:, :self.V_HEAD_DIM]
+            v_b = kv_b[:, : self.V_HEAD_DIM]
             output = torch.matmul(attn_weights, v_b)
             outputs_converted.append(output.permute(1, 0, 2).to(torch.bfloat16))
 
@@ -428,18 +391,14 @@ class TestMLAFormatConversion:
         )
 
         for dtype in dtypes:
-            kv_3d = torch.randn(
-                config.shape_3d, dtype=dtype, device=self.device
-            )
+            kv_3d = torch.randn(config.shape_3d, dtype=dtype, device=self.device)
 
             kv_5d = self.converter.to_5d(kv_3d, config.block_size, config.x)
             kv_3d_recovered = self.converter.from_5d(kv_5d)
 
             # For fp16/bf16, use relaxed tolerance
             rtol = 1e-3 if dtype in (torch.float16, torch.bfloat16) else 1e-5
-            assert self.converter.validate_conversion(
-                kv_3d, kv_3d_recovered, rtol=rtol
-            ), f"Failed for dtype={dtype}"
+            assert self.converter.validate_conversion(kv_3d, kv_3d_recovered, rtol=rtol), f"Failed for dtype={dtype}"
 
 
 class TestBlockedKVConfig:
@@ -472,4 +431,5 @@ class TestBlockedKVConfig:
 
 if __name__ == "__main__":
     import pytest
+
     pytest.main([__file__, "-v"])

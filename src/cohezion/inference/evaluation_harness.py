@@ -87,7 +87,7 @@ class ExperimentMetrics:
 class EvaluationHarness:
     """
     Comprehensive evaluation framework for autoresearch.
-    
+
     Measures:
     - Speed: tokens/sec, latency
     - Quality: accuracy, coherence, task completion
@@ -115,7 +115,7 @@ class EvaluationHarness:
     def record_experiment(self, metrics: ExperimentMetrics) -> dict:
         """
         Record an experiment and generate evaluation.
-        
+
         Returns evaluation result with status determination.
         """
         # Add to history
@@ -155,7 +155,7 @@ class EvaluationHarness:
     def _evaluate(self, metrics: ExperimentMetrics) -> dict:
         """
         Evaluate experiment against baselines and prior experiments.
-        
+
         Determines:
         - status: keep, discard, or crash
         - improvements: relative to baseline
@@ -181,17 +181,24 @@ class EvaluationHarness:
             }
 
         # Calculate improvement
-        throughput_delta = ((metrics.tokens_per_sec - baseline.tokens_per_sec)
-                           / baseline.tokens_per_sec * 100)
-        quality_delta = ((metrics.quality_score - baseline.quality_score)
-                        / max(baseline.quality_score, 0.01) * 100)
-        efficiency_delta = ((metrics.efficiency_score() - baseline.efficiency_score())
-                          / max(baseline.efficiency_score(), 0.01) * 100)
+        throughput_delta = (
+            (metrics.tokens_per_sec - baseline.tokens_per_sec) / baseline.tokens_per_sec * 100
+        )
+        quality_delta = (
+            (metrics.quality_score - baseline.quality_score)
+            / max(baseline.quality_score, 0.01)
+            * 100
+        )
+        efficiency_delta = (
+            (metrics.efficiency_score() - baseline.efficiency_score())
+            / max(baseline.efficiency_score(), 0.01)
+            * 100
+        )
 
         # Weighted composite
-        composite_improvement = (throughput_delta * 0.5 +
-                                quality_delta * 0.3 +
-                                efficiency_delta * 0.2)
+        composite_improvement = (
+            throughput_delta * 0.5 + quality_delta * 0.3 + efficiency_delta * 0.2
+        )
 
         # Determine status
         status = "keep" if composite_improvement >= -5 else "discard"
@@ -205,7 +212,7 @@ class EvaluationHarness:
             throughputs = [e.tokens_per_sec for e in recent]
             avg = sum(throughputs) / len(throughputs)
             variance = sum((t - avg) ** 2 for t in throughputs) / len(throughputs)
-            std = variance ** 0.5
+            std = variance**0.5
 
             if std > 0:
                 confidence = abs(metrics.tokens_per_sec - avg) / std
@@ -224,11 +231,7 @@ class EvaluationHarness:
 
     def get_best(self, n: int = 3) -> list[ExperimentMetrics]:
         """Get top N experiments by efficiency score."""
-        sorted_exps = sorted(
-            self.experiments,
-            key=lambda e: e.efficiency_score(),
-            reverse=True
-        )
+        sorted_exps = sorted(self.experiments, key=lambda e: e.efficiency_score(), reverse=True)
         return sorted_exps[:n]
 
     def analyze_trends(self) -> dict:
@@ -271,8 +274,10 @@ class EvaluationHarness:
         best = self.get_best(1)
         if best:
             b = best[0]
-            recs.append(f"Best config: temp={b.config.get('temperature')}, "
-                       f"max_tokens={b.config.get('max_tokens')}")
+            recs.append(
+                f"Best config: temp={b.config.get('temperature')}, "
+                f"max_tokens={b.config.get('max_tokens')}"
+            )
 
         if trends is None:
             trends = self._calculate_trends_simple()
@@ -299,8 +304,20 @@ class EvaluationHarness:
         first_q = sum(qualities[:mid]) / max(mid, 1)
         second_q = sum(qualities[mid:]) / max(len(qualities) - mid, 1)
 
-        tps_trend = "improving" if second_tps > first_tps * 1.05 else "degrading" if second_tps < first_tps * 0.95 else "stable"
-        q_trend = "improving" if second_q > first_q * 1.05 else "degrading" if second_q < first_q * 0.95 else "stable"
+        tps_trend = (
+            "improving"
+            if second_tps > first_tps * 1.05
+            else "degrading"
+            if second_tps < first_tps * 0.95
+            else "stable"
+        )
+        q_trend = (
+            "improving"
+            if second_q > first_q * 1.05
+            else "degrading"
+            if second_q < first_q * 0.95
+            else "stable"
+        )
 
         return {"throughput_trend": tps_trend, "quality_trend": q_trend}
 
@@ -348,13 +365,11 @@ def evaluate_quality_simple(text: str, expected_contains: list[str]) -> float:
     if not text:
         return 0.0
 
-    matches = sum(1 for expected in expected_contains
-                  if expected.lower() in text.lower())
+    matches = sum(1 for expected in expected_contains if expected.lower() in text.lower())
     return matches / len(expected_contains) if expected_contains else 0.5
 
 
-def estimate_cost(input_tokens: int, output_tokens: int,
-                  model: str = "default") -> float:
+def estimate_cost(input_tokens: int, output_tokens: int, model: str = "default") -> float:
     """Estimate API cost in USD."""
     # Rough estimates (per 1K tokens)
     pricing = {
@@ -363,8 +378,7 @@ def estimate_cost(input_tokens: int, output_tokens: int,
     }
 
     p = pricing.get(model, pricing["default"])
-    return (input_tokens / 1000 * p["input"] +
-            output_tokens / 1000 * p["output"])
+    return input_tokens / 1000 * p["input"] + output_tokens / 1000 * p["output"]
 
 
 if __name__ == "__main__":
@@ -378,9 +392,9 @@ if __name__ == "__main__":
             quality_score=0.7 + i * 0.05,
             total_tokens=2000 + i * 100,
             config={"temperature": 0.7, "max_tokens": 512},
-            notes=f"Experiment {i+1}"
+            notes=f"Experiment {i + 1}",
         )
         result = harness.record_experiment(metrics)
-        print(f"Experiment {i+1}: {result['status']} ({result['improvement_pct']:+.1f}%)")
+        print(f"Experiment {i + 1}: {result['status']} ({result['improvement_pct']:+.1f}%)")
 
     print("\n" + harness.report())

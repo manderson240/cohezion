@@ -385,9 +385,7 @@ class TestOrchestrationWithValidation:
         assert hasattr(orch, "sync_logger")
 
     @pytest.mark.asyncio
-    async def test_orchestrator_validate_consistency_integration(
-        self, tmp_path: Path
-    ) -> None:
+    async def test_orchestrator_validate_consistency_integration(self, tmp_path: Path) -> None:
         """Test orchestrator validation integration."""
         claude_md = tmp_path / "CLAUDE.md"
         claude_md.write_text("---\ntitle: CLAUDE\nstatus: active\n---\n\n# Content")

@@ -167,9 +167,7 @@ class UniverseDriver:
         await self.notifier.send_report(subject, body)
 
         # Also save to artifact
-        Path("chronicle_of_the_infinite.md").write_text(
-            f"# Chronicle of the Infinite\n\n{chronicle_text}"
-        )
+        Path("chronicle_of_the_infinite.md").write_text(f"# Chronicle of the Infinite\n\n{chronicle_text}")
 
     def _log_event(self, event: str):
         ts = datetime.now().strftime("%H:%M:%S")

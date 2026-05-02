@@ -23,11 +23,12 @@ Expected: 60-100µs speedup from eliminating dispatch overhead
 
 from __future__ import annotations
 
-import os
 import math
+import os
+
 import torch
-from typing import Optional
 from task import input_t, output_t
+
 
 # Environment
 os.environ["AITER_USE_NT"] = "1"

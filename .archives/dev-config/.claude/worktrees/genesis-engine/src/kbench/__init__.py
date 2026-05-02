@@ -33,6 +33,7 @@ from kaggle_benchmarks.runs import Run, Runs
 from kaggle_benchmarks.tasks import benchmark, task
 from kaggle_benchmarks.usage import Usage
 
+
 if kaggle.is_configured():
     llm = kaggle.load_default_model()
     judge_llm = kaggle.load_judge_model()

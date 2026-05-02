@@ -20,23 +20,23 @@ from datetime import datetime, timedelta
 from pathlib import Path
 
 import psutil
+from cohezion.mcp.email_notifier import EmailNotifier
+from cohezion.monitoring.ratchet_monitor import RatchetMonitor
+from cohezion.swarm.agents.base import BaseAgent
+from cohezion.swarm.journey_tracker import (
+    AgentType,
+    JourneyMetrics,
+    get_journey_tracker,
+)
 
 from cohezion.core.persistence.surreal_client import (
     PhysicsState,
     SurrealClient,
     UniverseNode,
 )
-from cohezion.mcp.email_notifier import EmailNotifier
-from cohezion.monitoring.ratchet_monitor import RatchetMonitor
-from cohezion.swarm.agents.base import BaseAgent
 
 # Core Cohezion Imports
 from cohezion.swarm.hiho_vector_engine import HihoVectorEngine
-from cohezion.swarm.journey_tracker import (
-    AgentType,
-    JourneyMetrics,
-    get_journey_tracker,
-)
 from cohezion.swarm.swarm_types import SwarmConfig
 
 
@@ -114,9 +114,7 @@ class FractalNexusMission:
         # THROTTLE: Only if approaching critical
         elif vitals.needs_throttle():
             self.num_rounds = max(MIN_NUM_ROUNDS, int(self.num_rounds * 0.5))
-            logger.warning(
-                f"⚠️ System pressure detected. Scaling DOWN dynamics: {self.num_rounds:,} rounds"
-            )
+            logger.warning(f"⚠️ System pressure detected. Scaling DOWN dynamics: {self.num_rounds:,} rounds")
 
         self.engine.num_rounds = self.num_rounds
 
@@ -396,9 +394,7 @@ Address the "Black Box" concern: what is the underlying physics logic of this co
                 self.total_cycles = checkpoint.get("total_cycles", 0)
                 self.num_rounds = checkpoint.get("num_rounds", DEFAULT_NUM_ROUNDS)
                 self.stability_history = checkpoint.get("stability_history", [])
-                logger.info(
-                    f"✓ Resumed: Iteration {self.batch_count}, Total Cycles: {self.total_cycles}"
-                )
+                logger.info(f"✓ Resumed: Iteration {self.batch_count}, Total Cycles: {self.total_cycles}")
         except Exception as e:
             logger.error(f"Failed to load checkpoint: {e}")
 

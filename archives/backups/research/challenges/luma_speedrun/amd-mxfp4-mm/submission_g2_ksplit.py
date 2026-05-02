@@ -11,9 +11,9 @@ gemm_a4w4_asm signature:
                 bias=None, alpha=1.0, beta=0.0, bpreshuffle=True, log2_k_split=None)
 """
 
+import aiter
 import torch
 from aiter import dtypes
-import aiter
 from aiter.ops.triton.quant import dynamic_mxfp4_quant
 from aiter.utility.fp4_utils import e8m0_shuffle
 from task import input_t, output_t

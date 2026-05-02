@@ -794,12 +794,12 @@ async def main_async() -> int:
         return 0
 
     # --- TELEMETRY STACK START ---
-    from cohezion.core.telemetry_bus import get_telemetry_bus
     from cohezion.core.journey_worker import get_journey_worker
-    
+    from cohezion.core.telemetry_bus import get_telemetry_bus
+
     bus = get_telemetry_bus()
     worker = get_journey_worker()
-    
+
     await bus.start()
     await worker.start()
 
@@ -815,7 +815,7 @@ async def main_async() -> int:
             else:
                 print("Use: cohezion journey [start|list|status]")
                 res = 1
-        
+
         elif args.command == "simulate":
             res = await cmd_simulate(args)
 
@@ -861,7 +861,7 @@ async def main_async() -> int:
         else:
             print(f"Command not yet implemented: {args.command}")
             res = 1
-            
+
         return res
 
     finally:

@@ -237,9 +237,7 @@ async def compile_memory_v2(output_path: Path):
             used_in = dec.get("used_in", 0)
 
             lines.append(f"- **{title}**")
-            lines.append(
-                f"  - Impact: {impact} (→{informs} informs, ←{led_to} led to, ↗{used_in} used)"
-            )
+            lines.append(f"  - Impact: {impact} (→{informs} informs, ←{led_to} led to, ↗{used_in} used)")
             lines.append("")
     else:
         lines.append("_No recent decisions in graph_")
@@ -345,14 +343,7 @@ async def compile_memory_v2(output_path: Path):
 
 async def main_async(use_graphrag: bool):
     """Async main for V2"""
-    output_path = (
-        Path.home()
-        / ".claude"
-        / "projects"
-        / "-home-mike-anderson-dev-cohezion"
-        / "memory"
-        / "MEMORY.md"
-    )
+    output_path = Path.home() / ".claude" / "projects" / "-home-mike-anderson-dev-cohezion" / "memory" / "MEMORY.md"
 
     if use_graphrag:
         print("🔍 Compiling MEMORY.md V2 (GraphRAG from SurrealDB)...")

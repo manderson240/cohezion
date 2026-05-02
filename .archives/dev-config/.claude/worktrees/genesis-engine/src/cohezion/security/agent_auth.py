@@ -219,9 +219,7 @@ class AgentAuthManager:
         for token in tokens_to_revoke:
             self.token_cache[token].is_active = False
 
-        logger.info(
-            "Revoked %d credential(s) for agent %s", len(tokens_to_revoke), agent_id
-        )
+        logger.info("Revoked %d credential(s) for agent %s", len(tokens_to_revoke), agent_id)
         return True
 
     def rotate_credentials(
@@ -302,14 +300,10 @@ class AgentAuthManager:
             with open(cred_file, "w") as f:
                 json.dump(credential.to_dict(), f, indent=2)
 
-            logger.debug(
-                "Persisted credential for %s to %s", credential.agent_id, cred_file
-            )
+            logger.debug("Persisted credential for %s to %s", credential.agent_id, cred_file)
         except Exception as e:
             # Non-blocking: log error but don't crash
-            logger.warning(
-                "Failed to persist credential for %s: %s", credential.agent_id, e
-            )
+            logger.warning("Failed to persist credential for %s: %s", credential.agent_id, e)
 
     def cleanup_expired_credentials(self) -> int:
         """Remove expired credentials from cache.
@@ -317,9 +311,7 @@ class AgentAuthManager:
         Returns:
             Number of credentials cleaned up
         """
-        expired_tokens = [
-            token for token, cred in self.token_cache.items() if cred.is_expired()
-        ]
+        expired_tokens = [token for token, cred in self.token_cache.items() if cred.is_expired()]
 
         for token in expired_tokens:
             del self.token_cache[token]
@@ -335,9 +327,7 @@ class AgentAuthManager:
         Returns:
             Dictionary with credential stats
         """
-        active_creds = [
-            c for c in self.token_cache.values() if c.is_active and not c.is_expired()
-        ]
+        active_creds = [c for c in self.token_cache.values() if c.is_active and not c.is_expired()]
         expired_creds = [c for c in self.token_cache.values() if c.is_expired()]
         inactive_creds = [c for c in self.token_cache.values() if not c.is_active]
 

@@ -121,9 +121,7 @@ class TestConfigMonitor:
         monitor._register_vault_handlers()
 
         # Verify handlers were registered (check vault_client._callbacks)
-        assert (
-            len(monitor.vault_client._callbacks) >= 3
-        )  # file_created, file_modified, file_deleted
+        assert len(monitor.vault_client._callbacks) >= 3  # file_created, file_modified, file_deleted
 
     @pytest.mark.asyncio
     async def test_monitor_lifecycle(self, tmp_path: Path) -> None:

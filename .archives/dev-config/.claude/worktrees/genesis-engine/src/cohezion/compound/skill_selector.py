@@ -256,14 +256,10 @@ class SkillSelector:
             "skill_name": skill_name,
             "coherence": metrics.get("coherence", 0.5),
             "efficiency": metrics.get("efficiency", 0.5),
-            "success": 1.0
-            if "success" in title.lower()
-            else metrics.get("success", 0.5),
+            "success": 1.0 if "success" in title.lower() else metrics.get("success", 0.5),
         }
 
-    def _parse_pattern_string(
-        self, pattern_str: str, operation_type: str
-    ) -> dict | None:
+    def _parse_pattern_string(self, pattern_str: str, operation_type: str) -> dict | None:
         """Parse skill data from pattern string.
 
         Args:

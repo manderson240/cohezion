@@ -13,8 +13,6 @@ Target: <50us (eliminate 20-30us of Python dispatch overhead)
 """
 
 import torch
-from torch.utils.cpp_extension import load_inline
-
 from aiter import dtypes as aiter_dtypes
 from aiter import (
     get_mla_metadata_info_v1,
@@ -23,6 +21,8 @@ from aiter import (
     mla_reduce_v1,
 )
 from task import input_t, output_t
+from torch.utils.cpp_extension import load_inline
+
 
 NUM_HEADS = 16
 NUM_KV_HEADS = 1

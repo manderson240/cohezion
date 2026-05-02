@@ -135,25 +135,17 @@ class QueryComplexityAnalyzer:
         simple_matches = sum(
             1
             for kw in self.SIMPLE_KEYWORDS
-            if f" {kw} " in f" {query_lower} "
-            or query_lower.startswith(f"{kw} ")
-            or query_lower.endswith(f" {kw}")
+            if f" {kw} " in f" {query_lower} " or query_lower.startswith(f"{kw} ") or query_lower.endswith(f" {kw}")
         )
         complex_matches = sum(
             1
             for kw in self.COMPLEX_KEYWORDS
-            if f" {kw} " in f" {query_lower} "
-            or query_lower.startswith(f"{kw} ")
-            or query_lower.endswith(f" {kw}")
+            if f" {kw} " in f" {query_lower} " or query_lower.startswith(f"{kw} ") or query_lower.endswith(f" {kw}")
         )
 
         # Heuristics
-        has_code = any(
-            pattern in query for pattern in ["```", "def ", "class ", "import", "function"]
-        )
-        has_data_processing = any(
-            word in query_lower for word in ["process", "analyze", "transform", "pipeline"]
-        )
+        has_code = any(pattern in query for pattern in ["```", "def ", "class ", "import", "function"])
+        has_data_processing = any(word in query_lower for word in ["process", "analyze", "transform", "pipeline"])
         has_logic = " and " in query_lower or " or " in query_lower or "if " in query_lower
         _is_short = token_count < 30
         is_long = token_count > 200
@@ -165,9 +157,7 @@ class QueryComplexityAnalyzer:
         ):
             complexity = QueryComplexity.SIMPLE
         # COMPLEX: has multiple complex keywords, code, or is long with logic
-        elif (
-            (complex_matches >= 2) or (has_code and has_logic) or (is_long and has_data_processing)
-        ):
+        elif (complex_matches >= 2) or (has_code and has_logic) or (is_long and has_data_processing):
             complexity = QueryComplexity.COMPLEX
         # MEDIUM: everything else
         else:
@@ -216,15 +206,9 @@ class QueryComplexityAnalyzer:
             }
 
         total = len(self.history)
-        simple_count = sum(
-            1 for h in self.history if h["complexity"] == QueryComplexity.SIMPLE.value
-        )
-        medium_count = sum(
-            1 for h in self.history if h["complexity"] == QueryComplexity.MEDIUM.value
-        )
-        complex_count = sum(
-            1 for h in self.history if h["complexity"] == QueryComplexity.COMPLEX.value
-        )
+        simple_count = sum(1 for h in self.history if h["complexity"] == QueryComplexity.SIMPLE.value)
+        medium_count = sum(1 for h in self.history if h["complexity"] == QueryComplexity.MEDIUM.value)
+        complex_count = sum(1 for h in self.history if h["complexity"] == QueryComplexity.COMPLEX.value)
 
         return {
             "total_queries": total,
@@ -348,9 +332,7 @@ class CostAwareRouter:
         """Reset singleton (testing only)."""
         cls._instance = None
 
-    def select_model(
-        self, query: str, max_cost_usd: float | None = None
-    ) -> tuple[ModelRoutingDecision, bool]:
+    def select_model(self, query: str, max_cost_usd: float | None = None) -> tuple[ModelRoutingDecision, bool]:
         """Select optimal model for query with cost/token optimization.
 
         Args:
@@ -432,15 +414,12 @@ class CostAwareRouter:
         self.query_count_per_model[model] += 1
 
         logger.info(
-            f"Cost router: {complexity.value} query → {model} "
-            f"(est. {estimated_tokens} tokens, ${estimated_cost:.6f})"
+            f"Cost router: {complexity.value} query → {model} (est. {estimated_tokens} tokens, ${estimated_cost:.6f})"
         )
 
         return decision, can_proceed
 
-    def _optimize_model_selection(
-        self, primary_model: str, complexity: QueryComplexity, estimated_tokens: int
-    ) -> str:
+    def _optimize_model_selection(self, primary_model: str, complexity: QueryComplexity, estimated_tokens: int) -> str:
         """Optimize model selection based on cost/token ratio with aggressive cost reduction.
 
         Args:
@@ -495,9 +474,7 @@ class CostAwareRouter:
 
             # If aggressive cost reduction, be more lenient with phi3 for medium queries
             if self.aggressive_cost_reduction:
-                latency_diff = self.MODEL_LATENCY.get("phi3:mini", 50.0) - self.MODEL_LATENCY.get(
-                    primary_model, 100.0
-                )
+                latency_diff = self.MODEL_LATENCY.get("phi3:mini", 50.0) - self.MODEL_LATENCY.get(primary_model, 100.0)
                 # Allow phi3 even if latency is slightly higher (up to 200ms for 50% cost savings)
                 if latency_diff <= 200.0:
                     self.token_optimization_swaps += 1
@@ -507,9 +484,7 @@ class CostAwareRouter:
         if complexity == QueryComplexity.SIMPLE:
             # Always prefer phi3 for simple queries unless latency is critical
             if primary_model != "phi3:mini":
-                latency_diff = self.MODEL_LATENCY.get("phi3:mini", 50.0) - self.MODEL_LATENCY.get(
-                    primary_model, 50.0
-                )
+                latency_diff = self.MODEL_LATENCY.get("phi3:mini", 50.0) - self.MODEL_LATENCY.get(primary_model, 50.0)
                 if latency_diff <= 150.0:  # phi3 is still acceptable for simple queries
                     self.token_optimization_swaps += 1
                     return "phi3:mini"
@@ -563,11 +538,7 @@ class CostAwareRouter:
                 return False
         else:
             # For API models, check cost ratio
-            cost_ratio = (
-                candidate_cost_per_token / primary_cost_per_token
-                if primary_cost_per_token > 0
-                else 1.0
-            )
+            cost_ratio = candidate_cost_per_token / primary_cost_per_token if primary_cost_per_token > 0 else 1.0
             threshold = self.cost_threshold if not aggressive else (self.cost_threshold + 0.15)
             if cost_ratio > (1.0 - threshold):
                 return False
@@ -596,9 +567,7 @@ class CostAwareRouter:
         scored.sort(reverse=True)
         return scored[0][1] if scored else None
 
-    def record_execution(
-        self, model: str, actual_tokens: int, duration_ms: float, success: bool = True
-    ) -> float:
+    def record_execution(self, model: str, actual_tokens: int, duration_ms: float, success: bool = True) -> float:
         """Record execution and track costs with success metrics.
 
         Args:
@@ -613,9 +582,7 @@ class CostAwareRouter:
         # Track with cost tracker
         cost_usd = 0.0
         if self.cost_tracker:
-            cost_usd = self.cost_tracker.track_usage_fast(
-                model=model, tokens=actual_tokens, duration_ms=duration_ms
-            )
+            cost_usd = self.cost_tracker.track_usage_fast(model=model, tokens=actual_tokens, duration_ms=duration_ms)
         else:
             # Fallback calculation
             cost_per_1k = self.MODEL_COSTS.get(model, 0.0)
@@ -688,15 +655,9 @@ class CostAwareRouter:
         if total == 0:
             total = 1  # Avoid division by zero
 
-        simple_count = sum(
-            1 for d in self.routing_decisions if d.complexity == QueryComplexity.SIMPLE
-        )
-        medium_count = sum(
-            1 for d in self.routing_decisions if d.complexity == QueryComplexity.MEDIUM
-        )
-        complex_count = sum(
-            1 for d in self.routing_decisions if d.complexity == QueryComplexity.COMPLEX
-        )
+        simple_count = sum(1 for d in self.routing_decisions if d.complexity == QueryComplexity.SIMPLE)
+        medium_count = sum(1 for d in self.routing_decisions if d.complexity == QueryComplexity.MEDIUM)
+        complex_count = sum(1 for d in self.routing_decisions if d.complexity == QueryComplexity.COMPLEX)
 
         phi3_routed = self.query_count_per_model.get("phi3:mini", 0)
         qwen_routed = self.query_count_per_model.get("qwen3-coder:30b", 0)
@@ -706,9 +667,7 @@ class CostAwareRouter:
 
         # Calculate cost comparison (hypothetical: all queries with deepseek)
         deepseek_only_cost = (
-            sum(d.estimated_tokens for d in self.routing_decisions)
-            / 1000.0
-            * self.MODEL_COSTS["deepseek-r1:8b"]
+            sum(d.estimated_tokens for d in self.routing_decisions) / 1000.0 * self.MODEL_COSTS["deepseek-r1:8b"]
         )
 
         cost_improvement = 0.0

@@ -51,9 +51,7 @@ def _(mo):
 @app.cell
 def _(Path, json):
     # Load latest simulation results
-    results_path = Path(
-        "/home/mike-anderson/dev/cohezion/src/cohezion/knowledge_graph/hiho_results.json"
-    )
+    results_path = Path("/home/mike-anderson/dev/cohezion/src/cohezion/knowledge_graph/hiho_results.json")
 
     def load_results():
         if results_path.exists():

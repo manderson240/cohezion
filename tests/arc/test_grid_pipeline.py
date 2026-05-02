@@ -30,6 +30,7 @@ from cohezion.arc.grid_pipeline import (
 # Unit Verification
 # ---------------------------------------------------------------------------
 
+
 class TestValidateGrid:
     def test_valid_grid(self):
         g = [[1, 2], [3, 4]]
@@ -128,9 +129,11 @@ class TestDecodeFromLatent:
 # System Validation: Synthetic ARC Task
 # ---------------------------------------------------------------------------
 
+
 class TestSyntheticTask:
     def test_encode_task(self):
         from cohezion.arc.codec import encode_task
+
         task = {
             "train": [
                 {"input": [[0, 1], [1, 0]], "output": [[1, 0], [0, 1]]},
@@ -146,6 +149,7 @@ class TestSyntheticTask:
 
     def test_pattern_extract_invert(self):
         from cohezion.arc.pattern_extractor import PatternExtractor
+
         task = {
             "train": [
                 {"input": [[0, 1], [1, 0]], "output": [[1, 0], [0, 1]]},
@@ -162,12 +166,20 @@ class TestSyntheticTask:
         import tempfile
 
         from cohezion.arc.submission import SubmissionBuilder
+
         with tempfile.TemporaryDirectory() as td:
             data_dir = Path(td)
             out_dir = Path(td)
             # Minimal challenge file
             (data_dir / "arc-agi_test_challenges.json").write_text(
-                json.dumps({"t1": {"train": [{"input": [[1]], "output": [[1]]}], "test": [{"input": [[1]]}]}})
+                json.dumps(
+                    {
+                        "t1": {
+                            "train": [{"input": [[1]], "output": [[1]]}],
+                            "test": [{"input": [[1]]}],
+                        }
+                    }
+                )
             )
             builder = SubmissionBuilder(
                 data_dir=data_dir,

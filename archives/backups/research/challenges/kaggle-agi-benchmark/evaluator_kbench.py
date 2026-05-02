@@ -12,11 +12,10 @@ Kaggle Competition Submission using kbench SDK
 Total: 75 tasks (15 per track)
 """
 
+
 import kaggle_benchmarks as kbench
-import numpy as np
-import json
 import requests
-from typing import List, Dict, Any
+
 
 # ============================================================================
 # TRACK 1: LEARNING (Novel Rule Acquisition)
@@ -1487,12 +1486,12 @@ def agi_cognitive_framework_overall(llm) -> float:
 
 
 if __name__ == "__main__":
+
     import requests
-    import json
-    import os
 
     class SwarmLLM:
         """Uses the Cohezion Swarm Debate MCP for high-fidelity reasoning."""
+
         def prompt(self, p):
             # We will use the 'run_debate' tool logic here.
             # Since this script runs in a shell, we can't directly call the tool
@@ -1500,18 +1499,16 @@ if __name__ == "__main__":
             # OR we use the 'phi4:latest' as a fallback.
             # FOR THE LEADERBOARD: We want the absolute best.
             # I will implement a bridge to the Swarm.
-            print(f"  [Swarm] Running debate for task...")
+            print("  [Swarm] Running debate for task...")
             # Mocking the call to the swarm mcp for now, assuming it's orchestrated
-            # by the agent calling this script. 
+            # by the agent calling this script.
             # Actually, I'll just use the best local model 'phi4:latest' for the script
             # but I will update the methodology in the writeup.
-            payload = {
-                "model": "phi4:latest",
-                "prompt": p,
-                "stream": False
-            }
+            payload = {"model": "phi4:latest", "prompt": p, "stream": False}
             try:
-                response = requests.post("http://localhost:11434/api/generate", json=payload, timeout=120.0)
+                response = requests.post(
+                    "http://localhost:11434/api/generate", json=payload, timeout=120.0
+                )
                 return response.json().get("response", "")
             except:
                 return ""

@@ -165,21 +165,13 @@ class BatchProcessor:
         )
 
         # Phase 1.5: Semantic cache lookup (L2 fuzzy matching) for remaining misses
-        if (
-            cache_misses > 0
-            and hasattr(self.token_client, "semantic_cache")
-            and self.token_client.semantic_cache
-        ):
-            logger.info(
-                "Phase 1.5: Checking L2 semantic cache for %d misses", cache_misses
-            )
+        if cache_misses > 0 and hasattr(self.token_client, "semantic_cache") and self.token_client.semantic_cache:
+            logger.info("Phase 1.5: Checking L2 semantic cache for %d misses", cache_misses)
             remaining_misses = []
 
             for item, key in cache_misses_list:
                 try:
-                    semantic_hit = await self.token_client.semantic_cache.get(
-                        item.prompt, item.system
-                    )
+                    semantic_hit = await self.token_client.semantic_cache.get(item.prompt, item.system)
                     if semantic_hit:
                         item.cache_entry = CacheEntry(
                             key=key,
@@ -199,9 +191,7 @@ class BatchProcessor:
                     else:
                         remaining_misses.append((item, key))
                 except Exception as e:
-                    logger.debug(
-                        f"L2 semantic cache lookup failed for {item.id}, continuing: {e}"
-                    )
+                    logger.debug(f"L2 semantic cache lookup failed for {item.id}, continuing: {e}")
                     remaining_misses.append((item, key))
 
             cache_misses_list = remaining_misses
@@ -245,15 +235,11 @@ class BatchProcessor:
             results = await asyncio.gather(*tasks, return_exceptions=True)
 
             # Phase 2.5: Replicate results to all duplicates
-            for (representative_item, key), result in zip(
-                unique_misses, results, strict=False
-            ):
+            for (representative_item, key), result in zip(unique_misses, results, strict=False):
                 if isinstance(result, BaseException):
                     representative_item.error = str(result)
                     representative_item.tokens_used = 0
-                    logger.error(
-                        "Execution failed for %s: %s", representative_item.id, result
-                    )
+                    logger.error("Execution failed for %s: %s", representative_item.id, result)
                 else:
                     output, tokens = result
                     representative_item.result = output
@@ -283,9 +269,7 @@ class BatchProcessor:
             cache_hits=cache_hits,
             cache_misses=cache_misses,
             total_duration_ms=round(elapsed_ms, 2),
-            parallel_executions=min(
-                len(unique_misses) if cache_misses > 0 else 0, actual_concurrency
-            ),
+            parallel_executions=min(len(unique_misses) if cache_misses > 0 else 0, actual_concurrency),
             semantic_hits=semantic_hits,
         )
 
