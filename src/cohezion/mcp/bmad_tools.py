@@ -1,4 +1,4 @@
-"""BMAD MCP tools - core BMAD commands via FastMCP."""
+"""BMAD MCP tools - core BMAD commands via FastMCP (v6.3.0 catalog-driven)."""
 
 from __future__ import annotations
 
@@ -13,24 +13,40 @@ async def bmad_help(
     context: str = "",
     session_id: str = "",
 ) -> dict[str, Any]:
-    """Interactive BMAD help system. Use when user asks 'what should I do next'.
+    """Interactive BMAD help system. Use when user asks 'what should I do next', 'bmad help', or needs guidance.
 
     Args:
-        query: User's question or current situation
+        query: User's question or current situation (e.g. 'what should I do next', 'help with PRD')
         context: Current project context/state
         session_id: Optional session ID for continuity
     """
     engine = get_engine()
     session = await get_session_manager().get_session(session_id) if session_id else None
-    _help_workflow = engine.load_workflow("core", "tasks/help")
     analysis = engine.analyze_context(context, session)
     recommendations = engine.get_next_steps(query, analysis, session)
     return {
         "help_response": recommendations,
-        "workflow_loaded": "core/tasks/help.md",
         "analysis": analysis,
         "available_modules": engine.list_modules(),
         "suggested_commands": recommendations.get("suggested_commands", []),
+        "suggested_skills": recommendations.get("suggested_skills", []),
+    }
+
+
+@app.tool()
+async def bmad_load_skill(
+    skill_name: str,
+) -> dict[str, Any]:
+    """Load a BMAD skill's full content (SKILL.md + workflow + steps). Use to get detailed instructions for a skill.
+
+    Args:
+        skill_name: Skill identifier (e.g. 'bmad-create-prd', 'bmad-help', 'bmad-teach-me-testing')
+    """
+    engine = get_engine()
+    result = engine.load_skill(skill_name)
+    return {
+        **result,
+        "available_skills": [s["name"] for s in engine.list_skills()],
     }
 
 
@@ -52,6 +68,8 @@ async def bmad_bmm_create_prd(
         save_to_vault: Whether to save the PRD to vault
     """
     engine = get_engine()
+    # Load the skill content so the agent can follow the workflow
+    skill = engine.load_skill("bmad-create-prd")
     workflow = engine.load_workflow("bmm", "2-plan-workflows/create-prd/workflow-create-prd")
     prd_content = await engine.execute_workflow(
         workflow,
@@ -64,11 +82,12 @@ async def bmad_bmm_create_prd(
         )
     return {
         "prd_content": prd_content,
-        "workflow": "bmm/2-plan-workflows/create-prd/workflow-create-prd.md",
+        "skill_instructions": skill.get("content", ""),
+        "workflow_steps": skill.get("steps", []),
         "next_steps": [
             "Review and refine the PRD",
-            "Use bmad_bmm_validate_prd to validate",
-            "Use bmad_bmm_create_architecture to design architecture",
+            "Invoke bmad_load_skill with skill_name='bmad-validate-prd' to validate",
+            "Invoke bmad_load_skill with skill_name='bmad-create-architecture' to design architecture",
         ],
         "session_id": session_id,
     }
@@ -92,7 +111,8 @@ async def bmad_bmm_create_story(
         session_id: Optional session ID
     """
     engine = get_engine()
-    workflow = engine.load_workflow("bmm", "2-plan-workflows/create-story")
+    skill = engine.load_skill("bmad-create-story")
+    workflow = engine.load_workflow("bmm", "4-implementation/create-story")
     story = await engine.execute_workflow(
         workflow,
         {
@@ -105,7 +125,8 @@ async def bmad_bmm_create_story(
     )
     return {
         "story": story,
-        "workflow": "bmm/2-plan-workflows/create-story.md",
+        "skill_instructions": skill.get("content", ""),
+        "workflow_steps": skill.get("steps", []),
         "next_steps": ["Add to sprint", "Assign to developer", "Break down into tasks"],
     }
 
@@ -126,7 +147,8 @@ async def bmad_bmm_sprint_planning(
         session_id: Optional session ID
     """
     engine = get_engine()
-    workflow = engine.load_workflow("bmm", "2-plan-workflows/sprint-planning")
+    skill = engine.load_skill("bmad-sprint-planning")
+    workflow = engine.load_workflow("bmm", "4-implementation/sprint-planning")
     plan = await engine.execute_workflow(
         workflow,
         {"stories": stories, "sprint_goal": sprint_goal, "capacity": capacity},
@@ -134,7 +156,7 @@ async def bmad_bmm_sprint_planning(
     )
     return {
         "sprint_plan": plan,
-        "workflow": "bmm/2-plan-workflows/sprint-planning.md",
+        "skill_instructions": skill.get("content", ""),
         "capacity_utilization": plan.get("total_points", 0) / capacity if capacity > 0 else 0,
     }
 
@@ -155,7 +177,8 @@ async def bmad_bmm_dev_story(
         session_id: Optional session ID
     """
     engine = get_engine()
-    workflow = engine.load_workflow("bmm", "3-solutioning/dev-story")
+    skill = engine.load_skill("bmad-dev-story")
+    workflow = engine.load_workflow("bmm", "4-implementation/dev-story")
     result = await engine.execute_workflow(
         workflow,
         {"story_id": story_id, "tech_stack": tech_stack, "existing_code": existing_code},
@@ -163,7 +186,8 @@ async def bmad_bmm_dev_story(
     )
     return {
         "implementation_plan": result,
-        "workflow": "bmm/3-solutioning/dev-story.md",
+        "skill_instructions": skill.get("content", ""),
+        "workflow_steps": skill.get("steps", []),
         "suggested_files": result.get("files_to_create", []),
     }
 
@@ -184,6 +208,7 @@ async def bmad_bmm_code_review(
         session_id: Optional session ID
     """
     engine = get_engine()
+    skill = engine.load_skill("bmad-code-review")
     workflow = engine.load_workflow("bmm", "4-implementation/code-review")
     review = await engine.execute_workflow(
         workflow,
@@ -196,7 +221,7 @@ async def bmad_bmm_code_review(
     )
     return {
         "review_feedback": review,
-        "workflow": "bmm/4-implementation/code-review.md",
+        "skill_instructions": skill.get("content", ""),
         "issues_found": len(review.get("issues", [])),
         "suggestions_count": len(review.get("suggestions", [])),
     }
@@ -218,6 +243,11 @@ async def bmad_gds_create_game_brief(
         session_id: Optional session ID
     """
     engine = get_engine()
+    skill = (
+        engine.load_skill("bmad-gds-create-game-brief")
+        if "bmad-gds-create-game-brief" in engine._skills
+        else engine.load_skill("bmad-gds-game-brief")
+    )
     workflow = engine.load_workflow("gds", "workflows/create-game-brief")
     brief = await engine.execute_workflow(
         workflow,
@@ -226,7 +256,7 @@ async def bmad_gds_create_game_brief(
     )
     return {
         "game_brief": brief,
-        "workflow": "gds/workflows/create-game-brief.md",
+        "skill_instructions": skill.get("content", ""),
         "next_steps": ["Create GDD", "Design game architecture", "Prototype core loop"],
     }
 
@@ -259,6 +289,5 @@ async def bmad_gds_game_architecture(
     )
     return {
         "architecture": arch,
-        "workflow": "gds/workflows/game-architecture.md",
         "systems": arch.get("systems", []),
     }

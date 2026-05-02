@@ -1,12 +1,11 @@
 {
-  "extensions": [],
-  "cohezion": {
-    "skillsDir": "src/cohezion/skills",
-    "vaultEnabled": true,
-    "patternBufferPath": ".pattern_buffer.json",
-    "archiveDir": ".pi/archive",
-    "trajectoryDir": ".pi/trajectories"
-  },
-  "theme": "dark",
-  "thinking": "medium"
+  "sessionDir": ".pi/sessions",
+  "brainstorming": {
+    "output_dir": "_bmad-output/brainstorming",
+    "default_approach": null,
+    "vault_persistence": true,
+    "mcp_enabled": true,
+    "default_techniques": [],
+    "session_cross_reference": true
+  }
 }

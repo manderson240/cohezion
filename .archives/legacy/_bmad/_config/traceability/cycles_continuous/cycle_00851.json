@@ -1,0 +1,27 @@
+{
+  "cycle": 851,
+  "timestamp": "2026-04-01T06:50:42.735821",
+  "work": {
+    "item": {
+      "id": "F401_065009",
+      "type": "lint_batch",
+      "category": "F401",
+      "description": "Fix unused-imports (299 errors)",
+      "command": [
+        "ruff",
+        "check",
+        ".",
+        "--select",
+        "F401",
+        "--fix"
+      ],
+      "estimated_count": 299,
+      "priority": "medium"
+    },
+    "result": {
+      "status": "partial",
+      "returncode": 1,
+      "stdout": "invalid-syntax: Expected `except` or `finally` after `try` block\n   --> _bmad/_config/traceability/cohezion/cohezion_traceability_engine.py:278:9\n    |\n276 |                 coverage.append(cov)\n277 |\n278 |         self.test_coverage = coverage\n    |         ^\n279 |         return coverage\n    |\n\ninvalid-syntax: Unexpected indentation\n   --> cloud-vault-mcp/src/mcp_server/server.py:594:1\n    |\n592 |             return \"Error: GoogleSQL Analyzer service is not available.\"\n593 |\n594 |                 Returns:\n    | ^^^^^^^^^^^^^^^^\n595 |                     Generated text response from the model\n596 |                 \"\"\"\n    |\n\ninvalid-syntax: Expected an expression\n   --> cloud-vault-mcp/src/mcp_server/server.py:594:25\n    |\n592 |             return \"Error: GoogleSQL Analyzer service is not available.\"\n593 |\n594 |                 Returns:\n    |                         ^\n595 |                     Generated text response from the model\n596 |                 \"\"\"\n    |\n\ninvalid-syntax: Unex"
+    }
+  }
+}

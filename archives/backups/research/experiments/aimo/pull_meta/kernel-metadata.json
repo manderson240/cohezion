@@ -1,0 +1,26 @@
+{
+  "id": "manderson240/aimo-3-cohezion-v2-h100-mrs-swarm-final",
+  "id_no": 114732466,
+  "title": "AIMO 3 Cohezion V2 - H100 MRS Swarm Final",
+  "code_file": "aimo-3-cohezion-v2-h100-mrs-swarm-final.ipynb",
+  "language": "python",
+  "kernel_type": "notebook",
+  "is_private": true,
+  "enable_gpu": true,
+  "enable_tpu": false,
+  "enable_internet": false,
+  "keywords": [],
+  "dataset_sources": [
+    "mirzamilanfarabi/deepseek-r1-distill-qwen-32b-awq-casperhansen",
+    "gmhost/qwen2-5-math-7b-instruct"
+  ],
+  "kernel_sources": [
+    "ryanholbrook/nvidia-utility-script"
+  ],
+  "competition_sources": [
+    "ai-mathematical-olympiad-progress-prize-3"
+  ],
+  "model_sources": [],
+  "docker_image": "gcr.io/kaggle-private-byod/python@sha256:9fa0da194fad2241d3f01a80581cbecbd3a258b4d1b695e2cbbbc62a0fd205ac",
+  "machine_shape": "NvidiaRtxPro6000"
+}

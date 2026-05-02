@@ -1,0 +1,96 @@
+{
+  "successes": [
+    {
+      "pattern": "load_inline HIP compilation",
+      "description": "torch.utils.cpp_extension.load_inline compiles and runs on runner",
+      "applies_to": ["gemm", "mla"],
+      "implementation": "load_inline with --offload-arch=gfx950",
+      "session": 95,
+      "confidence": "high",
+      "evidence": "MFMA FP4 32x32x64 kernel produced correct results (error 0.0)",
+      "transferable": true
+    },
+    {
+      "pattern": "Triton tl.dot_scaled with BLOCK_K>=128",
+      "description": "BLOCK_K >= 128 mandatory for correct FP4 results on AMD gfx950",
+      "applies_to": ["gemm"],
+      "implementation": "Use BLOCK_K=128 or 256, never 64",
+      "session": 95,
+      "confidence": "high",
+      "evidence": "4/4 tests passed with BLOCK_K=128/256, 0/N with BLOCK_K=64",
+      "transferable": false
+    },
+    {
+      "pattern": "gemm_a4w4 (NOT _asm) ranked-optimal",
+      "description": "aiter.gemm_a4w4 is the optimal GEMM API path for ranked shapes",
+      "applies_to": ["gemm"],
+      "implementation": "Use gemm_a4w4 with default parameters",
+      "session": 95,
+      "confidence": "high",
+      "evidence": "Baseline 13.4µs vs custom MFMA 26µs",
+      "transferable": false
+    },
+    {
+      "pattern": "Einsum for small shapes (MLA)",
+      "description": "torch.einsum beats ASM at total_kv <= 32768",
+      "applies_to": ["mla"],
+      "implementation": "Shape-aware dispatch: if total_kv <= 32768 use einsum",
+      "session": 95,
+      "confidence": "high",
+      "evidence": "Benchmark comparison confirmed",
+      "transferable": true
+    },
+    {
+      "pattern": "BF16 attention (no FP8 quant)",
+      "description": "MLA's 10% tolerance allows BF16 without quantization overhead",
+      "applies_to": ["mla"],
+      "implementation": "Use bf16 KV cache directly",
+      "session": 95,
+      "confidence": "medium",
+      "evidence": "Passes correctness with relaxed tolerance",
+      "transferable": false
+    },
+    {
+      "pattern": "Undocumented ASM APIs",
+      "description": "mla_decode_stage1_asm_fwd and similar APIs available",
+      "applies_to": ["mla"],
+      "implementation": "Bypass high-level APIs with direct ASM dispatch",
+      "session": 95,
+      "confidence": "high",
+      "evidence": "API discovered in runner inventory, signature verified",
+      "transferable": false
+    },
+    {
+      "pattern": "AITER_KSPLIT ignored",
+      "description": "Environment variable AITER_KSPLIT is ignored by kernel",
+      "applies_to": ["moe"],
+      "implementation": "N/A - use shape-aware logic instead",
+      "session": 95,
+      "confidence": "high",
+      "evidence": "Multiple submissions with different KSPLIT values showed no change",
+      "transferable": false
+    },
+    {
+      "pattern": "AITER_USE_NT=1 working",
+      "description": "Non-transposed weight format confirmed functional",
+      "applies_to": ["moe"],
+      "implementation": "Set os.environ['AITER_USE_NT'] = '1'",
+      "session": 95,
+      "confidence": "high",
+      "evidence": "Current submission uses this",
+      "transferable": false
+    },
+    {
+      "pattern": "fast_mode makes no difference (MLA)",
+      "description": "fast_mode=True/False shows no performance difference",
+      "applies_to": ["mla"],
+      "implementation": "Use either, no impact",
+      "session": 95,
+      "confidence": "medium",
+      "evidence": "Benchmarked both, no measurable difference",
+      "transferable": false
+    }
+  ],
+  "timestamp": "2026-04-05T00:00:00Z",
+  "version": "1.0"
+}

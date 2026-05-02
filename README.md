@@ -33,9 +33,9 @@ Most RL safety research adds penalty terms to reward functions. Cohezion takes a
 | Safety = learned constraint | Safety = physical law |
 | Agents learn to avoid violations | Physics prevents violations |
 | Reward hacking bypasses constraints | Large actions fight the attractor (self-correcting) |
-| Random agent has 0% safe behavior | Random agent achieves 60% convergence (physics guides it) |
+| Random agent has 0% safe behavior | Random agent converges toward HIHO attractor (physics guides it) |
 
-**Key result**: PPO agents trained with small actions ([-0.1, 0.1]) achieve 0.915 coherence — the Lagrangian attractor cooperates with learning instead of fighting it.
+**Key result**: PPO agents trained with small actions ([-0.1, 0.1]) achieve ~0.9 coherence — the Lagrangian attractor cooperates with learning instead of fighting it. Checkpoint: `data/rl/checkpoints/policy_final.pt`. Reproduce: `make train && make evaluate`.
 
 ## Architecture
 
@@ -73,7 +73,7 @@ Evaluation
 
 ## Training Results
 
-8-run diagnostic loop completing the 2x2 algorithm-reward matrix (PPO/SAC x curriculum/dense):
+8-run diagnostic loop completing the 2x2 algorithm-reward matrix (PPO/SAC x curriculum/dense). Reproduce with `make train` (20K steps) or `make benchmark` (100K steps):
 
 | Run | Algorithm | Reward Mode | Steps | Reward | vs Random | vs Greedy |
 |-----|-----------|-------------|-------|--------|-----------|-----------|
@@ -102,14 +102,14 @@ Evaluation
 | `environments/` | Gymnasium RL: ManifoldEnv (single-agent), SwarmEnv (multi-agent gauge coupling) | `gym.make('Cohezion/ManifoldEnv-v0')` |
 | `eval/` | UniverseEvaluator with bootstrap CIs, convergence metrics, baseline comparisons | `UniverseEvaluator` |
 | `compound/` | 11-step execution pipeline, journey tracking, skill refinement, retrospection | `CompoundExecutor` |
-| `swarm/` | Team orchestration, cost routing (27.3% savings), OI-MAS confidence scoring | `CostAwareRouter` |
+| `swarm/` | Team orchestration, cost-tiered routing (70/20/10 tier split), OI-MAS confidence scoring | `CostAwareRouter` |
 | `world_model/` | JEPA predictor (86K params), bioelectric network, natural capital, EVO model | `JEPAWorldModel` |
 | `flume/` | FLUME VAE (256D), PolarQuant (2.7x), QJL (32x), LatentMAS communication | `ThoughtEncoder` |
 | `ouroboros/` | Self-referential loop closure, mycelium distributed transport | `OuroborosBridge` |
 | `governance/` | Cosmogonic autonomy tiers, concierge routing, knowledge bridge | `AutonomyEngine` |
 | `cache/` | L1 hash + L2 cosine + L3 vault semantic cache (95%+ hit rate) | `SemanticCache` |
-| `skills/` | 126 PRIME skill definitions for cross-platform compound engineering | `skill_registry.json` |
-| `api/` | FastAPI backend with 190+ endpoints, AG-UI event streaming | `uvicorn cohezion.api:app` |
+| `skills/` | 151 PRIME skill definitions (206 total) for cross-platform compound engineering | `skill_registry.json` |
+| `api/` | FastAPI backend with 93 route handlers, AG-UI event streaming | `uvicorn cohezion.api:app` |
 
 ## The HIHO Principle
 
@@ -126,7 +126,7 @@ HIHO (Half-In, Half-Out) at 0.5 coherence is where six mathematical frameworks c
 
 Cohezion practices compound engineering: every feature makes future features easier.
 
-- **126 PRIME skills** encode reusable patterns from 87 sessions
+- **151 PRIME skills** encode reusable patterns from 95 sessions
 - **SkillRefiner** updates skills based on execution results
 - **DegradationDetector** monitors quality and feeds back to CostAwareRouter
 - **JourneyTracker** records 12D trajectories for pattern extraction
@@ -137,7 +137,7 @@ Cohezion practices compound engineering: every feature makes future features eas
 
 - **SurrealDB** (port 8001): learnings, training runs, universe snapshots, domain-organized schema
 - **Obsidian vault** (`~/vaults/cohezion-vault/`): brain-region organized (prefrontal, cerebellum, hippocampus)
-- **KEY_LEARNINGS.md**: 243 extracted learnings across 87 sessions
+- **KEY_LEARNINGS.md**: 290 extracted learnings across 95 sessions
 - **Execution traces**: `execution_traces/` filesystem for SkillRefiner consumption
 
 ## Development

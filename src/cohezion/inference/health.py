@@ -96,9 +96,7 @@ def _probe_openai_endpoint(lane: str, endpoint: str, timeout: float = 2.0) -> La
         )
     except httpx.ConnectError as exc:
         return LaneHealth(lane=lane, endpoint=endpoint, status=LaneStatus.DOWN, detail=str(exc))
-    except httpx.HTTPError as exc:
-        # Covers TimeoutException (subclass) and all other httpx errors beyond
-        # ConnectError (handled above). Narrower than `Exception`.
+    except (httpx.TimeoutException, httpx.HTTPError) as exc:
         return LaneHealth(lane=lane, endpoint=endpoint, status=LaneStatus.DEGRADED, detail=str(exc))
 
 
@@ -125,8 +123,7 @@ def _probe_ollama(endpoint: str = "http://localhost:11434", timeout: float = 2.0
             latency_ms=latency_ms,
             detail=f"HTTP {resp.status_code}",
         )
-    except httpx.HTTPError as exc:
-        # HTTPError is httpx's base; covers ConnectError + TimeoutException subclasses.
+    except (httpx.ConnectError, httpx.TimeoutException, httpx.HTTPError) as exc:
         return LaneHealth(lane="ollama", endpoint=endpoint, status=LaneStatus.DOWN, detail=str(exc))
 
 
@@ -158,7 +155,7 @@ def _probe_cli(
     args = probe_args if probe_args is not None else ["--version"]
     try:
         start = time.perf_counter()
-        result = subprocess.run(  # noqa: S603 — resolved path + fixed probe args, not untrusted
+        result = subprocess.run(
             [resolved, *args], capture_output=True, timeout=timeout_s, text=True
         )
         latency_ms = (time.perf_counter() - start) * 1000
@@ -224,7 +221,7 @@ def _omnibus_dashboard() -> str | None:
         from cohezion.gateways.omnibus import Omnibus
 
         return Omnibus().get_gateway_dashboard()
-    except (ImportError, AttributeError, RuntimeError) as exc:
+    except (ImportError, Exception) as exc:
         logger.debug("Omnibus dashboard unavailable: %s", exc)
         return None
 
@@ -301,6 +298,6 @@ def integrate_omnibus_gateways() -> dict[str, Any]:
             "gateways_locked": status["gateways_locked"],
             "total_health": status["total_health"],
         }
-    except (ImportError, AttributeError, KeyError, RuntimeError) as exc:
+    except (ImportError, Exception) as exc:
         logger.warning("Omnibus integration unavailable: %s", exc)
         return {"available": False, "reason": str(exc)}

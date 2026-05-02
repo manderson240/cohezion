@@ -90,6 +90,10 @@ class SemanticCache:
         self.l2_cache: dict[str, CacheEntry] = {}
         self.l2_lfu_counts: dict[str, int] = {}
 
+        # Vectorized L2 scan: pre-stacked embedding matrix for BLAS dot
+        self._l2_keys: list[str] = []
+        self._l2_matrix: np.ndarray | None = None  # shape (n, 384)
+
         # Stats
         self.hits_l1 = 0
         self.hits_l2 = 0
@@ -219,17 +223,18 @@ class SemanticCache:
             self.hits_l1 += 1
             return entry.response
 
-        # L2: Semantic similarity with adaptive threshold
+        # L2: Vectorized semantic similarity via pre-stacked BLAS dot
         query_embedding = self._text_to_embedding(prompt)
         best_match = None
         best_similarity = 0.0
         current_threshold = self._get_adaptive_threshold()
 
-        for _key, entry in self.l2_cache.items():
-            similarity = self._cosine_similarity(query_embedding, entry.embedding)
-            if similarity > best_similarity:
-                best_similarity = similarity
-                best_match = entry
+        if self._l2_matrix is not None and len(self._l2_keys) > 0:
+            sims = np.dot(self._l2_matrix, query_embedding)
+            best_idx = int(np.argmax(sims))
+            best_similarity = float(sims[best_idx])
+            best_key = self._l2_keys[best_idx]
+            best_match = self.l2_cache.get(best_key)
 
         if best_match and best_similarity > current_threshold:
             self.hits_l2 += 1
@@ -308,21 +313,31 @@ class SemanticCache:
         self.l1_insertion_order.append(hash_key)
 
     def _put_l2(self, hash_key: str, entry: CacheEntry) -> None:
-        """Add entry to L2 cache."""
-        # Don't add to L2 if max_l2_size is 0 (disabled)
+        """Add entry to L2 cache, maintaining the vectorized embedding matrix."""
         if self.max_l2_size <= 0:
             return
 
         if len(self.l2_cache) >= self.max_l2_size and self.l2_lfu_counts:
-            # Evict least frequently used
-            # Get minimum based on usage count
             get_fn = self.l2_lfu_counts.get
             lfu_key = min(self.l2_lfu_counts, key=get_fn)  # type: ignore
             del self.l2_cache[lfu_key]
             del self.l2_lfu_counts[lfu_key]
+            # Rebuild matrix after eviction (infrequent — only when L2 is full)
+            self._l2_keys = list(self.l2_cache.keys())
+            if self._l2_keys:
+                self._l2_matrix = np.stack([self.l2_cache[k].embedding for k in self._l2_keys])
+            else:
+                self._l2_matrix = None
 
         self.l2_cache[hash_key] = entry
         self.l2_lfu_counts[hash_key] = 1
+
+        # Incremental append to matrix (cheap path — no eviction)
+        self._l2_keys.append(hash_key)
+        row = entry.embedding.reshape(1, -1)
+        self._l2_matrix = (
+            np.vstack([self._l2_matrix, row]) if self._l2_matrix is not None else row.copy()
+        )
 
     def _promote_to_l1(self, hash_key: str, entry: CacheEntry) -> None:
         """Promote L2 hit to L1."""
@@ -462,6 +477,8 @@ class SemanticCache:
         self.l1_insertion_order.clear()
         self.l2_cache.clear()
         self.l2_lfu_counts.clear()
+        self._l2_keys.clear()
+        self._l2_matrix = None
         self.hits_l1 = 0
         self.hits_l2 = 0
         self.hits_l3 = 0

@@ -1,0 +1,8 @@
+{
+  "timestamp": "2026-04-08T00:00:00",
+  "environment": "local",
+  "result": {
+    "final_reward": 0.6,
+    "epochs": 3
+  }
+}

@@ -68,6 +68,35 @@ class SkillsResponse(BaseModel):
     count: int
 
 
+class PiTurnLog(BaseModel):
+    entry_id: str
+    content: str
+    domain: str = "pattern"
+
+
+class PiTurnAck(BaseModel):
+    accepted: bool
+
+
+@mycelium_router.post("/turn", response_model=PiTurnAck)
+async def log_pi_turn(body: PiTurnLog) -> PiTurnAck:
+    """Ingest a Pi agent turn into the Mycelium skill-learning loop."""
+    try:
+        from cohezion.learning.mycelium_registry import JournalEntry
+
+        registry = _get_registry()
+        entry = JournalEntry(
+            entry_id=body.entry_id,
+            content=body.content,
+            domain=body.domain,
+        )
+        registry.ingest_entry(entry)
+        return PiTurnAck(accepted=True)
+    except Exception:
+        logger.debug("Mycelium turn ingest failed silently", exc_info=True)
+        return PiTurnAck(accepted=False)
+
+
 @mycelium_router.get("/network", response_model=NetworkStatusResponse)
 async def get_mycelium_network() -> NetworkStatusResponse:
     """Get connected EVOs and spore counts.

@@ -1,0 +1,6 @@
+{
+  "versionNumber": 1,
+  "name": "exec_multi_step_04",
+  "description": "Multi-step planning with dependencies.",
+  "definition": "@kbench.task(name=\"exec_multi_step_04\")\ndef exec_multi_step_04():\n    \"\"\"Multi-step planning with dependencies.\"\"\"\n    prompt = \"\"\"Build a tower with blocks:\n\n- Block A: foundation (must be first)\n- Block B: middle layer (needs A)\n- Block C: top (needs B)\n- Block D: decoration (can go anywhere on top of another block)\n- Block E: side support (needs A, supports B)\n\nValid sequence?\n\nA) A, B, C, D, E\nB) A, E, B, C, D\nC) A, D, E, B, C\nD) B, A, E, C, D\"\"\"\n    return prompt, \"B\"\n"
+}

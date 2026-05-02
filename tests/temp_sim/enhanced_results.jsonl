@@ -1,11 +1,3 @@
-{"sim_id": "sim_1769838755_0", "stream": "architect", "difficulty": 1.0, "epoch": 1, "score": 1.0, "coherence": 0.92, "approved": true, "issues": [], "timestamp": "2026-01-31T00:52:35.552558"}
-{"sim_id": "sim_1769838784_0", "stream": "architect", "difficulty": 1.0, "epoch": 1, "score": 1.0, "coherence": 0.92, "approved": true, "issues": [], "timestamp": "2026-01-31T00:53:04.568577"}
-{"sim_id": "sim_1769838842_0", "stream": "architect", "difficulty": 1.0, "epoch": 1, "score": 1.0, "coherence": 0.92, "approved": true, "issues": [], "timestamp": "2026-01-31T00:54:02.336210"}
-{"sim_id": "sim_1769838872_0", "stream": "architect", "difficulty": 1.0, "epoch": 1, "score": 1.0, "coherence": 0.92, "approved": true, "issues": [], "timestamp": "2026-01-31T00:54:32.330385"}
-{"sim_id": "sim_1769838888_0", "stream": "architect", "difficulty": 1.0, "epoch": 1, "score": 1.0, "coherence": 0.92, "approved": true, "issues": [], "timestamp": "2026-01-31T00:54:48.309684"}
-{"sim_id": "sim_1769839013_0", "stream": "architect", "difficulty": 1.0, "epoch": 1, "score": 1.0, "coherence": 0.92, "approved": true, "issues": [], "timestamp": "2026-01-31T00:56:53.353330"}
-{"sim_id": "sim_1769839064_0", "stream": "architect", "difficulty": 1.0, "epoch": 1, "score": 1.0, "coherence": 0.92, "approved": true, "issues": [], "timestamp": "2026-01-31T00:57:44.928510"}
-{"sim_id": "sim_1769839080_0", "stream": "architect", "difficulty": 1.0, "epoch": 1, "score": 1.0, "coherence": 0.92, "approved": true, "issues": [], "timestamp": "2026-01-31T00:58:00.765592"}
-{"sim_id": "sim_1769839458_0", "stream": "architect", "difficulty": 1.0, "epoch": 1, "score": 1.0, "coherence": 0.92, "approved": true, "issues": [], "timestamp": "2026-01-31T01:04:18.157143"}
-{"sim_id": "sim_1769839472_0", "stream": "architect", "difficulty": 1.0, "epoch": 1, "score": 1.0, "coherence": 0.92, "approved": true, "issues": [], "timestamp": "2026-01-31T01:04:32.671123"}
-{"sim_id": "sim_1769839506_0", "stream": "architect", "difficulty": 1.0, "epoch": 1, "score": 1.0, "coherence": 0.92, "approved": true, "issues": [], "timestamp": "2026-01-31T01:05:06.013101"}
+version https://git-lfs.github.com/spec/v1
+oid sha256:9ae7a1f08ed530528df34487893602ff9a1bd578e18523d07f55aeda33d6660d
+size 2123

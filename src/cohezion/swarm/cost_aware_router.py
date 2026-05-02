@@ -2,7 +2,7 @@
 
 Features:
 - Query complexity analysis (simple/medium/complex)
-- Cost-optimized model routing (phi3:mini → qwen3-coder → deepseek-r1)
+- Cost-optimized model routing (Lemonade: Phi-4-mini → Qwen3-8B → Qwen3-14B)
 - Integration with BudgetEnforcer for hard stops
 - Cost tracking per query and aggregation
 - Chaos testing support with cost bounds
@@ -28,6 +28,7 @@ Usage:
 
 import logging
 import re
+import threading
 import time
 from dataclasses import dataclass
 from enum import Enum
@@ -280,67 +281,214 @@ class CostAwareRouter:
     - Non-blocking vault persistence for routing decisions
     """
 
-    # Model costs per 1K tokens (local models = $0.00, cloud = priced)
-    MODEL_COSTS = {
-        "phi3:mini": 0.0,  # Local, 100x cheaper than deepseek
-        "qwen3-coder:32b": 0.0,  # Local
-        "deepseek-r1:8b": 0.0,  # Local
-        "alibayram/smollm3:latest": 0.0,  # Local, 3B reasoning + 128k context
-        "gpt-oss:20b": 0.0,  # Local
-        "phi4:latest": 0.0,  # Local
-        "gemma3:4b": 0.0,  # Local
-        # Gemini cloud fallback tiers (cost per 1K tokens)
-        "gemini-2.0-flash-lite": 0.000075,  # $0.075/M = near-free (70% simple)
-        "gemini-2.5-flash": 0.0003,  # $0.30/M (20% medium)
-        "gemini-2.5-pro": 0.002,  # $2.00/M (10% hard)
+    # ── Model profiles loaded from config/model_profiles.yaml ──────────
+    # Replaces hardcoded dicts (Session 96b: Lemonade-first + Ollama Pro Cloud)
+    # Fallback defaults retained for resilience if YAML is unavailable.
+
+    _profiles_loaded: bool = False
+    _profiles_lock: threading.Lock = threading.Lock()
+    _profiles_cache: dict | None = None
+
+    # Fallback defaults (used ONLY if config/model_profiles.yaml is unreadable)
+    _FALLBACK_COSTS: dict[str, float] = {
+        "Phi-4-mini-instruct-Hybrid": 0.0,
+        "Qwen3-8B-Hybrid": 0.0,
+        "Qwen3-14B-Hybrid": 0.0,
+        "DeepSeek-R1-Distill-Llama-8B-Hybrid": 0.0,
+        "Qwen2.5-Coder-7B-Instruct-Hybrid": 0.0,
+        "Qwen3-Coder-Next-GGUF": 0.0,
+        "Qwen3.5-122B-A10B-GGUF": 0.0,
+        "gpt-oss-120b-mxfp-GGUF": 0.0,
+        "Gemma-4-31B-it-GGUF": 0.0,
     }
 
-    # Expected token counts by complexity (refined estimates)
+    @classmethod
+    def _load_profiles(cls) -> dict:
+        """Load model profiles from config/model_profiles.yaml.
+
+        Returns merged dict of all model profiles across all tiers.
+        Cached after first load (5-min TTL managed externally).
+        """
+        if cls._profiles_cache is not None:
+            return cls._profiles_cache
+
+        from pathlib import Path
+
+        import yaml
+
+        # __file__ = src/cohezion/swarm/cost_aware_router.py
+        # parents[3] = repo root (src/ → cohezion/ → swarm/ → file)
+        config_path = Path(__file__).parents[3] / "config" / "model_profiles.yaml"
+        if not config_path.exists():
+            # Fallback: CWD-relative (works when started from repo root)
+            config_path = Path("config/model_profiles.yaml")
+
+        profiles: dict = {}
+        if config_path.exists():
+            try:
+                with open(config_path) as f:
+                    content = f.read()
+                # Handle multi-document YAML (e.g., frontmatter + body)
+                docs = list(yaml.safe_load_all(content))
+                raw = docs[-1] if docs else {}  # Last doc has the profiles
+                # Merge all tier sections into flat model dict
+                for section_key in (
+                    "lemonade_hybrid",
+                    "lemonade_cpu",
+                    "lemonade_gpu",
+                    "lemonade_embeddings",
+                    "lemonade_multimodal",
+                    "ollama_cloud",
+                ):
+                    section = raw.get(section_key, {})
+                    if isinstance(section, dict):
+                        for model_name, model_data in section.items():
+                            if isinstance(model_data, dict):
+                                profiles[model_name] = model_data
+                cls._profiles_cache = profiles
+                logger.info(f"Loaded {len(profiles)} model profiles from {config_path}")
+            except Exception as e:
+                logger.warning(f"Failed to load model profiles: {e}")
+                cls._profiles_cache = {}  # Memoize failure to prevent repeated I/O
+        else:
+            logger.warning("config/model_profiles.yaml not found, using fallback defaults")
+            cls._profiles_cache = {}
+
+        return profiles
+
+    @classmethod
+    def _get_model_attr(cls, attr: str, default_factory: dict | None = None) -> dict:
+        """Get a model attribute dict (cost, quality, tps, latency, context) from profiles."""
+        profiles = cls._load_profiles()
+        result = {}
+        for name, data in profiles.items():
+            if isinstance(data, dict) and attr in data:
+                result[name] = data[attr]
+        # Merge with fallback if profiles are empty
+        if not result and default_factory:
+            return dict(default_factory)
+        return result
+
+    # Legacy + Lemonade model entries for routing algorithm compatibility.
+    # The router's select_model() compares against these dicts.
+    # Primary tier models are Lemonade (Session 96b migration).
+    _LEGACY_COSTS: dict[str, float] = {
+        # Lemonade tier models ($0 — local inference)
+        "Phi-4-mini-instruct-Hybrid": 0.0,
+        "Qwen3-8B-Hybrid": 0.0,
+        "Qwen3-14B-Hybrid": 0.0,
+        # Legacy Ollama names (kept for backward compat)
+        "phi3:mini": 0.0,
+        "qwen3-coder:32b": 0.0,
+        "deepseek-r1:8b": 0.0,
+    }
+    _LEGACY_QUALITY: dict[str, float] = {
+        "Phi-4-mini-instruct-Hybrid": 0.82,
+        "Qwen3-8B-Hybrid": 0.85,
+        "Qwen3-14B-Hybrid": 0.90,
+        "phi3:mini": 0.6,
+        "qwen3-coder:32b": 0.85,
+        "deepseek-r1:8b": 0.95,
+    }
+    _LEGACY_TPS: dict[str, float] = {
+        "Phi-4-mini-instruct-Hybrid": 20.0,
+        "Qwen3-8B-Hybrid": 18.0,
+        "Qwen3-14B-Hybrid": 12.0,
+        "phi3:mini": 15.0,
+        "qwen3-coder:32b": 8.0,
+        "deepseek-r1:8b": 2.0,
+    }
+    _LEGACY_LATENCY: dict[str, float] = {
+        "Phi-4-mini-instruct-Hybrid": 50.0,
+        "Qwen3-8B-Hybrid": 60.0,
+        "Qwen3-14B-Hybrid": 80.0,
+        "phi3:mini": 50.0,
+        "qwen3-coder:32b": 100.0,
+        "deepseek-r1:8b": 300.0,
+    }
+
+    @classmethod
+    def _ensure_profiles_loaded(cls) -> None:
+        """Lazy-load profiles into class-level dicts on first access.
+
+        Merges YAML-loaded Lemonade/Cloud profiles WITH legacy model names.
+        Primary tier models are now Lemonade (Phi-4-mini, Qwen3-8B, Qwen3-14B).
+        Legacy Ollama names kept for backward compat with existing code paths.
+        """
+        if cls._profiles_loaded:
+            return
+        with cls._profiles_lock:
+            if cls._profiles_loaded:
+                return
+            profiles = cls._load_profiles()
+
+            # Start with legacy models (routing logic depends on these)
+            cls.MODEL_COSTS = dict(cls._LEGACY_COSTS)
+            cls.MODEL_QUALITY = dict(cls._LEGACY_QUALITY)
+            cls.MODEL_TPS = dict(cls._LEGACY_TPS)
+            cls.MODEL_LATENCY = dict(cls._LEGACY_LATENCY)
+
+            # Overlay YAML-loaded profiles (Lemonade + Ollama Cloud)
+            if profiles:
+                for name, data in profiles.items():
+                    if not isinstance(data, dict):
+                        continue
+                    if "cost_per_1k" in data:
+                        cls.MODEL_COSTS[name] = data["cost_per_1k"]
+                    elif "cost" in data:
+                        cls.MODEL_COSTS[name] = data["cost"]
+                    if "quality" in data:
+                        cls.MODEL_QUALITY[name] = data["quality"]
+                    if "tps" in data:
+                        cls.MODEL_TPS[name] = data["tps"]
+                    if "latency_ms" in data:
+                        cls.MODEL_LATENCY[name] = data["latency_ms"]
+
+            # Load tier routing config (maps complexity → model name)
+            raw = cls._profiles_cache if cls._profiles_cache else {}
+            tier_cfg = {}
+            # tier_routing may be in the raw YAML (top-level, not in a model section)
+            if not tier_cfg:
+                # Re-read raw YAML for tier_routing (it's top-level, not in profiles)
+                from pathlib import Path
+
+                import yaml
+
+                config_path = Path(__file__).parents[3] / "config" / "model_profiles.yaml"
+                if not config_path.exists():
+                    config_path = Path("config/model_profiles.yaml")
+                if config_path.exists():
+                    try:
+                        with open(config_path) as f:
+                            content = f.read()
+                        docs = list(yaml.safe_load_all(content))
+                        full_raw = docs[-1] if docs else {}
+                        tier_cfg = full_raw.get("tier_routing", {})
+                    except Exception:
+                        pass
+
+            cls.TIER_SIMPLE = tier_cfg.get("tier_simple", "Phi-4-mini-instruct-Hybrid")
+            cls.TIER_MEDIUM = tier_cfg.get("tier_medium", "Qwen3-8B-Hybrid")
+            cls.TIER_COMPLEX = tier_cfg.get("tier_complex", "Qwen3-14B-Hybrid")
+
+            cls._profiles_loaded = True
+
+    # Tier routing — which model handles which complexity level
+    TIER_SIMPLE: str = "Phi-4-mini-instruct-Hybrid"
+    TIER_MEDIUM: str = "Qwen3-8B-Hybrid"
+    TIER_COMPLEX: str = "Qwen3-14B-Hybrid"
+
+    # Class-level dicts — populated lazily from legacy + YAML profiles
+    MODEL_COSTS: dict[str, float] = {}
+    MODEL_QUALITY: dict[str, float] = {}
+    MODEL_TPS: dict[str, float] = {}
+    MODEL_LATENCY: dict[str, float] = {}
+
+    # Expected token counts by complexity (not model-specific)
     EXPECTED_TOKENS = {
-        QueryComplexity.SIMPLE: 80,  # Simple queries: ~80 tokens
-        QueryComplexity.MEDIUM: 200,  # Medium: ~200 tokens (reduced for better cost ratio)
-        QueryComplexity.COMPLEX: 400,  # Complex: ~400 tokens (reduced from 500)
-    }
-
-    # Quality scores per model (0.0 - 1.0)
-    MODEL_QUALITY = {
-        "phi3:mini": 0.6,  # Fast, basic tasks
-        "qwen3-coder:32b": 0.85,  # Good balance
-        "deepseek-r1:8b": 0.95,  # Best quality
-        "alibayram/smollm3:latest": 0.72,  # Dual-mode reasoning, 128k context, tool calling
-        "gpt-oss:20b": 0.88,  # Large accurate model
-        "phi4:latest": 0.82,  # Strong reasoning
-        "gemma3:4b": 0.65,  # Fast baseline
-        # Gemini cloud models
-        "gemini-2.0-flash-lite": 0.70,  # Cloud, fast, basic
-        "gemini-2.5-flash": 0.88,  # Cloud, balanced
-        "gemini-2.5-pro": 0.97,  # Cloud, best quality + 2M context
-    }
-
-    # TPS (tokens per second) for cost-time tradeoff
-    MODEL_TPS = {
-        "phi3:mini": 15.0,  # Fastest
-        "qwen3-coder:32b": 8.0,  # Moderate
-        "deepseek-r1:8b": 2.0,  # Slowest but best
-        "alibayram/smollm3:latest": 14.0,  # Similar speed to phi3:mini
-        "gpt-oss:20b": 5.0,  # Large model, slower
-        "phi4:latest": 10.0,  # Medium speed
-        "gemma3:4b": 14.0,  # Fast, small model
-        # Gemini cloud models (TPS varies with load, API latency)
-        "gemini-2.0-flash-lite": 50.0,  # Cloud, very fast
-        "gemini-2.5-flash": 40.0,  # Cloud, fast
-        "gemini-2.5-pro": 20.0,  # Cloud, moderate
-    }
-
-    # Expected latency (ms) by model
-    MODEL_LATENCY = {
-        "phi3:mini": 50.0,  # Fastest: ~50ms
-        "qwen3-coder:32b": 100.0,  # Moderate: ~100ms
-        "deepseek-r1:8b": 300.0,  # Slower: ~300ms
-        "alibayram/smollm3:latest": 55.0,  # Similar to phi3:mini
-        "gpt-oss:20b": 200.0,  # Larger model, higher latency
-        "phi4:latest": 80.0,  # Medium latency
-        "gemma3:4b": 55.0,  # Fast, similar to phi3
+        QueryComplexity.SIMPLE: 80,
+        QueryComplexity.MEDIUM: 200,
+        QueryComplexity.COMPLEX: 400,
     }
 
     _instance: Optional["CostAwareRouter"] = None
@@ -368,6 +516,9 @@ class CostAwareRouter:
             dynamic_threshold_tuning: If True, auto-tune thresholds based on query patterns (default: True)
             pool_manager: Optional ModelPoolManager for availability-aware routing
         """
+        # Load model profiles from YAML on first instantiation
+        self._ensure_profiles_loaded()
+
         self.cost_tracker = cost_tracker or SessionCostTracker.get_current()
         self.budget_enforcer = budget_enforcer or BudgetEnforcer.get_current()
         self._pool_manager = pool_manager
@@ -453,13 +604,13 @@ class CostAwareRouter:
                 )
                 complexity = QueryComplexity.MEDIUM
 
-        # Select model by complexity
+        # Select model by complexity (reads from YAML tier_routing config)
         if complexity == QueryComplexity.SIMPLE:
-            primary_model = "phi3:mini"
+            primary_model = self.TIER_SIMPLE
         elif complexity == QueryComplexity.MEDIUM:
-            primary_model = "qwen3-coder:32b"
+            primary_model = self.TIER_MEDIUM
         else:
-            primary_model = "deepseek-r1:8b"
+            primary_model = self.TIER_COMPLEX
 
         # Optimize model selection based on cost/token ratio if enabled
         model = self._optimize_model_selection(primary_model, complexity, estimated_tokens)
@@ -546,28 +697,34 @@ class CostAwareRouter:
 
         return decision, can_proceed
 
-    # Context window limits per model (tokens). Local models from Ollama metadata,
-    # cloud models from provider specs. Used by _check_context_window().
-    MODEL_CONTEXT_LIMITS = {
-        "phi3:mini": 4_096,
-        "qwen3-coder:32b": 32_768,
-        "deepseek-r1:8b": 64_000,
-        "alibayram/smollm3:latest": 128_000,
-        "gpt-oss:20b": 32_768,
-        "phi4:latest": 16_384,
-        "gemma3:4b": 8_192,
-        "gemini-2.0-flash-lite": 1_000_000,
-        "gemini-2.5-flash": 1_000_000,
-        "gemini-2.5-pro": 2_000_000,
-    }
+    @property
+    def MODEL_CONTEXT_LIMITS(self) -> dict[str, int]:
+        """Context window limits loaded from model_profiles.yaml."""
+        profiles = self._load_profiles()
+        result = {}
+        for name, data in profiles.items():
+            if isinstance(data, dict) and "context" in data:
+                result[name] = int(data["context"])
+        if not result:
+            # Fallback defaults
+            return {
+                "Phi-4-mini-instruct-Hybrid": 4_096,
+                "Qwen3-8B-Hybrid": 32_768,
+                "Qwen3-14B-Hybrid": 32_768,
+                "Qwen3-Coder-Next-GGUF": 131_072,
+                "Qwen3.5-122B-A10B-GGUF": 131_072,
+            }
+        return result
 
-    # Escalation chain: when context is too large for current model, try these in order
+    # Escalation chain: when context is too large, try these in order
+    # Lemonade local first, then Ollama Cloud for massive context
     CONTEXT_ESCALATION = [
-        "qwen3-coder:32b",  # 32K
-        "deepseek-r1:8b",  # 64K
-        "alibayram/smollm3:latest",  # 128K
-        "gemini-2.0-flash-lite",  # 1M (cloud, near-free)
-        "gemini-2.5-flash",  # 1M (cloud)
+        "Qwen3-8B-Hybrid",  # 32K (local, fast)
+        "Qwen3-14B-Hybrid",  # 32K (local, quality)
+        "Qwen3-Coder-Next-GGUF",  # 131K (local GPU, large)
+        "Qwen3.5-122B-A10B-GGUF",  # 131K (local GPU, frontier)
+        "qwen3.5:cloud",  # 131K+ (Ollama Pro cloud)
+        "kimi-k2.5:cloud",  # Long-context specialist (cloud)
     ]
 
     def _check_context_window(self, model: str, estimated_tokens: int) -> str:
@@ -631,61 +788,61 @@ class CostAwareRouter:
         if complexity == QueryComplexity.COMPLEX:
             # Check if medium model (qwen) has acceptable cost/token ratio
             primary_cost_per_token = self._get_cost_per_token(primary_model, estimated_tokens)
-            qwen_cost_per_token = self._get_cost_per_token("qwen3-coder:32b", estimated_tokens)
+            medium_cost_per_token = self._get_cost_per_token(self.TIER_MEDIUM, estimated_tokens)
 
-            # If qwen is cheaper per token AND latency is acceptable, use it
+            # If medium tier is cheaper per token AND latency is acceptable, use it
             if self._is_cheaper_with_acceptable_latency(
-                "qwen3-coder:32b", primary_model, qwen_cost_per_token, primary_cost_per_token
+                self.TIER_MEDIUM, primary_model, medium_cost_per_token, primary_cost_per_token
             ):
                 self.token_optimization_swaps += 1
-                return "qwen3-coder:32b"
+                return self.TIER_MEDIUM
 
             # If aggressive cost reduction enabled, also check phi3 for complex queries
             if self.aggressive_cost_reduction:
-                phi3_cost_per_token = self._get_cost_per_token("phi3:mini", estimated_tokens)
+                phi3_cost_per_token = self._get_cost_per_token(self.TIER_SIMPLE, estimated_tokens)
                 # Check if phi3 can handle complex queries with acceptable latency/quality tradeoff
                 if self._is_cheaper_with_acceptable_latency(
-                    "phi3:mini",
+                    self.TIER_SIMPLE,
                     primary_model,
                     phi3_cost_per_token,
                     primary_cost_per_token,
                     aggressive=True,
                 ):
                     self.token_optimization_swaps += 1
-                    return "phi3:mini"
+                    return self.TIER_SIMPLE
 
         # For medium queries, check if simple model (phi3) is good enough
         if complexity == QueryComplexity.MEDIUM:
             primary_cost_per_token = self._get_cost_per_token(primary_model, estimated_tokens)
-            phi3_cost_per_token = self._get_cost_per_token("phi3:mini", estimated_tokens)
+            phi3_cost_per_token = self._get_cost_per_token(self.TIER_SIMPLE, estimated_tokens)
 
             # Standard check
             if self._is_cheaper_with_acceptable_latency(
-                "phi3:mini", primary_model, phi3_cost_per_token, primary_cost_per_token
+                self.TIER_SIMPLE, primary_model, phi3_cost_per_token, primary_cost_per_token
             ):
                 self.token_optimization_swaps += 1
-                return "phi3:mini"
+                return self.TIER_SIMPLE
 
             # If aggressive cost reduction, be more lenient with phi3 for medium queries
             if self.aggressive_cost_reduction:
-                latency_diff = self.MODEL_LATENCY.get("phi3:mini", 50.0) - self.MODEL_LATENCY.get(
-                    primary_model, 100.0
-                )
+                latency_diff = self.MODEL_LATENCY.get(
+                    self.TIER_SIMPLE, 50.0
+                ) - self.MODEL_LATENCY.get(primary_model, 100.0)
                 # Allow phi3 even if latency is slightly higher (up to 200ms for 50% cost savings)
                 if latency_diff <= 200.0:
                     self.token_optimization_swaps += 1
-                    return "phi3:mini"
+                    return self.TIER_SIMPLE
 
         # For simple queries, strongly prefer phi3 for cost savings
         if complexity == QueryComplexity.SIMPLE:
             # Always prefer phi3 for simple queries unless latency is critical
-            if primary_model != "phi3:mini":
-                latency_diff = self.MODEL_LATENCY.get("phi3:mini", 50.0) - self.MODEL_LATENCY.get(
-                    primary_model, 50.0
-                )
+            if primary_model != self.TIER_SIMPLE:
+                latency_diff = self.MODEL_LATENCY.get(
+                    self.TIER_SIMPLE, 50.0
+                ) - self.MODEL_LATENCY.get(primary_model, 50.0)
                 if latency_diff <= 150.0:  # phi3 is still acceptable for simple queries
                     self.token_optimization_swaps += 1
-                    return "phi3:mini"
+                    return self.TIER_SIMPLE
 
         return primary_model
 
@@ -799,9 +956,9 @@ class CostAwareRouter:
 
         # Update success tracking for dynamic threshold tuning
         if success:
-            if model == "phi3:mini":
+            if model == self.TIER_SIMPLE:
                 self._phi3_success_count += 1
-            elif model == "qwen3-coder:32b":
+            elif model == self.TIER_MEDIUM:
                 self._qwen_success_count += 1
 
         # Track latency for threshold adjustment
@@ -886,16 +1043,16 @@ class CostAwareRouter:
         success_rate = 1.0  # Assume success if no history
         if total_queries > 5:
             # Use phi3/qwen success counters as proxy
-            if model == "phi3:mini":
+            if model == self.TIER_SIMPLE:
                 success_rate = self._phi3_success_count / max(1, total_queries)
-            elif model == "qwen3-coder:32b":
+            elif model == self.TIER_MEDIUM:
                 success_rate = self._qwen_success_count / max(1, total_queries)
 
         # Complexity-model alignment penalty
         alignment = 1.0
-        if complexity == QueryComplexity.COMPLEX and model == "phi3:mini":
+        if complexity == QueryComplexity.COMPLEX and model == self.TIER_SIMPLE:
             alignment = 0.5  # Small model for complex task = low confidence
-        elif complexity == QueryComplexity.SIMPLE and model == "deepseek-r1:8b":
+        elif complexity == QueryComplexity.SIMPLE and model == self.TIER_COMPLEX:
             alignment = 0.8  # Overkill but not harmful
 
         # Degradation-aware confidence reduction
@@ -929,19 +1086,20 @@ class CostAwareRouter:
                 return model
 
             multiplier = r_zero.get_current_multiplier()
-            if multiplier < 1.0 and model in ("phi3:mini", "qwen3-coder:32b"):
+            if multiplier < 1.0 and model in (self.TIER_SIMPLE, self.TIER_MEDIUM):
                 # Local models underperforming — escalate one tier
-                if model == "phi3:mini":
+                if model == self.TIER_SIMPLE:
                     logger.info(
-                        "R-Zero: phi3 underperforming (mult=%.1f), upgrading to qwen3", multiplier
-                    )
-                    return "qwen3-coder:32b"
-                if model == "qwen3-coder:32b":
-                    logger.info(
-                        "R-Zero: qwen3 underperforming (mult=%.1f), upgrading to deepseek",
+                        "R-Zero: simple tier underperforming (mult=%.1f), upgrading to medium",
                         multiplier,
                     )
-                    return "deepseek-r1:8b"
+                    return self.TIER_MEDIUM
+                if model == self.TIER_MEDIUM:
+                    logger.info(
+                        "R-Zero: medium tier underperforming (mult=%.1f), upgrading to complex",
+                        multiplier,
+                    )
+                    return self.TIER_COMPLEX
         except Exception:
             pass
         return model
@@ -964,7 +1122,7 @@ class CostAwareRouter:
                 if severity_value == "CRITICAL":
                     if metric in ("success_rate", "coherence"):
                         self._degradation_cooldown = 5
-                        self._degradation_upgrade_model = "deepseek-r1:8b"
+                        self._degradation_upgrade_model = self.TIER_COMPLEX
                         logger.warning(
                             "Degradation feedback: CRITICAL %s → forcing %s for next 5 queries",
                             metric,
@@ -972,7 +1130,7 @@ class CostAwareRouter:
                         )
                     elif metric == "token_efficiency":
                         self._degradation_cooldown = 3
-                        self._degradation_upgrade_model = "qwen3-coder:32b"
+                        self._degradation_upgrade_model = self.TIER_MEDIUM
                         logger.warning(
                             "Degradation feedback: CRITICAL %s → upgrading to %s for next 3 queries",
                             metric,
@@ -1001,9 +1159,9 @@ class CostAwareRouter:
             1 for d in self.routing_decisions if d.complexity == QueryComplexity.COMPLEX
         )
 
-        phi3_routed = self.query_count_per_model.get("phi3:mini", 0)
-        qwen_routed = self.query_count_per_model.get("qwen3-coder:30b", 0)
-        deepseek_routed = self.query_count_per_model.get("deepseek-r1:70b", 0)
+        phi3_routed = self.query_count_per_model.get(self.TIER_SIMPLE, 0)
+        qwen_routed = self.query_count_per_model.get(self.TIER_MEDIUM, 0)
+        deepseek_routed = self.query_count_per_model.get(self.TIER_COMPLEX, 0)
 
         total_cost = sum(self.cost_per_model.values())
 
@@ -1011,7 +1169,7 @@ class CostAwareRouter:
         deepseek_only_cost = (
             sum(d.estimated_tokens for d in self.routing_decisions)
             / 1000.0
-            * self.MODEL_COSTS["deepseek-r1:8b"]
+            * self.MODEL_COSTS.get(self.TIER_COMPLEX, 0.0)
         )
 
         cost_improvement = 0.0

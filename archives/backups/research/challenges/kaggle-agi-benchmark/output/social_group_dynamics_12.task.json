@@ -1,0 +1,6 @@
+{
+  "versionNumber": 1,
+  "name": "social_group_dynamics_12",
+  "description": "Understand group behavior.",
+  "definition": "@kbench.task(name=\"social_group_dynamics_12\")\ndef social_group_dynamics_12():\n    \"\"\"Understand group behavior.\"\"\"\n    prompt = \"\"\"In a group decision, everyone privately thinks Plan B is better, but everyone publicly supports Plan A because they think others prefer it.\n\nThis is:\n\nA) Consensus\nB) Groupthink/Plurality ignorance\nC) Democracy\nD) Leadership\"\"\"\n    return prompt, \"B\"\n"
+}

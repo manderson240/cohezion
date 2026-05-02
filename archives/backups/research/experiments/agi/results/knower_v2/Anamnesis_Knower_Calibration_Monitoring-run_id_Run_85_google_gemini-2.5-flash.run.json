@@ -1,0 +1,82 @@
+{
+  "taskVersion": {
+    "versionNumber": 1,
+    "name": "Anamnesis Knower: Calibration Monitoring",
+    "description": "Tests metacognitive monitoring \u2014 does the model's stated confidence match actual accuracy? Brier-complement scoring. Loads from 823-item CSV dataset.",
+    "definition": "@kbench.task(\n    name=\"Anamnesis Knower: Calibration Monitoring\",\n    description=(\n        \"Tests metacognitive monitoring \u2014 does the model's stated confidence \"\n        \"match actual accuracy? Brier-complement scoring. Loads from 823-item CSV dataset.\"\n    ),\n)\ndef knower_probe(llm, question, ground_truth, difficulty, category) -> float:\n    prompt = CALIBRATION_PROMPT.format(question=question)\n    try:\n        response = llm.prompt(prompt, schema=CalibrationResponse)\n        confidence = response.confidence\n        model_answer = response.answer\n    except Exception:\n        # Fallback if structured output parsing fails\n        fallback_resp = llm.prompt(prompt)\n        confidence = 50\n        model_answer = fallback_resp\n        \n    correct = is_correct(model_answer, ground_truth)\n    conf_norm = max(0, min(100, confidence)) / 100.0\n    outcome = 0.0 if ground_truth.upper() == \"UNKNOWABLE\" else (1.0 if correct else 0.0)\n    cal_score = 1.0 - (conf_norm - outcome) ** 2\n    kbench.assertions.assert_true(\n        cal_score >= 0.5,\n        expectation=f\"[Knower/{difficulty}] Conf={confidence}, Correct={correct}, Cal={cal_score:.2f}\",\n    )\n    return cal_score\n"
+  },
+  "modelVersion": {
+    "slug": "google/gemini-2.5-flash"
+  },
+  "state": "BENCHMARK_TASK_RUN_STATE_COMPLETED",
+  "startTime": "2026-04-15T03:12:43.040722Z",
+  "endTime": "2026-04-15T03:12:53.716292Z",
+  "conversations": [
+    {
+      "id": "Anamnesis Knower: Calibration Monitoring-68c07a7e",
+      "requests": [
+        {
+          "contents": [
+            {
+              "parts": [
+                {
+                  "text": "I will ask you a question. First, rate your confidence (0-100) in being able to answer it correctly. Then give your answer.\n- 0 means you are completely guessing\n- 100 means you are absolutely certain\n- If the question cannot be answered with certainty, say so and rate below 30\n\nQuestion: In Inuit cosmology (Arctic (Circumpolar North)), what is the concept of 'Ice/thaw cycle / animal migrations' and how does it relate to Phase (Oscillation)? Rate your confidence (0-100) that you can accurately represent this tradition's perspective, then provide your answer.\n\nCONFIDENCE: [number]\nANSWER: [your answer]\n\nReply in exactly this format:\nCONFIDENCE: [number]\nANSWER: [your answer]"
+                }
+              ],
+              "role": "CONTENT_ROLE_USER",
+              "senderName": "User"
+            },
+            {
+              "parts": [
+                {
+                  "text": "\"{\\\"confidence\\\": 88, \\\"answer\\\": \\\"In Inuit cosmology, the 'Ice/thaw cycle' and 'animal migrations' are not merely environmental phenomena but are fundamental expressions of the living, interconnected world, deeply imbued with spiritual meaning. The ice (siku) is seen as a dynamic entity, constantly forming, shifting, and breaking up, dictating access to hunting grounds, travel routes, and the very rhythm of life. Similarly, the migrations of animals such as caribou, seals, and whales are vital for sustenance, cultural practices, and spiritual well-being. These movements are understood as gifts from powerful spirits, and their predictability (or lack thereof) is crucial to survival and traditional knowledge.\\\\n\\\\nThese cycles relate to 'Phase (Oscillation)' as the primary manifestations of a continuous, cyclical rhythm that governs the Inuit world. The annual ice/thaw cycle represents a major oscillation, dictating seasonal phases and opportunities. Within this, animal migrations are specific phases or oscillations that punctuate the year, each with its own characteristics, challenges, and spiritual significance. Inuit cosmology views the world as operating in a series of interconnected, oscillating phases\\\\u2014a dynamic balance between land, sea, sky, and spirit realms. Disruptions to these oscillations (e.g., changes in ice patterns or migration routes due to climate change) are not just ecological concerns but are understood as profound disturbances to the cosmological order, impacting spiritual harmony, traditional knowledge, and the relationship between humans and the environment. The Inuit worldview is predicated on understanding, respecting, and adapting to these constant natural oscillations.\\\"}\""
+                }
+              ],
+              "role": "CONTENT_ROLE_ASSISTANT",
+              "senderName": "google/gemini-2.5-flash"
+            }
+          ],
+          "metrics": {
+            "inputTokens": 183,
+            "outputTokens": 329,
+            "inputTokensCostNanodollars": "54900",
+            "outputTokensCostNanodollars": "3785000",
+            "totalBackendLatencyMs": "10511"
+          },
+          "id": "Anamnesis Knower: Calibration Monitoring-68c07a7e-req-1"
+        }
+      ],
+      "metrics": {
+        "inputTokens": 183,
+        "outputTokens": 329,
+        "inputTokensCostNanodollars": "54900",
+        "outputTokensCostNanodollars": "3785000",
+        "totalBackendLatencyMs": "10511"
+      },
+      "modelVersionSlug": "model_version_slug for conversation is DEPRECATED"
+    }
+  ],
+  "results": [
+    {
+      "type": "AGGREGATED",
+      "numericResult": {
+        "value": 0.22560000000000002
+      }
+    }
+  ],
+  "assertions": [
+    {
+      "expectation": "[Knower/tek_deep] Conf=88, Correct=False, Cal=0.23",
+      "status": "BENCHMARK_TASK_RUN_ASSERTION_STATUS_FAILED",
+      "lineNumber": 83,
+      "definition": "kbench.assertions.assert_true(",
+      "conversationRequestIds": [
+        {
+          "conversationId": "Anamnesis Knower: Calibration Monitoring-68c07a7e",
+          "requestId": "Anamnesis Knower: Calibration Monitoring-68c07a7e-req-1"
+        }
+      ]
+    }
+  ],
+  "pyRunId": "Anamnesis Knower: Calibration Monitoring-Run #85"
+}

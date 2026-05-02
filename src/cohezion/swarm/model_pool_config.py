@@ -19,6 +19,8 @@ class ModelTierPolicy(Enum):
     HOT = "hot"  # Always loaded, keep_alive=-1
     WARM = "warm"  # Loaded at startup, evictable under pressure
     COLD = "cold"  # On-demand only, evicted after timeout
+    EDGE = "edge"  # Resident on external edge device (e.g. Pixel)
+    CLOUD = "cloud"  # External API, zero local memory footprint
 
 
 @dataclass

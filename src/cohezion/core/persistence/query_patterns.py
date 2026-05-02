@@ -5,7 +5,7 @@ from surrealdb import AsyncSurreal
 
 
 async def query_patterns():
-    async with AsyncSurreal("ws://localhost:8000/rpc") as db:
+    async with AsyncSurreal("ws://localhost:8001/rpc") as db:
         await db.signin(
             {
                 "username": os.environ.get("SURREAL_USER", "root"),

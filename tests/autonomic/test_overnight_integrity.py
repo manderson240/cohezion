@@ -2,6 +2,7 @@ from pathlib import Path
 
 import pytest
 
+
 pytest.importorskip("trackio", reason="trackio not installed")
 
 from cohezion.core.persistence.surreal_client import SurrealClient

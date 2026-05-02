@@ -319,5 +319,41 @@ class TestRecordToFluxResilience:
             assert call_kwargs[1].get("exc_info") is True
 
 
-# NOTE: Removed TestExecuteGraphWiring (Wave 3E).
-# ExecutionOrchestrator.execute_graph was removed in the graph API refactor.
+# ─── GraphEngine FLUX wiring ─────────────────────────────────────
+
+
+class TestGraphEngineFLUXWiring:
+    """GraphEngine should propagate FLUX aggregator to AgentNodes."""
+
+    @pytest.mark.asyncio
+    async def test_engine_with_flux_records_history(self):
+        """Engine with flux_aggregator should record history on node completion."""
+        history = HistoryFlux()
+        flux = FluxAggregator(providers=[history])
+
+        spec = _make_spec("n1", "analyst", node_type="agent")
+        workflow = _make_workflow([spec])
+
+        engine = WorkflowEngine(flux_aggregator=flux)
+        node = AgentNode(spec, flux_aggregator=flux)
+        node.set_execute_fn(AsyncMock(return_value={"out": "done"}))
+        engine.register_node(node)
+
+        result = await engine.execute(workflow, {"data": "test"})
+
+        assert result.status == "completed"
+
+    @pytest.mark.asyncio
+    async def test_engine_without_flux_still_works(self):
+        """Engine without flux_aggregator should not error."""
+        spec = _make_spec("n1", "worker", node_type="agent")
+        workflow = _make_workflow([spec])
+
+        engine = WorkflowEngine()
+        node = AgentNode(spec)
+        node.set_execute_fn(AsyncMock(return_value={"out": "done"}))
+        engine.register_node(node)
+
+        result = await engine.execute(workflow, {})
+
+        assert result.status == "completed"

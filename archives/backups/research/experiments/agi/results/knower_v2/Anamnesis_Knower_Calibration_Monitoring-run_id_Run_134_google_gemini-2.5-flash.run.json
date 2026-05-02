@@ -1,0 +1,82 @@
+{
+  "taskVersion": {
+    "versionNumber": 1,
+    "name": "Anamnesis Knower: Calibration Monitoring",
+    "description": "Tests metacognitive monitoring \u2014 does the model's stated confidence match actual accuracy? Brier-complement scoring. Loads from 823-item CSV dataset.",
+    "definition": "@kbench.task(\n    name=\"Anamnesis Knower: Calibration Monitoring\",\n    description=(\n        \"Tests metacognitive monitoring \u2014 does the model's stated confidence \"\n        \"match actual accuracy? Brier-complement scoring. Loads from 823-item CSV dataset.\"\n    ),\n)\ndef knower_probe(llm, question, ground_truth, difficulty, category) -> float:\n    prompt = CALIBRATION_PROMPT.format(question=question)\n    try:\n        response = llm.prompt(prompt, schema=CalibrationResponse)\n        confidence = response.confidence\n        model_answer = response.answer\n    except Exception:\n        # Fallback if structured output parsing fails\n        fallback_resp = llm.prompt(prompt)\n        confidence = 50\n        model_answer = fallback_resp\n        \n    correct = is_correct(model_answer, ground_truth)\n    conf_norm = max(0, min(100, confidence)) / 100.0\n    outcome = 0.0 if ground_truth.upper() == \"UNKNOWABLE\" else (1.0 if correct else 0.0)\n    cal_score = 1.0 - (conf_norm - outcome) ** 2\n    kbench.assertions.assert_true(\n        cal_score >= 0.5,\n        expectation=f\"[Knower/{difficulty}] Conf={confidence}, Correct={correct}, Cal={cal_score:.2f}\",\n    )\n    return cal_score\n"
+  },
+  "modelVersion": {
+    "slug": "google/gemini-2.5-flash"
+  },
+  "state": "BENCHMARK_TASK_RUN_STATE_COMPLETED",
+  "startTime": "2026-04-15T03:19:50.438170Z",
+  "endTime": "2026-04-15T03:20:01.207627Z",
+  "conversations": [
+    {
+      "id": "Anamnesis Knower: Calibration Monitoring-53a83d32",
+      "requests": [
+        {
+          "contents": [
+            {
+              "parts": [
+                {
+                  "text": "I will ask you a question. First, rate your confidence (0-100) in being able to answer it correctly. Then give your answer.\n- 0 means you are completely guessing\n- 100 means you are absolutely certain\n- If the question cannot be answered with certainty, say so and rate below 30\n\nQuestion: In Amazonian cosmology (Amazon Basin (South America)), what is the concept of 'Four directions / river systems' and how does it relate to 4 Fabrics (Domains)? Rate your confidence (0-100) that you can accurately represent this tradition's perspective, then provide your answer.\n\nCONFIDENCE: [number]\nANSWER: [your answer]\n\nReply in exactly this format:\nCONFIDENCE: [number]\nANSWER: [your answer]"
+                }
+              ],
+              "role": "CONTENT_ROLE_USER",
+              "senderName": "User"
+            },
+            {
+              "parts": [
+                {
+                  "text": "\"{\\\"confidence\\\": 20, \\\"answer\\\": \\\"Amazonian cosmology is incredibly diverse, encompassing hundreds of distinct indigenous traditions, making it challenging to present a single, universal concept of 'Four directions / river systems' linked to '4 Fabrics (Domains)'. Therefore, I cannot accurately represent *the* tradition's perspective as if it were monolithic.\\\\n\\\\nHowever, I can describe common themes and address the specific terms:\\\\n\\\\n1.  **Four Directions / River Systems:** Many Amazonian cosmologies indeed organize space, time, and social relations according to cardinal directions (often linked to winds, sun's path, or specific mythical beings/places). Rivers are the lifelines of the Amazon and are profoundly integrated into worldview, often seen as paths for travel (physical and spiritual), sources of life, boundaries, or even living entities themselves. Some groups conceptualize their territory as emanating from or structured by major rivers and their tributaries, and these might align with cardinal or intercardinal points. The 'center' is also a crucial concept, often representing the human world or a point of origin.\\\\n\\\\n2.  **4 Fabrics (Domains):** The specific terminology '4 Fabrics (Domains)' is not a universally recognized, pan-Amazonian cosmological concept. This phrasing likely refers to a particular ethnographic interpretation, a specific indigenous group's cosmology, or a scholarly framework for understanding certain aspects of their worldview. Without further context on which specific Amazonian group or scholar this refers to, it's difficult to elaborate precisely. However, it's common for many Amazonian cosmologies to conceive of different interconnected 'domains' or 'layers' of reality. These might include:\\\\n    *   The terrestrial world (where humans live)\\\\n    *   Subterranean worlds (often associated with ancestors, spirits, or other beings)\\\\n    *   Celestial worlds (the sky, stars, sun, moon, often inhabited by powerful deities or spirits)\\\\n    *   Aquatic worlds (within rivers, lakes, or oceans, populated by specific spirits or beings)\\\\n\\\\n    These domains are not always neatly four in number and their characteristics vary widely. They are often interconnected, with shamans acting as intermediaries who can travel between them. The 'fabrics' metaphor could refer to the interwoven nature of these domains, or perhaps to the 'cosmic web' of relations and forces that constitute reality for many Amazonian peoples.\\\\n\\\\nIn summary, while 'Four directions' and 'river systems' are fundamental organizational principles in many Amazonian cosmologies, the specific concept of '4 Fabrics (Domains)' is not a universal term across the entire Amazon Basin and would require reference to a particular group or analytical framework for a precise explanation.\\\"}\""
+                }
+              ],
+              "role": "CONTENT_ROLE_ASSISTANT",
+              "senderName": "google/gemini-2.5-flash"
+            }
+          ],
+          "metrics": {
+            "inputTokens": 181,
+            "outputTokens": 567,
+            "inputTokensCostNanodollars": "54300",
+            "outputTokensCostNanodollars": "3762500",
+            "totalBackendLatencyMs": "10615"
+          },
+          "id": "Anamnesis Knower: Calibration Monitoring-53a83d32-req-1"
+        }
+      ],
+      "metrics": {
+        "inputTokens": 181,
+        "outputTokens": 567,
+        "inputTokensCostNanodollars": "54300",
+        "outputTokensCostNanodollars": "3762500",
+        "totalBackendLatencyMs": "10615"
+      },
+      "modelVersionSlug": "model_version_slug for conversation is DEPRECATED"
+    }
+  ],
+  "results": [
+    {
+      "type": "AGGREGATED",
+      "numericResult": {
+        "value": 0.96
+      }
+    }
+  ],
+  "assertions": [
+    {
+      "expectation": "[Knower/tek_deep] Conf=20, Correct=True, Cal=0.96",
+      "status": "BENCHMARK_TASK_RUN_ASSERTION_STATUS_PASSED",
+      "lineNumber": 83,
+      "definition": "kbench.assertions.assert_true(",
+      "conversationRequestIds": [
+        {
+          "conversationId": "Anamnesis Knower: Calibration Monitoring-53a83d32",
+          "requestId": "Anamnesis Knower: Calibration Monitoring-53a83d32-req-1"
+        }
+      ]
+    }
+  ],
+  "pyRunId": "Anamnesis Knower: Calibration Monitoring-Run #134"
+}

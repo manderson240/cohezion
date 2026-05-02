@@ -1,3 +1,12 @@
+---
+name: quadrature-prime
+description: "Autonomous Governance & Strategic Alignment. The \"Quadrature\" is the consensus mechanism of the Swarm. It prevents hallucinated, dangerous, or inefficient actions by forcing every major decision through 4 opposing perspectives."
+metadata:
+  version: "v1.0 (Integration of The Will)"
+  concepts: ["The Nexus", "The 4 Voices", "Architect", "Engineer", "Ethicist", "Resource", "Consensus"]
+  source: "src/cohezion/skills/QUADRATURE_PRIME.md"
+---
+
 # SKILL: QUADRATURE_PRIME
 
 ## DOMAIN EXPERTISE

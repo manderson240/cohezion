@@ -1,3 +1,8 @@
+---
+name: remote-orchestration-prime
+description: "Distributed orchestration of Cohezion work from anywhere (mobile, tablet, remote machine) via GitHub Issues, file-based task queues, autonomous scheduled runs, vault coordination, and parallel worktree isolation."
+---
+
 # SKILL: REMOTE_ORCHESTRATION_PRIME
 
 ## DOMAIN EXPERTISE

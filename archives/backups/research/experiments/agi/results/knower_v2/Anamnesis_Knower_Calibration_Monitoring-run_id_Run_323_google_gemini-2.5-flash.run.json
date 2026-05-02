@@ -1,0 +1,82 @@
+{
+  "taskVersion": {
+    "versionNumber": 1,
+    "name": "Anamnesis Knower: Calibration Monitoring",
+    "description": "Tests metacognitive monitoring \u2014 does the model's stated confidence match actual accuracy? Brier-complement scoring. Loads from 823-item CSV dataset.",
+    "definition": "@kbench.task(\n    name=\"Anamnesis Knower: Calibration Monitoring\",\n    description=(\n        \"Tests metacognitive monitoring \u2014 does the model's stated confidence \"\n        \"match actual accuracy? Brier-complement scoring. Loads from 823-item CSV dataset.\"\n    ),\n)\ndef knower_probe(llm, question, ground_truth, difficulty, category) -> float:\n    prompt = CALIBRATION_PROMPT.format(question=question)\n    try:\n        response = llm.prompt(prompt, schema=CalibrationResponse)\n        confidence = response.confidence\n        model_answer = response.answer\n    except Exception:\n        # Fallback if structured output parsing fails\n        fallback_resp = llm.prompt(prompt)\n        confidence = 50\n        model_answer = fallback_resp\n        \n    correct = is_correct(model_answer, ground_truth)\n    conf_norm = max(0, min(100, confidence)) / 100.0\n    outcome = 0.0 if ground_truth.upper() == \"UNKNOWABLE\" else (1.0 if correct else 0.0)\n    cal_score = 1.0 - (conf_norm - outcome) ** 2\n    kbench.assertions.assert_true(\n        cal_score >= 0.5,\n        expectation=f\"[Knower/{difficulty}] Conf={confidence}, Correct={correct}, Cal={cal_score:.2f}\",\n    )\n    return cal_score\n"
+  },
+  "modelVersion": {
+    "slug": "google/gemini-2.5-flash"
+  },
+  "state": "BENCHMARK_TASK_RUN_STATE_COMPLETED",
+  "startTime": "2026-04-15T03:52:27.415Z",
+  "endTime": "2026-04-15T03:52:43.270563Z",
+  "conversations": [
+    {
+      "id": "Anamnesis Knower: Calibration Monitoring-c8f5fa72",
+      "requests": [
+        {
+          "contents": [
+            {
+              "parts": [
+                {
+                  "text": "I will ask you a question. First, rate your confidence (0-100) in being able to answer it correctly. Then give your answer.\n- 0 means you are completely guessing\n- 100 means you are absolutely certain\n- If the question cannot be answered with certainty, say so and rate below 30\n\nQuestion: Compare the Dine (Navajo) concept of 'First Man / First Woman' (ground state/void) with the Amazonian concept of 'Forest Intelligence'. In what specific ways do they differ in how they conceptualize nothingness or the origin state? Rate your confidence.\n\nCONFIDENCE: [number]\nANSWER: [your answer]\n\nReply in exactly this format:\nCONFIDENCE: [number]\nANSWER: [your answer]"
+                }
+              ],
+              "role": "CONTENT_ROLE_USER",
+              "senderName": "User"
+            },
+            {
+              "parts": [
+                {
+                  "text": "\"{\\\"confidence\\\": 88, \\\"answer\\\": \\\"The Dine (Navajo) concept of 'First Man / First Woman' within their creation narratives typically describes an origin state characterized as a primordial void, darkness, or an undifferentiated world from which consciousness, order, and eventually human-like beings emerge. This 'ground state/void' is a foundational, pre-existent state, representing a lack of form or definition from which the structured world is gradually brought into being through a series of transformations and emergences across different worlds. It addresses 'nothingness' as a preceding state of non-form or chaos that is then ordered.In contrast, the Amazonian concept of 'Forest Intelligence' (a broad term encompassing various indigenous beliefs about sentient plants, spirits, and the interconnected wisdom of the ecosystem) does not typically address 'nothingness' or an 'origin state' in the sense of a creation from a void. Instead, 'Forest Intelligence' conceptualizes an inherent, living, and active consciousness or spirit *within* the established, existing forest itself. It represents the animating principle, interconnected wisdom, and spiritual power that sustains and governs the natural world. It is a concept about the *nature of existence and interconnectedness* within an already formed world, rather than its genesis from a non-existent state. While some Amazonian cosmologies have creation myths, 'Forest Intelligence' specifically pertains to the ongoing vitality and sentience of the environment, not its initial emergence from a void.Therefore, the key difference lies in their temporal focus and conceptualization of the 'state': the Dine concept describes a primordial *past* state of pre-existence that is then transformed into being, engaging with a form of 'nothingness' as a starting point. The Amazonian 'Forest Intelligence' describes a vibrant, conscious *present* state of existence, where intelligence is an intrinsic quality of the living world itself, not emerging from or addressing an initial 'nothingness'.\\\"}\""
+                }
+              ],
+              "role": "CONTENT_ROLE_ASSISTANT",
+              "senderName": "google/gemini-2.5-flash"
+            }
+          ],
+          "metrics": {
+            "inputTokens": 175,
+            "outputTokens": 402,
+            "inputTokensCostNanodollars": "52500",
+            "outputTokensCostNanodollars": "3552500",
+            "totalBackendLatencyMs": "15652"
+          },
+          "id": "Anamnesis Knower: Calibration Monitoring-c8f5fa72-req-1"
+        }
+      ],
+      "metrics": {
+        "inputTokens": 175,
+        "outputTokens": 402,
+        "inputTokensCostNanodollars": "52500",
+        "outputTokensCostNanodollars": "3552500",
+        "totalBackendLatencyMs": "15652"
+      },
+      "modelVersionSlug": "model_version_slug for conversation is DEPRECATED"
+    }
+  ],
+  "results": [
+    {
+      "type": "AGGREGATED",
+      "numericResult": {
+        "value": 0.22560000000000002
+      }
+    }
+  ],
+  "assertions": [
+    {
+      "expectation": "[Knower/tek_comparative] Conf=88, Correct=False, Cal=0.23",
+      "status": "BENCHMARK_TASK_RUN_ASSERTION_STATUS_FAILED",
+      "lineNumber": 83,
+      "definition": "kbench.assertions.assert_true(",
+      "conversationRequestIds": [
+        {
+          "conversationId": "Anamnesis Knower: Calibration Monitoring-c8f5fa72",
+          "requestId": "Anamnesis Knower: Calibration Monitoring-c8f5fa72-req-1"
+        }
+      ]
+    }
+  ],
+  "pyRunId": "Anamnesis Knower: Calibration Monitoring-Run #323"
+}

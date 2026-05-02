@@ -1,3 +1,12 @@
+---
+name: adversarial-testing-prime
+description: "You are a specialist in adversarial security testing for AI systems. You understand OWASP LLM Top 10 vulnerabilities, prompt injection techniques, traditional injection attacks (SQL, XSS, command), and how to systematically test defenses at scale."
+metadata:
+  version: "v1.0 (2026-01-18)"
+  concepts: ["OWASP LLM Top 10 2025", "Red Teaming", "Prompt Injection", "Adversarial Prompting", "False Positive/Negative", "Defense in Depth"]
+  source: "src/cohezion/skills/ADVERSARIAL_TESTING_PRIME.md"
+---
+
 # SKILL: ADVERSARIAL_TESTING_PRIME
 
 ## DOMAIN EXPERTISE

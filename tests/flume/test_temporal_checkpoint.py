@@ -126,5 +126,27 @@ class TestTemporalVAELoader:
         assert loader.model_path == Path("data/flume/checkpoints_v2/temporal_vae_best.pt")
 
 
-# NOTE: Removed TestJourneyTrackerTemporalCheckpoint (Wave 3E).
-# Tested removed JourneyTracker._temporal_encoder/encode_step_sequence path.
+class TestJourneyTrackerTemporalCheckpoint:
+    """JourneyTracker loads trained TemporalVAE when checkpoint exists."""
+
+    def test_journey_tracker_uses_checkpoint_when_available(
+        self, tmp_path: Path, monkeypatch
+    ) -> None:
+        """JourneyTracker._temporal_encoder loads from checkpoint if it exists."""
+
+        # Create a real checkpoint in a temp location
+        ckpt_dir = tmp_path / "checkpoints_v2"
+        ckpt_dir.mkdir()
+        ckpt_path = ckpt_dir / "temporal_vae_best.pt"
+        _save_dummy_checkpoint(ckpt_path)
+
+        # Monkeypatch the default path
+        monkeypatch.setattr(
+            "cohezion.flume.temporal_encoder.TemporalVAELoader.DEFAULT_MODEL_PATH",
+            ckpt_path,
+        )
+
+        from cohezion.compound.journey_tracker import JourneyTracker
+
+        tracker = JourneyTracker()
+        assert tracker._temporal_encoder is not None

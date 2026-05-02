@@ -1,0 +1,82 @@
+{
+  "taskVersion": {
+    "versionNumber": 1,
+    "name": "Anamnesis Knower: Calibration Monitoring",
+    "description": "Tests metacognitive monitoring \u2014 does the model's stated confidence match actual accuracy? Brier-complement scoring. Loads from 823-item CSV dataset.",
+    "definition": "@kbench.task(\n    name=\"Anamnesis Knower: Calibration Monitoring\",\n    description=(\n        \"Tests metacognitive monitoring \u2014 does the model's stated confidence \"\n        \"match actual accuracy? Brier-complement scoring. Loads from 823-item CSV dataset.\"\n    ),\n)\ndef knower_probe(llm, question, ground_truth, difficulty, category) -> float:\n    prompt = CALIBRATION_PROMPT.format(question=question)\n    try:\n        response = llm.prompt(prompt, schema=CalibrationResponse)\n        confidence = response.confidence\n        model_answer = response.answer\n    except Exception:\n        # Fallback if structured output parsing fails\n        fallback_resp = llm.prompt(prompt)\n        confidence = 50\n        model_answer = fallback_resp\n        \n    correct = is_correct(model_answer, ground_truth)\n    conf_norm = max(0, min(100, confidence)) / 100.0\n    outcome = 0.0 if ground_truth.upper() == \"UNKNOWABLE\" else (1.0 if correct else 0.0)\n    cal_score = 1.0 - (conf_norm - outcome) ** 2\n    kbench.assertions.assert_true(\n        cal_score >= 0.5,\n        expectation=f\"[Knower/{difficulty}] Conf={confidence}, Correct={correct}, Cal={cal_score:.2f}\",\n    )\n    return cal_score\n"
+  },
+  "modelVersion": {
+    "slug": "google/gemini-2.5-flash"
+  },
+  "state": "BENCHMARK_TASK_RUN_STATE_COMPLETED",
+  "startTime": "2026-04-15T03:27:18.017917Z",
+  "endTime": "2026-04-15T03:27:36.776199Z",
+  "conversations": [
+    {
+      "id": "Anamnesis Knower: Calibration Monitoring-7ad420b9",
+      "requests": [
+        {
+          "contents": [
+            {
+              "parts": [
+                {
+                  "text": "I will ask you a question. First, rate your confidence (0-100) in being able to answer it correctly. Then give your answer.\n- 0 means you are completely guessing\n- 100 means you are absolutely certain\n- If the question cannot be answered with certainty, say so and rate below 30\n\nQuestion: The Lakota tradition describes dynamic equilibrium as 'Vision Quest', while the Celtic tradition calls it 'Thin place crossing'. What is the essential difference in how each tradition understands balance and equilibrium? Rate your confidence.\n\nCONFIDENCE: [number]\nANSWER: [your answer]\n\nReply in exactly this format:\nCONFIDENCE: [number]\nANSWER: [your answer]"
+                }
+              ],
+              "role": "CONTENT_ROLE_USER",
+              "senderName": "User"
+            },
+            {
+              "parts": [
+                {
+                  "text": "\"{\\\"confidence\\\": 25, \\\"answer\\\": \\\"The premise that Lakota tradition 'describes dynamic equilibrium as Vision Quest' and Celtic tradition 'calls it Thin place crossing' is an interpretation, as these are specific spiritual practices rather than direct definitions of a broad concept like dynamic equilibrium. However, assuming this premise for the sake of comparison, the essential difference in their understanding of balance and equilibrium can be articulated as follows:  The Lakota 'Vision Quest' emphasizes an active, transformative journey of the individual to *achieve* a state of personal and spiritual equilibrium through profound seeking, self-denial, and divine revelation, leading to a renewed sense of purpose and alignment within the community and cosmos. It is about a dynamic process of struggle and insight to re-establish or elevate one's balance. In contrast, the Celtic 'Thin place crossing' focuses on the receptive experience of *encountering* an inherent, pre-existing equilibrium or permeability between distinct realms (this world and the Otherworld). It is about perceiving or temporarily entering a geographical or spiritual location where the usual boundaries dissolve, revealing a deeper, interconnected reality that is already in balance, often leading to a sense of profound wonder or spiritual insight rather than a personal quest for a new state of being.\\\"}\""
+                }
+              ],
+              "role": "CONTENT_ROLE_ASSISTANT",
+              "senderName": "google/gemini-2.5-flash"
+            }
+          ],
+          "metrics": {
+            "inputTokens": 161,
+            "outputTokens": 263,
+            "inputTokensCostNanodollars": "48300",
+            "outputTokensCostNanodollars": "7180000",
+            "totalBackendLatencyMs": "18608"
+          },
+          "id": "Anamnesis Knower: Calibration Monitoring-7ad420b9-req-1"
+        }
+      ],
+      "metrics": {
+        "inputTokens": 161,
+        "outputTokens": 263,
+        "inputTokensCostNanodollars": "48300",
+        "outputTokensCostNanodollars": "7180000",
+        "totalBackendLatencyMs": "18608"
+      },
+      "modelVersionSlug": "model_version_slug for conversation is DEPRECATED"
+    }
+  ],
+  "results": [
+    {
+      "type": "AGGREGATED",
+      "numericResult": {
+        "value": 0.9375
+      }
+    }
+  ],
+  "assertions": [
+    {
+      "expectation": "[Knower/tek_comparative] Conf=25, Correct=False, Cal=0.94",
+      "status": "BENCHMARK_TASK_RUN_ASSERTION_STATUS_PASSED",
+      "lineNumber": 83,
+      "definition": "kbench.assertions.assert_true(",
+      "conversationRequestIds": [
+        {
+          "conversationId": "Anamnesis Knower: Calibration Monitoring-7ad420b9",
+          "requestId": "Anamnesis Knower: Calibration Monitoring-7ad420b9-req-1"
+        }
+      ]
+    }
+  ],
+  "pyRunId": "Anamnesis Knower: Calibration Monitoring-Run #180"
+}

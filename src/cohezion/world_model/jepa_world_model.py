@@ -152,20 +152,30 @@ class CausalMask(nn.Module):
         return list(np.argsort(scores)[-k:][::-1])
 
 
+from .sigreg import SIGReg
+
+
 @dataclass
 class TrainingMetrics:
     """Metrics from a training run."""
 
     epoch: int = 0
     prediction_loss: float = 0.0
-    kl_loss: float = 0.0
+    sigreg_loss: float = 0.0
+    regularizer_loss: float = 0.0
     total_loss: float = 0.0
+    temporal_curvature: float = 0.0
     n_samples: int = 0
     history: list[dict[str, float]] = field(default_factory=list)
 
 
 class JEPAWorldModel:
     """JEPA World Model for predicting 12D manifold evolution.
+
+    Upgraded with Le-WM (arxiv 2603.19312) features:
+    - SIGReg (Sketched Isotropic Gaussian Regularizer) for anti-collapse.
+    - Gaussian KL regularizer (dual-loss): KL(q(z|x) || N(0,I)) on encoder mu/logvar.
+    - Temporal Straightening monitoring.
 
     Parameters
     ----------
@@ -177,8 +187,10 @@ class JEPAWorldModel:
         Latent embedding dimension (default: 64).
     lr : float
         Learning rate (default: 1e-3).
-    kl_weight : float
-        Weight for the Gaussian regularizer (default: 0.01).
+    sigreg_weight : float
+        Weight for the SIGReg regularizer (default: 0.1).
+    regularizer_lambda : float
+        Weight for the Gaussian KL regularizer. Set to 0 to disable (default: 0.1).
     """
 
     def __init__(
@@ -187,19 +199,24 @@ class JEPAWorldModel:
         action_dim: int = 12,
         embed_dim: int = 64,
         lr: float = 1e-3,
-        kl_weight: float = 0.01,
+        sigreg_weight: float = 0.1,
+        regularizer_lambda: float = 0.1,
         causal_mask_ratio: float = 0.3,
     ) -> None:
         self.state_dim = state_dim
         self.action_dim = action_dim
         self.embed_dim = embed_dim
-        self.kl_weight = kl_weight
+        self.sigreg_weight = sigreg_weight
+        self.regularizer_lambda = regularizer_lambda
         self.causal_mask_ratio = causal_mask_ratio
 
         self.encoder = ManifoldEncoder(state_dim, embed_dim)
         self.action_encoder = ActionEncoder(action_dim, embed_dim)
         self.predictor = Predictor(embed_dim)
         self.causal_mask = CausalMask(embed_dim, causal_mask_ratio)
+
+        # Le-WM transformational edge
+        self.sigreg = SIGReg(embed_dim=embed_dim, num_projections=1024)
 
         # Simple linear decoder: embed_dim → state_dim (approximate inverse of encoder)
         self.decoder = nn.Linear(embed_dim, state_dim)
@@ -227,13 +244,54 @@ class JEPAWorldModel:
             + list(self.decoder.parameters())
         )
 
+    def measure_temporal_straightening(self, trajectory: list[torch.Tensor]) -> float:
+        """Measure the curvature of a latent trajectory (Le-WM).
+
+        Lower values (approaching 0) indicate a straighter path, an emergent
+        property of stable Le-WM manifolds.
+        """
+        if len(trajectory) < 3:
+            return 0.0
+
+        curvatures = []
+        for i in range(1, len(trajectory) - 1):
+            # Velocity vectors
+            v1 = trajectory[i] - trajectory[i - 1]
+            v2 = trajectory[i + 1] - trajectory[i]
+
+            # Normalize to cosine similarity
+            if torch.norm(v1) > 1e-6 and torch.norm(v2) > 1e-6:
+                cos_sim = nn.functional.cosine_similarity(v1.unsqueeze(0), v2.unsqueeze(0))
+                curvatures.append(1.0 - cos_sim.item())
+
+        return float(np.mean(curvatures)) if curvatures else 0.0
+
+    def _compute_regularizer_loss(self, mu: torch.Tensor, logvar: torch.Tensor) -> torch.Tensor:
+        """Compute KL divergence from N(mu, sigma^2) to N(0, I).
+
+        Closed-form KL for diagonal Gaussian encoder (Le-WM dual-loss):
+            KL(q(z|x) || N(0,I)) = -0.5 * sum(1 + logvar - mu^2 - exp(logvar))
+
+        Normalised by batch size so the scale is independent of batch size.
+        Returns 0 when regularizer_lambda == 0 (no gradient cost).
+        """
+        if self.regularizer_lambda == 0.0:
+            return torch.tensor(0.0, device=mu.device)
+        kl = -0.5 * torch.sum(1.0 + logvar - mu.pow(2) - logvar.exp())
+        return kl / mu.size(0)
+
     def train_step(
         self,
         states: torch.Tensor,
         actions: torch.Tensor,
         next_states: torch.Tensor,
     ) -> dict[str, float]:
-        """One training step. Loss = MSE(predicted, target) + kl_weight * KL."""
+        """One training step.
+
+        Loss = MSE(predicted, target)
+             + sigreg_weight * SIGReg(z)
+             + regularizer_lambda * KL(q(z|x) || N(0,I))
+        """
         self.encoder.train()
         self.action_encoder.train()
         self.predictor.train()
@@ -248,8 +306,18 @@ class JEPAWorldModel:
             target_next_emb, _, _ = self.encoder(next_states)
 
         prediction_loss = nn.functional.mse_loss(predicted_next_emb, target_next_emb)
-        kl_loss = -0.5 * torch.mean(1 + logvar - mu.pow(2) - logvar.exp())
-        total_loss = prediction_loss + self.kl_weight * kl_loss
+
+        # Le-WM SIGReg loss: Anti-collapse using random 1D projections
+        sigreg_loss = self.sigreg(state_emb)
+
+        # Gaussian KL regularizer (dual-loss, Le-WM arxiv 2603.19312)
+        regularizer_loss = self._compute_regularizer_loss(mu, logvar)
+
+        total_loss = (
+            prediction_loss
+            + self.sigreg_weight * sigreg_loss
+            + self.regularizer_lambda * regularizer_loss
+        )
 
         self.optimizer.zero_grad()
         total_loss.backward()
@@ -257,7 +325,8 @@ class JEPAWorldModel:
 
         return {
             "prediction_loss": float(prediction_loss.item()),
-            "kl_loss": float(kl_loss.item()),
+            "sigreg_loss": float(sigreg_loss.item()),
+            "regularizer_loss": float(regularizer_loss.item()),
             "total_loss": float(total_loss.item()),
         }
 
@@ -268,13 +337,23 @@ class JEPAWorldModel:
     ) -> dict[str, float]:
         """Train one epoch on (state, action, next_state) tuples."""
         if not dataset:
-            return {"prediction_loss": 0, "kl_loss": 0, "total_loss": 0}
+            return {
+                "prediction_loss": 0,
+                "sigreg_loss": 0,
+                "regularizer_loss": 0,
+                "total_loss": 0,
+            }
 
         import random
 
         random.shuffle(dataset)
 
-        epoch_metrics = {"prediction_loss": 0.0, "kl_loss": 0.0, "total_loss": 0.0}
+        epoch_metrics = {
+            "prediction_loss": 0.0,
+            "sigreg_loss": 0.0,
+            "regularizer_loss": 0.0,
+            "total_loss": 0.0,
+        }
         n_batches = 0
 
         for i in range(0, len(dataset), batch_size):
@@ -294,7 +373,8 @@ class JEPAWorldModel:
 
         self.metrics.epoch += 1
         self.metrics.prediction_loss = epoch_metrics["prediction_loss"]
-        self.metrics.kl_loss = epoch_metrics["kl_loss"]
+        self.metrics.sigreg_loss = epoch_metrics["sigreg_loss"]
+        self.metrics.regularizer_loss = epoch_metrics["regularizer_loss"]
         self.metrics.total_loss = epoch_metrics["total_loss"]
         self.metrics.n_samples = len(dataset)
         self.metrics.history.append(epoch_metrics)
@@ -338,6 +418,31 @@ class JEPAWorldModel:
         actual_emb, _, _ = self.encoder(s_next)
 
         return float(nn.functional.mse_loss(predicted_emb, actual_emb).item())
+
+    @torch.no_grad()
+    def simulate_latent_trajectory(
+        self, initial_state: np.ndarray, actions: list[np.ndarray]
+    ) -> list[torch.Tensor]:
+        """Roll out N steps in latent space and return embeddings.
+
+        Used to measure Temporal Straightening (Le-WM).
+        """
+        self._set_inference_mode()
+
+        s = torch.tensor(initial_state, dtype=torch.float32).unsqueeze(0)
+        z, _, _ = self.encoder(s)
+
+        trajectory_z = [z.squeeze(0)]
+        curr_z = z
+
+        for action in actions:
+            a = torch.tensor(action, dtype=torch.float32).unsqueeze(0)
+            action_emb = self.action_encoder(a)
+            next_z = self.predictor(curr_z, action_emb)
+            trajectory_z.append(next_z.squeeze(0))
+            curr_z = next_z
+
+        return trajectory_z
 
     @torch.no_grad()
     def simulate_trajectory(
@@ -439,7 +544,8 @@ class JEPAWorldModel:
                 "metrics": {
                     "epoch": self.metrics.epoch,
                     "prediction_loss": self.metrics.prediction_loss,
-                    "kl_loss": self.metrics.kl_loss,
+                    "sigreg_loss": self.metrics.sigreg_loss,
+                    "regularizer_loss": self.metrics.regularizer_loss,
                     "total_loss": self.metrics.total_loss,
                     "n_samples": self.metrics.n_samples,
                     "history": self.metrics.history,
@@ -448,7 +554,8 @@ class JEPAWorldModel:
                     "state_dim": self.state_dim,
                     "action_dim": self.action_dim,
                     "embed_dim": self.embed_dim,
-                    "kl_weight": self.kl_weight,
+                    "sigreg_weight": self.sigreg_weight,
+                    "regularizer_lambda": self.regularizer_lambda,
                     "causal_mask_ratio": self.causal_mask_ratio,
                 },
             },
@@ -473,7 +580,8 @@ class JEPAWorldModel:
         model.metrics = TrainingMetrics(
             epoch=metrics.get("epoch", 0),
             prediction_loss=metrics.get("prediction_loss", 0),
-            kl_loss=metrics.get("kl_loss", 0),
+            sigreg_loss=metrics.get("sigreg_loss", 0),
+            regularizer_loss=metrics.get("regularizer_loss", 0),
             total_loss=metrics.get("total_loss", 0),
             n_samples=metrics.get("n_samples", 0),
             history=metrics.get("history", []),
@@ -488,12 +596,14 @@ class JEPAWorldModel:
             "trained": self._trained,
             "epoch": self.metrics.epoch,
             "prediction_loss": self.metrics.prediction_loss,
-            "kl_loss": self.metrics.kl_loss,
+            "sigreg_loss": self.metrics.sigreg_loss,
+            "regularizer_loss": self.metrics.regularizer_loss,
             "total_loss": self.metrics.total_loss,
             "n_samples": self.metrics.n_samples,
             "state_dim": self.state_dim,
             "action_dim": self.action_dim,
             "embed_dim": self.embed_dim,
+            "regularizer_lambda": self.regularizer_lambda,
         }
 
 

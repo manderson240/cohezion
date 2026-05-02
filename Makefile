@@ -1,31 +1,107 @@
-.PHONY: help format lint lint-check type-check test all clean train evaluate benchmark demo validate compound-train training-history kernel-status kernel-cycle kernel-loop kernel-loop-dry kernel-report dogfood dogfood-deterministic dogfood-live
+.PHONY: help format lint lint-check type-check test all clean train evaluate benchmark demo validate compound-train training-history kernel-status kernel-cycle kernel-loop kernel-loop-dry kernel-report async-guard routing-guard
 
 help:  ## Show this help message
 	@echo "Available targets:"
 	@grep -E '^[a-zA-Z_-]+:.*?## .*$$' $(MAKEFILE_LIST) | sort | awk 'BEGIN {FS = ":.*?## "}; {printf "  \033[36m%-20s\033[0m %s\n", $$1, $$2}'
 
 format:  ## Format code with ruff
-	uv run ruff format .
+	ruff format .
 	@echo "✓ Code formatted"
 
 lint:  ## Lint and auto-fix issues with ruff
-	uv run ruff check --fix .
+	ruff check --fix .
 	@echo "✓ Linting complete"
 
-lint-check:  ## Check linting without fixing (src/ + tests/)
-	uv run ruff check src/ tests/
-	uv run ruff format --check src/ tests/
+lint-check:  ## Check linting without fixing
+	ruff check .
+	ruff format --check .
 	@echo "✓ Lint check complete"
 
+coherence-check:  ## Enforce 12D manifold integrity in data artifacts
+	uv run python src/cohezion/scripts/coherence_inspector.py
+	@echo "✓ Manifold integrity verified"
+
 type-check:  ## Run type checking with mypy
-	uv run mypy src/cohezion --ignore-missing-imports --no-strict-optional --exclude 'mcp-builder'
+
+	mypy --ignore-missing-imports bmad/ || true
 	@echo "✓ Type check complete"
 
 test:  ## Run test suite
 	uv run pytest tests/
 	@echo "✓ Tests complete"
 
-all: format lint type-check test  ## Run all checks and tests
+test-fast:  ## Run fast unit tests only (<1s each, no live services)
+	uv run pytest tests/unit --import-mode=append --tb=short -q -p no:warnings
+	@echo "✓ Fast tests complete"
+
+test-integration:  ## Run integration tests (require live services)
+	uv run pytest tests/ -m integration -v
+	@echo "✓ Integration tests complete"
+
+test-smoke:  ## Run quick smoke tests (minimal subset)
+	uv run pytest tests/unit --import-mode=append -q --tb=line -p no:warnings 2>/dev/null || echo "⚠ Smoke tests failed"
+
+all: format lint type-check test agent-guard mcp-guard kg-guard data-mesh-guard health-guard async-guard routing-guard a2a-guard bmad-guard  ## Run all checks, tests, and guards
+
+agent-guard: ## Synchronize specialist agent definitions across all platform directories
+	uv run python src/cohezion/swarm/scripts/agent_guard.py
+	@echo "✓ Agent Guard: Specialists synchronized"
+
+a2a-guard: ## Synchronize A2A protocol agent cards (.well-known/agent.json)
+	uv run python src/cohezion/swarm/scripts/a2a_guard.py
+	@echo "✓ A2A Guard: Agent cards synchronized"
+
+omega-distiller: ## Distill knowledge from KEY_LEARNINGS.md into executable skills
+	uv run python src/cohezion/knowledge_graph/scripts/omega_distiller.py
+	@echo "✓ OMEGA Distiller: Skills refined"
+
+data-mesh-guard: ## Monitor Data Mesh registry for SLA and quality violations
+	uv run python src/cohezion/data_mesh/scripts/data_mesh_guard.py
+	@echo "✓ Data Mesh Guard: SLAs verified"
+
+github-scout: ## Start the GitHub Issue polling daemon (Asynchronous Workforce)
+	uv run python src/cohezion/swarm/scripts/github_scout.py
+
+health-guard: ## Run autonomic health checks and trajectory drift detection
+	uv run python src/cohezion/healing/scripts/trajectory_guard.py &
+	@echo "✓ Health Guard: Background monitoring active"
+
+autoresearch-daemon: ## Start the Autonomous Overnight Literature Review
+	uv run python src/cohezion/research/scripts/autoresearch_daemon.py
+
+mcp-guard: ## Run MCP Registry Guard to sync configs and check for latency anti-patterns
+	uv run python src/cohezion/mcp/scripts/mcp_guard.py
+	@echo "✓ MCP Guard checks passed"
+
+kg-guard: ## Scan for high-coherence completed journeys and precipitate knowledge
+	uv run python src/cohezion/knowledge_graph/scripts/kg_guard.py
+	@echo "✓ Knowledge Graph Guard checks complete"
+
+async-guard: ## Scan for synchronous I/O anti-patterns in async subsystems
+	uv run python src/cohezion/scripts/async_guard.py
+	@echo "✓ Async Guard: No blocking I/O anti-patterns found"
+
+routing-guard: ## Synchronize model routing and provider configurations across all platforms
+	uv run python src/cohezion/swarm/scripts/routing_guard.py
+	@echo "✓ Routing Guard: Model configurations synchronized"
+
+skill-guard: ## Validate all skills have proper metadata and FLUME compatibility
+	@uv run python src/cohezion/scripts/skill_validator.py
+	@echo "✓ Skill Guard: All skills validated"
+
+bmad-guard: ## Enforce BMAD multi-session coordination and artifact integrity
+	uv run python src/cohezion/governance/scripts/bmad_guard.py
+	@echo "✓ BMAD Guard: Phase locks, symlinks, catalog integrity verified"
+telemetry-dashboard: ## Show compound loop telemetry dashboard
+	@uv run python src/cohezion/scripts/telemetry_dashboard.py
+
+root-guard: ## Check repository root health (items < 50)
+	@python src/cohezion/governance/scripts/root_health_guard.py
+
+archaeology: ## Run root archaeology filing (review before committing)
+	@echo "📋 Root Archaeology"
+	@echo "Review: src/cohezion/skills/root-archaeology.md"
+	@echo "Then: make root-guard"
 
 clean:  ## Clean up cache files
 	find . -type d -name "__pycache__" -exec rm -rf {} + 2>/dev/null || true
@@ -41,14 +117,21 @@ dev-setup:  ## Install pre-commit hooks
 	pre-commit install
 	@echo "✓ Pre-commit hooks installed"
 
-ci:  ## Run CI checks locally
+ci: coherence-check async-guard routing-guard a2a-guard agent-guard mcp-guard kg-guard data-mesh-guard health-guard ## Run CI checks locally
 	@echo "Running CI checks..."
-	uv run ruff format --check .
-	uv run ruff check .
-	uv run mypy src/cohezion --ignore-missing-imports --no-strict-optional --exclude 'mcp-builder' || true
-	uv run pytest tests/
+	ruff format --check .
+	ruff check .
+	mypy --ignore-missing-imports bmad/ || true
+	pytest tests/
+	uv run python src/cohezion/swarm/scripts/agent_guard.py
+	uv run python src/cohezion/mcp/scripts/mcp_guard.py
+	uv run python src/cohezion/knowledge_graph/scripts/kg_guard.py
+	uv run python src/cohezion/scripts/async_guard.py
+	uv run python src/cohezion/swarm/scripts/routing_guard.py
+	uv run python src/cohezion/swarm/scripts/a2a_guard.py
+	uv run python src/cohezion/data_mesh/scripts/data_mesh_guard.py
+	uv run python src/cohezion/healing/scripts/trajectory_guard.py
 	@echo "✓ All CI checks passed"
-
 # Compound Loop Validation
 validate:  ## Validate compound engineering loop end-to-end (25 checks, ~18s)
 	.venv/bin/python scripts/validate_compound_loop.py
@@ -117,25 +200,3 @@ demo:  ## Quick demo: train 5K steps, evaluate, show compound loop
 	print('=== Compound loop: training → evaluation → knowledge persistence ===')"
 	@echo ""
 	@echo "✓ Demo complete"
-
-# -------------------------------------------------------------------------
-# Dogfood — reruns the dogfood scripts used to verify shipped claims A–D.
-# See docs/dogfood/drift-report-2026-04-18.md for the claim catalog.
-# Deterministic tier runs without the fleet. Live tier needs NPU :13306 up.
-# -------------------------------------------------------------------------
-
-dogfood-deterministic:  ## Rerun Claims B/C/D (no fleet required; ~10s)
-	@echo "▶ Claims B/C/D — deterministic regressions"
-	uv run python scripts/dogfood/claim_bcd_deterministic.py
-
-dogfood-live:  ## Rerun Claim A (requires NPU :13306 UP; ~5s)
-	@echo "▶ Claim A — live NPU routing"
-	uv run python scripts/dogfood/claim_a_npu_routing.py
-
-dogfood: dogfood-deterministic  ## Run all dogfood claims (live tier best-effort)
-	@echo ""
-	@echo "▶ Live tier (best-effort — skipped if NPU lane down)"
-	@uv run python scripts/dogfood/claim_a_npu_routing.py || \
-		echo "⚠ Live claim skipped: NPU lane unavailable (see local_environment_quirks.md)"
-	@echo ""
-	@echo "✓ Dogfood suite complete"

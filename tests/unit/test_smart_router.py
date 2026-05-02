@@ -288,13 +288,9 @@ class TestExecute:
             ),
         }
 
-        # `await resp.json()` is used at smart_router.py:419, so `.json` must
-        # be an AsyncMock returning the payload (not MagicMock returning a dict,
-        # which triggers "object dict can't be used in 'await' expression").
         mock_response = MagicMock()
         mock_response.status_code = 200
-        # smart_router.py reads data["response"] (Ollama /api/generate format),
-        # not data["message"]["content"] (/api/chat format).
+        # json() is awaited, so use AsyncMock
         mock_response.json = AsyncMock(
             return_value={
                 "response": "generated text",

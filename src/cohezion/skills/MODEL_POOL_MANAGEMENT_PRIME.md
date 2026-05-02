@@ -1,3 +1,11 @@
+---
+name: model-pool-management-prime
+description: "Manage the lifecycle of local Ollama models across hot/warm/cold tiers, ensuring the CostAwareRouter only routes to loaded, healthy models."
+metadata:
+  version: "1.0"
+  source: "src/cohezion/skills/MODEL_POOL_MANAGEMENT_PRIME.md"
+---
+
 # MODEL_POOL_MANAGEMENT_PRIME
 
 ## Purpose

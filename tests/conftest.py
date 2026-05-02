@@ -5,6 +5,7 @@ from __future__ import annotations
 import asyncio
 import shutil
 import subprocess
+import sys
 import uuid
 from collections.abc import Generator
 from pathlib import Path
@@ -12,6 +13,39 @@ from types import ModuleType
 from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
+
+
+# Block heavy ML libraries from loading their C extensions into this process at
+# import time.  sklearn (via transformers) and torch use different BLAS allocators;
+# loading them in the wrong order causes a SIGSEGV.  The segfault was traced to
+# tests/test_aimo_predict_tdd.py importing submission_transformers which does
+# `from transformers import ...` at module level — this loads sklearn C exts AFTER
+# torch._C is already loaded → BLAS conflict.  See L290 (Session 94).
+#
+# Mocking transformers here is safe because:
+#  - No pytest test file directly imports transformers
+#  - tests/test_aimo_predict_tdd.py overrides _model/_tokenizer with MagicMock anyway
+#  - The mock satisfies `from transformers import X` by returning MagicMock instances
+if "sentence_transformers" not in sys.modules:
+    _mock_st = MagicMock()
+    _mock_st.SentenceTransformer = MagicMock
+    sys.modules["sentence_transformers"] = _mock_st
+
+if "transformers" not in sys.modules:
+    _mock_tr = MagicMock()
+    _mock_tr.AutoModelForCausalLM = MagicMock
+    _mock_tr.AutoTokenizer = MagicMock
+    # Import and expose PretrainedConfig/PreTrainedModel as real classes
+    try:
+        import transformers as _real_tr
+
+        _mock_tr.PretrainedConfig = _real_tr.PretrainedConfig
+        _mock_tr.PreTrainedModel = _real_tr.PreTrainedModel
+    except Exception:
+        # If transformers isn't installed, use MagicMock as fallback
+        _mock_tr.PretrainedConfig = MagicMock
+        _mock_tr.PreTrainedModel = MagicMock
+    sys.modules["transformers"] = _mock_tr
 
 
 @pytest.fixture

@@ -1,3 +1,11 @@
+---
+name: universe-simulation-persistence-prime
+description: "Universe simulation systems generate large amounts of artifacts: - Model checkpoints (100-500 MB each) - Training logs and metrics (10-100 MB per run) - Run configurations and seeds (1-10 KB, but numerous) - Intermediate states and recovery points (varies)"
+metadata:
+  version: "1.0"
+  source: "src/cohezion/skills/UNIVERSE_SIMULATION_PERSISTENCE_PRIME.md"
+---
+
 # UNIVERSE_SIMULATION_PERSISTENCE_PRIME
 
 **Version**: 1.0

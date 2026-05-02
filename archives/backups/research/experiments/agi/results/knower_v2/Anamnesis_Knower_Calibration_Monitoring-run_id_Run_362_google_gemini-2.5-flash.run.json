@@ -1,0 +1,82 @@
+{
+  "taskVersion": {
+    "versionNumber": 1,
+    "name": "Anamnesis Knower: Calibration Monitoring",
+    "description": "Tests metacognitive monitoring \u2014 does the model's stated confidence match actual accuracy? Brier-complement scoring. Loads from 823-item CSV dataset.",
+    "definition": "@kbench.task(\n    name=\"Anamnesis Knower: Calibration Monitoring\",\n    description=(\n        \"Tests metacognitive monitoring \u2014 does the model's stated confidence \"\n        \"match actual accuracy? Brier-complement scoring. Loads from 823-item CSV dataset.\"\n    ),\n)\ndef knower_probe(llm, question, ground_truth, difficulty, category) -> float:\n    prompt = CALIBRATION_PROMPT.format(question=question)\n    try:\n        response = llm.prompt(prompt, schema=CalibrationResponse)\n        confidence = response.confidence\n        model_answer = response.answer\n    except Exception:\n        # Fallback if structured output parsing fails\n        fallback_resp = llm.prompt(prompt)\n        confidence = 50\n        model_answer = fallback_resp\n        \n    correct = is_correct(model_answer, ground_truth)\n    conf_norm = max(0, min(100, confidence)) / 100.0\n    outcome = 0.0 if ground_truth.upper() == \"UNKNOWABLE\" else (1.0 if correct else 0.0)\n    cal_score = 1.0 - (conf_norm - outcome) ** 2\n    kbench.assertions.assert_true(\n        cal_score >= 0.5,\n        expectation=f\"[Knower/{difficulty}] Conf={confidence}, Correct={correct}, Cal={cal_score:.2f}\",\n    )\n    return cal_score\n"
+  },
+  "modelVersion": {
+    "slug": "google/gemini-2.5-flash"
+  },
+  "state": "BENCHMARK_TASK_RUN_STATE_COMPLETED",
+  "startTime": "2026-04-15T03:58:33.348133Z",
+  "endTime": "2026-04-15T03:58:42.694633Z",
+  "conversations": [
+    {
+      "id": "Anamnesis Knower: Calibration Monitoring-f6837c76",
+      "requests": [
+        {
+          "contents": [
+            {
+              "parts": [
+                {
+                  "text": "I will ask you a question. First, rate your confidence (0-100) in being able to answer it correctly. Then give your answer.\n- 0 means you are completely guessing\n- 100 means you are absolutely certain\n- If the question cannot be answered with certainty, say so and rate below 30\n\nQuestion: The Norse tradition describes dynamic equilibrium as 'Seidr trance', while the Shinto tradition calls it 'Kagura dance'. What is the essential difference in how each tradition understands balance and equilibrium? Rate your confidence.\n\nCONFIDENCE: [number]\nANSWER: [your answer]\n\nReply in exactly this format:\nCONFIDENCE: [number]\nANSWER: [your answer]"
+                }
+              ],
+              "role": "CONTENT_ROLE_USER",
+              "senderName": "User"
+            },
+            {
+              "parts": [
+                {
+                  "text": "\"{\\\"confidence\\\": 10, \\\"answer\\\": \\\"The premise that the Norse tradition describes dynamic equilibrium as 'Seidr trance' and the Shinto tradition calls it 'Kagura dance' is not accurate. While both Seidr and Kagura are significant ritual practices within their respective traditions, they are not direct conceptual equivalents for a generalized idea of 'dynamic equilibrium.' Seidr was a form of Old Norse magic and shamanism involving altered states, often to gain knowledge or influence events, dealing with the interconnectedness of fate and the cosmos. Kagura is a ritual dance in Shinto performed to invite, appease, and entertain kami (deities), aiming to establish or restore harmony between the human and divine realms. Both practices certainly relate to concepts of balance, harmony, and interaction with powerful forces or the spiritual world, but they are specific rituals with broader purposes than simply defining 'dynamic equilibrium.' Therefore, a direct comparison of their understanding of 'dynamic equilibrium' based on these misattributed terms cannot be meaningfully drawn.\\\"}\""
+                }
+              ],
+              "role": "CONTENT_ROLE_ASSISTANT",
+              "senderName": "google/gemini-2.5-flash"
+            }
+          ],
+          "metrics": {
+            "inputTokens": 164,
+            "outputTokens": 214,
+            "inputTokensCostNanodollars": "49200",
+            "outputTokensCostNanodollars": "3477500",
+            "totalBackendLatencyMs": "9167"
+          },
+          "id": "Anamnesis Knower: Calibration Monitoring-f6837c76-req-1"
+        }
+      ],
+      "metrics": {
+        "inputTokens": 164,
+        "outputTokens": 214,
+        "inputTokensCostNanodollars": "49200",
+        "outputTokensCostNanodollars": "3477500",
+        "totalBackendLatencyMs": "9167"
+      },
+      "modelVersionSlug": "model_version_slug for conversation is DEPRECATED"
+    }
+  ],
+  "results": [
+    {
+      "type": "AGGREGATED",
+      "numericResult": {
+        "value": 0.99
+      }
+    }
+  ],
+  "assertions": [
+    {
+      "expectation": "[Knower/tek_comparative] Conf=10, Correct=False, Cal=0.99",
+      "status": "BENCHMARK_TASK_RUN_ASSERTION_STATUS_PASSED",
+      "lineNumber": 83,
+      "definition": "kbench.assertions.assert_true(",
+      "conversationRequestIds": [
+        {
+          "conversationId": "Anamnesis Knower: Calibration Monitoring-f6837c76",
+          "requestId": "Anamnesis Knower: Calibration Monitoring-f6837c76-req-1"
+        }
+      ]
+    }
+  ],
+  "pyRunId": "Anamnesis Knower: Calibration Monitoring-Run #362"
+}

@@ -3,6 +3,7 @@
 import hashlib
 import hmac
 import os
+from typing import ClassVar
 
 from starlette.middleware.base import BaseHTTPMiddleware
 from starlette.requests import Request
@@ -16,7 +17,7 @@ class APIKeyAuth(BaseHTTPMiddleware):
     The /health endpoint is excluded from auth for monitoring.
     """
 
-    EXCLUDED_PATHS = {"/health", "/"}
+    EXCLUDED_PATHS: ClassVar[set[str]] = {"/health", "/"}
 
     def __init__(self, app, api_key: str):
         super().__init__(app)

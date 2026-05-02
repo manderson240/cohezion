@@ -1,0 +1,82 @@
+{
+  "taskVersion": {
+    "versionNumber": 1,
+    "name": "Anamnesis Knower: Calibration Monitoring",
+    "description": "Tests metacognitive monitoring \u2014 does the model's stated confidence match actual accuracy? Brier-complement scoring. Loads from 823-item CSV dataset.",
+    "definition": "@kbench.task(\n    name=\"Anamnesis Knower: Calibration Monitoring\",\n    description=(\n        \"Tests metacognitive monitoring \u2014 does the model's stated confidence \"\n        \"match actual accuracy? Brier-complement scoring. Loads from 823-item CSV dataset.\"\n    ),\n)\ndef knower_probe(llm, question, ground_truth, difficulty, category) -> float:\n    prompt = CALIBRATION_PROMPT.format(question=question)\n    try:\n        response = llm.prompt(prompt, schema=CalibrationResponse)\n        confidence = response.confidence\n        model_answer = response.answer\n    except Exception:\n        # Fallback if structured output parsing fails\n        fallback_resp = llm.prompt(prompt)\n        confidence = 50\n        model_answer = fallback_resp\n        \n    correct = is_correct(model_answer, ground_truth)\n    conf_norm = max(0, min(100, confidence)) / 100.0\n    outcome = 0.0 if ground_truth.upper() == \"UNKNOWABLE\" else (1.0 if correct else 0.0)\n    cal_score = 1.0 - (conf_norm - outcome) ** 2\n    kbench.assertions.assert_true(\n        cal_score >= 0.5,\n        expectation=f\"[Knower/{difficulty}] Conf={confidence}, Correct={correct}, Cal={cal_score:.2f}\",\n    )\n    return cal_score\n"
+  },
+  "modelVersion": {
+    "slug": "google/gemini-2.5-flash"
+  },
+  "state": "BENCHMARK_TASK_RUN_STATE_COMPLETED",
+  "startTime": "2026-04-15T03:41:34.670159Z",
+  "endTime": "2026-04-15T03:41:51.834095Z",
+  "conversations": [
+    {
+      "id": "Anamnesis Knower: Calibration Monitoring-b522a548",
+      "requests": [
+        {
+          "contents": [
+            {
+              "parts": [
+                {
+                  "text": "I will ask you a question. First, rate your confidence (0-100) in being able to answer it correctly. Then give your answer.\n- 0 means you are completely guessing\n- 100 means you are absolutely certain\n- If the question cannot be answered with certainty, say so and rate below 30\n\nQuestion: Compare the Yoruba concept of 'Olodumare' (ground state/void) with the Dogon concept of 'Amma's egg'. In what specific ways do they differ in how they conceptualize nothingness or the origin state? Rate your confidence.\n\nCONFIDENCE: [number]\nANSWER: [your answer]\n\nReply in exactly this format:\nCONFIDENCE: [number]\nANSWER: [your answer]"
+                }
+              ],
+              "role": "CONTENT_ROLE_USER",
+              "senderName": "User"
+            },
+            {
+              "parts": [
+                {
+                  "text": "\"{\\\"confidence\\\": 90, \\\"answer\\\": \\\"The comparison between Olodumare as a \\\\\\\"ground state/void\\\\\\\" and Amma's egg requires clarifying the roles of the supreme beings and their associated cosmological elements. Olodumare (Yoruba) is not typically conceptualized as a 'ground state/void' but as the Supreme Being, the ultimate source, and the active creator who pre-exists all creation. The 'ground state' or 'void' in Yoruba thought more accurately refers to the primordial, undifferentiated, often watery expanse upon which Olodumare acts to bring forth the world. Amma's egg (Dogon), on the other hand, is a symbolic representation of the encapsulated potential of the universe, conceived by Amma (the Dogon creator god) from an initial state of void.\\\\n\\\\nSpecific ways they differ in conceptualizing nothingness or the origin state are:\\\\n\\\\n1.  **Nature of the ultimate origin entity:** For the Yoruba, Olodumare *is* the ultimate origin, an active, conscious, and self-existent Supreme Being. The 'ground state' or primordial chaos is what Olodumare *acts upon* or *creates from*, rather than being Olodumare itself. For the Dogon, Amma is the supreme creator, who initially exists alone in a literal *void*. Amma then *conceives* and *forms* the 'egg' as the container of creation.\\\\n2.  **Role of 'nothingness' or 'void':** Dogon cosmology explicitly begins with an *empty void* where Amma resides, and from which Amma's creative thought (the egg) emerges. In Yoruba cosmology, while there is a primordial, unmanifested or chaotic state, Olodumare is the eternal, pre-existent reality that *orders* or *creates from* it, rather than originating from or being identical to a void. The 'void' is more like an unformed potential or a primordial expanse than an absolute absence of being that gives rise to the creator.\\\\n3.  **Concept of the 'egg':** Amma's egg is a distinct, symbolic entity representing the universe's primordial, encapsulated potential, a container of all creation's seeds, which is *formed by* Amma. Olodumare, as the ultimate Creator and source of all things, does not have a separate 'egg' concept; the potential and act of creation reside within Olodumare directly. Olodumare *is* the ultimate ground and source, whereas Amma's egg is the *first manifest form* of the universe's potential within the void, distinct from Amma.\\\"}\""
+                }
+              ],
+              "role": "CONTENT_ROLE_ASSISTANT",
+              "senderName": "google/gemini-2.5-flash"
+            }
+          ],
+          "metrics": {
+            "inputTokens": 173,
+            "outputTokens": 569,
+            "inputTokensCostNanodollars": "51900",
+            "outputTokensCostNanodollars": "7507500",
+            "totalBackendLatencyMs": "17005"
+          },
+          "id": "Anamnesis Knower: Calibration Monitoring-b522a548-req-1"
+        }
+      ],
+      "metrics": {
+        "inputTokens": 173,
+        "outputTokens": 569,
+        "inputTokensCostNanodollars": "51900",
+        "outputTokensCostNanodollars": "7507500",
+        "totalBackendLatencyMs": "17005"
+      },
+      "modelVersionSlug": "model_version_slug for conversation is DEPRECATED"
+    }
+  ],
+  "results": [
+    {
+      "type": "AGGREGATED",
+      "numericResult": {
+        "value": 0.18999999999999995
+      }
+    }
+  ],
+  "assertions": [
+    {
+      "expectation": "[Knower/tek_comparative] Conf=90, Correct=False, Cal=0.19",
+      "status": "BENCHMARK_TASK_RUN_ASSERTION_STATUS_FAILED",
+      "lineNumber": 83,
+      "definition": "kbench.assertions.assert_true(",
+      "conversationRequestIds": [
+        {
+          "conversationId": "Anamnesis Knower: Calibration Monitoring-b522a548",
+          "requestId": "Anamnesis Knower: Calibration Monitoring-b522a548-req-1"
+        }
+      ]
+    }
+  ],
+  "pyRunId": "Anamnesis Knower: Calibration Monitoring-Run #265"
+}

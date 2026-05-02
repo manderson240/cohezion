@@ -1,0 +1,6 @@
+{
+  "versionNumber": 1,
+  "name": "learning_geometric_transform_10",
+  "description": "Learn geometric transformation sequence.",
+  "definition": "@kbench.task(name=\"learning_geometric_transform_10\")\ndef learning_geometric_transform_10():\n    \"\"\"Learn geometric transformation sequence.\"\"\"\n    prompt = \"\"\"A shape undergoes transformations:\n\n1. Rotate 90\u00b0 clockwise\n2. Reflect over x-axis\n3. Scale by factor of 2\n4. Rotate 90\u00b0 counter-clockwise\n\nWhat is the net effect?\n\nA) Identity (no change)\nB) Reflect over y-axis and scale by 2\nC) Scale by 2 and reflect over origin\nD) Scale by 2 only\"\"\"\n    return prompt, \"B\"\n"
+}

@@ -15,13 +15,13 @@ Brief description of this project.
 Key architectural decisions and structure.
 
 ## Key Decisions
-- [[decisions/...]]
+- {{decisions/...}}
 
 ## Patterns Used
-- [[patterns/...]]
+- {{patterns/...}}
 
 ## Experiments
-- [[experiments/...]]
+- {{experiments/...}}
 
 ## Related
 - Papers: ...

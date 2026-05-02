@@ -416,3 +416,50 @@ class TestA2AErrorHandling:
 
         # Verify error mentions size limit
         assert any("size" in str(err).lower() or "1048576" in str(err) for err in error_detail)
+
+
+class TestA2AMultiAgentDiscovery:
+    """Test GET /agents — multi-agent discovery endpoint."""
+
+    EXPECTED_SPECIALISTS = [
+        "vault-keeper",
+        "surreal-dba",
+        "claude-specialist",
+        "gemini-specialist",
+        "ollama-specialist",
+        "mcp-specialist",
+        "platform-coordinator",
+    ]
+
+    def test_list_agents_returns_ok(self, client):
+        """GET /agents returns 200 with count and agents list."""
+        response = client.get("/agents")
+        assert response.status_code == 200
+        data = response.json()
+        assert "count" in data
+        assert "agents" in data
+        assert isinstance(data["agents"], list)
+
+    def test_list_agents_finds_all_7_specialists(self, client):
+        """All 7 .claude/agents/ markdown specialists appear in the list."""
+        response = client.get("/agents")
+        assert response.status_code == 200
+        names = {a["name"] for a in response.json()["agents"]}
+        for specialist in self.EXPECTED_SPECIALISTS:
+            assert specialist in names, f"Specialist '{specialist}' not discovered"
+
+    def test_list_agents_response_schema(self, client):
+        """Each agent entry has the required fields: id, name, description, path, tags."""
+        response = client.get("/agents")
+        for agent in response.json()["agents"]:
+            assert "id" in agent
+            assert "name" in agent
+            assert "description" in agent
+            assert "path" in agent
+            assert "tags" in agent
+            assert isinstance(agent["tags"], list)
+
+    def test_list_agents_count_matches_list_length(self, client):
+        """count field equals len(agents)."""
+        data = client.get("/agents").json()
+        assert data["count"] == len(data["agents"])

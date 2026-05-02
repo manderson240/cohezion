@@ -135,14 +135,12 @@ class QuadratureNexus:
     CONSENSUS_THRESHOLD: float = 0.85
 
     # Voice weights (can be adjusted based on context)
-    DEFAULT_WEIGHTS: dict[VoiceType, float] = field(
-        default_factory=lambda: {
-            VoiceType.ARCHITECT: 0.25,
-            VoiceType.ENGINEER: 0.25,
-            VoiceType.ETHICIST: 0.25,
-            VoiceType.RESOURCE: 0.25,
-        }
-    )
+    DEFAULT_WEIGHTS: dict[VoiceType, float] = {
+        VoiceType.ARCHITECT: 0.25,
+        VoiceType.ENGINEER: 0.25,
+        VoiceType.ETHICIST: 0.25,
+        VoiceType.RESOURCE: 0.25,
+    }
 
     def __init__(self, weights: dict[VoiceType, float] | None = None):
         """Initialize Quadrature Nexus.
@@ -153,6 +151,108 @@ class QuadratureNexus:
         self._weights = weights or dict(self.DEFAULT_WEIGHTS)
         self._directives: list[StrategicDirective] = []
         self._deliberation_history: list[QuadratureResult] = []
+        # E2: EVO lifecycle — one EVO per action type, reused across deliberations
+        self._evo_registry: dict[str, Any] = {}  # action_key → ExoticVacuumObject
+        # E5/E6: Mycelium feedback — tracks alignment/consensus before/after injection
+        self._baseline_alignments: list[float] = []
+        self._post_mycelium_alignments: list[float] = []
+        self._baseline_consensus: list[float] = []
+        self._post_mycelium_consensus: list[float] = []
+        self._mycelium_applied = False
+        # E6: score adjustments — Mycelium writes per-voice corrections here
+        self._score_adjustments: dict[VoiceType, float] = dict.fromkeys(VoiceType, 0.0)
+
+    def apply_mycelium_feedback(
+        self, synthesized_skill_content: str, learning_rate: float = 0.5
+    ) -> dict:
+        """Apply Mycelium-synthesized patterns as per-voice score adjustments (E6/E8).
+
+        Reads per-voice mean scores from the synthesized skill content.
+        For each voice scoring below the consensus target, applies a positive
+        score adjustment to lift consensus toward the HIHO threshold.
+
+        Args:
+            synthesized_skill_content: Skill content from MyceliumRegistry.
+            learning_rate: Fraction of gap-to-target to apply as adjustment (E8 sweep).
+
+        This is Path A (state injection): `_score_adjustments[voice]` is added
+        to the base score in each `_evaluate_*` method, closing the feedback loop.
+
+        Returns a dict describing the adjustments applied.
+        """
+        import re
+
+        # Voice heuristic baselines (from _evaluate_* methods)
+        baselines = {
+            "architect": 0.7,
+            "engineer": 0.75,
+            "ethicist": 0.8,
+            "resource": 0.65,
+        }
+        voice_type_map = {
+            "architect": VoiceType.ARCHITECT,
+            "engineer": VoiceType.ENGINEER,
+            "ethicist": VoiceType.ETHICIST,
+            "resource": VoiceType.RESOURCE,
+        }
+
+        # Parse mean consensus from synthesized content
+        cons_m = re.search(r"consensus=(\d+\.\d+)", synthesized_skill_content)
+        mean_consensus = float(cons_m.group(1)) if cons_m else 0.5
+
+        # Parse per-voice mean scores from synthesized skill
+        # E6/E8 rule: ONLY apply positive adjustments — never penalize high-scoring voices.
+        # Goal: lift the floor so consensus rises toward CONSENSUS_THRESHOLD (0.85).
+        adjustments_applied = {}
+        consensus_gap = max(0.0, self.CONSENSUS_THRESHOLD - mean_consensus)
+        for voice_name, baseline in baselines.items():
+            pattern = rf"{voice_name}: mean_score=(\d+\.\d+)"
+            m = re.search(pattern, synthesized_skill_content)
+            if m:
+                observed_mean = float(m.group(1))
+                # Target = observed + proportional share of consensus gap
+                target = min(1.0, observed_mean + consensus_gap * 0.5)
+                gap_to_target = target - observed_mean
+                # Boost = learning_rate × gap, always positive, capped at 0.15
+                adjustment = max(0.0, min(0.15, gap_to_target * learning_rate))
+                vt = voice_type_map[voice_name]
+                self._score_adjustments[vt] = adjustment
+                adjustments_applied[voice_name] = {
+                    "baseline": baseline,
+                    "observed": observed_mean,
+                    "target": round(target, 4),
+                    "adjustment": round(adjustment, 5),
+                }
+
+        self._mycelium_applied = True
+        logger.info("Mycelium E6 score adjustments: %s", adjustments_applied)
+        return {
+            "adjustments": adjustments_applied,
+            "mechanism": "score_injection",
+        }
+
+    def get_alignment_trend(self) -> dict:
+        """Return alignment and consensus scores before/after Mycelium feedback (E5)."""
+        b_align = self._baseline_alignments
+        p_align = self._post_mycelium_alignments
+        b_cons = self._baseline_consensus
+        p_cons = self._post_mycelium_consensus
+
+        def safe_mean(lst: list[float]) -> float:
+            return sum(lst) / len(lst) if lst else 0.0
+
+        align_delta = safe_mean(p_align) - safe_mean(b_align) if b_align and p_align else 0.0
+        cons_delta = safe_mean(p_cons) - safe_mean(b_cons) if b_cons and p_cons else 0.0
+        return {
+            "baseline_count": len(b_align),
+            "baseline_alignment_mean": safe_mean(b_align),
+            "baseline_consensus_mean": safe_mean(b_cons),
+            "post_mycelium_count": len(p_align),
+            "post_mycelium_alignment_mean": safe_mean(p_align),
+            "post_mycelium_consensus_mean": safe_mean(p_cons),
+            "alignment_delta": align_delta,
+            "consensus_delta": cons_delta,
+        }
 
     async def deliberate(self, proposal: QuadratureProposal) -> QuadratureResult:
         """Deliberate on a proposal through all 4 voices.
@@ -196,6 +296,142 @@ class QuadratureNexus:
         )
 
         self._deliberation_history.append(result)
+
+        # E5: Track alignment and consensus for closed-loop measurement
+        if self._mycelium_applied:
+            self._post_mycelium_alignments.append(alignment_score)
+            self._post_mycelium_consensus.append(consensus_score)
+        else:
+            self._baseline_alignments.append(alignment_score)
+            self._baseline_consensus.append(consensus_score)
+
+        # --- E2: EVO LIFECYCLE TRACKING ---
+        evo_biography: dict | None = None
+        try:
+            from cohezion.physics.evo_model import ExoticVacuumObject
+
+            # Get or create EVO for this action type
+            evo = self._evo_registry.get(proposal.action)
+            if evo is None or evo.state == "vacuum":
+                evo = ExoticVacuumObject(agent_id=f"nexus_{proposal.action[:24]}")
+                self._evo_registry[proposal.action] = evo
+
+            # Lifecycle: condense (vacuum → coherent)
+            if evo.state == "vacuum":
+                evo.condense()
+
+            # Tick coherence once per voice response
+            for r in responses:
+                evo.coherent_phase(coherence=r.approval_score)
+
+            # Produce a witness mark for each deliberation outcome
+            mark_type = "directive" if approved else "rejection"
+            mark_content = directive or rejection_reason or "deliberation_complete"
+            evo.produce_witness_mark(mark_type, mark_content[:120])
+
+            # Dissolve and capture biography, then reset for next deliberation
+            evo_biography = evo.dissolve()
+            logger.debug(
+                "EVO biography: agent=%s evo_coherence=%.3f lifetime=%d marks=%d",
+                evo_biography["agent_id"],
+                evo_biography["evo_coherence_metric"],
+                evo_biography["lifetime_ticks"],
+                len(evo_biography["witness_marks"]),
+            )
+        except Exception as evo_err:
+            logger.debug("EVO lifecycle tracking skipped: %s", evo_err)
+
+        # --- JOURNEY TELEMETRY INSTRUMENTATION (E1: real FLUME encoding) ---
+        try:
+            from cohezion.core.telemetry_bus import get_telemetry_bus
+            from cohezion.data_mesh.journey_telemetry import (
+                FlumeJourneyEvent,
+                HardwareTier,
+                QuadratureFabrics,
+                RZeroMetrics,
+                SwarmExpert,
+            )
+            from cohezion.flume.experience_encoder import ExperienceEncoder
+
+            # Build deliberation experience for FLUME encoding.
+            # Dims [0:12] = trajectory (voice scores projected to 12D),
+            # [12:24] = execution metrics (consensus, alignment, etc.)
+            voice_scores = {r.voice.value: r.approval_score for r in responses}
+            deliberation_experience = {
+                # 12D trajectory: 4 voice scores + 8 context scalars
+                "trajectory": [
+                    voice_scores.get("architect", 0.5),
+                    voice_scores.get("engineer", 0.5),
+                    voice_scores.get("ethicist", 0.5),
+                    voice_scores.get("resource", 0.5),
+                    consensus_score,
+                    alignment_score,
+                    float(approved),
+                    proposal.priority,
+                    # 4 context signals derived from proposal
+                    min(len(proposal.description) / 500.0, 1.0),
+                    min(len(proposal.context) / 10.0, 1.0),
+                    float("migrate" in proposal.action or "refactor" in proposal.action),
+                    float(proposal.priority > 0.6),
+                ],
+                # Scalar execution metrics (dims [12:24])
+                "phi_score": consensus_score,
+                "anomaly_score": 1.0 - alignment_score,
+                "misalignment_score": abs(consensus_score - 0.5),
+                "intent_confidence": alignment_score,
+                "duration_s": 0.0,
+                "tokens_used": 0,
+                "cache_hit_rate": 0.0,
+                "success": float(approved),
+                "token_efficiency": consensus_score,
+                "trajectory_smoothness": alignment_score,
+                "trajectory_convergence": consensus_score,
+                "cost_usd": 0.0,
+                # Semantic fingerprint seed
+                "operation_type": "analyze",
+            }
+            encoder = ExperienceEncoder()
+            z_arr = encoder.encode(deliberation_experience)
+            z_vector = z_arr.tolist()  # 256D real encoding
+            state_12d = z_arr[:12].tolist()  # first 12 dims = trajectory
+
+            # Map 4 voices to 4 QuadratureFabrics fields
+            fabrics = QuadratureFabrics(
+                space=voice_scores.get("architect", 0.5),  # geometric structure
+                field=voice_scores.get("engineer", 0.5),  # energy/efficiency
+                control=1.0 - voice_scores.get("ethicist", 0.5),  # safety overhead
+                precipitation=voice_scores.get("resource", 0.5),  # value generation
+            )
+
+            bus = get_telemetry_bus()
+            event = FlumeJourneyEvent(
+                event_id=f"evt_{int(datetime.now().timestamp())}_{proposal.action[:10]}",
+                journey_id=proposal.action,
+                z_vector=z_vector,
+                state_12d=state_12d,
+                coherence=alignment_score,
+                fabrics=fabrics,
+                awareness_parameter=consensus_score,
+                expert_stream=SwarmExpert.ARCHITECT,
+                hardware_tier=HardwareTier.IGPU,
+                latency_ms=0.0,
+                r_zero=RZeroMetrics(
+                    success_rate=consensus_score,
+                    iteration_count=len(responses),
+                    difficulty_adjustment=1.0 - alignment_score,
+                ),
+                # E2+E6: embed EVO biography + per-voice scores for Mycelium learning
+                metadata={
+                    **({"evo_biography": evo_biography} if evo_biography else {}),
+                    "voice_scores": voice_scores,  # per-voice approval scores for E6
+                    "consensus_score": consensus_score,
+                    "approved": approved,
+                },
+            )
+            await bus.emit(event)
+        except Exception as te:
+            logger.error("Failed to emit journey telemetry: %s", te)
+
         logger.info(
             "Quadrature deliberation complete: approved=%s, consensus=%.3f",
             approved,
@@ -269,40 +505,40 @@ class QuadratureNexus:
 
     def _evaluate_architect(self, proposal: QuadratureProposal) -> float:
         """Evaluate proposal from Architect perspective."""
-        # Architects value structure, elegance, beauty
         base_score = 0.7
         if "architecture" in proposal.description.lower():
             base_score += 0.1
         if proposal.priority > 0.6:
             base_score += 0.1
-        return min(1.0, base_score)
+        # E6: apply Mycelium score adjustment (clamped to keep score in [0, 1])
+        return min(1.0, max(0.0, base_score + self._score_adjustments[VoiceType.ARCHITECT]))
 
     def _evaluate_engineer(self, proposal: QuadratureProposal) -> float:
         """Evaluate proposal from Engineer perspective."""
-        # Engineers value feasibility, efficiency, implementation
         base_score = 0.75
         if (
             "efficient" in proposal.description.lower()
             or "optimize" in proposal.description.lower()
         ):
             base_score += 0.1
-        return min(1.0, base_score)
+        return min(1.0, max(0.0, base_score + self._score_adjustments[VoiceType.ENGINEER]))
 
     def _evaluate_ethicist(self, proposal: QuadratureProposal) -> float:
         """Evaluate proposal from Ethicist perspective."""
-        # Ethicists value safety, alignment, ethics
         base_score = 0.8
         if "safe" in proposal.description.lower() or "align" in proposal.description.lower():
             base_score += 0.1
-        return min(1.0, base_score)
+        return min(1.0, max(0.0, base_score + self._score_adjustments[VoiceType.ETHICIST]))
 
     def _evaluate_resource(self, proposal: QuadratureProposal) -> float:
         """Evaluate proposal from Resource perspective."""
-        # Resources value cost, budget, constraints
         base_score = 0.65
         if proposal.context.get("budget_available", False):
             base_score += 0.15
-        return min(1.0, base_score)
+        desc_lower = proposal.description.lower()
+        if any(kw in desc_lower for kw in ("cost", "budget", "efficient", "resource", "reduce")):
+            base_score += 0.10
+        return min(1.0, max(0.0, base_score + self._score_adjustments[VoiceType.RESOURCE]))
 
     def _architect_concerns(self, proposal: QuadratureProposal) -> list[str]:
         """Generate Architect concerns."""

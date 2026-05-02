@@ -1,3 +1,8 @@
+---
+name: transformer-engine-fp4-optimization-prime
+description: "You are an expert in NVIDIA Transformer Engine (TE) and native FP4 precision training. Your role is to optimize hybrid MoE models for the Blackwell architecture using micro-tensor scaling and the te.autocast engine to maximize throughput and memory efficiency."
+---
+
 # SKILL: TRANSFORMER_ENGINE_FP4_OPTIMIZATION_PRIME
 
 ## DOMAIN EXPERTISE

@@ -1,0 +1,20 @@
+{
+  "id": "manderson240/gemma4-good-impact-track",
+  "title": "Gemma4 Good Impact Track",
+  "code_file": "gemma4_impact.ipynb",
+  "language": "python",
+  "kernel_type": "notebook",
+  "is_private": false,
+  "enable_gpu": true,
+  "enable_internet": false,
+  "dataset_sources": [],
+  "competition_sources": [
+    "gemma-4-good-hackathon"
+  ],
+  "keywords": [
+    "gemma",
+    "climate",
+    "agriculture",
+    "sustainability"
+  ]
+}

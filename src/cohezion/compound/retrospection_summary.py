@@ -56,7 +56,7 @@ class RetrospectionSummary:
 class StrategyTracker:
     """Tracks consecutive failures and improvement plateaus per skill.
 
-    Used by RetrospectionEngine to detect when an approach should be
+    Used by CycleRetrospectionEngine to detect when an approach should be
     abandoned in favor of a fundamentally different strategy.
     """
 
@@ -98,11 +98,21 @@ class StrategyTracker:
         self._improvement_history.pop(skill_name, None)
 
 
-class RetrospectionEngine:
-    """Generates retrospection summaries after compound cycles.
+class CycleRetrospectionEngine:
+    """Generates per-cycle retrospection summaries after compound cycles.
 
     The narrative uses first-person voice to maintain the singular
     Voice Identity across all system communications.
+
+    Renamed from RetrospectionEngine 2026-04-22 (Sprint A) to disambiguate
+    from the two other same-named classes that do different things:
+      * core.compound.retrospection.RetrospectionEngine — parses
+        KEY_LEARNINGS.md / MISSION_JOURNAL.md from the knowledge graph.
+      * compound.autoresearch.VaultLearningCapture (was RetrospectionEngine)
+        — captures learnings to vault via MCP.
+    This class generates a CycleMetrics → RetrospectionSummary transformation
+    per compound cycle. Backward-compat alias `RetrospectionEngine` at module
+    bottom.
     """
 
     def __init__(self) -> None:
@@ -184,3 +194,10 @@ class RetrospectionEngine:
     def get_recent(self, n: int = 5) -> list[dict]:
         """Get the N most recent summaries."""
         return [s.to_dict() for s in self._summaries[-n:]]
+
+
+# Backward-compat alias — deprecated. Prefer CycleRetrospectionEngine, which
+# disambiguates this per-cycle summary generator from
+# core.compound.retrospection.RetrospectionEngine (KG parser). See
+# patterns/deferred-sprints-consolidation-and-skills-migration.md.
+RetrospectionEngine = CycleRetrospectionEngine

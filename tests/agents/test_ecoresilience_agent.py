@@ -1,7 +1,8 @@
 """Tests for the EcoResilience Agent."""
 
-import pytest
 from unittest.mock import AsyncMock, patch
+
+import pytest
 
 from cohezion.agents.ecoresilience_agent import EcoResilienceAgent
 
@@ -30,5 +31,5 @@ class TestEcoResilienceAgent:
 
             # Verify the correct prompt and model were used
             call_kwargs = mock_provider.generate.call_args.kwargs
-            assert "gemma4:31b" == call_kwargs["model"]
+            assert call_kwargs["model"] == "gemma4:31b"
             assert "Traditional Ecological Knowledge" in call_kwargs["prompt"]

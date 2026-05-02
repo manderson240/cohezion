@@ -1,0 +1,82 @@
+{
+  "taskVersion": {
+    "versionNumber": 1,
+    "name": "Anamnesis Knower: Calibration Monitoring",
+    "description": "Tests metacognitive monitoring \u2014 does the model's stated confidence match actual accuracy? Brier-complement scoring. Loads from 823-item CSV dataset.",
+    "definition": "@kbench.task(\n    name=\"Anamnesis Knower: Calibration Monitoring\",\n    description=(\n        \"Tests metacognitive monitoring \u2014 does the model's stated confidence \"\n        \"match actual accuracy? Brier-complement scoring. Loads from 823-item CSV dataset.\"\n    ),\n)\ndef knower_probe(llm, question, ground_truth, difficulty, category) -> float:\n    prompt = CALIBRATION_PROMPT.format(question=question)\n    try:\n        response = llm.prompt(prompt, schema=CalibrationResponse)\n        confidence = response.confidence\n        model_answer = response.answer\n    except Exception:\n        # Fallback if structured output parsing fails\n        fallback_resp = llm.prompt(prompt)\n        confidence = 50\n        model_answer = fallback_resp\n        \n    correct = is_correct(model_answer, ground_truth)\n    conf_norm = max(0, min(100, confidence)) / 100.0\n    outcome = 0.0 if ground_truth.upper() == \"UNKNOWABLE\" else (1.0 if correct else 0.0)\n    cal_score = 1.0 - (conf_norm - outcome) ** 2\n    kbench.assertions.assert_true(\n        cal_score >= 0.5,\n        expectation=f\"[Knower/{difficulty}] Conf={confidence}, Correct={correct}, Cal={cal_score:.2f}\",\n    )\n    return cal_score\n"
+  },
+  "modelVersion": {
+    "slug": "google/gemini-2.5-flash"
+  },
+  "state": "BENCHMARK_TASK_RUN_STATE_COMPLETED",
+  "startTime": "2026-04-15T03:58:07.370936Z",
+  "endTime": "2026-04-15T03:58:18.812494Z",
+  "conversations": [
+    {
+      "id": "Anamnesis Knower: Calibration Monitoring-53d6e12b",
+      "requests": [
+        {
+          "contents": [
+            {
+              "parts": [
+                {
+                  "text": "I will ask you a question. First, rate your confidence (0-100) in being able to answer it correctly. Then give your answer.\n- 0 means you are completely guessing\n- 100 means you are absolutely certain\n- If the question cannot be answered with certainty, say so and rate below 30\n\nQuestion: Compare the Norse concept of 'Ginnungagap' (ground state/void) with the Celtic concept of 'Three Worlds (Land, Sea, Sky)'. In what specific ways do they differ in how they conceptualize nothingness or the origin state? Rate your confidence.\n\nCONFIDENCE: [number]\nANSWER: [your answer]\n\nReply in exactly this format:\nCONFIDENCE: [number]\nANSWER: [your answer]"
+                }
+              ],
+              "role": "CONTENT_ROLE_USER",
+              "senderName": "User"
+            },
+            {
+              "parts": [
+                {
+                  "text": "\"{\\\"confidence\\\": 95, \\\"answer\\\": \\\"The Norse concept of 'Ginnungagap' and the Celtic 'Three Worlds' differ significantly in their conceptualization of nothingness or the origin state.\\\\n\\\\n**Ginnungagap (Norse):**\\\\n*   **Conceptualization of Nothingness/Origin:** Ginnungagap explicitly represents the primordial void, a vast, yawning chasm that existed *before* creation. It is the original state of nothingness, devoid of form, life, or substance. It's a chaotic, empty space, literally a \\\\\\\"gaping abyss\\\\\\\" where nothing yet was. Creation in Norse cosmology (the birth of Ymir, the shaping of the world) occurs *from* and *within* the interactions at the edges of Ginnungagap, specifically the meeting of fire (Muspelheim) and ice (Niflheim).\\\\n*   **Role:** It serves as the absolute origin point, the unformed canvas from which all cosmic order and life emerged.\\\\n\\\\n**Celtic Three Worlds (Land, Sea, Sky):**\\\\n*   **Conceptualization of Nothingness/Origin:** The Celtic 'Three Worlds' (often interpreted as the terrestrial realm, the watery underworld/otherworld, and the celestial realm) primarily describe the *structure and division of an existing cosmos*, not its primordial nothingness or origin state. They represent different interconnected planes of reality or dimensions of being. While these realms are fundamental to Celtic cosmology and often embody deep spiritual significance and the cyclical nature of existence, they do not describe an initial void *before* creation. The concept itself is about the organization of *something*, not the absence of something.\\\\n*   **Role:** These worlds delineate the various spheres of existence, often influencing travel between realms (e.g., journeys to the Otherworld via the sea or mounds). They are an established cosmic order, not a pre-cosmic void.\\\\n\\\\n**Specific Differences in Conceptualizing Nothingness/Origin:**\\\\n1.  **Nature of the Origin State:** Ginnungagap *is* the absolute origin state of nothingness, a primordial void. The Three Worlds concept *describes* an ordered, albeit interconnected, cosmos, and does not represent an origin state of nothingness. It's a description of *what is*, not *what was before*.\\\\n2.  **Role in Creation:** Ginnungagap is the *precursor* to creation, the blank slate from which life and form arose. The Three Worlds are the *result* or *description* of creation's structure, a framework within which existence unfolds, rather than the unformed state from which it originates.\\\\n3.  **Presence of Form/Structure:** Ginnungagap is explicitly formless and empty. The Three Worlds, by definition, imply distinct forms and structures, even if their boundaries can be fluid or mysterious. They are not 'nothing' but 'something' organized into specific categories.\\\"}\""
+                }
+              ],
+              "role": "CONTENT_ROLE_ASSISTANT",
+              "senderName": "google/gemini-2.5-flash"
+            }
+          ],
+          "metrics": {
+            "inputTokens": 177,
+            "outputTokens": 629,
+            "inputTokensCostNanodollars": "53100",
+            "outputTokensCostNanodollars": "5230000",
+            "totalBackendLatencyMs": "11279"
+          },
+          "id": "Anamnesis Knower: Calibration Monitoring-53d6e12b-req-1"
+        }
+      ],
+      "metrics": {
+        "inputTokens": 177,
+        "outputTokens": 629,
+        "inputTokensCostNanodollars": "53100",
+        "outputTokensCostNanodollars": "5230000",
+        "totalBackendLatencyMs": "11279"
+      },
+      "modelVersionSlug": "model_version_slug for conversation is DEPRECATED"
+    }
+  ],
+  "results": [
+    {
+      "type": "AGGREGATED",
+      "numericResult": {
+        "value": 0.09750000000000003
+      }
+    }
+  ],
+  "assertions": [
+    {
+      "expectation": "[Knower/tek_comparative] Conf=95, Correct=False, Cal=0.10",
+      "status": "BENCHMARK_TASK_RUN_ASSERTION_STATUS_FAILED",
+      "lineNumber": 83,
+      "definition": "kbench.assertions.assert_true(",
+      "conversationRequestIds": [
+        {
+          "conversationId": "Anamnesis Knower: Calibration Monitoring-53d6e12b",
+          "requestId": "Anamnesis Knower: Calibration Monitoring-53d6e12b-req-1"
+        }
+      ]
+    }
+  ],
+  "pyRunId": "Anamnesis Knower: Calibration Monitoring-Run #359"
+}

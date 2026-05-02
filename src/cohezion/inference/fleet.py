@@ -19,14 +19,13 @@ Internal flow:
 This module does NOT implement its own inference HTTP client — it delegates
 to ``cohezion.swarm.providers`` (Lemonade, Ollama, Gemini, Anthropic) and to
 direct httpx calls for the OpenAI-compatible Lemonade endpoints, which is what
-the Symphony launch script exposes on :13306-:13309.
+the Symphony launch script exposes on :13306–:13309.
 """
 
 from __future__ import annotations
 
 import asyncio
 import logging
-import subprocess
 import time
 from dataclasses import dataclass, field
 from typing import Any
@@ -53,6 +52,14 @@ class RouteResult:
       ``ttft_ms``     — time from request start to first token (streaming only).
       ``latency_ms``  — total end-to-end latency (always populated).
       ``tokens_per_sec`` — sustained generation throughput after first token.
+
+    Calibration:
+      ``self_reported_confidence`` — value in [0.0, 1.0] if the model emitted a
+      trailing confidence marker (e.g. ``[confidence: 0.85]``) and the caller's
+      prompt asked for it. None when no marker was present. Used by
+      ``extend_claude()``'s quality gate to make escalation decisions based on
+      the model's own self-assessment instead of pure length heuristics
+      (ARC Lesson 7, patterns/arc-lessons-applied-to-cohezion.md).
     """
 
     text: str
@@ -64,8 +71,50 @@ class RouteResult:
     cost_usd: float = 0.0
     escalated_to_cloud: bool = False
     symmetry_coherence: float | None = None
+    self_reported_confidence: float | None = None  # [0.0, 1.0] or None
     attempts: list[str] = field(default_factory=list)  # model_ids tried
     error: str | None = None
+
+
+# Recognized confidence-marker formats. Kept broad because local models are
+# instruction-followers of varying literal-ness; narrow formats would silently
+# drop usable signals. Matched at end-of-text only so in-body mentions of
+# "confidence" don't trigger false positives.
+_CONFIDENCE_PATTERNS: tuple[tuple[str, float], ...] = (
+    # Bracketed canonical form: [confidence: 0.85] or [CONFIDENCE: 0.85]
+    (r"\[\s*confidence\s*:\s*(-?\d+(?:\.\d+)?)\s*\]\s*$", 1.0),
+    # Assignment form: confidence=0.85 or confidence = 0.85
+    (r"\bconfidence\s*=\s*(-?\d+(?:\.\d+)?)\s*$", 1.0),
+    # Percent form: Confidence: 85%  (divide by 100)
+    (r"\bconfidence\s*:\s*(-?\d+(?:\.\d+)?)\s*%\s*$", 0.01),
+    # Colon form: Confidence: 0.85
+    (r"\bconfidence\s*:\s*(-?\d+(?:\.\d+)?)\s*$", 1.0),
+)
+
+
+def _parse_self_reported_confidence(text: str) -> tuple[float | None, str]:
+    """Extract a trailing confidence marker from ``text``.
+
+    Returns (confidence, cleaned_text). If no marker is found, returns
+    (None, text) unchanged. Values are clamped to [0.0, 1.0] — markers
+    like ``confidence=1.5`` become 1.0 rather than being rejected, since
+    a miscalibrated model is still giving us *some* signal.
+    """
+    import re
+
+    if not text:
+        return None, text
+    for pattern, multiplier in _CONFIDENCE_PATTERNS:
+        match = re.search(pattern, text, re.IGNORECASE)
+        if match:
+            try:
+                raw = float(match.group(1)) * multiplier
+            except ValueError:
+                continue
+            clamped = max(0.0, min(1.0, raw))
+            cleaned = text[: match.start()].rstrip()
+            return clamped, cleaned
+    return None, text
 
 
 def _classify_task(prompt: str, task_hint: Task | str | None) -> Task:
@@ -464,20 +513,6 @@ async def route(
                 continue
 
         attempts.append(candidate.model_id)
-        # Warn if we're about to dispatch to a reasoning-mode model with a
-        # max_tokens budget too small for the model's <thinking> block. Per
-        # local_environment_quirks.md, Gemma-4 FLM on NPU will consume the
-        # entire budget on reasoning content and return empty visible output
-        # when max_tokens < ~128. Callers who deliberately set small budgets
-        # for TTFT-only probes can ignore this warning.
-        if candidate.reasoning_mode and max_tokens < 128:
-            logger.warning(
-                "route(): dispatching to reasoning-mode model %s with max_tokens=%d "
-                "(< 128); reasoning block may consume the full budget and return "
-                "empty visible text. Raise max_tokens or pick a non-reasoning lane.",
-                candidate.model_id,
-                max_tokens,
-            )
         start = time.perf_counter()
         try:
             text, cost, ttft_ms, tokens_per_sec = await _dispatch_one(
@@ -490,8 +525,9 @@ async def route(
                 max_tokens=max_tokens,
             )
             latency_ms = (time.perf_counter() - start) * 1000
+            confidence, cleaned_text = _parse_self_reported_confidence(text)
             return RouteResult(
-                text=text,
+                text=cleaned_text,
                 model=candidate.model_id,
                 lane=candidate.lane.value,
                 latency_ms=latency_ms,
@@ -500,14 +536,10 @@ async def route(
                 cost_usd=cost,
                 escalated_to_cloud=candidate.lane in {Lane.CLOUD_OLLAMA, Lane.CLOUD_CLAUDE},
                 symmetry_coherence=coherence,
+                self_reported_confidence=confidence,
                 attempts=attempts,
             )
-        except (httpx.HTTPError, subprocess.CalledProcessError, OSError, ValueError) as exc:
-            # httpx.HTTPError — HTTP transport failures
-            # CalledProcessError — CLI subprocess lane failures
-            # OSError — covers TimeoutError (3.11+ alias) plus filesystem/socket errors
-            # ValueError — malformed response body (e.g. JSON decode)
-            # Narrower than bare Exception so genuine bugs still surface.
+        except (TimeoutError, httpx.HTTPError, Exception) as exc:
             last_error = f"{candidate.model_id}: {exc}"
             logger.warning("Dispatch to %s failed: %s", candidate.model_id, exc)
             continue
@@ -533,7 +565,7 @@ async def extend_claude(
     """Route through the local fleet first; escalate to Claude only if local insufficient.
 
     This is the user-requested "extend Claude availability" pattern. A Claude call
-    that would have cost ~$0.01-$0.05 is first attempted on the local NPU/iGPU lanes.
+    that would have cost ~$0.01–$0.05 is first attempted on the local NPU/iGPU lanes.
     Escalation to the named Claude model only happens if the local output is empty,
     errored, or would fail a quality gate.
 
@@ -562,11 +594,21 @@ async def extend_claude(
             budget_usd=0.0,  # local only
             timeout=timeout,
         )
-        # Simple quality gate: non-empty, long-enough response.
-        if local_result.error is None and len(local_result.text) >= 40:
+        # Quality gate: non-empty, long-enough response — AND if the model
+        # self-reported a confidence, it must clear the threshold. This lets
+        # a calibrated model force an escalation on ambiguous answers even
+        # when the text is long enough to pass the length heuristic
+        # (ARC Lesson 7). No-op for callers whose prompts don't ask for
+        # confidence — the field stays None and only the length heuristic fires.
+        confidence = local_result.self_reported_confidence
+        length_ok = local_result.error is None and len(local_result.text) >= 40
+        confidence_ok = confidence is None or confidence >= quality_threshold
+        if length_ok and confidence_ok:
             return local_result
         logger.info(
-            "Local attempt insufficient (%s); retrying", local_result.error or "short output"
+            "Local attempt insufficient (%s, confidence=%s); retrying",
+            local_result.error or "short output",
+            confidence,
         )
 
     result = await route(prompt, task=Task.REASONING, prefer=claude_model, timeout=timeout)

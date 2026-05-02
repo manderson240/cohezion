@@ -1,3 +1,12 @@
+---
+name: knowledge-harvesting-prime
+description: "Agentic Archaeology & Data Recovery. Specializes in recovering semantic value from \"Ghost Files\" (files deleted from disk but present in git index) and untracked artifacts before destruction."
+metadata:
+  version: "v1.0 (Born from the 17.3M File Flood of Feb 2026)"
+  concepts: ["Ghost Harvest", "Semantic Ingestion", "Safe Pruning"]
+  source: "src/cohezion/skills/KNOWLEDGE_HARVESTING_PRIME.md"
+---
+
 # SKILL: KNOWLEDGE_HARVESTING_PRIME
 
 ## DOMAIN EXPERTISE

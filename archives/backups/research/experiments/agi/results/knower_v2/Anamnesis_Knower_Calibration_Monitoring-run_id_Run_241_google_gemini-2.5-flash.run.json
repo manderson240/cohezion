@@ -1,0 +1,82 @@
+{
+  "taskVersion": {
+    "versionNumber": 1,
+    "name": "Anamnesis Knower: Calibration Monitoring",
+    "description": "Tests metacognitive monitoring \u2014 does the model's stated confidence match actual accuracy? Brier-complement scoring. Loads from 823-item CSV dataset.",
+    "definition": "@kbench.task(\n    name=\"Anamnesis Knower: Calibration Monitoring\",\n    description=(\n        \"Tests metacognitive monitoring \u2014 does the model's stated confidence \"\n        \"match actual accuracy? Brier-complement scoring. Loads from 823-item CSV dataset.\"\n    ),\n)\ndef knower_probe(llm, question, ground_truth, difficulty, category) -> float:\n    prompt = CALIBRATION_PROMPT.format(question=question)\n    try:\n        response = llm.prompt(prompt, schema=CalibrationResponse)\n        confidence = response.confidence\n        model_answer = response.answer\n    except Exception:\n        # Fallback if structured output parsing fails\n        fallback_resp = llm.prompt(prompt)\n        confidence = 50\n        model_answer = fallback_resp\n        \n    correct = is_correct(model_answer, ground_truth)\n    conf_norm = max(0, min(100, confidence)) / 100.0\n    outcome = 0.0 if ground_truth.upper() == \"UNKNOWABLE\" else (1.0 if correct else 0.0)\n    cal_score = 1.0 - (conf_norm - outcome) ** 2\n    kbench.assertions.assert_true(\n        cal_score >= 0.5,\n        expectation=f\"[Knower/{difficulty}] Conf={confidence}, Correct={correct}, Cal={cal_score:.2f}\",\n    )\n    return cal_score\n"
+  },
+  "modelVersion": {
+    "slug": "google/gemini-2.5-flash"
+  },
+  "state": "BENCHMARK_TASK_RUN_STATE_COMPLETED",
+  "startTime": "2026-04-15T03:37:17.179766Z",
+  "endTime": "2026-04-15T03:37:27.214905Z",
+  "conversations": [
+    {
+      "id": "Anamnesis Knower: Calibration Monitoring-6ef62924",
+      "requests": [
+        {
+          "contents": [
+            {
+              "parts": [
+                {
+                  "text": "I will ask you a question. First, rate your confidence (0-100) in being able to answer it correctly. Then give your answer.\n- 0 means you are completely guessing\n- 100 means you are absolutely certain\n- If the question cannot be answered with certainty, say so and rate below 30\n\nQuestion: Compare the Daoist concept of 'Wu / Wuji' (ground state/void) with the Dogon concept of 'Amma's egg'. In what specific ways do they differ in how they conceptualize nothingness or the origin state? Rate your confidence.\n\nCONFIDENCE: [number]\nANSWER: [your answer]\n\nReply in exactly this format:\nCONFIDENCE: [number]\nANSWER: [your answer]"
+                }
+              ],
+              "role": "CONTENT_ROLE_USER",
+              "senderName": "User"
+            },
+            {
+              "parts": [
+                {
+                  "text": "\"{\\\"confidence\\\": 95, \\\"answer\\\": \\\"The Daoist concept of 'Wu/Wuji' and the Dogon concept of 'Amma's egg' represent vastly different approaches to conceptualizing an origin state or 'nothingness'.\\\\n\\\\n**Daoist Wu/Wuji (\\\\u7121/\\\\u7121\\\\u6975):**\\\\n*   **Conceptualization of Nothingness/Origin:** 'Wu' (non-being, emptiness) and 'Wuji' (ultimate nothingness, limitless void) represent a state of absolute undifferentiation and formlessness. It is not an absolute, empty void in the Western sense, but rather a primordial 'no-thing' that contains infinite potential. It is the antecedent to existence, prior to any distinction, form, or attribute. It's characterized by an absence of all definition, a boundless potentiality that is itself unmanifested and uncontained. It is the 'ground state' from which all being spontaneously arises, emphasizing emptiness and limitlessness as the source.\\\\n\\\\n**Dogon Amma's Egg:**\\\\n*   **Conceptualization of Nothingness/Origin:** 'Amma's egg' is fundamentally *not* a concept of nothingness. Instead, it represents a primordial, self-contained, vibrating seed or cosmic egg within the creator god Amma. It is a finite, albeit immensely potent, *thing* or structure. This egg contains the blueprint and all the components for creation in a compressed, embryonic state. It is a beginning that is already defined and structured, albeit unmanifested. The creation process often involves Amma breaking or cracking this egg, or the egg itself bursting forth to release the universe.\\\\n\\\\n**Specific Differences in Conceptualization:**\\\\n1.  **Form vs. Formlessness:** Wuji is explicitly formless, limitless, and undifferentiated. Amma's Egg, by its very nature as an 'egg,' implies a contained, spherical, albeit primordial, form or structure.\\\\n2.  **Void vs. Container:** Wuji describes a primordial void or 'non-being' from which existence emerges. Amma's Egg describes a primordial container or seed, a densely packed 'being' that holds creation within it.\\\\n3.  **Emptiness vs. Density:** Wuji emphasizes emptiness, boundlessness, and the lack of attributes as the source. Amma's Egg implies a state of primordial density, vibration, and internal complexity within a finite boundary.\\\\n4.  **Nature of Potentiality:** While both represent potential, Wuji embodies potentiality through its absolute lack of definition, while Amma's Egg holds potential *within* a pre-defined (though unmanifested) structure.\\\"}\""
+                }
+              ],
+              "role": "CONTENT_ROLE_ASSISTANT",
+              "senderName": "google/gemini-2.5-flash"
+            }
+          ],
+          "metrics": {
+            "inputTokens": 174,
+            "outputTokens": 569,
+            "inputTokensCostNanodollars": "52200",
+            "outputTokensCostNanodollars": "3955000",
+            "totalBackendLatencyMs": "9877"
+          },
+          "id": "Anamnesis Knower: Calibration Monitoring-6ef62924-req-1"
+        }
+      ],
+      "metrics": {
+        "inputTokens": 174,
+        "outputTokens": 569,
+        "inputTokensCostNanodollars": "52200",
+        "outputTokensCostNanodollars": "3955000",
+        "totalBackendLatencyMs": "9877"
+      },
+      "modelVersionSlug": "model_version_slug for conversation is DEPRECATED"
+    }
+  ],
+  "results": [
+    {
+      "type": "AGGREGATED",
+      "numericResult": {
+        "value": 0.09750000000000003
+      }
+    }
+  ],
+  "assertions": [
+    {
+      "expectation": "[Knower/tek_comparative] Conf=95, Correct=False, Cal=0.10",
+      "status": "BENCHMARK_TASK_RUN_ASSERTION_STATUS_FAILED",
+      "lineNumber": 83,
+      "definition": "kbench.assertions.assert_true(",
+      "conversationRequestIds": [
+        {
+          "conversationId": "Anamnesis Knower: Calibration Monitoring-6ef62924",
+          "requestId": "Anamnesis Knower: Calibration Monitoring-6ef62924-req-1"
+        }
+      ]
+    }
+  ],
+  "pyRunId": "Anamnesis Knower: Calibration Monitoring-Run #241"
+}

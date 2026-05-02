@@ -1,0 +1,82 @@
+{
+  "taskVersion": {
+    "versionNumber": 1,
+    "name": "Anamnesis Knower: Calibration Monitoring",
+    "description": "Tests metacognitive monitoring \u2014 does the model's stated confidence match actual accuracy? Brier-complement scoring. Loads from 823-item CSV dataset.",
+    "definition": "@kbench.task(\n    name=\"Anamnesis Knower: Calibration Monitoring\",\n    description=(\n        \"Tests metacognitive monitoring \u2014 does the model's stated confidence \"\n        \"match actual accuracy? Brier-complement scoring. Loads from 823-item CSV dataset.\"\n    ),\n)\ndef knower_probe(llm, question, ground_truth, difficulty, category) -> float:\n    prompt = CALIBRATION_PROMPT.format(question=question)\n    try:\n        response = llm.prompt(prompt, schema=CalibrationResponse)\n        confidence = response.confidence\n        model_answer = response.answer\n    except Exception:\n        # Fallback if structured output parsing fails\n        fallback_resp = llm.prompt(prompt)\n        confidence = 50\n        model_answer = fallback_resp\n        \n    correct = is_correct(model_answer, ground_truth)\n    conf_norm = max(0, min(100, confidence)) / 100.0\n    outcome = 0.0 if ground_truth.upper() == \"UNKNOWABLE\" else (1.0 if correct else 0.0)\n    cal_score = 1.0 - (conf_norm - outcome) ** 2\n    kbench.assertions.assert_true(\n        cal_score >= 0.5,\n        expectation=f\"[Knower/{difficulty}] Conf={confidence}, Correct={correct}, Cal={cal_score:.2f}\",\n    )\n    return cal_score\n"
+  },
+  "modelVersion": {
+    "slug": "google/gemini-2.5-flash"
+  },
+  "state": "BENCHMARK_TASK_RUN_STATE_COMPLETED",
+  "startTime": "2026-04-15T03:31:41.940524Z",
+  "endTime": "2026-04-15T03:31:50.871111Z",
+  "conversations": [
+    {
+      "id": "Anamnesis Knower: Calibration Monitoring-27bcc7f1",
+      "requests": [
+        {
+          "contents": [
+            {
+              "parts": [
+                {
+                  "text": "I will ask you a question. First, rate your confidence (0-100) in being able to answer it correctly. Then give your answer.\n- 0 means you are completely guessing\n- 100 means you are absolutely certain\n- If the question cannot be answered with certainty, say so and rate below 30\n\nQuestion: Compare the Vedic concept of 'Brahman' (ground state/void) with the Norse concept of 'Ginnungagap'. In what specific ways do they differ in how they conceptualize nothingness or the origin state? Rate your confidence.\n\nCONFIDENCE: [number]\nANSWER: [your answer]\n\nReply in exactly this format:\nCONFIDENCE: [number]\nANSWER: [your answer]"
+                }
+              ],
+              "role": "CONTENT_ROLE_USER",
+              "senderName": "User"
+            },
+            {
+              "parts": [
+                {
+                  "text": "\"{\\\"confidence\\\": 95, \\\"answer\\\": \\\"Brahman (Vedic) and Ginnungagap (Norse) both represent primordial states or ultimate realities, but they differ significantly in their conceptualization of nothingness or the origin state:\\\\n\\\\n1.  **Nature of 'Nothingness'**: Brahman is not 'nothingness' in the sense of absence, but rather a plenum, the ultimate reality, ground of all existence, pure consciousness, and infinite being. It is the unmanifest source that *is* everything, yet transcends all attributes. It's an existent, an absolute truth. Ginnungagap, conversely, is explicitly a 'void' or 'chasm' \\\\u2013 a literal empty space, a primordial abyss devoid of life, form, and substance, existing between the realms of fire (Muspelheim) and ice (Niflheim). It represents a state of absence or a 'nothingness' that needs external elements to fill it.\\\\n\\\\n2.  **Role in Creation**: Brahman is the active, self-sufficient, and intelligent source from which the entire universe emanates or is manifested. It is both the material and efficient cause, and creation is often seen as a play or illusion (Maya) originating from Brahman. Ginnungagap is a passive receptacle or stage. Creation does not emanate *from* Ginnungagap itself; rather, it arises *within* Ginnungagap as a result of external forces\\\\u2014the interaction of fire from Muspelheim and ice from Niflheim\\\\u2014which melt and combine to form the first beings (like Ymir). Ginnungagap provides the space for creation, but isn't its source in the same active, ontological sense as Brahman.\\\"}\""
+                }
+              ],
+              "role": "CONTENT_ROLE_ASSISTANT",
+              "senderName": "google/gemini-2.5-flash"
+            }
+          ],
+          "metrics": {
+            "inputTokens": 170,
+            "outputTokens": 370,
+            "inputTokensCostNanodollars": "51000",
+            "outputTokensCostNanodollars": "3240000",
+            "totalBackendLatencyMs": "8442"
+          },
+          "id": "Anamnesis Knower: Calibration Monitoring-27bcc7f1-req-1"
+        }
+      ],
+      "metrics": {
+        "inputTokens": 170,
+        "outputTokens": 370,
+        "inputTokensCostNanodollars": "51000",
+        "outputTokensCostNanodollars": "3240000",
+        "totalBackendLatencyMs": "8442"
+      },
+      "modelVersionSlug": "model_version_slug for conversation is DEPRECATED"
+    }
+  ],
+  "results": [
+    {
+      "type": "AGGREGATED",
+      "numericResult": {
+        "value": 0.09750000000000003
+      }
+    }
+  ],
+  "assertions": [
+    {
+      "expectation": "[Knower/tek_comparative] Conf=95, Correct=False, Cal=0.10",
+      "status": "BENCHMARK_TASK_RUN_ASSERTION_STATUS_FAILED",
+      "lineNumber": 83,
+      "definition": "kbench.assertions.assert_true(",
+      "conversationRequestIds": [
+        {
+          "conversationId": "Anamnesis Knower: Calibration Monitoring-27bcc7f1",
+          "requestId": "Anamnesis Knower: Calibration Monitoring-27bcc7f1-req-1"
+        }
+      ]
+    }
+  ],
+  "pyRunId": "Anamnesis Knower: Calibration Monitoring-Run #205"
+}

@@ -1,0 +1,117 @@
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: cohezion-training
+---
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: ppo-trainer
+  namespace: cohezion-training
+spec:
+  serviceName: ppo-trainer-headless
+  replicas: 4  # 4 nodes, 4 GPUs each = 16 total GPUs
+  selector:
+    matchLabels:
+      app: ppo-trainer
+  template:
+    metadata:
+      labels:
+        app: ppo-trainer
+    spec:
+      containers:
+      - name: trainer
+        image: cohezion/distributed:latest
+        resources:
+          limits:
+            nvidia.com/gpu: "4"
+            memory: "512Gi"
+            cpu: "64"
+        env:
+        - name: MASTER_ADDR
+          value: "ppo-trainer-headless"
+        - name: MASTER_PORT
+          value: "29500"
+        - name: WORLD_SIZE
+          value: "16"  # 4 nodes × 4 GPUs
+        - name: RANK  # Set by Kubernetes downward API
+          valueFrom:
+            fieldRef:
+              fieldPath: metadata.name
+        - name: NCCL_DEBUG
+          value: "INFO"
+        - name: NCCL_IB_DISABLE
+          value: "1"
+        command:
+        - python
+        - -m
+        - cohezion.rl.distributed_launcher
+        - --config
+        - /workspace/configs/ppo_distributed.yaml
+        volumeMounts:
+        - name: checkpoints
+          mountPath: /workspace/checkpoints
+        - name: config
+          mountPath: /workspace/configs
+        - name: shared-data
+          mountPath: /workspace/data
+        livenessProbe:
+          exec:
+            command:
+            - python
+            - -c
+            - "import torch; print('alive')"
+          initialDelaySeconds: 60
+          periodSeconds: 30
+      volumes:
+      - name: config
+        configMap:
+          name: training-config
+      - name: shared-data
+        persistentVolumeClaim:
+          claimName: training-data-pvc
+  volumeClaimTemplates:
+  - metadata:
+      name: checkpoints
+    spec:
+      accessModes: ["ReadWriteOnce"]
+      resources:
+        requests:
+          storage: 500Gi
+      storageClassName: fast-nvme
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: ppo-trainer-headless
+  namespace: cohezion-training
+spec:
+  clusterIP: None
+  selector:
+    app: ppo-trainer
+  ports:
+  - port: 29500
+    name: pytorch
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: training-config
+  namespace: cohezion-training
+data:
+  ppo_distributed.yaml: |
+    world_size: 16
+    batch_size: 4096
+    learning_rate: 3e-4
+    num_epochs: 3
+    checkpoint_interval: 100
+    
+    model:
+      policy: TRIUNE
+      z_dim: 256
+      hidden_dim: 2048
+    
+    distributed:
+      backend: nccl
+      gradient_accumulation_steps: 4
+      find_unused_parameters: false

@@ -1,3 +1,8 @@
+---
+name: mamba-state-tracking-prime
+description: "This skill enables the Cohezion architecture to bypass the quadratic attention bottleneck of traditional Transformers by utilizing Structured State Space sequence Models (SSMs) like Mamba or Jamba. It provides the architectural blueprint for maintaining an infinitely coherent 12D hidden state over massive temporal horizons, unlocking true \"continuous compound engineering.\""
+---
+
 # SKILL: MAMBA_STATE_TRACKING_PRIME
 
 ## DOMAIN EXPERTISE

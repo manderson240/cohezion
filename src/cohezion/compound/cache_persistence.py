@@ -39,13 +39,28 @@ class CachePersistence:
         try:
             with path.open("w", encoding="utf-8") as f:
                 for key, value in cache_dict.items():
+                    # Handle dataclass or complex objects
+                    serializable_value = value
+                    if hasattr(value, "__dict__"):
+                        serializable_value = vars(value)
+                    elif hasattr(value, "to_dict"):
+                        serializable_value = value.to_dict()
+
                     entry = {
                         "key": key,
-                        "value": value,
+                        "value": serializable_value,
                         "timestamp": time.time(),
                         **(metadata or {}),
                     }
-                    f.write(json.dumps(entry) + "\n")
+
+                    def default_serializer(obj):
+                        if hasattr(obj, "tolist"):  # Handle numpy arrays
+                            return obj.tolist()
+                        if hasattr(obj, "__dict__"):
+                            return vars(obj)
+                        return str(obj)
+
+                    f.write(json.dumps(entry, default=default_serializer) + "\n")
                     count += 1
         except Exception:
             logger.exception("Failed to save cache")

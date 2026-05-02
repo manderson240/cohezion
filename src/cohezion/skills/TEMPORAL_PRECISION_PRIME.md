@@ -1,3 +1,13 @@
+---
+name: temporal-precision-prime
+description: "Expertise in nanosecond-resolution timing, micro-benchmarking, and temporal jitter elimination in AI/Physics simulations."
+metadata:
+  version: "v0.1"
+  concepts: ["time.perf_counter()", "timeit pattern", "Monotonic Clocks", "Inference Latency Budgeting"]
+  see_also: ["RESOURCE_MANAGEMENT_PRIME", "INTERPRETABILITY_PRIME"]
+  source: "src/cohezion/skills/TEMPORAL_PRECISION_PRIME.md"
+---
+
 # SKILL: TEMPORAL_PRECISION_PRIME
 
 ## DOMAIN EXPERTISE

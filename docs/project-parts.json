@@ -1,0 +1,61 @@
+{
+  "repository_type": "monorepo",
+  "parts": [
+    {
+      "part_id": "backend",
+      "display_name": "Cohezion Python Backend",
+      "project_type_id": "backend",
+      "root_path": "src/cohezion",
+      "primary_language": "Python 3.11",
+      "primary_framework": "FastAPI",
+      "database": "SurrealDB (SurrealKV backend, ws://localhost:8001, versioned=true)",
+      "test_root": "tests/",
+      "entry_points": {
+        "cli": "src/cohezion/__main__.py",
+        "api": "src/cohezion/api.py",
+        "compound_driver": "scripts/drivers/compound_cycle.py"
+      },
+      "architecture_doc": "docs/architecture-backend.md",
+      "api_doc": "docs/api-contracts-backend.md",
+      "data_models_doc": "docs/data-models-backend.md",
+      "development_doc": "docs/development-guide.md"
+    },
+    {
+      "part_id": "web",
+      "display_name": "Anima Dashboard (Genesis UI)",
+      "project_type_id": "web",
+      "root_path": "src/web/anima_dashboard",
+      "primary_language": "TypeScript",
+      "primary_framework": "Next.js 16 App Router",
+      "ui_library": "React 19 + Three.js + Framer Motion",
+      "test_root": "src/web/anima_dashboard/tests",
+      "entry_points": {
+        "dev_server": "bun run dev",
+        "build": "bun run build",
+        "app_root": "src/web/anima_dashboard/src/app"
+      },
+      "architecture_doc": "docs/architecture-web.md",
+      "component_inventory_doc": "docs/component-inventory-web.md"
+    }
+  ],
+  "integration_points": [
+    {
+      "from": "web",
+      "to": "backend",
+      "type": "REST (FastAPI)",
+      "details": "Dashboard calls FastAPI endpoints under /api/* for universe nodes, journeys, agents, flume, fleet"
+    },
+    {
+      "from": "web",
+      "to": "backend",
+      "type": "SSE (AG-UI)",
+      "details": "Dashboard subscribes to /api/agui/stream for typed AG-UI event streaming (15+ event types)"
+    },
+    {
+      "from": "web",
+      "to": "backend",
+      "type": "WebSocket",
+      "details": "/pulse streams 12D state vectors for the useOuroboros hook"
+    }
+  ]
+}

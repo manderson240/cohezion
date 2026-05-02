@@ -1,3 +1,13 @@
+---
+name: polyglot-delegation-prime
+description: "This skill establishes the semantic and structural prompt design for delegating complex, multi-language tasks (Rust, Go, TypeScript, Python) to specialized swarm SLMs/LLMs under the guidance of the Compassionate Executive Leader."
+metadata:
+  version: "v1.0"
+  concepts: ["Language-Specific Delegation", "Polyglot Interoperability", "Rust VLIW Optimization", "Go Multi-Agent Orchestration", "TypeScript State Management", "Task Delegation"]
+  see_also: ["COMPOUND_ENGINEERING_PRIME", "TEAM_ORCHESTRATION_PRIME", "SWARM_ORCHESTRATION_PRIME"]
+  source: "src/cohezion/skills/POLYGLOT_DELEGATION_PRIME.md"
+---
+
 # SKILL: POLYGLOT_DELEGATION_PRIME
 
 ## DOMAIN EXPERTISE

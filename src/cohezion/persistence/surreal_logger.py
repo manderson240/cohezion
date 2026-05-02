@@ -16,7 +16,7 @@ class SurrealTrajectoryLogger:
 
     def __init__(
         self,
-        url: str = "ws://localhost:8000/rpc",
+        url: str = "ws://localhost:8001/rpc",
         namespace: str = "cohezion",
         database: str = "core",
     ):

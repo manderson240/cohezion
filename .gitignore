@@ -194,6 +194,17 @@ ruff_*.json
 mypy_*.txt
 !mypy_baseline.txt
 f821_out.txt
+*.tar.gz
+*.bundle
+/archive/worktrees/
+node_modules/
+*.sst
+LOCK
+LOG
+MANIFEST-*
+OPTIONS-*
+*_pid.txt
+"\"\"*"
 
 # Claude worktrees (ephemeral)
 .claude/worktrees/
@@ -245,3 +256,8 @@ results/training/*.pt
 results/training/*.png
 
 # Misplaced root scripts (move to scripts/)
+flume_viz_env/
+shared_gemini.html
+anthropic-delivery/
+logs/archive/
+research/benchmarks/cognitive/

@@ -1,3 +1,13 @@
+---
+name: interpretability-prime
+description: "Expertise in mechanistic interpretability, latent manifold visualization, and \"Black Box\" transparency. Aligned with Anthropic's mission to create reliable and steerable agentic systems."
+metadata:
+  version: "v0.1"
+  concepts: ["Mechanistic Interpretability", "FLUME Manifold", "Black Box Transparency", "Quadrature Alignment"]
+  see_also: ["RECOVERY_PRIME", "SWARM_ORCHESTRATION_PRIME"]
+  source: "src/cohezion/skills/INTERPRETABILITY_PRIME.md"
+---
+
 # SKILL: INTERPRETABILITY_PRIME
 
 ## DOMAIN EXPERTISE

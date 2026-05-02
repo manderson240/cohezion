@@ -5,19 +5,17 @@ import logging
 
 from mcp.server.fastmcp import FastMCP
 
+from .agent_context import AgentContextOps
 from .compound_ops import CompoundOps
 from .config import ServerConfig
-from .googlesql_client import GoogleSqlConfig
-from .googlesql_ops import GoogleSqlOps
+from .health import HealthChecker
+from .memory_bridge import VaultMemoryBridge
 from .obsidian_ops import ObsidianOps
-from .vault_ops import VaultOps
 from .sheets_bridge import SheetsBridge
 from .surrealdb_sync import SurrealDBSync
 from .teleport import CloudTeleportProtocol
-from .memory_bridge import VaultMemoryBridge
-from .agent_context import AgentContextOps
-from .ollama_client import OllamaClient
-from .health import HealthChecker
+from .vault_ops import VaultOps
+
 
 logger = logging.getLogger(__name__)
 
@@ -27,40 +25,35 @@ def create_server(config: ServerConfig) -> FastMCP:
     vault = VaultOps(config.vault_path)
     obsidian = ObsidianOps(vault)
     compound = CompoundOps(vault, obsidian)
-    
-    googlesql = None
-    if config.googlesql_enabled:
-        googlesql = GoogleSqlOps(GoogleSqlConfig(base_url=config.googlesql_url))
-    
-    sheets = None
+    teleport = CloudTeleportProtocol(vault)
+    memory_bridge = VaultMemoryBridge(vault)
+
+    sheets: SheetsBridge | None = None
     if config.sheets_enabled:
-        sheets = SheetsBridge()
-        
-    surrealdb = None
+        sheets = SheetsBridge(
+            spreadsheet_id=config.sheets_spreadsheet_id,
+            quota_project=config.sheets_quota_project,
+        )
+
+    surrealdb: SurrealDBSync | None = None
+    agent_context: AgentContextOps | None = None
     if config.surrealdb_enabled:
-        surrealdb = SurrealDBSync(vault_path=config.vault_path)
-
-    teleport = None
-    if config.teleport_enabled:
-        teleport = CloudTeleportProtocol(vault)
-
-    memory_bridge = None
-    if config.memory_bridge_enabled:
-        memory_bridge = VaultMemoryBridge(vault)
-
-    agent_context = None
-    if config.surrealdb_enabled:
+        surrealdb = SurrealDBSync(
+            vault_path=config.vault_path,
+            surrealdb_url=config.surrealdb_url,
+            namespace=config.surrealdb_namespace,
+            database=config.surrealdb_database,
+            username=config.surrealdb_username,
+            password=config.surrealdb_password,
+        )
         agent_context = AgentContextOps(surrealdb)
 
-    ollama_client = None
-    if config.ollama_enabled:
-        ollama_client = OllamaClient(base_url=config.ollama_url, timeout=config.ollama_timeout)
-
-    health_checker = None
+    health_checker: HealthChecker | None = None
     if config.health_check_enabled:
         health_checker = HealthChecker(
             vault_path=config.vault_path,
             surrealdb_url=config.surrealdb_url,
+            sheets_bridge=sheets,
             ollama_url=config.ollama_url,
         )
 
@@ -70,8 +63,7 @@ def create_server(config: ServerConfig) -> FastMCP:
         instructions=(
             "A knowledge vault MCP server for compound engineering. "
             "Read, write, search, and link Obsidian notes. "
-            "Log decisions, experiments, and patterns to build reusable context. "
-            "Analyze, validate, and format SQL using the GoogleSQL analyzer."
+            "Log decisions, experiments, and patterns to build reusable context."
         ),
     )
 
@@ -317,14 +309,20 @@ def create_server(config: ServerConfig) -> FastMCP:
             return "No relevant prior context found."
         return json.dumps(results, indent=2)
 
-    # ── GoogleSQL Analysis Operations ─────────────────────────────────
+    # ── Teleport Operations ──────────────────────────────────────────
 
     @mcp.tool()
-    def sql_validate(sql: str) -> str:
-        """Validate SQL syntax using the GoogleSQL analyzer.
+    def teleport_create_task(
+        title: str,
+        description: str,
+        context: str = "",
+        expected_output: str = "",
+        priority: str = "medium",
+    ) -> str:
+        """Create a teleport task for delegation between Claude instances.
 
-        Use this to check whether a SQL statement is syntactically correct
-        before executing it. Catches syntax errors early.
+        Use this to delegate work (research, refactoring, doc generation)
+        to another Claude instance (e.g. cloud Claude with web access).
 
         Args:
             title: Short task title
@@ -360,72 +358,78 @@ def create_server(config: ServerConfig) -> FastMCP:
             assigned_to: Who is claiming it (e.g. 'cloud-claude', 'local-claude')
         """
         try:
-            return googlesql.validate(sql)
-        except ConnectionError:
-            return "Error: GoogleSQL Analyzer service is not available."
+            result = teleport.claim_task(task_id, assigned_to)
+            return json.dumps(result, indent=2, default=str)
+        except (ValueError, FileNotFoundError) as e:
+            return f"Error: {e}"
 
     @mcp.tool()
-    def sql_parse(sql: str) -> str:
-        """Parse SQL into an Abstract Syntax Tree (AST).
-
-        Use this to understand the structure of a SQL statement, including
-        what type of statement it is and its component parts.
+    def teleport_complete_task(task_id: str, result: str) -> str:
+        """Complete a teleport task with a result.
 
         Args:
-            sql: SQL statement to parse
+            task_id: The task ID to complete
+            result: The result/output of the completed task
         """
         try:
-            return googlesql.parse(sql)
-        except ConnectionError:
-            return "Error: GoogleSQL Analyzer service is not available."
+            task = teleport.complete_task(task_id, result)
+            return json.dumps(task, indent=2, default=str)
+        except (ValueError, FileNotFoundError) as e:
+            return f"Error: {e}"
 
     @mcp.tool()
-    def sql_analyze(sql: str, catalog_json: str = "") -> str:
-        """Perform full semantic analysis of SQL with optional catalog context.
-
-        Resolves table and column references against a provided schema.
-        Use this for deep analysis of query semantics, including type checking
-        and reference resolution.
+    def teleport_fail_task(task_id: str, error: str) -> str:
+        """Mark a teleport task as failed.
 
         Args:
-            sql: SQL statement to analyze
-            catalog_json: Optional JSON array of table definitions.
-                Example: [{"name": "t", "columns": [{"name": "id", "type": "INT64"}]}]
+            task_id: The task ID that failed
+            error: Description of what went wrong
         """
         try:
-            return googlesql.analyze(sql, catalog_json)
-        except ConnectionError:
-            return "Error: GoogleSQL Analyzer service is not available."
+            task = teleport.fail_task(task_id, error)
+            return json.dumps(task, indent=2, default=str)
+        except FileNotFoundError as e:
+            return f"Error: {e}"
 
     @mcp.tool()
-    def sql_extract_tables(sql: str) -> str:
-        """Extract all table references from a SQL statement.
-
-        Use this to discover which tables a query depends on, useful for
-        dependency analysis and impact assessment.
+    def teleport_get_result(task_id: str) -> str:
+        """Get the result of a completed teleport task.
 
         Args:
-            sql: SQL statement to extract table references from
+            task_id: The task ID to get the result for
         """
         try:
-            return googlesql.extract_tables(sql)
-        except ConnectionError:
-            return "Error: GoogleSQL Analyzer service is not available."
+            result = teleport.get_result(task_id)
+            return json.dumps(result, indent=2, default=str)
+        except FileNotFoundError as e:
+            return f"Error: {e}"
+
+    # ── Memory Bridge Operations ─────────────────────────────────────
 
     @mcp.tool()
-    def sql_extract_columns(sql: str) -> str:
-        """Extract all column references from a SQL statement.
+    def vault_push_session_state(
+        branch: str,
+        test_status: str,
+        phase: str,
+        active_tasks: list[str] | None = None,
+        last_commit: str = "",
+    ) -> str:
+        """Push current session state to a daily session note in the vault.
 
-        Use this to discover which columns a query uses, useful for
-        understanding data access patterns.
+        Creates a snapshot of the current Claude Code session that other
+        Claude instances can read for context.
 
         Args:
-            sql: SQL statement to extract column references from
+            branch: Current git branch name
+            test_status: Test suite status (e.g. '24/24 passing')
+            phase: Current project phase
+            active_tasks: List of active task descriptions
+            last_commit: Last commit hash or message
         """
-        try:
-            return googlesql.extract_columns(sql)
-        except ConnectionError:
-            return "Error: GoogleSQL Analyzer service is not available."
+        path = memory_bridge.push_session_state(
+            branch, test_status, phase, active_tasks, last_commit
+        )
+        return f"Session state pushed to: {path}"
 
     @mcp.tool()
     def vault_push_memory(memory_content: str) -> str:
@@ -439,8 +443,6 @@ def create_server(config: ServerConfig) -> FastMCP:
         Args:
             memory_content: Full content of MEMORY.md
         """
-        if not memory_bridge:
-            return "Error: Memory Bridge not enabled."
         result = memory_bridge.push_memory(memory_content)
         return json.dumps(result, indent=2)
 
@@ -451,8 +453,6 @@ def create_server(config: ServerConfig) -> FastMCP:
         Reads recent session notes to build cross-instance context.
         Returns the latest branch, phase, test status, and recent sessions.
         """
-        if not memory_bridge:
-            return "Error: Memory Bridge not enabled."
         context = memory_bridge.pull_session_context()
         return json.dumps(context, indent=2, default=str)
 
@@ -630,78 +630,73 @@ def create_server(config: ServerConfig) -> FastMCP:
 
     # ── Ollama Integration ────────────────────────────────────────────
 
-    @mcp.tool()
-    def sql_format(sql: str) -> str:
-        """Format a SQL statement for readability.
-
-        Applies consistent formatting to SQL using GoogleSQL's formatter.
-
-        Args:
-            sql: SQL statement to format
-        """
+    if config.ollama_enabled:
+        # Import Ollama client for direct integration
         try:
-            return googlesql.format_sql(sql)
-        except ConnectionError:
-            return "Error: GoogleSQL Analyzer service is not available."
+            from .ollama_client import OllamaClient
 
-    @mcp.tool()
-    async def ollama_generate(
-        prompt: str,
-        model: str = "qwen3-coder:30b",
-        temperature: float = 0.7,
-    ) -> str:
-        """Generate text using a local Ollama model.
+            ollama_client = OllamaClient(
+                base_url=config.ollama_url,
+                timeout=config.ollama_timeout,
+            )
 
-        Args:
-            prompt: The prompt to send to the model
-            model: Name of the Ollama model to use
-            temperature: Sampling temperature (0.0-1.0)
+            @mcp.tool()
+            async def ollama_query(
+                prompt: str,
+                model: str = "auto",
+                temperature: float = 0.7,
+            ) -> str:
+                """Execute a query against Ollama model.
 
-        Returns:
-            Generated text response from the model
-        """
-        try:
-            response = await ollama_client.query(prompt, model, temperature)
-            return response or "Empty response from Ollama"
-        except Exception as e:
-            logger.error(f"Ollama query failed: {e}")
-            return f"Error: {e}"
+                Args:
+                    prompt: The prompt/question to send to the model
+                    model: Model to use (use "auto" for automatic selection)
+                    temperature: Temperature for generation (0.0-1.0)
 
-    @mcp.tool()
-    @mcp.tool()
-    async def ollama_embed(
-        texts: list[str],
-        model: str = "nomic-embed-text:latest",
-    ) -> str:
-        """Generate embeddings for texts.
+                Returns:
+                    Generated text response from the model
+                """
+                try:
+                    response = await ollama_client.query(prompt, model, temperature)
+                    return response or "Empty response from Ollama"
+                except Exception as e:
+                    logger.error(f"Ollama query failed: {e}")
+                    return f"Error: {e}"
 
-        Args:
-            texts: List of text strings to embed
-            model: Embedding model to use
+            @mcp.tool()
+            async def ollama_embed(
+                texts: list[str],
+                model: str = "nomic-embed-text:latest",
+            ) -> str:
+                """Generate embeddings for texts.
 
-        Returns:
-            List of embedding vectors as JSON
-        """
-        try:
-            embeddings = await ollama_client.embed(texts, model)
-            return json.dumps(embeddings)
-        except Exception as e:
-            logger.error(f"Ollama embed failed: {e}")
-            return f"Error: {e}"
+                Args:
+                    texts: List of text strings to embed
+                    model: Embedding model to use
 
-    @mcp.tool()
-    async def ollama_status() -> str:
-        """Get Ollama service status and available models.
+                Returns:
+                    List of embedding vectors as JSON
+                """
+                try:
+                    embeddings = await ollama_client.embed(texts, model)
+                    return json.dumps(embeddings)
+                except Exception as e:
+                    logger.error(f"Ollama embed failed: {e}")
+                    return f"Error: {e}"
 
-        Returns:
-            Status information including loaded models
-        """
-        try:
-            status = await ollama_client.status()
-            return json.dumps(status)
-        except Exception as e:
-            logger.error(f"Ollama status check failed: {e}")
-            return f"Error: {e}"
+            @mcp.tool()
+            async def ollama_status() -> str:
+                """Get Ollama service status and available models.
+
+                Returns:
+                    Status information including loaded models
+                """
+                try:
+                    status = await ollama_client.status()
+                    return json.dumps(status)
+                except Exception as e:
+                    logger.error(f"Ollama status check failed: {e}")
+                    return f"Error: {e}"
 
         except ImportError:
             logger.warning("Ollama client not available for direct integration")
@@ -813,7 +808,7 @@ def create_server(config: ServerConfig) -> FastMCP:
             session_id: str,
             outcome_type: str,
             lessons_learned: list[str],
-            metrics: dict | None = None,
+            metrics: dict = None,
         ) -> str:
             """Record session outcome and validate against lessons learned.
 

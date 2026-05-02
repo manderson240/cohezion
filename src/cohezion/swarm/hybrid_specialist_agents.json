@@ -1,0 +1,120 @@
+{
+  "meta": {
+    "version": "1.1.0",
+    "created": "2026-04-10",
+    "purpose": "Hybrid Hybrid-Cloud Swarm with Gemini and Ollama",
+    "theory": "Orchestrates Gemini 2.5 Pro/Flash for massive context (1M-2M) and Ollama for specialized local execution, respecting the 3-model concurrency limit."
+  },
+  "agents": [
+    {
+      "role": "architect",
+      "name": "Gemini System Architect",
+      "model": "gemini-2.5-pro",
+      "provider": "google",
+      "weight": 1.0,
+      "context_limit": 2000000,
+      "expertise": [
+        "Global architecture",
+        "Strategic reasoning",
+        "Deep system synthesis",
+        "Constraint satisfaction"
+      ],
+      "review_focus": [
+        "Does the design satisfy the 2M-token system context?",
+        "Are there long-range architectural inconsistencies?",
+        "Is the reasoning grounded in the full project history?"
+      ],
+      "decision_weight": "Critical for architecture",
+      "prompt_template": "As the Gemini System Architect with 2M context, perform a deep synthesis of this change against the entire codebase history. Focus on architectural integrity and long-range impact."
+    },
+    {
+      "role": "engineer",
+      "name": "Gemini Code Specialist",
+      "model": "gemini-2.5-flash",
+      "provider": "google",
+      "weight": 1.0,
+      "context_limit": 1000000,
+      "expertise": [
+        "Fast code generation",
+        "Cross-file debugging",
+        "API integration",
+        "Unit testing"
+      ],
+      "review_focus": [
+        "Is the code efficient and idiomatic?",
+        "Are all 1M context dependencies handled?",
+        "Is the implementation complete and verified?"
+      ],
+      "decision_weight": "High for implementation",
+      "prompt_template": "As the Gemini Code Specialist, use your 1M context window to verify this implementation across all relevant project modules. Ensure high-speed, high-quality code delivery."
+    },
+    {
+      "role": "qalgo",
+      "name": "Local Math Specialist",
+      "model": "phi4-256k",
+      "provider": "ollama",
+      "weight": 1.0,
+      "context_limit": 256000,
+      "expertise": [
+        "Algorithm optimization",
+        "Numerical stability",
+        "Logical proofs"
+      ],
+      "review_focus": [
+        "Is the algorithm mathematically sound?",
+        "Are there numerical precision issues?"
+      ],
+      "decision_weight": "Critical for algorithms",
+      "prompt_template": "As the Local Math Specialist (Ollama Slot 1), provide rigorous mathematical validation and logic checking for the proposed algorithms."
+    },
+    {
+      "role": "fast_execution",
+      "name": "Local Prototyping Specialist",
+      "model": "glm-4.7-flash-256k",
+      "provider": "ollama",
+      "weight": 0.8,
+      "context_limit": 256000,
+      "expertise": [
+        "Rapid scripting",
+        "Automation",
+        "Fast iteration"
+      ],
+      "review_focus": [
+        "Can we execute this faster?",
+        "Is the automation script robust?"
+      ],
+      "decision_weight": "High for automation",
+      "prompt_template": "As the Local Prototyping Specialist (Ollama Slot 2), focus on the speed and reliability of the automation scripts and rapid prototypes."
+    },
+    {
+      "role": "vision",
+      "name": "Gemini Vision Specialist",
+      "model": "gemini-2.5-flash",
+      "provider": "google",
+      "weight": 0.7,
+      "context_limit": 1000000,
+      "expertise": [
+        "OCR",
+        "UI/UX analysis",
+        "Diagram-to-code"
+      ],
+      "review_focus": [
+        "Is the visual mapping accurate?",
+        "Does the UI match the architectural intent?"
+      ],
+      "decision_weight": "Advisory",
+      "prompt_template": "As the Gemini Vision Specialist, analyze visual inputs and diagrams to ensure alignment with the technical specification."
+    }
+  ],
+  "concurrency_management": {
+    "max_ollama_slots": 3,
+    "reserved_slots": 1,
+    "available_ollama_slots": 2,
+    "cloud_fallback": true
+  },
+  "consensus_rules": {
+    "minimum_agreement": 0.6,
+    "quorum": 3,
+    "blocking_roles": ["architect", "engineer", "qalgo"]
+  }
+}

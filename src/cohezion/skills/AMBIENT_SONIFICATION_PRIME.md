@@ -1,3 +1,12 @@
+---
+name: ambient-sonification-prime
+description: "Audible representation of complex system states. Mapping high-dimensional data (12D) to harmony and frequency."
+metadata:
+  version: "v1.0"
+  concepts: ["Coherence Chord", "HIHO Attractor Frequency", "Entanglement Oscillation", "Milestone Fanfare"]
+  source: "src/cohezion/skills/AMBIENT_SONIFICATION_PRIME.md"
+---
+
 # SKILL: AMBIENT_SONIFICATION_PRIME
 
 ## DOMAIN EXPERTISE

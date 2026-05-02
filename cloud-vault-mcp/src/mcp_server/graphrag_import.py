@@ -146,7 +146,10 @@ class GraphRAGImporter:
 
             # Execute query (returns [DELETE result, CREATE result])
             results = await execute_surreal_async(
-                query, self.http_client, self.namespace, self.database,
+                query,
+                self.http_client,
+                self.namespace,
+                self.database,
                 url=self.surrealdb_url.rstrip("/") + "/sql",
             )
 

@@ -1,3 +1,12 @@
+---
+name: mycelium-prime
+description: "Autonomous Test Synthesis & Regression Defense. \"Mycelium\" is the invisible, underground network that sustains the forest. In Cohezion, it is the layer of Tests that grow automatically around code features (ShadowScripter)."
+metadata:
+  version: "v1.0 (The Awakening)"
+  concepts: ["ShadowScripter", "Regression Traps", "Sovereign Testing"]
+  source: "src/cohezion/skills/MYCELIUM_PRIME.md"
+---
+
 # SKILL: MYCELIUM_PRIME
 
 ## DOMAIN EXPERTISE

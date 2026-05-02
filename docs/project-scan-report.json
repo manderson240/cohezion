@@ -1,0 +1,110 @@
+{
+  "workflow_version": "1.2.0",
+  "timestamps": {
+    "started": "2026-04-22T15:13:31Z",
+    "last_updated": "2026-04-22T17:10:00Z",
+    "completed": "2026-04-22T15:13:31Z",
+    "last_deep_dive": "2026-04-22T17:10:00Z"
+  },
+  "mode": "initial_scan",
+  "scan_level": "quick",
+  "project_root": "/home/mike-anderson/dev/cohezion",
+  "project_knowledge": "/home/mike-anderson/dev/cohezion/docs",
+  "repository_type": "monorepo",
+  "project_parts": [
+    {
+      "part_id": "backend",
+      "display_name": "Cohezion Python Backend",
+      "root_path": "src/cohezion",
+      "project_type_id": "backend",
+      "primary_language": "Python 3.11",
+      "primary_framework": "FastAPI + SurrealDB",
+      "entry_points": [
+        "src/cohezion/__main__.py",
+        "src/cohezion/api.py"
+      ]
+    },
+    {
+      "part_id": "web",
+      "display_name": "Anima Dashboard (Genesis UI)",
+      "root_path": "src/web/anima_dashboard",
+      "project_type_id": "web",
+      "primary_language": "TypeScript",
+      "primary_framework": "Next.js 16 + React 19 + Three.js",
+      "entry_points": [
+        "src/web/anima_dashboard/src/app"
+      ]
+    }
+  ],
+  "project_types": [
+    {"part_id": "backend", "project_type_id": "backend", "display_name": "Python Backend"},
+    {"part_id": "web", "project_type_id": "web", "display_name": "Web Frontend"}
+  ],
+  "integration_points": [
+    {
+      "from": "web",
+      "to": "backend",
+      "type": "REST + SSE",
+      "details": "Anima Dashboard consumes FastAPI routes (/api/*, /api/agui/stream) for Genesis visualization, agent journeys, AG-UI event streaming"
+    }
+  ],
+  "completed_steps": [
+    {"step": "step_0.5", "status": "completed", "timestamp": "2026-04-22T15:13:31Z", "summary": "Loaded documentation-requirements.csv (12 project types)"},
+    {"step": "step_1", "status": "completed", "timestamp": "2026-04-22T15:13:31Z", "summary": "Classified as monorepo with 2 parts: backend (Python) + web (Next.js)"},
+    {"step": "step_2", "status": "completed", "timestamp": "2026-04-22T15:13:31Z", "summary": "Found 100+ existing docs under docs/, README.md, CONTRIBUTING.md, CLAUDE.md"},
+    {"step": "step_3", "status": "completed", "timestamp": "2026-04-22T15:13:31Z", "summary": "Tech stacks: FastAPI/SurrealDB backend, Next.js 16/React 19/Three.js frontend"},
+    {"step": "step_4", "status": "completed", "timestamp": "2026-04-22T15:13:31Z", "summary": "Conditional analysis: backend API+data models documented via reference; web components via reference"},
+    {"step": "step_5", "status": "completed", "timestamp": "2026-04-22T15:13:31Z", "summary": "Source tree analysis written"},
+    {"step": "step_6", "status": "completed", "timestamp": "2026-04-22T15:13:31Z", "summary": "Dev setup (uv+pytest+Makefile) and deployment (20+ GH Actions workflows) documented"},
+    {"step": "step_7", "status": "completed", "timestamp": "2026-04-22T15:13:31Z", "summary": "Integration architecture: web->backend REST/SSE"},
+    {"step": "step_8", "status": "completed", "timestamp": "2026-04-22T15:13:31Z", "summary": "Architecture docs written for 2 parts"},
+    {"step": "step_9", "status": "completed", "timestamp": "2026-04-22T15:13:31Z", "summary": "All supporting docs written"},
+    {"step": "step_10", "status": "completed", "timestamp": "2026-04-22T15:13:31Z", "summary": "Master index generated"},
+    {"step": "step_11", "status": "completed", "timestamp": "2026-04-22T15:13:31Z", "summary": "Validation complete; no (To be generated) markers"},
+    {"step": "step_12", "status": "completed", "timestamp": "2026-04-22T15:13:31Z", "summary": "Workflow complete"}
+  ],
+  "current_step": "completed",
+  "findings": {
+    "project_classification": "Monorepo: Python backend (FastAPI + SurrealDB + 84 cohezion subpackages) + Next.js frontend (anima_dashboard)",
+    "technology_stack": {
+      "backend": "Python 3.11, FastAPI 0.104+, SurrealDB 0.3+, Pydantic 2, pytest 9, uv, Ruff, anthropic SDK, torch 2.5.1+rocm6.2, gymnasium, sentence-transformers, scikit-learn, pandas, polars, fastmcp, google-adk",
+      "web": "Next.js 16, React 19, TypeScript, Three.js (@react-three/fiber + drei + postprocessing), Framer Motion, Chart.js, Tone.js, Tailwind (via PostCSS), Playwright"
+    },
+    "test_count": "6,369 Python tests + Playwright e2e",
+    "existing_docs_count": "100+ under docs/"
+  },
+  "outputs_generated": [
+    "project-scan-report.json",
+    "project-overview.md",
+    "source-tree-analysis.md",
+    "architecture-backend.md",
+    "architecture-web.md",
+    "api-contracts-backend.md",
+    "data-models-backend.md",
+    "component-inventory-web.md",
+    "development-guide.md",
+    "deployment-guide.md",
+    "contribution-guide.md",
+    "integration-architecture.md",
+    "project-parts.json",
+    "index.md",
+    "deep-dive-world-model.md"
+  ],
+  "deep_dive_targets": [
+    {
+      "target_name": "world_model",
+      "target_path": "src/cohezion/world_model",
+      "target_type": "folder",
+      "files_analyzed": 4,
+      "total_loc": 967,
+      "output_file": "deep-dive-world-model.md",
+      "timestamp": "2026-04-22T17:10:00Z",
+      "drift_flags": [
+        "CLAUDE.md references non-existent bioelectric_model.py, natural_capital.py, evo_model.py",
+        "CLAUDE.md claims 86K params; source says ~2M",
+        "docs/architecture-backend.md:93 repeats the same false claims"
+      ]
+    }
+  ],
+  "resume_instructions": "Workflow complete. Re-run /bmad-document-project to rescan or deep-dive further."
+}

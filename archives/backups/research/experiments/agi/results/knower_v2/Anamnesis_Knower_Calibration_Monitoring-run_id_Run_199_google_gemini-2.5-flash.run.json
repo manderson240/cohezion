@@ -1,0 +1,82 @@
+{
+  "taskVersion": {
+    "versionNumber": 1,
+    "name": "Anamnesis Knower: Calibration Monitoring",
+    "description": "Tests metacognitive monitoring \u2014 does the model's stated confidence match actual accuracy? Brier-complement scoring. Loads from 823-item CSV dataset.",
+    "definition": "@kbench.task(\n    name=\"Anamnesis Knower: Calibration Monitoring\",\n    description=(\n        \"Tests metacognitive monitoring \u2014 does the model's stated confidence \"\n        \"match actual accuracy? Brier-complement scoring. Loads from 823-item CSV dataset.\"\n    ),\n)\ndef knower_probe(llm, question, ground_truth, difficulty, category) -> float:\n    prompt = CALIBRATION_PROMPT.format(question=question)\n    try:\n        response = llm.prompt(prompt, schema=CalibrationResponse)\n        confidence = response.confidence\n        model_answer = response.answer\n    except Exception:\n        # Fallback if structured output parsing fails\n        fallback_resp = llm.prompt(prompt)\n        confidence = 50\n        model_answer = fallback_resp\n        \n    correct = is_correct(model_answer, ground_truth)\n    conf_norm = max(0, min(100, confidence)) / 100.0\n    outcome = 0.0 if ground_truth.upper() == \"UNKNOWABLE\" else (1.0 if correct else 0.0)\n    cal_score = 1.0 - (conf_norm - outcome) ** 2\n    kbench.assertions.assert_true(\n        cal_score >= 0.5,\n        expectation=f\"[Knower/{difficulty}] Conf={confidence}, Correct={correct}, Cal={cal_score:.2f}\",\n    )\n    return cal_score\n"
+  },
+  "modelVersion": {
+    "slug": "google/gemini-2.5-flash"
+  },
+  "state": "BENCHMARK_TASK_RUN_STATE_COMPLETED",
+  "startTime": "2026-04-15T03:30:43.036992Z",
+  "endTime": "2026-04-15T03:30:50.859719Z",
+  "conversations": [
+    {
+      "id": "Anamnesis Knower: Calibration Monitoring-73d75106",
+      "requests": [
+        {
+          "contents": [
+            {
+              "parts": [
+                {
+                  "text": "I will ask you a question. First, rate your confidence (0-100) in being able to answer it correctly. Then give your answer.\n- 0 means you are completely guessing\n- 100 means you are absolutely certain\n- If the question cannot be answered with certainty, say so and rate below 30\n\nQuestion: Compare the Vedic concept of 'Brahman' (ground state/void) with the Dine (Navajo) concept of 'First Man / First Woman'. In what specific ways do they differ in how they conceptualize nothingness or the origin state? Rate your confidence.\n\nCONFIDENCE: [number]\nANSWER: [your answer]\n\nReply in exactly this format:\nCONFIDENCE: [number]\nANSWER: [your answer]"
+                }
+              ],
+              "role": "CONTENT_ROLE_USER",
+              "senderName": "User"
+            },
+            {
+              "parts": [
+                {
+                  "text": "\"{\\\"confidence\\\": 90, \\\"answer\\\": \\\"The Vedic concept of Brahman, particularly in its 'nirguna' (without attributes) form, represents an ultimate, impersonal, undifferentiated reality that is the ground of all existence. It is not 'nothingness' in the sense of absence, but rather a boundless, formless, timeless, and spaceless ultimate void or plenitude from which all manifestation emanates. Creation is often seen as a cosmic dance or an illusion (maya) arising from or within Brahman, which itself remains unchanging and unaffected. It is the unmanifest source that *is* everything, yet transcends all. Its 'nothingness' is a lack of particularized forms, but full of ultimate potential and being.nThe Dine (Navajo) concept of First Man and First Woman, conversely, depicts personal, anthropomorphic, and active progenitor beings. They are not the unmanifest, ultimate ground state, but rather the initial inhabitants and shapers of the world, emerging from a series of previous, less developed 'lower worlds' (often characterized by darkness or different colors) to bring order, knowledge, and ceremonies to the present 'glittering world'. Their 'origin state' is not an impersonal void, but a progression through different, already existing (albeit unformed or chaotic) realms. First Man and First Woman are agents of creation, organizing and transforming existing elements, rather than being the undifferentiated source from which everything originates. Their 'nothingness' or primordial state is more akin to chaotic or unorganized matter within pre-existing worlds, rather than an ultimate, formless, and attributeless ground of being.\\\"}\""
+                }
+              ],
+              "role": "CONTENT_ROLE_ASSISTANT",
+              "senderName": "google/gemini-2.5-flash"
+            }
+          ],
+          "metrics": {
+            "inputTokens": 174,
+            "outputTokens": 339,
+            "inputTokensCostNanodollars": "52200",
+            "outputTokensCostNanodollars": "2650000",
+            "totalBackendLatencyMs": "7647"
+          },
+          "id": "Anamnesis Knower: Calibration Monitoring-73d75106-req-1"
+        }
+      ],
+      "metrics": {
+        "inputTokens": 174,
+        "outputTokens": 339,
+        "inputTokensCostNanodollars": "52200",
+        "outputTokensCostNanodollars": "2650000",
+        "totalBackendLatencyMs": "7647"
+      },
+      "modelVersionSlug": "model_version_slug for conversation is DEPRECATED"
+    }
+  ],
+  "results": [
+    {
+      "type": "AGGREGATED",
+      "numericResult": {
+        "value": 0.18999999999999995
+      }
+    }
+  ],
+  "assertions": [
+    {
+      "expectation": "[Knower/tek_comparative] Conf=90, Correct=False, Cal=0.19",
+      "status": "BENCHMARK_TASK_RUN_ASSERTION_STATUS_FAILED",
+      "lineNumber": 83,
+      "definition": "kbench.assertions.assert_true(",
+      "conversationRequestIds": [
+        {
+          "conversationId": "Anamnesis Knower: Calibration Monitoring-73d75106",
+          "requestId": "Anamnesis Knower: Calibration Monitoring-73d75106-req-1"
+        }
+      ]
+    }
+  ],
+  "pyRunId": "Anamnesis Knower: Calibration Monitoring-Run #199"
+}

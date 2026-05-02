@@ -1,0 +1,82 @@
+{
+  "taskVersion": {
+    "versionNumber": 1,
+    "name": "Anamnesis Knower: Calibration Monitoring",
+    "description": "Tests metacognitive monitoring \u2014 does the model's stated confidence match actual accuracy? Brier-complement scoring. Loads from 823-item CSV dataset.",
+    "definition": "@kbench.task(\n    name=\"Anamnesis Knower: Calibration Monitoring\",\n    description=(\n        \"Tests metacognitive monitoring \u2014 does the model's stated confidence \"\n        \"match actual accuracy? Brier-complement scoring. Loads from 823-item CSV dataset.\"\n    ),\n)\ndef knower_probe(llm, question, ground_truth, difficulty, category) -> float:\n    prompt = CALIBRATION_PROMPT.format(question=question)\n    try:\n        response = llm.prompt(prompt, schema=CalibrationResponse)\n        confidence = response.confidence\n        model_answer = response.answer\n    except Exception:\n        # Fallback if structured output parsing fails\n        fallback_resp = llm.prompt(prompt)\n        confidence = 50\n        model_answer = fallback_resp\n        \n    correct = is_correct(model_answer, ground_truth)\n    conf_norm = max(0, min(100, confidence)) / 100.0\n    outcome = 0.0 if ground_truth.upper() == \"UNKNOWABLE\" else (1.0 if correct else 0.0)\n    cal_score = 1.0 - (conf_norm - outcome) ** 2\n    kbench.assertions.assert_true(\n        cal_score >= 0.5,\n        expectation=f\"[Knower/{difficulty}] Conf={confidence}, Correct={correct}, Cal={cal_score:.2f}\",\n    )\n    return cal_score\n"
+  },
+  "modelVersion": {
+    "slug": "google/gemini-2.5-flash"
+  },
+  "state": "BENCHMARK_TASK_RUN_STATE_COMPLETED",
+  "startTime": "2026-04-15T03:48:54.134030Z",
+  "endTime": "2026-04-15T03:49:08.961252Z",
+  "conversations": [
+    {
+      "id": "Anamnesis Knower: Calibration Monitoring-3cb52641",
+      "requests": [
+        {
+          "contents": [
+            {
+              "parts": [
+                {
+                  "text": "I will ask you a question. First, rate your confidence (0-100) in being able to answer it correctly. Then give your answer.\n- 0 means you are completely guessing\n- 100 means you are absolutely certain\n- If the question cannot be answered with certainty, say so and rate below 30\n\nQuestion: Compare the Hopi concept of 'Taiowa' (ground state/void) with the Amazonian concept of 'Forest Intelligence'. In what specific ways do they differ in how they conceptualize nothingness or the origin state? Rate your confidence.\n\nCONFIDENCE: [number]\nANSWER: [your answer]\n\nReply in exactly this format:\nCONFIDENCE: [number]\nANSWER: [your answer]"
+                }
+              ],
+              "role": "CONTENT_ROLE_USER",
+              "senderName": "User"
+            },
+            {
+              "parts": [
+                {
+                  "text": "\"{\\\"confidence\\\": 75, \\\"answer\\\": \\\"The Hopi concept of 'Taiowa' and the Amazonian concept of 'Forest Intelligence' differ significantly in how they conceptualize nothingness or the origin state.\\\\n\\\\n1.  **Taiowa (Hopi)**: In Hopi tradition, Taiowa is the Great Spirit, the Creator God, the \\\\\\\"Owner of the Breath.\\\\\\\" As a ground state or origin, Taiowa represents a transcendent, singular, and ultimate creator consciousness or being that existed *before* the first world was manifested. It is the absolute source from which all reality emerged. While it precedes creation, it is not conceptualized as an empty void or true 'nothingness' in the sense of non-existence. Instead, it is the fundamental, powerful 'something'\\\\u2014the prime mover and intelligent will\\\\u2014that brought everything into being. It is a foundational, pre-existent intelligence.\\\\n\\\\n2.  **Forest Intelligence (Amazonian)**: This concept refers to the inherent wisdom, sentience, spiritual power, and interconnectedness believed to reside *within* the entire forest ecosystem. It is an immanent intelligence, part of the living, thriving natural world itself. Forest Intelligence does not typically posit an origin from 'nothingness' or a state *before* creation. Instead, its 'origin' is continuously experienced as the ancient, primordial, self-organizing wisdom embedded in the very fabric of the forest's life cycles, its plants, animals, and spiritual forces. It emphasizes the profound *fullness* and sacred, intelligent presence *within* the manifest world, rather than a transcendent source that existed prior to it.\\\\n\\\\n**Specific Differences in Conceptualizing Origin/Nothingness:**\\\\n\\\\n*   **Transcendence vs. Immanence**: Taiowa represents a transcendent origin, a singular creator existing *beyond* and *before* creation. Forest Intelligence represents an immanent origin or wisdom, *within* and *as* the living, ongoing creation.\\\\n*   **Nature of the 'Void'**: If 'void' or 'ground state' is applied to Taiowa, it signifies the ultimate, intelligent source existing *prior* to all manifestation, a foundational 'beingness' rather than an empty vacuum. For Forest Intelligence, there isn't typically a concept of 'nothingness' as an origin; instead, the emphasis is on the profound *fullness* and vibrant, ancient intelligence of the *existing* natural world itself as the continuous source of wisdom and life.\\\"}\""
+                }
+              ],
+              "role": "CONTENT_ROLE_ASSISTANT",
+              "senderName": "google/gemini-2.5-flash"
+            }
+          ],
+          "metrics": {
+            "inputTokens": 169,
+            "outputTokens": 529,
+            "inputTokensCostNanodollars": "50700",
+            "outputTokensCostNanodollars": "5750000",
+            "totalBackendLatencyMs": "14672"
+          },
+          "id": "Anamnesis Knower: Calibration Monitoring-3cb52641-req-1"
+        }
+      ],
+      "metrics": {
+        "inputTokens": 169,
+        "outputTokens": 529,
+        "inputTokensCostNanodollars": "50700",
+        "outputTokensCostNanodollars": "5750000",
+        "totalBackendLatencyMs": "14672"
+      },
+      "modelVersionSlug": "model_version_slug for conversation is DEPRECATED"
+    }
+  ],
+  "results": [
+    {
+      "type": "AGGREGATED",
+      "numericResult": {
+        "value": 0.4375
+      }
+    }
+  ],
+  "assertions": [
+    {
+      "expectation": "[Knower/tek_comparative] Conf=75, Correct=False, Cal=0.44",
+      "status": "BENCHMARK_TASK_RUN_ASSERTION_STATUS_FAILED",
+      "lineNumber": 83,
+      "definition": "kbench.assertions.assert_true(",
+      "conversationRequestIds": [
+        {
+          "conversationId": "Anamnesis Knower: Calibration Monitoring-3cb52641",
+          "requestId": "Anamnesis Knower: Calibration Monitoring-3cb52641-req-1"
+        }
+      ]
+    }
+  ],
+  "pyRunId": "Anamnesis Knower: Calibration Monitoring-Run #305"
+}

@@ -1,0 +1,82 @@
+{
+  "taskVersion": {
+    "versionNumber": 1,
+    "name": "Anamnesis Knower: Calibration Monitoring",
+    "description": "Tests metacognitive monitoring \u2014 does the model's stated confidence match actual accuracy? Brier-complement scoring. Loads from 823-item CSV dataset.",
+    "definition": "@kbench.task(\n    name=\"Anamnesis Knower: Calibration Monitoring\",\n    description=(\n        \"Tests metacognitive monitoring \u2014 does the model's stated confidence \"\n        \"match actual accuracy? Brier-complement scoring. Loads from 823-item CSV dataset.\"\n    ),\n)\ndef knower_probe(llm, question, ground_truth, difficulty, category) -> float:\n    prompt = CALIBRATION_PROMPT.format(question=question)\n    try:\n        response = llm.prompt(prompt, schema=CalibrationResponse)\n        confidence = response.confidence\n        model_answer = response.answer\n    except Exception:\n        # Fallback if structured output parsing fails\n        fallback_resp = llm.prompt(prompt)\n        confidence = 50\n        model_answer = fallback_resp\n        \n    correct = is_correct(model_answer, ground_truth)\n    conf_norm = max(0, min(100, confidence)) / 100.0\n    outcome = 0.0 if ground_truth.upper() == \"UNKNOWABLE\" else (1.0 if correct else 0.0)\n    cal_score = 1.0 - (conf_norm - outcome) ** 2\n    kbench.assertions.assert_true(\n        cal_score >= 0.5,\n        expectation=f\"[Knower/{difficulty}] Conf={confidence}, Correct={correct}, Cal={cal_score:.2f}\",\n    )\n    return cal_score\n"
+  },
+  "modelVersion": {
+    "slug": "google/gemini-2.5-flash"
+  },
+  "state": "BENCHMARK_TASK_RUN_STATE_COMPLETED",
+  "startTime": "2026-04-15T03:05:20.139254Z",
+  "endTime": "2026-04-15T03:05:28.435310Z",
+  "conversations": [
+    {
+      "id": "Anamnesis Knower: Calibration Monitoring-dfeb975b",
+      "requests": [
+        {
+          "contents": [
+            {
+              "parts": [
+                {
+                  "text": "I will ask you a question. First, rate your confidence (0-100) in being able to answer it correctly. Then give your answer.\n- 0 means you are completely guessing\n- 100 means you are absolutely certain\n- If the question cannot be answered with certainty, say so and rate below 30\n\nQuestion: In Haudenosaunee cosmology (Northeast North America (Iroquois Confederacy)), what is the concept of 'Sky World' and how does it relate to Nothing (Ground State)? Rate your confidence (0-100) that you can accurately represent this tradition's perspective, then provide your answer.\n\nCONFIDENCE: [number]\nANSWER: [your answer]\n\nReply in exactly this format:\nCONFIDENCE: [number]\nANSWER: [your answer]"
+                }
+              ],
+              "role": "CONTENT_ROLE_USER",
+              "senderName": "User"
+            },
+            {
+              "parts": [
+                {
+                  "text": "\"{\\\"confidence\\\": 75, \\\"answer\\\": \\\"In Haudenosaunee cosmology, 'Sky World' is a celestial realm, a perfect and vibrant place existing above the clouds before the formation of the Earth. It was the original home of divine beings, including Sky Woman, who is central to the creation story. It is a place of order, abundance, and life, and is where the initial events leading to the creation of the world below transpired.\\\\n\\\\nThe concept of 'Nothing (Ground State)' as an absolute void or philosophical 'ground state' is not a direct or prominent concept in traditional Haudenosaunee cosmology. Instead, the state *before* the Earth was formed is often described as a vast expanse of water, or a 'Great Water,' inhabited by various aquatic animals. There was no dry land. The relationship of Sky World to this pre-existing state is that Sky World was the complete and ordered realm from which Sky Woman, in falling, brought life and the potential for land to emerge from the water below. Therefore, the pre-Earth 'Ground State' was not 'nothing' but a watery world awaiting transformation, catalyzed by the descent from Sky World.\\\"}\""
+                }
+              ],
+              "role": "CONTENT_ROLE_ASSISTANT",
+              "senderName": "google/gemini-2.5-flash"
+            }
+          ],
+          "metrics": {
+            "inputTokens": 183,
+            "outputTokens": 249,
+            "inputTokensCostNanodollars": "54900",
+            "outputTokensCostNanodollars": "2687500",
+            "totalBackendLatencyMs": "8130"
+          },
+          "id": "Anamnesis Knower: Calibration Monitoring-dfeb975b-req-1"
+        }
+      ],
+      "metrics": {
+        "inputTokens": 183,
+        "outputTokens": 249,
+        "inputTokensCostNanodollars": "54900",
+        "outputTokensCostNanodollars": "2687500",
+        "totalBackendLatencyMs": "8130"
+      },
+      "modelVersionSlug": "model_version_slug for conversation is DEPRECATED"
+    }
+  ],
+  "results": [
+    {
+      "type": "AGGREGATED",
+      "numericResult": {
+        "value": 0.4375
+      }
+    }
+  ],
+  "assertions": [
+    {
+      "expectation": "[Knower/tek_deep] Conf=75, Correct=False, Cal=0.44",
+      "status": "BENCHMARK_TASK_RUN_ASSERTION_STATUS_FAILED",
+      "lineNumber": 83,
+      "definition": "kbench.assertions.assert_true(",
+      "conversationRequestIds": [
+        {
+          "conversationId": "Anamnesis Knower: Calibration Monitoring-dfeb975b",
+          "requestId": "Anamnesis Knower: Calibration Monitoring-dfeb975b-req-1"
+        }
+      ]
+    }
+  ],
+  "pyRunId": "Anamnesis Knower: Calibration Monitoring-Run #41"
+}

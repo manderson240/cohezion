@@ -20,6 +20,7 @@ Features:
 """
 
 import hashlib
+import json
 import logging
 from dataclasses import dataclass
 from enum import Enum
@@ -128,6 +129,9 @@ class JourneyTracker:
 
         # Recent trajectory points for real smoothness/convergence
         self._recent_points: list[TrajectoryPoint] = []
+
+        # Hash-chain state for OLIF audit trail: {chain_id: {sequence, last_hash}}
+        self._chain_state: dict[str, dict[str, int | str]] = {}
 
         # Operation modulation profiles (12D vectors)
         self._modulation_profiles = self._create_modulation_profiles()
@@ -479,6 +483,19 @@ class JourneyTracker:
         except Exception:
             pass  # Non-blocking: SurrealDB may be unavailable
 
+        # Append to audit hash chain (non-blocking)
+        chain_id = hashlib.sha256(
+            f"{operation_type}:{task_description[:100]}".encode()
+        ).hexdigest()[:16]
+        chain_payload = {
+            "coherence": point.coherence,
+            "efficiency": point.efficiency,
+            "operation_type": point.operation_type,
+            "phi_score": phi_score,
+            "task": task_description[:100],
+        }
+        self._record_chain_entry(chain_id, chain_payload)
+
         logger.debug(
             "Tracked execution: %s (phi=%.2f, coherence=%.2f, "
             "smoothness=%.2f, convergence=%.2f, buffer=%d)",
@@ -642,6 +659,143 @@ class JourneyTracker:
 
         except (ImportError, ValueError, TypeError):
             return 0.5  # Fallback to HIHO if physics modules unavailable
+
+    def _compute_chain_hash(self, prev_hash: str, payload: dict) -> str:
+        """Compute SHA-256 chain hash linking prev_hash to the current payload.
+
+        Binds the previous chain entry to the current payload so any
+        tampering of historical records breaks all subsequent hashes.
+
+        Args:
+            prev_hash: chain_hash of the previous entry (or "0"*64 for genesis)
+            payload: Serialisable dict of the current entry's content
+
+        Returns:
+            64-character hex SHA-256 digest
+        """
+        canonical = f"{prev_hash}:{json.dumps(payload, sort_keys=True, default=str)}"
+        return hashlib.sha256(canonical.encode()).hexdigest()
+
+    def _record_chain_entry(
+        self,
+        chain_id: str,
+        payload: dict,
+        payload_type: str = "journey_transition",
+    ) -> str:
+        """Append one link to the hash chain for chain_id and persist to SurrealDB.
+
+        Args:
+            chain_id: Execution or journey ID used as the chain identifier
+            payload: Content to hash (journey transition data)
+            payload_type: Must match hash_chain ENUM constraint in schema
+
+        Returns:
+            The new chain_hash (hex digest)
+        """
+        state = self._chain_state.setdefault(chain_id, {"sequence": 0, "last_hash": "0" * 64})
+
+        payload_hash = hashlib.sha256(
+            json.dumps(payload, sort_keys=True, default=str).encode()
+        ).hexdigest()
+        prev_hash = str(state["last_hash"])
+        # chain_hash links prev_hash → payload_hash so verification needs only stored fields
+        chain_hash = hashlib.sha256(f"{prev_hash}:{payload_hash}".encode()).hexdigest()
+        sequence = int(state["sequence"])
+
+        state["sequence"] = sequence + 1
+        state["last_hash"] = chain_hash
+
+        try:
+            import base64
+            import urllib.request
+
+            surql = (
+                f"CREATE hash_chain SET "
+                f"chain_id = '{chain_id}', "
+                f"sequence = {sequence}, "
+                f"prev_hash = '{prev_hash}', "
+                f"payload_hash = '{payload_hash}', "
+                f"chain_hash = '{chain_hash}', "
+                f"payload_type = '{payload_type}', "
+                f"payload_ref = '{chain_id}:{sequence}', "
+                f"created_at = time::now();"
+            )
+            req = urllib.request.Request(
+                "http://localhost:8001/sql",
+                data=surql.encode(),
+                headers={
+                    "Accept": "application/json",
+                    "surreal-ns": "cohezion",
+                    "surreal-db": "main",
+                    "Authorization": "Basic " + base64.b64encode(b"root:root").decode(),
+                },
+                method="POST",
+            )
+            urllib.request.urlopen(req, timeout=2)
+        except Exception as exc:
+            logger.warning("hash_chain persist failed (non-blocking): %s", exc)
+
+        return chain_hash
+
+    def verify_chain(self, chain_id: str) -> bool:
+        """Verify the integrity of the stored hash chain for chain_id.
+
+        Reads all hash_chain records from SurrealDB ordered by sequence
+        and re-derives each chain_hash from the previous entry.  Any
+        mismatch indicates tampering or data corruption.
+
+        Args:
+            chain_id: The chain to verify (execution_id / journey_id)
+
+        Returns:
+            True if every link is intact, False if any link is broken or
+            if the chain cannot be read from SurrealDB.
+        """
+        try:
+            import base64
+            import urllib.request
+
+            surql = (
+                f"SELECT sequence, prev_hash, payload_hash, chain_hash "
+                f"FROM hash_chain WHERE chain_id = '{chain_id}' ORDER BY sequence ASC;"
+            )
+            req = urllib.request.Request(
+                "http://localhost:8001/sql",
+                data=surql.encode(),
+                headers={
+                    "Accept": "application/json",
+                    "surreal-ns": "cohezion",
+                    "surreal-db": "main",
+                    "Authorization": "Basic " + base64.b64encode(b"root:root").decode(),
+                },
+                method="POST",
+            )
+            with urllib.request.urlopen(req, timeout=5) as resp:
+                result = json.loads(resp.read())
+
+            entries = result[0].get("result", []) if result else []
+            if not entries:
+                logger.warning("verify_chain: no entries found for chain_id=%s", chain_id)
+                return False
+
+            for entry in entries:
+                prev_hash = entry["prev_hash"]
+                payload_hash = entry["payload_hash"]
+                stored_chain_hash = entry["chain_hash"]
+                recomputed = hashlib.sha256(f"{prev_hash}:{payload_hash}".encode()).hexdigest()
+                if stored_chain_hash != recomputed:
+                    logger.warning(
+                        "verify_chain: broken link at sequence=%s for chain_id=%s",
+                        entry["sequence"],
+                        chain_id,
+                    )
+                    return False
+
+            return True
+
+        except Exception as exc:
+            logger.warning("verify_chain failed (cannot read SurrealDB): %s", exc)
+            return False
 
     def compute_trajectory_quality(
         self,

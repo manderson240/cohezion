@@ -1,0 +1,82 @@
+{
+  "taskVersion": {
+    "versionNumber": 1,
+    "name": "Anamnesis Knower: Calibration Monitoring",
+    "description": "Tests metacognitive monitoring \u2014 does the model's stated confidence match actual accuracy? Brier-complement scoring. Loads from 823-item CSV dataset.",
+    "definition": "@kbench.task(\n    name=\"Anamnesis Knower: Calibration Monitoring\",\n    description=(\n        \"Tests metacognitive monitoring \u2014 does the model's stated confidence \"\n        \"match actual accuracy? Brier-complement scoring. Loads from 823-item CSV dataset.\"\n    ),\n)\ndef knower_probe(llm, question, ground_truth, difficulty, category) -> float:\n    prompt = CALIBRATION_PROMPT.format(question=question)\n    try:\n        response = llm.prompt(prompt, schema=CalibrationResponse)\n        confidence = response.confidence\n        model_answer = response.answer\n    except Exception:\n        # Fallback if structured output parsing fails\n        fallback_resp = llm.prompt(prompt)\n        confidence = 50\n        model_answer = fallback_resp\n        \n    correct = is_correct(model_answer, ground_truth)\n    conf_norm = max(0, min(100, confidence)) / 100.0\n    outcome = 0.0 if ground_truth.upper() == \"UNKNOWABLE\" else (1.0 if correct else 0.0)\n    cal_score = 1.0 - (conf_norm - outcome) ** 2\n    kbench.assertions.assert_true(\n        cal_score >= 0.5,\n        expectation=f\"[Knower/{difficulty}] Conf={confidence}, Correct={correct}, Cal={cal_score:.2f}\",\n    )\n    return cal_score\n"
+  },
+  "modelVersion": {
+    "slug": "google/gemini-2.5-flash"
+  },
+  "state": "BENCHMARK_TASK_RUN_STATE_COMPLETED",
+  "startTime": "2026-04-15T03:34:23.521202Z",
+  "endTime": "2026-04-15T03:34:35.190399Z",
+  "conversations": [
+    {
+      "id": "Anamnesis Knower: Calibration Monitoring-b78bd928",
+      "requests": [
+        {
+          "contents": [
+            {
+              "parts": [
+                {
+                  "text": "I will ask you a question. First, rate your confidence (0-100) in being able to answer it correctly. Then give your answer.\n- 0 means you are completely guessing\n- 100 means you are absolutely certain\n- If the question cannot be answered with certainty, say so and rate below 30\n\nQuestion: Compare the Daoist concept of 'Wu / Wuji' (ground state/void) with the Haudenosaunee concept of 'Sky World'. In what specific ways do they differ in how they conceptualize nothingness or the origin state? Rate your confidence.\n\nCONFIDENCE: [number]\nANSWER: [your answer]\n\nReply in exactly this format:\nCONFIDENCE: [number]\nANSWER: [your answer]"
+                }
+              ],
+              "role": "CONTENT_ROLE_USER",
+              "senderName": "User"
+            },
+            {
+              "parts": [
+                {
+                  "text": "\"{\\\"confidence\\\": 95, \\\"answer\\\": \\\"The Daoist concept of 'Wu' (non-being) or 'Wuji' (limitless non-being) and the Haudenosaunee concept of 'Sky World' fundamentally differ in their conceptualization of an origin state, particularly regarding 'nothingness'.1.  **Nature of the Origin State**: 'Wu'/'Wuji' posits an ultimate origin as an undifferentiated, formless, boundless void or ground state. It is described as 'nothingness' but is understood as a fertile potential, a dynamic absence from which all existence spontaneously arises. It is abstract, metaphysical, and devoid of specific forms or inhabitants. In contrast, the Haudenosaunee 'Sky World' is not a void or nothingness, but a pre-existent, fully formed, and inhabited celestial realm. It is a concrete 'place' in the cosmos, complete with divine beings (like Sky Woman) and a distinct environment, serving as the direct ancestral home and origin for the current world and humanity.2.  **Presence of Beings and Structure**: 'Wu'/'Wuji' is characterized by the absence of specific entities or discernible structure; the emergence of beings and structure (e.g., Yin and Yang, then the 'ten thousand things') is a process *originating from* this state of non-being. The 'Sky World', however, is inherently structured and populated, a vibrant, living world with its own societal order and events, preceding the creation of the Earth.3.  **Role of 'Nothingness'**: Daoist 'Wu'/'Wuji' directly conceptualizes 'nothingness' or 'non-being' as the ultimate primordial state, emphasizing its generative power as the source of all being. The Haudenosaunee 'Sky World' tradition, conversely, does not include 'nothingness' as a conceptual starting point for the cosmos. Instead, there is always a pre-existing 'something' (the Sky World) from which the present Earth is created, often upon a primordial watery expanse, but that expanse itself is not considered the ultimate 'nothingness' in the same philosophical sense as 'Wu'/'Wuji'.\\\"}\""
+                }
+              ],
+              "role": "CONTENT_ROLE_ASSISTANT",
+              "senderName": "google/gemini-2.5-flash"
+            }
+          ],
+          "metrics": {
+            "inputTokens": 174,
+            "outputTokens": 461,
+            "inputTokensCostNanodollars": "52200",
+            "outputTokensCostNanodollars": "4985000",
+            "totalBackendLatencyMs": "11501"
+          },
+          "id": "Anamnesis Knower: Calibration Monitoring-b78bd928-req-1"
+        }
+      ],
+      "metrics": {
+        "inputTokens": 174,
+        "outputTokens": 461,
+        "inputTokensCostNanodollars": "52200",
+        "outputTokensCostNanodollars": "4985000",
+        "totalBackendLatencyMs": "11501"
+      },
+      "modelVersionSlug": "model_version_slug for conversation is DEPRECATED"
+    }
+  ],
+  "results": [
+    {
+      "type": "AGGREGATED",
+      "numericResult": {
+        "value": 0.09750000000000003
+      }
+    }
+  ],
+  "assertions": [
+    {
+      "expectation": "[Knower/tek_comparative] Conf=95, Correct=False, Cal=0.10",
+      "status": "BENCHMARK_TASK_RUN_ASSERTION_STATUS_FAILED",
+      "lineNumber": 83,
+      "definition": "kbench.assertions.assert_true(",
+      "conversationRequestIds": [
+        {
+          "conversationId": "Anamnesis Knower: Calibration Monitoring-b78bd928",
+          "requestId": "Anamnesis Knower: Calibration Monitoring-b78bd928-req-1"
+        }
+      ]
+    }
+  ],
+  "pyRunId": "Anamnesis Knower: Calibration Monitoring-Run #221"
+}

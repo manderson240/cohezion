@@ -14,6 +14,7 @@ import time
 from pathlib import Path
 from typing import Any
 
+import aiofiles
 from fastapi import APIRouter, HTTPException
 from fastapi.responses import StreamingResponse
 
@@ -153,8 +154,8 @@ async def start_journey(config: dict[str, Any]) -> dict[str, Any]:
         "config": config,
     }
 
-    with open(checkpoint_file, "w") as f:
-        json.dump(initial_checkpoint, f, indent=2)
+    async with aiofiles.open(checkpoint_file, "w") as f:
+        await f.write(json.dumps(initial_checkpoint, indent=2))
 
     return {"journey_id": journey_id, "status": "started", "config": config}
 
@@ -167,14 +168,14 @@ async def pause_journey(journey_id: str) -> dict[str, Any]:
     if not checkpoint_file.exists():
         raise HTTPException(status_code=404, detail="Journey not found")
 
-    with open(checkpoint_file) as f:
-        data = json.load(f)
+    async with aiofiles.open(checkpoint_file) as f:
+        data = json.loads(await f.read())
 
     data["thermal_state"] = "PAUSED"
     data["timestamp"] = time.time()
 
-    with open(checkpoint_file, "w") as f:
-        json.dump(data, f, indent=2)
+    async with aiofiles.open(checkpoint_file, "w") as f:
+        await f.write(json.dumps(data, indent=2))
 
     return {"journey_id": journey_id, "status": "paused"}
 
@@ -187,13 +188,13 @@ async def resume_journey(journey_id: str) -> dict[str, Any]:
     if not checkpoint_file.exists():
         raise HTTPException(status_code=404, detail="Journey not found")
 
-    with open(checkpoint_file) as f:
-        data = json.load(f)
+    async with aiofiles.open(checkpoint_file) as f:
+        data = json.loads(await f.read())
 
     data["thermal_state"] = "NORMAL"
     data["timestamp"] = time.time()
 
-    with open(checkpoint_file, "w") as f:
-        json.dump(data, f, indent=2)
+    async with aiofiles.open(checkpoint_file, "w") as f:
+        await f.write(json.dumps(data, indent=2))
 
     return {"journey_id": journey_id, "status": "resumed"}

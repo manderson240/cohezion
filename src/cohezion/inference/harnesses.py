@@ -2,7 +2,7 @@
 
 Ollama cloud imposes per-client rate limits, but spreading requests across
 three independent headless harnesses (``pi``, ``opencode``, ``hermes``) lets
-us sustain ~3x concurrent throughput on the same pool of cloud models.
+us sustain ~3× concurrent throughput on the same pool of cloud models.
 
 Each harness is a separate process with its own auth session, so the cloud
 provider sees three distinct clients rather than one. The dispatcher picks

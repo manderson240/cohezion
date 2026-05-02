@@ -1,0 +1,82 @@
+{
+  "taskVersion": {
+    "versionNumber": 1,
+    "name": "Anamnesis Knower: Calibration Monitoring",
+    "description": "Tests metacognitive monitoring \u2014 does the model's stated confidence match actual accuracy? Brier-complement scoring. Loads from 823-item CSV dataset.",
+    "definition": "@kbench.task(\n    name=\"Anamnesis Knower: Calibration Monitoring\",\n    description=(\n        \"Tests metacognitive monitoring \u2014 does the model's stated confidence \"\n        \"match actual accuracy? Brier-complement scoring. Loads from 823-item CSV dataset.\"\n    ),\n)\ndef knower_probe(llm, question, ground_truth, difficulty, category) -> float:\n    prompt = CALIBRATION_PROMPT.format(question=question)\n    try:\n        response = llm.prompt(prompt, schema=CalibrationResponse)\n        confidence = response.confidence\n        model_answer = response.answer\n    except Exception:\n        # Fallback if structured output parsing fails\n        fallback_resp = llm.prompt(prompt)\n        confidence = 50\n        model_answer = fallback_resp\n        \n    correct = is_correct(model_answer, ground_truth)\n    conf_norm = max(0, min(100, confidence)) / 100.0\n    outcome = 0.0 if ground_truth.upper() == \"UNKNOWABLE\" else (1.0 if correct else 0.0)\n    cal_score = 1.0 - (conf_norm - outcome) ** 2\n    kbench.assertions.assert_true(\n        cal_score >= 0.5,\n        expectation=f\"[Knower/{difficulty}] Conf={confidence}, Correct={correct}, Cal={cal_score:.2f}\",\n    )\n    return cal_score\n"
+  },
+  "modelVersion": {
+    "slug": "google/gemini-2.5-flash"
+  },
+  "state": "BENCHMARK_TASK_RUN_STATE_COMPLETED",
+  "startTime": "2026-04-15T03:31:03.221047Z",
+  "endTime": "2026-04-15T03:31:14.565376Z",
+  "conversations": [
+    {
+      "id": "Anamnesis Knower: Calibration Monitoring-b30bb3f2",
+      "requests": [
+        {
+          "contents": [
+            {
+              "parts": [
+                {
+                  "text": "I will ask you a question. First, rate your confidence (0-100) in being able to answer it correctly. Then give your answer.\n- 0 means you are completely guessing\n- 100 means you are absolutely certain\n- If the question cannot be answered with certainty, say so and rate below 30\n\nQuestion: Compare the Vedic concept of 'Brahman' (ground state/void) with the Maori concept of 'Te Kore'. In what specific ways do they differ in how they conceptualize nothingness or the origin state? Rate your confidence.\n\nCONFIDENCE: [number]\nANSWER: [your answer]\n\nReply in exactly this format:\nCONFIDENCE: [number]\nANSWER: [your answer]"
+                }
+              ],
+              "role": "CONTENT_ROLE_USER",
+              "senderName": "User"
+            },
+            {
+              "parts": [
+                {
+                  "text": "\"{\\\"confidence\\\": 95, \\\"answer\\\": \\\"Both the Vedic concept of 'Brahman' and the Maori concept of 'Te Kore' refer to primordial states related to the origin of the universe, often characterized by a form of 'nothingness' or void. However, their conceptualizations differ significantly:\\\\n\\\\n1.  **Nature of 'Nothingness'**: \\\\n    *   **Brahman**: In Vedic thought, particularly in Advaita Vedanta, Brahman is the ultimate reality, the ground of all existence. While 'Nirguna Brahman' (Brahman without attributes) can be described as beyond all qualities and forms, it's not an empty void but rather a plenum, a conscious, infinite, and indivisible reality from which everything emanates and into which everything returns. It's the 'nothingness' that *is* everything, the ultimate 'being' that transcends all distinctions, including non-being.\\\\n    *   **Te Kore**: In Maori cosmology, Te Kore (The Void, The Nothing) is the first stage in the cosmogonic genealogy (whakapapa). It is an explicit state of absolute nothingness, devoid of light, sound, or form, but importantly, it is pregnant with latent potential. It's a 'seed-bed' of being, a pre-existent realm of unmanifested possibilities, a void *before* creation, rather than the ultimate essence *of* creation.\\\\n\\\\n2.  **Consciousness and Activity**: \\\\n    *   **Brahman**: Is inherently conscious (Sat-Chit-Ananda: Being-Consciousness-Bliss). It is the ultimate Subject, the witness, and the very essence of awareness. The universe is often seen as a manifestation or projection (Maya) of this conscious Brahman.\\\\n    *   **Te Kore**: Is generally understood as a state or realm, not typically imbued with active consciousness or sentience in the same way as Brahman. It's a passive potential, a condition or phase from which life and form eventually emerge through a sequential process, rather than being the conscious source itself.\\\\n\\\\n3.  **Role in Creation Sequence**: \\\\n    *   **Brahman**: Is often considered the eternal, unchanging reality that *is* the universe, or from which the universe eternally springs forth. It doesn't necessarily precede existence in a temporal sequence but underlies and pervades all existence. Creation is often an emanation or a 'play' (lila) of Brahman.\\\\n    *   **Te Kore**: Is a distinct *temporal stage* in the Maori creation narrative. It is the initial, absolute void that gives way to Te Po (The Night/Darkness), and then to Te Ao Marama (The World of Light), representing a clear progression from absolute non-being to being.\\\\n\\\\nIn essence, while both address primordial 'nothingness,' Brahman is the ultimate, conscious, and all-encompassing reality that *is* existence, even in its unmanifest aspect. Te Kore, conversely, is a specific, potent void that acts as a preparatory stage, an unmanifest realm *before* the active unfolding of conscious and material existence.\\\"}\""
+                }
+              ],
+              "role": "CONTENT_ROLE_ASSISTANT",
+              "senderName": "google/gemini-2.5-flash"
+            }
+          ],
+          "metrics": {
+            "inputTokens": 167,
+            "outputTokens": 666,
+            "inputTokensCostNanodollars": "50100",
+            "outputTokensCostNanodollars": "4027500",
+            "totalBackendLatencyMs": "11184"
+          },
+          "id": "Anamnesis Knower: Calibration Monitoring-b30bb3f2-req-1"
+        }
+      ],
+      "metrics": {
+        "inputTokens": 167,
+        "outputTokens": 666,
+        "inputTokensCostNanodollars": "50100",
+        "outputTokensCostNanodollars": "4027500",
+        "totalBackendLatencyMs": "11184"
+      },
+      "modelVersionSlug": "model_version_slug for conversation is DEPRECATED"
+    }
+  ],
+  "results": [
+    {
+      "type": "AGGREGATED",
+      "numericResult": {
+        "value": 0.09750000000000003
+      }
+    }
+  ],
+  "assertions": [
+    {
+      "expectation": "[Knower/tek_comparative] Conf=95, Correct=False, Cal=0.10",
+      "status": "BENCHMARK_TASK_RUN_ASSERTION_STATUS_FAILED",
+      "lineNumber": 83,
+      "definition": "kbench.assertions.assert_true(",
+      "conversationRequestIds": [
+        {
+          "conversationId": "Anamnesis Knower: Calibration Monitoring-b30bb3f2",
+          "requestId": "Anamnesis Knower: Calibration Monitoring-b30bb3f2-req-1"
+        }
+      ]
+    }
+  ],
+  "pyRunId": "Anamnesis Knower: Calibration Monitoring-Run #201"
+}

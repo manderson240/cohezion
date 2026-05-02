@@ -1,3 +1,13 @@
+---
+name: ascension-skill-prime
+description: "High-fidelity autonomous platform improvement and agentic drive synchronization using the Cohezion 12-brane model."
+metadata:
+  version: "v1.6"
+  concepts: ["12-Brane Model", "Reward & Ratchet", "Mycelium Reinforcement", "High-Fidelity Context"]
+  see_also: ["REWARD_AND_RATCHET_PRIME", "FLUME_DYNAMICS_PRIME"]
+  source: "src/cohezion/skills/ASCENSION_SKILL_PRIME.md"
+---
+
 # SKILL: ASCENSION_SKILL_PRIME
 
 ## DOMAIN EXPERTISE

@@ -1,3 +1,12 @@
+---
+name: reducer-prime
+description: "Expert in semantic compression, conceptual distillation, and latent abstraction. Specializes in reducing high-dimensional agentic trajectories into compact, portable \"knowledge kernels\" that can be transferred across simulation universes."
+metadata:
+  version: "v1.0"
+  concepts: ["Manifold Reduction", "Knowledge Kernels", "Abstraction Cascades", "HIHO Stability"]
+  source: "src/cohezion/skills/REDUCER_PRIME.md"
+---
+
 # SKILL: REDUCER_PRIME
 
 ## DOMAIN EXPERTISE

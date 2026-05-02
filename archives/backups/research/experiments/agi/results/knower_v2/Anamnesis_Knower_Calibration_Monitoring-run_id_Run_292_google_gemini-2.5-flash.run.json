@@ -1,0 +1,82 @@
+{
+  "taskVersion": {
+    "versionNumber": 1,
+    "name": "Anamnesis Knower: Calibration Monitoring",
+    "description": "Tests metacognitive monitoring \u2014 does the model's stated confidence match actual accuracy? Brier-complement scoring. Loads from 823-item CSV dataset.",
+    "definition": "@kbench.task(\n    name=\"Anamnesis Knower: Calibration Monitoring\",\n    description=(\n        \"Tests metacognitive monitoring \u2014 does the model's stated confidence \"\n        \"match actual accuracy? Brier-complement scoring. Loads from 823-item CSV dataset.\"\n    ),\n)\ndef knower_probe(llm, question, ground_truth, difficulty, category) -> float:\n    prompt = CALIBRATION_PROMPT.format(question=question)\n    try:\n        response = llm.prompt(prompt, schema=CalibrationResponse)\n        confidence = response.confidence\n        model_answer = response.answer\n    except Exception:\n        # Fallback if structured output parsing fails\n        fallback_resp = llm.prompt(prompt)\n        confidence = 50\n        model_answer = fallback_resp\n        \n    correct = is_correct(model_answer, ground_truth)\n    conf_norm = max(0, min(100, confidence)) / 100.0\n    outcome = 0.0 if ground_truth.upper() == \"UNKNOWABLE\" else (1.0 if correct else 0.0)\n    cal_score = 1.0 - (conf_norm - outcome) ** 2\n    kbench.assertions.assert_true(\n        cal_score >= 0.5,\n        expectation=f\"[Knower/{difficulty}] Conf={confidence}, Correct={correct}, Cal={cal_score:.2f}\",\n    )\n    return cal_score\n"
+  },
+  "modelVersion": {
+    "slug": "google/gemini-2.5-flash"
+  },
+  "state": "BENCHMARK_TASK_RUN_STATE_COMPLETED",
+  "startTime": "2026-04-15T03:46:34.426547Z",
+  "endTime": "2026-04-15T03:46:48.021621Z",
+  "conversations": [
+    {
+      "id": "Anamnesis Knower: Calibration Monitoring-44028e29",
+      "requests": [
+        {
+          "contents": [
+            {
+              "parts": [
+                {
+                  "text": "I will ask you a question. First, rate your confidence (0-100) in being able to answer it correctly. Then give your answer.\n- 0 means you are completely guessing\n- 100 means you are absolutely certain\n- If the question cannot be answered with certainty, say so and rate below 30\n\nQuestion: The Hopi tradition describes dynamic equilibrium as 'Kachina ceremony', while the Dine (Navajo) tradition calls it 'Healing ceremony (Blessingway)'. What is the essential difference in how each tradition understands balance and equilibrium? Rate your confidence.\n\nCONFIDENCE: [number]\nANSWER: [your answer]\n\nReply in exactly this format:\nCONFIDENCE: [number]\nANSWER: [your answer]"
+                }
+              ],
+              "role": "CONTENT_ROLE_USER",
+              "senderName": "User"
+            },
+            {
+              "parts": [
+                {
+                  "text": "\"{\\\"confidence\\\": 90, \\\"answer\\\": \\\"The essential difference lies in their approach to maintaining or restoring balance. The Hopi tradition, through ceremonies like the Kachina ceremony, primarily focuses on the *maintenance* of an existing communal and cosmic order. These ceremonies are performed collectively to honor spiritual beings (Kachinas) and natural cycles, ensuring rain, fertility, and the overall well-being and prosperity of the entire community by sustaining a harmonious relationship with the spiritual and natural world. It is a proactive effort to uphold dynamic equilibrium. In contrast, the Dine (Navajo) tradition, particularly through ceremonies like the Blessingway and the concept of *H\\\\u00f3zh\\\\u00f3* (often translated as balance, harmony, or walking in beauty), focuses more on *restoring* balance when it has been disrupted. Illness, misfortune, or disharmony are seen as indicators of an individual's or community's departure from *H\\\\u00f3zh\\\\u00f3*. Healing ceremonies are performed to realign the individual with the harmonious order of the universe, bringing them back into a state of balance and preventing future disruptions. While both traditions seek equilibrium, Hopi emphasizes collective preservation of a natural order, whereas Dine emphasizes individual restoration of a harmonious state following imbalance.\\\"}\""
+                }
+              ],
+              "role": "CONTENT_ROLE_ASSISTANT",
+              "senderName": "google/gemini-2.5-flash"
+            }
+          ],
+          "metrics": {
+            "inputTokens": 171,
+            "outputTokens": 258,
+            "inputTokensCostNanodollars": "51300",
+            "outputTokensCostNanodollars": "5130000",
+            "totalBackendLatencyMs": "13432"
+          },
+          "id": "Anamnesis Knower: Calibration Monitoring-44028e29-req-1"
+        }
+      ],
+      "metrics": {
+        "inputTokens": 171,
+        "outputTokens": 258,
+        "inputTokensCostNanodollars": "51300",
+        "outputTokensCostNanodollars": "5130000",
+        "totalBackendLatencyMs": "13432"
+      },
+      "modelVersionSlug": "model_version_slug for conversation is DEPRECATED"
+    }
+  ],
+  "results": [
+    {
+      "type": "AGGREGATED",
+      "numericResult": {
+        "value": 0.18999999999999995
+      }
+    }
+  ],
+  "assertions": [
+    {
+      "expectation": "[Knower/tek_comparative] Conf=90, Correct=False, Cal=0.19",
+      "status": "BENCHMARK_TASK_RUN_ASSERTION_STATUS_FAILED",
+      "lineNumber": 83,
+      "definition": "kbench.assertions.assert_true(",
+      "conversationRequestIds": [
+        {
+          "conversationId": "Anamnesis Knower: Calibration Monitoring-44028e29",
+          "requestId": "Anamnesis Knower: Calibration Monitoring-44028e29-req-1"
+        }
+      ]
+    }
+  ],
+  "pyRunId": "Anamnesis Knower: Calibration Monitoring-Run #292"
+}

@@ -1,0 +1,10 @@
+{
+  "type": "config",
+  "temperature": 0.7,
+  "max_tokens": 512,
+  "tags": [
+    "config",
+    "baseline"
+  ],
+  "created": "2026-04-26T18:49:56.610612"
+}

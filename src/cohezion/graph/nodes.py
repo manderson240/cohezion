@@ -17,6 +17,7 @@ from typing import TYPE_CHECKING, Any
 if TYPE_CHECKING:
     from collections.abc import Callable
 
+    from cohezion.compound.context_policy import ContextBudget
     from cohezion.flux.aggregator import FluxAggregator
     from cohezion.graph.types import NodeSpec
 
@@ -59,10 +60,12 @@ class AgentNode(WorkflowNode):
         self,
         spec: NodeSpec,
         flux_aggregator: FluxAggregator | None = None,
+        context_budget: ContextBudget | None = None,
     ) -> None:
         super().__init__(spec)
         self._execute_fn: Callable[..., Any] | None = None
         self._flux = flux_aggregator
+        self._budget = context_budget
 
     def set_execute_fn(self, fn: Callable[..., Any]) -> None:
         """Set the async callable that performs agent execution."""
@@ -86,17 +89,24 @@ class AgentNode(WorkflowNode):
     async def _get_flux_context(self, inputs: dict[str, Any]) -> list[str]:
         """Query FLUX with a node-scoped query. Non-blocking on failure.
 
-        Only injects blocks above ``_FLUX_MIN_RELEVANCE`` — zero tokens
-        is better than noise tokens.
+        Uses ContextBudget parameters when available, otherwise falls
+        back to class-level defaults. Only injects blocks above the
+        relevance threshold — zero tokens is better than noise tokens.
         """
         try:
+            top_k = self._budget.flux_top_k if self._budget else self._FLUX_TOP_K
+            min_rel = self._budget.flux_min_relevance if self._budget else self._FLUX_MIN_RELEVANCE
+            sources = (
+                list(self._budget.flux_sources)
+                if self._budget and self._budget.flux_sources
+                else None
+            )
+
             query = self._build_context_query(inputs)
-            ctx = await self._flux.get_context(query, top_k=self._FLUX_TOP_K)  # type: ignore[union-attr]
-            return [
-                block.content
-                for block in ctx.blocks
-                if block.relevance_score >= self._FLUX_MIN_RELEVANCE
-            ]
+            ctx = await self._flux.get_context(  # type: ignore[union-attr]
+                query, top_k=top_k, sources=sources
+            )
+            return [block.content for block in ctx.blocks if block.relevance_score >= min_rel]
         except Exception:
             logger.debug("FLUX context injection failed for node '%s' (non-blocking)", self.spec.id)
             return []

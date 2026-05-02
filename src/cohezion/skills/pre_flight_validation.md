@@ -65,7 +65,7 @@ else
 fi
 
 echo -n "5. SurrealDB service... "
-if curl -s http://localhost:8000/health > /dev/null 2>&1; then
+if curl -s http://localhost:8001/health > /dev/null 2>&1; then
     echo "✅"
 else
     echo "⚠️  NOT RESPONDING (may be optional)"

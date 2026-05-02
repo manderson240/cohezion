@@ -29,7 +29,9 @@ async def persist():
     db = SurrealClient()
     await db.connect()
 
-    retro_content = Path("src/cohezion/knowledge_graph/retrospectives/RETRO_MISSION_50.md").read_text()
+    retro_content = Path(
+        "src/cohezion/knowledge_graph/retrospectives/RETRO_MISSION_50.md"
+    ).read_text()
 
     node = UniverseNode(
         id=f"retro_mission_50_{int(asyncio.get_event_loop().time())}",

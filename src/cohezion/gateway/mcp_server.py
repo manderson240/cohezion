@@ -34,6 +34,7 @@ from mcp.server.stdio import stdio_server
 from mcp.types import TextContent, Tool
 
 from cohezion.gateway.demo_gateway import DemoGateway
+from cohezion.governance.autonomy_engine import AutonomyTier, get_autonomy_engine
 from cohezion.security.credentials import get_credentials
 
 
@@ -46,6 +47,19 @@ logging.basicConfig(
 
 # Initialize server
 server = Server("ngrok-ai-gateway")
+
+# Map tool names to required autonomy tiers
+TOOL_PERMISSIONS = {
+    "generate": AutonomyTier.SO12,  # Basic observation/gen
+    "get_metrics": AutonomyTier.SO12,
+    "get_providers": AutonomyTier.SO12,
+    "cost_estimate": AutonomyTier.SO12,
+    "configure_gateway": AutonomyTier.SO3_4,  # Configuration is low-risk action
+    "create_gateway": AutonomyTier.SO3_4,
+    # Placeholders for future destructive tools
+    "write_file": AutonomyTier.U1_4,  # Committing changes requires medium autonomy
+    "run_shell_command": AutonomyTier.Z2_4,  # Execution requires high autonomy
+}
 
 
 class GatewayManager:
@@ -102,7 +116,7 @@ def get_gateway_manager() -> GatewayManager:
 # Register tools
 @server.list_tools()
 async def list_tools() -> list[Tool]:
-    """List available tools."""
+    """List available tools with agent governance."""
     return [
         Tool(
             name="generate",
@@ -111,6 +125,10 @@ async def list_tools() -> list[Tool]:
                 "type": "object",
                 "properties": {
                     "prompt": {"type": "string", "description": "User prompt"},
+                    "agent_id": {
+                        "type": "string",
+                        "description": "ID of the agent calling the tool",
+                    },
                     "model": {
                         "type": "string",
                         "description": "Model name (gpt-4o, claude-3.5-sonnet, etc.)",
@@ -123,7 +141,7 @@ async def list_tools() -> list[Tool]:
                         "default": "default",
                     },
                 },
-                "required": ["prompt"],
+                "required": ["prompt", "agent_id"],
             },
         ),
         Tool(
@@ -132,18 +150,32 @@ async def list_tools() -> list[Tool]:
             inputSchema={
                 "type": "object",
                 "properties": {
+                    "agent_id": {
+                        "type": "string",
+                        "description": "ID of the agent calling the tool",
+                    },
                     "gateway_id": {
                         "type": "string",
                         "description": "Gateway instance ID",
                         "default": "default",
                     },
                 },
+                "required": ["agent_id"],
             },
         ),
         Tool(
             name="get_providers",
             description="Get available providers and models",
-            inputSchema={"type": "object", "properties": {}},
+            inputSchema={
+                "type": "object",
+                "properties": {
+                    "agent_id": {
+                        "type": "string",
+                        "description": "ID of the agent calling the tool",
+                    },
+                },
+                "required": ["agent_id"],
+            },
         ),
         Tool(
             name="configure_gateway",
@@ -151,6 +183,10 @@ async def list_tools() -> list[Tool]:
             inputSchema={
                 "type": "object",
                 "properties": {
+                    "agent_id": {
+                        "type": "string",
+                        "description": "ID of the agent calling the tool",
+                    },
                     "gateway_id": {"type": "string", "description": "Gateway ID"},
                     "ollama_url": {
                         "type": "string",
@@ -158,7 +194,38 @@ async def list_tools() -> list[Tool]:
                         "default": "http://localhost:11434",
                     },
                 },
-                "required": ["gateway_id"],
+                "required": ["gateway_id", "agent_id"],
+            },
+        ),
+        Tool(
+            name="shadow_write_file",
+            description="Write content to a file inside an isolated shadow worktree (Safety First)",
+            inputSchema={
+                "type": "object",
+                "properties": {
+                    "agent_id": {
+                        "type": "string",
+                        "description": "ID of the agent calling the tool",
+                    },
+                    "path": {"type": "string", "description": "Path to write to"},
+                    "content": {"type": "string", "description": "File content"},
+                },
+                "required": ["agent_id", "path", "content"],
+            },
+        ),
+        Tool(
+            name="shadow_shell_command",
+            description="Execute a shell command inside an isolated shadow worktree",
+            inputSchema={
+                "type": "object",
+                "properties": {
+                    "agent_id": {
+                        "type": "string",
+                        "description": "ID of the agent calling the tool",
+                    },
+                    "command": {"type": "string", "description": "Command to execute"},
+                },
+                "required": ["agent_id", "command"],
             },
         ),
         Tool(
@@ -179,8 +246,32 @@ async def list_tools() -> list[Tool]:
 
 @server.call_tool()
 async def call_tool(name: str, arguments: dict[str, Any]) -> list[TextContent]:
-    """Handle tool calls."""
+    """Handle tool calls with Autonomy Engine verification."""
     try:
+        # 1. Autonomy Verification
+        agent_id = arguments.get("agent_id", "anonymous")
+        required_tier = TOOL_PERMISSIONS.get(name, AutonomyTier.HIHO)
+
+        engine = get_autonomy_engine()
+        if not engine.can_perform(agent_id, required_tier):
+            state = engine.get_state(agent_id)
+            return [
+                TextContent(
+                    type="text",
+                    text=json.dumps(
+                        {
+                            "success": False,
+                            "error": "Governance Violation: Insufficient Autonomy Tier",
+                            "agent_id": agent_id,
+                            "current_tier": state.current_tier.value,
+                            "required_tier": required_tier.value,
+                            "reason": f"Agent '{agent_id}' has not demonstrated sufficient coherence history to perform '{name}'.",
+                        }
+                    ),
+                )
+            ]
+
+        # 2. Original Dispatch Logic
         if name == "generate":
             manager = get_gateway_manager()
             gateway = manager.get_gateway(arguments.get("gateway_id", "default"))

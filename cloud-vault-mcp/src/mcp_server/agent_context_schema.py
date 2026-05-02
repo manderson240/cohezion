@@ -200,7 +200,7 @@ class AgentContextSchema:
         """
         try:
             query = f"USE NS {self.namespace};\nUSE DB {self.database};\nSELECT * FROM agent_session LIMIT 1;"
-            self._execute_query(query)
+            result = self._execute_query(query)
 
             return {
                 "status": "active",

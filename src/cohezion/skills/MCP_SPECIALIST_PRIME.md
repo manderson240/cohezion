@@ -1,3 +1,8 @@
+---
+name: mcp-specialist-prime
+description: "Expert in MCP (Model Context Protocol) server design, tool schemas, FastMCP patterns, health monitoring, and inter-server coordination. Manages the tool layer that connects all Cohezion agents to their capabilities."
+---
+
 # SKILL: MCP_SPECIALIST_PRIME
 
 ## DOMAIN EXPERTISE
@@ -19,16 +24,15 @@ Expert in **MCP (Model Context Protocol) server design, tool schemas, FastMCP pa
 5. **Inter-server flow**: vault-mcp writes data → maintenance-mcp checks health → compound-mcp uses guidance.
 
 ## PATTERNS
-- Stateless HTTP mode for multi-client MCP servers (`stateless_http=True`)
-- Async/await for all I/O (SurrealDB queries, vault file access)
-- Graceful degradation: if SurrealDB is down, return empty results with error message
-- Config via environment variables: `SURREAL_URL`, `VAULT_PATH`, etc.
+- **Stateless HTTP mode**: For multi-client MCP servers, use `stateless_http=True` in FastMCP.
+- **Explicit Transport Flag**: Honor `MCP_TRANSPORT` and `MCP_PORT` env vars to allow runtime switching between `stdio` and `http`.
+- **Async Client Singleton**: Use a shared `AsyncClient` with `aclose()` support for high-frequency tool calls.
+- **Port Mapping Invariance**: Always verify `lsof -i` before starting, as dual SurrealDB instances often occupy both 8000 and 8001.
 
 ## ANTI-PATTERNS
-- Sync blocking calls inside MCP tool handlers (freezes the server)
-- Hardcoded paths (use `os.environ` + `Path.expanduser`)
-- Missing error handling (one bad query crashes the entire server)
-- Adding tools without updating settings.local.json permissions
+- **Port Assumption**: Hardcoding 8001 (SurrealDB default) when the local fleet is on 8000.
+- **Blocking Connect**: Forgetting to `await client.connect()` for async clients, leading to session-id-not-found errors.
+- **Ambiguous Table Names**: Using `learning` vs `learnings` vs `universe_nodes` without checking the `SurrealDBSync` schema.
 
 ## VERSION
 v1.0

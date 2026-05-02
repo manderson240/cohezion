@@ -29,6 +29,7 @@ PROMPTS = {
     "reasoning": "Solve the following word problem: If you have 3 apples and give 1 to a friend, how many apples do you have? Then, explain the concept of sharing.",
 }
 
+
 async def run_benchmark():
     """Run the benchmark suite."""
     logger.info("Starting Gemma 4 Benchmark Suite...")
@@ -51,7 +52,9 @@ async def run_benchmark():
                 result = await provider.generate(model=model_id, prompt=prompt, max_tokens=100)
                 latency = result.latency_ms
                 throughput = result.tokens_used / (latency / 1000) if latency > 0 else 0
-                logger.info(f"    -> Latency: {latency:.2f}ms, Throughput: {throughput:.2f} tokens/s")
+                logger.info(
+                    f"    -> Latency: {latency:.2f}ms, Throughput: {throughput:.2f} tokens/s"
+                )
                 results.append((model_name, prompt_type, latency, throughput, result.confidence))
             except Exception as e:
                 logger.warning(f"    -> Failed (expected in dry-run): {e}")
@@ -59,7 +62,9 @@ async def run_benchmark():
                 mock_latency = 1500 if "31b" in model_id else 500
                 mock_throughput = 20 if "31b" in model_id else 80
                 mock_confidence = 0.95
-                results.append((model_name, prompt_type, mock_latency, mock_throughput, mock_confidence))
+                results.append(
+                    (model_name, prompt_type, mock_latency, mock_throughput, mock_confidence)
+                )
 
     # Generate Markdown Report
     report = "# Gemma 4 Hardware Evaluation\n\n"
@@ -67,11 +72,12 @@ async def run_benchmark():
     report += "|---|---|---|---|---|\n"
     for r in results:
         report += f"| {r[0]} | {r[1]} | {r[2]:.2f} | {r[3]:.2f} | {r[4]:.2f} |\n"
-    
+
     with open("docs/benchmarks/gemma4_hardware_eval.md", "w") as f:
         f.write(report)
-    
+
     logger.info("Benchmark complete. Results written to docs/benchmarks/gemma4_hardware_eval.md")
+
 
 if __name__ == "__main__":
     asyncio.run(run_benchmark())

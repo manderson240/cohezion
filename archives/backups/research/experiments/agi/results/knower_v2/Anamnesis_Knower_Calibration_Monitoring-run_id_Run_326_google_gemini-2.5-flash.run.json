@@ -1,0 +1,82 @@
+{
+  "taskVersion": {
+    "versionNumber": 1,
+    "name": "Anamnesis Knower: Calibration Monitoring",
+    "description": "Tests metacognitive monitoring \u2014 does the model's stated confidence match actual accuracy? Brier-complement scoring. Loads from 823-item CSV dataset.",
+    "definition": "@kbench.task(\n    name=\"Anamnesis Knower: Calibration Monitoring\",\n    description=(\n        \"Tests metacognitive monitoring \u2014 does the model's stated confidence \"\n        \"match actual accuracy? Brier-complement scoring. Loads from 823-item CSV dataset.\"\n    ),\n)\ndef knower_probe(llm, question, ground_truth, difficulty, category) -> float:\n    prompt = CALIBRATION_PROMPT.format(question=question)\n    try:\n        response = llm.prompt(prompt, schema=CalibrationResponse)\n        confidence = response.confidence\n        model_answer = response.answer\n    except Exception:\n        # Fallback if structured output parsing fails\n        fallback_resp = llm.prompt(prompt)\n        confidence = 50\n        model_answer = fallback_resp\n        \n    correct = is_correct(model_answer, ground_truth)\n    conf_norm = max(0, min(100, confidence)) / 100.0\n    outcome = 0.0 if ground_truth.upper() == \"UNKNOWABLE\" else (1.0 if correct else 0.0)\n    cal_score = 1.0 - (conf_norm - outcome) ** 2\n    kbench.assertions.assert_true(\n        cal_score >= 0.5,\n        expectation=f\"[Knower/{difficulty}] Conf={confidence}, Correct={correct}, Cal={cal_score:.2f}\",\n    )\n    return cal_score\n"
+  },
+  "modelVersion": {
+    "slug": "google/gemini-2.5-flash"
+  },
+  "state": "BENCHMARK_TASK_RUN_STATE_COMPLETED",
+  "startTime": "2026-04-15T03:53:07.059177Z",
+  "endTime": "2026-04-15T03:53:12.838306Z",
+  "conversations": [
+    {
+      "id": "Anamnesis Knower: Calibration Monitoring-421783d7",
+      "requests": [
+        {
+          "contents": [
+            {
+              "parts": [
+                {
+                  "text": "I will ask you a question. First, rate your confidence (0-100) in being able to answer it correctly. Then give your answer.\n- 0 means you are completely guessing\n- 100 means you are absolutely certain\n- If the question cannot be answered with certainty, say so and rate below 30\n\nQuestion: The Dine (Navajo) tradition describes dynamic equilibrium as 'Healing ceremony (Blessingway)', while the Dogon tradition calls it 'Forge work'. What is the essential difference in how each tradition understands balance and equilibrium? Rate your confidence.\n\nCONFIDENCE: [number]\nANSWER: [your answer]\n\nReply in exactly this format:\nCONFIDENCE: [number]\nANSWER: [your answer]"
+                }
+              ],
+              "role": "CONTENT_ROLE_USER",
+              "senderName": "User"
+            },
+            {
+              "parts": [
+                {
+                  "text": "\"{\\\"confidence\\\": 10, \\\"answer\\\": \\\"The premise that \\\\\\\"Healing ceremony (Blessingway)\\\\\\\" is the Dine (Navajo) description of dynamic equilibrium and that \\\\\\\"Forge work\\\\\\\" is the Dogon description of it is inaccurate. Therefore, an essential difference in how each tradition understands balance and equilibrium based on these specific terms cannot be drawn directly. In the Navajo tradition, the concept of *h\\\\u00f3zh\\\\u01eb\\\\u0301* (harmony, balance, beauty, health) is central to dynamic equilibrium, and the Blessingway ceremony is a primary means to achieve and maintain this state, rather than being the definition of dynamic equilibrium itself. In the Dogon tradition, while forge work and the blacksmith play a crucial symbolic and practical role in creation, order, and society, it is not described as their term for dynamic equilibrium. Dogon cosmology encompasses a complex understanding of cosmic order, cycles, and relationships, but not through \\\\\\\"Forge work\\\\\\\" as a direct equivalent to a state of dynamic equilibrium. Thus, a direct comparison of the 'essential difference' between these two mischaracterized concepts is not feasible.\\\"}\""
+                }
+              ],
+              "role": "CONTENT_ROLE_ASSISTANT",
+              "senderName": "google/gemini-2.5-flash"
+            }
+          ],
+          "metrics": {
+            "inputTokens": 168,
+            "outputTokens": 229,
+            "inputTokensCostNanodollars": "50400",
+            "outputTokensCostNanodollars": "2422500",
+            "totalBackendLatencyMs": "5603"
+          },
+          "id": "Anamnesis Knower: Calibration Monitoring-421783d7-req-1"
+        }
+      ],
+      "metrics": {
+        "inputTokens": 168,
+        "outputTokens": 229,
+        "inputTokensCostNanodollars": "50400",
+        "outputTokensCostNanodollars": "2422500",
+        "totalBackendLatencyMs": "5603"
+      },
+      "modelVersionSlug": "model_version_slug for conversation is DEPRECATED"
+    }
+  ],
+  "results": [
+    {
+      "type": "AGGREGATED",
+      "numericResult": {
+        "value": 0.99
+      }
+    }
+  ],
+  "assertions": [
+    {
+      "expectation": "[Knower/tek_comparative] Conf=10, Correct=False, Cal=0.99",
+      "status": "BENCHMARK_TASK_RUN_ASSERTION_STATUS_PASSED",
+      "lineNumber": 83,
+      "definition": "kbench.assertions.assert_true(",
+      "conversationRequestIds": [
+        {
+          "conversationId": "Anamnesis Knower: Calibration Monitoring-421783d7",
+          "requestId": "Anamnesis Knower: Calibration Monitoring-421783d7-req-1"
+        }
+      ]
+    }
+  ],
+  "pyRunId": "Anamnesis Knower: Calibration Monitoring-Run #326"
+}

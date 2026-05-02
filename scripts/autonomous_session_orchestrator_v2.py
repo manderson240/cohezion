@@ -93,7 +93,7 @@ class AsyncGitManager:
                 if proc.returncode == 0:
                     return True
 
-            except asyncio.TimeoutError:
+            except TimeoutError:
                 logger.warning(f"Git commit timeout (attempt {attempt + 1})")
                 if attempt < self.max_retries - 1:
                     await asyncio.sleep(2**attempt)  # Exponential backoff
@@ -123,7 +123,7 @@ class CheckpointManager:
             "tree_snapshot": tree.get("nodes", {}),
         }
 
-        checkpoint_path = Path(f"_bmad/_config/traceability/checkpoints")
+        checkpoint_path = Path("_bmad/_config/traceability/checkpoints")
         checkpoint_path.mkdir(parents=True, exist_ok=True)
 
         checkpoint_file = checkpoint_path / f"checkpoint_{context.cycle_count:04d}.json"

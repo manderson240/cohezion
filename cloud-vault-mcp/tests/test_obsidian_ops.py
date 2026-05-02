@@ -20,7 +20,8 @@ def vault_with_links(tmp_path):
     )
 
     (tmp_path / "projects" / "myproject.md").write_text(
-        "---\ntags: [project, myproject]\n---\n# My Project\n\nKey decisions:\n- [[use-python]]\n- [[retry-pattern]]\n"
+        "---\ntags: [project, myproject]\n---\n# My Project\n\n"
+        "Key decisions:\n- [[use-python]]\n- [[retry-pattern]]\n"
     )
     (tmp_path / "decisions" / "use-python.md").write_text(
         "---\ntags: [decision, myproject]\n---\n# Use Python\n\n"
@@ -28,7 +29,8 @@ def vault_with_links(tmp_path):
         "Related: [[myproject]]\n"
     )
     (tmp_path / "patterns" / "retry-pattern.md").write_text(
-        "---\ntags: [pattern, devops]\n---\n# Retry Pattern\n\nSee [[use-python]] for context.\n#networking\n"
+        "---\ntags: [pattern, devops]\n---\n# Retry Pattern\n\n"
+        "See [[use-python]] for context.\n#networking\n"
     )
     (tmp_path / "concepts" / "Python.md").write_text(
         "---\ntags: [concept, language]\n---\n# Python\n\nA programming language.\n"

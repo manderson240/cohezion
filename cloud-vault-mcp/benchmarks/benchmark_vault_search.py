@@ -31,7 +31,7 @@ def run() -> BenchmarkResult:
             error_rate=1.0,
         )
 
-    VaultOps(str(vault_path))
+    vault_ops = VaultOps(str(vault_path))
 
     def search_operation() -> None:
         """Perform vault search for papers containing 'machine learning'."""

@@ -1,0 +1,29 @@
+{
+  "aligned_competitions": [
+    "gemma-4-good-hackathon",
+    "arc-prize-2026-paper-track",
+    "sei-ai-accelathon"
+  ],
+  "rankings": [
+    {
+      "name": "arc-prize-2026-paper-track",
+      "ev": 3317.0,
+      "prize": 450000,
+      "teams": 29
+    },
+    {
+      "name": "gemma-4-good-hackathon",
+      "ev": 1321.0,
+      "prize": 200000,
+      "teams": 109
+    },
+    {
+      "name": "sei-ai-accelathon",
+      "ev": 350.0,
+      "prize": 1000000,
+      "teams": 200
+    }
+  ],
+  "recommendation": "arc-prize-2026-paper-track",
+  "recommendation_ev": 3317.0
+}

@@ -69,14 +69,18 @@ class AgentReasoningQueries:
                     }
                 )
 
-            logger.info(f"Root cause analysis for {decision_id}: found {len(reasoning_chains)} reasoning chains")
+            logger.info(
+                f"Root cause analysis for {decision_id}: found {len(reasoning_chains)} reasoning chains"
+            )
 
             return {
                 "success": True,
                 "decision_id": decision_id,
                 "reasoning_chains": reasoning_chains,
                 "total_chains": len(reasoning_chains),
-                "highest_confidence": max([r["confidence_score"] for r in reasoning_chains], default=0.0),
+                "highest_confidence": max(
+                    [r["confidence_score"] for r in reasoning_chains], default=0.0
+                ),
             }
 
         except Exception as e:
@@ -86,7 +90,9 @@ class AgentReasoningQueries:
                 "error": str(e),
             }
 
-    def contradiction_detection(self, severity_filter: str | None = None, limit: int = 50) -> dict[str, Any]:
+    def contradiction_detection(
+        self, severity_filter: str = None, limit: int = 50
+    ) -> dict[str, Any]:
         """Find lessons that contradict recent decisions.
 
         Query Pattern: decision -> challenges_lesson -> lesson
@@ -157,7 +163,9 @@ class AgentReasoningQueries:
                 "contradictions": contradictions,
                 "total_count": len(contradictions),
                 "severity_filter": severity_filter,
-                "major_count": sum(1 for c in contradictions if c["severity"] == "major"),
+                "major_count": sum(
+                    1 for c in contradictions if c["severity"] == "major"
+                ),
             }
 
         except Exception as e:
@@ -257,7 +265,9 @@ class AgentReasoningQueries:
                 "error": str(e),
             }
 
-    def high_confidence_reasoning(self, confidence_threshold: float = 0.8, limit: int = 50) -> dict[str, Any]:
+    def high_confidence_reasoning(
+        self, confidence_threshold: float = 0.8, limit: int = 50
+    ) -> dict[str, Any]:
         """Find decisions made with high confidence and strong reasoning.
 
         Query Pattern: agent_reasoning with confidence_score >= threshold
@@ -329,7 +339,11 @@ class AgentReasoningQueries:
                     }
                 )
 
-            avg_confidence = sum(confidence_scores) / len(confidence_scores) if confidence_scores else 0.0
+            avg_confidence = (
+                sum(confidence_scores) / len(confidence_scores)
+                if confidence_scores
+                else 0.0
+            )
 
             logger.info(
                 f"High-confidence reasoning search: found {len(reasoning_list)} results "
@@ -415,7 +429,11 @@ class AgentReasoningQueries:
                     }
                 )
 
-            avg_confidence = sum(confidence_scores) / len(confidence_scores) if confidence_scores else 0.0
+            avg_confidence = (
+                sum(confidence_scores) / len(confidence_scores)
+                if confidence_scores
+                else 0.0
+            )
 
             logger.info(
                 f"Reasoning by type '{reasoning_type}': found {len(reasoning_list)} results "

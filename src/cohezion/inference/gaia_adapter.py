@@ -158,20 +158,25 @@ def build_gaia_native_tier(
     silent: bool = True,
     base_url: str | None = "http://localhost:13306/v1",
 ) -> GaiaAgentTier:
-    """Instantiate a GAIA Agent bound to the NPU lane, wrap as a tier.
+    """Instantiate a GAIA Agent bound to a specific lane, wrap as a tier.
 
-    Uses ``skip_lemonade=False`` so GAIA performs its own Lemonade discovery,
-    but we pass ``base_url`` pointing at the NPU endpoint so dispatch is pinned.
+    Uses ``skip_lemonade=True`` so we can pin the dispatch to the specific port.
     """
     try:
-        from gaia import Agent as GaiaAgent
+        from gaia.agents.chat.agent import ChatAgent, ChatAgentConfig
     except ImportError as exc:
         raise RuntimeError("amd-gaia not installed — `uv pip install amd-gaia`") from exc
 
-    agent = GaiaAgent(
+    # ChatAgent doesn't pass skip_lemonade through its config, but the base Agent does.
+    class FixedChatAgent(ChatAgent):
+        def __init__(self, config):
+            super().__init__(config=config)
+            self.skip_lemonade = True
+
+    config = ChatAgentConfig(
         model_id=model_id,
         base_url=base_url,
         silent_mode=silent,
-        skip_lemonade=True,  # we already know the endpoint
     )
+    agent = FixedChatAgent(config=config)
     return GaiaAgentTier(agent=agent, label=f"gaia:{model_id}")

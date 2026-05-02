@@ -1,0 +1,32 @@
+{
+  "request_id": "test-001",
+  "skill_name": "validation_test",
+  "timestamp": "2026-04-20T10:26:00.539371",
+  "success": true,
+  "total_latency_ms": 10.50567626953125,
+  "total_tokens_in": 300,
+  "total_tokens_out": 0,
+  "steps_count": 2,
+  "inflection_detected": false,
+  "vault_logged": false,
+  "steps": [
+    {
+      "step_name": "alignment_gate",
+      "latency_ms": 50,
+      "tokens_in": 100,
+      "tokens_out": 0,
+      "coherence": 0.7,
+      "cache_hit": false,
+      "error": null
+    },
+    {
+      "step_name": "vault_query",
+      "latency_ms": 100,
+      "tokens_in": 200,
+      "tokens_out": 0,
+      "coherence": 0.8,
+      "cache_hit": false,
+      "error": null
+    }
+  ]
+}

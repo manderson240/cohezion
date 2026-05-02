@@ -1,6 +1,0 @@
-"id","problem","answer"
-"ref_1","Let $n = 3^3 \cdot 11^3$. Find the number of distinct positive divisors of $n$.","16"
-"ref_2","A real number $x$ satisfies $x + \frac{1}{x} = 3$. Find the value of $x^4 + \frac{1}{x^4}$.","47"
-"ref_3","A triangle has side lengths 13, 14, and 15. Find its area.","84"
-"ref_4","What is the sum of all positive integers less than 10?","45"
-"ref_5","Find the last digit of $7^{2024}$.","1"

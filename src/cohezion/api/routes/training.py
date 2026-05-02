@@ -5,12 +5,11 @@ Enables Anima Dashboard to visualize compound training loop progression.
 
 from __future__ import annotations
 
-import json
 import logging
-import urllib.request
 from base64 import b64encode
 from typing import Any
 
+import httpx
 from fastapi import APIRouter
 from pydantic import BaseModel
 
@@ -28,16 +27,19 @@ SURREAL_HEADERS = {
 }
 
 
-def _surreal_query(sql: str) -> list[dict[str, Any]]:
+async def _surreal_query(sql: str) -> list[dict[str, Any]]:
     """Execute SurrealQL and return results."""
     try:
-        req = urllib.request.Request(
-            SURREAL_URL, data=sql.encode(), headers=SURREAL_HEADERS, method="POST"
-        )
-        resp = urllib.request.urlopen(req, timeout=5)
-        data = json.loads(resp.read())
-        if data and data[0].get("status") == "OK":
-            return data[0].get("result", [])
+        async with httpx.AsyncClient() as client:
+            resp = await client.post(
+                SURREAL_URL,
+                content=sql.encode(),
+                headers=SURREAL_HEADERS,
+                timeout=5.0,
+            )
+            data = resp.json()
+            if data and data[0].get("status") == "OK":
+                return data[0].get("result", [])
     except Exception as e:
         logger.debug("SurrealDB query failed: %s", e)
     return []
@@ -66,7 +68,7 @@ class TrainingHistoryResponse(BaseModel):
 @training_router.get("/history", response_model=TrainingHistoryResponse)
 async def get_training_history():
     """Get all training runs from SurrealDB, ordered by reward descending."""
-    rows = _surreal_query(
+    rows = await _surreal_query(
         "SELECT algorithm, timesteps, reward_mode, reward, coherence, stability, "
         "convergence_rate, random_reward, greedy_reward, diagnostic "
         "FROM training_run ORDER BY reward DESC;"
@@ -86,7 +88,7 @@ async def get_training_history():
 @training_router.get("/best", response_model=TrainingRun)
 async def get_best_run():
     """Get the single best training run by reward."""
-    rows = _surreal_query(
+    rows = await _surreal_query(
         "SELECT algorithm, timesteps, reward_mode, reward, coherence, stability, "
         "convergence_rate, random_reward, greedy_reward, diagnostic "
         "FROM training_run ORDER BY reward DESC LIMIT 1;"
@@ -99,7 +101,7 @@ async def get_best_run():
 @training_router.get("/matrix")
 async def get_algorithm_reward_matrix():
     """Get the 2x2 algorithm-reward matrix (best run per algo+reward combo)."""
-    rows = _surreal_query(
+    rows = await _surreal_query(
         "SELECT algorithm, reward_mode, math::max(reward) as best_reward, count() as runs "
         "FROM training_run GROUP BY algorithm, reward_mode;"
     )

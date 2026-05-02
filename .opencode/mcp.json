@@ -1,28 +1,186 @@
 {
   "mcpServers": {
     "bmad": {
-      "name": "BMAD Method",
-      "type": "streamable-http",
-      "url": "http://localhost:8361",
-      "port": 8361,
-      "description": "108 BMAD commands for agile AI-driven development",
-      "modules": ["bmm", "gds", "cis", "tea", "bmb", "core"],
-      "agents": 28
-    },
-    "cohezion-compound": {
-      "name": "Cohezion Compound Engineering",
-      "type": "stdio",
       "command": "/home/mike-anderson/dev/cohezion/.venv/bin/python",
-      "args": ["-m", "cohezion.mcp.compound_server"],
+      "args": [
+        "-m",
+        "cohezion.mcp.bmad_server"
+      ],
       "env": {
         "PYTHONPATH": "/home/mike-anderson/dev/cohezion/src",
-        "REDIS_URL": "redis://localhost:6379"
+        "MCP_TRANSPORT": "stdio",
+        "BMAD_DATA_PATH": "/home/mike-anderson/dev/cohezion/_bmad"
       },
-      "description": "Compound engineering MCP server for multi-session AI workflows"
+      "name": "cohezion-bmad",
+      "description": "BMAD methodology workflows"
+    },
+    "knowledge": {
+      "command": "/home/mike-anderson/dev/cohezion/.venv/bin/python",
+      "args": [
+        "-m",
+        "cohezion.mcp.knowledge_server_mcp"
+      ],
+      "env": {
+        "PYTHONPATH": "/home/mike-anderson/dev/cohezion/src",
+        "MCP_TRANSPORT": "stdio",
+        "BMAD_DATA_PATH": "/home/mike-anderson/dev/cohezion/_bmad"
+      },
+      "name": "cohezion-knowledge",
+      "description": "RAG over library and skills"
+    },
+    "skills": {
+      "command": "/home/mike-anderson/dev/cohezion/.venv/bin/python",
+      "args": [
+        "-m",
+        "cohezion.mcp.skills_server_mcp"
+      ],
+      "env": {
+        "PYTHONPATH": "/home/mike-anderson/dev/cohezion/src",
+        "MCP_TRANSPORT": "stdio",
+        "BMAD_DATA_PATH": "/home/mike-anderson/dev/cohezion/_bmad"
+      },
+      "name": "cohezion-skills",
+      "description": "Direct skill invocation"
+    },
+    "surreal": {
+      "command": "/home/mike-anderson/dev/cohezion/.venv/bin/python",
+      "args": [
+        "-m",
+        "cohezion.mcp.surreal_server_mcp"
+      ],
+      "env": {
+        "PYTHONPATH": "/home/mike-anderson/dev/cohezion/src",
+        "MCP_TRANSPORT": "stdio",
+        "BMAD_DATA_PATH": "/home/mike-anderson/dev/cohezion/_bmad"
+      },
+      "name": "cohezion-surreal",
+      "description": "Universe node tools"
+    },
+    "swarm": {
+      "command": "/home/mike-anderson/dev/cohezion/.venv/bin/python",
+      "args": [
+        "-m",
+        "cohezion.mcp.swarm_server_mcp"
+      ],
+      "env": {
+        "PYTHONPATH": "/home/mike-anderson/dev/cohezion/src",
+        "MCP_TRANSPORT": "stdio",
+        "BMAD_DATA_PATH": "/home/mike-anderson/dev/cohezion/_bmad"
+      },
+      "name": "cohezion-swarm",
+      "description": "Debate workflow access"
+    },
+    "research": {
+      "command": "/home/mike-anderson/dev/cohezion/.venv/bin/python",
+      "args": [
+        "-m",
+        "cohezion.mcp.research_server_mcp"
+      ],
+      "env": {
+        "PYTHONPATH": "/home/mike-anderson/dev/cohezion/src",
+        "MCP_TRANSPORT": "stdio",
+        "BMAD_DATA_PATH": "/home/mike-anderson/dev/cohezion/_bmad"
+      },
+      "name": "cohezion-research",
+      "description": "SOTA research discovery tools"
+    },
+    "compound": {
+      "command": "/home/mike-anderson/dev/cohezion/.venv/bin/python",
+      "args": [
+        "-m",
+        "cohezion.mcp.compound_server"
+      ],
+      "env": {
+        "PYTHONPATH": "/home/mike-anderson/dev/cohezion/src",
+        "MCP_TRANSPORT": "stdio",
+        "BMAD_DATA_PATH": "/home/mike-anderson/dev/cohezion/_bmad"
+      },
+      "name": "cohezion-compound",
+      "description": "Unified interface for compound engineering"
+    },
+    "rewards": {
+      "command": "/home/mike-anderson/dev/cohezion/.venv/bin/python",
+      "args": [
+        "-m",
+        "cohezion.mcp.servers.rewards.server"
+      ],
+      "env": {
+        "PYTHONPATH": "/home/mike-anderson/dev/cohezion/src",
+        "MCP_TRANSPORT": "stdio",
+        "BMAD_DATA_PATH": "/home/mike-anderson/dev/cohezion/_bmad"
+      },
+      "name": "cohezion-rewards",
+      "description": "Agent XP and achievements system"
+    },
+    "security": {
+      "command": "/home/mike-anderson/dev/cohezion/.venv/bin/python",
+      "args": [
+        "-m",
+        "cohezion.mcp.servers.security.server"
+      ],
+      "env": {
+        "PYTHONPATH": "/home/mike-anderson/dev/cohezion/src",
+        "MCP_TRANSPORT": "stdio",
+        "BMAD_DATA_PATH": "/home/mike-anderson/dev/cohezion/_bmad"
+      },
+      "name": "cohezion-security",
+      "description": "Vulnerability scanning and analysis"
+    },
+    "journey": {
+      "command": "/home/mike-anderson/dev/cohezion/.venv/bin/python",
+      "args": [
+        "-m",
+        "cohezion.mcp.servers.journey.server"
+      ],
+      "env": {
+        "PYTHONPATH": "/home/mike-anderson/dev/cohezion/src",
+        "MCP_TRANSPORT": "stdio",
+        "BMAD_DATA_PATH": "/home/mike-anderson/dev/cohezion/_bmad"
+      },
+      "name": "cohezion-journey",
+      "description": "Agent journey and trajectory management"
+    },
+    "github": {
+      "command": "/home/mike-anderson/dev/cohezion/.venv/bin/python",
+      "args": [
+        "-m",
+        "cohezion.mcp.servers.github.server"
+      ],
+      "env": {
+        "PYTHONPATH": "/home/mike-anderson/dev/cohezion/src",
+        "MCP_TRANSPORT": "stdio",
+        "BMAD_DATA_PATH": "/home/mike-anderson/dev/cohezion/_bmad"
+      },
+      "name": "cohezion-github",
+      "description": "GitHub API integration"
+    },
+    "huggingface": {
+      "command": "/home/mike-anderson/dev/cohezion/.venv/bin/python",
+      "args": [
+        "-m",
+        "cohezion.mcp.servers.huggingface.server"
+      ],
+      "env": {
+        "PYTHONPATH": "/home/mike-anderson/dev/cohezion/src",
+        "MCP_TRANSPORT": "stdio",
+        "BMAD_DATA_PATH": "/home/mike-anderson/dev/cohezion/_bmad"
+      },
+      "name": "cohezion-huggingface",
+      "description": "Hugging Face Hub access"
+    },
+    "agentskills": {
+      "command": "/home/mike-anderson/dev/cohezion/.venv/bin/python",
+      "args": [
+        "-m",
+        "cohezion.mcp.agentskills_bridge"
+      ],
+      "env": {
+        "PYTHONPATH": "/home/mike-anderson/dev/cohezion/src",
+        "MCP_TRANSPORT": "stdio",
+        "BMAD_DATA_PATH": "/home/mike-anderson/dev/cohezion/_bmad"
+      },
+      "name": "cohezion-agentskills",
+      "description": "External AgentSkills framework integration"
     }
-  },
-  "sharedConfig": {
-    "redisUrl": "redis://localhost:6379",
-    "logLevel": "info"
   }
 }

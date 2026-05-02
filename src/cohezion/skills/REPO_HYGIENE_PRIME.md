@@ -1,3 +1,12 @@
+---
+name: repo-hygiene-prime
+description: "Repository Hygiene and Git Operations. Monitoring file entropy, duplication, and index bloat."
+metadata:
+  version: "v3.0 (Sovereign Era)"
+  concepts: ["Entropy Reward", "Ghost Files", "Surgical Pruning"]
+  source: "src/cohezion/skills/REPO_HYGIENE_PRIME.md"
+---
+
 # SKILL: REPO_HYGIENE_PRIME
 
 ## DOMAIN EXPERTISE

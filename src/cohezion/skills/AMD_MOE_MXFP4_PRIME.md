@@ -1,3 +1,8 @@
+---
+name: amd-moe-mxfp4-prime
+description: "MXFP4 Mixture-of-Experts kernel optimization for AMD MI355X. Target: <120us from 154.2us."
+---
+
 # SKILL: AMD_MOE_MXFP4_PRIME
 
 ## DOMAIN EXPERTISE

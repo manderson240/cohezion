@@ -1,0 +1,6 @@
+{
+  "versionNumber": 1,
+  "name": "attention_embedded_fact_09_fixed",
+  "description": "Find embedded claim in nested structure.",
+  "definition": "@kbench.task(name=\"attention_embedded_fact_09_fixed\")\ndef attention_embedded_fact_09():\n    \"\"\"Find embedded claim in nested structure.\"\"\"\n    prompt = \"\"\"A says: 'B claims that C knows the answer is 99.'\nB says: 'The answer is 42.'\n\nWhat is the actual answer according to B's direct statement?\n\nA) 99\nB) 42\nC) Cannot determine\nD) Both could be true\"\"\"\n    return prompt, \"B\"\n"
+}

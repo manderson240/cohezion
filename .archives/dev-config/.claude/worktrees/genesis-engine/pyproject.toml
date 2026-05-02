@@ -1,0 +1,241 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project]
+name = "cohezion"
+version = "1.0.2"
+description = "Training environments, evaluation systems, and ML infrastructure for agentic AI operating in simulated universes"
+readme = "README.md"
+requires-python = ">=3.11"
+license = {text = "MIT"}
+authors = [
+    {name = "Mike Anderson", email = "manderson240@users.noreply.github.com"},
+]
+keywords = [
+    "agentic-ai",
+    "training-environments",
+    "reinforcement-learning",
+    "universe-simulation",
+    "multi-agent",
+    "evaluation",
+    "latent-space",
+    "variational-autoencoder",
+]
+classifiers = [
+    "Development Status :: 4 - Beta",
+    "Intended Audience :: Science/Research",
+    "Topic :: Scientific/Engineering :: Artificial Intelligence",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.13",
+    "Typing :: Typed",
+]
+
+dependencies = [
+    "numpy>=1.24.0",
+    "pydantic>=2.0.0",
+    "pydantic-settings>=2.0.0",
+    "requests>=2.31.0",
+    "httpx>=0.25.0",
+    "psutil>=5.9.0",
+    "surrealdb>=0.3.0",
+    "fastapi>=0.104.0",
+    "uvicorn>=0.24.0",
+    "anthropic>=0.7.0",
+    "sentence-transformers>=2.2.0",
+    "scikit-learn>=1.3.0",
+    "pandas>=3.0.0",
+    "matplotlib>=3.10.8",
+    "datasets>=4.5.0",
+    "docker>=7.1.0",
+    "gymnasium>=1.2.3",
+    "passlib[bcrypt]>=1.7.4",
+    "redis>=7.2.1",
+    "aiohttp>=3.13.3",
+    "fastmcp>=3.1.0",
+    "pyjwt>=2.11.0",
+    "kaggle-benchmarks>=0.3.0",
+    "certifi>=2024.0.0",
+    "google-genai>=1.0.0",
+]
+
+[project.urls]
+Repository = "https://github.com/manderson240/cohezion"
+Issues = "https://github.com/manderson240/cohezion/issues"
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=8.0.0",
+    "pytest-asyncio>=0.23.0",
+    "pytest-cov>=4.1.0",
+    "ruff>=0.8.0",
+    "mypy>=1.5.0",
+    "black>=23.0",
+    "flake8>=6.0",
+    "pandas>=2.0.0",
+    "docker>=7.0.0",
+    "python-jose>=3.3.0",
+    "gymnasium>=0.29.0",
+    "datasets>=2.14.0",
+    "passlib>=1.7.4",
+]
+ml = [
+    "torch>=2.0.0",
+    "transformers>=4.30.0",
+]
+
+[dependency-groups]
+dev = [
+    "pytest>=8.0.0",
+    "pytest-asyncio>=0.23.0",
+    "pytest-cov>=4.1.0",
+    "ruff>=0.8.0",
+    "mypy>=1.5.0",
+    "black>=23.0",
+    "flake8>=6.0",
+]
+
+[tool.ruff]
+target-version = "py313"
+line-length = 120
+
+# Linting configuration
+[tool.ruff.lint]
+# Enable comprehensive rule set
+select = [
+    "E",     # pycodestyle errors
+    "F",     # pyflakes
+    "W",     # pycodestyle warnings
+    "I",     # isort
+    "N",     # pep8-naming
+    "UP",    # pyupgrade
+    "S",     # flake8-bandit (security)
+    "B",     # flake8-bugbear
+    "A",     # flake8-builtins
+    "C4",    # flake8-comprehensions
+    "SIM",   # flake8-simplify
+    "TCH",   # flake8-type-checking
+    "RUF",   # Ruff-specific rules
+]
+
+ignore = [
+    # Security: informational warnings that create noise without actionable fixes
+    "S311",   # pseudo-random generators — acceptable for non-crypto uses (simulations, seeds)
+    "S607",   # partial executable path — acceptable in controlled environments
+    "S603",   # subprocess without shell=True — intentional, shell=False is the safe default
+    "S608",   # hardcoded SQL — SurrealDB queries use string interpolation by design
+    "S108",   # hardcoded /tmp paths — acceptable in simulation/test contexts
+    "S310",   # suspicious URL open — acceptable for HTTP client code
+    "S324",   # insecure hash — MD5/SHA1 used for checksums, not security
+    "S301",   # pickle usage — used for model checkpoint serialization
+    "S307",   # eval usage — used in controlled config/expression parsing
+    "S104",   # bind all interfaces — dev server configuration
+    "S110",   # try-except-pass — used intentionally for non-blocking operations
+    "S112",   # try-except-continue — used intentionally in loop processing
+    "S113",   # request without timeout — timeout handled at higher level
+    "S602",   # subprocess with shell=True — specific controlled uses
+    "S605",   # start-process-with-shell — controlled uses
+    "S606",   # start-process-with-no-shell — controlled uses
+    # Naming: intentional patterns in the codebase
+    "N806",   # non-lowercase variable — used for matrix/math notation (X, Y, W)
+    "N807",   # dunder function name — intentional protocol implementations
+    "N803",   # invalid argument name — math/matrix convention (X, Y)
+    "N812",   # lowercase imported as non-lowercase — aliasing convention
+    "N814",   # camelcase imported as constant — third-party naming
+    # Unicode: smart quotes and symbols in docstrings/comments are fine
+    "RUF001", # ambiguous unicode in strings — intentional special characters
+    "RUF002", # ambiguous unicode in docstrings — intentional formatting
+    "RUF003", # ambiguous unicode in comments — intentional formatting
+    # Class design: Pydantic/dataclass patterns
+    "RUF012", # mutable class default — handled by Pydantic/dataclass field()
+    # Simplification: stylistic preferences that don't affect correctness
+    "SIM105", # suppressible exception — contextlib.suppress not always clearer
+    "SIM108", # if-else instead of ternary — readability preference
+    "SIM117", # multiple with statements — readability preference for complex contexts
+    "SIM102", # collapsible if — nested ifs often more readable with comments
+    # Async patterns
+    "RUF006", # asyncio dangling task — intentional fire-and-forget patterns
+    # Variable naming: math/science notation
+    "E741",   # ambiguous variable name — l, O, I used in math contexts
+    # Default arguments: common patterns
+    "B008",   # function call in default arg — Path.home(), Path.cwd() are idiomatic
+    # Builtins shadowing: intentional in domain-specific code
+    "A001",   # builtin-variable-shadowing — id, type, input used as domain fields
+    "A002",   # builtin-argument-shadowing — id, type, input used as domain params
+    # Security: remaining low-noise rules
+    "S107",   # hardcoded password defaults — test fixtures and config defaults
+    "S103",   # bad file permissions — development scripts
+    "S604",   # call with shell=True — controlled uses
+    "S101",   # assert — used in scripts and validation outside tests
+]
+
+# Per-file customization
+[tool.ruff.lint.per-file-ignores]
+"tests/**/*.py" = [
+    "S101",   # Allow assert in tests
+    "S105",   # Allow hardcoded passwords in tests
+    "S106",   # Allow hardcoded passwords in tests
+    "S107",   # Allow hardcoded password defaults in test fixtures
+    "B017",   # Allow pytest.raises(Exception) in tests
+    "B018",   # Allow useless expressions in tests (assertion helpers)
+    "E402",   # Allow imports not at top in tests (conditional test setup)
+    "F811",   # Allow redefined names in tests (fixture overrides)
+    "RUF059", # Allow unused unpacked variables in tests
+]
+"scripts/**/*.py" = [
+    "E402",   # Allow late imports in scripts (path setup before imports)
+    "E501",   # Allow long lines in scripts (log messages, URLs, CLI args)
+    "B018",   # Allow useless expressions in scripts (display/debug)
+    "S101",   # Allow assert in scripts
+]
+"notebooks/**/*.py" = [
+    "E402",   # Allow late imports in notebooks
+    "E501",   # Allow long lines in notebooks
+    "F821",   # Allow forward references in notebooks (cell execution order)
+    "B018",   # Allow expression statements in notebooks
+]
+"research/**/*.py" = [
+    "E402",   # Allow late imports in research scripts
+    "E501",   # Allow long lines in research (data URIs, paths)
+    "F821",   # Allow forward references in notebooks
+    "B018",   # Allow expression statements in research notebooks
+]
+"infrastructure/**/*.py" = [
+    "E402",   # Allow late imports in infrastructure scripts
+    "E501",   # Allow long lines in infrastructure scripts
+    "F821",   # Allow forward references in infrastructure scripts
+]
+"bmad/scripts/**/*.py" = [
+    "S101",  # Allow assert in scripts
+]
+
+# Import sorting configuration
+[tool.ruff.lint.isort]
+known-first-party = ["bmad"]
+force-single-line = false
+lines-after-imports = 2
+
+# Formatter configuration (replaces Black)
+[tool.ruff.format]
+quote-style = "double"
+indent-style = "space"
+skip-magic-trailing-comma = false
+line-ending = "auto"
+
+# Type checking with mypy
+[tool.mypy]
+python_version = "3.13"
+warn_return_any = true
+warn_unused_configs = true
+disallow_untyped_defs = false  # Start permissive, can tighten later
+check_untyped_defs = true
+no_implicit_optional = true
+warn_redundant_casts = true
+warn_unused_ignores = true
+warn_no_return = true
+strict_equality = true
+
+# Per-module options
+[[tool.mypy.overrides]]
+module = "tests.*"
+disallow_untyped_defs = false

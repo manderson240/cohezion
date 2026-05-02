@@ -3,6 +3,7 @@
 import logging
 from typing import Any
 
+from cohezion.compound.exp_persistence.vault import get_vault_logger
 from cohezion.security.guardrail_adapters import (
     ConstitutionalGuard,
     OutputFilterGuard,
@@ -20,11 +21,39 @@ async def _audit_to_vault(event: dict[str, Any]) -> None:
     """Audit guardrail actions to vault for observability.
 
     Non-blocking: logs to debug level on failure.
+    Uses the core VaultLogger implementation.
     """
     try:
-        # TODO: Wire to cohezion.compound.vault_execution_logger.VaultExecutionLogger
-        #       after MCP client is available
-        logger.debug(f"Guardrail audit: {event}")
+        vault_logger = get_vault_logger()
+
+        # Format event for vault logging
+        action = event.get("action", "unknown")
+        guard = event.get("guard", "unknown")
+        reason = event.get("reason", "")
+
+        # Log to vault execution traces
+        from datetime import datetime
+
+        from cohezion.compound.exp_persistence.vault import ExecutionContext
+
+        ctx = ExecutionContext(
+            project="cohezion",
+            skill_name="guardrail",
+            task_description=f"Guardrail {action} by {guard}",
+            operation_type="security_check",
+            start_time=datetime.now(),
+            mcp_client=vault_logger.mcp,
+        )
+
+        # Log as execution trace
+        vault_logger.log_execution_trace(
+            ctx=ctx,
+            success=(action != "block"),
+            output=reason,
+            metrics={"action_type": action, "guard_name": guard},
+        )
+
+        logger.debug(f"Guardrail audit logged to vault: {action}/{guard}")
     except Exception as e:
         logger.debug(f"Vault audit failed (non-critical): {e}")
 

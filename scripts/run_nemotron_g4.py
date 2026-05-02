@@ -45,7 +45,7 @@ async def run_g4():
     try:
         # Define competition and notebook details
         competition_id = "nvidia-nemotron-model-reasoning-challenge"
-        notebook_id = f"nemotron-lora-blackwell-v26"
+        notebook_id = "nemotron-lora-blackwell-v26"
 
         # Execute the full flow
         # This will use the updated KaggleAPI which defaults to NvidiaRtxPro6000
@@ -59,7 +59,9 @@ async def run_g4():
         print(f"Notebook ID: {notebook_id}")
         print(f"Kaggle URL:  {result.get('url')}")
         print("=" * 50)
-        print("The training is now running on Kaggle's G4 (NVIDIA RTX 6000 Blackwell) infrastructure.")
+        print(
+            "The training is now running on Kaggle's G4 (NVIDIA RTX 6000 Blackwell) infrastructure."
+        )
         print("This should be significantly faster than standard accelerators.")
 
     except Exception as e:

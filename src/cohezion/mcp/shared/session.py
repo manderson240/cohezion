@@ -12,19 +12,29 @@ from cohezion.security.credentials import get_credentials
 
 logger = logging.getLogger(__name__)
 
-# Primary: Vault Warden, Fallback: Environment
-REDIS_URL = (
-    get_credentials().get_secret("COHEZION_REDIS_URL", env_var="REDIS_URL")
-    or "redis://localhost:6379"
-)
+# Lazy accessor for REDIS_URL to prevent startup latency
+_redis_url: str | None = None
+
+
+def get_redis_url() -> str:
+    """Get Redis URL with lazy initialization."""
+    global _redis_url
+    if _redis_url is None:
+        _redis_url = (
+            get_credentials().get_secret("COHEZION_REDIS_URL", env_var="REDIS_URL")
+            or "redis://localhost:6379"
+        )
+    return _redis_url
+
+
 DEFAULT_TTL = 3600  # 1 hour
 
 
 class SessionManager:
     """Manages sessions across all MCP servers using Redis."""
 
-    def __init__(self, redis_url: str = REDIS_URL, prefix: str = "mcp:"):
-        self.redis_url = redis_url
+    def __init__(self, redis_url: str | None = None, prefix: str = "mcp:"):
+        self.redis_url = redis_url or get_redis_url()
         self.prefix = prefix
         self._redis: redis.Redis | None = None
 

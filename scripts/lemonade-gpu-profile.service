@@ -1,0 +1,16 @@
+[Unit]
+Description=Set GPU to High Performance Profile for Lemonade
+After=lemonade-optimized.service
+Requires=lemonade-optimized.service
+
+[Service]
+Type=oneshot
+RemainAfterExit=yes
+
+# Set GPU power profile to high performance
+# This requires root privileges
+ExecStart=/bin/bash -c 'echo high > /sys/class/drm/card1/device/power_dpm_force_performance_level'
+ExecStop=/bin/bash -c 'echo auto > /sys/class/drm/card1/device/power_dpm_force_performance_level'
+
+[Install]
+WantedBy=multi-user.target

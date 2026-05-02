@@ -1,0 +1,82 @@
+{
+  "taskVersion": {
+    "versionNumber": 1,
+    "name": "Anamnesis Knower: Calibration Monitoring",
+    "description": "Tests metacognitive monitoring \u2014 does the model's stated confidence match actual accuracy? Brier-complement scoring. Loads from 823-item CSV dataset.",
+    "definition": "@kbench.task(\n    name=\"Anamnesis Knower: Calibration Monitoring\",\n    description=(\n        \"Tests metacognitive monitoring \u2014 does the model's stated confidence \"\n        \"match actual accuracy? Brier-complement scoring. Loads from 823-item CSV dataset.\"\n    ),\n)\ndef knower_probe(llm, question, ground_truth, difficulty, category) -> float:\n    prompt = CALIBRATION_PROMPT.format(question=question)\n    try:\n        response = llm.prompt(prompt, schema=CalibrationResponse)\n        confidence = response.confidence\n        model_answer = response.answer\n    except Exception:\n        # Fallback if structured output parsing fails\n        fallback_resp = llm.prompt(prompt)\n        confidence = 50\n        model_answer = fallback_resp\n        \n    correct = is_correct(model_answer, ground_truth)\n    conf_norm = max(0, min(100, confidence)) / 100.0\n    outcome = 0.0 if ground_truth.upper() == \"UNKNOWABLE\" else (1.0 if correct else 0.0)\n    cal_score = 1.0 - (conf_norm - outcome) ** 2\n    kbench.assertions.assert_true(\n        cal_score >= 0.5,\n        expectation=f\"[Knower/{difficulty}] Conf={confidence}, Correct={correct}, Cal={cal_score:.2f}\",\n    )\n    return cal_score\n"
+  },
+  "modelVersion": {
+    "slug": "google/gemini-2.5-flash"
+  },
+  "state": "BENCHMARK_TASK_RUN_STATE_COMPLETED",
+  "startTime": "2026-04-15T03:23:39.695955Z",
+  "endTime": "2026-04-15T03:23:47.461418Z",
+  "conversations": [
+    {
+      "id": "Anamnesis Knower: Calibration Monitoring-db8a88ba",
+      "requests": [
+        {
+          "contents": [
+            {
+              "parts": [
+                {
+                  "text": "I will ask you a question. First, rate your confidence (0-100) in being able to answer it correctly. Then give your answer.\n- 0 means you are completely guessing\n- 100 means you are absolutely certain\n- If the question cannot be answered with certainty, say so and rate below 30\n\nQuestion: In Aboriginal Australian cosmology (Australia), what is the concept of 'Dot painting / body design' and how does it relate to SPIN (Information Unit)? Rate your confidence (0-100) that you can accurately represent this tradition's perspective, then provide your answer.\n\nCONFIDENCE: [number]\nANSWER: [your answer]\n\nReply in exactly this format:\nCONFIDENCE: [number]\nANSWER: [your answer]"
+                }
+              ],
+              "role": "CONTENT_ROLE_USER",
+              "senderName": "User"
+            },
+            {
+              "parts": [
+                {
+                  "text": "\"{\\\"confidence\\\": 25, \\\"answer\\\": \\\"Aboriginal Australian dot painting and body designs are not merely decorative but are profound visual languages integral to their cosmology and culture. They serve as sacred maps, narratives, and expressions of the Dreaming (Tjukurrpa or Dreamtime) \\\\u2013 the creation period when ancestral beings formed the land, laws, and all life. Each dot, line, and symbol carries specific layers of meaning, often depicting ancestral beings and their journeys, sacred sites, waterholes, geographical features, ceremonial practices, and relevant flora and fauna. These designs are used in various forms: as body paint during ceremonies to connect individuals to ancestral powers and convey spiritual transformation; as rock art and bark paintings for ancient record-keeping and spiritual expression; as ephemeral sand paintings in ceremonies; and in contemporary art to share cultural knowledge and maintain identity. The knowledge embedded in these designs is often restricted, with deeper meanings understood only by initiates or specific custodians, reflecting complex systems of cultural law and spiritual responsibility.\\\\n\\\\nRegarding \\\\\\\"SPIN (Information Unit)\\\\\\\": I am unable to establish a relationship between Aboriginal Australian dot painting/body design and \\\\\\\"SPIN (Information Unit)\\\\\\\" because \\\\\\\"SPIN\\\\\\\" is not a recognized or standard academic or cultural concept within the study of Aboriginal Australian cosmology, nor is it a generally accepted term in information theory that I can directly apply to this tradition. Without a clear definition or context for \\\\\\\"SPIN (Information Unit)\\\\\\\" within this specific cultural framework, any attempt to link them would be speculative and inaccurate.\\\"}\""
+                }
+              ],
+              "role": "CONTENT_ROLE_ASSISTANT",
+              "senderName": "google/gemini-2.5-flash"
+            }
+          ],
+          "metrics": {
+            "inputTokens": 176,
+            "outputTokens": 321,
+            "inputTokensCostNanodollars": "52800",
+            "outputTokensCostNanodollars": "3310000",
+            "totalBackendLatencyMs": "7614"
+          },
+          "id": "Anamnesis Knower: Calibration Monitoring-db8a88ba-req-1"
+        }
+      ],
+      "metrics": {
+        "inputTokens": 176,
+        "outputTokens": 321,
+        "inputTokensCostNanodollars": "52800",
+        "outputTokensCostNanodollars": "3310000",
+        "totalBackendLatencyMs": "7614"
+      },
+      "modelVersionSlug": "model_version_slug for conversation is DEPRECATED"
+    }
+  ],
+  "results": [
+    {
+      "type": "AGGREGATED",
+      "numericResult": {
+        "value": 0.9375
+      }
+    }
+  ],
+  "assertions": [
+    {
+      "expectation": "[Knower/tek_deep] Conf=25, Correct=False, Cal=0.94",
+      "status": "BENCHMARK_TASK_RUN_ASSERTION_STATUS_PASSED",
+      "lineNumber": 83,
+      "definition": "kbench.assertions.assert_true(",
+      "conversationRequestIds": [
+        {
+          "conversationId": "Anamnesis Knower: Calibration Monitoring-db8a88ba",
+          "requestId": "Anamnesis Knower: Calibration Monitoring-db8a88ba-req-1"
+        }
+      ]
+    }
+  ],
+  "pyRunId": "Anamnesis Knower: Calibration Monitoring-Run #157"
+}

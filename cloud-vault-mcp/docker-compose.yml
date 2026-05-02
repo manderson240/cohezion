@@ -6,34 +6,14 @@ services:
     env_file: .env
     environment:
       - VAULT_PATH=/vault
-      - GOOGLESQL_URL=http://googlesql-analyzer:8370
     volumes:
       - vault-data:/vault
     ports:
       - "${MCP_PORT:-8360}:8360"
     networks:
       - vault-net
-    depends_on:
-      googlesql-analyzer:
-        condition: service_healthy
     healthcheck:
       test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8360/health')"]
-      interval: 30s
-      timeout: 5s
-      retries: 3
-
-  googlesql-analyzer:
-    build: ../googlesql-analyzer
-    container_name: googlesql-analyzer
-    restart: unless-stopped
-    environment:
-      - GOOGLESQL_PORT=8370
-    ports:
-      - "${GOOGLESQL_PORT:-8370}:8370"
-    networks:
-      - vault-net
-    healthcheck:
-      test: ["CMD", "curl", "-sf", "http://localhost:8370/health"]
       interval: 30s
       timeout: 5s
       retries: 3

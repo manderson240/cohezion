@@ -258,7 +258,7 @@ class TestTokenEfficiency:
 
         total_scoped_tokens = 0
         for name, desc in roles:
-            NodeSpec(
+            spec = NodeSpec(
                 id=f"n-{name}",
                 name=name,
                 node_type="agent",
@@ -457,7 +457,7 @@ class TestEffectivenessEvaluation:
         # Scoped: each node gets top-relevance blocks for its role
         scoped_scores: list[float] = []
         for desc in ["Gather background", "Analyse failure patterns", "Synthesise findings"]:
-            NodeSpec(
+            spec = NodeSpec(
                 id="n",
                 name="node",
                 node_type="agent",

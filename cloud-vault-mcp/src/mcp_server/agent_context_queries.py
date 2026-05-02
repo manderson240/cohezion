@@ -67,7 +67,9 @@ class AgentContextQueries:
         response.raise_for_status()
         return response.json()
 
-    def query_research_lineage(self, limit: int = 10, paper_path_filter: str = "%papers%") -> list[dict[str, Any]]:
+    def query_research_lineage(
+        self, limit: int = 10, paper_path_filter: str = "%papers%"
+    ) -> list[dict[str, Any]]:
         """Query 1: Research Lineage (Papers → Decisions → Lessons).
 
         Traces how research (papers) influences architectural decisions,
@@ -103,7 +105,9 @@ class AgentContextQueries:
             logger.error(f"Research lineage query failed: {e}")
             return []
 
-    def query_lesson_validation(self, min_confidence: float = 0.5, limit: int = 10) -> list[dict[str, Any]]:
+    def query_lesson_validation(
+        self, min_confidence: float = 0.5, limit: int = 10
+    ) -> list[dict[str, Any]]:
         """Query 2: Lesson Validation (Outcomes that generated lessons).
 
         Shows which outcomes produced lessons and at what confidence level.

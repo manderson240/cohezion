@@ -1,0 +1,160 @@
+# Page snapshot
+
+```yaml
+- generic [ref=e3]:
+  - navigation [ref=e4]:
+    - generic [ref=e5]:
+      - link "COHEZION" [ref=e6] [cursor=pointer]:
+        - /url: /
+      - generic [ref=e7]:
+        - link "LIVE DEMO" [ref=e8] [cursor=pointer]:
+          - /url: /
+        - link "PORTFOLIO" [ref=e9] [cursor=pointer]:
+          - /url: "#pillars"
+        - link "GitHub Repository" [ref=e10] [cursor=pointer]:
+          - /url: https://github.com/manderson240/cohezion
+          - img [ref=e11]
+  - generic [ref=e14]:
+    - generic [ref=e15]: RESEARCH ENGINEER PORTFOLIO
+    - heading "Self-Improving AI Infrastructure" [level=1] [ref=e16]:
+      - text: Self-Improving
+      - text: AI Infrastructure
+    - paragraph [ref=e17]:
+      - text: Compound AI orchestration with
+      - strong [ref=e18]: 12D universe simulation
+      - text: ", multi-agent swarm coordination, and infrastructure that"
+      - strong [ref=e19]: learns from every execution
+      - text: .
+    - generic [ref=e20]:
+      - link "EXPLORE LIVE DEMO" [ref=e21] [cursor=pointer]:
+        - /url: /
+        - text: EXPLORE LIVE DEMO
+        - img [ref=e22]
+      - link "VIEW PORTFOLIO" [ref=e24] [cursor=pointer]:
+        - /url: "#pillars"
+    - generic [ref=e25]:
+      - generic [ref=e26]:
+        - generic [ref=e27]: 4,658
+        - generic [ref=e28]: tests
+        - generic [ref=e29]: Test Suite
+      - generic [ref=e30]:
+        - generic [ref=e31]: 55+
+        - generic [ref=e32]: sessions
+        - generic [ref=e33]: Compound Cycles
+      - generic [ref=e34]:
+        - generic [ref=e35]: "2"
+        - generic [ref=e36]: live
+        - generic [ref=e37]: Production APIs
+      - generic [ref=e38]:
+        - generic [ref=e39]: 100%
+        - generic [ref=e40]: mypy strict
+        - generic [ref=e41]: Type Coverage
+  - generic [ref=e43]:
+    - heading "The Compound Engineering Thesis" [level=2] [ref=e44]
+    - generic [ref=e45]:
+      - generic [ref=e46]:
+        - heading "❌ THE PROBLEM" [level=3] [ref=e47]
+        - paragraph [ref=e48]: Current AI systems don't compound—each task starts from scratch. Every execution wastes tokens re-discovering patterns. Infrastructure remains static while models evolve.
+      - generic [ref=e49]:
+        - heading "✅ THE SOLUTION" [level=3] [ref=e50]
+        - paragraph [ref=e51]:
+          - strong [ref=e52]: Cohezion's compound loop
+          - text: ": execute → reflect → refine → repeat. Each cycle updates skills, optimizes routing, and improves coherence. The infrastructure learns."
+      - generic [ref=e53]:
+        - heading "📈 THE PROOF" [level=3] [ref=e54]
+        - paragraph [ref=e55]:
+          - strong [ref=e56]: 579 modules
+          - text: ","
+          - strong [ref=e57]: 4,426 tests
+          - text: ","
+          - strong [ref=e58]: 99.9% pass rate
+          - text: "—all refined through 55+ compound cycles. Cost savings: 27.3%. Cache hit rate: 95%. All automated."
+  - generic [ref=e59]:
+    - generic [ref=e60]:
+      - heading "Five Portfolio Pillars" [level=2] [ref=e61]
+      - paragraph [ref=e62]: Interactive demonstrations of novel AI infrastructure research
+    - generic [ref=e63]:
+      - generic [ref=e65]:
+        - generic [ref=e66]: LIVE
+        - generic [ref=e67]: 🌊
+        - heading "FLUME VAE" [level=3] [ref=e68]
+        - paragraph [ref=e69]: Continuous latent navigation through 256-dimensional software state space. Trained on git commit histories to enable smooth interpolation between discrete code snapshots.
+        - generic [ref=e70]:
+          - link "DEMO" [ref=e71] [cursor=pointer]:
+            - /url: /portfolio/flume
+            - text: DEMO
+            - img [ref=e72]
+          - link "READ MORE" [ref=e74] [cursor=pointer]:
+            - /url: /portfolio/blog/flume-vae
+      - generic [ref=e76]:
+        - generic [ref=e77]: BUILDING
+        - generic [ref=e78]: ♾️
+        - heading "Compound Loop" [level=3] [ref=e79]
+        - paragraph [ref=e80]: Self-improving infrastructure that learns from every execution. Each cycle refines skills, optimizes routing, and improves coherence through automated retrospection.
+        - generic [ref=e82]: COMING SOON
+      - generic [ref=e84]:
+        - generic [ref=e85]: LIVE
+        - generic [ref=e86]: 🌌
+        - heading "Universe Simulation" [level=3] [ref=e87]
+        - paragraph [ref=e88]: 12-dimensional manifold engine for agent training. SPIN-based information geometry enables continuous state spaces and coherence-based navigation.
+        - generic [ref=e89]:
+          - link "DEMO" [ref=e90] [cursor=pointer]:
+            - /url: /
+            - text: DEMO
+            - img [ref=e91]
+          - link "READ MORE" [ref=e93] [cursor=pointer]:
+            - /url: /portfolio/blog/universe-simulation
+      - generic [ref=e95]:
+        - generic [ref=e96]: BUILDING
+        - generic [ref=e97]: 🐝
+        - heading "Multi-Agent Swarm" [level=3] [ref=e98]
+        - paragraph [ref=e99]: Cost-aware orchestration of specialist agents (Architect, Engineer, QHW, QAlgo, Biologist) with democratic debate and consensus mechanisms.
+        - generic [ref=e101]: COMING SOON
+      - generic [ref=e103]:
+        - generic [ref=e104]: PLANNED
+        - generic [ref=e105]: 📊
+        - heading "Evaluation Infrastructure" [level=3] [ref=e106]
+        - paragraph [ref=e107]: Trajectory-based assessment through coherence gates. Evaluates agent behavior in continuous spaces rather than discrete accuracy metrics.
+        - generic [ref=e109]: PLANNED
+  - generic [ref=e110]:
+    - heading "Technical Highlights" [level=2] [ref=e111]
+    - generic [ref=e112]:
+      - generic [ref=e113]:
+        - heading "Novel Architecture" [level=3] [ref=e114]
+        - paragraph [ref=e115]: SPIN information theory → 12D manifold design
+      - generic [ref=e116]:
+        - heading "Production-Ready" [level=3] [ref=e117]
+        - paragraph [ref=e118]: 99.9% test pass rate, type-hinted, CI/CD
+      - generic [ref=e119]:
+        - heading "Scalability" [level=3] [ref=e120]
+        - paragraph [ref=e121]: 510 K-Search cycles in 4hr session (128 GB RAM)
+      - generic [ref=e122]:
+        - heading "Research Rigor" [level=3] [ref=e123]
+        - paragraph [ref=e124]: Jupyter notebooks, arXiv integration
+      - generic [ref=e125]:
+        - heading "Observable AI" [level=3] [ref=e126]
+        - paragraph [ref=e127]: Journey tracking through 12D universe
+      - generic [ref=e128]:
+        - heading "Open Source" [level=3] [ref=e129]
+        - paragraph [ref=e130]: Full codebase, reproducible from git clone
+  - contentinfo [ref=e131]:
+    - generic [ref=e132]:
+      - generic [ref=e133]:
+        - generic [ref=e134]:
+          - generic [ref=e135]: Let's Connect
+          - generic [ref=e136]: Open to Research Engineer opportunities
+        - generic [ref=e137]:
+          - link "EMAIL" [ref=e138] [cursor=pointer]:
+            - /url: mailto:manderson240@gmail.com
+            - img [ref=e139]
+            - text: EMAIL
+          - link "LINKEDIN" [ref=e142] [cursor=pointer]:
+            - /url: https://linkedin.com/in/manderson240
+            - img [ref=e143]
+            - text: LINKEDIN
+          - link "GITHUB" [ref=e147] [cursor=pointer]:
+            - /url: https://github.com/manderson240/cohezion
+            - img [ref=e148]
+            - text: GITHUB
+      - generic [ref=e151]: COHEZION v1.0.2 // 12D COMPOUND AI ORCHESTRATION // BUILT WITH NEXT.JS 16 + REACT 19
+```

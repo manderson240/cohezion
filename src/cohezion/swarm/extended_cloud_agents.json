@@ -1,0 +1,115 @@
+{
+  "meta": {
+    "version": "1.0.0",
+    "created": "2026-04-10",
+    "purpose": "Extended token Ollama cloud models team for complex orchestration",
+    "theory": "Utilizes 256K+ context windows for large-scale analysis and deep reasoning across multiple domains."
+  },
+  "agents": [
+    {
+      "role": "architect",
+      "name": "System Architect (Extended Context)",
+      "model": "gpt-oss-256k",
+      "weight": 1.0,
+      "context_limit": 256000,
+      "expertise": [
+        "System design",
+        "Architecture planning",
+        "Requirement analysis",
+        "Large-scale abstractions"
+      ],
+      "review_focus": [
+        "Does the design hold up under massive scale?",
+        "Are module boundaries respected across the entire project?",
+        "Is the technical specification robust?"
+      ],
+      "decision_weight": "High for structural changes",
+      "prompt_template": "As the System Architect with extended 256K context, evaluate this design comprehensively against the entire system structure. Focus on architecture planning, long-term scalability, and global requirements."
+    },
+    {
+      "role": "engineer",
+      "name": "Core Coding Specialist",
+      "model": "qwen3-coder-next:latest",
+      "weight": 1.0,
+      "context_limit": 262144,
+      "expertise": [
+        "Production coding",
+        "Agentic workflows",
+        "Debugging",
+        "Feature development"
+      ],
+      "review_focus": [
+        "Is the code production-ready?",
+        "Are the agentic workflows correctly implemented?",
+        "Are there hidden bugs across files?"
+      ],
+      "decision_weight": "Critical for implementation details",
+      "prompt_template": "As the Core Coding Specialist, review the full implementation using your 262K context. Check for code quality, agentic workflow correctness, and deep cross-file bugs."
+    },
+    {
+      "role": "qalgo",
+      "name": "Mathematical Specialist",
+      "model": "phi4-256k",
+      "weight": 1.0,
+      "context_limit": 256000,
+      "expertise": [
+        "Algorithm optimization",
+        "Mathematical computation",
+        "Logical reasoning",
+        "Data structures"
+      ],
+      "review_focus": [
+        "Is the algorithmic complexity optimal?",
+        "Are mathematical computations numerically stable?",
+        "Is the logic sound across edge cases?"
+      ],
+      "decision_weight": "Critical for core algorithms",
+      "prompt_template": "As the Mathematical Specialist with 256K context, verify the algorithm correctness, numerical stability, and logical reasoning for edge cases in this implementation."
+    },
+    {
+      "role": "fast_execution",
+      "name": "Rapid Prototyping Specialist",
+      "model": "glm-4.7-flash-256k",
+      "weight": 0.8,
+      "context_limit": 256000,
+      "expertise": [
+        "Rapid prototyping",
+        "Fast code generation",
+        "Automation scripting"
+      ],
+      "review_focus": [
+        "Can this be automated better?",
+        "Is the prototype functional?",
+        "Are scripts robust?"
+      ],
+      "decision_weight": "High for scripting and automation",
+      "prompt_template": "As the Rapid Prototyping Specialist, use your extended context to quickly evaluate scripts, automation routines, and rapid code generation outputs for functionality."
+    },
+    {
+      "role": "vision",
+      "name": "Vision & Document Specialist",
+      "model": "glm-ocr:latest",
+      "weight": 0.7,
+      "context_limit": 128000,
+      "expertise": [
+        "Document analysis",
+        "Text extraction",
+        "Visual coding"
+      ],
+      "review_focus": [
+        "Is the extracted text accurate?",
+        "Does the visual data map correctly to code?",
+        "Are document-based requirements fulfilled?"
+      ],
+      "decision_weight": "Advisory for code, critical for document-driven tasks",
+      "prompt_template": "As the Vision & Document Specialist, review visual or document-based inputs mapping to code, ensuring accurate extraction and representation."
+    }
+  ],
+  "consensus_rules": {
+    "minimum_agreement": 0.6,
+    "quorum": 3,
+    "blocking_roles": ["architect", "engineer", "qalgo"],
+    "advisory_roles": ["fast_execution", "vision"],
+    "explanation": "Consensus space with extended tokens: requires >= 3/5 agreement. Architect, Engineer, and Mathematical Specialist can block on deep reasoning issues."
+  }
+}

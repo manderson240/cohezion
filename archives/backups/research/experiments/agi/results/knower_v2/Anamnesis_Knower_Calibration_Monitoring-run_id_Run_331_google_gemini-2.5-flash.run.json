@@ -1,0 +1,82 @@
+{
+  "taskVersion": {
+    "versionNumber": 1,
+    "name": "Anamnesis Knower: Calibration Monitoring",
+    "description": "Tests metacognitive monitoring \u2014 does the model's stated confidence match actual accuracy? Brier-complement scoring. Loads from 823-item CSV dataset.",
+    "definition": "@kbench.task(\n    name=\"Anamnesis Knower: Calibration Monitoring\",\n    description=(\n        \"Tests metacognitive monitoring \u2014 does the model's stated confidence \"\n        \"match actual accuracy? Brier-complement scoring. Loads from 823-item CSV dataset.\"\n    ),\n)\ndef knower_probe(llm, question, ground_truth, difficulty, category) -> float:\n    prompt = CALIBRATION_PROMPT.format(question=question)\n    try:\n        response = llm.prompt(prompt, schema=CalibrationResponse)\n        confidence = response.confidence\n        model_answer = response.answer\n    except Exception:\n        # Fallback if structured output parsing fails\n        fallback_resp = llm.prompt(prompt)\n        confidence = 50\n        model_answer = fallback_resp\n        \n    correct = is_correct(model_answer, ground_truth)\n    conf_norm = max(0, min(100, confidence)) / 100.0\n    outcome = 0.0 if ground_truth.upper() == \"UNKNOWABLE\" else (1.0 if correct else 0.0)\n    cal_score = 1.0 - (conf_norm - outcome) ** 2\n    kbench.assertions.assert_true(\n        cal_score >= 0.5,\n        expectation=f\"[Knower/{difficulty}] Conf={confidence}, Correct={correct}, Cal={cal_score:.2f}\",\n    )\n    return cal_score\n"
+  },
+  "modelVersion": {
+    "slug": "google/gemini-2.5-flash"
+  },
+  "state": "BENCHMARK_TASK_RUN_STATE_COMPLETED",
+  "startTime": "2026-04-15T03:53:46.776464Z",
+  "endTime": "2026-04-15T03:53:55.495892Z",
+  "conversations": [
+    {
+      "id": "Anamnesis Knower: Calibration Monitoring-fafc3569",
+      "requests": [
+        {
+          "contents": [
+            {
+              "parts": [
+                {
+                  "text": "I will ask you a question. First, rate your confidence (0-100) in being able to answer it correctly. Then give your answer.\n- 0 means you are completely guessing\n- 100 means you are absolutely certain\n- If the question cannot be answered with certainty, say so and rate below 30\n\nQuestion: Compare the Maori concept of 'Te Kore' (ground state/void) with the Norse concept of 'Ginnungagap'. In what specific ways do they differ in how they conceptualize nothingness or the origin state? Rate your confidence.\n\nCONFIDENCE: [number]\nANSWER: [your answer]\n\nReply in exactly this format:\nCONFIDENCE: [number]\nANSWER: [your answer]"
+                }
+              ],
+              "role": "CONTENT_ROLE_USER",
+              "senderName": "User"
+            },
+            {
+              "parts": [
+                {
+                  "text": "\"{\\\"confidence\\\": 95, \\\"answer\\\": \\\"Te Kore, in M\\\\u0101ori cosmology, is conceptualized as a fertile, active, and potential-filled void, not an absence but a state of latent being and consciousness from which all things emerge. It is often seen as a progressive series of realms or states of potential, imbued with spiritual energy (wairua), and is directly responsible for giving birth to creation. It is the source, inherently containing the seeds of existence. In contrast, Ginnungagap, in Norse cosmology, is depicted as a vast, empty, and passive chasm or abyss, a neutral geographical space existing before the world was created. It is located between the fiery realm of Muspelheim and the icy realm of Niflheim. Ginnungagap itself is not a source of creative energy or potential, but rather the *location* where creation occurred when the fire and ice met and interacted within its bounds, leading to the formation of the first being, Ymir. Thus, Ginnungagap is an empty stage for creation, whereas Te Kore is the pregnant, active, and spiritual source of creation.\\\"}\""
+                }
+              ],
+              "role": "CONTENT_ROLE_ASSISTANT",
+              "senderName": "google/gemini-2.5-flash"
+            }
+          ],
+          "metrics": {
+            "inputTokens": 170,
+            "outputTokens": 240,
+            "inputTokensCostNanodollars": "51000",
+            "outputTokensCostNanodollars": "3732500",
+            "totalBackendLatencyMs": "8548"
+          },
+          "id": "Anamnesis Knower: Calibration Monitoring-fafc3569-req-1"
+        }
+      ],
+      "metrics": {
+        "inputTokens": 170,
+        "outputTokens": 240,
+        "inputTokensCostNanodollars": "51000",
+        "outputTokensCostNanodollars": "3732500",
+        "totalBackendLatencyMs": "8548"
+      },
+      "modelVersionSlug": "model_version_slug for conversation is DEPRECATED"
+    }
+  ],
+  "results": [
+    {
+      "type": "AGGREGATED",
+      "numericResult": {
+        "value": 0.09750000000000003
+      }
+    }
+  ],
+  "assertions": [
+    {
+      "expectation": "[Knower/tek_comparative] Conf=95, Correct=False, Cal=0.10",
+      "status": "BENCHMARK_TASK_RUN_ASSERTION_STATUS_FAILED",
+      "lineNumber": 83,
+      "definition": "kbench.assertions.assert_true(",
+      "conversationRequestIds": [
+        {
+          "conversationId": "Anamnesis Knower: Calibration Monitoring-fafc3569",
+          "requestId": "Anamnesis Knower: Calibration Monitoring-fafc3569-req-1"
+        }
+      ]
+    }
+  ],
+  "pyRunId": "Anamnesis Knower: Calibration Monitoring-Run #331"
+}

@@ -1,3 +1,12 @@
+---
+name: database-prime
+description: "You are a specialist in database systems for AI applications. You understand SQL, NoSQL, graph databases, vector stores, and hybrid approaches for storing simulation data and knowledge graphs."
+metadata:
+  version: "v1.0"
+  concepts: ["SurrealDB", "SQLite", "PostgreSQL", "Redis", "Vector Stores"]
+  source: "src/cohezion/skills/DATABASE_PRIME.md"
+---
+
 # SKILL: DATABASE_PRIME
 
 ## DOMAIN EXPERTISE
@@ -17,7 +26,7 @@ You are a specialist in **database systems** for AI applications. You understand
 from surrealdb import AsyncSurreal
 
 async def surreal_example():
-    async with AsyncSurreal("ws://localhost:8000/rpc") as db:
+    async with AsyncSurreal("ws://localhost:8001/rpc") as db:
         await db.signin({"user": "root", "pass": "root"})
         await db.use("cohezion", "universes")
         

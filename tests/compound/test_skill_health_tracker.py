@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from datetime import datetime, timedelta, timezone
+from datetime import UTC, datetime, timedelta
 from pathlib import Path
 from unittest.mock import MagicMock
 
@@ -86,7 +86,7 @@ class TestSkillHealthRecord:
 
     def test_health_score_with_recent_use(self) -> None:
         # Used just now → recency ≈ 1.0, health ≈ success_rate
-        now = datetime.now(timezone.utc).isoformat()
+        now = datetime.now(UTC).isoformat()
         record = SkillHealthRecord(
             skill_name="test",
             total_invocations=10,
@@ -97,7 +97,7 @@ class TestSkillHealthRecord:
 
     def test_health_score_with_recency_decay(self) -> None:
         # At the 90-day half-life: recency = 0.5, health = success_rate * 0.5
-        old_date = (datetime.now(timezone.utc) - timedelta(days=90)).isoformat()
+        old_date = (datetime.now(UTC) - timedelta(days=90)).isoformat()
         record = SkillHealthRecord(
             skill_name="test",
             total_invocations=10,
@@ -140,7 +140,7 @@ class TestSkillHealthTrackerRecordUsage:
         assert record.successful_invocations == 0
 
     def test_record_usage_sets_last_used(self, tracker: SkillHealthTracker) -> None:
-        before = datetime.now(timezone.utc)
+        before = datetime.now(UTC)
         tracker.record_usage("SKILL_C", success=True)
         record = tracker.get_health("SKILL_C")
         assert record is not None
@@ -154,7 +154,7 @@ class TestSkillHealthTrackerQueries:
 
     def test_get_all_health_sorted_by_score(self, tracker: SkillHealthTracker) -> None:
         # Create two records with different success rates (recent use → recency≈1)
-        now = datetime.now(timezone.utc).isoformat()
+        now = datetime.now(UTC).isoformat()
         tracker._records["HIGH"] = SkillHealthRecord(
             skill_name="HIGH",
             total_invocations=10,
@@ -172,8 +172,8 @@ class TestSkillHealthTrackerQueries:
         assert all_health[1].skill_name == "LOW"
 
     def test_get_stale_skills(self, tracker: SkillHealthTracker) -> None:
-        old = (datetime.now(timezone.utc) - timedelta(days=60)).isoformat()
-        recent = datetime.now(timezone.utc).isoformat()
+        old = (datetime.now(UTC) - timedelta(days=60)).isoformat()
+        recent = datetime.now(UTC).isoformat()
         tracker._records["STALE"] = SkillHealthRecord(
             skill_name="STALE", total_invocations=1, last_used=old
         )
@@ -190,7 +190,7 @@ class TestSkillHealthTrackerQueries:
         assert "NEVER" in stale
 
     def test_get_unhealthy_skills(self, tracker: SkillHealthTracker) -> None:
-        now = datetime.now(timezone.utc).isoformat()
+        now = datetime.now(UTC).isoformat()
         tracker._records["BAD"] = SkillHealthRecord(
             skill_name="BAD",
             total_invocations=10,

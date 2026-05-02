@@ -24,7 +24,9 @@ def scout_dashboard():
     """
 
     try:
-        response = requests.post(OLLAMA_URL, json={"model": MODEL, "prompt": prompt, "stream": False})
+        response = requests.post(
+            OLLAMA_URL, json={"model": MODEL, "prompt": prompt, "stream": False}
+        )
         print("\n=== SCOUT REPORT ===\n")
         print(response.json()["response"])
     except Exception as e:

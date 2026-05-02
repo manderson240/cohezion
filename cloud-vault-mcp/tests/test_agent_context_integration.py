@@ -75,7 +75,9 @@ class TestAgentContextIntegration:
         """
         # ── Step 1: Track Session ──────────────────────────────────
 
-        mock_surrealdb._execute_query.return_value = [{"id": "agent_session:s001", "status": "in_progress"}]
+        mock_surrealdb._execute_query.return_value = [
+            {"id": "agent_session:s001", "status": "in_progress"}
+        ]
 
         session_result = agent_context.track_session(
             agent_id=sample_session_data["agent_id"],
@@ -156,7 +158,9 @@ class TestAgentContextIntegration:
         Verifies graceful degradation when references don't exist.
         """
         # Track session
-        mock_surrealdb._execute_query.return_value = [{"id": "agent_session:s002", "status": "in_progress"}]
+        mock_surrealdb._execute_query.return_value = [
+            {"id": "agent_session:s002", "status": "in_progress"}
+        ]
 
         session_result = agent_context.track_session(
             agent_id=sample_session_data["agent_id"],
@@ -292,7 +296,7 @@ class TestAgentContextIntegration:
 
         mock_surrealdb._execute_query.side_effect = track_calls
 
-        agent_context.record_decision(
+        result = agent_context.record_decision(
             session_id=session_id,
             decision_type="architecture",
             reasoning="test",
@@ -329,7 +333,7 @@ class TestAgentContextIntegration:
 
         mock_surrealdb._execute_query.side_effect = track_calls
 
-        agent_context.record_outcome(
+        result = agent_context.record_outcome(
             session_id=session_id,
             outcome_type="success",
             lessons_learned=["l1"],

@@ -1,0 +1,82 @@
+{
+  "taskVersion": {
+    "versionNumber": 1,
+    "name": "Anamnesis Knower: Calibration Monitoring",
+    "description": "Tests metacognitive monitoring \u2014 does the model's stated confidence match actual accuracy? Brier-complement scoring. Loads from 823-item CSV dataset.",
+    "definition": "@kbench.task(\n    name=\"Anamnesis Knower: Calibration Monitoring\",\n    description=(\n        \"Tests metacognitive monitoring \u2014 does the model's stated confidence \"\n        \"match actual accuracy? Brier-complement scoring. Loads from 823-item CSV dataset.\"\n    ),\n)\ndef knower_probe(llm, question, ground_truth, difficulty, category) -> float:\n    prompt = CALIBRATION_PROMPT.format(question=question)\n    try:\n        response = llm.prompt(prompt, schema=CalibrationResponse)\n        confidence = response.confidence\n        model_answer = response.answer\n    except Exception:\n        # Fallback if structured output parsing fails\n        fallback_resp = llm.prompt(prompt)\n        confidence = 50\n        model_answer = fallback_resp\n        \n    correct = is_correct(model_answer, ground_truth)\n    conf_norm = max(0, min(100, confidence)) / 100.0\n    outcome = 0.0 if ground_truth.upper() == \"UNKNOWABLE\" else (1.0 if correct else 0.0)\n    cal_score = 1.0 - (conf_norm - outcome) ** 2\n    kbench.assertions.assert_true(\n        cal_score >= 0.5,\n        expectation=f\"[Knower/{difficulty}] Conf={confidence}, Correct={correct}, Cal={cal_score:.2f}\",\n    )\n    return cal_score\n"
+  },
+  "modelVersion": {
+    "slug": "google/gemini-2.5-flash"
+  },
+  "state": "BENCHMARK_TASK_RUN_STATE_COMPLETED",
+  "startTime": "2026-04-15T03:26:51.536522Z",
+  "endTime": "2026-04-15T03:27:01.364165Z",
+  "conversations": [
+    {
+      "id": "Anamnesis Knower: Calibration Monitoring-5d0ad32f",
+      "requests": [
+        {
+          "contents": [
+            {
+              "parts": [
+                {
+                  "text": "I will ask you a question. First, rate your confidence (0-100) in being able to answer it correctly. Then give your answer.\n- 0 means you are completely guessing\n- 100 means you are absolutely certain\n- If the question cannot be answered with certainty, say so and rate below 30\n\nQuestion: Compare the Lakota concept of 'Wakan Tanka' (ground state/void) with the Norse concept of 'Ginnungagap'. In what specific ways do they differ in how they conceptualize nothingness or the origin state? Rate your confidence.\n\nCONFIDENCE: [number]\nANSWER: [your answer]\n\nReply in exactly this format:\nCONFIDENCE: [number]\nANSWER: [your answer]"
+                }
+              ],
+              "role": "CONTENT_ROLE_USER",
+              "senderName": "User"
+            },
+            {
+              "parts": [
+                {
+                  "text": "\"{\\\"confidence\\\": 95, \\\"answer\\\": \\\"The Lakota concept of 'Wakan Tanka' and the Norse 'Ginnungagap' differ significantly in their conceptualization of a primordial state or nothingness. While the question refers to 'Wakan Tanka' as a 'ground state/void,' this interpretation is largely inaccurate and highlights a key distinction. 'Wakan Tanka' is not a void, but rather the 'Great Mystery' or 'Great Spirit'\\\\u2014the ultimate sacred power, creator, and sustainer of all existence, encompassing both the seen and unseen. It is a complex, unified-yet-plural divine force, immanent and transcendent, and the active, conscious source from which all life and being emerge.\\\\n\\\\nIn contrast, 'Ginnungagap' is precisely what its name implies: a 'yawning void' or 'gaping abyss.' It represents a state of absolute nothingness or pre-existence, an empty chasm that existed before creation. Unlike 'Wakan Tanka,' 'Ginnungagap' is not a conscious, creative entity or divine force. It is a passive, inert space where creation eventually occurred, but not *by* 'Ginnungagap' itself. Instead, life and the cosmos arose within 'Ginnungagap' through the interaction of other primordial elements, specifically the fire of Muspelheim and the ice of Niflheim, which met in the void to form the first being, Ymir.\\\\n\\\\nKey differences therefore include:\\\\n1.  **Nature of the Primordial State**: 'Wakan Tanka' is an active, conscious, divine source and the totality of sacred power; 'Ginnungagap' is a passive, empty, inert void.\\\\n2.  **Role in Creation**: 'Wakan Tanka' is the active creator and the essence of creation itself; 'Ginnungagap' is merely the stage or space *where* creation happens, without being an agent of creation.\\\\n3.  **Consciousness/Divinity**: 'Wakan Tanka' is inherently divine, spiritual, and often understood as conscious; 'Ginnungagap' is an unthinking, non-sacred cosmic location.\\\"}\""
+                }
+              ],
+              "role": "CONTENT_ROLE_ASSISTANT",
+              "senderName": "google/gemini-2.5-flash"
+            }
+          ],
+          "metrics": {
+            "inputTokens": 173,
+            "outputTokens": 476,
+            "inputTokensCostNanodollars": "51900",
+            "outputTokensCostNanodollars": "3632500",
+            "totalBackendLatencyMs": "9655"
+          },
+          "id": "Anamnesis Knower: Calibration Monitoring-5d0ad32f-req-1"
+        }
+      ],
+      "metrics": {
+        "inputTokens": 173,
+        "outputTokens": 476,
+        "inputTokensCostNanodollars": "51900",
+        "outputTokensCostNanodollars": "3632500",
+        "totalBackendLatencyMs": "9655"
+      },
+      "modelVersionSlug": "model_version_slug for conversation is DEPRECATED"
+    }
+  ],
+  "results": [
+    {
+      "type": "AGGREGATED",
+      "numericResult": {
+        "value": 0.09750000000000003
+      }
+    }
+  ],
+  "assertions": [
+    {
+      "expectation": "[Knower/tek_comparative] Conf=95, Correct=False, Cal=0.10",
+      "status": "BENCHMARK_TASK_RUN_ASSERTION_STATUS_FAILED",
+      "lineNumber": 83,
+      "definition": "kbench.assertions.assert_true(",
+      "conversationRequestIds": [
+        {
+          "conversationId": "Anamnesis Knower: Calibration Monitoring-5d0ad32f",
+          "requestId": "Anamnesis Knower: Calibration Monitoring-5d0ad32f-req-1"
+        }
+      ]
+    }
+  ],
+  "pyRunId": "Anamnesis Knower: Calibration Monitoring-Run #177"
+}

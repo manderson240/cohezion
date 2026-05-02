@@ -19,6 +19,7 @@ from . import (
     routes_cis,  # noqa: F401
     routes_gds,  # noqa: F401
     routes_general,  # noqa: F401
+    routes_proactive,  # noqa: F401
     routes_tea,  # noqa: F401
 )
 from ._shared import MCP_PORT, get_engine, logger, routes

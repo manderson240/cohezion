@@ -1,0 +1,69 @@
+{
+  "kernel_type": "gemm",
+  "nodes": {
+    "root": {
+      "id": "root",
+      "parent_id": null,
+      "strategy": "gemm_a4w4_baseline",
+      "status": "CLOSED",
+      "v_score": 0.7,
+      "depth": 0,
+      "attempt_history": [
+        {
+          "code": "aiter.gemm_a4w4(...)",
+          "score": 0.7,
+          "timestamp": "2026-04-01T00:00:00Z",
+          "notes": "Baseline 13.425us - best API path"
+        }
+      ],
+      "children": ["mfma_32x32", "triton_dot_scaled", "mfma_128x128"]
+    },
+    "mfma_32x32": {
+      "id": "mfma_32x32",
+      "parent_id": "root",
+      "strategy": "mfma_32x32x64_fp4",
+      "status": "CLOSED",
+      "v_score": 0.4,
+      "depth": 1,
+      "attempt_history": [
+        {
+          "code": "load_inline MFMA kernel",
+          "score": 0.4,
+          "timestamp": "2026-04-05T00:00:00Z",
+          "notes": "26us - slower than baseline 13.4us"
+        }
+      ],
+      "children": []
+    },
+    "triton_dot_scaled": {
+      "id": "triton_dot_scaled",
+      "parent_id": "root",
+      "strategy": "triton_tl_dot_scaled",
+      "status": "CLOSED",
+      "v_score": 0.35,
+      "depth": 1,
+      "attempt_history": [
+        {
+          "code": "tl.dot_scaled",
+          "score": 0.35,
+          "timestamp": "2026-04-05T00:00:00Z",
+          "notes": "23us - slower than baseline"
+        }
+      ],
+      "children": []
+    },
+    "mfma_128x128": {
+      "id": "mfma_128x128",
+      "parent_id": "root",
+      "strategy": "mfma_128x128_pingpong",
+      "status": "OPEN",
+      "v_score": 0.0,
+      "depth": 1,
+      "attempt_history": [],
+      "children": [],
+      "meta_prompt": "8-wave ping-pong with 128x128 tiles. 512 threads = 8 waves of 64. Double-buffered LDS with XOR swizzle. Cooperative 128-bit global loads. Wave scheduling with __builtin_amdgcn_s_setprio. Target: <8us to beat baseline."
+    }
+  },
+  "timestamp": "2026-04-05T00:00:00Z",
+  "version": "1.0"
+}

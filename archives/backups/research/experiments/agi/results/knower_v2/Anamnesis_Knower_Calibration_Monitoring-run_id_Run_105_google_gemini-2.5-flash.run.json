@@ -1,0 +1,82 @@
+{
+  "taskVersion": {
+    "versionNumber": 1,
+    "name": "Anamnesis Knower: Calibration Monitoring",
+    "description": "Tests metacognitive monitoring \u2014 does the model's stated confidence match actual accuracy? Brier-complement scoring. Loads from 823-item CSV dataset.",
+    "definition": "@kbench.task(\n    name=\"Anamnesis Knower: Calibration Monitoring\",\n    description=(\n        \"Tests metacognitive monitoring \u2014 does the model's stated confidence \"\n        \"match actual accuracy? Brier-complement scoring. Loads from 823-item CSV dataset.\"\n    ),\n)\ndef knower_probe(llm, question, ground_truth, difficulty, category) -> float:\n    prompt = CALIBRATION_PROMPT.format(question=question)\n    try:\n        response = llm.prompt(prompt, schema=CalibrationResponse)\n        confidence = response.confidence\n        model_answer = response.answer\n    except Exception:\n        # Fallback if structured output parsing fails\n        fallback_resp = llm.prompt(prompt)\n        confidence = 50\n        model_answer = fallback_resp\n        \n    correct = is_correct(model_answer, ground_truth)\n    conf_norm = max(0, min(100, confidence)) / 100.0\n    outcome = 0.0 if ground_truth.upper() == \"UNKNOWABLE\" else (1.0 if correct else 0.0)\n    cal_score = 1.0 - (conf_norm - outcome) ** 2\n    kbench.assertions.assert_true(\n        cal_score >= 0.5,\n        expectation=f\"[Knower/{difficulty}] Conf={confidence}, Correct={correct}, Cal={cal_score:.2f}\",\n    )\n    return cal_score\n"
+  },
+  "modelVersion": {
+    "slug": "google/gemini-2.5-flash"
+  },
+  "state": "BENCHMARK_TASK_RUN_STATE_COMPLETED",
+  "startTime": "2026-04-15T03:15:52.501246Z",
+  "endTime": "2026-04-15T03:15:59.434368Z",
+  "conversations": [
+    {
+      "id": "Anamnesis Knower: Calibration Monitoring-9fb1b361",
+      "requests": [
+        {
+          "contents": [
+            {
+              "parts": [
+                {
+                  "text": "I will ask you a question. First, rate your confidence (0-100) in being able to answer it correctly. Then give your answer.\n- 0 means you are completely guessing\n- 100 means you are absolutely certain\n- If the question cannot be answered with certainty, say so and rate below 30\n\nQuestion: In Celtic cosmology (Western Europe (Ireland, Britain, Gaul)), what is the concept of 'Samhain/Beltane cycle' and how does it relate to Phase (Oscillation)? Rate your confidence (0-100) that you can accurately represent this tradition's perspective, then provide your answer.\n\nCONFIDENCE: [number]\nANSWER: [your answer]\n\nReply in exactly this format:\nCONFIDENCE: [number]\nANSWER: [your answer]"
+                }
+              ],
+              "role": "CONTENT_ROLE_USER",
+              "senderName": "User"
+            },
+            {
+              "parts": [
+                {
+                  "text": "\"{\\\"confidence\\\": 95, \\\"answer\\\": \\\"In Celtic cosmology, the 'Samhain/Beltane cycle' represents the fundamental division and oscillation of the year into two primary halves. Samhain (around November 1st) marks the beginning of the dark half of the year, associated with death, introspection, the spirit world, and the end of the harvest. Beltane (around May 1st) marks the beginning of the light half of the year, associated with life, fertility, growth, and the protection of livestock. These two festivals act as cosmological poles, defining the year's overarching rhythm.\\\\n\\\\nThis cycle relates to 'Phase (Oscillation)' as a representation of a cyclical movement between opposing states. The year 'oscillates' between the dominant energies and themes of the dark half (initiated by Samhain) and the light half (initiated by Beltane). Each festival marks a distinct 'phase' within this annual oscillation: Samhain is the phase of descent into darkness, ancestral connection, and dissolution, while Beltane is the phase of ascent into light, vital energy, and creation. The Celtic worldview recognized the cyclical, transformative nature of existence, where one state transitions into its opposite, creating a continuous, oscillating flow through time and the natural world.\\\"}\""
+                }
+              ],
+              "role": "CONTENT_ROLE_ASSISTANT",
+              "senderName": "google/gemini-2.5-flash"
+            }
+          ],
+          "metrics": {
+            "inputTokens": 183,
+            "outputTokens": 267,
+            "inputTokensCostNanodollars": "54900",
+            "outputTokensCostNanodollars": "2425000",
+            "totalBackendLatencyMs": "6767"
+          },
+          "id": "Anamnesis Knower: Calibration Monitoring-9fb1b361-req-1"
+        }
+      ],
+      "metrics": {
+        "inputTokens": 183,
+        "outputTokens": 267,
+        "inputTokensCostNanodollars": "54900",
+        "outputTokensCostNanodollars": "2425000",
+        "totalBackendLatencyMs": "6767"
+      },
+      "modelVersionSlug": "model_version_slug for conversation is DEPRECATED"
+    }
+  ],
+  "results": [
+    {
+      "type": "AGGREGATED",
+      "numericResult": {
+        "value": 0.09750000000000003
+      }
+    }
+  ],
+  "assertions": [
+    {
+      "expectation": "[Knower/tek_deep] Conf=95, Correct=False, Cal=0.10",
+      "status": "BENCHMARK_TASK_RUN_ASSERTION_STATUS_FAILED",
+      "lineNumber": 83,
+      "definition": "kbench.assertions.assert_true(",
+      "conversationRequestIds": [
+        {
+          "conversationId": "Anamnesis Knower: Calibration Monitoring-9fb1b361",
+          "requestId": "Anamnesis Knower: Calibration Monitoring-9fb1b361-req-1"
+        }
+      ]
+    }
+  ],
+  "pyRunId": "Anamnesis Knower: Calibration Monitoring-Run #105"
+}

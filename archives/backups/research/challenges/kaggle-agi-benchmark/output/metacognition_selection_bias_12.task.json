@@ -1,0 +1,6 @@
+{
+  "versionNumber": 1,
+  "name": "metacognition_selection_bias_12",
+  "description": "Detect selection bias in reported outcomes.",
+  "definition": "@kbench.task(name=\"metacognition_selection_bias_12\")\ndef metacognition_selection_bias_12():\n    \"\"\"Detect selection bias in reported outcomes.\"\"\"\n    prompt = \"\"\"A startup reports: \"90% of our early customers are satisfied.\"\n\nWhat is the satisfaction rate of all customers?\n\nA) 90%\nB) Approximately 90%\nC) Cannot determine (survivorship bias in early adopters)\nD) Insufficient Information\"\"\"\n    return prompt, \"D\"\n"
+}

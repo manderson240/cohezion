@@ -1,3 +1,12 @@
+---
+name: memory-mcp-prime
+description: "High-fidelity persistent memory management for AI swarm orchestration. Leverages semantic vector storage to maintain context across disparate sessions, conversations, and agent lifetimes."
+metadata:
+  version: "v0.1"
+  concepts: ["Semantic Persistence", "Context Continuity", "Memory Manifold"]
+  source: "src/cohezion/skills/MEMORY_MCP_PRIME.md"
+---
+
 # SKILL: MEMORY_MCP_PRIME
 
 ## DOMAIN EXPERTISE

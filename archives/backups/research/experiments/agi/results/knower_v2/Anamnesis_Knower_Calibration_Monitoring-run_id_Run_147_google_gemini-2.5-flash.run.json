@@ -1,0 +1,82 @@
+{
+  "taskVersion": {
+    "versionNumber": 1,
+    "name": "Anamnesis Knower: Calibration Monitoring",
+    "description": "Tests metacognitive monitoring \u2014 does the model's stated confidence match actual accuracy? Brier-complement scoring. Loads from 823-item CSV dataset.",
+    "definition": "@kbench.task(\n    name=\"Anamnesis Knower: Calibration Monitoring\",\n    description=(\n        \"Tests metacognitive monitoring \u2014 does the model's stated confidence \"\n        \"match actual accuracy? Brier-complement scoring. Loads from 823-item CSV dataset.\"\n    ),\n)\ndef knower_probe(llm, question, ground_truth, difficulty, category) -> float:\n    prompt = CALIBRATION_PROMPT.format(question=question)\n    try:\n        response = llm.prompt(prompt, schema=CalibrationResponse)\n        confidence = response.confidence\n        model_answer = response.answer\n    except Exception:\n        # Fallback if structured output parsing fails\n        fallback_resp = llm.prompt(prompt)\n        confidence = 50\n        model_answer = fallback_resp\n        \n    correct = is_correct(model_answer, ground_truth)\n    conf_norm = max(0, min(100, confidence)) / 100.0\n    outcome = 0.0 if ground_truth.upper() == \"UNKNOWABLE\" else (1.0 if correct else 0.0)\n    cal_score = 1.0 - (conf_norm - outcome) ** 2\n    kbench.assertions.assert_true(\n        cal_score >= 0.5,\n        expectation=f\"[Knower/{difficulty}] Conf={confidence}, Correct={correct}, Cal={cal_score:.2f}\",\n    )\n    return cal_score\n"
+  },
+  "modelVersion": {
+    "slug": "google/gemini-2.5-flash"
+  },
+  "state": "BENCHMARK_TASK_RUN_STATE_COMPLETED",
+  "startTime": "2026-04-15T03:21:50.658370Z",
+  "endTime": "2026-04-15T03:22:04.250048Z",
+  "conversations": [
+    {
+      "id": "Anamnesis Knower: Calibration Monitoring-66d7ad54",
+      "requests": [
+        {
+          "contents": [
+            {
+              "parts": [
+                {
+                  "text": "I will ask you a question. First, rate your confidence (0-100) in being able to answer it correctly. Then give your answer.\n- 0 means you are completely guessing\n- 100 means you are absolutely certain\n- If the question cannot be answered with certainty, say so and rate below 30\n\nQuestion: In Dogon cosmology (Mali, West Africa), what is the concept of 'Granary symbolism' and how does it relate to SPIN (Information Unit)? Rate your confidence (0-100) that you can accurately represent this tradition's perspective, then provide your answer.\n\nCONFIDENCE: [number]\nANSWER: [your answer]\n\nReply in exactly this format:\nCONFIDENCE: [number]\nANSWER: [your answer]"
+                }
+              ],
+              "role": "CONTENT_ROLE_USER",
+              "senderName": "User"
+            },
+            {
+              "parts": [
+                {
+                  "text": "\"{\\\"confidence\\\": 25, \\\"answer\\\": \\\"In Dogon cosmology, the granary is a profound and multi-layered symbol, representing the universe, the human body, and the social structure. Its architecture, with distinct levels (e.g., foundation, walls, roof) and compartments, embodies cosmic order, agricultural cycles, fertility, and collective knowledge. It is a repository not just of physical sustenance (millet, seeds) but also of spiritual and cultural 'seeds'\\\\u2014principles, traditions, and understanding passed down through generations. Each part of the granary and its contents holds specific symbolic meaning, reflecting a holistic worldview where everything is interconnected.\\\\n\\\\nThe concept of 'SPIN (Information Unit)' is not a native term within Dogon cosmology. However, if 'SPIN (Information Unit)' is interpreted as a fundamental, irreducible packet of knowledge, meaning, or a core principle within a larger system, then the Dogon granary symbolism can be seen to embody such 'units' in an analogical sense. Each symbolic element within the granary\\\\u2014a specific type of grain, a structural beam, a particular compartment\\\\u2014functions as a distinct 'unit' carrying vital information about the cosmos, society, and human existence. These 'units' are organized within the granary's structure, much like data is organized, to create a coherent and functional whole. The inherent 'meaning' or 'function' of each element could be metaphorically considered its 'spin'\\\\u2014an intrinsic property that contributes to the overall 'information' embodied by the granary as a microcosm of the universe and human life. The granary, therefore, serves as a comprehensive model for organizing, storing, and transmitting these fundamental 'information units' (cosmic laws, social roles, spiritual truths) crucial to Dogon understanding of the world. While the Dogon did not conceptualize 'information units' in a modern sense, their granary symbolism deeply reflects the organization and preservation of vital knowledge as discrete, meaningful components within a unified system.\\\"}\""
+                }
+              ],
+              "role": "CONTENT_ROLE_ASSISTANT",
+              "senderName": "google/gemini-2.5-flash"
+            }
+          ],
+          "metrics": {
+            "inputTokens": 178,
+            "outputTokens": 418,
+            "inputTokensCostNanodollars": "53400",
+            "outputTokensCostNanodollars": "5087500",
+            "totalBackendLatencyMs": "13416"
+          },
+          "id": "Anamnesis Knower: Calibration Monitoring-66d7ad54-req-1"
+        }
+      ],
+      "metrics": {
+        "inputTokens": 178,
+        "outputTokens": 418,
+        "inputTokensCostNanodollars": "53400",
+        "outputTokensCostNanodollars": "5087500",
+        "totalBackendLatencyMs": "13416"
+      },
+      "modelVersionSlug": "model_version_slug for conversation is DEPRECATED"
+    }
+  ],
+  "results": [
+    {
+      "type": "AGGREGATED",
+      "numericResult": {
+        "value": 0.9375
+      }
+    }
+  ],
+  "assertions": [
+    {
+      "expectation": "[Knower/tek_deep] Conf=25, Correct=False, Cal=0.94",
+      "status": "BENCHMARK_TASK_RUN_ASSERTION_STATUS_PASSED",
+      "lineNumber": 83,
+      "definition": "kbench.assertions.assert_true(",
+      "conversationRequestIds": [
+        {
+          "conversationId": "Anamnesis Knower: Calibration Monitoring-66d7ad54",
+          "requestId": "Anamnesis Knower: Calibration Monitoring-66d7ad54-req-1"
+        }
+      ]
+    }
+  ],
+  "pyRunId": "Anamnesis Knower: Calibration Monitoring-Run #147"
+}

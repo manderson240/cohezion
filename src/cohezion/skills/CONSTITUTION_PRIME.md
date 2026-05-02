@@ -1,3 +1,12 @@
+---
+name: constitution-prime
+description: "Codification of ethical and operational guardrails for autonomic agent swarms, ensuring that high-order reasoning remains aligned with human intent and physical constraints."
+metadata:
+  version: "v1.0"
+  see_also: ["FLUME_METHODOLOGY_PRIME", "PHYSICS_EXPLAINABILITY_PRIME"]
+  source: "src/cohezion/skills/CONSTITUTION_PRIME.md"
+---
+
 # SKILL: COHEZION_CONSTITUTION_PRIME
 
 ## DOMAIN EXPERTISE

@@ -41,7 +41,7 @@ class APIKeyAuthMiddleware(BaseHTTPMiddleware):
         app.add_middleware(APIKeyAuthMiddleware, auth_manager=auth_manager)
 
         # Requests must include X-Agent-Token header:
-        # curl -H "X-Agent-Token: <token>" http://localhost:8000/api/tool
+        # curl -H "X-Agent-Token: <token>" http://localhost:8001/api/tool
     """
 
     def __init__(

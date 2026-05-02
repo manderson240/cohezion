@@ -34,6 +34,7 @@ import re
 import sys
 from pathlib import Path
 
+
 # Extensions to include when scanning folders
 INCLUDE_EXTENSIONS = {".md", ".txt", ".yaml", ".yml", ".json"}
 

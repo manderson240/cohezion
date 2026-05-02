@@ -34,11 +34,19 @@ logging.basicConfig(
 logger = logging.getLogger(__name__)
 
 MCP_PORT = int(os.getenv("MCP_PORT", "8366"))
-# Primary: Vault Warden, Fallback: Environment
-SURREAL_URL = (
-    get_credentials().get_secret("COHEZION_SURREAL_URL", env_var="SURREAL_URL")
-    or "ws://localhost:8000/rpc"
-)
+# Lazy accessor for SURREAL_URL to prevent startup latency
+_surreal_url: str | None = None
+
+
+def get_surreal_url() -> str:
+    """Get SurrealDB URL with lazy initialization."""
+    global _surreal_url
+    if _surreal_url is None:
+        _surreal_url = (
+            get_credentials().get_secret("COHEZION_SURREAL_URL", env_var="SURREAL_URL")
+            or "ws://localhost:8001/rpc"
+        )
+    return _surreal_url
 
 
 @dataclass
@@ -81,9 +89,10 @@ class Relation:
 class MemoryGraph:
     """In-memory knowledge graph with SurrealDB persistence."""
 
-    def __init__(self):
+    def __init__(self, surreal_url: str | None = None):
         self.entities: dict[str, Entity] = {}
         self.relations: list[Relation] = []
+        self.surreal_url = surreal_url or get_surreal_url()
         self._surreal: Any = None
 
     async def _get_surreal(self):
@@ -92,7 +101,7 @@ class MemoryGraph:
             try:
                 from surrealdb import AsyncSurreal
 
-                self._surreal = AsyncSurreal(SURREAL_URL)
+                self._surreal = AsyncSurreal(self.surreal_url)
                 await self._surreal.connect()
                 await self._surreal.use("bmad", "memory")
             except Exception as e:

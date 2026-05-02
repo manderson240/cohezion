@@ -22,6 +22,7 @@ def test_get_anchors():
     assert "cohezion" in anchors["project_root"]
 
 
+
 def test_get_context_block():
     """[P0] Should generate formatted context block."""
     block = ResidencyAnchorBase.get_context_block()

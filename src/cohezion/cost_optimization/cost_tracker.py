@@ -98,19 +98,32 @@ class SessionCostTracker:
         # Local models (ollama) = $0.00
         # API models: conservative estimates for unknown models
         self.model_costs = model_costs or {
-            # Local models
+            # Lemonade local models ($0 — primary tier, Session 96b)
+            "Phi-4-mini-instruct-Hybrid": 0.0,
+            "Qwen3-8B-Hybrid": 0.0,
+            "Qwen3-14B-Hybrid": 0.0,
+            "CodeLlama-7b-Instruct-hf-Hybrid": 0.0,
+            "Qwen2.5-Coder-7B-Instruct-Hybrid": 0.0,
+            "Gemma-4-E4B-it-GGUF": 0.0,
+            "Gemma-4-31B-it-GGUF": 0.0,
+            "DeepSeek-R1-Distill-Qwen-8B-CPU": 0.0,
+            # Legacy Ollama local models ($0)
             "phi3:mini": 0.0,
             "gemma3:4b": 0.0,
             "mistral:7b": 0.0,
             "llama4-scout": 0.0,
             "qwen3-coder:32b": 0.0,
             "deepseek-r1:8b": 0.0,
+            # Ollama Pro cloud ($20/mo subscription — amortized to ~$0)
+            "cogito-2.1:cloud": 0.0,
+            "deepseek-v3.2:cloud": 0.0,
+            "glm-5:cloud": 0.0,
             # API models (conservative estimates)
-            "gpt-4": 0.03,  # $0.03 per 1K tokens (input)
-            "gpt-4o": 0.015,  # $0.015 per 1K tokens
-            "claude-3-opus": 0.015,  # $0.015 per 1K tokens (input)
-            "claude-3-sonnet": 0.003,  # $0.003 per 1K tokens
-            "claude-3-haiku": 0.00025,  # $0.00025 per 1K tokens
+            "gpt-4": 0.03,
+            "gpt-4o": 0.015,
+            "claude-3-opus": 0.015,
+            "claude-3-sonnet": 0.003,
+            "claude-3-haiku": 0.00025,
         }
 
         # In-memory tracking (hot path)

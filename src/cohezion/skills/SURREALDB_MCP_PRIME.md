@@ -1,3 +1,11 @@
+---
+name: surrealdb-mcp-prime
+description: "You are a specialist in SurrealDB Model Context Protocol (MCP). You know how to expose SurrealDB's multi-model capabilities (Relational, Graph, Document, Vector) as directly executable tools for AI agents. You understand SurrealQL, live queries, and record-level permissions."
+metadata:
+  version: "v1.0 (New MCP Component)"
+  source: "src/cohezion/skills/SURREALDB_MCP_PRIME.md"
+---
+
 # SKILL: SURREALDB_MCP_PRIME
 
 ## DOMAIN EXPERTISE

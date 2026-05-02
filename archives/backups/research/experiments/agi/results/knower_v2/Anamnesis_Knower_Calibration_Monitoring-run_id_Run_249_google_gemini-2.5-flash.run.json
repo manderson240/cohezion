@@ -1,0 +1,82 @@
+{
+  "taskVersion": {
+    "versionNumber": 1,
+    "name": "Anamnesis Knower: Calibration Monitoring",
+    "description": "Tests metacognitive monitoring \u2014 does the model's stated confidence match actual accuracy? Brier-complement scoring. Loads from 823-item CSV dataset.",
+    "definition": "@kbench.task(\n    name=\"Anamnesis Knower: Calibration Monitoring\",\n    description=(\n        \"Tests metacognitive monitoring \u2014 does the model's stated confidence \"\n        \"match actual accuracy? Brier-complement scoring. Loads from 823-item CSV dataset.\"\n    ),\n)\ndef knower_probe(llm, question, ground_truth, difficulty, category) -> float:\n    prompt = CALIBRATION_PROMPT.format(question=question)\n    try:\n        response = llm.prompt(prompt, schema=CalibrationResponse)\n        confidence = response.confidence\n        model_answer = response.answer\n    except Exception:\n        # Fallback if structured output parsing fails\n        fallback_resp = llm.prompt(prompt)\n        confidence = 50\n        model_answer = fallback_resp\n        \n    correct = is_correct(model_answer, ground_truth)\n    conf_norm = max(0, min(100, confidence)) / 100.0\n    outcome = 0.0 if ground_truth.upper() == \"UNKNOWABLE\" else (1.0 if correct else 0.0)\n    cal_score = 1.0 - (conf_norm - outcome) ** 2\n    kbench.assertions.assert_true(\n        cal_score >= 0.5,\n        expectation=f\"[Knower/{difficulty}] Conf={confidence}, Correct={correct}, Cal={cal_score:.2f}\",\n    )\n    return cal_score\n"
+  },
+  "modelVersion": {
+    "slug": "google/gemini-2.5-flash"
+  },
+  "state": "BENCHMARK_TASK_RUN_STATE_COMPLETED",
+  "startTime": "2026-04-15T03:38:45.345048Z",
+  "endTime": "2026-04-15T03:38:58.912928Z",
+  "conversations": [
+    {
+      "id": "Anamnesis Knower: Calibration Monitoring-3689218b",
+      "requests": [
+        {
+          "contents": [
+            {
+              "parts": [
+                {
+                  "text": "I will ask you a question. First, rate your confidence (0-100) in being able to answer it correctly. Then give your answer.\n- 0 means you are completely guessing\n- 100 means you are absolutely certain\n- If the question cannot be answered with certainty, say so and rate below 30\n\nQuestion: Compare the Yoruba concept of 'Olodumare' (ground state/void) with the Dine (Navajo) concept of 'First Man / First Woman'. In what specific ways do they differ in how they conceptualize nothingness or the origin state? Rate your confidence.\n\nCONFIDENCE: [number]\nANSWER: [your answer]\n\nReply in exactly this format:\nCONFIDENCE: [number]\nANSWER: [your answer]"
+                }
+              ],
+              "role": "CONTENT_ROLE_USER",
+              "senderName": "User"
+            },
+            {
+              "parts": [
+                {
+                  "text": "\"{\\\"confidence\\\": 92, \\\"answer\\\": \\\"The Yoruba concept of Olodumare and the Dine (Navajo) concept of First Man and First Woman differ significantly in how they conceptualize nothingness or the origin state.\\\\n\\\\n**Olodumare (Yoruba):**\\\\nOlodumare is the supreme, transcendent Creator God, the source of all existence. In Yoruba cosmology, Olodumare is not 'nothingness' or 'void' itself, but rather the absolute being from whom everything emanates. The origin state before creation is often depicted as a primordial expanse, a vast ocean, or chaotic waters (often associated with Olokun, a major Orisha). Olodumare then uses its divine power, 'Ase,' to order and manifest the universe from this unformed state, or to send Orishas (like Obatala) to carry out the physical creation. Olodumare is the ultimate, self-existent cause, the 'ground state' in the sense of being the foundational, absolute being from which all else derives, not as an empty void, but as ultimate potential and consciousness.\\\\n\\\\n**First Man / First Woman (Dine/Navajo):**\\\\nFirst Man ('\\\\u00c1\\\\u0142ts\\\\u00e9 Hastiin) and First Woman ('\\\\u00c1\\\\u0142ts\\\\u00e9 Asdz\\\\u00e1\\\\u00e1) are key figures in the Din\\\\u00e9 Bahane\\\\u02bc (Navajo creation story), but they are not the ultimate originators of existence, nor do they represent 'nothingness.' Instead, they are primordial beings who emerge from a series of preceding, lower worlds (often described as dark, red, blue, or white worlds), bringing knowledge and elements that help form the current (fourth or fifth) world. The 'origin state' in Dine cosmology is a progression of these existing, albeit less refined or chaotic, worlds. First Man and First Woman are instrumental in organizing, populating, and setting up the order of the present world, creating the first hogans, ceremonies, and establishing societal roles. They are progenitors and cultural heroes who bring order out of existing, albeit unformed, conditions, rather than creating ex nihilo.\\\\n\\\\n**Specific Differences in Conceptualizing Nothingness/Origin State:**\\\\n1.  **Nature of the Originator:** Olodumare is the singular, ultimate, and transcendent Creator God, absolute being. First Man and First Woman are emergent, ancestral beings who, while powerful and foundational, are not the ultimate origin of existence itself, but rather organizers and leaders within a pre-existing cosmic framework.\\\\n2.  **Role of 'Void' or 'Nothingness':** For Olodumare, the 'void' or 'unformed ground state' is typically a passive, unmanifest potential or chaotic primordial matter upon which Olodumare acts to bring forth creation. Olodumare itself is an active, conscious, and complete being, not a void. For First Man and First Woman, 'nothingness' is not an absolute void; rather, their 'origin state' is a series of preceding, existing (though sometimes dark, watery, or chaotic) worlds from which they ascend. They operate within and organize an already existing, albeit unrefined, reality rather than creating it from absolute non-existence.\\\\n3.  **Creation Process:** Olodumare either directly manifests the universe or delegates creation to Orishas from an initial void/primordial state. First Man and First Woman, along with other Holy People, collaboratively bring order, form, and cultural practices to the present world after emerging from previous ones.\\\"}\""
+                }
+              ],
+              "role": "CONTENT_ROLE_ASSISTANT",
+              "senderName": "google/gemini-2.5-flash"
+            }
+          ],
+          "metrics": {
+            "inputTokens": 176,
+            "outputTokens": 747,
+            "inputTokensCostNanodollars": "52800",
+            "outputTokensCostNanodollars": "5815000",
+            "totalBackendLatencyMs": "13397"
+          },
+          "id": "Anamnesis Knower: Calibration Monitoring-3689218b-req-1"
+        }
+      ],
+      "metrics": {
+        "inputTokens": 176,
+        "outputTokens": 747,
+        "inputTokensCostNanodollars": "52800",
+        "outputTokensCostNanodollars": "5815000",
+        "totalBackendLatencyMs": "13397"
+      },
+      "modelVersionSlug": "model_version_slug for conversation is DEPRECATED"
+    }
+  ],
+  "results": [
+    {
+      "type": "AGGREGATED",
+      "numericResult": {
+        "value": 0.15359999999999996
+      }
+    }
+  ],
+  "assertions": [
+    {
+      "expectation": "[Knower/tek_comparative] Conf=92, Correct=False, Cal=0.15",
+      "status": "BENCHMARK_TASK_RUN_ASSERTION_STATUS_FAILED",
+      "lineNumber": 83,
+      "definition": "kbench.assertions.assert_true(",
+      "conversationRequestIds": [
+        {
+          "conversationId": "Anamnesis Knower: Calibration Monitoring-3689218b",
+          "requestId": "Anamnesis Knower: Calibration Monitoring-3689218b-req-1"
+        }
+      ]
+    }
+  ],
+  "pyRunId": "Anamnesis Knower: Calibration Monitoring-Run #249"
+}

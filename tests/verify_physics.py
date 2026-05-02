@@ -6,7 +6,7 @@ import numpy as np
 def verify_su2_algebra() -> bool:
     """Verify basic SU(2) algebraic properties for integration testing."""
     # Identity
-    np.eye(2, dtype=complex)
+    I = np.eye(2, dtype=complex)
 
     # Pauli matrices
     sigma_x = np.array([[0, 1], [1, 0]], dtype=complex)

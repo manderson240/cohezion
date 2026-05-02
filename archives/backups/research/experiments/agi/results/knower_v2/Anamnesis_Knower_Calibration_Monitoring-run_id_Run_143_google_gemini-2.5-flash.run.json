@@ -1,0 +1,82 @@
+{
+  "taskVersion": {
+    "versionNumber": 1,
+    "name": "Anamnesis Knower: Calibration Monitoring",
+    "description": "Tests metacognitive monitoring \u2014 does the model's stated confidence match actual accuracy? Brier-complement scoring. Loads from 823-item CSV dataset.",
+    "definition": "@kbench.task(\n    name=\"Anamnesis Knower: Calibration Monitoring\",\n    description=(\n        \"Tests metacognitive monitoring \u2014 does the model's stated confidence \"\n        \"match actual accuracy? Brier-complement scoring. Loads from 823-item CSV dataset.\"\n    ),\n)\ndef knower_probe(llm, question, ground_truth, difficulty, category) -> float:\n    prompt = CALIBRATION_PROMPT.format(question=question)\n    try:\n        response = llm.prompt(prompt, schema=CalibrationResponse)\n        confidence = response.confidence\n        model_answer = response.answer\n    except Exception:\n        # Fallback if structured output parsing fails\n        fallback_resp = llm.prompt(prompt)\n        confidence = 50\n        model_answer = fallback_resp\n        \n    correct = is_correct(model_answer, ground_truth)\n    conf_norm = max(0, min(100, confidence)) / 100.0\n    outcome = 0.0 if ground_truth.upper() == \"UNKNOWABLE\" else (1.0 if correct else 0.0)\n    cal_score = 1.0 - (conf_norm - outcome) ** 2\n    kbench.assertions.assert_true(\n        cal_score >= 0.5,\n        expectation=f\"[Knower/{difficulty}] Conf={confidence}, Correct={correct}, Cal={cal_score:.2f}\",\n    )\n    return cal_score\n"
+  },
+  "modelVersion": {
+    "slug": "google/gemini-2.5-flash"
+  },
+  "state": "BENCHMARK_TASK_RUN_STATE_COMPLETED",
+  "startTime": "2026-04-15T03:21:15.079479Z",
+  "endTime": "2026-04-15T03:21:24.477079Z",
+  "conversations": [
+    {
+      "id": "Anamnesis Knower: Calibration Monitoring-46be87c2",
+      "requests": [
+        {
+          "contents": [
+            {
+              "parts": [
+                {
+                  "text": "I will ask you a question. First, rate your confidence (0-100) in being able to answer it correctly. Then give your answer.\n- 0 means you are completely guessing\n- 100 means you are absolutely certain\n- If the question cannot be answered with certainty, say so and rate below 30\n\nQuestion: In Dogon cosmology (Mali, West Africa), what is the concept of '266 signs of creation' and how does it relate to 12 Parameters (Degrees of Freedom)? Rate your confidence (0-100) that you can accurately represent this tradition's perspective, then provide your answer.\n\nCONFIDENCE: [number]\nANSWER: [your answer]\n\nReply in exactly this format:\nCONFIDENCE: [number]\nANSWER: [your answer]"
+                }
+              ],
+              "role": "CONTENT_ROLE_USER",
+              "senderName": "User"
+            },
+            {
+              "parts": [
+                {
+                  "text": "\"{\\\"confidence\\\": 25, \\\"answer\\\": \\\"Dogon cosmology, as documented primarily by French anthropologists Marcel Griaule and Germaine Dieterlen, is an extraordinarily complex and intricate system of thought. Understanding '266 signs of creation' and '12 Parameters (Degrees of Freedom)' requires delving into this nuanced framework, and interpretations can vary.\\\\n\\\\nThe '266 signs of creation' refer to a comprehensive set of fundamental elements, principles, or 'words' that are believed to constitute the entire universe, human body, language, and knowledge system. These signs are not merely symbols but are seen as the active components through which the world was brought into being and continues to operate. They encompass everything from cosmic structures to bodily functions, agricultural practices, and social organization, representing the totality of creation and its inherent order. Each sign carries specific meaning and is interconnected with others, forming a vast, integrated web of understanding.\\\\n\\\\nThe '12 Parameters (Degrees of Freedom)' likely refer to fundamental, overarching organizational principles or dimensions within this cosmic order. While 'parameters' and 'degrees of freedom' are analytical terms used by scholars rather than direct Dogon designations, the Dogon system does categorize and structure its cosmic understanding through specific numerical sets. These 12 principles could represent core aspects or stages of creation, fundamental divisions of the universe, essential attributes of the primordial beings (like Nommo), or primary categories of existence from which the more detailed '266 signs' are derived or governed. They provide the abstract framework or blueprint upon which the more concrete and numerous 'signs' are elaborated.\\\\n\\\\nIn essence, the 12 parameters represent a more abstract, foundational level of cosmic organization, while the 266 signs are the more detailed, specific manifestations and components that arise from and are structured by these foundational principles. The 'signs' are not random but are meticulously organized and derive their meaning and function from these underlying 'parameters' or organizing forces, illustrating the profound interconnectedness and systematic nature of Dogon thought regarding the universe and humanity's place within it.\\\"}\""
+                }
+              ],
+              "role": "CONTENT_ROLE_ASSISTANT",
+              "senderName": "google/gemini-2.5-flash"
+            }
+          ],
+          "metrics": {
+            "inputTokens": 185,
+            "outputTokens": 432,
+            "inputTokensCostNanodollars": "55500",
+            "outputTokensCostNanodollars": "4017500",
+            "totalBackendLatencyMs": "9241"
+          },
+          "id": "Anamnesis Knower: Calibration Monitoring-46be87c2-req-1"
+        }
+      ],
+      "metrics": {
+        "inputTokens": 185,
+        "outputTokens": 432,
+        "inputTokensCostNanodollars": "55500",
+        "outputTokensCostNanodollars": "4017500",
+        "totalBackendLatencyMs": "9241"
+      },
+      "modelVersionSlug": "model_version_slug for conversation is DEPRECATED"
+    }
+  ],
+  "results": [
+    {
+      "type": "AGGREGATED",
+      "numericResult": {
+        "value": 0.9375
+      }
+    }
+  ],
+  "assertions": [
+    {
+      "expectation": "[Knower/tek_deep] Conf=25, Correct=False, Cal=0.94",
+      "status": "BENCHMARK_TASK_RUN_ASSERTION_STATUS_PASSED",
+      "lineNumber": 83,
+      "definition": "kbench.assertions.assert_true(",
+      "conversationRequestIds": [
+        {
+          "conversationId": "Anamnesis Knower: Calibration Monitoring-46be87c2",
+          "requestId": "Anamnesis Knower: Calibration Monitoring-46be87c2-req-1"
+        }
+      ]
+    }
+  ],
+  "pyRunId": "Anamnesis Knower: Calibration Monitoring-Run #143"
+}

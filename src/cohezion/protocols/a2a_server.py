@@ -67,7 +67,7 @@ class AgentCard:
         "multi-agent coordination, physics simulation, and intelligent "
         "skill routing."
     )
-    url: str = "http://localhost:8000"
+    url: str = "http://localhost:8001"
     version: str = "1.0.2"
     capabilities: list[str] = field(
         default_factory=lambda: [

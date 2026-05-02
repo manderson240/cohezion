@@ -1,0 +1,82 @@
+{
+  "taskVersion": {
+    "versionNumber": 1,
+    "name": "Anamnesis Knower: Calibration Monitoring",
+    "description": "Tests metacognitive monitoring \u2014 does the model's stated confidence match actual accuracy? Brier-complement scoring. Loads from 823-item CSV dataset.",
+    "definition": "@kbench.task(\n    name=\"Anamnesis Knower: Calibration Monitoring\",\n    description=(\n        \"Tests metacognitive monitoring \u2014 does the model's stated confidence \"\n        \"match actual accuracy? Brier-complement scoring. Loads from 823-item CSV dataset.\"\n    ),\n)\ndef knower_probe(llm, question, ground_truth, difficulty, category) -> float:\n    prompt = CALIBRATION_PROMPT.format(question=question)\n    try:\n        response = llm.prompt(prompt, schema=CalibrationResponse)\n        confidence = response.confidence\n        model_answer = response.answer\n    except Exception:\n        # Fallback if structured output parsing fails\n        fallback_resp = llm.prompt(prompt)\n        confidence = 50\n        model_answer = fallback_resp\n        \n    correct = is_correct(model_answer, ground_truth)\n    conf_norm = max(0, min(100, confidence)) / 100.0\n    outcome = 0.0 if ground_truth.upper() == \"UNKNOWABLE\" else (1.0 if correct else 0.0)\n    cal_score = 1.0 - (conf_norm - outcome) ** 2\n    kbench.assertions.assert_true(\n        cal_score >= 0.5,\n        expectation=f\"[Knower/{difficulty}] Conf={confidence}, Correct={correct}, Cal={cal_score:.2f}\",\n    )\n    return cal_score\n"
+  },
+  "modelVersion": {
+    "slug": "google/gemini-2.5-flash"
+  },
+  "state": "BENCHMARK_TASK_RUN_STATE_COMPLETED",
+  "startTime": "2026-04-15T03:36:57.580926Z",
+  "endTime": "2026-04-15T03:37:09.967521Z",
+  "conversations": [
+    {
+      "id": "Anamnesis Knower: Calibration Monitoring-ab883b22",
+      "requests": [
+        {
+          "contents": [
+            {
+              "parts": [
+                {
+                  "text": "I will ask you a question. First, rate your confidence (0-100) in being able to answer it correctly. Then give your answer.\n- 0 means you are completely guessing\n- 100 means you are absolutely certain\n- If the question cannot be answered with certainty, say so and rate below 30\n\nQuestion: Compare the Daoist concept of 'Wu / Wuji' (ground state/void) with the Amazonian concept of 'Forest Intelligence'. In what specific ways do they differ in how they conceptualize nothingness or the origin state? Rate your confidence.\n\nCONFIDENCE: [number]\nANSWER: [your answer]\n\nReply in exactly this format:\nCONFIDENCE: [number]\nANSWER: [your answer]"
+                }
+              ],
+              "role": "CONTENT_ROLE_USER",
+              "senderName": "User"
+            },
+            {
+              "parts": [
+                {
+                  "text": "\"{\\\"confidence\\\": 90, \\\"answer\\\": \\\"The Daoist concept of 'Wu / Wuji' (nothingness/ultimate non-being) and the Amazonian concept of 'Forest Intelligence' differ significantly in their conceptualization of 'nothingness' or the 'origin state'.\\\\n\\\\n**Daoist Wu / Wuji:**\\\\n\\\\n1.  **Origin State as Non-Being/Potential:** Wu (nothingness, non-being) and Wuji (ultimate non-being, limitless non-polar) represent the primordial, undifferentiated state that precedes all existence. It is not an absolute void in the Western sense, but rather a dynamic, generative 'emptiness' or 'nothingness' full of unmanifest potential. It is the source from which Taiji (Yin and Yang, duality) and subsequently the 'ten thousand things' (all phenomena) arise. The 'origin state' is fundamentally characterized by an absence of form, distinction, and manifest being, yet it is teeming with potential.\\\\n2.  **Transcendence:** Wuji is a transcendent state, prior to and beyond the manifested world, acting as its ultimate ground and source.\\\\n\\\\n**Amazonian 'Forest Intelligence':**\\\\n\\\\n1.  **Origin State as Living Fullness:** 'Forest Intelligence' refers to the interconnected, sentient, and spiritual wisdom embedded within the Amazonian ecosystem. It doesn't conceptualize a 'nothingness' or 'void' as its origin. Instead, indigenous Amazonian cosmologies typically describe an origin state that is already inherently *alive*, *spirited*, and *intelligent*. Creation myths often involve primordial beings, spirits, or transformational events that bring forth a world already rich in consciousness, agency, and interconnected life forms. The 'ground state' is not an absence but a vibrant, dense, and meaningful presence.\\\\n2.  **Immanence:** The intelligence is immanent within the living world, flowing through all its components from the very beginning, rather than emerging from a transcendent non-being.\\\\n\\\\n**Specific Differences in Conceptualizing Nothingness/Origin State:**\\\\n\\\\n*   **Nature of the Origin:** Daoism posits an origin state defined by 'non-being' or 'emptiness' (Wu/Wuji) as the ultimate ground, from which 'being' emerges. Amazonian 'Forest Intelligence' (and associated cosmologies) largely bypasses the concept of 'nothingness' as an origin, presenting an origin state that is already fully 'being,' sentient, and interconnected.\\\\n*   **Generative Principle:** For Daoism, 'nothingness' itself (Wu) is the generative principle, giving rise to all forms. For Amazonian concepts, the generative principle often lies within inherent spiritual forces, primordial beings, or the intrinsic vitality and intelligence of life itself, rather than an empty void.\\\\n*   **Emptiness vs. Fullness:** Daoism emphasizes a foundational 'emptiness' as the source of 'fullness.' Amazonian thought, particularly in relation to Forest Intelligence, emphasizes a foundational 'fullness' (of life, spirit, and connection) from which complexity and diversity unfold, without necessarily positing an initial 'nothingness.'\\\"}\""
+                }
+              ],
+              "role": "CONTENT_ROLE_ASSISTANT",
+              "senderName": "google/gemini-2.5-flash"
+            }
+          ],
+          "metrics": {
+            "inputTokens": 171,
+            "outputTokens": 674,
+            "inputTokensCostNanodollars": "51300",
+            "outputTokensCostNanodollars": "5000000",
+            "totalBackendLatencyMs": "12233"
+          },
+          "id": "Anamnesis Knower: Calibration Monitoring-ab883b22-req-1"
+        }
+      ],
+      "metrics": {
+        "inputTokens": 171,
+        "outputTokens": 674,
+        "inputTokensCostNanodollars": "51300",
+        "outputTokensCostNanodollars": "5000000",
+        "totalBackendLatencyMs": "12233"
+      },
+      "modelVersionSlug": "model_version_slug for conversation is DEPRECATED"
+    }
+  ],
+  "results": [
+    {
+      "type": "AGGREGATED",
+      "numericResult": {
+        "value": 0.18999999999999995
+      }
+    }
+  ],
+  "assertions": [
+    {
+      "expectation": "[Knower/tek_comparative] Conf=90, Correct=False, Cal=0.19",
+      "status": "BENCHMARK_TASK_RUN_ASSERTION_STATUS_FAILED",
+      "lineNumber": 83,
+      "definition": "kbench.assertions.assert_true(",
+      "conversationRequestIds": [
+        {
+          "conversationId": "Anamnesis Knower: Calibration Monitoring-ab883b22",
+          "requestId": "Anamnesis Knower: Calibration Monitoring-ab883b22-req-1"
+        }
+      ]
+    }
+  ],
+  "pyRunId": "Anamnesis Knower: Calibration Monitoring-Run #239"
+}

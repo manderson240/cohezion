@@ -192,7 +192,7 @@ class TestToolToQueryWorkflow:
         )
 
         assert create_result["success"] is True
-        create_result["reasoning_id"]
+        reasoning_id = create_result["reasoning_id"]
 
         # Step 2: Query for the reasoning
         query_result = reasoning_queries.root_cause_analysis("agent_decision:test")

@@ -6,11 +6,34 @@
 # - adaptive_router_adapter
 # - hardware_profiler_stub
 
+from cohezion.swarm.adaptive_router import (
+    AdaptiveRouter,
+    route_task,
+)
+from cohezion.swarm.adaptive_router import (
+    RoutingDecision as AdaptiveRoutingDecision,
+)
 from cohezion.swarm.batch_processor import (
     BatchItem,
     BatchProcessor,
     BatchResult,
     CacheEntry,
+)
+from cohezion.swarm.compute_backend_router import (
+    BackendCapability,
+    BackendConstraints,
+    BackendStatus,
+    BackendType,
+    ComputeBackendRouter,
+    route_compute,
+)
+from cohezion.swarm.compute_backend_router import (
+    RoutingDecision as BackendRoutingDecision,
+)
+from cohezion.swarm.dynamic_agent_registry import (
+    AgentModule,
+    DynamicAgentRegistry,
+    get_global_registry,
 )
 from cohezion.swarm.hardware_aware_router import (
     Priority,
@@ -30,6 +53,13 @@ from cohezion.swarm.model_pool_manager import (
     ModelPoolManager,
     get_pool_manager,
     reset_pool_manager,
+)
+from cohezion.swarm.multi_agent_orchestrator import (
+    ExecutionResult,
+    MultiAgentOrchestrator,
+    execute_task,
+    get_orchestrator,
+    quick_orchestrate,
 )
 from cohezion.swarm.multi_layer_cache import (
     CacheEntry as MultiLayerCacheEntry,
@@ -52,6 +82,18 @@ from cohezion.swarm.persistent_cache import (
 from cohezion.swarm.persistent_token_cache import (
     PersistentTokenCache,
 )
+
+# Multi-agent orchestration (dynamic + adaptive)
+from cohezion.swarm.specialist_agents import (
+    CODE_SPECIALIST,
+    NOVEL_SPECIALIST,
+    REASONING_SPECIALIST,
+    VALIDATED_SPECIALISTS,
+    SpecialistAgent,
+    ToolRegistry,
+    get_specialist,
+    list_validated_specialists,
+)
 from cohezion.swarm.token_cache_optimizer import (
     CacheOptimizationConfig,
     TokenCacheOptimizer,
@@ -64,34 +106,60 @@ from cohezion.swarm.token_client import (
 
 
 __all__ = [
+    "AdaptiveRouter",
+    "AdaptiveRoutingDecision",
+    "AgentModule",
+    "BackendCapability",
+    "BackendConstraints",
+    "BackendRoutingDecision",
+    "BackendStatus",
+    "BackendType",
     "BatchItem",
     "BatchProcessor",
     "BatchResult",
+    "CODE_SPECIALIST",
     "CacheEntry",
     "CacheOptimizationConfig",
+    "ComputeBackendRouter",
     "ContextPoolManager",
     # "DynamicConcurrencyGate",  # Module unavailable
+    "DynamicAgentRegistry",
+    "ExecutionResult",
     "KVCacheOptimizer",
     "LRUPersistentCache",
     "ModelPoolManager",
     "ModelTierPolicy",
+    "MultiAgentOrchestrator",
     "MultiLayerCache",
     "MultiLayerCacheEntry",
+    "NOVEL_SPECIALIST",
     "PersistentCache",
     "PersistentTokenCache",
     "PoolStatus",
     "PooledModel",
     "Priority",
+    "REASONING_SPECIALIST",
     "ResilientOllamaClient",
     "RoutingDecision",
     "RoutingRequest",
     "SemanticCacheStore",
+    "SpecialistAgent",
     "TierConfig",
     "TokenCacheOptimizer",
     "TokenEfficientClient",
+    "ToolRegistry",
+    "VALIDATED_SPECIALISTS",
     # "get_concurrency_gate",  # Module unavailable
+    "get_global_registry",
+    "get_orchestrator",
     "get_persistent_cache",
     "get_pool_manager",
+    "get_specialist",
     "get_token_cache_optimizer",
+    "list_validated_specialists",
+    "quick_orchestrate",
     "reset_pool_manager",
+    "route_compute",
+    "route_task",
+    "execute_task",
 ]

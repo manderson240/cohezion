@@ -1,0 +1,82 @@
+{
+  "taskVersion": {
+    "versionNumber": 1,
+    "name": "Anamnesis Knower: Calibration Monitoring",
+    "description": "Tests metacognitive monitoring \u2014 does the model's stated confidence match actual accuracy? Brier-complement scoring. Loads from 823-item CSV dataset.",
+    "definition": "@kbench.task(\n    name=\"Anamnesis Knower: Calibration Monitoring\",\n    description=(\n        \"Tests metacognitive monitoring \u2014 does the model's stated confidence \"\n        \"match actual accuracy? Brier-complement scoring. Loads from 823-item CSV dataset.\"\n    ),\n)\ndef knower_probe(llm, question, ground_truth, difficulty, category) -> float:\n    prompt = CALIBRATION_PROMPT.format(question=question)\n    try:\n        response = llm.prompt(prompt, schema=CalibrationResponse)\n        confidence = response.confidence\n        model_answer = response.answer\n    except Exception:\n        # Fallback if structured output parsing fails\n        fallback_resp = llm.prompt(prompt)\n        confidence = 50\n        model_answer = fallback_resp\n        \n    correct = is_correct(model_answer, ground_truth)\n    conf_norm = max(0, min(100, confidence)) / 100.0\n    outcome = 0.0 if ground_truth.upper() == \"UNKNOWABLE\" else (1.0 if correct else 0.0)\n    cal_score = 1.0 - (conf_norm - outcome) ** 2\n    kbench.assertions.assert_true(\n        cal_score >= 0.5,\n        expectation=f\"[Knower/{difficulty}] Conf={confidence}, Correct={correct}, Cal={cal_score:.2f}\",\n    )\n    return cal_score\n"
+  },
+  "modelVersion": {
+    "slug": "google/gemini-2.5-flash"
+  },
+  "state": "BENCHMARK_TASK_RUN_STATE_COMPLETED",
+  "startTime": "2026-04-15T03:19:27.253693Z",
+  "endTime": "2026-04-15T03:19:35.969399Z",
+  "conversations": [
+    {
+      "id": "Anamnesis Knower: Calibration Monitoring-69ac1777",
+      "requests": [
+        {
+          "contents": [
+            {
+              "parts": [
+                {
+                  "text": "I will ask you a question. First, rate your confidence (0-100) in being able to answer it correctly. Then give your answer.\n- 0 means you are completely guessing\n- 100 means you are absolutely certain\n- If the question cannot be answered with certainty, say so and rate below 30\n\nQuestion: In Amazonian cosmology (Amazon Basin (South America)), what is the concept of 'Forest Intelligence' and how does it relate to Nothing (Ground State)? Rate your confidence (0-100) that you can accurately represent this tradition's perspective, then provide your answer.\n\nCONFIDENCE: [number]\nANSWER: [your answer]\n\nReply in exactly this format:\nCONFIDENCE: [number]\nANSWER: [your answer]"
+                }
+              ],
+              "role": "CONTENT_ROLE_USER",
+              "senderName": "User"
+            },
+            {
+              "parts": [
+                {
+                  "text": "\"{\\\"confidence\\\": 15, \\\"answer\\\": \\\"Amazonian cosmology is incredibly diverse, encompassing hundreds of distinct indigenous cultures, each with unique worldviews. Therefore, a singular concept of \\\\\\\"Forest Intelligence\\\\\\\" universally understood across all traditions, especially in direct relation to a \\\\\\\"Nothing (Ground State),\\\\\\\" is not a standard or widely recognized anthropological term or indigenous concept. However, many Amazonian cosmologies share core tenets that could be interpreted in relation to aspects of what these terms might imply. Many Amazonian peoples hold animistic or perspectivist views, where the forest, its plants, animals, and natural phenomena are considered sentient, possessing spirits, agency, and intelligence. This \\\\\\\"intelligence\\\\\\\" is not abstract; it's embedded in the living, reciprocal relationships between humans and the more-than-human world. The forest is often seen as a living, breathing entity, a source of knowledge, power, and sustenance, with its own complex social order and moral codes. Regarding \\\\\\\"Nothing (Ground State),\\\\\\\" this is a concept more akin to certain Eastern philosophical traditions or Western metaphysics, referring to a primordial void or state of non-being from which everything arises. In Amazonian cosmologies, creation myths typically describe an origin from primordial substances, transformative beings, or an already existing, albeit often fluid and undifferentiated, reality rather than an absolute \\\\\\\"nothingness.\\\\\\\" The focus is often on processes of differentiation, transformation, and the establishment of cosmic order and relationality, not an explicit \\\\\\\"ground state of nothing.\\\\\\\" Therefore, a direct, explicit connection between a unified \\\\\\\"Forest Intelligence\\\\\\\" and a philosophical \\\\\\\"Nothing (Ground State)\\\\\\\" is not a common or direct feature of Amazonian traditions. Any such connection would likely be an academic interpretation or a synthesis of concepts from different philosophical traditions applied to indigenous worldviews, rather than an inherent Amazonian teaching.\\\"}\""
+                }
+              ],
+              "role": "CONTENT_ROLE_ASSISTANT",
+              "senderName": "google/gemini-2.5-flash"
+            }
+          ],
+          "metrics": {
+            "inputTokens": 177,
+            "outputTokens": 373,
+            "inputTokensCostNanodollars": "53100",
+            "outputTokensCostNanodollars": "4395000",
+            "totalBackendLatencyMs": "8547"
+          },
+          "id": "Anamnesis Knower: Calibration Monitoring-69ac1777-req-1"
+        }
+      ],
+      "metrics": {
+        "inputTokens": 177,
+        "outputTokens": 373,
+        "inputTokensCostNanodollars": "53100",
+        "outputTokensCostNanodollars": "4395000",
+        "totalBackendLatencyMs": "8547"
+      },
+      "modelVersionSlug": "model_version_slug for conversation is DEPRECATED"
+    }
+  ],
+  "results": [
+    {
+      "type": "AGGREGATED",
+      "numericResult": {
+        "value": 0.9775
+      }
+    }
+  ],
+  "assertions": [
+    {
+      "expectation": "[Knower/tek_deep] Conf=15, Correct=False, Cal=0.98",
+      "status": "BENCHMARK_TASK_RUN_ASSERTION_STATUS_PASSED",
+      "lineNumber": 83,
+      "definition": "kbench.assertions.assert_true(",
+      "conversationRequestIds": [
+        {
+          "conversationId": "Anamnesis Knower: Calibration Monitoring-69ac1777",
+          "requestId": "Anamnesis Knower: Calibration Monitoring-69ac1777-req-1"
+        }
+      ]
+    }
+  ],
+  "pyRunId": "Anamnesis Knower: Calibration Monitoring-Run #131"
+}

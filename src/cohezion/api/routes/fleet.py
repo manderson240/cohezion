@@ -2,16 +2,16 @@
 Fleet API - Routes for monitoring and managing the service fleet.
 """
 
-import logging
-from typing import List
-from fastapi import APIRouter, HTTPException
-from cohezion.governance.fleet_monitor import get_fleet_monitor, ServiceStatus
 
-logger = logging.getLogger(__name__)
+from fastapi import APIRouter, HTTPException
+
+from cohezion.governance.fleet_monitor import ServiceStatus, get_fleet_monitor
+
+
 router = APIRouter(prefix="/fleet", tags=["fleet"])
 
 
-@router.get("/status", response_model=List[ServiceStatus])
+@router.get("/status", response_model=list[ServiceStatus])
 async def get_fleet_status():
     """Get the current status of all registered services."""
     monitor = get_fleet_monitor()
@@ -45,10 +45,6 @@ async def get_fleet_events(limit: int = 20):
         events = await monitor.db.query(
             "SELECT * FROM fleet_events ORDER BY timestamp DESC LIMIT $limit", {"limit": limit}
         )
-        if events and events[0].get("result"):
-            return events[0]["result"]
-        return []
-    except Exception:  # noqa: BLE001 - FastAPI boundary, log + clean 500
-        # Don't leak DB connection strings / paths to the network. (Ω12 Patch 6)
-        logger.exception("get_fleet_events failed")
-        raise HTTPException(status_code=500, detail="Internal server error")
+        return events if events else []
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))

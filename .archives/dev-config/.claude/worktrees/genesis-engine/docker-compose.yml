@@ -1,0 +1,71 @@
+# Open-Notebook + Cohezion Integration
+#
+# This docker-compose configures Open-Notebook to use:
+# - Existing SurrealDB instance (port 8000)
+# - Local Ollama (host.docker.internal:11434)
+# - CohezionSwarmProvider for AI Lab workflows
+#
+# Citation: https://github.com/lfnovo/open-notebook
+
+services:
+  # Open Notebook - AI Research Lab UI
+  open_notebook:
+    image: lfnovo/open_notebook:v1-latest
+    pull_policy: always
+    container_name: cohezion-open-notebook
+    ports:
+      - "8502:8502"  # Web UI
+      - "5055:5055"  # API
+    environment:
+      # Use local Ollama (already running on host)
+      - OLLAMA_API_BASE=http://host.docker.internal:11434
+
+      # Database - use existing SurrealDB
+      - SURREAL_URL=ws://host.docker.internal:8000/rpc
+      - SURREAL_USER=root
+      - SURREAL_PASSWORD=root
+      - SURREAL_NAMESPACE=open_notebook
+      - SURREAL_DATABASE=open_notebook
+
+      # Optional cloud providers (uncomment if needed)
+      # - OPENAI_API_KEY=${OPENAI_API_KEY}
+      # - ANTHROPIC_API_KEY=${ANTHROPIC_API_KEY}
+      # - GOOGLE_API_KEY=${GOOGLE_API_KEY}
+    volumes:
+      - ./data/notebook:/app/data
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    restart: unless-stopped
+
+  # Cohezion API - Exposes swarm and MCP tools
+  cohezion_api:
+    build:
+      context: .
+      dockerfile: Dockerfile.cohezion
+    container_name: cohezion-api
+    ports:
+      - "8080:8080"
+    environment:
+      - OLLAMA_HOST=http://host.docker.internal:11434
+      - SURREAL_URL=ws://host.docker.internal:8000/rpc
+    volumes:
+      - ./src/cohezion:/app/cohezion:ro
+      - ./data/cohezion:/app/data
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    restart: unless-stopped
+
+  # Database - The Memory Layer
+  surrealdb:
+    image: surrealdb/surrealdb:v3.0
+    container_name: cohezion-db
+    ports:
+      - "8000:8000"
+    volumes:
+      - ./data/surreal:/my/surreal/data
+    command: start --user root --pass root file://my/surreal/data
+    restart: unless-stopped
+
+volumes:
+  notebook_data:
+  cohezion_data:

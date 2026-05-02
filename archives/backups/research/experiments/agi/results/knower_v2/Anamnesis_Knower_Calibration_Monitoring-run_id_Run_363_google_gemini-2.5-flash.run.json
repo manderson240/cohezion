@@ -1,0 +1,82 @@
+{
+  "taskVersion": {
+    "versionNumber": 1,
+    "name": "Anamnesis Knower: Calibration Monitoring",
+    "description": "Tests metacognitive monitoring \u2014 does the model's stated confidence match actual accuracy? Brier-complement scoring. Loads from 823-item CSV dataset.",
+    "definition": "@kbench.task(\n    name=\"Anamnesis Knower: Calibration Monitoring\",\n    description=(\n        \"Tests metacognitive monitoring \u2014 does the model's stated confidence \"\n        \"match actual accuracy? Brier-complement scoring. Loads from 823-item CSV dataset.\"\n    ),\n)\ndef knower_probe(llm, question, ground_truth, difficulty, category) -> float:\n    prompt = CALIBRATION_PROMPT.format(question=question)\n    try:\n        response = llm.prompt(prompt, schema=CalibrationResponse)\n        confidence = response.confidence\n        model_answer = response.answer\n    except Exception:\n        # Fallback if structured output parsing fails\n        fallback_resp = llm.prompt(prompt)\n        confidence = 50\n        model_answer = fallback_resp\n        \n    correct = is_correct(model_answer, ground_truth)\n    conf_norm = max(0, min(100, confidence)) / 100.0\n    outcome = 0.0 if ground_truth.upper() == \"UNKNOWABLE\" else (1.0 if correct else 0.0)\n    cal_score = 1.0 - (conf_norm - outcome) ** 2\n    kbench.assertions.assert_true(\n        cal_score >= 0.5,\n        expectation=f\"[Knower/{difficulty}] Conf={confidence}, Correct={correct}, Cal={cal_score:.2f}\",\n    )\n    return cal_score\n"
+  },
+  "modelVersion": {
+    "slug": "google/gemini-2.5-flash"
+  },
+  "state": "BENCHMARK_TASK_RUN_STATE_COMPLETED",
+  "startTime": "2026-04-15T03:58:42.697202Z",
+  "endTime": "2026-04-15T03:58:50.762182Z",
+  "conversations": [
+    {
+      "id": "Anamnesis Knower: Calibration Monitoring-f9d6d1db",
+      "requests": [
+        {
+          "contents": [
+            {
+              "parts": [
+                {
+                  "text": "I will ask you a question. First, rate your confidence (0-100) in being able to answer it correctly. Then give your answer.\n- 0 means you are completely guessing\n- 100 means you are absolutely certain\n- If the question cannot be answered with certainty, say so and rate below 30\n\nQuestion: Compare the Norse concept of 'Ginnungagap' (ground state/void) with the Andean concept of 'Pachamama'. In what specific ways do they differ in how they conceptualize nothingness or the origin state? Rate your confidence.\n\nCONFIDENCE: [number]\nANSWER: [your answer]\n\nReply in exactly this format:\nCONFIDENCE: [number]\nANSWER: [your answer]"
+                }
+              ],
+              "role": "CONTENT_ROLE_USER",
+              "senderName": "User"
+            },
+            {
+              "parts": [
+                {
+                  "text": "\"{\\\"confidence\\\": 95, \\\"answer\\\": \\\"Ginnungagap, from Norse mythology, represents a primordial, yawning void or chasm that existed before creation. It is fundamentally a concept of 'nothingness' \\\\u2013 an empty, undifferentiated space lacking form, life, or consciousness. Creation in the Norse tradition does not arise *from* Ginnungagap in an active sense, but rather *within* it, as the opposing forces of fire (Muspelheim) and ice (Niflheim) meet and interact in this neutral space. It is the blank slate or pre-condition for existence, rather than an active source of life.\\\\n\\\\nIn contrast, Pachamama from Andean cosmology is not a concept of nothingness or a void. She is a vital, living, and active deity, the 'Earth Mother' or 'Cosmic Mother.' She embodies the fertile earth, mountains, sustenance, and the continuous cycle of life. As an origin state, Pachamama is the very *source* and *sustainer* of life, an active, conscious, and generative force. She represents 'being' and 'abundance,' providing nourishment and protection, and is deeply involved in the ongoing existence and well-being of the world and its inhabitants. She is the opposite of a void; she is the vibrant, tangible, and nurturing world itself.\\\"}\""
+                }
+              ],
+              "role": "CONTENT_ROLE_ASSISTANT",
+              "senderName": "google/gemini-2.5-flash"
+            }
+          ],
+          "metrics": {
+            "inputTokens": 172,
+            "outputTokens": 287,
+            "inputTokensCostNanodollars": "51600",
+            "outputTokensCostNanodollars": "2957500",
+            "totalBackendLatencyMs": "7895"
+          },
+          "id": "Anamnesis Knower: Calibration Monitoring-f9d6d1db-req-1"
+        }
+      ],
+      "metrics": {
+        "inputTokens": 172,
+        "outputTokens": 287,
+        "inputTokensCostNanodollars": "51600",
+        "outputTokensCostNanodollars": "2957500",
+        "totalBackendLatencyMs": "7895"
+      },
+      "modelVersionSlug": "model_version_slug for conversation is DEPRECATED"
+    }
+  ],
+  "results": [
+    {
+      "type": "AGGREGATED",
+      "numericResult": {
+        "value": 0.09750000000000003
+      }
+    }
+  ],
+  "assertions": [
+    {
+      "expectation": "[Knower/tek_comparative] Conf=95, Correct=False, Cal=0.10",
+      "status": "BENCHMARK_TASK_RUN_ASSERTION_STATUS_FAILED",
+      "lineNumber": 83,
+      "definition": "kbench.assertions.assert_true(",
+      "conversationRequestIds": [
+        {
+          "conversationId": "Anamnesis Knower: Calibration Monitoring-f9d6d1db",
+          "requestId": "Anamnesis Knower: Calibration Monitoring-f9d6d1db-req-1"
+        }
+      ]
+    }
+  ],
+  "pyRunId": "Anamnesis Knower: Calibration Monitoring-Run #363"
+}

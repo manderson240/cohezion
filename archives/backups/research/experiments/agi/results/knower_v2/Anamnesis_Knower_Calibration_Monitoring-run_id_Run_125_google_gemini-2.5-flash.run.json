@@ -1,0 +1,82 @@
+{
+  "taskVersion": {
+    "versionNumber": 1,
+    "name": "Anamnesis Knower: Calibration Monitoring",
+    "description": "Tests metacognitive monitoring \u2014 does the model's stated confidence match actual accuracy? Brier-complement scoring. Loads from 823-item CSV dataset.",
+    "definition": "@kbench.task(\n    name=\"Anamnesis Knower: Calibration Monitoring\",\n    description=(\n        \"Tests metacognitive monitoring \u2014 does the model's stated confidence \"\n        \"match actual accuracy? Brier-complement scoring. Loads from 823-item CSV dataset.\"\n    ),\n)\ndef knower_probe(llm, question, ground_truth, difficulty, category) -> float:\n    prompt = CALIBRATION_PROMPT.format(question=question)\n    try:\n        response = llm.prompt(prompt, schema=CalibrationResponse)\n        confidence = response.confidence\n        model_answer = response.answer\n    except Exception:\n        # Fallback if structured output parsing fails\n        fallback_resp = llm.prompt(prompt)\n        confidence = 50\n        model_answer = fallback_resp\n        \n    correct = is_correct(model_answer, ground_truth)\n    conf_norm = max(0, min(100, confidence)) / 100.0\n    outcome = 0.0 if ground_truth.upper() == \"UNKNOWABLE\" else (1.0 if correct else 0.0)\n    cal_score = 1.0 - (conf_norm - outcome) ** 2\n    kbench.assertions.assert_true(\n        cal_score >= 0.5,\n        expectation=f\"[Knower/{difficulty}] Conf={confidence}, Correct={correct}, Cal={cal_score:.2f}\",\n    )\n    return cal_score\n"
+  },
+  "modelVersion": {
+    "slug": "google/gemini-2.5-flash"
+  },
+  "state": "BENCHMARK_TASK_RUN_STATE_COMPLETED",
+  "startTime": "2026-04-15T03:18:37.381662Z",
+  "endTime": "2026-04-15T03:18:47.873212Z",
+  "conversations": [
+    {
+      "id": "Anamnesis Knower: Calibration Monitoring-4c5bf94d",
+      "requests": [
+        {
+          "contents": [
+            {
+              "parts": [
+                {
+                  "text": "I will ask you a question. First, rate your confidence (0-100) in being able to answer it correctly. Then give your answer.\n- 0 means you are completely guessing\n- 100 means you are absolutely certain\n- If the question cannot be answered with certainty, say so and rate below 30\n\nQuestion: In Andean cosmology (Andes (Peru, Bolivia, Ecuador)), what is the concept of 'Solstice / Inti Raymi cycle' and how does it relate to Phase (Oscillation)? Rate your confidence (0-100) that you can accurately represent this tradition's perspective, then provide your answer.\n\nCONFIDENCE: [number]\nANSWER: [your answer]\n\nReply in exactly this format:\nCONFIDENCE: [number]\nANSWER: [your answer]"
+                }
+              ],
+              "role": "CONTENT_ROLE_USER",
+              "senderName": "User"
+            },
+            {
+              "parts": [
+                {
+                  "text": "\"{\\\"confidence\\\": 45, \\\"answer\\\": \\\"The Solstice / Inti Raymi cycle in Andean cosmology refers primarily to the celebration of Inti Raymi, the Festival of the Sun, which historically coincides with the winter solstice in the Southern Hemisphere (around June 21st). This event is profoundly significant, marking the shortest day of the year and the sun's furthest point, symbolizing a cosmic 'turning point' where the sun begins its return, promising warmth and agricultural fertility. It is a time of renewal, gratitude, and offerings to Inti (the Sun god) and Pachamama (Mother Earth), essential for the forthcoming planting season and the balance of life. Regarding 'Phase (Oscillation),' while this specific term may not be a direct, named concept within traditional Andean cosmology, the underlying principles it describes are deeply embedded. Andean thought embraces a cyclical view of time and existence, characterized by constant movement, transformation, and the interplay of complementary opposites (Yanantin). The Inti Raymi solstice *is* a crucial 'phase' or 'turning point' in this grand cosmic 'oscillation.' It represents a moment of transition where the sun's energy ebbs to its lowest point before beginning its 'oscillation' back towards strength. This mirrors the cyclical patterns observed in nature \\\\u2013 the rhythm of seasons, the rise and fall of water levels, and the growth and harvest cycles \\\\u2013 all understood as manifestations of the dynamic balance (Pachakuti, Pacha) of the cosmos. Therefore, the Solstice/Inti Raymi cycle inherently embodies the concept of phases and oscillations through its emphasis on cyclical renewal, turning points, and the dynamic balance of cosmic energies.\\\"}\""
+                }
+              ],
+              "role": "CONTENT_ROLE_ASSISTANT",
+              "senderName": "google/gemini-2.5-flash"
+            }
+          ],
+          "metrics": {
+            "inputTokens": 185,
+            "outputTokens": 350,
+            "inputTokensCostNanodollars": "55500",
+            "outputTokensCostNanodollars": "4292500",
+            "totalBackendLatencyMs": "10326"
+          },
+          "id": "Anamnesis Knower: Calibration Monitoring-4c5bf94d-req-1"
+        }
+      ],
+      "metrics": {
+        "inputTokens": 185,
+        "outputTokens": 350,
+        "inputTokensCostNanodollars": "55500",
+        "outputTokensCostNanodollars": "4292500",
+        "totalBackendLatencyMs": "10326"
+      },
+      "modelVersionSlug": "model_version_slug for conversation is DEPRECATED"
+    }
+  ],
+  "results": [
+    {
+      "type": "AGGREGATED",
+      "numericResult": {
+        "value": 0.7975
+      }
+    }
+  ],
+  "assertions": [
+    {
+      "expectation": "[Knower/tek_deep] Conf=45, Correct=False, Cal=0.80",
+      "status": "BENCHMARK_TASK_RUN_ASSERTION_STATUS_PASSED",
+      "lineNumber": 83,
+      "definition": "kbench.assertions.assert_true(",
+      "conversationRequestIds": [
+        {
+          "conversationId": "Anamnesis Knower: Calibration Monitoring-4c5bf94d",
+          "requestId": "Anamnesis Knower: Calibration Monitoring-4c5bf94d-req-1"
+        }
+      ]
+    }
+  ],
+  "pyRunId": "Anamnesis Knower: Calibration Monitoring-Run #125"
+}

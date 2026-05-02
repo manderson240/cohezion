@@ -14,6 +14,19 @@ class MockAgent(BaseAgent):
         return await self._call_ollama(query, ignore_cache=True)
 
 
+@pytest.fixture(autouse=True)
+async def stop_monitor_after_test():
+    """Cancel the ResourceMonitor heartbeat task after each anyio test.
+
+    ResourceMonitor.__init__ calls loop.create_task(_heartbeat_loop()) when
+    an event loop is running. Without this teardown the infinite heartbeat task
+    prevents anyio from shutting down the event loop, hanging the test suite.
+    """
+    yield
+    monitor = get_resource_monitor()
+    await monitor.stop()
+
+
 @pytest.mark.anyio
 async def test_adversarial_flood():
     """

@@ -354,7 +354,7 @@ class ResourceMonitor:
     async def _check_service_health(self):
         """Autonomic health check for core services (Connectivity Squad)."""
         services = {
-            "SurrealDB": "http://localhost:8000/health",
+            "SurrealDB": "http://localhost:8001/health",
             "Cloud Vault": "http://localhost:8360/health",
             "Ollama": "http://localhost:11434/api/tags",
             "Obsidian": "http://localhost:22360/",
@@ -396,7 +396,12 @@ class ResourceMonitor:
 
             # 1. Calculate Viscous Adjustment (Maxwellian Relaxation)
             viscous_correction = self.viscoelastic_controller.calculate_dilation_adjustment(
-                cpu, ram, vram
+                cpu,
+                ram,
+                vram,
+                active_calls=self.active_calls,
+                max_concurrency=self.max_concurrency,
+                total_agents=len(self._sandbox_registry),
             )
 
             # 2. Determine Base Dilation Factor (Tiered Thresholds)

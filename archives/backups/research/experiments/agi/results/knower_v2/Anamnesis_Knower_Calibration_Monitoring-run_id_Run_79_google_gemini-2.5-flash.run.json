@@ -1,0 +1,82 @@
+{
+  "taskVersion": {
+    "versionNumber": 1,
+    "name": "Anamnesis Knower: Calibration Monitoring",
+    "description": "Tests metacognitive monitoring \u2014 does the model's stated confidence match actual accuracy? Brier-complement scoring. Loads from 823-item CSV dataset.",
+    "definition": "@kbench.task(\n    name=\"Anamnesis Knower: Calibration Monitoring\",\n    description=(\n        \"Tests metacognitive monitoring \u2014 does the model's stated confidence \"\n        \"match actual accuracy? Brier-complement scoring. Loads from 823-item CSV dataset.\"\n    ),\n)\ndef knower_probe(llm, question, ground_truth, difficulty, category) -> float:\n    prompt = CALIBRATION_PROMPT.format(question=question)\n    try:\n        response = llm.prompt(prompt, schema=CalibrationResponse)\n        confidence = response.confidence\n        model_answer = response.answer\n    except Exception:\n        # Fallback if structured output parsing fails\n        fallback_resp = llm.prompt(prompt)\n        confidence = 50\n        model_answer = fallback_resp\n        \n    correct = is_correct(model_answer, ground_truth)\n    conf_norm = max(0, min(100, confidence)) / 100.0\n    outcome = 0.0 if ground_truth.upper() == \"UNKNOWABLE\" else (1.0 if correct else 0.0)\n    cal_score = 1.0 - (conf_norm - outcome) ** 2\n    kbench.assertions.assert_true(\n        cal_score >= 0.5,\n        expectation=f\"[Knower/{difficulty}] Conf={confidence}, Correct={correct}, Cal={cal_score:.2f}\",\n    )\n    return cal_score\n"
+  },
+  "modelVersion": {
+    "slug": "google/gemini-2.5-flash"
+  },
+  "state": "BENCHMARK_TASK_RUN_STATE_COMPLETED",
+  "startTime": "2026-04-15T03:11:59.368277Z",
+  "endTime": "2026-04-15T03:12:04.291344Z",
+  "conversations": [
+    {
+      "id": "Anamnesis Knower: Calibration Monitoring-579fa4ed",
+      "requests": [
+        {
+          "contents": [
+            {
+              "parts": [
+                {
+                  "text": "I will ask you a question. First, rate your confidence (0-100) in being able to answer it correctly. Then give your answer.\n- 0 means you are completely guessing\n- 100 means you are absolutely certain\n- If the question cannot be answered with certainty, say so and rate below 30\n\nQuestion: In Maori cosmology (Aotearoa (New Zealand)), what is the concept of 'Aroha' and how does it relate to COHESION (Binding Principle)? Rate your confidence (0-100) that you can accurately represent this tradition's perspective, then provide your answer.\n\nCONFIDENCE: [number]\nANSWER: [your answer]\n\nReply in exactly this format:\nCONFIDENCE: [number]\nANSWER: [your answer]"
+                }
+              ],
+              "role": "CONTENT_ROLE_USER",
+              "senderName": "User"
+            },
+            {
+              "parts": [
+                {
+                  "text": "\"{\\\"confidence\\\": 95, \\\"answer\\\": \\\"In Maori cosmology, 'Aroha' is a profound and multifaceted concept that extends far beyond the English translation of 'love.' While encompassing love, compassion, empathy, and sympathy, it also embodies a deep sense of connection, understanding, and spiritual goodwill. It is a fundamental life principle that dictates how individuals relate to each other, their ancestors, their land (whenua), and the wider spiritual and natural world.  Aroha is not merely an emotion; it is an active, unifying force that underpins social cohesion and well-being.\\\\n\\\\nIts relationship to 'COHESION (Binding Principle)' is central: Aroha serves as a primary binding principle within Maori society and cosmology. It fosters unity, reciprocity (utu), and collective responsibility. It is the glue that holds wh\\\\u0101nau (families), hap\\\\u016b (sub-tribes), and iwi (tribes) together, encouraging mutual support (manaakitanga), respect, and shared purpose. Through Aroha, people are connected to their heritage, their environment, and each other, ensuring the continuity and strength of their cultural identity and social fabric. It emphasizes the interconnectedness of all things \\\\u2013 past, present, and future \\\\u2013 creating a holistic and cohesive worldview where the well-being of one is intrinsically linked to the well-being of all.\\\"}\""
+                }
+              ],
+              "role": "CONTENT_ROLE_ASSISTANT",
+              "senderName": "google/gemini-2.5-flash"
+            }
+          ],
+          "metrics": {
+            "inputTokens": 182,
+            "outputTokens": 287,
+            "inputTokensCostNanodollars": "54600",
+            "outputTokensCostNanodollars": "1735000",
+            "totalBackendLatencyMs": "4753"
+          },
+          "id": "Anamnesis Knower: Calibration Monitoring-579fa4ed-req-1"
+        }
+      ],
+      "metrics": {
+        "inputTokens": 182,
+        "outputTokens": 287,
+        "inputTokensCostNanodollars": "54600",
+        "outputTokensCostNanodollars": "1735000",
+        "totalBackendLatencyMs": "4753"
+      },
+      "modelVersionSlug": "model_version_slug for conversation is DEPRECATED"
+    }
+  ],
+  "results": [
+    {
+      "type": "AGGREGATED",
+      "numericResult": {
+        "value": 0.09750000000000003
+      }
+    }
+  ],
+  "assertions": [
+    {
+      "expectation": "[Knower/tek_deep] Conf=95, Correct=False, Cal=0.10",
+      "status": "BENCHMARK_TASK_RUN_ASSERTION_STATUS_FAILED",
+      "lineNumber": 83,
+      "definition": "kbench.assertions.assert_true(",
+      "conversationRequestIds": [
+        {
+          "conversationId": "Anamnesis Knower: Calibration Monitoring-579fa4ed",
+          "requestId": "Anamnesis Knower: Calibration Monitoring-579fa4ed-req-1"
+        }
+      ]
+    }
+  ],
+  "pyRunId": "Anamnesis Knower: Calibration Monitoring-Run #79"
+}

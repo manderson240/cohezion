@@ -1,0 +1,82 @@
+{
+  "taskVersion": {
+    "versionNumber": 1,
+    "name": "Anamnesis Knower: Calibration Monitoring",
+    "description": "Tests metacognitive monitoring \u2014 does the model's stated confidence match actual accuracy? Brier-complement scoring. Loads from 823-item CSV dataset.",
+    "definition": "@kbench.task(\n    name=\"Anamnesis Knower: Calibration Monitoring\",\n    description=(\n        \"Tests metacognitive monitoring \u2014 does the model's stated confidence \"\n        \"match actual accuracy? Brier-complement scoring. Loads from 823-item CSV dataset.\"\n    ),\n)\ndef knower_probe(llm, question, ground_truth, difficulty, category) -> float:\n    prompt = CALIBRATION_PROMPT.format(question=question)\n    try:\n        response = llm.prompt(prompt, schema=CalibrationResponse)\n        confidence = response.confidence\n        model_answer = response.answer\n    except Exception:\n        # Fallback if structured output parsing fails\n        fallback_resp = llm.prompt(prompt)\n        confidence = 50\n        model_answer = fallback_resp\n        \n    correct = is_correct(model_answer, ground_truth)\n    conf_norm = max(0, min(100, confidence)) / 100.0\n    outcome = 0.0 if ground_truth.upper() == \"UNKNOWABLE\" else (1.0 if correct else 0.0)\n    cal_score = 1.0 - (conf_norm - outcome) ** 2\n    kbench.assertions.assert_true(\n        cal_score >= 0.5,\n        expectation=f\"[Knower/{difficulty}] Conf={confidence}, Correct={correct}, Cal={cal_score:.2f}\",\n    )\n    return cal_score\n"
+  },
+  "modelVersion": {
+    "slug": "google/gemini-2.5-flash"
+  },
+  "state": "BENCHMARK_TASK_RUN_STATE_COMPLETED",
+  "startTime": "2026-04-15T03:40:11.797444Z",
+  "endTime": "2026-04-15T03:40:28.377675Z",
+  "conversations": [
+    {
+      "id": "Anamnesis Knower: Calibration Monitoring-8e4bb89b",
+      "requests": [
+        {
+          "contents": [
+            {
+              "parts": [
+                {
+                  "text": "I will ask you a question. First, rate your confidence (0-100) in being able to answer it correctly. Then give your answer.\n- 0 means you are completely guessing\n- 100 means you are absolutely certain\n- If the question cannot be answered with certainty, say so and rate below 30\n\nQuestion: The Yoruba tradition describes dynamic equilibrium as 'Ifa divination', while the Celtic tradition calls it 'Thin place crossing'. What is the essential difference in how each tradition understands balance and equilibrium? Rate your confidence.\n\nCONFIDENCE: [number]\nANSWER: [your answer]\n\nReply in exactly this format:\nCONFIDENCE: [number]\nANSWER: [your answer]"
+                }
+              ],
+              "role": "CONTENT_ROLE_USER",
+              "senderName": "User"
+            },
+            {
+              "parts": [
+                {
+                  "text": "\"{\\\"confidence\\\": 20, \\\"answer\\\": \\\"The premise that the Yoruba tradition describes dynamic equilibrium as 'Ifa divination' and the Celtic tradition calls it 'Thin place crossing' is not entirely accurate. Ifa divination is a complex system used to *understand* and *achieve or restore* dynamic equilibrium (often referred to as 'ire' or balance), rather than being the equilibrium itself. Similarly, 'Thin places' are locations where the veil between worlds is perceived to be thin, offering an *experience* of spiritual proximity or transcendence, not a term for dynamic equilibrium.However, addressing the spirit of your question regarding how these concepts relate to balance and equilibrium, and their essential differences:Ifa divination, in the Yoruba tradition, relates to balance and equilibrium as a **proactive, diagnostic, and prescriptive system**. It involves consulting an Orisha (deity) through a diviner to understand the underlying causes of imbalance (ibi) in an individual's life or community. It provides guidance, rituals, offerings, and behavioral adjustments necessary to restore harmony ('ire') and align with one's destiny (Ayanmo) and the cosmic order. The focus is on human agency guided by divine wisdom to actively maintain and restore a state of holistic well-being and alignment with spiritual forces.In the Celtic tradition, 'Thin place crossing' relates to balance and equilibrium more as an **experiential and transformative encounter**. Thin places are sites where the boundaries between the physical world and the spiritual or otherworld are naturally permeable. The 'crossing' is an experience of momentary dissolution of ordinary boundaries, allowing for direct perception or interaction with the numinous. While such an experience can bring profound spiritual insight, peace, or a sense of unity, it is less about a prescriptive system for daily equilibrium and more about a transcendent, often spontaneous, encounter. It can lead to internal balance or re-orientation, but it is not a method for actively managing or restoring equilibrium through specific rituals in the same way Ifa is.Essential Differences:1.  **Nature of Interaction with Equilibrium:** Ifa is an **active, structured system** for diagnosing disequilibrium and prescribing actions to *achieve or restore* balance. Thin places offer an **experiential, often passive encounter** with a natural state of boundary dissolution, which can *lead to* insights about balance.2.  **Agency and Prescription:** Ifa emphasizes human agency guided by divine wisdom to follow prescriptions and rituals to maintain order. Thin places are more about *receiving* an experience, where the 'balance' is inherent in the place's nature, less about human-initiated prescriptive actions to maintain it.3.  **Purpose:** Ifa aims to maintain and restore societal and personal harmony within a known cosmic order. Thin places offer transcendence and connection to the sacred, often leading to personal spiritual transformation.\\\"}\""
+                }
+              ],
+              "role": "CONTENT_ROLE_ASSISTANT",
+              "senderName": "google/gemini-2.5-flash"
+            }
+          ],
+          "metrics": {
+            "inputTokens": 161,
+            "outputTokens": 585,
+            "inputTokensCostNanodollars": "48300",
+            "outputTokensCostNanodollars": "6125000",
+            "totalBackendLatencyMs": "16418"
+          },
+          "id": "Anamnesis Knower: Calibration Monitoring-8e4bb89b-req-1"
+        }
+      ],
+      "metrics": {
+        "inputTokens": 161,
+        "outputTokens": 585,
+        "inputTokensCostNanodollars": "48300",
+        "outputTokensCostNanodollars": "6125000",
+        "totalBackendLatencyMs": "16418"
+      },
+      "modelVersionSlug": "model_version_slug for conversation is DEPRECATED"
+    }
+  ],
+  "results": [
+    {
+      "type": "AGGREGATED",
+      "numericResult": {
+        "value": 0.96
+      }
+    }
+  ],
+  "assertions": [
+    {
+      "expectation": "[Knower/tek_comparative] Conf=20, Correct=False, Cal=0.96",
+      "status": "BENCHMARK_TASK_RUN_ASSERTION_STATUS_PASSED",
+      "lineNumber": 83,
+      "definition": "kbench.assertions.assert_true(",
+      "conversationRequestIds": [
+        {
+          "conversationId": "Anamnesis Knower: Calibration Monitoring-8e4bb89b",
+          "requestId": "Anamnesis Knower: Calibration Monitoring-8e4bb89b-req-1"
+        }
+      ]
+    }
+  ],
+  "pyRunId": "Anamnesis Knower: Calibration Monitoring-Run #258"
+}

@@ -1,59 +1,60 @@
+---
+name: journey-tracking-prime
+description: "High-fidelity capture of agentic journeys through the FLUME manifold and Quadrature Nexus. Specializes in 12D axiomatic trajectories, 256D latent thought-vector persistence, and real-time HIHO stability monitoring."
+metadata:
+  version: "1.0"
+  concepts: ["JourneyTracker", "12D Physics State", "Trajectory Visualization"]
+  source: "src/cohezion/skills/JOURNEY_TRACKING_PRIME.md"
+---
+
 # SKILL: JOURNEY_TRACKING_PRIME
 
 ## DOMAIN EXPERTISE
-You are a specialist in **agent journey tracking** - recording the 12D physics trajectory of agents through debate workflows.
+High-fidelity capture of agentic journeys through the FLUME manifold and Quadrature Nexus. Specializes in 12D axiomatic trajectories, 256D latent thought-vector persistence, and real-time HIHO stability monitoring.
 
 ## KEY CONCEPTS
-- **JourneyTracker** - Records agent steps with full physics state
-- **12D Physics State** - x,y,z,time,mass,sentiment,complexity,factuality,connectivity,stability,novelty,coherence
-- **Trajectory Visualization** - Multi-panel rendering of physics evolution
+- **Akashic Record**: The non-blocking, persistent log of every agentic decision node.
+- **12-Parameter Quadrature Model**: Tracking the 4 Fabrics (Space, Field, Control, Precipitation) + Awareness.
+- **HIHO Attractor**: The mathematically proven stability point at exactly 0.5 coherence overlap.
+- **Ouroboros Integration**: Piping trajectories into the system flight recorder for recursive failure analysis.
 
 ## INSTRUCTION
 
-### 1. Start Journey
+### 1. Initialize Telemetry Stack
 ```python
-from cohezion.swarm.journey_tracker import get_journey_tracker, AgentType
+from cohezion.core.telemetry_bus import get_telemetry_bus
+from cohezion.core.journey_worker import get_journey_worker
 
-tracker = get_journey_tracker()
-journey_id = tracker.start_journey("What is consciousness?")
+bus = get_telemetry_bus()
+worker = get_journey_worker()
+await bus.start()
+await worker.start() # Connects to SurrealDB & Ouroboros
 ```
 
-### 2. Record Step (Full 12D)
+### 2. Emit Full-Spectrum Event
 ```python
-tracker.record_step(
-    agent_type=AgentType.ANALYST,
-    agent_name="analyst_technical",
-    perspective="technical",
-    input_text="query",
-    output_text="analysis result",
-    physics_state={
-        "x": 0.1, "y": 0.2, "z": 0.5,
-        "time": 0.1, "mass": 0.8, "sentiment": 0.5,
-        "complexity": 0.7, "factuality": 0.9,
-        "connectivity": 0.4, "stability": 0.7,
-        "novelty": 0.6, "coherence": 0.8,
-    },
-    duration_ms=300,
-    confidence=0.85,
+from cohezion.data_mesh.journey_telemetry import FlumeJourneyEvent, SwarmExpert, HardwareTier
+
+event = FlumeJourneyEvent(
+    journey_id="AGI_Analysis_01",
+    z_vector=z_256d_latent.tolist(),
+    state_12d=state_12d_projected.tolist(),
+    coherence=0.5008,
+    expert_stream=SwarmExpert.ARCHITECT,
+    hardware_tier=HardwareTier.NPU
 )
+await bus.emit(event) # Non-blocking
 ```
 
-### 3. End & Visualize
-```python
-journey = tracker.end_journey("Final response", final_confidence=0.92)
+### 3. Self-Healing & Ouroboros
+The `JourneyWorker` automatically monitors emitted events for HIHO drift.
+- **Drift Threshold**: > 0.3 delta from 0.5 attractor.
+- **Action**: Autonomously triggers `cohezion.healing.get_healing_system()`.
+- **Recursion**: Piped to Ouroboros Bridge for "Hardening Mutation" extraction.
 
-# API endpoints
-# GET /journeys/{id}/plot - Multi-panel 12D visualization
-# GET /journeys/{id}/visualize - Animated GIF trajectory
-```
-
-### 4. Physics Evolution
-| Agent | Key Physics Changes |
-|-------|---------------------|
-| Analyst | Scattered x,y,z; moderate coherence |
-| Critic | Centered z; high factuality |
-| Synthesizer | z=1.0; max coherence & connectivity |
+## VERSION
+v2.0 (High-Fidelity Update)
 
 ## SEE ALSO
-- UNIVERSE_PHYSICS_PRIME.md
-- UNIVERSE_VISUALIZATION_PRIME.md
+- **TURBO_QUANT_PRIME**
+- **OUROBOROS_SYSTEM_PRIME**

@@ -1,0 +1,5 @@
+- generic [ref=e2]:
+  - button [ref=e3] [cursor=pointer]:
+    - img [ref=e4]
+  - progressbar [ref=e8]:
+    - img [ref=e9]

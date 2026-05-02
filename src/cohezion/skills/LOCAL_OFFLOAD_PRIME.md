@@ -1,3 +1,13 @@
+---
+name: local-offload-prime
+description: "Expert methodology for offloading menial, supportive, or low-complexity tasks to local Small Language Models (SLMs) using a \"Context Harness\" to maximize token efficiency and maintain sovereign execution."
+metadata:
+  version: "v1.0"
+  concepts: ["Menial Task", "Context Harness", "Sovereign Execution", "Token Efficiency"]
+  see_also: ["HALLUCINATION_RESOLVER_PRIME", "PERSISTENT_QUALITY_PRIME", "COHEZION_BRIDGE_PRIME"]
+  source: "src/cohezion/skills/LOCAL_OFFLOAD_PRIME.md"
+---
+
 # SKILL: LOCAL_OFFLOAD_PRIME
 
 ## DOMAIN EXPERTISE

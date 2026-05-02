@@ -38,5 +38,5 @@ We utilize the right language for the right task to maximize Cohezion, ensuring 
 
 ## 6. Execution, Orchestration & UI
 - **Sandboxing**: Container-based isolation using **Docker** to ensure safe, idempotent execution of sovereign agent code.
-- **Immersive Interfaces**: React/Three.js (or equivalent) for the 3D manifold visualization layer.
+- **Immersive Interfaces**: React/Three.js (or equivalent) for the 3D manifold visualization layer, and **Tone.js** for real-time HIHO dissonance sonification.
 - **Interactive Mentorship**: **Marimo** and **Quarto** for reactive, living research documents that blend live-coding (via Colab/CodeSignal integrations) with deep technical exposition.

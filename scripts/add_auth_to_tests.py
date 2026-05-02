@@ -7,6 +7,7 @@ from pathlib import Path
 
 TEST_FILE = Path(__file__).parent.parent / "tests/api/test_a2a_endpoints.py"
 
+
 def add_auth_to_tests():
     """Add mock_auth_token fixture and headers to test methods."""
     content = TEST_FILE.read_text()
@@ -15,8 +16,8 @@ def add_auth_to_tests():
     # Find: def test_xxx(self, client, mock_compound_executor)
     # Replace: def test_xxx(self, client, mock_auth_token, mock_compound_executor)
 
-    pattern1 = r'(def test_\w+\(self, client)(, mock_compound_executor\))'
-    replacement1 = r'\1, mock_auth_token\2'
+    pattern1 = r"(def test_\w+\(self, client)(, mock_compound_executor\))"
+    replacement1 = r"\1, mock_auth_token\2"
     content = re.sub(pattern1, replacement1, content)
 
     # Pattern 2: Add headers to client.post() calls without headers
@@ -24,7 +25,7 @@ def add_auth_to_tests():
     # Replace: client.post("/tasks/send", json={..., headers={"X-Cohezion-Key": mock_auth_token})
 
     # This is complex, so let's do it manually in targeted edits
-    lines = content.split('\n')
+    lines = content.split("\n")
     modified_lines = []
     i = 0
 
@@ -32,33 +33,38 @@ def add_auth_to_tests():
         line = lines[i]
 
         # Check if this is a client.post or client.get call WITHOUT headers
-        if ('client.post("/tasks' in line or 'client.get("/tasks' in line) and 'headers=' not in line:
+        if (
+            'client.post("/tasks' in line or 'client.get("/tasks' in line
+        ) and "headers=" not in line:
             # Look ahead for closing paren
             call_lines = [line]
             j = i + 1
-            while j < len(lines) and ')' not in lines[j]:
+            while j < len(lines) and ")" not in lines[j]:
                 call_lines.append(lines[j])
                 j += 1
             if j < len(lines):
                 call_lines.append(lines[j])
 
             # Check if headers already present
-            full_call = '\n'.join(call_lines)
-            if 'headers=' not in full_call:
+            full_call = "\n".join(call_lines)
+            if "headers=" not in full_call:
                 # Find the closing paren and add headers before it
                 last_line_idx = len(call_lines) - 1
                 last_line = call_lines[last_line_idx]
 
                 # Find position of closing paren
-                if ')' in last_line:
+                if ")" in last_line:
                     # Insert headers before closing paren
                     indent = len(last_line) - len(last_line.lstrip())
 
                     # Determine if this is a simple or complex call
-                    if 'json=' in full_call:
+                    if "json=" in full_call:
                         # Complex call with json parameter
                         # Add comma after json and insert headers
-                        call_lines.insert(last_line_idx, f'{" " * indent}headers={{"X-Cohezion-Key": mock_auth_token}}')
+                        call_lines.insert(
+                            last_line_idx,
+                            f'{" " * indent}headers={{"X-Cohezion-Key": mock_auth_token}}',
+                        )
 
                     # Join and add
                     modified_lines.extend(call_lines)
@@ -69,8 +75,9 @@ def add_auth_to_tests():
         i += 1
 
     # Write back
-    TEST_FILE.write_text('\n'.join(modified_lines))
+    TEST_FILE.write_text("\n".join(modified_lines))
     print(f"Updated {TEST_FILE}")
+
 
 if __name__ == "__main__":
     add_auth_to_tests()

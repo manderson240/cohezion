@@ -13,7 +13,7 @@ escalation is logged; total cost is bounded by ``max_cost_usd``. Each tier
 can itself be another ``TieredOrchestrator`` — so agents can have sub-agents
 which can have sub-sub-agents.
 
-See ``docs/vmodel/PHASE6_ORCHESTRATOR_PLAN.md`` for invariants (O1-O8).
+See ``docs/vmodel/PHASE6_ORCHESTRATOR_PLAN.md`` for invariants (O1–O8).
 """
 
 from __future__ import annotations
@@ -21,13 +21,10 @@ from __future__ import annotations
 import logging
 import time
 from dataclasses import dataclass, field
-from typing import TYPE_CHECKING, Protocol, runtime_checkable
+from typing import Protocol, runtime_checkable
 
 from cohezion.inference.fleet import RouteResult, route
-
-
-if TYPE_CHECKING:
-    from cohezion.inference.registry import Task
+from cohezion.inference.registry import Task
 
 
 logger = logging.getLogger(__name__)
@@ -105,7 +102,7 @@ class TieredOrchestrator:
     """Smarter models orchestrate less-smart models.
 
     Tiers are ordered by priority: index 0 runs first, higher indices only
-    run if the previous tier fails its gate. Invariants O1-O8 enforced.
+    run if the previous tier fails its gate. Invariants O1–O8 enforced.
     """
 
     def __init__(
@@ -171,15 +168,16 @@ class TieredOrchestrator:
         accumulated_cost = 0.0
         last_text = ""
         last_model = ""
+        last_ttft: float | None = None
 
         for idx, (target, gate) in enumerate(self.tiers):
             model_name = target if isinstance(target, str) else type(target).__name__
 
-            # O3: budget gate - short-circuit before invoking if cost already
+            # O3: budget gate — short-circuit before invoking if cost already
             # STRICTLY EXCEEDS the cap (with float epsilon per review edge-case
-            # #11). `max_cost_usd=0.0` means "local-only, no paid cloud" -
+            # #11). `max_cost_usd=0.0` means "local-only, no paid cloud" —
             # local tiers at $0 still run; cloud tiers at >$0 are skipped.
-            _BUDGET_EPS = 1e-9  # noqa: N806 — constant semantics, _ prefix signals "loop-local"
+            _BUDGET_EPS = 1e-9
             if (
                 effective_max_cost is not None
                 and accumulated_cost > effective_max_cost + _BUDGET_EPS
@@ -248,8 +246,65 @@ class TieredOrchestrator:
                     ttft_ms=tier_ttft,
                 )
             )
+
+            # --- JOURNEY TELEMETRY INSTRUMENTATION ---
+            try:
+                from datetime import datetime
+
+                from cohezion.core.telemetry_bus import get_telemetry_bus
+                from cohezion.data_mesh.journey_telemetry import (
+                    FlumeJourneyEvent,
+                    HardwareTier,
+                    QuadratureFabrics,
+                    RZeroMetrics,
+                    SwarmExpert,
+                )
+
+                # Determine hardware tier based on model name or port (heuristic)
+                h_tier = HardwareTier.CPU
+                if "FLM" in model_name or "Gemma-4-E2B" in model_name:
+                    h_tier = HardwareTier.NPU
+                elif "Gemma-4-26B" in model_name or "Gemma-4-E4B" in model_name:
+                    h_tier = HardwareTier.IGPU
+                elif "claude" in model_name:
+                    h_tier = HardwareTier.CLOUD
+
+                bus = get_telemetry_bus()
+                event = FlumeJourneyEvent(
+                    event_id=f"tier_{int(datetime.now().timestamp())}_{idx}",
+                    journey_id=f"orch_{int(start)}",
+                    z_vector=[0.0] * 256,
+                    state_12d=[0.0] * 12,
+                    coherence=1.0 if passed else 0.5,
+                    fabrics=QuadratureFabrics(
+                        space=0.8, field=0.2, control=0.9, precipitation=1.0 if passed else 0.0
+                    ),
+                    awareness_parameter=0.8,
+                    expert_stream=SwarmExpert.ENGINEER,
+                    hardware_tier=h_tier,
+                    latency_ms=tier_latency,
+                    r_zero=RZeroMetrics(
+                        success_rate=1.0 if passed else 0.0,
+                        iteration_count=idx + 1,
+                        difficulty_adjustment=1.0,
+                    ),
+                    metadata={"reason": reason, "model": model_name},
+                )
+
+                import asyncio
+
+                try:
+                    loop = asyncio.get_event_loop()
+                    if loop.is_running():
+                        loop.create_task(bus.emit(event))
+                except RuntimeError:
+                    pass
+            except Exception as te:
+                logger.debug("Failed to emit orchestration telemetry: %s", te)
+
             last_text = view.text
             last_model = view.model
+            last_ttft = view.ttft_ms
 
             if passed:
                 # O1: higher tiers don't run once a lower tier passes.

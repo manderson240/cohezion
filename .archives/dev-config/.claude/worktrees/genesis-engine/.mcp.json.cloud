@@ -1,0 +1,16 @@
+{
+  "mcpServers": {
+    "bmad": {
+      "name": "BMAD Method",
+      "type": "streamable-http",
+      "url": "https://${NGROK_DOMAIN}/bmad",
+      "description": "108 BMAD commands for agile AI-driven development"
+    },
+    "skills": {
+      "name": "Skills.sh Registry",
+      "type": "streamable-http", 
+      "url": "https://${NGROK_DOMAIN}/skills",
+      "description": "85K+ skills from skills.sh"
+    }
+  }
+}

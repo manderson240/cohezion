@@ -180,7 +180,7 @@ class HealthChecker:
         start = time.time()
         try:
             # Try to read the first row to test authentication
-            await asyncio.to_thread(self.sheets_bridge.get_all_rows)
+            rows = await asyncio.to_thread(self.sheets_bridge.get_all_rows)
             latency_ms = int((time.time() - start) * 1000)
             return {
                 "status": "ok",

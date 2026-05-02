@@ -262,8 +262,10 @@ class TestCertificateGenerator:
             cert_mtime1 = Path(cert_path).stat().st_mtime
             key_mtime1 = Path(key_path).stat().st_mtime
 
-            # Try to generate again without force - no sleep needed because we
-            # assert mtimes are EQUAL (force=False should be a no-op)
+            # Try to generate again without force
+            import time
+
+            time.sleep(0.1)
             result2 = CertificateGenerator.generate_self_signed_cert(
                 cert_path, key_path, force=False
             )
@@ -289,13 +291,12 @@ class TestCertificateGenerator:
             result1 = CertificateGenerator.generate_self_signed_cert(cert_path, key_path)
             assert result1 is True
 
-            # Backdate the original cert by 1 second so the regen mtime is
-            # detectably newer without actually sleeping
-            past = Path(cert_path).stat().st_mtime - 1.0
-            os.utime(cert_path, (past, past))
             cert_mtime1 = Path(cert_path).stat().st_mtime
 
             # Force regeneration
+            import time
+
+            time.sleep(0.1)
             result2 = CertificateGenerator.generate_self_signed_cert(
                 cert_path, key_path, force=True
             )

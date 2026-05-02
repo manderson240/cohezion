@@ -1,0 +1,82 @@
+{
+  "taskVersion": {
+    "versionNumber": 1,
+    "name": "Anamnesis Knower: Calibration Monitoring",
+    "description": "Tests metacognitive monitoring \u2014 does the model's stated confidence match actual accuracy? Brier-complement scoring. Loads from 823-item CSV dataset.",
+    "definition": "@kbench.task(\n    name=\"Anamnesis Knower: Calibration Monitoring\",\n    description=(\n        \"Tests metacognitive monitoring \u2014 does the model's stated confidence \"\n        \"match actual accuracy? Brier-complement scoring. Loads from 823-item CSV dataset.\"\n    ),\n)\ndef knower_probe(llm, question, ground_truth, difficulty, category) -> float:\n    prompt = CALIBRATION_PROMPT.format(question=question)\n    try:\n        response = llm.prompt(prompt, schema=CalibrationResponse)\n        confidence = response.confidence\n        model_answer = response.answer\n    except Exception:\n        # Fallback if structured output parsing fails\n        fallback_resp = llm.prompt(prompt)\n        confidence = 50\n        model_answer = fallback_resp\n        \n    correct = is_correct(model_answer, ground_truth)\n    conf_norm = max(0, min(100, confidence)) / 100.0\n    outcome = 0.0 if ground_truth.upper() == \"UNKNOWABLE\" else (1.0 if correct else 0.0)\n    cal_score = 1.0 - (conf_norm - outcome) ** 2\n    kbench.assertions.assert_true(\n        cal_score >= 0.5,\n        expectation=f\"[Knower/{difficulty}] Conf={confidence}, Correct={correct}, Cal={cal_score:.2f}\",\n    )\n    return cal_score\n"
+  },
+  "modelVersion": {
+    "slug": "google/gemini-2.5-flash"
+  },
+  "state": "BENCHMARK_TASK_RUN_STATE_COMPLETED",
+  "startTime": "2026-04-15T03:10:46.916616Z",
+  "endTime": "2026-04-15T03:10:52.418350Z",
+  "conversations": [
+    {
+      "id": "Anamnesis Knower: Calibration Monitoring-e73635f8",
+      "requests": [
+        {
+          "contents": [
+            {
+              "parts": [
+                {
+                  "text": "I will ask you a question. First, rate your confidence (0-100) in being able to answer it correctly. Then give your answer.\n- 0 means you are completely guessing\n- 100 means you are absolutely certain\n- If the question cannot be answered with certainty, say so and rate below 30\n\nQuestion: In Maori cosmology (Aotearoa (New Zealand)), what is the concept of 'Te Kore' and how does it relate to Nothing (Ground State)? Rate your confidence (0-100) that you can accurately represent this tradition's perspective, then provide your answer.\n\nCONFIDENCE: [number]\nANSWER: [your answer]\n\nReply in exactly this format:\nCONFIDENCE: [number]\nANSWER: [your answer]"
+                }
+              ],
+              "role": "CONTENT_ROLE_USER",
+              "senderName": "User"
+            },
+            {
+              "parts": [
+                {
+                  "text": "\"{\\\"confidence\\\": 90, \\\"answer\\\": \\\"In M\\\\u0101ori cosmology, Te Kore is the primordial void, the realm of potentiality, and timelessness that existed before the universe as we know it. It is not an empty nothingness in the Western sense, but rather a 'pregnant void' \\\\u2013 a state of latent being where all things that would eventually come into existence resided as potential. It is the 'seedbed' of the universe, a metaphysical space of pure potentiality and consciousness. In relation to 'Nothing (Ground State)', Te Kore is the ultimate ground state from which creation unfolds. It is the unmanifested, the source from which Te P\\\\u014d (the Night, or the period of gestation and formation) and subsequently Te Ao M\\\\u0101rama (the World of Light, or the present world of human experience) emerge. It represents the original state of undifferentiated being, existing before the separation of sky and earth, and before the emergence of gods and humanity, embodying infinite possibilities waiting to be realized.\\\"}\""
+                }
+              ],
+              "role": "CONTENT_ROLE_ASSISTANT",
+              "senderName": "google/gemini-2.5-flash"
+            }
+          ],
+          "metrics": {
+            "inputTokens": 178,
+            "outputTokens": 212,
+            "inputTokensCostNanodollars": "53400",
+            "outputTokensCostNanodollars": "1935000",
+            "totalBackendLatencyMs": "5333"
+          },
+          "id": "Anamnesis Knower: Calibration Monitoring-e73635f8-req-1"
+        }
+      ],
+      "metrics": {
+        "inputTokens": 178,
+        "outputTokens": 212,
+        "inputTokensCostNanodollars": "53400",
+        "outputTokensCostNanodollars": "1935000",
+        "totalBackendLatencyMs": "5333"
+      },
+      "modelVersionSlug": "model_version_slug for conversation is DEPRECATED"
+    }
+  ],
+  "results": [
+    {
+      "type": "AGGREGATED",
+      "numericResult": {
+        "value": 0.18999999999999995
+      }
+    }
+  ],
+  "assertions": [
+    {
+      "expectation": "[Knower/tek_deep] Conf=90, Correct=False, Cal=0.19",
+      "status": "BENCHMARK_TASK_RUN_ASSERTION_STATUS_FAILED",
+      "lineNumber": 83,
+      "definition": "kbench.assertions.assert_true(",
+      "conversationRequestIds": [
+        {
+          "conversationId": "Anamnesis Knower: Calibration Monitoring-e73635f8",
+          "requestId": "Anamnesis Knower: Calibration Monitoring-e73635f8-req-1"
+        }
+      ]
+    }
+  ],
+  "pyRunId": "Anamnesis Knower: Calibration Monitoring-Run #71"
+}

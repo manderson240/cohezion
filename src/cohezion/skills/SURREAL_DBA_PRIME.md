@@ -1,3 +1,8 @@
+---
+name: surreal-dba-prime
+description: "Expert in SurrealDB graph database administration for the Cohezion Genesis engine. Specializes in schema validation, index optimization, record lifecycle management, and connection health monitoring."
+---
+
 # SKILL: SURREAL_DBA_PRIME
 
 ## DOMAIN EXPERTISE
@@ -44,7 +49,7 @@ Expert in **SurrealDB graph database administration** for the Cohezion Genesis e
    ```
 
 5. **Monitor Connection Health**:
-   Test WebSocket endpoint `ws://localhost:8000` latency. Check namespace/database accessibility. Report connection pool status from `surreal_client.py`.
+   Test WebSocket endpoint `ws://localhost:8001` latency. Check namespace/database accessibility. Report connection pool status from `surreal_client.py`.
 
 6. **Recommend Schema Evolution**:
    - Identify FLEXIBLE fields with consistent structure (promote to SCHEMAFULL)

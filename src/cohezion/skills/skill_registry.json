@@ -1,11 +1,6 @@
 {
-  "3d_rendering": {
-    "concepts": [],
-    "see_also": [],
-    "source": "src/cohezion/skills/3d_rendering.md",
-    "version": "v1.0"
-  },
   "ADAPTIVE_TEMPLATE_PRIME": {
+    "version": "v1.0",
     "concepts": [
       "Structural Drift",
       "Template Patching",
@@ -18,16 +13,10 @@
       "SKILL_GENERATOR_PRIME",
       "COMPOUND_ENGINEERING_PRIME"
     ],
-    "source": "src/cohezion/skills/ADAPTIVE_TEMPLATE_PRIME.md",
-    "version": "v1.0"
-  },
-  "ADVERSARIAL_TDD_PRIME": {
-    "concepts": [],
-    "see_also": [],
-    "source": "src/cohezion/skills/ADVERSARIAL_TDD_PRIME.md",
-    "version": "v1.0"
+    "source": "src/cohezion/skills/ADAPTIVE_TEMPLATE_PRIME.md"
   },
   "ADVERSARIAL_TESTING_PRIME": {
+    "version": "v1.0 (2026-01-18)",
     "concepts": [
       "OWASP LLM Top 10 2025",
       "Red Teaming",
@@ -37,10 +26,10 @@
       "Defense in Depth"
     ],
     "see_also": [],
-    "source": "src/cohezion/skills/ADVERSARIAL_TESTING_PRIME.md",
-    "version": "v1.0 (2026-01-18)"
+    "source": "src/cohezion/skills/ADVERSARIAL_TESTING_PRIME.md"
   },
   "AGENTIC_DESIGN_PRIME": {
+    "version": "v1.0 (Derived from Anthropic Alignment Sprint)",
     "concepts": [
       "Abstract-First",
       "Quantified Trajectories",
@@ -51,22 +40,10 @@
       "VLIW_COG_BRIDGE_PRIME",
       "COMPOUND_ENGINEERING_PRIME"
     ],
-    "source": "src/cohezion/skills/AGENTIC_DESIGN_PRIME.md",
-    "version": "v1.0 (Derived from Anthropic Alignment Sprint)"
-  },
-  "AGENTJET_PRIME": {
-    "concepts": [],
-    "see_also": [],
-    "source": "src/cohezion/skills/AGENTJET_PRIME.md",
-    "version": "v1.0"
-  },
-  "AGENT_SOVEREIGNTY_ETHICS_PRIME": {
-    "concepts": [],
-    "see_also": [],
-    "source": "src/cohezion/skills/AGENT_SOVEREIGNTY_ETHICS_PRIME.md",
-    "version": "v1.0"
+    "source": "src/cohezion/skills/AGENTIC_DESIGN_PRIME.md"
   },
   "AMBIENT_SONIFICATION_PRIME": {
+    "version": "v1.0",
     "concepts": [
       "Coherence Chord",
       "HIHO Attractor Frequency",
@@ -74,28 +51,10 @@
       "Milestone Fanfare"
     ],
     "see_also": [],
-    "source": "src/cohezion/skills/AMBIENT_SONIFICATION_PRIME.md",
-    "version": "v1.0"
-  },
-  "AMD_GEMM_MXFP4_PRIME": {
-    "concepts": [],
-    "see_also": [],
-    "source": "src/cohezion/skills/AMD_GEMM_MXFP4_PRIME.md",
-    "version": "v1.0"
-  },
-  "AMD_MLA_DECODE_PRIME": {
-    "concepts": [],
-    "see_also": [],
-    "source": "src/cohezion/skills/AMD_MLA_DECODE_PRIME.md",
-    "version": "v1.0"
-  },
-  "AMD_MOE_MXFP4_PRIME": {
-    "concepts": [],
-    "see_also": [],
-    "source": "src/cohezion/skills/AMD_MOE_MXFP4_PRIME.md",
-    "version": "v1.0"
+    "source": "src/cohezion/skills/AMBIENT_SONIFICATION_PRIME.md"
   },
   "ANTHROPIC_SKILL_BUILDER_PRIME": {
+    "version": "v1.0.1",
     "concepts": [
       "Anthropic System Prompts",
       "XML Tagging",
@@ -106,10 +65,10 @@
       "SKILL_GENERATOR_PRIME.md",
       "RETROSPECTIVE_SKILL.md"
     ],
-    "source": "src/cohezion/skills/ANTHROPIC_SKILL_BUILDER_PRIME.md",
-    "version": "v1.0.1"
+    "source": "src/cohezion/skills/ANTHROPIC_SKILL_BUILDER_PRIME.md"
   },
   "ANTI_PATTERN_DEFENSE_PRIME": {
+    "version": "v1.0.1",
     "concepts": [
       "The Sudo Trap",
       "GTT Carveout Illusion",
@@ -120,22 +79,10 @@
       "SYSTEM_MONITORING_PRIME",
       "RELIABILITY_FALLBACK_PRIME"
     ],
-    "source": "src/cohezion/skills/ANTI_PATTERN_DEFENSE_PRIME.md",
-    "version": "v1.0.1"
-  },
-  "ANTI_PATTERN_GUARDIAN_PRIME": {
-    "concepts": [],
-    "see_also": [],
-    "source": "src/cohezion/skills/ANTI_PATTERN_GUARDIAN_PRIME.md",
-    "version": "v1.0"
-  },
-  "API_ERROR_RESILIENCE_PRIME": {
-    "concepts": [],
-    "see_also": [],
-    "source": "src/cohezion/skills/API_ERROR_RESILIENCE_PRIME.md",
-    "version": "v1.0"
+    "source": "src/cohezion/skills/ANTI_PATTERN_DEFENSE_PRIME.md"
   },
   "ASCENSION_SKILL_PRIME": {
+    "version": "v1.6",
     "concepts": [
       "12-Brane Model",
       "Reward & Ratchet",
@@ -146,34 +93,10 @@
       "REWARD_AND_RATCHET_PRIME",
       "FLUME_DYNAMICS_PRIME"
     ],
-    "source": "src/cohezion/skills/ASCENSION_SKILL_PRIME.md",
-    "version": "v1.6"
-  },
-  "AUTONOMIC_ANALYST_PRIME": {
-    "concepts": [],
-    "see_also": [],
-    "source": "src/cohezion/skills/AUTONOMIC_ANALYST_PRIME.md",
-    "version": "v1.0"
-  },
-  "AUTONOMIC_EVOLUTION_PRIME": {
-    "concepts": [],
-    "see_also": [],
-    "source": "src/cohezion/skills/AUTONOMIC_EVOLUTION_PRIME.md",
-    "version": "v1.0"
-  },
-  "AUTONOMIC_QUALITY_GUARD_PRIME": {
-    "concepts": [],
-    "see_also": [],
-    "source": "src/cohezion/skills/AUTONOMIC_QUALITY_GUARD_PRIME.md",
-    "version": "v1.0"
-  },
-  "AUTONOMIC_RESEARCH_PRIME": {
-    "concepts": [],
-    "see_also": [],
-    "source": "src/cohezion/skills/AUTONOMIC_RESEARCH_PRIME.md",
-    "version": "v1.0"
+    "source": "src/cohezion/skills/ASCENSION_SKILL_PRIME.md"
   },
   "AUTONOMOUS_RESILIENCE_PRIME": {
+    "version": "v1.0 (Born from the Overnight BBQ Mission, 2026-01-31)",
     "concepts": [
       "Passive Monitoring",
       "Coma Mode",
@@ -181,10 +104,25 @@
       "Schema Coupling"
     ],
     "see_also": [],
-    "source": "src/cohezion/skills/AUTONOMOUS_RESILIENCE_PRIME.md",
-    "version": "v1.0 (Born from the Overnight BBQ Mission, 2026-01-31)"
+    "source": "src/cohezion/skills/AUTONOMOUS_RESILIENCE_PRIME.md"
+  },
+  "AUTORESEARCH_PRIME": {
+    "version": "v0.2 (Session 93, 2026-04-09 \u2014 andyluo7/autoresearch integration)",
+    "concepts": [
+      "Autonomous Experimentation Loops",
+      "UCB1 K-Search Tree",
+      "Fixed-Budget Optimization",
+      "Recursive Hypothesis Search"
+    ],
+    "see_also": [
+      "COMPOUND_ENGINEERING_PRIME",
+      "RETROSPECTIVE_SKILL",
+      "AUTONOMOUS_RESILIENCE_PRIME"
+    ],
+    "source": "src/cohezion/skills/AUTORESEARCH_PRIME.md"
   },
   "BATCHING_PROTOCOL_PRIME": {
+    "version": "v1.0",
     "concepts": [
       "Task Consolidation",
       "Density-Optimized Prompt",
@@ -196,46 +134,27 @@
       "COMPOUND_ENGINEERING_PRIME",
       "SEMANTIC_CACHING_PRIME"
     ],
-    "source": "src/cohezion/skills/BATCHING_PROTOCOL_PRIME.md",
-    "version": "v1.0"
-  },
-  "BLACKWELL_HARDWARE_OPTIMIZATION_PRIME": {
-    "concepts": [],
-    "see_also": [],
-    "source": "src/cohezion/skills/BLACKWELL_HARDWARE_OPTIMIZATION_PRIME.md",
-    "version": "v1.0"
+    "source": "src/cohezion/skills/BATCHING_PROTOCOL_PRIME.md"
   },
   "CAPABILITY_REGISTRY_PRIME": {
+    "version": "1.0",
     "concepts": [],
     "see_also": [],
-    "source": "src/cohezion/skills/CAPABILITY_REGISTRY_PRIME.md",
-    "version": "1.0"
+    "source": "src/cohezion/skills/CAPABILITY_REGISTRY_PRIME.md"
   },
   "CITATIONS_PRIME": {
+    "version": "v1.1 (Phase 0 Integrated)",
     "concepts": [
       "IAA Protocol",
       "Sovereign Innovation"
     ],
     "see_also": [],
-    "source": "src/cohezion/skills/CITATIONS_PRIME.md",
-    "version": "v1.1 (Phase 0 Integrated)"
-  },
-  "CLAUDE_SPECIALIST_PRIME": {
-    "concepts": [],
-    "see_also": [],
-    "source": "src/cohezion/skills/CLAUDE_SPECIALIST_PRIME.md",
-    "version": "v1.0"
-  },
-  "CODEBASE_COHERENCE_PRIME": {
-    "concepts": [],
-    "see_also": [],
-    "source": "src/cohezion/skills/CODEBASE_COHERENCE_PRIME.md",
-    "version": "v1.0"
+    "source": "src/cohezion/skills/CITATIONS_PRIME.md"
   },
   "COMPOUND_ENGINEERING_PRIME": {
     "version": "v0.1",
     "concepts": [
-      "Meta‑Pattern Library",
+      "Meta\u2011Pattern Library",
       "Skill Tokens",
       "Automatic Skill Scaffold"
     ],
@@ -246,19 +165,8 @@
     ],
     "source": "src/cohezion/skills/compound_engineering.md"
   },
-  "COMPOUND_SELF_IMPROVEMENT_PRIME": {
-    "concepts": [],
-    "see_also": [],
-    "source": "src/cohezion/skills/COMPOUND_SELF_IMPROVEMENT_PRIME.md",
-    "version": "v1.0"
-  },
-  "COMPOUND_TRAINING_CYCLE_PRIME": {
-    "concepts": [],
-    "see_also": [],
-    "source": "src/cohezion/skills/COMPOUND_TRAINING_CYCLE_PRIME.md",
-    "version": "v1.0"
-  },
   "COMPUTATIONAL_RELATIVITY_PRIME": {
+    "version": "v0.1",
     "concepts": [
       "Computational Time Dilation",
       "Stability Frame-Rate",
@@ -269,10 +177,10 @@
       "TEMPORAL_PRECISION_PRIME",
       "PHYSICS_INFORMED_PREDICTION_PRIME"
     ],
-    "source": "src/cohezion/skills/COMPUTATIONAL_RELATIVITY_PRIME.md",
-    "version": "v0.1"
+    "source": "src/cohezion/skills/COMPUTATIONAL_RELATIVITY_PRIME.md"
   },
   "CONNECTIVITY_MANAGEMENT_PRIME": {
+    "version": "1.0.0",
     "concepts": [
       "Truth Anchors",
       "Failover Logic",
@@ -280,31 +188,19 @@
       "State Interpolation"
     ],
     "see_also": [],
-    "source": "src/cohezion/skills/CONNECTIVITY_MANAGEMENT_PRIME.md",
-    "version": "1.0.0"
+    "source": "src/cohezion/skills/CONNECTIVITY_MANAGEMENT_PRIME.md"
   },
   "CONSTITUTION_PRIME": {
+    "version": "v1.0",
     "concepts": [],
     "see_also": [
       "FLUME_METHODOLOGY_PRIME",
       "PHYSICS_EXPLAINABILITY_PRIME"
     ],
-    "source": "src/cohezion/skills/CONSTITUTION_PRIME.md",
-    "version": "v1.0"
-  },
-  "CONTEXT_ENTROPY_MANAGEMENT_PRIME": {
-    "concepts": [],
-    "see_also": [],
-    "source": "src/cohezion/skills/CONTEXT_ENTROPY_MANAGEMENT_PRIME.md",
-    "version": "v1.0"
-  },
-  "CROSS_PLATFORM_SKILL_FORMAT_PRIME": {
-    "concepts": [],
-    "see_also": [],
-    "source": "src/cohezion/skills/CROSS_PLATFORM_SKILL_FORMAT_PRIME.md",
-    "version": "v1.0"
+    "source": "src/cohezion/skills/CONSTITUTION_PRIME.md"
   },
   "DATABASE_PRIME": {
+    "version": "v1.0",
     "concepts": [
       "SurrealDB",
       "SQLite",
@@ -313,28 +209,10 @@
       "Vector Stores"
     ],
     "see_also": [],
-    "source": "src/cohezion/skills/DATABASE_PRIME.md",
-    "version": "v1.0"
-  },
-  "DEPENDENCY_AUTOMATION_PRIME": {
-    "concepts": [],
-    "see_also": [],
-    "source": "src/cohezion/skills/DEPENDENCY_AUTOMATION_PRIME.md",
-    "version": "v1.0"
-  },
-  "DISSIPATIVE_STRUCTURES_PRIME": {
-    "concepts": [],
-    "see_also": [],
-    "source": "src/cohezion/skills/DISSIPATIVE_STRUCTURES_PRIME.md",
-    "version": "v1.0"
-  },
-  "DOC_TO_LORA_COMPRESSION_PRIME": {
-    "concepts": [],
-    "see_also": [],
-    "source": "src/cohezion/skills/DOC_TO_LORA_COMPRESSION_PRIME.md",
-    "version": "v1.0"
+    "source": "src/cohezion/skills/DATABASE_PRIME.md"
   },
   "DREAM_LOGIC_PRIME": {
+    "version": "v1.0 (Extracted Phase 51)",
     "concepts": [
       "Active Inference",
       "Lateral Thinking",
@@ -342,32 +220,26 @@
       "Phi-3 / Mistral"
     ],
     "see_also": [],
-    "source": "src/cohezion/skills/DREAM_LOGIC_PRIME.md",
-    "version": "v1.0 (Extracted Phase 51)"
-  },
-  "ELEGANT_SIMPLICITY_PRIME": {
-    "concepts": [],
-    "see_also": [],
-    "source": "src/cohezion/skills/ELEGANT_SIMPLICITY_PRIME.md",
-    "version": "v1.0"
+    "source": "src/cohezion/skills/DREAM_LOGIC_PRIME.md"
   },
   "EXPANSION_PRIME": {
+    "version": "v1.0 (The Growth Engine)",
     "concepts": [
       "The Loop",
       "Trajectory-Based",
       "Consensus-Gated"
     ],
     "see_also": [],
-    "source": "src/cohezion/skills/EXPANSION_PRIME.md",
-    "version": "v1.0 (The Growth Engine)"
+    "source": "src/cohezion/skills/EXPANSION_PRIME.md"
   },
   "EXPERIENCE_VAE_TRAINING_PRIME": {
+    "version": "1.0",
     "concepts": [],
     "see_also": [],
-    "source": "src/cohezion/skills/EXPERIENCE_VAE_TRAINING_PRIME.md",
-    "version": "1.0"
+    "source": "src/cohezion/skills/EXPERIENCE_VAE_TRAINING_PRIME.md"
   },
   "EXTERNAL_RESEARCH_PRIME": {
+    "version": "v0.1",
     "concepts": [
       "Abstract Filtering",
       "API Hygiene",
@@ -375,16 +247,10 @@
       "Trajectory Prediction"
     ],
     "see_also": [],
-    "source": "src/cohezion/skills/EXTERNAL_RESEARCH_PRIME.md",
-    "version": "v0.1"
-  },
-  "EXTRACTED_BLOCK_D41D8CD9": {
-    "concepts": [],
-    "see_also": [],
-    "source": "src/cohezion/skills/EXTRACTED_BLOCK_D41D8CD9.md",
-    "version": "v1.0"
+    "source": "src/cohezion/skills/EXTERNAL_RESEARCH_PRIME.md"
   },
   "FAIL_FAST_PRIME": {
+    "version": "v1.0",
     "concepts": [
       "Fail Fast",
       "Critical Path Testing",
@@ -393,10 +259,10 @@
       "Iteration Velocity"
     ],
     "see_also": [],
-    "source": "src/cohezion/skills/FAIL_FAST_PRIME.md",
-    "version": "v1.0"
+    "source": "src/cohezion/skills/FAIL_FAST_PRIME.md"
   },
   "FLUME_METHODOLOGY_PRIME": {
+    "version": "v1.0 (Renamed from CALM)",
     "concepts": [
       "FLUME Principle",
       "FlumeEncoder/Autoencoder",
@@ -406,10 +272,10 @@
       "Inspired by CALM"
     ],
     "see_also": [],
-    "source": "src/cohezion/skills/FLUME_METHODOLOGY_PRIME.md",
-    "version": "v1.0 (Renamed from CALM)"
+    "source": "src/cohezion/skills/FLUME_METHODOLOGY_PRIME.md"
   },
   "FRONTEND_DESIGN_PRIME": {
+    "version": "v1.0.1",
     "concepts": [
       "Premium Aesthetics",
       "Micro-interactions",
@@ -419,22 +285,10 @@
       "TYPESCRIPT_ADVANCED_TYPES_PRIME.md",
       "SHOWREEL_GENERATION_PRIME.md"
     ],
-    "source": "src/cohezion/skills/FRONTEND_DESIGN_PRIME.md",
-    "version": "v1.0.1"
-  },
-  "GEMINI_SPECIALIST_PRIME": {
-    "concepts": [],
-    "see_also": [],
-    "source": "src/cohezion/skills/GEMINI_SPECIALIST_PRIME.md",
-    "version": "v1.0"
-  },
-  "GROUP_EVOLVING_AGENTS_PRIME": {
-    "concepts": [],
-    "see_also": [],
-    "source": "src/cohezion/skills/GROUP_EVOLVING_AGENTS_PRIME.md",
-    "version": "v1.0"
+    "source": "src/cohezion/skills/FRONTEND_DESIGN_PRIME.md"
   },
   "HALLUCINATION_RESOLVER_PRIME": {
+    "version": "v1.0",
     "concepts": [
       "Truth Anchors",
       "Spec-Attribution Bias",
@@ -446,10 +300,10 @@
       "PERSISTENT_QUALITY_PRIME",
       "COHEZION_BRIDGE_PRIME"
     ],
-    "source": "src/cohezion/skills/HALLUCINATION_RESOLVER_PRIME.md",
-    "version": "v1.0"
+    "source": "src/cohezion/skills/HALLUCINATION_RESOLVER_PRIME.md"
   },
   "HIHO_STABILITY_PRIME": {
+    "version": "v1.0",
     "concepts": [
       "Golden Mean (0.5)",
       "Manifold Damping",
@@ -459,22 +313,10 @@
       "SWARM_ORCHESTRATION_PRIME",
       "FLUME_NAVIGATOR_PRIME"
     ],
-    "source": "src/cohezion/skills/HIHO_STABILITY_PRIME.md",
-    "version": "v1.0"
-  },
-  "HOLOGRAPHIC_FLUME_PRIME": {
-    "concepts": [],
-    "see_also": [],
-    "source": "src/cohezion/skills/HOLOGRAPHIC_FLUME_PRIME.md",
-    "version": "v1.0"
-  },
-  "HOOKIFY_PRIME": {
-    "concepts": [],
-    "see_also": [],
-    "source": "src/cohezion/skills/HOOKIFY_PRIME.md",
-    "version": "v1.0"
+    "source": "src/cohezion/skills/HIHO_STABILITY_PRIME.md"
   },
   "IDE_OPTIMIZATION_PRIME": {
+    "version": "v1.0",
     "concepts": [
       "Sprint Momentum",
       "R-Zero Methodology",
@@ -486,10 +328,10 @@
       "SELF_HEALING_PRIME",
       "SURREALDB_MCP_PRIME"
     ],
-    "source": "src/cohezion/skills/IDE_OPTIMIZATION_PRIME.md",
-    "version": "v1.0"
+    "source": "src/cohezion/skills/IDE_OPTIMIZATION_PRIME.md"
   },
   "INTERPRETABILITY_PRIME": {
+    "version": "v0.1",
     "concepts": [
       "Mechanistic Interpretability",
       "FLUME Manifold",
@@ -500,38 +342,20 @@
       "RECOVERY_PRIME",
       "SWARM_ORCHESTRATION_PRIME"
     ],
-    "source": "src/cohezion/skills/INTERPRETABILITY_PRIME.md",
-    "version": "v0.1"
-  },
-  "JOURNEY_DASHBOARD_PRIME": {
-    "concepts": [],
-    "see_also": [],
-    "source": "src/cohezion/skills/JOURNEY_DASHBOARD_PRIME.md",
-    "version": "v1.0"
+    "source": "src/cohezion/skills/INTERPRETABILITY_PRIME.md"
   },
   "JOURNEY_TRACKING_PRIME": {
+    "version": "1.0",
     "concepts": [
       "JourneyTracker",
       "12D Physics State",
       "Trajectory Visualization"
     ],
     "see_also": [],
-    "source": "src/cohezion/skills/JOURNEY_TRACKING_PRIME.md",
-    "version": "1.0"
-  },
-  "KAGLLE_BLACKWELL_RUNNER_PRIME": {
-    "concepts": [],
-    "see_also": [],
-    "source": "src/cohezion/skills/KAGLLE_BLACKWELL_RUNNER_PRIME.md",
-    "version": "v1.0"
-  },
-  "KERNEL_OPTIMIZATION_PRIME": {
-    "concepts": [],
-    "see_also": [],
-    "source": "src/cohezion/skills/KERNEL_OPTIMIZATION_PRIME.md",
-    "version": "v1.0"
+    "source": "src/cohezion/skills/JOURNEY_TRACKING_PRIME.md"
   },
   "KNOWLEDGE_GRAPH_INTEGRATION_PRIME": {
+    "version": "v0.1",
     "concepts": [
       "Knowledge Graph",
       "RDF Triples",
@@ -540,20 +364,20 @@
       "Synchronization"
     ],
     "see_also": [],
-    "source": "src/cohezion/skills/KNOWLEDGE_GRAPH_INTEGRATION_PRIME.md",
-    "version": "v0.1"
+    "source": "src/cohezion/skills/KNOWLEDGE_GRAPH_INTEGRATION_PRIME.md"
   },
   "KNOWLEDGE_HARVESTING_PRIME": {
+    "version": "v1.0 (Born from the 17.3M File Flood of Feb 2026)",
     "concepts": [
       "Ghost Harvest",
       "Semantic Ingestion",
       "Safe Pruning"
     ],
     "see_also": [],
-    "source": "src/cohezion/skills/KNOWLEDGE_HARVESTING_PRIME.md",
-    "version": "v1.0 (Born from the 17.3M File Flood of Feb 2026)"
+    "source": "src/cohezion/skills/KNOWLEDGE_HARVESTING_PRIME.md"
   },
   "LOCAL_OFFLOAD_PRIME": {
+    "version": "v1.0",
     "concepts": [
       "Menial Task",
       "Context Harness",
@@ -565,121 +389,55 @@
       "PERSISTENT_QUALITY_PRIME",
       "COHEZION_BRIDGE_PRIME"
     ],
-    "source": "src/cohezion/skills/LOCAL_OFFLOAD_PRIME.md",
-    "version": "v1.0"
+    "source": "src/cohezion/skills/LOCAL_OFFLOAD_PRIME.md"
   },
   "LONG_RUNNING_INFERENCE_PRIME": {
+    "version": "1.0",
     "concepts": [],
     "see_also": [],
-    "source": "src/cohezion/skills/LONG_RUNNING_INFERENCE_PRIME.md",
-    "version": "1.0"
-  },
-  "MAMBA_STATE_TRACKING_PRIME": {
-    "concepts": [],
-    "see_also": [],
-    "source": "src/cohezion/skills/MAMBA_STATE_TRACKING_PRIME.md",
-    "version": "v1.0"
-  },
-  "MATH_COMMAND_PRIME": {
-    "concepts": [],
-    "see_also": [],
-    "source": "src/cohezion/skills/MATH_COMMAND_PRIME.md",
-    "version": "v1.0"
-  },
-  "MATH_REASONING_SWARM_PRIME": {
-    "concepts": [],
-    "see_also": [],
-    "source": "src/cohezion/skills/MATH_REASONING_SWARM_PRIME.md",
-    "version": "v1.0"
-  },
-  "MCP_SPECIALIST_PRIME": {
-    "concepts": [],
-    "see_also": [],
-    "source": "src/cohezion/skills/MCP_SPECIALIST_PRIME.md",
-    "version": "v1.0"
+    "source": "src/cohezion/skills/LONG_RUNNING_INFERENCE_PRIME.md"
   },
   "MEMORY_MCP_PRIME": {
+    "version": "v0.1",
     "concepts": [
       "Semantic Persistence",
       "Context Continuity",
       "Memory Manifold"
     ],
     "see_also": [],
-    "source": "src/cohezion/skills/MEMORY_MCP_PRIME.md",
-    "version": "v0.1"
-  },
-  "META_HARNESS_TRACES_PRIME": {
-    "concepts": [],
-    "see_also": [],
-    "source": "src/cohezion/skills/META_HARNESS_TRACES_PRIME.md",
-    "version": "v1.0"
+    "source": "src/cohezion/skills/MEMORY_MCP_PRIME.md"
   },
   "MODEL_POOL_MANAGEMENT_PRIME": {
+    "version": "1.0",
     "concepts": [],
     "see_also": [],
-    "source": "src/cohezion/skills/MODEL_POOL_MANAGEMENT_PRIME.md",
-    "version": "1.0"
+    "source": "src/cohezion/skills/MODEL_POOL_MANAGEMENT_PRIME.md"
   },
   "MODEL_ROUTING_PRIME": {
+    "version": "v0.1",
     "concepts": [
       "Ollama Model Catalog",
-      "Memory‑aware Scheduling",
+      "Memory\u2011aware Scheduling",
       "Task Classification",
       "Parallel Execution",
       "Cache & Deduplication",
       "Guardrails"
     ],
     "see_also": [],
-    "source": "src/cohezion/skills/MODEL_ROUTING_PRIME.md",
-    "version": "v0.1"
-  },
-  "MOE_HYBRID_ENGINEERING_PRIME": {
-    "concepts": [],
-    "see_also": [],
-    "source": "src/cohezion/skills/MOE_HYBRID_ENGINEERING_PRIME.md",
-    "version": "v1.0"
-  },
-  "MULTI_PERSPECTIVE_REVIEW_PRIME": {
-    "concepts": [],
-    "see_also": [],
-    "source": "src/cohezion/skills/MULTI_PERSPECTIVE_REVIEW_PRIME.md",
-    "version": "v1.0"
+    "source": "src/cohezion/skills/MODEL_ROUTING_PRIME.md"
   },
   "MYCELIUM_PRIME": {
+    "version": "v1.0 (The Awakening)",
     "concepts": [
       "ShadowScripter",
       "Regression Traps",
       "Sovereign Testing"
     ],
     "see_also": [],
-    "source": "src/cohezion/skills/MYCELIUM_PRIME.md",
-    "version": "v1.0 (The Awakening)"
-  },
-  "NOETHER_CONSERVATION_PRIME": {
-    "concepts": [],
-    "see_also": [],
-    "source": "src/cohezion/skills/NOETHER_CONSERVATION_PRIME.md",
-    "version": "v1.0"
-  },
-  "OLLAMA_SPECIALIST_PRIME": {
-    "concepts": [],
-    "see_also": [],
-    "source": "src/cohezion/skills/OLLAMA_SPECIALIST_PRIME.md",
-    "version": "v1.0"
-  },
-  "ORPHAN_MODULE_INTEGRATION_PRIME": {
-    "concepts": [],
-    "see_also": [],
-    "source": "src/cohezion/skills/ORPHAN_MODULE_INTEGRATION_PRIME.md",
-    "version": "v1.0"
-  },
-  "OVERNIGHT_AUTONOMOUS_PRIME": {
-    "concepts": [],
-    "see_also": [],
-    "source": "src/cohezion/skills/OVERNIGHT_AUTONOMOUS_PRIME.md",
-    "version": "v1.0"
+    "source": "src/cohezion/skills/MYCELIUM_PRIME.md"
   },
   "PERSISTENT_UNIVERSE_PRIME": {
+    "version": "v1.0",
     "concepts": [
       "Stateful AI",
       "Real-is-Sim",
@@ -688,28 +446,10 @@
       "Institutional Intelligence"
     ],
     "see_also": [],
-    "source": "src/cohezion/skills/PERSISTENT_UNIVERSE_PRIME.md",
-    "version": "v1.0"
-  },
-  "PHYSICS_LINEAGE_PRIME": {
-    "concepts": [],
-    "see_also": [],
-    "source": "src/cohezion/skills/PHYSICS_LINEAGE_PRIME.md",
-    "version": "v1.0"
-  },
-  "PI_INTEGRATION_PRIME": {
-    "concepts": [],
-    "see_also": [],
-    "source": "src/cohezion/skills/PI_INTEGRATION_PRIME.md",
-    "version": "v1.0"
-  },
-  "PLATFORM_COORDINATOR_PRIME": {
-    "concepts": [],
-    "see_also": [],
-    "source": "src/cohezion/skills/PLATFORM_COORDINATOR_PRIME.md",
-    "version": "v1.0"
+    "source": "src/cohezion/skills/PERSISTENT_UNIVERSE_PRIME.md"
   },
   "POLYGLOT_DELEGATION_PRIME": {
+    "version": "v1.0",
     "concepts": [
       "Language-Specific Delegation",
       "Polyglot Interoperability",
@@ -723,16 +463,10 @@
       "TEAM_ORCHESTRATION_PRIME",
       "SWARM_ORCHESTRATION_PRIME"
     ],
-    "source": "src/cohezion/skills/POLYGLOT_DELEGATION_PRIME.md",
-    "version": "v1.0"
-  },
-  "PROACTIVE_PERSISTENCE_PRIME": {
-    "concepts": [],
-    "see_also": [],
-    "source": "src/cohezion/skills/PROACTIVE_PERSISTENCE_PRIME.md",
-    "version": "v1.0"
+    "source": "src/cohezion/skills/POLYGLOT_DELEGATION_PRIME.md"
   },
   "QUADRATURE_PRIME": {
+    "version": "v1.0 (Integration of The Will)",
     "concepts": [
       "The Nexus",
       "The 4 Voices",
@@ -743,10 +477,10 @@
       "Consensus"
     ],
     "see_also": [],
-    "source": "src/cohezion/skills/QUADRATURE_PRIME.md",
-    "version": "v1.0 (Integration of The Will)"
+    "source": "src/cohezion/skills/QUADRATURE_PRIME.md"
   },
   "QUANTUM_LINK_PRIME": {
+    "version": "v1.0 (Extracted Phase 56)",
     "concepts": [
       "Shared Memory",
       "File Locking (`fcntl`)",
@@ -754,10 +488,10 @@
       "JSON State"
     ],
     "see_also": [],
-    "source": "src/cohezion/skills/QUANTUM_LINK_PRIME.md",
-    "version": "v1.0 (Extracted Phase 56)"
+    "source": "src/cohezion/skills/QUANTUM_LINK_PRIME.md"
   },
   "QUANTUM_MPS_ROUTING_PRIME": {
+    "version": "v1.0 (Extracted from Cohezion \"Little Dimple\" Mission)",
     "concepts": [
       "MPS Topology",
       "Manual 1D Routing",
@@ -768,10 +502,10 @@
       "PERSISTENT_QUALITY_PRIME",
       "FLUME_ENCODER_PRIME"
     ],
-    "source": "src/cohezion/skills/QUANTUM_MPS_ROUTING_PRIME.md",
-    "version": "v1.0 (Extracted from Cohezion \"Little Dimple\" Mission)"
+    "source": "src/cohezion/skills/QUANTUM_MPS_ROUTING_PRIME.md"
   },
   "QUARTER_ON_A_STRING_PRIME": {
+    "version": "v1.0",
     "concepts": [
       "The String",
       "The Quarter",
@@ -779,16 +513,10 @@
       "Context Injection"
     ],
     "see_also": [],
-    "source": "src/cohezion/skills/QUARTER_ON_A_STRING_PRIME.md",
-    "version": "v1.0"
-  },
-  "RALPH_LOOP_PRIME": {
-    "concepts": [],
-    "see_also": [],
-    "source": "src/cohezion/skills/RALPH_LOOP_PRIME.md",
-    "version": "v1.0"
+    "source": "src/cohezion/skills/QUARTER_ON_A_STRING_PRIME.md"
   },
   "RECOVERY_PRIME": {
+    "version": "v0.1",
     "concepts": [
       "MRP (Memory Recovery Protocol)",
       "Memory Anchor",
@@ -799,10 +527,10 @@
       "SWARM_ORCHESTRATION_PRIME",
       "PERSISTENT_UNIVERSE_PRIME"
     ],
-    "source": "src/cohezion/skills/RECOVERY_PRIME.md",
-    "version": "v0.1"
+    "source": "src/cohezion/skills/RECOVERY_PRIME.md"
   },
   "REDUCER_PRIME": {
+    "version": "v1.0",
     "concepts": [
       "Manifold Reduction",
       "Knowledge Kernels",
@@ -810,20 +538,20 @@
       "HIHO Stability"
     ],
     "see_also": [],
-    "source": "src/cohezion/skills/REDUCER_PRIME.md",
-    "version": "v1.0"
+    "source": "src/cohezion/skills/REDUCER_PRIME.md"
   },
   "REDUNDANCY_SUPPRESSION_PRIME": {
+    "version": "v0.1",
     "concepts": [
       "Entropy Saturation",
       "Backoff Modulation",
       "Novelty Thresholding"
     ],
     "see_also": [],
-    "source": "src/cohezion/skills/REDUNDANCY_SUPPRESSION_PRIME.md",
-    "version": "v0.1"
+    "source": "src/cohezion/skills/REDUNDANCY_SUPPRESSION_PRIME.md"
   },
   "RELIABILITY_FALLBACK_PRIME": {
+    "version": "v1.0 (Hermetic Persistence Pattern)",
     "concepts": [
       "Primary-Buffer Duality",
       "Circuit Breaking",
@@ -831,26 +559,20 @@
       "Checksum Integrity"
     ],
     "see_also": [],
-    "source": "src/cohezion/skills/RELIABILITY_FALLBACK_PRIME.md",
-    "version": "v1.0 (Hermetic Persistence Pattern)"
+    "source": "src/cohezion/skills/RELIABILITY_FALLBACK_PRIME.md"
   },
   "RELIABILITY_PRIME": {
+    "version": "1.0",
     "concepts": [
       "Circuit Breaker",
       "Connection Pool",
       "Graceful Degradation"
     ],
     "see_also": [],
-    "source": "src/cohezion/skills/RELIABILITY_PRIME.md",
-    "version": "1.0"
-  },
-  "REMOTE_ORCHESTRATION_PRIME": {
-    "concepts": [],
-    "see_also": [],
-    "source": "src/cohezion/skills/REMOTE_ORCHESTRATION_PRIME.md",
-    "version": "v1.0"
+    "source": "src/cohezion/skills/RELIABILITY_PRIME.md"
   },
   "REPOSITORY_HEALTH_PRIME": {
+    "version": "v1.0",
     "concepts": [
       "Repository Bloat",
       "3-Layer Governance",
@@ -862,42 +584,30 @@
       "Large File Patterns"
     ],
     "see_also": [],
-    "source": "src/cohezion/skills/REPOSITORY_HEALTH_PRIME.md",
-    "version": "v1.0"
+    "source": "src/cohezion/skills/REPOSITORY_HEALTH_PRIME.md"
   },
   "REPO_HYGIENE_PRIME": {
+    "version": "v3.0 (Sovereign Era)",
     "concepts": [
       "Entropy Reward",
       "Ghost Files",
       "Surgical Pruning"
     ],
     "see_also": [],
-    "source": "src/cohezion/skills/REPO_HYGIENE_PRIME.md",
-    "version": "v3.0 (Sovereign Era)"
+    "source": "src/cohezion/skills/REPO_HYGIENE_PRIME.md"
   },
   "RESEARCH_PATTERNS_PRIME": {
+    "version": "v1.0",
     "concepts": [],
     "see_also": [
       "FLUME_METHODOLOGY_PRIME",
       "IDE_OPTIMIZATION_PRIME",
       "HIHO_STABILITY_PRIME"
     ],
-    "source": "src/cohezion/skills/RESEARCH_PATTERNS_PRIME.md",
-    "version": "v1.0"
-  },
-  "RESEARCH_SQUAD_PRIME": {
-    "concepts": [],
-    "see_also": [],
-    "source": "src/cohezion/skills/RESEARCH_SQUAD_PRIME.md",
-    "version": "v1.0"
-  },
-  "RETROSPECTIVE_SKILL": {
-    "concepts": [],
-    "see_also": [],
-    "source": "src/cohezion/skills/RETROSPECTIVE_SKILL.md",
-    "version": "v1.0"
+    "source": "src/cohezion/skills/RESEARCH_PATTERNS_PRIME.md"
   },
   "RIGOROUS_EVALUATION_PRIME": {
+    "version": "v0.1",
     "concepts": [
       "Manifold Drift",
       "Draconian Consensus",
@@ -908,16 +618,10 @@
       "SECURITY_GUARDRAILS_PRIME",
       "SYSTEM_HARDENING_PRIME"
     ],
-    "source": "src/cohezion/skills/RIGOROUS_EVALUATION_PRIME.md",
-    "version": "v0.1"
-  },
-  "RL_ENVIRONMENT_DESIGN_PRIME": {
-    "concepts": [],
-    "see_also": [],
-    "source": "src/cohezion/skills/RL_ENVIRONMENT_DESIGN_PRIME.md",
-    "version": "v1.0"
+    "source": "src/cohezion/skills/RIGOROUS_EVALUATION_PRIME.md"
   },
   "SANDBOX_ISOLATION_PRIME": {
+    "version": "v1.0",
     "concepts": [
       "Containerized Universe",
       "Resource Hardening",
@@ -932,10 +636,10 @@
       "SECURITY_GUARDRAILS_PRIME",
       "ADVERSARIAL_TESTING_PRIME"
     ],
-    "source": "src/cohezion/skills/SANDBOX_ISOLATION_PRIME.md",
-    "version": "v1.0"
+    "source": "src/cohezion/skills/SANDBOX_ISOLATION_PRIME.md"
   },
   "SECURITY_GUARDRAILS_PRIME": {
+    "version": "v0.1",
     "concepts": [
       "Defense in Depth",
       "Principle of Least Privilege",
@@ -943,10 +647,10 @@
       "OWASP LLM Top 10"
     ],
     "see_also": [],
-    "source": "src/cohezion/skills/SECURITY_GUARDRAILS_PRIME.md",
-    "version": "v0.1"
+    "source": "src/cohezion/skills/SECURITY_GUARDRAILS_PRIME.md"
   },
   "SELF_HEALING_PRIME": {
+    "version": "v0.1",
     "concepts": [
       "Drift Detection",
       "LLM-based Diagnosis",
@@ -955,10 +659,10 @@
       "H-LLM"
     ],
     "see_also": [],
-    "source": "src/cohezion/skills/SELF_HEALING_PRIME.md",
-    "version": "v0.1"
+    "source": "src/cohezion/skills/SELF_HEALING_PRIME.md"
   },
   "SEMANTIC_CACHING_PRIME": {
+    "version": "v1.0",
     "concepts": [
       "Vector Space",
       "Cosine Similarity",
@@ -966,10 +670,10 @@
       "Hit Rate"
     ],
     "see_also": [],
-    "source": "src/cohezion/skills/SEMANTIC_CACHING_PRIME.md",
-    "version": "v1.0"
+    "source": "src/cohezion/skills/SEMANTIC_CACHING_PRIME.md"
   },
   "SHOWREEL_GENERATION_PRIME": {
+    "version": "v1.0",
     "concepts": [
       "Milestone Detection",
       "Narration Sync",
@@ -977,10 +681,10 @@
       "Style Consistency"
     ],
     "see_also": [],
-    "source": "src/cohezion/skills/SHOWREEL_GENERATION_PRIME.md",
-    "version": "v1.0"
+    "source": "src/cohezion/skills/SHOWREEL_GENERATION_PRIME.md"
   },
   "SIMULATION_PROFILES_PRIME": {
+    "version": "v1.0",
     "concepts": [
       "Sandbox Profiles",
       "Tiered Simulation",
@@ -992,52 +696,28 @@
       "SECURITY_GUARDRAILS_PRIME",
       "ADVERSARIAL_TESTING_PRIME"
     ],
-    "source": "src/cohezion/skills/SIMULATION_PROFILES_PRIME.md",
-    "version": "v1.0"
-  },
-  "SKILL": {
-    "concepts": [],
-    "see_also": [],
-    "source": "src/cohezion/skills/mcp-builder/SKILL.md",
-    "version": "v1.0"
+    "source": "src/cohezion/skills/SIMULATION_PROFILES_PRIME.md"
   },
   "SKILL_0_PRIME": {
     "version": "1.0",
     "concepts": [],
     "see_also": [],
-    "source": "/tmp/pytest-of-mike-anderson/pytest-58/test_factory_generate_top_skil0/skills/SKILL_0_PRIME.md"
+    "source": "/tmp/pytest-of-mike-anderson/pytest-76/test_factory_generate_top_skil0/skills/SKILL_0_PRIME.md"
   },
   "SKILL_1_PRIME": {
     "version": "1.0",
     "concepts": [],
     "see_also": [],
-    "source": "/tmp/pytest-of-mike-anderson/pytest-58/test_factory_generate_top_skil0/skills/SKILL_1_PRIME.md"
-  },
-  "SMALL_MODEL_SPECIALIST_PRIME": {
-    "concepts": [],
-    "see_also": [],
-    "source": "src/cohezion/skills/SMALL_MODEL_SPECIALIST_PRIME.md",
-    "version": "v1.0"
-  },
-  "SPATIAL_PHONONS_PRIME": {
-    "concepts": [],
-    "see_also": [],
-    "source": "src/cohezion/skills/SPATIAL_PHONONS_PRIME.md",
-    "version": "v1.0"
+    "source": "/tmp/pytest-of-mike-anderson/pytest-76/test_factory_generate_top_skil0/skills/SKILL_1_PRIME.md"
   },
   "SURREALDB_MCP_PRIME": {
+    "version": "v1.0 (New MCP Component)",
     "concepts": [],
     "see_also": [],
-    "source": "src/cohezion/skills/SURREALDB_MCP_PRIME.md",
-    "version": "v1.0 (New MCP Component)"
-  },
-  "SURREALDB_OPERATIONS_PRIME": {
-    "concepts": [],
-    "see_also": [],
-    "source": "src/cohezion/skills/SURREALDB_OPERATIONS_PRIME.md",
-    "version": "v1.0"
+    "source": "src/cohezion/skills/SURREALDB_MCP_PRIME.md"
   },
   "SURREALDB_OPTIMIZER_PRIME": {
+    "version": "v1.0",
     "concepts": [
       "FETCH Optimization",
       "HNSW Vector Indexing",
@@ -1046,16 +726,10 @@
       "Graph Pruning"
     ],
     "see_also": [],
-    "source": "src/cohezion/skills/SURREALDB_OPTIMIZER_PRIME.md",
-    "version": "v1.0"
-  },
-  "SURREAL_DBA_PRIME": {
-    "concepts": [],
-    "see_also": [],
-    "source": "src/cohezion/skills/SURREAL_DBA_PRIME.md",
-    "version": "v1.0"
+    "source": "src/cohezion/skills/SURREALDB_OPTIMIZER_PRIME.md"
   },
   "SWARM_PLANNER_PRIME": {
+    "version": "v1.0.1",
     "concepts": [
       "Ouroboros Improvement",
       "Component Granularity",
@@ -1066,20 +740,20 @@
       "TEAM_ORCHESTRATION_PRIME.md",
       "MODEL_ROUTING_PRIME.md"
     ],
-    "source": "src/cohezion/skills/SWARM_PLANNER_PRIME.md",
-    "version": "v1.0.1"
+    "source": "src/cohezion/skills/SWARM_PLANNER_PRIME.md"
   },
   "SYMBIOTIC_FILE_PRIME": {
+    "version": "v1.0 (Sovereign Era)",
     "concepts": [
       "Sovereignty",
       "Symbiosis",
       "The Protocol"
     ],
     "see_also": [],
-    "source": "src/cohezion/skills/SYMBIOTIC_FILE_PRIME.md",
-    "version": "v1.0 (Sovereign Era)"
+    "source": "src/cohezion/skills/SYMBIOTIC_FILE_PRIME.md"
   },
   "SYSTEM_DEFINITION_PRIME": {
+    "version": "v1.0 (2026-01-17)",
     "concepts": [
       "GEMINI.md",
       "CLAUDE.md",
@@ -1089,30 +763,30 @@
       "Compound Engineering"
     ],
     "see_also": [],
-    "source": "src/cohezion/skills/SYSTEM_DEFINITION_PRIME.md",
-    "version": "v1.0 (2026-01-17)"
+    "source": "src/cohezion/skills/SYSTEM_DEFINITION_PRIME.md"
   },
   "SYSTEM_GUARDRAILS_PRIME": {
+    "version": "1.0",
     "concepts": [],
     "see_also": [],
-    "source": "src/cohezion/skills/SYSTEM_GUARDRAILS_PRIME.md",
-    "version": "1.0"
+    "source": "src/cohezion/skills/SYSTEM_GUARDRAILS_PRIME.md"
   },
   "SYSTEM_MONITORING_PRIME": {
+    "version": "v0.2 (2026-01-17: Added swap pressure hooks from crash retrospective)",
     "concepts": [
       "CPU Utilisation",
       "Memory Pressure",
       "I/O Saturation",
-      "Process‑level Metrics",
+      "Process\u2011level Metrics",
       "Adaptive Scaling",
       "Guardrails",
       "Visualization"
     ],
     "see_also": [],
-    "source": "src/cohezion/skills/SYSTEM_MONITORING_PRIME.md",
-    "version": "v0.2 (2026-01-17: Added swap pressure hooks from crash retrospective)"
+    "source": "src/cohezion/skills/SYSTEM_MONITORING_PRIME.md"
   },
   "TEAM_ORCHESTRATION_PRIME": {
+    "version": "1.0.0",
     "concepts": [
       "Team Planning",
       "Agent Specification",
@@ -1126,10 +800,10 @@
       "MODEL_ROUTING_PRIME",
       "RETROSPECTIVE_SKILL"
     ],
-    "source": "src/cohezion/skills/TEAM_ORCHESTRATION_PRIME.md",
-    "version": "1.0.0"
+    "source": "src/cohezion/skills/TEAM_ORCHESTRATION_PRIME.md"
   },
   "TEMPLATE_DRIVEN_DEVELOPMENT_PRIME": {
+    "version": "v1.0.0",
     "concepts": [
       "Pattern-to-Precipitate",
       "Structural Coherence",
@@ -1137,10 +811,10 @@
       "Recursive Refinement"
     ],
     "see_also": [],
-    "source": "src/cohezion/skills/TEMPLATE_DRIVEN_DEVELOPMENT_PRIME.md",
-    "version": "v1.0.0"
+    "source": "src/cohezion/skills/TEMPLATE_DRIVEN_DEVELOPMENT_PRIME.md"
   },
   "TEMPORAL_PRECISION_PRIME": {
+    "version": "v0.1",
     "concepts": [
       "time.perf_counter()",
       "timeit pattern",
@@ -1151,10 +825,10 @@
       "RESOURCE_MANAGEMENT_PRIME",
       "INTERPRETABILITY_PRIME"
     ],
-    "source": "src/cohezion/skills/TEMPORAL_PRECISION_PRIME.md",
-    "version": "v0.1"
+    "source": "src/cohezion/skills/TEMPORAL_PRECISION_PRIME.md"
   },
   "TESTING_PRIME": {
+    "version": "1.0",
     "concepts": [
       "pytest",
       "Fixtures",
@@ -1163,17 +837,16 @@
       "Adversarial"
     ],
     "see_also": [],
-    "source": "src/cohezion/skills/TESTING_PRIME.md",
-    "version": "1.0"
+    "source": "src/cohezion/skills/TESTING_PRIME.md"
   },
   "TEST_SKILL_PRIME": {
+    "version": "2.5",
     "concepts": [],
     "see_also": [],
-    "source": "/tmp/pytest-of-mike-anderson/pytest-100/test_version_header_in_generat0/skills/TEST_SKILL_PRIME.md",
-    "status": "archived",
-    "version": "2.5"
+    "source": "/tmp/pytest-of-mike-anderson/pytest-76/test_version_header_in_generat0/skills/TEST_SKILL_PRIME.md"
   },
   "THROTTLED_SCOUT_PRIME": {
+    "version": "v1.0 (Safe Mode v3 Compatible)",
     "concepts": [
       "Sequential Locking",
       "Resource Guarding",
@@ -1181,10 +854,10 @@
       "Throttled Batching"
     ],
     "see_also": [],
-    "source": "src/cohezion/skills/THROTTLED_SCOUT_PRIME.md",
-    "version": "v1.0 (Safe Mode v3 Compatible)"
+    "source": "src/cohezion/skills/THROTTLED_SCOUT_PRIME.md"
   },
   "TOKEN_EFFICIENCY_PRIME": {
+    "version": "v1.0",
     "concepts": [
       "Token Budget",
       "Cache Hit Rate",
@@ -1198,10 +871,10 @@
       "LOCAL_OFFLOAD_PRIME",
       "RETROSPECTIVE_SKILL"
     ],
-    "source": "src/cohezion/skills/TOKEN_EFFICIENCY_PRIME.md",
-    "version": "v1.0"
+    "source": "src/cohezion/skills/TOKEN_EFFICIENCY_PRIME.md"
   },
   "TRAINING_DATA_CAPTURE_PRIME": {
+    "version": "v1.0",
     "concepts": [
       "Interaction Logging",
       "Journey Tracking",
@@ -1210,22 +883,10 @@
       "Semantic Analysis"
     ],
     "see_also": [],
-    "source": "src/cohezion/skills/TRAINING_DATA_CAPTURE_PRIME.md",
-    "version": "v1.0"
-  },
-  "TRAINING_DIAGNOSTIC_LOOP_PRIME": {
-    "concepts": [],
-    "see_also": [],
-    "source": "src/cohezion/skills/TRAINING_DIAGNOSTIC_LOOP_PRIME.md",
-    "version": "v1.0"
-  },
-  "TRANSFORMER_ENGINE_FP4_OPTIMIZATION_PRIME": {
-    "concepts": [],
-    "see_also": [],
-    "source": "src/cohezion/skills/TRANSFORMER_ENGINE_FP4_OPTIMIZATION_PRIME.md",
-    "version": "v1.0"
+    "source": "src/cohezion/skills/TRAINING_DATA_CAPTURE_PRIME.md"
   },
   "TYPESCRIPT_ADVANCED_TYPES_PRIME": {
+    "version": "v1.0.1",
     "concepts": [
       "Utility Types",
       "Discriminated Unions",
@@ -1234,16 +895,16 @@
     "see_also": [
       "FRONTEND_DESIGN_PRIME.md"
     ],
-    "source": "src/cohezion/skills/TYPESCRIPT_ADVANCED_TYPES_PRIME.md",
-    "version": "v1.0.1"
+    "source": "src/cohezion/skills/TYPESCRIPT_ADVANCED_TYPES_PRIME.md"
   },
   "UNIVERSE_SIMULATION_PERSISTENCE_PRIME": {
+    "version": "1.0",
     "concepts": [],
     "see_also": [],
-    "source": "src/cohezion/skills/UNIVERSE_SIMULATION_PERSISTENCE_PRIME.md",
-    "version": "1.0"
+    "source": "src/cohezion/skills/UNIVERSE_SIMULATION_PERSISTENCE_PRIME.md"
   },
   "USAGE_ANALYTICS_PRIME": {
+    "version": "v1.0",
     "concepts": [
       "Discovery Rate",
       "Attrition",
@@ -1251,16 +912,10 @@
       "Predictive Prefetching"
     ],
     "see_also": [],
-    "source": "src/cohezion/skills/USAGE_ANALYTICS_PRIME.md",
-    "version": "v1.0"
-  },
-  "VAULT_KEEPER_PRIME": {
-    "concepts": [],
-    "see_also": [],
-    "source": "src/cohezion/skills/VAULT_KEEPER_PRIME.md",
-    "version": "v1.0"
+    "source": "src/cohezion/skills/USAGE_ANALYTICS_PRIME.md"
   },
   "VECTOR_STORE_PRIME": {
+    "version": "v0.1",
     "concepts": [
       "Mem0 MCP",
       "FAISS",
@@ -1268,10 +923,10 @@
       "SQLite + HNSW"
     ],
     "see_also": [],
-    "source": "src/cohezion/skills/VECTOR_STORE_PRIME.md",
-    "version": "v0.1"
+    "source": "src/cohezion/skills/VECTOR_STORE_PRIME.md"
   },
   "VISUALIZATION_PRIME": {
+    "version": "v0.1",
     "concepts": [
       "PCA (Principal Component Analysis)",
       "Radar (Spider) Charts",
@@ -1279,10 +934,10 @@
       "Interactive Widgets"
     ],
     "see_also": [],
-    "source": "src/cohezion/skills/VISUALIZATION_PRIME.md",
-    "version": "v0.1"
+    "source": "src/cohezion/skills/VISUALIZATION_PRIME.md"
   },
   "VLIW_COG_BRIDGE_PRIME": {
+    "version": "v1.0 (Derived from Anthropic Task-home Audit)",
     "concepts": [
       "Register Windowing",
       "Static Slotting",
@@ -1292,361 +947,22 @@
       "FLUME_METHODOLOGY_PRIME",
       "HIHO_STABILITY_PRIME"
     ],
-    "source": "src/cohezion/skills/VLIW_COG_BRIDGE_PRIME.md",
-    "version": "v1.0 (Derived from Anthropic Task-home Audit)"
+    "source": "src/cohezion/skills/VLIW_COG_BRIDGE_PRIME.md"
   },
-  "adaptive_template_engine": {
-    "concepts": [],
-    "see_also": [],
-    "source": "src/cohezion/skills/adaptive_template_engine.md",
-    "version": "v1.0"
-  },
-  "advanced_physics_simulation": {
-    "concepts": [],
-    "see_also": [],
-    "source": "src/cohezion/skills/advanced_physics_simulation.md",
-    "version": "v1.0"
-  },
-  "alignment_verification": {
-    "concepts": [],
-    "see_also": [],
-    "source": "src/cohezion/skills/alignment_verification.md",
-    "version": "v1.0"
-  },
-  "allostatica_prime": {
-    "concepts": [],
-    "see_also": [],
-    "source": "src/cohezion/skills/allostatica_prime.md",
-    "version": "v1.0"
-  },
-  "animations": {
-    "concepts": [],
-    "see_also": [],
-    "source": "src/cohezion/skills/animations.md",
-    "version": "v1.0"
-  },
-  "api_patterns": {
-    "concepts": [],
-    "see_also": [],
-    "source": "src/cohezion/skills/api_patterns.md",
-    "version": "v1.0"
-  },
-  "async_workflow": {
-    "concepts": [],
-    "see_also": [],
-    "source": "src/cohezion/skills/async_workflow.md",
-    "version": "v1.0"
-  },
-  "bmad_workflow": {
-    "concepts": [],
-    "see_also": [],
-    "source": "src/cohezion/skills/bmad_workflow.md",
-    "version": "v1.0"
-  },
-  "caching": {
-    "concepts": [],
-    "see_also": [],
-    "source": "src/cohezion/skills/caching.md",
-    "version": "v1.0"
-  },
-  "code_simplification": {
-    "concepts": [],
-    "see_also": [],
-    "source": "src/cohezion/skills/code_simplification.md",
-    "version": "v1.0"
-  },
-  "code_standards": {
-    "concepts": [],
-    "see_also": [],
-    "source": "src/cohezion/skills/code_standards.md",
-    "version": "v1.0"
-  },
-  "cohezion_mcp": {
-    "concepts": [],
-    "see_also": [],
-    "source": "src/cohezion/skills/cohezion_mcp.py",
-    "version": "v1.0"
-  },
-  "common_codebase_health": {
-    "concepts": [],
-    "see_also": [],
-    "source": "src/cohezion/skills/common_codebase_health.md",
-    "version": "v1.0"
-  },
-  "compound_engineering": {
-    "concepts": [],
-    "see_also": [],
-    "source": "src/cohezion/skills/compound_engineering.md",
-    "version": "v1.0"
-  },
-  "compound_prompt": {
-    "concepts": [],
-    "see_also": [],
-    "source": "src/cohezion/skills/compound_prompt.md",
-    "version": "v1.0"
-  },
-  "controller_agent": {
-    "concepts": [],
-    "see_also": [],
-    "source": "src/cohezion/skills/controller_agent.md",
-    "version": "v1.0"
-  },
-  "democratic_debate": {
-    "concepts": [],
-    "see_also": [],
-    "source": "src/cohezion/skills/democratic_debate.md",
-    "version": "v1.0"
-  },
-  "embedding_strategy": {
-    "concepts": [],
-    "see_also": [],
-    "source": "src/cohezion/skills/embedding_strategy.md",
-    "version": "v1.0"
-  },
-  "enhanced_simulation": {
-    "concepts": [],
-    "see_also": [],
-    "source": "src/cohezion/skills/enhanced_simulation.md",
-    "version": "v1.0"
-  },
-  "enterprise_ai_server_mastery": {
-    "concepts": [],
-    "see_also": [],
-    "source": "src/cohezion/skills/enterprise_ai_server_mastery.md",
-    "version": "v1.0"
-  },
-  "flume_comparison": {
-    "concepts": [],
-    "see_also": [],
-    "source": "src/cohezion/skills/flume_comparison.md",
-    "version": "v1.0"
-  },
-  "gateway_architecture": {
-    "concepts": [],
-    "see_also": [],
-    "source": "src/cohezion/skills/gateway_architecture.md",
-    "version": "v1.0"
-  },
-  "gmail_mcp": {
-    "concepts": [],
-    "see_also": [],
-    "source": "src/cohezion/skills/gmail_mcp.md",
-    "version": "v1.0"
-  },
-  "high_d_physics_visualization": {
-    "concepts": [],
-    "see_also": [],
-    "source": "src/cohezion/skills/high_d_physics_visualization.md",
-    "version": "v1.0"
-  },
-  "hiho_reality_sim": {
-    "concepts": [],
-    "see_also": [],
-    "source": "src/cohezion/skills/hiho_reality_sim.md",
-    "version": "v1.0"
-  },
-  "interactive_ui": {
-    "concepts": [],
-    "see_also": [],
-    "source": "src/cohezion/skills/interactive_ui.md",
-    "version": "v1.0"
-  },
-  "knowledge_mining": {
-    "concepts": [],
-    "see_also": [],
-    "source": "src/cohezion/skills/knowledge_mining.md",
-    "version": "v1.0"
-  },
-  "learning": {
-    "concepts": [],
-    "see_also": [],
-    "source": "src/cohezion/skills/learning.md",
-    "version": "v1.0"
-  },
-  "marimo_development": {
-    "concepts": [],
-    "see_also": [],
-    "source": "src/cohezion/skills/marimo_development.md",
-    "version": "v1.0"
-  },
-  "marimo_notebooks": {
-    "concepts": [],
-    "see_also": [],
-    "source": "src/cohezion/skills/marimo_notebooks.md",
-    "version": "v1.0"
-  },
-  "mass_simulation": {
-    "concepts": [],
-    "see_also": [],
-    "source": "src/cohezion/skills/mass_simulation.md",
-    "version": "v1.0"
-  },
-  "matsumoto_hiho_synthesis": {
-    "concepts": [],
-    "see_also": [],
-    "source": "src/cohezion/skills/matsumoto_hiho_synthesis.md",
-    "version": "v1.0"
-  },
-  "meta_skill": {
-    "concepts": [],
-    "see_also": [],
-    "source": "src/cohezion/skills/meta_skill.md",
-    "version": "v1.0"
-  },
-  "metaphysics": {
-    "concepts": [],
-    "see_also": [],
-    "source": "src/cohezion/skills/metaphysics.md",
-    "version": "v1.0"
-  },
-  "multimodal_experience": {
-    "concepts": [],
-    "see_also": [],
-    "source": "src/cohezion/skills/multimodal_experience.md",
-    "version": "v1.0"
-  },
-  "multimodal_visualization": {
-    "concepts": [],
-    "see_also": [],
-    "source": "src/cohezion/skills/multimodal_visualization.md",
-    "version": "v1.0"
-  },
-  "observable_ai": {
-    "concepts": [],
-    "see_also": [],
-    "source": "src/cohezion/skills/observable_ai.md",
-    "version": "v1.0"
-  },
-  "ollama_management": {
-    "concepts": [],
-    "see_also": [],
-    "source": "src/cohezion/skills/ollama_management.md",
-    "version": "v1.0"
-  },
-  "parallel_orchestration": {
-    "concepts": [],
-    "see_also": [],
-    "source": "src/cohezion/skills/parallel_orchestration.md",
-    "version": "v1.0"
-  },
-  "physics": {
-    "concepts": [],
-    "see_also": [],
-    "source": "src/cohezion/skills/physics.md",
-    "version": "v1.0"
-  },
-  "physics_explainability": {
-    "concepts": [],
-    "see_also": [],
-    "source": "src/cohezion/skills/physics_explainability.md",
-    "version": "v1.0"
-  },
-  "physics_informed_prediction": {
-    "concepts": [],
-    "see_also": [],
-    "source": "src/cohezion/skills/physics_informed_prediction.md",
-    "version": "v1.0"
-  },
-  "plasma_theosophy": {
-    "concepts": [],
-    "see_also": [],
-    "source": "src/cohezion/skills/plasma_theosophy.md",
-    "version": "v1.0"
-  },
-  "pre_flight_validation": {
-    "concepts": [],
-    "see_also": [],
-    "source": "src/cohezion/skills/pre_flight_validation.md",
-    "version": "v1.0"
-  },
-  "product_management": {
-    "concepts": [],
-    "see_also": [],
-    "source": "src/cohezion/skills/product_management.md",
-    "version": "v1.0"
-  },
-  "project_management": {
-    "concepts": [],
-    "see_also": [],
-    "source": "src/cohezion/skills/project_management.md",
-    "version": "v1.0"
-  },
-  "research_synthesis": {
-    "concepts": [],
-    "see_also": [],
-    "source": "src/cohezion/skills/research_synthesis.md",
-    "version": "v1.0"
-  },
-  "resource_management": {
-    "concepts": [],
-    "see_also": [],
-    "source": "src/cohezion/skills/resource_management.md",
-    "version": "v1.0"
-  },
-  "sandboxed_simulation": {
-    "concepts": [],
-    "see_also": [],
-    "source": "src/cohezion/skills/sandboxed_simulation.md",
-    "version": "v1.0"
-  },
-  "self_evaluation": {
-    "concepts": [],
-    "see_also": [],
-    "source": "src/cohezion/skills/self_evaluation.md",
-    "version": "v1.0"
-  },
-  "semantic_algebra": {
-    "concepts": [],
-    "see_also": [],
-    "source": "src/cohezion/skills/semantic_algebra.md",
-    "version": "v1.0"
-  },
-  "semantic_analysis": {
-    "concepts": [],
-    "see_also": [],
-    "source": "src/cohezion/skills/semantic_analysis.md",
-    "version": "v1.0"
-  },
-  "skill_generator": {
-    "concepts": [],
-    "see_also": [],
-    "source": "src/cohezion/skills/skill_generator.md",
-    "version": "v1.0"
-  },
-  "smart_routing": {
-    "concepts": [],
-    "see_also": [],
-    "source": "src/cohezion/skills/smart_routing.md",
-    "version": "v1.0"
-  },
-  "swarm_orchestration": {
-    "concepts": [],
-    "see_also": [],
-    "source": "src/cohezion/skills/swarm_orchestration.md",
-    "version": "v1.0"
-  },
-  "swarm_synthesis": {
-    "concepts": [],
-    "see_also": [],
-    "source": "src/cohezion/skills/swarm_synthesis.md",
-    "version": "v1.0"
-  },
-  "test_automation": {
-    "concepts": [],
-    "see_also": [],
-    "source": "src/cohezion/skills/test_automation.md",
-    "version": "v1.0"
-  },
-  "universe_physics": {
-    "concepts": [],
-    "see_also": [],
-    "source": "src/cohezion/skills/universe_physics.md",
-    "version": "v1.0"
-  },
-  "visual_validation": {
-    "concepts": [],
-    "see_also": [],
-    "source": "src/cohezion/skills/visual_validation.md",
-    "version": "v1.0"
+  "SURGICAL_COMMIT_UNDER_CHURN_PRIME": {
+    "version": "v1.0 (2026-04-22)",
+    "concepts": [
+      "Surgical commits",
+      "Pre-commit stash/restore",
+      "Learning 363",
+      "Learning 368",
+      "High-churn working tree",
+      "Git atomic commits"
+    ],
+    "see_also": [
+      "COHEZION_VAULT_WORKFLOW_PRIME",
+      "COMPOUND_ENGINEERING_PRIME"
+    ],
+    "source": "src/cohezion/skills/SURGICAL_COMMIT_UNDER_CHURN_PRIME.md"
   }
 }

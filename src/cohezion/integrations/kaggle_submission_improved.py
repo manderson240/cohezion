@@ -64,9 +64,21 @@ class KaggleSubmissionOrchestrator:
         with open(notebook_path) as f:
             notebook_code = f.read()
 
-        model_sources = ["metric/nemotron-3-nano-30b-a3b-bf16/transformers/default/1"]
+        model_sources = [
+            "metric/nemotron-3-nano-30b-a3b-bf16/Transformers/default/1",
+            "deepseek-ai/deepseek-r1-distill-qwen-7b/PyTorch/default/1",
+        ]
+        dataset_sources = [
+            "prabhpreetsingh5/nemotron-trl-wheels",
+            "ayodejiibrahimlateef/nemotron-causal-conv1d-1-6-1-mamba-ssm-2-3-1",
+            "naileafalcon/kanish-wheels-py312",
+        ]
         result = await self.api.push_notebook(
-            notebook_id, notebook_code, competition_id=competition_id, model_sources=model_sources
+            notebook_id,
+            notebook_code,
+            competition_id=competition_id,
+            model_sources=model_sources,
+            dataset_sources=dataset_sources,
         )
 
         logger.info(f"Flow complete! Notebook pushed: {result.get('url')}")

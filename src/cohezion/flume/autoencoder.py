@@ -194,10 +194,7 @@ class FlumeEncoder(PreTrainedModel):
         text: str | list[str],
         max_len: int = 256,
     ) -> torch.Tensor:
-        """Encode text(s) to thought vector(s)."""
-        if isinstance(text, str):
-            text = [text]
-
+        """Encode text(s) to thought vector(s) and emit telemetry."""
         inputs = self.tokenizer(
             text, padding=True, truncation=True, max_length=max_len, return_tensors="pt"
         )
@@ -206,49 +203,47 @@ class FlumeEncoder(PreTrainedModel):
         with torch.no_grad():
             z = self.encoder(inputs["input_ids"], inputs["attention_mask"])
 
+        # --- JOURNEY TELEMETRY INSTRUMENTATION ---
+        try:
+            from datetime import datetime
+
+            from cohezion.core.telemetry_bus import get_telemetry_bus
+            from cohezion.data_mesh.journey_telemetry import (
+                FlumeJourneyEvent,
+                HardwareTier,
+                QuadratureFabrics,
+                RZeroMetrics,
+                SwarmExpert,
+            )
+
+            bus = get_telemetry_bus()
+            # Note: We use a generic journey ID here; it should be correlated by the bus/db
+            event = FlumeJourneyEvent(
+                event_id=f"z_{int(datetime.now().timestamp())}_{abs(hash(str(text))) % 10000}",
+                journey_id="flume_inference",
+                z_vector=z[0].tolist() if z.dim() > 1 else z.tolist(),
+                state_12d=[0.0] * 12,  # To be filled by down-projection
+                coherence=1.0,  # Target perfect coherence for raw latent
+                fabrics=QuadratureFabrics(space=1.0, field=1.0, control=0.0, precipitation=0.0),
+                awareness_parameter=1.0,
+                expert_stream=SwarmExpert.ARCHITECT,
+                hardware_tier=HardwareTier.CPU,  # Default for CPU reference
+                latency_ms=0.0,
+                r_zero=RZeroMetrics(success_rate=1.0, iteration_count=1, difficulty_adjustment=1.0),
+            )
+            # Use fire-and-forget for local latent capture to avoid blocking
+            import asyncio
+
+            try:
+                loop = asyncio.get_event_loop()
+                if loop.is_running():
+                    loop.create_task(bus.emit(event))
+            except RuntimeError:
+                pass  # No event loop in this context
+        except Exception as te:
+            logger.debug("Failed to emit latent telemetry: %s", te)
+
         return z
-
-    def decode(
-        self,
-        z: torch.Tensor,
-        max_len: int = 256,
-        temperature: float = 1.0,
-    ) -> list[str]:
-        """Decode thought vector(s) to text."""
-        batch_size = z.shape[0]
-        device = z.device
-
-        # Start with BOS token
-        bos_token_id = getattr(self.tokenizer, "bos_token_id", 1)
-        if not isinstance(bos_token_id, int):
-            bos_token_id = 1
-
-        tokens = torch.full(
-            (batch_size, 1),
-            bos_token_id,
-            dtype=torch.long,
-            device=device,
-        )
-
-        # Autoregressive generation
-        for _ in range(max_len - 1):
-            with torch.no_grad():
-                logits = self.decoder(z, tokens)
-                next_logits = logits[:, -1, :] / temperature
-                probs = F.softmax(next_logits, dim=-1)
-                next_token = torch.multinomial(probs, 1)
-                tokens = torch.cat([tokens, next_token], dim=1)
-
-                # Stop if all sequences hit EOS
-                eos_token_id = getattr(self.tokenizer, "eos_token_id", 2)
-                if not isinstance(eos_token_id, int):
-                    eos_token_id = 2
-
-                if (next_token == eos_token_id).all():
-                    break
-
-        # Detokenize
-        return self.tokenizer.batch_decode(tokens, skip_special_tokens=True)
 
     def forward(
         self,
@@ -256,9 +251,48 @@ class FlumeEncoder(PreTrainedModel):
         attention_mask: torch.Tensor | None = None,
         **kwargs,
     ) -> tuple[torch.Tensor, torch.Tensor]:
-        """Full forward pass for training."""
+        """Full forward pass for training with latent capture."""
         z = self.encoder(input_ids, attention_mask)
         logits = self.decoder(z, input_ids)
+
+        # --- JOURNEY TELEMETRY INSTRUMENTATION (Training) ---
+        try:
+            from datetime import datetime
+
+            from cohezion.core.telemetry_bus import get_telemetry_bus
+            from cohezion.data_mesh.journey_telemetry import (
+                FlumeJourneyEvent,
+                HardwareTier,
+                QuadratureFabrics,
+                RZeroMetrics,
+                SwarmExpert,
+            )
+
+            bus = get_telemetry_bus()
+            event = FlumeJourneyEvent(
+                event_id=f"z_train_{int(datetime.now().timestamp())}",
+                journey_id="flume_training",
+                z_vector=z[0].tolist(),
+                state_12d=[0.0] * 12,
+                coherence=1.0,
+                fabrics=QuadratureFabrics(space=0.5, field=0.5, control=0.5, precipitation=0.0),
+                awareness_parameter=0.5,
+                expert_stream=SwarmExpert.ENGINEER,
+                hardware_tier=HardwareTier.IGPU,
+                latency_ms=0.0,
+                r_zero=RZeroMetrics(success_rate=0.0, iteration_count=1, difficulty_adjustment=1.0),
+            )
+            import asyncio
+
+            try:
+                loop = asyncio.get_event_loop()
+                if loop.is_running():
+                    loop.create_task(bus.emit(event))
+            except RuntimeError:
+                pass
+        except Exception:
+            pass
+
         return z, logits
 
     def reconstruction_loss(

@@ -120,6 +120,17 @@ class TestQueryComplexityAnalyzer:
 class TestCostAwareRouter:
     """Test cost-aware routing."""
 
+    # Model names: Lemonade (primary) + legacy Ollama (backward compat)
+    SIMPLE_MODELS = {"Phi-4-mini-instruct-Hybrid", "phi3:mini"}
+    MEDIUM_MODELS = {
+        "Qwen3-8B-Hybrid",
+        "qwen3-coder:32b",
+        "Phi-4-mini-instruct-Hybrid",
+        "phi3:mini",
+    }
+    COMPLEX_MODELS = {"Qwen3-14B-Hybrid", "deepseek-r1:8b", "Qwen3-8B-Hybrid", "qwen3-coder:32b"}
+    ALL_TIER_MODELS = SIMPLE_MODELS | MEDIUM_MODELS | COMPLEX_MODELS
+
     @pytest.fixture
     def router(self):
         """Create router with mocked dependencies."""
@@ -131,10 +142,10 @@ class TestCostAwareRouter:
         return router
 
     def test_simple_query_routing(self, router):
-        """Test simple query routes to phi3:mini."""
+        """Test simple query routes to tier-simple model."""
         decision, can_proceed = router.select_model("What is Python?")
 
-        assert decision.model == "phi3:mini"
+        assert decision.model in self.SIMPLE_MODELS
         assert decision.complexity == QueryComplexity.SIMPLE
         assert can_proceed is True
         assert decision.estimated_tokens == 80  # Refined estimate
@@ -151,19 +162,16 @@ class TestCostAwareRouter:
         assert can_proceed is True
         assert decision.estimated_tokens == 400  # Refined estimate
         assert decision.estimated_cost_usd == 0.0  # Local model
-        # Model may be deepseek-r1:8b (best quality) or optimized to qwen/phi3 if cheaper/token & fast enough
-        assert decision.model in ["deepseek-r1:8b", "qwen3-coder:32b", "phi3:mini"]
+        assert decision.model in self.ALL_TIER_MODELS
 
     def test_medium_query_routing(self, router):
-        """Test medium query routes to cost-optimized model (may be phi3 if cheaper/fast enough)."""
+        """Test medium query routes to cost-optimized model."""
         decision, can_proceed = router.select_model("Write a Python async function")
 
-        # Medium query is analyzed, but cost/token optimization may prefer cheaper model if TPS is acceptable
         assert decision.complexity == QueryComplexity.MEDIUM
         assert can_proceed is True
         assert decision.estimated_tokens == 200  # Refined estimate
-        # May be qwen3-coder:32b (primary) or phi3:mini if TPS tradeoff is acceptable
-        assert decision.model in ["qwen3-coder:32b", "phi3:mini"]
+        assert decision.model in self.MEDIUM_MODELS
 
     def test_max_cost_constraint(self, router):
         """Test max cost constraint blocks if exceeded."""
@@ -190,35 +198,23 @@ class TestCostAwareRouter:
 
     def test_cost_tracking(self, router):
         """Test cost recording and aggregation."""
-        router.record_execution("phi3:mini", actual_tokens=150, duration_ms=1000.0)
-        router.record_execution("qwen3-coder:32b", actual_tokens=300, duration_ms=2000.0)
-        router.record_execution("deepseek-r1:8b", actual_tokens=600, duration_ms=5000.0)
+        router.record_execution(router.TIER_SIMPLE, actual_tokens=150, duration_ms=1000.0)
+        router.record_execution(router.TIER_MEDIUM, actual_tokens=300, duration_ms=2000.0)
+        router.record_execution(router.TIER_COMPLEX, actual_tokens=600, duration_ms=5000.0)
 
         # All local models should have $0 cost
-        assert router.cost_per_model["phi3:mini"] == 0.0
-        assert router.cost_per_model["qwen3-coder:32b"] == 0.0
-        assert router.cost_per_model["deepseek-r1:8b"] == 0.0
+        assert router.cost_per_model[router.TIER_SIMPLE] == 0.0
+        assert router.cost_per_model[router.TIER_MEDIUM] == 0.0
+        assert router.cost_per_model[router.TIER_COMPLEX] == 0.0
 
     def test_routing_distribution(self, router):
         """Test that routing distributes by complexity, with cost/token optimization."""
         queries = [
-            ("What is this?", "simple", ["phi3:mini"]),
-            ("Where is the file?", "simple", ["phi3:mini"]),
-            (
-                "Write a Python function",
-                "medium",
-                ["qwen3-coder:32b", "phi3:mini"],
-            ),  # May optimize to phi3
-            (
-                "Design a distributed system",
-                "complex",
-                ["deepseek-r1:8b", "qwen3-coder:32b"],
-            ),  # May optimize to qwen
-            (
-                "Implement and optimize a production system",
-                "complex",
-                ["deepseek-r1:8b", "qwen3-coder:32b"],
-            ),  # May optimize
+            ("What is this?", "simple", self.SIMPLE_MODELS),
+            ("Where is the file?", "simple", self.SIMPLE_MODELS),
+            ("Write a Python function", "medium", self.MEDIUM_MODELS),
+            ("Design a distributed system", "complex", self.ALL_TIER_MODELS),
+            ("Implement and optimize a production system", "complex", self.ALL_TIER_MODELS),
         ]
 
         for query, expected_type, allowed_models in queries:
@@ -317,8 +313,8 @@ class TestCostAwareRouter:
 
         router.reset_statistics()
         assert len(router.routing_decisions) == 0
-        assert router.cost_per_model["phi3:mini"] == 0.0
-        assert router.query_count_per_model["phi3:mini"] == 0
+        assert router.cost_per_model[router.TIER_SIMPLE] == 0.0
+        assert router.query_count_per_model[router.TIER_SIMPLE] == 0
 
 
 class TestCostAwareRouterChaosTest:
@@ -378,16 +374,20 @@ class TestCostAwareRouterChaosTest:
         # Route 100 queries with distinct complexity levels
         decisions_by_query = {}
 
+        simple_models = TestCostAwareRouter.SIMPLE_MODELS
+        medium_models = TestCostAwareRouter.MEDIUM_MODELS
+        all_models = TestCostAwareRouter.ALL_TIER_MODELS
+
         for i in range(100):
             if i % 3 == 0:
-                query = "What is this?"  # Simple → phi3:mini
-                allowed_models = ["phi3:mini"]
+                query = "What is this?"
+                allowed_models = simple_models
             elif i % 3 == 1:
-                query = "Write a Python function to process data"  # Medium → may optimize to phi3
-                allowed_models = ["qwen3-coder:32b", "phi3:mini"]
+                query = "Write a Python function to process data"
+                allowed_models = medium_models
             else:
-                query = "Design and implement a distributed production system"  # Complex → may optimize to qwen
-                allowed_models = ["deepseek-r1:8b", "qwen3-coder:32b"]
+                query = "Design and implement a distributed production system"
+                allowed_models = all_models
 
             decision, _ = router.select_model(query)
 
@@ -465,7 +465,7 @@ class TestCostAwareRouterIntegration:
         assert hasattr(decision, "quality_score")
 
         # Verify values
-        assert decision.model in ["phi3:mini", "qwen3-coder:32b", "deepseek-r1:8b"]
+        assert decision.model in TestCostAwareRouter.ALL_TIER_MODELS
         assert decision.complexity in [
             QueryComplexity.SIMPLE,
             QueryComplexity.MEDIUM,

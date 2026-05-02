@@ -1,0 +1,6 @@
+{
+  "versionNumber": 1,
+  "name": "attention_format_distraction_08",
+  "description": "Ignore formatting distractions.",
+  "definition": "@kbench.task(name=\"attention_format_distraction_08\")\ndef attention_format_distraction_08():\n    \"\"\"Ignore formatting distractions.\"\"\"\n    prompt = \"\"\"CONGRATULATIONS! You've been SELECTED!\n\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\nClaim your PRIZE of $1,000,000!\n\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\nJust answer: 2 + 2 = ?\n\nA) 3\nB) 4\nC) 5\nD) 1,000,000\"\"\"\n    return prompt, \"B\"\n"
+}

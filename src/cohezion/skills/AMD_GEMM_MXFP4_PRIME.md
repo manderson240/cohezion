@@ -1,3 +1,8 @@
+---
+name: amd-gemm-mxfp4-prime
+description: "MXFP4 GEMM kernel optimization for AMD MI355X (gfx950). Target: <10us from 22.8us baseline."
+---
+
 # SKILL: AMD_GEMM_MXFP4_PRIME
 
 ## DOMAIN EXPERTISE

@@ -1,0 +1,82 @@
+"""
+Resource Guard - Protects the system from resource exhaustion during agentic tasks.
+Enforces limits on CPU load and RAM usage.
+"""
+
+import asyncio
+import logging
+import os
+from dataclasses import dataclass
+
+import psutil
+
+
+logger = logging.getLogger(__name__)
+
+
+@dataclass
+class SystemVitals:
+    cpu_load_1m: float
+    ram_available_mb: int
+    ram_percent: float
+    swap_used_mb: int
+
+
+class ResourceGuard:
+    """
+    Monitors system vitals and provides a 'throttle' for resource-intensive tasks.
+    """
+
+    def __init__(
+        self,
+        max_cpu_load: float = 24.0,
+        min_ram_available_mb: int = 16384,  # 16GB
+        max_ram_percent: float = 90.0,
+    ) -> None:
+        self.max_cpu_load = max_cpu_load
+        self.min_ram_available_mb = min_ram_available_mb
+        self.max_ram_percent = max_ram_percent
+
+    def get_vitals(self) -> SystemVitals:
+        """Get current system metrics."""
+        load_avg = os.getloadavg()[0]  # 1-minute load average
+        virtual_mem = psutil.virtual_memory()
+        swap_mem = psutil.swap_memory()
+
+        return SystemVitals(
+            cpu_load_1m=load_avg,
+            ram_available_mb=virtual_mem.available // (1024 * 1024),
+            ram_percent=virtual_mem.percent,
+            swap_used_mb=swap_mem.used // (1024 * 1024),
+        )
+
+    def is_healthy(self) -> tuple[bool, str]:
+        """Check if system is healthy enough for extra load."""
+        vitals = self.get_vitals()
+
+        if vitals.cpu_load_1m > self.max_cpu_load:
+            return False, f"CPU load too high: {vitals.cpu_load_1m}"
+
+        if vitals.ram_available_mb < self.min_ram_available_mb:
+            return False, f"RAM available too low: {vitals.ram_available_mb}MB"
+
+        if vitals.ram_percent > self.max_ram_percent:
+            return False, f"RAM usage too high: {vitals.ram_percent}%"
+
+        return True, "System healthy"
+
+    async def wait_for_stability(self, timeout_seconds: int = 300, check_interval: int = 5) -> bool:
+        """Wait until system stabilizes or timeout occurs."""
+        start_time = asyncio.get_event_loop().time()
+
+        while True:
+            healthy, reason = self.is_healthy()
+            if healthy:
+                return True
+
+            if (asyncio.get_event_loop().time() - start_time) > timeout_seconds:
+                logger.error(f"ResourceGuard timeout: {reason}")
+                return False
+
+            logger.warning(f"Throttling: {reason}. Waiting {check_interval}s...")
+            await asyncio.sleep(check_interval)

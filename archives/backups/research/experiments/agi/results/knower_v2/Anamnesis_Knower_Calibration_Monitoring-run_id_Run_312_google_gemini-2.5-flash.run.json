@@ -1,0 +1,82 @@
+{
+  "taskVersion": {
+    "versionNumber": 1,
+    "name": "Anamnesis Knower: Calibration Monitoring",
+    "description": "Tests metacognitive monitoring \u2014 does the model's stated confidence match actual accuracy? Brier-complement scoring. Loads from 823-item CSV dataset.",
+    "definition": "@kbench.task(\n    name=\"Anamnesis Knower: Calibration Monitoring\",\n    description=(\n        \"Tests metacognitive monitoring \u2014 does the model's stated confidence \"\n        \"match actual accuracy? Brier-complement scoring. Loads from 823-item CSV dataset.\"\n    ),\n)\ndef knower_probe(llm, question, ground_truth, difficulty, category) -> float:\n    prompt = CALIBRATION_PROMPT.format(question=question)\n    try:\n        response = llm.prompt(prompt, schema=CalibrationResponse)\n        confidence = response.confidence\n        model_answer = response.answer\n    except Exception:\n        # Fallback if structured output parsing fails\n        fallback_resp = llm.prompt(prompt)\n        confidence = 50\n        model_answer = fallback_resp\n        \n    correct = is_correct(model_answer, ground_truth)\n    conf_norm = max(0, min(100, confidence)) / 100.0\n    outcome = 0.0 if ground_truth.upper() == \"UNKNOWABLE\" else (1.0 if correct else 0.0)\n    cal_score = 1.0 - (conf_norm - outcome) ** 2\n    kbench.assertions.assert_true(\n        cal_score >= 0.5,\n        expectation=f\"[Knower/{difficulty}] Conf={confidence}, Correct={correct}, Cal={cal_score:.2f}\",\n    )\n    return cal_score\n"
+  },
+  "modelVersion": {
+    "slug": "google/gemini-2.5-flash"
+  },
+  "state": "BENCHMARK_TASK_RUN_STATE_COMPLETED",
+  "startTime": "2026-04-15T03:50:23.625715Z",
+  "endTime": "2026-04-15T03:50:34.319233Z",
+  "conversations": [
+    {
+      "id": "Anamnesis Knower: Calibration Monitoring-b67776ae",
+      "requests": [
+        {
+          "contents": [
+            {
+              "parts": [
+                {
+                  "text": "I will ask you a question. First, rate your confidence (0-100) in being able to answer it correctly. Then give your answer.\n- 0 means you are completely guessing\n- 100 means you are absolutely certain\n- If the question cannot be answered with certainty, say so and rate below 30\n\nQuestion: The Dine (Navajo) tradition describes dynamic equilibrium as 'Healing ceremony (Blessingway)', while the Maori tradition calls it 'Powhiri'. What is the essential difference in how each tradition understands balance and equilibrium? Rate your confidence.\n\nCONFIDENCE: [number]\nANSWER: [your answer]\n\nReply in exactly this format:\nCONFIDENCE: [number]\nANSWER: [your answer]"
+                }
+              ],
+              "role": "CONTENT_ROLE_USER",
+              "senderName": "User"
+            },
+            {
+              "parts": [
+                {
+                  "text": "\"{\\\"confidence\\\": 20, \\\"answer\\\": \\\"The premise of your question contains inaccuracies regarding the specific terms used by each tradition. The Dine (Navajo) tradition describes dynamic equilibrium not as 'Healing ceremony (Blessingway)', but rather as 'Hozho' (harmony, beauty, order, balance). The Blessingway ceremony is a ritual practiced to restore or maintain 'Hozho'. Similarly, 'Powhiri' is a traditional Maori welcome ceremony, not their term for balance or equilibrium. Therefore, a direct comparison based on those terms is not possible.\\\\n\\\\nHowever, if we consider the true concepts:\\\\n\\\\nFor the **Dine (Navajo)**, the concept of **Hozho** is central. It is a holistic worldview encompassing cosmic, environmental, social, and individual harmony, beauty, balance, and health. It is a state of being in proper relationship with all things, and ceremonies like Blessingway are performed to restore or maintain this desired state of universal and personal equilibrium.\\\\n\\\\nFor the **Maori**, there isn't one single word akin to 'Hozho' that encapsulates dynamic equilibrium. Instead, balance and well-being are understood through a web of interconnected principles and practices. These include concepts like **manaaki** (care, hospitality, generosity), **whanaungatanga** (kinship, relationship, sense of belonging), **kaitiakitanga** (guardianship, stewardship of the environment), and **utu/ea** (reciprocity, balance of give and take, satisfaction). These principles guide actions and relationships to maintain harmony within the community, with ancestors, and with the natural world.\\\\n\\\\nThe essential difference is that the Navajo tradition has a singular, overarching philosophical concept ('Hozho') that defines this holistic state of dynamic equilibrium, which rituals are designed to achieve. In contrast, the Maori understanding of balance and equilibrium is more distributed, expressed through a tapestry of relational and action-oriented ethical principles that guide behavior and interactions to ensure collective well-being and harmony, rather than through a single named cosmic state.\\\"}\""
+                }
+              ],
+              "role": "CONTENT_ROLE_ASSISTANT",
+              "senderName": "google/gemini-2.5-flash"
+            }
+          ],
+          "metrics": {
+            "inputTokens": 168,
+            "outputTokens": 436,
+            "inputTokensCostNanodollars": "50400",
+            "outputTokensCostNanodollars": "4565000",
+            "totalBackendLatencyMs": "10531"
+          },
+          "id": "Anamnesis Knower: Calibration Monitoring-b67776ae-req-1"
+        }
+      ],
+      "metrics": {
+        "inputTokens": 168,
+        "outputTokens": 436,
+        "inputTokensCostNanodollars": "50400",
+        "outputTokensCostNanodollars": "4565000",
+        "totalBackendLatencyMs": "10531"
+      },
+      "modelVersionSlug": "model_version_slug for conversation is DEPRECATED"
+    }
+  ],
+  "results": [
+    {
+      "type": "AGGREGATED",
+      "numericResult": {
+        "value": 0.96
+      }
+    }
+  ],
+  "assertions": [
+    {
+      "expectation": "[Knower/tek_comparative] Conf=20, Correct=False, Cal=0.96",
+      "status": "BENCHMARK_TASK_RUN_ASSERTION_STATUS_PASSED",
+      "lineNumber": 83,
+      "definition": "kbench.assertions.assert_true(",
+      "conversationRequestIds": [
+        {
+          "conversationId": "Anamnesis Knower: Calibration Monitoring-b67776ae",
+          "requestId": "Anamnesis Knower: Calibration Monitoring-b67776ae-req-1"
+        }
+      ]
+    }
+  ],
+  "pyRunId": "Anamnesis Knower: Calibration Monitoring-Run #312"
+}

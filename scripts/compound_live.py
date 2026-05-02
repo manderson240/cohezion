@@ -149,7 +149,9 @@ async def run_live_cycle(
     history = inflection.get_history()
     print(f"\n[5/6] Inflection events: {len(history)}")
     for evt in history:
-        print(f"  [{evt['severity']}] {evt['event_type']}: {json.dumps(evt['details'], default=str)[:100]}")
+        print(
+            f"  [{evt['severity']}] {evt['event_type']}: {json.dumps(evt['details'], default=str)[:100]}"
+        )
 
     # --- Step 6: Token metrics ---
     metrics = token_client.get_metrics()

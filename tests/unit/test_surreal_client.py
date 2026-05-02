@@ -173,7 +173,7 @@ class TestSurrealClientInit:
         client = SurrealClient()
         assert client.url == "ws://localhost:8000/rpc"
         assert client.namespace == "cohezion"
-        assert client.database == "universe"
+        assert client.database == "vault"
         assert client._connected is False
 
     def test_custom_params(self):

@@ -1,3 +1,11 @@
+---
+name: system-guardrails-prime
+description: "Unified guardrail framework protecting all LLM inference operations with composable pipeline orchestration."
+metadata:
+  version: "1.0"
+  source: "src/cohezion/skills/SYSTEM_GUARDRAILS_PRIME.md"
+---
+
 # PRIME Skill: System Guardrails
 
 ## Purpose

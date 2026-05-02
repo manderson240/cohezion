@@ -1,0 +1,61 @@
+# Page snapshot
+
+```yaml
+- generic [ref=e3]:
+  - navigation [ref=e4]:
+    - generic [ref=e5]:
+      - link "BACK TO PORTFOLIO" [ref=e6] [cursor=pointer]:
+        - /url: /portfolio
+        - img [ref=e7]
+        - text: BACK TO PORTFOLIO
+      - generic [ref=e9]:
+        - button "DEMO" [ref=e10]
+        - button "EXPLANATION" [ref=e11]
+        - link "BLOG POST" [ref=e12] [cursor=pointer]:
+          - /url: /portfolio/blog/flume-vae
+          - img [ref=e13]
+          - text: BLOG POST
+  - generic [ref=e15]:
+    - generic [ref=e16]:
+      - generic [ref=e17]: "PILLAR #1 — CONTINUOUS LATENT NAVIGATION"
+      - heading "FLUME VAE." [level=1] [ref=e18]
+      - paragraph [ref=e19]: Navigate a 256-dimensional software state space through continuous latent embeddings. Trained on git commit histories to enable smooth interpolation between discrete code snapshots.
+    - generic [ref=e20]:
+      - generic [ref=e21]: INITIALIZING FLUME NAVIGATOR...
+      - generic [ref=e22]:
+        - generic [ref=e23]:
+          - generic [ref=e24]: 256D
+          - generic [ref=e25]: Input Dimension
+          - generic [ref=e26]: Software state vectors
+        - generic [ref=e27]:
+          - generic [ref=e28]: ~32D
+          - generic [ref=e29]: Latent Dimension
+          - generic [ref=e30]: Compressed representation
+        - generic [ref=e31]:
+          - generic [ref=e32]: ∞
+          - generic [ref=e33]: Continuous Space
+          - generic [ref=e34]: Smooth interpolation
+      - generic [ref=e35]:
+        - heading "How to Use This Demo" [level=2] [ref=e36]
+        - generic [ref=e37]:
+          - generic [ref=e38]:
+            - generic [ref=e39]: "1."
+            - generic [ref=e40]:
+              - strong [ref=e41]: "Explore the Point Cloud:"
+              - text: Each point represents a sample from the VAE's latent space. Colors indicate coherence (blue = low, green = medium, yellow/red = high).
+          - generic [ref=e42]:
+            - generic [ref=e43]: "2."
+            - generic [ref=e44]:
+              - strong [ref=e45]: "Adjust Sample Count:"
+              - text: Use the slider to change the number of points rendered. More samples = denser visualization, but slower rendering.
+          - generic [ref=e46]:
+            - generic [ref=e47]: "3."
+            - generic [ref=e48]:
+              - strong [ref=e49]: "Navigate in 3D:"
+              - text: Drag to rotate, scroll to zoom, right-click to pan. The point cloud slowly rotates when not interacting.
+          - generic [ref=e50]:
+            - generic [ref=e51]: "4."
+            - generic [ref=e52]:
+              - strong [ref=e53]: "Click Points:"
+              - text: (Coming soon) Click individual points to see their latent coordinates and decode them back to 256D space.
+```

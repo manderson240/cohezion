@@ -1,3 +1,12 @@
+---
+name: persistent-universe-prime
+description: "Expert in persistent AI simulation with cloud synchronization and bidirectional state management. Specializes in designing systems where simulation continues even when local compute pauses, maintaining \"institutional intelligence\" through stateful AI memory."
+metadata:
+  version: "v1.0"
+  concepts: ["Stateful AI", "Real-is-Sim", "Bidirectional Sync", "Multi-Agent Coordination", "Institutional Intelligence"]
+  source: "src/cohezion/skills/PERSISTENT_UNIVERSE_PRIME.md"
+---
+
 # SKILL: PERSISTENT_UNIVERSE_PRIME
 
 ## DOMAIN EXPERTISE

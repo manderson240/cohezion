@@ -1,3 +1,12 @@
+---
+name: visualization-prime
+description: "Expertise in high-dimensional (12D) data visualization and interactive explainability. Specializes in mapping abstract PhysicsState vectors (Mass, Complexity, Sentiment, etc.) to intuitive, multi-modal interfaces using Plotly, Radar charts, and PCA projections."
+metadata:
+  version: "v0.1"
+  concepts: ["PCA (Principal Component Analysis)", "Radar (Spider) Charts", "Color Encoding", "Interactive Widgets"]
+  source: "src/cohezion/skills/VISUALIZATION_PRIME.md"
+---
+
 # SKILL: VISUALIZATION_PRIME
 
 ## DOMAIN EXPERTISE

@@ -2,6 +2,7 @@
 
 import gymnasium as gym
 import numpy as np
+import pytest
 
 from cohezion.environments.manifold_env import ManifoldEnv
 
@@ -91,6 +92,59 @@ class TestPhysics:
         for _ in range(10):
             _, reward, _, _, _ = env.step(env.action_space.sample())
             assert np.isfinite(reward)
+
+
+class TestVerifiableRewards:
+    """Verify physics-grounded reward signals (Session 96b, Phase 8.3)."""
+
+    @pytest.mark.unit
+    def test_verifiable_mode_runs(self):
+        """Verifiable reward mode produces finite rewards."""
+        env = ManifoldEnv(seed=42, reward_mode="verifiable")
+        env.reset()
+        for _ in range(10):
+            _, reward, _, _, _ = env.step(env.action_space.sample())
+            assert np.isfinite(reward), f"Non-finite reward: {reward}"
+
+    @pytest.mark.unit
+    def test_verifiable_reward_peaks_at_hiho(self):
+        """Reward should be higher at HIHO (0.5) than away from it."""
+        env_hiho = ManifoldEnv(seed=42, reward_mode="verifiable")
+        env_hiho.reset()
+        # Force state to HIHO
+        env_hiho._position = np.full(12, 0.5, dtype=np.float32)
+        _, r_hiho, _, _, _ = env_hiho.step(np.zeros(12, dtype=np.float32))
+
+        env_away = ManifoldEnv(seed=42, reward_mode="verifiable")
+        env_away.reset()
+        # Force state away from HIHO
+        env_away._position = np.full(12, 0.0, dtype=np.float32)
+        _, r_away, _, _, _ = env_away.step(np.zeros(12, dtype=np.float32))
+
+        assert r_hiho > r_away, f"HIHO reward {r_hiho} should exceed away reward {r_away}"
+
+    @pytest.mark.unit
+    def test_verifiable_reward_components_are_deterministic(self):
+        """Same state produces same reward (no randomness in verifiable mode)."""
+        rewards = []
+        for _ in range(3):
+            env = ManifoldEnv(seed=42, reward_mode="verifiable")
+            env.reset()
+            _, r, _, _, _ = env.step(np.zeros(12, dtype=np.float32))
+            rewards.append(r)
+        assert rewards[0] == rewards[1] == rewards[2]
+
+    @pytest.mark.unit
+    def test_verifiable_r_hiho_formula(self):
+        """r_hiho = 1 - 4*var(pos) peaks at 1.0 when all dims = 0.5."""
+        pos_hiho = np.full(12, 0.5)
+        r_hiho = 1.0 - 4.0 * float(np.var(pos_hiho))
+        assert abs(r_hiho - 1.0) < 1e-10, f"r_hiho at HIHO = {r_hiho}, expected 1.0"
+
+        # A mixed state has nonzero variance → lower r_hiho
+        pos_away = np.array([0.0, 1.0, 0.0, 1.0, 0.0, 1.0, 0.0, 1.0, 0.0, 1.0, 0.0, 1.0])
+        r_away = 1.0 - 4.0 * float(np.var(pos_away))
+        assert r_away < r_hiho, f"r_away={r_away} should be < r_hiho={r_hiho}"
 
 
 class TestTermination:

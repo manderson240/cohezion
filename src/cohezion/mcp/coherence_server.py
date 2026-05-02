@@ -16,10 +16,8 @@ Tools:
 from __future__ import annotations
 
 import asyncio
-import datetime
 import json
 import logging
-import re
 import sys
 from pathlib import Path
 from typing import Any
@@ -52,7 +50,7 @@ async def get_mcp() -> MCPClient:
     """Get or create MCP client."""
     global _mcp_client
     if _mcp_client is None:
-        _mcp_client = await get_mcp_client()
+        _mcp_client = get_mcp_client()
     return _mcp_client
 
 
@@ -474,43 +472,19 @@ async def _query_patterns(arguments: dict[str, Any]) -> list[TextContent]:
     return [TextContent(type="text", text=json.dumps(result, indent=2))]
 
 
-_SKILL_NAME_RE = re.compile(r"^[a-zA-Z0-9_\-]+$")
-_FENCE_RE = re.compile(r"`{3,}")
-
-
 async def _refine_skill(arguments: dict[str, Any]) -> list[TextContent]:
-    """Append pattern to PRIME skill.
-
-    SECURITY (Ω12 Patch 5, Ω6 HIGH-3):
-    - Reject empty / non-conforming skill_name (prevents empty-string-matches-everything bug).
-    - Require exact filename match (substring-in-stem allowed widening of target set).
-    - Sanitize code_example so attacker-supplied backticks cannot close the fenced
-      block and escape into the markdown body (indirect prompt-injection vector).
-    """
-    skill_name = arguments.get("skill_name", "").strip() if arguments.get("skill_name") else ""
+    """Append pattern to PRIME skill."""
+    skill_name = arguments.get("skill_name", "")
     pattern = arguments.get("pattern", {})
 
-    # Reject empty / non-conforming skill_name
-    if not skill_name or not _SKILL_NAME_RE.match(skill_name):
-        return [
-            TextContent(
-                type="text",
-                text=json.dumps(
-                    {
-                        "success": False,
-                        "error": f"Invalid skill_name: {skill_name!r} (must match {_SKILL_NAME_RE.pattern})",
-                    }
-                ),
-            )
-        ]
-
-    # Find skill file — EXACT filename match only.
+    # Find skill file
     skills_dir = Path("src/cohezion/skills")
     skill_file = None
 
-    candidate = skills_dir / f"{skill_name}.md"
-    if candidate.exists():
-        skill_file = candidate
+    for f in skills_dir.glob("*.md"):
+        if skill_name.lower() in f.stem.lower():
+            skill_file = f
+            break
 
     if not skill_file:
         return [
@@ -522,25 +496,17 @@ async def _refine_skill(arguments: dict[str, Any]) -> list[TextContent]:
             )
         ]
 
-    # Sanitize code_example: replace any ``` runs so the injected content cannot
-    # close our fenced block and escape into the markdown body.
-    code_example = str(pattern.get("code_example", ""))
-    code_example = _FENCE_RE.sub("​`​`​`", code_example)
-
-    # Provenance line — downstream skill loaders can use this marker to skip
-    # untrusted refinements when loading skill text into a system prompt.
-    timestamp = datetime.datetime.utcnow().isoformat() + "Z"
+    # Append refinement
     refinement = f"""
-<!-- COHEZION-REFINEMENT-UNTRUSTED START {timestamp} -->
-## Refinement {timestamp}
+## Refinement {asyncio.get_event_loop().time()}
 - Pattern: {pattern.get("name", "unknown")}
 - Confidence: {pattern.get("confidence", 0.0):.2f}
 - Coherence: {pattern.get("coherence", 0.0):.2f}
 
 ```
-{code_example}
+{pattern.get("code_example", "")}
 ```
-<!-- COHEZION-REFINEMENT-UNTRUSTED END -->
+
 """
 
     try:

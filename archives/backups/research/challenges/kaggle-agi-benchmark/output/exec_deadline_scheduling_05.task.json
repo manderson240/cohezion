@@ -1,0 +1,6 @@
+{
+  "versionNumber": 1,
+  "name": "exec_deadline_scheduling_05",
+  "description": "Schedule with deadlines.",
+  "definition": "@kbench.task(name=\"exec_deadline_scheduling_05\")\ndef exec_deadline_scheduling_05():\n    \"\"\"Schedule with deadlines.\"\"\"\n    prompt = \"\"\"Tasks with durations and deadlines:\n- T1: 2 hours, due in 5 hours\n- T2: 3 hours, due in 8 hours\n- T3: 1 hour, due in 3 hours\n- T4: 2 hours, due in 6 hours\n\nCan all be completed on time?\n\nA) Yes: T3, T1, T4, T2\nB) Yes: T1, T2, T3, T4\nC) No, impossible\nD) Need more information\"\"\"\n    return prompt, \"A\"\n"
+}

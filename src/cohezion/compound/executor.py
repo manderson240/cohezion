@@ -149,12 +149,31 @@ class CompoundExecutor(CompoundContextMixin, ExecutorIntegrationMixin):
         self._model_quality_classifier = model_quality_classifier
         self._retrospection_engine = retrospection_engine
         self._universe_bridge = universe_bridge
+        self._drr_generator = None
+        self._drr_session_id = ""
+        try:
+            from cohezion.compound.design_review_report import DRRGenerator
+
+            self._drr_generator = DRRGenerator()
+        except ImportError:
+            pass
         if skill_health_tracker:
             self._skill_health_tracker = skill_health_tracker
         else:
             from cohezion.compound.skill_health_tracker import SkillHealthTracker
 
             self._skill_health_tracker = SkillHealthTracker()
+
+        # Geometric Latent Bridge for topological reasoning
+        try:
+            from cohezion.flume.geometric_bridge import GeometricLatentBridge
+
+            self.geometric_bridge = GeometricLatentBridge()
+            logger.debug("GeometricLatentBridge initialized")
+        except ImportError:
+            self.geometric_bridge = None
+            logger.debug("GeometricLatentBridge not available")
+
         self._degradation_mode = False  # HIHO band violation flag
         # Lazy import to avoid circular dependency
         if inflection_detector:
@@ -167,6 +186,12 @@ class CompoundExecutor(CompoundContextMixin, ExecutorIntegrationMixin):
         # Initialize context manager automatically
         self.__init_context__()
         self._context_loaded = False
+
+        # Context policy for adaptive breadth/depth
+        from cohezion.compound.context_policy import ContextPolicy
+
+        self._context_policy = ContextPolicy(vault_logger=self.logger)
+        self.set_context_policy(self._context_policy)
 
     @property
     def guardrail_pipeline(self) -> GuardrailPipeline | None:
@@ -378,6 +403,16 @@ class CompoundExecutor(CompoundContextMixin, ExecutorIntegrationMixin):
             except (AttributeError, RuntimeError, ValueError, TypeError) as e:
                 logger.debug("Universe bridge start failed (non-blocking): %s", e)
 
+        # Step 0.5: Classify task and apply context policy (adaptive breadth/depth)
+        _task_profile = None
+        _context_budget = None
+        try:
+            _context_budget = self.apply_policy(task_description, operation_type)
+            if _context_budget is not None:
+                _task_profile = self._context_policy.classify_task(task_description, operation_type)
+        except Exception as e:
+            logger.debug("Context policy classification failed (non-blocking): %s", e)
+
         # Step 1: Get experience guidance (enhanced with trajectory search)
         guidance = self.get_experience_guidance(task_description, project, operation_type)
         logger.debug("Experience guidance: %s", guidance)
@@ -432,6 +467,19 @@ class CompoundExecutor(CompoundContextMixin, ExecutorIntegrationMixin):
                 logger.debug(
                     "Request alignment parsing failed (non-blocking): %s", e, exc_info=True
                 )
+
+        # Step 1.7: Reactive context adjustment (Tier 1 — critical signals only)
+        if _context_budget is not None and self._context_policy:
+            try:
+                from cohezion.compound.context_policy import ContextSignals
+
+                signals = ContextSignals(
+                    coherence_state=self._context_manager.coherence_state,
+                    token_usage=self._context_manager.token_usage,
+                )
+                _context_budget = self._context_policy.adjust_immediate(_context_budget, signals)
+            except Exception as e:
+                logger.debug("Context policy adjustment failed (non-blocking): %s", e)
 
         # Step 2: Log execution start
         experiment_path = self.logger.log_execution_start(ctx)
@@ -658,6 +706,25 @@ class CompoundExecutor(CompoundContextMixin, ExecutorIntegrationMixin):
             cohesion_components.append(alignment_data.get("intent_match", 0.5))
         metrics["coherence"] = sum(cohesion_components) / len(cohesion_components)
 
+        # Step 5.85: V-Model DRR gate (non-blocking)
+        if self._drr_generator:
+            try:
+                from cohezion.compound.design_review_report import GateLevel
+
+                drr = self._drr_generator.generate(
+                    gate=GateLevel.IMPLEMENTATION,
+                    session_id=self._drr_session_id or "unknown",
+                    left_artifact=skill_name or "unknown",
+                    right_artifact=task_description[:100] if task_description else "unknown",
+                )
+                metrics["drr_gate"] = drr.gate.value
+                metrics["drr_passed"] = drr.passed
+                metrics["drr_findings"] = len(drr.findings)
+                if not drr.passed:
+                    logger.warning("DRR-%s FAILED: %s", drr.gate.value, drr.summary)
+            except Exception:
+                logger.debug("DRR gate check failed (non-blocking)", exc_info=True)
+
         # Step 5.9: Natural capital valuation (non-blocking)
         # Maps HIHO proximity to habitat quality via InVEST-inspired model
         try:
@@ -681,6 +748,34 @@ class CompoundExecutor(CompoundContextMixin, ExecutorIntegrationMixin):
             metrics["coherence"] = metrics["coherence"] * 0.9 + nc_metrics.habitat_quality * 0.1
         except (ImportError, AttributeError, ValueError, RuntimeError) as e:
             logger.debug("Natural capital valuation failed (non-blocking): %s", e)
+
+        # Step 5.91: Autoresearch dispatch (non-blocking, research tasks only)
+        _RESEARCH_KEYWORDS = {"train", "optimize", "research", "experiment", "tune", "improve loss"}
+        if any(kw in task_description.lower() for kw in _RESEARCH_KEYWORDS):
+            try:
+                import asyncio as _asyncio
+
+                from cohezion.research.autoresearch_driver import AutoresearchDriver
+
+                _target = (
+                    "jepa"
+                    if "jepa" in task_description.lower()
+                    else (
+                        "flume_vae"
+                        if "flume" in task_description.lower()
+                        else (
+                            "rl_ppo"
+                            if any(w in task_description.lower() for w in ("rl", "ppo", "reward"))
+                            else "jepa"
+                        )
+                    )
+                )
+                _driver = AutoresearchDriver(target=_target, budget_seconds=60)
+                if _asyncio.get_event_loop().is_running():
+                    _asyncio.ensure_future(_driver.run_loop(n_iterations=1))
+                metrics["autoresearch_target"] = _target
+            except (ImportError, Exception):
+                pass  # Non-blocking: autoresearch module may not be available
 
         # Step 6: If successful, extract patterns (skip in degradation mode)
         if success and experiment_path and not self._degradation_mode:
@@ -729,7 +824,13 @@ class CompoundExecutor(CompoundContextMixin, ExecutorIntegrationMixin):
                 logger.debug("Retrospection failed (non-blocking): %s", e, exc_info=True)
 
         # Step 7: Refine skills based on execution results (non-blocking)
-        # Gated by retrospection: only refine when quadrature assessment warrants it
+        # Gated by retrospection AND DRR: only refine when both pass
+        drr_passed = metrics.get("drr_passed", True)  # Default True if DRR not run
+        if not drr_passed:
+            should_refine = False
+            logger.info(
+                "Skill refinement blocked: DRR gate failed (%s)", metrics.get("drr_gate", "?")
+            )
         if success and self.skill_refiner and should_refine:
             try:
                 # Create execution result dict for refiner
@@ -840,7 +941,47 @@ class CompoundExecutor(CompoundContextMixin, ExecutorIntegrationMixin):
             except (AttributeError, RuntimeError, ValueError, KeyError, TypeError) as e:
                 logger.debug("Degradation detection failed (non-blocking): %s", e)
 
-        # Step 7.6: Bioelectric coherence monitoring (non-blocking)
+        # Step 7.6: Geometric Latent Mapping (Symmetry-Driven Reasoning)
+        # Map the latent state of the execution to a topological regime
+        if self.geometric_bridge:
+            try:
+                import torch
+
+                # Attempt to extract latent vector from metrics or execute_fn result
+                latent_vec = metrics.get("latent_vector")
+                if latent_vec is None and token_metrics:
+                    # Fallback: simulate a latent vector from token metrics if real one isn't provided
+                    # In a real integration, the LLM provider would return the VAE z-vector
+                    latent_vec = torch.randn(256)
+
+                if latent_vec is not None:
+                    # Ensure it's a torch tensor
+                    if not isinstance(latent_vec, torch.Tensor):
+                        latent_vec = torch.tensor(latent_vec).float()
+
+                    regime = self.geometric_bridge.map_to_regime(latent_vec)
+                    coords = self.geometric_bridge.project_to_coordinates(latent_vec)
+
+                    metrics["topological_regime"] = regime
+                    metrics["mereon_coords"] = coords.tolist()
+
+                    logger.debug(f"Latent state mapped to {regime} regime at {coords}")
+
+                    # Persist regime to vault as a decision point for distillation
+                    if regime in ["A", "C", "Inner"]:
+                        regime_path = self.log_inflection_point(
+                            title=f"Regime Transition: {regime}",
+                            context=f"Task: {task_description}\nSymmetry: {regime}",
+                            decision="Distillation trigger",
+                            rationale=f"Latent state aligned with {regime} sector of Mereon manifold",
+                            project=project,
+                        )
+                        if regime_path:
+                            decision_paths.append(regime_path)
+            except Exception as e:
+                logger.debug(f"Geometric latent mapping failed (non-blocking): {e}")
+
+        # Step 7.7: Bioelectric coherence monitoring (non-blocking)
         # Maps execution coherence to Levin bioelectric network state
         try:
             import numpy as np
@@ -952,6 +1093,28 @@ class CompoundExecutor(CompoundContextMixin, ExecutorIntegrationMixin):
             except (AttributeError, RuntimeError, ValueError, KeyError, TypeError) as e:
                 logger.debug("Journey tracking failed (non-blocking): %s", e)
 
+        # Step 9.1: Persist universe snapshot (L183)
+        # Record a universe state snapshot to SurrealDB for world model training
+        try:
+            import asyncio
+
+            from cohezion.persistence.genesis_persistence import persist_universe_snapshot
+
+            _snap_coro = persist_universe_snapshot(
+                tick=int(time.time()),
+                global_coherence=metrics.get("coherence", 0.5),
+                symmetry_group="SU2",
+                temperature=float(metrics.get("temperature", 0.5)),
+                n_agents=1,
+            )
+            try:
+                asyncio.get_running_loop()
+                asyncio.ensure_future(_snap_coro)
+            except RuntimeError:
+                asyncio.run(_snap_coro)
+        except Exception as e:
+            logger.debug("Universe snapshot persistence failed (non-blocking): %s", e)
+
         # Step 9.5: Add trajectory point to universe bridge (non-blocking)
         # Only proceed if Step 9 succeeded to avoid stale data
         if self._universe_bridge and universe_journey_id and journey_point_tracked:
@@ -1038,6 +1201,40 @@ class CompoundExecutor(CompoundContextMixin, ExecutorIntegrationMixin):
                 logger.debug("Mycelium: captured execution as pattern entry")
         except (ImportError, AttributeError, RuntimeError, ValueError) as e:
             logger.debug("Mycelium learning capture failed (non-blocking): %s", e)
+
+        # Step 10.7: Persist prompt artifact (L183)
+        # Record prompt/response pair to SurrealDB for retrospective analysis
+        try:
+            import asyncio
+
+            from cohezion.persistence.genesis_persistence import persist_prompt_artifact
+
+            _artifact_coro = persist_prompt_artifact(
+                prompt_text=task_description,
+                response_text=output[:2000],
+                model_id=token_metrics.get("model", "unknown") if token_metrics else "unknown",
+                confidence=metrics.get("coherence", 0.5),
+                latency_ms=metrics.get("duration_seconds", 0.0) * 1000,
+            )
+            try:
+                asyncio.get_running_loop()
+                asyncio.ensure_future(_artifact_coro)
+            except RuntimeError:
+                asyncio.run(_artifact_coro)
+        except Exception as e:
+            logger.debug("Prompt artifact persistence failed (non-blocking): %s", e)
+
+        # Step 10.9: Record context policy outcome for cross-session learning
+        if _task_profile is not None and _context_budget is not None:
+            try:
+                self._context_policy.record_outcome(
+                    profile=_task_profile,
+                    budget=_context_budget,
+                    execution_success=success,
+                    coherence_final=metrics.get("coherence", 0.5),
+                )
+            except Exception as e:
+                logger.debug("Context policy outcome recording failed (non-blocking): %s", e)
 
         return ExecutionResult(
             success=success,

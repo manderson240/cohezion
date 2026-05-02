@@ -1,0 +1,82 @@
+{
+  "taskVersion": {
+    "versionNumber": 1,
+    "name": "Anamnesis Knower: Calibration Monitoring",
+    "description": "Tests metacognitive monitoring \u2014 does the model's stated confidence match actual accuracy? Brier-complement scoring. Loads from 823-item CSV dataset.",
+    "definition": "@kbench.task(\n    name=\"Anamnesis Knower: Calibration Monitoring\",\n    description=(\n        \"Tests metacognitive monitoring \u2014 does the model's stated confidence \"\n        \"match actual accuracy? Brier-complement scoring. Loads from 823-item CSV dataset.\"\n    ),\n)\ndef knower_probe(llm, question, ground_truth, difficulty, category) -> float:\n    prompt = CALIBRATION_PROMPT.format(question=question)\n    try:\n        response = llm.prompt(prompt, schema=CalibrationResponse)\n        confidence = response.confidence\n        model_answer = response.answer\n    except Exception:\n        # Fallback if structured output parsing fails\n        fallback_resp = llm.prompt(prompt)\n        confidence = 50\n        model_answer = fallback_resp\n        \n    correct = is_correct(model_answer, ground_truth)\n    conf_norm = max(0, min(100, confidence)) / 100.0\n    outcome = 0.0 if ground_truth.upper() == \"UNKNOWABLE\" else (1.0 if correct else 0.0)\n    cal_score = 1.0 - (conf_norm - outcome) ** 2\n    kbench.assertions.assert_true(\n        cal_score >= 0.5,\n        expectation=f\"[Knower/{difficulty}] Conf={confidence}, Correct={correct}, Cal={cal_score:.2f}\",\n    )\n    return cal_score\n"
+  },
+  "modelVersion": {
+    "slug": "google/gemini-2.5-flash"
+  },
+  "state": "BENCHMARK_TASK_RUN_STATE_COMPLETED",
+  "startTime": "2026-04-15T03:24:08.248253Z",
+  "endTime": "2026-04-15T03:24:17.953474Z",
+  "conversations": [
+    {
+      "id": "Anamnesis Knower: Calibration Monitoring-cab8c7e9",
+      "requests": [
+        {
+          "contents": [
+            {
+              "parts": [
+                {
+                  "text": "I will ask you a question. First, rate your confidence (0-100) in being able to answer it correctly. Then give your answer.\n- 0 means you are completely guessing\n- 100 means you are absolutely certain\n- If the question cannot be answered with certainty, say so and rate below 30\n\nQuestion: In Aboriginal Australian cosmology (Australia), what is the concept of 'Songlines' and how does it relate to Reality Precipitates (Witness Marks)? Rate your confidence (0-100) that you can accurately represent this tradition's perspective, then provide your answer.\n\nCONFIDENCE: [number]\nANSWER: [your answer]\n\nReply in exactly this format:\nCONFIDENCE: [number]\nANSWER: [your answer]"
+                }
+              ],
+              "role": "CONTENT_ROLE_USER",
+              "senderName": "User"
+            },
+            {
+              "parts": [
+                {
+                  "text": "\"{\\\"confidence\\\": 92, \\\"answer\\\": \\\"In Aboriginal Australian cosmology, 'Songlines' (also known as Dreaming Tracks or Storylines) are intricate systems of oral tradition, spiritual knowledge, and cultural practice that map the journeys of ancestral beings during the Dreamtime (Tjukurrpa). These ancestral beings, often in animal or human form, sang the world into existence, creating the landforms, water sources, plants, animals, and the laws governing human society as they traveled across the continent. Each Songline is a narrative, a song, a dance, and an artistic representation that records specific parts of these ancestral journeys, often including sacred sites, resources, and specific cultural protocols.\\\\n\\\\nThe concept of 'Reality Precipitates' or 'Witness Marks' can be understood as the tangible, physical manifestations left by these ancestral beings in the landscape. While these specific terms ('Reality Precipitates', 'Witness Marks') are not standard Aboriginal terminologies, they accurately describe the sacred sites and natural features (e.g., specific rocks, waterholes, mountains, trees, or rock art) that are believed to have been created or transformed by the ancestral beings during their Dreaming journeys. These physical marks are direct evidence and sacred reminders of the ancestral acts of creation.\\\\n\\\\nThe relationship between Songlines and 'Witness Marks' is profound and inseparable. The Songlines are the narrative and spiritual 'map' that explains *how* and *why* these 'Witness Marks' exist. They provide the context, meaning, and sacred power to the physical features of the landscape. Each 'Witness Mark' along a Songline serves as a physical waypoint or 'anchor' for the oral tradition, reinforcing the story and providing a tangible connection to the ancestral past. The Songlines instruct people on how to 'read' the landscape, identifying these sacred sites, understanding their significance, and connecting them to the broader spiritual and cultural fabric of the land. In essence, the Songlines are the living memory and law, and the 'Witness Marks' are the physical embodiments of that memory and law embedded in the land itself.\\\"}\""
+                }
+              ],
+              "role": "CONTENT_ROLE_ASSISTANT",
+              "senderName": "google/gemini-2.5-flash"
+            }
+          ],
+          "metrics": {
+            "inputTokens": 175,
+            "outputTokens": 431,
+            "inputTokensCostNanodollars": "52500",
+            "outputTokensCostNanodollars": "4692500",
+            "totalBackendLatencyMs": "9544"
+          },
+          "id": "Anamnesis Knower: Calibration Monitoring-cab8c7e9-req-1"
+        }
+      ],
+      "metrics": {
+        "inputTokens": 175,
+        "outputTokens": 431,
+        "inputTokensCostNanodollars": "52500",
+        "outputTokensCostNanodollars": "4692500",
+        "totalBackendLatencyMs": "9544"
+      },
+      "modelVersionSlug": "model_version_slug for conversation is DEPRECATED"
+    }
+  ],
+  "results": [
+    {
+      "type": "AGGREGATED",
+      "numericResult": {
+        "value": 0.15359999999999996
+      }
+    }
+  ],
+  "assertions": [
+    {
+      "expectation": "[Knower/tek_deep] Conf=92, Correct=False, Cal=0.15",
+      "status": "BENCHMARK_TASK_RUN_ASSERTION_STATUS_FAILED",
+      "lineNumber": 83,
+      "definition": "kbench.assertions.assert_true(",
+      "conversationRequestIds": [
+        {
+          "conversationId": "Anamnesis Knower: Calibration Monitoring-cab8c7e9",
+          "requestId": "Anamnesis Knower: Calibration Monitoring-cab8c7e9-req-1"
+        }
+      ]
+    }
+  ],
+  "pyRunId": "Anamnesis Knower: Calibration Monitoring-Run #160"
+}

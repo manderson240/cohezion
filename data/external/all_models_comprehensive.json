@@ -1,0 +1,298 @@
+{
+  "timestamp": "2026-04-10T01:00:00Z",
+  "total_models": 47,
+  "models": [
+    {
+      "name": "Models:",
+      "source": "FLM (NPU)",
+      "backend": "NPU",
+      "status": "available"
+    },
+    {
+      "name": "-",
+      "source": "FLM (NPU)",
+      "backend": "NPU",
+      "status": "available",
+      "specialist": "NOVEL_SPECIALIST",
+      "performance": "76 TPS",
+      "validated": true
+    },
+    {
+      "name": "-",
+      "source": "FLM (NPU)",
+      "backend": "NPU",
+      "status": "available"
+    },
+    {
+      "name": "-",
+      "source": "FLM (NPU)",
+      "backend": "NPU",
+      "status": "available"
+    },
+    {
+      "name": "-",
+      "source": "FLM (NPU)",
+      "backend": "NPU",
+      "status": "available"
+    },
+    {
+      "name": "-",
+      "source": "FLM (NPU)",
+      "backend": "NPU",
+      "status": "available"
+    },
+    {
+      "name": "-",
+      "source": "FLM (NPU)",
+      "backend": "NPU",
+      "status": "available"
+    },
+    {
+      "name": "-",
+      "source": "FLM (NPU)",
+      "backend": "NPU",
+      "status": "available"
+    },
+    {
+      "name": "-",
+      "source": "FLM (NPU)",
+      "backend": "NPU",
+      "status": "available"
+    },
+    {
+      "name": "-",
+      "source": "FLM (NPU)",
+      "backend": "NPU",
+      "status": "available"
+    },
+    {
+      "name": "-",
+      "source": "FLM (NPU)",
+      "backend": "NPU",
+      "status": "available"
+    },
+    {
+      "name": "-",
+      "source": "FLM (NPU)",
+      "backend": "NPU",
+      "status": "available"
+    },
+    {
+      "name": "-",
+      "source": "FLM (NPU)",
+      "backend": "NPU",
+      "status": "available"
+    },
+    {
+      "name": "-",
+      "source": "FLM (NPU)",
+      "backend": "NPU",
+      "status": "available"
+    },
+    {
+      "name": "-",
+      "source": "FLM (NPU)",
+      "backend": "NPU",
+      "status": "available"
+    },
+    {
+      "name": "-",
+      "source": "FLM (NPU)",
+      "backend": "NPU",
+      "status": "available"
+    },
+    {
+      "name": "-",
+      "source": "FLM (NPU)",
+      "backend": "NPU",
+      "status": "available"
+    },
+    {
+      "name": "-",
+      "source": "FLM (NPU)",
+      "backend": "NPU",
+      "status": "available"
+    },
+    {
+      "name": "-",
+      "source": "FLM (NPU)",
+      "backend": "NPU",
+      "status": "available"
+    },
+    {
+      "name": "-",
+      "source": "FLM (NPU)",
+      "backend": "NPU",
+      "status": "available"
+    },
+    {
+      "name": "-",
+      "source": "FLM (NPU)",
+      "backend": "NPU",
+      "status": "available"
+    },
+    {
+      "name": "-",
+      "source": "FLM (NPU)",
+      "backend": "NPU",
+      "status": "available"
+    },
+    {
+      "name": "-",
+      "source": "FLM (NPU)",
+      "backend": "NPU",
+      "status": "available"
+    },
+    {
+      "name": "-",
+      "source": "FLM (NPU)",
+      "backend": "NPU",
+      "status": "available"
+    },
+    {
+      "name": "-",
+      "source": "FLM (NPU)",
+      "backend": "NPU",
+      "status": "available"
+    },
+    {
+      "name": "-",
+      "source": "FLM (NPU)",
+      "backend": "NPU",
+      "status": "available"
+    },
+    {
+      "name": "-",
+      "source": "FLM (NPU)",
+      "backend": "NPU",
+      "status": "available"
+    },
+    {
+      "name": "-",
+      "source": "FLM (NPU)",
+      "backend": "NPU",
+      "status": "available"
+    },
+    {
+      "name": "-",
+      "source": "FLM (NPU)",
+      "backend": "NPU",
+      "status": "available"
+    },
+    {
+      "name": "-",
+      "source": "FLM (NPU)",
+      "backend": "NPU",
+      "status": "available"
+    },
+    {
+      "name": "-",
+      "source": "FLM (NPU)",
+      "backend": "NPU",
+      "status": "available"
+    },
+    {
+      "name": "-",
+      "source": "FLM (NPU)",
+      "backend": "NPU",
+      "status": "available"
+    },
+    {
+      "name": "-",
+      "source": "FLM (NPU)",
+      "backend": "NPU",
+      "status": "available"
+    },
+    {
+      "name": "-",
+      "source": "FLM (NPU)",
+      "backend": "NPU",
+      "status": "available"
+    },
+    {
+      "name": "-",
+      "source": "FLM (NPU)",
+      "backend": "NPU",
+      "status": "available"
+    },
+    {
+      "name": "qwen3:4b",
+      "source": "FLM (known)",
+      "backend": "NPU",
+      "status": "likely_available",
+      "specialist": "CODE_SPECIALIST",
+      "performance": "75 TPS",
+      "validated": true
+    },
+    {
+      "name": "qwen3:7b",
+      "source": "FLM (known)",
+      "backend": "NPU",
+      "status": "likely_available"
+    },
+    {
+      "name": "qwen3:1.5b",
+      "source": "FLM (known)",
+      "backend": "NPU",
+      "status": "likely_available"
+    },
+    {
+      "name": "gemma3:4b",
+      "source": "FLM (known)",
+      "backend": "NPU",
+      "status": "likely_available"
+    },
+    {
+      "name": "gemma3:12b",
+      "source": "FLM (known)",
+      "backend": "NPU",
+      "status": "likely_available"
+    },
+    {
+      "name": "qwen3.5:0.8b",
+      "source": "FLM (known)",
+      "backend": "NPU",
+      "status": "likely_available"
+    },
+    {
+      "name": "qwen3.5:2b",
+      "source": "FLM (known)",
+      "backend": "NPU",
+      "status": "likely_available"
+    },
+    {
+      "name": "qwen3.5:4b",
+      "source": "FLM (known)",
+      "backend": "NPU",
+      "status": "likely_available"
+    },
+    {
+      "name": "qwen3.5:9b",
+      "source": "FLM (known)",
+      "backend": "NPU",
+      "status": "likely_available"
+    },
+    {
+      "name": "qwen3vl-it:4b",
+      "source": "FLM (known)",
+      "backend": "NPU",
+      "status": "likely_available"
+    },
+    {
+      "name": "translategemma:4b",
+      "source": "FLM (known)",
+      "backend": "NPU",
+      "status": "likely_available"
+    },
+    {
+      "name": "whisper-v3:turbo",
+      "source": "FLM (known)",
+      "backend": "NPU",
+      "status": "likely_available"
+    }
+  ],
+  "backends": {
+    "NPU": 47,
+    "GPU_VULKAN": 0
+  }
+}

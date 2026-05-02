@@ -1,3 +1,12 @@
+---
+name: expansion-prime
+description: "Autonomous System Growth & Research. The ability of the system to explore new domains, write code to master them, and integrate that code into its own body."
+metadata:
+  version: "v1.0 (The Growth Engine)"
+  concepts: ["The Loop", "Trajectory-Based", "Consensus-Gated"]
+  source: "src/cohezion/skills/EXPANSION_PRIME.md"
+---
+
 # SKILL: EXPANSION_PRIME
 
 ## DOMAIN EXPERTISE

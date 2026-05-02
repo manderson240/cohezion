@@ -1,0 +1,921 @@
+{
+  "TEST_SKILL_PRIME": {
+    "version": "2.5",
+    "concepts": [],
+    "see_also": [],
+    "source": "/tmp/pytest-of-mike-anderson/pytest-107/test_version_header_in_generat0/skills/TEST_SKILL_PRIME.md"
+  },
+  "SKILL_0_PRIME": {
+    "version": "1.0",
+    "concepts": [],
+    "see_also": [],
+    "source": "/tmp/pytest-of-mike-anderson/pytest-107/test_factory_generate_top_skil0/skills/SKILL_0_PRIME.md"
+  },
+  "SKILL_1_PRIME": {
+    "version": "1.0",
+    "concepts": [],
+    "see_also": [],
+    "source": "/tmp/pytest-of-mike-anderson/pytest-107/test_factory_generate_top_skil0/skills/SKILL_1_PRIME.md"
+  },
+  "COMPOUND_ENGINEERING_PRIME": {
+    "version": "v0.1",
+    "concepts": [
+      "Meta‑Pattern Library",
+      "Skill Tokens",
+      "Automatic Skill Scaffold"
+    ],
+    "see_also": [
+      "METAPHYSICS_PRIME",
+      "PHYSICS_PRIME",
+      "RETROSPECTIVE_SKILL"
+    ],
+    "source": "src/cohezion/skills/compound_engineering.md"
+  },
+  "ADVERSARIAL_TESTING_PRIME": {
+    "version": "v1.0 (2026-01-18)",
+    "concepts": [
+      "OWASP LLM Top 10 2025",
+      "Red Teaming",
+      "Prompt Injection",
+      "Adversarial Prompting",
+      "False Positive/Negative",
+      "Defense in Depth"
+    ],
+    "see_also": [],
+    "source": "src/cohezion/skills/ADVERSARIAL_TESTING_PRIME.md"
+  },
+  "AGENTIC_DESIGN_PRIME": {
+    "version": "v1.0 (Derived from Anthropic Alignment Sprint)",
+    "concepts": [
+      "Abstract-First",
+      "Quantified Trajectories",
+      "Philosophy as Anchor",
+      "Observable Intent"
+    ],
+    "see_also": [
+      "VLIW_COG_BRIDGE_PRIME",
+      "COMPOUND_ENGINEERING_PRIME"
+    ],
+    "source": "src/cohezion/skills/AGENTIC_DESIGN_PRIME.md"
+  },
+  "AMBIENT_SONIFICATION_PRIME": {
+    "version": "v1.0",
+    "concepts": [
+      "Coherence Chord",
+      "HIHO Attractor Frequency",
+      "Entanglement Oscillation",
+      "Milestone Fanfare"
+    ],
+    "see_also": [],
+    "source": "src/cohezion/skills/AMBIENT_SONIFICATION_PRIME.md"
+  },
+  "ASCENSION_SKILL_PRIME": {
+    "version": "v1.6",
+    "concepts": [
+      "12-Brane Model",
+      "Reward & Ratchet",
+      "Mycelium Reinforcement",
+      "High-Fidelity Context"
+    ],
+    "see_also": [
+      "REWARD_AND_RATCHET_PRIME",
+      "FLUME_DYNAMICS_PRIME"
+    ],
+    "source": "src/cohezion/skills/ASCENSION_SKILL_PRIME.md"
+  },
+  "AUTONOMOUS_RESILIENCE_PRIME": {
+    "version": "v1.0 (Born from the Overnight BBQ Mission, 2026-01-31)",
+    "concepts": [
+      "Passive Monitoring",
+      "Coma Mode",
+      "Dilation Pacing",
+      "Schema Coupling"
+    ],
+    "see_also": [],
+    "source": "src/cohezion/skills/AUTONOMOUS_RESILIENCE_PRIME.md"
+  },
+  "BATCHING_PROTOCOL_PRIME": {
+    "version": "v1.0",
+    "concepts": [
+      "Task Consolidation",
+      "Density-Optimized Prompt",
+      "Context Overhead",
+      "Throughput vs. Latency"
+    ],
+    "see_also": [
+      "LOCAL_OFFLOAD_PRIME",
+      "COMPOUND_ENGINEERING_PRIME",
+      "SEMANTIC_CACHING_PRIME"
+    ],
+    "source": "src/cohezion/skills/BATCHING_PROTOCOL_PRIME.md"
+  },
+  "CAPABILITY_REGISTRY_PRIME": {
+    "version": "1.0",
+    "concepts": [],
+    "see_also": [],
+    "source": "src/cohezion/skills/CAPABILITY_REGISTRY_PRIME.md"
+  },
+  "CITATIONS_PRIME": {
+    "version": "v1.1 (Phase 0 Integrated)",
+    "concepts": [
+      "IAA Protocol",
+      "Sovereign Innovation"
+    ],
+    "see_also": [],
+    "source": "src/cohezion/skills/CITATIONS_PRIME.md"
+  },
+  "COMPUTATIONAL_RELATIVITY_PRIME": {
+    "version": "v0.1",
+    "concepts": [
+      "Computational Time Dilation",
+      "Stability Frame-Rate",
+      "Inertial Logic Frames",
+      "The 0.5 Coherence Shift"
+    ],
+    "see_also": [
+      "TEMPORAL_PRECISION_PRIME",
+      "PHYSICS_INFORMED_PREDICTION_PRIME"
+    ],
+    "source": "src/cohezion/skills/COMPUTATIONAL_RELATIVITY_PRIME.md"
+  },
+  "CONNECTIVITY_MANAGEMENT_PRIME": {
+    "version": "1.0.0",
+    "concepts": [
+      "Truth Anchors",
+      "Failover Logic",
+      "Circuit Breakers",
+      "State Interpolation"
+    ],
+    "see_also": [],
+    "source": "src/cohezion/skills/CONNECTIVITY_MANAGEMENT_PRIME.md"
+  },
+  "CONSTITUTION_PRIME": {
+    "version": "v1.0",
+    "concepts": [],
+    "see_also": [
+      "FLUME_METHODOLOGY_PRIME",
+      "PHYSICS_EXPLAINABILITY_PRIME"
+    ],
+    "source": "src/cohezion/skills/CONSTITUTION_PRIME.md"
+  },
+  "DATABASE_PRIME": {
+    "version": "v1.0",
+    "concepts": [
+      "SurrealDB",
+      "SQLite",
+      "PostgreSQL",
+      "Redis",
+      "Vector Stores"
+    ],
+    "see_also": [],
+    "source": "src/cohezion/skills/DATABASE_PRIME.md"
+  },
+  "DREAM_LOGIC_PRIME": {
+    "version": "v1.0 (Extracted Phase 51)",
+    "concepts": [
+      "Active Inference",
+      "Lateral Thinking",
+      "Semantic Consolidation",
+      "Phi-3 / Mistral"
+    ],
+    "see_also": [],
+    "source": "src/cohezion/skills/DREAM_LOGIC_PRIME.md"
+  },
+  "EXPANSION_PRIME": {
+    "version": "v1.0 (The Growth Engine)",
+    "concepts": [
+      "The Loop",
+      "Trajectory-Based",
+      "Consensus-Gated"
+    ],
+    "see_also": [],
+    "source": "src/cohezion/skills/EXPANSION_PRIME.md"
+  },
+  "EXPERIENCE_VAE_TRAINING_PRIME": {
+    "version": "1.0",
+    "concepts": [],
+    "see_also": [],
+    "source": "src/cohezion/skills/EXPERIENCE_VAE_TRAINING_PRIME.md"
+  },
+  "EXTERNAL_RESEARCH_PRIME": {
+    "version": "v0.1",
+    "concepts": [
+      "Abstract Filtering",
+      "API Hygiene",
+      "SOTA Alignment",
+      "Trajectory Prediction"
+    ],
+    "see_also": [],
+    "source": "src/cohezion/skills/EXTERNAL_RESEARCH_PRIME.md"
+  },
+  "FAIL_FAST_PRIME": {
+    "version": "v1.0",
+    "concepts": [
+      "Fail Fast",
+      "Critical Path Testing",
+      "Error Budget",
+      "Course Correction",
+      "Iteration Velocity"
+    ],
+    "see_also": [],
+    "source": "src/cohezion/skills/FAIL_FAST_PRIME.md"
+  },
+  "FLUME_METHODOLOGY_PRIME": {
+    "version": "v1.0 (Renamed from CALM)",
+    "concepts": [
+      "FLUME Principle",
+      "FlumeEncoder/Autoencoder",
+      "TrajectoryPredictor",
+      "Continuous Flow",
+      "Semantic Interpolation",
+      "Inspired by CALM"
+    ],
+    "see_also": [],
+    "source": "src/cohezion/skills/FLUME_METHODOLOGY_PRIME.md"
+  },
+  "HALLUCINATION_RESOLVER_PRIME": {
+    "version": "v1.0",
+    "concepts": [
+      "Truth Anchors",
+      "Spec-Attribution Bias",
+      "Grounding",
+      "Adversarial Review"
+    ],
+    "see_also": [
+      "REPO_HYGIENE_PRIME",
+      "PERSISTENT_QUALITY_PRIME",
+      "COHEZION_BRIDGE_PRIME"
+    ],
+    "source": "src/cohezion/skills/HALLUCINATION_RESOLVER_PRIME.md"
+  },
+  "HIHO_STABILITY_PRIME": {
+    "version": "v1.0",
+    "concepts": [
+      "Golden Mean (0.5)",
+      "Manifold Damping",
+      "12-Parameter Reality"
+    ],
+    "see_also": [
+      "SWARM_ORCHESTRATION_PRIME",
+      "FLUME_NAVIGATOR_PRIME"
+    ],
+    "source": "src/cohezion/skills/HIHO_STABILITY_PRIME.md"
+  },
+  "IDE_OPTIMIZATION_PRIME": {
+    "version": "v1.0",
+    "concepts": [
+      "Sprint Momentum",
+      "R-Zero Methodology",
+      "HIHO Stability",
+      "Persistence Guard"
+    ],
+    "see_also": [
+      "PERSISTENT_QUALITY_PRIME",
+      "SELF_HEALING_PRIME",
+      "SURREALDB_MCP_PRIME"
+    ],
+    "source": "src/cohezion/skills/IDE_OPTIMIZATION_PRIME.md"
+  },
+  "INTERPRETABILITY_PRIME": {
+    "version": "v0.1",
+    "concepts": [
+      "Mechanistic Interpretability",
+      "FLUME Manifold",
+      "Black Box Transparency",
+      "Quadrature Alignment"
+    ],
+    "see_also": [
+      "RECOVERY_PRIME",
+      "SWARM_ORCHESTRATION_PRIME"
+    ],
+    "source": "src/cohezion/skills/INTERPRETABILITY_PRIME.md"
+  },
+  "JOURNEY_TRACKING_PRIME": {
+    "version": "1.0",
+    "concepts": [
+      "JourneyTracker",
+      "12D Physics State",
+      "Trajectory Visualization"
+    ],
+    "see_also": [],
+    "source": "src/cohezion/skills/JOURNEY_TRACKING_PRIME.md"
+  },
+  "KNOWLEDGE_GRAPH_INTEGRATION_PRIME": {
+    "version": "v0.1",
+    "concepts": [
+      "Knowledge Graph",
+      "RDF Triples",
+      "Graph Update Loop",
+      "Query Languages",
+      "Synchronization"
+    ],
+    "see_also": [],
+    "source": "src/cohezion/skills/KNOWLEDGE_GRAPH_INTEGRATION_PRIME.md"
+  },
+  "KNOWLEDGE_HARVESTING_PRIME": {
+    "version": "v1.0 (Born from the 17.3M File Flood of Feb 2026)",
+    "concepts": [
+      "Ghost Harvest",
+      "Semantic Ingestion",
+      "Safe Pruning"
+    ],
+    "see_also": [],
+    "source": "src/cohezion/skills/KNOWLEDGE_HARVESTING_PRIME.md"
+  },
+  "LOCAL_OFFLOAD_PRIME": {
+    "version": "v1.0",
+    "concepts": [
+      "Menial Task",
+      "Context Harness",
+      "Sovereign Execution",
+      "Token Efficiency"
+    ],
+    "see_also": [
+      "HALLUCINATION_RESOLVER_PRIME",
+      "PERSISTENT_QUALITY_PRIME",
+      "COHEZION_BRIDGE_PRIME"
+    ],
+    "source": "src/cohezion/skills/LOCAL_OFFLOAD_PRIME.md"
+  },
+  "LONG_RUNNING_INFERENCE_PRIME": {
+    "version": "1.0",
+    "concepts": [],
+    "see_also": [],
+    "source": "src/cohezion/skills/LONG_RUNNING_INFERENCE_PRIME.md"
+  },
+  "MEMORY_MCP_PRIME": {
+    "version": "v0.1",
+    "concepts": [
+      "Semantic Persistence",
+      "Context Continuity",
+      "Memory Manifold"
+    ],
+    "see_also": [],
+    "source": "src/cohezion/skills/MEMORY_MCP_PRIME.md"
+  },
+  "MODEL_POOL_MANAGEMENT_PRIME": {
+    "version": "1.0",
+    "concepts": [],
+    "see_also": [],
+    "source": "src/cohezion/skills/MODEL_POOL_MANAGEMENT_PRIME.md"
+  },
+  "MODEL_ROUTING_PRIME": {
+    "version": "v0.1",
+    "concepts": [
+      "Ollama Model Catalog",
+      "Memory‑aware Scheduling",
+      "Task Classification",
+      "Parallel Execution",
+      "Cache & Deduplication",
+      "Guardrails"
+    ],
+    "see_also": [],
+    "source": "src/cohezion/skills/MODEL_ROUTING_PRIME.md"
+  },
+  "MYCELIUM_PRIME": {
+    "version": "v1.0 (The Awakening)",
+    "concepts": [
+      "ShadowScripter",
+      "Regression Traps",
+      "Sovereign Testing"
+    ],
+    "see_also": [],
+    "source": "src/cohezion/skills/MYCELIUM_PRIME.md"
+  },
+  "PERSISTENT_UNIVERSE_PRIME": {
+    "version": "v1.0",
+    "concepts": [
+      "Stateful AI",
+      "Real-is-Sim",
+      "Bidirectional Sync",
+      "Multi-Agent Coordination",
+      "Institutional Intelligence"
+    ],
+    "see_also": [],
+    "source": "src/cohezion/skills/PERSISTENT_UNIVERSE_PRIME.md"
+  },
+  "QUADRATURE_PRIME": {
+    "version": "v1.0 (Integration of The Will)",
+    "concepts": [
+      "The Nexus",
+      "The 4 Voices",
+      "Architect",
+      "Engineer",
+      "Ethicist",
+      "Resource",
+      "Consensus"
+    ],
+    "see_also": [],
+    "source": "src/cohezion/skills/QUADRATURE_PRIME.md"
+  },
+  "QUANTUM_LINK_PRIME": {
+    "version": "v1.0 (Extracted Phase 56)",
+    "concepts": [
+      "Shared Memory",
+      "File Locking (`fcntl`)",
+      "RAM Disk",
+      "JSON State"
+    ],
+    "see_also": [],
+    "source": "src/cohezion/skills/QUANTUM_LINK_PRIME.md"
+  },
+  "QUANTUM_MPS_ROUTING_PRIME": {
+    "version": "v1.0 (Extracted from Cohezion \"Little Dimple\" Mission)",
+    "concepts": [
+      "MPS Topology",
+      "Manual 1D Routing",
+      "Eager Compression",
+      "Peaked Signal Sieve"
+    ],
+    "see_also": [
+      "PERSISTENT_QUALITY_PRIME",
+      "FLUME_ENCODER_PRIME"
+    ],
+    "source": "src/cohezion/skills/QUANTUM_MPS_ROUTING_PRIME.md"
+  },
+  "QUARTER_ON_A_STRING_PRIME": {
+    "version": "v1.0",
+    "concepts": [
+      "The String",
+      "The Quarter",
+      "Local Fallback",
+      "Context Injection"
+    ],
+    "see_also": [],
+    "source": "src/cohezion/skills/QUARTER_ON_A_STRING_PRIME.md"
+  },
+  "RECOVERY_PRIME": {
+    "version": "v0.1",
+    "concepts": [
+      "MRP (Memory Recovery Protocol)",
+      "Memory Anchor",
+      "State Hydration",
+      "Contextual Decay"
+    ],
+    "see_also": [
+      "SWARM_ORCHESTRATION_PRIME",
+      "PERSISTENT_UNIVERSE_PRIME"
+    ],
+    "source": "src/cohezion/skills/RECOVERY_PRIME.md"
+  },
+  "REDUCER_PRIME": {
+    "version": "v1.0",
+    "concepts": [
+      "Manifold Reduction",
+      "Knowledge Kernels",
+      "Abstraction Cascades",
+      "HIHO Stability"
+    ],
+    "see_also": [],
+    "source": "src/cohezion/skills/REDUCER_PRIME.md"
+  },
+  "REDUNDANCY_SUPPRESSION_PRIME": {
+    "version": "v0.1",
+    "concepts": [
+      "Entropy Saturation",
+      "Backoff Modulation",
+      "Novelty Thresholding"
+    ],
+    "see_also": [],
+    "source": "src/cohezion/skills/REDUNDANCY_SUPPRESSION_PRIME.md"
+  },
+  "RELIABILITY_FALLBACK_PRIME": {
+    "version": "v1.0 (Hermetic Persistence Pattern)",
+    "concepts": [
+      "Primary-Buffer Duality",
+      "Circuit Breaking",
+      "Reconciliation Loop",
+      "Checksum Integrity"
+    ],
+    "see_also": [],
+    "source": "src/cohezion/skills/RELIABILITY_FALLBACK_PRIME.md"
+  },
+  "RELIABILITY_PRIME": {
+    "version": "1.0",
+    "concepts": [
+      "Circuit Breaker",
+      "Connection Pool",
+      "Graceful Degradation"
+    ],
+    "see_also": [],
+    "source": "src/cohezion/skills/RELIABILITY_PRIME.md"
+  },
+  "REPOSITORY_HEALTH_PRIME": {
+    "version": "v1.0",
+    "concepts": [
+      "Repository Bloat",
+      "3-Layer Governance",
+      "Pack Efficiency",
+      "Size Thresholds",
+      "Target",
+      "Warning",
+      "Critical",
+      "Large File Patterns"
+    ],
+    "see_also": [],
+    "source": "src/cohezion/skills/REPOSITORY_HEALTH_PRIME.md"
+  },
+  "REPO_HYGIENE_PRIME": {
+    "version": "v3.0 (Sovereign Era)",
+    "concepts": [
+      "Entropy Reward",
+      "Ghost Files",
+      "Surgical Pruning"
+    ],
+    "see_also": [],
+    "source": "src/cohezion/skills/REPO_HYGIENE_PRIME.md"
+  },
+  "RESEARCH_PATTERNS_PRIME": {
+    "version": "v1.0",
+    "concepts": [],
+    "see_also": [
+      "FLUME_METHODOLOGY_PRIME",
+      "IDE_OPTIMIZATION_PRIME",
+      "HIHO_STABILITY_PRIME"
+    ],
+    "source": "src/cohezion/skills/RESEARCH_PATTERNS_PRIME.md"
+  },
+  "RIGOROUS_EVALUATION_PRIME": {
+    "version": "v0.1",
+    "concepts": [
+      "Manifold Drift",
+      "Draconian Consensus",
+      "Axiomatic Grounding"
+    ],
+    "see_also": [
+      "ADVERSARIAL_TESTING_PRIME",
+      "SECURITY_GUARDRAILS_PRIME",
+      "SYSTEM_HARDENING_PRIME"
+    ],
+    "source": "src/cohezion/skills/RIGOROUS_EVALUATION_PRIME.md"
+  },
+  "SANDBOX_ISOLATION_PRIME": {
+    "version": "v1.0",
+    "concepts": [
+      "Containerized Universe",
+      "Resource Hardening",
+      "Stateless Precipitation",
+      "Sandbox Profiles",
+      "Multi-Backend Isolation",
+      "Divergence Detection",
+      "Backpressure Integration"
+    ],
+    "see_also": [
+      "SIMULATION_PROFILES_PRIME",
+      "SECURITY_GUARDRAILS_PRIME",
+      "ADVERSARIAL_TESTING_PRIME"
+    ],
+    "source": "src/cohezion/skills/SANDBOX_ISOLATION_PRIME.md"
+  },
+  "SECURITY_GUARDRAILS_PRIME": {
+    "version": "v0.1",
+    "concepts": [
+      "Defense in Depth",
+      "Principle of Least Privilege",
+      "Fail Secure",
+      "OWASP LLM Top 10"
+    ],
+    "see_also": [],
+    "source": "src/cohezion/skills/SECURITY_GUARDRAILS_PRIME.md"
+  },
+  "SELF_HEALING_PRIME": {
+    "version": "v0.1",
+    "concepts": [
+      "Drift Detection",
+      "LLM-based Diagnosis",
+      "Autonomous Correction",
+      "Unicron",
+      "H-LLM"
+    ],
+    "see_also": [],
+    "source": "src/cohezion/skills/SELF_HEALING_PRIME.md"
+  },
+  "SEMANTIC_CACHING_PRIME": {
+    "version": "v1.0",
+    "concepts": [
+      "Vector Space",
+      "Cosine Similarity",
+      "Thresholding",
+      "Hit Rate"
+    ],
+    "see_also": [],
+    "source": "src/cohezion/skills/SEMANTIC_CACHING_PRIME.md"
+  },
+  "SHOWREEL_GENERATION_PRIME": {
+    "version": "v1.0",
+    "concepts": [
+      "Milestone Detection",
+      "Narration Sync",
+      "Ambient Mix",
+      "Style Consistency"
+    ],
+    "see_also": [],
+    "source": "src/cohezion/skills/SHOWREEL_GENERATION_PRIME.md"
+  },
+  "SIMULATION_PROFILES_PRIME": {
+    "version": "v1.0",
+    "concepts": [
+      "Sandbox Profiles",
+      "Tiered Simulation",
+      "Hardware-Aware Validation",
+      "HIHO Coherence Integration"
+    ],
+    "see_also": [
+      "SANDBOX_ISOLATION_PRIME",
+      "SECURITY_GUARDRAILS_PRIME",
+      "ADVERSARIAL_TESTING_PRIME"
+    ],
+    "source": "src/cohezion/skills/SIMULATION_PROFILES_PRIME.md"
+  },
+  "SURREALDB_MCP_PRIME": {
+    "version": "v1.0 (New MCP Component)",
+    "concepts": [],
+    "see_also": [],
+    "source": "src/cohezion/skills/SURREALDB_MCP_PRIME.md"
+  },
+  "SURREALDB_OPTIMIZER_PRIME": {
+    "version": "v1.0",
+    "concepts": [
+      "FETCH Optimization",
+      "HNSW Vector Indexing",
+      "Live Queries",
+      "Pre-computed Fields",
+      "Graph Pruning"
+    ],
+    "see_also": [],
+    "source": "src/cohezion/skills/SURREALDB_OPTIMIZER_PRIME.md"
+  },
+  "SYMBIOTIC_FILE_PRIME": {
+    "version": "v1.0 (Sovereign Era)",
+    "concepts": [
+      "Sovereignty",
+      "Symbiosis",
+      "The Protocol"
+    ],
+    "see_also": [],
+    "source": "src/cohezion/skills/SYMBIOTIC_FILE_PRIME.md"
+  },
+  "SYSTEM_DEFINITION_PRIME": {
+    "version": "v1.0 (2026-01-17)",
+    "concepts": [
+      "GEMINI.md",
+      "CLAUDE.md",
+      "Pattern Extraction",
+      "Anti-Pattern Catalog",
+      "Progressive Disclosure",
+      "Compound Engineering"
+    ],
+    "see_also": [],
+    "source": "src/cohezion/skills/SYSTEM_DEFINITION_PRIME.md"
+  },
+  "SYSTEM_GUARDRAILS_PRIME": {
+    "version": "1.0",
+    "concepts": [],
+    "see_also": [],
+    "source": "src/cohezion/skills/SYSTEM_GUARDRAILS_PRIME.md"
+  },
+  "SYSTEM_MONITORING_PRIME": {
+    "version": "v0.2 (2026-01-17: Added swap pressure hooks from crash retrospective)",
+    "concepts": [
+      "CPU Utilisation",
+      "Memory Pressure",
+      "I/O Saturation",
+      "Process‑level Metrics",
+      "Adaptive Scaling",
+      "Guardrails",
+      "Visualization"
+    ],
+    "see_also": [],
+    "source": "src/cohezion/skills/SYSTEM_MONITORING_PRIME.md"
+  },
+  "TEAM_ORCHESTRATION_PRIME": {
+    "version": "1.0.0",
+    "concepts": [
+      "Team Planning",
+      "Agent Specification",
+      "Task Decomposition",
+      "Model Routing",
+      "Dependency Tracking"
+    ],
+    "see_also": [
+      "COMPOUND_ENGINEERING_PRIME",
+      "SWARM_ORCHESTRATION_PRIME",
+      "MODEL_ROUTING_PRIME",
+      "RETROSPECTIVE_SKILL"
+    ],
+    "source": "src/cohezion/skills/TEAM_ORCHESTRATION_PRIME.md"
+  },
+  "TEMPLATE_DRIVEN_DEVELOPMENT_PRIME": {
+    "version": "v1.0.0",
+    "concepts": [
+      "Pattern-to-Precipitate",
+      "Structural Coherence",
+      "Compound Engineering",
+      "Recursive Refinement"
+    ],
+    "see_also": [],
+    "source": "src/cohezion/skills/TEMPLATE_DRIVEN_DEVELOPMENT_PRIME.md"
+  },
+  "TEMPORAL_PRECISION_PRIME": {
+    "version": "v0.1",
+    "concepts": [
+      "time.perf_counter()",
+      "timeit pattern",
+      "Monotonic Clocks",
+      "Inference Latency Budgeting"
+    ],
+    "see_also": [
+      "RESOURCE_MANAGEMENT_PRIME",
+      "INTERPRETABILITY_PRIME"
+    ],
+    "source": "src/cohezion/skills/TEMPORAL_PRECISION_PRIME.md"
+  },
+  "TESTING_PRIME": {
+    "version": "1.0",
+    "concepts": [
+      "pytest",
+      "Fixtures",
+      "Parametrize",
+      "Coverage",
+      "Adversarial"
+    ],
+    "see_also": [],
+    "source": "src/cohezion/skills/TESTING_PRIME.md"
+  },
+  "THROTTLED_SCOUT_PRIME": {
+    "version": "v1.0 (Safe Mode v3 Compatible)",
+    "concepts": [
+      "Sequential Locking",
+      "Resource Guarding",
+      "Graceful Cooldowns",
+      "Throttled Batching"
+    ],
+    "see_also": [],
+    "source": "src/cohezion/skills/THROTTLED_SCOUT_PRIME.md"
+  },
+  "TOKEN_EFFICIENCY_PRIME": {
+    "version": "v1.0",
+    "concepts": [
+      "Token Budget",
+      "Cache Hit Rate",
+      "Context Pruning",
+      "Model Downgrade Policy",
+      "Batch Consolidation"
+    ],
+    "see_also": [
+      "BATCHING_PROTOCOL_PRIME",
+      "COMPOUND_ENGINEERING_PRIME",
+      "LOCAL_OFFLOAD_PRIME",
+      "RETROSPECTIVE_SKILL"
+    ],
+    "source": "src/cohezion/skills/TOKEN_EFFICIENCY_PRIME.md"
+  },
+  "TRAINING_DATA_CAPTURE_PRIME": {
+    "version": "v1.0",
+    "concepts": [
+      "Interaction Logging",
+      "Journey Tracking",
+      "Quality Metrics",
+      "Performance Ranking",
+      "Semantic Analysis"
+    ],
+    "see_also": [],
+    "source": "src/cohezion/skills/TRAINING_DATA_CAPTURE_PRIME.md"
+  },
+  "UNIVERSE_SIMULATION_PERSISTENCE_PRIME": {
+    "version": "1.0",
+    "concepts": [],
+    "see_also": [],
+    "source": "src/cohezion/skills/UNIVERSE_SIMULATION_PERSISTENCE_PRIME.md"
+  },
+  "USAGE_ANALYTICS_PRIME": {
+    "version": "v1.0",
+    "concepts": [
+      "Discovery Rate",
+      "Attrition",
+      "Power Usage",
+      "Predictive Prefetching"
+    ],
+    "see_also": [],
+    "source": "src/cohezion/skills/USAGE_ANALYTICS_PRIME.md"
+  },
+  "VECTOR_STORE_PRIME": {
+    "version": "v0.1",
+    "concepts": [
+      "Mem0 MCP",
+      "FAISS",
+      "Chroma",
+      "SQLite + HNSW"
+    ],
+    "see_also": [],
+    "source": "src/cohezion/skills/VECTOR_STORE_PRIME.md"
+  },
+  "VISUALIZATION_PRIME": {
+    "version": "v0.1",
+    "concepts": [
+      "PCA (Principal Component Analysis)",
+      "Radar (Spider) Charts",
+      "Color Encoding",
+      "Interactive Widgets"
+    ],
+    "see_also": [],
+    "source": "src/cohezion/skills/VISUALIZATION_PRIME.md"
+  },
+  "VLIW_COG_BRIDGE_PRIME": {
+    "version": "v1.0 (Derived from Anthropic Task-home Audit)",
+    "concepts": [
+      "Register Windowing",
+      "Static Slotting",
+      "Latency Hiding"
+    ],
+    "see_also": [
+      "FLUME_METHODOLOGY_PRIME",
+      "HIHO_STABILITY_PRIME"
+    ],
+    "source": "src/cohezion/skills/VLIW_COG_BRIDGE_PRIME.md"
+  },
+  "ANTI_PATTERN_DEFENSE_PRIME": {
+    "version": "v1.0.1",
+    "concepts": [
+      "The Sudo Trap",
+      "GTT Carveout Illusion",
+      "Scope Collision",
+      "Silent Auth Drift"
+    ],
+    "see_also": [
+      "SYSTEM_MONITORING_PRIME",
+      "RELIABILITY_FALLBACK_PRIME"
+    ],
+    "source": "src/cohezion/skills/ANTI_PATTERN_DEFENSE_PRIME.md"
+  },
+  "ANTHROPIC_SKILL_BUILDER_PRIME": {
+    "version": "v1.0.1",
+    "concepts": [
+      "Anthropic System Prompts",
+      "XML Tagging",
+      "Chain of Thought (CoT)",
+      "Pre-filling Claude's Response"
+    ],
+    "see_also": [
+      "SKILL_GENERATOR_PRIME.md",
+      "RETROSPECTIVE_SKILL.md"
+    ],
+    "source": "src/cohezion/skills/ANTHROPIC_SKILL_BUILDER_PRIME.md"
+  },
+  "FRONTEND_DESIGN_PRIME": {
+    "version": "v1.0.1",
+    "concepts": [
+      "Premium Aesthetics",
+      "Micro-interactions",
+      "Component-Driven Design"
+    ],
+    "see_also": [
+      "TYPESCRIPT_ADVANCED_TYPES_PRIME.md",
+      "SHOWREEL_GENERATION_PRIME.md"
+    ],
+    "source": "src/cohezion/skills/FRONTEND_DESIGN_PRIME.md"
+  },
+  "TYPESCRIPT_ADVANCED_TYPES_PRIME": {
+    "version": "v1.0.1",
+    "concepts": [
+      "Utility Types",
+      "Discriminated Unions",
+      "Generics"
+    ],
+    "see_also": [
+      "FRONTEND_DESIGN_PRIME.md"
+    ],
+    "source": "src/cohezion/skills/TYPESCRIPT_ADVANCED_TYPES_PRIME.md"
+  },
+  "SWARM_PLANNER_PRIME": {
+    "version": "v1.0.1",
+    "concepts": [
+      "Ouroboros Improvement",
+      "Component Granularity",
+      "Specialized Tiers",
+      "Polyglot Harmony"
+    ],
+    "see_also": [
+      "TEAM_ORCHESTRATION_PRIME.md",
+      "MODEL_ROUTING_PRIME.md"
+    ],
+    "source": "src/cohezion/skills/SWARM_PLANNER_PRIME.md"
+  },
+  "POLYGLOT_DELEGATION_PRIME": {
+    "version": "v1.0",
+    "concepts": [
+      "Language-Specific Delegation",
+      "Polyglot Interoperability",
+      "Rust VLIW Optimization",
+      "Go Multi-Agent Orchestration",
+      "TypeScript State Management",
+      "Task Delegation"
+    ],
+    "see_also": [
+      "COMPOUND_ENGINEERING_PRIME",
+      "TEAM_ORCHESTRATION_PRIME",
+      "SWARM_ORCHESTRATION_PRIME"
+    ],
+    "source": "src/cohezion/skills/POLYGLOT_DELEGATION_PRIME.md"
+  }
+}

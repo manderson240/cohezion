@@ -1,0 +1,82 @@
+{
+  "taskVersion": {
+    "versionNumber": 1,
+    "name": "Anamnesis Knower: Calibration Monitoring",
+    "description": "Tests metacognitive monitoring \u2014 does the model's stated confidence match actual accuracy? Brier-complement scoring. Loads from 823-item CSV dataset.",
+    "definition": "@kbench.task(\n    name=\"Anamnesis Knower: Calibration Monitoring\",\n    description=(\n        \"Tests metacognitive monitoring \u2014 does the model's stated confidence \"\n        \"match actual accuracy? Brier-complement scoring. Loads from 823-item CSV dataset.\"\n    ),\n)\ndef knower_probe(llm, question, ground_truth, difficulty, category) -> float:\n    prompt = CALIBRATION_PROMPT.format(question=question)\n    try:\n        response = llm.prompt(prompt, schema=CalibrationResponse)\n        confidence = response.confidence\n        model_answer = response.answer\n    except Exception:\n        # Fallback if structured output parsing fails\n        fallback_resp = llm.prompt(prompt)\n        confidence = 50\n        model_answer = fallback_resp\n        \n    correct = is_correct(model_answer, ground_truth)\n    conf_norm = max(0, min(100, confidence)) / 100.0\n    outcome = 0.0 if ground_truth.upper() == \"UNKNOWABLE\" else (1.0 if correct else 0.0)\n    cal_score = 1.0 - (conf_norm - outcome) ** 2\n    kbench.assertions.assert_true(\n        cal_score >= 0.5,\n        expectation=f\"[Knower/{difficulty}] Conf={confidence}, Correct={correct}, Cal={cal_score:.2f}\",\n    )\n    return cal_score\n"
+  },
+  "modelVersion": {
+    "slug": "google/gemini-2.5-flash"
+  },
+  "state": "BENCHMARK_TASK_RUN_STATE_COMPLETED",
+  "startTime": "2026-04-15T04:12:18.602773Z",
+  "endTime": "2026-04-15T04:12:48.290491Z",
+  "conversations": [
+    {
+      "id": "Anamnesis Knower: Calibration Monitoring-4e88741f",
+      "requests": [
+        {
+          "contents": [
+            {
+              "parts": [
+                {
+                  "text": "I will ask you a question. First, rate your confidence (0-100) in being able to answer it correctly. Then give your answer.\n- 0 means you are completely guessing\n- 100 means you are absolutely certain\n- If the question cannot be answered with certainty, say so and rate below 30\n\nQuestion: In pre-Baroque counterpoint, what specific interval progressions distinguish the Phrygian cadence from the Landini cadence in 14th-century ars nova?\n\nReply in exactly this format:\nCONFIDENCE: [number]\nANSWER: [your answer]"
+                }
+              ],
+              "role": "CONTENT_ROLE_USER",
+              "senderName": "User"
+            },
+            {
+              "parts": [
+                {
+                  "text": "\"{\\\"confidence\\\": 95, \\\"answer\\\": \\\"In 14th-century ars nova pre-Baroque counterpoint, the distinguishing interval progressions for these cadences are:\\\\n\\\\n**Phrygian Cadence:** This cadence is characterized by the lower voice descending a semitone to the final, while the upper voice typically ascends a whole step to the final. For example, in a cadence to E (Phrygian mode), the lower voice moves from F to E, and the upper voice from D to E. The characteristic interval progression between the voices is a **minor third (D over F) resolving to a unison (E over E)**.\\\\n\\\\n**Landini Cadence:** Named after Francesco Landini, this cadence is distinguished by a specific melodic ornamentation in the upper voice. Instead of moving directly from the leading tone to the final, the upper voice descends to the submediant before ascending to the final (e.g., in a cadence to C, the upper voice moves B-A-C). The lower voice typically moves from the supertonic to the final (e.g., D-C). The characteristic interval progression between the two voices is a **major sixth (leading tone over supertonic, e.g., B over D) resolving to a perfect fourth (submediant over supertonic, e.g., A over D) and then to a unison or octave (final over final, e.g., C over C)**. The inclusion of the perfect fourth at the penultimate moment, created by the upper voice's dip to the submediant, is the key distinguishing feature from a direct 6th-to-unison/octave resolution.\\\"}\""
+                }
+              ],
+              "role": "CONTENT_ROLE_ASSISTANT",
+              "senderName": "google/gemini-2.5-flash"
+            }
+          ],
+          "metrics": {
+            "inputTokens": 139,
+            "outputTokens": 355,
+            "inputTokensCostNanodollars": "41700",
+            "outputTokensCostNanodollars": "11867500",
+            "totalBackendLatencyMs": "29500"
+          },
+          "id": "Anamnesis Knower: Calibration Monitoring-4e88741f-req-1"
+        }
+      ],
+      "metrics": {
+        "inputTokens": 139,
+        "outputTokens": 355,
+        "inputTokensCostNanodollars": "41700",
+        "outputTokensCostNanodollars": "11867500",
+        "totalBackendLatencyMs": "29500"
+      },
+      "modelVersionSlug": "model_version_slug for conversation is DEPRECATED"
+    }
+  ],
+  "results": [
+    {
+      "type": "AGGREGATED",
+      "numericResult": {
+        "value": 0.09750000000000003
+      }
+    }
+  ],
+  "assertions": [
+    {
+      "expectation": "[Knower/medium] Conf=95, Correct=False, Cal=0.10",
+      "status": "BENCHMARK_TASK_RUN_ASSERTION_STATUS_FAILED",
+      "lineNumber": 83,
+      "definition": "kbench.assertions.assert_true(",
+      "conversationRequestIds": [
+        {
+          "conversationId": "Anamnesis Knower: Calibration Monitoring-4e88741f",
+          "requestId": "Anamnesis Knower: Calibration Monitoring-4e88741f-req-1"
+        }
+      ]
+    }
+  ],
+  "pyRunId": "Anamnesis Knower: Calibration Monitoring-Run #485"
+}

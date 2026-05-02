@@ -22,6 +22,7 @@ from datetime import datetime
 from email.mime.text import MIMEText
 from pathlib import Path
 
+
 SURREAL_URL = "http://localhost:8001/sql"
 SURREAL_HEADERS = {
     "Accept": "application/json",

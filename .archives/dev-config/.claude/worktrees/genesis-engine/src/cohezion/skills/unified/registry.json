@@ -1,0 +1,131 @@
+{
+  "name": "Unified Genesis Engine Skill Registry",
+  "version": "2.0.1",
+  "description": "Merged from 13 worktrees. As above, so below.",
+  "unified_from": [
+    "gemm-command-center",
+    "moe-command-center",
+    "mla-command-center",
+    "coordination-central",
+    "aimo-progress-prize-3",
+    "spec-genesis-engine-395e48851",
+    "spec-luma-amd-speedrun",
+    "spec-fix-technical-debt-320b95b5",
+    "gemini-mcp-fix",
+    "opus-mla-optimization"
+  ],
+  "categories": {
+    "core_methodology": {
+      "skills": [
+        "COMPOUND_ENGINEERING",
+        "FLUME_METHODOLOGY",
+        "TESTING_PRIME",
+        "K_SEARCH_PRIME"
+      ],
+      "status": "active"
+    },
+    "amd_optimization": {
+      "skills": [
+        "AMD_MOE_MXFP4_OPTIMIZATION",
+        "AMD_GEMM_MXFP4_OPTIMIZATION",
+        "AMD_MLA_DECODE_OPTIMIZATION",
+        "AMD_GFX950_TL_DOT_SCALED_CONSTRAINTS",
+        "AMD_CTIYLE_MXFP4_FUSED_MOE",
+        "AMD_HIPKITTENS_INTEGRATION",
+        "CK_TILE_FUSED_MOE_PRIME",
+        "ROCM_GFX950_SUPPORT_PRIME",
+        "AMD_HIPKITTENS_INTEGRATION_PRIME"
+      ],
+      "status": "active",
+      "source": "Session 77-79 AMD Speedrun Research"
+    },
+    "kernel_research": {
+      "skills": [
+        "CK_TILE_MXFP4_API",
+        "AITER_KERNEL_PARAMETER_SEMANTICS",
+        "TRITON_FP4_INLINE_QUANTIZATION",
+        "TRITONBLAS_ORIGAMI_XCD_REMAPPING",
+        "POPCORN_BENCHMARK_VS_RANKED_SCORING",
+        "AITER_KERNEL_PARAMETER_SEMANTICS_PRIME"
+      ],
+      "status": "active",
+      "source": "AMD Speedrun Competition Intelligence"
+    },
+    "quality_health": {
+      "skills": [
+        "REPOSITORY_HEALTH_PRIME",
+        "AUTONOMIC_QUALITY_GUARD_PRIME",
+        "HIHO_STABILITY_PRIME"
+      ],
+      "status": "active"
+    }
+  },
+  "new_extractions": {
+    "CK_TILE_FUSED_MOE": {
+      "name": "CK-Tile Fused MoE Kernel Implementation",
+      "category": "amd_optimization",
+      "source_worktree": "luma_amd_speedrun",
+      "key_findings": [
+        "CK-Tile pre-installed at /opt/rocm/include/ck_tile/",
+        "fused_moegemm_pipeline_flatmm_ex.hpp for 2-stage MoE",
+        "MXFP4 support via pk_fp4_t and E8M0 scales",
+        "Path to <115µs: Fused Pipeline → MXFP4 → Persistent Kernel"
+      ],
+      "blockers": [
+        "aiter not installed on runner",
+        "PyTorch C++ Extension requires hipcc",
+        "No Python bindings available"
+      ],
+      "estimated_impact": "1.4x → 1.0x (reach leader 109.8µs)"
+    },
+    "ROCM_7_2_0_GFX950": {
+      "name": "ROCm 7.2.0 gfx950 CDNA4 Support",
+      "category": "kernel_research",
+      "source_worktree": "research_specialist",
+      "key_findings": [
+        "hipBLASLt 1.2.1: FP4/FP6/BF6 native (gfx950 only)",
+        "CK Tile: Async pipeline + weight preshuffle",
+        "MIOpen 3.5.1: gfx950-specific 3D heuristics",
+        "rocMLIR: MXFP8 and MXFP4 kernel generation"
+      ],
+      "competitive_advantage": "Features exclusive to MI355X vs MI300X"
+    }
+  },
+  "extracted_skills": {
+    "CK_TILE_FUSED_MOE": {
+      "skill_file": "CK_TILE_FUSED_MOE_PRIME.md",
+      "path": "src/cohezion/skills/",
+      "extracted_date": "2026-03-28",
+      "status": "complete"
+    },
+    "ROCM_7_2_0_GFX950": {
+      "skill_file": "ROCM_GFX950_SUPPORT_PRIME.md",
+      "path": "src/cohezion/skills/",
+      "extracted_date": "2026-03-28",
+      "status": "complete"
+    },
+    "AMD_HIPKITTENS_INTEGRATION": {
+      "skill_file": "AMD_HIPKITTENS_INTEGRATION_PRIME.md",
+      "path": "src/cohezion/skills/",
+      "extracted_date": "2026-03-28",
+      "status": "complete"
+    },
+    "AITER_KERNEL_PARAMETER_SEMANTICS": {
+      "skill_file": "AITER_KERNEL_PARAMETER_SEMANTICS_PRIME.md",
+      "path": "src/cohezion/skills/",
+      "extracted_date": "2026-03-28",
+      "status": "complete"
+    }
+  },
+  "archive_locations": {
+    "gemm-command-center": "archive/worktrees/gemm/",
+    "moe-command-center": "archive/worktrees/moe/",
+    "mla-command-center": "archive/worktrees/mla/",
+    "coordination-central": "archive/worktrees/coordination/",
+    "aimo-progress-prize-3": "archive/worktrees/aimo/",
+    "spec-fix-technical-debt": "archive/worktrees/technical-debt/"
+  },
+  "principle": "As above (worktree structure), so below (code structure). Everything that came before makes us what we are now.",
+  "created": "2026-03-28",
+  "context": "Session 80 - Genesis Engine Unification"
+}

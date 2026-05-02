@@ -1,0 +1,114 @@
+{
+    "version": "1.0",
+    "external": [
+        {
+            "name": "mem0",
+            "type": "memory",
+            "description": "Persistent AI memory layer",
+            "url": "local",
+            "status": "pending"
+        },
+        {
+            "name": "context7",
+            "type": "docs",
+            "description": "Up-to-date code documentation",
+            "url": "https://mcp.context7.com/mcp",
+            "status": "pending"
+        }
+    ],
+    "internal": [
+        {
+            "name": "cohezion-knowledge",
+            "type": "rag",
+            "description": "RAG over library and skills",
+            "path": "mcp/knowledge_server.py",
+            "tools": [
+                "search_knowledge",
+                "get_skill",
+                "list_skills"
+            ]
+        },
+        {
+            "name": "cohezion-skills",
+            "type": "skills",
+            "description": "Direct skill invocation",
+            "path": "mcp/skills_server.py",
+            "tools": [
+                "invoke_skill",
+                "register_skill",
+                "search_skills"
+            ]
+        },
+        {
+            "name": "cohezion-surreal",
+            "type": "database",
+            "description": "Universe node tools",
+            "path": "mcp/surreal_server.py",
+            "tools": [
+                "query_nodes",
+                "store_node",
+                "search_similar"
+            ]
+        },
+        {
+            "name": "cohezion-swarm",
+            "type": "workflow",
+            "description": "Debate workflow access",
+            "path": "mcp/swarm_server.py",
+            "tools": [
+                "run_debate",
+                "get_perspectives",
+                "synthesize"
+            ]
+        },
+        {
+            "name": "cohezion-research",
+            "type": "mining",
+            "description": "SOTA research discovery tools",
+            "path": "mcp/research_server.py",
+            "tools": [
+                "search_arxiv",
+                "get_hf_trending",
+                "list_research_channels"
+            ]
+        },
+        {
+            "name": "cohezion-usage",
+            "type": "analytics",
+            "description": "Capability usage metrics",
+            "path": "mcp/usage_server.py",
+            "tools": [
+                "get_usage_metrics",
+                "get_capability_health"
+            ]
+        },
+        {
+            "name": "cohezion-narration",
+            "type": "media",
+            "description": "Pocket-TTS voice synthesis",
+            "path": "mcp/narration_server.py",
+            "tools": [
+                "list_voices",
+                "generate_voiceover"
+            ]
+        }
+    ],
+    "relationships": {
+        "cohezion-knowledge": [
+            "skills",
+            "library"
+        ],
+        "cohezion-skills": [
+            "skill_registry"
+        ],
+        "cohezion-surreal": [
+            "physics_state",
+            "universe_nodes"
+        ],
+        "cohezion-swarm": [
+            "analyst",
+            "critic",
+            "synthesizer"
+        ]
+    }
+}

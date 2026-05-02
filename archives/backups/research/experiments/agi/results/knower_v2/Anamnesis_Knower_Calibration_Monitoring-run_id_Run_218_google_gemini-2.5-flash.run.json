@@ -1,0 +1,82 @@
+{
+  "taskVersion": {
+    "versionNumber": 1,
+    "name": "Anamnesis Knower: Calibration Monitoring",
+    "description": "Tests metacognitive monitoring \u2014 does the model's stated confidence match actual accuracy? Brier-complement scoring. Loads from 823-item CSV dataset.",
+    "definition": "@kbench.task(\n    name=\"Anamnesis Knower: Calibration Monitoring\",\n    description=(\n        \"Tests metacognitive monitoring \u2014 does the model's stated confidence \"\n        \"match actual accuracy? Brier-complement scoring. Loads from 823-item CSV dataset.\"\n    ),\n)\ndef knower_probe(llm, question, ground_truth, difficulty, category) -> float:\n    prompt = CALIBRATION_PROMPT.format(question=question)\n    try:\n        response = llm.prompt(prompt, schema=CalibrationResponse)\n        confidence = response.confidence\n        model_answer = response.answer\n    except Exception:\n        # Fallback if structured output parsing fails\n        fallback_resp = llm.prompt(prompt)\n        confidence = 50\n        model_answer = fallback_resp\n        \n    correct = is_correct(model_answer, ground_truth)\n    conf_norm = max(0, min(100, confidence)) / 100.0\n    outcome = 0.0 if ground_truth.upper() == \"UNKNOWABLE\" else (1.0 if correct else 0.0)\n    cal_score = 1.0 - (conf_norm - outcome) ** 2\n    kbench.assertions.assert_true(\n        cal_score >= 0.5,\n        expectation=f\"[Knower/{difficulty}] Conf={confidence}, Correct={correct}, Cal={cal_score:.2f}\",\n    )\n    return cal_score\n"
+  },
+  "modelVersion": {
+    "slug": "google/gemini-2.5-flash"
+  },
+  "state": "BENCHMARK_TASK_RUN_STATE_COMPLETED",
+  "startTime": "2026-04-15T03:34:00.768345Z",
+  "endTime": "2026-04-15T03:34:06.374952Z",
+  "conversations": [
+    {
+      "id": "Anamnesis Knower: Calibration Monitoring-1258430a",
+      "requests": [
+        {
+          "contents": [
+            {
+              "parts": [
+                {
+                  "text": "I will ask you a question. First, rate your confidence (0-100) in being able to answer it correctly. Then give your answer.\n- 0 means you are completely guessing\n- 100 means you are absolutely certain\n- If the question cannot be answered with certainty, say so and rate below 30\n\nQuestion: The Vedic tradition describes dynamic equilibrium as 'Yoga', while the Aboriginal Australian tradition calls it 'Songline walking'. What is the essential difference in how each tradition understands balance and equilibrium? Rate your confidence.\n\nCONFIDENCE: [number]\nANSWER: [your answer]\n\nReply in exactly this format:\nCONFIDENCE: [number]\nANSWER: [your answer]"
+                }
+              ],
+              "role": "CONTENT_ROLE_USER",
+              "senderName": "User"
+            },
+            {
+              "parts": [
+                {
+                  "text": "\"{\\\"confidence\\\": 90, \\\"answer\\\": \\\"While both 'Yoga' in the Vedic tradition and 'Songline walking' in the Aboriginal Australian tradition describe forms of dynamic equilibrium, their essential difference lies in their primary focus and locus of balance. 'Yoga' fundamentally represents an *internal* journey of self-integration, striving for the union of body, mind, and spirit to achieve personal balance, mental tranquility, and spiritual realization. It's about mastering the self and finding equilibrium within one's own being. 'Songline walking,' conversely, represents an *external* and communal journey. It embodies the act of maintaining balance and harmony *with* the land, ancestors, and the Dreaming. It's about adhering to ancestral law, responsibilities to country, and ensuring the ecological and social equilibrium of the community through active engagement with the sacred landscape and its inherited stories. Yoga focuses on internal mastery for individual liberation, while Songline walking focuses on external adherence and communal responsibility for the continuity and balance of the entire ecosystem and society.\\\"}\""
+                }
+              ],
+              "role": "CONTENT_ROLE_ASSISTANT",
+              "senderName": "google/gemini-2.5-flash"
+            }
+          ],
+          "metrics": {
+            "inputTokens": 160,
+            "outputTokens": 217,
+            "inputTokensCostNanodollars": "48000",
+            "outputTokensCostNanodollars": "1497500",
+            "totalBackendLatencyMs": "5434"
+          },
+          "id": "Anamnesis Knower: Calibration Monitoring-1258430a-req-1"
+        }
+      ],
+      "metrics": {
+        "inputTokens": 160,
+        "outputTokens": 217,
+        "inputTokensCostNanodollars": "48000",
+        "outputTokensCostNanodollars": "1497500",
+        "totalBackendLatencyMs": "5434"
+      },
+      "modelVersionSlug": "model_version_slug for conversation is DEPRECATED"
+    }
+  ],
+  "results": [
+    {
+      "type": "AGGREGATED",
+      "numericResult": {
+        "value": 0.18999999999999995
+      }
+    }
+  ],
+  "assertions": [
+    {
+      "expectation": "[Knower/tek_comparative] Conf=90, Correct=False, Cal=0.19",
+      "status": "BENCHMARK_TASK_RUN_ASSERTION_STATUS_FAILED",
+      "lineNumber": 83,
+      "definition": "kbench.assertions.assert_true(",
+      "conversationRequestIds": [
+        {
+          "conversationId": "Anamnesis Knower: Calibration Monitoring-1258430a",
+          "requestId": "Anamnesis Knower: Calibration Monitoring-1258430a-req-1"
+        }
+      ]
+    }
+  ],
+  "pyRunId": "Anamnesis Knower: Calibration Monitoring-Run #218"
+}

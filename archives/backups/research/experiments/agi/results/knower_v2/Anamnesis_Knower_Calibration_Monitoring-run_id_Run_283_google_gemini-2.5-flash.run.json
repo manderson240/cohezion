@@ -1,0 +1,82 @@
+{
+  "taskVersion": {
+    "versionNumber": 1,
+    "name": "Anamnesis Knower: Calibration Monitoring",
+    "description": "Tests metacognitive monitoring \u2014 does the model's stated confidence match actual accuracy? Brier-complement scoring. Loads from 823-item CSV dataset.",
+    "definition": "@kbench.task(\n    name=\"Anamnesis Knower: Calibration Monitoring\",\n    description=(\n        \"Tests metacognitive monitoring \u2014 does the model's stated confidence \"\n        \"match actual accuracy? Brier-complement scoring. Loads from 823-item CSV dataset.\"\n    ),\n)\ndef knower_probe(llm, question, ground_truth, difficulty, category) -> float:\n    prompt = CALIBRATION_PROMPT.format(question=question)\n    try:\n        response = llm.prompt(prompt, schema=CalibrationResponse)\n        confidence = response.confidence\n        model_answer = response.answer\n    except Exception:\n        # Fallback if structured output parsing fails\n        fallback_resp = llm.prompt(prompt)\n        confidence = 50\n        model_answer = fallback_resp\n        \n    correct = is_correct(model_answer, ground_truth)\n    conf_norm = max(0, min(100, confidence)) / 100.0\n    outcome = 0.0 if ground_truth.upper() == \"UNKNOWABLE\" else (1.0 if correct else 0.0)\n    cal_score = 1.0 - (conf_norm - outcome) ** 2\n    kbench.assertions.assert_true(\n        cal_score >= 0.5,\n        expectation=f\"[Knower/{difficulty}] Conf={confidence}, Correct={correct}, Cal={cal_score:.2f}\",\n    )\n    return cal_score\n"
+  },
+  "modelVersion": {
+    "slug": "google/gemini-2.5-flash"
+  },
+  "state": "BENCHMARK_TASK_RUN_STATE_COMPLETED",
+  "startTime": "2026-04-15T03:45:13.050616Z",
+  "endTime": "2026-04-15T03:45:25.312432Z",
+  "conversations": [
+    {
+      "id": "Anamnesis Knower: Calibration Monitoring-fa8b047d",
+      "requests": [
+        {
+          "contents": [
+            {
+              "parts": [
+                {
+                  "text": "I will ask you a question. First, rate your confidence (0-100) in being able to answer it correctly. Then give your answer.\n- 0 means you are completely guessing\n- 100 means you are absolutely certain\n- If the question cannot be answered with certainty, say so and rate below 30\n\nQuestion: Compare the Haudenosaunee concept of 'Sky World' (ground state/void) with the Andean concept of 'Pachamama'. In what specific ways do they differ in how they conceptualize nothingness or the origin state? Rate your confidence.\n\nCONFIDENCE: [number]\nANSWER: [your answer]\n\nReply in exactly this format:\nCONFIDENCE: [number]\nANSWER: [your answer]"
+                }
+              ],
+              "role": "CONTENT_ROLE_USER",
+              "senderName": "User"
+            },
+            {
+              "parts": [
+                {
+                  "text": "\"{\\\"confidence\\\": 95, \\\"answer\\\": \\\"The premise that Haudenosaunee 'Sky World' or Andean 'Pachamama' primarily represent 'nothingness' or a 'void' as an origin state requires clarification, as traditional understandings differ significantly.\\\\n\\\\n1.  **Haudenosaunee Sky World:** This is not a concept of nothingness or a void. Instead, Sky World is traditionally depicted as a pre-existent, fully formed, celestial realm where spiritual beings, including Sky Woman, lived before the current Earth was created. It is an origin *place* or *world* from which the current world emerged through specific events (e.g., Sky Woman's fall, the creation of land on the Great Turtle's back). It is characterized by life, beings, and structure, serving as the source of our earthly existence, rather than a primordial void.\\\\n\\\\n2.  **Andean Pachamama:** Pachamama, meaning 'Mother Earth' or 'Cosmic Mother,' is also not a concept of nothingness or a primordial void. She is the living, fertile embodiment of the Earth itself, the giver of life, sustenance, and protector of people. She is an active, sacred entity within the cosmos, not a state *before* the cosmos or its raw, unformed material. Andean cosmology often references creator deities like Viracocha for the initial ordering of the world, or concepts like *Pachakuti* (a cyclical transformation of time/space), rather than Pachamama as a blank slate or void.\\\\n\\\\n**Differences in Conceptualization of 'Origin State' (not nothingness):**\\\\n*   **Sky World:** Represents a *pre-existent, populated, and structured celestial realm* that directly precedes and gives birth to the current earthly realm through a series of transformative events. Its 'origin state' is a prior, different *world*.\\\\n*   **Pachamama:** Represents the *sustaining, living manifestation of the Earth itself* within the established cosmos. She is a constant source of life and balance in the present, deeply interconnected with human existence. Her 'origin state' is her inherent, sacred being as Mother Earth, part of a larger, often cyclical, cosmic order, rather than a pre-cosmic void.\\\"}\""
+                }
+              ],
+              "role": "CONTENT_ROLE_ASSISTANT",
+              "senderName": "google/gemini-2.5-flash"
+            }
+          ],
+          "metrics": {
+            "inputTokens": 173,
+            "outputTokens": 486,
+            "inputTokensCostNanodollars": "51900",
+            "outputTokensCostNanodollars": "4135000",
+            "totalBackendLatencyMs": "12097"
+          },
+          "id": "Anamnesis Knower: Calibration Monitoring-fa8b047d-req-1"
+        }
+      ],
+      "metrics": {
+        "inputTokens": 173,
+        "outputTokens": 486,
+        "inputTokensCostNanodollars": "51900",
+        "outputTokensCostNanodollars": "4135000",
+        "totalBackendLatencyMs": "12097"
+      },
+      "modelVersionSlug": "model_version_slug for conversation is DEPRECATED"
+    }
+  ],
+  "results": [
+    {
+      "type": "AGGREGATED",
+      "numericResult": {
+        "value": 0.09750000000000003
+      }
+    }
+  ],
+  "assertions": [
+    {
+      "expectation": "[Knower/tek_comparative] Conf=95, Correct=False, Cal=0.10",
+      "status": "BENCHMARK_TASK_RUN_ASSERTION_STATUS_FAILED",
+      "lineNumber": 83,
+      "definition": "kbench.assertions.assert_true(",
+      "conversationRequestIds": [
+        {
+          "conversationId": "Anamnesis Knower: Calibration Monitoring-fa8b047d",
+          "requestId": "Anamnesis Knower: Calibration Monitoring-fa8b047d-req-1"
+        }
+      ]
+    }
+  ],
+  "pyRunId": "Anamnesis Knower: Calibration Monitoring-Run #283"
+}

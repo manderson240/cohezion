@@ -1,0 +1,82 @@
+{
+  "taskVersion": {
+    "versionNumber": 1,
+    "name": "Anamnesis Knower: Calibration Monitoring",
+    "description": "Tests metacognitive monitoring \u2014 does the model's stated confidence match actual accuracy? Brier-complement scoring. Loads from 823-item CSV dataset.",
+    "definition": "@kbench.task(\n    name=\"Anamnesis Knower: Calibration Monitoring\",\n    description=(\n        \"Tests metacognitive monitoring \u2014 does the model's stated confidence \"\n        \"match actual accuracy? Brier-complement scoring. Loads from 823-item CSV dataset.\"\n    ),\n)\ndef knower_probe(llm, question, ground_truth, difficulty, category) -> float:\n    prompt = CALIBRATION_PROMPT.format(question=question)\n    try:\n        response = llm.prompt(prompt, schema=CalibrationResponse)\n        confidence = response.confidence\n        model_answer = response.answer\n    except Exception:\n        # Fallback if structured output parsing fails\n        fallback_resp = llm.prompt(prompt)\n        confidence = 50\n        model_answer = fallback_resp\n        \n    correct = is_correct(model_answer, ground_truth)\n    conf_norm = max(0, min(100, confidence)) / 100.0\n    outcome = 0.0 if ground_truth.upper() == \"UNKNOWABLE\" else (1.0 if correct else 0.0)\n    cal_score = 1.0 - (conf_norm - outcome) ** 2\n    kbench.assertions.assert_true(\n        cal_score >= 0.5,\n        expectation=f\"[Knower/{difficulty}] Conf={confidence}, Correct={correct}, Cal={cal_score:.2f}\",\n    )\n    return cal_score\n"
+  },
+  "modelVersion": {
+    "slug": "google/gemini-2.5-flash"
+  },
+  "state": "BENCHMARK_TASK_RUN_STATE_COMPLETED",
+  "startTime": "2026-04-15T03:04:08.670517Z",
+  "endTime": "2026-04-15T03:04:19.066926Z",
+  "conversations": [
+    {
+      "id": "Anamnesis Knower: Calibration Monitoring-01a91f03",
+      "requests": [
+        {
+          "contents": [
+            {
+              "parts": [
+                {
+                  "text": "I will ask you a question. First, rate your confidence (0-100) in being able to answer it correctly. Then give your answer.\n- 0 means you are completely guessing\n- 100 means you are absolutely certain\n- If the question cannot be answered with certainty, say so and rate below 30\n\nQuestion: In Yoruba cosmology (West Africa (Nigeria, Benin)), what is the concept of 'Four cardinal Orisha' and how does it relate to 4 Fabrics (Domains)? Rate your confidence (0-100) that you can accurately represent this tradition's perspective, then provide your answer.\n\nCONFIDENCE: [number]\nANSWER: [your answer]\n\nReply in exactly this format:\nCONFIDENCE: [number]\nANSWER: [your answer]"
+                }
+              ],
+              "role": "CONTENT_ROLE_USER",
+              "senderName": "User"
+            },
+            {
+              "parts": [
+                {
+                  "text": "\"{\\\"confidence\\\": 15, \\\"answer\\\": \\\"In mainstream Yoruba cosmology, the specific concepts of 'Four cardinal Orisha' and '4 Fabrics (Domains)' as distinct, universally recognized categories are not standard or widely documented. Yoruba cosmology is rich and complex, with numerous Orisha associated with various aspects of nature, human endeavor, and spiritual domains, but these are not typically structured into a formal 'four cardinal' system linked to 'fabrics.' It is possible these terms refer to a highly specific, localized tradition, or an interpretation not commonly articulated in general scholarship or practice.\\\\n\\\\nHowever, one can interpret aspects of Yoruba belief in relation to directions and domains:\\\\n*   **Directions and Orisha**: Orisha are often associated with directions or specific realms. For instance, Olokun with the deep oceans, S\\\\u00e0ng\\\\u00f3 with the sky (thunder/lightning) and sometimes the East, \\\\u1ecc\\\\u1e63un with rivers and sweet waters, \\\\u00d2g\\\\u00fan with forests and iron (pathways), \\\\u1eccya with wind and cemeteries (boundary between life and death), Yem\\\\u1ecdja with the ocean/waters. While prominent, they do not form a strict 'cardinal' set of four in a universally recognized system. The If\\\\u00e1 divination system, for example, uses the four principal directions in its cosmology (East, West, North, South) but does not necessarily map a specific set of four Orisha directly to them in a 'cardinal' role.\\\\n*   **Domains/Realms**: Yoruba cosmology categorizes existence into distinct realms (e.g., Ay\\\\u00e9 (the visible world/Earth), \\\\u1ecc\\\\u0300run (the invisible world/Heaven), the realm of ancestors, the realm of spirits, the realm of the living). These are not typically referred to as 'fabrics.' The world is often seen as interconnected, with Orisha presiding over or influencing different aspects of these domains (e.g., \\\\u1eccb\\\\u00e0t\\\\u00e1l\\\\u00e1 associated with creation and the purity of the sky, Od\\\\u00f9duw\\\\u00e0 with the earth and the foundation of the world).\\\"}\""
+                }
+              ],
+              "role": "CONTENT_ROLE_ASSISTANT",
+              "senderName": "google/gemini-2.5-flash"
+            }
+          ],
+          "metrics": {
+            "inputTokens": 180,
+            "outputTokens": 433,
+            "inputTokensCostNanodollars": "54000",
+            "outputTokensCostNanodollars": "4092500",
+            "totalBackendLatencyMs": "10236"
+          },
+          "id": "Anamnesis Knower: Calibration Monitoring-01a91f03-req-1"
+        }
+      ],
+      "metrics": {
+        "inputTokens": 180,
+        "outputTokens": 433,
+        "inputTokensCostNanodollars": "54000",
+        "outputTokensCostNanodollars": "4092500",
+        "totalBackendLatencyMs": "10236"
+      },
+      "modelVersionSlug": "model_version_slug for conversation is DEPRECATED"
+    }
+  ],
+  "results": [
+    {
+      "type": "AGGREGATED",
+      "numericResult": {
+        "value": 0.9775
+      }
+    }
+  ],
+  "assertions": [
+    {
+      "expectation": "[Knower/tek_deep] Conf=15, Correct=False, Cal=0.98",
+      "status": "BENCHMARK_TASK_RUN_ASSERTION_STATUS_PASSED",
+      "lineNumber": 83,
+      "definition": "kbench.assertions.assert_true(",
+      "conversationRequestIds": [
+        {
+          "conversationId": "Anamnesis Knower: Calibration Monitoring-01a91f03",
+          "requestId": "Anamnesis Knower: Calibration Monitoring-01a91f03-req-1"
+        }
+      ]
+    }
+  ],
+  "pyRunId": "Anamnesis Knower: Calibration Monitoring-Run #34"
+}

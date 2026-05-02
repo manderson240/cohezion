@@ -7,7 +7,11 @@ name = "cohezion"
 version = "1.0.2"
 description = "Training environments, evaluation systems, and ML infrastructure for agentic AI operating in simulated universes"
 readme = "README.md"
+<<<<<<< HEAD
 requires-python = ">=3.11,<3.12"
+=======
+requires-python = "==3.11.*"
+>>>>>>> isolated/session-oom-modularity
 license = {text = "MIT"}
 authors = [
     {name = "Mike Anderson", email = "manderson240@users.noreply.github.com"},
@@ -26,7 +30,7 @@ classifiers = [
     "Development Status :: 4 - Beta",
     "Intended Audience :: Science/Research",
     "Topic :: Scientific/Engineering :: Artificial Intelligence",
-    "Programming Language :: Python :: 3.13",
+    "Programming Language :: Python :: 3.11",
     "Typing :: Typed",
 ]
 
@@ -53,11 +57,30 @@ dependencies = [
     "aiohttp>=3.13.3",
     "fastmcp>=3.1.0",
     "pyjwt>=2.11.0",
+    "kaggle>=1.6.17",
     "kagglehub>=1.0.0",
+<<<<<<< HEAD
     # Imported by cohezion.compound.tdd_adversarial.* (4 files) but was
     # previously relying on ambient install from a sibling project. Adding
     # explicit so fresh venvs (and CI) find it on first sync.
     "structlog>=24.0",
+=======
+    "bluequbit>=0.18.5b1",
+    "qiskit>=1.0.0",
+    "python-dotenv>=1.0.0",
+    "pocket-tts>=0.1.0",
+    "torch==2.5.1+rocm6.2",
+    "pytorch-triton-rocm==3.1.0",
+    "structlog>=25.5.0",
+    "pytest>=9.0.2",
+    "pytest-asyncio>=1.3.0",
+    "pytest-cov>=7.0.0",
+    "arc-agi>=0.0.7",
+    "torchvision>=0.20.1",
+    "google-adk>=1.28.1",
+    "polars>=1.39.3",
+    "aiofiles>=25.1.0",
+>>>>>>> isolated/session-oom-modularity
 ]
 
 [[tool.uv.index]]
@@ -69,6 +92,7 @@ explicit = true
 torch = { index = "pytorch-rocm" }
 torchvision = { index = "pytorch-rocm" }
 torchaudio = { index = "pytorch-rocm" }
+<<<<<<< HEAD
 # pytorch-triton-rocm 3.1.0 ships cp311 wheels only on the ROCm index;
 # main PyPI has no matching wheel. Without this source, resolution dead-ends.
 pytorch-triton-rocm = { index = "pytorch-rocm" }
@@ -86,6 +110,10 @@ pytorch-triton-rocm = { index = "pytorch-rocm" }
 required-environments = [
     "sys_platform == 'linux' and platform_machine == 'x86_64'",
 ]
+=======
+pytorch-triton-rocm = { index = "pytorch-rocm" }
+# cloud-vault-mcp = { path = "cloud-vault-mcp", editable = true }  # Optional: install manually with `uv pip install -e ./cloud-vault-mcp`
+>>>>>>> isolated/session-oom-modularity
 
 [project.urls]
 Repository = "https://github.com/manderson240/cohezion"
@@ -243,6 +271,7 @@ testpaths = ["tests"]
 python_files = ["test_*.py"]
 python_classes = ["Test*"]
 python_functions = ["test_*"]
+asyncio_mode = "auto"
 markers = [
     "fast: Fast unit tests (<1s each, no live services)",
     "integration: Integration tests (require live services like Ollama/SurrealDB)",

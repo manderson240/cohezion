@@ -1,3 +1,8 @@
+---
+name: meta-harness-traces-prime
+description: "You are a Compound Engineering Architect specializing in execution trace management, filesystem-as-interface patterns, and Meta-Harness optimization loops."
+---
+
 # SKILL: META_HARNESS_TRACES_PRIME
 
 ## DOMAIN EXPERTISE

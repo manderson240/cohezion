@@ -494,7 +494,7 @@ class TestBackfill:
             git_path=str(temp_vault),
         )
 
-        await daemon.backfill(since="2026-01-01")
+        results = await daemon.backfill(since="2026-01-01")
         # Should have set last_sync_time initially
         assert daemon.last_sync_time is not None
 

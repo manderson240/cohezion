@@ -117,11 +117,18 @@ class LagrangianDynamics:
         q̈^i = -Γ^i_jk q̇^j q̇^k - g^{ij} ∂V/∂q^j - γ q̇^i
 
         where γ is the damping coefficient.
+
+        Optimized path for constant metrics: geodesic term is zero,
+        inverse metric is precomputed, so only the force and damping
+        terms need to be computed.
         """
         # Geodesic term: -Γ^i_jk v^j v^k
+        # For constant metrics (fabric_block_metric), this is zero
+        # and the method returns immediately with a zero array
         geodesic = self.metric.geodesic_acceleration(q, v)
 
         # Force term: -g^{ij} ∂V/∂q^j
+        # For constant metrics, inverse is precomputed
         g_inv = self.metric.inverse(q)
         grad_V = self.potential.gradient(q)
         force = -g_inv @ grad_V

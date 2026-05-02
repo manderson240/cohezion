@@ -38,7 +38,7 @@ def run_sequential_benchmark() -> BenchmarkResult:
         )
 
     paper_files = sorted(papers_dir.glob("*.md"))
-    len(paper_files)
+    paper_count = len(paper_files)
 
     def sync_operation() -> None:
         """Simulate sequential SurrealDB sync of papers."""

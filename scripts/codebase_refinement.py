@@ -137,15 +137,30 @@ class CodebaseAnalyzer:
             f_lower = f.lower()
             if "artifact" in f_lower or ".artifact" in f_lower or f.startswith(".artifacts"):
                 categories["artifacts"].append(f)
-            elif "build" in f_lower or "dist" in f_lower or ".egg" in f_lower or "__pycache__" in f_lower:
+            elif (
+                "build" in f_lower
+                or "dist" in f_lower
+                or ".egg" in f_lower
+                or "__pycache__" in f_lower
+            ):
                 categories["build_output"].append(f)
-            elif "cache" in f_lower or ".cache" in f_lower or f.endswith(".pyc") or f.endswith(".pyo"):
+            elif (
+                "cache" in f_lower
+                or ".cache" in f_lower
+                or f.endswith(".pyc")
+                or f.endswith(".pyo")
+            ):
                 categories["cache"].append(f)
             elif "log" in f_lower or ".log" in f_lower or f.endswith(".log"):
                 categories["logs"].append(f)
             elif "temp" in f_lower or "tmp" in f_lower or ".tmp" in f_lower or f.endswith(".tmp"):
                 categories["temp"].append(f)
-            elif "data" in f_lower or "export" in f_lower or "result" in f_lower or "output" in f_lower:
+            elif (
+                "data" in f_lower
+                or "export" in f_lower
+                or "result" in f_lower
+                or "output" in f_lower
+            ):
                 categories["data"].append(f)
             else:
                 categories["other"].append(f)
@@ -196,7 +211,9 @@ async def run_refinement_pipeline():
     # Initialize components
     mcp_client = MCPClient()
     executor = ExecutorFactory.create(mcp_client)
-    feedback_loop = CompoundFeedbackLoopFactory.create(executor, max_retries=2, enable_learning=True)
+    feedback_loop = CompoundFeedbackLoopFactory.create(
+        executor, max_retries=2, enable_learning=True
+    )
     journey_tracker = JourneyTrackerFactory.create(seed=42)
 
     # Create refinement plan

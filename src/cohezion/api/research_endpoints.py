@@ -12,6 +12,7 @@ import math
 from datetime import datetime
 from typing import Any
 
+import aiofiles
 from fastapi import APIRouter, BackgroundTasks, HTTPException, Query
 from pydantic import BaseModel, Field
 
@@ -282,8 +283,8 @@ async def get_experiment_log(session_id: str, limit: int = Query(default=100, ge
             return {"experiments": []}
 
         experiments = []
-        with open(log_path) as f:
-            for line in f:
+        async with aiofiles.open(log_path) as f:
+            async for line in f:
                 if len(experiments) >= limit:
                     break
                 try:

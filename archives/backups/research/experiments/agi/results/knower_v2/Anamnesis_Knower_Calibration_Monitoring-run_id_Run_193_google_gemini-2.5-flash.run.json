@@ -1,0 +1,82 @@
+{
+  "taskVersion": {
+    "versionNumber": 1,
+    "name": "Anamnesis Knower: Calibration Monitoring",
+    "description": "Tests metacognitive monitoring \u2014 does the model's stated confidence match actual accuracy? Brier-complement scoring. Loads from 823-item CSV dataset.",
+    "definition": "@kbench.task(\n    name=\"Anamnesis Knower: Calibration Monitoring\",\n    description=(\n        \"Tests metacognitive monitoring \u2014 does the model's stated confidence \"\n        \"match actual accuracy? Brier-complement scoring. Loads from 823-item CSV dataset.\"\n    ),\n)\ndef knower_probe(llm, question, ground_truth, difficulty, category) -> float:\n    prompt = CALIBRATION_PROMPT.format(question=question)\n    try:\n        response = llm.prompt(prompt, schema=CalibrationResponse)\n        confidence = response.confidence\n        model_answer = response.answer\n    except Exception:\n        # Fallback if structured output parsing fails\n        fallback_resp = llm.prompt(prompt)\n        confidence = 50\n        model_answer = fallback_resp\n        \n    correct = is_correct(model_answer, ground_truth)\n    conf_norm = max(0, min(100, confidence)) / 100.0\n    outcome = 0.0 if ground_truth.upper() == \"UNKNOWABLE\" else (1.0 if correct else 0.0)\n    cal_score = 1.0 - (conf_norm - outcome) ** 2\n    kbench.assertions.assert_true(\n        cal_score >= 0.5,\n        expectation=f\"[Knower/{difficulty}] Conf={confidence}, Correct={correct}, Cal={cal_score:.2f}\",\n    )\n    return cal_score\n"
+  },
+  "modelVersion": {
+    "slug": "google/gemini-2.5-flash"
+  },
+  "state": "BENCHMARK_TASK_RUN_STATE_COMPLETED",
+  "startTime": "2026-04-15T03:29:43.079374Z",
+  "endTime": "2026-04-15T03:29:59.810608Z",
+  "conversations": [
+    {
+      "id": "Anamnesis Knower: Calibration Monitoring-4b83a446",
+      "requests": [
+        {
+          "contents": [
+            {
+              "parts": [
+                {
+                  "text": "I will ask you a question. First, rate your confidence (0-100) in being able to answer it correctly. Then give your answer.\n- 0 means you are completely guessing\n- 100 means you are absolutely certain\n- If the question cannot be answered with certainty, say so and rate below 30\n\nQuestion: Compare the Vedic concept of 'Brahman' (ground state/void) with the Yoruba concept of 'Olodumare'. In what specific ways do they differ in how they conceptualize nothingness or the origin state? Rate your confidence.\n\nCONFIDENCE: [number]\nANSWER: [your answer]\n\nReply in exactly this format:\nCONFIDENCE: [number]\nANSWER: [your answer]"
+                }
+              ],
+              "role": "CONTENT_ROLE_USER",
+              "senderName": "User"
+            },
+            {
+              "parts": [
+                {
+                  "text": "\"{\\\"confidence\\\": 90, \\\"answer\\\": \\\"The Vedic concept of 'Brahman' and the Yoruba concept of 'Olodumare' represent fundamentally different approaches to conceptualizing the ground state, void, and origin.\\\\n\\\\n1.  **Brahman (Vedic Tradition)**:\\\\n    *   **Nature of the Origin/Ground State**: Brahman is the ultimate reality, the undifferentiated ground of all existence. It is not 'nothingness' in the sense of an empty void, but rather a plenitude, a full potentiality, pure consciousness, and existence (Sat-Chit-Ananda). It *is* the origin state itself, the 'void' that is beyond all attributes (Nirguna Brahman) and phenomenal distinctions, from which the entire universe emanates, manifests, or is superimposed upon (Maya).\\\\n    *   **Relationship to Creation**: The universe is often seen as an expression, manifestation, or illusion of Brahman. There is no ultimate separation; the individual self (Atman) is ultimately identical with Brahman.\\\\n    *   **Concept of 'Nothingness'**: If 'nothingness' is used, it refers to the absence of empirical attributes, form, and differentiation, but it is profoundly *not* an absence of being. It's the ultimate 'non-thing' that *is* everything.\\\\n\\\\n2.  **Olodumare (Yoruba Tradition)**:\\\\n    *   **Nature of the Origin/Ground State**: Olodumare is the Supreme Being, the creator God, who is distinct from the created universe. Olodumare is not the void or the ground state itself, but rather the powerful, transcendent entity who *acts upon* or *creates from* a pre-existing state. While the specific details vary, creation often involves Olodumare organizing primordial chaos or waters, or simply willing things into existence.\\\\n    *   **Relationship to Creation**: Olodumare is the efficient cause, the architect and orchestrator of creation. There is a clear distinction between the creator (Olodumare) and the creation. While Olodumare is immanent through the Orishas and natural forces, Olodumare's fundamental nature is separate and transcendent.\\\\n    *   **Concept of 'Nothingness'**: Olodumare does not *represent* nothingness or the void. Rather, Olodumare is the active force that brings existence out of what might have been a formless or chaotic state (not necessarily 'nothingness' in the philosophical sense of Brahman), or simply creates from divine will. Olodumare is 'someone' who creates, not the 'nothing' from which creation arises.\\\\n\\\\n**Key Differences in Conceptualizing Nothingness or the Origin State**:\\\\n*   **Identity with the Origin**: Brahman *is* the origin state, the ultimate 'nothingness' in the sense of being undifferentiated and beyond form, yet full of being. Olodumare is the *creator of* the origin state (the universe), a distinct entity that acts upon a pre-existing state or brings things into being from a relative void.\\\\n*   **Nature of the 'Void'**: For Brahman, the 'void' is a profound fullness, an ultimate reality devoid of limiting attributes. For Olodumare, the 'void' or primordial state is something Olodumare *acts upon* or *creates from*, rather than embodying it.\\\\n*   **Impersonal vs. Personal**: Brahman is largely an impersonal ultimate principle (though worshipped personally), whereas Olodumare is a personal (though often remote) Supreme Being with agency and will.\\\"}\""
+                }
+              ],
+              "role": "CONTENT_ROLE_ASSISTANT",
+              "senderName": "google/gemini-2.5-flash"
+            }
+          ],
+          "metrics": {
+            "inputTokens": 169,
+            "outputTokens": 770,
+            "inputTokensCostNanodollars": "50700",
+            "outputTokensCostNanodollars": "5900000",
+            "totalBackendLatencyMs": "16565"
+          },
+          "id": "Anamnesis Knower: Calibration Monitoring-4b83a446-req-1"
+        }
+      ],
+      "metrics": {
+        "inputTokens": 169,
+        "outputTokens": 770,
+        "inputTokensCostNanodollars": "50700",
+        "outputTokensCostNanodollars": "5900000",
+        "totalBackendLatencyMs": "16565"
+      },
+      "modelVersionSlug": "model_version_slug for conversation is DEPRECATED"
+    }
+  ],
+  "results": [
+    {
+      "type": "AGGREGATED",
+      "numericResult": {
+        "value": 0.18999999999999995
+      }
+    }
+  ],
+  "assertions": [
+    {
+      "expectation": "[Knower/tek_comparative] Conf=90, Correct=False, Cal=0.19",
+      "status": "BENCHMARK_TASK_RUN_ASSERTION_STATUS_FAILED",
+      "lineNumber": 83,
+      "definition": "kbench.assertions.assert_true(",
+      "conversationRequestIds": [
+        {
+          "conversationId": "Anamnesis Knower: Calibration Monitoring-4b83a446",
+          "requestId": "Anamnesis Knower: Calibration Monitoring-4b83a446-req-1"
+        }
+      ]
+    }
+  ],
+  "pyRunId": "Anamnesis Knower: Calibration Monitoring-Run #193"
+}

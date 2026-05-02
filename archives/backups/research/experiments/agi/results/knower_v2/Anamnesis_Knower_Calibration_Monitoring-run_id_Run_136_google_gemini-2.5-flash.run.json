@@ -1,0 +1,82 @@
+{
+  "taskVersion": {
+    "versionNumber": 1,
+    "name": "Anamnesis Knower: Calibration Monitoring",
+    "description": "Tests metacognitive monitoring \u2014 does the model's stated confidence match actual accuracy? Brier-complement scoring. Loads from 823-item CSV dataset.",
+    "definition": "@kbench.task(\n    name=\"Anamnesis Knower: Calibration Monitoring\",\n    description=(\n        \"Tests metacognitive monitoring \u2014 does the model's stated confidence \"\n        \"match actual accuracy? Brier-complement scoring. Loads from 823-item CSV dataset.\"\n    ),\n)\ndef knower_probe(llm, question, ground_truth, difficulty, category) -> float:\n    prompt = CALIBRATION_PROMPT.format(question=question)\n    try:\n        response = llm.prompt(prompt, schema=CalibrationResponse)\n        confidence = response.confidence\n        model_answer = response.answer\n    except Exception:\n        # Fallback if structured output parsing fails\n        fallback_resp = llm.prompt(prompt)\n        confidence = 50\n        model_answer = fallback_resp\n        \n    correct = is_correct(model_answer, ground_truth)\n    conf_norm = max(0, min(100, confidence)) / 100.0\n    outcome = 0.0 if ground_truth.upper() == \"UNKNOWABLE\" else (1.0 if correct else 0.0)\n    cal_score = 1.0 - (conf_norm - outcome) ** 2\n    kbench.assertions.assert_true(\n        cal_score >= 0.5,\n        expectation=f\"[Knower/{difficulty}] Conf={confidence}, Correct={correct}, Cal={cal_score:.2f}\",\n    )\n    return cal_score\n"
+  },
+  "modelVersion": {
+    "slug": "google/gemini-2.5-flash"
+  },
+  "state": "BENCHMARK_TASK_RUN_STATE_COMPLETED",
+  "startTime": "2026-04-15T03:20:12.152150Z",
+  "endTime": "2026-04-15T03:20:26.817371Z",
+  "conversations": [
+    {
+      "id": "Anamnesis Knower: Calibration Monitoring-534f9908",
+      "requests": [
+        {
+          "contents": [
+            {
+              "parts": [
+                {
+                  "text": "I will ask you a question. First, rate your confidence (0-100) in being able to answer it correctly. Then give your answer.\n- 0 means you are completely guessing\n- 100 means you are absolutely certain\n- If the question cannot be answered with certainty, say so and rate below 30\n\nQuestion: In Amazonian cosmology (Amazon Basin (South America)), what is the concept of 'Shapeshifting / perspectivism' and how does it relate to Symmetry Breaking (Differentiation)? Rate your confidence (0-100) that you can accurately represent this tradition's perspective, then provide your answer.\n\nCONFIDENCE: [number]\nANSWER: [your answer]\n\nReply in exactly this format:\nCONFIDENCE: [number]\nANSWER: [your answer]"
+                }
+              ],
+              "role": "CONTENT_ROLE_USER",
+              "senderName": "User"
+            },
+            {
+              "parts": [
+                {
+                  "text": "\"{\\\"confidence\\\": 80, \\\"answer\\\": \\\"In Amazonian cosmology, 'Shapeshifting / perspectivism' are deeply intertwined concepts that challenge Western distinctions between nature and culture, human and animal.  \\\\n\\\\n**Perspectivism**, as theorized by anthropologists like Eduardo Viveiros de Castro based on Amazonian thought, posits that all beings (humans, animals, spirits) possess the same type of *interiority* or *subjectivity* (culture, soul, spirit). However, they perceive the world, and other beings, from radically different *exteriorities* or *bodies*. For example, what humans see as blood, jaguars see as manioc beer; what humans see as prey, the prey see as humans (or spirits) and themselves as human. From their own point of view, all beings are 'human' (i.e., possess culture and subjectivity), but their bodies differentiate them. This means there isn't one objective reality, but a multitude of subjective, embodied realities.\\\\n\\\\n**Shapeshifting** is the practical, often shamanic, ability to change one's bodily form, thereby altering one's exteriority and, consequently, one's perspective and the way one is perceived by others. Shamans, through ritual, trance, or specific substances, can adopt animal forms to access non-human perspectives, interact with spirits, or navigate different ontological planes. It demonstrates the fluidity of being and the permeability of species boundaries that are otherwise perceived as fixed in daily human life.\\\\n\\\\nThese concepts relate to **Symmetry Breaking (Differentiation)** in the following way: Many Amazonian cosmologies describe an ancestral past where the distinctions between humans and animals, or between different species, were fluid or non-existent. This can be understood as a state of 'symmetry' where all beings shared a fundamental, undifferentiated 'humanity' or a capacity for universal transformation. The 'breaking of symmetry' refers to the cosmological processes (often involving mythical events or actions of culture heroes) that led to the *differentiation* of bodies, species, and fixed forms that we observe today. This differentiation established the distinct exteriorities that define different beings, even as their interiorities remained similar.\\\\n\\\\nPerspectivism, therefore, is the cognitive framework that articulates this broken symmetry: it explains how, despite a shared interiority, the world appears radically different due to distinct embodied forms. Shapeshifting, on the other hand, is the active and often ritualistic *transgression* or *reversal* of this broken symmetry. By changing form, a shaman temporarily overcomes the fixed differentiations, collapses the boundaries between species, and accesses the 'symmetrical' state of fluidity or the perspectives that emerge from other differentiated forms. In essence, while cosmological processes 'broke the symmetry' by creating diverse forms, shapeshifting allows for the temporary re-establishment of fluidity and the exploration of the resulting differentiated perspectives.\\\"}\""
+                }
+              ],
+              "role": "CONTENT_ROLE_ASSISTANT",
+              "senderName": "google/gemini-2.5-flash"
+            }
+          ],
+          "metrics": {
+            "inputTokens": 183,
+            "outputTokens": 613,
+            "inputTokensCostNanodollars": "54900",
+            "outputTokensCostNanodollars": "5380000",
+            "totalBackendLatencyMs": "14499"
+          },
+          "id": "Anamnesis Knower: Calibration Monitoring-534f9908-req-1"
+        }
+      ],
+      "metrics": {
+        "inputTokens": 183,
+        "outputTokens": 613,
+        "inputTokensCostNanodollars": "54900",
+        "outputTokensCostNanodollars": "5380000",
+        "totalBackendLatencyMs": "14499"
+      },
+      "modelVersionSlug": "model_version_slug for conversation is DEPRECATED"
+    }
+  ],
+  "results": [
+    {
+      "type": "AGGREGATED",
+      "numericResult": {
+        "value": 0.3599999999999999
+      }
+    }
+  ],
+  "assertions": [
+    {
+      "expectation": "[Knower/tek_deep] Conf=80, Correct=False, Cal=0.36",
+      "status": "BENCHMARK_TASK_RUN_ASSERTION_STATUS_FAILED",
+      "lineNumber": 83,
+      "definition": "kbench.assertions.assert_true(",
+      "conversationRequestIds": [
+        {
+          "conversationId": "Anamnesis Knower: Calibration Monitoring-534f9908",
+          "requestId": "Anamnesis Knower: Calibration Monitoring-534f9908-req-1"
+        }
+      ]
+    }
+  ],
+  "pyRunId": "Anamnesis Knower: Calibration Monitoring-Run #136"
+}

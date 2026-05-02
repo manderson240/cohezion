@@ -40,7 +40,7 @@ from cohezion.swarm.providers.model_provider import (
 try:
     import cohezion.swarm.providers.gemini_provider
     import cohezion.swarm.providers.gemma4_provider
-    import cohezion.swarm.providers.ollama_provider  # noqa: F401
+    import cohezion.swarm.providers.ollama_provider
 except ImportError:
     pass
 

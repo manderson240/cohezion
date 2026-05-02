@@ -3,6 +3,7 @@ Unified Capability Registry.
 Aggregates Skills, Agents, and MCP Servers into a single natural-language search index.
 """
 
+import importlib.util
 import json
 import logging
 from dataclasses import dataclass, field
@@ -10,14 +11,11 @@ from datetime import datetime
 from pathlib import Path
 
 
-# Scikit-Learn for TF-IDF (Lightweight Search)
-try:
-    from sklearn.feature_extraction.text import TfidfVectorizer
-    from sklearn.metrics.pairwise import cosine_similarity
-
-    SKLEARN_AVAILABLE = True
-except ImportError:
-    SKLEARN_AVAILABLE = False
+# Probe availability without loading C extensions.  Importing sklearn at
+# module level loads its BLAS allocator, which conflicts with torch._C's
+# allocator when both are in the same process → SIGSEGV (L287, Session 94).
+# TfidfVectorizer / cosine_similarity are imported lazily inside the methods.
+SKLEARN_AVAILABLE: bool = importlib.util.find_spec("sklearn") is not None
 
 logger = logging.getLogger(__name__)
 
@@ -61,6 +59,7 @@ class CapabilityRegistry:
         self._scan_skills()
         self._scan_mcp()
         self._scan_agents()
+        self._scan_claude_agents()
         self._apply_usage_to_capabilities()
 
         if SKLEARN_AVAILABLE and self.capabilities:
@@ -262,6 +261,34 @@ class CapabilityRegistry:
                 except Exception as e:
                     logger.error(f"Failed to scan agent {py_file}: {e}")
 
+    def _scan_claude_agents(self) -> None:
+        """Scan .claude/agents/ for Claude Code markdown agent definitions."""
+        agents_dir = self.root_dir / ".claude" / "agents"
+        if not agents_dir.exists():
+            return
+        for md_file in agents_dir.glob("*.md"):
+            try:
+                text = md_file.read_text(errors="ignore")
+                parts = text.split("---")
+                if len(parts) < 3:
+                    continue
+                import yaml
+
+                meta = yaml.safe_load(parts[1])
+                if not isinstance(meta, dict):
+                    continue
+                self.capabilities.append(
+                    Capability(
+                        name=meta.get("name", md_file.stem),
+                        type="agent",
+                        description=meta.get("description", f"Specialist agent: {md_file.stem}"),
+                        path=str(md_file.relative_to(self.root_dir)),
+                        tags=["agent", "specialist"],
+                    )
+                )
+            except Exception as e:
+                logger.debug(f"Skipped .claude agent {md_file.name}: {e}")
+
     def _build_index(self):
         """Build TF-IDF tokens."""
         # Use description AND tags AND name AND full path for better matching
@@ -270,6 +297,8 @@ class CapabilityRegistry:
         for c in self.capabilities:
             text = f"{c.name} {c.description} {' '.join(c.tags)} {c.path}"
             corpus.append(text)
+
+        from sklearn.feature_extraction.text import TfidfVectorizer  # lazy — avoids BLAS conflict
 
         self.vectorizer = TfidfVectorizer(stop_words="english")
         self.vectors = self.vectorizer.fit_transform(corpus)
@@ -286,6 +315,8 @@ class CapabilityRegistry:
             return results[:top_k]
 
         # TF-IDF Search
+        from sklearn.metrics.pairwise import cosine_similarity  # lazy — avoids BLAS conflict
+
         query_vec = self.vectorizer.transform([query])
         scores = cosine_similarity(query_vec, self.vectors).flatten()
 

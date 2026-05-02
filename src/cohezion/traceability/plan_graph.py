@@ -23,7 +23,7 @@ _SCHEMA_PATH = (
 
 # SurrealDB connection defaults
 _DEFAULT_URLS = [
-    os.environ.get("SURREAL_URL", "http://localhost:8000"),
+    os.environ.get("SURREAL_URL", "http://localhost:8001"),
     "http://localhost:8001",
 ]
 _NS = "cohezion"
@@ -131,7 +131,7 @@ class PlanGraph:
         """
         plan_id = f"plan:{slug}"
         await self._sql(
-            "CREATE type::thing('plan', $slug) SET "
+            f"CREATE plan:{slug} SET "
             "slug = $slug, "
             "name = $name, "
             "status = 'draft', "
@@ -149,13 +149,15 @@ class PlanGraph:
         for task in tasks:
             step = task["step_number"]
             title = task["title"]
-            task_id = f"{slug}__{step}"
+            # Replace dots in step number for safe record id
+            safe_step = step.replace(".", "_")
+            task_id = f"{slug}__{safe_step}"
             await self._sql(
-                "CREATE type::thing('task', $task_id) SET "
+                f"CREATE task:{task_id} SET "
                 "title = $title, "
                 "status = 'pending', "
                 "step_number = $step;",
-                {"task_id": task_id, "title": title, "step": step},
+                {"title": title, "step": step},
             )
             # Edge: plan -> task
             await self._sql(

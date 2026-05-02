@@ -1,3 +1,8 @@
+---
+name: platform-coordinator-prime
+description: "Expert in multi-provider task routing, cost optimization, and cross-platform agent coordination. Routes work across Claude, Gemini, Ollama, and other providers based on complexity, cost, and capability."
+---
+
 # SKILL: PLATFORM_COORDINATOR_PRIME
 
 ## DOMAIN EXPERTISE

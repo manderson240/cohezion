@@ -1,0 +1,82 @@
+{
+  "taskVersion": {
+    "versionNumber": 1,
+    "name": "Anamnesis Knower: Calibration Monitoring",
+    "description": "Tests metacognitive monitoring \u2014 does the model's stated confidence match actual accuracy? Brier-complement scoring. Loads from 823-item CSV dataset.",
+    "definition": "@kbench.task(\n    name=\"Anamnesis Knower: Calibration Monitoring\",\n    description=(\n        \"Tests metacognitive monitoring \u2014 does the model's stated confidence \"\n        \"match actual accuracy? Brier-complement scoring. Loads from 823-item CSV dataset.\"\n    ),\n)\ndef knower_probe(llm, question, ground_truth, difficulty, category) -> float:\n    prompt = CALIBRATION_PROMPT.format(question=question)\n    try:\n        response = llm.prompt(prompt, schema=CalibrationResponse)\n        confidence = response.confidence\n        model_answer = response.answer\n    except Exception:\n        # Fallback if structured output parsing fails\n        fallback_resp = llm.prompt(prompt)\n        confidence = 50\n        model_answer = fallback_resp\n        \n    correct = is_correct(model_answer, ground_truth)\n    conf_norm = max(0, min(100, confidence)) / 100.0\n    outcome = 0.0 if ground_truth.upper() == \"UNKNOWABLE\" else (1.0 if correct else 0.0)\n    cal_score = 1.0 - (conf_norm - outcome) ** 2\n    kbench.assertions.assert_true(\n        cal_score >= 0.5,\n        expectation=f\"[Knower/{difficulty}] Conf={confidence}, Correct={correct}, Cal={cal_score:.2f}\",\n    )\n    return cal_score\n"
+  },
+  "modelVersion": {
+    "slug": "google/gemini-2.5-flash"
+  },
+  "state": "BENCHMARK_TASK_RUN_STATE_COMPLETED",
+  "startTime": "2026-04-15T04:12:07.742250Z",
+  "endTime": "2026-04-15T04:12:12.311494Z",
+  "conversations": [
+    {
+      "id": "Anamnesis Knower: Calibration Monitoring-f749bf41",
+      "requests": [
+        {
+          "contents": [
+            {
+              "parts": [
+                {
+                  "text": "I will ask you a question. First, rate your confidence (0-100) in being able to answer it correctly. Then give your answer.\n- 0 means you are completely guessing\n- 100 means you are absolutely certain\n- If the question cannot be answered with certainty, say so and rate below 30\n\nQuestion: In Venetian maritime law of the 15th century, what was the 'colleganza' contract and how did it distribute risk between sedentary and traveling partners?\n\nReply in exactly this format:\nCONFIDENCE: [number]\nANSWER: [your answer]"
+                }
+              ],
+              "role": "CONTENT_ROLE_USER",
+              "senderName": "User"
+            },
+            {
+              "parts": [
+                {
+                  "text": "\"{\\\"confidence\\\": 95, \\\"answer\\\": \\\"In 15th-century Venetian maritime law, the 'colleganza' (or 'commenda' in its broader form) was a prominent contract for funding overseas trade ventures. It was a limited partnership designed to mobilize capital from sedentary investors (stans) and combine it with the labor and expertise of traveling merchants (tractator or socius tripudians).\\\\n\\\\nRisk distribution:\\\\n1.  **Sedentary Partner (Stans):** Provided the majority, often all, of the capital (typically 2/3 or 3/4 of the total investment, or even 100% in some forms). The stans bore the primary risk of capital loss. If the venture failed due to perils of the sea (e.g., shipwreck, piracy), the stans would lose their invested capital.\\\\n2.  **Traveling Partner (Tractator):** Contributed their labor, skill, and time, accompanying the goods on the voyage. The tractator typically invested little to no capital, or a smaller portion (e.g., 1/3 or 1/4). Their risk was primarily the loss of their time and effort. In case of loss, the tractator lost their expected share of profits and received no compensation for their labor, but generally did not lose personal assets beyond their small initial contribution (if any) or their time.\\\\n\\\\nProfits were usually shared unequally, often with the stans receiving a larger share (e.g., 3/4) and the tractator a smaller share (e.g., 1/4) after the initial capital was repaid to the stans. This unequal profit distribution compensated the stans for bearing the bulk of the capital risk.\\\"}\""
+                }
+              ],
+              "role": "CONTENT_ROLE_ASSISTANT",
+              "senderName": "google/gemini-2.5-flash"
+            }
+          ],
+          "metrics": {
+            "inputTokens": 140,
+            "outputTokens": 378,
+            "inputTokensCostNanodollars": "42000",
+            "outputTokensCostNanodollars": "1782500",
+            "totalBackendLatencyMs": "4398"
+          },
+          "id": "Anamnesis Knower: Calibration Monitoring-f749bf41-req-1"
+        }
+      ],
+      "metrics": {
+        "inputTokens": 140,
+        "outputTokens": 378,
+        "inputTokensCostNanodollars": "42000",
+        "outputTokensCostNanodollars": "1782500",
+        "totalBackendLatencyMs": "4398"
+      },
+      "modelVersionSlug": "model_version_slug for conversation is DEPRECATED"
+    }
+  ],
+  "results": [
+    {
+      "type": "AGGREGATED",
+      "numericResult": {
+        "value": 0.09750000000000003
+      }
+    }
+  ],
+  "assertions": [
+    {
+      "expectation": "[Knower/medium] Conf=95, Correct=False, Cal=0.10",
+      "status": "BENCHMARK_TASK_RUN_ASSERTION_STATUS_FAILED",
+      "lineNumber": 83,
+      "definition": "kbench.assertions.assert_true(",
+      "conversationRequestIds": [
+        {
+          "conversationId": "Anamnesis Knower: Calibration Monitoring-f749bf41",
+          "requestId": "Anamnesis Knower: Calibration Monitoring-f749bf41-req-1"
+        }
+      ]
+    }
+  ],
+  "pyRunId": "Anamnesis Knower: Calibration Monitoring-Run #483"
+}

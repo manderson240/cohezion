@@ -33,7 +33,7 @@ logger = logging.getLogger(__name__)
 
 VAULT_DIR = Path.home() / "vaults" / "cohezion-vault"
 CEREBELLUM_DIR = VAULT_DIR / "cerebellum"
-SURREAL_URL = os.environ.get("SURREALDB_URL", "http://localhost:8000")
+SURREAL_URL = os.environ.get("SURREALDB_URL", "http://localhost:8001")
 
 
 @dataclass

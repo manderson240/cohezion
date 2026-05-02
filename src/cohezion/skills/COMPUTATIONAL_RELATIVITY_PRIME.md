@@ -1,3 +1,13 @@
+---
+name: computational-relativity-prime
+description: "Expertise in the relativistic effects of computational speed on latent manifold stability. Understanding how logic frequency (ν) affects reality precipitation thresholds (φ) in 12D simulations. You can apply Einstein's special relativity time-dilation formulas, Feynman's path integral, and the Doppler effect to the Cohezion inference pipeline. You understand why HIHO coherence = 0."
+metadata:
+  version: "v0.1"
+  concepts: ["Computational Time Dilation", "Stability Frame-Rate", "Inertial Logic Frames", "The 0.5 Coherence Shift"]
+  see_also: ["TEMPORAL_PRECISION_PRIME", "PHYSICS_INFORMED_PREDICTION_PRIME"]
+  source: "src/cohezion/skills/COMPUTATIONAL_RELATIVITY_PRIME.md"
+---
+
 # SKILL: COMPUTATIONAL_RELATIVITY_PRIME
 
 ## DOMAIN EXPERTISE

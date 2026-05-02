@@ -41,6 +41,18 @@ This document serves as the primary instructional context for Gemini CLI agents 
 - **Documentation**: **NumPy-style** docstrings for all modules, classes, and functions.
 - **Async First**: Use `async`/`await` for all I/O operations with mandatory timeouts and circuit breakers.
 
+### Systems Engineering V-Model (Mandatory)
+All agentic journeys must follow the **V-Model Lifecycle**:
+1. **Descending (Latent)**: Requirements Analysis → Architecture (Invariants) → Module Design (AutoHarness).
+2. **Apex**: Implementation against deterministic gates.
+3. **Ascending (Axiomatic)**: Unit Verification (Harness Pass) → System Validation (Adversarial Swarm Review) → Acceptance (Persistence).
+
+### Proactive Monitoring & Course Correction
+For all background tasks (Kaggle runs, training, simulations):
+- **Recursive Logs**: Agents MUST proactively monitor `stdout/stderr` every iteration.
+- **Wall of Red Protection**: Detect "Reasoning Decay" or "Illegal Actions" using Ouroboros failure analysis.
+- **Autonomous Recovery**: If a failure is detected, extract a "Hardening Mutation" and restart the loop immediately. Never "fly blind" into competition deadlines.
+
 ### Workflow: Plan -> Act -> Validate
 1. **Research**: Map the codebase and validate assumptions (e.g., `grep_search`, `read_file`).
 2. **Strategy**: Formulate a grounded plan.
@@ -54,6 +66,13 @@ This document serves as the primary instructional context for Gemini CLI agents 
 uv sync                # Sync dependencies
 make onboard           # Full environment setup and health check
 ```
+
+### Platform Health (L333-L337)
+```bash
+bash scripts/platform-health-sentinel.sh --proactive --platform gemini  # Check health
+bash scripts/platform-health-sentinel.sh --heal --platform gemini       # Auto-fix issues
+```
+Run the sentinel at session start if any MCP server fails or returns unexpected results.
 
 ### Quality & Testing
 ```bash

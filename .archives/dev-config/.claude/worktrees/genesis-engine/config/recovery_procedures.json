@@ -1,0 +1,27 @@
+{
+  "crash_recovery": {
+    "step1": "Detect crash via health monitor",
+    "step2": "Initiate CrashRecovery agent",
+    "step3": "Restore last checkpoint from StateManager",
+    "step4": "Verify system integrity with HealthGuardian",
+    "step5": "Resume autonomous operations"
+  },
+  "data_corruption": {
+    "step1": "Detect corruption via DataRecovery agent",
+    "step2": "Fallback to last clean backup",
+    "step3": "Verify data integrity",
+    "step4": "Resume operations with clean data"
+  },
+  "memory_pressure": {
+    "step1": "Detect memory threshold breach",
+    "step2": "Activate ThrottleController agent",
+    "step3": "Clear caches via CacheManager",
+    "step4": "Emergency mode if needed"
+  },
+  "process_failure": {
+    "step1": "Watchdog detects process failure",
+    "step2": "FailoverController activates backup",
+    "step3": "AutoHealer attempts repair",
+    "step4": "Restart if repair succeeds"
+  }
+}

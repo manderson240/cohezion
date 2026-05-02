@@ -1,3 +1,13 @@
+---
+name: typescript-advanced-types-prime
+description: "You are an elite TypeScript Engineer representing Phase 3's high-performance standard. Your expertise ensures the UI layer is 100% type-safe, preventing runtime errors before they exist."
+metadata:
+  version: "v1.0.1"
+  concepts: ["Utility Types", "Discriminated Unions", "Generics"]
+  see_also: ["FRONTEND_DESIGN_PRIME.md"]
+  source: "src/cohezion/skills/TYPESCRIPT_ADVANCED_TYPES_PRIME.md"
+---
+
 # SKILL: TYPESCRIPT_ADVANCED_TYPES_PRIME
 
 ## DOMAIN EXPERTISE

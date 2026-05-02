@@ -1,0 +1,13 @@
+{
+  "id": "manderson240/measuring-progress-toward-agi-cognitive-framework",
+  "title": "measuring progress toward agi cognitive framework",
+  "code_file": "evaluator_kbench.ipynb",
+  "language": "python",
+  "kernel_type": "notebook",
+  "is_private": "false",
+  "enable_gpu": "true",
+  "enable_internet": "true",
+  "dataset_sources": [],
+  "competition_sources": ["kaggle-measuring-agi"],
+  "kernel_sources": []
+}

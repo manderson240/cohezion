@@ -1,0 +1,82 @@
+{
+  "taskVersion": {
+    "versionNumber": 1,
+    "name": "Anamnesis Knower: Calibration Monitoring",
+    "description": "Tests metacognitive monitoring \u2014 does the model's stated confidence match actual accuracy? Brier-complement scoring. Loads from 823-item CSV dataset.",
+    "definition": "@kbench.task(\n    name=\"Anamnesis Knower: Calibration Monitoring\",\n    description=(\n        \"Tests metacognitive monitoring \u2014 does the model's stated confidence \"\n        \"match actual accuracy? Brier-complement scoring. Loads from 823-item CSV dataset.\"\n    ),\n)\ndef knower_probe(llm, question, ground_truth, difficulty, category) -> float:\n    prompt = CALIBRATION_PROMPT.format(question=question)\n    try:\n        response = llm.prompt(prompt, schema=CalibrationResponse)\n        confidence = response.confidence\n        model_answer = response.answer\n    except Exception:\n        # Fallback if structured output parsing fails\n        fallback_resp = llm.prompt(prompt)\n        confidence = 50\n        model_answer = fallback_resp\n        \n    correct = is_correct(model_answer, ground_truth)\n    conf_norm = max(0, min(100, confidence)) / 100.0\n    outcome = 0.0 if ground_truth.upper() == \"UNKNOWABLE\" else (1.0 if correct else 0.0)\n    cal_score = 1.0 - (conf_norm - outcome) ** 2\n    kbench.assertions.assert_true(\n        cal_score >= 0.5,\n        expectation=f\"[Knower/{difficulty}] Conf={confidence}, Correct={correct}, Cal={cal_score:.2f}\",\n    )\n    return cal_score\n"
+  },
+  "modelVersion": {
+    "slug": "google/gemini-2.5-flash"
+  },
+  "state": "BENCHMARK_TASK_RUN_STATE_COMPLETED",
+  "startTime": "2026-04-15T03:02:11.327266Z",
+  "endTime": "2026-04-15T03:02:19.964272Z",
+  "conversations": [
+    {
+      "id": "Anamnesis Knower: Calibration Monitoring-09b8999e",
+      "requests": [
+        {
+          "contents": [
+            {
+              "parts": [
+                {
+                  "text": "I will ask you a question. First, rate your confidence (0-100) in being able to answer it correctly. Then give your answer.\n- 0 means you are completely guessing\n- 100 means you are absolutely certain\n- If the question cannot be answered with certainty, say so and rate below 30\n\nQuestion: In Vedic cosmology (Indian Subcontinent), what is the concept of 'Mantra / Scripture' and how does it relate to Reality Precipitates (Witness Marks)? Rate your confidence (0-100) that you can accurately represent this tradition's perspective, then provide your answer.\n\nCONFIDENCE: [number]\nANSWER: [your answer]\n\nReply in exactly this format:\nCONFIDENCE: [number]\nANSWER: [your answer]"
+                }
+              ],
+              "role": "CONTENT_ROLE_USER",
+              "senderName": "User"
+            },
+            {
+              "parts": [
+                {
+                  "text": "\"{\\\"confidence\\\": 85, \\\"answer\\\": \\\"In Vedic cosmology, 'Mantra' and 'Scripture' (primarily the Vedas) are considered not merely texts or sounds, but eternal, unauthored (apauru\\\\u1e63eya) revelations of ultimate truth and the foundational blueprints of reality. They embody 'Shabda Brahman,' the ultimate reality as primordial sound or vibration, from which the entire cosmos manifests. The Vedas are believed to contain the very 'names' (n\\\\u0101ma) and 'forms' (r\\\\u016bpa) of creation before their physical manifestation. The universe, in this view, is an unfolding of these divine sounds and principles embedded within the Vedas. 'Mantra' is a concentrated form of this sacred sound, possessing inherent power to create, sustain, and dissolve, and to connect the individual consciousness with the cosmic truth. Therefore, the 'Reality Precipitates (Witness Marks)' can be understood as the manifested universe itself, along with all its phenomena, structures, and beings. These are the tangible or perceivable 'marks' left behind by the creative power of the Vedic 'Mantra/Scripture.' Every aspect of reality, from the smallest atom to the largest galaxy, is a 'precipitate'\\\\u2014an actualized form\\\\u2014whose essence and pattern are contained within the eternal Vedic sound and knowledge. They are 'witness marks' because their very existence testifies to the truth and efficacy of the primordial sound and the divine intelligence articulated in the Vedas. The laws of nature, the forms of species, and the cycles of time are all seen as reflections or 'precipitations' of these fundamental Vedic truths.\\\"}\""
+                }
+              ],
+              "role": "CONTENT_ROLE_ASSISTANT",
+              "senderName": "google/gemini-2.5-flash"
+            }
+          ],
+          "metrics": {
+            "inputTokens": 178,
+            "outputTokens": 337,
+            "inputTokensCostNanodollars": "53400",
+            "outputTokensCostNanodollars": "3062500",
+            "totalBackendLatencyMs": "8125"
+          },
+          "id": "Anamnesis Knower: Calibration Monitoring-09b8999e-req-1"
+        }
+      ],
+      "metrics": {
+        "inputTokens": 178,
+        "outputTokens": 337,
+        "inputTokensCostNanodollars": "53400",
+        "outputTokensCostNanodollars": "3062500",
+        "totalBackendLatencyMs": "8125"
+      },
+      "modelVersionSlug": "model_version_slug for conversation is DEPRECATED"
+    }
+  ],
+  "results": [
+    {
+      "type": "AGGREGATED",
+      "numericResult": {
+        "value": 0.2775000000000001
+      }
+    }
+  ],
+  "assertions": [
+    {
+      "expectation": "[Knower/tek_deep] Conf=85, Correct=False, Cal=0.28",
+      "status": "BENCHMARK_TASK_RUN_ASSERTION_STATUS_FAILED",
+      "lineNumber": 83,
+      "definition": "kbench.assertions.assert_true(",
+      "conversationRequestIds": [
+        {
+          "conversationId": "Anamnesis Knower: Calibration Monitoring-09b8999e",
+          "requestId": "Anamnesis Knower: Calibration Monitoring-09b8999e-req-1"
+        }
+      ]
+    }
+  ],
+  "pyRunId": "Anamnesis Knower: Calibration Monitoring-Run #20"
+}

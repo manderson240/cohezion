@@ -1,0 +1,20 @@
+{
+  "agent": {
+    "auto_confirm": true,
+    "timeout_minutes": 60,
+    "max_iterations": 100,
+    "recursive_research": true,
+    "tools": ["web_search", "file_edit", "bash", "code_interpreter"]
+  },
+  "research": {
+    "enabled": true,
+    "provider": "auto",
+    "depth": 3,
+    "breadth": 5
+  },
+  "llm_wiki": {
+    "enabled": true,
+    "path": "data/llm_wiki",
+    "auto_update": true
+  }
+}

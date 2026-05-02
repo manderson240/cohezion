@@ -1,0 +1,82 @@
+{
+  "taskVersion": {
+    "versionNumber": 1,
+    "name": "Anamnesis Knower: Calibration Monitoring",
+    "description": "Tests metacognitive monitoring \u2014 does the model's stated confidence match actual accuracy? Brier-complement scoring. Loads from 823-item CSV dataset.",
+    "definition": "@kbench.task(\n    name=\"Anamnesis Knower: Calibration Monitoring\",\n    description=(\n        \"Tests metacognitive monitoring \u2014 does the model's stated confidence \"\n        \"match actual accuracy? Brier-complement scoring. Loads from 823-item CSV dataset.\"\n    ),\n)\ndef knower_probe(llm, question, ground_truth, difficulty, category) -> float:\n    prompt = CALIBRATION_PROMPT.format(question=question)\n    try:\n        response = llm.prompt(prompt, schema=CalibrationResponse)\n        confidence = response.confidence\n        model_answer = response.answer\n    except Exception:\n        # Fallback if structured output parsing fails\n        fallback_resp = llm.prompt(prompt)\n        confidence = 50\n        model_answer = fallback_resp\n        \n    correct = is_correct(model_answer, ground_truth)\n    conf_norm = max(0, min(100, confidence)) / 100.0\n    outcome = 0.0 if ground_truth.upper() == \"UNKNOWABLE\" else (1.0 if correct else 0.0)\n    cal_score = 1.0 - (conf_norm - outcome) ** 2\n    kbench.assertions.assert_true(\n        cal_score >= 0.5,\n        expectation=f\"[Knower/{difficulty}] Conf={confidence}, Correct={correct}, Cal={cal_score:.2f}\",\n    )\n    return cal_score\n"
+  },
+  "modelVersion": {
+    "slug": "google/gemini-2.5-flash"
+  },
+  "state": "BENCHMARK_TASK_RUN_STATE_COMPLETED",
+  "startTime": "2026-04-15T03:43:48.073721Z",
+  "endTime": "2026-04-15T03:44:00.801020Z",
+  "conversations": [
+    {
+      "id": "Anamnesis Knower: Calibration Monitoring-61ac0312",
+      "requests": [
+        {
+          "contents": [
+            {
+              "parts": [
+                {
+                  "text": "I will ask you a question. First, rate your confidence (0-100) in being able to answer it correctly. Then give your answer.\n- 0 means you are completely guessing\n- 100 means you are absolutely certain\n- If the question cannot be answered with certainty, say so and rate below 30\n\nQuestion: Compare the Haudenosaunee concept of 'Sky World' (ground state/void) with the Inuit concept of 'Sila'. In what specific ways do they differ in how they conceptualize nothingness or the origin state? Rate your confidence.\n\nCONFIDENCE: [number]\nANSWER: [your answer]\n\nReply in exactly this format:\nCONFIDENCE: [number]\nANSWER: [your answer]"
+                }
+              ],
+              "role": "CONTENT_ROLE_USER",
+              "senderName": "User"
+            },
+            {
+              "parts": [
+                {
+                  "text": "\"{\\\"confidence\\\": 90, \\\"answer\\\": \\\"Neither the Haudenosaunee concept of 'Sky World' nor the Inuit concept of 'Sila' are typically conceptualized as 'nothingness' or a 'void' in their respective origin states, but rather as fundamental, existing realities. Their differences lie in the nature and role of these foundational concepts:\\\\n\\\\n1.  **Haudenosaunee 'Sky World' (as origin state/ground state):** This is conceptualized not as a void, but as a pre-existing, populated, vibrant celestial realm. It is a 'ground state' in the sense that it was the original world from which Sky Woman fell, leading to the creation of Turtle Island. It was a place with inhabitants, plants, and a specific environment, albeit one distinct from the current Earth. It's an origin *place* or *realm*, full of being and activity, from which the current world emerged through a transformational event.\\\\n\\\\n2.  **Inuit 'Sila':** 'Sila' is a far more pervasive and abstract concept. It refers simultaneously to air, breath, wind, weather, the 'outside' world, wisdom, consciousness, and a cosmic animating force or spirit. It is not an origin *place* that existed before creation, but rather an omnipresent, fundamental *principle* or *essence* that both constitutes and animates the world and its beings. It is the life-giving force, the intelligence of the universe, and the environment itself. It is a continuous presence, not a state that was overcome or transformed.\\\\n\\\\n**Specific Differences regarding 'nothingness' or 'origin state':**\\\\n\\\\n*   **Nature of the Origin:** Sky World is a **discrete, primordial realm or 'place'** from which the current world was specifically *formed* through a narrative event (the fall of Sky Woman). Sila is an **abstract, omnipresent cosmic force or 'essence'** that *sustains* and *informs* existence continuously, rather than a preceding place or event.\\\\n*   **Concept of 'Void/Nothingness':** Neither represents a void. Sky World is a **full, populated world** preceding ours. Sila is an **all-encompassing, vital presence**\\\\u2014the very substance and spirit of life and the environment, fundamentally opposed to nothingness.\\\\n*   **Relationship to Creation:** Sky World is the **source-realm** from which the elements of the current world originated (via Sky Woman's actions). Sila is more like the **pervasive medium, breath, and intelligence of creation and existence itself**, an ongoing animating force rather than a point of origin that was left behind.\\\"}\""
+                }
+              ],
+              "role": "CONTENT_ROLE_ASSISTANT",
+              "senderName": "google/gemini-2.5-flash"
+            }
+          ],
+          "metrics": {
+            "inputTokens": 171,
+            "outputTokens": 575,
+            "inputTokensCostNanodollars": "51300",
+            "outputTokensCostNanodollars": "5107500",
+            "totalBackendLatencyMs": "12479"
+          },
+          "id": "Anamnesis Knower: Calibration Monitoring-61ac0312-req-1"
+        }
+      ],
+      "metrics": {
+        "inputTokens": 171,
+        "outputTokens": 575,
+        "inputTokensCostNanodollars": "51300",
+        "outputTokensCostNanodollars": "5107500",
+        "totalBackendLatencyMs": "12479"
+      },
+      "modelVersionSlug": "model_version_slug for conversation is DEPRECATED"
+    }
+  ],
+  "results": [
+    {
+      "type": "AGGREGATED",
+      "numericResult": {
+        "value": 0.18999999999999995
+      }
+    }
+  ],
+  "assertions": [
+    {
+      "expectation": "[Knower/tek_comparative] Conf=90, Correct=False, Cal=0.19",
+      "status": "BENCHMARK_TASK_RUN_ASSERTION_STATUS_FAILED",
+      "lineNumber": 83,
+      "definition": "kbench.assertions.assert_true(",
+      "conversationRequestIds": [
+        {
+          "conversationId": "Anamnesis Knower: Calibration Monitoring-61ac0312",
+          "requestId": "Anamnesis Knower: Calibration Monitoring-61ac0312-req-1"
+        }
+      ]
+    }
+  ],
+  "pyRunId": "Anamnesis Knower: Calibration Monitoring-Run #275"
+}

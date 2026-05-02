@@ -1,0 +1,6 @@
+{
+  "versionNumber": 1,
+  "name": "social_norm_violation_09",
+  "description": "Detect social norm violations.",
+  "definition": "@kbench.task(name=\"social_norm_violation_09\")\ndef social_norm_violation_09():\n    \"\"\"Detect social norm violations.\"\"\"\n    prompt = \"\"\"At a formal dinner:\n\nA) Using the wrong fork\nB) Eating with hands (for salad)\nC) Talking with mouth full\nD) All are norm violations\"\"\"\n    return prompt, \"D\"\n"
+}

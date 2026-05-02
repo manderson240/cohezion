@@ -2,14 +2,21 @@
 
 This module provides:
 1. AutoresearchEngine - Identifies optimization opportunities from metrics
-2. RetrospectionEngine - Captures learnings to vault for compound growth
-3. SkillRefiner - Updates skill definitions based on execution feedback
+2. VaultLearningCapture - Captures learnings to vault for compound growth
+   (formerly RetrospectionEngine; renamed 2026-04-22 in Sprint A to disambiguate
+   from core.compound.retrospection.RetrospectionEngine which parses KG files,
+   and from compound.retrospection_summary.CycleRetrospectionEngine which
+   summarizes per-cycle metrics). The old name is re-exported at module bottom.
+3. AsyncMetricsSkillRefiner - Async metric-based skill refinement
+   (formerly SkillRefiner; renamed same reason — canonical SkillRefiner is
+   compound.skill_refiner.SkillRefiner).
 """
 
 import json
 import logging
 from dataclasses import dataclass, field
-from datetime import UTC, datetime
+from datetime import UTC
+from datetime import datetime as dt_class
 from pathlib import Path
 from typing import Any
 
@@ -31,7 +38,7 @@ class ExecutionMetrics:
     coherence: float
     success: bool
     skill_used: str | None = None
-    timestamp: str = field(default_factory=lambda: datetime.now(UTC).isoformat())
+    timestamp: str = field(default_factory=lambda: dt_class.now(UTC).isoformat())
     lessons: list[str] = field(default_factory=list)
 
 
@@ -162,15 +169,22 @@ class AutoresearchEngine:
             )
 
         return {
-            "title": f"MCP Optimization Research Plan ({datetime.now(UTC).strftime('%Y-%m-%d')})",
+            "title": f"MCP Optimization Research Plan ({dt_class.now(UTC).strftime('%Y-%m-%d')})",
             "experiments": experiments,
             "estimated_effort": "medium",
             "expected_roi": "12x token efficiency improvement",
         }
 
 
-class RetrospectionEngine:
-    """Captures execution learnings to vault for compound growth."""
+class VaultLearningCapture:
+    """Captures execution learnings to vault for compound growth.
+
+    Renamed from RetrospectionEngine 2026-04-22 to disambiguate from
+    core.compound.retrospection.RetrospectionEngine (KG parser) and
+    compound.retrospection_summary.CycleRetrospectionEngine (per-cycle
+    summaries). See patterns/deferred-sprints-consolidation-and-skills-migration.md.
+    The old name is re-exported at the bottom of this module for backward compat.
+    """
 
     def __init__(self, vault_path: str = "cloud-vault-mcp/vault"):
         self.vault_path = Path(vault_path)
@@ -191,7 +205,7 @@ class RetrospectionEngine:
             # Build learning entry
             learning = {
                 "title": f"Session Learning: {execution_result.get('request', 'Unknown')[:50]}",
-                "timestamp": datetime.now(UTC).isoformat(),
+                "timestamp": dt_class.now(UTC).isoformat(),
                 "metrics": {
                     "tokens_used": execution_result.get("tokens_used", 0),
                     "cache_hits": execution_result.get("cache_hits", 0),
@@ -203,24 +217,64 @@ class RetrospectionEngine:
                 "skill_used": execution_result.get("skill_used"),
             }
 
+            logger.info(f"Attempting to capture learning: {learning['title']}")
+
             # Persist via MCP if available
             if mcp_client:
-                path = await mcp_client.vault_log_experiment(
-                    title=learning["title"],
-                    hypothesis="Session execution",
-                    result="success" if learning["success"] else "failure",
-                    metrics=learning["metrics"],
-                    lessons_learned=learning["lessons"],
-                    tags=["compound-engineering", "experiential-learning", "mcp-integration"],
-                )
-                logger.info(f"Learning captured to vault: {path}")
-                return str(path) if path is not None else None
+                # 1. Store in Obsidian Vault
+                try:
+                    # Convert lessons list to markdown string
+                    lessons_str = "\n".join([f"- {L}" for L in learning["lessons"]])
+
+                    logger.info(f"Logging to vault via {mcp_client.config.server_url}...")
+                    path = await mcp_client.vault_log_experiment(
+                        project="cohezion",
+                        title=learning["title"],
+                        hypothesis="Session execution",
+                        method="Automated capture",
+                        result="success" if learning["success"] else "failure",
+                        learnings=lessons_str,
+                        **learning["metrics"],
+                    )
+                    logger.info(f"Vault capture success: {path}")
+                except Exception as vault_e:
+                    logger.error(f"Vault capture failed: {vault_e}")
+                    path = None
+
+                # 2. Store in SurrealDB (Universe Nodes)
+                try:
+                    # Generate a learning ID
+                    import hashlib
+
+                    l_id = f"L_{hashlib.sha256(learning['title'].encode()).hexdigest()[:8]}"
+
+                    logger.info(f"Storing learning in SurrealDB: {l_id}...")
+                    await mcp_client._call_tool(
+                        "store_learning",
+                        {
+                            "learning_id": l_id,
+                            "title": learning["title"],
+                            "content": json.dumps(learning, indent=2),
+                            "pattern": learning.get("skill_used", "general"),
+                            "score": float(learning["metrics"].get("coherence", 0.7)),
+                        },
+                    )
+                    logger.info("SurrealDB storage success.")
+                except Exception as db_e:
+                    logger.warning(f"Failed to store learning in SurrealDB: {db_e}")
+
+                if path:
+                    logger.info(f"Learning captured to vault and database: {path}")
+                return path
             else:
+                logger.warning(
+                    "No mcp_client provided to capture_learning, falling back to local file."
+                )
                 # Fallback to local file
                 fallback_path = (
                     self.vault_path
                     / "logs"
-                    / f"learning_{datetime.now(UTC).strftime('%Y%m%d_%H%M%S')}.json"
+                    / f"learning_{dt_class.now(UTC).strftime('%Y%m%d_%H%M%S')}.json"
                 )
                 fallback_path.parent.mkdir(parents=True, exist_ok=True)
                 fallback_path.write_text(json.dumps(learning, indent=2))
@@ -228,7 +282,7 @@ class RetrospectionEngine:
                 return str(fallback_path)
 
         except Exception as e:
-            logger.error(f"Failed to capture learning: {e}")
+            logger.exception(f"Unexpected error in capture_learning: {e}")
             return None
 
     async def extract_patterns(self, learning_paths: list[str]) -> list[dict]:
@@ -252,7 +306,7 @@ class RetrospectionEngine:
                 continue
 
         # Identify recurring patterns
-        lesson_counts: dict[str, int] = {}
+        lesson_counts = {}
         for lesson in all_lessons:
             lesson_counts[lesson] = lesson_counts.get(lesson, 0) + 1
 
@@ -271,8 +325,14 @@ class RetrospectionEngine:
         return patterns
 
 
-class SkillRefiner:
-    """Updates skill definitions based on execution feedback."""
+class AsyncMetricsSkillRefiner:
+    """Updates skill definitions based on execution feedback (async, metric-driven).
+
+    Renamed from SkillRefiner 2026-04-22. Canonical synchronous implementation
+    is compound.skill_refiner.SkillRefiner. This async version is kept for
+    callers that need metric-based refinement inside an async pipeline.
+    Re-exported as SkillRefiner at module bottom for backward compat.
+    """
 
     def __init__(self, skills_dir: str = "src/cohezion/skills"):
         self.skills_dir = Path(skills_dir)
@@ -326,7 +386,7 @@ class SkillRefiner:
         # Log refinement to vault
         if mcp_client and refinements:
             await mcp_client.vault_write(
-                f"cerebellum/skill-refinements/{skill_name}_{datetime.now(UTC).strftime('%Y%m%d')}.md",
+                f"cerebellum/skill-refinements/{skill_name}_{dt_class.now(UTC).strftime('%Y%m%d')}.md",
                 json.dumps(
                     {
                         "skill": skill_name,
@@ -396,8 +456,8 @@ class ExperientialLearningLoop:
 
     def __init__(self):
         self.autoresearch = AutoresearchEngine()
-        self.retrospection = RetrospectionEngine()
-        self.refiner = SkillRefiner()
+        self.retrospection = VaultLearningCapture()
+        self.refiner = AsyncMetricsSkillRefiner()
         self.learning_buffer = []
 
     async def process_execution(
@@ -413,6 +473,13 @@ class ExperientialLearningLoop:
             Processing results
         """
         results = {}
+
+        # Ensure client is connected if provided
+        if mcp_client and hasattr(mcp_client, "connect"):
+            try:
+                await mcp_client.connect()
+            except Exception as conn_e:
+                logger.warning(f"MCP Client connection failed: {conn_e}")
 
         # Step 1: Capture learning to vault
         learning_path = await self.retrospection.capture_learning(execution_result, mcp_client)
@@ -466,3 +533,11 @@ class ExperientialLearningLoop:
             self.learning_buffer = []
 
         return results
+
+
+# Backward-compat aliases. Deprecated — prefer the new names which disambiguate
+# from core.compound.retrospection.RetrospectionEngine (KG parser) and
+# compound.skill_refiner.SkillRefiner (canonical sync implementation).
+# These aliases will be removed in a future release once all callers migrate.
+RetrospectionEngine = VaultLearningCapture
+SkillRefiner = AsyncMetricsSkillRefiner

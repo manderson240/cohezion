@@ -31,8 +31,8 @@ class AgentReasoningOps:
         reasoning_type: str,
         reasoning_chain: list[str],
         confidence_score: float = 0.7,
-        assumptions: list[str] | None = None,
-        alternatives_rejected: list[dict] | None = None,
+        assumptions: list[str] = None,
+        alternatives_rejected: list[dict] = None,
     ) -> dict[str, Any]:
         """Create a reasoning node that explains WHY a decision was made.
 
@@ -215,7 +215,8 @@ class AgentReasoningOps:
                 }
 
             logger.info(
-                f"Created challenge edge: {decision_id} -{challenge_type}-> lesson:{lesson_id} (severity: {severity})"
+                f"Created challenge edge: {decision_id} -{challenge_type}-> lesson:{lesson_id} "
+                f"(severity: {severity})"
             )
 
             return {
@@ -260,7 +261,9 @@ class AgentReasoningOps:
             now = datetime.now(UTC).isoformat()
 
             # Validate source decision exists
-            source_check = self.db._execute_query(f"SELECT id FROM {source_decision_id} LIMIT 1")
+            source_check = self.db._execute_query(
+                f"SELECT id FROM {source_decision_id} LIMIT 1"
+            )
             if not source_check or len(source_check) == 0:
                 return {
                     "success": False,
@@ -268,7 +271,9 @@ class AgentReasoningOps:
                 }
 
             # Validate dependent decision exists
-            dependent_check = self.db._execute_query(f"SELECT id FROM {dependent_decision_id} LIMIT 1")
+            dependent_check = self.db._execute_query(
+                f"SELECT id FROM {dependent_decision_id} LIMIT 1"
+            )
             if not dependent_check or len(dependent_check) == 0:
                 return {
                     "success": False,

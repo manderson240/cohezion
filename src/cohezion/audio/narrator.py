@@ -119,12 +119,15 @@ class CosmoNarrator:
         self,
         voice: str = "alma",
         cache_dir: str | Path = "data/audio/narration",
+        cloning_reference: str | Path | None = None,
     ) -> None:
         self.voice = voice
         self.cache_dir = Path(cache_dir)
         self.cache_dir.mkdir(parents=True, exist_ok=True)
+        self.cloning_reference = Path(cloning_reference) if cloning_reference else None
         self._model = None
         self._available = None
+        self._voice_state = None
 
     @property
     def available(self) -> bool:
@@ -140,17 +143,25 @@ class CosmoNarrator:
         return self._available
 
     def _get_model(self) -> Any:
-        """Lazy-load the PocketTTS model."""
+        """Lazy-load the PocketTTS model and prepare cloning state."""
         if self._model is None and self.available:
             from pocket_tts import TTSModel
 
-            self._model = TTSModel.from_pretrained()
-            logger.info("PocketTTS model loaded (voice: %s)", self.voice)
+            self._model = TTSModel.load_model()
+            logger.info("PocketTTS model loaded")
+
+            if self.cloning_reference and self.cloning_reference.exists():
+                logger.info("Initializing voice cloning from: %s", self.cloning_reference)
+                self._voice_state = self._model.get_state_for_audio_prompt(
+                    str(self.cloning_reference)
+                )
+
         return self._model
 
     def _cache_key(self, text: str) -> str:
-        """Generate cache key from text content."""
-        return hashlib.sha256(f"{self.voice}:{text}".encode()).hexdigest()[:16]
+        """Generate cache key from text content and voice/reference."""
+        ref_id = str(self.cloning_reference) if self.cloning_reference else "default"
+        return hashlib.sha256(f"{self.voice}:{ref_id}:{text}".encode()).hexdigest()[:16]
 
     def _cache_path(self, text: str) -> Path:
         """Get cache file path for narration text."""
@@ -200,6 +211,7 @@ class CosmoNarrator:
                 "audio_path": str(cache_path),
                 "cached": True,
                 "voice": self.voice,
+                "cloning": self.cloning_reference is not None,
             }
 
         # Generate with PocketTTS if available
@@ -207,7 +219,13 @@ class CosmoNarrator:
             try:
                 model = self._get_model()
                 if model is not None:
-                    audio = model.generate_audio(text, voice=self.voice)
+                    if self._voice_state is not None:
+                        # Use high-fidelity voice cloning
+                        audio = model.generate_audio(self._voice_state, text)
+                    else:
+                        # Standard voice generation
+                        audio = model.generate_audio(text, voice=self.voice)
+
                     # Save as WAV
                     import soundfile as sf
 
@@ -219,6 +237,7 @@ class CosmoNarrator:
                         "cached": False,
                         "voice": self.voice,
                         "samples": len(audio),
+                        "cloning": self.cloning_reference is not None,
                     }
             except Exception as e:
                 logger.warning("PocketTTS generation failed: %s", e)

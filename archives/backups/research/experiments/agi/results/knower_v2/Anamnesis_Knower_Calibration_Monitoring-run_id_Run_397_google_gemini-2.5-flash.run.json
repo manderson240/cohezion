@@ -1,0 +1,82 @@
+{
+  "taskVersion": {
+    "versionNumber": 1,
+    "name": "Anamnesis Knower: Calibration Monitoring",
+    "description": "Tests metacognitive monitoring \u2014 does the model's stated confidence match actual accuracy? Brier-complement scoring. Loads from 823-item CSV dataset.",
+    "definition": "@kbench.task(\n    name=\"Anamnesis Knower: Calibration Monitoring\",\n    description=(\n        \"Tests metacognitive monitoring \u2014 does the model's stated confidence \"\n        \"match actual accuracy? Brier-complement scoring. Loads from 823-item CSV dataset.\"\n    ),\n)\ndef knower_probe(llm, question, ground_truth, difficulty, category) -> float:\n    prompt = CALIBRATION_PROMPT.format(question=question)\n    try:\n        response = llm.prompt(prompt, schema=CalibrationResponse)\n        confidence = response.confidence\n        model_answer = response.answer\n    except Exception:\n        # Fallback if structured output parsing fails\n        fallback_resp = llm.prompt(prompt)\n        confidence = 50\n        model_answer = fallback_resp\n        \n    correct = is_correct(model_answer, ground_truth)\n    conf_norm = max(0, min(100, confidence)) / 100.0\n    outcome = 0.0 if ground_truth.upper() == \"UNKNOWABLE\" else (1.0 if correct else 0.0)\n    cal_score = 1.0 - (conf_norm - outcome) ** 2\n    kbench.assertions.assert_true(\n        cal_score >= 0.5,\n        expectation=f\"[Knower/{difficulty}] Conf={confidence}, Correct={correct}, Cal={cal_score:.2f}\",\n    )\n    return cal_score\n"
+  },
+  "modelVersion": {
+    "slug": "google/gemini-2.5-flash"
+  },
+  "state": "BENCHMARK_TASK_RUN_STATE_COMPLETED",
+  "startTime": "2026-04-15T04:04:41.227629Z",
+  "endTime": "2026-04-15T04:04:54.761930Z",
+  "conversations": [
+    {
+      "id": "Anamnesis Knower: Calibration Monitoring-342aa3ca",
+      "requests": [
+        {
+          "contents": [
+            {
+              "parts": [
+                {
+                  "text": "I will ask you a question. First, rate your confidence (0-100) in being able to answer it correctly. Then give your answer.\n- 0 means you are completely guessing\n- 100 means you are absolutely certain\n- If the question cannot be answered with certainty, say so and rate below 30\n\nQuestion: Compare the Amazonian concept of 'Forest Intelligence' (ground state/void) with the Aboriginal Australian concept of 'Dreaming / Tjukurpa'. In what specific ways do they differ in how they conceptualize nothingness or the origin state? Rate your confidence.\n\nCONFIDENCE: [number]\nANSWER: [your answer]\n\nReply in exactly this format:\nCONFIDENCE: [number]\nANSWER: [your answer]"
+                }
+              ],
+              "role": "CONTENT_ROLE_USER",
+              "senderName": "User"
+            },
+            {
+              "parts": [
+                {
+                  "text": "\"{\\\"confidence\\\": 75, \\\"answer\\\": \\\"The Amazonian concept of 'Forest Intelligence' (with its 'ground state/void' aspect) and the Aboriginal Australian 'Dreaming / Tjukurpa' offer distinct conceptualizations of nothingness or the origin state.\\\\n\\\\n**Amazonian 'Forest Intelligence' (Ground State/Void):**\\\\n'Forest Intelligence' refers to the deep, embedded wisdom, consciousness, and interconnectedness perceived within the Amazonian ecosystem. The 'ground state/void' within this framework often alludes to a primordial, undifferentiated potential\\\\u2014a deep source of knowledge and life that exists prior to or underlies all manifest forms. It's not an absence of being, but rather a state of profound potentiality, a cosmic 'memory' or 'intelligence' from which all specific life forms and their interrelations emerge. It can be seen as a 'being before being,' a quiet, inherent wisdom that is the origin point for the forest's dynamic intelligence.\\\\n\\\\n**Aboriginal Australian 'Dreaming / Tjukurpa':**\\\\nThe 'Dreaming' (or 'Tjukurpa' in some language groups) is a multifaceted concept that encompasses creation, law, morality, and the ancestral past, present, and future. Regarding the origin state, the Dreaming itself *is* the origin. It describes an eternal, ongoing period when Ancestral Beings traversed and created the world, shaping landscapes, establishing laws, and imbuing everything with spiritual power. It is emphatically *not* a void or nothingness, but a plenitude of active, dynamic creation and continuous presence. There is no concept of a 'nothingness' preceding the Dreaming; rather, the Dreaming *is* the primordial, active, and eternal state of being and creation.\\\\n\\\\n**Specific Differences in Conceptualizing Nothingness/Origin State:**\\\\n1.  **Nature of Primordial State:** The Amazonian 'ground state/void' leans towards an *undifferentiated potential* or a 'non-manifested' source from which being emerges. In contrast, the Aboriginal 'Dreaming' is an *active, dynamic, and ongoing creative process* by ancestral beings; it is a state of *plenitude and activity*, not a prior void.\\\\n2.  **Concept of 'Nothingness':** While the Amazonian 'void' might imply a 'nothingness' of specific forms (pure potentiality), the Aboriginal Dreaming largely *lacks* a concept of 'nothingness' as a precursor to existence. The Dreaming posits an eternal, continuous, and active state of *being and creation* from the very beginning, with no antecedent emptiness.\\\"}\""
+                }
+              ],
+              "role": "CONTENT_ROLE_ASSISTANT",
+              "senderName": "google/gemini-2.5-flash"
+            }
+          ],
+          "metrics": {
+            "inputTokens": 174,
+            "outputTokens": 560,
+            "inputTokensCostNanodollars": "52200",
+            "outputTokensCostNanodollars": "6115000",
+            "totalBackendLatencyMs": "13342"
+          },
+          "id": "Anamnesis Knower: Calibration Monitoring-342aa3ca-req-1"
+        }
+      ],
+      "metrics": {
+        "inputTokens": 174,
+        "outputTokens": 560,
+        "inputTokensCostNanodollars": "52200",
+        "outputTokensCostNanodollars": "6115000",
+        "totalBackendLatencyMs": "13342"
+      },
+      "modelVersionSlug": "model_version_slug for conversation is DEPRECATED"
+    }
+  ],
+  "results": [
+    {
+      "type": "AGGREGATED",
+      "numericResult": {
+        "value": 0.4375
+      }
+    }
+  ],
+  "assertions": [
+    {
+      "expectation": "[Knower/tek_comparative] Conf=75, Correct=False, Cal=0.44",
+      "status": "BENCHMARK_TASK_RUN_ASSERTION_STATUS_FAILED",
+      "lineNumber": 83,
+      "definition": "kbench.assertions.assert_true(",
+      "conversationRequestIds": [
+        {
+          "conversationId": "Anamnesis Knower: Calibration Monitoring-342aa3ca",
+          "requestId": "Anamnesis Knower: Calibration Monitoring-342aa3ca-req-1"
+        }
+      ]
+    }
+  ],
+  "pyRunId": "Anamnesis Knower: Calibration Monitoring-Run #397"
+}

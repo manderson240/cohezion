@@ -1,3 +1,12 @@
+---
+name: redundancy-suppression-prime
+description: "Expertise in identifying and suppressing high-frequency repetitive behaviors in agentic swarms. Prevents \"infinite scanning loops\" which waste compute and pollute the latent memory space."
+metadata:
+  version: "v0.1"
+  concepts: ["Entropy Saturation", "Backoff Modulation", "Novelty Thresholding"]
+  source: "src/cohezion/skills/REDUNDANCY_SUPPRESSION_PRIME.md"
+---
+
 # SKILL: REDUNDANCY_SUPPRESSION_PRIME
 
 ## DOMAIN EXPERTISE

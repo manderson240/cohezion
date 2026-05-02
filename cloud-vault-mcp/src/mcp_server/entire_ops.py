@@ -141,7 +141,7 @@ class EntireOps:
                 if line and len(line) > 2:  # Skip very short lines
                     # Remove common bullet markers and emoji at start
                     # Use simple approach: split on first non-marker character
-                    cleaned = line.lstrip("- *•✅❌⚠️ ")  # noqa: B005
+                    cleaned = line.lstrip("- *•✅❌⚠️ ")
                     if cleaned and cleaned not in ["###", "##"]:
                         outcomes.append(cleaned)
 
@@ -224,7 +224,7 @@ class EntireOps:
                 line = line.strip()
                 if line and len(line) > 2:
                     # Remove leading bullet markers (-, *, •, ✓, etc)
-                    cleaned = line.lstrip("- *•✓✔ ")  # noqa: B005
+                    cleaned = line.lstrip("- *•✓✔ ")
                     if cleaned and not cleaned.startswith("#"):
                         actions.append(cleaned)
 

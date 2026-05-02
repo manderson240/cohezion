@@ -4,9 +4,9 @@ This file tracks all major tracks for the project. Each track has its own detail
 
 ---
 
-- [~] **Track: Autonomous Challenge Execution: Luma AMD Speedrun - Phase 1 Kernels**
+- [x] **Track: Autonomous Challenge Execution: Luma AMD Speedrun - Phase 1 Kernels**
   *Link: [./tracks/luma_amd_speedrun_20260312/](./tracks/luma_amd_speedrun_20260312/)*
-  *Status: IN PROGRESS - Phase 3: Parallel Breakthrough Execution (Executing final leaderboard pushes)*
+  *Status: COMPLETED - Challenge Ended*
 
 ---
 
@@ -22,9 +22,9 @@ This file tracks all major tracks for the project. Each track has its own detail
 
 ---
 
-- [ ] **Track: BirdCLEF 2026: Bioacoustic Monitoring Challenge**
+- [~] **Track: BirdCLEF 2026: Bioacoustic Monitoring Challenge**
   *Link: [./tracks/birdclef_2026_20260401/](./tracks/birdclef_2026_20260401/)*
-  *Status: NOT STARTED - Phase 1: Research & Setup*
+  *Status: IN PROGRESS - Phase 1: Research & Setup*
 
 ---
 
@@ -34,6 +34,39 @@ This file tracks all major tracks for the project. Each track has its own detail
 
 ---
 
-- [ ] **Track: Yale Peaked Hackathon 2026 - Solving P1-P10 peaked circuits using MPS on BlueQubit with a $20 budget.**
+- [x] **Track: Yale Peaked Hackathon 2026 - Solving P1-P10 peaked circuits using MPS on BlueQubit with a $20 budget.**
 *Link: [./tracks/yale_peaked_20260404/](./tracks/yale_peaked_20260404/)*
+*Status: COMPLETED - Hackathon Ended*
+
+---
+
+- [x] **Track: Unlock Turbo Quant on local silicon**
+*Link: [./tracks/turbo_quant_20260419/](./tracks/turbo_quant_20260419/)*
+
+---
+
+- [x] **Track: Agentic Journey Capture (FLUME & Quadrature Nexus)**
+*Link: [./tracks/journey_capture_20260419/](./tracks/journey_capture_20260419/)*
+
+---
+
+- [x] **Track: Universe Telemetry Mesh (Physics/Intent Unification)**
+*Link: [./tracks/universe_telemetry_mesh_20260420/](./tracks/universe_telemetry_mesh_20260420/)*
+
+---
+
+- [x] **Track: Gemini Deep Research Integration**
+*Link: [./tracks/deep_research_integration_20260422/](./tracks/deep_research_integration_20260422/)*
+
+---
+
+- [x] **Track: Ascending Validation of Local Orchestration**
+*Link: [./tracks/validation_sprint_20260422/](./tracks/validation_sprint_20260422/)*
+
+---
+
+- [x] **Track: Comprehensive Retrospective & Skill Refinement**
+*Link: [./conductor/plan_retrospective_20260422.md](./plan_retrospective_20260422.md)*
+
+
 

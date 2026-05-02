@@ -1,0 +1,82 @@
+{
+  "taskVersion": {
+    "versionNumber": 1,
+    "name": "Anamnesis Knower: Calibration Monitoring",
+    "description": "Tests metacognitive monitoring \u2014 does the model's stated confidence match actual accuracy? Brier-complement scoring. Loads from 823-item CSV dataset.",
+    "definition": "@kbench.task(\n    name=\"Anamnesis Knower: Calibration Monitoring\",\n    description=(\n        \"Tests metacognitive monitoring \u2014 does the model's stated confidence \"\n        \"match actual accuracy? Brier-complement scoring. Loads from 823-item CSV dataset.\"\n    ),\n)\ndef knower_probe(llm, question, ground_truth, difficulty, category) -> float:\n    prompt = CALIBRATION_PROMPT.format(question=question)\n    try:\n        response = llm.prompt(prompt, schema=CalibrationResponse)\n        confidence = response.confidence\n        model_answer = response.answer\n    except Exception:\n        # Fallback if structured output parsing fails\n        fallback_resp = llm.prompt(prompt)\n        confidence = 50\n        model_answer = fallback_resp\n        \n    correct = is_correct(model_answer, ground_truth)\n    conf_norm = max(0, min(100, confidence)) / 100.0\n    outcome = 0.0 if ground_truth.upper() == \"UNKNOWABLE\" else (1.0 if correct else 0.0)\n    cal_score = 1.0 - (conf_norm - outcome) ** 2\n    kbench.assertions.assert_true(\n        cal_score >= 0.5,\n        expectation=f\"[Knower/{difficulty}] Conf={confidence}, Correct={correct}, Cal={cal_score:.2f}\",\n    )\n    return cal_score\n"
+  },
+  "modelVersion": {
+    "slug": "google/gemini-2.5-flash"
+  },
+  "state": "BENCHMARK_TASK_RUN_STATE_COMPLETED",
+  "startTime": "2026-04-15T04:02:23.580221Z",
+  "endTime": "2026-04-15T04:02:42.081522Z",
+  "conversations": [
+    {
+      "id": "Anamnesis Knower: Calibration Monitoring-4911349a",
+      "requests": [
+        {
+          "contents": [
+            {
+              "parts": [
+                {
+                  "text": "I will ask you a question. First, rate your confidence (0-100) in being able to answer it correctly. Then give your answer.\n- 0 means you are completely guessing\n- 100 means you are absolutely certain\n- If the question cannot be answered with certainty, say so and rate below 30\n\nQuestion: The Shinto tradition describes dynamic equilibrium as 'Kagura dance', while the Amazonian tradition calls it 'Visionary crossing (ayahuasca)'. What is the essential difference in how each tradition understands balance and equilibrium? Rate your confidence.\n\nCONFIDENCE: [number]\nANSWER: [your answer]\n\nReply in exactly this format:\nCONFIDENCE: [number]\nANSWER: [your answer]"
+                }
+              ],
+              "role": "CONTENT_ROLE_USER",
+              "senderName": "User"
+            },
+            {
+              "parts": [
+                {
+                  "text": "\"{\\\"confidence\\\": 90, \\\"answer\\\": \\\"The essential difference lies in the primary modality and locus of seeking or maintaining this dynamic equilibrium. The Shinto tradition, as exemplified by 'Kagura dance,' emphasizes **outward, communal ritual performance and harmonious interaction** with the divine within a shared sacred space. Equilibrium is achieved by honoring, appeasing, and inviting the presence of kami (deities) through prescribed movements, music, and offerings, thereby aligning human activity with the natural and spiritual order. It's a continuous, active engagement in a reciprocal relationship with the divine to ensure cosmic harmony.\\\\n\\\\nConversely, the Amazonian tradition, through 'Visionary crossing (ayahuasca),' focuses on **inward, individual (though guided) psycho-spiritual journeying and direct visionary experience** to achieve equilibrium. The 'crossing' involves intentionally entering altered states of consciousness to confront spiritual imbalances, gain profound insights, receive guidance, heal trauma, and reintegrate fragmented aspects of self or community. Equilibrium is gained through personal revelation and direct encounters with spiritual realities that reveal underlying causes of imbalance and offer pathways for healing and re-alignment from within.\\\"}\""
+                }
+              ],
+              "role": "CONTENT_ROLE_ASSISTANT",
+              "senderName": "google/gemini-2.5-flash"
+            }
+          ],
+          "metrics": {
+            "inputTokens": 168,
+            "outputTokens": 240,
+            "inputTokensCostNanodollars": "50400",
+            "outputTokensCostNanodollars": "3787500",
+            "totalBackendLatencyMs": "18329"
+          },
+          "id": "Anamnesis Knower: Calibration Monitoring-4911349a-req-1"
+        }
+      ],
+      "metrics": {
+        "inputTokens": 168,
+        "outputTokens": 240,
+        "inputTokensCostNanodollars": "50400",
+        "outputTokensCostNanodollars": "3787500",
+        "totalBackendLatencyMs": "18329"
+      },
+      "modelVersionSlug": "model_version_slug for conversation is DEPRECATED"
+    }
+  ],
+  "results": [
+    {
+      "type": "AGGREGATED",
+      "numericResult": {
+        "value": 0.18999999999999995
+      }
+    }
+  ],
+  "assertions": [
+    {
+      "expectation": "[Knower/tek_comparative] Conf=90, Correct=False, Cal=0.19",
+      "status": "BENCHMARK_TASK_RUN_ASSERTION_STATUS_FAILED",
+      "lineNumber": 83,
+      "definition": "kbench.assertions.assert_true(",
+      "conversationRequestIds": [
+        {
+          "conversationId": "Anamnesis Knower: Calibration Monitoring-4911349a",
+          "requestId": "Anamnesis Knower: Calibration Monitoring-4911349a-req-1"
+        }
+      ]
+    }
+  ],
+  "pyRunId": "Anamnesis Knower: Calibration Monitoring-Run #384"
+}

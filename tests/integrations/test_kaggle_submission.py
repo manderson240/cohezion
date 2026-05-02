@@ -3,6 +3,7 @@ from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
 
+
 pytest.importorskip("kaggle", reason="kaggle package not installed")
 
 from cohezion.integrations.kaggle_submission import KaggleSubmissionOrchestrator

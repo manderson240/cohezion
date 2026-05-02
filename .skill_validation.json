@@ -1,0 +1,3141 @@
+{
+  "valid_count": 184,
+  "total_count": 218,
+  "skills": [
+    {
+      "id": "3D_RENDERING",
+      "path": "src/cohezion/skills/3d_rendering.md",
+      "valid": true,
+      "errors": [],
+      "warnings": [
+        "No FLUME dimension specified (defaults to 256D)"
+      ],
+      "metadata": {
+        "id": "3D_RENDERING_PRIME",
+        "domain": "PRIME skill",
+        "version": "v1.0"
+      }
+    },
+    {
+      "id": "ADAPTIVE_TEMPLATE_PRIME",
+      "path": "src/cohezion/skills/ADAPTIVE_TEMPLATE_PRIME.md",
+      "valid": true,
+      "errors": [],
+      "warnings": [
+        "No FLUME dimension specified (defaults to 256D)"
+      ],
+      "metadata": {
+        "id": "ADAPTIVE_TEMPLATE_PRIME",
+        "domain": "PRIME skill",
+        "version": "v1.0"
+      }
+    },
+    {
+      "id": "ADVERSARIAL_TDD_PRIME",
+      "path": "src/cohezion/skills/ADVERSARIAL_TDD_PRIME.md",
+      "valid": true,
+      "errors": [],
+      "warnings": [
+        "No FLUME dimension specified (defaults to 256D)"
+      ],
+      "metadata": {
+        "id": "ADVERSARIAL_TDD_PRIME",
+        "domain": "PRIME skill",
+        "version": "v0.1"
+      }
+    },
+    {
+      "id": "ADVERSARIAL_TESTING_PRIME",
+      "path": "src/cohezion/skills/ADVERSARIAL_TESTING_PRIME.md",
+      "valid": true,
+      "errors": [],
+      "warnings": [
+        "No FLUME dimension specified (defaults to 256D)"
+      ],
+      "metadata": {
+        "id": "ADVERSARIAL_TESTING_PRIME",
+        "domain": "PRIME skill",
+        "version": "v1.0 (2026-01-18)"
+      }
+    },
+    {
+      "id": "AGENTIC_DESIGN_PRIME",
+      "path": "src/cohezion/skills/AGENTIC_DESIGN_PRIME.md",
+      "valid": true,
+      "errors": [],
+      "warnings": [
+        "No FLUME dimension specified (defaults to 256D)"
+      ],
+      "metadata": {
+        "id": "AGENTIC_DESIGN_PRIME",
+        "domain": "PRIME skill",
+        "version": "v1.0 (Derived from Anthropic Alignment Sprint)"
+      }
+    },
+    {
+      "id": "AGENTJET_PRIME",
+      "path": "src/cohezion/skills/AGENTJET_PRIME.md",
+      "valid": false,
+      "errors": [
+        "Missing required field: id",
+        "Missing required field: domain",
+        "Missing required field: version"
+      ],
+      "warnings": [
+        "No FLUME dimension specified (defaults to 256D)"
+      ],
+      "metadata": {
+        "name": "agentjet",
+        "description": "Cohezion Autonomous Learning Loop (CALL) \u2014 closes the learning loop from runtime experiences to training signal to improved local models. Use when implementing RL fine-tuning of local Ollama models, configuring reward signals from phi_score, preventing OOM during training, or when user mentions \"agentjet\", \"CALL\", \"fine-tuning\", \"RL loop\", \"QLoRA\", or \"training local models\".",
+        "metadata": {
+          "version": "1.0",
+          "legacy-name": "AGENTJET_PRIME"
+        }
+      }
+    },
+    {
+      "id": "AGENT_SOVEREIGNTY_ETHICS_PRIME",
+      "path": "src/cohezion/skills/AGENT_SOVEREIGNTY_ETHICS_PRIME.md",
+      "valid": false,
+      "errors": [
+        "Frontmatter error: No recognizable skill format found"
+      ],
+      "warnings": [],
+      "metadata": {}
+    },
+    {
+      "id": "AMBIENT_SONIFICATION_PRIME",
+      "path": "src/cohezion/skills/AMBIENT_SONIFICATION_PRIME.md",
+      "valid": true,
+      "errors": [],
+      "warnings": [
+        "No FLUME dimension specified (defaults to 256D)"
+      ],
+      "metadata": {
+        "id": "AMBIENT_SONIFICATION_PRIME",
+        "domain": "PRIME skill",
+        "version": "v1.0"
+      }
+    },
+    {
+      "id": "AMD_GEMM_MXFP4_PRIME",
+      "path": "src/cohezion/skills/AMD_GEMM_MXFP4_PRIME.md",
+      "valid": true,
+      "errors": [],
+      "warnings": [
+        "No FLUME dimension specified (defaults to 256D)"
+      ],
+      "metadata": {
+        "id": "AMD_GEMM_MXFP4_PRIME",
+        "domain": "PRIME skill",
+        "version": "v1.0.0"
+      }
+    },
+    {
+      "id": "AMD_MLA_DECODE_PRIME",
+      "path": "src/cohezion/skills/AMD_MLA_DECODE_PRIME.md",
+      "valid": true,
+      "errors": [],
+      "warnings": [
+        "No FLUME dimension specified (defaults to 256D)"
+      ],
+      "metadata": {
+        "id": "AMD_MLA_DECODE_PRIME",
+        "domain": "PRIME skill",
+        "version": "v1.0.0"
+      }
+    },
+    {
+      "id": "AMD_MOE_MXFP4_PRIME",
+      "path": "src/cohezion/skills/AMD_MOE_MXFP4_PRIME.md",
+      "valid": true,
+      "errors": [],
+      "warnings": [
+        "No FLUME dimension specified (defaults to 256D)"
+      ],
+      "metadata": {
+        "id": "AMD_MOE_MXFP4_PRIME",
+        "domain": "PRIME skill",
+        "version": "v1.0.0"
+      }
+    },
+    {
+      "id": "ANTHROPIC_SKILL_BUILDER_PRIME",
+      "path": "src/cohezion/skills/ANTHROPIC_SKILL_BUILDER_PRIME.md",
+      "valid": true,
+      "errors": [],
+      "warnings": [
+        "No FLUME dimension specified (defaults to 256D)"
+      ],
+      "metadata": {
+        "id": "ANTHROPIC_SKILL_BUILDER_PRIME",
+        "domain": "PRIME skill",
+        "version": "v1.0.1 - Sourced directly from skills.sh / Anthropic Alignment standards."
+      }
+    },
+    {
+      "id": "ANTI_PATTERN_DEFENSE_PRIME",
+      "path": "src/cohezion/skills/ANTI_PATTERN_DEFENSE_PRIME.md",
+      "valid": true,
+      "errors": [],
+      "warnings": [
+        "No FLUME dimension specified (defaults to 256D)"
+      ],
+      "metadata": {
+        "id": "ANTI_PATTERN_DEFENSE_PRIME",
+        "domain": "PRIME skill",
+        "version": "v1.0.1"
+      }
+    },
+    {
+      "id": "ANTI_PATTERN_GUARDIAN_PRIME",
+      "path": "src/cohezion/skills/ANTI_PATTERN_GUARDIAN_PRIME.md",
+      "valid": false,
+      "errors": [
+        "Missing required field: id",
+        "Missing required field: domain",
+        "Missing required field: version"
+      ],
+      "warnings": [
+        "No FLUME dimension specified (defaults to 256D)"
+      ],
+      "metadata": {
+        "name": "anti-pattern-guardian",
+        "description": "Automated detection and remediation of codebase anti-patterns. Scans for AGENTS.md documented issues including mock isolation, async blocking, singleton pollution, and bare exception handlers. Use when reviewing code or setting up CI quality gates.",
+        "metadata": {
+          "version": "0.1",
+          "generated_from": "AGENTS.md mining"
+        }
+      }
+    },
+    {
+      "id": "API_ERROR_RESILIENCE_PRIME",
+      "path": "src/cohezion/skills/API_ERROR_RESILIENCE_PRIME.md",
+      "valid": true,
+      "errors": [],
+      "warnings": [
+        "No FLUME dimension specified (defaults to 256D)"
+      ],
+      "metadata": {
+        "id": "API_ERROR_RESILIENCE_PRIME",
+        "domain": "PRIME skill",
+        "version": "v1.0.0"
+      }
+    },
+    {
+      "id": "ARC_TOPOLOGICAL_PIVOT_PRIME",
+      "path": "src/cohezion/skills/ARC_TOPOLOGICAL_PIVOT_PRIME.md",
+      "valid": true,
+      "errors": [],
+      "warnings": [
+        "No FLUME dimension specified (defaults to 256D)"
+      ],
+      "metadata": {
+        "id": "ARC_TOPOLOGICAL_PIVOT_PRIME",
+        "domain": "PRIME skill",
+        "version": "v1.0"
+      }
+    },
+    {
+      "id": "ASCENSION_SKILL_PRIME",
+      "path": "src/cohezion/skills/ASCENSION_SKILL_PRIME.md",
+      "valid": true,
+      "errors": [],
+      "warnings": [
+        "No FLUME dimension specified (defaults to 256D)"
+      ],
+      "metadata": {
+        "id": "ASCENSION_SKILL_PRIME",
+        "domain": "PRIME skill",
+        "version": "v1.6"
+      }
+    },
+    {
+      "id": "AUTOHARNESS_PRIME",
+      "path": "src/cohezion/skills/AUTOHARNESS_PRIME.md",
+      "valid": true,
+      "errors": [],
+      "warnings": [
+        "No FLUME dimension specified (defaults to 256D)"
+      ],
+      "metadata": {
+        "id": "AUTOHARNESS_PRIME",
+        "domain": "PRIME skill",
+        "version": "v0.1"
+      }
+    },
+    {
+      "id": "AUTONOMIC_ANALYST_PRIME",
+      "path": "src/cohezion/skills/AUTONOMIC_ANALYST_PRIME.md",
+      "valid": true,
+      "errors": [],
+      "warnings": [
+        "No FLUME dimension specified (defaults to 256D)"
+      ],
+      "metadata": {
+        "id": "AUTONOMIC_ANALYST_PRIME",
+        "domain": "PRIME skill",
+        "version": "v0.1"
+      }
+    },
+    {
+      "id": "AUTONOMIC_EVOLUTION_PRIME",
+      "path": "src/cohezion/skills/AUTONOMIC_EVOLUTION_PRIME.md",
+      "valid": true,
+      "errors": [],
+      "warnings": [
+        "No FLUME dimension specified (defaults to 256D)"
+      ],
+      "metadata": {
+        "id": "AUTONOMIC_EVOLUTION_PRIME",
+        "domain": "PRIME skill",
+        "version": "v0.1"
+      }
+    },
+    {
+      "id": "AUTONOMIC_HEALING_PRIME",
+      "path": "src/cohezion/skills/AUTONOMIC_HEALING_PRIME.md",
+      "valid": true,
+      "errors": [],
+      "warnings": [
+        "No FLUME dimension specified (defaults to 256D)"
+      ],
+      "metadata": {
+        "id": "AUTONOMIC_HEALING_PRIME",
+        "domain": "PRIME skill",
+        "version": "v1.0 (Autonomic Ascension)"
+      }
+    },
+    {
+      "id": "AUTONOMIC_QUALITY_GUARD_PRIME",
+      "path": "src/cohezion/skills/AUTONOMIC_QUALITY_GUARD_PRIME.md",
+      "valid": true,
+      "errors": [],
+      "warnings": [
+        "No FLUME dimension specified (defaults to 256D)"
+      ],
+      "metadata": {
+        "id": "AUTONOMIC_QUALITY_GUARD_PRIME",
+        "domain": "PRIME skill",
+        "version": "v0.1"
+      }
+    },
+    {
+      "id": "AUTONOMIC_RESEARCH_PRIME",
+      "path": "src/cohezion/skills/AUTONOMIC_RESEARCH_PRIME.md",
+      "valid": true,
+      "errors": [],
+      "warnings": [
+        "No FLUME dimension specified (defaults to 256D)"
+      ],
+      "metadata": {
+        "id": "AUTONOMIC_RESEARCH_PRIME",
+        "domain": "PRIME skill",
+        "version": "v0.1"
+      }
+    },
+    {
+      "id": "AUTONOMOUS_RESILIENCE_PRIME",
+      "path": "src/cohezion/skills/AUTONOMOUS_RESILIENCE_PRIME.md",
+      "valid": true,
+      "errors": [],
+      "warnings": [
+        "No FLUME dimension specified (defaults to 256D)"
+      ],
+      "metadata": {
+        "id": "AUTONOMOUS_RESILIENCE_PRIME",
+        "domain": "PRIME skill",
+        "version": "v1.1 (Extended with remote scheduled autonomy via GitHub Actions, 2026-03-05)"
+      }
+    },
+    {
+      "id": "AUTORESEARCH_PRIME",
+      "path": "src/cohezion/skills/AUTORESEARCH_PRIME.md",
+      "valid": true,
+      "errors": [],
+      "warnings": [
+        "No FLUME dimension specified (defaults to 256D)"
+      ],
+      "metadata": {
+        "id": "AUTORESEARCH_PRIME",
+        "domain": "PRIME skill",
+        "version": "v0.3"
+      }
+    },
+    {
+      "id": "BATCHING_PROTOCOL_PRIME",
+      "path": "src/cohezion/skills/BATCHING_PROTOCOL_PRIME.md",
+      "valid": true,
+      "errors": [],
+      "warnings": [
+        "No FLUME dimension specified (defaults to 256D)"
+      ],
+      "metadata": {
+        "id": "BATCHING_PROTOCOL_PRIME",
+        "domain": "PRIME skill",
+        "version": "v1.0"
+      }
+    },
+    {
+      "id": "BLACKWELL_HARDWARE_OPTIMIZATION_PRIME",
+      "path": "src/cohezion/skills/BLACKWELL_HARDWARE_OPTIMIZATION_PRIME.md",
+      "valid": true,
+      "errors": [],
+      "warnings": [
+        "No FLUME dimension specified (defaults to 256D)"
+      ],
+      "metadata": {
+        "id": "BLACKWELL_HARDWARE_OPTIMIZATION_PRIME",
+        "domain": "PRIME skill",
+        "version": "v1.1 (Updated for sm_120 targeting)"
+      }
+    },
+    {
+      "id": "BRAINSTORMING_PRIME",
+      "path": "src/cohezion/skills/BRAINSTORMING_PRIME.md",
+      "valid": false,
+      "errors": [
+        "Missing required field: id",
+        "Missing required field: domain",
+        "Missing required field: version"
+      ],
+      "warnings": [
+        "No FLUME dimension specified (defaults to 256D)"
+      ],
+      "metadata": {
+        "name": "brainstorming-prime",
+        "description": "Socratic design refinement and conceptual mapping. Use when starting a new feature, refactoring a complex system, or when the request is vague. Mandatory before any implementation.",
+        "metadata": {
+          "version": "1.0",
+          "legacy-name": "BRAINSTORMING_PRIME"
+        }
+      }
+    },
+    {
+      "id": "CAPABILITY_REGISTRY_PRIME",
+      "path": "src/cohezion/skills/CAPABILITY_REGISTRY_PRIME.md",
+      "valid": false,
+      "errors": [
+        "Missing required field: id",
+        "Missing required field: domain",
+        "Missing required field: version"
+      ],
+      "warnings": [
+        "No FLUME dimension specified (defaults to 256D)"
+      ],
+      "metadata": {
+        "description": "Capability Registry Prime: The Unified Natural Language Discovery Engine."
+      }
+    },
+    {
+      "id": "CITATIONS_PRIME",
+      "path": "src/cohezion/skills/CITATIONS_PRIME.md",
+      "valid": true,
+      "errors": [],
+      "warnings": [
+        "No FLUME dimension specified (defaults to 256D)"
+      ],
+      "metadata": {
+        "id": "CITATIONS_PRIME",
+        "domain": "PRIME skill",
+        "version": "v1.1 (Phase 0 Integrated)"
+      }
+    },
+    {
+      "id": "CLAUDE_SPECIALIST_PRIME",
+      "path": "src/cohezion/skills/CLAUDE_SPECIALIST_PRIME.md",
+      "valid": true,
+      "errors": [],
+      "warnings": [
+        "No FLUME dimension specified (defaults to 256D)"
+      ],
+      "metadata": {
+        "id": "CLAUDE_SPECIALIST_PRIME",
+        "domain": "PRIME skill",
+        "version": "v1.0"
+      }
+    },
+    {
+      "id": "CODEBASE_COHERENCE_PRIME",
+      "path": "src/cohezion/skills/CODEBASE_COHERENCE_PRIME.md",
+      "valid": true,
+      "errors": [],
+      "warnings": [
+        "No FLUME dimension specified (defaults to 256D)"
+      ],
+      "metadata": {
+        "id": "CODEBASE_COHERENCE_PRIME",
+        "domain": "PRIME skill",
+        "version": "v1.0.0"
+      }
+    },
+    {
+      "id": "COMPOUND_ENGINEERING_PRIME",
+      "path": "src/cohezion/skills/COMPOUND_ENGINEERING_PRIME.md",
+      "valid": false,
+      "errors": [
+        "Missing required field: id",
+        "Missing required field: domain",
+        "Missing required field: version"
+      ],
+      "warnings": [
+        "No FLUME dimension specified (defaults to 256D)"
+      ],
+      "metadata": {
+        "name": "compound-engineering",
+        "description": "Compound AI orchestration methodology for multi-agent coordination, local model optimization, and hallucination mitigation. Use when implementing compound features, debugging coherence drift, setting up model routing, or when user mentions \"compound engineering\", \"skill refinement\", \"orchestration loop\", or \"compound impact\".",
+        "metadata": {
+          "version": "1.0",
+          "legacy-name": "COMPOUND_ENGINEERING_PRIME"
+        }
+      }
+    },
+    {
+      "id": "COMPOUND_SELF_IMPROVEMENT_PRIME",
+      "path": "src/cohezion/skills/COMPOUND_SELF_IMPROVEMENT_PRIME.md",
+      "valid": false,
+      "errors": [
+        "Frontmatter error: No recognizable skill format found"
+      ],
+      "warnings": [],
+      "metadata": {}
+    },
+    {
+      "id": "COMPOUND_TRAINING_CYCLE_PRIME",
+      "path": "src/cohezion/skills/COMPOUND_TRAINING_CYCLE_PRIME.md",
+      "valid": true,
+      "errors": [],
+      "warnings": [
+        "No FLUME dimension specified (defaults to 256D)"
+      ],
+      "metadata": {
+        "id": "COMPOUND_TRAINING_CYCLE_PRIME",
+        "domain": "PRIME skill",
+        "version": "v1.0.0"
+      }
+    },
+    {
+      "id": "COMPUTATIONAL_RELATIVITY_PRIME",
+      "path": "src/cohezion/skills/COMPUTATIONAL_RELATIVITY_PRIME.md",
+      "valid": true,
+      "errors": [],
+      "warnings": [
+        "No FLUME dimension specified (defaults to 256D)"
+      ],
+      "metadata": {
+        "id": "COMPUTATIONAL_RELATIVITY_PRIME",
+        "domain": "PRIME skill",
+        "version": "v1.0"
+      }
+    },
+    {
+      "id": "CONNECTIVITY_MANAGEMENT_PRIME",
+      "path": "src/cohezion/skills/CONNECTIVITY_MANAGEMENT_PRIME.md",
+      "valid": true,
+      "errors": [],
+      "warnings": [
+        "No FLUME dimension specified (defaults to 256D)"
+      ],
+      "metadata": {
+        "id": "CONNECTIVITY_MANAGEMENT_PRIME",
+        "domain": "PRIME skill",
+        "version": "v1.0"
+      }
+    },
+    {
+      "id": "CONSTITUTION_PRIME",
+      "path": "src/cohezion/skills/CONSTITUTION_PRIME.md",
+      "valid": true,
+      "errors": [],
+      "warnings": [
+        "No FLUME dimension specified (defaults to 256D)"
+      ],
+      "metadata": {
+        "id": "COHEZION_CONSTITUTION_PRIME",
+        "domain": "PRIME skill",
+        "version": "v1.0"
+      }
+    },
+    {
+      "id": "CONTEXT_ENTROPY_MANAGEMENT_PRIME",
+      "path": "src/cohezion/skills/CONTEXT_ENTROPY_MANAGEMENT_PRIME.md",
+      "valid": true,
+      "errors": [],
+      "warnings": [
+        "No FLUME dimension specified (defaults to 256D)"
+      ],
+      "metadata": {
+        "id": "CONTEXT_ENTROPY_MANAGEMENT_PRIME",
+        "domain": "PRIME skill",
+        "version": "v0.1"
+      }
+    },
+    {
+      "id": "CROSS_PLATFORM_SKILL_FORMAT_PRIME",
+      "path": "src/cohezion/skills/CROSS_PLATFORM_SKILL_FORMAT_PRIME.md",
+      "valid": true,
+      "errors": [],
+      "warnings": [
+        "No FLUME dimension specified (defaults to 256D)"
+      ],
+      "metadata": {
+        "id": "CROSS_PLATFORM_SKILL_FORMAT_PRIME",
+        "domain": "PRIME skill",
+        "version": "v1.0.0"
+      }
+    },
+    {
+      "id": "DATABASE_PRIME",
+      "path": "src/cohezion/skills/DATABASE_PRIME.md",
+      "valid": true,
+      "errors": [],
+      "warnings": [
+        "No FLUME dimension specified (defaults to 256D)"
+      ],
+      "metadata": {
+        "id": "DATABASE_PRIME",
+        "domain": "PRIME skill",
+        "version": "v1.0"
+      }
+    },
+    {
+      "id": "DATA_MESH_ARCHITECT_PRIME",
+      "path": "src/cohezion/skills/DATA_MESH_ARCHITECT_PRIME.md",
+      "valid": true,
+      "errors": [],
+      "warnings": [
+        "No FLUME dimension specified (defaults to 256D)"
+      ],
+      "metadata": {
+        "id": "DATA_MESH_ARCHITECT_PRIME",
+        "domain": "PRIME skill",
+        "version": "v1.0 (Compound Discovery)"
+      }
+    },
+    {
+      "id": "DEPENDENCY_AUTOMATION_PRIME",
+      "path": "src/cohezion/skills/DEPENDENCY_AUTOMATION_PRIME.md",
+      "valid": true,
+      "errors": [],
+      "warnings": [
+        "No FLUME dimension specified (defaults to 256D)"
+      ],
+      "metadata": {
+        "id": "DEPENDENCY_AUTOMATION_PRIME",
+        "domain": "PRIME skill",
+        "version": "v0.1"
+      }
+    },
+    {
+      "id": "DISSIPATIVE_STRUCTURES_PRIME",
+      "path": "src/cohezion/skills/DISSIPATIVE_STRUCTURES_PRIME.md",
+      "valid": true,
+      "errors": [],
+      "warnings": [
+        "No FLUME dimension specified (defaults to 256D)"
+      ],
+      "metadata": {
+        "id": "DISSIPATIVE_STRUCTURES_PRIME",
+        "domain": "PRIME skill",
+        "version": "v1.0"
+      }
+    },
+    {
+      "id": "DOC_TO_LORA_COMPRESSION_PRIME",
+      "path": "src/cohezion/skills/DOC_TO_LORA_COMPRESSION_PRIME.md",
+      "valid": true,
+      "errors": [],
+      "warnings": [
+        "No FLUME dimension specified (defaults to 256D)"
+      ],
+      "metadata": {
+        "id": "DOC_TO_LORA_COMPRESSION_PRIME",
+        "domain": "PRIME skill",
+        "version": "v0.1"
+      }
+    },
+    {
+      "id": "DREAM_LOGIC_PRIME",
+      "path": "src/cohezion/skills/DREAM_LOGIC_PRIME.md",
+      "valid": true,
+      "errors": [],
+      "warnings": [
+        "No FLUME dimension specified (defaults to 256D)"
+      ],
+      "metadata": {
+        "id": "DREAM_LOGIC_PRIME",
+        "domain": "PRIME skill",
+        "version": "v1.0 (Extracted Phase 51)"
+      }
+    },
+    {
+      "id": "ELEGANT_SIMPLICITY_PRIME",
+      "path": "src/cohezion/skills/ELEGANT_SIMPLICITY_PRIME.md",
+      "valid": true,
+      "errors": [],
+      "warnings": [
+        "No FLUME dimension specified (defaults to 256D)"
+      ],
+      "metadata": {
+        "id": "ELEGANT_SIMPLICITY_PRIME",
+        "domain": "PRIME skill",
+        "version": "v0.1"
+      }
+    },
+    {
+      "id": "EXPANSION_PRIME",
+      "path": "src/cohezion/skills/EXPANSION_PRIME.md",
+      "valid": true,
+      "errors": [],
+      "warnings": [
+        "No FLUME dimension specified (defaults to 256D)"
+      ],
+      "metadata": {
+        "id": "EXPANSION_PRIME",
+        "domain": "PRIME skill",
+        "version": "v1.0 (The Growth Engine)"
+      }
+    },
+    {
+      "id": "EXPERIENCE_VAE_TRAINING_PRIME",
+      "path": "src/cohezion/skills/EXPERIENCE_VAE_TRAINING_PRIME.md",
+      "valid": false,
+      "errors": [
+        "Frontmatter error: No recognizable skill format found"
+      ],
+      "warnings": [],
+      "metadata": {}
+    },
+    {
+      "id": "EXTERNAL_RESEARCH_PRIME",
+      "path": "src/cohezion/skills/EXTERNAL_RESEARCH_PRIME.md",
+      "valid": true,
+      "errors": [],
+      "warnings": [
+        "No FLUME dimension specified (defaults to 256D)"
+      ],
+      "metadata": {
+        "id": "EXTERNAL_RESEARCH_PRIME",
+        "domain": "PRIME skill",
+        "version": "v0.1"
+      }
+    },
+    {
+      "id": "EXTRACTED_BLOCK_D41D8CD9",
+      "path": "src/cohezion/skills/EXTRACTED_BLOCK_D41D8CD9.md",
+      "valid": true,
+      "errors": [],
+      "warnings": [
+        "No FLUME dimension specified (defaults to 256D)"
+      ],
+      "metadata": {
+        "id": "EXTRACTED_BLOCK_D41D8CD9",
+        "domain": "PRIME skill",
+        "version": "v0.1 (AUTONOMOUS)"
+      }
+    },
+    {
+      "id": "FAIL_FAST_PRIME",
+      "path": "src/cohezion/skills/FAIL_FAST_PRIME.md",
+      "valid": true,
+      "errors": [],
+      "warnings": [
+        "No FLUME dimension specified (defaults to 256D)"
+      ],
+      "metadata": {
+        "id": "FAIL_FAST_PRIME",
+        "domain": "PRIME skill",
+        "version": "v1.0"
+      }
+    },
+    {
+      "id": "FLEET_SYNCHRONIZATION_PRIME",
+      "path": "src/cohezion/skills/FLEET_SYNCHRONIZATION_PRIME.md",
+      "valid": true,
+      "errors": [],
+      "warnings": [
+        "No FLUME dimension specified (defaults to 256D)"
+      ],
+      "metadata": {
+        "id": "FLEET_SYNCHRONIZATION_PRIME",
+        "domain": "PRIME skill",
+        "version": "v1.0 (Coherent Reality)"
+      }
+    },
+    {
+      "id": "FLUME_METHODOLOGY_PRIME",
+      "path": "src/cohezion/skills/FLUME_METHODOLOGY_PRIME.md",
+      "valid": false,
+      "errors": [
+        "Missing required field: id",
+        "Missing required field: domain",
+        "Missing required field: version"
+      ],
+      "warnings": [
+        "No FLUME dimension specified (defaults to 256D)"
+      ],
+      "metadata": {
+        "name": "flume-methodology",
+        "description": "FLUME (Fluid Latent Understanding through Manifold Encoding) implementation for thought vector compression, trajectory prediction, and semantic interpolation. Use when working with FLUME encoders, training VAE models, interpolating concepts in z-space, or when user mentions \"FLUME\", \"latent space\", \"thought vectors\", \"trajectory prediction\", or \"semantic interpolation\".",
+        "metadata": {
+          "version": "1.0",
+          "legacy-name": "FLUME_METHODOLOGY_PRIME"
+        }
+      }
+    },
+    {
+      "id": "FLUME_WIKI_OUROBOROS_PRIME",
+      "path": "src/cohezion/skills/FLUME_WIKI_OUROBOROS_PRIME.md",
+      "valid": false,
+      "errors": [
+        "Missing required field: domain",
+        "Missing required field: version"
+      ],
+      "warnings": [
+        "No FLUME dimension specified (defaults to 256D)"
+      ],
+      "metadata": {
+        "id": "FLUME_WIKI_OUROBOROS_PRIME - Unified Persistent Intelligence"
+      }
+    },
+    {
+      "id": "FRONTEND_DESIGN_PRIME",
+      "path": "src/cohezion/skills/FRONTEND_DESIGN_PRIME.md",
+      "valid": true,
+      "errors": [],
+      "warnings": [
+        "No FLUME dimension specified (defaults to 256D)"
+      ],
+      "metadata": {
+        "id": "FRONTEND_DESIGN_PRIME",
+        "domain": "PRIME skill",
+        "version": "v1.0.1 - Sourced from skills.sh (ui-ux-pro-max / frontend-design)"
+      }
+    },
+    {
+      "id": "GEMINI_SPECIALIST_PRIME",
+      "path": "src/cohezion/skills/GEMINI_SPECIALIST_PRIME.md",
+      "valid": true,
+      "errors": [],
+      "warnings": [
+        "No FLUME dimension specified (defaults to 256D)"
+      ],
+      "metadata": {
+        "id": "GEMINI_SPECIALIST_PRIME",
+        "domain": "PRIME skill",
+        "version": "v1.0"
+      }
+    },
+    {
+      "id": "GROUP_EVOLVING_AGENTS_PRIME",
+      "path": "src/cohezion/skills/GROUP_EVOLVING_AGENTS_PRIME.md",
+      "valid": true,
+      "errors": [],
+      "warnings": [
+        "No FLUME dimension specified (defaults to 256D)"
+      ],
+      "metadata": {
+        "id": "GROUP_EVOLVING_AGENTS_PRIME",
+        "domain": "PRIME skill",
+        "version": "v1.0"
+      }
+    },
+    {
+      "id": "HALLUCINATION_RESOLVER_PRIME",
+      "path": "src/cohezion/skills/HALLUCINATION_RESOLVER_PRIME.md",
+      "valid": true,
+      "errors": [],
+      "warnings": [
+        "No FLUME dimension specified (defaults to 256D)"
+      ],
+      "metadata": {
+        "id": "HALLUCINATION_RESOLVER_PRIME",
+        "domain": "PRIME skill",
+        "version": "v1.0"
+      }
+    },
+    {
+      "id": "HIHO_STABILITY_PRIME",
+      "path": "src/cohezion/skills/HIHO_STABILITY_PRIME.md",
+      "valid": true,
+      "errors": [],
+      "warnings": [
+        "No FLUME dimension specified (defaults to 256D)"
+      ],
+      "metadata": {
+        "id": "HIHO_STABILITY_PRIME",
+        "domain": "PRIME skill",
+        "version": "v2.0 (2026-03-05) \u2014 Added six independent physics derivations for the 0.5 attractor"
+      }
+    },
+    {
+      "id": "HOLOGRAPHIC_FLUME_PRIME",
+      "path": "src/cohezion/skills/HOLOGRAPHIC_FLUME_PRIME.md",
+      "valid": true,
+      "errors": [],
+      "warnings": [
+        "No FLUME dimension specified (defaults to 256D)"
+      ],
+      "metadata": {
+        "id": "HOLOGRAPHIC_FLUME_PRIME",
+        "domain": "PRIME skill",
+        "version": "v1.0"
+      }
+    },
+    {
+      "id": "HOOKIFY_PRIME",
+      "path": "src/cohezion/skills/HOOKIFY_PRIME.md",
+      "valid": false,
+      "errors": [
+        "Missing required field: id",
+        "Missing required field: domain",
+        "Missing required field: version"
+      ],
+      "warnings": [
+        "No FLUME dimension specified (defaults to 256D)"
+      ],
+      "metadata": {
+        "name": "hookify-rule-engine",
+        "description": "Universal Hookify Rule Engine with MCP bridge for cross-platform (Opencode, Claude Code, Gemini CLI) support. Implements persistent rules with configurable levers, three-tier persistence, and recursive learning.",
+        "metadata": {
+          "version": "1.0.0",
+          "domain": "compound-engineering",
+          "author": "Cohezion Team",
+          "created": "2026-03-23",
+          "tags": [
+            "hookify",
+            "rules",
+            "mcp",
+            "cross-platform",
+            "persistence",
+            "ralph-loop"
+          ]
+        }
+      }
+    },
+    {
+      "id": "HYBRID_SWARM_ORCHESTRATION_PRIME",
+      "path": "src/cohezion/skills/HYBRID_SWARM_ORCHESTRATION_PRIME.md",
+      "valid": true,
+      "errors": [],
+      "warnings": [
+        "No FLUME dimension specified (defaults to 256D)"
+      ],
+      "metadata": {
+        "id": "HYBRID_SWARM_ORCHESTRATION_PRIME",
+        "domain": "PRIME skill",
+        "version": "v1.0"
+      }
+    },
+    {
+      "id": "IDE_OPTIMIZATION_PRIME",
+      "path": "src/cohezion/skills/IDE_OPTIMIZATION_PRIME.md",
+      "valid": true,
+      "errors": [],
+      "warnings": [
+        "No FLUME dimension specified (defaults to 256D)"
+      ],
+      "metadata": {
+        "id": "IDE_OPTIMIZATION_PRIME",
+        "domain": "PRIME skill",
+        "version": "v1.0"
+      }
+    },
+    {
+      "id": "INTERPRETABILITY_PRIME",
+      "path": "src/cohezion/skills/INTERPRETABILITY_PRIME.md",
+      "valid": true,
+      "errors": [],
+      "warnings": [
+        "No FLUME dimension specified (defaults to 256D)"
+      ],
+      "metadata": {
+        "id": "INTERPRETABILITY_PRIME",
+        "domain": "PRIME skill",
+        "version": "v0.1"
+      }
+    },
+    {
+      "id": "JOURNEY_DASHBOARD_PRIME",
+      "path": "src/cohezion/skills/JOURNEY_DASHBOARD_PRIME.md",
+      "valid": true,
+      "errors": [],
+      "warnings": [
+        "No FLUME dimension specified (defaults to 256D)"
+      ],
+      "metadata": {
+        "id": "JOURNEY_DASHBOARD_PRIME",
+        "domain": "PRIME skill",
+        "version": "v0.1"
+      }
+    },
+    {
+      "id": "JOURNEY_TRACKING_PRIME",
+      "path": "src/cohezion/skills/JOURNEY_TRACKING_PRIME.md",
+      "valid": true,
+      "errors": [],
+      "warnings": [
+        "No FLUME dimension specified (defaults to 256D)"
+      ],
+      "metadata": {
+        "id": "JOURNEY_TRACKING_PRIME",
+        "domain": "PRIME skill",
+        "version": "v1.0"
+      }
+    },
+    {
+      "id": "KAGGLE_BLACKWELL_RUNNER_PRIME",
+      "path": "src/cohezion/skills/KAGGLE_BLACKWELL_RUNNER_PRIME.md",
+      "valid": true,
+      "errors": [],
+      "warnings": [
+        "No FLUME dimension specified (defaults to 256D)"
+      ],
+      "metadata": {
+        "id": "KAGGLE_BLACKWELL_RUNNER_PRIME",
+        "domain": "PRIME skill",
+        "version": "v1.1 (H100 Optimized)"
+      }
+    },
+    {
+      "id": "KERNEL_OPTIMIZATION_PRIME",
+      "path": "src/cohezion/skills/KERNEL_OPTIMIZATION_PRIME.md",
+      "valid": true,
+      "errors": [],
+      "warnings": [
+        "No FLUME dimension specified (defaults to 256D)"
+      ],
+      "metadata": {
+        "id": "KERNEL_OPTIMIZATION_PRIME",
+        "domain": "PRIME skill",
+        "version": "v1.0.0"
+      }
+    },
+    {
+      "id": "KNOWLEDGE_GRAPH_INTEGRATION_PRIME",
+      "path": "src/cohezion/skills/KNOWLEDGE_GRAPH_INTEGRATION_PRIME.md",
+      "valid": true,
+      "errors": [],
+      "warnings": [
+        "No FLUME dimension specified (defaults to 256D)"
+      ],
+      "metadata": {
+        "id": "KNOWLEDGE_GRAPH_INTEGRATION_PRIME",
+        "domain": "PRIME skill",
+        "version": "v0.1"
+      }
+    },
+    {
+      "id": "KNOWLEDGE_HARVESTING_PRIME",
+      "path": "src/cohezion/skills/KNOWLEDGE_HARVESTING_PRIME.md",
+      "valid": true,
+      "errors": [],
+      "warnings": [
+        "No FLUME dimension specified (defaults to 256D)"
+      ],
+      "metadata": {
+        "id": "KNOWLEDGE_HARVESTING_PRIME",
+        "domain": "PRIME skill",
+        "version": "v1.0 (Born from the 17.3M File Flood of Feb 2026)"
+      }
+    },
+    {
+      "id": "LATENT_SPACE_INTELLIGENCE_PRIME",
+      "path": "src/cohezion/skills/LATENT_SPACE_INTELLIGENCE_PRIME.md",
+      "valid": false,
+      "errors": [
+        "Frontmatter error: No recognizable skill format found"
+      ],
+      "warnings": [],
+      "metadata": {}
+    },
+    {
+      "id": "LAZY_INFRASTRUCTURE_PRIME",
+      "path": "src/cohezion/skills/LAZY_INFRASTRUCTURE_PRIME.md",
+      "valid": true,
+      "errors": [],
+      "warnings": [
+        "No FLUME dimension specified (defaults to 256D)"
+      ],
+      "metadata": {
+        "id": "LAZY_INFRASTRUCTURE_PRIME",
+        "domain": "PRIME skill",
+        "version": "v1.0 (Hermetic Standard)"
+      }
+    },
+    {
+      "id": "LEMONADE_EMBEDDABLE_INTEGRATION_PRIME",
+      "path": "src/cohezion/skills/LEMONADE_EMBEDDABLE_INTEGRATION_PRIME.md",
+      "valid": true,
+      "errors": [],
+      "warnings": [
+        "No FLUME dimension specified (defaults to 256D)"
+      ],
+      "metadata": {
+        "id": "LEMONADE_EMBEDDABLE_INTEGRATION_PRIME",
+        "domain": "PRIME skill",
+        "version": "v1.0"
+      }
+    },
+    {
+      "id": "LLM_WIKI_PRIME",
+      "path": "src/cohezion/skills/LLM_WIKI_PRIME.md",
+      "valid": true,
+      "errors": [],
+      "warnings": [
+        "No FLUME dimension specified (defaults to 256D)"
+      ],
+      "metadata": {
+        "id": "LLM_WIKI_PRIME",
+        "domain": "PRIME skill",
+        "version": "v0.1"
+      }
+    },
+    {
+      "id": "LOCAL_OFFLOAD_PRIME",
+      "path": "src/cohezion/skills/LOCAL_OFFLOAD_PRIME.md",
+      "valid": true,
+      "errors": [],
+      "warnings": [
+        "No FLUME dimension specified (defaults to 256D)"
+      ],
+      "metadata": {
+        "id": "LOCAL_OFFLOAD_PRIME",
+        "domain": "PRIME skill",
+        "version": "v1.0"
+      }
+    },
+    {
+      "id": "LONG_RUNNING_INFERENCE_PRIME",
+      "path": "src/cohezion/skills/LONG_RUNNING_INFERENCE_PRIME.md",
+      "valid": false,
+      "errors": [
+        "Frontmatter error: No recognizable skill format found"
+      ],
+      "warnings": [],
+      "metadata": {}
+    },
+    {
+      "id": "MAMBA_STATE_TRACKING_PRIME",
+      "path": "src/cohezion/skills/MAMBA_STATE_TRACKING_PRIME.md",
+      "valid": true,
+      "errors": [],
+      "warnings": [
+        "No FLUME dimension specified (defaults to 256D)"
+      ],
+      "metadata": {
+        "id": "MAMBA_STATE_TRACKING_PRIME",
+        "domain": "PRIME skill",
+        "version": "v1.0"
+      }
+    },
+    {
+      "id": "MANIFOLD_INTEGRITY_PRIME",
+      "path": "src/cohezion/skills/MANIFOLD_INTEGRITY_PRIME.md",
+      "valid": true,
+      "errors": [],
+      "warnings": [
+        "No FLUME dimension specified (defaults to 256D)"
+      ],
+      "metadata": {
+        "id": "MANIFOLD_INTEGRITY_PRIME",
+        "domain": "PRIME skill",
+        "version": "v1.0 (Physical Law Enforcement)"
+      }
+    },
+    {
+      "id": "MANIFOLD_PHYSICS_OPTIMIZATION_PRIME",
+      "path": "src/cohezion/skills/MANIFOLD_PHYSICS_OPTIMIZATION_PRIME.md",
+      "valid": true,
+      "errors": [],
+      "warnings": [
+        "No FLUME dimension specified (defaults to 256D)"
+      ],
+      "metadata": {
+        "id": "MANIFOLD_PHYSICS_OPTIMIZATION_PRIME",
+        "domain": "PRIME skill",
+        "version": "v1.0"
+      }
+    },
+    {
+      "id": "MATH_COMMAND_PRIME",
+      "path": "src/cohezion/skills/MATH_COMMAND_PRIME.md",
+      "valid": true,
+      "errors": [],
+      "warnings": [
+        "No FLUME dimension specified (defaults to 256D)"
+      ],
+      "metadata": {
+        "id": "MATH_COMMAND_PRIME",
+        "domain": "PRIME skill",
+        "version": "v0.1"
+      }
+    },
+    {
+      "id": "MATH_REASONING_SWARM_PRIME",
+      "path": "src/cohezion/skills/MATH_REASONING_SWARM_PRIME.md",
+      "valid": true,
+      "errors": [],
+      "warnings": [
+        "No FLUME dimension specified (defaults to 256D)"
+      ],
+      "metadata": {
+        "id": "MATH_REASONING_SWARM_PRIME",
+        "domain": "PRIME skill",
+        "version": "v0.2 (AIMO-3 Optimized)"
+      }
+    },
+    {
+      "id": "MCP_OPTIMIZATION_PRIME",
+      "path": "src/cohezion/skills/MCP_OPTIMIZATION_PRIME.md",
+      "valid": true,
+      "errors": [],
+      "warnings": [
+        "No FLUME dimension specified (defaults to 256D)"
+      ],
+      "metadata": {
+        "id": "MCP_OPTIMIZATION_PRIME",
+        "domain": "PRIME skill",
+        "version": "v0.3 (Fleet-Wide Handshake)"
+      }
+    },
+    {
+      "id": "MCP_SPECIALIST_PRIME",
+      "path": "src/cohezion/skills/MCP_SPECIALIST_PRIME.md",
+      "valid": true,
+      "errors": [],
+      "warnings": [
+        "No FLUME dimension specified (defaults to 256D)"
+      ],
+      "metadata": {
+        "id": "MCP_SPECIALIST_PRIME",
+        "domain": "PRIME skill",
+        "version": "v1.0"
+      }
+    },
+    {
+      "id": "MEMORY_MCP_PRIME",
+      "path": "src/cohezion/skills/MEMORY_MCP_PRIME.md",
+      "valid": true,
+      "errors": [],
+      "warnings": [
+        "No FLUME dimension specified (defaults to 256D)"
+      ],
+      "metadata": {
+        "id": "MEMORY_MCP_PRIME",
+        "domain": "PRIME skill",
+        "version": "v0.1"
+      }
+    },
+    {
+      "id": "META_HARNESS_TRACES_PRIME",
+      "path": "src/cohezion/skills/META_HARNESS_TRACES_PRIME.md",
+      "valid": true,
+      "errors": [],
+      "warnings": [
+        "No FLUME dimension specified (defaults to 256D)"
+      ],
+      "metadata": {
+        "id": "META_HARNESS_TRACES_PRIME",
+        "domain": "PRIME skill",
+        "version": "v1.0.0"
+      }
+    },
+    {
+      "id": "MODEL_POOL_MANAGEMENT_PRIME",
+      "path": "src/cohezion/skills/MODEL_POOL_MANAGEMENT_PRIME.md",
+      "valid": false,
+      "errors": [
+        "Frontmatter error: No recognizable skill format found"
+      ],
+      "warnings": [],
+      "metadata": {}
+    },
+    {
+      "id": "MODEL_ROUTING_PRIME",
+      "path": "src/cohezion/skills/MODEL_ROUTING_PRIME.md",
+      "valid": false,
+      "errors": [
+        "Missing required field: id",
+        "Missing required field: domain",
+        "Missing required field: version"
+      ],
+      "warnings": [
+        "No FLUME dimension specified (defaults to 256D)"
+      ],
+      "metadata": {
+        "name": "model-routing",
+        "description": "Local LLM orchestration using Ollama with memory-aware scheduling, task classification, and parallel dispatch. Use when configuring model selection, optimizing RAM allocation for models, or when user mentions \"model routing\", \"Ollama\", \"model selection\", \"memory scheduling\", or \"parallel inference\".",
+        "metadata": {
+          "version": "0.1",
+          "legacy-name": "MODEL_ROUTING_PRIME"
+        }
+      }
+    },
+    {
+      "id": "MOE_HYBRID_ENGINEERING_PRIME",
+      "path": "src/cohezion/skills/MOE_HYBRID_ENGINEERING_PRIME.md",
+      "valid": true,
+      "errors": [],
+      "warnings": [
+        "No FLUME dimension specified (defaults to 256D)"
+      ],
+      "metadata": {
+        "id": "MOE_HYBRID_ENGINEERING_PRIME",
+        "domain": "PRIME skill",
+        "version": "v1.0"
+      }
+    },
+    {
+      "id": "MULTI_PERSPECTIVE_REVIEW_PRIME",
+      "path": "src/cohezion/skills/MULTI_PERSPECTIVE_REVIEW_PRIME.md",
+      "valid": true,
+      "errors": [],
+      "warnings": [
+        "No FLUME dimension specified (defaults to 256D)"
+      ],
+      "metadata": {
+        "id": "MULTI_PERSPECTIVE_REVIEW_PRIME",
+        "domain": "PRIME skill",
+        "version": "v1.0.0"
+      }
+    },
+    {
+      "id": "MYCELIUM_PRIME",
+      "path": "src/cohezion/skills/MYCELIUM_PRIME.md",
+      "valid": true,
+      "errors": [],
+      "warnings": [
+        "No FLUME dimension specified (defaults to 256D)"
+      ],
+      "metadata": {
+        "id": "MYCELIUM_PRIME",
+        "domain": "PRIME skill",
+        "version": "v1.0 (The Awakening)"
+      }
+    },
+    {
+      "id": "NOETHER_CONSERVATION_PRIME",
+      "path": "src/cohezion/skills/NOETHER_CONSERVATION_PRIME.md",
+      "valid": true,
+      "errors": [],
+      "warnings": [
+        "No FLUME dimension specified (defaults to 256D)"
+      ],
+      "metadata": {
+        "id": "NOETHER_CONSERVATION_PRIME",
+        "domain": "PRIME skill",
+        "version": "v1.0"
+      }
+    },
+    {
+      "id": "NVIDIA_HARDWARE_OPTIMIZATION_PRIME",
+      "path": "src/cohezion/skills/NVIDIA_HARDWARE_OPTIMIZATION_PRIME.md",
+      "valid": true,
+      "errors": [],
+      "warnings": [
+        "No FLUME dimension specified (defaults to 256D)"
+      ],
+      "metadata": {
+        "id": "NVIDIA_HARDWARE_OPTIMIZATION_PRIME",
+        "domain": "PRIME skill",
+        "version": "v1.0"
+      }
+    },
+    {
+      "id": "OLLAMA_SPECIALIST_PRIME",
+      "path": "src/cohezion/skills/OLLAMA_SPECIALIST_PRIME.md",
+      "valid": true,
+      "errors": [],
+      "warnings": [
+        "No FLUME dimension specified (defaults to 256D)"
+      ],
+      "metadata": {
+        "id": "OLLAMA_SPECIALIST_PRIME",
+        "domain": "PRIME skill",
+        "version": "v1.0"
+      }
+    },
+    {
+      "id": "ORPHAN_MODULE_INTEGRATION_PRIME",
+      "path": "src/cohezion/skills/ORPHAN_MODULE_INTEGRATION_PRIME.md",
+      "valid": true,
+      "errors": [],
+      "warnings": [
+        "No FLUME dimension specified (defaults to 256D)"
+      ],
+      "metadata": {
+        "id": "ORPHAN_MODULE_INTEGRATION_PRIME",
+        "domain": "PRIME skill",
+        "version": "v1.0.0"
+      }
+    },
+    {
+      "id": "OVERNIGHT_AUTONOMOUS_PRIME",
+      "path": "src/cohezion/skills/OVERNIGHT_AUTONOMOUS_PRIME.md",
+      "valid": true,
+      "errors": [],
+      "warnings": [
+        "No FLUME dimension specified (defaults to 256D)"
+      ],
+      "metadata": {
+        "id": "OVERNIGHT_AUTONOMOUS_PRIME",
+        "domain": "PRIME skill",
+        "version": "v1.0.0"
+      }
+    },
+    {
+      "id": "PERSISTENT_UNIVERSE_PRIME",
+      "path": "src/cohezion/skills/PERSISTENT_UNIVERSE_PRIME.md",
+      "valid": true,
+      "errors": [],
+      "warnings": [
+        "No FLUME dimension specified (defaults to 256D)"
+      ],
+      "metadata": {
+        "id": "PERSISTENT_UNIVERSE_PRIME",
+        "domain": "PRIME skill",
+        "version": "v1.0"
+      }
+    },
+    {
+      "id": "PHYSICS_LINEAGE_PRIME",
+      "path": "src/cohezion/skills/PHYSICS_LINEAGE_PRIME.md",
+      "valid": true,
+      "errors": [],
+      "warnings": [
+        "No FLUME dimension specified (defaults to 256D)"
+      ],
+      "metadata": {
+        "id": "PHYSICS_LINEAGE_PRIME",
+        "domain": "PRIME skill",
+        "version": "v1.0"
+      }
+    },
+    {
+      "id": "PI_INTEGRATION_PRIME",
+      "path": "src/cohezion/skills/PI_INTEGRATION_PRIME.md",
+      "valid": false,
+      "errors": [
+        "Frontmatter error: Invalid YAML: while scanning a simple key\n  in \"<unicode string>\", line 4, column 1:\n    code assistance using 12D journe ... \n    ^\ncould not find expected ':'\n  in \"<unicode string>\", line 5, column 1:\n    refinement. Use when pi needs to ... \n    ^"
+      ],
+      "warnings": [],
+      "metadata": {}
+    },
+    {
+      "id": "PLATFORM_COORDINATOR_PRIME",
+      "path": "src/cohezion/skills/PLATFORM_COORDINATOR_PRIME.md",
+      "valid": true,
+      "errors": [],
+      "warnings": [
+        "No FLUME dimension specified (defaults to 256D)"
+      ],
+      "metadata": {
+        "id": "PLATFORM_COORDINATOR_PRIME",
+        "domain": "PRIME skill",
+        "version": "v1.0"
+      }
+    },
+    {
+      "id": "POLYGLOT_DELEGATION_PRIME",
+      "path": "src/cohezion/skills/POLYGLOT_DELEGATION_PRIME.md",
+      "valid": true,
+      "errors": [],
+      "warnings": [
+        "No FLUME dimension specified (defaults to 256D)"
+      ],
+      "metadata": {
+        "id": "POLYGLOT_DELEGATION_PRIME",
+        "domain": "PRIME skill",
+        "version": "v1.0.0"
+      }
+    },
+    {
+      "id": "PROACTIVE_PERSISTENCE_PRIME",
+      "path": "src/cohezion/skills/PROACTIVE_PERSISTENCE_PRIME.md",
+      "valid": true,
+      "errors": [],
+      "warnings": [
+        "No FLUME dimension specified (defaults to 256D)"
+      ],
+      "metadata": {
+        "id": "PROACTIVE_PERSISTENCE_PRIME",
+        "domain": "PRIME skill",
+        "version": "v1.0.0"
+      }
+    },
+    {
+      "id": "QUADRATURE_PRIME",
+      "path": "src/cohezion/skills/QUADRATURE_PRIME.md",
+      "valid": true,
+      "errors": [],
+      "warnings": [
+        "No FLUME dimension specified (defaults to 256D)"
+      ],
+      "metadata": {
+        "id": "QUADRATURE_PRIME",
+        "domain": "PRIME skill",
+        "version": "v1.0 (Integration of The Will)"
+      }
+    },
+    {
+      "id": "QUANTUM_HACKATHON_PRIME",
+      "path": "src/cohezion/skills/QUANTUM_HACKATHON_PRIME.md",
+      "valid": true,
+      "errors": [],
+      "warnings": [
+        "No FLUME dimension specified (defaults to 256D)"
+      ],
+      "metadata": {
+        "id": "QUANTUM_HACKATHON_PRIME",
+        "domain": "PRIME skill",
+        "version": "v1.0"
+      }
+    },
+    {
+      "id": "QUANTUM_LINK_PRIME",
+      "path": "src/cohezion/skills/QUANTUM_LINK_PRIME.md",
+      "valid": true,
+      "errors": [],
+      "warnings": [
+        "No FLUME dimension specified (defaults to 256D)"
+      ],
+      "metadata": {
+        "id": "QUANTUM_LINK_PRIME",
+        "domain": "PRIME skill",
+        "version": "v1.0 (Extracted Phase 56)"
+      }
+    },
+    {
+      "id": "QUANTUM_MPS_ROUTING_PRIME",
+      "path": "src/cohezion/skills/QUANTUM_MPS_ROUTING_PRIME.md",
+      "valid": true,
+      "errors": [],
+      "warnings": [
+        "No FLUME dimension specified (defaults to 256D)"
+      ],
+      "metadata": {
+        "id": "QUANTUM_MPS_ROUTING_PRIME",
+        "domain": "PRIME skill",
+        "version": "v1.0 (Extracted from Cohezion \"Little Dimple\" Mission)"
+      }
+    },
+    {
+      "id": "QUARTER_ON_A_STRING_PRIME",
+      "path": "src/cohezion/skills/QUARTER_ON_A_STRING_PRIME.md",
+      "valid": true,
+      "errors": [],
+      "warnings": [
+        "No FLUME dimension specified (defaults to 256D)"
+      ],
+      "metadata": {
+        "id": "QUARTER_ON_A_STRING_PRIME",
+        "domain": "PRIME skill",
+        "version": "v1.0"
+      }
+    },
+    {
+      "id": "RALPH_LOOP_PRIME",
+      "path": "src/cohezion/skills/RALPH_LOOP_PRIME.md",
+      "valid": true,
+      "errors": [],
+      "warnings": [
+        "No FLUME dimension specified (defaults to 256D)"
+      ],
+      "metadata": {
+        "id": "RALPH_LOOP_PRIME",
+        "domain": "PRIME skill",
+        "version": "v1.0"
+      }
+    },
+    {
+      "id": "RECOVERY_PRIME",
+      "path": "src/cohezion/skills/RECOVERY_PRIME.md",
+      "valid": true,
+      "errors": [],
+      "warnings": [
+        "No FLUME dimension specified (defaults to 256D)"
+      ],
+      "metadata": {
+        "id": "RECOVERY_PRIME",
+        "domain": "PRIME skill",
+        "version": "v0.1"
+      }
+    },
+    {
+      "id": "REDUCER_PRIME",
+      "path": "src/cohezion/skills/REDUCER_PRIME.md",
+      "valid": true,
+      "errors": [],
+      "warnings": [
+        "No FLUME dimension specified (defaults to 256D)"
+      ],
+      "metadata": {
+        "id": "REDUCER_PRIME",
+        "domain": "PRIME skill",
+        "version": "v1.0"
+      }
+    },
+    {
+      "id": "REDUNDANCY_SUPPRESSION_PRIME",
+      "path": "src/cohezion/skills/REDUNDANCY_SUPPRESSION_PRIME.md",
+      "valid": true,
+      "errors": [],
+      "warnings": [
+        "No FLUME dimension specified (defaults to 256D)"
+      ],
+      "metadata": {
+        "id": "REDUNDANCY_SUPPRESSION_PRIME",
+        "domain": "PRIME skill",
+        "version": "v0.1"
+      }
+    },
+    {
+      "id": "RELIABILITY_FALLBACK_PRIME",
+      "path": "src/cohezion/skills/RELIABILITY_FALLBACK_PRIME.md",
+      "valid": true,
+      "errors": [],
+      "warnings": [
+        "No FLUME dimension specified (defaults to 256D)"
+      ],
+      "metadata": {
+        "id": "RELIABILITY_FALLBACK_PRIME",
+        "domain": "PRIME skill",
+        "version": "v1.0 (Hermetic Persistence Pattern)"
+      }
+    },
+    {
+      "id": "RELIABILITY_PRIME",
+      "path": "src/cohezion/skills/RELIABILITY_PRIME.md",
+      "valid": false,
+      "errors": [
+        "Missing required field: id",
+        "Missing required field: domain",
+        "Missing required field: version"
+      ],
+      "warnings": [
+        "No FLUME dimension specified (defaults to 256D)"
+      ],
+      "metadata": {
+        "name": "reliability",
+        "description": "System reliability patterns including circuit breakers, connection pooling, and graceful degradation for AI services. Use when implementing fault tolerance, handling cascading failures, or when user mentions \"circuit breaker\", \"connection pool\", \"reliability\", \"graceful degradation\", or \"fallback strategy\".",
+        "metadata": {
+          "version": "1.0",
+          "legacy-name": "RELIABILITY_PRIME"
+        }
+      }
+    },
+    {
+      "id": "REMOTE_ORCHESTRATION_PRIME",
+      "path": "src/cohezion/skills/REMOTE_ORCHESTRATION_PRIME.md",
+      "valid": true,
+      "errors": [],
+      "warnings": [
+        "No FLUME dimension specified (defaults to 256D)"
+      ],
+      "metadata": {
+        "id": "REMOTE_ORCHESTRATION_PRIME",
+        "domain": "PRIME skill",
+        "version": "v1.0"
+      }
+    },
+    {
+      "id": "REPOSITORY_HEALTH_PRIME",
+      "path": "src/cohezion/skills/REPOSITORY_HEALTH_PRIME.md",
+      "valid": true,
+      "errors": [],
+      "warnings": [
+        "No FLUME dimension specified (defaults to 256D)"
+      ],
+      "metadata": {
+        "id": "REPOSITORY_HEALTH_PRIME",
+        "domain": "PRIME skill",
+        "version": "v1.0"
+      }
+    },
+    {
+      "id": "REPO_HYGIENE_PRIME",
+      "path": "src/cohezion/skills/REPO_HYGIENE_PRIME.md",
+      "valid": true,
+      "errors": [],
+      "warnings": [
+        "No FLUME dimension specified (defaults to 256D)"
+      ],
+      "metadata": {
+        "id": "REPO_HYGIENE_PRIME",
+        "domain": "PRIME skill",
+        "version": "v3.0 (Sovereign Era)"
+      }
+    },
+    {
+      "id": "RESEARCH_PATTERNS_PRIME",
+      "path": "src/cohezion/skills/RESEARCH_PATTERNS_PRIME.md",
+      "valid": true,
+      "errors": [],
+      "warnings": [
+        "No FLUME dimension specified (defaults to 256D)"
+      ],
+      "metadata": {
+        "id": "RESEARCH_PATTERNS_PRIME",
+        "domain": "PRIME skill",
+        "version": "v1.0"
+      }
+    },
+    {
+      "id": "RESEARCH_SQUAD_PRIME",
+      "path": "src/cohezion/skills/RESEARCH_SQUAD_PRIME.md",
+      "valid": false,
+      "errors": [
+        "Missing required field: domain",
+        "Missing required field: version"
+      ],
+      "warnings": [
+        "No FLUME dimension specified (defaults to 256D)"
+      ],
+      "metadata": {
+        "id": "RESEARCH_SQUAD_PRIME"
+      }
+    },
+    {
+      "id": "RETROSPECTIVE_SKILL",
+      "path": "src/cohezion/skills/RETROSPECTIVE_SKILL.md",
+      "valid": true,
+      "errors": [],
+      "warnings": [
+        "No FLUME dimension specified (defaults to 256D)"
+      ],
+      "metadata": {
+        "id": "RETROSPECTIVE_SKILL",
+        "domain": "PRIME skill",
+        "version": "v0.1"
+      }
+    },
+    {
+      "id": "RIGOROUS_EVALUATION_PRIME",
+      "path": "src/cohezion/skills/RIGOROUS_EVALUATION_PRIME.md",
+      "valid": true,
+      "errors": [],
+      "warnings": [
+        "No FLUME dimension specified (defaults to 256D)"
+      ],
+      "metadata": {
+        "id": "RIGOROUS_EVALUATION_PRIME",
+        "domain": "PRIME skill",
+        "version": "v0.1"
+      }
+    },
+    {
+      "id": "RL_ENVIRONMENT_DESIGN_PRIME",
+      "path": "src/cohezion/skills/RL_ENVIRONMENT_DESIGN_PRIME.md",
+      "valid": true,
+      "errors": [],
+      "warnings": [
+        "No FLUME dimension specified (defaults to 256D)"
+      ],
+      "metadata": {
+        "id": "RL_ENVIRONMENT_DESIGN_PRIME",
+        "domain": "PRIME skill",
+        "version": "v1.1.0"
+      }
+    },
+    {
+      "id": "SANDBOX_ISOLATION_PRIME",
+      "path": "src/cohezion/skills/SANDBOX_ISOLATION_PRIME.md",
+      "valid": true,
+      "errors": [],
+      "warnings": [
+        "No FLUME dimension specified (defaults to 256D)"
+      ],
+      "metadata": {
+        "id": "SANDBOX_ISOLATION_PRIME",
+        "domain": "PRIME skill",
+        "version": "v1.0"
+      }
+    },
+    {
+      "id": "SECURITY_GUARDRAILS_PRIME",
+      "path": "src/cohezion/skills/SECURITY_GUARDRAILS_PRIME.md",
+      "valid": false,
+      "errors": [
+        "Missing required field: id",
+        "Missing required field: domain",
+        "Missing required field: version"
+      ],
+      "warnings": [
+        "No FLUME dimension specified (defaults to 256D)"
+      ],
+      "metadata": {
+        "name": "security-guardrails",
+        "description": "AI security guardrail implementation including input validation, rate limiting, authentication, prompt injection defense, output filtering, and audit logging. Use when implementing auth flows, reviewing security posture, or when user mentions \"security\", \"prompt guard\", \"rate limiting\", \"OWASP\", \"prompt injection\", or \"credential rotation\".",
+        "metadata": {
+          "version": "0.1",
+          "legacy-name": "SECURITY_GUARDRAILS_PRIME"
+        }
+      }
+    },
+    {
+      "id": "SELF_HEALING_PRIME",
+      "path": "src/cohezion/skills/SELF_HEALING_PRIME.md",
+      "valid": false,
+      "errors": [
+        "Missing required field: id",
+        "Missing required field: domain",
+        "Missing required field: version"
+      ],
+      "warnings": [
+        "No FLUME dimension specified (defaults to 256D)"
+      ],
+      "metadata": {
+        "name": "self-healing",
+        "description": "Self-healing AI system patterns for detecting performance drift, diagnosing failures, and applying autonomous corrections. Use when setting up health monitoring, implementing auto-recovery, or when user mentions \"self healing\", \"drift detection\", \"auto correction\", \"health check\", or \"autonomous recovery\".",
+        "metadata": {
+          "version": "0.1",
+          "legacy-name": "SELF_HEALING_PRIME"
+        }
+      }
+    },
+    {
+      "id": "SEMANTIC_CACHING_PRIME",
+      "path": "src/cohezion/skills/SEMANTIC_CACHING_PRIME.md",
+      "valid": false,
+      "errors": [
+        "Missing required field: id",
+        "Missing required field: domain",
+        "Missing required field: version"
+      ],
+      "warnings": [
+        "No FLUME dimension specified (defaults to 256D)"
+      ],
+      "metadata": {
+        "name": "semantic-caching",
+        "description": "Semantic caching using vector similarity to serve cached responses for semantically equivalent queries. Use when implementing cache layers, optimizing LLM call costs, or when user mentions \"semantic cache\", \"vector similarity\", \"cache hit rate\", \"cosine similarity\", or \"embedding cache\".",
+        "metadata": {
+          "version": "1.0",
+          "legacy-name": "SEMANTIC_CACHING_PRIME"
+        }
+      }
+    },
+    {
+      "id": "SHOWREEL_GENERATION_PRIME",
+      "path": "src/cohezion/skills/SHOWREEL_GENERATION_PRIME.md",
+      "valid": true,
+      "errors": [],
+      "warnings": [
+        "No FLUME dimension specified (defaults to 256D)"
+      ],
+      "metadata": {
+        "id": "SHOWREEL_GENERATION_PRIME",
+        "domain": "PRIME skill",
+        "version": "v1.0"
+      }
+    },
+    {
+      "id": "SIMULATION_PROFILES_PRIME",
+      "path": "src/cohezion/skills/SIMULATION_PROFILES_PRIME.md",
+      "valid": true,
+      "errors": [],
+      "warnings": [
+        "No FLUME dimension specified (defaults to 256D)"
+      ],
+      "metadata": {
+        "id": "SIMULATION_PROFILES_PRIME",
+        "domain": "PRIME skill",
+        "version": "v1.0"
+      }
+    },
+    {
+      "id": "SMALL_MODEL_SPECIALIST_PRIME",
+      "path": "src/cohezion/skills/SMALL_MODEL_SPECIALIST_PRIME.md",
+      "valid": false,
+      "errors": [
+        "Frontmatter error: No recognizable skill format found"
+      ],
+      "warnings": [],
+      "metadata": {}
+    },
+    {
+      "id": "SPATIAL_PHONONS_PRIME",
+      "path": "src/cohezion/skills/SPATIAL_PHONONS_PRIME.md",
+      "valid": true,
+      "errors": [],
+      "warnings": [
+        "No FLUME dimension specified (defaults to 256D)"
+      ],
+      "metadata": {
+        "id": "SPATIAL_PHONONS_PRIME",
+        "domain": "PRIME skill",
+        "version": "v1.0"
+      }
+    },
+    {
+      "id": "SURREALDB_MCP_PRIME",
+      "path": "src/cohezion/skills/SURREALDB_MCP_PRIME.md",
+      "valid": true,
+      "errors": [],
+      "warnings": [
+        "No FLUME dimension specified (defaults to 256D)"
+      ],
+      "metadata": {
+        "id": "SURREALDB_MCP_PRIME",
+        "domain": "PRIME skill",
+        "version": "v1.0 (New MCP Component)"
+      }
+    },
+    {
+      "id": "SURREALDB_OPERATIONS_PRIME",
+      "path": "src/cohezion/skills/SURREALDB_OPERATIONS_PRIME.md",
+      "valid": true,
+      "errors": [],
+      "warnings": [
+        "No FLUME dimension specified (defaults to 256D)"
+      ],
+      "metadata": {
+        "id": "SURREALDB_OPERATIONS_PRIME",
+        "domain": "PRIME skill",
+        "version": "v1.0.0"
+      }
+    },
+    {
+      "id": "SURREALDB_OPTIMIZER_PRIME",
+      "path": "src/cohezion/skills/SURREALDB_OPTIMIZER_PRIME.md",
+      "valid": true,
+      "errors": [],
+      "warnings": [
+        "No FLUME dimension specified (defaults to 256D)"
+      ],
+      "metadata": {
+        "id": "SURREALDB_OPTIMIZER_PRIME",
+        "domain": "PRIME skill",
+        "version": "v1.0"
+      }
+    },
+    {
+      "id": "SURREAL_DBA_PRIME",
+      "path": "src/cohezion/skills/SURREAL_DBA_PRIME.md",
+      "valid": true,
+      "errors": [],
+      "warnings": [
+        "No FLUME dimension specified (defaults to 256D)"
+      ],
+      "metadata": {
+        "id": "SURREAL_DBA_PRIME",
+        "domain": "PRIME skill",
+        "version": "v1.0"
+      }
+    },
+    {
+      "id": "SWARM_PLANNER_PRIME",
+      "path": "src/cohezion/skills/SWARM_PLANNER_PRIME.md",
+      "valid": true,
+      "errors": [],
+      "warnings": [
+        "No FLUME dimension specified (defaults to 256D)"
+      ],
+      "metadata": {
+        "id": "SWARM_PLANNER_PRIME",
+        "domain": "PRIME skill",
+        "version": "v1.0.1 - Sourced from skills.sh (swarm-planner / agentic-workflow)"
+      }
+    },
+    {
+      "id": "SYMBIOTIC_FILE_PRIME",
+      "path": "src/cohezion/skills/SYMBIOTIC_FILE_PRIME.md",
+      "valid": true,
+      "errors": [],
+      "warnings": [
+        "No FLUME dimension specified (defaults to 256D)"
+      ],
+      "metadata": {
+        "id": "SYMBIOTIC_FILE_PRIME",
+        "domain": "PRIME skill",
+        "version": "v1.0 (Sovereign Era)"
+      }
+    },
+    {
+      "id": "SYSTEMS_ENGINEERING_V_MODEL_PRIME",
+      "path": "src/cohezion/skills/SYSTEMS_ENGINEERING_V_MODEL_PRIME.md",
+      "valid": true,
+      "errors": [],
+      "warnings": [
+        "No FLUME dimension specified (defaults to 256D)"
+      ],
+      "metadata": {
+        "id": "SYSTEMS_ENGINEERING_V_MODEL_PRIME",
+        "domain": "PRIME skill",
+        "version": "v1.0"
+      }
+    },
+    {
+      "id": "SYSTEM_DEFINITION_PRIME",
+      "path": "src/cohezion/skills/SYSTEM_DEFINITION_PRIME.md",
+      "valid": true,
+      "errors": [],
+      "warnings": [
+        "No FLUME dimension specified (defaults to 256D)"
+      ],
+      "metadata": {
+        "id": "SYSTEM_DEFINITION_PRIME",
+        "domain": "PRIME skill",
+        "version": "v1.0 (2026-01-17)"
+      }
+    },
+    {
+      "id": "SYSTEM_GUARDRAILS_PRIME",
+      "path": "src/cohezion/skills/SYSTEM_GUARDRAILS_PRIME.md",
+      "valid": false,
+      "errors": [
+        "Frontmatter error: No recognizable skill format found"
+      ],
+      "warnings": [],
+      "metadata": {}
+    },
+    {
+      "id": "SYSTEM_MONITORING_PRIME",
+      "path": "src/cohezion/skills/SYSTEM_MONITORING_PRIME.md",
+      "valid": true,
+      "errors": [],
+      "warnings": [
+        "No FLUME dimension specified (defaults to 256D)"
+      ],
+      "metadata": {
+        "id": "SYSTEM_MONITORING_PRIME",
+        "domain": "PRIME skill",
+        "version": "v0.2 (2026-01-17: Added swap pressure hooks from crash retrospective)"
+      }
+    },
+    {
+      "id": "SYMPHONY_ORCHESTRATION_PRIME",
+      "path": "src/cohezion/skills/Symphony_Orchestration_PRIME.md",
+      "valid": false,
+      "errors": [
+        "Frontmatter error: No recognizable skill format found"
+      ],
+      "warnings": [],
+      "metadata": {}
+    },
+    {
+      "id": "TDD_PRIME",
+      "path": "src/cohezion/skills/TDD_PRIME.md",
+      "valid": false,
+      "errors": [
+        "Missing required field: id",
+        "Missing required field: domain",
+        "Missing required field: version"
+      ],
+      "warnings": [
+        "No FLUME dimension specified (defaults to 256D)"
+      ],
+      "metadata": {
+        "name": "tdd-prime",
+        "description": "Strict enforcement of the RED-GREEN-REFACTOR cycle. Use during the 'Execute' phase of the development loop. Mandatory for all source code changes.",
+        "metadata": {
+          "version": "1.0",
+          "legacy-name": "TDD_PRIME"
+        }
+      }
+    },
+    {
+      "id": "TEAM_ORCHESTRATION_PRIME",
+      "path": "src/cohezion/skills/TEAM_ORCHESTRATION_PRIME.md",
+      "valid": false,
+      "errors": [
+        "Missing required field: id",
+        "Missing required field: domain",
+        "Missing required field: version"
+      ],
+      "warnings": [
+        "No FLUME dimension specified (defaults to 256D)"
+      ],
+      "metadata": {
+        "name": "team-orchestration",
+        "description": "Multi-agent team planning and orchestration that converts PRIME skills into agent specifications with dependency-tracked task plans. Use when creating agent teams, decomposing tasks for swarm execution, or when user mentions \"team planning\", \"agent orchestration\", \"task decomposition\", \"swarm coordination\", or \"dependency tracking\".",
+        "metadata": {
+          "version": "1.0.0",
+          "legacy-name": "TEAM_ORCHESTRATION_PRIME"
+        }
+      }
+    },
+    {
+      "id": "TEMPLATE_DRIVEN_DEVELOPMENT_PRIME",
+      "path": "src/cohezion/skills/TEMPLATE_DRIVEN_DEVELOPMENT_PRIME.md",
+      "valid": true,
+      "errors": [],
+      "warnings": [
+        "No FLUME dimension specified (defaults to 256D)"
+      ],
+      "metadata": {
+        "id": "TEMPLATE_DRIVEN_DEVELOPMENT_PRIME",
+        "domain": "PRIME skill",
+        "version": "v1.0.0"
+      }
+    },
+    {
+      "id": "TEMPORAL_PRECISION_PRIME",
+      "path": "src/cohezion/skills/TEMPORAL_PRECISION_PRIME.md",
+      "valid": true,
+      "errors": [],
+      "warnings": [
+        "No FLUME dimension specified (defaults to 256D)"
+      ],
+      "metadata": {
+        "id": "TEMPORAL_PRECISION_PRIME",
+        "domain": "PRIME skill",
+        "version": "v0.1"
+      }
+    },
+    {
+      "id": "TESTING_PRIME",
+      "path": "src/cohezion/skills/TESTING_PRIME.md",
+      "valid": false,
+      "errors": [
+        "Missing required field: id",
+        "Missing required field: domain",
+        "Missing required field: version"
+      ],
+      "warnings": [
+        "No FLUME dimension specified (defaults to 256D)"
+      ],
+      "metadata": {
+        "name": "testing",
+        "description": "Python testing methodology with pytest patterns, fixture design, parametrization, and adversarial security testing. Use when writing tests, debugging flaky test suites, setting up test isolation, or when user mentions \"pytest\", \"test fixtures\", \"conftest\", \"mock at source\", \"test isolation\", or \"coverage\".",
+        "metadata": {
+          "version": "1.0",
+          "legacy-name": "TESTING_PRIME"
+        }
+      }
+    },
+    {
+      "id": "THROTTLED_SCOUT_PRIME",
+      "path": "src/cohezion/skills/THROTTLED_SCOUT_PRIME.md",
+      "valid": true,
+      "errors": [],
+      "warnings": [
+        "No FLUME dimension specified (defaults to 256D)"
+      ],
+      "metadata": {
+        "id": "THROTTLED_SCOUT_PRIME",
+        "domain": "PRIME skill",
+        "version": "v1.1"
+      }
+    },
+    {
+      "id": "TOKEN_EFFICIENCY_PRIME",
+      "path": "src/cohezion/skills/TOKEN_EFFICIENCY_PRIME.md",
+      "valid": false,
+      "errors": [
+        "Missing required field: id",
+        "Missing required field: domain",
+        "Missing required field: version"
+      ],
+      "warnings": [
+        "No FLUME dimension specified (defaults to 256D)"
+      ],
+      "metadata": {
+        "name": "token-efficiency",
+        "description": "Token consumption tracking, analysis, and optimization across the agent swarm. Reduces waste through batching, caching, context pruning, and adaptive model selection. Use when optimizing token costs, analyzing waste patterns, setting token budgets, or when user mentions \"token efficiency\", \"token budget\", \"cache hit rate\", \"model downgrade\", or \"cost optimization\".",
+        "metadata": {
+          "version": "1.0",
+          "legacy-name": "TOKEN_EFFICIENCY_PRIME"
+        }
+      }
+    },
+    {
+      "id": "TOPOLOGICAL_VERIFICATION_PRIME",
+      "path": "src/cohezion/skills/TOPOLOGICAL_VERIFICATION_PRIME.md",
+      "valid": true,
+      "errors": [],
+      "warnings": [
+        "No FLUME dimension specified (defaults to 256D)"
+      ],
+      "metadata": {
+        "id": "TOPOLOGICAL_VERIFICATION_PRIME",
+        "domain": "PRIME skill",
+        "version": "v0.1"
+      }
+    },
+    {
+      "id": "TRAINING_DATA_CAPTURE_PRIME",
+      "path": "src/cohezion/skills/TRAINING_DATA_CAPTURE_PRIME.md",
+      "valid": true,
+      "errors": [],
+      "warnings": [
+        "No FLUME dimension specified (defaults to 256D)"
+      ],
+      "metadata": {
+        "id": "TRAINING_DATA_CAPTURE_PRIME",
+        "domain": "PRIME skill",
+        "version": "v1.0"
+      }
+    },
+    {
+      "id": "TRAINING_DIAGNOSTIC_LOOP_PRIME",
+      "path": "src/cohezion/skills/TRAINING_DIAGNOSTIC_LOOP_PRIME.md",
+      "valid": true,
+      "errors": [],
+      "warnings": [
+        "No FLUME dimension specified (defaults to 256D)"
+      ],
+      "metadata": {
+        "id": "TRAINING_DIAGNOSTIC_LOOP_PRIME",
+        "domain": "PRIME skill",
+        "version": "v1.0.0"
+      }
+    },
+    {
+      "id": "TRANSFORMER_ENGINE_FP4_OPTIMIZATION_PRIME",
+      "path": "src/cohezion/skills/TRANSFORMER_ENGINE_FP4_OPTIMIZATION_PRIME.md",
+      "valid": true,
+      "errors": [],
+      "warnings": [
+        "No FLUME dimension specified (defaults to 256D)"
+      ],
+      "metadata": {
+        "id": "TRANSFORMER_ENGINE_FP4_OPTIMIZATION_PRIME",
+        "domain": "PRIME skill",
+        "version": "v1.0"
+      }
+    },
+    {
+      "id": "TYPESCRIPT_ADVANCED_TYPES_PRIME",
+      "path": "src/cohezion/skills/TYPESCRIPT_ADVANCED_TYPES_PRIME.md",
+      "valid": true,
+      "errors": [],
+      "warnings": [
+        "No FLUME dimension specified (defaults to 256D)"
+      ],
+      "metadata": {
+        "id": "TYPESCRIPT_ADVANCED_TYPES_PRIME",
+        "domain": "PRIME skill",
+        "version": "v1.0.1 - Sourced from skills.sh (typescript-advanced-types)"
+      }
+    },
+    {
+      "id": "UNIVERSE_SIMULATION_PERSISTENCE_PRIME",
+      "path": "src/cohezion/skills/UNIVERSE_SIMULATION_PERSISTENCE_PRIME.md",
+      "valid": false,
+      "errors": [
+        "Frontmatter error: No recognizable skill format found"
+      ],
+      "warnings": [],
+      "metadata": {}
+    },
+    {
+      "id": "USAGE_ANALYTICS_PRIME",
+      "path": "src/cohezion/skills/USAGE_ANALYTICS_PRIME.md",
+      "valid": true,
+      "errors": [],
+      "warnings": [
+        "No FLUME dimension specified (defaults to 256D)"
+      ],
+      "metadata": {
+        "id": "USAGE_ANALYTICS_PRIME",
+        "domain": "PRIME skill",
+        "version": "v1.0"
+      }
+    },
+    {
+      "id": "VAULT_KEEPER_PRIME",
+      "path": "src/cohezion/skills/VAULT_KEEPER_PRIME.md",
+      "valid": true,
+      "errors": [],
+      "warnings": [
+        "No FLUME dimension specified (defaults to 256D)"
+      ],
+      "metadata": {
+        "id": "VAULT_KEEPER_PRIME",
+        "domain": "PRIME skill",
+        "version": "v1.0"
+      }
+    },
+    {
+      "id": "VECTOR_STORE_PRIME",
+      "path": "src/cohezion/skills/VECTOR_STORE_PRIME.md",
+      "valid": true,
+      "errors": [],
+      "warnings": [
+        "No FLUME dimension specified (defaults to 256D)"
+      ],
+      "metadata": {
+        "id": "VECTOR_STORE_PRIME",
+        "domain": "PRIME skill",
+        "version": "v0.1"
+      }
+    },
+    {
+      "id": "VISUALIZATION_PRIME",
+      "path": "src/cohezion/skills/VISUALIZATION_PRIME.md",
+      "valid": true,
+      "errors": [],
+      "warnings": [
+        "No FLUME dimension specified (defaults to 256D)"
+      ],
+      "metadata": {
+        "id": "VISUALIZATION_PRIME",
+        "domain": "PRIME skill",
+        "version": "v0.1"
+      }
+    },
+    {
+      "id": "VLIW_COG_BRIDGE_PRIME",
+      "path": "src/cohezion/skills/VLIW_COG_BRIDGE_PRIME.md",
+      "valid": true,
+      "errors": [],
+      "warnings": [
+        "No FLUME dimension specified (defaults to 256D)"
+      ],
+      "metadata": {
+        "id": "VLIW_COG_BRIDGE_PRIME",
+        "domain": "PRIME skill",
+        "version": "v1.0 (Derived from Anthropic Task-home Audit)"
+      }
+    },
+    {
+      "id": "WRITING_PLANS_PRIME",
+      "path": "src/cohezion/skills/WRITING_PLANS_PRIME.md",
+      "valid": false,
+      "errors": [
+        "Missing required field: id",
+        "Missing required field: domain",
+        "Missing required field: version"
+      ],
+      "warnings": [
+        "No FLUME dimension specified (defaults to 256D)"
+      ],
+      "metadata": {
+        "name": "writing-plans-prime",
+        "description": "Decomposition of approved designs into bite-sized, TDD-verified implementation tasks. Use after design approval and before implementation. Mandatory for complex features.",
+        "metadata": {
+          "version": "1.0",
+          "legacy-name": "WRITING_PLANS_PRIME"
+        }
+      }
+    },
+    {
+      "id": "ADAPTIVE_TEMPLATE_ENGINE",
+      "path": "src/cohezion/skills/adaptive_template_engine.md",
+      "valid": true,
+      "errors": [],
+      "warnings": [
+        "No FLUME dimension specified (defaults to 256D)"
+      ],
+      "metadata": {
+        "id": "ADAPTIVE_TEMPLATE_ENGINE_PRIME",
+        "domain": "PRIME skill",
+        "version": "v1.0"
+      }
+    },
+    {
+      "id": "ADVANCED_PHYSICS_SIMULATION",
+      "path": "src/cohezion/skills/advanced_physics_simulation.md",
+      "valid": true,
+      "errors": [],
+      "warnings": [
+        "No FLUME dimension specified (defaults to 256D)"
+      ],
+      "metadata": {
+        "id": "ADVANCED_PHYSICS_SIMULATION_PRIME",
+        "domain": "PRIME skill",
+        "version": "v1.0 (2026-01-18)"
+      }
+    },
+    {
+      "id": "ALIGNMENT_VERIFICATION",
+      "path": "src/cohezion/skills/alignment_verification.md",
+      "valid": true,
+      "errors": [],
+      "warnings": [
+        "No FLUME dimension specified (defaults to 256D)"
+      ],
+      "metadata": {
+        "id": "ALIGNMENT_VERIFICATION_PRIME",
+        "domain": "PRIME skill",
+        "version": "v1.0"
+      }
+    },
+    {
+      "id": "ALLOSTATICA_PRIME",
+      "path": "src/cohezion/skills/allostatica_prime.md",
+      "valid": true,
+      "errors": [],
+      "warnings": [
+        "No FLUME dimension specified (defaults to 256D)"
+      ],
+      "metadata": {
+        "id": "ALLOSTATICA_PRIME",
+        "domain": "PRIME skill",
+        "version": "v1.0 (Refactored from R-Zero)"
+      }
+    },
+    {
+      "id": "ANIMATIONS",
+      "path": "src/cohezion/skills/animations.md",
+      "valid": true,
+      "errors": [],
+      "warnings": [
+        "No FLUME dimension specified (defaults to 256D)"
+      ],
+      "metadata": {
+        "id": "ANIMATIONS_PRIME",
+        "domain": "PRIME skill",
+        "version": "v1.0"
+      }
+    },
+    {
+      "id": "API_PATTERNS",
+      "path": "src/cohezion/skills/api_patterns.md",
+      "valid": true,
+      "errors": [],
+      "warnings": [
+        "No FLUME dimension specified (defaults to 256D)"
+      ],
+      "metadata": {
+        "id": "API_PATTERNS_PRIME",
+        "domain": "PRIME skill",
+        "version": "v1.0"
+      }
+    },
+    {
+      "id": "ASYNC_WORKFLOW",
+      "path": "src/cohezion/skills/async_workflow.md",
+      "valid": true,
+      "errors": [],
+      "warnings": [
+        "No FLUME dimension specified (defaults to 256D)"
+      ],
+      "metadata": {
+        "id": "ASYNC_WORKFLOW_PRIME",
+        "domain": "PRIME skill",
+        "version": "v1.0"
+      }
+    },
+    {
+      "id": "BMAD_WORKFLOW",
+      "path": "src/cohezion/skills/bmad_workflow.md",
+      "valid": true,
+      "errors": [],
+      "warnings": [
+        "No FLUME dimension specified (defaults to 256D)"
+      ],
+      "metadata": {
+        "id": "BMAD_WORKFLOW_PRIME",
+        "domain": "PRIME skill",
+        "version": "v0.1 (integrated 2026-01-16)"
+      }
+    },
+    {
+      "id": "CACHING",
+      "path": "src/cohezion/skills/caching.md",
+      "valid": true,
+      "errors": [],
+      "warnings": [
+        "No FLUME dimension specified (defaults to 256D)"
+      ],
+      "metadata": {
+        "id": "CACHING_PRIME",
+        "domain": "PRIME skill",
+        "version": "v1.0"
+      }
+    },
+    {
+      "id": "CODE_SIMPLIFICATION",
+      "path": "src/cohezion/skills/code_simplification.md",
+      "valid": true,
+      "errors": [],
+      "warnings": [
+        "No FLUME dimension specified (defaults to 256D)"
+      ],
+      "metadata": {
+        "id": "CODE_SIMPLIFICATION_PRIME",
+        "domain": "PRIME skill",
+        "version": "v0.1"
+      }
+    },
+    {
+      "id": "CODE_STANDARDS",
+      "path": "src/cohezion/skills/code_standards.md",
+      "valid": true,
+      "errors": [],
+      "warnings": [
+        "No FLUME dimension specified (defaults to 256D)"
+      ],
+      "metadata": {
+        "id": "CODE_STANDARDS_PRIME",
+        "domain": "PRIME skill",
+        "version": "v0.1"
+      }
+    },
+    {
+      "id": "COMMON_CODEBASE_HEALTH",
+      "path": "src/cohezion/skills/common_codebase_health.md",
+      "valid": true,
+      "errors": [],
+      "warnings": [
+        "No FLUME dimension specified (defaults to 256D)"
+      ],
+      "metadata": {
+        "id": "COMMON_CODEBASE_HEALTH_PRIME",
+        "domain": "PRIME skill",
+        "version": "v1.0 (Unified)"
+      }
+    },
+    {
+      "id": "COMPOUND_ENGINEERING",
+      "path": "src/cohezion/skills/compound_engineering.md",
+      "valid": true,
+      "errors": [],
+      "warnings": [
+        "No FLUME dimension specified (defaults to 256D)"
+      ],
+      "metadata": {
+        "id": "COMPOUND_ENGINEERING_PRIME",
+        "domain": "PRIME skill",
+        "version": "v0.1"
+      }
+    },
+    {
+      "id": "COMPOUND_PROMPT",
+      "path": "src/cohezion/skills/compound_prompt.md",
+      "valid": true,
+      "errors": [],
+      "warnings": [
+        "No FLUME dimension specified (defaults to 256D)"
+      ],
+      "metadata": {
+        "id": "COMPOUND_PROMPT_PRIME",
+        "domain": "PRIME skill",
+        "version": "v0.1"
+      }
+    },
+    {
+      "id": "CONTROLLER_AGENT",
+      "path": "src/cohezion/skills/controller_agent.md",
+      "valid": true,
+      "errors": [],
+      "warnings": [
+        "No FLUME dimension specified (defaults to 256D)"
+      ],
+      "metadata": {
+        "id": "CONTROLLER_AGENT_PRIME",
+        "domain": "PRIME skill",
+        "version": "v1.0"
+      }
+    },
+    {
+      "id": "DEMOCRATIC_DEBATE",
+      "path": "src/cohezion/skills/democratic_debate.md",
+      "valid": true,
+      "errors": [],
+      "warnings": [
+        "No FLUME dimension specified (defaults to 256D)"
+      ],
+      "metadata": {
+        "id": "DEMOCRATIC_DEBATE_PRIME",
+        "domain": "PRIME skill",
+        "version": "v2.0 (upgraded from v1.0)"
+      }
+    },
+    {
+      "id": "EMBEDDING_STRATEGY",
+      "path": "src/cohezion/skills/embedding_strategy.md",
+      "valid": true,
+      "errors": [],
+      "warnings": [
+        "No FLUME dimension specified (defaults to 256D)"
+      ],
+      "metadata": {
+        "id": "EMBEDDING_STRATEGY_PRIME",
+        "domain": "PRIME skill",
+        "version": "v0.1"
+      }
+    },
+    {
+      "id": "ENHANCED_SIMULATION",
+      "path": "src/cohezion/skills/enhanced_simulation.md",
+      "valid": true,
+      "errors": [],
+      "warnings": [
+        "No FLUME dimension specified (defaults to 256D)"
+      ],
+      "metadata": {
+        "id": "ENHANCED_SIMULATION_PRIME",
+        "domain": "PRIME skill",
+        "version": "v1.0"
+      }
+    },
+    {
+      "id": "ENTERPRISE_AI_SERVER_MASTERY",
+      "path": "src/cohezion/skills/enterprise_ai_server_mastery.md",
+      "valid": true,
+      "errors": [],
+      "warnings": [
+        "No FLUME dimension specified (defaults to 256D)"
+      ],
+      "metadata": {
+        "id": "ENTERPRISE_AI_SERVER_MASTERY_PRIME",
+        "domain": "PRIME skill",
+        "version": "v1.0 (Unified)"
+      }
+    },
+    {
+      "id": "FLUME_COMPARISON",
+      "path": "src/cohezion/skills/flume_comparison.md",
+      "valid": true,
+      "errors": [],
+      "warnings": [
+        "No FLUME dimension specified (defaults to 256D)"
+      ],
+      "metadata": {
+        "id": "CALM_COMPARISON_PRIME",
+        "domain": "PRIME skill",
+        "version": "v1.0"
+      }
+    },
+    {
+      "id": "GATEWAY_ARCHITECTURE",
+      "path": "src/cohezion/skills/gateway_architecture.md",
+      "valid": true,
+      "errors": [],
+      "warnings": [
+        "No FLUME dimension specified (defaults to 256D)"
+      ],
+      "metadata": {
+        "id": "GATEWAY_ARCHITECTURE_PRIME",
+        "domain": "PRIME skill",
+        "version": "v1.0"
+      }
+    },
+    {
+      "id": "GMAIL_MCP",
+      "path": "src/cohezion/skills/gmail_mcp.md",
+      "valid": true,
+      "errors": [],
+      "warnings": [
+        "No FLUME dimension specified (defaults to 256D)"
+      ],
+      "metadata": {
+        "id": "GMAIL_MCP_PRIME",
+        "domain": "PRIME skill",
+        "version": "v1.0 (New MCP Component)"
+      }
+    },
+    {
+      "id": "HIGH_D_PHYSICS_VISUALIZATION",
+      "path": "src/cohezion/skills/high_d_physics_visualization.md",
+      "valid": true,
+      "errors": [],
+      "warnings": [
+        "No FLUME dimension specified (defaults to 256D)"
+      ],
+      "metadata": {
+        "id": "HIGH_D_PHYSICS_VISUALIZATION_PRIME",
+        "domain": "PRIME skill",
+        "version": "v1.0 (Unified)"
+      }
+    },
+    {
+      "id": "HIHO_REALITY_SIM",
+      "path": "src/cohezion/skills/hiho_reality_sim.md",
+      "valid": true,
+      "errors": [],
+      "warnings": [
+        "No FLUME dimension specified (defaults to 256D)"
+      ],
+      "metadata": {
+        "id": "HIHO_REALITY_SIM_PRIME",
+        "domain": "PRIME skill",
+        "version": "v2.0 (2026-03-05) \u2014 Added physics genealogy for all 4 fabrics, enhanced precipitation gate"
+      }
+    },
+    {
+      "id": "INTERACTIVE_UI",
+      "path": "src/cohezion/skills/interactive_ui.md",
+      "valid": true,
+      "errors": [],
+      "warnings": [
+        "No FLUME dimension specified (defaults to 256D)"
+      ],
+      "metadata": {
+        "id": "INTERACTIVE_UI_PRIME",
+        "domain": "PRIME skill",
+        "version": "v1.0"
+      }
+    },
+    {
+      "id": "KNOWLEDGE_MINING",
+      "path": "src/cohezion/skills/knowledge_mining.md",
+      "valid": true,
+      "errors": [],
+      "warnings": [
+        "No FLUME dimension specified (defaults to 256D)"
+      ],
+      "metadata": {
+        "id": "KNOWLEDGE_MINING_PRIME",
+        "domain": "PRIME skill",
+        "version": "v0.1"
+      }
+    },
+    {
+      "id": "LEARNING",
+      "path": "src/cohezion/skills/learning.md",
+      "valid": true,
+      "errors": [],
+      "warnings": [
+        "No FLUME dimension specified (defaults to 256D)"
+      ],
+      "metadata": {
+        "id": "LEARNING_PRIME",
+        "domain": "PRIME skill",
+        "version": "v1.0"
+      }
+    },
+    {
+      "id": "MARIMO_DEVELOPMENT",
+      "path": "src/cohezion/skills/marimo_development.md",
+      "valid": true,
+      "errors": [],
+      "warnings": [
+        "No FLUME dimension specified (defaults to 256D)"
+      ],
+      "metadata": {
+        "id": "MARIMO_DEVELOPMENT_PRIME",
+        "domain": "PRIME skill",
+        "version": "v1.0"
+      }
+    },
+    {
+      "id": "MARIMO_NOTEBOOKS",
+      "path": "src/cohezion/skills/marimo_notebooks.md",
+      "valid": true,
+      "errors": [],
+      "warnings": [
+        "No FLUME dimension specified (defaults to 256D)"
+      ],
+      "metadata": {
+        "id": "MARIMO_NOTEBOOKS_PRIME",
+        "domain": "PRIME skill",
+        "version": "v1.0"
+      }
+    },
+    {
+      "id": "MASS_SIMULATION",
+      "path": "src/cohezion/skills/mass_simulation.md",
+      "valid": true,
+      "errors": [],
+      "warnings": [
+        "No FLUME dimension specified (defaults to 256D)"
+      ],
+      "metadata": {
+        "id": "MASS_SIMULATION_PRIME",
+        "domain": "PRIME skill",
+        "version": "v2.0 (upgraded from v1.0)"
+      }
+    },
+    {
+      "id": "MATSUMOTO_HIHO_SYNTHESIS",
+      "path": "src/cohezion/skills/matsumoto_hiho_synthesis.md",
+      "valid": true,
+      "errors": [],
+      "warnings": [
+        "No FLUME dimension specified (defaults to 256D)"
+      ],
+      "metadata": {
+        "id": "MATSUMOTO_HIHO_SYNTHESIS_PRIME",
+        "domain": "PRIME skill",
+        "version": "v1.0"
+      }
+    },
+    {
+      "id": "META_SKILL",
+      "path": "src/cohezion/skills/meta_skill.md",
+      "valid": true,
+      "errors": [],
+      "warnings": [
+        "No FLUME dimension specified (defaults to 256D)"
+      ],
+      "metadata": {
+        "id": "META_SKILL_PRIME",
+        "domain": "PRIME skill",
+        "version": "v1.0"
+      }
+    },
+    {
+      "id": "METAPHYSICS",
+      "path": "src/cohezion/skills/metaphysics.md",
+      "valid": true,
+      "errors": [],
+      "warnings": [
+        "No FLUME dimension specified (defaults to 256D)"
+      ],
+      "metadata": {
+        "id": "METAPHYSICS_PRIME",
+        "domain": "PRIME skill",
+        "version": "v1.0"
+      }
+    },
+    {
+      "id": "MULTIMODAL_EXPERIENCE",
+      "path": "src/cohezion/skills/multimodal_experience.md",
+      "valid": true,
+      "errors": [],
+      "warnings": [
+        "No FLUME dimension specified (defaults to 256D)"
+      ],
+      "metadata": {
+        "id": "MULTIMODAL_EXPERIENCE_PRIME",
+        "domain": "PRIME skill",
+        "version": "v1.0 (2026-01-17)"
+      }
+    },
+    {
+      "id": "MULTIMODAL_VISUALIZATION",
+      "path": "src/cohezion/skills/multimodal_visualization.md",
+      "valid": true,
+      "errors": [],
+      "warnings": [
+        "No FLUME dimension specified (defaults to 256D)"
+      ],
+      "metadata": {
+        "id": "MULTIMODAL_VISUALIZATION_PRIME",
+        "domain": "PRIME skill",
+        "version": "v1.0"
+      }
+    },
+    {
+      "id": "OBSERVABLE_AI",
+      "path": "src/cohezion/skills/observable_ai.md",
+      "valid": true,
+      "errors": [],
+      "warnings": [
+        "No FLUME dimension specified (defaults to 256D)"
+      ],
+      "metadata": {
+        "id": "OBSERVABLE_AI_PRIME",
+        "domain": "PRIME skill",
+        "version": "v1.0"
+      }
+    },
+    {
+      "id": "OLLAMA_MANAGEMENT",
+      "path": "src/cohezion/skills/ollama_management.md",
+      "valid": true,
+      "errors": [],
+      "warnings": [
+        "No FLUME dimension specified (defaults to 256D)"
+      ],
+      "metadata": {
+        "id": "OLLAMA_MANAGEMENT_PRIME",
+        "domain": "PRIME skill",
+        "version": "v0.1"
+      }
+    },
+    {
+      "id": "PARALLEL_ORCHESTRATION",
+      "path": "src/cohezion/skills/parallel_orchestration.md",
+      "valid": true,
+      "errors": [],
+      "warnings": [
+        "No FLUME dimension specified (defaults to 256D)"
+      ],
+      "metadata": {
+        "id": "PARALLEL_ORCHESTRATION_PRIME",
+        "domain": "PRIME skill",
+        "version": "v0.1"
+      }
+    },
+    {
+      "id": "PHYSICS",
+      "path": "src/cohezion/skills/physics.md",
+      "valid": true,
+      "errors": [],
+      "warnings": [
+        "No FLUME dimension specified (defaults to 256D)"
+      ],
+      "metadata": {
+        "id": "PHYSICS_PRIME",
+        "domain": "PRIME skill",
+        "version": "v1.0"
+      }
+    },
+    {
+      "id": "PHYSICS_EXPLAINABILITY",
+      "path": "src/cohezion/skills/physics_explainability.md",
+      "valid": true,
+      "errors": [],
+      "warnings": [
+        "No FLUME dimension specified (defaults to 256D)"
+      ],
+      "metadata": {
+        "id": "PHYSICS_EXPLAINABILITY_PRIME",
+        "domain": "PRIME skill",
+        "version": "v0.1"
+      }
+    },
+    {
+      "id": "PHYSICS_INFORMED_PREDICTION",
+      "path": "src/cohezion/skills/physics_informed_prediction.md",
+      "valid": true,
+      "errors": [],
+      "warnings": [
+        "No FLUME dimension specified (defaults to 256D)"
+      ],
+      "metadata": {
+        "id": "PHYSICS_INFORMED_PREDICTION_PRIME",
+        "domain": "PRIME skill",
+        "version": "v1.0"
+      }
+    },
+    {
+      "id": "PLASMA_THEOSOPHY",
+      "path": "src/cohezion/skills/plasma_theosophy.md",
+      "valid": true,
+      "errors": [],
+      "warnings": [
+        "No FLUME dimension specified (defaults to 256D)"
+      ],
+      "metadata": {
+        "id": "PLASMA_THEOSOPHY_PRIME",
+        "domain": "PRIME skill",
+        "version": "v1.0"
+      }
+    },
+    {
+      "id": "PRE_FLIGHT_VALIDATION",
+      "path": "src/cohezion/skills/pre_flight_validation.md",
+      "valid": true,
+      "errors": [],
+      "warnings": [
+        "No FLUME dimension specified (defaults to 256D)"
+      ],
+      "metadata": {
+        "id": "PRE_FLIGHT_VALIDATION_PRIME",
+        "domain": "PRIME skill",
+        "version": "v1.0"
+      }
+    },
+    {
+      "id": "PRODUCT_MANAGEMENT",
+      "path": "src/cohezion/skills/product_management.md",
+      "valid": true,
+      "errors": [],
+      "warnings": [
+        "No FLUME dimension specified (defaults to 256D)"
+      ],
+      "metadata": {
+        "id": "PRODUCT_MANAGEMENT_PRIME",
+        "domain": "PRIME skill",
+        "version": "v2.0 (upgraded from v1.0)"
+      }
+    },
+    {
+      "id": "PROJECT_MANAGEMENT",
+      "path": "src/cohezion/skills/project_management.md",
+      "valid": false,
+      "errors": [
+        "Missing required field: id",
+        "Missing required field: domain",
+        "Missing required field: version"
+      ],
+      "warnings": [
+        "No FLUME dimension specified (defaults to 256D)"
+      ],
+      "metadata": {
+        "description": "Project Management Prime: Managing Chaos with R-Zero Methodology."
+      }
+    },
+    {
+      "id": "RESEARCH_SYNTHESIS",
+      "path": "src/cohezion/skills/research_synthesis.md",
+      "valid": true,
+      "errors": [],
+      "warnings": [
+        "No FLUME dimension specified (defaults to 256D)"
+      ],
+      "metadata": {
+        "id": "RESEARCH_SYNTHESIS_PRIME",
+        "domain": "PRIME skill",
+        "version": "v1.0"
+      }
+    },
+    {
+      "id": "RESOURCE_MANAGEMENT",
+      "path": "src/cohezion/skills/resource_management.md",
+      "valid": true,
+      "errors": [],
+      "warnings": [
+        "No FLUME dimension specified (defaults to 256D)"
+      ],
+      "metadata": {
+        "id": "RESOURCE_MANAGEMENT_PRIME",
+        "domain": "PRIME skill",
+        "version": "v1.0 (2026-01-20: Initial release post-GPU RCA)"
+      }
+    },
+    {
+      "id": "ROOT-ARCHAEOLOGY",
+      "path": "src/cohezion/skills/root-archaeology.md",
+      "valid": false,
+      "errors": [
+        "Missing required field: id",
+        "Missing required field: domain",
+        "Missing required field: version"
+      ],
+      "warnings": [
+        "No FLUME dimension specified (defaults to 256D)"
+      ],
+      "metadata": {
+        "skill_id": "root-archaeology",
+        "name": "Root Archaeology",
+        "description": "Systematic repo root cleanup for professional presentation",
+        "category": "maintenance",
+        "difficulty": "beginner",
+        "v_model_phase": 1
+      }
+    },
+    {
+      "id": "SANDBOXED_SIMULATION",
+      "path": "src/cohezion/skills/sandboxed_simulation.md",
+      "valid": false,
+      "errors": [
+        "Frontmatter error: No recognizable skill format found"
+      ],
+      "warnings": [],
+      "metadata": {}
+    },
+    {
+      "id": "SELF_EVALUATION",
+      "path": "src/cohezion/skills/self_evaluation.md",
+      "valid": true,
+      "errors": [],
+      "warnings": [
+        "No FLUME dimension specified (defaults to 256D)"
+      ],
+      "metadata": {
+        "id": "SELF_EVALUATION_PRIME",
+        "domain": "PRIME skill",
+        "version": "v0.1"
+      }
+    },
+    {
+      "id": "SEMANTIC_ALGEBRA",
+      "path": "src/cohezion/skills/semantic_algebra.md",
+      "valid": true,
+      "errors": [],
+      "warnings": [
+        "No FLUME dimension specified (defaults to 256D)"
+      ],
+      "metadata": {
+        "id": "SEMANTIC_ALGEBRA_PRIME",
+        "domain": "PRIME skill",
+        "version": "v1.0"
+      }
+    },
+    {
+      "id": "SEMANTIC_ANALYSIS",
+      "path": "src/cohezion/skills/semantic_analysis.md",
+      "valid": true,
+      "errors": [],
+      "warnings": [
+        "No FLUME dimension specified (defaults to 256D)"
+      ],
+      "metadata": {
+        "id": "SEMANTIC_ANALYSIS_PRIME",
+        "domain": "PRIME skill",
+        "version": "v1.0"
+      }
+    },
+    {
+      "id": "SKILL_GENERATOR",
+      "path": "src/cohezion/skills/skill_generator.md",
+      "valid": true,
+      "errors": [],
+      "warnings": [
+        "No FLUME dimension specified (defaults to 256D)"
+      ],
+      "metadata": {
+        "id": "SKILL_GENERATOR_PRIME",
+        "domain": "PRIME skill",
+        "version": "v0.1"
+      }
+    },
+    {
+      "id": "SMART_ROUTING",
+      "path": "src/cohezion/skills/smart_routing.md",
+      "valid": true,
+      "errors": [],
+      "warnings": [
+        "No FLUME dimension specified (defaults to 256D)"
+      ],
+      "metadata": {
+        "id": "SMART_ROUTING_PRIME",
+        "domain": "PRIME skill",
+        "version": "v2.0 (upgraded from v1.0)"
+      }
+    },
+    {
+      "id": "SWARM_ORCHESTRATION",
+      "path": "src/cohezion/skills/swarm_orchestration.md",
+      "valid": true,
+      "errors": [],
+      "warnings": [
+        "No FLUME dimension specified (defaults to 256D)"
+      ],
+      "metadata": {
+        "id": "SWARM_ORCHESTRATION_PRIME",
+        "domain": "PRIME skill",
+        "version": "v0.1"
+      }
+    },
+    {
+      "id": "SWARM_SYNTHESIS",
+      "path": "src/cohezion/skills/swarm_synthesis.md",
+      "valid": true,
+      "errors": [],
+      "warnings": [
+        "No FLUME dimension specified (defaults to 256D)"
+      ],
+      "metadata": {
+        "id": "SWARM_SYNTHESIS_PRIME",
+        "domain": "PRIME skill",
+        "version": "v1.0"
+      }
+    },
+    {
+      "id": "TEST_AUTOMATION",
+      "path": "src/cohezion/skills/test_automation.md",
+      "valid": false,
+      "errors": [
+        "Frontmatter error: No recognizable skill format found"
+      ],
+      "warnings": [],
+      "metadata": {}
+    },
+    {
+      "id": "UNIVERSE_PHYSICS",
+      "path": "src/cohezion/skills/universe_physics.md",
+      "valid": true,
+      "errors": [],
+      "warnings": [
+        "No FLUME dimension specified (defaults to 256D)"
+      ],
+      "metadata": {
+        "id": "UNIVERSE_PHYSICS_PRIME",
+        "domain": "PRIME skill",
+        "version": "v1.0"
+      }
+    },
+    {
+      "id": "VISUAL_VALIDATION",
+      "path": "src/cohezion/skills/visual_validation.md",
+      "valid": true,
+      "errors": [],
+      "warnings": [
+        "No FLUME dimension specified (defaults to 256D)"
+      ],
+      "metadata": {
+        "id": "VISUAL_VALIDATION_PRIME",
+        "domain": "PRIME skill",
+        "version": "v1.0"
+      }
+    }
+  ]
+}

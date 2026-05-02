@@ -1,12 +1,18 @@
 """Tests for aggressive cost reduction strategies in CostAwareRouter.
 
 Tests aggressive mode that achieves ≥30% cost reduction by:
-- Preferring phi3:mini for medium queries if TPS is acceptable
-- Allowing phi3 for complex queries with relaxed latency constraints
+- Preferring tier-simple model for medium queries if TPS is acceptable
+- Allowing tier-simple for complex queries with relaxed latency constraints
 - Dynamic threshold tuning based on success patterns
 """
 
 import pytest
+
+
+# Model names: Lemonade (primary) + legacy Ollama
+SIMPLE_MODELS = {"Phi-4-mini-instruct-Hybrid", "phi3:mini"}
+MEDIUM_MODELS = {"Qwen3-8B-Hybrid", "qwen3-coder:32b", "Phi-4-mini-instruct-Hybrid", "phi3:mini"}
+ALL_TIER_MODELS = SIMPLE_MODELS | MEDIUM_MODELS | {"Qwen3-14B-Hybrid", "deepseek-r1:8b"}
 
 from cohezion.cost_optimization.budget_enforcer import BudgetEnforcer
 from cohezion.cost_optimization.cost_tracker import SessionCostTracker
@@ -40,19 +46,17 @@ class TestAggressiveCostOptimization:
         # With aggressive cost reduction, should prefer phi3 for medium queries
         # if latency impact is acceptable
         assert decision.complexity == QueryComplexity.MEDIUM
-        assert decision.model in ["phi3:mini", "qwen3-coder:32b"]
+        assert decision.model in MEDIUM_MODELS
 
     def test_aggressive_complex_to_phi3_possible(self, aggressive_router):
-        """Test that complex queries can be routed to phi3 with aggressive cost reduction."""
+        """Test that complex queries can be routed to simpler model with aggressive cost reduction."""
         decision, _ = aggressive_router.select_model("Design and implement a distributed system")
 
-        # With aggressive cost reduction, complex might route to phi3
-        # if quality is acceptable
         assert decision.complexity == QueryComplexity.COMPLEX
-        assert decision.model in ["deepseek-r1:8b", "qwen3-coder:32b", "phi3:mini"]
+        assert decision.model in ALL_TIER_MODELS
 
     def test_aggressive_simple_always_phi3(self, aggressive_router):
-        """Test that simple queries always route to phi3."""
+        """Test that simple queries always route to tier-simple model."""
         simple_queries = [
             "What is Python?",
             "Explain machine learning",
@@ -61,7 +65,7 @@ class TestAggressiveCostOptimization:
 
         for query in simple_queries:
             decision, _ = aggressive_router.select_model(query)
-            assert decision.model == "phi3:mini", f"Failed for: {query}"
+            assert decision.model in SIMPLE_MODELS, f"Failed for: {query}"
 
     def test_cost_reduction_target_30_percent(self, aggressive_router):
         """Test that aggressive routing achieves ≥30% cost reduction."""
@@ -138,10 +142,8 @@ class TestAggressiveCostOptimization:
 
         decision, _ = standard_router.select_model("Write a Python function")
 
-        # Without aggressive mode, medium queries should prefer qwen
         assert decision.complexity == QueryComplexity.MEDIUM
-        # Should NOT optimize to phi3 as aggressively
-        assert decision.model in ["qwen3-coder:32b", "phi3:mini"]
+        assert decision.model in MEDIUM_MODELS
 
 
 class TestCostPerTokenOptimization:
@@ -158,32 +160,27 @@ class TestCostPerTokenOptimization:
     def test_cost_per_token_calculation(self, optimizer_router):
         """Test cost per token calculation accuracy."""
         # For local models (cost = $0), cost per token should be 0
-        cost_per_token = optimizer_router._get_cost_per_token("phi3:mini", 100)
+        cost_per_token = optimizer_router._get_cost_per_token(optimizer_router.TIER_SIMPLE, 100)
         assert cost_per_token == 0.0
 
         # Test with multiple token counts (should all be 0 for local)
         for tokens in [10, 100, 1000]:
-            cost = optimizer_router._get_cost_per_token("qwen3-coder:32b", tokens)
+            cost = optimizer_router._get_cost_per_token(optimizer_router.TIER_MEDIUM, tokens)
             assert cost == 0.0
 
     def test_tps_based_comparison(self, optimizer_router):
         """Test TPS-based model comparison for local models."""
-        # phi3 (15 TPS) vs qwen (8 TPS)
-        # For cost-equal models, prefer faster one
-        phi3_tps = optimizer_router.MODEL_TPS["phi3:mini"]
-        qwen_tps = optimizer_router.MODEL_TPS["qwen3-coder:32b"]
+        # Tier-simple should be faster than tier-medium
+        simple_tps = optimizer_router.MODEL_TPS[optimizer_router.TIER_SIMPLE]
+        medium_tps = optimizer_router.MODEL_TPS[optimizer_router.TIER_MEDIUM]
 
-        # phi3 is 87.5% as fast as itself, 187.5% relative to qwen
-        assert phi3_tps > qwen_tps
+        assert simple_tps > medium_tps
 
     def test_aggressive_phi3_selection_latency_acceptable(self, optimizer_router):
-        """Test that phi3 is selected when latency impact is acceptable."""
-        # For medium query, normally routed to qwen
-        # But if aggressive mode and TPS acceptable, use phi3
+        """Test that tier-simple is selected when latency impact is acceptable."""
         decision, _ = optimizer_router.select_model("Write a function to validate input")
 
-        # With aggressive optimization, may prefer phi3
-        assert decision.model in ["phi3:mini", "qwen3-coder:32b"]
+        assert decision.model in MEDIUM_MODELS
 
 
 class TestDynamicThresholdTuning:

@@ -1,0 +1,147 @@
+# TokenEfficientSquad Production Configuration
+# Unified configuration for all 12 skills
+
+skills:
+  refactoring:
+    baseline: 0.38
+    target: 0.55
+    priority: 1
+    weights:
+      coherence: 0.35
+      success_rate: 0.35
+      execution_time: 0.30
+    threshold: 3.0
+    teachers: []
+
+  debugging:
+    baseline: 0.44
+    target: 0.60
+    priority: 2
+    weights:
+      coherence: 0.30
+      success_rate: 0.50
+      execution_time: 0.20
+    threshold: 4.0
+    teachers: ["refactoring"]
+
+  testing:
+    baseline: 0.42
+    target: 0.58
+    priority: 3
+    weights:
+      coherence: 0.30
+      success_rate: 0.40
+      execution_time: 0.30
+    threshold: 5.0
+    teachers: ["debugging"]
+
+  coding:
+    baseline: 0.45
+    target: 0.60
+    priority: 4
+    weights:
+      coherence: 0.35
+      success_rate: 0.35
+      execution_time: 0.30
+    threshold: 5.0
+    teachers: ["refactoring", "debugging"]
+
+  documentation:
+    baseline: 0.40
+    target: 0.55
+    priority: 5
+    weights:
+      coherence: 0.60
+      success_rate: 0.30
+      execution_time: 0.10
+    threshold: 5.0
+    teachers: []
+
+  review:
+    baseline: 0.48
+    target: 0.62
+    priority: 6
+    weights:
+      coherence: 0.50
+      success_rate: 0.40
+      execution_time: 0.10
+    threshold: 6.0
+    teachers: ["refactoring", "coding"]
+
+  analysis:
+    baseline: 0.50
+    target: 0.65
+    priority: 7
+    weights:
+      coherence: 0.40
+      success_rate: 0.45
+      execution_time: 0.15
+    threshold: 10.0
+    teachers: []
+
+  architecture:
+    baseline: 0.52
+    target: 0.68
+    priority: 8
+    weights:
+      coherence: 0.50
+      success_rate: 0.35
+      execution_time: 0.15
+    threshold: 10.0
+    teachers: ["analysis"]
+
+  security:
+    baseline: 0.35
+    target: 0.50
+    priority: 9
+    weights:
+      coherence: 0.35
+      success_rate: 0.45
+      execution_time: 0.20
+    threshold: 8.0
+    teachers: ["testing"]
+
+  performance:
+    baseline: 0.40
+    target: 0.55
+    priority: 10
+    weights:
+      coherence: 0.30
+      success_rate: 0.35
+      execution_time: 0.35
+    threshold: 7.0
+    teachers: ["refactoring"]
+
+  accessibility:
+    baseline: 0.42
+    target: 0.55
+    priority: 11
+    weights:
+      coherence: 0.45
+      success_rate: 0.40
+      execution_time: 0.15
+    threshold: 6.0
+    teachers: ["documentation"]
+
+  api_design:
+    baseline: 0.45
+    target: 0.60
+    priority: 12
+    weights:
+      coherence: 0.50
+      success_rate: 0.35
+      execution_time: 0.15
+    threshold: 5.0
+    teachers: ["architecture"]
+
+production:
+  token_budget: 8000
+  max_experiments: 5
+  vault_path: "data/vault/production"
+  modes:
+    - full
+    - quick
+    - validate
+  schedule:
+    daily: "0 9 * * *"
+    quick: "0 */6 * * *"

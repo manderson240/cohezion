@@ -1,4 +1,11 @@
-"""Proactive cache warming from vault execution history."""
+"""Proactive cache warming from vault execution history.
+
+Strategies:
+    1. Most frequently executed skills
+    2. Skills with highest token cost
+    3. Patterns from successful compound cycles
+    4. Recent high-coherence executions
+"""
 
 import json
 import logging
@@ -17,6 +24,7 @@ class CacheWarmer:
         1. Most frequently executed skills
         2. Skills with highest token cost
         3. Patterns from successful compound cycles
+        4. Recent high-coherence executions
     """
 
     def __init__(self, semantic_cache: SemanticCache, mcp_client: Any = None):
@@ -140,33 +148,181 @@ class CacheWarmer:
 
         return None
 
-    async def warm_from_history(self, skill_name: str) -> int:
+    async def warm_from_history(self, skill_name: str, min_coherence: float = 0.7) -> int:
         """Warm cache for specific skill from execution history.
+
+        Queries vault for all executions of the specified skill,
+        filters by coherence score, and loads top performers into cache.
 
         Args:
             skill_name: Name of skill to warm cache for
+            min_coherence: Minimum coherence threshold (default: 0.7)
 
         Returns:
             Number of entries loaded
         """
-        # TODO: Query vault for all executions of skill_name
-        # Load top performers into cache
-        logger.debug(f"Warming cache for skill {skill_name} - not implemented")
-        return 0
+        if not self.mcp_client:
+            logger.debug("Cache warming disabled (no MCPClient)")
+            return 0
 
-    async def warm_from_recent_executions(self, limit: int = 50) -> int:
+        try:
+            # Query vault for execution traces of this skill
+            trace_path = f"execution_traces/{skill_name}/"
+            trace_files = self.mcp_client.vault_list(directory=trace_path, recursive=True)
+
+            if not trace_files:
+                logger.debug(f"No execution traces found for skill: {skill_name}")
+                return 0
+
+            loaded = 0
+            execution_data = []
+
+            # Load all traces and extract coherence scores
+            for file_path in trace_files:
+                try:
+                    content = self.mcp_client.vault_read(path=file_path)
+                    trace = json.loads(content)
+
+                    # Extract coherence and execution data
+                    coherence = trace.get("coherence", 0.0)
+                    success = trace.get("success", False)
+
+                    # Only consider successful, high-coherence executions
+                    if success and coherence >= min_coherence:
+                        execution_data.append(
+                            {
+                                "coherence": coherence,
+                                "trace": trace,
+                                "path": file_path,
+                            }
+                        )
+                except Exception as e:
+                    logger.debug(f"Failed to load trace {file_path}: {e}")
+                    continue
+
+            # Sort by coherence (highest first)
+            execution_data.sort(key=lambda x: x["coherence"], reverse=True)
+
+            # Load top performers into cache
+            for item in execution_data:
+                try:
+                    trace = item["trace"]
+                    task_description = trace.get("task_description", "")
+                    output_summary = trace.get("output_summary", "")
+
+                    if task_description and output_summary:
+                        await self.cache.put(
+                            prompt=task_description,
+                            response=output_summary,
+                            metadata={
+                                "coherence": item["coherence"],
+                                "source": f"vault_history_{skill_name}",
+                                "trace_path": item["path"],
+                            },
+                        )
+                        loaded += 1
+                except Exception as e:
+                    logger.debug(f"Failed to cache entry from {item['path']}: {e}")
+                    continue
+
+            logger.info(
+                f"Warmed cache with {loaded} high-coherence executions for skill '{skill_name}'"
+            )
+            return loaded
+
+        except Exception as e:
+            logger.debug(f"Cache warming from history failed for {skill_name}: {e}")
+            return 0
+
+    async def warm_from_recent_executions(self, limit: int = 50, min_coherence: float = 0.7) -> int:
         """Warm cache from recent successful executions.
+
+        Queries vault for recent high-coherence executions across all skills,
+        extracts (prompt, response) pairs, and loads them into cache.
 
         Args:
             limit: Maximum recent executions to use (default: 50)
+            min_coherence: Minimum coherence threshold (default: 0.7)
 
         Returns:
             Number of entries loaded
         """
-        # TODO: Query vault for recent high-coherence executions
-        # Extract (prompt, response) pairs and load
-        logger.debug(f"Warming cache from recent executions (limit={limit}) - not implemented")
-        return 0
+        if not self.mcp_client:
+            logger.debug("Cache warming disabled (no MCPClient)")
+            return 0
+
+        try:
+            # List all execution traces from vault
+            trace_files = self.mcp_client.vault_list(directory="execution_traces/", recursive=True)
+
+            if not trace_files:
+                logger.debug("No execution traces found in vault")
+                return 0
+
+            loaded = 0
+            execution_data = []
+
+            # Load all traces and extract metadata
+            for file_path in trace_files:
+                try:
+                    content = self.mcp_client.vault_read(path=file_path)
+                    trace = json.loads(content)
+
+                    # Extract coherence and timestamp
+                    coherence = trace.get("coherence", 0.0)
+                    success = trace.get("success", False)
+                    end_time = trace.get("end_time", "")
+
+                    # Only consider successful, high-coherence executions
+                    if success and coherence >= min_coherence:
+                        execution_data.append(
+                            {
+                                "coherence": coherence,
+                                "end_time": end_time,
+                                "trace": trace,
+                                "path": file_path,
+                            }
+                        )
+                except Exception as e:
+                    logger.debug(f"Failed to load trace {file_path}: {e}")
+                    continue
+
+            # Sort by end_time (most recent first), then by coherence
+            execution_data.sort(key=lambda x: (x["end_time"], x["coherence"]), reverse=True)
+
+            # Load top N recent executions into cache
+            for item in execution_data[:limit]:
+                try:
+                    trace = item["trace"]
+                    task_description = trace.get("task_description", "")
+                    output_summary = trace.get("output_summary", "")
+                    skill_name = trace.get("skill_name", "unknown")
+
+                    if task_description and output_summary:
+                        await self.cache.put(
+                            prompt=task_description,
+                            response=output_summary,
+                            metadata={
+                                "coherence": item["coherence"],
+                                "source": f"vault_recent_{skill_name}",
+                                "trace_path": item["path"],
+                                "end_time": item["end_time"],
+                            },
+                        )
+                        loaded += 1
+                except Exception as e:
+                    logger.debug(f"Failed to cache entry from {item['path']}: {e}")
+                    continue
+
+            logger.info(
+                f"Warmed cache with {loaded} recent high-coherence executions "
+                f"(from {len(execution_data)} candidates)"
+            )
+            return loaded
+
+        except Exception as e:
+            logger.debug(f"Cache warming from recent executions failed: {e}")
+            return 0
 
     async def analyze_cache_effectiveness(self) -> dict:
         """Analyze current cache effectiveness.

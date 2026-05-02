@@ -1,3 +1,12 @@
+---
+name: usage-analytics-prime
+description: "High-fidelity usage tracking and resource allocation optimization. Analyzing capability invocation patterns to identify bottlenecks and underutilized assets."
+metadata:
+  version: "v1.0"
+  concepts: ["Discovery Rate", "Attrition", "Power Usage", "Predictive Prefetching"]
+  source: "src/cohezion/skills/USAGE_ANALYTICS_PRIME.md"
+---
+
 # SKILL: USAGE_ANALYTICS_PRIME
 
 ## DOMAIN EXPERTISE

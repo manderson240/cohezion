@@ -1,3 +1,8 @@
+---
+name: math-command-prime
+description: "This skill establishes a unified Internal Domain Specific Language (IDSL) for mathematical reasoning swarms. It abstracts complex SymPy/NumPy code generation into a standard set of \"Math Commands\" that LLM specialists use to ensure deterministic execution without needing to know low-level library syntax."
+---
+
 # SKILL: MATH_COMMAND_PRIME
 
 ## DOMAIN EXPERTISE

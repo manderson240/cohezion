@@ -111,7 +111,7 @@ async def run_benchmark(req: BenchmarkRequest) -> BenchmarkResponse:
             detail=f"Submission file not found for {req.kernel} at {submission_path}",
         )
 
-    logger.info(f"Running {req.mode} for {req.kernel} using {submission_path}")
+    logger.info("Running %s for %s using %s", req.mode, req.kernel, submission_path)
 
     result = popcorn.submit(kernel=req.kernel, submission_path=submission_path, mode=req.mode)
 

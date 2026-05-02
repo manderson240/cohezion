@@ -1,0 +1,6 @@
+{
+  "versionNumber": 1,
+  "name": "metacognition_counterfactual_10",
+  "description": "Recognize counterfactual reasoning limitations.",
+  "definition": "@kbench.task(name=\"metacognition_counterfactual_10\")\ndef metacognition_counterfactual_10():\n    \"\"\"Recognize counterfactual reasoning limitations.\"\"\"\n    prompt = \"\"\"If Alice had invested in Bitcoin in 2010, she would be a millionaire.\n\nDid Alice invest in Bitcoin in 2010?\n\nA) Yes\nB) No\nC) Cannot determine from counterfactual statement\nD) Insufficient Information\"\"\"\n    return prompt, \"C\"\n"
+}

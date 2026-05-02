@@ -1,36 +1,41 @@
-"""GitHub MCP Server - GitHub API integration.
+"""GitHub MCP Server - Model Context Protocol wrapper for GitHub API integration.
 
-Port: Auto-allocated by MCP Manager
-Provides: Search repos, get repo info, create issues, manage PRs
+Provides: Search repos, get repo info, create issues, manage PRs.
 """
 
 from __future__ import annotations
 
-import asyncio
 import logging
-import os
-import sys
 from typing import Any
 
 import aiohttp
-from aiohttp import web
+from fastmcp import FastMCP
 
 from cohezion.security.credentials import get_credentials
 
 
 # Configure logging
-logging.basicConfig(
-    level=logging.INFO,
-    format="%(asctime)s [%(levelname)s] %(name)s: %(message)s",
-    stream=sys.stderr,
-)
-logger = logging.getLogger(__name__)
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger("github-mcp")
 
-# Configuration
-MCP_PORT = int(os.getenv("MCP_PORT", "8363"))
-# Primary: Vault Warden, Fallback: Environment
-GITHUB_TOKEN = get_credentials().get_secret("COHEZION_GITHUB_TOKEN", env_var="GITHUB_TOKEN") or ""
+# Lazy accessor for GITHUB_TOKEN to prevent startup latency
+_github_token: str | None = None
+
+
+def get_github_token() -> str:
+    """Get GitHub token with lazy initialization."""
+    global _github_token
+    if _github_token is None:
+        _github_token = (
+            get_credentials().get_secret("COHEZION_GITHUB_TOKEN", env_var="GITHUB_TOKEN") or ""
+        )
+    return _github_token
+
+
 GITHUB_API_BASE = "https://api.github.com"
+
+# Initialize FastMCP server
+app = FastMCP("cohezion-github")
 
 
 class GitHubService:
@@ -113,7 +118,7 @@ class GitHubService:
 
     async def create_issue(
         self, owner: str, repo: str, title: str, body: str = "", labels: list[str] | None = None
-    ) -> dict[str, Any] | None:
+    ) -> dict[str, Any]:
         """Create an issue in a repository."""
         if not self.token:
             return {"error": "GitHub token required for write operations"}
@@ -140,31 +145,77 @@ class GitHubService:
                     return {"error": f"Failed to create issue: {resp.status}", "details": text}
         except Exception as e:
             logger.exception(f"Error creating issue: {e}")
-            return None
+            return {"error": str(e)}
+
+    async def create_issue_comment(
+        self, owner: str, repo: str, issue_number: int, body: str
+    ) -> dict[str, Any]:
+        """Create a comment on an issue."""
+        if not self.token:
+            return {"error": "GitHub token required for write operations"}
+
+        session = await self._get_session()
+        url = f"{GITHUB_API_BASE}/repos/{owner}/{repo}/issues/{issue_number}/comments"
+        payload = {"body": body}
+
+        try:
+            async with session.post(url, json=payload) as resp:
+                if resp.status == 201:
+                    data = await resp.json()
+                    return {
+                        "id": data["id"],
+                        "url": data["html_url"],
+                        "created_at": data["created_at"],
+                    }
+                else:
+                    text = await resp.text()
+                    return {"error": f"Failed to create comment: {resp.status}", "details": text}
+        except Exception as e:
+            logger.exception(f"Error creating comment: {e}")
+            return {"error": str(e)}
 
     async def list_issues(
-        self, owner: str, repo: str, state: str = "open", limit: int = 10
+        self,
+        owner: str,
+        repo: str,
+        state: str = "open",
+        labels: list[str] | None = None,
+        limit: int = 10,
     ) -> list[dict]:
         """List issues in a repository."""
         session = await self._get_session()
         url = f"{GITHUB_API_BASE}/repos/{owner}/{repo}/issues"
-        params = {"state": state, "per_page": limit}
+        params = {"state": state, "per_page": min(limit, 100)}
+        if labels:
+            params["labels"] = ",".join(labels)
 
         try:
             async with session.get(url, params=params) as resp:
                 if resp.status == 200:
                     data = await resp.json()
-                    return [
-                        {
-                            "number": item["number"],
-                            "title": item["title"],
-                            "state": item["state"],
-                            "url": item["html_url"],
-                            "created_at": item["created_at"],
-                            "labels": [label["name"] for label in item.get("labels", [])],
-                        }
-                        for item in data[:limit]
-                    ]
+                    issues = []
+                    for item in data:
+                        if "pull_request" in item:
+                            continue
+                        labels = []
+                        for label in item.get("labels", []):
+                            if isinstance(label, dict) and "name" in label:
+                                labels.append(label["name"])
+                            elif isinstance(label, str):
+                                labels.append(label)
+                        issues.append(
+                            {
+                                "number": item["number"],
+                                "title": item["title"],
+                                "state": item["state"],
+                                "url": item["html_url"],
+                                "created_at": item["created_at"],
+                                "labels": labels,
+                            }
+                        )
+                        if len(issues) >= limit:
+                            break
+                    return issues
                 else:
                     return []
         except Exception as e:
@@ -196,11 +247,6 @@ class GitHubService:
             logger.exception(f"Error getting user: {e}")
             return None
 
-    async def close(self) -> None:
-        """Close HTTP session."""
-        if self._session and not self._session.closed:
-            await self._session.close()
-
 
 # Global service instance
 _service: GitHubService | None = None
@@ -210,262 +256,109 @@ def get_service() -> GitHubService:
     """Get or create GitHub service."""
     global _service
     if _service is None:
-        _service = GitHubService(GITHUB_TOKEN)
+        _service = GitHubService(get_github_token())
     return _service
 
 
-# HTTP API routes
-routes = web.RouteTableDef()
+@app.tool()
+async def github_search_repos(query: str, sort: str = "stars", limit: int = 10) -> dict[str, Any]:
+    """Search GitHub repositories.
+
+    Args:
+        query: Search query
+        sort: Field to sort by (stars, forks, help-wanted-issues, updated)
+        limit: Max results to return
+    """
+    service = get_service()
+    repos = await service.search_repos(query, sort, limit)
+    return {"query": query, "count": len(repos), "repositories": repos}
 
 
-@routes.get("/health")
-async def health(request: web.Request) -> web.Response:
-    """Health check endpoint."""
-    return web.json_response(
-        {
-            "status": "healthy",
-            "server": "github",
-            "port": MCP_PORT,
-            "authenticated": bool(GITHUB_TOKEN),
-        }
-    )
+@app.tool()
+async def github_get_repo(owner: str, repo: str) -> dict[str, Any]:
+    """Get repository details.
+
+    Args:
+        owner: Repository owner (user or organization)
+        repo: Repository name
+    """
+    service = get_service()
+    result = await service.get_repo(owner, repo)
+    if not result:
+        return {"error": f"Repository not found: {owner}/{repo}"}
+    return result
 
 
-@routes.get("/")
-async def index(request: web.Request) -> web.Response:
-    """Server info."""
-    return web.json_response(
-        {
-            "name": "GitHub MCP Server",
-            "version": "1.0.0",
-            "port": MCP_PORT,
-            "authenticated": bool(GITHUB_TOKEN),
-            "tools": [
-                "github_search_repos",
-                "github_get_repo",
-                "github_create_issue",
-                "github_list_issues",
-                "github_get_user",
-            ],
-            "note": "Set GITHUB_TOKEN env var for write operations",
-        }
-    )
+@app.tool()
+async def github_create_issue(
+    owner: str, repo: str, title: str, body: str = "", labels: list[str] | None = None
+) -> dict[str, Any]:
+    """Create an issue in a repository.
+
+    Args:
+        owner: Repository owner
+        repo: Repository name
+        title: Issue title
+        body: Issue description
+        labels: Optional list of labels
+    """
+    service = get_service()
+    return await service.create_issue(owner, repo, title, body, labels)
 
 
-# =============================================================================
-# TOOLS
-# =============================================================================
+@app.tool()
+async def github_create_issue_comment(
+    owner: str, repo: str, issue_number: int, body: str
+) -> dict[str, Any]:
+    """Create a comment on an issue.
+
+    Args:
+        owner: Repository owner
+        repo: Repository name
+        issue_number: Issue number
+        body: Comment body
+    """
+    service = get_service()
+    return await service.create_issue_comment(owner, repo, issue_number, body)
 
 
-@routes.post("/tools/github_search_repos")
-async def tool_github_search_repos(request: web.Request) -> web.Response:
-    """Search GitHub repositories."""
-    try:
-        data = await request.json()
-        query = data.get("query", "")
-        sort = data.get("sort", "stars")
-        limit = data.get("limit", 10)
+@app.tool()
+async def github_list_issues(
+    owner: str,
+    repo: str,
+    state: str = "open",
+    labels: list[str] | None = None,
+    limit: int = 10,
+) -> dict[str, Any]:
+    """List issues in a repository.
 
-        if not query:
-            return web.json_response({"error": "Query is required"}, status=400)
-
-        service = get_service()
-        repos = await service.search_repos(query, sort, limit)
-
-        return web.json_response(
-            {
-                "tool": "github_search_repos",
-                "query": query,
-                "sort": sort,
-                "count": len(repos),
-                "repositories": repos,
-            }
-        )
-    except Exception as e:
-        logger.exception("Error searching repos")
-        return web.json_response({"error": str(e)}, status=500)
+    Args:
+        owner: Repository owner
+        repo: Repository name
+        state: Issue state (open, closed, all)
+        labels: Optional list of labels to filter by
+        limit: Max results
+    """
+    service = get_service()
+    issues = await service.list_issues(owner, repo, state, labels, limit)
+    return {"issues": issues}
 
 
-@routes.post("/tools/github_get_repo")
-async def tool_github_get_repo(request: web.Request) -> web.Response:
-    """Get repository details."""
-    try:
-        data = await request.json()
-        owner = data.get("owner", "")
-        repo = data.get("repo", "")
+@app.tool()
+async def github_get_user(username: str) -> dict[str, Any]:
+    """Get user information.
 
-        if not owner or not repo:
-            return web.json_response({"error": "Owner and repo are required"}, status=400)
-
-        service = get_service()
-        result = await service.get_repo(owner, repo)
-
-        if result:
-            return web.json_response(
-                {
-                    "tool": "github_get_repo",
-                    "owner": owner,
-                    "repo": repo,
-                    "repository": result,
-                }
-            )
-        else:
-            return web.json_response({"error": f"Repository not found: {owner}/{repo}"}, status=404)
-    except Exception as e:
-        logger.exception("Error getting repo")
-        return web.json_response({"error": str(e)}, status=500)
-
-
-@routes.post("/tools/github_create_issue")
-async def tool_github_create_issue(request: web.Request) -> web.Response:
-    """Create an issue in a repository."""
-    try:
-        data = await request.json()
-        owner = data.get("owner", "")
-        repo = data.get("repo", "")
-        title = data.get("title", "")
-        body = data.get("body", "")
-        labels = data.get("labels", [])
-
-        if not owner or not repo or not title:
-            return web.json_response({"error": "Owner, repo, and title are required"}, status=400)
-
-        if not GITHUB_TOKEN:
-            return web.json_response(
-                {"error": "GITHUB_TOKEN environment variable required for write operations"},
-                status=401,
-            )
-
-        service = get_service()
-        result = await service.create_issue(owner, repo, title, body, labels)
-
-        if result and "error" not in result:
-            return web.json_response(
-                {
-                    "tool": "github_create_issue",
-                    "owner": owner,
-                    "repo": repo,
-                    "issue": result,
-                    "status": "created",
-                }
-            )
-        else:
-            return web.json_response(
-                {
-                    "error": result.get("error", "Failed to create issue")
-                    if result
-                    else "Unknown error"
-                },
-                status=500,
-            )
-    except Exception as e:
-        logger.exception("Error creating issue")
-        return web.json_response({"error": str(e)}, status=500)
-
-
-@routes.post("/tools/github_list_issues")
-async def tool_github_list_issues(request: web.Request) -> web.Response:
-    """List issues in a repository."""
-    try:
-        data = await request.json()
-        owner = data.get("owner", "")
-        repo = data.get("repo", "")
-        state = data.get("state", "open")
-        limit = data.get("limit", 10)
-
-        if not owner or not repo:
-            return web.json_response({"error": "Owner and repo are required"}, status=400)
-
-        service = get_service()
-        issues = await service.list_issues(owner, repo, state, limit)
-
-        return web.json_response(
-            {
-                "tool": "github_list_issues",
-                "owner": owner,
-                "repo": repo,
-                "state": state,
-                "count": len(issues),
-                "issues": issues,
-            }
-        )
-    except Exception as e:
-        logger.exception("Error listing issues")
-        return web.json_response({"error": str(e)}, status=500)
-
-
-@routes.post("/tools/github_get_user")
-async def tool_github_get_user(request: web.Request) -> web.Response:
-    """Get user information."""
-    try:
-        data = await request.json()
-        username = data.get("username", "")
-
-        if not username:
-            return web.json_response({"error": "Username is required"}, status=400)
-
-        service = get_service()
-        user = await service.get_user(username)
-
-        if user:
-            return web.json_response(
-                {
-                    "tool": "github_get_user",
-                    "username": username,
-                    "user": user,
-                }
-            )
-        else:
-            return web.json_response({"error": f"User not found: {username}"}, status=404)
-    except Exception as e:
-        logger.exception("Error getting user")
-        return web.json_response({"error": str(e)}, status=500)
-
-
-# =============================================================================
-# MAIN
-# =============================================================================
-
-
-def create_app() -> web.Application:
-    """Create the web application."""
-    from cohezion.mcp.shared.auth import api_key_middleware
-
-    app = web.Application(middlewares=[api_key_middleware])
-    app.add_routes(routes)
-    return app
-
-
-# Global app instance
-app = create_app()
-
-
-async def main():
-    """Run the GitHub MCP Server."""
-    # Initialize service
-    get_service()
-
-    # Run the server
-    logger.info(f"Starting GitHub MCP Server on port {MCP_PORT}")
-    if not GITHUB_TOKEN:
-        logger.warning("GITHUB_TOKEN not set - write operations will fail")
-
-    runner = web.AppRunner(app)
-    await runner.setup()
-    site = web.TCPSite(runner, "0.0.0.0", MCP_PORT)
-    await site.start()
-
-    logger.info(f"✅ GitHub MCP Server running on http://localhost:{MCP_PORT}")
-    logger.info(f"   Health check: http://localhost:{MCP_PORT}/health")
-    logger.info("   API: https://api.github.com")
-
-    # Keep running
-    while True:
-        await asyncio.sleep(3600)
+    Args:
+        username: GitHub username
+    """
+    service = get_service()
+    user = await service.get_user(username)
+    if not user:
+        return {"error": f"User not found: {username}"}
+    return user
 
 
 if __name__ == "__main__":
-    try:
-        asyncio.run(main())
-    except KeyboardInterrupt:
-        logger.info("GitHub MCP Server stopped")
+    if not get_github_token():
+        logger.warning("GITHUB_TOKEN not set - write operations will fail")
+    app.run(transport="stdio")

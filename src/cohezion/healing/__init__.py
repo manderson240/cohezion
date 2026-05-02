@@ -249,7 +249,7 @@ class SelfHealingSystem:
             import httpx
 
             async with httpx.AsyncClient(timeout=5.0) as client:
-                resp = await client.get("http://localhost:8000/health")
+                resp = await client.get("http://localhost:8001/health")
                 surreal_healthy = resp.status_code == 200
         except Exception:
             surreal_healthy = False
@@ -271,6 +271,22 @@ class SelfHealingSystem:
                 issues.append(status)
         except Exception as e:
             logger.debug("Sandbox memory check failed: %s", e)
+
+        # Check Heartbeats
+        try:
+            import time
+
+            from cohezion.reliability.heartbeat import get_heartbeats
+
+            heartbeats = get_heartbeats()
+            current_time = time.time()
+            for daemon, ts in heartbeats.items():
+                age = current_time - ts
+                status = self.detector.check(f"daemon:{daemon}", "heartbeat_age", age, 300.0)
+                if status.status != "healthy":
+                    issues.append(status)
+        except Exception as e:
+            logger.debug("Heartbeat check failed: %s", e)
 
         return issues
 

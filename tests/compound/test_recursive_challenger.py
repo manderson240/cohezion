@@ -51,12 +51,11 @@ class TestRecursiveChallenger:
         """[P0] Running improvement twice should not regress test suite"""
         with patch(
             "cohezion.compound.recursive_challenger.get_test_count", side_effect=[1303, 1303, 1304]
-        ):
-            with patch.object(challenger, "analyze", return_value=[]):
-                with patch.object(challenger, "_apply_improvement", return_value=True):
-                    # Mocking out the actual execution for the test
-                    challenger.execute_improvement_cycle()
-                    challenger.execute_improvement_cycle()
+        ), patch.object(challenger, "analyze", return_value=[]):
+            with patch.object(challenger, "_apply_improvement", return_value=True):
+                # Mocking out the actual execution for the test
+                challenger.execute_improvement_cycle()
+                challenger.execute_improvement_cycle()
                     # Just validating it doesn't crash and respects idempotency in design
 
     def test_improvement_logs_to_vault(self, challenger, mock_vault):
@@ -72,13 +71,11 @@ class TestRecursiveChallenger:
                     has_test_coverage=True,
                 )
             ],
+        ), patch.object(challenger, "_apply_improvement", return_value=True), patch(
+            "cohezion.compound.recursive_challenger.get_test_count", return_value=1303
         ):
-            with patch.object(challenger, "_apply_improvement", return_value=True):
-                with patch(
-                    "cohezion.compound.recursive_challenger.get_test_count", return_value=1303
-                ):
-                    challenger.execute_improvement_cycle()
-                    mock_vault.log_decision.assert_called_once()
+            challenger.execute_improvement_cycle()
+            mock_vault.log_decision.assert_called_once()
 
 
 class TestLongHorizonTask:

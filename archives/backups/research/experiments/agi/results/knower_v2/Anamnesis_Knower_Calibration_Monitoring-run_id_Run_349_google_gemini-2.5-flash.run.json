@@ -1,0 +1,82 @@
+{
+  "taskVersion": {
+    "versionNumber": 1,
+    "name": "Anamnesis Knower: Calibration Monitoring",
+    "description": "Tests metacognitive monitoring \u2014 does the model's stated confidence match actual accuracy? Brier-complement scoring. Loads from 823-item CSV dataset.",
+    "definition": "@kbench.task(\n    name=\"Anamnesis Knower: Calibration Monitoring\",\n    description=(\n        \"Tests metacognitive monitoring \u2014 does the model's stated confidence \"\n        \"match actual accuracy? Brier-complement scoring. Loads from 823-item CSV dataset.\"\n    ),\n)\ndef knower_probe(llm, question, ground_truth, difficulty, category) -> float:\n    prompt = CALIBRATION_PROMPT.format(question=question)\n    try:\n        response = llm.prompt(prompt, schema=CalibrationResponse)\n        confidence = response.confidence\n        model_answer = response.answer\n    except Exception:\n        # Fallback if structured output parsing fails\n        fallback_resp = llm.prompt(prompt)\n        confidence = 50\n        model_answer = fallback_resp\n        \n    correct = is_correct(model_answer, ground_truth)\n    conf_norm = max(0, min(100, confidence)) / 100.0\n    outcome = 0.0 if ground_truth.upper() == \"UNKNOWABLE\" else (1.0 if correct else 0.0)\n    cal_score = 1.0 - (conf_norm - outcome) ** 2\n    kbench.assertions.assert_true(\n        cal_score >= 0.5,\n        expectation=f\"[Knower/{difficulty}] Conf={confidence}, Correct={correct}, Cal={cal_score:.2f}\",\n    )\n    return cal_score\n"
+  },
+  "modelVersion": {
+    "slug": "google/gemini-2.5-flash"
+  },
+  "state": "BENCHMARK_TASK_RUN_STATE_COMPLETED",
+  "startTime": "2026-04-15T03:56:35.021104Z",
+  "endTime": "2026-04-15T03:56:47.154881Z",
+  "conversations": [
+    {
+      "id": "Anamnesis Knower: Calibration Monitoring-cee74218",
+      "requests": [
+        {
+          "contents": [
+            {
+              "parts": [
+                {
+                  "text": "I will ask you a question. First, rate your confidence (0-100) in being able to answer it correctly. Then give your answer.\n- 0 means you are completely guessing\n- 100 means you are absolutely certain\n- If the question cannot be answered with certainty, say so and rate below 30\n\nQuestion: Compare the Inuit concept of 'Sila' (ground state/void) with the Shinto concept of 'Ame-tsuchi (Heaven and Earth)'. In what specific ways do they differ in how they conceptualize nothingness or the origin state? Rate your confidence.\n\nCONFIDENCE: [number]\nANSWER: [your answer]\n\nReply in exactly this format:\nCONFIDENCE: [number]\nANSWER: [your answer]"
+                }
+              ],
+              "role": "CONTENT_ROLE_USER",
+              "senderName": "User"
+            },
+            {
+              "parts": [
+                {
+                  "text": "\"{\\\"confidence\\\": 88, \\\"answer\\\": \\\"The Inuit concept of 'Sila' and the Shinto concept of 'Ame-tsuchi' (Heaven and Earth) differ significantly in their conceptualization of nothingness or the origin state:\\\\n\\\\n1.  **Nature of the 'Void/Origin State':**\\\\n    *   **Sila (Inuit):** Sila is not 'nothingness' in the sense of absolute absence, but rather an all-encompassing, eternal, conscious, and animating force. It is often described as the 'ground state,' 'void,' 'weather,' 'breath of life,' 'consciousness,' and the 'cosmos' itself. It is both the potential and the actuality, the universal intelligence that permeates all things. It's a living, unified reality from which everything arises and to which it returns, and it *is* the underlying reality of the universe, rather than merely a state before creation.\\\\n    *   **Ame-tsuchi (Shinto):** While 'Ame-tsuchi' refers to Heaven and Earth, the *origin state* in Shinto cosmology, before their separation, is typically described as a primordial, undifferentiated chaos, a swirling, unpurified mass, or a 'plain of High Heaven' where the first kami (deities) spontaneously emerged. It is not an absolute void, but rather a formless, indistinct state lacking order and distinct entities. It's a nascent, fertile ground from which order is created through the actions of the kami, particularly Izanagi and Izanami, who separate the heavens from the earth.\\\\n\\\\n2.  **Agency and Consciousness:**\\\\n    *   **Sila:** Sila itself is often imbued with consciousness, intelligence, and agency. It is seen as a vital, active force that gives life and intellect to all beings. It is the cosmic mind or spirit.\\\\n    *   **Ame-tsuchi (pre-separation):** The primordial state in Shinto is more of a passive substratum or realm. While it gives rise to the first kami, it is not inherently conscious or agentic in the same pervasive way Sila is. Agency for creation emerges *from* this state in the form of specific deities.\\\\n\\\\n3.  **Temporality and Permanence:**\\\\n    *   **Sila:** Sila is an eternal, ever-present reality; it is not merely a past origin point but a continuous, living presence that underlies all existence at all times.\\\\n    *   **Ame-tsuchi (pre-separation):** The pre-Ame-tsuchi state is a specific, foundational *stage* in the mythological creation process, preceding the current ordered cosmos. It is a 'before' state from which the current distinct realms were formed.\\\\n\\\\nIn essence, Sila is a conscious, animating, and ever-present cosmic unity that *is* the universe's breath and intelligence, whereas the Shinto primordial state preceding Ame-tsuchi is a formless chaos or a high realm of nascent deities that serves as a *stage* from which the ordered world emerges through divine action.\\\"}\""
+                }
+              ],
+              "role": "CONTENT_ROLE_ASSISTANT",
+              "senderName": "google/gemini-2.5-flash"
+            }
+          ],
+          "metrics": {
+            "inputTokens": 176,
+            "outputTokens": 666,
+            "inputTokensCostNanodollars": "52800",
+            "outputTokensCostNanodollars": "4295000",
+            "totalBackendLatencyMs": "11981"
+          },
+          "id": "Anamnesis Knower: Calibration Monitoring-cee74218-req-1"
+        }
+      ],
+      "metrics": {
+        "inputTokens": 176,
+        "outputTokens": 666,
+        "inputTokensCostNanodollars": "52800",
+        "outputTokensCostNanodollars": "4295000",
+        "totalBackendLatencyMs": "11981"
+      },
+      "modelVersionSlug": "model_version_slug for conversation is DEPRECATED"
+    }
+  ],
+  "results": [
+    {
+      "type": "AGGREGATED",
+      "numericResult": {
+        "value": 0.22560000000000002
+      }
+    }
+  ],
+  "assertions": [
+    {
+      "expectation": "[Knower/tek_comparative] Conf=88, Correct=False, Cal=0.23",
+      "status": "BENCHMARK_TASK_RUN_ASSERTION_STATUS_FAILED",
+      "lineNumber": 83,
+      "definition": "kbench.assertions.assert_true(",
+      "conversationRequestIds": [
+        {
+          "conversationId": "Anamnesis Knower: Calibration Monitoring-cee74218",
+          "requestId": "Anamnesis Knower: Calibration Monitoring-cee74218-req-1"
+        }
+      ]
+    }
+  ],
+  "pyRunId": "Anamnesis Knower: Calibration Monitoring-Run #349"
+}

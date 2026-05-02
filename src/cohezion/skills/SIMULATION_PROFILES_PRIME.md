@@ -1,3 +1,13 @@
+---
+name: simulation-profiles-prime
+description: "Defining typed resource envelopes for simulation workloads, enabling predictable scheduling and fair resource sharing across concurrent universe simulations."
+metadata:
+  version: "v1.0"
+  concepts: ["Sandbox Profiles", "Tiered Simulation", "Hardware-Aware Validation", "HIHO Coherence Integration"]
+  see_also: ["SANDBOX_ISOLATION_PRIME", "SECURITY_GUARDRAILS_PRIME", "ADVERSARIAL_TESTING_PRIME"]
+  source: "src/cohezion/skills/SIMULATION_PROFILES_PRIME.md"
+---
+
 # SKILL: SIMULATION_PROFILES_PRIME
 
 ## DOMAIN EXPERTISE

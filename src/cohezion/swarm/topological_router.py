@@ -36,8 +36,10 @@ from dataclasses import dataclass
 from enum import Enum
 
 import numpy as np
-from scipy.spatial.distance import pdist, squareform
 
+# Lazy import — scipy C extensions must not load at module level.
+# Loading scipy after torch._C causes a BLAS allocator conflict (SIGSEGV).
+# See L290 (Session 94) and tests/conftest.py for full explanation.
 from cohezion.compound.topological_persistence import (
     trajectory_persistence_summary,
 )
@@ -209,6 +211,8 @@ class TopologicalRouter:
             )
 
         # Compute pairwise distances and build adjacency
+        from scipy.spatial.distance import pdist, squareform  # lazy — avoids BLAS conflict
+
         dist_vec = pdist(points)
         dist_matrix = squareform(dist_vec)
 

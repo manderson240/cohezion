@@ -34,7 +34,7 @@ import logging
 import time
 from typing import Any
 
-import requests  # type: ignore[import-untyped]
+import httpx  # type: ignore[import-untyped]
 
 from cohezion.core.config import CohezionConfig
 from cohezion.swarm.batch_processor import BatchItem, BatchProcessor, BatchResult
@@ -105,18 +105,18 @@ class ResilientOllamaClient:
 
                 # Using /api/chat for better compatibility with message structures
                 num_predict = kwargs.get("max_tokens", 2048)
-                response = requests.post(
-                    f"{clean_base}/api/chat",
-                    json={
-                        "model": model,
-                        "messages": messages,
-                        "stream": False,
-                        "options": {
-                            "num_predict": num_predict,
+                async with httpx.AsyncClient(timeout=self.timeout) as client:
+                    response = await client.post(
+                        f"{clean_base}/api/chat",
+                        json={
+                            "model": model,
+                            "messages": messages,
+                            "stream": False,
+                            "options": {
+                                "num_predict": num_predict,
+                            },
                         },
-                    },
-                    timeout=self.timeout,
-                )
+                    )
                 response.raise_for_status()
 
                 data = response.json()

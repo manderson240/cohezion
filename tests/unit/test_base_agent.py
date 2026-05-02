@@ -62,14 +62,12 @@ _MODULE_LEVEL_PATCHES = {
     "cohezion.agents.base.CompoundLogicEngine": MagicMock,
     "cohezion.agents.base.get_pool": MagicMock,
     "cohezion.agents.base.get_resource_monitor": MagicMock,
+    "cohezion.flume.autoencoder.FlumeEncoder": MagicMock,  # Patched at source module
     "cohezion.agents.base.get_time_keeper": MagicMock,
 }
 
-# Local imports inside functions/methods — must be patched at their source modules
-# (FlumeEncoder is imported lazily inside BaseAgent, and at module level only
-# under `if TYPE_CHECKING:`, so patching cohezion.agents.base.FlumeEncoder fails.)
+# Local imports inside __init__ — must be patched at their source modules
 _LOCAL_IMPORT_PATCHES = {
-    "cohezion.flume.autoencoder.FlumeEncoder": MagicMock,
     "cohezion.registry.capability_registry.CapabilityRegistry": MagicMock,
     "cohezion.swarm.journey_narrator.JourneyNarrator": MagicMock,
     "cohezion.swarm.redundancy_suppression.RedundancyManager": MagicMock,

@@ -123,7 +123,7 @@ def main():
     subparsers.add_parser("start", help="Start the daemon (default)")
 
     # DLQ commands
-    subparsers.add_parser("dlq", help="Show dead letter queue")
+    dlq_parser = subparsers.add_parser("dlq", help="Show dead letter queue")
     retry_parser = subparsers.add_parser("retry", help="Retry a failed row")
     retry_parser.add_argument("row", type=int, help="Row number to retry")
 
@@ -133,7 +133,7 @@ def main():
     )
     inaccessible_parser.add_argument("row", type=int, help="Row number to mark")
 
-    subparsers.add_parser("status", help="Get daemon status")
+    status_parser = subparsers.add_parser("status", help="Get daemon status")
 
     args = parser.parse_args()
     config = ServerConfig.from_env()

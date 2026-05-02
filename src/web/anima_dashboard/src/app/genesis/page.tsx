@@ -56,8 +56,12 @@ const FlumeLatentViz = dynamic(
   () => import("@/components/genesis/FlumeLatentViz"),
   { ssr: false }
 );
+const EcoResilienceView = dynamic(
+  () => import("@/components/EcoResilienceView"),
+  { ssr: false }
+);
 
-type GenesisTab = "cosmogony" | "bloch" | "thermo" | "compound" | "swarm" | "cache" | "flume" | "about";
+type GenesisTab = "cosmogony" | "bloch" | "thermo" | "compound" | "swarm" | "cache" | "flume" | "ecoresilience" | "about";
 
 export default function GenesisPage() {
   const [tab, setTab] = useState<GenesisTab>("cosmogony");
@@ -138,6 +142,7 @@ export default function GenesisPage() {
     { key: "swarm", label: "Swarm", desc: "TDA Topology" },
     { key: "cache", label: "Cache/Cost", desc: "Optimization" },
     { key: "flume", label: "FLUME", desc: "Latent Space" },
+    { key: "ecoresilience", label: "EcoResilience", desc: "12D Manifold" },
     { key: "about", label: "About", desc: "The Mathematics" },
   ];
 
@@ -403,6 +408,7 @@ export default function GenesisPage() {
             </div>
           </div>
         )}
+        {tab === "ecoresilience" && <EcoResilienceView />}
         {tab === "about" && <AboutPanel />}
       </main>
 
