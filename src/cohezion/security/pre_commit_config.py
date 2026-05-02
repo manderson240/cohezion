@@ -1,17 +1,11 @@
 """Pre-commit hooks configuration for credential detection and security checks."""
 
 import logging
-import shutil
 import subprocess
 from pathlib import Path
 
 
 logger = logging.getLogger(__name__)
-
-
-def _which(name: str, fallback: str = "") -> str:
-    """Resolve executable path; fall back to bare name (subprocess will surface errors)."""
-    return shutil.which(name) or fallback or name
 
 
 class PreCommitConfiguration:
@@ -26,8 +20,8 @@ class PreCommitConfiguration:
             True if detect-secrets is available, False otherwise
         """
         try:
-            result = subprocess.run(  # noqa: S603 - static probe; tool may not be installed
-                [_which("detect-secrets"), "--version"],
+            result = subprocess.run(
+                ["detect-secrets", "--version"],
                 capture_output=True,
                 text=True,
                 timeout=5,
@@ -45,8 +39,8 @@ class PreCommitConfiguration:
             True if pre-commit is available, False otherwise
         """
         try:
-            result = subprocess.run(  # noqa: S603 - static probe; tool may not be installed
-                [_which("pre-commit"), "--version"],
+            result = subprocess.run(
+                ["pre-commit", "--version"],
                 capture_output=True,
                 text=True,
                 timeout=5,
@@ -64,8 +58,8 @@ class PreCommitConfiguration:
             True if installation successful, False otherwise
         """
         try:
-            result = subprocess.run(  # noqa: S603 - static install command, no user input
-                [_which("pip"), "install", "detect-secrets"],
+            result = subprocess.run(
+                ["pip", "install", "detect-secrets"],
                 capture_output=True,
                 text=True,
                 timeout=30,
@@ -89,8 +83,8 @@ class PreCommitConfiguration:
             True if installation successful, False otherwise
         """
         try:
-            result = subprocess.run(  # noqa: S603 - static install command, no user input
-                [_which("pip"), "install", "pre-commit"],
+            result = subprocess.run(
+                ["pip", "install", "pre-commit"],
                 capture_output=True,
                 text=True,
                 timeout=30,
@@ -215,9 +209,9 @@ repos:
         """
         try:
             # Initialize baseline with no secrets
-            result = subprocess.run(  # noqa: S603 - baseline_path internal, args static
+            result = subprocess.run(
                 [
-                    _which("detect-secrets"),
+                    "detect-secrets",
                     "scan",
                     "--baseline",
                     baseline_path,
@@ -257,13 +251,13 @@ repos:
             True if hooks installed successfully, False otherwise
         """
         try:
-            cmd = [_which("pre-commit"), "install"]
+            cmd = ["pre-commit", "install"]
             kwargs = {"capture_output": True, "text": True, "timeout": 10}
 
             if repo_path:
                 kwargs["cwd"] = repo_path
 
-            result = subprocess.run(cmd, **kwargs)  # noqa: S603 - static command
+            result = subprocess.run(cmd, **kwargs)
 
             if result.returncode == 0:
                 logger.info("✓ Pre-commit hooks installed successfully")
@@ -290,9 +284,9 @@ repos:
             True if no new secrets found, False if secrets detected
         """
         try:
-            result = subprocess.run(  # noqa: S603 - baseline_path internal, args static
+            result = subprocess.run(
                 [
-                    _which("detect-secrets"),
+                    "detect-secrets",
                     "scan",
                     "--baseline",
                     baseline_path,

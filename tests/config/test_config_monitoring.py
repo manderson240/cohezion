@@ -136,11 +136,8 @@ class TestConfigMonitor:
             # Start monitoring (will run until we stop it)
             monitor_task = asyncio.create_task(monitor.start())
 
-            # Poll for monitor._running flag instead of fixed wait
-            for _ in range(50):
-                if monitor._running:
-                    break
-                await asyncio.sleep(0.005)
+            # Give it a moment to start
+            await asyncio.sleep(0.1)
 
             assert monitor._running
 
@@ -191,11 +188,8 @@ class TestOrchestrationWithMonitoring:
                 # Start orchestration
                 orchestration_task = asyncio.create_task(orch.start_monitoring())
 
-                # Poll for _monitoring flag instead of fixed 0.1s wait
-                for _ in range(50):
-                    if orch._monitoring:
-                        break
-                    await asyncio.sleep(0.005)
+                # Give it a moment
+                await asyncio.sleep(0.1)
 
                 assert orch._monitoring
 

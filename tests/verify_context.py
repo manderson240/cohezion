@@ -39,7 +39,7 @@ def verify_no_placeholders(path: str):
     for p in placeholders:
         if p in content:
             # Check if it's an exception
-            any(ex in content for ex in exceptions if p in ex)
+            is_exception = any(ex in content for ex in exceptions if p in ex)
             if p == "${" and content.count(p) == content.count("${skill}"):
                 continue
             found.append(p)

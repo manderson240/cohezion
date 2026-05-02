@@ -578,7 +578,7 @@ class GroupEvolutionEngine:
         directives: list[EvolutionDirective] = []
 
         # Analyze success patterns from peer agents
-        [t for t in pool.traces if t.agent_id != target_agent_id]
+        peer_traces = [t for t in pool.traces if t.agent_id != target_agent_id]
         own_traces = [t for t in pool.traces if t.agent_id == target_agent_id]
 
         # Find high-quality peer traces in areas where target struggles

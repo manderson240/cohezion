@@ -222,11 +222,11 @@ class TestTransaction:
 
         # Step 1: Create file
         txn.on_file_created("file1.txt", b"content1")
-        txn.checkpoint("step1_done")
+        checkpoint1 = txn.checkpoint("step1_done")
 
         # Step 2: Modify file
         txn.on_file_modified("file1.txt", b"content1", b"content2")
-        txn.checkpoint("step2_done")
+        checkpoint2 = txn.checkpoint("step2_done")
 
         # Step 3: Create another file
         txn.on_file_created("file2.txt", b"content")
@@ -585,7 +585,7 @@ class TestIntegrationScenarios:
         # Make changes
         txn.on_file_created("file1.txt", b"content1")
         txn.on_file_created("file2.txt", b"content2")
-        txn.checkpoint("files_created")
+        checkpoint = txn.checkpoint("files_created")
 
         # More changes
         txn.on_file_modified("file1.txt", b"content1", b"modified")

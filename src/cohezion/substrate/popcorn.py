@@ -106,7 +106,7 @@ def submit(
     start = time.monotonic()
 
     try:
-        proc = subprocess.run(  # noqa: S603 - cmd built from POPCORN_CLI constant + internal config
+        proc = subprocess.run(
             cmd,
             capture_output=True,
             text=True,

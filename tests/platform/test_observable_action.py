@@ -330,8 +330,7 @@ class TestObservableActionProposer:
         assert "OBSERVABLE AI: ACTION PROPOSAL" in captured.out
         assert "Update database schema" in captured.out
         assert "Confidence: 85.00%" in captured.out
-        # HIHO Stable indicator (emoji removed in current format)
-        assert "HIHO Stable" in captured.out
+        assert "HIHO Stable ✅" in captured.out
         assert "Schema migration risk" in captured.out
         assert "New features enabled" in captured.out
 

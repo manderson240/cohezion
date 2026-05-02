@@ -150,10 +150,8 @@ class TestFileStructure:
         """[P1] Module should not contain unexpected files."""
         base = Path("src/cohezion/integrations/agentverse")
 
-        # Defensive check: module always exists in current tree but kept
-        # for sparse-checkout environments
         if not base.exists():
-            pytest.skip("Module directory not present (likely sparse checkout)")
+            pytest.skip("Module directory doesn't exist yet")
 
         python_files = list(base.glob("*.py"))
         assert len(python_files) >= 5, "Should have at least __init__.py and 4 modules"

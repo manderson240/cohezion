@@ -149,7 +149,7 @@ class AgentVerseBridge:
         if not coherences:
             return 0.0
 
-        return float(sum(coherences) / len(coherences))
+        return sum(coherences) / len(coherences)
 
     def check_hiho_violations(self) -> list[CoherenceViolation]:
         """Check for HIHO band violations.

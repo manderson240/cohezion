@@ -186,5 +186,4 @@ class SimplePersistence:
             return None
 
         with open(path) as f:
-            data = json.load(f)
-            return dict(data) if isinstance(data, dict) else None
+            return json.load(f)

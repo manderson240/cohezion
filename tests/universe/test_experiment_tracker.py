@@ -176,8 +176,8 @@ class TestExperimentTracker:
     def test_list_runs(self, tracker):
         c1 = RunConfig(42, {}, {}, {})
         c2 = RunConfig(99, {}, {}, {})
-        tracker.create_run(name="baseline", config=c1, tags={"type": "baseline"})
-        tracker.create_run(name="experiment", config=c2, tags={"type": "experiment"})
+        r1 = tracker.create_run(name="baseline", config=c1, tags={"type": "baseline"})
+        r2 = tracker.create_run(name="experiment", config=c2, tags={"type": "experiment"})
 
         all_runs = tracker.list_runs()
         assert len(all_runs) == 2
@@ -188,7 +188,7 @@ class TestExperimentTracker:
 
     def test_list_runs_by_status(self, tracker, config):
         r1 = tracker.create_run(name="r1", config=config)
-        tracker.create_run(name="r2", config=config)
+        r2 = tracker.create_run(name="r2", config=config)
         tracker.start_run(r1.run_id)
         tracker.end_run(r1.run_id, RunStatus.COMPLETED)
 

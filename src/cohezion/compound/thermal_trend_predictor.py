@@ -238,7 +238,7 @@ class ThermalTrendPredictor:
             f"trend={trend:.2f}°C/min, predicted={predicted:.1f}°C"
         )
 
-        return float(predicted)
+        return predicted
 
     def _predict_with_model(self, current_temp: float, lookahead_minutes: int) -> float:
         """Predict using trained linear regression model.
@@ -268,7 +268,7 @@ class ThermalTrendPredictor:
             adjusted_slope = 1.0 + (slope - 1.0) * scale_factor
 
             predicted = intercept + adjusted_slope * current_temp
-            return float(predicted)
+            return predicted
         except Exception as e:
             logger.debug(f"Model prediction error: {e}")
             return current_temp
@@ -296,7 +296,7 @@ class ThermalTrendPredictor:
             r_squared_confidence = max(0.0, min(1.0, r_squared))
 
             combined = 0.6 * sample_confidence + 0.4 * r_squared_confidence
-            return float(max(0.3, combined))  # Minimum 30% confidence
+            return max(0.3, combined)  # Minimum 30% confidence
         except Exception:
             return 0.5
 

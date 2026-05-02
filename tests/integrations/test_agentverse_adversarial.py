@@ -334,7 +334,9 @@ class TestBenchmarkRunnerVaultAdversarial:
         runner_with_vault.results = [BenchmarkResult(task="t", skill="s", success=True, metrics={})]
 
         path1 = runner_with_vault.persist_results()
-        # persist_results uses uuid4, not timestamp - no sleep needed for unique paths
+        import time
+
+        time.sleep(0.01)
         path2 = runner_with_vault.persist_results()
 
         assert path1 != path2

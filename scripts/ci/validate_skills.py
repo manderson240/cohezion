@@ -5,14 +5,7 @@ from __future__ import annotations
 
 import sys
 
-import re
-
 from cohezion.core.template_engine import SkillSpec, TemplateEngine
-
-
-def _safe_tag(name: str) -> str:
-    """Strip non-ASCII from a spec name for use as a compile() filename tag."""
-    return re.sub(r"[^\x20-\x7e]", "_", name or "unknown")
 
 
 def main() -> int:
@@ -30,25 +23,22 @@ def main() -> int:
     config_fail = 0
 
     for spec in specs:
-        tag = _safe_tag(spec.name)
-        source = spec.source_path
-
         # Validate agent stub compiles
         stub_src = engine.generate_agent_stub(spec)
         try:
-            compile(stub_src, f"<stub:{tag}>", "exec")
+            compile(stub_src, f"<stub:{spec.name}>", "exec")
             stub_ok += 1
         except SyntaxError as exc:
-            print(f"FAIL: Stub syntax error for {spec.name} ({source}): {exc}")
+            print(f"FAIL: Stub syntax error for {spec.name}: {exc}")
             stub_fail += 1
 
         # Validate config class compiles
         config_src = engine.generate_config_class(spec)
         try:
-            compile(config_src, f"<config:{tag}>", "exec")
+            compile(config_src, f"<config:{spec.name}>", "exec")
             config_ok += 1
         except SyntaxError as exc:
-            print(f"FAIL: Config syntax error for {spec.name} ({source}): {exc}")
+            print(f"FAIL: Config syntax error for {spec.name}: {exc}")
             config_fail += 1
 
     print(f"Skills parsed:     {len(specs)}")

@@ -76,10 +76,50 @@ class TestJourneyTrackerSmoke:
 # ---------------------------------------------------------------------------
 # JourneyPersistence smoke tests
 # ---------------------------------------------------------------------------
-# NOTE: Removed test_save_load_roundtrip and test_save_trajectory_point
-# (Wave 3E). They referenced the old save_journey/load_journeys/
-# save_trajectory_point API which was replaced by persist_batch/parquet.
-# Coverage of the new API lives in tests/compound/test_exp_persistence/.
+
+
+class TestJourneyPersistenceSmoke:
+    """Verify JourneyPersistence JSONL save/load round-trip."""
+
+    @pytest.mark.skip(
+        reason="JourneyPersistence API changed - tests need rewrite for new persist_batch/parquet API"
+    )
+    @pytest.mark.asyncio
+    async def test_save_load_roundtrip(self, tmp_path) -> None:
+        from cohezion.compound.exp_persistence.journey import JourneyPersistence
+
+        jp = JourneyPersistence(storage_dir=str(tmp_path))
+        jp._surreal_available = False
+
+        journey_data = {
+            "id": "journey_smoke_001",
+            "agent_name": "smoke_agent",
+            "intent": "Compound execution of SMOKE_SKILL",
+            "status": "completed",
+            "final_coherence": 0.65,
+        }
+        ref = await jp.save_journey(journey_data)
+        assert "jsonl" in ref
+
+        loaded = await jp.load_journeys(agent_name="smoke_agent")
+        assert len(loaded) == 1
+        assert loaded[0]["id"] == "journey_smoke_001"
+
+    @pytest.mark.skip(
+        reason="JourneyPersistence API changed - tests need rewrite for new persist_batch/parquet API"
+    )
+    @pytest.mark.asyncio
+    async def test_save_trajectory_point(self, tmp_path) -> None:
+        from cohezion.compound.exp_persistence.journey import JourneyPersistence
+
+        jp = JourneyPersistence(storage_dir=str(tmp_path))
+        jp._surreal_available = False
+
+        ref = await jp.save_trajectory_point(
+            "journey_001",
+            {"step_number": 0, "coherence": 0.55, "operation": "search"},
+        )
+        assert "point" in ref
 
 
 # ---------------------------------------------------------------------------

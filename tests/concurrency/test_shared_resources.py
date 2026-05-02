@@ -274,8 +274,6 @@ class TestCapabilityUsageTracker:
                     tokens_used=10,
                     success=True,
                 )
-                # justify: real-thread contention test; sleep widens window
-                # for the GIL to release and allow lock contention to occur
                 time.sleep(0.001)
 
         threads = [threading.Thread(target=record_operations) for _ in range(5)]

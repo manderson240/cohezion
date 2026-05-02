@@ -9,12 +9,6 @@ Covers:
 
 from __future__ import annotations
 
-import pytest
-
-pytestmark = pytest.mark.skip(
-    reason="Tests exercise FlumeVAE(input_dim=...) / JourneyTracker.encode_step_sequence — replaced by FlumeVAEConfig + new journey API. Need rewrite.",
-)
-
 import importlib.util
 import subprocess
 import sys

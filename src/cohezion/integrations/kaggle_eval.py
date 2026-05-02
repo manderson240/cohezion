@@ -25,8 +25,7 @@ class KaggleEvaluator:
         matches = self.boxed_regex.findall(text)
         if not matches:
             return None
-        last_match: str = matches[-1]
-        return last_match.strip()
+        return matches[-1].strip()
 
     def score(self, predictions: list[str], references: list[str]) -> dict[str, float]:
         """

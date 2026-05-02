@@ -35,8 +35,6 @@ class TestOllamaGate:
             async with gate:
                 active += 1
                 max_active = max(max_active, active)
-                # justify: must yield long enough for other workers in the
-                # gather() to start contending on the semaphore
                 await asyncio.sleep(0.05)
                 active -= 1
 
@@ -73,7 +71,6 @@ class TestOllamaGate:
             async with gate:
                 active += 1
                 max_active = max(max_active, active)
-                # justify: must yield long enough for other workers to contend
                 await asyncio.sleep(0.02)
                 active -= 1
 

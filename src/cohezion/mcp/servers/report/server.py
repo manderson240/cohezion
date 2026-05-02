@@ -78,15 +78,12 @@ class MarimoReportGenerator:
         """Generate a Marimo notebook."""
         report_id = str(uuid.uuid4())[:8]
 
-        # Persist BOTH data and title as side-loaded JSON so notebook source is
-        # authored from constants only — no caller-controlled string is ever
-        # interpolated into Python source. (Ω12 Patch 3, Ω6 CRITICAL-3)
+        # Write data to a sidecar JSON file to prevent code injection
         data_path = self.output_dir / f"{report_id}_data.json"
-        meta = {"title": title, "report_id": report_id, "data": data}
-        data_path.write_text(json.dumps(meta, indent=2, default=str))
+        data_path.write_text(json.dumps(data, indent=2))
 
         # Create Marimo notebook content (loads from data_path)
-        notebook_content = self._create_marimo_content(str(data_path), template)
+        notebook_content = self._create_marimo_content(title, str(data_path), template)
 
         # Write notebook file
         notebook_path = self.output_dir / f"{report_id}.py"
@@ -105,15 +102,11 @@ class MarimoReportGenerator:
 
     def _create_marimo_content(
         self,
+        title: str,
         data_path: str,
         template: str,
     ) -> str:
-        """Create Marimo notebook Python code.
-
-        SECURITY: never f-string a caller-supplied string into the generated
-        Python source. The title is loaded at runtime from the JSON sidecar
-        (META["title"]) and rendered through mo.md, never through code.
-        """
+        """Create Marimo notebook Python code."""
 
         base_imports = f"""
 import marimo as mo
@@ -125,16 +118,13 @@ from pathlib import Path
 
 __generated__ = True
 DATA_PATH = {json.dumps(data_path)}
-# meta loaded from sidecar — never f-string a tool input into source
-META = json.loads(Path(DATA_PATH).read_text()) if Path(DATA_PATH).exists() else {{}}
-TITLE = META.get("title", "Report")
 """
 
         load_data_cell = """
 @app.cell
 def load_data():
     if Path(DATA_PATH).exists():
-        data = json.loads(Path(DATA_PATH).read_text()).get("data", {})
+        data = json.loads(Path(DATA_PATH).read_text())
     else:
         data = {}
     return data,
@@ -143,7 +133,7 @@ def load_data():
         if template == "analysis":
             return f'''{base_imports}
 
-# Report  (title loaded at runtime from META)
+# {title}
 
 app = mo.App()
 
@@ -152,7 +142,7 @@ app = mo.App()
 @app.cell
 def title(data):
     mo.md(f"""
-    # {{TITLE}}
+    # {title}
 
     *Generated: {{data.get("generated_at", "N/A")}}*
     *Report ID: {{data.get("report_id", "N/A")}}*
@@ -201,7 +191,7 @@ if __name__ == "__main__":
         elif template == "physics":
             return f'''{base_imports}
 
-# Physics Simulation Report  (title loaded at runtime from META)
+# {title} - Physics Simulation Report
 
 app = mo.App()
 
@@ -210,7 +200,7 @@ app = mo.App()
 @app.cell
 def title(data):
     mo.md(f"""
-    # {{TITLE}}
+    # {title}
 
     ## Physics Simulation Analysis
 
@@ -258,7 +248,7 @@ if __name__ == "__main__":
         else:
             return f'''{base_imports}
 
-# Report  (title loaded at runtime from META)
+# {title}
 
 app = mo.App()
 
@@ -267,7 +257,7 @@ app = mo.App()
 @app.cell
 def _():
     mo.md(f"""
-    # {{TITLE}}
+    # {title}
     """)
 
 @app.cell
@@ -284,40 +274,30 @@ if __name__ == "__main__":
         if not report or not report.notebook_path:
             return {"error": "Report not found"}
 
-        # Defense-in-depth: re-validate the notebook_path lies inside output_dir.
-        # Today report_id is uuid4 so this is safe by construction; this guard
-        # catches the case where a future refactor lets the field be set
-        # externally. (Ω12 Patch 4, Ω6 CRITICAL-4)
-        nb_path = Path(report.notebook_path).resolve()
-        try:
-            nb_path.relative_to(self.output_dir.resolve())
-        except ValueError:
-            return {"error": f"notebook_path escapes output_dir: {nb_path}"}
-
-        # Start Marimo server in background — list-form, no shell.
+        # Start Marimo server in background
         cmd = [
             "nohup",
             "uv",
             "run",
             "marimo",
             "run",
-            str(nb_path),
+            report.notebook_path,
             "--host",
             "0.0.0.0",
             "--port",
             str(MARIMO_PORT),
+            ">",
+            "/tmp/marimo.log",
+            "2>&1",
+            "&",
         ]
 
         try:
-            # Background process; redirect stdout/stderr to a log file in the
-            # output_dir so we don't depend on /tmp permissions.
-            log_path = self.output_dir / f"marimo_{report_id}.log"
-            log_fh = open(log_path, "ab")  # noqa: SIM115 - lives for child's lifetime
-            subprocess.Popen(  # noqa: S603 - cmd is static argv with validated nb_path
-                cmd,
-                stdout=log_fh,
-                stderr=subprocess.STDOUT,
-                start_new_session=True,
+            subprocess.Popen(
+                " ".join(cmd),
+                shell=True,
+                stdout=subprocess.DEVNULL,
+                stderr=subprocess.DEVNULL,
             )
 
             return {

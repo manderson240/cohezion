@@ -114,6 +114,7 @@ async def test_batch_phase1_phase2_mixed(batch_processor):
     async def dummy_execute(item: BatchItem):
         nonlocal execution_count
         execution_count += 1
+        await asyncio.sleep(0.01)  # Simulate work
         return f"result_{item.id}", 100
 
     result = await batch_processor.process_batch(items, dummy_execute)
@@ -140,6 +141,7 @@ async def test_batch_concurrency_limiting(mock_token_client):
     items = [BatchItem(id=str(i), prompt=f"p{i}", system="s", model="m") for i in range(3)]
 
     async def dummy_execute(item: BatchItem):
+        await asyncio.sleep(0.01)
         return "result", 100
 
     result = await processor.process_batch(items, dummy_execute)
@@ -261,8 +263,7 @@ async def test_batch_timing(batch_processor):
     items = [BatchItem(id=str(i), prompt=f"p{i}", system="s", model="m") for i in range(3)]
 
     async def dummy_execute(item: BatchItem):
-        # justify: timing test asserts total_duration_ms > 20ms; need real work
-        await asyncio.sleep(0.02)
+        await asyncio.sleep(0.02)  # 20ms per item
         return "result", 100
 
     result = await batch_processor.process_batch(items, dummy_execute)

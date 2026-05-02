@@ -77,7 +77,7 @@ class MetricsPersistence:
         try:
             data = json.loads(snapshots[0].read_text(encoding="utf-8"))
             logger.info("Loaded metrics snapshot from %s", snapshots[0])
-            return dict(data) if isinstance(data, dict) else None
+            return data
         except (json.JSONDecodeError, OSError):
             logger.exception("Failed to load metrics snapshot")
             return None

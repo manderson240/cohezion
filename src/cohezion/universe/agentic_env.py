@@ -635,7 +635,7 @@ class AgenticEnvironment:
         path = args.get("path", "")
         files = env_state.get("files", {})
         if path in files:
-            return str(files[path])
+            return files[path]
         raise FileNotFoundError(f"File not found: {path}")
 
     def _tool_file_write(self, args: dict[str, Any], env_state: dict[str, Any]) -> str:
@@ -656,7 +656,7 @@ class AgenticEnvironment:
         command = args.get("command", "")
         # Simple simulation for common commands
         if command.startswith("echo "):
-            output: str = command[5:]
+            output = command[5:]
             env_state.get("stdout", []).append(output)
             return output
         elif command == "ls":

@@ -551,7 +551,7 @@ class CapabilityMatrix:
                 )
                 self._entries[f"data_product:{product.name}"] = entry
                 loaded += 1
-        except (ImportError, AttributeError, OSError, RuntimeError, ValueError, KeyError):
+        except (ImportError, Exception):
             logger.debug("Data mesh not available (non-blocking)", exc_info=True)
         return loaded
 

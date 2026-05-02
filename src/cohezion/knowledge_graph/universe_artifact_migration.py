@@ -19,15 +19,10 @@ import asyncio
 import hashlib
 import json
 import logging
-import shutil
 import subprocess
 import tarfile
 import time
 from dataclasses import dataclass
-
-
-# Resolve git executable at module load to avoid S607 partial-path warnings.
-_GIT = shutil.which("git") or "/usr/bin/git"
 from pathlib import Path
 from typing import Any
 
@@ -129,9 +124,9 @@ class UniverseArtifactMigration:
 
         try:
             # Get file count
-            result = subprocess.run(  # noqa: S603 - git args static, no user input
+            result = subprocess.run(
                 [
-                    _GIT,
+                    "git",
                     "ls-tree",
                     "-r",
                     "--name-only",
@@ -150,9 +145,9 @@ class UniverseArtifactMigration:
             file_count = len([f for f in files if f])
 
             # Calculate total size
-            result = subprocess.run(  # noqa: S603 - git args static, no user input
+            result = subprocess.run(
                 [
-                    _GIT,
+                    "git",
                     "ls-tree",
                     "-r",
                     "--format=%(size)",
@@ -167,9 +162,9 @@ class UniverseArtifactMigration:
             total_bytes = sum(int(line) for line in result.stdout.strip().split("\n") if line)
 
             # Get commit history
-            result = subprocess.run(  # noqa: S603 - git args static, no user input
+            result = subprocess.run(
                 [
-                    _GIT,
+                    "git",
                     "log",
                     "--all",
                     "--follow",
@@ -218,9 +213,9 @@ class UniverseArtifactMigration:
             # Export artifacts from git
             tar_path = artifacts_path / "universe_artifacts.tar.gz"
 
-            result = subprocess.run(  # noqa: S603 - git args static, tar_path internal
+            result = subprocess.run(
                 [
-                    _GIT,
+                    "git",
                     "archive",
                     "--format=tar.gz",
                     "--prefix=universe_artifacts/",

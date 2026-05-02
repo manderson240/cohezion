@@ -164,13 +164,10 @@ class MultiperspectiveReviewBoard:
     """Blue/Green/Yellow Hat multiperspective review system."""
 
     def __init__(self):
-        self.blue: BlueHatReviewer = BlueHatReviewer()
-        self.green: GreenHatReviewer = GreenHatReviewer()
-        self.yellow: YellowHatReviewer = YellowHatReviewer()
-        self.reviewers: dict[str, Any] = {
-            "blue": self.blue,
-            "green": self.green,
-            "yellow": self.yellow,
+        self.reviewers = {
+            "blue": BlueHatReviewer(),
+            "green": GreenHatReviewer(),
+            "yellow": YellowHatReviewer(),
         }
 
     def full_review(self, proposal: dict[str, Any]) -> dict[str, Any]:
@@ -183,9 +180,9 @@ class MultiperspectiveReviewBoard:
             Combined review results
         """
         return {
-            "blue": self.blue.review_process(proposal),
-            "green": self.green.generate_alternatives(proposal),
-            "yellow": self.yellow.assess_risks(proposal),
+            "blue": self.reviewers["blue"].review_process(proposal),
+            "green": self.reviewers["green"].generate_alternatives(proposal),
+            "yellow": self.reviewers["yellow"].assess_risks(proposal),
             "ralph": RalphLoppsReviewer().review(str(proposal)),
         }
 

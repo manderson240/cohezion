@@ -264,7 +264,7 @@ class MetricsAnalytics:
         ) * 0.15
 
         total_score = cache_score + token_score + guardrail_score + resource_score
-        return float(min(max(total_score, 0.0), 1.0))
+        return min(max(total_score, 0.0), 1.0)
 
     def generate_dashboard_report(self) -> PerformanceReport:
         """Generate comprehensive dashboard report.

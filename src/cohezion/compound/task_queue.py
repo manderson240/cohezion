@@ -196,7 +196,7 @@ class TaskQueue:
         list[QueuedTask]
             Next up to N tasks
         """
-        result: list[QueuedTask] = []
+        result = []
 
         for queue in [self._critical_queue, self._normal_queue, self._low_queue]:
             for _, task in enumerate(queue):

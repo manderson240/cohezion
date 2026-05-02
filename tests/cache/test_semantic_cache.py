@@ -165,7 +165,7 @@ class TestSemanticCacheL1:
             await semantic_cache.put(f"prompt-{i}", f"response-{i}", "", "model")
 
         # Should not exceed limit
-        semantic_cache.get_stats()
+        stats = semantic_cache.get_stats()
         # L1 may not be full yet, but should be reasonable
 
     @pytest.mark.asyncio
@@ -199,7 +199,7 @@ class TestSemanticCacheL2:
             )
 
             # Similar prompt should match
-            await semantic_cache.get(
+            result = await semantic_cache.get(
                 "What is AI?",
                 "",
                 "model",

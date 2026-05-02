@@ -191,9 +191,9 @@ class ConfigSyncLogger:
         if not self._entries:
             return {"total_entries": 0}
 
-        operations: dict[str, int] = {}
-        statuses: dict[str, int] = {}
-        files: dict[str, int] = {}
+        operations = {}
+        statuses = {}
+        files = {}
 
         for entry in self._entries:
             operations[entry.operation] = operations.get(entry.operation, 0) + 1

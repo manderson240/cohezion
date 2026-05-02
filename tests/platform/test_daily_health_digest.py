@@ -558,7 +558,6 @@ async def test_generate_recommendations_healthy(digest):
         loose_objects=50,
         pack_count=1,
     )
-    test = TestMetrics(total_tests=100, passing_tests=100, failing_tests=0, pass_rate=1.0)
     dep = DependencyMetrics(
         total_dependencies=50,
         outdated_dependencies=1,
@@ -616,7 +615,6 @@ async def test_generate_recommendations_vulnerable_deps(digest):
         loose_objects=50,
         pack_count=1,
     )
-    test = TestMetrics(total_tests=100, passing_tests=100, failing_tests=0, pass_rate=1.0)
     dep = DependencyMetrics(
         total_dependencies=50,
         outdated_dependencies=5,

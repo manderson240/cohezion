@@ -24,13 +24,10 @@ async def test_mrp_synchronization():
             async def process(self, *args, **kwargs):
                 return "test"
 
-        TestAgent(model_name="test-model", config=config)
+        agent = TestAgent(model_name="test-model", config=config)
 
-        # Poll for the async sync task to fire instead of fixed wait
-        for _ in range(50):
-            if mock_db.query.called:
-                break
-            await asyncio.sleep(0.005)
+        # Wait a bit for the async task to trigger and complete step 1
+        await asyncio.sleep(0.1)
 
         mock_db.query.assert_called_with(
             "SELECT * FROM mission_pulse ORDER BY timestamp DESC LIMIT 1"
@@ -52,12 +49,10 @@ async def test_mrp_pulse_loop():
             async def process(self, *args, **kwargs):
                 return "test"
 
-        TestAgent(model_name="test-model", config=config)
+        agent = TestAgent(model_name="test-model", config=config)
 
-        # Poll for the pulse loop to fire instead of fixed 0.2s wait
-        for _ in range(100):
-            if mock_db.store_node.call_count >= 1:
-                break
-            await asyncio.sleep(0.005)
+        # Wait for at least one pulse loop to run
+        # sleeper is interval * 60, so 0.006s. 0.2s is plenty.
+        await asyncio.sleep(0.2)
 
         assert mock_db.store_node.call_count >= 1

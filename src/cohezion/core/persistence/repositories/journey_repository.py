@@ -46,7 +46,7 @@ class AgentJourney:
     final_confidence: float = 0.0
     total_duration_ms: float = 0.0
     aggregate_metrics: JourneyMetrics = field(default_factory=JourneyMetrics)
-    steps: list[JourneyStep] = field(default_factory=list)
+    steps: list[dict] = field(default_factory=list)
     metadata: dict = field(default_factory=dict)
 
     def add_step(self, step: JourneyStep) -> None:

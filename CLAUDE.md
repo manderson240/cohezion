@@ -10,11 +10,7 @@ COHEZION: 12D agentic universe with FLUME VAE, compound engineering, multi-agent
 
 ### ⚡ Core Commands
 ```bash
-<<<<<<< HEAD
-uv run pytest tests/ -q              # Full test suite (6,133 tests collected)
-=======
 uv run pytest tests/ -q              # Full test suite (6,100+ tests)
->>>>>>> isolated/session-oom-modularity
 uv run pytest tests/compound/ -v     # Run module tests
 uv run pytest tests/test_*.py::name  # Single test
 make validate                         # Compound loop validation (23 checks, ~18s)
@@ -132,11 +128,7 @@ See skill: `cohezion-vault-workflow` for vault API examples (log decisions, expe
 | **Ouroboros** | Ouroboros bridge + Mycelium network wired into Genesis chain | `OuroborosBridge` |
 | **Environments** | ManifoldEnv (gymnasium, 19D obs, verifiable rewards), SwarmEnv (multi-agent gauge coupling) | `gym.make('Cohezion/ManifoldEnv-v0')` |
 | **Governance** | AutonomyEngine (cosmogonic tiers), ConciergeAgent, KnowledgeBridge, FlumeBridge | `AutonomyEngine` |
-<<<<<<< HEAD
-| **Data Mesh** | DataProduct (typed SLA), MCP Registry (tier access control + call tracking). Canonical: `src/cohezion/data_mesh/`. NOTE: orphan `src/cohezion/datamesh/` (no underscore) is slated for deletion per ORPHAN_AUDIT_2026_04_23. | `get_cohezion_data_products()` |
-=======
 | **Data Mesh** | DataProduct (typed SLA), MCP Registry (tier access control + call tracking) | `get_cohezion_data_products()` |
->>>>>>> isolated/session-oom-modularity
 | **Providers** | LemonadeProvider (local 3-slot), OllamaCloudProvider ($20/mo), LemonadeAdapter (NPU/GPU/CPU hotswap) | `CostAwareRouter` |
 | **Genesis UI** | 11 components across 8 tabs: BlochSphere, GenesisScene, FlumeLatentViz, SwarmTopologyViz, etc. | `/genesis` route |
 | **Knowledge** | Vault-First (decisions/patterns/experiments), auto-compiled MEMORY.md | `vault_find_relevant_context` |
@@ -166,15 +158,9 @@ See skill: `cohezion-vault-workflow` for vault API examples (log decisions, expe
 **Cost routing tiers**: 70% simple (Ollama/Flash-Lite, free) → 20% medium (Sonnet, $3/M) → 10% hard (Opus, $15/M)
 
 ### ⚡ Quick Reference
-<<<<<<< HEAD
-- **Language**: Python 3.13+ | **Package Manager**: `uv` (never bare python)
-- **DB**: SurrealDB (ws://localhost:8001) | **API**: FastAPI :8080
-- **Tests**: 6,133 collected (verified 2026-04-23 post-synthetic-sniffing-panda; 4 collection errors in swarm/cache test files), full suite completes without crash. Genesis: 398 (physics 309 + world_model 34 + environments 55). Physics: 22 conservation + 15 invariant checker. LeWM JEPA: 34. GraphRAG: 12. DRR generator: 15. Constitutional enforcer: 13. Verifiable rewards: 4. | **Coverage** (post-campaign hot files): executor.py 51%, cost_aware_router.py 88%, knowledge_graph/ 53% | html report in `htmlcov/`
-=======
 - **Languages (polyglot)**: Python `==3.11.*` for `src/cohezion/**` (package manager: `uv`, never bare pip) | Rust for `src/cohezion-physics-core/` (Cargo) | TypeScript/React for `src/web/` (Next.js 16 + Three.js + Tone.js). Use the right language for the job; language-specific rules apply to their scope only.
 - **DB**: SurrealDB (ws://localhost:8001) | **API**: FastAPI :8080
 - **Tests**: 6,369 collected, full suite completes without crash. Genesis: 398 (physics 309 + world_model 34 + environments 55). Physics: 22 conservation + 15 invariant checker. LeWM JEPA: 34. GraphRAG: 12. DRR generator: 15. Constitutional enforcer: 13. Verifiable rewards: 4. | **Coverage**: html report in `htmlcov/`
->>>>>>> isolated/session-oom-modularity
 - **SurrealDB Persistence**: SurrealKV backend (migrated from RocksDB Session 96b) with `?versioned=true` for VERSION clause temporal queries. Port 8001, 127.0.0.1 only. Bi-temporal schemas (valid_from/valid_to) on neurons, agent_journey, universe_node. V-Model tables: vmodel_gate, traces, hash_chain, proof_obligation (Session 96b). Hash-chain audit trail in JourneyTracker (OLIF mitigation).
 - **CI**: `make lint-check && uv run pytest` before commit
 - **Entry point**: `cohezion = "cohezion.__main__:main"`

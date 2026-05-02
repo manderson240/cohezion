@@ -45,7 +45,7 @@ class TestMCPCompoundAPI:
         """[P0] Session start returns success with valid params."""
         from cohezion.mcp.compound_server import compound_start_session
 
-        with patch("cohezion.mcp.compound_server.session_manager", mock_session_manager):
+        with patch("cohezion.mcp.compound_server._session_manager", mock_session_manager):
             result = await compound_start_session(max_cache_entries=256)
 
         assert result["status"] == "success"
@@ -57,8 +57,8 @@ class TestMCPCompoundAPI:
         """[P0] Session start handles errors gracefully."""
         from cohezion.mcp.compound_server import compound_start_session
 
-        with patch("cohezion.mcp.compound_server.session_manager") as mock:
-            mock.start_session.side_effect = Exception("Database error")
+        with patch("cohezion.mcp.compound_server._get_manager") as mock:
+            mock.return_value.start_session.side_effect = Exception("Database error")
             result = await compound_start_session()
 
         assert result["status"] == "error"
@@ -69,7 +69,7 @@ class TestMCPCompoundAPI:
         """[P0] Alignment check passes with high coherence."""
         from cohezion.mcp.compound_server import compound_check_alignment
 
-        with patch("cohezion.mcp.compound_server.session_manager", mock_session_manager):
+        with patch("cohezion.mcp.compound_server._session_manager", mock_session_manager):
             result = await compound_check_alignment(request="Test request", threshold=0.5)
 
         assert result["status"] == "success"
@@ -86,7 +86,7 @@ class TestMCPCompoundAPI:
             coherence=0.3, should_proceed=False, issues=["Ambiguous request"]
         )
 
-        with patch("cohezion.mcp.compound_server.session_manager", mock_session):
+        with patch("cohezion.mcp.compound_server._session_manager", mock_session):
             result = await compound_check_alignment(request="Unclear request", threshold=0.5)
 
         assert result["status"] == "success"
@@ -98,7 +98,7 @@ class TestMCPCompoundAPI:
         """[P1] Alignment check errors when no session active."""
         from cohezion.mcp.compound_server import compound_check_alignment
 
-        with patch("cohezion.mcp.compound_server.session_manager", None):
+        with patch("cohezion.mcp.compound_server._session_manager", None):
             result = await compound_check_alignment(request="Test")
 
         assert result["status"] == "error"
@@ -152,9 +152,16 @@ async def execute(request):
             }
         )
 
-        with patch("cohezion.mcp.compound_server.get_mcp_client", return_value=mock_mcp_client):
-            with patch("cohezion.mcp.compound_server.retrospection") as mock_retro:
-                mock_retro.capture_learning = AsyncMock(return_value="logs/test.json")
+        with patch(
+            "cohezion.mcp.compound_server._get_mcp", return_value=mock_mcp_client
+        ):
+            with patch(
+                "cohezion.compound.autoresearch.RetrospectionEngine"
+            ) as mock_cls:
+                mock_engine = MagicMock(
+                    capture_learning=AsyncMock(return_value="logs/test.json")
+                )
+                mock_cls.return_value = mock_engine
                 result = await learning_capture(execution_result)
 
         assert result["status"] == "success"
@@ -203,10 +210,6 @@ class TestMCPCompoundIntegrationFlow:
     """Integration tests for complete MCP workflows."""
 
     @pytest.mark.fast
-    @pytest.mark.xfail(
-        reason="bug: compound_start_session returns status='error' under current MCP client fixture - needs fixture investigation",
-        strict=False,
-    )
     async def test_session_lifecycle(self):
         """[P0] Complete session start → check → end workflow."""
         from cohezion.mcp.compound_server import (
@@ -223,7 +226,7 @@ class TestMCPCompoundIntegrationFlow:
         }
 
         # Need to patch the global session_manager BEFORE importing functions
-        with patch("cohezion.mcp.compound_server.session_manager") as mock_mgr:  # noqa: F841
+        with patch("cohezion.mcp.compound_server._session_manager", None):
             # Set up mock for start_session
             start_mock = MagicMock()
             start_mock.start_session.return_value = mock_summary
@@ -235,8 +238,8 @@ class TestMCPCompoundIntegrationFlow:
             # Import and patch
             import cohezion.mcp.compound_server as server_module
 
-            original_session_manager = server_module.session_manager
-            server_module.session_manager = start_mock
+            original_session_manager = getattr(server_module, "_session_manager", None)
+            server_module._session_manager = start_mock
 
             try:
                 # Start session
@@ -253,7 +256,7 @@ class TestMCPCompoundIntegrationFlow:
                 end_result = await compound_end_session(save_cache=True)
                 assert end_result["status"] == "success"
             finally:
-                server_module.session_manager = original_session_manager
+                server_module._session_manager = original_session_manager
 
     @pytest.mark.fast
     async def test_adversarial_review_workflow(self):
@@ -285,10 +288,6 @@ class TestMCPCompoundE2E:
     """End-to-end tests simulating user workflows."""
 
     @pytest.mark.slow
-    @pytest.mark.xfail(
-        reason="bug: learning_capture returns status='error' under current MCP client fixture (sibling to test_session_lifecycle)",
-        strict=False,
-    )
     async def test_token_optimization_workflow(self):
         """[P1] User optimizes token usage via MCP tools."""
         from cohezion.mcp.compound_server import cache_get_metrics, cache_optimize, learning_capture

@@ -350,7 +350,7 @@ class ModelRanker:
         # freshness = 0.5^(age/half_life)
         freshness = 0.5 ** (age_hours / self.freshness_decay_hours)
 
-        return float(max(0.0, min(1.0, freshness)))
+        return max(0.0, min(1.0, freshness))
 
     def _get_default_costs(self, models: list[str]) -> dict[str, float]:
         """Get default cost per token for models.

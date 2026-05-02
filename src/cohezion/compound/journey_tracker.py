@@ -457,8 +457,8 @@ class JourneyTracker:
                     action = axiomatic_12d - prev
                     surprise = jepa.surprise_score(prev, action, axiomatic_12d)
                     point.metadata["jepa_surprise"] = float(surprise)
-            except (ImportError, AttributeError, RuntimeError, ValueError) as e:
-                logger.debug("JEPA surprise enrichment skipped: %s", e)
+            except (ImportError, Exception):
+                pass
 
         # Enrich with bioelectric percolation (non-blocking)
         try:
@@ -469,8 +469,8 @@ class JourneyTracker:
             percolation = bio.percolation_analysis()
             point.metadata["bioelectric_percolated"] = percolation.is_percolated
             point.metadata["bioelectric_clusters"] = percolation.cluster_count
-        except (ImportError, AttributeError, RuntimeError, ValueError) as e:
-            logger.debug("Bioelectric percolation enrichment skipped: %s", e)
+        except (ImportError, Exception):
+            pass
 
         # Maintain recent points buffer (capped at window size)
         self._recent_points.append(point)
@@ -536,7 +536,7 @@ class JourneyTracker:
         ).encode("utf-8")
 
         surql = "CREATE journey_transition CONTENT $data;"
-        json.dumps({"surql": surql, "data": json.loads(data)}).encode("utf-8")
+        body = json.dumps({"surql": surql, "data": json.loads(data)}).encode("utf-8")
 
         req = urllib.request.Request(
             "http://localhost:8001/sql",

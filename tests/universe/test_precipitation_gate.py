@@ -325,6 +325,8 @@ class TestPrecipitationGate:
         result_low = state_low_awareness.check_precipitation()
 
         # Temperature = 1 - awareness
+        expected_temp_high = 1.0 - 0.9  # 0.1 (cold)
+        expected_temp_low = 1.0 - 0.1  # 0.9 (hot)
 
         # Free energy F = E - TS
         # Higher temperature → more negative F (if S > 0)

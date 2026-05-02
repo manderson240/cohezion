@@ -16,15 +16,9 @@ class TestSentenceTransformerEncoder:
 
     @pytest.fixture(autouse=True)
     def reset_singleton(self):
-        """Reset singleton + stub out SentenceTransformer so no test can
-        accidentally trigger a real HuggingFace download. Tests that need
-        custom mock behavior still layer their own `with patch(...)`
-        over this default stub.
-        """
+        """Reset singleton before each test."""
         SentenceTransformerEncoder.reset_instance()
-        with patch("sentence_transformers.SentenceTransformer") as mock_st:
-            mock_st.return_value = MagicMock()
-            yield
+        yield
         SentenceTransformerEncoder.reset_instance()
 
     def test_encode_with_mocked_model(self):
@@ -217,7 +211,7 @@ class TestSentenceTransformerEncoder:
             MockST.return_value = mock_model
 
             encoder = SentenceTransformerEncoder()
-            encoder.encode("test", normalize=True)
+            result = encoder.encode("test", normalize=True)
 
             # Check that normalize_embeddings=True was passed
             call_kwargs = mock_model.encode.call_args[1]

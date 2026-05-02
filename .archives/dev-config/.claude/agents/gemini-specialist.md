@@ -1,6 +1,7 @@
 ---
 name: gemini-specialist
 description: Gemini CLI and Google ecosystem expert. Manages GEMINI.md, Google Agent Development Kit (ADK), A2A protocol integration, and the 6-protocol stack alignment.
+effort: medium
 tools:
   - Read
   - Bash

@@ -7,16 +7,12 @@ and conflict detection via git state.
 from __future__ import annotations
 
 import logging
-import shutil
 import subprocess
 from datetime import datetime
 from pathlib import Path
 
 
 logger = logging.getLogger(__name__)
-
-# Resolve git executable at module load to avoid S607 partial-path warnings.
-_GIT = shutil.which("git") or "/usr/bin/git"
 
 
 class GitUtils:
@@ -33,8 +29,8 @@ class GitUtils:
     def get_last_commit_author(self, file_path: Path) -> str | None:
         """Get the author of the last commit for a file."""
         try:
-            result = subprocess.run(  # noqa: S603 - git args static, file_path internal
-                [_GIT, "log", "--format=%an", "-1", str(file_path)],
+            result = subprocess.run(
+                ["git", "log", "--format=%an", "-1", str(file_path)],
                 cwd=self.repo_root,
                 capture_output=True,
                 text=True,
@@ -49,8 +45,8 @@ class GitUtils:
     def get_last_commit_time(self, file_path: Path) -> datetime | None:
         """Get the timestamp of the last commit for a file."""
         try:
-            result = subprocess.run(  # noqa: S603 - git args static, file_path internal
-                [_GIT, "log", "--format=%ai", "-1", str(file_path)],
+            result = subprocess.run(
+                ["git", "log", "--format=%ai", "-1", str(file_path)],
                 cwd=self.repo_root,
                 capture_output=True,
                 text=True,
@@ -80,8 +76,8 @@ class GitUtils:
     def get_uncommitted_changes(self, file_path: Path) -> bool:
         """Check if file has uncommitted changes."""
         try:
-            result = subprocess.run(  # noqa: S603 - git args static, file_path internal
-                [_GIT, "diff", "--quiet", str(file_path)],
+            result = subprocess.run(
+                ["git", "diff", "--quiet", str(file_path)],
                 cwd=self.repo_root,
                 timeout=5,
             )
@@ -94,8 +90,8 @@ class GitUtils:
     def get_file_diff(self, file_path: Path) -> str | None:
         """Get diff of uncommitted changes for a file."""
         try:
-            result = subprocess.run(  # noqa: S603 - git args static, file_path internal
-                [_GIT, "diff", str(file_path)],
+            result = subprocess.run(
+                ["git", "diff", str(file_path)],
                 cwd=self.repo_root,
                 capture_output=True,
                 text=True,
@@ -127,8 +123,8 @@ class GitUtils:
         """
         try:
             # Stage file
-            subprocess.run(  # noqa: S603 - git args static, file_path internal
-                [_GIT, "add", str(file_path)],
+            subprocess.run(
+                ["git", "add", str(file_path)],
                 cwd=self.repo_root,
                 capture_output=True,
                 timeout=5,
@@ -142,8 +138,8 @@ class GitUtils:
                 "GIT_COMMITTER_NAME": author_name,
                 "GIT_COMMITTER_EMAIL": author_email,
             }
-            result = subprocess.run(  # noqa: S603 - git args static, message internal
-                [_GIT, "commit", "-m", message],
+            result = subprocess.run(
+                ["git", "commit", "-m", message],
                 cwd=self.repo_root,
                 capture_output=True,
                 text=True,
@@ -173,9 +169,9 @@ class GitUtils:
     def get_commit_history(self, file_path: Path, max_count: int = 10) -> list[dict]:
         """Get recent commit history for a file."""
         try:
-            result = subprocess.run(  # noqa: S603 - git args static, file_path internal
+            result = subprocess.run(
                 [
-                    _GIT,
+                    "git",
                     "log",
                     f"--max-count={max_count}",
                     "--format=%H|%an|%ai|%s",
@@ -209,8 +205,8 @@ class GitUtils:
         """Get overall git repository status."""
         try:
             # Get current branch
-            branch_result = subprocess.run(  # noqa: S603 - git args static
-                [_GIT, "rev-parse", "--abbrev-ref", "HEAD"],
+            branch_result = subprocess.run(
+                ["git", "rev-parse", "--abbrev-ref", "HEAD"],
                 cwd=self.repo_root,
                 capture_output=True,
                 text=True,
@@ -221,8 +217,8 @@ class GitUtils:
             )
 
             # Get dirty status
-            dirty_result = subprocess.run(  # noqa: S603 - git args static
-                [_GIT, "status", "--porcelain"],
+            dirty_result = subprocess.run(
+                ["git", "status", "--porcelain"],
                 cwd=self.repo_root,
                 capture_output=True,
                 text=True,

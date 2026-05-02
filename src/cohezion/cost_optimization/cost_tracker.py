@@ -225,20 +225,10 @@ class SessionCostTracker:
                     )
                     # Success: remove flushed records
                     self.records[:] = remaining
-                except (
-                    TimeoutError,
-                    asyncio.TimeoutError,
-                    OSError,
-                    ConnectionError,
-                    RuntimeError,
-                    AttributeError,
-                    ValueError,
-                ) as e:
+                except (TimeoutError, Exception) as e:
                     # Vault failure: keep records in-memory
                     logger.warning(
-                        "Cost tracking vault flush failed: %s. Keeping %d records in memory.",
-                        e,
-                        len(records_to_flush),
+                        f"Cost tracking vault flush failed: {e}. Keeping {len(records_to_flush)} records in memory."
                     )
         finally:
             self._pending_flush = False
@@ -276,16 +266,8 @@ class SessionCostTracker:
                             timeout=5.0,
                         )
                         flushed_count += len(batch)
-                    except (
-                        TimeoutError,
-                        asyncio.TimeoutError,
-                        OSError,
-                        ConnectionError,
-                        RuntimeError,
-                        AttributeError,
-                        ValueError,
-                    ) as e:
-                        logger.warning("Batch flush failed: %s", e)
+                    except (TimeoutError, Exception) as e:
+                        logger.warning(f"Batch flush failed: {e}")
                         break
 
         finally:

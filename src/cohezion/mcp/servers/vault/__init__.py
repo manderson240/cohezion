@@ -4,6 +4,9 @@ This module provides an entry point for the MCP server manager to run
 the cloud-vault-mcp server as part of the MCP fleet.
 """
 
+import os
+import sys
+
 
 def run_server():
     """Entry point for the MCP server manager.

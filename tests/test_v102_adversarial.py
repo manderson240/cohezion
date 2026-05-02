@@ -13,6 +13,7 @@ Covers:
 from __future__ import annotations
 
 import asyncio
+import time
 
 import numpy as np
 import pytest
@@ -354,10 +355,8 @@ class TestConsentManager:
         from cohezion.security.consent_manager import ConsentManager
 
         mgr = ConsentManager(default_expiry_seconds=0.01)
-        token = mgr.grant_consent("some action", "user-1")
-        # Force-expire the token by rewinding its expires_at into the past
-        # instead of sleeping 0.02s of wall clock
-        mgr.tokens[token.token_id].expires_at -= 1.0
+        mgr.grant_consent("some action", "user-1")
+        time.sleep(0.02)
         found = mgr.check_consent("some action")
         assert found is None
 

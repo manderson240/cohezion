@@ -12,7 +12,6 @@ import asyncio
 import json
 import logging
 import os
-import shutil
 import statistics
 import subprocess
 import threading
@@ -26,12 +25,6 @@ import psutil
 
 
 logger = logging.getLogger(__name__)
-
-
-# Resolve external executable paths at module load to avoid S607 partial-path warnings.
-_OLLAMA = shutil.which("ollama") or "/usr/local/bin/ollama"
-_PKILL = shutil.which("pkill") or "/usr/bin/pkill"
-_BASH = shutil.which("bash") or "/bin/bash"
 
 
 class MetricType(Enum):
@@ -641,9 +634,7 @@ class QuantumPerformanceMonitor:
     async def _get_loaded_models(self) -> list[str]:
         """Get list of currently loaded models"""
         try:
-            result = subprocess.run(  # noqa: S603 - ollama args static
-                [_OLLAMA, "list"], capture_output=True, text=True, timeout=10
-            )
+            result = subprocess.run(["ollama", "list"], capture_output=True, text=True, timeout=10)
 
             if result.returncode == 0:
                 models = []
@@ -714,15 +705,15 @@ class QuantumPerformanceMonitor:
 
         try:
             # Unload current model
-            subprocess.run(  # noqa: S603 - decision fields are internal model registry strings
-                [_OLLAMA, "stop", decision.current_model],
+            subprocess.run(
+                ["ollama", "stop", decision.current_model],
                 capture_output=True,
                 timeout=30,
             )
 
             # Load recommended model
-            subprocess.run(  # noqa: S603 - decision fields are internal model registry strings
-                [_OLLAMA, "run", decision.recommended_model, "--dummy"],
+            subprocess.run(
+                ["ollama", "run", decision.recommended_model, "--dummy"],
                 capture_output=True,
                 timeout=60,
             )
@@ -788,14 +779,14 @@ class QuantumPerformanceMonitor:
 
         # Graceful shutdown of Ollama
         try:
-            subprocess.run([_PKILL, "-f", "ollama"], timeout=10)  # noqa: S603 - args static
+            subprocess.run(["pkill", "-f", "ollama"], timeout=10)
         except Exception as e:
             logger.debug("Ollama shutdown failed during emergency restart: %s", e)
 
         # Restart Ollama with conservative settings
-        subprocess.run(  # noqa: S603 - bash command is a static maintenance script
+        subprocess.run(
             [
-                _BASH,
+                "bash",
                 "-c",
                 "sleep 5 && OLLAMA_NUM_THREADS=8 OLLAMA_NUM_PARALLEL=1 OLLAMA_MAX_LOADED_MODELS=1 ollama serve &",
             ]

@@ -39,7 +39,7 @@ def relaunch_sudo() -> None:
     """Relaunch the script with sudo if not already running as root"""
     if not is_root():
         print("Relaunching with sudo")
-        os.execvp("sudo", ["sudo", "-E", *sys.argv, "-y"])  # noqa: S607 - sudo invocation by name is required for distro portability
+        os.execvp("sudo", ["sudo", "-E", *sys.argv, "-y"])
 
 
 class DistroPackage:
@@ -79,7 +79,7 @@ class DistroPackage:
             return False
 
         try:
-            subprocess.check_call(installer)  # noqa: S603 - distro package installer; args from class fields, not user input
+            subprocess.check_call(installer)
         except subprocess.CalledProcessError as e:
             sys.exit(e)
         return True
@@ -100,7 +100,7 @@ class PipxPackage(DistroPackage):
 def check_amd_s2idle(stdout) -> bool:
     """Check if amd-s2idle is installed"""
     try:
-        subprocess.check_call(["amd-s2idle", "--help"], stdout=stdout)  # noqa: S607 - tool may not be installed; FileNotFoundError handled
+        subprocess.check_call(["amd-s2idle", "--help"], stdout=stdout)
     except FileNotFoundError:
         return False
     return True
@@ -117,7 +117,7 @@ if __name__ == "__main__":
             download = input("Install amd-debug-tools python wheel (y/N)? ")
         if "y" in download.lower():
             try:
-                pipx = subprocess.call(["pipx", "--version"], stdout=subprocess.DEVNULL) == 0  # noqa: S607 - tool may not be installed; FileNotFoundError handled
+                pipx = subprocess.call(["pipx", "--version"], stdout=subprocess.DEVNULL) == 0
             except FileNotFoundError:
                 pipx = False
             if not pipx:
@@ -127,13 +127,13 @@ if __name__ == "__main__":
                     sys.exit(1)
             # install amd-debug-tools wheel using pipx
             try:
-                subprocess.check_call(["pipx", "install", "amd-debug-tools"])  # noqa: S607 - pipx invocation by name; static install
+                subprocess.check_call(["pipx", "install", "amd-debug-tools"])
             except subprocess.CalledProcessError as e:
                 print(f"Failed to install amd-debug-tools: {e}")
                 sys.exit(1)
             # run pipx ensurepath
             try:
-                subprocess.check_call(["pipx", "ensurepath"])  # noqa: S607 - pipx invocation by name; static command
+                subprocess.check_call(["pipx", "ensurepath"])
             except subprocess.CalledProcessError as e:
                 print(f"Failed to run pipx ensurepath: {e}")
                 sys.exit(1)

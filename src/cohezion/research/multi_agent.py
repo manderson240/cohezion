@@ -215,7 +215,7 @@ class SimpleMultiAgent:
 
     def __init__(self, num_agents: int = 2):
         self.num_agents = num_agents
-        self.agents: list[dict[str, Any]] = []
+        self.agents = []
 
     def add_agent(
         self,

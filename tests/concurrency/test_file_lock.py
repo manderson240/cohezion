@@ -129,9 +129,7 @@ def test_config_manager_atomic_update_concurrent(temp_file):
     def increment_counter():
         def update_fn(data):
             data["counter"] += 1
-            # justify: real-thread contention test for atomic_update; sleep
-            # widens the critical section so concurrent threads must serialize
-            time.sleep(0.01)
+            time.sleep(0.01)  # Simulate work
             return data
 
         result = manager.atomic_update(update_fn)
@@ -196,8 +194,6 @@ def test_file_lock_serial_access(temp_file):
         lock = FileLock(temp_file, timeout=5.0)
         with lock:
             access_order.append(("enter", lock_id))
-            # justify: real-thread serial-access test; sleep ensures other
-            # threads attempt entry while this one holds the lock
             time.sleep(0.1)
             access_order.append(("exit", lock_id))
 
@@ -227,8 +223,6 @@ def test_file_lock_held_duration(temp_file):
     acquired_at = lock._acquired_at
     assert acquired_at is not None
 
-    # justify: tests real wall-clock duration tracking on FileLock;
-    # mocking time.time would invalidate the test's intent
     time.sleep(0.1)
     lock.release()
 

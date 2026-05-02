@@ -5,9 +5,7 @@ Provides test-driven development capabilities to the compound engineering system
 
 from __future__ import annotations
 
-import shutil
 import subprocess
-import sys
 import time
 from dataclasses import dataclass, field
 from datetime import UTC, datetime
@@ -21,15 +19,6 @@ from cohezion.compound.skill_refiner import SkillRefinementInput
 
 
 logger = structlog.get_logger(__name__)
-
-
-def _python_exec() -> str:
-    """Resolve venv python; fall back to sys.executable."""
-    repo_root = Path(__file__).resolve().parents[4]
-    venv_py = repo_root / ".venv" / "bin" / "python3"
-    if venv_py.exists():
-        return str(venv_py)
-    return shutil.which("python3") or sys.executable
 
 
 class TestStatus(Enum):
@@ -190,7 +179,7 @@ class TDDIntegration:
             pattern_args.extend(["-k", pattern])
 
         cmd = [
-            _python_exec(),
+            "python",
             "-m",
             "pytest",
             str(search_path),
@@ -202,7 +191,7 @@ class TDDIntegration:
 
         try:
             start_time = time.time()
-            result = subprocess.run(  # noqa: S603 - cmd built from internal config and pytest args
+            result = subprocess.run(
                 cmd,
                 capture_output=True,
                 text=True,
@@ -264,8 +253,8 @@ class TDDIntegration:
         """Get code coverage percentage."""
         try:
             # Run coverage command
-            result = subprocess.run(  # noqa: S603 - args fully static
-                [_python_exec(), "-m", "coverage", "report", "--format=total"],
+            result = subprocess.run(
+                ["python", "-m", "coverage", "report", "--format=total"],
                 capture_output=True,
                 text=True,
                 timeout=60,

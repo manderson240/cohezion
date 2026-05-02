@@ -70,7 +70,7 @@ class TestContextMetricsIntegration:
         """[P0] Should track context state."""
         with patch.object(Path, "cwd", return_value=temp_context):
             reset_collector()
-            get_collector()
+            collector = get_collector()
 
             mgr = ContextManager()
             mgr.load_core_context()
@@ -205,7 +205,7 @@ class TestContextWithDegradationDetector:
             "coherence": 0.3,
             "cache_hit_rate": 0.8,
         }
-        detector.check_degradation(low_coherence_metrics)
+        alerts = detector.check_degradation(low_coherence_metrics)
         # Should detect degradation if coherence < threshold
 
         # High coherence should not trigger
@@ -213,7 +213,7 @@ class TestContextWithDegradationDetector:
             "coherence": 0.9,
             "cache_hit_rate": 0.8,
         }
-        detector.check_degradation(high_coherence_metrics)
+        alerts = detector.check_degradation(high_coherence_metrics)
 
     def test_degradation_detector_with_context(self):
         """[P1] Should integrate degradation detector with context."""

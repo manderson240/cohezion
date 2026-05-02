@@ -192,7 +192,6 @@ cloud-vault-mcp/history.txt
 ruff_*.txt
 ruff_*.json
 mypy_*.txt
-!mypy_baseline.txt
 f821_out.txt
 *.tar.gz
 *.bundle

@@ -145,7 +145,7 @@ class ModelCostHistory:
         if denominator == 0:
             return 0.0
 
-        return float(numerator / denominator)  # Cost per second
+        return numerator / denominator  # Cost per second
 
 
 class AnomalyDetector:

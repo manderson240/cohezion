@@ -19,14 +19,10 @@ This service implements the compound engineering discovery loop:
 
 import json
 import logging
-import shutil
 import subprocess
 from dataclasses import dataclass
 from pathlib import Path
 from typing import Any
-
-
-_GIT = shutil.which("git") or "/usr/bin/git"
 
 
 logger = logging.getLogger(__name__)
@@ -108,8 +104,8 @@ class UniverseGenealogySurvey:
 
         try:
             # Get git log to identify major phases
-            result = subprocess.run(  # noqa: S603 - git args static
-                [_GIT, "log", "--all", "--oneline", "--date=short", "--format=%h %ad %s"],
+            result = subprocess.run(
+                ["git", "log", "--all", "--oneline", "--date=short", "--format=%h %ad %s"],
                 cwd=self.cohezion_root,
                 capture_output=True,
                 text=True,

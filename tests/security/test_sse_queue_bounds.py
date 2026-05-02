@@ -185,22 +185,28 @@ class TestQueueBounds:
         """Test concurrent puts respect queue bounds."""
         queue = BoundedAsyncQueue(maxsize=10)
 
-        # Bounded test: producer puts exactly maxsize+5 items, consumer drains all.
-        # The +5 forces the queue to hit maxsize (proving the bound) while keeping
-        # the run time deterministic (no 1s timeouts inside put_async_safe).
         async def producer():
-            for i in range(15):
-                await queue.put_async_safe(f"event{i}")
+            for i in range(100):
+                result = await queue.put_async_safe(f"event{i}")
+                if not result:
+                    # Queue full, wait for space
+                    await asyncio.sleep(0.01)
 
         async def consumer():
-            for _ in range(15):
-                await queue.get()
+            await asyncio.sleep(0.05)  # Let producer fill queue
+            for _ in range(50):
+                try:
+                    await queue.get()
+                except asyncio.QueueEmpty:
+                    await asyncio.sleep(0.001)
 
-        producer_task = asyncio.create_task(producer())
-        consumer_task = asyncio.create_task(consumer())
-        await asyncio.gather(producer_task, consumer_task)
+        # Run producer and consumer concurrently
+        asyncio.create_task(producer())
+        asyncio.create_task(consumer())
 
-        # After draining, queue is empty and size never exceeded maxsize
+        await asyncio.sleep(0.2)
+
+        # Check queue size is bounded
         assert queue.qsize() <= queue.maxsize
 
 

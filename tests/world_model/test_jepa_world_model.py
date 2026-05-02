@@ -53,7 +53,7 @@ class TestTraining:
         data = generate_synthetic_training_data(n_samples=200, state_dim=12)
 
         m1 = model.train_epoch(data, batch_size=32)
-        model.train_epoch(data, batch_size=32)
+        m2 = model.train_epoch(data, batch_size=32)
         m3 = model.train_epoch(data, batch_size=32)
 
         # Loss should generally decrease (allow some variance)

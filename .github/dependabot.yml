@@ -25,7 +25,7 @@ updates:
       - "python"
       - "security"
     commit-message:
-      prefix: "chore"
+      prefix: "chore(deps)"
       include: "scope"
     # Group updates to reduce noise
     groups:
@@ -76,7 +76,7 @@ updates:
       - "dependencies"
       - "github-actions"
     commit-message:
-      prefix: "chore"
+      prefix: "chore(actions)"
       include: "scope"
     groups:
       actions-updates:

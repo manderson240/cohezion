@@ -252,9 +252,8 @@ class TestRedisSemanticCache:
         await mock_redis_client.set(test_key, test_value, ex=1)
         assert await mock_redis_client.get(test_key) == test_value
 
-        # Force-expire by rewinding the recorded TTL into the past instead of
-        # actually sleeping for >1s of wall clock.
-        mock_redis_client.ttls[test_key] = time.time() - 1.0
+        # Wait for expiration
+        await asyncio.sleep(1.1)
         assert await mock_redis_client.get(test_key) is None
 
     @pytest.mark.asyncio
@@ -581,7 +580,7 @@ class TestPerformanceScaling:
                 # Cache miss, populate
                 await mock_redis_client.set(key, f"result-{query_id}".encode(), ex=300)
 
-        hit_count / num_queries
+        hit_rate = hit_count / num_queries
         # First query set will have low hit rate, subsequent iterations high
         assert hit_count > 0  # At least some hits
 
@@ -616,9 +615,7 @@ class TestPerformanceScaling:
             agents = agent_profiles[:num_agents]
 
             start = time.time()
-            # justify: synthetic latency-scaling smoke test; sleep is the
-            # "work" being measured, gather bounds total duration to one tick
-            tasks = [asyncio.create_task(asyncio.sleep(0.001)) for agent in agents]
+            tasks = [asyncio.create_task(asyncio.sleep(0.01)) for agent in agents]
             await asyncio.gather(*tasks)
             duration = time.time() - start
 
@@ -649,7 +646,7 @@ class TestPerformanceScaling:
             else:
                 tasks.append(mock_redis_client.set(key, f"result-{i}".encode()))
 
-        await asyncio.gather(*tasks)
+        results = await asyncio.gather(*tasks)
         duration = time.time() - start
 
         # Should complete in <1 second (100+ QPS)
@@ -704,14 +701,13 @@ class TestLoadAndChaos:
     async def test_chaos_redis_network_latency(self, mock_redis_client):
         """Test system resilience to high Redis latency."""
 
-        # Simulate latency via a single yield - the assertion only verifies
-        # the operation completes correctly under any extra await steps
+        # Simulate 100ms latency
         async def latent_set(key, value):
-            await asyncio.sleep(0)
+            await asyncio.sleep(0.1)
             return await mock_redis_client.set(key, value)
 
         async def latent_get(key):
-            await asyncio.sleep(0)
+            await asyncio.sleep(0.1)
             return await mock_redis_client.get(key)
 
         # Should still work, but slower

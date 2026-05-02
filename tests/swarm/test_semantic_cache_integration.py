@@ -134,7 +134,7 @@ class TestThreeTierCacheHierarchy:
             pytest.skip("Semantic cache not available")
 
         # Pre-load L2 cache with a unique key
-        token_client_with_semantic._cache_key("Test", "", "phi3:mini")
+        cache_key = token_client_with_semantic._cache_key("Test", "", "phi3:mini")
         embedding_vec = np.array([1.0] + [0.0] * 383, dtype=np.float32)
         embedding_vec = embedding_vec / np.linalg.norm(embedding_vec)
 

@@ -192,7 +192,7 @@ class ContextManager:
             with open(context_path, encoding="utf-8") as f:
                 config = yaml.safe_load(f)
                 logger.debug("Loaded skill context: %s", skill_name)
-                return dict(config) if isinstance(config, dict) else None
+                return config
         except ImportError:
             logger.error("PyYAML required for skill context loading")
             return None

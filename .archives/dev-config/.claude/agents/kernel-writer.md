@@ -7,6 +7,7 @@ description: |
   Use when: writing custom Triton kernels, implementing MoE/GEMM/MLA kernels,
   or translating kernel specs into working code.
 model: sonnet
+effort: high
 tools:
   - Read
   - Write

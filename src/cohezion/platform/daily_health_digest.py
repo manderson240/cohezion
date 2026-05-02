@@ -8,18 +8,11 @@ Implements 3-layer health assessment:
 3. Action Routing: EDL for critical issues, Observable AI for recommendations
 """
 
-import shutil
 import subprocess
 from datetime import datetime, timedelta
 from enum import StrEnum
 
 from pydantic import BaseModel
-
-
-# Resolve external executable paths at module load to avoid S607 partial-path warnings.
-_DU = shutil.which("du") or "/usr/bin/du"
-_BASH = shutil.which("bash") or "/bin/bash"
-_GIT = shutil.which("git") or "/usr/bin/git"
 
 from cohezion.core.persistence.surreal_client import get_surreal_client
 from cohezion.platform.coherence_tracker import (
@@ -208,8 +201,8 @@ class DailyHealthDigest:
 
         try:
             # Get repository size
-            result = subprocess.run(  # noqa: S603 - static system probe with constant args
-                [_DU, "-sb", ".git"],
+            result = subprocess.run(
+                ["du", "-sb", ".git"],
                 capture_output=True,
                 text=True,
                 timeout=30,
@@ -218,9 +211,9 @@ class DailyHealthDigest:
             size_gb = size_bytes / (1024**3)
 
             # Count large files (>1MB) in history
-            result = subprocess.run(  # noqa: S603 - static bash one-liner counting large blobs
+            result = subprocess.run(
                 [
-                    _BASH,
+                    "bash",
                     "-c",
                     """git rev-list --objects --all | \
                     git cat-file --batch-check='%(objecttype) %(objectname) %(objectsize) %(rest)' | \
@@ -233,8 +226,8 @@ class DailyHealthDigest:
             large_file_count = int(result.stdout.strip())
 
             # Get pack efficiency
-            result = subprocess.run(  # noqa: S603 - static git probe
-                [_GIT, "count-objects", "-v"],
+            result = subprocess.run(
+                ["git", "count-objects", "-v"],
                 capture_output=True,
                 text=True,
                 timeout=30,

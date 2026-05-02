@@ -87,8 +87,6 @@ class TestFileLock:
 
         # Release in another thread after delay
         def release_delayed():
-            # justify: real-thread test of FileLock retry; sleep ensures lock2's
-            # acquire actively retries before lock1 is released
             time.sleep(0.3)
             lock1.release()
 
@@ -181,9 +179,7 @@ class TestConcurrencyPrevention:
                     count = int(content.split(": ")[1])
                     new_content = f"Counter: {count + 1}"
                     Path(lock.filepath).write_text(new_content)
-                    # justify: real-thread Lost-Update test; sleep widens the
-                    # window where threads could interfere if locking failed
-                    time.sleep(0.01)
+                    time.sleep(0.01)  # Simulate work
 
         # Run multiple threads
         threads = [threading.Thread(target=increment) for _ in range(3)]
@@ -203,16 +199,13 @@ class TestConcurrencyPrevention:
         results = []
 
         def writer(value):
-            # justify: real-thread test; stagger ensures both threads contend
-            # on the lock instead of running serially
-            time.sleep(0.01)
+            time.sleep(0.01)  # Stagger starts
             with locked_file_operation(temp_file):
                 # Read
                 content = Path(temp_file).read_text()
                 old_val = int(content)
 
-                # justify: simulate work under lock; without it the second
-                # writer could acquire+release before the first thread wakes
+                # Simulate work
                 time.sleep(0.05)
 
                 # Write
@@ -251,19 +244,15 @@ class TestConcurrencyPrevention:
             with locked_file_operation(temp_file):
                 # Lock held - B cannot start
                 val = int(Path(temp_file).read_text())
-                # justify: simulate processing under lock; ensures B blocks on
-                # acquire long enough to prove serialization
-                time.sleep(0.1)
+                time.sleep(0.1)  # Simulate processing
                 Path(temp_file).write_text(str(val + 1))
                 results["a"] = val + 1
 
         def agent_b():
-            # justify: deterministic ordering - A must acquire lock first
-            time.sleep(0.02)
+            time.sleep(0.02)  # Ensure A locks first
             with locked_file_operation(temp_file):
                 val = int(Path(temp_file).read_text())
-                # justify: simulate processing under lock
-                time.sleep(0.1)
+                time.sleep(0.1)  # Simulate processing
                 Path(temp_file).write_text(str(val + 2))
                 results["b"] = val + 2
 

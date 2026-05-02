@@ -163,7 +163,7 @@ class TestSpectralRoutingIntegration:
         points = _tight_cluster(n=10, dim=4, noise=0.1)
         for p in points:
             router.record_trajectory_point("agent-weak", p)
-        router.analyze_agent("agent-weak")
+        topo = router.analyze_agent("agent-weak")
         # With fiedler_pivot_threshold=1.0, even a connected graph with
         # Fiedler < 1.0 would PIVOT — but median epsilon may make it > 1.0.
         # Use disconnected clusters for a reliable test.

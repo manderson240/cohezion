@@ -164,11 +164,8 @@ class GPUMonitor:
     def _read_from_rocm_smi(self, timestamp: float) -> GPUMetrics | None:
         """Fallback: read from rocm-smi if available."""
         try:
-            import shutil
-
-            rocm_smi = shutil.which("rocm-smi") or "/opt/rocm/bin/rocm-smi"
-            result = subprocess.run(  # noqa: S603 - static probe with constant args
-                [rocm_smi, "--json"],
+            result = subprocess.run(
+                ["rocm-smi", "--json"],
                 capture_output=True,
                 text=True,
                 timeout=2,

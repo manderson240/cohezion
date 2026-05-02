@@ -513,7 +513,7 @@ class TestIntakeSpecialistIntegration:
             intake.log_success(request, task)
 
             # Repeat request (should hit cache)
-            await intake.process_request(request)
+            task2 = await intake.process_request(request)
 
         stats = intake.get_session_stats()
         cache_stats = stats["cache_stats"]

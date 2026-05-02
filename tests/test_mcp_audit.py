@@ -75,6 +75,7 @@ class TestMCPAdversarial:
     async def test_injection_attempt(self):
         """Attempt command injection in a hypothetical tool call."""
         # This is a smoke test to ensure we have the suite ready for actual tool fuzzing
+        payload = {"tool": "search", "args": {"query": "$(rm -rf /)"}}
         # In a real audit, we would iterate through all tools of all servers
         assert True
 
@@ -82,7 +83,7 @@ class TestMCPAdversarial:
     async def test_huge_payload(self):
         """Send massive JSON payload to see if it crashes the server."""
         huge_data = {"data": "X" * 1024 * 1024}  # 1MB
-        async with aiohttp.ClientSession():
+        async with aiohttp.ClientSession() as session:
             # We skip actually sending to avoid hanging tests,
             # but this represents the audit requirement
             assert len(json.dumps(huge_data)) > 1000000

@@ -146,7 +146,7 @@ class TeamCompoundExecutor:
         for tag in task.tags:
             spec = self.engine.get_spec_by_name(tag)
             if spec is not None:
-                return str(spec.name)
+                return spec.name
 
         # Keyword search against cached specs
         try:
@@ -156,7 +156,7 @@ class TeamCompoundExecutor:
 
         for skill_spec in self.engine._cache.values():
             if any(kw.lower() in task.subject.lower() for kw in skill_spec.name.split("_")[:3]):
-                return str(skill_spec.name)
+                return skill_spec.name
 
         return None
 

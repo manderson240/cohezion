@@ -78,8 +78,6 @@ class TestSubprocessBackend:
             cpu_quota_percent=100,
             timeout_seconds=5,
         )
-        # justify: time.sleep(30) is the SANDBOXED PAYLOAD (a string passed to
-        # backend.execute), not in-test sleep; needed to exercise the 5s timeout
         result = await backend.execute("import time; time.sleep(30)", short_profile)
         assert not result.success
         assert "Timeout" in result.stderr or result.exit_code != 0

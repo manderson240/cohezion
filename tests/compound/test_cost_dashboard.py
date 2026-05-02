@@ -149,6 +149,9 @@ class TestCostDashboard:
 
     def test_get_spend_rate(self, dashboard):
         """Test spend rate calculation."""
+        # Simulate some time passing
+        time.sleep(0.1)
+
         rate = dashboard.get_spend_rate()
 
         assert isinstance(rate, SpendRate)
@@ -167,6 +170,7 @@ class TestCostDashboard:
         """Test weekly trend data retrieval."""
         # Add some trend points
         dashboard.update_trend_history()
+        time.sleep(0.01)
         dashboard.update_trend_history()
 
         trend = dashboard.get_weekly_trend()

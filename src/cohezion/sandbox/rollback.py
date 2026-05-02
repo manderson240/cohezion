@@ -16,7 +16,6 @@ Transaction lifecycle:
 
 import json
 import logging
-import shutil
 import subprocess
 import time
 import uuid
@@ -29,13 +28,6 @@ from typing import Any
 
 
 logger = logging.getLogger(__name__)
-
-
-# Resolve external tool paths at module load to avoid S607 partial-path warnings.
-_GIT = shutil.which("git") or "/usr/bin/git"
-_BTRFS = shutil.which("btrfs") or "/usr/bin/btrfs"
-_RM = shutil.which("rm") or "/bin/rm"
-_MV = shutil.which("mv") or "/bin/mv"
 
 
 class ChangeType(Enum):
@@ -290,8 +282,8 @@ class GitSnapshotBackend(SnapshotBackend):
     def create_snapshot(self, snapshot_id: str, working_dir: Path) -> bool:
         """Create snapshot by stashing changes."""
         try:
-            result = subprocess.run(  # noqa: S603 - git args static, snapshot_id internal UUID
-                [_GIT, "stash", "push", "-u", "-m", f"txn_{snapshot_id}"],
+            result = subprocess.run(
+                ["git", "stash", "push", "-u", "-m", f"txn_{snapshot_id}"],
                 cwd=working_dir,
                 capture_output=True,
                 timeout=10,
@@ -308,8 +300,8 @@ class GitSnapshotBackend(SnapshotBackend):
         """Restore snapshot by applying stash."""
         try:
             # Find stash with our marker
-            result = subprocess.run(  # noqa: S603 - git args static
-                [_GIT, "stash", "list"],
+            result = subprocess.run(
+                ["git", "stash", "list"],
                 cwd=working_dir,
                 capture_output=True,
                 timeout=5,
@@ -318,8 +310,8 @@ class GitSnapshotBackend(SnapshotBackend):
             for line in result.stdout.decode().split("\n"):
                 if f"txn_{snapshot_id}" in line:
                     stash_ref = line.split(":")[0]
-                    apply_result = subprocess.run(  # noqa: S603 - stash_ref parsed from git output
-                        [_GIT, "stash", "apply", stash_ref],
+                    apply_result = subprocess.run(
+                        ["git", "stash", "apply", stash_ref],
                         cwd=working_dir,
                         capture_output=True,
                         timeout=10,
@@ -343,8 +335,8 @@ class BtrfsSnapshotBackend(SnapshotBackend):
         """Create BTRFS snapshot."""
         try:
             snapshot_path = working_dir.parent / f".snapshots_{snapshot_id}"
-            result = subprocess.run(  # noqa: S603 - btrfs args, paths internal
-                [_BTRFS, "subvolume", "snapshot", str(working_dir), str(snapshot_path)],
+            result = subprocess.run(
+                ["btrfs", "subvolume", "snapshot", str(working_dir), str(snapshot_path)],
                 capture_output=True,
                 timeout=30,
             )
@@ -361,13 +353,13 @@ class BtrfsSnapshotBackend(SnapshotBackend):
                 return False
 
             # Remove current and restore from snapshot
-            subprocess.run(  # noqa: S603 - paths internal to snapshot manager
-                [_RM, "-rf", str(working_dir)],
+            subprocess.run(
+                ["rm", "-rf", str(working_dir)],
                 timeout=30,
                 capture_output=True,
             )
-            subprocess.run(  # noqa: S603 - paths internal to snapshot manager
-                [_MV, str(snapshot_path), str(working_dir)],
+            subprocess.run(
+                ["mv", str(snapshot_path), str(working_dir)],
                 timeout=30,
                 capture_output=True,
             )

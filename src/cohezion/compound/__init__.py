@@ -67,6 +67,41 @@ from cohezion.compound.persistence.vault import (
 )
 from cohezion.compound.skills.selector import SkillSelector as SkillSelector
 
+# Self-improving skill quality ecosystem
+from cohezion.compound.skill_evolution_diff import (
+    SkillDiff as SkillDiff,
+)
+from cohezion.compound.skill_evolution_diff import (
+    SkillEvolutionTracker as SkillEvolutionTracker,
+)
+from cohezion.compound.skill_evolution_diff import (
+    SkillVersion as SkillVersion,
+)
+from cohezion.compound.skill_health_tracker import (
+    SkillHealthRecord as SkillHealthRecord,
+)
+from cohezion.compound.skill_health_tracker import (
+    SkillHealthTracker as SkillHealthTracker,
+)
+from cohezion.compound.skill_quality_orchestrator import (
+    ImprovementHypothesis as ImprovementHypothesis,
+)
+from cohezion.compound.skill_quality_orchestrator import (
+    ImprovementResult as ImprovementResult,
+)
+from cohezion.compound.skill_quality_orchestrator import (
+    SkillQualityOrchestrator as SkillQualityOrchestrator,
+)
+from cohezion.compound.skill_quality_scorer import (
+    DimensionScore as DimensionScore,
+)
+from cohezion.compound.skill_quality_scorer import (
+    SkillQualityReport as SkillQualityReport,
+)
+from cohezion.compound.skill_quality_scorer import (
+    SkillQualityScorer as SkillQualityScorer,
+)
+
 # TDD and Adversarial Review System
 from cohezion.compound.tdd_adversarial.adversarial_review import (
     AdversarialReviewSystem as AdversarialReviewSystem,

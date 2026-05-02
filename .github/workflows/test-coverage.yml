@@ -11,7 +11,7 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        python-version: ["3.11"]
+        python-version: ["3.13"]
 
     steps:
       - uses: actions/checkout@v4
@@ -25,26 +25,20 @@ jobs:
         uses: astral-sh/setup-uv@v3
 
       - name: Install dependencies
-        run: uv sync --extra dev
+        run: uv sync
 
-      # NOTE: lint + type-check are handled by the ci.yml `lint` job
-      # (scoped to src/ + tests/). Re-running them here on the whole tree
-      # is redundant and flakier than a focused lint pipeline. The tests
-      # job's purpose is tests + coverage gating only.
+      - name: Run lint
+        run: make lint-check
+
+      - name: Run type check
+        run: make type-check
 
       - name: Run tests with coverage
-        # --timeout=300 prevents a single hanging test from holding the
-        # runner for the full 6h job-level timeout. --timeout-method=thread
-        # is required because some tests spawn subprocesses (the default
-        # SIGALRM method can't interrupt those). A test exceeding 5 min
-        # triggers a clear pytest-timeout failure naming the offending test.
         run: |
           uv run pytest tests/ \
             --cov=cohezion \
             --cov-report=xml \
             --cov-report=html \
-            --timeout=300 \
-            --timeout-method=thread \
             -v
 
       - name: Upload coverage to Codecov
@@ -80,7 +74,7 @@ jobs:
       - name: Set up Python
         uses: actions/setup-python@v5
         with:
-          python-version: "3.11"
+          python-version: "3.13"
 
       - name: Install uv
         uses: astral-sh/setup-uv@v3
@@ -97,7 +91,7 @@ jobs:
               MISSING=$((MISSING + 1))
             fi
           done
-
+          
           if [ $MISSING -gt 0 ]; then
             echo "Found $MISSING modules without tests"
             # Don't fail yet, just warn
@@ -116,7 +110,7 @@ jobs:
       - name: Set up Python
         uses: actions/setup-python@v5
         with:
-          python-version: "3.11"
+          python-version: "3.13"
 
       - name: Install uv
         uses: astral-sh/setup-uv@v3
@@ -130,12 +124,12 @@ jobs:
           for file in $(find src/cohezion -name "*.py" -type f | grep -v __pycache__ | grep -v __init__); do
             module=$(echo $file | sed 's|src/cohezion/||; s|\.py$||')
             test_path=$(echo $file | sed 's|src/cohezion|tests|; s|\.py$|_test.py|')
-
+            
             # Skip if test already exists
             if [ -f "${test_path%.py}.py" ]; then
               continue
             fi
-
+            
             # Generate test scaffold
             echo "Generating tests for $module..."
             uv run python -m cohezion.tools.test_generator \

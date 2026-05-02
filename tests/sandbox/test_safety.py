@@ -9,7 +9,6 @@ Tests cover:
   6. Policy matching and escalation
 """
 
-import time
 from datetime import datetime
 from unittest.mock import MagicMock, patch
 
@@ -28,21 +27,6 @@ from cohezion.sandbox.safety import (
     Violation,
     ViolationSeverity,
 )
-
-
-def _wait_for(predicate, timeout: float = 2.0, interval: float = 0.005) -> bool:
-    """Poll predicate() until it returns True or timeout expires.
-
-    Returns True if predicate became truthy, False on timeout. Used in place of
-    bare time.sleep() for background-thread tests so the test exits as soon as
-    the awaited condition is observed instead of the worst-case wait.
-    """
-    deadline = time.monotonic() + timeout
-    while time.monotonic() < deadline:
-        if predicate():
-            return True
-        time.sleep(interval)
-    return predicate()
 
 
 @pytest.fixture
@@ -274,8 +258,9 @@ class TestRealTimeMonitor:
         monitor.register_callback("cpu_violation", callback)
 
         monitor.start()
-        # Poll until first violation appears (or timeout)
-        _wait_for(lambda: len(monitor.violations) > 0, timeout=2.0)
+        import time
+
+        time.sleep(0.05)  # Let monitor run
         monitor.stop()
 
         # Should detect violation
@@ -297,7 +282,9 @@ class TestRealTimeMonitor:
         monitor.register_callback("memory_violation", callback)
 
         monitor.start()
-        _wait_for(lambda: len(monitor.violations) > 0, timeout=2.0)
+        import time
+
+        time.sleep(0.05)
         monitor.stop()
 
         # Should detect violation
@@ -317,7 +304,9 @@ class TestRealTimeMonitor:
 
         monitor = Monitor(policy, check_interval=0.01)
         monitor.start()
-        _wait_for(lambda: len(monitor.violations) > 0, timeout=2.0)
+        import time
+
+        time.sleep(0.05)
         monitor.stop()
 
         # Should detect violation
@@ -655,8 +644,9 @@ class TestEdgeCases:
         monitor = Monitor(policy, check_interval=0.01)
 
         monitor.start()
-        # Wait for at least one cycle that hit the patched cpu_percent
-        _wait_for(lambda: mock_cpu.call_count > 0, timeout=2.0)
+        import time
+
+        time.sleep(0.05)
         monitor.stop()
 
         # Should not crash

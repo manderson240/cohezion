@@ -170,7 +170,7 @@ class TestContainerizedUniverseExecution:
         mock_container.logs.side_effect = [b"", b""]
 
         files = {"data.txt": "sample data", "script.py": "# script"}
-        universe._sync_execute("print('hello')", files=files)
+        result = universe._sync_execute("print('hello')", files=files)
 
         # Verify container was created
         mock_docker_client.containers.create.assert_called_once()
@@ -182,7 +182,7 @@ class TestContainerizedUniverseExecution:
         mock_container.logs.side_effect = [b"", b""]
 
         env = {"VAR1": "value1", "VAR2": "value2"}
-        universe._sync_execute("print('hello')", env=env)
+        result = universe._sync_execute("print('hello')", env=env)
 
         # Check container creation includes environment
         call_kwargs = mock_docker_client.containers.create.call_args[1]
@@ -194,7 +194,7 @@ class TestContainerizedUniverseExecution:
         mock_container.wait.return_value = {"StatusCode": 0}
         mock_container.logs.side_effect = [b"", b""]
 
-        universe._sync_execute("print('hello')")
+        result = universe._sync_execute("print('hello')")
 
         # Check network mode was set
         call_kwargs = mock_docker_client.containers.create.call_args[1]
@@ -224,7 +224,7 @@ class TestContainerizedUniverseResourceLimits:
     def test_memory_limit_applied(self, mock_docker_client, mock_container):
         """[P0] Should apply memory limit to container."""
         universe = ContainerizedUniverse(memory_limit="256m")
-        universe._sync_execute("print('hello')")
+        result = universe._sync_execute("print('hello')")
 
         call_kwargs = mock_docker_client.containers.create.call_args[1]
         assert call_kwargs["mem_limit"] == "256m"
@@ -232,7 +232,7 @@ class TestContainerizedUniverseResourceLimits:
     def test_cpu_quota_applied(self, mock_docker_client, mock_container):
         """[P0] Should apply CPU quota to container."""
         universe = ContainerizedUniverse(cpu_quota=25000)  # 25%
-        universe._sync_execute("print('hello')")
+        result = universe._sync_execute("print('hello')")
 
         call_kwargs = mock_docker_client.containers.create.call_args[1]
         assert call_kwargs["cpu_quota"] == 25000
@@ -240,7 +240,7 @@ class TestContainerizedUniverseResourceLimits:
     def test_working_directory_set(self, mock_docker_client, mock_container):
         """[P0] Should set working directory."""
         universe = ContainerizedUniverse()
-        universe._sync_execute("print('hello')")
+        result = universe._sync_execute("print('hello')")
 
         call_kwargs = mock_docker_client.containers.create.call_args[1]
         assert call_kwargs["working_dir"] == "/app"
@@ -248,9 +248,9 @@ class TestContainerizedUniverseResourceLimits:
     def test_command_set(self, mock_docker_client, mock_container):
         """[P0] Should set container command."""
         universe = ContainerizedUniverse()
-        universe._sync_execute("print('hello')")
+        result = universe._sync_execute("print('hello')")
 
-        mock_docker_client.containers.create.call_args[0]
+        call_args = mock_docker_client.containers.create.call_args[0]
         call_kwargs = mock_docker_client.containers.create.call_args[1]
         assert call_kwargs["command"] == "python main.py"
 
@@ -283,7 +283,7 @@ class TestContainerizedUniverseErrorHandling:
         mock_docker_client.containers.create.return_value = mock_container
 
         universe = ContainerizedUniverse()
-        universe._sync_execute("print('hello')")
+        result = universe._sync_execute("print('hello')")
 
         # Verify remove was called
         mock_container.remove.assert_called_once_with(force=True)
@@ -296,7 +296,7 @@ class TestContainerizedUniverseErrorHandling:
         mock_docker_client.containers.create.return_value = mock_container
 
         universe = ContainerizedUniverse()
-        universe._sync_execute("exit(1)")
+        result = universe._sync_execute("exit(1)")
 
         # Container should still be removed
         mock_container.remove.assert_called_once_with(force=True)
@@ -514,7 +514,7 @@ class TestSandboxIntegration:
                 network_mode="none",
             )
 
-            universe._sync_execute("print('test')")
+            result = universe._sync_execute("print('test')")
 
             # Verify resource limits
             call_kwargs = mock_client.containers.create.call_args[1]
