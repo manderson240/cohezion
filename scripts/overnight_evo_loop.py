@@ -1852,28 +1852,25 @@ async def experiment_e12_persistent_evo(
 async def experiment_e51_evo_quality_sensitivity(n_ticks: int = 100, use_llm: bool = True) -> dict:
     """Test whether EVO coherence is quality-sensitive or purely tick-driven.
 
-    Runs two persistent EVOs: one with naive proposals (no keywords, low quality)
-    and one with optimal proposals (all keywords). If EVO coherence differs, the
-    EVO model is quality-sensitive. If identical, it's purely tick-driven.
+    Runs n_ticks deliberations for two proposal quality tiers and compares the
+    mean EVO coherence from each deliberation's biography. Uses the deliberation's
+    internal EVO (same as E12) to ensure proper lifecycle tracking.
 
-    This is the most important remaining test for the EVO lifecycle model.
-    Keep if |optimal_coherence - naive_coherence| > 0.01 (sensitivity confirmed).
+    Keep if |optimal_coherence - naive_coherence| > 0.01 (EVO is quality-sensitive).
     """
-    from cohezion.physics.evo_model import ExoticVacuumObject
-
     run = _next_run()
     start = time.time()
     print(f"\n[E51] EVO quality sensitivity ({n_ticks} ticks each, llm={use_llm})", flush=True)
 
     PROPOSAL_CONFIGS = {
         "naive": {
-            "action": "system_update",
+            "action": "e51_naive",
             "description": "System status update",
             "priority": 0.30,
             "budget": False,
         },
         "optimal": {
-            "action": "arch_optimize",
+            "action": "e51_optimal",
             "description": "Optimize architecture for safety alignment budget efficiency with cost reduction",
             "priority": 0.85,
             "budget": True,
@@ -1885,45 +1882,31 @@ async def experiment_e51_evo_quality_sensitivity(n_ticks: int = 100, use_llm: bo
     for config_name, config in PROPOSAL_CONFIGS.items():
         if _STOP:
             break
-        evo = ExoticVacuumObject(agent_id=f"e51_{config_name}_evo")
-        evo.condense()
-
-        coherences: list[float] = []
+        evo_coherences: list[float] = []
+        consensus_scores: list[float] = []
 
         for tick in range(n_ticks):
             if _STOP:
                 break
             delib = await run_llm_deliberation(
-                action=f"{config['action']}_tick{tick}",
+                action=f"{config['action']}_t{tick}",
                 description=config["description"],
                 priority=config["priority"],
                 budget=config["budget"],
                 use_llm=use_llm,
             )
+            consensus_scores.append(delib["consensus"])
+            # EVO biography comes from the deliberation's internal EVO (via run_llm_deliberation)
+            bio = delib.get("evo_biography") or {}
+            evo_coherences.append(bio.get("evo_coherence_metric", 0.45))
 
-            # Apply consensus to EVO lifecycle
-            consensus = delib["consensus"]
-            mark_type = "directive" if consensus >= 0.85 else "milestone"
-            evo.produce_witness_mark(mark_type, f"e51_{config_name}_t{tick}")
+        mean_evo = sum(evo_coherences) / len(evo_coherences) if evo_coherences else 0.0
+        mean_con = sum(consensus_scores) / len(consensus_scores) if consensus_scores else 0.0
+        results[config_name] = {"mean_evo_coherence": mean_evo, "mean_consensus": mean_con}
+        print(f"  {config_name}: mean_evo_coh={mean_evo:.4f} mean_consensus={mean_con:.4f}", flush=True)
 
-            bio = evo.generate_biography()
-            coherences.append(bio.get("evo_coherence_metric", 0.5))
-
-        final_bio = evo.generate_biography()
-        final_coherence = final_bio.get("evo_coherence_metric", 0.5)
-        results[config_name] = {
-            "final_coherence": final_coherence,
-            "mean_consensus": sum(delib["consensus"] for _ in [None]) / n_ticks if n_ticks > 0 else 0.0,
-            "total_marks": len(final_bio.get("witness_marks", [])),
-        }
-        print(
-            f"  {config_name}: final_evo_coherence={final_coherence:.4f} "
-            f"marks={len(final_bio.get('witness_marks', []))}",
-            flush=True,
-        )
-
-    naive_coh = results.get("naive", {}).get("final_coherence", 0.5)
-    optimal_coh = results.get("optimal", {}).get("final_coherence", 0.5)
+    naive_coh = results.get("naive", {}).get("mean_evo_coherence", 0.0)
+    optimal_coh = results.get("optimal", {}).get("mean_evo_coherence", 0.0)
     delta = optimal_coh - naive_coh
     sensitive = abs(delta) > 0.01
 
