@@ -1,0 +1,11 @@
+version: "3.8"
+services:
+  cohezion:
+    build: .
+    ports:
+      - "8000:8000"
+    environment:
+      - COHEZION_CI=false
+    volumes:
+      - ./data:/app/data
+      - ./vault:/app/vault

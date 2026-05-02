@@ -1,0 +1,20 @@
+cff-version: 1.2.0
+title: Cohezion
+message: "If you use this software, please cite it as below."
+type: software
+authors:
+  - family-names: Anderson
+    given-names: Mike
+    orcid: null
+repository-code: 'https://github.com/manderson240/cohezion'
+abstract: >-
+  Agentic AI framework with universe simulation, compound sessions,
+  semantic caching, and multi-model orchestration.
+keywords:
+  - agentic-ai
+  - multi-agent
+  - simulation
+  - semantic-cache
+license: MIT
+version: 1.0.2
+date-released: '2026-05-02'

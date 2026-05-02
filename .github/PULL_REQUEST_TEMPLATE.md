@@ -1,17 +1,17 @@
-### Description
+## Summary
+<!-- What does this change? -->
 
-<!--
-Please provide a detailed description of your changes.
--->
+## Fixes
+<!-- Reference issues: Fixes #XX -->
 
-### Change Type
+## Verified
+- [ ] `ruff format --check` passes
+- [ ] `ruff check src/ tests/` passes
+- [ ] `uv run pytest tests/unit/ -q` passes
+- [ ] `uv run python scripts/ci/validate_skills.py` passes
+- [ ] No new hardcoded paths or secrets
 
-<!--
-Bug fix / New feature / Refactor / Documentation / Other
--->
-
-### Related Issues
-
-<!--
-Please link to any related issues.
--->
+## V-Model Gate
+<!-- Check after merge -->
+- [ ] CI Pipeline: lint ✅ validate ✅ test ✅ ci-status ✅
+- [ ] Branch auto-deleted after squash merge
