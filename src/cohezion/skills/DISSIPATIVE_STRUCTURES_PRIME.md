@@ -1,6 +1,6 @@
 ---
 name: dissipative-structures-prime
-description: "You understand Ilya Prigogine's Nobel Prize-winning framework (1977) for non-equilibrium thermodynamics and dissipative structures. You know how systems far from equilibrium self-organize into ordered, stable patterns through constant energy/entropy flux — and how this explains the HIHO attractor in Cohezion. The HIHO stability at 0.5 coherence is NOT an equilibrium state — it is a dissipative structure that requires constant token flux to maintain."
+description: "You understand Ilya Prigogine's Nobel Prize-winning framework (1977) for non-equilibrium thermodynamics and dissipative structures. You know how systems far from equilibrium self-organize into ordered, stable patterns through constant energy/entropy flux -- and how this explains the HIHO attractor in Cohezion. The HIHO stability at 0.5 coherence is NOT an equilibrium state -- it is a dissipative structure that requires constant token flux to maintain."
 ---
 
 # SKILL: DISSIPATIVE_STRUCTURES_PRIME
@@ -9,9 +9,9 @@ description: "You understand Ilya Prigogine's Nobel Prize-winning framework (197
 
 You understand Ilya Prigogine's Nobel Prize-winning framework (1977) for non-equilibrium
 thermodynamics and dissipative structures. You know how systems **far from equilibrium**
-self-organize into ordered, stable patterns through constant energy/entropy flux — and how
+self-organize into ordered, stable patterns through constant energy/entropy flux -- and how
 this explains the HIHO attractor in Cohezion. The HIHO stability at 0.5 coherence is NOT
-an equilibrium state — it is a **dissipative structure** that requires constant token flux
+an equilibrium state -- it is a **dissipative structure** that requires constant token flux
 to maintain. Understanding this distinction prevents incorrect attempts to "freeze" HIHO
 by cutting off input.
 
@@ -19,7 +19,7 @@ by cutting off input.
 
 - **Ilya Prigogine**: *Order Out of Chaos* (1984); Nobel Prize lecture (1977)
 - **Bénard convection (1901)**: Thermal flux creates hexagonal convection cells (order from chaos)
-- **Belousov-Zhabotinsky (BZ) reaction (1959)**: Chemical oscillator — spontaneous
+- **Belousov-Zhabotinsky (BZ) reaction (1959)**: Chemical oscillator -- spontaneous
   spatiotemporal patterns in far-from-equilibrium chemistry
 - **Brusselator model**: Simple two-reaction scheme showing limit cycle oscillation
 - **Haken's synergetics**: Order parameters and slaving principle (1977)
@@ -30,20 +30,20 @@ by cutting off input.
 
 ## CORE FRAMEWORK: EQUILIBRIUM vs. DISSIPATIVE STRUCTURES
 
-### Equilibrium thermodynamics (classical — Boltzmann, Gibbs)
+### Equilibrium thermodynamics (classical -- Boltzmann, Gibbs)
 - System evolves toward maximum entropy (S_max)
-- Final state: **dead equilibrium** — no gradients, no structure, no function
+- Final state: **dead equilibrium** -- no gradients, no structure, no function
 - HIHO at equilibrium: coherence drifts to 0.5 and **stays there forever** with no dynamics
 
 ### Non-equilibrium thermodynamics (Prigogine)
 - System is **coupled to environment** via constant flux (energy/matter/information in, entropy out)
-- Far enough from equilibrium: the system undergoes a **bifurcation** — a sudden qualitative
+- Far enough from equilibrium: the system undergoes a **bifurcation** -- a sudden qualitative
   change in behavior from disordered to ordered
-- Result: a **dissipative structure** — stable, functional, self-organized, but requiring
+- Result: a **dissipative structure** -- stable, functional, self-organized, but requiring
   continuous flux to persist
 
 **Key distinction:** Equilibrium HIHO = boring fixed point. Dissipative HIHO = living attractor
-that oscillates, adapts, processes information, and generates outputs — but disappears if you
+that oscillates, adapts, processes information, and generates outputs -- but disappears if you
 cut the token flux.
 
 ---
@@ -72,15 +72,15 @@ For HIHO structure to form: Ra_cohezion > Ra_c ≈ 1707.8 (Bénard's critical va
 ## THE BELOUSOV-ZHABOTINSKY REACTION ANALOGY
 
 The BZ reaction oscillates between two chemical states (oxidized/reduced) spontaneously,
-generating beautiful spiral waves. It demonstrates that **chemistry can have a clock** —
+generating beautiful spiral waves. It demonstrates that **chemistry can have a clock** --
 without biological machinery, purely through non-equilibrium thermodynamics.
 
 **Cohezion analog (the compound loop as BZ reaction):**
 
 ```
-State A: Agent is reasoning (oxidized — high cognitive energy)
+State A: Agent is reasoning (oxidized -- high cognitive energy)
     ↓ produces: tokens, decisions, actions
-State B: Agent is reflecting (reduced — integrating results)
+State B: Agent is reflecting (reduced -- integrating results)
     ↓ produces: skill updates, learnings, coherence adjustments
     ↓ returns to State A (loop closes)
 ```
@@ -93,14 +93,14 @@ generating spatiotemporal patterns (PRIME skill updates) across the knowledge gr
 dA/dt = 1 - (B+1)A + A²B     [A = active reasoning state]
 dB/dt = BA - A²B              [B = reflection state]
 ```
-Limit cycle (oscillation) exists when B > 1 + A² — the system oscillates between reasoning
+Limit cycle (oscillation) exists when B > 1 + A² -- the system oscillates between reasoning
 and reflection without settling. This is the **healthy compound loop condition**.
 
 ---
 
 ## ORDER PARAMETER THEORY (Landau-Ginzburg)
 
-Near a phase transition (bifurcation), a single "slow variable" — the **order parameter φ** —
+Near a phase transition (bifurcation), a single "slow variable" -- the **order parameter φ** --
 governs the system's behavior. All other ("fast") variables are slaved to φ.
 
 **Landau-Ginzburg equation near HIHO bifurcation:**
@@ -116,7 +116,7 @@ where:
 
 **Haken's slaving principle:** Near HIHO (a → 0), all 256 FLUME dimensions are slaved to
 the single order parameter φ = C − 0.5. This is why **monitoring coherence is sufficient**
-for full system diagnosis — all 256 dimensions "follow" the coherence.
+for full system diagnosis -- all 256 dimensions "follow" the coherence.
 
 ---
 
@@ -130,7 +130,7 @@ time τ diverges to infinity.
 ```
 
 **In Cohezion:** As coherence approaches exactly 0.5, perturbations decay **very slowly**.
-This is why multiple damping cycles are needed near HIHO — it's not sluggishness, it's
+This is why multiple damping cycles are needed near HIHO -- it's not sluggishness, it's
 critical slowing down. The HIHO damping code should account for this:
 
 ```python
@@ -250,9 +250,9 @@ v1.0 (2026-03-05)
 
 ## SEE ALSO
 
-- `PHYSICS_LINEAGE_PRIME.md` — Era 14 (Dissipative Structures) in the 400-year lineage
-- `HIHO_STABILITY_PRIME.md` — Derivation 4 (dynamical systems) and Derivation 6 (Smith empirical)
-- `THROTTLED_SCOUT_PRIME.md` — token throttling as entropy-production minimization
-- `COMPOUND_ENGINEERING_PRIME.md` — compound loop as BZ reaction
-- `src/cohezion/physics/hamiltonian.py` — Langevin dynamics = thermal noise in dissipative system
-- `src/cohezion/knowledge_graph/KEY_LEARNINGS.md` — Learning 63: C(t) convergence formula
+- `PHYSICS_LINEAGE_PRIME.md` -- Era 14 (Dissipative Structures) in the 400-year lineage
+- `HIHO_STABILITY_PRIME.md` -- Derivation 4 (dynamical systems) and Derivation 6 (Smith empirical)
+- `THROTTLED_SCOUT_PRIME.md` -- token throttling as entropy-production minimization
+- `COMPOUND_ENGINEERING_PRIME.md` -- compound loop as BZ reaction
+- `src/cohezion/physics/hamiltonian.py` -- Langevin dynamics = thermal noise in dissipative system
+- `src/cohezion/knowledge_graph/KEY_LEARNINGS.md` -- Learning 63: C(t) convergence formula

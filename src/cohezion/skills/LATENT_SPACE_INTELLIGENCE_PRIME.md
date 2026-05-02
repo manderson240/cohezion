@@ -1,12 +1,12 @@
 ---
 name: latent-space-intelligence-prime
-description: "Latent space computation in language-based models — the machine-native representational substrate where reasoning, planning, perception, memory, collaboration, and embodiment operate as continuous vector operations rather than discrete token sequences. This skill covers the theoretical foundations (Awesome-Latent-Space survey, arXiv:2604."
+description: "Latent space computation in language-based models -- the machine-native representational substrate where reasoning, planning, perception, memory, collaboration, and embodiment operate as continuous vector operations rather than discrete token sequences. This skill covers the theoretical foundations (Awesome-Latent-Space survey, arXiv:2604."
 ---
 
 # LATENT_SPACE_INTELLIGENCE_PRIME
 
 ## Domain Expertise
-Latent space computation in language-based models — the machine-native representational substrate
+Latent space computation in language-based models -- the machine-native representational substrate
 where reasoning, planning, perception, memory, collaboration, and embodiment operate as continuous
 vector operations rather than discrete token sequences. This skill covers the theoretical foundations
 (Awesome-Latent-Space survey, arXiv:2604.02029), architectural mechanisms (Architecture,
@@ -18,27 +18,27 @@ Perception, Memory, Collaboration, Embodiment) of latent-space intelligence, map
 
 ### Primary Reference
 - **Yu et al. (2026)** "The Latent Space: Foundation, Evolution, Mechanism, Ability, and Outlook"
-  arXiv:2604.02029 — The definitive survey covering 200+ papers across LLM, VLM, and VLA
+  arXiv:2604.02029 -- The definitive survey covering 200+ papers across LLM, VLM, and VLA
   latent space methods, organized by Mechanism (Architecture/Representation/Computation/Optimization)
   and Ability (Reasoning/Planning/Modeling/Perception/Memory/Collaboration/Embodiment).
 
 ### Theoretical Foundations
-- **zhu2025reasoning** "Reasoning by Superposition" — Proves continuous thought vectors encode
+- **zhu2025reasoning** "Reasoning by Superposition" -- Proves continuous thought vectors encode
   multiple search frontiers simultaneously (BFS in latent space). COCONUT's emergent behavior
   explained formally.
-- **saunshi2025reasoning** "Recurrent Depth" — Proves looped transformers with latent iterations
+- **saunshi2025reasoning** "Recurrent Depth" -- Proves looped transformers with latent iterations
   express strictly more complex computations than standard transformers (theoretical separation).
-- **gozeten2025continuous** "CoT²" — Quantifies parallelism vs. embedding dimension relationship.
+- **gozeten2025continuous** "CoT²" -- Quantifies parallelism vs. embedding dimension relationship.
   Continuous supervision + RL for continuous thought optimization.
 
 ### Architecture Mechanisms
-- **COCONUT** (hao2024training) — First framework for reasoning in continuous latent space.
+- **COCONUT** (hao2024training) -- First framework for reasoning in continuous latent space.
   Feeds last hidden state back as next input embedding (recurrent loop of continuous thoughts).
-- **Huginn** (jonas2025scaling) — Recurrent depth for test-time compute scaling. Variable thinking
+- **Huginn** (jonas2025scaling) -- Recurrent depth for test-time compute scaling. Variable thinking
   steps without specialized reasoning data.
-- **LoopFormer** (jeddi2026loopformer) — Elastic-depth looped transformer with input-adaptive
+- **LoopFormer** (jeddi2026loopformer) -- Elastic-depth looped transformer with input-adaptive
   looping depth.
-- **Dreamer** (knupp2026depthrecurrent) — Depth-recurrent with sequence-depth-sparse attention
+- **Dreamer** (knupp2026depthrecurrent) -- Depth-recurrent with sequence-depth-sparse attention
   mixture. Most similar to Cohezion's Verlet integration + sparse gauge computation.
 
 ### Representation Mechanisms
@@ -89,7 +89,7 @@ efficient; curved regions (dynamic metrics) require full computation.
 
 #### Perception → Cohezion Observation Space
 Multimodal inference, heuristic imagination, faithful grounding.
-In Cohezion: `_get_obs_and_info()` produces the SpinorState observation — continuous perception
+In Cohezion: `_get_obs_and_info()` produces the SpinorState observation -- continuous perception
 of the 12D manifold state. The gauge field strength IS the perceptual signal.
 
 #### Memory → Cohezion Gauge Persistence
@@ -119,7 +119,7 @@ position on the Riemannian manifold. The 12D fiber bundle IS the embodied state 
 2. **The 12D brane IS the latent space.** The survey defines latent space as "the continuous,
    learned representational space in which the model encodes and manipulates information that
    is not explicitly verbalized at the token level." Cohezion's brane dimensions (x, y, z, t_t,
-   t_dt, t_dd, Ω, φ, χ, α_0, α_1, α_2) are precisely this — continuous, learned, and
+   t_dt, t_dd, Ω, φ, χ, α_0, α_1, α_2) are precisely this -- continuous, learned, and
    non-verbalizable until precipitation.
 
 3. **Christoffel symbols ARE latent computation.** The survey's "Computation" taxonomy
@@ -139,7 +139,7 @@ position on the Riemannian manifold. The 12D fiber bundle IS the embodied state 
    that latent space is most efficient when information entropy is maximized (continuous,
    compact representations). In Cohezion, this is exactly coherence_score() = 0.5:
    maximum Shannon entropy of brane dimensions → minimum computational work.
-   This IS NOT an approximation — it's a mathematical theorem.
+   This IS NOT an approximation -- it's a mathematical theorem.
 
 6. **SwarmEnv IS latent collaboration.** The C2C, LatentMAS, and Wormhole papers show
    that agents communicate most efficiently through latent state sharing (KV-cache alignment,
@@ -148,7 +148,7 @@ position on the Riemannian manifold. The 12D fiber bundle IS the embodied state 
 
 7. **Skill documents ARE Agent Primitives.** The Agent Primitives paper (wang2026primitives)
    shows that recurring MAS interaction patterns can be abstracted into reusable latent building
-   blocks. Cohezion's PRIME skills are precisely this — reusable knowledge blocks that compose
+   blocks. Cohezion's PRIME skills are precisely this -- reusable knowledge blocks that compose
    into compound capabilities.
 
 ### Key optimization insights from the survey for Cohezion:
@@ -203,7 +203,7 @@ position on the Riemannian manifold. The 12D fiber bundle IS the embodied state 
 | step_verlet() | 12,319 | 11,829 | 1,042× |
 | gauge set + YM action | 22,100 | 16,000 | 1,381× |
 | ManifoldEnv.step() total | 13,776 | 219 | 62.9× |
-| SwarmEnv.step() (4 agents) | — | 256 | — |
+| SwarmEnv.step() (4 agents) | -- | 256 | -- |
 
 ### Corresponding Latent Space Literature Speedups
 
@@ -219,8 +219,8 @@ position on the Riemannian manifold. The 12D fiber bundle IS the embodied state 
 
 ### The SIGReg-HIHO Equivalence
 
-LeWM (Maes et al., 2026, arXiv:2603.19312) introduces SIGReg — Sketched Isotropic-Gaussian
-Regularizer — as the anti-collapse mechanism for end-to-end JEPA training. SIGReg enforces
+LeWM (Maes et al., 2026, arXiv:2603.19312) introduces SIGReg -- Sketched Isotropic-Gaussian
+Regularizer -- as the anti-collapse mechanism for end-to-end JEPA training. SIGReg enforces
 that latent embeddings match an isotropic Gaussian N(0,I) distribution by:
 
 1. Projecting embeddings onto M random unit-norm directions u^(m) ∈ S^{d-1}
@@ -264,46 +264,46 @@ our HIHO optimization is optimal:
 
 ### LeWM's Key Innovations Applicable to Cohezion
 
-1. **JEPA without reconstruction loss** — LeWM proves that latent prediction loss alone
+1. **JEPA without reconstruction loss** -- LeWM proves that latent prediction loss alone
    (with SIGReg) is sufficient. Our ManifoldEnv already operates in latent space without
-   reconstruction — we compute SpinorState directly from the 12D brane, never reconstructing
+   reconstruction -- we compute SpinorState directly from the 12D brane, never reconstructing
    the full observation back.
 
-2. **End-to-end stability from two terms** — LeWM uses only ℒ_pred + λ·SIGReg.
+2. **End-to-end stability from two terms** -- LeWM uses only ℒ_pred + λ·SIGReg.
    Our ManifoldEnv reward is similarly simple: a coherence reward + step penalty.
    The SIGReg ⟹ HIHO equivalence proves this is the optimal form.
 
-3. **48× planning speedup over foundation models** — Our 62.9× ManifoldEnv speedup
+3. **48× planning speedup over foundation models** -- Our 62.9× ManifoldEnv speedup
    is in the same order. Both arise from operating entirely in compact latent space.
 
-4. **Physical probing reveals encoded quantities** — Linear and MLP probes recover physical
+4. **Physical probing reveals encoded quantities** -- Linear and MLP probes recover physical
    quantities (position, angle, velocity) from LeWM's latent space. Our 12D brane
    dimensions ARE physical quantities by design: x,y,z (position), t_t (time),
    Ω,φ,χ (spinor angles), α_0,α_1,α_2 (precipitation).
 
-5. **Violation-of-expectation framework** — LeWM detects physically implausible events
+5. **Violation-of-expectation framework** -- LeWM detects physically implausible events
    via surprise (prediction error) in latent space. Our is_hiho() + yang_mills_action
    serve the same purpose: detecting non-equilibrium states where the agent should
    pay more computational cost.
 
-6. **Temporal straightening = geodesic efficiency** — LeWM's latent trajectories become
+6. **Temporal straightening = geodesic efficiency** -- LeWM's latent trajectories become
    increasingly straight during training (cosine similarity → 1). This is EXACTLY
    what happens on a Riemannian manifold when the metric is constant: geodesics are
    straight lines. The Christoffel precomputation optimization (Γ=0) and LeWM's
    emergent straightening are the SAME phenomenon viewed from different angles.
 
-7. **SIGReg's Cramér-Wold theorem ⟹ Cohezion's maximum entropy principle** —
+7. **SIGReg's Cramér-Wold theorem ⟹ Cohezion's maximum entropy principle** --
    Cramér-Wold: matching all 1D marginals ⟹ matching the full joint distribution.
    Cohezion: all dimensions at 0.5 ⟹ maximum Shannon entropy ⟹ maximum information.
    Both prove that the flat, Gaussian equilibrium is the most informationally dense
    and computationally cheapest state.
 
 ## Version
-- v1.1.0 — 2026-04-15 — Added LeWM integration: SIGReg-HIHO equivalence, JEPA architecture mapping, temporal straightening = geodesic efficiency
-- v1.0.0 — 2026-04-14 — Initial integration from Awesome-Latent-Space survey
+- v1.1.0 -- 2026-04-15 -- Added LeWM integration: SIGReg-HIHO equivalence, JEPA architecture mapping, temporal straightening = geodesic efficiency
+- v1.0.0 -- 2026-04-14 -- Initial integration from Awesome-Latent-Space survey
 
 ## SEE ALSO
-- MANIFOLD_PHYSICS_OPTIMIZATION_PRIME — Christoffel precomputation, gauge theory fast paths
-- PHYSICS_LINEAGE_PRIME — Physics foundations (Riemannian geometry, gauge theory, spinors)
-- KERNEL_OPTIMIZATION_PRIME — General optimization methodology
-- AUTORESEARCH_PRIME — Measurement-driven optimization protocol
+- MANIFOLD_PHYSICS_OPTIMIZATION_PRIME -- Christoffel precomputation, gauge theory fast paths
+- PHYSICS_LINEAGE_PRIME -- Physics foundations (Riemannian geometry, gauge theory, spinors)
+- KERNEL_OPTIMIZATION_PRIME -- General optimization methodology
+- AUTORESEARCH_PRIME -- Measurement-driven optimization protocol

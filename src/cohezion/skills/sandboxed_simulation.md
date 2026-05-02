@@ -60,10 +60,10 @@ Simulations write files to an `output/` directory relative to their working dire
 ## Result Persistence
 
 Results are saved to `data/simulations/{run_id}/`:
-- `meta.json` — run metadata (tier, backend, success, duration)
-- `stdout.txt` — captured stdout
-- `stderr.txt` — captured stderr
-- `output/` — collected output files
+- `meta.json` -- run metadata (tier, backend, success, duration)
+- `stdout.txt` -- captured stdout
+- `stderr.txt` -- captured stderr
+- `output/` -- collected output files
 
 ## Example Scripts
 

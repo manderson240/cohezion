@@ -43,19 +43,19 @@ v1.0 (Hermetic Standard)
 
 ## AUTO-REFINEMENT (Learning 159)
 *   **Insight**: Doc-Retriever & Memory Consistency
-*   **Details**: Fixing infrastructure requires a "Sweep Pattern"—identifying all modules sharing a common dependency (e.g., SurrealDB) and verifying they all adhere to the updated protocol. The migration of `doc/indexer.py` and `memory/server.py` to `AsyncSurreal` restored coherence across the "Compound Engineering" and "Physics" server groups.
+*   **Details**: Fixing infrastructure requires a "Sweep Pattern"--identifying all modules sharing a common dependency (e.g., SurrealDB) and verifying they all adhere to the updated protocol. The migration of `doc/indexer.py` and `memory/server.py` to `AsyncSurreal` restored coherence across the "Compound Engineering" and "Physics" server groups.
 *   **Date**: 2026-04-11
 
 
 ## AUTO-REFINEMENT (Learning 277)
-*   **Insight**: L183 Total Artifact Persistence — Wiring Pattern
-*   **Details**: `persist_prompt_artifact()` and `persist_universe_snapshot()` in `genesis_persistence.py` were never called anywhere in the codebase (zero call sites). Wired into `CompoundExecutor.execute_task()` as Step 9.1 (universe snapshot, after JourneyTracker at line ~1036) and Step 10.7 (prompt artifact, before return at line ~1131). Async boundary: `execute_task()` is synchronous — use `asyncio.ensure_future()` when a loop is running, `asyncio.run()` otherwise. Both calls wrapped in `try/except Exception` (non-blocking). Result: 586 prompt_artifacts + 578 universe_snapshots populated in one session.
+*   **Insight**: L183 Total Artifact Persistence -- Wiring Pattern
+*   **Details**: `persist_prompt_artifact()` and `persist_universe_snapshot()` in `genesis_persistence.py` were never called anywhere in the codebase (zero call sites). Wired into `CompoundExecutor.execute_task()` as Step 9.1 (universe snapshot, after JourneyTracker at line ~1036) and Step 10.7 (prompt artifact, before return at line ~1131). Async boundary: `execute_task()` is synchronous -- use `asyncio.ensure_future()` when a loop is running, `asyncio.run()` otherwise. Both calls wrapped in `try/except Exception` (non-blocking). Result: 586 prompt_artifacts + 578 universe_snapshots populated in one session.
 *   **Date**: 2026-04-11
 
 
 ## AUTO-REFINEMENT (Learning 279)
-*   **Insight**: anyio Event Loop Hang — ResourceMonitor Heartbeat Anti-Pattern
-*   **Details**: `ResourceMonitor.__init__` calls `loop.create_task(self._heartbeat_loop())` when a running event loop is detected. anyio's test runner provides a live loop, so the heartbeat spawns. When anyio shuts down the loop at test end, the still-running heartbeat blocks `loop.run_until_complete()` indefinitely. Two fix patterns: (1) `async` autouse fixture calling `await monitor.stop()` after each test (for tests that own the monitor), (2) monkeypatch `_register_with_monitor` / `_deregister_from_monitor` to no-ops so the monitor is never instantiated (for tests that only incidentally touch it). Root fix (deferred): move heartbeat start to an explicit `start()` method — constructors must not spawn background tasks.
+*   **Insight**: anyio Event Loop Hang -- ResourceMonitor Heartbeat Anti-Pattern
+*   **Details**: `ResourceMonitor.__init__` calls `loop.create_task(self._heartbeat_loop())` when a running event loop is detected. anyio's test runner provides a live loop, so the heartbeat spawns. When anyio shuts down the loop at test end, the still-running heartbeat blocks `loop.run_until_complete()` indefinitely. Two fix patterns: (1) `async` autouse fixture calling `await monitor.stop()` after each test (for tests that own the monitor), (2) monkeypatch `_register_with_monitor` / `_deregister_from_monitor` to no-ops so the monitor is never instantiated (for tests that only incidentally touch it). Root fix (deferred): move heartbeat start to an explicit `start()` method -- constructors must not spawn background tasks.
 *   **Date**: 2026-04-11
 
 
@@ -67,19 +67,19 @@ v1.0 (Hermetic Standard)
 
 ## AUTO-REFINEMENT (Learning 159)
 *   **Insight**: Doc-Retriever & Memory Consistency
-*   **Details**: Fixing infrastructure requires a "Sweep Pattern"—identifying all modules sharing a common dependency (e.g., SurrealDB) and verifying they all adhere to the updated protocol. The migration of `doc/indexer.py` and `memory/server.py` to `AsyncSurreal` restored coherence across the "Compound Engineering" and "Physics" server groups.
+*   **Details**: Fixing infrastructure requires a "Sweep Pattern"--identifying all modules sharing a common dependency (e.g., SurrealDB) and verifying they all adhere to the updated protocol. The migration of `doc/indexer.py` and `memory/server.py` to `AsyncSurreal` restored coherence across the "Compound Engineering" and "Physics" server groups.
 *   **Date**: 2026-04-11
 
 
 ## AUTO-REFINEMENT (Learning 277)
-*   **Insight**: L183 Total Artifact Persistence — Wiring Pattern
-*   **Details**: `persist_prompt_artifact()` and `persist_universe_snapshot()` in `genesis_persistence.py` were never called anywhere in the codebase (zero call sites). Wired into `CompoundExecutor.execute_task()` as Step 9.1 (universe snapshot, after JourneyTracker at line ~1036) and Step 10.7 (prompt artifact, before return at line ~1131). Async boundary: `execute_task()` is synchronous — use `asyncio.ensure_future()` when a loop is running, `asyncio.run()` otherwise. Both calls wrapped in `try/except Exception` (non-blocking). Result: 586 prompt_artifacts + 578 universe_snapshots populated in one session.
+*   **Insight**: L183 Total Artifact Persistence -- Wiring Pattern
+*   **Details**: `persist_prompt_artifact()` and `persist_universe_snapshot()` in `genesis_persistence.py` were never called anywhere in the codebase (zero call sites). Wired into `CompoundExecutor.execute_task()` as Step 9.1 (universe snapshot, after JourneyTracker at line ~1036) and Step 10.7 (prompt artifact, before return at line ~1131). Async boundary: `execute_task()` is synchronous -- use `asyncio.ensure_future()` when a loop is running, `asyncio.run()` otherwise. Both calls wrapped in `try/except Exception` (non-blocking). Result: 586 prompt_artifacts + 578 universe_snapshots populated in one session.
 *   **Date**: 2026-04-11
 
 
 ## AUTO-REFINEMENT (Learning 279)
-*   **Insight**: anyio Event Loop Hang — ResourceMonitor Heartbeat Anti-Pattern
-*   **Details**: `ResourceMonitor.__init__` calls `loop.create_task(self._heartbeat_loop())` when a running event loop is detected. anyio's test runner provides a live loop, so the heartbeat spawns. When anyio shuts down the loop at test end, the still-running heartbeat blocks `loop.run_until_complete()` indefinitely. Two fix patterns: (1) `async` autouse fixture calling `await monitor.stop()` after each test (for tests that own the monitor), (2) monkeypatch `_register_with_monitor` / `_deregister_from_monitor` to no-ops so the monitor is never instantiated (for tests that only incidentally touch it). Root fix (deferred): move heartbeat start to an explicit `start()` method — constructors must not spawn background tasks.
+*   **Insight**: anyio Event Loop Hang -- ResourceMonitor Heartbeat Anti-Pattern
+*   **Details**: `ResourceMonitor.__init__` calls `loop.create_task(self._heartbeat_loop())` when a running event loop is detected. anyio's test runner provides a live loop, so the heartbeat spawns. When anyio shuts down the loop at test end, the still-running heartbeat blocks `loop.run_until_complete()` indefinitely. Two fix patterns: (1) `async` autouse fixture calling `await monitor.stop()` after each test (for tests that own the monitor), (2) monkeypatch `_register_with_monitor` / `_deregister_from_monitor` to no-ops so the monitor is never instantiated (for tests that only incidentally touch it). Root fix (deferred): move heartbeat start to an explicit `start()` method -- constructors must not spawn background tasks.
 *   **Date**: 2026-04-11
 
 

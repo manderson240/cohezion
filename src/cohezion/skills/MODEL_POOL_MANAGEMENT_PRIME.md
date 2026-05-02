@@ -59,7 +59,7 @@ Manage the lifecycle of local Ollama models across hot/warm/cold tiers, ensuring
 
 - **CostAwareRouter**: `pool_manager.get_available_models()` filters routing candidates
 - **MemoryBandwidthAnalyzer**: Reused for memory pressure calculation
-- **OllamaModelManager**: Coexists — pool manages lifecycle, manager handles benchmarks
+- **OllamaModelManager**: Coexists -- pool manages lifecycle, manager handles benchmarks
 
 ## Constraints
 
@@ -86,7 +86,7 @@ Manage the lifecycle of local Ollama models across hot/warm/cold tiers, ensuring
 
 ## References
 
-- `src/cohezion/swarm/model_pool_manager.py` — Core implementation
-- `src/cohezion/swarm/model_pool_config.py` — Configuration and data models
-- `src/cohezion/swarm/dynamic_model_router.py:60` — MemoryBandwidthAnalyzer
-- `src/cohezion/swarm/model_manager.py` — OllamaModelManager (coexists)
+- `src/cohezion/swarm/model_pool_manager.py` -- Core implementation
+- `src/cohezion/swarm/model_pool_config.py` -- Configuration and data models
+- `src/cohezion/swarm/dynamic_model_router.py:60` -- MemoryBandwidthAnalyzer
+- `src/cohezion/swarm/model_manager.py` -- OllamaModelManager (coexists)

@@ -17,10 +17,10 @@ You are a specialist in crafting atomic, intent-matching git commits when the wo
 
 ## KEY TEXTS & CONCEPTS
 
-- **Learning 363** — "Enumerate paths explicitly in a handoff markdown before staging — no wildcards, no `git add .`. Verify the staged set with `git diff --cached --name-only` before committing."
-- **Learning 368** — Pre-commit's internal stash/restore + `git stash push --keep-index` combine to re-introduce drift. Auto-fixers (ruff-format, trailing-whitespace, end-of-file-fixer) modify staged files during the commit, which can silently expand the committed file set when combined with stash-restore.
-- **Pre-commit auto-fixers as mutation source** — ruff-format, ruff (with --fix), trailing-whitespace, end-of-file-fixer all mutate files during the commit. If those files have unstaged changes, the mutation conflicts during restore.
-- **The `SKIP=<list>` escape hatch** — `SKIP=playwright-tests,ruff-format,ruff,trailing-whitespace,end-of-file-fixer git commit ...` bypasses the auto-fixers entirely for a single commit.
+- **Learning 363** -- "Enumerate paths explicitly in a handoff markdown before staging -- no wildcards, no `git add .`. Verify the staged set with `git diff --cached --name-only` before committing."
+- **Learning 368** -- Pre-commit's internal stash/restore + `git stash push --keep-index` combine to re-introduce drift. Auto-fixers (ruff-format, trailing-whitespace, end-of-file-fixer) modify staged files during the commit, which can silently expand the committed file set when combined with stash-restore.
+- **Pre-commit auto-fixers as mutation source** -- ruff-format, ruff (with --fix), trailing-whitespace, end-of-file-fixer all mutate files during the commit. If those files have unstaged changes, the mutation conflicts during restore.
+- **The `SKIP=<list>` escape hatch** -- `SKIP=playwright-tests,ruff-format,ruff,trailing-whitespace,end-of-file-fixer git commit ...` bypasses the auto-fixers entirely for a single commit.
 
 ## INSTRUCTION
 
@@ -81,7 +81,7 @@ git add <correct-paths>    # re-stage surgically
 SKIP=... git commit -m ... # try again
 ```
 
-This is non-destructive — no files are lost.
+This is non-destructive -- no files are lost.
 
 ### 6. Recover from a conflicted `git stash pop`
 
@@ -102,11 +102,11 @@ Never `git stash drop` a stash with conflict markers until you've verified the m
 
 Applied 5+ times in the compound-loop extended session:
 
-1. `036716399` delegate.py commit — 2 files, exactly as intended.
-2. `0f229805a` DelegationBudget + import-drift gate — 4 files, one soft-reset recovery after index polluted by pre-commit restore.
-3. `23c74feec` FleetResult.confidence — 2 files, `git reset HEAD` before re-stage caught 3 polluting files.
-4. `c072ac198` Sprint B — 141 files (140 skills + 3 wiring), staged with explicit glob `src/cohezion/skills/*.md` + 3 named files, verified before commit.
-5. `acd862160` Kaggle branch guard — 3 files, pre-commit ran successfully since SKIP list bypassed the churn path.
+1. `036716399` delegate.py commit -- 2 files, exactly as intended.
+2. `0f229805a` DelegationBudget + import-drift gate -- 4 files, one soft-reset recovery after index polluted by pre-commit restore.
+3. `23c74feec` FleetResult.confidence -- 2 files, `git reset HEAD` before re-stage caught 3 polluting files.
+4. `c072ac198` Sprint B -- 141 files (140 skills + 3 wiring), staged with explicit glob `src/cohezion/skills/*.md` + 3 named files, verified before commit.
+5. `acd862160` Kaggle branch guard -- 3 files, pre-commit ran successfully since SKIP list bypassed the churn path.
 
 ### Anti-patterns confirmed in the same session
 
@@ -116,7 +116,7 @@ Applied 5+ times in the compound-loop extended session:
 
 ## COMPOUND LOOP INTEGRATION
 
-Every surgical commit that lands generates a `vmodel_gate` row in SurrealDB (via `scripts/hooks/vmodel_gate_post_commit.py`). A commit that violates this skill — swept up 5 unrelated files — would produce 5 vmodel_gate rows with `passed=False` (missing paired tests for the unintended inclusions). That signal flows to the `session_end.py` aggregator and marks the session's `pass_rate` below threshold, skipping SkillRefiner (refinement is success-only).
+Every surgical commit that lands generates a `vmodel_gate` row in SurrealDB (via `scripts/hooks/vmodel_gate_post_commit.py`). A commit that violates this skill -- swept up 5 unrelated files -- would produce 5 vmodel_gate rows with `passed=False` (missing paired tests for the unintended inclusions). That signal flows to the `session_end.py` aggregator and marks the session's `pass_rate` below threshold, skipping SkillRefiner (refinement is success-only).
 
 The skill's discipline is thus SELF-REINFORCING in the compound loop: sloppy commits get flagged; disciplined commits score the session up.
 

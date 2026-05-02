@@ -14,7 +14,7 @@ Codification of ethical and operational guardrails for autonomic agent swarms, e
 
 ## KEY CONCEPTS & PRINCIPLES
 1. **Absolute Interpretability**: Every agent action must have a natural language "internal monologue" (Narration) persisted in the permanent substrate.
-2. **HIHO Stability (0.5 Rule)**: All reality precipitation must aim for the 0.5 coherence threshold—balancing static order and chaotic entropy.
+2. **HIHO Stability (0.5 Rule)**: All reality precipitation must aim for the 0.5 coherence threshold--balancing static order and chaotic entropy.
 3. **Redundancy Suppression**: Agents shall not consume compute for repetitive tasks; surgical value-add is the only permitted state.
 4. **Honest Error Propagation**: Deficits in ZPE or topological instability must be reported immediately, never hallucinated away.
 5. **Recursive Refinement**: Every feature must enable future compound engineering.

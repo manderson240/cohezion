@@ -21,7 +21,7 @@ Expert in **Obsidian-style knowledge vault maintenance**. Specializes in graph h
    Use MCP tools `graph_stats()` and `vault_health_check()` to get current vault metrics. Parse the response for orphan count, broken links, and connectivity scores.
 
 2. **Detect Orphan Notes**:
-   Scan all `.md` files in the vault. For each file, grep all other files for `[[filename]]` references. Zero matches = orphan. Collect into a report sorted by age (oldest first — most likely to archive).
+   Scan all `.md` files in the vault. For each file, grep all other files for `[[filename]]` references. Zero matches = orphan. Collect into a report sorted by age (oldest first -- most likely to archive).
 
 3. **Enforce Frontmatter**:
    ```yaml

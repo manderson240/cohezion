@@ -66,7 +66,7 @@ print(f"Healed {healed} issues")
 | available | 0 | failing | Restart service |
 
 ### Systemd Crash-Loop Patterns (added 2026-04-21)
-Repo reorganizations (e.g. an "archaeology" commit that relocates files to `archives/backups/`) frequently leave systemd unit files — which live outside the repo at `~/.config/systemd/user/` and `/etc/systemd/system/` — pointing at stale paths. Units with `Restart=always` then crash-loop at ~12 restarts/minute per affected service. This can contribute to system-wide instability on memory-pressured hardware.
+Repo reorganizations (e.g. an "archaeology" commit that relocates files to `archives/backups/`) frequently leave systemd unit files -- which live outside the repo at `~/.config/systemd/user/` and `/etc/systemd/system/` -- pointing at stale paths. Units with `Restart=always` then crash-loop at ~12 restarts/minute per affected service. This can contribute to system-wide instability on memory-pressured hardware.
 
 | Symptom | Diagnosis | Remediation |
 |---------|-----------|-------------|
@@ -75,7 +75,7 @@ Repo reorganizations (e.g. an "archaeology" commit that relocates files to `arch
 | `/tmp/<dir>` fails hard on fresh boot | tmpfs wipes `/tmp/*` on every boot | `ExecStartPre=/bin/mkdir -p /tmp/<dir>` OR `RuntimeDirectory=<name>` + point arg at `%t/<name>` |
 | Crash-loop detection unit itself failing | guardian script missing/broken | Rebuild from `scripts/service_guardian.sh` (see ref below); narrow remediations only |
 
-**Narrow-remediation principle**: a self-healing guardian should (a) recreate transient runtime dirs, and (b) `reset-failed` on known services so `StartLimitBurst` doesn't permanently block them. It should NOT auto-mask units with missing `ExecStart` files — real regressions must stay visible. Flapping > silently-masked as a default.
+**Narrow-remediation principle**: a self-healing guardian should (a) recreate transient runtime dirs, and (b) `reset-failed` on known services so `StartLimitBurst` doesn't permanently block them. It should NOT auto-mask units with missing `ExecStart` files -- real regressions must stay visible. Flapping > silently-masked as a default.
 
 Reference implementation: `scripts/service_guardian.sh` (restored in commit `8b870acb9`, 2026-04-21, after original was lost in commit `9dfb5a4e`).
 
@@ -97,9 +97,9 @@ done
 - `learnings/2026-04-21-turboquant-phase0-and-crash-loop-triage.md` (vault)
 
 ## VERSION
-v0.2 — 2026-04-21 added systemd crash-loop patterns from turbo-distributed-torvalds session
+v0.2 -- 2026-04-21 added systemd crash-loop patterns from turbo-distributed-torvalds session
 
 ## SEE ALSO
 - SWARM_ORCHESTRATION_PRIME.md
 - OLLAMA_MANAGEMENT_PRIME.md
-- TURBOQUANT_PHASE_RECOVERY_S104.md (Phase 4 — sibling verification pattern)
+- TURBOQUANT_PHASE_RECOVERY_S104.md (Phase 4 -- sibling verification pattern)

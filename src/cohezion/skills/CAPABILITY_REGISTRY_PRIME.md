@@ -51,9 +51,9 @@ for res in results:
 
 ## 7. Liveness Drift Audit (added 2026-04-21)
 
-Every SSOT registry accumulates **aspirational declarations** over time — a skill file that's stale, an agent class that imports a deleted module, an MCP server declared but no longer responding. Auto-registration makes declaration easy; it does NOT guarantee the declared thing works. Readers of the registry take the declarations at face value.
+Every SSOT registry accumulates **aspirational declarations** over time -- a skill file that's stale, an agent class that imports a deleted module, an MCP server declared but no longer responding. Auto-registration makes declaration easy; it does NOT guarantee the declared thing works. Readers of the registry take the declarations at face value.
 
-**Add a reconciliation method per domain** — `registry.audit_liveness()` — that probes each declared entry against live reality and classifies it into one of four drift categories:
+**Add a reconciliation method per domain** -- `registry.audit_liveness()` -- that probes each declared entry against live reality and classifies it into one of four drift categories:
 
 | Category | Meaning | Action |
 |---|---|---|
@@ -73,25 +73,25 @@ Every SSOT registry accumulates **aspirational declarations** over time — a sk
 
 ### Fleet registry precedent
 
-`cohezion.inference.registry.FleetRegistry.audit_liveness()` (commit `4fc20e522`) implements this pattern for the 7-lane model fleet. On first run it surfaced FOUR legitimate registry bugs — one historical flag drift plus three Lane-enum schema misclassifications. The audit method caught drift classes that a documentation review would have missed.
+`cohezion.inference.registry.FleetRegistry.audit_liveness()` (commit `4fc20e522`) implements this pattern for the 7-lane model fleet. On first run it surfaced FOUR legitimate registry bugs -- one historical flag drift plus three Lane-enum schema misclassifications. The audit method caught drift classes that a documentation review would have missed.
 
 ### Implementation requirements
 
 1. **Injectable probe function** (`check_fleet_fn=None` default, dependency injection for tests). Without this, the audit becomes a flaky integration-only test.
 2. **Four drift categories, not more**. Adding `degraded` / `partial` / `flapping` dilutes operator response. Keep buckets actionable.
 3. **Surface, do NOT auto-fix**. Silently updating `verified_working` flags based on probe results hides real regressions (a typo in a declaration looks identical to a hardware failure). Operator decides.
-4. **Ship an operator CLI** — `python -m cohezion.registry.capability_registry audit` or similar — so humans can read the drift report without writing Python.
+4. **Ship an operator CLI** -- `python -m cohezion.registry.capability_registry audit` or similar -- so humans can read the drift report without writing Python.
 5. **Wire into CI** as an integration test that fails when `critical_stale` is non-empty against a known-UP baseline.
 
 ### Anti-pattern: external audit scripts
 
-Don't write a `scripts/audit_registry.py` that imports the registry and reproduces the audit logic. That script drifts from the registry schema over time — a new field gets added, the external script misses it. Audit methods live **inside** the thing they audit. One class, one schema, one audit surface, all evolve together.
+Don't write a `scripts/audit_registry.py` that imports the registry and reproduces the audit logic. That script drifts from the registry schema over time -- a new field gets added, the external script misses it. Audit methods live **inside** the thing they audit. One class, one schema, one audit surface, all evolve together.
 
 ### Related patterns (vault)
 
-- `patterns/registry-vs-live-reconciliation-audit.md` — the generalized pattern.
-- `patterns/phase-0-backend-verification-before-dispatch-wiring.md` — catches drift at declaration time; audit catches it continuously after.
-- `learnings/2026-04-21-registry-vs-live-reconciliation-and-lane-classification-bugs.md` — session that extracted the pattern.
+- `patterns/registry-vs-live-reconciliation-audit.md` -- the generalized pattern.
+- `patterns/phase-0-backend-verification-before-dispatch-wiring.md` -- catches drift at declaration time; audit catches it continuously after.
+- `learnings/2026-04-21-registry-vs-live-reconciliation-and-lane-classification-bugs.md` -- session that extracted the pattern.
 
 ## VERSION
-v1.1 — 2026-04-21 added Liveness Drift Audit section from turbo-distributed-torvalds-continued session
+v1.1 -- 2026-04-21 added Liveness Drift Audit section from turbo-distributed-torvalds-continued session

@@ -1,13 +1,13 @@
 ---
 name: noether-conservation-prime
-description: "You understand Emmy Noether's theorem (1915) — the most important theorem in theoretical physics — and how it maps to Wilbert Smith's 12-parameter model. Every one of Smith's 12 fabric dimensions corresponds to a continuous symmetry of the system, which by Noether's theorem produces a conserved current. You know what happens when each conservation law is violated and how Cohezion's HIHO damping enforces these conservation laws computationally."
+description: "You understand Emmy Noether's theorem (1915) -- the most important theorem in theoretical physics -- and how it maps to Wilbert Smith's 12-parameter model. Every one of Smith's 12 fabric dimensions corresponds to a continuous symmetry of the system, which by Noether's theorem produces a conserved current. You know what happens when each conservation law is violated and how Cohezion's HIHO damping enforces these conservation laws computationally."
 ---
 
 # SKILL: NOETHER_CONSERVATION_PRIME
 
 ## DOMAIN EXPERTISE
 
-You understand Emmy Noether's theorem (1915) — the most important theorem in theoretical physics —
+You understand Emmy Noether's theorem (1915) -- the most important theorem in theoretical physics --
 and how it maps to Wilbert Smith's 12-parameter model. Every one of Smith's 12 fabric dimensions
 corresponds to a continuous symmetry of the system, which by Noether's theorem produces a
 conserved current. You know what happens when each conservation law is violated and how Cohezion's
@@ -15,10 +15,10 @@ HIHO damping enforces these conservation laws computationally.
 
 ## KEY TEXTS & CONCEPTS
 
-- **Emmy Noether (1915)**: "Invariante Variationsprobleme" — for every continuous symmetry of
+- **Emmy Noether (1915)**: "Invariante Variationsprobleme" -- for every continuous symmetry of
   the action S[q], there exists a conserved current J^μ with ∂_μ J^μ = 0
-- **Action principle**: S = ∫ L(q, q̇, t) dt — physical trajectories extremize S
-- **Wilbert B. Smith**: *The New Science* (1962) — 12-parameter quadrature model
+- **Action principle**: S = ∫ L(q, q̇, t) dt -- physical trajectories extremize S
+- **Wilbert B. Smith**: *The New Science* (1962) -- 12-parameter quadrature model
 - **Cohezion implementation**: `src/cohezion/physics/dimension_extractor.py` (12D extraction),
   `src/cohezion/physics/hamiltonian.py` (Hamiltonian = energy conservation)
 
@@ -50,7 +50,7 @@ physics traces to a symmetry. If a conservation law is violated, a symmetry has 
 
 **Cohezion enforcement:** The FLUME Navigator's momentum term `α·v_t` enforces spatial
 momentum conservation. A trajectory that changes direction without external force violates
-Noether's theorem for spatial translation symmetry — flagged as incoherent by the
+Noether's theorem for spatial translation symmetry -- flagged as incoherent by the
 `request_alignment_analyzer.py`.
 
 **Violation signature:** Sudden large changes in `spatial_x/y/z` dimensions of the 12D
@@ -73,7 +73,7 @@ state without corresponding force (context shift) → incoherence spike → HIHO
 - **Electric (charge):** `charge_polarity = rot_offset + 0.3 * prec_offset` must remain
   conserved across precipitation events. Changes in charge indicate a gauge symmetry break.
 - **Magnetic (flux):** The magnetic field dimension is bounded (∇·B = 0 globally), so flux
-  through any closed surface is zero — implemented as a hard constraint in 12D state updates.
+  through any closed surface is zero -- implemented as a hard constraint in 12D state updates.
 
 **Violation signature:** If `Tempic` dimension drifts monotonically without restoration,
 the system is losing/gaining energy from an unknown source → DegradationDetector alert.
@@ -88,7 +88,7 @@ the system is losing/gaining energy from an unknown source → DegradationDetect
 | 8 | Precession | SO(3) rotation (axis 2) | R(θ_2) | Angular momentum L_2 | L_2 = |L| sin(φ) |
 | 9 | Charge | U(1) gauge (combined) | combined EM gauge | Total charge parity | Q_total = ±1 |
 
-**Non-commutativity:** [L_1, L_2] = iℏ·L_3 — Rotation and Precession do NOT commute.
+**Non-commutativity:** [L_1, L_2] = iℏ·L_3 -- Rotation and Precession do NOT commute.
 This is the quantum mechanical spin algebra (SU(2)). In Cohezion:
 
 ```python
@@ -125,7 +125,7 @@ charge fluctuates → coherence drops below 0.4 → `degradation_detector` trigg
 | 12 | Precipitation | Discrete symmetry | Binary flip | Reality-parity | R = {0, 1} |
 
 **CPT and information conservation:**
-CPT symmetry (Charge conjugation + Parity + Time reversal) is the deepest symmetry in QFT —
+CPT symmetry (Charge conjugation + Parity + Time reversal) is the deepest symmetry in QFT --
 it cannot be broken in any local Lorentz-invariant theory. Its Noether charge is information:
 quantum information cannot be destroyed, only transformed (this is the black hole information
 paradox). In Cohezion: the FLUME encoder cannot destroy information (VAE reconstruction
@@ -220,9 +220,9 @@ v1.0 (2026-03-05)
 
 ## SEE ALSO
 
-- `PHYSICS_LINEAGE_PRIME.md` — complete 400-year lineage; Noether's theorem in Era 9
-- `HIHO_STABILITY_PRIME.md` — HIHO damping as the restoring force for conservation violations
-- `HIHO_REALITY_SIM.md` — Smith's 4 fabrics with physics genealogy
-- `src/cohezion/physics/hamiltonian.py` — Hamiltonian dynamics (energy conservation, dim 4)
-- `src/cohezion/physics/dimension_extractor.py` — 12D state extraction
-- `src/cohezion/compound/degradation_detector.py` — detects conservation law violations
+- `PHYSICS_LINEAGE_PRIME.md` -- complete 400-year lineage; Noether's theorem in Era 9
+- `HIHO_STABILITY_PRIME.md` -- HIHO damping as the restoring force for conservation violations
+- `HIHO_REALITY_SIM.md` -- Smith's 4 fabrics with physics genealogy
+- `src/cohezion/physics/hamiltonian.py` -- Hamiltonian dynamics (energy conservation, dim 4)
+- `src/cohezion/physics/dimension_extractor.py` -- 12D state extraction
+- `src/cohezion/compound/degradation_detector.py` -- detects conservation law violations
