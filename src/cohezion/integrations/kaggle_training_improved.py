@@ -214,14 +214,21 @@ try:
 
     PROMPT_COL = next(c for c in ("prompt", "question", "problem") if c in df.columns)
 
-    # v5: all symbolic examples directly (no teacher distillation loop)
-    print(f"\n[5/8] Using {len(df)} verified examples (no teacher filtering)...")
-    filtered_data = [
+    # v5: all symbolic examples; upsample encryption (long phrase answers) 4x
+    # Autoresearch finding 2026-05-02: encrypt_x4 metric=476 vs baseline 203 (2.3x)
+    # Encryption examples have 98.7% symbolic accuracy and 3-5x answer signal/token
+    import random as _rnd
+    _rnd.seed(42)
+    base_data = [
         {"prompt": str(row[PROMPT_COL]).strip(), "answer": str(row["answer"]).strip(), "trace": ""}
         for _, row in df.iterrows()
         if str(row[PROMPT_COL]).strip() and str(row["answer"]).strip()
     ]
-    print(f"  {len(filtered_data)} examples retained")
+    _encrypt = [r for r in base_data if len(r["answer"]) > 8 and r["answer"].replace(" ", "").isalpha()]
+    _other = [r for r in base_data if r not in _encrypt]
+    filtered_data = _other + _encrypt * 4
+    _rnd.shuffle(filtered_data)
+    print(f"\n[5/8] {len(base_data)} base examples; {len(_encrypt)} encryption upsampled 4x → {len(filtered_data)} total")
 
     # 6. Student model — torch_dtype=torch.bfloat16, no quantization
     print("\n[6/8] Student model...")
