@@ -34,7 +34,8 @@
 | E60 | lr=2.0 crosses HIHO threshold in one cycle: baseline 0.725 + 0.125 calibration = 0.850 | ✅ validated |
 | E62 | Full E3/E6 pipeline (ingest_evo_journeys → synthesis → apply_mycelium_feedback → deliberate) lifts consensus | ✅ validated |
 | E63 | **CONFIRMED REPRODUCIBLE** (2× runs): baseline=0.7250 → post=0.7875, delta=+0.0625 at lr=1.0. Formula exact match | ✅ 2 runs |
-| E64 | **NEW**: Multi-cycle compounding (5 cycles, shared nexus). Predicted threshold crossing at cycle 4 | 🔄 scheduled |
+| E63_lr2 | **THRESHOLD CROSSED** (20 runs, 100% keep): mean_delta=+0.1250 at lr=2.0. Formula: gap×0.5×2.0=0.1250. One synthesis cycle closes the full gap to 0.850 | ✅ 20 runs |
+| E64 | Multi-cycle compounding (5 cycles, shared nexus). Predicted threshold crossing at cycle 4 | 🔄 running |
 
 ## Architecture Insights
 
@@ -91,7 +92,7 @@ The `run_llm_deliberation` function SETs `_score_adjustments` on every call, whi
 
 ## Pending: Next High-Value Experiments
 
-1. **E63 lr=2.0 result** — Currently running. Expected: delta≥+0.125 (threshold crossing in one cycle per E60).
+1. **E63_lr2 CONFIRMED** — mean_delta=+0.1250 (20 runs, 100% keep). E60 prediction validated. lr=2.0 is the production setting for threshold crossing in a single synthesis cycle.
 2. **E64: Multi-cycle compounding** — 5-cycle shared nexus test. Predicted cycle_means: [0.7875, 0.8219, 0.8457, 0.8594, 0.8672]. If monotone=True AND threshold_crossed at cycle 4 → E57 mechanism is production-grade.
 3. **E52: Mixed-quality persistent EVO** — Alternate naive/optimal proposals in E12-style run. Does EVO coherence settle at an intermediate value?
 4. **Lemonade LLM mode** — Already confirmed ACTIVE (LLM=True in current 2h session). Re-run E46/E64 with attention to LLM variance vs heuristic attractor.
