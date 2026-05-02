@@ -326,6 +326,12 @@ async def main(hours: float = 2.0, use_llm: bool = True) -> None:
             ),
         ),
         (
+            "E64_compound",
+            lambda: evo.experiment_e64_mycelium_compounding(
+                n_cycles=5, n_phase=8, use_llm=use_llm, learning_rate=1.0
+            ),
+        ),
+        (
             "E51_quality_xl",
             lambda: evo.experiment_e51_evo_quality_sensitivity(n_ticks=200, use_llm=use_llm),
         ),
