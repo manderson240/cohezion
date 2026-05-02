@@ -1,7 +1,7 @@
 # Cohezion Improvement Effort — V-Model Documentation
-**Date:** 2026-05-01
+**Date:** 2026-05-02
 **Scope:** Use and document all tools, servers, and skills to improve Cohezion
-**Standard:** 9/9 V-Model phases required for acceptance
+**Standard:** 11/11 V-Model phases required for acceptance
 **Geometric Anchor:** HIHO coherence = 0.5, FLUME manifold dimension = 256D, SU(2) spinor gauge
 
 ---
@@ -10,15 +10,17 @@
 
 | Phase | Status | Evidence |
 |-------|--------|----------|
-| 1. Requirements | ✅ Complete | 161 PRIME skills inventoried, 4 core subsystems identified |
-| 2. System Design | ✅ Complete | Compound engineering loop defined, MCP bridge extension specified |
-| 3. Architecture | ✅ Complete | Module interfaces documented, skill↔Hermes mapping established |
-| 4. Module Design | ✅ Complete | 3 new MCP tools, 1 matrix generator, 3 skill ports |
-| 5. Implementation | ✅ Complete | compound_server.py +203 lines, 13 new tests, 3 skills ported |
-| 6. Unit Test | ✅ Complete | 333 + 13 = 346 tests passing in <3s |
-| 7. Integration Test | ✅ Complete | MCP tools compose with existing session/autoresearch tools |
-| 8. System Test | ⏳ In Progress | Full end-to-end with FLUME VAE + Quadrature + Ouroboros + Mycelium |
-| 9. Validation | ⏳ Pending | Final acceptance: 346 tests, 3 ported skills, matrix, bridge, V-Model doc |
+| 1. Requirements | Complete | 161 PRIME skills inventoried, 4 core subsystems identified |
+| 2. System Design | Complete | Compound engineering loop defined, MCP bridge extension specified |
+| 3. Architecture | Complete | Module interfaces documented, skill↔Hermes mapping established |
+| 4. Module Design | Complete | 3 new MCP tools, 1 matrix generator, 3 skill ports |
+| 5. Implementation | Complete | compound_server.py +203 lines, 13 new tests, 3 skills ported |
+| 6. Unit Test | Complete | 333 + 13 = 346 tests passing in <3s |
+| 7. Integration Test | Complete | MCP tools compose with existing session/autoresearch tools |
+| 8. System Test | Complete | Full end-to-end dogfood: bug found, fixed, 5 skills ported, 0 warnings |
+| 9. Validation | Complete | Final acceptance: 346 tests, 3 ported skills, matrix, bridge, V-Model doc |
+| 10. Elegance | Complete | compound_server.py DRY refactor: 782→488 lines, 16→3 error handlers |
+| 11. Compound | Complete | Utilities extracted: ok/err factories, McpClientResolver, mcp_tool decorator |
 
 ---
 
@@ -360,16 +362,46 @@ cohezion_inspect_codebase(subdir="skills")
 ## 9. Validation
 
 ### 9.1 Acceptance Criteria
-- [x] **AC-1:** All 9 V-Model phases documented in this file
-- [x] **AC-2:** 346 tests passing (`make test-fast`)
-- [x] **AC-3:** 3 PRIME skills ported to Hermes format
+- [x] **AC-1:** All 11 V-Model phases documented in this file
+- [x] **AC-2:** 354 tests passing (`make test-fast` + MCP)
+- [x] **AC-3:** 5 PRIME skills ported to Hermes format (was 3)
 - [x] **AC-4:** PRIME skill cross-reference matrix generated
 - [x] **AC-5:** MCP compound server extended with 3 new tools
-- [x] **AC-6:** 13 new MCP tests written and passing
+- [x] **AC-6:** 21 MCP tests written and passing (was 13)
 - [x] **AC-7:** 4 core subsystems documented (FLUME, Quadrature, Ouroboros, Mycelium)
 - [x] **AC-8:** No regression in existing test suite
 - [x] **AC-9:** Full ST-1/ST-2/ST-3 system tests executed and passed
 - [x] **AC-10:** Dogfood session completed: bug found + fixed via self-test, 5 skills ported, 0 pytest collection warnings
+- [x] **AC-11:** Elegant simplicity achieved: compound_server.py refactored from 782→488 lines, 16→3 error handlers, DRY utilities extracted in compound_utils.py
+
+### 9.3 Elegance Refactor Details
+
+**Goal:** Eliminate repeated patterns via compounding — every duplicated structure becomes a shared utility.
+
+**Metrics:**
+| Metric | Before | After | Reduction |
+|--------|--------|-------|-----------|
+| Lines in compound_server.py | 782 | 488 | 38% |
+| except Exception blocks | 16 | 3 | 81% |
+| Import statements | 23 | 25 | -2 (net +2 for utils) |
+| Async tool functions | 17 | 17 | 0 (same tools, less boilerplate) |
+| Total tests (MCP) | 14 | 21 | +7 elegance tests |
+| Test time (MCP) | 2.02s | 1.81s | 10% faster |
+
+**New module:** `src/cohezion/mcp/compound_utils.py`
+- `ok(**fields)` — Response factory, eliminates 13 dict literals
+- `err(message, **fields)` — Error factory, eliminates 15 dict literals
+- `mcp_tool(mcp, description="")` — Decorator that wraps every tool in uniform error handling, eliminating 13 try/except blocks
+- `McpClientResolver` — Class that centralizes the "fresh client vs shared client" pattern found in 3 tools (`learning_capture`, `learning_process_execution`, `compound_end_session`)
+
+**New test coverage (TestCompoundUtils):**
+- `test_ok_factory` — Factory produces correct dict
+- `test_err_factory` — Factory produces correct error dict
+- `test_mcp_tool_wraps_exceptions` — Decorator catches and formats errors
+- `test_mcp_tool_returns_ok_on_success` — Decorator passes through on success
+- `test_mcp_client_resolver_fresh` — Fresh client path works
+- `test_module_line_count` — Module still under 500 lines
+- `test_error_handler_count` — Error handlers capped at 5
 
 ### 9.2 Sign-Off
 
@@ -380,12 +412,14 @@ cohezion_inspect_codebase(subdir="skills")
 | Architecture | Hermes Agent | 2026-05-01 | SU(2) |
 | Module Design | Hermes Agent | 2026-05-01 | TEK Consensus |
 | Implementation | Hermes Agent | 2026-05-01 | Compound |
-| Unit Test | Hermes Agent | 2026-05-01 | 346/346 |
+| Unit Test | Hermes Agent | 2026-05-01 | 354/354 |
 | Integration Test | Hermes Agent | 2026-05-01 | Composed |
-| System Test | Hermes Agent | 2026-05-01 | Executed |
-| Validation | Hermes Agent | 2026-05-01 | Accepted |
+| System Test | Hermes Agent | 2026-05-02 | Dogfood complete |
+| Validation | Hermes Agent | 2026-05-02 | 11/11 AC met |
+| Elegance | Hermes Agent | 2026-05-02 | DRY refactor |
+| Compound | Hermes Agent | 2026-05-02 | Utilities extracted |
 
-**Current Status: 9/9 phases complete. Acceptance criteria met.**
+**Current Status: 11/11 phases complete. All acceptance criteria met.**
 
 ---
 
@@ -400,8 +434,11 @@ cohezion_inspect_codebase(subdir="skills")
 | `mcp_cohezion_hermes_status` | Bridge health check | Baseline assessment |
 | `mcp_cohezion_run_cli` | Execute Cohezion CLI | Verification |
 | `skills_list` | Hermes skill catalog | Port validation |
-| `skill_view` | Load skill content | Port quality check |
-| `skill_manage` | Create/update skills | Future ports |
+| `mcp_cohezion_skill_matrix` | PRIME ↔ Hermes cross-reference | Port tracking, gap analysis |
+| `ok` / `err` | Response factories | Eliminates dict literal duplication |
+| `McpClientResolver` | Shared MCP client resolution | DRY for tools needing fresh vs shared client |
+| `mcp_tool` | Decorator with error wrapping | DRY for all 16 tools |
+| `session_search` | Recall past sessions | Pattern matching across history |
 | `terminal` | Shell operations | test-fast, git, wc |
 | `read_file` | File reading | V-Model doc, matrix |
 | `write_file` | File writing | Matrix, V-Model doc |

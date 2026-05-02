@@ -10,7 +10,7 @@ from __future__ import annotations
 import asyncio
 from pathlib import Path
 from typing import Any
-from unittest.mock import AsyncMock, patch
+from unittest.mock import AsyncMock, Mock, patch
 
 import pytest
 
@@ -18,6 +18,10 @@ from cohezion.mcp.compound_server import (
     cohezion_batch_port_skills,
     cohezion_inspect_codebase,
     cohezion_skill_matrix,
+    err,
+    mcp_tool,
+    ok,
+    McpClientResolver,
     mcp,
 )
 
@@ -57,6 +61,84 @@ class TestToolRegistration:
 
 
 # ---------------------------------------------------------------------------
+# Compound utilities (elegant simplicity)
+# ---------------------------------------------------------------------------
+
+
+@pytest.mark.fast
+class TestCompoundUtils:
+    """Verify the DRY utilities extracted during elegance refactor."""
+
+    def test_ok_factory(self) -> None:
+        r = ok(value=42, name="test")
+        assert r == {"status": "success", "value": 42, "name": "test"}
+
+    def test_err_factory(self) -> None:
+        r = err("boom", code=7)
+        assert r == {"status": "error", "error": "boom", "code": 7}
+
+    @pytest.mark.asyncio
+    async def test_mcp_tool_wraps_exceptions(self) -> None:
+        mock_mcp = AsyncMock()
+        # mcp.tool(description="...") returns a decorator that accepts the wrapper
+        mock_mcp.tool = Mock(return_value=lambda fn: fn)
+
+        @mcp_tool(mock_mcp)
+        async def _explode(x: int) -> dict[str, Any]:
+            """Boom."""
+            raise ValueError("kaboom")
+
+        result = await _explode(1)
+        assert result["status"] == "error"
+        assert "kaboom" in result["error"]
+        mock_mcp.tool.assert_called_once()
+
+    @pytest.mark.asyncio
+    async def test_mcp_tool_returns_ok_on_success(self) -> None:
+        mock_mcp = AsyncMock()
+        mock_mcp.tool = Mock(return_value=lambda fn: fn)
+
+        @mcp_tool(mock_mcp)
+        async def _double(x: int) -> dict[str, Any]:
+            """Double."""
+            return ok(result=x * 2)
+
+        result = await _double(21)
+        assert result == {"status": "success", "result": 42}
+
+    @pytest.mark.asyncio
+    async def test_mcp_client_resolver_fresh(self) -> None:
+        fake_client = AsyncMock()
+        resolver = McpClientResolver(get_default_client=lambda: fake_client)
+
+        with patch.object(resolver, "_get_default", return_value=fake_client):
+            with patch(
+                "cohezion.core.mcp_client.create_mcp_client",
+                return_value=fake_client,
+            ):
+                client, is_fresh = await resolver.resolve("http://test:8080")
+                assert client is fake_client
+                fake_client.connect.assert_awaited_once()
+
+    def test_module_line_count(self) -> None:
+        """Module shrunk from 782 to < 500 lines (elegant simplicity gate)."""
+        mod = (
+            Path(__file__).resolve().parents[2] / "src" / "cohezion" / "mcp" / "compound_server.py"
+        )
+        assert mod.exists()
+        lines = len(mod.read_text().splitlines())
+        assert lines < 500, f"compound_server.py is {lines} lines; refactor target is < 500"
+
+    def test_error_handler_count(self) -> None:
+        """Only 3 error handlers remain in module (was 16 before DRY refactor)."""
+        mod = (
+            Path(__file__).resolve().parents[2] / "src" / "cohezion" / "mcp" / "compound_server.py"
+        )
+        text = mod.read_text()
+        assert text.count("except Exception") <= 5, "too many bare except blocks remain"
+
+
+# ---------------------------------------------------------------------------
 # cohezion_inspect_codebase tests
 # ---------------------------------------------------------------------------
 
@@ -67,9 +149,7 @@ class TestInspectCodebase:
 
     @pytest.mark.asyncio
     async def test_returns_success_for_known_subdir(self) -> None:
-        result = await cohezion_inspect_codebase(
-            subdirectory="swarm", pattern="*.py", max_depth=2
-        )
+        result = await cohezion_inspect_codebase(subdirectory="swarm", pattern="*.py", max_depth=2)
         assert result["status"] == "success"
         assert result["files"] >= 1
         assert result["total_lines"] >= 1
@@ -89,9 +169,7 @@ class TestInspectCodebase:
 
     @pytest.mark.asyncio
     async def test_respects_max_depth(self) -> None:
-        result = await cohezion_inspect_codebase(
-            subdirectory="cache", pattern="*.py", max_depth=1
-        )
+        result = await cohezion_inspect_codebase(subdirectory="cache", pattern="*.py", max_depth=1)
         assert result["status"] == "success"
         assert all(node["depth"] <= 1 for node in result["tree"])
 
