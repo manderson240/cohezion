@@ -100,48 +100,4 @@ jobs:
 
   auto-generate-tests:
     runs-on: ubuntu-latest
-    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
-
-    steps:
-      - uses: actions/checkout@v4
-        with:
-          token: ${{ secrets.GITHUB_TOKEN }}
-
-      - name: Set up Python
-        uses: actions/setup-python@v5
-        with:
-          python-version: "3.13"
-
-      - name: Install uv
-        uses: astral-sh/setup-uv@v3
-
-      - name: Install dependencies
-        run: uv sync
-
-      - name: Auto-generate tests for new modules
-        run: |
-          # Generate tests for modules without coverage
-          for file in $(find src/cohezion -name "*.py" -type f | grep -v __pycache__ | grep -v __init__); do
-            module=$(echo $file | sed 's|src/cohezion/||; s|\.py$||')
-            test_path=$(echo $file | sed 's|src/cohezion|tests|; s|\.py$|_test.py|')
-            
-            # Skip if test already exists
-            if [ -f "${test_path%.py}.py" ]; then
-              continue
-            fi
-            
-            # Generate test scaffold
-            echo "Generating tests for $module..."
-            uv run python -m cohezion.tools.test_generator \
-              --target "$file" \
-              --output "$test_path" \
-              --template minimal || true
-          done
-
-      - name: Commit generated tests
-        run: |
-          git config --local user.email "action@github.com"
-          git config --local user.name "GitHub Action"
-          git add tests/
-          git diff --staged --quiet || git commit -m "Auto-generate test scaffolds for new modules [skip ci]"
-          git push
+    if: false

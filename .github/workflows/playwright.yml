@@ -1,10 +1,6 @@
 name: Playwright Tests
 
 on:
-  push:
-    branches: [ main, develop ]
-    paths:
-      - 'src/web/anima_dashboard/**'
   pull_request:
     branches: [ main, develop ]
     paths:
@@ -25,7 +21,6 @@ jobs:
     - name: Check dashboard exists
       id: check
       run: test -f package.json
-      working-directory: ./src/web/anima_dashboard
       continue-on-error: true
     - uses: actions/setup-node@v4
       if: steps.check.outcome == 'success'
@@ -33,10 +28,16 @@ jobs:
         node-version: lts/*
     - name: Install dependencies
       if: steps.check.outcome == 'success'
-      run: npm install --no-audit --no-fund
+      run: npm ci
     - name: Install Playwright Browsers
       if: steps.check.outcome == 'success'
-      run: npx playwright install --with-deps
+      run: npx playwright install chromium --with-deps
+    - name: Build and start dev server
+      if: steps.check.outcome == 'success'
+      run: |
+        npm run build --if-present || true
+        npm run dev -- --port 3000 &
+        npx wait-on http://localhost:3000 --timeout 30000
     - name: Run Playwright tests
       if: steps.check.outcome == 'success'
       run: npx playwright test
