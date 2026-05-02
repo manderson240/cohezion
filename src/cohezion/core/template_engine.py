@@ -104,12 +104,20 @@ def _parse_see_also(text: str) -> list[str]:
 
 def _skill_name_to_class(skill_name: str) -> str:
     """Convert ``COMPOUND_ENGINEERING_PRIME`` to ``CompoundEngineering``."""
+    # Strip description suffixes like " -- subtitle" or " - subtitle"
+    base = re.split(r"\s+[-–—]+\s+", skill_name)[0]
     # Remove trailing _PRIME
-    base = re.sub(r"_PRIME$", "", skill_name, flags=re.IGNORECASE)
+    base = re.sub(r"_PRIME$", "", base, flags=re.IGNORECASE)
+    # Collapse non-alphanumeric (except underscore) to single underscore
+    base = re.sub(r"[^a-zA-Z0-9_]", "_", base)
+    # Collapse multiple underscores
+    base = re.sub(r"_+", "_", base).strip("_")
     # Title-case each word, remove underscores
     result = "".join(word.capitalize() for word in base.split("_"))
-    # Ensure the class name doesn't start with a digit
-    if result and result[0].isdigit():
+    # Ensure the class name doesn't start with a digit and is non-empty
+    if not result:
+        result = "UnnamedSkill"
+    elif result[0].isdigit():
         result = f"Skill{result}"
     return result
 
