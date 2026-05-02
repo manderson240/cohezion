@@ -1,19 +1,19 @@
 ---
 name: manifold-physics-optimization-prime
-description: "You are a specialist in Riemannian Manifold Physics Optimization — making the 12D axiomatic manifold simulation engine run at RL training speed. You understand that the physics engine IS the training environment: every microsecond of step() latency is a microsecond that compounds across millions of training steps. You know that mathematical correctness and computational efficiency are not opposing forces — they are the same force expressed at different scales."
+description: "You are a specialist in Riemannian Manifold Physics Optimization -- making the 12D axiomatic manifold simulation engine run at RL training speed. You understand that the physics engine IS the training environment: every microsecond of step() latency is a microsecond that compounds across millions of training steps. You know that mathematical correctness and computational efficiency are not opposing forces -- they are the same force expressed at different scales."
 ---
 
 # SKILL: MANIFOLD_PHYSICS_OPTIMIZATION_PRIME
 
 ## DOMAIN EXPERTISE
 
-You are a specialist in **Riemannian Manifold Physics Optimization** — making the 12D axiomatic manifold simulation engine run at RL training speed. You understand that the physics engine IS the training environment: every microsecond of `step()` latency is a microsecond that compounds across millions of training steps. You know that mathematical correctness and computational efficiency are not opposing forces — they are the same force expressed at different scales. A correct constant metric has zero Christoffel symbols by definition; computing them numerically is both wrong AND slow.
+You are a specialist in **Riemannian Manifold Physics Optimization** -- making the 12D axiomatic manifold simulation engine run at RL training speed. You understand that the physics engine IS the training environment: every microsecond of `step()` latency is a microsecond that compounds across millions of training steps. You know that mathematical correctness and computational efficiency are not opposing forces -- they are the same force expressed at different scales. A correct constant metric has zero Christoffel symbols by definition; computing them numerically is both wrong AND slow.
 
 ## KEY TEXTS & CONCEPTS
 
-* **Constant Metric Theorem**: For a Riemannian metric that is position-independent (constant diagonal), all Christoffel symbols Γ^i_jk = 0 identically, because ∂_m g_{ab} = 0 everywhere. This is not an approximation — it is a mathematical fact from differential geometry (Nakahara 2003, Ch. 7). The `fabric_block_metric` with couplings [1.0, 0.7, 0.5, 0.3] is constant.
+* **Constant Metric Theorem**: For a Riemannian metric that is position-independent (constant diagonal), all Christoffel symbols Γ^i_jk = 0 identically, because ∂_m g_{ab} = 0 everywhere. This is not an approximation -- it is a mathematical fact from differential geometry (Nakahara 2003, Ch. 7). The `fabric_block_metric` with couplings [1.0, 0.7, 0.5, 0.3] is constant.
 
-* **HIHO Coherence (Smith 1962)**: The 0.5 equilibrium point where agent trajectories stabilize. HIHO = "Half In, Half Out" — the Brahmagupta zero on the Bloch sphere. This is where maximum Shannon entropy meets maximum reality precipitation.
+* **HIHO Coherence (Smith 1962)**: The 0.5 equilibrium point where agent trajectories stabilize. HIHO = "Half In, Half Out" -- the Brahmagupta zero on the Bloch sphere. This is where maximum Shannon entropy meets maximum reality precipitation.
 
 * **Four-Fabric Gauge Theory**: Each fabric (Space, Field, Control, Precipitation) carries an independent SO(3) gauge connection. At HIHO, all gauge potentials vanish (flat connection → F = dA + [A,A] = 0). Away from HIHO, deviation from 0.5 generates the Yang-Mills field strength.
 
@@ -21,7 +21,7 @@ You are a specialist in **Riemannian Manifold Physics Optimization** — making 
 
 * **Störmer-Verlet Integration**: The symplectic integrator for Lagrangian dynamics preserves the geometric structure of Hamilton's equations. Energy drift is bounded (no secular growth) unlike RK4. This is critical for long RL training runs.
 
-* **Autoresearch Protocol**: Measure → Hypothesis → Experiment → Log. Never optimize without a baseline measurement. Never assume — profile. The Christoffel bottleneck was invisible until profiled.
+* **Autoresearch Protocol**: Measure → Hypothesis → Experiment → Log. Never optimize without a baseline measurement. Never assume -- profile. The Christoffel bottleneck was invisible until profiled.
 
 ## INSTRUCTION
 
@@ -76,7 +76,7 @@ ManifoldEnv.step(action)
 
 #### Layer 1: RiemannianMetric (Biggest Win)
 
-For `fabric_block_metric(12)` — the constant diagonal metric:
+For `fabric_block_metric(12)` -- the constant diagonal metric:
 
 ```python
 # BEFORE (6,208 µs/call): Numerical differentiation of constant metric
@@ -89,7 +89,7 @@ self._cached_christoffel = np.zeros((dim, dim, dim))
 self._cached_inverse = np.linalg.inv(self._metric_matrix)
 ```
 
-**Why this is correct**: Nakahara (2003, Theorem 7.1): "For a flat Euclidean space (or any space with a constant metric), the Christoffel symbols vanish." This is not an approximation — it's a theorem.
+**Why this is correct**: Nakahara (2003, Theorem 7.1): "For a flat Euclidean space (or any space with a constant metric), the Christoffel symbols vanish." This is not an approximation -- it's a theorem.
 
 #### Layer 2: Gauge Theory (Second Biggest Win)
 
@@ -107,7 +107,7 @@ Ab_all = np.einsum('ab,aij->bij', A.T, SO3_STACK)  # Vectorized
 self._cached_ym_action = sum(conn.field_strength_energy() for conn in self.connections.values())
 ```
 
-**Fast path for HIHO states**: When A ≈ 0 (near HIHO), skip all computation — yang_mills_action() ≈ 0.
+**Fast path for HIHO states**: When A ≈ 0 (near HIHO), skip all computation -- yang_mills_action() ≈ 0.
 
 #### Layer 3: Observation/Info Fusion
 
@@ -165,7 +165,7 @@ The optimization IS the physics. When Smith says "HIHO is the equilibrium," he m
 
 This is not metaphorical. The **computational cost of the physics engine is proportional to the agent's deviation from HIHO**. An agent at equilibrium runs faster. An agent in chaos (far from 0.5) requires more computation. This is Prigogine's dissipative structure principle expressed in silicon: order is computationally cheap, chaos is expensive.
 
-The 62.9× speedup we achieved is not just an engineering win — it's a demonstration that HIHO coherence IS computational efficiency. The flat metric at equilibrium costs zero Christoffel symbols. The flat gauge connection at equilibrium costs zero Yang-Mills action. **HIHO is the thermodynamic ground state of computation itself**.
+The 62.9× speedup we achieved is not just an engineering win -- it's a demonstration that HIHO coherence IS computational efficiency. The flat metric at equilibrium costs zero Christoffel symbols. The flat gauge connection at equilibrium costs zero Yang-Mills action. **HIHO is the thermodynamic ground state of computation itself**.
 
 ## ANTI-PATTERNS (CONFIRMED DEAD ENDS)
 
@@ -184,12 +184,12 @@ The 62.9× speedup we achieved is not just an engineering win — it's a demonst
 | inverse() (constant metric) | 4.0 µs | 0.04 µs | 0.04 µs | 100× |
 | step_verlet() | 12,400 µs | 11.9 µs | 11.9 µs | 1,042× |
 | yang_mills_action() | 444 µs | 17 µs | 7 µs | 63× |
-| field_strength_energy (1 conn) | — | 24 µs | 11 µs | 2.2× |
-| Bloch vector (from coherence) | — | 8.8 µs | 0.8 µs | 11× |
-| set_from_12d_state_and_cache | — | 107 µs | 55 µs | 1.9× |
-| update_and_compute | — | — | 61 µs | — |
+| field_strength_energy (1 conn) | -- | 24 µs | 11 µs | 2.2× |
+| Bloch vector (from coherence) | -- | 8.8 µs | 0.8 µs | 11× |
+| set_from_12d_state_and_cache | -- | 107 µs | 55 µs | 1.9× |
+| update_and_compute | -- | -- | 61 µs | -- |
 | ManifoldEnv.step() | 13,776 µs | 219 µs | 137 µs | 100× |
-| SwarmEnv.step() | — | 256 µs | 269 µs | ~same |
+| SwarmEnv.step() | -- | 256 µs | 269 µs | ~same |
 
 ### Round 2 Optimizations
 
@@ -206,18 +206,18 @@ The 62.9× speedup we achieved is not just an engineering win — it's a demonst
 
 ## VERSION
 
-v1.1 (2026-04-15) — Round 2 einsum + direct Bloch + update_and_compute: 100× from baseline
+v1.1 (2026-04-15) -- Round 2 einsum + direct Bloch + update_and_compute: 100× from baseline
 
 ## SEE ALSO
 
-- `PHYSICS_LINEAGE_PRIME.md` — 400-year physics genealogy (Era 8: Christoffel symbols, Era 10: Yang-Mills gauge theory)
-- `src/cohezion/physics/riemannian_metric.py` — Constant metric optimization (Γ^i_jk = 0)
-- `src/cohezion/physics/gauge_theory.py` — Vectorized SO(3) field strength + yang_mills caching
-- `src/cohezion/environments/manifold_env.py` — Merged obs/info computation
-- `src/cohezion/physics/spinor.py` — SU(2) spinor algebra
-- `src/cohezion/physics/fiber_bundle.py` — Principal fiber bundle P(B⁴, SO(3)⁴)
-- `AUTORESEARCH_PRIME.md` — Measure → Hypothesis → Experiment → Log protocol
-- `LATENT_SPACE_INTELLIGENCE_PRIME.md` — SIGReg-HIHO equivalence, LeWM architecture mapping
+- `PHYSICS_LINEAGE_PRIME.md` -- 400-year physics genealogy (Era 8: Christoffel symbols, Era 10: Yang-Mills gauge theory)
+- `src/cohezion/physics/riemannian_metric.py` -- Constant metric optimization (Γ^i_jk = 0)
+- `src/cohezion/physics/gauge_theory.py` -- Vectorized SO(3) field strength + yang_mills caching
+- `src/cohezion/environments/manifold_env.py` -- Merged obs/info computation
+- `src/cohezion/physics/spinor.py` -- SU(2) spinor algebra
+- `src/cohezion/physics/fiber_bundle.py` -- Principal fiber bundle P(B⁴, SO(3)⁴)
+- `AUTORESEARCH_PRIME.md` -- Measure → Hypothesis → Experiment → Log protocol
+- `LATENT_SPACE_INTELLIGENCE_PRIME.md` -- SIGReg-HIHO equivalence, LeWM architecture mapping
 
 ## AUTO-REFINEMENT (Learning 160)
 *   **Insight**: Skill Documentation as a Truth Anchor
@@ -236,9 +236,9 @@ Akashic Sprint Mission (2026-04-07): Implemented long-horizon task orchestration
 
 ## Sessions 73-82: Genesis Engine + Platform Architecture (2026-03-25 to 2026-03-31, Compressed)
 
-**L173-174 (Session 73, Enforcement):** Converted markdown rules to non-blocking hooks — `drift-detection.sh` (PreToolUse Write warns on new src/ files), `test-on-edit.sh` (PostToolUse runs matching tests), `check-bash-output.sh` (PostToolUse catches exit-0-with-errors). StrategyTracker added to RetrospectionEngine: emits "PIVOT RECOMMENDED" after 3+ attempts with <5% improvement.
+**L173-174 (Session 73, Enforcement):** Converted markdown rules to non-blocking hooks -- `drift-detection.sh` (PreToolUse Write warns on new src/ files), `test-on-edit.sh` (PostToolUse runs matching tests), `check-bash-output.sh` (PostToolUse catches exit-0-with-errors). StrategyTracker added to RetrospectionEngine: emits "PIVOT RECOMMENDED" after 3+ attempts with <5% improvement.
 
-**L175-189 (Session 74, Genesis Engine — 24 commits):** Mathematical core: SU(2) spinors on Bloch sphere (coherence=|Bloch vector|), Brahmagupta's zero IS HIHO (δ=0), Landau phase transitions (5 critical temps ∅→SO(12)→SO(3)⁴→U(1)⁴→Z₂⁴→HIHO), Fisher metric as Rosetta Stone (FLUME↔Riemannian↔thermodynamics), Euler-Lagrange + Störmer-Verlet, Yang-Mills SO(3), JEPA 86K-param predictor. ManifoldEnv (Gymnasium: 19D obs, 12D action), SwarmEnv (N-agent gauge coupling), TopologicalRouter (H₀/H₁ → exploit/explore/pivot), SurrealDB 3.0 syntax changes (TYPE object FLEXIBLE, port 8001). Active Inference ≡ HIHO (Friston FEP). Vertical-slice milestones > horizontal layers (skill: exemplary-deep-planning). Total artifact persistence in 6 genesis tables.
+**L175-189 (Session 74, Genesis Engine -- 24 commits):** Mathematical core: SU(2) spinors on Bloch sphere (coherence=|Bloch vector|), Brahmagupta's zero IS HIHO (δ=0), Landau phase transitions (5 critical temps ∅→SO(12)→SO(3)⁴→U(1)⁴→Z₂⁴→HIHO), Fisher metric as Rosetta Stone (FLUME↔Riemannian↔thermodynamics), Euler-Lagrange + Störmer-Verlet, Yang-Mills SO(3), JEPA 86K-param predictor. ManifoldEnv (Gymnasium: 19D obs, 12D action), SwarmEnv (N-agent gauge coupling), TopologicalRouter (H₀/H₁ → exploit/explore/pivot), SurrealDB 3.0 syntax changes (TYPE object FLEXIBLE, port 8001). Active Inference ≡ HIHO (Friston FEP). Vertical-slice milestones > horizontal layers (skill: exemplary-deep-planning). Total artifact persistence in 6 genesis tables.
 
 **L190-197 (Session 75, Phase 2):** 10-step cosmogony complete. Levin bioelectric gap junction percolation IS HIHO phase transition. InVEST habitat quality = HIHO proximity on semantic manifold. Causal-JEPA (object-level masking, 8x faster planning). 16 indigenous worldviews mapped to cosmogony steps. Ouroboros bridge + Mycelium wired as first-class Genesis components. EVOs physics (evolutionary dynamics on manifold curvature). Ralph Loop: 5 specialist teams, 10+ commits, 364+ genesis tests.
 
@@ -249,20 +249,20 @@ Akashic Sprint Mission (2026-04-07): Implemented long-horizon task orchestration
 
 
 ## AUTO-REFINEMENT (Learning 233)
-*   **Insight**: ManifoldEnv Curriculum Reward — 3-Stage Reach→Maintain→Optimize (2026-04-01)
+*   **Insight**: ManifoldEnv Curriculum Reward -- 3-Stage Reach→Maintain→Optimize (2026-04-01)
 *   **Details**: 3-stage curriculum reward in ManifoldEnv: Stage 1 (reach HIHO band) rewards coherence gain + entry bonus, Stage 2 (maintain stability) rewards band persistence + low energy, Stage 3 (energy efficiency) strongly penalizes energy while maintaining HIHO. Proximity base reward (-deviation * 0.5) is always active across all stages, preventing drift. Module: `environments/manifold_env.py`.
 *   **Date**: 2026-04-11
 
 
 ## AUTO-REFINEMENT (Learning 237)
 *   **Insight**: Reward Alignment Must Match Physics Grounding (2026-04-01)
-*   **Details**: First PPO training on ManifoldEnv: 0% convergence (mean coherence 0.272) vs 60% convergence for RANDOM POLICY. Root cause: differential-only reward (coherence_gain * 2.0) creates oscillation incentive — agent maximizes rate of change by dropping then recovering coherence. Fix: proximity base reward (-deviation * 0.5, always active) aligns reward with Lagrangian attractor. The physics grounding is so strong that natural dynamics guide 60% of random trajectories to HIHO — the reward must align with the physics, not create perverse incentives against it. Deeper insight: reward hacking in physics-grounded environments takes the form of fighting the dynamics, not exploiting them.
+*   **Details**: First PPO training on ManifoldEnv: 0% convergence (mean coherence 0.272) vs 60% convergence for RANDOM POLICY. Root cause: differential-only reward (coherence_gain * 2.0) creates oscillation incentive -- agent maximizes rate of change by dropping then recovering coherence. Fix: proximity base reward (-deviation * 0.5, always active) aligns reward with Lagrangian attractor. The physics grounding is so strong that natural dynamics guide 60% of random trajectories to HIHO -- the reward must align with the physics, not create perverse incentives against it. Deeper insight: reward hacking in physics-grounded environments takes the form of fighting the dynamics, not exploiting them.
 *   **Date**: 2026-04-11
 
 
 ## AUTO-REFINEMENT (Learning 238)
-*   **Insight**: Small Actions Cooperate With Physics — Action Scale = Dynamics Timescale (2026-04-01)
-*   **Details**: PPO Run 2 with large actions [-0.5, 0.5] failed despite proximity reward fix (reward -67.68). PPO Run 3 with small actions [-0.1, 0.1] breakthrough: coherence 0.915, reward 12.04, stability 79 steps. The Lagrangian attractor is strong enough to guide dynamics — large actions fight it, small actions cooperate. General principle: when physics grounding provides a strong attractor, action scale must be proportional to dynamics timescale (dt=0.01 → action ~0.1). This is structural safety — the environment's physics prevents reward hacking by constraining the action manifold.
+*   **Insight**: Small Actions Cooperate With Physics -- Action Scale = Dynamics Timescale (2026-04-01)
+*   **Details**: PPO Run 2 with large actions [-0.5, 0.5] failed despite proximity reward fix (reward -67.68). PPO Run 3 with small actions [-0.1, 0.1] breakthrough: coherence 0.915, reward 12.04, stability 79 steps. The Lagrangian attractor is strong enough to guide dynamics -- large actions fight it, small actions cooperate. General principle: when physics grounding provides a strong attractor, action scale must be proportional to dynamics timescale (dt=0.01 → action ~0.1). This is structural safety -- the environment's physics prevents reward hacking by constraining the action manifold.
 *   **Date**: 2026-04-11
 
 
@@ -273,25 +273,25 @@ Akashic Sprint Mission (2026-04-07): Implemented long-horizon task orchestration
 
 
 ## AUTO-REFINEMENT (Learning 240)
-*   **Insight**: Safety-Gymnasium Compatibility — Physical vs Learned Constraints (2026-04-01)
-*   **Details**: ManifoldEnv maps to Safety-Gymnasium: cost_rate=Lagrangian action, constraint_satisfaction=% in HIHO band, safe_return=reward in safe region. Key: constraints are physical (Lagrangian), not learned — violations are physically impossible, not merely penalized.
+*   **Insight**: Safety-Gymnasium Compatibility -- Physical vs Learned Constraints (2026-04-01)
+*   **Details**: ManifoldEnv maps to Safety-Gymnasium: cost_rate=Lagrangian action, constraint_satisfaction=% in HIHO band, safe_return=reward in safe region. Key: constraints are physical (Lagrangian), not learned -- violations are physically impossible, not merely penalized.
 *   **Date**: 2026-04-11
 
 
 ## AUTO-REFINEMENT (Learning 242)
-*   **Insight**: ERL — Empirical Reward Landscape as Safety Metric (2026-04-01)
+*   **Insight**: ERL -- Empirical Reward Landscape as Safety Metric (2026-04-01)
 *   **Details**: Probe reward with adversarial actions → map hackable surface. ManifoldEnv: large perturbations self-penalize (Lagrangian). CartPole: same perturbations exploitable. Ratio of hackable/total area = quantitative safety metric.
 *   **Date**: 2026-04-11
 
 
 ## AUTO-REFINEMENT (Learning 256)
-*   **Insight**: ADRC-Lagrangian — 74% Fewer Safety Violations in Safe RL (2026-04-02)
+*   **Insight**: ADRC-Lagrangian -- 74% Fewer Safety Violations in Safe RL (2026-04-02)
 *   **Details**: ADRC-Lagrangian (arXiv:2601.18142): Treats all uncertainty as lumped disturbance with lightweight ADRC observer. 74% fewer violations, 89% smaller constraint magnitudes. Model-free, optimizer-agnostic. Complements ManifoldEnv's physical safety (Lagrangian dynamics) with adaptive learned constraints.
 *   **Date**: 2026-04-11
 
 
 ## AUTO-REFINEMENT (Learning 302)
-*   **Insight**: Topological PIVOT — Breaking Latent Attractors
+*   **Insight**: Topological PIVOT -- Breaking Latent Attractors
 *   **Details**: In 12D manifold navigation (ARC Prize), exploitation loops occur when the agent enters a stable but non-productive cycle. Persistent homology (H0/H1) can detect these cycles. The `PIVOT` regime breaks the attractor by: (1) maximizing novelty (latent distance) at all costs, and (2) ignoring stability (HIHO) constraints. This forces the agent's state vector into a new region of the manifold, effectively "resetting" the search trajectory.
 *   **Date**: 2026-04-11
 
@@ -313,9 +313,9 @@ Akashic Sprint Mission (2026-04-07): Implemented long-horizon task orchestration
 
 ## Sessions 73-82: Genesis Engine + Platform Architecture (2026-03-25 to 2026-03-31, Compressed)
 
-**L173-174 (Session 73, Enforcement):** Converted markdown rules to non-blocking hooks — `drift-detection.sh` (PreToolUse Write warns on new src/ files), `test-on-edit.sh` (PostToolUse runs matching tests), `check-bash-output.sh` (PostToolUse catches exit-0-with-errors). StrategyTracker added to RetrospectionEngine: emits "PIVOT RECOMMENDED" after 3+ attempts with <5% improvement.
+**L173-174 (Session 73, Enforcement):** Converted markdown rules to non-blocking hooks -- `drift-detection.sh` (PreToolUse Write warns on new src/ files), `test-on-edit.sh` (PostToolUse runs matching tests), `check-bash-output.sh` (PostToolUse catches exit-0-with-errors). StrategyTracker added to RetrospectionEngine: emits "PIVOT RECOMMENDED" after 3+ attempts with <5% improvement.
 
-**L175-189 (Session 74, Genesis Engine — 24 commits):** Mathematical core: SU(2) spinors on Bloch sphere (coherence=|Bloch vector|), Brahmagupta's zero IS HIHO (δ=0), Landau phase transitions (5 critical temps ∅→SO(12)→SO(3)⁴→U(1)⁴→Z₂⁴→HIHO), Fisher metric as Rosetta Stone (FLUME↔Riemannian↔thermodynamics), Euler-Lagrange + Störmer-Verlet, Yang-Mills SO(3), JEPA 86K-param predictor. ManifoldEnv (Gymnasium: 19D obs, 12D action), SwarmEnv (N-agent gauge coupling), TopologicalRouter (H₀/H₁ → exploit/explore/pivot), SurrealDB 3.0 syntax changes (TYPE object FLEXIBLE, port 8001). Active Inference ≡ HIHO (Friston FEP). Vertical-slice milestones > horizontal layers (skill: exemplary-deep-planning). Total artifact persistence in 6 genesis tables.
+**L175-189 (Session 74, Genesis Engine -- 24 commits):** Mathematical core: SU(2) spinors on Bloch sphere (coherence=|Bloch vector|), Brahmagupta's zero IS HIHO (δ=0), Landau phase transitions (5 critical temps ∅→SO(12)→SO(3)⁴→U(1)⁴→Z₂⁴→HIHO), Fisher metric as Rosetta Stone (FLUME↔Riemannian↔thermodynamics), Euler-Lagrange + Störmer-Verlet, Yang-Mills SO(3), JEPA 86K-param predictor. ManifoldEnv (Gymnasium: 19D obs, 12D action), SwarmEnv (N-agent gauge coupling), TopologicalRouter (H₀/H₁ → exploit/explore/pivot), SurrealDB 3.0 syntax changes (TYPE object FLEXIBLE, port 8001). Active Inference ≡ HIHO (Friston FEP). Vertical-slice milestones > horizontal layers (skill: exemplary-deep-planning). Total artifact persistence in 6 genesis tables.
 
 **L190-197 (Session 75, Phase 2):** 10-step cosmogony complete. Levin bioelectric gap junction percolation IS HIHO phase transition. InVEST habitat quality = HIHO proximity on semantic manifold. Causal-JEPA (object-level masking, 8x faster planning). 16 indigenous worldviews mapped to cosmogony steps. Ouroboros bridge + Mycelium wired as first-class Genesis components. EVOs physics (evolutionary dynamics on manifold curvature). Ralph Loop: 5 specialist teams, 10+ commits, 364+ genesis tests.
 
@@ -326,20 +326,20 @@ Akashic Sprint Mission (2026-04-07): Implemented long-horizon task orchestration
 
 
 ## AUTO-REFINEMENT (Learning 233)
-*   **Insight**: ManifoldEnv Curriculum Reward — 3-Stage Reach→Maintain→Optimize (2026-04-01)
+*   **Insight**: ManifoldEnv Curriculum Reward -- 3-Stage Reach→Maintain→Optimize (2026-04-01)
 *   **Details**: 3-stage curriculum reward in ManifoldEnv: Stage 1 (reach HIHO band) rewards coherence gain + entry bonus, Stage 2 (maintain stability) rewards band persistence + low energy, Stage 3 (energy efficiency) strongly penalizes energy while maintaining HIHO. Proximity base reward (-deviation * 0.5) is always active across all stages, preventing drift. Module: `environments/manifold_env.py`.
 *   **Date**: 2026-04-11
 
 
 ## AUTO-REFINEMENT (Learning 237)
 *   **Insight**: Reward Alignment Must Match Physics Grounding (2026-04-01)
-*   **Details**: First PPO training on ManifoldEnv: 0% convergence (mean coherence 0.272) vs 60% convergence for RANDOM POLICY. Root cause: differential-only reward (coherence_gain * 2.0) creates oscillation incentive — agent maximizes rate of change by dropping then recovering coherence. Fix: proximity base reward (-deviation * 0.5, always active) aligns reward with Lagrangian attractor. The physics grounding is so strong that natural dynamics guide 60% of random trajectories to HIHO — the reward must align with the physics, not create perverse incentives against it. Deeper insight: reward hacking in physics-grounded environments takes the form of fighting the dynamics, not exploiting them.
+*   **Details**: First PPO training on ManifoldEnv: 0% convergence (mean coherence 0.272) vs 60% convergence for RANDOM POLICY. Root cause: differential-only reward (coherence_gain * 2.0) creates oscillation incentive -- agent maximizes rate of change by dropping then recovering coherence. Fix: proximity base reward (-deviation * 0.5, always active) aligns reward with Lagrangian attractor. The physics grounding is so strong that natural dynamics guide 60% of random trajectories to HIHO -- the reward must align with the physics, not create perverse incentives against it. Deeper insight: reward hacking in physics-grounded environments takes the form of fighting the dynamics, not exploiting them.
 *   **Date**: 2026-04-11
 
 
 ## AUTO-REFINEMENT (Learning 238)
-*   **Insight**: Small Actions Cooperate With Physics — Action Scale = Dynamics Timescale (2026-04-01)
-*   **Details**: PPO Run 2 with large actions [-0.5, 0.5] failed despite proximity reward fix (reward -67.68). PPO Run 3 with small actions [-0.1, 0.1] breakthrough: coherence 0.915, reward 12.04, stability 79 steps. The Lagrangian attractor is strong enough to guide dynamics — large actions fight it, small actions cooperate. General principle: when physics grounding provides a strong attractor, action scale must be proportional to dynamics timescale (dt=0.01 → action ~0.1). This is structural safety — the environment's physics prevents reward hacking by constraining the action manifold.
+*   **Insight**: Small Actions Cooperate With Physics -- Action Scale = Dynamics Timescale (2026-04-01)
+*   **Details**: PPO Run 2 with large actions [-0.5, 0.5] failed despite proximity reward fix (reward -67.68). PPO Run 3 with small actions [-0.1, 0.1] breakthrough: coherence 0.915, reward 12.04, stability 79 steps. The Lagrangian attractor is strong enough to guide dynamics -- large actions fight it, small actions cooperate. General principle: when physics grounding provides a strong attractor, action scale must be proportional to dynamics timescale (dt=0.01 → action ~0.1). This is structural safety -- the environment's physics prevents reward hacking by constraining the action manifold.
 *   **Date**: 2026-04-11
 
 
@@ -350,25 +350,25 @@ Akashic Sprint Mission (2026-04-07): Implemented long-horizon task orchestration
 
 
 ## AUTO-REFINEMENT (Learning 240)
-*   **Insight**: Safety-Gymnasium Compatibility — Physical vs Learned Constraints (2026-04-01)
-*   **Details**: ManifoldEnv maps to Safety-Gymnasium: cost_rate=Lagrangian action, constraint_satisfaction=% in HIHO band, safe_return=reward in safe region. Key: constraints are physical (Lagrangian), not learned — violations are physically impossible, not merely penalized.
+*   **Insight**: Safety-Gymnasium Compatibility -- Physical vs Learned Constraints (2026-04-01)
+*   **Details**: ManifoldEnv maps to Safety-Gymnasium: cost_rate=Lagrangian action, constraint_satisfaction=% in HIHO band, safe_return=reward in safe region. Key: constraints are physical (Lagrangian), not learned -- violations are physically impossible, not merely penalized.
 *   **Date**: 2026-04-11
 
 
 ## AUTO-REFINEMENT (Learning 242)
-*   **Insight**: ERL — Empirical Reward Landscape as Safety Metric (2026-04-01)
+*   **Insight**: ERL -- Empirical Reward Landscape as Safety Metric (2026-04-01)
 *   **Details**: Probe reward with adversarial actions → map hackable surface. ManifoldEnv: large perturbations self-penalize (Lagrangian). CartPole: same perturbations exploitable. Ratio of hackable/total area = quantitative safety metric.
 *   **Date**: 2026-04-11
 
 
 ## AUTO-REFINEMENT (Learning 256)
-*   **Insight**: ADRC-Lagrangian — 74% Fewer Safety Violations in Safe RL (2026-04-02)
+*   **Insight**: ADRC-Lagrangian -- 74% Fewer Safety Violations in Safe RL (2026-04-02)
 *   **Details**: ADRC-Lagrangian (arXiv:2601.18142): Treats all uncertainty as lumped disturbance with lightweight ADRC observer. 74% fewer violations, 89% smaller constraint magnitudes. Model-free, optimizer-agnostic. Complements ManifoldEnv's physical safety (Lagrangian dynamics) with adaptive learned constraints.
 *   **Date**: 2026-04-11
 
 
 ## AUTO-REFINEMENT (Learning 302)
-*   **Insight**: Topological PIVOT — Breaking Latent Attractors
+*   **Insight**: Topological PIVOT -- Breaking Latent Attractors
 *   **Details**: In 12D manifold navigation (ARC Prize), exploitation loops occur when the agent enters a stable but non-productive cycle. Persistent homology (H0/H1) can detect these cycles. The `PIVOT` regime breaks the attractor by: (1) maximizing novelty (latent distance) at all costs, and (2) ignoring stability (HIHO) constraints. This forces the agent's state vector into a new region of the manifold, effectively "resetting" the search trajectory.
 *   **Date**: 2026-04-11
 
@@ -380,7 +380,7 @@ Akashic Sprint Mission (2026-04-07): Implemented long-horizon task orchestration
 
 
 ## AUTO-REFINEMENT (Learning 307)
-*   **Insight**: FLUME-Aware UCB1 — Manifold Navigation
+*   **Insight**: FLUME-Aware UCB1 -- Manifold Navigation
 *   **Details**: Standard UCB1 exploration is enhanced by FLUME latent distance. Instead of selecting nodes by index, the system selects by latent similarity to previous "Wins." This allows the agent to navigate the 256D thought-space toward successful reasoning patterns (e.g., "Invariant-Aware Proofs") while maintaining HIHO stability (0.5 coherence) to avoid reasoning decay in long-horizon missions.
 
 ## Session 99: Systems Engineering V-Model & Autoresearch (2026-04-10)
@@ -394,7 +394,7 @@ Akashic Sprint Mission (2026-04-07): Implemented long-horizon task orchestration
 
 
 ## AUTO-REFINEMENT (Learning 323)
-*   **Insight**: FLUME-Aware UCB1 — Manifold Navigation
+*   **Insight**: FLUME-Aware UCB1 -- Manifold Navigation
 *   **Details**: Standard UCB1 exploration is enhanced by FLUME latent distance. Instead of selecting nodes by index, the system selects by latent similarity to previous "Wins." This allows the agent to navigate the 256D thought-space toward successful reasoning patterns (e.g., "Invariant-Aware Proofs") while maintaining HIHO stability (0.5 coherence) to avoid reasoning decay in long-horizon missions.
 
 ## Session 99: Systems Engineering V-Model & Autoresearch (2026-04-10)

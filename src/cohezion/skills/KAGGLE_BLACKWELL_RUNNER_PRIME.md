@@ -75,12 +75,12 @@ Key patterns: (1) Temporal dilation factor (0.1-1.0) throttles sims under pressu
 ---
 
 ## Learnings 127-151: Dev Recovery, MAPE-K, Research Synthesis (Sessions 59-67, Compressed)
-L127: Claude Code native install vs npm — remove npm global, set autoUpdates:true, MCP scope:user. L128: MAPE-K control loop bridges reactive monitoring with proactive healing via decoupled Analysis→Planning. L129: Polyglot security audits need `|| true` wrapping. L130-151 (Research Sprint): Doc-to-LoRA context compression (L130), skill curation > generation (L137), KV compaction 30-50x (L139/L145), multi-tier caching 30s→0.02s (L144), viscoelastic dilation (L149), semantic Lagrange points μ<0.0385 (L150), Gram-Schmidt for 12D vectors (L151).
+L127: Claude Code native install vs npm -- remove npm global, set autoUpdates:true, MCP scope:user. L128: MAPE-K control loop bridges reactive monitoring with proactive healing via decoupled Analysis→Planning. L129: Polyglot security audits need `|| true` wrapping. L130-151 (Research Sprint): Doc-to-LoRA context compression (L130), skill curation > generation (L137), KV compaction 30-50x (L139/L145), multi-tier caching 30s→0.02s (L144), viscoelastic dilation (L149), semantic Lagrange points μ<0.0385 (L150), Gram-Schmidt for 12D vectors (L151).
 
 ---
 
 ## Learnings 152-156: Secure-by-Default Substrate (Session 68, Compressed)
-L152: 360-Degree Autonomic Cycle — 8-stage closed loop (sense→optimize→refine→manifest→verify→audit→scout→analyze) in 60min window. L153-156: Unified auth middleware (centralized api_key_middleware), recursive path sanitization (CWD-bounding), API secret scrubbing (regex key matching → REDACTED), CI/CD prompt injection defense (system_instruction + XML delimiters + env vars).
+L152: 360-Degree Autonomic Cycle -- 8-stage closed loop (sense→optimize→refine→manifest→verify→audit→scout→analyze) in 60min window. L153-156: Unified auth middleware (centralized api_key_middleware), recursive path sanitization (CWD-bounding), API secret scrubbing (regex key matching → REDACTED), CI/CD prompt injection defense (system_instruction + XML delimiters + env vars).
 
 ---
 
@@ -105,9 +105,9 @@ Akashic Sprint Mission (2026-04-07): Implemented long-horizon task orchestration
 
 ## Sessions 73-82: Genesis Engine + Platform Architecture (2026-03-25 to 2026-03-31, Compressed)
 
-**L173-174 (Session 73, Enforcement):** Converted markdown rules to non-blocking hooks — `drift-detection.sh` (PreToolUse Write warns on new src/ files), `test-on-edit.sh` (PostToolUse runs matching tests), `check-bash-output.sh` (PostToolUse catches exit-0-with-errors). StrategyTracker added to RetrospectionEngine: emits "PIVOT RECOMMENDED" after 3+ attempts with <5% improvement.
+**L173-174 (Session 73, Enforcement):** Converted markdown rules to non-blocking hooks -- `drift-detection.sh` (PreToolUse Write warns on new src/ files), `test-on-edit.sh` (PostToolUse runs matching tests), `check-bash-output.sh` (PostToolUse catches exit-0-with-errors). StrategyTracker added to RetrospectionEngine: emits "PIVOT RECOMMENDED" after 3+ attempts with <5% improvement.
 
-**L175-189 (Session 74, Genesis Engine — 24 commits):** Mathematical core: SU(2) spinors on Bloch sphere (coherence=|Bloch vector|), Brahmagupta's zero IS HIHO (δ=0), Landau phase transitions (5 critical temps ∅→SO(12)→SO(3)⁴→U(1)⁴→Z₂⁴→HIHO), Fisher metric as Rosetta Stone (FLUME↔Riemannian↔thermodynamics), Euler-Lagrange + Störmer-Verlet, Yang-Mills SO(3), JEPA 86K-param predictor. ManifoldEnv (Gymnasium: 19D obs, 12D action), SwarmEnv (N-agent gauge coupling), TopologicalRouter (H₀/H₁ → exploit/explore/pivot), SurrealDB 3.0 syntax changes (TYPE object FLEXIBLE, port 8001). Active Inference ≡ HIHO (Friston FEP). Vertical-slice milestones > horizontal layers (skill: exemplary-deep-planning). Total artifact persistence in 6 genesis tables.
+**L175-189 (Session 74, Genesis Engine -- 24 commits):** Mathematical core: SU(2) spinors on Bloch sphere (coherence=|Bloch vector|), Brahmagupta's zero IS HIHO (δ=0), Landau phase transitions (5 critical temps ∅→SO(12)→SO(3)⁴→U(1)⁴→Z₂⁴→HIHO), Fisher metric as Rosetta Stone (FLUME↔Riemannian↔thermodynamics), Euler-Lagrange + Störmer-Verlet, Yang-Mills SO(3), JEPA 86K-param predictor. ManifoldEnv (Gymnasium: 19D obs, 12D action), SwarmEnv (N-agent gauge coupling), TopologicalRouter (H₀/H₁ → exploit/explore/pivot), SurrealDB 3.0 syntax changes (TYPE object FLEXIBLE, port 8001). Active Inference ≡ HIHO (Friston FEP). Vertical-slice milestones > horizontal layers (skill: exemplary-deep-planning). Total artifact persistence in 6 genesis tables.
 
 **L190-197 (Session 75, Phase 2):** 10-step cosmogony complete. Levin bioelectric gap junction percolation IS HIHO phase transition. InVEST habitat quality = HIHO proximity on semantic manifold. Causal-JEPA (object-level masking, 8x faster planning). 16 indigenous worldviews mapped to cosmogony steps. Ouroboros bridge + Mycelium wired as first-class Genesis components. EVOs physics (evolutionary dynamics on manifold curvature). Ralph Loop: 5 specialist teams, 10+ commits, 364+ genesis tests.
 
@@ -118,25 +118,25 @@ Akashic Sprint Mission (2026-04-07): Implemented long-horizon task orchestration
 
 
 ## AUTO-REFINEMENT (Learning 286)
-*   **Insight**: Kaggle Quota Strategy — Multi-Track Mapping (2026-04-08)
+*   **Insight**: Kaggle Quota Strategy -- Multi-Track Mapping (2026-04-08)
 *   **Details**: Strategic mapping of Kaggle quotas is mandatory to maximize output without bottlenecks: (1) **$50/day AI Models API** is reserved for the **Measuring AGI** track (free Gemini/Claude access for cognitive tasks), (2) **30h/week GPU** is for heavy training in **BirdCLEF** and **ARC Prize**, (3) **AIMO** and **Nemotron** utilize dedicated, free sponsor hardware (H100 and G4 Blackwell). Rationale: utilizing the daily-resetting AI quota prevents wasting personal API funds.
 *   **Date**: 2026-04-11
 
 
 ## AUTO-REFINEMENT (Learning 288)
-*   **Insight**: AIMO v43 "Fortress" Breakthrough — Local TDD for Kaggle Reruns
+*   **Insight**: AIMO v43 "Fortress" Breakthrough -- Local TDD for Kaggle Reruns
 *   **Details**: Achieving a non-zero score on AIMO Progress Prize 3 requires reproducing the Kaggle environment locally via a **modular arithmetic TDD harness**. Key fix in v43: (1) Scalar indexing (`problem_df[0]`) to bypass Polars ASCII prompt corruption, (2) dictionary-based tensor mapping (`{k: v.to(device) for k,v in inputs.items()}`) to fix `AttributeError` in multi-gpu environments, and (3) explicit `SymbolicVerifier` class restoration to provide a pre-submission logic check.
 *   **Date**: 2026-04-11
 
 
 ## AUTO-REFINEMENT (Learning 289)
-*   **Insight**: Measuring AGI v11 — Protobuf Stability in Kaggle Notebooks
+*   **Insight**: Measuring AGI v11 -- Protobuf Stability in Kaggle Notebooks
 *   **Details**: Kaggle's pre-installed Google Cloud libraries are strictly pinned to older Protobuf versions. Upgrading to `protobuf==7.x` triggers massive dependency conflicts that can break the Models API. **Solution**: Pin to `protobuf==5.26.1` and `google-cloud-bigquery-storage==2.26.0` to stabilize the environment while satisfying the `kbench` SDK requirements. Result: 78 tasks successfully registered in Version 11.
 *   **Date**: 2026-04-11
 
 
 ## AUTO-REFINEMENT (Learning 303)
-*   **Insight**: Kaggle Offline Dependency Injection — Wheel Dataset Pattern
+*   **Insight**: Kaggle Offline Dependency Injection -- Wheel Dataset Pattern
 *   **Details**: Unblocking restricted environments (Kaggle G4 Blackwell) requires a "Side-Loading" pattern. When `pip install` is blocked or dependencies are missing, create a programmatic wheel repository locally using `pip download --platform manylinux2014_x86_64 --only-binary=:all:`. Upload these wheels as a Kaggle dataset (`manderson240/rocm-training-wheels`) and mount them in the notebook for an offline install. This bypasses both networking restrictions and environment-specific library mismatches.
 *   **Date**: 2026-04-11
 
@@ -165,12 +165,12 @@ Key patterns: (1) Temporal dilation factor (0.1-1.0) throttles sims under pressu
 ---
 
 ## Learnings 127-151: Dev Recovery, MAPE-K, Research Synthesis (Sessions 59-67, Compressed)
-L127: Claude Code native install vs npm — remove npm global, set autoUpdates:true, MCP scope:user. L128: MAPE-K control loop bridges reactive monitoring with proactive healing via decoupled Analysis→Planning. L129: Polyglot security audits need `|| true` wrapping. L130-151 (Research Sprint): Doc-to-LoRA context compression (L130), skill curation > generation (L137), KV compaction 30-50x (L139/L145), multi-tier caching 30s→0.02s (L144), viscoelastic dilation (L149), semantic Lagrange points μ<0.0385 (L150), Gram-Schmidt for 12D vectors (L151).
+L127: Claude Code native install vs npm -- remove npm global, set autoUpdates:true, MCP scope:user. L128: MAPE-K control loop bridges reactive monitoring with proactive healing via decoupled Analysis→Planning. L129: Polyglot security audits need `|| true` wrapping. L130-151 (Research Sprint): Doc-to-LoRA context compression (L130), skill curation > generation (L137), KV compaction 30-50x (L139/L145), multi-tier caching 30s→0.02s (L144), viscoelastic dilation (L149), semantic Lagrange points μ<0.0385 (L150), Gram-Schmidt for 12D vectors (L151).
 
 ---
 
 ## Learnings 152-156: Secure-by-Default Substrate (Session 68, Compressed)
-L152: 360-Degree Autonomic Cycle — 8-stage closed loop (sense→optimize→refine→manifest→verify→audit→scout→analyze) in 60min window. L153-156: Unified auth middleware (centralized api_key_middleware), recursive path sanitization (CWD-bounding), API secret scrubbing (regex key matching → REDACTED), CI/CD prompt injection defense (system_instruction + XML delimiters + env vars).
+L152: 360-Degree Autonomic Cycle -- 8-stage closed loop (sense→optimize→refine→manifest→verify→audit→scout→analyze) in 60min window. L153-156: Unified auth middleware (centralized api_key_middleware), recursive path sanitization (CWD-bounding), API secret scrubbing (regex key matching → REDACTED), CI/CD prompt injection defense (system_instruction + XML delimiters + env vars).
 
 ---
 
@@ -195,9 +195,9 @@ Akashic Sprint Mission (2026-04-07): Implemented long-horizon task orchestration
 
 ## Sessions 73-82: Genesis Engine + Platform Architecture (2026-03-25 to 2026-03-31, Compressed)
 
-**L173-174 (Session 73, Enforcement):** Converted markdown rules to non-blocking hooks — `drift-detection.sh` (PreToolUse Write warns on new src/ files), `test-on-edit.sh` (PostToolUse runs matching tests), `check-bash-output.sh` (PostToolUse catches exit-0-with-errors). StrategyTracker added to RetrospectionEngine: emits "PIVOT RECOMMENDED" after 3+ attempts with <5% improvement.
+**L173-174 (Session 73, Enforcement):** Converted markdown rules to non-blocking hooks -- `drift-detection.sh` (PreToolUse Write warns on new src/ files), `test-on-edit.sh` (PostToolUse runs matching tests), `check-bash-output.sh` (PostToolUse catches exit-0-with-errors). StrategyTracker added to RetrospectionEngine: emits "PIVOT RECOMMENDED" after 3+ attempts with <5% improvement.
 
-**L175-189 (Session 74, Genesis Engine — 24 commits):** Mathematical core: SU(2) spinors on Bloch sphere (coherence=|Bloch vector|), Brahmagupta's zero IS HIHO (δ=0), Landau phase transitions (5 critical temps ∅→SO(12)→SO(3)⁴→U(1)⁴→Z₂⁴→HIHO), Fisher metric as Rosetta Stone (FLUME↔Riemannian↔thermodynamics), Euler-Lagrange + Störmer-Verlet, Yang-Mills SO(3), JEPA 86K-param predictor. ManifoldEnv (Gymnasium: 19D obs, 12D action), SwarmEnv (N-agent gauge coupling), TopologicalRouter (H₀/H₁ → exploit/explore/pivot), SurrealDB 3.0 syntax changes (TYPE object FLEXIBLE, port 8001). Active Inference ≡ HIHO (Friston FEP). Vertical-slice milestones > horizontal layers (skill: exemplary-deep-planning). Total artifact persistence in 6 genesis tables.
+**L175-189 (Session 74, Genesis Engine -- 24 commits):** Mathematical core: SU(2) spinors on Bloch sphere (coherence=|Bloch vector|), Brahmagupta's zero IS HIHO (δ=0), Landau phase transitions (5 critical temps ∅→SO(12)→SO(3)⁴→U(1)⁴→Z₂⁴→HIHO), Fisher metric as Rosetta Stone (FLUME↔Riemannian↔thermodynamics), Euler-Lagrange + Störmer-Verlet, Yang-Mills SO(3), JEPA 86K-param predictor. ManifoldEnv (Gymnasium: 19D obs, 12D action), SwarmEnv (N-agent gauge coupling), TopologicalRouter (H₀/H₁ → exploit/explore/pivot), SurrealDB 3.0 syntax changes (TYPE object FLEXIBLE, port 8001). Active Inference ≡ HIHO (Friston FEP). Vertical-slice milestones > horizontal layers (skill: exemplary-deep-planning). Total artifact persistence in 6 genesis tables.
 
 **L190-197 (Session 75, Phase 2):** 10-step cosmogony complete. Levin bioelectric gap junction percolation IS HIHO phase transition. InVEST habitat quality = HIHO proximity on semantic manifold. Causal-JEPA (object-level masking, 8x faster planning). 16 indigenous worldviews mapped to cosmogony steps. Ouroboros bridge + Mycelium wired as first-class Genesis components. EVOs physics (evolutionary dynamics on manifold curvature). Ralph Loop: 5 specialist teams, 10+ commits, 364+ genesis tests.
 
@@ -208,36 +208,36 @@ Akashic Sprint Mission (2026-04-07): Implemented long-horizon task orchestration
 
 
 ## AUTO-REFINEMENT (Learning 286)
-*   **Insight**: Kaggle Quota Strategy — Multi-Track Mapping (2026-04-08)
+*   **Insight**: Kaggle Quota Strategy -- Multi-Track Mapping (2026-04-08)
 *   **Details**: Strategic mapping of Kaggle quotas is mandatory to maximize output without bottlenecks: (1) **$50/day AI Models API** is reserved for the **Measuring AGI** track (free Gemini/Claude access for cognitive tasks), (2) **30h/week GPU** is for heavy training in **BirdCLEF** and **ARC Prize**, (3) **AIMO** and **Nemotron** utilize dedicated, free sponsor hardware (H100 and G4 Blackwell). Rationale: utilizing the daily-resetting AI quota prevents wasting personal API funds.
 *   **Date**: 2026-04-11
 
 
 ## AUTO-REFINEMENT (Learning 288)
-*   **Insight**: AIMO v43 "Fortress" Breakthrough — Local TDD for Kaggle Reruns
+*   **Insight**: AIMO v43 "Fortress" Breakthrough -- Local TDD for Kaggle Reruns
 *   **Details**: Achieving a non-zero score on AIMO Progress Prize 3 requires reproducing the Kaggle environment locally via a **modular arithmetic TDD harness**. Key fix in v43: (1) Scalar indexing (`problem_df[0]`) to bypass Polars ASCII prompt corruption, (2) dictionary-based tensor mapping (`{k: v.to(device) for k,v in inputs.items()}`) to fix `AttributeError` in multi-gpu environments, and (3) explicit `SymbolicVerifier` class restoration to provide a pre-submission logic check.
 *   **Date**: 2026-04-11
 
 
 ## AUTO-REFINEMENT (Learning 289)
-*   **Insight**: Measuring AGI v11 — Protobuf Stability in Kaggle Notebooks
+*   **Insight**: Measuring AGI v11 -- Protobuf Stability in Kaggle Notebooks
 *   **Details**: Kaggle's pre-installed Google Cloud libraries are strictly pinned to older Protobuf versions. Upgrading to `protobuf==7.x` triggers massive dependency conflicts that can break the Models API. **Solution**: Pin to `protobuf==5.26.1` and `google-cloud-bigquery-storage==2.26.0` to stabilize the environment while satisfying the `kbench` SDK requirements. Result: 78 tasks successfully registered in Version 11.
 *   **Date**: 2026-04-11
 
 
 ## AUTO-REFINEMENT (Learning 303)
-*   **Insight**: Kaggle Offline Dependency Injection — Wheel Dataset Pattern
+*   **Insight**: Kaggle Offline Dependency Injection -- Wheel Dataset Pattern
 *   **Details**: Unblocking restricted environments (Kaggle G4 Blackwell) requires a "Side-Loading" pattern. When `pip install` is blocked or dependencies are missing, create a programmatic wheel repository locally using `pip download --platform manylinux2014_x86_64 --only-binary=:all:`. Upload these wheels as a Kaggle dataset (`manderson240/rocm-training-wheels`) and mount them in the notebook for an offline install. This bypasses both networking restrictions and environment-specific library mismatches.
 *   **Date**: 2026-04-11
 
 
 ## AUTO-REFINEMENT (Learning 321)
-*   **Insight**: Autonomous Kaggle Flywheel — Score-as-Reward
+*   **Insight**: Autonomous Kaggle Flywheel -- Score-as-Reward
 *   **Details**: Bridging the `AutoresearchDriver` with the Kaggle CLI transforms competition submissions into a closed-loop RL environment. By using the official Private/Public Leaderboard score as the primary reward signal for a Trajectory-Aware UCB1 algorithm, the swarm can optimize for the specific "unseen" private test data characteristics of competitions like AIMO and AGI.
 *   **Date**: 2026-04-11
 
 
 ## AUTO-REFINEMENT (Learning 322)
-*   **Insight**: Ouroboros Recursive Retrospective — Self-Healing Offense
+*   **Insight**: Ouroboros Recursive Retrospective -- Self-Healing Offense
 *   **Details**: Ouroboros is the critical "Learning" component of the autonomous offensive. When a Kaggle submission fails, Ouroboros ingests the "Wall of Red" (kernel logs) and extracts a "Hardening Mutation" (e.g., 4-bit fallback, VRAM heartbeat). This mutation is codified as a refined skill and fed back into the next research iteration, ensuring the system never repeats the same failure mode during a leaderboard push.
 *   **Date**: 2026-04-11

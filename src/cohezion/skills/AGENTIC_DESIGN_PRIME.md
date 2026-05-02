@@ -1,6 +1,6 @@
 ---
 name: agentic-design-prime
-description: "The art and science of \"Agentic Aesthetics\"—creating high-fidelity, research-grade documentation (Resumes, Manifestos, Benchmarks) that communicates strategic system leadership and technical sovereignty."
+description: "The art and science of \"Agentic Aesthetics\"--creating high-fidelity, research-grade documentation (Resumes, Manifestos, Benchmarks) that communicates strategic system leadership and technical sovereignty."
 metadata:
   version: "v1.0 (Derived from Anthropic Alignment Sprint)"
   concepts: ["Abstract-First", "Quantified Trajectories", "Philosophy as Anchor", "Observable Intent"]
@@ -11,7 +11,7 @@ metadata:
 # SKILL: AGENTIC_DESIGN_PRIME
 
 ## DOMAIN EXPERTISE
-The art and science of "Agentic Aesthetics"—creating high-fidelity, research-grade documentation (Resumes, Manifestos, Benchmarks) that communicates strategic system leadership and technical sovereignty.
+The art and science of "Agentic Aesthetics"--creating high-fidelity, research-grade documentation (Resumes, Manifestos, Benchmarks) that communicates strategic system leadership and technical sovereignty.
 
 ## KEY TEXTS & CONCEPTS
 - **Abstract-First**: Every document begins with a high-density executive abstract.

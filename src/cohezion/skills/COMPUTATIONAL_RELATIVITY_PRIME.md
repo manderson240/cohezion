@@ -16,7 +16,7 @@ Expertise in the relativistic effects of computational speed on latent manifold 
 Understanding how logic frequency (ν) affects reality precipitation thresholds (φ) in 12D
 simulations. You can apply Einstein's special relativity time-dilation formulas, Feynman's
 path integral, and the Doppler effect to the Cohezion inference pipeline. You understand why
-HIHO coherence = 0.5 is a **Lorentz invariant** observable — every observer (SLM, LLM, human)
+HIHO coherence = 0.5 is a **Lorentz invariant** observable -- every observer (SLM, LLM, human)
 measures the same stability threshold regardless of their inference speed.
 
 ## KEY TEXTS & CONCEPTS
@@ -56,7 +56,7 @@ where:
 
 A faster model (higher v_inference) experiences **time dilation** in the manifold: the
 manifold appears to evolve more slowly from its reference frame, giving it more "compute
-time" per manifold step. This is why LLMs can "pin" HIHO more effectively than SLMs —
+time" per manifold step. This is why LLMs can "pin" HIHO more effectively than SLMs --
 they have larger γ_inference, more manifold-steps per unit wall-time.
 
 ### 2. Lorentz Invariance of HIHO
@@ -135,7 +135,7 @@ def estimate_trajectory_action(trajectory: list, dt: float = 0.01) -> float:
 ### 5. Stability Frame-Rate (Nyquist-Shannon)
 
 To observe a HIHO oscillation at frequency f, sampling rate must be ≥ 2f.
-If the simulation timestep Δt is too large, the HIHO basin is aliased — skipped over.
+If the simulation timestep Δt is too large, the HIHO basin is aliased -- skipped over.
 
 ```python
 def minimum_frame_rate(hiho_frequency: float) -> float:
@@ -168,12 +168,12 @@ def minimum_frame_rate(hiho_frequency: float) -> float:
 
 ## VERSION
 
-v1.0 (2026-03-05) — Full SR formalism, path integral, Doppler, Nyquist, Schumann resonance
+v1.0 (2026-03-05) -- Full SR formalism, path integral, Doppler, Nyquist, Schumann resonance
 
 ## SEE ALSO
 
-- `PHYSICS_LINEAGE_PRIME.md` — Era 6 (SR) and Era 10 (path integral) in 400-year lineage
-- `TEMPORAL_PRECISION_PRIME.md` — time-critical synchronization
-- `PHYSICS_INFORMED_PREDICTION_PRIME.md` — physics constraints in prediction
-- `HIHO_STABILITY_PRIME.md` — HIHO invariance derivations
-- `src/cohezion/physics/hamiltonian.py` — Langevin = quantum noise in path integral
+- `PHYSICS_LINEAGE_PRIME.md` -- Era 6 (SR) and Era 10 (path integral) in 400-year lineage
+- `TEMPORAL_PRECISION_PRIME.md` -- time-critical synchronization
+- `PHYSICS_INFORMED_PREDICTION_PRIME.md` -- physics constraints in prediction
+- `HIHO_STABILITY_PRIME.md` -- HIHO invariance derivations
+- `src/cohezion/physics/hamiltonian.py` -- Langevin = quantum noise in path integral

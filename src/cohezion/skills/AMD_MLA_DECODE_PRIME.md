@@ -28,10 +28,10 @@ DeepSeek MLA (Multi-head Latent Attention) decode optimization for AMD MI355X. T
    - Persistent shared memory for KV cache pre-loading
 
 ## DEAD ENDS
-- mla_decode_fwd parameter tuning (num_kv_splits, fast_mode) — EXHAUSTED
-- A16W8 threshold tuning — 262144 is optimal
-- MXFP4 KV cache — "only support head_size == KV.size(3)"
-- ctypes/CUDA graphs — blocked by runner
+- mla_decode_fwd parameter tuning (num_kv_splits, fast_mode) -- EXHAUSTED
+- A16W8 threshold tuning -- 262144 is optimal
+- MXFP4 KV cache -- "only support head_size == KV.size(3)"
+- ctypes/CUDA graphs -- blocked by runner
 
 ## VERSION
 v1.0.0

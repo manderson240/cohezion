@@ -6,16 +6,53 @@
 
 ---
 
-## Current State
+## Current State (2026-05-02, post-optimization)
 
 ```
 iGPU clocks:   high (2900 MHz) ← locked by amdgpu-perf.service  [WAS: auto / 894 MHz]
-GTT memory:    39.4 GB used / 128 GB total
-Models loaded: 4 LLMs (lemond Max Models/Type: 4)
-RAM:           108 GB used / 122 GB · 14 GB free · 34 GB swap used
-Temp (Tctl):   ~75°C under load   GPU edge: ~36°C
-PPT:           56 W (avg)
+Backend:       Vulkan (lemond falls back from ROCm — gfx1151 VMM=no causes ROCm rejection)
+GTT memory:    ~32 GB used / 128 GB total (2 routing models + opencode session)
+lemond config: global_timeout=120s, max_loaded_models=4 [pending restart for Tier B flags]
+vm.swappiness: 10 (was 60)
+Temp (Tctl):   72–75°C under load   GPU edge: ~32°C
 ```
+
+## Empirical Benchmarks (2026-05-02, iGPU locked at 2900 MHz, Vulkan backend)
+
+All via llama-bench direct (not through lemond). **See safety note below.**
+
+| Tier | Model | pp512 (t/s) | tg128 (t/s) | Wall (pp+tg) | Notes |
+|------|-------|-------------|-------------|---------------|-------|
+| REASON | DeepSeek-Qwen3-8B Q4_1 | **1046 ± 5** | **39.8 ± 0.2** | ~44s | |
+| iGPU | Qwen3.6-35B-A3B Q4_K_M | **922 ± 25** | **63.6 ± 0.2** | ~29s | MoE, 3B active |
+| NPU cold | gemma4-it:e2b (FLM) | — | **20.6 tok/s** | 1.64s total | TTFT 1.13s |
+| NPU warm | gemma4-it:e2b (FLM) | — | **22.9 tok/s** | 1.61s total | TTFT 0.86s |
+| CPU | Gemma-4-31B Q4_K_M | ~50 (est) | **~9.8** | 64s/621tok | via HTTP, includes thinking |
+
+**Flash Attention on Vulkan:** tested, **do not use**. Results: 953 t/s → 1034 t/s first run, then 927 t/s second run (±14 variance vs ±5 without). Inconsistent — partial CPU fallback. Dropped from Tier B.
+
+**FLM pmode modes available:** `default`, `powersaver`, `balanced`, `performance`, `turbo`. (`latency` is NOT valid — falls back to default silently.)
+- `performance` warm TTFT: 0.860s, 22.9 tok/s
+- `turbo` warm TTFT: 0.857s, 21.6 tok/s — negligible difference from performance
+
+**Baseline reference (pre-iGPU-lock):** ~884 t/s pp512 on Vulkan per llm-tracker. Post-lock: 922–1046 t/s. iGPU clock lock delivered ~10–18% prompt throughput improvement.
+
+### ⚠️ llama-bench Safety Rule
+
+**Never run llama-bench directly against a model file while lemond has the same model loaded.**
+lemond and llama-bench each allocate GTT independently. Running both simultaneously doubles the model's memory footprint:
+- 31B model in lemond: ~20 GB GTT
+- llama-bench loading same 31B: +20 GB GTT = 40 GB spike
+- This exhausted both swap partitions (39 GB total) and caused repeated OOM risk
+
+**Safe benchmarking approach:** use the lemond HTTP API — queries the already-loaded model without extra GTT allocation:
+```bash
+time curl -s http://127.0.0.1:13307/v1/chat/completions \
+  -H 'Content-Type: application/json' \
+  -d '{"model":"<ID>","messages":[{"role":"user","content":"..."}],"max_tokens":256}'
+```
+
+Or unload from lemond first, bench, reload.
 
 ---
 
@@ -39,51 +76,55 @@ sudo systemctl disable amdgpu-perf.service
 
 ---
 
-## Tier B — Requires lemond restart (kicks in-flight sessions)
+## Tier B — Written to daemon config, pending lemond restart
 
-> Coordinate: warn other sessions, pick a low-traffic window.
+> Config path: `/var/lib/lemonade/.cache/lemonade/config.json` (daemon, runs as `lemonade` user)
+> Restart window: when active opencode session ends (zombie PID 972120 clears → GTT drops ~20 GB)
 
-### 1. llamacpp inference flags
-
-Edit `~/.cache/lemonade/config.json`:
+### Daemon config state (written, not yet active)
 
 ```json
 "llamacpp": {
-  "args": "--no-mmap -fa -b 512 -ub 256 --cache-type-k q8_0 --cache-type-v q8_0",
-  "backend": "rocm"
-}
+  "args": "-b 512 -ub 256 --cache-type-k q8_0 --cache-type-v q8_0 -np 2",
+  "backend": "vulkan"
+},
+"global_timeout": 120,
+"max_loaded_models": 4
 ```
 
-| Flag | Effect |
-|------|--------|
-| `--no-mmap` | Already set. Critical for unified memory — avoids mmap overhead |
-| `-fa` | Flash Attention — faster long-context (>2K), less memory for KV cache |
-| `-b 512 -ub 256` | Batch/microbatch tuning. Avoids Vulkan ubatch cliff on gfx1151 |
-| `--cache-type-k q8_0 --cache-type-v q8_0` | Halves KV cache memory — negligible quality impact |
+| Flag | Effect | Research verdict |
+|------|--------|-----------------|
+| `-b 512 -ub 256` | Batch/microbatch tuning — avoids Vulkan ubatch cliff on gfx1151 | ✅ Safe on Vulkan |
+| `--cache-type-k q8_0 --cache-type-v q8_0` | Halves KV cache memory, negligible quality impact | ✅ Safe on Vulkan |
+| `-np 2` | 2 parallel inference slots per model — concurrent multi-session | ✅ Safe |
+| `-fa` | Flash Attention | ❌ **DROPPED** — inconsistent on Vulkan (1034→927 t/s between runs, CPU fallback) |
+| `ROCBLAS_USE_HIPBLASLT=1` | GEMM speedup | ❌ **DROPPED** — no-op on Vulkan backend |
 
-**Expected improvement:** 20–40% throughput on long sessions; KV cache ~2× smaller = more context without OOM.
+**Why not ROCm backend?** lemond config says `backend: rocm` but the running binary is always Vulkan.
+gfx1151 reports `VMM: no` which causes lemond to fall back to Vulkan silently. The ROCm-preview binary
+(b8935) is broken on this system — needs system `libhipblas.so.3` which isn't installed (ROCm 7.1.0
+does not ship the hipblas package). ROCm stable binary (b1203) may work but self-identifies as `gfx1150`.
 
-### 2. hipBLASLt environment
-
-Add to `/etc/systemd/system/lemond.service` (or lemond's env file):
-
-```
-ROCBLAS_USE_HIPBLASLT=1
-```
-
-Provides **2–3× speedup** in GEMM operations on gfx1151. Requires `hipblaslt` package:
+### To apply
 
 ```bash
-sudo apt install hipblaslt  # or: rocm-hipblaslt
-rocblas-bench -f gemm_ex -m 1024 -n 1024 -k 1024 \
-  --a_type f16_r --b_type f16_r --d_type f16_r --compute_type f16_r | grep -i "BLASLT"
+# Pick a quiet window — kills all in-flight lemond sessions
+sudo systemctl restart lemond
+# Verify new flags took effect
+lemonade status --port 13307
+ps aux | grep llama-server  # should show -b 512 -ub 256 in args
 ```
 
-### 3. Context size per model
+### Branch B: ROCm with hipBLASLt (future evaluation)
 
-Global `ctx_size: 16384` in lemond config. Qwen3.6-35B-A3B supports 131072. To unlock:
-- Either override per-model in lemond (if supported) 
-- Or set global `ctx_size: 32768` — doubles effective context for all LLMs
+If ROCm stable binary works, potential gain is significant:
+- gfx1151 Tensile hipBLASLt files ARE bundled in lemond ROCm binary (b1203)
+- Measured: rocBLAS without hipBLASLt ~5 TFLOPS → with: ~35 TFLOPS (7x GEMM)
+- pp512 projection: ~765 t/s → potentially 2000+ t/s (vs current 922–1046 on Vulkan)
+- Risk: `gfx1150` detection mismatch, known hang reports (lemonade issue #1149)
+
+Test procedure: set `backend: rocm` in daemon config, restart, run one HTTP inference, check if
+`ROCBLAS_USE_HIPBLASLT=1` takes effect without error. Abort if GTT spikes unexpectedly.
 
 ---
 
@@ -146,17 +187,23 @@ llama-swap prioritizes loading hot models, queues requests, and routes by model-
 ## NPU Tuning (FLM)
 
 ```bash
-# Already applied in lemonade-launch-pi:
+# Valid --pmode values: default | powersaver | balanced | performance | turbo
+# NOTE: 'latency' is NOT valid — FLM rejects it, silently falls back to default
+
+# Empirical results (2026-05-02, Strix Halo, gemma4-it:e2b warm cache):
+#   performance → TTFT 0.860s, decode 22.9 tok/s  ← recommended
+#   turbo       → TTFT 0.857s, decode 21.6 tok/s  (negligible difference)
+
 flm serve gemma4-it:e2b --port 13306 --quiet --pmode performance
 
-# FLM performance modes:
-# --pmode balanced    (default) — lower power, lower throughput
-# --pmode performance            — full XDNA 2 clocks, ~15.5 tok/s decode (warm cache)
-# --pmode latency               — minimize TTFT (good for interactive ack turns)
+# FLM v0.9.40 available (v0.9.39 installed):
+# v0.9.40 adds: gemma4-it:e4b NPU support, chunk prefill for long prompts
+# Update: download flm-setup from github.com/FastFlowLM/FastFlowLM/releases/latest
 ```
 
-NPU cold-load: ~10s. XDNA 2 model cache (warm): TTFT ~1.6s, 15.5 tok/s.  
-NPU is independent of iGPU — runs concurrently with zero iGPU impact.
+NPU cold-start: ~5s to port-ready, TTFT ~1.13s first request (XDNA cache load).  
+NPU warm: **TTFT 0.86s, 22.9 tok/s decode** — runs independently of iGPU with zero contention.  
+Ack-turn wall clock: **1.6s total** (including HTTP overhead).
 
 ---
 

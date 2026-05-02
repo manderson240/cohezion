@@ -19,7 +19,7 @@ session: S104
 revisions:
   - date: 2026-04-21
     session: turbo-distributed-torvalds
-    change: "Added Phase 4 (backend-support verification gate) after discovering that Phases 0-2 completeness does NOT imply a working end-to-end KV compression. The installed llama-server binary on Strix Halo has no TurboQuant kernel and upstream PR #20969 is a GitHub Discussion, not a merged PR — making any dispatcher hop a silent no-op. Refined Key Insight to reflect the module-vs-backend distinction."
+    change: "Added Phase 4 (backend-support verification gate) after discovering that Phases 0-2 completeness does NOT imply a working end-to-end KV compression. The installed llama-server binary on Strix Halo has no TurboQuant kernel and upstream PR #20969 is a GitHub Discussion, not a merged PR -- making any dispatcher hop a silent no-op. Refined Key Insight to reflect the module-vs-backend distinction."
 ---
 
 # Skill: TurboQuant Phase Recovery
@@ -78,9 +78,9 @@ uv run pytest tests/inference/test_turboquant_reference.py -v
 ## Phase 3 Extension
 Added streaming KV compressor for 128k context targets.
 
-## Phase 4 — Backend-Support Verification Gate (added 2026-04-21)
+## Phase 4 -- Backend-Support Verification Gate (added 2026-04-21)
 
-**Restoration of the Python module is necessary but NOT sufficient.** Phases 0-3 restore `turboquant_reference.py`, `symmetry_hardware_bridge.py`, the `KVQuant` dataclass, and the streaming compressor — but the dispatcher still has to forward `runtime_flag` values to a backend binary that implements the TurboQuant kernel. Gate Phase 4 BEFORE any `fleet.py` dispatcher hop is written.
+**Restoration of the Python module is necessary but NOT sufficient.** Phases 0-3 restore `turboquant_reference.py`, `symmetry_hardware_bridge.py`, the `KVQuant` dataclass, and the streaming compressor -- but the dispatcher still has to forward `runtime_flag` values to a backend binary that implements the TurboQuant kernel. Gate Phase 4 BEFORE any `fleet.py` dispatcher hop is written.
 
 ### The silent-no-op trap
 
@@ -100,7 +100,7 @@ LD_LIBRARY_PATH=$(dirname $BINARY) $BINARY --help 2>&1 | grep -iE 'turbo|tbq|kv-
 # 4c. Scan the binary for compiled-in flag strings
 strings $BINARY | grep -iE '^(turbo|tbq)'
 
-# 4d. Live probe — look for silent-accept-and-drop
+# 4d. Live probe -- look for silent-accept-and-drop
 curl -s -X POST http://localhost:13307/v1/chat/completions \
   -H 'Content-Type: application/json' \
   -d '{"model":"Gemma-4-E4B-it-GGUF","messages":[{"role":"user","content":"hi"}],
@@ -116,11 +116,11 @@ Must have BOTH: (1) `--help` or `strings` finds the flag in the binary AND (2) a
 
 ### If Phase 4 fails
 
-Three honest options — surface to the user rather than pick autonomously:
+Three honest options -- surface to the user rather than pick autonomously:
 
 1. **Rebuild llama.cpp from a community TurboQuant fork** for ROCm gfx1151. Hours-to-days. Local divergence from upstream.
 2. **Pivot to a backend-supported scheme** (e.g. `kv8` / `q8_0`). Change `KVQuant.scheme` + `runtime_flag`, keep the turboquant module in tree for when upstream lands. ~1 hour of registry work + one `lemonade run --save-options` per affected model.
-3. **Close out as blocked** — set `kv_quant=KVQuant()` (default no-op) on the affected models; note the blockage in a registry comment pointing at the plan file. No runtime change.
+3. **Close out as blocked** -- set `kv_quant=KVQuant()` (default no-op) on the affected models; note the blockage in a registry comment pointing at the plan file. No runtime change.
 
 See `learnings/2026-04-21-turboquant-phase0-and-crash-loop-triage.md` for the session that walked this path end-to-end and chose option 2.
 
@@ -141,7 +141,7 @@ def test_kv_quant_llamacpp_runtime_flags_are_in_whitelist() -> None:
         assert flag in LLAMACPP_CACHE_TYPE_WHITELIST
 ```
 
-Lives in `tests/inference/test_registry.py`. A value outside the whitelist — like `turbo3` — fails fast at test time instead of silently no-opping at server startup.
+Lives in `tests/inference/test_registry.py`. A value outside the whitelist -- like `turbo3` -- fails fast at test time instead of silently no-opping at server startup.
 
 ## V-Model Validation
 | Phase | Evidence |
@@ -156,7 +156,7 @@ Lives in `tests/inference/test_registry.py`. A value outside the whitelist — l
 ## Key Insight
 **Never assume git history is linear. And never assume module restoration implies backend support.**
 
-Features can be silently reverted by later commits (Phases 0-3 insight, v1.0). AND registry declarations of runtime flags can silently outlive the backend's ability to honor them (Phase 4 insight, v1.1) — the "flag received but not honored" failure mode is invisible to unit tests and diff reviews; only a backend-support probe catches it before production.
+Features can be silently reverted by later commits (Phases 0-3 insight, v1.0). AND registry declarations of runtime flags can silently outlive the backend's ability to honor them (Phase 4 insight, v1.1) -- the "flag received but not honored" failure mode is invisible to unit tests and diff reviews; only a backend-support probe catches it before production.
 
 The two mistakes compound: a module can be Phases 0-2 complete, pass 12/12 unit tests, AND have a registry declaration that the backend silently ignores. All three artifacts look healthy at once.
 

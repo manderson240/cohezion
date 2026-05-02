@@ -26,12 +26,12 @@ MXFP4 Mixture-of-Experts kernel optimization for AMD MI355X. Target: <120us from
 5. Use AITER_BYPASS_TUNE_CONFIG=1 to override CSV-locked shapes
 
 ## DEAD ENDS
-- fused_moe parameter tuning — ALL EXHAUSTED
-- fmoe_g1u1 — NaN for 32-expert shapes
-- Direct cktile_moe_gemm1/2 — "Unsupported scales/output dtype!"
-- torch.compile — auto_functionalized_v2 not supported on ROCm 7.1
-- Expert masking with bincount — uint32 overflow GPU memory fault
-- OPUS sorting (dispatch_policy=1) — 19.3% worse on 257E configs
+- fused_moe parameter tuning -- ALL EXHAUSTED
+- fmoe_g1u1 -- NaN for 32-expert shapes
+- Direct cktile_moe_gemm1/2 -- "Unsupported scales/output dtype!"
+- torch.compile -- auto_functionalized_v2 not supported on ROCm 7.1
+- Expert masking with bincount -- uint32 overflow GPU memory fault
+- OPUS sorting (dispatch_policy=1) -- 19.3% worse on 257E configs
 
 ## VERSION
 v1.0.0

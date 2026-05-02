@@ -26,6 +26,14 @@
 | E49 | JEPA selection ≈ random. Mean delta=-0.001 (JEPA selects near-threshold proposals but not systematically better) | ❌ 253 runs |
 | E50 | DB tier validation: naive=0.725 → partial=0.900 → optimal=0.9875. Gain=+0.2625. Correctly ordered=True | ✅ 617 runs |
 | E51 | **EVO IS quality-sensitive**: naive=0.4337 vs optimal=0.5152 (delta=+0.0816). 100% keep rate | ✅ 15 runs |
+| E55 | Mycelium synthesis lifts consensus +0.0625 at lr=1.0 (E5 goal validated via direct `nexus.deliberate`) | ✅ validated |
+| E56 | **Root cause identified**: SET semantics in `apply_mycelium_feedback` caused cycle-2 calibration decay | ✅ fixed |
+| E57 | **E57 fix deployed**: additive `_mycelium_calibration +=` produces monotonic compounding toward 0.85 | ✅ committed |
+| E58 | Production `QuadratureNexus` uses `mechanism='additive_calibration'` (11 regression tests passing) | ✅ committed |
+| E59 | Convergence formula: `consensus_n = 0.85 − 0.125 × (1−lr/2)^n`, max_error=0.00025 | ✅ validated |
+| E60 | lr=2.0 crosses HIHO threshold in one cycle: baseline 0.725 + 0.125 calibration = 0.850 | ✅ validated |
+| E62 | Full E3/E6 pipeline (ingest_evo_journeys → synthesis → apply_mycelium_feedback → deliberate) lifts consensus | ✅ validated |
+| E63 | **NEW**: Closed-loop in autoresearch runner. lr=1.0 and lr=2.0 variants added to SCHEDULE | 🔄 running |
 
 ## Architecture Insights
 
@@ -57,13 +65,31 @@ After 130K+ deliberations, all voice scores (except resource) are clamped at 1.0
 | DB formula gain (optimal vs naive) | +0.2625 consensus |
 | JEPA steady-state final_loss | 0.97–1.00 |
 
+## Architecture Insights (E57)
+
+### E57: additive_calibration replaces score_injection
+
+**Root cause of all pre-E57 Mycelium failures**: `apply_mycelium_feedback` used SET semantics for `_score_adjustments`:
+```python
+# OLD (E56 root cause):
+self._score_adjustments[vt] = adjustment  # replaced by smaller value each cycle
+
+# NEW (E57 fix):
+self._mycelium_calibration[vt] += adjustment   # accumulates cross-cycle
+self._score_adjustments[vt] = self._mycelium_calibration[vt]  # exposed to _evaluate_*
+```
+
+The `run_llm_deliberation` function SETs `_score_adjustments` on every call, which wiped any SET value immediately. The fix separates *accumulator* (`_mycelium_calibration`) from *read surface* (`_score_adjustments`), making calibration survive across deliberations.
+
 ## Files Changed
 
-- `scripts/overnight_evo_loop.py`: E46, E47, E48, E49, E50, E51 experiments; E9→E47 schedule replacement; replay buffer; `_mycelium_calibration` fix; resource heuristic extension
-- `src/cohezion/swarm/quadrature_nexus.py`: `_evaluate_resource` extended with description keyword check
+- `scripts/overnight_evo_loop.py`: E46–E51, E63 experiments; E57 context in `run_llm_deliberation`; E50_tiers removed from SCHEDULE (converged)
+- `src/cohezion/swarm/quadrature_nexus.py`: E57 additive fix + `_mycelium_calibration` init; `_evaluate_resource` keyword check
+- `tests/mycelium/test_mycelium_feedback.py`: 11 regression tests for E57 (new file)
 - `src/cohezion/storage/surreal_client.py`: SurrealDB HTTP client (E1–E4 session)
 
 ## Pending: Next High-Value Experiments
 
-1. **E52: Mixed-quality persistent EVO** — Alternate naive/optimal proposals in E12-style run. Does EVO coherence settle at an intermediate value? Tests if the 0.8164 ceiling is purely mathematical or proposal-mix-sensitive.
-2. **Lemonade LLM mode** — Once iGPU ROCm recovers, re-run E46/E49/E51 with real LLM scores. Expected: meaningful JEPA improvement, genuine proposal uncertainty, higher-variance E51 results.
+1. **E63 results** — First runs of the Mycelium closed-loop in the autoresearch runner. Expected: delta>0 at lr=1.0 (E55 validated); delta≥0.125 at lr=2.0 (E60 predicted).
+2. **E52: Mixed-quality persistent EVO** — Alternate naive/optimal proposals in E12-style run. Does EVO coherence settle at an intermediate value?
+3. **Lemonade LLM mode** — Once iGPU ROCm recovers, re-run E46/E63 with real LLM scores. Expected: genuine proposal uncertainty; JEPA improvement becomes meaningful.

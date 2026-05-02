@@ -21,21 +21,21 @@ You work with categories 1-3 and translate their mechanisms into Smith's 12-para
 
 ### Tier 1: Smith's Synthesis (THE ANCHOR)
 
-**Wilbert B. Smith** — *The New Science* (1962):
-- Focus: **Quadrature** — E and M are not forces but *dimensions* of a fabric
-- Focus: **Tempic Field** — not time, but the rate-of-change magnitude (replaces aether)
-- Focus: **HIHO** — 50% overlap as the precipitation threshold for reality
+**Wilbert B. Smith** -- *The New Science* (1962):
+- Focus: **Quadrature** -- E and M are not forces but *dimensions* of a fabric
+- Focus: **Tempic Field** -- not time, but the rate-of-change magnitude (replaces aether)
+- Focus: **HIHO** -- 50% overlap as the precipitation threshold for reality
 - Mechanism: Fields are topological structures in a 12D manifold, not action-at-a-distance
 - Cohezion mapping: see `PHYSICS_LINEAGE_PRIME.md` Era 16 and `HIHO_REALITY_SIM.md`
 
 ### Tier 1: Exotic Vacuum Objects (EVOs)
 
-**Ken Shoulders** — EVO papers (1990s-2000s):
+**Ken Shoulders** -- EVO papers (1990s-2000s):
 - Data: Charged clusters of ~10^11 electrons that violate Coulomb repulsion
 - Track marks on cathodes: micron-scale craters, transmutation products
 - Energy: EVOs carry ~1 MeV per cluster, far exceeding thermal energies
 - **Mechanism**: At HIHO coherence (0.5), EM force (10^40 × gravity) overcomes Coulomb
-  repulsion via a topological soliton — a stable toroidal charge vortex (SPIN structure)
+  repulsion via a topological soliton -- a stable toroidal charge vortex (SPIN structure)
 - Cohezion mapping: SPIN (rotation + precession at 0.5 coherence) = EVO computational analog
 
 **Matsumoto's Itonic Clusters** (1989-1999):
@@ -57,18 +57,18 @@ You work with categories 1-3 and translate their mechanisms into Smith's 12-para
 
 ### Tier 2: Orch-OR (Orchestrated Objective Reduction)
 
-**Penrose/Hameroff** — *Shadows of the Mind* (1994), *The Emperor's New Mind* (1989):
+**Penrose/Hameroff** -- *Shadows of the Mind* (1994), *The Emperor's New Mind* (1989):
 - Claim: Consciousness arises from quantum state reduction in microtubule proteins
 - **Mechanism**: Microtubules = quantum computing substrate. Tubulin dimer states = qubits.
   Collapse triggered by gravitational self-energy threshold (E_grav ≥ ℏ/τ)
-- TUM 2025: Quantum coherence in chlorophyll at room temperature (Qx state) — biological QM is real
+- TUM 2025: Quantum coherence in chlorophyll at room temperature (Qx state) -- biological QM is real
 - **Standard Model problem**: Thermal decoherence should kill quantum coherence in warm, wet brains
 - Cohezion mapping: Awareness (dim 10 of Smith) = Penrose gravitational collapse threshold.
   Precipitation (dim 12) = Orch-OR objective reduction event.
 
 ### Tier 2: ER = EPR (Einstein-Rosen = Einstein-Podolsky-Rosen)
 
-**Maldacena/Susskind (2013)** — "Cool Horizons for Entangled Black Holes":
+**Maldacena/Susskind (2013)** -- "Cool Horizons for Entangled Black Holes":
 - Conjecture: Quantum entanglement (EPR pairs) IS the same thing as wormholes (ER bridges)
 - **Mechanism**: Maximally entangled pairs share a non-traversable wormhole (GR + QM unification)
 - **Evidence**: Consistent with holographic entanglement entropy (Ryu-Takayanagi formula)
@@ -92,16 +92,16 @@ You work with categories 1-3 and translate their mechanisms into Smith's 12-para
 **Mathematical solitons** (Korteweg-de Vries, 1895; Skyrme, 1961):
 - Soliton: a self-reinforcing wave that maintains its shape indefinitely (balance of dispersion and nonlinearity)
 - Topological soliton (Skyrmion): particle-like solutions to nonlinear field equations with
-  integer topological charge — they CANNOT be continuously deformed to zero
+  integer topological charge -- they CANNOT be continuously deformed to zero
 - **Relevance**: SPIN (rotation + precession) = topological soliton in the EM field fabric.
-  The toroidal vortex structure is topologically stable — it cannot be "smoothed out" without
+  The toroidal vortex structure is topologically stable -- it cannot be "smoothed out" without
   first passing through a singular state. This is why charge is quantized.
 - Cohezion mapping: SPIN components (rotation, precession) = winding numbers of the soliton.
   Charge = topological index (integer). Cannot be created or destroyed in isolation.
 
 ### Tier 2: Zero-Point Field (ZPF) / Stochastic Electrodynamics (SED)
 
-**Zero-point field**: The quantum vacuum is not empty — it has energy ½ℏω per mode.
+**Zero-point field**: The quantum vacuum is not empty -- it has energy ½ℏω per mode.
 **SED (de la Peña, Cetto)**: Classical physics + random vacuum fluctuations reproduces many QM results.
 - **Mechanism**: ZPF provides the "noise floor" for all quantum phenomena; decoherence = coupling
   to ZPF; vacuum energy density ≈ 10^113 J/m³ (but we only observe the differences)
@@ -214,14 +214,14 @@ def translate_fringe_claim(claim: str, observations: list[str]) -> dict:
 
 ## VERSION
 
-v2.0 (2026-03-05) — Comprehensive fringe physics primer with tier classification,
+v2.0 (2026-03-05) -- Comprehensive fringe physics primer with tier classification,
 mechanism translation table, Cymatics/Chladni, Solitons, ZPF, Morphic fields
 
 ## SEE ALSO
 
-- `PHYSICS_LINEAGE_PRIME.md` — 400-year mainstream physics lineage that Smith synthesizes
-- `matsumoto_hiho_synthesis.md` — Matsumoto/Shoulders/Smith unified fringe model
-- `advanced_physics_simulation.md` — simulation domains (EVOs, LENR, MHD, Twistors, Chirality)
-- `HIHO_REALITY_SIM.md` — Smith's 4 fabrics with physics genealogy
-- `src/cohezion/flume/bioelectric.py` — Levin's bioelectric signals (Tier 1 biology)
-- `src/cohezion/physics/usd_simulator.py` — Matsumoto USD simulation
+- `PHYSICS_LINEAGE_PRIME.md` -- 400-year mainstream physics lineage that Smith synthesizes
+- `matsumoto_hiho_synthesis.md` -- Matsumoto/Shoulders/Smith unified fringe model
+- `advanced_physics_simulation.md` -- simulation domains (EVOs, LENR, MHD, Twistors, Chirality)
+- `HIHO_REALITY_SIM.md` -- Smith's 4 fabrics with physics genealogy
+- `src/cohezion/flume/bioelectric.py` -- Levin's bioelectric signals (Tier 1 biology)
+- `src/cohezion/physics/usd_simulator.py` -- Matsumoto USD simulation

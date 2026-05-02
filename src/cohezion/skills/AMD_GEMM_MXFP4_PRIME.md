@@ -22,14 +22,14 @@ MXFP4 GEMM kernel optimization for AMD MI355X (gfx950). Target: <10us from 22.8u
 3. Tile: BLOCK_M=128, BLOCK_N=128, BLOCK_K=128 (minimum for tl.dot_scaled)
 4. Pack fp4 nibbles: high = (val >> 4), low = (val & 0xF)
 5. E8M0 scale computation: scale = floor(log2(max(abs(block)))) + 127
-6. 8 XCDs must all be occupied — XCD-aware tile scheduling required
+6. 8 XCDs must all be occupied -- XCD-aware tile scheduling required
 
 ## DEAD ENDS
-- gemm_a4w4 API parameters — ALL EXHAUSTED
-- gemm_afp4wfp4 — KeyError float4_e2m1fn_x2
-- Triton tl.dot_scaled — 68% slower, wrong scale layout issues
-- ctypes dispatch — blocked by stream isolation
-- hipblaslt — no MXFP4 support
+- gemm_a4w4 API parameters -- ALL EXHAUSTED
+- gemm_afp4wfp4 -- KeyError float4_e2m1fn_x2
+- Triton tl.dot_scaled -- 68% slower, wrong scale layout issues
+- ctypes dispatch -- blocked by stream isolation
+- hipblaslt -- no MXFP4 support
 
 ## VERSION
 v1.0.0

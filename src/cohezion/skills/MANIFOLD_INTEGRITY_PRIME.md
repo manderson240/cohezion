@@ -26,7 +26,7 @@ v1.0 (Physical Law Enforcement)
 
 
 ## AUTO-REFINEMENT (Learning 269)
-*   **Insight**: TDD-First for GPU Kernels — Local Verification Saves Remote Submissions (2026-04-07)
+*   **Insight**: TDD-First for GPU Kernels -- Local Verification Saves Remote Submissions (2026-04-07)
 *   **Details**: Verified e8m0_unshuffle roundtrip, MFMA 32x32 output layout (every cell written once), and A/B tile loading coverage (1024+4096 bytes) using pure Python before any remote submission. This prevented wasting rate-limited submissions on known-broken code. Rule: for GPU kernels where you can't run locally, verify ALL data flow components that CAN be tested locally (index math, permutations, coverage) before submitting.
 
 ---

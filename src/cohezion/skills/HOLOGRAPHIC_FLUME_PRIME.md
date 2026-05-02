@@ -1,15 +1,15 @@
 ---
 name: holographic-flume-prime
-description: "You understand the holographic principle of theoretical physics — that the maximum information content of a region of space is proportional to its surface area, not its volume — and how this principle explains why FLUME's 256D latent space can fully encode Smith's 12D axiomatic state."
+description: "You understand the holographic principle of theoretical physics -- that the maximum information content of a region of space is proportional to its surface area, not its volume -- and how this principle explains why FLUME's 256D latent space can fully encode Smith's 12D axiomatic state."
 ---
 
 # SKILL: HOLOGRAPHIC_FLUME_PRIME
 
 ## DOMAIN EXPERTISE
 
-You understand the holographic principle of theoretical physics — that the maximum
+You understand the holographic principle of theoretical physics -- that the maximum
 information content of a region of space is proportional to its **surface area**, not its
-volume — and how this principle explains why FLUME's 256D latent space can fully encode
+volume -- and how this principle explains why FLUME's 256D latent space can fully encode
 Smith's 12D axiomatic state. You can compute the holographic mutual information between
 the 12D physical state and the 256D FLUME encoding, validate that the encoding is
 holographically complete, and explain to any agent why FLUME has 256 dimensions instead
@@ -17,13 +17,13 @@ of just 12.
 
 ## KEY TEXTS & CONCEPTS
 
-- **Jacob Bekenstein (1972)**: Black hole entropy S_BH = A/4 (Planck units) — first hint
+- **Jacob Bekenstein (1972)**: Black hole entropy S_BH = A/4 (Planck units) -- first hint
   that information scales with area, not volume
-- **Stephen Hawking (1974)**: Hawking radiation — black holes evaporate, information must
+- **Stephen Hawking (1974)**: Hawking radiation -- black holes evaporate, information must
   escape on the boundary (surface)
-- **Gerard 't Hooft (1993)**: "Dimensional Reduction in Quantum Gravity" — the holographic bound
-- **Leonard Susskind (1995)**: "The World as a Hologram" — formalized the holographic principle
-- **Juan Maldacena (1997)**: AdS/CFT correspondence — bulk gravity = boundary field theory
+- **Gerard 't Hooft (1993)**: "Dimensional Reduction in Quantum Gravity" -- the holographic bound
+- **Leonard Susskind (1995)**: "The World as a Hologram" -- formalized the holographic principle
+- **Juan Maldacena (1997)**: AdS/CFT correspondence -- bulk gravity = boundary field theory
   (the first rigorous realization of holography)
 - **Wilbert B. Smith (1962)**: 12-parameter reality = the bulk; FLUME = the boundary CFT
 - **Cohezion implementation**: `src/cohezion/flume/flume_vae.py` (FlumeVAETrainer),
@@ -45,7 +45,7 @@ S ≤ S_Bekenstein = 2πRE / (ℏc)
 For black holes, this is saturated: S_BH = A/4 (in Planck units, where A is the horizon area).
 
 **Key implication:** The **surface** of a region contains all the information about the
-**volume** inside it. The 3D interior is redundant — all its information is encoded on the 2D
+**volume** inside it. The 3D interior is redundant -- all its information is encoded on the 2D
 boundary. This is the holographic principle.
 
 ### AdS/CFT Correspondence (Maldacena 1997)
@@ -58,7 +58,7 @@ the boundary:
 Z_gravity[AdS_{d+1}] = Z_CFT[boundary_d]
 ```
 
-This is NOT an approximation — it is an exact duality. The boundary theory has FEWER dimensions
+This is NOT an approximation -- it is an exact duality. The boundary theory has FEWER dimensions
 than the bulk, yet fully encodes all the physics.
 
 ---
@@ -75,7 +75,7 @@ In standard holography, the boundary has FEWER dimensions than the bulk. But in 
 - **Bulk (Smith):** 12 dimensions
 - **Boundary (FLUME):** 256 dimensions (more than the bulk)
 
-This is NOT a violation of holography — it is a **quantum error-correcting code**. The
+This is NOT a violation of holography -- it is a **quantum error-correcting code**. The
 holographic boundary does not just encode the bulk once; it encodes it with **redundancy**:
 
 ```
@@ -87,7 +87,7 @@ This redundancy protects the 12D physical state against:
 2. Partial information loss (incomplete context)
 3. Adversarial perturbations (hallucinations trying to corrupt the physical state)
 
-The factor of redundancy: 256/12 ≈ 21.3× — each physical dimension is encoded in ~21
+The factor of redundancy: 256/12 ≈ 21.3× -- each physical dimension is encoded in ~21
 latent dimensions, giving 21× error-correction protection.
 
 ### The holographic dictionary
@@ -111,7 +111,7 @@ Every object in the 12D bulk (Smith's physical state) has a corresponding operat
 | Precipitation (dim 12) | Latent dims 231-255 |
 
 *(Note: This is the theoretical ideal. In practice, the encoder learns an optimal, distributed
-representation — dimensions are not strictly partitioned. The above shows the target structure.)*
+representation -- dimensions are not strictly partitioned. The above shows the target structure.)*
 
 ---
 
@@ -130,7 +130,7 @@ space (e.g., the "Space Fabric region" and the "Precipitation Fabric region") eq
 area of the minimal surface separating the corresponding regions in Smith's 12D bulk.
 
 **HIHO connection:** When coherence = 0.5, the entanglement entropy between the "in" and
-"out" halves of FLUME is maximized — this is the Ryu-Takayanagi maximum entanglement
+"out" halves of FLUME is maximized -- this is the Ryu-Takayanagi maximum entanglement
 condition. HIHO = maximum holographic entanglement.
 
 ---
@@ -240,7 +240,7 @@ N_bits_useful ≈ 256 × log2(256) = 2,048 bits (if each dim uses full range)
 N_bits_physical ≤ H(12D state) ≤ 12 bits (binary approximation per dim)
 ```
 
-FLUME is **wildly over-capacity** relative to the 12D physical state — there are ~170×
+FLUME is **wildly over-capacity** relative to the 12D physical state -- there are ~170×
 more bits available than needed. This excess IS the holographic error-correction buffer.
 The VAE's KL divergence term (enforcing N(0,I) prior on z) prevents this excess from
 being used for noise, keeping the useful information density high.
@@ -279,10 +279,10 @@ v1.0 (2026-03-05)
 
 ## SEE ALSO
 
-- `PHYSICS_LINEAGE_PRIME.md` — Era 15 (Holographic Principle) in the 400-year lineage
-- `FLUME_METHODOLOGY_PRIME.md` — FLUME encoding mechanics
-- `HIHO_STABILITY_PRIME.md` — HIHO as syndrome measurement of holographic code
-- `NOETHER_CONSERVATION_PRIME.md` — conservation laws that must be preserved by the holographic encoding
-- `src/cohezion/flume/flume_vae.py` — FlumeVAETrainer (the holographic encoder)
-- `src/cohezion/flume/autoencoder.py` — encoder/decoder architecture
-- `src/cohezion/physics/dimension_extractor.py` — generates the 12D physical state (the bulk)
+- `PHYSICS_LINEAGE_PRIME.md` -- Era 15 (Holographic Principle) in the 400-year lineage
+- `FLUME_METHODOLOGY_PRIME.md` -- FLUME encoding mechanics
+- `HIHO_STABILITY_PRIME.md` -- HIHO as syndrome measurement of holographic code
+- `NOETHER_CONSERVATION_PRIME.md` -- conservation laws that must be preserved by the holographic encoding
+- `src/cohezion/flume/flume_vae.py` -- FlumeVAETrainer (the holographic encoder)
+- `src/cohezion/flume/autoencoder.py` -- encoder/decoder architecture
+- `src/cohezion/physics/dimension_extractor.py` -- generates the 12D physical state (the bulk)

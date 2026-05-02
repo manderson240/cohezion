@@ -25,7 +25,7 @@ Providing hardware-enforced isolation for agentic code execution, ensuring syste
 ## INSTRUCTION
 
 1. **Select a Profile**: Choose a `SandboxTier` (LIGHT/MEDIUM/HEAVY) or construct a `SandboxProfile` for CUSTOM workloads.
-2. **Initialize via SandboxManager**: Call `SandboxManager.run_simulation(script, tier, profile, files, env)` — the manager selects the best available backend automatically.
+2. **Initialize via SandboxManager**: Call `SandboxManager.run_simulation(script, tier, profile, files, env)` -- the manager selects the best available backend automatically.
 3. **Backend Selection**: `select_backend()` probes Docker > systemd-run > subprocess and returns the strongest available option.
 4. **Apply Constraints**: The backend translates the profile into enforcement primitives:
    - Docker: `mem_limit`, `cpu_quota`, `network_mode: none`

@@ -20,17 +20,17 @@ Train the FLUME VAE on real agentic execution experiences instead of synthetic g
 
 ### 1. Collect Experiences
 Gather execution records from three tiers:
-- **Tier 1**: `data/journeys/shard_*.parquet` — 12D trajectories + metadata
+- **Tier 1**: `data/journeys/shard_*.parquet` -- 12D trajectories + metadata
 - **Tier 2**: SurrealDB `mission_journey` table (non-blocking, skip if unavailable)
 - **Tier 3**: `~/vaults/cohezion-vault/experiments/**/*.json` vault files
 
 ### 2. Encode as 256D Vectors
 Each experience is encoded via `ExperienceEncoder`:
 ```
-Dims [0:12]   — 12D axiomatic trajectory
-Dims [12:24]  — 12 scalar execution metrics (phi, anomaly, tokens, cost...)
-Dims [24:29]  — 5 operation type one-hot (generate/analyze/search/transform/persist)
-Dims [29:256] — 227 semantic fingerprint (SHA-256 hash expansion)
+Dims [0:12]   -- 12D axiomatic trajectory
+Dims [12:24]  -- 12 scalar execution metrics (phi, anomaly, tokens, cost...)
+Dims [24:29]  -- 5 operation type one-hot (generate/analyze/search/transform/persist)
+Dims [29:256] -- 227 semantic fingerprint (SHA-256 hash expansion)
 ```
 
 ### 3. Build Dataset

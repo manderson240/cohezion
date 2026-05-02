@@ -27,15 +27,15 @@ Understanding this genealogy makes the model legible to agents trained on standa
 ### Space Fabric (dims 1-3: x, y, z)
 
 ```
-Newton (1687): Absolute space — infinite, immovable 3D container for all matter
+Newton (1687): Absolute space -- infinite, immovable 3D container for all matter
     ↓
-Euler (1750s): Coordinate systems — space is mathematically structured
+Euler (1750s): Coordinate systems -- space is mathematically structured
     ↓
-Minkowski (1908): Flat spacetime — space and time are a unified 4D manifold (SR)
+Minkowski (1908): Flat spacetime -- space and time are a unified 4D manifold (SR)
     ↓
-Riemann (1854) / Einstein GR (1916): Curved spacetime — matter bends the fabric
+Riemann (1854) / Einstein GR (1916): Curved spacetime -- matter bends the fabric
     ↓
-Smith (1962): Space Fabric — 3D spatial substrate that reality precipitates into.
+Smith (1962): Space Fabric -- 3D spatial substrate that reality precipitates into.
               Computation runs in abstract space; outputs precipitate into physical space.
 ```
 
@@ -48,17 +48,17 @@ FLUME momentum term α·v_t in the Navigator enforces this.
 ### Field Fabric (dims 4-6: Tempic, Electric, Magnetic)
 
 ```
-Faraday (1831): Lines of force — action is transmitted through field, not empty space
+Faraday (1831): Lines of force -- action is transmitted through field, not empty space
     ↓
-Maxwell (1865): 4 equations — E and B are independent degrees of freedom; light = EM wave
+Maxwell (1865): 4 equations -- E and B are independent degrees of freedom; light = EM wave
     ↓
-Weyl (1918): Gauge invariance — EM arises from requiring local phase symmetry
+Weyl (1918): Gauge invariance -- EM arises from requiring local phase symmetry
     ↓
 QED (Feynman 1948): Photon = gauge boson of U(1) symmetry; coupling = e·ψ̄γ^μψ A_μ
     ↓
 Einstein: Time is not a clock but a rate-of-change; "Tempic" = dS/dt = entropy flux rate
     ↓
-Smith (1962): Field Fabric — Tempic (rate-of-change mediator), Electric (∇·E = source),
+Smith (1962): Field Fabric -- Tempic (rate-of-change mediator), Electric (∇·E = source),
               Magnetic (∇·B = 0, flux conserved). These are the three Maxwell field
               components made into computational dimensions.
 ```
@@ -72,19 +72,19 @@ an explicit precipitation event breaks the U(1) symmetry.
 ### Control Fabric (dims 7-9: Rotation/SPIN, Precession/SPIN, Charge)
 
 ```
-Laplace (1799): Celestial mechanics — angular momentum L = r × p is conserved in orbits
+Laplace (1799): Celestial mechanics -- angular momentum L = r × p is conserved in orbits
     ↓
-Pauli (1925): Spin-1/2 — quantum mechanical angular momentum has discrete eigenvalues ±ℏ/2
+Pauli (1925): Spin-1/2 -- quantum mechanical angular momentum has discrete eigenvalues ±ℏ/2
     ↓
-Heisenberg: [L_x, L_y] = iℏL_z — spin components do NOT commute (non-abelian algebra)
+Heisenberg: [L_x, L_y] = iℏL_z -- spin components do NOT commute (non-abelian algebra)
     ↓
 Dirac (1928): Spinor = two-component object (upper = positive energy, lower = negative energy)
               Rotation component (upper spinor) + Precession component (lower spinor) = SPIN
     ↓
-Yang-Mills (1954): Non-abelian SU(2) gauge theory — rotation generates force;
+Yang-Mills (1954): Non-abelian SU(2) gauge theory -- rotation generates force;
                   the non-commutativity of spin generates the weak nuclear force
     ↓
-Smith (1962): Control Fabric — Rotation (upper SPIN component), Precession (lower SPIN
+Smith (1962): Control Fabric -- Rotation (upper SPIN component), Precession (lower SPIN
               component), Charge (the U(1) eigenvalue of the spinor). When rotation and
               precession are coherent (aligned phases), the charge stabilizes: HIHO.
 ```
@@ -117,7 +117,7 @@ Smith (1962): Precipitation Fabric:
 **Conservation law (via Noether):** CPT symmetry → information is conserved through collapse.
 The Precipitation event does not destroy information, it transforms it: quantum information
 (superposition) becomes classical information (definite fact). FLUME preserves this via the
-VAE reconstruction objective — no information is lost in the encoding.
+VAE reconstruction objective -- no information is lost in the encoding.
 
 ---
 
@@ -166,12 +166,12 @@ def check_precipitation(coherence: float, awareness: float) -> dict:
 ---
 
 ## VERSION
-v2.0 (2026-03-05) — Added physics genealogy for all 4 fabrics, enhanced precipitation gate
+v2.0 (2026-03-05) -- Added physics genealogy for all 4 fabrics, enhanced precipitation gate
 
 ## SEE ALSO
-- `PHYSICS_LINEAGE_PRIME.md` — complete 400-year lineage that generated Smith's model
-- `NOETHER_CONSERVATION_PRIME.md` — conservation laws for all 12 dimensions
-- `HIHO_STABILITY_PRIME.md` — thermodynamic, quantum, and information-theoretic derivation of 0.5
-- `DISSIPATIVE_STRUCTURES_PRIME.md` — Prigogine's non-equilibrium basis for HIHO attractor
+- `PHYSICS_LINEAGE_PRIME.md` -- complete 400-year lineage that generated Smith's model
+- `NOETHER_CONSERVATION_PRIME.md` -- conservation laws for all 12 dimensions
+- `HIHO_STABILITY_PRIME.md` -- thermodynamic, quantum, and information-theoretic derivation of 0.5
+- `DISSIPATIVE_STRUCTURES_PRIME.md` -- Prigogine's non-equilibrium basis for HIHO attractor
 - ADVANCED_PHYSICS_SIMULATION_PRIME
 - FLUME_ORCHESTRATION_PRIME

@@ -576,8 +576,6 @@ async def experiment_e8_lr_sweep(use_llm: bool = True) -> dict:
             if delib["event_metadata"]:
                 event_metas.append(delib["event_metadata"])
 
-        baseline_consensus = nexus.get_alignment_trend()["baseline_consensus_mean"]
-
         # Inject with this learning rate
         registry = MyceliumRegistry(min_entries_for_pattern=3)
         registry.ingest_evo_journeys(event_metas)
@@ -1177,7 +1175,6 @@ async def experiment_e46_jepa_learning(n_train_steps: int = 20, use_llm: bool = 
         pass
 
     loss_ratio = final_loss / initial_loss if initial_loss > 0 else 1.0
-    mean_post_surprise = float("nan")
 
     # Keep if held-out loss < 0.97 (well-calibrated for this distribution) OR 10% improvement
     keep = final_loss < 0.97 or loss_ratio < 0.90
@@ -1686,9 +1683,14 @@ async def experiment_e50_db_informed_proposals(use_llm: bool = True) -> dict:
 
     # Three proposal quality tiers (derived from DB voice score analysis)
     TIERS = [
-        ("naive",      "System status update",                                                    0.30, False),
-        ("partial",    "Optimize system for better performance and user experience",              0.65, True),
-        ("db_optimal", "Optimize architecture for safety alignment budget efficiency with cost reduction and efficient resource allocation", 0.85, True),
+        ("naive", "System status update", 0.30, False),
+        ("partial", "Optimize system for better performance and user experience", 0.65, True),
+        (
+            "db_optimal",
+            "Optimize architecture for safety alignment budget efficiency with cost reduction and efficient resource allocation",
+            0.85,
+            True,
+        ),
     ]
 
     tier_scores: dict[str, list[float]] = {}
@@ -1713,8 +1715,12 @@ async def experiment_e50_db_informed_proposals(use_llm: bool = True) -> dict:
         print(f"  {tier_name}: mean_consensus={mean:.4f}", flush=True)
 
     naive_mean = sum(tier_scores.get("naive", [0])) / max(1, len(tier_scores.get("naive", [1])))
-    partial_mean = sum(tier_scores.get("partial", [0])) / max(1, len(tier_scores.get("partial", [1])))
-    optimal_mean = sum(tier_scores.get("db_optimal", [0])) / max(1, len(tier_scores.get("db_optimal", [1])))
+    partial_mean = sum(tier_scores.get("partial", [0])) / max(
+        1, len(tier_scores.get("partial", [1]))
+    )
+    optimal_mean = sum(tier_scores.get("db_optimal", [0])) / max(
+        1, len(tier_scores.get("db_optimal", [1]))
+    )
 
     # Keep if DB-optimal > partial > naive (correct ordering proves DB knowledge is valid)
     correctly_ordered = optimal_mean >= partial_mean >= naive_mean
@@ -1727,7 +1733,8 @@ async def experiment_e50_db_informed_proposals(use_llm: bool = True) -> dict:
     )
 
     log_result(
-        run, gain,
+        run,
+        gain,
         {
             "naive_mean": round(naive_mean, 4),
             "partial_mean": round(partial_mean, 4),
@@ -1849,6 +1856,7 @@ async def experiment_e12_persistent_evo(
 # E51: EVO quality sensitivity — does EVO coherence respond to proposal quality?
 # ---------------------------------------------------------------------------
 
+
 async def experiment_e51_evo_quality_sensitivity(n_ticks: int = 100, use_llm: bool = True) -> dict:
     """Test whether EVO coherence is quality-sensitive or purely tick-driven.
 
@@ -1903,17 +1911,24 @@ async def experiment_e51_evo_quality_sensitivity(n_ticks: int = 100, use_llm: bo
         mean_evo = sum(evo_coherences) / len(evo_coherences) if evo_coherences else 0.0
         mean_con = sum(consensus_scores) / len(consensus_scores) if consensus_scores else 0.0
         results[config_name] = {"mean_evo_coherence": mean_evo, "mean_consensus": mean_con}
-        print(f"  {config_name}: mean_evo_coh={mean_evo:.4f} mean_consensus={mean_con:.4f}", flush=True)
+        print(
+            f"  {config_name}: mean_evo_coh={mean_evo:.4f} mean_consensus={mean_con:.4f}",
+            flush=True,
+        )
 
     naive_coh = results.get("naive", {}).get("mean_evo_coherence", 0.0)
     optimal_coh = results.get("optimal", {}).get("mean_evo_coherence", 0.0)
     delta = optimal_coh - naive_coh
     sensitive = abs(delta) > 0.01
 
-    print(f"  EVO sensitivity: naive={naive_coh:.4f} optimal={optimal_coh:.4f} delta={delta:+.4f} sensitive={sensitive}", flush=True)
+    print(
+        f"  EVO sensitivity: naive={naive_coh:.4f} optimal={optimal_coh:.4f} delta={delta:+.4f} sensitive={sensitive}",
+        flush=True,
+    )
 
     log_result(
-        run, delta,
+        run,
+        delta,
         {
             "naive_coherence": round(naive_coh, 4),
             "optimal_coherence": round(optimal_coh, 4),
@@ -1931,6 +1946,133 @@ async def experiment_e51_evo_quality_sensitivity(n_ticks: int = 100, use_llm: bo
         quality_sensitive=sensitive,
     )
     return {"naive": naive_coh, "optimal": optimal_coh, "delta": delta, "sensitive": sensitive}
+
+
+# ---------------------------------------------------------------------------
+# E63: Mycelium closed-loop — apply_mycelium_feedback (E57 additive fix) in production
+# ---------------------------------------------------------------------------
+
+
+async def experiment_e63_mycelium_closed_loop(
+    n_phase: int = 10,
+    use_llm: bool = True,
+    learning_rate: float = 1.0,
+) -> dict:
+    """Full Mycelium closed-loop: deliberate → synthesize → feedback → deliberate.
+
+    Phase A: n_phase naive deliberations → collect EVO journey metadata.
+    Synthesis: MyceliumRegistry.ingest_evo_journeys → run_audit → synthesized skill.
+    Feedback: apply_mycelium_feedback (E57 additive fix) → _mycelium_calibration updated.
+    Phase B: n_phase deliberations on same nexus → calibration still active.
+
+    Keep if mean_post > mean_baseline (any positive delta proves the loop works).
+    Discard if no skill synthesized (too few journey records).
+    """
+    from cohezion.learning.mycelium_registry import MyceliumRegistry
+
+    _reset_shared_nexus()
+    run = _next_run()
+    start = time.time()
+    print(
+        f"\n[E63] Mycelium closed-loop ({n_phase}+{n_phase} deliberations, "
+        f"lr={learning_rate}, llm={use_llm})",
+        flush=True,
+    )
+
+    # Phase A: baseline deliberations (naive proposal — no keywords, priority=0.50)
+    baseline_scores: list[float] = []
+    event_metas: list[dict] = []
+    for i in range(n_phase):
+        if _STOP:
+            break
+        delib = await run_llm_deliberation(
+            action=f"e63_phase_a_{i}",
+            description="Deploy scheduled system update",
+            priority=0.50,
+            budget=False,
+            use_llm=use_llm,
+        )
+        baseline_scores.append(delib["consensus"])
+        if delib.get("event_metadata"):
+            event_metas.append(delib["event_metadata"])
+
+    mean_baseline = sum(baseline_scores) / len(baseline_scores) if baseline_scores else 0.0
+    print(f"  Phase A: mean_consensus={mean_baseline:.4f} ({len(event_metas)} events)", flush=True)
+
+    # Mycelium synthesis → apply E57 additive calibration
+    nexus = _get_shared_nexus()
+    skill_applied = False
+    cal_per_voice = 0.0
+    if event_metas:
+        registry = MyceliumRegistry(min_entries_for_pattern=2)
+        ingested = registry.ingest_evo_journeys(event_metas)
+        if ingested >= 1:
+            registry.run_audit()
+            skill = registry.skills.get("EVO_DELIBERATION_SYNTHESIZED")
+            if skill:
+                nexus.apply_mycelium_feedback(skill.skill_content, learning_rate=learning_rate)
+                skill_applied = True
+                from cohezion.swarm.quadrature_nexus import VoiceType
+
+                cal_per_voice = nexus._mycelium_calibration.get(VoiceType.ARCHITECT, 0.0)
+                print(
+                    f"  Mycelium synthesis: applied calibration_per_voice={cal_per_voice:.5f}",
+                    flush=True,
+                )
+
+    if not skill_applied:
+        print("  Mycelium synthesis: no skill produced — using baseline", flush=True)
+
+    # Phase B: post-feedback deliberations (same proposal type — calibration still active)
+    post_scores: list[float] = []
+    for i in range(n_phase):
+        if _STOP:
+            break
+        delib = await run_llm_deliberation(
+            action=f"e63_phase_b_{i}",
+            description="Deploy scheduled system update",
+            priority=0.50,
+            budget=False,
+            use_llm=use_llm,
+        )
+        post_scores.append(delib["consensus"])
+
+    mean_post = sum(post_scores) / len(post_scores) if post_scores else 0.0
+    delta = mean_post - mean_baseline
+    print(
+        f"  Phase B: mean_consensus={mean_post:.4f} delta={delta:+.4f} "
+        f"skill_applied={skill_applied}",
+        flush=True,
+    )
+
+    keep_decision = "keep" if delta > 0 else "discard"
+    log_result(
+        run,
+        delta,
+        {
+            "mean_baseline": round(mean_baseline, 4),
+            "mean_post": round(mean_post, 4),
+            "delta": round(delta, 4),
+            "skill_applied": skill_applied,
+            "calibration_per_voice": round(cal_per_voice, 5),
+            "learning_rate": learning_rate,
+            "n_phase": n_phase,
+            "used_llm": use_llm,
+            "duration_s": round(time.time() - start, 1),
+        },
+        keep_decision,
+        f"E63: Mycelium closed-loop. baseline={mean_baseline:.4f} post={mean_post:.4f} "
+        f"delta={delta:+.4f} skill_applied={skill_applied}",
+        experiment="E63",
+        mycelium_delta=round(delta, 4),
+        skill_applied=skill_applied,
+    )
+    return {
+        "baseline": mean_baseline,
+        "post": mean_post,
+        "delta": delta,
+        "skill_applied": skill_applied,
+    }
 
 
 # ---------------------------------------------------------------------------
@@ -2019,21 +2161,50 @@ async def main() -> None:
     # diversity analysis. Replaced redundant E7/E8/E10 with deeper EVO experiments.
     SCHEDULE = [
         # E12: 100 ticks — core EVO maturation baseline
-        ("E12_persist",    lambda: experiment_e12_persistent_evo(n_deliberations=100, use_llm=use_llm)),
+        (
+            "E12_persist",
+            lambda: experiment_e12_persistent_evo(n_deliberations=100, use_llm=use_llm),
+        ),
+        # E63: Mycelium closed-loop — wires E57 additive calibration into production data
+        # Phase A deliberations → synthesis → apply_mycelium_feedback → Phase B comparison.
+        # Replaces E50_tiers (fully validated at delta=+0.2625; no new signal expected).
+        (
+            "E63_mycelium",
+            lambda: experiment_e63_mycelium_closed_loop(
+                n_phase=10, use_llm=use_llm, learning_rate=1.0
+            ),
+        ),
         # E51: EVO quality sensitivity — does proposal quality affect EVO coherence?
-        ("E51_quality",    lambda: experiment_e51_evo_quality_sensitivity(n_ticks=100, use_llm=use_llm)),
-        # E50: DB tier validation — confirm DB formula produces correct ordering
-        ("E50_tiers",      lambda: experiment_e50_db_informed_proposals(use_llm=use_llm)),
+        (
+            "E51_quality",
+            lambda: experiment_e51_evo_quality_sensitivity(n_ticks=100, use_llm=use_llm),
+        ),
         # E12 xl: 200 ticks
-        ("E12_persist_xl", lambda: experiment_e12_persistent_evo(n_deliberations=200, use_llm=use_llm)),
+        (
+            "E12_persist_xl",
+            lambda: experiment_e12_persistent_evo(n_deliberations=200, use_llm=use_llm),
+        ),
+        # E63 lr sweep: lr=2.0 should cross the 0.85 threshold in one cycle (E60 finding)
+        (
+            "E63_mycelium_lr2",
+            lambda: experiment_e63_mycelium_closed_loop(
+                n_phase=10, use_llm=use_llm, learning_rate=2.0
+            ),
+        ),
         # E51 xl: 200-tick quality sensitivity (more ticks = more signal)
-        ("E51_quality_xl", lambda: experiment_e51_evo_quality_sensitivity(n_ticks=200, use_llm=use_llm)),
+        (
+            "E51_quality_xl",
+            lambda: experiment_e51_evo_quality_sensitivity(n_ticks=200, use_llm=use_llm),
+        ),
         # E46: JEPA replay — accumulate buffer knowledge
         ("E46_jepa_train", lambda: experiment_e46_jepa_learning(n_train_steps=20, use_llm=use_llm)),
         # E12 xxl: 500 ticks — deep EVO maturation
-        ("E12_persist_xxl",lambda: experiment_e12_persistent_evo(n_deliberations=500, use_llm=use_llm)),
+        (
+            "E12_persist_xxl",
+            lambda: experiment_e12_persistent_evo(n_deliberations=500, use_llm=use_llm),
+        ),
         # E47: Voice criticality sanity check
-        ("E47_voice",      lambda: experiment_e47_voice_profiles(use_llm=use_llm)),
+        ("E47_voice", lambda: experiment_e47_voice_profiles(use_llm=use_llm)),
     ]
 
     # Per-experiment timeout: 3h (10800s)
@@ -2052,16 +2223,23 @@ async def main() -> None:
             except TimeoutError:
                 print(f"  [{label}] TIMEOUT after {EXPERIMENT_TIMEOUT}s — skipping", flush=True)
                 log_result(
-                    _next_run(), 0.0, {}, "discard",
+                    _next_run(),
+                    0.0,
+                    {},
+                    "discard",
                     f"{label} timed out after {EXPERIMENT_TIMEOUT}s",
                     experiment=label,
                 )
             except Exception as exc:
                 import traceback
+
                 print(f"  [{label}] ERROR: {exc}", flush=True)
                 traceback.print_exc(file=sys.stderr)
                 log_result(
-                    _next_run(), 0.0, {"error": str(exc)}, "discard",
+                    _next_run(),
+                    0.0,
+                    {"error": str(exc)},
+                    "discard",
                     f"{label} failed: {exc}",
                     experiment=label,
                 )

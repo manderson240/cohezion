@@ -21,7 +21,7 @@ Expert in **Claude Code configuration, Anthropic API optimization, and agent tea
 2. **Prompt structure**: Keep CLAUDE.md under 300 lines. Use tables for quick reference. Put details in `.claude/rules/*.md` files.
 3. **Hook design**: Hooks fire automatically on tool events. Keep them fast (<1s). Always exit 0 (non-blocking) unless enforcing a hard constraint.
 4. **Agent definition**: YAML frontmatter with `name`, `description`, `tools`, `model`. Use `disallowedTools` for read-only agents.
-5. **Batch API**: For overnight processing, use `anthropic.batch.create()` — 50% cost reduction, 24hr completion window.
+5. **Batch API**: For overnight processing, use `anthropic.batch.create()` -- 50% cost reduction, 24hr completion window.
 
 ## PATTERNS
 - Cache-friendly system prompts (static context at top, dynamic at bottom)

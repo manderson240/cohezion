@@ -1,6 +1,6 @@
 ---
 name: agentjet
-description: Cohezion Autonomous Learning Loop (CALL) — closes the learning loop from
+description: Cohezion Autonomous Learning Loop (CALL) -- closes the learning loop from
   runtime experiences to training signal to improved local models. Use when implementing
   RL fine-tuning of local Ollama models, configuring reward signals from phi_score,
   preventing OOM during training, or when user mentions "agentjet", "CALL", "fine-tuning",
@@ -10,7 +10,7 @@ metadata:
   legacy-name: AGENTJET_PRIME
 ---
 
-# SKILL: AGENTJET_PRIME — Cohezion Autonomous Learning Loop (CALL)
+# SKILL: AGENTJET_PRIME -- Cohezion Autonomous Learning Loop (CALL)
 
 ## DOMAIN EXPERTISE
 Specialist in closing the autonomous learning loop: Cohezion runtime experiences become training signal, training signal improves local Ollama models, improved models reduce cloud API costs. Covers reward shaping from phi_score, OOM-safe training orchestration on AMD Strix Halo (128 GiB unified memory), GGUF export, and SmartRouter integration.
@@ -19,12 +19,12 @@ Specialist in closing the autonomous learning loop: Cohezion runtime experiences
 - **CALL Cycle**: CompoundExecutor → JourneyTracker (phi_score) → JourneyTaskReader → PhiScoreJudger → AgentJetTrainer → LocalFinetuner → GGUF export → SmartRouter update
 - **phi_score**: Cohezion's compound quality signal (0.0–1.0), produced by JourneyTracker after each execution. Encodes alignment, coherence, and task completion quality.
 - **HIHO Band**: High-In / High-Out stability zone (0.4–0.7 phi_score). Examples outside this band drive the strongest learning signal.
-- **OllamaContextManager**: Memory safety layer. Mandatory gatekeeper before any training job — unloads all inference models, polls `/api/ps`, reloads after training.
+- **OllamaContextManager**: Memory safety layer. Mandatory gatekeeper before any training job -- unloads all inference models, polls `/api/ps`, reloads after training.
 - **LocalFinetuner**: Phase 1 training backend using llamafactory + llama.cpp. Wraps the full train → quantize → export → register pipeline.
 - **UnslothBridge**: Phase 2 training backend (AMD Unsloth QLoRA). Not yet available; standby interface defined for drop-in replacement.
 - **finetune_journeys.jsonl**: Rolling JSONL log written by JourneyToFinetuneConverter. Each record is a (prompt, completion, phi_score, domain) tuple ready for SFT or RL training.
 
-## ARCHITECTURE OVERVIEW — THE FULL CALL CYCLE
+## ARCHITECTURE OVERVIEW -- THE FULL CALL CYCLE
 
 ```
 CompoundExecutor
@@ -39,7 +39,7 @@ PhiScoreJudger
   └─ converts phi_score → scalar reward (see Reward Signal Design)
        ↓
 AgentJetTrainer  ← orchestration layer
-  ├─ OOM check (MANDATORY — see OOM Protocol)
+  ├─ OOM check (MANDATORY -- see OOM Protocol)
   ├─ OllamaContextManager.unload_all_for_training()
   ├─ LocalFinetuner.train(model, dataset, reward)      ← Phase 1
   │    └─ llamafactory SFT/RL → llama.cpp quantize → GGUF
@@ -75,7 +75,7 @@ def phi_to_reward(phi_score: float) -> float:
 
 ## OOM PREVENTION PROTOCOL (NON-NEGOTIABLE)
 
-Training on Strix Halo uses the **same unified memory pool** as inference. Running both simultaneously will OOM-crash the host. This protocol is mandatory before every training job — no exceptions.
+Training on Strix Halo uses the **same unified memory pool** as inference. Running both simultaneously will OOM-crash the host. This protocol is mandatory before every training job -- no exceptions.
 
 ### Step-by-Step Protocol
 
@@ -101,7 +101,7 @@ Training on Strix Halo uses the **same unified memory pool** as inference. Runni
 4. **Unload ALL inference models**
    ```python
    await OllamaContextManager.unload_all_for_training()
-   # Polls GET /api/ps until empty — max 60s timeout
+   # Polls GET /api/ps until empty -- max 60s timeout
    ```
 
 5. **Run training** (inside try/finally)
@@ -109,7 +109,7 @@ Training on Strix Halo uses the **same unified memory pool** as inference. Runni
    try:
        result = await LocalFinetuner.train(config)
    finally:
-       # ALWAYS reload — even if training fails
+       # ALWAYS reload -- even if training fails
        await OllamaContextManager.reload_inference_models()
    ```
 
@@ -122,7 +122,7 @@ Training on Strix Halo uses the **same unified memory pool** as inference. Runni
 | phi3:mini (3.8B) | ~3 GB | ~9 GB | Yes (always) |
 | qwen3.5:9b | ~10 GB | ~27 GB | Yes |
 | nemotron-3-nano:30b | ~20 GB | ~60 GB | Yes (no other models) |
-| deepseek-r1:70b | ~45 GB | ~135 GB | No — exceeds 128 GiB |
+| deepseek-r1:70b | ~45 GB | ~135 GB | No -- exceeds 128 GiB |
 
 ## CONTEXT WINDOW STRATEGY
 
@@ -148,7 +148,7 @@ Training against `deepseek-r1:70b` is deferred to Phase 3 (requires QLoRA or gra
 
 ## INSTRUCTION
 
-1. **Gate on OOM check** — Before invoking any training path, run the full OOM protocol (see above). Raise `OOMRiskError` if headroom is insufficient. Never proceed speculatively.
+1. **Gate on OOM check** -- Before invoking any training path, run the full OOM protocol (see above). Raise `OOMRiskError` if headroom is insufficient. Never proceed speculatively.
 
 2. **Read and filter training data**
    ```python
@@ -182,12 +182,12 @@ Training against `deepseek-r1:70b` is deferred to Phase 3 (requires QLoRA or gra
 
 7. **Validate the new model** before routing live traffic. Run the `phi3:mini` smoke test suite against the new domain model. Require phi_score >= 0.65 on held-out validation journeys before promoting.
 
-8. **Reload inference models** (in finally block — already covered by OllamaContextManager). Confirm `/api/ps` shows expected models before exiting.
+8. **Reload inference models** (in finally block -- already covered by OllamaContextManager). Confirm `/api/ps` shows expected models before exiting.
 
 ## USAGE (API)
 
 ```bash
-# Dry run — validate config without training
+# Dry run -- validate config without training
 curl -X POST http://localhost:8080/agentjet/train \
   -H "Content-Type: application/json" \
   -d '{"target_model": "qwen3.5:9b", "skill_domain": "coding", "dry_run": true}'
@@ -209,13 +209,13 @@ curl http://localhost:8080/agentjet/registry
 
 ## ANTI-PATTERNS
 
-- **Starting training without OOM check** — Can crash the entire host (unified memory, no swap safety net for ML workloads). `OOMRiskError` exists precisely to prevent this.
-- **Loading training model while inference models are still in Ollama** — Doubles memory pressure. Always call `unload_all_for_training()` and confirm `/api/ps` is empty before starting.
-- **Using phi_score < 0.4 examples as positive training data** — Reinforces bad behavior. These examples are valid negative signal only; their reward must be -1.0.
-- **Training and inference simultaneously** — On Strix Halo's unified memory architecture, there is one memory pool shared by CPU, GPU, and all processes. This is not a soft guideline.
-- **Skipping `reload_inference_models()` after training** — Leaves the system in a degraded state where all agentic capabilities are offline. The finally block is mandatory.
-- **Skipping dry_run validation** — Training jobs can take 30–120 minutes. A misconfigured batch size or learning rate wastes the entire window.
-- **Promoting untested domain models** — Always run the smoke test suite (phi_score >= 0.65 on held-out set) before SmartRouter registration.
+- **Starting training without OOM check** -- Can crash the entire host (unified memory, no swap safety net for ML workloads). `OOMRiskError` exists precisely to prevent this.
+- **Loading training model while inference models are still in Ollama** -- Doubles memory pressure. Always call `unload_all_for_training()` and confirm `/api/ps` is empty before starting.
+- **Using phi_score < 0.4 examples as positive training data** -- Reinforces bad behavior. These examples are valid negative signal only; their reward must be -1.0.
+- **Training and inference simultaneously** -- On Strix Halo's unified memory architecture, there is one memory pool shared by CPU, GPU, and all processes. This is not a soft guideline.
+- **Skipping `reload_inference_models()` after training** -- Leaves the system in a degraded state where all agentic capabilities are offline. The finally block is mandatory.
+- **Skipping dry_run validation** -- Training jobs can take 30–120 minutes. A misconfigured batch size or learning rate wastes the entire window.
+- **Promoting untested domain models** -- Always run the smoke test suite (phi_score >= 0.65 on held-out set) before SmartRouter registration.
 
 ## PHASE ROADMAP
 
@@ -235,15 +235,15 @@ curl http://localhost:8080/agentjet/registry
 
 | Module | Role |
 |--------|------|
-| `cohezion.agentjet.trainer` | `AgentJetTrainer` — orchestration layer, coordinates all phases |
-| `cohezion.agentjet.context_optimizer` | `OllamaContextManager` — OOM prevention, model load/unload |
-| `cohezion.agentjet.judger` | `PhiScoreJudger` — phi_score → scalar reward conversion |
-| `cohezion.agentjet.task_reader` | `JourneyTaskReader` — reads and filters `finetune_journeys.jsonl` |
-| `cohezion.flume.journey_finetune_pipeline` | `JourneyToFinetuneConverter` — generates training data from journeys |
-| `cohezion.flume.local_finetune_pipeline` | `LocalFinetuner` — Phase 1 train/quantize/export backend |
-| `cohezion.platform.resource_manager` | `ResourceClient` — cross-session memory coordination |
-| `cohezion.compound.journey_tracker` | `JourneyTracker` — produces phi_score that feeds CALL |
-| `cohezion.swarm.smart_router` | `SmartRouter` — updated post-training to prefer domain models |
+| `cohezion.agentjet.trainer` | `AgentJetTrainer` -- orchestration layer, coordinates all phases |
+| `cohezion.agentjet.context_optimizer` | `OllamaContextManager` -- OOM prevention, model load/unload |
+| `cohezion.agentjet.judger` | `PhiScoreJudger` -- phi_score → scalar reward conversion |
+| `cohezion.agentjet.task_reader` | `JourneyTaskReader` -- reads and filters `finetune_journeys.jsonl` |
+| `cohezion.flume.journey_finetune_pipeline` | `JourneyToFinetuneConverter` -- generates training data from journeys |
+| `cohezion.flume.local_finetune_pipeline` | `LocalFinetuner` -- Phase 1 train/quantize/export backend |
+| `cohezion.platform.resource_manager` | `ResourceClient` -- cross-session memory coordination |
+| `cohezion.compound.journey_tracker` | `JourneyTracker` -- produces phi_score that feeds CALL |
+| `cohezion.swarm.smart_router` | `SmartRouter` -- updated post-training to prefer domain models |
 
 ## VERSION
 v1.0

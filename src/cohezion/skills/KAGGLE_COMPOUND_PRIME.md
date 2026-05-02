@@ -36,7 +36,7 @@ Systematic approach to entering and winning Kaggle competitions using the Cohezi
 - [ ] Visual metrics dashboard included
 
 ## VERSION
-v1.0 — Derived from Gemma-4-Good session
+v1.0 -- Derived from Gemma-4-Good session
 
 ## SEE ALSO
 - COMPOUND_ENGINEERING_PRIME

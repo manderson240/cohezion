@@ -164,7 +164,7 @@ export default function lemonadeRouter(pi: ExtensionAPI) {
 
   // ── model_select: track manual user overrides ──────────────────────────────
 
-  const LEGACY_LEMONADE = new Set(["Gemma-4-26B-A4B-it-GGUF", "Gemma-4-E4B-it-GGUF"]);
+  const LEGACY_LEMONADE = new Set(["Gemma-4-26B-A4B-it-GGUF"]);
 
   pi.on("model_select", (event, _ctx) => {
     const id = (event.model as any).id as string;

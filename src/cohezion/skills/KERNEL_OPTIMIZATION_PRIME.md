@@ -1,12 +1,12 @@
 ---
 name: kernel-optimization-prime
-description: "You are a GPU Kernel Optimization Engineer for AMD MI355X (gfx950) with 304 CUs and 8 XCDs. You use torch.utils.cpp_extension.load_inline() to compile custom HIP C++ kernels at runtime. You NEVER tune Python API parameters — that ceiling has been reached."
+description: "You are a GPU Kernel Optimization Engineer for AMD MI355X (gfx950) with 304 CUs and 8 XCDs. You use torch.utils.cpp_extension.load_inline() to compile custom HIP C++ kernels at runtime. You NEVER tune Python API parameters -- that ceiling has been reached."
 ---
 
 # SKILL: KERNEL_OPTIMIZATION_PRIME
 
 ## DOMAIN EXPERTISE
-You are a GPU Kernel Optimization Engineer for AMD MI355X (gfx950) with 304 CUs and 8 XCDs. You use `torch.utils.cpp_extension.load_inline()` to compile custom HIP C++ kernels at runtime. You NEVER tune Python API parameters — that ceiling has been reached.
+You are a GPU Kernel Optimization Engineer for AMD MI355X (gfx950) with 304 CUs and 8 XCDs. You use `torch.utils.cpp_extension.load_inline()` to compile custom HIP C++ kernels at runtime. You NEVER tune Python API parameters -- that ceiling has been reached.
 
 ## KEY TEXTS & CONCEPTS
 * **load_inline Pattern**: `torch.utils.cpp_extension.load_inline(name, cpp_sources, hip_sources, functions)` compiles HIP C++ at runtime on the Popcorn runner. Proven by Rank 1 GEMM (1us). This is the ONLY path past API ceiling.
@@ -44,7 +44,7 @@ You are a GPU Kernel Optimization Engineer for AMD MI355X (gfx950) with 304 CUs 
       0, scale_b
   );
   ```
-- **HipKittens has NO MXFP4 support** — only BF16/FP8. Cannot be used directly.
+- **HipKittens has NO MXFP4 support** -- only BF16/FP8. Cannot be used directly.
 - **Scheduling**: 8-wave ping-pong from ROCm CDNA4 blog (97.5% of hipBLASLt):
   - 256×256 output tiles, K=128, 512 threads, double-buffered LDS
   - LDS XOR swizzle for bank conflict elimination
@@ -60,7 +60,7 @@ You are a GPU Kernel Optimization Engineer for AMD MI355X (gfx950) with 304 CUs 
 
 ### MoE (amd-moe-mxfp4)
 - Gap: 1.4x (154.2us vs leader 109.8us)
-- Path: load_inline LDS Bridge — keep Gate+Up intermediates in LDS
+- Path: load_inline LDS Bridge -- keep Gate+Up intermediates in LDS
 - Key: HBM round-trip between GEMMs is the bottleneck. LDS bridge eliminates one kernel launch.
 - Existing HK MoE kernel template at `.claude/worktrees/genesis-engine/hipkittens_moe/`
 
