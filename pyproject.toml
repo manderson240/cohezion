@@ -151,6 +151,9 @@ ignore = [
 "src/cohezion/traceability/plan_graph.py" = [
     "S608",  # SurrealQL uses record ID interpolation (plan:{slug}), not user input
 ]
+"scripts/**/*.py" = [
+    "E501",  # Research scripts use intentionally verbose description strings
+]
 # Import sorting configuration
 [tool.ruff.lint.isort]
 known-first-party = ["cohezion"]
