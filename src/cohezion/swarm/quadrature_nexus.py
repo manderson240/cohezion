@@ -161,6 +161,8 @@ class QuadratureNexus:
         self._mycelium_applied = False
         # E6: score adjustments — Mycelium writes per-voice corrections here
         self._score_adjustments: dict[VoiceType, float] = dict.fromkeys(VoiceType, 0.0)
+        # E57: persistent cross-cycle calibration accumulator (additive, never reset)
+        self._mycelium_calibration: dict[VoiceType, float] = dict.fromkeys(VoiceType, 0.0)
 
     def apply_mycelium_feedback(
         self, synthesized_skill_content: str, learning_rate: float = 0.5
@@ -216,19 +218,26 @@ class QuadratureNexus:
                 # Boost = learning_rate × gap, always positive, capped at 0.15
                 adjustment = max(0.0, min(0.15, gap_to_target * learning_rate))
                 vt = voice_type_map[voice_name]
-                self._score_adjustments[vt] = adjustment
+                # E57: accumulate into _mycelium_calibration (+=) rather than SET _score_adjustments.
+                # SET semantics caused cycle-2 to replace cycle-1's calibration with a smaller value
+                # as the observed mean rose. Additive semantics produce monotonic compounding.
+                self._mycelium_calibration[vt] = (
+                    self._mycelium_calibration.get(vt, 0.0) + adjustment
+                )
+                self._score_adjustments[vt] = self._mycelium_calibration[vt]
                 adjustments_applied[voice_name] = {
                     "baseline": baseline,
                     "observed": observed_mean,
                     "target": round(target, 4),
                     "adjustment": round(adjustment, 5),
+                    "cumulative": round(self._mycelium_calibration[vt], 5),
                 }
 
         self._mycelium_applied = True
         logger.info("Mycelium E6 score adjustments: %s", adjustments_applied)
         return {
             "adjustments": adjustments_applied,
-            "mechanism": "score_injection",
+            "mechanism": "additive_calibration",
         }
 
     def get_alignment_trend(self) -> dict:
