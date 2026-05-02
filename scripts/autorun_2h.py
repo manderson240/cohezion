@@ -75,10 +75,19 @@ async def run_timed(label: str, fn, cycle: int) -> ExperimentTiming:
     result: dict = {}
     try:
         result = await fn() or {}
-        # Infer keep from result fields (overnight loop convention)
+        # Infer keep from result fields (overnight loop convention).
+        # E12/E51-style: final_evo_coherence > 0.5 (HIHO floor) → keep
+        # E63/E7-style: delta > 0 → keep
+        # E51-style: sensitive=True → keep
         if isinstance(result, dict):
-            delta = result.get("delta", result.get("gain", result.get("coherence_delta", 0.0)))
-            if isinstance(delta, (int, float)) and delta > 0:
+            delta = result.get("delta", result.get("gain", result.get("coherence_delta")))
+            coherence = result.get("final_evo_coherence")
+            sensitive = result.get("quality_sensitive") or result.get("sensitive")
+            if (
+                (isinstance(delta, (int, float)) and delta > 0)
+                or (isinstance(coherence, float) and coherence >= 0.5)
+                or sensitive is True
+            ):
                 keep = "keep"
     except Exception as exc:
         import traceback
