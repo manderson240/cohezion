@@ -33,7 +33,8 @@
 | E59 | Convergence formula: `consensus_n = 0.85 − 0.125 × (1−lr/2)^n`, max_error=0.00025 | ✅ validated |
 | E60 | lr=2.0 crosses HIHO threshold in one cycle: baseline 0.725 + 0.125 calibration = 0.850 | ✅ validated |
 | E62 | Full E3/E6 pipeline (ingest_evo_journeys → synthesis → apply_mycelium_feedback → deliberate) lifts consensus | ✅ validated |
-| E63 | **NEW**: Closed-loop in autoresearch runner. lr=1.0 and lr=2.0 variants added to SCHEDULE | 🔄 running |
+| E63 | **CONFIRMED REPRODUCIBLE** (2× runs): baseline=0.7250 → post=0.7875, delta=+0.0625 at lr=1.0. Formula exact match | ✅ 2 runs |
+| E64 | **NEW**: Multi-cycle compounding (5 cycles, shared nexus). Predicted threshold crossing at cycle 4 | 🔄 scheduled |
 
 ## Architecture Insights
 
@@ -90,6 +91,7 @@ The `run_llm_deliberation` function SETs `_score_adjustments` on every call, whi
 
 ## Pending: Next High-Value Experiments
 
-1. **E63 results** — First runs of the Mycelium closed-loop in the autoresearch runner. Expected: delta>0 at lr=1.0 (E55 validated); delta≥0.125 at lr=2.0 (E60 predicted).
-2. **E52: Mixed-quality persistent EVO** — Alternate naive/optimal proposals in E12-style run. Does EVO coherence settle at an intermediate value?
-3. **Lemonade LLM mode** — Once iGPU ROCm recovers, re-run E46/E63 with real LLM scores. Expected: genuine proposal uncertainty; JEPA improvement becomes meaningful.
+1. **E63 lr=2.0 result** — Currently running. Expected: delta≥+0.125 (threshold crossing in one cycle per E60).
+2. **E64: Multi-cycle compounding** — 5-cycle shared nexus test. Predicted cycle_means: [0.7875, 0.8219, 0.8457, 0.8594, 0.8672]. If monotone=True AND threshold_crossed at cycle 4 → E57 mechanism is production-grade.
+3. **E52: Mixed-quality persistent EVO** — Alternate naive/optimal proposals in E12-style run. Does EVO coherence settle at an intermediate value?
+4. **Lemonade LLM mode** — Already confirmed ACTIVE (LLM=True in current 2h session). Re-run E46/E64 with attention to LLM variance vs heuristic attractor.
