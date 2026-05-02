@@ -1,0 +1,35 @@
+[
+  {
+    "name": "Hidden Key Revelation",
+    "training_sequences": [
+      {
+        "steps": [
+          {"state": [[0,0,0],[0,1,0],[0,0,8]], "action": 5, "reward": 0.5, "next_state": [[0,0,0],[0,2,0],[0,0,8]]},
+          {"state": [[0,0,0],[0,2,0],[0,0,8]], "action": 2, "reward": 1.0, "next_state": [[0,0,0],[0,0,0],[0,2,8]]}
+        ],
+        "goal_reached": true
+      }
+    ],
+    "test_environment": {
+      "initial_state": [[0,0,0],[0,0,0],[1,0,3]]
+    },
+    "goal_invariant": "Click (5) color 1 to turn it into color 2, then move it to overlap color 3."
+  },
+  {
+    "name": "Reactive Pathfinding",
+    "training_sequences": [
+      {
+        "steps": [
+          {"state": [[4,0,0],[0,0,0],[0,0,9]], "action": 4, "reward": 0.1, "next_state": [[0,4,0],[0,0,0],[0,0,9]]},
+          {"state": [[0,4,0],[0,0,0],[0,0,9]], "action": 4, "reward": 0.1, "next_state": [[0,0,4],[0,0,0],[0,0,9]]},
+          {"state": [[0,0,4],[0,0,0],[0,0,9]], "action": 2, "reward": 1.0, "next_state": [[0,0,0],[0,0,0],[0,0,4]]}
+        ],
+        "goal_reached": true
+      }
+    ],
+    "test_environment": {
+      "initial_state": [[5,0,0],[0,0,0],[0,0,9]]
+    },
+    "goal_invariant": "Move current object (start at top-left) to the target (bottom-right color 9)."
+  }
+]
