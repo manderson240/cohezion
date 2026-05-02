@@ -17,6 +17,19 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - aiohttp async context manager mock patterns in connector tests (43 tests now passing)
 - Metacognitive intent validation boundaries for confidence, z_vector, and physical state dimensions
 
+## [1.0.2] - 2026-05-02
+
+### Added
+- CI Pipeline stabilized: disabled auto-test generation, fixed skill name sanitization
+- Star infrastructure: PR/issue templates, CODEOWNERS, CITATION.cff, Docker support
+
+### Changed
+- Root directory cleaned: 80+ cruft files relocated to archives
+- Branch hygiene: 50+ stale branches deleted, 52 abandoned worktrees removed
+
+### Fixed
+- AutoHarness: verification rules and harness_check.py generated
+
 ## [1.0.0] - 2026-02-28
 
 ### Added
