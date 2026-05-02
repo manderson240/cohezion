@@ -15,18 +15,17 @@ from pathlib import Path
 import pytest
 
 from cohezion.compound.skill_evolution_diff import SkillEvolutionTracker
-from cohezion.compound.skill_health_tracker import SkillHealthRecord, SkillHealthTracker
+from cohezion.compound.skill_health_tracker import SkillHealthTracker
 from cohezion.compound.skill_quality_orchestrator import (
-    ImprovementHypothesis,
-    ImprovementResult,
     SkillQualityOrchestrator,
 )
-from cohezion.compound.skill_quality_scorer import DimensionScore, SkillQualityReport, SkillQualityScorer
+from cohezion.compound.skill_quality_scorer import DimensionScore, SkillQualityScorer
 
 
 # =============================================================================
 # Fixtures
 # =============================================================================
+
 
 @pytest.fixture
 def tmp_skill_dir():
@@ -106,6 +105,8 @@ def health_tracker(tmp_skill_dir):
 # SkillQualityScorer Tests
 # =============================================================================
 
+
+@pytest.mark.fast
 class TestSkillQualityScorer:
     def test_good_skill_scores_high(self, good_skill):
         scorer = SkillQualityScorer()
@@ -228,7 +229,7 @@ class TestSkillQualityScorer:
 # =============================================================================
 # SkillQualityOrchestrator Tests
 # =============================================================================
-
+@pytest.mark.fast
 class TestSkillQualityOrchestrator:
     @pytest.mark.asyncio
     async def test_good_skill_no_change(self, good_skill):
@@ -344,7 +345,7 @@ pass
 # =============================================================================
 # Integration Tests
 # =============================================================================
-
+@pytest.mark.fast
 class TestIntegration:
     @pytest.mark.asyncio
     async def test_full_loop_good_then_bad(self, tmp_skill_dir, good_skill, bad_skill):

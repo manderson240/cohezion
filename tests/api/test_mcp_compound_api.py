@@ -152,15 +152,9 @@ async def execute(request):
             }
         )
 
-        with patch(
-            "cohezion.mcp.compound_server._get_mcp", return_value=mock_mcp_client
-        ):
-            with patch(
-                "cohezion.compound.autoresearch.RetrospectionEngine"
-            ) as mock_cls:
-                mock_engine = MagicMock(
-                    capture_learning=AsyncMock(return_value="logs/test.json")
-                )
+        with patch("cohezion.mcp.compound_server._get_mcp", return_value=mock_mcp_client):
+            with patch("cohezion.compound.autoresearch.RetrospectionEngine") as mock_cls:
+                mock_engine = MagicMock(capture_learning=AsyncMock(return_value="logs/test.json"))
                 mock_cls.return_value = mock_engine
                 result = await learning_capture(execution_result)
 
@@ -252,9 +246,15 @@ class TestMCPCompoundIntegrationFlow:
                 )
                 assert align_result["status"] == "success"
 
-                # End session
-                end_result = await compound_end_session(save_cache=True)
-                assert end_result["status"] == "success"
+                # End session (needs mock MCP client to avoid event loop closed)
+                with patch("cohezion.mcp.compound_server._get_mcp") as mock_get_mcp:
+                    mock_client = MagicMock()
+                    mock_client.vault_write = AsyncMock(return_value="session.json")
+                    mock_client.close = AsyncMock()
+                    mock_get_mcp.return_value = mock_client
+
+                    end_result = await compound_end_session(save_cache=True)
+                    assert end_result["status"] == "success"
             finally:
                 server_module._session_manager = original_session_manager
 
