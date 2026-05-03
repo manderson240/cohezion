@@ -616,6 +616,7 @@ async def test_generate_recommendations_vulnerable_deps(digest):
         loose_objects=50,
         pack_count=1,
     )
+    test = TestMetrics(total_tests=2850, passing_tests=2830, failing_tests=20, pass_rate=0.993)
     dep = DependencyMetrics(
         total_dependencies=50,
         outdated_dependencies=5,
