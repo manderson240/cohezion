@@ -113,6 +113,16 @@ class MCPClient:
                 self._session_id = "stateless"
                 logger.info("Connected to stateless MCP server")
 
+        except httpx.HTTPStatusError as e:
+            await self.close()
+            if e.response.status_code in (401, 403):
+                raise MCPAuthenticationError(
+                    f"Authentication failed (HTTP {e.response.status_code})"
+                ) from e
+            raise MCPConnectionError(f"Failed to connect to MCP server: {e}") from e
+        except httpx.RequestError as e:
+            await self.close()
+            raise MCPConnectionError(f"Failed to connect to MCP server: {e}") from e
         except Exception as e:
             await self.close()
             raise MCPConnectionError(f"Failed to connect to MCP server: {e}") from e
@@ -129,7 +139,8 @@ class MCPClient:
         if not self._client:
             await self.connect()
 
-        assert self._client is not None
+        if self._client is None:
+            raise MCPConnectionError("Client not connected after connect() call")
 
         payload = {
             "jsonrpc": "2.0",
@@ -167,6 +178,42 @@ class MCPClient:
 
     async def vault_write(self, path: str, content: str) -> str:
         return await self._call_tool("vault_write", {"path": path, "content": content})
+
+    async def vault_delete(self, path: str) -> str:
+        return await self._call_tool("vault_delete", {"path": path})
+
+    async def vault_log_decision(
+        self,
+        project: str,
+        title: str,
+        context: str,
+        decision: str,
+        rationale: str,
+        **kwargs,
+    ) -> str:
+        args = {
+            "project": project,
+            "title": title,
+            "context": context,
+            "decision": decision,
+            "rationale": rationale,
+        }
+        args.update(kwargs)
+        return await self._call_tool("vault_log_decision", args)
+
+    async def vault_find_relevant_context(
+        self, query: str, project: str = "cohezion", limit: int = 10
+    ) -> list[dict[str, Any]]:
+        raw = await self._call_tool(
+            "vault_find_relevant_context",
+            {"query": query, "project": project, "limit": limit},
+        )
+        if isinstance(raw, str):
+            return json.loads(raw)
+        return raw or []
+
+    async def vault_edit(self, path: str, edits: list[dict[str, Any]]) -> None:
+        await self._call_tool("vault_edit", {"path": path, "edits": edits})
 
     async def vault_log_experiment(
         self,

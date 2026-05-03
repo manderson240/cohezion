@@ -9,9 +9,10 @@ Tests cover:
 - Integration with RetrospectionEngine, SkillRefiner, JourneyPersistence
 """
 
+import asyncio
 import json
 import unittest
-from unittest.mock import MagicMock, patch
+from unittest.mock import AsyncMock, MagicMock, patch
 
 from cohezion.core.context_engineering import ContextEngineeringInfrastructure
 from cohezion.core.mcp_client import (
@@ -29,14 +30,17 @@ def _make_sse_text(data: dict) -> str:
 
 
 def _make_init_response(mock_client):
-    """Configure mock client for successful session initialization."""
+    """Configure mock AsyncClient for successful session initialization."""
     init_response = MagicMock()
     init_response.status_code = 200
     init_response.headers = {"mcp-session-id": "test-session-123"}
     init_response.text = _make_sse_text(
         {"jsonrpc": "2.0", "id": 0, "result": {"protocolVersion": "2024-11-05"}}
     )
-    mock_client.post.return_value = init_response
+    init_response.raise_for_status = MagicMock()
+    # AsyncClient.post is a coroutine; AsyncMock makes it awaitable
+    mock_client.post = AsyncMock(return_value=init_response)
+    mock_client.aclose = AsyncMock()
     return init_response
 
 
@@ -49,7 +53,7 @@ class TestMCPClient(unittest.TestCase):
             server_url="http://localhost:8360", api_key="test-api-key", timeout=5.0
         )
 
-    @patch("cohezion.core.mcp_client.httpx.Client")
+    @patch("cohezion.core.mcp_client.httpx.AsyncClient")
     def test_connect_success(self, mock_client_class):
         """Test successful connection to MCP server."""
         mock_client = MagicMock()
@@ -57,7 +61,7 @@ class TestMCPClient(unittest.TestCase):
         mock_client_class.return_value = mock_client
 
         client = MCPClient(self.config)
-        client.connect()
+        asyncio.run(client.connect())
 
         # Verify session was initialized via POST /mcp
         mock_client_class.assert_called_once()
@@ -65,7 +69,7 @@ class TestMCPClient(unittest.TestCase):
         call_args = mock_client.post.call_args
         self.assertEqual(call_args[0][0], "/mcp")
 
-    @patch("cohezion.core.mcp_client.httpx.Client")
+    @patch("cohezion.core.mcp_client.httpx.AsyncClient")
     def test_connect_authentication_failure(self, mock_client_class):
         """Test authentication failure on connect."""
         import httpx
@@ -80,30 +84,32 @@ class TestMCPClient(unittest.TestCase):
             response=mock_response,
         )
         mock_response.raise_for_status.side_effect = http_error
-        mock_client.post.return_value = mock_response
+        mock_client.post = AsyncMock(return_value=mock_response)
+        mock_client.aclose = AsyncMock()
         mock_client_class.return_value = mock_client
 
         client = MCPClient(self.config)
 
         with self.assertRaises(MCPAuthenticationError):
-            client.connect()
+            asyncio.run(client.connect())
 
-    @patch("cohezion.core.mcp_client.httpx.Client")
+    @patch("cohezion.core.mcp_client.httpx.AsyncClient")
     def test_connect_connection_failure(self, mock_client_class):
         """Test connection failure when server is unreachable."""
         import httpx
 
         mock_client = MagicMock()
         request_error = httpx.RequestError("Connection refused", request=MagicMock())
-        mock_client.post.side_effect = request_error
+        mock_client.post = AsyncMock(side_effect=request_error)
+        mock_client.aclose = AsyncMock()
         mock_client_class.return_value = mock_client
 
         client = MCPClient(self.config)
 
         with self.assertRaises(MCPConnectionError):
-            client.connect()
+            asyncio.run(client.connect())
 
-    @patch("cohezion.core.mcp_client.httpx.Client")
+    @patch("cohezion.core.mcp_client.httpx.AsyncClient")
     def test_call_tool_success(self, mock_client_class):
         """Test successful tool call."""
         mock_client = MagicMock()
@@ -111,24 +117,25 @@ class TestMCPClient(unittest.TestCase):
         mock_client_class.return_value = mock_client
 
         client = MCPClient(self.config)
-        client.connect()
+        asyncio.run(client.connect())
 
         # Now set up tool call response
         tool_response = MagicMock()
         tool_response.status_code = 200
+        tool_response.raise_for_status = MagicMock()
         tool_response.text = _make_sse_text(
             {
                 "jsonrpc": "2.0",
                 "id": 1,
-                "result": {"content": [{"text": "Tool executed successfully"}]},
+                "result": {"content": [{"type": "text", "text": "Tool executed successfully"}]},
             }
         )
-        mock_client.post.return_value = tool_response
+        mock_client.post = AsyncMock(return_value=tool_response)
 
-        result = client._call_tool("test_tool", {"arg": "value"})
+        result = asyncio.run(client._call_tool("test_tool", {"arg": "value"}))
         self.assertEqual(result, "Tool executed successfully")
 
-    @patch("cohezion.core.mcp_client.httpx.Client")
+    @patch("cohezion.core.mcp_client.httpx.AsyncClient")
     def test_call_tool_error_response(self, mock_client_class):
         """Test tool call with error response."""
         mock_client = MagicMock()
@@ -136,20 +143,21 @@ class TestMCPClient(unittest.TestCase):
         mock_client_class.return_value = mock_client
 
         client = MCPClient(self.config)
-        client.connect()
+        asyncio.run(client.connect())
 
         # Set up error response
         tool_response = MagicMock()
         tool_response.status_code = 200
+        tool_response.raise_for_status = MagicMock()
         tool_response.text = _make_sse_text(
             {"jsonrpc": "2.0", "id": 1, "error": {"message": "Tool execution failed"}}
         )
-        mock_client.post.return_value = tool_response
+        mock_client.post = AsyncMock(return_value=tool_response)
 
         with self.assertRaises(MCPToolError):
-            client._call_tool("test_tool", {"arg": "value"})
+            asyncio.run(client._call_tool("test_tool", {"arg": "value"}))
 
-    @patch("cohezion.core.mcp_client.httpx.Client")
+    @patch("cohezion.core.mcp_client.httpx.AsyncClient")
     def test_vault_operations(self, mock_client_class):
         """Test basic vault operations."""
         mock_client = MagicMock()
@@ -157,28 +165,29 @@ class TestMCPClient(unittest.TestCase):
         mock_client_class.return_value = mock_client
 
         client = MCPClient(self.config)
-        client.connect()
+        asyncio.run(client.connect())
 
         # Set up tool response
         tool_response = MagicMock()
         tool_response.status_code = 200
+        tool_response.raise_for_status = MagicMock()
         tool_response.text = _make_sse_text(
             {
                 "jsonrpc": "2.0",
                 "id": 1,
-                "result": {"content": [{"text": "Operation successful"}]},
+                "result": {"content": [{"type": "text", "text": "Operation successful"}]},
             }
         )
-        mock_client.post.return_value = tool_response
+        mock_client.post = AsyncMock(return_value=tool_response)
 
-        self.assertEqual(client.vault_read("test.md"), "Operation successful")
+        self.assertEqual(asyncio.run(client.vault_read("test.md")), "Operation successful")
         self.assertEqual(
-            client.vault_write("test.md", "content"),
+            asyncio.run(client.vault_write("test.md", "content")),
             "Operation successful",
         )
-        self.assertEqual(client.vault_delete("test.md"), "Operation successful")
+        self.assertEqual(asyncio.run(client.vault_delete("test.md")), "Operation successful")
 
-    @patch("cohezion.core.mcp_client.httpx.Client")
+    @patch("cohezion.core.mcp_client.httpx.AsyncClient")
     def test_compound_operations(self, mock_client_class):
         """Test compound operations (decisions, experiments, patterns)."""
         mock_client = MagicMock()
@@ -186,26 +195,31 @@ class TestMCPClient(unittest.TestCase):
         mock_client_class.return_value = mock_client
 
         client = MCPClient(self.config)
-        client.connect()
+        asyncio.run(client.connect())
 
         # Test log_decision
         tool_response = MagicMock()
         tool_response.status_code = 200
+        tool_response.raise_for_status = MagicMock()
         tool_response.text = _make_sse_text(
             {
                 "jsonrpc": "2.0",
                 "id": 1,
-                "result": {"content": [{"text": "decisions/2025-01-15-test-decision.md"}]},
+                "result": {
+                    "content": [{"type": "text", "text": "decisions/2025-01-15-test-decision.md"}]
+                },
             }
         )
-        mock_client.post.return_value = tool_response
+        mock_client.post = AsyncMock(return_value=tool_response)
 
-        result = client.vault_log_decision(
-            project="test",
-            title="Test Decision",
-            context="Test context",
-            decision="Test decision",
-            rationale="Test rationale",
+        result = asyncio.run(
+            client.vault_log_decision(
+                project="test",
+                title="Test Decision",
+                context="Test context",
+                decision="Test decision",
+                rationale="Test rationale",
+            )
         )
         self.assertIn("decisions/", result)
 
@@ -214,14 +228,20 @@ class TestMCPClient(unittest.TestCase):
             {
                 "jsonrpc": "2.0",
                 "id": 1,
-                "result": {"content": [{"text": "experiments/2025-01-15-test-experiment.md"}]},
+                "result": {
+                    "content": [
+                        {"type": "text", "text": "experiments/2025-01-15-test-experiment.md"}
+                    ]
+                },
             }
         )
-        result = client.vault_log_experiment(
-            project="test",
-            hypothesis="Test hypothesis",
-            method="Test method",
-            result="Test result",
+        result = asyncio.run(
+            client.vault_log_experiment(
+                project="test",
+                hypothesis="Test hypothesis",
+                method="Test method",
+                result="Test result",
+            )
         )
         self.assertIn("experiments/", result)
 
@@ -230,17 +250,19 @@ class TestMCPClient(unittest.TestCase):
             {
                 "jsonrpc": "2.0",
                 "id": 1,
-                "result": {"content": [{"text": "patterns/test-pattern.md"}]},
+                "result": {"content": [{"type": "text", "text": "patterns/test-pattern.md"}]},
             }
         )
-        result = client.vault_extract_pattern(
-            source_path="test.md",
-            pattern_name="Test Pattern",
-            description="Test description",
+        result = asyncio.run(
+            client.vault_extract_pattern(
+                source_path="test.md",
+                pattern_name="Test Pattern",
+                description="Test description",
+            )
         )
         self.assertIn("patterns/", result)
 
-    @patch("cohezion.core.mcp_client.httpx.Client")
+    @patch("cohezion.core.mcp_client.httpx.AsyncClient")
     def test_find_relevant_context(self, mock_client_class):
         """Test find_relevant_context compound operation."""
         mock_client = MagicMock()
@@ -248,11 +270,12 @@ class TestMCPClient(unittest.TestCase):
         mock_client_class.return_value = mock_client
 
         client = MCPClient(self.config)
-        client.connect()
+        asyncio.run(client.connect())
 
         # Set up context search response
         tool_response = MagicMock()
         tool_response.status_code = 200
+        tool_response.raise_for_status = MagicMock()
         context_json = json.dumps(
             [{"path": "decisions/test.md", "category": "decision", "match_count": 3}]
         )
@@ -260,12 +283,12 @@ class TestMCPClient(unittest.TestCase):
             {
                 "jsonrpc": "2.0",
                 "id": 1,
-                "result": {"content": [{"text": context_json}]},
+                "result": {"content": [{"type": "text", "text": context_json}]},
             }
         )
-        mock_client.post.return_value = tool_response
+        mock_client.post = AsyncMock(return_value=tool_response)
 
-        result = client.vault_find_relevant_context("test query")
+        result = asyncio.run(client.vault_find_relevant_context("test query"))
 
         self.assertIsInstance(result, list)
         self.assertEqual(len(result), 1)
