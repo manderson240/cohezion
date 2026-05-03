@@ -72,6 +72,8 @@ class OllamaProvider(ModelProvider):
         session = await self._get_session()
         start_time = time.time()
 
+        turbo_quant = kwargs.pop("turbo_quant", None)
+
         # Prepare request
         payload = {
             "model": model,
@@ -110,6 +112,15 @@ class OllamaProvider(ModelProvider):
                 # This is a simplification; could use logprobs in future
                 confidence = min(1.0, len(response_text) / max(max_tokens * 4, 100))
 
+                meta: dict = {
+                    "total_duration": data.get("total_duration", 0),
+                    "load_duration": data.get("load_duration", 0),
+                    "prompt_eval_count": data.get("prompt_eval_count", 0),
+                    "eval_count": data.get("eval_count", 0),
+                }
+                if turbo_quant is not None:
+                    meta["turbo_quant"] = {"status": "fallback-standard"}
+
                 return GenerationResult(
                     response=response_text,
                     model=model,
@@ -117,12 +128,7 @@ class OllamaProvider(ModelProvider):
                     confidence=confidence,
                     tokens_used=tokens_used,
                     latency_ms=latency_ms,
-                    metadata={
-                        "total_duration": data.get("total_duration", 0),
-                        "load_duration": data.get("load_duration", 0),
-                        "prompt_eval_count": data.get("prompt_eval_count", 0),
-                        "eval_count": data.get("eval_count", 0),
-                    },
+                    metadata=meta,
                 )
 
         except TimeoutError:
