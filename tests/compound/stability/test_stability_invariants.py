@@ -28,23 +28,22 @@ def stability_guard():
     return HIHOStabilityGuard(threshold=STABILITY_THRESHOLD)
 
 
-def test_stability_invariant_low_coherence():
+@pytest.mark.asyncio
+async def test_stability_invariant_low_coherence():
     """Test that the guard correctly flags instability when coherence < 0.4."""
     guard = HIHOStabilityGuard(threshold=STABILITY_THRESHOLD)
-    # Create a projection with coherence below the threshold
     projection = ManifoldProjection(
         coordinates=np.random.randn(12),
         coherence=0.2,  # Fails invariant
         stability=False,
     )
-    result = guard.verify(projection, "Some strategy")
-    # Since it's a sync check in the implementation, we call it directly
-    # (Note: if verify is async, this needs to be awaited)
+    result = await guard.verify(projection, "Some strategy")
     assert result.is_stable is False
     assert result.coherence == 0.2
 
 
-def test_stability_invariant_high_coherence():
+@pytest.mark.asyncio
+async def test_stability_invariant_high_coherence():
     """Test that the guard correctly flags stability when coherence >= 0.4."""
     guard = HIHOStabilityGuard(threshold=STABILITY_THRESHOLD)
     projection = ManifoldProjection(
@@ -52,7 +51,7 @@ def test_stability_invariant_high_coherence():
         coherence=0.7,  # Passes invariant
         stability=True,
     )
-    result = guard.verify(projection, "Some strategy")
+    result = await guard.verify(projection, "Some strategy")
     assert result.is_stable is True
     assert result.coherence == 0.7
 
