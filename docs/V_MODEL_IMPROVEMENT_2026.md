@@ -22,7 +22,9 @@
 | 10. Elegance | Complete | compound_server.py DRY refactor: 782→488 lines, 16→3 error handlers |
 | 11. Compound | Complete | Utilities extracted: ok/err factories, McpClientResolver, mcp_tool decorator |
 | 12. Self-Improvement | Complete | Skill quality scoring + orchestrator + 22 tests, HIHO coherence in scorer |
-| 13. Resil. Test Suite | Complete | test_mcp_compound_api.py session_manager patch, 57 tests passing
+| 13. Resil. Test Suite | Complete | test_mcp_compound_api.py session_manager patch, 57 tests passing |
+| 14. Autoharness | Complete | Parser safety across 225 PRIME skills; 3 harness tests; 22.2% HIHO-stable |
+| 15. Skill Patches | Complete | 5 worst skills patched (0.36→0.52-0.57); geometric anchors retrofitted |
 
 ---
 
