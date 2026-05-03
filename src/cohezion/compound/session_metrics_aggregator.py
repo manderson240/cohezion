@@ -1,4 +1,5 @@
 """Compound session metrics aggregation with HIHO balance tracking."""
+
 from __future__ import annotations
 
 from dataclasses import dataclass
@@ -31,9 +32,9 @@ class SessionMetricsAggregator:
 
     def record(self, experiment_label: str, delta: float, coherence: float = 0.5) -> None:
         """Record one experiment outcome."""
-        self._records.append(ExperimentRecord(
-            label=experiment_label, delta=delta, coherence=coherence
-        ))
+        self._records.append(
+            ExperimentRecord(label=experiment_label, delta=delta, coherence=coherence)
+        )
 
     def compute_summary(self) -> dict[str, Any]:
         """Compute session summary with HIHO balance and suggestions."""
@@ -72,9 +73,40 @@ class SessionMetricsAggregator:
             "mode": "exploit" if mean_coherence >= self.HIHO_THRESHOLD else "explore",
         }
 
+    def render_dashboard(self) -> str:
+        """Render a human-readable compound session dashboard."""
+        summary = self.compute_summary()
+        n = summary["n_experiments"]
+        mode = summary.get("mode", "explore")
+        hiho = summary["hiho_balance"]
+        keep = summary["keep_rate"]
+        mean_delta = summary["mean_delta"]
+        mean_coh = summary.get("mean_coherence", self.HIHO_THRESHOLD)
+
+        lines = [
+            "=== Compound Session Dashboard ===",
+            f"Experiments : {n}",
+            f"Mode        : {mode}  (HIHO balance={hiho:.1%})",
+            f"Keep Rate   : {keep:.1%}",
+            f"Mean Delta  : {mean_delta:+.4f}",
+            f"Mean Coher. : {mean_coh:.4f}",
+        ]
+
+        top = summary.get("top_experiments", [])
+        if top:
+            lines.append("")
+            lines.append("Top Experiments (by delta):")
+            for i, exp in enumerate(top, 1):
+                lines.append(
+                    f"  {i}. {exp['label']}: delta={exp['delta']:+.4f} "
+                    f"coherence={exp['coherence']:.4f}"
+                )
+        return "\n".join(lines)
+
     async def suggest_next(self, n: int = 3) -> list[dict[str, Any]]:
         """Use AutoresearchEngine to suggest next experiments based on session HIHO balance."""
         from cohezion.compound.autoresearch import AutoresearchEngine
+
         summary = self.compute_summary()
         engine = AutoresearchEngine()
         return await engine.generate_next_experiments(
