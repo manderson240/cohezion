@@ -1,0 +1,132 @@
+{
+  "cli_version": "0.5.6",
+  "checkpoint_id": "c5f86ae1b129",
+  "session_id": "fb0e73ef-0e64-40ce-97c1-25b10ba813a8",
+  "strategy": "manual-commit",
+  "created_at": "2026-05-03T06:38:46.469233783Z",
+  "branch": "main",
+  "checkpoints_count": 1,
+  "files_touched": [],
+  "agent": "Claude Code",
+  "model": "",
+  "turn_id": "506ed820b669",
+  "token_usage": {
+    "input_tokens": 2233,
+    "cache_creation_tokens": 4136710,
+    "cache_read_tokens": 630372786,
+    "output_tokens": 999589,
+    "api_call_count": 2161
+  },
+  "summary": {
+    "intent": "Run an autonomous overnight autoresearch session (10 PM to 8 AM) to improve Cohezion's EVO (Exotic Vacuum Object) agent modeling pipeline, including SurrealDB journey persistence, Mycelium/Ouroboros closed-loop feedback, and continuous compound engineering improvements using teams of specialist agents.",
+    "outcome": "Delivered E1–E62 experiments validating the Mycelium closed loop, fixed the core E57 additive calibration bug in QuadratureNexus, fixed 4 SurrealDB persistence bugs, built 10+ compound analytics modules, fixed 200+ test failures across FLUME/compound/core/arc suites, and committed 1865+ passing tests.",
+    "learnings": {
+      "repo": [
+        "autoresearch.jsonl stores experiment label at r['asi']['experiment'] (not r['experiment']), status at r['status'] (not r['verdict']), and primary metric at r['metric'] (not r['delta'])",
+        "The Entire.io checkpoint daemon periodically resets the working tree to HEAD on the orphan branch — workaround is git checkout HEAD -- <file> to restore committed files, or mv <file> away before committing",
+        "autoresearch.jsonl was git-LFS tracked causing pre-commit stash/restore conflicts; fixed by git rm --cached + adding to .gitignore",
+        "KAGGLE_GUARD_DISABLE=1 env var is required to bypass the Kaggle file guard pre-commit hook when committing unrelated files",
+        "run_llm_deliberation() unconditionally SETs _score_adjustments on every call (line ~307), wiping any Mycelium calibration — direct nexus.deliberate() calls must be used for E55+ experiments to preserve calibration",
+        "psutil mock in conftest.py must mock BOTH virtual_memory AND cpu_percent=25.0 — CPU at 99%+ from background agents triggers resource guardrails that fail all execute_task tests",
+        "FlumeVAE.forward() now returns 4 values (recon, mu, log_var, z) — callers unpacking 3 values break silently",
+        "OllamaEmbeddingProvider was removed from FLUME; tests patching it fail with AttributeError — use fallback_to_hash=True instead",
+        "SurrealDB HTTP endpoint requires 'RETURN true;' for health probe (not 'SELECT 1;'), timestamps must be time::now() not string literals, and SCHEMAFULL tables reject undeclared metadata subfields",
+        "vault_find_relevant_context is async; skill_selector.py was calling it synchronously (unawaited coroutine) — must use vault_search() sync wrapper instead",
+        "Lemonade iGPU ROCm enters silent failure state where all evaluation prompts return empty strings; use arithmetic probe (2+2=) not /models endpoint for functional health check"
+      ],
+      "code": [
+        {
+          "path": "src/cohezion/swarm/quadrature_nexus.py",
+          "line": 220,
+          "end_line": 250,
+          "finding": "apply_mycelium_feedback() was SET not additive — self._score_adjustments[vt] = adjustment caused cycle 2 to replace cycle 1's calibration with a smaller value. Fix: self._mycelium_calibration[vt] += adjustment, then _score_adjustments[vt] = _mycelium_calibration[vt]. Convergence formula: consensus_n = 0.85 - 0.125*(1-lr/2)^n, validated to max_error=0.00025"
+        },
+        {
+          "path": "src/cohezion/storage/surreal_client.py",
+          "line": 1,
+          "end_line": 200,
+          "finding": "Was entirely simulated — connect() set self.connected=True without any real HTTP call. Rewritten to use httpx with 'RETURN true;' probe, time::now() for datetime fields, EVO biography in result field (option<string>) since SCHEMAFULL blocks arbitrary metadata subfields"
+        },
+        {
+          "path": "src/cohezion/core/mcp_client.py",
+          "line": 75,
+          "end_line": 110,
+          "finding": "Tests must patch httpx.AsyncClient (not httpx.Client) and use AsyncMock for post/aclose. Content items require {\"type\": \"text\", \"text\": \"...\"} format for FastMCP. vault_find_relevant_context is async; vault_search() is the sync wrapper. vault_write_sync uses loop detection: asyncio.get_running_loop() then create_task, else asyncio.run()"
+        },
+        {
+          "path": "src/cohezion/arc/solver.py",
+          "line": 85,
+          "end_line": 115,
+          "finding": "UCB1 scoring with trials=0 gives infinity, so untested transforms fill the beam before confirmed-correct ones. Fix: track actual_best = max(candidates, key=lambda x: x[1]) BEFORE UCB1 sorting — best by score drives early exit, UCB1 beam drives depth exploration only"
+        },
+        {
+          "path": "src/cohezion/flume/vae.py",
+          "line": 1,
+          "end_line": 200,
+          "finding": "FlumeVAE.forward() now returns 4 values (logits, mu, log_var, z). Added legacy embedding mode via input_dim constructor param for backward compat with MLP-VAE tests. reparameterize() returns mu in eval mode (no sampling). flume_vae_loss() added as first-class function (MSE/CE + KL + HIHO coherence)"
+        },
+        {
+          "path": "src/cohezion/flume/evaluate_vae.py",
+          "line": 125,
+          "end_line": 135,
+          "finding": "Was unpacking 4 values from forward() but got 3 after FlumeVAE refactor. Also had broken local flume_vae_loss shim. Fix: import from vae.py, change unpack to 4 values (recon, mu, logvar, _z), compute reconstruction metric via argmax on logits rather than cosine similarity on embeddings"
+        },
+        {
+          "path": "tests/compound/conftest.py",
+          "line": 1,
+          "end_line": 35,
+          "finding": "Autouse psutil fixture must mock BOTH virtual_memory (percent=50.0, total=128GiB, available=64GiB) AND cpu_percent=25.0. Missing cpu_percent mock caused 16+ test failures from resource guardrail when machine CPU exceeds 80% threshold"
+        },
+        {
+          "path": "scripts/overnight_evo_loop.py",
+          "line": 127,
+          "end_line": 175,
+          "finding": "JSONL field names mismatch: retirement logic was reading r.get('experiment') and r.get('verdict') but actual format is r['asi']['experiment'] and r['status']. Two-layer calibration model: _mycelium_calibration (cross-cycle, accumulates) vs _score_adjustments (per-deliberation, SET by run_llm_deliberation)"
+        },
+        {
+          "path": "src/cohezion/compound/autoresearch.py",
+          "line": 45,
+          "end_line": 120,
+          "finding": "Added generate_next_experiments(n, session_metrics, retired_labels): exploit mode when avg_coherence >= 0.5 (HIHO threshold), explore when below. Added dedup via _opportunity_hash (sha256 of category:recommendation:priority). HIHO_THRESHOLD = 0.5 class constant"
+        },
+        {
+          "path": "src/cohezion/research/autoresearch_driver.py",
+          "line": 380,
+          "end_line": 395,
+          "finding": "Direction-aware comparison was missing: minimize metrics (loss) were incorrectly marked 'regression' when lower (better). Fix: check self.direction == 'minimize' before comparing metric_val to baseline. _update_tree() also needed union type: accepts both string and ExperimentOutcome for hypothesis"
+        }
+      ],
+      "workflow": [
+        "TDD with V-model structural tests (O1-O4 invariants): write structural tests first (output type, field presence, boundary conditions), then implement. Catches API drift early",
+        "Property-based tests via parametrize for math invariants: consensus formula validated to max_error=0.00025 across 37 parameter combinations",
+        "Multi-agent parallel work: specialist agents (test-fixer, experiment-runner, metrics-agent) work concurrently on independent subtasks while main context handles cross-cutting concerns",
+        "When pre-commit hooks have stash/restore conflicts with large unstaged file sets, move the conflicting file away (mv to /tmp), commit, then restore — or git rm --cached for runtime logs",
+        "E51 ran 4786 times because no retirement criterion existed — add CV < 0.05 AND n_keeps >= 20 retirement rule to prevent converged experiments from consuming indefinite compute",
+        "Vault sync wrapper pattern: try asyncio.get_running_loop() first; if RuntimeError (no loop), use asyncio.run(); if loop exists, use loop.create_task(). Never raise — vault writes are best-effort",
+        "For flaky mock tests involving cosine similarity: use deterministic category-fixed vectors (e.g. [0.9]*n + [0.1]*n) instead of advancing RNG to avoid anti-correlation artifacts"
+      ]
+    },
+    "friction": [
+      "Entire.io checkpoint daemon repeatedly reset working tree to HEAD, reverting uncommitted edits mid-session — required git checkout HEAD -- <file> workaround repeatedly throughout the session",
+      "autoresearch.jsonl LFS pointer vs content mismatch blocked every commit attempt for ~45 minutes; resolved only by git rm --cached + .gitignore",
+      "pre-commit stash/restore phase fails when large numbers of unstaged files exist — KAGGLE_GUARD_DISABLE=1 was required as a bypass and a stash workaround was needed",
+      "Lemonade iGPU ROCm silent failure: all evaluation prompts return empty strings after extended overnight use without any error — only detectable via arithmetic probe",
+      "ruff-format hook automatically reformatted files between the Edit call and the commit, causing 'already fixed' issues in subsequent commit attempts",
+      "FlumeVAE.forward() return tuple silently changed from 4 to 3 values in a previous refactor with no type annotations — caused cascading failures across evaluate_vae.py, test files",
+      "FLUME CLI tests (test_flume_cli.py) cause SIGSEGV from GPU/torch stack — completely untestable without hardware isolation",
+      "Multi-session context compaction meant experiment field names (asi.experiment vs experiment, status vs verdict) had to be rediscovered from live JSONL files rather than from memory"
+    ],
+    "open_items": [
+      "FLUME CLI tests (test_flume_cli.py, test_cli_train.py): 8 failures from SIGSEGV in GPU/torch stack — need hardware isolation or mock-only test mode",
+      "28 swarm tests require live Ollama service — need service mock or skip marks for CI",
+      "E74-E80 experiments (exp-agent-3 was working on these) — adaptive lr, multi-voice weight optimization, FLUME encoding coherence never got to run",
+      "LLM-mode experiment validation deferred: real Gemma-4-31B scoring shows genuine variance (resource voice delta +0.254 budget true/false) but iGPU was in silent failure during overnight run",
+      "ExperimentScheduler not yet wired into overnight_evo_loop main() — auto-retirement logic in the loop still uses the broken field names; the fixed field-name version is in comments but not activated",
+      "SurrealDB experiment_runs table remains empty — HTTP-direct write code was designed but the telemetry bus/worker path for E55-E62 experiments (which use nexus.deliberate() directly) never writes journey_points",
+      "Ouroboros fires 320+ false alarms on experimental EVO lifecycle transitions (new action key → fresh EVO from vacuum) — needs a flag to distinguish experimental from production EVOs",
+      "vault.py _fire_vault_write function still has a 'coroutine never awaited' edge case when RuntimeError is raised but the coro is not explicitly closed before creating coro2",
+      "FLUME test_train_vae_v2.py save_checkpoint tests may be fragile for token-mode FlumeVAE (input_dim=None path) — checkpoint format not validated for both modes",
+      "compound_analytics_cli.py restore_compound_analytics.sh script uncommitted — Entire.io revert risk remains for session analytics modules"
+    ]
+  }
+}
