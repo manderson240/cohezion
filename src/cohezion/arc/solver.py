@@ -100,11 +100,16 @@ def beam_search(
             ),
             reverse=True,
         )
+        # Track best by actual score across ALL candidates (not just UCB1-pruned beam).
+        # UCB1 sorting ranks untested transforms (trials=0 → UCB1=∞) above known-good
+        # ones; using it to select best_chain would discard a correct answer.
+        if candidates:
+            actual_best = max(candidates, key=lambda x: x[1])
+            if actual_best[1] > state.best_score:
+                state.best_score = actual_best[1]
+                state.best_chain = actual_best[0]
+        # UCB1-ranked beam drives exploration at deeper depths only.
         beams = candidates[:beam_width]
-        best = max(beams, key=lambda x: x[1])
-        if best[1] > state.best_score:
-            state.best_score = best[1]
-            state.best_chain = best[0]
         if state.best_score == 1.0:
             break
         if time.monotonic() - t0 > time_budget_sec:
