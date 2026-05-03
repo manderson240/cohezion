@@ -11,6 +11,11 @@ from cohezion.compound.executor import ExecutorFactory
 from cohezion.compound.request_alignment_analyzer import RequestAlignmentAnalyzer
 
 
+class _MockVirtualMemory:
+    """Fake psutil virtual_memory result for resource guardrail bypass."""
+    percent = 50.0  # Well below the guardrail threshold
+
+
 class MockMCPClient:
     """Mock MCP client for testing."""
 
@@ -55,6 +60,12 @@ class TestExecutorAlignmentIntegration:
     def setup_method(self):
         """Set up test fixtures."""
         self.mcp_client = MockMCPClient()
+        # Patch psutil to report non-constrained memory so guardrails don't block
+        self._psutil_patcher = patch("psutil.virtual_memory", return_value=_MockVirtualMemory())
+        self._psutil_patcher.start()
+
+    def teardown_method(self):
+        self._psutil_patcher.stop()
 
     def test_executor_with_alignment_disabled(self):
         """Test executor with alignment analysis disabled (default)."""
