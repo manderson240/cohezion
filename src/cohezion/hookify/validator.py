@@ -53,6 +53,8 @@ class HookifyValidator:
         self.rules = rules or []
         self._db = None  # SurrealDB connection (lazy init)
         self._vault = None  # Vault logger (lazy init)
+        self._lever_overrides: dict[tuple[str, str], Any] = {}  # in-memory Tier 2 store
+        self._violation_logs: dict[str, list[dict[str, Any]]] = {}  # in-memory Tier 3 store
 
         if rules_path:
             self.rules = self._load_rules_from_file(rules_path)
@@ -570,23 +572,37 @@ class HookifyValidator:
 
         return self._resolve_levers(rule_id, rule.levers, db_overrides, env_overrides)
 
+    def _save_lever_override(self, rule_id: str, lever_name: str, value: Any) -> None:
+        """Persist lever override in-memory (Tier 2 write-ahead store)."""
+        self._lever_overrides[(rule_id, lever_name)] = value
+
+    def _load_lever_override(self, rule_id: str, lever_name: str) -> Any:
+        """Load lever override from in-memory store. Returns None if not set."""
+        return self._lever_overrides.get((rule_id, lever_name))
+
+    def _log_violation(
+        self, rule_id: str, context: dict[str, Any], violation: dict[str, Any]
+    ) -> None:
+        """Append violation to in-memory log (Tier 3 audit trail)."""
+        if rule_id not in self._violation_logs:
+            self._violation_logs[rule_id] = []
+        self._violation_logs[rule_id].append({**context, "violation": violation})
+
+    def _get_violation_logs(self, rule_id: str) -> list[dict[str, Any]]:
+        """Return violation log entries for a rule."""
+        return self._violation_logs.get(rule_id, [])
+
     def set_lever_position(self, rule_id: str, lever_name: str, value: Any) -> dict[str, Any]:
-        """
-        Set lever position (saved to Tier 2: SurrealDB)
+        """Set lever override (write-ahead: persists even for unknown rules).
 
         Returns:
-            Dict with success status and previous value
+            Dict with success status, previous and new values.
         """
+        previous_value = self._load_lever_override(rule_id, lever_name)
         rule = self.get_rule(rule_id)
-        if not rule:
-            return {"success": False, "error": f"Rule {rule_id} not found"}
+        if rule and lever_name in rule.levers:
+            previous_value = rule.levers[lever_name]
 
-        if lever_name not in rule.levers:
-            return {"success": False, "error": f"Lever {lever_name} not found"}
-
-        previous_value = rule.levers.get(lever_name)
-
-        # Save to SurrealDB
         self._save_lever_override(rule_id, lever_name, value)
 
         return {

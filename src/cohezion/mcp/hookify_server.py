@@ -208,17 +208,20 @@ class HookifyMCPBridge:
         try:
             result = self.validator.set_lever_position(rule_id, lever_name, value)
 
-            # Persist to SurrealDB for cross-session persistence
+            # Persist to SurrealDB (best-effort — auth failures are non-fatal)
             client = self._get_surrealdb_client()
             if client:
-                sql = (
-                    f"UPDATE hookify_rules:{rule_id} "
-                    f"SET lever_overrides.{lever_name} = {json.dumps(value)}, "
-                    f"updated = time::now();"
-                )
-                client.query(sql)
+                try:
+                    sql = (
+                        f"UPDATE hookify_rules:{rule_id} "
+                        f"SET lever_overrides.{lever_name} = {json.dumps(value)}, "
+                        f"updated = time::now();"
+                    )
+                    client.query(sql)
+                except Exception:
+                    logger.debug("SurrealDB lever persist skipped (non-fatal)")
 
-            # Also write to vault for audit trail
+            # Also write to vault for audit trail (best-effort)
             await self._write_lever_change_to_vault(rule_id, lever_name, result)
 
             return result
@@ -241,8 +244,8 @@ aspect: prefrontal
 
 # Lever Change Decision
 
-**Rule**: `{rule_id}`  
-**Lever**: `{lever_name}`  
+**Rule**: `{rule_id}`
+**Lever**: `{lever_name}`
 **Timestamp**: {timestamp}
 
 ## Change Details
@@ -329,8 +332,8 @@ Lever adjusted for:
         try:
             # Query graph for violations linked to this rule
             sql = f"""
-                SELECT * FROM synapse 
-                WHERE out = neuron:prefrontal_{rule_id} 
+                SELECT * FROM synapse
+                WHERE out = neuron:prefrontal_{rule_id}
                 AND link_type = 'latent';
             """
             result = client.query(sql)
