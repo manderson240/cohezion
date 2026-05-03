@@ -932,12 +932,14 @@ class CompoundExecutor(CompoundContextMixin, ExecutorIntegrationMixin):
                 logger.debug("Retrospection failed (non-blocking): %s", e, exc_info=True)
 
         # Step 7: Refine skills based on execution results (non-blocking)
-        # Gated by retrospection AND DRR: only refine when both pass
-        drr_passed = metrics.get("drr_passed", True)  # Default True if DRR not run
+        # Gated by retrospection only. DRR failures are logged but do NOT block
+        # skill refinement — DRR is a design-review observability gate, not a
+        # runtime feedback-loop gate. Blocking here would prevent learning.
+        drr_passed = metrics.get("drr_passed", True)
         if not drr_passed:
-            should_refine = False
             logger.info(
-                "Skill refinement blocked: DRR gate failed (%s)", metrics.get("drr_gate", "?")
+                "DRR gate failed (%s) — skill refinement continues (DRR is advisory)",
+                metrics.get("drr_gate", "?"),
             )
         if success and self.skill_refiner and should_refine:
             try:
