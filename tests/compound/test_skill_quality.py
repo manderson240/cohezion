@@ -329,7 +329,7 @@ pass
     async def test_hypothesis_generation_produces_actions(self, bad_skill):
         orch = SkillQualityOrchestrator()
         report = orch.scorer.evaluate(bad_skill)
-        hypos = orch._generate_hypotheses(report)
+        hypos = await orch._generate_hypotheses(report)
 
         assert len(hypos) > 0
         actions = {h.action for h in hypos}
