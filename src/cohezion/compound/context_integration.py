@@ -265,10 +265,19 @@ class CompoundContextMixin:
     def __init_context__(self, project_root: Path | None = None):
         """Initialize context manager.
 
+        Construction is tolerant of a missing ``.context`` directory: when
+        :class:`ContextManager` cannot locate a project root, a manager
+        rooted at ``Path.cwd()`` is created instead. Lazy operations like
+        :meth:`ContextManager.load_manifest` will still raise
+        :class:`ContextLoadError` when actually invoked without a manifest.
+
         Args:
             project_root: Project root directory
         """
-        self._context_manager = ContextManager(project_root)
+        try:
+            self._context_manager = ContextManager(project_root)
+        except ContextLoadError:
+            self._context_manager = ContextManager(Path.cwd())
         self._context_loaded = False
         self._active_budget: ContextBudget | None = None
         self._context_policy: ContextPolicy | None = None

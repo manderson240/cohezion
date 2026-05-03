@@ -652,7 +652,7 @@ class CompoundExecutor(CompoundContextMixin, ExecutorIntegrationMixin):
         except Exception as e:
             error_msg = str(e)
             output = f"Error: {error_msg}"
-            metrics = {"error": error_msg}
+            metrics = {"error": error_msg, "error_type": type(e).__name__}
             logger.error("Task failed: %s", error_msg, exc_info=True)
 
         # Capture token metrics after execution (if token_client available)
@@ -932,9 +932,15 @@ class CompoundExecutor(CompoundContextMixin, ExecutorIntegrationMixin):
                 logger.debug("Retrospection failed (non-blocking): %s", e, exc_info=True)
 
         # Step 7: Refine skills based on execution results (non-blocking)
-        # Gated by retrospection AND DRR: only refine when both pass
+        # Gated by retrospection AND DRR: only refine when both pass.
+        # The DRR gate is only authoritative when a real V-Model session is
+        # active (i.e., ``_drr_session_id`` has been set). When no session is
+        # configured the DRR runs against placeholder artifact paths that
+        # never exist, producing structural critical findings unrelated to
+        # the skill outcome — those should not block refinement.
         drr_passed = metrics.get("drr_passed", True)  # Default True if DRR not run
-        if not drr_passed:
+        drr_authoritative = bool(self._drr_session_id)
+        if drr_authoritative and not drr_passed:
             should_refine = False
             logger.info(
                 "Skill refinement blocked: DRR gate failed (%s)", metrics.get("drr_gate", "?")
