@@ -1,13 +1,23 @@
 from pathlib import Path
 
+import psutil
 import pytest
 
 from cohezion.mass_sim.config import ScaleTier, SimulationConfig
 from cohezion.mass_sim.orchestrator import MassSimOrchestrator
 
 
+def _swap_too_high() -> bool:
+    try:
+        swap = psutil.swap_memory()
+        return swap.used > 30 * 1024**3  # >30GB swap = thrashing
+    except Exception:
+        return False
+
+
 @pytest.mark.asyncio
 @pytest.mark.integration
+@pytest.mark.skipif(_swap_too_high(), reason="system swap usage too high (memory thrashing)")
 async def test_demo_scale_integration(tmp_path: Path):
     tier = ScaleTier(
         "test_demo", n_agents=10, n_epochs=5, n_universes=2, checkpoint_interval=5, batch_size=10
