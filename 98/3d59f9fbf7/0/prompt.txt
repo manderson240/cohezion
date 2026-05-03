@@ -1,0 +1,6 @@
+<task-notification>
+<task-id>bkpbszk2t</task-id>
+<summary>Monitor event: "autorun_2h: experiment completions, autodata/autoresearch/autoharness reports, errors"</summary>
+<event>[E12] Persistent EVO accumulation (200 deliberations, llm=True)</event>
+If this event is something the user would act on now, send a PushNotification. Routine or benign output doesn't need one.
+</task-notification>
