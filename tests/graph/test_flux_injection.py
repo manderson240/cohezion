@@ -258,14 +258,6 @@ class TestTokenEfficiency:
 
         total_scoped_tokens = 0
         for name, desc in roles:
-            spec = NodeSpec(
-                id=f"n-{name}",
-                name=name,
-                node_type="agent",
-                pull_keys=[],
-                push_keys=[],
-                attributes={"description": desc},
-            )
             # Each node gets 3 targeted blocks (~50 chars each = ~37 tokens)
             blocks = [
                 _make_block(f"Relevant {name} context block {i}", 0.9 - i * 0.1) for i in range(3)
@@ -352,7 +344,7 @@ class TestEffectivenessEvaluation:
             ],
         }
 
-        async def mock_get_context(query: str, top_k: int = 3) -> FluxContext:
+        async def mock_get_context(query: str, top_k: int = 3, **kwargs) -> FluxContext:
             query_lower = query.lower()
             for keyword, blocks in blocks_by_keyword.items():
                 if keyword in query_lower:
@@ -457,14 +449,6 @@ class TestEffectivenessEvaluation:
         # Scoped: each node gets top-relevance blocks for its role
         scoped_scores: list[float] = []
         for desc in ["Gather background", "Analyse failure patterns", "Synthesise findings"]:
-            spec = NodeSpec(
-                id="n",
-                name="node",
-                node_type="agent",
-                pull_keys=[],
-                push_keys=[],
-                attributes={"description": desc},
-            )
             ctx = await role_specific_vault(desc, top_k=3)
             scoped_scores.extend(b.relevance_score for b in ctx.blocks)
 
