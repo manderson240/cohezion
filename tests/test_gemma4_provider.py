@@ -34,7 +34,7 @@ class TestGemma4ProviderConfig:
         from cohezion.swarm.providers.gemma4_provider import Gemma4Provider
 
         provider = Gemma4Provider()
-        assert provider.timeout == 120  # Gemma 4 reasoning needs more time
+        assert provider.timeout == 300  # Gemma 4 reasoning needs extended timeout
         assert "localhost:11434" in provider.base_url
         assert provider.thinking_mode is True
 
@@ -68,7 +68,7 @@ class TestGemma4ProviderGenerate:
         mock_response.status = 200
         mock_response.json = AsyncMock(
             return_value={
-                "response": "Final answer after thinking.",
+                "message": {"content": "Final answer after thinking."},
                 "eval_count": 50,
                 "prompt_eval_count": 20,
                 "total_duration": 1000000000,
@@ -111,7 +111,7 @@ class TestGemma4ProviderGenerate:
         mock_response.status = 200
         mock_response.json = AsyncMock(
             return_value={
-                "response": '{"result": "success"}',
+                "message": {"content": '{"result": "success"}'},
                 "eval_count": 10,
                 "prompt_eval_count": 5,
             }
