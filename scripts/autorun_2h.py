@@ -198,6 +198,22 @@ async def run_autoresearch_analysis(timings: list[ExperimentTiming], cycle: int)
                     f"  [{o['priority']}] {o['category']}: {o['recommendation'][:80]}", flush=True
                 )
 
+        # Generate next experiments using HIHO balance
+        avg_coherence = metrics.get("avg_coherence", 0.5)
+        next_exps = await engine.generate_next_experiments(
+            n=3,
+            session_metrics={"avg_coherence": avg_coherence},
+        )
+        if next_exps:
+            mode = next_exps[0]["mode"]
+            print(
+                f"\n[autoresearch] HIHO balance={avg_coherence:.3f} → mode={mode.upper()}: "
+                f"next experiments proposed:",
+                flush=True,
+            )
+            for exp in next_exps[:2]:
+                print(f"  → {exp['hypothesis'][:80]}", flush=True)
+
         return top
 
     except Exception as exc:
@@ -363,12 +379,14 @@ async def main(hours: float = 2.0, use_llm: bool = True) -> None:
                 break
 
             remaining_s = DEADLINE - timeit.default_timer()
+            if remaining_s < 30:
+                break  # Too close to deadline — would produce negative timeout
             print(f"\n[autorun_2h] → {label} ({remaining_s / 60:.1f} min left)", flush=True)
 
             try:
                 timing = await asyncio.wait_for(
                     run_timed(label, fn, cycle),
-                    timeout=min(EXPERIMENT_TIMEOUT, remaining_s - 10),
+                    timeout=max(30.0, min(EXPERIMENT_TIMEOUT, remaining_s - 10)),
                 )
             except TimeoutError:
                 timing = ExperimentTiming(

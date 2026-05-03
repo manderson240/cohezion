@@ -45,6 +45,62 @@ class ContextManager:
         coherence_state: Current coherence score (0.0-1.0)
     """
 
+    # Class-level TTL'd caches. Each entry is ``(monotonic_timestamp, value)``.
+    # Keyed on cwd string for ``_root_cache`` and on absolute resolved path
+    # for ``_context_cache``. Bounds staleness to ``CACHE_TTL_SECONDS`` so
+    # ``cd``-ing into a different worktree mid-session doesn't return a
+    # stale project root indefinitely.
+    #
+    # **Concurrency:** these caches are NOT thread-safe — they assume the
+    # GIL provides atomicity for individual dict get/set, which is only
+    # true for CPython simple dict operations. Concurrent writers from
+    # multiple threads could double-traverse the filesystem (benign — same
+    # value would be cached), but no entry could be partially observed.
+    # If used from a free-threaded build (PEP 703) or ported to async
+    # tasks holding references across awaits, wrap reads/writes in a
+    # ``threading.Lock``. For our compound-executor use case (single
+    # event loop, sync helper called from coroutines) this is acceptable.
+    CACHE_TTL_SECONDS: float = 60.0
+
+    _root_cache: dict[str, tuple[float, Path]] = {}
+    _context_cache: dict[str, tuple[float, Any]] = {}
+
+    @classmethod
+    def clear_caches(cls) -> None:
+        """Clear class-level caches (root + context). Useful for tests."""
+        cls._root_cache.clear()
+        cls._context_cache.clear()
+
+    @classmethod
+    def _cache_get(
+        cls, cache: dict[str, tuple[float, Any]], key: str
+    ) -> Any | None:
+        """Return cached value if present and fresh, else None.
+
+        Expired entries are evicted on read so the cache cannot grow
+        unboundedly with stale keys.
+        """
+        import time
+
+        entry = cache.get(key)
+        if entry is None:
+            return None
+        ts, value = entry
+        if (time.monotonic() - ts) > cls.CACHE_TTL_SECONDS:
+            # Expired — evict.
+            cache.pop(key, None)
+            return None
+        return value
+
+    @classmethod
+    def _cache_put(
+        cls, cache: dict[str, tuple[float, Any]], key: str, value: Any
+    ) -> None:
+        """Store ``(now, value)`` in cache."""
+        import time
+
+        cache[key] = (time.monotonic(), value)
+
     def __init__(self, project_root: Path | None = None):
         """Initialize context manager.
 
@@ -66,15 +122,27 @@ class ContextManager:
     def _find_project_root(self) -> Path:
         """Find project root by looking for .context directory.
 
+        Cached per-cwd at the class level — first call traverses the
+        filesystem, subsequent calls from the same cwd return the cached
+        :class:`Path` immediately.
+
         Returns:
             Path to project root
 
         Raises:
             ContextLoadError: If project root not found
         """
-        current = Path.cwd()
+        cwd = Path.cwd()
+        cwd_key = str(cwd)
+        cls = type(self)
+        cached = cls._cache_get(cls._root_cache, cwd_key)
+        if cached is not None:
+            return cached
+
+        current = cwd
         while current != current.parent:
             if (current / ".context").exists():
+                cls._cache_put(cls._root_cache, cwd_key, current)
                 return current
             current = current.parent
         raise ContextLoadError("Project root not found (no .context directory)")
@@ -195,6 +263,14 @@ class ContextManager:
             logger.warning("Skill context file not found: %s", context_path)
             return None
 
+        # Cache key: absolute resolved path of the YAML file
+        cache_key = str(context_path.resolve())
+        cls = type(self)
+        cached = cls._cache_get(cls._context_cache, cache_key)
+        if cached is not None:
+            logger.debug("Skill context cache hit: %s", skill_name)
+            return cached
+
         # Load YAML config
         try:
             import yaml
@@ -202,6 +278,8 @@ class ContextManager:
             with open(context_path, encoding="utf-8") as f:
                 config = yaml.safe_load(f)
                 logger.debug("Loaded skill context: %s", skill_name)
+                if config is not None:
+                    cls._cache_put(cls._context_cache, cache_key, config)
                 return config
         except ImportError:
             logger.error("PyYAML required for skill context loading")

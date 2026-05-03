@@ -261,88 +261,62 @@ class MCPClient:
         """Synchronous fire-and-forget wrapper for vault_write.
 
         Safe to call from synchronous code. Best-effort — errors never raise.
-        Explicitly closes coroutines to suppress RuntimeWarning for unawaited coros.
+        If an event loop is already running the coroutine is scheduled as a
+        background task; otherwise ``asyncio.run`` is used.
         """
-        # Try asyncio.run first (works when no loop is running)
-        coro = self.vault_write(path, content)
         try:
-            asyncio.run(coro)
-            return
+            loop = asyncio.get_running_loop()
         except RuntimeError:
-            coro.close()  # Prevent "coroutine never awaited" warning
-        except Exception as e:
-            coro.close()
-            logger.debug("vault_write_sync failed: %s", e)
+            # No loop running — safe to use asyncio.run
+            try:
+                asyncio.run(self.vault_write(path, content))
+            except Exception as e:
+                logger.debug("vault_write_sync failed: %s", e)
             return
 
-        # Fallback: create a dedicated loop (handles "loop already running" case)
-        coro2 = self.vault_write(path, content)
-        new_loop = asyncio.new_event_loop()
-        try:
-            new_loop.run_until_complete(coro2)
-        except Exception as e:
-            coro2.close()
-            logger.debug("vault_write_sync nested-loop failure: %s", e)
-        finally:
-            new_loop.close()
+        # Inside a running loop — schedule fire-and-forget
+        loop.create_task(self.vault_write(path, content))
 
     def vault_read_sync(self, path: str) -> str:
         """Synchronous wrapper for vault_read.
 
-        Safe to call from synchronous code. Best-effort — errors return empty string.
-        Explicitly closes coroutines to suppress RuntimeWarning for unawaited coros.
+        Safe to call from synchronous code. Best-effort — errors return empty
+        string. If an event loop is already running the call is **dropped** and
+        an empty string is returned (blocking the loop would deadlock).
         """
-        # Try asyncio.run first (works when no loop is running)
-        coro = self.vault_read(path)
         try:
-            return asyncio.run(coro)
+            loop = asyncio.get_running_loop()
         except RuntimeError:
-            coro.close()  # Prevent "coroutine never awaited" warning
-        except Exception as e:
-            coro.close()
-            logger.debug("vault_read_sync failed: %s", e)
-            return ""
+            # No loop running — safe to use asyncio.run
+            try:
+                return asyncio.run(self.vault_read(path))
+            except Exception as e:
+                logger.debug("vault_read_sync failed: %s", e)
+                return ""
 
-        # Fallback: create a dedicated loop (handles "loop already running" case)
-        coro2 = self.vault_read(path)
-        new_loop = asyncio.new_event_loop()
-        try:
-            return new_loop.run_until_complete(coro2)
-        except Exception as e:
-            coro2.close()
-            logger.debug("vault_read_sync nested-loop failure: %s", e)
-            return ""
-        finally:
-            new_loop.close()
+        # Inside a running loop — cannot block; return default
+        logger.debug("vault_read_sync called inside running loop — dropped")
+        return ""
 
     def vault_delete_sync(self, path: str) -> None:
         """Synchronous fire-and-forget wrapper for vault_delete.
 
         Safe to call from synchronous code. Best-effort — errors never raise.
-        Explicitly closes coroutines to suppress RuntimeWarning for unawaited coros.
+        If an event loop is already running the coroutine is scheduled as a
+        background task; otherwise ``asyncio.run`` is used.
         """
-        # Try asyncio.run first (works when no loop is running)
-        coro = self.vault_delete(path)
         try:
-            asyncio.run(coro)
-            return
+            loop = asyncio.get_running_loop()
         except RuntimeError:
-            coro.close()  # Prevent "coroutine never awaited" warning
-        except Exception as e:
-            coro.close()
-            logger.debug("vault_delete_sync failed: %s", e)
+            # No loop running — safe to use asyncio.run
+            try:
+                asyncio.run(self.vault_delete(path))
+            except Exception as e:
+                logger.debug("vault_delete_sync failed: %s", e)
             return
 
-        # Fallback: create a dedicated loop (handles "loop already running" case)
-        coro2 = self.vault_delete(path)
-        new_loop = asyncio.new_event_loop()
-        try:
-            new_loop.run_until_complete(coro2)
-        except Exception as e:
-            coro2.close()
-            logger.debug("vault_delete_sync nested-loop failure: %s", e)
-        finally:
-            new_loop.close()
+        # Inside a running loop — schedule fire-and-forget
+        loop.create_task(self.vault_delete(path))
 
     def vault_search(self, query: str, limit: int = 10) -> list[dict[str, Any]]:
         """Synchronously search the vault for content matching ``query``.
@@ -352,19 +326,14 @@ class MCPClient:
         are swallowed and returned as an empty list — search is best-effort
         and must never crash the caller.
         """
+        coro = self.vault_find_relevant_context(query, limit=limit)
         try:
-            return asyncio.run(self.vault_find_relevant_context(query, limit=limit))
+            return asyncio.run(coro)
         except RuntimeError:
-            new_loop = asyncio.new_event_loop()
-            try:
-                return new_loop.run_until_complete(
-                    self.vault_find_relevant_context(query, limit=limit)
-                )
-            except Exception as nested_exc:
-                logger.debug("vault_search nested-loop failure: %s", nested_exc)
-                return []
-            finally:
-                new_loop.close()
+            # Loop already running (e.g. pytest-asyncio) — cannot block.
+            # Callers in async contexts should await
+            # :meth:`vault_find_relevant_context` directly.
+            return []
         except Exception as exc:
             logger.debug("vault_search failed: %s", exc)
             return []

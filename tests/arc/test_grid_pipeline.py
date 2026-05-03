@@ -150,10 +150,17 @@ class TestSyntheticTask:
     def test_pattern_extract_invert(self):
         from cohezion.arc.pattern_extractor import PatternExtractor
 
+        # 3x3 task where invert is the ONLY single-op solution (asymmetric grids)
         task = {
             "train": [
-                {"input": [[0, 1], [1, 0]], "output": [[1, 0], [0, 1]]},
-                {"input": [[1, 1], [0, 0]], "output": [[0, 0], [1, 1]]},
+                {
+                    "input": [[0, 0, 0], [0, 1, 0], [1, 0, 1]],
+                    "output": [[1, 1, 1], [1, 0, 1], [0, 1, 0]],
+                },
+                {
+                    "input": [[1, 1, 0], [0, 0, 1], [1, 0, 0]],
+                    "output": [[0, 0, 1], [1, 1, 0], [0, 1, 1]],
+                },
             ],
             "test": [{"input": [[0, 0, 1], [1, 0, 0]]}],
         }

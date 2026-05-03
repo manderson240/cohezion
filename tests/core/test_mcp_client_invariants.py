@@ -278,3 +278,36 @@ class TestVaultDeleteSyncWrapper:
         client = _make_client()
         import inspect
         assert not inspect.iscoroutinefunction(client.vault_delete_sync)
+
+
+class TestAdditionalSyncWrappers:
+    """vault_read_sync and vault_delete_sync follow same pattern as vault_write_sync."""
+
+    SYNC_VAULT_WRAPPERS = ["vault_read_sync", "vault_write_sync", "vault_delete_sync"]
+
+    @pytest.mark.parametrize("method_name", SYNC_VAULT_WRAPPERS)
+    def test_sync_wrapper_is_not_coroutine(self, method_name):
+        """All _sync wrappers must be synchronous (not coroutines)."""
+        client = _make_client()
+        import inspect
+        assert not inspect.iscoroutinefunction(getattr(client, method_name)), (
+            f"{method_name} must NOT be async"
+        )
+
+    def test_vault_read_sync_returns_string_or_empty(self):
+        """vault_read_sync returns str, never raises."""
+        client = _make_client()
+        async def fake_read(path):
+            raise RuntimeError("vault offline")
+        with patch.object(client, "vault_read", side_effect=fake_read):
+            result = client.vault_read_sync("test.md")
+        assert isinstance(result, str)
+        assert result == ""
+
+    def test_vault_delete_sync_silences_exceptions(self):
+        """vault_delete_sync never raises."""
+        client = _make_client()
+        async def always_fails(path):
+            raise RuntimeError("vault offline")
+        with patch.object(client, "vault_delete", side_effect=always_fails):
+            client.vault_delete_sync("test.md")  # Should NOT raise
