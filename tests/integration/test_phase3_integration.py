@@ -14,9 +14,19 @@ Success Metrics:
 """
 
 import asyncio
+import sys
 from typing import Any
+from unittest.mock import MagicMock
 
 import pytest
+
+_ST_IS_REAL = not (
+    "sentence_transformers" in sys.modules
+    and sys.modules["sentence_transformers"].SentenceTransformer is MagicMock
+)
+requires_real_st = pytest.mark.skipif(
+    not _ST_IS_REAL, reason="sentence_transformers is mocked (hardware compatibility)"
+)
 
 from cohezion.cache.text_encoder import get_text_encoder
 from cohezion.compound.session_manager import (
@@ -250,6 +260,7 @@ class TestPhase3CacheIntegration:
         # Should miss on unrelated topics
         assert result is None
 
+    @requires_real_st
     def test_text_encoder_discrimination(self):
         """Test semantic embeddings discriminate between topics."""
         encoder = get_text_encoder()
