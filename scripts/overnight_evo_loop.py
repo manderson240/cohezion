@@ -43,6 +43,16 @@ logger = logging.getLogger("overnight_evo")
 JSONL_PATH = Path(__file__).parent.parent / "autoresearch.jsonl"
 
 _autoresearch_engine = None
+_session_metrics = None
+
+
+def _get_session_metrics():
+    global _session_metrics
+    if _session_metrics is None:
+        from cohezion.compound.session_metrics_aggregator import SessionMetricsAggregator
+
+        _session_metrics = SessionMetricsAggregator()
+    return _session_metrics
 
 
 def _get_autoresearch_engine():
@@ -164,6 +174,13 @@ def log_result(
     print(
         f"  [{experiment}] run={run} {status} metric={metric:.4f} — {description[:80]}", flush=True
     )
+    # Feed into session metrics aggregator for dashboard rendering
+    try:
+        agg = _get_session_metrics()
+        coherence = float(metrics.get("coherence", 0.5)) if metrics else 0.5
+        agg.record(experiment_label=experiment, delta=metric, coherence=coherence)
+    except Exception:
+        pass
 
 
 # ---------------------------------------------------------------------------
@@ -3423,6 +3440,12 @@ async def main() -> None:
                 f"\n[overnight_evo] Completed iteration {iteration}. Restarting schedule.",
                 flush=True,
             )
+            # Render compound session dashboard after each iteration
+            try:
+                dashboard = _get_session_metrics().render_dashboard()
+                print(f"\n{dashboard}\n", flush=True)
+            except Exception:
+                pass
 
     print(f"\n[overnight_evo] Loop stopped after {iteration} iterations.", flush=True)
 
