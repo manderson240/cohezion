@@ -1,0 +1,129 @@
+{
+  "cli_version": "0.5.6",
+  "checkpoint_id": "6fae0d155ea5",
+  "session_id": "fb0e73ef-0e64-40ce-97c1-25b10ba813a8",
+  "strategy": "manual-commit",
+  "created_at": "2026-05-03T05:43:33.268886368Z",
+  "branch": "main",
+  "checkpoints_count": 1,
+  "files_touched": [],
+  "agent": "Claude Code",
+  "model": "",
+  "turn_id": "506ed820b669",
+  "token_usage": {
+    "input_tokens": 2026,
+    "cache_creation_tokens": 3946205,
+    "cache_read_tokens": 572839577,
+    "output_tokens": 927904,
+    "api_call_count": 1956
+  },
+  "summary": {
+    "intent": "Build and continuously improve Cohezion's ability to model agents as Exotic Vacuum Objects (EVOs) through a long-running autoresearch loop, capturing agentic journeys through the Quadrature Nexus/FLUME VAE into SurrealDB, then using Ouroboros and Mycelium to analyze those journeys and feed improvements back into the system.",
+    "outcome": "Implemented E1-E77+ experiments validating the Mycelium closed-loop feedback with additive calibration (E57, delta=+0.0625); fixed 300+ test failures; created 10+ new compound engineering modules (CompoundEngine, ExperimentAnalytics, ExperimentScheduler, HealthMonitor, etc.); total test count grew from ~6797 to 7082+; the autoresearch loop runs continuously with HIHO balance tracking and retirement criterion.",
+    "learnings": {
+      "repo": [
+        "The Entire.io checkpoint daemon periodically commits working tree changes to orphan branches and resets the working tree to HEAD — edits made via tools can be silently lost unless committed before the next checkpoint cycle",
+        "autoresearch.jsonl stores experiment labels in r['asi']['experiment'], uses r['status'] (not 'verdict') for keep/discard, and r['metric'] as the primary signal — not top-level 'delta'",
+        "SurrealDB SCHEMAFULL tables reject arbitrary metadata subfields; variable data must be packed into option<string> fields (e.g. 'result') as JSON rather than using structured subfields",
+        "The two-layer calibration model: _mycelium_calibration (cross-cycle accumulator, += semantics) vs _score_adjustments (per-deliberation, SET by run_llm_deliberation on every call) — Mycelium feedback must target _mycelium_calibration, not _score_adjustments",
+        "Lemonade LLM enters silent failure state where all structured evaluation prompts return empty strings but arithmetic works; probe with '2+2=' not /models endpoint",
+        "The ruff-format pre-commit hook reformats files after staging, causing the staged version to differ from HEAD and blocking commits — must run 'uv run ruff format <file>' before staging",
+        "vault_find_relevant_context is async; synchronous callers must use vault_search (the sync wrapper) to avoid RuntimeWarning about unawaited coroutines",
+        "psutil mock in compound tests needs both virtual_memory AND cpu_percent mocked — the resource guardrail checks CPU usage (~80% threshold) on every execute_task() call",
+        "The UCB1 exploration policy in beam_search was incorrectly used for best-answer selection — perfect-score candidates were excluded from the beam because untested transforms have UCB1=∞"
+      ],
+      "code": [
+        {
+          "path": "src/cohezion/swarm/quadrature_nexus.py",
+          "line": 220,
+          "end_line": 260,
+          "finding": "apply_mycelium_feedback had SET semantics (_score_adjustments[vt] = adjustment) causing cycle 2 to overwrite cycle 1's calibration with a smaller value. Fixed to _mycelium_calibration[vt] += adjustment (additive accumulation). Also added _detect_oscillation(): when last 3 adjustments alternate sign, lr is halved."
+        },
+        {
+          "path": "src/cohezion/compound/executor.py",
+          "line": 645,
+          "end_line": 655,
+          "finding": "Error classification now tracks error_type, error_category (transient/resource/logic/permanent), and retryable flag. But this code is frequently reverted by the checkpoint daemon — moved to error_classifier.py instead."
+        },
+        {
+          "path": "src/cohezion/arc/solver.py",
+          "line": 80,
+          "end_line": 115,
+          "finding": "UCB1 exploration policy was incorrectly selecting the 'best' chain — actual_best must be tracked BEFORE UCB1 narrows the beam; candidates with 0 trials always rank higher via UCB1=∞, blocking high-scoring transforms from being selected."
+        },
+        {
+          "path": "src/cohezion/core/mcp_client.py",
+          "line": 155,
+          "end_line": 200,
+          "finding": "Must patch httpx.AsyncClient (not httpx.Client) in tests; use AsyncMock for post and aclose; wrap all client.connect()/vault_*()/_call_tool() calls with asyncio.run() in unittest.TestCase test methods. Added vault_write_sync/vault_read_sync/vault_delete_sync that explicitly close coroutines to prevent RuntimeWarning."
+        },
+        {
+          "path": "src/cohezion/compound/context_integration.py",
+          "line": 45,
+          "end_line": 70,
+          "finding": "_find_project_root() must fall back to the repo root (pyproject.toml or CLAUDE.md) when no .context directory is found, rather than raising ContextLoadError."
+        },
+        {
+          "path": "src/cohezion/compound/skill_selector.py",
+          "line": 131,
+          "end_line": 135,
+          "finding": "Called vault_find_relevant_context() (async) without await in synchronous context. Fixed to use vault_search() (sync wrapper)."
+        },
+        {
+          "path": "src/cohezion/research/autoresearch_driver.py",
+          "line": 380,
+          "end_line": 395,
+          "finding": "Improvement classification must respect direction ('minimize' vs 'maximize') — a lower metric is an improvement for minimize metrics. Also _update_tree() must accept both string hypothesis and ExperimentOutcome objects for backward compatibility."
+        },
+        {
+          "path": "tests/compound/conftest.py",
+          "line": 1,
+          "end_line": 40,
+          "finding": "autouse fixture must mock BOTH psutil.virtual_memory AND psutil.cpu_percent — the resource guardrail checks CPU in addition to memory, causing test failures on busy machines."
+        },
+        {
+          "path": "src/cohezion/compound/exp_persistence/vault.py",
+          "line": 70,
+          "end_line": 100,
+          "finding": "vault_write/vault_read/vault_delete were called synchronously without await. Fixed by using vault_write_sync/vault_read_sync/vault_delete_sync wrappers from MCPClient."
+        },
+        {
+          "path": "scripts/overnight_evo_loop.py",
+          "line": 127,
+          "end_line": 175,
+          "finding": "log_result stores data in r['asi']['experiment'] format; retirement logic must read r.get('asi',{}).get('experiment') not r.get('experiment'). The spin-loop guard (remaining_s < 30: break) and max(30.0, timeout) floor are critical to prevent negative asyncio.wait_for timeouts."
+        }
+      ],
+      "workflow": [
+        "New Python files (not modifications to existing ones) persist through the checkpoint cycle more reliably — prefer creating new modules over editing large existing files when working in long sessions",
+        "TDD for autoresearch experiments: write hypothesis → falsification criterion → structural invariants (V-model) BEFORE running the experiment to prevent re-running converged experiments 4000+ times",
+        "Retirement criterion (CV < 0.05 after 20 keeps) prevents converged experiments from consuming compute — add it from the start, not as an afterthought",
+        "The 'compile with python3 -c \"import ast; ast.parse(open(...).read())\"' check is faster than running the full test suite for syntax validation",
+        "When asyncio.run() raises RuntimeError ('loop already running'), must explicitly call .close() on the coroutine before creating a new event loop, otherwise RuntimeWarning is emitted",
+        "The convergence formula for Mycelium compounding: consensus_n = 0.85 - 0.125*(1-lr/2)^n — asymptotically approaches threshold, never crosses it unless lr >= 2.0"
+      ]
+    },
+    "friction": [
+      "The Entire.io checkpoint daemon repeatedly reverts working tree changes to HEAD, destroying hours of work (E55-E62 Gemini worktree was lost entirely, requiring full reimplementation)",
+      "The ruff-format pre-commit hook reformats files after staging, breaking the commit cycle — requires a run/format/stage/commit loop instead of simple stage/commit",
+      "autoresearch.jsonl being git-tracked caused pre-commit stash conflicts that blocked commits; had to remove from git tracking with git rm --cached",
+      "Lemonade iGPU ROCm stack enters silent failure state after extended use — all structured evaluation prompts return empty strings with no error indication",
+      "SurrealDB SCHEMAFULL tables silently reject arbitrary metadata subfields (no error raised, data just not stored), requiring significant debugging to discover",
+      "The Gemini worktree containing E55-E62 (3500+ line overnight loop) was silently cleaned up, losing all new experiment code and requiring reimplementation from scratch",
+      "Multiple overnight loop processes accumulated silently across restarts — had to kill them all with pkill",
+      "Pre-commit's playwright hook runs unconditionally (no files: filter) on every commit regardless of what changed, requiring server at localhost:3000",
+      "asyncio.wait_for() with negative timeout silently causes an infinite spin-loop rather than raising an error immediately"
+    ],
+    "open_items": [
+      "8 remaining compound test ordering failures (pre-existing state leakage between test files — tests pass in isolation but fail in full suite)",
+      "Lemonade iGPU ROCm stack needs manual recovery before LLM mode experiments can resume; current loop runs in heuristic mode only",
+      "The experiment_runs table in SurrealDB has 0 records — new E55-E62 experiments use nexus.deliberate() directly (bypass telemetry bus), so they don't write journey_point records",
+      "PR #113 (autoresearch/pr-merge-20260502) is open with all session improvements but needs CI review and merge",
+      "The retirement feedback loop in overnight_evo_loop.py reads r.get('delta', 0) but should use r.get('metric', 0) for the JSONL format — fixed but may have been reverted",
+      "The oscillation detection in QuadratureNexus reduces lr by 0.5 when detected, but there are no tests verifying the actual lr reduction (only that oscillation is detected)",
+      "CompoundEngine and the analytics subsystem modules (experiment_analytics, experiment_scheduler, etc.) need to be wired into the actual production CompoundExecutor flow — currently they are standalone utilities",
+      "SurrealDB journey_point records from E55-E62 experiments are missing (225K records exist from earlier experiments but none from the new methodology-focused experiments)",
+      "vault.py async calls (vault_write, vault_read, vault_delete) that were fixed to use sync wrappers may have been reverted by checkpoint daemon"
+    ]
+  }
+}
