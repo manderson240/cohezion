@@ -196,7 +196,7 @@ class SessionCostTracker:
             # Only schedule if event loop is running
             loop = asyncio.get_event_loop()
             if loop.is_running():
-                loop.create_task(self._flush_batch())
+                self._flush_task = loop.create_task(self._flush_batch())
             else:
                 # Fallback: synchronous flush (shouldn't happen in async context)
                 self._flush_batch_sync()
@@ -249,6 +249,15 @@ class SessionCostTracker:
         Returns:
             Number of records flushed
         """
+        # Cancel any pending background flush to avoid double-writes
+        if self._flush_task and not self._flush_task.done():
+            self._flush_task.cancel()
+            try:
+                await self._flush_task
+            except (asyncio.CancelledError, Exception):
+                pass
+        self._pending_flush = False
+
         if not self.records:
             return 0
 
