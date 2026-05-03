@@ -38,7 +38,7 @@ def tier_config() -> TierConfig:
 
 @pytest.fixture
 def pool(tier_config: TierConfig) -> ModelPoolManager:
-    """Pool manager with mocked MemoryBandwidthAnalyzer."""
+    """Pool manager with mocked MemoryBandwidthAnalyzer and LemonadeManager."""
     with patch("cohezion.swarm.model_pool_manager.MemoryBandwidthAnalyzer") as MockAnalyzer:
         mock_analyzer = MockAnalyzer.return_value
         mock_analyzer.analyze_memory_pressure.return_value = 0.5  # 50% pressure
@@ -47,6 +47,13 @@ def pool(tier_config: TierConfig) -> ModelPoolManager:
         mgr = ModelPoolManager(config=tier_config, ollama_host="http://test:11434")
     # Replace the analyzer with our mock after init
     mgr._memory = mock_analyzer
+    # Mock lemonade so tests don't wait 30s for health check
+    mock_lemonade = AsyncMock()
+    mock_lemonade.start = AsyncMock()
+    mock_lemonade.wait_until_ready = AsyncMock(return_value=False)
+    mock_lemonade.list_models = AsyncMock(return_value=[])
+    mock_lemonade.port = 13307
+    mgr.lemonade = mock_lemonade
     return mgr
 
 
@@ -118,11 +125,13 @@ class TestModelPoolManager:
         tags_resp = _mock_httpx_ok({"models": [{"name": "hot-model:latest", "size": 5 * 1024**3}]})
         ps_resp = _mock_httpx_ok({"models": [{"name": "hot-model:latest"}]})
 
+        lemonade_resp = _mock_httpx_ok({"data": []})
         with patch("httpx.AsyncClient") as MockClient:
             mock_client = AsyncMock()
             MockClient.return_value.__aenter__ = AsyncMock(return_value=mock_client)
             MockClient.return_value.__aexit__ = AsyncMock(return_value=False)
-            mock_client.get = AsyncMock(side_effect=[tags_resp, ps_resp])
+            # Order: /api/tags (Ollama), /api/v1/models (Lemonade), /api/ps (running)
+            mock_client.get = AsyncMock(side_effect=[tags_resp, lemonade_resp, ps_resp])
 
             await pool.initialize()
 
@@ -377,11 +386,13 @@ class TestPoolManagerEdgeCases:
     @pytest.mark.asyncio
     async def test_ollama_unreachable_on_initialize(self, pool: ModelPoolManager):
         """Pool should handle Ollama being down at initialization."""
+        import httpx
+
         with patch("httpx.AsyncClient") as MockClient:
             mock_client = AsyncMock()
             MockClient.return_value.__aenter__ = AsyncMock(return_value=mock_client)
             MockClient.return_value.__aexit__ = AsyncMock(return_value=False)
-            mock_client.get = AsyncMock(side_effect=Exception("Connection refused"))
+            mock_client.get = AsyncMock(side_effect=httpx.ConnectError("Connection refused"))
 
             await pool.initialize()
 

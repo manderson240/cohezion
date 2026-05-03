@@ -1,0 +1,62 @@
+---
+# Model profiles for CostAwareRouter tier routing.
+# Maps model names to cost, quality, tps, latency, and context.
+# Used by: src/cohezion/swarm/cost_aware_router.py
+
+tier_routing:
+  tier_simple: phi3:mini
+  tier_medium: qwen3-coder:32b
+  tier_complex: deepseek-r1:8b
+
+lemonade_hybrid:
+  phi3:mini:
+    cost_per_token: 0.0
+    quality_score: 0.6
+    tokens_per_second: 15.0
+    latency_ms: 50.0
+    context: 4096
+    tier: simple
+  qwen3-coder:32b:
+    cost_per_token: 0.0
+    quality_score: 0.85
+    tokens_per_second: 8.0
+    latency_ms: 100.0
+    context: 32768
+    tier: medium
+  deepseek-r1:8b:
+    cost_per_token: 0.0
+    quality_score: 0.95
+    tokens_per_second: 2.0
+    latency_ms: 300.0
+    context: 32768
+    tier: complex
+  Phi-4-mini-instruct-Hybrid:
+    cost_per_token: 0.0
+    quality_score: 0.82
+    tokens_per_second: 20.0
+    latency_ms: 50.0
+    context: 16384
+    tier: simple
+  Qwen3-8B-Hybrid:
+    cost_per_token: 0.0
+    quality_score: 0.85
+    tokens_per_second: 18.0
+    latency_ms: 60.0
+    context: 32768
+    tier: medium
+  Qwen3-14B-Hybrid:
+    cost_per_token: 0.0
+    quality_score: 0.90
+    tokens_per_second: 12.0
+    latency_ms: 80.0
+    context: 32768
+    tier: complex
+
+ollama_cloud:
+  gpt-4o:
+    cost_per_token: 0.000005
+    quality_score: 0.98
+    tokens_per_second: 50.0
+    latency_ms: 200.0
+    context: 128000
+    tier: cloud
