@@ -363,12 +363,16 @@ async def main(hours: float = 2.0, use_llm: bool = True) -> None:
                 break
 
             remaining_s = DEADLINE - timeit.default_timer()
+            # Guard: need at least 30s to start a meaningful experiment.
+            # A negative or tiny timeout causes an asyncio tight-spin loop.
+            if remaining_s < 30:
+                break
             print(f"\n[autorun_2h] → {label} ({remaining_s / 60:.1f} min left)", flush=True)
 
             try:
                 timing = await asyncio.wait_for(
                     run_timed(label, fn, cycle),
-                    timeout=min(EXPERIMENT_TIMEOUT, remaining_s - 10),
+                    timeout=max(30.0, min(EXPERIMENT_TIMEOUT, remaining_s - 10)),
                 )
             except TimeoutError:
                 timing = ExperimentTiming(
