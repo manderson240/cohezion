@@ -1,0 +1,125 @@
+{
+  "cli_version": "0.5.6",
+  "checkpoint_id": "079136298115",
+  "session_id": "fb0e73ef-0e64-40ce-97c1-25b10ba813a8",
+  "strategy": "manual-commit",
+  "created_at": "2026-05-03T02:00:57.713078102Z",
+  "branch": "main",
+  "checkpoints_count": 1,
+  "files_touched": [],
+  "agent": "Claude Code",
+  "model": "",
+  "turn_id": "506ed820b669",
+  "token_usage": {
+    "input_tokens": 1320,
+    "cache_creation_tokens": 3444479,
+    "cache_read_tokens": 361977706,
+    "output_tokens": 701958,
+    "api_call_count": 1256
+  },
+  "summary": {
+    "intent": "Improve Cohezion's ability to model agents as Exotic Vacuum Objects (EVOs) by capturing agentic journeys through the Quadrature Nexus and FLUME VAE into SurrealDB, then using Ouroboros and Mycelium to analyze journeys and feed patterns back to improve the system itself via a continuous autoresearch loop.",
+    "outcome": "Validated the full Mycelium→EVO closed loop (E55-E62), fixed the core additive calibration bug in apply_mycelium_feedback (E57, committed with 11 regression tests), confirmed convergence formula consensus_n = 0.85 − 0.125×(1−lr/2)^n, and fixed ~270 pre-existing test failures across ARC, compound executor, context integration, and cache subsystems.",
+    "learnings": {
+      "repo": [
+        "Two EVO classes serve distinct roles: ExoticVacuumObject is a biographical record (lifecycle + witness marks), AgenticEVO is a physics puppet (FLUME 256D + SWIFT N-body) — they are complementary, not duplicates",
+        "run_llm_deliberation() unconditionally SETs _score_adjustments on every call, wiping any Mycelium adjustments injected between deliberations — the root cause of all E5/E6 failures",
+        "Two-layer calibration model: _mycelium_calibration (accumulates cross-cycle, stable) vs _score_adjustments (overwritten per-deliberation by run_llm_deliberation); E47 experiments must modify _mycelium_calibration not _score_adjustments",
+        "SurrealDB SCHEMAFULL tables block arbitrary nested metadata subfields even in TYPE object — must pack variable EVO biography data into option<string> result field as JSON",
+        "SurrealDB probe must use RETURN true; not SELECT 1; (SurrealQL does not support bare SELECT 1)",
+        "SurrealDB datetime fields require time::now() — string literals like '2026-05-01T21:00:00Z' are rejected by SCHEMAFULL schema",
+        "IEEE 754 edge case: sum([0.85]*n)/n < 0.85 — result.approved is the authoritative threshold-crossing check, not float mean comparison",
+        "Quad-silver proposal formula (all 4 voice keywords + budget=True) produces deterministic 0.9325 consensus and 100% heuristic approval rate",
+        "Resource voice baseline (0.65) only checks budget_available context, ignoring description text — extended with keyword bonus (+0.10) for cost/budget/efficient/resource/reduce",
+        "Lemonade iGPU ROCm enters silent failure mode returning empty strings for evaluation prompts but not arithmetic — requires functional probe (2+2= test) not just /models endpoint check",
+        "All compound executor tests require psutil mock (available=90Gi, total=128Gi, percent=30.0) — system under high memory pressure causes psutil guardrails to trip",
+        "DRR (design review) gate incorrectly blocked skill refinement in executor; DRR is observability-only and should not gate feedback loops",
+        "JEPA learning is bounded by input distribution diversity — heuristic mode produces identical 12D state vectors every run, JEPA cannot generalize from a single attractor",
+        "ManifoldEnv gymnasium environment: optimal voice proposals earn +7.8 more cumulative reward and spend +9.7% more episode time in HIHO vs naive proposals",
+        "Retirement criterion using CV of last 10 keeps: retire if (a) 20+ keeps with CV<0.05 (converged attractor) or (b) 0% keep rate with 20+ runs (confirmed noise); label in SCHEDULE must match experiment= string in log_result",
+        "autoresearch.jsonl should not be git-tracked — it's written to by the running process and causes pre-commit stash/restore failures"
+      ],
+      "code": [
+        {
+          "path": "src/cohezion/swarm/quadrature_nexus.py",
+          "finding": "E57 fix: apply_mycelium_feedback must use _mycelium_calibration[vt] += adjustment then _score_adjustments[vt] = _mycelium_calibration[vt] (additive), not _score_adjustments[vt] = adjustment (SET). SET causes cycle 2 to replace cycle 1's calibration with a smaller value, producing decay instead of compounding."
+        },
+        {
+          "path": "src/cohezion/swarm/quadrature_nexus.py",
+          "finding": "_mycelium_calibration: dict[VoiceType, float] must be initialized in __init__ as dict.fromkeys(VoiceType, 0.0) — not created dynamically in apply_mycelium_feedback"
+        },
+        {
+          "path": "src/cohezion/storage/surreal_client.py",
+          "finding": "Original implementation was entirely simulated (connect() set self.connected=True without any real HTTP call). Fully rewritten to use real httpx HTTP calls with Basic auth, surreal-ns/surreal-db headers, and RETURN true; probe"
+        },
+        {
+          "path": "src/cohezion/arc/solver.py",
+          "finding": "UCB1 sorting in beam_search conflates exploration policy (choosing which chains to expand) with best-answer selection — transforms with 0 trials (UCB1=∞) ranked above confirmed-correct transforms (score=1.0, UCB1=1.78). Fix: track best_by_score separately from exploration-focused beam"
+        },
+        {
+          "path": "src/cohezion/compound/executor.py",
+          "finding": "DRR gate was added to should_refine() blocking skill refinement when DRR hasn't completed. DRR is observability only — removed from skill refinement gate; only retrospection should gate refine"
+        },
+        {
+          "path": "src/cohezion/compound/context_integration.py",
+          "finding": "find_project_root() raised error when no .context directory found instead of falling back to repo root (directory containing pyproject.toml)"
+        },
+        {
+          "path": "src/cohezion/compound/triune_reviewer.py",
+          "finding": "red_team_veto only checked for keyword 'contradiction' in strategy string, missing cases where contradictions are expressed in critique text as 'CONTRADICTION: True'. Fixed to also scan perspective critique content"
+        },
+        {
+          "path": "src/cohezion/compound/exp_persistence/vault.py",
+          "finding": "6 vault_write() calls made synchronously inside async context — wrapping pattern needed to schedule coroutine as asyncio task when event loop is running"
+        },
+        {
+          "path": "tests/compound/conftest.py",
+          "finding": "Added autouse fixture mocking psutil.virtual_memory to return available=90Gi/total=128Gi/percent=30.0 — required for all compound tests due to system memory pressure tripping guardrails"
+        },
+        {
+          "path": "tests/arc/test_grid_pipeline.py",
+          "finding": "Inversion test data [[0,1],[1,0]]→[[1,0],[0,1]] is geometrically ambiguous — also solvable by flip_h. DFS returns flip_h first. Fix: use test grid only reachable by inversion"
+        },
+        {
+          "path": "scripts/autorun_2h.py",
+          "finding": "asyncio.wait_for(coro, timeout=min(3600, remaining_s-10)) passes negative float when remaining_s<10 — asyncio accepts negative timeouts and raises TimeoutError immediately, causing tight spin loop. Fix: max(30.0, remaining_s-10) guard"
+        }
+      ],
+      "workflow": [
+        "Retirement criterion prevents runaway experiment repetition — E51 ran 4,786 times before retirement was added (CV=0.000 = no information after first 20 keeps)",
+        "Pre-specify experiment metrics before running: E50 needed 3 redesigns, E54's dev_ratio criterion was never achievable, E53's energy reward measured the wrong thing",
+        "Gemini worktrees are cleaned up when the Gemini session ends — any work not committed to the main repo is lost; commit frequently rather than accumulating work in a worktree",
+        "Interactive rebase in-progress state (REBASE_HEAD) from one process blocks all git operations in other processes — check for REBASE_HEAD before starting git work",
+        "Multi-process git conflicts: when autoresearch automation runs git operations concurrently with manual work, use branch-level isolation rather than working in the same branch",
+        "SCHEDULE labels in autoresearch loop must exactly match the experiment= string passed to log_result() — mismatch silently breaks retirement tracking",
+        "For experiments measuring additive calibration, call nexus.deliberate() directly not run_llm_deliberation() — the latter resets _score_adjustments each call, invalidating any calibration test",
+        "Vault observations provide durable cross-session memory for autoresearch findings; write after each confirmed experiment result (20+ keeps, CV<0.05)"
+      ]
+    },
+    "friction": [
+      "Gemini worktree (.gemini/worktrees/2026-05-02-03-57-33-561-fvqr/) was cleaned up silently, destroying the 3500-line overnight_evo_loop.py with E55-E62 experiments — only the production code change and tests survived",
+      "pyproject.toml had unresolved three-way merge conflicts blocking all uv run commands",
+      "pre-commit hook runs unconditionally on all staged files including autoresearch.jsonl which is actively written to by the running loop — stash/restore fails with 'file exists' error",
+      "Playwright pre-commit hook has no files: filter, so it runs on every commit and requires a running Next.js server at localhost:3000",
+      "SurrealDB SCHEMAFULL constraint required trial-and-error to discover: arbitrary metadata subfields silently rejected, only specific declared fields accepted",
+      "Multiple overnight loop processes accumulated across sessions due to missing cleanup; SIGTERM sometimes not handled, requiring kill -9",
+      "SCHEDULE label vs experiment name mismatch caused retirement criterion to silently do nothing for an entire session",
+      "Lemonade iGPU ROCm entered a silent failure state where all evaluation prompts return empty strings — the models endpoint still reported available models, masking the failure",
+      "Interactive rebase was left in-progress state by a concurrent process, blocking all git operations until abort",
+      "autorun_2h.py spin-loop: asyncio.wait_for with negative timeout fires immediately, flooding the monitor before the deadline guard triggers",
+      "280 pre-existing test failures across the test suite making it hard to identify regressions from new changes"
+    ],
+    "open_items": [
+      "8 remaining compound test failures are test-order state leakage (all pass in isolation) — requires identifying shared global state between test files",
+      "apply_mycelium_feedback has no production callers in src/ — the E57 fix is dormant until something in the production CompoundExecutor flow calls it",
+      "JEPA learning requires LLM mode for meaningful input distribution diversity — heuristic mode single attractor prevents JEPA generalization regardless of replay buffer size",
+      "SurrealDB experiment_runs table was never successfully populated — HTTP-direct write code was lost with the Gemini worktree",
+      "Ouroboros fires 320+ false HIHO drift warnings on experimental EVO lifecycle transitions (EVO resets between experiment phases look like production drift events)",
+      "E64 (multi-cycle Mycelium compounding test) was added to schedule but never validated — predicted threshold crossing at cycle 4 with lr=1.0",
+      "Lemonade iGPU ROCm recovery: when GPU recovers, E63/E64/E55-E62 need re-running in LLM mode with real Gemma-4 voice scores to validate heuristic findings",
+      "Mycelium synthesized skills from experiments are local instances per run — need persistent shared registry that survives across autoresearch cycles to accumulate cross-session learning",
+      "PR #113 (autoresearch/pr-merge-20260502) was open at end of session — merge status unknown",
+      "E60 threshold crossing is asymptotic at lr=1.0 (consensus → 0.85⁻ but never crosses) — practical crossing requires lr≥2.0 or proposal mix with budget=True to exceed threshold deterministically"
+    ]
+  }
+}
