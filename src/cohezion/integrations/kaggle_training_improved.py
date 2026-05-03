@@ -84,7 +84,10 @@ class KaggleTrainingManager:
 
     def get_training_script_template(self) -> str:
         """
-        Returns the v5 training script for Kaggle Blackwell (Docker 31287).
+        Returns the v5.2 training script for Kaggle Blackwell (Docker 31287).
+
+        # v5.1 strategy: upsample phrase_cipher (already 98.7% acc) — wrong, no headroom.
+        # v5.2 strategy: upsample bit_manip x3 (47.2% acc → target 60%+) — targets only improvable category.
 
         v5 changes (adversarial review 2026-05-02):
         - Bug fix: enable_thinking removed from generate() (TypeError for DeepSeek-R1-distill)
@@ -96,6 +99,14 @@ class KaggleTrainingManager:
         - lora_alpha=64 (2x rule: alpha = 2 * r=32)
         - DataCollatorForSeq2Seq with label_pad_token_id=-100
         - adapter_config.json verified before packaging
+
+        v5.2 changes (autoresearch 2026-05-02):
+        - Data: strategic bit_manip x3 + cipher x2 upsampling (cipher_x2_bit_x3 experiment)
+        - bit_manip: 47.2% accuracy (MOST IMPROVABLE) — upsampled 3x for focused training signal
+        - cipher categories: phrase/word/roman/symbol at 98-100% — upsampled 2x as baseline signal
+        - numeric/gravity/unit_conversion: unchanged (already ~100% accuracy)
+        - Expected: 9500 base → 16788 examples (bit x3=4902, cipher x2=8040, other=3846)
+        - Autoresearch best result: cipher_x2_bit_x3, token_efficiency=0.0219
         """
         return r"""
 import gc
@@ -111,8 +122,8 @@ import traceback
 BOXED_INSTRUCTION = "Solve step by step and put your final answer inside \\boxed{}."
 
 print("=" * 60)
-print("NEMOTRON LORA TRAINING v5")
-print("9500 symbolic | Native BF16 | all-linear | DataCollatorForSeq2Seq")
+print("NEMOTRON LORA TRAINING v5.2")
+print("9500 symbolic | Native BF16 | all-linear | DataCollatorForSeq2Seq | bit_manip_x3")
 print("=" * 60)
 
 try:
@@ -214,21 +225,34 @@ try:
 
     PROMPT_COL = next(c for c in ("prompt", "question", "problem") if c in df.columns)
 
-    # v5: all symbolic examples; upsample encryption (long phrase answers) 4x
-    # Autoresearch finding 2026-05-02: encrypt_x4 metric=476 vs baseline 203 (2.3x)
-    # Encryption examples have 98.7% symbolic accuracy and 3-5x answer signal/token
-    import random as _rnd
+    # v5.2: strategic upsampling — bit_manip x3 (47.2% accuracy → target 60%+)
+    # + cipher x2 (phrase/word/symbol/roman — high accuracy baseline signal)
+    # Autoresearch finding 2026-05-02: cipher_x2_bit_x3 = 16788 examples, eff=0.0219
+    import random as _rnd, re as _re
     _rnd.seed(42)
     base_data = [
         {"prompt": str(row[PROMPT_COL]).strip(), "answer": str(row["answer"]).strip(), "trace": ""}
         for _, row in df.iterrows()
         if str(row[PROMPT_COL]).strip() and str(row["answer"]).strip()
     ]
-    _encrypt = [r for r in base_data if len(r["answer"]) > 8 and r["answer"].replace(" ", "").isalpha()]
-    _other = [r for r in base_data if r not in _encrypt]
-    filtered_data = _other + _encrypt * 4
+    _bit = [r for r in base_data
+            if _re.match(r'^[01]+$', r['answer'].strip())]
+    _cipher = [r for r in base_data
+               if r not in _bit and (
+                   r['answer'].strip().replace(' ', '').isalpha()
+                   or _re.match(
+                       r'^M{0,4}(CM|CD|D?C{0,3})(XC|XL|L?X{0,3})(IX|IV|V?I{0,3})$',
+                       r['answer'].strip()
+                   )
+                   or (len(r['answer'].strip()) >= 1
+                       and not r['answer'].strip().replace(' ', '').isalnum()
+                       and not any(c.isdigit() for c in r['answer'].strip()))
+               )]
+    _other = [r for r in base_data if r not in _bit and r not in _cipher]
+    filtered_data = _other + _cipher * 2 + _bit * 3
     _rnd.shuffle(filtered_data)
-    print(f"\n[5/8] {len(base_data)} base examples; {len(_encrypt)} encryption upsampled 4x → {len(filtered_data)} total")
+    print(f"\n[5/8] v5.2: {len(base_data)} base → {len(filtered_data)} examples "
+          f"(bit_manip x3={len(_bit)*3}, cipher x2={len(_cipher)*2}, other={len(_other)})")
 
     # 6. Student model — torch_dtype=torch.bfloat16, no quantization
     print("\n[6/8] Student model...")
