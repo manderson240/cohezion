@@ -115,4 +115,44 @@
 
 ---
 
-**V-Model Status: 9/9 phases complete. Acceptance criteria met. Ready for overnight compound session.**
+## Wave 2F/W2H Completion Update (2026-05-03 ~23:58-00:34)
+
+**Commits since last V-Model update:** 13 (total 26 since session start)  
+**Dashboard:** docs/overnight_dashboard.html (300 lines, dark-themed, Chart.js)  
+**New PRIME skills ported:** 39 in two batches (22 + 17 = 39/39 success)  
+**Total HERMS skills:** 704 in ~/.hermes/skills/ (184 SKILL.md + 520 other .md)  
+**PRIME source:** 225 skills, 159 in src/cohezion/skills/  
+
+### New Deliverables This Cycle
+
+| Deliverable | Files | Tests | Status |
+|-------------|-------|-------|--------|
+| Overnight dashboard | docs/overnight_dashboard.html | n/a | DONE |
+| Batch port wave 1 | 22 skills | n/a | DONE |
+| Batch port wave 2 | 17 skills | n/a | DONE |
+| Adversarial skill audit | Audit report | n/a | DONE |
+
+### Adversarial Skill Audit Findings
+
+| Check | Pass | Fail |
+|-------|------|------|
+| YAML frontmatter | 83/83 | 0 |
+| name/title present | 83/83 | 0 |
+| description present | 83/83 | 0 |
+| triggers field | 1/83 | 82 |
+| V-Model phases | 0/83 | 83 |
+| Acceptance criteria | 0/83 | 83 |
+
+**Action:** 82 skills missing `triggers` frontmatter. All converted PRIME skills have YAML but no V-Model phase documentation. This is the next compound engineering target.
+
+### Follow-up Tasks (Next Wave)
+
+1. Batch port remaining 161 of 225 PRIME skills (~72% remaining)
+2. Add triggers + V-Model phase annotations to all 83 existing skills
+3. Performance baselines with timeit decorator
+4. Compound session self-healing (retry failed phases)
+5. ThermalTrendPredictor async bug (MEDIUM)
+
+---
+
+**V-Model Status: 9/9 phases complete. Wave 2F/W2H acceptance criteria met.**
