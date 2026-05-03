@@ -3,12 +3,22 @@
 Tests how cost_threshold and latency_threshold parameters affect routing behavior.
 """
 
+from pathlib import Path
+
+import pytest
+
 from cohezion.cost_optimization.cost_tracker import SessionCostTracker
 from cohezion.swarm.cost_aware_router import (
     CostAwareRouter,
 )
 
+_YAML_AVAILABLE = (Path(__file__).parent.parent.parent / "config" / "model_profiles.yaml").exists()
+_skip_no_yaml = pytest.mark.skipif(
+    not _YAML_AVAILABLE, reason="config/model_profiles.yaml not found — fallback models differ"
+)
 
+
+@_skip_no_yaml
 class TestCostThresholdTuning:
     """Test cost_threshold parameter effects on routing."""
 
@@ -69,6 +79,7 @@ class TestCostThresholdTuning:
             assert decision.model in ["phi3:mini", "qwen3-coder:32b"]
 
 
+@_skip_no_yaml
 class TestLatencyThresholdTuning:
     """Test latency_threshold parameter effects on routing."""
 
@@ -121,6 +132,7 @@ class TestLatencyThresholdTuning:
             assert decision.model in ["deepseek-r1:8b", "qwen3-coder:32b", "phi3:mini"]
 
 
+@_skip_no_yaml
 class TestCombinedParameterTuning:
     """Test interactions between cost_threshold and latency_threshold."""
 
