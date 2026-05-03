@@ -2,17 +2,17 @@ import asyncio
 
 import pytest
 
-from cohezion.core.telemetry_bus import get_telemetry_bus
+import cohezion.core.telemetry_bus as _tb_mod
+from cohezion.core.telemetry_bus import TelemetryBus, get_telemetry_bus
 from cohezion.data_mesh.journey_telemetry import FlumeJourneyEvent
 from cohezion.swarm.quadrature_nexus import QuadratureNexus, QuadratureProposal
 
 
 @pytest.mark.asyncio
 async def test_quadrature_nexus_emits_telemetry():
-    """
-    RED PHASE: Verify that QuadratureNexus deliberation emits a telemetry event.
-    Expected to FAIL until instrumentation is added.
-    """
+    """Verify that QuadratureNexus deliberation emits a telemetry event."""
+    # Reset singleton to avoid cross-test contamination
+    _tb_mod._BUS = TelemetryBus()
     bus = get_telemetry_bus()
     captured_events = []
 
