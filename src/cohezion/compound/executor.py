@@ -1354,6 +1354,67 @@ class CompoundExecutor(CompoundContextMixin, ExecutorIntegrationMixin):
             token_metrics=token_metrics,
         )
 
+    def start_session(self, max_cache_entries: int = 256) -> dict[str, Any]:
+        """Start a compound session: warm-start autocontext and cache.
+
+        Args:
+            max_cache_entries: Maximum cache entries to warm (unused placeholder)
+
+        Returns:
+            Session summary dict
+        """
+        manifest_path = self.init_autocontext()
+        summary: dict[str, Any] = {
+            "autocontext_initialized": bool(manifest_path),
+            "manifest_path": str(manifest_path) if manifest_path else None,
+        }
+        # Warm cache (best-effort, non-blocking)
+        try:
+            from cohezion.compound.cache_persistence import WarmCacheLoader
+            from cohezion.swarm.compound_client import get_compound_client
+
+            client = get_compound_client()
+            loader = WarmCacheLoader()
+            cache_loaded = loader.warm_client(client, max_cache_entries)
+            summary["cache_entries_loaded"] = cache_loaded
+        except Exception:
+            logger.debug("Cache warm failed (non-critical)")
+            summary["cache_entries_loaded"] = 0
+        logger.info("Compound session started")
+        return summary
+
+    def end_session(self) -> dict[str, Any]:
+        """End compound session: archive outcome and persist state.
+
+        Returns:
+            Session summary dict
+        """
+        # Gather outcome from context state if available
+        outcome: dict[str, Any] = {}
+        try:
+            outcome = self.get_context_state()
+        except Exception:
+            pass
+        archived_path = self.archive_session(outcome=outcome)
+        summary: dict[str, Any] = {
+            "session_archived": bool(archived_path),
+            "archive_path": str(archived_path) if archived_path else None,
+        }
+        # Persist cache (best-effort, non-blocking)
+        try:
+            from cohezion.compound.cache_persistence import CachePersistence
+            from cohezion.swarm.compound_client import get_compound_client
+
+            client = get_compound_client()
+            cp = CachePersistence()
+            cache_saved = cp.save_cache(client._cache)
+            summary["cache_entries_saved"] = cache_saved
+        except Exception:
+            logger.debug("Cache save failed (non-critical)")
+            summary["cache_entries_saved"] = 0
+        logger.info("Compound session ended")
+        return summary
+
     # Integration methods (_compute_token_delta, log_inflection_point,
     # compile_natural_language, validate_sandbox) inherited from
     # ExecutorIntegrationMixin — see executor_integration.py

@@ -16,6 +16,7 @@ import pytest
 
 from cohezion.compound.skill_evolution_diff import SkillEvolutionTracker
 from cohezion.compound.skill_health_tracker import SkillHealthTracker
+from cohezion.compound.skill_quality_data_pipeline import SkillQualityDataPipeline
 from cohezion.compound.skill_quality_orchestrator import (
     SkillQualityOrchestrator,
 )
@@ -340,6 +341,48 @@ pass
         before = "line1\nline2\nline3"
         after = "line1\nline2 modified\nline3\nline4"
         assert orch._count_diff_lines(before, after) > 0
+
+
+# =============================================================================
+# SkillQualityDataPipeline Tests
+# =============================================================================
+
+
+@pytest.mark.fast
+class TestDataPipelineIntegration:
+    @pytest.mark.asyncio
+    async def test_orchestrator_persists_report(self, tmp_skill_dir, bad_skill):
+        pipeline = SkillQualityDataPipeline(storage_dir=tmp_skill_dir / "quality")
+        orch = SkillQualityOrchestrator(data_pipeline=pipeline)
+        await orch.improve_skill(bad_skill)
+
+        history = pipeline.load_history("BAD_SKILL")
+        assert len(history) == 1
+        assert history[0]["report"]["skill_name"] == "BAD_SKILL"
+
+    @pytest.mark.asyncio
+    async def test_orchestrator_persists_on_stable_skill(self, tmp_skill_dir, good_skill):
+        pipeline = SkillQualityDataPipeline(storage_dir=tmp_skill_dir / "quality")
+        orch = SkillQualityOrchestrator(data_pipeline=pipeline)
+        await orch.improve_skill(good_skill)
+
+        history = pipeline.load_history("good-skill")
+        assert len(history) == 1
+        assert history[0]["report"]["hiho_stable"] is True
+
+    @pytest.mark.asyncio
+    async def test_multiple_runs_append(self, tmp_skill_dir, bad_skill):
+        pipeline = SkillQualityDataPipeline(storage_dir=tmp_skill_dir / "quality")
+        orch = SkillQualityOrchestrator(data_pipeline=pipeline)
+        await orch.improve_skill(bad_skill)
+        await orch.improve_skill(bad_skill)
+
+        history = pipeline.load_history("BAD_SKILL")
+        assert len(history) == 2
+        trend = pipeline.get_trend("BAD_SKILL", n_sessions=5)
+        assert trend["n_sessions"] == 2
+        # After first patch the skill should improve, so second run may be stable or further improved
+        assert trend["trend_direction"] in ("improving", "stable")
 
 
 # =============================================================================

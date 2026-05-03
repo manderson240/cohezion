@@ -24,6 +24,7 @@ from pathlib import Path
 from cohezion.compound.autoresearch import AutoresearchEngine
 from cohezion.compound.skill_evolution_diff import SkillEvolutionTracker
 from cohezion.compound.skill_health_tracker import SkillHealthTracker
+from cohezion.compound.skill_quality_data_pipeline import SkillQualityDataPipeline
 from cohezion.compound.skill_quality_scorer import SkillQualityReport, SkillQualityScorer
 
 logger = logging.getLogger(__name__)
@@ -70,11 +71,13 @@ class SkillQualityOrchestrator:
         evolution: SkillEvolutionTracker | None = None,
         health: SkillHealthTracker | None = None,
         autoresearch: AutoresearchEngine | None = None,
+        data_pipeline: SkillQualityDataPipeline | None = None,
     ) -> None:
         self.scorer = scorer or SkillQualityScorer()
         self.evolution = evolution or SkillEvolutionTracker()
         self.health = health or SkillHealthTracker()
         self.autoresearch = autoresearch or AutoresearchEngine()
+        self.data_pipeline = data_pipeline or SkillQualityDataPipeline()
         self._hypothesis_history: dict[str, list[ImprovementHypothesis]] = {}
 
     async def improve_skill(self, skill_path: Path) -> ImprovementResult:
@@ -89,6 +92,10 @@ class SkillQualityOrchestrator:
         # Phase 1: Evaluate
         report = self.scorer.evaluate(skill_path)
         logger.info("Skill %s scored %.2f (HIHO-stable=%s)", report.skill_name, report.overall_score, report.hiho_stable)
+
+        # Persist report immediately so every run is recorded
+        self.data_pipeline.save_report(report.skill_name, report)
+        logger.debug("Persisted quality report for %s", report.skill_name)
 
         if report.hiho_stable:
             logger.info("Skill %s is HIHO-stable; no improvement needed", report.skill_name)

@@ -8,6 +8,7 @@ from __future__ import annotations
 
 import json
 import logging
+from datetime import datetime
 from pathlib import Path
 from typing import TYPE_CHECKING, Any
 
@@ -382,3 +383,90 @@ class CompoundContextMixin:
             True if coherence acceptable
         """
         return self._context_manager.check_coherence(threshold)
+
+    def init_autocontext(self) -> Path | None:
+        """Initialize autocontext structure if missing.
+
+        Creates ``.context/traceability/manifest.json`` if it doesn't exist,
+        along with the required directory hierarchy. Safe to call multiple
+        times — idempotent.
+
+        Returns:
+            Path to the manifest file, or None on failure
+        """
+        try:
+            ctx_dir = self._context_manager.project_root / ".context"
+            trace_dir = ctx_dir / "traceability"
+            policy_dir = ctx_dir / "policy"
+
+            ctx_dir.mkdir(parents=True, exist_ok=True)
+            trace_dir.mkdir(parents=True, exist_ok=True)
+            policy_dir.mkdir(parents=True, exist_ok=True)
+
+            manifest_path = trace_dir / "manifest.json"
+            if not manifest_path.exists():
+                default_manifest: dict[str, Any] = {
+                    "version": "1.0.0",
+                    "created_at": datetime.now().isoformat(),
+                    "core_files": [],
+                    "skills": {},
+                }
+                with open(manifest_path, "w", encoding="utf-8") as f:
+                    json.dump(default_manifest, f, indent=2)
+                logger.info("Created autocontext manifest: %s", manifest_path)
+            else:
+                logger.debug("Autocontext manifest already exists: %s", manifest_path)
+
+            return manifest_path
+        except Exception as e:
+            logger.warning("Autocontext init failed (non-blocking): %s", e)
+            return None
+
+    def archive_session(self, outcome: dict[str, Any] | None = None) -> Path | None:
+        """Archive session outcome to ``policy/learned-budgets.md``.
+
+        Appends a YAML-frontmatter markdown entry with the session outcome.
+        Safe to call multiple times — always appends.
+
+        Args:
+            outcome: Optional session outcome dictionary. If None, records
+                a minimal entry.
+
+        Returns:
+            Path to the written file, or None on failure
+        """
+        try:
+            policy_dir = self._context_manager.project_root / ".context" / "policy"
+            policy_dir.mkdir(parents=True, exist_ok=True)
+
+            budget_path = policy_dir / "learned-budgets.md"
+            timestamp = datetime.now().isoformat()
+
+            lines: list[str] = [
+                "---",
+                f"archived_at: {timestamp}",
+            ]
+            if outcome:
+                for key, value in outcome.items():
+                    lines.append(f"{key}: {value}")
+            else:
+                lines.append("outcome: no_data")
+            lines.append("---")
+            lines.append("")
+            lines.append(f"## Session Archive — {timestamp}")
+            lines.append("")
+            if outcome:
+                for key, value in outcome.items():
+                    lines.append(f"- **{key}**: {value}")
+            else:
+                lines.append("- No outcome data recorded.")
+            lines.append("")
+
+            with open(budget_path, "a", encoding="utf-8") as f:
+                f.write("\n".join(lines) + "\n")
+
+            logger.info("Archived session to %s", budget_path)
+            return budget_path
+        except Exception as e:
+            logger.warning("Session archive failed (non-blocking): %s", e)
+            return None
