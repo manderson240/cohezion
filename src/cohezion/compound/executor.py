@@ -1345,6 +1345,17 @@ class CompoundExecutor(CompoundContextMixin, ExecutorIntegrationMixin):
             except Exception as e:
                 logger.debug("Context policy outcome recording failed (non-blocking): %s", e)
 
+        # Compute compound_score = coherence × hiho_stability × skill_factor
+        # hiho_stability = 1 - 2|coherence - 0.5| (max at 0.5, 0 at extremes)
+        # skill_factor = max(0, 1 + skill_gain) (non-negative, penalizes regression)
+        _coherence = float(metrics.get("coherence", 0.5))
+        _skill_gain = float(metrics.get("skill_gain", 0.0))
+        if retrospection_context is not None:
+            _skill_gain = float(retrospection_context.get("compound_score", _skill_gain))
+        _hiho_stability = max(0.0, 1.0 - 2.0 * abs(_coherence - 0.5))
+        _skill_factor = max(0.0, 1.0 + _skill_gain)
+        compound_score = _coherence * _hiho_stability * _skill_factor
+
         return ExecutionResult(
             success=success,
             output=output,
@@ -1353,6 +1364,7 @@ class CompoundExecutor(CompoundContextMixin, ExecutorIntegrationMixin):
             vault_experiment_path=experiment_path,
             vault_decision_paths=decision_paths,
             token_metrics=token_metrics,
+            compound_score=compound_score,
         )
 
     def start_session(self, max_cache_entries: int = 256) -> dict[str, Any]:

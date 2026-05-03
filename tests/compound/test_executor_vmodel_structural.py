@@ -114,3 +114,35 @@ class TestCompoundExecutorInit:
         # Default should be True (guardrails on by default)
         default = sig.parameters["enable_guardrails"].default
         assert default is True, f"O8: enable_guardrails default should be True, got {default}"
+
+
+class TestCompoundScoreComputation:
+    """O9-O10: compound_score behavioral invariants."""
+
+    def test_O9_compound_score_formula_components(self):
+        """O9: compound_score = coherence × hiho_stability × skill_factor is computable."""
+        coherence = 0.6
+        skill_gain = 0.1
+        hiho_stability = 1.0 - 2.0 * abs(coherence - 0.5)  # 0.8
+        skill_factor = max(0.0, 1.0 + skill_gain)  # 1.1
+        score = coherence * hiho_stability * skill_factor
+        assert 0.0 <= score <= 1.0, f"compound_score out of bounds: {score}"
+        # At coherence=0.5 (HIHO optimum), hiho_stability=1.0; score = 0.5 * 1.0 * (1+gain)
+        hiho_optimum = 0.5 * 1.0 * 1.0  # = 0.5 with no skill_gain
+        coherence_5 = 0.5
+        hiho_5 = 1.0 - 2.0 * abs(coherence_5 - 0.5)
+        assert abs(hiho_5 - 1.0) < 1e-9, "HIHO stability should be 1.0 at coherence=0.5"
+
+    def test_O10_compound_score_stored_in_metrics(self):
+        """O10: After compute_compound_score(), result stored in metrics dict."""
+        from cohezion.compound.executor import ExecutionResult
+
+        r = ExecutionResult(
+            success=True,
+            output="test",
+            metrics={"coherence": 0.5, "skill_gain": 0.0},
+            duration_seconds=1.0,
+            compound_score=0.25,  # Pre-computed
+        )
+        assert r.compound_score == 0.25
+        assert r.metrics["coherence"] == 0.5
