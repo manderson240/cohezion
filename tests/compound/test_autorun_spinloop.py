@@ -4,10 +4,8 @@ When remaining_s < 30, asyncio.wait_for must never be called with
 timeout = remaining_s - 10 (which would be negative and raise ValueError).
 """
 import asyncio
-import sys
 from pathlib import Path
-from unittest.mock import AsyncMock, MagicMock, patch
-import pytest
+from unittest.mock import MagicMock, patch
 
 
 def _get_autorun_main():

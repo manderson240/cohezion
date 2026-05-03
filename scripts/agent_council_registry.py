@@ -22,8 +22,9 @@ import json
 import sys
 import time
 import timeit
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from pathlib import Path
+
 
 REPO = Path("/home/mike-anderson/dev/cohezion")
 VAULT_OBS = Path("/home/mike-anderson/vaults/cohezion-vault/memory/observations.jsonl")
@@ -306,7 +307,7 @@ def save_registry() -> None:
         "version": "1.0",
         "agents": AGENTS,
         "lane_routing": {l["name"]: l["model"] for l in autolit.LEMONADE_LANES},
-        "saved_at": datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ"),
+        "saved_at": datetime.now(UTC).strftime("%Y-%m-%dT%H:%M:%SZ"),
     }, indent=2))
 
 
@@ -319,7 +320,7 @@ def persist_smoke(report: dict) -> tuple[int, int]:
         except Exception:
             pass
     new_id = last_id + 1
-    ts = datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
+    ts = datetime.now(UTC).strftime("%Y-%m-%dT%H:%M:%SZ")
     c = report["counts"]
     text = (
         f"E84: 30-agent council registry built and smoke-tested in {report['elapsed_s']}s. "
@@ -399,7 +400,7 @@ if __name__ == "__main__":
         print(f"  reserved:           {c['reserved']}")
         print(f"  ensemble_ready:     {c['ensemble_skipped_for_smoke']}")
         print(f"  errored:            {c['errored']}")
-        print(f"\nPer-agent results:")
+        print("\nPer-agent results:")
         for r in report["results"]:
             extra = f" lane={r.get('lane', '-')}"
             if r.get("latency_ms") is not None:

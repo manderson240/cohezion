@@ -378,7 +378,7 @@ class ModelCapabilityRegistry:
         # Memory measurement
         try:
             benchmark.memory_mb = await self._measure_memory()
-        except:
+        except OSError:
             pass
 
         # Capability tests
@@ -405,7 +405,7 @@ class ModelCapabilityRegistry:
             try:
                 result = await self._run_cmd(["flm", "info", model_name], timeout=10)
                 return result.returncode == 0
-            except:
+            except TimeoutError:
                 return False
         else:
             # For GPU Vulkan/ROCm, assume available if file exists

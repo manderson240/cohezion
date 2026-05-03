@@ -14,7 +14,6 @@ import pytest
 
 from cohezion.compound.context_integration import (
     CompoundContextMixin,
-    ContextManager,
 )
 from cohezion.compound.executor import CompoundExecutor
 from cohezion.core.mcp_client import MCPClient

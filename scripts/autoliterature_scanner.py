@@ -25,15 +25,15 @@ from __future__ import annotations
 
 import json
 import re
-import sys
 import time
 import timeit
 import urllib.parse
 import urllib.request
 import xml.etree.ElementTree as ET
 from concurrent.futures import ThreadPoolExecutor, as_completed
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from pathlib import Path
+
 
 REPO = Path("/home/mike-anderson/dev/cohezion")
 VAULT_OBS = Path("/home/mike-anderson/vaults/cohezion-vault/memory/observations.jsonl")
@@ -282,7 +282,7 @@ def load_seen_models() -> set[str]:
 def save_seen_models(seen: set[str]) -> None:
     SEEN_MODELS_PATH.write_text(json.dumps({
         "ids": sorted(seen),
-        "last_updated": datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ"),
+        "last_updated": datetime.now(UTC).strftime("%Y-%m-%dT%H:%M:%SZ"),
         "count": len(seen),
     }))
 
@@ -346,7 +346,7 @@ def _load_lane_rotation_offset() -> int:
 def _save_lane_rotation_offset(offset: int) -> None:
     LANE_ROTATION_PATH.write_text(json.dumps({
         "offset": offset % len(LEMONADE_LANES),
-        "last_updated": datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ"),
+        "last_updated": datetime.now(UTC).strftime("%Y-%m-%dT%H:%M:%SZ"),
     }))
 
 
@@ -423,7 +423,7 @@ def _load_silicon_profile() -> dict:
 
 
 def _save_silicon_profile(profile: dict) -> None:
-    profile["last_updated"] = datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
+    profile["last_updated"] = datetime.now(UTC).strftime("%Y-%m-%dT%H:%M:%SZ")
     SILICON_PROFILE_PATH.write_text(json.dumps(profile, indent=2))
 
 
@@ -610,7 +610,7 @@ def load_seen() -> set[str]:
 def save_seen(seen: set[str]) -> None:
     SEEN_PATH.write_text(json.dumps({
         "ids": sorted(seen),
-        "last_updated": datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ"),
+        "last_updated": datetime.now(UTC).strftime("%Y-%m-%dT%H:%M:%SZ"),
         "count": len(seen),
     }))
 
@@ -628,7 +628,7 @@ def append_vault_observation(title: str, text: str, obs_type: str = "literature"
         except Exception:
             pass
     new_id = last_id + 1
-    ts = datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
+    ts = datetime.now(UTC).strftime("%Y-%m-%dT%H:%M:%SZ")
     obs = {"id": new_id, "timestamp": ts, "type": obs_type,
            "project": "cohezion", "title": title, "text": text}
     with VAULT_OBS.open("a") as f:

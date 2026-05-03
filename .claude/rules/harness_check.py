@@ -14,6 +14,7 @@ import time
 from pathlib import Path
 from typing import Any
 
+
 PROJECT_ROOT = Path(__file__).resolve().parent.parent.parent
 FAST_CHECKS = ["format", "lint-quick"]
 FULL_CHECKS = ["format", "lint", "typecheck", "fast-tests"]

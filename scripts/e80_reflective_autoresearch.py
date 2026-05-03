@@ -26,8 +26,9 @@ import sys
 import time
 import timeit
 from concurrent.futures import ThreadPoolExecutor, as_completed
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from pathlib import Path
+
 
 REPO = Path("/home/mike-anderson/dev/cohezion")
 JSONL = REPO / "autoresearch.jsonl"
@@ -214,7 +215,7 @@ def main() -> int:
         except Exception:
             pass
     new_id = last_id + 1
-    ts = datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
+    ts = datetime.now(UTC).strftime("%Y-%m-%dT%H:%M:%SZ")
     text_parts = [
         f"E80 reflective autoresearch via silicon council. Analyzed {summary['rows_analyzed']} "
         f"trace rows ({summary['kept']} kept, {summary['discarded']} discarded across "

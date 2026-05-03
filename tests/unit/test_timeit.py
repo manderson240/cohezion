@@ -2,9 +2,10 @@
 from __future__ import annotations
 
 import time
+
 import pytest
 
-from cohezion.core.timeit import timeit, get_stats, TimeitStats
+from cohezion.core.timeit import TimeitStats, get_stats, timeit
 
 
 class TestTimeitDecorator:

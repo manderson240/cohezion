@@ -2,10 +2,11 @@
 Ensures the output CSV matches Kaggle's multi-column probability requirements.
 """
 
-import pandas as pd
-import numpy as np
 import os
 from pathlib import Path
+
+import numpy as np
+import pandas as pd
 
 
 def validate_submission_schema():

@@ -7,7 +7,6 @@ These tests verify:
    the known pattern so future changes are visible
 4. The vault_search fallback handles RuntimeError from running event loop
 """
-import asyncio
 import inspect
 from unittest.mock import AsyncMock, MagicMock, patch
 

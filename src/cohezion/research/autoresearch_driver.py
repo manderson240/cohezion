@@ -177,7 +177,7 @@ def _ucb1_select(tree: dict) -> str:
         return "default=true"
 
 
-def _update_tree(tree: dict, outcome: "ExperimentOutcome | str", reward: float) -> None:
+def _update_tree(tree: dict, outcome: ExperimentOutcome | str, reward: float) -> None:
     """Update node statistics and global trial count."""
     # Accept both ExperimentOutcome and plain hypothesis string for backward compat
     hypothesis = outcome if isinstance(outcome, str) else outcome.hypothesis

@@ -1,5 +1,6 @@
 """Tests for SessionMetricsAggregator."""
 import asyncio
+
 from cohezion.compound.session_metrics_aggregator import SessionMetricsAggregator
 
 

@@ -11,9 +11,10 @@ import signal
 import sys
 from dataclasses import asdict
 from pathlib import Path
-from unittest.mock import MagicMock, patch
+from unittest.mock import patch
 
 import pytest
+
 
 # Ensure the script is on the path when running tests
 sys.path.insert(0, str(Path(__file__).parent.parent.parent / "scripts"))

@@ -27,6 +27,7 @@ from cohezion.compound.skill_health_tracker import SkillHealthTracker
 from cohezion.compound.skill_quality_data_pipeline import SkillQualityDataPipeline
 from cohezion.compound.skill_quality_scorer import SkillQualityReport, SkillQualityScorer
 
+
 logger = logging.getLogger(__name__)
 
 
@@ -277,9 +278,7 @@ class SkillQualityOrchestrator:
                 content = content.rstrip() + insertion
             else:
                 content = content.rstrip() + insertion
-        elif hypothesis.action == "add_section":
-            content = content.rstrip() + "\n\n" + hypothesis.patch.strip() + "\n"
-        elif hypothesis.action == "add_example":
+        elif hypothesis.action == "add_section" or hypothesis.action == "add_example":
             content = content.rstrip() + "\n\n" + hypothesis.patch.strip() + "\n"
         elif hypothesis.action == "bump_version":
             if "metadata:" not in content:

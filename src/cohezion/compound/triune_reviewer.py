@@ -81,7 +81,7 @@ class TriuneReviewer:
                     score = float(data.get("score", 0.5))
                     critique = data.get("critique", "No critique")
                     suggestion = data.get("suggestion")
-                except:
+                except (json.JSONDecodeError, KeyError, TypeError):
                     score = 0.5
                     critique = res.response
                     suggestion = None

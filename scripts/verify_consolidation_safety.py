@@ -9,7 +9,6 @@ Verifies:
   R5: git maintenance is active
 """
 
-import json
 import subprocess
 import sys
 from pathlib import Path

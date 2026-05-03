@@ -223,7 +223,7 @@ class PredictiveLeverAdjuster:
             try:
                 last_dt = datetime.strptime(last_time, "%Y-%m-%dT%H:%M:%SZ")
                 hours_since = (datetime.utcnow() - last_dt).total_seconds() / 3600
-            except:
+            except (ValueError, TypeError):
                 hours_since = 24  # Default to 24 hours
         else:
             hours_since = 0

@@ -19,6 +19,7 @@ from typing import Any
 
 from cohezion.compound.skill_quality_scorer import SkillQualityReport
 
+
 logger = logging.getLogger(__name__)
 
 

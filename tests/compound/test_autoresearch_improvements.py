@@ -1,9 +1,5 @@
 """Tests for AutoresearchEngine improvements: dedup + generate_next_experiments."""
 import asyncio
-import hashlib
-from unittest.mock import MagicMock
-
-import pytest
 
 from cohezion.compound.autoresearch import AutoresearchEngine, ImprovementOpportunity
 

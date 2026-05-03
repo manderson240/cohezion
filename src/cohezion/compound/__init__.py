@@ -65,7 +65,6 @@ from cohezion.compound.persistence.vault import (
 from cohezion.compound.persistence.vault import (
     VaultPersister as VaultPersister,
 )
-from cohezion.compound.skills.selector import SkillSelector as SkillSelector
 
 # Self-improving skill quality ecosystem
 from cohezion.compound.skill_evolution_diff import (
@@ -101,6 +100,7 @@ from cohezion.compound.skill_quality_scorer import (
 from cohezion.compound.skill_quality_scorer import (
     SkillQualityScorer as SkillQualityScorer,
 )
+from cohezion.compound.skills.selector import SkillSelector as SkillSelector
 
 # TDD and Adversarial Review System
 from cohezion.compound.tdd_adversarial.adversarial_review import (

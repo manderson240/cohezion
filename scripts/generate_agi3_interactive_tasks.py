@@ -64,7 +64,7 @@ async def generate_batch(num_tasks: int = 3):
         with open(BENCHMARK_FILE) as f:
             try:
                 tasks = json.load(f)
-            except:
+            except json.JSONDecodeError:
                 tasks = []
     else:
         tasks = []

@@ -796,7 +796,7 @@ class CompoundExecutor(CompoundContextMixin, ExecutorIntegrationMixin):
                     "should_retry": alignment.should_retry,
                 }
                 logger.debug("Alignment analysis: %s", metrics["alignment"])
-            except Exception as e:  # noqa: BLE001 - non-blocking by design (alignment is an optional pipeline step; any analyzer failure must not abort execute_task per Σ1 triage)
+            except Exception as e:
                 logger.warning(
                     "Request alignment analysis failed (non-blocking): %s",
                     e,
@@ -968,7 +968,7 @@ class CompoundExecutor(CompoundContextMixin, ExecutorIntegrationMixin):
                     logger.info(f"Skill refined: {refined_path}")
                     decision_paths.append(refined_path)
 
-            except Exception as e:  # noqa: BLE001 - non-blocking by design (skill refinement is an optional learning step; any refiner failure must not abort execute_task per Σ1 triage)
+            except Exception as e:
                 logger.warning("Skill refinement failed (non-blocking): %s", e, exc_info=True)
 
         # Step 7.4: Record skill health metrics (non-blocking)

@@ -31,7 +31,7 @@ def train_baseline():
     try:
         df = pd.read_csv("/kaggle/input/birdclef-2026/train_metadata.csv")
         num_classes = df["primary_label"].nunique()
-    except:
+    except FileNotFoundError:
         print("Using dummy data.")
         num_classes = 2
 

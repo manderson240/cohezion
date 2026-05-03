@@ -5,19 +5,19 @@ from __future__ import annotations
 import pytest
 
 from cohezion.patterns.hermetic_design_patterns import (
+    CauseEffectPattern,
+    CorrespondencePattern,
     DesignIntention,
     FractalComponent,
+    GenderPattern,
     IntentionalClass,
     MentalismPattern,
-    CorrespondencePattern,
-    VibrationPattern,
-    VibrationState,
-    VibrationalFunction,
     Polarity,
     PolarityPattern,
     RhythmPattern,
-    CauseEffectPattern,
-    GenderPattern,
+    VibrationalFunction,
+    VibrationPattern,
+    VibrationState,
 )
 
 

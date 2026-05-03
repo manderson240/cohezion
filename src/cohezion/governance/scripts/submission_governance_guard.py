@@ -25,7 +25,7 @@ class SubmissionGovernanceGuard(Guardian):
     def scan_file(self, filepath: Path):
         try:
             content = filepath.read_text()
-        except:
+        except OSError:
             return
 
         is_submission_script = any(marker in content for marker in self.submission_markers)

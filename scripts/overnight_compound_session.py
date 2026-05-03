@@ -34,6 +34,7 @@ from datetime import UTC, datetime
 from pathlib import Path
 from typing import Any
 
+
 # Ensure project src is importable when running directly
 _REPO_ROOT = Path(__file__).parent.parent.resolve()
 if str(_REPO_ROOT / "src") not in sys.path:
@@ -155,8 +156,8 @@ def _phase_skill_quality(
 ) -> PhaseResult:
     """Score PRIME skills. If all_skills=False, scores the top_n least-recently-evaluated."""
     t0 = time.monotonic()
-    from cohezion.compound.skill_quality_scorer import SkillQualityScorer
     from cohezion.compound.skill_health_tracker import SkillHealthTracker
+    from cohezion.compound.skill_quality_scorer import SkillQualityScorer
 
     scorer = SkillQualityScorer(health_tracker=SkillHealthTracker(storage_path=DATA_SKILL_HEALTH))
     skill_files = sorted(SKILLS_DIR.glob("*.md"))
