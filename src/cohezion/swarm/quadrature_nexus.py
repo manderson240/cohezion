@@ -163,6 +163,26 @@ class QuadratureNexus:
         self._score_adjustments: dict[VoiceType, float] = dict.fromkeys(VoiceType, 0.0)
         # E57: persistent cross-cycle calibration accumulator (additive, never reset)
         self._mycelium_calibration: dict[VoiceType, float] = dict.fromkeys(VoiceType, 0.0)
+        # Task #17: per-voice calibration history for oscillation detection.
+        # Each entry is the per-cycle adjustment applied (signed). Keep last 5.
+        self._mycelium_calibration_history: dict[VoiceType, list[float]] = {
+            vt: [] for vt in VoiceType
+        }
+
+    def _detect_oscillation(self, vt: VoiceType) -> bool:
+        """Return True if the last 3 calibration adjustments alternate sign.
+
+        An adjustment of exactly 0.0 is treated as neither positive nor negative
+        and breaks the alternation streak (returns False).
+        """
+        history = self._mycelium_calibration_history.get(vt, [])
+        if len(history) < 3:
+            return False
+        a, b, c = history[-3], history[-2], history[-1]
+        # All three must be non-zero and alternate sign
+        if a == 0.0 or b == 0.0 or c == 0.0:
+            return False
+        return (a > 0) != (b > 0) and (b > 0) != (c > 0)
 
     def apply_mycelium_feedback(
         self, synthesized_skill_content: str, learning_rate: float = 0.5
@@ -215,9 +235,19 @@ class QuadratureNexus:
                 # Target = observed + proportional share of consensus gap
                 target = min(1.0, observed_mean + consensus_gap * 0.5)
                 gap_to_target = target - observed_mean
-                # Boost = learning_rate × gap, always positive, capped at 0.15
-                adjustment = max(0.0, min(0.15, gap_to_target * learning_rate))
                 vt = voice_type_map[voice_name]
+                # Task #17: damp learning rate if this voice is oscillating
+                effective_lr = (
+                    learning_rate * 0.5 if self._detect_oscillation(vt) else learning_rate
+                )
+                # Boost = effective_lr × gap, always positive, capped at 0.15
+                adjustment = max(0.0, min(0.15, gap_to_target * effective_lr))
+                # Append signed adjustment to history (keep last 5)
+                self._mycelium_calibration_history[vt].append(adjustment)
+                if len(self._mycelium_calibration_history[vt]) > 5:
+                    self._mycelium_calibration_history[vt] = (
+                        self._mycelium_calibration_history[vt][-5:]
+                    )
                 # E57: accumulate into _mycelium_calibration (+=) rather than SET _score_adjustments.
                 # SET semantics caused cycle-2 to replace cycle-1's calibration with a smaller value
                 # as the observed mean rose. Additive semantics produce monotonic compounding.
