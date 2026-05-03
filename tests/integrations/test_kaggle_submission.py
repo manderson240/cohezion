@@ -32,7 +32,8 @@ async def test_orchestrate_baseline_submission(tmp_path):
         mock_manager = MockManager.return_value
 
         # Setup mocks
-        mock_api.download_dataset = AsyncMock(return_value=b"data")
+        (tmp_path / "train.jsonl").write_text('{"prompt": "test", "response": "ok"}\n')
+        mock_api.download_dataset_path = AsyncMock(return_value=tmp_path)
         mock_curator.process_dataset = AsyncMock()
         mock_manager.get_training_script_template = MagicMock(return_value="print('training...')")
 
@@ -52,11 +53,11 @@ async def test_orchestrate_baseline_submission(tmp_path):
 
         # Run orchestration
         result = await orchestrator.run_baseline_flow(
-            dataset_name="nvidia/nemotron-challenge", notebook_id="nemotron-lora-training"
+            competition_id="nvidia/nemotron-challenge", notebook_id="nemotron-lora-training"
         )
 
         assert result["status"] == "complete"
-        mock_api.download_dataset.assert_called_once()
+        mock_api.download_dataset_path.assert_called_once()
         mock_curator.process_dataset.assert_called_once()
         mock_manager.prepare_notebook.assert_called_once()
         mock_api.push_notebook.assert_called_once()
