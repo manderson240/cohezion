@@ -283,7 +283,7 @@ class MCPClient:
             return []
 
     def vault_search_by_operation(
-        self, operation: str, limit: int = 5
+        self, operation: str, limit: int = 10
     ) -> list[dict[str, Any]]:
         """Hierarchical search for patterns under ``operations/<operation>``.
 

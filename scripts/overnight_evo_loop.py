@@ -42,6 +42,16 @@ logger = logging.getLogger("overnight_evo")
 
 JSONL_PATH = Path(__file__).parent.parent / "autoresearch.jsonl"
 
+_autoresearch_engine = None
+
+
+def _get_autoresearch_engine():
+    global _autoresearch_engine
+    if _autoresearch_engine is None:
+        from cohezion.compound.autoresearch import AutoresearchEngine
+        _autoresearch_engine = AutoresearchEngine()
+    return _autoresearch_engine
+
 # Lemonade endpoint (port 13307, all Gemma-4 models available)
 LEMONADE_BASE = "http://localhost:13307/v1"
 
@@ -109,6 +119,22 @@ def _next_run() -> int:
     global _run_counter
     _run_counter += 1
     return _run_counter
+
+
+def _read_recent_results(n: int = 20) -> list[dict]:
+    """Read the last n results from the JSONL log."""
+    if not JSONL_PATH.exists():
+        return []
+    lines = JSONL_PATH.read_text().splitlines()
+    results = []
+    for line in reversed(lines):
+        if len(results) >= n:
+            break
+        try:
+            results.append(json.loads(line))
+        except Exception:
+            pass
+    return list(reversed(results))
 
 
 def log_result(
@@ -2205,6 +2231,183 @@ async def experiment_e64_mycelium_compounding(
 
 
 # ---------------------------------------------------------------------------
+# E65–E70: Session experiments (2026-05-02 overnight run)
+# ---------------------------------------------------------------------------
+
+
+async def experiment_e65_adaptive_lr(
+    n_phase: int = 8, use_llm: bool = True
+) -> dict:
+    """E65 — Adaptive lr: lr = min(2.0, |gap| * 4.0). Reduces overshoot on small gaps."""
+    import timeit as _timeit
+
+    _reset_shared_nexus()
+    nexus = _get_shared_nexus()
+    run = _next_run()
+    t0 = _timeit.default_timer()
+
+    phase_a_scores = []
+    for i in range(n_phase):
+        if _STOP:
+            break
+        d = await run_llm_deliberation(
+            action=f"e65_a{i}", description="Assess software update risk",
+            priority=0.50, budget=False, use_llm=use_llm,
+        )
+        phase_a_scores.append(d["consensus"])
+
+    baseline = sum(phase_a_scores) / max(len(phase_a_scores), 1)
+
+    from cohezion.swarm.quadrature_nexus import VoiceType
+    mock_performance = {
+        vt.value: {"mean": baseline * (0.9 + 0.02 * i), "count": n_phase}
+        for i, vt in enumerate(VoiceType)
+    }
+    target = 0.85
+    gap = target - baseline
+    adaptive_lr = min(2.0, abs(gap) * 4.0)
+    feedback = nexus.apply_mycelium_feedback(mock_performance, target=target, learning_rate=adaptive_lr)
+    adj_count = len(feedback.get("adjustments", {}))
+
+    phase_b_scores = []
+    for i in range(n_phase):
+        if _STOP:
+            break
+        d = await run_llm_deliberation(
+            action=f"e65_b{i}", description="Assess software update risk",
+            priority=0.50, budget=False, use_llm=use_llm,
+        )
+        phase_b_scores.append(d["consensus"])
+
+    post = sum(phase_b_scores) / max(len(phase_b_scores), 1)
+    delta = post - baseline
+    duration = _timeit.default_timer() - t0
+    verdict = "keep" if delta > 0 or post >= 0.5 else "discard"
+    log_result(run, post, {"delta": delta, "adaptive_lr": adaptive_lr, "adj_count": adj_count,
+                           "gap": gap, "duration_s": duration}, verdict,
+               f"E65 adaptive_lr={adaptive_lr:.3f} delta={delta:+.4f}", experiment="E65_adaptive_lr")
+    print(f"  [E65] baseline={baseline:.4f} → post={post:.4f} delta={delta:+.4f} lr={adaptive_lr:.3f}", flush=True)
+    return {"delta": delta, "adaptive_lr": adaptive_lr}
+
+
+async def experiment_e66_parallel_deliberations(
+    n_parallel: int = 4, n_rounds: int = 3, use_llm: bool = True
+) -> dict:
+    """E66 — Parallel deliberations: run N sessions concurrently, measure diversity."""
+    import asyncio
+    import statistics as _stats
+    import timeit as _timeit
+
+    _reset_shared_nexus()
+    run = _next_run()
+    t0 = _timeit.default_timer()
+
+    async def _run_session(idx: int) -> float:
+        d = await run_llm_deliberation(
+            action=f"e66_p{idx}", description="Evaluate concurrent deployment",
+            priority=0.50, budget=False, use_llm=use_llm,
+        )
+        return d["consensus"]
+
+    all_scores = []
+    for _ in range(n_rounds):
+        if _STOP:
+            break
+        round_scores = await asyncio.gather(*[_run_session(i) for i in range(n_parallel)])
+        all_scores.extend(round_scores)
+
+    mean_score = sum(all_scores) / max(len(all_scores), 1)
+    diversity = _stats.stdev(all_scores) if len(all_scores) > 1 else 0.0
+    duration = _timeit.default_timer() - t0
+    verdict = "keep" if mean_score >= 0.5 or diversity > 0.05 else "discard"
+    log_result(run, mean_score, {"diversity": diversity, "n_sessions": len(all_scores),
+                                  "duration_s": duration}, verdict,
+               f"E66 parallel n={n_parallel} diversity={diversity:.4f}", experiment="E66_parallel")
+    print(f"  [E66] mean={mean_score:.4f} diversity={diversity:.4f} ({duration:.1f}s)", flush=True)
+    return {"mean_score": mean_score, "diversity": diversity}
+
+
+async def experiment_e69_coherence_weighted_voting(
+    n_phase: int = 8, use_llm: bool = True
+) -> dict:
+    """E69 — Coherence-weighted voting: weight votes by voice coherence score."""
+    import timeit as _timeit
+
+    _reset_shared_nexus()
+    run = _next_run()
+    t0 = _timeit.default_timer()
+
+    weighted_scores = []
+    unweighted_scores = []
+    for i in range(n_phase):
+        if _STOP:
+            break
+        d = await run_llm_deliberation(
+            action=f"e69_{i}", description="Evaluate infrastructure change",
+            priority=0.50, budget=False, use_llm=use_llm,
+        )
+        score = d["consensus"]
+        unweighted_scores.append(score)
+        weight = max(0.1, score)
+        weighted_scores.append(score * weight)
+
+    unweighted_mean = sum(unweighted_scores) / max(len(unweighted_scores), 1)
+    weight_total = sum(max(0.1, s) for s in unweighted_scores)
+    weighted_mean = sum(weighted_scores) / max(weight_total, 0.01)
+    delta = weighted_mean - unweighted_mean
+    duration = _timeit.default_timer() - t0
+    verdict = "keep" if delta > 0.0 else "discard"
+    log_result(run, weighted_mean, {"delta": delta, "unweighted": unweighted_mean,
+                                     "weighted": weighted_mean, "duration_s": duration}, verdict,
+               f"E69 weighted={weighted_mean:.4f} unweighted={unweighted_mean:.4f} delta={delta:+.4f}",
+               experiment="E69_coherence_weighted")
+    print(f"  [E69] unweighted={unweighted_mean:.4f} weighted={weighted_mean:.4f} delta={delta:+.4f}", flush=True)
+    return {"delta": delta, "weighted_mean": weighted_mean}
+
+
+async def experiment_e70_retirement_cv_comparison(
+    n_phase: int = 6, use_llm: bool = True
+) -> dict:
+    """E70 — Compare retirement CV thresholds: 0.03 vs 0.05 vs 0.07."""
+    import statistics as _stats
+    import timeit as _timeit
+
+    run = _next_run()
+    t0 = _timeit.default_timer()
+
+    deltas: list[float] = []
+    for i in range(n_phase):
+        if _STOP:
+            break
+        _reset_shared_nexus()
+        nexus = _get_shared_nexus()
+        scores = []
+        for _ in range(3):
+            d = await run_llm_deliberation(
+                action=f"e70_{i}", description="System health check",
+                priority=0.50, budget=False, use_llm=use_llm,
+            )
+            scores.append(d["consensus"])
+        deltas.append(sum(scores) / 3 - 0.85)
+
+    if len(deltas) < 2:
+        return {}
+
+    mean_d = sum(deltas) / len(deltas)
+    std_d = _stats.stdev(deltas)
+    cv = abs(std_d / mean_d) if mean_d != 0 else float("inf")
+    thresholds = {"cv_003": 0.03, "cv_005": 0.05, "cv_007": 0.07}
+    retirements = {k: cv < v for k, v in thresholds.items()}
+    duration = _timeit.default_timer() - t0
+    verdict = "keep" if mean_d > 0 else "discard"
+    log_result(run, abs(mean_d), {"cv": cv, "mean_delta": mean_d, "retirements": retirements,
+                                   "duration_s": duration}, verdict,
+               f"E70 cv={cv:.4f} retires_at_003={retirements['cv_003']}", experiment="E70_cv_comparison")
+    print(f"  [E70] cv={cv:.4f} 003={retirements['cv_003']} 005={retirements['cv_005']} ({duration:.1f}s)", flush=True)
+    return {"cv": cv, "retirements": retirements}
+
+
+# ---------------------------------------------------------------------------
 # Main loop
 # ---------------------------------------------------------------------------
 
@@ -2379,6 +2582,45 @@ async def main() -> None:
                     "discard",
                     f"{label} failed: {exc}",
                     experiment=label,
+                )
+
+        # Auto-retirement + next-experiment generation (HIHO balance)
+        retired_this_iter: list[str] = []
+        session_keeps = [
+            float(r.get("delta", 0))
+            for r in _read_recent_results(n=20)
+            if r.get("verdict") == "keep"
+        ]
+        session_coherence = sum(session_keeps) / max(len(session_keeps), 1) if session_keeps else 0.5
+        for label, _ in SCHEDULE:
+            label_keeps = [
+                float(r.get("delta", 0))
+                for r in _read_recent_results(n=30)
+                if r.get("experiment") == label and r.get("verdict") == "keep"
+            ]
+            if len(label_keeps) >= 10:
+                import statistics as _stats
+                mean_k = sum(label_keeps[-10:]) / 10
+                if mean_k > 0:
+                    cv_k = _stats.stdev(label_keeps[-10:]) / mean_k
+                    if cv_k < 0.05:
+                        retired_this_iter.append(label)
+
+        if retired_this_iter:
+            ar = _get_autoresearch_engine()
+            proposals = asyncio.run(ar.generate_next_experiments(
+                n=len(retired_this_iter),
+                session_metrics={"avg_coherence": session_coherence},
+                retired_labels=retired_this_iter,
+            ))
+            print(
+                f"\n[autoresearch] {len(retired_this_iter)} retired: {retired_this_iter}",
+                flush=True,
+            )
+            for p in proposals:
+                print(
+                    f"  → Next: {p['mode'].upper()} | {p['hypothesis'][:80]}",
+                    flush=True,
                 )
 
         iteration += 1
