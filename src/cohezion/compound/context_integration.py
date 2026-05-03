@@ -65,17 +65,22 @@ class ContextManager:
     def _find_project_root(self) -> Path:
         """Find project root by looking for .context directory.
 
-        Returns:
-            Path to project root
-
-        Raises:
-            ContextLoadError: If project root not found
+        Falls back to the nearest directory containing pyproject.toml or
+        CLAUDE.md when no .context directory exists, so tests and installs
+        without a .context scaffold still work.
         """
         current = Path.cwd()
+        fallback: Path | None = None
         while current != current.parent:
             if (current / ".context").exists():
                 return current
+            if fallback is None and (
+                (current / "pyproject.toml").exists() or (current / "CLAUDE.md").exists()
+            ):
+                fallback = current
             current = current.parent
+        if fallback is not None:
+            return fallback
         raise ContextLoadError("Project root not found (no .context directory)")
 
     def load_manifest(self) -> dict[str, Any] | None:
