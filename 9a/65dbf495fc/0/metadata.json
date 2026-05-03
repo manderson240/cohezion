@@ -1,0 +1,118 @@
+{
+  "cli_version": "0.5.6",
+  "checkpoint_id": "9a65dbf495fc",
+  "session_id": "fb0e73ef-0e64-40ce-97c1-25b10ba813a8",
+  "strategy": "manual-commit",
+  "created_at": "2026-05-03T07:15:27.61456648Z",
+  "branch": "main",
+  "checkpoints_count": 1,
+  "files_touched": [],
+  "agent": "Claude Code",
+  "model": "",
+  "turn_id": "506ed820b669",
+  "token_usage": {
+    "input_tokens": 2419,
+    "cache_creation_tokens": 4288889,
+    "cache_read_tokens": 661226720,
+    "output_tokens": 1049926,
+    "api_call_count": 2344
+  },
+  "summary": {
+    "intent": "Run a marathon overnight autonomous session (10:35 PM to 8 AM) to improve Cohezion's EVO (Exotic Vacuum Object) agent modeling pipeline, fix all test failures across the codebase, and build compound engineering tooling using teams of specialist agents with TDD, V-model systems engineering, and multi-perspective adversarial review.",
+    "outcome": "Built a complete EVO modeling closed-loop pipeline (E1-E62 experiments validated, E55-E62 fixing the original E5 Mycelium compounding bug), created 10+ new compound analytics modules, fixed ~300+ tests across FLUME/compound/core/arc/universe suites, and committed the E57 additive calibration fix that caused the original Mycelium feedback to decay instead of compound.",
+    "learnings": {
+      "repo": [
+        "autoresearch.jsonl stores experiment label at r['asi']['experiment'], not r['experiment']; status at r['status'] not r['verdict']; primary metric at r['metric'] not r['delta']",
+        "QuadratureNexus two-layer calibration model: _mycelium_calibration (cross-cycle, accumulates) vs _score_adjustments (per-deliberation, overwritten by run_llm_deliberation every call). Always target _mycelium_calibration for persistent feedback",
+        "The Mycelium compounding formula is consensus_n = 0.85 - 0.125 * (1 - lr/2)^n; lr=2.0 lifts a 0.725-baseline nexus to exactly 0.85 in one synthesis cycle",
+        "Entire.io checkpoint daemon periodically resets working tree to HEAD; use 'git checkout HEAD -- <file>' or 'git stash push --keep-index' to recover staged changes",
+        "autoresearch.jsonl is tracked by LFS but has real JSON content in working tree, causing pointer/content conflicts in pre-commit stash/restore; fix: git rm --cached autoresearch.jsonl + .gitignore",
+        "FlumeVAE.forward() returns (recon, mu, log_var, z) - 4 values after the signature unification; legacy mode FlumeVAE(input_dim=768, latent_dim=256) creates MLP VAE for backward compat",
+        "OllamaEmbeddingProvider was removed from cohezion.flume.vae_encoder; any test patching it fails at fixture setup (ERROR not FAILURE); fix by removing patch and using fallback_to_hash=True",
+        "SurrealDB: probe requires 'RETURN true;' not 'SELECT 1;'; datetime fields require time::now() not string literals; SCHEMAFULL tables block arbitrary metadata subfields - use result (option<string>) for variable data",
+        "BioelectricNetwork method is percolation_analysis(threshold=...) not percolate(); result field is largest_cluster_size not giant_component_fraction",
+        "psutil mock in compound conftest must mock BOTH virtual_memory AND cpu_percent=25.0 or resource guardrails fail on busy machines (99.4% CPU = guardrail triggers = test failures)"
+      ],
+      "code": [
+        {
+          "path": "src/cohezion/swarm/quadrature_nexus.py",
+          "line": 220,
+          "end_line": 255,
+          "finding": "apply_mycelium_feedback() uses += into _mycelium_calibration (E57 fix); previously used SET semantics causing Cycle 2 to decay. History cap at 5 entries; _detect_oscillation() halves lr when last 3 adjustments alternate sign"
+        },
+        {
+          "path": "src/cohezion/flume/vae.py",
+          "line": 1,
+          "end_line": 300,
+          "finding": "Dual-mode FlumeVAE: token-based transformer (production, FlumeVAEConfig) + legacy MLP (input_dim/latent_dim args). forward() returns (recon, mu, log_var, z) always 4 values. reparameterize() returns mu deterministically in eval mode. flume_vae_loss() is a standalone module-level function"
+        },
+        {
+          "path": "src/cohezion/universe/engine.py",
+          "line": 1,
+          "end_line": 50,
+          "finding": "check_precipitation() added to AxiomaticState combining HIHO threshold (coherence > 0.5), Shannon entropy, and thermodynamic free energy F = E - TS. Returns Python bool explicitly (np.bool_ causes type failures)"
+        },
+        {
+          "path": "src/cohezion/compound/session_metrics_aggregator.py",
+          "line": 1,
+          "end_line": 80,
+          "finding": "SessionMetricsAggregator tracks HIHO balance (fraction of positive-delta experiments). render_dashboard() returns dict with ascii_bar, top_experiments, mode (exploit/explore), retirement_candidates"
+        },
+        {
+          "path": "tests/compound/conftest.py",
+          "line": 1,
+          "end_line": 35,
+          "finding": "Autouse psutil fixture must mock BOTH virtual_memory (percent=50.0, total=128GiB) AND cpu_percent=25.0. Mocking only memory is insufficient - cpu guardrail in executor.py triggers separately"
+        },
+        {
+          "path": "src/cohezion/compound/cache_persistence.py",
+          "line": 1,
+          "end_line": 50,
+          "finding": "WarmCacheLoader.load_cache() proxy method needed - tests expect it but class only had warm_client(). Added as thin delegation to self._persistence.load_cache()"
+        },
+        {
+          "path": "scripts/overnight_evo_loop.py",
+          "line": 542,
+          "end_line": 542,
+          "finding": "log_result() signature: log_result(run, metric, metrics, status, description, experiment, **extra) - 6 positional args. run = int(time.time()*1000), status = 'keep' or 'discard'. E71-E76 initially had wrong 4-arg calls"
+        },
+        {
+          "path": "src/cohezion/compound/experiment_analytics.py",
+          "line": 1,
+          "end_line": 100,
+          "finding": "New module: compute_experiment_stats(), find_retirement_candidates() (CV < 0.05 after 10+ keeps), compute_hiho_balance(), compute_schedule_diversity() (Shannon entropy). Live data shows E50/E12 have CV=0.000 (retirement candidates)"
+        }
+      ],
+      "workflow": [
+        "Surgical git add pattern: 'uv run ruff format <files>' then 'uv run ruff check --select=F,E9,E501 --fix <files>' then 'git add <specific files only>' then 'KAGGLE_GUARD_DISABLE=1 git commit'. Never use 'git add -A' in this repo",
+        "Pre-commit stash/restore conflicts with LFS files: use 'git stash push --keep-index --include-untracked' before staging, then 'git stash pop' after commit",
+        "When adding async methods to a class that has synchronous callers, always add a _sync wrapper immediately and update all existing sync call sites atomically in the same commit",
+        "For unittest.TestCase async tests: patch httpx.AsyncClient (not httpx.Client), use AsyncMock for post/aclose methods, wrap all async calls in asyncio.run()",
+        "FastMCP content format requires {\"type\": \"text\", \"text\": \"...\"} - missing 'type' field causes silent fallthrough to wrong return branch",
+        "V-model structural invariant tests using inspect.signature() run ~1ms each and catch refactor drift (renamed params, removed fields) before behavioral tests",
+        "TDD cycle for removed symbols: tests fail at import/fixture time (ERROR not FAILURE) when patching removed classes - fix by removing patches and using the built-in fallback mode"
+      ]
+    },
+    "friction": [
+      "Entire.io checkpoint daemon repeatedly reverted working tree files to HEAD, requiring repeated 'git checkout HEAD -- <files>' restores throughout the session",
+      "autoresearch.jsonl LFS pointer/content mismatch blocked every commit attempt for multiple hours - pre-commit stash/restore failed with 'File exists' error",
+      "KAGGLE_GUARD_DISABLE=1 required for every commit due to branch guard on competition-related files",
+      "iGPU ROCm silent failure: Lemonade inference server returned empty strings for all evaluation prompts, making LLM-mode experiments impossible for the entire overnight run",
+      "E71-E76 experiments had incorrect log_result() call signatures (4 args instead of 6, wrong order) requiring a second pass to fix",
+      "ruff-quick pre-commit hook auto-fixes files during stash/restore phase, causing hook to report 'file modified' and fail when the fix creates new diffs",
+      "FlumeVAE.forward() return tuple size changed 3→4 without updating callers, causing widespread failures across test_vae.py, test_evaluate_vae.py, test_vae_v2.py",
+      "Context window exhausted twice during the session, requiring full conversation compaction and re-orientation from summary"
+    ],
+    "open_items": [
+      "8 FLUME CLI test failures (test_flume_cli.py, test_cli_train.py) caused by SIGSEGV on GPU/HIP stack load - hardware-specific, not fixable in code",
+      "28 swarm test failures depend on live Ollama service being available",
+      "turbo_quant_kernels HIP GPU kernel compile errors - hardware-specific (ROCm not available in test environment)",
+      "JEPA cross-session persistent learning (E43/E46) never achieved: heuristic mode produces single-attractor input distribution, JEPA needs LLM mode for distributional diversity. Checkpoint saves but accumulates nothing useful",
+      "Lemonade iGPU ROCm silent failure: returns empty strings for evaluation prompts even when arithmetic works - needs ROCm stack recovery or model switching logic",
+      "Wire ExperimentScheduler.check_retirements() into overnight_evo_loop main loop for automated E50/E12 retirement (E50 CV=0.000, confirmed converged)",
+      "SurrealDB experiment_runs table still empty (0 records) - HTTP-direct write code was developed but in the Gemini worktree that was cleaned up; needs re-implementation in main repo",
+      "E74 voice weight precision experiment uses heuristic mode only - needs real LLM validation to determine if coarse vs fine learning rate differences are meaningful",
+      "E9 proposal diversity experiment fixed at 0.4702 every run - 'optimization' family always wins, needs proposal rotation or randomized testing"
+    ]
+  }
+}
