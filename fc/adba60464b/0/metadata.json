@@ -1,0 +1,150 @@
+{
+  "cli_version": "0.5.6",
+  "checkpoint_id": "fcadba60464b",
+  "session_id": "fb0e73ef-0e64-40ce-97c1-25b10ba813a8",
+  "strategy": "manual-commit",
+  "created_at": "2026-05-03T07:56:40.642140507Z",
+  "branch": "main",
+  "checkpoints_count": 1,
+  "files_touched": [],
+  "agent": "Claude Code",
+  "model": "",
+  "turn_id": "506ed820b669",
+  "token_usage": {
+    "input_tokens": 2634,
+    "cache_creation_tokens": 4407624,
+    "cache_read_tokens": 708809258,
+    "output_tokens": 1099132,
+    "api_call_count": 2559
+  },
+  "summary": {
+    "intent": "Improve Cohezion's ability to model agents as Exotic Vacuum Objects (EVOs) by capturing agentic journeys through QuadratureNexus + FLUME VAE into SurrealDB, analyzing them via Ouroboros and Mycelium, and feeding synthesized patterns back to improve the system—then scale to a 24-hour autonomous autoresearch loop using teams of specialist agents.",
+    "outcome": "Delivered a complete EVO research pipeline (E1-E76+ experiments), deployed the Mycelium additive calibration fix (E57) with mathematical convergence proof, built a compound analytics subsystem (10+ modules), fixed 150+ test failures across FLUME/compound/universe/inference suites, and grew the test suite from ~6,797 to 7,142+ tests while running a continuous overnight autoresearch loop.",
+    "learnings": {
+      "repo": [
+        "autoresearch.jsonl stores experiment label at r['asi']['experiment'] (NOT top-level r['experiment']), status at r['status'] (NOT r['verdict']), and primary metric at r['metric']",
+        "Entire.io checkpoint daemon periodically resets the working tree to HEAD from an orphan branch—workaround: git checkout HEAD -- <file> to restore, or use surgical git add of specific files only",
+        "SurrealDB HTTP endpoint at http://127.0.0.1:8001/sql requires probe with 'RETURN true;' (not SELECT 1), timestamps must use time::now() not string literals, and SCHEMAFULL tables block arbitrary metadata subfields—use result (option<string>) for variable data",
+        "run_llm_deliberation() overwrites _score_adjustments on every call (line 307 SET semantics)—use _mycelium_calibration for cross-cycle accumulation; this was the root cause of all E5/E6 failures",
+        "Lemonade inference on port 13307 enters silent failure state returning empty strings—probe with '2+2=' arithmetic before enabling LLM mode; all 4 voices must share one model slot to avoid OOM",
+        "autoresearch.jsonl is an LFS file tracked in git—causes pointer/content mismatch conflicts in pre-commit stash/restore; fix with 'git rm --cached autoresearch.jsonl' and add to .gitignore",
+        "KAGGLE_GUARD_DISABLE=1 env var is required when committing files that trigger the Kaggle branch protection guard",
+        "Mycelium convergence formula: consensus_n = 0.85 - 0.125 * (1 - lr/2)^n—exact geometric series, asymptotically approaches HIHO threshold; validated to max_error=0.00025",
+        "FlumeVAE.forward() now returns 4 values (recon, mu, log_var, z)—legacy MLP mode via FlumeVAE(input_dim=768, latent_dim=256); eval-mode reparameterize returns mu deterministically",
+        "BioelectricNetwork.percolation_analysis(threshold) is correct—not .percolate(); result field is largest_cluster_size not giant_component_fraction",
+        "psutil mock in compound test conftest must patch BOTH psutil.virtual_memory AND psutil.cpu_percent—patching only memory still causes guardrail blocks at 99.4% CPU on busy machines",
+        "log_result() positional signature: (run, metric, metrics, status, description, experiment)—6 required positional args before any kwargs"
+      ],
+      "code": [
+        {
+          "path": "src/cohezion/swarm/quadrature_nexus.py",
+          "line": 220,
+          "end_line": 260,
+          "finding": "apply_mycelium_feedback changed from SET (_score_adjustments[vt] = adjustment) to ADDITIVE (_mycelium_calibration[vt] += adjustment; _score_adjustments[vt] = _mycelium_calibration[vt])—the E57 fix enabling monotonic compounding toward 0.85 threshold"
+        },
+        {
+          "path": "src/cohezion/swarm/quadrature_nexus.py",
+          "line": 190,
+          "end_line": 210,
+          "finding": "_detect_oscillation(vt) checks if last 3 history entries alternate sign (a>0 != b>0 != c>0)—if oscillating, apply_mycelium_feedback uses effective_lr = learning_rate * 0.5; history capped at 5 entries"
+        },
+        {
+          "path": "src/cohezion/storage/surreal_client.py",
+          "line": 1,
+          "end_line": 200,
+          "finding": "Complete rewrite from simulation to real HTTP—connect() probes 'RETURN true;' not 'SELECT 1;'; insert_flume_journey_event() packs EVO biography into result (option<string>) field as JSON to work around SCHEMAFULL blocking arbitrary metadata subfields"
+        },
+        {
+          "path": "src/cohezion/core/mcp_client.py",
+          "line": 267,
+          "end_line": 330,
+          "finding": "vault_write_sync/vault_read_sync/vault_delete_sync use loop detection: try asyncio.get_running_loop(), if no loop use asyncio.run(), if loop exists use loop.create_task()—prevents RuntimeWarning from unawaited coroutines in sync callers"
+        },
+        {
+          "path": "src/cohezion/compound/skill_selector.py",
+          "line": 131,
+          "end_line": 131,
+          "finding": "Changed from self.mcp_client.vault_find_relevant_context(query, project=project) (async, called without await) to self.mcp_client.vault_search(f'...', limit=10)—using the synchronous wrapper designed for this use case"
+        },
+        {
+          "path": "src/cohezion/arc/solver.py",
+          "line": 95,
+          "end_line": 110,
+          "finding": "UCB1 bug: UCB1 sorts by exploration potential (untested candidates get inf score), so perfect-score candidates were excluded from beam before best_chain was updated. Fix: track actual_best = max(candidates, key=lambda x: x[1]) BEFORE UCB1 sorting"
+        },
+        {
+          "path": "src/cohezion/flume/vae.py",
+          "line": 1,
+          "end_line": 200,
+          "finding": "Dual-mode FlumeVAE: token-mode transformer (FlumeVAE(config=FlumeVAEConfig(...))) and legacy MLP mode (FlumeVAE(input_dim=768, latent_dim=256)); forward() always returns 4 values (recon, mu, log_var, z); reparameterize() returns mu in eval mode"
+        },
+        {
+          "path": "src/cohezion/compound/executor.py",
+          "line": 61,
+          "end_line": 90,
+          "finding": "Added compound_score: float = 0.0 to ExecutionResult dataclass; computed as 0.6*coherence + 0.3*success + 0.1*efficiency before returning from execute_task()"
+        },
+        {
+          "path": "tests/compound/conftest.py",
+          "line": 1,
+          "end_line": 50,
+          "finding": "Autouse psutil fixture must mock BOTH psutil.virtual_memory (percent=50.0, total=128GiB, available=64GiB) AND psutil.cpu_percent (return_value=25.0)—missing the CPU mock caused 16 tests to fail in full suite run on a machine at 99.4% CPU"
+        },
+        {
+          "path": "src/cohezion/compound/autoresearch.py",
+          "line": 45,
+          "end_line": 130,
+          "finding": "Added HIHO_THRESHOLD = 0.5 class constant; generate_next_experiments(n, session_metrics, retired_labels) uses exploit mode when avg_coherence >= 0.5, explore when below; dedup via _logged_opportunity_hashes set"
+        },
+        {
+          "path": "tests/flume/test_integration_v2.py",
+          "line": 1,
+          "end_line": 60,
+          "finding": "OllamaEmbeddingProvider was removed from flume module—removed all @patch decorators for it; replaced flaky RNG-based mock with deterministic category vectors (deploy→dims 0-127, test→dims 128-255)"
+        },
+        {
+          "path": "src/cohezion/cache/cache_warmer.py",
+          "line": 1,
+          "end_line": 30,
+          "finding": "analyze_cache_effectiveness() must remain async (called with await in test_cache_warmer.py) even if it contains no real async I/O—removing async breaks one test file while fixing the other"
+        }
+      ],
+      "workflow": [
+        "AsyncMock required whenever mocking awaitable methods—MagicMock().method() returns MagicMock (not awaitable), causing TypeError at await; patch httpx.AsyncClient not httpx.Client",
+        "unittest.TestCase cannot use async def test_*—wrap all async client calls with asyncio.run(); create coroutines fresh each call to avoid 'coroutine already awaited' errors",
+        "FastMCP protocol requires {'type': 'text', 'text': '...'} format in content items—omitting 'type' causes silent fallthrough to wrong return branch",
+        "TDD for autoresearch: write experiment spec (hypothesis, falsification criterion) before running; experiments without retirement criteria will run thousands of times (E51: 4,786 runs with no stop condition)",
+        "Retirement criterion should use CV of last-10 keep metrics < 0.05 with n_keeps >= 20; converged AND 0%-keep experiments should both retire (different criteria needed for each case)",
+        "For surgical git commits on large repos with background processes: ruff format + ruff check --fix manually, git stash --keep-index, commit, git stash pop; avoid 'git add -A'",
+        "When FlumeVAE or similar deep-learning modules change return signatures, update unpacking in all callers—test_vae.py, evaluate_vae.py, and train_vae.py all unpacked different value counts",
+        "The HIHO balance (0.5 threshold) applied to autoresearch scheduling: exploit (tune parameters) when recent coherence >= 0.5, explore (new hypotheses) when below",
+        "Multi-agent team pattern for overnight runs: spawn specialist agents for independent subtasks (test fixes, experiments, harness), main context handles cross-cutting concerns; agents commit independently via Entire.io",
+        "Compound analytics pipeline for experiment lifecycle: experiment_analytics → experiment_scheduler → experiment_recommender → loop_visualizer provides a complete observatory for the research process"
+      ]
+    },
+    "friction": [
+      "Entire.io checkpoint daemon repeatedly reverted working tree files to HEAD from orphan branches—required constant 'git checkout HEAD -- <file>' recovery; 96+ files had to be restored mid-session",
+      "autoresearch.jsonl LFS pointer/content mismatch blocked every pre-commit stash/restore cycle until the file was untracked",
+      "Gemini worktree was cleaned up losing the 3,500+ line updated overnight_evo_loop.py with E55-E62 experiments—had to reimplement from summary",
+      "Lemonade iGPU entered silent failure state returning empty strings for evaluation prompts (but not arithmetic)—required detecting via functional probe and falling back to heuristic mode",
+      "Multiple incorrect E5 closure-loop attempts (E5/E6/E7/E14) before discovering root cause: run_llm_deliberation() overwrites _score_adjustments on every call",
+      "SurrealDB had multiple syntax incompatibilities: SELECT 1 returns 400, string timestamps rejected, string::starts_with unsupported, SCHEMAFULL blocking metadata subfields—each discovered only at runtime",
+      "Pre-commit hooks intermittently failed due to ruff auto-fixing staged files and changing their content mid-commit-hook, causing stash/restore conflicts",
+      "psutil mock needed both CPU AND memory patching—discovered only after 16 tests passed in isolation but failed in full suite run when machine was at 99.4% CPU",
+      "BioelectricNetwork API mismatch: .percolate() doesn't exist (correct: percolation_analysis(threshold)); result field is largest_cluster_size not giant_component_fraction—only discovered during E71 implementation",
+      "log_result() 6-positional-arg signature caused silent bugs in E71-E76 when called with 4 args in wrong order—no runtime error, just wrong data in JSONL"
+    ],
+    "open_items": [
+      "FLUME CLI tests (test_flume_cli.py, test_cli_train.py) still fail with SIGSEGV from GPU/HIP stack—hardware-specific, not fixable in code without hardware context",
+      "8 remaining compound test failures from test-ordering state leakage—tests pass in isolation but fail in full suite; requires ExecutorFactory.reset_singleton() in setUp for each affected test class",
+      "test_adversarial_flood StopIteration deep in BaseAgent async infrastructure—complex httpx AsyncMock setup, needs dedicated investigation",
+      "Lemonade iGPU ROCm stack in silent failure state—when hardware recovers, re-run E63/E64/E65 with real LLM scores to validate HIHO balance gains hold under genuine variance",
+      "PR #113 (autoresearch/pr-merge-20260502) still open—contains E57 fix, E63/E64 experiments, retirement criterion; needs merge review and CI passage",
+      "JEPA persistent learning (E43 checkpoint at /tmp/cohezion_jepa_checkpoint.pt) never showed measurable improvement—root cause: heuristic mode produces flat input distribution (single attractor), JEPA needs LLM mode with genuine variance to generalize",
+      "ExperimentScheduler not yet wired into overnight_evo_loop.py main loop for automatic retirement—retirement_candidates (E50, E12) detected but not auto-removed from SCHEDULE",
+      "E74-E76 experiments just had log_result signature fixed—need first validation run to confirm they produce meaningful keep/discard signals",
+      "Vault persistence for synthesized Mycelium skills doesn't persist across sessions—local MyceliumRegistry instance per experiment dies with the process; production CompoundExecutor._mycelium_registry never receives feedback",
+      "compound_score field added to ExecutionResult but not yet tracked over time in CompoundScoreWindow or surfaced in the CompoundEngine summary—the tracker exists but isn't wired to the executor output"
+    ]
+  }
+}
