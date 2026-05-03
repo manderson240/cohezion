@@ -2,8 +2,6 @@ import asyncio
 
 # Use absolute import to get the standard library platform
 import importlib
-import os
-import sys
 from pathlib import Path
 
 import pytest
