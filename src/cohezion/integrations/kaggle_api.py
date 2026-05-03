@@ -1,7 +1,6 @@
 import json
 import logging
 import os
-import subprocess
 from pathlib import Path
 
 import httpx
@@ -62,9 +61,14 @@ class KaggleAPI:
 
     async def download_dataset_path(self, competition_id: str) -> Path:
         """Download competition data from Kaggle using kagglehub (returns Path)."""
+        import asyncio
+
         logger.info(f"Downloading data for competition: {competition_id} via kagglehub")
         try:
-            download_path = kagglehub.competition_download(competition_id)
+            # kagglehub.competition_download is synchronous blocking I/O
+            download_path = await asyncio.to_thread(
+                kagglehub.competition_download, competition_id
+            )
             logger.info(f"Data downloaded to: {download_path}")
             return Path(download_path)
         except Exception as e:
