@@ -136,6 +136,20 @@ class JourneyTracker:
         # Operation modulation profiles (12D vectors)
         self._modulation_profiles = self._create_modulation_profiles()
 
+        # Optional FLUME encoder (injected externally or loaded from checkpoint)
+        self._flume_encoder = None
+
+        # Try loading TemporalVAELoader from checkpoint if one is available
+        self._temporal_encoder = None
+        try:
+            from cohezion.flume.temporal_encoder import TemporalVAELoader
+
+            loader = TemporalVAELoader()
+            if loader.enabled:
+                self._temporal_encoder = loader
+        except Exception as exc:
+            logger.debug("TemporalVAELoader unavailable: %s", exc)
+
         logger.debug("Initialized JourneyTracker with seed=%d", seed)
 
     def _create_modulation_profiles(self) -> dict[str, np.ndarray]:
@@ -512,32 +526,11 @@ class JourneyTracker:
         Non-blocking HTTP POST. Silently fails if SurrealDB is unavailable.
         Uses port 8001 (native binary, writable per L187).
         """
-        import json
         import urllib.request
-
-        data = json.dumps(
-            {
-                "dimensions": point.dimensions.tolist()
-                if hasattr(point.dimensions, "tolist")
-                else list(point.dimensions),
-                "coherence": point.coherence,
-                "efficiency": point.efficiency,
-                "operation_type": point.operation_type,
-                "task_description": point.task_description[:200],
-                "metadata": {
-                    k: v
-                    for k, v in (point.metadata or {}).items()
-                    if isinstance(v, (str, int, float, bool))
-                },
-            }
-        ).encode("utf-8")
-
-        surql = "CREATE journey_transition CONTENT $data;"
-        body = json.dumps({"surql": surql, "data": json.loads(data)}).encode("utf-8")
 
         req = urllib.request.Request(
             "http://localhost:8001/sql",
-            data=f"CREATE journey_transition SET dimensions = {point.dimensions.tolist() if hasattr(point.dimensions, 'tolist') else list(point.dimensions)}, coherence = {point.coherence}, efficiency = {point.efficiency}, operation_type = '{point.operation_type}', task = '{point.task_description[:100].replace(chr(39), '')}', created = time::now();".encode(),
+            data=f"CREATE journey_transition SET dimensions = {point.dimensions.tolist() if hasattr(point.dimensions, 'tolist') else list(point.dimensions)}, coherence = {point.coherence}, efficiency = {point.efficiency}, operation_type = '{point.operation_type}', task = '{point.task_description[:100].replace(chr(39), '')}', created = time::now();".encode(),  # noqa: E501
             headers={
                 "Accept": "application/json",
                 "surreal-ns": "cohezion",
@@ -575,6 +568,13 @@ class JourneyTracker:
         Returns:
             Normalized 2048D numpy array
         """
+        # FLUME encoder path: 256D → tile to 2048D (preserves cosine similarity structure)
+        if self._flume_encoder is not None and self._flume_encoder.is_available():
+            emb = self._flume_encoder.encode(text).astype(np.float64)
+            latent = np.tile(emb, 8)[:2048]
+            norm = np.linalg.norm(latent)
+            return latent / norm if norm > 0 else latent
+
         # Fallback: deterministic hash-based encoding
         # Always produces 2048D for consistency with FLUME compression pipeline
         import hashlib
@@ -584,6 +584,41 @@ class JourneyTracker:
         latent = rng.standard_normal(2048).astype(np.float64)
         norm = np.linalg.norm(latent)
         return latent / norm if norm > 0 else latent
+
+    def encode_step_sequence(self, steps: list[dict]) -> np.ndarray:
+        """Encode a sequence of journey steps to a deterministic 2048D embedding.
+
+        Each step dict should have: trajectory (list[float]), coherence, novelty,
+        improvement (floats), skill (str).  Returns a normalized unit vector in
+        [-1, 1]^2048.
+        """
+        import hashlib
+
+        feats = []
+        for step in steps:
+            traj = np.array(step.get("trajectory", [0.0] * 12), dtype=np.float64)
+            scalars = np.array(
+                [
+                    float(step.get("coherence", 0.5)),
+                    float(step.get("novelty", 0.5)),
+                    float(step.get("improvement", 0.0)),
+                    int(hashlib.md5(step.get("skill", "").encode()).hexdigest()[:8], 16) / 2**32,
+                ],
+                dtype=np.float64,
+            )
+            feats.append(np.concatenate([traj, scalars]))
+
+        feat_arr = np.array(feats, dtype=np.float64)
+        mean_f = feat_arr.mean(axis=0)
+        std_f = feat_arr.std(axis=0) if len(feats) > 1 else np.zeros_like(mean_f)
+        agg = np.concatenate([mean_f, std_f])
+
+        # Hash-project aggregate to 2048D deterministically
+        seed = int.from_bytes(hashlib.sha256(agg.tobytes()).digest()[:8], "big")
+        rng = np.random.default_rng(seed)
+        embedding = rng.standard_normal(2048).astype(np.float32)
+        norm = np.linalg.norm(embedding)
+        return embedding / norm if norm > 0 else embedding
 
     def holographic_project(self, latent: np.ndarray) -> np.ndarray:
         """Project latent vector to 12D manifold via chunk-mean projection.
