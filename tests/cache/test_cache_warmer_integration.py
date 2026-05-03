@@ -362,10 +362,11 @@ class TestCacheWarmerAnalyze:
     """Tests for analyze_cache_effectiveness method."""
 
     @pytest.mark.fast
-    def test_analyze_cache_effectiveness(self, mock_semantic_cache):
+    @pytest.mark.asyncio
+    async def test_analyze_cache_effectiveness(self, mock_semantic_cache):
         """Test cache analysis."""
         warmer = CacheWarmer(mock_semantic_cache, mcp_client=None)
-        result = warmer.analyze_cache_effectiveness()
+        result = await warmer.analyze_cache_effectiveness()
 
         assert "current_hit_rate" in result
         assert "l1_hit_rate" in result
