@@ -1,6 +1,6 @@
 import asyncio
 import time
-from unittest.mock import MagicMock, patch
+from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
 
@@ -42,10 +42,10 @@ async def test_adversarial_flood():
     # but we'll let some through if we want "real" results.
     # For a pure adversarial logic test, we'll mock the response.
 
-    with patch("httpx.AsyncClient.post") as mock_post:
-        mock_post.return_value = MagicMock(
-            status_code=200, json=lambda: {"response": "Mocked stability response"}
-        )
+    mock_response = MagicMock(status_code=200)
+    mock_response.json.return_value = {"response": "Mocked stability response"}
+    with patch("httpx.AsyncClient.post", new_callable=AsyncMock) as mock_post:
+        mock_post.return_value = mock_response
 
         time.perf_counter()
         tasks = [agent.process(f"query {i}") for i, agent in enumerate(agents)]

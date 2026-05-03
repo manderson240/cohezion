@@ -482,7 +482,6 @@ async def check_redis_health() -> dict[str, Any]:
         logger.warning("Redis health check failed: %s", exc)
         return err(str(exc), url=redis_url)
 
-
 def main() -> None:
     """Run the MCP server."""
     health = asyncio.run(check_redis_health())

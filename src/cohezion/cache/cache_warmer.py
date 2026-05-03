@@ -324,7 +324,7 @@ class CacheWarmer:
             logger.debug(f"Cache warming from recent executions failed: {e}")
             return 0
 
-    def analyze_cache_effectiveness(self) -> dict:
+    async def analyze_cache_effectiveness(self) -> dict:
         """Analyze current cache effectiveness.
 
         Returns:
