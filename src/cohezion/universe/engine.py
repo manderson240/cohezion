@@ -267,6 +267,51 @@ class AxiomaticState:
         spin_weight = 0.7 + 0.3 * equatorial_alignment
         return base_coherence * spin_weight
 
+    def check_precipitation(self) -> dict:
+        """Smith's precipitation gate: evaluate multi-physics convergence.
+
+        Combines HIHO threshold, Shannon entropy, and thermodynamic free energy
+        to determine if the state is ready to precipitate (crystallise intent).
+
+        Returns dict with keys:
+            precipitate, hiho_stability, coherence, shannon_entropy_bits,
+            free_energy, spontaneous, mechanism
+        """
+        import math
+
+        coherence = float(self.coherence_score())
+
+        # HIHO stability: maximum at coherence=0.5 (exploit/explore balance)
+        hiho_stability = max(0.0, min(1.0, 1.0 - abs(coherence - 0.5) * 2.0))
+
+        # Shannon entropy (bits): H = -p*log2(p) - (1-p)*log2(1-p)
+        # Clamped to avoid log(0); 0 at p=0 and p=1, max at p=0.5
+        p = max(1e-9, min(1.0 - 1e-9, coherence))
+        shannon_h = -p * math.log2(p) - (1.0 - p) * math.log2(1.0 - p)
+
+        # Thermodynamic: temperature = 1 - awareness (temporal dimension)
+        temperature = 1.0 - max(0.0, min(1.0, float(self.temporal)))
+        free_energy = float(coherence - temperature * shannon_h)
+
+        precipitate = bool(coherence > 0.5)
+        spontaneous = bool(free_energy < 0.0)
+
+        mechanism = (
+            "Smith precipitation gate: HIHO threshold (coherence>0.5) + "
+            "thermodynamic free energy F=E-TS + Shannon information entropy. "
+            "Precipitation occurs when HIHO exploitation phase is active."
+        )
+
+        return {
+            "precipitate": precipitate,
+            "hiho_stability": hiho_stability,
+            "coherence": coherence,
+            "shannon_entropy_bits": shannon_h,
+            "free_energy": free_energy,
+            "spontaneous": spontaneous,
+            "mechanism": mechanism,
+        }
+
 
 @dataclass
 class LatentState:
