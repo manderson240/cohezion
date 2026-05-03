@@ -276,39 +276,29 @@ def _phase_batch_port(
             logger.warning("Batch-port phase interrupted by SIGINT")
             break
         try:
-            # Try python -m cohezion.prime_to_hermes --skill <stem> [--dry-run]
+            # Try scripts/prime_to_hermes_converter.py --skill <stem> [--dry-run]
             import subprocess
 
-            cmd = [sys.executable, "-m", "cohezion.prime_to_hermes", "--skill", stem]
+            converter = _REPO_ROOT / "scripts" / "prime_to_hermes_converter.py"
+            cmd = [sys.executable, str(converter), "--skill", stem]
             if dry_run:
                 cmd.append("--dry-run")
             # 60s timeout per skill
             result = subprocess.run(cmd, capture_output=True, text=True, timeout=60, cwd=_REPO_ROOT)
             if result.returncode == 0:
                 successes += 1
-                logger.info("  ✓ %s", stem)
+                logger.info("  %s", stem)
             else:
                 err = result.stderr.strip() or "non-zero exit"
                 errors.append(f"{stem}: {err}")
-                logger.warning("  ✗ %s — %s", stem, err)
+                logger.warning("  %s — %s", stem, err)
         except FileNotFoundError:
-            # Module not available as CLI — fall back to direct import
-            try:
-                from cohezion.prime_to_hermes import convert_skill
-
-                out = convert_skill(stem, dry_run=dry_run)
-                if out:
-                    successes += 1
-                    logger.info("  ✓ %s (import fallback)", stem)
-                else:
-                    errors.append(f"{stem}: conversion returned None")
-                    logger.warning("  ✗ %s — conversion returned None", stem)
-            except Exception as exc:
-                errors.append(f"{stem}: {exc}")
-                logger.warning("  ✗ %s — %s", stem, exc)
+            err = f"converter not found at {converter}"
+            errors.append(f"{stem}: {err}")
+            logger.warning("  %s — %s", stem, err)
         except Exception as exc:
             errors.append(f"{stem}: {exc}")
-            logger.warning("  ✗ %s — %s", stem, exc)
+            logger.warning("  %s — %s", stem, exc)
 
     return PhaseResult(
         phase="batch_port",
