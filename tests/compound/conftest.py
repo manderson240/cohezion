@@ -9,8 +9,17 @@ from cohezion.core.mcp_client import MCPClient
 
 
 class _MockVirtualMemory:
-    """Fake psutil result — reports 50% memory so resource guardrails don't fire."""
+    """Fake psutil result — reports 50% memory so resource guardrails don't fire.
+
+    Includes all attributes used by silicon_guard.py and the executor:
+      - percent: used by executor guardrail (threshold ~85%)
+      - total: 128 GiB (Strix Halo spec)
+      - available: 64 GiB free
+    """
     percent = 50.0
+    total = 128 * 1024 ** 3   # 128 GiB
+    available = 64 * 1024 ** 3  # 64 GiB free
+    used = 64 * 1024 ** 3
 
 
 @pytest.fixture(autouse=True)
