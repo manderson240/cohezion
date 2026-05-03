@@ -79,13 +79,15 @@ def test_get_registry_returns_singleton() -> None:
 
 
 def test_model_entry_is_dataclass_with_expected_fields() -> None:
+    from cohezion.inference.registry import WeightQuant
+
     sample = ModelEntry(
         model_id="x",
         lane=Lane.NPU,
         endpoint="http://localhost:1",
-        llamacpp_backend="flm",
+        runtime_backend="flm",
         task_affinity=frozenset({Task.ROUTING}),
-        quantization="INT4",
+        weight_quant=WeightQuant.INT4,
         context_window=1024,
     )
     assert sample.cost_per_1k_input_usd == 0.0

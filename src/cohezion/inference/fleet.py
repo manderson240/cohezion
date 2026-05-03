@@ -163,11 +163,10 @@ def _inject_symmetry_axis(payload: dict[str, Any], coherence: float | None) -> d
         bridge = get_symmetry_bridge()
         return bridge.apply_to_payload(payload, coherence)
     except (ImportError, AttributeError, KeyError, TypeError, ValueError) as exc:
-        # ImportError — bridge module missing (expected on fresh checkouts)
-        # AttributeError — get_symmetry_bridge or apply_to_payload signature drift
-        # KeyError / TypeError / ValueError — malformed payload the bridge rejects
-        # Anything else (MemoryError, KeyboardInterrupt, custom BridgeError)
-        # must propagate so the caller sees it rather than getting silent no-op.
+        import os
+
+        if os.environ.get("COHEZION_STRICT_AXIS"):
+            raise RuntimeError(f"Symmetry bridge unavailable (strict mode): {exc}") from exc
         logger.debug("Symmetry bridge unavailable: %s", exc)
         return payload
 
