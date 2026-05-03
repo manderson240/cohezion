@@ -1,0 +1,110 @@
+{
+  "cli_version": "0.5.6",
+  "checkpoint_id": "775713a9caa5",
+  "session_id": "fb0e73ef-0e64-40ce-97c1-25b10ba813a8",
+  "strategy": "manual-commit",
+  "created_at": "2026-05-03T01:20:45.433668014Z",
+  "branch": "main",
+  "checkpoints_count": 1,
+  "files_touched": [],
+  "agent": "Claude Code",
+  "model": "",
+  "turn_id": "506ed820b669",
+  "token_usage": {
+    "input_tokens": 1222,
+    "cache_creation_tokens": 3402396,
+    "cache_read_tokens": 316559278,
+    "output_tokens": 682162,
+    "api_call_count": 1158
+  },
+  "summary": {
+    "intent": "Improve Cohezion's ability to model agents as Exotic Vacuum Objects (EVOs) by wiring real FLUME encoding, EVO lifecycle tracking, SurrealDB journey persistence, Mycelium synthesis, and Ouroboros anomaly detection into a closed-loop autoresearch system that runs overnight and self-improves.",
+    "outcome": "Delivered E1-E6 (FLUME/EVO/Mycelium/Ouroboros wiring), ran 40K+ autoresearch experiments, found and fixed the critical E57 architectural bug (SET→additive calibration in apply_mycelium_feedback), validated the full closed-loop E55→E62, committed 11 regression tests, and fixed several unrelated bugs (ARC beam search, Triune reviewer veto, cache warmer async).",
+    "learnings": {
+      "repo": [
+        "run_llm_deliberation() unconditionally overwrites _score_adjustments on every call (line ~307) — Mycelium adjustments must go into _mycelium_calibration (cross-cycle stable) not _score_adjustments (per-deliberation ephemeral)",
+        "SurrealDB probe must use 'RETURN true;' not 'SELECT 1;' — bare SELECT not valid SurrealQL",
+        "SurrealDB SCHEMAFULL tables reject arbitrary subfields in TYPE object columns; use result field (option<string>) as JSON blob for variable EVO biography data",
+        "journey_point datetime fields require time::now() — string literal timestamps are rejected by SCHEMAFULL",
+        "ManifoldEnv verifiable reward = 0.4*r_hiho + 0.2*r_conservation + 0.2*r_unitarity + 0.2*r_gauge; r_hiho = 1 - 4*var(position) peaks at 1.0 when all 12 dims = 0.5",
+        "EVO coherence ceiling for single 4-tick deliberation: ~0.45-0.47; mark-every-tick persistent EVOs reach 0.8164; first HIHO crossing at tick 1 with optimal proposals",
+        "Quad-silver proposal formula (architecture+efficiency+safety/align+budget=True) achieves 100% approval in heuristic mode; resource voice is primary bottleneck (baseline 0.65, budget=False locks it there)",
+        "autoresearch.jsonl is tracked by git but continuously written by the overnight loop — pre-commit stash/restore fails with file conflict; should be in .gitignore",
+        "The Gemini worktree (.gemini/worktrees/) is automatically cleaned up and cannot be relied on for persistent work — always commit to the main repo immediately",
+        "Convergence formula for additive Mycelium compounding: consensus_n = 0.85 − 0.125 × (1−lr/2)^n, validated to max_error=0.00025; asymptotic limit is exactly the HIHO threshold",
+        "IEEE 754 edge case: sum([0.85]*n)/n < 0.85 — use result.approved (direct comparison) not float mean for threshold crossing determination"
+      ],
+      "code": [
+        {
+          "path": "src/cohezion/swarm/quadrature_nexus.py",
+          "finding": "apply_mycelium_feedback used SET semantics (_score_adjustments[vt] = adjustment) causing cycle-2 decay. Fixed to accumulate: _mycelium_calibration[vt] += adjustment; _score_adjustments[vt] = _mycelium_calibration[vt]. _mycelium_calibration must be initialized in __init__ as dict.fromkeys(VoiceType, 0.0)"
+        },
+        {
+          "path": "src/cohezion/swarm/quadrature_nexus.py",
+          "finding": "_evaluate_resource only checked budget_available context, ignored description text. Added +0.10 bonus for cost/budget/efficient/resource/reduce keywords to make it text-sensitive like other voices"
+        },
+        {
+          "path": "src/cohezion/storage/surreal_client.py",
+          "finding": "connect() set self.connected = True without any real HTTP call — entirely simulated. Rewrote to use httpx with RETURN true; probe, Basic auth header, surreal-ns/surreal-db headers"
+        },
+        {
+          "path": "src/cohezion/arc/solver.py",
+          "finding": "UCB1 sorting in beam_search ranked untested transforms (UCB1=∞) above confirmed-correct ones (score=1.0, UCB1=1.78). Fixed by tracking best_scoring_candidate separately from exploration-focused beam — best answer selection and expansion policy should be independent"
+        },
+        {
+          "path": "src/cohezion/compound/triune_reviewer.py",
+          "finding": "red_team_veto only checked for keyword 'contradiction' in the strategy string, not in critique content. Fixed to also trigger when any perspective critique contains 'CONTRADICTION: True'"
+        },
+        {
+          "path": "src/cohezion/environments/manifold_env.py",
+          "finding": "19D observation space (12D state + 3D Bloch + 4D fiber), 12D action space. hiho_time_ratio is the correct quality metric (fraction of episode in HIHO band), not final deviation (both conditions converge fully at 300 steps)"
+        },
+        {
+          "path": "tests/arc/test_grid_pipeline.py",
+          "finding": "Inversion test data [[0,1],[1,0]] → [[1,0],[0,1]] is geometrically ambiguous — solvable by both invert and flip_h. DFS returns flip_h first. Fixed test data to use a 3x3 asymmetric pattern only reachable by inversion"
+        },
+        {
+          "path": "tests/benchmarks/test_turbo_quant_kernels.py",
+          "finding": "Used skipif(not CUDA) but TurboQuant is a known placeholder — test should be xfail not skipif since it fails for reasons beyond CUDA absence"
+        },
+        {
+          "path": "scripts/autorun_2h.py",
+          "finding": "asyncio.wait_for(coro, timeout=remaining_s - 10) passes negative float when remaining_s < 10, causing immediate TimeoutError → infinite spin loop at deadline. Fixed with max(30.0, remaining_s - 10) guard and break when remaining < 30"
+        }
+      ],
+      "workflow": [
+        "Retirement criterion for autoresearch experiments: CV of last 10 keep metrics < 0.05 AND n_keeps ≥ 20 (converged attractor) OR keep_frac == 0 AND n_runs ≥ min_runs (confirmed noise). Without this, E51 ran 4786 times with cv=0.0000",
+        "Pre-experiment specification required: hypothesis, null hypothesis, falsification criterion, and list of confounds before writing any code — prevents 2-3 redesign cycles per experiment",
+        "timeit.default_timer() (= time.perf_counter) is preferred over time.time() for experiment wall-clock timing — monotonic and unaffected by NTP corrections",
+        "SCHEDULE labels must exactly match the experiment= string passed to log_result for retirement/tracking to work correctly",
+        "ruff format must be run before staging files — pre-commit runs ruff format --check and rejects unformatted files, causing the add/commit cycle to require an extra re-stage step",
+        "Lemonade LLM availability should be probed with an arithmetic test (2+2=) not /models endpoint — silent failure mode returns empty strings for evaluation prompts while arithmetic still works",
+        "When multiple overnight loop instances accumulate, kill all with pkill -f before restarting — stale processes compete for the event queue and corrupt results",
+        "V-model structural invariants embedded in experiments (fresh nexus per run, Mycelium actually synthesized non-null skill, score_adjustments verifiably changed) catch metric specification errors before 1000+ iterations waste compute"
+      ]
+    },
+    "friction": [
+      "Gemini worktree (.gemini/worktrees/2026-05-02-03-57-33-561-fvqr/) cleaned up automatically, destroying 3500+ lines of E55-E62 experiments — all edits went to a now-deleted file without any warning",
+      "pyproject.toml had 3 merge conflict blocks (HEAD vs isolated/session-oom-modularity) blocking all uv run commands until manually resolved",
+      "Lemonade iGPU ROCm stack entered silent failure state — all evaluation prompts return empty strings while arithmetic still works; no error message, required inference from behavior",
+      "pre-commit Playwright hook runs unconditionally (no files: filter) and requires a live localhost:3000 server — blocks every commit on a headless dev machine",
+      "autoresearch.jsonl tracked by git causes pre-commit stash/restore failure when overnight loop is writing to it concurrently",
+      "SCHEDULE labels (E55_mycelium) didn't match log_result experiment strings (E55) — retirement criterion silently never fired across an entire session",
+      "Interactive rebase was in-progress from a concurrent process, left detached HEAD state requiring abort and branch reattachment",
+      "Multiple autorun_2h and overnight_evo_loop processes accumulated across sessions without cleanup — required manual pkill investigation",
+      "SurrealDB client was entirely simulated for the entire prior session — connected=True without any HTTP call, all journey persistence silently dropped"
+    ],
+    "open_items": [
+      "apply_mycelium_feedback has no production callers in src/ beyond its definition — the E57 fix improves the API but is dormant until something calls it in production code (CompoundExecutor, orchestrator, or similar)",
+      "SurrealDB experiment_runs table still has 0 records — HTTP-direct write code for experiment results was only in the lost Gemini worktree",
+      "E63/E64 confirmed in heuristic mode (deterministic) but not yet validated with LLM voices where scores have genuine variance — needs Lemonade iGPU recovery",
+      "JEPA world model learning requires LLM mode for distributional diversity — heuristic mode produces single-attractor distribution that JEPA cannot generalize from",
+      "Ouroboros fires 320+ HIHO drift warnings on experimental EVO lifecycle transitions (vacuum→dissolving state resets look like drift events) — needs filtering to distinguish production from experimental contexts",
+      "Mycelium synthesized skills from autoresearch experiments are local instances per experiment run, never persisting to the production CompoundExecutor._mycelium_registry",
+      "280+ pre-existing test failures unrelated to this session (not investigated, not regressed by session changes)",
+      "autoresearch.jsonl should be added to .gitignore and removed from git tracking to prevent pre-commit conflicts",
+      "PR #113 (autoresearch/pr-merge-20260502) opened with session improvements — needs review and merge to main",
+      "E64 (multi-cycle Mycelium compounding test) was added to schedule but never ran in the 2-hour session — first result pending"
+    ]
+  }
+}
