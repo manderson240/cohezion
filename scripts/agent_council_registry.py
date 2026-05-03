@@ -208,10 +208,28 @@ AGENTS: list[dict] = [
 ]
 
 
+def _load_runtime_lane_overrides() -> dict:
+    """Hot-reload preferred_lane overrides from the persisted JSON registry.
+
+    E87 dogfood revealed: prior versions only updated registry JSON, not the
+    in-source AGENTS list. This loader makes the JSON authoritative at runtime
+    so dispatcher fixes apply immediately without source edits.
+    """
+    if not REGISTRY_PATH.exists():
+        return {}
+    try:
+        reg = json.loads(REGISTRY_PATH.read_text())
+        return {a["name"]: a.get("preferred_lane") for a in reg.get("agents", [])}
+    except Exception:
+        return {}
+
+
 def dispatch(agent: dict, profile: dict) -> tuple[dict | None, str]:
     """Pick the lane to actually call, given the agent's preferred lane + profile.
-    Returns (lane_dict, reason). lane_dict=None if reserved or unavailable."""
-    pref = agent["preferred_lane"]
+    Returns (lane_dict, reason). lane_dict=None if reserved or unavailable.
+    Honors runtime overrides from the persisted JSON registry."""
+    overrides = _load_runtime_lane_overrides()
+    pref = overrides.get(agent["name"], agent["preferred_lane"])
     if pref == "reserved":
         return None, f"reserved: {agent.get('reserved_reason','')}"
     if pref == "ensemble":
