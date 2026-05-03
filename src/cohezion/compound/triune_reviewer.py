@@ -109,6 +109,13 @@ class TriuneReviewer:
         red_team_veto = False
         if "contradiction" in strategy.lower() or "leakage" in strategy.lower():
             red_team_veto = True
+        # Also veto when all perspectives independently detected a contradiction.
+        # The keyword check catches explicit labels; this catches semantic detection
+        # by the reviewers themselves (e.g. "CONTRADICTION: True" in critique).
+        elif reviews and all(
+            "CONTRADICTION: TRUE" in r.critique.upper() for r in reviews
+        ):
+            red_team_veto = True
 
         is_approved = (avg_score >= 0.7) and not red_team_veto
 
