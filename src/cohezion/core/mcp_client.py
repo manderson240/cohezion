@@ -257,6 +257,93 @@ class MCPClient:
     # ``loop.run_in_executor`` and ``request_cache`` / ``batch_sizer`` use
     # them as plain callables. Tests stub them with ``patch.object``.
 
+    def vault_write_sync(self, path: str, content: str) -> None:
+        """Synchronous fire-and-forget wrapper for vault_write.
+
+        Safe to call from synchronous code. Best-effort — errors never raise.
+        Explicitly closes coroutines to suppress RuntimeWarning for unawaited coros.
+        """
+        # Try asyncio.run first (works when no loop is running)
+        coro = self.vault_write(path, content)
+        try:
+            asyncio.run(coro)
+            return
+        except RuntimeError:
+            coro.close()  # Prevent "coroutine never awaited" warning
+        except Exception as e:
+            coro.close()
+            logger.debug("vault_write_sync failed: %s", e)
+            return
+
+        # Fallback: create a dedicated loop (handles "loop already running" case)
+        coro2 = self.vault_write(path, content)
+        new_loop = asyncio.new_event_loop()
+        try:
+            new_loop.run_until_complete(coro2)
+        except Exception as e:
+            coro2.close()
+            logger.debug("vault_write_sync nested-loop failure: %s", e)
+        finally:
+            new_loop.close()
+
+    def vault_read_sync(self, path: str) -> str:
+        """Synchronous wrapper for vault_read.
+
+        Safe to call from synchronous code. Best-effort — errors return empty string.
+        Explicitly closes coroutines to suppress RuntimeWarning for unawaited coros.
+        """
+        # Try asyncio.run first (works when no loop is running)
+        coro = self.vault_read(path)
+        try:
+            return asyncio.run(coro)
+        except RuntimeError:
+            coro.close()  # Prevent "coroutine never awaited" warning
+        except Exception as e:
+            coro.close()
+            logger.debug("vault_read_sync failed: %s", e)
+            return ""
+
+        # Fallback: create a dedicated loop (handles "loop already running" case)
+        coro2 = self.vault_read(path)
+        new_loop = asyncio.new_event_loop()
+        try:
+            return new_loop.run_until_complete(coro2)
+        except Exception as e:
+            coro2.close()
+            logger.debug("vault_read_sync nested-loop failure: %s", e)
+            return ""
+        finally:
+            new_loop.close()
+
+    def vault_delete_sync(self, path: str) -> None:
+        """Synchronous fire-and-forget wrapper for vault_delete.
+
+        Safe to call from synchronous code. Best-effort — errors never raise.
+        Explicitly closes coroutines to suppress RuntimeWarning for unawaited coros.
+        """
+        # Try asyncio.run first (works when no loop is running)
+        coro = self.vault_delete(path)
+        try:
+            asyncio.run(coro)
+            return
+        except RuntimeError:
+            coro.close()  # Prevent "coroutine never awaited" warning
+        except Exception as e:
+            coro.close()
+            logger.debug("vault_delete_sync failed: %s", e)
+            return
+
+        # Fallback: create a dedicated loop (handles "loop already running" case)
+        coro2 = self.vault_delete(path)
+        new_loop = asyncio.new_event_loop()
+        try:
+            new_loop.run_until_complete(coro2)
+        except Exception as e:
+            coro2.close()
+            logger.debug("vault_delete_sync nested-loop failure: %s", e)
+        finally:
+            new_loop.close()
+
     def vault_search(self, query: str, limit: int = 10) -> list[dict[str, Any]]:
         """Synchronously search the vault for content matching ``query``.
 

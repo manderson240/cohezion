@@ -153,3 +153,15 @@ def get_rate_limiter() -> RateLimiter:
     if _limiter is None:
         _limiter = RateLimiter()
     return _limiter
+
+
+def reset_rate_limiter() -> None:
+    """Drop the rate-limiter singleton so the next call creates a fresh one.
+
+    Test-only hook: token buckets accumulate across calls and the singleton
+    survives between tests, which lets one test starve a key's bucket and
+    cause a downstream guardrail to BLOCK a later test's request. Tests
+    invoke this from ``conftest.reset_singletons`` to enforce isolation.
+    """
+    global _limiter
+    _limiter = None

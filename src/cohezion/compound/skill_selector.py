@@ -127,10 +127,10 @@ class SkillSelector:
         )
 
         try:
-            # Query vault for relevant patterns
-            context = self.mcp_client.vault_find_relevant_context(
-                query=f"{task_description} {operation_type}",
-                project=project,
+            # Query vault for relevant patterns via sync wrapper
+            context = self.mcp_client.vault_search(
+                f"{task_description} {operation_type}",
+                limit=10,
             )
 
             # Extract skill performance data from patterns

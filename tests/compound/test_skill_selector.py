@@ -262,7 +262,7 @@ class TestSkillSelection:
 
     def test_select_skills_empty_context(self, mock_mcp_client, selector):
         """Test skill selection with no context."""
-        mock_mcp_client.vault_find_relevant_context.return_value = []
+        mock_mcp_client.vault_search.return_value = []
 
         result = selector.select_skills(
             "Generate ideas",
@@ -274,7 +274,7 @@ class TestSkillSelection:
 
     def test_select_skills_single_match(self, mock_mcp_client, selector):
         """Test skill selection with one matching skill."""
-        mock_mcp_client.vault_find_relevant_context.return_value = [
+        mock_mcp_client.vault_search.return_value = [
             {
                 "title": "generator_generate_success",
                 "content": "coherence: 0.9",
@@ -292,7 +292,7 @@ class TestSkillSelection:
 
     def test_select_skills_multiple_matches(self, mock_mcp_client, selector):
         """Test skill selection with multiple matches."""
-        mock_mcp_client.vault_find_relevant_context.return_value = [
+        mock_mcp_client.vault_search.return_value = [
             {"title": "skill1", "content": "coherence: 0.9\nefficiency: 0.8"},
             {"title": "skill2", "content": "coherence: 0.7\nefficiency: 0.9"},
             {"title": "skill3", "content": "coherence: 0.5\nefficiency: 0.5"},
@@ -310,7 +310,7 @@ class TestSkillSelection:
 
     def test_select_skills_top_k(self, mock_mcp_client, selector):
         """Test limiting results with top_k."""
-        mock_mcp_client.vault_find_relevant_context.return_value = [
+        mock_mcp_client.vault_search.return_value = [
             {"title": "skill1", "content": "coherence: 0.9"},
             {"title": "skill2", "content": "coherence: 0.8"},
             {"title": "skill3", "content": "coherence: 0.7"},
@@ -327,7 +327,7 @@ class TestSkillSelection:
 
     def test_select_skills_vault_error_graceful(self, mock_mcp_client, selector):
         """Test graceful handling of vault errors."""
-        mock_mcp_client.vault_find_relevant_context.side_effect = RuntimeError("Vault down")
+        mock_mcp_client.vault_search.side_effect = RuntimeError("Vault down")
 
         result = selector.select_skills(
             "Task",
@@ -342,7 +342,7 @@ class TestSkillRanking:
 
     def test_rank_skills_all_available(self, mock_mcp_client, selector):
         """Test ranking all available skills."""
-        mock_mcp_client.vault_find_relevant_context.return_value = [
+        mock_mcp_client.vault_search.return_value = [
             {"title": "skill1", "content": "coherence: 0.9"},
             {"title": "skill2", "content": "coherence: 0.7"},
         ]
@@ -364,7 +364,7 @@ class TestSkillRanking:
 
     def test_rank_skills_preserves_order_for_equal_scores(self, mock_mcp_client, selector):
         """Test ranking preserves list order for unavailable skills."""
-        mock_mcp_client.vault_find_relevant_context.return_value = []
+        mock_mcp_client.vault_search.return_value = []
 
         ranked = selector.rank_skills(
             ["skill1", "skill2", "skill3"],
@@ -382,7 +382,7 @@ class TestSkillSelectorIntegration:
 
     def test_workflow_select_then_rank(self, mock_mcp_client):
         """Test complete workflow: select then rank."""
-        mock_mcp_client.vault_find_relevant_context.return_value = [
+        mock_mcp_client.vault_search.return_value = [
             {"title": "generator", "content": "coherence: 0.85\nefficiency: 0.8"},
             {"title": "analyzer", "content": "coherence: 0.75\nefficiency: 0.9"},
         ]
@@ -411,7 +411,7 @@ class TestSkillSelectorIntegration:
 
     def test_skill_selector_with_complex_patterns(self, mock_mcp_client):
         """Test selector with complex pattern content."""
-        mock_mcp_client.vault_find_relevant_context.return_value = [
+        mock_mcp_client.vault_search.return_value = [
             {
                 "title": "Text Generation using Advanced Transformer",
                 "content": """

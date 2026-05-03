@@ -154,12 +154,14 @@ def reset_singletons():
     from cohezion.concurrency.ollama_gate import reset_gate
     from cohezion.cost_optimization.budget_enforcer import BudgetEnforcer
     from cohezion.cost_optimization.cost_tracker import SessionCostTracker
+    from cohezion.security.rate_limiter import reset_rate_limiter
     from cohezion.swarm.cost_aware_router import CostAwareRouter
     from cohezion.swarm.model_pool_manager import reset_pool_manager
 
     # Reset before test
     reset_gate()  # Reset OllamaGate singleton
     reset_pool_manager()  # Reset ModelPoolManager singleton
+    reset_rate_limiter()  # Reset RateLimiter token buckets (isolation)
     ExecutorFactory.reset_singleton()
     if hasattr(BatchableExecutor, "reset_singleton"):
         BatchableExecutor.reset_singleton()
@@ -201,6 +203,7 @@ def reset_singletons():
     # Reset after test
     reset_gate()  # Reset OllamaGate singleton
     reset_pool_manager()  # Reset ModelPoolManager singleton
+    reset_rate_limiter()  # Reset RateLimiter token buckets (isolation)
     ExecutorFactory.reset_singleton()
     if hasattr(BatchableExecutor, "reset_singleton"):
         BatchableExecutor.reset_singleton()
