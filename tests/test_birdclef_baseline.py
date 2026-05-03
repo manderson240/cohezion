@@ -20,7 +20,7 @@ def baseline():
 
 def test_audio_loading(baseline):
     """Verify librosa loads audio correctly."""
-    import librosa
+    librosa = pytest.importorskip("librosa")
 
     if not TEST_AUDIO.exists():
         pytest.skip("Test audio not found")
