@@ -380,14 +380,22 @@ class ModelPoolManager:
         """Return a snapshot of the current pool state."""
         loaded = [m.name for m in self._pool.values() if m.loaded]
         healthy = [m.name for m in self._pool.values() if m.loaded and m.healthy]
-        total_mem = sum(m.size_gb for m in self._pool.values() if m.loaded)
+        # Cloud/edge models are remote — do not count toward local VRAM
+        total_mem = sum(
+            m.size_gb
+            for m in self._pool.values()
+            if m.loaded and m.tier not in (ModelTierPolicy.CLOUD, ModelTierPolicy.EDGE)
+        )
 
         return PoolStatus(
             loaded_models=loaded,
             healthy_models=healthy,
             total_memory_gb=round(total_mem, 2),
             memory_pressure=round(self._memory.analyze_memory_pressure(), 3),
-            models={name: asdict(m) for name, m in self._pool.items()},
+            models={
+                name: asdict(m) if hasattr(m, "__dataclass_fields__") else vars(m)
+                for name, m in self._pool.items()
+            },
         )
 
     def get_model(self, model_name: str) -> PooledModel | None:

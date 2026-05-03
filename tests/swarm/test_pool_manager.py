@@ -59,6 +59,7 @@ class TestModelPoolManagerTiers:
                 "size_gb": 0.0,
                 "loaded": False,
                 "healthy": False,
+                "mark_used": lambda self: None,
             },
         )()
         manager._pool["edge-model"] = type(
@@ -70,6 +71,7 @@ class TestModelPoolManagerTiers:
                 "size_gb": 0.0,
                 "loaded": False,
                 "healthy": False,
+                "mark_used": lambda self: None,
             },
         )()
 
