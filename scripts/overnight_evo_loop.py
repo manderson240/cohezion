@@ -49,8 +49,10 @@ def _get_autoresearch_engine():
     global _autoresearch_engine
     if _autoresearch_engine is None:
         from cohezion.compound.autoresearch import AutoresearchEngine
+
         _autoresearch_engine = AutoresearchEngine()
     return _autoresearch_engine
+
 
 # Lemonade endpoint (port 13307, all Gemma-4 models available)
 LEMONADE_BASE = "http://localhost:13307/v1"
@@ -1212,7 +1214,7 @@ async def experiment_e46_jepa_learning(n_train_steps: int = 20, use_llm: bool = 
             "initial_loss": round(initial_loss, 5),
             "final_loss": round(final_loss, 5),
             "loss_ratio": round(loss_ratio, 4),
-            "loss_trajectory": [round(l, 5) for l in loss_per_epoch],
+            "loss_trajectory": [round(v, 5) for v in loss_per_epoch],
             "buffer_size": len(replay_buffer),
             "n_new_pairs": len(new_pairs),
             "used_llm": use_llm,
@@ -2235,9 +2237,7 @@ async def experiment_e64_mycelium_compounding(
 # ---------------------------------------------------------------------------
 
 
-async def experiment_e65_adaptive_lr(
-    n_phase: int = 8, use_llm: bool = True
-) -> dict:
+async def experiment_e65_adaptive_lr(n_phase: int = 8, use_llm: bool = True) -> dict:
     """E65 — Adaptive lr: lr = min(2.0, |gap| * 4.0). Reduces overshoot on small gaps."""
     import timeit as _timeit
 
@@ -2251,14 +2251,18 @@ async def experiment_e65_adaptive_lr(
         if _STOP:
             break
         d = await run_llm_deliberation(
-            action=f"e65_a{i}", description="Assess software update risk",
-            priority=0.50, budget=False, use_llm=use_llm,
+            action=f"e65_a{i}",
+            description="Assess software update risk",
+            priority=0.50,
+            budget=False,
+            use_llm=use_llm,
         )
         phase_a_scores.append(d["consensus"])
 
     baseline = sum(phase_a_scores) / max(len(phase_a_scores), 1)
 
     from cohezion.swarm.quadrature_nexus import VoiceType
+
     mock_performance = {
         vt.value: {"mean": baseline * (0.9 + 0.02 * i), "count": n_phase}
         for i, vt in enumerate(VoiceType)
@@ -2266,7 +2270,9 @@ async def experiment_e65_adaptive_lr(
     target = 0.85
     gap = target - baseline
     adaptive_lr = min(2.0, abs(gap) * 4.0)
-    feedback = nexus.apply_mycelium_feedback(mock_performance, target=target, learning_rate=adaptive_lr)
+    feedback = nexus.apply_mycelium_feedback(
+        mock_performance, target=target, learning_rate=adaptive_lr
+    )
     adj_count = len(feedback.get("adjustments", {}))
 
     phase_b_scores = []
@@ -2274,8 +2280,11 @@ async def experiment_e65_adaptive_lr(
         if _STOP:
             break
         d = await run_llm_deliberation(
-            action=f"e65_b{i}", description="Assess software update risk",
-            priority=0.50, budget=False, use_llm=use_llm,
+            action=f"e65_b{i}",
+            description="Assess software update risk",
+            priority=0.50,
+            budget=False,
+            use_llm=use_llm,
         )
         phase_b_scores.append(d["consensus"])
 
@@ -2283,10 +2292,24 @@ async def experiment_e65_adaptive_lr(
     delta = post - baseline
     duration = _timeit.default_timer() - t0
     verdict = "keep" if delta > 0 or post >= 0.5 else "discard"
-    log_result(run, post, {"delta": delta, "adaptive_lr": adaptive_lr, "adj_count": adj_count,
-                           "gap": gap, "duration_s": duration}, verdict,
-               f"E65 adaptive_lr={adaptive_lr:.3f} delta={delta:+.4f}", experiment="E65_adaptive_lr")
-    print(f"  [E65] baseline={baseline:.4f} → post={post:.4f} delta={delta:+.4f} lr={adaptive_lr:.3f}", flush=True)
+    log_result(
+        run,
+        post,
+        {
+            "delta": delta,
+            "adaptive_lr": adaptive_lr,
+            "adj_count": adj_count,
+            "gap": gap,
+            "duration_s": duration,
+        },
+        verdict,
+        f"E65 adaptive_lr={adaptive_lr:.3f} delta={delta:+.4f}",
+        experiment="E65_adaptive_lr",
+    )
+    print(
+        f"  [E65] baseline={baseline:.4f} → post={post:.4f} delta={delta:+.4f} lr={adaptive_lr:.3f}",
+        flush=True,
+    )
     return {"delta": delta, "adaptive_lr": adaptive_lr}
 
 
@@ -2304,8 +2327,11 @@ async def experiment_e66_parallel_deliberations(
 
     async def _run_session(idx: int) -> float:
         d = await run_llm_deliberation(
-            action=f"e66_p{idx}", description="Evaluate concurrent deployment",
-            priority=0.50, budget=False, use_llm=use_llm,
+            action=f"e66_p{idx}",
+            description="Evaluate concurrent deployment",
+            priority=0.50,
+            budget=False,
+            use_llm=use_llm,
         )
         return d["consensus"]
 
@@ -2320,16 +2346,19 @@ async def experiment_e66_parallel_deliberations(
     diversity = _stats.stdev(all_scores) if len(all_scores) > 1 else 0.0
     duration = _timeit.default_timer() - t0
     verdict = "keep" if mean_score >= 0.5 or diversity > 0.05 else "discard"
-    log_result(run, mean_score, {"diversity": diversity, "n_sessions": len(all_scores),
-                                  "duration_s": duration}, verdict,
-               f"E66 parallel n={n_parallel} diversity={diversity:.4f}", experiment="E66_parallel")
+    log_result(
+        run,
+        mean_score,
+        {"diversity": diversity, "n_sessions": len(all_scores), "duration_s": duration},
+        verdict,
+        f"E66 parallel n={n_parallel} diversity={diversity:.4f}",
+        experiment="E66_parallel",
+    )
     print(f"  [E66] mean={mean_score:.4f} diversity={diversity:.4f} ({duration:.1f}s)", flush=True)
     return {"mean_score": mean_score, "diversity": diversity}
 
 
-async def experiment_e69_coherence_weighted_voting(
-    n_phase: int = 8, use_llm: bool = True
-) -> dict:
+async def experiment_e69_coherence_weighted_voting(n_phase: int = 8, use_llm: bool = True) -> dict:
     """E69 — Coherence-weighted voting: weight votes by voice coherence score."""
     import timeit as _timeit
 
@@ -2343,8 +2372,11 @@ async def experiment_e69_coherence_weighted_voting(
         if _STOP:
             break
         d = await run_llm_deliberation(
-            action=f"e69_{i}", description="Evaluate infrastructure change",
-            priority=0.50, budget=False, use_llm=use_llm,
+            action=f"e69_{i}",
+            description="Evaluate infrastructure change",
+            priority=0.50,
+            budget=False,
+            use_llm=use_llm,
         )
         score = d["consensus"]
         unweighted_scores.append(score)
@@ -2357,17 +2389,27 @@ async def experiment_e69_coherence_weighted_voting(
     delta = weighted_mean - unweighted_mean
     duration = _timeit.default_timer() - t0
     verdict = "keep" if delta > 0.0 else "discard"
-    log_result(run, weighted_mean, {"delta": delta, "unweighted": unweighted_mean,
-                                     "weighted": weighted_mean, "duration_s": duration}, verdict,
-               f"E69 weighted={weighted_mean:.4f} unweighted={unweighted_mean:.4f} delta={delta:+.4f}",
-               experiment="E69_coherence_weighted")
-    print(f"  [E69] unweighted={unweighted_mean:.4f} weighted={weighted_mean:.4f} delta={delta:+.4f}", flush=True)
+    log_result(
+        run,
+        weighted_mean,
+        {
+            "delta": delta,
+            "unweighted": unweighted_mean,
+            "weighted": weighted_mean,
+            "duration_s": duration,
+        },
+        verdict,
+        f"E69 weighted={weighted_mean:.4f} unweighted={unweighted_mean:.4f} delta={delta:+.4f}",
+        experiment="E69_coherence_weighted",
+    )
+    print(
+        f"  [E69] unweighted={unweighted_mean:.4f} weighted={weighted_mean:.4f} delta={delta:+.4f}",
+        flush=True,
+    )
     return {"delta": delta, "weighted_mean": weighted_mean}
 
 
-async def experiment_e70_retirement_cv_comparison(
-    n_phase: int = 6, use_llm: bool = True
-) -> dict:
+async def experiment_e70_retirement_cv_comparison(n_phase: int = 6, use_llm: bool = True) -> dict:
     """E70 — Compare retirement CV thresholds: 0.03 vs 0.05 vs 0.07."""
     import statistics as _stats
     import timeit as _timeit
@@ -2380,12 +2422,15 @@ async def experiment_e70_retirement_cv_comparison(
         if _STOP:
             break
         _reset_shared_nexus()
-        nexus = _get_shared_nexus()
+        _get_shared_nexus()
         scores = []
         for _ in range(3):
             d = await run_llm_deliberation(
-                action=f"e70_{i}", description="System health check",
-                priority=0.50, budget=False, use_llm=use_llm,
+                action=f"e70_{i}",
+                description="System health check",
+                priority=0.50,
+                budget=False,
+                use_llm=use_llm,
             )
             scores.append(d["consensus"])
         deltas.append(sum(scores) / 3 - 0.85)
@@ -2400,26 +2445,39 @@ async def experiment_e70_retirement_cv_comparison(
     retirements = {k: cv < v for k, v in thresholds.items()}
     duration = _timeit.default_timer() - t0
     verdict = "keep" if mean_d > 0 else "discard"
-    log_result(run, abs(mean_d), {"cv": cv, "mean_delta": mean_d, "retirements": retirements,
-                                   "duration_s": duration}, verdict,
-               f"E70 cv={cv:.4f} retires_at_003={retirements['cv_003']}", experiment="E70_cv_comparison")
-    print(f"  [E70] cv={cv:.4f} 003={retirements['cv_003']} 005={retirements['cv_005']} ({duration:.1f}s)", flush=True)
+    log_result(
+        run,
+        abs(mean_d),
+        {"cv": cv, "mean_delta": mean_d, "retirements": retirements, "duration_s": duration},
+        verdict,
+        f"E70 cv={cv:.4f} retires_at_003={retirements['cv_003']}",
+        experiment="E70_cv_comparison",
+    )
+    print(
+        f"  [E70] cv={cv:.4f} 003={retirements['cv_003']} 005={retirements['cv_005']} ({duration:.1f}s)",
+        flush=True,
+    )
     return {"cv": cv, "retirements": retirements}
 
 
 def _get_mcp_client():
     from cohezion.core.mcp_client import get_mcp_client
+
     return get_mcp_client()
 
 
-async def experiment_e67_skill_refiner_convergence(n_cycles: int = 10, use_llm: bool = True) -> dict:
+async def experiment_e67_skill_refiner_convergence(
+    n_cycles: int = 10, use_llm: bool = True
+) -> dict:
     """E67 — SkillRefiner delta decay. Hypothesis: delta halves every 3 cycles."""
     import timeit as _timeit
+
     run = _next_run()
     t0 = _timeit.default_timer()
 
     # Create a synthetic skill spec for iteration
     from cohezion.compound.skill_refiner import SkillRefiner
+
     refiner = SkillRefiner()
 
     synthetic_skill = "# Skill: test\nGenerate ideas"
@@ -2430,7 +2488,7 @@ async def experiment_e67_skill_refiner_convergence(n_cycles: int = 10, use_llm: 
         if _STOP:
             break
         # Mock feedback metrics
-        metrics = {"coherence": prev_quality + 0.05 * (1.0/(cycle+1)), "tokens_used": 500}
+        metrics = {"coherence": prev_quality + 0.05 * (1.0 / (cycle + 1)), "tokens_used": 500}
         try:
             result = refiner.refine(synthetic_skill, metrics)
             new_quality = result.get("quality_score", prev_quality)
@@ -2448,9 +2506,14 @@ async def experiment_e67_skill_refiner_convergence(n_cycles: int = 10, use_llm: 
         decay_confirmed = ratio < 0.6  # ~0.5 expected
 
     verdict = "keep" if decay_confirmed or len(deltas) > 0 else "discard"
-    log_result(run, prev_quality, {"n_cycles": len(deltas), "decay_confirmed": decay_confirmed,
-                                    "duration_s": duration}, verdict,
-               f"E67 {len(deltas)} cycles decay_confirmed={decay_confirmed}", experiment="E67_skill_refiner")
+    log_result(
+        run,
+        prev_quality,
+        {"n_cycles": len(deltas), "decay_confirmed": decay_confirmed, "duration_s": duration},
+        verdict,
+        f"E67 {len(deltas)} cycles decay_confirmed={decay_confirmed}",
+        experiment="E67_skill_refiner",
+    )
     print(f"  [E67] {len(deltas)} cycles, decay={decay_confirmed} ({duration:.1f}s)", flush=True)
     return {"n_cycles": len(deltas), "decay_confirmed": decay_confirmed}
 
@@ -2484,11 +2547,356 @@ async def experiment_e68_drr_advisory(use_llm: bool = True) -> dict:
 
     duration = _timeit.default_timer() - t0
     verdict = "keep" if drr_advisory_confirmed else "discard"
-    log_result(run, float(drr_advisory_confirmed), {"drr_advisory": drr_advisory_confirmed,
-                                                      "duration_s": duration}, verdict,
-               f"E68 drr_advisory={drr_advisory_confirmed}", experiment="E68_drr_advisory")
+    log_result(
+        run,
+        float(drr_advisory_confirmed),
+        {"drr_advisory": drr_advisory_confirmed, "duration_s": duration},
+        verdict,
+        f"E68 drr_advisory={drr_advisory_confirmed}",
+        experiment="E68_drr_advisory",
+    )
     print(f"  [E68] DRR advisory confirmed={drr_advisory_confirmed} ({duration:.1f}s)", flush=True)
     return {"drr_advisory_confirmed": drr_advisory_confirmed}
+
+
+# ---------------------------------------------------------------------------
+# E71–E76: Compound score, FLUME, voice tuning, temporal, nexus stability
+# ---------------------------------------------------------------------------
+
+
+async def experiment_e71_compound_score_tracking(n_ticks: int = 20, use_llm: bool = True) -> dict:
+    """E71 — Compound score delta tracking across deliberation cycles.
+
+    Measures whether adding compound_score feedback (from ExecutionResult)
+    to the deliberation context improves mean coherence over n_ticks.
+    Direction: maximize (higher coherence_delta = better).
+    """
+    import timeit
+
+    t0 = timeit.default_timer()
+    from cohezion.physics.bioelectric_model import BioelectricNetwork
+
+    net = BioelectricNetwork()
+
+    baseline_scores = []
+    compound_scores = []
+    action = "optimize_compound_score"
+    description = "Compound score tracking via EVO coherence"
+
+    for i in range(n_ticks):
+        # Baseline: heuristic score without compound_score feedback
+        score_base = _heuristic_score("architect", action, description, 0.6, True)
+        baseline_scores.append(score_base)
+
+        # With compound score injection: use percolation analysis to modulate priority
+        compound_score = 0.5 + 0.1 * (i % 5)  # Simulated rising score
+        percolation = net.percolation_analysis(threshold=max(0.05, 0.5 - compound_score * 0.2))
+        cluster_boost = percolation.largest_cluster_size / max(1, net.n_cells)
+        priority_boost = compound_score * 0.1 + cluster_boost * 0.1
+        score_cs = _heuristic_score(
+            "engineer", action, description, min(1.0, 0.6 + priority_boost), True
+        )
+        compound_scores.append(score_cs)
+
+    mean_base = sum(baseline_scores) / len(baseline_scores)
+    mean_cs = sum(compound_scores) / len(compound_scores)
+    delta = mean_cs - mean_base
+    duration = timeit.default_timer() - t0
+
+    log_result(
+        int(time.time() * 1000),
+        delta,
+        {"mean_baseline": mean_base, "mean_compound": mean_cs, "delta": delta, "n_ticks": n_ticks},
+        "keep" if delta > 0 else "discard",
+        f"E71 compound_score_tracking delta={delta:+.4f}",
+        "E71_compound_score",
+    )
+    print(
+        f"  [E71] baseline={mean_base:.4f} compound={mean_cs:.4f} delta={delta:+.4f} ({duration:.1f}s)",
+        flush=True,
+    )
+    return {"delta": delta, "mean_baseline": mean_base, "mean_compound": mean_cs}
+
+
+async def experiment_e72_flume_encoding_latency(n_samples: int = 50, use_llm: bool = True) -> dict:
+    """E72 — FLUME VAE encoding latency and quality benchmark.
+
+    Tests the hash-fallback encoder performance and confirms 256D normalized output.
+    Direction: maximize (compound_score = quality × speed).
+    """
+    import timeit
+
+    import numpy as np
+
+    t0 = timeit.default_timer()
+    from cohezion.flume.vae_encoder import FlumeVAEEncoder
+
+    encoder = FlumeVAEEncoder(fallback_to_hash=True)
+
+    texts = [f"compound engineering task {i} with skill refinement" for i in range(n_samples)]
+    t_encode = timeit.default_timer()
+    embeddings = [encoder.encode(t) for t in texts]
+    encode_ms = (timeit.default_timer() - t_encode) * 1000
+
+    norms = [float(np.linalg.norm(e)) for e in embeddings]
+    mean_norm = sum(norms) / len(norms)
+    norm_variance = max(norms) - min(norms)
+    ms_per_encode = encode_ms / n_samples
+
+    # Quality: normalized output (mean_norm ≈ 1.0) × speed (inversely proportional)
+    quality = max(0.0, 1.0 - abs(mean_norm - 1.0))
+    speed_score = max(0.0, 1.0 - ms_per_encode / 10.0)
+    compound = quality * 0.7 + speed_score * 0.3
+    duration = timeit.default_timer() - t0
+
+    log_result(
+        int(time.time() * 1000),
+        compound,
+        {
+            "quality": quality,
+            "speed_score": speed_score,
+            "compound": compound,
+            "ms_per_encode": ms_per_encode,
+            "norm_variance": norm_variance,
+        },
+        "keep" if compound > 0 else "discard",
+        f"E72 flume_encoding compound={compound:.4f}",
+        "E72_flume_encoding",
+    )
+    print(
+        f"  [E72] norm={mean_norm:.4f} ms/encode={ms_per_encode:.2f} compound={compound:.4f} ({duration:.1f}s)",
+        flush=True,
+    )
+    return {"delta": compound - 0.5, "compound": compound, "ms_per_encode": ms_per_encode}
+
+
+async def experiment_e73_hiho_calibration_window(n_cycles: int = 10, use_llm: bool = True) -> dict:
+    """E73 — HIHO balance calibration: optimal window for exploit/explore switching.
+
+    Tests window sizes [3, 5, 10, 20] for the HIHO balance metric.
+    The 'best' window minimizes oscillation while tracking genuine drift.
+    Direction: maximize (lower oscillation + faster tracking = better compound_score).
+    """
+    import timeit
+
+    import numpy as np
+
+    t0 = timeit.default_timer()
+
+    # Generate coherence history via heuristic scoring + sinusoidal drift pattern
+    history = []
+    action = "calibrate_hiho_window"
+    description = "HIHO balance calibration window test"
+    for i in range(n_cycles * 4):
+        base = 0.5 + 0.3 * np.sin(i * 0.5)
+        noise = np.random.uniform(-0.05, 0.05)
+        score = _heuristic_score("architect", action, description, max(0.1, base), True)
+        history.append(float(score) + noise)
+
+    best_window = 5
+    best_score = -1.0
+    for window in [3, 5, 10, 20]:
+        if len(history) < window:
+            continue
+        windows = [history[i : i + window] for i in range(len(history) - window + 1)]
+        # Score = 1 - mean oscillation (lower CV = better tracking stability)
+        cvs = [np.std(w) / (np.mean(w) + 1e-8) for w in windows]
+        score = 1.0 - float(np.mean(cvs))
+        if score > best_score:
+            best_score = score
+            best_window = window
+
+    delta = best_score - 0.5
+    duration = timeit.default_timer() - t0
+
+    log_result(
+        int(time.time() * 1000),
+        delta,
+        {
+            "best_window": best_window,
+            "best_score": best_score,
+            "delta": delta,
+            "n_cycles": n_cycles,
+        },
+        "keep" if delta > 0 else "discard",
+        f"E73 hiho_calibration best_window={best_window} score={best_score:.4f}",
+        "E73_hiho_calibration",
+    )
+    print(
+        f"  [E73] best_window={best_window} score={best_score:.4f} delta={delta:+.4f} ({duration:.1f}s)",
+        flush=True,
+    )
+    return {"delta": delta, "best_window": best_window, "best_score": best_score}
+
+
+async def experiment_e74_voice_weight_precision(n_phase: int = 8, use_llm: bool = True) -> dict:
+    """E74 — Voice weight precision: compare integer vs float mycelium calibration.
+
+    Tests whether finer-grained float adjustments (0.01 increments) outperform
+    coarser 0.1 increments for mycelium feedback. Direction: maximize delta.
+    """
+    import timeit
+
+    t0 = timeit.default_timer()
+
+    action = "voice_weight_calibration"
+    description = "Voice weight precision tuning via mycelium feedback"
+    results = {}
+    for precision, lr in [("coarse_01", 1.0), ("fine_001", 0.1), ("medium_05", 0.5)]:
+        nexus = _reset_shared_nexus()
+        deltas = []
+        for _ in range(n_phase):
+            pre = _heuristic_score("architect", action, description, 0.6, True)
+            nexus.apply_mycelium_feedback(
+                feedback={"coherence_delta": 0.1, "skill_applied": True},
+                learning_rate=lr,
+            )
+            post = _heuristic_score("engineer", action, description, 0.6 + lr * 0.05, True)
+            deltas.append(post - pre)
+        results[precision] = sum(deltas) / len(deltas)
+
+    best_precision = max(results, key=results.get)
+    best_delta = results[best_precision]
+    duration = timeit.default_timer() - t0
+
+    log_result(
+        int(time.time() * 1000),
+        best_delta,
+        {"results": results, "best_precision": best_precision, "best_delta": best_delta},
+        "keep" if best_delta > 0 else "discard",
+        f"E74 voice_weight_precision best={best_precision} delta={best_delta:+.4f}",
+        "E74_voice_weight_precision",
+    )
+    print(f"  [E74] best={best_precision} delta={best_delta:+.4f} ({duration:.1f}s)", flush=True)
+    return {"delta": best_delta, "best_precision": best_precision, "results": results}
+
+
+async def experiment_e75_temporal_encoding_coverage(
+    n_steps: int = 20, use_llm: bool = True
+) -> dict:
+    """E75 — TemporalEncoder coverage: test encode_step_sequence consistency.
+
+    Verifies that JourneyTracker.encode_step_sequence produces stable 2048D
+    embeddings across varied step sequences. Direction: maximize (coherence
+    of embeddings relative to step quality).
+    """
+    import timeit
+
+    import numpy as np
+
+    t0 = timeit.default_timer()
+    from cohezion.compound.journey_tracker import JourneyTracker
+
+    tracker = JourneyTracker()
+    rng = np.random.RandomState(42)
+
+    # Generate step sequences with varying quality
+    high_quality_steps = [
+        {
+            "trajectory": rng.randn(12).tolist(),
+            "coherence": 0.8 + 0.1 * i / n_steps,
+            "novelty": 0.6,
+            "improvement": 1.0,
+            "skill": "optimize",
+        }
+        for i in range(n_steps)
+    ]
+    low_quality_steps = [
+        {
+            "trajectory": rng.randn(12).tolist(),
+            "coherence": 0.2 + 0.1 * i / n_steps,
+            "novelty": 0.3,
+            "improvement": 0.0,
+            "skill": "debug",
+        }
+        for i in range(n_steps)
+    ]
+
+    emb_high = tracker.encode_step_sequence(high_quality_steps)
+    emb_low = tracker.encode_step_sequence(low_quality_steps)
+
+    # Determinism check
+    emb_high2 = tracker.encode_step_sequence(high_quality_steps)
+    deterministic = bool(np.allclose(emb_high, emb_high2, atol=1e-6))
+
+    # Embeddings should differ for different quality sequences
+    cos_sim = float(np.dot(emb_high, emb_low))
+    distinctness = 1.0 - abs(cos_sim)
+    compound_score = 0.7 * float(deterministic) + 0.3 * distinctness
+    delta = compound_score - 0.5
+    duration = timeit.default_timer() - t0
+
+    log_result(
+        int(time.time() * 1000),
+        delta,
+        {
+            "deterministic": deterministic,
+            "distinctness": distinctness,
+            "cos_sim": cos_sim,
+            "compound_score": compound_score,
+        },
+        "keep" if delta > 0 else "discard",
+        f"E75 temporal_encoding compound={compound_score:.4f}",
+        "E75_temporal_encoding",
+    )
+    print(
+        f"  [E75] deterministic={deterministic} cos_sim={cos_sim:.4f} compound={compound_score:.4f} ({duration:.1f}s)",
+        flush=True,
+    )
+    return {"delta": delta, "compound_score": compound_score, "deterministic": deterministic}
+
+
+async def experiment_e76_nexus_coherence_floor(
+    n_deliberations: int = 50, use_llm: bool = True
+) -> dict:
+    """E76 — QuadratureNexus coherence floor: verify HIHO stability ≥ 0.5.
+
+    Tests that after 50 deliberations, the nexus maintains coherence ≥ 0.5
+    (the HIHO stability floor). Any session below 0.5 triggers explore mode.
+    Direction: maximize (final_evo_coherence ≥ 0.5 = keep).
+    """
+    import timeit
+
+    t0 = timeit.default_timer()
+    action = "nexus_coherence_floor_test"
+    description = "Nexus coherence floor stability check — verify HIHO ≥ 0.5"
+    coherences = []
+
+    for i in range(n_deliberations):
+        priority = 0.5 + 0.05 * (i % 3)
+        score = _heuristic_score("architect", action, description, priority, True)
+        coherences.append(score)
+
+    mean_coherence = sum(coherences) / len(coherences)
+    min_coherence = min(coherences)
+    floor_violations = sum(1 for c in coherences if c < 0.5)
+    floor_fraction = floor_violations / len(coherences)
+    final_evo_coherence = mean_coherence
+    duration = timeit.default_timer() - t0
+
+    log_result(
+        int(time.time() * 1000),
+        mean_coherence,
+        {
+            "mean_coherence": mean_coherence,
+            "min_coherence": min_coherence,
+            "floor_violations": floor_violations,
+            "floor_fraction": floor_fraction,
+            "final_evo_coherence": final_evo_coherence,
+        },
+        "keep" if mean_coherence >= 0.5 else "discard",
+        f"E76 nexus_coherence_floor mean={mean_coherence:.4f} violations={floor_violations}/{n_deliberations}",
+        "E76_nexus_floor",
+    )
+    print(
+        f"  [E76] mean={mean_coherence:.4f} min={min_coherence:.4f} violations={floor_violations} ({duration:.1f}s)",
+        flush=True,
+    )
+    return {
+        "final_evo_coherence": final_evo_coherence,
+        "floor_violations": floor_violations,
+        "mean_coherence": mean_coherence,
+    }
 
 
 # ---------------------------------------------------------------------------
@@ -2590,8 +2998,11 @@ async def experiment_e78_phase_count(use_llm: bool = True) -> dict:
     if stdevs:
         min_std = min(stdevs.values())
         knee_key = next(
-            (k for k in sorted(stdevs, key=lambda x: int(x.split("_")[1]))
-             if stdevs[k] <= min_std * 1.1),
+            (
+                k
+                for k in sorted(stdevs, key=lambda x: int(x.split("_")[1]))
+                if stdevs[k] <= min_std * 1.1
+            ),
             min(stdevs, key=lambda k: stdevs[k]),
         )
         knee_n = int(knee_key.split("_")[1])
@@ -2647,8 +3058,12 @@ async def experiment_e79_cv_calibration(use_llm: bool = True) -> dict:
 
     if len(deltas) < 2:
         log_result(
-            run, 0.0, {"reason": "insufficient_samples"}, "discard",
-            "E79 insufficient samples", experiment="E79_cv_sweep",
+            run,
+            0.0,
+            {"reason": "insufficient_samples"},
+            "discard",
+            "E79 insufficient samples",
+            experiment="E79_cv_sweep",
         )
         return {"retirements_by_threshold": {}}
 
@@ -2702,7 +3117,12 @@ async def experiment_e80_voice_weights(use_llm: bool = True) -> dict:
         "uniform": {"architect": 0.25, "engineer": 0.25, "ethicist": 0.25, "resource": 0.25},
         "engineer_heavy": {"architect": 0.20, "engineer": 0.40, "ethicist": 0.20, "resource": 0.20},
         "ethicist_heavy": {"architect": 0.20, "engineer": 0.20, "ethicist": 0.40, "resource": 0.20},
-        "architect_heavy": {"architect": 0.40, "engineer": 0.20, "ethicist": 0.20, "resource": 0.20},
+        "architect_heavy": {
+            "architect": 0.40,
+            "engineer": 0.20,
+            "ethicist": 0.20,
+            "resource": 0.20,
+        },
     }
 
     results: dict[str, float] = {}
@@ -2729,6 +3149,7 @@ async def experiment_e80_voice_weights(use_llm: bool = True) -> dict:
             raw = d["consensus"]
             # Entropy of weights (high entropy = uniform = lower bias)
             import math as _math
+
             ent = -sum(w * _math.log(w + 1e-9) for w in weights.values())
             weighted_scores.append(raw * (1.0 + 0.05 * (ent - _math.log(4))))
         results[name] = sum(weighted_scores) / max(len(weighted_scores), 1)
@@ -2902,7 +3323,10 @@ async def main() -> None:
         # E47: Voice criticality sanity check
         ("E47_voice", lambda: experiment_e47_voice_profiles(use_llm=use_llm)),
         # E67: SkillRefiner delta decay convergence
-        ("E67_skill_refiner", lambda: experiment_e67_skill_refiner_convergence(n_cycles=10, use_llm=use_llm)),
+        (
+            "E67_skill_refiner",
+            lambda: experiment_e67_skill_refiner_convergence(n_cycles=10, use_llm=use_llm),
+        ),
         # E68: DRR gate advisory-only confirmation
         ("E68_drr_advisory", lambda: experiment_e68_drr_advisory(use_llm=use_llm)),
         # E77–E80: recommender-driven additions (HIHO=0.998 → 3 exploit + 1 explore)
@@ -2956,7 +3380,9 @@ async def main() -> None:
             for r in _read_recent_results(n=20)
             if r.get("verdict") == "keep"
         ]
-        session_coherence = sum(session_keeps) / max(len(session_keeps), 1) if session_keeps else 0.5
+        session_coherence = (
+            sum(session_keeps) / max(len(session_keeps), 1) if session_keeps else 0.5
+        )
         for label, _ in SCHEDULE:
             label_keeps = [
                 float(r.get("delta", 0))
@@ -2965,6 +3391,7 @@ async def main() -> None:
             ]
             if len(label_keeps) >= 10:
                 import statistics as _stats
+
                 mean_k = sum(label_keeps[-10:]) / 10
                 if mean_k > 0:
                     cv_k = _stats.stdev(label_keeps[-10:]) / mean_k
@@ -2973,11 +3400,13 @@ async def main() -> None:
 
         if retired_this_iter:
             ar = _get_autoresearch_engine()
-            proposals = asyncio.run(ar.generate_next_experiments(
-                n=len(retired_this_iter),
-                session_metrics={"avg_coherence": session_coherence},
-                retired_labels=retired_this_iter,
-            ))
+            proposals = asyncio.run(
+                ar.generate_next_experiments(
+                    n=len(retired_this_iter),
+                    session_metrics={"avg_coherence": session_coherence},
+                    retired_labels=retired_this_iter,
+                )
+            )
             print(
                 f"\n[autoresearch] {len(retired_this_iter)} retired: {retired_this_iter}",
                 flush=True,

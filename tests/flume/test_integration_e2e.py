@@ -11,7 +11,7 @@ from __future__ import annotations
 import asyncio
 import json
 from pathlib import Path
-from unittest.mock import MagicMock, patch
+from unittest.mock import patch
 
 import numpy as np
 import pytest
@@ -20,22 +20,10 @@ from cohezion.flume.experience_collector import ExperienceCollector
 from cohezion.flume.vae_encoder import FlumeVAEEncoder
 
 
-def _mock_embed(text: str) -> np.ndarray:
-    """Deterministic 768D mock embedding (hash-based, semantically consistent)."""
-    rng = np.random.RandomState(hash(text) % (2**31))
-    v = rng.randn(768).astype(np.float32)
-    return v / (np.linalg.norm(v) + 1e-8)
-
-
 @pytest.fixture
 def flume_encoder():
-    """FlumeVAEEncoder with Ollama mocked (deterministic)."""
-    with patch("cohezion.flume.vae_encoder.OllamaEmbeddingProvider") as MockProvider:
-        mock_provider = MagicMock()
-        mock_provider.embed.side_effect = _mock_embed
-        MockProvider.return_value = mock_provider
-        enc = FlumeVAEEncoder(fallback_to_hash=True)
-    return enc
+    """FlumeVAEEncoder using hash fallback (deterministic, no Ollama calls)."""
+    return FlumeVAEEncoder(fallback_to_hash=True)
 
 
 class TestExecutionDataLogged:

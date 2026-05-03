@@ -360,6 +360,30 @@ async def main(hours: float = 2.0, use_llm: bool = True) -> None:
             lambda: evo.experiment_e12_persistent_evo(n_deliberations=500, use_llm=use_llm),
         ),
         ("E47_voice", lambda: evo.experiment_e47_voice_profiles(use_llm=use_llm)),
+        (
+            "E71_compound_score",
+            lambda: evo.experiment_e71_compound_score_tracking(n_ticks=20, use_llm=use_llm),
+        ),
+        (
+            "E72_flume_encoding",
+            lambda: evo.experiment_e72_flume_encoding_latency(n_samples=50, use_llm=use_llm),
+        ),
+        (
+            "E73_hiho_calibration",
+            lambda: evo.experiment_e73_hiho_calibration_window(n_cycles=10, use_llm=use_llm),
+        ),
+        (
+            "E74_voice_precision",
+            lambda: evo.experiment_e74_voice_weight_precision(n_phase=8, use_llm=use_llm),
+        ),
+        (
+            "E75_temporal_encoding",
+            lambda: evo.experiment_e75_temporal_encoding_coverage(n_steps=20, use_llm=use_llm),
+        ),
+        (
+            "E76_nexus_floor",
+            lambda: evo.experiment_e76_nexus_coherence_floor(n_deliberations=50, use_llm=use_llm),
+        ),
     ]
 
     DEADLINE = timeit.default_timer() + hours * 3600

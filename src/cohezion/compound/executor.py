@@ -69,6 +69,7 @@ class ExecutionResult:
     vault_experiment_path: str = ""
     vault_decision_paths: list[str] | None = None
     token_metrics: dict[str, Any] | None = None
+    compound_score: float = 0.0
 
 
 class CompoundExecutor(CompoundContextMixin, ExecutorIntegrationMixin):
@@ -305,7 +306,7 @@ class CompoundExecutor(CompoundContextMixin, ExecutorIntegrationMixin):
             import asyncio
 
             try:
-                loop = asyncio.get_running_loop()
+                asyncio.get_running_loop()
                 # Already in async context — can't block
                 return None
             except RuntimeError:

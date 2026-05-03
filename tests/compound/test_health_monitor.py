@@ -1,26 +1,26 @@
 """Tests for compound health monitor."""
+
 from cohezion.compound.health_monitor import (
     get_health_report,
-    test_autoresearch_available,
-    test_error_classifier_available,
-    test_session_metrics_available,
+    test_autoresearch_available as check_autoresearch,
+    test_error_classifier_available as check_error_classifier,
+    test_session_metrics_available as check_session_metrics,
 )
 
 
 class TestHealthMonitor:
-
     def test_autoresearch_check_passes(self):
-        result = test_autoresearch_available()
+        result = check_autoresearch()
         assert result["ok"] is True
         assert result["experiments"] == 1
 
     def test_error_classifier_check_passes(self):
-        result = test_error_classifier_available()
+        result = check_error_classifier()
         assert result["ok"] is True
         assert result["sample"] == "logic"  # ValueError → logic
 
     def test_session_metrics_check_passes(self):
-        result = test_session_metrics_available()
+        result = check_session_metrics()
         assert result["ok"] is True
 
     def test_health_report_structure(self):
@@ -43,4 +43,3 @@ class TestHealthMonitor:
         assert "experiment_scheduler" in report["checks"]
         assert "compound_engine" in report["checks"]
         assert "loop_visualizer" in report["checks"]
-
