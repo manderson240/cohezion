@@ -19,6 +19,7 @@ from typing import TYPE_CHECKING, Any
 
 from cohezion.compound.context_integration import CompoundContextMixin
 from cohezion.compound.executor_integration import ExecutorIntegrationMixin
+from cohezion.compound.post_execution import PostExecutionOrchestrator  # noqa: F401 — wiring: makes post_execution reachable from compound entry point
 from cohezion.compound.exp_persistence.vault import (
     ExecutionContext,
     VaultLogger,
