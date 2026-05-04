@@ -26,6 +26,10 @@
 set +e  # don't exit on any single failure
 cd /home/mike-anderson/dev/cohezion
 
+# SurrealDB v3 HTTP /sql protocol hangs on context-aware queries (confirmed May 2026).
+# surreal_index.py detects this and falls back to JSONL — skip the 2s probe cost entirely.
+export SURREAL_DISABLE=1
+
 LOG=/tmp/autoresearch_overnight.log
 echo "=== autoresearch_overnight start $(date -Iseconds) PID=$$ ===" | tee -a "$LOG"
 echo "  schedule: lit-scan every 2h, dispatcher every 6h, reflect every 4h, dogfood every 8h" | tee -a "$LOG"

@@ -34,6 +34,11 @@ REPO = Path("/home/mike-anderson/dev/cohezion")
 JSONL = REPO / "autoresearch.jsonl"
 VAULT_OBS = Path("/home/mike-anderson/vaults/cohezion-vault/memory/observations.jsonl")
 
+# Sibling-script import: O(1) last-id cache replaces O(N) full-file scans
+sys.path.insert(0, str(REPO / "scripts"))
+from jsonl_id_cache import bump_id, next_id  # noqa: E402
+import surreal_index  # noqa: E402  (silent-fail telemetry-grade index)
+
 # Import autoliterature helpers (it's a sibling script — load by file path)
 spec = importlib.util.spec_from_file_location(
     "autolit", REPO / "scripts" / "autoliterature_scanner.py"
@@ -44,17 +49,73 @@ sys.modules["autolit"] = autolit
 spec.loader.exec_module(autolit)
 
 
+def _tail_jsonl(path, n_rows: int) -> list[str]:
+    """Memory-efficient tail: seek near EOF and read forward.
+
+    Replaces `path.read_text().splitlines()[-n_rows:]` which would load the
+    entire 584 MB autoresearch.jsonl into memory just to keep the last 60 lines.
+    """
+    if not path.exists():
+        return []
+    size = path.stat().st_size
+    # Heuristic: average row ~500 B; reserve 4× headroom + 16 KB minimum.
+    chunk = max(16 * 1024, n_rows * 2000)
+    start = max(0, size - chunk)
+    with path.open("rb") as f:
+        f.seek(start)
+        buf = f.read()
+    # If we didn't start from byte 0, drop the partial first line.
+    text = buf.decode("utf-8", errors="ignore")
+    lines = text.splitlines()
+    if start > 0 and lines:
+        lines = lines[1:]
+    if len(lines) < n_rows and start > 0:
+        # Headroom guess was too small — fall back to a slightly bigger window
+        # rather than a full read_text. One retry at 4× chunk is plenty.
+        chunk2 = chunk * 4
+        start = max(0, size - chunk2)
+        with path.open("rb") as f:
+            f.seek(start)
+            buf = f.read()
+        text = buf.decode("utf-8", errors="ignore")
+        lines = text.splitlines()
+        if start > 0 and lines:
+            lines = lines[1:]
+    return lines[-n_rows:]
+
+
+def _trace_rows_via_surreal(experiment: str | None, n_rows: int) -> list[dict] | None:
+    """Try SurrealDB first; return None on silent-fail (so caller uses JSONL)."""
+    try:
+        rows = surreal_index.query_recent(experiment=experiment, n=n_rows)
+        if rows:
+            return rows
+    except Exception:
+        pass
+    return None
+
+
 def build_trace(n_rows: int = 60) -> tuple[str, dict]:
-    """Read tail of autoresearch.jsonl, build compact trace + summary stats."""
-    if not JSONL.exists():
+    """Build compact trace + summary stats from recent autoresearch rows.
+
+    Source preference: SurrealDB (indexed query) → JSONL tail (seeked read).
+    Both stay schema-compatible: each row has status/metric/asi/description fields.
+    """
+    if not JSONL.exists() and surreal_index.health().get("available") is not True:
         return "", {}
-    lines = JSONL.read_text().splitlines()[-n_rows:]
+
     rows: list[dict] = []
-    for ln in lines:
-        try:
-            rows.append(json.loads(ln))
-        except Exception:
-            pass
+    surreal_rows = _trace_rows_via_surreal(experiment=None, n_rows=n_rows)
+    if surreal_rows:
+        rows = surreal_rows
+        source = "surreal"
+    else:
+        for ln in _tail_jsonl(JSONL, n_rows):
+            try:
+                rows.append(json.loads(ln))
+            except Exception:
+                pass
+        source = "jsonl_tail"
     keep_n = sum(1 for r in rows if r.get("status") == "keep")
     discard_n = sum(1 for r in rows if r.get("status") == "discard")
     # Group by experiment label
@@ -84,13 +145,19 @@ def build_trace(n_rows: int = 60) -> tuple[str, dict]:
         "discarded": discard_n,
         "experiment_labels": sorted(by_exp.keys()),
         "labels_count": len(by_exp),
+        "source": source,
     }
     return trace, summary
 
 
 def reflect_via_lane(lane: dict, trace: str) -> dict:
-    """Ask a single lane: 'what experiment is missing?' Returns parsed verdict."""
-    prompt = (
+    """Ask a single lane: 'what experiment is missing?' Returns parsed verdict.
+
+    E104 anti-sycophancy: pairs the generative prompt with an adversarial
+    "what's wrong" prompt. A label that appears in BOTH the missing-list AND
+    the wrong-list is the strongest signal — both perspectives flag it.
+    """
+    base_prompt = (
         "You are reviewing an autonomous research loop's recent trace. "
         "Most experiments succeed (high keep rate) which suggests the loop is exploring "
         "an already-saturated region. Propose ONE concrete new experiment that "
@@ -102,28 +169,69 @@ def reflect_via_lane(lane: dict, trace: str) -> dict:
         '"why_novel": "<one sentence on why this is NOT redundant with the trace above>", '
         '"unblocks": "<one open problem this targets>"}'
     )
-    txt, telem = autolit._post_chat(
-        lane["model"], prompt, timeout=lane["timeout"], max_tokens=240
+    # E109: simplified critic — single-label answer, no JSON. The structured
+    # JSON critic (E106/E108) was empirically too hard for small models even
+    # at max_tokens=480. Plain-text label is much easier to grade and parse.
+    critic_prompt = (
+        "Looking at this autoresearch trace, which experiment label appears to be "
+        "OVER-INTERPRETED — where high keep-rate may be masking silent failures "
+        "or trivial wins?\n\n"
+        f"{trace}\n\n"
+        "Reply with ONLY the label (e.g. 'E63' or 'E80') — nothing else. "
+        "If no label is suspect, reply with 'NONE'."
     )
+
+    # E109: simplified single-label critic only needs ~5-15 tokens.
+    # Critic call timeout is half the lane timeout so the serial pair fits
+    # under the outer 30s ThreadPoolExecutor cap (was overflowing in E108).
+    txt, telem = autolit._post_chat(
+        lane["model"], base_prompt, timeout=lane["timeout"], max_tokens=240,
+        endpoint=lane.get("endpoint"),
+    )
+    crit_txt, crit_telem = autolit._post_chat(
+        lane["model"], critic_prompt,
+        timeout=max(5.0, lane["timeout"] / 2),
+        max_tokens=20,
+        endpoint=lane.get("endpoint"),
+    )
+
     out: dict = {
         "lane": lane["name"],
         "model": lane["model"],
         "latency_ms": telem["latency_ms"],
+        "critic_latency_ms": crit_telem["latency_ms"],
         "tokens_per_sec": telem["tokens_per_sec"],
         "ok": telem["ok"],
         "error_class": telem["error_class"],
     }
-    if not txt:
-        return out
-    m = re.search(r"\{.*\}", txt, re.DOTALL)
-    if not m:
-        out["raw"] = txt[:300]
-        return out
-    try:
-        parsed = json.loads(m.group(0))
-        out.update(parsed)
-    except Exception:
-        out["raw"] = txt[:300]
+    # Parse the generative response
+    if txt:
+        m = re.search(r"\{.*\}", txt, re.DOTALL)
+        if m:
+            try:
+                out.update(json.loads(m.group(0)))
+            except Exception:
+                out["raw"] = txt[:300]
+        else:
+            out["raw"] = txt[:300]
+    # E109: parse simplified single-label critic. Looks for the FIRST E-label
+    # token (E\d+) in the response. Falls back to "NONE" or the raw text.
+    if crit_txt:
+        clean = crit_txt.strip()
+        # Match any E-label (E1, E80, E97, E1234, etc.). Case-insensitive.
+        lm = re.search(r"\bE\d{1,4}\b", clean, re.IGNORECASE)
+        if lm:
+            suspect = lm.group(0).upper()
+            out["critic"] = {"suspect_experiment": suspect, "raw": clean[:200]}
+            proposed = ((out.get("proposed_experiment") or "").strip().lower())
+            # Convergence: if the same label appears in both lists, strongest signal
+            out["adversarial_convergence"] = bool(
+                proposed and (suspect.lower() in proposed or proposed.startswith(suspect.lower()))
+            )
+        elif "NONE" in clean.upper()[:50]:
+            out["critic"] = {"suspect_experiment": None, "raw": clean[:200]}
+        else:
+            out["critic_raw"] = clean[:300]
     return out
 
 
@@ -147,7 +255,7 @@ def main() -> int:
                    for lane in autolit.LEMONADE_LANES}
         for fut in as_completed(futures):
             try:
-                v = fut.result(timeout=30.0)
+                v = fut.result(timeout=120.0)  # E109: was 30s — too tight for 2-call lanes
                 # Update silicon_profile telemetry
                 autolit._update_silicon_profile(profile, v["lane"], {
                     "latency_ms": v["latency_ms"],
@@ -192,6 +300,31 @@ def main() -> int:
     consensus_label = max(label_count, key=label_count.get) if label_count else None
     consensus_count = label_count.get(consensus_label, 0) if consensus_label else 0
 
+    # E113 anti-sycophancy: unanimous vote is suspect — re-probe with adversarial prompt.
+    unanimous_flag: bool = False
+    if consensus_label and consensus_count == len(verdicts) and len(verdicts) > 1:
+        probe_lane = autolit.LEMONADE_LANES[0]
+        adv_prompt = (
+            f"The silicon council unanimously proposed '{consensus_label}'. Unanimous agreement "
+            "may reflect groupthink. What would make '{consensus_label}' the WRONG next experiment? "
+            "Name one alternative label from the trace that was under-weighted. "
+            "Reply with ONLY that label (e.g. 'E77') or 'CONFIRMED' if you stand by the pick."
+        )
+        try:
+            adv_txt, _ = autolit._post_chat(
+                probe_lane["model"], adv_prompt,
+                timeout=probe_lane["timeout"], max_tokens=20,
+                endpoint=probe_lane.get("endpoint"),
+            )
+            if adv_txt:
+                lm = re.search(r"\bE\d{1,4}\b", adv_txt.strip(), re.IGNORECASE)
+                if lm and lm.group(0).lower() != consensus_label:
+                    unanimous_flag = True
+                    print(f"[e80] ⚠️  UNANIMOUS DIVERGENCE: re-probe suggests "
+                          f"'{lm.group(0).upper()}' vs unanimous '{consensus_label}'", flush=True)
+        except Exception:
+            pass  # non-blocking
+
     elapsed = timeit.default_timer() - t0
 
     # Print
@@ -208,13 +341,7 @@ def main() -> int:
         print(f"    unblocks: {p['unblocks']}")
 
     # Persist to vault as type="reflection"
-    last_id = 0
-    for line in VAULT_OBS.read_text().splitlines():
-        try:
-            last_id = max(last_id, json.loads(line).get("id", 0))
-        except Exception:
-            pass
-    new_id = last_id + 1
+    new_id = next_id(VAULT_OBS, "id")
     ts = datetime.now(UTC).strftime("%Y-%m-%dT%H:%M:%SZ")
     text_parts = [
         f"E80 reflective autoresearch via silicon council. Analyzed {summary['rows_analyzed']} "
@@ -236,42 +363,89 @@ def main() -> int:
     obs = {"id": new_id, "timestamp": ts, "type": "reflection", "project": "cohezion",
            "title": f"E80 reflective autoresearch: {len(distinct_proposals)} novel proposals via silicon council "
                     f"(consensus: {consensus_label})",
-           "text": "\n".join(text_parts)}
+           "text": "\n".join(text_parts),
+           "experiment": "E80"}
     with VAULT_OBS.open("a") as f:
         f.write(json.dumps(obs) + "\n")
+    bump_id(VAULT_OBS, new_id, "id")
     print(f"\n[e80] saved vault observation #{new_id}", flush=True)
 
     # autoresearch.jsonl
-    last_run = 0
-    for line in JSONL.read_text().splitlines():
-        try:
-            last_run = max(last_run, json.loads(line).get("run", 0))
-        except Exception:
-            pass
+    new_run = next_id(JSONL, "run")
+    # E104 silent-abort guard: structural V-Model invariant. If we have NO
+    # successful lane verdicts AND no distinct proposals AND metric=0, this
+    # row represents a SILENT FAILURE (council fired but produced nothing
+    # parseable) — not a "keep". Logging it as "keep" would inflate the
+    # kept-rate that future E80 traces interpret as "we're succeeding".
+    n_ok_lanes = sum(1 for v in verdicts if v.get("ok"))
+    n_proposals = len(distinct_proposals)
+    if n_ok_lanes == 0 and n_proposals == 0:
+        run_status = "silent_abort"
+    elif n_proposals > 0:
+        run_status = "keep"
+    else:
+        run_status = "discard"
+    # Aggregate adversarial-convergence signal (E104 part-a)
+    n_adversarial_convergence = sum(1 for v in verdicts if v.get("adversarial_convergence"))
+    suspect_labels = [(v.get("critic") or {}).get("suspect_experiment")
+                      for v in verdicts if v.get("ok")]
+    suspect_labels = [s for s in suspect_labels if s]
+    # E113 anti-sycophancy #3: unanimous-vote warning. When ALL responsive lanes
+    # converge on the same label, that's *suspect* — disagreement is signal,
+    # consensus may be groupthink. Flag it; downstream scripts can re-fire with
+    # sharpened prompt + temperature=0.7 to test whether the consensus survives.
+    is_unanimous = (n_ok_lanes >= 3
+                    and consensus_label is not None
+                    and consensus_count == n_ok_lanes)
+    requires_dissent_check = is_unanimous
     entry = {
-        "run": last_run + 1, "metric": float(len(distinct_proposals)),
+        "run": new_run, "metric": float(n_proposals),
         "metrics": {
             "trace_rows_analyzed": summary["rows_analyzed"],
             "experiment_labels_in_trace": summary["labels_count"],
             "lanes_fired": len(verdicts),
-            "lanes_ok": sum(1 for v in verdicts if v.get("ok")),
-            "distinct_proposals": len(distinct_proposals),
+            "lanes_ok": n_ok_lanes,
+            "distinct_proposals": n_proposals,
             "consensus_label": consensus_label,
             "consensus_count": consensus_count,
+            "adversarial_convergence_lanes": n_adversarial_convergence,
+            "suspect_labels_voted": suspect_labels,
+            "unanimous_warning": is_unanimous,
+            "unanimous_divergence": unanimous_flag,
+            "requires_dissent_check": requires_dissent_check,
             "proposals": distinct_proposals,
             "per_lane_verdicts": verdicts,
             "elapsed_s": round(elapsed, 2),
+            "silent_abort_guard": "active",
         },
-        "status": "keep" if distinct_proposals else "discard",
-        "description": f"E80 reflective autoresearch: {len(distinct_proposals)} novel proposals via "
-                       f"silicon council ({consensus_count}/{len(verdicts)} consensus on '{consensus_label}')",
+        "status": run_status,
+        "description": f"E80 reflective autoresearch (E104-anti-sycophancy): "
+                       f"{n_proposals} novel proposals "
+                       f"({consensus_count}/{len(verdicts)} consensus on '{consensus_label}'); "
+                       f"adversarial convergence={n_adversarial_convergence}/{len(verdicts)}; "
+                       f"suspect labels={suspect_labels[:3]}; status={run_status}",
         "timestamp": int(time.time() * 1000), "segment": 99, "confidence": 1.0,
-        "asi": {"experiment": "E80", "novel_proposals": len(distinct_proposals),
-                "consensus_label": consensus_label, "consensus_count": consensus_count},
+        "asi": {"experiment": "E80", "novel_proposals": n_proposals,
+                "consensus_label": consensus_label, "consensus_count": consensus_count,
+                "adversarial_convergence_lanes": n_adversarial_convergence,
+                "suspect_labels": suspect_labels,
+                "unanimous_warning": is_unanimous,
+                "requires_dissent_check": requires_dissent_check},
     }
     with JSONL.open("a") as f:
         f.write(json.dumps(entry) + "\n")
-    print(f"[e80] appended autoresearch.jsonl run #{last_run + 1}", flush=True)
+    bump_id(JSONL, new_run, "run")
+    # Dual-write to SurrealDB index (silent-fails if v3 protocol issue persists)
+    surreal_index.record_experiment_run({
+        "run": new_run,
+        "experiment": "E80",
+        "status": entry["status"],
+        "metric": entry["metric"],
+        "ts": entry["timestamp"],
+        "asi": entry["asi"],
+        "description": entry["description"],
+    })
+    print(f"[e80] appended autoresearch.jsonl run #{new_run}", flush=True)
     return 0
 
 
