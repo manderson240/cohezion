@@ -306,7 +306,7 @@ def main() -> int:
         probe_lane = autolit.LEMONADE_LANES[0]
         adv_prompt = (
             f"The silicon council unanimously proposed '{consensus_label}'. Unanimous agreement "
-            "may reflect groupthink. What would make '{consensus_label}' the WRONG next experiment? "
+            f"may reflect groupthink. What would make '{consensus_label}' the WRONG next experiment? "
             "Name one alternative label from the trace that was under-weighted. "
             "Reply with ONLY that label (e.g. 'E77') or 'CONFIRMED' if you stand by the pick."
         )
