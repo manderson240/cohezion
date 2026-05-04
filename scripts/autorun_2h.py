@@ -273,6 +273,11 @@ async def main(hours: float = 9.5, use_llm: bool = True) -> None:
     sys.modules["overnight_evo_loop"] = evo
     spec.loader.exec_module(evo)  # type: ignore[attr-defined]
 
+    # autocontext: context pressure monitor + experiment compressor
+    from cohezion.research.autocontext import budget as ctx_budget
+    from cohezion.research.autocontext import compress as ctx_compress
+    from cohezion.research.autocontext import monitor as ctx_monitor
+
     # Wire the persistence stack (mirrors overnight_evo_loop.main())
     from cohezion.core.journey_worker import get_journey_worker
     from cohezion.core.telemetry_bus import get_telemetry_bus
@@ -358,6 +363,15 @@ async def main(hours: float = 9.5, use_llm: bool = True) -> None:
             flush=True,
         )
 
+        # ── autocontext: check context pressure before running experiments ──
+        ctx = ctx_monitor()
+        if ctx["critical"]:
+            print(f"[autocontext] Context CRITICAL ({ctx['pct']:.0%}) — halting", flush=True)
+            break
+        if ctx["warn"]:
+            print(f"[autocontext] Context warn ({ctx['pct']:.0%}) — compressing log", flush=True)
+            ctx_compress(SESSION_LOG, keep_recent=200)
+
         for label, fn in SCHEDULE:
             if _STOP or timeit.default_timer() >= DEADLINE:
                 break
@@ -403,6 +417,26 @@ async def main(hours: float = 9.5, use_llm: bool = True) -> None:
 
             await run_autoresearch_analysis(all_timings, cycle)
             run_autoharness_check(all_timings, cycle)
+
+        # ── autocontext: log per-cycle stats, gate continuation by budget ──
+        b = ctx_budget(ctx)
+        with SESSION_LOG.open("a") as _f:
+            _f.write(
+                json.dumps(
+                    {
+                        "type": "ctx_checkpoint",
+                        "cycle": cycle,
+                        "ctx_pct": ctx["pct"],
+                        "ctx_status": ctx["status"],
+                        "remaining_experiments": b["remaining_experiments"],
+                        "safe_to_continue": b["safe_to_continue"],
+                    }
+                )
+                + "\n"
+            )
+        if not b["safe_to_continue"]:
+            print("[autocontext] Budget exhausted — stopping safely", flush=True)
+            break
 
         cycle += 1
 
