@@ -153,8 +153,9 @@ class TestCompoundScoreComputation:
         Verifies the formula is wired in the executor pipeline.
         compound_score == coherence × (1 - 2|coherence - 0.5|) × max(0, 1 + skill_gain)
         """
-        import pytest
         from unittest.mock import MagicMock, patch
+
+        import pytest
 
         from cohezion.compound.executor import CompoundExecutor, ExecutionResult
 

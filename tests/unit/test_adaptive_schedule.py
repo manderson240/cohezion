@@ -1,7 +1,11 @@
 """TDD tests for scripts/research/adaptive_schedule.py"""
-import json, sys, tempfile
+import json
+import sys
+import tempfile
 from pathlib import Path
+
 import pytest
+
 
 ROOT = Path(__file__).parent.parent.parent
 sys.path.insert(0, str(ROOT))
