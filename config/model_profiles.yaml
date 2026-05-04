@@ -4,7 +4,7 @@
 # Used by: src/cohezion/swarm/cost_aware_router.py
 
 tier_routing:
-  tier_simple: phi3:mini
+  tier_simple: Phi-4-mini-instruct-Hybrid
   tier_medium: qwen3-coder:32b
   tier_complex: deepseek-r1:8b
 

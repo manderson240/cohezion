@@ -146,3 +146,46 @@ class TestCompoundScoreComputation:
         )
         assert r.compound_score == 0.25
         assert r.metrics["coherence"] == 0.5
+
+    def test_O11_executor_computes_correct_compound_score(self):
+        """O11 (behavioral): execute_task() applies compound_score = coherence × hiho × skill_factor.
+
+        Verifies the formula is wired in the executor pipeline.
+        compound_score == coherence × (1 - 2|coherence - 0.5|) × max(0, 1 + skill_gain)
+        """
+        import pytest
+        from unittest.mock import MagicMock, patch
+
+        from cohezion.compound.executor import CompoundExecutor, ExecutionResult
+
+        with patch("cohezion.compound.exp_persistence.vault.VaultLogger"):
+            exc = CompoundExecutor(mcp_client=MagicMock())
+        exc.logger = MagicMock()
+        exc.logger.get_experience_guidance.return_value = {
+            "relevant_context": [],
+            "guidance": "stub",
+        }
+        exc.logger.log_execution_start.return_value = "exp/path/123"
+        exc.logger.log_execution_result = MagicMock()
+        exc._try_template_match = MagicMock(return_value=None)
+        exc._context_loaded = True
+        exc._retrospection_engine = None  # disable so skill_gain comes from metrics
+
+        result = exc.execute_task(
+            "test task",
+            "test_skill",
+            "generate",
+            lambda g: ("output", {"coherence": 0.6, "skill_gain": 0.1}),
+        )
+
+        assert isinstance(result, ExecutionResult)
+        coherence = float(result.metrics.get("coherence", 0.5))
+        skill_gain = float(result.metrics.get("skill_gain", 0.0))
+        hiho = max(0.0, 1.0 - 2.0 * abs(coherence - 0.5))
+        expected = coherence * hiho * max(0.0, 1.0 + skill_gain)
+
+        assert result.compound_score == pytest.approx(expected, abs=1e-9), (
+            f"compound_score={result.compound_score:.6f} != formula {expected:.6f} "
+            f"(coherence={coherence:.3f}, hiho={hiho:.3f}, skill_gain={skill_gain:.3f})"
+        )
+        assert 0.0 <= result.compound_score <= 1.0
