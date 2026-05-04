@@ -722,7 +722,7 @@ Provide output in JSON format: {{"phi_score": 0.85, "confidence": 0.90}}
                 data = json.loads(data)
             phi = float(data.get("phi_score", 0.8))
             conf = float(data.get("confidence", 0.8))
-        except (httpx.HTTPError, json.JSONDecodeError, ValueError, KeyError) as e:
+        except (httpx.HTTPError, ValueError, KeyError) as e:
             logger.debug(f"Self-evaluation call failed, using defaults: {e}")
 
         # 2. Alignment Audit (Phase 22)

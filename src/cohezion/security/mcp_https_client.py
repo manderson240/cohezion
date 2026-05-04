@@ -122,7 +122,7 @@ class MCPHTTPSClient:
             logger.info("✓ Connection to %s:%d validated", self.host, self.port)
             return True
 
-        except (OSError, ssl.SSLError) as e:
+        except OSError as e:
             logger.error(
                 "✗ Connection to %s:%s failed: %s",
                 self.host,

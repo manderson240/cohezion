@@ -93,10 +93,8 @@ def elite_ocr_analysis(args: dict[str, Any]) -> dict[str, Any]:
 
     except (
         OSError,
-        json.JSONDecodeError,
         ValueError,
         KeyError,
-        UnicodeDecodeError,
     ) as e:
         return {"content": [{"type": "text", "text": f"Elite OCR analysis failed: {e}"}]}
 
@@ -224,10 +222,8 @@ Generate production-ready, maintainable code that follows industry standards.
 
     except (
         OSError,
-        json.JSONDecodeError,
         ValueError,
         KeyError,
-        UnicodeDecodeError,
     ) as e:
         return {"content": [{"type": "text", "text": f"Agentic coding workflow failed: {e}"}]}
 
@@ -326,7 +322,6 @@ def compound_engineering_orchestrator(args: dict[str, Any]) -> dict[str, Any]:
 
     except (
         OSError,
-        json.JSONDecodeError,
         ValueError,
         KeyError,
         TypeError,

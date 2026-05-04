@@ -105,7 +105,6 @@ async def agentjet_status() -> dict:
     except (
         ImportError,
         OSError,
-        ConnectionError,
         RuntimeError,
         ValueError,
         AttributeError,

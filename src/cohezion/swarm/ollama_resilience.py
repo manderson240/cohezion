@@ -160,7 +160,7 @@ class ResilientOllamaClient:
                 resp.raise_for_status()
                 data = resp.json()
                 return data.get("response", "")
-            except (httpx.HTTPError, httpx.TimeoutException) as exc:
+            except httpx.HTTPError as exc:
                 last_exc = exc
                 if attempt < self.max_retries:
                     delay = 2**attempt

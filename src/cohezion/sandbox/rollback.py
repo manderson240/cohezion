@@ -252,7 +252,7 @@ class AuditLog:
                                 },
                             )
                             entries.append(entry)
-                        except (json.JSONDecodeError, ValueError, KeyError) as e:
+                        except (ValueError, KeyError) as e:
                             logger.warning(f"Failed to parse audit log entry: {e}")
         except OSError as e:
             logger.warning(f"Failed to read audit log: {e}")

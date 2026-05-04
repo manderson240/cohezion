@@ -105,7 +105,7 @@ class UlogmeBridge:
                                 app_category=self._categorize_window(data[1]),
                             )
                             entries.append(entry)
-                    except (json.JSONDecodeError, IndexError, ValueError) as e:
+                    except (IndexError, ValueError) as e:
                         logger.debug(f"Skipping malformed line: {e}")
                         continue
 

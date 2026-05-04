@@ -120,7 +120,7 @@ class LRUPersistentTokenCache(dict):
                     tokens_used=entry_data.get("tokens_used", 0),
                 )
                 super().__setitem__(key, entry)
-            except (KeyError, ValueError, TypeError, json.JSONDecodeError) as e:
+            except (KeyError, ValueError, TypeError) as e:
                 logger.warning(f"Failed to restore cache entry {key}: {e}")
 
     def __setitem__(self, key: str, value: Any) -> None:

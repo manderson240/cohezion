@@ -56,7 +56,7 @@ async def run_kg_guard():
         async with aiofiles.open(PROCESSED_FILE) as f:
             try:
                 processed_ids = set(json.loads(await f.read()))
-            except (json.JSONDecodeError, ValueError):
+            except ValueError:
                 pass
 
     new_learnings = []

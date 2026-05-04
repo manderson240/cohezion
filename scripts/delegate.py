@@ -334,7 +334,7 @@ def main(argv: list[str] | None = None) -> int:
                 max_tokens=args.max_tokens,
             )
         )
-    except (ImportError, ModuleNotFoundError) as exc:
+    except ImportError as exc:
         print(f"delegate.py: cohezion import failed ({exc}) — run under `uv run`.", file=sys.stderr)
         return 2
 

@@ -96,7 +96,7 @@ def _probe_openai_endpoint(lane: str, endpoint: str, timeout: float = 2.0) -> La
         )
     except httpx.ConnectError as exc:
         return LaneHealth(lane=lane, endpoint=endpoint, status=LaneStatus.DOWN, detail=str(exc))
-    except (httpx.TimeoutException, httpx.HTTPError) as exc:
+    except httpx.HTTPError as exc:
         return LaneHealth(lane=lane, endpoint=endpoint, status=LaneStatus.DEGRADED, detail=str(exc))
 
 
@@ -123,7 +123,7 @@ def _probe_ollama(endpoint: str = "http://localhost:11434", timeout: float = 2.0
             latency_ms=latency_ms,
             detail=f"HTTP {resp.status_code}",
         )
-    except (httpx.ConnectError, httpx.TimeoutException, httpx.HTTPError) as exc:
+    except httpx.HTTPError as exc:
         return LaneHealth(lane="ollama", endpoint=endpoint, status=LaneStatus.DOWN, detail=str(exc))
 
 
@@ -221,7 +221,7 @@ def _omnibus_dashboard() -> str | None:
         from cohezion.gateways.omnibus import Omnibus
 
         return Omnibus().get_gateway_dashboard()
-    except (ImportError, Exception) as exc:
+    except Exception as exc:
         logger.debug("Omnibus dashboard unavailable: %s", exc)
         return None
 
@@ -298,6 +298,6 @@ def integrate_omnibus_gateways() -> dict[str, Any]:
             "gateways_locked": status["gateways_locked"],
             "total_health": status["total_health"],
         }
-    except (ImportError, Exception) as exc:
+    except Exception as exc:
         logger.warning("Omnibus integration unavailable: %s", exc)
         return {"available": False, "reason": str(exc)}

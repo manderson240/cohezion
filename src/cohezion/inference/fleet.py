@@ -539,7 +539,7 @@ async def route(
                 self_reported_confidence=confidence,
                 attempts=attempts,
             )
-        except (TimeoutError, httpx.HTTPError, Exception) as exc:
+        except Exception as exc:
             last_error = f"{candidate.model_id}: {exc}"
             logger.warning("Dispatch to %s failed: %s", candidate.model_id, exc)
             continue

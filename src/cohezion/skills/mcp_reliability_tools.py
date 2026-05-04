@@ -96,7 +96,6 @@ def offload_task(
             }
     except (
         OSError,
-        json.JSONDecodeError,
         ValueError,
         KeyError,
         AttributeError,
@@ -148,7 +147,6 @@ def batch_offload(tasks: list[dict[str, Any]], model: str | None = None) -> dict
         return {"content": [{"type": "text", "text": json.dumps(results, indent=2)}]}
     except (
         OSError,
-        json.JSONDecodeError,
         ValueError,
         KeyError,
         AttributeError,
