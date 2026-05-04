@@ -25,7 +25,7 @@ jobs:
         uses: astral-sh/setup-uv@v3
 
       - name: Install dependencies
-        run: uv sync
+        run: uv sync --extra dev
 
       - name: Run lint
         run: make lint-check
@@ -45,7 +45,7 @@ jobs:
         uses: codecov/codecov-action@v4
         with:
           files: ./coverage.xml
-          fail_ci_if_error: true
+          fail_ci_if_error: false
           verbose: true
 
       - name: Check coverage threshold
@@ -91,7 +91,7 @@ jobs:
               MISSING=$((MISSING + 1))
             fi
           done
-          
+
           if [ $MISSING -gt 0 ]; then
             echo "Found $MISSING modules without tests"
             # Don't fail yet, just warn
