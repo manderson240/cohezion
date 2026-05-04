@@ -42,7 +42,7 @@ async def get_npu_stats() -> NodeStats:
                         "AMD RyzenAI-npu5",
                         "FastFlowLM (FLM)",
                     )
-    except:
+    except (OSError, subprocess.SubprocessError):
         pass
     return NodeStats("NPU (XDNA 2)", "OFFLINE", 0, 0, "N/A", 0, "N/A", "N/A")
 

@@ -276,6 +276,42 @@ class RetrospectionEngine:
 
         return refinements
 
+    def analyze(self, report: object) -> dict:
+        """Convenience alias — delegates to :meth:`analyze_execution`.
+
+        The compound-engine pipeline (and external callers added in
+        2026-05) refer to the retrospection step as ``analyze()``. The
+        existing implementation lives in :meth:`analyze_execution`; this
+        thin wrapper keeps the public surface stable while allowing both
+        names. The returned dict always contains a ``"hiho_balance"``
+        key (see :meth:`compute_hiho_balance`).
+        """
+        return self.analyze_execution(report)
+
+    def compute_hiho_balance(self, execution_history: list[dict]) -> float:
+        """Compute HIHO balance score from execution history.
+
+        HIHO balance = fraction of executions with positive ``delta``.
+        Returns ``0.5`` for empty history (neutral/balanced default,
+        consistent with the HIHO 50% coherence equilibrium described in
+        the Cohezion Charter).
+
+        Parameters
+        ----------
+        execution_history : list[dict]
+            Each entry should expose a ``"delta"`` key (numeric). Missing
+            keys are treated as ``0`` (non-positive, not counted).
+
+        Returns
+        -------
+        float
+            Balance score in ``[0.0, 1.0]``. ``0.5`` for empty input.
+        """
+        if not execution_history:
+            return 0.5
+        positive = sum(1 for e in execution_history if e.get("delta", 0) > 0)
+        return positive / len(execution_history)
+
     def analyze_execution(self, report: object) -> dict:
         """Analyze an execution report and extract compound insights.
 
@@ -325,6 +361,14 @@ class RetrospectionEngine:
         # Suggest refinements based on execution
         suggestions = self.suggest_skill_refinements()
 
+        # Build a lightweight execution history (delta = +1 for completed,
+        # -1 for failed) so we can score HIHO balance for this plan.
+        execution_history = [
+            {"delta": 1 if getattr(tr, "status", "unknown") == "completed" else -1}
+            for tr in task_results
+        ]
+        hiho_balance = self.compute_hiho_balance(execution_history)
+
         insights = {
             "plan_name": plan_name,
             "tasks_total": total,
@@ -333,6 +377,7 @@ class RetrospectionEngine:
             "total_tokens": sum(tokens_by_task.values()),
             "patterns": patterns,
             "compound_score_delta": compound_delta,
+            "hiho_balance": hiho_balance,
             "insights": [
                 f"Execution of '{plan_name}' completed {completed}/{total} tasks",
                 f"Token usage: {sum(tokens_by_task.values())} across {total} tasks",

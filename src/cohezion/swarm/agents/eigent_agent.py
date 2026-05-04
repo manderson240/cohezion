@@ -166,7 +166,7 @@ class EigentAgent(BaseScout):
                 if not self.surreal_client._connected:
                     await self.surreal_client.connect()
                 await self.surreal_client.create("journey_logs", log_entry)
-            except:
+            except Exception:
                 pass
 
             state["iterations"] = i + 1

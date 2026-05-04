@@ -115,6 +115,10 @@ class WarmCacheLoader:
     def __init__(self, persistence: CachePersistence | None = None) -> None:
         self._persistence = persistence or CachePersistence()
 
+    def load_cache(self, max_entries: int = 256) -> dict[str, str]:
+        """Proxy to persistence.load_cache — returns raw cache dict."""
+        return self._persistence.load_cache(max_entries)
+
     def warm_client(self, client: Any, max_entries: int = 256) -> int:
         """Load cache from disk into client._cache. Returns entries loaded."""
         cache = self._persistence.load_cache(max_entries)

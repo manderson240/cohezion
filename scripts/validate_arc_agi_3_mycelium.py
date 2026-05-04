@@ -4,8 +4,7 @@ the agentic interaction logic.
 """
 
 import asyncio
-import os
-import torch
+
 from cohezion.mycelium.loop import CoverageLoop
 from cohezion.mycelium.scripter import ShadowScripter
 from cohezion.swarm.compound_client import get_compound_client
@@ -23,7 +22,7 @@ async def run_mycelium_validation():
     target_file = "src/cohezion/swarm/agents/arc_agi_3_wrapper.py"
 
     # 3. Read Code Context
-    with open(target_file, "r") as f:
+    with open(target_file) as f:
         code_context = f.read()
 
     # 4. Execute Iterative Synthesis Loop

@@ -15,10 +15,10 @@ import json
 import logging
 import re
 import subprocess
-import sys
 import time
 import uuid
 from pathlib import Path
+
 
 logging.basicConfig(level=logging.INFO, format="[KAGGLE] %(asctime)s %(levelname)s: %(message)s")
 _LOGGER = logging.getLogger("kaggle_arc")
@@ -51,7 +51,7 @@ def build_kernel(solver_path: Path, kernel_name: str) -> Path:
     (kdir / "arc_solver.py").write_text(solver_code)
 
     # Write submission builder
-    submission_code = f""""""
+    submission_code = '''
 import json
 import sys
 from pathlib import Path
@@ -64,7 +64,7 @@ def main():
     with open(data_dir / "arc-agi_test_challenges.json") as f:
         challenges = json.load(f)
 
-    submission = {{}}
+    submission = {}
     for task_id, task in sorted(challenges.items()):
         try:
             program = arc_solver.search_program(task["train"], max_depth=3, budget=5000)
@@ -81,11 +81,11 @@ def main():
         json.dump(submission, f)
 
     print("Submission written to /kaggle/working/submission.json")
-    print(f"Tasks predicted: {{len(submission)}} / {{len(challenges)}}")
+    print(f"Tasks predicted: {len(submission)} / {len(challenges)}")
 
 if __name__ == "__main__":
     main()
-"""
+'''
     (kdir / "submission.py").write_text(submission_code)
 
     # Write kernel metadata
@@ -185,7 +185,7 @@ def submit_and_score(solver_path: Path, competition: str = "arc-prize-2026-arc-a
     _LOGGER.info(f"Building kernel: {kernel_name}")
     kdir = build_kernel(solver_path, kernel_name)
 
-    _LOGGER.info(f"Pushing kernel to Kaggle...")
+    _LOGGER.info("Pushing kernel to Kaggle...")
     kernel_id = push_kernel(kdir)
     if not kernel_id:
         return 0.0, "push_failed", ""

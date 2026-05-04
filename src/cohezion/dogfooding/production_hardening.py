@@ -206,7 +206,7 @@ class PerformanceMonitor:
                     metric_time = datetime.fromisoformat(metric["timestamp"]).timestamp()
                     if metric_time > cutoff:
                         recent.append(metric)
-                except:
+                except (json.JSONDecodeError, KeyError, TypeError):
                     pass
 
         return recent
@@ -341,7 +341,7 @@ class DisasterRecovery:
                         "size_kb": cp_path.stat().st_size / 1024,
                     }
                 )
-            except:
+            except (json.JSONDecodeError, OSError):
                 pass
 
         return sorted(checkpoints, key=lambda x: x["timestamp"], reverse=True)

@@ -43,6 +43,11 @@ class IntentionalClass:
     intention: DesignIntention
     purpose: str = ""
 
+    def __init__(self, intention: "DesignIntention | None" = None, purpose: str = "") -> None:
+        if intention is not None:
+            self.intention = intention
+            self.purpose = purpose or intention.name.lower()
+
     def __post_init__(self):
         """Validate that intention is clear."""
         if not self.purpose:
@@ -412,6 +417,25 @@ class PolarityPattern:
 
         return assessments
 
+    def balance(self, a: "Polarity", b: "Polarity", weight_a: float, weight_b: float) -> "Polarity":
+        """Return the dominant polarity or BALANCE if equal within tolerance."""
+        if abs(weight_a - weight_b) < 0.1:
+            return Polarity.BALANCE
+        return a if weight_a > weight_b else b
+
+    def recognize_polarity(self, text: str) -> "Polarity":
+        """Infer a Polarity from keyword presence in text."""
+        text_lower = text.lower()
+        yang_words = {"active", "aggressive", "assertive", "push", "yang", "output"}
+        yin_words = {"passive", "receptive", "yin", "input", "absorb", "receive"}
+        yang_score = sum(1 for w in yang_words if w in text_lower)
+        yin_score = sum(1 for w in yin_words if w in text_lower)
+        if yang_score > yin_score:
+            return Polarity.YANG
+        if yin_score > yang_score:
+            return Polarity.YIN
+        return Polarity.BALANCE
+
 
 # =============================================================================
 # V. RHYTHM - "Everything flows, out and in"
@@ -522,6 +546,21 @@ class RhythmPattern:
             suggestions.append("Hold phase is too long - consider breaking into smaller functions")
 
         return suggestions
+
+    def count_cycles(self, events: list) -> int:
+        """Count work/pause cycles in a sequence of events."""
+        cycles = 0
+        in_work = False
+        for ev in events:
+            ev_lower = str(ev).lower()
+            if any(w in ev_lower for w in ("work", "start", "active", "run")):
+                if not in_work:
+                    in_work = True
+            elif any(w in ev_lower for w in ("pause", "stop", "end", "rest")):
+                if in_work:
+                    cycles += 1
+                    in_work = False
+        return cycles
 
 
 # =============================================================================
@@ -646,6 +685,10 @@ class CauseEffectPattern:
 
         return second_order
 
+    def trace_cause(self, effects: dict) -> dict:
+        """Map each effect to a probable root cause (simple heuristic)."""
+        return {effect: f"probable_cause_of_{effect}" for effect in effects}
+
 
 # =============================================================================
 # VII. GENDER - "Gender is in everything"
@@ -757,6 +800,18 @@ class GenderPattern:
             masculine_aspects=masculine,
             feminine_aspects=feminine,
         )
+
+    def identify(self, words: list[str]) -> dict:
+        """Identify gender aspects from a list of words/phrases."""
+        masculine_keywords = {"create", "structure", "protect", "assert", "build", "enforce"}
+        feminine_keywords = {"receive", "flow", "adapt", "hold", "yield", "nurture"}
+        masculine = [w for w in words if any(k in w.lower() for k in masculine_keywords)]
+        feminine = [w for w in words if any(k in w.lower() for k in feminine_keywords)]
+        return {
+            "masculine": masculine,
+            "feminine": feminine,
+            "balance": len(masculine) - len(feminine),
+        }
 
 
 # =============================================================================

@@ -25,7 +25,7 @@ async def test_kaggle_api_initialization():
     assert api.username == "testuser"
     assert api.key == "testkey"
     assert api.circuit.name == "kaggle_api"
-    assert api.pool.base_url == "https://www.kaggle.com/api/v1"
+    assert str(api.pool.base_url).rstrip("/") == "https://www.kaggle.com/api/v1"
 
 
 @pytest.mark.asyncio

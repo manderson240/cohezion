@@ -19,7 +19,9 @@ from __future__ import annotations
 import functools
 import inspect
 import logging
-from typing import Any, Awaitable, Callable, TypeVar
+from collections.abc import Awaitable, Callable
+from typing import Any, TypeVar
+
 
 logger = logging.getLogger(__name__)
 
@@ -39,7 +41,7 @@ def mcp_tool(mcp_instance: Any, *, description: str = "") -> Callable[[F], F]:
         async def wrapper(*args: Any, **kwargs: Any) -> dict[str, Any]:
             try:
                 return await fn(*args, **kwargs)
-            except Exception as exc:  # noqa: BLE001
+            except Exception as exc:
                 logger.error("%s failed: %s", fn.__name__, exc)
                 return err(str(exc))
 
@@ -92,6 +94,6 @@ class McpClientResolver:
         client = self._get_default()
         try:
             await client.connect()
-        except Exception as exc:  # noqa: BLE001
+        except Exception as exc:
             logger.warning("Default MCP client connect failed: %s", exc)
         return client, False

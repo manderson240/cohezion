@@ -148,7 +148,7 @@ class ObservableActionProposer:
         current_coherence: CoherenceMetrics,
     ):
         """Display proposal with full transparency."""
-        hiho_status = "HIHO Stable" if current_coherence.hiho_stable else "Outside HIHO"
+        hiho_status = "HIHO Stable ✅" if current_coherence.hiho_stable else "Outside HIHO ⚠️"
         reversible = "Yes" if proposal.reversible else "No"
         new_coh = current_coherence.coherence + proposal.coherence_impact
         risks = (

@@ -142,10 +142,13 @@ class TestVAEEvaluator:
         from cohezion.flume.vae import FlumeVAE
 
         torch.manual_seed(42)
-        model = FlumeVAE(input_dim=768, latent_dim=256)
+        from cohezion.flume.vae import FlumeVAEConfig
 
-        # Small synthetic data
-        data = torch.randn(50, 768)
+        config = FlumeVAEConfig(z_dim=256, embed_dim=256)
+        model = FlumeVAE(config=config)
+
+        # Small synthetic discrete token data (FlumeVAE expects integer token IDs)
+        data = torch.randint(0, 1000, (50, 32))  # 50 sequences, 32 tokens each
         pairs = [(0, 1), (2, 3), (4, 5)]
 
         evaluator = VAEEvaluator(model)

@@ -10,7 +10,6 @@ These tests codify the findings from autoresearch experiments E55-E62:
 
 from __future__ import annotations
 
-import asyncio
 import pytest
 
 from cohezion.swarm.quadrature_nexus import QuadratureNexus, QuadratureProposal, VoiceType
@@ -180,7 +179,7 @@ class TestApplyMyceliumFeedbackE5Goal:
     @pytest.mark.asyncio
     async def test_full_pipeline_lifts_deliberation(self) -> None:
         """E62: Full E3/E6 pipeline (real EVO journeys → synthesis → feedback) improves consensus."""
-        from cohezion.learning.mycelium_registry import JournalEntry, MyceliumRegistry
+        from cohezion.learning.mycelium_registry import MyceliumRegistry
 
         nexus = QuadratureNexus()
         proposal = QuadratureProposal(

@@ -559,8 +559,15 @@ class CostAwareRouter:
 
     @classmethod
     def reset(cls) -> None:
-        """Reset singleton (testing only)."""
+        """Reset singleton and profiles cache (testing only)."""
         cls._instance = None
+        cls._profiles_cache = None
+        cls._profiles_loaded = False
+
+    @classmethod
+    def reset_singleton(cls) -> None:
+        """Alias for reset() — matches conftest reset_singletons() pattern."""
+        cls.reset()
 
     def select_model(
         self,

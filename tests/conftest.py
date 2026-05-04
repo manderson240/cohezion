@@ -35,16 +35,19 @@ if "transformers" not in sys.modules:
     _mock_tr = MagicMock()
     _mock_tr.AutoModelForCausalLM = MagicMock
     _mock_tr.AutoTokenizer = MagicMock
-    # Import and expose PretrainedConfig/PreTrainedModel as real classes
+    # Import and expose PretrainedConfig/PreTrainedModel/PreTrainedTokenizer as real classes
+    # so that FlumeEncoder, FlumeTokenizer, etc. can inherit from them correctly.
     try:
         import transformers as _real_tr
 
         _mock_tr.PretrainedConfig = _real_tr.PretrainedConfig
         _mock_tr.PreTrainedModel = _real_tr.PreTrainedModel
+        _mock_tr.PreTrainedTokenizer = _real_tr.PreTrainedTokenizer
     except Exception:
         # If transformers isn't installed, use MagicMock as fallback
         _mock_tr.PretrainedConfig = MagicMock
         _mock_tr.PreTrainedModel = MagicMock
+        _mock_tr.PreTrainedTokenizer = MagicMock
     sys.modules["transformers"] = _mock_tr
 
 
@@ -154,12 +157,14 @@ def reset_singletons():
     from cohezion.concurrency.ollama_gate import reset_gate
     from cohezion.cost_optimization.budget_enforcer import BudgetEnforcer
     from cohezion.cost_optimization.cost_tracker import SessionCostTracker
+    from cohezion.security.rate_limiter import reset_rate_limiter
     from cohezion.swarm.cost_aware_router import CostAwareRouter
     from cohezion.swarm.model_pool_manager import reset_pool_manager
 
     # Reset before test
     reset_gate()  # Reset OllamaGate singleton
     reset_pool_manager()  # Reset ModelPoolManager singleton
+    reset_rate_limiter()  # Reset RateLimiter token buckets (isolation)
     ExecutorFactory.reset_singleton()
     if hasattr(BatchableExecutor, "reset_singleton"):
         BatchableExecutor.reset_singleton()
@@ -201,6 +206,7 @@ def reset_singletons():
     # Reset after test
     reset_gate()  # Reset OllamaGate singleton
     reset_pool_manager()  # Reset ModelPoolManager singleton
+    reset_rate_limiter()  # Reset RateLimiter token buckets (isolation)
     ExecutorFactory.reset_singleton()
     if hasattr(BatchableExecutor, "reset_singleton"):
         BatchableExecutor.reset_singleton()

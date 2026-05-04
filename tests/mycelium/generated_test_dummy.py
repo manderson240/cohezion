@@ -1,2 +1,1 @@
-def test_more():
-    pass
+def test_more(): pass

@@ -23,6 +23,33 @@ class StabilityCheckResult(BaseModel):
     suggestion: str | None = None
 
 
+class _AwaitableStabilityCheckResult:
+    """Wrapper that exposes a :class:`StabilityCheckResult` synchronously
+    while also being awaitable.
+
+    Allows :meth:`HIHOStabilityGuard.verify` to support both
+    ``result = guard.verify(...)`` and ``result = await guard.verify(...)``
+    call styles. Synchronous attribute access proxies to the underlying
+    result; ``await`` returns the same underlying result.
+    """
+
+    __slots__ = ("_result",)
+
+    def __init__(self, result: StabilityCheckResult):
+        self._result = result
+
+    def __await__(self):
+        if False:
+            yield  # pragma: no cover - turns this into a generator
+        return self._result
+
+    def __getattr__(self, name: str):
+        return getattr(self._result, name)
+
+    def __repr__(self) -> str:  # pragma: no cover - debug aid
+        return f"_AwaitableStabilityCheckResult({self._result!r})"
+
+
 class HIHOStabilityGuard:
     """
     Guardrail that validates the output of the EcoResilience synthesis.
@@ -32,24 +59,34 @@ class HIHOStabilityGuard:
     def __init__(self, threshold: float = 0.5):
         self.threshold = threshold
 
-    async def verify(self, projection: ManifoldProjection, response: str) -> StabilityCheckResult:
+    def verify(
+        self, projection: ManifoldProjection, response: str
+    ) -> _AwaitableStabilityCheckResult:
         """
-        Verifies the coherence of the projection and the logical consistency
+        Verify the coherence of the projection and the logical consistency
         of the response relative to that coherence.
+
+        Returns a dual-mode result that callers can use either synchronously
+        (attribute access works directly) or via ``await``. Existing
+        ``await guard.verify(...)`` callers continue to work.
         """
         # 1. Primary check: The projection's own coherence
         if projection.coherence < self.threshold:
-            return StabilityCheckResult(
+            result = StabilityCheckResult(
                 is_stable=False,
                 coherence=projection.coherence,
                 suggestion="The 12D manifold project is unstable. Re-evaluate the TEK inputs and manifold coordinates.",
             )
+        else:
+            # 2. Secondary check: Does the response acknowledge the
+            # stability? (In a real scenario, we would use a small model to
+            # check for contradictions.) For now, we rely on the projection's
+            # mathematical coherence.
+            result = StabilityCheckResult(
+                is_stable=True, coherence=projection.coherence, suggestion=None
+            )
 
-        # 2. Secondary check: Does the response acknowledge the stability?
-        # (In a real scenario, we would use a small model to check for contradictions)
-        # For now, we rely on the projection's mathematical coherence.
-
-        return StabilityCheckResult(is_stable=True, coherence=projection.coherence, suggestion=None)
+        return _AwaitableStabilityCheckResult(result)
 
     def should_refine(self, result: StabilityCheckResult) -> bool:
         """Returns True if the result fails the stability threshold."""

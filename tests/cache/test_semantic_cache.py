@@ -6,13 +6,22 @@ Covers CacheEntry, SemanticCache.
 
 from __future__ import annotations
 
+import sys
 import time
-from unittest.mock import patch
+from unittest.mock import MagicMock, patch
 
 import numpy as np
 import pytest
 
 from cohezion.cache.semantic_cache import CacheEntry, SemanticCache
+
+_ST_IS_REAL = not (
+    "sentence_transformers" in sys.modules
+    and sys.modules["sentence_transformers"].SentenceTransformer is MagicMock
+)
+requires_real_st = pytest.mark.skipif(
+    not _ST_IS_REAL, reason="sentence_transformers is mocked (hardware compatibility)"
+)
 
 
 class TestCacheEntry:
@@ -243,6 +252,7 @@ class TestSemanticCacheIntegration:
 
     @pytest.mark.fast
     @pytest.mark.asyncio
+    @requires_real_st
     async def test_cache_workflow(self):
         """[P0] Should demonstrate complete cache workflow."""
         cache = SemanticCache(similarity_threshold=0.88)

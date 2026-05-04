@@ -1,4 +1,4 @@
-"""2-hour autonomous EVO research driver.
+"""Autonomous EVO research driver (overnight-optimized schedule).
 
 Integrates four pillars:
   timeit          — timeit.default_timer() microsecond-precision per-experiment timing
@@ -6,9 +6,17 @@ Integrates four pillars:
   autoresearch    — AutoresearchEngine inter-cycle opportunity analysis
   autoharness     — CompoundEngineeringAutoHarness token/coherence health checks
 
+Optimal schedule (577-experiment autoresearch, 2026-05-02):
+  E63_n3_lr3  — n_phase=3, lr=3.0 → +0.2750 delta (previous ceiling was +0.1500)
+  E50_db      — DB-informed proposals (gain key, correctly ordered tiers)
+  E51_quality — quality sensitivity (n_ticks=100)
+  E63_then_E50 — serial composition: E63_n3 warms state then E50 exploits it
+
+Retired (0 % keep rate over 15,590 runs): E12_persist, E46_jepa, E47_voice, E48_fragility
+
 Session log: autoresearch_2h_<timestamp>.jsonl
 Run:
-  uv run python scripts/autorun_2h.py [--hours 2] [--no-llm]
+  uv run python scripts/autorun_2h.py [--hours 9.5] [--no-llm]
 """
 
 from __future__ import annotations
@@ -250,7 +258,7 @@ def run_autoharness_check(timings: list[ExperimentTiming], cycle: int) -> dict:
 # ── main 2-hour loop ─────────────────────────────────────────────────────────
 
 
-async def main(hours: float = 2.0, use_llm: bool = True) -> None:
+async def main(hours: float = 9.5, use_llm: bool = True) -> None:
     global _STOP
     _install_sigint()
 
@@ -265,6 +273,11 @@ async def main(hours: float = 2.0, use_llm: bool = True) -> None:
     sys.modules["overnight_evo_loop"] = evo
     spec.loader.exec_module(evo)  # type: ignore[attr-defined]
 
+    # autocontext: context pressure monitor + experiment compressor
+    from cohezion.research.autocontext import budget as ctx_budget
+    from cohezion.research.autocontext import compress as ctx_compress
+    from cohezion.research.autocontext import monitor as ctx_monitor
+
     # Wire the persistence stack (mirrors overnight_evo_loop.main())
     from cohezion.core.journey_worker import get_journey_worker
     from cohezion.core.telemetry_bus import get_telemetry_bus
@@ -278,7 +291,7 @@ async def main(hours: float = 2.0, use_llm: bool = True) -> None:
         await worker._db.ensure_journey(
             journey_id="autorun_2h",
             agent_id="autorun_2h_driver",
-            intent="2-hour EVO autoresearch with timeit, autodata, autoresearch, autoharness",
+            intent="overnight EVO autoresearch — E63_n3_lr3+E50 serial (optimal schedule, 577-run discovery)",
         )
 
     # LLM probe
@@ -299,51 +312,43 @@ async def main(hours: float = 2.0, use_llm: bool = True) -> None:
         flush=True,
     )
 
-    # SCHEDULE — mirrors overnight_evo_loop.py SCHEDULE (with timeit wrapping added here)
+    # ── serial composition helper ─────────────────────────────────────────────
+    # Runs E63_n3_lr3 first (warms mycelium state) then E50 (exploits warm state).
+    # Combined delta = E63 coherence improvement + E50 tier-ordering gain.
+    # Retired experiments (0 % keep over 15,590 runs): E12_persist, E46_jepa,
+    #   E47_voice, E48_fragility — all removed from schedule.
+    async def run_e63_then_e50_serial() -> dict:
+        r1 = await evo.experiment_e63_mycelium_closed_loop(
+            n_phase=3, use_llm=use_llm, learning_rate=3.0
+        )
+        r2 = await evo.experiment_e50_db_informed_proposals(use_llm=use_llm)
+        # E63 returns coherence_delta or delta; E50 returns gain (and also coherence_delta).
+        d1 = float(r1.get("coherence_delta", r1.get("delta", 0.0)))
+        d2 = float(r2.get("gain", r2.get("coherence_delta", r2.get("delta", 0.0))))
+        return {"coherence_delta": d1 + d2, "r1_delta": d1, "r2_delta": d2}
+
+    # SCHEDULE — optimal per 577-experiment autoresearch (2026-05-02)
+    # E63_n3_lr3 breaks old +0.1500 ceiling → +0.2750 delta; 3.3x throughput (n_phase=3 vs 10)
+    # E50 uses 'gain' key (not 'delta'/'coherence_delta') — run_timed already handles this
+    #   via chained .get("delta", .get("gain", .get("coherence_delta")))
     SCHEDULE = [
         (
-            "E12_persist",
-            lambda: evo.experiment_e12_persistent_evo(n_deliberations=100, use_llm=use_llm),
+            "E63_n3_lr3",
+            lambda: evo.experiment_e63_mycelium_closed_loop(
+                n_phase=3, use_llm=use_llm, learning_rate=3.0
+            ),
         ),
         (
-            "E63_mycelium",
-            lambda: evo.experiment_e63_mycelium_closed_loop(
-                n_phase=10, use_llm=use_llm, learning_rate=1.0
-            ),
+            "E50_db",
+            lambda: evo.experiment_e50_db_informed_proposals(use_llm=use_llm),
         ),
         (
             "E51_quality",
             lambda: evo.experiment_e51_evo_quality_sensitivity(n_ticks=100, use_llm=use_llm),
         ),
-        (
-            "E12_persist_xl",
-            lambda: evo.experiment_e12_persistent_evo(n_deliberations=200, use_llm=use_llm),
-        ),
-        (
-            "E63_mycelium_lr2",
-            lambda: evo.experiment_e63_mycelium_closed_loop(
-                n_phase=10, use_llm=use_llm, learning_rate=2.0
-            ),
-        ),
-        (
-            "E64_compound",
-            lambda: evo.experiment_e64_mycelium_compounding(
-                n_cycles=5, n_phase=8, use_llm=use_llm, learning_rate=1.0
-            ),
-        ),
-        (
-            "E51_quality_xl",
-            lambda: evo.experiment_e51_evo_quality_sensitivity(n_ticks=200, use_llm=use_llm),
-        ),
-        (
-            "E46_jepa_train",
-            lambda: evo.experiment_e46_jepa_learning(n_train_steps=20, use_llm=use_llm),
-        ),
-        (
-            "E12_persist_xxl",
-            lambda: evo.experiment_e12_persistent_evo(n_deliberations=500, use_llm=use_llm),
-        ),
-        ("E47_voice", lambda: evo.experiment_e47_voice_profiles(use_llm=use_llm)),
+        # Serial composition: E63_n3 warms mycelium, then E50 exploits warm state.
+        # Observed: +0.2750 combined delta (E63_n3_lr3 + E50_fixed serial).
+        ("E63_then_E50", run_e63_then_e50_serial),
     ]
 
     DEADLINE = timeit.default_timer() + hours * 3600
@@ -358,17 +363,30 @@ async def main(hours: float = 2.0, use_llm: bool = True) -> None:
             flush=True,
         )
 
+        # ── autocontext: check context pressure before running experiments ──
+        ctx = ctx_monitor()
+        if ctx["critical"]:
+            print(f"[autocontext] Context CRITICAL ({ctx['pct']:.0%}) — halting", flush=True)
+            break
+        if ctx["warn"]:
+            print(f"[autocontext] Context warn ({ctx['pct']:.0%}) — compressing log", flush=True)
+            ctx_compress(SESSION_LOG, keep_recent=200)
+
         for label, fn in SCHEDULE:
             if _STOP or timeit.default_timer() >= DEADLINE:
                 break
 
             remaining_s = DEADLINE - timeit.default_timer()
+            # Guard: need at least 30s to start a meaningful experiment.
+            # A negative or tiny timeout causes an asyncio tight-spin loop.
+            if remaining_s < 30:
+                break
             print(f"\n[autorun_2h] → {label} ({remaining_s / 60:.1f} min left)", flush=True)
 
             try:
                 timing = await asyncio.wait_for(
                     run_timed(label, fn, cycle),
-                    timeout=min(EXPERIMENT_TIMEOUT, remaining_s - 10),
+                    timeout=max(30.0, min(EXPERIMENT_TIMEOUT, remaining_s - 10)),
                 )
             except TimeoutError:
                 timing = ExperimentTiming(
@@ -400,6 +418,26 @@ async def main(hours: float = 2.0, use_llm: bool = True) -> None:
             await run_autoresearch_analysis(all_timings, cycle)
             run_autoharness_check(all_timings, cycle)
 
+        # ── autocontext: log per-cycle stats, gate continuation by budget ──
+        b = ctx_budget(ctx)
+        with SESSION_LOG.open("a") as _f:
+            _f.write(
+                json.dumps(
+                    {
+                        "type": "ctx_checkpoint",
+                        "cycle": cycle,
+                        "ctx_pct": ctx["pct"],
+                        "ctx_status": ctx["status"],
+                        "remaining_experiments": b["remaining_experiments"],
+                        "safe_to_continue": b["safe_to_continue"],
+                    }
+                )
+                + "\n"
+            )
+        if not b["safe_to_continue"]:
+            print("[autocontext] Budget exhausted — stopping safely", flush=True)
+            break
+
         cycle += 1
 
     # Session summary
@@ -420,6 +458,10 @@ async def main(hours: float = 2.0, use_llm: bool = True) -> None:
             "kept": kept,
             "keep_frac": round(kept / total_experiments, 3),
             "cycles_completed": cycle,
+            "schedule": "optimal_e63_n3_lr3_e50_serial",
+            "schedule_discovery": "577-experiment autoresearch 2026-05-02",
+            "expected_peak_delta": 0.2750,
+            "retired_experiments": ["E12_persist", "E46_jepa", "E47_voice", "E48_fragility"],
             "per_experiment": final_stats,
         }
         summary_path = _REPO / f"autoresearch_2h_{_TS}_summary.json"
@@ -431,8 +473,15 @@ async def main(hours: float = 2.0, use_llm: bool = True) -> None:
 
 
 if __name__ == "__main__":
-    parser = argparse.ArgumentParser(description="2-hour autonomous EVO research driver")
-    parser.add_argument("--hours", type=float, default=2.0, help="Run duration in hours")
+    parser = argparse.ArgumentParser(
+        description="Overnight autonomous EVO research driver (optimal schedule)"
+    )
+    parser.add_argument(
+        "--hours",
+        type=float,
+        default=9.5,
+        help="Run duration in hours (default: 9.5 for overnight)",
+    )
     parser.add_argument("--no-llm", action="store_true", help="Force heuristic mode (no Lemonade)")
     args = parser.parse_args()
 

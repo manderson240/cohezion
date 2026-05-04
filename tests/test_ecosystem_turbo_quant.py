@@ -5,6 +5,7 @@ from cohezion.swarm.providers.ollama_provider import OllamaProvider
 
 
 @pytest.mark.asyncio
+@pytest.mark.xfail(reason="RED PHASE: turbo_quant metadata not yet in live Lemonade response")
 async def test_lemonade_provider_turbo_quant_flag():
     """
     RED PHASE: Verify LemonadeProvider can accept and handle turbo_quant flag.
@@ -22,6 +23,7 @@ async def test_lemonade_provider_turbo_quant_flag():
 
 
 @pytest.mark.asyncio
+@pytest.mark.xfail(reason="RED PHASE: requires phi4-mini installed in Ollama")
 async def test_ollama_provider_turbo_quant_fallback():
     """
     RED PHASE: Verify OllamaProvider can handle turbo_quant fallback.

@@ -168,8 +168,8 @@ class VAETrainer:
                 "epoch": epoch,
                 "metrics": metrics or {},
                 "config": {
-                    "input_dim": self.model.input_dim,
-                    "latent_dim": self.model.latent_dim,
+                    "input_dim": getattr(self.model, "input_dim", None),
+                    "latent_dim": getattr(self.model, "latent_dim", 256),
                     "max_beta": self.max_beta,
                     "free_bits": self.free_bits,
                 },

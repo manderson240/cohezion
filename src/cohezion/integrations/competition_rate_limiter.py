@@ -22,7 +22,7 @@ class CompetitionRateLimiter:
         if self.lock_path.exists():
             try:
                 return json.loads(self.lock_path.read_text())
-            except:
+            except (json.JSONDecodeError, OSError):
                 return {}
         return {}
 

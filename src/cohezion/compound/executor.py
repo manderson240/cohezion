@@ -19,6 +19,7 @@ from typing import TYPE_CHECKING, Any
 
 from cohezion.compound.context_integration import CompoundContextMixin
 from cohezion.compound.executor_integration import ExecutorIntegrationMixin
+from cohezion.compound.post_execution import PostExecutionOrchestrator  # noqa: F401 — wiring: makes post_execution reachable from compound entry point
 from cohezion.compound.exp_persistence.vault import (
     ExecutionContext,
     VaultLogger,
@@ -69,6 +70,7 @@ class ExecutionResult:
     vault_experiment_path: str = ""
     vault_decision_paths: list[str] | None = None
     token_metrics: dict[str, Any] | None = None
+    compound_score: float = 0.0
 
 
 class CompoundExecutor(CompoundContextMixin, ExecutorIntegrationMixin):
@@ -305,7 +307,7 @@ class CompoundExecutor(CompoundContextMixin, ExecutorIntegrationMixin):
             import asyncio
 
             try:
-                loop = asyncio.get_running_loop()
+                asyncio.get_running_loop()
                 # Already in async context — can't block
                 return None
             except RuntimeError:
@@ -652,7 +654,7 @@ class CompoundExecutor(CompoundContextMixin, ExecutorIntegrationMixin):
         except Exception as e:
             error_msg = str(e)
             output = f"Error: {error_msg}"
-            metrics = {"error": error_msg}
+            metrics = {"error": error_msg, "error_type": type(e).__name__}
             logger.error("Task failed: %s", error_msg, exc_info=True)
 
         # Capture token metrics after execution (if token_client available)
@@ -796,7 +798,7 @@ class CompoundExecutor(CompoundContextMixin, ExecutorIntegrationMixin):
                     "should_retry": alignment.should_retry,
                 }
                 logger.debug("Alignment analysis: %s", metrics["alignment"])
-            except Exception as e:  # noqa: BLE001 - non-blocking by design (alignment is an optional pipeline step; any analyzer failure must not abort execute_task per Σ1 triage)
+            except Exception as e:
                 logger.warning(
                     "Request alignment analysis failed (non-blocking): %s",
                     e,
@@ -932,9 +934,15 @@ class CompoundExecutor(CompoundContextMixin, ExecutorIntegrationMixin):
                 logger.debug("Retrospection failed (non-blocking): %s", e, exc_info=True)
 
         # Step 7: Refine skills based on execution results (non-blocking)
-        # Gated by retrospection AND DRR: only refine when both pass
+        # Gated by retrospection AND DRR: only refine when both pass.
+        # The DRR gate is only authoritative when a real V-Model session is
+        # active (i.e., ``_drr_session_id`` has been set). When no session is
+        # configured the DRR runs against placeholder artifact paths that
+        # never exist, producing structural critical findings unrelated to
+        # the skill outcome — those should not block refinement.
         drr_passed = metrics.get("drr_passed", True)  # Default True if DRR not run
-        if not drr_passed:
+        drr_authoritative = bool(self._drr_session_id)
+        if drr_authoritative and not drr_passed:
             should_refine = False
             logger.info(
                 "Skill refinement blocked: DRR gate failed (%s)", metrics.get("drr_gate", "?")
@@ -962,7 +970,7 @@ class CompoundExecutor(CompoundContextMixin, ExecutorIntegrationMixin):
                     logger.info(f"Skill refined: {refined_path}")
                     decision_paths.append(refined_path)
 
-            except Exception as e:  # noqa: BLE001 - non-blocking by design (skill refinement is an optional learning step; any refiner failure must not abort execute_task per Σ1 triage)
+            except Exception as e:
                 logger.warning("Skill refinement failed (non-blocking): %s", e, exc_info=True)
 
         # Step 7.4: Record skill health metrics (non-blocking)
@@ -1338,6 +1346,17 @@ class CompoundExecutor(CompoundContextMixin, ExecutorIntegrationMixin):
             except Exception as e:
                 logger.debug("Context policy outcome recording failed (non-blocking): %s", e)
 
+        # Compute compound_score = coherence × hiho_stability × skill_factor
+        # hiho_stability = 1 - 2|coherence - 0.5| (max at 0.5, 0 at extremes)
+        # skill_factor = max(0, 1 + skill_gain) (non-negative, penalizes regression)
+        _coherence = float(metrics.get("coherence", 0.5))
+        _skill_gain = float(metrics.get("skill_gain", 0.0))
+        if retrospection_context is not None:
+            _skill_gain = float(retrospection_context.get("compound_score", _skill_gain))
+        _hiho_stability = max(0.0, 1.0 - 2.0 * abs(_coherence - 0.5))
+        _skill_factor = max(0.0, 1.0 + _skill_gain)
+        compound_score = _coherence * _hiho_stability * _skill_factor
+
         return ExecutionResult(
             success=success,
             output=output,
@@ -1346,7 +1365,69 @@ class CompoundExecutor(CompoundContextMixin, ExecutorIntegrationMixin):
             vault_experiment_path=experiment_path,
             vault_decision_paths=decision_paths,
             token_metrics=token_metrics,
+            compound_score=compound_score,
         )
+
+    def start_session(self, max_cache_entries: int = 256) -> dict[str, Any]:
+        """Start a compound session: warm-start autocontext and cache.
+
+        Args:
+            max_cache_entries: Maximum cache entries to warm (unused placeholder)
+
+        Returns:
+            Session summary dict
+        """
+        manifest_path = self.init_autocontext()
+        summary: dict[str, Any] = {
+            "autocontext_initialized": bool(manifest_path),
+            "manifest_path": str(manifest_path) if manifest_path else None,
+        }
+        # Warm cache (best-effort, non-blocking)
+        try:
+            from cohezion.compound.cache_persistence import WarmCacheLoader
+            from cohezion.swarm.compound_client import get_compound_client
+
+            client = get_compound_client()
+            loader = WarmCacheLoader()
+            cache_loaded = loader.warm_client(client, max_cache_entries)
+            summary["cache_entries_loaded"] = cache_loaded
+        except Exception:
+            logger.debug("Cache warm failed (non-critical)")
+            summary["cache_entries_loaded"] = 0
+        logger.info("Compound session started")
+        return summary
+
+    def end_session(self) -> dict[str, Any]:
+        """End compound session: archive outcome and persist state.
+
+        Returns:
+            Session summary dict
+        """
+        # Gather outcome from context state if available
+        outcome: dict[str, Any] = {}
+        try:
+            outcome = self.get_context_state()
+        except Exception:
+            pass
+        archived_path = self.archive_session(outcome=outcome)
+        summary: dict[str, Any] = {
+            "session_archived": bool(archived_path),
+            "archive_path": str(archived_path) if archived_path else None,
+        }
+        # Persist cache (best-effort, non-blocking)
+        try:
+            from cohezion.compound.cache_persistence import CachePersistence
+            from cohezion.swarm.compound_client import get_compound_client
+
+            client = get_compound_client()
+            cp = CachePersistence()
+            cache_saved = cp.save_cache(client._cache)
+            summary["cache_entries_saved"] = cache_saved
+        except Exception:
+            logger.debug("Cache save failed (non-critical)")
+            summary["cache_entries_saved"] = 0
+        logger.info("Compound session ended")
+        return summary
 
     # Integration methods (_compute_token_delta, log_inflection_point,
     # compile_natural_language, validate_sandbox) inherited from

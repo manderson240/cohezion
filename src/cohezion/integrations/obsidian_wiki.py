@@ -214,13 +214,13 @@ backlinks: {backlinks}
         else:
             body = content
 
-        title = body.split("\n")[0].lstrip("# ").strip()
+        title = body.lstrip("\n").split("\n")[0].lstrip("# ").strip()
         backlinks = re.findall(r"\[\[([^\]]+)\]\]", body)
 
         return WikiPage(
             path=path,
             title=title,
-            content=body,
+            content=content,
             category=frontmatter.get("category", "unknown"),
             tags=eval(frontmatter.get("tags", "[]")),
             backlinks=backlinks,

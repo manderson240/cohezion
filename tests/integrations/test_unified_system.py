@@ -9,8 +9,12 @@ Charter Compliance:
 
 from __future__ import annotations
 
+import os
+
 import pytest
 
+# Allow insecure SurrealDB for test environment (no credentials needed)
+os.environ.setdefault("COHEZION_ALLOW_INSECURE_SURREAL", "1")
 
 # Skip if dependencies not available
 pytest.importorskip("sentence_transformers")

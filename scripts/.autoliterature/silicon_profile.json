@@ -1,0 +1,33 @@
+{
+  "lanes": {
+    "cpu": {
+      "calls": 20,
+      "ok_count": 20,
+      "fail_count": 0,
+      "ewma_latency_ms": 788.8,
+      "ewma_tokens_per_sec": 217.87,
+      "last_error": null,
+      "success_rate": 1.0
+    },
+    "npu": {
+      "calls": 17,
+      "ok_count": 17,
+      "fail_count": 0,
+      "ewma_latency_ms": 2533.2,
+      "ewma_tokens_per_sec": 3.47,
+      "last_error": null,
+      "success_rate": 1.0
+    },
+    "igpu": {
+      "calls": 30,
+      "ok_count": 30,
+      "fail_count": 0,
+      "ewma_latency_ms": 1142.6,
+      "ewma_tokens_per_sec": 46.3,
+      "last_error": null,
+      "success_rate": 1.0
+    }
+  },
+  "runs": 8,
+  "last_updated": "2026-05-03T03:52:39Z"
+}

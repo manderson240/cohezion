@@ -97,4 +97,4 @@ def get_rl_policy():
     return api_module._rl_policy
 
 
-__all__ = ["compute_coherence", "get_vae", "get_rl_policy", "contextlib"]
+__all__ = ["compute_coherence", "contextlib", "get_rl_policy", "get_vae"]

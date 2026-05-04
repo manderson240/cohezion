@@ -21,6 +21,7 @@ from typing import Any
 
 from cohezion.compound.skill_health_tracker import SkillHealthTracker
 
+
 logger = logging.getLogger(__name__)
 
 

@@ -250,7 +250,7 @@ class ValidationOracle:
             try:
                 with open(self.data_path) as f:
                     self.stats = json.load(f)
-            except:
+            except (json.JSONDecodeError, OSError):
                 pass
 
     def save(self):

@@ -125,7 +125,7 @@ def verify_claim_m() -> bool:
 
     _pass(
         "M",
-        f"4 local tiers with E2B first; 6 total with cloud tiers",
+        "4 local tiers with E2B first; 6 total with cloud tiers",
     )
     return True
 

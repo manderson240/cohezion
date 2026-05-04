@@ -53,7 +53,7 @@ class VaultLogger:
                 "start_time": ctx.start_time.isoformat(),
                 "status": "started",
             }
-            self.mcp.vault_write(path, json.dumps(data, indent=2))
+            self.mcp.vault_write_sync(path, json.dumps(data, indent=2))
             return path
         except Exception as e:
             logger.error(f"Failed to log execution start to Vault: {e}")
@@ -67,7 +67,7 @@ class VaultLogger:
             return
         try:
             # Read existing
-            content = self.mcp.vault_read(experiment_path)
+            content = self.mcp.vault_read_sync(experiment_path)
             data = json.loads(content)
 
             # Update
@@ -77,7 +77,7 @@ class VaultLogger:
             data["status"] = "completed"
             data["end_time"] = datetime.now().isoformat()
 
-            self.mcp.vault_write(experiment_path, json.dumps(data, indent=2))
+            self.mcp.vault_write_sync(experiment_path, json.dumps(data, indent=2))
         except Exception as e:
             logger.error(f"Failed to log execution result to Vault: {e}")
 
@@ -119,7 +119,7 @@ class VaultLogger:
 {code_example}
 ```
 """
-            self.mcp.vault_write(path, content)
+            self.mcp.vault_write_sync(path, content)
             return path
         except Exception as e:
             logger.error(f"Failed to extract pattern to Vault: {e}")
@@ -146,7 +146,7 @@ class VaultLogger:
 ## Rationale
 {rationale}
 """
-            self.mcp.vault_write(path, content)
+            self.mcp.vault_write_sync(path, content)
             return path
         except Exception as e:
             logger.error(f"Failed to log decision point to Vault: {e}")
@@ -195,7 +195,7 @@ class VaultLogger:
                 "natural_capital": metrics.get("natural_capital", 0.0),
                 "bioelectric_coherence": metrics.get("bioelectric_coherence", 0.0),
             }
-            self.mcp.vault_write(trace_path, json.dumps(trace_data, indent=2))
+            self.mcp.vault_write_sync(trace_path, json.dumps(trace_data, indent=2))
 
             # Prune old traces (keep last 100 per skill)
             self._prune_traces(ctx.skill_name)
@@ -216,7 +216,7 @@ class VaultLogger:
                 to_remove = sorted_traces[: len(sorted_traces) - max_traces]
                 for trace_path in to_remove:
                     try:
-                        self.mcp.vault_delete(trace_path)
+                        self.mcp.vault_delete_sync(trace_path)
                     except Exception:
                         pass
         except Exception:
@@ -245,7 +245,7 @@ class VaultLogger:
             recent = sorted(traces, reverse=True)[:n]
             for trace_path in recent:
                 try:
-                    content = self.mcp.vault_read(trace_path)
+                    content = self.mcp.vault_read_sync(trace_path)
                     data = json.loads(content)
                     results.append(data)
                 except Exception:
@@ -286,7 +286,7 @@ class VaultLogger:
                 # Add links to relevant project and skill for Obsidian Graph connectivity
                 content += f"\n\n--- \nTags: #retrospective #{data.get('agent', 'agent').lower()} #{data.get('skill_name', 'skill').lower()}\n"
 
-                self.mcp.vault_write(filename, content)
+                self.mcp.vault_write_sync(filename, content)
                 logger.info(f"Architectural insight persisted to Vault: {filename}")
 
             except Exception as e:

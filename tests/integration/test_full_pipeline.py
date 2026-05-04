@@ -17,6 +17,20 @@ from cohezion.pipeline.weight_bridge import WeightBridge
 from cohezion.rl.trainer import PolicyNetwork, TrainingConfig, train
 
 
+def _flume_nav_registered() -> bool:
+    try:
+        import gymnasium as gym
+        return "cohezion/FlumeNav-v0" in gym.envs.registry
+    except Exception:
+        return False
+
+
+_skip_no_flume_nav = pytest.mark.skipif(
+    not _flume_nav_registered(),
+    reason="cohezion/FlumeNav-v0 gymnasium environment not registered",
+)
+
+
 @pytest.fixture
 def pipeline_dir(tmp_path):
     """Create directory structure for the pipeline test."""
@@ -70,6 +84,7 @@ class TestFullPipelineDemoScale:
         assert len(metrics) == 5
         assert metrics[-1]["mse"] < metrics[0]["mse"]  # Loss should decrease
 
+    @_skip_no_flume_nav
     def test_step3_rl_trains_and_produces_checkpoint(self, pipeline_dir):
         """Step 3: RL training produces a checkpoint file."""
         config = TrainingConfig(
@@ -125,6 +140,7 @@ class TestFullPipelineDemoScale:
         # Deltas should be small (action_scale=0.01 + tanh bounds)
         assert np.abs(deltas).max() < 0.02
 
+    @_skip_no_flume_nav
     def test_full_roundtrip(self, sim_data, pipeline_dir):
         """Full pipeline: sim data → VAE → RL → weight bridge → navigator."""
         # 1. Load sim data

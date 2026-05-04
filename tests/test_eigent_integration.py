@@ -2,18 +2,18 @@ import asyncio
 
 # Use absolute import to get the standard library platform
 import importlib
-import os
-import sys
 from pathlib import Path
 
+import pytest
 
 platform = importlib.import_module("platform")
 
-# Add src to path after standard library
-sys.path.append(os.path.join(os.getcwd(), "src"))
 
-
-
+@pytest.mark.asyncio
+@pytest.mark.skipif(
+    not __import__("importlib").util.find_spec("camel"),
+    reason="CAMEL-AI not installed"
+)
 async def test_eigent_integration():
     print("Testing Eigent integration with Lemonade server...")
 

@@ -14,9 +14,19 @@ Success Metrics:
 """
 
 import asyncio
+import sys
 from typing import Any
+from unittest.mock import MagicMock, patch
 
 import pytest
+
+_ST_IS_REAL = not (
+    "sentence_transformers" in sys.modules
+    and sys.modules["sentence_transformers"].SentenceTransformer is MagicMock
+)
+requires_real_st = pytest.mark.skipif(
+    not _ST_IS_REAL, reason="sentence_transformers is mocked (hardware compatibility)"
+)
 
 from cohezion.cache.text_encoder import get_text_encoder
 from cohezion.compound.session_manager import (
@@ -36,7 +46,16 @@ class TestPhase3GuardrailIntegration:
     @pytest.mark.asyncio
     async def test_default_pipeline_blocks_injection(self):
         """Test default pipeline blocks prompt injection."""
-        pipeline = create_default_pipeline()
+        # Mock resource monitor so test is not flaky under CI load
+        with patch(
+            "cohezion.security.guardrail_adapters.get_resource_monitor"
+        ) as mock_monitor:
+            mock_monitor.return_value.should_rent.return_value = True
+            mock_monitor.return_value.get_stats.return_value = {
+                "cpu_percent": 10.0,
+                "memory_percent": 20.0,
+            }
+            pipeline = create_default_pipeline()
 
         # Safe inputs should pass
         result = await pipeline.check_input("What is machine learning?")
@@ -250,6 +269,7 @@ class TestPhase3CacheIntegration:
         # Should miss on unrelated topics
         assert result is None
 
+    @requires_real_st
     def test_text_encoder_discrimination(self):
         """Test semantic embeddings discriminate between topics."""
         encoder = get_text_encoder()
@@ -325,7 +345,16 @@ class TestPhase3EndToEnd:
     @pytest.mark.asyncio
     async def test_cache_with_pipeline(self):
         """Test semantic cache with guardrail pipeline."""
-        pipeline = create_default_pipeline()
+        with patch(
+            "cohezion.security.guardrail_adapters.get_resource_monitor"
+        ) as mock_monitor:
+            mock_monitor.return_value.should_rent.return_value = True
+            mock_monitor.return_value.get_stats.return_value = {
+                "cpu_percent": 10.0,
+                "memory_percent": 20.0,
+            }
+            pipeline = create_default_pipeline()
+
         cache = SemanticCache(similarity_threshold=0.30, max_entries=50)
 
         # Safe prompts through pipeline

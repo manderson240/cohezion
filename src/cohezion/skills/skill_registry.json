@@ -107,7 +107,7 @@
     "source": "src/cohezion/skills/AUTONOMOUS_RESILIENCE_PRIME.md"
   },
   "AUTORESEARCH_PRIME": {
-    "version": "v0.2 (Session 93, 2026-04-09 \u2014 andyluo7/autoresearch integration)",
+    "version": "v0.2 (Session 93, 2026-04-09 — andyluo7/autoresearch integration)",
     "concepts": [
       "Autonomous Experimentation Loops",
       "UCB1 K-Search Tree",
@@ -154,7 +154,7 @@
   "COMPOUND_ENGINEERING_PRIME": {
     "version": "v0.1",
     "concepts": [
-      "Meta\u2011Pattern Library",
+      "Meta‑Pattern Library",
       "Skill Tokens",
       "Automatic Skill Scaffold"
     ],
@@ -417,7 +417,7 @@
     "version": "v0.1",
     "concepts": [
       "Ollama Model Catalog",
-      "Memory\u2011aware Scheduling",
+      "Memory‑aware Scheduling",
       "Task Classification",
       "Parallel Execution",
       "Cache & Deduplication",
@@ -765,7 +765,7 @@
       "CPU Utilisation",
       "Memory Pressure",
       "I/O Saturation",
-      "Process\u2011level Metrics",
+      "Process‑level Metrics",
       "Adaptive Scaling",
       "Guardrails",
       "Visualization"
@@ -946,5 +946,23 @@
       "COMPOUND_ENGINEERING_PRIME"
     ],
     "source": "src/cohezion/skills/SURGICAL_COMMIT_UNDER_CHURN_PRIME.md"
+  },
+  "SKILL_0_PRIME": {
+    "version": "1.0",
+    "concepts": [],
+    "see_also": [],
+    "source": "/tmp/pytest-of-mike-anderson/pytest-239/test_factory_generate_top_skil0/skills/SKILL_0_PRIME.md"
+  },
+  "SKILL_1_PRIME": {
+    "version": "1.0",
+    "concepts": [],
+    "see_also": [],
+    "source": "/tmp/pytest-of-mike-anderson/pytest-239/test_factory_generate_top_skil0/skills/SKILL_1_PRIME.md"
+  },
+  "TEST_SKILL_PRIME": {
+    "version": "2.5",
+    "concepts": [],
+    "see_also": [],
+    "source": "/tmp/pytest-of-mike-anderson/pytest-239/test_version_header_in_generat0/skills/TEST_SKILL_PRIME.md"
   }
 }

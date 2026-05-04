@@ -8,6 +8,7 @@ from __future__ import annotations
 
 import json
 import logging
+from datetime import datetime
 from pathlib import Path
 from typing import TYPE_CHECKING, Any
 
@@ -44,6 +45,62 @@ class ContextManager:
         coherence_state: Current coherence score (0.0-1.0)
     """
 
+    # Class-level TTL'd caches. Each entry is ``(monotonic_timestamp, value)``.
+    # Keyed on cwd string for ``_root_cache`` and on absolute resolved path
+    # for ``_context_cache``. Bounds staleness to ``CACHE_TTL_SECONDS`` so
+    # ``cd``-ing into a different worktree mid-session doesn't return a
+    # stale project root indefinitely.
+    #
+    # **Concurrency:** these caches are NOT thread-safe — they assume the
+    # GIL provides atomicity for individual dict get/set, which is only
+    # true for CPython simple dict operations. Concurrent writers from
+    # multiple threads could double-traverse the filesystem (benign — same
+    # value would be cached), but no entry could be partially observed.
+    # If used from a free-threaded build (PEP 703) or ported to async
+    # tasks holding references across awaits, wrap reads/writes in a
+    # ``threading.Lock``. For our compound-executor use case (single
+    # event loop, sync helper called from coroutines) this is acceptable.
+    CACHE_TTL_SECONDS: float = 60.0
+
+    _root_cache: dict[str, tuple[float, Path]] = {}
+    _context_cache: dict[str, tuple[float, Any]] = {}
+
+    @classmethod
+    def clear_caches(cls) -> None:
+        """Clear class-level caches (root + context). Useful for tests."""
+        cls._root_cache.clear()
+        cls._context_cache.clear()
+
+    @classmethod
+    def _cache_get(
+        cls, cache: dict[str, tuple[float, Any]], key: str
+    ) -> Any | None:
+        """Return cached value if present and fresh, else None.
+
+        Expired entries are evicted on read so the cache cannot grow
+        unboundedly with stale keys.
+        """
+        import time
+
+        entry = cache.get(key)
+        if entry is None:
+            return None
+        ts, value = entry
+        if (time.monotonic() - ts) > cls.CACHE_TTL_SECONDS:
+            # Expired — evict.
+            cache.pop(key, None)
+            return None
+        return value
+
+    @classmethod
+    def _cache_put(
+        cls, cache: dict[str, tuple[float, Any]], key: str, value: Any
+    ) -> None:
+        """Store ``(now, value)`` in cache."""
+        import time
+
+        cache[key] = (time.monotonic(), value)
+
     def __init__(self, project_root: Path | None = None):
         """Initialize context manager.
 
@@ -65,15 +122,27 @@ class ContextManager:
     def _find_project_root(self) -> Path:
         """Find project root by looking for .context directory.
 
+        Cached per-cwd at the class level — first call traverses the
+        filesystem, subsequent calls from the same cwd return the cached
+        :class:`Path` immediately.
+
         Returns:
             Path to project root
 
         Raises:
             ContextLoadError: If project root not found
         """
-        current = Path.cwd()
+        cwd = Path.cwd()
+        cwd_key = str(cwd)
+        cls = type(self)
+        cached = cls._cache_get(cls._root_cache, cwd_key)
+        if cached is not None:
+            return cached
+
+        current = cwd
         while current != current.parent:
             if (current / ".context").exists():
+                cls._cache_put(cls._root_cache, cwd_key, current)
                 return current
             current = current.parent
         raise ContextLoadError("Project root not found (no .context directory)")
@@ -194,6 +263,14 @@ class ContextManager:
             logger.warning("Skill context file not found: %s", context_path)
             return None
 
+        # Cache key: absolute resolved path of the YAML file
+        cache_key = str(context_path.resolve())
+        cls = type(self)
+        cached = cls._cache_get(cls._context_cache, cache_key)
+        if cached is not None:
+            logger.debug("Skill context cache hit: %s", skill_name)
+            return cached
+
         # Load YAML config
         try:
             import yaml
@@ -201,6 +278,8 @@ class ContextManager:
             with open(context_path, encoding="utf-8") as f:
                 config = yaml.safe_load(f)
                 logger.debug("Loaded skill context: %s", skill_name)
+                if config is not None:
+                    cls._cache_put(cls._context_cache, cache_key, config)
                 return config
         except ImportError:
             logger.error("PyYAML required for skill context loading")
@@ -265,10 +344,19 @@ class CompoundContextMixin:
     def __init_context__(self, project_root: Path | None = None):
         """Initialize context manager.
 
+        Construction is tolerant of a missing ``.context`` directory: when
+        :class:`ContextManager` cannot locate a project root, a manager
+        rooted at ``Path.cwd()`` is created instead. Lazy operations like
+        :meth:`ContextManager.load_manifest` will still raise
+        :class:`ContextLoadError` when actually invoked without a manifest.
+
         Args:
             project_root: Project root directory
         """
-        self._context_manager = ContextManager(project_root)
+        try:
+            self._context_manager = ContextManager(project_root)
+        except ContextLoadError:
+            self._context_manager = ContextManager(Path.cwd())
         self._context_loaded = False
         self._active_budget: ContextBudget | None = None
         self._context_policy: ContextPolicy | None = None
@@ -373,3 +461,90 @@ class CompoundContextMixin:
             True if coherence acceptable
         """
         return self._context_manager.check_coherence(threshold)
+
+    def init_autocontext(self) -> Path | None:
+        """Initialize autocontext structure if missing.
+
+        Creates ``.context/traceability/manifest.json`` if it doesn't exist,
+        along with the required directory hierarchy. Safe to call multiple
+        times — idempotent.
+
+        Returns:
+            Path to the manifest file, or None on failure
+        """
+        try:
+            ctx_dir = self._context_manager.project_root / ".context"
+            trace_dir = ctx_dir / "traceability"
+            policy_dir = ctx_dir / "policy"
+
+            ctx_dir.mkdir(parents=True, exist_ok=True)
+            trace_dir.mkdir(parents=True, exist_ok=True)
+            policy_dir.mkdir(parents=True, exist_ok=True)
+
+            manifest_path = trace_dir / "manifest.json"
+            if not manifest_path.exists():
+                default_manifest: dict[str, Any] = {
+                    "version": "1.0.0",
+                    "created_at": datetime.now().isoformat(),
+                    "core_files": [],
+                    "skills": {},
+                }
+                with open(manifest_path, "w", encoding="utf-8") as f:
+                    json.dump(default_manifest, f, indent=2)
+                logger.info("Created autocontext manifest: %s", manifest_path)
+            else:
+                logger.debug("Autocontext manifest already exists: %s", manifest_path)
+
+            return manifest_path
+        except Exception as e:
+            logger.warning("Autocontext init failed (non-blocking): %s", e)
+            return None
+
+    def archive_session(self, outcome: dict[str, Any] | None = None) -> Path | None:
+        """Archive session outcome to ``policy/learned-budgets.md``.
+
+        Appends a YAML-frontmatter markdown entry with the session outcome.
+        Safe to call multiple times — always appends.
+
+        Args:
+            outcome: Optional session outcome dictionary. If None, records
+                a minimal entry.
+
+        Returns:
+            Path to the written file, or None on failure
+        """
+        try:
+            policy_dir = self._context_manager.project_root / ".context" / "policy"
+            policy_dir.mkdir(parents=True, exist_ok=True)
+
+            budget_path = policy_dir / "learned-budgets.md"
+            timestamp = datetime.now().isoformat()
+
+            lines: list[str] = [
+                "---",
+                f"archived_at: {timestamp}",
+            ]
+            if outcome:
+                for key, value in outcome.items():
+                    lines.append(f"{key}: {value}")
+            else:
+                lines.append("outcome: no_data")
+            lines.append("---")
+            lines.append("")
+            lines.append(f"## Session Archive — {timestamp}")
+            lines.append("")
+            if outcome:
+                for key, value in outcome.items():
+                    lines.append(f"- **{key}**: {value}")
+            else:
+                lines.append("- No outcome data recorded.")
+            lines.append("")
+
+            with open(budget_path, "a", encoding="utf-8") as f:
+                f.write("\n".join(lines) + "\n")
+
+            logger.info("Archived session to %s", budget_path)
+            return budget_path
+        except Exception as e:
+            logger.warning("Session archive failed (non-blocking): %s", e)
+            return None

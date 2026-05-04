@@ -195,7 +195,7 @@ class MultiModelOrchestrator(ModelProvider):
         size_str = model.split(":")[-1] if ":" in model else "7b"
         try:
             size = float(size_str.replace("b", "").replace("m", ".001"))
-        except:
+        except ValueError:
             size = 7.0
 
         unit = ComputeUnit.CPU if size < 3.0 else ComputeUnit.GPU
