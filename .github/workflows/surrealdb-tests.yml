@@ -97,7 +97,7 @@ jobs:
           cache-dependency-glob: "pyproject.toml"
 
       - name: Sync dependencies
-        run: uv sync --frozen --group dev
+        run: uv sync --frozen --extra dev
 
       - name: Run ruff format check
         id: format
@@ -163,7 +163,7 @@ jobs:
           cache-dependency-glob: "pyproject.toml"
 
       - name: Sync dependencies
-        run: uv sync --frozen --group dev
+        run: uv sync --frozen --extra dev
 
       - name: Run mypy strict
         id: mypy
@@ -235,7 +235,7 @@ jobs:
           cache-dependency-glob: "pyproject.toml"
 
       - name: Sync dependencies
-        run: uv sync --frozen --group dev
+        run: uv sync --frozen --extra dev
 
       - name: Run unit tests (shard ${{ matrix.shard }}/4)
         run: |
@@ -315,7 +315,7 @@ jobs:
           cache-dependency-glob: "pyproject.toml"
 
       - name: Sync dependencies
-        run: uv sync --frozen --group dev
+        run: uv sync --frozen --extra dev
 
       - name: Wait for SurrealDB
         timeout-minutes: 3
@@ -423,7 +423,7 @@ jobs:
           cache-dependency-glob: "pyproject.toml"
 
       - name: Sync dependencies
-        run: uv sync --frozen --group dev
+        run: uv sync --frozen --extra dev
 
       - name: Run benchmark tests
         run: |
@@ -486,7 +486,7 @@ jobs:
           cache-dependency-glob: "pyproject.toml"
 
       - name: Sync dependencies
-        run: uv sync --frozen --group dev
+        run: uv sync --frozen --extra dev
 
       - name: Verify live DB connectivity
         id: verify
@@ -618,7 +618,7 @@ jobs:
           enable-cache: true
 
       - name: Sync dependencies
-        run: uv sync --frozen --group dev
+        run: uv sync --frozen --extra dev
 
       - name: Wait for SurrealDB (latest)
         timeout-minutes: 5
