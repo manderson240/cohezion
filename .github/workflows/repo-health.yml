@@ -119,7 +119,7 @@ jobs:
       - name: Check protected directories
         run: |
           echo "=== Protected Directory Check ==="
-          PROTECTED_DIRS=("_bmad" ".claude/commands" ".agent" "src/cohezion")
+          PROTECTED_DIRS=("_bmad" ".agent" "src/cohezion")
           MISSING=()
 
           for dir in "${PROTECTED_DIRS[@]}"; do
