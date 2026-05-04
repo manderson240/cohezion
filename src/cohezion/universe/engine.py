@@ -446,7 +446,7 @@ class UniverseSimulationEngine:
                     ],
                 },
             )
-        except (ImportError, ModuleNotFoundError):
+        except ImportError:
             logger.debug("multimodal_bridge not found, skipping asset scheduling")
 
         journey = UniverseJourney(
@@ -490,7 +490,7 @@ class UniverseSimulationEngine:
             latent_np = np.array(embedding_2048d, dtype=np.float32)
             entropy = physics_engine.calculate_entropy(latent_np)
             rep = physics_engine.project_holographic(latent_np)
-        except (ImportError, ModuleNotFoundError):
+        except ImportError:
             logger.debug("cohezion_core not found, using High-Fidelity Python fallback")
             # Substrate: Use a seeded deterministic random projection (Johnson-Lindenstrauss)
             # to prevent 'Projection Collapse' and preserve manifold topology.
@@ -550,7 +550,7 @@ class UniverseSimulationEngine:
             # 1. Batch Holographic Projection in Rust
             reps = physics_engine.project_holographic_batch(embeddings_2048d)
             entropies = physics_engine.calculate_entropy_batch(embeddings_2048d)
-        except (ImportError, ModuleNotFoundError):
+        except ImportError:
             logger.debug("cohezion_core not found, using Python batch fallback")
             reps = []
             entropies = []

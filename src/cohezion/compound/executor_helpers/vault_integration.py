@@ -106,7 +106,7 @@ def fetch_experience_guidance(
         if data and data[0].get("status") == "OK" and data[0]["result"]:
             result["recent_retrospections"] = data[0]["result"]
             logger.debug("Guidance enriched with %d recent retrospections", len(data[0]["result"]))
-    except (OSError, ConnectionError, json.JSONDecodeError, ValueError, KeyError) as e:
+    except (OSError, ValueError, KeyError) as e:
         logger.debug("SurrealDB retrospection query failed (non-blocking): %s", e)
 
     return result

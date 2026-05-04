@@ -87,5 +87,5 @@ class NightlyReporter:
                 f"executions={data['total_executions']}",
                 details=data["content"],
             )
-        except (ImportError, Exception):
+        except Exception:
             logger.debug("Vault persistence failed (non-blocking)", exc_info=True)

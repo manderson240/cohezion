@@ -328,7 +328,7 @@ class BudgetEnforcer:
                 self.vault_logger.log_alert(alert, severity="warning"),
                 timeout=2.0,
             )
-        except (TimeoutError, Exception):
+        except Exception:
             # Vault failure: log locally
             logger.warning(f"{alert} (vault log failed)")
 

@@ -147,7 +147,7 @@ class JourneyTaskReader:
         if self._jsonl_path.exists():
             try:
                 return self._load_from_jsonl()
-            except (OSError, json.JSONDecodeError, ValueError) as exc:
+            except (OSError, ValueError) as exc:
                 logger.warning(
                     "Failed to load JSONL from %s (%s), falling back to collector",
                     self._jsonl_path,
