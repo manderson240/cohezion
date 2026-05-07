@@ -9,7 +9,7 @@ import torch
 # Add src to sys.path
 sys.path.insert(0, str(Path.cwd() / "src"))
 
-import cohezion_core  # noqa: E402
+import cohezion_core
 
 
 print(f"DEBUG: cohezion_core loaded from: {cohezion_core.__file__}")
