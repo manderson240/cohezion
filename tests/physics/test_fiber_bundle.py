@@ -78,7 +78,7 @@ class TestHorizontalVertical:
         h = fb.horizontal_component(state, tangent)
         decomp = fb.decompose(state)
         for i in range(4):
-            sl = list(fb.__class__.__mro__[0].__init__.__code__.co_varnames)  # noqa
+            sl = list(fb.__class__.__mro__[0].__init__.__code__.co_varnames)
             # The horizontal block should be proportional to the fiber direction
             h_block = h[i * 3 : (i + 1) * 3]
             n = decomp.fiber[i]

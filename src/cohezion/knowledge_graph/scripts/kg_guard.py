@@ -6,15 +6,15 @@ Automates learning extraction from agent journeys and uses semantic
 vector similarity to densify the knowledge graph.
 """
 
-import asyncio  # noqa: E402
-import glob  # noqa: E402
-import json  # noqa: E402
-import logging  # noqa: E402
-import sys  # noqa: E402
-from datetime import datetime  # noqa: E402
-from pathlib import Path  # noqa: E402
+import asyncio
+import glob
+import json
+import logging
+import sys
+from datetime import datetime
+from pathlib import Path
 
-import aiofiles  # noqa: E402
+import aiofiles
 
 
 # Resolve project root

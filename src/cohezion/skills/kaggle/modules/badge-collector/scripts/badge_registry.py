@@ -1,4 +1,4 @@
-from typing import Optional  # noqa: E402
+from typing import Optional
 
 
 """Registry of all 59 Kaggle badges with metadata.

@@ -14,25 +14,25 @@ Usage:
     python3 src/cohezion/simulation/fractal_universe.py --duration 3h
 """
 
-import argparse  # noqa: E402
-import logging  # noqa: E402
-import random  # noqa: E402
-import signal  # noqa: E402
-import sys  # noqa: E402
-import time  # noqa: E402
-from dataclasses import dataclass, field  # noqa: E402
-from pathlib import Path  # noqa: E402
+import argparse
+import logging
+import random
+import signal
+import sys
+import time
+from dataclasses import dataclass, field
+from pathlib import Path
 
-import numpy as np  # noqa: E402
+import numpy as np
 
-from cohezion.reliability.monitor import get_resource_monitor  # noqa: E402
+from cohezion.reliability.monitor import get_resource_monitor
 
 
 # Add src to path if running directly
 sys.path.insert(0, str(Path(__file__).parent.parent.parent))
 
-from cohezion.flume.mnm import SCENARIO_MANIFOLDS  # noqa: E402
-from cohezion.simulation.simulation_logger import SimulationLogger  # noqa: E402
+from cohezion.flume.mnm import SCENARIO_MANIFOLDS
+from cohezion.simulation.simulation_logger import SimulationLogger
 
 
 logging.basicConfig(

@@ -135,7 +135,7 @@ class TestGeneratedAgentProcess:
 
         # Execute the source to get the class
         namespace: dict[str, Any] = {}
-        exec(compile(source, "<test>", "exec"), namespace)  # noqa: S102
+        exec(compile(source, "<test>", "exec"), namespace)
 
         agent_cls = namespace["TestSkillAgent"]
         agent = agent_cls(token_client=None)
@@ -152,7 +152,7 @@ class TestGeneratedAgentProcess:
         source = engine.generate_executable_agent(spec)
 
         namespace: dict[str, Any] = {}
-        exec(compile(source, "<test>", "exec"), namespace)  # noqa: S102
+        exec(compile(source, "<test>", "exec"), namespace)
 
         mock_client = _MockTokenClient()
         agent_cls = namespace["TestSkillAgent"]
