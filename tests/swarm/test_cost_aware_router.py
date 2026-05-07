@@ -217,7 +217,7 @@ class TestCostAwareRouter:
             ("Implement and optimize a production system", "complex", self.ALL_TIER_MODELS),
         ]
 
-        for query, expected_type, allowed_models in queries:
+        for query, _expected_type, allowed_models in queries:
             decision, _ = router.select_model(query)
             assert decision.model in allowed_models, (
                 f"Query '{query}' routed to {decision.model}, expected one of {allowed_models}"
@@ -355,7 +355,7 @@ class TestCostAwareRouterChaosTest:
         router, tracker, enforcer = router_with_tight_budget
 
         # Simulate spike: 50 complex queries
-        for i in range(50):
+        for _i in range(50):
             decision, can_proceed = router.select_model(
                 "Design and implement a distributed system with consensus"
             )

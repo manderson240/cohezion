@@ -128,7 +128,7 @@ class TestCompoundScoreComputation:
         score = coherence * hiho_stability * skill_factor
         assert 0.0 <= score <= 1.0, f"compound_score out of bounds: {score}"
         # At coherence=0.5 (HIHO optimum), hiho_stability=1.0; score = 0.5 * 1.0 * (1+gain)
-        hiho_optimum = 0.5 * 1.0 * 1.0  # = 0.5 with no skill_gain
+        0.5 * 1.0 * 1.0  # = 0.5 with no skill_gain
         coherence_5 = 0.5
         hiho_5 = 1.0 - 2.0 * abs(coherence_5 - 0.5)
         assert abs(hiho_5 - 1.0) < 1e-9, "HIHO stability should be 1.0 at coherence=0.5"

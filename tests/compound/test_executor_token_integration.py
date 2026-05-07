@@ -312,7 +312,7 @@ class TestExecutorFactory:
         """Test factory reset singleton."""
         with patch("cohezion.compound.exp_persistence.vault.VaultLogger"):
             ExecutorFactory.reset_singleton()
-            executor1 = ExecutorFactory.get_singleton(mock_mcp_client)
+            ExecutorFactory.get_singleton(mock_mcp_client)
             assert ExecutorFactory._instance is not None
             ExecutorFactory.reset_singleton()
             assert ExecutorFactory._instance is None

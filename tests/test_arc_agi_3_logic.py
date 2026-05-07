@@ -15,17 +15,17 @@ def test_dynamic_exit():
 
     # Run with high threshold (should not exit early)
     model.threshold = -1.0
-    h_full = model(z)
+    model(z)
     print("Full depth reasoning completed.")
 
     # Run with low threshold (should exit early)
     model.threshold = 100.0 # Force exit immediately
-    h_early = model(z)
+    model(z)
     print("Immediate exit reasoning completed.")
 
     # Test with realistic threshold
     model.threshold = 5.0 # Random guess for entropy range
-    h_auto = model(z)
+    model(z)
 
     print("Recursive Reasoning Test Passed.")
 

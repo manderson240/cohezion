@@ -11,9 +11,9 @@ from cohezion.compound.experiment_analytics import (
 
 def _make_records(exp, n_keep, n_discard, metric_val=0.15):
     records = []
-    for i in range(n_keep):
+    for _i in range(n_keep):
         records.append({"metric": metric_val, "status": "keep", "asi": {"experiment": exp}})
-    for i in range(n_discard):
+    for _i in range(n_discard):
         records.append({"metric": 0.0, "status": "discard", "asi": {"experiment": exp}})
     return records
 

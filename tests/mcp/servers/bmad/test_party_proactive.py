@@ -226,7 +226,7 @@ async def test_party_mode_multiple_agents_discuss():
     """Test that multiple agents can discuss a suggestion."""
     from cohezion.mcp.servers.bmad.proactive_monitor import ProactiveSuggestion
 
-    suggestion = ProactiveSuggestion(
+    ProactiveSuggestion(
         id="repo-workflow-missing",
         title="Repository Workflows Missing",
         description="Create workflows",

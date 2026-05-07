@@ -134,7 +134,6 @@ class TestExecutorSkillSuggestion:
 
         # Verify project was passed to vault
         executor.mcp_client.vault_search.assert_called()
-        call_kwargs = executor.mcp_client.vault_search.call_args
         # vault_search is a positional call: vault_search(query, limit=...) — project not passed
         assert executor.mcp_client.vault_search.called
 

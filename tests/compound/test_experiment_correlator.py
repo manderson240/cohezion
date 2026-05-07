@@ -35,7 +35,7 @@ class TestTemporalCorrelation:
         records = [_make_seq("E63"), _make_seq("E50")]
         corr = compute_temporal_correlation(records)
         for exp_a, followers in corr.items():
-            for exp_b, score in followers.items():
+            for exp_b, _score in followers.items():
                 # This should not appear (< 2 co-occurrences)
                 assert False, f"Found correlation with insufficient evidence: {exp_a} -> {exp_b}"
 

@@ -139,7 +139,7 @@ class TestModelPoolManagerTiers:
 @pytest.mark.asyncio
 async def test_sequential_loading_lock_logic():
     """Verify the logic behind the sequential load lock (conceptual test)."""
-    manager = ModelPoolManager()
+    ModelPoolManager()
     # This is a a conceptual check that we are using a sequential
     # call in ensure_loaded and that _load_model is an awaited async function.
     # The sequential nature is guaranteed by the la-phase of the orchestrator calling

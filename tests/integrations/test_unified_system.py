@@ -205,7 +205,7 @@ class TestEndToEnd:
         await ouroboros.log_exhaust(exhaust)
 
         # 3. Query knowledge base
-        lessons = await ouroboros.query_lessons_learned(component="safety")
+        await ouroboros.query_lessons_learned(component="safety")
 
         # 4. Verify artifacts exist
         assert (temp_vault / "index.md").exists()

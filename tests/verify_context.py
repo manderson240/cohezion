@@ -39,7 +39,7 @@ def verify_no_placeholders(path: str):
     for p in placeholders:
         if p in content:
             # Check if it's an exception
-            is_exception = any(ex in content for ex in exceptions if p in ex)
+            any(ex in content for ex in exceptions if p in ex)
             if p == "${" and content.count(p) == content.count("${skill}"):
                 continue
             found.append(p)
@@ -151,13 +151,11 @@ def main():
 
         # 4. Mandatory Placeholder & Adversarial Checks
         for f in critical_files:
-            if "CAPABILITY_MAP" not in f:
-                if not verify_no_placeholders(f):
-                    all_passed = False
+            if "CAPABILITY_MAP" not in f and not verify_no_placeholders(f):
+                all_passed = False
 
-            if args.adversarial:
-                if not verify_adversarial(f):
-                    all_passed = False
+            if args.adversarial and not verify_adversarial(f):
+                all_passed = False
 
     if all_passed:
         print("\n✨ All context validations PASSED.")

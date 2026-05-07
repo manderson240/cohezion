@@ -230,7 +230,7 @@ class TestBaseRepository:
         repo = MockRepository()
 
         # Try to get non-existent entity (returns None, not exception)
-        result = await repo.get("nonexistent")
+        await repo.get("nonexistent")
 
         # Should have recorded metrics (success=False for None result)
         assert len(repo._metrics) > 0

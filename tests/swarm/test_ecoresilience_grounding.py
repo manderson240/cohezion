@@ -32,7 +32,7 @@ class TestEcoResilienceGrounding:
         # 3. Initialize and run agent
         agent = EcoResilienceAgent(model_name="gemma4")
 
-        with patch.object(agent, "act", new_callable=AsyncMock) as mock_act:
+        with patch.object(agent, "act", new_callable=AsyncMock):
             result = await agent.analyze_ecosystem(
                 scenario="Local drought impact", trajectory_id="traj-grounding", env_data=env_data
             )

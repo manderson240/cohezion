@@ -96,7 +96,7 @@ class TestRankingStrategies:
 
         assert len(ranked) == 3
         # All should have BALANCED strategy
-        for model, score in ranked:
+        for _model, score in ranked:
             assert score.strategy == "balanced"
 
     def test_cost_optimized_strategy(self, ranker):
@@ -109,7 +109,7 @@ class TestRankingStrategies:
 
         assert len(ranked) == 3
         # All should have COST_OPTIMIZED strategy
-        for model, score in ranked:
+        for _model, score in ranked:
             assert score.strategy == "cost_optimized"
 
     def test_quality_first_strategy(self, ranker):
@@ -122,7 +122,7 @@ class TestRankingStrategies:
 
         assert len(ranked) == 3
         # All should have QUALITY_FIRST strategy
-        for model, score in ranked:
+        for _model, score in ranked:
             assert score.strategy == "quality_first"
 
     def test_different_strategies_produce_different_rankings(self, ranker):
@@ -303,7 +303,7 @@ class TestMultiStrategyComparison:
             available_models=models,
         )
 
-        for strategy, rankings in all_strategies.items():
+        for _strategy, rankings in all_strategies.items():
             assert len(rankings) == 3
             assert all(isinstance(score, ModelScore) for _, score in rankings)
 
@@ -389,7 +389,7 @@ class TestCostAndLatencyNormalization:
         )
 
         # All should have valid scores despite zero cost
-        for model, score in ranked:
+        for _model, score in ranked:
             assert 0.0 <= score.composite_score <= 1.0
 
 
@@ -465,7 +465,7 @@ class TestUnknownModels:
 
         assert len(ranked) == 3
         # All should have valid scores
-        for model, score in ranked:
+        for _model, score in ranked:
             assert 0.0 <= score.composite_score <= 1.0
 
     def test_unknown_model_coherence_clipping(self):
@@ -575,7 +575,7 @@ class TestPerformanceAndEdgeCases:
         # Should have entries for each occurrence
         assert len(ranked) == 3
         # All entries should have valid scores
-        for model, score in ranked:
+        for _model, score in ranked:
             assert 0.0 <= score.composite_score <= 1.0
 
     def test_all_equal_models_ranking(self):
@@ -815,7 +815,7 @@ class TestIntegrationWithGlobalMetrics:
         )
 
         # Scores should be in valid range for comparison
-        for model, score in ranked:
+        for _model, score in ranked:
             assert isinstance(score.coherence_score, float)
             assert isinstance(score.composite_score, float)
             assert 0.0 <= score.composite_score <= 1.0
