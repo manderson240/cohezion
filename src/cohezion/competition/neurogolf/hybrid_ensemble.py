@@ -12,7 +12,7 @@ import torch.nn.functional as F
 
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
-from arc_solver import apply_program, grids_equal, search_program
+from arc_solver import apply_program, search_program
 
 
 class TinyConvARCV3(nn.Module):

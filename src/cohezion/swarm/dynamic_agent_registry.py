@@ -215,7 +215,7 @@ class DynamicAgentRegistry:
         try:
             spec.loader.exec_module(module)
         except Exception as e:
-            raise ImportError(f"Failed to execute module: {e}")
+            raise ImportError(f"Failed to execute module: {e}") from e
 
         # Find agent class
         agent_class = None

@@ -17,6 +17,7 @@ import json
 import re
 import subprocess
 import time
+from collections.abc import Callable
 from dataclasses import dataclass, field
 from enum import Enum
 from pathlib import Path

@@ -133,11 +133,11 @@ class OllamaProvider(ModelProvider):
 
         except TimeoutError:
             latency_ms = (time.time() - start_time) * 1000
-            raise RuntimeError(f"Ollama request timed out after {self.timeout}s")
+            raise RuntimeError(f"Ollama request timed out after {self.timeout}s") from None
 
         except Exception as e:
             logger.exception(f"Ollama generation failed for model {model}")
-            raise RuntimeError(f"Ollama generation error: {e}")
+            raise RuntimeError(f"Ollama generation error: {e}") from e
 
     async def list_models(self) -> list[str]:
         """List available Ollama models.

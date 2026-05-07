@@ -291,6 +291,24 @@ async def cmd_journey_list(args: argparse.Namespace) -> int:
     return 0
 
 
+async def cmd_journey_status(args: argparse.Namespace) -> int:
+    """Handle journey status command."""
+    logger.info("📊 Journey status...")
+
+    # Mock data - would query SurrealDB by journey_id
+    journey = {
+        "id": "journey_001",
+        "intent": "Example journey",
+        "status": "active",
+        "phi": 0.72,
+        "coherence": 0.65,
+        "steps": 12,
+    }
+
+    print(json.dumps(journey, indent=2))
+    return 0
+
+
 async def cmd_simulate(args: argparse.Namespace) -> int:
     """Handle simulate command — run scripts in sandboxed isolation."""
     from uuid import uuid4

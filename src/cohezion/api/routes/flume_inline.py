@@ -298,14 +298,14 @@ async def flume_latent_space(request: FlumeLatentSpaceRequest):
         raise HTTPException(
             status_code=500,
             detail="FLUME VAE checkpoint not found. Train the model first using /flume/train",
-        )
+        ) from None
     except Exception as e:
         # FastAPI endpoint — sanitize error type to avoid leaking paths/internals to client.
         error_type = type(e).__name__
         raise HTTPException(
             status_code=500,
             detail=f"FLUME VAE not available ({error_type}). Check server logs",
-        )
+        ) from e
 
     z_dim = vae.config.z_dim
 
@@ -336,7 +336,7 @@ async def flume_latent_space(request: FlumeLatentSpaceRequest):
         raise HTTPException(
             status_code=504,
             detail="PCA computation timed out. Try reducing n_samples",
-        )
+        ) from None
 
     # Validate PCA output
     if np.isnan(samples_3d).any() or np.isnan(pca.explained_variance_ratio_).any():

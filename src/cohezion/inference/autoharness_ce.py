@@ -524,7 +524,7 @@ def create_compound_autoharness(
 
 if __name__ == "__main__":
     # Demo
-    harness = create_compound_engineering_autoharness("gemini-2.5-flash")
+    harness = create_compound_autoharness("gemini-2.5-flash")
 
     # Craft payload with lazy-loaded references
     payload = harness.craft_payload(

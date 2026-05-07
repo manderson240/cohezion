@@ -122,11 +122,6 @@ class AutonomyEngine:
         """Get an agent's current autonomy tier."""
         return self.get_state(agent_id).current_tier
 
-    def can_perform(self, agent_id: str, required_tier: AutonomyTier) -> bool:
-        """Check if an agent has the required autonomy level."""
-        current_tier = self.get_tier(agent_id)
-        return current_tier.level >= required_tier.level
-
     def record_violation(self, agent_id: str, severity: float = 0.1) -> AutonomyTier:
         """Record a deterministic violation (e.g. CI failure).
 

@@ -20,7 +20,7 @@ import torch.nn.functional as F
 
 # Add arc_solver to path
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
-from arc_solver import apply_program, get_all_ops, grids_equal
+from arc_solver import apply_program, get_all_ops
 
 
 PRIMITIVES = [name for name, _ in get_all_ops([])]
