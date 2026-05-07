@@ -1,3 +1,4 @@
+# ruff: noqa: E741, N806  # math/physics: T, F, B, P, S, G, R, A — single-letter conventions
 """Riemannian geometry for the 12D axiomatic manifold.
 
 Provides the metric tensor, Christoffel symbols, geodesic equation,
@@ -29,12 +30,16 @@ References:
 from __future__ import annotations
 
 import logging
-from collections.abc import Callable
+from typing import TYPE_CHECKING
 
 import numpy as np
 
 
 # solve_ivp imported lazily inside geodesic_ode() — see L290 (Session 94)
+
+
+if TYPE_CHECKING:
+    from collections.abc import Callable
 
 
 logger = logging.getLogger(__name__)

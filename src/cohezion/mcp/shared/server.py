@@ -1,3 +1,4 @@
+# ruff: noqa: S104  # binds 0.0.0.0 in dev/internal services
 """Shared MCP server utilities."""
 
 from __future__ import annotations
@@ -5,9 +6,13 @@ from __future__ import annotations
 import asyncio
 import logging
 import os
-from collections.abc import Callable
+from typing import TYPE_CHECKING
 
 from aiohttp import web
+
+
+if TYPE_CHECKING:
+    from collections.abc import Callable
 
 
 logger = logging.getLogger(__name__)
@@ -22,10 +27,7 @@ async def run_server(
     port = int(os.getenv("MCP_PORT", str(default_port)))
     uds_path = os.getenv("MCP_UDS_PATH")
 
-    if callable(app_factory):
-        app = app_factory()
-    else:
-        app = app_factory
+    app = app_factory() if callable(app_factory) else app_factory
 
     runner = web.AppRunner(app)
     await runner.setup()

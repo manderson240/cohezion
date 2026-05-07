@@ -1,3 +1,4 @@
+# ruff: noqa: E402  # deferred imports for circular-dep workarounds
 """FLUME Grid Encoder for ARC-AGI style grid patterns.
 
 Specialized encoder/decoder for 2D matrices (0-9) representing color grids.
@@ -134,7 +135,7 @@ class ARCGridEncoder(nn.Module):
             row = []
             for c in range(cols):
                 # Denormalize and round to nearest integer 0-9
-                val = int(round(x_hat[r, c] * 10.0))
+                val = round(x_hat[r, c] * 10.0)
                 row.append(max(0, min(9, val)))
             grid.append(row)
         return grid

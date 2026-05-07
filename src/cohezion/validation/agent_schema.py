@@ -1,3 +1,4 @@
+# ruff: noqa: N815  # mixed-case attribute matches schema field name
 """Pydantic validation schema for .claude/agents/*.md agent definition files.
 
 Provides the single source of truth for validating agent file frontmatter,

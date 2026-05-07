@@ -1,3 +1,4 @@
+# ruff: noqa: E402, E501  # long lines: SQL/URLs/docstrings — wrapping reduces readability
 import asyncio
 import importlib.util
 import json

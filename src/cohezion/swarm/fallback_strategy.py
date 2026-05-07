@@ -1,3 +1,4 @@
+# ruff: noqa: E501, RUF012  # class attrs treated as immutable config; never mutated per-instance
 """Graceful fallback strategy with circuit breaker pattern and cost preservation.
 
 Features:

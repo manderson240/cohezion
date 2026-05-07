@@ -1,3 +1,4 @@
+# ruff: noqa: E501  # long lines: SQL/URLs/docstrings — wrapping reduces readability
 """
 Context Harness for Local SLM Optimization.
 Prunes, summaryzes, and anchors context for smaller local models.

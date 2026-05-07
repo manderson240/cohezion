@@ -170,9 +170,7 @@ def _parse_passed(stdout: str, stderr: str, mode: str) -> bool:
     if re.search(r"(?i)mismatch|incorrect|assertion", combined):
         return False
     # For benchmark mode, having a score means it passed
-    if mode == "benchmark" and _parse_score(stdout, stderr, mode) > 0:
-        return True
-    return False
+    return bool(mode == "benchmark" and _parse_score(stdout, stderr, mode) > 0)
 
 
 def _parse_score(stdout: str, stderr: str, mode: str) -> float:

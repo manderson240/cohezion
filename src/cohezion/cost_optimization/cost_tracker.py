@@ -1,3 +1,4 @@
+# ruff: noqa: RUF006  # fire-and-forget async tasks — intentional
 """Non-blocking cost tracking module with batched async persistence.
 
 Features:

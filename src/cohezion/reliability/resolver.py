@@ -1,3 +1,4 @@
+# ruff: noqa: E501  # long lines: SQL/URLs/docstrings — wrapping reduces readability
 """
 Hallucination Resolver Logic for Cohezion.
 Grounds agent claims against live system diagnostics and the Hallucination Tracker.

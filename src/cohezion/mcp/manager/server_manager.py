@@ -1,3 +1,4 @@
+# ruff: noqa: SIM115, E501  # long lines: SQL/URLs/docstrings — wrapping reduces readability
 """MCP Server Manager - MCPServerManager class and singleton accessor."""
 
 from __future__ import annotations

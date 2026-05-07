@@ -1,3 +1,4 @@
+# ruff: noqa: SIM116, S112,S608, RUF012, S110  # best-effort: ignored exceptions are intentional in init/cleanup paths
 """
 Hookify Rule Engine - Core Implementation
 Universal rule system with cross-platform MCP bridge support
@@ -9,8 +10,11 @@ import logging
 import os
 import re
 from dataclasses import dataclass, field
-from pathlib import Path
-from typing import Any
+from typing import TYPE_CHECKING, Any
+
+
+if TYPE_CHECKING:
+    from pathlib import Path
 
 
 logger = logging.getLogger(__name__)

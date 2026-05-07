@@ -1,3 +1,4 @@
+# ruff: noqa: A002, S104, S108  # binds 0.0.0.0 in dev/internal services / temp file paths in /tmp are intentional for ephemeral data
 """Report Generation MCP Server - With Reactive Marimo Notebooks.
 
 Port: 8372

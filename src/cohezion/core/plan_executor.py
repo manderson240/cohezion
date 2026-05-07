@@ -1,3 +1,4 @@
+# ruff: noqa: E501  # long lines: SQL/URLs/docstrings — wrapping reduces readability
 """Plan executor: runs an :class:`ExecutablePlan` step-by-step.
 
 Each step's output is piped as context into the next step. Operations

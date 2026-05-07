@@ -1,3 +1,4 @@
+# ruff: noqa: S104  # binds 0.0.0.0 in dev/internal services
 """HTTP MCP server for ngrok AI Gateway (for Claude.ai custom connectors).
 
 This runs the MCP server as an HTTP endpoint that Claude.ai can connect to.

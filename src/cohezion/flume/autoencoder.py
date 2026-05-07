@@ -1,3 +1,4 @@
+# ruff: noqa: N812  # scientific lib import aliasing (np, F, etc.)
 """
 Thought Autoencoder - Compress paragraphs of text to continuous vectors.
 

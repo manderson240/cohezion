@@ -1,3 +1,4 @@
+# ruff: noqa: E501  # long lines: SQL/URLs/docstrings — wrapping reduces readability
 """
 Charter-aligned skill tracking with HIHO stability measurement.
 Integrates Phase 0 infrastructure for 100% Charter compliance.

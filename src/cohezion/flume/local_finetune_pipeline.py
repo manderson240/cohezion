@@ -1,3 +1,4 @@
+# ruff: noqa: E501  # long lines: SQL/URLs/docstrings — wrapping reduces readability
 """Custom Model Finetuning Pipeline - Build your own Qwen3.5/Phi4 variant.
 
 This pipeline finetunes open-weight models using your journey data with:

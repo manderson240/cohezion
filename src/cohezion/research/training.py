@@ -1,3 +1,4 @@
+# ruff: noqa: S110  # best-effort: ignored exceptions are intentional in init/cleanup paths
 """Training execution utilities for ResearchAgent.
 
 Handles actual LLM training with time budget constraints.
@@ -13,11 +14,14 @@ import subprocess
 import sys
 import time
 from pathlib import Path
-from typing import Any
+from typing import TYPE_CHECKING, Any
 
 import torch
 import torch.nn as nn
-from torch.utils.data import DataLoader
+
+
+if TYPE_CHECKING:
+    from torch.utils.data import DataLoader
 
 
 logger = logging.getLogger(__name__)

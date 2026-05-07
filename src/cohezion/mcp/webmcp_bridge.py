@@ -1,3 +1,4 @@
+# ruff: noqa: S104  # binds 0.0.0.0 in dev/internal services
 """WebMCP Bridge - Routes browser tool calls to real MCP server handlers.
 
 Connects the browser-based AG-UI to the MCP fleet by looking up servers
