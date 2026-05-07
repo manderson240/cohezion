@@ -521,7 +521,7 @@ def recolor_enclosed(grid: np.ndarray) -> np.ndarray | None:
 
     out = grid.copy()
     changed = False
-    h, w = grid.shape
+    _h, _w = grid.shape
     values = np.unique(grid)
 
     for v in values:
@@ -540,7 +540,7 @@ def recolor_enclosed(grid: np.ndarray) -> np.ndarray | None:
             dilated = ndi.binary_dilation(region, iterations=1)
             boundary_mask = dilated & ~region
             # Use original grid colors for boundary (not the evolving `out`)
-            boundary_colors = set(int(c) for c in grid[boundary_mask].ravel()) - {0, int(v)}
+            boundary_colors = {int(c) for c in grid[boundary_mask].ravel()} - {0, int(v)}
             if len(boundary_colors) == 1:
                 out[region] = next(iter(boundary_colors))
                 changed = True
@@ -776,7 +776,7 @@ def recolor_interior(grid: np.ndarray) -> np.ndarray | None:
     out = grid.copy()
     changed = False
     values = np.unique(grid)
-    h, w = grid.shape
+    _h, _w = grid.shape
 
     for v in values:
         region_mask = grid == v
@@ -793,7 +793,7 @@ def recolor_interior(grid: np.ndarray) -> np.ndarray | None:
                 continue
             dilated = ndi.binary_dilation(region, iterations=2)
             boundary_mask = dilated & ~region
-            boundary_colors = set(int(c) for c in out[boundary_mask].ravel()) - {int(v)}
+            boundary_colors = {int(c) for c in out[boundary_mask].ravel()} - {int(v)}
             if len(boundary_colors) == 1:
                 surround = next(iter(boundary_colors))
                 out[region] = surround
