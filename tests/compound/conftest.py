@@ -115,3 +115,4 @@ def _ensure_context_placeholders() -> None:
             "# ContextManager._load_file() does not raise ContextLoadError during tests.\n",
             encoding="utf-8",
         )
+        )
