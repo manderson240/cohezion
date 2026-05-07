@@ -3,16 +3,16 @@
 Provides: Search repos, get repo info, create issues, manage PRs.
 """
 
-from __future__ import annotations
+from __future__ import annotations  # noqa: E402
 
-import logging
-from functools import lru_cache
-from typing import Any
+import logging  # noqa: E402
+from functools import lru_cache  # noqa: E402
+from typing import Any  # noqa: E402
 
-import aiohttp
-from fastmcp import FastMCP
+import aiohttp  # noqa: E402
+from fastmcp import FastMCP  # noqa: E402
 
-from cohezion.security.credentials import get_credentials
+from cohezion.security.credentials import get_credentials  # noqa: E402
 
 
 # Configure logging

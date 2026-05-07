@@ -7,16 +7,16 @@ Cost tiers: Flash-Lite ($0.075/M) → Flash ($0.30/M) → Pro ($2.00/M).
 Reference: GEMINI_SPECIALIST_PRIME.md — Gemini CLI, Google ADK, 6-protocol stack.
 """
 
-from __future__ import annotations
+from __future__ import annotations  # noqa: E402
 
-import logging
-import os
-import time
-from typing import Any
+import logging  # noqa: E402
+import os  # noqa: E402
+import time  # noqa: E402
+from typing import Any  # noqa: E402
 
-import aiohttp
+import aiohttp  # noqa: E402
 
-from cohezion.swarm.providers.model_provider import GenerationResult, ModelProvider
+from cohezion.swarm.providers.model_provider import GenerationResult, ModelProvider  # noqa: E402
 
 
 logger = logging.getLogger(__name__)
@@ -257,7 +257,7 @@ class GeminiProvider(ModelProvider):
 
 
 # Auto-register Gemini provider
-from cohezion.swarm.providers.model_provider import register_model_provider
+from cohezion.swarm.providers.model_provider import register_model_provider  # noqa: E402
 
 
 register_model_provider("gemini", GeminiProvider)
