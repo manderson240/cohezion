@@ -265,7 +265,7 @@ class CausalInterventionTester:
         """
         results = defaultdict(list)
 
-        for state, description in test_cases:
+        for state, _description in test_cases:
             for invariant_name, invariant_fn in enumerate(invariants):
                 # Baseline
                 with torch.no_grad():

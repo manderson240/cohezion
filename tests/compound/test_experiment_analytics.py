@@ -139,4 +139,3 @@ class TestExperimentVelocity:
         ]
         velocity = compute_experiment_velocity(records, "E63", time_window_ms=60000)
         assert velocity == 0.0  # Discards don't count
-

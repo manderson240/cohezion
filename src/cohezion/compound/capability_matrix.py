@@ -358,7 +358,7 @@ class CapabilityMatrix:
 
     def update_from_execution(self, entity_id: str, execution_result: dict) -> None:
         """Update an entity's scores based on a new execution result."""
-        for key, entry in self._entries.items():
+        for _key, entry in self._entries.items():
             if entry.entity_id == entity_id:
                 coherence = execution_result.get("coherence", entry.quality_score)
                 success = execution_result.get("success", True)

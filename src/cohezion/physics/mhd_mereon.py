@@ -75,7 +75,7 @@ class MHDMereonOperator:
         towards the H3 rotation axes of the 600-cell.
         """
         # Lift position to S3 to find the nearest 2I element (root)
-        lift = self.projector.lift(position)
+        self.projector.lift(position)
 
         # The "Symmetry-Aware" force is proportional to the gradient
         # of the coherence relative to the target shell.

@@ -121,7 +121,7 @@ def measure_gate_precision(
 
     for task_id in task_ids[:sample_size]:
         task = challenges[task_id]
-        task_sols = solutions.get(task_id, [])
+        solutions.get(task_id, [])
 
         # Find a correct program using a small budget
         all_ops = get_all_ops(task["train"])

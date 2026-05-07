@@ -218,7 +218,6 @@ class InferenceSession:
         Implements async/await patterns from v0.64.0 with proper timeout handling.
         """
         start_step = 0
-        final_output = ""
         total_tokens = 0
 
         try:

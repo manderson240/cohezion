@@ -298,7 +298,7 @@ def downsample(n: int) -> Program:
 def mirror_horizontal(g: Grid) -> Grid | None:
     if not g:
         return None
-    rows = len(g)
+    len(g)
     result = g + [r[:] for r in reversed(g)]
     return result if len(result) <= 30 else None
 
@@ -720,7 +720,7 @@ def search_program(
     # Determine most promising strategy based on task properties
     strategies = _select_strategies(train)
 
-    for name, op_set in strategies:
+    for _name, op_set in strategies:
         visited = set()
         # Smaller depth but focused ops per strategy
         for depth in range(1, max_depth + 1):
@@ -827,7 +827,7 @@ def _search_depth_bfs(
         global_counter = [0]
 
     if depth == 1:
-        for name, op in ops:
+        for _name, op in ops:
             global_counter[0] += 1
             if global_counter[0] > budget:
                 return None
@@ -835,7 +835,7 @@ def _search_depth_bfs(
                 return [op]
         return None
 
-    for name, op in ops:
+    for _name, op in ops:
         transformed = []
         valid = True
         for ex in train:

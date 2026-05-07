@@ -305,7 +305,7 @@ class QualityMonitor:
 
         # Basic metrics
         words = len(text.split())
-        sentences = text.count(".") + text.count("!") + text.count("?")
+        text.count(".") + text.count("!") + text.count("?")
 
         # Substance score
         scores["substance"] = min(words / 20, 1.0) if words > 5 else 0.0

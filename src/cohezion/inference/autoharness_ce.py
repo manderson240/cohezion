@@ -133,7 +133,7 @@ class OroborousOptimizer:
             return self._baseline_config()
 
         # Extract winning patterns
-        best = max(successful, key=lambda x: x.get("metric_delta", {}).get("improvement", 0))
+        max(successful, key=lambda x: x.get("metric_delta", {}).get("improvement", 0))
 
         # Synthesize evolved config
         return {
@@ -467,7 +467,7 @@ class CompoundEngineeringAutoHarness:
 
         # Extract successful configs
         configs = []
-        for node_id, data in traversal.get("nodes", {}).items():
+        for _node_id, data in traversal.get("nodes", {}).items():
             if data.get("type") == "experiment" and data.get("status") == "keep":
                 configs.append(data.get("config", {}))
 

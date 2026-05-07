@@ -142,7 +142,13 @@ select = [
 ]
 
 ignore = [
-    # Add specific rules to ignore here if needed after initial run
+    # Style/cosmetic — not bugs, suppress to reduce noise
+    "E501",    # Line too long (already at 100-char limit; long lines in ML/physics code are common)
+    "RUF002",  # Docstring ambiguous unicode chars (em-dashes etc. are intentional)
+    "RUF003",  # Comment ambiguous unicode chars (same)
+    # Naming conventions — ML/math code uses uppercase (M, K, N, D) per convention
+    "N806",    # Variable in function should be lowercase
+    "N803",    # Argument name should be lowercase
 ]
 
 # Per-file customization

@@ -155,7 +155,7 @@ class MultiAgentCompoundBridge:
         await self._ensure_initialized()
         context = context or {}
 
-        start_time = datetime.now()
+        datetime.now()
 
         # Step 1: Query vault for similar tasks (if enabled)
         vault_guidance = None

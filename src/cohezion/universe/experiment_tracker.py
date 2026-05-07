@@ -670,7 +670,7 @@ class ExperimentTracker:
         # Save metrics
         metrics_path = run_dir / "metrics.jsonl"
         with open(metrics_path, "w") as f:
-            for name, entries in run.metrics.items():
+            for _name, entries in run.metrics.items():
                 for entry in entries:
                     record = {
                         "name": entry.name,

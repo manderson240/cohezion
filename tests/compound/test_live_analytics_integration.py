@@ -83,4 +83,3 @@ class TestLiveAnalyticsIntegration:
             retirement_candidates=report["retirement_candidates"]
         )
         assert "Experiment" in table  # Header present
-

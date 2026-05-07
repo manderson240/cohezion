@@ -275,7 +275,7 @@ class MultiModelOrchestrator(ModelProvider):
                 - latency_critical: Prioritize TTFT
                 - throughput_priority: Prioritize tokens/sec
         """
-        start_time = time.time()
+        time.time()
 
         # Select compute unit
         unit = self.select_compute_unit(

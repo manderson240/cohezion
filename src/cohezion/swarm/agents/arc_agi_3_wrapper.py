@@ -60,7 +60,7 @@ class RecursiveChainOfThought(torch.nn.Module):
     def forward(self, z, steps=None):
         steps = steps or self.depth
         h = z
-        for i in range(steps):
+        for _i in range(steps):
             h_next = self.cell(z, h)
 
             # Dynamic Exit: Halt if state "crystallizes" (entropy below threshold)

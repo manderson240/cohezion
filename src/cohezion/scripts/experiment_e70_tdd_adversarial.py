@@ -454,7 +454,7 @@ class PerformanceVulture(AdversarialPersona):
 
         # Simple heuristics
         nested_loops = code.count("for") + code.count("while")
-        recursion = "def " in code and any(f"{name}(" in code for name in ["def "])
+        "def " in code and any(f"{name}(" in code for name in ["def "])
 
         complexity = "O(1)"
         if nested_loops > 1:
@@ -788,7 +788,7 @@ class TDDAdversarialExperiment:
 
         # Calculate final metrics
         total_time = time.time() - start_time
-        all_pass = all(r.get("status") == "PASS" for r in results.values() if isinstance(r, dict))
+        all(r.get("status") == "PASS" for r in results.values() if isinstance(r, dict))
 
         # Final compound execution (if review allows)
         if self.review_results and self.review_results["aggregate"]["allow_merge"]:

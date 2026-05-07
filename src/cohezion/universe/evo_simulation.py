@@ -209,7 +209,7 @@ class FLUMEJourneyStream:
         Returns stream ID for retrieval.
         """
         # Serialize and compress
-        data = json.dumps(evo.to_dict())
+        json.dumps(evo.to_dict())
         # In production: write to Kafka/RabbitMQ/disk
         return f"stream://{evo.id}/{time.time()}"
 
@@ -406,7 +406,7 @@ class EVOSimulation:
         """Find pairs of EVOs that appear entangled."""
         pairs = []
         for i, evo1 in enumerate(self.evos):
-            for j, evo2 in enumerate(self.evos[i + 1 :], start=i + 1):
+            for _j, evo2 in enumerate(self.evos[i + 1 :], start=i + 1):
                 correlation = VAIEMetrics.detect_entanglement(evo1, evo2)
                 if correlation > 0.8:  # Threshold for entanglement
                     pairs.append((evo1.id, evo2.id, correlation))

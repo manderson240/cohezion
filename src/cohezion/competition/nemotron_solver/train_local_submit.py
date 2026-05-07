@@ -174,7 +174,7 @@ def train():
 
     # Find all adapter files
     adapter_files = []
-    for root, dirs, files in os.walk(OUTPUT_DIR):
+    for root, _dirs, files in os.walk(OUTPUT_DIR):
         for f in files:
             if "adapter" in f.lower():
                 adapter_files.append(os.path.join(root, f))

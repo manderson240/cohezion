@@ -5,7 +5,7 @@ import os
 INPUT_PATH = None
 for base_path in ["/kaggle/input/nvidia-nemotron-model-reasoning-challenge", "/kaggle/input"]:
     if os.path.exists(base_path):
-        for root, dirs, files in os.walk(base_path):
+        for root, _dirs, files in os.walk(base_path):
             for f in files:
                 if f.lower().endswith(".csv"):
                     if "test" in f.lower():
@@ -371,7 +371,7 @@ def solve_bit_manip(examples, test_in):
         ("rot_left_1", lambda x: ((x << 1) & 0xFF) | (x >> 7)),
         ("rot_right_1", lambda x: (x >> 1) | ((x & 1) << 7)),
     ]
-    for name, op in unary_ops:
+    for _name, op in unary_ops:
         ok = True
         for a, b in pairs:
             if op(a) != b:
@@ -634,7 +634,7 @@ def solve_encryption(examples, test_in):
     changed = True
     while changed:
         changed = False
-        for i, (tw, pw) in enumerate(zip(test_words, result_words)):
+        for _i, (tw, pw) in enumerate(zip(test_words, result_words)):
             if "?" not in pw:
                 continue
             pattern = pw.replace("?", "?")

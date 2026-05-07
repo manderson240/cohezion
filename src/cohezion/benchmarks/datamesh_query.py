@@ -41,7 +41,7 @@ async def benchmark_datamesh_queries(
 
     # Phase 1: Simple content queries
     content_latencies = []
-    for i in range(query_count):
+    for _i in range(query_count):
         q_start = time.perf_counter()
         # Simulate lookup
         await asyncio.sleep(0.001)  # 1ms base
@@ -51,7 +51,7 @@ async def benchmark_datamesh_queries(
 
     # Phase 2: Embedding similarity (slower)
     embedding_latencies = []
-    for i in range(query_count // 10):  # Fewer embedding queries
+    for _i in range(query_count // 10):  # Fewer embedding queries
         q_start = time.perf_counter()
         # Simulate cosine similarity computation
         _ = torch.randn(1, 256)
@@ -65,7 +65,7 @@ async def benchmark_datamesh_queries(
 
     # Phase 3: Cross-domain federated
     cross_latencies = []
-    for i in range(query_count // 20):  # Even fewer cross-domain
+    for _i in range(query_count // 20):  # Even fewer cross-domain
         q_start = time.perf_counter()
         # Simulate parallel fan-out
         await asyncio.gather(
@@ -77,7 +77,7 @@ async def benchmark_datamesh_queries(
 
     cross_avg = sum(cross_latencies) / len(cross_latencies) if cross_latencies else 0
 
-    total_time = (time.perf_counter() - start) * 1000
+    (time.perf_counter() - start) * 1000
 
     # Weighted combined metric
     combined_metric = content_avg * 0.5 + embedding_avg * 0.3 + cross_avg * 0.2

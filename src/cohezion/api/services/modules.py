@@ -287,8 +287,8 @@ async def get_triune_coherence() -> TriuneResponse:
     )
 
     doer = torch.randn(12) * 0.5
-    thinker = torch.randn(512) * 0.3
-    knower = torch.randn(2048) * 0.1
+    torch.randn(512) * 0.3
+    torch.randn(2048) * 0.1
     environment = torch.randn(12) * 0.5
 
     coherence = calculate_hiho_coherence(doer, environment)

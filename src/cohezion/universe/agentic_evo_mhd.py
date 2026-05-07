@@ -548,7 +548,7 @@ class AgenticMHDSystem:
         # Phase 5: Reconnection detection
         reconnection_count = 0
         for i, evo_i in enumerate(self.evos):
-            for j, evo_j in enumerate(self.evos[i + 1 :], start=i + 1):
+            for _j, evo_j in enumerate(self.evos[i + 1 :], start=i + 1):
                 if evo_i.magnetic_reconnection(evo_j):
                     reconnection_count += 1
 
@@ -566,7 +566,7 @@ class AgenticMHDSystem:
 
     def _physical_step(self, dt: float):
         """Simplified N-body with MHD forces."""
-        positions = np.array([e.physical_state.position for e in self.evos])
+        np.array([e.physical_state.position for e in self.evos])
         masses = np.array([e.physical_state.effective_mass for e in self.evos])
 
         for i, evo_i in enumerate(self.evos):

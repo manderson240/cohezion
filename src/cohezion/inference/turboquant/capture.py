@@ -201,7 +201,7 @@ class KVCaptureEngine:
         vals_list = []
         collected = 0
 
-        for i, phys_idx in enumerate(physical_blocks):
+        for _i, phys_idx in enumerate(physical_blocks):
             start = 0
             end = min(block_size, num_tokens - collected)
             k_block = kv_cache_tensor[0, phys_idx, start:end]  # (end, heads, dim)

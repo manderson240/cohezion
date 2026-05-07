@@ -226,7 +226,7 @@ class ArXivAgent:
         max_results: int = 15,
     ) -> list[ResearchFinding]:
         """Query ArXiv for recent papers."""
-        tokens_allocated = self.budget.allocate("arxiv")
+        self.budget.allocate("arxiv")
         findings = []
 
         # Build compound query
@@ -321,7 +321,7 @@ class GitHubAgent:
         max_results: int = 15,
     ) -> list[ResearchFinding]:
         """Query GitHub for repositories."""
-        tokens_allocated = self.budget.allocate("github")
+        self.budget.allocate("github")
         findings = []
 
         async with httpx.AsyncClient(timeout=30.0) as client:
@@ -399,7 +399,7 @@ class WebAgent:
         max_results: int = 10,
     ) -> list[ResearchFinding]:
         """Web search for industry trends."""
-        tokens_allocated = self.budget.allocate("web")
+        self.budget.allocate("web")
         findings = []
 
         # For token efficiency, aggregate web findings by topic

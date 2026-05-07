@@ -364,7 +364,7 @@ class KnowledgeGraphLayer:
         visited = set()
         current_level = [start_node_id]
 
-        for hop in range(max_hops):
+        for _hop in range(max_hops):
             next_level = []
             edges_at_level = []
 
@@ -513,7 +513,7 @@ class KnowledgeGraphLayer:
             lines.append(f'    "{node_id}" [label="{node.label}", color={color}];')
 
         # Edges
-        for edge_id, edge in self.edges.items():
+        for _edge_id, edge in self.edges.items():
             # Style based on relation type
             style = "solid"
             if edge.relation in [RelationType.CONTRADICTS]:

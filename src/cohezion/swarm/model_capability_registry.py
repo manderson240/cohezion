@@ -551,7 +551,7 @@ class ModelCapabilityRegistry:
 
         candidates = []
 
-        for name, profile in self.profiles.items():
+        for _name, profile in self.profiles.items():
             # Filter: must be available and tested
             if not profile.available:
                 continue

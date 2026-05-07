@@ -316,7 +316,7 @@ def solve_bit_manip(examples, test_in: str) -> str:
         ("rot_left_1", lambda x: ((x << 1) & 0xFF) | (x >> 7)),
         ("rot_right_1", lambda x: (x >> 1) | ((x & 1) << 7)),
     ]
-    for name, op in unary_ops:
+    for _name, op in unary_ops:
         ok = True
         for a, b in pairs:
             if op(a) != b:
@@ -468,7 +468,7 @@ def solve_encryption(examples, test_in: str) -> str:
     changed = True
     while changed:
         changed = False
-        for i, (tw, pw) in enumerate(zip(test_in.split(), result_words)):
+        for _i, (tw, pw) in enumerate(zip(test_in.split(), result_words)):
             if "?" not in pw:
                 continue
             matches = [

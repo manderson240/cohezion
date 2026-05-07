@@ -168,7 +168,6 @@ class TieredOrchestrator:
         accumulated_cost = 0.0
         last_text = ""
         last_model = ""
-        last_ttft: float | None = None
 
         for idx, (target, gate) in enumerate(self.tiers):
             model_name = target if isinstance(target, str) else type(target).__name__
@@ -304,7 +303,6 @@ class TieredOrchestrator:
 
             last_text = view.text
             last_model = view.model
-            last_ttft = view.ttft_ms
 
             if passed:
                 # O1: higher tiers don't run once a lower tier passes.
