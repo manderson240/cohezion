@@ -32,7 +32,7 @@ class TestLiveAnalyticsIntegration:
         )
         records = load_experiment_records(n=500)
         stats = compute_experiment_stats(records)
-        for exp, d in stats.items():
+        for _exp, d in stats.items():
             assert "total" in d
             assert "keep_rate" in d
             assert "mean_metric" in d

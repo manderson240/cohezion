@@ -76,7 +76,7 @@ async def test_smart_router_adapter_maps_task_types():
 
     adapter = SmartRouterAdapter(router)
 
-    for task_str, expected_enum in _TASK_TYPE_MAP.items():
+    for task_str, _expected_enum in _TASK_TYPE_MAP.items():
         result = await adapter.select_optimal_model({"task_type": task_str, "context_length": 100})
         assert hasattr(result, "name")
         assert isinstance(result.name, str)

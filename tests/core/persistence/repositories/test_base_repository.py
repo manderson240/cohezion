@@ -23,8 +23,8 @@ from cohezion.core.persistence.repositories.base import (
 class MockEntity:
     """Mock entity for testing."""
 
-    def __init__(self, id: str, name: str):
-        self.id = id
+    def __init__(self, entity_id: str, name: str):
+        self.id = entity_id
         self.name = name
 
     def __eq__(self, other):
@@ -230,7 +230,7 @@ class TestBaseRepository:
         repo = MockRepository()
 
         # Try to get non-existent entity (returns None, not exception)
-        result = await repo.get("nonexistent")
+        await repo.get("nonexistent")
 
         # Should have recorded metrics (success=False for None result)
         assert len(repo._metrics) > 0

@@ -102,7 +102,7 @@ class TestSwarmEnvPolish:
         env = SwarmEnv(n_agents=3)
         obs, info = env.reset()
         assert len(obs) == 3
-        for agent_id, agent_obs in obs.items():
+        for _agent_id, agent_obs in obs.items():
             assert agent_obs.shape == (19,)
 
     def test_step_with_random_actions(self):

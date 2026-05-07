@@ -198,7 +198,7 @@ Content.
             result = extract_frontmatter(text)
             # If it doesn't raise, should at least return a dict
             assert isinstance(result, dict)
-        except Exception:
+        except Exception:  # noqa: S110 — intentional: invalid YAML may raise or return {}
             # Expected behavior for invalid YAML
             pass
 

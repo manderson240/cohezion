@@ -178,7 +178,7 @@ class TestAgenticEnvironment:
         env = AgenticEnvironment(simple_scenario)
         env.reset()
 
-        for i in range(3):
+        for _i in range(3):
             obs, reward, done, info = env.step("noop action")
 
         assert done

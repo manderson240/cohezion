@@ -213,7 +213,7 @@ class TestCompoundExecutorSessionLifecycle:
         with patch.object(Path, "cwd", return_value=tmp_path):
             executor = CompoundExecutor(mcp_client=mock_mcp)
             executor.start_session()
-            summary = executor.end_session()
+            executor.end_session()
 
         archive = tmp_path / ".context" / "policy" / "learned-budgets.md"
         content = archive.read_text()

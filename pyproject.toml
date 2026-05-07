@@ -151,6 +151,9 @@ ignore = [
     "S101",  # Allow assert in tests
     "S105",  # Allow hardcoded passwords in tests
     "S106",  # Allow hardcoded passwords in tests
+    "N806",  # Math/ML tests use uppercase for matrix dims (M, K, N) — standard notation
+    "S607",  # Partial executable paths acceptable in test subprocesses
+    "E402",  # Guard imports (try/except) after module-level code allowed in tests
 ]
 "src/cohezion/traceability/plan_graph.py" = [
     "S608",  # SurrealQL uses record ID interpolation (plan:{slug}), not user input

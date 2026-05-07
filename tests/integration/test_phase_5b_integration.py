@@ -80,11 +80,10 @@ class MockRedisClient:
         """Get value from mock store."""
         if self.failure_mode:
             raise ConnectionError("Mock Redis unavailable")
-        if key in self.ttls:
-            if time.time() > self.ttls[key]:
-                del self.store[key]
-                del self.ttls[key]
-                return None
+        if key in self.ttls and time.time() > self.ttls[key]:
+            del self.store[key]
+            del self.ttls[key]
+            return None
         return self.store.get(key)
 
     async def set(self, key: str, value: bytes, ex: int = None) -> bool:
@@ -580,7 +579,7 @@ class TestPerformanceScaling:
                 # Cache miss, populate
                 await mock_redis_client.set(key, f"result-{query_id}".encode(), ex=300)
 
-        hit_rate = hit_count / num_queries
+        hit_count / num_queries
         # First query set will have low hit rate, subsequent iterations high
         assert hit_count > 0  # At least some hits
 
@@ -646,7 +645,7 @@ class TestPerformanceScaling:
             else:
                 tasks.append(mock_redis_client.set(key, f"result-{i}".encode()))
 
-        results = await asyncio.gather(*tasks)
+        await asyncio.gather(*tasks)
         duration = time.time() - start
 
         # Should complete in <1 second (100+ QPS)

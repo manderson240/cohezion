@@ -98,7 +98,7 @@ class TestVAEExperienceTraining:
                 mse_before = torch.nn.functional.mse_loss(recon_before, sample).item()
 
             # Train
-            metrics = trainer.train(dataset=ds)
+            trainer.train(dataset=ds)
 
             # Get post-training MSE
             with torch.no_grad():

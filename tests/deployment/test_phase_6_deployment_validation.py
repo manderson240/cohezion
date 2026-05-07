@@ -326,7 +326,7 @@ class TestProductionReadiness:
             "anomaly_detector": {"ready": True, "status": "OPERATIONAL"},
         }
 
-        for dep_name, dep_status in dependencies.items():
+        for _dep_name, dep_status in dependencies.items():
             assert dep_status["ready"] is True
             assert dep_status["status"] == "OPERATIONAL"
 
@@ -446,7 +446,7 @@ class TestIntegrationHealthChecks:
             "model_quality_classifier": "HEALTHY",
         }
 
-        for component, status in components_health.items():
+        for _component, status in components_health.items():
             assert status == "HEALTHY"
 
     def test_inter_component_communication(self):

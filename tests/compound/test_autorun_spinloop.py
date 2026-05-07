@@ -24,7 +24,7 @@ def _get_autorun_main():
         mod = importlib.util.module_from_spec(spec)
         try:
             spec.loader.exec_module(mod)
-        except Exception:
+        except Exception:  # noqa: S110 — intentional: load failure returns empty module
             pass
     return mod
 
