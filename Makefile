@@ -26,7 +26,7 @@ type-check:  ## Run type checking with mypy
 	mypy --ignore-missing-imports bmad/ || true
 =======
 	uv run mypy src/cohezion --ignore-missing-imports --no-strict-optional --exclude 'mcp-builder'
->>>>>>> origin/polish/sigma-lint-bulk
+>>>>>>> origin/polish/context-graceful-load
 	@echo "✓ Type check complete"
 
 test:  ## Run test suite
