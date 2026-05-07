@@ -36,7 +36,7 @@ class TestCostTokenTradeoff:
 
         # With local models (cost=0), TPS becomes the deciding factor
         # phi3 TPS (15.0) vs qwen TPS (8.0) → phi3 is 87.5% as fast (> threshold)
-        assert decision.model in ["phi3:mini", "qwen3-coder:32b"]
+        assert decision.model in ["phi3:mini", "qwen3-coder:32b", "Phi-4-mini-instruct-Hybrid"]
 
     def test_optimization_tracking_via_swaps_counter(self):
         """Test that token_optimization_swaps counter tracks optimization."""

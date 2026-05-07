@@ -144,7 +144,7 @@ def _classify_task(prompt: str, task_hint: Task | str | None) -> Task:
 def _get_symmetry_coherence() -> float | None:
     """Current cohezion coherence — falls back to None if bridge unavailable."""
     try:
-        from cohezion.physics.spinor import SpinorState
+        from cohezion.physics.spinor import SpinorState  # noqa: F401
 
         # Coherence comes from the active JourneyTracker if one exists,
         # else default to HIHO equilibrium (0.5).

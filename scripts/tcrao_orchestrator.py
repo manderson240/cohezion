@@ -57,6 +57,12 @@ WINNER_DIR = COHEZION_ROOT / "kaggle-dataset"
 BUDGET_SECONDS = 300  # 5 min per experiment
 UCB_C = math.sqrt(2)
 
+TARGETS = {
+    "arc_solver": {"metric": "solve_rate", "direction": "maximize"},
+    "jepa_world_model": {"metric": "loss", "direction": "minimize"},
+    "flume_vae": {"metric": "reconstruction_loss", "direction": "minimize"},
+}
+
 # Endpoints (confirmed running on this machine)
 LEMONADE_URL = "http://localhost:13307/v1/chat/completions"
 OLLAMA_URL = "http://localhost:11434/api/generate"
