@@ -153,7 +153,7 @@ def reset_singletons():
     import logging
 
     from cohezion.compound.batch_executor import BatchableExecutor
-    from cohezion.compound.executor import ExecutorFactory
+    from cohezion.compound.executor_factory import ExecutorFactory
     from cohezion.concurrency.ollama_gate import reset_gate
     from cohezion.cost_optimization.budget_enforcer import BudgetEnforcer
     from cohezion.cost_optimization.cost_tracker import SessionCostTracker

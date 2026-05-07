@@ -7,7 +7,7 @@ from unittest.mock import MagicMock, patch
 
 import pytest
 
-from cohezion.compound.executor import ExecutorFactory
+from cohezion.compound.executor_factory import ExecutorFactory
 from cohezion.compound.request_alignment_analyzer import RequestAlignmentAnalyzer
 
 
