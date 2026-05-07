@@ -7,13 +7,13 @@ If a GOLD or SILVER product is stale, it creates a GitHub Issue to
 trigger the asynchronous workforce.
 """
 
-import asyncio  # noqa: E402
-import json  # noqa: E402
-import logging  # noqa: E402
-import os  # noqa: E402
-import sys  # noqa: E402
-import time  # noqa: E402
-from pathlib import Path  # noqa: E402
+import asyncio
+import json
+import logging
+import os
+import sys
+import time
+from pathlib import Path
 
 
 # Resolve project root

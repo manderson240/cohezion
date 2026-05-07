@@ -12,11 +12,11 @@ Expected accuracy on training: ~63.1% (9500-sample validation, no model).
 Hybrid with local Gemma-4 fallback: ~63.95% (model adds only +0.8%).
 """
 
-from __future__ import annotations  # noqa: E402
+from __future__ import annotations
 
-import contextlib  # noqa: E402
-import csv  # noqa: E402
-import re  # noqa: E402
+import contextlib
+import csv
+import re
 
 
 def parse_examples(prompt: str) -> list[tuple[str, str]]:
