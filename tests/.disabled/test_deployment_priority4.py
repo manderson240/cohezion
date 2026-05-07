@@ -288,7 +288,7 @@ class TestDeploymentOrchestrator:
 
     def test_orchestrator_initialization(self, setup):
         """Test orchestrator initializes."""
-        orchestrator, config, manager = setup
+        orchestrator, _config, _manager = setup
 
         assert orchestrator.environment == Environment.CANARY
         assert orchestrator.rollout_progress is None

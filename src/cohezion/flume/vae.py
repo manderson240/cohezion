@@ -248,7 +248,7 @@ def flume_vae_loss(
     # Reconstruction loss — MSE for float embeddings, cross-entropy for token logits
     if recon is not None and x is not None:
         if recon.dim() == 3:
-            B, seq_len, vocab_size = recon.shape
+            _B, _seq_len, vocab_size = recon.shape
             shift_logits = recon[:, :-1].reshape(-1, vocab_size)
             shift_labels = x[:, 1:].reshape(-1).long()
             recon_loss = F.cross_entropy(shift_logits, shift_labels)

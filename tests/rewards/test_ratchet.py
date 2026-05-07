@@ -24,7 +24,7 @@ async def test_ratchet_triggers_on_high_score(triune_state):
 
     # Verify persistence was triggered
     mock_obsidian.store_state_summary.assert_called_once()
-    args, kwargs = mock_obsidian.store_state_summary.call_args
+    _args, kwargs = mock_obsidian.store_state_summary.call_args
     assert "top_tier_journey" in kwargs["trajectory_id"]
     assert "ratchet" in kwargs["trajectory_id"]
 

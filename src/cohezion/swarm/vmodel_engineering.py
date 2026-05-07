@@ -326,7 +326,7 @@ class VModelEngineeringProcess:
         value_correct = abs(lever.current_value - lifecycle.target_value) < 0.001
 
         # Verify in range
-        in_range, range_msg = lever.range.validate(lever.current_value)
+        in_range, _range_msg = lever.range.validate(lever.current_value)
 
         return {
             "success": value_correct and in_range,

@@ -82,7 +82,7 @@ class TestARCEnvironmentStep:
         env.reset()
         for _ in range(4):
             env.step(1)
-        _, _, terminated, truncated, _ = env.step(1)
+        _, _, _terminated, truncated, _ = env.step(1)
         assert truncated is True
         env.close()
 

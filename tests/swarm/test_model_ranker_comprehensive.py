@@ -65,7 +65,7 @@ class TestModelRankerBasics:
     def test_model_score_representation(self, ranker):
         """Test ModelScore string representation."""
         ranked = ranker.rank_models(available_models=["phi3:mini"])
-        model, score = ranked[0]
+        _model, score = ranked[0]
 
         repr_str = repr(score)
         assert "ModelScore" in repr_str
@@ -173,7 +173,7 @@ class TestCoherenceScoring:
         )
 
         assert len(ranked) == 1
-        model, score = ranked[0]
+        _model, score = ranked[0]
         # Should use default coherence
         assert score.coherence_score == 0.95
 
@@ -452,7 +452,7 @@ class TestUnknownModels:
         )
 
         assert len(ranked) == 1
-        model, score = ranked[0]
+        _model, score = ranked[0]
         # Should use default (0.70)
         assert score.coherence_score == 0.70
 

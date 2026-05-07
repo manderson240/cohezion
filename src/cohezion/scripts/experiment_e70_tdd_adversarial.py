@@ -87,7 +87,7 @@ class TDDTestCase:
     error_message: Optional[str] = None
     execution_time_ms: float = 0.0
 
-    async def run(self) -> Tuple[bool, Optional[str]]:
+    async def run(self) -> tuple[bool, Optional[str]]:
         """Execute test and update status."""
         start = time.time()
         try:
@@ -114,14 +114,14 @@ class TDDTestSuite:
     """Collection of TDD tests organized by phase."""
 
     def __init__(self):
-        self.tests: Dict[str, TDDTestCase] = {}
-        self.results: List[Dict] = []
+        self.tests: dict[str, TDDTestCase] = {}
+        self.results: list[dict] = []
 
     def add_test(self, test: TDDTestCase):
         """Add test to suite."""
         self.tests[test.test_id] = test
 
-    async def run_phase(self, phase: str) -> Dict[str, Any]:
+    async def run_phase(self, phase: str) -> dict[str, Any]:
         """Run all tests in phase (RED/GREEN/REFACTOR)."""
         phase_tests = [t for t in self.tests.values() if t.status != TestStatus.REFACTORED]
 
@@ -161,14 +161,14 @@ class AdversarialPersona(ABC):
     def __init__(self, name: str, focus: str):
         self.name = name
         self.focus = focus
-        self.findings: List[Dict] = []
+        self.findings: list[dict] = []
 
     @abstractmethod
-    async def review(self, code: str, context: Dict) -> Dict[str, Any]:
+    async def review(self, code: str, context: dict) -> dict[str, Any]:
         """Execute adversarial review from persona perspective."""
         pass
 
-    def triage(self, finding: Dict) -> str:
+    def triage(self, finding: dict) -> str:
         """Triage finding severity."""
         severity = finding.get("severity", "INFO")
         if severity in ["CRITICAL", "BLOCKER"]:
@@ -184,7 +184,7 @@ class BlindHunter(AdversarialPersona):
     def __init__(self):
         super().__init__("Blind Hunter", "Code readability and ambiguity")
 
-    async def review(self, code: str, context: Dict) -> Dict[str, Any]:
+    async def review(self, code: str, context: dict) -> dict[str, Any]:
         """Review code clarity without understanding domain."""
         findings = []
 
@@ -231,7 +231,7 @@ class EdgeCaseHunter(AdversarialPersona):
     def __init__(self):
         super().__init__("Edge Case Hunter", "Boundary violations and race conditions")
 
-    async def review(self, code: str, context: Dict) -> Dict[str, Any]:
+    async def review(self, code: str, context: dict) -> dict[str, Any]:
         """Find edge cases and boundary violations."""
         findings = []
 
@@ -277,7 +277,7 @@ class EdgeCaseHunter(AdversarialPersona):
             "fuzz_recommendations": self._generate_fuzz_strategy(code)
         }
 
-    def _generate_fuzz_strategy(self, code: str) -> List[str]:
+    def _generate_fuzz_strategy(self, code: str) -> list[str]:
         """Generate fuzzing recommendations based on code analysis."""
         strategies = []
         if "float" in code:
@@ -297,7 +297,7 @@ class AcceptanceAuditor(AdversarialPersona):
     def __init__(self):
         super().__init__("Acceptance Auditor", "Requirements coverage and correctness")
 
-    async def review(self, code: str, context: Dict) -> Dict[str, Any]:
+    async def review(self, code: str, context: dict) -> dict[str, Any]:
         """Verify code meets requirements specification."""
         findings = []
         requirements = context.get("requirements", [])
@@ -349,7 +349,7 @@ class SecurityPredator(AdversarialPersona):
     def __init__(self):
         super().__init__("Security Predator", "Attack vectors and exploitation")
 
-    async def review(self, code: str, context: Dict) -> Dict[str, Any]:
+    async def review(self, code: str, context: dict) -> dict[str, Any]:
         """Analyze code for security vulnerabilities."""
         findings = []
 
@@ -402,7 +402,7 @@ class PerformanceVulture(AdversarialPersona):
     def __init__(self):
         super().__init__("Performance Vulture", "Resource analysis and optimization")
 
-    async def review(self, code: str, context: Dict) -> Dict[str, Any]:
+    async def review(self, code: str, context: dict) -> dict[str, Any]:
         """Analyze code for performance issues."""
         findings = []
 
@@ -448,7 +448,7 @@ class PerformanceVulture(AdversarialPersona):
             "complexity": self._estimate_complexity(code)
         }
 
-    def _estimate_complexity(self, code: str) -> Dict:
+    def _estimate_complexity(self, code: str) -> dict:
         """Estimate time/space complexity."""
         lines = code.split('\n')
 
@@ -473,16 +473,16 @@ class AdversarialReviewOrchestrator:
     """Orchestrate multi-persona adversarial review in parallel."""
 
     def __init__(self):
-        self.personas: List[AdversarialPersona] = [
+        self.personas: list[AdversarialPersona] = [
             BlindHunter(),
             EdgeCaseHunter(),
             AcceptanceAuditor(),
             SecurityPredator(),
             PerformanceVulture()
         ]
-        self.review_results: Dict[str, Dict] = {}
+        self.review_results: dict[str, dict] = {}
 
-    async def run_parallel_review(self, code: str, context: Dict) -> Dict[str, Any]:
+    async def run_parallel_review(self, code: str, context: dict) -> dict[str, Any]:
         """Execute all adversarial reviews in parallel."""
         print("\n[Adversarial Review] Dispatching 5 personas in parallel...")
 
@@ -515,13 +515,13 @@ class AdversarialReviewOrchestrator:
             "recommendation": "APPROVE" if total_critical == 0 else "REJECT_PENDING_RESOLUTION"
         }
 
-    async def _run_persona(self, persona: AdversarialPersona, code: str, context: Dict) -> Dict:
+    async def _run_persona(self, persona: AdversarialPersona, code: str, context: dict) -> dict:
         """Run single persona review."""
         result = await persona.review(code, context)
         print(f"  [{persona.name}] Score: {result.get('score', 0)}, Critical: {result.get('critical_count', 0)}")
         return result
 
-    def _extract_blockers(self, results: List[Dict]) -> List[Dict]:
+    def _extract_blockers(self, results: list[dict]) -> list[dict]:
         """Extract all critical findings that block merge."""
         blockers = []
         for result in results:
@@ -544,10 +544,10 @@ class CapabilityStack:
     """Compound capability stack with V-Model traceability."""
     run_id: int
     entity_id: UUID = field(default_factory=uuid4)
-    compute_profile: Dict[str, Any] = field(default_factory=dict)
-    learned_schedulers: Dict[str, Any] = field(default_factory=dict)
+    compute_profile: dict[str, Any] = field(default_factory=dict)
+    learned_schedulers: dict[str, Any] = field(default_factory=dict)
     checkpoint_efficiency: float = 0.0
-    telemetry_patterns: List[Dict] = field(default_factory=list)
+    telemetry_patterns: list[dict] = field(default_factory=list)
     coherence: float = 0.5
 
     def save(self, path: Path) -> Path:
@@ -606,8 +606,8 @@ class TDDAdversarialExperiment:
         self.target_cycles = target_cycles
         self.tdd_suite = TDDTestSuite()
         self.adversarial = AdversarialReviewOrchestrator()
-        self.test_results: List[Dict] = []
-        self.review_results: Optional[Dict] = None
+        self.test_results: list[dict] = []
+        self.review_results: Optional[dict] = None
 
         self._define_tdd_tests()
 
@@ -673,7 +673,7 @@ class TDDAdversarialExperiment:
     # TDD PHASES
     # ═══════════════════════════════════════════════════════════════════════════
 
-    async def phase_tdd_red(self) -> Dict[str, Any]:
+    async def phase_tdd_red(self) -> dict[str, Any]:
         """TDD Phase 1: Write tests (they fail)."""
         print("\n" + "="*70)
         print("TDD PHASE 1: RED - Write failing tests")
@@ -689,7 +689,7 @@ class TDDAdversarialExperiment:
             "status": "PASS" if result['failed'] > 0 else "UNEXPECTED_ALL_PASS"
         }
 
-    async def phase_tdd_green(self) -> Dict[str, Any]:
+    async def phase_tdd_green(self) -> dict[str, Any]:
         """TDD Phase 2: Write minimal code (tests pass)."""
         print("\n" + "="*70)
         print("TDD PHASE 2: GREEN - Minimal implementation")
@@ -708,7 +708,7 @@ class TDDAdversarialExperiment:
             "status": "PASS" if result['pass_rate'] == 1.0 else "FAIL"
         }
 
-    async def phase_adversarial_review(self) -> Dict[str, Any]:
+    async def phase_adversarial_review(self) -> dict[str, Any]:
         """Run multi-persona adversarial review."""
         print("\n" + "="*70)
         print("ADVERSARIAL REVIEW - 5 Personas Parallel")
@@ -736,7 +736,7 @@ class TDDAdversarialExperiment:
 
         return self.review_results
 
-    async def phase_tdd_refactor(self) -> Dict[str, Any]:
+    async def phase_tdd_refactor(self) -> dict[str, Any]:
         """TDD Phase 3: Refactor with safety."""
         print("\n" + "="*70)
         print("TDD PHASE 3: REFACTOR - Clean up with tests green")
@@ -768,7 +768,7 @@ class TDDAdversarialExperiment:
     # MAIN EXECUTION
     # ═══════════════════════════════════════════════════════════════════════════
 
-    async def run(self) -> Dict[str, Any]:
+    async def run(self) -> dict[str, Any]:
         """Execute full TDD + Adversarial review pipeline."""
         start_time = time.time()
 
@@ -844,7 +844,7 @@ class TDDAdversarialExperiment:
 # ENTRY POINT
 # ═══════════════════════════════════════════════════════════════════════════════
 
-async def experiment_e70_tdd_adversarial(target_cycles: int = 20) -> Dict[str, Any]:
+async def experiment_e70_tdd_adversarial(target_cycles: int = 20) -> dict[str, Any]:
     """Entry point for TDD + Adversarial Review pipeline."""
     experiment = TDDAdversarialExperiment(target_cycles=target_cycles)
     return await experiment.run()

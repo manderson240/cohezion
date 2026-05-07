@@ -324,7 +324,7 @@ class {class_name}(gym.Env):
                 obs, info = env.reset()
                 for _ in range(10):
                     action = env.action_space.sample()
-                    obs, reward, terminated, truncated, info = env.step(action)
+                    _obs, _reward, terminated, truncated, _info = env.step(action)
                     if terminated or truncated:
                         break
 

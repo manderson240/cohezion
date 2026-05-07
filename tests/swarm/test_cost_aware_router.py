@@ -176,7 +176,7 @@ class TestCostAwareRouter:
     def test_max_cost_constraint(self, router):
         """Test max cost constraint blocks if exceeded."""
         # With local models all free, this should always pass
-        decision, can_proceed = router.select_model(
+        _decision, can_proceed = router.select_model(
             "What is AI?",
             max_cost_usd=0.0001,
         )
@@ -191,7 +191,7 @@ class TestCostAwareRouter:
 
         router = CostAwareRouter(cost_tracker=tracker, budget_enforcer=enforcer)
 
-        decision, can_proceed = router.select_model("Design a system")
+        _decision, can_proceed = router.select_model("Design a system")
 
         # Should still proceed since local model cost is 0
         assert can_proceed is True
@@ -352,7 +352,7 @@ class TestCostAwareRouterChaosTest:
 
     def test_cost_bounds_under_spike(self, router_with_tight_budget):
         """Test cost bounds hold during query spike."""
-        router, tracker, enforcer = router_with_tight_budget
+        router, _tracker, enforcer = router_with_tight_budget
 
         # Simulate spike: 50 complex queries
         for _i in range(50):
@@ -447,7 +447,7 @@ class TestCostAwareRouterIntegration:
 
         router = CostAwareRouter(cost_tracker=tracker)
 
-        decision, can_proceed = router.select_model("Design a system")
+        _decision, can_proceed = router.select_model("Design a system")
         assert can_proceed is True
 
     def test_routing_decision_structure(self):

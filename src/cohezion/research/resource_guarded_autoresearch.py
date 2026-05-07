@@ -237,7 +237,7 @@ class ResearchSubAgent:
 
             # Set memory limit using rlimit (Unix only)
             try:
-                soft, hard = resource.getrlimit(resource.RLIMIT_AS)
+                _soft, hard = resource.getrlimit(resource.RLIMIT_AS)
                 memory_limit_bytes = self.guard.limits.max_memory_mb * 1024 * 1024
                 resource.setrlimit(resource.RLIMIT_AS, (memory_limit_bytes, hard))
             except (ValueError, OSError):

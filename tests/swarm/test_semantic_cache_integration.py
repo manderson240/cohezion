@@ -155,7 +155,7 @@ class TestThreeTierCacheHierarchy:
             token_client_with_semantic.ollama, "generate", new_callable=AsyncMock
         ) as mock_generate:
             # First query should get L2 hit (not call Ollama)
-            response1, tokens1 = await token_client_with_semantic.generate(
+            response1, _tokens1 = await token_client_with_semantic.generate(
                 prompt="Test", model="phi3:mini", system=""
             )
             assert response1 == "L2 result"
@@ -163,7 +163,7 @@ class TestThreeTierCacheHierarchy:
             mock_generate.assert_not_called()
 
             # Second query with identical prompt should now hit L1
-            response2, tokens2 = await token_client_with_semantic.generate(
+            response2, _tokens2 = await token_client_with_semantic.generate(
                 prompt="Test", model="phi3:mini", system=""
             )
             assert response2 == "L2 result"

@@ -634,7 +634,7 @@ def _check_disk_space() -> tuple[bool, str]:
     """Check available disk space."""
     import shutil
 
-    total, used, free = shutil.disk_usage("/")
+    _total, _used, free = shutil.disk_usage("/")
     free_gb = free / (1024**3)
     if free_gb < 1:
         return False, f"Low disk space: {free_gb:.1f}GB free"

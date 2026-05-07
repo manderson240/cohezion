@@ -338,7 +338,7 @@ def move_objects_up(g: Grid) -> Grid | None:
     rows, cols = len(g), len(g[0])
     result = [[bg] * cols for _ in range(rows)]
     obj = objects.pop()
-    top, left, _, _ = bounding_box(obj)
+    top, _left, _, _ = bounding_box(obj)
     for r, c in obj:
         nr = r - top
         if nr < 0 or nr >= rows:

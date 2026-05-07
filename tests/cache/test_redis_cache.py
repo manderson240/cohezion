@@ -62,7 +62,7 @@ async def test_redis_cache_put(mock_redis):
 
     # Check Redis setex called
     mock_redis.setex.assert_called_once()
-    args, kwargs = mock_redis.setex.call_args
+    args, _kwargs = mock_redis.setex.call_args
     data = json.loads(args[2])
     assert data["response"] == "response"
 

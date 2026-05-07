@@ -97,7 +97,7 @@ class FlumeWikiBridge:
 
         # Pass through VAE for latent representation
         with torch.no_grad():
-            z, mu, logvar = self.vae.encoder(embedding.unsqueeze(0))
+            z, _mu, _logvar = self.vae.encoder(embedding.unsqueeze(0))
             latent = z.squeeze(0)
 
         # Store embedding reference in wiki

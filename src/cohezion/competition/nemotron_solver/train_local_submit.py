@@ -134,7 +134,7 @@ def train():
     model, tokenizer = load_base_model()
 
     print("\nSetting up LoRA...")
-    model, lora_config = setup_lora(model)
+    model, _lora_config = setup_lora(model)
 
     # 4. Training args
     args = TrainingArguments(
