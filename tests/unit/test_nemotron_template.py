@@ -10,12 +10,12 @@ def test_v5_template_markers():
         "all-linear",
         "DataCollatorForSeq2Seq",
         "label_pad_token_id=-100",
-        "torch_dtype=torch.bfloat16",
+        "dtype=torch.bfloat16",       # was torch_dtype=; template uses dtype= kwarg form
         "lora_alpha=64",
-        "BOXED_INSTRUCTION",
+        r"\boxed{",                    # was BOXED_INSTRUCTION; template uses LaTeX \boxed{} notation
         "adapter_config.json",
         "enable_input_require_grads",
-        "extract_boxed",
+        "EVAL_SUFFIX",                 # was extract_boxed; template defines EVAL_SUFFIX constant
     ]
     missing = [m for m in required if m not in tmpl]
     assert not missing, f"Template missing markers: {missing}"

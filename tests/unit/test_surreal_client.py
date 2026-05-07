@@ -171,7 +171,7 @@ class TestInMemoryStore:
 class TestSurrealClientInit:
     def test_default_params(self):
         client = SurrealClient()
-        assert client.url == "ws://localhost:8000/rpc"
+        assert client.url == "ws://localhost:8001/rpc"  # migrated from 8000 in session 96b
         assert client.namespace == "cohezion"
         assert client.database == "vault"
         assert client._connected is False
