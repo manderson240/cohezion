@@ -163,6 +163,10 @@ ignore = [
     "TC003",   # Standard library imports in type annotations outside TYPE_CHECKING block
     # SurrealQL uses parameterized record IDs (plan:{slug}, node:{id}) — not user-controlled SQL
     "S608",    # Possible SQL injection via string-based query construction (SurrealQL, not SQL)
+    # asyncio fire-and-forget — background tasks in compound executor are intentionally untracked
+    "RUF006",  # Store return value of asyncio.create_task/ensure_future
+    # 0.0.0.0 binding is intentional for containerized deployments (host configured externally)
+    "S104",    # Binding to all network interfaces
 ]
 
 # Per-file customization
