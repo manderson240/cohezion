@@ -1430,8 +1430,3 @@ class CompoundExecutor(CompoundContextMixin, ExecutorIntegrationMixin):
     # Integration methods (_compute_token_delta, log_inflection_point,
     # compile_natural_language, validate_sandbox) inherited from
     # ExecutorIntegrationMixin — see executor_integration.py
-
-
-# Backward-compatible imports — these re-export symbols for callers using `from cohezion.compound.executor import X`
-from cohezion.compound.executor_factory import ExecutorFactory as ExecutorFactory  # noqa: E402
-from cohezion.compound.post_execution import PostExecutionOrchestrator as PostExecutionOrchestrator  # noqa: E402

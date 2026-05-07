@@ -35,7 +35,7 @@ from cohezion.compound.core.executor import (
     execute_simple as execute_simple,
 )
 from cohezion.compound.executor import CompoundExecutor as LegacyCompoundExecutor
-from cohezion.compound.executor import ExecutorFactory as CompoundExecutorFactory
+from cohezion.compound.executor_factory import ExecutorFactory as CompoundExecutorFactory
 
 # New Simplified API
 from cohezion.compound.models import (
