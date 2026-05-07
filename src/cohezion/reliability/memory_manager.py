@@ -50,7 +50,7 @@ class MemoryManager:
     def _get_embedding(self, text: str) -> list[float]:
         """Get embedding from local Ollama."""
         res = self.ollama.embeddings(model=self.embed_model, prompt=text)
-        return res["embedding"]
+        return list(res["embedding"])
 
     def add(self, data: str, metadata: dict[str, Any] | None = None):
         """Add information to long-term memory."""

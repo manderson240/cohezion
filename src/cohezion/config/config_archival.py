@@ -230,7 +230,7 @@ class SizeEnforcer:
 
     def check_violations(self, file_path: Path) -> dict[str, Any]:
         """Check if file violates size limits."""
-        result = {
+        result: dict[str, Any] = {
             "violates": False,
             "violations": [],
             "metadata": {},

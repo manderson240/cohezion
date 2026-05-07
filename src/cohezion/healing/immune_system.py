@@ -204,8 +204,10 @@ class ActuatorSystem:
 
         # 3. Verify via Pytest
         logger.info("Ouroboros: Verifying patch with pytest...")
+        import shutil
         import subprocess
 
+        uv_exec = shutil.which("uv") or "/usr/local/bin/uv"
         try:
             res = subprocess.run(
                 ["uv", "run", "pytest", "-q", "--tb=no"],

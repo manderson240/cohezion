@@ -66,7 +66,7 @@ class RoutingOptimizationFeedback:
 
     def detect_anomalies(self) -> list[dict[str, Any]]:
         """Detect anomalies in routing decisions."""
-        anomalies = []
+        anomalies: list[dict[str, Any]] = []
         if len(self._decisions) < 2:
             return anomalies
         recent = self._decisions[-self._window_size :]

@@ -27,12 +27,9 @@ class TestTaskSpec:
 
     @pytest.fixture
     def spec_cls(self):
-        try:
-            from cohezion.rl.task_generator import TaskSpec
+        from cohezion.rl.task_generator import TaskSpec
 
-            return TaskSpec
-        except ImportError:
-            pytest.skip("TaskGenerator not yet implemented")
+        return TaskSpec
 
     def test_taskspec_has_required_fields(self, spec_cls):
         """TaskSpec has all required fields for RL task definition."""
@@ -92,21 +89,15 @@ class TestTaskGenerator:
 
     @pytest.fixture
     def gen_cls(self):
-        try:
-            from cohezion.rl.task_generator import TaskGenerator
+        from cohezion.rl.task_generator import TaskGenerator
 
-            return TaskGenerator
-        except ImportError:
-            pytest.skip("TaskGenerator not yet implemented")
+        return TaskGenerator
 
     @pytest.fixture
     def spec_cls(self):
-        try:
-            from cohezion.rl.task_generator import TaskSpec
+        from cohezion.rl.task_generator import TaskSpec
 
-            return TaskSpec
-        except ImportError:
-            pytest.skip("TaskGenerator not yet implemented")
+        return TaskSpec
 
     def test_generator_creates_hiho_basin_spec(self, gen_cls, spec_cls):
         """Generator can create a HIHO Basin Navigation task."""
@@ -220,12 +211,9 @@ class TestTaskArchetypes:
 
     @pytest.fixture
     def gen_cls(self):
-        try:
-            from cohezion.rl.task_generator import TaskGenerator
+        from cohezion.rl.task_generator import TaskGenerator
 
-            return TaskGenerator
-        except ImportError:
-            pytest.skip("TaskGenerator not yet implemented")
+        return TaskGenerator
 
     def test_hiho_basin_has_hiho_origin_well(self, gen_cls):
         """HIHO Basin tasks target HIHO_Origin stability well."""

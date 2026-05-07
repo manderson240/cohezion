@@ -47,6 +47,8 @@ def test_rate_limiter_refill():
 
     assert limiter.check("u1", "fast").allowed is False
 
-    # Wait for refill (at least 0.1s for 1 token)
-    time.sleep(0.15)
+    # Rewind the bucket's last_update by 0.15s to simulate refill instead of
+    # actually sleeping
+    bucket = limiter._buckets["u1:fast"]
+    bucket.last_update -= 0.15
     assert limiter.check("u1", "fast").allowed is True

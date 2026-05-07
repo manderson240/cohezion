@@ -132,7 +132,8 @@ class PersistentCache:
 
                 # Persist hit update for analytics
                 self._persist_entry(key, entry)
-                return entry.get("value")
+                value = entry.get("value")
+                return value if isinstance(value, str) else None
 
             self._stats["misses"] += 1
             return None

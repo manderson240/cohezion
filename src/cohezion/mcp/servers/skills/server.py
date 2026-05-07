@@ -188,9 +188,12 @@ async def tool_skills_install(request: web.Request) -> web.Response:
             )
 
         # Run npx skills add — skill_id is validated above
-        cmd = ["npx", "skills", "add", skill_id]
+        import shutil
 
-        result = subprocess.run(
+        npx_exec = shutil.which("npx") or "/usr/bin/npx"
+        cmd = [npx_exec, "skills", "add", skill_id]
+
+        result = subprocess.run(  # noqa: S603 - skill_id validated upstream against owner/repo regex
             cmd,
             capture_output=True,
             text=True,

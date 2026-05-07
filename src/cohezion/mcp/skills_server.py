@@ -77,9 +77,9 @@ class SkillsMCP:
         content = skill_path.read_text()
 
         # Parse sections
-        sections = {}
+        sections: dict[str, str] = {}
         current_section = "header"
-        current_content = []
+        current_content: list[str] = []
 
         for line in content.split("\n"):
             if line.startswith("## "):

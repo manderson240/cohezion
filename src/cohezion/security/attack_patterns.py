@@ -1008,7 +1008,7 @@ def mutate_pattern(text: str) -> str:
     ]
     mutation = random.choice(mutations)
     try:
-        return mutation(text)
+        return str(mutation(text))
     except Exception:
         return text
 

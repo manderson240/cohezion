@@ -316,7 +316,7 @@ class TokenCacheOptimizer:
         # Add model-specific recommendations
         recommendations["model_recommendations"] = self._get_model_recommendations()
 
-        return recommendations
+        return dict(recommendations)
 
     def _get_model_recommendations(self) -> dict[str, list[str]]:
         """Get model-specific optimization recommendations.
