@@ -19,8 +19,9 @@ jobs:
           fetch-depth: 0
 
       - name: Validate PR title (conventional commit)
+        env:
+          PR_TITLE: ${{ github.event.pull_request.title }}
         run: |
-          PR_TITLE="${{ github.event.pull_request.title }}"
           echo "PR title: $PR_TITLE"
 
           # Conventional commit pattern:

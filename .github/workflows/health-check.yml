@@ -28,7 +28,12 @@ jobs:
       contents: read
       pull-requests: write
       checks: write
-    
+    outputs:
+      security_high: ${{ steps.health.outputs.security_high }}
+      overall_score: ${{ steps.health.outputs.overall_score }}
+      untracked_count: ${{ steps.health.outputs.untracked_count }}
+      status: ${{ steps.health.outputs.status }}
+
     steps:
       - name: Checkout code
         uses: actions/checkout@v6
@@ -192,7 +197,7 @@ jobs:
     
     steps:
       - name: Create issue for critical issues
-        if: steps.health.outputs.security_high > 0
+        if: needs.health.outputs.security_high > 0
         uses: actions/github-script@v9
         with:
           script: |
@@ -201,10 +206,10 @@ jobs:
               repo: context.repo.repo,
               title: '🚨 Critical Security Issues Detected',
               body: `Automated health check detected critical issues.
-              
-              - Security HIGH issues: ${{ steps.health.outputs.security_high }}
-              - Untracked files: ${{ steps.health.outputs.untracked_count }}
-              - Health score: ${{ steps.health.outputs.overall_score }}
+
+              - Security HIGH issues: ${{ needs.health.outputs.security_high }}
+              - Untracked files: ${{ needs.health.outputs.untracked_count }}
+              - Health score: ${{ needs.health.outputs.overall_score }}
               
               Run \`uv run python scripts/ci/daily_health_check.py\` for details.`,
               labels: ['security', 'needs-attention']
