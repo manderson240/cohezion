@@ -29,6 +29,18 @@ except (ImportError, AttributeError):
     SurrealDBMethodError = ()  # type: ignore[assignment,misc]
 
 
+logger = logging.getLogger(__name__)
+
+# Validates rule IDs from on-disk markdown before SQL interpolation
+# (Ω12 P1 Patch 7 — defense-in-depth against SurrealQL injection).
+_RULE_ID_RE = re.compile(r"^[a-zA-Z0-9_\-]+$")
+
+try:
+    from surrealdb.errors import SurrealDBMethodError
+except (ImportError, AttributeError):
+    SurrealDBMethodError = ()  # type: ignore[assignment,misc]
+
+
 @dataclass
 class Rule:
     """Hookify rule definition"""
