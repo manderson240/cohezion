@@ -71,7 +71,7 @@ class SkillValidator:
                     body = parts[2].strip()
                     return metadata or {}, body
                 except yaml.YAMLError as e:
-                    raise ValueError(f"Invalid YAML: {e}")
+                    raise ValueError(f"Invalid YAML: {e}") from e
 
         # Try PRIME format: # SKILL: NAME
         lines = content.split("\n")
@@ -133,16 +133,16 @@ class SkillValidator:
             return result
 
         # Validate required fields (but be lenient for legacy PRIME skills)
-        for field in REQUIRED_FIELDS:
-            if field not in metadata:
+        for required_field in REQUIRED_FIELDS:
+            if required_field not in metadata:
                 # For PRIME skills, add default values for missing fields
-                if field == "version" and metadata.get("domain") == "PRIME skill":
+                if required_field == "version" and metadata.get("domain") == "PRIME skill":
                     metadata["version"] = "v1.0"  # Default version for PRIME skills
-                elif field == "tier" and metadata.get("domain") == "PRIME skill":
+                elif required_field == "tier" and metadata.get("domain") == "PRIME skill":
                     metadata["tier"] = "PRIME"  # PRIME skills get PRIME tier
                 else:
                     result.valid = False
-                    result.errors.append(f"Missing required field: {field}")
+                    result.errors.append(f"Missing required field: {required_field}")
 
         # Validate tier if present
         tier = metadata.get("tier")

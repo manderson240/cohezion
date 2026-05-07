@@ -24,6 +24,7 @@ from cohezion.swarm.dynamic_agent_registry import (
     AgentModule,
     DynamicAgentRegistry,
 )
+from cohezion.swarm.specialist_agents import SpecialistAgent
 
 
 @dataclass

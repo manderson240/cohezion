@@ -47,4 +47,4 @@ async def get_fleet_events(limit: int = 20):
         )
         return events if events else []
     except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
+        raise HTTPException(status_code=500, detail=str(e)) from e

@@ -175,10 +175,10 @@ class GeminiProvider(ModelProvider):
                 )
 
         except TimeoutError:
-            raise RuntimeError(f"Gemini request timed out after {self.timeout}s")
+            raise RuntimeError(f"Gemini request timed out after {self.timeout}s") from None
 
         except aiohttp.ClientError as e:
-            raise RuntimeError(f"Gemini connection error: {e}")
+            raise RuntimeError(f"Gemini connection error: {e}") from e
 
     async def list_models(self) -> list[str]:
         """List available Gemini models.

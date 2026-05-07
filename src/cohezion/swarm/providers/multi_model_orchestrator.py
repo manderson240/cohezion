@@ -332,6 +332,7 @@ class MultiModelOrchestrator(ModelProvider):
         if unit in (ComputeUnit.GPU, ComputeUnit.HYBRID):
             payload["keep_alive"] = "5m"
 
+        start_time = time.time()
         try:
             async with session.post(
                 f"{endpoint}/api/generate",
