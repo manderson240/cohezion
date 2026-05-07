@@ -1106,11 +1106,7 @@ class CompoundExecutor(CompoundContextMixin, ExecutorIntegrationMixin):
                                     point_data,
                                 )
                             )
-                    except (
-                        AttributeError,
-                        RuntimeError,
-                        OSError,
-                    ) as e:
+                    except (TimeoutError, AttributeError, RuntimeError, OSError, ConnectionError) as e:
                         logger.debug("Journey persistence failed (non-blocking): %s", e)
             except (AttributeError, RuntimeError, ValueError, KeyError, TypeError) as e:
                 logger.debug("Journey tracking failed (non-blocking): %s", e)
@@ -1342,3 +1338,12 @@ class CompoundExecutor(CompoundContextMixin, ExecutorIntegrationMixin):
     # Integration methods (_compute_token_delta, log_inflection_point,
     # compile_natural_language, validate_sandbox) inherited from
     # ExecutorIntegrationMixin — see executor_integration.py
+
+
+def __getattr__(name: str) -> object:
+    """Lazy re-export for ExecutorFactory to avoid circular imports."""
+    if name == "ExecutorFactory":
+        from cohezion.compound.executor_factory import ExecutorFactory  # noqa: PLC0415
+
+        return ExecutorFactory
+    raise AttributeError(f"module {__name__!r} has no attribute {name!r}")
