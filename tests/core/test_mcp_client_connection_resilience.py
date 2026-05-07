@@ -2,9 +2,8 @@
 import asyncio
 from unittest.mock import AsyncMock, MagicMock, patch
 
-import pytest
 
-from cohezion.core.mcp_client import MCPClient, MCPConfig, MCPConnectionError
+from cohezion.core.mcp_client import MCPClient, MCPConfig
 
 
 def _make_client():
