@@ -499,7 +499,7 @@ class HookifyValidator:
                 )
                 if result and len(result) > 0:
                     return result[0].get("lever_overrides", {})
-            except Exception as e:  # noqa: BLE001 — SurrealDB raises bare Exception on auth/network errors
+            except Exception as e:
                 logger.debug("load_db_overrides failed: %s", e)
 
         return {}

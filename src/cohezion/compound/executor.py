@@ -1343,7 +1343,7 @@ class CompoundExecutor(CompoundContextMixin, ExecutorIntegrationMixin):
 def __getattr__(name: str) -> object:
     """Lazy re-export for ExecutorFactory to avoid circular imports."""
     if name == "ExecutorFactory":
-        from cohezion.compound.executor_factory import ExecutorFactory  # noqa: PLC0415
+        from cohezion.compound.executor_factory import ExecutorFactory
 
         return ExecutorFactory
     raise AttributeError(f"module {__name__!r} has no attribute {name!r}")
