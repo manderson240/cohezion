@@ -9,20 +9,20 @@ import torch
 # Add src to sys.path
 sys.path.insert(0, str(Path.cwd() / "src"))
 
-import cohezion_core
+import cohezion_core  # noqa: E402
 
 
 print(f"DEBUG: cohezion_core loaded from: {cohezion_core.__file__}")
-from cohezion_core import FlumePhysics
+from cohezion_core import FlumePhysics  # noqa: E402
 
 
 print(f"DEBUG: FlumePhysics dir: {dir(FlumePhysics)}")
 
-import cohezion.flume.predictor
+import cohezion.flume.predictor  # noqa: E402
 
 
 print(f"DEBUG: predictor loaded from: {cohezion.flume.predictor.__file__}")
-from cohezion.flume.predictor import TrajectoryPredictor
+from cohezion.flume.predictor import TrajectoryPredictor  # noqa: E402
 
 
 def benchmark_swarm():

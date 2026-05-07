@@ -5,9 +5,9 @@ Specialized encoder/decoder for 2D matrices (0-9) representing color grids.
 Maps grids to 256D FLUME latent space for semantic reasoning and trajectory tracking.
 """
 
-import numpy as np
-import torch
-import torch.nn as nn
+import numpy as np  # noqa: E402
+import torch  # noqa: E402
+import torch.nn as nn  # noqa: E402
 
 
 class ARCGridEncoder(nn.Module):
@@ -165,4 +165,4 @@ class FlumeGridHarness:
             return np.zeros(256, dtype=np.float32)
 
 
-import json
+import json  # noqa: E402

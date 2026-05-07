@@ -6,18 +6,18 @@ and fine-tuning from identified gaps. Delegates to existing infrastructure
 (AgentJetTrainer, LocalFinetuner, graph_writer) without reimplementing.
 """
 
-from __future__ import annotations
+from __future__ import annotations  # noqa: E402
 
-import logging
-import shutil
-import subprocess
-from dataclasses import dataclass, field
-from datetime import date
+import logging  # noqa: E402
+import shutil  # noqa: E402
+import subprocess  # noqa: E402
+from dataclasses import dataclass, field  # noqa: E402
+from datetime import date  # noqa: E402
 
 
 _OLLAMA = shutil.which("ollama") or "/usr/local/bin/ollama"
 
-from cohezion.compound.capability_matrix import (
+from cohezion.compound.capability_matrix import (  # noqa: E402
     CapabilityGap,
     CapabilityMatrix,
     FinetuneCandidate,

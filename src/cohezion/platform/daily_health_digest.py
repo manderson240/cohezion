@@ -22,14 +22,14 @@ _DU = shutil.which("du") or "/usr/bin/du"
 _BASH = shutil.which("bash") or "/bin/bash"
 _GIT = shutil.which("git") or "/usr/bin/git"
 
-from cohezion.core.persistence.surreal_client import get_surreal_client
-from cohezion.platform.coherence_tracker import (
+from cohezion.core.persistence.surreal_client import get_surreal_client  # noqa: E402
+from cohezion.platform.coherence_tracker import (  # noqa: E402
     CoherenceMetrics,
     get_coherence_tracker,
 )
-from cohezion.platform.edl_router import get_edl_router
-from cohezion.platform.journey_logger import get_journey_logger
-from cohezion.platform.observable_action import get_observable_proposer
+from cohezion.platform.edl_router import get_edl_router  # noqa: E402
+from cohezion.platform.journey_logger import get_journey_logger  # noqa: E402
+from cohezion.platform.observable_action import get_observable_proposer  # noqa: E402
 
 
 class HealthStatus(StrEnum):

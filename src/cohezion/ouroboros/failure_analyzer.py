@@ -1,11 +1,11 @@
 """Ouroboros Failure Analyzer — Recursive retrospective for agentic failures."""
 
-from __future__ import annotations
+from __future__ import annotations  # noqa: E402
 
-import logging
-import re
-from dataclasses import dataclass
-from typing import Any
+import logging  # noqa: E402
+import re  # noqa: E402
+from dataclasses import dataclass  # noqa: E402
+from typing import Any  # noqa: E402
 
 
 logger = logging.getLogger(__name__)
@@ -58,4 +58,4 @@ class OuroborosFailureAnalyzer:
         )
 
 
-import time
+import time  # noqa: E402

@@ -7,13 +7,13 @@ If a GOLD or SILVER product is stale, it creates a GitHub Issue to
 trigger the asynchronous workforce.
 """
 
-import asyncio
-import json
-import logging
-import os
-import sys
-import time
-from pathlib import Path
+import asyncio  # noqa: E402
+import json  # noqa: E402
+import logging  # noqa: E402
+import os  # noqa: E402
+import sys  # noqa: E402
+import time  # noqa: E402
+from pathlib import Path  # noqa: E402
 
 
 # Resolve project root
@@ -21,7 +21,7 @@ SCRIPT_PATH = Path(__file__).resolve()
 PROJECT_ROOT = SCRIPT_PATH.parent.parent.parent.parent.parent
 sys.path.insert(0, str(PROJECT_ROOT / "src"))
 
-from cohezion.mcp.servers.github.server import get_service
+from cohezion.mcp.servers.github.server import get_service  # noqa: E402
 
 
 # Paths
