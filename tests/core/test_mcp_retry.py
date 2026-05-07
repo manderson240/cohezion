@@ -1,6 +1,5 @@
 """Tests for MCP retry logic."""
 import asyncio
-from unittest.mock import AsyncMock, MagicMock, call
 
 import pytest
 

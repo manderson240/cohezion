@@ -323,7 +323,6 @@ async def tool_scan_file(request: web.Request) -> web.Response:
         if not file_path:
             return web.json_response({"error": "filePath is required"}, status=400)
 
-        from pathlib import Path
 
         from cohezion.mcp.servers.safe_input import sanitize_path
 
@@ -351,7 +350,6 @@ async def tool_scan_project(request: web.Request) -> web.Response:
         data = await request.json()
         project_path = data.get("projectPath", ".")
 
-        from pathlib import Path
 
         from cohezion.mcp.servers.safe_input import sanitize_path
 
