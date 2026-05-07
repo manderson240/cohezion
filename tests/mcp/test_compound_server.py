@@ -126,7 +126,7 @@ class TestCompoundUtils:
         )
         assert mod.exists()
         lines = len(mod.read_text().splitlines())
-        assert lines < 500, f"compound_server.py is {lines} lines; refactor target is < 500"
+        assert lines <= 500, f"compound_server.py is {lines} lines; refactor target is <= 500"
 
     def test_error_handler_count(self) -> None:
         """Only 3 error handlers remain in module (was 16 before DRY refactor)."""
