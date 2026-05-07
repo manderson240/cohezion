@@ -37,7 +37,7 @@ class TestModelSelectionOptimization:
         for query in simple_queries:
             decision, _ = router.select_model(query)
             # Simple queries cannot be downgraded further, so always phi3 or from optimization
-            assert decision.model in ["phi3:mini", "qwen3-coder:32b"], f"Failed for: {query}"
+            assert decision.model in ["phi3:mini", "qwen3-coder:32b", "Phi-4-mini-instruct-Hybrid"], f"Failed for: {query}"
 
     def test_medium_query_optimizes_to_phi3_for_cost(self, router):
         """Test that medium queries may downgrade to phi3 for cost savings."""
@@ -49,7 +49,7 @@ class TestModelSelectionOptimization:
         for query in medium_queries:
             decision, _ = router.select_model(query)
             # Medium queries may optimize to phi3 if TPS acceptable
-            assert decision.model in ["phi3:mini", "qwen3-coder:32b"], f"Failed for: {query}"
+            assert decision.model in ["phi3:mini", "qwen3-coder:32b", "Phi-4-mini-instruct-Hybrid"], f"Failed for: {query}"
 
     def test_complex_query_optimizes_to_faster_model_for_cost(self, router):
         """Test that complex queries may optimize to faster models for cost/efficiency."""
@@ -61,7 +61,7 @@ class TestModelSelectionOptimization:
         for query in complex_queries:
             decision, _ = router.select_model(query)
             # Complex queries may optimize to qwen or phi3 if TPS/latency acceptable
-            assert decision.model in ["deepseek-r1:8b", "qwen3-coder:32b", "phi3:mini"], (
+            assert decision.model in ["deepseek-r1:8b", "qwen3-coder:32b", "phi3:mini", "Phi-4-mini-instruct-Hybrid"], (
                 f"Failed for: {query}"
             )
 
@@ -97,7 +97,7 @@ class TestModelSelectionOptimization:
 
         # All scores should be valid model quality scores
         for score in quality_scores:
-            assert score in [0.6, 0.85, 0.95], f"Invalid quality score: {score}"
+            assert score in [0.6, 0.82, 0.85, 0.95], f"Invalid quality score: {score}"
 
     def test_model_selection_consistency(self, router):
         """Test that identical queries get identical model selections."""

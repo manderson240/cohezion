@@ -20,6 +20,10 @@ import asyncio
 import logging
 import sys
 from pathlib import Path
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from cohezion.agentjet.embeddings import GeminiEmbeddingModel
 
 
 logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s %(message)s")

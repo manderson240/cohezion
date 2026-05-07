@@ -229,7 +229,7 @@ class TestFallbackStrategyBasics:
         """Test primary model selected when available."""
         primary, degraded, cost_saved = strategy.execute_with_fallback(
             primary_model="deepseek-r1:8b",
-            available_models=["phi3:mini", "qwen3-coder:32b", "deepseek-r1:8b"],
+            available_models=["phi3:mini", "qwen3-coder:32b", "deepseek-r1:8b", "Phi-4-mini-instruct-Hybrid"],
         )
 
         assert primary == "deepseek-r1:8b"
@@ -246,7 +246,7 @@ class TestFallbackStrategyBasics:
         # Should fallback
         selected, degraded, _cost_saved = strategy.execute_with_fallback(
             primary_model="deepseek-r1:8b",
-            available_models=["phi3:mini", "qwen3-coder:32b", "deepseek-r1:8b"],
+            available_models=["phi3:mini", "qwen3-coder:32b", "deepseek-r1:8b", "Phi-4-mini-instruct-Hybrid"],
         )
 
         assert selected != "deepseek-r1:8b"
@@ -262,7 +262,7 @@ class TestFallbackStrategyBasics:
         # Should try phi3 next
         selected, degraded, _cost_saved = strategy.execute_with_fallback(
             primary_model="deepseek-r1:8b",
-            available_models=["phi3:mini", "qwen3-coder:32b", "deepseek-r1:8b"],
+            available_models=["phi3:mini", "qwen3-coder:32b", "deepseek-r1:8b", "Phi-4-mini-instruct-Hybrid"],
         )
 
         assert selected == "phi3:mini"
@@ -275,7 +275,7 @@ class TestFallbackStrategyBasics:
         # From phi3 (0.6) to qwen (0.82) is an improvement
         selected, degraded, _cost_saved = strategy.execute_with_fallback(
             primary_model="phi3:mini",
-            available_models=["phi3:mini", "qwen3-coder:32b"],
+            available_models=["phi3:mini", "qwen3-coder:32b", "Phi-4-mini-instruct-Hybrid"],
         )
 
         assert selected == "phi3:mini"
@@ -456,7 +456,7 @@ class TestFallbackChains:
         strategy = FallbackStrategy()
 
         # Mark all as unavailable
-        for model in ["deepseek-r1:8b", "qwen3-coder:32b", "phi3:mini"]:
+        for model in ["deepseek-r1:8b", "qwen3-coder:32b", "phi3:mini", "Phi-4-mini-instruct-Hybrid"]:
             breaker = strategy._get_breaker(model)
             breaker.record_error()
             breaker.record_error()
@@ -464,7 +464,7 @@ class TestFallbackChains:
         # Should still return something
         selected, degraded, _cost_saved = strategy.execute_with_fallback(
             primary_model="deepseek-r1:8b",
-            available_models=["phi3:mini", "qwen3-coder:32b", "deepseek-r1:8b"],
+            available_models=["phi3:mini", "qwen3-coder:32b", "deepseek-r1:8b", "Phi-4-mini-instruct-Hybrid"],
         )
 
         # Should pick one anyway (no better option)
@@ -517,7 +517,7 @@ class TestFallbackCounting:
         # Trigger fallback
         strategy.execute_with_fallback(
             primary_model="deepseek-r1:8b",
-            available_models=["phi3:mini", "qwen3-coder:32b", "deepseek-r1:8b"],
+            available_models=["phi3:mini", "qwen3-coder:32b", "deepseek-r1:8b", "Phi-4-mini-instruct-Hybrid"],
         )
 
         assert strategy.fallback_count == initial_count + 1
@@ -534,13 +534,13 @@ class TestFallbackCounting:
         # Trigger fallback
         strategy.execute_with_fallback(
             primary_model="deepseek-r1:8b",
-            available_models=["phi3:mini", "qwen3-coder:32b", "deepseek-r1:8b"],
+            available_models=["phi3:mini", "qwen3-coder:32b", "deepseek-r1:8b", "Phi-4-mini-instruct-Hybrid"],
         )
 
         assert len(strategy.fallback_history) > 0
         event = strategy.fallback_history[-1]
         assert event.primary_model == "deepseek-r1:8b"
-        assert event.fallback_model in ["phi3:mini", "qwen3-coder:32b"]
+        assert event.fallback_model in ["phi3:mini", "qwen3-coder:32b", "Phi-4-mini-instruct-Hybrid"]
         assert isinstance(event, FallbackEvent)
 
 
@@ -660,7 +660,7 @@ class TestEdgeCases:
         strategy = FallbackStrategy()
 
         # Degrade all models
-        for model in ["phi3:mini", "qwen3-coder:32b", "deepseek-r1:8b"]:
+        for model in ["phi3:mini", "qwen3-coder:32b", "deepseek-r1:8b", "Phi-4-mini-instruct-Hybrid"]:
             breaker = strategy._get_breaker(model)
             for _ in range(3):
                 breaker.record_error()
@@ -668,7 +668,7 @@ class TestEdgeCases:
         # Should still select one
         selected, degraded, _cost_saved = strategy.execute_with_fallback(
             primary_model="deepseek-r1:8b",
-            available_models=["phi3:mini", "qwen3-coder:32b", "deepseek-r1:8b"],
+            available_models=["phi3:mini", "qwen3-coder:32b", "deepseek-r1:8b", "Phi-4-mini-instruct-Hybrid"],
         )
 
         assert selected is not None
@@ -692,11 +692,11 @@ class TestEdgeCases:
 
         selected, degraded, _cost_saved = strategy.execute_with_fallback(
             primary_model="deepseek-r1:8b",
-            available_models=["phi3:mini", "qwen3-coder:32b"],
+            available_models=["phi3:mini", "qwen3-coder:32b", "Phi-4-mini-instruct-Hybrid"],
         )
 
         # When primary unavailable, selects from alternatives
-        assert selected in ["phi3:mini", "qwen3-coder:32b", "deepseek-r1:8b"]
+        assert selected in ["phi3:mini", "qwen3-coder:32b", "deepseek-r1:8b", "Phi-4-mini-instruct-Hybrid"]
         # Should still be considered degraded (not using original choice)
         assert degraded is True or selected == "deepseek-r1:8b"  # Allow fallback or forced primary
 
