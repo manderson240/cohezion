@@ -17,7 +17,7 @@ from cohezion.core.persistence.repositories.surreal_proactive_repository import 
 from cohezion.mcp.servers.bmad.proactive_monitor import ProactiveMonitor, ProactiveSuggestion
 
 
-pytestmark = pytest.mark.asyncio
+pytestmark = [pytest.mark.asyncio, pytest.mark.fast]
 
 
 class TestSuggestionAcceptance:
@@ -423,9 +423,7 @@ class TestProactiveFeedbackRoutes:
         data = json.loads(response.text)
         assert "error" in data
 
-    @pytest.mark.skip(
-        reason="Route error handling returns 500 instead of 503 - integration test needed"
-    )
+    @pytest.mark.skip(reason="Route error handling returns 500 instead of 503 - integration test needed")
     async def test_pattern_effectiveness_route_no_database(self):
         """Test pattern effectiveness route without database."""
         import json
