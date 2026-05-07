@@ -13,6 +13,7 @@ import statistics
 from collections import defaultdict
 from pathlib import Path
 from typing import Any
+import contextlib
 
 
 JSONL_PATH = Path(__file__).parent.parent.parent.parent / "autoresearch.jsonl"
@@ -30,10 +31,8 @@ def load_experiment_records(
     lines = path.read_text().splitlines()[-n:]
     records = []
     for line in lines:
-        try:
+        with contextlib.suppress(json.JSONDecodeError, ValueError):
             records.append(json.loads(line))
-        except (json.JSONDecodeError, ValueError):
-            pass
     return records
 
 

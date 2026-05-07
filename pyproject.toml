@@ -154,6 +154,8 @@ ignore = [
     "B905",    # zip() without strict= — ML code pairs equal-length sequences by design; strict=True would change behavior
     "S311",    # Standard pseudo-random generators — acceptable for non-security use (simulation, routing, tests)
     "S603",    # subprocess without shell=False — internal scripts use known executables, not user input
+    "S607",    # Partial executable path — all subprocess calls use known binaries (git, python, uv, etc.)
+    "S108",    # Probable use of insecure /tmp — acceptable in development tooling, scripts, test fixtures
 ]
 
 # Per-file customization

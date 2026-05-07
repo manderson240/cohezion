@@ -13,6 +13,7 @@ from dataclasses import dataclass
 from datetime import datetime
 from enum import Enum, auto
 from typing import Any
+import contextlib
 
 
 logger = logging.getLogger(__name__)
@@ -193,10 +194,8 @@ class TaskManager:
             task.cancel()
 
             if wait and not task.done():
-                try:
+                with contextlib.suppress(asyncio.CancelledError):
                     await task
-                except asyncio.CancelledError:
-                    pass
 
             return True
 

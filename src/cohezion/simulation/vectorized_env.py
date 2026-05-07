@@ -45,6 +45,7 @@ from cohezion.simulation.rl_framework import (
     STATE_DIM,
     HihoEnvironment,
 )
+import contextlib
 
 
 logger = logging.getLogger(__name__)
@@ -310,10 +311,8 @@ class AsyncVectorizedHihoEnv:
             return
 
         for pipe in self._parent_pipes:
-            try:
+            with contextlib.suppress(BrokenPipeError):
                 pipe.send(("close", None))
-            except BrokenPipeError:
-                pass
 
         for p in self._processes:
             p.join(timeout=5)

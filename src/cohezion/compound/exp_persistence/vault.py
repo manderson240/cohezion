@@ -5,6 +5,7 @@ from datetime import datetime
 from typing import Any
 
 from cohezion.core.mcp_client import get_mcp_client
+import contextlib
 
 
 logger = logging.getLogger(__name__)
@@ -215,10 +216,8 @@ class VaultLogger:
                 sorted_traces = sorted(traces)
                 to_remove = sorted_traces[: len(sorted_traces) - max_traces]
                 for trace_path in to_remove:
-                    try:
+                    with contextlib.suppress(Exception):
                         self.mcp.vault_delete_sync(trace_path)
-                    except Exception:
-                        pass
         except Exception:
             pass  # Non-blocking: pruning failure is not critical
 

@@ -11,6 +11,7 @@ import logging
 from dataclasses import dataclass, field
 from datetime import date
 from pathlib import Path
+import contextlib
 
 
 logger = logging.getLogger(__name__)
@@ -317,10 +318,8 @@ class CapabilityMatrix:
         data_count = 0
         if training_data_path.exists():
             for f in training_data_path.glob("*.jsonl"):
-                try:
+                with contextlib.suppress(Exception):
                     data_count += sum(1 for _ in f.open())
-                except Exception:
-                    pass
 
         for gap in gaps:
             if gap.suggested_action != "finetune":

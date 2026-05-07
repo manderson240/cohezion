@@ -18,6 +18,7 @@ from cohezion.core.persistence.repositories.base import (
     BatchOperationResult,
     RepositoryMetrics,
 )
+import contextlib
 
 
 class MockEntity:
@@ -416,14 +417,12 @@ class TestBaseRepository:
         async def failing_operation():
             raise RuntimeError("Test failure")
 
-        try:
+        with contextlib.suppress(RuntimeError):
             await repo._execute_with_metrics(
                 operation="failing_op",
                 execute_fn=failing_operation,
                 items_count=1,
             )
-        except RuntimeError:
-            pass
 
         assert len(repo._metrics) == 1
         assert repo._metrics[0].success is False

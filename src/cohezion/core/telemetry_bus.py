@@ -12,6 +12,7 @@ from collections.abc import Callable
 from typing import Any
 
 from cohezion.data_mesh.journey_telemetry import FlumeJourneyEvent
+import contextlib
 
 
 logger = logging.getLogger(__name__)
@@ -43,10 +44,8 @@ class TelemetryBus:
         if self._worker_task:
             # We don't wait for drain here for speed, but could implement it.
             self._worker_task.cancel()
-            try:
+            with contextlib.suppress(asyncio.CancelledError):
                 await self._worker_task
-            except asyncio.CancelledError:
-                pass
         logger.info("📡 Telemetry Bus stopped")
 
     async def emit(self, event: FlumeJourneyEvent):

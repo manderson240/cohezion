@@ -12,6 +12,7 @@ from dataclasses import dataclass
 from datetime import datetime
 
 from cohezion.datamesh.schema import UnifiedRecord
+import contextlib
 
 
 logger = logging.getLogger(__name__)
@@ -158,10 +159,8 @@ class DatameshIngestion:
         """Flush remaining records and close."""
         if self._flush_task:
             self._flush_task.cancel()
-            try:
+            with contextlib.suppress(asyncio.CancelledError):
                 await self._flush_task
-            except asyncio.CancelledError:
-                pass
 
         # Final flush
         while self._queue:

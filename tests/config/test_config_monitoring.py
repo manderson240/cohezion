@@ -11,6 +11,7 @@ import pytest
 
 from cohezion.config import ConfigMonitor, ConfigurationOrchestrator
 from cohezion.core.vault_subscription import VaultEvent
+import contextlib
 
 
 class TestConfigMonitor:
@@ -195,10 +196,8 @@ class TestOrchestrationWithMonitoring:
 
                 # Cancel the task
                 orchestration_task.cancel()
-                try:
+                with contextlib.suppress(asyncio.CancelledError):
                     await orchestration_task
-                except asyncio.CancelledError:
-                    pass
 
                 # Verify stop was called within context
                 stop_mock.assert_called()

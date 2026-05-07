@@ -25,6 +25,7 @@ from typing import Any
 import psutil
 
 from cohezion.swarm.compute_backend_router import BackendType
+import contextlib
 
 
 logger = logging.getLogger(__name__)
@@ -376,10 +377,8 @@ class ModelCapabilityRegistry:
             logger.warning(f"{model_name}: TTFT measurement failed: {e}")
 
         # Memory measurement
-        try:
+        with contextlib.suppress(OSError):
             benchmark.memory_mb = await self._measure_memory()
-        except OSError:
-            pass
 
         # Capability tests
         (

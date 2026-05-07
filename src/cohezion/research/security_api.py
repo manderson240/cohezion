@@ -20,6 +20,7 @@ from fastapi import HTTPException, Request, Security
 from fastapi.security import APIKeyHeader, HTTPBearer
 
 from cohezion.security.credentials import get_credentials
+import contextlib
 
 
 logger = logging.getLogger(__name__)
@@ -272,10 +273,8 @@ class APIKeyManager:
         self.keys_file.parent.mkdir(parents=True, exist_ok=True)
 
         # Security: Enforce strict directory permissions
-        try:
+        with contextlib.suppress(OSError):
             self.keys_file.parent.chmod(0o700)
-        except OSError:
-            pass
 
         self._master_key = self._get_or_create_master_key()
         self._keys: dict[str, dict[str, Any]] = {}
@@ -305,10 +304,8 @@ class APIKeyManager:
         logger.warning("⚠️ No master key in Vault Warden. Creating local temporary key.")
         key = secrets.token_bytes(32)
         key_file.write_bytes(key)
-        try:
+        with contextlib.suppress(OSError):
             key_file.chmod(0o600)
-        except OSError:
-            pass
         return key
 
     def _crypt(self, data: bytes) -> bytes:
@@ -350,10 +347,8 @@ class APIKeyManager:
             # We use a temporary file to ensure atomic write
             temp_file = self.keys_file.with_suffix(".tmp")
             temp_file.write_bytes(encrypted_data)
-            try:
+            with contextlib.suppress(OSError):
                 temp_file.chmod(0o600)
-            except OSError:
-                pass
             temp_file.replace(self.keys_file)
 
         except Exception as e:

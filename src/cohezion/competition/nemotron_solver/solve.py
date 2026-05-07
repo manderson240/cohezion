@@ -17,6 +17,7 @@ import re
 from pathlib import Path
 
 import requests
+import contextlib
 
 
 LEMONADE_API = "http://127.0.0.1:8002/v1"
@@ -298,10 +299,8 @@ def solve_bit_manip(examples: list[tuple[str, str]], test_in: str) -> str:
     pairs = []
     for inp, out in examples:
         if len(inp) == 8 and set(inp).issubset({"0", "1"}):
-            try:
+            with contextlib.suppress(Exception):
                 pairs.append((int(inp, 2), int(out, 2)))
-            except Exception:
-                pass
     if not pairs:
         return test_in
 

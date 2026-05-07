@@ -35,6 +35,7 @@ from cohezion.swarm.compute_backend_router import (
     BackendType,
     ComputeBackendRouter,
 )
+import contextlib
 
 
 logger = logging.getLogger(__name__)
@@ -204,10 +205,8 @@ class ProactiveReactiveEngine:
         for task in tasks:
             if task and not task.done():
                 task.cancel()
-                try:
+                with contextlib.suppress(asyncio.CancelledError):
                     await task
-                except asyncio.CancelledError:
-                    pass
 
         logger.info("ProactiveReactiveEngine stopped")
 

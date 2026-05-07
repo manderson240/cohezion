@@ -27,6 +27,7 @@ from cohezion.compound.exp_persistence.vault import (
 from cohezion.compound.inflection_detector import AnomalyDetection, Severity
 from cohezion.core.mcp_client import MCPClient
 from cohezion.security.guardrail_pipeline import GuardrailAction, GuardrailPipeline
+import contextlib
 
 
 if TYPE_CHECKING:
@@ -1405,10 +1406,8 @@ class CompoundExecutor(CompoundContextMixin, ExecutorIntegrationMixin):
         """
         # Gather outcome from context state if available
         outcome: dict[str, Any] = {}
-        try:
+        with contextlib.suppress(Exception):
             outcome = self.get_context_state()
-        except Exception:
-            pass
         archived_path = self.archive_session(outcome=outcome)
         summary: dict[str, Any] = {
             "session_archived": bool(archived_path),
