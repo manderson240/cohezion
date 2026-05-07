@@ -24,8 +24,8 @@ from cohezion.core.persistence.repositories.base import (
 class MockEntity:
     """Mock entity for testing."""
 
-    def __init__(self, entity_id: str, name: str):
-        self.id = entity_id
+    def __init__(self, id: str, name: str):
+        self.id = id
         self.name = name
 
     def __eq__(self, other):
