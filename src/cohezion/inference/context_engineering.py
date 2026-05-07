@@ -179,7 +179,7 @@ class ModelCardRegistry:
                 return card
 
         # Family match
-        for key, card in self._cards.items():
+        for _key, card in self._cards.items():
             if card.family.lower() in model_id.lower():
                 return card
 

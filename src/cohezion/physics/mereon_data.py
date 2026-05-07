@@ -71,7 +71,7 @@ def get_m120p_vertices() -> np.ndarray:
 
     # We can generate these by their symmetries
     # 1. (0, +-PHI, +-PHI^3) and permutations
-    for p in [(0, 1, 2), (1, 2, 0), (2, 0, 1)]:
+    for _p in [(0, 1, 2), (1, 2, 0), (2, 0, 1)]:
         # Note: The paper's A-vertices are scaled slightly differently in the table
         # Let's use the explicit sets:
         pass
@@ -127,10 +127,10 @@ def get_m120p_vertices() -> np.ndarray:
     # Vertex 34: (-PHI^3, -PHI, -PHI^2)
     import itertools
 
-    for p in itertools.permutations([PHI_CUB, PHI, PHI_SQ]):
-        for sx in [-1, 1]:
-            for sy in [-1, 1]:
-                for sz in [-1, 1]:
+    for _p in itertools.permutations([PHI_CUB, PHI, PHI_SQ]):
+        for _sx in [-1, 1]:
+            for _sy in [-1, 1]:
+                for _sz in [-1, 1]:
                     # Only specifically the B-vertices that match 2I equator
                     # We should be careful here.
                     # The easiest way is to generate 2I and project.
