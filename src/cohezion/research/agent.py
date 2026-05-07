@@ -10,7 +10,6 @@ import json
 import logging
 import re
 import subprocess
-import sys
 import time
 from dataclasses import dataclass, field
 from datetime import datetime
@@ -21,6 +20,7 @@ from cohezion.compound.core.executor import CompoundExecutor, ExecutionConfig
 from cohezion.compound.models import ExecutionResult
 from cohezion.reliability import get_circuit  # Issue #8
 from cohezion.research.config import ResearchConfig
+from cohezion.research.training import _python_exec
 
 
 logger = logging.getLogger(__name__)
@@ -184,7 +184,7 @@ class ResearchAgent:
             if not validation.is_valid:
                 raise RuntimeError(f"Guardrail blocked execution: {validation.issues}")
 
-        result = subprocess.run(  # noqa: S603 - train_script validated by ResearchSecurityGuardrails above
+        result = subprocess.run(
             [
                 _python_exec(),
                 str(train_script),

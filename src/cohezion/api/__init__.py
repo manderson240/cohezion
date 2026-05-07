@@ -12,17 +12,27 @@ remain attributes of this package because tests and conftest fixtures
 reference them by full path (``patch("cohezion.api._get_vae", ...)`` etc.).
 """
 
+import contextlib
 import logging
 import os
+import re
 from pathlib import Path
+from typing import Any
 
-from fastapi import FastAPI, Request
+from fastapi import Depends, FastAPI, Header, HTTPException, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse, RedirectResponse
 from fastapi.staticfiles import StaticFiles
+from pydantic import BaseModel, field_validator
 
+from cohezion.api.routes.agentjet import TrainRequest
 from cohezion.api.routes.eigent import router as eigent_router
+from cohezion.api.routes.knowledge import SearchRequest
+from cohezion.api.routes.swarm import DebateRequest, DebateResponse
 from cohezion.api.telemetry import router as telemetry_router
+from cohezion.mcp.knowledge_server import get_server as get_knowledge_server
+from cohezion.mcp.registry import get_registry
+from cohezion.mcp.swarm_server import get_server as get_swarm_server
 from cohezion.security.rate_limiter import get_rate_limiter
 
 
@@ -1740,15 +1750,15 @@ except ImportError:
 
 
 __all__ = [
+    "_a2a_server",
+    "_compute_coherence",
+    "_get_rl_policy",
+    "_get_vae",
+    "_rl_policy",
+    "_vae_trainer",
     "app",
     "set_token_client",
-    "_get_vae",
-    "_get_rl_policy",
-    "_compute_coherence",
-    "_a2a_server",
     "verify_a2a_token",
-    "_vae_trainer",
-    "_rl_policy",
 ]
 
 
