@@ -67,31 +67,31 @@ class TestAgentFileSchema:
         assert schema.model == "sonnet"
 
     def test_missing_name(self):
-        with pytest.raises(Exception):  # ValidationError
+        with pytest.raises((ValueError, TypeError)):  # pydantic ValidationError
             AgentFileSchema(description="A valid description here")
 
     def test_missing_description(self):
-        with pytest.raises(Exception):  # ValidationError
+        with pytest.raises((ValueError, TypeError)):  # pydantic ValidationError
             AgentFileSchema(name="my-agent")
 
     def test_invalid_name_uppercase(self):
-        with pytest.raises(Exception):
+        with pytest.raises((ValueError, TypeError)):  # pydantic ValidationError
             AgentFileSchema(name="MyAgent", description="Has uppercase letters")
 
     def test_invalid_name_spaces(self):
-        with pytest.raises(Exception):
+        with pytest.raises((ValueError, TypeError)):  # pydantic ValidationError
             AgentFileSchema(name="my agent", description="Has spaces in name")
 
     def test_invalid_name_starts_with_number(self):
-        with pytest.raises(Exception):
+        with pytest.raises((ValueError, TypeError)):  # pydantic ValidationError
             AgentFileSchema(name="1agent", description="Starts with number")
 
     def test_description_too_short(self):
-        with pytest.raises(Exception):
+        with pytest.raises((ValueError, TypeError)):  # pydantic ValidationError
             AgentFileSchema(name="my-agent", description="Short")
 
     def test_extra_fields_rejected(self):
-        with pytest.raises(Exception):
+        with pytest.raises((ValueError, TypeError)):  # pydantic ValidationError
             AgentFileSchema(
                 name="my-agent",
                 description="A valid description here",
