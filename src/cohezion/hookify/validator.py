@@ -483,13 +483,7 @@ class HookifyValidator:
                 )
                 if result and len(result) > 0:
                     return result[0].get("lever_overrides", {})
-            except (
-                ConnectionError,
-                OSError,
-                ValueError,
-                TypeError,
-                SurrealDBMethodError,
-            ) as e:
+            except Exception as e:  # noqa: BLE001 — SurrealDB raises bare Exception on auth/network errors
                 logger.debug("load_db_overrides failed: %s", e)
 
         return {}
