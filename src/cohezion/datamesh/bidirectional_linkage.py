@@ -508,8 +508,8 @@ class BidirectionalLinkageManager:
 
         # Use SurrealQL full-text search
         sql = f"""
-            SELECT * FROM wiki_page WHERE 
-            content @@ '{query}' OR 
+            SELECT * FROM wiki_page WHERE
+            content @@ '{query}' OR
             title @@ '{query}'
         """
 

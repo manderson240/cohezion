@@ -9,6 +9,7 @@ Tests:
 
 from __future__ import annotations
 
+import contextlib
 import time
 
 import pytest
@@ -18,7 +19,6 @@ from cohezion.core.persistence.repositories.base import (
     BatchOperationResult,
     RepositoryMetrics,
 )
-import contextlib
 
 
 class MockEntity:

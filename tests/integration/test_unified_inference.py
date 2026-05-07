@@ -20,6 +20,7 @@ from cohezion.observability.unified_metrics import (
 )
 from cohezion.security.guardrail_factory import create_default_pipeline
 
+
 _HEALTHY_RESOURCES = {
     "should_rent.return_value": True,
     "get_stats.return_value": {"cpu_percent": 10.0, "memory_percent": 20.0},

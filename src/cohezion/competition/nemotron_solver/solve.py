@@ -11,13 +11,13 @@ Approaches each problem type with a tailored symbolic solver:
 
 from __future__ import annotations
 
+import contextlib
 import csv
 import random
 import re
 from pathlib import Path
 
 import requests
-import contextlib
 
 
 LEMONADE_API = "http://127.0.0.1:8002/v1"

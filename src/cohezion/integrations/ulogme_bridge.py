@@ -386,7 +386,7 @@ Coherence: {session.coherence:.2f}"""
 
         # Build SurrealQL query
         query = """
-        SELECT 
+        SELECT
             metadata.category as category,
             math::sum(metadata.keystrokes) as total_keystrokes,
             count() as session_count,

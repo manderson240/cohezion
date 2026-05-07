@@ -16,6 +16,7 @@ Key Patterns:
 from __future__ import annotations
 
 import asyncio
+import contextlib
 import logging
 import statistics
 from collections import deque
@@ -35,7 +36,6 @@ from cohezion.swarm.compute_backend_router import (
     BackendType,
     ComputeBackendRouter,
 )
-import contextlib
 
 
 logger = logging.getLogger(__name__)

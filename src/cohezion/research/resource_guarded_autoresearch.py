@@ -12,6 +12,7 @@ Extends autoresearch to sub-agents while protecting system resources:
 from __future__ import annotations
 
 import asyncio
+import contextlib
 import logging
 import resource
 import time
@@ -20,7 +21,6 @@ from dataclasses import dataclass, field
 from typing import Any
 
 import psutil
-import contextlib
 
 
 logger = logging.getLogger(__name__)

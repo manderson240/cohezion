@@ -3,7 +3,7 @@
 This file exercises the most critical entry points in the competition package:
 - experience_solver.try_program_on_train
 - experience_solver.build_prediction
-- portfolio_manager.expected_value / alignment_gate  
+- portfolio_manager.expected_value / alignment_gate
 - kaggle_submission_arc.solve_task
 
 The competition submodule relies on local imports (arc_solver, experience_vault)

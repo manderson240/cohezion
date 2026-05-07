@@ -16,6 +16,7 @@ Phase 4: 8-Hour Autoresearch Journey
 from __future__ import annotations
 
 import asyncio
+import contextlib
 import logging
 import re
 import time
@@ -38,7 +39,6 @@ from cohezion.compound.thermal_checkpoint_manager import (
 )
 from cohezion.swarm.compound_client import get_compound_client
 from cohezion.swarm.r_zero_evolver import RZeroEvolver
-import contextlib
 
 
 logger = logging.getLogger(__name__)

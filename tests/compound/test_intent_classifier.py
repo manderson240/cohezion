@@ -1,5 +1,6 @@
 """Tests for zero-token intent classifier."""
 import pytest
+
 from cohezion.compound.intent_classifier import IntentClassifier
 
 

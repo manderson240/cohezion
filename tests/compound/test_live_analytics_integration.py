@@ -28,7 +28,8 @@ class TestLiveAnalyticsIntegration:
 
     def test_stats_have_required_fields(self):
         from cohezion.compound.experiment_analytics import (
-            load_experiment_records, compute_experiment_stats
+            compute_experiment_stats,
+            load_experiment_records,
         )
         records = load_experiment_records(n=500)
         stats = compute_experiment_stats(records)
@@ -40,7 +41,8 @@ class TestLiveAnalyticsIntegration:
 
     def test_hiho_balance_in_range(self):
         from cohezion.compound.experiment_analytics import (
-            load_experiment_records, compute_hiho_balance
+            compute_hiho_balance,
+            load_experiment_records,
         )
         records = load_experiment_records(n=1000)
         hiho = compute_hiho_balance(records)
@@ -48,8 +50,9 @@ class TestLiveAnalyticsIntegration:
 
     def test_retirement_candidates_are_known_experiments(self):
         from cohezion.compound.experiment_analytics import (
-            load_experiment_records, compute_experiment_stats,
-            find_retirement_candidates
+            compute_experiment_stats,
+            find_retirement_candidates,
+            load_experiment_records,
         )
         records = load_experiment_records(n=2000)
         stats = compute_experiment_stats(records)
@@ -70,9 +73,7 @@ class TestLiveAnalyticsIntegration:
 
     def test_visualizer_renders_live_data(self):
         from cohezion.compound.experiment_analytics import get_analytics_report
-        from cohezion.compound.loop_visualizer import (
-            render_experiment_table, render_hiho_bar
-        )
+        from cohezion.compound.loop_visualizer import render_experiment_table, render_hiho_bar
         report = get_analytics_report(n=500)
         bar = render_hiho_bar(report["hiho_balance"])
         assert "|" in bar

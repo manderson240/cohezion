@@ -14,9 +14,9 @@ Hybrid with local Gemma-4 fallback: ~63.95% (model adds only +0.8%).
 
 from __future__ import annotations
 
+import contextlib
 import csv
 import re
-import contextlib
 
 
 def parse_examples(prompt: str) -> list[tuple[str, str]]:

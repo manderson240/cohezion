@@ -28,8 +28,6 @@ from aiohttp import web
 from .scanner import SecurityChecklist, Vulnerability, build_severity_report
 
 
-
-
 # (Ω12 P2 Patch 20) Pin path-sanitizer base to repo root (or env override),
 # not Path.cwd() which depends on where the server was invoked from.
 def _resolve_repo_root():

@@ -8,12 +8,12 @@ Reads autoresearch.jsonl and computes:
 """
 from __future__ import annotations
 
+import contextlib
 import json
 import statistics
 from collections import defaultdict
 from pathlib import Path
 from typing import Any
-import contextlib
 
 
 JSONL_PATH = Path(__file__).parent.parent.parent.parent / "autoresearch.jsonl"

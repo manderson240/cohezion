@@ -403,10 +403,10 @@ from _bmad.core.observability.metrics_collector import MetricsCollector
 
 class RepositoryMetricsCollector:
     '''Collects and routes RepositoryMetrics to BMad observability.'''
-    
+
     def __init__(self, collector: MetricsCollector):
         self.collector = collector
-    
+
     def record(self, metrics: RepositoryMetrics):
         '''Route repository metrics to BMad observability.'''
         self.collector.record(

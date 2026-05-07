@@ -32,6 +32,7 @@ References:
 
 from __future__ import annotations
 
+import contextlib
 import logging
 import multiprocessing as mp
 from dataclasses import dataclass
@@ -45,7 +46,6 @@ from cohezion.simulation.rl_framework import (
     STATE_DIM,
     HihoEnvironment,
 )
-import contextlib
 
 
 logger = logging.getLogger(__name__)

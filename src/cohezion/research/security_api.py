@@ -5,6 +5,7 @@ Security, rate limiting, and production-ready features.
 
 from __future__ import annotations
 
+import contextlib
 import functools
 import hashlib
 import logging
@@ -20,7 +21,6 @@ from fastapi import HTTPException, Request, Security
 from fastapi.security import APIKeyHeader, HTTPBearer
 
 from cohezion.security.credentials import get_credentials
-import contextlib
 
 
 logger = logging.getLogger(__name__)

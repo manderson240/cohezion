@@ -6,6 +6,7 @@ Prevents fire-and-forget issues and unhandled exceptions in background tasks.
 from __future__ import annotations
 
 import asyncio
+import contextlib
 import logging
 import traceback
 from collections.abc import Awaitable, Callable, Coroutine
@@ -13,7 +14,6 @@ from dataclasses import dataclass
 from datetime import datetime
 from enum import Enum, auto
 from typing import Any
-import contextlib
 
 
 logger = logging.getLogger(__name__)

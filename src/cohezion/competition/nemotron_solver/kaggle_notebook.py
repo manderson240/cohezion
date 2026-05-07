@@ -1,6 +1,6 @@
+import contextlib
 import csv
 import os
-import contextlib
 
 
 INPUT_PATH = None

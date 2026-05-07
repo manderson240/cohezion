@@ -120,8 +120,9 @@ class TestExperimentVelocity:
         assert velocity == 0.0  # cutoff > any timestamp
 
     def test_velocity_positive_for_recent_keeps(self):
-        from cohezion.compound.experiment_analytics import compute_experiment_velocity
         import time
+
+        from cohezion.compound.experiment_analytics import compute_experiment_velocity
         now_ms = int(time.time() * 1000)
         records = [
             {"metric": 0.15, "status": "keep", "asi": {"experiment": "E63"}, "timestamp": now_ms - 1000}
@@ -131,8 +132,9 @@ class TestExperimentVelocity:
         assert velocity > 0.0
 
     def test_discard_records_not_counted(self):
-        from cohezion.compound.experiment_analytics import compute_experiment_velocity
         import time
+
+        from cohezion.compound.experiment_analytics import compute_experiment_velocity
         now_ms = int(time.time() * 1000)
         records = [
             {"metric": 0.15, "status": "discard", "asi": {"experiment": "E63"}, "timestamp": now_ms - 1000}

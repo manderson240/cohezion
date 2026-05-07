@@ -6,6 +6,7 @@ from unittest.mock import MagicMock, patch
 
 import pytest
 
+
 # Load overnight_evo_loop as a module
 spec = importlib.util.spec_from_file_location(
     "overnight_evo_loop",

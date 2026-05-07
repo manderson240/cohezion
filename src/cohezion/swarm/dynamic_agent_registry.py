@@ -7,6 +7,7 @@ and adaptive agent lifecycle management.
 from __future__ import annotations
 
 import asyncio
+import contextlib
 import hashlib
 import importlib.util
 import inspect
@@ -19,7 +20,6 @@ from pathlib import Path
 from typing import Any
 
 from cohezion.swarm.specialist_agents import SpecialistAgent
-import contextlib
 
 
 logger = logging.getLogger(__name__)

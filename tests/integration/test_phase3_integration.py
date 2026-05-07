@@ -20,6 +20,7 @@ from unittest.mock import MagicMock, patch
 
 import pytest
 
+
 _ST_IS_REAL = not (
     "sentence_transformers" in sys.modules
     and sys.modules["sentence_transformers"].SentenceTransformer is MagicMock

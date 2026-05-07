@@ -17,6 +17,7 @@ Usage:
     Upload to Kaggle as notebook, enable GPU accelerator (P100 or T4 x2)
 """
 
+import contextlib
 import csv
 import math
 import os
@@ -31,7 +32,6 @@ from transformers import (
     Trainer,
     TrainingArguments,
 )
-import contextlib
 
 
 # ── Constants ────────────────────────────────────────────────────────────

@@ -7,12 +7,12 @@ Integrates with Cohezion reliability circuits.
 from __future__ import annotations
 
 import asyncio
+import contextlib
 import logging
 from collections.abc import Callable
 from typing import Any
 
 from cohezion.data_mesh.journey_telemetry import FlumeJourneyEvent
-import contextlib
 
 
 logger = logging.getLogger(__name__)

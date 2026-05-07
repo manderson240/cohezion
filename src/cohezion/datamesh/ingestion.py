@@ -6,13 +6,13 @@ Charter: Idempotent writes, durability, circuit breaker pattern.
 from __future__ import annotations
 
 import asyncio
+import contextlib
 import logging
 from collections.abc import Callable
 from dataclasses import dataclass
 from datetime import datetime
 
 from cohezion.datamesh.schema import UnifiedRecord
-import contextlib
 
 
 logger = logging.getLogger(__name__)

@@ -2,8 +2,14 @@
 
 from cohezion.compound.health_monitor import (
     get_health_report,
+)
+from cohezion.compound.health_monitor import (
     test_autoresearch_available as check_autoresearch,
+)
+from cohezion.compound.health_monitor import (
     test_error_classifier_available as check_error_classifier,
+)
+from cohezion.compound.health_monitor import (
     test_session_metrics_available as check_session_metrics,
 )
 
