@@ -1,8 +1,8 @@
-import traceback
-from typing import Any
+import traceback  # noqa: E402
+from typing import Any  # noqa: E402
 
-import numpy as np
-import sympy
+import numpy as np  # noqa: E402
+import sympy  # noqa: E402
 
 
 class SymbolicExecutor:
@@ -139,7 +139,7 @@ result = {{"factors": factors, "count": count}}
         return {"success": False, "error": f"Unknown command: {command_str}"}
 
 
-import re
+import re  # noqa: E402
 
 
 if __name__ == "__main__":

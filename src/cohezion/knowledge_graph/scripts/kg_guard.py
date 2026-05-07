@@ -6,15 +6,15 @@ Automates learning extraction from agent journeys and uses semantic
 vector similarity to densify the knowledge graph.
 """
 
-import asyncio
-import glob
-import json
-import logging
-import sys
-from datetime import datetime
-from pathlib import Path
+import asyncio  # noqa: E402
+import glob  # noqa: E402
+import json  # noqa: E402
+import logging  # noqa: E402
+import sys  # noqa: E402
+from datetime import datetime  # noqa: E402
+from pathlib import Path  # noqa: E402
 
-import aiofiles
+import aiofiles  # noqa: E402
 
 
 # Resolve project root
@@ -22,9 +22,9 @@ SCRIPT_PATH = Path(__file__).resolve()
 PROJECT_ROOT = SCRIPT_PATH.parent.parent.parent.parent.parent
 sys.path.insert(0, str(PROJECT_ROOT / "src"))
 
-import contextlib
+import contextlib  # noqa: E402
 
-from cohezion.flume.embedding_provider import AsyncOllamaEmbeddingProvider
+from cohezion.flume.embedding_provider import AsyncOllamaEmbeddingProvider  # noqa: E402
 
 
 # Paths

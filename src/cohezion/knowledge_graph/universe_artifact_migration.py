@@ -15,21 +15,21 @@ This service preserves the 97MB of universe simulation artifacts
 discovered during Sessions 53-55 Phase 0 measurement.
 """
 
-import asyncio
-import hashlib
-import json
-import logging
-import shutil
-import subprocess
-import tarfile
-import time
-from dataclasses import dataclass
+import asyncio  # noqa: E402
+import hashlib  # noqa: E402
+import json  # noqa: E402
+import logging  # noqa: E402
+import shutil  # noqa: E402
+import subprocess  # noqa: E402
+import tarfile  # noqa: E402
+import time  # noqa: E402
+from dataclasses import dataclass  # noqa: E402
 
 
 # Resolve git executable at module load to avoid S607 partial-path warnings.
 _GIT = shutil.which("git") or "/usr/bin/git"
-from pathlib import Path
-from typing import Any
+from pathlib import Path  # noqa: E402
+from typing import Any  # noqa: E402
 
 
 logger = logging.getLogger(__name__)

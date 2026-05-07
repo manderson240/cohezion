@@ -1,14 +1,14 @@
 """Ollama model provider implementation (local inference, AMD ROCm optimized)."""
 
-from __future__ import annotations
+from __future__ import annotations  # noqa: E402
 
-import logging
-import time
-from typing import Any
+import logging  # noqa: E402
+import time  # noqa: E402
+from typing import Any  # noqa: E402
 
-import aiohttp
+import aiohttp  # noqa: E402
 
-from cohezion.swarm.providers.model_provider import GenerationResult, ModelProvider
+from cohezion.swarm.providers.model_provider import GenerationResult, ModelProvider  # noqa: E402
 
 
 logger = logging.getLogger(__name__)
@@ -205,7 +205,7 @@ class OllamaProvider(ModelProvider):
 
 
 # Auto-register Ollama provider
-from cohezion.swarm.providers.model_provider import register_model_provider
+from cohezion.swarm.providers.model_provider import register_model_provider  # noqa: E402
 
 
 register_model_provider("ollama", OllamaProvider)
