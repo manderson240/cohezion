@@ -17,7 +17,7 @@ from cohezion.core.persistence.repositories.surreal_proactive_repository import 
 from cohezion.mcp.servers.bmad.proactive_monitor import ProactiveMonitor, ProactiveSuggestion
 
 
-pytestmark = [pytest.mark.asyncio, pytest.mark.fast]
+pytestmark = [pytest.mark.fast]  # asyncio applied per-test on async methods only
 
 
 class TestSuggestionAcceptance:
@@ -128,6 +128,7 @@ class TestSurrealProactiveRepository:
     @patch(
         "cohezion.core.persistence.repositories.surreal_proactive_repository.SurrealProactiveRepository._ensure_table"
     )
+    @pytest.mark.asyncio
     async def test_record_acceptance(self, mock_ensure):
         """Test recording acceptance."""
         mock_client = AsyncMock()
@@ -152,6 +153,7 @@ class TestSurrealProactiveRepository:
     @patch(
         "cohezion.core.persistence.repositories.surreal_proactive_repository.SurrealProactiveRepository._ensure_table"
     )
+    @pytest.mark.asyncio
     async def test_get_pattern_effectiveness(self, mock_ensure):
         """Test getting pattern effectiveness."""
         mock_client = AsyncMock()
@@ -177,6 +179,7 @@ class TestSurrealProactiveRepository:
         assert effectiveness.acceptance_rate == 0.8
 
     @pytest.mark.fast
+    @pytest.mark.asyncio
     async def test_get_pattern_effectiveness_no_data(self):
         """Test getting pattern effectiveness with no data."""
         mock_client = AsyncMock()
@@ -193,6 +196,7 @@ class TestProactiveMonitorLearningSystem:
     """Tests for ProactiveMonitor learning system integration."""
 
     @pytest.mark.fast
+    @pytest.mark.asyncio
     async def test_monitor_initialization_with_db(self):
         """Test ProactiveMonitor initialization with database."""
         mock_client = MagicMock()
@@ -202,6 +206,7 @@ class TestProactiveMonitorLearningSystem:
         assert isinstance(monitor._repository, SurrealProactiveRepository)
 
     @pytest.mark.fast
+    @pytest.mark.asyncio
     async def test_monitor_initialization_without_db(self):
         """Test ProactiveMonitor initialization without database."""
         monitor = ProactiveMonitor(project_root=MagicMock())
@@ -212,6 +217,7 @@ class TestProactiveMonitorLearningSystem:
     @patch(
         "cohezion.core.persistence.repositories.surreal_proactive_repository.SurrealProactiveRepository.record_acceptance"
     )
+    @pytest.mark.asyncio
     async def test_record_feedback(self, mock_record):
         """Test recording feedback."""
         mock_client = MagicMock()
@@ -246,6 +252,7 @@ class TestProactiveMonitorLearningSystem:
         mock_record.assert_called_once()
 
     @pytest.mark.fast
+    @pytest.mark.asyncio
     async def test_record_feedback_without_repository(self):
         """Test recording feedback without repository raises error."""
         monitor = ProactiveMonitor(project_root=MagicMock())
@@ -267,6 +274,7 @@ class TestProactiveMonitorLearningSystem:
     @patch(
         "cohezion.core.persistence.repositories.surreal_proactive_repository.SurrealProactiveRepository.get_pattern_effectiveness"
     )
+    @pytest.mark.asyncio
     async def test_adjust_confidence_high_acceptance(self, mock_get_effectiveness):
         """Test confidence adjustment with high acceptance rate."""
         mock_client = MagicMock()
@@ -290,6 +298,7 @@ class TestProactiveMonitorLearningSystem:
     @patch(
         "cohezion.core.persistence.repositories.surreal_proactive_repository.SurrealProactiveRepository.get_pattern_effectiveness"
     )
+    @pytest.mark.asyncio
     async def test_adjust_confidence_low_acceptance(self, mock_get_effectiveness):
         """Test confidence adjustment with low acceptance rate."""
         mock_client = MagicMock()
@@ -310,6 +319,7 @@ class TestProactiveMonitorLearningSystem:
         assert abs(new_confidence - expected) < 0.001
 
     @pytest.mark.fast
+    @pytest.mark.asyncio
     async def test_adjust_confidence_insufficient_data(self):
         """Test confidence adjustment with insufficient data."""
         mock_client = MagicMock()
@@ -337,6 +347,7 @@ class TestProactiveMonitorLearningSystem:
     @patch(
         "cohezion.core.persistence.repositories.surreal_proactive_repository.SurrealProactiveRepository.get_all_pattern_effectiveness"
     )
+    @pytest.mark.asyncio
     async def test_get_effectiveness_report(self, mock_get_all):
         """Test getting effectiveness report."""
         mock_client = MagicMock()
@@ -367,6 +378,7 @@ class TestProactiveMonitorLearningSystem:
         assert report[0].pattern_id in ["pattern-a", "pattern-b"]
 
     @pytest.mark.fast
+    @pytest.mark.asyncio
     async def test_get_effectiveness_report_without_repository(self):
         """Test getting effectiveness report without repository raises error."""
         monitor = ProactiveMonitor(project_root=MagicMock())
@@ -378,6 +390,7 @@ class TestProactiveMonitorLearningSystem:
     @patch(
         "cohezion.core.persistence.repositories.surreal_proactive_repository.SurrealProactiveRepository.delete_old_records"
     )
+    @pytest.mark.asyncio
     async def test_cleanup_old_records(self, mock_delete):
         """Test cleaning up old records."""
         mock_client = MagicMock()
@@ -390,6 +403,7 @@ class TestProactiveMonitorLearningSystem:
         mock_delete.assert_called_once_with(90)
 
     @pytest.mark.fast
+    @pytest.mark.asyncio
     async def test_summary_includes_learning_system_status(self):
         """Test summary includes learning system status."""
         # Without DB
@@ -408,6 +422,7 @@ class TestProactiveFeedbackRoutes:
     """Tests for proactive feedback HTTP routes."""
 
     @pytest.mark.fast
+    @pytest.mark.asyncio
     async def test_record_feedback_route_missing_suggestion_id(self):
         """Test record feedback route with missing suggestion_id."""
         import json
@@ -424,6 +439,7 @@ class TestProactiveFeedbackRoutes:
         assert "error" in data
 
     @pytest.mark.skip(reason="Route error handling returns 500 instead of 503 - integration test needed")
+    @pytest.mark.asyncio
     async def test_pattern_effectiveness_route_no_database(self):
         """Test pattern effectiveness route without database."""
         import json
