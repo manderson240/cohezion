@@ -18,7 +18,14 @@ from datetime import datetime
 from functools import cached_property
 from typing import TYPE_CHECKING, Any
 
-from cohezion.compound.context_integration import CompoundContextMixin
+from cohezion.compound.context_integration import (
+    CompoundContextMixin,
+    ContextCoherenceError,
+    ContextLoadError,
+)
+from cohezion.compound.executor_helpers.guardrail_runner import (
+    run_async_guardrail as _run_async_guardrail,
+)
 from cohezion.compound.executor_integration import ExecutorIntegrationMixin
 from cohezion.compound.exp_persistence.vault import (
     ExecutionContext,
@@ -39,24 +46,6 @@ else:
 
 
 logger = logging.getLogger(__name__)
-
-
-def _run_async_guardrail(coro: Any) -> Any:
-    """Execute async guardrail check in sync context.
-
-    Non-blocking on failure - logs and returns None.
-
-    Args:
-        coro: Async coroutine to execute
-
-    Returns:
-        Result of coroutine or None on failure
-    """
-    try:
-        return asyncio.run(coro)
-    except Exception as e:
-        logger.debug(f"Guardrail check failed (non-blocking): {e}")
-        return None
 
 
 @dataclass
@@ -290,41 +279,20 @@ class CompoundExecutor(CompoundContextMixin, ExecutorIntegrationMixin):
     def _try_template_match(self, task_description: str) -> dict[str, Any] | None:
         """Check cache for a template match before LLM execution.
 
-        Uses CacheWarmer.find_template_match() if available. Returns cached
-        response dict if match found (>0.85 similarity), None otherwise.
-        Non-blocking: returns None on any error.
+        Thin delegator — implementation lives in
+        ``executor_helpers.template_matcher.try_template_match``.
         """
-        try:
-            from cohezion.cache.cache_warmer import CacheWarmer
-            from cohezion.cache.semantic_cache import SemanticCache
+        from cohezion.compound.executor_helpers.template_matcher import try_template_match
 
-            cache = SemanticCache.get_instance() if hasattr(SemanticCache, "get_instance") else None
-            if cache is None:
-                return None
-
-            warmer = CacheWarmer(cache)
-            # Sync wrapper — find_template_match is async but we need sync here
-            import asyncio
-
-            try:
-                asyncio.get_running_loop()
-                # Already in async context — can't block
-                return None
-            except RuntimeError:
-                # No running loop — safe to run
-                return asyncio.run(warmer.find_template_match(task_description))
-
-        except Exception:
-            logger.debug("Template matching failed (non-blocking)", exc_info=True)
-            return None
+        return try_template_match(task_description)
 
     def get_experience_guidance(
         self, task_description: str, project: str = "cohezion", operation_type: str = "generate"
     ) -> dict[str, Any]:
         """Fetch experience guidance from vault before execution.
 
-        Enhanced with trajectory search: finds similar past executions and
-        provides recommendations based on their outcomes.
+        Thin delegator — implementation lives in
+        ``executor_helpers.vault_integration.fetch_experience_guidance``.
 
         Args:
             task_description: Description of the task to execute
@@ -335,80 +303,13 @@ class CompoundExecutor(CompoundContextMixin, ExecutorIntegrationMixin):
             Dict with relevant_context (decisions, experiments, patterns)
             plus trajectory-based recommendations, warnings, and confidence
         """
-        logger.info("Fetching experience guidance for: %s", task_description)
-
-        # Step 1: Get base guidance from vault
-        base_guidance: dict[str, Any] = self.logger.get_experience_guidance(
-            task_description=task_description, project=project
+        from cohezion.compound.executor_helpers.vault_integration import (
+            fetch_experience_guidance,
         )
 
-        # Step 2: Enhance with trajectory search (if available)
-        try:
-            from cohezion.compound.guidance_enhancer import GuidanceEnhancer
-            from cohezion.compound.trajectory_search import TrajectorySearchEngine
-            from cohezion.flume.experience_collector import ExperienceCollector
-            from cohezion.flume.experience_encoder import ExperienceEncoder
-
-            # Initialize search components (lazy)
-            collector = ExperienceCollector()
-            encoder = ExperienceEncoder()
-            search = TrajectorySearchEngine(collector, encoder)
-            enhancer = GuidanceEnhancer()
-
-            # Find similar trajectories
-            trajectory_results = search.find_similar_trajectories(
-                task_description=task_description,
-                operation_type=operation_type,
-                top_k=5,
-                min_coherence=0.4,  # HIHO threshold
-            )
-
-            # Enhance guidance
-            enhanced = enhancer.enhance_guidance(base_guidance, trajectory_results)
-            result = enhancer.to_dict(enhanced)
-
-            logger.info(
-                "Guidance enhanced with %d similar trajectories (confidence=%.2f)",
-                enhanced.similar_task_count,
-                enhanced.confidence,
-            )
-
-        except Exception as e:
-            logger.debug(
-                "Trajectory search failed (non-blocking): %s. Using base guidance only.",
-                e,
-                exc_info=True,
-            )
-            result = base_guidance
-
-        # Step 3: Query SurrealDB for recent retrospection decisions (closes feedback loop)
-        try:
-            import json
-            import urllib.request
-            from base64 import b64encode
-
-            req = urllib.request.Request(
-                "http://localhost:8001/sql",
-                data=b"SELECT skill, should_refine, compound_score, recommendation FROM retrospection ORDER BY created DESC LIMIT 3;",
-                headers={
-                    "Accept": "application/json",
-                    "surreal-ns": "cohezion",
-                    "surreal-db": "cohezion",
-                    "Authorization": "Basic " + b64encode(b"root:root").decode(),
-                },
-                method="POST",
-            )
-            resp = urllib.request.urlopen(req, timeout=2)
-            data = json.loads(resp.read())
-            if data and data[0].get("status") == "OK" and data[0]["result"]:
-                result["recent_retrospections"] = data[0]["result"]
-                logger.debug(
-                    "Guidance enriched with %d recent retrospections", len(data[0]["result"])
-                )
-        except Exception:
-            pass  # Non-blocking: SurrealDB may be unavailable
-
-        return result
+        return fetch_experience_guidance(
+            self.logger, task_description, project=project, operation_type=operation_type
+        )
 
     def suggest_skills(
         self,
@@ -449,7 +350,7 @@ class CompoundExecutor(CompoundContextMixin, ExecutorIntegrationMixin):
             )
 
             return [(s.skill_name, s.composite_score) for s in suggestions]
-        except Exception as e:
+        except (ImportError, AttributeError, RuntimeError, ValueError, KeyError) as e:
             logger.warning(
                 "Error suggesting skills: %s. Returning empty list.",
                 e,
@@ -501,8 +402,15 @@ class CompoundExecutor(CompoundContextMixin, ExecutorIntegrationMixin):
                 self.load_execution_context()
                 self._context_loaded = True
                 logger.debug("Context loaded automatically for execution")
-            except Exception as e:
-                logger.warning(f"Failed to auto-load context: {e}")
+            except (
+                ContextCoherenceError,
+                ContextLoadError,
+                OSError,
+                RuntimeError,
+                AttributeError,
+                ValueError,
+            ) as e:
+                logger.warning("Failed to auto-load context: %s", e, exc_info=True)
 
         # Continue execution - context failure shouldn't block execution
 
@@ -521,7 +429,7 @@ class CompoundExecutor(CompoundContextMixin, ExecutorIntegrationMixin):
                     task_description,
                     execution_id=f"exec_{int(time.time())}_{skill_name}",
                 )
-            except Exception as e:
+            except (AttributeError, RuntimeError, ValueError, TypeError) as e:
                 logger.debug("Universe bridge start failed (non-blocking): %s", e)
 
         # Step 0.5: Classify task and apply context policy (adaptive breadth/depth)
@@ -584,7 +492,7 @@ class CompoundExecutor(CompoundContextMixin, ExecutorIntegrationMixin):
                     len(parsed_request.constraints),
                     len(parsed_request.criteria),
                 )
-            except Exception as e:
+            except (AttributeError, RuntimeError, ValueError, KeyError, TypeError) as e:
                 logger.debug(
                     "Request alignment parsing failed (non-blocking): %s", e, exc_info=True
                 )
@@ -652,6 +560,8 @@ class CompoundExecutor(CompoundContextMixin, ExecutorIntegrationMixin):
             success = True
             logger.info("Task completed successfully")
         except Exception as e:
+            # User-supplied execute_fn can raise anything; record failure metric and continue.
+            # SystemExit/KeyboardInterrupt/MemoryError still propagate (they don't inherit Exception).
             error_msg = str(e)
             output = f"Error: {error_msg}"
             metrics = {"error": error_msg, "error_type": type(e).__name__}
@@ -706,8 +616,8 @@ class CompoundExecutor(CompoundContextMixin, ExecutorIntegrationMixin):
                 metrics=metrics,
                 token_metrics=token_metrics,
             )
-        except Exception:
-            logger.debug("Execution trace logging failed (non-blocking)", exc_info=True)
+        except (OSError, RuntimeError, ValueError, AttributeError) as e:
+            logger.debug("Execution trace logging failed (non-blocking): %s", e, exc_info=True)
 
         # Step 5: Detect anomalies (non-blocking)
         decision_paths = []
@@ -744,9 +654,9 @@ class CompoundExecutor(CompoundContextMixin, ExecutorIntegrationMixin):
                     )
                     if decision_path:
                         decision_paths.append(decision_path)
-                except Exception as e:
+                except (OSError, RuntimeError, ValueError, AttributeError) as e:
                     logger.debug("Failed to log inflection point (non-blocking): %s", e)
-        except Exception as e:
+        except (ImportError, AttributeError, RuntimeError, ValueError, KeyError) as e:
             logger.debug("Anomaly detection failed (non-blocking): %s", e, exc_info=True)
 
         # Step 5.5: Analyze request-execution alignment (if enabled)
@@ -901,7 +811,7 @@ class CompoundExecutor(CompoundContextMixin, ExecutorIntegrationMixin):
                 )
                 if pattern_path:
                     decision_paths.append(pattern_path)
-            except Exception as e:
+            except (OSError, RuntimeError, ValueError, AttributeError, KeyError) as e:
                 logger.warning("Failed to extract pattern: %s", e, exc_info=True)
 
         # Step 7.3: Retrospection analysis (gates skill refinement)
@@ -930,7 +840,7 @@ class CompoundExecutor(CompoundContextMixin, ExecutorIntegrationMixin):
                     if retrospection_context
                     else 0.0,
                 )
-            except Exception as e:
+            except (AttributeError, RuntimeError, ValueError, KeyError, TypeError) as e:
                 logger.debug("Retrospection failed (non-blocking): %s", e, exc_info=True)
 
         # Step 7: Refine skills based on execution results (non-blocking)
@@ -967,7 +877,7 @@ class CompoundExecutor(CompoundContextMixin, ExecutorIntegrationMixin):
                 )
 
                 if refined_path:
-                    logger.info(f"Skill refined: {refined_path}")
+                    logger.info("Skill refined: %s", refined_path)
                     decision_paths.append(refined_path)
 
             except Exception as e:
@@ -987,8 +897,8 @@ class CompoundExecutor(CompoundContextMixin, ExecutorIntegrationMixin):
                     tokens_used=tokens,
                     quality_score=quality,
                 )
-            except Exception as e:
-                logger.warning(f"Skill health tracking failed (non-blocking): {e}")
+            except (AttributeError, RuntimeError, ValueError, TypeError) as e:
+                logger.warning("Skill health tracking failed (non-blocking): %s", e)
 
         # Step 7.5: Check for degradation and manage HIHO band (non-blocking)
         # Coherence within HIHO band [0.4, 0.6] -> exit degradation mode
@@ -1049,12 +959,12 @@ class CompoundExecutor(CompoundContextMixin, ExecutorIntegrationMixin):
                             )
                             if dp:
                                 decision_paths.append(dp)
-                        except Exception as e:
+                        except (OSError, RuntimeError, ValueError, AttributeError) as e:
                             logger.debug(
                                 "Failed to log degradation alert (non-blocking): %s",
                                 e,
                             )
-            except Exception as e:
+            except (AttributeError, RuntimeError, ValueError, KeyError, TypeError) as e:
                 logger.debug("Degradation detection failed (non-blocking): %s", e)
 
         # Step 7.6: Geometric Latent Mapping (Symmetry-Driven Reasoning)
@@ -1128,7 +1038,7 @@ class CompoundExecutor(CompoundContextMixin, ExecutorIntegrationMixin):
                     tokens_used=tokens_used_for_quality,
                     duration=duration_seconds,
                 )
-            except Exception as e:
+            except (AttributeError, RuntimeError, ValueError, TypeError) as e:
                 logger.debug("Model quality recording failed (non-blocking): %s", e)
 
         # Step 8: Record metrics (non-blocking)
@@ -1146,7 +1056,7 @@ class CompoundExecutor(CompoundContextMixin, ExecutorIntegrationMixin):
                     duration_ms=duration_seconds * 1000,
                     model_used=model_used,
                 )
-            except Exception as e:
+            except (AttributeError, RuntimeError, ValueError, TypeError) as e:
                 logger.debug("Metrics recording failed (non-blocking): %s", e)
 
         # Step 9: Track journey (non-blocking)
@@ -1178,7 +1088,6 @@ class CompoundExecutor(CompoundContextMixin, ExecutorIntegrationMixin):
                         }
                         if point.metadata:
                             point_data["metadata"] = point.metadata
-                        import asyncio
 
                         exec_id = f"exec_{int(time.time())}"
                         try:
@@ -1196,9 +1105,15 @@ class CompoundExecutor(CompoundContextMixin, ExecutorIntegrationMixin):
                                     point_data,
                                 )
                             )
-                    except Exception as e:
+                    except (
+                        AttributeError,
+                        RuntimeError,
+                        OSError,
+                        ConnectionError,
+                        asyncio.TimeoutError,
+                    ) as e:
                         logger.debug("Journey persistence failed (non-blocking): %s", e)
-            except Exception as e:
+            except (AttributeError, RuntimeError, ValueError, KeyError, TypeError) as e:
                 logger.debug("Journey tracking failed (non-blocking): %s", e)
 
         # Step 9.1: Persist universe snapshot (L183)
@@ -1236,7 +1151,7 @@ class CompoundExecutor(CompoundContextMixin, ExecutorIntegrationMixin):
                             step_number=self._journey_tracker.get_recent_point_count(),
                             action=operation_type,
                         )
-            except Exception as e:
+            except (AttributeError, RuntimeError, ValueError, TypeError) as e:
                 logger.debug("Universe bridge point failed (non-blocking): %s", e)
 
         # Step 10: Complete universe journey (non-blocking)
@@ -1249,7 +1164,7 @@ class CompoundExecutor(CompoundContextMixin, ExecutorIntegrationMixin):
                     phi_score=phi,
                     output=output[:500],
                 )
-            except Exception as e:
+            except (AttributeError, RuntimeError, ValueError, TypeError) as e:
                 logger.debug("Universe bridge completion failed (non-blocking): %s", e)
 
         # Step 10.5: OuroborosBridge physics check (non-blocking)
@@ -1262,8 +1177,6 @@ class CompoundExecutor(CompoundContextMixin, ExecutorIntegrationMixin):
             coherence_val = metrics.get("coherence", 0.5)
             coherence_drop = abs(coherence_val - 0.5)
             if coherence_drop > 0.3:
-                import asyncio
-
                 try:
                     loop = asyncio.get_event_loop()
                     if loop.is_running():
@@ -1306,8 +1219,8 @@ class CompoundExecutor(CompoundContextMixin, ExecutorIntegrationMixin):
                             "Mycelium audit: %d skills synthesized",
                             getattr(report, "skills_synthesized", 0) if report else 0,
                         )
-                    except Exception:
-                        logger.debug("Mycelium audit failed (non-blocking)")
+                    except (AttributeError, RuntimeError, ValueError, OSError) as e:
+                        logger.debug("Mycelium audit failed (non-blocking): %s", e)
                 logger.debug("Mycelium: captured execution as pattern entry")
         except Exception:
             pass  # Non-blocking: mycelium may not be available

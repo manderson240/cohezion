@@ -12,7 +12,11 @@ Checks:
 
 import json
 import logging
+import shutil
 import subprocess
+
+
+_UV = shutil.which("uv") or "/usr/local/bin/uv"
 from dataclasses import asdict, dataclass
 from datetime import UTC, datetime
 from pathlib import Path
@@ -87,8 +91,8 @@ def run_audit(audit_type: str = "pre") -> PlatformAudit:
 
     # 3. Run tests (quick check)
     try:
-        result = subprocess.run(
-            ["uv", "run", "pytest", "tests/", "-q", "--tb=no"],
+        result = subprocess.run(  # noqa: S603 - static pytest invocation
+            [_UV, "run", "pytest", "tests/", "-q", "--tb=no"],
             capture_output=True,
             text=True,
             timeout=30,

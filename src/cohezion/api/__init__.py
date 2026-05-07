@@ -2,31 +2,39 @@
 Cohezion API - FastAPI server exposing swarm and MCP tools.
 
 Provides REST endpoints for Open-Notebook integration.
+
+The route decorators live in submodules under ``cohezion.api.routes`` —
+this module is the app factory + router-mount surface only.
+
+Singletons (``_vae_trainer``, ``_rl_policy``) and the helper functions
+``_get_vae``, ``_get_rl_policy``, ``_compute_coherence``, ``set_token_client``
+remain attributes of this package because tests and conftest fixtures
+reference them by full path (``patch("cohezion.api._get_vae", ...)`` etc.).
 """
 
-import contextlib
 import logging
 import os
-import re
 from pathlib import Path
-from typing import Any
 
-from fastapi import Depends, FastAPI, Header, HTTPException, Request
+from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse, RedirectResponse
 from fastapi.staticfiles import StaticFiles
-from pydantic import BaseModel, field_validator
 
 from cohezion.api.routes.eigent import router as eigent_router
 from cohezion.api.telemetry import router as telemetry_router
-from cohezion.mcp.knowledge_server import get_server as get_knowledge_server
-from cohezion.mcp.registry import get_registry
-from cohezion.mcp.swarm_server import get_server as get_swarm_server
 from cohezion.security.rate_limiter import get_rate_limiter
 
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
+
+# Singletons referenced by tests via ``cohezion.api._vae_trainer`` /
+# ``cohezion.api._rl_policy``. The helpers in ``_helpers.py`` read/write these
+# attributes on this module, which keeps conftest's reset hooks working.
+_vae_trainer = None
+_rl_policy = None
+
 
 # Allowed CORS origins from environment, default to localhost only
 _CORS_ORIGINS = os.environ.get(
@@ -82,24 +90,6 @@ if static_dir.exists():
 @app.get("/")
 async def root():
     return RedirectResponse(url="/static/index.html")
-
-
-# Pydantic models
-class DebateRequest(BaseModel):
-    query: str
-    perspectives: list[str] | None = None
-
-
-class SearchRequest(BaseModel):
-    query: str
-    limit: int = 5
-
-
-class DebateResponse(BaseModel):
-    content: str
-    confidence: float
-    model_chain: list[str]
-    processing_time_ms: float
 
 
 # Health check
@@ -1748,15 +1738,22 @@ try:
 except ImportError:
     pass  # training routes not available
 
-# ─── AgentJet CALL endpoints ───────────────────────────────────────────────
+
+__all__ = [
+    "app",
+    "set_token_client",
+    "_get_vae",
+    "_get_rl_policy",
+    "_compute_coherence",
+    "_a2a_server",
+    "verify_a2a_token",
+    "_vae_trainer",
+    "_rl_policy",
+]
 
 
-class TrainRequest(BaseModel):
-    target_model: str = "qwen3.5:9b"
-    skill_domain: str | None = None
-    epochs: int = 3
-    min_phi: float = 0.7
-    dry_run: bool = False
+if __name__ == "__main__":
+    import uvicorn
 
 
 class TrainResponse(BaseModel):

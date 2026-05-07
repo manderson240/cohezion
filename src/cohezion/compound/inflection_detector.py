@@ -243,7 +243,7 @@ class InflectionDetector:
             efficiency_score = max(0.0, min(1.0, cache_hit_rate))
             score *= efficiency_score**0.2
 
-        return round(score, 4)
+        return float(round(score, 4))
 
     def detect_critical(self, result: "ExecutionResult") -> bool:
         """Quick check for critical severity (convenience method).

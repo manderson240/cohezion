@@ -17,11 +17,11 @@ class BitwardenVault:
     def is_locked(self) -> bool:
         """Check if the vault is locked."""
         try:
-            result = subprocess.run(
+            result = subprocess.run(  # noqa: S603 - bw_path is constructed from a fixed install path
                 [self.bw_path, "status"], capture_output=True, text=True, check=True
             )
             status = json.loads(result.stdout)
-            return status.get("status") == "locked"
+            return bool(status.get("status") == "locked")
         except Exception:
             return True
 
@@ -37,7 +37,7 @@ class BitwardenVault:
             if self.session_key:
                 env["BW_SESSION"] = self.session_key
 
-            result = subprocess.run(cmd, capture_output=True, text=True, env=env)
+            result = subprocess.run(cmd, capture_output=True, text=True, env=env)  # noqa: S603 - bw_path absolute, name is item identifier from caller config
 
             if result.returncode != 0:
                 logger.error(f"Failed to get item {name}: {result.stderr}")
@@ -46,7 +46,8 @@ class BitwardenVault:
             data = json.loads(result.stdout)
             # Find the password field
             login = data.get("login", {})
-            return login.get("password")
+            password = login.get("password")
+            return password if isinstance(password, str) else None
 
         except Exception as e:
             logger.error(f"Bitwarden retrieval error: {e}")

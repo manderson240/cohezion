@@ -76,7 +76,8 @@ class RZeroEvolver:
                 start = json_str.find("{")
                 end = json_str.rfind("}") + 1
                 if start != -1 and end != -1:
-                    return json.loads(json_str[start:end])
+                    parsed = json.loads(json_str[start:end])
+                    return dict(parsed) if isinstance(parsed, dict) else None
                 else:
                     return None
             except Exception as e:
@@ -108,7 +109,7 @@ class RZeroEvolver:
             model="qwen3-coder:30b",
             system="You are a brilliant logic engine. Solve the ARC-AGI task accurately.",
         )
-        return response_text
+        return str(response_text)
 
     async def run_loop(self) -> None:
         # Load existing grounded benchmark

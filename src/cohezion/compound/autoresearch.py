@@ -391,7 +391,7 @@ class VaultLearningCapture:
                 continue
 
         # Identify recurring patterns
-        lesson_counts = {}
+        lesson_counts: dict[str, int] = {}
         for lesson in all_lessons:
             lesson_counts[lesson] = lesson_counts.get(lesson, 0) + 1
 

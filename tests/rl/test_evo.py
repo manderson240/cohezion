@@ -31,12 +31,9 @@ class TestEthericVariantOscillator:
     @pytest.fixture
     def evo_cls(self):
         """Import the EVO class, skipping if not yet implemented."""
-        try:
-            from cohezion.rl.evo import EthericVariantOscillator
+        from cohezion.rl.evo import EthericVariantOscillator
 
-            return EthericVariantOscillator
-        except ImportError:
-            pytest.skip("EVO module not yet implemented")
+        return EthericVariantOscillator
 
     def test_evo_creation_with_defaults(self, evo_cls):
         """EVO can be created with default values."""
@@ -159,21 +156,15 @@ class TestEVOTracker:
 
     @pytest.fixture
     def tracker_cls(self):
-        try:
-            from cohezion.rl.evo import EVOTracker
+        from cohezion.rl.evo import EVOTracker
 
-            return EVOTracker
-        except ImportError:
-            pytest.skip("EVO module not yet implemented")
+        return EVOTracker
 
     @pytest.fixture
     def evo_cls(self):
-        try:
-            from cohezion.rl.evo import EthericVariantOscillator
+        from cohezion.rl.evo import EthericVariantOscillator
 
-            return EthericVariantOscillator
-        except ImportError:
-            pytest.skip("EVO module not yet implemented")
+        return EthericVariantOscillator
 
     @pytest.fixture
     def temp_dir(self):
@@ -268,21 +259,15 @@ class TestMemoryManagement:
 
     @pytest.fixture
     def tracker_cls(self):
-        try:
-            from cohezion.rl.evo import EVOTracker
+        from cohezion.rl.evo import EVOTracker
 
-            return EVOTracker
-        except ImportError:
-            pytest.skip("EVO module not yet implemented")
+        return EVOTracker
 
     @pytest.fixture
     def evo_cls(self):
-        try:
-            from cohezion.rl.evo import EthericVariantOscillator
+        from cohezion.rl.evo import EthericVariantOscillator
 
-            return EthericVariantOscillator
-        except ImportError:
-            pytest.skip("EVO module not yet implemented")
+        return EthericVariantOscillator
 
     @pytest.fixture
     def temp_dir(self):
@@ -333,12 +318,9 @@ class TestTRIUNESelfStates:
 
     @pytest.fixture
     def evo_cls(self):
-        try:
-            from cohezion.rl.evo import EthericVariantOscillator
+        from cohezion.rl.evo import EthericVariantOscillator
 
-            return EthericVariantOscillator
-        except ImportError:
-            pytest.skip("EVO not yet implemented")
+        return EthericVariantOscillator
 
     def test_doer_state_is_12d(self, evo_cls):
         """Doer state must be 12D axiomatic."""

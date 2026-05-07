@@ -296,7 +296,6 @@ Workflows with `runs-on: self-hosted` stay in `queued` status indefinitely when 
 
 ### Learning 381: "Fix the tests themselves" — un-skip quarantines with root cause not workarounds
 User directive mid-sprint: "I think we need to fix the tests themselves" after I'd quarantined 4 pre-existing failing test groups. Forced a re-framing: the 14 quarantined tests split into (a) missing source implementation (12x TestPrecipitationGate needed `check_precipitation()`), (b) mis-scoped test calling through 12-layer call stack (test_adversarial_flood routed through BaseAgent instead of ResourceMonitor seam), (c) missing teardown fixture (TestSandboxManagerExecution hit ResourceMonitor heartbeat), (d) asserted-but-not-always-true contracts (test_demo_scale_integration marked flaky, actually passed). All 14 now green. **Principle**: quarantine is admission of giving up on a test — replace with root-cause fix whenever the test's CLAIM is worth keeping. Zero new quarantines introduced.
-<<<<<<< HEAD
 
 | Learning | Keyword | Status | Wave Source |
 |----------|---------|--------|-------------|
@@ -304,5 +303,3 @@ User directive mid-sprint: "I think we need to fix the tests themselves" after I
 | L379 | **stacked-branch squash-cascade** | `stacked-branch-cherry-pick-cascade` skill | Wave Psi — polish 5-branch squash cascade |
 | L380 | **CI-saturation handling** | `polish-campaign-orchestrator` L380 | Wave Psi — concurrent-PR limit |
 | L381 | **xfail-strict bridge** | `xfail-strict-bug-bridge-pattern` skill | Wave Sigma — zeta-executor-source-bugs |
-=======
->>>>>>> origin/feature/coherent-matter-precipitation

@@ -23,21 +23,15 @@ class TestTaskSpecIntegration:
 
     @pytest.fixture
     def env_cls(self):
-        try:
-            from cohezion.rl.environment import FlumeNavEnv
+        from cohezion.rl.environment import FlumeNavEnv
 
-            return FlumeNavEnv
-        except ImportError:
-            pytest.skip("FlumeNavEnv not yet implemented")
+        return FlumeNavEnv
 
     @pytest.fixture
     def task_spec_cls(self):
-        try:
-            from cohezion.rl.task_generator import TaskSpec
+        from cohezion.rl.task_generator import TaskSpec
 
-            return TaskSpec
-        except ImportError:
-            pytest.skip("TaskSpec not yet implemented")
+        return TaskSpec
 
     def test_reset_with_task_spec_sets_horizon(self, env_cls, task_spec_cls):
         """TaskSpec horizon overrides env max_steps."""
@@ -100,12 +94,9 @@ class TestInterruptionHandling:
 
     @pytest.fixture
     def env_cls(self):
-        try:
-            from cohezion.rl.environment import FlumeNavEnv
+        from cohezion.rl.environment import FlumeNavEnv
 
-            return FlumeNavEnv
-        except ImportError:
-            pytest.skip("FlumeNavEnv not yet implemented")
+        return FlumeNavEnv
 
     def test_pause_sets_is_paused_true(self, env_cls):
         """pause() sets is_paused to True."""
@@ -154,12 +145,9 @@ class TestContextInjection:
 
     @pytest.fixture
     def env_cls(self):
-        try:
-            from cohezion.rl.environment import FlumeNavEnv
+        from cohezion.rl.environment import FlumeNavEnv
 
-            return FlumeNavEnv
-        except ImportError:
-            pytest.skip("FlumeNavEnv not yet implemented")
+        return FlumeNavEnv
 
     def test_inject_drift_into_doer_layer(self, env_cls):
         """inject_drift() modifies doer layer (first 12 dims)."""
@@ -229,12 +217,9 @@ class TestOpenEndedMode:
 
     @pytest.fixture
     def env_cls(self):
-        try:
-            from cohezion.rl.environment import FlumeNavEnv
+        from cohezion.rl.environment import FlumeNavEnv
 
-            return FlumeNavEnv
-        except ImportError:
-            pytest.skip("FlumeNavEnv not yet implemented")
+        return FlumeNavEnv
 
     def test_open_ended_mode_no_truncation(self, env_cls):
         """Open-ended mode (max_steps=None) does not truncate."""
@@ -277,30 +262,21 @@ class TestEVOMission:
 
     @pytest.fixture
     def env_cls(self):
-        try:
-            from cohezion.rl.environment import FlumeNavEnv
+        from cohezion.rl.environment import FlumeNavEnv
 
-            return FlumeNavEnv
-        except ImportError:
-            pytest.skip("FlumeNavEnv not yet implemented")
+        return FlumeNavEnv
 
     @pytest.fixture
     def tracker_cls(self):
-        try:
-            from cohezion.rl.evo import EVOTracker
+        from cohezion.rl.evo import EVOTracker
 
-            return EVOTracker
-        except ImportError:
-            pytest.skip("EVOTracker not yet implemented")
+        return EVOTracker
 
     @pytest.fixture
     def evo_cls(self):
-        try:
-            from cohezion.rl.evo import EthericVariantOscillator
+        from cohezion.rl.evo import EthericVariantOscillator
 
-            return EthericVariantOscillator
-        except ImportError:
-            pytest.skip("EthericVariantOscillator not yet implemented")
+        return EthericVariantOscillator
 
     @pytest.fixture
     def temp_dir(self):
@@ -375,12 +351,9 @@ class TestTRIUNEWeightedCoherence:
 
     @pytest.fixture
     def env_cls(self):
-        try:
-            from cohezion.rl.environment import FlumeNavEnv
+        from cohezion.rl.environment import FlumeNavEnv
 
-            return FlumeNavEnv
-        except ImportError:
-            pytest.skip("FlumeNavEnv not yet implemented")
+        return FlumeNavEnv
 
     def test_coherence_uses_triune_weights(self, env_cls):
         """_compute_coherence() uses TRIUNE weights for doer/thinker/knower."""
@@ -415,12 +388,9 @@ class TestExoticChargeDensity:
 
     @pytest.fixture
     def env_cls(self):
-        try:
-            from cohezion.rl.environment import FlumeNavEnv
+        from cohezion.rl.environment import FlumeNavEnv
 
-            return FlumeNavEnv
-        except ImportError:
-            pytest.skip("FlumeNavEnv not yet implemented")
+        return FlumeNavEnv
 
     def test_exotic_charge_density_from_variance(self, env_cls):
         """_compute_exotic_charge_density() returns variance-based density."""

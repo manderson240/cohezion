@@ -72,7 +72,9 @@ async def test_acquire_blocks_until_release():
         return await pool.acquire(timeout=2.0)
 
     task = asyncio.create_task(grab_second())
-    await asyncio.sleep(0.05)  # Confirm task is waiting
+    # Yield once so the task gets to its first await on the pool's semaphore;
+    # task should still be blocked since slot1 is held
+    await asyncio.sleep(0)
     assert not task.done()
 
     await pool.release(slot1)

@@ -330,7 +330,7 @@ class BudgetEnforcer:
             )
         except Exception:
             # Vault failure: log locally
-            logger.warning(f"{alert} (vault log failed)")
+            logger.warning("%s (vault log failed)", alert)
 
     def get_budget_state(self, current_cost_usd: float) -> BudgetState:
         """Get current budget state.

@@ -229,7 +229,9 @@ class SessionCostTracker:
                 except Exception as e:
                     # Vault failure: keep records in-memory
                     logger.warning(
-                        f"Cost tracking vault flush failed: {e}. Keeping {len(records_to_flush)} records in memory."
+                        "Cost tracking vault flush failed: %s. Keeping %d records in memory.",
+                        e,
+                        len(records_to_flush),
                     )
         finally:
             self._pending_flush = False

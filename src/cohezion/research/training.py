@@ -8,7 +8,9 @@ from __future__ import annotations
 
 import json
 import logging
+import shutil
 import subprocess
+import sys
 import time
 from pathlib import Path
 from typing import Any
@@ -19,6 +21,15 @@ from torch.utils.data import DataLoader
 
 
 logger = logging.getLogger(__name__)
+
+
+def _python_exec() -> str:
+    """Resolve the venv python; fall back to sys.executable."""
+    repo_root = Path(__file__).resolve().parents[3]
+    venv_py = repo_root / ".venv" / "bin" / "python3"
+    if venv_py.exists():
+        return str(venv_py)
+    return shutil.which("python3") or sys.executable
 
 
 class TrainingExecutor:
@@ -193,9 +204,9 @@ class SimpleTrainingRunner:
         start_time = time.time()
 
         try:
-            result = subprocess.run(
+            result = subprocess.run(  # noqa: S603 - resolved is validated to stay within allowed_root above
                 [
-                    "python",
+                    _python_exec(),
                     str(resolved),
                     "--time_budget",
                     str(self.time_budget),
