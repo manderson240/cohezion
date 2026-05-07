@@ -4,9 +4,9 @@ import time
 from cohezion.reliability.monitor import get_resource_monitor
 
 
-async def mock_call(id: int, duration: float):
+async def mock_call(task_id: int, duration: float):
     monitor = get_resource_monitor()
-    print(f"Task {id}: Waiting for capacity...")
+    print(f"Task {task_id}: Waiting for capacity...")
     await monitor.wait_for_capacity()
     try:
         print(f"Task {id}: Slot acquired. Running for {duration}s...")

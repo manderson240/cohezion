@@ -66,7 +66,7 @@ class TestRetirementLogicFieldNames:
         keeps = [e for e in entries if e.get("status") == "keep"]
         assert len(keeps) == 5  # Odd indices
         labels = [e["asi"]["experiment"] for e in keeps]
-        assert all(l.startswith("E") for l in labels)
+        assert all(lbl.startswith("E") for lbl in labels)
 
 
 class TestRetirementDecisionLogic:

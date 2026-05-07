@@ -94,6 +94,6 @@ class TestGenerateNextExperiments:
         assert len(exps) == 2
         # Should reference the retired experiments in new proposals
         labels = [e.get("replaces") for e in exps]
-        assert any(l in ("E63_mycelium", "E12_persist") for l in labels)
+        assert any(lbl in ("E63_mycelium", "E12_persist") for lbl in labels)
 
 

@@ -179,7 +179,7 @@ def reset_singletons():
     api_module: ModuleType | None = None
     try:
         import cohezion.api as api_module
-    except Exception:
+    except Exception:  # noqa: S110 — intentional: optional API module may not be present
         pass
     if api_module is not None and hasattr(api_module, "_vae_trainer"):
         api_module._vae_trainer = None
