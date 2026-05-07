@@ -393,7 +393,8 @@ class VaultLearningCapture:
             try:
                 data = json.loads(Path(path).read_text())
                 all_lessons.extend(data.get("lessons", []))
-            except Exception:
+            except Exception as _e:
+                logger.debug("Skipping: %s", _e)
                 continue
 
         # Identify recurring patterns

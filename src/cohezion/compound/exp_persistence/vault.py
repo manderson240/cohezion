@@ -247,7 +247,8 @@ class VaultLogger:
                     content = self.mcp.vault_read_sync(trace_path)
                     data = json.loads(content)
                     results.append(data)
-                except Exception:
+                except Exception as _e:
+                    logger.debug("Skipping: %s", _e)
                     continue
         except Exception:
             pass
