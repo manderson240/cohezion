@@ -1867,8 +1867,8 @@ async def agentjet_models() -> dict:
 # Reference: https://github.com/a2a-protocol/a2a
 # ============================================================================
 
-from cohezion.mcp.manager.auth import validate_token
-from cohezion.protocols.a2a_server import A2AServer, AgentCard
+from cohezion.mcp.manager.auth import validate_token  # noqa: E402
+from cohezion.protocols.a2a_server import A2AServer, AgentCard  # noqa: E402
 
 
 # Initialize A2A server (singleton at module level)
