@@ -106,3 +106,5 @@ jobs:
   auto-generate-tests:
     runs-on: ubuntu-latest
     if: false
+    steps:
+      - run: echo "disabled"
