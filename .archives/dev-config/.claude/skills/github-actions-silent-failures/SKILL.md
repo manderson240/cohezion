@@ -8,7 +8,7 @@ description: |
   Key patterns: sys.exit(print()), no:label+label: mutual exclusion,
   continue-on-error on security gates, wrong workflow_name in reusable workflows.
 author: Claude Code
-version: 1.0.0
+version: 1.1.0
 ---
 
 # GitHub Actions Silent Failure Patterns
@@ -108,7 +108,58 @@ continue despite failures in other steps, use `if: always()` on subsequent steps
 **Acceptable uses of continue-on-error:** Non-security informational steps like coverage
 reporting, optional notifications, or diagnostics that shouldn't block CI.
 
-## Pattern 4: Wrong workflow_name in Reusable Workflow Dispatch
+## Pattern 4: self-hosted Runner Silent Queue
+
+**The bug:** A workflow sets `runs-on: self-hosted` but no self-hosted runner with a matching label
+is online. The job is queued indefinitely with status `queued` — GitHub surfaces this as "pending"
+in the PR check UI, indistinguishable from a job that's legitimately running. Users wait forever
+thinking the CI is just slow.
+
+```yaml
+# BAD if no runner is online: pending "forever"
+jobs:
+  health:
+    runs-on: self-hosted
+    steps: [...]
+```
+
+**Diagnosis:** Check the job status via API — `status: queued` means no runner has picked it up:
+
+```bash
+# If status stays "queued" for >5min past other jobs completing, no runner is attached
+gh run view <run_id> --json status,jobs --jq '[.jobs[] | "\(.name): \(.status)"]'
+# → ["health: queued"]    # stalled
+# → ["health: in_progress"] # actually running
+```
+
+Cross-check with the repository's available runners:
+
+```bash
+gh api /repos/OWNER/REPO/actions/runners --jq '.runners[] | {name, status, labels: [.labels[].name]}'
+# status: "online" | "offline"
+```
+
+**Fix options:**
+
+1. **Bring the self-hosted runner online** — usually a local box that stopped.
+2. **Temporarily move to hosted runners** when the self-hosted is unavailable:
+   ```yaml
+   runs-on: ${{ vars.USE_SELF_HOSTED == 'true' && 'self-hosted' || 'ubuntu-latest' }}
+   ```
+3. **Make the check non-required** in branch protection so queued-forever jobs don't block merges.
+4. **Add a job-level timeout** so queued jobs fail loudly instead of lingering:
+   ```yaml
+   jobs:
+     health:
+       runs-on: self-hosted
+       timeout-minutes: 30  # queued + running combined
+   ```
+
+**Signature:** Multiple PR pushes over hours, all with the same set of checks stuck `queued` while
+the `ubuntu-latest` checks pass consistently — every single push. `mergeStateStatus: BLOCKED` with
+`mergeable: MERGEABLE` (stuck checks block merges but aren't technically failures).
+
+## Pattern 5: Wrong workflow_name in Reusable Workflow Dispatch
 
 **The bug:** When using `workflow_dispatch` with `workflow_name:` to target a reusable workflow,
 the name must exactly match the `name:` field in the target workflow YAML, not the filename.
@@ -147,6 +198,7 @@ When reviewing GitHub Actions workflows, check:
 - [ ] Security gate steps: do they have `continue-on-error: true`? (removes blocking behavior)
 - [ ] Reusable workflow dispatches: does `workflow_name` match the `name:` field, not the filename?
 - [ ] Any step exit code that determines blocking: verify it actually returns non-zero on failure
+- [ ] `runs-on: self-hosted`: is a runner with matching labels online? Use `gh api /repos/OWNER/REPO/actions/runners`. No runner online = queued indefinitely, looks like "pending".
 
 ## References
 

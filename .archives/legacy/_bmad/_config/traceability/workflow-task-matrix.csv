@@ -1,3 +1,0 @@
-workflow_name,task_invoked,invocation_type,source_file,line_ref
-4-implementation,validate-workflow,invoke-task,bmm/workflows/4-implementation/create-story/instructions.xml,Line 314
-4-production,validate-workflow,invoke-task,gds/workflows/4-production/create-story/instructions.xml,Line 313

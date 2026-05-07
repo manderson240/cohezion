@@ -135,6 +135,8 @@ class QuadratureNexus:
     CONSENSUS_THRESHOLD: float = 0.85
 
     # Voice weights (can be adjusted based on context)
+    # Voice weights (can be adjusted based on context). QuadratureNexus is not a
+    # dataclass, so DEFAULT_WEIGHTS is a plain class-level dict.
     DEFAULT_WEIGHTS: dict[VoiceType, float] = {
         VoiceType.ARCHITECT: 0.25,
         VoiceType.ENGINEER: 0.25,
@@ -142,11 +144,17 @@ class QuadratureNexus:
         VoiceType.RESOURCE: 0.25,
     }
 
-    def __init__(self, weights: dict[VoiceType, float] | None = None):
+    def __init__(
+        self,
+        weights: dict[VoiceType, float] | None = None,
+        universe_id: str | None = None,
+    ):
         """Initialize Quadrature Nexus.
 
         Args:
             weights: Optional custom voice weights. Defaults to equal weighting.
+            universe_id: Optional universe this nexus operates within. Used when
+                emitting CONSENSUS_RATIFIED precipitation events.
         """
         self._weights = weights or dict(self.DEFAULT_WEIGHTS)
         self._directives: list[StrategicDirective] = []
@@ -168,6 +176,7 @@ class QuadratureNexus:
         self._mycelium_calibration_history: dict[VoiceType, list[float]] = {
             vt: [] for vt in VoiceType
         }
+        self.universe_id = universe_id or "uncontained"
 
     def _detect_oscillation(self, vt: VoiceType) -> bool:
         """Return True if the last 3 calibration adjustments alternate sign.
@@ -746,6 +755,9 @@ class QuadratureNexus:
         self._directives.append(directive)
         logger.info("Ratified directive: %s", directive.directive_id)
 
+        # Precipitation emission — ratified consensus is a witness mark
+        _emit_consensus_ratified(self.universe_id, result, directive)
+
         return directive
 
     def get_directives(self) -> list[StrategicDirective]:
@@ -780,3 +792,36 @@ class QuadratureNexus:
             "approval_rate": approved_count / len(self._deliberation_history),
             "mean_alignment": float(np.mean(alignment_scores)),
         }
+
+
+def _emit_consensus_ratified(
+    universe_id: str,
+    result: QuadratureResult,
+    directive: StrategicDirective,
+) -> None:
+    """Emit a CONSENSUS_RATIFIED precipitation event. Best-effort."""
+    try:
+        from cohezion.precipitation import (
+            PrecipitationEvent,
+            PrecipitationKind,
+            emit,
+        )
+
+        emit(
+            PrecipitationEvent(
+                kind=PrecipitationKind.CONSENSUS_RATIFIED,
+                universe_id=universe_id,
+                coherence=max(0.0, min(1.0, result.consensus_score)),
+                payload={
+                    "directive_id": directive.directive_id,
+                    "action": result.proposal.action,
+                    "description": result.proposal.description,
+                    "consensus_score": result.consensus_score,
+                    "alignment_score": result.alignment_score,
+                    "voice_breakdown": {r.voice.value: r.approval_score for r in result.responses},
+                    "submitted_by": result.proposal.submitted_by,
+                },
+            )
+        )
+    except Exception:
+        logger.debug("Precipitation emit failed for consensus ratification", exc_info=True)

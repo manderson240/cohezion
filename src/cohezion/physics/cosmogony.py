@@ -282,9 +282,10 @@ class SymmetryBreaking:
     Void → Quadrature → SO(12) → SO(3)⁴ → Phase → U(1)⁴ → Z₂⁴ → HIHO → COHESION → Precipitate
     """
 
-    def __init__(self) -> None:
+    def __init__(self, universe_id: str | None = None) -> None:
         self._state = CosmogonyState()
         self._rng = np.random.default_rng(seed=42)
+        self.universe_id = universe_id or "uncontained"
 
     @property
     def state(self) -> CosmogonyState:
@@ -354,6 +355,15 @@ class SymmetryBreaking:
                     T,
                     T_c,
                     desc,
+                )
+
+                # Precipitation emission — every symmetry break is a precipitation event.
+                # Use kind=PRECIPITATE transition as COHERENCE_PEAK (Step 10); others as phase events.
+                _emit_cosmogony_phase(
+                    universe_id=self.universe_id,
+                    event=event,
+                    description=desc,
+                    temperature=T,
                 )
 
         # Update order parameters
@@ -593,6 +603,49 @@ def get_cosmogony() -> SymmetryBreaking:
     if _COSMOGONY is None:
         _COSMOGONY = SymmetryBreaking()
     return _COSMOGONY
+
+
+def _emit_cosmogony_phase(
+    universe_id: str,
+    event: PhaseTransitionEvent,
+    description: str,
+    temperature: float,
+) -> None:
+    """Emit a PrecipitationEvent for a symmetry break. Best-effort."""
+    try:
+        from cohezion.precipitation import (
+            PrecipitationEvent,
+            PrecipitationKind,
+            emit,
+        )
+
+        # Stage 10 (PRECIPITATE) is a full coherence peak — emit as COHERENCE_PEAK.
+        # Others emit as COSMOGONY_PHASE. Both flow through the same bus.
+        kind = (
+            PrecipitationKind.COHERENCE_PEAK
+            if event.to_symmetry == SymmetryGroup.PRECIPITATE
+            else PrecipitationKind.COSMOGONY_PHASE
+        )
+        # Use order_parameter_value (in [0, 1]) as coherence.
+        coherence = max(0.0, min(1.0, event.order_parameter_value))
+        emit(
+            PrecipitationEvent(
+                kind=kind,
+                universe_id=universe_id,
+                coherence=coherence,
+                payload={
+                    "from_symmetry": event.from_symmetry.value,
+                    "to_symmetry": event.to_symmetry.value,
+                    "critical_temperature": event.critical_temperature,
+                    "actual_temperature": temperature,
+                    "order_parameter": event.order_parameter_value,
+                    "stage": event.stage,
+                    "description": description,
+                },
+            )
+        )
+    except Exception:
+        logger.debug("Precipitation emit failed for cosmogony transition", exc_info=True)
 
 
 __all__ = [
