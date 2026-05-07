@@ -197,7 +197,7 @@ class FlumeNavEnv(gym.Env):
         tuple[np.ndarray, float, bool, bool, dict]
             Observation, reward, terminated, truncated, info.
         """
-        assert self._state is not None, "Call reset() before step()"  # noqa: S101
+        assert self._state is not None, "Call reset() before step()"
         self._step_count += 1
         self._prev_state = self._state.copy()
 

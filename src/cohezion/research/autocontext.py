@@ -34,7 +34,7 @@ def monitor() -> dict[str, Any]:
     t0 = timeit.default_timer()
     cz_bin = which("cz") or "cz"
     try:
-        result = subprocess.run(  # noqa: S603
+        result = subprocess.run(
             [cz_bin, "context", "--json"],
             capture_output=True,
             text=True,

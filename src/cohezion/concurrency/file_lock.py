@@ -67,7 +67,7 @@ class FileLock:
 
         while time.time() - start_time < self.timeout:
             try:
-                self._lock_file = open(self.filepath, "a")  # noqa: SIM115
+                self._lock_file = open(self.filepath, "a")
                 fcntl.flock(self._lock_file.fileno(), fcntl.LOCK_EX | fcntl.LOCK_NB)
                 self._acquired_at = time.time()
                 logger.debug(

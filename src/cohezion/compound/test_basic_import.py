@@ -14,7 +14,7 @@ def test_imports():
     """Test that we can import our new components."""
     try:
         # Test importing our new modules
-        from cohezion.compound.tdd_adversarial import (  # noqa: F401
+        from cohezion.compound.tdd_adversarial import (
             get_adversarial_review_system,
             get_tdd_adversarial_coordinator,
             get_tdd_integration,
@@ -23,12 +23,12 @@ def test_imports():
         print("✓ Successfully imported TDD and Adversarial Review components")
 
         # Test importing daemon components
-        from cohezion.compound.daemon import get_workflow_initializer  # noqa: F401
+        from cohezion.compound.daemon import get_workflow_initializer
 
         print("✓ Successfully imported daemon components")
 
         # Test that they're in the compound module
-        import cohezion.compound  # noqa: F401
+        import cohezion.compound
 
         print("✓ Successfully accessed compound module")
 

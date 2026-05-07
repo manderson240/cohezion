@@ -906,7 +906,7 @@ async def rl_episode():
     import gymnasium as gym
     import numpy as np
 
-    import cohezion.rl.environment  # noqa: F401 — registers Gymnasium env
+    import cohezion.rl.environment
 
     policy = _get_rl_policy()
     env = gym.make("cohezion/FlumeNav-v0", max_steps=200)

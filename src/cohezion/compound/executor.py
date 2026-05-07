@@ -25,9 +25,6 @@ from cohezion.compound.exp_persistence.vault import (
     VaultLogger,
 )
 from cohezion.compound.inflection_detector import AnomalyDetection, Severity
-from cohezion.compound.post_execution import (
-    PostExecutionOrchestrator,  # noqa: F401 — wiring: makes post_execution reachable from compound entry point
-)
 from cohezion.core.mcp_client import MCPClient
 from cohezion.security.guardrail_pipeline import GuardrailAction, GuardrailPipeline
 
@@ -1435,5 +1432,6 @@ class CompoundExecutor(CompoundContextMixin, ExecutorIntegrationMixin):
     # ExecutorIntegrationMixin — see executor_integration.py
 
 
-# Backward-compatible import — ExecutorFactory moved to executor_factory.py
-from cohezion.compound.executor_factory import ExecutorFactory  # noqa: F401
+# Backward-compatible imports — these re-export symbols for callers using `from cohezion.compound.executor import X`
+from cohezion.compound.executor_factory import ExecutorFactory as ExecutorFactory  # noqa: E402
+from cohezion.compound.post_execution import PostExecutionOrchestrator as PostExecutionOrchestrator  # noqa: E402
