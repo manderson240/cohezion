@@ -2,7 +2,7 @@
 
 Integrates all compound engineering subsystems:
 - ExperimentAnalytics: track and analyze overnight EVO loop results
-- ExperimentScheduler: retire converged, propose next experiments  
+- ExperimentScheduler: retire converged, propose next experiments
 - ExperimentRecommender: HIHO-balanced recommendations
 - SessionMetricsAggregator: per-session HIHO balance tracking
 - CompoundScoreWindow: execution quality trend tracking

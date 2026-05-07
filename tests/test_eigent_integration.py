@@ -6,6 +6,7 @@ from pathlib import Path
 
 import pytest
 
+
 platform = importlib.import_module("platform")
 
 

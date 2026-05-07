@@ -6,12 +6,12 @@ SurrealDB persistence).
 """
 
 import asyncio
+import contextlib
 import json
 import logging
 import time
 from datetime import datetime
 from pathlib import Path
-import contextlib
 
 
 logger = logging.getLogger(__name__)

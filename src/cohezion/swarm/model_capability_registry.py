@@ -13,6 +13,7 @@ This enables intelligent task → model mapping.
 from __future__ import annotations
 
 import asyncio
+import contextlib
 import json
 import logging
 import subprocess
@@ -25,7 +26,6 @@ from typing import Any
 import psutil
 
 from cohezion.swarm.compute_backend_router import BackendType
-import contextlib
 
 
 logger = logging.getLogger(__name__)

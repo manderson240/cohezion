@@ -341,7 +341,7 @@ class KnowledgeGraphLayer:
         """Persist edge to SurrealDB as graph relation."""
         sql = f"""
         RELATE {edge.source_id}->knowledge_edge->{edge.target_id}
-        SET 
+        SET
             relation = '{edge.relation.name}',
             coherence_strength = {edge.coherence_strength},
             spin_alignment = {edge.spin_alignment},

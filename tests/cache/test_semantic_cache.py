@@ -15,6 +15,7 @@ import pytest
 
 from cohezion.cache.semantic_cache import CacheEntry, SemanticCache
 
+
 _ST_IS_REAL = not (
     "sentence_transformers" in sys.modules
     and sys.modules["sentence_transformers"].SentenceTransformer is MagicMock

@@ -7,11 +7,11 @@ interface for capability assessment, gap analysis, and task recommendation.
 
 from __future__ import annotations
 
+import contextlib
 import logging
 from dataclasses import dataclass, field
 from datetime import date
 from pathlib import Path
-import contextlib
 
 
 logger = logging.getLogger(__name__)

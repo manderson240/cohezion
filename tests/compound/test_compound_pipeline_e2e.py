@@ -1,6 +1,6 @@
 """End-to-end tests for the compound engineering pipeline.
 
-Tests the full flow: experiment analytics → recommendations → 
+Tests the full flow: experiment analytics → recommendations →
 health check → session metrics — verifying all components integrate.
 """
 import asyncio

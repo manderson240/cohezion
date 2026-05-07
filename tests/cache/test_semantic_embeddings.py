@@ -18,6 +18,7 @@ from cohezion.cache.text_encoder import (
     reset_encoder,
 )
 
+
 # Skip tests that require real sentence-transformers when the module is mocked
 # (conftest.py replaces it with MagicMock class to prevent hardware-specific segfaults)
 _ST_IS_REAL = not (

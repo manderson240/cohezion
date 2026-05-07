@@ -1,3 +1,4 @@
+import contextlib
 import json
 import logging
 from dataclasses import dataclass
@@ -5,7 +6,6 @@ from datetime import datetime
 from typing import Any
 
 from cohezion.core.mcp_client import get_mcp_client
-import contextlib
 
 
 logger = logging.getLogger(__name__)

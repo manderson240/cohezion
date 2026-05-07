@@ -17,6 +17,7 @@ from pathlib import Path
 import numpy as np
 import pytest
 
+
 # ROCm/AMD GPU subprocess tests crash with SIGSEGV when amdgpu.ids is missing
 _AMDGPU_IDS_MISSING = not Path("/usr/share/misc/amdgpu.ids").exists()
 _skip_amd_subprocess = pytest.mark.skipif(

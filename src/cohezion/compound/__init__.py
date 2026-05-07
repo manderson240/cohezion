@@ -1,6 +1,7 @@
 """Cohezion Compound Engineering System."""
 
 from __future__ import annotations
+
 import contextlib
 
 

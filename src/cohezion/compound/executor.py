@@ -8,6 +8,7 @@ Orchestrates execution lifecycle:
 """
 
 import asyncio
+import contextlib
 import json
 import logging
 import time
@@ -19,15 +20,16 @@ from typing import TYPE_CHECKING, Any
 
 from cohezion.compound.context_integration import CompoundContextMixin
 from cohezion.compound.executor_integration import ExecutorIntegrationMixin
-from cohezion.compound.post_execution import PostExecutionOrchestrator  # noqa: F401 — wiring: makes post_execution reachable from compound entry point
 from cohezion.compound.exp_persistence.vault import (
     ExecutionContext,
     VaultLogger,
 )
 from cohezion.compound.inflection_detector import AnomalyDetection, Severity
+from cohezion.compound.post_execution import (
+    PostExecutionOrchestrator,  # noqa: F401 — wiring: makes post_execution reachable from compound entry point
+)
 from cohezion.core.mcp_client import MCPClient
 from cohezion.security.guardrail_pipeline import GuardrailAction, GuardrailPipeline
-import contextlib
 
 
 if TYPE_CHECKING:

@@ -9,9 +9,8 @@ import asyncio
 import logging
 from unittest.mock import MagicMock
 
-import pytest
-
 import numpy as np
+import pytest
 
 from cohezion.agents.specialists.ecoresilience_agent import EcoResilienceAgent
 from cohezion.compound.executor import CompoundExecutor

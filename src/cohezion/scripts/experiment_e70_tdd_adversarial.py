@@ -47,18 +47,18 @@ Date: 2026-05-05
 """
 
 import asyncio
+import hashlib
+import inspect
 import json
 import pickle
 import time
-import hashlib
-import inspect
-from dataclasses import dataclass, field, asdict
-from pathlib import Path
-from typing import Any, Dict, List, Optional, Callable, Tuple, Set
-from uuid import UUID, uuid4
+from abc import ABC, abstractmethod
+from dataclasses import asdict, dataclass, field
 from datetime import datetime
 from enum import Enum, auto
-from abc import ABC, abstractmethod
+from pathlib import Path
+from typing import Any, Callable, Dict, List, Optional, Set, Tuple
+from uuid import UUID, uuid4
 
 import psutil
 
@@ -797,9 +797,7 @@ class TDDAdversarialExperiment:
             print("="*70)
 
             # Execute actual compound engineering
-            from cohezion.scripts.experiment_e70_vmodel_engineering import (
-                VModelCompoundExperiment
-            )
+            from cohezion.scripts.experiment_e70_vmodel_engineering import VModelCompoundExperiment
             vmodel = VModelCompoundExperiment(target_cycles=self.target_cycles)
             execution_result = await vmodel.run()
 

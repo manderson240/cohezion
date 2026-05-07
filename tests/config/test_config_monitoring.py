@@ -4,6 +4,7 @@ Tests vault monitoring, config file monitoring, and event emission.
 """
 
 import asyncio
+import contextlib
 from pathlib import Path
 from unittest.mock import AsyncMock, patch
 
@@ -11,7 +12,6 @@ import pytest
 
 from cohezion.config import ConfigMonitor, ConfigurationOrchestrator
 from cohezion.core.vault_subscription import VaultEvent
-import contextlib
 
 
 class TestConfigMonitor:

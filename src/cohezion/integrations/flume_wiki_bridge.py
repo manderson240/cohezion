@@ -348,7 +348,7 @@ class FlumeOuroborosBridge(FlumeWikiBridge):
         # Generate rule based on analysis
         if jumps > 0:
             return f"""
-Trajectory shows {jumps} discontinuities. 
+Trajectory shows {jumps} discontinuities.
 Recommendation: Add intermediate steps for task {exhaust.task_id}
 Coherence threshold: {exhaust.target_coherence}
 """

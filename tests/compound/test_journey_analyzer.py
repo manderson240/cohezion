@@ -56,7 +56,8 @@ class TestJourneyAnalyzerImport:
         assert len(ArchetypeType.__members__) > 0
 
     def test_journey_report_dataclass(self):
-        from cohezion.compound.journey_analyzer import JourneyReport
         import dataclasses
+
+        from cohezion.compound.journey_analyzer import JourneyReport
         assert dataclasses.is_dataclass(JourneyReport)
 

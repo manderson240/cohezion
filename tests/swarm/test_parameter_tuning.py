@@ -12,6 +12,7 @@ from cohezion.swarm.cost_aware_router import (
     CostAwareRouter,
 )
 
+
 _YAML_AVAILABLE = (Path(__file__).parent.parent.parent / "config" / "model_profiles.yaml").exists()
 _skip_no_yaml = pytest.mark.skipif(
     not _YAML_AVAILABLE, reason="config/model_profiles.yaml not found — fallback models differ"
