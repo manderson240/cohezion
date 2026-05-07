@@ -190,7 +190,8 @@ class SkillsShClient:
                 async with session.get(url, timeout=aiohttp.ClientTimeout(total=10)) as response:
                     if response.status == 200:
                         return await response.text()
-            except Exception:
+            except Exception as _e:
+                logger.debug("Skipping: %s", _e)
                 continue
 
         return None

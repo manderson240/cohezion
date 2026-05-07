@@ -204,7 +204,8 @@ class SkillRefiner:
                     first_lines = md_file.read_text(encoding="utf-8")[:500]
                     if skill_name.upper() in first_lines.upper():
                         return md_file
-                except Exception:
+                except Exception as _e:
+                    logger.debug("Skipping: %s", _e)
                     continue
         return None
 

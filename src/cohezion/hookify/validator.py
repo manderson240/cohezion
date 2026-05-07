@@ -104,8 +104,8 @@ class HookifyValidator:
                 rule = self._parse_rule_section(section)
                 if rule:
                     rules.append(rule)
-            except Exception:
-                # Invalid rule format - skip gracefully
+            except Exception as e:
+                logger.debug("Invalid rule format, skipping: %s", e)
                 continue
 
         return rules
