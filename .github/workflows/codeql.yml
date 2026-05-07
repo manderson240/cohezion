@@ -1,6 +1,5 @@
 name: "CodeQL Security Analysis"
 
-description: "Advanced security scanning with CodeQL for Python"
 
 on:
   push:

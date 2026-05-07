@@ -1,6 +1,5 @@
 name: "Dependency Review"
 
-description: "Review dependencies for vulnerabilities on pull requests"
 
 on:
   pull_request:

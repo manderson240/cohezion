@@ -15,6 +15,17 @@ repos:
   # FAST CHECKS (commit stage) - Quick syntax and formatting validation
   # ============================================================================
 
+  # actionlint - GitHub Actions workflow schema validator
+  # Catches: missing required fields (steps:, runs-on:), bad expressions,
+  # invalid action references, malformed matrices — BEFORE they hit CI.
+  # Lesson: 6 sessions of "workflow file issue" on auto-generate-tests
+  # (missing steps:) would have been caught instantly by this hook.
+  - repo: https://github.com/rhysd/actionlint
+    rev: v1.7.7
+    hooks:
+      - id: actionlint
+        stages: [pre-commit]
+
   # Ruff - Fast Python formatter and quick linter
   - repo: https://github.com/astral-sh/ruff-pre-commit
     rev: v0.15.0

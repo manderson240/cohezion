@@ -1,6 +1,5 @@
 name: Security Scan
 
-description: "Daily security scanning for CVE vulnerabilities"
 
 on:
   schedule:
