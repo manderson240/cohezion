@@ -19,6 +19,7 @@ from pathlib import Path
 from typing import Any
 
 from cohezion.swarm.specialist_agents import SpecialistAgent
+import contextlib
 
 
 logger = logging.getLogger(__name__)
@@ -120,10 +121,8 @@ class DynamicAgentRegistry:
         self._running = False
         if self._reload_task:
             self._reload_task.cancel()
-            try:
+            with contextlib.suppress(asyncio.CancelledError):
                 await self._reload_task
-            except asyncio.CancelledError:
-                pass
         logger.info("Stopped file watcher")
 
     async def _watch_loop(self):

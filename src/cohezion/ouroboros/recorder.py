@@ -11,6 +11,7 @@ import logging
 import time
 from datetime import datetime
 from pathlib import Path
+import contextlib
 
 
 logger = logging.getLogger(__name__)
@@ -54,10 +55,8 @@ class OuroborosRecorder:
         self._running = False
         if self._task and not self._task.done():
             self._task.cancel()
-            try:
+            with contextlib.suppress(asyncio.CancelledError):
                 await self._task
-            except asyncio.CancelledError:
-                pass
         self._persist_snapshot(final=True)
         logger.info("OuroborosRecorder stopped (%d cycles)", self._cycle_count)
 

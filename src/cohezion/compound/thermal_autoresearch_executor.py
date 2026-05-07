@@ -38,6 +38,7 @@ from cohezion.compound.thermal_checkpoint_manager import (
 )
 from cohezion.swarm.compound_client import get_compound_client
 from cohezion.swarm.r_zero_evolver import RZeroEvolver
+import contextlib
 
 
 logger = logging.getLogger(__name__)
@@ -255,10 +256,8 @@ class ThermalAutoresearchExecutor:
             finally:
                 # Cancel background task
                 tdp_task.cancel()
-                try:
+                with contextlib.suppress(asyncio.CancelledError):
                     await tdp_task
-                except asyncio.CancelledError:
-                    pass
 
         return final_result
 

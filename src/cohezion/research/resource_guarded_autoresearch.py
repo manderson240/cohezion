@@ -20,6 +20,7 @@ from dataclasses import dataclass, field
 from typing import Any
 
 import psutil
+import contextlib
 
 
 logger = logging.getLogger(__name__)
@@ -292,10 +293,8 @@ class MultiAgentAutoresearch:
         """Stop all agents and monitoring."""
         if self._monitoring_task:
             self._monitoring_task.cancel()
-            try:
+            with contextlib.suppress(asyncio.CancelledError):
                 await self._monitoring_task
-            except asyncio.CancelledError:
-                pass
         logger.info("MultiAgentAutoresearch: Stopped")
 
     def register_sub_agent(

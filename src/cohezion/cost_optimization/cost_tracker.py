@@ -32,6 +32,7 @@ import time
 import uuid
 from dataclasses import dataclass, field
 from typing import ClassVar, Optional
+import contextlib
 
 
 logger = logging.getLogger(__name__)
@@ -252,10 +253,8 @@ class SessionCostTracker:
         # Cancel any pending background flush to avoid double-writes
         if self._flush_task and not self._flush_task.done():
             self._flush_task.cancel()
-            try:
+            with contextlib.suppress(asyncio.CancelledError, Exception):
                 await self._flush_task
-            except (asyncio.CancelledError, Exception):
-                pass
         self._pending_flush = False
 
         if not self.records:

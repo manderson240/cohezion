@@ -1,15 +1,14 @@
 """Cohezion Compound Engineering System."""
 
 from __future__ import annotations
+import contextlib
 
 
 # Universal initialization
-try:
+with contextlib.suppress(Exception):
     from .universal.init import (
         initialize_cohezion_environment as initialize_cohezion_environment,
     )
-except Exception:
-    pass
 
 from cohezion.compound.analytics.engine import (
     ExecutionAnalyzer as ExecutionAnalyzer,

@@ -31,6 +31,7 @@ from transformers import (
     Trainer,
     TrainingArguments,
 )
+import contextlib
 
 
 # ── Constants ────────────────────────────────────────────────────────────
@@ -219,10 +220,8 @@ def solve_bit_manip(examples, test_in: str) -> str:
     pairs = []
     for inp, out in examples:
         if len(inp) == 8 and set(inp).issubset({"0", "1"}):
-            try:
+            with contextlib.suppress(ValueError):
                 pairs.append((int(inp, 2), int(out, 2)))
-            except ValueError:
-                pass
     if not pairs:
         return test_in
     # Per-bit mapping
