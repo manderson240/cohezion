@@ -148,9 +148,15 @@ class BatchSimulationRunner:
         final_stats = physics.compute_batch_stats(current)
 
         elapsed = time.time() - t0
+        # Coerce to float before formatting — under test isolation leaks a
+        # MagicMock can reach this line and fail `:.3f` with TypeError.
+        try:
+            mean_c = float(final_stats.get("mean_coherence", 0))
+        except (TypeError, ValueError):
+            mean_c = 0.0
         logger.info(
             f"  Universe {universe_spec.universe_id} complete: "
-            f"{elapsed:.1f}s, final coherence={final_stats.get('mean_coherence', 0):.3f}"
+            f"{elapsed:.1f}s, final coherence={mean_c:.3f}"
         )
 
         # Export final states as .npy for training pipeline

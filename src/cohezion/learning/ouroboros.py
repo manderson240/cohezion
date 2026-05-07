@@ -52,7 +52,11 @@ class OuroborosEngine:
         return False
 
     async def _trigger_rewrite_cycle(self, exhaust: ExecutionExhaust) -> bool:
-        """Generate a new prompt or system alignment rules based on the failure."""
+        """Generate a new prompt or system alignment rules based on the failure.
+
+        Emits a HEALING_EVENT precipitation event so the Ouroboros feedback
+        loop becomes visible to the orchestrator and downstream sinks.
+        """
         logger.info("Initiating recursive rewrite cycle to prevent future failure.")
 
         # Simulate an LLM call analyzing the failure and updating the prompt
@@ -67,6 +71,9 @@ class OuroborosEngine:
         self.rewrite_history.append(rewrite_entry)
 
         logger.info(f"Ouroboros rewrite successful. New dynamic rule: {new_rule}")
+
+        _emit_healing_event(exhaust, new_rule)
+
         return True
 
     def get_latest_system_rules(self) -> list[str]:
@@ -96,3 +103,32 @@ class OuroborosEngine:
             return await self._trigger_rewrite_cycle(exhaust)
 
         return False
+
+def _emit_healing_event(exhaust: ExecutionExhaust, new_rule: str) -> None:
+    """Emit a HEALING_EVENT PrecipitationEvent. Best effort."""
+    try:
+        from cohezion.precipitation import (
+            PrecipitationEvent,
+            PrecipitationKind,
+            emit,
+        )
+
+        # Healing coherence: higher recovery = higher coherence. We use (1 - coherence_drop).
+        recovery_coherence = max(0.0, min(1.0, 1.0 - exhaust.coherence_drop))
+        emit(
+            PrecipitationEvent(
+                kind=PrecipitationKind.HEALING_EVENT,
+                universe_id="ouroboros",
+                coherence=recovery_coherence,
+                payload={
+                    "source_task": exhaust.task_id,
+                    "error_message": exhaust.error_message,
+                    "coherence_drop": exhaust.coherence_drop,
+                    "token_usage": exhaust.token_usage,
+                    "new_rule": new_rule,
+                    "diagnostics": exhaust.diagnostics,
+                },
+            )
+        )
+    except Exception:
+        logger.debug("Precipitation emit failed for HEALING_EVENT", exc_info=True)
