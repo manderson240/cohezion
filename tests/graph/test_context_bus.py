@@ -365,3 +365,5 @@ class TestGraphEngineFLUXWiring:
 # ExecutionOrchestrator.execute_graph was removed in the graph API refactor.
 # NOTE: Removed TestExecuteGraphWiring (Wave 3E).
 # ExecutionOrchestrator.execute_graph was removed in the graph API refactor.
+# NOTE: Removed TestExecuteGraphWiring (Wave 3E).
+# ExecutionOrchestrator.execute_graph was removed in the graph API refactor.
