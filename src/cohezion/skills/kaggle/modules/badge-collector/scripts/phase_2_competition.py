@@ -118,7 +118,7 @@ def _submit_playground(username: str) -> bool:
 
         # Download competition data to get sample_submission.csv
         tmp = make_temp_dir("-playground")
-        dl_result = run_kaggle_cli(
+        run_kaggle_cli(
             [
                 "competitions",
                 "download",

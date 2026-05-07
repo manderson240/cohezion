@@ -134,7 +134,7 @@ class WikiMCP:
         }
 
         # Step 1: Read index
-        index = await self.wiki.get_index()
+        await self.wiki.get_index()
         result["sources_consulted"].append("index.md")
 
         # Step 2: Find relevant pages

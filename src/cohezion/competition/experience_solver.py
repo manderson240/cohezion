@@ -53,7 +53,7 @@ def solve_with_experience(
     similar = vault.find_similar(sig, top_k=10)
 
     # Phase 1: Re-derive programs from similar solved tasks and try them
-    for dist, entry in similar:
+    for _dist, entry in similar:
         if not entry.solved:
             continue
         # Re-run search on the similar training task to recover its program

@@ -69,4 +69,3 @@ class TestFindStrongCorrelations:
         corr = {"E1": {"E2": 0.7, "E3": 0.9}}
         result = find_strong_correlations(corr, threshold=0.5)
         assert result[0]["correlation"] >= result[-1]["correlation"]
-

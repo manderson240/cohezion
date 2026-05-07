@@ -445,7 +445,6 @@ class CostAwareRouter:
                         cls.MODEL_LATENCY[name] = data["latency_ms"]
 
             # Load tier routing config (maps complexity → model name)
-            raw = cls._profiles_cache if cls._profiles_cache else {}
             tier_cfg = {}
             # tier_routing may be in the raw YAML (top-level, not in a model section)
             if not tier_cfg:

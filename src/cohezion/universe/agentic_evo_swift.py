@@ -333,7 +333,7 @@ class AgenticEVOSimulation:
         Full SWIFT integration would happen here.
         """
         # Get positions and masses
-        positions = np.array([e.physical_state.position for e in self.evos])
+        np.array([e.physical_state.position for e in self.evos])
         masses = np.array([e.physical_state.effective_mass for e in self.evos])
 
         # Compute forces (O(N^2) for simplicity)

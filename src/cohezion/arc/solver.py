@@ -73,7 +73,7 @@ def beam_search(
     t0 = time.monotonic()
     ksearch = _load_ksearch()
 
-    for depth in range(1, max_depth + 1):
+    for _depth in range(1, max_depth + 1):
         candidates: list[tuple[list[str], float]] = []
         for chain, _ in beams:
             for name in names:

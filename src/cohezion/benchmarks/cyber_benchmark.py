@@ -207,7 +207,6 @@ Execute step-by-step. Return your solving process description and the final flag
         total = len(self.results)
         solves = sum(1 for r in self.results if r.success)
 
-        by_category: dict[str, list[CTFResult]] = {}
         # Group by category from challenge_id prefix
 
         return {

@@ -63,7 +63,6 @@ def get_m120p_vertices() -> np.ndarray:
     PHI_SQ = PHI**2
     PHI_CUB = PHI**3
 
-    vertices = []
 
     # Type A: Dodecahedron (20)
     # Based on (+-PHI^3, 0, +-PHI) and (+-PHI^2, +-PHI^2, +-PHI^2)

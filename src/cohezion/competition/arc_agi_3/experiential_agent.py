@@ -146,7 +146,6 @@ def compute_reward(
     """Compute reward signal from frame transition."""
     from arcengine import GameState
 
-    next_obs = next_frame
     if hasattr(next_frame, "state"):
         if next_frame.state == GameState.WIN:
             return 1.0
@@ -197,7 +196,6 @@ class ExperientialAgent:
         total_reward = 0.0
 
         # Phase 1: Systematic exploration (first episode or unknown states)
-        exploration_actions = []
         while actions_taken < self.exploration_budget and obs.state.name not in [
             "WIN",
             "GAME_OVER",

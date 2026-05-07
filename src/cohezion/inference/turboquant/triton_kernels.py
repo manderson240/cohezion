@@ -92,7 +92,7 @@ def _turboquant_mse_score_kernel(
 
     # Load the rotated query for this head: (D,)
     q_offs = tl.arange(0, D)
-    q = tl.load(Q_ptr + pid_bh * stride_q_bh + q_offs * stride_q_d).to(tl.float32)
+    tl.load(Q_ptr + pid_bh * stride_q_bh + q_offs * stride_q_d).to(tl.float32)
 
     # Accumulate score for each token in the block
     scores = tl.zeros([BLOCK_N], dtype=tl.float32)

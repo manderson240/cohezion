@@ -463,7 +463,7 @@ if __name__ == "__main__":
 
         test = TestExecutor()
         start = time.time()
-        result = await test.run_in_executor(test.cpu_bound, 1000000)
+        await test.run_in_executor(test.cpu_bound, 1000000)
         elapsed = time.time() - start
 
         print(f"   ✅ Executor working: {elapsed:.3f}s (CPU-bound task)")

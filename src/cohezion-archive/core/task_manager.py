@@ -231,7 +231,7 @@ class TaskManager:
         async with self._lock:
             counts = {"cancelled": 0, "completed": 0, "failed": 0}
 
-            for task_id, task in list(self._tasks.items()):
+            for _task_id, task in list(self._tasks.items()):
                 if not task.done():
                     if cancel_running:
                         task.cancel()

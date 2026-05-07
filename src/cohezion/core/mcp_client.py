@@ -285,7 +285,7 @@ class MCPClient:
         an empty string is returned (blocking the loop would deadlock).
         """
         try:
-            loop = asyncio.get_running_loop()
+            asyncio.get_running_loop()
         except RuntimeError:
             # No loop running — safe to use asyncio.run
             try:

@@ -148,7 +148,7 @@ class SubmissionBuilder:
 
         for tid in task_ids:
             task = challenges[tid]
-            task_start = time.perf_counter()
+            time.perf_counter()
 
             # 1. Extract rules from train examples
             rules = self.extractor.extract(task)
@@ -314,7 +314,7 @@ class SubmissionBuilder:
         synthetic_train = [{"input": test_input, "output": test_input}]  # no gold — identity probe
         ops = _build_strategy("all", synthetic_train)
         # Try a tiny greedy identity probe (depth 1 only for speed)
-        for name, op in ops[:20]:
+        for _name, op in ops[:20]:
             pred = op(deepcopy(test_input))
             if pred is not None and self._valid_grid(pred):
                 return pred

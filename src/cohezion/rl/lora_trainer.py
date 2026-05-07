@@ -331,8 +331,6 @@ class RLHFTrainer:
         # Standard PPO: maximize advantage * log_prob with clipping
         # KL penalty to stay close to reference policy
 
-        kl_penalty = 0.01  # KL coef
-        clip_eps = 0.2
 
         # Returns dict for logging
         return {

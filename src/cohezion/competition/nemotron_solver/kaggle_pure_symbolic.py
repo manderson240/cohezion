@@ -414,7 +414,7 @@ def solve_bit_manip(examples: list[tuple[str, str]], test_in: str) -> str:
         ("not_reverse", lambda x: int(f"{(~x) & 0xFF:08b}"[::-1], 2)),
     ]
 
-    for name, op in unary_ops:
+    for _name, op in unary_ops:
         ok = True
         for a, b in pairs:
             if op(a) != b:
@@ -427,8 +427,8 @@ def solve_bit_manip(examples: list[tuple[str, str]], test_in: str) -> str:
             except Exception:
                 pass
 
-    for n1, o1 in unary_ops:
-        for n2, o2 in unary_ops:
+    for _n1, o1 in unary_ops:
+        for _n2, o2 in unary_ops:
             ok = True
             for a, b in pairs:
                 if o2(o1(a)) != b:
@@ -449,7 +449,7 @@ def solve_bit_manip(examples: list[tuple[str, str]], test_in: str) -> str:
             ("add", lambda x, c: (x + c) & 0xFF),
             ("sub", lambda x, c: (x - c) & 0xFF),
         ]:
-            for n1, o1 in unary_ops:
+            for _n1, o1 in unary_ops:
                 ok = True
                 for a, b in pairs:
                     if op_fn(o1(a), const) != b:
@@ -461,7 +461,7 @@ def solve_bit_manip(examples: list[tuple[str, str]], test_in: str) -> str:
                         return f"{op_fn(o1(test_val), const):08b}"
                     except Exception:
                         pass
-            for n2, o2 in unary_ops:
+            for _n2, o2 in unary_ops:
                 ok = True
                 for a, b in pairs:
                     if o2(op_fn(a, const)) != b:
@@ -722,7 +722,7 @@ def solve_encryption(examples: list[tuple[str, str]], test_in: str) -> str:
     changed = True
     while changed:
         changed = False
-        for i, (tw, pw) in enumerate(zip(test_words, result_words)):
+        for _i, (tw, pw) in enumerate(zip(test_words, result_words)):
             if "?" not in pw:
                 continue
             pattern = pw.replace("?", "?")

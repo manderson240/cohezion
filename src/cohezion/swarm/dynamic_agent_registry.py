@@ -83,7 +83,7 @@ class DynamicAgentRegistry:
         """Load validated specialists from specialist_agents module."""
         from cohezion.swarm.specialist_agents import VALIDATED_SPECIALISTS
 
-        for name, agent in VALIDATED_SPECIALISTS.items():
+        for _name, agent in VALIDATED_SPECIALISTS.items():
             module = AgentModule(
                 name=agent.name,
                 version="1.0.0",
@@ -222,7 +222,7 @@ class DynamicAgentRegistry:
         agent_class = None
         agent_metadata = None
 
-        for name, obj in inspect.getmembers(module):
+        for _name, obj in inspect.getmembers(module):
             if not inspect.isclass(obj):
                 continue
 
@@ -504,7 +504,7 @@ class DynamicAgentRegistry:
             return False
 
         try:
-            state = json.loads(load_path.read_text())
+            json.loads(load_path.read_text())
 
             # Note: This only restores metadata, not actual modules
             # Would need to reload from files

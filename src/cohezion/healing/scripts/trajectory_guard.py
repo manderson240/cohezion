@@ -40,7 +40,7 @@ async def guard_trajectories():
     monitor = OuroborosMonitor()
     detector = AnomalyDetector(coherence_threshold=0.15, target_coherence=0.5)
     healer = HealerAgent()
-    engine = UniverseSimulationEngine()
+    UniverseSimulationEngine()
     narrator = get_narrator()
 
     while True:

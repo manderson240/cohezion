@@ -251,8 +251,6 @@ class ManifoldEnv(gym.Env):
             self._hiho_streak = 0
 
         # Termination conditions
-        terminated = self._hiho_streak >= self.hiho_stability_window
-        truncated = self._step_count >= self.max_steps
 
         # Run invariant checker (non-blocking, adds to info dict)
         if self._invariant_checker is not None:
