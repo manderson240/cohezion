@@ -546,12 +546,11 @@ class KnowledgeGraphLayer:
             for node_id in current_level:
                 for edge_id in self._edge_index.get(node_id, []):
                     edge = self.edges.get(edge_id)
-                    if edge:
-                        if edge.confidence >= min_confidence:
-                            edges.append(edge)
-                            nodes[edge.source_id] = self.nodes.get(edge.source_id)
-                            nodes[edge.target_id] = self.nodes.get(edge.target_id)
-                            next_level.append(edge.target_id)
+                    if edge and edge.confidence >= min_confidence:
+                        edges.append(edge)
+                        nodes[edge.source_id] = self.nodes.get(edge.source_id)
+                        nodes[edge.target_id] = self.nodes.get(edge.target_id)
+                        next_level.append(edge.target_id)
 
             current_level = next_level
 

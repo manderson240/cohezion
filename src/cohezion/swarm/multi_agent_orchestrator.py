@@ -292,9 +292,8 @@ class MultiAgentOrchestrator:
                 selected.append("query_vault")
 
         # Check model routing for large tasks
-        if len(task) > 1000:
-            if agent.tool_registry.has_tool("route_to_backend"):
-                selected.append("route_to_backend")
+        if len(task) > 1000 and agent.tool_registry.has_tool("route_to_backend"):
+            selected.append("route_to_backend")
 
         return selected
 

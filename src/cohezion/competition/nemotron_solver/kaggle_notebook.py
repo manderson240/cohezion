@@ -8,10 +8,9 @@ for base_path in ["/kaggle/input/nvidia-nemotron-model-reasoning-challenge", "/k
     if os.path.exists(base_path):
         for root, _dirs, files in os.walk(base_path):
             for f in files:
-                if f.lower().endswith(".csv"):
-                    if "test" in f.lower():
-                        INPUT_PATH = root
-                        break
+                if f.lower().endswith(".csv") and "test" in f.lower():
+                    INPUT_PATH = root
+                    break
             if INPUT_PATH:
                 break
     if INPUT_PATH:

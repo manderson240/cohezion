@@ -153,10 +153,9 @@ def compute_reward(
             return -1.0
 
     # Progress heuristics
-    if hasattr(next_frame, "levels_completed"):
-        if hasattr(prev_frame, "levels_completed"):
-            if next_frame.levels_completed > prev_frame.levels_completed:
-                return 0.5
+    if hasattr(next_frame, "levels_completed") and hasattr(prev_frame, "levels_completed"):
+        if next_frame.levels_completed > prev_frame.levels_completed:
+            return 0.5
 
     # Grid change = exploration reward
     if hasattr(prev_frame, "frame") and hasattr(next_frame, "frame"):
