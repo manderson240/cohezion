@@ -167,6 +167,16 @@ ignore = [
     "RUF006",  # Store return value of asyncio.create_task/ensure_future
     # 0.0.0.0 binding is intentional for containerized deployments (host configured externally)
     "S104",    # Binding to all network interfaces
+    # ML/PyTorch import aliases — torch.nn.functional as F is universal PyTorch convention
+    "N812",    # Lowercase module imported as non-lowercase alias (functional as F, etc.)
+    # Ambiguous single-char variable names — ML loops use l (loss), O (output), I (identity)
+    "E741",    # Ambiguous variable name (l, O, I) — standard in ML/linear algebra notation
+    # try-except-pass → contextlib.suppress: patterns are intentional signal suppression in compound executor
+    "S110",    # try-except-pass (use contextlib.suppress instead)
+    # Unicode chars in string bodies — already ignoring in docstrings (RUF002) and comments (RUF003)
+    "RUF001",  # String contains ambiguous unicode character (em-dashes, arrows intentional)
+    # Third-party TYPE_CHECKING imports — defer to mypy; already ignoring TC001/TC003 for same reason
+    "TC002",   # Third-party import in TYPE_CHECKING block
 ]
 
 # Per-file customization

@@ -253,5 +253,5 @@ def get_encoder(domain: str) -> DomainEncoder:
 
 def _topic_hash(topic: str) -> float:
     """Deterministic hash of a topic string into [0, 1]."""
-    digest = hashlib.md5(topic.encode("utf-8")).digest()  # noqa: S324
+    digest = hashlib.md5(topic.encode("utf-8")).digest()
     return int.from_bytes(digest[:4], "big") / 0xFFFFFFFF
