@@ -89,7 +89,7 @@ class TestTriuneWiring:
         """Verify Pydantic validation catches wrong dimensions."""
         from cohezion.universe.triune_manifold import TriuneState
 
-        with pytest.raises(Exception):
+        with pytest.raises((ValueError, TypeError)):
             TriuneState(
                 doer=torch.zeros(5),  # Wrong: should be 12
                 thinker=torch.zeros(512),
