@@ -7,7 +7,7 @@ import pytest
 
 
 try:
-    import torch
+    import torch  # noqa: F401
 
     TORCH_AVAILABLE = True
 except ImportError:
