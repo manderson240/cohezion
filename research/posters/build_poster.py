@@ -9,14 +9,12 @@ from __future__ import annotations
 import math
 from pathlib import Path
 
-<<<<<<< HEAD
 import matplotlib.patches as mpatches
 import matplotlib.pyplot as plt
 from matplotlib.font_manager import FontProperties
 from matplotlib.patches import Circle, FancyBboxPatch, Polygon, Rectangle
 
 
-=======
 import matplotlib.pyplot as plt
 import matplotlib.patches as mpatches
 from matplotlib.font_manager import FontProperties

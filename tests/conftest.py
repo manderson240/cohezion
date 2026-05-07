@@ -201,6 +201,8 @@ def reset_singletons():
         pass
 
     # Reset DynamicConcurrencyGate module-level singleton (Wave 3G).
+    # Reset DynamicConcurrencyGate module-level singleton (Wave 3G).
+    # Test pollution surfaced via audit: _gate_instance retained metrics across tests.
     try:
         import cohezion.swarm.dynamic_concurrency_gate as _dcg_module
 
