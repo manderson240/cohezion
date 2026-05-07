@@ -10,13 +10,33 @@ import logging
 from dataclasses import dataclass, field
 from datetime import datetime
 from enum import Enum
-from typing import Any
+from typing import Any, TypedDict
 
 from cohezion.compound.skill_selector import SkillScore
 from cohezion.core.mcp_client import MCPClient
 
 
 logger = logging.getLogger(__name__)
+
+
+# Sigma2: TypedDicts for vote-aggregation maps. Mypy infers heterogeneous dict
+# literals as dict[str, object] and can't narrow on key access.
+class _MajorityEntry(TypedDict):
+    count: int
+    skill: SkillScore
+    agents: list[str]
+
+
+class _WeightedEntry(TypedDict):
+    weight: float
+    skill: SkillScore
+    voters: list[tuple[str, float]]
+
+
+class _FallbackEntry(TypedDict):
+    skill: SkillScore
+    total_score: float
+    count: int
 
 
 class VotingStrategy(Enum):
@@ -191,7 +211,7 @@ class SkillConsensusVoter:
             ConsensusResult
         """
         # Count votes per skill (1st choice only)
-        skill_votes = {}
+        skill_votes: dict[str, _MajorityEntry] = {}
         for vote in votes:
             if vote.voted_skills:
                 top_skill = vote.voted_skills[0]
@@ -268,7 +288,7 @@ class SkillConsensusVoter:
             ConsensusResult
         """
         # Calculate skill weights
-        skill_weights = {}
+        skill_weights: dict[str, _WeightedEntry] = {}
         total_weight = 0.0
 
         for vote in votes:
@@ -415,7 +435,7 @@ class SkillConsensusVoter:
             )
 
         # Collect all skills with weights
-        skill_scores_weighted = {}
+        skill_scores_weighted: dict[str, _FallbackEntry] = {}
         for vote in votes:
             for rank, skill in enumerate(vote.voted_skills):
                 # Weight by rank (first choice worth more)
@@ -519,7 +539,7 @@ class SkillConsensusVoter:
             }
 
             # Persist to vault with vault_add_document
-            self.mcp_client.vault_add_document(
+            self.mcp_client.vault_add_document(  # type: ignore[attr-defined]
                 title=f"voting-consensus-{strategy.value}-{datetime.now().isoformat()}",
                 content=json.dumps(voting_record, indent=2, default=str),
                 document_type="voting_metric",
