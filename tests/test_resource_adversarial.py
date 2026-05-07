@@ -20,44 +20,20 @@ import time
 from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
+import pytest_asyncio
 
 from cohezion.reliability.monitor import get_resource_monitor
 
 
 @pytest.fixture
 def quiet_monitor():
-    """Yield the monitor singleton with its heartbeat task suppressed.
-
-
-@pytest.fixture(autouse=True)
-async def stop_monitor_after_test():
-    """Cancel the ResourceMonitor heartbeat task after each anyio test.
-
-    ResourceMonitor.__init__ calls loop.create_task(_heartbeat_loop()) when
-    an event loop is running. Without this teardown the infinite heartbeat task
-    prevents anyio from shutting down the event loop, hanging the test suite.
-    """
-    yield
-    monitor = get_resource_monitor()
-    await monitor.stop()
-
-
-@pytest.mark.anyio
-async def test_adversarial_flood():
-    """
-    Flood Attack: Spawns many agents to ensure semaphore never exceeds limit.
-    The heartbeat's emergency_shutdown path fires real curl subprocesses under
-    extreme-vitals mocks, which is why the previous version of these tests
-    hung indefinitely. Disabling the heartbeat keeps the test to the seam we
-    actually want to exercise (wait_for_capacity / release_capacity).
-    """
+    """Yield the monitor singleton with its heartbeat task suppressed."""
     monitor = get_resource_monitor()
     original_max = monitor.max_concurrency
     original_sem = monitor.semaphore
     original_active = monitor.active_calls
     original_running = monitor._running
 
-    # Suppress the heartbeat loop for the duration of the test.
     monitor._running = False
     heartbeat = getattr(monitor, "_heartbeat_task", None)
     if heartbeat is not None and not heartbeat.done():
@@ -65,11 +41,18 @@ async def test_adversarial_flood():
 
     yield monitor
 
-    # Restore
     monitor.max_concurrency = original_max
     monitor.semaphore = original_sem
     monitor.active_calls = original_active
     monitor._running = original_running
+
+
+@pytest_asyncio.fixture(autouse=True)
+async def stop_monitor_after_test():
+    """Cancel the ResourceMonitor heartbeat after each test to prevent event-loop hang."""
+    yield
+    monitor = get_resource_monitor()
+    await monitor.stop()
 
 
 @pytest.mark.asyncio
