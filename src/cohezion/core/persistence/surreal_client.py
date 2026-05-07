@@ -306,7 +306,7 @@ DEFINE FIELD stability_score ON TABLE universe_nodes VALUE (
 
     def __init__(
         self,
-        url: str = "ws://localhost:8000/rpc",
+        url: str = "ws://localhost:8001/rpc",  # port 8001 per CLAUDE.md (migrated in session 96b)
         namespace: str = "cohezion",
         database: str = "vault",
     ):

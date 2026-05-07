@@ -12,10 +12,10 @@ def test_v5_template_markers():
         "label_pad_token_id=-100",
         "dtype=torch.bfloat16",       # was torch_dtype=; template uses dtype= kwarg form
         "lora_alpha=64",
-        r"\boxed{",                    # was BOXED_INSTRUCTION; template uses LaTeX \boxed{} notation
+        "BOXED_INSTRUCTION",           # constant defined in template for boxed-answer prompt format
         "adapter_config.json",
         "enable_input_require_grads",
-        "EVAL_SUFFIX",                 # was extract_boxed; template defines EVAL_SUFFIX constant
+        "extract_boxed",               # function defined in template to parse \boxed{} output
     ]
     missing = [m for m in required if m not in tmpl]
     assert not missing, f"Template missing markers: {missing}"
