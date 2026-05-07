@@ -60,7 +60,7 @@ class TestValidateGrid:
         assert not ok
         assert "out of range" in msg.lower()
         g2 = [[1, -1], [3, 4]]
-        ok2, msg2 = validate_grid(g2)
+        ok2, _msg2 = validate_grid(g2)
         assert not ok2
 
 

@@ -115,7 +115,7 @@ class TestCompoundUtils:
             "cohezion.core.mcp_client.create_mcp_client",
             return_value=fake_client,
         ):
-            client, is_fresh = await resolver.resolve("http://test:8080")
+            client, _is_fresh = await resolver.resolve("http://test:8080")
             assert client is fake_client
             fake_client.connect.assert_awaited_once()
 

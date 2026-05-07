@@ -71,7 +71,7 @@ class TestTemporalEncoderShape:
     def test_single_step_sequence(self, encoder) -> None:
         """Works with sequence length 1."""
         x = make_sequence(2, 1)
-        mu, logvar = encoder.encode(x)
+        mu, _logvar = encoder.encode(x)
         assert mu.shape == (2, LATENT_DIM)
 
     def test_long_sequence(self, encoder) -> None:
@@ -195,5 +195,5 @@ class TestTemporalEncoderInit:
 
         enc = TemporalEncoder(step_dim=16, d_model=64, latent_dim=128, n_heads=2, n_layers=1)
         x = torch.randn(2, 5, 16)
-        mu, logvar = enc.encode(x)
+        mu, _logvar = enc.encode(x)
         assert mu.shape == (2, 128)

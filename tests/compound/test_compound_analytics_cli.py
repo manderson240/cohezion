@@ -24,7 +24,7 @@ class TestCompoundAnalyticsCLI:
         assert rc == 0, f"Exit code {rc}: {out}"
 
     def test_status_shows_hiho(self):
-        rc, out = _run_cli("status")
+        _rc, out = _run_cli("status")
         assert "HIHO" in out or "COMPOUND" in out
 
     def test_health_command_exits_zero(self):
@@ -32,7 +32,7 @@ class TestCompoundAnalyticsCLI:
         assert rc == 0, f"Exit code {rc}: {out}"
 
     def test_health_shows_healthy(self):
-        rc, out = _run_cli("health")
+        _rc, out = _run_cli("health")
         assert "HEALTHY" in out
 
     def test_recommend_command_exits_zero(self):
@@ -40,6 +40,6 @@ class TestCompoundAnalyticsCLI:
         assert rc == 0, f"Exit code {rc}: {out}"
 
     def test_no_command_shows_help(self):
-        rc, out = _run_cli("--help")
+        _rc, out = _run_cli("--help")
         # Help exits with 0
         assert "status" in out or "recommend" in out

@@ -280,7 +280,7 @@ class SkillValidator:
 def main() -> int:
     """Main entry point."""
     validator = SkillValidator()
-    all_valid, results = validator.validate_all()
+    all_valid, _results = validator.validate_all()
     validator.print_report()
 
     # Export for CI

@@ -127,7 +127,7 @@ class MHDField:
 
     def compute_divergence(self) -> float:
         """Compute ∇·B across grid using finite differences."""
-        nx, ny, nz = self.grid_size
+        nx, _ny, _nz = self.grid_size
         dx = self.box_size / nx
 
         # Central differences for interior points
@@ -140,7 +140,7 @@ class MHDField:
 
     def compute_curl(self) -> np.ndarray:
         """Compute ∇ × B (current density in units where μ₀ = 4π)."""
-        nx, ny, nz = self.grid_size
+        nx, _ny, _nz = self.grid_size
         dx = self.box_size / nx
 
         # ∂Bz/∂y - ∂By/∂z

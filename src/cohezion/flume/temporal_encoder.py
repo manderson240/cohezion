@@ -287,7 +287,7 @@ class TemporalDecoder(nn.Module):
         Tensor [B, T, step_dim]
             Reconstructed step sequence.
         """
-        B, T, _ = target.shape
+        _B, T, _ = target.shape
 
         # Memory: expand z → [B, 1, d_model] as the encoder memory
         memory = self.latent_proj(z).unsqueeze(1)  # [B, 1, d_model]

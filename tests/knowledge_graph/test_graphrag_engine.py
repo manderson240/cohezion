@@ -58,7 +58,7 @@ async def test_vector_search_calls_client() -> None:
     await engine.vector_search(_EMBEDDING, top_k=3)
 
     client.query.assert_awaited_once()
-    _, kwargs = client.query.call_args
+    _, _kwargs = client.query.call_args
     # params are passed as the second positional arg
     call_args = client.query.call_args[0]
     assert call_args[1]["query_embedding"] == _EMBEDDING
