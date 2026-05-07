@@ -52,7 +52,7 @@ class TestModelRankerBasics:
         models = ["phi3:mini", "qwen3-coder:32b", "deepseek-r1:8b", "Phi-4-mini-instruct-Hybrid"]
         ranked = ranker.rank_models(available_models=models)
 
-        assert len(ranked) == 3
+        assert len(ranked) == 4
         # Should be sorted by composite score (highest first)
         for i in range(len(ranked) - 1):
             assert ranked[i][1].composite_score >= ranked[i + 1][1].composite_score
@@ -94,7 +94,7 @@ class TestRankingStrategies:
             strategy=RankingStrategy.BALANCED,
         )
 
-        assert len(ranked) == 3
+        assert len(ranked) == 4
         # All should have BALANCED strategy
         for _model, score in ranked:
             assert score.strategy == "balanced"
@@ -107,7 +107,7 @@ class TestRankingStrategies:
             strategy=RankingStrategy.COST_OPTIMIZED,
         )
 
-        assert len(ranked) == 3
+        assert len(ranked) == 4
         # All should have COST_OPTIMIZED strategy
         for _model, score in ranked:
             assert score.strategy == "cost_optimized"
@@ -120,7 +120,7 @@ class TestRankingStrategies:
             strategy=RankingStrategy.QUALITY_FIRST,
         )
 
-        assert len(ranked) == 3
+        assert len(ranked) == 4
         # All should have QUALITY_FIRST strategy
         for _model, score in ranked:
             assert score.strategy == "quality_first"
@@ -304,7 +304,7 @@ class TestMultiStrategyComparison:
         )
 
         for _strategy, rankings in all_strategies.items():
-            assert len(rankings) == 3
+            assert len(rankings) == len(models)
             assert all(isinstance(score, ModelScore) for _, score in rankings)
 
     def test_strategy_consistency_across_calls(self):
@@ -515,7 +515,7 @@ class TestWeightTuning:
             strategy=RankingStrategy.BALANCED,
         )
 
-        assert len(ranked) == 2
+        assert len(ranked) == 3  # 3 models in available_models
         assert all(0.0 <= s.composite_score <= 1.0 for _, s in ranked)
 
     def test_unbalanced_weights_warning(self):
