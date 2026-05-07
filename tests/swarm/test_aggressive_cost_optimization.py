@@ -102,16 +102,16 @@ class TestAggressiveCostOptimization:
         """Test that dynamic tuning relaxes thresholds when phi3 succeeds."""
         # Record successful phi3 executions
         for _ in range(10):
-            aggressive_router.record_execution("phi3:mini", 100, 50.0, success=True)
+            aggressive_router.record_execution(aggressive_router.TIER_SIMPLE, 100, 50.0, success=True)
             aggressive_router.record_execution("qwen3-coder:32b", 200, 100.0, success=True)
 
         initial_threshold = aggressive_router.cost_threshold
         initial_latency = aggressive_router.latency_threshold
 
-        # With 10 successes of phi3 vs qwen, ratio is 50%, so should increase thresholds
+        # With 10 successes of TIER_SIMPLE vs qwen, ratio is 50%, so should increase thresholds
         # More tuning calls
         for _ in range(10):
-            aggressive_router.record_execution("phi3:mini", 100, 50.0, success=True)
+            aggressive_router.record_execution(aggressive_router.TIER_SIMPLE, 100, 50.0, success=True)
 
         # Thresholds should be adjusted
         # (After high phi3 success, thresholds may increase to route more to phi3)

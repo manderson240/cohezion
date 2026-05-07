@@ -68,11 +68,11 @@ class TestCostTokenTradeoff:
     def test_quality_score_reflects_selected_model(self, router):
         """Test that quality score in decision matches selected model."""
         decision_simple, _ = router.select_model("What is Python?")
-        assert decision_simple.quality_score == 0.6  # phi3:mini quality
+        assert decision_simple.quality_score in (0.6, 0.82)  # phi3:mini or Phi-4-mini-instruct-Hybrid
 
         decision_medium, _ = router.select_model("Write a Python function")
         # May be qwen (0.85) or phi3 (0.6) due to optimization
-        assert decision_medium.quality_score in [0.6, 0.85]
+        assert decision_medium.quality_score in [0.6, 0.82, 0.85]
 
         decision_complex, _ = router.select_model("Design and implement a production system")
         # May be deepseek (0.95), qwen (0.85), or phi3 (0.6) due to optimization
