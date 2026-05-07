@@ -453,7 +453,7 @@ def _handle_run_cli(args: dict) -> dict:
     cmd = args["command"]
     timeout = args.get("timeout", 60)
     python = _resolve_python()
-    return _run_command([python, "-m", "cohezion"] + cmd.split(), timeout=timeout)
+    return _run_command([python, "-m", "cohezion", *cmd.split()], timeout=timeout)
 
 
 def _handle_status(_args: dict) -> dict:

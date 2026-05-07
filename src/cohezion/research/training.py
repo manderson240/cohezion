@@ -204,7 +204,7 @@ class SimpleTrainingRunner:
         start_time = time.time()
 
         try:
-            result = subprocess.run(  # noqa: S603 - resolved is validated to stay within allowed_root above
+            result = subprocess.run(
                 [
                     _python_exec(),
                     str(resolved),

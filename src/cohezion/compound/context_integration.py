@@ -72,9 +72,7 @@ class ContextManager:
         cls._context_cache.clear()
 
     @classmethod
-    def _cache_get(
-        cls, cache: dict[str, tuple[float, Any]], key: str
-    ) -> Any | None:
+    def _cache_get(cls, cache: dict[str, tuple[float, Any]], key: str) -> Any | None:
         """Return cached value if present and fresh, else None.
 
         Expired entries are evicted on read so the cache cannot grow
@@ -93,9 +91,7 @@ class ContextManager:
         return value
 
     @classmethod
-    def _cache_put(
-        cls, cache: dict[str, tuple[float, Any]], key: str, value: Any
-    ) -> None:
+    def _cache_put(cls, cache: dict[str, tuple[float, Any]], key: str, value: Any) -> None:
         """Store ``(now, value)`` in cache."""
         import time
 

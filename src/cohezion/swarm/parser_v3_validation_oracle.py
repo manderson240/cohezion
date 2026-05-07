@@ -142,10 +142,7 @@ class ValidationOracle:
             return False
 
         # Should have alphanumeric, hyphens, colons
-        if re.match(r"^[\w\-:\.]+$", name):
-            return True
-
-        return False
+        return bool(re.match(r"^[\w\-:\.]+$", name))
 
     def _has_size_in_name(self, name: str) -> bool:
         """Check if name contains size indicator."""
@@ -154,10 +151,7 @@ class ValidationOracle:
             return True
 
         # Check for E2B, E4B (Gemma specific)
-        if re.search(r"E\d+B", name):
-            return True
-
-        return False
+        return bool(re.search(r"E\d+B", name))
 
     def _check_known_prefix(self, name: str) -> str | None:
         """Check if name starts with known model prefix."""

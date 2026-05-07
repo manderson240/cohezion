@@ -43,7 +43,7 @@ class IntentionalClass:
     intention: DesignIntention
     purpose: str = ""
 
-    def __init__(self, intention: "DesignIntention | None" = None, purpose: str = "") -> None:
+    def __init__(self, intention: DesignIntention | None = None, purpose: str = "") -> None:
         if intention is not None:
             self.intention = intention
             self.purpose = purpose or intention.name.lower()
@@ -417,13 +417,13 @@ class PolarityPattern:
 
         return assessments
 
-    def balance(self, a: "Polarity", b: "Polarity", weight_a: float, weight_b: float) -> "Polarity":
+    def balance(self, a: Polarity, b: Polarity, weight_a: float, weight_b: float) -> Polarity:
         """Return the dominant polarity or BALANCE if equal within tolerance."""
         if abs(weight_a - weight_b) < 0.1:
             return Polarity.BALANCE
         return a if weight_a > weight_b else b
 
-    def recognize_polarity(self, text: str) -> "Polarity":
+    def recognize_polarity(self, text: str) -> Polarity:
         """Infer a Polarity from keyword presence in text."""
         text_lower = text.lower()
         yang_words = {"active", "aggressive", "assertive", "push", "yang", "output"}

@@ -216,7 +216,7 @@ class HardwareTelemetry:
             if result.returncode == 0:
                 data = json.loads(result.stdout)
                 if data:
-                    gpu_data = list(data.values())[0]
+                    gpu_data = next(iter(data.values()))
                     snapshot.temperature_c = float(gpu_data.get("Temperature", {}).get("Sensor", 0))
                     vram_used = gpu_data.get("VRAM", {}).get("Used", "0 MB")
                     vram_total = gpu_data.get("VRAM", {}).get("Total", "0 MB")

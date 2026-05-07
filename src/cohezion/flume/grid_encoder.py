@@ -134,7 +134,7 @@ class ARCGridEncoder(nn.Module):
             row = []
             for c in range(cols):
                 # Denormalize and round to nearest integer 0-9
-                val = int(round(x_hat[r, c] * 10.0))
+                val = round(x_hat[r, c] * 10.0)
                 row.append(max(0, min(9, val)))
             grid.append(row)
         return grid

@@ -3,6 +3,7 @@
 Provides terminal-friendly progress reporting for the overnight EVO loop,
 showing HIHO balance, experiment trends, and retirement status.
 """
+
 from __future__ import annotations
 
 from typing import Any
@@ -63,7 +64,9 @@ def render_session_summary(
     ]
 
     if score_trend:
-        trend_arrow = "▲" if score_trend.get("improving") else ("▼" if score_trend.get("degrading") else "→")
+        trend_arrow = (
+            "▲" if score_trend.get("improving") else ("▼" if score_trend.get("degrading") else "→")
+        )
         lines.append(f"  Score Trend:  {trend_arrow} mean={score_trend.get('mean', 0):.3f}")
 
     if retirement_candidates:

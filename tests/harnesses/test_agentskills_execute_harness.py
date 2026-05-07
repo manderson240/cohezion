@@ -19,7 +19,7 @@ async def verify():
         mock_engine_cls.return_value = mock_engine
 
         result = await agentskills_execute("low_agent", "bash", {})
-        assert result["success"] == False, "Should be blocked"
+        assert not result["success"], "Should be blocked"
         assert "Governance Violation" in result["error"]
 
     # 2. Test allowed (High autonomy)
@@ -29,7 +29,7 @@ async def verify():
         mock_engine_cls.return_value = mock_engine
 
         result = await agentskills_execute("high_agent", "bash", {"command": "ls"})
-        assert result["success"] == True, "Should be allowed"
+        assert result["success"], "Should be allowed"
         assert result["skill"] == "bash"
 
     print("✅ agentskills_execute harness passed.")

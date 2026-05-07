@@ -86,7 +86,7 @@ class MockRedisClient:
             return None
         return self.store.get(key)
 
-    async def set(self, key: str, value: bytes, ex: int = None) -> bool:
+    async def set(self, key: str, value: bytes, ex: int | None = None) -> bool:
         """Set value with optional TTL."""
         if self.failure_mode:
             raise ConnectionError("Mock Redis unavailable")
@@ -136,7 +136,7 @@ class MockSkillRegistry:
         self,
         agent_id: str,
         query: str,
-        weights: dict[str, float] = None,
+        weights: dict[str, float] | None = None,
     ) -> list[tuple[str, float]]:
         """Rank skills by score using weights."""
         if weights is None:
@@ -145,7 +145,7 @@ class MockSkillRegistry:
         ranked = []
         for skill_name, metrics in self.skills.items():
             score = sum(
-                metrics.get(key, 0) * weights[key] for key in weights.keys() if key in metrics
+                metrics.get(key, 0) * weights[key] for key in weights if key in metrics
             )
             ranked.append((skill_name, score))
 

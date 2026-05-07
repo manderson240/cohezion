@@ -91,7 +91,7 @@ def run_audit(audit_type: str = "pre") -> PlatformAudit:
 
     # 3. Run tests (quick check)
     try:
-        result = subprocess.run(  # noqa: S603 - static pytest invocation
+        result = subprocess.run(
             [_UV, "run", "pytest", "tests/", "-q", "--tb=no"],
             capture_output=True,
             text=True,

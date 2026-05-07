@@ -427,7 +427,7 @@ class DynamicAgentRegistry:
 
     def get_all_performance(self) -> dict[str, dict[str, Any]]:
         """Get performance for all agents."""
-        return {name: self.get_performance_summary(name) for name in self._agents.keys()}
+        return {name: self.get_performance_summary(name) for name in self._agents}
 
     # ═══════════════════════════════════════════════════════════════════
     # Watcher Notifications

@@ -101,7 +101,7 @@ class CircuitBreakerRouterAdapter:
 
     def get_available_backends(self) -> list[BackendType]:
         """Get list of available backends respecting circuit breakers."""
-        all_backends = [b for b in BackendType]
+        all_backends = list(BackendType)
         return [b for b in all_backends if self.is_backend_available(b)]
 
 
@@ -570,7 +570,7 @@ class DynamicSystemCoordinator:
         circuit_adapter = self.adapters.get("circuit")
         if circuit_adapter:
             return circuit_adapter.get_available_backends()
-        return [b for b in BackendType]
+        return list(BackendType)
 
     def add_event_handler(self, event: SystemEvent, handler: Callable):
         """Add custom event handler."""

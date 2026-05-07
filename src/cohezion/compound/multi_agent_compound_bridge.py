@@ -208,7 +208,7 @@ class MultiAgentCompoundBridge:
             latency_ms=agent_result.latency_ms,
             tokens_used=agent_result.tokens_used,
             routing_confidence=agent_result.routing_confidence,
-            selected_agents=[agent_result.agent_name] + agent_result.tools_invoked,
+            selected_agents=[agent_result.agent_name, *agent_result.tools_invoked],
             vault_guidance=vault_guidance,
             flume_embedding=flume_embedding,
             coherence_score=coherence,

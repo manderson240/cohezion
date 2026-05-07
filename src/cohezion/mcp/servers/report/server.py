@@ -313,7 +313,7 @@ if __name__ == "__main__":
             # output_dir so we don't depend on /tmp permissions.
             log_path = self.output_dir / f"marimo_{report_id}.log"
             log_fh = open(log_path, "ab")  # noqa: SIM115 - lives for child's lifetime
-            subprocess.Popen(  # noqa: S603 - cmd is static argv with validated nb_path
+            subprocess.Popen(
                 cmd,
                 stdout=log_fh,
                 stderr=subprocess.STDOUT,

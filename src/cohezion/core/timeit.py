@@ -1,4 +1,5 @@
 """Performance timing utilities for Cohezion."""
+
 from __future__ import annotations
 
 import logging

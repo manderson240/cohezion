@@ -436,7 +436,7 @@ class LemonadeModelEnhancer:
             model["capability_source"] = "default:text_generation"
 
         # Update model
-        model["capabilities"] = sorted(list(capabilities))
+        model["capabilities"] = sorted(capabilities)
         model["capability_confidence"] = max(confidence_scores) if confidence_scores else 0.50
 
         # Add context window estimates based on size

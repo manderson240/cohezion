@@ -494,10 +494,7 @@ def verify_submission(
         }
 
     challenges_path = data_dir / "arc-agi_test_challenges.json"
-    if challenges_path.exists():
-        challenges = json.loads(challenges_path.read_text())
-    else:
-        challenges = {}
+    challenges = json.loads(challenges_path.read_text()) if challenges_path.exists() else {}
 
     tasks = list(sub.keys())[:max_tasks] if max_tasks else list(sub.keys())
     for tid in tasks:

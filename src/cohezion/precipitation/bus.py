@@ -17,6 +17,7 @@ Step 10 precipitation. Keep it lean.
 from __future__ import annotations
 
 import asyncio
+import contextlib
 import logging
 import threading
 from collections.abc import Awaitable, Callable
@@ -96,10 +97,8 @@ class PrecipitationBus:
                 self._capacity,
                 event.event_id,
             )
-            try:
+            with contextlib.suppress(asyncio.QueueEmpty):
                 _ = self._queue.get_nowait()
-            except asyncio.QueueEmpty:
-                pass
             self._queue.put_nowait(event)
 
     async def aemit(self, event: PrecipitationEvent) -> None:
@@ -136,10 +135,8 @@ class PrecipitationBus:
         if drain and self._queue is not None:
             await self._queue.join()
         self._drainer_task.cancel()
-        try:
+        with contextlib.suppress(asyncio.CancelledError):
             await self._drainer_task
-        except asyncio.CancelledError:
-            pass
         self._drainer_task = None
 
     async def flush(self) -> None:

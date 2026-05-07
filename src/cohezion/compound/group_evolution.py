@@ -348,7 +348,7 @@ class GroupExperiencePool:
     @property
     def unique_agent_count(self) -> int:
         """Number of unique agents that contributed traces."""
-        return len(set(t.agent_id for t in self.traces))
+        return len({t.agent_id for t in self.traces})
 
     @property
     def trace_summary(self) -> dict[str, int]:

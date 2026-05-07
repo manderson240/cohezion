@@ -11,6 +11,7 @@ from typing import TYPE_CHECKING
 import numpy as np
 from pydantic import BaseModel, Field
 
+
 if TYPE_CHECKING:
     from cohezion.flume.vae_encoder import FlumeVAEEncoder
 

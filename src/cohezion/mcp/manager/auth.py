@@ -44,9 +44,7 @@ def get_current_token() -> str | None:
     except (OSError, ValueError, UnicodeDecodeError) as e:
         # Fail-closed but NOT silent — operator needs to know why all A2A
         # requests are 403'ing. (Ω12 P1 Patch 12)
-        logger.warning(
-            "Failed to read ephemeral token from %s: %s", AUTH_TOKEN_PATH, e
-        )
+        logger.warning("Failed to read ephemeral token from %s: %s", AUTH_TOKEN_PATH, e)
         return None
 
 

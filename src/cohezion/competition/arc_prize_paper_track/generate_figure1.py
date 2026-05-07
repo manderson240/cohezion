@@ -42,7 +42,7 @@ def draw_compound_loop():
 
     # Arrows between phases (circular flow)
     arrow_style = "Simple,head_width=8,head_length=6"
-    kw = dict(arrowstyle=arrow_style, color="#333333", linewidth=2)
+    kw = {"arrowstyle": arrow_style, "color": "#333333", "linewidth": 2}
 
     # Alignment -> Execution
     ax.annotate("", xy=(3.2, 3.5), xytext=(2.3, 3.5), arrowprops=kw)
@@ -61,9 +61,12 @@ def draw_compound_loop():
         "",
         xy=(1.5, 4.6),
         xytext=(9.0, 4.6),
-        arrowprops=dict(
-            arrowstyle=arrow_style, color="#333333", linewidth=2, connectionstyle="arc3,rad=-0.3"
-        ),
+        arrowprops={
+            "arrowstyle": arrow_style,
+            "color": "#333333",
+            "linewidth": 2,
+            "connectionstyle": "arc3,rad=-0.3",
+        },
     )
     ax.text(5.25, 5.1, "feedback", fontsize=7, ha="center", color="#555")
 
@@ -76,13 +79,17 @@ def draw_compound_loop():
         va="center",
         fontsize=9,
         style="italic",
-        bbox=dict(boxstyle="round,pad=0.3", facecolor="#f0f0f0", edgecolor="#999"),
+        bbox={"boxstyle": "round,pad=0.3", "facecolor": "#f0f0f0", "edgecolor": "#999"},
     )
 
     # Decision diamonds (governance checks)
-    diamond_kw = dict(
-        marker="D", markersize=14, color="#9013FE", markeredgecolor="black", markeredgewidth=1.2
-    )
+    diamond_kw = {
+        "marker": "D",
+        "markersize": 14,
+        "color": "#9013FE",
+        "markeredgecolor": "black",
+        "markeredgewidth": 1.2,
+    }
     ax.plot(2.75, 2.8, **diamond_kw)
     ax.text(2.75, 2.25, "HIHO\ncheck", ha="center", fontsize=7, color="#555")
 

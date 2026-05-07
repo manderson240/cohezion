@@ -33,10 +33,13 @@ from .scanner import SecurityChecklist, Vulnerability, build_severity_report
 def _resolve_repo_root():
     import os as _os
     from pathlib import Path as _Path
+
     env_root = _os.environ.get("MCP_REPO_ROOT")
     if env_root:
         return _Path(env_root)
     return _Path(__file__).resolve().parents[5]
+
+
 logging.basicConfig(
     level=logging.INFO,
     format="%(asctime)s [%(levelname)s] %(name)s: %(message)s",
@@ -323,7 +326,6 @@ async def tool_scan_file(request: web.Request) -> web.Response:
         if not file_path:
             return web.json_response({"error": "filePath is required"}, status=400)
 
-
         from cohezion.mcp.servers.safe_input import sanitize_path
 
         scanner = get_scanner()
@@ -349,7 +351,6 @@ async def tool_scan_project(request: web.Request) -> web.Response:
     try:
         data = await request.json()
         project_path = data.get("projectPath", ".")
-
 
         from cohezion.mcp.servers.safe_input import sanitize_path
 

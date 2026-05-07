@@ -92,7 +92,7 @@ class BirdCLEFBaseline:
         for i, window_prob in enumerate(probs):
             row_id = f"{filename}_{offsets[i]}"
             row = {"row_id": row_id}
-            row.update({species: prob for species, prob in zip(self.species_columns, window_prob)})
+            row.update(dict(zip(self.species_columns, window_prob)))
             rows.append(row)
         return pd.DataFrame(rows)
 

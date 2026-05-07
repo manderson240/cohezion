@@ -338,9 +338,7 @@ class MCPClient:
             logger.debug("vault_search failed: %s", exc)
             return []
 
-    def vault_search_by_operation(
-        self, operation: str, limit: int = 10
-    ) -> list[dict[str, Any]]:
+    def vault_search_by_operation(self, operation: str, limit: int = 10) -> list[dict[str, Any]]:
         """Hierarchical search for patterns under ``operations/<operation>``.
 
         Tries the folder-scoped lookup first; if it returns no rows, falls
@@ -356,9 +354,7 @@ class MCPClient:
             logger.debug("vault_search_by_operation failed: %s", exc)
             return []
 
-    def vault_search_by_domain(
-        self, domain: str, limit: int = 5
-    ) -> list[dict[str, Any]]:
+    def vault_search_by_domain(self, domain: str, limit: int = 5) -> list[dict[str, Any]]:
         """Hierarchical search for patterns under ``domains/<domain>``."""
         try:
             results = self.vault_search(f"domains/{domain}", limit=limit)
@@ -369,9 +365,7 @@ class MCPClient:
             logger.debug("vault_search_by_domain failed: %s", exc)
             return []
 
-    def vault_search_by_skill_category(
-        self, category: str, limit: int = 5
-    ) -> list[dict[str, Any]]:
+    def vault_search_by_skill_category(self, category: str, limit: int = 5) -> list[dict[str, Any]]:
         """Hierarchical search for patterns under ``skills/<category>``."""
         try:
             results = self.vault_search(f"skills/{category}", limit=limit)

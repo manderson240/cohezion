@@ -306,7 +306,7 @@ def _emit_generation_spawn(spec: UniverseSpec) -> None:
                 },
             )
         )
-    except Exception:  # noqa: BLE001
+    except Exception:
         logger.debug("Precipitation emit failed for GENERATION_SPAWN", exc_info=True)
 
 

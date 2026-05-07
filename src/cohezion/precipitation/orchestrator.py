@@ -25,10 +25,10 @@ import json
 import logging
 import subprocess
 import sys
+from collections.abc import Awaitable, Callable
 from dataclasses import dataclass, field
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from pathlib import Path
-from typing import Awaitable, Callable
 
 from cohezion.precipitation.bus import PrecipitationBus, get_bus
 from cohezion.precipitation.events import (
@@ -148,7 +148,7 @@ class PrecipitationOrchestrator:
     async def _run_generation(self) -> GenerationRecord:
         """Export DPO data, invoke training, emit checkpoint event."""
         generation = len(self.generations)
-        started_at = datetime.now(timezone.utc)
+        started_at = datetime.now(UTC)
         output_dir = self.config.output_dir / f"gen-{generation}"
         output_dir.mkdir(parents=True, exist_ok=True)
 
@@ -187,7 +187,7 @@ class PrecipitationOrchestrator:
             succeeded = True
             details = {"mode": "mock", "exported": {k: str(v) for k, v in exported.items()}}
 
-        finished_at = datetime.now(timezone.utc)
+        finished_at = datetime.now(UTC)
         record = GenerationRecord(
             generation=generation,
             checkpoint_path=checkpoint_path,
@@ -304,7 +304,7 @@ class PrecipitationOrchestrator:
             }
         except subprocess.TimeoutExpired as exc:
             return {"returncode": 124, "stdout": "", "stderr": f"timeout: {exc}"}
-        except Exception as exc:  # noqa: BLE001 — subprocess failures are logged, not raised
+        except Exception as exc:
             return {"returncode": 125, "stdout": "", "stderr": str(exc)}
 
     async def _emit_training_checkpoint(self, record: GenerationRecord) -> None:
@@ -329,7 +329,7 @@ class PrecipitationOrchestrator:
                     },
                 )
             )
-        except Exception:  # noqa: BLE001
+        except Exception:
             logger.debug("Precipitation emit failed for TRAINING_CHECKPOINT", exc_info=True)
 
 

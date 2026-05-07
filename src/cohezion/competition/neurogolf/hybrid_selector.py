@@ -115,7 +115,7 @@ if __name__ == "__main__":
             try:
                 # Single primitive program
                 ops = get_all_ops(task["train"])
-                op_map = {name: fn for name, fn in ops}
+                op_map = dict(ops)
                 if pname not in op_map:
                     continue
                 pred = apply_program(test_input, [op_map[pname]])

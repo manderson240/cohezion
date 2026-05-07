@@ -13,6 +13,7 @@ class ProtoCLR(nn.Module):
     Implements Prototypical Contrastive Learning (ProtoCLR).
     Reduces complexity of SupCon by comparing examples to class prototypes.
     """
+
     def __init__(self, temperature: float = 0.07):
         super().__init__()
         self.temperature = temperature
@@ -68,10 +69,12 @@ class ProtoCLR(nn.Module):
         loss = F.cross_entropy(logits, targets)
         return loss
 
+
 class DomainInvarianceHarness:
     """
     Harness to apply ProtoCLR during training to align domains.
     """
+
     def __init__(self, model: nn.Module, optimizer: torch.optim.Optimizer):
         self.model = model
         self.optimizer = optimizer
@@ -85,20 +88,20 @@ class DomainInvarianceHarness:
         self.optimizer.zero_grad()
 
         # Focal features
-        f_feats = self.model(focal_batch['audio'])
+        f_feats = self.model(focal_batch["audio"])
         # Passive features (may have noisy labels or be unlabeled)
-        p_feats = self.model(passive_batch['audio'])
+        p_feats = self.model(passive_batch["audio"])
 
         # Prototypical Contrastive Loss on both
         all_feats = torch.cat([f_feats, p_feats], dim=0)
-        all_labels = torch.cat([focal_batch['label'], passive_batch['label']], dim=0)
+        all_labels = torch.cat([focal_batch["label"], passive_batch["label"]], dim=0)
 
         loss_clr = self.protoclr(all_feats, all_labels)
 
         # Standard classification loss on focal only
         # loss_cls = F.cross_entropy(self.model.classifier(f_feats), focal_batch['label'])
 
-        loss = loss_clr # + loss_cls
+        loss = loss_clr  # + loss_cls
         loss.backward()
         self.optimizer.step()
 

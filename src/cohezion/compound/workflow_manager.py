@@ -93,7 +93,7 @@ class WorkflowManager:
 
         # Step 1: Check if model is available locally
         try:
-            output = subprocess.run(  # noqa: S603 - static probe with constant args
+            output = subprocess.run(
                 [_OLLAMA, "list"],
                 capture_output=True,
                 text=True,

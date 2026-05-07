@@ -14,7 +14,7 @@ _SCRIPTS_DIR = Path(__file__).resolve().parents[2] / "scripts"
 if str(_SCRIPTS_DIR) not in sys.path:
     sys.path.insert(0, str(_SCRIPTS_DIR))
 
-import migrate_skills_to_frontmatter as m  # noqa: E402
+import migrate_skills_to_frontmatter as m
 
 
 def test_filename_to_spec_name_standard_prime() -> None:

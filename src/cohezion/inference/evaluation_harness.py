@@ -267,7 +267,7 @@ class EvaluationHarness:
         else:
             return "stable"
 
-    def _generate_recommendations(self, trends: dict = None) -> list[str]:
+    def _generate_recommendations(self, trends: dict | None = None) -> list[str]:
         """Generate recommendations based on history."""
         recs = []
 

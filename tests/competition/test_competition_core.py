@@ -38,7 +38,7 @@ class _FakeProgram:
     def __call__(self, g: list[list[int]]) -> list[list[int]] | None:
         return [row[:] for row in g]
 
-    def __repr__(self) -> str:  # noqa: D105
+    def __repr__(self) -> str:
         return f"_FakeProgram({self._name})"
 
 

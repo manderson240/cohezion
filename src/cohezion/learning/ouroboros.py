@@ -104,6 +104,7 @@ class OuroborosEngine:
 
         return False
 
+
 def _emit_healing_event(exhaust: ExecutionExhaust, new_rule: str) -> None:
     """Emit a HEALING_EVENT PrecipitationEvent. Best effort."""
     try:

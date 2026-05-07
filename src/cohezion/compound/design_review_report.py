@@ -20,7 +20,7 @@ import hashlib
 import logging
 from dataclasses import dataclass, field
 from datetime import UTC, datetime
-from enum import Enum
+from enum import StrEnum
 from pathlib import Path
 from typing import Any
 
@@ -28,7 +28,7 @@ from typing import Any
 logger = logging.getLogger(__name__)
 
 
-class GateLevel(str, Enum):
+class GateLevel(StrEnum):
     """V-Model gate levels."""
 
     INTENT = "DRR-0"
@@ -37,7 +37,7 @@ class GateLevel(str, Enum):
     IMPLEMENTATION = "DRR-3"
 
 
-class FindingSeverity(str, Enum):
+class FindingSeverity(StrEnum):
     """DRR finding severity levels."""
 
     CRITICAL = "critical"  # Gate cannot pass

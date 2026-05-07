@@ -74,7 +74,7 @@ def get_master_models() -> list[str]:
             for m in m_list:
                 all_models.add(m)
 
-    return sorted(list(all_models))
+    return sorted(all_models)
 
 
 def sync_platform_config(config_path: Path, master_models: list[str]):

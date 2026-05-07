@@ -69,7 +69,7 @@ from __future__ import annotations
 
 import logging
 from dataclasses import dataclass, field
-from enum import Enum
+from enum import StrEnum
 from typing import Any
 
 import numpy as np
@@ -78,7 +78,7 @@ import numpy as np
 logger = logging.getLogger(__name__)
 
 
-class SymmetryGroup(str, Enum):
+class SymmetryGroup(StrEnum):
     """Symmetry groups in the 10-step breaking chain."""
 
     VOID = "void"  # Step 1: ∅ — before symmetry exists

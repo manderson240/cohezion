@@ -16,7 +16,7 @@ from __future__ import annotations
 import uuid
 from dataclasses import dataclass, field
 from datetime import UTC, datetime
-from enum import Enum
+from enum import StrEnum
 
 
 # 12D dimension names mirror the SurrealDB universe_node schema exactly.
@@ -48,7 +48,7 @@ FABRIC_DIMS: dict[str, tuple[str, ...]] = {
 HIHO_BASELINE = 0.5
 
 
-class PrecipitationKind(str, Enum):
+class PrecipitationKind(StrEnum):
     """Typed kinds of precipitation. Each producer emits one of these."""
 
     WITNESS_MARK = "witness_mark"  # agent artifact (commit/vault/decision)

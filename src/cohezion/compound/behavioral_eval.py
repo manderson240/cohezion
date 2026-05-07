@@ -16,13 +16,13 @@ from __future__ import annotations
 
 import logging
 from dataclasses import dataclass, field
-from enum import Enum
+from enum import StrEnum
 
 
 logger = logging.getLogger(__name__)
 
 
-class BehaviorProperty(str, Enum):
+class BehaviorProperty(StrEnum):
     NON_SYCOPHANCY = "non_sycophancy"
     NON_FABRICATION = "non_fabrication"
     NON_SELF_PREFERENCE = "non_self_preference"

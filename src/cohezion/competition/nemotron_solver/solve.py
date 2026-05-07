@@ -213,12 +213,9 @@ def _format_number(value: float, examples: list[tuple[str, str]]) -> str:
         m = re.search(r"([0-9]+\.([0-9]+))", out)
         if m:
             decimals.append(len(m.group(2)))
-    if decimals:
-        precision = max(set(decimals), key=decimals.count)
-    else:
-        precision = 0
+    precision = max(set(decimals), key=decimals.count) if decimals else 0
     if precision == 0:
-        return f"{int(round(value))}"
+        return f"{round(value)}"
     return f"{value:.{precision}f}"
 
 
@@ -1002,10 +999,7 @@ def _match_pattern(pattern: str, word: str) -> bool:
     """Check if word matches a pattern with ? wildcards."""
     if len(pattern) != len(word):
         return False
-    for p, w in zip(pattern, word):
-        if p != "?" and p != w:
-            return False
-    return True
+    return all(not (p != "?" and p != w) for p, w in zip(pattern, word))
 
 
 # ---------------------------------------------------------------------------

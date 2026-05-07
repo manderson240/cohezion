@@ -2,7 +2,6 @@
 Integrates pre-computed Perch embeddings and Perch v2 TFLite backbones.
 """
 
-
 import numpy as np
 import pandas as pd
 import torch

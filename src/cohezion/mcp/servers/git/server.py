@@ -50,7 +50,7 @@ class GitContext:
     def _run_git(self, args: list[str]) -> tuple[str, bool]:
         """Run git command and return output."""
         try:
-            result = subprocess.run(  # noqa: S603 - repo_path sanitized via sanitize_path; args from internal callers only
+            result = subprocess.run(
                 [_GIT, "-C", str(self.repo_path), *args],
                 capture_output=True,
                 text=True,

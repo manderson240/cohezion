@@ -145,9 +145,7 @@ class ProactiveMonitor:
             base_repo = path / "src/cohezion/core/persistence/repositories/base.py"
             bmad_observability = path / "_bmad/core/observability"
 
-            if base_repo.exists() and not bmad_observability.exists():
-                return True
-            return False
+            return bool(base_repo.exists() and not bmad_observability.exists())
 
         def suggest_metrics_integration(path: Path) -> ProactiveSuggestion:
             return ProactiveSuggestion(

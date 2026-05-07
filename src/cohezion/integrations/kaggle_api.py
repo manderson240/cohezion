@@ -66,9 +66,7 @@ class KaggleAPI:
         logger.info(f"Downloading data for competition: {competition_id} via kagglehub")
         try:
             # kagglehub.competition_download is synchronous blocking I/O
-            download_path = await asyncio.to_thread(
-                kagglehub.competition_download, competition_id
-            )
+            download_path = await asyncio.to_thread(kagglehub.competition_download, competition_id)
             logger.info(f"Data downloaded to: {download_path}")
             return Path(download_path)
         except Exception as e:

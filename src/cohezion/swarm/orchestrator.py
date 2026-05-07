@@ -178,5 +178,5 @@ class SimpleSwarm:
                 error="No agents available",
             )
 
-        agent = list(self.agents.values())[0]
+        agent = next(iter(self.agents.values()))
         return await agent.execute(task)

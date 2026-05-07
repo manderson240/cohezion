@@ -92,7 +92,12 @@ class SkillQualityOrchestrator:
         """
         # Phase 1: Evaluate
         report = self.scorer.evaluate(skill_path)
-        logger.info("Skill %s scored %.2f (HIHO-stable=%s)", report.skill_name, report.overall_score, report.hiho_stable)
+        logger.info(
+            "Skill %s scored %.2f (HIHO-stable=%s)",
+            report.skill_name,
+            report.overall_score,
+            report.hiho_stable,
+        )
 
         # Persist report immediately so every run is recorded
         self.data_pipeline.save_report(report.skill_name, report)
@@ -106,7 +111,12 @@ class SkillQualityOrchestrator:
                 after_score=report.overall_score,
                 applied=False,
                 hypothesis=ImprovementHypothesis(
-                    skill_name=report.skill_name, dimension="", action="none", patch="", expected_delta=0.0, confidence=1.0
+                    skill_name=report.skill_name,
+                    dimension="",
+                    action="none",
+                    patch="",
+                    expected_delta=0.0,
+                    confidence=1.0,
                 ),
                 consensus_approved=True,
             )
@@ -121,14 +131,25 @@ class SkillQualityOrchestrator:
                 after_score=report.overall_score,
                 applied=False,
                 hypothesis=ImprovementHypothesis(
-                    skill_name=report.skill_name, dimension="", action="none", patch="", expected_delta=0.0, confidence=0.0
+                    skill_name=report.skill_name,
+                    dimension="",
+                    action="none",
+                    patch="",
+                    expected_delta=0.0,
+                    confidence=0.0,
                 ),
                 consensus_approved=False,
             )
 
         # Phase 3: Try best hypothesis
         best = max(hypotheses, key=lambda h: h.expected_delta * h.confidence)
-        logger.info("Best hypothesis for %s: %s on %s (delta=%.2f)", report.skill_name, best.action, best.dimension, best.expected_delta)
+        logger.info(
+            "Best hypothesis for %s: %s on %s (delta=%.2f)",
+            report.skill_name,
+            best.action,
+            best.dimension,
+            best.expected_delta,
+        )
 
         # Phase 4: Apply patch (non-destructive backup)
         backup = skill_path.read_text()
@@ -156,13 +177,24 @@ class SkillQualityOrchestrator:
 
         if not approved:
             skill_path.write_text(backup)
-            logger.info("Consensus rejected patch for %s (delta=%.2f); rolled back", report.skill_name, actual_delta)
+            logger.info(
+                "Consensus rejected patch for %s (delta=%.2f); rolled back",
+                report.skill_name,
+                actual_delta,
+            )
         else:
             # Record version
             self.evolution.record_version(report.skill_name, skill_path.read_text())
             # Record health usage
-            self.health.record_usage(report.skill_name, success=True, quality_score=new_report.overall_score)
-            logger.info("Patch accepted for %s: %.2f → %.2f", report.skill_name, report.overall_score, new_report.overall_score)
+            self.health.record_usage(
+                report.skill_name, success=True, quality_score=new_report.overall_score
+            )
+            logger.info(
+                "Patch accepted for %s: %.2f → %.2f",
+                report.skill_name,
+                report.overall_score,
+                new_report.overall_score,
+            )
 
         return ImprovementResult(
             skill_name=report.skill_name,
@@ -193,44 +225,52 @@ class SkillQualityOrchestrator:
                 for issue in dim.issues:
                     if "Missing geometric anchors" in issue:
                         patch = "\n## Geometric Correspondences\n- **0.5** = HIHO threshold (Shannon max)\n- **256** = FLUME latent dimension\n- **SU(2)** = agent state gauge group\n"
-                        hypos.append(ImprovementHypothesis(
-                            skill_name=report.skill_name,
-                            dimension="hiho_coherence",
-                            action="add_anchor",
-                            patch=patch,
-                            expected_delta=0.25 * (1 - dim.score),
-                            confidence=0.9,
-                        ))
+                        hypos.append(
+                            ImprovementHypothesis(
+                                skill_name=report.skill_name,
+                                dimension="hiho_coherence",
+                                action="add_anchor",
+                                patch=patch,
+                                expected_delta=0.25 * (1 - dim.score),
+                                confidence=0.9,
+                            )
+                        )
             elif dim.name == "structural":
                 patch = "\n## When to Use This Skill\nUse when:\n- Task involves X, Y, or Z\n\n## Instruction\n1. Step one\n2. Step two\n\n## See Also\n- related-skill\n"
-                hypos.append(ImprovementHypothesis(
-                    skill_name=report.skill_name,
-                    dimension="structural",
-                    action="add_section",
-                    patch=patch,
-                    expected_delta=0.20 * (1 - dim.score),
-                    confidence=0.8,
-                ))
+                hypos.append(
+                    ImprovementHypothesis(
+                        skill_name=report.skill_name,
+                        dimension="structural",
+                        action="add_section",
+                        patch=patch,
+                        expected_delta=0.20 * (1 - dim.score),
+                        confidence=0.8,
+                    )
+                )
             elif dim.name == "testability":
                 patch = "\n```python\n# Example usage\nfrom cohezion.module import Example\nresult = Example.run()\n```\n"
-                hypos.append(ImprovementHypothesis(
-                    skill_name=report.skill_name,
-                    dimension="testability",
-                    action="add_example",
-                    patch=patch,
-                    expected_delta=0.20 * (1 - dim.score),
-                    confidence=0.7,
-                ))
+                hypos.append(
+                    ImprovementHypothesis(
+                        skill_name=report.skill_name,
+                        dimension="testability",
+                        action="add_example",
+                        patch=patch,
+                        expected_delta=0.20 * (1 - dim.score),
+                        confidence=0.7,
+                    )
+                )
             elif dim.name == "version_currency":
                 patch = '\nmetadata:\n  version: "1.0.0"\n  project: cohezion\n'
-                hypos.append(ImprovementHypothesis(
-                    skill_name=report.skill_name,
-                    dimension="version_currency",
-                    action="bump_version",
-                    patch=patch,
-                    expected_delta=0.15 * (1 - dim.score),
-                    confidence=0.95,
-                ))
+                hypos.append(
+                    ImprovementHypothesis(
+                        skill_name=report.skill_name,
+                        dimension="version_currency",
+                        action="bump_version",
+                        patch=patch,
+                        expected_delta=0.15 * (1 - dim.score),
+                        confidence=0.95,
+                    )
+                )
 
         # Autoresearch data-driven hypotheses
         metrics = {
@@ -244,23 +284,29 @@ class SkillQualityOrchestrator:
             for opp in opportunities:
                 # Map autoresearch opportunity to skill improvement hypothesis
                 if opp.category == "cache" and report.overall_score < 0.5:
-                    hypos.append(ImprovementHypothesis(
-                        skill_name=report.skill_name,
-                        dimension="hiho_coherence",
-                        action="add_anchor",
-                        patch="\n## Autoresearch Insight\n- **Coherence below threshold** — " + opp.recommendation + "\n",
-                        expected_delta=0.05,
-                        confidence=0.6,
-                    ))
+                    hypos.append(
+                        ImprovementHypothesis(
+                            skill_name=report.skill_name,
+                            dimension="hiho_coherence",
+                            action="add_anchor",
+                            patch="\n## Autoresearch Insight\n- **Coherence below threshold** — "
+                            + opp.recommendation
+                            + "\n",
+                            expected_delta=0.05,
+                            confidence=0.6,
+                        )
+                    )
                 elif opp.category == "token_efficiency":
-                    hypos.append(ImprovementHypothesis(
-                        skill_name=report.skill_name,
-                        dimension="testability",
-                        action="add_example",
-                        patch="\n## Token Efficiency\n" + opp.recommendation + "\n",
-                        expected_delta=0.05,
-                        confidence=0.5,
-                    ))
+                    hypos.append(
+                        ImprovementHypothesis(
+                            skill_name=report.skill_name,
+                            dimension="testability",
+                            action="add_example",
+                            patch="\n## Token Efficiency\n" + opp.recommendation + "\n",
+                            expected_delta=0.05,
+                            confidence=0.5,
+                        )
+                    )
         except Exception as e:
             logger.warning("Autoresearch analysis failed for %s: %s", report.skill_name, e)
 
@@ -287,13 +333,15 @@ class SkillQualityOrchestrator:
                     # Already has frontmatter — append metadata inside
                     lines = content.splitlines()
                     end_fm = lines.index("---", 1) if "---" in lines[1:] else len(lines)
-                    lines.insert(end_fm, "  version: \"1.0.0\"")
+                    lines.insert(end_fm, '  version: "1.0.0"')
                     lines.insert(end_fm, "  project: cohezion")
                     content = "\n".join(lines) + "\n"
                 else:
                     content = "---\n" + hypothesis.patch.strip() + "\n---\n\n" + content
             else:
-                content = content.rstrip() + "\n\n# Updated metadata\n" + hypothesis.patch.strip() + "\n"
+                content = (
+                    content.rstrip() + "\n\n# Updated metadata\n" + hypothesis.patch.strip() + "\n"
+                )
         else:
             return False
 
@@ -303,10 +351,15 @@ class SkillQualityOrchestrator:
     def _count_diff_lines(self, before: str, after: str) -> int:
         """Count changed lines between two texts."""
         import difflib
-        diff = list(difflib.unified_diff(before.splitlines(), after.splitlines(), lineterm=""))
-        return len([l for l in diff if l.startswith(("+", "-")) and not l.startswith(("+++", "---"))])
 
-    async def batch_improve(self, skill_dir: Path, min_score: float = 0.5) -> list[ImprovementResult]:
+        diff = list(difflib.unified_diff(before.splitlines(), after.splitlines(), lineterm=""))
+        return len(
+            [l for l in diff if l.startswith(("+", "-")) and not l.startswith(("+++", "---"))]
+        )
+
+    async def batch_improve(
+        self, skill_dir: Path, min_score: float = 0.5
+    ) -> list[ImprovementResult]:
         """Evaluate all skills in a directory and improve those below threshold.
 
         Returns:
@@ -320,13 +373,22 @@ class SkillQualityOrchestrator:
                 results.append(result)
             except Exception as e:
                 logger.error("Failed to improve %s: %s", path, e)
-                results.append(ImprovementResult(
-                    skill_name=path.stem,
-                    before_score=0.0,
-                    after_score=0.0,
-                    applied=False,
-                    hypothesis=ImprovementHypothesis(skill_name=path.stem, dimension="", action="none", patch="", expected_delta=0.0, confidence=0.0),
-                    consensus_approved=False,
-                    error=str(e),
-                ))
+                results.append(
+                    ImprovementResult(
+                        skill_name=path.stem,
+                        before_score=0.0,
+                        after_score=0.0,
+                        applied=False,
+                        hypothesis=ImprovementHypothesis(
+                            skill_name=path.stem,
+                            dimension="",
+                            action="none",
+                            patch="",
+                            expected_delta=0.0,
+                            confidence=0.0,
+                        ),
+                        consensus_approved=False,
+                        error=str(e),
+                    )
+                )
         return results

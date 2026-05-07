@@ -129,7 +129,7 @@ class UniverseArtifactMigration:
 
         try:
             # Get file count
-            result = subprocess.run(  # noqa: S603 - git args static, no user input
+            result = subprocess.run(
                 [
                     _GIT,
                     "ls-tree",
@@ -150,7 +150,7 @@ class UniverseArtifactMigration:
             file_count = len([f for f in files if f])
 
             # Calculate total size
-            result = subprocess.run(  # noqa: S603 - git args static, no user input
+            result = subprocess.run(
                 [
                     _GIT,
                     "ls-tree",
@@ -167,7 +167,7 @@ class UniverseArtifactMigration:
             total_bytes = sum(int(line) for line in result.stdout.strip().split("\n") if line)
 
             # Get commit history
-            result = subprocess.run(  # noqa: S603 - git args static, no user input
+            result = subprocess.run(
                 [
                     _GIT,
                     "log",
@@ -218,7 +218,7 @@ class UniverseArtifactMigration:
             # Export artifacts from git
             tar_path = artifacts_path / "universe_artifacts.tar.gz"
 
-            result = subprocess.run(  # noqa: S603 - git args static, tar_path internal
+            result = subprocess.run(
                 [
                     _GIT,
                     "archive",

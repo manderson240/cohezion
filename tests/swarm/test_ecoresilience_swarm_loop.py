@@ -29,14 +29,16 @@ class TestEcoResilienceSwarmLoop:
         )
 
         # PhysicsAgent (Ollama)
-        mock_physics_fn = lambda task: (
-            "Physics: 12D Manifold shows gravitational divergence in the water table."
-        )
+        def mock_physics_fn(task):
+            return (
+                    "Physics: 12D Manifold shows gravitational divergence in the water table."
+                )
 
         # BiologistAgent (Mistral)
-        mock_biologist_fn = lambda task: (
-            "Biology: Microbial diversity dropping below critical threshold."
-        )
+        def mock_biologist_fn(task):
+            return (
+                    "Biology: Microbial diversity dropping below critical threshold."
+                )
 
         # 3. Register Agents in Swarm
         orchestrator.register_agent(

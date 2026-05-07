@@ -143,7 +143,9 @@ class SkillQualityScorer:
         if score < 1.0:
             missing = [a for a in self.HIHO_ANCHORS if a not in content]
             issues.append(f"Missing geometric anchors: {', '.join(missing)}")
-        return DimensionScore(name="hiho_coherence", score=score, weight=self.weights["hiho_coherence"], issues=issues)
+        return DimensionScore(
+            name="hiho_coherence", score=score, weight=self.weights["hiho_coherence"], issues=issues
+        )
 
     def _score_structural(self, content: str, name: str) -> DimensionScore:
         """Score presence of required sections."""
@@ -157,7 +159,9 @@ class SkillQualityScorer:
         if score < 1.0:
             missing = [s for s in self.STRUCTURAL_SECTIONS if s not in content_lower]
             issues.append(f"Missing sections: {', '.join(missing)}")
-        return DimensionScore(name="structural", score=score, weight=self.weights["structural"], issues=issues)
+        return DimensionScore(
+            name="structural", score=score, weight=self.weights["structural"], issues=issues
+        )
 
     def _score_testability(self, content: str, name: str) -> DimensionScore:
         """Score presence of executable code examples and linked references."""
@@ -169,7 +173,9 @@ class SkillQualityScorer:
             issues.append("No executable Python code examples")
         if not has_references:
             issues.append("No linked references or See Also section")
-        return DimensionScore(name="testability", score=score, weight=self.weights["testability"], issues=issues)
+        return DimensionScore(
+            name="testability", score=score, weight=self.weights["testability"], issues=issues
+        )
 
     def _score_version(self, content: str, name: str) -> DimensionScore:
         """Score version currency and metadata completeness."""
@@ -184,22 +190,39 @@ class SkillQualityScorer:
             issues.append("Missing project field")
         if not has_metadata:
             issues.append("Missing metadata block")
-        return DimensionScore(name="version_currency", score=score, weight=self.weights["version_currency"], issues=issues)
+        return DimensionScore(
+            name="version_currency",
+            score=score,
+            weight=self.weights["version_currency"],
+            issues=issues,
+        )
 
     def _score_usage(self, name: str) -> DimensionScore:
         """Score from SkillHealthTracker if available; default neutral if not tracked."""
         if self._health is None:
-            return DimensionScore(name="usage_health", score=0.5, weight=self.weights["usage_health"], issues=["No health tracker attached"])
+            return DimensionScore(
+                name="usage_health",
+                score=0.5,
+                weight=self.weights["usage_health"],
+                issues=["No health tracker attached"],
+            )
         record = self._health.get_health(name)
         if record is None:
-            return DimensionScore(name="usage_health", score=0.3, weight=self.weights["usage_health"], issues=["Skill never used"])
+            return DimensionScore(
+                name="usage_health",
+                score=0.3,
+                weight=self.weights["usage_health"],
+                issues=["Skill never used"],
+            )
         score = record.health_score
         issues = []
         if score < 0.5:
             issues.append(f"Health score {score:.2f} below HIHO threshold")
         if record.total_invocations < 3:
             issues.append(f"Only {record.total_invocations} invocations (insufficient data)")
-        return DimensionScore(name="usage_health", score=score, weight=self.weights["usage_health"], issues=issues)
+        return DimensionScore(
+            name="usage_health", score=score, weight=self.weights["usage_health"], issues=issues
+        )
 
     # ------------------------------------------------------------------
     # Helpers
@@ -207,10 +230,10 @@ class SkillQualityScorer:
 
     def _extract_name(self, content: str, fallback: str) -> str:
         """Extract skill name from frontmatter or first heading."""
-        m = re.search(r'^name:\s*(\S+)', content, re.MULTILINE)
+        m = re.search(r"^name:\s*(\S+)", content, re.MULTILINE)
         if m:
             return m.group(1).strip()
-        m = re.search(r'^#\s*SKILL:\s*(\S+)', content, re.MULTILINE)
+        m = re.search(r"^#\s*SKILL:\s*(\S+)", content, re.MULTILINE)
         if m:
             return m.group(1).strip()
         return fallback
@@ -226,11 +249,19 @@ class SkillQualityScorer:
 
     def _empty_report(self, name: str, path: Path) -> SkillQualityReport:
         dims = [
-            DimensionScore("hiho_coherence", 0.0, self.weights["hiho_coherence"], ["Skill file not found"]),
+            DimensionScore(
+                "hiho_coherence", 0.0, self.weights["hiho_coherence"], ["Skill file not found"]
+            ),
             DimensionScore("structural", 0.0, self.weights["structural"], ["Skill file not found"]),
-            DimensionScore("testability", 0.0, self.weights["testability"], ["Skill file not found"]),
-            DimensionScore("version_currency", 0.0, self.weights["version_currency"], ["Skill file not found"]),
-            DimensionScore("usage_health", 0.0, self.weights["usage_health"], ["Skill file not found"]),
+            DimensionScore(
+                "testability", 0.0, self.weights["testability"], ["Skill file not found"]
+            ),
+            DimensionScore(
+                "version_currency", 0.0, self.weights["version_currency"], ["Skill file not found"]
+            ),
+            DimensionScore(
+                "usage_health", 0.0, self.weights["usage_health"], ["Skill file not found"]
+            ),
         ]
         return SkillQualityReport(
             skill_name=name,

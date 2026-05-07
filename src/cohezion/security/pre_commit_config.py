@@ -26,7 +26,7 @@ class PreCommitConfiguration:
             True if detect-secrets is available, False otherwise
         """
         try:
-            result = subprocess.run(  # noqa: S603 - static probe; tool may not be installed
+            result = subprocess.run(
                 [_which("detect-secrets"), "--version"],
                 capture_output=True,
                 text=True,
@@ -45,7 +45,7 @@ class PreCommitConfiguration:
             True if pre-commit is available, False otherwise
         """
         try:
-            result = subprocess.run(  # noqa: S603 - static probe; tool may not be installed
+            result = subprocess.run(
                 [_which("pre-commit"), "--version"],
                 capture_output=True,
                 text=True,
@@ -64,7 +64,7 @@ class PreCommitConfiguration:
             True if installation successful, False otherwise
         """
         try:
-            result = subprocess.run(  # noqa: S603 - static install command, no user input
+            result = subprocess.run(
                 [_which("pip"), "install", "detect-secrets"],
                 capture_output=True,
                 text=True,
@@ -89,7 +89,7 @@ class PreCommitConfiguration:
             True if installation successful, False otherwise
         """
         try:
-            result = subprocess.run(  # noqa: S603 - static install command, no user input
+            result = subprocess.run(
                 [_which("pip"), "install", "pre-commit"],
                 capture_output=True,
                 text=True,
@@ -215,7 +215,7 @@ repos:
         """
         try:
             # Initialize baseline with no secrets
-            result = subprocess.run(  # noqa: S603 - baseline_path internal, args static
+            result = subprocess.run(
                 [
                     _which("detect-secrets"),
                     "scan",
@@ -263,7 +263,7 @@ repos:
             if repo_path:
                 kwargs["cwd"] = repo_path
 
-            result = subprocess.run(cmd, **kwargs)  # noqa: S603 - static command
+            result = subprocess.run(cmd, **kwargs)
 
             if result.returncode == 0:
                 logger.info("✓ Pre-commit hooks installed successfully")
@@ -290,7 +290,7 @@ repos:
             True if no new secrets found, False if secrets detected
         """
         try:
-            result = subprocess.run(  # noqa: S603 - baseline_path internal, args static
+            result = subprocess.run(
                 [
                     _which("detect-secrets"),
                     "scan",

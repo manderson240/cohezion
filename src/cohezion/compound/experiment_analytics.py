@@ -6,6 +6,7 @@ Reads autoresearch.jsonl and computes:
 - Retirement candidates (CV < threshold)
 - Top-performing experiments
 """
+
 from __future__ import annotations
 
 import contextlib
@@ -129,7 +130,8 @@ def compute_experiment_velocity(
 
     cutoff_ms = now_ms - time_window_ms
     recent = [
-        r for r in records
+        r
+        for r in records
         if r.get("asi", {}).get("experiment") == experiment
         and r.get("timestamp", 0) >= cutoff_ms
         and r.get("status") == "keep"

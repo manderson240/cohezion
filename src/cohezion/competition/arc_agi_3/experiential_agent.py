@@ -290,7 +290,7 @@ class ExperientialAgent:
                 if pred is None:
                     continue
                 next_state, reward = pred
-                new_path = path + [action]
+                new_path = [*path, action]
 
                 if reward > best_reward:
                     best_reward = reward

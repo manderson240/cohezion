@@ -143,7 +143,9 @@ class SurrealDBClient:
 
         # Map 12D dimension_state to physics_state object fields
         ds = node.dimension_state
-        p = lambda i: float(ds[i]) if i < len(ds) else 0.5
+
+        def p(i):
+            return float(ds[i]) if i < len(ds) else 0.5
 
         physics = {
             "x": p(0),
@@ -197,7 +199,10 @@ class SurrealDBClient:
         safe_id = event.journey_id.replace(":", "_").replace(" ", "_")[:60]
 
         ds = event.state_12d
-        p = lambda i: float(ds[i]) if i < len(ds) else 0.5
+
+        def p(i):
+            return float(ds[i]) if i < len(ds) else 0.5
+
         physics = {
             "x": p(0),
             "y": p(1),
@@ -267,7 +272,10 @@ class SurrealDBClient:
         journey_ref = self._active_journey_id or "agent_journey:default"
 
         ds = getattr(event, "state_12d", [0.5] * 12)
-        p = lambda i: float(ds[i]) if i < len(ds) else 0.5
+
+        def p(i):
+            return float(ds[i]) if i < len(ds) else 0.5
+
         physics = {
             "x": p(0),
             "y": p(1),

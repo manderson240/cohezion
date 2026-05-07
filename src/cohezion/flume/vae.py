@@ -184,10 +184,7 @@ class FlumeVAE(nn.Module):
         """Full VAE forward pass. Returns (recon_or_logits, mu, log_var, z)."""
         mu, log_var = self.encode(input_ids, attention_mask)
         z = self.reparameterize(mu, log_var)
-        if self._legacy_mode:
-            recon = self.decode(z)
-        else:
-            recon = self.decode(z, input_ids)
+        recon = self.decode(z) if self._legacy_mode else self.decode(z, input_ids)
         return recon, mu, log_var, z
 
     def compute_loss(

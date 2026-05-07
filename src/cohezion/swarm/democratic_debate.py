@@ -292,7 +292,7 @@ class DemocraticDebate:
             if proposals:
                 # Simple: use synthesizer's proposal as the integrated view
                 debate_round.winning_proposal = proposals.get(
-                    "synthesizer", list(proposals.values())[0]
+                    "synthesizer", next(iter(proposals.values()))
                 )
 
             session.rounds.append(debate_round)

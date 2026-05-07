@@ -107,7 +107,7 @@ def predict_fallback(task: dict) -> list | None:
     """Try depth-1 primitive search as final fallback."""
     try:
         ops = [
-            ("identity", lambda g: [[c for c in row] for row in g]),
+            ("identity", lambda g: [list(row) for row in g]),
             ("flip_h", lambda g: g[::-1]),
             ("transpose", lambda g: list(map(list, zip(*g)))),
         ]

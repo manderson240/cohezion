@@ -37,9 +37,7 @@ class IntentPayload:
             return False
         if not self.intent or not self.intent.strip():
             return False
-        if len(self.latent_vector) != MANIFOLD_DIM:
-            return False
-        return True
+        return len(self.latent_vector) == MANIFOLD_DIM
 
     def to_dict(self) -> dict:
         """Serialize for audit logging."""

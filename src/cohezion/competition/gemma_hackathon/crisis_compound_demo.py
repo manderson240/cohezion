@@ -221,9 +221,9 @@ class CrisisCompoundAgent:
         # 3. Scale resources to severity
         resources = report.resources_needed[: min(3, len(report.resources_needed))]
         if report.severity >= 8:
-            resources = resources + ["emergency_tier_1"]
+            resources = [*resources, "emergency_tier_1"]
         if report.severity >= 9:
-            resources = resources + ["emergency_tier_0"]
+            resources = [*resources, "emergency_tier_0"]
 
         # 4. Formulate response
         action = ResponseAction(

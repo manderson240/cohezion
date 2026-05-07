@@ -91,7 +91,7 @@ def extract_tools_from_file(file_path: Path) -> list[str]:
                 if match:
                     tools.append(match.group(1))
 
-        return sorted(list(set(tools)))
+        return sorted(set(tools))
     except Exception as e:
         logger.error(f"Regex tool extraction failed for {file_path}: {e}")
         return []

@@ -106,6 +106,10 @@ from cohezion.swarm.token_client import (
 
 
 __all__ = [
+    "CODE_SPECIALIST",
+    "NOVEL_SPECIALIST",
+    "REASONING_SPECIALIST",
+    "VALIDATED_SPECIALISTS",
     "AdaptiveRouter",
     "AdaptiveRoutingDecision",
     "AgentModule",
@@ -117,7 +121,6 @@ __all__ = [
     "BatchItem",
     "BatchProcessor",
     "BatchResult",
-    "CODE_SPECIALIST",
     "CacheEntry",
     "CacheOptimizationConfig",
     "ComputeBackendRouter",
@@ -132,13 +135,11 @@ __all__ = [
     "MultiAgentOrchestrator",
     "MultiLayerCache",
     "MultiLayerCacheEntry",
-    "NOVEL_SPECIALIST",
     "PersistentCache",
     "PersistentTokenCache",
     "PoolStatus",
     "PooledModel",
     "Priority",
-    "REASONING_SPECIALIST",
     "ResilientOllamaClient",
     "RoutingDecision",
     "RoutingRequest",
@@ -148,7 +149,7 @@ __all__ = [
     "TokenCacheOptimizer",
     "TokenEfficientClient",
     "ToolRegistry",
-    "VALIDATED_SPECIALISTS",
+    "execute_task",
     # "get_concurrency_gate",  # Module unavailable
     "get_global_registry",
     "get_orchestrator",
@@ -161,5 +162,4 @@ __all__ = [
     "reset_pool_manager",
     "route_compute",
     "route_task",
-    "execute_task",
 ]

@@ -22,6 +22,7 @@ from typing import Any
 import httpx
 import numpy as np
 
+
 # Defensive imports — the surrealdb library's exception surface evolves
 # across versions. Older versions don't ship SurrealDBMethodError; CBOR
 # error types may live in different submodules. Fall back to () so the
@@ -413,10 +414,10 @@ DEFINE FIELD stability_score ON TABLE universe_nodes VALUE (
             logger.info("Schema created successfully")
             return True
         except (
+            TimeoutError,
             ConnectionError,
             OSError,
             httpx.HTTPError,
-            asyncio.TimeoutError,
             RuntimeError,
             ValueError,
             TypeError,
@@ -449,10 +450,10 @@ DEFINE FIELD stability_score ON TABLE universe_nodes VALUE (
             return node.id
 
         except (
+            TimeoutError,
             ConnectionError,
             OSError,
             httpx.HTTPError,
-            asyncio.TimeoutError,
             RuntimeError,
             ValueError,
             KeyError,
@@ -478,10 +479,10 @@ DEFINE FIELD stability_score ON TABLE universe_nodes VALUE (
             else:
                 return await self._client.create(table, data)
         except (
+            TimeoutError,
             ConnectionError,
             OSError,
             httpx.HTTPError,
-            asyncio.TimeoutError,
             RuntimeError,
             ValueError,
             KeyError,
@@ -630,10 +631,10 @@ DEFINE FIELD stability_score ON TABLE universe_nodes VALUE (
             logger.info(f"SurrealDB Response: {res}")
             return res
         except (
+            TimeoutError,
             ConnectionError,
             OSError,
             httpx.HTTPError,
-            asyncio.TimeoutError,
             RuntimeError,
             ValueError,
             KeyError,
@@ -664,10 +665,10 @@ DEFINE FIELD stability_score ON TABLE universe_nodes VALUE (
             return self._dict_to_node(data)
 
         except (
+            TimeoutError,
             ConnectionError,
             OSError,
             httpx.HTTPError,
-            asyncio.TimeoutError,
             RuntimeError,
             ValueError,
             KeyError,
@@ -713,10 +714,10 @@ DEFINE FIELD stability_score ON TABLE universe_nodes VALUE (
             return [self._dict_to_node(r) for r in results]
 
         except (
+            TimeoutError,
             ConnectionError,
             OSError,
             httpx.HTTPError,
-            asyncio.TimeoutError,
             RuntimeError,
             ValueError,
             KeyError,
@@ -747,10 +748,10 @@ DEFINE FIELD stability_score ON TABLE universe_nodes VALUE (
             return [self._dict_to_node(r) for r in results]
 
         except (
+            TimeoutError,
             ConnectionError,
             OSError,
             httpx.HTTPError,
-            asyncio.TimeoutError,
             RuntimeError,
             ValueError,
             KeyError,
@@ -824,10 +825,10 @@ DEFINE FIELD stability_score ON TABLE universe_nodes VALUE (
                 return None
 
         except (
+            TimeoutError,
             ConnectionError,
             OSError,
             httpx.HTTPError,
-            asyncio.TimeoutError,
             RuntimeError,
             ValueError,
             KeyError,
@@ -876,10 +877,10 @@ DEFINE FIELD stability_score ON TABLE universe_nodes VALUE (
                 return []
 
         except (
+            TimeoutError,
             ConnectionError,
             OSError,
             httpx.HTTPError,
-            asyncio.TimeoutError,
             RuntimeError,
             ValueError,
             KeyError,
@@ -939,10 +940,10 @@ DEFINE FIELD stability_score ON TABLE universe_nodes VALUE (
                 return []
 
         except (
+            TimeoutError,
             ConnectionError,
             OSError,
             httpx.HTTPError,
-            asyncio.TimeoutError,
             RuntimeError,
             ValueError,
             KeyError,

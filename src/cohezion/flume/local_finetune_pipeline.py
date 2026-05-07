@@ -230,7 +230,7 @@ PARAMETER top_k 20
         """Deploy finetuned model to Ollama."""
         modelfile = self.create_ollama_modelfile()
 
-        result = subprocess.run(  # noqa: S603 - output_name internal config; modelfile internal path
+        result = subprocess.run(
             [_OLLAMA, "create", self.output_name, "-f", str(modelfile)],
             capture_output=True,
             text=True,
@@ -243,7 +243,7 @@ PARAMETER top_k 20
             logger.warning(f"Modelfile deploy failed: {result.stderr}")
             logger.info("Trying alternative method...")
 
-            result = subprocess.run(  # noqa: S603 - base_model is internal config
+            result = subprocess.run(
                 [_OLLAMA, "run", "--dry-run", self.base_model],
                 capture_output=True,
                 text=True,

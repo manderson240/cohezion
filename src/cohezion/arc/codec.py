@@ -97,7 +97,7 @@ def _denormalize_grid(arr: np.ndarray, rows: int, cols: int) -> Grid:
     for r in range(rows):
         row = []
         for c in range(cols):
-            val = int(round(arr[r, c] * 9.0))
+            val = round(arr[r, c] * 9.0)
             row.append(max(0, min(9, val)))
         out.append(row)
     return out

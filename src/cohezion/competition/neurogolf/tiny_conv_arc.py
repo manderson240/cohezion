@@ -74,7 +74,7 @@ def test_forward():
     with open(root / "data/arc-agi-2/arc-agi_training_challenges.json") as f:
         challenges = json.load(f)
 
-    task = list(challenges.values())[0]
+    task = next(iter(challenges.values()))
     grid = torch.tensor(task["train"][0]["input"])
     # Pad or crop to 30x30
     h, w = grid.shape

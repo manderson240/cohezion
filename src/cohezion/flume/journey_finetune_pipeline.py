@@ -279,7 +279,7 @@ SYSTEM """ + system_prompt.replace('"', '\\"').replace("\n", "\\n")
         import subprocess
 
         ollama_exec = shutil.which("ollama") or "/usr/local/bin/ollama"
-        result = subprocess.run(  # noqa: S603 - name and modelfile_path are internally controlled
+        result = subprocess.run(
             [ollama_exec, "create", name, "-f", modelfile_path],
             capture_output=True,
             text=True,

@@ -7,13 +7,13 @@ from __future__ import annotations
 
 from dataclasses import dataclass, field
 from datetime import UTC, datetime
-from enum import Enum
+from enum import StrEnum
 from typing import Any
 
 from pydantic import BaseModel, Field
 
 
-class TaxonomyLevel(str, Enum):
+class TaxonomyLevel(StrEnum):
     CLASS = "class"
     ORDER = "order"
     FAMILY = "family"

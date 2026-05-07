@@ -163,7 +163,9 @@ class PerformanceMonitor:
             "lever_adjustment_ms": {"warning": 500, "critical": 1000},
         }
 
-    def record_metric(self, metric_name: str, value_ms: float, context: dict[str, Any] = None):
+    def record_metric(
+        self, metric_name: str, value_ms: float, context: dict[str, Any] | None = None
+    ):
         """Record a performance metric."""
         metric = {
             "timestamp": datetime.now().isoformat(),

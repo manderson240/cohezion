@@ -206,10 +206,7 @@ class AgenticEVO:
             # Exotic: depends on type
             if self.latent_state.exotic_type == "repeller":
                 # Repel from 0.5 (false vacuum)
-                if np.mean(z) > 0.5:
-                    target = 1.0
-                else:
-                    target = 0.0
+                target = 1.0 if np.mean(z) > 0.5 else 0.0
             elif self.latent_state.exotic_type == "negative_mass":
                 # Negative coherence basin
                 target = -0.5

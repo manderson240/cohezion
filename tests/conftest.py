@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import asyncio
+import contextlib
 import shutil
 import subprocess
 import sys
@@ -96,12 +97,13 @@ def git_repo(tmp_path: Path) -> Path:
 
     Returns the repo root path.
     """
-    _run = lambda cmd: subprocess.run(
-        cmd,
-        cwd=tmp_path,
-        capture_output=True,
-        check=True,
-    )
+    def _run(cmd):
+        return subprocess.run(
+            cmd,
+            cwd=tmp_path,
+            capture_output=True,
+            check=True,
+        )
     _run(["git", "init"])
     _run(["git", "config", "user.email", "test@cohezion.dev"])
     _run(["git", "config", "user.name", "Test User"])
@@ -210,10 +212,8 @@ def reset_singletons():
 
     # Reset FLUME VAE singleton to prevent state pollution across tests
     api_module: ModuleType | None = None
-    try:
+    with contextlib.suppress(Exception):
         import cohezion.api as api_module
-    except Exception:  # noqa: S110 — intentional: optional API module may not be present
-        pass
     if api_module is not None and hasattr(api_module, "_vae_trainer"):
         api_module._vae_trainer = None
 

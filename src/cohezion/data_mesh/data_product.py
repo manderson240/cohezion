@@ -20,13 +20,13 @@ from __future__ import annotations
 
 import time
 from dataclasses import dataclass, field
-from enum import Enum
+from enum import StrEnum
 from typing import Any
 
 from cohezion.governance.autonomy_engine import AutonomyTier
 
 
-class DataProductStatus(str, Enum):
+class DataProductStatus(StrEnum):
     """Lifecycle status of a data product."""
 
     DRAFT = "draft"  # Being defined, not yet available
@@ -35,7 +35,7 @@ class DataProductStatus(str, Enum):
     ARCHIVED = "archived"  # No longer available
 
 
-class DataQualityTier(str, Enum):
+class DataQualityTier(StrEnum):
     """Quality tier determining SLA expectations."""
 
     BRONZE = "bronze"  # Best-effort, no SLA (experimental data)

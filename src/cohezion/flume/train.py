@@ -207,7 +207,7 @@ def _save_and_emit(
                 },
             )
         )
-    except Exception:  # noqa: BLE001
+    except Exception:
         logger.debug("Precipitation emit failed for TRAINING_CHECKPOINT", exc_info=True)
     return path
 

@@ -214,7 +214,7 @@ class SystemdRunBackend:
         if shutil.which("systemd-run") is None:
             return False
         try:
-            result = subprocess.run(  # noqa: S603 - static probe with constant args
+            result = subprocess.run(
                 [_SYSTEMD_RUN, "--scope", "--user", "true"],
                 capture_output=True,
                 timeout=5,
@@ -302,7 +302,7 @@ class SubprocessBackend:
     ) -> dict[str, Any]:
         """Synchronous subprocess execution with rlimits."""
         try:
-            result = subprocess.run(  # noqa: S603 - script_path is internal sandbox tempfile, env+limits applied
+            result = subprocess.run(
                 [_PYTHON3, str(script_path)],
                 capture_output=True,
                 text=True,

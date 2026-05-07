@@ -108,7 +108,7 @@ class UniverseGenealogySurvey:
 
         try:
             # Get git log to identify major phases
-            result = subprocess.run(  # noqa: S603 - git args static
+            result = subprocess.run(
                 [_GIT, "log", "--all", "--oneline", "--date=short", "--format=%h %ad %s"],
                 cwd=self.cohezion_root,
                 capture_output=True,

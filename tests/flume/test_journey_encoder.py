@@ -94,7 +94,7 @@ def test_compute_loss_masks_padded_positions() -> None:
     mask = torch.tensor([[True, True, False, False, False], [True, True, True, False, False]])
     mu = torch.randn(2, 8)
     log_var = torch.zeros(2, 8)
-    total, recon_loss, kl_loss = compute_journey_vae_loss(recon, target, mask, mu, log_var)
+    total, recon_loss, _kl_loss = compute_journey_vae_loss(recon, target, mask, mu, log_var)
     assert total.isfinite()
     assert recon_loss >= 0
     # Padding positions shouldn't contribute — verify by perturbing them and seeing no change.

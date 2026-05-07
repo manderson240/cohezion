@@ -533,10 +533,7 @@ class VModelEngineeringProcess:
 
         # Check constraints
         constraints = requirements.get("constraints", [])
-        if "must_be_positive" in constraints and lever.current_value < 0:
-            return False
-
-        return True
+        return not ("must_be_positive" in constraints and lever.current_value < 0)
 
     def get_lifecycle_status(self, adjustment_id: str) -> dict[str, Any] | None:
         """Get lifecycle status."""

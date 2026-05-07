@@ -28,7 +28,7 @@ class ChangeObserver:
             List[str]: List of paths to modified files.
         """
         try:
-            output = subprocess.check_output(  # noqa: S603 - git args static, since_commit is a git ref
+            output = subprocess.check_output(
                 [_GIT, "diff", "--name-only", since_commit], cwd=self.root_dir
             ).decode("utf-8")
 
@@ -52,7 +52,7 @@ class ChangeObserver:
             str: The diff content.
         """
         try:
-            output = subprocess.check_output(  # noqa: S603 - git args static, since_commit is a git ref
+            output = subprocess.check_output(
                 [_GIT, "diff", since_commit, "--", file_path], cwd=self.root_dir
             ).decode("utf-8")
             return output

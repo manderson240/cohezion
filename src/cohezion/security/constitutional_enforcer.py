@@ -13,8 +13,9 @@ from __future__ import annotations
 import logging
 import re
 from dataclasses import dataclass
-from enum import Enum
+from enum import StrEnum
 from typing import TYPE_CHECKING
+
 
 if TYPE_CHECKING:
     from cohezion.security.guardrail_pipeline import GuardrailResult
@@ -23,7 +24,7 @@ if TYPE_CHECKING:
 logger = logging.getLogger(__name__)
 
 
-class ViolationType(str, Enum):
+class ViolationType(StrEnum):
     DESTRUCTIVE_COMMAND = "destructive_command"
     INFRASTRUCTURE_ATTACK = "infrastructure_attack"
     SECRET_EXPOSURE = "secret_exposure"

@@ -149,10 +149,7 @@ class ExoticVacuumObject:
             effective_mass = self.mass
 
         # F = ma, v = v0 + at, x = x0 + vt
-        if force_field is not None:
-            acceleration = force_field / effective_mass
-        else:
-            acceleration = np.zeros(3)
+        acceleration = force_field / effective_mass if force_field is not None else np.zeros(3)
 
         self.momentum += acceleration * dt * effective_mass
         self.position += (self.momentum / effective_mass) * dt

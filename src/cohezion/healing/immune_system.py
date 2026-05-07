@@ -207,7 +207,7 @@ class ActuatorSystem:
         import shutil
         import subprocess
 
-        uv_exec = shutil.which("uv") or "/usr/local/bin/uv"
+        shutil.which("uv") or "/usr/local/bin/uv"
         try:
             res = subprocess.run(
                 ["uv", "run", "pytest", "-q", "--tb=no"],

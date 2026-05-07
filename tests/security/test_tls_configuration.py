@@ -171,7 +171,7 @@ class TestUvicornSSLConfiguration:
             from cloud_vault_mcp.src.mcp_server import main
 
             assert hasattr(main, "TLSConfig")
-        except Exception:  # noqa: S110 — intentional: optional import, handled by conditional
+        except Exception:
             # If direct import fails, that's okay - the conditional import handles it
             pass
 

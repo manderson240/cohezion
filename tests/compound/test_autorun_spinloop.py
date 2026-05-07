@@ -4,6 +4,7 @@ When remaining_s < 30, asyncio.wait_for must never be called with
 timeout = remaining_s - 10 (which would be negative and raise ValueError).
 """
 import asyncio
+import contextlib
 from pathlib import Path
 from unittest.mock import MagicMock, patch
 
@@ -22,10 +23,8 @@ def _get_autorun_main():
     }
     with patch.dict("sys.modules", heavy):
         mod = importlib.util.module_from_spec(spec)
-        try:
+        with contextlib.suppress(Exception):
             spec.loader.exec_module(mod)
-        except Exception:  # noqa: S110 — intentional: load failure returns empty module
-            pass
     return mod
 
 
@@ -84,4 +83,3 @@ class TestAutorunSpinLoopGuard:
         assert "max(30.0" in source, (
             "Missing timeout floor: `max(30.0, ...)` not found in autorun_2h.py"
         )
-

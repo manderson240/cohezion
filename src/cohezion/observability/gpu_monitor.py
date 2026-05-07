@@ -167,7 +167,7 @@ class GPUMonitor:
             import shutil
 
             rocm_smi = shutil.which("rocm-smi") or "/opt/rocm/bin/rocm-smi"
-            result = subprocess.run(  # noqa: S603 - static probe with constant args
+            result = subprocess.run(
                 [rocm_smi, "--json"],
                 capture_output=True,
                 text=True,

@@ -387,9 +387,7 @@ class ResourceSafeModelCapabilityRegistry(ModelCapabilityRegistry):
         if not self._discovery_complete:
             await self.discover_all_models()
 
-        targets = models or [
-            name for name in self.profiles.keys() if name not in self._completed_models
-        ]
+        targets = models or [name for name in self.profiles if name not in self._completed_models]
 
         logger.info(f"Resource-safe benchmarking: {len(targets)} models")
         logger.info(

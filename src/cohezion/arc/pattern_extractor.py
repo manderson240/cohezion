@@ -332,12 +332,10 @@ def _build_strategy(name: str, train: list[dict[str, Grid]]) -> list[tuple[str, 
         ]
     )
 
-    geo = base + [
-        ("mirror_h", _mirror_h),
-        ("mirror_v", _mirror_v),
-    ]
+    geo = [*base, ("mirror_h", _mirror_h), ("mirror_v", _mirror_v)]
 
-    obj = base + [
+    obj = [
+        *base,
         ("fill_holes", _fill_holes),
         ("remove_bg", _remove_bg),
         ("gravity_d", _gravity_down),
@@ -349,7 +347,7 @@ def _build_strategy(name: str, train: list[dict[str, Grid]]) -> list[tuple[str, 
         *_make_parametric_scale(),
     ]
 
-    cm = base + [("color_map", _make_color_map(train))]
+    cm = [*base, ("color_map", _make_color_map(train))]
 
     return {
         "color": color,

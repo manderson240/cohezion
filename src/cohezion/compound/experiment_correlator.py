@@ -4,6 +4,7 @@ Analyzes autoresearch.jsonl to find if one experiment's positive result
 is frequently followed by another's improvement (causal vs coincidental).
 Useful for detecting compound effects between experiments.
 """
+
 from __future__ import annotations
 
 from collections import defaultdict
@@ -25,8 +26,7 @@ def compute_temporal_correlation(
     """
     # Build sequence of (experiment, success) pairs
     events = [
-        (r.get("asi", {}).get("experiment", "unknown"), r.get("status") == "keep")
-        for r in records
+        (r.get("asi", {}).get("experiment", "unknown"), r.get("status") == "keep") for r in records
     ]
 
     # Count co-occurrences within window
@@ -64,9 +64,11 @@ def find_strong_correlations(
     for exp_a, followers in correlations.items():
         for exp_b, score in followers.items():
             if score >= threshold:
-                strong.append({
-                    "precedes": exp_a,
-                    "follows": exp_b,
-                    "correlation": round(score, 4),
-                })
+                strong.append(
+                    {
+                        "precedes": exp_a,
+                        "follows": exp_b,
+                        "correlation": round(score, 4),
+                    }
+                )
     return sorted(strong, key=lambda x: -x["correlation"])

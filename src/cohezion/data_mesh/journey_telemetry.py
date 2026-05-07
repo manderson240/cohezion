@@ -7,20 +7,20 @@ Aligned with Google Labs Stitch and Cohezion V-Model standards.
 from __future__ import annotations
 
 import time
-from enum import Enum
+from enum import StrEnum
 from typing import Any
 
 from pydantic import BaseModel, Field
 
 
-class HardwareTier(str, Enum):
+class HardwareTier(StrEnum):
     NPU = "npu"
     IGPU = "igpu"
     CPU = "cpu"
     CLOUD = "cloud"
 
 
-class SwarmExpert(str, Enum):
+class SwarmExpert(StrEnum):
     ARCHITECT = "architect"
     ENGINEER = "engineer"
     BIOLOGIST = "biologist"
@@ -53,9 +53,7 @@ class FlumeJourneyEvent(BaseModel):
 
     # 1. Latent State (The Knower)
     z_vector: list[float] = Field(..., description="256-dim FLUME latent thought vector")
-    predicted_z_vector: list[float] | None = Field(
-        None, description="JEPA world-model prediction"
-    )
+    predicted_z_vector: list[float] | None = Field(None, description="JEPA world-model prediction")
     prediction_error: float = Field(
         0.0, description="Surprise/L2 delta between actual and predicted z"
     )

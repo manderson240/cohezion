@@ -18,7 +18,7 @@ SYNC_CHECK_PATHS = ["src/cohezion/", "tests/", "scripts/"]
 def _ruff_check(select: str, paths: list[str]) -> subprocess.CompletedProcess:
     """Run ruff check on specified paths (not archives)."""
     return subprocess.run(
-        ["ruff", "check", "--select", select] + paths,
+        ["ruff", "check", "--select", select, *paths],
         cwd=PROJECT_ROOT,
         capture_output=True,
         text=True,
