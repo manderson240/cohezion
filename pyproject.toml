@@ -156,6 +156,11 @@ ignore = [
     "S603",    # subprocess without shell=False — internal scripts use known executables, not user input
     "S607",    # Partial executable path — all subprocess calls use known binaries (git, python, uv, etc.)
     "S108",    # Probable use of insecure /tmp — acceptable in development tooling, scripts, test fixtures
+    # Type-checking import guards — defer to mypy; not adding IF TYPE_CHECKING blocks codebase-wide
+    "TC001",   # First-party imports in type annotations outside TYPE_CHECKING block
+    "TC003",   # Standard library imports in type annotations outside TYPE_CHECKING block
+    # SurrealQL uses parameterized record IDs (plan:{slug}, node:{id}) — not user-controlled SQL
+    "S608",    # Possible SQL injection via string-based query construction (SurrealQL, not SQL)
 ]
 
 # Per-file customization
