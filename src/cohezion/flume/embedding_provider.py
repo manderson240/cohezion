@@ -7,15 +7,15 @@ Three providers with fallback chain:
   3. CachedEmbeddingProvider — LRU cache wrapper around any provider
 """
 
-from __future__ import annotations  # noqa: E402
+from __future__ import annotations
 
-import hashlib  # noqa: E402
-import logging  # noqa: E402
-from collections import OrderedDict  # noqa: E402
-from typing import Protocol  # noqa: E402
+import hashlib
+import logging
+from collections import OrderedDict
+from typing import Protocol
 
-import numpy as np  # noqa: E402
-import requests  # noqa: E402
+import numpy as np
+import requests
 
 
 logger = logging.getLogger(__name__)

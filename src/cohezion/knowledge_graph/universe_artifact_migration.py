@@ -16,15 +16,15 @@ This service preserves the 97MB of universe simulation artifacts
 discovered during Sessions 53-55 Phase 0 measurement.
 """
 
-import asyncio  # noqa: E402
-import hashlib  # noqa: E402
-import json  # noqa: E402
-import logging  # noqa: E402
-import shutil  # noqa: E402
-import subprocess  # noqa: E402
-import tarfile  # noqa: E402
-import time  # noqa: E402
-from dataclasses import dataclass  # noqa: E402
+import asyncio
+import hashlib
+import json
+import logging
+import shutil
+import subprocess
+import tarfile
+import time
+from dataclasses import dataclass
 
 
 # Resolve git executable at module load to avoid S607 partial-path warnings.

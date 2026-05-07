@@ -134,7 +134,6 @@ class TestSwarmEnvPolish:
         import gymnasium as gym
 
         # Import triggers registration
-        from cohezion.environments import swarm_env as _  # noqa: F401
 
         spec = gym.spec("Cohezion/SwarmEnv-v0")
         assert spec is not None

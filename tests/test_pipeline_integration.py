@@ -151,7 +151,6 @@ class TestCompositeRewardInEnv:
     """Test that FlumeNavEnv uses CompositeReward correctly."""
 
     def test_composite_reward_in_env(self):
-        import cohezion.rl.environment  # noqa: F401
         from cohezion.rl.environment import FlumeNavEnv
 
         env = FlumeNavEnv(use_composite_reward=True)

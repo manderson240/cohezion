@@ -16,12 +16,10 @@ class TestGeminiProviderRegistration:
 
     def test_gemini_registered(self):
         # Import triggers auto-registration
-        import cohezion.swarm.providers.gemini_provider  # noqa: F401
 
         assert "gemini" in list_providers()
 
     def test_get_gemini_provider(self):
-        import cohezion.swarm.providers.gemini_provider  # noqa: F401
 
         provider = get_model_provider("gemini", config={"api_key": "test-key"}, use_singleton=False)
         assert provider is not None

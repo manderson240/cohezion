@@ -1,15 +1,15 @@
 # ruff: noqa: B904, E402  # raise pattern in HTTP/API handlers — explicit user-facing errors / deferred imports for circular-dep workarounds
 """Ollama model provider implementation (local inference, AMD ROCm optimized)."""
 
-from __future__ import annotations  # noqa: E402
+from __future__ import annotations
 
-import logging  # noqa: E402
-import time  # noqa: E402
-from typing import Any  # noqa: E402
+import logging
+import time
+from typing import Any
 
-import aiohttp  # noqa: E402
+import aiohttp
 
-from cohezion.swarm.providers.model_provider import GenerationResult, ModelProvider  # noqa: E402
+from cohezion.swarm.providers.model_provider import GenerationResult, ModelProvider
 
 
 logger = logging.getLogger(__name__)

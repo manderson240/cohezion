@@ -25,16 +25,16 @@ References:
     - Nam et al. (2026): Causal-JEPA, arxiv 2602.11389
 """
 
-from __future__ import annotations  # noqa: E402
+from __future__ import annotations
 
-import logging  # noqa: E402
-from dataclasses import dataclass, field  # noqa: E402
-from pathlib import Path  # noqa: E402
-from typing import Any  # noqa: E402
+import logging
+from dataclasses import dataclass, field
+from pathlib import Path
+from typing import Any
 
-import numpy as np  # noqa: E402
-import torch  # noqa: E402
-import torch.nn as nn  # noqa: E402
+import numpy as np
+import torch
+import torch.nn as nn
 
 
 logger = logging.getLogger(__name__)
