@@ -1,3 +1,4 @@
+# ruff: noqa: E501  # long lines: SQL/URLs/docstrings — wrapping reduces readability
 """Base agent class for all SLM Swarm agents."""
 
 from __future__ import annotations
@@ -35,7 +36,6 @@ from cohezion.reliability.semantic_cache import SemanticCache
 from cohezion.rewards.system import RewardSystem
 from cohezion.security.output_filter import OutputFilter
 from cohezion.security.prompt_guard import PromptGuard, ThreatLevel
-from cohezion.swarm.swarm_types import SwarmConfig
 from cohezion.universe.engine import UniverseSimulationEngine
 
 

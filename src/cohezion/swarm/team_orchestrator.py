@@ -1,3 +1,4 @@
+# ruff: noqa: E501  # long lines: SQL/URLs/docstrings — wrapping reduces readability
 """Team orchestrator: generate Claude Code agent specs and task plans from PRIME skills.
 
 Bridges the internal skill system with Claude Code's team infrastructure

@@ -348,7 +348,7 @@ class GroupExperiencePool:
     @property
     def unique_agent_count(self) -> int:
         """Number of unique agents that contributed traces."""
-        return len(set(t.agent_id for t in self.traces))
+        return len({t.agent_id for t in self.traces})
 
     @property
     def trace_summary(self) -> dict[str, int]:
@@ -493,7 +493,7 @@ class GroupEvolutionEngine:
 
         # Compute novelty scores
         candidates: list[AgentCandidate] = []
-        for agent, vec in zip(agents, vectors):
+        for agent, vec in zip(agents, vectors, strict=False):
             novelty = self.novelty_scorer.compute_novelty(vec, vectors)
             candidate = AgentCandidate(
                 agent_id=agent["agent_id"],

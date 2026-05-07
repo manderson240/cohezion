@@ -1,4 +1,5 @@
 #!/usr/bin/env python3
+# ruff: noqa: E501  # long lines: SQL/URLs/docstrings — wrapping reduces readability
 """Cohezion CLI - Universe Simulation Platform
 
 Entry point for the Cohezion command-line interface.

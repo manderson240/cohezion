@@ -1,3 +1,4 @@
+# ruff: noqa: SIM115  # explicit open/close for resource management
 """
 Reliability Synchronization Primitives.
 

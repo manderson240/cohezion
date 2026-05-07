@@ -1,3 +1,4 @@
+# ruff: noqa: E501  # long lines: SQL/URLs/docstrings — wrapping reduces readability
 """UniverseEvaluator — Rigorous evaluation framework for Cohezion RL environments.
 
 Provides unified benchmarking across ManifoldEnv and SwarmEnv with:
@@ -23,11 +24,14 @@ from __future__ import annotations
 
 import logging
 import time
-from collections.abc import Callable
 from dataclasses import dataclass, field
-from typing import Any
+from typing import TYPE_CHECKING, Any
 
 import numpy as np
+
+
+if TYPE_CHECKING:
+    from collections.abc import Callable
 
 
 logger = logging.getLogger(__name__)

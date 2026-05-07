@@ -1,3 +1,4 @@
+# ruff: noqa: RUF012  # class attrs treated as immutable config; never mutated per-instance
 """3-tier model pool lifecycle manager for Ollama models.
 
 Manages hot/warm/cold model rotation, health checks, and automatic

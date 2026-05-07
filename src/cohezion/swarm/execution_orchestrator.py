@@ -12,11 +12,14 @@ import logging
 import time
 import uuid
 from dataclasses import dataclass, field
-from typing import Any
+from typing import TYPE_CHECKING, Any
 
 from cohezion.core.instruction_expander import InstructionExpander
 from cohezion.core.plan_executor import ExecutionResult, PlanExecutor
-from cohezion.swarm.team_orchestrator import TaskSpec, TeamPlan
+
+
+if TYPE_CHECKING:
+    from cohezion.swarm.team_orchestrator import TaskSpec, TeamPlan
 
 
 logger = logging.getLogger(__name__)

@@ -1,3 +1,4 @@
+# ruff: noqa: E402, E501  # long lines: SQL/URLs/docstrings — wrapping reduces readability
 """
 Daily Platform Health Digest with Charter-aligned scoring.
 

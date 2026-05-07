@@ -1,3 +1,4 @@
+# ruff: noqa: RUF002  # math/physics symbols intentional
 """Pre-emptive ZVOL Swap Pipeline (Story 1.8, NFR-1, NFR-5).
 
 Autonomous memory paging pipeline linked to SubstrateGovernor.

@@ -1,3 +1,4 @@
+# ruff: noqa: SIM102, E501, RUF012, S110, RUF001  # math/physics symbols intentional
 """Cost-aware smart routing across local models with budget enforcement.
 
 Features:

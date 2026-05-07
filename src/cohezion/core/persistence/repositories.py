@@ -1,3 +1,4 @@
+# ruff: noqa: A002  # shadows builtin (id, type) — domain-specific naming
 """Repository pattern for database abstraction.
 
 Provides clean interfaces for data access, decoupling business logic

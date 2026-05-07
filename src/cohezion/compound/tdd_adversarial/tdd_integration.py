@@ -1,3 +1,4 @@
+# ruff: noqa: E501  # long lines: SQL/URLs/docstrings — wrapping reduces readability
 """
 TDD (Test-Driven Development) Integration for Compound Engineering
 Provides test-driven development capabilities to the compound engineering system.

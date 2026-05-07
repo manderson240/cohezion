@@ -1,3 +1,4 @@
+# ruff: noqa: B904  # raise pattern in HTTP/API handlers — explicit user-facing errors
 """FLUME VAE API routes — training, encoding, decoding, interpolation, latent space.
 
 Extracted from api/__init__.py (Session 87) to keep files under 500 lines.

@@ -1,3 +1,4 @@
+# ruff: noqa: S104  # binds 0.0.0.0 in dev/internal services
 """Git Context MCP Server - Code-aware compound sessions.
 
 Port: 8368

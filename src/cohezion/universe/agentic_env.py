@@ -42,7 +42,7 @@ import json
 import logging
 import time
 from dataclasses import dataclass, field
-from enum import Enum
+from enum import StrEnum
 from pathlib import Path
 from typing import Any
 from uuid import uuid4
@@ -56,7 +56,7 @@ logger = logging.getLogger(__name__)
 # ---------------------------------------------------------------------------
 
 
-class ToolResult(str, Enum):
+class ToolResult(StrEnum):
     """Outcome of a tool execution."""
 
     SUCCESS = "success"
@@ -212,7 +212,7 @@ class ToolRegistry:
 # ---------------------------------------------------------------------------
 
 
-class SuccessCriterionType(str, Enum):
+class SuccessCriterionType(StrEnum):
     """Types of success criteria for task completion."""
 
     FILE_EXISTS = "file_exists"

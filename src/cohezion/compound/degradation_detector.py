@@ -1,3 +1,4 @@
+# ruff: noqa: E501  # long lines: SQL/URLs/docstrings — wrapping reduces readability
 """Degradation detection for Phase 5A.6 - Monitor and alert on metric drops.
 
 Detects when system performance degrades by monitoring:

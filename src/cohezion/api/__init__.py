@@ -1,3 +1,4 @@
+# ruff: noqa: S104  # binds 0.0.0.0 in dev/internal services
 """
 Cohezion API - FastAPI server exposing swarm and MCP tools.
 

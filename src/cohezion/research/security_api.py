@@ -11,16 +11,19 @@ import hashlib
 import logging
 import secrets
 import time
-from collections.abc import Callable
 from dataclasses import dataclass
 from datetime import datetime
 from pathlib import Path
-from typing import Any
+from typing import TYPE_CHECKING, Any
 
 from fastapi import HTTPException, Request, Security
 from fastapi.security import APIKeyHeader, HTTPBearer
 
 from cohezion.security.credentials import get_credentials
+
+
+if TYPE_CHECKING:
+    from collections.abc import Callable
 
 
 logger = logging.getLogger(__name__)

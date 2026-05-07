@@ -1,3 +1,4 @@
+# ruff: noqa: S104  # binds 0.0.0.0 in dev/internal services
 """
 Swarm MCP Server - Access to debate workflow.
 

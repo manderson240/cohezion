@@ -1,3 +1,4 @@
+# ruff: noqa: N806  # math/physics: T, F, B, P, S, G, R, A — single-letter conventions
 """Seed-based universe generation.
 
 Each universe is defined by a unique FlumePhysics weight configuration.

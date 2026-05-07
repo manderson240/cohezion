@@ -1,3 +1,4 @@
+# ruff: noqa: S108  # temp file paths in /tmp are intentional for ephemeral data
 """Filesystem and process isolation boundaries for sandboxed operations.
 
 Architecture:
@@ -25,6 +26,7 @@ from collections.abc import Callable
 from dataclasses import dataclass, field
 from enum import StrEnum
 from pathlib import Path
+from typing import Any
 
 
 logger = logging.getLogger(__name__)

@@ -1,3 +1,4 @@
+# ruff: noqa: RUF006  # fire-and-forget async tasks — intentional
 """Context manager for capturing competition trajectories into FLUME.
 
 Usage::

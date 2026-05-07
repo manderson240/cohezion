@@ -1,3 +1,4 @@
+# ruff: noqa: N812  # scientific lib import aliasing (np, F, etc.)
 import torch
 import torch.nn.functional as F
 

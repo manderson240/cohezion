@@ -1,3 +1,4 @@
+# ruff: noqa: S310  # URL open targets are internal/config-allowlisted, not user-supplied
 """Training history API routes — expose SurrealDB training_run data.
 
 Enables Anima Dashboard to visualize compound training loop progression.

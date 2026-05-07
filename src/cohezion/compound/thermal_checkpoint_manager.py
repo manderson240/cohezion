@@ -1,3 +1,4 @@
+# ruff: noqa: E501  # long lines: SQL/URLs/docstrings — wrapping reduces readability
 """Thermal checkpoint manager for safe 8-hour continuous execution.
 
 Provides graceful thermal checkpoint/resume functionality to protect AMD Ryzen AI MAX+ 395
@@ -20,14 +21,17 @@ import asyncio
 import json
 import logging
 import time
-from collections.abc import Callable, Coroutine
 from dataclasses import dataclass, field
 from enum import Enum, auto
 from pathlib import Path
-from typing import Any
+from typing import TYPE_CHECKING, Any
 
 from cohezion.compound.hardware_monitor import HardwareMonitor, get_hardware_monitor
 from cohezion.compound.thermal_trend_predictor import ThermalTrendPredictor
+
+
+if TYPE_CHECKING:
+    from collections.abc import Callable, Coroutine
 
 
 logger = logging.getLogger(__name__)

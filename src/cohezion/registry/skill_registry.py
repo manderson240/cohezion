@@ -1,3 +1,4 @@
+# ruff: noqa: RUF002, RUF003  # math/physics symbols intentional
 import difflib
 import glob
 import json

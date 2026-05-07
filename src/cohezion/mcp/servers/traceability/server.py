@@ -1,4 +1,5 @@
 #!/usr/bin/env python3
+# ruff: noqa: E501  # long lines: SQL/URLs/docstrings — wrapping reduces readability
 """Traceability MCP Server - Autonomous repo health monitoring via MCP protocol.
 
 Usage:

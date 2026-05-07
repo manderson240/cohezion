@@ -1,3 +1,4 @@
+# ruff: noqa: S608  # SQL strings parameterized via SurrealDB driver, not raw string concat
 """Collect execution experiences from Parquet, SurrealDB, and vault sources.
 
 Three tiers, each non-blocking:
