@@ -147,9 +147,10 @@ ignore = [
     "RUF002",  # Docstring ambiguous unicode chars (em-dashes etc. are intentional)
     "RUF003",  # Comment ambiguous unicode chars (same)
     "RUF012",  # Mutable ClassVar not annotated with ClassVar[T] — defer to mypy for class-level typing
-    # Naming conventions — ML/math code uses uppercase (M, K, N, D) per convention
-    "N806",    # Variable in function should be lowercase
-    "N803",    # Argument name should be lowercase
+    # Naming conventions — ML/math/physics code uses uppercase per convention
+    "N806",    # Variable in function should be lowercase (M, K, N, D — matrix dims)
+    "N803",    # Argument name should be lowercase (same)
+    "N802",    # Function name should be lowercase (V, dV, H, T — physics potential/Hamiltonian)
     # Patterns intentional in this codebase
     "B905",    # zip() without strict= — ML code pairs equal-length sequences by design; strict=True would change behavior
     "S311",    # Standard pseudo-random generators — acceptable for non-security use (simulation, routing, tests)
