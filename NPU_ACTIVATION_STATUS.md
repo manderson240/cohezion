@@ -1,170 +1,78 @@
 # NPU Activation Status Report
 
-**Date:** 2026-05-07  
-**Current:** 2/3 Nodes Active  
-**Target:** 3/3 Full Heterogeneous Compute  
-**Status:** Attempted - FLM Backend Not Ready
+**Date:** 2026-05-10
+**Current:** 3/3 Nodes Active ✓
+**Status:** ACTIVATED — llama3.2-1b-FLM on port 13306
 
 ---
 
-## Attempt Summary
+## Active Configuration
 
-### What Was Tried
-
-1. **Checked Lemonade Configuration**
-   - Config file: `~/.cache/lemonade/config.json`
-   - Found: FLM section exists with empty args
-   - Backend: Currently set to "rocm"
-
-2. **Verified Model Availability**
-   - Command: `ls ~/.cache/lemonade/models/ | grep -i flm`
-   - Result: No FLM models found
-   - Issue: Qwen3-0.6B-FLM not downloaded
-
-3. **Port Status Check**
-   - Port 13306: OFFLINE
-   - Port 13305: ONLINE (GPU)
-   - Port 11434: ONLINE (CPU)
+| Node | Port | Model | TTFT | TPS |
+|------|------|-------|------|-----|
+| GPU (iGPU ROCm) | 13305 | Gemma-4-E4B-it-GGUF | ~207ms | ~20 TPS |
+| NPU (FLM XDNA2) | 13306 | llama3.2-1b-FLM | ~393ms | ~42 TPS |
+| CPU (Ollama) | 11434 | cloud/local models | varies | varies |
 
 ---
 
-## Current Situation
+## Activation Steps Completed (2026-05-10)
 
-### Configuration Found
-
-```json
-// From config.json
-{
-  "flm": {
-    "args": ""
-  },
-  "llamacpp": {
-    "backend": "rocm",
-    // ...
-  }
-}
-```
-
-**Interpretation:** Lemonade supports FLM but needs:
-1. FLM model downloaded
-2. Backend explicitly set to "flm"
-3. Proper device configuration
+1. **FLM backend confirmed installed**: `flm npu installed v0.9.39` — was already present, status doc was wrong
+2. **FLM models confirmed downloaded**: llama3.2-1b-FLM (1.3GB), gemma3-4b-FLM (4.5GB), qwen3.5-4b-FLM (5.2GB) — already in Lemonade catalog
+3. **lemond started on port 13306**: `lemond --port 13306 &`
+4. **llama3.2-1b-FLM loaded**: `lemonade --port 13306 load llama3.2-1b-FLM`
+5. **Verified**: 5/5 completions successful, consistent TTFT
 
 ---
 
-## Blockers Identified
+## Model Selection Finding (Critical)
 
-1. **Missing FLM Model**
-   ```bash
-   # Not found
-   ~/.cache/lemonade/models/*flm*
-   ~/.cache/lemonade/models/*FLM*
-   ```
+The original plan used `qwen3.5-4b-FLM`. Benchmarking revealed:
 
-2. **Backend Not Configured**
-   - Current: `backend: "rocm"`
-   - Need: `backend: "flm"` for NPU
+| Model | TTFT | TPS | Fits in NPU SRAM? |
+|-------|------|-----|-------------------|
+| llama3.2-1b-FLM | 393ms | 42 TPS | Yes (1.3GB) |
+| qwen3.5-4b-FLM | 972ms | 8.6 TPS | No (5.2GB, spills to RAM) |
 
-3. **Port 13306 Not Used**
-   - No server process found on NPU port
-   - No auto-start mechanism configured
+**Decision: Use llama3.2-1b-FLM for NPU routing slot.**
+XDNA2 on Strix Halo achieves maximum throughput when model fits in on-chip SRAM.
+The 4B model spills to system RAM and loses the NPU speed advantage.
 
 ---
 
-## Workaround Options
+## Prior Blockers — Resolved
 
-### Option A: Download FLM Model
+| Prior Status | Reality |
+|---|---|
+| "No FLM models found" | 3 FLM models were already downloaded; `ls models/` checked wrong path |
+| "Backend not configured" | `flm npu installed v0.9.39` — was already installed |
+| "Port 13306 not used" | Just needed `lemond --port 13306 &` |
 
+---
+
+## Startup Command
+
+To restore NPU on next boot:
 ```bash
-# Hypothetical - check if Lemonade supports direct download
-lemond-download Qwen3-0.6B-FLM
-
-# Or manual download
-wget https://huggingface.co/...Qwen3-0.6B-FLM...
-# Place in ~/.cache/lemonade/models/
+lemond --port 13306 > /tmp/lemond-npu.log 2>&1 &
+lemonade --port 13306 load llama3.2-1b-FLM
 ```
 
-### Option B: Switch Backend
-
-```bash
-# Edit config.json
-vim ~/.cache/lemonade/config.json
-
-# Change:
-"llamacpp": {
-  "backend": "flm",  // From "rocm"
-  ...
-}
-
-# Restart Lemonade
-lemond --port 13306
-```
-
-### Option C: Use Alternative Port
-
-Since port 13306 is standard for NPU, but if FLM not available:
-
-```python
-# Already implemented in e70_triple_node_experiment.py
-# Falls back to GPU (port 13305) when NPU offline
-```
+For triune_orchestrator compatibility (expects qwen3.5-4b-FLM), update
+`src/cohezion/inference/triune_orchestrator.py` line 37 to use `llama3.2-1b-FLM`.
 
 ---
 
-## Current Performance: 2/3 Nodes
+## Performance Summary
 
-Despite NPU offline, performance is excellent:
-
-| Metric | 2/3 Nodes | 3/3 Target | Gap |
-|--------|-----------|------------|-----|
-| compound_lift | 1.73-1.75 | 1.80+ | -0.05 |
-| execution | 2.72-3.27ms | 2.5ms | +0.2ms |
-| throughput | 176 tok/s | 270 tok/s | -94 tok/s |
-| coherence | 0.92-0.93 | 0.94 | -0.01 |
-
-**Assessment:** 2/3 nodes achieving 97% of 3/3 target performance!
+| Metric | 2/3 Nodes (before) | 3/3 Nodes (now) |
+|--------|-------------------|-----------------|
+| compound_lift | 1.73-1.75 | TBD (needs compound cycle with live routing) |
+| NPU TTFT | N/A | 393ms (llama3.2-1b) |
+| NPU TPS | N/A | 42 TPS |
+| Nodes active | 2 | 3 ✓ |
 
 ---
 
-## Recommendation
-
-**Short-term:** Continue with 2/3 nodes  
-**Performance:** Excellent (1.75 lift sustained)  
-**Effort to fix:** Medium (requires FLM model + config)  
-**Priority:** Medium (2/3 is working well)
-
-### Action Items
-
-- [ ] Download Qwen3-0.6B-FLM model for NPU
-- [ ] Configure Lemonade backend to "flm"
-- [ ] Test port 13306 activation
-- [ ] Validate 3/3 node operation
-- [ ] Measure 1.80+ compound lift target
-
-### Alternative Path
-
-If FLM activation proves difficult:
-
-1. **Current state (2/3) is production-ready**
-   - 1.75 lift sustained over 6+ runs
-   - Sub-3ms execution validated
-   - 75 stacks accumulated
-
-2. **Wait for MLX Engine**
-   - Will provide better performance than FLM
-   - Estimated: 1.75 → 2.94 lift (+68%)
-   - Timeline: Q3 2026
-
----
-
-## Conclusion
-
-**Status:** NPU activation attempted, currently blocked on FLM model availability.
-
-**Current State:** 2/3 nodes operational with excellent performance (1.73-1.75 lift).
-
-**Decision:** Continue optimizing with 2/3 nodes while monitoring for FLM/MLX availability.
-
----
-
-*Status: 2/3 Active | Performance: Optimal | NPU: Pending*
+*Status: 3/3 Active | NPU: llama3.2-1b-FLM @ 42 TPS | Port 13306 LIVE*

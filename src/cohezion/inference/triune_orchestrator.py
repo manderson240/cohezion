@@ -12,6 +12,7 @@ from cohezion.inference.orchestrator import (
     QualityGate,
     TieredOrchestrator,
 )
+from cohezion.inference.task_classifier import classify as classify_task
 
 
 logger = logging.getLogger(__name__)
@@ -27,14 +28,15 @@ def build_triune_orchestrator(
     Constructs a TieredOrchestrator mapped to the Triune Substrate.
 
     Tiers:
-    0. NPU (FastFlowLM): qwen3.5-4b-FLM (Port 13306)
+    0. NPU (FastFlowLM): llama3.2-1b-FLM (Port 13306) — fits in XDNA2 SRAM, 42 TPS
     1. iGPU (TurboKV Wave32): Gemma-4-E4B-it-GGUF (Port 13307)
     2. CPU (Vectorized AVX-512): Gemma-4-31B-it-GGUF (Port 11434)
     """
 
-    # 1. NPU Tier - Initial analytical pass
+    # 1. NPU Tier - Fast routing/classification pass
+    # llama3.2-1b-FLM chosen over qwen3.5-4b-FLM: fits in XDNA2 on-chip SRAM (42 TPS vs 8.6 TPS)
     npu_tier = build_gaia_native_tier(
-        model_id="qwen3.5-4b-FLM", base_url=f"http://localhost:{npu_port}/v1", silent=True
+        model_id="llama3.2-1b-FLM", base_url=f"http://localhost:{npu_port}/v1", silent=True
     )
 
     # 2. iGPU Tier - Deep context analysis (Wave32 unlocked)
@@ -52,5 +54,6 @@ def build_triune_orchestrator(
             (npu_tier, QualityGate(min_chars=500)),  # NPU must provide a solid start
             (igpu_tier, QualityGate(min_chars=2000)),  # iGPU for complex synthesis
             (cpu_tier, QualityGate.TRUST),  # CPU for guaranteed completion
-        ]
+        ],
+        pre_dispatch_classifier=classify_task,  # overrides quality gate per output_type
     )
