@@ -500,7 +500,6 @@ class HookifyValidator:
                 if result and len(result) > 0:
                     return result[0].get("lever_overrides", {})
             except (
-                ConnectionError,
                 OSError,
                 ValueError,
                 TypeError,
@@ -522,7 +521,6 @@ class HookifyValidator:
         except (
             ImportError,
             AttributeError,
-            ConnectionError,
             OSError,
             RuntimeError,
             ValueError,
