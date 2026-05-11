@@ -83,6 +83,17 @@ _SHORT_ANSWER_PATTERNS = [
         "direct what-is question",
     ),
     (re.compile(r"\bname (the|a|one)\b", re.I), 0.75, "name-the entity"),
+    # Compound loop explanation patterns — high frequency, NPU-suitable
+    (
+        re.compile(r"\bwhat (is|are|does|do)\b.{0,60}\?$", re.I | re.S),
+        0.70,
+        "direct what-is/does question",
+    ),
+    (
+        re.compile(r"\b(describe|explain)\b.{0,80}\?$", re.I | re.S),
+        0.65,
+        "describe or explain request",
+    ),
 ]
 
 _GPU_PATTERNS = [
