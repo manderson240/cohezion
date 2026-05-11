@@ -41,6 +41,42 @@ def test_quality_gate_error_fails():
     assert QualityGate.TRUST.check(r)[0] is False
 
 
+def test_quality_gate_require_nonempty_fails_on_empty_text():
+    """require_nonempty=True rejects empty response even without an error."""
+    gate = QualityGate(require_nonempty=True)
+    r = RouteResult(text="   ", model="m", lane="test", latency_ms=0, error=None)
+    passed, reason = gate.check(r)
+    assert passed is False
+    assert reason == "empty response"
+
+
+@pytest.mark.asyncio
+async def test_tier_exception_continues_to_next_tier():
+    """If a tier raises, it is logged and escalation continues to the next tier."""
+    orch = TieredOrchestrator(
+        tiers=[
+            ("tier0", QualityGate.TRUST),
+            ("tier1", QualityGate.TRUST),
+        ]
+    )
+
+    async def _raise_then_succeed(
+        prompt, *, task=None, prefer=None, budget_usd=None, stream=True, max_tokens=600
+    ):
+        if prefer == "tier0":
+            raise RuntimeError("tier0 hardware offline")
+        return _rr("tier1 response")
+
+    with patch("cohezion.inference.orchestrator.route", side_effect=_raise_then_succeed):
+        result = await orch.run("test")
+
+    assert result.text == "tier1 response"
+    assert result.error is None
+    assert len(result.tier_path) == 2
+    assert result.tier_path[0].passed is False
+    assert "exception" in result.tier_path[0].reason
+
+
 @pytest.mark.asyncio
 async def test_O1_first_tier_passes_no_escalation():
     """Tier 0 gate passes → only tier 0 runs."""
@@ -384,3 +420,17 @@ async def test_pre_dispatch_none_uses_normal_flow():
     # "hi" is 2 chars, gate=5 fails → tier1 also runs → both invoked
     assert m.await_count == 2
     assert result.error is None
+
+
+@pytest.mark.asyncio
+async def test_telemetry_hardware_tier_branches():
+    """Exercise FLM/Gemma/Claude model-name branches in telemetry instrumentation."""
+    # Uses real model IDs to hit the NPU/iGPU/Cloud hardware tier classification branches
+    for model_id in ("llama3.2-1b-FLM", "Gemma-4-E4B-it-GGUF", "claude-haiku-4-5"):
+        orch = TieredOrchestrator(tiers=[(model_id, QualityGate.TRUST)])
+        with patch(
+            "cohezion.inference.orchestrator.route",
+            AsyncMock(return_value=_rr("ok", model=model_id)),
+        ):
+            result = await orch.run("test")
+        assert result.error is None, f"Failed for model {model_id}"
