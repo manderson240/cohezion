@@ -99,13 +99,18 @@ Long prompt           ~88µs  (full scan before length fallback)
 Design budget         500µs  ← all well below
 ```
 
-### Current State (2026-05-11)
+### Current State (2026-05-11, final Round 4)
 
-- **Experiments:** 26 total, 22 winners (84.6% win rate)
-- **Tests:** 166 inference tests passing (was ~67 pre-session)
-- **Coverage:** 100% on task_classifier.py + model_card_harness.py
-- **Branch:** `worktree-humming-coalescing-rose` @ b98927112 (PR #166 open)
+- **Experiments:** 33 total, 29 winners (87.9% win rate)
+- **Tests:** 176 inference tests passing (was ~67 pre-session, +109 added)
+- **Coverage:** 100% on task_classifier.py + model_card_harness.py; 97% on orchestrator.py
+- **Branch:** `worktree-humming-coalescing-rose` @ eb281c1c3 (PR #166 open)
 - **Compound lift:** 6.354x (3-node vs GPU-only, unchanged from baseline)
+- **Bug fixes committed:**
+  - Classifier: false GPU escalations for "import"/"class" in prose (exp_DD)
+  - Orchestrator: tier1 gate not overridden on GPU routing (exp_FF)
+  - Triune tests: stale qwen3.5-4b-FLM assertion (exp_X)
+  - Type safety: _TYPE_CONFIG narrowed to Literal (exp_CC)
 
 ### Updated Frontier
 
