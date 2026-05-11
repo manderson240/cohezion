@@ -181,6 +181,9 @@ class TieredOrchestrator:
                 decision = self._pre_dispatch_classifier(prompt)
                 if decision.node == "gpu":
                     _start_tier = 1  # skip tier 0 (NPU) entirely
+                    # Also override tier 1's gate: classifier knows the expected output length,
+                    # so a 300-char function shouldn't escalate to CPU due to gate=2000.
+                    _gate_override[1] = QualityGate(min_chars=decision.quality_gate_chars)
                 else:
                     # Override tier-0 gate based on expected output length
                     _gate_override[0] = QualityGate(min_chars=decision.quality_gate_chars)

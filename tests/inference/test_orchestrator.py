@@ -423,6 +423,43 @@ async def test_pre_dispatch_none_uses_normal_flow():
 
 
 @pytest.mark.asyncio
+async def test_pre_dispatch_gpu_routing_overrides_tier1_gate():
+    """When classifier routes to GPU, tier 1's gate is overridden with quality_gate_chars.
+
+    Prevents triune-style orchestrators (iGPU gate=2000) from over-escalating
+    code tasks where 300-char output is a complete, correct answer.
+    """
+    # Simulates a triune orchestrator where iGPU has a strict gate=2000
+    classifier = lambda _: _decision("gpu", gate_chars=0)  # code: trust any non-empty
+
+    orch = TieredOrchestrator(
+        tiers=[
+            ("npu", QualityGate(min_chars=500)),
+            (
+                "igpu",
+                QualityGate(min_chars=2000),
+            ),  # strict default — would reject 300-char function
+            ("cpu", QualityGate.TRUST),
+        ],
+        pre_dispatch_classifier=classifier,
+    )
+
+    call_log: list[str] = []
+
+    async def _fake_route(
+        prompt, *, task=None, prefer=None, budget_usd=None, stream=True, max_tokens=600
+    ):
+        call_log.append(prefer)
+        return _rr("def reverse(s):\n    return s[::-1]\n")  # 32 chars — under 2000 gate but valid
+
+    with patch("cohezion.inference.orchestrator.route", side_effect=_fake_route):
+        result = await orch.run("write a reverse function")
+
+    assert call_log == ["igpu"], "NPU skipped (start_tier=1), iGPU ran once"
+    assert result.error is None, "32-char function must pass: gate override = 0 (trust non-empty)"
+
+
+@pytest.mark.asyncio
 async def test_telemetry_hardware_tier_branches():
     """Exercise FLM/Gemma/Claude model-name branches in telemetry instrumentation."""
     # Uses real model IDs to hit the NPU/iGPU/Cloud hardware tier classification branches
