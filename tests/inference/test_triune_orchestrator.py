@@ -1,5 +1,6 @@
 from unittest.mock import MagicMock, patch
 
+from cohezion.inference.task_classifier import classify as classify_task
 from cohezion.inference.triune_orchestrator import build_triune_orchestrator
 
 
@@ -10,14 +11,17 @@ def _mock_gaia_tier(model_id: str, **_kwargs):
 
 
 def test_build_triune_orchestrator_structure():
-    """Verify the orchestrator is built with 3 tiers."""
+    """Verify the orchestrator is built with 3 tiers using correct model IDs (N2 invariant)."""
     with patch(
         "cohezion.inference.triune_orchestrator.build_gaia_native_tier", side_effect=_mock_gaia_tier
     ):
         orch = build_triune_orchestrator()
     assert len(orch.tiers) == 3
     labels = [tier[0].label for tier in orch.tiers]
-    assert "gaia:qwen3.5-4b-FLM" in labels
+    # N2 invariant: NPU must use llama3.2-1b-FLM (fits XDNA2 SRAM, 42 TPS)
+    # NOT qwen3.5-4b-FLM (spills to system RAM, 8.6 TPS — 5x slower)
+    assert "gaia:llama3.2-1b-FLM" in labels, "N2: NPU tier must use llama3.2-1b-FLM"
+    assert "gaia:qwen3.5-4b-FLM" not in labels, "N2: qwen3.5-4b-FLM is banned from NPU tier"
     assert "gaia:Gemma-4-E4B-it-GGUF" in labels
     assert "gaia:Gemma-4-31B-it-GGUF" in labels
 
@@ -31,3 +35,26 @@ def test_build_triune_orchestrator_quality_gates():
     assert orch.tiers[0][1].min_chars == 500
     assert orch.tiers[1][1].min_chars == 2000
     assert orch.tiers[2][1].min_chars is None
+
+
+def test_build_triune_orchestrator_pre_dispatch_classifier_wired():
+    """pre_dispatch_classifier must be the task_classifier.classify function."""
+    with patch(
+        "cohezion.inference.triune_orchestrator.build_gaia_native_tier", side_effect=_mock_gaia_tier
+    ):
+        orch = build_triune_orchestrator()
+    assert orch._pre_dispatch_classifier is classify_task, (
+        "pre_dispatch_classifier must be wired to task_classifier.classify — "
+        "without it, categorical tasks get gate=500 and escalate to iGPU unnecessarily"
+    )
+
+
+def test_build_triune_orchestrator_npu_first():
+    """NPU tier must be at index 0 — cheapest, fastest tier runs first."""
+    with patch(
+        "cohezion.inference.triune_orchestrator.build_gaia_native_tier", side_effect=_mock_gaia_tier
+    ):
+        orch = build_triune_orchestrator()
+    assert orch.tiers[0][0].label == "gaia:llama3.2-1b-FLM", "NPU must be tier 0"
+    assert orch.tiers[1][0].label == "gaia:Gemma-4-E4B-it-GGUF", "iGPU must be tier 1"
+    assert orch.tiers[2][0].label == "gaia:Gemma-4-31B-it-GGUF", "CPU must be tier 2"
