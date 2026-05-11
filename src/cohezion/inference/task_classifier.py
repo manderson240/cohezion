@@ -15,7 +15,7 @@ from typing import Literal
 
 # Output type → (preferred node, quality gate chars)
 # quality_gate_chars=0 means "trust any non-empty response"
-_TYPE_CONFIG: dict[str, tuple[str, int]] = {
+_TYPE_CONFIG: dict[str, tuple[Literal["npu", "gpu"], int]] = {
     "short_categorical": ("npu", 0),  # single word / letter / label
     "short_answer": ("npu", 10),  # 1-3 sentences, direct answer
     "medium_generation": ("gpu", 0),  # multi-sentence, some structure
