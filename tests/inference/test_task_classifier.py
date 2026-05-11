@@ -124,6 +124,23 @@ class TestShortAnswerPatterns:
         d = classify("Name the primary orchestration layer in cohezion.")
         assert d.node == "npu"
 
+    def test_what_is_question_routes_npu(self):
+        """'What is/does X?' patterns route to NPU as short_answer."""
+        d = classify("What is the HIHO stability principle?")
+        assert d.node == "npu"
+        assert d.output_type == "short_answer"
+
+    def test_describe_question_routes_npu(self):
+        """'Describe X?' patterns route to NPU as short_answer."""
+        d = classify("Describe the triune orchestrator's hardware tiers.")
+        assert d.node == "npu"
+        assert d.output_type == "short_answer"
+
+    def test_code_gen_inside_describe_still_routes_gpu(self):
+        """'Describe how to write X' — code gen keyword overrides describe."""
+        d = classify("Describe how to write a Python class.")
+        assert d.node == "gpu"  # GPU pattern (write + class) takes precedence
+
     def test_short_prompt_default_npu(self):
         # Short prompts default to NPU
         d = classify("What is the purpose of a circuit breaker?")
