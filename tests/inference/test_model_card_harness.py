@@ -216,3 +216,38 @@ class TestFromLiveApi:
         p = h.get_params("code", "Gemma-4-E4B-it-GGUF")
         assert isinstance(p, InferenceParams)
         assert p.max_tokens > 0
+
+    def test_from_live_api_success_path(self):
+        """from_live_api builds harness from API response data."""
+        import json
+        from unittest.mock import MagicMock, patch
+
+        fake_response = json.dumps(
+            {"data": [{"id": "Granite-4.1-8B-GGUF", "labels": ["coding"], "downloaded": True}]}
+        ).encode()
+        mock_resp = MagicMock()
+        mock_resp.read.return_value = fake_response
+        mock_resp.__enter__ = lambda s: s
+        mock_resp.__exit__ = MagicMock(return_value=False)
+
+        with patch(
+            "cohezion.inference.model_card_harness.urllib.request.urlopen", return_value=mock_resp
+        ):
+            h = ModelCardHarness.from_live_api(port=13305)
+
+        assert h.get_labels("Granite-4.1-8B-GGUF") == ["coding"]
+        assert h.best_model_for_output_type("code") == "Granite-4.1-8B-GGUF"
+
+
+class TestGetCtxSize:
+    def test_ctx_size_returns_int_when_present(self):
+        h = _harness_with_models(_model("Gemma-4-E4B-it-GGUF", ctx_size=32768))
+        assert h.get_ctx_size("Gemma-4-E4B-it-GGUF") == 32768
+
+    def test_ctx_size_returns_none_when_absent(self):
+        h = _harness_with_models(_model("llama3.2-1b-FLM"))
+        assert h.get_ctx_size("llama3.2-1b-FLM") is None
+
+    def test_ctx_size_returns_none_for_unknown_model(self):
+        h = ModelCardHarness([])
+        assert h.get_ctx_size("unknown-model") is None

@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import pytest
 
-from cohezion.inference.task_classifier import classify
+from cohezion.inference.task_classifier import RouteDecision, classify
 
 
 # ── GPU routing (highest-cost to mis-route) ──────────────────────────────────
@@ -207,3 +207,19 @@ def test_harness_invariant_routing(prompt, expected_node, expected_type):
     d = classify(prompt)
     assert d.node == expected_node, f"Expected {expected_node} for: {prompt!r}"
     assert d.output_type == expected_type, f"Expected {expected_type} for: {prompt!r}"
+
+
+def test_route_decision_str_format():
+    """__str__ includes node, output_type, gate, and confidence."""
+    d = RouteDecision(
+        node="npu",
+        output_type="short_categorical",
+        quality_gate_chars=0,
+        confidence=1.0,
+        reason="test",
+    )
+    s = str(d)
+    assert "NPU" in s
+    assert "short_categorical" in s
+    assert "gate=0" in s
+    assert "conf=1.00" in s
