@@ -99,18 +99,23 @@ Long prompt           ~88µs  (full scan before length fallback)
 Design budget         500µs  ← all well below
 ```
 
-### Current State (2026-05-11, final Round 4)
+### Current State (2026-05-11, Round 5 — extended loop)
 
-- **Experiments:** 33 total, 29 winners (87.9% win rate)
-- **Tests:** 176 inference tests passing (was ~67 pre-session, +109 added)
+- **Experiments:** 41 total, 37 winners (90.2% win rate)
+- **Tests:** 195 inference tests passing (was ~67 pre-session, +128 added)
 - **Coverage:** 100% on task_classifier.py + model_card_harness.py; 97% on orchestrator.py
-- **Branch:** `worktree-humming-coalescing-rose` @ eb281c1c3 (PR #166 open)
+- **Branch:** `worktree-humming-coalescing-rose` @ 2814624f0 (PR #166 open)
 - **Compound lift:** 6.354x (3-node vs GPU-only, unchanged from baseline)
+- **5.10x token efficiency** on 13 compound loop prompts (exp_LL)
+- **Harness:** 12 invariants (was 10), CL2+CL3 added
 - **Bug fixes committed:**
   - Classifier: false GPU escalations for "import"/"class" in prose (exp_DD)
-  - Orchestrator: tier1 gate not overridden on GPU routing (exp_FF)
+  - Orchestrator: tier1 gate not overridden on GPU routing (exp_FF, verified exp_NN)
   - Triune tests: stale qwen3.5-4b-FLM assertion (exp_X)
   - Type safety: _TYPE_CONFIG narrowed to Literal (exp_CC)
+- **New classifier patterns:** code-context context guard, what-is/describe, code gen adjective (exp_DD, exp_HH)
+- **New test files:** test_gaia_adapter.py (16 tests), test_task_classifier.py (41), test_model_card_harness.py (31), test_orchestrator.py extended (+12 tests)
+- **Runtime finding:** NPU port 13306 now running DeepSeek-Qwen3-8B instead of llama3.2-1b-FLM
 
 ### Updated Frontier
 
