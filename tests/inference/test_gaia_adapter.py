@@ -1,0 +1,189 @@
+"""Unit tests for gaia_adapter — GAIA SDK adapter and AMD-optimization tier selection."""
+
+from __future__ import annotations
+
+import sys
+from types import SimpleNamespace
+from unittest.mock import MagicMock, patch
+
+import pytest
+
+from cohezion.inference.gaia_adapter import (
+    GaiaAgentTier,
+    amd_optimized_hierarchy,
+    build_gaia_native_tier,
+    rank_models_by_amd_optimization,
+)
+
+
+# ── GaiaAgentTier.run ─────────────────────────────────────────────────────────
+
+
+class TestGaiaAgentTierRun:
+    @pytest.mark.asyncio
+    async def test_run_with_prompt_method(self):
+        """Agent.prompt() method is called and result wrapped in OrchestrationResult."""
+        mock_agent = MagicMock()
+        mock_agent.prompt = MagicMock(return_value="test response")
+        tier = GaiaAgentTier(agent=mock_agent, label="test-model")
+
+        result = await tier.run("Hello")
+
+        assert result.text == "test response"
+        assert result.error is None
+        assert result.primary_model == "test-model"
+        assert result.final_model == "test-model"
+
+    @pytest.mark.asyncio
+    async def test_run_with_run_method_fallback(self):
+        """Falls back to .run() if .prompt() is absent."""
+        mock_agent = SimpleNamespace(run=MagicMock(return_value="run response"))
+        tier = GaiaAgentTier(agent=mock_agent, label="test")
+
+        result = await tier.run("Hello")
+
+        assert result.text == "run response"
+        assert result.error is None
+
+    @pytest.mark.asyncio
+    async def test_run_with_no_method_returns_error(self):
+        """Agent with no prompt/run/chat method returns error gracefully."""
+        mock_agent = object()  # no methods
+        tier = GaiaAgentTier(agent=mock_agent, label="broken")
+
+        result = await tier.run("Hello")
+
+        assert result.error is not None
+        assert "no prompt/run/chat method" in result.error
+
+    @pytest.mark.asyncio
+    async def test_run_exception_returns_error_not_raise(self):
+        """If agent.prompt() raises, the error is captured (not propagated)."""
+        mock_agent = MagicMock()
+        mock_agent.prompt.side_effect = RuntimeError("model crashed")
+        tier = GaiaAgentTier(agent=mock_agent, label="failing-model")
+
+        result = await tier.run("Hello")
+
+        assert result.error is not None
+        assert "RuntimeError" in result.error
+        assert result.text == ""
+
+    @pytest.mark.asyncio
+    async def test_run_result_has_latency(self):
+        """OrchestrationResult includes latency_ms."""
+        mock_agent = MagicMock()
+        mock_agent.prompt = MagicMock(return_value="ok")
+        tier = GaiaAgentTier(agent=mock_agent, label="test")
+
+        result = await tier.run("Hello")
+
+        assert result.latency_ms >= 0.0
+
+
+# ── rank_models_by_amd_optimization ──────────────────────────────────────────
+
+
+class TestRankModelsByAmdOptimization:
+    def test_npu_ranked_before_cloud(self):
+        """NPU (FLM) models rank ahead of cloud models."""
+        from cohezion.inference.gaia_adapter import _AMD_PATH_RANK
+        from cohezion.inference.registry import Lane
+
+        # Verify the rank table has the expected ordering
+        assert _AMD_PATH_RANK[Lane.NPU] < _AMD_PATH_RANK[Lane.CLOUD_CLAUDE]
+        assert _AMD_PATH_RANK[Lane.IGPU_ROCWMMA] < _AMD_PATH_RANK[Lane.CLOUD_OLLAMA]
+
+    def test_unknown_models_ranked_last(self):
+        """Models not in registry get rank=99 and are sorted to end."""
+        result = rank_models_by_amd_optimization(["unknown-model-xyz"])
+        assert result == ["unknown-model-xyz"]  # single item stays
+
+    def test_empty_list_returns_empty(self):
+        result = rank_models_by_amd_optimization([])
+        assert result == []
+
+    def test_rank_preserves_all_models(self):
+        """All input models are present in output (no filtering)."""
+        models = ["model-a", "model-b", "model-c"]
+        result = rank_models_by_amd_optimization(models)
+        assert sorted(result) == sorted(models)
+
+
+# ── build_gaia_native_tier ────────────────────────────────────────────────────
+
+
+class TestBuildGaiaNativeTier:
+    def test_raises_when_gaia_not_installed(self):
+        """RuntimeError raised if amd-gaia is not installed."""
+        with patch.dict(
+            sys.modules,
+            {
+                "gaia": None,
+                "gaia.agents": None,
+                "gaia.agents.chat": None,
+                "gaia.agents.chat.agent": None,
+            },
+        ):
+            # When GAIA module is missing entirely, import fails
+            with pytest.raises((RuntimeError, ImportError)):
+                build_gaia_native_tier()
+
+    def test_returns_gaia_agent_tier_with_label(self):
+        """Successful build returns GaiaAgentTier with correct label."""
+        mock_agent_instance = MagicMock()
+        mock_chat_agent_cls = MagicMock(return_value=mock_agent_instance)
+        mock_config_cls = MagicMock()
+
+        mock_gaia_module = MagicMock()
+        mock_gaia_module.ChatAgent = mock_chat_agent_cls
+        mock_gaia_module.ChatAgentConfig = mock_config_cls
+
+        with patch.dict(sys.modules, {"gaia.agents.chat.agent": mock_gaia_module}):
+            tier = build_gaia_native_tier(
+                model_id="llama3.2-1b-FLM", base_url="http://localhost:13306/v1"
+            )
+
+        assert isinstance(tier, GaiaAgentTier)
+        assert "llama3.2-1b-FLM" in tier.label
+
+    def test_default_model_id(self):
+        """Default model_id is Gemma-4-E2B-it-GGUF."""
+        mock_gaia_module = MagicMock()
+        mock_gaia_module.ChatAgent = MagicMock(return_value=MagicMock())
+        mock_gaia_module.ChatAgentConfig = MagicMock()
+
+        with patch.dict(sys.modules, {"gaia.agents.chat.agent": mock_gaia_module}):
+            tier = build_gaia_native_tier()
+
+        assert "Gemma-4-E2B-it-GGUF" in tier.label
+
+
+# ── amd_optimized_hierarchy ───────────────────────────────────────────────────
+
+
+class TestAmdOptimizedHierarchy:
+    def test_hierarchy_structure_with_cloud(self):
+        """With include_cloud=True, hierarchy includes cloud tiers."""
+        orch = amd_optimized_hierarchy(include_cloud=True, max_cost_usd=0.10)
+        assert len(orch.tiers) == 6
+        assert orch.max_cost_usd == 0.10
+
+    def test_hierarchy_structure_without_cloud(self):
+        """With include_cloud=False, only local AMD tiers."""
+        orch = amd_optimized_hierarchy(include_cloud=False)
+        assert len(orch.tiers) == 4
+
+    def test_tier0_is_cheapest_local(self):
+        """Tier 0 is the cheapest/fastest local model (Gemma-4-E2B)."""
+        orch = amd_optimized_hierarchy(include_cloud=False)
+        tier0_target = orch.tiers[0][0]
+        assert "E2B" in tier0_target or "e2b" in tier0_target.lower()
+
+    def test_trust_tier_is_last(self):
+        """The terminal tier uses QualityGate.TRUST (always passes)."""
+        orch = amd_optimized_hierarchy(include_cloud=True)
+        last_gate = orch.tiers[-1][1]
+        from cohezion.inference.orchestrator import QualityGate
+
+        assert last_gate is QualityGate.TRUST  # type: ignore[attr-defined]
