@@ -26,9 +26,15 @@ class TestGpuPatterns:
         d = classify("Fix the bug in this code:\n```python\ndef foo(): pass\n```")
         assert d.node == "gpu"
 
-    def test_code_context_def_keyword(self):
-        d = classify("What does def __init__(self) do in Python?")
+    def test_code_context_backtick_def(self):
+        # Backtick before `def` signals code context → GPU
+        d = classify("When I use `def foo():` what does that create?")
         assert d.node == "gpu"
+
+    def test_code_context_prose_def_routes_npu(self):
+        # "def" in prose (no backtick/newline/tab) → conceptual question → NPU
+        d = classify("What does def __init__(self) do in Python?")
+        assert d.node == "npu"  # conceptual question, 1-sentence answer sufficient
 
     def test_essay_generation(self):
         d = classify("Write an essay explaining the HIHO stability principle in detail.")

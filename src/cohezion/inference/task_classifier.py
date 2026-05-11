@@ -95,7 +95,13 @@ _GPU_PATTERNS = [
         1.0,
         "code generation",
     ),
-    (re.compile(r"```|def |class |import |#include|func |fn ", re.S), 0.95, "code context"),
+    # Code context: keyword must appear after backtick/newline/tab (actual code, not prose)
+    # Prevents "What does class inheritance mean?" from routing to GPU
+    (
+        re.compile(r"```|(?:^|[\n\t`])[ \t]*(?:def |class |import )|#include|func |fn ", re.S),
+        0.95,
+        "code context",
+    ),
     # Long generation
     (
         re.compile(
