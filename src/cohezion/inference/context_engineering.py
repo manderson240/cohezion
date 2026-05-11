@@ -95,6 +95,32 @@ class ModelCardRegistry:
             },
         )
 
+        # DeepSeek-Qwen3-8B GGUF (currently running on NPU port 13306, May 2026)
+        # Higher reasoning capability than base Qwen3-8B due to DeepSeek training
+        self._cards["DeepSeek-Qwen3-8B-GGUF"] = ModelCard(
+            model_id="DeepSeek-Qwen3-8B-GGUF",
+            family="deepseek",
+            variant="8b",
+            capabilities=ModelCapability(
+                reasoning=0.90,
+                coding=0.85,
+                creativity=0.65,
+                instruction_following=0.85,
+                long_context=0.75,
+                multilingual=0.90,
+            ),
+            optimal_temperature=0.6,
+            optimal_top_p=0.95,
+            max_tokens_default=400,
+            context_window=32768,
+            supports_reasoning=True,
+            system_templates={
+                "reasoning": "You are an expert reasoning assistant. Think step by step and verify your answers.",
+                "coding": "You are a skilled coding assistant. Write efficient, well-structured code.",
+                "default": "You are a helpful, accurate assistant with strong reasoning capabilities.",
+            },
+        )
+
         # Gemma-4 family
         self._cards["Gemma-4-26B-A4B-it-GGUF"] = ModelCard(
             model_id="Gemma-4-26B-A4B-it-GGUF",
