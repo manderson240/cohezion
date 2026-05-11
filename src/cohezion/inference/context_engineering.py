@@ -167,6 +167,76 @@ class ModelCardRegistry:
             },
         )
 
+        # Gemma-4 E4B (iGPU tier, thinking mode, 2260 thinking token overhead)
+        self._cards["Gemma-4-E4B-it-GGUF"] = ModelCard(
+            model_id="Gemma-4-E4B-it-GGUF",
+            family="gemma",
+            variant="4b",
+            capabilities=ModelCapability(
+                reasoning=0.75,
+                coding=0.70,
+                creativity=0.65,
+                instruction_following=0.80,
+                long_context=0.70,
+                multilingual=0.75,
+            ),
+            optimal_temperature=0.7,
+            optimal_top_p=0.9,
+            max_tokens_default=600,
+            context_window=32768,
+            supports_thinking=True,
+            system_templates={
+                "coding": "You are a coding assistant. Write correct, efficient code.",
+                "reasoning": "You are a reasoning assistant. Think step by step.",
+                "default": "You are a helpful, accurate assistant.",
+            },
+        )
+
+        # Gemma-4 E2B (NPU fallback, thinking mode, fast)
+        self._cards["Gemma-4-E2B-it-GGUF"] = ModelCard(
+            model_id="Gemma-4-E2B-it-GGUF",
+            family="gemma",
+            variant="2b",
+            capabilities=ModelCapability(
+                reasoning=0.60,
+                coding=0.55,
+                creativity=0.55,
+                instruction_following=0.70,
+                long_context=0.50,
+                multilingual=0.60,
+            ),
+            optimal_temperature=0.7,
+            optimal_top_p=0.9,
+            max_tokens_default=200,
+            context_window=32768,
+            supports_thinking=True,
+            system_templates={
+                "default": "You are a fast, helpful assistant.",
+            },
+        )
+
+        # llama3.2-1b-FLM (NPU tier, XDNA2 SRAM, 42 TPS, no thinking mode)
+        self._cards["llama3.2-1b-FLM"] = ModelCard(
+            model_id="llama3.2-1b-FLM",
+            family="llama",
+            variant="1b",
+            capabilities=ModelCapability(
+                reasoning=0.40,
+                coding=0.35,
+                creativity=0.45,
+                instruction_following=0.70,
+                long_context=0.30,
+                multilingual=0.50,
+            ),
+            optimal_temperature=0.5,
+            optimal_top_p=0.9,
+            max_tokens_default=50,
+            context_window=4096,
+            system_templates={
+                "default": "You are a fast, concise assistant. Give short, direct answers.",
+            },
+        )
+
     def get_card(self, model_id: str) -> ModelCard | None:
         """Get model card by ID (with fuzzy matching)."""
         # Exact match
