@@ -116,6 +116,8 @@ Design budget         500µs  ← all well below
 - **New classifier patterns:** code-context context guard, what-is/describe, code gen adjective (exp_DD, exp_HH)
 - **New test files:** test_gaia_adapter.py (16 tests), test_task_classifier.py (41), test_model_card_harness.py (31), test_orchestrator.py extended (+12 tests)
 - **Runtime finding:** NPU port 13306 now running DeepSeek-Qwen3-8B instead of llama3.2-1b-FLM
+- **P0 bug fixed:** asyncio.Coroutine → collections.abc.Coroutine (Python 3.11 compat, exp_OO)
+- **Final test count:** 205 inference tests passing (was ~67 pre-session, +138 added)
 
 ### Updated Frontier
 
