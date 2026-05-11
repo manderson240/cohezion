@@ -95,6 +95,109 @@ class ModelCardRegistry:
             },
         )
 
+        # Gemma-4-31B (CPU tier, larger context than E4B)
+        self._cards["Gemma-4-31B-it-GGUF"] = ModelCard(
+            model_id="Gemma-4-31B-it-GGUF",
+            family="gemma",
+            variant="31b",
+            capabilities=ModelCapability(
+                reasoning=0.80,
+                coding=0.75,
+                creativity=0.70,
+                instruction_following=0.85,
+                long_context=0.85,
+                multilingual=0.80,
+            ),
+            optimal_temperature=0.7,
+            optimal_top_p=0.9,
+            max_tokens_default=800,
+            context_window=32768,
+            supports_thinking=True,
+            system_templates={"default": "You are a knowledgeable, accurate assistant."},
+        )
+
+        # Qwen3.5-35B-A3B MoE (large reasoning model, active 3B params)
+        self._cards["Qwen3.5-35B-A3B-GGUF"] = ModelCard(
+            model_id="Qwen3.5-35B-A3B-GGUF",
+            family="qwen",
+            variant="35b-moe",
+            capabilities=ModelCapability(
+                reasoning=0.90,
+                coding=0.85,
+                creativity=0.75,
+                instruction_following=0.90,
+                long_context=0.90,
+                multilingual=0.95,
+            ),
+            optimal_temperature=0.6,
+            optimal_top_p=0.95,
+            max_tokens_default=600,
+            context_window=32768,
+            supports_reasoning=True,
+            system_templates={
+                "reasoning": "You are an expert with strong reasoning capabilities. Think thoroughly.",
+                "default": "You are a highly capable assistant.",
+            },
+        )
+
+        # FLM models (NPU-optimized, XDNA2 SRAM, direct inference)
+        self._cards["gemma3-4b-FLM"] = ModelCard(
+            model_id="gemma3-4b-FLM",
+            family="gemma",
+            variant="3-4b-flm",
+            capabilities=ModelCapability(
+                reasoning=0.60,
+                coding=0.55,
+                creativity=0.55,
+                instruction_following=0.70,
+                long_context=0.40,
+                multilingual=0.65,
+            ),
+            optimal_temperature=0.5,
+            optimal_top_p=0.9,
+            max_tokens_default=150,
+            context_window=8192,
+            system_templates={"default": "You are a fast, concise assistant."},
+        )
+
+        self._cards["gemma4-it-e2b-FLM"] = ModelCard(
+            model_id="gemma4-it-e2b-FLM",
+            family="gemma",
+            variant="4-e2b-flm",
+            capabilities=ModelCapability(
+                reasoning=0.55,
+                coding=0.50,
+                creativity=0.50,
+                instruction_following=0.65,
+                long_context=0.35,
+                multilingual=0.60,
+            ),
+            optimal_temperature=0.5,
+            optimal_top_p=0.9,
+            max_tokens_default=100,
+            context_window=4096,
+            system_templates={"default": "You are a fast, concise assistant."},
+        )
+
+        self._cards["qwen3.5-4b-FLM"] = ModelCard(
+            model_id="qwen3.5-4b-FLM",
+            family="qwen",
+            variant="3.5-4b-flm",
+            capabilities=ModelCapability(
+                reasoning=0.65,
+                coding=0.60,
+                creativity=0.60,
+                instruction_following=0.72,
+                long_context=0.45,
+                multilingual=0.75,
+            ),
+            optimal_temperature=0.5,
+            optimal_top_p=0.9,
+            max_tokens_default=200,
+            context_window=4096,
+            system_templates={"default": "You are a fast, accurate assistant."},
+        )
+
         # DeepSeek-Qwen3-8B GGUF (currently running on NPU port 13306, May 2026)
         # Higher reasoning capability than base Qwen3-8B due to DeepSeek training
         self._cards["DeepSeek-Qwen3-8B-GGUF"] = ModelCard(
