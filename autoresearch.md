@@ -70,10 +70,49 @@ Routing short-answer tasks (classification, routing, simple QA) to NPU:
 - 13.1x latency improvement
 - 60% of compound loop tasks are NPU-suitable
 
+## Round 4: Task Classifier + Tests + Coverage (2026-05-11)
+
+| Experiment | Type | Result | Key Metric |
+|---|---|---|---|
+| exp_O_task_classifier | New module | WIN | 28µs avg, 8-task 100% accuracy |
+| exp_P_dogfood_classifier | Integration test | WIN | 4/4 live API tasks complete |
+| exp_Q_max_tokens_600 | Config fix | WIN | Silences GPU truncation |
+| exp_R_model_card_harness | New module | WIN | Routes code → Granite coding model |
+| exp_S_harness_init_name_only | Skill override | SKIP | routing_coverage=0.667 < 0.85 gate |
+| exp_T_unit_tests | Test coverage | WIN | 63 tests, task_classifier + model_card_harness |
+| exp_U_compound_loop_health | Health check | WIN | 7/7 phases pass post-session |
+| exp_V_rules_overlap_quantify | Audit | INFO | 2 candidates (python-rules, memory) for human review |
+| exp_W_orchestrator_predispatch_tests | Test coverage | WIN | 4 pre_dispatch integration tests |
+| exp_X_triune_tests_fix | Test fix + coverage | WIN | Fixed stale NPU model assertion, N2 invariant test |
+| exp_Y_100pct_coverage | Test coverage | WIN | 100% on both new modules |
+| exp_Z_classifier_benchmark | Performance | WIN | 1–88µs range, all < 500µs budget |
+
+### Key Findings: Classifier Performance
+
+```
+Pattern match         Overhead
+──────────────────────────────
+GPU (code gen)        ~1µs   (early exit on first match)
+NPU categorical       ~5µs
+NPU short answer      ~7µs
+Long prompt           ~88µs  (full scan before length fallback)
+Design budget         500µs  ← all well below
+```
+
+### Current State (2026-05-11)
+
+- **Experiments:** 26 total, 22 winners (84.6% win rate)
+- **Tests:** 166 inference tests passing (was ~67 pre-session)
+- **Coverage:** 100% on task_classifier.py + model_card_harness.py
+- **Branch:** `worktree-humming-coalescing-rose` @ b98927112 (PR #166 open)
+- **Compound lift:** 6.354x (3-node vs GPU-only, unchanged from baseline)
+
 ### Updated Frontier
 
-NPU model config committed: `triune_orchestrator.py` now uses `llama3.2-1b-FLM` for NPU tier.
+Skill density and compound routing optimizations are **converged**. The routing_coverage gate
+prevents further core skill overrides. Remaining opportunities require human decisions:
 
-Next optimization opportunity: **task classifier** — a lightweight model to decide NPU vs GPU
-routing BEFORE sending the task. A 50-token routing decision that saves 400 GPU thinking tokens
-is a 8x net win per routed task.
+1. **Rules files** (~15,552t): 2 high-overlap candidates (python-rules.md 61%, memory.md 61%)
+   Need human review to confirm redundancy vs CLAUDE.md before any trimming.
+2. **Real session routing accuracy**: Task classifier tested on 8 synthetic tasks.
+   Need to extract real compound loop task prompts to measure production accuracy.
