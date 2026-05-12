@@ -14,7 +14,7 @@ from __future__ import annotations
 
 import json
 import logging
-from typing import Any
+from typing import Any, cast
 from uuid import uuid4
 
 import numpy as np
@@ -30,7 +30,7 @@ SURREAL_USER = "root"
 SURREAL_PASS = "root"
 
 
-async def _execute_surql(query: str) -> list[dict] | None:
+async def _execute_surql(query: str) -> list[dict[str, Any]] | None:
     """Execute SurrealQL via HTTP API (async-safe with httpx fallback to urllib)."""
     try:
         import httpx
@@ -48,7 +48,7 @@ async def _execute_surql(query: str) -> list[dict] | None:
                 timeout=10.0,
             )
             if resp.status_code == 200:
-                return resp.json()
+                return cast(list[dict[str, Any]], resp.json())
     except ImportError:
         # Fallback to synchronous urllib
         import urllib.request
@@ -70,7 +70,7 @@ async def _execute_surql(query: str) -> list[dict] | None:
         req.add_header("Authorization", f"Basic {credentials}")
         try:
             with urllib.request.urlopen(req, timeout=10) as resp:
-                return json.loads(resp.read())
+                return cast(list[dict[str, Any]], json.loads(resp.read()))
         except Exception as e:
             logger.debug("SurrealDB fallback failed: %s", e)
     except Exception as e:
@@ -140,8 +140,8 @@ async def persist_universe_snapshot(
     global_free_energy: float = 0.0,
     fisher_eigenvalue_max: float = 1.0,
     cosmogony_stage: int = 0,
-    topology_summary: dict | None = None,
-    order_parameters: dict | None = None,
+    topology_summary: dict[str, Any] | None = None,
+    order_parameters: dict[str, Any] | None = None,
 ) -> bool:
     """Persist a periodic universe state snapshot."""
     snapshot_id = f"snap_{tick}_{uuid4().hex[:8]}"
@@ -196,7 +196,9 @@ async def persist_prompt_artifact(
     return result is not None
 
 
-async def get_journey_transitions(journey_id: str | None = None, limit: int = 100) -> list[dict]:
+async def get_journey_transitions(
+    journey_id: str | None = None, limit: int = 100
+) -> list[dict[str, Any]]:
     """Query stored journey transitions."""
     if journey_id:
         query = f"SELECT * FROM journey_transitions WHERE journey_id = {_to_surql_value(journey_id)} LIMIT {limit};"
@@ -207,7 +209,7 @@ async def get_journey_transitions(journey_id: str | None = None, limit: int = 10
     if result and isinstance(result, list):
         for r in result:
             if r.get("status") == "OK" and isinstance(r.get("result"), list):
-                return r["result"]
+                return cast(list[dict[str, Any]], r["result"])
     return []
 
 
@@ -219,7 +221,7 @@ async def get_transition_count() -> int:
             if r.get("status") == "OK" and isinstance(r.get("result"), list):
                 rows = r["result"]
                 if rows:
-                    return rows[0].get("count", 0)
+                    return int(rows[0].get("count", 0))
     return 0
 
 
