@@ -176,7 +176,13 @@ jobs:
             --show-absolute-path \
             --error-summary \
             src/cohezion/persistence/ \
-            src/cohezion/surreal* 2>&1 | tee mypy-report.txt || true
+            src/cohezion/storage/surreal_client.py \
+            src/cohezion/mcp/surreal_server.py \
+            src/cohezion/mcp/surreal_server_mcp.py \
+            src/cohezion/agents/specialists/surreal_dba.py \
+            src/cohezion/core/persistence/surreal_client.py \
+            src/cohezion/flux/providers/surreal_flux.py \
+            2>&1 | tee mypy-report.txt || true
 
       - name: Upload type check results
         if: always()
