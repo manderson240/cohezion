@@ -388,6 +388,65 @@ class ModelCardRegistry:
         """Register a new model card."""
         self._cards[card.model_id] = card
 
+    def update_from_live_api(self, port: int = 13305) -> int:
+        """Sync context_window from the live Lemonade /v1/models API.
+
+        For models already in the registry: updates context_window from live data.
+        For unknown downloaded models: creates a minimal auto-discovered card.
+        Returns the number of cards updated or added.
+
+        Uses model_card_harness as the live API bridge. Fails gracefully if
+        Lemonade is unavailable.
+        """
+        try:
+            from cohezion.inference.model_card_harness import ModelCardHarness
+        except ImportError:
+            logger.debug("model_card_harness not available — skipping live update")
+            return 0
+
+        harness = ModelCardHarness.from_live_api(port=port)
+        updated = 0
+
+        for model_id, model_data in harness._by_id.items():
+            if not model_data.get("downloaded"):
+                continue
+
+            ctx_size = harness.get_ctx_size(model_id)
+            existing = self._cards.get(model_id)
+
+            if existing and ctx_size:
+                # Update context_window from live API (more accurate than static)
+                from dataclasses import replace
+
+                self._cards[model_id] = replace(existing, context_window=ctx_size)
+                updated += 1
+            elif not existing:
+                # Auto-discover: create minimal card for unknown downloaded models
+                labels = harness.get_labels(model_id)
+                family = "unknown"
+                for prefix, fam in [
+                    ("Gemma", "gemma"),
+                    ("Qwen", "qwen"),
+                    ("llama", "llama"),
+                    ("DeepSeek", "deepseek"),
+                    ("Granite", "granite"),
+                ]:
+                    if model_id.startswith(prefix):
+                        family = fam
+                        break
+                self._cards[model_id] = ModelCard(
+                    model_id=model_id,
+                    family=family,
+                    variant="auto",
+                    context_window=ctx_size or 4096,
+                    supports_reasoning="reasoning" in labels,
+                    system_templates={"default": "You are a helpful assistant."},
+                )
+                updated += 1
+
+        logger.debug("update_from_live_api: %d cards updated/added from port %d", updated, port)
+        return updated
+
 
 class ContextEngineer:
     """Engineers optimized prompts for specific models and tasks."""

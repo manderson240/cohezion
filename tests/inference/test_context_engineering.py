@@ -90,6 +90,23 @@ class TestModelCardRegistryExactMatch:
         assert retrieved.model_id == "custom-test-model"
         assert retrieved.context_window == 16384
 
+    def test_update_from_live_api_unavailable_returns_zero(self, registry):
+        """When Lemonade is unavailable, returns 0 without raising."""
+        result = registry.update_from_live_api(port=19999)  # no server
+        assert result == 0
+        # Original cards must still be present
+        assert registry.get_card("llama3.2-1b-FLM") is not None
+
+    def test_update_from_live_api_live_server(self, registry):
+        """Live Lemonade server should update cards with real ctx_size."""
+        result = registry.update_from_live_api(port=13305)
+        # Should update all 12 downloaded models
+        assert result > 0, "Expected at least 1 card updated from live API"
+        # Context windows should remain correct after update
+        e4b = registry.get_card("Gemma-4-E4B-it-GGUF")
+        assert e4b is not None
+        assert e4b.context_window > 0
+
 
 # ── Capability scores sanity ──────────────────────────────────────────────────
 
