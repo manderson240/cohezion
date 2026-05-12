@@ -1110,8 +1110,6 @@ class CompoundExecutor(CompoundContextMixin, ExecutorIntegrationMixin):
                         AttributeError,
                         RuntimeError,
                         OSError,
-                        ConnectionError,
-                        asyncio.TimeoutError,
                     ) as e:
                         logger.debug("Journey persistence failed (non-blocking): %s", e)
             except (AttributeError, RuntimeError, ValueError, KeyError, TypeError) as e:

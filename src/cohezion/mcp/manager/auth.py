@@ -41,7 +41,7 @@ def get_current_token() -> str | None:
 
     try:
         return AUTH_TOKEN_PATH.read_text().strip()
-    except (OSError, ValueError, UnicodeDecodeError) as e:
+    except (OSError, ValueError) as e:
         # Fail-closed but NOT silent — operator needs to know why all A2A
         # requests are 403'ing. (Ω12 P1 Patch 12)
         logger.warning(

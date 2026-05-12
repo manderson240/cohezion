@@ -295,7 +295,7 @@ DEFINE FIELD stability_score ON TABLE universe_nodes VALUE (
             async with httpx.AsyncClient(timeout=1.0) as client:
                 response = await client.get(health_url)
                 return response.status_code == 200
-        except (httpx.HTTPError, httpx.TimeoutException, OSError, ConnectionError):
+        except (httpx.HTTPError, OSError):
             return False
 
     async def ensure_active(self, timeout: int = 30) -> bool:
@@ -414,10 +414,10 @@ DEFINE FIELD stability_score ON TABLE universe_nodes VALUE (
             logger.info("Schema created successfully")
             return True
         except (
-            ConnectionError,
+
             OSError,
             httpx.HTTPError,
-            asyncio.TimeoutError,
+
             RuntimeError,
             ValueError,
             TypeError,
@@ -450,10 +450,10 @@ DEFINE FIELD stability_score ON TABLE universe_nodes VALUE (
             return node.id
 
         except (
-            ConnectionError,
+
             OSError,
             httpx.HTTPError,
-            asyncio.TimeoutError,
+
             RuntimeError,
             ValueError,
             KeyError,
@@ -479,10 +479,10 @@ DEFINE FIELD stability_score ON TABLE universe_nodes VALUE (
             else:
                 return await self._client.create(table, data)
         except (
-            ConnectionError,
+
             OSError,
             httpx.HTTPError,
-            asyncio.TimeoutError,
+
             RuntimeError,
             ValueError,
             KeyError,
@@ -631,10 +631,10 @@ DEFINE FIELD stability_score ON TABLE universe_nodes VALUE (
             logger.info(f"SurrealDB Response: {res}")
             return res
         except (
-            ConnectionError,
+
             OSError,
             httpx.HTTPError,
-            asyncio.TimeoutError,
+
             RuntimeError,
             ValueError,
             KeyError,
@@ -665,10 +665,10 @@ DEFINE FIELD stability_score ON TABLE universe_nodes VALUE (
             return self._dict_to_node(data)
 
         except (
-            ConnectionError,
+
             OSError,
             httpx.HTTPError,
-            asyncio.TimeoutError,
+
             RuntimeError,
             ValueError,
             KeyError,
@@ -714,10 +714,10 @@ DEFINE FIELD stability_score ON TABLE universe_nodes VALUE (
             return [self._dict_to_node(r) for r in results]
 
         except (
-            ConnectionError,
+
             OSError,
             httpx.HTTPError,
-            asyncio.TimeoutError,
+
             RuntimeError,
             ValueError,
             KeyError,
@@ -748,10 +748,10 @@ DEFINE FIELD stability_score ON TABLE universe_nodes VALUE (
             return [self._dict_to_node(r) for r in results]
 
         except (
-            ConnectionError,
+
             OSError,
             httpx.HTTPError,
-            asyncio.TimeoutError,
+
             RuntimeError,
             ValueError,
             KeyError,
@@ -825,10 +825,10 @@ DEFINE FIELD stability_score ON TABLE universe_nodes VALUE (
                 return None
 
         except (
-            ConnectionError,
+
             OSError,
             httpx.HTTPError,
-            asyncio.TimeoutError,
+
             RuntimeError,
             ValueError,
             KeyError,
@@ -877,10 +877,10 @@ DEFINE FIELD stability_score ON TABLE universe_nodes VALUE (
                 return []
 
         except (
-            ConnectionError,
+
             OSError,
             httpx.HTTPError,
-            asyncio.TimeoutError,
+
             RuntimeError,
             ValueError,
             KeyError,
@@ -940,10 +940,10 @@ DEFINE FIELD stability_score ON TABLE universe_nodes VALUE (
                 return []
 
         except (
-            ConnectionError,
+
             OSError,
             httpx.HTTPError,
-            asyncio.TimeoutError,
+
             RuntimeError,
             ValueError,
             KeyError,
@@ -978,7 +978,6 @@ DEFINE FIELD stability_score ON TABLE universe_nodes VALUE (
             except (
                 zlib.error,
                 base64.binascii.Error,
-                UnicodeDecodeError,
                 ValueError,
                 TypeError,
             ) as e:
