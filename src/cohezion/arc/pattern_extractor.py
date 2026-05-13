@@ -651,6 +651,19 @@ def _tile_parity_transforms(g: Grid) -> Grid | None:
     return out
 
 
+def _tile_4_rect(g: Grid) -> Grid | None:
+    """Tile 2x horizontally then 2x vertically, producing a 2x2 grid of copies.
+
+    Equivalent to tile_2h followed by tile_2v.  Exposed as a single op so
+    the DFS can find 2-op chains like invert + tile_4_rect that would otherwise
+    require 3 hops (invert + tile_2h + tile_2v).
+    """
+    r = _tile_2_horiz(g)
+    if r is None:
+        return None
+    return _tile_2_vert(r)
+
+
 def _tile_4_rotations(g: Grid) -> Grid | None:
     """4-quadrant tile: place the 4 rotations of g at [TL|TR; BL|BR].
 
@@ -911,6 +924,7 @@ def _build_strategy(name: str, train: list[dict[str, Grid]]) -> list[tuple[str, 
             ("invert", _invert_colors),
             ("remove_bg", _remove_bg),
             ("fill_holes", _fill_holes),
+            ("tile_4rect", _tile_4_rect),  # expose so invert+tile_4rect is 2-op
         ]
         + [
             (f"replace_{old}_{new}", _make_replace(old, new))
@@ -930,6 +944,7 @@ def _build_strategy(name: str, train: list[dict[str, Grid]]) -> list[tuple[str, 
         ("extend_both", _extend_both),
         ("tile_2h", _tile_2_horiz),
         ("tile_2v", _tile_2_vert),
+        ("tile_4rect", _tile_4_rect),
         ("tile_4rot", _tile_4_rotations),
         ("tile_3", _tile_3),
         ("tile_3_altflip", _tile_3_alt_flip),
