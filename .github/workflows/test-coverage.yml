@@ -50,14 +50,11 @@ jobs:
         uses: codecov/codecov-action@v6
         with:
           files: ./coverage.xml
-<<<<<<< HEAD
-=======
           # fail_ci_if_error was true but Codecov token-less uploads have been
           # returning "Token required - not valid tokenless upload", failing
           # the whole job despite 5,925 tests passing. Coverage is also
           # uploaded as a workflow artifact below, so we don't lose the data.
           # Re-enable once CODECOV_TOKEN is configured as a repo secret.
->>>>>>> origin/feature/coherent-matter-precipitation
           fail_ci_if_error: false
           verbose: true
           token: ${{ secrets.CODECOV_TOKEN }}
@@ -99,17 +96,10 @@ jobs:
         run: |
           # Find Python files in src/ without corresponding tests
           MISSING=0
-<<<<<<< HEAD
           for file in $(find src/cohezion -name "*.py" -type f | grep -v __pycache__ | grep -v __init__ || true); do
             module=$(echo "$file" | sed 's|src/||; s|/|.|g; s|\.py$||')
             test_file=$(echo "$file" | sed 's|src/cohezion|tests|; s|\.py$||')
             if [ ! -f "${test_file}.py" ]; then
-=======
-          for file in $(find src/cohezion -name "*.py" -type f | grep -v __pycache__ | grep -v __init__); do
-            module=$(echo $file | sed 's|src/||; s|/|.|g; s|\.py$||')
-            test_file=$(echo $file | sed 's|src/cohezion|tests|; s|\.py$||')
-            if [ ! -f "$test_file.py" ]; then
->>>>>>> origin/feature/coherent-matter-precipitation
               echo "Missing test: $module"
               MISSING=$((MISSING + 1))
             fi
