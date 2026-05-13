@@ -194,11 +194,29 @@ class TieredOrchestrator:
                     # Cap at 750: sufficient for a substantive answer, avoids CPU waste.
                     _igpu_fallback_gate = min(max(decision.quality_gate_chars * 15, 200), 750)
                     _gate_override[1] = QualityGate(min_chars=_igpu_fallback_gate)
+                # EXP-EVO-BUDGET: per-task cost ceiling (HierRouter, arXiv:2511.09873).
+                # Tightens effective_max_cost for cheap tasks so they never escalate
+                # to expensive tiers (e.g., paid cloud models) even if quality gate passes.
+                # For local-only deployments (all costs=$0), this gate never fires —
+                # it activates only when cloud tiers with cost_usd > 0 are present.
+                _TASK_BUDGET_USD: dict[str, float] = {
+                    "short_categorical": 0.0001,  # 1¢ / 10k calls — stay local
+                    "short_answer": 0.0005,  # 5¢ / 10k calls — prefer local
+                    "medium_generation": 0.005,  # 5¢ / 1k calls
+                    "long_generation": 0.01,  # 1¢ / call
+                    "code": 0.01,
+                    "math_reasoning": 0.01,
+                }
+                task_budget = _TASK_BUDGET_USD.get(decision.output_type)
+                if task_budget is not None:
+                    if effective_max_cost is None or task_budget < effective_max_cost:
+                        effective_max_cost = task_budget
                 logger.debug(
-                    "pre_dispatch: %s → tier%d gate=%d (%s, conf=%.2f)",
+                    "pre_dispatch: %s → tier%d gate=%d budget=$%.4f (%s, conf=%.2f)",
                     decision.output_type,
                     _start_tier,
                     decision.quality_gate_chars,
+                    effective_max_cost or 0.0,
                     decision.reason,
                     decision.confidence,
                 )
