@@ -657,6 +657,33 @@ def _outline_object(g: Grid) -> Grid | None:
     return result if changed and result != g else None
 
 
+def _extend_left(g: Grid) -> Grid | None:
+    """Double width by prepending a horizontally-mirrored copy to the LEFT of each row.
+
+    Complement of _extend_right: _extend_right produces row + reversed(row),
+    _extend_left produces reversed(row) + row.
+    """
+    if not g or not g[0]:
+        return None
+    if len(g[0]) * 2 > 30:
+        return None
+    result = [r[::-1] + r for r in g]
+    return result if result != g else None
+
+
+def _extend_both(g: Grid) -> Grid | None:
+    """2x scale in both axes: palindrome-extend right, then palindrome-extend down.
+
+    Equivalent to extend_right followed by extend_down, but exposed as a single op
+    so the PatternExtractor can find the common 4-quadrant mirror pattern
+    (identity | flip_v; flip_h | rot180) without needing a 2-step chain.
+    """
+    r = _extend_right(g)
+    if r is None:
+        return None
+    return _extend_down(r)
+
+
 def _tile_3(g: Grid) -> Grid | None:
     """Tile the grid 3 times in both directions (3x3 repetition)."""
     if not g or not g[0]:
@@ -841,6 +868,8 @@ def _build_strategy(name: str, train: list[dict[str, Grid]]) -> list[tuple[str, 
         ("mirror_v", _mirror_v),
         ("extend_down", _extend_down),
         ("extend_right", _extend_right),
+        ("extend_left", _extend_left),
+        ("extend_both", _extend_both),
         ("tile_2h", _tile_2_horiz),
         ("tile_2v", _tile_2_vert),
         ("tile_4rot", _tile_4_rotations),
