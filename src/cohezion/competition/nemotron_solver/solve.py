@@ -196,11 +196,6 @@ def solve_gravity(examples: list[tuple[str, str]], test_t: str) -> str:
                     fmt_d = str(int(round(pred)))
                 else:
                     fmt_d = f"{pred:.{prec}f}"
-                target = (
-                    str(d)
-                    if d == int(d)
-                    else f"{d:.{len(str(d).split('.')[-1]) if '.' in str(d) else 0}f}"
-                )
                 # Accept if formatted value matches training output exactly
                 d_str_expected = re.search(r"([0-9]+\.?[0-9]*)", str(d))
                 if d_str_expected and fmt_d == d_str_expected.group(1):
@@ -878,75 +873,123 @@ def _solve_symbol_equations(examples: list[tuple[str, str]], test_in: str) -> st
     return result if result else test_in
 
 
+def _dsum(n: int) -> int:
+    return sum(int(d) for d in str(abs(n)))
+
+
+def _dprod(n: int) -> int:
+    p = 1
+    for d in str(abs(n)):
+        p *= int(d)
+    return p
+
+
+def _drev(n: int) -> int:
+    return int(str(abs(n))[::-1])
+
+
 def _solve_number_equations(examples: list[tuple[str, str]], test_in: str) -> str:
-    """Try digit-wise operations for number equations."""
-    # Parse operator
-    # Check if test input has enough numeric parts to work with
-    _num_parts = [p for p in re.split(r"[^0-9]", test_in) if p]
-    if len(_num_parts) < 2:
-        return test_in
+    """Infer numeric rule from examples; handles 1-, 2-, 3-input equations."""
+    from math import gcd as _gcd
 
-    def apply_ops(a: int, b: int) -> list[int]:
-        """Return results of various operations."""
-        results = []
-        da = [int(d) for d in str(a)]
-        db = [int(d) for d in str(b)]
-        results.append((a + b, "add"))
-        results.append((abs(a - b), "sub"))
-        results.append((a * b, "mul"))
-        if b != 0:
-            results.append((a // b, "div"))
-        results.append((sum(da + db), "sum_digits"))
-        results.append((abs(sum(da) - sum(db)), "diff_sum"))
-        results.append((da[0] * 10 + db[-1] if da and db else 0, "first_last"))
-        results.append(
-            (
-                int(str(da[0]) * 2 + str(sum(db)) + str(abs(db[0] - db[-1]))) if da and db else 0,
-                "custom88",
-            )
-        )
-        results.append((int("".join(map(str, da + db))), "concat"))
-        return results
+    def _parse_nums(s: str) -> list[int]:
+        return [int(p) for p in re.split(r"[^0-9]+", s) if p]
 
-    # Find operation that matches all examples
-    for _res, _op_name in apply_ops(0, 0):
-        pass  # just to get list
+    def _parse_out(s: str) -> int | None:
+        m = re.search(r"-?[0-9]+", s)
+        return int(m.group()) if m else None
 
-    # Brute-force: try each flat operation, then depth-2 expression trees
-    _base_ops = [
+    # ── single-input unary rules ────────────────────────────────────────────
+    _unary_ops: list[tuple[str, object]] = [
+        ("identity", lambda a: a),
+        ("neg", lambda a: -a),
+        ("dsum", _dsum),
+        ("dprod", _dprod),
+        ("drev", _drev),
+        ("dcount", lambda a: len(str(abs(a)))),
+        ("dsum2", lambda a: _dsum(_dsum(a))),  # digital root step
+        ("sq", lambda a: a * a),
+        ("cube", lambda a: a * a * a),
+        ("a+1", lambda a: a + 1),
+        ("a-1", lambda a: a - 1),
+        ("a*2", lambda a: a * 2),
+        ("a*10", lambda a: a * 10),
+        ("a//10", lambda a: a // 10),
+        ("a%10", lambda a: a % 10),
+        ("a//2", lambda a: a // 2),
+    ]
+
+    def _try_unary(examples: list, test_in: str) -> str | None:
+        test_nums = _parse_nums(test_in)
+        if len(test_nums) != 1:
+            return None
+        for _name, fn in _unary_ops:
+            ok = True
+            for inp, out in examples:
+                ns = _parse_nums(inp)
+                expected = _parse_out(out)
+                if len(ns) != 1 or expected is None:
+                    ok = False
+                    break
+                try:
+                    if fn(ns[0]) != expected:
+                        ok = False
+                        break
+                except Exception:
+                    ok = False
+                    break
+            if ok:
+                try:
+                    return str(fn(test_nums[0]))
+                except Exception:
+                    pass
+        return None
+
+    # ── binary ops (expanded to 30) ─────────────────────────────────────────
+    _base_ops: list[object] = [
         lambda a, b: a + b,
-        lambda a, b: abs(a - b),
         lambda a, b: a - b,
+        lambda a, b: abs(a - b),
         lambda a, b: a * b,
         lambda a, b: a // b if b != 0 else 0,
         lambda a, b: a % b if b != 0 else 0,
+        lambda a, b: b - a,
         lambda a, b: max(a, b),
         lambda a, b: min(a, b),
         lambda a, b: a | b,
         lambda a, b: a & b,
         lambda a, b: a ^ b,
-        lambda a, b: sum(int(d) for d in str(a) + str(b)),
-        lambda a, b: abs(sum(int(d) for d in str(a)) - sum(int(d) for d in str(b))),
-        lambda a, b: int(str(a) + str(b)),
-        lambda a, b: int(str(b) + str(a)),
-        lambda a, b: int(str(len(str(a))) + str(len(str(b)))),
-        lambda a, b: len(str(a)) + len(str(b)),
-        lambda a, b: len(str(a)) * len(str(b)),
+        lambda a, b: _dsum(a) + _dsum(b),
+        lambda a, b: abs(_dsum(a) - _dsum(b)),
+        lambda a, b: _dsum(a) * _dsum(b),
+        lambda a, b: int(str(abs(a)) + str(abs(b))),
+        lambda a, b: int(str(abs(b)) + str(abs(a))),
+        lambda a, b: len(str(abs(a))) + len(str(abs(b))),
+        lambda a, b: len(str(abs(a))) * len(str(abs(b))),
+        lambda a, b: abs(len(str(abs(a))) - len(str(abs(b)))),
+        lambda a, b: _dprod(a) + _dprod(b),
+        lambda a, b: _dprod(a) * b,
+        lambda a, b: a * _dsum(b),
+        lambda a, b: _drev(a) + b,
+        lambda a, b: _drev(a + b),
+        lambda a, b: _gcd(abs(a), abs(b)) if (a != 0 or b != 0) else 0,
+        lambda a, b: (abs(a * b) // _gcd(abs(a), abs(b))) if _gcd(abs(a), abs(b)) else 0,
+        lambda a, b: (a + b) * (a - b),
+        lambda a, b: a * a + b * b,
+        lambda a, b: a * a - b * b,
     ]
 
-    def _try_op(op_fn: object, examples: list, test_in: str) -> str | None:
+    def _try_binary(op_fn: object, examples: list, test_in: str) -> str | None:
         ok = True
         for inp, out in examples:
             try:
-                parts = [p for p in re.split(r"[^0-9]", inp) if p]
-                if len(parts) != 2:
+                ns = _parse_nums(inp)
+                if len(ns) != 2:
                     continue
-                a, b = int(parts[0]), int(parts[1])
-                m = re.search(r"-?[0-9]+", out)
-                if not m:
+                expected = _parse_out(out)
+                if expected is None:
                     continue
-                expected = int(m.group())
-                if op_fn(a, b) != expected:
+                if op_fn(ns[0], ns[1]) != expected:
                     ok = False
                     break
             except Exception:
@@ -954,25 +997,82 @@ def _solve_number_equations(examples: list[tuple[str, str]], test_in: str) -> st
                 break
         if ok:
             try:
-                parts = [p for p in re.split(r"[^0-9]", test_in) if p]
-                if len(parts) == 2:
-                    a, b = int(parts[0]), int(parts[1])
-                    return str(op_fn(a, b))
+                ns = _parse_nums(test_in)
+                if len(ns) == 2:
+                    return str(op_fn(ns[0], ns[1]))
             except Exception:
                 pass
         return None
 
-    # Phase 1: flat operations
+    # ── 3-input ternary ops ─────────────────────────────────────────────────
+    _ternary_ops: list[object] = [
+        lambda a, b, c: a + b + c,
+        lambda a, b, c: a + b - c,
+        lambda a, b, c: a - b + c,
+        lambda a, b, c: a * b + c,
+        lambda a, b, c: a * b * c,
+        lambda a, b, c: (a + b) * c,
+        lambda a, b, c: a * (b + c),
+        lambda a, b, c: a + b * c,
+        lambda a, b, c: max(a, b, c),
+        lambda a, b, c: min(a, b, c),
+        lambda a, b, c: a | b | c,
+        lambda a, b, c: a & b & c,
+        lambda a, b, c: a ^ b ^ c,
+        lambda a, b, c: _dsum(a) + _dsum(b) + _dsum(c),
+        lambda a, b, c: int(str(abs(a)) + str(abs(b)) + str(abs(c))),
+        lambda a, b, c: a * b - c,
+        lambda a, b, c: abs(a - b - c),
+        lambda a, b, c: a * a + b * b + c * c,
+    ]
+
+    def _try_ternary(op_fn: object, examples: list, test_in: str) -> str | None:
+        ok = True
+        for inp, out in examples:
+            try:
+                ns = _parse_nums(inp)
+                if len(ns) != 3:
+                    continue
+                expected = _parse_out(out)
+                if expected is None:
+                    continue
+                if op_fn(ns[0], ns[1], ns[2]) != expected:
+                    ok = False
+                    break
+            except Exception:
+                ok = False
+                break
+        if ok:
+            try:
+                ns = _parse_nums(test_in)
+                if len(ns) == 3:
+                    return str(op_fn(ns[0], ns[1], ns[2]))
+            except Exception:
+                pass
+        return None
+
+    # ── run all phases ──────────────────────────────────────────────────────
+    # Phase 0: single-input
+    result = _try_unary(examples, test_in)
+    if result is not None:
+        return result
+
+    # Phase 1: flat binary
     for op_fn in _base_ops:
-        result = _try_op(op_fn, examples, test_in)
+        result = _try_binary(op_fn, examples, test_in)
         if result is not None:
             return result
 
-    # Phase 2: depth-2 expression trees — op1(op2(a, b), c) for small constants
-    # and op1(a, op2(a, b)) / op1(op2(a,b), a) / op1(op2(a,b), b)
+    # Phase 1b: flat ternary
+    for op_fn in _ternary_ops:
+        result = _try_ternary(op_fn, examples, test_in)
+        if result is not None:
+            return result
+
+    # Phase 2: depth-2 binary trees
     _small_consts = [1, 2, 3, 10, 100]
-    for outer in _base_ops[:8]:  # most common outer ops
-        for inner in _base_ops[:8]:
+    for outer in _base_ops[:10]:
+        for inner in _base_ops[:10]:
             for make_ab in [
                 lambda a, b, f=inner: (f(a, b), a),
                 lambda a, b, f=inner: (f(a, b), b),
@@ -986,10 +1086,9 @@ def _solve_number_equations(examples: list[tuple[str, str]], test_in: str) -> st
                     x, y = make_ab(a, b)
                     return outer(x, y)
 
-                result = _try_op(tree_op, examples, test_in)
+                result = _try_binary(tree_op, examples, test_in)
                 if result is not None:
                     return result
-        # op1(op2(a, b), small_const)
         for inner in _base_ops[:6]:
             for c in _small_consts:
 
@@ -1002,11 +1101,10 @@ def _solve_number_equations(examples: list[tuple[str, str]], test_in: str) -> st
                 ) -> int:
                     return outer(inner(a, b), c)
 
-                result = _try_op(tree_const, examples, test_in)
+                result = _try_binary(tree_const, examples, test_in)
                 if result is not None:
                     return result
 
-    # Fallback: try to extract last example's pattern
     return test_in
 
 
@@ -1235,8 +1333,6 @@ def _try_caesar_cipher(examples: list[tuple[str, str]], test_in: str) -> str | N
     for inp, out in examples:
         for c_in, c_out in zip(inp, out):
             if c_in.isalpha() and c_out.isalpha():
-                base_in = ord("a") if c_in.islower() else ord("A")
-                base_out = ord("a") if c_out.islower() else ord("A")
                 shift = (ord(c_out.lower()) - ord(c_in.lower())) % 26
                 shifts.add(shift)
     if len(shifts) == 1:
