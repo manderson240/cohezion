@@ -185,6 +185,12 @@ def solve_gravity(examples: list[tuple[str, str]], test_t: str) -> str:
     best_result = None
     best_mse = float("inf")
 
+    def _norm(s: str) -> str:
+        """Strip trailing zeros: '55.30' → '55.3', '55.00' → '55'."""
+        if "." in s:
+            s = s.rstrip("0").rstrip(".")
+        return s
+
     def _precision_vote(g_val: float, pred_fn: object) -> str:
         """Find the precision that maximizes exact matches on training examples."""
         best_prec, best_hits = 0, -1
@@ -192,13 +198,9 @@ def solve_gravity(examples: list[tuple[str, str]], test_t: str) -> str:
             hits = 0
             for t, d in zip(ts, ds):
                 pred = pred_fn(g_val, t)
-                if prec == 0:
-                    fmt_d = str(int(round(pred)))
-                else:
-                    fmt_d = f"{pred:.{prec}f}"
-                # Accept if formatted value matches training output exactly
-                d_str_expected = re.search(r"([0-9]+\.?[0-9]*)", str(d))
-                if d_str_expected and fmt_d == d_str_expected.group(1):
+                fmt_d = str(int(round(pred))) if prec == 0 else f"{pred:.{prec}f}"
+                d_m = re.search(r"([0-9]+\.?[0-9]*)", str(d))
+                if d_m and (_norm(fmt_d) == _norm(d_m.group(1))):
                     hits += 1
             if hits > best_hits:
                 best_hits = hits
@@ -206,7 +208,7 @@ def solve_gravity(examples: list[tuple[str, str]], test_t: str) -> str:
         raw = pred_fn(g_val, test_t_val)
         if best_prec == 0:
             return str(int(round(raw)))
-        return f"{raw:.{best_prec}f}"
+        return _norm(f"{raw:.{best_prec}f}")
 
     for _model_name, feat_fn, pred_fn in models:
         try:
