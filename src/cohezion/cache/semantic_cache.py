@@ -60,7 +60,7 @@ class SemanticCache:
 
     def __init__(
         self,
-        similarity_threshold: float = 0.88,
+        similarity_threshold: float = 0.85,
         max_l1_size: int = 512,
         max_l2_size: int = 1024,
         mcp_client: Any = None,
