@@ -147,8 +147,15 @@ def extract_test_input(prompt: str) -> str:
 # ---------------------------------------------------------------------------
 # Gravity solver
 # ---------------------------------------------------------------------------
+def _ls_fit(xs: list[float], ys: list[float]) -> float:
+    """Least-squares fit y = g * x (no intercept)."""
+    sum_xy = sum(x * y for x, y in zip(xs, ys))
+    sum_x2 = sum(x * x for x in xs)
+    return sum_xy / sum_x2 if sum_x2 != 0 else 0.0
+
+
 def solve_gravity(examples: list[tuple[str, str]], test_t: str) -> str:
-    """Solve gravity problems: d = 0.5 * g * t^2. Infer g from examples using robust fit."""
+    """Solve gravity problems. Tries multiple physical models and picks best fit."""
     ts, ds = [], []
     for t_str, d_str in examples:
         try:
@@ -161,49 +168,45 @@ def solve_gravity(examples: list[tuple[str, str]], test_t: str) -> str:
     if not ts or len(ts) < 2:
         return "0.0"
 
-    # Least-squares fit on d = 0.5*g*t^2 (no intercept)
-    xs = [0.5 * t * t for t in ts]
-    sum_xy = sum(d * x for d, x in zip(ds, xs))
-    sum_x2 = sum(x * x for x in xs)
-    g_ls = sum_xy / sum_x2 if sum_x2 != 0 else 0.0
-
-    # Grid search around neighborhood of best g estimate
-    best_g = g_ls
-    best_err = float("inf")
-    candidates = [g_ls]
-    for t, d in zip(ts, ds):
-        if t > 0:
-            candidates.append(2 * d / (t * t))
-    for g0 in candidates:
-        for step in [0.01, 0.005, 0.002, 0.001]:
-            for offset in range(-5, 6):
-                g = g0 + offset * step
-                err = sum((0.5 * g * t * t - d) ** 2 for t, d in zip(ts, ds))
-                if err < best_err:
-                    best_err = err
-                    best_g = g
-    g = best_g
-
     try:
         test_t_val = float(re.search(r"([0-9.]+)", test_t).group(1))
     except Exception:
         return "0.0"
-    result = 0.5 * g * test_t_val * test_t_val
-    # Some gravity problems have mixed-precision examples.
-    # Try the most common precision, but also try 2-decimal if result differs.
-    fmt = _format_number(result, examples)
-    # If the formatted value has 1 decimal, also try 2-decimal version
-    if "." in fmt:
-        parts = fmt.split(".")
-        if len(parts[1]) == 1:
-            fmt2 = f"{result:.2f}"
-            # Prefer 2-decimal if the consistent-g set could produce both
-            # Heuristic: use the precision that matches more of the examples
-            dec1_count = sum(1 for _, out in examples if "." in out and len(out.split(".")[1]) == 1)
-            dec2_count = sum(1 for _, out in examples if "." in out and len(out.split(".")[1]) == 2)
-            if dec2_count >= dec1_count:
-                return fmt2
-    return fmt
+
+    # Try multiple physical models: d = g * f(t) for different f
+    models = [
+        ("half_t2", lambda t: 0.5 * t * t, lambda g, t: 0.5 * g * t * t),
+        ("t2", lambda t: t * t, lambda g, t: g * t * t),
+        ("half_t3", lambda t: 0.5 * t * t * t, lambda g, t: 0.5 * g * t * t * t),
+        ("t", lambda t: t, lambda g, t: g * t),
+        ("t3", lambda t: t * t * t, lambda g, t: g * t * t * t),
+    ]
+
+    best_result = None
+    best_mse = float("inf")
+
+    for _model_name, feat_fn, pred_fn in models:
+        try:
+            xs = [feat_fn(t) for t in ts]
+            g = _ls_fit(xs, ds)
+            if g <= 0:
+                continue
+            mse = sum((pred_fn(g, t) - d) ** 2 for t, d in zip(ts, ds))
+
+            # Precision voting: for this g, generate candidate formatted outputs
+            # and pick the one matching the most training examples exactly
+            raw_result = pred_fn(g, test_t_val)
+            fmt = _format_number(raw_result, examples)
+
+            if mse < best_mse:
+                best_mse = mse
+                best_result = fmt
+        except Exception:
+            continue
+
+    if best_result is not None:
+        return best_result
+    return "0.0"
 
 
 def _format_number(value: float, examples: list[tuple[str, str]]) -> str:
