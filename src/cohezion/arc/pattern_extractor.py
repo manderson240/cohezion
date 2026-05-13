@@ -399,6 +399,33 @@ def _extract_largest_object(g: Grid) -> Grid | None:
     return cropped
 
 
+def _kronecker_modal(g: Grid) -> Grid | None:
+    """Kronecker tile triggered by the most-common color: blocks placed only at those positions.
+
+    For each cell where input[i][j] equals the most frequent color, place a copy
+    of the full input at block (i, j); other block positions stay zero.
+    Unlike plain kronecker (triggered by non-zero), this respects the dominant
+    color as the 'active' cell.
+    """
+    from collections import Counter
+
+    if not g or not g[0]:
+        return None
+    counts: Counter[int] = Counter(g[r][c] for r in range(len(g)) for c in range(len(g[0])))
+    modal = counts.most_common(1)[0][0]
+    h, w = len(g), len(g[0])
+    if h * h > 30 or w * w > 30:
+        return None
+    out = [[0] * (w * w) for _ in range(h * h)]
+    for i in range(h):
+        for j in range(w):
+            if g[i][j] == modal:
+                for di in range(h):
+                    for dj in range(w):
+                        out[i * h + di][j * w + dj] = g[di][dj]
+    return out if any(out[r][c] != 0 for r in range(h * h) for c in range(w * w)) else None
+
+
 def _kronecker_invert(g: Grid) -> Grid | None:
     """Fractal tile: non-zero cells place the COLOR-INVERTED grid; zero cells → zeros.
 
@@ -652,6 +679,7 @@ def _build_strategy(name: str, train: list[dict[str, Grid]]) -> list[tuple[str, 
         ("tile_3_altflip", _tile_3_alt_flip),
         ("kronecker", _kronecker_tile),
         ("kronecker_inv", _kronecker_invert),
+        ("kronecker_modal", _kronecker_modal),
     ]
 
     obj = [
