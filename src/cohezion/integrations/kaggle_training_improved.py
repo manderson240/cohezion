@@ -131,7 +131,7 @@ EVAL_SUFFIX = (
 )
 
 print("=" * 60)
-print("NEMOTRON LORA TRAINING v6.1")
+print("NEMOTRON LORA TRAINING v6.2")
 print("9500 symbolic | BF16 eager-attn | all-linear | diff-filter | MCQ 40% | curriculum")
 print("=" * 60)
 
@@ -189,6 +189,24 @@ try:
                     break
                 except Exception:
                     time.sleep(5 * (attempt + 1))
+
+    # Nemotron-H (Mamba hybrid) requires mamba-ssm. Install if not present.
+    try:
+        import mamba_ssm  # noqa: F401
+    except ImportError:
+        print("  Installing mamba-ssm for Nemotron-H architecture...")
+        for attempt in range(3):
+            try:
+                subprocess.run(
+                    [sys.executable, "-m", "pip", "install", "-q",
+                     "causal-conv1d>=1.4.0", "mamba-ssm",
+                     "--target", "/tmp/pip_packages"],
+                    check=True,
+                )
+                break
+            except Exception as e:
+                print(f"  mamba-ssm install attempt {attempt+1} failed: {e}")
+                time.sleep(5 * (attempt + 1))
 
     import torch
     import pandas as pd
