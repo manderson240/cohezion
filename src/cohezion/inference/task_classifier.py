@@ -203,11 +203,20 @@ _GPU_PATTERNS = [
     # "implement JWT/OAuth/CSRF/GDPR/etc." — tech acronym/standard without article
     (
         re.compile(
-            r"\bimplement\s+(?:jwt|oauth|oauth2|saml|ldap|ssl|tls|grpc|websocket|webhook|oidc|sso|csrf|xss|gdpr|ccpa|rbac|acl|2fa|mfa|otp|token\s+refresh|token\s+rotation|session\s+invalidation|rate\s+limiting)\b",
+            r"\bimplement\s+(?:jwt|oauth|oauth2|saml|ldap|ssl|tls|grpc|websocket|webhook|oidc|sso|csrf|xss|gdpr|ccpa|rbac|acl|2fa|mfa|otp|token\s+refresh|token\s+rotation|session\s+invalidation|rate\s+limiting|crud|crud\s+(?:endpoints|operations|api)|graphql\s+(?:mutations?|queries|subscriptions)|api\s+versioning|backward\s+compatibility)\b",
             re.I,
         ),
         0.88,
         "implement tech protocol",
+    ),
+    # "Define the [schema/interface/contract/spec]" — formal definition tasks
+    (
+        re.compile(
+            r"\b(define|specify|declare)\s+(?:the\s+|a\s+|an\s+)?(?:[\w-]+\s+)?(schema|interface|contract|spec|protocol|model|type|enum|struct|protobuf|api\s+spec|openapi)\b",
+            re.I,
+        ),
+        0.85,
+        "define schema/interface",
     ),
     # Security analysis verbs — identify, analyze, assess, scan, detect (with security context)
     (
@@ -245,7 +254,7 @@ _GPU_PATTERNS = [
     # Test/spec generation — "write a unit test for...", "write tests for..."
     (
         re.compile(
-            r"\b(write|create|generate|add)\s+(a |an |the )?(unit |integration |regression |end.to.end |smoke |e2e |)test(s?)\b",
+            r"\b(write|create|generate|add)\s+(a |an |the )?(?:[\w-]+\s+)?(unit |integration |regression |end.to.end |smoke |e2e |api |load |performance |acceptance |contract |)test(s?)\b",
             re.I,
         ),
         0.95,
@@ -489,11 +498,20 @@ _GPU_PATTERNS = [
     # "Add X to the [adjective] [function/class/module/code/system]" — code modification
     (
         re.compile(
-            r"\badd\s+(?:[\w-]+\s+){0,4}(?:to\s+(?:the\s+|a\s+|this\s+)?(?:[\w-]+\s+){0,2})(function|class|method|module|code|system|service|api|handler|test)\b",
+            r"\badd\s+(?:[\w-]+\s+){0,4}(?:to\s+(?:the\s+|a\s+|this\s+)?(?:[\w-]+\s+){0,2})(function|class|method|module|code|system|service|api|handler|test|endpoint)\b",
             re.I,
         ),
         0.82,
         "add to code artifact",
+    ),
+    # "Add documentation/logging/monitoring/metrics to X" — observability additions
+    (
+        re.compile(
+            r"\badd\s+(?:[\w/.-]+\s+)*(documentation|logging|monitoring|metrics|tracing|observability|telemetry|swagger|openapi)\s+(?:to|for)\b",
+            re.I,
+        ),
+        0.82,
+        "add observability/docs",
     ),
     # "Fix the [bug/issue] in X" OR "Fix it/them/this" — code fix commands
     (
