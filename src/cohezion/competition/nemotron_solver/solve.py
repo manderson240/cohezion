@@ -1348,29 +1348,45 @@ def _try_caesar_cipher(examples: list[tuple[str, str]], test_in: str) -> str | N
     return None
 
 
+def _enc_build_mapping_voting(examples: list[tuple[str, str]]) -> dict[str, str]:
+    """Build char mapping via majority vote across all aligned word pairs."""
+    from collections import Counter
+
+    votes: dict[str, Counter] = {}
+    for inp, out in examples:
+        iws = inp.split()
+        ows = out.split()
+        if len(iws) != len(ows):
+            continue
+        for iw, ow in zip(iws, ows):
+            if len(iw) == len(ow):
+                for ci, co in zip(iw, ow):
+                    if ci not in votes:
+                        votes[ci] = Counter()
+                    votes[ci][co] += 1
+    # Majority vote per input char (break ties by frequency)
+    return {ci: cnt.most_common(1)[0][0] for ci, cnt in votes.items() if cnt}
+
+
+def _enc_candidate_score(tw: str, word: str, mapping: dict[str, str]) -> int:
+    """Score a candidate word by how many characters it confirms vs introduces."""
+    confirmed = sum(1 for ci, co in zip(tw, word) if mapping.get(ci) == co)
+    return confirmed
+
+
 def solve_encryption(examples: list[tuple[str, str]], test_in: str) -> str:
-    """Word-level substitution cipher solver with runtime vocab + Caesar detection."""
+    """Word-level substitution cipher solver with voting mapping + Caesar detection."""
+    from collections import Counter
+
     # Fast path: detect Caesar cipher (uniform shift)
     caesar = _try_caesar_cipher(examples, test_in)
     if caesar is not None:
         return caesar
 
-    # Build character mapping from aligned word pairs in examples
-    mapping: dict[str, str] = {}
-    for inp, out in examples:
-        inp_words = inp.split()
-        out_words = out.split()
-        if len(inp_words) != len(out_words):
-            continue
-        for iw, ow in zip(inp_words, out_words):
-            if len(iw) == len(ow):
-                for c_in, c_out in zip(iw, ow):
-                    if c_in not in mapping:
-                        mapping[c_in] = c_out
+    # Build character mapping via majority vote (more robust than first-seen)
+    mapping = _enc_build_mapping_voting(examples)
 
     # Runtime vocabulary: extract from example OUTPUTS (frequency-ranked)
-    from collections import Counter
-
     runtime_word_counts: Counter = Counter()
     for _, out in examples:
         for w in out.split():
@@ -1383,34 +1399,39 @@ def solve_encryption(examples: list[tuple[str, str]], test_in: str) -> str:
     result_words = ["".join(mapping.get(c, "?") for c in tw) for tw in test_words]
 
     # Dictionary completion with consistency checking.
-    # Only accept a candidate if its implied mappings don't conflict with existing ones.
+    # For each ambiguous word, score all non-conflicting candidates and pick best.
     changed = True
     while changed:
         changed = False
         for _i, (tw, pw) in enumerate(zip(test_words, result_words)):
             if "?" not in pw:
                 continue
-            matches = [w for w in combined_vocab if len(w) == len(pw) and _match_pattern(pw, w)]
-            for best in matches:
-                # Consistency check: does this word's implied mapping conflict?
+            # Find all non-conflicting candidates
+            candidates = []
+            for cand in combined_vocab:
+                if len(cand) != len(pw) or not _match_pattern(pw, cand):
+                    continue
                 conflict = False
-                for c_in, c_out in zip(tw, best):
-                    if c_in in mapping and mapping[c_in] != c_out:
+                for ci, co in zip(tw, cand):
+                    if ci in mapping and mapping[ci] != co:
                         conflict = True
                         break
-                    # Check inverse: two input chars can't map to the same output
-                    if c_out in mapping.values() and mapping.get(c_in) != c_out:
-                        # Another input char already maps to c_out
-                        existing = next(k for k, v in mapping.items() if v == c_out)
-                        if existing != c_in:
+                    if co in mapping.values() and mapping.get(ci) != co:
+                        existing = next((k for k, v in mapping.items() if v == co), None)
+                        if existing is not None and existing != ci:
                             conflict = True
                             break
                 if not conflict:
-                    for c_in, c_out in zip(tw, best):
-                        if c_in not in mapping:
-                            mapping[c_in] = c_out
-                            changed = True
-                    break  # use first non-conflicting match
+                    score = _enc_candidate_score(tw, cand, mapping)
+                    candidates.append((score, cand))
+            if candidates:
+                # Pick highest-scoring (most confirmed chars), then vocabulary order
+                candidates.sort(key=lambda x: -x[0])
+                best = candidates[0][1]
+                for ci, co in zip(tw, best):
+                    if ci not in mapping:
+                        mapping[ci] = co
+                        changed = True
         result_words = ["".join(mapping.get(c, "?") for c in tw) for tw in test_words]
 
     return " ".join(result_words)
