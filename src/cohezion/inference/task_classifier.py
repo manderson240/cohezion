@@ -244,10 +244,12 @@ _GPU_PATTERNS = [
     # Document generation with adjective(s) — "draft a technical report", "write a comprehensive detailed proposal"
     # ([\w-]+ )* allows zero or more adjectives (including hyphenated like "non-disclosure") between article and noun
     # Extended nouns: medical (note, diagnosis, assessment), legal (agreement, brief, contract),
-    # business (memo, analysis, summary, narrative), security (policy, template, playbook, runbook)
+    # business (memo, analysis, summary, narrative), security (policy, template, playbook, runbook),
+    # content/creative (description, email, post, story, copy, announcement, changelog, letter,
+    #   slide, presentation, pitch, newsletter, tweet, thread, caption, bio)
     (
         re.compile(
-            r"\b(write|create|generate|draft|prepare)\s+(a |an |the )?([\w-]+ )*(essay|report|article|document|proposal|note|diagnosis|assessment|agreement|brief|contract|memo|analysis|summary|narrative|specification|amendment|plan|template|policy|playbook|runbook|guide|handbook)\b",
+            r"\b(write|create|generate|draft|prepare|compose)\s+(a |an |the )?([\w-]+ )*(essay|report|article|document|proposal|note|diagnosis|assessment|agreement|brief|contract|memo|analysis|summary|narrative|specification|amendment|plan|template|policy|playbook|runbook|guide|handbook|description|email|post|story|stories|copy|announcement|changelog|letter|slide|presentation|pitch|newsletter|thread|caption|bio|blurb|readme|script|storyboard)\b",
             re.I,
         ),
         0.95,
@@ -331,7 +333,7 @@ _GPU_PATTERNS = [
     # "review" excluded — too ambiguous ("review before meeting" FP). Use code-review pattern below.
     (
         re.compile(
-            r"\b(refactor|optimize|profile|debug|audit|trace|rewrite|rework)\b.{0,30}\b(the|a|an|this|it)\b",
+            r"\b(refactor|optimize|profile|debug|audit|trace|rewrite|rework|improve|translate|adapt)\b.{0,30}\b(the|a|an|this|it)\b",
             re.I,
         ),
         0.82,
