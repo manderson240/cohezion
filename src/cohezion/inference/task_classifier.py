@@ -423,7 +423,7 @@ _GPU_PATTERNS = [
     # Code generation with hyphenated adjective (e.g. "Implement the JEPA-based reward function")
     (
         re.compile(
-            r"\b(write|implement|create|generate|build) (the |a |an )[\w-]+.{0,40}\b(function|class|method|module|component|system|autoencoder|encoder|decoder|network|pipeline|layer)\b",
+            r"\b(write|implement|create|generate|build) (the |a |an )[\w-]+.{0,40}\b(function|class|method|module|component|system|autoencoder|encoder|decoder|network|pipeline|layer|schema|model|entity|workflow|blueprint)\b",
             re.I,
         ),
         0.88,
