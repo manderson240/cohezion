@@ -99,9 +99,10 @@ _SHORT_ANSWER_PATTERNS = [
 
 _GPU_PATTERNS = [
     # Code generation — allow adjectives between article and noun ("a Python function", "a simple script")
+    # Extended: formula, macro, procedure, query, snippet, lambda, decorator, mixin, interface
     (
         re.compile(
-            r"\b(write|implement|create|generate|build)\s+(a |an |the )?(\w+ )?(function|class|script|module|code|program)\b",
+            r"\b(write|implement|create|generate|build)\s+(a |an |the )?(\w+ )?(function|class|script|module|code|program|formula|macro|procedure|query|snippet|lambda|decorator|mixin|interface)\b",
             re.I,
         ),
         1.0,
@@ -393,10 +394,10 @@ _GPU_PATTERNS = [
         0.78,
         "long debugging why-question",
     ),
-    # "Generate the [config/JSON/YAML/entry/file] for [X]" — config generation
+    # "Generate the [adjective*] [config/JSON/YAML/entry/file] for [X]" — config generation
     (
         re.compile(
-            r"\bgenerate (the |a |an |this )(config|configuration|settings|json|yaml|entry|file|manifest|schema)\b",
+            r"\bgenerate (the |a |an |this )(?:\w+ )*(config|configuration|settings|json|yaml|entry|file|manifest|schema)\b",
             re.I,
         ),
         0.85,
@@ -429,11 +430,21 @@ _GPU_PATTERNS = [
     # Create/build a [adjective(s)] endpoint/service/cache/pipeline/queue
     (
         re.compile(
-            r"\b(create|build|add)\s+(?:a\s+)?(?:[\w-]+\s+){0,3}(endpoint|service|api\b|cache|pipeline|queue|handler|middleware|dashboard|visualization|report|portal|agent|bot|workflow|framework|harness|scaffold)\b",
+            r"\b(create|build|add)\s+(?:a\s+)?(?:[\w-]+\s+){0,3}(endpoint|service|api\b|cache|pipeline|queue|handler|middleware|dashboard|visualization|report|portal|agent|bot|workflow|framework|harness|scaffold|index\b|view\b|trigger\b|constraint|migration)\b",
             re.I,
         ),
         0.82,
         "build service or endpoint",
+    ),
+    # "Configure [tech/service]" as an imperative — NOT part of "How to configure X?" question
+    # Requires configure to be at start of prompt or after sentence-ending punctuation
+    (
+        re.compile(
+            r"(?:^|[.!;]\s+)configure\s+(?:the\s+|a\s+|this\s+)?(?:redis|rabbitmq|kafka|nginx|postgresql|mysql|mongodb|elasticsearch|grafana|prometheus|vault|consul|ssl|tls|https?|ldap|smtp|dns)\b",
+            re.I | re.M,
+        ),
+        0.85,
+        "configure tech service",
     ),
     # "Perform [data analysis/EDA/audit/assessment]" — analysis execution verb
     (
