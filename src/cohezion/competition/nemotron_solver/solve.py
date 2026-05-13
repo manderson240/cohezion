@@ -751,12 +751,9 @@ def _solve_symbol_equations(examples: list[tuple[str, str]], test_in: str) -> st
 def _solve_number_equations(examples: list[tuple[str, str]], test_in: str) -> str:
     """Try digit-wise operations for number equations."""
     # Parse operator
-    op_char = None
-    for c in test_in:
-        if c in "+-*/|\\&^%=" and not c.isdigit():
-            op_char = c
-            break
-    if not op_char:
+    # Check if test input has enough numeric parts to work with
+    _num_parts = [p for p in re.split(r"[^0-9]", test_in) if p]
+    if len(_num_parts) < 2:
         return test_in
 
     def apply_ops(a: int, b: int) -> list[int]:
@@ -785,31 +782,40 @@ def _solve_number_equations(examples: list[tuple[str, str]], test_in: str) -> st
     for _res, _op_name in apply_ops(0, 0):
         pass  # just to get list
 
-    # Actually brute-force: try each operation
-    ops_to_try = [
-        ("add", lambda a, b: a + b),
-        ("sub", lambda a, b: abs(a - b)),
-        ("mul", lambda a, b: a * b),
-        ("div", lambda a, b: a // b if b != 0 else 0),
-        ("mod", lambda a, b: a % b if b != 0 else 0),
-        ("digit_sum", lambda a, b: sum(int(d) for d in str(a) + str(b))),
-        ("digit_diff", lambda a, b: abs(sum(int(d) for d in str(a)) - sum(int(d) for d in str(b)))),
-        ("first_digit", lambda a, b: int(str(a)[0]) if str(a) else 0),
-        ("concat", lambda a, b: int(str(a) + str(b))),
-        ("rev_concat", lambda a, b: int(str(b) + str(a))),
-        ("len_concat", lambda a, b: int(str(len(str(a))) + str(len(str(b))))),
+    # Brute-force: try each flat operation, then depth-2 expression trees
+    _base_ops = [
+        lambda a, b: a + b,
+        lambda a, b: abs(a - b),
+        lambda a, b: a - b,
+        lambda a, b: a * b,
+        lambda a, b: a // b if b != 0 else 0,
+        lambda a, b: a % b if b != 0 else 0,
+        lambda a, b: max(a, b),
+        lambda a, b: min(a, b),
+        lambda a, b: a | b,
+        lambda a, b: a & b,
+        lambda a, b: a ^ b,
+        lambda a, b: sum(int(d) for d in str(a) + str(b)),
+        lambda a, b: abs(sum(int(d) for d in str(a)) - sum(int(d) for d in str(b))),
+        lambda a, b: int(str(a) + str(b)),
+        lambda a, b: int(str(b) + str(a)),
+        lambda a, b: int(str(len(str(a))) + str(len(str(b)))),
+        lambda a, b: len(str(a)) + len(str(b)),
+        lambda a, b: len(str(a)) * len(str(b)),
     ]
 
-    for _op_name, op_fn in ops_to_try:
+    def _try_op(op_fn: object, examples: list, test_in: str) -> str | None:
         ok = True
         for inp, out in examples:
             try:
-                parts = re.split(r"[^0-9]", inp)
-                parts = [p for p in parts if p]
+                parts = [p for p in re.split(r"[^0-9]", inp) if p]
                 if len(parts) != 2:
                     continue
                 a, b = int(parts[0]), int(parts[1])
-                expected = int(re.search(r"[0-9]+", out).group())
+                m = re.search(r"-?[0-9]+", out)
+                if not m:
+                    continue
+                expected = int(m.group())
                 if op_fn(a, b) != expected:
                     ok = False
                     break
@@ -818,14 +824,57 @@ def _solve_number_equations(examples: list[tuple[str, str]], test_in: str) -> st
                 break
         if ok:
             try:
-                parts = re.split(r"[^0-9]", test_in)
-                parts = [p for p in parts if p]
+                parts = [p for p in re.split(r"[^0-9]", test_in) if p]
                 if len(parts) == 2:
                     a, b = int(parts[0]), int(parts[1])
-                    result = op_fn(a, b)
-                    return str(result)
+                    return str(op_fn(a, b))
             except Exception:
                 pass
+        return None
+
+    # Phase 1: flat operations
+    for op_fn in _base_ops:
+        result = _try_op(op_fn, examples, test_in)
+        if result is not None:
+            return result
+
+    # Phase 2: depth-2 expression trees — op1(op2(a, b), c) for small constants
+    # and op1(a, op2(a, b)) / op1(op2(a,b), a) / op1(op2(a,b), b)
+    _small_consts = [1, 2, 3, 10, 100]
+    for outer in _base_ops[:8]:  # most common outer ops
+        for inner in _base_ops[:8]:
+            for make_ab in [
+                lambda a, b, f=inner: (f(a, b), a),
+                lambda a, b, f=inner: (f(a, b), b),
+                lambda a, b, f=inner: (a, f(a, b)),
+                lambda a, b, f=inner: (b, f(a, b)),
+            ]:
+
+                def tree_op(
+                    a: int, b: int, outer: object = outer, make_ab: object = make_ab
+                ) -> int:
+                    x, y = make_ab(a, b)
+                    return outer(x, y)
+
+                result = _try_op(tree_op, examples, test_in)
+                if result is not None:
+                    return result
+        # op1(op2(a, b), small_const)
+        for inner in _base_ops[:6]:
+            for c in _small_consts:
+
+                def tree_const(
+                    a: int,
+                    b: int,
+                    outer: object = outer,
+                    inner: object = inner,
+                    c: int = c,
+                ) -> int:
+                    return outer(inner(a, b), c)
+
+                result = _try_op(tree_const, examples, test_in)
+                if result is not None:
+                    return result
 
     # Fallback: try to extract last example's pattern
     return test_in
