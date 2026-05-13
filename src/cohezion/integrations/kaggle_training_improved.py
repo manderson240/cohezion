@@ -87,7 +87,7 @@ class KaggleTrainingManager:
         Returns the v5.2 training script for Kaggle Blackwell (Docker 31287).
 
         # v5.1 strategy: upsample phrase_cipher (already 98.7% acc) — wrong, no headroom.
-        # v5.2 strategy: upsample bit_manip x3 (47.2% acc → target 60%+) — targets only improvable category.
+        # v5.2: upsample bit_manip x3 (47.2% acc, target 60%+) — targets improvable category.
 
         v5 changes (adversarial review 2026-05-02):
         - Bug fix: enable_thinking removed from generate() (TypeError for DeepSeek-R1-distill)
@@ -120,12 +120,15 @@ import traceback
 
 # v5: metric-matching prompt suffix
 BOXED_INSTRUCTION = "Solve step by step and put your final answer inside \\boxed{}."
-# v6: eval-aligned suffix appended to test prompts to match competition evaluator format
-EVAL_SUFFIX = "\n\nThink carefully. Show your reasoning in <think>...</think> tags, then give your final answer inside \\boxed{}."
+# v6: eval-aligned suffix — match competition evaluator format
+EVAL_SUFFIX = (
+    "\n\nThink carefully. Show your reasoning in <think>...</think> tags,"
+    " then give your final answer inside \\boxed{}."
+)
 
 print("=" * 60)
-print("NEMOTRON LORA TRAINING v5.3")
-print("9500 symbolic | Native BF16 | all-linear | DataCollatorForSeq2Seq | bit_manip_x3")
+print("NEMOTRON LORA TRAINING v5.7")
+print("9500 symbolic | BF16 | all-linear | DataCollatorForSeq2Seq | difficulty_filter[0.10,0.85]")
 print("=" * 60)
 
 try:
@@ -274,6 +277,102 @@ try:
         torch_dtype=torch.bfloat16,
     )
     model.config.use_cache = False
+
+    # v6: Online difficulty filtering (arXiv:2504.03380)
+    # Run 4-sample pass on 50 examples per category to estimate per-category pass-rate.
+    # Filter entire categories where base model pass-rate > 0.85 (trivial, zero gradient)
+    # or < 0.10 (too hard, no signal). Categories in [0.10, 0.85] get kept.
+    # This explains the bit_manip plateau: if model already answers >85% correctly,
+    # SFT on those examples contributes near-zero gradient signal.
+    DIFFICULTY_SAMPLE = 50   # examples to probe per category
+    DIFFICULTY_N      = 4    # samples per example
+    DIFFICULTY_MIN    = 0.10 # drop categories with pass-rate below this
+    DIFFICULTY_MAX    = 0.85 # drop categories with pass-rate above this
+
+    def _extract_boxed_quick(text):
+        idx = text.find(r"\boxed{")
+        if idx == -1: return text.strip()
+        depth, start = 0, idx + 7
+        for i in range(idx + 6, len(text)):
+            if text[i] == "{": depth += 1
+            elif text[i] == "}":
+                depth -= 1
+                if depth == 0: return text[start:i]
+        return text.strip()
+
+    def _is_correct(pred, target):
+        pred, target = pred.strip(), target.strip()
+        if pred == target: return True
+        try:
+            return abs(float(pred) - float(target)) / (abs(float(target)) + 1e-9) < 0.01
+        except Exception:
+            return False
+
+    def _probe_pass_rate(examples_sample):
+        # Sample base model on examples_sample, return average pass-rate.
+        correct_total = 0
+        for ex in examples_sample:
+            correct = 0
+            prompt_text = f"{BOXED_INSTRUCTION}\n\nProblem: {ex['prompt']}\n\nAnswer:"
+            enc = tokenizer(
+                prompt_text, return_tensors="pt", truncation=True, max_length=512
+            ).to(model.device)
+            with torch.no_grad():
+                for _ in range(DIFFICULTY_N):
+                    out = model.generate(
+                        **enc,
+                        max_new_tokens=128,
+                        temperature=0.7,
+                        do_sample=True,
+                        pad_token_id=tokenizer.eos_token_id,
+                    )
+                    gen = tokenizer.decode(
+                        out[0][enc["input_ids"].shape[1]:], skip_special_tokens=True
+                    )
+                    if _is_correct(_extract_boxed_quick(gen), ex["answer"]):
+                        correct += 1
+            correct_total += correct / DIFFICULTY_N
+        return correct_total / len(examples_sample) if examples_sample else 0.5
+
+    print("\n[6.5/8] Difficulty filtering (arXiv:2504.03380)...")
+    # Probe each category
+    def _is_bit(r): return bool(_re.match(r'^[01]{8}$', r['answer'].strip()))
+    _NUMERAL_RE = r'^M{0,4}(CM|CD|D?C{0,3})(XC|XL|L?X{0,3})(IX|IV|V?I{0,3})$'
+    def _is_numeral(r):
+        return bool(_re.match(_NUMERAL_RE, r['answer'].strip()))
+    def _is_cipher(r): return r['answer'].strip().replace(' ', '').isalpha() and not _is_numeral(r)
+    def _is_numeric(r): return bool(_re.match(r'^-?[0-9]+\.?[0-9]*$', r['answer'].strip()))
+    categories = {
+        "bit_manip": [r for r in filtered_data if _is_bit(r)],
+        "cipher_text": [r for r in filtered_data if _is_cipher(r)],
+        "numeral": [r for r in filtered_data if _is_numeral(r)],
+        "numeric": [r for r in filtered_data if _is_numeric(r)],
+    }
+    categories["other"] = [r for r in filtered_data if not any(r in v for v in categories.values())]
+
+    category_rates = {}
+    for cat_name, cat_data in categories.items():
+        if not cat_data:
+            continue
+        sample = cat_data[:DIFFICULTY_SAMPLE]
+        rate = _probe_pass_rate(sample)
+        category_rates[cat_name] = rate
+        keep = "KEEP" if DIFFICULTY_MIN <= rate <= DIFFICULTY_MAX else "DROP"
+        print(f"  {cat_name}: pass-rate={rate:.3f} (n={len(sample)}) → {keep}")
+
+    # Filter: keep examples from categories in the difficulty zone
+    difficulty_filtered = []
+    for cat_name, cat_data in categories.items():
+        rate = category_rates.get(cat_name, 0.5)
+        if DIFFICULTY_MIN <= rate <= DIFFICULTY_MAX:
+            difficulty_filtered.extend(cat_data)
+        else:
+            # If too easy (>MAX): keep a small fraction for stability
+            if rate > DIFFICULTY_MAX:
+                difficulty_filtered.extend(cat_data[:max(50, len(cat_data) // 10)])
+    _rnd.shuffle(difficulty_filtered)
+    print(f"  Difficulty filter: {len(filtered_data)} → {len(difficulty_filtered)} examples")
+    filtered_data = difficulty_filtered if len(difficulty_filtered) >= 500 else filtered_data
 
     # v5: all-linear targets
     lora_config = LoraConfig(
