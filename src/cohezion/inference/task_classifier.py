@@ -166,6 +166,51 @@ _GPU_PATTERNS = [
         0.80,
         "implement complex logic/system",
     ),
+    # Implement [multi-word component] (broader than above — catches "impl the semantic cache with...")
+    (
+        re.compile(r"\bimplement (the |a |an )\w+\s+\w+\b.{5,}", re.I),
+        0.78,
+        "implement multi-word component",
+    ),
+    # Test/spec generation — "write a unit test for...", "write tests for..."
+    (
+        re.compile(
+            r"\b(write|create|generate)\s+(a |an |the )?(unit |integration |regression |)test(s?)\b",
+            re.I,
+        ),
+        0.95,
+        "test generation",
+    ),
+    # Document generation with adjective — "draft a technical report", "write a detailed proposal"
+    (
+        re.compile(
+            r"\b(write|create|generate|draft)\s+(a |an |the )?(\w+ )?(essay|report|article|document|proposal)\b",
+            re.I,
+        ),
+        0.95,
+        "document generation with adjective",
+    ),
+    # Best practices / guidelines / recommendations — requires detailed enumeration
+    (
+        re.compile(r"\bwhat are (the |some )?(best practices|guidelines|recommendations)\b", re.I),
+        0.82,
+        "best practices enumeration",
+    ),
+    # Explain how [mechanism] [does something] — causation explanation
+    (
+        re.compile(
+            r"\bexplain how\b.{5,}\b(prevents|enables|improves|works|operates|handles)\b",
+            re.I | re.S,
+        ),
+        0.80,
+        "explain how mechanism",
+    ),
+    # How do you [diagnose/fix/solve/debug] — troubleshooting questions
+    (
+        re.compile(r"\bhow do you (diagnose|debug|fix|solve|troubleshoot|handle)\b", re.I),
+        0.80,
+        "troubleshooting how-do-you",
+    ),
 ]
 
 
