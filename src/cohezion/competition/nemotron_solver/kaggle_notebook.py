@@ -124,7 +124,8 @@ def _ls_fit_nb(xs, ys):
     return sum_xy / sum_x2 if sum_x2 != 0 else 0.0
 
 
-def solve_gravity(examples, test_t):
+def solve_gravity(examples: list[tuple[str, str]], test_t: str) -> str:
+    """Solve gravity problems. Tries multiple physical models and picks best fit."""
     ts, ds = [], []
     for t_str, d_str in examples:
         try:
@@ -136,32 +137,72 @@ def solve_gravity(examples, test_t):
             pass
     if not ts or len(ts) < 2:
         return "0.0"
+
     try:
         test_t_val = float(re.search(r"([0-9.]+)", test_t).group(1))
     except Exception:
         return "0.0"
+
+    # Try multiple physical models: d = g * f(t) for different f
     models = [
-        (lambda t: 0.5 * t * t, lambda g, t: 0.5 * g * t * t),
-        (lambda t: t * t, lambda g, t: g * t * t),
-        (lambda t: 0.5 * t * t * t, lambda g, t: 0.5 * g * t * t * t),
-        (lambda t: t, lambda g, t: g * t),
-        (lambda t: t * t * t, lambda g, t: g * t * t * t),
+        ("half_t2", lambda t: 0.5 * t * t, lambda g, t: 0.5 * g * t * t),
+        ("t2", lambda t: t * t, lambda g, t: g * t * t),
+        ("half_t3", lambda t: 0.5 * t * t * t, lambda g, t: 0.5 * g * t * t * t),
+        ("t", lambda t: t, lambda g, t: g * t),
+        ("t3", lambda t: t * t * t, lambda g, t: g * t * t * t),
     ]
+
     best_result = None
     best_mse = float("inf")
-    for feat_fn, pred_fn in models:
+
+    def _precision_vote(g_val: float, pred_fn: object) -> str:
+        """Find the precision that maximizes exact matches on training examples."""
+        best_prec, best_hits = 0, -1
+        for prec in range(5):
+            hits = 0
+            for t, d in zip(ts, ds):
+                pred = pred_fn(g_val, t)
+                if prec == 0:
+                    fmt_d = str(int(round(pred)))
+                else:
+                    fmt_d = f"{pred:.{prec}f}"
+                target = (
+                    str(d)
+                    if d == int(d)
+                    else f"{d:.{len(str(d).split('.')[-1]) if '.' in str(d) else 0}f}"
+                )
+                # Accept if formatted value matches training output exactly
+                d_str_expected = re.search(r"([0-9]+\.?[0-9]*)", str(d))
+                if d_str_expected and fmt_d == d_str_expected.group(1):
+                    hits += 1
+            if hits > best_hits:
+                best_hits = hits
+                best_prec = prec
+        raw = pred_fn(g_val, test_t_val)
+        if best_prec == 0:
+            return str(int(round(raw)))
+        return f"{raw:.{best_prec}f}"
+
+    for _model_name, feat_fn, pred_fn in models:
         try:
             xs = [feat_fn(t) for t in ts]
-            g = _ls_fit_nb(xs, ds)
+            g = _ls_fit(xs, ds)
             if g <= 0:
                 continue
             mse = sum((pred_fn(g, t) - d) ** 2 for t, d in zip(ts, ds))
+
+            # Precision voting: pick precision maximizing exact matches on examples
+            fmt = _precision_vote(g, pred_fn)
+
             if mse < best_mse:
                 best_mse = mse
-                best_result = _format_number(pred_fn(g, test_t_val), examples)
+                best_result = fmt
         except Exception:
             continue
-    return best_result if best_result is not None else "0.0"
+
+    if best_result is not None:
+        return best_result
+    return "0.0"
 
 
 def solve_unit_conversion(examples, test_x):
