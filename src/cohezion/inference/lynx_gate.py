@@ -121,6 +121,12 @@ class EscalationProbe:
             passed, reason = self.fallback_gate.check(gate_result)
             return not passed, 0.5
 
+        # Hard override: short categorical responses (A/B/C, Yes/No, labels) always accept.
+        # The probe's length feature penalizes very short text, causing false escalations
+        # for single-word categorical answers (e.g. "A" for multiple choice).
+        if output_type == "short_categorical" and len(npu_text.strip()) <= 10:
+            return False, 0.05  # accept with high confidence (prob_escalate = 0.05)
+
         features = _extract_features(npu_text, output_type)
         logit = float(np.dot(self.weights, features) + self.bias)
         prob_escalate = 1.0 / (1.0 + math.exp(-logit))  # sigmoid
