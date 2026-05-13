@@ -399,6 +399,28 @@ def _extract_largest_object(g: Grid) -> Grid | None:
     return cropped
 
 
+def _outline_object(g: Grid) -> Grid | None:
+    """Extract perimeter of non-zero regions: keep only non-zero cells that touch a 0 neighbor.
+
+    Distinct from arc_solver's `border` (which copies outermost grid rows/cols).
+    This extracts the OBJECT outline — interior non-zero cells become 0.
+    """
+    if not g or not g[0]:
+        return None
+    h, w = len(g), len(g[0])
+    result = [[0] * w for _ in range(h)]
+    changed = False
+    for r in range(h):
+        for c in range(w):
+            if g[r][c] != 0 and any(
+                nr < 0 or nr >= h or nc < 0 or nc >= w or g[nr][nc] == 0
+                for nr, nc in ((r - 1, c), (r + 1, c), (r, c - 1), (r, c + 1))
+            ):
+                result[r][c] = g[r][c]
+                changed = True
+    return result if changed and result != g else None
+
+
 def _tile_3(g: Grid) -> Grid | None:
     """Tile the grid 3 times in both directions (3x3 repetition)."""
     if not g or not g[0]:
@@ -600,6 +622,7 @@ def _build_strategy(name: str, train: list[dict[str, Grid]]) -> list[tuple[str, 
         ("color_by_size", _color_objects_by_size),
         ("dedup_cols", _deduplicate_cols),
         ("count_row", _count_nonzero_to_row),
+        ("outline", _outline_object),
     ]
 
     scale = [
