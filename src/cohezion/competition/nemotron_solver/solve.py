@@ -1150,8 +1150,9 @@ _ENCRYPTION_VOCAB = [
 
 
 def solve_encryption(examples: list[tuple[str, str]], test_in: str) -> str:
-    """Word-level substitution cipher solver with vocabulary completion."""
-    mapping = {}
+    """Word-level substitution cipher solver with runtime vocab extraction."""
+    # Build character mapping from aligned word pairs in examples
+    mapping: dict[str, str] = {}
     for inp, out in examples:
         inp_words = inp.split()
         out_words = out.split()
@@ -1163,41 +1164,42 @@ def solve_encryption(examples: list[tuple[str, str]], test_in: str) -> str:
                     if c_in not in mapping:
                         mapping[c_in] = c_out
 
+    # Runtime vocabulary: extract from example OUTPUTS (ground truth words)
+    # These are the actual domain-specific words in this problem instance.
+    # Frequency-ranked (words seen more often in examples ranked higher).
+    from collections import Counter
+
+    runtime_word_counts: Counter = Counter()
+    for _, out in examples:
+        for w in out.split():
+            runtime_word_counts[w.lower()] += 1
+    # Merge: runtime vocab (frequency-sorted) first, then static fallback
+    runtime_vocab = sorted(runtime_word_counts.keys(), key=lambda w: -runtime_word_counts[w])
+    combined_vocab = runtime_vocab + [w for w in _ENCRYPTION_VOCAB if w not in runtime_word_counts]
+
     # Apply initial mapping
     test_words = test_in.split()
     result_words = []
     for tw in test_words:
-        mapped = ""
-        for c in tw:
-            mapped += mapping.get(c, "?")
-        result_words.append(mapped)
+        result_words.append("".join(mapping.get(c, "?") for c in tw))
 
-    # Dictionary completion for missing characters (unique + most-frequent ambiguous)
+    # Dictionary completion: iterate until stable
     changed = True
     while changed:
         changed = False
         for _i, (tw, pw) in enumerate(zip(test_words, result_words)):
             if "?" not in pw:
                 continue
-            pattern = pw.replace("?", "?")
-            matches = [
-                w
-                for w in _ENCRYPTION_VOCAB
-                if len(w) == len(pattern) and _match_pattern(pattern, w)
-            ]
-            if len(matches) >= 1:  # Accept even ambiguous (pick most frequent)
-                best = matches[0]
+            # Score candidates by frequency in example outputs (runtime vocab first)
+            matches = [w for w in combined_vocab if len(w) == len(pw) and _match_pattern(pw, w)]
+            if matches:
+                best = matches[0]  # already frequency-sorted
                 for c_in, c_out in zip(tw, best):
                     if c_in not in mapping:
                         mapping[c_in] = c_out
                         changed = True
-        # Rebuild result words with updated mapping
-        result_words = []
-        for tw in test_words:
-            mapped = ""
-            for c in tw:
-                mapped += mapping.get(c, "?")
-            result_words.append(mapped)
+        # Rebuild with updated mapping
+        result_words = ["".join(mapping.get(c, "?") for c in tw) for tw in test_words]
 
     return " ".join(result_words)
 
