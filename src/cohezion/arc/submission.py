@@ -5,7 +5,7 @@ against ARC evaluation requirements, and produces a reproducibility artifact
 bundle (``submission_package.zip``) for the Nov 2026 deadline.
 
 Key guarantees:
-- Every prediction grid is validated (0..9, ≤30×30, rectangular).
+- Every prediction grid is validated (0..9, <=30x30, rectangular).
 - SHA-256 manifest for deterministic auditing.
 - Compound-rule provenance: each task links to the ``CompoundRule`` that produced
   it (or marks ``fallback`` for heuristic / default outputs).
@@ -213,9 +213,8 @@ class SubmissionBuilder:
                 )
                 return pred, provenance
 
-        # Fallback 1: brute-force DSL search on full task
-        # Reconstruct a synthetic train/test for the solver
-        pred_fb = self._fallback_dsl(test_input)
+        # Fallback 1: DSL search using train examples to find correct program
+        pred_fb = self._fallback_dsl(test_input, train=train)
         elapsed = (time.perf_counter() - start) * 1000
         if pred_fb is not None and self._valid_grid(pred_fb):
             provenance.append(
@@ -299,18 +298,47 @@ class SubmissionBuilder:
                 return None
         return g
 
-    def _fallback_dsl(self, test_input: Grid) -> Grid | None:
-        """Lightweight DSL search using only inline primitives."""
+    def _fallback_dsl(
+        self,
+        test_input: Grid,
+        train: list[dict[str, Grid]] | None = None,
+    ) -> Grid | None:
+        """DSL search using train examples to find the correct transformation program.
+
+        When train data is available, delegates to ``kaggle-dataset/arc_solver``
+        search_program which runs a proper BFS across the full op set.  Falls
+        back to an identity-probe when train data is absent.
+        """
+        _train = train if train is not None else []
+
+        if _train:
+            try:
+                import pathlib as _pathlib
+                import sys as _sys
+
+                _solver_path = str(_pathlib.Path(__file__).resolve().parents[3] / "kaggle-dataset")
+                if _solver_path not in _sys.path:
+                    _sys.path.insert(0, _solver_path)
+                from arc_solver import apply_program, search_program  # type: ignore[import]  # noqa: I001
+
+                program = search_program(_train, max_depth=2)
+                if program:
+                    pred = apply_program(test_input, program)
+                    if pred is not None and self._valid_grid(pred):
+                        return pred
+            except Exception:  # noqa: S110
+                pass
+
+        # Fallback: try any op that produces a valid grid (identity probe)
         from cohezion.arc.pattern_extractor import _build_strategy
 
-        synthetic_train = [{"input": test_input, "output": test_input}]  # no gold — identity probe
+        synthetic_train = [{"input": test_input, "output": test_input}]
         ops = _build_strategy("all", synthetic_train)
-        # Try a tiny greedy identity probe (depth 1 only for speed)
         for _name, op in ops[:20]:
             pred = op(deepcopy(test_input))
             if pred is not None and self._valid_grid(pred):
                 return pred
-        return test_input  # identity fallback within DSL layer
+        return test_input
 
     def _fallback_llm(self, test_input: Grid) -> Grid | None:
         """Dynamic import of llm_fallback module if available."""
@@ -326,7 +354,7 @@ class SubmissionBuilder:
                 prog = mod.generate_program(test_input)
                 if callable(prog):
                     return prog(deepcopy(test_input))
-        except Exception:
+        except Exception:  # noqa: S110
             pass
         return None
 
@@ -486,10 +514,7 @@ def verify_submission(
         }
 
     challenges_path = data_dir / "arc-agi_test_challenges.json"
-    if challenges_path.exists():
-        challenges = json.loads(challenges_path.read_text())
-    else:
-        challenges = {}
+    challenges = json.loads(challenges_path.read_text()) if challenges_path.exists() else {}
 
     tasks = list(sub.keys())[:max_tasks] if max_tasks else list(sub.keys())
     for tid in tasks:
