@@ -118,12 +118,13 @@ class VAEEvaluator:
         """Run all red-flag evaluations. Returns metrics dict."""
         self.model.eval()
 
-        # Forward pass
+        # Forward pass — forward() returns (recon_or_logits, mu, log_var, z)
         recon, mu, logvar, _z = self.model(data)
 
         # Reconstruction fidelity (Red Flag 2)
-        orig_np = data.cpu().numpy()
-        recon_np = recon.cpu().numpy()
+        # recon is logits [B, seq_len, vocab_size]; argmax → predicted token IDs as float vecs
+        orig_np = data.float().cpu().numpy()
+        recon_np = recon.argmax(dim=-1).float().cpu().numpy()
         recon_sim = reconstruction_cosine_similarity(orig_np, recon_np)
 
         # KL health (Red Flag 1)

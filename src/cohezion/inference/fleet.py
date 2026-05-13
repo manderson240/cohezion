@@ -144,7 +144,7 @@ def _classify_task(prompt: str, task_hint: Task | str | None) -> Task:
 def _get_symmetry_coherence() -> float | None:
     """Current cohezion coherence — falls back to None if bridge unavailable."""
     try:
-        from cohezion.physics.spinor import SpinorState  # noqa: F401
+        from cohezion.physics.spinor import SpinorState
 
         # Coherence comes from the active JourneyTracker if one exists,
         # else default to HIHO equilibrium (0.5).
@@ -163,11 +163,10 @@ def _inject_symmetry_axis(payload: dict[str, Any], coherence: float | None) -> d
         bridge = get_symmetry_bridge()
         return bridge.apply_to_payload(payload, coherence)
     except (ImportError, AttributeError, KeyError, TypeError, ValueError) as exc:
-        # ImportError — bridge module missing (expected on fresh checkouts)
-        # AttributeError — get_symmetry_bridge or apply_to_payload signature drift
-        # KeyError / TypeError / ValueError — malformed payload the bridge rejects
-        # Anything else (MemoryError, KeyboardInterrupt, custom BridgeError)
-        # must propagate so the caller sees it rather than getting silent no-op.
+        import os
+
+        if os.environ.get("COHEZION_STRICT_AXIS"):
+            raise RuntimeError(f"Symmetry bridge unavailable (strict mode): {exc}") from exc
         logger.debug("Symmetry bridge unavailable: %s", exc)
         return payload
 
@@ -539,7 +538,7 @@ async def route(
                 self_reported_confidence=confidence,
                 attempts=attempts,
             )
-        except (TimeoutError, httpx.HTTPError, Exception) as exc:
+        except Exception as exc:
             last_error = f"{candidate.model_id}: {exc}"
             logger.warning("Dispatch to %s failed: %s", candidate.model_id, exc)
             continue

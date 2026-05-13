@@ -1,32 +1,41 @@
+# ruff: noqa: S104  # binds 0.0.0.0 in dev/internal services
 """
 Cohezion API - FastAPI server exposing swarm and MCP tools.
 
 Provides REST endpoints for Open-Notebook integration.
+
+The route decorators live in submodules under ``cohezion.api.routes`` —
+this module is the app factory + router-mount surface only.
+
+Singletons (``_vae_trainer``, ``_rl_policy``) and the helper functions
+``_get_vae``, ``_get_rl_policy``, ``_compute_coherence``, ``set_token_client``
+remain attributes of this package because tests and conftest fixtures
+reference them by full path (``patch("cohezion.api._get_vae", ...)`` etc.).
 """
 
-import contextlib
 import logging
 import os
-import re
 from pathlib import Path
-from typing import Any
 
-from fastapi import Depends, FastAPI, Header, HTTPException, Request
+from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse, RedirectResponse
 from fastapi.staticfiles import StaticFiles
-from pydantic import BaseModel, field_validator
 
 from cohezion.api.routes.eigent import router as eigent_router
 from cohezion.api.telemetry import router as telemetry_router
-from cohezion.mcp.knowledge_server import get_server as get_knowledge_server
-from cohezion.mcp.registry import get_registry
-from cohezion.mcp.swarm_server import get_server as get_swarm_server
 from cohezion.security.rate_limiter import get_rate_limiter
 
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
+
+# Singletons referenced by tests via ``cohezion.api._vae_trainer`` /
+# ``cohezion.api._rl_policy``. The helpers in ``_helpers.py`` read/write these
+# attributes on this module, which keeps conftest's reset hooks working.
+_vae_trainer = None
+_rl_policy = None
+
 
 # Allowed CORS origins from environment, default to localhost only
 _CORS_ORIGINS = os.environ.get(
@@ -82,24 +91,6 @@ if static_dir.exists():
 @app.get("/")
 async def root():
     return RedirectResponse(url="/static/index.html")
-
-
-# Pydantic models
-class DebateRequest(BaseModel):
-    query: str
-    perspectives: list[str] | None = None
-
-
-class SearchRequest(BaseModel):
-    query: str
-    limit: int = 5
-
-
-class DebateResponse(BaseModel):
-    content: str
-    confidence: float
-    model_chain: list[str]
-    processing_time_ms: float
 
 
 # Health check
@@ -651,14 +642,14 @@ async def flume_latent_space(request: FlumeLatentSpaceRequest):
         raise HTTPException(
             status_code=500,
             detail="FLUME VAE checkpoint not found. Train the model first using /flume/train",
-        )
+        ) from None
     except Exception as e:
         # Sanitize error message to prevent path leakage
         error_type = type(e).__name__
         raise HTTPException(
             status_code=500,
             detail=f"FLUME VAE not available ({error_type}). Check server logs",
-        )
+        ) from e
 
     z_dim = vae.config.z_dim
 
@@ -689,7 +680,7 @@ async def flume_latent_space(request: FlumeLatentSpaceRequest):
         raise HTTPException(
             status_code=504,
             detail="PCA computation timed out. Try reducing n_samples",
-        )
+        ) from None
 
     # Validate PCA output (Issue #7: catch NaN from degenerate data)
     if np.isnan(samples_3d).any() or np.isnan(pca.explained_variance_ratio_).any():
@@ -906,7 +897,7 @@ async def rl_episode():
     import gymnasium as gym
     import numpy as np
 
-    import cohezion.rl.environment  # noqa: F401 — registers Gymnasium env
+    import cohezion.rl.environment  # noqa: F401 — side-effect import registers FlumeNav-v0 gym env
 
     policy = _get_rl_policy()
     env = gym.make("cohezion/FlumeNav-v0", max_steps=200)
@@ -1748,15 +1739,22 @@ try:
 except ImportError:
     pass  # training routes not available
 
-# ─── AgentJet CALL endpoints ───────────────────────────────────────────────
+
+__all__ = [
+    "app",
+    "set_token_client",
+    "_get_vae",
+    "_get_rl_policy",
+    "_compute_coherence",
+    "_a2a_server",
+    "verify_a2a_token",
+    "_vae_trainer",
+    "_rl_policy",
+]
 
 
-class TrainRequest(BaseModel):
-    target_model: str = "qwen3.5:9b"
-    skill_domain: str | None = None
-    epochs: int = 3
-    min_phi: float = 0.7
-    dry_run: bool = False
+if __name__ == "__main__":
+    import uvicorn
 
 
 class TrainResponse(BaseModel):

@@ -71,7 +71,7 @@ def extract_tools_from_file(file_path: Path) -> list[str]:
     try:
         content = file_path.read_text()
         # Match @app.tool() or @app.tool(name="...")
-        patterns = [
+        [
             re.compile(r"@app\.tool\(\s*name\s*=\s*[\"']([^\"']+)[\"']"),
             re.compile(r"async def\s+([a-zA-Z0-9_]+)\("),
         ]

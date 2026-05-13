@@ -1,3 +1,4 @@
+# ruff: noqa: S310  # URL open targets are internal/config-allowlisted, not user-supplied
 """Knowledge Bridge — bidirectional persistence for retrospective learnings.
 
 Connects the retrospect process to three persistence layers:
@@ -124,7 +125,7 @@ def persist_to_surrealdb(learning: Learning) -> bool:
             created = time::now();
         """
 
-        body = json.dumps(
+        json.dumps(
             {
                 "name": f"L{learning.number}: {learning.title}",
                 "content": learning.content[:500],
@@ -151,7 +152,7 @@ def persist_to_surrealdb(learning: Learning) -> bool:
         # Using direct insert for simplicity
         # Match the neuron table schema exactly
         safe_title = learning.title.replace("'", "")
-        safe_content = learning.content[:200].replace("'", "")
+        learning.content[:200].replace("'", "")
         slug = learning.title.lower().replace(" ", "-").replace(":", "")[:60]
         vault_path = f"cerebellum/{learning.date}-{slug}.md"
         # Include FLUME embedding for semantic search (first 64 dims for balance)

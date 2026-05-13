@@ -68,7 +68,7 @@ class MockBenchmarkEvaluator:
 
         passed = 0
         for i in range(n):
-            name, solution, inputs, expected = tasks[i % len(tasks)]
+            _name, solution, inputs, expected = tasks[i % len(tasks)]
             try:
                 code = (
                     f"sol = {solution}\nresult = sol({inputs[0]})\nprint(result == {expected[0]})"

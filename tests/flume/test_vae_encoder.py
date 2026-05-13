@@ -1,7 +1,6 @@
 """Tests for FLUME VAE encoder."""
 
 from pathlib import Path
-from unittest.mock import MagicMock, patch
 
 import numpy as np
 import pytest
@@ -9,22 +8,10 @@ import pytest
 from cohezion.flume.vae_encoder import FlumeVAEEncoder, get_encoder, reset_encoder
 
 
-def _mock_ollama_embed(text: str) -> np.ndarray:
-    """Return a deterministic 768D vector based on text hash."""
-    rng = np.random.RandomState(hash(text) % (2**31))
-    v = rng.randn(768).astype(np.float32)
-    return v / (np.linalg.norm(v) + 1e-8)
-
-
 @pytest.fixture
 def patched_encoder():
-    """FlumeVAEEncoder with Ollama mocked out (deterministic, fast)."""
-    with patch("cohezion.flume.vae_encoder.OllamaEmbeddingProvider") as MockProvider:
-        mock_provider = MagicMock()
-        mock_provider.embed.side_effect = _mock_ollama_embed
-        MockProvider.return_value = mock_provider
-        enc = FlumeVAEEncoder(fallback_to_hash=True)
-    return enc
+    """FlumeVAEEncoder using hash fallback (deterministic, no Ollama calls)."""
+    return FlumeVAEEncoder(fallback_to_hash=True)
 
 
 class TestVAEEncoderBasics:

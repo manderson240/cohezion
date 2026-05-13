@@ -1,3 +1,4 @@
+# ruff: noqa: B904  # raise pattern in HTTP/API handlers — explicit user-facing errors
 """LLM Executor for autonomous compound benchmarking.
 
 Uses Ollama cloud models to execute benchmark tasks and evaluate
@@ -364,7 +365,7 @@ class LLMExecutor:
                 )
                 self._circuit_breaker.record_failure(endpoint)
                 if attempt == max_retries - 1:
-                    raise RuntimeError(last_error)
+                    raise RuntimeError(last_error) from None
                 await asyncio.sleep(delay)
 
             except httpx.HTTPStatusError as e:
@@ -379,13 +380,13 @@ class LLMExecutor:
                 )
                 self._circuit_breaker.record_failure(endpoint)
                 if attempt == max_retries - 1:
-                    raise RuntimeError(last_error)
+                    raise RuntimeError(last_error) from None
                 await asyncio.sleep(delay)
 
             except Exception as e:
                 # Non-retryable unexpected error
                 self._circuit_breaker.record_failure(endpoint)
-                raise RuntimeError(f"Unexpected error calling {model}: {e}")
+                raise RuntimeError(f"Unexpected error calling {model}: {e}") from e
 
         raise RuntimeError(last_error or f"Failed after {max_retries} attempts")
 

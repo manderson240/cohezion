@@ -89,7 +89,7 @@ class TestVibeCompilerBasic:
         result = compiler.compile(vibe_spec)
         assert result.entry_node_id is not None
         # Entry node is the first node (no incoming edges)
-        node_map = {n.name: n for n in result.nodes}
+        {n.name: n for n in result.nodes}
         entry = next(n for n in result.nodes if n.id == result.entry_node_id)
         assert entry.name == "first"
 

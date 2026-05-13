@@ -65,7 +65,7 @@ class AGIEvaluator:
         logger.info("Evaluating AGI Task (Track: %s): %s", track, task_description[:50])
 
         # 1. Resource Dilation
-        v_adj = self.viscous.calculate_dilation_adjustment(cpu=30, ram=30, vram=30, active_calls=1)
+        self.viscous.calculate_dilation_adjustment(cpu=30, ram=30, vram=30, active_calls=1)
 
         # 2. Strategy Selection
         if track in ["learning", "executive_function"]:
@@ -106,7 +106,7 @@ class AGIEvaluator:
         current_context = description
         trajectory = []
 
-        for step in range(3):
+        for _step in range(3):
             resp = await self.model.generate(
                 f"Current Context: {current_context}\nNext Reasoning Step:"
             )

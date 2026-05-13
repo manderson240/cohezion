@@ -15,14 +15,14 @@ from unittest.mock import AsyncMock, Mock, patch
 import pytest
 
 from cohezion.mcp.compound_server import (
+    McpClientResolver,
     cohezion_batch_port_skills,
     cohezion_inspect_codebase,
     cohezion_skill_matrix,
     err,
+    mcp,
     mcp_tool,
     ok,
-    McpClientResolver,
-    mcp,
 )
 
 
@@ -111,14 +111,13 @@ class TestCompoundUtils:
         fake_client = AsyncMock()
         resolver = McpClientResolver(get_default_client=lambda: fake_client)
 
-        with patch.object(resolver, "_get_default", return_value=fake_client):
-            with patch(
-                "cohezion.core.mcp_client.create_mcp_client",
-                return_value=fake_client,
-            ):
-                client, is_fresh = await resolver.resolve("http://test:8080")
-                assert client is fake_client
-                fake_client.connect.assert_awaited_once()
+        with patch.object(resolver, "_get_default", return_value=fake_client), patch(
+            "cohezion.core.mcp_client.create_mcp_client",
+            return_value=fake_client,
+        ):
+            client, _is_fresh = await resolver.resolve("http://test:8080")
+            assert client is fake_client
+            fake_client.connect.assert_awaited_once()
 
     def test_module_line_count(self) -> None:
         """Module shrunk from 782 to < 500 lines (elegant simplicity gate)."""

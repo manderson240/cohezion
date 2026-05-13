@@ -42,7 +42,7 @@ import json
 import logging
 import time
 from dataclasses import dataclass, field
-from enum import Enum
+from enum import StrEnum
 from pathlib import Path
 from typing import Any
 from uuid import uuid4
@@ -56,7 +56,7 @@ logger = logging.getLogger(__name__)
 # ---------------------------------------------------------------------------
 
 
-class ToolResult(str, Enum):
+class ToolResult(StrEnum):
     """Outcome of a tool execution."""
 
     SUCCESS = "success"
@@ -212,7 +212,7 @@ class ToolRegistry:
 # ---------------------------------------------------------------------------
 
 
-class SuccessCriterionType(str, Enum):
+class SuccessCriterionType(StrEnum):
     """Types of success criteria for task completion."""
 
     FILE_EXISTS = "file_exists"
@@ -635,7 +635,7 @@ class AgenticEnvironment:
         path = args.get("path", "")
         files = env_state.get("files", {})
         if path in files:
-            return files[path]
+            return str(files[path])
         raise FileNotFoundError(f"File not found: {path}")
 
     def _tool_file_write(self, args: dict[str, Any], env_state: dict[str, Any]) -> str:
@@ -656,7 +656,7 @@ class AgenticEnvironment:
         command = args.get("command", "")
         # Simple simulation for common commands
         if command.startswith("echo "):
-            output = command[5:]
+            output: str = command[5:]
             env_state.get("stdout", []).append(output)
             return output
         elif command == "ls":

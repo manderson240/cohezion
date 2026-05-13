@@ -1,3 +1,4 @@
+# ruff: noqa: S108, E501  # long lines: SQL/URLs/docstrings — wrapping reduces readability
 """SafetyHarness for pre-execution safety checks and real-time monitoring.
 
 Provides:
@@ -342,7 +343,7 @@ class PreFlightChecker:
         self, request: dict[str, Any], policy: SafetyPolicy
     ) -> list[Violation]:
         """Check if modified paths are whitelisted."""
-        violations = []
+        violations: list[Violation] = []
         context = request.get("context", {})
         paths = context.get("paths", [])
 

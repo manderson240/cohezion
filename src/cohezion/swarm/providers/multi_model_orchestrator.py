@@ -195,7 +195,7 @@ class MultiModelOrchestrator(ModelProvider):
         size_str = model.split(":")[-1] if ":" in model else "7b"
         try:
             size = float(size_str.replace("b", "").replace("m", ".001"))
-        except:
+        except ValueError:
             size = 7.0
 
         unit = ComputeUnit.CPU if size < 3.0 else ComputeUnit.GPU
@@ -275,7 +275,7 @@ class MultiModelOrchestrator(ModelProvider):
                 - latency_critical: Prioritize TTFT
                 - throughput_priority: Prioritize tokens/sec
         """
-        start_time = time.time()
+        time.time()
 
         # Select compute unit
         unit = self.select_compute_unit(
@@ -332,6 +332,7 @@ class MultiModelOrchestrator(ModelProvider):
         if unit in (ComputeUnit.GPU, ComputeUnit.HYBRID):
             payload["keep_alive"] = "5m"
 
+        start_time = time.time()
         try:
             async with session.post(
                 f"{endpoint}/api/generate",

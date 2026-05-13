@@ -230,7 +230,7 @@ class MetaLearner:
         return LearningStrategy(
             name=f"generated_{len(self.strategy_pool)}",
             parameters=new_params,
-            success_rate=current_success + 0.05,  # Hope for 5% improvement
+            success_rate=self.current_strategy.success_rate + 0.05,
         )
 
     def _extract_successful_patterns(self) -> list[dict[str, Any]]:

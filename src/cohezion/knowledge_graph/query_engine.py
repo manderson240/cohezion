@@ -1,3 +1,4 @@
+# ruff: noqa: S112  # best-effort skip in cleanup paths
 """Knowledge graph query engine for execution history and pattern analysis.
 
 Provides search over agent execution records and knowledge graph entries,
@@ -53,8 +54,8 @@ class KnowledgeGraphQueryEngine:
                 if rows and isinstance(rows, list):
                     # Handle flat list or wrapped formats
                     if rows and isinstance(rows[0], dict) and "result" in rows[0]:
-                        return rows[0]["result"][:limit]
-                    return rows[:limit]
+                        return list(rows[0]["result"][:limit])
+                    return list(rows[:limit])
             except Exception as e:
                 logger.debug("DB query failed, using file fallback: %s", e)
 

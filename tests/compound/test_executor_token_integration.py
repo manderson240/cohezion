@@ -49,6 +49,12 @@ def executor_with_token_client(mock_mcp_client, mock_token_client):
 class TestCompoundExecutorTokenIntegration:
     """Tests for TokenEfficientClient integration."""
 
+    def setup_method(self):
+        ExecutorFactory.reset_singleton()
+
+    def teardown_method(self):
+        ExecutorFactory.reset_singleton()
+
     def test_executor_initialization_without_token_client(self, mock_mcp_client):
         """Test executor initialization without token client."""
         with patch("cohezion.compound.exp_persistence.vault.VaultLogger"):
@@ -306,7 +312,7 @@ class TestExecutorFactory:
         """Test factory reset singleton."""
         with patch("cohezion.compound.exp_persistence.vault.VaultLogger"):
             ExecutorFactory.reset_singleton()
-            executor1 = ExecutorFactory.get_singleton(mock_mcp_client)
+            ExecutorFactory.get_singleton(mock_mcp_client)
             assert ExecutorFactory._instance is not None
             ExecutorFactory.reset_singleton()
             assert ExecutorFactory._instance is None
@@ -314,6 +320,13 @@ class TestExecutorFactory:
 
 class TestCompoundExecutorIntegrationScenarios:
     """Integration scenarios with token client."""
+
+
+    def setup_method(self):
+        ExecutorFactory.reset_singleton()
+
+    def teardown_method(self):
+        ExecutorFactory.reset_singleton()
 
     def test_batch_generation_with_token_efficiency(self, executor_with_token_client):
         """Test batch generation scenario with token efficiency."""

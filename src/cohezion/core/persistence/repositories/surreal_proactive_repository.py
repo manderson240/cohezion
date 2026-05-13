@@ -153,7 +153,7 @@ class SurrealProactiveRepository(BaseRepository[SuggestionAcceptance, dict[str, 
             )
 
             if result and len(result) > 0:
-                stored = result[0]
+                result[0]
                 logger.info(
                     "acceptance_recorded",
                     suggestion_id=acceptance.suggestion_id,

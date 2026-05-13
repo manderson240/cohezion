@@ -23,7 +23,6 @@ class AsyncGuard(Guardian):
         ]
 
     def scan_file(self, filepath: Path) -> list[tuple[int, str]]:
-        violations = []
         try:
             with open(filepath, encoding="utf-8") as f:
                 content = f.read()
@@ -82,7 +81,7 @@ class AsyncGuard(Guardian):
             if not abs_target.exists():
                 continue
 
-            for root, dirs, files in os.walk(abs_target):
+            for root, _dirs, files in os.walk(abs_target):
                 rel_root = os.path.relpath(root, self.project_root)
                 if any(exclude in f"/{rel_root}/" for exclude in self.exclude_patterns):
                     continue

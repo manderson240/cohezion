@@ -73,7 +73,7 @@ def beam_search(
     t0 = time.monotonic()
     ksearch = _load_ksearch()
 
-    for depth in range(1, max_depth + 1):
+    for _depth in range(1, max_depth + 1):
         candidates: list[tuple[list[str], float]] = []
         for chain, _ in beams:
             for name in names:
@@ -90,7 +90,16 @@ def beam_search(
             if time.monotonic() - t0 > time_budget_sec:
                 break
 
-        # UCB1 ranking for exploration
+        # Track best by actual score BEFORE UCB1 narrows the beam
+        # UCB1 sorts by exploration potential, not by actual quality.
+        # Without this, perfect-score candidates can be ranked out of the beam.
+        if candidates:
+            actual_best = max(candidates, key=lambda x: x[1])
+            if actual_best[1] > state.best_score:
+                state.best_score = actual_best[1]
+                state.best_chain = actual_best[0]
+
+        # UCB1 ranking for exploration at deeper depths
         total = sum(1 for _ in candidates) + 1
         candidates.sort(
             key=lambda x: ucb1_score(

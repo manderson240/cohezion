@@ -1,3 +1,4 @@
+# ruff: noqa: E501  # long lines: SQL/URLs/docstrings — wrapping reduces readability
 """MCP Compound Server - Unified interface for compound engineering.
 
 Elegant refactor: 782 lines compounded into ~380.
@@ -20,6 +21,7 @@ from typing import Any
 from fastmcp import FastMCP
 
 from cohezion.mcp.compound_utils import McpClientResolver, err, mcp_tool, ok
+
 
 logger = logging.getLogger(__name__)
 
@@ -346,9 +348,9 @@ async def cohezion_batch_port_skills(
                     "stderr": stderr.decode("utf-8", errors="replace"),
                 }
             )
-        except asyncio.TimeoutError:
+        except TimeoutError:
             results.append({"name": name, "success": False, "error": "Timeout after 30s"})
-        except Exception as exc:  # noqa: BLE001
+        except Exception as exc:
             results.append({"name": name, "success": False, "error": str(exc)})
     successes = sum(1 for r in results if r.get("success"))
     return ok(total=len(skill_names), successes=successes, dry_run=dry_run, results=results)
@@ -477,10 +479,9 @@ async def check_redis_health() -> dict[str, Any]:
         await client.close()
         logger.info("Redis health check passed: %s", redis_url)
         return ok(url=redis_url)
-    except Exception as exc:  # noqa: BLE001
+    except Exception as exc:
         logger.warning("Redis health check failed: %s", exc)
         return err(str(exc), url=redis_url)
-
 
 def main() -> None:
     """Run the MCP server."""

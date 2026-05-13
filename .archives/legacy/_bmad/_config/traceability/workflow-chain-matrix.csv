@@ -1,2 +1,0 @@
-parent_workflow,child_workflow,trigger_condition,source_file,line_ref
-gametest,test-framework,explicit_invoke,gds/workflows/gametest/e2e-scaffold/workflow.yaml,Line 21

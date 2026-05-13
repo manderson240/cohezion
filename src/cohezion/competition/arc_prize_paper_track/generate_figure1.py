@@ -8,7 +8,7 @@ from matplotlib.patches import FancyBboxPatch
 
 
 def draw_compound_loop():
-    fig, ax = plt.subplots(figsize=(10, 6))
+    _fig, ax = plt.subplots(figsize=(10, 6))
     ax.set_xlim(0, 10)
     ax.set_ylim(0, 6)
     ax.axis("off")

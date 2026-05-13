@@ -294,7 +294,7 @@ class TestIntegration:
         registry = DynamicAgentRegistry()
 
         # 2. Create router
-        router = AdaptiveRouter(registry)
+        AdaptiveRouter(registry)
 
         # 3. Create orchestrator
         orchestrator = MultiAgentOrchestrator(registry=registry, enable_learning=False)

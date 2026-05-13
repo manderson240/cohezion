@@ -1,4 +1,5 @@
 #!/usr/bin/env python3
+# ruff: noqa: E501  # long lines: SQL/URLs/docstrings — wrapping reduces readability
 """Cohezion CLI - Universe Simulation Platform
 
 Entry point for the Cohezion command-line interface.
@@ -288,6 +289,24 @@ async def cmd_journey_list(args: argparse.Namespace) -> int:
             f"{status_icon} {journey['id']}: {journey['intent'][:40]}... (phi: {journey['phi']:.2f})"
         )
 
+    return 0
+
+
+async def cmd_journey_status(args: argparse.Namespace) -> int:
+    """Handle journey status command."""
+    logger.info("📊 Journey status...")
+
+    # Mock data - would query SurrealDB by journey_id
+    journey = {
+        "id": "journey_001",
+        "intent": "Example journey",
+        "status": "active",
+        "phi": 0.72,
+        "coherence": 0.65,
+        "steps": 12,
+    }
+
+    print(json.dumps(journey, indent=2))
     return 0
 
 

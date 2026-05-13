@@ -30,6 +30,11 @@ if TYPE_CHECKING:
 logger = logging.getLogger(__name__)
 
 
+# Resolve external executable paths at module load to avoid S607 partial-path warnings.
+_SYSTEMD_RUN = shutil.which("systemd-run") or "/usr/bin/systemd-run"
+_PYTHON3 = shutil.which("python3") or "/usr/bin/python3"
+
+
 @dataclass
 class BackendResult:
     """Result from an isolation backend execution."""
@@ -209,8 +214,8 @@ class SystemdRunBackend:
         if shutil.which("systemd-run") is None:
             return False
         try:
-            result = subprocess.run(
-                ["systemd-run", "--scope", "--user", "true"],
+            result = subprocess.run(  # noqa: S603 - static probe with constant args
+                [_SYSTEMD_RUN, "--scope", "--user", "true"],
                 capture_output=True,
                 timeout=5,
             )
@@ -297,8 +302,8 @@ class SubprocessBackend:
     ) -> dict[str, Any]:
         """Synchronous subprocess execution with rlimits."""
         try:
-            result = subprocess.run(
-                ["python3", str(script_path)],
+            result = subprocess.run(  # noqa: S603 - script_path is internal sandbox tempfile, env+limits applied
+                [_PYTHON3, str(script_path)],
                 capture_output=True,
                 text=True,
                 timeout=timeout,

@@ -1,3 +1,4 @@
+# ruff: noqa: E501, RUF012, RUF003  # math/physics symbols intentional
 """Cost-quality optimized model ranking with historical coherence integration.
 
 Ranks models by weighted combination of:
@@ -350,7 +351,7 @@ class ModelRanker:
         # freshness = 0.5^(age/half_life)
         freshness = 0.5 ** (age_hours / self.freshness_decay_hours)
 
-        return max(0.0, min(1.0, freshness))
+        return float(max(0.0, min(1.0, freshness)))
 
     def _get_default_costs(self, models: list[str]) -> dict[str, float]:
         """Get default cost per token for models.

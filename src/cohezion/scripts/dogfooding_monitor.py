@@ -61,7 +61,7 @@ async def capture_metrics(journey_id: str, status: str):
 
 async def monitor_loop(journey_ids: list[str]):
     """Poll journeys until all are complete."""
-    engine = UniverseSimulationEngine()
+    UniverseSimulationEngine()
     pending = set(journey_ids)
 
     logger.info(f"Monitoring {len(pending)} dogfooding journeys...")

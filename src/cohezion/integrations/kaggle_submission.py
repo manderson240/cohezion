@@ -30,7 +30,7 @@ class KaggleSubmissionOrchestrator:
         """
         # 1. Download dataset
         logger.info(f"Downloading competition data: {competition_id}")
-        download_dir = await self.api.download_dataset(competition_id)
+        download_dir = await self.api.download_dataset_path(competition_id)
 
         # Locate the specific file (usually train.jsonl or similar)
         # For Nemotron, we'll look for a jsonl file

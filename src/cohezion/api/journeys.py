@@ -1,3 +1,4 @@
+# ruff: noqa: B904  # raise pattern in HTTP/API handlers — explicit user-facing errors
 """Journey API - REST endpoints for journey retrieval and analysis.
 
 Provides HTTP API for:
@@ -219,10 +220,10 @@ async def analyze_journeys(
 
     except ImportError as e:
         logger.error("Analysis import failed: %s", e)
-        raise HTTPException(status_code=500, detail=f"Analysis failed: {e!s}")
+        raise HTTPException(status_code=500, detail=f"Analysis failed: {e!s}") from e
     except Exception as e:
         logger.error("Analysis failed: %s", e)
-        raise HTTPException(status_code=500, detail=f"Analysis failed: {e!s}")
+        raise HTTPException(status_code=500, detail=f"Analysis failed: {e!s}") from e
 
 
 @router.get("/{journey_id}/thermodynamics")
@@ -261,7 +262,7 @@ async def journey_thermodynamics(journey_id: str) -> dict[str, Any]:
         }
     except Exception as e:
         logger.error("Thermodynamic analysis failed: %s", e)
-        raise HTTPException(status_code=500, detail=f"Analysis failed: {e!s}")
+        raise HTTPException(status_code=500, detail=f"Analysis failed: {e!s}") from e
 
 
 @router.get("/{journey_id}/topology")
@@ -297,7 +298,7 @@ async def journey_topology(journey_id: str) -> dict[str, Any]:
         }
     except Exception as e:
         logger.error("Topological analysis failed: %s", e)
-        raise HTTPException(status_code=500, detail=f"Analysis failed: {e!s}")
+        raise HTTPException(status_code=500, detail=f"Analysis failed: {e!s}") from e
 
 
 @router.get("/{journey_id}/anomaly")
@@ -333,7 +334,7 @@ async def journey_anomaly(journey_id: str) -> dict[str, Any]:
         }
     except Exception as e:
         logger.error("Anomaly detection failed: %s", e)
-        raise HTTPException(status_code=500, detail=f"Analysis failed: {e!s}")
+        raise HTTPException(status_code=500, detail=f"Analysis failed: {e!s}") from e
 
 
 @router.get("/{journey_id}/archetype")
@@ -372,4 +373,4 @@ async def journey_archetype(journey_id: str) -> dict[str, Any]:
         }
     except Exception as e:
         logger.error("Archetype analysis failed: %s", e)
-        raise HTTPException(status_code=500, detail=f"Analysis failed: {e!s}")
+        raise HTTPException(status_code=500, detail=f"Analysis failed: {e!s}") from e

@@ -7,6 +7,7 @@ Integrates with Cohezion reliability circuits.
 from __future__ import annotations
 
 import asyncio
+import contextlib
 import logging
 from collections.abc import Callable
 from typing import Any
@@ -43,10 +44,8 @@ class TelemetryBus:
         if self._worker_task:
             # We don't wait for drain here for speed, but could implement it.
             self._worker_task.cancel()
-            try:
+            with contextlib.suppress(asyncio.CancelledError):
                 await self._worker_task
-            except asyncio.CancelledError:
-                pass
         logger.info("📡 Telemetry Bus stopped")
 
     async def emit(self, event: FlumeJourneyEvent):

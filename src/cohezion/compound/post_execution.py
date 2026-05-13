@@ -9,7 +9,10 @@ import asyncio
 import json
 import logging
 import time
-from typing import Any
+from typing import TYPE_CHECKING, Any
+
+if TYPE_CHECKING:
+    from cohezion.compound.executor import CompoundExecutor
 
 
 logger = logging.getLogger(__name__)
@@ -356,7 +359,7 @@ class PostExecutionOrchestrator:
             metrics["natural_capital"] = nc.total_natural_capital
             metrics["habitat_quality"] = nc.habitat_quality
             metrics["coherence"] = metrics["coherence"] * 0.9 + nc.habitat_quality * 0.1
-        except (ImportError, Exception):
+        except Exception:
             pass
 
     def _run_autoresearch(self, task_description: str, metrics: dict[str, Any]) -> None:
@@ -378,7 +381,7 @@ class PostExecutionOrchestrator:
             driver = AutoresearchDriver(target=target, budget_seconds=60)
             asyncio.ensure_future(driver.run_loop(n_iterations=1))
             metrics["autoresearch_target"] = target
-        except (ImportError, Exception):
+        except Exception:
             pass
 
     def _run_retrospection(
@@ -535,7 +538,7 @@ class PostExecutionOrchestrator:
             bio_net.simulate(n_steps=10, dt=0.01)
             metrics["bioelectric_coherence"] = float(bio_net.coherence())
             metrics["bioelectric_percolated"] = bio_net.percolation_analysis().is_percolated
-        except (ImportError, Exception):
+        except Exception:
             pass
 
     def _run_model_quality(
@@ -654,7 +657,7 @@ class PostExecutionOrchestrator:
                 asyncio.ensure_future(snap)
             except RuntimeError:
                 asyncio.run(snap)
-        except (ImportError, Exception):
+        except Exception:
             pass
 
     def _run_universe_bridge_point(
@@ -720,7 +723,7 @@ class PostExecutionOrchestrator:
                         )
                 except RuntimeError:
                     pass
-        except (ImportError, Exception):
+        except Exception:
             pass
 
     def _run_mycelium(self, success: bool, skill_name: str, task_description: str) -> None:
@@ -749,7 +752,7 @@ class PostExecutionOrchestrator:
                     )
                 except Exception:
                     logger.debug("Mycelium audit failed")
-        except (ImportError, Exception):
+        except Exception:
             pass
 
     def _run_prompt_artifact_persistence(
@@ -774,7 +777,7 @@ class PostExecutionOrchestrator:
                 asyncio.ensure_future(_artifact_coro)
             except RuntimeError:
                 asyncio.run(_artifact_coro)
-        except (ImportError, Exception):
+        except Exception:
             pass
 
     def _run_context_policy_outcome(

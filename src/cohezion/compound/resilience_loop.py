@@ -52,7 +52,6 @@ class EcoResilienceCompoundLoop:
         Executes the EcoResilience loop with a stability-driven refinement cycle.
         """
         # If benchmark_mode is active, we force a single iteration to capture baseline latency
-        actual_max_retries = 1 if benchmark_mode else max_retries
 
         iteration = 0
         current_strategy = ""

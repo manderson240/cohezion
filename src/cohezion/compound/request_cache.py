@@ -107,7 +107,7 @@ class RequestCache:
             if task:
                 self._l1_hits += 1
                 logger.debug(f"L1 cache hit: {request_text[:50]}...")
-                return task
+                return task if isinstance(task, AgentTask) else None
 
             self._l1_misses += 1
             return None

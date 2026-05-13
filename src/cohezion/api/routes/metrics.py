@@ -207,9 +207,7 @@ async def metrics_system():
                 ollama_models = [m["name"] for m in models_data]
     except (
         _httpx.HTTPError,
-        _httpx.TimeoutException,
         OSError,
-        ConnectionError,
         ValueError,
         KeyError,
     ) as e:

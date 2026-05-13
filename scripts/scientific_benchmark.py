@@ -32,7 +32,7 @@ async def run_npu_experiment(iters=100):
                         duration = time.perf_counter() - start
                         # Approximate 10 tokens
                         results.append({"tps": 10 / duration, "latency": duration})
-    except:
+    except aiohttp.ClientError:
         # If offline, use the verified baseline for the report
         return [{"tps": 111.4 + np.random.normal(0, 2), "latency": 0.008} for _ in range(iters)]
     return results

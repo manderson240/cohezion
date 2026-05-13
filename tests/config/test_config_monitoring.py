@@ -4,6 +4,7 @@ Tests vault monitoring, config file monitoring, and event emission.
 """
 
 import asyncio
+import contextlib
 from pathlib import Path
 from unittest.mock import AsyncMock, patch
 
@@ -136,8 +137,11 @@ class TestConfigMonitor:
             # Start monitoring (will run until we stop it)
             monitor_task = asyncio.create_task(monitor.start())
 
-            # Give it a moment to start
-            await asyncio.sleep(0.1)
+            # Poll for monitor._running flag instead of fixed wait
+            for _ in range(50):
+                if monitor._running:
+                    break
+                await asyncio.sleep(0.005)
 
             assert monitor._running
 
@@ -188,17 +192,18 @@ class TestOrchestrationWithMonitoring:
                 # Start orchestration
                 orchestration_task = asyncio.create_task(orch.start_monitoring())
 
-                # Give it a moment
-                await asyncio.sleep(0.1)
+                # Poll for _monitoring flag instead of fixed 0.1s wait
+                for _ in range(50):
+                    if orch._monitoring:
+                        break
+                    await asyncio.sleep(0.005)
 
                 assert orch._monitoring
 
                 # Cancel the task
                 orchestration_task.cancel()
-                try:
+                with contextlib.suppress(asyncio.CancelledError):
                     await orchestration_task
-                except asyncio.CancelledError:
-                    pass
 
                 # Verify stop was called within context
                 stop_mock.assert_called()

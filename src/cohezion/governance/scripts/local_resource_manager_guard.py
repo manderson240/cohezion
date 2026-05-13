@@ -75,7 +75,7 @@ class LocalResourceManagerGuard(Guardian):
                         )
                     else:
                         self.log_violation(msg, location=f"pid:{proc.info['pid']}")
-            except (psutil.NoSuchProcess, psutil.AccessDenied, psutil.ZombieProcess):
+            except (psutil.NoSuchProcess, psutil.AccessDenied):
                 continue
 
         if overture_count > 10:
@@ -87,7 +87,7 @@ class LocalResourceManagerGuard(Guardian):
                         cmd_str = " ".join(cmdline) if cmdline else ""
                         if "overture-proxy" in cmd_str or "overture-mcp" in cmd_str:
                             proc.terminate()
-                    except (psutil.NoSuchProcess, psutil.AccessDenied, psutil.ZombieProcess):
+                    except (psutil.NoSuchProcess, psutil.AccessDenied):
                         continue
                 self.log_violation(
                     msg + " (Auto-healed by terminating all overture processes)", location="system"

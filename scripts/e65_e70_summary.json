@@ -1,0 +1,130 @@
+[
+  {
+    "label": "E65_adaptive_lr",
+    "duration_s": 1.069,
+    "result": {
+      "cycle_means": [
+        0.75625,
+        0.7738750000000001,
+        0.7854460000000001,
+        0.7938380199999999
+      ],
+      "lrs_used": [
+        0.5,
+        0.375,
+        0.30449999999999955,
+        0.25821599999999956
+      ],
+      "total_lift": 0.037588019999999944,
+      "mean_overshoot": 0.0
+    }
+  },
+  {
+    "label": "E66_parallel",
+    "duration_s": 0.003,
+    "result": {
+      "mean_diversity_std": 0.0,
+      "mean_parallel_consensus": 0.88125,
+      "mean_serial_consensus": 0.88125,
+      "delta": 0.0
+    }
+  },
+  {
+    "label": "E67_refiner_conv",
+    "duration_s": 0.006,
+    "result": {
+      "deltas": [
+        0.125,
+        0.06299999999999994,
+        0.031000000000000028,
+        0.015000000000000069,
+        0.008000000000000007,
+        0.0040000000000000036,
+        0.0020000000000000018,
+        0.0010000000000000564,
+        0.0,
+        0.0
+      ],
+      "decay_ratios": [
+        0.12000000000000055,
+        0.1269841269841272,
+        0.12903225806451613,
+        0.13333333333333283,
+        0.12500000000000694,
+        0.0,
+        0.0
+      ],
+      "mean_decay_ratio": 0.0906213883402834,
+      "geometric_confirmed": true,
+      "overall_decay": 1.0
+    }
+  },
+  {
+    "label": "E68_drr_advisory",
+    "duration_s": 0.001,
+    "result": {
+      "success_rate": 1.0,
+      "successes": 5,
+      "failures": 0,
+      "mean_duration_per_run_s": 0.000184423997416161,
+      "nonblocking_confirmed": true
+    }
+  },
+  {
+    "label": "E69_coherence_weighted",
+    "duration_s": 0.002,
+    "result": {
+      "mean_equal": 0.8875,
+      "mean_coherence_weighted": 0.8875,
+      "delta": 0.0,
+      "pct_improvement": 0.0,
+      "confirmed_5pct": false
+    }
+  },
+  {
+    "label": "E70_retirement_cv",
+    "duration_s": 0.005,
+    "result": {
+      "results": {
+        "0.03": {
+          "retired_at_cycle": 2,
+          "cycles_run": 2,
+          "final_mean": 0.819,
+          "cycle_means": [
+            0.7875,
+            0.819
+          ],
+          "cycle_deltas": [
+            0.0315
+          ]
+        },
+        "0.05": {
+          "retired_at_cycle": 2,
+          "cycles_run": 2,
+          "final_mean": 0.819,
+          "cycle_means": [
+            0.7875,
+            0.819
+          ],
+          "cycle_deltas": [
+            0.0315
+          ]
+        },
+        "0.07": {
+          "retired_at_cycle": 2,
+          "cycles_run": 2,
+          "final_mean": 0.819,
+          "cycle_means": [
+            0.7875,
+            0.819
+          ],
+          "cycle_deltas": [
+            0.0315
+          ]
+        }
+      },
+      "optimal_cv": "0.03",
+      "cv_005_optimal": false
+    }
+  }
+]

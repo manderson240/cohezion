@@ -66,7 +66,6 @@ def elite_model_selection(args: dict[str, Any], model_registry: dict[str, Any]) 
         KeyError,
         TypeError,
         AttributeError,
-        json.JSONDecodeError,
     ) as e:
         return {"content": [{"type": "text", "text": f"Elite model selection failed: {e}"}]}
 
@@ -137,7 +136,6 @@ def performance_benchmark(args: dict[str, Any]) -> dict[str, Any]:
         KeyError,
         TypeError,
         AttributeError,
-        json.JSONDecodeError,
     ) as e:
         return {"content": [{"type": "text", "text": f"Performance benchmark failed: {e}"}]}
 
@@ -183,11 +181,11 @@ def select_model(
     # Pre-flight check: which models are actually in Ollama?
     installed_models = set()
     try:
-        res = subprocess.run(["ollama", "list"], capture_output=True, text=True)  # noqa: S607 - ollama by name; failures handled below
+        res = subprocess.run(["ollama", "list"], capture_output=True, text=True)
         for line in res.stdout.splitlines()[1:]:  # Skip header
             if line.strip():
                 installed_models.add(line.split()[0].split(":")[0])  # Base name
-    except (OSError, FileNotFoundError, subprocess.SubprocessError) as e:
+    except (OSError, subprocess.SubprocessError) as e:
         sys.stderr.write(f"Failed to check installed models: {e}\n")
 
     # Flatten models for selection

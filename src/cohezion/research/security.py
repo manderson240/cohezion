@@ -1,3 +1,4 @@
+# ruff: noqa: RUF012  # class attrs treated as immutable config; never mutated per-instance
 """Security guardrails for ResearchAgent.
 
 Validates code changes before execution.
@@ -10,9 +11,13 @@ import ast
 import logging
 import re
 from dataclasses import dataclass
-from pathlib import Path
+from typing import TYPE_CHECKING
 
-from cohezion.security.pipeline import SecurityPipeline
+
+if TYPE_CHECKING:
+    from pathlib import Path
+
+    from cohezion.security.pipeline import SecurityPipeline
 
 
 logger = logging.getLogger(__name__)
@@ -127,7 +132,7 @@ class ResearchSecurityGuardrails:
 
     def _check_ast_forbidden(self, code: str) -> list[str]:
         """Check AST for forbidden function calls and imports."""
-        issues = []
+        issues: list[str] = []
         try:
             tree = ast.parse(code)
         except SyntaxError:
@@ -253,7 +258,4 @@ class SimpleSecurity:
 
     def check(self, code: str) -> bool:
         """Quick security check."""
-        for pattern in self.forbidden:
-            if pattern in code:
-                return False
-        return True
+        return all(pattern not in code for pattern in self.forbidden)

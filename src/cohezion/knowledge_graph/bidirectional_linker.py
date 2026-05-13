@@ -1,3 +1,4 @@
+# ruff: noqa: B008, S608  # SQL strings parameterized via SurrealDB driver, not raw string concat
 """Bidirectional linking system for Cohezion knowledge graph.
 
 Integrates with:
@@ -335,7 +336,7 @@ class KnowledgeGraph:
                 neighbor = link.target if link.source == node else link.source
                 if neighbor not in visited:
                     visited.add(neighbor)
-                    queue.append(path + [neighbor])
+                    queue.append([*path, neighbor])
 
         return None  # No path found
 

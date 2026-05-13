@@ -149,7 +149,6 @@ class TestCostTrendDetection:
 
         for _ in range(10):
             detector.detect_trend(model=model)
-            time.sleep(0.01)
 
         # No trend should be detected
         alert = detector.detect_trend(model=model)

@@ -111,8 +111,9 @@ class TieredOrchestrator:
         *,
         max_cost_usd: float | None = None,
         task: Task | str | None = None,
-        max_tokens: int = 512,
+        max_tokens: int = 600,
         stream: bool = True,
+        pre_dispatch_classifier: object | None = None,
     ) -> None:
         if not tiers:
             raise ValueError("TieredOrchestrator requires at least one tier")
@@ -121,6 +122,9 @@ class TieredOrchestrator:
         self.task = task
         self.max_tokens = max_tokens
         self.stream = stream
+        # Optional callable: (prompt: str) -> RouteDecision
+        # Sets start_tier_index and per-tier gate override based on output_type.
+        self._pre_dispatch_classifier = pre_dispatch_classifier
 
     async def _invoke_tier(
         self,
@@ -168,9 +172,61 @@ class TieredOrchestrator:
         accumulated_cost = 0.0
         last_text = ""
         last_model = ""
-        last_ttft: float | None = None
+
+        # Pre-dispatch classification: determines start tier + per-tier gate override
+        _start_tier = 0
+        _gate_override: dict[int, QualityGate] = {}
+        if self._pre_dispatch_classifier is not None:
+            try:
+                decision = self._pre_dispatch_classifier(prompt)
+                if decision.node == "gpu":
+                    _start_tier = 1  # skip tier 0 (NPU) entirely
+                    # Also override tier 1's gate: classifier knows the expected output length,
+                    # so a 300-char function shouldn't escalate to CPU due to gate=2000.
+                    _gate_override[1] = QualityGate(min_chars=decision.quality_gate_chars)
+                else:
+                    # Override tier-0 gate based on expected output length
+                    _gate_override[0] = QualityGate(min_chars=decision.quality_gate_chars)
+                    # Also cap the iGPU fallback gate to prevent CPU over-escalation.
+                    # Default triune_orchestrator iGPU gate is 2000 chars, causing ~85%
+                    # CPU escalation for NPU-fallback tasks (empirically: median iGPU
+                    # response for short/factual tasks is ~400 chars, far below 2000).
+                    # Cap at 750: sufficient for a substantive answer, avoids CPU waste.
+                    _igpu_fallback_gate = min(max(decision.quality_gate_chars * 15, 200), 750)
+                    _gate_override[1] = QualityGate(min_chars=_igpu_fallback_gate)
+                # EXP-EVO-BUDGET: per-task cost ceiling (HierRouter, arXiv:2511.09873).
+                # Tightens effective_max_cost for cheap tasks so they never escalate
+                # to expensive tiers (e.g., paid cloud models) even if quality gate passes.
+                # For local-only deployments (all costs=$0), this gate never fires —
+                # it activates only when cloud tiers with cost_usd > 0 are present.
+                _TASK_BUDGET_USD: dict[str, float] = {
+                    "short_categorical": 0.0001,  # 1¢ / 10k calls — stay local
+                    "short_answer": 0.0005,  # 5¢ / 10k calls — prefer local
+                    "medium_generation": 0.005,  # 5¢ / 1k calls
+                    "long_generation": 0.01,  # 1¢ / call
+                    "code": 0.01,
+                    "math_reasoning": 0.01,
+                }
+                task_budget = _TASK_BUDGET_USD.get(decision.output_type)
+                if task_budget is not None:
+                    if effective_max_cost is None or task_budget < effective_max_cost:
+                        effective_max_cost = task_budget
+                logger.debug(
+                    "pre_dispatch: %s → tier%d gate=%d budget=$%.4f (%s, conf=%.2f)",
+                    decision.output_type,
+                    _start_tier,
+                    decision.quality_gate_chars,
+                    effective_max_cost or 0.0,
+                    decision.reason,
+                    decision.confidence,
+                )
+            except Exception as exc:
+                logger.warning("pre_dispatch_classifier failed, using defaults: %s", exc)
 
         for idx, (target, gate) in enumerate(self.tiers):
+            if idx < _start_tier:
+                continue
+            gate = _gate_override.get(idx, gate)
             model_name = target if isinstance(target, str) else type(target).__name__
 
             # O3: budget gate — short-circuit before invoking if cost already
@@ -304,7 +360,6 @@ class TieredOrchestrator:
 
             last_text = view.text
             last_model = view.model
-            last_ttft = view.ttft_ms
 
             if passed:
                 # O1: higher tiers don't run once a lower tier passes.

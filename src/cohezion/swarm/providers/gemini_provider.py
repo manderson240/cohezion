@@ -1,3 +1,4 @@
+# ruff: noqa: B904, E402  # raise pattern in HTTP/API handlers — explicit user-facing errors / deferred imports for circular-dep workarounds
 """Gemini model provider implementation (Google Cloud, multi-tier cost optimization).
 
 Supports Gemini Flash-Lite, Flash, and Pro models via the Google Generative AI API.
@@ -175,10 +176,10 @@ class GeminiProvider(ModelProvider):
                 )
 
         except TimeoutError:
-            raise RuntimeError(f"Gemini request timed out after {self.timeout}s")
+            raise RuntimeError(f"Gemini request timed out after {self.timeout}s") from None
 
         except aiohttp.ClientError as e:
-            raise RuntimeError(f"Gemini connection error: {e}")
+            raise RuntimeError(f"Gemini connection error: {e}") from e
 
     async def list_models(self) -> list[str]:
         """List available Gemini models.

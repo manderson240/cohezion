@@ -35,16 +35,19 @@ if "transformers" not in sys.modules:
     _mock_tr = MagicMock()
     _mock_tr.AutoModelForCausalLM = MagicMock
     _mock_tr.AutoTokenizer = MagicMock
-    # Import and expose PretrainedConfig/PreTrainedModel as real classes
+    # Import and expose PretrainedConfig/PreTrainedModel/PreTrainedTokenizer as real classes
+    # so that FlumeEncoder, FlumeTokenizer, etc. can inherit from them correctly.
     try:
         import transformers as _real_tr
 
         _mock_tr.PretrainedConfig = _real_tr.PretrainedConfig
         _mock_tr.PreTrainedModel = _real_tr.PreTrainedModel
+        _mock_tr.PreTrainedTokenizer = _real_tr.PreTrainedTokenizer
     except Exception:
         # If transformers isn't installed, use MagicMock as fallback
         _mock_tr.PretrainedConfig = MagicMock
         _mock_tr.PreTrainedModel = MagicMock
+        _mock_tr.PreTrainedTokenizer = MagicMock
     sys.modules["transformers"] = _mock_tr
 
 
@@ -146,20 +149,39 @@ def event_loop_fixture():
 
 @pytest.fixture(autouse=True)
 def reset_singletons():
-    """Auto-reset critical singletons before each test to prevent state pollution."""
+    """Auto-reset critical singletons before each test to prevent state pollution.
+
+    Singletons covered (file path -> module-level state reset):
+      - cohezion.concurrency.ollama_gate                  (reset_gate())
+      - cohezion.swarm.model_pool_manager                 (reset_pool_manager())
+      - cohezion.compound.executor.ExecutorFactory        (reset_singleton())
+      - cohezion.compound.batch_executor.BatchableExecutor (reset_singleton())
+      - cohezion.swarm.cost_aware_router.CostAwareRouter  (reset_singleton())
+      - cohezion.cost_optimization.cost_tracker.SessionCostTracker (reset_instance())
+      - cohezion.cost_optimization.budget_enforcer.BudgetEnforcer  (reset_instance())
+      - cohezion.swarm.dynamic_concurrency_gate._gate_instance     (Wave 3G)
+      - cohezion.api._vae_trainer (FLUME VAE)
+      - cohezion.api._rl_policy   (RL policy)
+      - All loggers' handlers + filters (RedactionFilter contamination guard)
+
+    Note: cohezion.platform.resource_manager has NO module-level singleton —
+    state is held in per-instance ResourceClient/ResourceDaemon objects.
+    """
     import logging
 
     from cohezion.compound.batch_executor import BatchableExecutor
-    from cohezion.compound.executor import ExecutorFactory
+    from cohezion.compound.executor_factory import ExecutorFactory
     from cohezion.concurrency.ollama_gate import reset_gate
     from cohezion.cost_optimization.budget_enforcer import BudgetEnforcer
     from cohezion.cost_optimization.cost_tracker import SessionCostTracker
+    from cohezion.security.rate_limiter import reset_rate_limiter
     from cohezion.swarm.cost_aware_router import CostAwareRouter
     from cohezion.swarm.model_pool_manager import reset_pool_manager
 
     # Reset before test
     reset_gate()  # Reset OllamaGate singleton
     reset_pool_manager()  # Reset ModelPoolManager singleton
+    reset_rate_limiter()  # Reset RateLimiter token buckets (isolation)
     ExecutorFactory.reset_singleton()
     if hasattr(BatchableExecutor, "reset_singleton"):
         BatchableExecutor.reset_singleton()
@@ -170,11 +192,29 @@ def reset_singletons():
     if hasattr(BudgetEnforcer, "reset_instance"):
         BudgetEnforcer.reset_instance()
 
+    # Reset the precipitation bus singleton.
+    try:
+        from cohezion.precipitation.bus import set_bus
+
+        set_bus(None)
+    except ImportError:
+        pass
+
+    # Reset DynamicConcurrencyGate module-level singleton (Wave 3G).
+    # Reset DynamicConcurrencyGate module-level singleton (Wave 3G).
+    # Test pollution surfaced via audit: _gate_instance retained metrics across tests.
+    try:
+        import cohezion.swarm.dynamic_concurrency_gate as _dcg_module
+
+        _dcg_module._gate_instance = None
+    except (ImportError, AttributeError):
+        pass
+
     # Reset FLUME VAE singleton to prevent state pollution across tests
     api_module: ModuleType | None = None
     try:
         import cohezion.api as api_module
-    except Exception:
+    except Exception:  # noqa: S110 — intentional: optional API module may not be present
         pass
     if api_module is not None and hasattr(api_module, "_vae_trainer"):
         api_module._vae_trainer = None
@@ -201,6 +241,7 @@ def reset_singletons():
     # Reset after test
     reset_gate()  # Reset OllamaGate singleton
     reset_pool_manager()  # Reset ModelPoolManager singleton
+    reset_rate_limiter()  # Reset RateLimiter token buckets (isolation)
     ExecutorFactory.reset_singleton()
     if hasattr(BatchableExecutor, "reset_singleton"):
         BatchableExecutor.reset_singleton()
@@ -210,6 +251,14 @@ def reset_singletons():
         SessionCostTracker.reset_instance()
     if hasattr(BudgetEnforcer, "reset_instance"):
         BudgetEnforcer.reset_instance()
+
+    # Reset DynamicConcurrencyGate module-level singleton (Wave 3G)
+    try:
+        import cohezion.swarm.dynamic_concurrency_gate as _dcg_module
+
+        _dcg_module._gate_instance = None
+    except (ImportError, AttributeError):
+        pass
 
     # Reset FLUME VAE singleton after test
     if hasattr(api_module, "_vae_trainer"):

@@ -55,15 +55,16 @@ def monitor_recovery():
                     start_time = time.time()  # Start recovery timer now
 
             # 2. Wait for Recovery
-            elif spiked:
-                if entropy < 0.3:
-                    logger.info(f"✅ SYSTEM RECOVERED in {time.time() - start_time:.2f}s!")
-                    recovered = True
-                    break
+            elif spiked and entropy < 0.3:
+                logger.info(f"✅ SYSTEM RECOVERED in {time.time() - start_time:.2f}s!")
+                recovered = True
+                break
 
         except Exception as e:
             logger.warning(f"Connection glitch: {e}")
 
+        # justify: standalone chaos script (not a pytest test); polls a real
+        # running simulation via HTTP at 1s cadence to detect spike+recovery
         time.sleep(1)
 
     if not spiked:

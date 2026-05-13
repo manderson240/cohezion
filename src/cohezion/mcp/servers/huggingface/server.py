@@ -6,6 +6,7 @@ Provides: Search models, datasets, spaces, inference, and README access.
 from __future__ import annotations
 
 import logging
+import re
 from typing import Any
 
 import aiohttp
@@ -33,6 +34,16 @@ def get_hf_api_token() -> str:
 
 
 HF_API_BASE = "https://huggingface.co/api"
+
+# (Ω12 P2 Patch 19) — defense-in-depth model_id validation against SSRF/path traversal
+_HF_MODEL_RE = re.compile(r"^[a-zA-Z0-9._/-]+$")
+
+
+def _validate_model_id(mid: str) -> str:
+    if not _HF_MODEL_RE.match(mid) or ".." in mid or mid.startswith("/"):
+        raise ValueError(f"Invalid model_id: {mid!r}")
+    return mid
+
 
 # Initialize FastMCP server
 app = FastMCP("cohezion-huggingface")
@@ -100,7 +111,7 @@ class HuggingFaceService:
     async def get_model_info(self, model_id: str) -> dict[str, Any] | None:
         """Get detailed model information."""
         session = await self._get_session()
-        url = f"{HF_API_BASE}/models/{model_id}"
+        url = f"{HF_API_BASE}/models/{_validate_model_id(model_id)}"
 
         try:
             async with session.get(url) as resp:
@@ -190,7 +201,7 @@ class HuggingFaceService:
             return {"error": "HF_API_TOKEN required for inference"}
 
         session = await self._get_session()
-        url = f"https://api-inference.huggingface.co/models/{model_id}"
+        url = f"https://api-inference.huggingface.co/models/{_validate_model_id(model_id)}"
 
         try:
             async with session.post(url, json={"inputs": inputs}) as resp:
@@ -214,7 +225,7 @@ class HuggingFaceService:
     async def get_model_readme(self, model_id: str) -> str:
         """Get model README content."""
         session = await self._get_session()
-        url = f"https://huggingface.co/{model_id}/raw/main/README.md"
+        url = f"https://huggingface.co/{_validate_model_id(model_id)}/raw/main/README.md"
 
         try:
             async with session.get(url) as resp:

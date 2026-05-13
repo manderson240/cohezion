@@ -24,6 +24,7 @@ from cohezion.swarm.dynamic_agent_registry import (
     AgentModule,
     DynamicAgentRegistry,
 )
+from cohezion.swarm.specialist_agents import SpecialistAgent
 
 
 @dataclass
@@ -321,19 +322,16 @@ class AdaptiveRouter:
                 score += 0.3
 
         # Reasoning tasks
-        if features.get("has_reasoning"):
-            if "complex_reasoning" in agent.capabilities:
-                score += 0.3
+        if features.get("has_reasoning") and "complex_reasoning" in agent.capabilities:
+            score += 0.3
 
         # Novel tasks
-        if features.get("has_novel"):
-            if "novel_architecture" in agent.capabilities:
-                score += 0.3
+        if features.get("has_novel") and "novel_architecture" in agent.capabilities:
+            score += 0.3
 
         # Urgency - prefer faster agents
-        if features.get("urgency", 0) > 0.7:
-            if agent.performance_stats.get("tps", 0) > 80:
-                score += 0.1
+        if features.get("urgency", 0) > 0.7 and agent.performance_stats.get("tps", 0) > 80:
+            score += 0.1
 
         return min(score, 1.0)
 

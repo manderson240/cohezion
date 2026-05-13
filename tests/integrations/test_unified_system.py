@@ -9,8 +9,13 @@ Charter Compliance:
 
 from __future__ import annotations
 
+import os
+
 import pytest
 
+
+# Allow insecure SurrealDB for test environment (no credentials needed)
+os.environ.setdefault("COHEZION_ALLOW_INSECURE_SURREAL", "1")
 
 # Skip if dependencies not available
 pytest.importorskip("sentence_transformers")
@@ -201,7 +206,7 @@ class TestEndToEnd:
         await ouroboros.log_exhaust(exhaust)
 
         # 3. Query knowledge base
-        lessons = await ouroboros.query_lessons_learned(component="safety")
+        await ouroboros.query_lessons_learned(component="safety")
 
         # 4. Verify artifacts exist
         assert (temp_vault / "index.md").exists()

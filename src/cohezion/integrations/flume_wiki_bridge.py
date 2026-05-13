@@ -97,7 +97,7 @@ class FlumeWikiBridge:
 
         # Pass through VAE for latent representation
         with torch.no_grad():
-            z, mu, logvar = self.vae.encoder(embedding.unsqueeze(0))
+            z, _mu, _logvar = self.vae.encoder(embedding.unsqueeze(0))
             latent = z.squeeze(0)
 
         # Store embedding reference in wiki
@@ -348,7 +348,7 @@ class FlumeOuroborosBridge(FlumeWikiBridge):
         # Generate rule based on analysis
         if jumps > 0:
             return f"""
-Trajectory shows {jumps} discontinuities. 
+Trajectory shows {jumps} discontinuities.
 Recommendation: Add intermediate steps for task {exhaust.task_id}
 Coherence threshold: {exhaust.target_coherence}
 """

@@ -34,8 +34,8 @@ def _fail(claim: str, detail: str) -> None:
 
 async def verify_claim_b() -> bool:
     _header("Claim B — Nested orchestrator budget pass-through")
-    from cohezion.inference.orchestrator import QualityGate, TieredOrchestrator
     from cohezion.inference.fleet import RouteResult
+    from cohezion.inference.orchestrator import QualityGate, TieredOrchestrator
 
     # Signature check (structural)
     sig = inspect.signature(TieredOrchestrator.run)
@@ -103,8 +103,9 @@ async def verify_claim_c() -> bool:
 
 def verify_claim_d() -> bool:
     _header("Claim D — Claude CLI probe uses -p/--max-budget-usd, not --version")
-    from cohezion.inference.health import check_fleet
     import httpx
+
+    from cohezion.inference.health import check_fleet
 
     class FakeCompleted:
         returncode = 0

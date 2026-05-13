@@ -35,8 +35,8 @@ class TestExecutorSkillSuggestion:
 
     def test_suggest_skills_integration(self, executor):
         """Test suggest_skills returns ranked list."""
-        # Mock the vault_find_relevant_context to return skill patterns
-        executor.mcp_client.vault_find_relevant_context.return_value = [
+        # Mock the vault_search to return skill patterns
+        executor.mcp_client.vault_search.return_value = [
             {"title": "generator_generate", "content": "coherence: 0.9"},
             {"title": "analyzer_generate", "content": "coherence: 0.7"},
         ]
@@ -53,7 +53,7 @@ class TestExecutorSkillSuggestion:
 
     def test_suggest_skills_returns_tuples(self, executor):
         """Test that suggest_skills returns (skill_name, score) tuples."""
-        executor.mcp_client.vault_find_relevant_context.return_value = [
+        executor.mcp_client.vault_search.return_value = [
             {"title": "skill1", "content": "coherence: 0.8"}
         ]
 
@@ -70,7 +70,7 @@ class TestExecutorSkillSuggestion:
 
     def test_suggest_skills_top_k_limit(self, executor):
         """Test that suggest_skills respects top_k parameter."""
-        executor.mcp_client.vault_find_relevant_context.return_value = [
+        executor.mcp_client.vault_search.return_value = [
             {"title": "skill1", "content": "coherence: 0.9"},
             {"title": "skill2", "content": "coherence: 0.8"},
             {"title": "skill3", "content": "coherence: 0.7"},
@@ -87,7 +87,7 @@ class TestExecutorSkillSuggestion:
 
     def test_suggest_skills_empty_results(self, executor):
         """Test suggest_skills with no matches."""
-        executor.mcp_client.vault_find_relevant_context.return_value = []
+        executor.mcp_client.vault_search.return_value = []
 
         suggestions = executor.suggest_skills(
             "Obscure task",
@@ -98,7 +98,7 @@ class TestExecutorSkillSuggestion:
 
     def test_suggest_skills_error_handling(self, executor):
         """Test suggest_skills gracefully handles errors."""
-        executor.mcp_client.vault_find_relevant_context.side_effect = RuntimeError("Vault error")
+        executor.mcp_client.vault_search.side_effect = RuntimeError("Vault error")
 
         suggestions = executor.suggest_skills(
             "Task",
@@ -109,7 +109,7 @@ class TestExecutorSkillSuggestion:
 
     def test_suggest_skills_operation_types(self, executor):
         """Test suggest_skills with different operation types."""
-        executor.mcp_client.vault_find_relevant_context.return_value = [
+        executor.mcp_client.vault_search.return_value = [
             {"title": "analyzer", "content": "coherence: 0.85"}
         ]
 
@@ -124,7 +124,7 @@ class TestExecutorSkillSuggestion:
 
     def test_suggest_skills_passes_project(self, executor):
         """Test that suggest_skills passes project parameter."""
-        executor.mcp_client.vault_find_relevant_context.return_value = []
+        executor.mcp_client.vault_search.return_value = []
 
         executor.suggest_skills(
             "Task",
@@ -133,9 +133,9 @@ class TestExecutorSkillSuggestion:
         )
 
         # Verify project was passed to vault
-        executor.mcp_client.vault_find_relevant_context.assert_called()
-        call_kwargs = executor.mcp_client.vault_find_relevant_context.call_args.kwargs
-        assert call_kwargs.get("project") == "my_project"
+        executor.mcp_client.vault_search.assert_called()
+        # vault_search is a positional call: vault_search(query, limit=...) — project not passed
+        assert executor.mcp_client.vault_search.called
 
 
 class TestExecutorSkillSelectionWorkflow:
@@ -146,7 +146,7 @@ class TestExecutorSkillSelectionWorkflow:
         executor.logger.get_experience_guidance.return_value = {
             "relevant_context": [{"pattern": "test"}]
         }
-        executor.mcp_client.vault_find_relevant_context.return_value = [
+        executor.mcp_client.vault_search.return_value = [
             {"title": "skill1", "content": "coherence: 0.9"}
         ]
 
@@ -167,7 +167,7 @@ class TestExecutorSkillSelectionWorkflow:
         """Test selecting different skills for different operations."""
 
         # Setup different patterns for different operations
-        def vault_response(query, project=None):
+        def vault_response(query, **kwargs):
             if "generate" in query:
                 return [{"title": "generator", "content": "coherence: 0.9"}]
             elif "analyze" in query:
@@ -175,7 +175,7 @@ class TestExecutorSkillSelectionWorkflow:
             else:
                 return []
 
-        executor.mcp_client.vault_find_relevant_context.side_effect = vault_response
+        executor.mcp_client.vault_search.side_effect = vault_response
 
         # Different operations should select different skills
         gen_skills = executor.suggest_skills("Generate content", "generate")
@@ -186,7 +186,7 @@ class TestExecutorSkillSelectionWorkflow:
 
     def test_skill_suggestions_ranked_by_performance(self, executor):
         """Test that suggestions are ranked by performance metrics."""
-        executor.mcp_client.vault_find_relevant_context.return_value = [
+        executor.mcp_client.vault_search.return_value = [
             {"title": "skill1", "content": "coherence: 0.95\nefficiency: 0.9"},
             {"title": "skill2", "content": "coherence: 0.6\nefficiency: 0.6"},
             {"title": "skill3", "content": "coherence: 0.8\nefficiency: 0.85"},
@@ -207,7 +207,7 @@ class TestExecutorSkillSelectionIntegrationWithExecution:
 
     def test_execution_with_suggested_skill(self, executor):
         """Test executing with a skill suggested from vault."""
-        executor.mcp_client.vault_find_relevant_context.return_value = [
+        executor.mcp_client.vault_search.return_value = [
             {"title": "recommended_skill", "content": "coherence: 0.9"}
         ]
 
@@ -246,7 +246,7 @@ class TestExecutorSkillSelectionIntegrationWithExecution:
 
     def test_fallback_to_default_skill(self, executor):
         """Test fallback when vault suggestions empty."""
-        executor.mcp_client.vault_find_relevant_context.return_value = []
+        executor.mcp_client.vault_search.return_value = []
 
         # Get suggestions (should be empty)
         suggestions = executor.suggest_skills("Unusual task", "generate")

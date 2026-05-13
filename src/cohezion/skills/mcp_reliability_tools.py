@@ -77,7 +77,7 @@ def offload_task(
             payload_json,
         ]
 
-        res = subprocess.run(cmd, capture_output=True, text=True)  # noqa: S603 - cmd is a static curl invocation to localhost ollama API
+        res = subprocess.run(cmd, capture_output=True, text=True)
         if res.returncode != 0:
             return {"content": [{"type": "text", "text": f"Curl failed: {res.stderr}"}]}
 
@@ -96,7 +96,6 @@ def offload_task(
             }
     except (
         OSError,
-        json.JSONDecodeError,
         ValueError,
         KeyError,
         AttributeError,
@@ -140,7 +139,7 @@ def batch_offload(tasks: list[dict[str, Any]], model: str | None = None) -> dict
             "-d",
             payload_json,
         ]
-        res = subprocess.run(cmd, capture_output=True, text=True)  # noqa: S603 - cmd is a static curl invocation to localhost ollama API
+        res = subprocess.run(cmd, capture_output=True, text=True)
         res_json = json.loads(res.stdout)
         res_text = res_json.get("response", "")
 
@@ -148,7 +147,6 @@ def batch_offload(tasks: list[dict[str, Any]], model: str | None = None) -> dict
         return {"content": [{"type": "text", "text": json.dumps(results, indent=2)}]}
     except (
         OSError,
-        json.JSONDecodeError,
         ValueError,
         KeyError,
         AttributeError,

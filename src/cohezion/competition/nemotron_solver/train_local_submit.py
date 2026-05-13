@@ -134,7 +134,7 @@ def train():
     model, tokenizer = load_base_model()
 
     print("\nSetting up LoRA...")
-    model, lora_config = setup_lora(model)
+    model, _lora_config = setup_lora(model)
 
     # 4. Training args
     args = TrainingArguments(
@@ -174,7 +174,7 @@ def train():
 
     # Find all adapter files
     adapter_files = []
-    for root, dirs, files in os.walk(OUTPUT_DIR):
+    for root, _dirs, files in os.walk(OUTPUT_DIR):
         for f in files:
             if "adapter" in f.lower():
                 adapter_files.append(os.path.join(root, f))

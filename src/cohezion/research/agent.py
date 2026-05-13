@@ -10,6 +10,7 @@ import json
 import logging
 import re
 import subprocess
+import sys
 import time
 from dataclasses import dataclass, field
 from datetime import datetime
@@ -183,9 +184,9 @@ class ResearchAgent:
             if not validation.is_valid:
                 raise RuntimeError(f"Guardrail blocked execution: {validation.issues}")
 
-        result = subprocess.run(
+        result = subprocess.run(  # noqa: S603 - train_script validated by ResearchSecurityGuardrails above
             [
-                "python",
+                _python_exec(),
                 str(train_script),
                 "--time_budget",
                 str(time_budget),

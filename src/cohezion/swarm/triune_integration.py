@@ -362,7 +362,7 @@ class TriuneAGI:
             return
 
         current = self.coherence_history[-1]
-        diff = self.target_coherence - current
+        self.target_coherence - current
 
         # Apply gentle restoring force
         # In production: proper control theory

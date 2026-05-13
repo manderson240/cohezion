@@ -12,7 +12,7 @@ import torch.nn.functional as F
 
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
-from arc_solver import apply_program, grids_equal, search_program
+from arc_solver import apply_program, search_program
 
 
 class TinyConvARCV3(nn.Module):
@@ -111,7 +111,7 @@ def predict_fallback(task: dict) -> list | None:
             ("flip_h", lambda g: g[::-1]),
             ("transpose", lambda g: list(map(list, zip(*g)))),
         ]
-        for name, op in ops:
+        for _name, op in ops:
             all_match = True
             for ex in task["train"]:
                 pred = op(ex["input"])

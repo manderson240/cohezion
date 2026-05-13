@@ -18,6 +18,13 @@ import numpy as np
 import pytest
 
 
+# ROCm/AMD GPU subprocess tests crash with SIGSEGV when amdgpu.ids is missing
+_AMDGPU_IDS_MISSING = not Path("/usr/share/misc/amdgpu.ids").exists()
+_skip_amd_subprocess = pytest.mark.skipif(
+    _AMDGPU_IDS_MISSING, reason="amdgpu.ids missing — GPU subprocess tests segfault on this hardware"
+)
+
+
 # ---------------------------------------------------------------------------
 # Helpers
 # ---------------------------------------------------------------------------
@@ -159,6 +166,7 @@ def _make_npz(tmp_path: Path, n: int = 20, dim: int = 256) -> Path:
 
 
 @pytest.mark.timeout(60)
+@_skip_amd_subprocess
 class TestMockedPipelineIntegration:
     """End-to-end pipeline tests using subprocess with pre-made hash embeddings.
 

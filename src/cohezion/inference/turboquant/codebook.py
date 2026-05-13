@@ -100,7 +100,7 @@ def compute_lloyd_max_codebook(d: int, bits: int, max_iter: int = 200, tol: floa
 
     # Lloyd-Max iterations
     prev_cost = float("inf")
-    for iteration in range(max_iter):
+    for _iteration in range(max_iter):
         # Compute boundaries (midpoints between consecutive centroids)
         boundaries = np.zeros(n_clusters + 1)
         boundaries[0] = -1.0

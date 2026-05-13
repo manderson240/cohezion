@@ -57,6 +57,6 @@ def load_json(path: str) -> dict[str, Any]:
             lines = content.splitlines()
             clean_lines = [ln for ln in lines if not ln.strip().startswith(("#", "//"))]
             return json.loads("\n".join(clean_lines))
-    except (OSError, json.JSONDecodeError, ValueError, UnicodeDecodeError) as e:
+    except (OSError, ValueError) as e:
         sys.stderr.write(f"Error loading {path}: {e}\n")
         return {}

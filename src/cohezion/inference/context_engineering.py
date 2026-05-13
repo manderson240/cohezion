@@ -95,6 +95,135 @@ class ModelCardRegistry:
             },
         )
 
+        # Gemma-4-31B (CPU tier, larger context than E4B)
+        self._cards["Gemma-4-31B-it-GGUF"] = ModelCard(
+            model_id="Gemma-4-31B-it-GGUF",
+            family="gemma",
+            variant="31b",
+            capabilities=ModelCapability(
+                reasoning=0.80,
+                coding=0.75,
+                creativity=0.70,
+                instruction_following=0.85,
+                long_context=0.85,
+                multilingual=0.80,
+            ),
+            optimal_temperature=0.7,
+            optimal_top_p=0.9,
+            max_tokens_default=800,
+            context_window=32768,
+            supports_thinking=True,
+            system_templates={"default": "You are a knowledgeable, accurate assistant."},
+        )
+
+        # Qwen3.5-35B-A3B MoE (large reasoning model, active 3B params)
+        self._cards["Qwen3.5-35B-A3B-GGUF"] = ModelCard(
+            model_id="Qwen3.5-35B-A3B-GGUF",
+            family="qwen",
+            variant="35b-moe",
+            capabilities=ModelCapability(
+                reasoning=0.90,
+                coding=0.85,
+                creativity=0.75,
+                instruction_following=0.90,
+                long_context=0.90,
+                multilingual=0.95,
+            ),
+            optimal_temperature=0.6,
+            optimal_top_p=0.95,
+            max_tokens_default=600,
+            context_window=32768,
+            supports_reasoning=True,
+            system_templates={
+                "reasoning": "You are an expert with strong reasoning capabilities. Think thoroughly.",
+                "default": "You are a highly capable assistant.",
+            },
+        )
+
+        # FLM models (NPU-optimized, XDNA2 SRAM, direct inference)
+        self._cards["gemma3-4b-FLM"] = ModelCard(
+            model_id="gemma3-4b-FLM",
+            family="gemma",
+            variant="3-4b-flm",
+            capabilities=ModelCapability(
+                reasoning=0.60,
+                coding=0.55,
+                creativity=0.55,
+                instruction_following=0.70,
+                long_context=0.40,
+                multilingual=0.65,
+            ),
+            optimal_temperature=0.5,
+            optimal_top_p=0.9,
+            max_tokens_default=150,
+            context_window=8192,
+            system_templates={"default": "You are a fast, concise assistant."},
+        )
+
+        self._cards["gemma4-it-e2b-FLM"] = ModelCard(
+            model_id="gemma4-it-e2b-FLM",
+            family="gemma",
+            variant="4-e2b-flm",
+            capabilities=ModelCapability(
+                reasoning=0.55,
+                coding=0.50,
+                creativity=0.50,
+                instruction_following=0.65,
+                long_context=0.35,
+                multilingual=0.60,
+            ),
+            optimal_temperature=0.5,
+            optimal_top_p=0.9,
+            max_tokens_default=100,
+            context_window=4096,
+            system_templates={"default": "You are a fast, concise assistant."},
+        )
+
+        self._cards["qwen3.5-4b-FLM"] = ModelCard(
+            model_id="qwen3.5-4b-FLM",
+            family="qwen",
+            variant="3.5-4b-flm",
+            capabilities=ModelCapability(
+                reasoning=0.65,
+                coding=0.60,
+                creativity=0.60,
+                instruction_following=0.72,
+                long_context=0.45,
+                multilingual=0.75,
+            ),
+            optimal_temperature=0.5,
+            optimal_top_p=0.9,
+            max_tokens_default=200,
+            context_window=4096,
+            system_templates={"default": "You are a fast, accurate assistant."},
+        )
+
+        # DeepSeek-Qwen3-8B GGUF (currently running on NPU port 13306, May 2026)
+        # Higher reasoning capability than base Qwen3-8B due to DeepSeek training
+        self._cards["DeepSeek-Qwen3-8B-GGUF"] = ModelCard(
+            model_id="DeepSeek-Qwen3-8B-GGUF",
+            family="deepseek",
+            variant="8b",
+            capabilities=ModelCapability(
+                reasoning=0.90,
+                coding=0.85,
+                creativity=0.65,
+                instruction_following=0.85,
+                long_context=0.75,
+                multilingual=0.90,
+            ),
+            optimal_temperature=0.6,
+            optimal_top_p=0.95,
+            max_tokens_default=400,
+            context_window=32768,
+            supports_reasoning=True,
+            system_templates={
+                "reasoning": "You are an expert reasoning assistant. Think step by step and verify your answers.",
+                "coding": "You are a skilled coding assistant. Write efficient, well-structured code.",
+                "default": "You are a helpful, accurate assistant with strong reasoning capabilities.",
+            },
+        )
+
         # Gemma-4 family
         self._cards["Gemma-4-26B-A4B-it-GGUF"] = ModelCard(
             model_id="Gemma-4-26B-A4B-it-GGUF",
@@ -167,6 +296,76 @@ class ModelCardRegistry:
             },
         )
 
+        # Gemma-4 E4B (iGPU tier, thinking mode, 2260 thinking token overhead)
+        self._cards["Gemma-4-E4B-it-GGUF"] = ModelCard(
+            model_id="Gemma-4-E4B-it-GGUF",
+            family="gemma",
+            variant="4b",
+            capabilities=ModelCapability(
+                reasoning=0.75,
+                coding=0.70,
+                creativity=0.65,
+                instruction_following=0.80,
+                long_context=0.70,
+                multilingual=0.75,
+            ),
+            optimal_temperature=0.7,
+            optimal_top_p=0.9,
+            max_tokens_default=600,
+            context_window=32768,
+            supports_thinking=True,
+            system_templates={
+                "coding": "You are a coding assistant. Write correct, efficient code.",
+                "reasoning": "You are a reasoning assistant. Think step by step.",
+                "default": "You are a helpful, accurate assistant.",
+            },
+        )
+
+        # Gemma-4 E2B (NPU fallback, thinking mode, fast)
+        self._cards["Gemma-4-E2B-it-GGUF"] = ModelCard(
+            model_id="Gemma-4-E2B-it-GGUF",
+            family="gemma",
+            variant="2b",
+            capabilities=ModelCapability(
+                reasoning=0.60,
+                coding=0.55,
+                creativity=0.55,
+                instruction_following=0.70,
+                long_context=0.50,
+                multilingual=0.60,
+            ),
+            optimal_temperature=0.7,
+            optimal_top_p=0.9,
+            max_tokens_default=200,
+            context_window=32768,
+            supports_thinking=True,
+            system_templates={
+                "default": "You are a fast, helpful assistant.",
+            },
+        )
+
+        # llama3.2-1b-FLM (NPU tier, XDNA2 SRAM, 42 TPS, no thinking mode)
+        self._cards["llama3.2-1b-FLM"] = ModelCard(
+            model_id="llama3.2-1b-FLM",
+            family="llama",
+            variant="1b",
+            capabilities=ModelCapability(
+                reasoning=0.40,
+                coding=0.35,
+                creativity=0.45,
+                instruction_following=0.70,
+                long_context=0.30,
+                multilingual=0.50,
+            ),
+            optimal_temperature=0.5,
+            optimal_top_p=0.9,
+            max_tokens_default=50,
+            context_window=4096,
+            system_templates={
+                "default": "You are a fast, concise assistant. Give short, direct answers.",
+            },
+        )
+
     def get_card(self, model_id: str) -> ModelCard | None:
         """Get model card by ID (with fuzzy matching)."""
         # Exact match
@@ -188,6 +387,65 @@ class ModelCardRegistry:
     def register_card(self, card: ModelCard):
         """Register a new model card."""
         self._cards[card.model_id] = card
+
+    def update_from_live_api(self, port: int = 13305) -> int:
+        """Sync context_window from the live Lemonade /v1/models API.
+
+        For models already in the registry: updates context_window from live data.
+        For unknown downloaded models: creates a minimal auto-discovered card.
+        Returns the number of cards updated or added.
+
+        Uses model_card_harness as the live API bridge. Fails gracefully if
+        Lemonade is unavailable.
+        """
+        try:
+            from cohezion.inference.model_card_harness import ModelCardHarness
+        except ImportError:
+            logger.debug("model_card_harness not available — skipping live update")
+            return 0
+
+        harness = ModelCardHarness.from_live_api(port=port)
+        updated = 0
+
+        for model_id, model_data in harness._by_id.items():
+            if not model_data.get("downloaded"):
+                continue
+
+            ctx_size = harness.get_ctx_size(model_id)
+            existing = self._cards.get(model_id)
+
+            if existing and ctx_size:
+                # Update context_window from live API (more accurate than static)
+                from dataclasses import replace
+
+                self._cards[model_id] = replace(existing, context_window=ctx_size)
+                updated += 1
+            elif not existing:
+                # Auto-discover: create minimal card for unknown downloaded models
+                labels = harness.get_labels(model_id)
+                family = "unknown"
+                for prefix, fam in [
+                    ("Gemma", "gemma"),
+                    ("Qwen", "qwen"),
+                    ("llama", "llama"),
+                    ("DeepSeek", "deepseek"),
+                    ("Granite", "granite"),
+                ]:
+                    if model_id.startswith(prefix):
+                        family = fam
+                        break
+                self._cards[model_id] = ModelCard(
+                    model_id=model_id,
+                    family=family,
+                    variant="auto",
+                    context_window=ctx_size or 4096,
+                    supports_reasoning="reasoning" in labels,
+                    system_templates={"default": "You are a helpful assistant."},
+                )
+                updated += 1
+
+        logger.debug("update_from_live_api: %d cards updated/added from port %d", updated, port)
+        return updated
 
 
 class ContextEngineer:
@@ -305,7 +563,7 @@ class QualityMonitor:
 
         # Basic metrics
         words = len(text.split())
-        sentences = text.count(".") + text.count("!") + text.count("?")
+        text.count(".") + text.count("!") + text.count("?")
 
         # Substance score
         scores["substance"] = min(words / 20, 1.0) if words > 5 else 0.0

@@ -21,6 +21,7 @@ from collections import defaultdict
 from time import perf_counter
 from unittest.mock import MagicMock
 
+
 N_ITERATIONS = 100
 
 # ---------------------------------------------------------------------------

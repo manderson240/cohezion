@@ -1,3 +1,4 @@
+# ruff: noqa: S108  # temp file paths in /tmp are intentional for ephemeral data
 """SandboxExecutor - Container-based isolated execution with resource management."""
 
 import asyncio
@@ -329,7 +330,7 @@ class SandboxExecutor:
             )
 
             logger.info(f"Sandbox container started: {container_id}")
-            return container_id
+            return str(container_id)
         except Exception as e:
             logger.error(f"Failed to start container: {e}")
             raise RuntimeError(f"Container creation failed: {e}") from e
@@ -409,7 +410,7 @@ class SandboxExecutor:
             SandboxResult with execution outcome
         """
         start_time = time.time()
-        _audit_log = []
+        _audit_log: list[dict[str, Any]] = []
         container_id = None
 
         try:

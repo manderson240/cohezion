@@ -1,3 +1,4 @@
+# ruff: noqa: S311  # random used for simulation/jitter, not cryptography
 """FastAPI backend for COHEZION.
 
 Serves the Three.js + WASM frontend with:

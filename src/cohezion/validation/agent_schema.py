@@ -1,3 +1,4 @@
+# ruff: noqa: N815  # mixed-case attribute matches schema field name
 """Pydantic validation schema for .claude/agents/*.md agent definition files.
 
 Provides the single source of truth for validating agent file frontmatter,
@@ -6,11 +7,15 @@ ensuring all agent definitions conform to the expected structure.
 
 from __future__ import annotations
 
+import shutil
 import subprocess
 from pathlib import Path
 
 import yaml
 from pydantic import BaseModel, ConfigDict, Field, ValidationError
+
+
+_GIT = shutil.which("git") or "/usr/bin/git"
 
 
 class AgentFileValidationError(Exception):
@@ -164,8 +169,8 @@ def validate_all_agent_files(
         If any agent file fails validation (all errors combined).
     """
     if directory is None:
-        result = subprocess.run(
-            ["git", "rev-parse", "--show-toplevel"],
+        result = subprocess.run(  # noqa: S603 - static git probe
+            [_GIT, "rev-parse", "--show-toplevel"],
             capture_output=True,
             text=True,
             timeout=10,

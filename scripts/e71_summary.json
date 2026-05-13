@@ -1,0 +1,170 @@
+{
+  "sweep": [
+    {
+      "epsilon": 0.05,
+      "stopped_at_cycle": 3,
+      "stop_reason": "|\u0394cal|=0.031000 <= epsilon=0.05",
+      "max_cycles": 8,
+      "cycles_saved": 5,
+      "pct_savings": 62.5,
+      "final_consensus": 0.8345,
+      "cycle_means": [
+        0.7875,
+        0.819,
+        0.8345
+      ],
+      "cycle_deltas_cal": [
+        0.125,
+        0.063,
+        0.031
+      ],
+      "n_phase": 4,
+      "used_llm": false,
+      "wall_time_s": 0.877
+    },
+    {
+      "epsilon": 0.01,
+      "stopped_at_cycle": 5,
+      "stop_reason": "|\u0394cal|=0.008000 <= epsilon=0.01",
+      "max_cycles": 8,
+      "cycles_saved": 3,
+      "pct_savings": 37.5,
+      "final_consensus": 0.846,
+      "cycle_means": [
+        0.7875,
+        0.819,
+        0.8345,
+        0.842,
+        0.846
+      ],
+      "cycle_deltas_cal": [
+        0.125,
+        0.063,
+        0.031,
+        0.015,
+        0.008
+      ],
+      "n_phase": 4,
+      "used_llm": false,
+      "wall_time_s": 0.006
+    },
+    {
+      "epsilon": 0.005,
+      "stopped_at_cycle": 6,
+      "stop_reason": "|\u0394cal|=0.004000 <= epsilon=0.005",
+      "max_cycles": 8,
+      "cycles_saved": 2,
+      "pct_savings": 25.0,
+      "final_consensus": 0.848,
+      "cycle_means": [
+        0.7875,
+        0.819,
+        0.8345,
+        0.842,
+        0.846,
+        0.848
+      ],
+      "cycle_deltas_cal": [
+        0.125,
+        0.063,
+        0.031,
+        0.015,
+        0.008,
+        0.004
+      ],
+      "n_phase": 4,
+      "used_llm": false,
+      "wall_time_s": 0.008
+    },
+    {
+      "epsilon": 0.002,
+      "stopped_at_cycle": 8,
+      "stop_reason": "|\u0394cal|=0.001000 <= epsilon=0.002",
+      "max_cycles": 8,
+      "cycles_saved": 0,
+      "pct_savings": 0.0,
+      "final_consensus": 0.8495,
+      "cycle_means": [
+        0.7875,
+        0.819,
+        0.8345,
+        0.842,
+        0.846,
+        0.848,
+        0.849,
+        0.8495
+      ],
+      "cycle_deltas_cal": [
+        0.125,
+        0.063,
+        0.031,
+        0.015,
+        0.008,
+        0.004,
+        0.002,
+        0.001
+      ],
+      "n_phase": 4,
+      "used_llm": false,
+      "wall_time_s": 0.009
+    },
+    {
+      "epsilon": 0.001,
+      "stopped_at_cycle": 8,
+      "stop_reason": "max_cycles",
+      "max_cycles": 8,
+      "cycles_saved": 0,
+      "pct_savings": 0.0,
+      "final_consensus": 0.8495,
+      "cycle_means": [
+        0.7875,
+        0.819,
+        0.8345,
+        0.842,
+        0.846,
+        0.848,
+        0.849,
+        0.8495
+      ],
+      "cycle_deltas_cal": [
+        0.125,
+        0.063,
+        0.031,
+        0.015,
+        0.008,
+        0.004,
+        0.002,
+        0.001
+      ],
+      "n_phase": 4,
+      "used_llm": false,
+      "wall_time_s": 0.009
+    }
+  ],
+  "optimal": {
+    "epsilon": 0.01,
+    "stopped_at_cycle": 5,
+    "stop_reason": "|\u0394cal|=0.008000 <= epsilon=0.01",
+    "max_cycles": 8,
+    "cycles_saved": 3,
+    "pct_savings": 37.5,
+    "final_consensus": 0.846,
+    "cycle_means": [
+      0.7875,
+      0.819,
+      0.8345,
+      0.842,
+      0.846
+    ],
+    "cycle_deltas_cal": [
+      0.125,
+      0.063,
+      0.031,
+      0.015,
+      0.008
+    ],
+    "n_phase": 4,
+    "used_llm": false,
+    "wall_time_s": 0.006
+  }
+}

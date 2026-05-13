@@ -22,6 +22,8 @@ SCRIPT_PATH = Path(__file__).resolve()
 PROJECT_ROOT = SCRIPT_PATH.parent.parent.parent.parent.parent
 sys.path.insert(0, str(PROJECT_ROOT / "src"))
 
+import contextlib
+
 from cohezion.flume.embedding_provider import AsyncOllamaEmbeddingProvider
 
 
@@ -54,10 +56,8 @@ async def run_kg_guard():
     processed_ids = set()
     if PROCESSED_FILE.exists():
         async with aiofiles.open(PROCESSED_FILE) as f:
-            try:
+            with contextlib.suppress(ValueError):
                 processed_ids = set(json.loads(await f.read()))
-            except (json.JSONDecodeError, ValueError):
-                pass
 
     new_learnings = []
     provider = AsyncOllamaEmbeddingProvider()

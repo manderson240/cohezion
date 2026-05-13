@@ -134,7 +134,7 @@ class CosmoNarrator:
         """Check if PocketTTS is installed and loadable."""
         if self._available is None:
             try:
-                import pocket_tts  # noqa: F401
+                import pocket_tts
 
                 self._available = True
             except ImportError:

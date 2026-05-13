@@ -23,7 +23,7 @@ def main():
     history_parser.add_argument("--limit", type=int, default=20)
 
     # Get Pattern Summary
-    stats_parser = subparsers.add_parser("stats")
+    subparsers.add_parser("stats")
 
     # Run Retrospection
     retro_parser = subparsers.add_parser("retro")

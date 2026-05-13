@@ -1,3 +1,4 @@
+# ruff: noqa: B904  # raise pattern in HTTP/API handlers — explicit user-facing errors
 """FLUME VAE API routes — training, encoding, decoding, interpolation, latent space.
 
 Extracted from api/__init__.py (Session 87) to keep files under 500 lines.
@@ -304,7 +305,7 @@ async def flume_latent_space(request: FlumeLatentSpaceRequest):
             pca = PCA(n_components=n_components)
             samples_3d = await loop.run_in_executor(None, pca.fit_transform, z_samples_np)
     except TimeoutError:
-        raise HTTPException(status_code=504, detail="PCA timed out. Reduce n_samples")
+        raise HTTPException(status_code=504, detail="PCA timed out. Reduce n_samples") from None
 
     if np.isnan(samples_3d).any():
         raise HTTPException(status_code=500, detail="PCA produced NaN. VAE may not be trained")

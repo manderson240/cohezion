@@ -1,3 +1,4 @@
+# ruff: noqa: RUF006, E501  # long lines: SQL/URLs/docstrings — wrapping reduces readability
 """Budget enforcement with soft-stop policy and emergency circuit breaker.
 
 Features:
@@ -328,9 +329,9 @@ class BudgetEnforcer:
                 self.vault_logger.log_alert(alert, severity="warning"),
                 timeout=2.0,
             )
-        except (TimeoutError, Exception):
+        except Exception:
             # Vault failure: log locally
-            logger.warning(f"{alert} (vault log failed)")
+            logger.warning("%s (vault log failed)", alert)
 
     def get_budget_state(self, current_cost_usd: float) -> BudgetState:
         """Get current budget state.

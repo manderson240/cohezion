@@ -1,3 +1,4 @@
+# ruff: noqa: S104  # binds 0.0.0.0 in dev/internal services
 """BMAD MCP Server - 108 BMAD commands via MCP protocol.
 
 Usage:
@@ -19,8 +20,6 @@ import json
 import os
 
 # Import tool modules to register @app.tool() decorators
-import cohezion.mcp.bmad_tools
-import cohezion.mcp.bmad_tools_ext  # noqa: F401
 from cohezion.mcp.bmad_app import app, get_bmad_data_path, get_engine, get_redis_url, logger
 
 

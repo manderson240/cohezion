@@ -10,6 +10,7 @@ import logging
 from unittest.mock import MagicMock
 
 import numpy as np
+import pytest
 
 from cohezion.agents.specialists.ecoresilience_agent import EcoResilienceAgent
 from cohezion.compound.executor import CompoundExecutor
@@ -76,6 +77,7 @@ class SimulatedGemma4Provider(Gemma4Provider):
         )
 
 
+@pytest.mark.asyncio
 async def test_resilience_convergence():
     logger.info("=== Starting EcoResilience Convergence Test ===")
 
@@ -97,8 +99,13 @@ async def test_resilience_convergence():
     ]
 
     translator = ManifoldTranslator(encoder=encoder)
+    mock_spectral_encoder = MagicMock()
+    mock_spectral_encoder.encode_spectral_state.return_value = np.zeros(64)
     agent = EcoResilienceAgent(
-        provider=provider, translator=translator, model_name="gemma4:26b-moe"
+        provider=provider,
+        translator=translator,
+        model_name="gemma4:26b-moe",
+        spectral_encoder=mock_spectral_encoder,
     )
     guard = HIHOStabilityGuard(threshold=0.5)
     executor = MagicMock(spec=CompoundExecutor)

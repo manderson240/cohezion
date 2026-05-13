@@ -205,22 +205,18 @@ class TestMCPClient(unittest.TestCase):
             {
                 "jsonrpc": "2.0",
                 "id": 1,
-                "result": {
-                    "content": [{"type": "text", "text": "decisions/2025-01-15-test-decision.md"}]
-                },
+                "result": {"content": [{"type": "text", "text": "decisions/2025-01-15-test-decision.md"}]},
             }
         )
         mock_client.post = AsyncMock(return_value=tool_response)
 
-        result = asyncio.run(
-            client.vault_log_decision(
-                project="test",
-                title="Test Decision",
-                context="Test context",
-                decision="Test decision",
-                rationale="Test rationale",
-            )
-        )
+        result = asyncio.run(client.vault_log_decision(
+            project="test",
+            title="Test Decision",
+            context="Test context",
+            decision="Test decision",
+            rationale="Test rationale",
+        ))
         self.assertIn("decisions/", result)
 
         # Test log_experiment
@@ -228,21 +224,15 @@ class TestMCPClient(unittest.TestCase):
             {
                 "jsonrpc": "2.0",
                 "id": 1,
-                "result": {
-                    "content": [
-                        {"type": "text", "text": "experiments/2025-01-15-test-experiment.md"}
-                    ]
-                },
+                "result": {"content": [{"type": "text", "text": "experiments/2025-01-15-test-experiment.md"}]},
             }
         )
-        result = asyncio.run(
-            client.vault_log_experiment(
-                project="test",
-                hypothesis="Test hypothesis",
-                method="Test method",
-                result="Test result",
-            )
-        )
+        result = asyncio.run(client.vault_log_experiment(
+            project="test",
+            hypothesis="Test hypothesis",
+            method="Test method",
+            result="Test result",
+        ))
         self.assertIn("experiments/", result)
 
         # Test extract_pattern
@@ -253,13 +243,11 @@ class TestMCPClient(unittest.TestCase):
                 "result": {"content": [{"type": "text", "text": "patterns/test-pattern.md"}]},
             }
         )
-        result = asyncio.run(
-            client.vault_extract_pattern(
-                source_path="test.md",
-                pattern_name="Test Pattern",
-                description="Test description",
-            )
-        )
+        result = asyncio.run(client.vault_extract_pattern(
+            source_path="test.md",
+            pattern_name="Test Pattern",
+            description="Test description",
+        ))
         self.assertIn("patterns/", result)
 
     @patch("cohezion.core.mcp_client.httpx.AsyncClient")
@@ -275,7 +263,6 @@ class TestMCPClient(unittest.TestCase):
         # Set up context search response
         tool_response = MagicMock()
         tool_response.status_code = 200
-        tool_response.raise_for_status = MagicMock()
         context_json = json.dumps(
             [{"path": "decisions/test.md", "category": "decision", "match_count": 3}]
         )
@@ -286,7 +273,7 @@ class TestMCPClient(unittest.TestCase):
                 "result": {"content": [{"type": "text", "text": context_json}]},
             }
         )
-        mock_client.post = AsyncMock(return_value=tool_response)
+        mock_client.post.return_value = tool_response
 
         result = asyncio.run(client.vault_find_relevant_context("test query"))
 

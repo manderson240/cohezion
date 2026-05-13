@@ -715,7 +715,7 @@ class TestDashboardRealtimeUpdates:
         aggregator.record_instance_metrics("agent1", m)
 
         snapshots = []
-        for i in range(5):
+        for _i in range(5):
             start = time.time()
             snapshot = aggregator.get_dashboard_snapshot()
             latency = (time.time() - start) * 1000

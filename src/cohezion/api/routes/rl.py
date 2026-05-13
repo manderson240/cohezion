@@ -180,7 +180,6 @@ async def rl_episode():
     import gymnasium as gym
     import numpy as np
 
-    import cohezion.rl.environment  # noqa: F401 — registers Gymnasium env
     from cohezion.api import _get_rl_policy
 
     policy = _get_rl_policy()

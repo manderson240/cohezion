@@ -1,3 +1,4 @@
+# ruff: noqa: S110, RUF002  # math/physics symbols intentional
 """MCP client for Cloud Vault operations.
 
 Connects to the Cloud Vault MCP Server using streamable-http protocol
@@ -6,6 +7,7 @@ to enable compound engineering workflows with persistent knowledge storage.
 
 from __future__ import annotations
 
+import asyncio
 import json
 import logging
 import os
@@ -167,6 +169,8 @@ class MCPClient:
                 return content[0].get("text")
             return result.get("result")
 
+        except MCPToolError:
+            raise
         except Exception as e:
             logger.error(f"MCP tool call failed: {e}")
             raise MCPToolError(f"Failed to call tool '{tool_name}': {e}") from e
@@ -246,6 +250,166 @@ class MCPClient:
         }
         args.update(kwargs)
         return await self._call_tool("vault_extract_pattern", args)
+
+    # ── Hierarchical Vault Search (synchronous wrappers) ──────────────
+    #
+    # Synchronous companions to the async vault operations above. Blocking
+    # callers like ``cohezion.cache.semantic_cache`` dispatch them via
+    # ``loop.run_in_executor`` and ``request_cache`` / ``batch_sizer`` use
+    # them as plain callables. Tests stub them with ``patch.object``.
+
+    def vault_write_sync(self, path: str, content: str) -> None:
+        """Synchronous fire-and-forget wrapper for vault_write.
+
+        Safe to call from synchronous code. Best-effort — errors never raise.
+        If an event loop is already running the coroutine is scheduled as a
+        background task; otherwise ``asyncio.run`` is used.
+        """
+        try:
+            loop = asyncio.get_running_loop()
+        except RuntimeError:
+            # No loop running — safe to use asyncio.run
+            try:
+                asyncio.run(self.vault_write(path, content))
+            except Exception as e:
+                logger.debug("vault_write_sync failed: %s", e)
+            return
+
+        # Inside a running loop — schedule fire-and-forget
+        loop.create_task(self.vault_write(path, content))
+
+    def vault_read_sync(self, path: str) -> str:
+        """Synchronous wrapper for vault_read.
+
+        Safe to call from synchronous code. Best-effort — errors return empty
+        string. If an event loop is already running the call is **dropped** and
+        an empty string is returned (blocking the loop would deadlock).
+        """
+        try:
+            asyncio.get_running_loop()
+        except RuntimeError:
+            # No loop running — safe to use asyncio.run
+            try:
+                return asyncio.run(self.vault_read(path))
+            except Exception as e:
+                logger.debug("vault_read_sync failed: %s", e)
+                return ""
+
+        # Inside a running loop — cannot block; return default
+        logger.debug("vault_read_sync called inside running loop — dropped")
+        return ""
+
+    def vault_delete_sync(self, path: str) -> None:
+        """Synchronous fire-and-forget wrapper for vault_delete.
+
+        Safe to call from synchronous code. Best-effort — errors never raise.
+        If an event loop is already running the coroutine is scheduled as a
+        background task; otherwise ``asyncio.run`` is used.
+        """
+        try:
+            loop = asyncio.get_running_loop()
+        except RuntimeError:
+            # No loop running — safe to use asyncio.run
+            try:
+                asyncio.run(self.vault_delete(path))
+            except Exception as e:
+                logger.debug("vault_delete_sync failed: %s", e)
+            return
+
+        # Inside a running loop — schedule fire-and-forget
+        loop.create_task(self.vault_delete(path))
+
+    def vault_search(self, query: str, limit: int = 10) -> list[dict[str, Any]]:
+        """Synchronously search the vault for content matching ``query``.
+
+        Thin sync wrapper around :meth:`vault_find_relevant_context` so the
+        method is patchable and dispatchable via ``run_in_executor``. Errors
+        are swallowed and returned as an empty list — search is best-effort
+        and must never crash the caller.
+        """
+        coro = self.vault_find_relevant_context(query, limit=limit)
+        try:
+            return asyncio.run(coro)
+        except RuntimeError:
+            # Loop already running (e.g. pytest-asyncio) — cannot block.
+            # Callers in async contexts should await
+            # :meth:`vault_find_relevant_context` directly.
+            return []
+        except Exception as exc:
+            logger.debug("vault_search failed: %s", exc)
+            return []
+
+    def vault_search_by_operation(
+        self, operation: str, limit: int = 10
+    ) -> list[dict[str, Any]]:
+        """Hierarchical search for patterns under ``operations/<operation>``.
+
+        Tries the folder-scoped lookup first; if it returns no rows, falls
+        back to a flat full-text query for the same term. Returns at most
+        ``limit`` rows.
+        """
+        try:
+            results = self.vault_search(f"operations/{operation}", limit=limit)
+            if not results:
+                results = self.vault_search(operation, limit=limit)
+            return list(results)[:limit]
+        except Exception as exc:
+            logger.debug("vault_search_by_operation failed: %s", exc)
+            return []
+
+    def vault_search_by_domain(
+        self, domain: str, limit: int = 5
+    ) -> list[dict[str, Any]]:
+        """Hierarchical search for patterns under ``domains/<domain>``."""
+        try:
+            results = self.vault_search(f"domains/{domain}", limit=limit)
+            if not results:
+                results = self.vault_search(domain, limit=limit)
+            return list(results)[:limit]
+        except Exception as exc:
+            logger.debug("vault_search_by_domain failed: %s", exc)
+            return []
+
+    def vault_search_by_skill_category(
+        self, category: str, limit: int = 5
+    ) -> list[dict[str, Any]]:
+        """Hierarchical search for patterns under ``skills/<category>``."""
+        try:
+            results = self.vault_search(f"skills/{category}", limit=limit)
+            if not results:
+                results = self.vault_search(category, limit=limit)
+            return list(results)[:limit]
+        except Exception as exc:
+            logger.debug("vault_search_by_skill_category failed: %s", exc)
+            return []
+
+    def vault_search_hierarchical(
+        self,
+        operation_type: str | None = None,
+        domain: str | None = None,
+        category: str | None = None,
+        limit: int = 5,
+    ) -> list[dict[str, Any]]:
+        """Combined hierarchical search across operation/domain/category.
+
+        Builds a single folder-scoped query of the form
+        ``operations/<op>/domains/<dom>/skills/<cat>`` and issues one
+        :meth:`vault_search` call. Returns at most ``limit`` rows; missing
+        criteria are simply omitted from the path.
+        """
+        parts: list[str] = []
+        if operation_type:
+            parts.append(f"operations/{operation_type}")
+        if domain:
+            parts.append(f"domains/{domain}")
+        if category:
+            parts.append(f"skills/{category}")
+        query = "/".join(parts) if parts else ""
+        try:
+            return list(self.vault_search(query, limit=limit))[:limit]
+        except Exception as exc:
+            logger.debug("vault_search_hierarchical failed: %s", exc)
+            return []
 
 
 def create_mcp_client(server_url: str, api_key: str) -> MCPClient:

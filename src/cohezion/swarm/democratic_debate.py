@@ -1,3 +1,4 @@
+# ruff: noqa: N814, E501  # long lines: SQL/URLs/docstrings — wrapping reduces readability
 """
 Democratic Debate Orchestrator - Multi-agent consensus building.
 
@@ -19,6 +20,7 @@ import aiofiles
 
 if TYPE_CHECKING:
     from cohezion.swarm.token_client import TokenEfficientClient
+    from cohezion.swarm.token_client import TokenEfficientClient as _TC
 
 import httpx
 
@@ -203,7 +205,6 @@ class DemocraticDebate:
         ollama_host: str = "http://localhost:11434",
         token_client: "TokenEfficientClient | None" = None,
     ):
-        from cohezion.swarm.token_client import TokenEfficientClient as _TC
 
         self.ollama_host = ollama_host
         self.personas = AGENT_PERSONAS
@@ -292,7 +293,7 @@ class DemocraticDebate:
             if proposals:
                 # Simple: use synthesizer's proposal as the integrated view
                 debate_round.winning_proposal = proposals.get(
-                    "synthesizer", list(proposals.values())[0]
+                    "synthesizer", next(iter(proposals.values()))
                 )
 
             session.rounds.append(debate_round)

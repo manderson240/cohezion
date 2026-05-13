@@ -1,3 +1,4 @@
+# ruff: noqa: E402, S108  # temp file paths in /tmp are intentional for ephemeral data
 """
 Universe Artifact Migration Service
 
@@ -19,10 +20,15 @@ import asyncio
 import hashlib
 import json
 import logging
+import shutil
 import subprocess
 import tarfile
 import time
 from dataclasses import dataclass
+
+
+# Resolve git executable at module load to avoid S607 partial-path warnings.
+_GIT = shutil.which("git") or "/usr/bin/git"
 from pathlib import Path
 from typing import Any
 
@@ -124,9 +130,9 @@ class UniverseArtifactMigration:
 
         try:
             # Get file count
-            result = subprocess.run(
+            result = subprocess.run(  # noqa: S603 - git args static, no user input
                 [
-                    "git",
+                    _GIT,
                     "ls-tree",
                     "-r",
                     "--name-only",
@@ -145,9 +151,9 @@ class UniverseArtifactMigration:
             file_count = len([f for f in files if f])
 
             # Calculate total size
-            result = subprocess.run(
+            result = subprocess.run(  # noqa: S603 - git args static, no user input
                 [
-                    "git",
+                    _GIT,
                     "ls-tree",
                     "-r",
                     "--format=%(size)",
@@ -162,9 +168,9 @@ class UniverseArtifactMigration:
             total_bytes = sum(int(line) for line in result.stdout.strip().split("\n") if line)
 
             # Get commit history
-            result = subprocess.run(
+            result = subprocess.run(  # noqa: S603 - git args static, no user input
                 [
-                    "git",
+                    _GIT,
                     "log",
                     "--all",
                     "--follow",
@@ -213,9 +219,9 @@ class UniverseArtifactMigration:
             # Export artifacts from git
             tar_path = artifacts_path / "universe_artifacts.tar.gz"
 
-            result = subprocess.run(
+            result = subprocess.run(  # noqa: S603 - git args static, tar_path internal
                 [
-                    "git",
+                    _GIT,
                     "archive",
                     "--format=tar.gz",
                     "--prefix=universe_artifacts/",

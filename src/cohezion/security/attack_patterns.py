@@ -1,3 +1,4 @@
+# ruff: noqa: S311  # random used for simulation/jitter, not cryptography
 """
 Attack Pattern Database for Adversarial Security Testing.
 
@@ -1008,7 +1009,7 @@ def mutate_pattern(text: str) -> str:
     ]
     mutation = random.choice(mutations)
     try:
-        return mutation(text)
+        return str(mutation(text))
     except Exception:
         return text
 

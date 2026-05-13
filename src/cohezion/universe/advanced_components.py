@@ -1,3 +1,4 @@
+# ruff: noqa: N806  # math/physics: T, F, B, P, S, G, R, A — single-letter conventions
 """HIHO Unified Engine - advanced physics components.
 
 Contains: SacredGeometry, Twistor, QuantumEmergence, Bioelectrics, Esoteric,
@@ -7,14 +8,16 @@ KordylewskiSwarm, and PlasmaMCPEngine.
 from __future__ import annotations
 
 import logging
-from typing import Any, cast
+from typing import TYPE_CHECKING, Any, cast
 
 import httpx
 import numpy as np
 
 from cohezion.reliability import get_circuit
 
-from .components import EvoState
+
+if TYPE_CHECKING:
+    from .components import EvoState
 
 
 logger = logging.getLogger(__name__)

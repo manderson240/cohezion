@@ -103,7 +103,7 @@ class TLSConfig:
 
             logger.info("SSL context loaded successfully")
             return context
-        except (OSError, ssl.SSLError) as e:
+        except OSError as e:
             logger.error("Failed to load SSL context: %s", e)
             return None
 

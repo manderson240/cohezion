@@ -6,6 +6,9 @@ related and unrelated texts, replacing hash-based embeddings.
 Phase 2 Priority 2 Implementation Tests.
 """
 
+import sys
+from unittest.mock import MagicMock
+
 import numpy as np
 import pytest
 
@@ -13,6 +16,17 @@ from cohezion.cache.text_encoder import (
     SemanticTextEncoder,
     get_text_encoder,
     reset_encoder,
+)
+
+
+# Skip tests that require real sentence-transformers when the module is mocked
+# (conftest.py replaces it with MagicMock class to prevent hardware-specific segfaults)
+_ST_IS_REAL = not (
+    "sentence_transformers" in sys.modules
+    and sys.modules["sentence_transformers"].SentenceTransformer is MagicMock
+)
+requires_real_st = pytest.mark.skipif(
+    not _ST_IS_REAL, reason="sentence_transformers is mocked (hardware compatibility)"
 )
 
 
@@ -26,6 +40,7 @@ class TestSemanticTextEncoder:
         yield
         reset_encoder()
 
+    @requires_real_st
     def test_encoder_initialization(self):
         """Test that encoder initializes with sentence-transformers."""
         encoder = SemanticTextEncoder()
@@ -62,6 +77,7 @@ class TestSemanticTextEncoder:
             f"Similar texts should have similarity >0.65, got {similarity:.3f}"
         )
 
+    @requires_real_st
     def test_related_texts_moderate_similarity(self):
         """Test that related (but different topic) texts have moderate similarity (0.20-0.60)."""
         encoder = SemanticTextEncoder()
@@ -79,6 +95,7 @@ class TestSemanticTextEncoder:
             f"Related topics should have similarity 0.20-0.60, got {similarity:.3f}"
         )
 
+    @requires_real_st
     def test_unrelated_texts_low_similarity(self):
         """Test that unrelated texts have low similarity (<0.50)."""
         encoder = SemanticTextEncoder()
@@ -147,6 +164,7 @@ class TestSemanticTextEncoder:
         embedding = encoder.encode(text)
         assert embedding.shape == (256,), "Should still return 256D embedding"
 
+    @requires_real_st
     def test_multiple_similar_prompts_discrimination(self):
         """Test discrimination between multiple similar prompts (cache hit scenario)."""
         encoder = SemanticTextEncoder()
@@ -233,6 +251,7 @@ class TestSemanticCacheDiscrimination:
         print(f"Cache hits L1: {cache.hits_l1}, L2: {cache.hits_l2}, L3: {cache.hits_l3}")
         print(f"Query result: {result}")
 
+    @requires_real_st
     def test_threshold_discrimination(self):
         """Test that 0.85 threshold provides good discrimination."""
         encoder = get_text_encoder()

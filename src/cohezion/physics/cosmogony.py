@@ -1,3 +1,4 @@
+# ruff: noqa: N803, N806, RUF002  # math/physics symbols intentional
 """Cosmogony — the complete 10-step chain from Nothing to Reality Precipitates.
 
 The creation narrative of the Cohezion universe, grounded in real physics
@@ -69,7 +70,7 @@ from __future__ import annotations
 
 import logging
 from dataclasses import dataclass, field
-from enum import Enum
+from enum import StrEnum
 from typing import Any
 
 import numpy as np
@@ -78,7 +79,7 @@ import numpy as np
 logger = logging.getLogger(__name__)
 
 
-class SymmetryGroup(str, Enum):
+class SymmetryGroup(StrEnum):
     """Symmetry groups in the 10-step breaking chain."""
 
     VOID = "void"  # Step 1: ∅ — before symmetry exists
@@ -282,9 +283,10 @@ class SymmetryBreaking:
     Void → Quadrature → SO(12) → SO(3)⁴ → Phase → U(1)⁴ → Z₂⁴ → HIHO → COHESION → Precipitate
     """
 
-    def __init__(self) -> None:
+    def __init__(self, universe_id: str | None = None) -> None:
         self._state = CosmogonyState()
         self._rng = np.random.default_rng(seed=42)
+        self.universe_id = universe_id or "uncontained"
 
     @property
     def state(self) -> CosmogonyState:
@@ -356,6 +358,15 @@ class SymmetryBreaking:
                     desc,
                 )
 
+                # Precipitation emission — every symmetry break is a precipitation event.
+                # Use kind=PRECIPITATE transition as COHERENCE_PEAK (Step 10); others as phase events.
+                _emit_cosmogony_phase(
+                    universe_id=self.universe_id,
+                    event=event,
+                    description=desc,
+                    temperature=T,
+                )
+
         # Update order parameters
         self._update_order_parameters(T)
 
@@ -389,7 +400,6 @@ class SymmetryBreaking:
         - Z₂⁴: discrete ±1 values
         - HIHO: all values at 0.5
         """
-        T = self._state.temperature
         sym = self._state.current_symmetry
 
         if sym == SymmetryGroup.VOID:
@@ -594,6 +604,49 @@ def get_cosmogony() -> SymmetryBreaking:
     if _COSMOGONY is None:
         _COSMOGONY = SymmetryBreaking()
     return _COSMOGONY
+
+
+def _emit_cosmogony_phase(
+    universe_id: str,
+    event: PhaseTransitionEvent,
+    description: str,
+    temperature: float,
+) -> None:
+    """Emit a PrecipitationEvent for a symmetry break. Best-effort."""
+    try:
+        from cohezion.precipitation import (
+            PrecipitationEvent,
+            PrecipitationKind,
+            emit,
+        )
+
+        # Stage 10 (PRECIPITATE) is a full coherence peak — emit as COHERENCE_PEAK.
+        # Others emit as COSMOGONY_PHASE. Both flow through the same bus.
+        kind = (
+            PrecipitationKind.COHERENCE_PEAK
+            if event.to_symmetry == SymmetryGroup.PRECIPITATE
+            else PrecipitationKind.COSMOGONY_PHASE
+        )
+        # Use order_parameter_value (in [0, 1]) as coherence.
+        coherence = max(0.0, min(1.0, event.order_parameter_value))
+        emit(
+            PrecipitationEvent(
+                kind=kind,
+                universe_id=universe_id,
+                coherence=coherence,
+                payload={
+                    "from_symmetry": event.from_symmetry.value,
+                    "to_symmetry": event.to_symmetry.value,
+                    "critical_temperature": event.critical_temperature,
+                    "actual_temperature": temperature,
+                    "order_parameter": event.order_parameter_value,
+                    "stage": event.stage,
+                    "description": description,
+                },
+            )
+        )
+    except Exception:
+        logger.debug("Precipitation emit failed for cosmogony transition", exc_info=True)
 
 
 __all__ = [

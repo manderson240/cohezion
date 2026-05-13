@@ -11,13 +11,17 @@ Features:
 from __future__ import annotations
 
 import logging
-from pathlib import Path
+from typing import TYPE_CHECKING
 
 import torch
 import torch.nn as nn
 from torch.utils.data import DataLoader, TensorDataset
 
 from cohezion.flume.vae import FlumeVAE, flume_vae_loss
+
+
+if TYPE_CHECKING:
+    from pathlib import Path
 
 
 logger = logging.getLogger(__name__)
@@ -168,8 +172,8 @@ class VAETrainer:
                 "epoch": epoch,
                 "metrics": metrics or {},
                 "config": {
-                    "input_dim": self.model.input_dim,
-                    "latent_dim": self.model.latent_dim,
+                    "input_dim": getattr(self.model, "input_dim", None),
+                    "latent_dim": getattr(self.model, "latent_dim", 256),
                     "max_beta": self.max_beta,
                     "free_bits": self.free_bits,
                 },

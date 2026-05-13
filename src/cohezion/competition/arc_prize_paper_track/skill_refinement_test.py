@@ -121,7 +121,7 @@ def run_with_skill_refinement(
             learned_name = learned_strategies[sig]
             preferred = [s for s in strategies if s[0] == learned_name]
             other = [s for s in strategies if s[0] != learned_name]
-            reordered = preferred + other
+            preferred + other
             ops = arc_solver.get_all_ops(task["train"])
             program = arc_solver.search_program(task["train"], max_depth=3, ops=ops, budget=budget)
             if program:

@@ -16,12 +16,10 @@ Base hypothesis: "v20_baseline_50_samples_1e-4"
 """
 
 import json
-import os
-import sys
-import time
 import subprocess
+import sys
 from pathlib import Path
-from datetime import datetime
+
 
 KSEARCH_DIR = Path.home() / ".cohezion-research" / "ksearch"
 KSEARCH_DIR.mkdir(parents=True, exist_ok=True)
@@ -50,7 +48,7 @@ def select_hypothesis(tree, hypotheses):
     nodes = tree.get("nodes", {})
     best_score = -float('inf')
     best_h = hypotheses[0]
-    
+
     for h in hypotheses:
         node = nodes.get(h, {"trials": 0, "wins": 0, "scores": []})
         if node["trials"] == 0:
@@ -103,10 +101,10 @@ def poll_active_kernel(state):
     ok = state.get("active_kernel")
     if not ok:
         return
-    
+
     status = check_kernel_status(ok)
     print(f"[{ok}] Status: {status}")
-    
+
     if status == "complete":
         # Kernel succeeded, check if submission available
         # Then check leaderboard
@@ -114,8 +112,7 @@ def poll_active_kernel(state):
     elif status == "error":
         # Download error log, analyze with autoharness
         log = get_kernel_log(ok)
-        print(f"ERROR log:
-{log[:2000]}")
+        print(f"ERROR log:\n{log[:2000]}")
         tree = load_tree()
         update_tree(tree, state["active_hypothesis"], 0.0)
         save_tree(tree)
@@ -123,7 +120,7 @@ def poll_active_kernel(state):
         state["active_hypothesis"] = None
         save_state(state)
     elif status == "running":
-        print(f"Kernel still running. Check again later.")
+        print("Kernel still running. Check again later.")
         sys.exit(0)  # Wait for next cron run
 
 HYPOTHESES = [
@@ -137,19 +134,18 @@ HYPOTHESES = [
 ]
 
 def main():
-    import math
     tree = load_tree()
     state = load_state()
-    
+
     # If there's an active kernel, poll it first
     if state.get("active_kernel"):
         poll_active_kernel(state)
         return
-    
+
     # No active kernel -- need to pick next hypothesis and push
     hypothesis = select_hypothesis(tree, HYPOTHESES)
     print(f"Selected hypothesis: {hypothesis}")
-    
+
     # For now, just show selection -- push via user action
     print(f"Ready to push kernel for: {hypothesis}")
     # Future: build kernel from template, push, update state

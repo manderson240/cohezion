@@ -1,3 +1,5 @@
+from unittest.mock import MagicMock, patch
+
 import torch
 
 from cohezion.flume.coherence_guard import TurboQuantHarness, apply_dummy_int8_quantization
@@ -32,7 +34,13 @@ def test_verify_quantization_success():
     # Dummy quant should be close enough for low-noise tensors
     dequantized = apply_dummy_int8_quantization(original)
 
-    result = harness.verify_quantization(original, dequantized)
+    # Mock silicon guard so test is not flaky under high VRAM usage
+    mock_pressure = MagicMock()
+    mock_pressure.is_throttled = False
+    with patch("cohezion.flume.coherence_guard.get_silicon_guard") as mock_guard:
+        mock_guard.return_value.check_safety.return_value = mock_pressure
+        result = harness.verify_quantization(original, dequantized)
+
     assert result["success"] is True
     assert result["mae"] < 0.1
 

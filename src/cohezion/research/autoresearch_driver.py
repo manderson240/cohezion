@@ -177,17 +177,20 @@ def _ucb1_select(tree: dict) -> str:
         return "default=true"
 
 
-def _update_tree(tree: dict, outcome: ExperimentOutcome, reward: float) -> None:
+def _update_tree(tree: dict, outcome: ExperimentOutcome | str, reward: float) -> None:
     """Update node statistics and global trial count."""
+    # Accept both ExperimentOutcome and plain hypothesis string for backward compat
+    hypothesis = outcome if isinstance(outcome, str) else outcome.hypothesis
+    z_vector = [] if isinstance(outcome, str) else outcome.z_vector
     tree["total_trials"] += 1
     node = tree["nodes"].setdefault(
-        outcome.hypothesis,
+        hypothesis,
         {
-            "hypothesis": outcome.hypothesis,
+            "hypothesis": hypothesis,
             "wins": 0,
             "trials": 0,
             "metric_values": [],
-            "z_vector": outcome.z_vector,
+            "z_vector": z_vector,
         },
     )
     node["trials"] += 1
@@ -380,11 +383,15 @@ class AutoresearchDriver:
                 )
                 logs = proc.stdout + proc.stderr
                 metric_val = _extract_metric(logs, self.metric_name)
-                status = (
-                    "improvement"
-                    if (self._baseline is None or metric_val > self._baseline)
-                    else "regression"
-                )
+                if metric_val is None or math.isnan(metric_val):
+                    metric_val = float("nan")
+                    status = "error"
+                elif self._baseline is None:
+                    status = "improvement"
+                elif self.direction == "minimize":
+                    status = "improvement" if metric_val < self._baseline else "regression"
+                else:
+                    status = "improvement" if metric_val > self._baseline else "regression"
             except Exception as e:
                 metric_val, status, logs = float("nan"), "error", str(e)
 

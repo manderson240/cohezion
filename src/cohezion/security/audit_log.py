@@ -1,3 +1,4 @@
+# ruff: noqa: A002  # shadows builtin (id, type) — domain-specific naming
 """Comprehensive audit logging for GDPR/HIPAA/SOC2 compliance.
 
 This module implements an append-only audit trail for all sensitive operations:

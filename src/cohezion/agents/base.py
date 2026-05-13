@@ -1,3 +1,4 @@
+# ruff: noqa: E501  # long lines: SQL/URLs/docstrings — wrapping reduces readability
 """Base agent class for all SLM Swarm agents."""
 
 from __future__ import annotations
@@ -35,7 +36,6 @@ from cohezion.reliability.semantic_cache import SemanticCache
 from cohezion.rewards.system import RewardSystem
 from cohezion.security.output_filter import OutputFilter
 from cohezion.security.prompt_guard import PromptGuard, ThreatLevel
-from cohezion.swarm.swarm_types import SwarmConfig
 from cohezion.universe.engine import UniverseSimulationEngine
 
 
@@ -722,7 +722,7 @@ Provide output in JSON format: {{"phi_score": 0.85, "confidence": 0.90}}
                 data = json.loads(data)
             phi = float(data.get("phi_score", 0.8))
             conf = float(data.get("confidence", 0.8))
-        except (httpx.HTTPError, json.JSONDecodeError, ValueError, KeyError) as e:
+        except (httpx.HTTPError, ValueError, KeyError) as e:
             logger.debug(f"Self-evaluation call failed, using defaults: {e}")
 
         # 2. Alignment Audit (Phase 22)

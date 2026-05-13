@@ -1,4 +1,4 @@
-import asyncio
+import contextlib
 import json
 import logging
 from dataclasses import dataclass
@@ -9,23 +9,6 @@ from cohezion.core.mcp_client import get_mcp_client
 
 
 logger = logging.getLogger(__name__)
-
-
-def _fire_vault_write(mcp: Any, path: str, content: str) -> None:
-    """Schedule an async vault_write without blocking the caller.
-
-    If a running event loop exists, create_task() is used (fire-and-forget).
-    Otherwise, asyncio.run() is used as a fallback. This prevents the
-    'coroutine was never awaited' warning from sync callers of async vault_write.
-    """
-    try:
-        loop = asyncio.get_running_loop()
-        loop.create_task(mcp.vault_write(path, content))
-    except RuntimeError:
-        try:
-            asyncio.run(mcp.vault_write(path, content))
-        except Exception as e:
-            logger.debug("vault_write fallback failed: %s", e)
 
 
 @dataclass
@@ -71,8 +54,7 @@ class VaultLogger:
                 "start_time": ctx.start_time.isoformat(),
                 "status": "started",
             }
-            
-            _fire_vault_write(self.mcp, path, json.dumps(data, indent=2))
+            self.mcp.vault_write_sync(path, json.dumps(data, indent=2))
             return path
         except Exception as e:
             logger.error(f"Failed to log execution start to Vault: {e}")
@@ -86,7 +68,7 @@ class VaultLogger:
             return
         try:
             # Read existing
-            content = self.mcp.vault_read(experiment_path)
+            content = self.mcp.vault_read_sync(experiment_path)
             data = json.loads(content)
 
             # Update
@@ -96,8 +78,7 @@ class VaultLogger:
             data["status"] = "completed"
             data["end_time"] = datetime.now().isoformat()
 
-            
-            _fire_vault_write(self.mcp, experiment_path, json.dumps(data, indent=2))
+            self.mcp.vault_write_sync(experiment_path, json.dumps(data, indent=2))
         except Exception as e:
             logger.error(f"Failed to log execution result to Vault: {e}")
 
@@ -139,8 +120,7 @@ class VaultLogger:
 {code_example}
 ```
 """
-            
-            _fire_vault_write(self.mcp, path, content)
+            self.mcp.vault_write_sync(path, content)
             return path
         except Exception as e:
             logger.error(f"Failed to extract pattern to Vault: {e}")
@@ -167,8 +147,7 @@ class VaultLogger:
 ## Rationale
 {rationale}
 """
-            
-            _fire_vault_write(self.mcp, path, content)
+            self.mcp.vault_write_sync(path, content)
             return path
         except Exception as e:
             logger.error(f"Failed to log decision point to Vault: {e}")
@@ -217,8 +196,7 @@ class VaultLogger:
                 "natural_capital": metrics.get("natural_capital", 0.0),
                 "bioelectric_coherence": metrics.get("bioelectric_coherence", 0.0),
             }
-            
-            _fire_vault_write(self.mcp, trace_path, json.dumps(trace_data, indent=2))
+            self.mcp.vault_write_sync(trace_path, json.dumps(trace_data, indent=2))
 
             # Prune old traces (keep last 100 per skill)
             self._prune_traces(ctx.skill_name)
@@ -238,10 +216,8 @@ class VaultLogger:
                 sorted_traces = sorted(traces)
                 to_remove = sorted_traces[: len(sorted_traces) - max_traces]
                 for trace_path in to_remove:
-                    try:
-                        self.mcp.vault_delete(trace_path)
-                    except Exception:
-                        pass
+                    with contextlib.suppress(Exception):
+                        self.mcp.vault_delete_sync(trace_path)
         except Exception:
             pass  # Non-blocking: pruning failure is not critical
 
@@ -268,7 +244,7 @@ class VaultLogger:
             recent = sorted(traces, reverse=True)[:n]
             for trace_path in recent:
                 try:
-                    content = self.mcp.vault_read(trace_path)
+                    content = self.mcp.vault_read_sync(trace_path)
                     data = json.loads(content)
                     results.append(data)
                 except Exception:
@@ -309,7 +285,7 @@ class VaultLogger:
                 # Add links to relevant project and skill for Obsidian Graph connectivity
                 content += f"\n\n--- \nTags: #retrospective #{data.get('agent', 'agent').lower()} #{data.get('skill_name', 'skill').lower()}\n"
 
-                _fire_vault_write(self.mcp, filename, content)
+                self.mcp.vault_write_sync(filename, content)
                 logger.info(f"Architectural insight persisted to Vault: {filename}")
 
             except Exception as e:

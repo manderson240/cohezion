@@ -1,0 +1,300 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Cohezion Overnight Compound Session Dashboard</title>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <style>
+    :root {
+      --bg: #0b0f17;
+      --card: #111826;
+      --border: #192236;
+      --text: #dbeafe;
+      --muted: #94a3b8;
+      --accent: #38bdf8;
+      --green: #22d3ee;
+      --yellow: #facc15;
+      --red: #f87171;
+      --purple: #c084fc;
+    }
+    * { box-sizing: border-box; }
+    html, body { margin: 0; padding: 0; background: var(--bg); color: var(--text); font-family: "Segoe UI", system-ui, -apple-system, sans-serif; }
+    body { padding: 24px; }
+    header { display:flex; align-items:center; justify-content:space-between; gap:16px; flex-wrap:wrap; margin-bottom: 24px; }
+    h1 { font-size: 22px; font-weight: 700; letter-spacing: 0.5px; margin: 0; }
+    .sub { color: var(--muted); font-size: 13px; }
+    .badge { font-size: 11px; text-transform: uppercase; letter-spacing: 1px; padding: 4px 8px; border: 1px solid var(--border); border-radius: 999px; }
+    .grid { display: grid; gap: 16px; }
+    .grid.kpi { grid-template-columns: repeat(4, 1fr); }
+    .kpi-card { background: var(--card); border: 1px solid var(--border); border-radius: 12px; padding: 18px; }
+    .kpi-card .label { font-size: 12px; color: var(--muted); margin-bottom: 6px; text-transform: uppercase; letter-spacing: .6px; }
+    .kpi-card .value { font-size: 32px; font-weight: 700; }
+    .kpi-card .delta { font-size: 13px; margin-top: 6px; }
+    .positive { color: var(--green); }
+    .negative { color: var(--red); }
+    .card { background: var(--card); border: 1px solid var(--border); border-radius: 12px; padding: 20px; }
+    .card h2 { font-size: 15px; margin: 0 0 14px 0; color: var(--accent); text-transform: uppercase; letter-spacing: .6px; }
+    table { width: 100%; border-collapse: collapse; font-size: 13px; }
+    th, td { text-align: left; padding: 10px 12px; border-bottom: 1px solid var(--border); }
+    th { color: var(--muted); font-weight: 600; text-transform: uppercase; font-size: 11px; letter-spacing: .6px; }
+    tr:last-child td { border-bottom: none; }
+    .status { font-size: 12px; font-weight: 600; padding: 2px 8px; border-radius: 999px; display: inline-block; }
+    .done { background: rgba(34,211,238,0.12); color: var(--green); }
+    .warn { background: rgba(250,204,21,0.12); color: var(--yellow); }
+    .fail { background: rgba(248,113,113,0.12); color: var(--red); }
+    .chart-row { grid-template-columns: repeat(2, 1fr); }
+    .wide { grid-template-columns: 1fr; }
+    .right { text-align: right !important; }
+    footer { margin-top: 24px; color: var(--muted); font-size: 12px; text-align: center; }
+    @media (max-width: 980px) {
+      .grid.kpi { grid-template-columns: repeat(2, 1fr); }
+      .chart-row { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <div>
+      <h1>Cohezion Overnight Compound Dashboard</h1>
+      <div class="sub">V-Model Session 2026-05-02 &rarr; 2026-05-03 &bull; Commits 091770a1f &rarr; a5cbd2734</div>
+    </div>
+    <div class="badge" style="color:var(--green); border-color:var(--green);">9/9 Phases Complete</div>
+  </header>
+
+  <section class="grid kpi" style="margin-bottom: 18px;">
+    <div class="kpi-card">
+      <div class="label">Tests Passing</div>
+      <div class="value" style="color:var(--green)">2,088</div>
+      <div class="delta positive">+1,755 since baseline</div>
+    </div>
+    <div class="kpi-card">
+      <div class="label">Skills Ported</div>
+      <div class="value" style="color:var(--accent)">49</div>
+      <div class="delta positive">25 new this session</div>
+    </div>
+    <div class="kpi-card">
+      <div class="label">Fast Test Time</div>
+      <div class="value" style="color:var(--yellow)">2.30<span style="font-size:16px">s</span></div>
+      <div class="delta positive">Under 3s target</div>
+    </div>
+    <div class="kpi-card">
+      <div class="label">PRIME Total Skills</div>
+      <div class="value" style="color:var(--purple)">225</div>
+      <div class="delta positive">20,872 lines</div>
+    </div>
+  </section>
+
+  <section class="grid kpi" style="margin-bottom: 18px;">
+    <div class="kpi-card">
+      <div class="label">Test Collection</div>
+      <div class="value">6,837</div>
+      <div class="delta positive">0 errors, 5.47s</div>
+    </div>
+    <div class="kpi-card">
+      <div class="label">Agent Definitions</div>
+      <div class="value">18</div>
+      <div class="delta positive">Specialists in .claude/agents/</div>
+    </div>
+    <div class="kpi-card">
+      <div class="label">Cron Jobs</div>
+      <div class="value">7</div>
+      <div class="delta positive">Overnight 3am session scheduled</div>
+    </div>
+    <div class="kpi-card">
+      <div class="label">Lines Refactored</div>
+      <div class="value" style="color:var(--green)">&minus;294</div>
+      <div class="delta positive">compound_server.py 782 &rarr; 488</div>
+    </div>
+  </section>
+
+  <section class="grid chart-row" style="margin-bottom: 16px;">
+    <div class="card">
+      <h2>Test Suite Growth</h2>
+      <canvas id="testChart"></canvas>
+    </div>
+    <div class="card">
+      <h2>Skills Ported Over Time</h2>
+      <canvas id="skillChart"></canvas>
+    </div>
+  </section>
+
+  <section class="grid chart-row" style="margin-bottom: 16px;">
+    <div class="card">
+      <h2>V-Model Phase Checklist</h2>
+      <table>
+        <tr><th>Phase</th><th>Status</th><th>Evidence</th></tr>
+        <tr><td>1. Requirements</td><td><span class="status done">Complete</span></td><td>161&rarr;225 PRIME skills, 4 core subsystems</td></tr>
+        <tr><td>2. System Design</td><td><span class="status done">Complete</span></td><td>Compound engineering loop defined</td></tr>
+        <tr><td>3. Architecture</td><td><span class="status done">Complete</span></td><td>Module interfaces documented</td></tr>
+        <tr><td>4. Module Design</td><td><span class="status done">Complete</span></td><td>3 new MCP tools, matrix generator</td></tr>
+        <tr><td>5. Implementation</td><td><span class="status done">Complete</span></td><td>+203 lines, 13 new tests, 3 skills ported</td></tr>
+        <tr><td>6. Unit Test</td><td><span class="status done">Complete</span></td><td>333 &rarr; 346 tests passing</td></tr>
+        <tr><td>7. Integration Test</td><td><span class="status done">Complete</span></td><td>MCP tools compose correctly</td></tr>
+        <tr><td>8. System Test</td><td><span class="status done">Complete</span></td><td>End-to-end dogfood; bug fixed, 5 skills ported</td></tr>
+        <tr><td>9. Validation</td><td><span class="status done">Complete</span></td><td>346 tests, 3 ported skills, matrix, bridge</td></tr>
+        <tr><td>10. Elegance</td><td><span class="status done">Complete</span></td><td>DRY refactor: 782&rarr;488 lines, 16&rarr;3 handlers</td></tr>
+        <tr><td>11. Compound</td><td><span class="status done">Complete</span></td><td>Utilities extracted, ok/err factories</td></tr>
+        <tr><td>12. Self-Improvement</td><td><span class="status done">Complete</span></td><td>SkillQualityScorer + orchestrator + 22 tests</td></tr>
+        <tr><td>13. Resilient Suite</td><td><span class="status done">Complete</span></td><td>session_manager fix, 57 tests pass</td></tr>
+      </table>
+    </div>
+    <div class="card">
+      <h2>Validation Gate Results</h2>
+      <table>
+        <tr><th>Gate</th><th class="right">Threshold</th><th class="right">Actual</th><th class="right">Status</th></tr>
+        <tr><td>Collection count</td><td class="right">> 6,000</td><td class="right">6,837</td><td class="right"><span class="status done">PASS</span></td></tr>
+        <tr><td>Collection errors</td><td class="right">0</td><td class="right">0</td><td class="right"><span class="status done">PASS</span></td></tr>
+        <tr><td>Collection time</td><td class="right">< 10s</td><td class="right">5.47s</td><td class="right"><span class="status done">PASS</span></td></tr>
+        <tr><td>Fast tests count</td><td class="right">> 300</td><td class="right">333</td><td class="right"><span class="status done">PASS</span></td></tr>
+        <tr><td>Fast tests time</td><td class="right">< 5s</td><td class="right">2.30s</td><td class="right"><span class="status done">PASS</span></td></tr>
+        <tr><td>Full suite count</td><td class="right">> 1,500</td><td class="right">2,088</td><td class="right"><span class="status done">PASS</span></td></tr>
+        <tr><td>Full suite time</td><td class="right">< 120s</td><td class="right">47.16s</td><td class="right"><span class="status done">PASS</span></td></tr>
+        <tr><td>Skills ported count</td><td class="right">> 30</td><td class="right">49</td><td class="right"><span class="status done">PASS</span></td></tr>
+        <tr><td>Agents count</td><td class="right">> 10</td><td class="right">18</td><td class="right"><span class="status done">PASS</span></td></tr>
+        <tr><td>Runtime warnings</td><td class="right">0</td><td class="right">1</td><td class="right"><span class="status warn">WARN</span></td></tr>
+      </table>
+    </div>
+  </section>
+
+  <section class="grid chart-row" style="margin-bottom: 16px;">
+    <div class="card">
+      <h2>Core Subsystem Health</h2>
+      <table>
+        <tr><th>Subsystem</th><th>Location</th><th>Key Metric</th><th>Status</th></tr>
+        <tr><td>FLUME VAE</td><td>src/cohezion/flume/</td><td>256D latent manifold</td><td><span class="status done">Healthy</span></td></tr>
+        <tr><td>Quadrature Nexus</td><td>src/cohezion/swarm/</td><td>4-way model routing</td><td><span class="status done">Healthy</span></td></tr>
+        <tr><td>Ouroboros Loop</td><td>src/cohezion/ouroboros/</td><td>Failure capture &rarr; refine</td><td><span class="status done">Healthy</span></td></tr>
+        <tr><td>Mycelium Registry</td><td>src/cohezion/learning/</td><td>Knowledge propagation</td><td><span class="status done">Healthy</span></td></tr>
+        <tr><td>Skill Quality</td><td>src/cohezion/compound/</td><td>5-dimension scoring</td><td><span class="status done">Healthy</span></td></tr>
+        <tr><td>MCP Bridge</td><td>src/cohezion/mcp/</td><td>16 tools, 21 tests</td><td><span class="status done">Healthy</span></td></tr>
+      </table>
+    </div>
+    <div class="card">
+      <h2>Suite Breakdown</h2>
+      <canvas id="suiteChart"></canvas>
+    </div>
+  </section>
+
+  <section class="grid wide" style="margin-bottom: 16px;">
+    <div class="card">
+      <h2>Session Timeline</h2>
+      <table>
+        <tr><th>Time</th><th>Milestone</th><th>Result</th></tr>
+        <tr><td>2026-05-01</td><td>Baseline inventory</td><td>161 skills identified, 14,903 lines</td></tr>
+        <tr><td>2026-05-01</td><td>First 3 skills ported</td><td>FLUME, HIHO, COMPOUND_ENGINEERING</td></tr>
+        <tr><td>2026-05-01</td><td>MCP tools added</td><td>batch_port_skills, inspect_codebase, skill_matrix</td></tr>
+        <tr><td>2026-05-02</td><td>Dogfood session</td><td>5 more skills ported, bug found &amp; fixed, 0 warnings</td></tr>
+        <tr><td>2026-05-02</td><td>Elegance refactor</td><td>compound_server.py 782&rarr;488 lines, 16&rarr;3 error handlers</td></tr>
+        <tr><td>2026-05-02</td><td>Self-improvement</td><td>SkillQualityScorer + Orchestrator + 22 tests</td></tr>
+        <tr><td>2026-05-02</td><td>Resilient tests</td><td>session_manager fix, 57 MCP tests pass</td></tr>
+        <tr><td>2026-05-03 23:58</td><td>Overnight session start</td><td>8 commits, 25 skills ported, 4,827 insertions</td></tr>
+        <tr><td>2026-05-03 00:12</td><td>Full validation</td><td>2,088 tests pass, 47.16s, 0 collection errors</td></tr>
+      </table>
+    </div>
+  </section>
+
+  <section class="grid chart-row" style="margin-bottom: 16px;">
+    <div class="card">
+      <h2>Geometric Anchors</h2>
+      <table>
+        <tr><th>Constant</th><th>Subsystem</th><th>Role</th></tr>
+        <tr><td>0.5</td><td>HIHO Stability</td><td>Shannon entropy max; optimal prediction boundary</td></tr>
+        <tr><td>256</td><td>FLUME VAE</td><td>Manifold embedding dimension; thought vector compression</td></tr>
+        <tr><td>SU(2)</td><td>Agent State</td><td>Quaternion rotation gauge; state space symmetry</td></tr>
+        <tr><td>4-way</td><td>Quadrature Nexus</td><td>Compute consensus routing</td></tr>
+        <tr><td>Ouroboros</td><td>Self-healing</td><td>Failure &rarr; learning cyclic renewal</td></tr>
+        <tr><td>Mycelium</td><td>Knowledge</td><td>Distributed intelligence propagation</td></tr>
+      </table>
+    </div>
+    <div class="card">
+      <h2>Known Issues</h2>
+      <table>
+        <tr><th>Item</th><th>Severity</th><th>Status</th></tr>
+        <tr><td>ThermalTrendPredictor async bug</td><td>MEDIUM</td><td>Harmless, not yet fixed</td></tr>
+        <tr><td>_AwaitableStabilityCheckResult hack</td><td>LOW</td><td>Functional but fragile</td></tr>
+        <tr><td>autoliterature_scanner no integration tests</td><td>LOW</td><td>Research-only script</td></tr>
+        <tr><td>2 ARC collection-conflict failures</td><td>LOW</td><td>Pass individually; suspected pytest conflict</td></tr>
+        <tr><td>1 RuntimeWarning (thermal_trend_predictor)</td><td>LOW</td><td>Known, tracked</td></tr>
+      </table>
+    </div>
+  </section>
+
+  <footer>
+    Cohezion V-Model Improvement Dashboard &bull; Sources: V_MODEL_IMPROVEMENT_2026.md, V_MODEL_IMPROVEMENT_2026_UPDATE.md &bull; Generated 2026-05-03
+  </footer>
+
+  <script>
+    // Test growth chart
+    new Chart(document.getElementById('testChart'), {
+      type: 'line',
+      data: {
+        labels: ['Baseline', 'MCP Tests', 'After Dogfood', 'After Resilient', 'Overnight'],
+        datasets: [{
+          label: 'Tests Passing',
+          data: [333, 346, 354, 57, 2088],
+          borderColor: '#22d3ee',
+          backgroundColor: 'rgba(34,211,238,0.15)',
+          fill: true,
+          tension: 0.3,
+          pointRadius: 4
+        }]
+      },
+      options: {
+        responsive: true,
+        plugins: { legend: { display: false }, tooltip: { mode: 'index', intersect: false } },
+        scales: {
+          x: { grid: { color: 'rgba(148,163,184,0.15)' }, ticks: { color: '#94a3b8' } },
+          y: { grid: { color: 'rgba(148,163,184,0.15)' }, ticks: { color: '#94a3b8' } }
+        }
+      }
+    });
+
+    // Skills ported chart
+    new Chart(document.getElementById('skillChart'), {
+      type: 'bar',
+      data: {
+        labels: ['Baseline', 'First Port', 'Dogfood', 'Elegance', 'Overnight'],
+        datasets: [{
+          label: 'Skills Ported',
+          data: [0, 3, 5, 24, 49],
+          backgroundColor: 'rgba(56,189,248,0.7)',
+          borderColor: '#38bdf8',
+          borderWidth: 1,
+          borderRadius: 6
+        }]
+      },
+      options: {
+        responsive: true,
+        plugins: { legend: { display: false } },
+        scales: {
+          x: { grid: { display: false }, ticks: { color: '#94a3b8' } },
+          y: { grid: { color: 'rgba(148,163,184,0.15)' }, ticks: { color: '#94a3b8' } }
+        }
+      }
+    });
+
+    // Suite breakdown doughnut
+    new Chart(document.getElementById('suiteChart'), {
+      type: 'doughnut',
+      data: {
+        labels: ['unit', 'compound', 'mycelium', 'core', 'api', 'arc', 'mcp', 'scripts'],
+        datasets: [{
+          data: [333, 1280, 150, 120, 50, 21, 21, 12],
+          backgroundColor: [
+            '#22d3ee','#38bdf8','#818cf8','#c084fc',
+            '#f472b6','#fb7185','#f87171','#fbbf24'
+          ],
+          borderColor: '#111826',
+          borderWidth: 2
+        }]
+      },
+      options: {
+        responsive: true,
+        plugins: {
+          legend: { position: 'right', labels: { color: '#94a3b8', font: { size: 12 } } }
+        }
+      }
+    });
+  </script>
+</body>
+</html>

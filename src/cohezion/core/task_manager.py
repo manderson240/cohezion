@@ -1,3 +1,4 @@
+# ruff: noqa: RUF006  # fire-and-forget async tasks — intentional
 """Task management for async operations with proper tracking and cleanup.
 
 Prevents fire-and-forget issues and unhandled exceptions in background tasks.

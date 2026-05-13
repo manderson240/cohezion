@@ -11,6 +11,7 @@ Approaches each problem type with a tailored symbolic solver:
 
 from __future__ import annotations
 
+import contextlib
 import csv
 import random
 import re
@@ -298,10 +299,8 @@ def solve_bit_manip(examples: list[tuple[str, str]], test_in: str) -> str:
     pairs = []
     for inp, out in examples:
         if len(inp) == 8 and set(inp).issubset({"0", "1"}):
-            try:
+            with contextlib.suppress(Exception):
                 pairs.append((int(inp, 2), int(out, 2)))
-            except Exception:
-                pass
     if not pairs:
         return test_in
 
@@ -508,7 +507,7 @@ def solve_bit_manip(examples: list[tuple[str, str]], test_in: str) -> str:
         ("not_reverse", lambda x: int(f"{(~x) & 0xFF:08b}"[::-1], 2)),
     ]
 
-    for name, op in unary_ops:
+    for _name, op in unary_ops:
         ok = True
         for a, b in pairs:
             if op(a) != b:
@@ -522,8 +521,8 @@ def solve_bit_manip(examples: list[tuple[str, str]], test_in: str) -> str:
                 pass
 
     # --- Phase 4: Two-op compositions of unary ops ---
-    for n1, o1 in unary_ops:
-        for n2, o2 in unary_ops:
+    for _n1, o1 in unary_ops:
+        for _n2, o2 in unary_ops:
             ok = True
             for a, b in pairs:
                 if o2(o1(a)) != b:
@@ -545,7 +544,7 @@ def solve_bit_manip(examples: list[tuple[str, str]], test_in: str) -> str:
             ("add", lambda x, c: (x + c) & 0xFF),
             ("sub", lambda x, c: (x - c) & 0xFF),
         ]:
-            for n1, o1 in unary_ops:
+            for _n1, o1 in unary_ops:
                 ok = True
                 for a, b in pairs:
                     if op_fn(o1(a), const) != b:
@@ -558,7 +557,7 @@ def solve_bit_manip(examples: list[tuple[str, str]], test_in: str) -> str:
                     except Exception:
                         pass
             # Constant then unary
-            for n2, o2 in unary_ops:
+            for _n2, o2 in unary_ops:
                 ok = True
                 for a, b in pairs:
                     if o2(op_fn(a, const)) != b:
@@ -678,7 +677,7 @@ def _solve_number_equations(examples: list[tuple[str, str]], test_in: str) -> st
         return results
 
     # Find operation that matches all examples
-    for res, op_name in apply_ops(0, 0):
+    for _res, _op_name in apply_ops(0, 0):
         pass  # just to get list
 
     # Actually brute-force: try each operation
@@ -696,7 +695,7 @@ def _solve_number_equations(examples: list[tuple[str, str]], test_in: str) -> st
         ("len_concat", lambda a, b: int(str(len(str(a))) + str(len(str(b))))),
     ]
 
-    for op_name, op_fn in ops_to_try:
+    for _op_name, op_fn in ops_to_try:
         ok = True
         for inp, out in examples:
             try:
@@ -973,7 +972,7 @@ def solve_encryption(examples: list[tuple[str, str]], test_in: str) -> str:
     changed = True
     while changed:
         changed = False
-        for i, (tw, pw) in enumerate(zip(test_words, result_words)):
+        for _i, (tw, pw) in enumerate(zip(test_words, result_words)):
             if "?" not in pw:
                 continue
             pattern = pw.replace("?", "?")

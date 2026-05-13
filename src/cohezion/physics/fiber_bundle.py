@@ -1,3 +1,4 @@
+# ruff: noqa: RUF002  # math/physics symbols intentional
 """Fiber bundle structure for the 12D axiomatic manifold.
 
 The 12D manifold M¹² has a natural principal fiber bundle structure:
@@ -97,7 +98,7 @@ class FiberBundle:
         base = np.zeros(self.n_fabrics)
         fiber = np.zeros((self.n_fabrics, self.fabric_dim))
 
-        for i, (name, sl) in enumerate(FABRIC_SLICES.items()):
+        for i, (_name, sl) in enumerate(FABRIC_SLICES.items()):
             block = state[sl]
             norm = np.linalg.norm(block)
             base[i] = norm

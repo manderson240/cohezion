@@ -17,6 +17,7 @@ Usage:
     Upload to Kaggle as notebook, enable GPU accelerator (P100 or T4 x2)
 """
 
+import contextlib
 import csv
 import math
 import os
@@ -120,7 +121,7 @@ def solve_gravity(examples, test_t: str) -> str:
             d = float(re.search(r"([0-9.]+)", d_str).group(1))
             ts.append(t)
             ds.append(d)
-        except:
+        except (ValueError, AttributeError):
             pass
     if not ts or len(ts) < 2:
         return "0.0"
@@ -144,7 +145,7 @@ def solve_gravity(examples, test_t: str) -> str:
                     best_g = g
     try:
         test_t_val = float(re.search(r"([0-9.]+)", test_t).group(1))
-    except:
+    except (ValueError, AttributeError):
         return "0.0"
     result = 0.5 * best_g * test_t_val * test_t_val
     # Format
@@ -170,7 +171,7 @@ def solve_unit_conversion(examples, test_x: str) -> str:
             y = float(re.search(r"([0-9.]+)", y_str).group(1))
             xs.append(x)
             ys.append(y)
-        except:
+        except (ValueError, AttributeError):
             pass
     if len(xs) < 2:
         return "0.0"
@@ -184,14 +185,14 @@ def solve_unit_conversion(examples, test_x: str) -> str:
         k = sum_y / sum_x if sum_x != 0 else 1.0
         try:
             test_val = float(re.search(r"([0-9.]+)", test_x).group(1))
-        except:
+        except (ValueError, AttributeError):
             return "0.0"
         return f"{k * test_val:.2f}"
     a = (n * sum_xy - sum_x * sum_y) / denom
     b = (sum_y - a * sum_x) / n
     try:
         test_val = float(re.search(r"([0-9.]+)", test_x).group(1))
-    except:
+    except (ValueError, AttributeError):
         return "0.0"
     result = a * test_val + b
     # Format
@@ -210,7 +211,7 @@ def solve_unit_conversion(examples, test_x: str) -> str:
 def solve_numeral(examples, test_n: str) -> str:
     try:
         n = int(re.search(r"([0-9]+)", test_n).group(1))
-    except:
+    except (ValueError, AttributeError):
         return ""
     return int_to_roman(n)
 
@@ -219,10 +220,8 @@ def solve_bit_manip(examples, test_in: str) -> str:
     pairs = []
     for inp, out in examples:
         if len(inp) == 8 and set(inp).issubset({"0", "1"}):
-            try:
+            with contextlib.suppress(ValueError):
                 pairs.append((int(inp, 2), int(out, 2)))
-            except:
-                pass
     if not pairs:
         return test_in
     # Per-bit mapping
@@ -282,7 +281,7 @@ def solve_bit_manip(examples, test_in: str) -> str:
                         bit = 1 - bit
                 result |= bit << out_bit
             return f"{result:08b}"
-        except:
+        except (ValueError, TypeError):
             pass
     # XOR/AND/OR/ADD affine
     for xor_const in range(256):
@@ -294,7 +293,7 @@ def solve_bit_manip(examples, test_in: str) -> str:
         if ok:
             try:
                 return f"{(int(test_in, 2) ^ xor_const):08b}"
-            except:
+            except (ValueError, TypeError):
                 pass
     for and_const in range(256):
         ok = True
@@ -305,7 +304,7 @@ def solve_bit_manip(examples, test_in: str) -> str:
         if ok:
             try:
                 return f"{(int(test_in, 2) & and_const):08b}"
-            except:
+            except (ValueError, TypeError):
                 pass
     # Unary ops
     unary_ops = [
@@ -316,7 +315,7 @@ def solve_bit_manip(examples, test_in: str) -> str:
         ("rot_left_1", lambda x: ((x << 1) & 0xFF) | (x >> 7)),
         ("rot_right_1", lambda x: (x >> 1) | ((x & 1) << 7)),
     ]
-    for name, op in unary_ops:
+    for _name, op in unary_ops:
         ok = True
         for a, b in pairs:
             if op(a) != b:
@@ -325,7 +324,7 @@ def solve_bit_manip(examples, test_in: str) -> str:
         if ok:
             try:
                 return f"{op(int(test_in, 2)):08b}"
-            except:
+            except (ValueError, TypeError):
                 pass
     return test_in
 
@@ -468,7 +467,7 @@ def solve_encryption(examples, test_in: str) -> str:
     changed = True
     while changed:
         changed = False
-        for i, (tw, pw) in enumerate(zip(test_in.split(), result_words)):
+        for _i, (tw, pw) in enumerate(zip(test_in.split(), result_words)):
             if "?" not in pw:
                 continue
             matches = [
@@ -603,7 +602,7 @@ def build_training_data(train_csv_path: str) -> tuple[list[dict], dict]:
             try:
                 pred = solve(prompt)
                 verified = compare_answers(pred, answer)
-            except:
+            except Exception:
                 verified = False
             if verified:
                 stats[category]["correct"] += 1

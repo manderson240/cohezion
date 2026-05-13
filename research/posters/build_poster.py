@@ -9,11 +9,18 @@ from __future__ import annotations
 import math
 from pathlib import Path
 
+import matplotlib.patches as mpatches
+import matplotlib.pyplot as plt
+from matplotlib.font_manager import FontProperties
+from matplotlib.patches import Circle, FancyBboxPatch, Polygon, Rectangle
+
+
 import matplotlib.pyplot as plt
 import matplotlib.patches as mpatches
 from matplotlib.font_manager import FontProperties
 from matplotlib.patches import Circle, FancyBboxPatch, Polygon, Rectangle
 
+>>>>>>> origin/polish/sigma-security-p1p2
 # ----- palette --------------------------------------------------------------
 NAVY = "#0a0e1a"
 NAVY2 = "#0f1424"

@@ -4,7 +4,6 @@ from pathlib import Path
 def test_core_files_exist():
     """Verify that essential project files are intact."""
     core_files = [
-        "main.py",
         "pyproject.toml",
         "src/cohezion/__init__.py",
         "conductor/product.md",

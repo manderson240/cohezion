@@ -1,3 +1,4 @@
+# ruff: noqa: SIM105, S110  # best-effort: ignored exceptions are intentional in init/cleanup paths
 """
 Observable AI action proposer.
 Charter requirement: "Expose internal states and confidence levels *before* action"
@@ -148,7 +149,7 @@ class ObservableActionProposer:
         current_coherence: CoherenceMetrics,
     ):
         """Display proposal with full transparency."""
-        hiho_status = "HIHO Stable" if current_coherence.hiho_stable else "Outside HIHO"
+        hiho_status = "HIHO Stable ✅" if current_coherence.hiho_stable else "Outside HIHO ⚠️"
         reversible = "Yes" if proposal.reversible else "No"
         new_coh = current_coherence.coherence + proposal.coherence_impact
         risks = (

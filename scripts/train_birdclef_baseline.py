@@ -2,12 +2,14 @@
 Establishes a baseline for species classification with domain invariance.
 """
 
+import numpy as np
 import torch
 import torch.optim as optim
 from torch.utils.data import DataLoader, TensorDataset
-import numpy as np
+
 from cohezion.audio.bioacoustic_encoder import BioacousticEncoder, BirdCLEFDataProduct
 from cohezion.audio.protoclr import ProtoCLR
+
 
 def run_baseline_training():
     print("Initializing BirdCLEF 2026 SOTA Training Loop...")

@@ -69,7 +69,7 @@ async def create_workforce(request: WorkforceRequest, background_tasks: Backgrou
         )
     except Exception as e:
         logger.error(f"Failed to create workforce: {e}")
-        raise HTTPException(status_code=500, detail=str(e))
+        raise HTTPException(status_code=500, detail=str(e)) from e
 
 
 @router.get("/status/{agent_id}")

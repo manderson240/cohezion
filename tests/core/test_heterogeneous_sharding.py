@@ -48,7 +48,7 @@ class TestHeterogeneousSharding:
 
     def test_checksums_preserved_after_redistribution(self):
         proto = self._make_protocol()
-        shards = proto.assign_shards(latent_dim=2048)
+        proto.assign_shards(latent_dim=2048)
         data = [float(i) for i in range(2048)]
         proto.snapshot_checksums(data)
         orphaned = proto.simulate_node_failure("cpu-0")

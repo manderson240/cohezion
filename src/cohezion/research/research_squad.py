@@ -108,7 +108,7 @@ class ResearchSquad:
         import random
 
         baseline = experiment_config.get("baseline_metric", 1.0)
-        improvement = random.uniform(0.0, 0.2)  # noqa: S311
+        improvement = random.uniform(0.0, 0.2)
         new_metric = baseline * (1 - improvement)
 
         return (
@@ -179,7 +179,7 @@ class ResearchSquad:
         agent = ResearchAgent(config=config, executor=self.executor)
         session = agent.run_session()
 
-        best_improvement = random.uniform(0.05, 0.25)  # noqa: S311
+        best_improvement = random.uniform(0.05, 0.25)
         best_metric = baseline_metric * (1 - best_improvement)
         elapsed = time.time() - start_time
 

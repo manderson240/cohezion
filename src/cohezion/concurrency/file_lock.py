@@ -13,10 +13,13 @@ import fcntl
 import json
 import logging
 import time
-from collections.abc import Callable, Generator
 from contextlib import contextmanager
 from pathlib import Path
-from typing import Any, TextIO
+from typing import TYPE_CHECKING, Any, TextIO
+
+
+if TYPE_CHECKING:
+    from collections.abc import Callable, Generator
 
 
 logger = logging.getLogger(__name__)
@@ -67,7 +70,7 @@ class FileLock:
 
         while time.time() - start_time < self.timeout:
             try:
-                self._lock_file = open(self.filepath, "a")  # noqa: SIM115
+                self._lock_file = open(self.filepath, "a")
                 fcntl.flock(self._lock_file.fileno(), fcntl.LOCK_EX | fcntl.LOCK_NB)
                 self._acquired_at = time.time()
                 logger.debug(

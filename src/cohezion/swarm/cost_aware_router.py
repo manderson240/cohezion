@@ -1,3 +1,4 @@
+# ruff: noqa: SIM102, E501, RUF012, S110, RUF001  # math/physics symbols intentional
 """Cost-aware smart routing across local models with budget enforcement.
 
 Features:
@@ -445,7 +446,6 @@ class CostAwareRouter:
                         cls.MODEL_LATENCY[name] = data["latency_ms"]
 
             # Load tier routing config (maps complexity → model name)
-            raw = cls._profiles_cache if cls._profiles_cache else {}
             tier_cfg = {}
             # tier_routing may be in the raw YAML (top-level, not in a model section)
             if not tier_cfg:
@@ -559,8 +559,15 @@ class CostAwareRouter:
 
     @classmethod
     def reset(cls) -> None:
-        """Reset singleton (testing only)."""
+        """Reset singleton and profiles cache (testing only)."""
         cls._instance = None
+        cls._profiles_cache = None
+        cls._profiles_loaded = False
+
+    @classmethod
+    def reset_singleton(cls) -> None:
+        """Alias for reset() — matches conftest reset_singletons() pattern."""
+        cls.reset()
 
     def select_model(
         self,

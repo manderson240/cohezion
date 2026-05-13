@@ -63,14 +63,14 @@ def get_master_models() -> list[str]:
         with open(PROVIDERS_YAML) as f:
             providers = yaml.safe_load(f)
             if "tier_mappings" in providers:
-                for tier, types in providers["tier_mappings"].items():
-                    for m_type, m_name in types.items():
+                for _tier, types in providers["tier_mappings"].items():
+                    for _m_type, m_name in types.items():
                         all_models.add(m_name)
 
     # 2. From model_pool_config.py
     if MODEL_POOL_PY.exists():
         py_models = extract_models_from_py(MODEL_POOL_PY)
-        for tier, m_list in py_models.items():
+        for _tier, m_list in py_models.items():
             for m in m_list:
                 all_models.add(m)
 
@@ -117,7 +117,7 @@ def run_guard():
         logger.warning("No models found in master configurations.")
         return
 
-    for name, path in PLATFORM_CONFIGS.items():
+    for _name, path in PLATFORM_CONFIGS.items():
         sync_platform_config(path, master_models)
 
     logger.info("Model Routing Guard execution complete.")

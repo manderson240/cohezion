@@ -1,3 +1,4 @@
+# ruff: noqa: E501  # long lines: SQL/URLs/docstrings — wrapping reduces readability
 """
 AG-UI SSE endpoint for the Cohezion Genesis Engine.
 
@@ -11,7 +12,7 @@ from __future__ import annotations
 
 import asyncio
 import math
-from collections.abc import AsyncIterator
+from typing import TYPE_CHECKING
 
 from fastapi import APIRouter
 from fastapi.responses import StreamingResponse
@@ -27,6 +28,10 @@ from cohezion.api.agui_events import (
     phase_transition_event,
     universe_tick_event,
 )
+
+
+if TYPE_CHECKING:
+    from collections.abc import AsyncIterator
 
 
 agui_router = APIRouter(tags=["ag-ui"])

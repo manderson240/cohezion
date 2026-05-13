@@ -1,3 +1,4 @@
+# ruff: noqa: RUF006  # fire-and-forget async tasks — intentional
 """Non-blocking cost tracking module with batched async persistence.
 
 Features:
@@ -27,6 +28,7 @@ Usage:
 """
 
 import asyncio
+import contextlib
 import logging
 import time
 import uuid
@@ -196,7 +198,7 @@ class SessionCostTracker:
             # Only schedule if event loop is running
             loop = asyncio.get_event_loop()
             if loop.is_running():
-                loop.create_task(self._flush_batch())
+                self._flush_task = loop.create_task(self._flush_batch())
             else:
                 # Fallback: synchronous flush (shouldn't happen in async context)
                 self._flush_batch_sync()
@@ -225,10 +227,12 @@ class SessionCostTracker:
                     )
                     # Success: remove flushed records
                     self.records[:] = remaining
-                except (TimeoutError, Exception) as e:
+                except Exception as e:
                     # Vault failure: keep records in-memory
                     logger.warning(
-                        f"Cost tracking vault flush failed: {e}. Keeping {len(records_to_flush)} records in memory."
+                        "Cost tracking vault flush failed: %s. Keeping %d records in memory.",
+                        e,
+                        len(records_to_flush),
                     )
         finally:
             self._pending_flush = False
@@ -249,6 +253,13 @@ class SessionCostTracker:
         Returns:
             Number of records flushed
         """
+        # Cancel any pending background flush to avoid double-writes
+        if self._flush_task and not self._flush_task.done():
+            self._flush_task.cancel()
+            with contextlib.suppress(asyncio.CancelledError, Exception):
+                await self._flush_task
+        self._pending_flush = False
+
         if not self.records:
             return 0
 
@@ -266,7 +277,7 @@ class SessionCostTracker:
                             timeout=5.0,
                         )
                         flushed_count += len(batch)
-                    except (TimeoutError, Exception) as e:
+                    except Exception as e:
                         logger.warning(f"Batch flush failed: {e}")
                         break
 

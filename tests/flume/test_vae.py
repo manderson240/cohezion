@@ -35,7 +35,7 @@ def test_flume_vae_forward_pass():
     seq_len = 16
     input_ids = torch.randint(0, 100, (batch_size, seq_len))
 
-    recon_logits, mu, log_var = model(input_ids)
+    recon_logits, mu, log_var, _z = model(input_ids)
 
     assert recon_logits.shape == (batch_size, seq_len, 100)
     assert mu.shape == (batch_size, 256)
@@ -76,7 +76,7 @@ def test_flume_vae_compute_loss():
     seq_len = 10
     input_ids = torch.randint(0, 100, (batch_size, seq_len))
 
-    recon_logits, mu, log_var = model(input_ids)
+    recon_logits, mu, log_var, _z = model(input_ids)
     total_loss, recon_loss, kl_loss = model.compute_loss(input_ids, recon_logits, mu, log_var)
 
     assert total_loss > 0

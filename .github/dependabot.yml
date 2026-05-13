@@ -61,6 +61,11 @@ updates:
     ignore:
       - dependency-name: "python"
         update-types: ["version-update:semver-major"]
+      # torch uses ROCm-specific builds (+rocm6.x suffix) from pytorch.org/whl/rocm*
+      # Standard PyPI torch lacks ROCm GPU support — ignore ALL Dependabot torch bumps.
+      # Track ROCm torch versions manually against https://download.pytorch.org/whl/rocm
+      - dependency-name: "torch"
+        versions: ["*"]
 
   # GitHub Actions
   - package-ecosystem: "github-actions"

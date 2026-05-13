@@ -1,3 +1,4 @@
+# ruff: noqa: N806, RUF002, RUF003  # math/physics symbols intentional
 """Information geometry — the Fisher metric bridge.
 
 The Fisher information metric is the Rosetta Stone connecting:
@@ -141,7 +142,7 @@ class FisherInformationMetric:
         -------
         np.ndarray, shape (target_dim,) or (batch, target_dim)
         """
-        eigenvalues, eigenvectors = self.compute_eigendecomposition()
+        _eigenvalues, eigenvectors = self.compute_eigendecomposition()
         # Take top target_dim eigenvectors
         projection_matrix = eigenvectors[:, :target_dim]  # (dim, target_dim)
 
@@ -216,7 +217,7 @@ class FisherInformationMetric:
         Projects the full Fisher metric to target_dim and wraps it
         as a constant RiemannianMetric.
         """
-        eigenvalues, eigenvectors = self.compute_eigendecomposition()
+        _eigenvalues, eigenvectors = self.compute_eigendecomposition()
         # Project Fisher metric to target_dim
         P = eigenvectors[:, :target_dim]  # (dim, target_dim)
         projected_g = P.T @ self._cached_metric @ P  # (target_dim, target_dim)

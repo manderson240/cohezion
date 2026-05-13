@@ -59,6 +59,7 @@ class TestModelPoolManagerTiers:
                 "size_gb": 0.0,
                 "loaded": False,
                 "healthy": False,
+                "mark_used": lambda self: None,
             },
         )()
         manager._pool["edge-model"] = type(
@@ -70,6 +71,7 @@ class TestModelPoolManagerTiers:
                 "size_gb": 0.0,
                 "loaded": False,
                 "healthy": False,
+                "mark_used": lambda self: None,
             },
         )()
 
@@ -137,7 +139,7 @@ class TestModelPoolManagerTiers:
 @pytest.mark.asyncio
 async def test_sequential_loading_lock_logic():
     """Verify the logic behind the sequential load lock (conceptual test)."""
-    manager = ModelPoolManager()
+    ModelPoolManager()
     # This is a a conceptual check that we are using a sequential
     # call in ensure_loaded and that _load_model is an awaited async function.
     # The sequential nature is guaranteed by the la-phase of the orchestrator calling

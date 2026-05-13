@@ -131,43 +131,43 @@ from gymnasium import spaces
 
 class {class_name}(gym.Env):
     metadata = {{"render_modes": ["human", "rgb_array"]}}
-    
+
     def __init__(self, render_mode=None):
         super().__init__()
         self.render_mode = render_mode
-        
+
         # Initialize state space
         {state_space_init}
-        
-        # Initialize action space  
+
+        # Initialize action space
         {action_space_init}
-        
+
         # Episode tracking
         self._step_count = 0
         self._episode_reward = 0.0
-        
+
     def reset(self, seed=None, options=None):
         super().reset(seed=seed)
         self._step_count = 0
         self._episode_reward = 0.0
         {reset_logic}
         return self._get_obs(), {{}}
-        
+
     def step(self, action):
         self._step_count += 1
-        
+
         # Apply action
         {step_logic}
-        
+
         # Compute reward
         reward = {reward_logic}
-        
+
         # Check termination
         terminated = {termination_logic}
         truncated = self._step_count >= {max_episode_steps}
-        
+
         return self._get_obs(), reward, terminated, truncated, {{"steps": self._step_count}}
-        
+
     def _get_obs(self):
         {obs_logic}
         return obs
@@ -324,7 +324,7 @@ class {class_name}(gym.Env):
                 obs, info = env.reset()
                 for _ in range(10):
                     action = env.action_space.sample()
-                    obs, reward, terminated, truncated, info = env.step(action)
+                    _obs, _reward, terminated, truncated, _info = env.step(action)
                     if terminated or truncated:
                         break
 

@@ -206,7 +206,7 @@ async def _run_config_A_claude_only(
             report.calls.append(
                 CallResult(i, None, elapsed_ms, cost, "claude", "claude-haiku-4-5", True)
             )
-        except (TimeoutError, OSError, json.JSONDecodeError) as exc:
+        except (OSError, json.JSONDecodeError) as exc:
             elapsed_ms = (time.perf_counter() - start) * 1000
             sidecar_entries.append(
                 f"--- prompt {i} (python exception) ---\n{type(exc).__name__}: {exc}\n"

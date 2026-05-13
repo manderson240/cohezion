@@ -109,5 +109,5 @@ async def test_list_issues_pagination_limit(service):
         assert len(issues) == 5
 
         # Verify params were capped at 100
-        args, kwargs = mock_session.get.call_args
+        _args, kwargs = mock_session.get.call_args
         assert kwargs["params"]["per_page"] == 100 or kwargs["params"]["per_page"] == 5

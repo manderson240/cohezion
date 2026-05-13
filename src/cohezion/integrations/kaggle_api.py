@@ -1,21 +1,39 @@
+# ruff: noqa: E501  # long lines: SQL/URLs/docstrings — wrapping reduces readability
 import json
 import logging
 import os
-import subprocess
 from pathlib import Path
 
+import httpx
 import kagglehub
 from kaggle.api.kaggle_api_extended import KaggleApi
 
+from cohezion.reliability import CircuitBreaker
+
 
 logger = logging.getLogger(__name__)
+
+_BASE_URL = "https://www.kaggle.com/api/v1"
 
 
 class KaggleAPI:
     """Wrapper for official Kaggle API with asynchronous support."""
 
-    def __init__(self, username: str | None = None, key: str | None = None):
+    def __init__(
+        self,
+        username: str | None = None,
+        key: str | None = None,
+        failure_threshold: int = 5,
+    ):
         self.api = KaggleApi()
+        self.username = username
+        self.key = key
+        self.circuit = CircuitBreaker(name="kaggle_api", failure_threshold=failure_threshold)
+        self.pool = httpx.AsyncClient(
+            base_url=_BASE_URL,
+            timeout=httpx.Timeout(connect=10.0, read=60.0, write=60.0, pool=60.0),
+        )
+
         if username and key:
             os.environ["KAGGLE_USERNAME"] = username
             os.environ["KAGGLE_KEY"] = key
@@ -27,11 +45,31 @@ class KaggleAPI:
         except Exception as e:
             logger.warning(f"Kaggle API authentication failed: {e}.")
 
-    async def download_dataset(self, competition_id: str) -> Path:
-        """Download competition data from Kaggle using kagglehub."""
+    async def download_dataset(self, competition_id: str) -> bytes:
+        """Download competition data from Kaggle REST API (returns raw bytes)."""
+        logger.info(f"Downloading data for competition: {competition_id}")
+        response = await self.pool.get(
+            f"/datasets/download/{competition_id}",
+            auth=(self.username or "", self.key or ""),
+        )
+        try:
+            response.raise_for_status()
+            self.circuit.record_success()
+        except httpx.HTTPStatusError:
+            self.circuit.record_failure()
+            raise
+        return response.content
+
+    async def download_dataset_path(self, competition_id: str) -> Path:
+        """Download competition data from Kaggle using kagglehub (returns Path)."""
+        import asyncio
+
         logger.info(f"Downloading data for competition: {competition_id} via kagglehub")
         try:
-            download_path = kagglehub.competition_download(competition_id)
+            # kagglehub.competition_download is synchronous blocking I/O
+            download_path = await asyncio.to_thread(
+                kagglehub.competition_download, competition_id
+            )
             logger.info(f"Data downloaded to: {download_path}")
             return Path(download_path)
         except Exception as e:
@@ -117,23 +155,22 @@ class KaggleAPI:
             json.dump(metadata, f, indent=2)
 
         try:
-            logger.info(
-                f"Executing Kaggle CLI push for {notebook_id} with machine_shape=NvidiaRtxPro6000..."
+            logger.info(f"Pushing notebook {notebook_id} to Kaggle via REST API...")
+            response = await self.pool.post(
+                "/kernels/push",
+                json={"metadata": metadata, "blob": nb_json},
+                auth=(self.username or "", self.key or ""),
             )
-            cmd = ["kaggle", "kernels", "push", "-p", str(temp_dir)]
-            env = os.environ.copy()
-            if self.username:
-                env["KAGGLE_USERNAME"] = self.username
-
-            result = subprocess.run(cmd, capture_output=True, text=True, env=env)
-
-            if result.returncode != 0:
-                logger.error(f"Kaggle push failed: {result.stderr}")
-                raise Exception(f"Kaggle push failed: {result.stderr}")
-
-            url = f"https://www.kaggle.com/{self.username}/{notebook_id}"
+            response.raise_for_status()
+            self.circuit.record_success()
+            result = response.json()
+            url = result.get("url", f"https://www.kaggle.com/{self.username}/{notebook_id}")
             logger.info(f"Success! URL: {url}")
-            return {"status": "complete", "url": url}
+            return result
+        except httpx.HTTPStatusError as e:
+            self.circuit.record_failure()
+            logger.error(f"Kaggle push failed (HTTP {e.response.status_code}): {e}")
+            raise
         except Exception as e:
             logger.error(f"Failed to push notebook: {e}")
             raise

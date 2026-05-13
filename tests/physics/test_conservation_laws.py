@@ -409,7 +409,7 @@ class TestLiouvilleTheorem:
 
         # Build Jacobian columns from finite differences
         J_q = np.column_stack([dq / eps for dq in deltas_q])
-        J_v = np.column_stack([dv / eps for dv in deltas_v])
+        np.column_stack([dv / eps for dv in deltas_v])
 
         # Phase space Jacobian (simplified: just check position-space volume)
         det_J = abs(np.linalg.det(J_q))

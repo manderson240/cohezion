@@ -1,3 +1,4 @@
+# ruff: noqa: E402  # deferred imports for circular-dep workarounds
 """Workflow manager for multi-step capability management workflows.
 
 Orchestrates: model onboarding, gap analysis, periodic reassessment,
@@ -8,9 +9,13 @@ and fine-tuning from identified gaps. Delegates to existing infrastructure
 from __future__ import annotations
 
 import logging
+import shutil
 import subprocess
 from dataclasses import dataclass, field
 from datetime import date
+
+
+_OLLAMA = shutil.which("ollama") or "/usr/local/bin/ollama"
 
 from cohezion.compound.capability_matrix import (
     CapabilityGap,
@@ -89,8 +94,8 @@ class WorkflowManager:
 
         # Step 1: Check if model is available locally
         try:
-            output = subprocess.run(
-                ["ollama", "list"],
+            output = subprocess.run(  # noqa: S603 - static probe with constant args
+                [_OLLAMA, "list"],
                 capture_output=True,
                 text=True,
                 timeout=10,

@@ -211,15 +211,14 @@ class DRRGenerator:
         left = Path(report.left_artifact)
         right = Path(report.right_artifact)
 
-        if left.exists() and right.exists():
-            if report.artifact_hash == report.test_hash:
-                report.findings.append(
-                    Finding(
-                        severity=FindingSeverity.MEDIUM,
-                        category="identical_artifacts",
-                        description="Left and right artifacts have identical content",
-                    )
+        if left.exists() and right.exists() and report.artifact_hash == report.test_hash:
+            report.findings.append(
+                Finding(
+                    severity=FindingSeverity.MEDIUM,
+                    category="identical_artifacts",
+                    description="Left and right artifacts have identical content",
                 )
+            )
 
     async def persist(self, report: DesignReviewReport, surreal_client=None) -> bool:
         """Persist DRR to SurrealDB vmodel_gate table (non-blocking).

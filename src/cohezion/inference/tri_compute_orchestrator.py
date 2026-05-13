@@ -91,7 +91,7 @@ class NPUInferenceEngine:
         """Use NPU to generate next experiment parameters."""
         # This would actually call the NPU
         # For now, return structured params
-        prompt = f"""
+        f"""
         Generate parameters for Phase {phase} experiment.
         Previous results: {json.dumps(previous_results, indent=2)}
 

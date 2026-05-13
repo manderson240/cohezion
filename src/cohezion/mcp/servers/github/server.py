@@ -6,6 +6,7 @@ Provides: Search repos, get repo info, create issues, manage PRs.
 from __future__ import annotations
 
 import logging
+from functools import lru_cache
 from typing import Any
 
 import aiohttp
@@ -18,24 +19,42 @@ from cohezion.security.credentials import get_credentials
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger("github-mcp")
 
-# Lazy accessor for GITHUB_TOKEN to prevent startup latency
-_github_token: str | None = None
-
-
-def get_github_token() -> str:
-    """Get GitHub token with lazy initialization."""
-    global _github_token
-    if _github_token is None:
-        _github_token = (
-            get_credentials().get_secret("COHEZION_GITHUB_TOKEN", env_var="GITHUB_TOKEN") or ""
-        )
-    return _github_token
-
-
 GITHUB_API_BASE = "https://api.github.com"
 
 # Initialize FastMCP server
 app = FastMCP("cohezion-github")
+
+
+# Lazy accessor — Bitwarden vault calls at module import exceed the stdio MCP
+# handshake budget (CLAUDE.md L54-72). (Ω12 P1 Patch 11)
+@lru_cache(maxsize=1)
+def get_github_token() -> str:
+    return get_credentials().get_secret("COHEZION_GITHUB_TOKEN", env_var="GITHUB_TOKEN") or ""
+
+
+def __getattr__(name: str):
+    """Module-level lazy GITHUB_TOKEN — preserves existing call sites without import-time cost."""
+    if name == "GITHUB_TOKEN":
+        return get_github_token()
+    raise AttributeError(f"module {__name__!r} has no attribute {name!r}")
+
+
+# Primary: Vault Warden, Fallback: Environment
+# Lazy accessor — Bitwarden vault calls at module import exceed the stdio MCP
+# handshake budget (CLAUDE.md L54-72). (Ω12 P1 Patch 11)
+from functools import lru_cache as _lru_cache
+
+
+@_lru_cache(maxsize=1)
+def get_github_token() -> str:
+    return get_credentials().get_secret("COHEZION_GITHUB_TOKEN", env_var="GITHUB_TOKEN") or ""
+
+
+def __getattr__(name: str):
+    """Module-level lazy GITHUB_TOKEN — preserves existing call sites without import-time cost."""
+    if name == "GITHUB_TOKEN":
+        return get_github_token()
+    raise AttributeError(f"module {__name__!r} has no attribute {name!r}")
 
 
 class GitHubService:

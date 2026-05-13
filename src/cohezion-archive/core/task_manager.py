@@ -6,6 +6,7 @@ Prevents fire-and-forget issues and unhandled exceptions in background tasks.
 from __future__ import annotations
 
 import asyncio
+import contextlib
 import logging
 import traceback
 from collections.abc import Awaitable, Callable, Coroutine
@@ -193,10 +194,8 @@ class TaskManager:
             task.cancel()
 
             if wait and not task.done():
-                try:
+                with contextlib.suppress(asyncio.CancelledError):
                     await task
-                except asyncio.CancelledError:
-                    pass
 
             return True
 
@@ -231,7 +230,7 @@ class TaskManager:
         async with self._lock:
             counts = {"cancelled": 0, "completed": 0, "failed": 0}
 
-            for task_id, task in list(self._tasks.items()):
+            for _task_id, task in list(self._tasks.items()):
                 if not task.done():
                     if cancel_running:
                         task.cancel()

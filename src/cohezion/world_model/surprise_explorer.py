@@ -1,3 +1,4 @@
+# ruff: noqa: B007  # loop var used for indexing/sentinel
 """Surprise-driven exploration of the 12D manifold.
 
 After the JEPA world model is trained, identifies high-surprise regions

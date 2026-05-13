@@ -12,6 +12,7 @@ Extends autoresearch to sub-agents while protecting system resources:
 from __future__ import annotations
 
 import asyncio
+import contextlib
 import logging
 import resource
 import time
@@ -237,7 +238,7 @@ class ResearchSubAgent:
 
             # Set memory limit using rlimit (Unix only)
             try:
-                soft, hard = resource.getrlimit(resource.RLIMIT_AS)
+                _soft, hard = resource.getrlimit(resource.RLIMIT_AS)
                 memory_limit_bytes = self.guard.limits.max_memory_mb * 1024 * 1024
                 resource.setrlimit(resource.RLIMIT_AS, (memory_limit_bytes, hard))
             except (ValueError, OSError):
@@ -292,10 +293,8 @@ class MultiAgentAutoresearch:
         """Stop all agents and monitoring."""
         if self._monitoring_task:
             self._monitoring_task.cancel()
-            try:
+            with contextlib.suppress(asyncio.CancelledError):
                 await self._monitoring_task
-            except asyncio.CancelledError:
-                pass
         logger.info("MultiAgentAutoresearch: Stopped")
 
     def register_sub_agent(

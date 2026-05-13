@@ -6,8 +6,13 @@ Sensing -> FLUME (256D) -> Manifold Projection (12D) -> HIHO Stability Check.
 
 from __future__ import annotations
 
+from typing import TYPE_CHECKING
+
 import numpy as np
 from pydantic import BaseModel, Field
+
+if TYPE_CHECKING:
+    from cohezion.flume.vae_encoder import FlumeVAEEncoder
 
 
 class ManifoldProjection(BaseModel):
@@ -36,7 +41,7 @@ class ManifoldTranslator:
     cohezion-flume latent structure.
     """
 
-    def __init__(self, encoder: VAEEncoder | None = None):
+    def __init__(self, encoder: FlumeVAEEncoder | None = None):
         self.encoder = encoder
         # The projection matrix P is a fixed deterministic mapping for the 256D -> 12D projection.
         # We use a seed for reproducibility.

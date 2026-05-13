@@ -186,7 +186,7 @@ def _mirror_h(g: Grid) -> Grid | None:
 def _mirror_v(g: Grid) -> Grid | None:
     if not g:
         return None
-    rows, cols = len(g), len(g[0]) if g else 0
+    rows, _cols = len(g), len(g[0]) if g else 0
     if rows % 2 != 0:
         return None
     half = rows // 2

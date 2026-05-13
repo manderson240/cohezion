@@ -9,6 +9,7 @@ Tests:
 
 from __future__ import annotations
 
+import contextlib
 import time
 
 import pytest
@@ -23,8 +24,8 @@ from cohezion.core.persistence.repositories.base import (
 class MockEntity:
     """Mock entity for testing."""
 
-    def __init__(self, id: str, name: str):
-        self.id = id
+    def __init__(self, entity_id: str, name: str):
+        self.id = entity_id
         self.name = name
 
     def __eq__(self, other):
@@ -230,7 +231,7 @@ class TestBaseRepository:
         repo = MockRepository()
 
         # Try to get non-existent entity (returns None, not exception)
-        result = await repo.get("nonexistent")
+        await repo.get("nonexistent")
 
         # Should have recorded metrics (success=False for None result)
         assert len(repo._metrics) > 0
@@ -416,14 +417,12 @@ class TestBaseRepository:
         async def failing_operation():
             raise RuntimeError("Test failure")
 
-        try:
+        with contextlib.suppress(RuntimeError):
             await repo._execute_with_metrics(
                 operation="failing_op",
                 execute_fn=failing_operation,
                 items_count=1,
             )
-        except RuntimeError:
-            pass
 
         assert len(repo._metrics) == 1
         assert repo._metrics[0].success is False

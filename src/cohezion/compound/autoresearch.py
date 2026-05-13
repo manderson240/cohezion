@@ -1,3 +1,4 @@
+# ruff: noqa: SIM102, S112, E501  # long lines: SQL/URLs/docstrings — wrapping reduces readability
 """Autoresearch-driven refinement and experiential learning.
 
 This module provides:
@@ -12,6 +13,7 @@ This module provides:
    compound.skill_refiner.SkillRefiner).
 """
 
+import hashlib
 import json
 import logging
 from dataclasses import dataclass, field
@@ -62,6 +64,9 @@ class AutoresearchEngine:
     and compound engineering optimization.
     """
 
+    # HIHO balance threshold: exploit when coherence >= this, explore when below
+    HIHO_THRESHOLD = 0.5
+
     def __init__(self):
         self.thresholds = {
             "min_cache_hit_rate": 0.80,
@@ -69,6 +74,17 @@ class AutoresearchEngine:
             "max_vault_latency_ms": 100,
             "min_coherence": 0.70,
         }
+        self._logged_opportunity_hashes: set[str] = set()
+
+    def _opportunity_hash(self, opp: "ImprovementOpportunity") -> str:
+        key = f"{opp.category}:{opp.recommendation}:{opp.priority}"
+        return hashlib.sha256(key.encode()).hexdigest()[:16]
+
+    def _mark_logged(self, opp: "ImprovementOpportunity") -> None:
+        self._logged_opportunity_hashes.add(self._opportunity_hash(opp))
+
+    def _is_duplicate(self, opp: "ImprovementOpportunity") -> bool:
+        return self._opportunity_hash(opp) in self._logged_opportunity_hashes
 
     async def analyze(self, metrics: dict[str, Any]) -> list[ImprovementOpportunity]:
         """Analyze metrics and identify improvement opportunities.
@@ -174,6 +190,76 @@ class AutoresearchEngine:
             "estimated_effort": "medium",
             "expected_roi": "12x token efficiency improvement",
         }
+
+    async def generate_next_experiments(
+        self,
+        n: int = 5,
+        session_metrics: dict[str, Any] | None = None,
+        retired_labels: list[str] | None = None,
+    ) -> list[dict[str, Any]]:
+        """Generate n next experiments using HIHO balance.
+
+        Exploit (tune parameters) when coherence >= HIHO_THRESHOLD.
+        Explore (new hypotheses) when coherence < HIHO_THRESHOLD.
+        If retired_labels provided, generate replacement experiments first.
+        """
+        metrics = session_metrics or {}
+        coherence = metrics.get("avg_coherence", self.HIHO_THRESHOLD)
+        mode = "exploit" if coherence >= self.HIHO_THRESHOLD else "explore"
+
+        results: list[dict[str, Any]] = []
+
+        # First: generate replacements for retired experiments
+        for label in (retired_labels or []):
+            if len(results) >= n:
+                break
+            results.append({
+                "mode": mode,
+                "replaces": label,
+                "hypothesis": (
+                    f"Parameter sweep of {label} (exploit variant)"
+                    if mode == "exploit"
+                    else f"New hypothesis replacing {label}"
+                ),
+                "parameter": f"{label}_lr" if mode == "exploit" else None,
+                "priority": "high",
+            })
+
+        exploit_templates = [
+            {"parameter": "learning_rate", "range": [0.5, 1.0, 1.5, 2.0]},
+            {"parameter": "n_phase", "range": [3, 5, 7, 10]},
+            {"parameter": "coherence_threshold", "range": [0.6, 0.7, 0.8, 0.85]},
+            {"parameter": "batch_size", "range": [2, 4, 8, 16]},
+            {"parameter": "retirement_cv", "range": [0.03, 0.05, 0.07]},
+        ]
+        explore_templates = [
+            {"hypothesis": "Adaptive lr based on gap magnitude reduces overshoot"},
+            {"hypothesis": "Parallel deliberations increase diversity score"},
+            {"hypothesis": "Coherence-weighted voting improves overall quality 5%+"},
+            {"hypothesis": "Multi-cycle compounding produces geometric delta decay"},
+            {"hypothesis": "Voice-specific calibration outperforms uniform adjustment"},
+        ]
+
+        idx = 0
+        while len(results) < n:
+            if mode == "exploit":
+                t = exploit_templates[idx % len(exploit_templates)]
+                results.append({
+                    "mode": "exploit",
+                    "hypothesis": f"Sweep {t['parameter']} over {t['range']}",
+                    "parameter": t["parameter"],
+                    "priority": "medium",
+                })
+            else:
+                t = explore_templates[idx % len(explore_templates)]
+                results.append({
+                    "mode": "explore",
+                    "hypothesis": t["hypothesis"],
+                    "priority": "medium",
+                })
+            idx += 1
+
+        return results[:n]
 
 
 class VaultLearningCapture:
@@ -306,7 +392,7 @@ class VaultLearningCapture:
                 continue
 
         # Identify recurring patterns
-        lesson_counts = {}
+        lesson_counts: dict[str, int] = {}
         for lesson in all_lessons:
             lesson_counts[lesson] = lesson_counts.get(lesson, 0) + 1
 

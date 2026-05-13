@@ -36,7 +36,7 @@ index 12345..67890 100644
 @@ -10,3 +10,4 @@
  def existing_func():
      pass
- 
+
 +def new_func():
 ++    return "hello"
 """

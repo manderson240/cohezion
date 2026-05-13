@@ -5,6 +5,7 @@ from __future__ import annotations
 import json
 import sys
 from pathlib import Path
+from typing import Any
 
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
@@ -119,7 +120,6 @@ def run_ablation(sample: int = 100) -> list[dict[str, Any]]:
     op_sets = build_ops_subset()
 
     # Use a dummy train for color_map since it needs task context
-    dummy_train = [{"input": [[0, 1], [1, 0]], "output": [[0, 1], [1, 0]]}]
 
     results = []
     for name, ops in op_sets.items():

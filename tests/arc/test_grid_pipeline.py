@@ -60,7 +60,7 @@ class TestValidateGrid:
         assert not ok
         assert "out of range" in msg.lower()
         g2 = [[1, -1], [3, 4]]
-        ok2, msg2 = validate_grid(g2)
+        ok2, _msg2 = validate_grid(g2)
         assert not ok2
 
 
@@ -150,9 +150,7 @@ class TestSyntheticTask:
     def test_pattern_extract_invert(self):
         from cohezion.arc.pattern_extractor import PatternExtractor
 
-        # Use a 3x3 task where invert(0↔1) is the ONLY single-op solution.
-        # 2x2 symmetric grids are ambiguous: flip_h produces the same result
-        # as invert on [[0,1],[1,0]]→[[1,0],[0,1]].
+        # 3x3 task where invert is the ONLY single-op solution (asymmetric grids)
         task = {
             "train": [
                 {

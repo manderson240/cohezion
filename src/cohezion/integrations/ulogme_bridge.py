@@ -105,7 +105,7 @@ class UlogmeBridge:
                                 app_category=self._categorize_window(data[1]),
                             )
                             entries.append(entry)
-                    except (json.JSONDecodeError, IndexError, ValueError) as e:
+                    except (IndexError, ValueError) as e:
                         logger.debug(f"Skipping malformed line: {e}")
                         continue
 
@@ -386,7 +386,7 @@ Coherence: {session.coherence:.2f}"""
 
         # Build SurrealQL query
         query = """
-        SELECT 
+        SELECT
             metadata.category as category,
             math::sum(metadata.keystrokes) as total_keystrokes,
             count() as session_count,

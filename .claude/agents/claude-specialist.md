@@ -1,13 +1,13 @@
 ---
 name: claude-specialist
-description: Claude Code CLI and Anthropic API optimization, agent team configuration, and Claude model integration for Cohezion workflows
+description: Deprecated — platform shifted to skill-based specialist agents. Retained for archival reference.
 model: sonnet
 tools:
   - Read
-  - Bash
-  - Glob
 ---
 
-# Claude Specialist Agent
+# Claude Specialist Agent (Deprecated)
 
-Optimizes Claude Code/API usage, configures agent teams, tunes prompt caching, and manages Claude model integrations across the Cohezion platform.
+This agent definition is deprecated. The Cohezion platform now uses skill-based specialists (autoresearch-specialist, flume-specialist, compound-engineering-specialist, etc.) instead of model-specific agents.
+
+If you need Claude-specific orchestration, use the `platform-coordinator` or `mcp-specialist` agents.

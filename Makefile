@@ -24,6 +24,9 @@ coherence-check:  ## Enforce 12D manifold integrity in data artifacts
 type-check:  ## Run type checking with mypy
 
 	mypy --ignore-missing-imports bmad/ || true
+=======
+	uv run mypy src/cohezion --ignore-missing-imports --no-strict-optional --exclude 'mcp-builder'
+>>>>>>> origin/polish/research-deep-think
 	@echo "✓ Type check complete"
 
 test:  ## Run test suite

@@ -215,7 +215,7 @@ def shift_right_1(grid: np.ndarray) -> np.ndarray | None:
 def count_objects(grid: np.ndarray) -> np.ndarray | None:
     from scipy import ndimage as ndi
 
-    labels, n = ndi.label(grid != 0)
+    _labels, n = ndi.label(grid != 0)
     if n == 0:
         return None
     out = np.full_like(grid, n)
@@ -280,7 +280,7 @@ def connected_components_4(grid: np.ndarray) -> np.ndarray | None:
 
     if grid.size == 0:
         return None
-    labels, n = ndi.label(grid != 0, structure=np.array([[0, 1, 0], [1, 1, 1], [0, 1, 0]]))
+    labels, _n = ndi.label(grid != 0, structure=np.array([[0, 1, 0], [1, 1, 1], [0, 1, 0]]))
     out = grid.copy()
     out[out != 0] = labels[out != 0]
     return out

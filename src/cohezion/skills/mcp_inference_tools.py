@@ -71,7 +71,7 @@ def elite_ocr_analysis(args: dict[str, Any]) -> dict[str, Any]:
             json.dumps(payload),
         ]
 
-        res = subprocess.run(cmd, capture_output=True, text=True)  # noqa: S603 - cmd is a static curl invocation to localhost ollama API
+        res = subprocess.run(cmd, capture_output=True, text=True)
         if res.returncode != 0:
             return {"content": [{"type": "text", "text": f"OCR API call failed: {res.stderr}"}]}
 
@@ -93,10 +93,8 @@ def elite_ocr_analysis(args: dict[str, Any]) -> dict[str, Any]:
 
     except (
         OSError,
-        json.JSONDecodeError,
         ValueError,
         KeyError,
-        UnicodeDecodeError,
     ) as e:
         return {"content": [{"type": "text", "text": f"Elite OCR analysis failed: {e}"}]}
 
@@ -193,7 +191,7 @@ Generate production-ready, maintainable code that follows industry standards.
             json.dumps(payload),
         ]
 
-        res = subprocess.run(cmd, capture_output=True, text=True)  # noqa: S603 - cmd is a static curl invocation to localhost ollama API
+        res = subprocess.run(cmd, capture_output=True, text=True)
         if res.returncode != 0:
             return {
                 "content": [
@@ -224,10 +222,8 @@ Generate production-ready, maintainable code that follows industry standards.
 
     except (
         OSError,
-        json.JSONDecodeError,
         ValueError,
         KeyError,
-        UnicodeDecodeError,
     ) as e:
         return {"content": [{"type": "text", "text": f"Agentic coding workflow failed: {e}"}]}
 
@@ -326,7 +322,6 @@ def compound_engineering_orchestrator(args: dict[str, Any]) -> dict[str, Any]:
 
     except (
         OSError,
-        json.JSONDecodeError,
         ValueError,
         KeyError,
         TypeError,

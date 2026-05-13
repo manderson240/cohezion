@@ -16,6 +16,7 @@ from collections.abc import AsyncIterator
 from dataclasses import dataclass, field
 from datetime import datetime
 from enum import Enum, auto
+from pathlib import Path
 from typing import Any
 from uuid import UUID, uuid4
 
@@ -341,7 +342,7 @@ class KnowledgeGraphLayer:
         """Persist edge to SurrealDB as graph relation."""
         sql = f"""
         RELATE {edge.source_id}->knowledge_edge->{edge.target_id}
-        SET 
+        SET
             relation = '{edge.relation.name}',
             coherence_strength = {edge.coherence_strength},
             spin_alignment = {edge.spin_alignment},
@@ -364,7 +365,7 @@ class KnowledgeGraphLayer:
         visited = set()
         current_level = [start_node_id]
 
-        for hop in range(max_hops):
+        for _hop in range(max_hops):
             next_level = []
             edges_at_level = []
 
@@ -513,7 +514,7 @@ class KnowledgeGraphLayer:
             lines.append(f'    "{node_id}" [label="{node.label}", color={color}];')
 
         # Edges
-        for edge_id, edge in self.edges.items():
+        for _edge_id, edge in self.edges.items():
             # Style based on relation type
             style = "solid"
             if edge.relation in [RelationType.CONTRADICTS]:
@@ -546,12 +547,11 @@ class KnowledgeGraphLayer:
             for node_id in current_level:
                 for edge_id in self._edge_index.get(node_id, []):
                     edge = self.edges.get(edge_id)
-                    if edge:
-                        if edge.confidence >= min_confidence:
-                            edges.append(edge)
-                            nodes[edge.source_id] = self.nodes.get(edge.source_id)
-                            nodes[edge.target_id] = self.nodes.get(edge.target_id)
-                            next_level.append(edge.target_id)
+                    if edge and edge.confidence >= min_confidence:
+                        edges.append(edge)
+                        nodes[edge.source_id] = self.nodes.get(edge.source_id)
+                        nodes[edge.target_id] = self.nodes.get(edge.target_id)
+                        next_level.append(edge.target_id)
 
             current_level = next_level
 

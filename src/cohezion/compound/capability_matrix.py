@@ -1,3 +1,4 @@
+# ruff: noqa: E501, RUF012, S110  # best-effort: ignored exceptions are intentional in init/cleanup paths
 """Unified capability matrix for models, skills, and agents.
 
 Reads from existing tracking systems (ModelQualityClassifier, SkillHealthTracker,
@@ -7,6 +8,7 @@ interface for capability assessment, gap analysis, and task recommendation.
 
 from __future__ import annotations
 
+import contextlib
 import logging
 from dataclasses import dataclass, field
 from datetime import date
@@ -317,10 +319,8 @@ class CapabilityMatrix:
         data_count = 0
         if training_data_path.exists():
             for f in training_data_path.glob("*.jsonl"):
-                try:
+                with contextlib.suppress(Exception):
                     data_count += sum(1 for _ in f.open())
-                except Exception:
-                    pass
 
         for gap in gaps:
             if gap.suggested_action != "finetune":
@@ -358,7 +358,7 @@ class CapabilityMatrix:
 
     def update_from_execution(self, entity_id: str, execution_result: dict) -> None:
         """Update an entity's scores based on a new execution result."""
-        for key, entry in self._entries.items():
+        for _key, entry in self._entries.items():
             if entry.entity_id == entity_id:
                 coherence = execution_result.get("coherence", entry.quality_score)
                 success = execution_result.get("success", True)
@@ -551,7 +551,7 @@ class CapabilityMatrix:
                 )
                 self._entries[f"data_product:{product.name}"] = entry
                 loaded += 1
-        except (ImportError, Exception):
+        except Exception:
             logger.debug("Data mesh not available (non-blocking)", exc_info=True)
         return loaded
 

@@ -91,7 +91,7 @@ def main():
         if not os.path.exists(abs_target):
             continue
 
-        for root, dirs, files in os.walk(abs_target):
+        for root, _dirs, files in os.walk(abs_target):
             # Check if current root matches any exclude pattern
             rel_root = os.path.relpath(root, project_root)
             if any(exclude in f"/{rel_root}/" for exclude in EXCLUDE_PATTERNS):

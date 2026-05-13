@@ -1,3 +1,4 @@
+# ruff: noqa: E402, N806, RUF002  # math/physics symbols intentional
 """FLUME Phase 2 TemporalEncoder — Transformer over trajectory step sequences.
 
 Encodes variable-length sequences of compound execution steps into a 256D
@@ -176,10 +177,7 @@ class TemporalEncoder(nn.Module):
         At inference/eval time uses mu directly (no sampling noise).
         """
         mu, logvar = self.encode(x, padding_mask=padding_mask)
-        if self.training:
-            z = self.reparameterize(mu, logvar)
-        else:
-            z = mu
+        z = self.reparameterize(mu, logvar) if self.training else mu
         return z, mu, logvar
 
 
@@ -287,7 +285,7 @@ class TemporalDecoder(nn.Module):
         Tensor [B, T, step_dim]
             Reconstructed step sequence.
         """
-        B, T, _ = target.shape
+        _B, T, _ = target.shape
 
         # Memory: expand z → [B, 1, d_model] as the encoder memory
         memory = self.latent_proj(z).unsqueeze(1)  # [B, 1, d_model]

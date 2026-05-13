@@ -1,3 +1,4 @@
+# ruff: noqa: N806  # math/physics: T, F, B, P, S, G, R, A — single-letter conventions
 """Hamiltonian dynamics for FLUME latent space simulation.
 
 Replaces cosmetic jitter with real physics: potential energy gradients,
@@ -10,10 +11,14 @@ with barriers that prevent trivial collapse.
 from __future__ import annotations
 
 import logging
-from collections.abc import Callable
 from enum import Enum
+from typing import TYPE_CHECKING
 
 import numpy as np
+
+
+if TYPE_CHECKING:
+    from collections.abc import Callable
 
 
 try:

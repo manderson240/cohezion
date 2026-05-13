@@ -41,3 +41,18 @@
 	path = research/challenges/anthropic_challenge_original
 	url = https://TODO.example.invalid/anthropic-challenge-original.git
 	# Gitlink commit: 5452f74bd977807ac2e74f3d29432b9df6f25197
+
+[submodule "archives/backups/research/challenges/anthropic_challenge_original"]
+	path = archives/backups/research/challenges/anthropic_challenge_original
+	url = https://TODO.example.invalid/anthropic-challenge-original.git
+	# Gitlink commit: 5452f74bd977807ac2e74f3d29432b9df6f25197
+
+[submodule "archives/backups/research/challenges/bluequbit/sdk-examples"]
+	path = archives/backups/research/challenges/bluequbit/bluequbit/sdk-examples
+	url = https://TODO.example.invalid/bluequbit-sdk-examples.git
+	# Gitlink commit: 1285e68aeb25aba7e58dd8bcd5edd64dd0c4ac2a
+
+[submodule "archives/backups/tools/mcp/ollama-mcp"]
+	path = archives/backups/tools/mcp/ollama-mcp
+	url = https://TODO.example.invalid/ollama-mcp.git
+	# Gitlink commit: 91030faf1f19c066d9503c5e1d3f10e7a336bb3c

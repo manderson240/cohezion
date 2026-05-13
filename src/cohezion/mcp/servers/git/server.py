@@ -1,3 +1,4 @@
+# ruff: noqa: S104  # binds 0.0.0.0 in dev/internal services
 """Git Context MCP Server - Code-aware compound sessions.
 
 Port: 8368
@@ -16,6 +17,7 @@ from __future__ import annotations
 import asyncio
 import logging
 import os
+import shutil
 import subprocess
 import sys
 from typing import Any
@@ -32,6 +34,9 @@ logger = logging.getLogger(__name__)
 
 MCP_PORT = int(os.getenv("MCP_PORT", "8368"))
 
+# Resolve git executable at module load to avoid S607 partial-path warnings.
+_GIT = shutil.which("git") or "/usr/bin/git"
+
 
 class GitContext:
     """Git repository context analyzer."""
@@ -46,8 +51,8 @@ class GitContext:
     def _run_git(self, args: list[str]) -> tuple[str, bool]:
         """Run git command and return output."""
         try:
-            result = subprocess.run(
-                ["git", "-C", str(self.repo_path), *args],
+            result = subprocess.run(  # noqa: S603 - repo_path sanitized via sanitize_path; args from internal callers only
+                [_GIT, "-C", str(self.repo_path), *args],
                 capture_output=True,
                 text=True,
                 timeout=30,

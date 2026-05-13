@@ -1,3 +1,4 @@
+# ruff: noqa: RUF002, RUF003  # math/physics symbols intentional
 """Observer Patch Holography bridge for Cohezion.
 
 Maps FloatingPragma's Observer-Patch-Holography (OPH) axioms to Cohezion's
@@ -25,10 +26,13 @@ from __future__ import annotations
 import logging
 import math
 from dataclasses import dataclass
+from typing import TYPE_CHECKING
 
 import numpy as np
 
-from cohezion.physics.spinor import SpinorState
+
+if TYPE_CHECKING:
+    from cohezion.physics.spinor import SpinorState
 
 
 logger = logging.getLogger(__name__)

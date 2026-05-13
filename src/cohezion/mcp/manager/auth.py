@@ -2,9 +2,13 @@
 
 from __future__ import annotations
 
+import logging
 import os
 import secrets
 from pathlib import Path
+
+
+logger = logging.getLogger(__name__)
 
 
 # Default path for the auth token
@@ -37,7 +41,12 @@ def get_current_token() -> str | None:
 
     try:
         return AUTH_TOKEN_PATH.read_text().strip()
-    except Exception:
+    except (OSError, ValueError) as e:
+        # Fail-closed but NOT silent — operator needs to know why all A2A
+        # requests are 403'ing. (Ω12 P1 Patch 12)
+        logger.warning(
+            "Failed to read ephemeral token from %s: %s", AUTH_TOKEN_PATH, e
+        )
         return None
 
 

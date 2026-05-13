@@ -34,7 +34,7 @@ def monitor() -> dict[str, Any]:
     t0 = timeit.default_timer()
     cz_bin = which("cz") or "cz"
     try:
-        result = subprocess.run(  # noqa: S603
+        result = subprocess.run(
             [cz_bin, "context", "--json"],
             capture_output=True,
             text=True,
@@ -43,7 +43,7 @@ def monitor() -> dict[str, Any]:
         data = json.loads(result.stdout)
         pct = data.get("percentage", 0.0) / 100.0
         status = data.get("status", "OK")
-    except (subprocess.TimeoutExpired, json.JSONDecodeError, FileNotFoundError, OSError):
+    except (subprocess.TimeoutExpired, json.JSONDecodeError, OSError):
         pct = 0.0
         status = "UNAVAILABLE"
     return {

@@ -1,3 +1,4 @@
+# ruff: noqa: SIM115  # explicit open/close for resource management
 """
 File Locking Context Manager for Atomic File Operations
 
@@ -186,7 +187,7 @@ def atomic_file_read(filepath: str, timeout: float = 5.0) -> str:
     with locked_file_operation(str(filepath), timeout):
         if not filepath.is_file():
             raise FileNotFoundError(f"File not found: {filepath}")
-        return filepath.read_text(encoding="utf-8")
+        return str(filepath.read_text(encoding="utf-8"))
 
 
 def atomic_file_modify(filepath: str, modify_func, timeout: float = 5.0) -> None:

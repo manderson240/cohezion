@@ -16,6 +16,7 @@ Key Patterns:
 from __future__ import annotations
 
 import asyncio
+import contextlib
 import logging
 import statistics
 from collections import deque
@@ -204,10 +205,8 @@ class ProactiveReactiveEngine:
         for task in tasks:
             if task and not task.done():
                 task.cancel()
-                try:
+                with contextlib.suppress(asyncio.CancelledError):
                     await task
-                except asyncio.CancelledError:
-                    pass
 
         logger.info("ProactiveReactiveEngine stopped")
 

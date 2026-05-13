@@ -1,3 +1,4 @@
+# ruff: noqa: E501  # long lines: SQL/URLs/docstrings — wrapping reduces readability
 """PersistentCache - Phase 1 Bottleneck #2: Session persistence and recovery.
 
 JSONL-backed cache that survives process restarts, enabling cross-session
@@ -132,7 +133,8 @@ class PersistentCache:
 
                 # Persist hit update for analytics
                 self._persist_entry(key, entry)
-                return entry.get("value")
+                value = entry.get("value")
+                return value if isinstance(value, str) else None
 
             self._stats["misses"] += 1
             return None

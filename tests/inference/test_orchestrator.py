@@ -41,6 +41,42 @@ def test_quality_gate_error_fails():
     assert QualityGate.TRUST.check(r)[0] is False
 
 
+def test_quality_gate_require_nonempty_fails_on_empty_text():
+    """require_nonempty=True rejects empty response even without an error."""
+    gate = QualityGate(require_nonempty=True)
+    r = RouteResult(text="   ", model="m", lane="test", latency_ms=0, error=None)
+    passed, reason = gate.check(r)
+    assert passed is False
+    assert reason == "empty response"
+
+
+@pytest.mark.asyncio
+async def test_tier_exception_continues_to_next_tier():
+    """If a tier raises, it is logged and escalation continues to the next tier."""
+    orch = TieredOrchestrator(
+        tiers=[
+            ("tier0", QualityGate.TRUST),
+            ("tier1", QualityGate.TRUST),
+        ]
+    )
+
+    async def _raise_then_succeed(
+        prompt, *, task=None, prefer=None, budget_usd=None, stream=True, max_tokens=600
+    ):
+        if prefer == "tier0":
+            raise RuntimeError("tier0 hardware offline")
+        return _rr("tier1 response")
+
+    with patch("cohezion.inference.orchestrator.route", side_effect=_raise_then_succeed):
+        result = await orch.run("test")
+
+    assert result.text == "tier1 response"
+    assert result.error is None
+    assert len(result.tier_path) == 2
+    assert result.tier_path[0].passed is False
+    assert "exception" in result.tier_path[0].reason
+
+
 @pytest.mark.asyncio
 async def test_O1_first_tier_passes_no_escalation():
     """Tier 0 gate passes → only tier 0 runs."""
@@ -267,3 +303,171 @@ async def test_O3b_nested_respects_own_cap_when_parent_unbounded():
 
     # Only inner-t0 fires; inner-t1 blocked by inner's own $0.005 cap.
     assert m.await_count == 1
+
+
+# ── pre_dispatch_classifier integration ──────────────────────────────────────
+
+
+def _decision(node: str, gate_chars: int = 0):
+    """Minimal RouteDecision-alike for testing."""
+    from types import SimpleNamespace
+
+    return SimpleNamespace(
+        node=node, quality_gate_chars=gate_chars, output_type="test", reason="test", confidence=1.0
+    )
+
+
+@pytest.mark.asyncio
+async def test_pre_dispatch_routes_gpu_skips_tier0():
+    """Classifier returning gpu → tier 0 is skipped entirely."""
+    classifier = lambda _: _decision("gpu")
+
+    orch = TieredOrchestrator(
+        tiers=[
+            ("tier0", QualityGate(min_chars=5)),
+            ("tier1", QualityGate.TRUST),
+        ],
+        pre_dispatch_classifier=classifier,
+    )
+
+    call_log: list[str] = []
+
+    async def _fake_route(
+        prompt, *, task=None, prefer=None, budget_usd=None, stream=True, max_tokens=600
+    ):
+        call_log.append(prefer)
+        return _rr("response from gpu tier")
+
+    with patch("cohezion.inference.orchestrator.route", side_effect=_fake_route):
+        result = await orch.run("write a function")
+
+    assert call_log == ["tier1"], "tier0 must be skipped when classifier routes to gpu"
+    assert result.escalation_count == 1  # started at index 1
+    assert result.error is None
+
+
+@pytest.mark.asyncio
+async def test_pre_dispatch_gate_override_for_tier0():
+    """Classifier returning npu with gate_chars=0 overrides tier0's default gate."""
+    classifier = lambda _: _decision("npu", gate_chars=0)
+
+    orch = TieredOrchestrator(
+        tiers=[
+            ("tier0", QualityGate(min_chars=30)),  # default gate requires 30 chars
+            ("tier1", QualityGate.TRUST),
+        ],
+        pre_dispatch_classifier=classifier,
+    )
+
+    call_log: list[str] = []
+
+    async def _fake_route(
+        prompt, *, task=None, prefer=None, budget_usd=None, stream=True, max_tokens=600
+    ):
+        call_log.append(prefer)
+        return _rr("OK")  # 2 chars — would fail gate=30 but should pass gate=0
+
+    with patch("cohezion.inference.orchestrator.route", side_effect=_fake_route):
+        result = await orch.run("reply with yes or no")
+
+    assert call_log == ["tier0"], "must stay on tier0 when gate override allows short response"
+    assert result.error is None, "gate override enabled short response to pass"
+
+
+@pytest.mark.asyncio
+async def test_pre_dispatch_classifier_exception_uses_defaults():
+    """If classifier raises, fall back silently to tier-0 default behavior."""
+
+    def _bad_classifier(_):
+        raise RuntimeError("classifier failed")
+
+    orch = TieredOrchestrator(
+        tiers=[
+            ("tier0", QualityGate(min_chars=2)),
+            ("tier1", QualityGate.TRUST),
+        ],
+        pre_dispatch_classifier=_bad_classifier,
+    )
+
+    with patch(
+        "cohezion.inference.orchestrator.route",
+        AsyncMock(return_value=_rr("ok")),
+    ) as m:
+        result = await orch.run("test")
+
+    # Fell back to default: tier0 ran first and passed
+    assert m.await_count == 1
+    assert result.error is None
+
+
+@pytest.mark.asyncio
+async def test_pre_dispatch_none_uses_normal_flow():
+    """pre_dispatch_classifier=None is the no-op default; all tiers eligible."""
+    orch = TieredOrchestrator(
+        tiers=[
+            ("tier0", QualityGate(min_chars=5)),
+            ("tier1", QualityGate.TRUST),
+        ],
+        pre_dispatch_classifier=None,
+    )
+
+    with patch(
+        "cohezion.inference.orchestrator.route",
+        AsyncMock(return_value=_rr("hi")),
+    ) as m:
+        result = await orch.run("test")
+
+    # "hi" is 2 chars, gate=5 fails → tier1 also runs → both invoked
+    assert m.await_count == 2
+    assert result.error is None
+
+
+@pytest.mark.asyncio
+async def test_pre_dispatch_gpu_routing_overrides_tier1_gate():
+    """When classifier routes to GPU, tier 1's gate is overridden with quality_gate_chars.
+
+    Prevents triune-style orchestrators (iGPU gate=2000) from over-escalating
+    code tasks where 300-char output is a complete, correct answer.
+    """
+    # Simulates a triune orchestrator where iGPU has a strict gate=2000
+    classifier = lambda _: _decision("gpu", gate_chars=0)  # code: trust any non-empty
+
+    orch = TieredOrchestrator(
+        tiers=[
+            ("npu", QualityGate(min_chars=500)),
+            (
+                "igpu",
+                QualityGate(min_chars=2000),
+            ),  # strict default — would reject 300-char function
+            ("cpu", QualityGate.TRUST),
+        ],
+        pre_dispatch_classifier=classifier,
+    )
+
+    call_log: list[str] = []
+
+    async def _fake_route(
+        prompt, *, task=None, prefer=None, budget_usd=None, stream=True, max_tokens=600
+    ):
+        call_log.append(prefer)
+        return _rr("def reverse(s):\n    return s[::-1]\n")  # 32 chars — under 2000 gate but valid
+
+    with patch("cohezion.inference.orchestrator.route", side_effect=_fake_route):
+        result = await orch.run("write a reverse function")
+
+    assert call_log == ["igpu"], "NPU skipped (start_tier=1), iGPU ran once"
+    assert result.error is None, "32-char function must pass: gate override = 0 (trust non-empty)"
+
+
+@pytest.mark.asyncio
+async def test_telemetry_hardware_tier_branches():
+    """Exercise FLM/Gemma/Claude model-name branches in telemetry instrumentation."""
+    # Uses real model IDs to hit the NPU/iGPU/Cloud hardware tier classification branches
+    for model_id in ("llama3.2-1b-FLM", "Gemma-4-E4B-it-GGUF", "claude-haiku-4-5"):
+        orch = TieredOrchestrator(tiers=[(model_id, QualityGate.TRUST)])
+        with patch(
+            "cohezion.inference.orchestrator.route",
+            AsyncMock(return_value=_rr("ok", model=model_id)),
+        ):
+            result = await orch.run("test")
+        assert result.error is None, f"Failed for model {model_id}"

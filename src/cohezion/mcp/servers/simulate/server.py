@@ -1,3 +1,4 @@
+# ruff: noqa: E501  # long lines: SQL/URLs/docstrings — wrapping reduces readability
 """Simulate MCP Server.
 
 Provides: Tools for running sandboxed simulations.

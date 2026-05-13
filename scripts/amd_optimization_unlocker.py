@@ -210,7 +210,7 @@ class AMDOptimizationUnlocker:
                 ["hipcc", "--version"], capture_output=True, text=True, timeout=5
             )
             return result.stdout.split("\n")[0] if result.returncode == 0 else "Not found"
-        except:
+        except Exception:
             return "Not available"
 
     def _get_mesa_version(self) -> str:
@@ -222,7 +222,7 @@ class AMDOptimizationUnlocker:
                 if "driverVersion" in line:
                     return line.split("=")[-1].strip()
             return "Unknown"
-        except:
+        except Exception:
             return "Not available"
 
     def _get_vulkan_driver(self) -> str:
@@ -234,7 +234,7 @@ class AMDOptimizationUnlocker:
                 if "driverName" in line and "radv" in line:
                     return "RADV (Mesa)"
             return "Unknown"
-        except:
+        except Exception:
             return "Not available"
 
     def _check_hsa(self) -> bool:
@@ -274,7 +274,7 @@ class AMDOptimizationUnlocker:
             power_file = Path("/sys/class/drm/card1/device/power_dpm_force_performance_level")
             if power_file.exists():
                 return power_file.read_text().strip()
-        except:
+        except Exception:
             pass
         return "unknown"
 

@@ -1,3 +1,4 @@
+# ruff: noqa: S102  # exec required for dynamic code generation
 """Dynamic Agent Factory for PRIME skill-driven agent creation.
 
 Accepts a skill name, uses :class:`TemplateEngine` to parse the skill

@@ -81,7 +81,7 @@ class TriuneReviewer:
                     score = float(data.get("score", 0.5))
                     critique = data.get("critique", "No critique")
                     suggestion = data.get("suggestion")
-                except:
+                except (json.JSONDecodeError, KeyError, TypeError):
                     score = 0.5
                     critique = res.response
                     suggestion = None
@@ -105,17 +105,19 @@ class TriuneReviewer:
         # --- ADVERSARIAL VETO (Red Team) ---
         # In a production la-phase, we instantiate a real AdversarialRedTeamAgent.
         # For the current benchmark run, we implement the 'Symmetry Breaker' logic:
-        # if strategy contains contradiction or leakage, it's a hard veto.
+        # the veto fires either when the strategy itself contains an explicit
+        # contradiction/leakage marker, OR when any reviewer flags a
+        # CONTRADICTION/LEAKAGE in their critique response.
         red_team_veto = False
-        if "contradiction" in strategy.lower() or "leakage" in strategy.lower():
+        strategy_lower = strategy.lower()
+        if "contradiction" in strategy_lower or "leakage" in strategy_lower:
             red_team_veto = True
-        # Also veto when all perspectives independently detected a contradiction.
-        # The keyword check catches explicit labels; this catches semantic detection
-        # by the reviewers themselves (e.g. "CONTRADICTION: True" in critique).
-        elif reviews and all(
-            "CONTRADICTION: TRUE" in r.critique.upper() for r in reviews
-        ):
-            red_team_veto = True
+        else:
+            for r in reviews:
+                critique_lower = (r.critique or "").lower()
+                if "contradiction: true" in critique_lower or "leakage: true" in critique_lower:
+                    red_team_veto = True
+                    break
 
         is_approved = (avg_score >= 0.7) and not red_team_veto
 

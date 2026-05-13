@@ -6,6 +6,7 @@ SurrealDB persistence).
 """
 
 import asyncio
+import contextlib
 import json
 import logging
 import time
@@ -54,10 +55,8 @@ class OuroborosRecorder:
         self._running = False
         if self._task and not self._task.done():
             self._task.cancel()
-            try:
+            with contextlib.suppress(asyncio.CancelledError):
                 await self._task
-            except asyncio.CancelledError:
-                pass
         self._persist_snapshot(final=True)
         logger.info("OuroborosRecorder stopped (%d cycles)", self._cycle_count)
 

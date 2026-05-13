@@ -1,3 +1,4 @@
+# ruff: noqa: RUF012  # class attrs treated as immutable config; never mutated per-instance
 """Recursive Challenger - Autonomous engineering improvement loop.
 
 Analyzes target modules for improvement opportunities, generates failing tests,

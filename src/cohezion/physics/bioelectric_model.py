@@ -1,3 +1,4 @@
+# ruff: noqa: RUF002, RUF003  # math/physics symbols intentional
 """Bioelectric Network Model — Levin-inspired collective intelligence dynamics.
 
 Implements Michael Levin's bioelectric framework as a computational model:

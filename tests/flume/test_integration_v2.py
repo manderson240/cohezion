@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 from pathlib import Path
-from unittest.mock import MagicMock, patch
+from unittest.mock import MagicMock
 
 import numpy as np
 import torch
@@ -29,13 +29,7 @@ class TestVAEEncoderV2Integration:
             ckpt_path,
         )
 
-        # Mock Ollama to return 768D
-        fake_768d = np.random.randn(768).astype(np.float32)
-        fake_768d /= np.linalg.norm(fake_768d)
-
-        with patch("cohezion.flume.vae_encoder.OllamaEmbeddingProvider") as MockOllama:
-            MockOllama.return_value.embed.return_value = fake_768d
-            encoder = FlumeVAEEncoder(model_path=ckpt_path, fallback_to_hash=True)
+        encoder = FlumeVAEEncoder(model_path=ckpt_path, fallback_to_hash=True)
 
         if encoder.is_available():
             result = encoder.encode("deploy the API")
@@ -88,21 +82,18 @@ class TestJourneyTrackerFLUMEPath:
 
         tracker = JourneyTracker()
 
-        # Mock FLUME encoder that preserves semantic similarity
-        rng = np.random.RandomState(42)
-
+        # Mock FLUME encoder with deterministic category vectors for reliable assertions
         def mock_encode(text: str) -> np.ndarray:
-            # Paraphrases get similar vectors (varied, not constant)
             if "deploy" in text.lower() or "deployment" in text.lower():
-                base = rng.randn(256).astype(np.float32)
-                base[:128] += 2.0  # Strong positive signal in first half
+                v = np.zeros(256, dtype=np.float32)
+                v[:128] = 1.0
             elif "test" in text.lower():
-                base = rng.randn(256).astype(np.float32)
-                base[128:] += 2.0  # Strong positive signal in second half
+                v = np.zeros(256, dtype=np.float32)
+                v[128:] = 1.0
             else:
-                base = rng.randn(256).astype(np.float32)
-            base /= np.linalg.norm(base)
-            return base
+                v = np.zeros(256, dtype=np.float32)
+                v[64:192] = 1.0
+            return v / np.linalg.norm(v)
 
         mock_encoder = MagicMock()
         mock_encoder.encode.side_effect = mock_encode

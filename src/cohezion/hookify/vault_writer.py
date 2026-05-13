@@ -1,3 +1,4 @@
+# ruff: noqa: E501  # long lines: SQL/URLs/docstrings — wrapping reduces readability
 """
 Hookify Obsidian Vault Integration
 Write decisions, violations, and learning artifacts to the vault graph
@@ -8,10 +9,13 @@ from __future__ import annotations
 import json
 import logging
 from datetime import datetime
-from pathlib import Path
-from typing import Any
+from typing import TYPE_CHECKING, Any
 
 import yaml
+
+
+if TYPE_CHECKING:
+    from pathlib import Path
 
 
 logger = logging.getLogger(__name__)
@@ -72,8 +76,8 @@ class HookifyVaultWriter:
 
 # Violation: {rule_id}
 
-**Session**: {session_id}  
-**Timestamp**: {timestamp}  
+**Session**: {session_id}
+**Timestamp**: {timestamp}
 **Coherence**: {context.get("coherence", "N/A")}
 
 ## Violation Details
@@ -145,8 +149,8 @@ class HookifyVaultWriter:
 
 # Decision: Adjust {rule_id}.{lever_name}
 
-**Date**: {timestamp}  
-**Type**: Lever Adjustment  
+**Date**: {timestamp}
+**Type**: Lever Adjustment
 **Status**: Committed
 
 ## Change Summary
@@ -216,7 +220,7 @@ If this change causes issues:
 
 # Learning Summary: {rule_id}
 
-**Period**: {period}  
+**Period**: {period}
 **Generated**: {timestamp}
 
 ## Statistics
@@ -308,13 +312,13 @@ This learning should inform:
 
 # Cosmological Changelog: {session_id}
 
-**Session**: {session_id}  
-**Date**: {timestamp}  
+**Session**: {session_id}
+**Date**: {timestamp}
 **Status**: {"✓ Converged" if final_coherence >= 0.5 else "✗ Not Converged"}
 
 ## Summary
 
-Final coherence: **{final_coherence:.4f}** (target: 0.5000)  
+Final coherence: **{final_coherence:.4f}** (target: 0.5000)
 Final accuracy: **{accuracy:.4f}%** (target: 0.1000%)
 
 ## Iteration Log
@@ -334,7 +338,7 @@ Final accuracy: **{accuracy:.4f}%** (target: 0.1000%)
 
 *When coherence crossed HIHO threshold*
 
-- Iteration {next((i + 1 for i, it in enumerate(iterations) if it.get("coherence", 0) >= 0.5), "N/A")}: 
+- Iteration {next((i + 1 for i, it in enumerate(iterations) if it.get("coherence", 0) >= 0.5), "N/A")}:
   Coherence reached HIHO (0.5)
 
 ## Test Results

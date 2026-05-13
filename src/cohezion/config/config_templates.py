@@ -1,3 +1,4 @@
+# ruff: noqa: E501  # long lines: SQL/URLs/docstrings — wrapping reduces readability
 """Configuration file templates for Phase 4.
 
 Template-driven regeneration of CLAUDE.md and GEMINI.md

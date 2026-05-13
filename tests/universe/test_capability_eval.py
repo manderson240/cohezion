@@ -344,7 +344,7 @@ class TestEvalRunner:
         )
         agent = MockAgent(default="The answer is 4")
         runner = EvalRunner(output_dir=str(tmp_path / "evals"))
-        result = await runner.run_suite(suite, agent)
+        await runner.run_suite(suite, agent)
 
         # Check file was saved
         files = list((tmp_path / "evals").glob("*.json"))

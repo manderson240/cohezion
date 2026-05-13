@@ -34,17 +34,17 @@ def run_verification():
     try:
         # Import the proposed code
         {proposed_code}
-        
+
         # Add invariant checks here (synthesized by LLM)
         log_info("Harness started...")
-        
+
         # Verify module presence
         import {target_module}
         log_info(f"Module {{'{target_module}'}} imported successfully.")
-        
+
         # Generic functional check if applicable
         # ...
-        
+
         log_info("Harness completed successfully.")
         return True
     except Exception as e:

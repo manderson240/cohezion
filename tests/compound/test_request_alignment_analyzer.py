@@ -388,15 +388,15 @@ class TestIntentClassification:
         ]
 
         for text, expected_intent in test_cases:
-            intent, confidence = self.analyzer._classify_intent(text)
+            intent, _confidence = self.analyzer._classify_intent(text)
             assert intent == expected_intent, f"Failed for: {text}"
 
     def test_intent_confidence_score(self):
         """Test intent confidence scoring."""
         # High confidence: multiple intent keywords
-        intent1, conf1 = self.analyzer._classify_intent("Generate and create multiple new stories")
+        _intent1, conf1 = self.analyzer._classify_intent("Generate and create multiple new stories")
         # Low confidence: single keyword
-        intent2, conf2 = self.analyzer._classify_intent("Generate")
+        _intent2, conf2 = self.analyzer._classify_intent("Generate")
 
         assert conf1 >= conf2  # More keywords = higher confidence
 

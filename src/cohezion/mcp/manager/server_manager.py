@@ -1,3 +1,4 @@
+# ruff: noqa: SIM115, E501  # long lines: SQL/URLs/docstrings — wrapping reduces readability
 """MCP Server Manager - MCPServerManager class and singleton accessor."""
 
 from __future__ import annotations
@@ -105,11 +106,18 @@ class MCPServerManager:
             env["REDIS_URL"] = REDIS_URL
 
             module_path, _ = config.entry_point.rsplit(":", 1)
-            cmd = [sys.executable, "-m", module_path]
+            # Per coding-standards L367: prefer venv python over sys.executable
+            # (sys.executable can be system Python when invoked from a hook/cron).
+            # (Ω12 P2 Patch 18 — TODO: extract to cohezion.utils.python_exec)
+            def _python_exec_inline() -> str:
+                from pathlib import Path as _Path
+                _venv_py = _Path(__file__).resolve().parents[4] / ".venv" / "bin" / "python3"
+                return str(_venv_py) if _venv_py.exists() else sys.executable
+            cmd = [_python_exec_inline(), "-m", module_path]
 
             log_file = sanitize_path(f"{name}.log", base_dir=VAULT_LOG_PATH)
 
-            process = subprocess.Popen(
+            process = subprocess.Popen(  # noqa: S603 - sys.executable + module_path from internal config
                 cmd,
                 env=env,
                 stdout=open(log_file, "a", encoding="utf-8"),
