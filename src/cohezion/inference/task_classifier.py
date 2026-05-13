@@ -102,7 +102,7 @@ _GPU_PATTERNS = [
     # Extended: formula, macro, procedure, query, snippet, lambda, decorator, mixin, interface
     (
         re.compile(
-            r"\b(write|implement|create|generate|build)\s+(a |an |the )?(\w+ )?(function|class|script|module|code|program|formula|macro|procedure|query|snippet|lambda|decorator|mixin|interface)\b",
+            r"\b(write|implement|create|generate|build)\s+(a |an |the )?(\w+ )?(function|class|script|module|code|program|formula|macro|procedure|query|snippet|lambda|decorator|mixin|interface|getters?|setters?|validators?|serializers?|deserializers?|accessors?|migrations?|fixtures?|resolvers?|middlewares?)\b",
             re.I,
         ),
         1.0,
@@ -181,10 +181,20 @@ _GPU_PATTERNS = [
         0.78,
         "implement multi-word component",
     ),
+    # "implement the feature/fix/change/solution" — single-word object (feature, fix, etc.)
+    # Also: "implement one/it/them" — anaphoric reference after prior context
+    (
+        re.compile(
+            r"\bimplement\s+(?:(?:the|a|an|this)\s+(?:feature|fix|change|solution|logic|idea|concept|requirement|improvement|enhancement|refactor|optimization|integration|endpoint|service|check|guard|hook)|(?:one|it|them|this|that)\b)",
+            re.I,
+        ),
+        0.82,
+        "implement the feature/fix",
+    ),
     # "implement sorting/caching/searching/batching/anonymization/etc" — algorithm/operation as direct object
     (
         re.compile(
-            r"\bimplement\s+(?:the\s+|a\s+|an\s+)?(?:[\w-]+\s+)?(?:sort(?:ing)?|search(?:ing)?|cach(?:e|ing)|hash(?:ing)?|batch(?:ing)?|rout(?:e|ing)|queu(?:e|ing)|stack(?:ing)?|heap|tree|graph|index(?:ing)?|filter(?:ing)?|compres(?:s|sion)|encod(?:e|ing)|anon(?:ymiz(?:e|ation)|ymisation)?|encrypt(?:ion)?|decrypt(?:ion)?|authenticat(?:e|ion)|authoriz(?:e|ation)|algorithm|protocol)\b",
+            r"\bimplement\s+(?:the\s+|a\s+|an\s+)?(?:[\w-]+\s+)?(?:sort(?:ing)?|search(?:ing)?|cach(?:e|ing)|hash(?:ing)?|batch(?:ing)?|rout(?:e|ing)|queu(?:e|ing)|stack(?:ing)?|heap|tree|graph|shard(?:ing)?|auto.shard(?:ing)?|auto.scal(?:e|ing)?|index(?:ing)?|filter(?:ing)?|compres(?:s|sion)|encod(?:e|ing)|anon(?:ymiz(?:e|ation)|ymisation)?|encrypt(?:ion)?|decrypt(?:ion)?|authenticat(?:e|ion)|authoriz(?:e|ation)|paginat(?:e|ion)|throttl(?:e|ing)|algorithm|protocol|webhook)\b",
             re.I,
         ),
         0.85,
@@ -193,7 +203,7 @@ _GPU_PATTERNS = [
     # "implement JWT/OAuth/CSRF/GDPR/etc." — tech acronym/standard without article
     (
         re.compile(
-            r"\bimplement\s+(?:jwt|oauth|oauth2|saml|ldap|ssl|tls|grpc|websocket|webhook|oidc|sso|csrf|xss|gdpr|ccpa|rbac|acl|2fa|mfa|otp)\b",
+            r"\bimplement\s+(?:jwt|oauth|oauth2|saml|ldap|ssl|tls|grpc|websocket|webhook|oidc|sso|csrf|xss|gdpr|ccpa|rbac|acl|2fa|mfa|otp|token\s+refresh|token\s+rotation|session\s+invalidation|rate\s+limiting)\b",
             re.I,
         ),
         0.88,
@@ -427,7 +437,7 @@ _GPU_PATTERNS = [
     # IaC/infra tool generation — nginx, k8s, terraform, docker, helm config files
     (
         re.compile(
-            r"\b(generate|create|produce|write|build)\s+(?:a\s+)?(?:nginx|kubernetes|k8s|terraform|helm|docker|dockerfile|ansible|puppet|grafana|prometheus|github\s+actions?|ci/cd|gitlab\s+ci)\b",
+            r"\b(generate|create|produce|write|build)\s+(?:the\s+|a\s+|an\s+)?(?:nginx|kubernetes|k8s|terraform|helm|docker|dockerfile|ansible|puppet|grafana|prometheus|github\s+actions?|ci/cd|gitlab\s+ci|migrations?)\b",
             re.I,
         ),
         0.88,
@@ -461,7 +471,7 @@ _GPU_PATTERNS = [
     # Requires configure to be at start of prompt or after sentence-ending punctuation
     (
         re.compile(
-            r"(?:^|[.!;]\s+)configure\s+(?:the\s+|a\s+|this\s+)?(?:redis|rabbitmq|kafka|nginx|postgresql|mysql|mongodb|elasticsearch|grafana|prometheus|vault|consul|ssl|tls|https?|ldap|smtp|dns|iptables|sshd?|vpn|openvpn|wireguard|fail2ban|ufw|nfs|samba)\b",
+            r"(?:^|[.!;]\s+)configure\s+(?:the\s+|a\s+|this\s+)?(?:redis|rabbitmq|kafka|nginx|postgresql|mysql|mongodb|elasticsearch|grafana|prometheus|vault|consul|ssl|tls|https?|ldap|smtp|dns|iptables|sshd?|vpn|openvpn|wireguard|fail2ban|ufw|nfs|samba|waf|rate\s+limit|load\s+balanc|circuit\s+breaker|cdn)\b",
             re.I | re.M,
         ),
         0.85,
@@ -485,14 +495,32 @@ _GPU_PATTERNS = [
         0.82,
         "add to code artifact",
     ),
-    # "Fix the [bug/issue/error/problem] in/with X" — bug fix task
+    # "Fix the [bug/issue] in X" OR "Fix it/them/this" — code fix commands
     (
         re.compile(
-            r"\bfix\s+(?:the\s+)?(?:bug|issue|error|problem|crash|failure|regression)\b.{0,30}\b(in|with|at|for)\b",
+            r"\bfix\s+(?:(?:the\s+)?(?:bug|issue|error|problem|crash|failure|regression)\b.{0,30}\b(?:in|with|at|for)\b|(?:it|them|this|that)\b)",
             re.I,
         ),
         0.85,
         "fix bug in code",
+    ),
+    # Short imperative code operations: scaffold/stub/mock/process/handle/extend/simplify/dockerize
+    (
+        re.compile(
+            r"\b(scaffold|stub\s+out?|mock|process|handle|extend|simplify|dockerize|containerize|serialize|paginate)\s+(?:the\s+|a\s+|an\s+|this\s+)?(?:[\w-]+\s+){0,3}\w+\b",
+            re.I,
+        ),
+        0.82,
+        "short imperative code op",
+    ),
+    # "Make [the/a] X more/less [readable/efficient/testable/...] — code quality improvement
+    (
+        re.compile(
+            r"\bmake\s+(?:the\s+|a\s+|this\s+)?\w+\s+(?:more\s+|less\s+)?(?:readable|efficient|testable|maintainable|performant|scalable|clean|modular|robust|reusable|thread.safe|clear(?:er)?|simple(?:r)?|fast(?:er)?|small(?:er)?|concise(?:r)?)\b",
+            re.I,
+        ),
+        0.82,
+        "make-code-quality",
     ),
     # "Update the [tests/function/class/code/module] to [action]" — code update task
     (
