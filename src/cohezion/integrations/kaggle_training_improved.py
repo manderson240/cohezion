@@ -407,12 +407,62 @@ try:
                     return text[start + 1:i]
         return None
 
+    # MCQ wrapping (CrossThink arXiv:2504.13941): wrap binary-answer questions in
+    # multiple-choice format for 40% of examples. Constrains output space, improves
+    # reward signal stability. 60/40 open-ended/MCQ mix prevents over-specialization.
+    MCQ_RATIO = 0.40
+    _MCQ_LETTERS = ["A", "B", "C", "D"]
+
+    def _make_mcq(answer):
+        # Generate 3 plausible distractors for the correct answer
+        import hashlib
+        if _re.match(r'^[01]{8}$', answer.strip()):
+            # bit_manip: flip random bits for distractors
+            distractors = set()
+            a_int = int(answer.strip(), 2)
+            for mask in [0b11110000, 0b00001111, 0b10101010, 0b01010101]:
+                distractors.add(f"{(a_int ^ mask):08b}")
+                if len(distractors) >= 3: break
+        elif answer.strip().replace('.', '').lstrip('-').isdigit():
+            # numeric: add/subtract small amounts
+            val = float(answer.strip())
+            distractors = {
+                str(round(val * 0.9, 2)), str(round(val * 1.1, 2)), str(round(val + 1, 2))
+            }
+        else:
+            # fallback: no MCQ for complex answers
+            return None, None
+        distractors.discard(answer.strip())
+        choices = [answer.strip()] + list(distractors)[:3]
+        # Deterministic shuffle based on answer hash
+        h = int(hashlib.md5(answer.encode()).hexdigest(), 16)
+        for i in range(len(choices) - 1, 0, -1):
+            j = h % (i + 1)
+            choices[i], choices[j] = choices[j], choices[i]
+            h = h // (i + 1)
+        correct_letter = _MCQ_LETTERS[choices.index(answer.strip())]
+        opts = "\n".join(f"({_MCQ_LETTERS[i]}) {c}" for i, c in enumerate(choices))
+        return opts, correct_letter
+
+    _idx_counter = [0]
+
     def tokenize(example):
-        prompt_text = f"{BOXED_INSTRUCTION}\n\nProblem: {example['prompt']}\n\n"
-        completion = f"Answer: {example['answer']}"
+        _idx_counter[0] += 1
+        use_mcq = (_idx_counter[0] % 10) < int(MCQ_RATIO * 10)
+        if use_mcq:
+            opts, letter = _make_mcq(example['answer'])
+            if opts and letter:
+                prompt_text = (
+                    f"Choose the correct answer.\n\n{example['prompt']}\n\n{opts}\n\n"
+                )
+                completion = f"The answer is \\boxed{{{letter}}}."
+            else:
+                use_mcq = False
+        if not use_mcq:
+            prompt_text = f"{BOXED_INSTRUCTION}\n\nProblem: {example['prompt']}\n\n"
+            completion = f"Answer: {example['answer']}"
         enc = tokenizer(prompt_text + completion, truncation=True, max_length=2048)
         prompt_ids = tokenizer(prompt_text, truncation=True, max_length=2048)["input_ids"]
-        # label_pad_token_id=-100: mask prompt so only completion contributes to loss
         labels = [-100] * len(prompt_ids) + enc["input_ids"][len(prompt_ids):]
         enc["labels"] = labels[:2048]
         return enc
