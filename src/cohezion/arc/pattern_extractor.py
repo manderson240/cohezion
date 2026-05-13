@@ -908,12 +908,31 @@ def _build_strategy(name: str, train: list[dict[str, Grid]]) -> list[tuple[str, 
 
     cm = [*base, ("color_map", _make_color_map(train))]
 
+    # Shape-aware strategy: only ops that keep size (no expand/shrink)
+    transform = [
+        *base,
+        ("invert", _invert_colors),
+        ("remove_bg", _remove_bg),
+        ("fill_holes", _fill_holes),
+        ("gravity_d", _gravity_down),
+        ("gravity_u", _gravity_up),
+        ("mirror_h", _mirror_h),
+        ("mirror_v", _mirror_v),
+        ("color_map", _make_color_map(train)),
+    ] + [
+        (f"replace_{old}_{new}", _make_replace(old, new))
+        for old in range(10)
+        for new in range(10)
+        if old != new
+    ]
+
     return {
         "color": color,
         "geo": geo,
         "obj": obj,
         "scale": scale,
         "color_map": cm,
+        "transform": transform,
         "all": [*color, *geo, *obj, *scale, *cm],
     }.get(name, base)
 
@@ -975,7 +994,26 @@ class PatternExtractor:
         if not train:
             return []
 
-        strategies = ["color", "geo", "obj", "scale", "color_map", "all"]
+        # Shape-aware strategy selection: add specialised strategy first
+        def _output_scale(examples: list[dict[str, Grid]]) -> str:
+            """Determine dominant scale relationship from training examples."""
+            h_in = len(examples[0]["input"])
+            h_out = len(examples[0]["output"])
+            w_in = len(examples[0]["input"][0]) if examples[0]["input"] else 1
+            w_out = len(examples[0]["output"][0]) if examples[0]["output"] else 1
+            if h_in == h_out and w_in == w_out:
+                return "same"
+            if h_out >= h_in and w_out >= w_in:
+                return "up"
+            return "down"
+
+        scale_hint = _output_scale(train)
+        if scale_hint == "same":
+            strategies = ["transform", "color", "obj", "color_map", "geo", "all"]
+        elif scale_hint == "up":
+            strategies = ["geo", "scale", "color", "color_map", "all"]
+        else:
+            strategies = ["obj", "scale", "color", "color_map", "all"]
         vote_map: dict[tuple[str, ...], list[str]] = {}
         coverage_map: dict[tuple[str, ...], float] = {}
         hiho_map: dict[tuple[str, ...], float] = {}
