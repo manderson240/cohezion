@@ -229,7 +229,9 @@ def _format_number(value: float, examples: list[tuple[str, str]]) -> str:
 # Unit conversion solver
 # ---------------------------------------------------------------------------
 def solve_unit_conversion(examples: list[tuple[str, str]], test_x: str) -> str:
-    """Find conversion formula from examples. Try linear first."""
+    """Find conversion formula from examples. Tries linear and non-linear fits."""
+    import math
+
     xs, ys = [], []
     for x_str, y_str in examples:
         try:
@@ -241,29 +243,74 @@ def solve_unit_conversion(examples: list[tuple[str, str]], test_x: str) -> str:
             pass
     if len(xs) < 2:
         return "0.0"
-    # Linear fit: y = a*x + b
-    n = len(xs)
-    sum_x = sum(xs)
-    sum_y = sum(ys)
-    sum_xy = sum(x * y for x, y in zip(xs, ys))
-    sum_x2 = sum(x * x for x in xs)
-    denom = n * sum_x2 - sum_x * sum_x
-    if abs(denom) < 1e-10:
-        # Try y = k * x (no offset)
-        k = sum_y / sum_x if sum_x != 0 else 1.0
-        try:
-            test_val = float(re.search(r"([0-9.]+)", test_x).group(1))
-        except Exception:
-            return "0.0"
-        return _format_number(k * test_val, examples)
-    a = (n * sum_xy - sum_x * sum_y) / denom
-    b = (sum_y - a * sum_x) / n
+
     try:
         test_val = float(re.search(r"([0-9.]+)", test_x).group(1))
     except Exception:
         return "0.0"
-    result = a * test_val + b
-    return _format_number(result, examples)
+
+    def _mse(preds: list[float]) -> float:
+        return sum((p - y) ** 2 for p, y in zip(preds, ys))
+
+    best_result = None
+    best_mse = float("inf")
+
+    # 1. Linear fit: y = a*x + b
+    n = len(xs)
+    sum_x, sum_y = sum(xs), sum(ys)
+    sum_xy = sum(x * y for x, y in zip(xs, ys))
+    sum_x2 = sum(x * x for x in xs)
+    denom = n * sum_x2 - sum_x * sum_x
+    if abs(denom) > 1e-10:
+        a = (n * sum_xy - sum_x * sum_y) / denom
+        b = (sum_y - a * sum_x) / n
+        preds = [a * x + b for x in xs]
+        mse = _mse(preds)
+        if mse < best_mse:
+            best_mse = mse
+            best_result = _format_number(a * test_val + b, examples)
+
+    # 2. Proportional: y = k*x
+    if sum_x != 0:
+        k = sum_y / sum_x
+        preds = [k * x for x in xs]
+        mse = _mse(preds)
+        if mse < best_mse:
+            best_mse = mse
+            best_result = _format_number(k * test_val, examples)
+
+    # 3. Non-linear candidates: y = k/x, y = k*sqrt(x), y = k*x^2, y = k*x^3
+    nl_models = [
+        (lambda x: 1.0 / x if x != 0 else None, lambda k, x: k / x if x != 0 else 0),
+        (lambda x: math.sqrt(x) if x >= 0 else None, lambda k, x: k * math.sqrt(abs(x))),
+        (lambda x: x * x, lambda k, x: k * x * x),
+        (lambda x: x * x * x, lambda k, x: k * x * x * x),
+        (
+            lambda x: math.log(x) if x > 0 else None,
+            lambda k, x: k * math.log(abs(x)) if x != 0 else 0,
+        ),
+    ]
+    for feat_fn, pred_fn in nl_models:
+        try:
+            feats = [feat_fn(x) for x in xs]
+            if any(f is None for f in feats):
+                continue
+            # k = sum(y*f) / sum(f^2)
+            sf = sum(feats)
+            if abs(sf) < 1e-10:
+                continue
+            k = _ls_fit(feats, ys)
+            if k == 0:
+                continue
+            preds = [pred_fn(k, x) for x in xs]
+            mse = _mse(preds)
+            if mse < best_mse:
+                best_mse = mse
+                best_result = _format_number(pred_fn(k, test_val), examples)
+        except Exception:
+            continue
+
+    return best_result if best_result is not None else "0.0"
 
 
 # ---------------------------------------------------------------------------
