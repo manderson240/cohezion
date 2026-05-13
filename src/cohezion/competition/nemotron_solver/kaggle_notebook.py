@@ -219,25 +219,37 @@ def solve_unit_conversion(examples, test_x):
     def _mse(preds):
         return sum((p - y) ** 2 for p, y in zip(preds, ys))
 
-    best_result, best_mse = None, float("inf")
+    def _hits(preds):
+        return sum(
+            1
+            for p, y in zip(preds, ys)
+            if _format_number(p, examples) == _format_number(y, examples)
+        )
+
+    best_result = None
+    best_score = (-1, 0, float("inf"))
+
+    def _cand(pred_test, pred_train, n_params=1):
+        nonlocal best_result, best_score
+        score = (_hits(pred_train), -n_params, -_mse(pred_train))
+        if score > best_score:
+            best_score = score
+            best_result = _format_number(pred_test, examples)
+
     n = len(xs)
     sum_x, sum_y = sum(xs), sum(ys)
+    # 1. Proportional y = k*x (1 param, simpler)
+    if sum_x != 0:
+        k = sum_y / sum_x
+        _cand(k * test_val, [k * x for x in xs], n_params=1)
+    # 2. Linear y = a*x + b (2 params)
     sum_xy = sum(x * y for x, y in zip(xs, ys))
     sum_x2 = sum(x * x for x in xs)
     denom = n * sum_x2 - sum_x * sum_x
     if abs(denom) > 1e-10:
         a = (n * sum_xy - sum_x * sum_y) / denom
         b = (sum_y - a * sum_x) / n
-        mse = _mse([a * x + b for x in xs])
-        if mse < best_mse:
-            best_mse = mse
-            best_result = _format_number(a * test_val + b, examples)
-    if sum_x != 0:
-        k = sum_y / sum_x
-        mse = _mse([k * x for x in xs])
-        if mse < best_mse:
-            best_mse = mse
-            best_result = _format_number(k * test_val, examples)
+        _cand(a * test_val + b, [a * x + b for x in xs], n_params=2)
     nl_models = [
         (lambda x: 1.0 / x if x != 0 else None, lambda k, x: k / x if x != 0 else 0),
         (lambda x: math.sqrt(x) if x >= 0 else None, lambda k, x: k * math.sqrt(abs(x))),
@@ -252,10 +264,7 @@ def solve_unit_conversion(examples, test_x):
             k = _ls_fit_nb(feats, ys)
             if k == 0:
                 continue
-            mse = _mse([pred_fn(k, x) for x in xs])
-            if mse < best_mse:
-                best_mse = mse
-                best_result = _format_number(pred_fn(k, test_val), examples)
+            _cand(pred_fn(k, test_val), [pred_fn(k, x) for x in xs], n_params=1)
         except Exception:
             continue
     return best_result if best_result is not None else "0.0"
