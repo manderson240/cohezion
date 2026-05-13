@@ -314,7 +314,7 @@ _GPU_PATTERNS = [
     # "Write a [adj]* test suite" — broader test generation
     (
         re.compile(
-            r"\b(write|create|generate)\s+(a |an |the )?(\w+ )*(test suite|test set|test harness)\b",
+            r"\b(write|create|generate|compile|build)\s+(a |an |the )?(?:[\w-]+\s+)*(test suite|test set|test harness|test framework|test battery)\b",
             re.I,
         ),
         0.92,
