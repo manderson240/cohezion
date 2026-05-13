@@ -180,23 +180,32 @@ _GPU_PATTERNS = [
         0.78,
         "implement multi-word component",
     ),
-    # "implement sorting/caching/searching/batching/etc" — algorithm/operation as direct object
+    # "implement sorting/caching/searching/batching/anonymization/etc" — algorithm/operation as direct object
     (
         re.compile(
-            r"\bimplement\s+(?:the\s+|a\s+|an\s+)?(?:\w+\s+)?(?:sort(?:ing)?|search(?:ing)?|cach(?:e|ing)|hash(?:ing)?|batch(?:ing)?|rout(?:e|ing)|queu(?:e|ing)|stack(?:ing)?|heap|tree|graph|index(?:ing)?|filter(?:ing)?|compres(?:s|sion)|encod(?:e|ing)|algorithm|protocol)\b",
+            r"\bimplement\s+(?:the\s+|a\s+|an\s+)?(?:[\w-]+\s+)?(?:sort(?:ing)?|search(?:ing)?|cach(?:e|ing)|hash(?:ing)?|batch(?:ing)?|rout(?:e|ing)|queu(?:e|ing)|stack(?:ing)?|heap|tree|graph|index(?:ing)?|filter(?:ing)?|compres(?:s|sion)|encod(?:e|ing)|anon(?:ymiz(?:e|ation)|ymisation)?|encrypt(?:ion)?|decrypt(?:ion)?|authenticat(?:e|ion)|authoriz(?:e|ation)|algorithm|protocol)\b",
             re.I,
         ),
         0.85,
         "implement algorithm/operation",
     ),
-    # "implement JWT/OAuth/SAML/etc." — tech acronym without article (common in mixed-signal prompts)
+    # "implement JWT/OAuth/CSRF/GDPR/etc." — tech acronym/standard without article
     (
         re.compile(
-            r"\bimplement\s+(?:jwt|oauth|oauth2|saml|ldap|ssl|tls|grpc|websocket|webhook|oidc|sso)\b",
+            r"\bimplement\s+(?:jwt|oauth|oauth2|saml|ldap|ssl|tls|grpc|websocket|webhook|oidc|sso|csrf|xss|gdpr|ccpa|rbac|acl|2fa|mfa|otp)\b",
             re.I,
         ),
         0.88,
         "implement tech protocol",
+    ),
+    # Security analysis verbs — identify, analyze, assess, scan, detect (with security context)
+    (
+        re.compile(
+            r"\b(identify|analyze|assess|scan|detect)\b.{0,30}\b(vuln(?:erabilit(?:y|ies))?|attack\s+vector|security\s+issue|weakness|exploit|injection|xss|csrf|threat)\b",
+            re.I,
+        ),
+        0.85,
+        "security analysis task",
     ),
     # "When implementing X" / "While implementing X" — gerund form of implement
     (
@@ -216,10 +225,10 @@ _GPU_PATTERNS = [
     # Document generation with adjective(s) — "draft a technical report", "write a comprehensive detailed proposal"
     # ([\w-]+ )* allows zero or more adjectives (including hyphenated like "non-disclosure") between article and noun
     # Extended nouns: medical (note, diagnosis, assessment), legal (agreement, brief, contract),
-    # business (memo, analysis, summary, narrative)
+    # business (memo, analysis, summary, narrative), security (policy, template, playbook, runbook)
     (
         re.compile(
-            r"\b(write|create|generate|draft|prepare)\s+(a |an |the )?([\w-]+ )*(essay|report|article|document|proposal|note|diagnosis|assessment|agreement|brief|contract|memo|analysis|summary|narrative|specification|amendment|plan)\b",
+            r"\b(write|create|generate|draft|prepare)\s+(a |an |the )?([\w-]+ )*(essay|report|article|document|proposal|note|diagnosis|assessment|agreement|brief|contract|memo|analysis|summary|narrative|specification|amendment|plan|template|policy|playbook|runbook|guide|handbook)\b",
             re.I,
         ),
         0.95,
