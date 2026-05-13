@@ -699,6 +699,21 @@ def classify(prompt: str) -> RouteDecision:
     prompt_len = len(prompt)
 
     # ── Pre-GPU overrides (fire before GPU patterns) ─────────────────────────
+    # -1. Explicit categorical instruction — always overrides ANY GPU signals
+    # "Reply with one word only" / "True or false only" must win over "implement this:..."
+    for cat_pat, cat_conf, cat_reason in _CATEGORICAL_PATTERNS[
+        :6
+    ]:  # only highest-conf categorical patterns
+        if cat_pat.search(prompt):
+            node, gate = _TYPE_CONFIG["short_categorical"]
+            return RouteDecision(
+                node=node,
+                output_type="short_categorical",
+                quality_gate_chars=gate,
+                confidence=cat_conf,
+                reason=f"categorical override: {cat_reason}",
+            )
+
     # 0. Brevity-qualified summarize: "Summarize X in one paragraph" → NPU
     # Without brevity qualifier, "summarize" → GPU (see engineering task verb pattern)
     if _BREVITY_SUMMARIZE_PATTERN.search(prompt):
