@@ -131,7 +131,7 @@ EVAL_SUFFIX = (
 )
 
 print("=" * 60)
-print("NEMOTRON LORA TRAINING v6.2")
+print("NEMOTRON LORA TRAINING v6.3")
 print("9500 symbolic | BF16 eager-attn | all-linear | diff-filter | MCQ 40% | curriculum")
 print("=" * 60)
 
@@ -195,18 +195,25 @@ try:
         import mamba_ssm  # noqa: F401
     except ImportError:
         print("  Installing mamba-ssm for Nemotron-H architecture...")
-        for attempt in range(3):
-            try:
-                subprocess.run(
-                    [sys.executable, "-m", "pip", "install", "-q",
-                     "causal-conv1d>=1.4.0", "mamba-ssm",
-                     "--target", "/tmp/pip_packages"],
-                    check=True,
-                )
-                break
-            except Exception as e:
-                print(f"  mamba-ssm install attempt {attempt+1} failed: {e}")
-                time.sleep(5 * (attempt + 1))
+        # Install to system Python (no --target) — CUDA kernels need proper site-packages
+        res = subprocess.run(
+            [sys.executable, "-m", "pip", "install",
+             "mamba-ssm>=2.2.4", "causal-conv1d>=1.4.0",
+             "--no-build-isolation"],
+            capture_output=True, text=True,
+        )
+        if res.returncode != 0:
+            print(f"  mamba-ssm install stdout: {res.stdout[-500:]}")
+            print(f"  mamba-ssm install stderr: {res.stderr[-500:]}")
+            # Try without causal-conv1d separately
+            res2 = subprocess.run(
+                [sys.executable, "-m", "pip", "install", "mamba-ssm>=2.2.4"],
+                capture_output=True, text=True,
+            )
+            if res2.returncode != 0:
+                print(f"  mamba-ssm fallback stderr: {res2.stderr[-500:]}")
+        else:
+            print("  mamba-ssm installed OK")
 
     import torch
     import pandas as pd
