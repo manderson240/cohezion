@@ -798,35 +798,133 @@ def _match_pattern(pattern: str, word: str) -> bool:
 # ---------------------------------------------------------------------------
 # Equation solver (minimal)
 # ---------------------------------------------------------------------------
-def solve_equations(examples: list[tuple[str, str]], test_in: str) -> str:
-    """Minimal equation solver. Catches very simple patterns."""
-    first_in = examples[0][0] if examples else ""
-    has_digits = any(c.isdigit() for c in first_in)
-    if not has_digits:
-        # Symbol equations: try reverse
+def _symbol_equations(examples: list[tuple[str, str]], test_in: str) -> str:
+    rules = [
+        lambda s: s[0] + s[-1] if len(s) >= 2 else s,
+        lambda s: s[-1] + s[0] if len(s) >= 2 else s,
+        lambda s: s[::-1],
+        lambda s: s[0] if s else "",
+        lambda s: s[-1] if s else "",
+        lambda s: s[::2],
+        lambda s: s[1::2],
+        lambda s: s[1:-1] if len(s) >= 3 else s,
+    ]
+    for rule in rules:
+        ok = True
         for inp, out in examples:
-            if len(inp) == len(out) and inp[::-1] == out:
-                try:
-                    return test_in[::-1]
-                except Exception:
-                    pass
-        return ""
-    try:
-        parts = re.split(r"[^0-9]", test_in)
-        parts = [p for p in parts if p]
-        if len(parts) == 2:
-            a, b = int(parts[0]), int(parts[1])
-            # Try most common operations
-            candidates = [
-                a + b,
-                abs(a - b),
-                a * b,
-                a // b if b != 0 else 0,
-            ]
-            return str(candidates[0])
-    except Exception:
-        pass
-    return ""
+            ci, co = inp.strip("`'\" "), out.strip("`'\" ")
+            try:
+                if rule(ci) != co:
+                    ok = False
+                    break
+            except Exception:
+                ok = False
+                break
+        if ok:
+            try:
+                return rule(test_in.strip("`'\" "))
+            except Exception:
+                pass
+    mapping: dict[str, str] = {}
+    for inp, out in examples:
+        if len(inp) == len(out):
+            for c_in, c_out in zip(inp, out):
+                if c_in not in mapping or mapping[c_in] == c_out:
+                    mapping[c_in] = c_out
+    result = "".join(mapping.get(c, c) for c in test_in)
+    return result if result else test_in
+
+
+def solve_equations(examples: list[tuple[str, str]], test_in: str) -> str:
+    """Equation solver: symbol transformations + expression tree enumeration."""
+    first_in = examples[0][0] if examples else ""
+    if not any(c.isdigit() for c in first_in):
+        return _symbol_equations(examples, test_in)
+
+    _num_parts = [p for p in re.split(r"[^0-9]", test_in) if p]
+    if len(_num_parts) < 2:
+        return test_in
+
+    _base_ops = [
+        lambda a, b: a + b,
+        lambda a, b: abs(a - b),
+        lambda a, b: a - b,
+        lambda a, b: a * b,
+        lambda a, b: a // b if b != 0 else 0,
+        lambda a, b: a % b if b != 0 else 0,
+        lambda a, b: max(a, b),
+        lambda a, b: min(a, b),
+        lambda a, b: a | b,
+        lambda a, b: a & b,
+        lambda a, b: a ^ b,
+        lambda a, b: sum(int(d) for d in str(a) + str(b)),
+        lambda a, b: int(str(a) + str(b)),
+        lambda a, b: int(str(b) + str(a)),
+        lambda a, b: len(str(a)) + len(str(b)),
+    ]
+
+    def _try(op_fn: object) -> str | None:
+        ok = True
+        for inp, out in examples:
+            try:
+                p = [x for x in re.split(r"[^0-9]", inp) if x]
+                if len(p) != 2:
+                    continue
+                a, b = int(p[0]), int(p[1])
+                m = re.search(r"-?[0-9]+", out)
+                if not m:
+                    continue
+                if op_fn(a, b) != int(m.group()):
+                    ok = False
+                    break
+            except Exception:
+                ok = False
+                break
+        if ok:
+            try:
+                p = [x for x in re.split(r"[^0-9]", test_in) if x]
+                if len(p) == 2:
+                    return str(op_fn(int(p[0]), int(p[1])))
+            except Exception:
+                pass
+        return None
+
+    for op in _base_ops:
+        r = _try(op)
+        if r is not None:
+            return r
+
+    for outer in _base_ops[:8]:
+        for inner in _base_ops[:8]:
+            for make_ab in [
+                lambda a, b, f=inner: (f(a, b), a),
+                lambda a, b, f=inner: (f(a, b), b),
+                lambda a, b, f=inner: (a, f(a, b)),
+                lambda a, b, f=inner: (b, f(a, b)),
+            ]:
+
+                def tree_op(
+                    a: int, b: int, outer: object = outer, make_ab: object = make_ab
+                ) -> int:
+                    x, y = make_ab(a, b)
+                    return outer(x, y)
+
+                r = _try(tree_op)
+                if r is not None:
+                    return r
+        for inner in _base_ops[:6]:
+            for c in [1, 2, 3, 10, 100]:
+
+                def tree_const(
+                    a: int, b: int, outer: object = outer, inner: object = inner, c: int = c
+                ) -> int:
+                    return outer(inner(a, b), c)
+
+                r = _try(tree_const)
+                if r is not None:
+                    return r
+
+    return test_in
 
 
 # ---------------------------------------------------------------------------
