@@ -169,10 +169,17 @@ _GPU_PATTERNS = [
         "implement complex logic/system",
     ),
     # Implement [multi-word component] (broader than above — catches "impl the semantic cache with...")
+    # Excludes "why did we implement" (retrospective decision — NPU)
     (
         re.compile(r"\bimplement (the |a |an )\w+\s+\w+\b.{5,}", re.I),
         0.78,
         "implement multi-word component",
+    ),
+    # "When implementing X" / "While implementing X" — gerund form of implement
+    (
+        re.compile(r"\b(?:when|while|after|before)\s+implementing\b", re.I),
+        0.80,
+        "implementing gerund context",
     ),
     # Test/spec generation — "write a unit test for...", "write tests for..."
     (
@@ -491,9 +498,45 @@ _GPU_PATTERNS = [
 ]
 
 
+_RETROSPECTIVE_PATTERN = re.compile(
+    r"\bwhy\s+did\s+(?:we|you|they|the\s+team)\s+(?:choose|decide|select|use|go\s+with|adopt|implement|pick)\b",
+    re.I,
+)
+
+_NEGATION_PATTERN = re.compile(
+    r"\b(?:not\s+asking\s+(?:you\s+)?to\s+write|without\s+writing\s+(?:any\s+)?code|don'?t\s+write\s+(?:any\s+)?code|no\s+code\b)",
+    re.I,
+)
+
+
 def classify(prompt: str) -> RouteDecision:
     """Classify a prompt and return routing decision. Zero model calls."""
     prompt_len = len(prompt)
+
+    # ── Pre-GPU overrides (fire before GPU patterns) ─────────────────────────
+    # 1. Negation: "not asking you to write code, just tell me X" → NPU
+    if _NEGATION_PATTERN.search(prompt):
+        node, gate = _TYPE_CONFIG["short_answer"]
+        return RouteDecision(
+            node=node,
+            output_type="short_answer",
+            quality_gate_chars=gate,
+            confidence=0.75,
+            reason="code generation explicitly negated",
+        )
+
+    # 2. Retrospective decision questions stay NPU ───────────────────────────
+    # "Why did we choose to implement X?" asks for decision history, not code.
+    # Must fire before GPU patterns to prevent "implement" keyword false-routes.
+    if _RETROSPECTIVE_PATTERN.search(prompt):
+        node, gate = _TYPE_CONFIG["short_answer"]
+        return RouteDecision(
+            node=node,
+            output_type="short_answer",
+            quality_gate_chars=gate,
+            confidence=0.72,
+            reason="retrospective decision question",
+        )
 
     # ── Check GPU patterns first (highest cost to mis-route) ────────────────
     for pattern, confidence, reason in _GPU_PATTERNS:
