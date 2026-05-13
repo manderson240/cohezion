@@ -303,6 +303,55 @@ def _deduplicate_cols(g: Grid) -> Grid | None:
     return [[g[r][c] for c in kept] for r in range(len(g))]
 
 
+def _extract_largest_object(g: Grid) -> Grid | None:
+    """BFS-crop to the bounding box of the LARGEST non-background connected component.
+
+    Unlike _crop_to_object (which returns the first/any component), this returns
+    the largest by cell count — needed when multiple objects exist and the task
+    selects the biggest.
+    """
+    if not g or not g[0]:
+        return None
+    from collections import Counter
+
+    rows, cols = len(g), len(g[0])
+    counts: Counter[int] = Counter(g[r][c] for r in range(rows) for c in range(cols))
+    bg = counts.most_common(1)[0][0]
+    visited = [[False] * cols for _ in range(rows)]
+    best_component: list[tuple[int, int]] = []
+    for sr in range(rows):
+        for sc in range(cols):
+            if g[sr][sc] == bg or visited[sr][sc]:
+                continue
+            queue = [(sr, sc)]
+            component: list[tuple[int, int]] = []
+            visited[sr][sc] = True
+            while queue:
+                r, c = queue.pop()
+                component.append((r, c))
+                for nr, nc in ((r - 1, c), (r + 1, c), (r, c - 1), (r, c + 1)):
+                    if (
+                        0 <= nr < rows
+                        and 0 <= nc < cols
+                        and not visited[nr][nc]
+                        and g[nr][nc] != bg
+                    ):
+                        visited[nr][nc] = True
+                        queue.append((nr, nc))
+            if len(component) > len(best_component):
+                best_component = component
+    if not best_component:
+        return None
+    min_r = min(r for r, _ in best_component)
+    max_r = max(r for r, _ in best_component)
+    min_c = min(c for _, c in best_component)
+    max_c = max(c for _, c in best_component)
+    cropped = [g[r][min_c : max_c + 1] for r in range(min_r, max_r + 1)]
+    if len(cropped) == rows and len(cropped[0]) == cols:
+        return None
+    return cropped
+
+
 # Parametric color-map wrapper
 
 
@@ -423,6 +472,7 @@ def _build_strategy(name: str, train: list[dict[str, Grid]]) -> list[tuple[str, 
         ("gravity_d", _gravity_down),
         ("gravity_u", _gravity_up),
         ("crop_obj", _crop_to_object),
+        ("crop_largest", _extract_largest_object),
         ("dedup_cols", _deduplicate_cols),
     ]
 
