@@ -264,6 +264,40 @@ _GPU_PATTERNS = [
         0.95,
         "code generation multi-adjective",
     ),
+    # Engineering task verbs — refactor, debug, profile, optimize, audit, review
+    # These require detailed analysis of code/systems → GPU
+    (
+        re.compile(
+            r"\b(refactor|optimize|profile|debug|audit|review|trace)\b.{0,30}\b(the|a|an|this)\b",
+            re.I,
+        ),
+        0.82,
+        "engineering task verb",
+    ),
+    # "Document the [X] with examples/API/guide" — structured documentation
+    (
+        re.compile(r"\bdocument (the |a |an |this )\w+.{0,40}\b(api|examples|guide|usage)\b", re.I),
+        0.85,
+        "documentation with structured content",
+    ),
+    # "Compare [X] and [Y] response quality / performance" — requires parallel evaluation
+    (
+        re.compile(
+            r"\bcompare\b.{0,40}\b(and|vs|versus)\b.{0,40}\b(quality|performance|latency|accuracy|response)\b",
+            re.I,
+        ),
+        0.82,
+        "comparative evaluation",
+    ),
+    # "Test the [X] with various [Y] configurations" — test design requiring analysis
+    (
+        re.compile(
+            r"\btest (the |a |an )\w+.{0,30}\b(configurations?|scenarios?|cases?|fixture|input)\b",
+            re.I,
+        ),
+        0.80,
+        "test with various configurations",
+    ),
 ]
 
 
