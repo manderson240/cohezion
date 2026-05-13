@@ -50,10 +50,10 @@ async def run_arc_harness():
 
     env_desc = """
     The environment is the ARC-AGI-2 challenge.
-    A common constraint is that the output grid must have the exact same dimensions (rows and columns) as the input grid.
+    A common constraint is that the output grid must have the exact same dimensions as the input grid.
     The state is the input grid (list of lists of integers).
     The action is the proposed output grid (list of lists of integers).
-    Write a function verify_action(state, action) that returns True if the grids have the same shape, and False otherwise.
+    Write a function verify_action(state, action) that returns True if shapes match, False otherwise.
     """
 
     generated_code = await synthesizer.synthesize_verifier(env_desc, mock_arc_env)
