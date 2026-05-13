@@ -26,6 +26,7 @@ def executor_with_refiner(mock_mcp_client):
     return CompoundExecutor(
         mock_mcp_client,
         enable_skill_refinement=True,
+        enable_guardrails=False,
     )
 
 
@@ -35,6 +36,7 @@ def executor_without_refiner(mock_mcp_client):
     return CompoundExecutor(
         mock_mcp_client,
         enable_skill_refinement=False,
+        enable_guardrails=False,
     )
 
 
