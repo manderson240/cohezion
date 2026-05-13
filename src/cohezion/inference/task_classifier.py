@@ -181,14 +181,15 @@ _GPU_PATTERNS = [
         0.95,
         "test generation",
     ),
-    # Document generation with adjective — "draft a technical report", "write a detailed proposal"
+    # Document generation with adjective(s) — "draft a technical report", "write a comprehensive detailed proposal"
+    # (\w+ )* allows zero or more adjectives between article and document noun
     (
         re.compile(
-            r"\b(write|create|generate|draft)\s+(a |an |the )?(\w+ )?(essay|report|article|document|proposal)\b",
+            r"\b(write|create|generate|draft)\s+(a |an |the )?(\w+ )*(essay|report|article|document|proposal)\b",
             re.I,
         ),
         0.95,
-        "document generation with adjective",
+        "document generation with adjective(s)",
     ),
     # Best practices / guidelines / recommendations — requires detailed enumeration
     (
