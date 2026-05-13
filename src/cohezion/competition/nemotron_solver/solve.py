@@ -679,8 +679,8 @@ def solve_bit_manip(examples: list[tuple[str, str]], test_in: str) -> str:
                     pass
 
     # --- Phase 4.5: Three-op compositions (subset of unary ops for tractability) ---
-    # Only run if we have time budget. Uses 12 most common ops: 12^3 = 1728 combinations.
-    _fast_ops = unary_ops[:12]  # first 12: not, reverse, flip, shifts 1-4, rots 1-2, nibble swap
+    # 16 ops = 16^3 = 4096 combos (covers all 3-bit shift/rot variants plus gray/swap)
+    _fast_ops = unary_ops[:16]  # not, reverse, flip, shifts/rots 1-4, nibble swap
     for _n1, o1 in _fast_ops:
         for _n2, o2 in _fast_ops:
             for _n3, o3 in _fast_ops:
