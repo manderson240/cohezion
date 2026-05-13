@@ -837,17 +837,30 @@ def solve_equations(examples: list[tuple[str, str]], test_in: str) -> str:
 def _solve_symbol_equations(examples: list[tuple[str, str]], test_in: str) -> str:
     """Try structural transformations on symbol sequences."""
     rules = [
-        # Position-based rules
-        lambda s: s[0] + s[-1] if len(s) >= 2 else s,  # first+last
-        lambda s: s[-1] + s[0] if len(s) >= 2 else s,  # last+first
-        lambda s: s[::-1],  # reverse all
-        lambda s: s[0] if s else "",  # first only
-        lambda s: s[-1] if s else "",  # last only
-        lambda s: s[::2],  # every other from start
-        lambda s: s[1::2],  # every other from second
-        lambda s: s[1:-1] if len(s) >= 3 else s,  # middle
-        lambda s: s[0] + s[1:-1][::-1] + s[-1] if len(s) >= 3 else s,  # reverse middle
-        lambda s: s[-1] + s[1:-1] + s[0] if len(s) >= 3 else s,  # swap ends
+        lambda s: s[0] + s[-1] if len(s) >= 2 else s,
+        lambda s: s[-1] + s[0] if len(s) >= 2 else s,
+        lambda s: s[::-1],
+        lambda s: s[0] if s else "",
+        lambda s: s[-1] if s else "",
+        lambda s: s[::2],
+        lambda s: s[1::2],
+        lambda s: s[1:-1] if len(s) >= 3 else s,
+        lambda s: s[0] + s[1:-1][::-1] + s[-1] if len(s) >= 3 else s,
+        lambda s: s[-1] + s[1:-1] + s[0] if len(s) >= 3 else s,
+        # Extended structural rules
+        lambda s: "".join(sorted(s)),
+        lambda s: "".join(sorted(s, reverse=True)),
+        lambda s: "".join(dict.fromkeys(s)),
+        lambda s: str(len(s)),
+        lambda s: s + s,
+        lambda s: s[0] * len(s),
+        lambda s: s[: len(s) // 2],
+        lambda s: s[len(s) // 2 :],
+        lambda s: s[::3],
+        lambda s: s[:3] if len(s) >= 3 else s,
+        lambda s: s[-3:] if len(s) >= 3 else s,
+        lambda s: s[1:] + s[0],
+        lambda s: s[-1] + s[:-1],
     ]
     # Also try character substitution (position-dependent)
     for rule in rules:

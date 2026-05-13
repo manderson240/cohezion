@@ -1012,6 +1012,21 @@ def _symbol_equations(examples: list[tuple[str, str]], test_in: str) -> str:
         lambda s: s[::2],
         lambda s: s[1::2],
         lambda s: s[1:-1] if len(s) >= 3 else s,
+        lambda s: s[0] + s[1:-1][::-1] + s[-1] if len(s) >= 3 else s,
+        lambda s: s[-1] + s[1:-1] + s[0] if len(s) >= 3 else s,
+        lambda s: "".join(sorted(s)),
+        lambda s: "".join(sorted(s, reverse=True)),
+        lambda s: "".join(dict.fromkeys(s)),
+        lambda s: str(len(s)),
+        lambda s: s + s,
+        lambda s: s[0] * len(s),
+        lambda s: s[: len(s) // 2],
+        lambda s: s[len(s) // 2 :],
+        lambda s: s[::3],
+        lambda s: s[:3] if len(s) >= 3 else s,
+        lambda s: s[-3:] if len(s) >= 3 else s,
+        lambda s: s[1:] + s[0],
+        lambda s: s[-1] + s[:-1],
     ]
     for rule in rules:
         ok = True
