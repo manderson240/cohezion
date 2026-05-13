@@ -429,7 +429,7 @@ _GPU_PATTERNS = [
     # Create/build a [adjective(s)] endpoint/service/cache/pipeline/queue
     (
         re.compile(
-            r"\b(create|build|add)\s+(?:a\s+)?(?:[\w-]+\s+){0,3}(endpoint|service|api\b|cache|pipeline|queue|handler|middleware|dashboard|visualization|report|portal)\b",
+            r"\b(create|build|add)\s+(?:a\s+)?(?:[\w-]+\s+){0,3}(endpoint|service|api\b|cache|pipeline|queue|handler|middleware|dashboard|visualization|report|portal|agent|bot|workflow|framework|harness|scaffold)\b",
             re.I,
         ),
         0.82,
