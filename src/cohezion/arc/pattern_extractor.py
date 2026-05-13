@@ -186,7 +186,7 @@ def _mirror_h(g: Grid) -> Grid | None:
 def _mirror_v(g: Grid) -> Grid | None:
     if not g:
         return None
-    rows, cols = len(g), len(g[0]) if g else 0
+    rows = len(g)
     if rows % 2 != 0:
         return None
     half = rows // 2
@@ -229,6 +229,80 @@ def _gravity_up(g: Grid) -> Grid | None:
     return result if changed else None
 
 
+def _extend_down(g: Grid) -> Grid | None:
+    """Double height by appending a vertically-mirrored copy below."""
+    if not g:
+        return None
+    result = g + [r[:] for r in reversed(g)]
+    return result if len(result) <= 30 else None
+
+
+def _extend_right(g: Grid) -> Grid | None:
+    """Double width by appending a horizontally-mirrored copy to the right."""
+    if not g or not g[0]:
+        return None
+    result = [r + r[::-1] for r in g]
+    return result if all(len(r) <= 30 for r in result) else None
+
+
+def _crop_to_object(g: Grid) -> Grid | None:
+    """Crop to the bounding box of the first non-background connected component."""
+    if not g or not g[0]:
+        return None
+    rows, cols = len(g), len(g[0])
+    # Find background (most common color)
+    from collections import Counter
+
+    counts: Counter[int] = Counter(g[r][c] for r in range(rows) for c in range(cols))
+    bg = counts.most_common(1)[0][0]
+    # BFS to find connected components of non-background colors
+    visited = [[False] * cols for _ in range(rows)]
+    for sr in range(rows):
+        for sc in range(cols):
+            if g[sr][sc] == bg or visited[sr][sc]:
+                continue
+            # BFS
+            queue = [(sr, sc)]
+            component: list[tuple[int, int]] = []
+            visited[sr][sc] = True
+            while queue:
+                r, c = queue.pop()
+                component.append((r, c))
+                for nr, nc in ((r - 1, c), (r + 1, c), (r, c - 1), (r, c + 1)):
+                    if (
+                        0 <= nr < rows
+                        and 0 <= nc < cols
+                        and not visited[nr][nc]
+                        and g[nr][nc] != bg
+                    ):
+                        visited[nr][nc] = True
+                        queue.append((nr, nc))
+            min_r = min(r for r, c in component)
+            max_r = max(r for r, c in component)
+            min_c = min(c for r, c in component)
+            max_c = max(c for r, c in component)
+            cropped = [g[r][min_c : max_c + 1] for r in range(min_r, max_r + 1)]
+            if len(cropped) != rows or len(cropped[0]) != cols:
+                return cropped
+    return None
+
+
+def _deduplicate_cols(g: Grid) -> Grid | None:
+    """Remove duplicate columns, keeping first occurrence of each unique column pattern."""
+    if not g or not g[0]:
+        return None
+    seen: list[tuple[int, ...]] = []
+    kept: list[int] = []
+    for c in range(len(g[0])):
+        col = tuple(g[r][c] for r in range(len(g)))
+        if col not in seen:
+            seen.append(col)
+            kept.append(c)
+    if len(kept) == len(g[0]):
+        return None
+    return [[g[r][c] for c in kept] for r in range(len(g))]
+
+
 # Parametric color-map wrapper
 
 
@@ -238,7 +312,9 @@ def _color_map(g: Grid, train: list[dict[str, Grid]]) -> Grid | None:
     counts: dict[tuple[int, int], int] = {}
     for ex in train:
         inp, out = ex["input"], ex["output"]
-        if len(inp) != len(out) or any(len(ir) != len(or_) for ir, or_ in zip(inp, out)):
+        if len(inp) != len(out) or any(
+            len(ir) != len(or_) for ir, or_ in zip(inp, out, strict=False)
+        ):
             return None
         for r in range(len(inp)):
             for c in range(len(inp[0])):
@@ -332,16 +408,22 @@ def _build_strategy(name: str, train: list[dict[str, Grid]]) -> list[tuple[str, 
         ]
     )
 
-    geo = base + [
+    geo = [
+        *base,
         ("mirror_h", _mirror_h),
         ("mirror_v", _mirror_v),
+        ("extend_down", _extend_down),
+        ("extend_right", _extend_right),
     ]
 
-    obj = base + [
+    obj = [
+        *base,
         ("fill_holes", _fill_holes),
         ("remove_bg", _remove_bg),
         ("gravity_d", _gravity_down),
         ("gravity_u", _gravity_up),
+        ("crop_obj", _crop_to_object),
+        ("dedup_cols", _deduplicate_cols),
     ]
 
     scale = [
@@ -349,7 +431,7 @@ def _build_strategy(name: str, train: list[dict[str, Grid]]) -> list[tuple[str, 
         *_make_parametric_scale(),
     ]
 
-    cm = base + [("color_map", _make_color_map(train))]
+    cm = [*base, ("color_map", _make_color_map(train))]
 
     return {
         "color": color,
@@ -602,9 +684,9 @@ if __name__ == "__main__":
     rules = extractor.extract(task)
     print(f"Extracted {len(rules)} rule(s)")
     for r in rules:
-        print(
-            f"  {r.name} | conf={r.confidence:.2f} | votes={r.strategy_votes} | hiho={r.hiho_score:.3f}"
-        )
+        hiho = r.hiho_score
+        print(f"  {r.name} | conf={r.confidence:.2f} | votes={r.strategy_votes} | hiho={hiho:.3f}")
     # Expect invert to appear with high confidence
-    assert any("invert" in r.name for r in rules), "Expected invert rule"
+    if not any("invert" in r.name for r in rules):
+        raise SystemExit("Expected invert rule not found")
     print("PatternExtractor OK")
