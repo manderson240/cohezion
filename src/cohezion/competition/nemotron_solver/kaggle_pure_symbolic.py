@@ -115,7 +115,15 @@ def _format_number(value: float, examples: list[tuple[str, str]]) -> str:
 # ---------------------------------------------------------------------------
 # Gravity solver
 # ---------------------------------------------------------------------------
+def _ls_fit_kaggle(xs: list[float], ys: list[float]) -> float:
+    """Least-squares fit y = k * x (no intercept)."""
+    sum_xy = sum(x * y for x, y in zip(xs, ys))
+    sum_x2 = sum(x * x for x in xs)
+    return sum_xy / sum_x2 if sum_x2 != 0 else 0.0
+
+
 def solve_gravity(examples: list[tuple[str, str]], test_t: str) -> str:
+    """Solve gravity: tries multiple physical models (0.5*g*t^2, g*t^2, etc.)."""
     ts, ds = [], []
     for t_str, d_str in examples:
         try:
@@ -127,36 +135,42 @@ def solve_gravity(examples: list[tuple[str, str]], test_t: str) -> str:
             pass
     if not ts or len(ts) < 2:
         return "0.0"
-    xs = [0.5 * t * t for t in ts]
-    sum_xy = sum(d * x for d, x in zip(ds, xs))
-    sum_x2 = sum(x * x for x in xs)
-    g_ls = sum_xy / sum_x2 if sum_x2 != 0 else 0.0
-    best_g = g_ls
-    best_err = float("inf")
-    candidates = [g_ls]
-    for t, d in zip(ts, ds):
-        if t > 0:
-            candidates.append(2 * d / (t * t))
-    for g0 in candidates:
-        for step in [0.01, 0.005, 0.002, 0.001]:
-            for offset in range(-5, 6):
-                g = g0 + offset * step
-                err = sum((0.5 * g * t * t - d) ** 2 for t, d in zip(ts, ds))
-                if err < best_err:
-                    best_err = err
-                    best_g = g
     try:
         test_t_val = float(re.search(r"([0-9.]+)", test_t).group(1))
     except Exception:
         return "0.0"
-    result = 0.5 * best_g * test_t_val * test_t_val
-    return _format_number(result, examples)
+
+    models = [
+        (lambda t: 0.5 * t * t, lambda g, t: 0.5 * g * t * t),
+        (lambda t: t * t, lambda g, t: g * t * t),
+        (lambda t: 0.5 * t * t * t, lambda g, t: 0.5 * g * t * t * t),
+        (lambda t: t, lambda g, t: g * t),
+        (lambda t: t * t * t, lambda g, t: g * t * t * t),
+    ]
+    best_result = None
+    best_mse = float("inf")
+    for feat_fn, pred_fn in models:
+        try:
+            xs = [feat_fn(t) for t in ts]
+            g = _ls_fit_kaggle(xs, ds)
+            if g <= 0:
+                continue
+            mse = sum((pred_fn(g, t) - d) ** 2 for t, d in zip(ts, ds))
+            if mse < best_mse:
+                best_mse = mse
+                best_result = _format_number(pred_fn(g, test_t_val), examples)
+        except Exception:
+            continue
+    return best_result if best_result is not None else "0.0"
 
 
 # ---------------------------------------------------------------------------
 # Unit conversion solver
 # ---------------------------------------------------------------------------
 def solve_unit_conversion(examples: list[tuple[str, str]], test_x: str) -> str:
+    """Find conversion formula. Tries linear and non-linear fits (k/x, sqrt, x^2, x^3, log)."""
+    import math
+
     xs, ys = [], []
     for x_str, y_str in examples:
         try:
@@ -168,27 +182,62 @@ def solve_unit_conversion(examples: list[tuple[str, str]], test_x: str) -> str:
             pass
     if len(xs) < 2:
         return "0.0"
-    n = len(xs)
-    sum_x = sum(xs)
-    sum_y = sum(ys)
-    sum_xy = sum(x * y for x, y in zip(xs, ys))
-    sum_x2 = sum(x * x for x in xs)
-    denom = n * sum_x2 - sum_x * sum_x
-    if abs(denom) < 1e-10:
-        k = sum_y / sum_x if sum_x != 0 else 1.0
-        try:
-            test_val = float(re.search(r"([0-9.]+)", test_x).group(1))
-        except Exception:
-            return "0.0"
-        return _format_number(k * test_val, examples)
-    a = (n * sum_xy - sum_x * sum_y) / denom
-    b = (sum_y - a * sum_x) / n
     try:
         test_val = float(re.search(r"([0-9.]+)", test_x).group(1))
     except Exception:
         return "0.0"
-    result = a * test_val + b
-    return _format_number(result, examples)
+
+    def _mse(preds: list[float]) -> float:
+        return sum((p - y) ** 2 for p, y in zip(preds, ys))
+
+    best_result = None
+    best_mse = float("inf")
+
+    # Linear fit y = a*x + b
+    n = len(xs)
+    sum_x, sum_y = sum(xs), sum(ys)
+    sum_xy = sum(x * y for x, y in zip(xs, ys))
+    sum_x2 = sum(x * x for x in xs)
+    denom = n * sum_x2 - sum_x * sum_x
+    if abs(denom) > 1e-10:
+        a = (n * sum_xy - sum_x * sum_y) / denom
+        b = (sum_y - a * sum_x) / n
+        mse = _mse([a * x + b for x in xs])
+        if mse < best_mse:
+            best_mse = mse
+            best_result = _format_number(a * test_val + b, examples)
+
+    # Proportional y = k*x
+    if sum_x != 0:
+        k = sum_y / sum_x
+        mse = _mse([k * x for x in xs])
+        if mse < best_mse:
+            best_mse = mse
+            best_result = _format_number(k * test_val, examples)
+
+    # Non-linear models
+    nl_models = [
+        (lambda x: 1.0 / x if x != 0 else None, lambda k, x: k / x if x != 0 else 0),
+        (lambda x: math.sqrt(x) if x >= 0 else None, lambda k, x: k * math.sqrt(abs(x))),
+        (lambda x: x * x, lambda k, x: k * x * x),
+        (lambda x: x * x * x, lambda k, x: k * x * x * x),
+    ]
+    for feat_fn, pred_fn in nl_models:
+        try:
+            feats = [feat_fn(x) for x in xs]
+            if any(f is None for f in feats):
+                continue
+            k = _ls_fit_kaggle(feats, ys)
+            if k == 0:
+                continue
+            mse = _mse([pred_fn(k, x) for x in xs])
+            if mse < best_mse:
+                best_mse = mse
+                best_result = _format_number(pred_fn(k, test_val), examples)
+        except Exception:
+            continue
+
+    return best_result if best_result is not None else "0.0"
 
 
 # ---------------------------------------------------------------------------
@@ -746,41 +795,35 @@ def solve_encryption(examples: list[tuple[str, str]], test_in: str) -> str:
                     if c_in not in mapping:
                         mapping[c_in] = c_out
 
+    # Runtime vocabulary from example outputs (frequency-ranked, domain-specific)
+    from collections import Counter
+
+    runtime_counts: Counter = Counter()
+    for _, out in examples:
+        for w in out.split():
+            runtime_counts[w.lower()] += 1
+    runtime_vocab = sorted(runtime_counts.keys(), key=lambda w: -runtime_counts[w])
+    combined_vocab = runtime_vocab + [w for w in _ENCRYPTION_VOCAB if w not in runtime_counts]
+
     # Apply initial mapping
     test_words = test_in.split()
-    result_words = []
-    for tw in test_words:
-        mapped = ""
-        for c in tw:
-            mapped += mapping.get(c, "?")
-        result_words.append(mapped)
+    result_words = ["".join(mapping.get(c, "?") for c in tw) for tw in test_words]
 
-    # Dictionary completion for missing characters (unique + most-frequent ambiguous)
+    # Dictionary completion using combined vocab (runtime first)
     changed = True
     while changed:
         changed = False
         for _i, (tw, pw) in enumerate(zip(test_words, result_words)):
             if "?" not in pw:
                 continue
-            pattern = pw.replace("?", "?")
-            matches = [
-                w
-                for w in _ENCRYPTION_VOCAB
-                if len(w) == len(pattern) and _match_pattern(pattern, w)
-            ]
-            if len(matches) >= 1:  # Accept even ambiguous (pick most frequent)
+            matches = [w for w in combined_vocab if len(w) == len(pw) and _match_pattern(pw, w)]
+            if matches:
                 best = matches[0]
                 for c_in, c_out in zip(tw, best):
                     if c_in not in mapping:
                         mapping[c_in] = c_out
                         changed = True
-        # Rebuild result words with updated mapping
-        result_words = []
-        for tw in test_words:
-            mapped = ""
-            for c in tw:
-                mapped += mapping.get(c, "?")
-            result_words.append(mapped)
+        result_words = ["".join(mapping.get(c, "?") for c in tw) for tw in test_words]
 
     return " ".join(result_words)
 
