@@ -214,10 +214,12 @@ _GPU_PATTERNS = [
         "test generation",
     ),
     # Document generation with adjective(s) — "draft a technical report", "write a comprehensive detailed proposal"
-    # (\w+ )* allows zero or more adjectives between article and document noun
+    # ([\w-]+ )* allows zero or more adjectives (including hyphenated like "non-disclosure") between article and noun
+    # Extended nouns: medical (note, diagnosis, assessment), legal (agreement, brief, contract),
+    # business (memo, analysis, summary, narrative)
     (
         re.compile(
-            r"\b(write|create|generate|draft)\s+(a |an |the )?(\w+ )*(essay|report|article|document|proposal)\b",
+            r"\b(write|create|generate|draft|prepare)\s+(a |an |the )?([\w-]+ )*(essay|report|article|document|proposal|note|diagnosis|assessment|agreement|brief|contract|memo|analysis|summary|narrative|specification|amendment|plan)\b",
             re.I,
         ),
         0.95,
@@ -394,7 +396,7 @@ _GPU_PATTERNS = [
     # IaC/infra tool generation — nginx, k8s, terraform, docker, helm config files
     (
         re.compile(
-            r"\b(generate|create|produce|write|build)\s+(?:a\s+)?(?:nginx|kubernetes|k8s|terraform|helm|docker|ansible|puppet|grafana|prometheus)\b",
+            r"\b(generate|create|produce|write|build)\s+(?:a\s+)?(?:nginx|kubernetes|k8s|terraform|helm|docker|dockerfile|ansible|puppet|grafana|prometheus|github\s+actions?|ci/cd|gitlab\s+ci)\b",
             re.I,
         ),
         0.88,
