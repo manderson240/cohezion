@@ -14,6 +14,7 @@ from __future__ import annotations
 import csv
 import random
 import re
+from itertools import combinations
 from pathlib import Path
 
 import requests
@@ -133,7 +134,7 @@ def extract_test_input(prompt: str) -> str:
         if m:
             return m.group(1).strip()
     # Fallback: look for last line that looks like input
-    lines = [l.strip() for l in prompt.split("\n") if l.strip()]
+    lines = [ln.strip() for ln in prompt.split("\n") if ln.strip()]
     for line in reversed(lines):
         if not line.startswith("In Alice") and " -> " not in line and " becomes " not in line:
             # Clean up: remove prefixes like "Now, determine..."
@@ -289,8 +290,107 @@ def solve_numeral(examples: list[tuple[str, str]], test_n: str) -> str:
 # ---------------------------------------------------------------------------
 # Bit manipulation solver
 # ---------------------------------------------------------------------------
+
+
+def _lut_search(pairs: list[tuple[int, int]], max_k: int = 3) -> dict | None:
+    """Find a k-ary Boolean function (truth table) for each output bit.
+
+    For each of the 8 output bits, tries to express it as a Boolean function
+    of k input bits (k=2..max_k). Returns a complete mapping {out_bit: (in_bits, tt)}
+    if all 8 output bits are covered, or None if any bit can't be resolved.
+
+    The truth table `tt` is an integer where bit `idx` = f(in_combo), and
+    `idx` encodes the k input bits: idx = b0 | (b1 << 1) | (b2 << 2) | ...
+
+    Search order: named 2-input functions (XOR, AND, OR, etc.) before arbitrary TTs,
+    to avoid spurious matches from underspecified examples.
+    """
+    # k=2 named operations by preference (most common in bit-manip puzzles first)
+    # truth table indexed by (b0, b1): b0 LSB, b1 next bit → idx = b0 + 2*b1
+    # idx: (0,0)=0, (1,0)=1, (0,1)=2, (1,1)=3
+    _NAMED_TT_K2 = [
+        6,  # XOR:  0^0=0,1^0=1,0^1=1,1^1=0 → 0110
+        8,  # AND:  1 only when both 1     → 1000
+        14,  # OR:   1 unless both 0        → 1110
+        1,  # NOR:  NOT OR                 → 0001
+        7,  # NAND: NOT AND                → 0111
+        9,  # XNOR: NOT XOR               → 1001
+        12,  # b1 identity: 0,0,1,1        → 1100
+        10,  # b0 identity: 0,1,0,1        → 1010
+        3,  # NOT b0: 1,0,1,0             → 0011
+        5,  # NOT b1: 1,1,0,0             → 0101
+        11,  # b0 OR NOT b1                → 1011
+        13,  # NOT b0 OR b1                → 1101
+        4,  # b0 AND NOT b1               → 0100
+        2,  # NOT b0 AND b1               → 0010
+        0,  # const 0                     → 0000
+        15,  # const 1                     → 1111
+    ]
+
+    result = {}
+    for out_bit in range(8):
+        found = False
+        # k=2: try named TTs first (in preference order), then arbitrary
+        if not found:
+            for in_bits in combinations(range(8), 2):
+                obs: dict[int, int] = {}
+                consistent = True
+                for a, b in pairs:
+                    idx = ((a >> in_bits[0]) & 1) | (((a >> in_bits[1]) & 1) << 1)
+                    expected = (b >> out_bit) & 1
+                    if idx in obs and obs[idx] != expected:
+                        consistent = False
+                        break
+                    obs[idx] = expected
+                if not consistent:
+                    continue
+                # Try named TTs first, then arbitrary
+                for tt in _NAMED_TT_K2:
+                    if all((tt >> idx) & 1 == val for idx, val in obs.items()):
+                        result[out_bit] = (in_bits, tt)
+                        found = True
+                        break
+                if not found:
+                    # Arbitrary TT (for exotic patterns)
+                    for tt in range(16):
+                        if tt in _NAMED_TT_K2:
+                            continue
+                        if all((tt >> idx) & 1 == val for idx, val in obs.items()):
+                            result[out_bit] = (in_bits, tt)
+                            found = True
+                            break
+                if found:
+                    break
+
+        # k=3 fallback
+        if not found and max_k >= 3:
+            for in_bits in combinations(range(8), 3):
+                obs_k3: dict[int, int] = {}
+                consistent = True
+                for a, b in pairs:
+                    idx = sum(((a >> ib) & 1) << i for i, ib in enumerate(in_bits))
+                    expected = (b >> out_bit) & 1
+                    if idx in obs_k3 and obs_k3[idx] != expected:
+                        consistent = False
+                        break
+                    obs_k3[idx] = expected
+                if not consistent:
+                    continue
+                for tt in range(256):
+                    if all((tt >> idx) & 1 == val for idx, val in obs_k3.items()):
+                        result[out_bit] = (in_bits, tt)
+                        found = True
+                        break
+                if found:
+                    break
+
+        if not found:
+            return None
+    return result
+
+
 # ---------------------------------------------------------------------------
-# Bit manipulation solver v2 — per-bit mapping + affine models
+# Bit manipulation solver v2 — per-bit mapping + affine models + LUT
 # ---------------------------------------------------------------------------
 def solve_bit_manip(examples: list[tuple[str, str]], test_in: str) -> str:
     """Brute-force search over bit operations."""
@@ -308,127 +408,52 @@ def solve_bit_manip(examples: list[tuple[str, str]], test_in: str) -> str:
     # --- Phase 1: Per-bit mapping ---
     # For each output bit position (0 = LSB, 7 = MSB), check if it equals
     # any input bit, its NOT, or a constant
-    def _check_per_bit_mapping():
-        for out_bit in range(8):
-            # Try input bits 0-7
-            for in_bit in range(8):
-                # direct: output[out_bit] = input[in_bit]
-                ok = True
-                for a, b in pairs:
-                    expected = (b >> out_bit) & 1
-                    actual = (a >> in_bit) & 1
-                    if expected != actual:
-                        ok = False
-                        break
-                if ok:
-                    yield ("bit", out_bit, in_bit, False)
-                # inverted: output[out_bit] = NOT input[in_bit]
-                ok = True
-                for a, b in pairs:
-                    expected = (b >> out_bit) & 1
-                    actual = 1 - ((a >> in_bit) & 1)
-                    if expected != actual:
-                        ok = False
-                        break
-                if ok:
-                    yield ("bit", out_bit, in_bit, True)
-            # constant 0
-            ok = True
-            for a, b in pairs:
-                if ((b >> out_bit) & 1) != 0:
-                    ok = False
-                    break
-            if ok:
-                yield ("const", out_bit, 0, False)
-            # constant 1
-            ok = True
-            for a, b in pairs:
-                if ((b >> out_bit) & 1) != 1:
-                    ok = False
-                    break
-            if ok:
-                yield ("const", out_bit, 1, False)
+    def _bit_matches(out_bit: int, in_bit: int, invert: bool) -> bool:
+        for a, b in pairs:
+            expected = (b >> out_bit) & 1
+            actual = (a >> in_bit) & 1
+            if invert:
+                actual = 1 - actual
+            if expected != actual:
+                return False
+        return True
 
-    mapping = {}
-    for typ, out_bit, val, invert in _check_per_bit_mapping():
-        mapping[out_bit] = (typ, val, invert)
+    # Phase 1 strategy: detect pure bit permutations and constant bits.
+    # Inverted mappings (same-position NOT, cross-position NOT) are NOT handled here —
+    # they cause spurious matches with small example sets and are better handled
+    # globally by Phase 2 (XOR constant), Phase 3 (NOT), and Phase 4 (two-op).
+    mapping: dict[int, tuple] = {}
+
+    for out_bit in range(8):
+        if all(((b >> out_bit) & 1) == 0 for _, b in pairs):
+            mapping[out_bit] = ("const", 0, False)
+        elif all(((b >> out_bit) & 1) == 1 for _, b in pairs):
+            mapping[out_bit] = ("const", 1, False)
+        else:
+            # Direct permutation: output[out_bit] = input[in_bit] (any in_bit)
+            for in_bit in range(8):
+                if _bit_matches(out_bit, in_bit, False):
+                    mapping[out_bit] = ("bit", in_bit, False)
+                    break
 
     if len(mapping) == 8:
-        try:
-            test_val = int(test_in, 2)
-            result = 0
-            for out_bit in range(8):
-                typ, val, invert = mapping[out_bit]
-                if typ == "const":
-                    bit = val
-                else:
-                    bit = (test_val >> val) & 1
-                    if invert:
-                        bit = 1 - bit
-                result |= bit << out_bit
-            return f"{result:08b}"
-        except Exception:
-            pass
-    elif len(mapping) >= 4:
-        # Partial mapping: brute-force remaining bits using examples
-        try:
-            test_val = int(test_in, 2)
-            known_bits = set(mapping.keys())
-            unknown_bits = [b for b in range(8) if b not in known_bits]
-            # Pre-compute known part
-            known_result = 0
-            for out_bit in range(8):
-                if out_bit in mapping:
+        # Validate: bit-type mappings must form a bijection (no two output bits from same input)
+        source_bits = [v[1] for v in mapping.values() if v[0] == "bit"]
+        is_bijection = len(source_bits) == len(set(source_bits))
+        if is_bijection:
+            try:
+                test_val = int(test_in, 2)
+                result = 0
+                for out_bit in range(8):
                     typ, val, invert = mapping[out_bit]
                     if typ == "const":
                         bit = val
                     else:
                         bit = (test_val >> val) & 1
-                        if invert:
-                            bit = 1 - bit
-                    known_result |= bit << out_bit
-
-            # Fallbacks for unknown bits: try 0, 1, same-as-input, not-input
-            if len(unknown_bits) <= 4:
-                fallbacks = [
-                    lambda a, ub: 0,  # all zeros
-                    lambda a, ub: 1,  # all ones
-                    lambda a, ub: (a >> ub) & 1,  # same as input
-                    lambda a, ub: 1 - ((a >> ub) & 1),  # inverted input
-                ]
-                for fb_fn in fallbacks:
-                    candidate = known_result
-                    for ub in unknown_bits:
-                        if fb_fn(test_val, ub):
-                            candidate |= 1 << ub
-                    ok = True
-                    for a, b in pairs:
-                        ex_result = known_result  # recompute
-                        # Need to recompute known_result for each input a
-                        ex_result = 0
-                        for out_bit in range(8):
-                            if out_bit in mapping:
-                                typ, val, invert = mapping[out_bit]
-                                if typ == "const":
-                                    bit = val
-                                else:
-                                    bit = (a >> val) & 1
-                                    if invert:
-                                        bit = 1 - bit
-                                ex_result |= bit << out_bit
-                        for ub in unknown_bits:
-                            if fb_fn(a, ub):
-                                ex_result |= 1 << ub
-                        if ex_result != b:
-                            ok = False
-                            break
-                    if ok:
-                        return f"{candidate:08b}"
-
-            # Final fallback: return known bits with zeros for unknown
-            return f"{known_result:08b}"
-        except Exception:
-            pass
+                    result |= bit << out_bit
+                return f"{result:08b}"
+            except Exception:
+                pass
 
     # --- Phase 2: Affine model (XOR with constant and/or input mask) ---
     def _check_affine():
@@ -570,6 +595,85 @@ def solve_bit_manip(examples: list[tuple[str, str]], test_in: str) -> str:
                         return f"{o2(op_fn(test_val, const)):08b}"
                     except Exception:
                         pass
+
+    # --- Phase 6a: Global uniform cross-bit pattern ---
+    # Test: output[i] = f(input[i], input[(i + offset) % 8]) for ALL bits simultaneously.
+    # Covers XOR/AND/OR of adjacent bits, which are common competition patterns.
+    _CROSS_BIT_FUNCS = [
+        ("xor", lambda a, b: a ^ b),
+        ("and", lambda a, b: a & b),
+        ("or", lambda a, b: a | b),
+        ("nand", lambda a, b: 1 - (a & b)),
+        ("nor", lambda a, b: 1 - (a | b)),
+        ("xnor", lambda a, b: 1 - (a ^ b)),
+        ("a_and_not_b", lambda a, b: a & (1 - b)),
+        ("not_a_and_b", lambda a, b: (1 - a) & b),
+        ("a_only", lambda a, b: a),
+        ("b_only", lambda a, b: b),
+        ("not_a", lambda a, b: 1 - a),
+        ("not_b", lambda a, b: 1 - b),
+    ]
+    for offset in range(1, 8):
+        for fname, ffn in _CROSS_BIT_FUNCS:
+            ok = True
+            for a, b in pairs:
+                for out_bit in range(8):
+                    expected = (b >> out_bit) & 1
+                    ai = (a >> out_bit) & 1
+                    bi = (a >> ((out_bit + offset) % 8)) & 1
+                    if ffn(ai, bi) != expected:
+                        ok = False
+                        break
+                if not ok:
+                    break
+            if ok:
+                try:
+                    test_val = int(test_in, 2)
+                    result = 0
+                    for out_bit in range(8):
+                        ai = (test_val >> out_bit) & 1
+                        bi = (test_val >> ((out_bit + offset) % 8)) & 1
+                        result |= ffn(ai, bi) << out_bit
+                    return f"{result:08b}"
+                except Exception:
+                    pass
+
+    # --- Phase 6b: Per-bit LUT synthesis (fallback for exotic patterns) ---
+    # Each output bit is independently solved using a k-input Boolean function.
+    lut_mapping = _lut_search(pairs, max_k=3)
+    if lut_mapping is not None:
+        try:
+            test_val = int(test_in, 2)
+            result = 0
+            for out_bit in range(8):
+                in_bits, tt = lut_mapping[out_bit]
+                idx = sum(((test_val >> ib) & 1) << i for i, ib in enumerate(in_bits))
+                bit = (tt >> idx) & 1
+                result |= bit << out_bit
+            return f"{result:08b}"
+        except Exception:
+            pass
+
+    # --- Phase 7: Partial mapping fallback ---
+    # If Phase 1 found >= 4 bits but not all 8, use known bits + zeros for unknown.
+    if len(mapping) >= 4:
+        try:
+            test_val = int(test_in, 2)
+            result = 0
+            for out_bit in range(8):
+                if out_bit not in mapping:
+                    continue
+                typ, val, invert = mapping[out_bit]
+                if typ == "const":
+                    bit = val
+                else:
+                    bit = (test_val >> val) & 1
+                    if invert:
+                        bit = 1 - bit
+                result |= bit << out_bit
+            return f"{result:08b}"
+        except Exception:
+            pass
 
     return test_in
 
