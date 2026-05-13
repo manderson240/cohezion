@@ -426,6 +426,33 @@ _GPU_PATTERNS = [
         0.82,
         "build service or endpoint",
     ),
+    # "Add X to the [adjective] [function/class/module/code/system]" — code modification
+    (
+        re.compile(
+            r"\badd\s+(?:[\w-]+\s+){0,4}(?:to\s+(?:the\s+|a\s+|this\s+)?(?:[\w-]+\s+){0,2})(function|class|method|module|code|system|service|api|handler|test)\b",
+            re.I,
+        ),
+        0.82,
+        "add to code artifact",
+    ),
+    # "Fix the [bug/issue/error/problem] in/with X" — bug fix task
+    (
+        re.compile(
+            r"\bfix\s+(?:the\s+)?(?:bug|issue|error|problem|crash|failure|regression)\b.{0,30}\b(in|with|at|for)\b",
+            re.I,
+        ),
+        0.85,
+        "fix bug in code",
+    ),
+    # "Update the [tests/function/class/code/module] to [action]" — code update task
+    (
+        re.compile(
+            r"\bupdate\s+(?:the\s+)?(?:[\w-]+\s+){0,2}(tests?|function|class|method|module|code|schema|config|service|api|endpoint)\s+to\b",
+            re.I,
+        ),
+        0.82,
+        "update code artifact",
+    ),
     # "Create a K8s/Terraform deployment manifest/spec" — infra manifest
     (
         re.compile(
