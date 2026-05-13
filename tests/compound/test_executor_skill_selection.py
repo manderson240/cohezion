@@ -18,7 +18,7 @@ def executor(mock_mcp_client):
     """Create compound executor with mock MCP client."""
     # Patch VaultLogger during initialization
     with patch("cohezion.compound.exp_persistence.vault.VaultLogger"):
-        executor = CompoundExecutor(mock_mcp_client)
+        executor = CompoundExecutor(mock_mcp_client, enable_guardrails=False)
 
     # Replace logger with a fresh mock that persists after initialization
     mock_logger = MagicMock()

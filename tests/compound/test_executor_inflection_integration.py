@@ -33,14 +33,14 @@ def detector():
 def executor(mock_mcp_client):
     """Create compound executor with default detector."""
     with patch("cohezion.compound.exp_persistence.vault.VaultLogger"):
-        return CompoundExecutor(mock_mcp_client)
+        return CompoundExecutor(mock_mcp_client, enable_guardrails=False)
 
 
 @pytest.fixture
 def executor_with_detector(mock_mcp_client, detector):
     """Create compound executor with custom detector."""
     with patch("cohezion.compound.exp_persistence.vault.VaultLogger"):
-        return CompoundExecutor(mock_mcp_client, inflection_detector=detector)
+        return CompoundExecutor(mock_mcp_client, inflection_detector=detector, enable_guardrails=False)
 
 
 class TestExecutorInflectionIntegration:
@@ -49,14 +49,14 @@ class TestExecutorInflectionIntegration:
     def test_executor_has_default_detector(self, mock_mcp_client):
         """Test executor initializes with default detector."""
         with patch("cohezion.compound.exp_persistence.vault.VaultLogger"):
-            executor = CompoundExecutor(mock_mcp_client)
+            executor = CompoundExecutor(mock_mcp_client, enable_guardrails=False)
             assert executor.inflection_detector is not None
             assert isinstance(executor.inflection_detector, InflectionDetector)
 
     def test_executor_uses_custom_detector(self, mock_mcp_client, detector):
         """Test executor uses provided custom detector."""
         with patch("cohezion.compound.exp_persistence.vault.VaultLogger"):
-            executor = CompoundExecutor(mock_mcp_client, inflection_detector=detector)
+            executor = CompoundExecutor(mock_mcp_client, inflection_detector=detector, enable_guardrails=False)
             assert executor.inflection_detector is detector
 
     def test_successful_execution_adds_anomaly_metrics(self, executor):
@@ -225,7 +225,7 @@ class TestExecutorInflectionIntegration:
         """Test detector state tracks failures across executions."""
         mock_client = MagicMock()
         with patch("cohezion.compound.exp_persistence.vault.VaultLogger"):
-            executor = CompoundExecutor(mock_client, inflection_detector=detector)
+            executor = CompoundExecutor(mock_client, inflection_detector=detector, enable_guardrails=False)
 
         # First execution fails
         with (
@@ -306,7 +306,7 @@ class TestExecutorInflectionIntegration:
         """Test successful execution resets failure streak."""
         mock_client = MagicMock()
         with patch("cohezion.compound.exp_persistence.vault.VaultLogger"):
-            executor = CompoundExecutor(mock_client, inflection_detector=detector)
+            executor = CompoundExecutor(mock_client, inflection_detector=detector, enable_guardrails=False)
 
         # First execution fails
         with (

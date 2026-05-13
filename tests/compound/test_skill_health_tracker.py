@@ -247,7 +247,7 @@ class TestExecutorSkillHealthIntegration:
         broken_tracker = MagicMock()
         broken_tracker.record_usage.side_effect = RuntimeError("storage full")
 
-        executor = CompoundExecutor(mock_mcp_client, skill_health_tracker=broken_tracker)
+        executor = CompoundExecutor(mock_mcp_client, skill_health_tracker=broken_tracker, enable_guardrails=False)
 
         def dummy_task(guidance: dict) -> tuple[str, dict]:
             return "output", {}
@@ -263,7 +263,7 @@ class TestExecutorSkillHealthIntegration:
     def test_tracker_called_on_successful_execution(self, mock_mcp_client: MagicMock, storage_path: Path) -> None:
         """Tracker.record_usage is called after successful execution."""
         tracker = SkillHealthTracker(storage_path=storage_path)
-        executor = CompoundExecutor(mock_mcp_client, skill_health_tracker=tracker)
+        executor = CompoundExecutor(mock_mcp_client, skill_health_tracker=tracker, enable_guardrails=False)
 
         def dummy_task(guidance: dict) -> tuple[str, dict]:
             return "output", {}
@@ -283,7 +283,7 @@ class TestExecutorSkillHealthIntegration:
     def test_tracker_records_failure(self, mock_mcp_client: MagicMock, storage_path: Path) -> None:
         """Tracker.record_usage is called even on failed execution."""
         tracker = SkillHealthTracker(storage_path=storage_path)
-        executor = CompoundExecutor(mock_mcp_client, skill_health_tracker=tracker)
+        executor = CompoundExecutor(mock_mcp_client, skill_health_tracker=tracker, enable_guardrails=False)
 
         def failing_task(guidance: dict) -> tuple[str, dict]:
             raise ValueError("boom")
@@ -303,7 +303,7 @@ class TestExecutorSkillHealthIntegration:
 
     def test_auto_creates_tracker_by_default(self, mock_mcp_client: MagicMock) -> None:
         """Executor auto-creates a SkillHealthTracker when none provided."""
-        executor = CompoundExecutor(mock_mcp_client)
+        executor = CompoundExecutor(mock_mcp_client, enable_guardrails=False)
         assert executor._skill_health_tracker is not None
         assert isinstance(executor._skill_health_tracker, SkillHealthTracker)
 

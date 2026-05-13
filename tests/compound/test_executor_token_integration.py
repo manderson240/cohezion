@@ -36,14 +36,14 @@ def mock_token_client():
 def executor(mock_mcp_client):
     """Create compound executor without token client."""
     with patch("cohezion.compound.exp_persistence.vault.VaultLogger"):
-        return CompoundExecutor(mock_mcp_client)
+        return CompoundExecutor(mock_mcp_client, enable_guardrails=False)
 
 
 @pytest.fixture
 def executor_with_token_client(mock_mcp_client, mock_token_client):
     """Create compound executor with token client."""
     with patch("cohezion.compound.exp_persistence.vault.VaultLogger"):
-        return CompoundExecutor(mock_mcp_client, mock_token_client)
+        return CompoundExecutor(mock_mcp_client, mock_token_client, enable_guardrails=False)
 
 
 class TestCompoundExecutorTokenIntegration:
@@ -52,14 +52,14 @@ class TestCompoundExecutorTokenIntegration:
     def test_executor_initialization_without_token_client(self, mock_mcp_client):
         """Test executor initialization without token client."""
         with patch("cohezion.compound.exp_persistence.vault.VaultLogger"):
-            executor = CompoundExecutor(mock_mcp_client)
+            executor = CompoundExecutor(mock_mcp_client, enable_guardrails=False)
             assert executor.token_client is None
             assert executor.mcp_client == mock_mcp_client
 
     def test_executor_initialization_with_token_client(self, mock_mcp_client, mock_token_client):
         """Test executor initialization with token client."""
         with patch("cohezion.compound.exp_persistence.vault.VaultLogger"):
-            executor = CompoundExecutor(mock_mcp_client, mock_token_client)
+            executor = CompoundExecutor(mock_mcp_client, mock_token_client, enable_guardrails=False)
             assert executor.token_client == mock_token_client
             assert executor.mcp_client == mock_mcp_client
 
