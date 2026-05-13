@@ -275,32 +275,41 @@ def solve_unit_conversion(examples: list[tuple[str, str]], test_x: str) -> str:
     def _mse(preds: list[float]) -> float:
         return sum((p - y) ** 2 for p, y in zip(preds, ys))
 
-    best_result = None
-    best_mse = float("inf")
+    def _hits(pred_vals: list[float]) -> int:
+        return sum(
+            1
+            for pv, yv in zip(pred_vals, ys)
+            if _format_number(pv, examples) == _format_number(yv, examples)
+        )
 
-    # 1. Linear fit: y = a*x + b
+    best_result = None
+    # Track by (hits, -n_params, -mse) — more hits > fewer params > lower mse
+    best_score: tuple[int, int, float] = (-1, 0, float("inf"))
+
+    def _candidate(pred_test: float, pred_train: list[float], n_params: int = 1) -> None:
+        nonlocal best_result, best_score
+        h = _hits(pred_train)
+        mse = _mse(pred_train)
+        score = (h, -n_params, -mse)
+        if score > best_score:
+            best_score = score
+            best_result = _format_number(pred_test, examples)
+
+    # 1. Proportional: y = k*x (1 param — simpler, run first)
     n = len(xs)
     sum_x, sum_y = sum(xs), sum(ys)
+    if sum_x != 0:
+        k_lsq = sum_y / sum_x
+        _candidate(k_lsq * test_val, [k_lsq * x for x in xs], n_params=1)
+
+    # 2. Linear fit: y = a*x + b (2 params)
     sum_xy = sum(x * y for x, y in zip(xs, ys))
     sum_x2 = sum(x * x for x in xs)
     denom = n * sum_x2 - sum_x * sum_x
     if abs(denom) > 1e-10:
         a = (n * sum_xy - sum_x * sum_y) / denom
         b = (sum_y - a * sum_x) / n
-        preds = [a * x + b for x in xs]
-        mse = _mse(preds)
-        if mse < best_mse:
-            best_mse = mse
-            best_result = _format_number(a * test_val + b, examples)
-
-    # 2. Proportional: y = k*x
-    if sum_x != 0:
-        k = sum_y / sum_x
-        preds = [k * x for x in xs]
-        mse = _mse(preds)
-        if mse < best_mse:
-            best_mse = mse
-            best_result = _format_number(k * test_val, examples)
+        _candidate(a * test_val + b, [a * x + b for x in xs], n_params=2)
 
     # 3. Non-linear candidates: y = k/x, y = k*sqrt(x), y = k*x^2, y = k*x^3
     nl_models = [
@@ -318,18 +327,13 @@ def solve_unit_conversion(examples: list[tuple[str, str]], test_x: str) -> str:
             feats = [feat_fn(x) for x in xs]
             if any(f is None for f in feats):
                 continue
-            # k = sum(y*f) / sum(f^2)
             sf = sum(feats)
             if abs(sf) < 1e-10:
                 continue
             k = _ls_fit(feats, ys)
             if k == 0:
                 continue
-            preds = [pred_fn(k, x) for x in xs]
-            mse = _mse(preds)
-            if mse < best_mse:
-                best_mse = mse
-                best_result = _format_number(pred_fn(k, test_val), examples)
+            _candidate(pred_fn(k, test_val), [pred_fn(k, x) for x in xs], n_params=1)
         except Exception:
             continue
 
