@@ -313,13 +313,7 @@ class SubmissionBuilder:
 
         if _train:
             try:
-                import pathlib as _pathlib
-                import sys as _sys
-
-                _solver_path = str(_pathlib.Path(__file__).resolve().parents[3] / "kaggle-dataset")
-                if _solver_path not in _sys.path:
-                    _sys.path.insert(0, _solver_path)
-                from arc_solver import apply_program, search_program  # type: ignore[import]  # noqa: I001
+                from cohezion.competition.arc_solver import apply_program, search_program
 
                 program = search_program(_train, max_depth=3)
                 if program:

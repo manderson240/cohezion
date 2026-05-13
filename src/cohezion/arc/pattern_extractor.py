@@ -399,6 +399,79 @@ def _extract_largest_object(g: Grid) -> Grid | None:
     return cropped
 
 
+def _tile_3(g: Grid) -> Grid | None:
+    """Tile the grid 3 times in both directions (3x3 repetition)."""
+    if not g or not g[0]:
+        return None
+    h, w = len(g), len(g[0])
+    if h * 3 > 30 or w * 3 > 30:
+        return None
+    result = []
+    for _ in range(3):
+        for row in g:
+            result.append(row * 3)
+    return result
+
+
+def _tile_2_horiz(g: Grid) -> Grid | None:
+    """Tile the grid twice horizontally (1x2 repetition)."""
+    if not g or not g[0]:
+        return None
+    if len(g[0]) * 2 > 30:
+        return None
+    result = [row * 2 for row in g]
+    return result if result != g else None
+
+
+def _tile_2_vert(g: Grid) -> Grid | None:
+    """Tile the grid twice vertically (2x1 repetition)."""
+    if not g:
+        return None
+    if len(g) * 2 > 30:
+        return None
+    result = list(g) + [row[:] for row in g]
+    return result if result != g else None
+
+
+def _kronecker_tile(g: Grid) -> Grid | None:
+    """Fractal self-tile: replace each non-zero cell with the full input; zero cells → zeros.
+
+    Output shape is (h*h, w*w). Handles the ARC pattern where each pixel either
+    'activates' (shows the whole grid) or stays blank.
+    """
+    if not g or not g[0]:
+        return None
+    h, w = len(g), len(g[0])
+    if h * h > 30 or w * w > 30:
+        return None
+    out = [[0] * (w * w) for _ in range(h * h)]
+    for i in range(h):
+        for j in range(w):
+            if g[i][j] != 0:
+                for di in range(h):
+                    for dj in range(w):
+                        out[i * h + di][j * w + dj] = g[di][dj]
+    return out if any(out[r][c] != 0 for r in range(h * h) for c in range(w * w)) else None
+
+
+def _count_nonzero_to_row(g: Grid) -> Grid | None:
+    """Count non-zero cells; output a 1xN row where N=count and all cells = that color.
+
+    Handles single-color tasks like: 5 cells of color 4 → [[4,4,4,4,4]].
+    Background is always 0 per ARC convention.
+    """
+    fg_cells = [g[r][c] for r in range(len(g)) for c in range(len(g[r])) if g[r][c] != 0]
+    if not fg_cells:
+        return None
+    if len(set(fg_cells)) != 1:
+        return None  # multiple colors
+    color = fg_cells[0]
+    n = len(fg_cells)
+    if n > 30:
+        return None
+    return [[color] * n]
+
+
 # Parametric color-map wrapper
 
 
@@ -510,6 +583,10 @@ def _build_strategy(name: str, train: list[dict[str, Grid]]) -> list[tuple[str, 
         ("mirror_v", _mirror_v),
         ("extend_down", _extend_down),
         ("extend_right", _extend_right),
+        ("tile_2h", _tile_2_horiz),
+        ("tile_2v", _tile_2_vert),
+        ("tile_3", _tile_3),
+        ("kronecker", _kronecker_tile),
     ]
 
     obj = [
@@ -522,6 +599,7 @@ def _build_strategy(name: str, train: list[dict[str, Grid]]) -> list[tuple[str, 
         ("crop_largest", _extract_largest_object),
         ("color_by_size", _color_objects_by_size),
         ("dedup_cols", _deduplicate_cols),
+        ("count_row", _count_nonzero_to_row),
     ]
 
     scale = [
