@@ -399,6 +399,27 @@ def _extract_largest_object(g: Grid) -> Grid | None:
     return cropped
 
 
+def _mark_nz_neighbors_ul(g: Grid) -> Grid | None:
+    """Mark the toroidal UP-LEFT neighbor of each non-zero cell with color 2.
+
+    For each non-zero cell at (r, c), the cell at ((r-1)%h, (c-1)%w) is set
+    to 2 if it is currently 0.  Enables compound ops like mark_nz_ul + tile_3.
+    """
+    if not g or not g[0]:
+        return None
+    h, w = len(g), len(g[0])
+    result = [row[:] for row in g]
+    changed = False
+    for r in range(h):
+        for c in range(w):
+            if g[r][c] != 0:
+                nr, nc = (r - 1) % h, (c - 1) % w
+                if result[nr][nc] == 0:
+                    result[nr][nc] = 2
+                    changed = True
+    return result if changed else None
+
+
 def _kronecker_modal(g: Grid) -> Grid | None:
     """Kronecker tile triggered by the most-common color: blocks placed only at those positions.
 
@@ -680,6 +701,7 @@ def _build_strategy(name: str, train: list[dict[str, Grid]]) -> list[tuple[str, 
         ("kronecker", _kronecker_tile),
         ("kronecker_inv", _kronecker_invert),
         ("kronecker_modal", _kronecker_modal),
+        ("mark_nz_ul", _mark_nz_neighbors_ul),
     ]
 
     obj = [
