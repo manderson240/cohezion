@@ -214,6 +214,24 @@ _GPU_PATTERNS = [
         0.80,
         "implementing gerund context",
     ),
+    # "Deploy/provision/migrate X to/from/on Y" — cloud deployment verbs
+    (
+        re.compile(
+            r"\b(?:deploy|provision|migrate|rollout|release)\s+(?:the\s+|a\s+|an\s+|this\s+)?\w+",
+            re.I,
+        ),
+        0.85,
+        "deploy/provision task",
+    ),
+    # Cloud infrastructure operations — "Set up [cloud service]" / "Implement [cloud ops]"
+    (
+        re.compile(
+            r"\b(?:set\s+up|implement|configure)\s+(?:the\s+|a\s+|an\s+)?(?:[\w-]+\s+)?(?:auto.?scal(?:e|ing)|health\s+checks?|lifecycle|monitoring|alerting|logging|iam\s+role|iam\s+policy|s3\s+bucket|lambda|ec2|cloudwatch|azure\s+ad|gcp|gcr|eks|ecs|fargate|sns|sqs)\b",
+            re.I,
+        ),
+        0.85,
+        "cloud infrastructure operation",
+    ),
     # Test/spec generation — "write a unit test for...", "write tests for..."
     (
         re.compile(
@@ -430,7 +448,7 @@ _GPU_PATTERNS = [
     # Create/build a [adjective(s)] endpoint/service/cache/pipeline/queue
     (
         re.compile(
-            r"\b(create|build|add)\s+(?:a\s+)?(?:[\w-]+\s+){0,3}(endpoint|service|api\b|cache|pipeline|queue|handler|middleware|dashboard|visualization|report|portal|agent|bot|workflow|framework|harness|scaffold|index\b|view\b|trigger\b|constraint|migration)\b",
+            r"\b(create|build|add)\s+(?:a\s+)?(?:[\w-]+\s+){0,3}(endpoint|service|api\b|cache|pipeline|queue|handler|middleware|dashboard|visualization|report|portal|agent|bot|workflow|framework|harness|scaffold|index\b|view\b|trigger\b|constraint|migration|role\b|policy|lifecycle|bucket|cluster|repository|registry)\b",
             re.I,
         ),
         0.82,
