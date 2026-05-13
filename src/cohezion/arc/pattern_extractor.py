@@ -593,6 +593,30 @@ def _kronecker_invert(g: Grid) -> Grid | None:
     return out if any(out[r][c] != 0 for r in range(h * h) for c in range(w * w)) else None
 
 
+def _tile_4_rotations(g: Grid) -> Grid | None:
+    """4-quadrant tile: place the 4 rotations of g at [TL|TR; BL|BR].
+
+    Only valid for square inputs.  Layout:
+        identity(g)   | CW_rot90(g)
+        CCW_rot90(g)  | rot180(g)
+    CW rot90 = flip_v(transpose(g)).  CCW rot90 = flip_h(transpose(g)).
+    """
+    if not g or not g[0]:
+        return None
+    h, w = len(g), len(g[0])
+    if h != w:
+        return None
+    if h * 2 > 30:
+        return None
+    t = _transpose(g)
+    cw = _flip_v(t)
+    ccw = _flip_h(t)
+    r180 = _rot180(g)
+    top = [g[r] + cw[r] for r in range(h)]
+    bot = [ccw[r] + r180[r] for r in range(h)]
+    return top + bot
+
+
 def _tile_3_alt_flip(g: Grid) -> Grid | None:
     """Tile 3x: even repetitions normal, odd repetitions flip each row horizontally.
 
@@ -819,6 +843,7 @@ def _build_strategy(name: str, train: list[dict[str, Grid]]) -> list[tuple[str, 
         ("extend_right", _extend_right),
         ("tile_2h", _tile_2_horiz),
         ("tile_2v", _tile_2_vert),
+        ("tile_4rot", _tile_4_rotations),
         ("tile_3", _tile_3),
         ("tile_3_altflip", _tile_3_alt_flip),
         ("kronecker", _kronecker_tile),
