@@ -539,7 +539,6 @@ def solve_bit_manip(examples: list[tuple[str, str]], test_in: str) -> str:
     return test_in
 
 
-
 _ENCRYPTION_VOCAB = [
     "the",
     "follows",
@@ -764,7 +763,31 @@ def _match_pattern(pattern, word):
     return True
 
 
+def _try_caesar_nb(examples, test_in):
+    shifts = set()
+    for inp, out in examples:
+        for ci, co in zip(inp, out):
+            if ci.isalpha() and co.isalpha():
+                shifts.add((ord(co.lower()) - ord(ci.lower())) % 26)
+    if len(shifts) == 1:
+        s = shifts.pop()
+        return "".join(
+            chr(
+                (ord(c) - (ord("a") if c.islower() else ord("A")) + s) % 26
+                + (ord("a") if c.islower() else ord("A"))
+            )
+            if c.isalpha()
+            else c
+            for c in test_in
+        )
+    return None
+
+
 def solve_encryption(examples, test_in):
+    caesar = _try_caesar_nb(examples, test_in)
+    if caesar is not None:
+        return caesar
+
     mapping = {}
     for inp, out in examples:
         inp_words = inp.split()
@@ -777,7 +800,6 @@ def solve_encryption(examples, test_in):
                     if c_in not in mapping:
                         mapping[c_in] = c_out
 
-    # Runtime vocab: extract from example outputs (domain-specific, frequency-ranked)
     runtime_counts = Counter()
     for _, out in examples:
         for w in out.split():
@@ -795,12 +817,22 @@ def solve_encryption(examples, test_in):
             if "?" not in pw:
                 continue
             matches = [w for w in combined_vocab if len(w) == len(pw) and _match_pattern(pw, w)]
-            if matches:
-                best = matches[0]
-                for c_in, c_out in zip(tw, best):
-                    if c_in not in mapping:
-                        mapping[c_in] = c_out
-                        changed = True
+            for best in matches:
+                conflict = any(
+                    (ci in mapping and mapping[ci] != co)
+                    or (
+                        co in mapping.values()
+                        and mapping.get(ci) != co
+                        and next((k for k, v in mapping.items() if v == co), None) != ci
+                    )
+                    for ci, co in zip(tw, best)
+                )
+                if not conflict:
+                    for ci, co in zip(tw, best):
+                        if ci not in mapping:
+                            mapping[ci] = co
+                            changed = True
+                    break
         result_words = ["".join(mapping.get(c, "?") for c in tw) for tw in test_words]
 
     return " ".join(result_words)
@@ -898,16 +930,20 @@ def solve_equations(examples, test_in):
                 lambda a, b, f=inner: (a, f(a, b)),
                 lambda a, b, f=inner: (b, f(a, b)),
             ]:
+
                 def tree_op(a, b, outer=outer, make_ab=make_ab):
                     x, y = make_ab(a, b)
                     return outer(x, y)
+
                 r = _try(tree_op)
                 if r is not None:
                     return r
         for inner in _base_ops[:6]:
             for c in [1, 2, 3, 10, 100]:
+
                 def tree_const(a, b, outer=outer, inner=inner, c=c):
                     return outer(inner(a, b), c)
+
                 r = _try(tree_const)
                 if r is not None:
                     return r

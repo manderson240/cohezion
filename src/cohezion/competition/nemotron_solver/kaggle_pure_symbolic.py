@@ -781,8 +781,33 @@ _ENCRYPTION_VOCAB = [
 ]
 
 
+def _try_caesar_sym(examples: list[tuple[str, str]], test_in: str) -> str | None:
+    shifts: set[int] = set()
+    for inp, out in examples:
+        for c_in, c_out in zip(inp, out):
+            if c_in.isalpha() and c_out.isalpha():
+                shift = (ord(c_out.lower()) - ord(c_in.lower())) % 26
+                shifts.add(shift)
+    if len(shifts) == 1:
+        shift = shifts.pop()
+        return "".join(
+            chr(
+                (ord(c) - (ord("a") if c.islower() else ord("A")) + shift) % 26
+                + (ord("a") if c.islower() else ord("A"))
+            )
+            if c.isalpha()
+            else c
+            for c in test_in
+        )
+    return None
+
+
 def solve_encryption(examples: list[tuple[str, str]], test_in: str) -> str:
-    """Word-level substitution cipher solver with vocabulary completion."""
+    """Word-level substitution cipher with Caesar detection + consistency checking."""
+    caesar = _try_caesar_sym(examples, test_in)
+    if caesar is not None:
+        return caesar
+
     mapping = {}
     for inp, out in examples:
         inp_words = inp.split()
@@ -809,7 +834,7 @@ def solve_encryption(examples: list[tuple[str, str]], test_in: str) -> str:
     test_words = test_in.split()
     result_words = ["".join(mapping.get(c, "?") for c in tw) for tw in test_words]
 
-    # Dictionary completion using combined vocab (runtime first)
+    # Dictionary completion with consistency checking
     changed = True
     while changed:
         changed = False
@@ -817,12 +842,22 @@ def solve_encryption(examples: list[tuple[str, str]], test_in: str) -> str:
             if "?" not in pw:
                 continue
             matches = [w for w in combined_vocab if len(w) == len(pw) and _match_pattern(pw, w)]
-            if matches:
-                best = matches[0]
-                for c_in, c_out in zip(tw, best):
-                    if c_in not in mapping:
-                        mapping[c_in] = c_out
-                        changed = True
+            for best in matches:
+                conflict = any(
+                    (c_in in mapping and mapping[c_in] != c_out)
+                    or (
+                        c_out in mapping.values()
+                        and mapping.get(c_in) != c_out
+                        and next((k for k, v in mapping.items() if v == c_out), None) != c_in
+                    )
+                    for c_in, c_out in zip(tw, best)
+                )
+                if not conflict:
+                    for c_in, c_out in zip(tw, best):
+                        if c_in not in mapping:
+                            mapping[c_in] = c_out
+                            changed = True
+                    break
         result_words = ["".join(mapping.get(c, "?") for c in tw) for tw in test_words]
 
     return " ".join(result_words)
