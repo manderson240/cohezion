@@ -327,14 +327,20 @@ _GPU_PATTERNS = [
         0.82,
         "service wiring task",
     ),
-    # "Why is/are [X] [doing/returning/failing/scoring]" — broader debugging question
+    # "Why is/are [X] [doing/returning/failing/scoring]" — specific debugging verbs
     (
         re.compile(
-            r"\bwhy (is|are|does|did|isn't|aren't|doesn't|didn't)\b.{0,60}\b(returning|fail(ing)?|scoring|not|error|broken|wrong|zero|null|empty|opening|dropping|crashing|slow|leaking|growing|blocking|hanging?|stuck)\b",
+            r"\bwhy (is|are|does|did|isn't|aren't|doesn't|didn't)\b.{0,60}\b(returning|fail(ing)?|scoring|not|error|broken|wrong|zero|null|empty|opening|dropping|crashing|slow|leaking|growing|blocking|hanging?|stuck|exhausting|falling|rising|spiking|timing\s+out|degrading|throwing|breaking)\b",
             re.I,
         ),
         0.82,
         "debugging why-question",
+    ),
+    # Long "why" question (≥45 chars) — complex system behavior investigation
+    (
+        re.compile(r"\bwhy\s+(?:does|is|are|did|doesn't|isn't|aren't|didn't)\b.{42,}", re.I),
+        0.78,
+        "long debugging why-question",
     ),
     # "Generate the [config/JSON/YAML/entry/file] for [X]" — config generation
     (
