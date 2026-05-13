@@ -288,9 +288,10 @@ _GPU_PATTERNS = [
         "test suite generation",
     ),
     # Multi-adjective code generation — "Create the X Y Z module/component"
+    # Cap at {2,4} to prevent O(n²) backtracking on adversarial repeated-word inputs
     (
         re.compile(
-            r"\b(write|implement|create|generate|build)\s+(a |an |the )?(\w+ ){2,}(function|class|script|module|code|program|component|system)\b",
+            r"\b(write|implement|create|generate|build)\s+(a |an |the )?(\w+ ){2,4}(function|class|script|module|code|program|component|system)\b",
             re.I,
         ),
         0.95,
@@ -534,6 +535,10 @@ _NEGATION_PATTERN = re.compile(
 
 def classify(prompt: str) -> RouteDecision:
     """Classify a prompt and return routing decision. Zero model calls."""
+    # Truncate very long prompts — classifier only needs the opening intent phrase
+    # Prevents O(n²) backtracking on adversarial 1000+ char inputs
+    if len(prompt) > 500:
+        prompt = prompt[:500]
     prompt_len = len(prompt)
 
     # ── Pre-GPU overrides (fire before GPU patterns) ─────────────────────────
