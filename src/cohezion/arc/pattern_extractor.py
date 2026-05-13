@@ -593,6 +593,64 @@ def _kronecker_invert(g: Grid) -> Grid | None:
     return out if any(out[r][c] != 0 for r in range(h * h) for c in range(w * w)) else None
 
 
+def _kronecker_color_mask(g: Grid) -> Grid | None:
+    """Kronecker product where block (i,j) shows ONLY cells matching color g[i][j].
+
+    At each meta-cell (i,j), place a masked copy of g where every cell whose
+    value differs from g[i][j] is set to 0.  Background (0) meta-cells are
+    skipped.  Handles ARC tasks where each pixel 'reveals' only the cells of
+    its own color in the scaled output.
+    """
+    if not g or not g[0]:
+        return None
+    h, w = len(g), len(g[0])
+    if h * h > 30 or w * w > 30:
+        return None
+    out = [[0] * (w * w) for _ in range(h * h)]
+    placed = False
+    for i in range(h):
+        for j in range(w):
+            c = g[i][j]
+            if c == 0:
+                continue
+            for di in range(h):
+                for dj in range(w):
+                    if g[di][dj] == c:
+                        out[i * h + di][j * w + dj] = c
+                        placed = True
+    return out if placed else None
+
+
+def _tile_parity_transforms(g: Grid) -> Grid | None:
+    """Kronecker product where the template at block (i,j) depends on (i%2, j%2).
+
+    Uses the Klein four-group of reflections:
+        (0,0) → rot180    (0,1) → flip_h
+        (1,0) → flip_v    (1,1) → identity
+    Handles ARC tasks whose output is a checkerboard of rotated/reflected copies
+    of the input, with the transformation determined by the block's row/column parity.
+    """
+    if not g or not g[0]:
+        return None
+    h, w = len(g), len(g[0])
+    if h * h > 30 or w * w > 30:
+        return None
+    templates = {
+        (0, 0): _rot180(g),
+        (0, 1): _flip_h(g),
+        (1, 0): _flip_v(g),
+        (1, 1): [r[:] for r in g],
+    }
+    out = [[0] * (w * w) for _ in range(h * h)]
+    for i in range(h):
+        for j in range(w):
+            tpl = templates[(i % 2, j % 2)]
+            for di in range(h):
+                for dj in range(w):
+                    out[i * h + di][j * w + dj] = tpl[di][dj]
+    return out
+
+
 def _tile_4_rotations(g: Grid) -> Grid | None:
     """4-quadrant tile: place the 4 rotations of g at [TL|TR; BL|BR].
 
@@ -879,6 +937,8 @@ def _build_strategy(name: str, train: list[dict[str, Grid]]) -> list[tuple[str, 
         ("kronecker_inv", _kronecker_invert),
         ("kronecker_modal", _kronecker_modal),
         ("kronecker_minority", _kronecker_minority),
+        ("kronecker_color_mask", _kronecker_color_mask),
+        ("tile_parity", _tile_parity_transforms),
         ("kronecker_learned", _make_kronecker_learned(train)),
         ("kronecker_rot90", _make_kronecker_template(_rot90, train)),
         ("kronecker_rot180", _make_kronecker_template(_rot180, train)),
