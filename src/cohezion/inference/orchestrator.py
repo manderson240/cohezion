@@ -187,6 +187,13 @@ class TieredOrchestrator:
                 else:
                     # Override tier-0 gate based on expected output length
                     _gate_override[0] = QualityGate(min_chars=decision.quality_gate_chars)
+                    # Also cap the iGPU fallback gate to prevent CPU over-escalation.
+                    # Default triune_orchestrator iGPU gate is 2000 chars, causing ~85%
+                    # CPU escalation for NPU-fallback tasks (empirically: median iGPU
+                    # response for short/factual tasks is ~400 chars, far below 2000).
+                    # Cap at 750: sufficient for a substantive answer, avoids CPU waste.
+                    _igpu_fallback_gate = min(max(decision.quality_gate_chars * 15, 200), 750)
+                    _gate_override[1] = QualityGate(min_chars=_igpu_fallback_gate)
                 logger.debug(
                     "pre_dispatch: %s → tier%d gate=%d (%s, conf=%.2f)",
                     decision.output_type,
