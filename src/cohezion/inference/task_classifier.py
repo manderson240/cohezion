@@ -652,6 +652,15 @@ _NEGATION_PATTERN = re.compile(
     re.I,
 )
 
+# Brevity-qualified summarize/critique/interpret: "Summarize X in one paragraph" → short answer (NPU)
+# Also: "Briefly summarize/critique/interpret X" → NPU
+# Without brevity qualifier: "Summarize the contributions of BERT" → GPU
+_BREVITY_SUMMARIZE_PATTERN = re.compile(
+    r"(?:\bbriefly\s+(?:summarize|critique|interpret|formulate|explain)\b)|"
+    r"(?:\bsummariz(?:e|ing)\b.{0,80}\b(?:in\s+(?:one|two|three|a\s+single)\s+(?:sentence|paragraph|bullet|word|line)|in\s+brief)\b)",
+    re.I | re.S,
+)
+
 
 def classify(prompt: str) -> RouteDecision:
     """Classify a prompt and return routing decision. Zero model calls."""
@@ -662,6 +671,18 @@ def classify(prompt: str) -> RouteDecision:
     prompt_len = len(prompt)
 
     # ── Pre-GPU overrides (fire before GPU patterns) ─────────────────────────
+    # 0. Brevity-qualified summarize: "Summarize X in one paragraph" → NPU
+    # Without brevity qualifier, "summarize" → GPU (see engineering task verb pattern)
+    if _BREVITY_SUMMARIZE_PATTERN.search(prompt):
+        node, gate = _TYPE_CONFIG["short_answer"]
+        return RouteDecision(
+            node=node,
+            output_type="short_answer",
+            quality_gate_chars=gate,
+            confidence=0.85,
+            reason="brevity-qualified summarize",
+        )
+
     # 1. Negation: "not asking you to write code, just tell me X" → NPU
     if _NEGATION_PATTERN.search(prompt):
         node, gate = _TYPE_CONFIG["short_answer"]
