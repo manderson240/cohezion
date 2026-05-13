@@ -21,6 +21,7 @@ from fastmcp import FastMCP
 
 from cohezion.mcp.compound_utils import McpClientResolver, err, mcp_tool, ok
 
+
 logger = logging.getLogger(__name__)
 
 # ────────────────────────── FastMCP instance ─────────────────────────────
