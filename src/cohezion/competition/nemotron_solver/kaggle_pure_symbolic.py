@@ -220,7 +220,7 @@ def solve_numeral(examples: list[tuple[str, str]], test_n: str) -> str:
 
 def _lut_search(pairs: list[tuple[int, int]], max_k: int = 3) -> dict | None:
     """Find a k-ary Boolean function (truth table) for each output bit."""
-    _NAMED_TT_K2 = [6, 8, 14, 1, 7, 9, 12, 10, 3, 5, 11, 13, 4, 2, 0, 15]
+    _named_tt_k2 = [6, 8, 14, 1, 7, 9, 12, 10, 3, 5, 11, 13, 4, 2, 0, 15]
     result = {}
     for out_bit in range(8):
         found = False
@@ -236,14 +236,14 @@ def _lut_search(pairs: list[tuple[int, int]], max_k: int = 3) -> dict | None:
                 obs[idx] = expected
             if not consistent:
                 continue
-            for tt in _NAMED_TT_K2:
+            for tt in _named_tt_k2:
                 if all((tt >> idx) & 1 == val for idx, val in obs.items()):
                     result[out_bit] = (in_bits, tt)
                     found = True
                     break
             if not found:
                 for tt in range(16):
-                    if tt in _NAMED_TT_K2:
+                    if tt in _named_tt_k2:
                         continue
                     if all((tt >> idx) & 1 == val for idx, val in obs.items()):
                         result[out_bit] = (in_bits, tt)
@@ -398,7 +398,7 @@ def solve_bit_manip(examples: list[tuple[str, str]], test_in: str) -> str:
         ("not_reverse", lambda x: int(f"{(~x) & 0xFF:08b}"[::-1], 2)),
     ]
 
-    for name, op in unary_ops:
+    for _name, op in unary_ops:
         ok = True
         for a, b in pairs:
             if op(a) != b:
@@ -411,8 +411,8 @@ def solve_bit_manip(examples: list[tuple[str, str]], test_in: str) -> str:
             except Exception:
                 pass
 
-    for n1, o1 in unary_ops:
-        for n2, o2 in unary_ops:
+    for _n1, o1 in unary_ops:
+        for _n2, o2 in unary_ops:
             ok = True
             for a, b in pairs:
                 if o2(o1(a)) != b:
@@ -426,14 +426,14 @@ def solve_bit_manip(examples: list[tuple[str, str]], test_in: str) -> str:
                     pass
 
     for const in range(256):
-        for op_name, op_fn in [
+        for _op_name, op_fn in [
             ("xor", lambda x, c: x ^ c),
             ("and", lambda x, c: x & c),
             ("or", lambda x, c: x | c),
             ("add", lambda x, c: (x + c) & 0xFF),
             ("sub", lambda x, c: (x - c) & 0xFF),
         ]:
-            for n1, o1 in unary_ops:
+            for _n1, o1 in unary_ops:
                 ok = True
                 for a, b in pairs:
                     if op_fn(o1(a), const) != b:
@@ -445,7 +445,7 @@ def solve_bit_manip(examples: list[tuple[str, str]], test_in: str) -> str:
                         return f"{op_fn(o1(test_val), const):08b}"
                     except Exception:
                         pass
-            for n2, o2 in unary_ops:
+            for _n2, o2 in unary_ops:
                 ok = True
                 for a, b in pairs:
                     if o2(op_fn(a, const)) != b:
@@ -459,7 +459,7 @@ def solve_bit_manip(examples: list[tuple[str, str]], test_in: str) -> str:
                         pass
 
     # Phase 6a: global uniform cross-bit — output[i] = f(input[i], input[(i+k)%8])
-    _CROSS_BIT_FUNCS = [
+    _cross_bit_funcs = [
         lambda a, b: a ^ b,
         lambda a, b: a & b,
         lambda a, b: a | b,
@@ -474,7 +474,7 @@ def solve_bit_manip(examples: list[tuple[str, str]], test_in: str) -> str:
         lambda a, b: 1 - b,
     ]
     for offset in range(1, 8):
-        for ffn in _CROSS_BIT_FUNCS:
+        for ffn in _cross_bit_funcs:
             ok = True
             for a, b in pairs:
                 for out_bit in range(8):
@@ -759,7 +759,7 @@ def solve_encryption(examples: list[tuple[str, str]], test_in: str) -> str:
     changed = True
     while changed:
         changed = False
-        for i, (tw, pw) in enumerate(zip(test_words, result_words)):
+        for _i, (tw, pw) in enumerate(zip(test_words, result_words)):
             if "?" not in pw:
                 continue
             pattern = pw.replace("?", "?")

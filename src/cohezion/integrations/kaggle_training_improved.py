@@ -120,9 +120,11 @@ import traceback
 
 # v5: metric-matching prompt suffix
 BOXED_INSTRUCTION = "Solve step by step and put your final answer inside \\boxed{}."
+# v6: eval-aligned suffix appended to test prompts to match competition evaluator format
+EVAL_SUFFIX = "\n\nThink carefully. Show your reasoning in <think>...</think> tags, then give your final answer inside \\boxed{}."
 
 print("=" * 60)
-print("NEMOTRON LORA TRAINING v5.2")
+print("NEMOTRON LORA TRAINING v5.3")
 print("9500 symbolic | Native BF16 | all-linear | DataCollatorForSeq2Seq | bit_manip_x3")
 print("=" * 60)
 
