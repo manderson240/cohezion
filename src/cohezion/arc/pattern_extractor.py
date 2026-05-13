@@ -303,6 +303,53 @@ def _deduplicate_cols(g: Grid) -> Grid | None:
     return [[g[r][c] for c in kept] for r in range(len(g))]
 
 
+def _color_objects_by_size(g: Grid) -> Grid | None:
+    """Recolor each connected component by its size rank (largest → color 1).
+
+    All non-background components share the same background color in the input.
+    Rank 0 (largest component) → color 1, rank 1 → color 2, etc.
+    Background cells stay at background color.
+    """
+    if not g or not g[0]:
+        return None
+    from collections import Counter
+
+    rows, cols = len(g), len(g[0])
+    counts: Counter[int] = Counter(g[r][c] for r in range(rows) for c in range(cols))
+    bg = counts.most_common(1)[0][0]
+    visited = [[False] * cols for _ in range(rows)]
+    components: list[list[tuple[int, int]]] = []
+    for sr in range(rows):
+        for sc in range(cols):
+            if g[sr][sc] == bg or visited[sr][sc]:
+                continue
+            queue = [(sr, sc)]
+            component: list[tuple[int, int]] = []
+            visited[sr][sc] = True
+            while queue:
+                r, c = queue.pop()
+                component.append((r, c))
+                for nr, nc in ((r - 1, c), (r + 1, c), (r, c - 1), (r, c + 1)):
+                    if (
+                        0 <= nr < rows
+                        and 0 <= nc < cols
+                        and not visited[nr][nc]
+                        and g[nr][nc] != bg
+                    ):
+                        visited[nr][nc] = True
+                        queue.append((nr, nc))
+            components.append(component)
+    if len(components) < 2:
+        return None
+    components.sort(key=len, reverse=True)
+    result = [[bg] * cols for _ in range(rows)]
+    for rank, comp in enumerate(components):
+        color = rank + 1  # 1-indexed, largest gets 1
+        for r, c in comp:
+            result[r][c] = color
+    return result if result != g else None
+
+
 def _extract_largest_object(g: Grid) -> Grid | None:
     """BFS-crop to the bounding box of the LARGEST non-background connected component.
 
@@ -473,6 +520,7 @@ def _build_strategy(name: str, train: list[dict[str, Grid]]) -> list[tuple[str, 
         ("gravity_u", _gravity_up),
         ("crop_obj", _crop_to_object),
         ("crop_largest", _extract_largest_object),
+        ("color_by_size", _color_objects_by_size),
         ("dedup_cols", _deduplicate_cols),
     ]
 
