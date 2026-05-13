@@ -180,6 +180,15 @@ _GPU_PATTERNS = [
         0.78,
         "implement multi-word component",
     ),
+    # "implement sorting/caching/searching/batching/etc" — algorithm/operation as direct object
+    (
+        re.compile(
+            r"\bimplement\s+(?:the\s+|a\s+|an\s+)?(?:\w+\s+)?(?:sort(?:ing)?|search(?:ing)?|cach(?:e|ing)|hash(?:ing)?|batch(?:ing)?|rout(?:e|ing)|queu(?:e|ing)|stack(?:ing)?|heap|tree|graph|index(?:ing)?|filter(?:ing)?|compres(?:s|sion)|encod(?:e|ing)|algorithm|protocol)\b",
+            re.I,
+        ),
+        0.85,
+        "implement algorithm/operation",
+    ),
     # "implement JWT/OAuth/SAML/etc." — tech acronym without article (common in mixed-signal prompts)
     (
         re.compile(
