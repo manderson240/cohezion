@@ -888,27 +888,37 @@ def _try_caesar_sym(examples: list[tuple[str, str]], test_in: str) -> str | None
     return None
 
 
+def _sym_build_mapping_voting(examples: list[tuple[str, str]]) -> dict[str, str]:
+    """Build char mapping via majority vote across all aligned word pairs."""
+    from collections import Counter
+
+    votes: dict[str, Counter] = {}
+    for inp, out in examples:
+        iws = inp.split()
+        ows = out.split()
+        if len(iws) != len(ows):
+            continue
+        for iw, ow in zip(iws, ows):
+            if len(iw) == len(ow):
+                for ci, co in zip(iw, ow):
+                    if ci not in votes:
+                        votes[ci] = Counter()
+                    votes[ci][co] += 1
+    return {ci: cnt.most_common(1)[0][0] for ci, cnt in votes.items() if cnt}
+
+
 def solve_encryption(examples: list[tuple[str, str]], test_in: str) -> str:
-    """Word-level substitution cipher with Caesar detection + consistency checking."""
+    """Word-level substitution cipher with voting mapping + Caesar detection."""
+    from collections import Counter
+
     caesar = _try_caesar_sym(examples, test_in)
     if caesar is not None:
         return caesar
 
-    mapping = {}
-    for inp, out in examples:
-        inp_words = inp.split()
-        out_words = out.split()
-        if len(inp_words) != len(out_words):
-            continue
-        for iw, ow in zip(inp_words, out_words):
-            if len(iw) == len(ow):
-                for c_in, c_out in zip(iw, ow):
-                    if c_in not in mapping:
-                        mapping[c_in] = c_out
+    # Voting-based mapping (majority vote per char pair)
+    mapping = _sym_build_mapping_voting(examples)
 
     # Runtime vocabulary from example outputs (frequency-ranked, domain-specific)
-    from collections import Counter
-
     runtime_counts: Counter = Counter()
     for _, out in examples:
         for w in out.split():
@@ -920,30 +930,36 @@ def solve_encryption(examples: list[tuple[str, str]], test_in: str) -> str:
     test_words = test_in.split()
     result_words = ["".join(mapping.get(c, "?") for c in tw) for tw in test_words]
 
-    # Dictionary completion with consistency checking
+    # Dictionary completion: score all non-conflicting candidates, pick best
     changed = True
     while changed:
         changed = False
         for _i, (tw, pw) in enumerate(zip(test_words, result_words)):
             if "?" not in pw:
                 continue
-            matches = [w for w in combined_vocab if len(w) == len(pw) and _match_pattern(pw, w)]
-            for best in matches:
+            candidates = []
+            for cand in combined_vocab:
+                if len(cand) != len(pw) or not _match_pattern(pw, cand):
+                    continue
                 conflict = any(
-                    (c_in in mapping and mapping[c_in] != c_out)
+                    (ci in mapping and mapping[ci] != co)
                     or (
-                        c_out in mapping.values()
-                        and mapping.get(c_in) != c_out
-                        and next((k for k, v in mapping.items() if v == c_out), None) != c_in
+                        co in mapping.values()
+                        and mapping.get(ci) != co
+                        and next((k for k, v in mapping.items() if v == co), None) != ci
                     )
-                    for c_in, c_out in zip(tw, best)
+                    for ci, co in zip(tw, cand)
                 )
                 if not conflict:
-                    for c_in, c_out in zip(tw, best):
-                        if c_in not in mapping:
-                            mapping[c_in] = c_out
-                            changed = True
-                    break
+                    score = sum(1 for ci, co in zip(tw, cand) if mapping.get(ci) == co)
+                    candidates.append((score, cand))
+            if candidates:
+                candidates.sort(key=lambda x: -x[0])
+                best = candidates[0][1]
+                for ci, co in zip(tw, best):
+                    if ci not in mapping:
+                        mapping[ci] = co
+                        changed = True
         result_words = ["".join(mapping.get(c, "?") for c in tw) for tw in test_words]
 
     return " ".join(result_words)

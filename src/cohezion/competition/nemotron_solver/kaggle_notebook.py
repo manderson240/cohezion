@@ -874,22 +874,32 @@ def _try_caesar_nb(examples, test_in):
     return None
 
 
+def _nb_build_mapping_voting(examples):
+    """Majority-vote char mapping across aligned word pairs."""
+    from collections import Counter
+
+    votes = {}
+    for inp, out in examples:
+        iws = inp.split()
+        ows = out.split()
+        if len(iws) != len(ows):
+            continue
+        for iw, ow in zip(iws, ows):
+            if len(iw) == len(ow):
+                for ci, co in zip(iw, ow):
+                    if ci not in votes:
+                        votes[ci] = Counter()
+                    votes[ci][co] += 1
+    return {ci: cnt.most_common(1)[0][0] for ci, cnt in votes.items() if cnt}
+
+
 def solve_encryption(examples, test_in):
     caesar = _try_caesar_nb(examples, test_in)
     if caesar is not None:
         return caesar
 
-    mapping = {}
-    for inp, out in examples:
-        inp_words = inp.split()
-        out_words = out.split()
-        if len(inp_words) != len(out_words):
-            continue
-        for iw, ow in zip(inp_words, out_words):
-            if len(iw) == len(ow):
-                for c_in, c_out in zip(iw, ow):
-                    if c_in not in mapping:
-                        mapping[c_in] = c_out
+    # Voting-based mapping
+    mapping = _nb_build_mapping_voting(examples)
 
     runtime_counts = Counter()
     for _, out in examples:
@@ -901,14 +911,17 @@ def solve_encryption(examples, test_in):
     test_words = test_in.split()
     result_words = ["".join(mapping.get(c, "?") for c in tw) for tw in test_words]
 
+    # Score all non-conflicting candidates, pick best (most confirmed chars)
     changed = True
     while changed:
         changed = False
         for _i, (tw, pw) in enumerate(zip(test_words, result_words)):
             if "?" not in pw:
                 continue
-            matches = [w for w in combined_vocab if len(w) == len(pw) and _match_pattern(pw, w)]
-            for best in matches:
+            candidates = []
+            for cand in combined_vocab:
+                if len(cand) != len(pw) or not _match_pattern(pw, cand):
+                    continue
                 conflict = any(
                     (ci in mapping and mapping[ci] != co)
                     or (
@@ -916,14 +929,18 @@ def solve_encryption(examples, test_in):
                         and mapping.get(ci) != co
                         and next((k for k, v in mapping.items() if v == co), None) != ci
                     )
-                    for ci, co in zip(tw, best)
+                    for ci, co in zip(tw, cand)
                 )
                 if not conflict:
-                    for ci, co in zip(tw, best):
-                        if ci not in mapping:
-                            mapping[ci] = co
-                            changed = True
-                    break
+                    score = sum(1 for ci, co in zip(tw, cand) if mapping.get(ci) == co)
+                    candidates.append((score, cand))
+            if candidates:
+                candidates.sort(key=lambda x: -x[0])
+                best = candidates[0][1]
+                for ci, co in zip(tw, best):
+                    if ci not in mapping:
+                        mapping[ci] = co
+                        changed = True
         result_words = ["".join(mapping.get(c, "?") for c in tw) for tw in test_words]
 
     return " ".join(result_words)
