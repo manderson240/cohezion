@@ -399,6 +399,36 @@ def _extract_largest_object(g: Grid) -> Grid | None:
     return cropped
 
 
+def _kronecker_minority(g: Grid) -> Grid | None:
+    """Kronecker tile triggered by the least-common non-zero color.
+
+    Places a copy of g at each block (i, j) where input[i][j] equals the
+    rarest non-zero color.  Complement of _kronecker_modal (which uses the
+    most common color as trigger).
+    """
+    from collections import Counter
+
+    if not g or not g[0]:
+        return None
+    counts: Counter[int] = Counter(
+        g[r][c] for r in range(len(g)) for c in range(len(g[0])) if g[r][c] != 0
+    )
+    if not counts:
+        return None
+    minority = counts.most_common()[-1][0]
+    h, w = len(g), len(g[0])
+    if h * h > 30 or w * w > 30:
+        return None
+    out = [[0] * (w * w) for _ in range(h * h)]
+    for i in range(h):
+        for j in range(w):
+            if g[i][j] == minority:
+                for di in range(h):
+                    for dj in range(w):
+                        out[i * h + di][j * w + dj] = g[di][dj]
+    return out if any(out[r][c] != 0 for r in range(h * h) for c in range(w * w)) else None
+
+
 def _mark_nz_neighbors_ul(g: Grid) -> Grid | None:
     """Mark the toroidal UP-LEFT neighbor of each non-zero cell with color 2.
 
@@ -701,6 +731,7 @@ def _build_strategy(name: str, train: list[dict[str, Grid]]) -> list[tuple[str, 
         ("kronecker", _kronecker_tile),
         ("kronecker_inv", _kronecker_invert),
         ("kronecker_modal", _kronecker_modal),
+        ("kronecker_minority", _kronecker_minority),
         ("mark_nz_ul", _mark_nz_neighbors_ul),
     ]
 
