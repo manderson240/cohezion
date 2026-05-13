@@ -17,7 +17,11 @@ class KaggleTrainingManager:
         pass
 
     def generate_lora_config(
-        self, r: int = 8, alpha: int = 16, dropout: float = 0.05, target_modules: list[str] = None
+        self,
+        r: int = 8,
+        alpha: int = 16,
+        dropout: float = 0.05,
+        target_modules: list[str] | None = None,
     ) -> dict[str, Any]:
         """Generate LoRA configuration for PEFT."""
         if target_modules is None:
@@ -127,8 +131,8 @@ EVAL_SUFFIX = (
 )
 
 print("=" * 60)
-print("NEMOTRON LORA TRAINING v5.7")
-print("9500 symbolic | BF16 | all-linear | DataCollatorForSeq2Seq | difficulty_filter[0.10,0.85]")
+print("NEMOTRON LORA TRAINING v6.1")
+print("9500 symbolic | BF16 eager-attn | all-linear | diff-filter | MCQ 40% | curriculum")
 print("=" * 60)
 
 try:
@@ -312,6 +316,7 @@ try:
         device_map="auto",
         trust_remote_code=True,
         torch_dtype=torch.bfloat16,
+        attn_implementation="eager",
     )
     model.config.use_cache = False
 
