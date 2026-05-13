@@ -217,10 +217,7 @@ def solve_gravity(examples: list[tuple[str, str]], test_t: str) -> str:
             if g <= 0:
                 continue
             mse = sum((pred_fn(g, t) - d) ** 2 for t, d in zip(ts, ds))
-
-            # Precision voting: pick precision maximizing exact matches on examples
             fmt = _precision_vote(g, pred_fn)
-
             if mse < best_mse:
                 best_mse = mse
                 best_result = fmt
