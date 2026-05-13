@@ -212,6 +212,58 @@ _GPU_PATTERNS = [
         0.80,
         "troubleshooting how-do-you",
     ),
+    # Document generation extended — analysis, guide, benchmark, comparison, overview
+    (
+        re.compile(
+            r"\b(write|create|generate|draft)\s+(a |an |the )?(\w+ )*(analysis|guide|benchmark|comparison|overview|tutorial|walkthrough)\b",
+            re.I,
+        ),
+        0.92,
+        "document generation extended nouns",
+    ),
+    # "Can you [action verb] those/these/the [noun]" — multi-step task requests
+    (
+        re.compile(
+            r"\bcan you (resume|manage|orchestrate|handle|coordinate|configure|implement|create|build)\b",
+            re.I,
+        ),
+        0.80,
+        "can-you-action-request",
+    ),
+    # "How to run / execute / set up [task]" — procedural execution
+    (
+        re.compile(r"\bhow to (run|execute|start|launch|trigger|perform|conduct)\b", re.I),
+        0.80,
+        "how-to-run-execute",
+    ),
+    # "Implement the [adjective(s)]* policy/strategy/approach/pipeline"
+    # Uses .{0,40} to skip over hyphenated compound adjectives like "multi-tier"
+    (
+        re.compile(
+            r"\bimplement (the |a |an ).{0,40}\b(policy|strategy|approach|mechanism|framework|workflow)\b",
+            re.I,
+        ),
+        0.82,
+        "implement policy/strategy",
+    ),
+    # "Write a [adj]* test suite" — broader test generation
+    (
+        re.compile(
+            r"\b(write|create|generate)\s+(a |an |the )?(\w+ )*(test suite|test set|test harness)\b",
+            re.I,
+        ),
+        0.92,
+        "test suite generation",
+    ),
+    # Multi-adjective code generation — "Create the X Y Z module/component"
+    (
+        re.compile(
+            r"\b(write|implement|create|generate|build)\s+(a |an |the )?(\w+ ){2,}(function|class|script|module|code|program|component|system)\b",
+            re.I,
+        ),
+        0.95,
+        "code generation multi-adjective",
+    ),
 ]
 
 
