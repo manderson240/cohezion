@@ -135,6 +135,37 @@ _GPU_PATTERNS = [
         "multi-step math",
     ),
     (re.compile(r"\bsolve.*show.*(work|steps)\b", re.I), 0.85, "show-work problem"),
+    # Procedural guidance — "how do/can/should we/I [do something]"
+    # Catches multi-step guidance questions that need full reasoning (not single-word answers)
+    (
+        re.compile(r"\bhow (do|can|should|might|would) (we|I|you)\b", re.I),
+        0.80,
+        "procedural guidance how-do-we",
+    ),
+    # "How to configure/implement/handle/manage" — setup and integration questions
+    (
+        re.compile(
+            r"\bhow (do|can|should|to) (set up|configure|implement|handle|fix|manage)\b",
+            re.I,
+        ),
+        0.82,
+        "procedural how-to-configure",
+    ),
+    # Explain [content] in detail / step-by-step — preamble content may separate them
+    (
+        re.compile(r"\bexplain\b.{5,50}\b(in detail|thoroughly|step.by.step)\b", re.I | re.S),
+        0.88,
+        "detailed explanation with preamble",
+    ),
+    # Implement [complex artifact] — logic/pipeline/system/workflow/mechanism
+    (
+        re.compile(
+            r"\bimplement (the |a |an )\w+.{5,}\b(logic|pipeline|system|workflow|mechanism)\b",
+            re.I,
+        ),
+        0.80,
+        "implement complex logic/system",
+    ),
 ]
 
 
