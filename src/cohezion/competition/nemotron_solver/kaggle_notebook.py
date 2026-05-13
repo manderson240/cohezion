@@ -416,6 +416,14 @@ def solve_bit_manip(examples: list[tuple[str, str]], test_in: str) -> str:
                     break
             if ok:
                 return ("add", add_const)
+        for mul_const in range(256):
+            ok = True
+            for a, b in pairs:
+                if ((a * mul_const) & 0xFF) != b:
+                    ok = False
+                    break
+            if ok:
+                return ("mul", mul_const)
         return None
 
     affine = _check_affine()
@@ -431,6 +439,8 @@ def solve_bit_manip(examples: list[tuple[str, str]], test_in: str) -> str:
                 return f"{(test_val | const):08b}"
             elif op_name == "add":
                 return f"{((test_val + const) & 0xFF):08b}"
+            elif op_name == "mul":
+                return f"{((test_val * const) & 0xFF):08b}"
         except Exception:
             pass
 
