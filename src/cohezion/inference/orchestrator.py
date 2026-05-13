@@ -187,12 +187,20 @@ class TieredOrchestrator:
                 else:
                     # Override tier-0 gate based on expected output length
                     _gate_override[0] = QualityGate(min_chars=decision.quality_gate_chars)
-                    # Also cap the iGPU fallback gate to prevent CPU over-escalation.
-                    # Default triune_orchestrator iGPU gate is 2000 chars, causing ~85%
-                    # CPU escalation for NPU-fallback tasks (empirically: median iGPU
-                    # response for short/factual tasks is ~400 chars, far below 2000).
-                    # Cap at 750: sufficient for a substantive answer, avoids CPU waste.
-                    _igpu_fallback_gate = min(max(decision.quality_gate_chars * 15, 200), 750)
+                    # EXP-GATE-ADAPTIVE: per-output-type iGPU fallback gate.
+                    # Old formula max(gate*15, 200) applied a 200-char floor to ALL types,
+                    # causing unnecessary CPU escalation when iGPU returns 60-180 chars
+                    # for short_categorical and short_answer tasks.
+                    # New: type-aware gates matched to expected iGPU response length.
+                    _IGPU_GATE_BY_TYPE: dict[str, int] = {
+                        "short_categorical": 1,  # any non-empty response (letter/word)
+                        "short_answer": 50,  # 1-2 sentence factual answer
+                        "medium_generation": 200,  # paragraph response
+                        "long_generation": 750,  # detailed multi-paragraph answer
+                        "code": 600,  # code block (may be short)
+                        "math_reasoning": 400,  # solution with steps
+                    }
+                    _igpu_fallback_gate = _IGPU_GATE_BY_TYPE.get(decision.output_type, 200)
                     _gate_override[1] = QualityGate(min_chars=_igpu_fallback_gate)
                 # EXP-EVO-BUDGET: per-task cost ceiling (HierRouter, arXiv:2511.09873).
                 # Tightens effective_max_cost for cheap tasks so they never escalate
@@ -208,9 +216,8 @@ class TieredOrchestrator:
                     "math_reasoning": 0.01,
                 }
                 task_budget = _TASK_BUDGET_USD.get(decision.output_type)
-                if task_budget is not None:
-                    if effective_max_cost is None or task_budget < effective_max_cost:
-                        effective_max_cost = task_budget
+                if task_budget is not None and (effective_max_cost is None or task_budget < effective_max_cost):
+                    effective_max_cost = task_budget
                 logger.debug(
                     "pre_dispatch: %s → tier%d gate=%d budget=$%.4f (%s, conf=%.2f)",
                     decision.output_type,
