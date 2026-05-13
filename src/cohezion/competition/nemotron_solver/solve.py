@@ -185,6 +185,34 @@ def solve_gravity(examples: list[tuple[str, str]], test_t: str) -> str:
     best_result = None
     best_mse = float("inf")
 
+    def _precision_vote(g_val: float, pred_fn: object) -> str:
+        """Find the precision that maximizes exact matches on training examples."""
+        best_prec, best_hits = 0, -1
+        for prec in range(5):
+            hits = 0
+            for t, d in zip(ts, ds):
+                pred = pred_fn(g_val, t)
+                if prec == 0:
+                    fmt_d = str(int(round(pred)))
+                else:
+                    fmt_d = f"{pred:.{prec}f}"
+                target = (
+                    str(d)
+                    if d == int(d)
+                    else f"{d:.{len(str(d).split('.')[-1]) if '.' in str(d) else 0}f}"
+                )
+                # Accept if formatted value matches training output exactly
+                d_str_expected = re.search(r"([0-9]+\.?[0-9]*)", str(d))
+                if d_str_expected and fmt_d == d_str_expected.group(1):
+                    hits += 1
+            if hits > best_hits:
+                best_hits = hits
+                best_prec = prec
+        raw = pred_fn(g_val, test_t_val)
+        if best_prec == 0:
+            return str(int(round(raw)))
+        return f"{raw:.{best_prec}f}"
+
     for _model_name, feat_fn, pred_fn in models:
         try:
             xs = [feat_fn(t) for t in ts]
@@ -193,10 +221,8 @@ def solve_gravity(examples: list[tuple[str, str]], test_t: str) -> str:
                 continue
             mse = sum((pred_fn(g, t) - d) ** 2 for t, d in zip(ts, ds))
 
-            # Precision voting: for this g, generate candidate formatted outputs
-            # and pick the one matching the most training examples exactly
-            raw_result = pred_fn(g, test_t_val)
-            fmt = _format_number(raw_result, examples)
+            # Precision voting: pick precision maximizing exact matches on examples
+            fmt = _precision_vote(g, pred_fn)
 
             if mse < best_mse:
                 best_mse = mse
