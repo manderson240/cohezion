@@ -240,11 +240,14 @@ def solve_unit_conversion(examples: list[tuple[str, str]], test_x: str) -> str:
             best_result = _format_number(pred_test, examples)
 
     # 1. Proportional y = k*x (1 param, simpler — run first)
+    # Try LSQ mean AND per-example k_i = y_i/x_i (fixes ±0.01 precision errors)
     n = len(xs)
     sum_x, sum_y = sum(xs), sum(ys)
     if sum_x != 0:
         k = sum_y / sum_x
         _cand(k * test_val, [k * x for x in xs], n_params=1)
+        for k_i in (y / x for x, y in zip(xs, ys) if x != 0):
+            _cand(k_i * test_val, [k_i * x for x in xs], n_params=1)
 
     # 2. Linear fit y = a*x + b (2 params)
     sum_xy = sum(x * y for x, y in zip(xs, ys))

@@ -239,9 +239,12 @@ def solve_unit_conversion(examples, test_x):
     n = len(xs)
     sum_x, sum_y = sum(xs), sum(ys)
     # 1. Proportional y = k*x (1 param, simpler)
+    # Try LSQ mean AND per-example k_i (fixes ±0.01 precision errors)
     if sum_x != 0:
         k = sum_y / sum_x
         _cand(k * test_val, [k * x for x in xs], n_params=1)
+        for k_i in (y / x for x, y in zip(xs, ys) if x != 0):
+            _cand(k_i * test_val, [k_i * x for x in xs], n_params=1)
     # 2. Linear y = a*x + b (2 params)
     sum_xy = sum(x * y for x, y in zip(xs, ys))
     sum_x2 = sum(x * x for x in xs)
