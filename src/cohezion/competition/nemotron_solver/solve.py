@@ -822,6 +822,170 @@ def solve_bit_manip(examples: list[tuple[str, str]], test_in: str) -> str:
 # ---------------------------------------------------------------------------
 # Equation solver (symbol substitution)
 # ---------------------------------------------------------------------------
+def _extract_op_structure(s: str) -> tuple[str, str, str] | None:
+    """Extract (left_operand, operator_char, right_operand) from 'A?B' pattern.
+
+    Returns None if the input doesn't match the pattern.
+    The operator is a single non-alphanumeric, non-space character between two operands.
+    """
+    m = re.match(r"^([0-9a-zA-Z]+)([^0-9a-zA-Z\s])([0-9a-zA-Z]+)$", s.strip())
+    if m:
+        return m.group(1), m.group(2), m.group(3)
+    return None
+
+
+def _solve_operator_semantics(examples: list[tuple[str, str]], test_in: str) -> str | None:
+    """Learn operator→operation mapping from multi-operator examples.
+
+    Each example may have a different operator symbol (like *, |, +, ), etc.).
+    For each unique operator seen in examples, find an operation that maps
+    (left, right) → output. Then apply learned operator to the test input.
+    """
+    from math import gcd as _gcd
+
+    # Parse all examples
+    parsed = []
+    for inp, out in examples:
+        parts = _extract_op_structure(inp)
+        if parts is None:
+            return None  # not operator-structured, bail out
+        left_s, op_char, right_s = parts
+        parsed.append((left_s, op_char, right_s, out.strip()))
+
+    if not parsed:
+        return None
+
+    # Only apply operator-semantics when multiple DIFFERENT operators appear in training.
+    # (If all training examples use same operator, this is NOT a multi-operator problem.)
+    training_ops = {p[1] for p in parsed}
+    if len(training_ops) <= 1:
+        return None  # same operator in all training — let regular solver handle it
+
+    # Parse the test input
+    test_parts = _extract_op_structure(test_in)
+    if test_parts is None:
+        return None
+    test_left, test_op, test_right = test_parts
+
+    # Define numeric operations to try
+    def _num_ops(a: str, b: str) -> list[tuple[str, str]]:
+        """Returns list of (operation_name, result_string) for all tried ops."""
+        results = []
+        try:
+            ai, bi = int(a), int(b)
+        except ValueError:
+            return results
+
+        def _ds(n: int) -> int:
+            return sum(int(d) for d in str(abs(n)))
+
+        candidates = [
+            ("add", str(ai + bi)),
+            ("sub", str(ai - bi)),
+            ("abs_sub", str(abs(ai - bi))),
+            ("mul", str(ai * bi)),
+            ("div", str(ai // bi) if bi != 0 else None),
+            ("mod", str(ai % bi) if bi != 0 else None),
+            ("sub_b_a", str(bi - ai)),
+            ("max", str(max(ai, bi))),
+            ("min", str(min(ai, bi))),
+            ("concat_ab", str(ai) + str(bi)),
+            ("concat_ba", str(bi) + str(ai)),
+            ("dsum_add", str(_ds(ai) + _ds(bi))),
+            ("gcd", str(_gcd(abs(ai), abs(bi))) if (ai or bi) else "0"),
+            ("len_add", str(len(a) + len(b))),
+        ]
+        # Also with sign prefix (for negative results shown as `:N` or similar)
+        for op_name, result in candidates:
+            if result is not None:
+                results.append((op_name, result))
+        return results
+
+    # Define string operations to try
+    def _str_ops(a: str, b: str) -> list[tuple[str, str]]:
+        results = [
+            ("concat", a + b),
+            ("concat_rev", b + a),
+            ("first_a", a[0] if a else ""),
+            ("last_b", b[-1] if b else ""),
+            ("first_last", (a[0] if a else "") + (b[-1] if b else "")),
+            ("len_a", str(len(a))),
+            ("len_b", str(len(b))),
+        ]
+        return results
+
+    # Learn: for each operator seen in examples, what operation does it perform?
+    op_map: dict[str, str] = {}  # operator_char → operation_name
+
+    for left_s, op_char, right_s, expected_out in parsed:
+        all_ops = _num_ops(left_s, right_s) + _str_ops(left_s, right_s)
+        matched_op = None
+        for op_name, result in all_ops:
+            if result == expected_out:
+                matched_op = op_name
+                break
+        # Also try with sign prefix: competition may show result as `{op_char}{N}` when negative
+        if matched_op is None:
+            for prefix in [op_char, ":", "-", "~", "!"]:
+                for op_name, result in all_ops:
+                    if result is not None and f"{prefix}{result}" == expected_out:
+                        matched_op = f"prefix_{prefix}+{op_name}"
+                        break
+                if matched_op:
+                    break
+        if matched_op is None:
+            continue  # skip operators we can't determine (may still learn test operator)
+        # For operators seen multiple times, ensure semantics match
+        if op_char in op_map and op_map[op_char] != matched_op:
+            existing = op_map[op_char]
+            # Special: "sub" and "prefix_X+abs_sub" → "signed subtraction with op prefix"
+            # (positive result: no prefix; negative result: op_char + abs_value)
+            base_existing = existing.split("+", 1)[-1] if "+" in existing else existing
+            base_new = matched_op.split("+", 1)[-1] if "+" in matched_op else matched_op
+            signed_pair = {("sub", "abs_sub"), ("abs_sub", "sub")}
+            if (base_existing, base_new) in signed_pair:
+                op_map[op_char] = f"signed_{op_char}+sub"  # signed subtraction with op prefix
+            elif base_existing == base_new:
+                if "prefix_" in matched_op:
+                    op_map[op_char] = matched_op
+            else:
+                return None  # genuinely different operations for same operator
+        else:
+            op_map[op_char] = matched_op
+
+    # Apply learned operator to test
+    if test_op not in op_map:
+        return None  # unknown operator in test
+
+    learned_op = op_map[test_op]
+    all_test_ops = _num_ops(test_left, test_right) + _str_ops(test_left, test_right)
+
+    for op_name, result in all_test_ops:
+        if op_name == learned_op:
+            return result
+    # Handle sign prefix: "prefix_X+base_op"
+    if "prefix_" in learned_op and "+" in learned_op:
+        prefix_part = learned_op.split("+", 1)[0].replace("prefix_", "")
+        base_op = learned_op.split("+", 1)[1]
+        for op_name, result in all_test_ops:
+            if op_name == base_op:
+                return f"{prefix_part}{result}"
+    # Handle signed subtraction: "signed_X+sub"
+    if learned_op.startswith("signed_") and "+sub" in learned_op:
+        sign_prefix = learned_op.split("+")[0].replace("signed_", "")
+        try:
+            ai, bi = int(test_left), int(test_right)
+            diff = ai - bi
+            if diff >= 0:
+                return str(diff)
+            else:
+                return f"{sign_prefix}{abs(diff)}"
+        except ValueError:
+            pass
+
+    return None
+
+
 def solve_equations(examples: list[tuple[str, str]], test_in: str) -> str:
     """Try to infer transformation rule from examples.
 
