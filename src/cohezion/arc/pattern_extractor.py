@@ -429,6 +429,99 @@ def _kronecker_minority(g: Grid) -> Grid | None:
     return out if any(out[r][c] != 0 for r in range(h * h) for c in range(w * w)) else None
 
 
+def _make_kronecker_color(trigger: int) -> Program:
+    """Return a Kronecker-tile function using a specific trigger color."""
+
+    def fn(g: Grid) -> Grid | None:
+        if not g or not g[0]:
+            return None
+        h, w = len(g), len(g[0])
+        if h * h > 30 or w * w > 30:
+            return None
+        if not any(g[r][c] == trigger for r in range(h) for c in range(w)):
+            return None
+        out = [[0] * (w * w) for _ in range(h * h)]
+        for i in range(h):
+            for j in range(w):
+                if g[i][j] == trigger:
+                    for di in range(h):
+                        for dj in range(w):
+                            out[i * h + di][j * w + dj] = g[di][dj]
+        return out if any(out[r][c] != 0 for r in range(h * h) for c in range(w * w)) else None
+
+    return fn
+
+
+def _find_kronecker_trigger(train: list[dict[str, Grid]]) -> int | None:
+    """Find which color, when used as Kronecker trigger, explains all training pairs."""
+    if not train:
+        return None
+    first_in = train[0]["input"]
+    candidates = sorted(
+        {first_in[r][c] for r in range(len(first_in)) for c in range(len(first_in[0]))}
+    )
+    for color in candidates:
+        fn = _make_kronecker_color(color)
+        if all(fn(ex["input"]) == ex["output"] for ex in train):
+            return color
+    return None
+
+
+def _make_kronecker_learned(train: list[dict[str, Grid]]) -> Program:
+    """Kronecker tile with trigger color learned from training examples."""
+    trigger = _find_kronecker_trigger(train)
+    if trigger is None:
+        return lambda g: None  # type: ignore[return-value]
+    return _make_kronecker_color(trigger)
+
+
+def _make_kronecker_template(
+    transform_fn: Callable[[Grid], Grid], train: list[dict[str, Grid]]
+) -> Program:
+    """Kronecker tile: at each trigger position place transform_fn(g) instead of g.
+
+    Trigger color is learned from training data.  Handles tasks where the placed
+    pattern is a rotation or flip of the template rather than the template itself.
+    """
+    trigger = _find_kronecker_trigger(train)
+
+    def fn(g: Grid) -> Grid | None:
+        if not g or not g[0]:
+            return None
+        t = trigger
+        if t is None:
+            # Fall back: try non-zero trigger
+            t_val = None
+            h0, w0 = len(g), len(g[0])
+            for r in range(h0):
+                for c in range(w0):
+                    if g[r][c] != 0:
+                        t_val = g[r][c]
+                        break
+                if t_val is not None:
+                    break
+            if t_val is None:
+                return None
+            t = t_val
+        tpl = transform_fn(g)
+        if not tpl or not tpl[0]:
+            return None
+        h, w = len(g), len(g[0])
+        th, tw = len(tpl), len(tpl[0])
+        if h * th > 30 or w * tw > 30:
+            return None
+        out = [[0] * (w * tw) for _ in range(h * th)]
+        for i in range(h):
+            for j in range(w):
+                if g[i][j] == t:
+                    for di in range(th):
+                        for dj in range(tw):
+                            out[i * th + di][j * tw + dj] = tpl[di][dj]
+        return out if any(out[r][c] != 0 for r in range(h * th) for c in range(w * tw)) else None
+
+    return fn
+
+
 def _mark_nz_neighbors_ul(g: Grid) -> Grid | None:
     """Mark the toroidal UP-LEFT neighbor of each non-zero cell with color 2.
 
@@ -732,6 +825,11 @@ def _build_strategy(name: str, train: list[dict[str, Grid]]) -> list[tuple[str, 
         ("kronecker_inv", _kronecker_invert),
         ("kronecker_modal", _kronecker_modal),
         ("kronecker_minority", _kronecker_minority),
+        ("kronecker_learned", _make_kronecker_learned(train)),
+        ("kronecker_rot90", _make_kronecker_template(_rot90, train)),
+        ("kronecker_rot180", _make_kronecker_template(_rot180, train)),
+        ("kronecker_flip_h", _make_kronecker_template(_flip_h, train)),
+        ("kronecker_flip_v", _make_kronecker_template(_flip_v, train)),
         ("mark_nz_ul", _mark_nz_neighbors_ul),
     ]
 
