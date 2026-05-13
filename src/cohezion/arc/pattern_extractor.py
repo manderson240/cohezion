@@ -399,6 +399,24 @@ def _extract_largest_object(g: Grid) -> Grid | None:
     return cropped
 
 
+def _tile_3_alt_flip(g: Grid) -> Grid | None:
+    """Tile 3x: even repetitions normal, odd repetitions flip each row horizontally.
+
+    Produces alternating normal/flipped tiling: rows 0..h-1 normal, rows h..2h-1
+    horizontally-reversed, rows 2h..3h-1 normal again.
+    """
+    if not g or not g[0]:
+        return None
+    h, w = len(g), len(g[0])
+    if h * 3 > 30 or w * 3 > 30:
+        return None
+    result = []
+    for rep in range(3):
+        for row in g:
+            result.append(row * 3 if rep % 2 == 0 else row[::-1] * 3)
+    return result
+
+
 def _outline_object(g: Grid) -> Grid | None:
     """Extract perimeter of non-zero regions: keep only non-zero cells that touch a 0 neighbor.
 
@@ -608,6 +626,7 @@ def _build_strategy(name: str, train: list[dict[str, Grid]]) -> list[tuple[str, 
         ("tile_2h", _tile_2_horiz),
         ("tile_2v", _tile_2_vert),
         ("tile_3", _tile_3),
+        ("tile_3_altflip", _tile_3_alt_flip),
         ("kronecker", _kronecker_tile),
     ]
 
