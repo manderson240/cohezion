@@ -865,22 +865,37 @@ def _match_pattern(pattern, word):
 
 
 def _try_caesar_nb(examples, test_in):
-    shifts = set()
-    for inp, out in examples:
-        for ci, co in zip(inp, out):
-            if ci.isalpha() and co.isalpha():
-                shifts.add((ord(co.lower()) - ord(ci.lower())) % 26)
-    if len(shifts) == 1:
-        s = shifts.pop()
-        return "".join(
-            chr(
-                (ord(c) - (ord("a") if c.islower() else ord("A")) + s) % 26
-                + (ord("a") if c.islower() else ord("A"))
-            )
-            if c.isalpha()
-            else c
-            for c in test_in
-        )
+    """Caesar (uniform) + Vigenere (cycling key len 1-6) detection."""
+
+    def _apply(text, key):
+        out, ki = "", 0
+        for c in text:
+            if c.isalpha():
+                base = ord("a") if c.islower() else ord("A")
+                out += chr((ord(c) - base + key[ki % len(key)]) % 26 + base)
+                ki += 1
+            else:
+                out += c
+        return out
+
+    for key_len in range(1, 7):
+        key = [None] * key_len
+        ok = True
+        for inp, out in examples:
+            ki = 0
+            for ci, co in zip(inp, out):
+                if ci.isalpha() and co.isalpha():
+                    s = (ord(co.lower()) - ord(ci.lower())) % 26
+                    if key[ki % key_len] is None:
+                        key[ki % key_len] = s
+                    elif key[ki % key_len] != s:
+                        ok = False
+                        break
+                    ki += 1
+            if not ok:
+                break
+        if ok and all(k is not None for k in key):
+            return _apply(test_in, key)
     return None
 
 

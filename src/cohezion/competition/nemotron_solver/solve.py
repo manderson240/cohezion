@@ -1338,23 +1338,46 @@ _ENCRYPTION_VOCAB = [
 
 
 def _try_caesar_cipher(examples: list[tuple[str, str]], test_in: str) -> str | None:
-    """Try Caesar cipher (uniform character shift). Returns result if consistent."""
-    shifts: set[int] = set()
-    for inp, out in examples:
-        for c_in, c_out in zip(inp, out):
-            if c_in.isalpha() and c_out.isalpha():
-                shift = (ord(c_out.lower()) - ord(c_in.lower())) % 26
-                shifts.add(shift)
-    if len(shifts) == 1:
-        shift = shifts.pop()
+    """Try Caesar (uniform shift) and Vigenere (cycling key, len 1-6) ciphers."""
+
+    def _apply_vigenere(text: str, key: list[int]) -> str:
         result = ""
-        for c in test_in:
+        ki = 0
+        for c in text:
             if c.isalpha():
                 base = ord("a") if c.islower() else ord("A")
-                result += chr((ord(c) - base + shift) % 26 + base)
+                result += chr((ord(c) - base + key[ki % len(key)]) % 26 + base)
+                ki += 1
             else:
                 result += c
         return result
+
+    def _extract_alpha_shifts(inp: str, out: str) -> list[int]:
+        shifts = []
+        for ci, co in zip(inp, out):
+            if ci.isalpha() and co.isalpha():
+                shifts.append((ord(co.lower()) - ord(ci.lower())) % 26)
+        return shifts
+
+    # Try Vigenere with key lengths 1..6
+    for key_len in range(1, 7):
+        # Build candidate key from first example's alpha characters
+        candidate_key: list[int | None] = [None] * key_len
+        ok = True
+        for inp, out in examples:
+            shifts = _extract_alpha_shifts(inp, out)
+            for i, s in enumerate(shifts):
+                pos = i % key_len
+                if candidate_key[pos] is None:
+                    candidate_key[pos] = s
+                elif candidate_key[pos] != s:
+                    ok = False
+                    break
+            if not ok:
+                break
+        if ok and all(k is not None for k in candidate_key):
+            return _apply_vigenere(test_in, candidate_key)  # type: ignore[arg-type]
+
     return None
 
 

@@ -878,23 +878,37 @@ _ENCRYPTION_VOCAB = [
 
 
 def _try_caesar_sym(examples: list[tuple[str, str]], test_in: str) -> str | None:
-    shifts: set[int] = set()
-    for inp, out in examples:
-        for c_in, c_out in zip(inp, out):
-            if c_in.isalpha() and c_out.isalpha():
-                shift = (ord(c_out.lower()) - ord(c_in.lower())) % 26
-                shifts.add(shift)
-    if len(shifts) == 1:
-        shift = shifts.pop()
-        return "".join(
-            chr(
-                (ord(c) - (ord("a") if c.islower() else ord("A")) + shift) % 26
-                + (ord("a") if c.islower() else ord("A"))
-            )
-            if c.isalpha()
-            else c
-            for c in test_in
-        )
+    """Try Caesar (uniform) and Vigenere (cycling key, len 1-6) ciphers."""
+
+    def _apply(text: str, key: list[int]) -> str:
+        out, ki = "", 0
+        for c in text:
+            if c.isalpha():
+                base = ord("a") if c.islower() else ord("A")
+                out += chr((ord(c) - base + key[ki % len(key)]) % 26 + base)
+                ki += 1
+            else:
+                out += c
+        return out
+
+    for key_len in range(1, 7):
+        key: list[int | None] = [None] * key_len
+        ok = True
+        for inp, out in examples:
+            ki = 0
+            for ci, co in zip(inp, out):
+                if ci.isalpha() and co.isalpha():
+                    s = (ord(co.lower()) - ord(ci.lower())) % 26
+                    if key[ki % key_len] is None:
+                        key[ki % key_len] = s
+                    elif key[ki % key_len] != s:
+                        ok = False
+                        break
+                    ki += 1
+            if not ok:
+                break
+        if ok and all(k is not None for k in key):
+            return _apply(test_in, key)  # type: ignore[arg-type]
     return None
 
 
