@@ -157,9 +157,7 @@ CRITICAL RULES:
 Execute step-by-step. Return your solving process description and the final flag.
 """
 
-        result = await executor.execute_task(
-            task=prompt, skill="cyber", context=f"CTF environment at {env_path}"
-        )
+        result = await executor.execute_task(task=prompt, skill="cyber", context=f"CTF environment at {env_path}")
 
         # Parse result for success/failure
         output = result.output if hasattr(result, "output") else str(result)

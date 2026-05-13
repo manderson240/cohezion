@@ -67,9 +67,7 @@ class MPSCompressor:
 
         return cores
 
-    def reconstruct_matrix(
-        self, cores: list[np.ndarray], original_shape: tuple[int, int]
-    ) -> np.ndarray:
+    def reconstruct_matrix(self, cores: list[np.ndarray], original_shape: tuple[int, int]) -> np.ndarray:
         """Reconstructs the original matrix from MPS cores."""
         res = cores[0]
         for i in range(1, len(cores)):

@@ -254,9 +254,7 @@ class ROCmExecutor:
             "requests_per_sec": num_requests / elapsed,
             "tokens_generated": total_tokens,
             "tokens_per_sec": total_tokens / elapsed if elapsed > 0 else 0,
-            "avg_latency_ms": sum(r.latency_ms for r in successful) / len(successful)
-            if successful
-            else 0,
+            "avg_latency_ms": sum(r.latency_ms for r in successful) / len(successful) if successful else 0,
         }
 
     def get_hardware_info(self) -> dict[str, Any]:
@@ -279,7 +277,7 @@ class ROCmExecutor:
             )
             if result.returncode == 0:
                 info["rocminfo_available"] = True
-        except:
+        except Exception:
             info["rocminfo_available"] = False
 
         return info

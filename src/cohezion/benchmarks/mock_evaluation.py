@@ -54,7 +54,8 @@ class MockBenchmarkEvaluator:
             ),
             (
                 "fibonacci",
-                "lambda n: n if n<=1 else __import__('functools').lru_cache(lambda n: n if n<=1 else fib(n-1)+fib(n-2))(n)",
+                "lambda n: n if n<=1 else __import__('functools').lru_cache("
+                "lambda n: n if n<=1 else fib(n-1)+fib(n-2))(n)",
                 ["0", "1", "10"],
                 ["0", "1", "55"],
             ),
@@ -70,9 +71,7 @@ class MockBenchmarkEvaluator:
         for i in range(n):
             name, solution, inputs, expected = tasks[i % len(tasks)]
             try:
-                code = (
-                    f"sol = {solution}\nresult = sol({inputs[0]})\nprint(result == {expected[0]})"
-                )
+                code = f"sol = {solution}\nresult = sol({inputs[0]})\nprint(result == {expected[0]})"
                 result = await self.tools.execute("python", {"code": code})
                 output = str(result.get("stdout", ""))
                 if "True" in output:

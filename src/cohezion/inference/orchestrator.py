@@ -178,11 +178,7 @@ class TieredOrchestrator:
             # #11). `max_cost_usd=0.0` means "local-only, no paid cloud" —
             # local tiers at $0 still run; cloud tiers at >$0 are skipped.
             _BUDGET_EPS = 1e-9
-            if (
-                effective_max_cost is not None
-                and accumulated_cost > effective_max_cost + _BUDGET_EPS
-                and idx > 0
-            ):
+            if effective_max_cost is not None and accumulated_cost > effective_max_cost + _BUDGET_EPS and idx > 0:
                 path.append(
                     TierAttempt(
                         tier_index=idx,
@@ -196,9 +192,7 @@ class TieredOrchestrator:
                 )
                 break
 
-            remaining = (
-                (effective_max_cost - accumulated_cost) if effective_max_cost is not None else None
-            )
+            remaining = (effective_max_cost - accumulated_cost) if effective_max_cost is not None else None
             tier_start = time.perf_counter()
             try:
                 result, tier_cost, tier_ttft = await self._invoke_tier(target, prompt, remaining)
@@ -276,9 +270,7 @@ class TieredOrchestrator:
                     z_vector=[0.0] * 256,
                     state_12d=[0.0] * 12,
                     coherence=1.0 if passed else 0.5,
-                    fabrics=QuadratureFabrics(
-                        space=0.8, field=0.2, control=0.9, precipitation=1.0 if passed else 0.0
-                    ),
+                    fabrics=QuadratureFabrics(space=0.8, field=0.2, control=0.9, precipitation=1.0 if passed else 0.0),
                     awareness_parameter=0.8,
                     expert_stream=SwarmExpert.ENGINEER,
                     hardware_tier=h_tier,
@@ -325,9 +317,7 @@ class TieredOrchestrator:
         # O7: exhausted — every tier failed. Return structured error, don't raise.
         return OrchestrationResult(
             text=last_text,
-            primary_model=self.tiers[0][0]
-            if isinstance(self.tiers[0][0], str)
-            else type(self.tiers[0][0]).__name__,
+            primary_model=self.tiers[0][0] if isinstance(self.tiers[0][0], str) else type(self.tiers[0][0]).__name__,
             final_model=last_model,
             escalation_count=len([p for p in path if not p.passed]),
             tier_path=path,
@@ -339,9 +329,7 @@ class TieredOrchestrator:
 
 
 # Convenience factory — the "smarter orchestrates less-smart" default hierarchy.
-def default_hierarchy(
-    *, include_claude: bool = True, max_cost_usd: float = 0.05
-) -> TieredOrchestrator:
+def default_hierarchy(*, include_claude: bool = True, max_cost_usd: float = 0.05) -> TieredOrchestrator:
     """Pre-built 4-tier orchestrator matching the plan's reference stack."""
     tiers: list[TierEntry] = [
         ("Gemma-4-E2B-it-GGUF", QualityGate(min_chars=15)),

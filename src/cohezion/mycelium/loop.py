@@ -14,9 +14,7 @@ class CoverageLoop:
     Orchestrates the iterative test generation and verification loop.
     """
 
-    def __init__(
-        self, scripter: ShadowScripter, root_dir: str = ".", test_output_dir: str = "tests/mycelium"
-    ):
+    def __init__(self, scripter: ShadowScripter, root_dir: str = ".", test_output_dir: str = "tests/mycelium"):
         self.scripter = scripter
         self.root_dir = root_dir
         self.test_output_dir = test_output_dir
@@ -65,9 +63,7 @@ class CoverageLoop:
         iteration = 0
 
         while current_coverage < target_coverage and iteration < max_iterations:
-            logger.info(
-                f"Current coverage for {file_path}: {current_coverage}%. Target: {target_coverage}%"
-            )
+            logger.info(f"Current coverage for {file_path}: {current_coverage}%. Target: {target_coverage}%")
 
             # Synthesize more tests
             test_code = await self.scripter.synthesize_test_suite(file_path, code_context)

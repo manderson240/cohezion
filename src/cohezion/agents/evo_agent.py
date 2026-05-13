@@ -37,9 +37,7 @@ class EVOAgent(BaseAgent):
         super().__init__(model_name, config, **kwargs)
 
         # Initialize internal manifold state (zero-initialized for scaffold)
-        self.manifold_state = TriuneState(
-            doer=torch.zeros(12), thinker=torch.zeros(512), knower=torch.zeros(2048)
-        )
+        self.manifold_state = TriuneState(doer=torch.zeros(12), thinker=torch.zeros(512), knower=torch.zeros(2048))
 
         # Persistence Layer (DI)
         self._surreal_logger = surreal_logger or SurrealTrajectoryLogger()

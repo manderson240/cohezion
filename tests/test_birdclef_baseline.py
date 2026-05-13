@@ -20,7 +20,7 @@ def baseline():
 
 def test_audio_loading(baseline):
     """Verify librosa loads audio correctly."""
-    import librosa
+    librosa = pytest.importorskip("librosa", reason="librosa not installed")
 
     if not TEST_AUDIO.exists():
         pytest.skip("Test audio not found")
@@ -37,9 +37,7 @@ def test_baseline_prediction(baseline):
 
     # Mock audio data for prediction test to avoid real model loading in CI
     mock_audio = np.random.uniform(-1, 1, (1, 32000 * 5)).astype(np.float32)
-    with patch.object(
-        baseline.backbone, "extract_embeddings", return_value=np.random.randn(1, 1536)
-    ):
+    with patch.object(baseline.backbone, "extract_embeddings", return_value=np.random.randn(1, 1536)):
         probs = baseline.predict(mock_audio)
         assert isinstance(probs, np.ndarray)
         assert probs.shape == (1, 234)
@@ -64,9 +62,7 @@ def test_train_step(baseline):
     mock_labels[0, 0] = 1.0  # First class
     mock_labels[1, 1] = 1.0  # Second class
 
-    with patch.object(
-        baseline.backbone, "extract_embeddings", return_value=np.random.randn(2, 1536)
-    ):
+    with patch.object(baseline.backbone, "extract_embeddings", return_value=np.random.randn(2, 1536)):
         loss = baseline.train_step(mock_audio, mock_labels)
         assert isinstance(loss, float)
         assert loss > 0

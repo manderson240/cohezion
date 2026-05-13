@@ -42,9 +42,7 @@ class TestContextMetricsIntegration:
         with open(ctx_dir / "traceability" / "manifest.json", "w") as f:
             json.dump(manifest, f)
 
-        (ctx_dir / "core" / "test-rules.md").write_text(
-            "# Rules\n\nTest content.", encoding="utf-8"
-        )
+        (ctx_dir / "core" / "test-rules.md").write_text("# Rules\n\nTest content.", encoding="utf-8")
 
         return tmp_path
 

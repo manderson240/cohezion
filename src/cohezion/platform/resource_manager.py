@@ -107,9 +107,7 @@ class ResourceClient:
             try:
                 async with (
                     aiohttp.ClientSession() as session,
-                    session.get(
-                        f"{self.DAEMON_URL}/memory", timeout=aiohttp.ClientTimeout(total=5)
-                    ) as resp,
+                    session.get(f"{self.DAEMON_URL}/memory", timeout=aiohttp.ClientTimeout(total=5)) as resp,
                 ):
                     data = await resp.json()
                     return PlatformMemoryState(
@@ -180,8 +178,7 @@ class ResourceClient:
         state = await self._poll_ollama_locally()
         if state.available_gb < required_gb * 1.2:
             raise OOMRiskError(
-                f"Insufficient memory: need {required_gb * 1.2:.1f} GiB, "
-                f"have {state.available_gb:.1f} GiB"
+                f"Insufficient memory: need {required_gb * 1.2:.1f} GiB, have {state.available_gb:.1f} GiB"
             )
         now = time.time()
         return TrainingLock(

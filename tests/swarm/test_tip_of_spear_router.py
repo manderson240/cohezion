@@ -320,9 +320,7 @@ class TestModelSelectionByDomain:
         """Test general queries route to general models."""
         from cohezion.swarm.cost_aware_router import QueryComplexity
 
-        model = self.router._select_model_for_tier(
-            tier=ModelTier.WARM, domain=None, complexity=QueryComplexity.MEDIUM
-        )
+        model = self.router._select_model_for_tier(tier=ModelTier.WARM, domain=None, complexity=QueryComplexity.MEDIUM)
 
         assert model in ["qwen2.5-coder:7b"]  # Default WARM tier general model
 

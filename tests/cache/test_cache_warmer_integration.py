@@ -70,9 +70,7 @@ class TestCacheWarmerHistory:
 
     @pytest.mark.asyncio
     @pytest.mark.fast
-    async def test_warm_from_history_loads_high_coherence(
-        self, mock_mcp_client, mock_semantic_cache
-    ):
+    async def test_warm_from_history_loads_high_coherence(self, mock_mcp_client, mock_semantic_cache):
         """Test that high-coherence executions are loaded."""
         # Setup mock trace files
         mock_mcp_client.vault_list.return_value = [
@@ -112,9 +110,7 @@ class TestCacheWarmerHistory:
 
     @pytest.mark.asyncio
     @pytest.mark.fast
-    async def test_warm_from_history_filters_failed_executions(
-        self, mock_mcp_client, mock_semantic_cache
-    ):
+    async def test_warm_from_history_filters_failed_executions(self, mock_mcp_client, mock_semantic_cache):
         """Test that failed executions are not loaded."""
         mock_mcp_client.vault_list.return_value = [
             "execution_traces/test_skill/1234567890_exec.json",
@@ -218,9 +214,7 @@ class TestCacheWarmerRecentExecutions:
     async def test_warm_from_recent_respects_limit(self, mock_mcp_client, mock_semantic_cache):
         """Test that limit is respected."""
         # Create 10 trace files
-        mock_mcp_client.vault_list.return_value = [
-            f"execution_traces/skill{i}/trace.json" for i in range(10)
-        ]
+        mock_mcp_client.vault_list.return_value = [f"execution_traces/skill{i}/trace.json" for i in range(10)]
 
         # All have high coherence
         def mock_read(path):
@@ -246,9 +240,7 @@ class TestCacheWarmerRecentExecutions:
 
     @pytest.mark.asyncio
     @pytest.mark.fast
-    async def test_warm_from_recent_sorts_by_time_then_coherence(
-        self, mock_mcp_client, mock_semantic_cache
-    ):
+    async def test_warm_from_recent_sorts_by_time_then_coherence(self, mock_mcp_client, mock_semantic_cache):
         """Test sorting by recency then coherence."""
         mock_mcp_client.vault_list.return_value = [
             "execution_traces/skill1/trace1.json",

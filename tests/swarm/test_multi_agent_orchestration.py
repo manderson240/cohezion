@@ -142,9 +142,7 @@ class TestAdaptiveRouter:
         """Should detect long context in task features."""
         long_context = "x" * 100000  # ~100K chars = ~25K tokens
 
-        decision = await router.route(
-            "Summarize this document", context={"history": [long_context]}
-        )
+        decision = await router.route("Summarize this document", context={"history": [long_context]})
 
         # Check that features were analyzed correctly
         assert decision.features.get("context_tokens", 0) > 0

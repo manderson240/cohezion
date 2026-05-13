@@ -139,12 +139,8 @@ class CompressedKVStore:
 def _flatten_prod_q(pq: ProdQuantized) -> ProdQuantized:
     """Collapse batch dim: (1, H, T, ...) -> (H, T, ...)."""
     return ProdQuantized(
-        mse_indices=pq.mse_indices.reshape(
-            -1, pq.mse_indices.shape[-2], pq.mse_indices.shape[-1]
-        ).contiguous(),
-        qjl_signs=pq.qjl_signs.reshape(
-            -1, pq.qjl_signs.shape[-2], pq.qjl_signs.shape[-1]
-        ).contiguous(),
+        mse_indices=pq.mse_indices.reshape(-1, pq.mse_indices.shape[-2], pq.mse_indices.shape[-1]).contiguous(),
+        qjl_signs=pq.qjl_signs.reshape(-1, pq.qjl_signs.shape[-2], pq.qjl_signs.shape[-1]).contiguous(),
         residual_norms=pq.residual_norms.reshape(-1, pq.residual_norms.shape[-1]).contiguous(),
         norms=pq.norms.reshape(-1, pq.norms.shape[-1]).contiguous(),
         mse_bits=pq.mse_bits,

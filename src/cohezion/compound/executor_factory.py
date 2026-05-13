@@ -63,9 +63,7 @@ class ExecutorFactory:
 
                 router = CostAwareRouter()
                 degradation_detector.set_routing_callback(router.apply_degradation_feedback)
-                logger.debug(
-                    "ExecutorFactory: wired DegradationDetector → CostAwareRouter callback"
-                )
+                logger.debug("ExecutorFactory: wired DegradationDetector → CostAwareRouter callback")
             except (ImportError, Exception):
                 logger.debug("CostAwareRouter callback wiring failed (non-blocking)")
 
@@ -77,9 +75,7 @@ class ExecutorFactory:
                 )
 
                 executor_class = TokenEfficientCompoundExecutor
-                logger.info(
-                    "ExecutorFactory: using TokenEfficientCompoundExecutor (token_client provided)"
-                )
+                logger.info("ExecutorFactory: using TokenEfficientCompoundExecutor (token_client provided)")
             except ImportError:
                 logger.debug("TokenEfficientCompoundExecutor not available, using base executor")
 

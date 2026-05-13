@@ -95,9 +95,7 @@ class ExoticVacuumObject:
             tick=self.lifetime_ticks,
         )
         self.witness_marks.append(mark)
-        logger.info(
-            "EVO %s: witness mark [%s] at tick %d", self.agent_id, mark_type, self.lifetime_ticks
-        )
+        logger.info("EVO %s: witness mark [%s] at tick %d", self.agent_id, mark_type, self.lifetime_ticks)
         return {"mark_type": mark_type, "content": content, "tick": mark.tick}
 
     def dissolve(self) -> dict:
@@ -162,12 +160,9 @@ class ExoticVacuumObject:
             "evo_coherence_metric": round(self.evo_coherence_metric(), 6),
             "coherence_history": [round(c, 6) for c in self.coherence_history],
             "witness_marks": [
-                {"mark_type": m.mark_type, "content": m.content, "tick": m.tick}
-                for m in self.witness_marks
+                {"mark_type": m.mark_type, "content": m.content, "tick": m.tick} for m in self.witness_marks
             ],
-            "mean_coherence": round(statistics.mean(self.coherence_history), 6)
-            if self.coherence_history
-            else 0.0,
+            "mean_coherence": round(statistics.mean(self.coherence_history), 6) if self.coherence_history else 0.0,
         }
 
 

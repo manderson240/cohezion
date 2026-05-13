@@ -99,9 +99,7 @@ class ResourceGuard:
         can_fit = estimated_mb < free_mb - self.constraints.min_free_memory_mb
 
         if not can_fit:
-            logger.warning(
-                f"Model size {model_size} ({estimated_mb:.0f}MB) won't fit in {free_mb:.0f}MB free"
-            )
+            logger.warning(f"Model size {model_size} ({estimated_mb:.0f}MB) won't fit in {free_mb:.0f}MB free")
 
         return can_fit
 
@@ -110,7 +108,7 @@ class ResourceGuard:
         size = size.lower().replace("b", "")
         try:
             return float(size)
-        except:
+        except Exception:
             return 4.0  # Default 4GB
 
     async def pre_benchmark(self) -> bool:
@@ -188,7 +186,7 @@ class ResourceSafeModelCapabilityRegistry(ModelCapabilityRegistry):
                 data = json.loads(self._checkpoint_file.read_text())
                 self._completed_models = set(data.get("completed", []))
                 logger.info(f"Loaded checkpoint: {len(self._completed_models)} models completed")
-            except:
+            except Exception:
                 pass
 
     def _save_checkpoint(self):
@@ -231,7 +229,7 @@ class ResourceSafeModelCapabilityRegistry(ModelCapabilityRegistry):
         """Get size in GB for comparison."""
         try:
             return float(size.lower().replace("b", ""))
-        except:
+        except Exception:
             return 4.0
 
     async def benchmark_model(self, model_name: str) -> ModelBenchmark:
@@ -387,9 +385,7 @@ class ResourceSafeModelCapabilityRegistry(ModelCapabilityRegistry):
         if not self._discovery_complete:
             await self.discover_all_models()
 
-        targets = models or [
-            name for name in self.profiles.keys() if name not in self._completed_models
-        ]
+        targets = models or [name for name in self.profiles.keys() if name not in self._completed_models]
 
         logger.info(f"Resource-safe benchmarking: {len(targets)} models")
         logger.info(

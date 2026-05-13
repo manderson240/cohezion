@@ -103,15 +103,11 @@ class AdversarialReviewSystem:
             ReviewPerspective.ETHICS: 0.05,
         }
 
-    def get_or_create_perspective_state(
-        self, perspective: ReviewPerspective, session_id: str
-    ) -> PerspectiveState:
+    def get_or_create_perspective_state(self, perspective: ReviewPerspective, session_id: str) -> PerspectiveState:
         """Get or create state for a perspective in a session."""
         key = (perspective, session_id)
         if key not in self._perspective_states:
-            self._perspective_states[key] = PerspectiveState(
-                perspective=perspective, session_id=session_id
-            )
+            self._perspective_states[key] = PerspectiveState(perspective=perspective, session_id=session_id)
         return self._perspective_states[key]
 
     async def run_perspective_review(
@@ -155,13 +151,9 @@ class AdversarialReviewSystem:
 
         # Update average findings per review
         total_findings = sum(
-            len(state.findings)
-            for state in self._perspective_states.values()
-            if state.session_id == session_id
+            len(state.findings) for state in self._perspective_states.values() if state.session_id == session_id
         )
-        perspective_state.avg_findings_per_review = total_findings / max(
-            perspective_state.review_count, 1
-        )
+        perspective_state.avg_findings_per_review = total_findings / max(perspective_state.review_count, 1)
 
         self.logger.info(
             "Perspective review completed",
@@ -409,22 +401,12 @@ class AdversarialReviewSystem:
         # Insight 1: Overall health based on findings
         total_findings = sum(len(findings) for findings in perspective_findings.values())
         critical_findings = sum(
-            1
-            for findings in perspective_findings.values()
-            for f in findings
-            if f.severity == "critical"
+            1 for findings in perspective_findings.values() for f in findings if f.severity == "critical"
         )
-        high_findings = sum(
-            1
-            for findings in perspective_findings.values()
-            for f in findings
-            if f.severity == "high"
-        )
+        high_findings = sum(1 for findings in perspective_findings.values() for f in findings if f.severity == "high")
 
         if critical_findings > 0:
-            insights.append(
-                f"Critical issues found requiring immediate attention ({critical_findings} critical)"
-            )
+            insights.append(f"Critical issues found requiring immediate attention ({critical_findings} critical)")
         elif high_findings > 2:
             insights.append(f"Multiple high-severity issues identified ({high_findings} high)")
         elif total_findings < 3:
@@ -434,9 +416,7 @@ class AdversarialReviewSystem:
 
         # Insight 2: Perspective agreement/disagreement
         if len(conflicts) > len(perspective_findings) * 0.5:
-            insights.append(
-                "High level of disagreement between perspectives - complex tradeoffs present"
-            )
+            insights.append("High level of disagreement between perspectives - complex tradeoffs present")
         elif len(conflicts) == 0:
             insights.append("Strong consensus across all perspectives")
         else:
@@ -457,9 +437,7 @@ class AdversarialReviewSystem:
             if latest_score > previous_score + 0.1:
                 insights.append("Improving trend in overall system quality")
             elif latest_score < previous_score - 0.1:
-                insights.append(
-                    "Declining trend in overall system quality - investigate recent changes"
-                )
+                insights.append("Declining trend in overall system quality - investigate recent changes")
             else:
                 insights.append("Stable trend in overall system quality")
 
@@ -486,9 +464,7 @@ class AdversarialReviewSystem:
 
         return weighted_score / total_weight
 
-    def get_adversarial_feedback_for_skill_refinement(
-        self, session_id: str
-    ) -> list[SkillRefinementInput]:
+    def get_adversarial_feedback_for_skill_refinement(self, session_id: str) -> list[SkillRefinementInput]:
         """
         Generate skill refinement inputs based on adversarial review results.
 
@@ -497,9 +473,7 @@ class AdversarialReviewSystem:
         feedback_list = []
 
         # Get recent review sessions for this session_id
-        recent_sessions = [
-            session for session in self._review_sessions if session.session_id == session_id
-        ]
+        recent_sessions = [session for session in self._review_sessions if session.session_id == session_id]
 
         if not recent_sessions:
             return feedback_list
@@ -512,9 +486,7 @@ class AdversarialReviewSystem:
             # Group by perspective to suggest perspective-specific skills
             perspective_counts: dict[ReviewPerspective, int] = {}
             for finding in critical_findings:
-                perspective_counts[finding.perspective] = (
-                    perspective_counts.get(finding.perspective, 0) + 1
-                )
+                perspective_counts[finding.perspective] = perspective_counts.get(finding.perspective, 0) + 1
 
             for perspective, count in perspective_counts.items():
                 skill_name = self._perspective_to_skill(perspective)
@@ -554,7 +526,9 @@ class AdversarialReviewSystem:
                 SkillRefinementInput(
                     skill_name="systems_thinker",
                     performance_metric=max(0.0, 1.0 - len(latest_session.conflicts) * 0.1),
-                    feedback=f"High number of perspective conflicts detected ({len(latest_session.conflicts)} conflicts)",
+                    feedback=(
+                        f"High number of perspective conflicts detected ({len(latest_session.conflicts)} conflicts)"
+                    ),
                     context={
                         "conflicts_count": len(latest_session.conflicts),
                         "session_id": session_id,
@@ -582,15 +556,11 @@ class AdversarialReviewSystem:
         """Get adversarial review metrics for a session."""
         # Get perspective states for this session
         session_perspective_states = [
-            state
-            for (persp, sess_id), state in self._perspective_states.items()
-            if sess_id == session_id
+            state for (persp, sess_id), state in self._perspective_states.items() if sess_id == session_id
         ]
 
         # Get review sessions for this session
-        session_reviews = [
-            session for session in self._review_sessions if session.session_id == session_id
-        ]
+        session_reviews = [session for session in self._review_sessions if session.session_id == session_id]
 
         latest_review = session_reviews[-1] if session_reviews else None
 

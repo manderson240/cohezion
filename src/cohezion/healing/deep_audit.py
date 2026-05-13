@@ -57,22 +57,16 @@ class DeepAuditor(ast.NodeVisitor):
                 loc=loc,
                 complexity=self.current_complexity,
                 functions=sum(
-                    1
-                    for node in ast.walk(tree)
-                    if isinstance(node, (ast.FunctionDef, ast.AsyncFunctionDef))
+                    1 for node in ast.walk(tree) if isinstance(node, (ast.FunctionDef, ast.AsyncFunctionDef))
                 ),
-                imports=sum(
-                    1 for node in ast.walk(tree) if isinstance(node, (ast.Import, ast.ImportFrom))
-                ),
+                imports=sum(1 for node in ast.walk(tree) if isinstance(node, (ast.Import, ast.ImportFrom))),
             )
 
             # Reset for next file
             self.current_complexity = 0
 
         except Exception as e:
-            self.issues.append(
-                CodeIssue(str(file_path), 0, "Critical", "Parser", f"Failed to parse: {e}")
-            )
+            self.issues.append(CodeIssue(str(file_path), 0, "Critical", "Parser", f"Failed to parse: {e}"))
 
     def visit_AsyncFunctionDef(self, node):
         self._check_blocking_io(node)
@@ -130,17 +124,15 @@ class DeepAuditor(ast.NodeVisitor):
                             )
                         )
                     # Check for subprocess.run without loop.run_in_executor (heuristic)
-                    if (
-                        getattr(child.func.value, "id", "") == "subprocess"
-                        and child.func.attr == "run"
-                    ):
+                    if getattr(child.func.value, "id", "") == "subprocess" and child.func.attr == "run":
                         self.issues.append(
                             CodeIssue(
                                 self.current_file,
                                 child.lineno,
                                 "Warning",
                                 "Performance",
-                                f"Blocking 'subprocess.run' in async function '{node.name}'. Use 'asyncio.create_subprocess_exec' or run_in_executor.",
+                                f"Blocking 'subprocess.run' in async function '{node.name}'."
+                                " Use 'asyncio.create_subprocess_exec' or run_in_executor.",
                             )
                         )
 

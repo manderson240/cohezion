@@ -129,9 +129,7 @@ class Embedding256D:
 
     def similarity(self, other: Embedding256D) -> float:
         """Cosine similarity in latent space."""
-        return torch.nn.functional.cosine_similarity(
-            self.vector.unsqueeze(0), other.vector.unsqueeze(0)
-        ).item()
+        return torch.nn.functional.cosine_similarity(self.vector.unsqueeze(0), other.vector.unsqueeze(0)).item()
 
 
 @dataclass
@@ -190,9 +188,7 @@ class UnifiedRecord:
 
     # Lineage
     lineage: DataLineage = field(
-        default_factory=lambda: DataLineage(
-            record_id=uuid4(), origin="unknown", created_at=datetime.now(), checksum=""
-        )
+        default_factory=lambda: DataLineage(record_id=uuid4(), origin="unknown", created_at=datetime.now(), checksum="")
     )
 
     # Timestamps
@@ -248,9 +244,7 @@ class WikiRecordBuilder:
                 "backlinks": page.backlinks,
                 "path": str(page.path),
             },
-            lineage=DataLineage(
-                record_id=uuid4(), origin=source, created_at=page.created_at, checksum=""
-            ),
+            lineage=DataLineage(record_id=uuid4(), origin=source, created_at=page.created_at, checksum=""),
         )
         record.lineage.checksum = record.compute_checksum()
         return record
@@ -261,18 +255,14 @@ class FlumeRecordBuilder:
     """Build UnifiedRecord from FLUME embedding."""
 
     @staticmethod
-    def from_embedding(
-        embedding: torch.Tensor, source_text: str, model: str = "flume_v1"
-    ) -> UnifiedRecord:
+    def from_embedding(embedding: torch.Tensor, source_text: str, model: str = "flume_v1") -> UnifiedRecord:
         """Convert FLUME embedding to UnifiedRecord."""
         return UnifiedRecord(
             type=RecordType.EMBEDDING,
             content=source_text,
             metadata={"model": model, "dim": embedding.shape[0]},
             embedding_256d=Embedding256D(vector=embedding, model=model),
-            lineage=DataLineage(
-                record_id=uuid4(), origin="flume", created_at=datetime.now(), checksum=""
-            ),
+            lineage=DataLineage(record_id=uuid4(), origin="flume", created_at=datetime.now(), checksum=""),
         )
 
 
@@ -296,9 +286,7 @@ class OuroborosRecordBuilder:
             physics_12d=Physics12D(
                 coherence=0.5 - exhaust.coherence_drop,
             ),
-            lineage=DataLineage(
-                record_id=uuid4(), origin=source, created_at=datetime.now(), checksum=""
-            ),
+            lineage=DataLineage(record_id=uuid4(), origin=source, created_at=datetime.now(), checksum=""),
         )
         record.lineage.checksum = record.compute_checksum()
         return record

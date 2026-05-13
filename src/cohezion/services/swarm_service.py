@@ -395,9 +395,7 @@ class SwarmService:
 
             return {
                 "registered_agents": registered_agents,
-                "active_agents": [
-                    name for name, status in agent_status.items() if status.is_active
-                ],
+                "active_agents": [name for name, status in agent_status.items() if status.is_active],
                 "agent_status": {
                     name: {
                         "is_active": status.is_active,

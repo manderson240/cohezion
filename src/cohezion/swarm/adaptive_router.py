@@ -13,6 +13,11 @@ import json
 import re
 import statistics
 from collections import deque
+from typing import TYPE_CHECKING
+
+
+if TYPE_CHECKING:
+    from cohezion.swarm.specialist_agents import SpecialistAgent
 from dataclasses import dataclass, field
 from datetime import datetime
 from pathlib import Path
@@ -488,9 +493,7 @@ class AdaptiveRouter:
         old_score = self._success_matrix[decision.agent_name].get(task_key, 0.5)
 
         # Composite performance score
-        latency_error = abs(actual_latency - decision.expected_latency_ms) / max(
-            decision.expected_latency_ms, 1
-        )
+        latency_error = abs(actual_latency - decision.expected_latency_ms) / max(decision.expected_latency_ms, 1)
         latency_score = 1 - min(latency_error, 1)
 
         # Success is binary, quality is continuous

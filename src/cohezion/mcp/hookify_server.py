@@ -205,10 +205,12 @@ class HookifyMCPBridge:
         Returns:
             Success status with previous and new values
         """
-        try:
-            result = self.validator.set_lever_position(rule_id, lever_name, value)
+        result = self.validator.set_lever_position(rule_id, lever_name, value)
+        if not result.get("success"):
+            return result
 
-            # Persist to SurrealDB for cross-session persistence
+        # Persist to SurrealDB for cross-session persistence (best-effort)
+        try:
             client = self._get_surrealdb_client()
             if client:
                 sql = (
@@ -217,14 +219,16 @@ class HookifyMCPBridge:
                     f"updated = time::now();"
                 )
                 client.query(sql)
-
-            # Also write to vault for audit trail
-            await self._write_lever_change_to_vault(rule_id, lever_name, result)
-
-            return result
-
         except Exception as e:
-            return {"success": False, "error": str(e)}
+            logger.warning(f"Could not persist lever to SurrealDB: {e}")
+
+        # Also write to vault for audit trail (best-effort)
+        try:
+            await self._write_lever_change_to_vault(rule_id, lever_name, result)
+        except Exception as e:
+            logger.warning(f"Could not write lever audit: {e}")
+
+        return result
 
     async def _write_lever_change_to_vault(self, rule_id: str, lever_name: str, result: dict):
         """Write lever change decision to vault (Tier 3 audit)"""
@@ -241,8 +245,8 @@ aspect: prefrontal
 
 # Lever Change Decision
 
-**Rule**: `{rule_id}`  
-**Lever**: `{lever_name}`  
+**Rule**: `{rule_id}`
+**Lever**: `{lever_name}`
 **Timestamp**: {timestamp}
 
 ## Change Details
@@ -305,9 +309,7 @@ Lever adjusted for:
                 {
                     "id": rule.id,
                     "trigger": rule.trigger,
-                    "condition": rule.condition[:50] + "..."
-                    if len(rule.condition) > 50
-                    else rule.condition,
+                    "condition": rule.condition[:50] + "..." if len(rule.condition) > 50 else rule.condition,
                     "action": rule.action,
                     "lever_count": len(rule.levers),
                     "adversarial_tests": rule.adversarial_tests,
@@ -329,8 +331,8 @@ Lever adjusted for:
         try:
             # Query graph for violations linked to this rule
             sql = f"""
-                SELECT * FROM synapse 
-                WHERE out = neuron:prefrontal_{rule_id} 
+                SELECT * FROM synapse
+                WHERE out = neuron:prefrontal_{rule_id}
                 AND link_type = 'latent';
             """
             result = client.query(sql)
@@ -537,9 +539,7 @@ if __name__ == "__main__":
     import sys
 
     # Setup logging
-    logging.basicConfig(
-        level=logging.INFO, format="%(asctime)s - %(name)s - %(levelname)s - %(message)s"
-    )
+    logging.basicConfig(level=logging.INFO, format="%(asctime)s - %(name)s - %(levelname)s - %(message)s")
 
     # Create and run server
     mcp = create_hookify_mcp_server()

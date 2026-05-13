@@ -8,9 +8,7 @@ from cohezion.swarm.topological_router import (
 )
 
 
-def _make_cluster_trajectory(
-    center: np.ndarray, n: int = 20, noise: float = 0.05
-) -> list[np.ndarray]:
+def _make_cluster_trajectory(center: np.ndarray, n: int = 20, noise: float = 0.05) -> list[np.ndarray]:
     """Generate trajectory clustered around a center (EXPLOIT regime)."""
     rng = np.random.default_rng(42)
     return [center + rng.normal(0, noise, len(center)) for _ in range(n)]

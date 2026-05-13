@@ -82,9 +82,7 @@ async def server_health_handler(request: web.Request) -> web.Response:
         return web.json_response({"error": "Server not found"}, status=404)
 
     healthy = await manager.health_check(name)
-    return web.json_response(
-        {"name": name, "healthy": healthy, "status": manager.servers[name].status}
-    )
+    return web.json_response({"name": name, "healthy": healthy, "status": manager.servers[name].status})
 
 
 async def main() -> None:

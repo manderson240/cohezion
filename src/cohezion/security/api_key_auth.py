@@ -30,9 +30,7 @@ class APIKeyValidator:
         """
         self.api_key = os.getenv(env_key)
         if not self.api_key:
-            logger.warning(
-                "No API key configured in environment. Set %s to enable authentication.", env_key
-            )
+            logger.warning("No API key configured in environment. Set %s to enable authentication.", env_key)
 
     def validate(self, request_key: str | None) -> bool:
         """

@@ -95,7 +95,5 @@ class SubstrateLoom:
 
     def _activate_degraded_mode(self, reason: str) -> None:
         if self._mode != LoomMode.DEGRADED:
-            logger.warning(
-                "SubstrateLoom degraded: %s. Crash context: %s", reason, self._crash_context
-            )
+            logger.warning("SubstrateLoom degraded: %s. Crash context: %s", reason, self._crash_context)
         self._mode = LoomMode.DEGRADED

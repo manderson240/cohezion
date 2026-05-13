@@ -12,9 +12,7 @@ class HFEmbeddingBridge:
     Bridge for converting Hugging Face embeddings to Flume input.
     """
 
-    def __init__(
-        self, model_name: str = "all-MiniLM-L6-v2", target_dim: int | None = None, seed: int = 42
-    ):
+    def __init__(self, model_name: str = "all-MiniLM-L6-v2", target_dim: int | None = None, seed: int = 42):
         """
         Initializes the bridge with a sentence-transformer model.
 

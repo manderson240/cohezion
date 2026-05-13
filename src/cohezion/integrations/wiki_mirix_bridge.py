@@ -139,9 +139,7 @@ class WikiMirixBridge:
                 messages=[
                     {
                         "role": "user",
-                        "content": [
-                            {"type": "text", "text": f"Store in knowledge vault: {content}"}
-                        ],
+                        "content": [{"type": "text", "text": f"Store in knowledge vault: {content}"}],
                     },
                 ],
             )
@@ -206,9 +204,7 @@ class WikiMirixBridge:
 
         # Query wiki (local files)
         wiki_pages = await self.wiki.query_pages(query, limit=5)
-        results["wiki_results"] = [
-            {"title": p.title, "category": p.category, "path": str(p.path)} for p in wiki_pages
-        ]
+        results["wiki_results"] = [{"title": p.title, "category": p.category, "path": str(p.path)} for p in wiki_pages]
 
         # Query MIRIX (if available)
         if use_mirix and self.mirix and MirixClient:

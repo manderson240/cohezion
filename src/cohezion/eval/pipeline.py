@@ -227,9 +227,7 @@ class EvalPipeline:
         ralph = RalphLoop()
 
         for episode_idx in range(n_episodes):
-            logger.info(
-                f"Running episode {episode_idx + 1}/{n_episodes} for task {task_spec.archetype}"
-            )
+            logger.info(f"Running episode {episode_idx + 1}/{n_episodes} for task {task_spec.archetype}")
 
             result = self._run_single_episode(
                 task_spec=task_spec,
@@ -504,9 +502,7 @@ class EvalPipeline:
                 check=True,
                 capture_output=True,
             )
-            commit_msg = (
-                f"eval: record progress - {self.progress.successful_episodes} successful episodes"
-            )
+            commit_msg = f"eval: record progress - {self.progress.successful_episodes} successful episodes"
             subprocess.run(  # noqa: S603
                 [git_path, "commit", "-m", commit_msg],
                 check=True,

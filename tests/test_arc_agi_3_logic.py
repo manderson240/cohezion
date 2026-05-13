@@ -6,7 +6,7 @@ from cohezion.swarm.agents.arc_agi_3_wrapper import RecursiveChainOfThought
 def test_dynamic_exit():
     dim = 256
     depth = 10
-    threshold = 0.05 # Low threshold to trigger exit
+    threshold = 0.05  # Low threshold to trigger exit
 
     model = RecursiveChainOfThought(dim=dim, depth=depth, threshold=threshold)
 
@@ -19,15 +19,16 @@ def test_dynamic_exit():
     print("Full depth reasoning completed.")
 
     # Run with low threshold (should exit early)
-    model.threshold = 100.0 # Force exit immediately
+    model.threshold = 100.0  # Force exit immediately
     h_early = model(z)
     print("Immediate exit reasoning completed.")
 
     # Test with realistic threshold
-    model.threshold = 5.0 # Random guess for entropy range
+    model.threshold = 5.0  # Random guess for entropy range
     h_auto = model(z)
 
     print("Recursive Reasoning Test Passed.")
+
 
 if __name__ == "__main__":
     test_dynamic_exit()

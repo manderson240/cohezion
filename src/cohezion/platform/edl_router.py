@@ -68,9 +68,7 @@ class ExpertDomainRouter:
         streams = self._select_streams(decision_type)
 
         # Consult each stream in parallel
-        recommendations = await asyncio.gather(
-            *[self._consult_stream(stream, context, proposal) for stream in streams]
-        )
+        recommendations = await asyncio.gather(*[self._consult_stream(stream, context, proposal) for stream in streams])
 
         # Stabilize consensus (Charter requirement: 0.5 coherence)
         consensus = self._stabilize_consensus(recommendations)
@@ -95,9 +93,7 @@ class ExpertDomainRouter:
 
         return stream_map.get(decision_type, [ExpertStream.ARCHITECT])
 
-    async def _consult_stream(
-        self, stream: ExpertStream, context: str, proposal: str
-    ) -> StreamRecommendation:
+    async def _consult_stream(self, stream: ExpertStream, context: str, proposal: str) -> StreamRecommendation:
         """Consult a single expert stream."""
 
         # Construct prompt for expert stream
@@ -196,9 +192,7 @@ Respond in JSON format:
         )
 
         # Generate reasoning
-        reasoning = self._generate_consensus_reasoning(
-            recommendations, avg_coherence, hiho_stable, consensus_strength
-        )
+        reasoning = self._generate_consensus_reasoning(recommendations, avg_coherence, hiho_stable, consensus_strength)
 
         return EDLConsensus(
             decision=merged_decision,

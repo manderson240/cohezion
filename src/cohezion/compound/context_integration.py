@@ -74,9 +74,7 @@ class ContextManager:
         while current != current.parent:
             if (current / ".context").exists():
                 return current
-            if fallback is None and (
-                (current / "pyproject.toml").exists() or (current / "CLAUDE.md").exists()
-            ):
+            if fallback is None and ((current / "pyproject.toml").exists() or (current / "CLAUDE.md").exists()):
                 fallback = current
             current = current.parent
         if fallback is not None:
@@ -138,8 +136,7 @@ class ContextManager:
                     coherence_threshold,
                 )
                 raise ContextCoherenceError(
-                    f"Coherence {self.coherence_state:.2f} below threshold "
-                    f"{coherence_threshold} for {file_path}"
+                    f"Coherence {self.coherence_state:.2f} below threshold {coherence_threshold} for {file_path}"
                 )
 
             try:
@@ -307,9 +304,7 @@ class CompoundContextMixin:
         if self._context_policy is None:
             return None
 
-        profile = self._context_policy.classify_task(
-            task_description, operation_type, template_similarity, drift_risk
-        )
+        profile = self._context_policy.classify_task(task_description, operation_type, template_similarity, drift_risk)
         self._active_budget = self._context_policy.get_budget(profile)
         logger.info(
             "Context policy applied: profile=%s, top_k=%d, tokens=%d",

@@ -83,9 +83,7 @@ def test_orchestrator_fast_routing_routes_to_flume() -> None:
 async def test_gemini_falls_back_when_api_key_missing() -> None:
     fallback_vec = np.zeros(256, dtype=np.float32)
     mock_fallback = AsyncMock()
-    mock_fallback.encode = AsyncMock(
-        return_value=EmbeddingResult(vector=fallback_vec, model="flume-vae-256d")
-    )
+    mock_fallback.encode = AsyncMock(return_value=EmbeddingResult(vector=fallback_vec, model="flume-vae-256d"))
 
     # No API key → _call_gemini_api raises ValueError
     model = GeminiEmbeddingModel(api_key="", fallback=mock_fallback)
@@ -126,9 +124,7 @@ async def test_gemini_uses_cache_when_content_hash_matches() -> None:
 async def test_circuit_breaker_activates_after_3_failures() -> None:
     fallback_vec = np.zeros(256, dtype=np.float32)
     mock_fallback = AsyncMock()
-    mock_fallback.encode = AsyncMock(
-        return_value=EmbeddingResult(vector=fallback_vec, model="flume-vae-256d")
-    )
+    mock_fallback.encode = AsyncMock(return_value=EmbeddingResult(vector=fallback_vec, model="flume-vae-256d"))
 
     model = GeminiEmbeddingModel(api_key="test-key", fallback=mock_fallback)
 
@@ -155,9 +151,7 @@ async def test_circuit_breaker_activates_after_3_failures() -> None:
 async def test_circuit_breaker_resets_on_success() -> None:
     fallback_vec = np.zeros(256, dtype=np.float32)
     mock_fallback = AsyncMock()
-    mock_fallback.encode = AsyncMock(
-        return_value=EmbeddingResult(vector=fallback_vec, model="flume-vae-256d")
-    )
+    mock_fallback.encode = AsyncMock(return_value=EmbeddingResult(vector=fallback_vec, model="flume-vae-256d"))
 
     model = GeminiEmbeddingModel(api_key="test-key", fallback=mock_fallback)
     model._fail_count = 2  # 2 failures, not yet open
@@ -165,9 +159,7 @@ async def test_circuit_breaker_resets_on_success() -> None:
     good_vec = np.ones(768, dtype=np.float32)
     with patch.object(model, "_cache_lookup", new_callable=AsyncMock, return_value=None):
         with patch.object(model, "_cache_store", new_callable=AsyncMock):
-            with patch.object(
-                model, "_call_gemini_api", new_callable=AsyncMock, return_value=good_vec
-            ):
+            with patch.object(model, "_call_gemini_api", new_callable=AsyncMock, return_value=good_vec):
                 result = await model.encode("text")
 
     assert model._fail_count == 0  # Reset on success

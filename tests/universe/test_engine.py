@@ -55,11 +55,9 @@ class TestAxiomaticState:
 
     def test_coherence_score(self):
         """[P0] Should calculate total coherence."""
-        # Perfect stability at 0.5
-        state = AxiomaticState(
-            physics=0.5, biology=0.5, logic=0.5, quantum=0.5, field=0.5, control=0.5, novelty=0.5
-        )
-        assert state.coherence_score() >= 1.0
+        # Perfect stability at 0.5 — numerically ≈1.0 (allow floating-point tolerance)
+        state = AxiomaticState(physics=0.5, biology=0.5, logic=0.5, quantum=0.5, field=0.5, control=0.5, novelty=0.5)
+        assert float(state.coherence_score()) >= 1.0 - 1e-9
 
 
 class TestLatentState:

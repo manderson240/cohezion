@@ -399,10 +399,7 @@ class DynamicCompoundSystem:
         success_rate = data.get("success_rate")
         latency = data.get("avg_latency")
 
-        logger.warning(
-            f"Reactive: Agent {agent} degraded "
-            f"(success: {success_rate:.1%}, latency: {latency:.0f}ms)"
-        )
+        logger.warning(f"Reactive: Agent {agent} degraded (success: {success_rate:.1%}, latency: {latency:.0f}ms)")
 
         # Could trigger skill refinement here
         # Could mark agent for review
@@ -438,8 +435,7 @@ class DynamicCompoundSystem:
             old_state = breaker.state
             breaker.state = state
             logger.warning(
-                f"Reactive: Circuit breaker for {backend} "
-                f"manually changed: {old_state} -> {state} ({reason})"
+                f"Reactive: Circuit breaker for {backend} manually changed: {old_state} -> {state} ({reason})"
             )
 
     # ═══════════════════════════════════════════════════════════════════
@@ -480,10 +476,7 @@ class DynamicCompoundSystem:
                     for p in patterns[-5:]  # Last 5
                 ],
                 "proactive_actions": self._proactive_engine.get_proactive_summary(),
-                "circuit_states": {
-                    str(b.backend): b.state
-                    for b in self._proactive_engine._circuit_breakers.values()
-                },
+                "circuit_states": {str(b.backend): b.state for b in self._proactive_engine._circuit_breakers.values()},
             }
 
         return {"status": "learning_not_enabled"}

@@ -787,9 +787,7 @@ class TrajectoryRecorder:
             "success_rate": successes / len(self._trajectories),
             "avg_reward": float(sum(rewards) / len(rewards)),
             "avg_steps": float(sum(steps) / len(steps)),
-            "avg_coherence": float(
-                sum(t["final_coherence"] for t in self._trajectories) / len(self._trajectories)
-            ),
+            "avg_coherence": float(sum(t["final_coherence"] for t in self._trajectories) / len(self._trajectories)),
         }
 
 
@@ -809,9 +807,7 @@ def build_coding_scenarios() -> list[TaskScenario]:
                 "It crashes on empty lists. Fix the bug so it returns 0.0 for empty lists."
             ),
             initial_files={
-                "app.py": (
-                    "def calculate_average(numbers):\n    return sum(numbers) / len(numbers)\n"
-                ),
+                "app.py": ("def calculate_average(numbers):\n    return sum(numbers) / len(numbers)\n"),
                 "test_app.py": (
                     "from app import calculate_average\n\n"
                     "def test_normal():\n"

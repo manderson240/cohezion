@@ -16,9 +16,7 @@ if TYPE_CHECKING:
 
 
 class ContextHarness:
-    def __init__(
-        self, target_model: str = "phi4", profile: ModelContextProfile | None = None
-    ) -> None:
+    def __init__(self, target_model: str = "phi4", profile: ModelContextProfile | None = None) -> None:
         self.target_model = target_model
         self._profile = profile
         self.resolver = HallucinationResolver()

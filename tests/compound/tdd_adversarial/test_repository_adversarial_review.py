@@ -78,15 +78,12 @@ class TestRepositorySecurityReview:
     async def test_input_validation(self, review_system):
         """Verify repositories validate input parameters."""
         # Check for input validation patterns
-        universe_repo_file = Path(
-            "src/cohezion/core/persistence/repositories/surreal_universe_repository.py"
-        )
+        universe_repo_file = Path("src/cohezion/core/persistence/repositories/surreal_universe_repository.py")
         if universe_repo_file.exists():
             content = universe_repo_file.read_text()
             # Check for validation patterns
             has_validation = any(
-                pattern in content
-                for pattern in ["if not", "isinstance", "try:", "except", "validate"]
+                pattern in content for pattern in ["if not", "isinstance", "try:", "except", "validate"]
             )
             assert has_validation, "Repository should validate inputs"
 
@@ -98,9 +95,7 @@ class TestRepositoryPerformanceReview:
     @pytest.mark.fast
     async def test_query_optimization(self, review_system):
         """Verify repositories use efficient query patterns."""
-        universe_repo_file = Path(
-            "src/cohezion/core/persistence/repositories/surreal_universe_repository.py"
-        )
+        universe_repo_file = Path("src/cohezion/core/persistence/repositories/surreal_universe_repository.py")
         if universe_repo_file.exists():
             content = universe_repo_file.read_text()
             # Check for LIMIT clauses (prevents full table scans)
@@ -116,9 +111,7 @@ class TestRepositoryPerformanceReview:
     async def test_batch_operations_support(self, review_system):
         """Verify repositories can support batch operations."""
         # Check if repositories have methods that could support batching
-        skill_repo_file = Path(
-            "src/cohezion/core/persistence/repositories/surreal_skill_repository.py"
-        )
+        skill_repo_file = Path("src/cohezion/core/persistence/repositories/surreal_skill_repository.py")
         if skill_repo_file.exists():
             content = skill_repo_file.read_text()
             # get_all method exists for batch retrieval
@@ -133,9 +126,7 @@ class TestRepositoryReliabilityReview:
     @pytest.mark.fast
     async def test_error_handling(self, review_system):
         """Verify repositories have comprehensive error handling."""
-        universe_repo_file = Path(
-            "src/cohezion/core/persistence/repositories/surreal_universe_repository.py"
-        )
+        universe_repo_file = Path("src/cohezion/core/persistence/repositories/surreal_universe_repository.py")
         if universe_repo_file.exists():
             content = universe_repo_file.read_text()
             # Check for try-except blocks
@@ -166,9 +157,7 @@ class TestRepositoryMaintainabilityReview:
     @pytest.mark.fast
     async def test_code_structure(self, review_system):
         """Verify repositories follow clean code principles."""
-        universe_repo_file = Path(
-            "src/cohezion/core/persistence/repositories/surreal_universe_repository.py"
-        )
+        universe_repo_file = Path("src/cohezion/core/persistence/repositories/surreal_universe_repository.py")
         if universe_repo_file.exists():
             content = universe_repo_file.read_text()
             # Check for docstrings
@@ -238,12 +227,8 @@ class TestRepositoryBatchIntegration:
     async def test_repository_batch_compatibility(self):
         """Verify repositories can work with batch executor."""
         # Check that repositories have methods compatible with batch operations
-        skill_repo_file = Path(
-            "src/cohezion/core/persistence/repositories/surreal_skill_repository.py"
-        )
-        universe_repo_file = Path(
-            "src/cohezion/core/persistence/repositories/surreal_universe_repository.py"
-        )
+        skill_repo_file = Path("src/cohezion/core/persistence/repositories/surreal_skill_repository.py")
+        universe_repo_file = Path("src/cohezion/core/persistence/repositories/surreal_universe_repository.py")
         base_repo_file = Path("src/cohezion/core/persistence/repositories/base.py")
 
         for repo_file in [skill_repo_file, universe_repo_file]:
@@ -262,9 +247,7 @@ class TestRepositoryBatchIntegration:
             content = base_repo_file.read_text()
             assert "batch_create" in content, "BaseRepository should provide batch_create"
             assert "batch_get" in content, "BaseRepository should provide batch_get"
-            assert "BatchOperationResult" in content, (
-                "BaseRepository should use BatchOperationResult"
-            )
+            assert "BatchOperationResult" in content, "BaseRepository should use BatchOperationResult"
 
     @pytest.mark.asyncio
     @pytest.mark.fast

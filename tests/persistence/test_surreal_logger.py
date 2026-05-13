@@ -15,9 +15,7 @@ def triune_state():
 @pytest.mark.asyncio
 async def test_surreal_logger_initialization():
     """Test that the logger initializes with correct config."""
-    logger = SurrealTrajectoryLogger(
-        url="ws://localhost:8000/rpc", namespace="test_ns", database="test_db"
-    )
+    logger = SurrealTrajectoryLogger(url="ws://localhost:8000/rpc", namespace="test_ns", database="test_db")
     assert logger.url == "ws://localhost:8000/rpc"
     assert logger.namespace == "test_ns"
     assert logger.database == "test_db"
@@ -36,9 +34,7 @@ async def test_log_trajectory_success(triune_state):
 
         logger = SurrealTrajectoryLogger()
 
-        await logger.log_trajectory(
-            trajectory_id="test_traj_123", state=triune_state, coherence=0.5
-        )
+        await logger.log_trajectory(trajectory_id="test_traj_123", state=triune_state, coherence=0.5)
 
         # Verify create call
         mock_db.create.assert_called_once()
@@ -68,6 +64,4 @@ async def test_log_trajectory_db_failure(triune_state):
         logger = SurrealTrajectoryLogger()
 
         with pytest.raises(Exception, match="DB Connection Error"):
-            await logger.log_trajectory(
-                trajectory_id="test_traj_failure", state=triune_state, coherence=0.5
-            )
+            await logger.log_trajectory(trajectory_id="test_traj_failure", state=triune_state, coherence=0.5)

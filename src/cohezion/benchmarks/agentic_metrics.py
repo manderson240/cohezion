@@ -590,9 +590,7 @@ class AgenticMetrics:
             else:
                 mw = {"u_stat": 0.0, "p_value": 1.0}
 
-            adjusted_alpha = self._bonferroni_correction(
-                alpha=0.05, n_comparisons=len(archetypes) * 6
-            )
+            adjusted_alpha = self._bonferroni_correction(alpha=0.05, n_comparisons=len(archetypes) * 6)
 
             archetype_metrics["mann_whitney"] = mw
             archetype_metrics["bonferroni"] = {

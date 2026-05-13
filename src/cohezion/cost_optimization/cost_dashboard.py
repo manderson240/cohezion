@@ -206,9 +206,7 @@ class CostDashboard:
         spend_rate = self.get_spend_rate()
         remaining_budget = max(0, budget_usd - spent_usd)
         hours_remaining = (
-            remaining_budget / spend_rate.spend_per_hour_usd
-            if spend_rate.spend_per_hour_usd > 0
-            else float("inf")
+            remaining_budget / spend_rate.spend_per_hour_usd if spend_rate.spend_per_hour_usd > 0 else float("inf")
         )
 
         return BudgetStatus(

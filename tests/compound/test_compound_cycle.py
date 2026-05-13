@@ -116,9 +116,7 @@ class TestCompoundCycleEndToEnd:
         assert "phi_score" in result.metrics
         assert result.metrics["phi_score"] > 0.0
 
-    def test_full_cycle_retrospection_gates_refinement(
-        self, mock_mcp_client, mock_inflection_detector
-    ):
+    def test_full_cycle_retrospection_gates_refinement(self, mock_mcp_client, mock_inflection_detector):
         """Full cycle retrospection gates refinement (Phase 6)."""
         mock_refiner = MagicMock()
 

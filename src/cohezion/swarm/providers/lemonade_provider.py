@@ -78,9 +78,7 @@ class LemonadeProvider(ModelProvider):
         }
 
         try:
-            async with session.post(
-                f"{self.base_url}/v1/chat/completions", json=payload, timeout=self.timeout
-            ) as resp:
+            async with session.post(f"{self.base_url}/v1/chat/completions", json=payload, timeout=self.timeout) as resp:
                 resp.raise_for_status()
                 data = await resp.json()
 

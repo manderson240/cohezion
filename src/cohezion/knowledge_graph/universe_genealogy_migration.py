@@ -149,9 +149,7 @@ class UniverseGenealogySurvey:
                 "total_commits": len(commits),
                 "epoch_count": len(epochs),
                 "epochs_identified": epochs,
-                "git_history_span": f"{commits[-1].split()[1]} → {commits[0].split()[1]}"
-                if commits
-                else "unknown",
+                "git_history_span": f"{commits[-1].split()[1]} → {commits[0].split()[1]}" if commits else "unknown",
                 "status": "measured",
             }
 
@@ -213,7 +211,9 @@ class UniverseGenealogySurvey:
                 {
                     "number": 7,
                     "name": "Fractal eras",
-                    "description": "Each era repeats: concept → architecture → implementation → verification → hardening",
+                    "description": (
+                        "Each era repeats: concept → architecture → implementation → verification → hardening"
+                    ),
                     "evidence": "All 8 epochs follow same cycle structure",
                 },
             ]
@@ -242,9 +242,7 @@ class UniverseGenealogySurvey:
         logger.info("Phase 2: Building genealogy schema...")
 
         try:
-            schema_path = (
-                self.cohezion_root / "src/cohezion/knowledge_graph/universe_genealogy_schema.sql"
-            )
+            schema_path = self.cohezion_root / "src/cohezion/knowledge_graph/universe_genealogy_schema.sql"
 
             if not schema_path.exists():
                 raise FileNotFoundError(f"Schema not found: {schema_path}")

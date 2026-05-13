@@ -181,9 +181,7 @@ class ActuatorSystem:
         if diagnosis.get("status") == "error":
             logger.critical(f"IMMUNE TRIGGER: {rec}")
             if narrator.available:
-                await narrator.narrate_custom(
-                    f"Critical system event. {rec}. Immediate attention required."
-                )
+                await narrator.narrate_custom(f"Critical system event. {rec}. Immediate attention required.")
 
     async def execute_patch(self, file_path: str, _issues: list[str] | None = None) -> bool:
         """

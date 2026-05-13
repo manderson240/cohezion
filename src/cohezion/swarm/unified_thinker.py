@@ -89,22 +89,6 @@ class EpisodicMemory:
         return [mem for _, mem in similarities[:top_k]]
 
 
-class UnifiedThinker:
-    """
-    Unified 512D reasoning space integrating multiple cognitive modalities.
-
-    Architecture:
-        input -> SimplifiedEncoder (512D) -> JEPA (predict) -> Memory (retrieve) -> Integration
-
-    All components operate in shared 512D space.
-    """
-
-    def __init__(self, embed_dim: int = 512):
-        self.embed_dim = embed_dim
-
-        # All components use shared 512D representation
-
-
 class SimplifiedEncoder:
     """Simplified encoder that doesn't require full FLUME model."""
 
@@ -172,9 +156,7 @@ class UnifiedThinker:
         similar_memories = self.episodic.retrieve(input_512d, top_k=5)
 
         # Step 4: Integration in unified 512D space
-        integrated_thought = self._integrate_512d(
-            input_512d, predicted_future, similar_memories, consequences
-        )
+        integrated_thought = self._integrate_512d(input_512d, predicted_future, similar_memories, consequences)
 
         # Store this reasoning in memory
         reasoning_state = ReasoningState(

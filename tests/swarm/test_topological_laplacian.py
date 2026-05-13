@@ -26,9 +26,7 @@ def _tight_cluster(n: int = 20, dim: int = 4, noise: float = 0.01) -> list[np.nd
     return [center + rng.normal(0, noise, dim) for _ in range(n)]
 
 
-def _two_disconnected_clusters(
-    n: int = 20, dim: int = 4, separation: float = 10.0
-) -> list[np.ndarray]:
+def _two_disconnected_clusters(n: int = 20, dim: int = 4, separation: float = 10.0) -> list[np.ndarray]:
     """Two well-separated clusters: low Fiedler value (nearly disconnected)."""
     rng = np.random.default_rng(42)
     c1, c2 = np.zeros(dim), np.ones(dim) * separation

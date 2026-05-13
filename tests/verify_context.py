@@ -96,9 +96,7 @@ def verify_adversarial(path: str):
 
     # 2. Protocol hijacking (javascript: or data: in links)
     if re.search(r"\[.*\]\((javascript:|data:).*\)", content):
-        print(
-            f"❌ Error: Malicious protocol (javascript:/data:) detected in {os.path.basename(path)}."
-        )
+        print(f"❌ Error: Malicious protocol (javascript:/data:) detected in {os.path.basename(path)}.")
         return False
 
     print(f"✅ Adversarial audit PASSED for {os.path.basename(path)}.")
@@ -133,9 +131,7 @@ def main():
     if all_passed:
         # Custom header checks
         verify_header_exists("GEMINI.md", "# GEMINI.md - Cohezion Orchestration Layer")
-        verify_header_exists(
-            ".agent/CONSTITUTION.md", "## 3. The 0.5 Coherence Rule (HIHO Stability)"
-        )
+        verify_header_exists(".agent/CONSTITUTION.md", "## 3. The 0.5 Coherence Rule (HIHO Stability)")
         verify_header_exists(".agent/EVOLUTION_PROTOCOL.md", "## 1. Continuous Experience Mining")
 
         # 3. Vector & Link Audits

@@ -250,16 +250,12 @@ class ResearchAgent:
         metric_value = float("inf")
         output_text = getattr(result, "output", "") or ""
         target = self.config.target_metric  # e.g. "val_bpb"
-        m_match = re.search(
-            rf"{re.escape(target)}[\s:=]+([0-9]+(?:\.[0-9]+)?(?:e[+-]?[0-9]+)?)", output_text
-        )
+        m_match = re.search(rf"{re.escape(target)}[\s:=]+([0-9]+(?:\.[0-9]+)?(?:e[+-]?[0-9]+)?)", output_text)
         if m_match:
             metric_value = float(m_match.group(1))
 
         m = result.metrics
-        duration_seconds = (
-            m.get("duration_seconds", 0.0) if isinstance(m, dict) else m.duration_seconds
-        )
+        duration_seconds = m.get("duration_seconds", 0.0) if isinstance(m, dict) else m.duration_seconds
 
         if metric_value < self.session.best_metric:
             self.session.best_metric = metric_value

@@ -225,9 +225,7 @@ class TestDRRPersist:
         module_key = "cohezion.persistence.surreal_client"
         original = sys.modules.pop(module_key, None)
         try:
-            with patch(
-                "builtins.__import__", side_effect=ImportError("surreal_client unavailable")
-            ):
+            with patch("builtins.__import__", side_effect=ImportError("surreal_client unavailable")):
                 result = await generator.persist(report, surreal_client=None)
         finally:
             if original is not None:

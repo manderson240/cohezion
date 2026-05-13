@@ -104,34 +104,24 @@ class TestClassifyInstruction:
 class TestInstructionExpander:
     """Test the InstructionExpander class."""
 
-    def test_expand_produces_correct_step_count(
-        self, sample_spec: SkillSpec, expander: InstructionExpander
-    ) -> None:
+    def test_expand_produces_correct_step_count(self, sample_spec: SkillSpec, expander: InstructionExpander) -> None:
         plan = expander.expand(sample_spec)
         assert len(plan.steps) == len(sample_spec.instructions)
 
-    def test_expand_preserves_skill_name(
-        self, sample_spec: SkillSpec, expander: InstructionExpander
-    ) -> None:
+    def test_expand_preserves_skill_name(self, sample_spec: SkillSpec, expander: InstructionExpander) -> None:
         plan = expander.expand(sample_spec)
         assert plan.skill_name == "TEST_SKILL_PRIME"
 
-    def test_expand_preserves_domain(
-        self, sample_spec: SkillSpec, expander: InstructionExpander
-    ) -> None:
+    def test_expand_preserves_domain(self, sample_spec: SkillSpec, expander: InstructionExpander) -> None:
         plan = expander.expand(sample_spec)
         assert plan.domain == sample_spec.domain_expertise
 
-    def test_expand_classifies_operations(
-        self, sample_spec: SkillSpec, expander: InstructionExpander
-    ) -> None:
+    def test_expand_classifies_operations(self, sample_spec: SkillSpec, expander: InstructionExpander) -> None:
         plan = expander.expand(sample_spec)
         operations = [s.operation for s in plan.steps]
         assert operations == ["search", "generate", "analyze", "transform", "persist"]
 
-    def test_expand_preserves_descriptions(
-        self, sample_spec: SkillSpec, expander: InstructionExpander
-    ) -> None:
+    def test_expand_preserves_descriptions(self, sample_spec: SkillSpec, expander: InstructionExpander) -> None:
         plan = expander.expand(sample_spec)
         for step, instruction in zip(plan.steps, sample_spec.instructions, strict=True):
             assert step.description == instruction
@@ -177,10 +167,7 @@ class TestInstructionExpander:
 
         assert plan.skill_name == spec.name
         assert len(plan.steps) == len(spec.instructions)
-        assert all(
-            s.operation in ("search", "generate", "analyze", "transform", "persist")
-            for s in plan.steps
-        )
+        assert all(s.operation in ("search", "generate", "analyze", "transform", "persist") for s in plan.steps)
 
 
 # ---------------------------------------------------------------------------
@@ -193,18 +180,14 @@ class TestPlanExecutor:
 
     def test_execute_runs_all_steps(self, sample_plan: ExecutablePlan) -> None:
         executor = PlanExecutor(token_client=None)
-        result = asyncio.get_event_loop().run_until_complete(
-            executor.execute(sample_plan, "test input")
-        )
+        result = asyncio.get_event_loop().run_until_complete(executor.execute(sample_plan, "test input"))
         assert len(result.steps) == len(sample_plan.steps)
         assert result.skill_name == sample_plan.skill_name
 
     def test_execute_pipes_output(self, sample_plan: ExecutablePlan) -> None:
         """Each step receives the previous step's output as context."""
         executor = PlanExecutor(token_client=None)
-        result = asyncio.get_event_loop().run_until_complete(
-            executor.execute(sample_plan, "initial input")
-        )
+        result = asyncio.get_event_loop().run_until_complete(executor.execute(sample_plan, "initial input"))
         # The first step is search — its output is fed to the generate step
         # The generate step's output mentions its input_length which should
         # be > 0 (it received output from search, not empty)
@@ -289,9 +272,7 @@ class TestPlanExecutor:
             domain="",
         )
         executor = PlanExecutor(token_client=None)
-        result = asyncio.get_event_loop().run_until_complete(
-            executor.execute(plan, "data to persist")
-        )
+        result = asyncio.get_event_loop().run_until_complete(executor.execute(plan, "data to persist"))
         assert "[persisted]" in result.steps[0].output
 
     def test_token_client_failure_falls_back(self) -> None:

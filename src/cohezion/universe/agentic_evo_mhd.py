@@ -172,9 +172,7 @@ class AgenticEVOMHD(AgenticEVO):
     - Alfven wave coupling to latent space
     """
 
-    def __init__(
-        self, agent_id: str, initial_latent: np.ndarray | None = None, magnetic_moment: float = 1.0
-    ):
+    def __init__(self, agent_id: str, initial_latent: np.ndarray | None = None, magnetic_moment: float = 1.0):
         super().__init__(agent_id, initial_latent)
 
         # Magnetic state
@@ -232,9 +230,7 @@ class AgenticEVOMHD(AgenticEVO):
         """
         # Compute latent gradient (direction of steepest change)
         if len(self.latent_state.journey_positions) >= 2:
-            latent_velocity = (
-                self.latent_state.journey_positions[-1] - self.latent_state.journey_positions[-2]
-            )
+            latent_velocity = self.latent_state.journey_positions[-1] - self.latent_state.journey_positions[-2]
         else:
             latent_velocity = np.zeros(256)
 
@@ -255,9 +251,7 @@ class AgenticEVOMHD(AgenticEVO):
 
         # Field strength from coherence and information
         b_strength = (
-            self.latent_state.information_content
-            * (1.0 - self.latent_state.current_coherence)
-            * self.magnetic_moment
+            self.latent_state.information_content * (1.0 - self.latent_state.current_coherence) * self.magnetic_moment
         )
 
         self.magnetic_state.B_field = b_direction * b_strength
@@ -273,11 +267,7 @@ class AgenticEVOMHD(AgenticEVO):
 
         # Approximate current from curl (need field gradient)
         # Simplified: use stored current density
-        J = (
-            self.magnetic_state.current_density
-            if hasattr(self.magnetic_state, "current_density")
-            else np.zeros(3)
-        )
+        J = self.magnetic_state.current_density if hasattr(self.magnetic_state, "current_density") else np.zeros(3)
 
         # F = J × B
         F = np.cross(J, B)
@@ -295,18 +285,14 @@ class AgenticEVOMHD(AgenticEVO):
         # Project latent velocity onto B-field direction
         latent_v = np.zeros(256)
         if len(self.latent_state.journey_positions) >= 2:
-            latent_v = (
-                self.latent_state.journey_positions[-1] - self.latent_state.journey_positions[-2]
-            ) / dt
+            latent_v = (self.latent_state.journey_positions[-1] - self.latent_state.journey_positions[-2]) / dt
 
         # Parallel component propagates
         parallel_factor = np.sum(latent_v[:3] * b_unit)
 
         # Alfven coupling: align latent evolution with B-field
         self.latent_state.latent_vector += (
-            self.latent_magnetic_coupling
-            * parallel_factor
-            * np.tile(b_unit, 86)[:256]  # Broadcast to 256D
+            self.latent_magnetic_coupling * parallel_factor * np.tile(b_unit, 86)[:256]  # Broadcast to 256D
         )
 
     def magnetic_reconnection(self, other: AgenticEVOMHD) -> bool:
@@ -538,9 +524,7 @@ class AgenticMHDSystem:
         self.interpolate_b_to_particles()
 
         # Phase 4: Evolve each EVO with MHD
-        global_b = np.array(
-            [np.mean(self.mhd_field.Bx), np.mean(self.mhd_field.By), np.mean(self.mhd_field.Bz)]
-        )
+        global_b = np.array([np.mean(self.mhd_field.Bx), np.mean(self.mhd_field.By), np.mean(self.mhd_field.Bz)])
 
         for evo in self.evos:
             evo.hiho_step_mhd(global_b_field=global_b)
@@ -600,15 +584,10 @@ class AgenticMHDSystem:
         ionized_count = sum(
             1
             for e in self.evos
-            if e.magnetic_state.ionization_state
-            in [IonizationState.PARTIALLY_IONIZED, IonizationState.FULLY_IONIZED]
+            if e.magnetic_state.ionization_state in [IonizationState.PARTIALLY_IONIZED, IonizationState.FULLY_IONIZED]
         )
 
-        exotic_plasma = sum(
-            1
-            for e in self.evos
-            if e.magnetic_state.ionization_state == IonizationState.EXOTIC_PLASMA
-        )
+        exotic_plasma = sum(1 for e in self.evos if e.magnetic_state.ionization_state == IonizationState.EXOTIC_PLASMA)
 
         mean_b = np.mean([e.magnetic_state.B_magnitude for e in self.evos])
         mean_beta = np.mean([e.magnetic_state.plasma_beta for e in self.evos])
@@ -666,15 +645,11 @@ def demo_mhd_simulation():
     stats = system.get_mhd_statistics()
     print(f"Timesteps: {stats['timestep']}")
     print("Final plasma states:")
-    print(
-        f"  Neutral: {sum(1 for e in system.evos if e.magnetic_state.ionization_state == IonizationState.NEUTRAL)}"
-    )
-    print(
-        f"  Partially ionized: {sum(1 for e in system.evos if e.magnetic_state.ionization_state == IonizationState.PARTIALLY_IONIZED)}"
-    )
-    print(
-        f"  Fully ionized: {sum(1 for e in system.evos if e.magnetic_state.ionization_state == IonizationState.FULLY_IONIZED)}"
-    )
+    print(f"  Neutral: {sum(1 for e in system.evos if e.magnetic_state.ionization_state == IonizationState.NEUTRAL)}")
+    partial = sum(1 for e in system.evos if e.magnetic_state.ionization_state == IonizationState.PARTIALLY_IONIZED)
+    full = sum(1 for e in system.evos if e.magnetic_state.ionization_state == IonizationState.FULLY_IONIZED)
+    print(f"  Partially ionized: {partial}")
+    print(f"  Fully ionized: {full}")
     print(f"  Exotic plasma: {stats['exotic_plasma']}")
     print("\nMagnetic field statistics:")
     print(f"  Mean |B|: {stats['mean_b_field']:.4f}")

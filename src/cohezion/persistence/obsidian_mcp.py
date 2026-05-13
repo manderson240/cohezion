@@ -14,9 +14,7 @@ class ObsidianMemoryMCP:
     Client for interacting with the Obsidian Knowledge Vault via MCP.
     """
 
-    def __init__(
-        self, server_url: str = "stdio://cloud-vault-mcp", vault_base_path: str = "trajectories"
-    ):
+    def __init__(self, server_url: str = "stdio://cloud-vault-mcp", vault_base_path: str = "trajectories"):
         """
         Initializes the MCP client.
 
@@ -27,9 +25,7 @@ class ObsidianMemoryMCP:
         self.server_url = server_url
         self.vault_base_path = vault_base_path
 
-    async def store_state_summary(
-        self, trajectory_id: str, state: TriuneState, coherence: float
-    ) -> str:
+    async def store_state_summary(self, trajectory_id: str, state: TriuneState, coherence: float) -> str:
         """
         Formats and stores a highly semantic summary of the triune state to Obsidian.
 

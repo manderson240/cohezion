@@ -223,18 +223,12 @@ class ContextPolicy:
                         "flux_min_relevance", _PROFILE_BUDGETS[profile].flux_min_relevance
                     ),
                     flux_sources=_PROFILE_BUDGETS[profile].flux_sources,  # Not persisted
-                    token_budget=budget_data.get(
-                        "token_budget", _PROFILE_BUDGETS[profile].token_budget
-                    ),
-                    skill_overlay=budget_data.get(
-                        "skill_overlay", _PROFILE_BUDGETS[profile].skill_overlay
-                    ),
+                    token_budget=budget_data.get("token_budget", _PROFILE_BUDGETS[profile].token_budget),
+                    skill_overlay=budget_data.get("skill_overlay", _PROFILE_BUDGETS[profile].skill_overlay),
                 )
 
             self._task_overrides = data.get("task_overrides", [])
-            self._outcome_summary = data.get(
-                "outcome_summary", {"total_executions": 0, "by_profile": {}}
-            )
+            self._outcome_summary = data.get("outcome_summary", {"total_executions": 0, "by_profile": {}})
             logger.info(
                 "Loaded learned budgets from %s (%d overrides, %d executions)",
                 self._budgets_path,
@@ -307,9 +301,7 @@ class ContextPolicy:
         """
         # ROUTINE: high template match (strongest signal — skip everything else)
         if template_similarity > 0.8:
-            logger.debug(
-                "Task classified as ROUTINE (template_similarity=%.2f)", template_similarity
-            )
+            logger.debug("Task classified as ROUTINE (template_similarity=%.2f)", template_similarity)
             return TaskProfile.ROUTINE
 
         # EXPLORATORY: high drift risk overrides simple-task heuristics
@@ -496,9 +488,7 @@ class ContextPolicy:
             coherence_final: Final coherence score
         """
         # Update in-memory summary
-        self._outcome_summary["total_executions"] = (
-            self._outcome_summary.get("total_executions", 0) + 1
-        )
+        self._outcome_summary["total_executions"] = self._outcome_summary.get("total_executions", 0) + 1
         by_profile = self._outcome_summary.setdefault("by_profile", {})
         profile_stats = by_profile.setdefault(
             profile.value, {"successes": 0, "failures": 0, "avg_coherence": 0.0, "count": 0}
@@ -508,9 +498,7 @@ class ContextPolicy:
         else:
             profile_stats["failures"] += 1
         n = profile_stats["count"] + 1
-        profile_stats["avg_coherence"] = (
-            profile_stats["avg_coherence"] * profile_stats["count"] + coherence_final
-        ) / n
+        profile_stats["avg_coherence"] = (profile_stats["avg_coherence"] * profile_stats["count"] + coherence_final) / n
         profile_stats["count"] = n
 
         # Persist to JSON file (cross-session, cross-platform)

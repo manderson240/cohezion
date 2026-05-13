@@ -168,9 +168,7 @@ class PredictiveLeverAdjuster:
         self.model = prediction_model or SimplePredictionModel()
         self.auto_approve_threshold = auto_approve_threshold
 
-        self.data_path = (
-            data_path or Path("~/.config/cohezion/predictive_adjustments.jsonl").expanduser()
-        )
+        self.data_path = data_path or Path("~/.config/cohezion/predictive_adjustments.jsonl").expanduser()
         self.data_path.parent.mkdir(parents=True, exist_ok=True)
 
         self.pending_approvals: list[HumanApprovalRequest] = []
@@ -195,20 +193,13 @@ class PredictiveLeverAdjuster:
             older = history[-6:-3] if len(history) >= 6 else history[: len(history) // 2]
 
             recent_progress = (
-                sum(
-                    h.get("metrics_snapshot", {}).get("current", lever.current_value)
-                    for h in recent
-                )
-                / len(recent)
+                sum(h.get("metrics_snapshot", {}).get("current", lever.current_value) for h in recent) / len(recent)
                 if recent
                 else lever.current_value
             )
 
             older_progress = (
-                sum(
-                    h.get("metrics_snapshot", {}).get("current", lever.current_value) for h in older
-                )
-                / len(older)
+                sum(h.get("metrics_snapshot", {}).get("current", lever.current_value) for h in older) / len(older)
                 if older
                 else lever.current_value
             )
@@ -223,7 +214,7 @@ class PredictiveLeverAdjuster:
             try:
                 last_dt = datetime.strptime(last_time, "%Y-%m-%dT%H:%M:%SZ")
                 hours_since = (datetime.utcnow() - last_dt).total_seconds() / 3600
-            except:
+            except Exception:
                 hours_since = 24  # Default to 24 hours
         else:
             hours_since = 0
@@ -326,9 +317,7 @@ class PredictiveLeverAdjuster:
         # For demo, auto-approve
         return True
 
-    def approve_adjustment(
-        self, request: HumanApprovalRequest, approver: str, approved: bool = True
-    ):
+    def approve_adjustment(self, request: HumanApprovalRequest, approver: str, approved: bool = True):
         """Approve or reject a pending adjustment."""
         request.approved = approved
         request.approver = approver
@@ -400,8 +389,7 @@ class PredictiveLeverAdjuster:
                 f.write(json.dumps(request.__dict__) + "\n")
 
         logger.info(
-            f"Saved {len(self.approved_adjustments)} approved, "
-            f"{len(self.rejected_adjustments)} rejected adjustments"
+            f"Saved {len(self.approved_adjustments)} approved, {len(self.rejected_adjustments)} rejected adjustments"
         )
 
     def get_dashboard(self) -> dict[str, Any]:
@@ -413,8 +401,7 @@ class PredictiveLeverAdjuster:
             "rejected_count": len(self.rejected_adjustments),
             "pending_count": len(self.pending_approvals),
             "approval_rate": (
-                len(self.approved_adjustments)
-                / (len(self.approved_adjustments) + len(self.rejected_adjustments))
+                len(self.approved_adjustments) / (len(self.approved_adjustments) + len(self.rejected_adjustments))
                 if (len(self.approved_adjustments) + len(self.rejected_adjustments)) > 0
                 else 0
             ),
@@ -455,18 +442,13 @@ class PredictiveLeverAdjuster:
         if dashboard["pending_approvals"]:
             print("\n⚠️  PENDING APPROVALS:")
             for req in dashboard["pending_approvals"][:3]:
-                print(
-                    f"  • {req['lever']}: {req['proposed_value']:.2f} "
-                    + f"(confidence: {req['confidence']:.0%})"
-                )
+                print(f"  • {req['lever']}: {req['proposed_value']:.2f} " + f"(confidence: {req['confidence']:.0%})")
 
         if dashboard["recent_predictions"]:
             print("\n📊 RECENT PREDICTIONS:")
             for pred in dashboard["recent_predictions"][-3:]:
                 status = "✓" if pred["approved"] else "✗"
-                print(
-                    f"  {status} {pred['lever']}: {pred['action']} " + f"({pred['confidence']:.0%})"
-                )
+                print(f"  {status} {pred['lever']}: {pred['action']} " + f"({pred['confidence']:.0%})")
 
         print("=" * 70)
 
@@ -518,10 +500,7 @@ def demo_predictive_adjuster():
             print("  ⚠️  Action recommended!")
             request = adjuster.predict_and_execute(lever_name)
             if request:
-                print(
-                    f"      Executed: {request.current_value:.2f} → "
-                    + f"{request.proposed_value:.2f}"
-                )
+                print(f"      Executed: {request.current_value:.2f} → " + f"{request.proposed_value:.2f}")
 
     # Show dashboard
     print("\n" + "=" * 70)

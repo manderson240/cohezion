@@ -87,9 +87,7 @@ class ExecutorIntegrationMixin:
                 import concurrent.futures
 
                 with concurrent.futures.ThreadPoolExecutor() as pool:
-                    spec = loop.run_in_executor(
-                        pool, lambda: asyncio.run(orchestrator.vibe(nl_text, execute=False))
-                    )
+                    spec = loop.run_in_executor(pool, lambda: asyncio.run(orchestrator.vibe(nl_text, execute=False)))
                 return spec
             except RuntimeError:
                 return asyncio.run(orchestrator.vibe(nl_text, execute=False))

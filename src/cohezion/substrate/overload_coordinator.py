@@ -120,9 +120,7 @@ class OverloadCoordinator:
         self._current_level = ProtectionLevel.NORMAL
         self._level_since: float = time.time()
         self._action_history: list[ProtectionAction] = []
-        self._request_queue: asyncio.Queue[dict] = asyncio.Queue(
-            maxsize=self.config.max_queue_depth
-        )
+        self._request_queue: asyncio.Queue[dict] = asyncio.Queue(maxsize=self.config.max_queue_depth)
 
         # Current context reduction (applied cumulatively)
         self._current_context_reduction: int = 0
@@ -224,9 +222,7 @@ class OverloadCoordinator:
                 await self._reduce_context_windows(25)
 
             case ProtectionLevel.ELEVATED:
-                action.actions.extend(
-                    ["evict_cold_models", "reduce_context_50", "throttle_requests"]
-                )
+                action.actions.extend(["evict_cold_models", "reduce_context_50", "throttle_requests"])
                 action.context_reduction_percent = 50
                 self._current_context_reduction = max(self._current_context_reduction, 50)
 
@@ -362,9 +358,7 @@ class OverloadCoordinator:
 
         if should_disable != self._circuit_breakers_disabled:
             self._circuit_breakers_disabled = should_disable
-            logger.info(
-                f"Circuit breakers {'disabled' if should_disable else 'enabled'} (pressure: {pressure:.2%})"
-            )
+            logger.info(f"Circuit breakers {'disabled' if should_disable else 'enabled'} (pressure: {pressure:.2%})")
 
     async def queue_request(self, request: dict[str, Any]) -> int:
         """Queue a request for later processing.

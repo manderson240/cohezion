@@ -40,9 +40,7 @@ class UniverseStateEvent(BaseModel):
     stability_shift: float = Field(0.0, description="Stability delta since last emission")
 
     # Causal Linkage (Geometric Overlap)
-    trigger_journey_id: str | None = Field(
-        None, description="The agentic journey that triggered this shift"
-    )
+    trigger_journey_id: str | None = Field(None, description="The agentic journey that triggered this shift")
 
     @field_validator("state_12d")
     @classmethod

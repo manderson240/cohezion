@@ -225,9 +225,7 @@ class ConstitutionalChecker:
             )
 
         # All checks passed
-        return SovereigntyCheckResult(
-            constitutional_compliant=True, violation=None, ethical_score=1.0
-        )
+        return SovereigntyCheckResult(constitutional_compliant=True, violation=None, ethical_score=1.0)
 
 
 class TipOfTheSpearRouter:
@@ -312,13 +310,11 @@ class TipOfTheSpearRouter:
         warnings = []
         if coherence < self.hiho_min:
             warnings.append(
-                f"Coherence too low ({coherence:.2f} < {self.hiho_min}): "
-                "Agent too uncertain, escalate to human"
+                f"Coherence too low ({coherence:.2f} < {self.hiho_min}): Agent too uncertain, escalate to human"
             )
         elif coherence > self.hiho_max:
             warnings.append(
-                f"Coherence too high ({coherence:.2f} > {self.hiho_max}): "
-                "Agent overconfident, inject uncertainty"
+                f"Coherence too high ({coherence:.2f} > {self.hiho_max}): Agent overconfident, inject uncertainty"
             )
 
         return hiho_stability, warnings
@@ -373,10 +369,7 @@ class TipOfTheSpearRouter:
         domain = self.complexity_analyzer.detect_domain(request)
         complexity = self.complexity_analyzer.analyze(request)
 
-        logger.info(
-            f"Request domain: {domain}, complexity: {complexity.value}, "
-            f"starting tier: {initial_tier.value}"
-        )
+        logger.info(f"Request domain: {domain}, complexity: {complexity.value}, starting tier: {initial_tier.value}")
 
         # Step 4: Cascade through tiers with confidence checks
         current_tier = initial_tier
@@ -390,9 +383,7 @@ class TipOfTheSpearRouter:
             # Execute with model (simulated for now)
             result = await self._execute_with_model(model, request)
 
-            logger.info(
-                f"Tier {current_tier.value}: model={model}, confidence={result['confidence']:.2f}"
-            )
+            logger.info(f"Tier {current_tier.value}: model={model}, confidence={result['confidence']:.2f}")
 
             # Check confidence
             if result["confidence"] >= self.confidence_threshold:
@@ -406,16 +397,13 @@ class TipOfTheSpearRouter:
             if next_tier is None:
                 # No more tiers to escalate to
                 logger.warning(
-                    f"Max escalations reached ({self.max_escalations}), "
-                    f"final confidence: {result['confidence']:.2f}"
+                    f"Max escalations reached ({self.max_escalations}), final confidence: {result['confidence']:.2f}"
                 )
                 break
 
             # Track escalation
             escalation_key = f"{current_tier.value}_to_{next_tier.value}"
-            self.escalations_by_tier[escalation_key] = (
-                self.escalations_by_tier.get(escalation_key, 0) + 1
-            )
+            self.escalations_by_tier[escalation_key] = self.escalations_by_tier.get(escalation_key, 0) + 1
 
             logger.info(
                 f"Low confidence ({result['confidence']:.2f} < {self.confidence_threshold}), "
@@ -555,8 +543,6 @@ class TipOfTheSpearRouter:
             "constitutional_violations": self.constitutional_violations,
             "escalations": self.escalations_by_tier,
             "violation_rate": (
-                self.constitutional_violations / self.total_requests
-                if self.total_requests > 0
-                else 0.0
+                self.constitutional_violations / self.total_requests if self.total_requests > 0 else 0.0
             ),
         }

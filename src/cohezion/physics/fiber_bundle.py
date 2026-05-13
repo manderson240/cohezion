@@ -67,9 +67,7 @@ class FiberBundleState:
             "base": self.base.tolist(),
             "fiber": self.fiber.tolist(),
             "fabric_norms": {name: float(self.base[i]) for i, name in enumerate(FABRIC_NAMES)},
-            "fabric_directions": {
-                name: self.fiber[i].tolist() for i, name in enumerate(FABRIC_NAMES)
-            },
+            "fabric_directions": {name: self.fiber[i].tolist() for i, name in enumerate(FABRIC_NAMES)},
         }
 
 
@@ -120,9 +118,7 @@ class FiberBundle:
         state = np.zeros(self.dim)
         for i, (_name, sl) in enumerate(FABRIC_SLICES.items()):
             direction = (
-                fiber[i] / np.linalg.norm(fiber[i])
-                if np.linalg.norm(fiber[i]) > 1e-15
-                else np.array([1.0, 0.0, 0.0])
+                fiber[i] / np.linalg.norm(fiber[i]) if np.linalg.norm(fiber[i]) > 1e-15 else np.array([1.0, 0.0, 0.0])
             )
             state[sl] = base[i] * direction
         return state

@@ -147,9 +147,7 @@ class EigentAgent(BaseScout):
 
                 monitor = get_fleet_monitor()
                 test_port = 8081 + (i % 10)
-                pid = await monitor.spawn_ephemeral_service(
-                    f"test-lane-{test_port}", test_port, ["sleep", "60"]
-                )
+                pid = await monitor.spawn_ephemeral_service(f"test-lane-{test_port}", test_port, ["sleep", "60"])
                 if pid:
                     log_entry["transient_lane"] = f"localhost:{test_port}"
                     await asyncio.sleep(2)
@@ -166,7 +164,7 @@ class EigentAgent(BaseScout):
                 if not self.surreal_client._connected:
                     await self.surreal_client.connect()
                 await self.surreal_client.create("journey_logs", log_entry)
-            except:
+            except Exception:
                 pass
 
             state["iterations"] = i + 1

@@ -11,7 +11,7 @@ from __future__ import annotations
 import asyncio
 import json
 from pathlib import Path
-from unittest.mock import MagicMock, patch
+from unittest.mock import patch
 
 import numpy as np
 import pytest
@@ -29,13 +29,8 @@ def _mock_embed(text: str) -> np.ndarray:
 
 @pytest.fixture
 def flume_encoder():
-    """FlumeVAEEncoder with Ollama mocked (deterministic)."""
-    with patch("cohezion.flume.vae_encoder.OllamaEmbeddingProvider") as MockProvider:
-        mock_provider = MagicMock()
-        mock_provider.embed.side_effect = _mock_embed
-        MockProvider.return_value = mock_provider
-        enc = FlumeVAEEncoder(fallback_to_hash=True)
-    return enc
+    """FlumeVAEEncoder using hash-based fallback (deterministic, no checkpoint needed)."""
+    return FlumeVAEEncoder(fallback_to_hash=True)
 
 
 class TestExecutionDataLogged:
@@ -134,9 +129,7 @@ class TestSemanticCacheIntegration:
 class TestFullPipelineIntegration:
     """Full pipeline: log execution → embedding consistent → cache stores."""
 
-    def test_pipeline_components_interoperate(
-        self, tmp_path: Path, flume_encoder: FlumeVAEEncoder
-    ) -> None:
+    def test_pipeline_components_interoperate(self, tmp_path: Path, flume_encoder: FlumeVAEEncoder) -> None:
         """All three components work together without errors."""
         # Step 1: Log compound execution
         collector = ExperienceCollector(

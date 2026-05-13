@@ -116,9 +116,7 @@ class MCPClient:
         except httpx.HTTPStatusError as e:
             await self.close()
             if e.response.status_code in (401, 403):
-                raise MCPAuthenticationError(
-                    f"Authentication failed (HTTP {e.response.status_code})"
-                ) from e
+                raise MCPAuthenticationError(f"Authentication failed (HTTP {e.response.status_code})") from e
             raise MCPConnectionError(f"Failed to connect to MCP server: {e}") from e
         except httpx.RequestError as e:
             await self.close()
@@ -236,9 +234,7 @@ class MCPClient:
         args.update(kwargs)
         return await self._call_tool("vault_log_experiment", args)
 
-    async def vault_extract_pattern(
-        self, source_path: str, pattern_name: str, description: str, **kwargs
-    ) -> str:
+    async def vault_extract_pattern(self, source_path: str, pattern_name: str, description: str, **kwargs) -> str:
         args = {
             "source_path": source_path,
             "pattern_name": pattern_name,
@@ -246,6 +242,67 @@ class MCPClient:
         }
         args.update(kwargs)
         return await self._call_tool("vault_extract_pattern", args)
+
+    def vault_search(self, query: str, limit: int = 20) -> list[dict]:
+        """Search vault patterns by full-text query. Returns list of match dicts."""
+        try:
+            raw = self._call_tool("vault_search", {"query": query, "limit": limit})
+            if isinstance(raw, list):
+                return raw
+            return []
+        except Exception:
+            return []
+
+    def vault_search_by_operation(self, operation: str, limit: int = 20) -> list[dict]:
+        """Hierarchical search by operation folder; falls back to full-text if empty."""
+        try:
+            results = self.vault_search(f"patterns/operations/{operation}", limit=limit)
+            filtered = [r for r in results if operation in r.get("path", "")]
+            if not filtered:
+                filtered = self.vault_search(operation, limit=limit)
+            return filtered[:limit]
+        except Exception:
+            return []
+
+    def vault_search_by_domain(self, domain: str, limit: int = 20) -> list[dict]:
+        """Hierarchical search: filter patterns by domain folder prefix."""
+        try:
+            results = self.vault_search(f"patterns/domains/{domain}", limit=limit)
+            filtered = [r for r in results if domain in r.get("path", "")]
+            return filtered[:limit]
+        except Exception:
+            return []
+
+    def vault_search_by_skill_category(self, category: str, limit: int = 20) -> list[dict]:
+        """Hierarchical search: filter patterns by skill category folder prefix."""
+        try:
+            results = self.vault_search(f"patterns/skills/{category}", limit=limit)
+            filtered = [r for r in results if category in r.get("path", "")]
+            return filtered[:limit]
+        except Exception:
+            return []
+
+    def vault_search_hierarchical(
+        self,
+        operation_type: str | None = None,
+        domain: str | None = None,
+        category: str | None = None,
+        limit: int = 20,
+    ) -> list[dict]:
+        """Combined hierarchical search across operation, domain, and skill category."""
+        parts = []
+        if operation_type:
+            parts.append(f"operations/{operation_type}")
+        if domain:
+            parts.append(f"domains/{domain}")
+        if category:
+            parts.append(f"skills/{category}")
+        query = "/".join(parts) if parts else ""
+        try:
+            results = self.vault_search(query, limit=limit)
+            return results[:limit]
+        except Exception:
+            return []
 
 
 def create_mcp_client(server_url: str, api_key: str) -> MCPClient:

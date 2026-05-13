@@ -42,9 +42,7 @@ async def get_tradition_detail(slug: str) -> dict:
     tradition = get_tradition(slug)
     if tradition is None:
         slugs = [t.slug for t in get_traditions()]
-        raise HTTPException(
-            status_code=404, detail=f"Tradition '{slug}' not found. Available: {slugs}"
-        )
+        raise HTTPException(status_code=404, detail=f"Tradition '{slug}' not found. Available: {slugs}")
     return tradition.to_dict()
 
 

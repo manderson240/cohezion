@@ -133,9 +133,7 @@ class TestVaultSearchExecutor:
         )
 
         # Without skill context
-        relevance_no_context = vault_search_executor._calculate_relevance(
-            document, query, skill_context=[]
-        )
+        relevance_no_context = vault_search_executor._calculate_relevance(document, query, skill_context=[])
 
         # With matching skill context
         relevance_with_context = vault_search_executor._calculate_relevance(
@@ -180,9 +178,7 @@ class TestVaultSearchExecutor:
             {"type": "decision", "_relevance_score": 0.4},
         ]
 
-        patterns = vault_search_executor._analyze_search_patterns(
-            documents, skill_context=["vault-integration"]
-        )
+        patterns = vault_search_executor._analyze_search_patterns(documents, skill_context=["vault-integration"])
 
         assert patterns["effective_skills"] == ["vault-integration"]
         assert patterns["result_distribution"]["by_type"]["decision"] == 2

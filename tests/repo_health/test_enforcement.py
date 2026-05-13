@@ -56,7 +56,7 @@ class TestHighPriorityStyle:
 
     @pytest.mark.fast
     def test_core_modules_line_length(self):
-        """E501: Core modules must respect 100 character limit."""
+        """E501: Core modules must respect 120 character limit."""
         core_path = PROJECT_ROOT / "src" / "cohezion"
         result = subprocess.run(
             ["ruff", "check", "--select", "E501", str(core_path)],
@@ -113,6 +113,8 @@ class TestSubmoduleHealth:
     def test_submodule_clean(self):
         """anthropic-delivery submodule should be clean."""
         submodule_path = PROJECT_ROOT / "anthropic-delivery"
+        if not submodule_path.exists():
+            pytest.skip("anthropic-delivery submodule not present in this checkout")
         result = subprocess.run(
             ["git", "status", "--porcelain"],
             cwd=submodule_path,

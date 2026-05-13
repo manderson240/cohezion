@@ -31,9 +31,7 @@ def _small_dataset(n: int = 50, state_dim: int = 12, seed: int = 42) -> list:
     ]
 
 
-def _make_batch(
-    n: int = 16, state_dim: int = 12, seed: int = 0
-) -> tuple[torch.Tensor, torch.Tensor, torch.Tensor]:
+def _make_batch(n: int = 16, state_dim: int = 12, seed: int = 0) -> tuple[torch.Tensor, torch.Tensor, torch.Tensor]:
     rng = np.random.default_rng(seed)
     states = rng.normal(0.5, 0.1, (n, state_dim)).astype(np.float32)
     actions = rng.normal(0, 0.05, (n, state_dim)).astype(np.float32)
@@ -91,9 +89,7 @@ def test_dual_loss_components() -> None:
     metrics = model.train_step(states, actions, next_states)
 
     expected = (
-        metrics["prediction_loss"]
-        + model.sigreg_weight * metrics["sigreg_loss"]
-        + lam * metrics["regularizer_loss"]
+        metrics["prediction_loss"] + model.sigreg_weight * metrics["sigreg_loss"] + lam * metrics["regularizer_loss"]
     )
     assert metrics["total_loss"] == pytest.approx(expected, abs=1e-4)
 
@@ -119,9 +115,7 @@ def test_regularizer_prevents_collapse() -> None:
         z, _, _ = model.encoder(states_t)
 
     embedding_std = z.std(dim=0).mean().item()
-    assert embedding_std > 0.01, (
-        f"Embeddings collapsed: mean per-dim std = {embedding_std:.4f} (threshold 0.01)"
-    )
+    assert embedding_std > 0.01, f"Embeddings collapsed: mean per-dim std = {embedding_std:.4f} (threshold 0.01)"
 
 
 @pytest.mark.unit
@@ -154,8 +148,7 @@ def test_regularizer_reduces_embedding_variance() -> None:
     dist_without = _dist_from_standard_normal(lam=0.0)
 
     assert dist_with < dist_without, (
-        f"Regularizer did not improve Gaussian alignment: "
-        f"with={dist_with:.4f}, without={dist_without:.4f}"
+        f"Regularizer did not improve Gaussian alignment: with={dist_with:.4f}, without={dist_without:.4f}"
     )
 
 

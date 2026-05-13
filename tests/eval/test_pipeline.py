@@ -166,9 +166,7 @@ class TestEvalPipeline:
         return spec
 
     @pytest.mark.fast
-    def test_run_single_episode_success(
-        self, mock_isolation_manager, temp_progress_path, mock_task_spec
-    ):
+    def test_run_single_episode_success(self, mock_isolation_manager, temp_progress_path, mock_task_spec):
         """Test successful episode execution."""
         pipeline = EvalPipeline(
             isolation_manager=mock_isolation_manager,

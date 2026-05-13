@@ -187,9 +187,7 @@ class LemonadeModelEnhancer:
     def _discover_flm_enhanced(self) -> list[dict[str, Any]]:
         """Enhanced FLM discovery with auto-improvement."""
         try:
-            result = subprocess.run(
-                ["flm", "list"], capture_output=True, text=True, timeout=10, check=False
-            )
+            result = subprocess.run(["flm", "list"], capture_output=True, text=True, timeout=10, check=False)
 
             if result.returncode != 0:
                 return []
@@ -286,9 +284,7 @@ class LemonadeModelEnhancer:
 
         try:
             # Check for lemonade serve processes
-            result = subprocess.run(
-                ["pgrep", "-a", "lemonade"], capture_output=True, text=True, check=False
-            )
+            result = subprocess.run(["pgrep", "-a", "lemonade"], capture_output=True, text=True, check=False)
 
             # Parse process info to extract model names
             for line in result.stdout.split("\n"):
@@ -540,9 +536,7 @@ class LemonadeModelEnhancer:
             print(f"  {backend:15}: {count:3} models")
 
         print("\nBy Family:")
-        for family, count in sorted(
-            stats.get("by_family", {}).items(), key=lambda x: x[1], reverse=True
-        )[:8]:
+        for family, count in sorted(stats.get("by_family", {}).items(), key=lambda x: x[1], reverse=True)[:8]:
             print(f"  {family:15}: {count:3} models")
 
         print("\nBy Source:")

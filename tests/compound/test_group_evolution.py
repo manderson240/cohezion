@@ -104,9 +104,7 @@ class TestTaskSuccessVector:
             task_ids=["t1", "t2", "t3"],
             results=[True, True, False],
         )
-        assert vec_a.cosine_distance(vec_b) == pytest.approx(
-            vec_b.cosine_distance(vec_a), abs=1e-10
-        )
+        assert vec_a.cosine_distance(vec_b) == pytest.approx(vec_b.cosine_distance(vec_a), abs=1e-10)
 
     def test_cosine_distance_range(self):
         """Cosine distance is in [0, 1] for non-negative vectors."""
@@ -259,9 +257,7 @@ class TestPerformanceNoveltySelector:
 
     def test_performance_only_strategy(self, candidates):
         """Performance-only selects highest performers."""
-        selector = PerformanceNoveltySelector(
-            group_size=2, strategy=SelectionStrategy.PERFORMANCE_ONLY
-        )
+        selector = PerformanceNoveltySelector(group_size=2, strategy=SelectionStrategy.PERFORMANCE_ONLY)
         parents = selector.select_parent_group(candidates)
         assert parents[0].agent_id == "high-perf"
 
@@ -273,9 +269,7 @@ class TestPerformanceNoveltySelector:
 
     def test_hiho_balanced_strategy(self, candidates):
         """HIHO balanced weights by HIHO score * performance."""
-        selector = PerformanceNoveltySelector(
-            group_size=2, strategy=SelectionStrategy.HIHO_BALANCED
-        )
+        selector = PerformanceNoveltySelector(group_size=2, strategy=SelectionStrategy.HIHO_BALANCED)
         parents = selector.select_parent_group(candidates)
         assert len(parents) == 2
 
@@ -663,9 +657,7 @@ class TestEndToEndEvolution:
         for i, parent in enumerate(parents):
             offspring_id = f"offspring-{i}"
             # Offspring might solve different tasks than parent
-            offspring_results = [
-                not r if j % 4 == 0 else r for j, r in enumerate(agents[i]["execution_results"])
-            ]
+            offspring_results = [not r if j % 4 == 0 else r for j, r in enumerate(agents[i]["execution_results"])]
             vec = TaskSuccessVector.from_execution_history(
                 agent_id=offspring_id,
                 task_ids=task_ids,

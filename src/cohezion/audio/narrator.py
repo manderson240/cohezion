@@ -152,9 +152,7 @@ class CosmoNarrator:
 
             if self.cloning_reference and self.cloning_reference.exists():
                 logger.info("Initializing voice cloning from: %s", self.cloning_reference)
-                self._voice_state = self._model.get_state_for_audio_prompt(
-                    str(self.cloning_reference)
-                )
+                self._voice_state = self._model.get_state_for_audio_prompt(str(self.cloning_reference))
 
         return self._model
 

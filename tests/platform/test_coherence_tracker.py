@@ -125,22 +125,16 @@ class TestCoherenceTracker:
     @pytest.mark.asyncio
     async def test_get_security_posture_no_vulns(self, coherence_tracker, mock_surreal_client):
         """Test security posture with no vulnerabilities."""
-        mock_surreal_client.query.return_value = [
-            {"vulnerabilities_critical": 0, "vulnerabilities_high": 0}
-        ]
+        mock_surreal_client.query.return_value = [{"vulnerabilities_critical": 0, "vulnerabilities_high": 0}]
 
         posture = await coherence_tracker._get_security_posture()
 
         assert posture == 1.0
 
     @pytest.mark.asyncio
-    async def test_get_security_posture_critical_vulns(
-        self, coherence_tracker, mock_surreal_client
-    ):
+    async def test_get_security_posture_critical_vulns(self, coherence_tracker, mock_surreal_client):
         """Test security posture with critical vulnerabilities."""
-        mock_surreal_client.query.return_value = [
-            {"vulnerabilities_critical": 1, "vulnerabilities_high": 0}
-        ]
+        mock_surreal_client.query.return_value = [{"vulnerabilities_critical": 1, "vulnerabilities_high": 0}]
 
         posture = await coherence_tracker._get_security_posture()
 
@@ -149,18 +143,14 @@ class TestCoherenceTracker:
     @pytest.mark.asyncio
     async def test_get_security_posture_high_vulns(self, coherence_tracker, mock_surreal_client):
         """Test security posture with high vulnerabilities."""
-        mock_surreal_client.query.return_value = [
-            {"vulnerabilities_critical": 0, "vulnerabilities_high": 2}
-        ]
+        mock_surreal_client.query.return_value = [{"vulnerabilities_critical": 0, "vulnerabilities_high": 2}]
 
         posture = await coherence_tracker._get_security_posture()
 
         assert posture == 0.3  # 0.5 - (2 * 0.1)
 
     @pytest.mark.asyncio
-    async def test_get_performance_alignment_excellent(
-        self, coherence_tracker, mock_surreal_client
-    ):
+    async def test_get_performance_alignment_excellent(self, coherence_tracker, mock_surreal_client):
         """Test performance alignment with excellent latency."""
         mock_surreal_client.query.return_value = [{"compound_executor_latency_ms": 300}]
 
@@ -169,9 +159,7 @@ class TestCoherenceTracker:
         assert performance == 1.0
 
     @pytest.mark.asyncio
-    async def test_get_performance_alignment_acceptable(
-        self, coherence_tracker, mock_surreal_client
-    ):
+    async def test_get_performance_alignment_acceptable(self, coherence_tracker, mock_surreal_client):
         """Test performance alignment with acceptable latency."""
         mock_surreal_client.query.return_value = [{"compound_executor_latency_ms": 750}]
 
@@ -215,9 +203,7 @@ class TestCoherenceTracker:
             assert 0.88 <= external <= 0.90
 
     @pytest.mark.asyncio
-    async def test_measure_system_coherence_hiho_stable(
-        self, coherence_tracker, mock_surreal_client
-    ):
+    async def test_measure_system_coherence_hiho_stable(self, coherence_tracker, mock_surreal_client):
         """Test system coherence measurement in HIHO stable range."""
         with (
             patch.object(coherence_tracker, "_measure_internal_state", return_value=0.5),
@@ -233,9 +219,7 @@ class TestCoherenceTracker:
             assert metrics.stability_score == 1.0
 
     @pytest.mark.asyncio
-    async def test_measure_system_coherence_unstable_high(
-        self, coherence_tracker, mock_surreal_client
-    ):
+    async def test_measure_system_coherence_unstable_high(self, coherence_tracker, mock_surreal_client):
         """Test system coherence measurement with high coherence (unstable)."""
         with (
             patch.object(coherence_tracker, "_measure_internal_state", return_value=0.9),
@@ -249,9 +233,7 @@ class TestCoherenceTracker:
             assert metrics.stability_score == pytest.approx(0.2)  # 1.0 - (0.4 * 2)
 
     @pytest.mark.asyncio
-    async def test_measure_system_coherence_unstable_low(
-        self, coherence_tracker, mock_surreal_client
-    ):
+    async def test_measure_system_coherence_unstable_low(self, coherence_tracker, mock_surreal_client):
         """Test system coherence measurement with low coherence (unstable)."""
         with (
             patch.object(coherence_tracker, "_measure_internal_state", return_value=0.1),

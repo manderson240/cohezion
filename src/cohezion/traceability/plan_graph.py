@@ -17,9 +17,7 @@ import httpx
 
 logger = logging.getLogger(__name__)
 
-_SCHEMA_PATH = (
-    Path(__file__).resolve().parent.parent / "knowledge_graph" / "plan_traceability_schema.surql"
-)
+_SCHEMA_PATH = Path(__file__).resolve().parent.parent / "knowledge_graph" / "plan_traceability_schema.surql"
 
 # SurrealDB connection defaults
 _DEFAULT_URLS = [
@@ -153,10 +151,7 @@ class PlanGraph:
             safe_step = step.replace(".", "_")
             task_id = f"{slug}__{safe_step}"
             await self._sql(
-                f"CREATE task:{task_id} SET "
-                "title = $title, "
-                "status = 'pending', "
-                "step_number = $step;",
+                f"CREATE task:{task_id} SET title = $title, status = 'pending', step_number = $step;",
                 {"title": title, "step": step},
             )
             # Edge: plan -> task
@@ -180,9 +175,7 @@ class PlanGraph:
     async def complete_task(self, plan_slug: str, step_number: str) -> None:
         """Mark a task as completed and bump the plan's tasks_completed counter."""
         task_id = f"{plan_slug}__{step_number}"
-        await self._sql(
-            f"UPDATE task:{task_id} SET status = 'completed', completed_at = time::now();"
-        )
+        await self._sql(f"UPDATE task:{task_id} SET status = 'completed', completed_at = time::now();")
         await self._sql(f"UPDATE plan:{plan_slug} SET tasks_completed += 1;")
 
     async def record_file_touch(self, plan_slug: str, step_number: str, file_path: str) -> None:
@@ -234,9 +227,7 @@ class PlanGraph:
 
     async def files_for_plan(self, slug: str) -> list[str]:
         """Return all file paths linked to a plan's tasks."""
-        result = await self._sql(
-            f"SELECT ->plan_has_task->task->task_modifies->file.path AS paths FROM plan:{slug};"
-        )
+        result = await self._sql(f"SELECT ->plan_has_task->task->task_modifies->file.path AS paths FROM plan:{slug};")
         row = _first_result(result)
         if not row:
             return []
@@ -253,8 +244,7 @@ class PlanGraph:
     async def plans_for_file(self, path: str) -> list[str]:
         """Return plan slugs that touched a given file path."""
         result = await self._sql(
-            "SELECT <-task_modifies<-task<-plan_has_task<-plan.slug AS slugs "
-            "FROM file WHERE path = $path;",
+            "SELECT <-task_modifies<-task<-plan_has_task<-plan.slug AS slugs FROM file WHERE path = $path;",
             {"path": path},
         )
         row = _first_result(result)

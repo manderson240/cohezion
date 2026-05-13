@@ -26,11 +26,7 @@ from cohezion.compound.skill_selector import SkillScore
 _SKILL = "FULL_CYCLE_TEST"
 _OP = "generate"
 
-_PRIME_CONTENT = (
-    "# FULL_CYCLE_TEST PRIME Skill\n\n"
-    "## Version: 1.0.0\n\n"
-    "## Keywords: test, integration, compound\n"
-)
+_PRIME_CONTENT = "# FULL_CYCLE_TEST PRIME Skill\n\n## Version: 1.0.0\n\n## Keywords: test, integration, compound\n"
 
 
 # ── Fixtures ─────────────────────────────────────────────────────────────────
@@ -94,9 +90,7 @@ def _cycle_metrics_from_result(result, anomalies: list[str] | None = None) -> Cy
 class TestCompoundFullCycle:
     """Integration test for the complete compound engineering cycle."""
 
-    def test_full_cycle_success_executes_all_stages(
-        self, tmp_path: Path, mock_mcp_client: MagicMock, prime_file: Path
-    ):
+    def test_full_cycle_success_executes_all_stages(self, tmp_path: Path, mock_mcp_client: MagicMock, prime_file: Path):
         """Execute → Reflect → Refine → Vote: all 4 stages run end-to-end on success."""
         # ── Phase 1: Setup ────────────────────────────────────────────────────
         # Mock inflection detector so anomaly_score is deterministic (not vault-dependent).

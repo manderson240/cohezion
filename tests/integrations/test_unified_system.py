@@ -42,9 +42,7 @@ class TestCharterCompliance:
     async def test_idempotent_wiki_operations(self, wiki):
         """Wiki operations produce same results on replay."""
         # First call
-        page1 = await wiki.create_wiki_page(
-            path="test/idem.md", content="# Test\nContent", category="test"
-        )
+        page1 = await wiki.create_wiki_page(path="test/idem.md", content="# Test\nContent", category="test")
 
         # Re-read
         page2 = wiki._parse_page(page1.path)
@@ -83,9 +81,7 @@ class TestWikiIntegration:
         assert "raw" in str(raw_path)
 
         # Layer 2: Wiki
-        page = await wiki.create_wiki_page(
-            path="concepts/test.md", content="# Test Concept", category="concept"
-        )
+        page = await wiki.create_wiki_page(path="concepts/test.md", content="# Test Concept", category="concept")
         assert page.path.exists()
 
         # Layer 3: Index
@@ -99,9 +95,7 @@ class TestWikiIntegration:
         mcp = WikiMCP(wiki=wiki)
 
         # Ingest
-        result = await mcp.wiki_ingest(
-            source="# Article\nTest content about AI.", source_type="article"
-        )
+        result = await mcp.wiki_ingest(source="# Article\nTest content about AI.", source_type="article")
         assert result["raw_path"] is not None
 
         # Query
@@ -123,9 +117,7 @@ class TestFLUMEIntegration:
         bridge = FlumeWikiBridge(vault_path=temp_vault)
 
         # Create test page
-        await bridge.wiki.create_wiki_page(
-            path="test.md", content="Test content for embedding", category="test"
-        )
+        await bridge.wiki.create_wiki_page(path="test.md", content="Test content for embedding", category="test")
 
         # Generate embedding
         embedding = await bridge.embed_wiki_page("test.md")
@@ -186,9 +178,7 @@ class TestEndToEnd:
         mcp = WikiMCP(wiki=wiki)
 
         # 1. Ingest source
-        await mcp.wiki_ingest(
-            source="# Research\nImportant findings about AI safety.", source_type="article"
-        )
+        await mcp.wiki_ingest(source="# Research\nImportant findings about AI safety.", source_type="article")
 
         # 2. Simulate failure
         exhaust = ExecutionExhaust(

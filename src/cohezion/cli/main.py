@@ -67,8 +67,7 @@ def quickstart():
 
     console.print(
         Panel(
-            "[bold]Welcome to Cohezion![/bold]\n\n"
-            "A self-evolving agentic sandbox for Anti-Fragile Agentic Reasoning.",
+            "[bold]Welcome to Cohezion![/bold]\n\nA self-evolving agentic sandbox for Anti-Fragile Agentic Reasoning.",
             title="Quick Start",
             border_style="cyan",
         )
@@ -119,8 +118,7 @@ def hello(
     if colorful:
         console.print(
             Panel.fit(
-                f"[bold green]Hello, {name}![/bold green]\n\n"
-                f"[dim]Cohezion CLI is running successfully![/dim]",
+                f"[bold green]Hello, {name}![/bold green]\n\n[dim]Cohezion CLI is running successfully![/dim]",
                 title="✓ Cohezion Status",
                 border_style="green",
             )
@@ -171,12 +169,8 @@ async def get_swarm_service():
     repo_skill = SurrealSkillRepository(client._client)
 
     agent_service = AgentService(repo_journey, repo_universe)
-    await agent_service.register_agent(
-        AgentConfig(name="analyst", agent_type="analyst", model_name="gemma3:4b")
-    )
-    await agent_service.register_agent(
-        AgentConfig(name="critic", agent_type="critic", model_name="phi3:mini")
-    )
+    await agent_service.register_agent(AgentConfig(name="analyst", agent_type="analyst", model_name="gemma3:4b"))
+    await agent_service.register_agent(AgentConfig(name="critic", agent_type="critic", model_name="phi3:mini"))
     await agent_service.register_agent(
         AgentConfig(name="synthesizer", agent_type="synthesizer", model_name="mistral:7b")
     )
@@ -297,10 +291,7 @@ def swarm_simulate(
     """
     console.print(
         Panel(
-            f"[bold]Mass Simulation[/bold]\n\n"
-            f"Iterations: {iterations}\n"
-            f"Agents: {agents}\n"
-            f"Parallel: {parallel}",
+            f"[bold]Mass Simulation[/bold]\n\nIterations: {iterations}\nAgents: {agents}\nParallel: {parallel}",
             title="⚡ Simulation Parameters",
             border_style="cyan",
         )
@@ -323,12 +314,8 @@ def swarm_simulate(
 def swarm_review(
     target_dir: str = typer.Option("src/cohezion", "--target", "-t", help="Directory to review"),
     batch_size: int = typer.Option(5, "--batch-size", "-b", help="Files per static batch"),
-    complexity: int = typer.Option(
-        15, "--complexity", "-c", help="AST complexity threshold for LLM scans"
-    ),
-    output: str = typer.Option(
-        "code_review_report.md", "--output", "-o", help="Markdown report output path"
-    ),
+    complexity: int = typer.Option(15, "--complexity", "-c", help="AST complexity threshold for LLM scans"),
+    output: str = typer.Option("code_review_report.md", "--output", "-o", help="Markdown report output path"),
 ):
     """Run full codebase review using specialist swarm agents.
 
@@ -433,10 +420,7 @@ def dashboard_start(
     """
     console.print(
         Panel(
-            f"[bold]Interactive Dashboard[/bold]\n\n"
-            f"Host: [cyan]{host}[/cyan]\n"
-            f"Port: {port}\n"
-            f"Reload: {reload}",
+            f"[bold]Interactive Dashboard[/bold]\n\nHost: [cyan]{host}[/cyan]\nPort: {port}\nReload: {reload}",
             title="📊 Dashboard Configuration",
             border_style="magenta",
         )
@@ -836,8 +820,7 @@ def ouroboros_status(
     """
     console.print(
         Panel(
-            "[bold green]✓ System Healthy[/bold green]\n\n"
-            "[dim]All systems operational. No healing required.[/dim]",
+            "[bold green]✓ System Healthy[/bold green]\n\n[dim]All systems operational. No healing required.[/dim]",
             title="🐍 Ouroboros Status",
             border_style="green",
         )
@@ -870,8 +853,7 @@ def ouroboros_heal(
     if dry_run:
         console.print(
             Panel(
-                "[yellow]Dry Run: Healing cycle simulated[/yellow]\n\n"
-                "[dim]No changes made to system.[/dim]",
+                "[yellow]Dry Run: Healing cycle simulated[/yellow]\n\n[dim]No changes made to system.[/dim]",
                 title="🐍 Ouroboros Heal",
                 border_style="yellow",
             )

@@ -133,9 +133,7 @@ class CycleRetrospectionEngine:
         insights = self._extract_insights(metrics, coherence_delta)
 
         # Check for strategy pivot recommendation
-        pivot = self._strategy_tracker.record_outcome(
-            metrics.skill_name, metrics.success, coherence_delta
-        )
+        pivot = self._strategy_tracker.record_outcome(metrics.skill_name, metrics.success, coherence_delta)
         if pivot:
             insights.append(pivot)
             logger.warning("Strategy pivot recommended for %s", metrics.skill_name)
@@ -168,9 +166,7 @@ class CycleRetrospectionEngine:
         ]
 
         if metrics.anomalies:
-            parts.append(
-                f"I detected {len(metrics.anomalies)} anomalies that warrant further investigation."
-            )
+            parts.append(f"I detected {len(metrics.anomalies)} anomalies that warrant further investigation.")
 
         return " ".join(parts)
 

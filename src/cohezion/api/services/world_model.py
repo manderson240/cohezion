@@ -170,9 +170,5 @@ async def compute_surprise(req: SurpriseRequest) -> dict:
     score = model.surprise_score(state, action, observed)
     return {
         "surprise_score": score,
-        "interpretation": "expected"
-        if score < 0.1
-        else "surprising"
-        if score < 1.0
-        else "anomalous",
+        "interpretation": "expected" if score < 0.1 else "surprising" if score < 1.0 else "anomalous",
     }

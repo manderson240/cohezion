@@ -620,9 +620,7 @@ class TestJudgmentEvaluator:
 
         assert isinstance(assessment, JudgmentAssessment)
         assert assessment.alignment_score > 0.7
-        assert (
-            "improved" in assessment.reasoning.lower() or "toward" in assessment.reasoning.lower()
-        )
+        assert "improved" in assessment.reasoning.lower() or "toward" in assessment.reasoning.lower()
 
     def test_evaluate_decision_away_from_hiho(self, evaluator):
         """[P0] Should recognize movement away from HIHO."""
@@ -1052,9 +1050,7 @@ class TestLLMTrainingIntegration:
 
         # Save to dataset
         dataset = ExperienceDataset(output_dir=str(tmp_path / "training"))
-        dataset.export_preference_data(
-            [good_trajectory, bad_trajectory], filename="dpo_pairs.jsonl"
-        )
+        dataset.export_preference_data([good_trajectory, bad_trajectory], filename="dpo_pairs.jsonl")
         dataset.export_reward_data([good_trajectory, bad_trajectory], filename="trajectories.jsonl")
 
         # Verify files created

@@ -71,9 +71,7 @@ class TestToolFlux:
         mock_cap.find = MagicMock(
             return_value=[
                 MagicMock(name="web_search", description="Search the web", score=0.9, type="mcp"),
-                MagicMock(
-                    name="arxiv_search", description="Search arxiv papers", score=0.8, type="skill"
-                ),
+                MagicMock(name="arxiv_search", description="Search arxiv papers", score=0.8, type="skill"),
             ]
         )
         provider = ToolFlux(capability_registry=mock_cap)

@@ -35,9 +35,7 @@ class StitchSkillComposer:
         self.registry[skill.skill_id] = skill
         logger.info(f"Stitch-Skill registered: {skill.name} [{skill.regime}]")
 
-    def compose_thread(
-        self, objective: str, available_regimes: list[str]
-    ) -> list[StitchSkillDefinition]:
+    def compose_thread(self, objective: str, available_regimes: list[str]) -> list[StitchSkillDefinition]:
         """
         Dynamically composes a skill thread based on the objective.
         In the Symphony context, this maps the objective to the 4-regime sequence.

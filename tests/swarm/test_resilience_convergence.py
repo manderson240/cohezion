@@ -51,17 +51,9 @@ class SimulatedGemma4Provider(Gemma4Provider):
                 else "Calculation: Manifold equilibrium found."
             )
         elif regime == "SYNTHESIS":
-            text = (
-                "Strategy: Massive dredging."
-                if not is_refinement
-                else "Strategy: Precision bioswale restoration."
-            )
+            text = "Strategy: Massive dredging." if not is_refinement else "Strategy: Precision bioswale restoration."
         elif regime == "STEERING":
-            text = (
-                "Action: Start dredging."
-                if not is_refinement
-                else "Action: Plant native mangroves."
-            )
+            text = "Action: Start dredging." if not is_refinement else "Action: Plant native mangroves."
         else:
             text = "Generic response."
 
@@ -76,6 +68,10 @@ class SimulatedGemma4Provider(Gemma4Provider):
         )
 
 
+import pytest
+
+
+@pytest.mark.asyncio
 async def test_resilience_convergence():
     logger.info("=== Starting EcoResilience Convergence Test ===")
 
@@ -96,9 +92,19 @@ async def test_resilience_convergence():
         np.random.randn(256) * 0.1,
     ]
 
+    from cohezion.flume.spectral_encoder import SpectralEncoder
+    from unittest.mock import MagicMock as MM
+
+    mock_spectral = MM(spec=SpectralEncoder)
+    mock_spectral.encode_spectral_state.return_value = np.zeros(256, dtype=np.float32)
+    mock_spectral.integrate_with_text.side_effect = lambda t, s: t
+
     translator = ManifoldTranslator(encoder=encoder)
     agent = EcoResilienceAgent(
-        provider=provider, translator=translator, model_name="gemma4:26b-moe"
+        provider=provider,
+        translator=translator,
+        model_name="gemma4:26b-moe",
+        spectral_encoder=mock_spectral,
     )
     guard = HIHOStabilityGuard(threshold=0.5)
     executor = MagicMock(spec=CompoundExecutor)

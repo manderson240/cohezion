@@ -68,9 +68,7 @@ class PatternEffectiveness:
         # Weighted combination of acceptance rate and confidence
         acceptance_weight = 0.7
         confidence_weight = 0.3
-        return (self.acceptance_rate * acceptance_weight) + (
-            self.avg_confidence * confidence_weight
-        )
+        return (self.acceptance_rate * acceptance_weight) + (self.avg_confidence * confidence_weight)
 
 
 class SurrealProactiveRepository(BaseRepository[SuggestionAcceptance, dict[str, Any]]):
@@ -291,9 +289,7 @@ class SurrealProactiveRepository(BaseRepository[SuggestionAcceptance, dict[str, 
             self._metrics.append(metrics)
             raise
 
-    async def get_suggestion_history(
-        self, suggestion_id: str, limit: int = 100
-    ) -> list[SuggestionAcceptance]:
+    async def get_suggestion_history(self, suggestion_id: str, limit: int = 100) -> list[SuggestionAcceptance]:
         """Get acceptance history for a specific suggestion.
 
         Args:
@@ -312,9 +308,7 @@ class SurrealProactiveRepository(BaseRepository[SuggestionAcceptance, dict[str, 
             LIMIT $limit
             """
 
-            result = await self._client.query(
-                query, {"suggestion_id": suggestion_id, "limit": limit}
-            )
+            result = await self._client.query(query, {"suggestion_id": suggestion_id, "limit": limit})
 
             history = []
             if result:

@@ -148,9 +148,7 @@ class LoRAModel(nn.Module):
                     child_name = name.split(".")[-1]
                     parent = self._get_submodule(parent_name) if parent_name else self.base
 
-                    lora_layer = LoRALinearWrapper(
-                        module, self.config.r, self.config.alpha, self.config.dropout
-                    )
+                    lora_layer = LoRALinearWrapper(module, self.config.r, self.config.alpha, self.config.dropout)
                     setattr(parent, child_name, lora_layer)
 
     def _get_submodule(self, path: str) -> nn.Module:
@@ -198,9 +196,7 @@ class LoRALinearWrapper(nn.Linear):
         dropout: float = 0.0,
     ):
         # Initialize with same dimensions as base layer
-        super().__init__(
-            base_layer.in_features, base_layer.out_features, bias=base_layer.bias is not None
-        )
+        super().__init__(base_layer.in_features, base_layer.out_features, bias=base_layer.bias is not None)
 
         # Copy base weights (frozen)
         self.weight.data = base_layer.weight.data.clone()

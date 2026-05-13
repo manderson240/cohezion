@@ -56,16 +56,8 @@ def compute_cosmogony(temperature: float) -> dict:
 
     a, b = 1.0, 0.5
     critical_temp = CRITICAL_TEMPS[max(0, stage_idx - 1)] if stage_idx > 0 else 100.0
-    order_param = (
-        math.sqrt(a * (critical_temp - temperature) / (2 * b))
-        if temperature < critical_temp
-        else 0.0
-    )
-    landau_fe = (
-        a * (temperature - critical_temp) * order_param**2 + b * order_param**4
-        if order_param > 0
-        else 0.0
-    )
+    order_param = math.sqrt(a * (critical_temp - temperature) / (2 * b)) if temperature < critical_temp else 0.0
+    landau_fe = a * (temperature - critical_temp) * order_param**2 + b * order_param**4 if order_param > 0 else 0.0
 
     closest_tc = min(CRITICAL_TEMPS, key=lambda tc: abs(tc - temperature))
     fisher_eig = 1 / (abs(temperature - closest_tc) + 0.01) if closest_tc > 0 else 0.0
@@ -146,9 +138,7 @@ async def cosmogony_stream() -> AsyncIterator[str]:
         import json as _json
 
         error_event = AGUIEvent(type=AGUIEventType.RUN_ERROR)
-        error_data = _json.dumps(
-            {"type": "RUN_ERROR", "message": str(exc), "timestamp": error_event.timestamp}
-        )
+        error_data = _json.dumps({"type": "RUN_ERROR", "message": str(exc), "timestamp": error_event.timestamp})
         yield f"data: {error_data}\n\n"
         return
 
@@ -207,12 +197,7 @@ async def get_a2ui_catalog():
     from pathlib import Path
 
     catalog_path = (
-        Path(__file__).parent.parent.parent.parent
-        / "web"
-        / "anima_dashboard"
-        / "src"
-        / "a2ui"
-        / "catalog.json"
+        Path(__file__).parent.parent.parent.parent / "web" / "anima_dashboard" / "src" / "a2ui" / "catalog.json"
     )
     if catalog_path.exists():
         return json.loads(catalog_path.read_text())

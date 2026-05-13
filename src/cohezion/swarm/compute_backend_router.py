@@ -192,8 +192,7 @@ class ComputeBackendRouter:
             "Workaround: Use NPU or Vulkan backend."
         ),
         BackendType.GPU_VULKAN: (
-            "Requires vulkan-sdk package. Reported working by community "
-            "but not formally validated on this system."
+            "Requires vulkan-sdk package. Reported working by community but not formally validated on this system."
         ),
     }
 
@@ -397,10 +396,7 @@ class ComputeBackendRouter:
 
             # Check throughput constraint
             if constraints.min_throughput_tps > cap.typical_tps:
-                logger.debug(
-                    f"{backend.name}: TPS {cap.typical_tps} < "
-                    f"required {constraints.min_throughput_tps}"
-                )
+                logger.debug(f"{backend.name}: TPS {cap.typical_tps} < required {constraints.min_throughput_tps}")
                 continue
 
             # Check availability
@@ -414,9 +410,7 @@ class ComputeBackendRouter:
                 if cap.status == BackendStatus.DEGRADED:
                     health_warning = self.KNOWN_ISSUES.get(backend)
                 if backend == BackendType.GPU_VULKAN:
-                    health_warning = (
-                        "Vulkan backend experimental. May require vulkan-sdk installation."
-                    )
+                    health_warning = "Vulkan backend experimental. May require vulkan-sdk installation."
             else:
                 # Add to fallback chain
                 if cap.status != BackendStatus.UNAVAILABLE:
@@ -495,9 +489,7 @@ class ComputeBackendRouter:
                 return {
                     "result": result,
                     "backend_used": current_backend.name,
-                    "fallbacks_used": [
-                        b.name for b in execution_order[: execution_order.index(current_backend)]
-                    ],
+                    "fallbacks_used": [b.name for b in execution_order[: execution_order.index(current_backend)]],
                     "timestamp": time.time(),
                 }
             except Exception as e:

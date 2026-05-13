@@ -17,9 +17,7 @@ class TestConciergeRouting:
 
     def test_continue_routes_to_continuation(self):
         agent = ConciergeAgent()
-        briefing = SessionBriefing(
-            continuation_task="Fix genesis bugs", continuation_path="/tmp/cont.md"
-        )
+        briefing = SessionBriefing(continuation_task="Fix genesis bugs", continuation_path="/tmp/cont.md")
         suggestion = agent.route_prompt("continue", briefing)
         assert suggestion.action == "resume_continuation"
         assert suggestion.confidence >= 0.8

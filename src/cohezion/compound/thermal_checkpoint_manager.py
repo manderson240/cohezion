@@ -260,9 +260,7 @@ class ThermalCheckpointManager:
 
             execution_stats["completed"] = True
             execution_stats["completed_at"] = time.time()
-            execution_stats["duration_hours"] = (
-                execution_stats["completed_at"] - execution_stats["started_at"]
-            ) / 3600
+            execution_stats["duration_hours"] = (execution_stats["completed_at"] - execution_stats["started_at"]) / 3600
             execution_stats["effective_duration_hours"] = execution_stats["duration_hours"] - (
                 execution_stats["total_paused_minutes"] / 60
             )
@@ -360,9 +358,7 @@ class ThermalCheckpointManager:
 
             # Log progress every minute
             if int(elapsed) % 60 == 0:
-                logger.info(
-                    f"Cooling... GPU={gpu_temp}°C, CPU={cpu_temp}°C, paused for {elapsed / 60:.1f} min"
-                )
+                logger.info(f"Cooling... GPU={gpu_temp}°C, CPU={cpu_temp}°C, paused for {elapsed / 60:.1f} min")
 
         duration = time.time() - start_pause
         self.state = ThermalState.NORMAL
@@ -470,7 +466,8 @@ class ThermalCheckpointManager:
             )
 
             logger.info(
-                f"Loaded checkpoint: {checkpoint.phase}, {checkpoint.hypotheses_completed}/{checkpoint.total_hypotheses} completed"
+                f"Loaded checkpoint: {checkpoint.phase},"
+                f" {checkpoint.hypotheses_completed}/{checkpoint.total_hypotheses} completed"
             )
             return checkpoint
 
@@ -492,11 +489,7 @@ class ThermalCheckpointManager:
             "checkpoints_created": len(self.checkpoints),
             "next_scheduled_cooldown_min": max(
                 0,
-                (
-                    self.config.cooldown_interval_minutes * 60
-                    - (time.time() - self.last_cooldown_time)
-                )
-                / 60,
+                (self.config.cooldown_interval_minutes * 60 - (time.time() - self.last_cooldown_time)) / 60,
             ),
         }
 

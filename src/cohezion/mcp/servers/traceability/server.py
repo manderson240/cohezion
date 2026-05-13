@@ -231,19 +231,13 @@ def traceability_auto_commit(
         Dict with commit hash and status
     """
     # Stage changes
-    subprocess.run(
-        ["git", "add", "_bmad/_config/traceability/"], cwd=PROJECT_ROOT, capture_output=True
-    )
+    subprocess.run(["git", "add", "_bmad/_config/traceability/"], cwd=PROJECT_ROOT, capture_output=True)
 
     # Commit
-    result = subprocess.run(
-        ["git", "commit", "-m", message], capture_output=True, text=True, cwd=PROJECT_ROOT
-    )
+    result = subprocess.run(["git", "commit", "-m", message], capture_output=True, text=True, cwd=PROJECT_ROOT)
 
     # Get commit hash
-    hash_result = subprocess.run(
-        ["git", "rev-parse", "HEAD"], capture_output=True, text=True, cwd=PROJECT_ROOT
-    )
+    hash_result = subprocess.run(["git", "rev-parse", "HEAD"], capture_output=True, text=True, cwd=PROJECT_ROOT)
 
     return {
         "success": result.returncode == 0,

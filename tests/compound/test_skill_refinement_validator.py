@@ -82,9 +82,7 @@ class TestSkillRefinementValidator:
         assert approved is False
         assert "no baseline" in reason
 
-    def test_marginal_degradation_within_threshold_approved(
-        self, validator: SkillRefinementValidator
-    ) -> None:
+    def test_marginal_degradation_within_threshold_approved(self, validator: SkillRefinementValidator) -> None:
         # 3% drop is within the 5% threshold — should be approved
         validator.record_baseline("my_skill", _metrics(success_rate=0.90, avg_coherence=0.80))
         post = _metrics(success_rate=0.873, avg_coherence=0.771)

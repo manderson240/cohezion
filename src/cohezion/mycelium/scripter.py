@@ -13,9 +13,7 @@ class ShadowScripter(BaseAgent):
     Agent responsible for synthesizing regression tests for new code.
     """
 
-    def __init__(
-        self, model_name: str = "qwen3-coder", config: SwarmConfig | None = None, **kwargs
-    ):
+    def __init__(self, model_name: str = "qwen3-coder", config: SwarmConfig | None = None, **kwargs):
         super().__init__(model_name, config, **kwargs)
 
     async def synthesize_test_suite(self, file_path: str, code_context: str) -> str:

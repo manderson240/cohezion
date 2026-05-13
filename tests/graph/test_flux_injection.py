@@ -267,9 +267,7 @@ class TestTokenEfficiency:
                 attributes={"description": desc},
             )
             # Each node gets 3 targeted blocks (~50 chars each = ~37 tokens)
-            blocks = [
-                _make_block(f"Relevant {name} context block {i}", 0.9 - i * 0.1) for i in range(3)
-            ]
+            blocks = [_make_block(f"Relevant {name} context block {i}", 0.9 - i * 0.1) for i in range(3)]
             ctx = _make_flux_context(blocks, desc)
             total_scoped_tokens += ctx.total_tokens_estimated
 
@@ -331,17 +329,13 @@ class TestEffectivenessEvaluation:
                 _make_block("Research methodology: systematic literature review steps", 0.85),
             ],
             "analyse": [
-                _make_block(
-                    "Common failure modes: split-brain, cascading timeout, thundering herd", 0.95
-                ),
+                _make_block("Common failure modes: split-brain, cascading timeout, thundering herd", 0.95),
                 _make_block("Statistical pattern detection in distributed trace logs", 0.90),
                 _make_block("Root cause analysis framework for production incidents", 0.85),
             ],
             "synthesise": [
                 _make_block("Executive summary template for technical reports", 0.95),
-                _make_block(
-                    "Prioritisation matrix: impact vs likelihood for recommendations", 0.90
-                ),
+                _make_block("Prioritisation matrix: impact vs likelihood for recommendations", 0.90),
                 _make_block("Clear writing principles for actionable recommendations", 0.85),
             ],
             # Fallback for queries that don't match specific keywords
@@ -419,8 +413,7 @@ class TestEffectivenessEvaluation:
             wrong_content = cross_check[spec.id]
             contaminated = any(wrong_content in block for block in context)
             assert not contaminated, (
-                f"Node {spec.name} received cross-contaminated context: "
-                f"'{wrong_content}' found in {context}"
+                f"Node {spec.name} received cross-contaminated context: '{wrong_content}' found in {context}"
             )
 
     @pytest.mark.asyncio
@@ -469,9 +462,7 @@ class TestEffectivenessEvaluation:
             scoped_scores.extend(b.relevance_score for b in ctx.blocks)
 
         # Global: single query gets default (lower relevance) blocks
-        global_ctx = await role_specific_vault(
-            "distributed systems research analysis review", top_k=10
-        )
+        global_ctx = await role_specific_vault("distributed systems research analysis review", top_k=10)
         global_scores = [b.relevance_score for b in global_ctx.blocks]
 
         avg_scoped = sum(scoped_scores) / len(scoped_scores) if scoped_scores else 0

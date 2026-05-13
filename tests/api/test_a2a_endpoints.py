@@ -72,9 +72,7 @@ class TestA2AAuthentication:
         assert response.status_code == 403
         assert "Invalid" in response.json()["detail"]
 
-    def test_send_task_with_valid_token_succeeds(
-        self, client, mock_auth_token, mock_compound_executor
-    ):
+    def test_send_task_with_valid_token_succeeds(self, client, mock_auth_token, mock_compound_executor):
         """Test: POST /tasks/send with valid token returns 200"""
         response = client.post(
             "/tasks/send",
@@ -182,9 +180,7 @@ class TestA2ATaskLifecycle:
         assert data["state"] in ["submitted", "working", "completed"]
         assert len(data["messages"]) >= 1
 
-    def test_send_task_routes_to_compound_executor(
-        self, client, mock_auth_token, mock_compound_executor
-    ):
+    def test_send_task_routes_to_compound_executor(self, client, mock_auth_token, mock_compound_executor):
         """Test 5/11: Task is routed to CompoundExecutor."""
         client.post(
             "/tasks/send",
@@ -209,9 +205,7 @@ class TestA2ATaskLifecycle:
         # Create initial task
         response1 = client.post(
             "/tasks/send",
-            json={
-                "message": {"role": "user", "parts": [{"type": "text", "text": "What is FLUME?"}]}
-            },
+            json={"message": {"role": "user", "parts": [{"type": "text", "text": "What is FLUME?"}]}},
             headers={"X-Cohezion-Key": mock_auth_token},
         )
         task_id = response1.json()["id"]
@@ -261,16 +255,12 @@ class TestA2ATaskLifecycle:
 
     def test_get_task_nonexistent_returns_404(self, client, mock_auth_token):
         """Test 8/11: Getting nonexistent task returns 404."""
-        response = client.get(
-            "/tasks/nonexistent-task-id-12345", headers={"X-Cohezion-Key": mock_auth_token}
-        )
+        response = client.get("/tasks/nonexistent-task-id-12345", headers={"X-Cohezion-Key": mock_auth_token})
 
         assert response.status_code == 404
         assert "not found" in response.json()["detail"].lower()
 
-    def test_cancel_task_transitions_to_canceled(
-        self, client, mock_auth_token, mock_compound_executor
-    ):
+    def test_cancel_task_transitions_to_canceled(self, client, mock_auth_token, mock_compound_executor):
         """Test 9/11: POST /tasks/{id}/cancel returns correct structure."""
         # Note: Current A2A implementation executes tasks synchronously (awaits completion)
         # so tasks complete immediately. This test verifies cancel endpoint structure.
@@ -283,9 +273,7 @@ class TestA2ATaskLifecycle:
         task_id = create_response.json()["id"]
 
         # Try to cancel (task likely already completed)
-        cancel_response = client.post(
-            f"/tasks/{task_id}/cancel", headers={"X-Cohezion-Key": mock_auth_token}
-        )
+        cancel_response = client.post(f"/tasks/{task_id}/cancel", headers={"X-Cohezion-Key": mock_auth_token})
 
         assert cancel_response.status_code == 200
         data = cancel_response.json()
@@ -296,9 +284,7 @@ class TestA2ATaskLifecycle:
         # Task is already completed, so canceled=False is expected
         assert isinstance(data["canceled"], bool)
 
-    def test_cancel_completed_task_returns_false(
-        self, client, mock_auth_token, mock_compound_executor
-    ):
+    def test_cancel_completed_task_returns_false(self, client, mock_auth_token, mock_compound_executor):
         """Test 10/11: Canceling already completed task returns false."""
         # Create and complete task
         create_response = client.post(
@@ -310,9 +296,7 @@ class TestA2ATaskLifecycle:
 
         # Task should be completed by now (mock returns immediately)
         # Try to cancel
-        cancel_response = client.post(
-            f"/tasks/{task_id}/cancel", headers={"X-Cohezion-Key": mock_auth_token}
-        )
+        cancel_response = client.post(f"/tasks/{task_id}/cancel", headers={"X-Cohezion-Key": mock_auth_token})
 
         # Should return success=false or 409 conflict
         assert cancel_response.status_code in [200, 409]

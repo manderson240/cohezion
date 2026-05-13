@@ -61,9 +61,7 @@ class TestSemanticCacheVaultLookup:
         }
         mcp_client.vault_data["cache_patterns/test.json"] = json.dumps(cache_pattern)
         # Vault search returns the path to this file
-        mcp_client.vault_search_results = [
-            {"path": "cache_patterns/test.json", "context": "cache entry"}
-        ]
+        mcp_client.vault_search_results = [{"path": "cache_patterns/test.json", "context": "cache entry"}]
 
         cache = SemanticCache(mcp_client=mcp_client)
         result = await cache._vault_lookup("test prompt")

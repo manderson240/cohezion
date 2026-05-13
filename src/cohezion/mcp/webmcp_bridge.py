@@ -157,9 +157,7 @@ class WebMCPBridge:
             logger.exception("WebMCP call failed")
             return web.json_response({"success": False, "error": str(e)}, status=500)
 
-    async def _call_http_server(
-        self, base_url: str, tool_name: str, arguments: dict[str, Any]
-    ) -> Any:
+    async def _call_http_server(self, base_url: str, tool_name: str, arguments: dict[str, Any]) -> Any:
         """Call an HTTP-based MCP server."""
         async with httpx.AsyncClient(timeout=10.0) as client:
             resp = await client.post(
@@ -169,9 +167,7 @@ class WebMCPBridge:
             resp.raise_for_status()
             return resp.json()
 
-    async def _call_internal_server(
-        self, server_name: str, tool_name: str, arguments: dict[str, Any]
-    ) -> Any:
+    async def _call_internal_server(self, server_name: str, tool_name: str, arguments: dict[str, Any]) -> Any:
         """Dispatch to a local Python MCP server handler."""
         # Lazy-import server modules to avoid circular imports
         handler = self._resolve_internal_handler(server_name, tool_name)

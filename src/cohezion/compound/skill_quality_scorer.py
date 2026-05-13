@@ -21,6 +21,7 @@ from typing import Any
 
 from cohezion.compound.skill_health_tracker import SkillHealthTracker
 
+
 logger = logging.getLogger(__name__)
 
 
@@ -183,15 +184,30 @@ class SkillQualityScorer:
             issues.append("Missing project field")
         if not has_metadata:
             issues.append("Missing metadata block")
-        return DimensionScore(name="version_currency", score=score, weight=self.weights["version_currency"], issues=issues)
+        return DimensionScore(
+            name="version_currency",
+            score=score,
+            weight=self.weights["version_currency"],
+            issues=issues,
+        )
 
     def _score_usage(self, name: str) -> DimensionScore:
         """Score from SkillHealthTracker if available; default neutral if not tracked."""
         if self._health is None:
-            return DimensionScore(name="usage_health", score=0.5, weight=self.weights["usage_health"], issues=["No health tracker attached"])
+            return DimensionScore(
+                name="usage_health",
+                score=0.5,
+                weight=self.weights["usage_health"],
+                issues=["No health tracker attached"],
+            )
         record = self._health.get_health(name)
         if record is None:
-            return DimensionScore(name="usage_health", score=0.3, weight=self.weights["usage_health"], issues=["Skill never used"])
+            return DimensionScore(
+                name="usage_health",
+                score=0.3,
+                weight=self.weights["usage_health"],
+                issues=["Skill never used"],
+            )
         score = record.health_score
         issues = []
         if score < 0.5:
@@ -206,10 +222,10 @@ class SkillQualityScorer:
 
     def _extract_name(self, content: str, fallback: str) -> str:
         """Extract skill name from frontmatter or first heading."""
-        m = re.search(r'^name:\s*(\S+)', content, re.MULTILINE)
+        m = re.search(r"^name:\s*(\S+)", content, re.MULTILINE)
         if m:
             return m.group(1).strip()
-        m = re.search(r'^#\s*SKILL:\s*(\S+)', content, re.MULTILINE)
+        m = re.search(r"^#\s*SKILL:\s*(\S+)", content, re.MULTILINE)
         if m:
             return m.group(1).strip()
         return fallback

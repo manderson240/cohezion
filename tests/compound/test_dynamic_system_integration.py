@@ -148,9 +148,7 @@ class TestVaultIntegration:
         # Given: Previous sessions' patterns in vault
         # When: System initializes
         # Then: Should load patterns via mcp_client.find_relevant_context
-        mcp_client.find_relevant_context = AsyncMock(
-            return_value=[{"pattern": "code-heavy-9am", "confidence": 0.95}]
-        )
+        mcp_client.find_relevant_context = AsyncMock(return_value=[{"pattern": "code-heavy-9am", "confidence": 0.95}])
 
         # IMPLEMENT: Verify loading
         pass  # TODO: Implement

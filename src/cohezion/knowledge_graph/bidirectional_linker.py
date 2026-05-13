@@ -207,9 +207,7 @@ class KnowledgeGraph:
 
         return link
 
-    async def get_links(
-        self, node: str, link_type: LinkType | None = None
-    ) -> list[BidirectionalLink]:
+    async def get_links(self, node: str, link_type: LinkType | None = None) -> list[BidirectionalLink]:
         """Get all links for a node (bidirectional)."""
         if self.client:
             try:
@@ -244,8 +242,7 @@ class KnowledgeGraph:
         return [
             link
             for link in self._links.values()
-            if (link.source == node or link.target == node)
-            and (link_type is None or link.link_type == link_type)
+            if (link.source == node or link.target == node) and (link_type is None or link.link_type == link_type)
         ]
 
     async def get_neighbors(self, node: str, depth: int = 1) -> set[str]:

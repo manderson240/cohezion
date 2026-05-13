@@ -96,10 +96,7 @@ class CostBudget:
                 return False, status
 
         # Check warning threshold
-        if (
-            status["cost_percent"] >= self.warning_threshold
-            or status["token_percent"] >= self.warning_threshold
-        ):
+        if status["cost_percent"] >= self.warning_threshold or status["token_percent"] >= self.warning_threshold:
             status["warning_triggered"] = True
 
         return True, status
@@ -213,10 +210,7 @@ class CostTracker:
         with open(self.log_file, "a") as f:
             f.write(json.dumps(experiment_cost.to_dict()) + "\n")
 
-        logger.info(
-            f"Experiment {experiment_id}: {tokens} tokens, ${cost:.6f} "
-            f"(total: ${self.total_cost:.6f})"
-        )
+        logger.info(f"Experiment {experiment_id}: {tokens} tokens, ${cost:.6f} (total: ${self.total_cost:.6f})")
 
         return experiment_cost
 
@@ -271,9 +265,7 @@ class CostTracker:
             "status": status,
             "per_model": model_costs,
             "avg_cost_per_experiment": round(self.total_cost / max(1, self.total_experiments), 6),
-            "avg_tokens_per_experiment": round(
-                self.total_tokens / max(1, self.total_experiments), 2
-            ),
+            "avg_tokens_per_experiment": round(self.total_tokens / max(1, self.total_experiments), 2),
         }
 
     def get_experiment_costs(self) -> list[ExperimentCost]:
@@ -385,9 +377,7 @@ class CostAwareRouter:
             else:
                 selected = cheaper_tier[0]  # Cheapest in tier
 
-            logger.warning(
-                f"Budget at {cost_percent:.1%}, downgraded {preferred_model} to {selected}"
-            )
+            logger.warning(f"Budget at {cost_percent:.1%}, downgraded {preferred_model} to {selected}")
             return selected
 
         return preferred_model  # Already at cheapest

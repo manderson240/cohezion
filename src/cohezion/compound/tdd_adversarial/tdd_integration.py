@@ -272,9 +272,7 @@ class TDDIntegration:
             self.logger.warning("Error getting coverage", error=str(e))
             return None
 
-    async def generate_tests_from_specification(
-        self, session_id: str, specification: str
-    ) -> list[str]:
+    async def generate_tests_from_specification(self, session_id: str, specification: str) -> list[str]:
         """
         Generate test cases from a specification.
 
@@ -324,7 +322,11 @@ class TDDIntegration:
                 SkillRefinementInput(
                     skill_name="test_engineer",
                     performance_metric=len(tdd_state.failing_tests) / max(tdd_state.tests_run, 1),
-                    feedback=f"Failing tests detected: {', '.join(list(tdd_state.failing_tests)[:5])}{'...' if len(tdd_state.failing_tests) > 5 else ''}",
+                    feedback=(
+                        "Failing tests detected: "
+                        f"{', '.join(list(tdd_state.failing_tests)[:5])}"
+                        f"{'...' if len(tdd_state.failing_tests) > 5 else ''}"
+                    ),
                     context={
                         "failing_tests": list(tdd_state.failing_tests),
                         "session_id": session_id,
@@ -372,20 +374,15 @@ class TDDIntegration:
             "tests_passed": tdd_state.tests_passed,
             "tests_failed": tdd_state.tests_failed,
             "pass_rate": tdd_state.tests_passed / max(tdd_state.tests_run, 1),
-            "latest_coverage": tdd_state.coverage_history[-1][1]
-            if tdd_state.coverage_history
-            else None,
+            "latest_coverage": tdd_state.coverage_history[-1][1] if tdd_state.coverage_history else None,
             "coverage_trend": [
-                {"timestamp": ts.isoformat(), "coverage": cov}
-                for ts, cov in tdd_state.coverage_history[-10:]
+                {"timestamp": ts.isoformat(), "coverage": cov} for ts, cov in tdd_state.coverage_history[-10:]
             ],  # Last 10 points
             "failing_tests": list(tdd_state.failing_tests),
             "passing_tests": list(tdd_state.passing_tests),
             "test_generation_count": tdd_state.test_generation_count,
             "test_improvement_count": tdd_state.test_improvement_count,
-            "last_test_run": tdd_state.last_test_run.isoformat()
-            if tdd_state.last_test_run
-            else None,
+            "last_test_run": tdd_state.last_test_run.isoformat() if tdd_state.last_test_run else None,
         }
 
 

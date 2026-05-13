@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import asyncio
+import os
 import shutil
 import subprocess
 import sys
@@ -13,6 +14,10 @@ from types import ModuleType
 from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
+
+# Allow insecure SurrealDB connections (root/root) in test environment.
+# Tests that connect to SurrealDB locally don't need Bitwarden credentials.
+os.environ.setdefault("COHEZION_ALLOW_INSECURE_SURREAL", "1")
 
 
 # Block heavy ML libraries from loading their C extensions into this process at
@@ -57,9 +62,7 @@ def mock_ollama():
         json=MagicMock(return_value=canned),
         raise_for_status=MagicMock(),
     )
-    with patch(
-        "httpx.AsyncClient.post", new_callable=AsyncMock, return_value=mock_response
-    ) as mock_post:
+    with patch("httpx.AsyncClient.post", new_callable=AsyncMock, return_value=mock_response) as mock_post:
         yield mock_post
 
 

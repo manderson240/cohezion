@@ -117,9 +117,7 @@ def register_model_provider(name: str, provider_class: type[ModelProvider]) -> N
     logger.info(f"Registered model provider: {name}")
 
 
-def get_model_provider(
-    name: str, config: dict[str, Any] | None = None, use_singleton: bool = True
-) -> ModelProvider:
+def get_model_provider(name: str, config: dict[str, Any] | None = None, use_singleton: bool = True) -> ModelProvider:
     """Get model provider by name.
 
     Args:

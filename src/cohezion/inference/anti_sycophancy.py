@@ -20,6 +20,7 @@ from __future__ import annotations
 
 import hashlib
 import json
+from collections.abc import Callable
 from dataclasses import dataclass, field
 from enum import Enum
 from pathlib import Path
@@ -147,8 +148,7 @@ class AntiSycophancyGuard:
 
         if self.total_discards == 0 and self.total_keeps > 3:
             feedback.append(
-                "🎲 All experiments kept. Real science requires null results. "
-                "What have we learned from failures?"
+                "🎲 All experiments kept. Real science requires null results. What have we learned from failures?"
             )
 
         return feedback
@@ -370,10 +370,7 @@ class MultiMetricTradeoffAnalyzer:
         ]
 
         for exp in pareto:
-            lines.append(
-                f"  TPS: {exp.get('tokens_per_sec', 0):.1f} | "
-                f"Quality: {exp.get('quality_score', 0):.2f}"
-            )
+            lines.append(f"  TPS: {exp.get('tokens_per_sec', 0):.1f} | Quality: {exp.get('quality_score', 0):.2f}")
 
         lines.append("")
 
@@ -387,10 +384,7 @@ class MultiMetricTradeoffAnalyzer:
             )
 
             if tps_variance > 50 and quality_variance < 0.1:
-                lines.append(
-                    "⚠️ WARNING: Optimizing TPS but Quality flat. "
-                    "Possible overfitting to throughput metric."
-                )
+                lines.append("⚠️ WARNING: Optimizing TPS but Quality flat. Possible overfitting to throughput metric.")
 
         lines.append("=" * 70)
 

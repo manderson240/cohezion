@@ -2,7 +2,6 @@
 Fleet API - Routes for monitoring and managing the service fleet.
 """
 
-
 from fastapi import APIRouter, HTTPException
 
 from cohezion.governance.fleet_monitor import ServiceStatus, get_fleet_monitor

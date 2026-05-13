@@ -49,9 +49,7 @@ class TestPrecommitInstallation:
                 config = yaml.safe_load(f)
 
             repos = [repo.get("repo", "") for repo in config.get("repos", [])]
-            assert any("detect-secrets" in repo for repo in repos), (
-                "detect-secrets repo not configured"
-            )
+            assert any("detect-secrets" in repo for repo in repos), "detect-secrets repo not configured"
         except ImportError:
             pytest.skip("PyYAML not available")
 
@@ -75,9 +73,7 @@ class TestPrecommitInstallation:
         with open(config_path) as f:
             content = f.read()
         # Accept both old (commit) and new (pre-commit) stage naming
-        assert "stages: [commit]" in content or "stages: [pre-commit]" in content, (
-            "No commit stage hooks configured"
-        )
+        assert "stages: [commit]" in content or "stages: [pre-commit]" in content, "No commit stage hooks configured"
 
     def test_precommit_config_has_push_stage(self):
         """Verify pre-commit has push stage hooks."""
@@ -85,9 +81,7 @@ class TestPrecommitInstallation:
         with open(config_path) as f:
             content = f.read()
         # Accept both old (push) and new (pre-push) stage naming
-        assert "stages: [push]" in content or "stages: [pre-push]" in content, (
-            "No push stage hooks configured"
-        )
+        assert "stages: [push]" in content or "stages: [pre-push]" in content, "No push stage hooks configured"
 
 
 class TestDetectSecretsConfiguration:
@@ -207,9 +201,7 @@ class TestGitHooksInstallation:
         hook_path = PROJECT_ROOT / ".git" / "hooks" / "pre-commit"
         with open(hook_path) as f:
             content = f.read()
-        assert "pre-commit" in content.lower(), (
-            "Pre-commit hook should reference pre-commit framework"
-        )
+        assert "pre-commit" in content.lower(), "Pre-commit hook should reference pre-commit framework"
 
 
 class TestSecurityToolsInstallation:

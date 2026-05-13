@@ -162,9 +162,7 @@ class BatchSizePredictor:
             return size, confidence
 
         # Analyze historical throughput by batch size
-        optimal_size, confidence = self._find_optimal_from_history(
-            type_history, task_count, task_type
-        )
+        optimal_size, confidence = self._find_optimal_from_history(type_history, task_count, task_type)
 
         self._last_prediction = (optimal_size, confidence)
         return optimal_size, confidence
@@ -294,9 +292,7 @@ class BatchSizePredictor:
 
         try:
             # Query vault for batch execution patterns
-            results = self.vault_client.vault_search(
-                "batch_size throughput execution metrics", scope="all"
-            )
+            results = self.vault_client.vault_search("batch_size throughput execution metrics", scope="all")
 
             if not results:
                 logger.debug("No batch performance metrics found in vault")
@@ -464,17 +460,13 @@ class BatchSizePredictor:
 
             # Extract task_types - handle various formats
             # Patterns: [analyze, search], "analyze, search", or just text
-            task_types_match = re.search(
-                r"task[_\s]*types?[:\s]*\[([^\]]+)\]", content, re.IGNORECASE
-            )
+            task_types_match = re.search(r"task[_\s]*types?[:\s]*\[([^\]]+)\]", content, re.IGNORECASE)
             if task_types_match:
                 types_str = task_types_match.group(1)
                 data["task_types"] = [t.strip().strip("\"'") for t in types_str.split(",")]
             else:
                 # Try alternative format without brackets
-                task_types_alt = re.search(
-                    r"task[_\s]*types?[:\s]*([^\n]+?)(?:\n|$)", content, re.IGNORECASE
-                )
+                task_types_alt = re.search(r"task[_\s]*types?[:\s]*([^\n]+?)(?:\n|$)", content, re.IGNORECASE)
                 if task_types_alt:
                     types_str = task_types_alt.group(1).strip()
                     # Handle comma-separated or space-separated

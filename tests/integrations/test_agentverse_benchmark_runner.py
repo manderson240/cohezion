@@ -201,15 +201,9 @@ class TestBenchmarkRunnerAnalysis:
         from cohezion.integrations.agentverse import BenchmarkResult
 
         runner.results = [
-            BenchmarkResult(
-                task="t1", skill="python_PRIME", success=True, metrics={"coherence": 0.8}
-            ),
-            BenchmarkResult(
-                task="t2", skill="python_PRIME", success=True, metrics={"coherence": 0.7}
-            ),
-            BenchmarkResult(
-                task="t3", skill="testing_PRIME", success=True, metrics={"coherence": 0.9}
-            ),
+            BenchmarkResult(task="t1", skill="python_PRIME", success=True, metrics={"coherence": 0.8}),
+            BenchmarkResult(task="t2", skill="python_PRIME", success=True, metrics={"coherence": 0.7}),
+            BenchmarkResult(task="t3", skill="testing_PRIME", success=True, metrics={"coherence": 0.9}),
         ]
 
         summary = runner.get_skill_coherence_summary()
@@ -224,12 +218,8 @@ class TestBenchmarkRunnerAnalysis:
         from cohezion.integrations.agentverse import BenchmarkResult
 
         runner.results = [
-            BenchmarkResult(
-                task="t1", skill="python_PRIME", success=True, metrics={"coherence": 0.8}
-            ),
-            BenchmarkResult(
-                task="t2", skill="weak_skill_PRIME", success=True, metrics={"coherence": 0.35}
-            ),
+            BenchmarkResult(task="t1", skill="python_PRIME", success=True, metrics={"coherence": 0.8}),
+            BenchmarkResult(task="t2", skill="weak_skill_PRIME", success=True, metrics={"coherence": 0.35}),
         ]
 
         weak = runner.identify_weak_skills(threshold=0.5)
@@ -241,12 +231,8 @@ class TestBenchmarkRunnerAnalysis:
         from cohezion.integrations.agentverse import BenchmarkResult
 
         runner.results = [
-            BenchmarkResult(
-                task="t1", skill="python_PRIME", success=False, metrics={"coherence": 0.3}
-            ),
-            BenchmarkResult(
-                task="t2", skill="testing_PRIME", success=True, metrics={"coherence": 0.85}
-            ),
+            BenchmarkResult(task="t1", skill="python_PRIME", success=False, metrics={"coherence": 0.3}),
+            BenchmarkResult(task="t2", skill="testing_PRIME", success=True, metrics={"coherence": 0.85}),
         ]
 
         candidates = runner.get_refinement_candidates()

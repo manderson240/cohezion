@@ -258,9 +258,7 @@ class RiemannianMetric:
                 for i in range(n):
                     ricci[j, l] += dgamma[i, i, j, l] - dgamma[l, i, j, i]
                     for m in range(n):
-                        ricci[j, l] += (
-                            gamma[i, i, m] * gamma[m, j, l] - gamma[i, l, m] * gamma[m, j, i]
-                        )
+                        ricci[j, l] += gamma[i, i, m] * gamma[m, j, l] - gamma[i, l, m] * gamma[m, j, i]
 
         # Ricci scalar R = g^jl R_jl
         R = 0.0

@@ -835,9 +835,7 @@ class JourneyAnalyzer:
         # 4. Thermodynamic summary
         thermo_results = [self.analyze_thermodynamics(j) for j in journeys]
         thermo_summary = {
-            "mean_entropy_production": float(
-                np.mean([t.entropy_production_rate for t in thermo_results])
-            ),
+            "mean_entropy_production": float(np.mean([t.entropy_production_rate for t in thermo_results])),
             "mean_free_energy": float(np.mean([t.free_energy for t in thermo_results])),
             "n_attractors": sum(1 for t in thermo_results if t.is_attractor),
             "mean_well_depth": float(np.mean([t.well_depth for t in thermo_results])),
@@ -848,9 +846,7 @@ class JourneyAnalyzer:
         topo_summary = {
             "mean_n_clusters": float(np.mean([t.n_clusters for t in topo_results])),
             "mean_n_loans": float(np.mean([t.n_loans for t in topo_results])),
-            "mean_persistence_entropy": float(
-                np.mean([t.persistence_entropy_h0 for t in topo_results])
-            ),
+            "mean_persistence_entropy": float(np.mean([t.persistence_entropy_h0 for t in topo_results])),
         }
 
         # 6. Pattern mining
@@ -859,17 +855,11 @@ class JourneyAnalyzer:
         # 7. Key findings
         findings = []
         if clustering.silhouette_score > 0.5:
-            findings.append(
-                f"Strong behavioral clustering (silhouette={clustering.silhouette_score:.2f})"
-            )
+            findings.append(f"Strong behavioral clustering (silhouette={clustering.silhouette_score:.2f})")
         if thermo_summary["n_attractors"] > len(journeys) // 2:
-            findings.append(
-                f"HIHO attractor confirmed ({thermo_summary['n_attractors']}/{len(journeys)} journeys)"
-            )
+            findings.append(f"HIHO attractor confirmed ({thermo_summary['n_attractors']}/{len(journeys)} journeys)")
         if sum(1 for a in anomalies if a.is_anomaly) > 0:
-            findings.append(
-                f"Anomalies detected in {sum(1 for a in anomalies if a.is_anomaly)} journeys"
-            )
+            findings.append(f"Anomalies detected in {sum(1 for a in anomalies if a.is_anomaly)} journeys")
 
         # 8. Recommendations
         recommendations = []
@@ -920,9 +910,7 @@ class JourneyAnalyzer:
 
             f.write("## Archetypes\n\n")
             for archetype in report.archetypes:
-                f.write(
-                    f"- {archetype.archetype.value}: {archetype.population_fraction * 100:.1f}% "
-                )
+                f.write(f"- {archetype.archetype.value}: {archetype.population_fraction * 100:.1f}% ")
                 f.write(f"(confidence={archetype.confidence:.2f})\n")
             f.write("\n")
 

@@ -42,21 +42,11 @@ class MockRegimeProvider(Gemma4Provider):
         if regime == "SENSING":
             text = "Sensing TEK: Mangrove-SabuSabu symbiosis."
         elif regime == "CALCULATION":
-            text = (
-                "Calculation: 12D unstable."
-                if not is_stable
-                else "Calculation: 12D stable equilibrium."
-            )
+            text = "Calculation: 12D unstable." if not is_stable else "Calculation: 12D stable equilibrium."
         elif regime == "SYNTHESIS":
-            text = (
-                "Strategy: Dredge everything."
-                if not is_stable
-                else "Strategy: Precision bio-mimetic restoration."
-            )
+            text = "Strategy: Dredge everything." if not is_stable else "Strategy: Precision bio-mimetic restoration."
         elif regime == "STEERING":
-            text = (
-                "Action: Start machine." if not is_stable else "Action: Execute biological seeding."
-            )
+            text = "Action: Start machine." if not is_stable else "Action: Execute biological seeding."
         else:
             text = "General response."
 
@@ -88,9 +78,7 @@ async def run_symphony_test():
     encoder.encode.side_effect = dynamic_encode
     translator = ManifoldTranslator(encoder=encoder)
 
-    agent = EcoResilienceAgent(
-        provider=provider, translator=translator, model_name="gemma4:26b-moe"
-    )
+    agent = EcoResilienceAgent(provider=provider, translator=translator, model_name="gemma4:26b-moe")
     guard = HIHOStabilityGuard(threshold=0.5)
     executor = MagicMock(spec=CompoundExecutor)
     loop = EcoResilienceCompoundLoop(agent=agent, executor=executor, guard=guard)

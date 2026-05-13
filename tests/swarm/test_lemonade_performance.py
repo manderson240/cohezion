@@ -46,9 +46,7 @@ class SwarmBenchmark:
         encoder.encode.return_value = np.random.randn(256)
         self.translator = ManifoldTranslator(encoder=encoder)
 
-        self.agent = EcoResilienceAgent(
-            provider=self.provider, translator=self.translator, model_name="gemma4:26b-moe"
-        )
+        self.agent = EcoResilienceAgent(provider=self.provider, translator=self.translator, model_name="gemma4:26b-moe")
         self.guard = HIHOStabilityGuard()
         self.executor = MagicMock(spec=CompoundExecutor)
         self.loop = EcoResilienceCompoundLoop(self.agent, self.executor, self.guard)
@@ -85,9 +83,7 @@ class SwarmBenchmark:
                 }
                 ms = latencies.get(regime, 500.0)
                 res = await self.simulate_regime_latency(model, regime, ms)
-                self.results.append(
-                    BenchmarkResult(regime=regime, latency_ms=ms, tokens_used=150, model=model)
-                )
+                self.results.append(BenchmarkResult(regime=regime, latency_ms=ms, tokens_used=150, model=model))
                 return res
 
             self.provider.generate = mocked_generate

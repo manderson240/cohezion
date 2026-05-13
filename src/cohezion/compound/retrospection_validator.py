@@ -71,10 +71,7 @@ class RetrospectionValidator:
             checks_attempted += 1
             actual_steps = len(journey_points)
             if claimed_steps != actual_steps:
-                msg = (
-                    f"steps_executed mismatch: summary claims {claimed_steps}, "
-                    f"journey has {actual_steps} points"
-                )
+                msg = f"steps_executed mismatch: summary claims {claimed_steps}, journey has {actual_steps} points"
                 discrepancies.append(msg)
                 logger.warning("RetrospectionValidator: %s", msg)
             else:
@@ -87,10 +84,7 @@ class RetrospectionValidator:
             final_coherence = last.get("coherence", 0.0)
             coherence_supports_success = final_coherence > _MIN_SUCCESS_COHERENCE
             if claimed_success and not coherence_supports_success:
-                msg = (
-                    f"success=True but final coherence {final_coherence:.3f} "
-                    f"<= threshold {_MIN_SUCCESS_COHERENCE}"
-                )
+                msg = f"success=True but final coherence {final_coherence:.3f} <= threshold {_MIN_SUCCESS_COHERENCE}"
                 discrepancies.append(msg)
                 logger.warning("RetrospectionValidator: %s", msg)
             else:

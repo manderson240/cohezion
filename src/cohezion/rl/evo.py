@@ -86,15 +86,9 @@ class EthericVariantOscillator:
 
     journey_id: str = field(default_factory=lambda: f"evo_{uuid.uuid4().hex[:12]}")
     birth_time: float = field(default_factory=time.time)
-    doer_state: np.ndarray = field(
-        default_factory=lambda: np.random.normal(0.5, 0.1, 12).astype(np.float32)
-    )
-    thinker_state: np.ndarray = field(
-        default_factory=lambda: np.random.normal(0.5, 0.1, 512).astype(np.float32)
-    )
-    knower_state: np.ndarray = field(
-        default_factory=lambda: np.random.normal(0.5, 0.1, 2048).astype(np.float32)
-    )
+    doer_state: np.ndarray = field(default_factory=lambda: np.random.normal(0.5, 0.1, 12).astype(np.float32))
+    thinker_state: np.ndarray = field(default_factory=lambda: np.random.normal(0.5, 0.1, 512).astype(np.float32))
+    knower_state: np.ndarray = field(default_factory=lambda: np.random.normal(0.5, 0.1, 2048).astype(np.float32))
     coherence_amplitude: float = 0.0
     phase: float = 0.0
     angular_momentum: np.ndarray = field(default_factory=lambda: np.ones(3, dtype=np.float32))
@@ -266,9 +260,7 @@ class EthericVariantOscillator:
                 "total_reward": float(sum(r for r in rewards)) if rewards else 0.0,
             },
             "hiho_stability": {
-                "hiho_band_count": int(sum(1 for c in coherences if 0.4 <= c <= 0.6))
-                if coherences
-                else 0,
+                "hiho_band_count": int(sum(1 for c in coherences if 0.4 <= c <= 0.6)) if coherences else 0,
                 "hiho_stability_ratio": float(
                     sum(1 for c in coherences if 0.4 <= c <= 0.6) / max(trajectory_length, 1)
                 ),

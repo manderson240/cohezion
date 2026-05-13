@@ -7,6 +7,7 @@ from cohezion.inference.registry import (
     Lane,
     ModelEntry,
     Task,
+    WeightQuant,
     get_registry,
 )
 
@@ -52,9 +53,7 @@ def test_claude_tier_has_ascending_cost() -> None:
     haiku = registry.models["claude-haiku-4-5"]
     sonnet = registry.models["claude-sonnet-4-6"]
     opus = registry.models["claude-opus-4-7"]
-    assert (
-        haiku.cost_per_1k_output_usd < sonnet.cost_per_1k_output_usd < opus.cost_per_1k_output_usd
-    )
+    assert haiku.cost_per_1k_output_usd < sonnet.cost_per_1k_output_usd < opus.cost_per_1k_output_usd
 
 
 def test_local_only_excludes_cloud() -> None:
@@ -83,9 +82,9 @@ def test_model_entry_is_dataclass_with_expected_fields() -> None:
         model_id="x",
         lane=Lane.NPU,
         endpoint="http://localhost:1",
-        llamacpp_backend="flm",
+        runtime_backend="flm",
         task_affinity=frozenset({Task.ROUTING}),
-        quantization="INT4",
+        weight_quant=WeightQuant.INT4,
         context_window=1024,
     )
     assert sample.cost_per_1k_input_usd == 0.0
@@ -189,6 +188,5 @@ def test_audit_liveness_skips_cloud_and_cli_lanes() -> None:
     local_lane_values = {"npu", "igpu_rocwmma", "igpu_unified", "cpu"}
     for item in audit.items:
         assert item.lane in local_lane_values, (
-            f"{item.model_id} got audited with non-local lane {item.lane!r}; "
-            "cloud/CLI models should be filtered out."
+            f"{item.model_id} got audited with non-local lane {item.lane!r}; cloud/CLI models should be filtered out."
         )

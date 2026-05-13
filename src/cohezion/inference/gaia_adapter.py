@@ -74,9 +74,7 @@ class GaiaAgentTier:
         # GAIA's Agent.prompt() is the public sync surface. Some versions
         # expose .run() — we probe for either. Keep the adapter resilient.
         run_fn = (
-            getattr(self.agent, "prompt", None)
-            or getattr(self.agent, "run", None)
-            or getattr(self.agent, "chat", None)
+            getattr(self.agent, "prompt", None) or getattr(self.agent, "run", None) or getattr(self.agent, "chat", None)
         )
         if run_fn is None:
             error = "GaiaAgentTier: agent has no prompt/run/chat method"

@@ -44,9 +44,7 @@ class SelfEvaluationEngine:
         )
 
         if not passed:
-            logger.warning(
-                f"Self-Evaluation failed: Score {score:.2f} < {self.passing_threshold:.2f}"
-            )
+            logger.warning(f"Self-Evaluation failed: Score {score:.2f} < {self.passing_threshold:.2f}")
         else:
             logger.info(f"Self-Evaluation passed: Score {score:.2f}")
 

@@ -327,9 +327,7 @@ class AuditLogger:
             logger.error("Failed to cleanup audit logs: %s", e)
 
         if deleted_count > 0:
-            logger.info(
-                "Cleaned up %d audit logs older than %d days", deleted_count, retention_days
-            )
+            logger.info("Cleaned up %d audit logs older than %d days", deleted_count, retention_days)
 
         return deleted_count
 

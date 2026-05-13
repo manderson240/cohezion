@@ -17,9 +17,7 @@ class ObsidianVaultMCP:
     def __init__(self, vault_path: str = "/home/mike-anderson/dev/cohezion/obsidian_vault") -> None:
         self.vault_path = Path(vault_path)
 
-    async def write_markdown_artifact(
-        self, filename: str, content: str, tags: list[str] | None = None
-    ) -> bool:
+    async def write_markdown_artifact(self, filename: str, content: str, tags: list[str] | None = None) -> bool:
         """Write a documented artifact with bidirectional links and tags into Obsidian."""
         self.vault_path.mkdir(parents=True, exist_ok=True)
 
@@ -27,9 +25,7 @@ class ObsidianVaultMCP:
 
         # Enforce Red Wall: Only allow writes within the vault path
         if not file_path.resolve().is_relative_to(self.vault_path.resolve()):
-            logger.error(
-                f"Red Wall Violation: Attempted to write outside Obsidian Vault: {file_path}"
-            )
+            logger.error(f"Red Wall Violation: Attempted to write outside Obsidian Vault: {file_path}")
             return False
 
         header = "---\ntags:\n"
@@ -53,9 +49,7 @@ class ObsidianVaultMCP:
 
         # Enforce Red Wall
         if not file_path.resolve().is_relative_to(self.vault_path.resolve()):
-            logger.error(
-                f"Red Wall Violation: Attempted to read outside Obsidian Vault: {file_path}"
-            )
+            logger.error(f"Red Wall Violation: Attempted to read outside Obsidian Vault: {file_path}")
             return None
 
         if not file_path.exists():

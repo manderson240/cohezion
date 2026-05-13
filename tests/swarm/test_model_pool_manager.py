@@ -118,7 +118,12 @@ class TestModelPoolManager:
         tags_resp = _mock_httpx_ok({"models": [{"name": "hot-model:latest", "size": 5 * 1024**3}]})
         ps_resp = _mock_httpx_ok({"models": [{"name": "hot-model:latest"}]})
 
-        with patch("httpx.AsyncClient") as MockClient:
+        with (
+            patch("httpx.AsyncClient") as MockClient,
+            patch.object(pool.lemonade, "start", new_callable=AsyncMock),
+            patch.object(pool.lemonade, "wait_until_ready", return_value=True),
+            patch.object(pool, "_list_lemonade_models", return_value=[]),
+        ):
             mock_client = AsyncMock()
             MockClient.return_value.__aenter__ = AsyncMock(return_value=mock_client)
             MockClient.return_value.__aexit__ = AsyncMock(return_value=False)
@@ -333,7 +338,14 @@ class TestPoolManagerIntegration:
         decision, can_proceed = router.select_model("What is Python?")
 
         # Normal routing, no pool interference
-        assert decision.model in ("phi3:mini", "qwen3-coder:32b", "deepseek-r1:8b")
+        assert decision.model in (
+            "phi3:mini",
+            "qwen3-coder:32b",
+            "deepseek-r1:8b",
+            "Phi-4-mini-instruct-Hybrid",
+            "Qwen3-8B-Hybrid",
+            "Qwen3-14B-Hybrid",
+        )
 
 
 # ---------------------------------------------------------------------------
@@ -377,7 +389,10 @@ class TestPoolManagerEdgeCases:
     @pytest.mark.asyncio
     async def test_ollama_unreachable_on_initialize(self, pool: ModelPoolManager):
         """Pool should handle Ollama being down at initialization."""
-        with patch("httpx.AsyncClient") as MockClient:
+        with (
+            patch("httpx.AsyncClient") as MockClient,
+            patch.object(pool.lemonade, "wait_until_ready", return_value=False),
+        ):
             mock_client = AsyncMock()
             MockClient.return_value.__aenter__ = AsyncMock(return_value=mock_client)
             MockClient.return_value.__aexit__ = AsyncMock(return_value=False)

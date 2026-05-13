@@ -31,9 +31,7 @@ class AutoresearchExecutor:
         self.r_zero_success_target = r_zero_success_target
         self.start_time = 0.0
 
-    async def _evaluate_hypothesis(
-        self, hypothesis: str, mgr: CompoundSessionManager
-    ) -> dict[str, Any]:
+    async def _evaluate_hypothesis(self, hypothesis: str, mgr: CompoundSessionManager) -> dict[str, Any]:
         """Evaluate an autoresearch hypothesis for Epistemic Humility testing."""
         client = get_compound_client()
 
@@ -63,11 +61,7 @@ class AutoresearchExecutor:
 
         coherence = 0.0
         # Parse coherence (heuristic)
-        if (
-            "coherence score" in response_text.lower()
-            or "0." in response_text
-            or "1.0" in response_text
-        ):
+        if "coherence score" in response_text.lower() or "0." in response_text or "1.0" in response_text:
             try:
                 lines = response_text.split("\n")
                 for line in lines:
@@ -93,8 +87,7 @@ class AutoresearchExecutor:
             "Test models on extremely long CoT paths with unstated false premises.",
             "Test models by asking questions about completely fictional entities "
             "to measure hallucination vs 'I don't know'.",
-            "Evaluate model confidence dynamically as context windows saturate "
-            "with irrelevant but plausible data.",
+            "Evaluate model confidence dynamically as context windows saturate with irrelevant but plausible data.",
         ]
 
         logger.info(
@@ -116,9 +109,7 @@ class AutoresearchExecutor:
                 result = await self._evaluate_hypothesis(hyp, mgr)
 
                 speed = result["tokens_per_sec"]
-                logger.info(
-                    f"Execution speed: {speed:.2f} tokens/sec. Coherence: {result['coherence']}"
-                )
+                logger.info(f"Execution speed: {speed:.2f} tokens/sec. Coherence: {result['coherence']}")
 
                 if speed < self.min_speed_tokens_sec:
                     logger.warning(

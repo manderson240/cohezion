@@ -324,12 +324,7 @@ def _build_strategy(name: str, train: list[dict[str, Grid]]) -> list[tuple[str, 
             ("remove_bg", _remove_bg),
             ("fill_holes", _fill_holes),
         ]
-        + [
-            (f"replace_{old}_{new}", _make_replace(old, new))
-            for old in range(10)
-            for new in range(10)
-            if old != new
-        ]
+        + [(f"replace_{old}_{new}", _make_replace(old, new)) for old in range(10) for new in range(10) if old != new]
     )
 
     geo = base + [
@@ -468,9 +463,7 @@ class PatternExtractor:
     # ------------------------------------------------------------------
     # Search core
     # ------------------------------------------------------------------
-    def _search(
-        self, train: list[dict[str, Grid]], ops: list[tuple[str, Program]]
-    ) -> list[tuple[str, Program]] | None:
+    def _search(self, train: list[dict[str, Grid]], ops: list[tuple[str, Program]]) -> list[tuple[str, Program]] | None:
         self._counter[0] = 0
         for depth in range(1, self.max_depth + 1):
             result = self._dfs(train, depth, ops)
@@ -489,10 +482,7 @@ class PatternExtractor:
                 self._counter[0] += 1
                 if self._counter[0] > self.budget:
                     return None
-                if all(
-                    (r := op(deepcopy(ex["input"]))) is not None and grids_equal(r, ex["output"])
-                    for ex in train
-                ):
+                if all((r := op(deepcopy(ex["input"]))) is not None and grids_equal(r, ex["output"]) for ex in train):
                     return [(name, op)]
             return None
 
@@ -530,9 +520,7 @@ class PatternExtractor:
                 matched += 1
         return matched / len(train)
 
-    def _compute_hiho(
-        self, train: list[dict[str, Grid]], program: list[tuple[str, Program]]
-    ) -> float:
+    def _compute_hiho(self, train: list[dict[str, Grid]], program: list[tuple[str, Program]]) -> float:
         """Average HIHO coherence over transformed outputs."""
         try:
             import numpy as np
@@ -550,9 +538,7 @@ class PatternExtractor:
                 hihos.append(enc.get("hiho", 0.5))
         return float(np.mean(hihos)) if hihos else 0.5
 
-    def _compute_latent_delta(
-        self, train: list[dict[str, Grid]], program: list[tuple[str, Program]]
-    ) -> list[float]:
+    def _compute_latent_delta(self, train: list[dict[str, Grid]], program: list[tuple[str, Program]]) -> list[float]:
         """Mean latent_12 delta between input and output across train examples."""
         try:
             import numpy as np
@@ -602,9 +588,7 @@ if __name__ == "__main__":
     rules = extractor.extract(task)
     print(f"Extracted {len(rules)} rule(s)")
     for r in rules:
-        print(
-            f"  {r.name} | conf={r.confidence:.2f} | votes={r.strategy_votes} | hiho={r.hiho_score:.3f}"
-        )
+        print(f"  {r.name} | conf={r.confidence:.2f} | votes={r.strategy_votes} | hiho={r.hiho_score:.3f}")
     # Expect invert to appear with high confidence
     assert any("invert" in r.name for r in rules), "Expected invert rule"
     print("PatternExtractor OK")

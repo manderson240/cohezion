@@ -10,6 +10,12 @@ import numpy as np
 from pydantic import BaseModel, Field
 
 
+try:
+    from cohezion.flume.vae_encoder import FlumeVAEEncoder as VAEEncoder
+except ImportError:
+    VAEEncoder = type("VAEEncoder", (), {})  # type: ignore[assignment, misc]
+
+
 class ManifoldProjection(BaseModel):
     """Observation result of a manifold projection.
     Represents the state of a biological or physical system in 12D coordinates.
@@ -17,9 +23,7 @@ class ManifoldProjection(BaseModel):
 
     model_config = {"arbitrary_types_allowed": True}
 
-    coordinates: np.ndarray = Field(
-        default_factory=lambda: np.zeros(12), description="12D state vector"
-    )
+    coordinates: np.ndarray = Field(default_factory=lambda: np.zeros(12), description="12D state vector")
     coherence: float = Field(default=0.0, description="HIHO coherence score (0.0-1.0)")
     stability: bool = Field(default=False, description="Whether the projected state is stable")
 
@@ -58,9 +62,7 @@ class ManifoldTranslator:
 
         # Calculate HIHO coherence (Simplified as a normalized energy function of the 12D projection)
         # In reality, this is the 12D manifold stability check.
-        coherence = np.linalg.norm(coords) / (
-            np.linalg.norm(self._projection_matrix) * np.linalg.norm(latent)
-        )
+        coherence = np.linalg.norm(coords) / (np.linalg.norm(self._projection_matrix) * np.linalg.norm(latent))
 
         # Check stability
         stability = coherence >= self._stability_threshold

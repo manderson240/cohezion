@@ -150,9 +150,7 @@ def get_cohezion_data_products() -> dict[str, DataProduct]:
             name="BMAD Workflow Artifacts",
             description="Agile workflow outputs: specs, stories, sprint plans",
             owner_domain="bmad",
-            schema=DataProductSchema(
-                fields={"workflow_id": "str", "status": "str", "artifacts": "list"}
-            ),
+            schema=DataProductSchema(fields={"workflow_id": "str", "status": "str", "artifacts": "list"}),
             quality_tier=DataQualityTier.SILVER,
             status=DataProductStatus.ACTIVE,
             required_autonomy=AutonomyTier.U1_4,
@@ -163,9 +161,7 @@ def get_cohezion_data_products() -> dict[str, DataProduct]:
             name="PRIME Skill Definitions",
             description="Skill markdown + metadata from the skill registry",
             owner_domain="skills",
-            schema=DataProductSchema(
-                fields={"skill_name": "str", "content": "str", "metrics": "dict"}
-            ),
+            schema=DataProductSchema(fields={"skill_name": "str", "content": "str", "metrics": "dict"}),
             quality_tier=DataQualityTier.GOLD,
             status=DataProductStatus.ACTIVE,
             required_autonomy=AutonomyTier.Z2_4,
@@ -176,9 +172,7 @@ def get_cohezion_data_products() -> dict[str, DataProduct]:
             name="Agent Journey Checkpoints",
             description="12D state snapshots from JourneyTracker",
             owner_domain="journey",
-            schema=DataProductSchema(
-                fields={"agent_id": "str", "state_12d": "list[float]", "coherence": "float"}
-            ),
+            schema=DataProductSchema(fields={"agent_id": "str", "state_12d": "list[float]", "coherence": "float"}),
             quality_tier=DataQualityTier.GOLD,
             status=DataProductStatus.ACTIVE,
             required_autonomy=AutonomyTier.HIHO,
@@ -189,9 +183,7 @@ def get_cohezion_data_products() -> dict[str, DataProduct]:
             name="Vault Knowledge Entries",
             description="Decisions, patterns, experiments from the knowledge vault",
             owner_domain="memory",
-            schema=DataProductSchema(
-                fields={"entry_id": "str", "category": "str", "content": "str"}
-            ),
+            schema=DataProductSchema(fields={"entry_id": "str", "category": "str", "content": "str"}),
             quality_tier=DataQualityTier.GOLD,
             status=DataProductStatus.ACTIVE,
             required_autonomy=AutonomyTier.Z2_4,
@@ -202,9 +194,7 @@ def get_cohezion_data_products() -> dict[str, DataProduct]:
             name="AG-UI Event Stream",
             description="Typed SSE events for Genesis cosmogony",
             owner_domain="api",
-            schema=DataProductSchema(
-                fields={"type": "AGUIEventType", "timestamp": "str", "payload": "dict"}
-            ),
+            schema=DataProductSchema(fields={"type": "AGUIEventType", "timestamp": "str", "payload": "dict"}),
             output_format="sse",
             quality_tier=DataQualityTier.SILVER,
             status=DataProductStatus.ACTIVE,

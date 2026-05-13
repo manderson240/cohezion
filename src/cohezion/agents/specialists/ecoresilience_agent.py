@@ -95,9 +95,7 @@ class EcoResilienceAgent(BaseAgent):
         """
         return await self.execute_cycle(input_text, **kwargs)
 
-    async def execute_cycle(
-        self, input_text: str, copernicus_state: CopernicusState | None = None, **kwargs
-    ) -> str:
+    async def execute_cycle(self, input_text: str, copernicus_state: CopernicusState | None = None, **kwargs) -> str:
         """Runs the full EcoResilience loop with integrated Triune Review and Live Sensing.
 
         Symphony-Enhanced: Utilizes Stitch-Skills for dynamic composition and
@@ -131,9 +129,7 @@ class EcoResilienceAgent(BaseAgent):
             f"SATELLITE CONTEXT: {satellite_context}\n"
             f"FIELD REPORT: {input_text}"
         )
-        res_sensing = await self.provider.generate(
-            model=self.model_name, prompt=sensing_prompt, regime="SENSING"
-        )
+        res_sensing = await self.provider.generate(model=self.model_name, prompt=sensing_prompt, regime="SENSING")
         self.state.tek_insights.append(res_sensing.response)
 
         # Vectorize using FLUME
@@ -164,14 +160,10 @@ class EcoResilienceAgent(BaseAgent):
         cleaned_prompt, scrubbed = sovereignty_filter.scrub(prompt_raw)
 
         if scrubbed:
-            logger.info(
-                f"Sovereignty Filter active: scrubbed {len(scrubbed)} terms from cloud payload."
-            )
+            logger.info(f"Sovereignty Filter active: scrubbed {len(scrubbed)} terms from cloud payload.")
 
         calc_prompt = cleaned_prompt
-        res_calc = await self.provider.generate(
-            model="gemma4:31b-cloud", prompt=calc_prompt, regime="CALCULATION"
-        )
+        res_calc = await self.provider.generate(model="gemma4:31b-cloud", prompt=calc_prompt, regime="CALCULATION")
 
         # 3. SYNTHESIS PHASE (Local 26B MoE)
         synth_prompt = (
@@ -181,9 +173,7 @@ class EcoResilienceAgent(BaseAgent):
             f"SATELLITE GROUND TRUTH: {satellite_context}. "
             f"Goal: Create a sustainable ecosystem state based on Unified Physics."
         )
-        res_synth = await self.provider.generate(
-            model="gemma4:26b-moe", prompt=synth_prompt, regime="SYNTHESIS"
-        )
+        res_synth = await self.provider.generate(model="gemma4:26b-moe", prompt=synth_prompt, regime="SYNTHESIS")
 
         # --- Triune Review Gate ---
         review_result = await self.reviewer.review(res_synth.response, projection.coordinates)
@@ -193,17 +183,13 @@ class EcoResilienceAgent(BaseAgent):
                 "Triune Review rejected synthesis (%.2f). Integrating critique into steering.",
                 review_result.consensus_score,
             )
-            res_synth.response = (
-                f"{res_synth.response}\n\nREVIEW CRITIQUE: {review_result.final_critique}"
-            )
+            res_synth.response = f"{res_synth.response}\n\nREVIEW CRITIQUE: {review_result.final_critique}"
 
         self.state.proposed_strategy = res_synth.response
 
         # 4. STEERING PHASE (Local 4B)
         steering_prompt = f"Refine the following strategy for immediate local implementation: {res_synth.response}"
-        res_steer = await self.provider.generate(
-            model=self.model_name, prompt=steering_prompt, regime="STEERING"
-        )
+        res_steer = await self.provider.generate(model=self.model_name, prompt=steering_prompt, regime="STEERING")
 
         return res_steer.response
 
@@ -212,8 +198,6 @@ class EcoResilienceAgent(BaseAgent):
         return {
             "stability": self.state.stability_score,
             "is_stable": self.state.is_stable,
-            "coords": self.state.manifold_coords.tolist()
-            if self.state.manifold_coords is not None
-            else None,
+            "coords": self.state.manifold_coords.tolist() if self.state.manifold_coords is not None else None,
             "strategy": self.state.proposed_strategy,
         }

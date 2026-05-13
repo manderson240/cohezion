@@ -282,9 +282,7 @@ class TopologicalRouter:
             return topo
 
         # Compute persistence summary
-        summary = trajectory_persistence_summary(
-            trajectory, significance_threshold=self.cluster_threshold
-        )
+        summary = trajectory_persistence_summary(trajectory, significance_threshold=self.cluster_threshold)
 
         # Compute spectral features (Laplacian spectrum)
         spectral = self.spectral_features(trajectory)
@@ -392,15 +390,11 @@ class TopologicalRouter:
         # Routing strategy based on task complexity
         if task_complexity == "simple":
             # Simple tasks → EXPLOIT agents (stable, predictable)
-            best = self._select_by_regime(
-                topologies, [TopologicalRegime.EXPLOIT, TopologicalRegime.UNKNOWN]
-            )
+            best = self._select_by_regime(topologies, [TopologicalRegime.EXPLOIT, TopologicalRegime.UNKNOWN])
             reasoning = "Simple task → exploit agent (stable behavior)"
         elif task_complexity == "complex":
             # Complex tasks → EXPLORE agents (diverse, adaptive)
-            best = self._select_by_regime(
-                topologies, [TopologicalRegime.EXPLORE, TopologicalRegime.UNKNOWN]
-            )
+            best = self._select_by_regime(topologies, [TopologicalRegime.EXPLORE, TopologicalRegime.UNKNOWN])
             reasoning = "Complex task → explore agent (diverse behavior)"
         else:
             # Medium tasks → anyone not in PIVOT

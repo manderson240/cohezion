@@ -111,12 +111,7 @@ class PeakedCircuitSolver:
 
             for line in lines:
                 line = line.strip().replace(";", "")
-                if (
-                    not line
-                    or line.startswith("OPENQASM")
-                    or line.startswith("include")
-                    or line.startswith("qreg")
-                ):
+                if not line or line.startswith("OPENQASM") or line.startswith("include") or line.startswith("qreg"):
                     continue
 
                 # Parse CZ
@@ -147,9 +142,7 @@ class PeakedCircuitSolver:
                     theta, phi, lam = params
                     self.circ.apply_gate("U3", theta, phi, lam, q)
 
-            logger.info(
-                f"Circuit loaded manually. Qubits: {self.circ.N}, Gates: {len(self.circ.gates)}"
-            )
+            logger.info(f"Circuit loaded manually. Qubits: {self.circ.N}, Gates: {len(self.circ.gates)}")
 
         except Exception as e:
             logger.error(f"Failed to load circuit: {e}")
@@ -313,9 +306,7 @@ class PeakedCircuitSolver:
                             inplace=True,
                         )
                 except Exception:
-                    logger.error(
-                        f"Gate application failed at step {i} (Gate {name}). Target sites: {target_sites}"
-                    )
+                    logger.error(f"Gate application failed at step {i} (Gate {name}). Target sites: {target_sites}")
                     logger.error(f"Tensor Count: {len(psi_mps.tensors)}")
                     raise
 
@@ -325,9 +316,7 @@ class PeakedCircuitSolver:
 
                 # DEBUG: Check bond dimension
                 if i % 100 == 0:
-                    logger.info(
-                        f"Gate {i}: Max Bond Dim = {psi_mps.max_bond()}. Norm = {psi_mps.norm():.2e}"
-                    )
+                    logger.info(f"Gate {i}: Max Bond Dim = {psi_mps.max_bond()}. Norm = {psi_mps.norm():.2e}")
 
             logger.info(
                 f"Manifold Encoding Complete. Final Bond Dim:"

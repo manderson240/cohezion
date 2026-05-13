@@ -16,6 +16,7 @@ from __future__ import annotations
 
 import json
 import logging
+import re
 from collections.abc import Callable
 from dataclasses import dataclass
 from datetime import datetime
@@ -173,9 +174,7 @@ class BidirectionalLinkageManager:
             "obsidian_etag": link.obsidian_etag,
             "surreal_record_id": link.surreal_record_id,
             "surreal_table": link.surreal_table,
-            "surreal_timestamp": link.surreal_timestamp.isoformat()
-            if link.surreal_timestamp
-            else None,
+            "surreal_timestamp": link.surreal_timestamp.isoformat() if link.surreal_timestamp else None,
             "datamesh_entity_id": str(link.datamesh_entity_id) if link.datamesh_entity_id else None,
             "datamesh_schema_version": link.datamesh_schema_version,
             "direction": link.direction.name,
@@ -198,9 +197,7 @@ class BidirectionalLinkageManager:
             surreal_timestamp=datetime.fromisoformat(data["surreal_timestamp"])
             if data.get("surreal_timestamp")
             else None,
-            datamesh_entity_id=UUID(data["datamesh_entity_id"])
-            if data.get("datamesh_entity_id")
-            else None,
+            datamesh_entity_id=UUID(data["datamesh_entity_id"]) if data.get("datamesh_entity_id") else None,
             datamesh_schema_version=data.get("datamesh_schema_version"),
             direction=LinkDirection[data["direction"]],
             status=LinkStatus[data["status"]],
@@ -495,9 +492,7 @@ class BidirectionalLinkageManager:
         for md_file in wiki_dir.rglob("*.md"):
             content = await self._read_obsidian_file(md_file.relative_to(self.vault_path))
             if query.lower() in content.lower():
-                results.append(
-                    {"path": str(md_file), "title": md_file.stem, "snippet": content[:200] + "..."}
-                )
+                results.append({"path": str(md_file), "title": md_file.stem, "snippet": content[:200] + "..."})
 
         return results
 
@@ -508,8 +503,8 @@ class BidirectionalLinkageManager:
 
         # Use SurrealQL full-text search
         sql = f"""
-            SELECT * FROM wiki_page WHERE 
-            content @@ '{query}' OR 
+            SELECT * FROM wiki_page WHERE
+            content @@ '{query}' OR
             title @@ '{query}'
         """
 
@@ -534,9 +529,7 @@ class BidirectionalLinkageManager:
 
         for link in self.links.values():
             stats["by_status"][link.status.name] = stats["by_status"].get(link.status.name, 0) + 1
-            stats["by_direction"][link.direction.name] = (
-                stats["by_direction"].get(link.direction.name, 0) + 1
-            )
+            stats["by_direction"][link.direction.name] = stats["by_direction"].get(link.direction.name, 0) + 1
 
             if link.status == LinkStatus.STALE:
                 stats["stale_links"] += 1

@@ -359,10 +359,7 @@ class ThermalTrendAnalyzer:
             "total_records": sum(len(v) for v in self.history.values()),
             "history_per_type": {k: len(v) for k, v in self.history.items()},
             "throttle_events": sum(
-                1
-                for metrics_list in self.history.values()
-                for m in metrics_list
-                if m.throttle_detected
+                1 for metrics_list in self.history.values() for m in metrics_list if m.throttle_detected
             ),
             "last_prediction": self._last_prediction,
         }

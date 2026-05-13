@@ -115,7 +115,10 @@ class ModelCardRegistry:
             supports_thinking=True,
             supports_reasoning=True,
             system_templates={
-                "reasoning": "You are an expert analyst with strong reasoning capabilities. Provide structured, thorough responses.",
+                "reasoning": (
+                    "You are an expert analyst with strong reasoning capabilities."
+                    " Provide structured, thorough responses."
+                ),
                 "creative": "You are a creative assistant with good judgment. Balance creativity with accuracy.",
                 "coding": "You are a coding specialist. Ensure all code is complete and syntactically correct.",
                 "default": "You are a helpful, harmless, and honest assistant.",
@@ -280,9 +283,7 @@ class ContextEngineer:
 
         return base
 
-    def _generic_prompt(
-        self, model_id: str, user_prompt: str, system: str | None
-    ) -> dict[str, Any]:
+    def _generic_prompt(self, model_id: str, user_prompt: str, system: str | None) -> dict[str, Any]:
         """Fallback for unknown models."""
         return {
             "model": model_id,
@@ -435,9 +436,7 @@ class AutoHarness:
         variant = payload.copy()
 
         # Vary temperature
-        variant["temperature"] = max(
-            0.0, min(1.0, payload["temperature"] + random.uniform(-0.1, 0.1))
-        )
+        variant["temperature"] = max(0.0, min(1.0, payload["temperature"] + random.uniform(-0.1, 0.1)))
 
         # Vary max_tokens for speed testing
         if random.random() < 0.5:
@@ -451,28 +450,22 @@ class AutoHarness:
             return
 
         # Sort by quality and speed
-        by_quality = sorted(
-            self._quality_history, key=lambda x: x["quality"].get("overall", 0), reverse=True
-        )
-        by_speed = sorted(
-            self._quality_history, key=lambda x: x["tokens"] / max(x["latency_ms"], 1), reverse=True
-        )
+        by_quality = sorted(self._quality_history, key=lambda x: x["quality"].get("overall", 0), reverse=True)
+        by_speed = sorted(self._quality_history, key=lambda x: x["tokens"] / max(x["latency_ms"], 1), reverse=True)
 
         # Extract best for each goal
         if by_quality:
             best_q = by_quality[0]
-            self._optimal_params.setdefault("default", {})["temperature_quality"] = best_q[
-                "params"
-            ].get("temperature", 0.7)
+            self._optimal_params.setdefault("default", {})["temperature_quality"] = best_q["params"].get(
+                "temperature", 0.7
+            )
 
         if by_speed:
             best_s = by_speed[0]
-            self._optimal_params.setdefault("default", {})["temperature_speed"] = best_s[
-                "params"
-            ].get("temperature", 0.7)
-            self._optimal_params["default"]["max_tokens_speed"] = best_s["params"].get(
-                "max_tokens", 512
+            self._optimal_params.setdefault("default", {})["temperature_speed"] = best_s["params"].get(
+                "temperature", 0.7
             )
+            self._optimal_params["default"]["max_tokens_speed"] = best_s["params"].get("max_tokens", 512)
 
         # Clear old history
         self._quality_history = self._quality_history[-20:]

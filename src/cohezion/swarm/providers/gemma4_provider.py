@@ -35,7 +35,7 @@ class Gemma4Provider(OllamaProvider):
 
     def __init__(self, config: dict[str, Any] | None = None):
         gemma_config = {
-            "timeout": 300,
+            "timeout": 120,
             "thinking_mode": True,
             "context_window": 256000,
         }
@@ -53,7 +53,7 @@ class Gemma4Provider(OllamaProvider):
         # Load Lemonade Hardware Mapping
         self.hw_config = self._load_hw_config()
 
-    def _load_hw_config(self) -> Dict[str, Any]:
+    def _load_hw_config(self) -> dict[str, Any]:
         """Load the Lemonade silicon mapping config."""
         config_path = Path("src/cohezion/swarm/lemonade_config.yaml")
         if config_path.exists():
@@ -99,9 +99,7 @@ class Gemma4Provider(OllamaProvider):
         # Context-Sensing Guard: Prevent local OOM for huge contexts
         current_ctx = len(prompt) // 4
         if current_ctx > 64000 and "cloud" not in model:
-            logger.warning(
-                "Massive context detected (%d tokens). Suggesting cloud routing.", current_ctx
-            )
+            logger.warning("Massive context detected (%d tokens). Suggesting cloud routing.", current_ctx)
 
         target_url = self._get_target_url(model)
 
@@ -136,9 +134,7 @@ class Gemma4Provider(OllamaProvider):
         # SOTA OPTIMIZATION: Fused MXFP4 Block-Scaling (E8M0)
         # Only apply to 26B MoE on Local GPU to maximize la-phase efficiency
         # Check for benchmark override or default to True
-        use_mxfp4 = (
-            self.config.get("benchmark_mxfp4", True) if "benchmark_mxfp4" in self.config else True
-        )
+        use_mxfp4 = self.config.get("benchmark_mxfp4", True) if "benchmark_mxfp4" in self.config else True
         if use_mxfp4 and "26b-moe" in model and "gpu" in target_url:
             payload["options"]["quantization"] = "mxfp4_block_scaled"
             payload["options"]["fused_kernel"] = True
@@ -171,7 +167,7 @@ class Gemma4Provider(OllamaProvider):
 
                 data = await response.json()
                 message = data.get("message", {})
-                response_text = message.get("content", "")
+                response_text = message.get("content", "") or data.get("response", "")
 
                 thinking_text = message.get("thinking", "") or data.get("thinking", "")
                 if thinking_text:
@@ -196,8 +192,7 @@ class Gemma4Provider(OllamaProvider):
                         "hardware_target": target_url,
                         "anchor_id": anchor_id,
                         "cache_pruned": regime in ("SENSING", "SYNTHESIS"),
-                        "mxfp4_fused": "mxfp4_block_scaled"
-                        in payload["options"].get("quantization", ""),
+                        "mxfp4_fused": "mxfp4_block_scaled" in payload["options"].get("quantization", ""),
                     },
                 )
 

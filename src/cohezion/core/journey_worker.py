@@ -99,9 +99,7 @@ class JourneyWorker:
 
         # 3. Active Healing Trigger
         if abs(event.coherence - 0.5) > 0.3:  # Threshold from spec
-            logger.warning(
-                "🚨 HIHO DRIFT DETECTED: Triggering Healing System for %s", event.journey_id
-            )
+            logger.warning("🚨 HIHO DRIFT DETECTED: Triggering Healing System for %s", event.journey_id)
             try:
                 from cohezion.healing import get_healing_system
 

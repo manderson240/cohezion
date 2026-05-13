@@ -257,9 +257,7 @@ class TestBenchmarkRunnerVaultAdversarial:
         runner_with_vault.mcp_client.vault_write.side_effect = Exception("Vault server down")
         from cohezion.integrations.agentverse import BenchmarkResult
 
-        runner_with_vault.results = [
-            BenchmarkResult(task="t", skill="s", success=True, metrics={"coherence": 0.5})
-        ]
+        runner_with_vault.results = [BenchmarkResult(task="t", skill="s", success=True, metrics={"coherence": 0.5})]
 
         path = runner_with_vault.persist_results()
         assert path is not None

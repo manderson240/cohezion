@@ -53,9 +53,7 @@ class MockRegimeProvider(Gemma4Provider):
             )
         elif regime == "STEERING":
             text = (
-                "Action: Begin dredging."
-                if is_first_pass
-                else "Action: Deploy bio-mimetic seed pods at coordinate X."
+                "Action: Begin dredging." if is_first_pass else "Action: Deploy bio-mimetic seed pods at coordinate X."
             )
         else:
             text = "General response."

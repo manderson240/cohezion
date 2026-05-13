@@ -109,10 +109,7 @@ class DistributedPPOTrainer:
             )
 
         torch.cuda.set_device(self.config.local_rank)
-        logger.info(
-            f"Initialized rank {self.config.rank}/{self.config.world_size} "
-            f"on GPU {self.config.local_rank}"
-        )
+        logger.info(f"Initialized rank {self.config.rank}/{self.config.world_size} on GPU {self.config.local_rank}")
 
     def wrap_models(self, policy: torch.nn.Module, value: torch.nn.Module) -> None:
         """Wrap models for distributed training."""
@@ -175,16 +172,8 @@ class DistributedPPOTrainer:
         checkpoint_path = self.config.checkpoint_dir / f"checkpoint_{tag}.pt"
 
         # Unwrap DDP/FSDP to get original model state
-        policy_state = (
-            self.policy.module.state_dict()
-            if hasattr(self.policy, "module")
-            else self.policy.state_dict()
-        )
-        value_state = (
-            self.value.module.state_dict()
-            if hasattr(self.value, "module")
-            else self.value.state_dict()
-        )
+        policy_state = self.policy.module.state_dict() if hasattr(self.policy, "module") else self.policy.state_dict()
+        value_state = self.value.module.state_dict() if hasattr(self.value, "module") else self.value.state_dict()
 
         checkpoint = {
             "policy": policy_state,

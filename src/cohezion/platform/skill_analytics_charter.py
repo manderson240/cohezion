@@ -110,9 +110,7 @@ class CharterAlignedSkillAnalytics:
             compound_patterns=compound_patterns,
         )
 
-    async def propose_skill_refinement(
-        self, skill_name: str, reason: str, approval_callback=None
-    ) -> bool:
+    async def propose_skill_refinement(self, skill_name: str, reason: str, approval_callback=None) -> bool:
         """
         Propose skill refinement using Observable AI + EDL consensus.
 

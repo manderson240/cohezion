@@ -179,9 +179,7 @@ class CompoundMCPSessionManager:
         Returns:
             Server state object
         """
-        server_state = MCPServerState(
-            server_name=server_name, port=port, status="registered", start_time=time.time()
-        )
+        server_state = MCPServerState(server_name=server_name, port=port, status="registered", start_time=time.time())
 
         self.state.servers[server_name] = server_state
 

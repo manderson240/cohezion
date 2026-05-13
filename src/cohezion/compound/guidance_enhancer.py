@@ -145,14 +145,11 @@ class GuidanceEnhancer:
 
         # Compute confidence (higher if many high-quality results)
         high_quality_count = sum(
-            1
-            for r in trajectory_results
-            if r.coherence >= self.high_quality_threshold and r.success
+            1 for r in trajectory_results if r.coherence >= self.high_quality_threshold and r.success
         )
         confidence = min(
             1.0,
-            (high_quality_count / max(1, len(trajectory_results)))
-            * (avg_coherence * 0.5 + avg_phi_score * 0.5),
+            (high_quality_count / max(1, len(trajectory_results))) * (avg_coherence * 0.5 + avg_phi_score * 0.5),
         )
 
         logger.info(
@@ -232,24 +229,19 @@ class GuidanceEnhancer:
 
         # High failure rate
         if len(failed) >= 3:
-            warnings.append(
-                f"Warning: {len(failed)} similar tasks had poor outcomes. Proceed with caution."
-            )
+            warnings.append(f"Warning: {len(failed)} similar tasks had poor outcomes. Proceed with caution.")
 
         # Low smoothness (chaotic trajectories)
         chaotic = [r for r in failed if r.trajectory_smoothness < 0.3]
         if chaotic:
             warnings.append(
-                f"{len(chaotic)} similar tasks had chaotic trajectories "
-                f"(high variance across fabrics). Plan carefully."
+                f"{len(chaotic)} similar tasks had chaotic trajectories (high variance across fabrics). Plan carefully."
             )
 
         # Low convergence (didn't reach HIHO)
         divergent = [r for r in failed if r.trajectory_convergence < 0.3]
         if divergent:
-            warnings.append(
-                f"{len(divergent)} similar tasks failed to converge. Monitor coherence closely."
-            )
+            warnings.append(f"{len(divergent)} similar tasks failed to converge. Monitor coherence closely.")
 
         return warnings[:2]  # Top 2 warnings
 

@@ -136,9 +136,7 @@ class IntakeSpecialist:
             user_id=user_id,
         )
 
-        logger.info(
-            f"Session ready: {self.session_id[:8]}... (cache warmed with {cache_entries} patterns)"
-        )
+        logger.info(f"Session ready: {self.session_id[:8]}... (cache warmed with {cache_entries} patterns)")
 
         return self.greeting
 
@@ -202,10 +200,7 @@ class IntakeSpecialist:
             timeout_seconds=300.0,
         )
 
-        logger.info(
-            f"Created task: {task.task_id[:8]}... "
-            f"(op={operation_type}, skills={available_skill_names})"
-        )
+        logger.info(f"Created task: {task.task_id[:8]}... (op={operation_type}, skills={available_skill_names})")
 
         return task
 

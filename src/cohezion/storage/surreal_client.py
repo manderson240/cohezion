@@ -66,9 +66,7 @@ class SurrealDBClient:
                     self.connected = True
                     logger.info("SurrealDB connected at %s", self.endpoint)
                     return
-                logger.warning(
-                    "SurrealDB probe returned HTTP %d: %.120s", resp.status_code, resp.text
-                )
+                logger.warning("SurrealDB probe returned HTTP %d: %.120s", resp.status_code, resp.text)
         except Exception as e:
             logger.warning("SurrealDB probe failed: %s — inserts will be no-ops", e)
         self.connected = False
@@ -306,9 +304,7 @@ class SurrealDBClient:
             return {"journey": [], "universe_shifts": [], "correlations": []}
 
         safe_id = journey_id.replace(":", "_").replace(" ", "_")[:64]
-        result = await self._sql(
-            f"SELECT * FROM journey_point WHERE agent_id = '{safe_id}' LIMIT 100;"
-        )
+        result = await self._sql(f"SELECT * FROM journey_point WHERE agent_id = '{safe_id}' LIMIT 100;")
         rows = result[0].get("result", []) if result else []
         return {"journey": rows, "universe_shifts": [], "correlations": []}
 

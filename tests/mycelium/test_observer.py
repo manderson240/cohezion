@@ -36,12 +36,10 @@ index 12345..67890 100644
 @@ -10,3 +10,4 @@
  def existing_func():
      pass
- 
+
 +def new_func():
 ++    return "hello"
 """
-        context = observer.extract_diff_context(
-            "src/cohezion/universe/engine.py", since_commit="HEAD~1"
-        )
+        context = observer.extract_diff_context("src/cohezion/universe/engine.py", since_commit="HEAD~1")
         assert "new_func" in context
         assert 'return "hello"' in context

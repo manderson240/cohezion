@@ -10,6 +10,7 @@ and the mutation of PRIME skills.
 
 from __future__ import annotations
 
+import asyncio
 import logging
 from dataclasses import dataclass
 from typing import Any
@@ -41,9 +42,7 @@ class DistillationEngine:
     def __init__(self, mcp_client: Any = None):
         self.mcp_client = mcp_client
 
-    async def distill_regime_axioms(
-        self, regime: str, min_coherence: float = 0.8
-    ) -> list[RegimeAxiom]:
+    async def distill_regime_axioms(self, regime: str, min_coherence: float = 0.8) -> list[RegimeAxiom]:
         """
         Queries SurrealDB for high-coherence executions in the given regime
         and synthesizes axioms based on common patterns.
@@ -115,8 +114,7 @@ class DistillationEngine:
             def _write_axiom():
                 content = prime_file.read_text()
                 new_content = (
-                    content
-                    + f"\n\n## Distilled Insight\n{mutation_text}\n(Confidence: {axiom.confidence:.2%})"
+                    content + f"\n\n## Distilled Insight\n{mutation_text}\n(Confidence: {axiom.confidence:.2%})"
                 )
                 prime_file.write_text(new_content)
                 return True

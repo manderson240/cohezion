@@ -233,9 +233,7 @@ async def test_O3b_nested_orchestrator_honors_parent_budget():
         result = await parent.run("test")
 
     # Only parent-t0 + inner-t0 fired; inner-t1 was blocked by the propagated cap.
-    assert m.await_count == 2, (
-        f"inner orchestrator must honor parent budget; got {m.await_count} calls (expected 2)"
-    )
+    assert m.await_count == 2, f"inner orchestrator must honor parent budget; got {m.await_count} calls (expected 2)"
     # Parent reports budget-aware structure: both tiers recorded.
     assert len(result.tier_path) == 2
 

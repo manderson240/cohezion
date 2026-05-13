@@ -98,9 +98,7 @@ class UnifiedBenchmarkOrchestrator:
         """Run coding benchmark."""
         n_tasks = 10 if quick else 50
         try:
-            results = await self.coding.run_full_benchmark(
-                executor=executor, n_tasks=n_tasks, parallel=True
-            )
+            results = await self.coding.run_full_benchmark(executor=executor, n_tasks=n_tasks, parallel=True)
             return results
         except Exception as e:
             logger.error(f"Coding benchmark failed: {e}")

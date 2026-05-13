@@ -30,9 +30,7 @@ class RankingStrategy(Enum):
 
     COST_OPTIMIZED = "cost_optimized"  # Prioritize cost (cost×0.5)
     QUALITY_FIRST = "quality_first"  # Prioritize quality (coherence×0.6)
-    BALANCED = (
-        "balanced"  # Balanced weighting (coherence×0.4 + cost×0.3 + latency×0.2 + freshness×0.1)
-    )
+    BALANCED = "balanced"  # Balanced weighting (coherence×0.4 + cost×0.3 + latency×0.2 + freshness×0.1)
 
 
 @dataclass
@@ -128,10 +126,7 @@ class ModelRanker:
         # Verify weights sum to approximately 1.0
         total_weight = sum([coherence_weight, cost_weight, latency_weight, freshness_weight])
         if not (0.9 <= total_weight <= 1.1):
-            logger.warning(
-                f"Model ranking weights sum to {total_weight}, expected ~1.0. "
-                f"Scores will be normalized."
-            )
+            logger.warning(f"Model ranking weights sum to {total_weight}, expected ~1.0. Scores will be normalized.")
 
         # Cache for coherence scores
         self._coherence_cache: dict[str, tuple[float, float]] = {}  # model -> (score, timestamp)
@@ -375,9 +370,7 @@ class ModelRanker:
         """
         return {model: self.DEFAULT_LATENCY.get(model, 100.0) for model in models}
 
-    def update_coherence_score(
-        self, model: str, coherence_score: float, timestamp: float | None = None
-    ) -> None:
+    def update_coherence_score(self, model: str, coherence_score: float, timestamp: float | None = None) -> None:
         """Update cached coherence score for a model.
 
         Args:

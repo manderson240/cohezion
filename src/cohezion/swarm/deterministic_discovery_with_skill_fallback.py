@@ -315,9 +315,7 @@ class BalancedModelDiscovery:
         for model in all_models:
             if "capabilities" not in model or not model["capabilities"]:
                 # Fallback to skill-based inference
-                model["capabilities"] = self.heuristic.infer_capabilities_fallback(
-                    model.get("name", "")
-                )
+                model["capabilities"] = self.heuristic.infer_capabilities_fallback(model.get("name", ""))
                 model["capability_method"] = "heuristic_inference"
 
         # Deduplicate
@@ -347,10 +345,7 @@ class BalancedModelDiscovery:
             else:
                 # Prefer deterministic over heuristic
                 existing = seen[name]
-                if (
-                    existing.get("parsing_method") == "heuristic"
-                    and model.get("parsing_method") == "deterministic"
-                ):
+                if existing.get("parsing_method") == "heuristic" and model.get("parsing_method") == "deterministic":
                     seen[name] = model
 
         return list(seen.values())

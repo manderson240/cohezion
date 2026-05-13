@@ -139,9 +139,7 @@ def _ucb1_select(tree: dict) -> str:
 
     # 1. Gather all 'wins' (nodes with wins > 0)
     win_vectors = [
-        np.array(node["z_vector"])
-        for node in tree["nodes"].values()
-        if node.get("wins", 0) > 0 and "z_vector" in node
+        np.array(node["z_vector"]) for node in tree["nodes"].values() if node.get("wins", 0) > 0 and "z_vector" in node
     ]
 
     # Simple index selection for unvisited
@@ -307,14 +305,10 @@ class AutoresearchDriver:
                 now = time.time()
                 if now - last_heartbeat > 300:  # Log every 5 mins
                     elapsed_min = (now - start_poll) / 60
-                    logger.info(
-                        f"  [Kaggle Heartbeat] Still polling {kernel_id}... ({elapsed_min:.1f}m elapsed)"
-                    )
+                    logger.info(f"  [Kaggle Heartbeat] Still polling {kernel_id}... ({elapsed_min:.1f}m elapsed)")
                     last_heartbeat = now
 
-                status_proc = subprocess.run(
-                    ["kaggle", "kernels", "status", kernel_id], capture_output=True, text=True
-                )
+                status_proc = subprocess.run(["kaggle", "kernels", "status", kernel_id], capture_output=True, text=True)
                 status = status_proc.stdout
 
                 if "complete" in status.lower():
@@ -380,11 +374,15 @@ class AutoresearchDriver:
                 )
                 logs = proc.stdout + proc.stderr
                 metric_val = _extract_metric(logs, self.metric_name)
-                status = (
-                    "improvement"
-                    if (self._baseline is None or metric_val > self._baseline)
-                    else "regression"
-                )
+                if metric_val is None:
+                    metric_val, status = float("nan"), "error"
+                else:
+                    if self._baseline is None:
+                        status = "improvement"
+                    elif self.direction == "minimize":
+                        status = "improvement" if metric_val < self._baseline else "regression"
+                    else:
+                        status = "improvement" if metric_val > self._baseline else "regression"
             except Exception as e:
                 metric_val, status, logs = float("nan"), "error", str(e)
 
@@ -426,8 +424,6 @@ class AutoresearchDriver:
             _update_tree(tree, outcome, reward)
             _save_tree(self.target, tree)
             results.append(outcome)
-            logger.info(
-                f"[autoresearch] {outcome.status} — {self.metric_name}={outcome.metric_value:.4f}"
-            )
+            logger.info(f"[autoresearch] {outcome.status} — {self.metric_name}={outcome.metric_value:.4f}")
 
         return results

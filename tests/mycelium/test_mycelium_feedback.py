@@ -10,7 +10,6 @@ These tests codify the findings from autoresearch experiments E55-E62:
 
 from __future__ import annotations
 
-import asyncio
 import pytest
 
 from cohezion.swarm.quadrature_nexus import QuadratureNexus, QuadratureProposal, VoiceType
@@ -39,20 +38,22 @@ def _simple_skill(consensus: float, voice_mean: float = 0.725) -> str:
       - consensus=X.XXX from embedded entry content
       - '{voice}: mean_score=X.XXXX' for per-voice adjustments
     """
-    return "\n".join([
-        "# EVO_DELIBERATION Skill (Auto-Synthesized from Nexus Journeys)",
-        "",
-        "## Per-Voice Mean Scores (E6 feedback)",
-        f"- architect: mean_score={voice_mean:.4f}",
-        f"- engineer: mean_score={voice_mean:.4f}",
-        f"- ethicist: mean_score={voice_mean:.4f}",
-        f"- resource: mean_score={voice_mean:.4f}",
-        "",
-        "## Extracted Patterns",
-        f"- EVO test: evo_coherence=0.450 consensus={consensus:.4f} approved=1 "
-        f"voice_scores=[architect={voice_mean:.3f} engineer={voice_mean:.3f} "
-        f"ethicist={voice_mean:.3f} resource={voice_mean:.3f}] lifetime=10 marks=[directive]",
-    ])
+    return "\n".join(
+        [
+            "# EVO_DELIBERATION Skill (Auto-Synthesized from Nexus Journeys)",
+            "",
+            "## Per-Voice Mean Scores (E6 feedback)",
+            f"- architect: mean_score={voice_mean:.4f}",
+            f"- engineer: mean_score={voice_mean:.4f}",
+            f"- ethicist: mean_score={voice_mean:.4f}",
+            f"- resource: mean_score={voice_mean:.4f}",
+            "",
+            "## Extracted Patterns",
+            f"- EVO test: evo_coherence=0.450 consensus={consensus:.4f} approved=1 "
+            f"voice_scores=[architect={voice_mean:.3f} engineer={voice_mean:.3f} "
+            f"ethicist={voice_mean:.3f} resource={voice_mean:.3f}] lifetime=10 marks=[directive]",
+        ]
+    )
 
 
 class TestApplyMyceliumFeedbackInit:
@@ -120,10 +121,7 @@ class TestApplyMyceliumFeedbackCompounding:
         prev_cal = 0.0
 
         for cycle in range(5):
-            cal_per_voice = (
-                next(iter(nexus._mycelium_calibration.values()))
-                if nexus._mycelium_calibration else 0.0
-            )
+            cal_per_voice = next(iter(nexus._mycelium_calibration.values())) if nexus._mycelium_calibration else 0.0
             current_consensus = baseline_consensus + cal_per_voice
             current_voice_mean = baseline_consensus + cal_per_voice
             skill = _simple_skill(consensus=current_consensus, voice_mean=current_voice_mean)
@@ -147,9 +145,7 @@ class TestApplyMyceliumFeedbackCompounding:
 
         final_cal = next(iter(nexus._mycelium_calibration.values()))
         # After 30 cycles at lr=1.0, cal should be within 0.2% of gap_0
-        assert abs(final_cal - gap_0) < 0.002, (
-            f"Calibration {final_cal:.5f} did not converge toward gap_0={gap_0}"
-        )
+        assert abs(final_cal - gap_0) < 0.002, f"Calibration {final_cal:.5f} did not converge toward gap_0={gap_0}"
 
 
 class TestApplyMyceliumFeedbackE5Goal:
@@ -180,7 +176,7 @@ class TestApplyMyceliumFeedbackE5Goal:
     @pytest.mark.asyncio
     async def test_full_pipeline_lifts_deliberation(self) -> None:
         """E62: Full E3/E6 pipeline (real EVO journeys → synthesis → feedback) improves consensus."""
-        from cohezion.learning.mycelium_registry import JournalEntry, MyceliumRegistry
+        from cohezion.learning.mycelium_registry import MyceliumRegistry
 
         nexus = QuadratureNexus()
         proposal = QuadratureProposal(
@@ -198,12 +194,14 @@ class TestApplyMyceliumFeedbackE5Goal:
             result = await nexus.deliberate(proposal)
             baseline_scores.append(result.consensus_score)
             evo = nexus._evo_registry.get(proposal.action)
-            real_metadata.append({
-                "evo_biography": evo.to_dict() if evo else {},
-                "voice_scores": {r.voice.value.lower(): r.approval_score for r in result.responses},
-                "consensus_score": result.consensus_score,
-                "approved": result.approved,
-            })
+            real_metadata.append(
+                {
+                    "evo_biography": evo.to_dict() if evo else {},
+                    "voice_scores": {r.voice.value.lower(): r.approval_score for r in result.responses},
+                    "consensus_score": result.consensus_score,
+                    "approved": result.approved,
+                }
+            )
 
         mean_baseline = sum(baseline_scores) / len(baseline_scores)
 
@@ -232,6 +230,4 @@ class TestApplyMyceliumFeedbackE5Goal:
             post_scores.append(result.consensus_score)
 
         mean_post = sum(post_scores) / len(post_scores)
-        assert mean_post > mean_baseline, (
-            f"E62 regression: post={mean_post:.4f} ≤ baseline={mean_baseline:.4f}"
-        )
+        assert mean_post > mean_baseline, f"E62 regression: post={mean_post:.4f} ≤ baseline={mean_baseline:.4f}"

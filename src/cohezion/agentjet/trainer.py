@@ -78,9 +78,7 @@ class AgentJetTrainer:
         self._workflow = workflow  # Lazily resolved; not required for training
         self.judger = judger if judger is not None else PhiScoreJudger()
         self.reader = reader if reader is not None else JourneyTaskReader()
-        self.context_manager = (
-            context_manager if context_manager is not None else OllamaContextManager()
-        )
+        self.context_manager = context_manager if context_manager is not None else OllamaContextManager()
         self.backend: Literal["agentjet", "llamafactory"] = backend
 
     async def train(
@@ -249,8 +247,7 @@ class AgentJetTrainer:
                 lock = await client.acquire_training_lock(model, required_gb, timeout_s=30.0)
                 if lock is None:
                     raise ResourceUnavailableError(
-                        f"Platform daemon denied training lock for {model} "
-                        f"(need {required_gb:.1f} GiB)"
+                        f"Platform daemon denied training lock for {model} (need {required_gb:.1f} GiB)"
                     )
                 logger.info(
                     "AgentJetTrainer: acquired training lock %s (%.1f GiB reserved)",
@@ -276,8 +273,7 @@ class AgentJetTrainer:
                     pass
 
             raise OOMRiskError(
-                f"OOM risk: need {headroom_required:.1f} GiB (with 20% headroom), "
-                f"have {available:.1f} GiB available"
+                f"OOM risk: need {headroom_required:.1f} GiB (with 20% headroom), have {available:.1f} GiB available"
             )
 
         logger.info(
@@ -382,8 +378,5 @@ class AgentJetTrainer:
         Not yet implemented (AMD ROCm support for verl is pending).
         Falls back to llamafactory until Phase 3 ships.
         """
-        logger.warning(
-            "AgentJet RL backend (verl/PPO) is not yet implemented for AMD. "
-            "Falling back to llamafactory."
-        )
+        logger.warning("AgentJet RL backend (verl/PPO) is not yet implemented for AMD. Falling back to llamafactory.")
         return await self._run_llamafactory(model, tasks, skill_domain, epochs)

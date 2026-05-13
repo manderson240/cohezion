@@ -16,6 +16,7 @@ from collections.abc import AsyncIterator
 from dataclasses import dataclass, field
 from datetime import datetime
 from enum import Enum, auto
+from pathlib import Path
 from typing import Any
 from uuid import UUID, uuid4
 
@@ -122,9 +123,7 @@ class KnowledgeNode:
 class KnowledgeGraphLayer:
     """Graph layer on top of DataMesh for knowledge relationships."""
 
-    def __init__(
-        self, datamesh: Any, surreal_client: Any | None = None, flume_encoder: Any | None = None
-    ):
+    def __init__(self, datamesh: Any, surreal_client: Any | None = None, flume_encoder: Any | None = None):
         self.datamesh = datamesh
         self.surreal = surreal_client
         self.flume = flume_encoder
@@ -170,15 +169,9 @@ class KnowledgeGraphLayer:
             entity_type=record["entity_type"],
             content_summary=record["content_summary"],
             coherence=record.get("coherence", 0.5),
-            spin_vector=tuple(record["spin_vector"])
-            if "spin_vector" in record
-            else (0.0, 0.0, 0.0),
-            manifold_position=torch.tensor(record["manifold_position"])
-            if "manifold_position" in record
-            else None,
-            flume_embedding=torch.tensor(record["flume_embedding"])
-            if "flume_embedding" in record
-            else None,
+            spin_vector=tuple(record["spin_vector"]) if "spin_vector" in record else (0.0, 0.0, 0.0),
+            manifold_position=torch.tensor(record["manifold_position"]) if "manifold_position" in record else None,
+            flume_embedding=torch.tensor(record["flume_embedding"]) if "flume_embedding" in record else None,
             obsidian_path=record.get("obsidian_path"),
             surreal_record_id=record["id"],
             mirix_memory_id=record.get("mirix_memory_id"),
@@ -197,9 +190,7 @@ class KnowledgeGraphLayer:
             spin_alignment=record.get("spin_alignment", 0.0),
             manifold_distance=record.get("manifold_distance"),
             created_at=datetime.fromisoformat(record["created_at"]),
-            valid_until=datetime.fromisoformat(record["valid_until"])
-            if "valid_until" in record
-            else None,
+            valid_until=datetime.fromisoformat(record["valid_until"]) if "valid_until" in record else None,
             confidence=record.get("confidence", 1.0),
             source_system=record["source_system"],
             evidence_refs=record.get("evidence_refs", []),
@@ -239,9 +230,7 @@ class KnowledgeGraphLayer:
             entity_type=entity_type,
             content_summary=content[:500],
             coherence=physics_context.get("coherence", 0.5) if physics_context else 0.5,
-            spin_vector=physics_context.get("spin", (0.0, 1.0, 0.0))
-            if physics_context
-            else (0.0, 1.0, 0.0),
+            spin_vector=physics_context.get("spin", (0.0, 1.0, 0.0)) if physics_context else (0.0, 1.0, 0.0),
             manifold_position=physics_context.get("manifold_pos") if physics_context else None,
             flume_embedding=flume_emb,
             obsidian_path=None,
@@ -269,12 +258,8 @@ class KnowledgeGraphLayer:
             "content_summary": node.content_summary,
             "coherence": node.coherence,
             "spin_vector": list(node.spin_vector),
-            "manifold_position": node.manifold_position.tolist()
-            if node.manifold_position is not None
-            else None,
-            "flume_embedding": node.flume_embedding.tolist()
-            if node.flume_embedding is not None
-            else None,
+            "manifold_position": node.manifold_position.tolist() if node.manifold_position is not None else None,
+            "flume_embedding": node.flume_embedding.tolist() if node.flume_embedding is not None else None,
             "created_at": node.created_at.isoformat(),
             "updated_at": node.updated_at.isoformat(),
         }
@@ -341,7 +326,7 @@ class KnowledgeGraphLayer:
         """Persist edge to SurrealDB as graph relation."""
         sql = f"""
         RELATE {edge.source_id}->knowledge_edge->{edge.target_id}
-        SET 
+        SET
             relation = '{edge.relation.name}',
             coherence_strength = {edge.coherence_strength},
             spin_alignment = {edge.spin_alignment},
@@ -393,9 +378,7 @@ class KnowledgeGraphLayer:
             if not current_level:
                 break
 
-    async def find_hiho_stable_neighbors(
-        self, node_id: str, tolerance: float = 0.1
-    ) -> list[KnowledgeNode]:
+    async def find_hiho_stable_neighbors(self, node_id: str, tolerance: float = 0.1) -> list[KnowledgeNode]:
         """Find neighbors at HIHO stability (coherence ≈ 0.5)."""
         neighbors = []
 
@@ -486,9 +469,7 @@ class KnowledgeGraphLayer:
                 return node_id
         return ""
 
-    def _find_edge(
-        self, source_id: str, target_id: str, relation: RelationType
-    ) -> KnowledgeEdge | None:
+    def _find_edge(self, source_id: str, target_id: str, relation: RelationType) -> KnowledgeEdge | None:
         """Find existing edge matching criteria."""
         for edge_id in self._edge_index.get(source_id, []):
             edge = self.edges.get(edge_id)
@@ -521,19 +502,14 @@ class KnowledgeGraphLayer:
             elif edge.relation in [RelationType.FLOWS_INTO]:
                 style = "dotted"
 
-            lines.append(
-                f'    "{edge.source_id}" -> "{edge.target_id}" '
-                f'[label="{edge.relation.name}", style={style}];'
-            )
+            lines.append(f'    "{edge.source_id}" -> "{edge.target_id}" [label="{edge.relation.name}", style={style}];')
 
         lines.append("}")
 
         output_path.write_text("\n".join(lines))
         logger.info(f"Exported graph to {output_path}")
 
-    async def query_subgraph(
-        self, center_node_id: str, radius: int = 2, min_confidence: float = 0.5
-    ) -> dict[str, Any]:
+    async def query_subgraph(self, center_node_id: str, radius: int = 2, min_confidence: float = 0.5) -> dict[str, Any]:
         """Extract subgraph around center node."""
         nodes = {center_node_id: self.nodes.get(center_node_id)}
         edges = []

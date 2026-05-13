@@ -31,9 +31,7 @@ class TestFluxAggregator:
     async def test_multiple_providers_merged(self):
         vault_blocks = [FluxBlock(content="vault A", source=FluxSource.VAULT, relevance_score=0.9)]
         cache_blocks = [FluxBlock(content="cache B", source=FluxSource.CACHE, relevance_score=0.8)]
-        history_blocks = [
-            FluxBlock(content="history C", source=FluxSource.HISTORY, relevance_score=0.7)
-        ]
+        history_blocks = [FluxBlock(content="history C", source=FluxSource.HISTORY, relevance_score=0.7)]
 
         agg = FluxAggregator(
             [
@@ -82,8 +80,7 @@ class TestFluxAggregator:
     @pytest.mark.asyncio
     async def test_top_k_limit(self):
         blocks = [
-            FluxBlock(content=f"block {i}", source=FluxSource.VAULT, relevance_score=1.0 - i * 0.1)
-            for i in range(10)
+            FluxBlock(content=f"block {i}", source=FluxSource.VAULT, relevance_score=1.0 - i * 0.1) for i in range(10)
         ]
         agg = FluxAggregator([MockProvider(FluxSource.VAULT, blocks)])
         ctx = await agg.get_context("test", top_k=3)
@@ -144,9 +141,7 @@ class TestFluxAggregator:
             async def get_context(self, query, top_k=5, **kwargs):
                 raise ConnectionError("DB down")
 
-        good_blocks = [
-            FluxBlock(content="still works", source=FluxSource.VAULT, relevance_score=0.9)
-        ]
+        good_blocks = [FluxBlock(content="still works", source=FluxSource.VAULT, relevance_score=0.9)]
         agg = FluxAggregator(
             [
                 FailingProvider(),

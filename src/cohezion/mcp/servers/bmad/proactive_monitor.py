@@ -403,10 +403,10 @@ from _bmad.core.observability.metrics_collector import MetricsCollector
 
 class RepositoryMetricsCollector:
     '''Collects and routes RepositoryMetrics to BMad observability.'''
-    
+
     def __init__(self, collector: MetricsCollector):
         self.collector = collector
-    
+
     def record(self, metrics: RepositoryMetrics):
         '''Route repository metrics to BMad observability.'''
         self.collector.record(
@@ -449,10 +449,14 @@ class RepositoryMetricsCollector:
 
         # Add batch tasks if not present
         new_tasks = [
-            "repo-batch-create,Repository Batch Create,Create multiple entities in batch,repository,high,repository-batch-operations",
-            "repo-batch-get,Repository Batch Get,Retrieve multiple entities in batch,repository,high,repository-batch-operations",
-            "repo-metrics-collect,Collect Repository Metrics,Collect and route RepositoryMetrics,observability,medium,repository-observability",
-            "repo-adversarial-review,Adversarial Repository Review,8-perspective code review,quality,high,adversarial-review",
+            "repo-batch-create,Repository Batch Create,"
+            "Create multiple entities in batch,repository,high,repository-batch-operations",
+            "repo-batch-get,Repository Batch Get,"
+            "Retrieve multiple entities in batch,repository,high,repository-batch-operations",
+            "repo-metrics-collect,Collect Repository Metrics,"
+            "Collect and route RepositoryMetrics,observability,medium,repository-observability",
+            "repo-adversarial-review,Adversarial Repository Review,"
+            "8-perspective code review,quality,high,adversarial-review",
         ]
 
         existing_ids = [line.split(",")[0] for line in lines[1:] if line]

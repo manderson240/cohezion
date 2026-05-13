@@ -120,9 +120,7 @@ class FlumeVAEEmbeddingModel:
 class GeminiEmbeddingModel:
     """Gemini Embedding 2 with content-hash SurrealDB cache and FLUME VAE fallback."""
 
-    GEMINI_API_URL = (
-        "https://generativelanguage.googleapis.com/v1beta/models/text-embedding-004:embedContent"
-    )
+    GEMINI_API_URL = "https://generativelanguage.googleapis.com/v1beta/models/text-embedding-004:embedContent"
     DIMENSION = 768  # Gemini Embedding 2 output dimension
     _CIRCUIT_FAIL_LIMIT = 3
 
@@ -151,9 +149,7 @@ class GeminiEmbeddingModel:
 
         # 2. Circuit breaker: skip API if too many recent failures
         if self._fail_count >= self._CIRCUIT_FAIL_LIMIT:
-            logger.warning(
-                "Gemini circuit open (%d failures), routing to fallback", self._fail_count
-            )
+            logger.warning("Gemini circuit open (%d failures), routing to fallback", self._fail_count)
             return await self._fallback.encode(text)
 
         # 3. Call Gemini API
@@ -258,9 +254,7 @@ class GeminiEmbeddingModel:
             import aiohttp
 
             vector_list = vector.tolist()
-            query = (
-                f"CREATE embedding_cache CONTENT {{content_hash: '{key}', vector: {vector_list}}};"
-            )
+            query = f"CREATE embedding_cache CONTENT {{content_hash: '{key}', vector: {vector_list}}};"
             url = "http://localhost:8001/sql"
             async with (
                 aiohttp.ClientSession() as session,

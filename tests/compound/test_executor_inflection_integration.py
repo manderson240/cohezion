@@ -152,9 +152,7 @@ class TestExecutorInflectionIntegration:
             ),
             patch.object(executor.logger, "log_execution_start", return_value="exp_path"),
             patch.object(executor.logger, "log_execution_result"),
-            patch.object(
-                executor, "log_inflection_point", return_value="decision_path"
-            ) as mock_log_inflection,
+            patch.object(executor, "log_inflection_point", return_value="decision_path") as mock_log_inflection,
         ):
             # Simulate consecutive failures to trigger critical
             for _ in range(3):
@@ -192,9 +190,7 @@ class TestExecutorInflectionIntegration:
             ),
             patch.object(executor.logger, "log_execution_start", return_value="exp_path"),
             patch.object(executor.logger, "log_execution_result"),
-            patch.object(
-                executor, "log_inflection_point", return_value="decision_path"
-            ) as mock_log_inflection,
+            patch.object(executor, "log_inflection_point", return_value="decision_path") as mock_log_inflection,
         ):
             # Trigger critical condition
             for _ in range(3):

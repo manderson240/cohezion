@@ -35,9 +35,7 @@ async def test_synthesize_test_suite_prompt(mock_config):
                 scripter._call_ollama = AsyncMock(return_value="def test_generated(): pass")
 
                 code_context = "def new_feature(): return True"
-                test_code = await scripter.synthesize_test_suite(
-                    file_path="src/dummy.py", code_context=code_context
-                )
+                test_code = await scripter.synthesize_test_suite(file_path="src/dummy.py", code_context=code_context)
 
                 assert "test_generated" in test_code
                 scripter._call_ollama.assert_called_once()

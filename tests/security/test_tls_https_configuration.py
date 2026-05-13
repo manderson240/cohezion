@@ -235,9 +235,7 @@ class TestCertificateGenerator:
             cert_path = str(Path(tmpdir) / "cert.pem")
             key_path = str(Path(tmpdir) / "key.pem")
 
-            result = CertificateGenerator.generate_self_signed_cert(
-                cert_path, key_path, cn="test.local"
-            )
+            result = CertificateGenerator.generate_self_signed_cert(cert_path, key_path, cn="test.local")
 
             assert result is True
             assert Path(cert_path).exists()
@@ -266,9 +264,7 @@ class TestCertificateGenerator:
             import time
 
             time.sleep(0.1)
-            result2 = CertificateGenerator.generate_self_signed_cert(
-                cert_path, key_path, force=False
-            )
+            result2 = CertificateGenerator.generate_self_signed_cert(cert_path, key_path, force=False)
             assert result2 is True
 
             # Verify files weren't modified
@@ -297,9 +293,7 @@ class TestCertificateGenerator:
             import time
 
             time.sleep(0.1)
-            result2 = CertificateGenerator.generate_self_signed_cert(
-                cert_path, key_path, force=True
-            )
+            result2 = CertificateGenerator.generate_self_signed_cert(cert_path, key_path, force=True)
             assert result2 is True
 
             # Verify file was modified
@@ -313,9 +307,7 @@ class TestCertificateGenerator:
     def test_ensure_dev_certificates(self):
         """Test development certificate setup."""
         with tempfile.TemporaryDirectory() as tmpdir:
-            cert_path, key_path = CertificateGenerator.ensure_dev_certificates(
-                cert_dir=str(Path(tmpdir) / ".certs")
-            )
+            cert_path, key_path = CertificateGenerator.ensure_dev_certificates(cert_dir=str(Path(tmpdir) / ".certs"))
 
             assert cert_path is not None
             assert key_path is not None

@@ -134,9 +134,7 @@ class TestVibeParserWithFlux:
 
         mock_flux = MagicMock()
         mock_flux.get_context = AsyncMock(
-            return_value=FluxContext(
-                blocks=[], total_tokens_estimated=0, query="", sources_queried=[]
-            )
+            return_value=FluxContext(blocks=[], total_tokens_estimated=0, query="", sources_queried=[])
         )
         parser = VibeParser(flux_aggregator=mock_flux)
         result = await parser.parse("research transformers")

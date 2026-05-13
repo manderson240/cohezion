@@ -439,12 +439,8 @@ class CohezionBenchmark:
         # Discrimination AUC (can we distinguish high vs low reward?)
         # Split into high/low reward groups
         median_reward = np.median(rewards)
-        high_coherences = [
-            c for c, r in zip(coherences, rewards, strict=False) if r > median_reward
-        ]
-        low_coherences = [
-            c for c, r in zip(coherences, rewards, strict=False) if r <= median_reward
-        ]
+        high_coherences = [c for c, r in zip(coherences, rewards, strict=False) if r > median_reward]
+        low_coherences = [c for c, r in zip(coherences, rewards, strict=False) if r <= median_reward]
 
         # Mann-Whitney U test (equivalent to AUC)
         if len(high_coherences) > 0 and len(low_coherences) > 0:
@@ -621,10 +617,7 @@ class CohezionBenchmark:
         if comparative and comparative.cohen_d > 0.8:
             findings.append(f"Large effect size (Cohen's d = {comparative.cohen_d:.2f})")
         if predictive and abs(predictive.coherence_reward_correlation) > 0.5:
-            findings.append(
-                f"Strong coherence-reward correlation "
-                f"(r = {predictive.coherence_reward_correlation:.2f})"
-            )
+            findings.append(f"Strong coherence-reward correlation (r = {predictive.coherence_reward_correlation:.2f})")
 
         # 6. Recommendations
         recommendations = []
@@ -637,9 +630,7 @@ class CohezionBenchmark:
 
         # 7. Hugging Face readiness
         hf_ready = (
-            intrinsic.composite_score > 0.5
-            and (not comparative or comparative.cohen_d > 0.5)
-            and len(journeys) >= 20
+            intrinsic.composite_score > 0.5 and (not comparative or comparative.cohen_d > 0.5) and len(journeys) >= 20
         )
 
         report = BenchmarkReport(
@@ -678,9 +669,7 @@ class CohezionBenchmark:
 
             f.write("## Intrinsic Metrics\n\n")
             f.write(f"- HIHO Stability: {report.intrinsic.hiho_stability:.1%}\n")
-            f.write(
-                f"- Thermodynamic Efficiency: {report.intrinsic.thermodynamic_efficiency:.2f}\n"
-            )
+            f.write(f"- Thermodynamic Efficiency: {report.intrinsic.thermodynamic_efficiency:.2f}\n")
             f.write(f"- Topological Robustness: {report.intrinsic.topological_robustness:.2f}\n")
             f.write(f"- Archetype Balance: {report.intrinsic.archetype_balance:.2f}\n")
             f.write(f"- Journey Smoothness: {report.intrinsic.journey_smoothness:.2f}\n")
@@ -711,9 +700,7 @@ class CohezionBenchmark:
             if report.human_eval:
                 f.write("## Human Evaluation Package\n\n")
                 f.write(f"- Trajectory Pairs: {report.human_eval.n_pairs}\n")
-                f.write(
-                    f"- Estimated Time: {report.human_eval.estimated_time_minutes:.1f} minutes\n"
-                )
+                f.write(f"- Estimated Time: {report.human_eval.estimated_time_minutes:.1f} minutes\n")
                 f.write(f"- Hugging Face Ready: {report.hugging_face_ready}\n\n")
 
             f.write("## Key Findings\n\n")

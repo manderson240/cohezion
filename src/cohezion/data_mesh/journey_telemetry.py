@@ -53,12 +53,8 @@ class FlumeJourneyEvent(BaseModel):
 
     # 1. Latent State (The Knower)
     z_vector: list[float] = Field(..., description="256-dim FLUME latent thought vector")
-    predicted_z_vector: list[float] | None = Field(
-        None, description="JEPA world-model prediction"
-    )
-    prediction_error: float = Field(
-        0.0, description="Surprise/L2 delta between actual and predicted z"
-    )
+    predicted_z_vector: list[float] | None = Field(None, description="JEPA world-model prediction")
+    prediction_error: float = Field(0.0, description="Surprise/L2 delta between actual and predicted z")
 
     # 2. Axiomatic State (The Doer)
     state_12d: list[float] = Field(

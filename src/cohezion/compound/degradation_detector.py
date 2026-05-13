@@ -185,10 +185,7 @@ class DegradationDetector:
         # Then add samples after all checks are done
 
         # Check cache hit rate
-        if (
-            self._baselines["cache_hit_rate"].is_established
-            and cache_hit_rate < self.cache_hit_rate_threshold
-        ):
+        if self._baselines["cache_hit_rate"].is_established and cache_hit_rate < self.cache_hit_rate_threshold:
             alert = DegradationAlert(
                 metric="cache_hit_rate",
                 severity=AlertSeverity.WARNING,
@@ -382,9 +379,7 @@ class DegradationDetector:
 
         return False
 
-    def _run_healing_pipeline(
-        self, alerts: list[DegradationAlert], metrics: dict[str, Any]
-    ) -> None:
+    def _run_healing_pipeline(self, alerts: list[DegradationAlert], metrics: dict[str, Any]) -> None:
         """Route degradation alerts through healing's Diagnostician + Corrector.
 
         Non-blocking: all healing ops wrapped in try/except.

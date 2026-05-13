@@ -401,9 +401,7 @@ async def tool_generate(request: web.Request) -> web.Response:
             {
                 "tool": "report_generate",
                 "report": report.to_dict(),
-                "content_preview": report.content[:500] + "..."
-                if len(report.content) > 500
-                else report.content,
+                "content_preview": report.content[:500] + "..." if len(report.content) > 500 else report.content,
             }
         )
     except Exception as e:

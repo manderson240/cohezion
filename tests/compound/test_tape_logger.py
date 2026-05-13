@@ -20,9 +20,7 @@ def test_start_stop_creates_file(tmp_path):
 def test_record_and_replay_roundtrip(tmp_path):
     logger = TapeLogger(tape_dir=tmp_path)
     logger.start_tape("exec-2")
-    logger.record(
-        "gpt-4o", "hello", "world", temperature=0.7, tokens_in=5, tokens_out=1, latency_ms=42.0
-    )
+    logger.record("gpt-4o", "hello", "world", temperature=0.7, tokens_in=5, tokens_out=1, latency_ms=42.0)
     tape = logger.stop_tape()
 
     entries = list(logger.replay(tape))

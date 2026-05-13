@@ -12,10 +12,7 @@ from cohezion.agentjet.trainer import AgentJetTrainer, TrainingResult
 
 
 def _make_tasks(n: int = 3, phi: float = 0.8, skill: str = "coding") -> list[dict]:
-    return [
-        {"phi_score": phi, "skill_name": skill, "instruction": f"task {i}", "output": "out"}
-        for i in range(n)
-    ]
+    return [{"phi_score": phi, "skill_name": skill, "instruction": f"task {i}", "output": "out"} for i in range(n)]
 
 
 @pytest.fixture
@@ -24,9 +21,7 @@ def mock_context_manager():
     mgr.get_available_memory_gb = AsyncMock(return_value=80.0)
     mgr.unload_all_for_training = AsyncMock()
     mgr.reload_inference_models = AsyncMock()
-    mgr.get_profile = MagicMock(
-        return_value=ModelContextProfile("test-model", num_ctx=16384, size_gb=10.0)
-    )
+    mgr.get_profile = MagicMock(return_value=ModelContextProfile("test-model", num_ctx=16384, size_gb=10.0))
     mgr.cached_available_gb = 80.0
     return mgr
 
@@ -112,9 +107,7 @@ async def test_llamafactory_backend_calls_local_finetuner(
     )
     tasks = _make_tasks(2)
     mock_finetuner = MagicMock()
-    mock_finetuner.run_qlora_training = MagicMock(
-        return_value=Path("/tmp/cohezion_general_v9999/train.sh")
-    )
+    mock_finetuner.run_qlora_training = MagicMock(return_value=Path("/tmp/cohezion_general_v9999/train.sh"))
 
     with patch.object(trainer.reader, "read", return_value=tasks):
         with patch.object(trainer, "_safety_check", new_callable=AsyncMock):
@@ -146,12 +139,16 @@ async def test_reload_inference_models_called_even_on_error(
     trainer: AgentJetTrainer, mock_context_manager: MagicMock
 ) -> None:
     tasks = _make_tasks(2)
-    with patch.object(trainer.reader, "read", return_value=tasks), patch.object(
-        trainer,
-        "_run_training",
-        new_callable=AsyncMock,
-        side_effect=ValueError("training exploded"),
-    ), patch.object(trainer, "_safety_check", new_callable=AsyncMock):
+    with (
+        patch.object(trainer.reader, "read", return_value=tasks),
+        patch.object(
+            trainer,
+            "_run_training",
+            new_callable=AsyncMock,
+            side_effect=ValueError("training exploded"),
+        ),
+        patch.object(trainer, "_safety_check", new_callable=AsyncMock),
+    ):
         result = await trainer.train(dry_run=False)
 
     # finally block should have run reload

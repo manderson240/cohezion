@@ -123,9 +123,7 @@ def get_pool() -> HarnessPool:
     return _pool
 
 
-async def dispatch_through_harness(
-    model_id: str, prompt: str, *, timeout: float = 60.0
-) -> tuple[str, float, Harness]:
+async def dispatch_through_harness(model_id: str, prompt: str, *, timeout: float = 60.0) -> tuple[str, float, Harness]:
     """Run ``prompt`` against an Ollama cloud ``model_id`` via an available harness.
 
     Returns (completion_text, cost_usd, harness_used).
@@ -135,9 +133,7 @@ async def dispatch_through_harness(
     """
     pool = get_pool()
     if pool.size == 0:
-        raise RuntimeError(
-            "No headless harnesses installed (expected one of: pi, opencode, hermes)"
-        )
+        raise RuntimeError("No headless harnesses installed (expected one of: pi, opencode, hermes)")
 
     slot = await pool.acquire(timeout=timeout)
     try:
@@ -186,8 +182,7 @@ async def dispatch_through_harness(
 
         if proc.returncode != 0:
             raise RuntimeError(
-                f"{slot.harness.value} exit {proc.returncode}: "
-                f"{stderr_b.decode(errors='replace')[:300]}"
+                f"{slot.harness.value} exit {proc.returncode}: {stderr_b.decode(errors='replace')[:300]}"
             )
 
         text = stdout_b.decode(errors="replace").strip()

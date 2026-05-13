@@ -162,16 +162,12 @@ def get_codebook(d: int, bits: int) -> dict:
     cb = compute_lloyd_max_codebook(d, bits)
     with open(path, "w") as f:
         json.dump(cb, f, indent=2)
-    print(
-        f"[TurboQuant] MSE per coord = {cb['mse_per_coord']:.6e}, total MSE = {cb['mse_total']:.6f}"
-    )
+    print(f"[TurboQuant] MSE per coord = {cb['mse_per_coord']:.6e}, total MSE = {cb['mse_total']:.6f}")
     _CODEBOOK_CACHE[key] = cb
     return cb
 
 
-def get_codebook_tensors(
-    d: int, bits: int, device: torch.device, dtype: torch.dtype = torch.float32
-):
+def get_codebook_tensors(d: int, bits: int, device: torch.device, dtype: torch.dtype = torch.float32):
     """Get codebook as GPU tensors ready for quantization."""
     cb = get_codebook(d, bits)
     centroids = torch.tensor(cb["centroids"], device=device, dtype=dtype)

@@ -26,9 +26,7 @@ def get_hf_api_token() -> str:
     """Get Hugging Face API token with lazy initialization."""
     global _hf_api_token
     if _hf_api_token is None:
-        _hf_api_token = (
-            get_credentials().get_secret("COHEZION_HF_TOKEN", env_var="HF_API_TOKEN") or ""
-        )
+        _hf_api_token = get_credentials().get_secret("COHEZION_HF_TOKEN", env_var="HF_API_TOKEN") or ""
     return _hf_api_token
 
 

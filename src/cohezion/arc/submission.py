@@ -325,9 +325,7 @@ class SubmissionBuilder:
         if not self.llm_fallback_path or not self.llm_fallback_path.exists():
             return None
         try:
-            spec = __import__("importlib.util").util.spec_from_file_location(
-                "llm_fallback", self.llm_fallback_path
-            )
+            spec = __import__("importlib.util").util.spec_from_file_location("llm_fallback", self.llm_fallback_path)
             mod = __import__("importlib.util").util.module_from_spec(spec)
             spec.loader.exec_module(mod)
             if hasattr(mod, "generate_program"):
@@ -395,9 +393,7 @@ class SubmissionBuilder:
 
         manifest: dict[str, str] = {}
         for tid, preds in submission.items():
-            manifest[tid] = hashlib.sha256(
-                json.dumps(preds, separators=(",", ":")).encode()
-            ).hexdigest()[:16]
+            manifest[tid] = hashlib.sha256(json.dumps(preds, separators=(",", ":")).encode()).hexdigest()[:16]
 
         readme = self._readme(manifest)
 
@@ -534,9 +530,7 @@ def verify_submission(
                         break
                     for ci, v in enumerate(r):
                         if not isinstance(v, int) or not (0 <= v <= 9):
-                            errors.append(
-                                f"Task {tid} test {ti} {attempt_key}: cell ({ri},{ci})={v} invalid"
-                            )
+                            errors.append(f"Task {tid} test {ti} {attempt_key}: cell ({ri},{ci})={v} invalid")
                             break
 
     valid = len(errors) == 0

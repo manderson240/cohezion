@@ -72,9 +72,7 @@ class StabilizerAgent:
     x: int
     y: int
     energy: float = 100.0
-    z_vector: np.ndarray = field(
-        default_factory=lambda: np.random.rand(12)
-    )  # 12D State Vector (Smith's 12 Parameters)
+    z_vector: np.ndarray = field(default_factory=lambda: np.random.rand(12))  # 12D State Vector (Smith's 12 Parameters)
     memory: list[dict] = field(default_factory=list)
     generation: int = 0
     learning_rate: float = 0.1
@@ -259,9 +257,7 @@ class BlueTeamAgent(StabilizerAgent):
 class UniverseGrid:
     def __init__(self, size: int = GRID_SIZE):
         self.size = size
-        self.grid = [
-            [Sector(x, y, random.choice(SECTOR_TYPES)) for x in range(size)] for y in range(size)
-        ]
+        self.grid = [[Sector(x, y, random.choice(SECTOR_TYPES)) for x in range(size)] for y in range(size)]
         self.global_entropy = 0.5
         self.nu_dm_coupling = 0.03  # S8 Tension resolution constant
         self.stability_brake_threshold = 0.1  # Damping threshold (Biological Brake)
@@ -448,9 +444,7 @@ class FractalSimulator:
                     generation=agent.generation + 1,
                     energy=75.0,  # Parent gives energy
                 )
-                child.z_vector = agent.z_vector.copy() + np.random.normal(
-                    0, 0.01, 12
-                )  # Slight mutation
+                child.z_vector = agent.z_vector.copy() + np.random.normal(0, 0.01, 12)  # Slight mutation
                 agent.energy -= 75.0
 
                 # Place child
@@ -478,7 +472,9 @@ class FractalSimulator:
                     "spatial_pos": [float(sample_agent.x), float(sample_agent.y)],
                     "energy_level": sample_agent.energy,
                     "phi_score": sample_agent.coherence,
-                    "narration": f"Agent {sample_agent.id} moved to {sector.manifold_type} sector to stabilize entropy.",
+                    "narration": (
+                        f"Agent {sample_agent.id} moved to {sector.manifold_type} sector to stabilize entropy."
+                    ),
                 }
             )
 

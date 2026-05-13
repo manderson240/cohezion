@@ -16,10 +16,11 @@ class _MockVirtualMemory:
       - total: 128 GiB (Strix Halo spec)
       - available: 64 GiB free
     """
+
     percent = 50.0
-    total = 128 * 1024 ** 3   # 128 GiB
-    available = 64 * 1024 ** 3  # 64 GiB free
-    used = 64 * 1024 ** 3
+    total = 128 * 1024**3  # 128 GiB
+    available = 64 * 1024**3  # 64 GiB free
+    used = 64 * 1024**3
 
 
 @pytest.fixture(autouse=True)

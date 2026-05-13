@@ -356,10 +356,7 @@ class PPOTrainer:
 
             ratio = torch.exp(new_log_probs - old_log_probs)
             surr1 = ratio * advantages
-            surr2 = (
-                torch.clamp(ratio, 1.0 - self.config.clip_epsilon, 1.0 + self.config.clip_epsilon)
-                * advantages
-            )
+            surr2 = torch.clamp(ratio, 1.0 - self.config.clip_epsilon, 1.0 + self.config.clip_epsilon) * advantages
             policy_loss = -torch.min(surr1, surr2).mean()
             entropy_loss = -self.config.entropy_coef * entropy
 
@@ -376,9 +373,7 @@ class PPOTrainer:
 
             self.value_optimizer.zero_grad()
             value_loss.backward()
-            torch.nn.utils.clip_grad_norm_(
-                self.value_network.parameters(), self.config.max_grad_norm
-            )
+            torch.nn.utils.clip_grad_norm_(self.value_network.parameters(), self.config.max_grad_norm)
             self.value_optimizer.step()
 
             with torch.no_grad():

@@ -24,28 +24,20 @@ class TestEcoResilienceSwarmLoop:
         # 2. Mock the Agents
         # EcoResilienceAgent (Gemma 4) - The Lead
         mock_gemma = AsyncMock()
-        mock_gemma.analyze_ecosystem.return_value = (
-            "Gemma 4: Identified HIHO instability in the soil microbiome."
-        )
+        mock_gemma.analyze_ecosystem.return_value = "Gemma 4: Identified HIHO instability in the soil microbiome."
 
         # PhysicsAgent (Ollama)
-        mock_physics_fn = lambda task: (
-            "Physics: 12D Manifold shows gravitational divergence in the water table."
-        )
+        mock_physics_fn = lambda task: "Physics: 12D Manifold shows gravitational divergence in the water table."
 
         # BiologistAgent (Mistral)
-        mock_biologist_fn = lambda task: (
-            "Biology: Microbial diversity dropping below critical threshold."
-        )
+        mock_biologist_fn = lambda task: "Biology: Microbial diversity dropping below critical threshold."
 
         # 3. Register Agents in Swarm
         orchestrator.register_agent(
             Agent(
                 id="ecoresilience",
                 name="EcoResilienceAgent",
-                execute_fn=lambda t: asyncio.run(
-                    mock_gemma.analyze_ecosystem(t.description, "traj-swarm")
-                ),
+                execute_fn=lambda t: asyncio.run(mock_gemma.analyze_ecosystem(t.description, "traj-swarm")),
                 capabilities=["tek", "unified-physics", "resonance"],
             )
         )

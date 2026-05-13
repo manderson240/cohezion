@@ -11,6 +11,7 @@ from __future__ import annotations
 import asyncio
 import json
 import logging
+import statistics
 import tempfile
 from dataclasses import asdict, dataclass
 from pathlib import Path
@@ -204,9 +205,7 @@ class SWEBenchRunner:
         if not HAS_GIT:
             # Fallback: create directory and placeholder
             repo_cache.mkdir(parents=True, exist_ok=True)
-            (repo_cache / "placeholder.txt").write_text(
-                f"Mock repo for {task.repo} at {task.base_commit}"
-            )
+            (repo_cache / "placeholder.txt").write_text(f"Mock repo for {task.repo} at {task.base_commit}")
             return repo_cache
 
         if not repo_cache.exists():

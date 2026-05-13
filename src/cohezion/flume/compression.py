@@ -175,9 +175,7 @@ class QJLProjector:
 
         return packed
 
-    def cosine_similarity(
-        self, packed_a: npt.NDArray[np.uint8], packed_b: npt.NDArray[np.uint8]
-    ) -> float:
+    def cosine_similarity(self, packed_a: npt.NDArray[np.uint8], packed_b: npt.NDArray[np.uint8]) -> float:
         """Approximate cosine similarity from packed bit representations.
 
         Uses Hamming distance: sim ≈ 1 - 2 * hamming_distance / n_projections

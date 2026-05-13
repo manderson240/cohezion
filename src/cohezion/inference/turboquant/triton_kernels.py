@@ -120,15 +120,11 @@ def _turboquant_mse_score_kernel(
                 centroid_val = tl.load(CENTROIDS_ptr + idx)
 
                 # Accumulate: q[coord_idx] * centroid[idx]
-                q_val = tl.load(Q_ptr + pid_bh * stride_q_bh + coord_idx * stride_q_d).to(
-                    tl.float32
-                )
+                q_val = tl.load(Q_ptr + pid_bh * stride_q_bh + coord_idx * stride_q_d).to(tl.float32)
                 scores += q_val * centroid_val
 
     # Multiply by norms
-    norms = tl.load(
-        NORMS_ptr + pid_bh * stride_n_bh + n_offs * stride_n_n, mask=n_mask, other=0.0
-    ).to(tl.float32)
+    norms = tl.load(NORMS_ptr + pid_bh * stride_n_bh + n_offs * stride_n_n, mask=n_mask, other=0.0).to(tl.float32)
     scores = scores * norms
 
     # Store
@@ -196,22 +192,18 @@ def _turboquant_qjl_score_kernel(
                 # Convert {0,1} -> {-1, +1}
                 sign_val = tl.where(sign_bit == 1, 1.0, -1.0)
 
-                q_val = tl.load(Q_SKETCH_ptr + pid_bh * stride_qs_bh + coord_idx * stride_qs_d).to(
-                    tl.float32
-                )
+                q_val = tl.load(Q_SKETCH_ptr + pid_bh * stride_qs_bh + coord_idx * stride_qs_d).to(tl.float32)
                 dot += q_val * sign_val
 
     # Scale by residual norms and QJL constant
-    res_norms = tl.load(
-        RES_NORMS_ptr + pid_bh * stride_rn_bh + n_offs * stride_rn_n, mask=n_mask, other=0.0
-    ).to(tl.float32)
+    res_norms = tl.load(RES_NORMS_ptr + pid_bh * stride_rn_bh + n_offs * stride_rn_n, mask=n_mask, other=0.0).to(
+        tl.float32
+    )
     qjl_scores = dot * res_norms * QJL_SCALE
 
     # Add to existing MSE scores (or store fresh)
     existing = tl.load(OUT_ptr + pid_bh * stride_o_bh + n_offs * stride_o_n, mask=n_mask, other=0.0)
-    tl.store(
-        OUT_ptr + pid_bh * stride_o_bh + n_offs * stride_o_n, existing + qjl_scores, mask=n_mask
-    )
+    tl.store(OUT_ptr + pid_bh * stride_o_bh + n_offs * stride_o_n, existing + qjl_scores, mask=n_mask)
 
 
 # ─── Kernel 3: Fused decode attention (online softmax over TQ keys + values) ──
@@ -312,14 +304,12 @@ def _turboquant_fused_decode_kernel(
                 if coord_idx < D:
                     idx = (packed >> (sub * BITS)) & BIT_MASK
                     centroid_val = tl.load(CENTROIDS_ptr + idx)
-                    q_val = tl.load(Q_ROT_ptr + pid_bh * stride_q_bh + coord_idx * stride_q_d).to(
-                        tl.float32
-                    )
+                    q_val = tl.load(Q_ROT_ptr + pid_bh * stride_q_bh + coord_idx * stride_q_d).to(tl.float32)
                     mse_scores += q_val * centroid_val
 
-        key_norms = tl.load(
-            NORMS_ptr + pid_bh * stride_n_bh + n_offs * stride_n_n, mask=n_mask, other=0.0
-        ).to(tl.float32)
+        key_norms = tl.load(NORMS_ptr + pid_bh * stride_n_bh + n_offs * stride_n_n, mask=n_mask, other=0.0).to(
+            tl.float32
+        )
         mse_scores = mse_scores * key_norms
 
         # Part 2: QJL score
@@ -335,14 +325,12 @@ def _turboquant_fused_decode_kernel(
                 if coord_idx < D:
                     sign_bit = (packed >> bit) & 1
                     sign_val = tl.where(sign_bit == 1, 1.0, -1.0)
-                    q_val = tl.load(
-                        Q_SKETCH_ptr + pid_bh * stride_q_bh + coord_idx * stride_q_d
-                    ).to(tl.float32)
+                    q_val = tl.load(Q_SKETCH_ptr + pid_bh * stride_q_bh + coord_idx * stride_q_d).to(tl.float32)
                     qjl_dot += q_val * sign_val
 
-        res_norms = tl.load(
-            RES_NORMS_ptr + pid_bh * stride_rn_bh + n_offs * stride_rn_n, mask=n_mask, other=0.0
-        ).to(tl.float32)
+        res_norms = tl.load(RES_NORMS_ptr + pid_bh * stride_rn_bh + n_offs * stride_rn_n, mask=n_mask, other=0.0).to(
+            tl.float32
+        )
         qjl_scores = qjl_dot * res_norms * QJL_SCALE
 
         # Combined score
@@ -366,28 +354,19 @@ def _turboquant_fused_decode_kernel(
         d_offs = tl.arange(0, D)
         # Value data
         v_quant = tl.load(
-            V_DATA_ptr
-            + pid_bh * stride_v_bh
-            + n_offs[:, None] * stride_v_n
-            + d_offs[None, :] * stride_v_d,
+            V_DATA_ptr + pid_bh * stride_v_bh + n_offs[:, None] * stride_v_n + d_offs[None, :] * stride_v_d,
             mask=n_mask[:, None],
             other=0,
         ).to(tl.float32)
         # Value scales: group index = d_offs // GROUP_SIZE
         g_offs = d_offs // GROUP_SIZE
         v_scale = tl.load(
-            V_SCALES_ptr
-            + pid_bh * stride_vs_bh
-            + n_offs[:, None] * stride_vs_n
-            + g_offs[None, :] * stride_vs_g,
+            V_SCALES_ptr + pid_bh * stride_vs_bh + n_offs[:, None] * stride_vs_n + g_offs[None, :] * stride_vs_g,
             mask=n_mask[:, None],
             other=1.0,
         ).to(tl.float32)
         v_zero = tl.load(
-            V_ZEROS_ptr
-            + pid_bh * stride_vz_bh
-            + n_offs[:, None] * stride_vz_n
-            + g_offs[None, :] * stride_vz_g,
+            V_ZEROS_ptr + pid_bh * stride_vz_bh + n_offs[:, None] * stride_vz_n + g_offs[None, :] * stride_vz_g,
             mask=n_mask[:, None],
             other=0.0,
         ).to(tl.float32)

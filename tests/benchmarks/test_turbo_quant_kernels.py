@@ -2,8 +2,9 @@ import time
 
 import pytest
 import torch
-import triton
-import triton.language as tl
+
+triton = pytest.importorskip("triton", reason="triton not available (no GPU drivers)")
+tl = pytest.importorskip("triton.language", reason="triton not available (no GPU drivers)")
 
 
 # --- Placeholder Turbo Quant Kernel ---
@@ -68,9 +69,7 @@ def turbo_matmul(a, b):
     M, K = a.shape
     K, N = b.shape
     c = torch.empty((M, N), device=a.device, dtype=torch.float16)
-    grid = lambda META: (
-        triton.cdiv(M, META["BLOCK_SIZE_M"]) * triton.cdiv(N, META["BLOCK_SIZE_N"]),
-    )
+    grid = lambda META: (triton.cdiv(M, META["BLOCK_SIZE_M"]) * triton.cdiv(N, META["BLOCK_SIZE_N"]),)
     turbo_quant_matmul_kernel[grid](
         a,
         b,
@@ -135,9 +134,7 @@ def test_turbo_quant_performance_target():
     print(f"Improvement: {improvement * 100:.1f}%")
 
     # Assert 30% target
-    assert improvement >= 0.30, (
-        f"Turbo Quant only improved by {improvement * 100:.1f}%, target is 30%"
-    )
+    assert improvement >= 0.30, f"Turbo Quant only improved by {improvement * 100:.1f}%, target is 30%"
 
 
 if __name__ == "__main__":

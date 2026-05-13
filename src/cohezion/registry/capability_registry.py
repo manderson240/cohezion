@@ -205,11 +205,7 @@ class CapabilityRegistry:
                             if stripped.startswith('"""'):
                                 # Check for single-line docstring: """text"""
                                 if stripped.count('"""') >= 2:
-                                    desc = (
-                                        stripped.removeprefix('"""')
-                                        .removesuffix('"""')
-                                        .strip()[:200]
-                                    )
+                                    desc = stripped.removeprefix('"""').removesuffix('"""').strip()[:200]
                                     break
                                 # Multi-line docstring starts
                                 in_docstring = True
@@ -406,17 +402,13 @@ class CapabilityRegistry:
 
             top_caps = sorted(self.capabilities, key=lambda c: c.usage_count, reverse=True)[:10]
             cap_summary = "\n".join(
-                f"- {c.name} ({c.type}): score={c.score:.2f}, usage={c.usage_count}"
-                for c in top_caps
+                f"- {c.name} ({c.type}): score={c.score:.2f}, usage={c.usage_count}" for c in top_caps
             )
 
             learning = Learning(
                 number=0,
                 title=f"Capability snapshot ({reason})",
-                content=(
-                    f"Registry contains {len(self.capabilities)} capabilities. "
-                    f"Top 10 by usage:\n{cap_summary}"
-                ),
+                content=(f"Registry contains {len(self.capabilities)} capabilities. Top 10 by usage:\n{cap_summary}"),
                 date=datetime.now().strftime("%Y-%m-%d"),
                 tags=["capability", "snapshot", reason],
                 propagate_to="Capability registry evolution",
@@ -445,6 +437,4 @@ if __name__ == "__main__":
     for q in test_queries:
         print(f"\nQUERY: '{q}'")
         for res in reg.find(q, top_k=3):
-            print(
-                f"  - [{res.type.upper()}] {res.name}: {res.description[:50]}... ({res.score:.2f})"
-            )
+            print(f"  - [{res.type.upper()}] {res.name}: {res.description[:50]}... ({res.score:.2f})")

@@ -34,17 +34,17 @@ def run_verification():
     try:
         # Import the proposed code
         {proposed_code}
-        
+
         # Add invariant checks here (synthesized by LLM)
         log_info("Harness started...")
-        
+
         # Verify module presence
         import {target_module}
         log_info(f"Module {{'{target_module}'}} imported successfully.")
-        
+
         # Generic functional check if applicable
         # ...
-        
+
         log_info("Harness completed successfully.")
         return True
     except Exception as e:
@@ -70,9 +70,7 @@ if __name__ == "__main__":
             tmp_path = Path(tmp.name)
 
         try:
-            result = subprocess.run(
-                ["python3", str(tmp_path)], capture_output=True, text=True, timeout=60
-            )
+            result = subprocess.run(["python3", str(tmp_path)], capture_output=True, text=True, timeout=60)
             success = result.returncode == 0
             output = result.stdout + result.stderr
             return success, output

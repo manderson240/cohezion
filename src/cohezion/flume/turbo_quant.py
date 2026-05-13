@@ -137,8 +137,6 @@ if __name__ == "__main__":
     # Original: 1024 * 128 * 16 bits (FP16)
     # Quantized: 1024 * 128 * 4 bits (Int8 usage for 3.5-bit logic) + 1024 * 32 bits (Mag FP32)
     orig_bits = test_kv.nelement() * 16
-    quant_bits = (
-        compressed["quantized_codes"].nelement() * 4 + compressed["magnitudes"].nelement() * 32
-    )
+    quant_bits = compressed["quantized_codes"].nelement() * 4 + compressed["magnitudes"].nelement() * 32
     ratio = orig_bits / quant_bits
     print(f"Estimated compression ratio: {ratio:.2f}x")

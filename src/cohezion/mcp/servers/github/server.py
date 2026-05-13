@@ -26,9 +26,7 @@ def get_github_token() -> str:
     """Get GitHub token with lazy initialization."""
     global _github_token
     if _github_token is None:
-        _github_token = (
-            get_credentials().get_secret("COHEZION_GITHUB_TOKEN", env_var="GITHUB_TOKEN") or ""
-        )
+        _github_token = get_credentials().get_secret("COHEZION_GITHUB_TOKEN", env_var="GITHUB_TOKEN") or ""
     return _github_token
 
 
@@ -147,9 +145,7 @@ class GitHubService:
             logger.exception(f"Error creating issue: {e}")
             return {"error": str(e)}
 
-    async def create_issue_comment(
-        self, owner: str, repo: str, issue_number: int, body: str
-    ) -> dict[str, Any]:
+    async def create_issue_comment(self, owner: str, repo: str, issue_number: int, body: str) -> dict[str, Any]:
         """Create a comment on an issue."""
         if not self.token:
             return {"error": "GitHub token required for write operations"}
@@ -307,9 +303,7 @@ async def github_create_issue(
 
 
 @app.tool()
-async def github_create_issue_comment(
-    owner: str, repo: str, issue_number: int, body: str
-) -> dict[str, Any]:
+async def github_create_issue_comment(owner: str, repo: str, issue_number: int, body: str) -> dict[str, Any]:
     """Create a comment on an issue.
 
     Args:

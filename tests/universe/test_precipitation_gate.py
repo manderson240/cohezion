@@ -23,9 +23,7 @@ class TestPrecipitationGate:
     def test_precipitation_gate_exists(self):
         """Verify check_precipitation() method exists on AxiomaticState."""
         state = AxiomaticState()
-        assert hasattr(state, "check_precipitation"), (
-            "AxiomaticState must have check_precipitation() method"
-        )
+        assert hasattr(state, "check_precipitation"), "AxiomaticState must have check_precipitation() method"
         assert callable(state.check_precipitation), "check_precipitation must be callable"
 
     def test_precipitation_above_hiho_threshold(self):
@@ -51,13 +49,10 @@ class TestPrecipitationGate:
         # Note: SPIN weighting affects coherence, so state with raw 0.6
         # values might have lower actual coherence due to SPIN misalignment
         assert result["precipitate"] is True or result["coherence"] > 0.48, (
-            f"Should precipitate or be close to threshold when all dims=0.6, "
-            f"got coherence={result['coherence']}"
+            f"Should precipitate or be close to threshold when all dims=0.6, got coherence={result['coherence']}"
         )
         # HIHO stability depends on actual coherence after SPIN weighting
-        assert 0 <= result["hiho_stability"] <= 1.0, (
-            f"HIHO stability must be in [0,1], got {result['hiho_stability']}"
-        )
+        assert 0 <= result["hiho_stability"] <= 1.0, f"HIHO stability must be in [0,1], got {result['hiho_stability']}"
 
     def test_no_precipitation_below_hiho_threshold(self):
         """Test no precipitation when coherence < 0.5."""
@@ -103,21 +98,13 @@ class TestPrecipitationGate:
         # Create state at exactly 0.5 (all dims aligned to HIHO)
         # Coherence = 1.0 (perfect HIHO alignment)
         state_hiho_aligned = AxiomaticState(
-            **{
-                dim: 0.5
-                for dim in AxiomaticState.__dataclass_fields__
-                if not dim.startswith("SMITH")
-            }
+            **{dim: 0.5 for dim in AxiomaticState.__dataclass_fields__ if not dim.startswith("SMITH")}
         )
 
         # Create state with variance (dims away from 0.5)
         # Coherence < 1.0 (imperfect HIHO alignment)
         state_off_hiho = AxiomaticState(
-            **{
-                dim: 0.9
-                for dim in AxiomaticState.__dataclass_fields__
-                if not dim.startswith("SMITH")
-            }
+            **{dim: 0.9 for dim in AxiomaticState.__dataclass_fields__ if not dim.startswith("SMITH")}
         )
 
         result_aligned = state_hiho_aligned.check_precipitation()
@@ -153,11 +140,7 @@ class TestPrecipitationGate:
         results = []
         for params, label in test_cases:
             state = AxiomaticState(
-                **{
-                    dim: params["val"]
-                    for dim in AxiomaticState.__dataclass_fields__
-                    if not dim.startswith("SMITH")
-                }
+                **{dim: params["val"] for dim in AxiomaticState.__dataclass_fields__ if not dim.startswith("SMITH")}
             )
             result = state.check_precipitation()
             results.append((label, result["coherence"], result["hiho_stability"]))
@@ -175,11 +158,7 @@ class TestPrecipitationGate:
         """Test thermodynamic free energy F = E - TS predicts spontaneity."""
         # High coherence + low awareness → low temperature → F might be negative
         state_spontaneous = AxiomaticState(
-            **{
-                dim: 0.8
-                for dim in AxiomaticState.__dataclass_fields__
-                if not dim.startswith("SMITH")
-            }
+            **{dim: 0.8 for dim in AxiomaticState.__dataclass_fields__ if not dim.startswith("SMITH")}
         )
         state_spontaneous.temporal = 0.2  # Low temporal/awareness = high temperature
 
@@ -195,8 +174,7 @@ class TestPrecipitationGate:
         expected_temp = 1.0 - state_spontaneous.temporal  # temporal = awareness
         expected_f = result["coherence"] - expected_temp * result["shannon_entropy_bits"]
         assert result["free_energy"] == pytest.approx(expected_f, abs=0.01), (
-            f"Free energy calculation incorrect. "
-            f"Expected {expected_f:.3f}, got {result['free_energy']:.3f}"
+            f"Free energy calculation incorrect. Expected {expected_f:.3f}, got {result['free_energy']:.3f}"
         )
 
     def test_precipitation_mechanism_documented(self):
@@ -207,9 +185,7 @@ class TestPrecipitationGate:
         assert "mechanism" in result, "Result must document precipitation mechanism"
 
         mechanism = result["mechanism"].lower()
-        assert "smith" in mechanism or "hiho" in mechanism, (
-            "Mechanism must reference Smith or HIHO physics"
-        )
+        assert "smith" in mechanism or "hiho" in mechanism, "Mechanism must reference Smith or HIHO physics"
         assert "thermodynamic" in mechanism or "free energy" in mechanism, (
             "Mechanism must include thermodynamic component"
         )
@@ -220,24 +196,16 @@ class TestPrecipitationGate:
     def test_edge_case_zero_coherence(self):
         """Test precipitation gate handles zero coherence (complete chaos)."""
         state = AxiomaticState(
-            **{
-                dim: 0.0
-                for dim in AxiomaticState.__dataclass_fields__
-                if not dim.startswith("SMITH")
-            }
+            **{dim: 0.0 for dim in AxiomaticState.__dataclass_fields__ if not dim.startswith("SMITH")}
         )
 
         result = state.check_precipitation()
 
         assert result["precipitate"] is False, "Should not precipitate at 0.0 coherence"
-        assert result["hiho_stability"] == pytest.approx(0.0, abs=0.01), (
-            "HIHO stability should be 0.0 at coherence=0.0"
-        )
+        assert result["hiho_stability"] == pytest.approx(0.0, abs=0.01), "HIHO stability should be 0.0 at coherence=0.0"
 
         # Shannon entropy should be 0 (no information content at p=0)
-        assert result["shannon_entropy_bits"] == pytest.approx(0.0, abs=0.01), (
-            "Shannon entropy should be 0 at p=0.0"
-        )
+        assert result["shannon_entropy_bits"] == pytest.approx(0.0, abs=0.01), "Shannon entropy should be 0 at p=0.0"
 
     def test_edge_case_perfect_order(self):
         """Test precipitation gate handles all dims=1.0 (complete order).
@@ -247,11 +215,7 @@ class TestPrecipitationGate:
         - coherence=0 → NO precipitation (correct! too ordered to precipitate)
         """
         state = AxiomaticState(
-            **{
-                dim: 1.0
-                for dim in AxiomaticState.__dataclass_fields__
-                if not dim.startswith("SMITH")
-            }
+            **{dim: 1.0 for dim in AxiomaticState.__dataclass_fields__ if not dim.startswith("SMITH")}
         )
 
         result = state.check_precipitation()
@@ -260,14 +224,11 @@ class TestPrecipitationGate:
         assert result["coherence"] < 0.5, (
             f"All dims=1.0 should have low coherence (far from HIHO), got {result['coherence']}"
         )
-        assert result["precipitate"] is False, (
-            "Should NOT precipitate when all dims=1.0 (too ordered, low coherence)"
-        )
+        assert result["precipitate"] is False, "Should NOT precipitate when all dims=1.0 (too ordered, low coherence)"
 
         # HIHO stability should be low (coherence far from 0.5)
         assert result["hiho_stability"] <= 0.2, (
-            f"HIHO stability should be low when coherence={result['coherence']}, "
-            f"got {result['hiho_stability']}"
+            f"HIHO stability should be low when coherence={result['coherence']}, got {result['hiho_stability']}"
         )
 
     def test_coherence_value_included_in_result(self):
@@ -294,8 +255,7 @@ class TestPrecipitationGate:
         # Coherence should match state's coherence_score()
         expected_coherence = state.coherence_score()
         assert result["coherence"] == pytest.approx(expected_coherence, abs=0.01), (
-            f"Result coherence {result['coherence']:.3f} should match "
-            f"state coherence {expected_coherence:.3f}"
+            f"Result coherence {result['coherence']:.3f} should match state coherence {expected_coherence:.3f}"
         )
 
     def test_awareness_parameter_affects_temperature(self):
@@ -303,21 +263,13 @@ class TestPrecipitationGate:
         # High awareness → low temperature (system is 'aware' = cold/stable)
         # Awareness maps to 'temporal' dimension in AxiomaticState
         state_high_awareness = AxiomaticState(
-            **{
-                dim: 0.6
-                for dim in AxiomaticState.__dataclass_fields__
-                if not dim.startswith("SMITH")
-            }
+            **{dim: 0.6 for dim in AxiomaticState.__dataclass_fields__ if not dim.startswith("SMITH")}
         )
         state_high_awareness.temporal = 0.9  # temporal = Awareness
 
         # Low awareness → high temperature (system is 'unaware' = hot/chaotic)
         state_low_awareness = AxiomaticState(
-            **{
-                dim: 0.6
-                for dim in AxiomaticState.__dataclass_fields__
-                if not dim.startswith("SMITH")
-            }
+            **{dim: 0.6 for dim in AxiomaticState.__dataclass_fields__ if not dim.startswith("SMITH")}
         )
         state_low_awareness.temporal = 0.1
 

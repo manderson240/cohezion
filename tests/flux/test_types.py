@@ -104,11 +104,7 @@ class TestFluxProviderABC:
             source = FluxSource.HISTORY
 
             async def get_context(self, query, top_k=5, **kwargs):
-                return [
-                    FluxBlock(
-                        content=f"result for {query}", source=self.source, relevance_score=1.0
-                    )
-                ]
+                return [FluxBlock(content=f"result for {query}", source=self.source, relevance_score=1.0)]
 
         provider = MockProvider()
         results = await provider.get_context("test query")

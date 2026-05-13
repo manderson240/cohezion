@@ -57,9 +57,7 @@ class FleetMonitor:
                 for s in stored:
                     if isinstance(s, dict) and "name" in s:
                         self.services[s["name"]] = ServiceStatus(**s)
-                        logger.info(
-                            f"Loaded service '{s['name']}' from registry on port {s['port']}"
-                        )
+                        logger.info(f"Loaded service '{s['name']}' from registry on port {s['port']}")
         except Exception as e:
             logger.warning(f"Failed to load fleet registry: {e}")
 
@@ -121,12 +119,8 @@ class FleetMonitor:
         """Register or update a service in the fleet."""
         self.services[service.name] = service
         try:
-            await self.db.query(
-                "UPSERT fleet_registry CONTENT $service", {"service": service.dict()}
-            )
-            await self.emit_event(
-                "service_registered", {"name": service.name, "port": service.port}
-            )
+            await self.db.query("UPSERT fleet_registry CONTENT $service", {"service": service.dict()})
+            await self.emit_event("service_registered", {"name": service.name, "port": service.port})
         except Exception as e:
             logger.error(f"Failed to persist service registration: {e}")
 
@@ -197,9 +191,7 @@ class FleetMonitor:
                 service.metadata["latency"] = latency
 
                 if old_status != service.status:
-                    await self.emit_event(
-                        "status_change", {"name": name, "old": old_status, "new": service.status}
-                    )
+                    await self.emit_event("status_change", {"name": name, "old": old_status, "new": service.status})
 
                 await self.db.query(
                     "UPDATE fleet_registry CONTENT $service WHERE name = $name",
@@ -209,9 +201,7 @@ class FleetMonitor:
                 if service.status != "down":
                     await self.emit_event("service_down", {"name": name, "error": str(e)})
                     service.status = "down"
-                await self.db.query(
-                    "UPDATE fleet_registry SET status = 'down' WHERE name = $name", {"name": name}
-                )
+                await self.db.query("UPDATE fleet_registry SET status = 'down' WHERE name = $name", {"name": name})
 
     async def monitor_loop(self):
         """Continuous polling loop for fleet health."""

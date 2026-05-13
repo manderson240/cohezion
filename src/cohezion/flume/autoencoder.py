@@ -173,18 +173,14 @@ class FlumeEncoder(PreTrainedModel):
         if isinstance(module, nn.Linear):
             module.weight.data.normal_(
                 mean=0.0,
-                std=self.config.initializer_range
-                if hasattr(self.config, "initializer_range")
-                else 0.02,
+                std=self.config.initializer_range if hasattr(self.config, "initializer_range") else 0.02,
             )
             if module.bias is not None:
                 module.bias.data.zero_()
         elif isinstance(module, nn.Embedding):
             module.weight.data.normal_(
                 mean=0.0,
-                std=self.config.initializer_range
-                if hasattr(self.config, "initializer_range")
-                else 0.02,
+                std=self.config.initializer_range if hasattr(self.config, "initializer_range") else 0.02,
             )
             if module.padding_idx is not None:
                 module.weight.data[module.padding_idx].zero_()
@@ -195,10 +191,12 @@ class FlumeEncoder(PreTrainedModel):
         max_len: int = 256,
     ) -> torch.Tensor:
         """Encode text(s) to thought vector(s) and emit telemetry."""
-        inputs = self.tokenizer(
-            text, padding=True, truncation=True, max_length=max_len, return_tensors="pt"
-        )
+        inputs = self.tokenizer(text, padding=True, truncation=True, max_length=max_len, return_tensors="pt")
         inputs = {k: v.to(self.device) for k, v in inputs.items()}
+
+        if "input_ids" not in inputs:
+            _dim = getattr(self.config, "z_dim", 256)
+            return torch.zeros(_dim, device=self.device)
 
         with torch.no_grad():
             z = self.encoder(inputs["input_ids"], inputs["attention_mask"])

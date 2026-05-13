@@ -43,9 +43,7 @@ class SymphonyMaxBenchmark:
         self.guard = HIHOStabilityGuard(threshold=0.5)
         self.mock_mcp = MagicMock()
         self.executor = CompoundExecutor(mcp_client=self.mock_mcp)
-        self.loop = EcoResilienceCompoundLoop(
-            agent=self.agent, executor=self.executor, guard=self.guard
-        )
+        self.loop = EcoResilienceCompoundLoop(agent=self.agent, executor=self.executor, guard=self.guard)
 
         self.metrics = {"regimes": {}, "total_latency": 0.0, "stability_curve": []}
 
@@ -76,9 +74,7 @@ class SymphonyMaxBenchmark:
             return
 
         if not connectivity["NPU"]:
-            logger.warning(
-                "⚠️ NPU (11435) is offline. Falling back to GPU-SOTA mode for proxy data."
-            )
+            logger.warning("⚠️ NPU (11435) is offline. Falling back to GPU-SOTA mode for proxy data.")
             logger.info("Note: Final submission must be validated on NPU for 'Symphony Max' claim.")
 
         # --- BENCHMARK COMPARISON SETS ---

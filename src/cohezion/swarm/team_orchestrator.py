@@ -26,9 +26,7 @@ class AgentSpec:
 
     name: str
     description: str
-    tools: list[str] = field(
-        default_factory=lambda: ["Read", "Glob", "Grep", "Bash", "Edit", "Write"]
-    )
+    tools: list[str] = field(default_factory=lambda: ["Read", "Glob", "Grep", "Bash", "Edit", "Write"])
     disallowed_tools: list[str] = field(default_factory=list)
     model: str = "sonnet"
     instructions: str = ""
@@ -317,18 +315,12 @@ class TeamOrchestrator:
 
         return AgentSpec(
             name=self._slugify(spec.name),
-            description=spec.domain_expertise[:200]
-            if spec.domain_expertise
-            else f"Agent for {spec.name}",
+            description=spec.domain_expertise[:200] if spec.domain_expertise else f"Agent for {spec.name}",
             tools=tools,
             disallowed_tools=disallowed,
             model=model,
-            instructions="\n".join(instructions_parts)
-            if instructions_parts
-            else f"Expert in {spec.name}.",
-            ollama_model=self._select_ollama_model(
-                [c.lower() for c in spec.concepts] if spec.concepts else []
-            ),
+            instructions="\n".join(instructions_parts) if instructions_parts else f"Expert in {spec.name}.",
+            ollama_model=self._select_ollama_model([c.lower() for c in spec.concepts] if spec.concepts else []),
         )
 
     def _tools_for_role(self, role: str) -> tuple[list[str], list[str]]:

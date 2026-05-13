@@ -181,24 +181,14 @@ class EvaluationHarness:
             }
 
         # Calculate improvement
-        throughput_delta = (
-            (metrics.tokens_per_sec - baseline.tokens_per_sec) / baseline.tokens_per_sec * 100
-        )
-        quality_delta = (
-            (metrics.quality_score - baseline.quality_score)
-            / max(baseline.quality_score, 0.01)
-            * 100
-        )
+        throughput_delta = (metrics.tokens_per_sec - baseline.tokens_per_sec) / baseline.tokens_per_sec * 100
+        quality_delta = (metrics.quality_score - baseline.quality_score) / max(baseline.quality_score, 0.01) * 100
         efficiency_delta = (
-            (metrics.efficiency_score() - baseline.efficiency_score())
-            / max(baseline.efficiency_score(), 0.01)
-            * 100
+            (metrics.efficiency_score() - baseline.efficiency_score()) / max(baseline.efficiency_score(), 0.01) * 100
         )
 
         # Weighted composite
-        composite_improvement = (
-            throughput_delta * 0.5 + quality_delta * 0.3 + efficiency_delta * 0.2
-        )
+        composite_improvement = throughput_delta * 0.5 + quality_delta * 0.3 + efficiency_delta * 0.2
 
         # Determine status
         status = "keep" if composite_improvement >= -5 else "discard"
@@ -267,17 +257,14 @@ class EvaluationHarness:
         else:
             return "stable"
 
-    def _generate_recommendations(self, trends: dict = None) -> list[str]:
+    def _generate_recommendations(self, trends: dict | None = None) -> list[str]:
         """Generate recommendations based on history."""
         recs = []
 
         best = self.get_best(1)
         if best:
             b = best[0]
-            recs.append(
-                f"Best config: temp={b.config.get('temperature')}, "
-                f"max_tokens={b.config.get('max_tokens')}"
-            )
+            recs.append(f"Best config: temp={b.config.get('temperature')}, max_tokens={b.config.get('max_tokens')}")
 
         if trends is None:
             trends = self._calculate_trends_simple()
@@ -305,19 +292,9 @@ class EvaluationHarness:
         second_q = sum(qualities[mid:]) / max(len(qualities) - mid, 1)
 
         tps_trend = (
-            "improving"
-            if second_tps > first_tps * 1.05
-            else "degrading"
-            if second_tps < first_tps * 0.95
-            else "stable"
+            "improving" if second_tps > first_tps * 1.05 else "degrading" if second_tps < first_tps * 0.95 else "stable"
         )
-        q_trend = (
-            "improving"
-            if second_q > first_q * 1.05
-            else "degrading"
-            if second_q < first_q * 0.95
-            else "stable"
-        )
+        q_trend = "improving" if second_q > first_q * 1.05 else "degrading" if second_q < first_q * 0.95 else "stable"
 
         return {"throughput_trend": tps_trend, "quality_trend": q_trend}
 

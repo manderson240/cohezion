@@ -194,9 +194,7 @@ class TestExpertDomainRouter:
             )
         }
 
-        rec = await edl_router._consult_stream(
-            ExpertStream.ARCHITECT, "Test context", "Test proposal"
-        )
+        rec = await edl_router._consult_stream(ExpertStream.ARCHITECT, "Test context", "Test proposal")
 
         assert rec.stream == ExpertStream.ARCHITECT
         assert rec.recommendation == "Approved"
@@ -209,9 +207,7 @@ class TestExpertDomainRouter:
         """Test consulting expert stream with invalid JSON (fallback)."""
         mock_compound_client.execute.return_value = {"result": "This is not valid JSON"}
 
-        rec = await edl_router._consult_stream(
-            ExpertStream.ARCHITECT, "Test context", "Test proposal"
-        )
+        rec = await edl_router._consult_stream(ExpertStream.ARCHITECT, "Test context", "Test proposal")
 
         assert rec.stream == ExpertStream.ARCHITECT
         assert rec.recommendation == "This is not valid JSON"

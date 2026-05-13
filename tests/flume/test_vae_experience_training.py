@@ -79,9 +79,7 @@ class TestVAEExperienceTraining:
 
     def test_trained_vae_lower_mse_than_untrained(self):
         """Trained VAE has lower reconstruction MSE than untrained."""
-        experiences = [
-            _make_experience(mission_id=f"m{i}", phi_score=0.5 + 0.01 * i) for i in range(200)
-        ]
+        experiences = [_make_experience(mission_id=f"m{i}", phi_score=0.5 + 0.01 * i) for i in range(200)]
         ds = ExperienceDataset(experiences, seed=42)
 
         # Measure MSE before training

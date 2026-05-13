@@ -84,9 +84,7 @@ class TestWorkflowExecution:
     @pytest.mark.asyncio
     async def test_single_node_workflow(self):
         engine = WorkflowEngine()
-        spec = NodeSpec(
-            id="n1", name="echo", node_type="custom", pull_keys=["msg"], push_keys=["out"]
-        )
+        spec = NodeSpec(id="n1", name="echo", node_type="custom", pull_keys=["msg"], push_keys=["out"])
         wf = _make_spec([spec], [], entry="n1", exits=["n1"])
 
         async def echo(inputs):

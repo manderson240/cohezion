@@ -83,9 +83,7 @@ class OuroborosWikiBridge:
 
         # Find related failures
         related = await self._find_related_exhaust(exhaust)
-        related_links = "\n".join(
-            [f"- [[{r.metadata.get('title', 'unknown')}]]" for r in related[:5]]
-        )
+        related_links = "\n".join([f"- [[{r.metadata.get('title', 'unknown')}]]" for r in related[:5]])
 
         content = f"""# Execution Exhaust: {exhaust.task_id}
 
@@ -165,15 +163,7 @@ class OuroborosWikiBridge:
             path=f"ouroboros/rewrites/{filename}",
             content=content,
             category="rewrite",
-            source_refs=[
-                str(
-                    self.vault_path
-                    / "wiki"
-                    / "ouroboros"
-                    / "exhaust"
-                    / f"{timestamp}_{task_slug}.md"
-                )
-            ],
+            source_refs=[str(self.vault_path / "wiki" / "ouroboros" / "exhaust" / f"{timestamp}_{task_slug}.md")],
             tags=["ouroboros", "rewrite", "improvement"],
         )
 

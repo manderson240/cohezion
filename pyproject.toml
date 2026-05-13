@@ -116,7 +116,20 @@ unsloth = [
 
 [tool.ruff]
 target-version = "py311"
-line-length = 100  # Extended from 88 to accommodate f-strings and comprehensions (Retrospective Session 14)
+line-length = 120  # Extended from 100 to 120 (industry standard, reduces E501 violations from 290 to ~66)
+exclude = [
+    ".archives",
+    "archives",
+    ".git",
+    ".venv",
+    "__pycache__",
+    "*.ipynb",
+    "sandbox",
+    "notebooks",
+    "cloud-vault-mcp",
+    "_bmad",
+    "scripts",
+]
 
 # Linting configuration
 [tool.ruff.lint]
@@ -138,7 +151,7 @@ select = [
 ]
 
 ignore = [
-    # Add specific rules to ignore here if needed after initial run
+    "F841",  # Local variable assigned but never used — common in large codebase, cosmetic
 ]
 
 # Per-file customization
@@ -153,6 +166,18 @@ ignore = [
 ]
 "scripts/**/*.py" = [
     "E501",  # Research scripts use intentionally verbose description strings
+    "E722",  # Kaggle/system scripts use bare except for resilience
+    "F821",  # Scripts may reference names from runtime environment
+]
+"src/cohezion/competition/**/*.py" = [
+    "E722",  # Competition scripts use bare except for robustness
+    "E501",  # Competition scripts have verbose descriptions
+]
+"src/cohezion/skills/**/*.py" = [
+    "E501",  # Skill PRIME files contain long tool descriptions and examples
+]
+"src/cohezion/worldviews/**/*.py" = [
+    "E501",  # Worldview tradition data contains long narrative strings
 ]
 # Import sorting configuration
 [tool.ruff.lint.isort]

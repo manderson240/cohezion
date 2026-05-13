@@ -146,9 +146,7 @@ class TestRankingStrategies:
         # Scores should differ for at least some models
         # (different weighting produces different scores)
         score_diffs = [abs(cost_scores[m] - quality_scores[m]) for m in models]
-        assert any(diff > 0.01 for diff in score_diffs), (
-            "Strategies should produce different composite scores"
-        )
+        assert any(diff > 0.01 for diff in score_diffs), "Strategies should produce different composite scores"
 
 
 class TestCoherenceScoring:
@@ -810,9 +808,7 @@ class TestIntegrationWithGlobalMetrics:
         """Test that ranker scores are comparable with metrics."""
         ranker = ModelRanker()
 
-        ranked = ranker.rank_models(
-            available_models=["phi3:mini", "qwen3-coder:32b", "deepseek-r1:8b"]
-        )
+        ranked = ranker.rank_models(available_models=["phi3:mini", "qwen3-coder:32b", "deepseek-r1:8b"])
 
         # Scores should be in valid range for comparison
         for model, score in ranked:

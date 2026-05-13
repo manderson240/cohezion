@@ -105,9 +105,7 @@ class SharedLatentMemory:
         messages.sort(key=lambda m: m.timestamp, reverse=True)
         return messages
 
-    def get_consensus_embedding(
-        self, exclude_agent: str | None = None
-    ) -> npt.NDArray[np.float64] | None:
+    def get_consensus_embedding(self, exclude_agent: str | None = None) -> npt.NDArray[np.float64] | None:
         """Compute consensus embedding from all agents' most recent states.
 
         Averages the most recent embedding from each active agent.

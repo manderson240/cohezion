@@ -147,9 +147,7 @@ class ExperienceCollector:
     @staticmethod
     def _normalize_parquet_row(row: dict) -> dict:
         """Convert a parquet row into the canonical experience schema."""
-        trajectory, smoothness, convergence = ExperienceCollector._compute_trajectory_stats(
-            row.get("state_trajectory")
-        )
+        trajectory, smoothness, convergence = ExperienceCollector._compute_trajectory_stats(row.get("state_trajectory"))
 
         return {
             "trajectory": trajectory,
@@ -210,9 +208,7 @@ class ExperienceCollector:
     @staticmethod
     def _normalize_surreal_row(row: dict) -> dict:
         """Normalize a SurrealDB mission_journey record."""
-        trajectory, smoothness, convergence = ExperienceCollector._compute_trajectory_stats(
-            row.get("state_trajectory")
-        )
+        trajectory, smoothness, convergence = ExperienceCollector._compute_trajectory_stats(row.get("state_trajectory"))
 
         return {
             "trajectory": trajectory,

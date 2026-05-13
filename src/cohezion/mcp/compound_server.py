@@ -58,9 +58,7 @@ def _get_manager() -> Any:
 
 
 @mcp_tool(mcp)
-async def compound_start_session(
-    max_cache_entries: int = 256, enable_persistence: bool = True
-) -> dict[str, Any]:
+async def compound_start_session(max_cache_entries: int = 256, enable_persistence: bool = True) -> dict[str, Any]:
     """Start a compound session with warm-start from vault."""
     mgr = _get_manager()
     await mgr.__aenter__()
@@ -159,9 +157,7 @@ async def multiperspective_review(proposal: str) -> dict[str, Any]:
             "blue_process_optimizations": review["blue"],
             "green_alternatives": review["green"],
             "yellow_risks": review["yellow"],
-            "ralph_findings": [
-                {"severity": f.severity, "description": f.description} for f in review["ralph"]
-            ],
+            "ralph_findings": [{"severity": f.severity, "description": f.description} for f in review["ralph"]],
         }
     )
 
@@ -195,9 +191,7 @@ async def autoresearch_analyze(metrics_json: str) -> dict[str, Any]:
 
 
 @mcp_tool(mcp)
-async def learning_capture(
-    execution_result_json: str, server_url: str | None = None
-) -> dict[str, Any]:
+async def learning_capture(execution_result_json: str, server_url: str | None = None) -> dict[str, Any]:
     """Capture execution learning to vault."""
     from cohezion.compound.autoresearch import RetrospectionEngine
 
@@ -207,16 +201,12 @@ async def learning_capture(
 
 
 @mcp_tool(mcp)
-async def learning_process_execution(
-    execution_result_json: str, server_url: str | None = None
-) -> dict[str, Any]:
+async def learning_process_execution(execution_result_json: str, server_url: str | None = None) -> dict[str, Any]:
     """Process execution through full learning loop."""
     from cohezion.compound.autoresearch import ExperientialLearningLoop
 
     client, _ = await _mcp_resolver.resolve(server_url)
-    results = await ExperientialLearningLoop().process_execution(
-        json.loads(execution_result_json), client
-    )
+    results = await ExperientialLearningLoop().process_execution(json.loads(execution_result_json), client)
     return ok(results=results)
 
 
@@ -231,9 +221,7 @@ async def skill_refinement_apply(skill_name: str, refinement_type: str) -> dict[
     from cohezion.compound.autoresearch import SkillRefiner
 
     if not re.match(r"^[\w\-]+$", skill_name):
-        return err(
-            "Invalid skill_name. Use only alphanumeric characters, hyphens, and underscores."
-        )
+        return err("Invalid skill_name. Use only alphanumeric characters, hyphens, and underscores.")
     valid = {"token_optimization", "coherence_improvement", "cache_optimization"}
     if refinement_type not in valid:
         return err(f"Invalid refinement_type. Must be one of: {', '.join(sorted(valid))}")
@@ -292,9 +280,7 @@ async def update_context_policy(
     current = policy.get_budget(task)
     updated = ContextBudget(
         flux_top_k=flux_top_k if flux_top_k is not None else current.flux_top_k,
-        flux_min_relevance=flux_min_relevance
-        if flux_min_relevance is not None
-        else current.flux_min_relevance,
+        flux_min_relevance=flux_min_relevance if flux_min_relevance is not None else current.flux_min_relevance,
         flux_sources=current.flux_sources,
         token_budget=token_budget if token_budget is not None else current.token_budget,
         skill_overlay=current.skill_overlay,
@@ -316,9 +302,7 @@ async def update_context_policy(
 
 
 @mcp_tool(mcp)
-async def cohezion_batch_port_skills(
-    skill_names: list[str], dry_run: bool = False
-) -> dict[str, Any]:
+async def cohezion_batch_port_skills(skill_names: list[str], dry_run: bool = False) -> dict[str, Any]:
     """Batch-port multiple PRIME skills to Hermes format."""
     project_root = Path(__file__).resolve().parents[3]
     converter = project_root / "scripts" / "prime_to_hermes_converter.py"
@@ -416,9 +400,7 @@ async def cohezion_skill_matrix() -> dict[str, Any]:
                 if any(k in lower for k in keyword):
                     category = cat
                     break
-            prime_skills.append(
-                {"name": stem, "category": category, "path": str(fpath.relative_to(project_root))}
-            )
+            prime_skills.append({"name": stem, "category": category, "path": str(fpath.relative_to(project_root))})
             categories.add(category)
 
     # Local Hermes skills
@@ -428,8 +410,7 @@ async def cohezion_skill_matrix() -> dict[str, Any]:
         for root in hermes_skills_dir.rglob("SKILL.md"):
             text = root.read_text(encoding="utf-8", errors="ignore")[:4096]
             is_cohezion = any(
-                tag in text
-                for tag in ["project: cohezion", "cohezion", "legacy-name:", "converted: true"]
+                tag in text for tag in ["project: cohezion", "cohezion", "legacy-name:", "converted: true"]
             )
             if not is_cohezion:
                 continue

@@ -1,6 +1,8 @@
 """
 Universal Cohezion Environment Initialization
-Activates in ANY environment that uses Cohezion (Claude Code, Gemini CLI, Zed IDE, Antigravity, Opencode, OpenClaw, Hermes Agent, terminals, APIs, etc.)
+
+Activates in ANY environment that uses Cohezion
+(Claude Code, Gemini CLI, Zed IDE, Antigravity, Opencode, OpenClaw, Hermes Agent, terminals, APIs, etc.)
 """
 
 import os
@@ -96,9 +98,7 @@ def is_cohezion_environment() -> bool:
             if any(consumer in parent_name for consumer in cohezion_consumers):
                 # Additional check: are we in Cohezion directory?
                 try:
-                    if any(
-                        (cwd / marker).exists() for marker in ["src/cohezion", "pyproject.toml"]
-                    ):
+                    if any((cwd / marker).exists() for marker in ["src/cohezion", "pyproject.toml"]):
                         return True
                 except Exception:
                     pass  # Continue with other signals
@@ -112,15 +112,10 @@ def is_cohezion_environment() -> bool:
     try:
         cwd = Path.cwd()
         for parent in [cwd] + list(cwd.parents):
-            if any(
-                (parent / marker).exists()
-                for marker in ["src/cohezion/__init__.py", "pyproject.toml"]
-            ):
+            if any((parent / marker).exists() for marker in ["src/cohezion/__init__.py", "pyproject.toml"]):
                 # Additional validation: look for more markers
                 marker_count = sum(
-                    1
-                    for marker in ["_bmad/", "docs/", ".opencode/", "cohezion_kb.jsonl"]
-                    if (parent / marker).exists()
+                    1 for marker in ["_bmad/", "docs/", ".opencode/", "cohezion_kb.jsonl"] if (parent / marker).exists()
                 )
                 if marker_count >= 2:
                     return True

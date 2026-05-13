@@ -58,9 +58,7 @@ class SpectralEncoder:
 
         return latent
 
-    def integrate_with_text(
-        self, text_latent: np.ndarray, spectral_latent: np.ndarray
-    ) -> np.ndarray:
+    def integrate_with_text(self, text_latent: np.ndarray, spectral_latent: np.ndarray) -> np.ndarray:
         """
         Fuses text-based TEK latents with spectral-based ground truth.
         Symphonic Fusion = (Text_Latent + Spectral_Latent) / 2

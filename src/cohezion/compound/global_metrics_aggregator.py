@@ -175,9 +175,7 @@ class GlobalMetricsAggregator:
                 metrics.execution_count,
             )
 
-    def record_team_metrics(
-        self, team_id: str, instance_id: str, metrics: TeamCompoundMetrics
-    ) -> None:
+    def record_team_metrics(self, team_id: str, instance_id: str, metrics: TeamCompoundMetrics) -> None:
         """Record team-level metrics from an instance.
 
         Parameters
@@ -269,9 +267,7 @@ class GlobalMetricsAggregator:
             p99_latency = self._calculate_percentile(all_latencies, 0.99)
 
             # Calculate means
-            avg_coherence = (
-                sum(coherence_scores) / len(coherence_scores) if coherence_scores else 0.0
-            )
+            avg_coherence = sum(coherence_scores) / len(coherence_scores) if coherence_scores else 0.0
             cache_hit_mean = sum(cache_hit_rates) / len(cache_hit_rates) if cache_hit_rates else 0.0
 
             # Normalize model distribution
@@ -409,11 +405,7 @@ class GlobalMetricsAggregator:
         """Get list of active instances (updated in last 5 minutes)."""
         cutoff = time.time() - 300  # 5 minutes
         with self._lock:
-            return [
-                instance_id
-                for instance_id, last_update in self._last_update.items()
-                if last_update > cutoff
-            ]
+            return [instance_id for instance_id, last_update in self._last_update.items() if last_update > cutoff]
 
     def get_dashboard_snapshot(self) -> dict[str, Any]:
         """Get real-time dashboard snapshot (updated every 5 seconds).
@@ -444,11 +436,7 @@ class GlobalMetricsAggregator:
                     "skill": name,
                     "executions": m.execution_count,
                     "success_rate": m.success_rate,
-                    "avg_coherence": (
-                        sum(m.coherence_trend) / len(m.coherence_trend)
-                        if m.coherence_trend
-                        else 0.0
-                    ),
+                    "avg_coherence": (sum(m.coherence_trend) / len(m.coherence_trend) if m.coherence_trend else 0.0),
                 }
                 for name, m in list(self._skill_metrics.items())[:20]  # Top 20 skills
             ]
@@ -607,9 +595,7 @@ _global_aggregator: GlobalMetricsAggregator | None = None
 _aggregator_lock = threading.Lock()
 
 
-def get_global_aggregator(
-    data_dir: Path | None = None, window_size_sec: int = 60
-) -> GlobalMetricsAggregator:
+def get_global_aggregator(data_dir: Path | None = None, window_size_sec: int = 60) -> GlobalMetricsAggregator:
     """Get or create the global metrics aggregator singleton.
 
     Parameters

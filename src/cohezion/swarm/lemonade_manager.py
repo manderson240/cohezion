@@ -16,9 +16,7 @@ logger = logging.getLogger(__name__)
 class LemonadeManager:
     """Manages the private embeddable Lemonade server instance."""
 
-    def __init__(
-        self, base_dir: str | Path | None = None, port: int = 13307, host: str = "localhost"
-    ) -> None:
+    def __init__(self, base_dir: str | Path | None = None, port: int = 13307, host: str = "localhost") -> None:
         self.base_dir = Path(base_dir or "vendor/lemonade").absolute()
         self.port = port
         self.host = host

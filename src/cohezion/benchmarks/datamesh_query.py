@@ -59,9 +59,7 @@ async def benchmark_datamesh_queries(
         await asyncio.sleep(0.005)  # 5ms base
         embedding_latencies.append((time.perf_counter() - q_start) * 1000)
 
-    embedding_avg = (
-        sum(embedding_latencies) / len(embedding_latencies) if embedding_latencies else 0
-    )
+    embedding_avg = sum(embedding_latencies) / len(embedding_latencies) if embedding_latencies else 0
 
     # Phase 3: Cross-domain federated
     cross_latencies = []

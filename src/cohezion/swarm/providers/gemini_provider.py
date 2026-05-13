@@ -61,9 +61,7 @@ class GeminiProvider(ModelProvider):
         super().__init__(config)
 
         self.api_key = self.config.get("api_key") or os.environ.get("GOOGLE_API_KEY", "")
-        self.base_url = self.config.get(
-            "base_url", "https://generativelanguage.googleapis.com/v1beta"
-        )
+        self.base_url = self.config.get("base_url", "https://generativelanguage.googleapis.com/v1beta")
         self.timeout = self.config.get("timeout", 30)
         self._session: aiohttp.ClientSession | None = None
 

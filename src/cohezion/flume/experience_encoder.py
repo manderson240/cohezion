@@ -98,9 +98,7 @@ class ExperienceEncoder:
 
         # --- Dims [29:256]: semantic fingerprint ---
         fingerprint_text = self._build_fingerprint_text(experience)
-        vec[_TRAJECTORY_DIM + _METRICS_DIM + _OP_TYPE_DIM :] = self._sha256_expand(
-            fingerprint_text, _FINGERPRINT_DIM
-        )
+        vec[_TRAJECTORY_DIM + _METRICS_DIM + _OP_TYPE_DIM :] = self._sha256_expand(fingerprint_text, _FINGERPRINT_DIM)
 
         return vec
 
@@ -127,10 +125,5 @@ class ExperienceEncoder:
             byte_val = hash_bytes[i % len(hash_bytes)]
             phase = (2.0 * math.pi * i) / dim
             # Center at 0.5: byte_val/255 in [0,1] has mean 0.5; modulation is zero-mean
-            out[i] = (
-                0.5
-                + (byte_val / 255.0 - 0.5) * 0.6
-                + 0.1 * math.sin(phase)
-                + 0.1 * math.cos(phase * 2)
-            )
+            out[i] = 0.5 + (byte_val / 255.0 - 0.5) * 0.6 + 0.1 * math.sin(phase) + 0.1 * math.cos(phase * 2)
         return out

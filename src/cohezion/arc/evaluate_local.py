@@ -84,9 +84,7 @@ def print_scorecard(results: dict, top_n: int = 10) -> None:
     print("=" * 60)
     print(f"Total eval tasks:     {results['total_eval_tasks']}")
     print(f"Attempted:            {results['attempted']}")
-    print(
-        f"Correct (attempt 1):  {results['correct_attempt_1']} ({results['accuracy_attempt_1']:.2%})"
-    )
+    print(f"Correct (attempt 1):  {results['correct_attempt_1']} ({results['accuracy_attempt_1']:.2%})")
     print(f"Correct (either):      {results['correct_either']} ({results['accuracy_either']:.2%})")
     print("-" * 60)
 
@@ -98,9 +96,7 @@ def print_scorecard(results: dict, top_n: int = 10) -> None:
 
     # Wrong tasks
     wrong_tasks = [
-        (tid, r)
-        for tid, r in results["per_task"].items()
-        if r.get("status") == "submitted" and not r.get("correct")
+        (tid, r) for tid, r in results["per_task"].items() if r.get("status") == "submitted" and not r.get("correct")
     ]
     print(f"\nWrong tasks ({len(wrong_tasks)}):")
     for tid, _ in wrong_tasks[:top_n]:

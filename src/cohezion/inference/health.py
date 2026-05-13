@@ -62,9 +62,7 @@ class FleetHealth:
     @property
     def local_lanes_up(self) -> int:
         local = {"npu", "igpu_rocwmma", "igpu_unified", "cpu"}
-        return sum(
-            1 for name, h in self.lanes.items() if name in local and h.status == LaneStatus.UP
-        )
+        return sum(1 for name, h in self.lanes.items() if name in local and h.status == LaneStatus.UP)
 
     @property
     def any_local_up(self) -> bool:
@@ -155,9 +153,7 @@ def _probe_cli(
     args = probe_args if probe_args is not None else ["--version"]
     try:
         start = time.perf_counter()
-        result = subprocess.run(
-            [resolved, *args], capture_output=True, timeout=timeout_s, text=True
-        )
+        result = subprocess.run([resolved, *args], capture_output=True, timeout=timeout_s, text=True)
         latency_ms = (time.perf_counter() - start) * 1000
         if result.returncode == 0:
             detail = result.stdout.strip() or result.stderr.strip()

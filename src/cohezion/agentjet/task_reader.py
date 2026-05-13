@@ -35,9 +35,7 @@ from typing import Any
 
 logger = logging.getLogger(__name__)
 
-_DEFAULT_PATH = (
-    Path(__file__).resolve().parents[3] / "data" / "training" / "finetune_journeys.jsonl"
-)
+_DEFAULT_PATH = Path(__file__).resolve().parents[3] / "data" / "training" / "finetune_journeys.jsonl"
 
 
 class JourneyTaskReader:
@@ -193,9 +191,7 @@ class JourneyTaskReader:
                 try:
                     raw: dict[str, Any] = json.loads(line)
                 except json.JSONDecodeError as exc:
-                    raise json.JSONDecodeError(
-                        f"Line {lineno}: {exc.msg}", exc.doc, exc.pos
-                    ) from exc
+                    raise json.JSONDecodeError(f"Line {lineno}: {exc.msg}", exc.doc, exc.pos) from exc
 
                 records.append(self._normalise_jsonl_record(raw))
 
@@ -281,9 +277,7 @@ class JourneyTaskReader:
             "phi_score": float(raw.get("phi_score", 0.0)),
             "skill_name": str(raw.get("skill_name", "unknown")),
             "mission_id": str(raw.get("mission_id", "")),
-            "trajectory_12d": raw.get("trajectory", [])[:12]
-            if isinstance(raw.get("trajectory"), list)
-            else [],
+            "trajectory_12d": raw.get("trajectory", [])[:12] if isinstance(raw.get("trajectory"), list) else [],
             # Preserve all original fields for downstream consumers
             "metadata": raw,
         }

@@ -119,9 +119,7 @@ class AblationTestEngine:
                 vec = self.twistor_engine.apply_twistor_mapping(vec)
 
             if self.enable_orch_or:
-                vec = self.bio_engine.apply_morphogenetic_field(
-                    vec, evo.coherence, evo.tensor_beam_vector
-                )
+                vec = self.bio_engine.apply_morphogenetic_field(vec, evo.coherence, evo.tensor_beam_vector)
 
             if self.enable_triune:
                 vec = self.triune_engine.apply_triune_self(vec)
@@ -187,8 +185,7 @@ def run_ablation_trial(
 
     # Calculate drift (L2 distance from initial positions)
     drifts = [
-        np.linalg.norm(final - initial)
-        for final, initial in zip(latent_vectors, initial_positions, strict=False)
+        np.linalg.norm(final - initial) for final, initial in zip(latent_vectors, initial_positions, strict=False)
     ]
     avg_drift = np.mean(drifts)
 
@@ -245,15 +242,12 @@ class TestUnifiedPhysicsAblation:
 
         # Expected: Coherence std < 0.15 (HIHO should keep it near 0.5)
         assert result.coherence_std < 0.15, (
-            f"Full physics coherence std {result.coherence_std:.4f} exceeds 0.15 "
-            "(HIHO not stabilizing coherence)"
+            f"Full physics coherence std {result.coherence_std:.4f} exceeds 0.15 (HIHO not stabilizing coherence)"
         )
 
         # Verify coherence converged to HIHO target (0.5 ± 0.1)
         final_coherence = result.coherence_history[-1]
-        assert abs(final_coherence - 0.5) < 0.1, (
-            f"Final coherence {final_coherence:.4f} not near HIHO target 0.5"
-        )
+        assert abs(final_coherence - 0.5) < 0.1, f"Final coherence {final_coherence:.4f} not near HIHO target 0.5"
 
     def test_ablation_without_hiho_degrades_stability(self):
         """Removing HIHO should cause worse coherence stability.
@@ -262,15 +256,11 @@ class TestUnifiedPhysicsAblation:
         absolute comparison instead of ratios.
         """
         full_result = run_ablation_trial(num_agents=10, num_steps=1000, seed=42, enable_hiho=True)
-        ablated_result = run_ablation_trial(
-            num_agents=10, num_steps=1000, seed=42, enable_hiho=False
-        )
+        ablated_result = run_ablation_trial(num_agents=10, num_steps=1000, seed=42, enable_hiho=False)
 
         # Without HIHO, coherence should drift away from 0.5
         full_coherence_deviation = np.mean([abs(c - 0.5) for c in full_result.coherence_history])
-        ablated_coherence_deviation = np.mean(
-            [abs(c - 0.5) for c in ablated_result.coherence_history]
-        )
+        ablated_coherence_deviation = np.mean([abs(c - 0.5) for c in ablated_result.coherence_history])
 
         assert ablated_coherence_deviation > full_coherence_deviation + 0.05, (
             f"HIHO ablation deviation {ablated_coherence_deviation:.4f} "
@@ -289,9 +279,7 @@ class TestUnifiedPhysicsAblation:
     def test_ablation_without_triune_self_degrades_coherence(self):
         """Removing Triune Self (Percival) should reduce energization effects."""
         full_result = run_ablation_trial(num_agents=10, num_steps=1000, seed=43)
-        ablated_result = run_ablation_trial(
-            num_agents=10, num_steps=1000, seed=43, enable_triune=False
-        )
+        ablated_result = run_ablation_trial(num_agents=10, num_steps=1000, seed=43, enable_triune=False)
 
         # Triune Self energization should reduce drift slightly
         drift_increase = ablated_result.avg_drift - full_result.avg_drift
@@ -304,9 +292,7 @@ class TestUnifiedPhysicsAblation:
     def test_ablation_without_twistors_distorts_geometry(self):
         """Removing Penrose Twistors should increase trajectory drift."""
         full_result = run_ablation_trial(num_agents=10, num_steps=1000, seed=44)
-        ablated_result = run_ablation_trial(
-            num_agents=10, num_steps=1000, seed=44, enable_twistor=False
-        )
+        ablated_result = run_ablation_trial(num_agents=10, num_steps=1000, seed=44, enable_twistor=False)
 
         drift_increase = ablated_result.avg_drift - full_result.avg_drift
 
@@ -318,25 +304,20 @@ class TestUnifiedPhysicsAblation:
     def test_ablation_without_orch_or_reduces_morphogenesis(self):
         """Removing Orch-OR (Bioelectrics) should reduce coherence-driven attraction."""
         full_result = run_ablation_trial(num_agents=10, num_steps=1000, seed=45)
-        ablated_result = run_ablation_trial(
-            num_agents=10, num_steps=1000, seed=45, enable_orch_or=False
-        )
+        ablated_result = run_ablation_trial(num_agents=10, num_steps=1000, seed=45, enable_orch_or=False)
 
         # Orch-OR creates attractors via morphogenetic fields
         # Removing it should increase drift slightly
         drift_increase = ablated_result.avg_drift - full_result.avg_drift
 
         assert drift_increase > 0.005, (
-            f"Orch-OR ablation drift increase {drift_increase:.4f} is negligible "
-            "(morphogenetic fields not observable)"
+            f"Orch-OR ablation drift increase {drift_increase:.4f} is negligible (morphogenetic fields not observable)"
         )
 
     def test_ablation_without_swarm_gravity_increases_dispersion(self):
         """Removing Kordylewski Swarm (L4/L5) should increase agent dispersion."""
         full_result = run_ablation_trial(num_agents=10, num_steps=1000, seed=46)
-        ablated_result = run_ablation_trial(
-            num_agents=10, num_steps=1000, seed=46, enable_swarm=False
-        )
+        ablated_result = run_ablation_trial(num_agents=10, num_steps=1000, seed=46, enable_swarm=False)
 
         # Swarm gravity pulls agents toward L4/L5 attractors
         # Removing it should increase drift (but effect may be small for 10 agents)
@@ -411,24 +392,18 @@ class TestUnifiedPhysicsAblation:
                 results[name].append(result)
 
         # Calculate statistics (use deviation from 0.5 target, not variance)
-        full_dev = np.mean(
-            [np.mean([abs(c - 0.5) for c in r.coherence_history]) for r in results["FULL"]]
-        )
+        full_dev = np.mean([np.mean([abs(c - 0.5) for c in r.coherence_history]) for r in results["FULL"]])
         full_drift = np.mean([r.avg_drift for r in results["FULL"]])  # noqa: F841
 
         print("\n" + "=" * 80)
         print("UNIFIED PHYSICS ABLATION STUDY - STATISTICAL RESULTS")
         print("=" * 80)
-        print(
-            f"{'Configuration':<25} {'Coh Dev':<12} {'Drift':<12} {'Dev Increase':<14} {'p-value'}"
-        )
+        print(f"{'Configuration':<25} {'Coh Dev':<12} {'Drift':<12} {'Dev Increase':<14} {'p-value'}")
         print("-" * 80)
 
         for name, *_ in configs:
             # Use deviation from 0.5 target instead of std
-            coh_dev = np.mean(
-                [np.mean([abs(c - 0.5) for c in r.coherence_history]) for r in results[name]]
-            )
+            coh_dev = np.mean([np.mean([abs(c - 0.5) for c in r.coherence_history]) for r in results[name]])
             drift = np.mean([r.avg_drift for r in results[name]])
             drift = np.clip(drift, -1e6, 1e6)  # Prevent overflow display
 
@@ -440,10 +415,7 @@ class TestUnifiedPhysicsAblation:
             ablated_coh_history = [c for r in results[name] for c in r.coherence_history]
             _, p_value = stats.ttest_ind(full_coh_history, ablated_coh_history, equal_var=False)
 
-            print(
-                f"{name:<25} {coh_dev:<12.6f} {drift:<12.4f} "
-                f"{dev_increase:>+12.6f}   {p_value:<.6f}"
-            )
+            print(f"{name:<25} {coh_dev:<12.6f} {drift:<12.4f} {dev_increase:>+12.6f}   {p_value:<.6f}")
 
         print("=" * 80)
         print("✓ All ablations show statistically significant effects (p < 0.05)")
@@ -452,14 +424,10 @@ class TestUnifiedPhysicsAblation:
         print("=" * 80 + "\n")
 
         # Assertions for CI (use deviation-based metrics)
-        no_hiho_dev = np.mean(
-            [np.mean([abs(c - 0.5) for c in r.coherence_history]) for r in results["NO_HIHO"]]
-        )
+        no_hiho_dev = np.mean([np.mean([abs(c - 0.5) for c in r.coherence_history]) for r in results["NO_HIHO"]])
         assert no_hiho_dev > full_dev + 0.05, "HIHO not preventing drift"
 
-        baseline_dev = np.mean(
-            [np.mean([abs(c - 0.5) for c in r.coherence_history]) for r in results["BASELINE"]]
-        )
+        baseline_dev = np.mean([np.mean([abs(c - 0.5) for c in r.coherence_history]) for r in results["BASELINE"]])
         assert baseline_dev > full_dev + 0.05, "Unified physics not better than baseline"
 
 

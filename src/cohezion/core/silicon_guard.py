@@ -44,7 +44,7 @@ class SiliconGuard:
             # Common path for Ryzen APUs
             with open("/sys/class/hwmon/hwmon0/temp1_input") as f:
                 return float(f.read()) / 1000.0
-        except:
+        except Exception:
             return 45.0  # Baseline if unreadable
 
     def get_gpu_memory(self) -> float:

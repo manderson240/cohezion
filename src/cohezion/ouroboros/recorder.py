@@ -138,9 +138,7 @@ class OuroborosRecorder:
         if not self.snapshots:
             return
         suffix = "final" if final else f"batch_{self._cycle_count}"
-        path = (
-            self._output_dir / f"ouroboros_{datetime.now().strftime('%Y%m%d_%H%M%S')}_{suffix}.json"
-        )
+        path = self._output_dir / f"ouroboros_{datetime.now().strftime('%Y%m%d_%H%M%S')}_{suffix}.json"
         try:
             with open(path, "w") as f:
                 json.dump(

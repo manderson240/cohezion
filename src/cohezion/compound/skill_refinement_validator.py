@@ -46,9 +46,7 @@ class SkillRefinementValidator:
         )
         self._persist_async(skill_name, "baseline", metrics)
 
-    def validate_refinement(
-        self, skill_name: str, post_metrics: RefinementMetrics
-    ) -> tuple[bool, str]:
+    def validate_refinement(self, skill_name: str, post_metrics: RefinementMetrics) -> tuple[bool, str]:
         """Compare post-mutation metrics against baseline.
 
         Returns (approved, reason).
@@ -60,9 +58,7 @@ class SkillRefinementValidator:
             return False, reason
 
         if post_metrics.sample_count < self._min_samples:
-            reason = (
-                f"insufficient samples: got {post_metrics.sample_count}, need {self._min_samples}"
-            )
+            reason = f"insufficient samples: got {post_metrics.sample_count}, need {self._min_samples}"
             logger.warning("Validation blocked for %s: %s", skill_name, reason)
             return False, reason
 
@@ -147,6 +143,4 @@ class SkillRefinementValidator:
                 loop.run_until_complete(_write())
 
         except Exception:
-            logger.debug(
-                "SurrealDB persistence skipped for %s/%s (non-blocking)", skill_name, stage
-            )
+            logger.debug("SurrealDB persistence skipped for %s/%s (non-blocking)", skill_name, stage)

@@ -75,9 +75,7 @@ def calculate_hiho_coherence(intent: torch.Tensor, environment: torch.Tensor) ->
     return float((cos_sim + 1.0) / 2.0)
 
 
-def compute_restoring_force(
-    current_coherence: float, target: float = 0.5, stiffness: float = 0.1
-) -> float:
+def compute_restoring_force(current_coherence: float, target: float = 0.5, stiffness: float = 0.1) -> float:
     """
     Computes the force required to drive coherence back toward the stability point.
 

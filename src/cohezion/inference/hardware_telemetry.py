@@ -17,6 +17,7 @@ import json
 import re
 import subprocess
 import time
+from collections.abc import Callable
 from dataclasses import dataclass, field
 from enum import Enum
 from pathlib import Path
@@ -378,15 +379,11 @@ class MultiBackendTelemetry:
         for backend, profile in self.profiles.items():
             lines.append(f"{backend.value.upper()}:")
             lines.append(f"  Duration: {profile.duration_sec:.1f}s")
-            lines.append(
-                f"  Utilization: {profile.avg_utilization:.1f}% (peak: {profile.peak_utilization:.1f}%)"
-            )
+            lines.append(f"  Utilization: {profile.avg_utilization:.1f}% (peak: {profile.peak_utilization:.1f}%)")
             lines.append(
                 f"  Memory: {profile.avg_memory_used_mb / 1024:.1f}GB (peak: {profile.peak_memory_mb / 1024:.1f}GB)"
             )
-            lines.append(
-                f"  Temperature: {profile.avg_temperature:.1f}°C (peak: {profile.peak_temperature:.1f}°C)"
-            )
+            lines.append(f"  Temperature: {profile.avg_temperature:.1f}°C (peak: {profile.peak_temperature:.1f}°C)")
 
             if profile.throttled_time_sec > 0:
                 lines.append(f"  ⚠️ Throttled: {profile.throttled_time_sec:.1f}s")

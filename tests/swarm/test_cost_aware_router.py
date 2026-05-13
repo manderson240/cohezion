@@ -67,9 +67,7 @@ class TestQueryComplexityAnalyzer:
         for query in non_simple_queries:
             complexity = analyzer.analyze(query)
             # Medium or complex is acceptable - should not be simple
-            assert complexity in [QueryComplexity.MEDIUM, QueryComplexity.COMPLEX], (
-                f"Failed for: {query}"
-            )
+            assert complexity in [QueryComplexity.MEDIUM, QueryComplexity.COMPLEX], f"Failed for: {query}"
 
     def test_token_estimation(self):
         """Test token estimation accuracy."""
@@ -81,9 +79,7 @@ class TestQueryComplexityAnalyzer:
         assert 1 <= est_short <= 10
 
         # Medium query: ~20-40 tokens
-        medium = (
-            "Write a Python function to calculate fibonacci numbers recursively with memoization"
-        )
+        medium = "Write a Python function to calculate fibonacci numbers recursively with memoization"
         est_medium = analyzer._estimate_tokens(medium)
         assert 10 <= est_medium <= 50
 
@@ -112,9 +108,7 @@ class TestQueryComplexityAnalyzer:
         assert stats["simple_pct"] > 0  # At least 2 simple queries
         assert stats["medium_pct"] >= 0  # May have medium
         # Don't require complex since it's keyword-dependent
-        assert (
-            abs(sum([stats["simple_pct"], stats["medium_pct"], stats["complex_pct"]]) - 100.0) < 0.1
-        )
+        assert abs(sum([stats["simple_pct"], stats["medium_pct"], stats["complex_pct"]]) - 100.0) < 0.1
 
 
 class TestCostAwareRouter:
@@ -289,8 +283,8 @@ class TestCostAwareRouter:
         """Test quality loss is minimal with cost/token optimization."""
         queries = [
             "What is Python?",  # simple (phi3 quality 0.6)
-            "Write a Python function to process data",  # medium (may optimize to phi3 0.6 or use qwen 0.85)
-            "Design and implement a distributed system with production-grade performance",  # complex (may optimize to qwen 0.85 or deepseek 0.95)
+            "Write a Python function to process data",  # medium (phi3 0.6 or qwen 0.85)
+            "Design a distributed system with production-grade performance",  # complex (qwen 0.85 or deepseek 0.95)
         ]
 
         for query in queries:
@@ -299,11 +293,9 @@ class TestCostAwareRouter:
             assert decision.quality_score >= 0.6
 
         # Average quality with cost optimization should still be acceptable
-        # With cost/token optimization preferring cheaper models: phi3(0.6) + phi3/qwen(0.6-0.85) + qwen/deepseek(0.85-0.95)
+        # With cost/token optimization: phi3(0.6) + phi3/qwen(0.6-0.85) + qwen/deepseek(0.85-0.95)
         # Worst case: all phi3 (0.6), best case: mixed (0.7-0.8)
-        avg_quality = sum(d.quality_score for d in router.routing_decisions) / len(
-            router.routing_decisions
-        )
+        avg_quality = sum(d.quality_score for d in router.routing_decisions) / len(router.routing_decisions)
         assert avg_quality >= 0.65  # Slightly relaxed to account for cost optimization
 
     def test_reset_statistics(self, router):
@@ -335,8 +327,7 @@ class TestCostAwareRouterChaosTest:
         # Generate 100 random queries
 
         queries = [
-            f"Query {i}: {'What' if i % 3 == 0 else 'Design' if i % 3 == 1 else 'Write'} something"
-            for i in range(100)
+            f"Query {i}: {'What' if i % 3 == 0 else 'Design' if i % 3 == 1 else 'Write'} something" for i in range(100)
         ]
 
         for query in queries:
@@ -356,9 +347,7 @@ class TestCostAwareRouterChaosTest:
 
         # Simulate spike: 50 complex queries
         for i in range(50):
-            decision, can_proceed = router.select_model(
-                "Design and implement a distributed system with consensus"
-            )
+            decision, can_proceed = router.select_model("Design and implement a distributed system with consensus")
             if can_proceed:
                 router.record_execution(decision.model, 500, 5000.0)
 
@@ -416,8 +405,7 @@ class TestCostAwareRouterChaosTest:
             max_count = max(model_counts.values()) if model_counts else 0
             consistency_ratio = max_count / len(models) if len(models) > 0 else 0.0
             assert consistency_ratio >= 0.70, (
-                f"Query '{query}' has low consistency: {consistency_ratio:.1%} "
-                f"(models: {model_counts})"
+                f"Query '{query}' has low consistency: {consistency_ratio:.1%} (models: {model_counts})"
             )
 
 

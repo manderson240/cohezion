@@ -108,9 +108,7 @@ class GraphifyService:
             return 0.3  # E7 Core
         return 0.6  # Focusing Sphere
 
-    async def _mock_graphify_extraction(
-        self, content: str
-    ) -> tuple[list[GraphEntity], list[GraphRelation]]:
+    async def _mock_graphify_extraction(self, content: str) -> tuple[list[GraphEntity], list[GraphRelation]]:
         """Simulates the LLM-driven extraction process of Graphify."""
         # This would be replaced by: return graphify.process(content)
         entities = [
@@ -120,9 +118,7 @@ class GraphifyService:
                 description="A structured representation of info",
             ),
             GraphEntity(name="Cohezion", type="System", description="Compound AI Orchestration"),
-            GraphEntity(
-                name="Graphify", type="Tool", description="Unstructured to Graph converter"
-            ),
+            GraphEntity(name="Graphify", type="Tool", description="Unstructured to Graph converter"),
         ]
         relations = [
             GraphRelation(source="Cohezion", target="Graphify", relation="integrates"),

@@ -133,9 +133,7 @@ class TestCapabilityScorecard:
     @pytest.mark.fast
     def test_compare_swarm_vs_selfsupervised_returns_comparison(self, scorecard, sample_checkpoint):
         """Test comparison returns StatisticalComparison."""
-        swarm_results = [
-            {"episode": 1, "capability_vector": sample_checkpoint["capability_vector"]}
-        ]
+        swarm_results = [{"episode": 1, "capability_vector": sample_checkpoint["capability_vector"]}]
         self_supervised_results = [
             {
                 "episode": 1,
@@ -150,9 +148,7 @@ class TestCapabilityScorecard:
             }
         ]
 
-        comparison = scorecard.compare_swarm_vs_selfsupervised(
-            swarm_results, self_supervised_results
-        )
+        comparison = scorecard.compare_swarm_vs_selfsupervised(swarm_results, self_supervised_results)
         assert comparison is not None
         assert hasattr(comparison, "delta_capability")
         assert hasattr(comparison, "p_values")
@@ -160,9 +156,7 @@ class TestCapabilityScorecard:
     @pytest.mark.fast
     def test_compare_swarm_vs_selfsupervised_delta_calculation(self, scorecard, sample_checkpoint):
         """Test delta capability is calculated correctly."""
-        swarm_results = [
-            {"episode": 1, "capability_vector": sample_checkpoint["capability_vector"]}
-        ]
+        swarm_results = [{"episode": 1, "capability_vector": sample_checkpoint["capability_vector"]}]
         self_supervised_results = [
             {
                 "episode": 1,
@@ -177,9 +171,7 @@ class TestCapabilityScorecard:
             }
         ]
 
-        comparison = scorecard.compare_swarm_vs_selfsupervised(
-            swarm_results, self_supervised_results
-        )
+        comparison = scorecard.compare_swarm_vs_selfsupervised(swarm_results, self_supervised_results)
 
         expected_delta = 0.10  # 0.85 - 0.75
         assert abs(comparison.delta_capability["coherence_amplitude"] - expected_delta) < 0.01
@@ -246,9 +238,7 @@ class TestHuggingFaceExporter:
 
     @pytest.mark.fast
     @pytest.mark.asyncio
-    async def test_export_research_dataset_creates_files(
-        self, exporter, sample_evo_biography, temp_output_dir
-    ):
+    async def test_export_research_dataset_creates_files(self, exporter, sample_evo_biography, temp_output_dir):
         """Test research dataset export creates JSONL and README."""
         evos = [sample_evo_biography]
 

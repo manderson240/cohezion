@@ -2,11 +2,9 @@ from cohezion.core.silicon_guard import SiliconGuard
 
 
 def test_silicon_guard_thermal_throttling():
-    # Simulate high temperature
-    guard = SiliconGuard(temp_limit=30.0)  # Set very low limit to trigger
-
-    # We can't easily mock the /sys/ file here without complexity,
-    # but we can verify the logic if get_temperature is forced
+    # Simulate high temperature — set VRAM limit high enough that only thermal fires
+    # (Strix Halo has 87.9GB+ VRAM, so use 200GB to prevent VRAM throttle from overriding)
+    guard = SiliconGuard(temp_limit=30.0, gtt_limit_gb=200.0)
 
     payload = {"prompt": "Analyze", "max_tokens": 1000}
 

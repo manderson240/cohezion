@@ -83,9 +83,7 @@ class WorkflowManager:
         Does NOT modify routing files directly — generates the entries
         for human review and approval.
         """
-        result = OnboardingResult(
-            model_id=model_id, pulled=False, assessed=False, router_entry_generated=False
-        )
+        result = OnboardingResult(model_id=model_id, pulled=False, assessed=False, router_entry_generated=False)
 
         # Step 1: Check if model is available locally
         try:
@@ -97,9 +95,7 @@ class WorkflowManager:
             )
             if model_id not in output.stdout:
                 # Model not pulled yet
-                logger.info(
-                    f"Model {model_id} not found locally. Pull with: ollama pull {model_id}"
-                )
+                logger.info(f"Model {model_id} not found locally. Pull with: ollama pull {model_id}")
                 result.error = f"Model not found locally. Run: ollama pull {model_id}"
                 return result
             result.pulled = True
@@ -243,9 +239,7 @@ class WorkflowManager:
 
         return result
 
-    def _run_soft_finetune(
-        self, candidate: FinetuneCandidate, result: FinetuneResult
-    ) -> FinetuneResult:
+    def _run_soft_finetune(self, candidate: FinetuneCandidate, result: FinetuneResult) -> FinetuneResult:
         """Soft fine-tuning via Modelfile system prompt injection."""
         try:
             from cohezion.flume.local_finetune_pipeline import LocalFinetuner
@@ -265,9 +259,7 @@ class WorkflowManager:
             result.error = f"Soft fine-tune failed: {e}"
         return result
 
-    def _run_qlora_finetune(
-        self, candidate: FinetuneCandidate, result: FinetuneResult
-    ) -> FinetuneResult:
+    def _run_qlora_finetune(self, candidate: FinetuneCandidate, result: FinetuneResult) -> FinetuneResult:
         """QLoRA fine-tuning via llamafactory."""
         try:
             from cohezion.flume.local_finetune_pipeline import LocalFinetuner
@@ -287,9 +279,7 @@ class WorkflowManager:
             result.error = f"QLoRA setup failed: {e}"
         return result
 
-    def _run_call_finetune(
-        self, candidate: FinetuneCandidate, result: FinetuneResult
-    ) -> FinetuneResult:
+    def _run_call_finetune(self, candidate: FinetuneCandidate, result: FinetuneResult) -> FinetuneResult:
         """Full CALL cycle via AgentJetTrainer."""
         try:
             from cohezion.agentjet.trainer import AgentJetTrainer

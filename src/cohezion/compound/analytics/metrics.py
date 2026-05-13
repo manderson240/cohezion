@@ -85,9 +85,7 @@ class MetricsCollector:
         coherences = [r.metrics.coherence for r in self.results if r.metrics.coherence > 0]
         avg_coherence = sum(coherences) / len(coherences) if coherences else 0.0
 
-        qualities = [
-            r.metrics.quality_score for r in self.results if r.metrics.quality_score is not None
-        ]
+        qualities = [r.metrics.quality_score for r in self.results if r.metrics.quality_score is not None]
         avg_quality = sum(qualities) / len(qualities) if qualities else 0.0
 
         return MetricsSnapshot(
@@ -111,9 +109,7 @@ class MetricsCollector:
                 "successful": snapshot.successful_executions,
                 "failed": snapshot.failed_executions,
                 "success_rate": (
-                    snapshot.successful_executions / snapshot.total_executions
-                    if snapshot.total_executions > 0
-                    else 0.0
+                    snapshot.successful_executions / snapshot.total_executions if snapshot.total_executions > 0 else 0.0
                 ),
             },
             "performance": {

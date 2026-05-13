@@ -36,7 +36,13 @@ class TestCostTokenTradeoff:
 
         # With local models (cost=0), TPS becomes the deciding factor
         # phi3 TPS (15.0) vs qwen TPS (8.0) → phi3 is 87.5% as fast (> threshold)
-        assert decision.model in ["phi3:mini", "qwen3-coder:32b"]
+        assert decision.model in [
+            "phi3:mini",
+            "qwen3-coder:32b",
+            "Phi-4-mini-instruct-Hybrid",
+            "Qwen3-8B-Hybrid",
+            "Qwen3-14B-Hybrid",
+        ]
 
     def test_optimization_tracking_via_swaps_counter(self):
         """Test that token_optimization_swaps counter tracks optimization."""
@@ -68,12 +74,13 @@ class TestCostTokenTradeoff:
     def test_quality_score_reflects_selected_model(self, router):
         """Test that quality score in decision matches selected model."""
         decision_simple, _ = router.select_model("What is Python?")
-        assert decision_simple.quality_score == 0.6  # phi3:mini quality
+        # phi3:mini=0.6, Phi-4-mini-instruct-Hybrid=0.82
+        assert decision_simple.quality_score in [0.6, 0.82]
 
         decision_medium, _ = router.select_model("Write a Python function")
-        # May be qwen (0.85) or phi3 (0.6) due to optimization
-        assert decision_medium.quality_score in [0.6, 0.85]
+        # May be qwen (0.85) or phi3/Phi-4 tier due to optimization
+        assert decision_medium.quality_score in [0.6, 0.82, 0.85]
 
         decision_complex, _ = router.select_model("Design and implement a production system")
-        # May be deepseek (0.95), qwen (0.85), or phi3 (0.6) due to optimization
-        assert decision_complex.quality_score in [0.6, 0.85, 0.95]
+        # May be various models depending on optimization
+        assert decision_complex.quality_score in [0.6, 0.82, 0.85, 0.90, 0.95]

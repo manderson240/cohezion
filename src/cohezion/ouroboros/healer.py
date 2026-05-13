@@ -15,9 +15,7 @@ class HealerAgent(BaseAgent):
     adjustments based on Ouroboros anomaly reports.
     """
 
-    def __init__(
-        self, model_name: str = "qwen3-coder", config: SwarmConfig | None = None, **kwargs
-    ):
+    def __init__(self, model_name: str = "qwen3-coder", config: SwarmConfig | None = None, **kwargs):
         super().__init__(model_name, config, **kwargs)
 
     async def synthesize_patch(self, anomaly_report: dict[str, Any]) -> str:
@@ -34,8 +32,8 @@ class HealerAgent(BaseAgent):
         ANOMALY REPORT DETECTED:
         {json.dumps(anomaly_report, indent=2)}
 
-        As the Ouroboros Healer, synthesize a specific patch proposal to stabilize 
-        the Cohezion Triune Manifold. Focus on coherence recovery toward the 0.5 
+        As the Ouroboros Healer, synthesize a specific patch proposal to stabilize
+        the Cohezion Triune Manifold. Focus on coherence recovery toward the 0.5
         HIHO stability point.
 
         Provide your response in the following format:

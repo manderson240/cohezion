@@ -20,9 +20,7 @@ from cohezion.core.persistence.surreal_client import SurrealClient, UniverseNode
 logger = logging.getLogger(__name__)
 
 
-class SurrealUniverseRepository(
-    UniverseRepository, BaseRepository[UniverseNode, UniverseRepositoryFilter]
-):
+class SurrealUniverseRepository(UniverseRepository, BaseRepository[UniverseNode, UniverseRepositoryFilter]):
     """SurrealDB-backed repository for universe nodes."""
 
     def __init__(self, client: SurrealClient):
@@ -180,9 +178,7 @@ class SurrealUniverseRepository(
             logger.error(f"Failed to delete universe node from SurrealDB: {e}")
             return False
 
-    async def search_by_embedding(
-        self, embedding: list[float], limit: int = 10
-    ) -> list[UniverseNode]:
+    async def search_by_embedding(self, embedding: list[float], limit: int = 10) -> list[UniverseNode]:
         """Search for nodes by vector similarity in SurrealDB.
 
         Args:

@@ -111,9 +111,7 @@ class GaugeConnection:
 
     def __init__(self, fabric_name: str, coupling: float | None = None) -> None:
         self.fabric_name = fabric_name
-        self.coupling = (
-            coupling if coupling is not None else DEFAULT_COUPLINGS.get(fabric_name, 1.0)
-        )
+        self.coupling = coupling if coupling is not None else DEFAULT_COUPLINGS.get(fabric_name, 1.0)
         # Connection coefficients A^a_μ — shape (3, 3) → 3 generators × 3 directions
         self._A = np.zeros((3, 3))
 
@@ -331,9 +329,7 @@ class FourFabricGauge:
         self.set_from_12d_state(state_12d, target)
         # Pre-compute and cache yang_mills_action using optimized
         # per-connection field_strength_energy
-        self._cached_ym_action = sum(
-            conn.field_strength_energy() for conn in self.connections.values()
-        )
+        self._cached_ym_action = sum(conn.field_strength_energy() for conn in self.connections.values())
 
     def is_hiho(self, tol: float = 1e-10) -> bool:
         """Check if all connections are flat (system at HIHO).

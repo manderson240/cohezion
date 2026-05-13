@@ -111,9 +111,7 @@ class FisherInformationMetric:
         The top-k eigenvectors define the Fisher-optimal subspace.
         """
         if self._cached_metric is None:
-            raise ValueError(
-                "Compute metric first via compute_from_gaussian or compute_from_jacobian"
-            )
+            raise ValueError("Compute metric first via compute_from_gaussian or compute_from_jacobian")
 
         if self._cached_eigenvalues is None:
             eigenvalues, eigenvectors = np.linalg.eigh(self._cached_metric)

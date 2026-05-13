@@ -332,9 +332,7 @@ class EvolutionTrainingSignalGenerator:
         rewards = [_trajectory_reward(t) for t in trajectories]
 
         # Compute latent novelty
-        novelties = [
-            self.latent_scorer.compute_latent_novelty(t, trajectories) for t in trajectories
-        ]
+        novelties = [self.latent_scorer.compute_latent_novelty(t, trajectories) for t in trajectories]
 
         # DPO preference pairs
         dpo_pairs = self._generate_dpo_pairs(trajectories, rewards)
@@ -532,8 +530,7 @@ class EvolutionTrainingExporter:
             paths["instructions"] = path
 
         logger.info(
-            "Exported training data for generation %d: "
-            "%d DPO pairs, %d rewards, %d judgments, %d instructions",
+            "Exported training data for generation %d: %d DPO pairs, %d rewards, %d judgments, %d instructions",
             signals.generation,
             len(signals.dpo_pairs),
             len(signals.reward_records),
@@ -656,9 +653,7 @@ class EvolutionTrainingPipeline:
         all_trajectories = pool_trajectories + archive_trajectories
 
         # --- Stage 4: Compute latent novelty ---
-        latent_novelties = [
-            self.latent_scorer.compute_latent_novelty(t, all_trajectories) for t in all_trajectories
-        ]
+        latent_novelties = [self.latent_scorer.compute_latent_novelty(t, all_trajectories) for t in all_trajectories]
 
         # --- Stage 5: Generate training signals ---
         signals = self.signal_generator.generate_signals(
@@ -743,8 +738,7 @@ class EvolutionTrainingPipeline:
         total_instructions = sum(len(r.training_signals.instruction_tuning) for r in results)
 
         logger.info(
-            "Multi-generation complete (%d rounds): "
-            "%d total DPO pairs, %d reward records, %d instructions",
+            "Multi-generation complete (%d rounds): %d total DPO pairs, %d reward records, %d instructions",
             n_generations,
             total_dpo,
             total_rewards,

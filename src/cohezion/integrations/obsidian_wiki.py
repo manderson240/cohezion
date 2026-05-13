@@ -115,7 +115,7 @@ backlinks: {backlinks}
         page = WikiPage(
             path=full_path,
             title=title,
-            content=full_content,
+            content=content,
             category=category,
             tags=tags or [],
             backlinks=backlinks,
@@ -214,6 +214,7 @@ backlinks: {backlinks}
         else:
             body = content
 
+        body = body.lstrip("\n")
         title = body.split("\n")[0].lstrip("# ").strip()
         backlinks = re.findall(r"\[\[([^\]]+)\]\]", body)
 
@@ -224,12 +225,8 @@ backlinks: {backlinks}
             category=frontmatter.get("category", "unknown"),
             tags=eval(frontmatter.get("tags", "[]")),
             backlinks=backlinks,
-            created_at=datetime.fromisoformat(
-                frontmatter.get("created_at", datetime.now().isoformat())
-            ),
-            updated_at=datetime.fromisoformat(
-                frontmatter.get("updated_at", datetime.now().isoformat())
-            ),
+            created_at=datetime.fromisoformat(frontmatter.get("created_at", datetime.now().isoformat())),
+            updated_at=datetime.fromisoformat(frontmatter.get("updated_at", datetime.now().isoformat())),
             source_refs=eval(frontmatter.get("source_refs", "[]")),
         )
 

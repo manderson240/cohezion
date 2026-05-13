@@ -116,9 +116,7 @@ class UnifiedCompoundManager:
 
         # Step 2: Initialize all servers
         for name, config in self.server_configs.items():
-            self.servers[name] = ServerState(
-                name=name, port=config["port"], status="running", uptime_seconds=0.0
-            )
+            self.servers[name] = ServerState(name=name, port=config["port"], status="running", uptime_seconds=0.0)
 
         # Step 3: Create initial checkpoint
         await self.checkpoint_all()
@@ -178,9 +176,7 @@ class UnifiedCompoundManager:
             logger.exception(f"Checkpoint failed: {e}")
             return False
 
-    async def get_cross_server_context(
-        self, query: str, session_context: dict | None = None
-    ) -> dict[str, Any]:
+    async def get_cross_server_context(self, query: str, session_context: dict | None = None) -> dict[str, Any]:
         """Get context from all servers for a query.
 
         Example: User asks "create PRD for authentication"

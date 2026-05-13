@@ -197,14 +197,10 @@ class TurboQuantProd(torch.nn.Module):
         self.bits = bits
         self.device = device or torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
-        assert bits >= 2, (
-            "Inner product TurboQuant requires at least 2 bits (1 for MSE + 1 for QJL)"
-        )
+        assert bits >= 2, "Inner product TurboQuant requires at least 2 bits (1 for MSE + 1 for QJL)"
 
         # Stage 1: MSE quantizer at (b-1) bits
-        self.mse_quantizer = TurboQuantMSE(
-            dim=dim, bits=bits - 1, device=self.device, dtype=dtype, seed=seed
-        )
+        self.mse_quantizer = TurboQuantMSE(dim=dim, bits=bits - 1, device=self.device, dtype=dtype, seed=seed)
 
         # Stage 2: QJL projection matrix S ∈ R^{d×d}
         self.register_buffer("S", generate_qjl_matrix(dim, self.device, dtype, seed=seed + 1000))
@@ -224,9 +220,7 @@ class TurboQuantProd(torch.nn.Module):
 
     def _unpack_qjl_signs(self, packed: torch.Tensor) -> torch.Tensor:
         """Unpack sign bits from uint8 to float {-1, +1}."""
-        powers = torch.tensor(
-            [1, 2, 4, 8, 16, 32, 64, 128], device=packed.device, dtype=torch.uint8
-        )
+        powers = torch.tensor([1, 2, 4, 8, 16, 32, 64, 128], device=packed.device, dtype=torch.uint8)
         unpacked = ((packed.unsqueeze(-1) & powers) > 0).float()
         signs = unpacked.reshape(*packed.shape[:-1], -1)[..., : self.dim]
         return 2.0 * signs - 1.0

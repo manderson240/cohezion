@@ -56,9 +56,7 @@ class SIGReg(nn.Module):
         term1 = torch.exp(-0.5 * dist_sq).sum(dim=(0, 1)) / (n * n)  # (M,)
 
         # Term 2: -sqrt(2) * exp(-0.25 * x_i^2)
-        term2 = (
-            -torch.sqrt(torch.tensor(2.0)) * torch.exp(-0.25 * projected.pow(2)).sum(dim=0) / n
-        )  # (M,)
+        term2 = -torch.sqrt(torch.tensor(2.0)) * torch.exp(-0.25 * projected.pow(2)).sum(dim=0) / n  # (M,)
 
         # Sum of test statistics across all projections
         per_projection_loss = term1 + term2 + 1.0

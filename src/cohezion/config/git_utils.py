@@ -212,9 +212,7 @@ class GitUtils:
                 text=True,
                 timeout=5,
             )
-            current_branch = (
-                branch_result.stdout.strip() if branch_result.returncode == 0 else "unknown"
-            )
+            current_branch = branch_result.stdout.strip() if branch_result.returncode == 0 else "unknown"
 
             # Get dirty status
             dirty_result = subprocess.run(

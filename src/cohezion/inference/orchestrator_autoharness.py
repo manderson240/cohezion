@@ -359,9 +359,7 @@ class MultiNodeOrchestrator:
         while not stop_event.is_set():
             try:
                 # Non-blocking wait
-                priority, _, task_id, task = await asyncio.wait_for(
-                    self.task_queue.get(), timeout=1.0
-                )
+                priority, _, task_id, task = await asyncio.wait_for(self.task_queue.get(), timeout=1.0)
 
                 # Route task
                 decision = await self.route_task(task)
@@ -370,9 +368,7 @@ class MultiNodeOrchestrator:
                     # Requeue if possible
                     task.status = "pending"
                     await asyncio.sleep(0.1)  # Brief backoff
-                    await self.task_queue.put(
-                        (task.priority.value, time.monotonic(), task.task_id, task)
-                    )
+                    await self.task_queue.put((task.priority.value, time.monotonic(), task.task_id, task))
                     continue
 
                 # Execute
@@ -385,9 +381,7 @@ class MultiNodeOrchestrator:
             except TimeoutError:
                 continue
 
-    async def gather_results(
-        self, task_ids: list[str], timeout_sec: float = 300.0
-    ) -> dict[str, Any]:
+    async def gather_results(self, task_ids: list[str], timeout_sec: float = 300.0) -> dict[str, Any]:
         """
         Gather results from distributed tasks.
 
@@ -592,9 +586,7 @@ if __name__ == "__main__":
         # Submit tasks
         print("Submitting tasks...")
         for i in range(5):
-            await orch.submit_prompt(
-                f"Task {i + 1}", task_type="reasoning", priority=TaskPriority.NORMAL
-            )
+            await orch.submit_prompt(f"Task {i + 1}", task_type="reasoning", priority=TaskPriority.NORMAL)
 
         print(orch.orchestrator.get_orchstration_report())
 

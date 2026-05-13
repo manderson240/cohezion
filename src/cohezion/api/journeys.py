@@ -200,18 +200,14 @@ async def analyze_journeys(
                 "mean_entropy_production": float(
                     sum(t.entropy_production_rate for t in thermo_results) / len(thermo_results)
                 ),
-                "mean_free_energy": float(
-                    sum(t.free_energy for t in thermo_results) / len(thermo_results)
-                ),
+                "mean_free_energy": float(sum(t.free_energy for t in thermo_results) / len(thermo_results)),
                 "n_attractors": sum(1 for t in thermo_results if t.is_attractor),
             }
 
         if analysis_type in ("topology", "all"):
             topo_results = [analyzer.analyze_topology(j) for j in journeys]
             results["topology"] = {
-                "mean_n_clusters": float(
-                    sum(t.n_clusters for t in topo_results) / len(topo_results)
-                ),
+                "mean_n_clusters": float(sum(t.n_clusters for t in topo_results) / len(topo_results)),
                 "mean_n_loans": float(sum(t.n_loans for t in topo_results) / len(topo_results)),
             }
 

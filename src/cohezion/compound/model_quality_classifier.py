@@ -509,9 +509,7 @@ class ModelQualityClassifier:
                     "num_executions": len(predictor.coherence_history),
                     "avg_coherence": float(np.mean(predictor.coherence_history)),
                     "std_coherence": float(np.std(predictor.coherence_history)),
-                    "success_rate": float(
-                        sum(predictor.success_history) / len(predictor.success_history)
-                    ),
+                    "success_rate": float(sum(predictor.success_history) / len(predictor.success_history)),
                     "predicted_coherence": round(coh_pred, 3),
                     "predicted_success_rate": round(success_pred, 3),
                     "coherence_trend": predictor.get_trend(predictor.coherence_history),

@@ -48,9 +48,21 @@ class TriuneReviewer:
     def __init__(self, provider: Gemma4Provider):
         self.provider = provider
         self.personas = {
-            "physicist": "You are a Theoretical Physicist specializing in 12D Manifolds and HIHO Stability. Your goal is to identify physical impossibilities and instability in the proposed ecological strategy.",
-            "ecologist": "You are a TEK Specialist with deep expertise in Indigenous worldviews and ecosystem interconnectedness. Your goal is to ensure the strategy respects biological rhythms and systemic balance.",
-            "engineer": "You are a Hardware Architect specializing in AMD Strix Halo UMA. Your goal is to ensure the proposed simulation and deployment are computationally feasible and resource-efficient.",
+            "physicist": (
+                "You are a Theoretical Physicist specializing in 12D Manifolds and HIHO Stability."
+                " Your goal is to identify physical impossibilities and instability in the proposed"
+                " ecological strategy."
+            ),
+            "ecologist": (
+                "You are a TEK Specialist with deep expertise in Indigenous worldviews and ecosystem"
+                " interconnectedness. Your goal is to ensure the strategy respects biological rhythms"
+                " and systemic balance."
+            ),
+            "engineer": (
+                "You are a Hardware Architect specializing in AMD Strix Halo UMA. Your goal is to"
+                " ensure the proposed simulation and deployment are computationally feasible and"
+                " resource-efficient."
+            ),
         }
 
     async def review(self, strategy: str, manifold_coords: Any) -> TriuneReviewResult:
@@ -81,22 +93,18 @@ class TriuneReviewer:
                     score = float(data.get("score", 0.5))
                     critique = data.get("critique", "No critique")
                     suggestion = data.get("suggestion")
-                except:
+                except Exception:
                     score = 0.5
                     critique = res.response
                     suggestion = None
 
                 reviews.append(
-                    ReviewPerspective(
-                        persona=persona_id, score=score, critique=critique, suggestion=suggestion
-                    )
+                    ReviewPerspective(persona=persona_id, score=score, critique=critique, suggestion=suggestion)
                 )
             except Exception as e:
                 logger.error("Triune Review failed for %s: %s", persona_id, e)
                 reviews.append(
-                    ReviewPerspective(
-                        persona=persona_id, score=0.0, critique="Review failed.", suggestion=None
-                    )
+                    ReviewPerspective(persona=persona_id, score=0.0, critique="Review failed.", suggestion=None)
                 )
 
         # Aggregate Consensus
@@ -112,9 +120,7 @@ class TriuneReviewer:
         # Also veto when all perspectives independently detected a contradiction.
         # The keyword check catches explicit labels; this catches semantic detection
         # by the reviewers themselves (e.g. "CONTRADICTION: True" in critique).
-        elif reviews and all(
-            "CONTRADICTION: TRUE" in r.critique.upper() for r in reviews
-        ):
+        elif reviews and all("CONTRADICTION: TRUE" in r.critique.upper() for r in reviews):
             red_team_veto = True
 
         is_approved = (avg_score >= 0.7) and not red_team_veto

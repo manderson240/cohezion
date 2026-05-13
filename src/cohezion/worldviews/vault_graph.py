@@ -80,22 +80,15 @@ class VaultGraph:
         clusters: dict[str, list[str]] = {}
         for node in self.nodes:
             clusters.setdefault(node.aspect, []).append(node.slug)
-        return [
-            {"aspect": aspect, "count": len(slugs), "nodes": slugs}
-            for aspect, slugs in sorted(clusters.items())
-        ]
+        return [{"aspect": aspect, "count": len(slugs), "nodes": slugs} for aspect, slugs in sorted(clusters.items())]
 
     def get_tradition_subgraph(self) -> dict:
         """Extract the indigenous cosmology subgraph (tradition-related nodes)."""
         tradition_slugs = {
-            n.slug
-            for n in self.nodes
-            if any(t in n.tags for t in ("indigenous-cosmology", "TOE", "cross-tradition"))
+            n.slug for n in self.nodes if any(t in n.tags for t in ("indigenous-cosmology", "TOE", "cross-tradition"))
         }
         sub_nodes = [n for n in self.nodes if n.slug in tradition_slugs]
-        sub_edges = [
-            e for e in self.edges if e.source in tradition_slugs and e.target in tradition_slugs
-        ]
+        sub_edges = [e for e in self.edges if e.source in tradition_slugs and e.target in tradition_slugs]
         return {
             "nodes": [n.to_dict() for n in sub_nodes],
             "edges": [e.to_dict() for e in sub_edges],

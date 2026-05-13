@@ -221,9 +221,7 @@ class APILLMExecutor:
         }
 
         if system:
-            payload["system"] = [
-                {"type": "text", "text": system, "cache_control": {"type": "ephemeral"}}
-            ]
+            payload["system"] = [{"type": "text", "text": system, "cache_control": {"type": "ephemeral"}}]
 
         async with httpx.AsyncClient(timeout=self.timeout) as client:
             response = await client.post(

@@ -44,9 +44,7 @@ def api_client():
 
     mock_client = MagicMock()
     mock_client.generate = AsyncMock(return_value="mock output")
-    mock_client.metrics = MagicMock(
-        total_requests=0, cache_hits=0, total_tokens_saved=0, cache_hit_rate=0.0
-    )
+    mock_client.metrics = MagicMock(total_requests=0, cache_hits=0, total_tokens_saved=0, cache_hit_rate=0.0)
 
     with patch(
         "cohezion.swarm.compound_client.get_compound_client",

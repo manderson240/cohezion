@@ -165,9 +165,6 @@ class Orborous:
             "active": self.active,
             "improvements_made": len(self.improvement_history),
             "total_cost_usd": self.squad.cost_tracker.total_cost,
-            "budget_remaining_pct": (
-                1 - self.squad.cost_tracker.total_cost / self.cost_budget.max_cost_usd
-            )
-            * 100,
+            "budget_remaining_pct": (1 - self.squad.cost_tracker.total_cost / self.cost_budget.max_cost_usd) * 100,
             "latest_improvements": self.improvement_history[-5:],
         }

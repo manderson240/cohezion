@@ -366,9 +366,7 @@ class TestMajorityVoting:
         ]
 
         # Require 100% for consensus
-        result = voter.vote_on_skills(
-            votes, strategy=VotingStrategy.MAJORITY, require_agreement_threshold=1.0
-        )
+        result = voter.vote_on_skills(votes, strategy=VotingStrategy.MAJORITY, require_agreement_threshold=1.0)
 
         # 2/3 < 100%, should fallback
         assert result.fallback_used is True
@@ -463,9 +461,7 @@ class TestWeightedVoting:
             ),
         ]
 
-        result = voter.vote_on_skills(
-            votes, strategy=VotingStrategy.WEIGHTED, require_agreement_threshold=0.6
-        )
+        result = voter.vote_on_skills(votes, strategy=VotingStrategy.WEIGHTED, require_agreement_threshold=0.6)
 
         # 50/50 split, threshold 60%, should fallback
         assert result.fallback_used is True

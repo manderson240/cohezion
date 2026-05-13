@@ -163,9 +163,7 @@ class FlumeWikiBridge:
             trajectory.append(point)
 
         # Store trajectory in wiki
-        traj_path = (
-            self.vault_path / "wiki" / "flume" / "trajectories" / f"{agent_id}_{task[:30]}.md"
-        )
+        traj_path = self.vault_path / "wiki" / "flume" / "trajectories" / f"{agent_id}_{task[:30]}.md"
         content = f"""# Trajectory: {agent_id}
 
 ## Task
@@ -348,7 +346,7 @@ class FlumeOuroborosBridge(FlumeWikiBridge):
         # Generate rule based on analysis
         if jumps > 0:
             return f"""
-Trajectory shows {jumps} discontinuities. 
+Trajectory shows {jumps} discontinuities.
 Recommendation: Add intermediate steps for task {exhaust.task_id}
 Coherence threshold: {exhaust.target_coherence}
 """

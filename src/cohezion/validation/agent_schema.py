@@ -171,9 +171,7 @@ def validate_all_agent_files(
             timeout=10,
         )
         if result.returncode != 0:
-            raise AgentFileValidationError(
-                None, ["Cannot determine git root: " + result.stderr.strip()]
-            )
+            raise AgentFileValidationError(None, ["Cannot determine git root: " + result.stderr.strip()])
         directory = Path(result.stdout.strip()) / ".claude" / "agents"
 
     directory = Path(directory)

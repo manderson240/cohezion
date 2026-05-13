@@ -49,9 +49,7 @@ class TestPromotion:
     def test_cold_to_warm_with_high_usage(self) -> None:
         optimizer = _optimizer()
         # 4 sessions, each uses the model for 2400 s (0.667 h/day), 100% penetration
-        sessions = [
-            _make_record(f"s{i}", [("qwen3-coder:30b", 2400, "inference")]) for i in range(4)
-        ]
+        sessions = [_make_record(f"s{i}", [("qwen3-coder:30b", 2400, "inference")]) for i in range(4)]
         histogram = {"qwen3-coder:30b": 0.667}  # hours/day
         tiers = {"qwen3-coder:30b": "cold"}
 
@@ -69,10 +67,7 @@ class TestPromotion:
         tiers = {"phi4-mini": "warm"}
 
         changes = optimizer.recommend_tier_changes(histogram, sessions, tiers)
-        assert any(
-            c.recommendation == TierRecommendation.PROMOTE and c.recommended_tier == "hot"
-            for c in changes
-        )
+        assert any(c.recommendation == TierRecommendation.PROMOTE and c.recommended_tier == "hot" for c in changes)
 
     def test_no_promotion_when_usage_below_threshold(self) -> None:
         optimizer = _optimizer()
@@ -88,17 +83,13 @@ class TestPromotion:
         optimizer = _optimizer()
         # 10 sessions, only 2 use the model (20% penetration)
         sessions = [_make_record(f"s{i}", [("phi4-mini", 3600, "inference")]) for i in range(2)]
-        sessions += [
-            _make_record(f"other{i}", [("different-model", 100, "inference")]) for i in range(8)
-        ]
+        sessions += [_make_record(f"other{i}", [("different-model", 100, "inference")]) for i in range(8)]
         histogram = {"phi4-mini": 0.6}
         tiers = {"phi4-mini": "cold"}
 
         changes = optimizer.recommend_tier_changes(histogram, sessions, tiers)
         promotes = [
-            c
-            for c in changes
-            if c.model_name == "phi4-mini" and c.recommendation == TierRecommendation.PROMOTE
+            c for c in changes if c.model_name == "phi4-mini" and c.recommendation == TierRecommendation.PROMOTE
         ]
         assert len(promotes) == 0
 
@@ -146,9 +137,7 @@ class TestDemotion:
     def test_no_demotion_within_14_days(self) -> None:
         optimizer = _optimizer()
         recent_age_s = 5 * 86400  # 5 days ago
-        sessions = [
-            _make_record("recent", [("active-model", 1000, "inference")], age_s=recent_age_s)
-        ]
+        sessions = [_make_record("recent", [("active-model", 1000, "inference")], age_s=recent_age_s)]
         histogram = {"active-model": 0.2}
         tiers = {"active-model": "warm"}
 

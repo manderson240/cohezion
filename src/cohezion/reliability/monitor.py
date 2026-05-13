@@ -163,15 +163,9 @@ class ResourceMonitor:
         async with self._lock:
             # Check system vitals before proceeding
             vitals = self.get_vitals()
-            if (
-                vitals["cpu_percent"] > 90
-                or vitals["memory_percent"] > 90
-                or vitals.get("vram_percent", 0) > 90
-            ):
+            if vitals["cpu_percent"] > 90 or vitals["memory_percent"] > 90 or vitals.get("vram_percent", 0) > 90:
                 wait_time = 10.0
-                logger.warning(
-                    f"⚠️ Extreme System Pressure Detected: {vitals}. Throttling for {wait_time}s..."
-                )
+                logger.warning(f"⚠️ Extreme System Pressure Detected: {vitals}. Throttling for {wait_time}s...")
                 self.throttled = True
                 await asyncio.sleep(wait_time)
             else:
@@ -212,9 +206,7 @@ class ResourceMonitor:
         """
         removed = self._sandbox_registry.pop(sandbox_id, None)
         if removed is not None:
-            logger.info(
-                f"Sandbox deregistered: {sandbox_id}. Total sandbox memory: {self.total_sandbox_memory_mb}MB"
-            )
+            logger.info(f"Sandbox deregistered: {sandbox_id}. Total sandbox memory: {self.total_sandbox_memory_mb}MB")
 
     @property
     def total_sandbox_memory_mb(self) -> int:

@@ -72,9 +72,7 @@ class AutonomousSkillRegistry:
             return versions[-1], None
 
         version_num = len(versions) + 1
-        provenance_hash = hashlib.sha256(
-            f"{name}:{version_num}:{content_hash}".encode()
-        ).hexdigest()
+        provenance_hash = hashlib.sha256(f"{name}:{version_num}:{content_hash}".encode()).hexdigest()
 
         skill = RegisteredSkill(
             name=name,

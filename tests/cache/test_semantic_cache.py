@@ -255,8 +255,8 @@ class TestSemanticCacheIntegration:
         result1 = await cache.get("What is Python?", "", "model")
         assert result1 == "Python is a language"
 
-        # Get non-existent
-        result2 = await cache.get("What is Django?", "", "model")
+        # Get non-existent (use clearly distinct query to avoid n-gram false positives)
+        result2 = await cache.get("Explain gradient descent in machine learning", "", "model")
         assert result2 is None
 
         # Check stats

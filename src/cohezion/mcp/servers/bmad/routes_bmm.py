@@ -172,9 +172,7 @@ async def tool_bmad_list_agents(request: web.Request) -> web.Response:
         data = await request.json()
         engine = get_engine()
         agents = engine.list_agents(module=data.get("module"))
-        return web.json_response(
-            {"tool": "bmad_list_agents", "count": len(agents), "agents": agents}
-        )
+        return web.json_response({"tool": "bmad_list_agents", "count": len(agents), "agents": agents})
     except Exception as e:
         return web.json_response({"error": str(e)}, status=500)
 

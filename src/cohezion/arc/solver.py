@@ -161,9 +161,7 @@ def update_ksearch(chain: list[str], score: float) -> None:
     """Log result to K-Search tree for future warm-start."""
     data = _load_ksearch()
     key = "_".join(chain)
-    node = data["nodes"].setdefault(
-        key, {"hypothesis": key, "wins": 0, "trials": 0, "metric_values": []}
-    )
+    node = data["nodes"].setdefault(key, {"hypothesis": key, "wins": 0, "trials": 0, "metric_values": []})
     node["trials"] += 1
     node["metric_values"].append(score)
     if score >= 1.0:

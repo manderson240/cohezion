@@ -16,7 +16,9 @@ except ImportError:
 logger = logging.getLogger(__name__)
 
 # Model URL for Perch v2 (Hoplite/Global)
-PERCH_V2_URL = "https://www.kaggle.com/models/google/bird-vocalization-classifier/tensorFlow2/bird-vocalization-classifier/4"
+PERCH_V2_URL = (
+    "https://www.kaggle.com/models/google/bird-vocalization-classifier/tensorFlow2/bird-vocalization-classifier/4"
+)
 
 
 class PerchV2Adapter:

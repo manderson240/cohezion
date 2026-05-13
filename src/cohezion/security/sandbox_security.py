@@ -56,9 +56,7 @@ class SandboxRedTeam:
         self._audit_events: list[SandboxAuditEvent] = []
         self._probes_run: int = 0
 
-    def probe_out_of_bounds_read(
-        self, allocation_id: str, out_of_bounds_address: int
-    ) -> PenetrationResult:
+    def probe_out_of_bounds_read(self, allocation_id: str, out_of_bounds_address: int) -> PenetrationResult:
         """Attempt to read outside the allocation. Must be blocked and logged."""
         self._probes_run += 1
         probe_id = f"probe-{self._probes_run:04d}"
@@ -83,9 +81,7 @@ class SandboxRedTeam:
             physics_impact="none",
         )
 
-    def probe_quota_overflow(
-        self, allocation_id: str, requested_bytes: int, quota_bytes: int
-    ) -> PenetrationResult:
+    def probe_quota_overflow(self, allocation_id: str, requested_bytes: int, quota_bytes: int) -> PenetrationResult:
         """Attempt over-quota allocation. SLM must be denied and terminated."""
         self._probes_run += 1
         probe_id = f"probe-{self._probes_run:04d}"
@@ -109,9 +105,7 @@ class SandboxRedTeam:
             audit_logged=blocked,
         )
 
-    def run_full_pentest(
-        self, allocation_id: str, base_address: int, size_bytes: int
-    ) -> list[PenetrationResult]:
+    def run_full_pentest(self, allocation_id: str, base_address: int, size_bytes: int) -> list[PenetrationResult]:
         """Run a comprehensive pentest: multiple out-of-bounds probes + quota overflow."""
         results = []
 

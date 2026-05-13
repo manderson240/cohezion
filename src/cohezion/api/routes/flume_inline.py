@@ -350,9 +350,7 @@ async def flume_latent_space(request: FlumeLatentSpaceRequest):
         padding = np.zeros((samples_3d.shape[0], 3 - samples_3d.shape[1]))
         samples_3d = np.hstack([samples_3d, padding])
 
-    coherence_scores = [
-        _compute_coherence(z_samples_np[i].tolist(), z_dim) for i in range(len(z_samples_np))
-    ]
+    coherence_scores = [_compute_coherence(z_samples_np[i].tolist(), z_dim) for i in range(len(z_samples_np))]
 
     return FlumeLatentSpaceResponse(
         latent_dim=z_dim,

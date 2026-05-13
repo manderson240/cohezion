@@ -82,9 +82,7 @@ class TemporalEncoder(nn.Module):
             norm_first=True,  # Pre-norm for stability
         )
         # enable_nested_tensor=False: pre-norm disables it anyway; suppress warning
-        self.transformer = nn.TransformerEncoder(
-            encoder_layer, num_layers=n_layers, enable_nested_tensor=False
-        )
+        self.transformer = nn.TransformerEncoder(encoder_layer, num_layers=n_layers, enable_nested_tensor=False)
 
         # Attention pooling: single learnable query collapses [B, T, d] → [B, d]
         self.attn_pool_query = nn.Parameter(torch.randn(1, 1, d_model) * 0.02)
@@ -233,9 +231,7 @@ class TemporalDecoder(nn.Module):
         )
 
         # Sinusoidal positional encoding (shared with encoder pattern)
-        self.register_buffer(
-            "pos_enc", TemporalEncoder._build_pos_enc(max_seq_len, d_model), persistent=False
-        )
+        self.register_buffer("pos_enc", TemporalEncoder._build_pos_enc(max_seq_len, d_model), persistent=False)
 
         # Transformer decoder (causal self-attention + cross-attention to z)
         decoder_layer = nn.TransformerDecoderLayer(
@@ -355,9 +351,7 @@ class TemporalVAELoader:
                 max_seq_len=config.get("max_seq_len", 512),
             )
             # Filter out pos_enc — it's non-persistent (deterministic sinusoidal, not learned)
-            state_dict = {
-                k: v for k, v in checkpoint["encoder_state_dict"].items() if k != "pos_enc"
-            }
+            state_dict = {k: v for k, v in checkpoint["encoder_state_dict"].items() if k != "pos_enc"}
             enc.load_state_dict(state_dict, strict=False)
             enc.to(self.device)
             enc.eval()

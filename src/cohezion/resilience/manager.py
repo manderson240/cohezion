@@ -54,9 +54,7 @@ class AutonomicManager:
         try:
             await self._surreal.connect()
         except Exception as e:
-            logger.error(
-                f"RAH: Failed to connect to SurrealDB: {e}. Decisions will not be persisted."
-            )
+            logger.error(f"RAH: Failed to connect to SurrealDB: {e}. Decisions will not be persisted.")
 
         self._loop_task = asyncio.create_task(self._run_loop(interval_seconds))
         logger.info("RAH: Autonomic Manager started")
@@ -137,9 +135,7 @@ class AutonomicManager:
         else:
             logger.error(f"RAH: Strategy {strategy_name} execution failed")
 
-    async def _log_decision(
-        self, strategy: HealingStrategy, success: bool, analysis: dict, vitals: dict
-    ):
+    async def _log_decision(self, strategy: HealingStrategy, success: bool, analysis: dict, vitals: dict):
         """Persist RAH decision to SurrealDB."""
         try:
             node_id = f"rah_{uuid.uuid4()}"

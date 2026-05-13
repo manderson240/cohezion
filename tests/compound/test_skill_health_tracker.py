@@ -174,12 +174,8 @@ class TestSkillHealthTrackerQueries:
     def test_get_stale_skills(self, tracker: SkillHealthTracker) -> None:
         old = (datetime.now(UTC) - timedelta(days=60)).isoformat()
         recent = datetime.now(UTC).isoformat()
-        tracker._records["STALE"] = SkillHealthRecord(
-            skill_name="STALE", total_invocations=1, last_used=old
-        )
-        tracker._records["FRESH"] = SkillHealthRecord(
-            skill_name="FRESH", total_invocations=1, last_used=recent
-        )
+        tracker._records["STALE"] = SkillHealthRecord(skill_name="STALE", total_invocations=1, last_used=old)
+        tracker._records["FRESH"] = SkillHealthRecord(skill_name="FRESH", total_invocations=1, last_used=recent)
         stale = tracker.get_stale_skills(days=30)
         assert "STALE" in stale
         assert "FRESH" not in stale
@@ -207,9 +203,7 @@ class TestSkillHealthTrackerQueries:
         assert "BAD" in unhealthy
         assert "GOOD" not in unhealthy
 
-    def test_get_unhealthy_skills_excludes_zero_invocations(
-        self, tracker: SkillHealthTracker
-    ) -> None:
+    def test_get_unhealthy_skills_excludes_zero_invocations(self, tracker: SkillHealthTracker) -> None:
         tracker._records["UNTRACKED"] = SkillHealthRecord(skill_name="UNTRACKED")
         unhealthy = tracker.get_unhealthy_skills(threshold=0.3)
         assert "UNTRACKED" not in unhealthy
@@ -266,9 +260,7 @@ class TestExecutorSkillHealthIntegration:
         )
         assert result.success is True
 
-    def test_tracker_called_on_successful_execution(
-        self, mock_mcp_client: MagicMock, storage_path: Path
-    ) -> None:
+    def test_tracker_called_on_successful_execution(self, mock_mcp_client: MagicMock, storage_path: Path) -> None:
         """Tracker.record_usage is called after successful execution."""
         tracker = SkillHealthTracker(storage_path=storage_path)
         executor = CompoundExecutor(mock_mcp_client, skill_health_tracker=tracker)

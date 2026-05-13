@@ -121,9 +121,7 @@ class MetaLearner:
 
         # If success rate is good, no need to optimize
         if current_success >= 0.85:
-            logger.debug(
-                f"Base learner success rate {current_success:.2%} - no optimization needed"
-            )
+            logger.debug(f"Base learner success rate {current_success:.2%} - no optimization needed")
             return None
 
         # Find better strategy from pool
@@ -147,9 +145,7 @@ class MetaLearner:
             self.meta_interventions.append(record)
             self._save_history()
 
-            logger.info(
-                f"Meta-optimization applied: {record.previous_strategy} -> {record.new_strategy}"
-            )
+            logger.info(f"Meta-optimization applied: {record.previous_strategy} -> {record.new_strategy}")
             logger.info(f"Expected improvement: {record.expected_improvement:.2%}")
 
             return record
@@ -208,6 +204,8 @@ class MetaLearner:
         """Generate a new learning strategy based on analysis."""
         if not self.current_strategy:
             return None
+
+        current_success = self._calculate_base_success_rate()
 
         # Analyze what has worked in history
         successful_patterns = self._extract_successful_patterns()

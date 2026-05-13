@@ -6,6 +6,9 @@ import os
 import sys
 from pathlib import Path
 
+import pytest
+
+pytest.importorskip("camel", reason="CAMEL-AI not installed")
 
 platform = importlib.import_module("platform")
 
@@ -13,7 +16,7 @@ platform = importlib.import_module("platform")
 sys.path.append(os.path.join(os.getcwd(), "src"))
 
 
-
+@pytest.mark.asyncio
 async def test_eigent_integration():
     print("Testing Eigent integration with Lemonade server...")
 

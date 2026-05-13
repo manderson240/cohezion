@@ -107,9 +107,7 @@ class AGIEvaluator:
         trajectory = []
 
         for step in range(3):
-            resp = await self.model.generate(
-                f"Current Context: {current_context}\nNext Reasoning Step:"
-            )
+            resp = await self.model.generate(f"Current Context: {current_context}\nNext Reasoning Step:")
 
             # Embed and Check TDA
             emb = await self.embedder.embed(resp)

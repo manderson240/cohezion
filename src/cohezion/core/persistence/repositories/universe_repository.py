@@ -68,9 +68,7 @@ class UniverseRepository(ABC):
         """
 
     @abstractmethod
-    async def search_by_embedding(
-        self, embedding: list[float], limit: int = 10
-    ) -> list[UniverseNode]:
+    async def search_by_embedding(self, embedding: list[float], limit: int = 10) -> list[UniverseNode]:
         """Search for nodes by vector similarity.
 
         Args:

@@ -49,30 +49,36 @@ class TestRecursiveChallenger:
 
     def test_recursive_improvement_is_idempotent(self, challenger):
         """[P0] Running improvement twice should not regress test suite"""
-        with patch(
-            "cohezion.compound.recursive_challenger.get_test_count", side_effect=[1303, 1303, 1304]
-        ), patch.object(challenger, "analyze", return_value=[]):
+        with (
+            patch(
+                "cohezion.compound.recursive_challenger.get_test_count",
+                side_effect=[1303, 1303, 1304],
+            ),
+            patch.object(challenger, "analyze", return_value=[]),
+        ):
             with patch.object(challenger, "_apply_improvement", return_value=True):
                 # Mocking out the actual execution for the test
                 challenger.execute_improvement_cycle()
                 challenger.execute_improvement_cycle()
-                    # Just validating it doesn't crash and respects idempotency in design
+                # Just validating it doesn't crash and respects idempotency in design
 
     def test_improvement_logs_to_vault(self, challenger, mock_vault):
         """[P0] Every improvement cycle must log decision to vault"""
-        with patch.object(
-            challenger,
-            "analyze",
-            return_value=[
-                ImprovementOpportunity(
-                    description="Fix duplicate code",
-                    line_start=201,
-                    line_end=218,
-                    has_test_coverage=True,
-                )
-            ],
-        ), patch.object(challenger, "_apply_improvement", return_value=True), patch(
-            "cohezion.compound.recursive_challenger.get_test_count", return_value=1303
+        with (
+            patch.object(
+                challenger,
+                "analyze",
+                return_value=[
+                    ImprovementOpportunity(
+                        description="Fix duplicate code",
+                        line_start=201,
+                        line_end=218,
+                        has_test_coverage=True,
+                    )
+                ],
+            ),
+            patch.object(challenger, "_apply_improvement", return_value=True),
+            patch("cohezion.compound.recursive_challenger.get_test_count", return_value=1303),
         ):
             challenger.execute_improvement_cycle()
             mock_vault.log_decision.assert_called_once()
@@ -101,9 +107,7 @@ class TestLongHorizonTask:
         task = LongHorizonTask(task_id="big-task")
 
         # Mock context usage at 85%
-        with patch(
-            "cohezion.compound.long_horizon_task.get_context_usage_percent", return_value=85.0
-        ):
+        with patch("cohezion.compound.long_horizon_task.get_context_usage_percent", return_value=85.0):
             result = task.execute_step()
             assert result.handoff_triggered is True
             assert result.checkpoint_saved is True

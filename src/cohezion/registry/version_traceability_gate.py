@@ -98,9 +98,7 @@ class VersionTraceabilityGate:
         missing = [s for s in expected_stories if s not in stories_with_contracts]
 
         blocked = len(missing) > 0
-        remediation = [
-            f"Register version contract for story {s} before marking epic complete" for s in missing
-        ]
+        remediation = [f"Register version contract for story {s} before marking epic complete" for s in missing]
 
         return EpicCompletionGate(
             epic_id=epic_id,
@@ -118,9 +116,7 @@ class VersionTraceabilityGate:
         relevant_contracts = [c for c in self._contracts if c.story_id in story_ids]
 
         version_changes = [c.to_dict() for c in relevant_contracts]
-        breaking_changes = [
-            f"Breaking change in {c.package}" for c in relevant_contracts if "!" in c.version_spec
-        ]
+        breaking_changes = [f"Breaking change in {c.package}" for c in relevant_contracts if "!" in c.version_spec]
 
         report = ReleaseImpactReport(
             release_version=release_version,
@@ -137,9 +133,7 @@ class VersionTraceabilityGate:
         t0 = time.perf_counter()
 
         affected = [
-            c
-            for c in self._contracts
-            if c.package == vulnerable_package and vulnerable_version in c.version_spec
+            c for c in self._contracts if c.package == vulnerable_package and vulnerable_version in c.version_spec
         ]
 
         duration_s = time.perf_counter() - t0

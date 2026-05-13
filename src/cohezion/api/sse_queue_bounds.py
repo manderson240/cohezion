@@ -44,9 +44,7 @@ class BoundedAsyncQueue:
         except asyncio.QueueFull:
             self._overflow_count += 1
             if self._overflow_count % 100 == 0:  # Log every 100 overflows
-                logger.warning(
-                    f"SSE queue overflow (maxsize={self.maxsize}, total overflows={self._overflow_count})"
-                )
+                logger.warning(f"SSE queue overflow (maxsize={self.maxsize}, total overflows={self._overflow_count})")
             return False
 
     async def put_async_safe(self, item: T) -> bool:
@@ -62,9 +60,7 @@ class BoundedAsyncQueue:
             return True
         except TimeoutError:
             self._overflow_count += 1
-            logger.warning(
-                f"SSE queue put timeout (maxsize={self.maxsize}, total overflows={self._overflow_count})"
-            )
+            logger.warning(f"SSE queue put timeout (maxsize={self.maxsize}, total overflows={self._overflow_count})")
             return False
 
     async def get(self) -> T:

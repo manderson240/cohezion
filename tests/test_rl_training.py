@@ -64,9 +64,7 @@ class TestCompositeWithHamiltonian:
         """CompositeReward with hamiltonian_weight=0.0 should work unchanged."""
         composite = CompositeReward(hamiltonian_weight=0.0)
         assert composite.hamiltonian_reward is None
-        state = np.full(256, 0.5, dtype=np.float32) + np.random.default_rng(0).normal(
-            0, 0.05, 256
-        ).astype(np.float32)
+        state = np.full(256, 0.5, dtype=np.float32) + np.random.default_rng(0).normal(0, 0.05, 256).astype(np.float32)
         reward = composite(coherence=0.5, state=state)
         assert isinstance(reward, float)
         assert reward > 0
@@ -129,9 +127,7 @@ class TestTrainingRuns:
 
         # Allow generous threshold: last 5 should be at least 80% of first 5
         # (the environment starts near target so rewards are high immediately)
-        assert last_5 >= first_5 * 0.8, (
-            f"Reward degraded too much: first 5 avg={first_5:.2f}, last 5 avg={last_5:.2f}"
-        )
+        assert last_5 >= first_5 * 0.8, f"Reward degraded too much: first 5 avg={first_5:.2f}, last 5 avg={last_5:.2f}"
 
     def test_policy_beats_random(self, tmp_path: pytest.TempPathFactory) -> None:
         """Trained policy should achieve higher coherence than random actions."""

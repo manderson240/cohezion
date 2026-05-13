@@ -81,9 +81,7 @@ class ToolRegistry:
             raise ValueError(f"Unknown tool: {name}")
         return await self._tools[name](**args)
 
-    async def _bash_tool(
-        self, command: str, cwd: str | None = None, timeout: int = 60
-    ) -> dict[str, Any]:
+    async def _bash_tool(self, command: str, cwd: str | None = None, timeout: int = 60) -> dict[str, Any]:
         """Execute bash command."""
         import time
 
@@ -188,9 +186,7 @@ class UnifiedAgent:
         self.max_steps = 50
         self.recovery_attempts = 3
 
-    async def run_task(
-        self, task: str | Any, env: dict[str, Any] | None = None, timeout: int = 1800
-    ) -> ExecutionTrace:
+    async def run_task(self, task: str | Any, env: dict[str, Any] | None = None, timeout: int = 1800) -> ExecutionTrace:
         """Execute long-horizon task.
 
         Args:
@@ -224,15 +220,11 @@ class UnifiedAgent:
 
                 try:
                     # Generate next action
-                    action = await self._plan_next_action(
-                        task=str(task), trace=trace, workdir=workdir, step=step
-                    )
+                    action = await self._plan_next_action(task=str(task), trace=trace, workdir=workdir, step=step)
 
                     # Execute action
                     if action.get("tool"):
-                        result = await self._execute_tool_action(
-                            action["tool"], action.get("args", {}), workdir
-                        )
+                        result = await self._execute_tool_action(action["tool"], action.get("args", {}), workdir)
 
                         trace.tool_calls.append(
                             ToolCall(
@@ -255,9 +247,7 @@ class UnifiedAgent:
                         trace.final_state = action.get("result", {})
                         break
 
-                    trace.steps.append(
-                        {"step": step, "action": action, "duration": time.monotonic() - step_start}
-                    )
+                    trace.steps.append({"step": step, "action": action, "duration": time.monotonic() - step_start})
 
                 except Exception as e:
                     logger.exception(f"Step {step} failed")
@@ -272,9 +262,7 @@ class UnifiedAgent:
 
         return trace
 
-    async def _plan_next_action(
-        self, task: str, trace: ExecutionTrace, workdir: str, step: int
-    ) -> dict[str, Any]:
+    async def _plan_next_action(self, task: str, trace: ExecutionTrace, workdir: str, step: int) -> dict[str, Any]:
         """Use LLM to plan next action."""
 
         # Build prompt
@@ -327,9 +315,7 @@ OR
             # Fallback: assume bash command
             return {"tool": "bash", "args": {"command": output[:500]}}
 
-    async def _execute_tool_action(
-        self, tool_name: str, args: dict[str, Any], workdir: str
-    ) -> dict[str, Any]:
+    async def _execute_tool_action(self, tool_name: str, args: dict[str, Any], workdir: str) -> dict[str, Any]:
         """Execute tool with workdir injection."""
         if tool_name in ["bash"] and "cwd" not in args:
             args["cwd"] = workdir

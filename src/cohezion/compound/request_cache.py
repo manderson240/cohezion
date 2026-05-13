@@ -148,9 +148,7 @@ class RequestCache:
 
             if best_task:
                 self._l2_hits += 1
-                logger.debug(
-                    f"L2 cache hit (similarity={best_similarity:.2f}): {request_text[:50]}..."
-                )
+                logger.debug(f"L2 cache hit (similarity={best_similarity:.2f}): {request_text[:50]}...")
                 return best_task
 
             self._l2_misses += 1
@@ -252,8 +250,7 @@ class RequestCache:
         # Estimate average tokens per request
         # L1/L2 hits: 0 tokens, misses: ~250 tokens (LLM fallback)
         avg_tokens = (
-            ((self._l1_hits + self._l2_hits) * 0 + (self._l1_misses + self._l2_misses) * 250)
-            / total
+            ((self._l1_hits + self._l2_hits) * 0 + (self._l1_misses + self._l2_misses) * 250) / total
             if total > 0
             else 0
         )

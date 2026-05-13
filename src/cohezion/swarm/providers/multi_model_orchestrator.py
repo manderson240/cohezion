@@ -100,38 +100,20 @@ class MultiModelOrchestrator(ModelProvider):
     # Model profiles for known architectures
     MODEL_PROFILES: dict[str, ModelProfile] = {
         # Small models (< 3B) - CPU efficient
-        "phi3:mini": ModelProfile(
-            ModelType.PHI, 3.8, ComputeUnit.CPU, ComputeUnit.GPU, "q4", 128000, 16, 2.0
-        ),
-        "llama3.2:1b": ModelProfile(
-            ModelType.LLAMA, 1.0, ComputeUnit.CPU, ComputeUnit.GPU, "q4", 128000, 32, 0.5
-        ),
-        "llama3.2:3b": ModelProfile(
-            ModelType.LLAMA, 3.0, ComputeUnit.GPU, ComputeUnit.CPU, "q4", 128000, 16, 1.5
-        ),
-        "gemma2:2b": ModelProfile(
-            ModelType.GEMMA, 2.0, ComputeUnit.CPU, ComputeUnit.GPU, "q4", 8192, 32, 1.0
-        ),
+        "phi3:mini": ModelProfile(ModelType.PHI, 3.8, ComputeUnit.CPU, ComputeUnit.GPU, "q4", 128000, 16, 2.0),
+        "llama3.2:1b": ModelProfile(ModelType.LLAMA, 1.0, ComputeUnit.CPU, ComputeUnit.GPU, "q4", 128000, 32, 0.5),
+        "llama3.2:3b": ModelProfile(ModelType.LLAMA, 3.0, ComputeUnit.GPU, ComputeUnit.CPU, "q4", 128000, 16, 1.5),
+        "gemma2:2b": ModelProfile(ModelType.GEMMA, 2.0, ComputeUnit.CPU, ComputeUnit.GPU, "q4", 8192, 32, 1.0),
         # Medium models (3B-8B) - GPU optimal
-        "llama3.1:8b": ModelProfile(
-            ModelType.LLAMA, 8.0, ComputeUnit.GPU, ComputeUnit.CPU, "q4", 128000, 8, 4.0
-        ),
-        "mistral:7b": ModelProfile(
-            ModelType.MISTRAL, 7.0, ComputeUnit.GPU, ComputeUnit.NPU, "q4", 32768, 8, 3.5
-        ),
-        "deepseek-r1:7b": ModelProfile(
-            ModelType.DEEPSEEK, 7.0, ComputeUnit.GPU, ComputeUnit.CPU, "q4", 32768, 8, 3.5
-        ),
-        "gemma3:4b": ModelProfile(
-            ModelType.GEMMA, 4.0, ComputeUnit.GPU, ComputeUnit.NPU, "q4", 65536, 16, 2.0
-        ),
+        "llama3.1:8b": ModelProfile(ModelType.LLAMA, 8.0, ComputeUnit.GPU, ComputeUnit.CPU, "q4", 128000, 8, 4.0),
+        "mistral:7b": ModelProfile(ModelType.MISTRAL, 7.0, ComputeUnit.GPU, ComputeUnit.NPU, "q4", 32768, 8, 3.5),
+        "deepseek-r1:7b": ModelProfile(ModelType.DEEPSEEK, 7.0, ComputeUnit.GPU, ComputeUnit.CPU, "q4", 32768, 8, 3.5),
+        "gemma3:4b": ModelProfile(ModelType.GEMMA, 4.0, ComputeUnit.GPU, ComputeUnit.NPU, "q4", 65536, 16, 2.0),
         # Large models (8B-14B) - GPU with hybrid fallback
         "llama3.1:8b-instruct": ModelProfile(
             ModelType.LLAMA, 8.0, ComputeUnit.GPU, ComputeUnit.HYBRID, "q4", 128000, 4, 4.0
         ),
-        "qwen2.5:14b": ModelProfile(
-            ModelType.QWEN, 14.0, ComputeUnit.GPU, ComputeUnit.HYBRID, "q4", 65536, 4, 7.0
-        ),
+        "qwen2.5:14b": ModelProfile(ModelType.QWEN, 14.0, ComputeUnit.GPU, ComputeUnit.HYBRID, "q4", 65536, 4, 7.0),
         "deepseek-coder:6.7b": ModelProfile(
             ModelType.DEEPSEEK, 6.7, ComputeUnit.GPU, ComputeUnit.CPU, "q4", 65536, 8, 3.5
         ),
@@ -139,13 +121,9 @@ class MultiModelOrchestrator(ModelProvider):
         "granite3.2-vision:2b": ModelProfile(
             ModelType.GRANITE, 2.0, ComputeUnit.GPU, ComputeUnit.HYBRID, "q4", 65536, 8, 2.5
         ),
-        "gemma3:12b": ModelProfile(
-            ModelType.GEMMA, 12.0, ComputeUnit.GPU, ComputeUnit.HYBRID, "q4", 65536, 2, 6.0
-        ),
+        "gemma3:12b": ModelProfile(ModelType.GEMMA, 12.0, ComputeUnit.GPU, ComputeUnit.HYBRID, "q4", 65536, 2, 6.0),
         # NPU optimized (quantized ONNX)
-        "phi3:npu": ModelProfile(
-            ModelType.PHI, 3.8, ComputeUnit.NPU, ComputeUnit.GPU, "int4", 4096, 16, 1.0
-        ),
+        "phi3:npu": ModelProfile(ModelType.PHI, 3.8, ComputeUnit.NPU, ComputeUnit.GPU, "int4", 4096, 16, 1.0),
     }
 
     def __init__(self, config: dict[str, Any] | None = None):
@@ -195,7 +173,7 @@ class MultiModelOrchestrator(ModelProvider):
         size_str = model.split(":")[-1] if ":" in model else "7b"
         try:
             size = float(size_str.replace("b", "").replace("m", ".001"))
-        except:
+        except Exception:
             size = 7.0
 
         unit = ComputeUnit.CPU if size < 3.0 else ComputeUnit.GPU
@@ -240,9 +218,7 @@ class MultiModelOrchestrator(ModelProvider):
 
         # If preferred unit is overloaded, use fallback
         if preferred_load > 2:  # Threshold for queue depth
-            logger.info(
-                f"{profile.preferred_unit.value} overloaded ({preferred_load}), using fallback"
-            )
+            logger.info(f"{profile.preferred_unit.value} overloaded ({preferred_load}), using fallback")
             return profile.fallback_unit
 
         # Latency-critical small models → CPU (lowest TTFT)
@@ -316,6 +292,7 @@ class MultiModelOrchestrator(ModelProvider):
     ) -> GenerationResult:
         """Execute generation on specific compute unit."""
         session = await self._get_session()
+        start_time = time.time()
 
         # Optimize options for compute unit
         options = self._optimize_for_unit(unit, profile, max_tokens, temperature)
@@ -471,11 +448,7 @@ class MultiModelOrchestrator(ModelProvider):
                     prompt=req["prompt"],
                     max_tokens=req.get("max_tokens", 1024),
                     temperature=req.get("temperature", 0.7),
-                    **{
-                        k: v
-                        for k, v in req.items()
-                        if k not in ["model", "prompt", "max_tokens", "temperature"]
-                    },
+                    **{k: v for k, v in req.items() if k not in ["model", "prompt", "max_tokens", "temperature"]},
                 )
 
         tasks = [bounded_generate(req) for req in requests]
@@ -493,10 +466,7 @@ async def demo():
     # Show model profiles
     print("Model Profiles:")
     for name, profile in MultiModelOrchestrator.MODEL_PROFILES.items():
-        print(
-            f"  {name}: {profile.size_b}B, {profile.preferred_unit.value}, "
-            f"~{profile.memory_gb}GB VRAM"
-        )
+        print(f"  {name}: {profile.size_b}B, {profile.preferred_unit.value}, ~{profile.memory_gb}GB VRAM")
 
     # Test automatic routing
     test_models = ["phi3:mini", "llama3.2:3b", "mistral:7b"]

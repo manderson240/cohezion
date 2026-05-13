@@ -37,11 +37,7 @@ class Gemma4Router:
     def _analyze_complexity(self, prompt: str, **kwargs) -> str:
         """Analyze prompt to determine complexity tier."""
         # Simple heuristics for demonstration
-        if (
-            "simulate" in prompt.lower()
-            or "12d manifold" in prompt.lower()
-            or "physics" in prompt.lower()
-        ):
+        if "simulate" in prompt.lower() or "12d manifold" in prompt.lower() or "physics" in prompt.lower():
             return "simulation"
         if "reason" in prompt.lower() or "explain" in prompt.lower() or len(prompt) > 1000:
             return "complex"

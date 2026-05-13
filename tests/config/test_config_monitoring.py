@@ -120,9 +120,7 @@ class TestConfigMonitor:
         monitor._register_vault_handlers()
 
         # Verify handlers were registered (check vault_client._callbacks)
-        assert (
-            len(monitor.vault_client._callbacks) >= 3
-        )  # file_created, file_modified, file_deleted
+        assert len(monitor.vault_client._callbacks) >= 3  # file_created, file_modified, file_deleted
 
     @pytest.mark.asyncio
     async def test_monitor_lifecycle(self, tmp_path: Path) -> None:
@@ -252,9 +250,7 @@ class TestEventEmission:
         claude_md = tmp_path / "CLAUDE.md"
         claude_md.write_text("# Initial")
         subprocess.run(["git", "add", "."], cwd=tmp_path, capture_output=True, check=True)
-        subprocess.run(
-            ["git", "commit", "-m", "initial"], cwd=tmp_path, capture_output=True, check=True
-        )
+        subprocess.run(["git", "commit", "-m", "initial"], cwd=tmp_path, capture_output=True, check=True)
 
         monitor = ConfigMonitor(tmp_path)
 

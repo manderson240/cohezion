@@ -50,18 +50,14 @@ def test_bidirectional_link_create_assigns_deterministic_id():
     link_a = BidirectionalLink.create(source="alpha", target="beta", link_type=LinkType.DOC_TO_DOC)
     link_b = BidirectionalLink.create(source="alpha", target="beta", link_type=LinkType.DOC_TO_DOC)
     # Bidirectional: A->B and B->A share the same id
-    link_reverse = BidirectionalLink.create(
-        source="beta", target="alpha", link_type=LinkType.DOC_TO_DOC
-    )
+    link_reverse = BidirectionalLink.create(source="beta", target="alpha", link_type=LinkType.DOC_TO_DOC)
 
     assert link_a.link_id == link_b.link_id
     assert link_a.link_id == link_reverse.link_id
     assert len(link_a.link_id) == 64  # SHA-256 hex digest length
 
     # Different link_type should produce a different id
-    link_other = BidirectionalLink.create(
-        source="alpha", target="beta", link_type=LinkType.DOC_TO_CODE
-    )
+    link_other = BidirectionalLink.create(source="alpha", target="beta", link_type=LinkType.DOC_TO_CODE)
     assert link_other.link_id != link_a.link_id
 
 
@@ -269,9 +265,7 @@ async def test_get_pattern_summary_aggregates_counts():
 def test_search_knowledge_returns_top_k_ranked(tmp_path):
     """search_knowledge should TF-IDF-rank markdown files and return top_k."""
     # Seed two markdown files
-    (tmp_path / "lessons.md").write_text(
-        "# Lessons\nCohezion uses HIHO stability for coherence checks.\n"
-    )
+    (tmp_path / "lessons.md").write_text("# Lessons\nCohezion uses HIHO stability for coherence checks.\n")
     (tmp_path / "unrelated.md").write_text("# Other\nThis discusses something else entirely.\n")
 
     engine = KnowledgeGraphQueryEngine(knowledge_dir=tmp_path)

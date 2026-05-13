@@ -75,8 +75,7 @@ class GatewayManager:
         """Initialize default demo gateway with local Ollama."""
         # Primary: Vault Warden, Fallback: Environment
         ollama_url = (
-            get_credentials().get_secret("COHEZION_OLLAMA_URL", env_var="OLLAMA_BASE_URL")
-            or "http://localhost:11434"
+            get_credentials().get_secret("COHEZION_OLLAMA_URL", env_var="OLLAMA_BASE_URL") or "http://localhost:11434"
         )
 
         self.gateways[self.default_gateway_id] = DemoGateway(
@@ -265,7 +264,10 @@ async def call_tool(name: str, arguments: dict[str, Any]) -> list[TextContent]:
                             "agent_id": agent_id,
                             "current_tier": state.current_tier.value,
                             "required_tier": required_tier.value,
-                            "reason": f"Agent '{agent_id}' has not demonstrated sufficient coherence history to perform '{name}'.",
+                            "reason": (
+                                f"Agent '{agent_id}' has not demonstrated sufficient"
+                                f" coherence history to perform '{name}'."
+                            ),
                         }
                     ),
                 )
@@ -306,8 +308,7 @@ async def call_tool(name: str, arguments: dict[str, Any]) -> list[TextContent]:
                             "response": response,
                             "tokens": tokens,
                             "cost": round(
-                                metrics.get("total_cost", 0.0)
-                                / max(metrics.get("total_requests", 1), 1),
+                                metrics.get("total_cost", 0.0) / max(metrics.get("total_requests", 1), 1),
                                 6,
                             ),
                         }
@@ -323,9 +324,7 @@ async def call_tool(name: str, arguments: dict[str, Any]) -> list[TextContent]:
                 return [
                     TextContent(
                         type="text",
-                        text=json.dumps(
-                            {"error": f"Gateway '{arguments.get('gateway_id')}' not found"}
-                        ),
+                        text=json.dumps({"error": f"Gateway '{arguments.get('gateway_id')}' not found"}),
                     )
                 ]
 

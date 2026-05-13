@@ -53,6 +53,8 @@ class HookifyValidator:
         self.rules = rules or []
         self._db = None  # SurrealDB connection (lazy init)
         self._vault = None  # Vault logger (lazy init)
+        self._lever_overrides: dict[str, dict[str, object]] = {}
+        self._violation_logs: dict[str, list[dict]] = {}
 
         if rules_path:
             self.rules = self._load_rules_from_file(rules_path)
@@ -331,9 +333,7 @@ class HookifyValidator:
     # ACTION EXECUTION
     # =========================================================================
 
-    def _execute_action(
-        self, action: str, context: dict[str, Any], levers: dict[str, Any]
-    ) -> ValidationResult:
+    def _execute_action(self, action: str, context: dict[str, Any], levers: dict[str, Any]) -> ValidationResult:
         """
         Execute rule action
 
@@ -358,9 +358,7 @@ class HookifyValidator:
                             "severity": "error",
                         }
                     ],
-                    modifications={
-                        "fallback_action": levers.get("fallback_action", "decompose_request")
-                    },
+                    modifications={"fallback_action": levers.get("fallback_action", "decompose_request")},
                 )
             else:
                 return ValidationResult(proceed=True, block=False)
@@ -391,9 +389,7 @@ class HookifyValidator:
 
         else:
             # Unknown action - allow with warning
-            return ValidationResult(
-                proceed=True, block=False, violations=[{"message": f"Unknown action: {action}"}]
-            )
+            return ValidationResult(proceed=True, block=False, violations=[{"message": f"Unknown action: {action}"}])
 
     # =========================================================================
     # VALIDATION WORKFLOW
@@ -525,24 +521,21 @@ class HookifyValidator:
     # =========================================================================
 
     def _save_lever_override(self, rule_id: str, lever_name: str, value: Any):
-        """Save runtime lever override to SurrealDB"""
-        # Placeholder - integrate with SurrealDB
-        pass
+        """Save runtime lever override (in-memory, SurrealDB integration deferred)."""
+        self._lever_overrides.setdefault(rule_id, {})[lever_name] = value
 
     def _load_lever_override(self, rule_id: str, lever_name: str) -> Any:
-        """Load runtime lever override from SurrealDB"""
-        # Placeholder - integrate with SurrealDB
-        return None
+        """Load runtime lever override (in-memory, SurrealDB integration deferred)."""
+        return self._lever_overrides.get(rule_id, {}).get(lever_name)
 
     def _log_violation(self, rule_id: str, context: dict, violation: dict):
-        """Log violation to vault for recursive learning"""
-        # Placeholder - integrate with VaultLogger
-        pass
+        """Log violation for recursive learning (in-memory, vault integration deferred)."""
+        entry = {**context, **violation}
+        self._violation_logs.setdefault(rule_id, []).append(entry)
 
     def _get_violation_logs(self, rule_id: str) -> list[dict]:
-        """Retrieve violation logs from vault"""
-        # Placeholder - integrate with VaultLogger
-        return []
+        """Retrieve violation logs (in-memory, vault integration deferred)."""
+        return self._violation_logs.get(rule_id, [])
 
     # =========================================================================
     # CONVENIENCE API

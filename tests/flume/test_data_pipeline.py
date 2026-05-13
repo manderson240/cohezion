@@ -90,9 +90,7 @@ class TestTrainingDataPipeline:
         from cohezion.flume.data_pipeline import TrainingDataPipeline
 
         mock_provider = MagicMock()
-        mock_provider.embed_batch.side_effect = lambda batch: np.random.randn(
-            len(batch), 768
-        ).astype(np.float32)
+        mock_provider.embed_batch.side_effect = lambda batch: np.random.randn(len(batch), 768).astype(np.float32)
         mock_provider.embedding_dim = 768
 
         pipeline = TrainingDataPipeline(embedding_provider=mock_provider)

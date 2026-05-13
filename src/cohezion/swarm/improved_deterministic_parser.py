@@ -70,9 +70,7 @@ class ImprovedFLMParser:
         models = []
 
         try:
-            result = subprocess.run(
-                ["flm", "list"], capture_output=True, text=True, timeout=10, check=False
-            )
+            result = subprocess.run(["flm", "list"], capture_output=True, text=True, timeout=10, check=False)
 
             if result.returncode != 0:
                 logger.debug(f"FLM list returned {result.returncode}")
@@ -179,9 +177,9 @@ class ImprovedFLMParser:
         has_known_prefix = any(prefix in prefix_part for prefix in self.patterns.KNOWN_PREFIXES)
 
         # Check size (ends with b/m/k or is numeric)
-        looks_like_size = size_part.endswith(
-            ("b", "m", "k", "tiny", "mini", "small", "medium", "large")
-        ) or any(c.isdigit() for c in size_part)
+        looks_like_size = size_part.endswith(("b", "m", "k", "tiny", "mini", "small", "medium", "large")) or any(
+            c.isdigit() for c in size_part
+        )
 
         return has_known_prefix or looks_like_size
 

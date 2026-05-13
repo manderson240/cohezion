@@ -119,9 +119,7 @@ class RalphLoppsReviewer:
         # Remove comments before checking
         code_no_comments = re.sub(r"#.*", "", code)
         has_execute = bool(re.search(r"execute.*\(", code_no_comments))
-        has_coherence = bool(
-            re.search(r"coherence|alignment|check.*threshold", code_no_comments, re.I)
-        )
+        has_coherence = bool(re.search(r"coherence|alignment|check.*threshold", code_no_comments, re.I))
         return has_execute and not has_coherence
 
     def _has_sequential_processing(self, code: str) -> bool:

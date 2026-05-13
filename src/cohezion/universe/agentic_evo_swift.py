@@ -156,9 +156,7 @@ class AgenticEVO:
         # Latent cognition (FLUME)
         self.latent_state = EVOLatentState(
             agent_id=agent_id,
-            latent_vector=initial_latent
-            if initial_latent is not None
-            else np.random.randn(256) * 0.1 + 0.5,
+            latent_vector=initial_latent if initial_latent is not None else np.random.randn(256) * 0.1 + 0.5,
         )
 
         # Physical presence (SWIFT)
@@ -301,9 +299,7 @@ class AgenticEVOSimulation:
 
             if is_exotic:
                 evo.latent_state.is_exotic = True
-                evo.latent_state.exotic_type = np.random.choice(
-                    ["repeller", "negative_mass", "entangled"]
-                )
+                evo.latent_state.exotic_type = np.random.choice(["repeller", "negative_mass", "entangled"])
 
             self.evos.append(evo)
 
@@ -349,10 +345,7 @@ class AgenticEVOSimulation:
                 # Gravity with exotic matter handling
                 # Standard: F = G*m1*m2/r^2
                 # Exotic: Negative mass repels
-                if (
-                    evo_i.physical_state.effective_mass < 0
-                    or evo_j.physical_state.effective_mass < 0
-                ):
+                if evo_i.physical_state.effective_mass < 0 or evo_j.physical_state.effective_mass < 0:
                     # Repulsive gravity
                     force_mag = -masses[i] * masses[j] / (r_mag**2)
                 else:
@@ -443,10 +436,7 @@ def demo_agentic_evo_simulation():
 
         if step % 20 == 0:
             stats = sim.get_statistics()
-            print(
-                f"  Step {step}: coherence={stats['avg_coherence']:.3f}, "
-                f"journey_len={stats['total_journey_steps']}"
-            )
+            print(f"  Step {step}: coherence={stats['avg_coherence']:.3f}, journey_len={stats['total_journey_steps']}")
 
     # Generate SWIFT ICs
     print("\n" + "=" * 70)

@@ -192,9 +192,7 @@ class TestPolicyToFlumePhysics:
             "cohezion.pipeline.weight_bridge._import_flume_physics",
             return_value=mock_cls,
         ):
-            result = WeightBridge.policy_to_flume_physics(
-                ckpt_path, delta_scale=0.02, hiho_damping=0.03
-            )
+            result = WeightBridge.policy_to_flume_physics(ckpt_path, delta_scale=0.02, hiho_damping=0.03)
 
         assert result is mock_instance
         mock_cls.assert_called_once()

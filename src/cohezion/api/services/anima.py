@@ -115,9 +115,7 @@ class AnimaService:
                     if resp.status_code == 200:
                         results = resp.json()
                         if results:
-                            answer = "\n".join(
-                                r.get("content", r.get("text", ""))[:200] for r in results[:3]
-                            )
+                            answer = "\n".join(r.get("content", r.get("text", ""))[:200] for r in results[:3])
                             sources = [r.get("source", "vault") for r in results[:3]]
                             return AskResponse(answer=answer, tier="mcp", sources=sources)
             except Exception as e:

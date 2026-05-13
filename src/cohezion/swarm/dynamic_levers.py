@@ -136,9 +136,7 @@ class DynamicLever:
         """Reset to default value."""
         old_value = self.current_value
         self.current_value = self.range.default_value
-        self._record_adjustment(
-            "reset", self.range.default_value - old_value, self.range.default_value
-        )
+        self._record_adjustment("reset", self.range.default_value - old_value, self.range.default_value)
 
         logger.info(f"Lever '{self.name}': RESET → {self.range.default_value}")
         return self.range.default_value
@@ -195,9 +193,7 @@ class DynamicLeverSystem:
 
     def __init__(self, config_path: Path | None = None):
         self.levers: dict[str, DynamicLever] = {}
-        self.config_path = (
-            config_path or Path("~/.config/cohezion/dynamic_levers.json").expanduser()
-        )
+        self.config_path = config_path or Path("~/.config/cohezion/dynamic_levers.json").expanduser()
         self.config_path.parent.mkdir(parents=True, exist_ok=True)
 
         # Initialize with predefined levers
@@ -359,15 +355,11 @@ class DynamicLeverSystem:
             "timestamp": time.strftime("%Y-%m-%dT%H:%M:%SZ"),
             "total_levers": len(self.levers),
             "levers": {name: lever.to_dict() for name, lever in self.levers.items()},
-            "goals_achieved": sum(
-                1 for l in self.levers.values() if l.goal and l.get_progress_toward_goal() == 1.0
-            ),
+            "goals_achieved": sum(1 for l in self.levers.values() if l.goal and l.get_progress_toward_goal() == 1.0),
             "goals_in_progress": sum(
                 1
                 for l in self.levers.values()
-                if l.goal
-                and l.get_progress_toward_goal() is not None
-                and l.get_progress_toward_goal() < 1.0
+                if l.goal and l.get_progress_toward_goal() is not None and l.get_progress_toward_goal() < 1.0
             ),
         }
 
@@ -427,9 +419,7 @@ class DynamicLeverSystem:
             for name, lever_data in data.get("levers", {}).items():
                 if name in self.levers:
                     # Update current values
-                    self.levers[name].current_value = lever_data.get(
-                        "current_value", self.levers[name].current_value
-                    )
+                    self.levers[name].current_value = lever_data.get("current_value", self.levers[name].current_value)
                     self.levers[name].metrics = lever_data.get("metrics", {})
 
             logger.info(f"Loaded lever state from {self.config_path}")

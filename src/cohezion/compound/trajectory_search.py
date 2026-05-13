@@ -151,9 +151,7 @@ class TrajectorySearchEngine:
                 continue
 
             # Generate guidance
-            guidance = self._generate_guidance(
-                exp, coherence, phi_score, smoothness, convergence, success
-            )
+            guidance = self._generate_guidance(exp, coherence, phi_score, smoothness, convergence, success)
 
             results.append(
                 TrajectorySearchResult(

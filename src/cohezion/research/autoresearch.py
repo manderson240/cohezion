@@ -25,9 +25,7 @@ class AutoResearcher:
     Explores topics iteratively until a convergence threshold is met.
     """
 
-    def __init__(
-        self, max_depth: int = 3, convergence_threshold: float = 0.9, web_search_tool: Any = None
-    ):
+    def __init__(self, max_depth: int = 3, convergence_threshold: float = 0.9, web_search_tool: Any = None):
         self.max_depth = max_depth
         self.threshold = convergence_threshold
         self.web_search = web_search_tool

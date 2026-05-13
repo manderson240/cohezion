@@ -149,8 +149,6 @@ class VAEEvaluator:
             "similarity_spearman": spearman,
         }
 
-        logger.info(
-            "Evaluation results: %s", {k: v for k, v in results.items() if k != "kl_health"}
-        )
+        logger.info("Evaluation results: %s", {k: v for k, v in results.items() if k != "kl_health"})
 
         return results

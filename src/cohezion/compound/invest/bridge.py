@@ -23,9 +23,7 @@ class InvestState(BaseModel):
     """Represents a snapshot of InVEST model outputs for a specific region."""
 
     model_name: str  # e.g., "Coastal Blue Carbon", "Shedding", "Sabu-Sabu-Sensing"
-    biophysical_value: float = Field(
-        ..., description="Quantified service value (e.g., tons of C/ha)"
-    )
+    biophysical_value: float = Field(..., description="Quantified service value (e.g., tons of C/ha)")
     spatial_resolution: str
     metrics: dict[str, float] = Field(default_factory=dict)
     tradeoff_index: float = 0.0  # 0.0 (extreme conflict) to 1.0 (perfect synergy)

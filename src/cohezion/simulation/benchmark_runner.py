@@ -219,15 +219,11 @@ class BenchmarkRunner:
             cycles_to_convergence=convergence_cycle,
             final_mean_coherence=float(coherence_arr[-1]) if len(coherence_arr) > 0 else 0.0,
             convergence_achieved=convergence_cycle >= 0,
-            entropy_rate=float(np.mean(np.abs(np.diff(entropy_arr))))
-            if len(entropy_arr) > 1
-            else 0.0,
+            entropy_rate=float(np.mean(np.abs(np.diff(entropy_arr)))) if len(entropy_arr) > 1 else 0.0,
             initial_entropy=float(entropy_arr[0]) if len(entropy_arr) > 0 else 0.0,
             final_entropy=float(entropy_arr[-1]) if len(entropy_arr) > 0 else 0.0,
             agent_survival_rate=len(alive_agents) / len(sim.agents) if sim.agents else 0.0,
-            mean_agent_reward=float(np.mean([a.cumulative_reward for a in sim.agents]))
-            if sim.agents
-            else 0.0,
+            mean_agent_reward=float(np.mean([a.cumulative_reward for a in sim.agents])) if sim.agents else 0.0,
         )
 
         # Run validation

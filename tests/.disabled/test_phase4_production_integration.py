@@ -210,9 +210,7 @@ class TestPhase4SessionProductionFlow:
             return f"result {step}", {"tokens": 10}
 
         event_types = []
-        async for event in session.execute_with_checkpoints(
-            "test-skill", "input", slow_task, total_steps=2
-        ):
+        async for event in session.execute_with_checkpoints("test-skill", "input", slow_task, total_steps=2):
             event_types.append(event.get("type"))
 
         # Verify session generates expected events

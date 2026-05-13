@@ -107,9 +107,7 @@ class TestLongRunningExecutionEdgeCases:
         detector = get_anomaly_detector()
 
         for i in range(100):
-            detector.detect_spike(
-                actual_cost=0.40 + (i % 5) * 0.02, forecasted_cost=0.40, model="continuous-test"
-            )
+            detector.detect_spike(actual_cost=0.40 + (i % 5) * 0.02, forecasted_cost=0.40, model="continuous-test")
 
         assert len(detector.recent_alerts) <= 1000
 
@@ -223,9 +221,7 @@ class TestDataConsistencyEdgeCases:
         detector = get_anomaly_detector()
 
         for i in range(1000):
-            detector.detect_spike(
-                actual_cost=0.40 + (i % 100) * 0.001, forecasted_cost=0.40, model="stress-test"
-            )
+            detector.detect_spike(actual_cost=0.40 + (i % 100) * 0.001, forecasted_cost=0.40, model="stress-test")
 
         assert len(detector.recent_alerts) <= 1000
 
@@ -247,9 +243,7 @@ class TestRoutingConsistencyEdgeCases:
         """Test routing with only one model (no fallback)."""
         fallback = ModelFallbackStrategy()
 
-        selected, is_fallback = fallback.select_model(
-            primary_model="only-model", available_models=["only-model"]
-        )
+        selected, is_fallback = fallback.select_model(primary_model="only-model", available_models=["only-model"])
 
         assert selected == "only-model"
 

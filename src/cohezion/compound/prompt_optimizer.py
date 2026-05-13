@@ -108,8 +108,7 @@ class PromptOptimizer:
         if self.estimate_tokens and original_tokens > 0:
             reduction_pct = 100 * (1 - compressed_tokens / original_tokens)
             logger.debug(
-                f"Optimized prompt: {original_tokens} → {compressed_tokens} tokens "
-                f"({reduction_pct:.1f}% reduction)"
+                f"Optimized prompt: {original_tokens} → {compressed_tokens} tokens ({reduction_pct:.1f}% reduction)"
             )
 
         return text
@@ -214,9 +213,7 @@ class PromptOptimizer:
             "original_tokens": original_tokens,
             "compressed_tokens": compressed_tokens,
             "tokens_saved": original_tokens - compressed_tokens,
-            "reduction_pct": (
-                100 * (1 - compressed_tokens / original_tokens) if original_tokens > 0 else 0.0
-            ),
+            "reduction_pct": (100 * (1 - compressed_tokens / original_tokens) if original_tokens > 0 else 0.0),
             "original_chars": len(original),
             "compressed_chars": len(compressed),
         }

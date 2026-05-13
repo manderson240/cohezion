@@ -49,9 +49,7 @@ def mock_analytics():
 @pytest.mark.asyncio
 async def test_get_unified_metrics(mock_collector):
     """[P0] Should return unified metrics."""
-    with patch(
-        "cohezion.api.observability_endpoints.get_metrics_collector", return_value=mock_collector
-    ):
+    with patch("cohezion.api.observability_endpoints.get_metrics_collector", return_value=mock_collector):
         result = await get_unified_metrics()
         assert "timestamp" in result
         assert "metrics" in result

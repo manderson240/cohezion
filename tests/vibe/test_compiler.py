@@ -13,9 +13,7 @@ from cohezion.vibe.types import (
 )
 
 
-def _make_intent(
-    text: str = "implement feature", op: OperationType = OperationType.IMPLEMENT
-) -> VibeIntent:
+def _make_intent(text: str = "implement feature", op: OperationType = OperationType.IMPLEMENT) -> VibeIntent:
     return VibeIntent(
         raw_text=text,
         keywords=["implement", "feature"],

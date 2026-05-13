@@ -214,9 +214,7 @@ class JEPAWorldModelPersistent(JEPAWorldModel):
             else:
                 continue
 
-            self.store_trajectory(
-                np.array(state), np.array(action), np.array(next_state), float(reward)
-            )
+            self.store_trajectory(np.array(state), np.array(action), np.array(next_state), float(reward))
 
         # Flush remaining buffer
         if self.trajectory_buffer:

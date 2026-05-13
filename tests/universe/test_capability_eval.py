@@ -88,9 +88,7 @@ class TestEvalScorer:
             domain=TaskDomain.REASONING,
             difficulty=Difficulty.EASY,
             prompt="test",
-            rubric=ScoringRubric(
-                criteria=[ScoringCriterion("exact", ScoringMethod.EXACT_MATCH, expected="hello")]
-            ),
+            rubric=ScoringRubric(criteria=[ScoringCriterion("exact", ScoringMethod.EXACT_MATCH, expected="hello")]),
         )
         results = scorer.score_task(task, "hello")
         assert results[0].score == 1.0
@@ -102,9 +100,7 @@ class TestEvalScorer:
             domain=TaskDomain.REASONING,
             difficulty=Difficulty.EASY,
             prompt="test",
-            rubric=ScoringRubric(
-                criteria=[ScoringCriterion("exact", ScoringMethod.EXACT_MATCH, expected="hello")]
-            ),
+            rubric=ScoringRubric(criteria=[ScoringCriterion("exact", ScoringMethod.EXACT_MATCH, expected="hello")]),
         )
         results = scorer.score_task(task, "goodbye")
         assert results[0].score == 0.0
@@ -116,9 +112,7 @@ class TestEvalScorer:
             domain=TaskDomain.REASONING,
             difficulty=Difficulty.EASY,
             prompt="test",
-            rubric=ScoringRubric(
-                criteria=[ScoringCriterion("contains", ScoringMethod.CONTAINS, expected="world")]
-            ),
+            rubric=ScoringRubric(criteria=[ScoringCriterion("contains", ScoringMethod.CONTAINS, expected="world")]),
         )
         results = scorer.score_task(task, "hello world")
         assert results[0].score == 1.0
@@ -129,9 +123,7 @@ class TestEvalScorer:
             domain=TaskDomain.REASONING,
             difficulty=Difficulty.EASY,
             prompt="test",
-            rubric=ScoringRubric(
-                criteria=[ScoringCriterion("regex", ScoringMethod.REGEX, expected=r"\d{3}")]
-            ),
+            rubric=ScoringRubric(criteria=[ScoringCriterion("regex", ScoringMethod.REGEX, expected=r"\d{3}")]),
         )
         results = scorer.score_task(task, "code 404 found")
         assert results[0].score == 1.0
@@ -142,9 +134,7 @@ class TestEvalScorer:
             domain=TaskDomain.REASONING,
             difficulty=Difficulty.EASY,
             prompt="test",
-            rubric=ScoringRubric(
-                criteria=[ScoringCriterion("regex", ScoringMethod.REGEX, expected=r"\d{5}")]
-            ),
+            rubric=ScoringRubric(criteria=[ScoringCriterion("regex", ScoringMethod.REGEX, expected=r"\d{5}")]),
         )
         results = scorer.score_task(task, "code 404 found")
         assert results[0].score == 0.0
@@ -156,9 +146,7 @@ class TestEvalScorer:
             difficulty=Difficulty.EASY,
             prompt="test",
             rubric=ScoringRubric(
-                criteria=[
-                    ScoringCriterion("numeric", ScoringMethod.NUMERIC_CLOSENESS, expected=42.0)
-                ]
+                criteria=[ScoringCriterion("numeric", ScoringMethod.NUMERIC_CLOSENESS, expected=42.0)]
             ),
         )
         results = scorer.score_task(task, "The answer is 42.0")
@@ -171,9 +159,7 @@ class TestEvalScorer:
             difficulty=Difficulty.EASY,
             prompt="test",
             rubric=ScoringRubric(
-                criteria=[
-                    ScoringCriterion("numeric", ScoringMethod.NUMERIC_CLOSENESS, expected=100.0)
-                ]
+                criteria=[ScoringCriterion("numeric", ScoringMethod.NUMERIC_CLOSENESS, expected=100.0)]
             ),
         )
         results = scorer.score_task(task, "Result: 95")
@@ -223,11 +209,7 @@ class TestEvalScorer:
             difficulty=Difficulty.EASY,
             prompt="test",
             rubric=ScoringRubric(
-                criteria=[
-                    ScoringCriterion(
-                        "custom", ScoringMethod.CUSTOM, metadata={"scorer_fn": custom_fn}
-                    )
-                ]
+                criteria=[ScoringCriterion("custom", ScoringMethod.CUSTOM, metadata={"scorer_fn": custom_fn})]
             ),
         )
         results = scorer.score_task(task, "this is special content")
@@ -239,9 +221,7 @@ class TestEvalScorer:
             domain=TaskDomain.REASONING,
             difficulty=Difficulty.EASY,
             prompt="test",
-            rubric=ScoringRubric(
-                criteria=[ScoringCriterion("exact", ScoringMethod.EXACT_MATCH, expected=None)]
-            ),
+            rubric=ScoringRubric(criteria=[ScoringCriterion("exact", ScoringMethod.EXACT_MATCH, expected=None)]),
         )
         results = scorer.score_task(task, "anything")
         assert results[0].score == 0.0
@@ -336,9 +316,7 @@ class TestEvalRunner:
                     domain=TaskDomain.REASONING,
                     difficulty=Difficulty.EASY,
                     prompt="What is 2+2?",
-                    rubric=ScoringRubric(
-                        criteria=[ScoringCriterion("ans", ScoringMethod.CONTAINS, expected="4")]
-                    ),
+                    rubric=ScoringRubric(criteria=[ScoringCriterion("ans", ScoringMethod.CONTAINS, expected="4")]),
                 )
             ],
         )
@@ -388,18 +366,14 @@ class TestEvalRunner:
                     domain=TaskDomain.REASONING,
                     difficulty=Difficulty.EASY,
                     prompt="test1",
-                    rubric=ScoringRubric(
-                        criteria=[ScoringCriterion("c", ScoringMethod.CONTAINS, expected="yes")]
-                    ),
+                    rubric=ScoringRubric(criteria=[ScoringCriterion("c", ScoringMethod.CONTAINS, expected="yes")]),
                 ),
                 EvalTask(
                     task_id="t2",
                     domain=TaskDomain.REASONING,
                     difficulty=Difficulty.EASY,
                     prompt="test2",
-                    rubric=ScoringRubric(
-                        criteria=[ScoringCriterion("c", ScoringMethod.CONTAINS, expected="yes")]
-                    ),
+                    rubric=ScoringRubric(criteria=[ScoringCriterion("c", ScoringMethod.CONTAINS, expected="yes")]),
                 ),
             ],
         )

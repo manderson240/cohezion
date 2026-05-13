@@ -248,13 +248,10 @@ class CapabilityScorecard:
                     else 1e-8
                 )
 
-                effect_sizes[axis] = (
-                    (swarm_mean - ss_mean) / pooled_std if pooled_std > 1e-8 else 0.0
-                )
+                effect_sizes[axis] = (swarm_mean - ss_mean) / pooled_std if pooled_std > 1e-8 else 0.0
 
                 t_stat = (
-                    (swarm_mean - ss_mean)
-                    / (pooled_std * np.sqrt(1 / len(swarm_values) + 1 / len(ss_values)))
+                    (swarm_mean - ss_mean) / (pooled_std * np.sqrt(1 / len(swarm_values) + 1 / len(ss_values)))
                     if pooled_std > 1e-8
                     else 0.0
                 )
@@ -309,9 +306,7 @@ class CapabilityScorecard:
 
         capability_matrix = df[self.axes].values
 
-        _u, _s, vt = np.linalg.svd(
-            capability_matrix - capability_matrix.mean(axis=0), full_matrices=False
-        )
+        _u, _s, vt = np.linalg.svd(capability_matrix - capability_matrix.mean(axis=0), full_matrices=False)
 
         projection_3d = capability_matrix @ vt[:3].T
 
@@ -352,9 +347,7 @@ class CapabilityScorecard:
             ax = fig.add_subplot(111, projection="3d")
 
             episodes = df["episode"].values
-            colors = plt.cm.viridis(
-                (episodes - episodes.min()) / (episodes.max() - episodes.min() + 1e-8)
-            )
+            colors = plt.cm.viridis((episodes - episodes.min()) / (episodes.max() - episodes.min() + 1e-8))
             for i in range(len(episodes) - 1):
                 ax.plot(
                     projection_3d[i : i + 2, 0],

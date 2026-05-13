@@ -89,9 +89,7 @@ class TurboQuantHarness:
         stability_quant = self.get_hiho_stability(coh_quant)
         stability_delta = abs(stability_orig - stability_quant)
 
-        success = mae <= self.tolerance_mae and (
-            perfect_mean or stability_delta <= self.tolerance_hiho
-        )
+        success = mae <= self.tolerance_mae and (perfect_mean or stability_delta <= self.tolerance_hiho)
 
         metrics = {
             "context": context_name,

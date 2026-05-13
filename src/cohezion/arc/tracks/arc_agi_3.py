@@ -216,9 +216,7 @@ class ARCAGI3Pipeline:
                     reward = self.ATTEMPT_1_WEIGHT
                     pred2 = pred1
                 else:
-                    pred2 = _refine_prediction(
-                        pred1, feedback, test_input, rules, self.builder.extractor
-                    )
+                    pred2 = _refine_prediction(pred1, feedback, test_input, rules, self.builder.extractor)
                     if gold is not None and grids_equal(pred2, gold):
                         reward = self.ATTEMPT_2_WEIGHT
 

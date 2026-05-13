@@ -16,9 +16,7 @@ from typing import Any
 from .mcp_paths import cohezion_root
 
 
-def execute_skill(
-    skill_name: str, inputs: dict[str, Any], skills: dict[str, Any]
-) -> dict[str, Any]:
+def execute_skill(skill_name: str, inputs: dict[str, Any], skills: dict[str, Any]) -> dict[str, Any]:
     """Resolve a skill by name in the registry and return its source contents.
 
     ``inputs`` is currently unused — the skill source is returned verbatim so

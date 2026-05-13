@@ -233,9 +233,7 @@ def hiho_potential(dim: int = 12, sigma: float = 0.3, depth: float = 1.0) -> Pot
     return Potential(V, dV)
 
 
-def harmonic_potential(
-    dim: int = 12, k: float = 1.0, center: np.ndarray | None = None
-) -> Potential:
+def harmonic_potential(dim: int = 12, k: float = 1.0, center: np.ndarray | None = None) -> Potential:
     """Simple harmonic potential V = k/2 |q - center|²."""
     if center is None:
         center = np.full(dim, 0.5)

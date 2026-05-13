@@ -371,9 +371,7 @@ class AdversarialReviewHarness:
             recommendations=[f["recommendation"] for f in findings],
         )
 
-    async def _generate_adversarial_tests(
-        self, rule: Rule, perspectives: list[ReviewPerspective]
-    ) -> list[str]:
+    async def _generate_adversarial_tests(self, rule: Rule, perspectives: list[ReviewPerspective]) -> list[str]:
         """Generate additional adversarial tests based on review findings"""
         tests = list(rule.adversarial_tests)
 
@@ -425,21 +423,19 @@ class AdversarialReviewHarness:
 
             # Query violations (latent synapses pointing to this rule)
             violation_sql = f"""
-                SELECT count() as violation_count 
-                FROM synapse 
+                SELECT count() as violation_count
+                FROM synapse
                 WHERE out = {rule_neuron} AND link_type = 'latent';
             """
             violation_result = self.db.query(violation_sql)
             violation_count = (
-                violation_result[0].get("result", [{}])[0].get("violation_count", 0)
-                if violation_result
-                else 0
+                violation_result[0].get("result", [{}])[0].get("violation_count", 0) if violation_result else 0
             )
 
             # Query cross-rule connections (dream synapses)
             dream_sql = f"""
-                SELECT in, out, resonance 
-                FROM synapse 
+                SELECT in, out, resonance
+                FROM synapse
                 WHERE (in = {rule_neuron} OR out = {rule_neuron}) AND link_type = 'dream';
             """
             dream_result = self.db.query(dream_sql)
@@ -447,15 +443,11 @@ class AdversarialReviewHarness:
 
             # Query affinity patterns
             affinity_sql = f"""
-                SELECT dim_agent_affinity 
+                SELECT dim_agent_affinity
                 FROM {rule_neuron};
             """
             affinity_result = self.db.query(affinity_sql)
-            affinity = (
-                affinity_result[0].get("result", [{}])[0].get("dim_agent_affinity")
-                if affinity_result
-                else None
-            )
+            affinity = affinity_result[0].get("result", [{}])[0].get("dim_agent_affinity") if affinity_result else None
 
             return {
                 "violation_count": violation_count,
@@ -511,9 +503,7 @@ class ConsensusVoter:
     def __init__(self, threshold: float = 0.7):
         self.threshold = threshold
 
-    def vote_on_change(
-        self, rule: Rule, review: AdversarialReviewResult, change_type: str
-    ) -> tuple[bool, str]:
+    def vote_on_change(self, rule: Rule, review: AdversarialReviewResult, change_type: str) -> tuple[bool, str]:
         """
         Vote on whether to accept a rule change
 

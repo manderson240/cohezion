@@ -57,9 +57,7 @@ class LCSPPredictor:
             self.initialize()
         return np.tanh(state @ self._encoder_weights)
 
-    def predict_latent(
-        self, latent: np.ndarray, context: dict[str, Any] | None = None
-    ) -> np.ndarray:
+    def predict_latent(self, latent: np.ndarray, context: dict[str, Any] | None = None) -> np.ndarray:
         """Predict next latent state."""
         # Apply HIHO stability constraint
         prediction = np.tanh(latent @ self._predictor_weights)

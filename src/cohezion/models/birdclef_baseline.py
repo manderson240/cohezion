@@ -84,9 +84,7 @@ class BirdCLEFBaseline:
             probs = torch.sigmoid(logits)
         return probs.cpu().numpy()
 
-    def format_submission(
-        self, probs: np.ndarray, filename: str, offsets: list[int]
-    ) -> pd.DataFrame:
+    def format_submission(self, probs: np.ndarray, filename: str, offsets: list[int]) -> pd.DataFrame:
         """Convert probabilities to Kaggle multi-column format."""
         rows = []
         for i, window_prob in enumerate(probs):

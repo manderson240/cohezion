@@ -64,12 +64,8 @@ class FeatureFlagConfig:
     enabled: bool = True
     rollout_stage: RolloutStage = RolloutStage.FULL
     rollout_percentage: float = 100.0  # 0.0-100.0, percentage of requests
-    enabled_regions: list[str] = field(
-        default_factory=lambda: ["us", "eu", "asia"]
-    )  # Deployment regions
-    enabled_tenants: list[str] = field(
-        default_factory=list
-    )  # Empty = all tenants, otherwise specific list
+    enabled_regions: list[str] = field(default_factory=lambda: ["us", "eu", "asia"])  # Deployment regions
+    enabled_tenants: list[str] = field(default_factory=list)  # Empty = all tenants, otherwise specific list
     metadata: dict[str, Any] = field(default_factory=dict)
     created_at: datetime = field(default_factory=datetime.now)
     updated_at: datetime = field(default_factory=datetime.now)
@@ -416,9 +412,7 @@ class FeatureFlagManager:
             "full_rollout_count": full_rollout,
             "canary_count": canary,
             "overall_rollout_percent": (full_rollout / total_flags) * 100,
-            "deployment_status": (
-                "stable" if full_rollout == total_flags else "ramping" if canary > 0 else "initial"
-            ),
+            "deployment_status": ("stable" if full_rollout == total_flags else "ramping" if canary > 0 else "initial"),
         }
 
 

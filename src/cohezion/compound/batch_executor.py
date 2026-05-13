@@ -146,10 +146,7 @@ class BatchableExecutor:
                 task_types[0] if task_types else "unknown", len(tasks)
             )
             self.batch_size = predicted_batch_size
-            logger.info(
-                f"Batch sizing: predicted size={predicted_batch_size} "
-                f"(confidence={prediction_confidence:.2f})"
-            )
+            logger.info(f"Batch sizing: predicted size={predicted_batch_size} (confidence={prediction_confidence:.2f})")
 
         try:
             # Phase 1: Get experience guidance for all tasks
@@ -187,11 +184,7 @@ class BatchableExecutor:
         # Phase 3 Sprint 1: Record metrics for batch sizing learning
         if self.batch_sizer and results:
             try:
-                throughput = (
-                    sum(r.metrics.get("tokens_used", 0) for r in results) / duration
-                    if duration > 0
-                    else 0.0
-                )
+                throughput = sum(r.metrics.get("tokens_used", 0) for r in results) / duration if duration > 0 else 0.0
                 task_types = self._detect_task_types(tasks)
                 metrics = BatchExecutionMetrics(
                     batch_size=predicted_batch_size,
@@ -225,8 +218,7 @@ class BatchableExecutor:
                 throttle_detected=monitor.is_thermal_throttling(),
             )
             logger.debug(
-                f"Recorded thermal metrics: temp={metrics.gpu_temp_current:.1f}°C, "
-                f"batch_size={predicted_batch_size}"
+                f"Recorded thermal metrics: temp={metrics.gpu_temp_current:.1f}°C, batch_size={predicted_batch_size}"
             )
         except Exception as e:
             logger.debug(f"Failed to record thermal metrics (non-blocking): {e}")
@@ -336,28 +328,15 @@ class BatchableExecutor:
             # Fall back to keyword detection in prompt
             prompt_lower = task.prompt.lower()
 
-            if any(
-                word in prompt_lower
-                for word in ["generate", "create", "write", "compose", "write a"]
-            ):
+            if any(word in prompt_lower for word in ["generate", "create", "write", "compose", "write a"]):
                 task_types.append("generate")
-            elif any(
-                word in prompt_lower
-                for word in ["analyze", "analyze", "examine", "review", "evaluate"]
-            ):
+            elif any(word in prompt_lower for word in ["analyze", "analyze", "examine", "review", "evaluate"]):
                 task_types.append("analyze")
-            elif any(
-                word in prompt_lower for word in ["search", "find", "look for", "retrieve", "list"]
-            ):
+            elif any(word in prompt_lower for word in ["search", "find", "look for", "retrieve", "list"]):
                 task_types.append("search")
-            elif any(
-                word in prompt_lower
-                for word in ["transform", "convert", "change", "format", "rewrite"]
-            ):
+            elif any(word in prompt_lower for word in ["transform", "convert", "change", "format", "rewrite"]):
                 task_types.append("transform")
-            elif any(
-                word in prompt_lower for word in ["save", "store", "persist", "record", "store"]
-            ):
+            elif any(word in prompt_lower for word in ["save", "store", "persist", "record", "store"]):
                 task_types.append("persist")
             else:
                 task_types.append("unknown")
@@ -385,9 +364,7 @@ class BatchableExecutor:
 
         # Optional: Deduplicate identical prompts within batch
         task_groups = (
-            self._deduplicate_tasks(tasks)
-            if self.enable_deduplication
-            else {id(task): [task] for task in tasks}
+            self._deduplicate_tasks(tasks) if self.enable_deduplication else {id(task): [task] for task in tasks}
         )
 
         # Execute each unique task
@@ -438,10 +415,7 @@ class BatchableExecutor:
             tasks: Original tasks
             results: ExecutionResults from Phase 2
         """
-        phase3_tasks = [
-            self._process_single_result(task, result)
-            for task, result in zip(tasks, results, strict=True)
-        ]
+        phase3_tasks = [self._process_single_result(task, result) for task, result in zip(tasks, results, strict=True)]
 
         # Run all post-execution in parallel
         await asyncio.gather(*phase3_tasks, return_exceptions=True)

@@ -43,8 +43,6 @@ class RatchetMechanism:
         ratchet_id = f"ratchet_{trajectory_id}"
 
         # Persist to Obsidian as a permanent 'Success' anchor
-        await self.obsidian_mcp.store_state_summary(
-            trajectory_id=ratchet_id, state=state, coherence=coherence
-        )
+        await self.obsidian_mcp.store_state_summary(trajectory_id=ratchet_id, state=state, coherence=coherence)
 
         return True

@@ -139,9 +139,7 @@ class MultiTrackOrchestrator:
         self.runs.append(runp)
         try:
             # Paper track wraps whichever base pipeline succeeded first
-            base_pipe = (
-                p2 if run2.status == "success" else (p3 if run3.status == "success" else None)
-            )
+            base_pipe = p2 if run2.status == "success" else (p3 if run3.status == "success" else None)
             pp = PaperTrackPipeline(
                 output_dir=self.output_dir / "paper",
                 base_pipeline=base_pipe,

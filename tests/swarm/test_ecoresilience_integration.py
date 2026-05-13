@@ -35,9 +35,7 @@ async def run_integration_test():
     translator = ManifoldTranslator(encoder=encoder)
 
     # 2. Setup Agent and Loop
-    agent = EcoResilienceAgent(
-        provider=provider, translator=translator, model_name="gemma4:26b-moe"
-    )
+    agent = EcoResilienceAgent(provider=provider, translator=translator, model_name="gemma4:26b-moe")
     guard = HIHOStabilityGuard(threshold=0.5)
     executor = MagicMock(spec=CompoundExecutor)
 

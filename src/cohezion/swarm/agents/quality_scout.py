@@ -39,7 +39,9 @@ class QualityScout(BaseScout):
                     type="anti_pattern",
                     name="High Cyclomatic Complexity",
                     category="complexity",
-                    description=f"File has cyclomatic complexity of {ast_summary.complexity_score}, exceeding threshold of 15.",
+                    description=(
+                        f"File has cyclomatic complexity of {ast_summary.complexity_score}, exceeding threshold of 15."
+                    ),
                     file_path=rel_path,
                     line_range=(1, ast_summary.loc),
                     confidence=1.0,
@@ -78,7 +80,9 @@ class QualityScout(BaseScout):
                                 type="anti_pattern",
                                 name="Deep Nesting",
                                 category="complexity",
-                                description=f"Function '{node.name}' reached nesting depth of {max_depth} (threshold: 4).",
+                                description=(
+                                    f"Function '{node.name}' reached nesting depth of {max_depth} (threshold: 4)."
+                                ),
                                 file_path=rel_path,
                                 line_range=(node.lineno, node.end_lineno),
                                 confidence=1.0,
@@ -99,8 +103,7 @@ class QualityScout(BaseScout):
                                     file_path=rel_path,
                                     line_range=(body_node.lineno, body_node.end_lineno),
                                     confidence=1.0,
-                                    code_snippet=ast.get_source_segment(path.read_text(), body_node)
-                                    or "",
+                                    code_snippet=ast.get_source_segment(path.read_text(), body_node) or "",
                                     severity="high",
                                 )
                             )
@@ -114,9 +117,7 @@ class QualityScout(BaseScout):
         """Calculate maximum nesting depth of a node."""
         depths = [current_depth]
         for child in ast.iter_child_nodes(node):
-            if isinstance(
-                child, (ast.If, ast.While, ast.For, ast.AsyncFor, ast.Try, ast.With, ast.AsyncWith)
-            ):
+            if isinstance(child, (ast.If, ast.While, ast.For, ast.AsyncFor, ast.Try, ast.With, ast.AsyncWith)):
                 depths.append(self._get_nesting_depth(child, current_depth + 1))
             else:
                 depths.append(self._get_nesting_depth(child, current_depth))

@@ -51,8 +51,7 @@ class TestEnergyConservation:
 
         rel_drift = abs(E_final - E_initial) / max(abs(E_initial), 1e-10)
         assert rel_drift < 0.05, (
-            f"Energy not conserved: E(0)={E_initial:.6f}, E(100)={E_final:.6f}, "
-            f"relative drift={rel_drift:.4%}"
+            f"Energy not conserved: E(0)={E_initial:.6f}, E(100)={E_final:.6f}, relative drift={rel_drift:.4%}"
         )
 
     @pytest.mark.unit
@@ -70,8 +69,7 @@ class TestEnergyConservation:
 
         rel_drift = abs(E_final - E_initial) / max(abs(E_initial), 1e-10)
         assert rel_drift < 0.10, (
-            f"Energy drift over 1000 steps: E(0)={E_initial:.6f}, E(1000)={E_final:.6f}, "
-            f"relative drift={rel_drift:.4%}"
+            f"Energy drift over 1000 steps: E(0)={E_initial:.6f}, E(1000)={E_final:.6f}, relative drift={rel_drift:.4%}"
         )
 
     @pytest.mark.unit
@@ -88,9 +86,7 @@ class TestEnergyConservation:
         E_final = dynamics.total_energy(q, v)
 
         # Energy should decrease (or stay same if already at minimum)
-        assert E_final <= E_initial + 1e-4, (
-            f"Damped system energy increased: E(0)={E_initial:.6f}, E(50)={E_final:.6f}"
-        )
+        assert E_final <= E_initial + 1e-4, f"Damped system energy increased: E(0)={E_initial:.6f}, E(50)={E_final:.6f}"
 
 
 class TestSpinorUnitarity:
@@ -124,9 +120,7 @@ class TestSpinorUnitarity:
         for logic, quantum in [(0.0, 0.0), (0.5, 0.5), (1.0, 0.0), (0.3, 0.7)]:
             state = SpinorState.from_coherence_values(logic=logic, quantum=quantum)
             norm_sq = abs(state.alpha) ** 2 + abs(state.beta) ** 2
-            assert abs(norm_sq - 1.0) < 1e-10, (
-                f"Norm violation at (logic={logic}, quantum={quantum}): |ψ|² = {norm_sq}"
-            )
+            assert abs(norm_sq - 1.0) < 1e-10, f"Norm violation at (logic={logic}, quantum={quantum}): |ψ|² = {norm_sq}"
 
     @pytest.mark.unit
     def test_arbitrary_spinor_norm(self):
@@ -260,9 +254,7 @@ class TestGaugeInvariance:
 
         # Field strength energy should be zero
         fs = conn.field_strength()
-        assert fs.energy_density < 1e-15, (
-            f"At HIHO, field strength energy should be 0, got {fs.energy_density:.6e}"
-        )
+        assert fs.energy_density < 1e-15, f"At HIHO, field strength energy should be 0, got {fs.energy_density:.6e}"
 
 
 class TestMetricPositiveDefiniteness:

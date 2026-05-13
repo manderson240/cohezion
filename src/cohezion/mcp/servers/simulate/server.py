@@ -72,9 +72,7 @@ async def tool_run_simulation(request: web.Request) -> web.Response:
         example_name = data.get("example")
 
         if not script_content and not example_name:
-            return web.json_response(
-                {"error": "Provide 'script' content or 'example' name"}, status=400
-            )
+            return web.json_response({"error": "Provide 'script' content or 'example' name"}, status=400)
 
         # Integration with Universe Simulation
         try:
@@ -91,9 +89,7 @@ async def tool_run_simulation(request: web.Request) -> web.Response:
             # Resolve script content
             if example_name:
                 if example_name not in EXAMPLES:
-                    return web.json_response(
-                        {"error": f"Example '{example_name}' not found"}, status=404
-                    )
+                    return web.json_response({"error": f"Example '{example_name}' not found"}, status=404)
                 script = EXAMPLES[example_name]
             else:
                 script = script_content
@@ -113,14 +109,10 @@ async def tool_run_simulation(request: web.Request) -> web.Response:
                 "systemd": SystemdRunBackend,
                 "subprocess": SubprocessBackend,
             }
-            backend = (
-                backend_map[backend_name]() if backend_name in backend_map else select_backend()
-            )
+            backend = backend_map[backend_name]() if backend_name in backend_map else select_backend()
 
             run_id = f"sim_{uuid4().hex[:8]}"
-            logger.info(
-                f"Executing simulation {run_id} (tier={tier_name}, backend={type(backend).__name__})"
-            )
+            logger.info(f"Executing simulation {run_id} (tier={tier_name}, backend={type(backend).__name__})")
 
             result = await backend.execute(script, profile)
 

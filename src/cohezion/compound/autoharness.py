@@ -23,9 +23,7 @@ class AutoHarnessSynthesizer:
         self.llm = llm_executor
         self.max_iterations = max_iterations
 
-    async def synthesize_verifier(
-        self, environment_desc: str, dummy_env: Callable[[str], tuple[bool, str]]
-    ) -> str:
+    async def synthesize_verifier(self, environment_desc: str, dummy_env: Callable[[str], tuple[bool, str]]) -> str:
         """
         Synthesizes a python function `def verify_action(state, action) -> bool:`
         that correctly identifies valid moves/actions in the environment.
@@ -45,9 +43,7 @@ Environment:
 """
         code = ""
         for i in range(self.max_iterations):
-            logger.info(
-                f"[AutoHarness] Iteration {i + 1}/{self.max_iterations} for verifier synthesis."
-            )
+            logger.info(f"[AutoHarness] Iteration {i + 1}/{self.max_iterations} for verifier synthesis.")
 
             try:
                 response = await self.llm.execute_task(task=prompt, skill="coding_PRIME")
@@ -84,14 +80,12 @@ Return ONLY the python code inside ```python ... ``` blocks.
 """
             except Exception as e:
                 logger.error(f"[AutoHarness] LLM execution failed: {e}")
-                prompt = f"The previous attempt failed due to an execution error: {e}. Please try again. Return ONLY python code."
+                prompt = f"The previous attempt failed due to an execution error: {e}. Please try again. Return ONLY python code."  # noqa: E501
 
         logger.warning("[AutoHarness] Reached maximum iterations without complete success.")
         return code
 
-    async def synthesize_policy(
-        self, environment_desc: str, dummy_env: Callable[[str], tuple[bool, str]]
-    ) -> str:
+    async def synthesize_policy(self, environment_desc: str, dummy_env: Callable[[str], tuple[bool, str]]) -> str:
         """
         Synthesizes a full code-policy `def predict_action(state) -> action:`
         (Harness-as-policy) that eliminates the need for LLM at decision time.
@@ -105,9 +99,7 @@ Environment:
 """
         code = ""
         for i in range(self.max_iterations):
-            logger.info(
-                f"[AutoHarness] Iteration {i + 1}/{self.max_iterations} for policy synthesis."
-            )
+            logger.info(f"[AutoHarness] Iteration {i + 1}/{self.max_iterations} for policy synthesis.")
 
             try:
                 response = await self.llm.execute_task(task=prompt, skill="coding_PRIME")
@@ -135,7 +127,7 @@ Return ONLY the python code inside ```python ... ``` blocks.
 """
             except Exception as e:
                 logger.error(f"[AutoHarness] LLM execution failed: {e}")
-                prompt = f"The previous attempt failed due to an execution error: {e}. Please try again. Return ONLY python code."
+                prompt = f"The previous attempt failed due to an execution error: {e}. Please try again. Return ONLY python code."  # noqa: E501
 
         logger.warning("[AutoHarness] Reached maximum iterations without complete success.")
         return code

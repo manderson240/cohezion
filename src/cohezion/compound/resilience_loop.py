@@ -69,9 +69,7 @@ class EcoResilienceCompoundLoop:
 
             # Retrieve the current manifold projection from the agent's state
             # This is where the 'Fluid Latent' state lives.
-            last_projection = self.agent.translator.project(
-                self.agent.translator.encoder.encode(current_strategy)
-            )
+            last_projection = self.agent.translator.project(self.agent.translator.encoder.encode(current_strategy))
 
             # 2. HIHO Stability Guard Verification
             check = await self.guard.verify(last_projection, current_strategy)
@@ -93,9 +91,7 @@ class EcoResilienceCompoundLoop:
             )
 
             # 3. Compound Refinement: update input for the next iteration to fix instability
-            input_text = (
-                f"Refine the previous strategy: {current_strategy}. Suggestion: {check.suggestion}"
-            )
+            input_text = f"Refine the previous strategy: {current_strategy}. Suggestion: {check.suggestion}"
 
             # Add a small delay to avoid hitting API rate limits during a refine loop
             await asyncio.sleep(1)

@@ -145,9 +145,7 @@ class iGPUSimulationEngine:
                     agent.hiho_step()
         return agents
 
-    def nbody_gravity(
-        self, positions: np.ndarray, masses: np.ndarray, dt: float = 0.01
-    ) -> np.ndarray:
+    def nbody_gravity(self, positions: np.ndarray, masses: np.ndarray, dt: float = 0.01) -> np.ndarray:
         """
         N-body gravity on GPU.
 
@@ -201,9 +199,7 @@ class iGPUSimulationEngine:
             elif task_type == "nbody":
                 result = self.nbody_gravity(payload["positions"], payload["masses"])
             elif task_type == "mhd":
-                result = self.mhd_field_update(
-                    payload["b_field"], payload["velocity"], payload["dt"]
-                )
+                result = self.mhd_field_update(payload["b_field"], payload["velocity"], payload["dt"])
             else:
                 result = {"error": f"Unknown simulation type: {task_type}"}
 
@@ -324,23 +320,17 @@ class CPUOrchestrationEngine:
             if task.task_type == "npu":
                 aggregated["npu_params"] = task.result
                 aggregated["timing"]["npu_ms"] = (
-                    (task.completed_at - task.started_at) * 1000
-                    if task.completed_at and task.started_at
-                    else None
+                    (task.completed_at - task.started_at) * 1000 if task.completed_at and task.started_at else None
                 )
             elif task.task_type == "igpu":
                 aggregated["igpu_result"] = task.result
                 aggregated["timing"]["igpu_ms"] = (
-                    (task.completed_at - task.started_at) * 1000
-                    if task.completed_at and task.started_at
-                    else None
+                    (task.completed_at - task.started_at) * 1000 if task.completed_at and task.started_at else None
                 )
             elif task.task_type == "cpu":
                 aggregated["cpu_validation"] = task.result
                 aggregated["timing"]["cpu_ms"] = (
-                    (task.completed_at - task.started_at) * 1000
-                    if task.completed_at and task.started_at
-                    else None
+                    (task.completed_at - task.started_at) * 1000 if task.completed_at and task.started_at else None
                 )
 
         return aggregated
@@ -386,9 +376,7 @@ class TriComputeOrchestrator:
         # Step 1: NPU generates parameters
         print("  [NPU] Generating experiment parameters...")
         npu_start = time.time()
-        params = await self.npu.infer(
-            prompt=f"Generate params for Phase {phase.phase_id} with context: {prev_results}"
-        )
+        params = await self.npu.infer(prompt=f"Generate params for Phase {phase.phase_id} with context: {prev_results}")
         npu_time = (time.time() - npu_start) * 1000
         print(f"  [NPU] Complete in {npu_time:.1f}ms")
 

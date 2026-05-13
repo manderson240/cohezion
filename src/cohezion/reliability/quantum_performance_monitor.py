@@ -254,9 +254,7 @@ class QuantumPerformanceMonitor:
         logger.info(f"Starting quantum performance monitoring (interval: {interval_seconds}s)")
 
         # Start monitoring thread
-        monitor_thread = threading.Thread(
-            target=self._monitoring_loop, args=(interval_seconds,), daemon=True
-        )
+        monitor_thread = threading.Thread(target=self._monitoring_loop, args=(interval_seconds,), daemon=True)
         monitor_thread.start()
 
         # Start auto-swap monitoring
@@ -362,9 +360,7 @@ class QuantumPerformanceMonitor:
         # This is a simplified estimation
         # In production, would use more sophisticated measurement
 
-        recent_memory_metrics = [
-            m for m in self.metrics_history[-20:] if m.metric_type == MetricType.MEMORY_USAGE
-        ]
+        recent_memory_metrics = [m for m in self.metrics_history[-20:] if m.metric_type == MetricType.MEMORY_USAGE]
 
         if len(recent_memory_metrics) < 2:
             return 0.0
@@ -381,9 +377,7 @@ class QuantumPerformanceMonitor:
 
     def _estimate_cache_performance(self) -> float:
         """Estimate cache performance based on system behavior"""
-        recent_cpu_metrics = [
-            m for m in self.metrics_history[-50:] if m.metric_type == MetricType.CPU_USAGE
-        ]
+        recent_cpu_metrics = [m for m in self.metrics_history[-50:] if m.metric_type == MetricType.CPU_USAGE]
 
         if not recent_cpu_metrics:
             return 0.1
@@ -400,9 +394,7 @@ class QuantumPerformanceMonitor:
         """Check alert conditions and trigger actions"""
         for condition in self.alert_conditions:
             # Find matching metric
-            matching_metric = next(
-                (m for m in metrics if m.metric_type == condition.metric_type), None
-            )
+            matching_metric = next((m for m in metrics if m.metric_type == condition.metric_type), None)
 
             if matching_metric is None:
                 continue
@@ -466,9 +458,7 @@ class QuantumPerformanceMonitor:
         if self.auto_swap_enabled and condition:
             asyncio.create_task(self._execute_automatic_action(condition, metric))
 
-    async def _execute_automatic_action(
-        self, condition: AlertCondition | None, metric: PerformanceMetric
-    ):
+    async def _execute_automatic_action(self, condition: AlertCondition | None, metric: PerformanceMetric):
         """Execute automatic optimization action"""
         if condition:
             logger.info(f"Executing automatic action: {condition.action.value}")
@@ -520,13 +510,9 @@ class QuantumPerformanceMonitor:
         recent_metrics = self.metrics_history[-100:]  # Last 100 metrics
 
         # Analyze trends
-        memory_trend = self._analyze_trend(
-            [m for m in recent_metrics if m.metric_type == MetricType.MEMORY_USAGE]
-        )
+        memory_trend = self._analyze_trend([m for m in recent_metrics if m.metric_type == MetricType.MEMORY_USAGE])
 
-        latency_trend = self._analyze_trend(
-            [m for m in recent_metrics if m.metric_type == MetricType.MODEL_LATENCY]
-        )
+        latency_trend = self._analyze_trend([m for m in recent_metrics if m.metric_type == MetricType.MODEL_LATENCY])
 
         # Check for consistent poor performance
         if (memory_trend > 0.7 and latency_trend > 0.5) and (
@@ -698,9 +684,7 @@ class QuantumPerformanceMonitor:
 
     async def _perform_model_swap(self, decision: AutoSwapDecision):
         """Perform automatic model swap"""
-        logger.info(
-            f"Performing model swap: {decision.current_model} -> {decision.recommended_model}"
-        )
+        logger.info(f"Performing model swap: {decision.current_model} -> {decision.recommended_model}")
         logger.info(f"Reason: {decision.reason} (confidence: {decision.confidence:.2f})")
 
         try:

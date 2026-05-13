@@ -122,18 +122,14 @@ class TestCompoundUtils:
 
     def test_module_line_count(self) -> None:
         """Module shrunk from 782 to < 500 lines (elegant simplicity gate)."""
-        mod = (
-            Path(__file__).resolve().parents[2] / "src" / "cohezion" / "mcp" / "compound_server.py"
-        )
+        mod = Path(__file__).resolve().parents[2] / "src" / "cohezion" / "mcp" / "compound_server.py"
         assert mod.exists()
         lines = len(mod.read_text().splitlines())
         assert lines < 500, f"compound_server.py is {lines} lines; refactor target is < 500"
 
     def test_error_handler_count(self) -> None:
         """Only 3 error handlers remain in module (was 16 before DRY refactor)."""
-        mod = (
-            Path(__file__).resolve().parents[2] / "src" / "cohezion" / "mcp" / "compound_server.py"
-        )
+        mod = Path(__file__).resolve().parents[2] / "src" / "cohezion" / "mcp" / "compound_server.py"
         text = mod.read_text()
         assert text.count("except Exception") <= 5, "too many bare except blocks remain"
 
@@ -161,9 +157,7 @@ class TestInspectCodebase:
 
     @pytest.mark.asyncio
     async def test_returns_error_for_missing_subdir(self) -> None:
-        result = await cohezion_inspect_codebase(
-            subdirectory="nonexistent_xyz_123", pattern="*.py", max_depth=2
-        )
+        result = await cohezion_inspect_codebase(subdirectory="nonexistent_xyz_123", pattern="*.py", max_depth=2)
         assert result["status"] == "error"
         assert "not found" in result["error"].lower() or "Path not found" in result["error"]
 
@@ -231,9 +225,7 @@ class TestBatchPortSkills:
         fake_proc.communicate = AsyncMock(return_value=(b"ok", b""))
 
         with patch("asyncio.create_subprocess_exec", return_value=fake_proc):
-            result = await cohezion_batch_port_skills(
-                skill_names=["FAKE_SKILL_PRIME"], dry_run=True
-            )
+            result = await cohezion_batch_port_skills(skill_names=["FAKE_SKILL_PRIME"], dry_run=True)
 
         assert result["status"] == "success"
         assert result["total"] == 1
@@ -245,9 +237,7 @@ class TestBatchPortSkills:
     @pytest.mark.asyncio
     async def test_converter_missing_returns_error(self) -> None:
         with patch("pathlib.Path.exists", return_value=False):
-            result = await cohezion_batch_port_skills(
-                skill_names=["FAKE_SKILL_PRIME"], dry_run=False
-            )
+            result = await cohezion_batch_port_skills(skill_names=["FAKE_SKILL_PRIME"], dry_run=False)
         assert result["status"] == "error"
         assert "not found" in result["error"].lower()
 
@@ -257,9 +247,7 @@ class TestBatchPortSkills:
         fake_proc.communicate = AsyncMock(side_effect=asyncio.TimeoutError)
 
         with patch("asyncio.create_subprocess_exec", return_value=fake_proc):
-            result = await cohezion_batch_port_skills(
-                skill_names=["FAKE_SKILL_PRIME"], dry_run=False
-            )
+            result = await cohezion_batch_port_skills(skill_names=["FAKE_SKILL_PRIME"], dry_run=False)
 
         assert result["status"] == "success"
         assert result["successes"] == 0

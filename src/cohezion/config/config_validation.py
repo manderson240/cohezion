@@ -110,14 +110,10 @@ class ConfigValidator:
         violations = []
 
         if metadata.line_count > limits["max_lines"]:
-            violations.append(
-                f"{filename} exceeds line limit: {metadata.line_count} > {limits['max_lines']}"
-            )
+            violations.append(f"{filename} exceeds line limit: {metadata.line_count} > {limits['max_lines']}")
 
         if metadata.size_bytes > limits["max_chars"]:
-            violations.append(
-                f"{filename} exceeds size limit: {metadata.size_bytes} > {limits['max_chars']}"
-            )
+            violations.append(f"{filename} exceeds size limit: {metadata.size_bytes} > {limits['max_chars']}")
 
         return {
             "passed": len(violations) == 0,
@@ -228,9 +224,7 @@ class ReconciliationValidator:
                 for name, content in sources.items():
                     missing_links = self._check_cross_refs(content, vault_root)
                     if missing_links:
-                        report.recommendations.append(
-                            f"{name} has broken cross-references: {missing_links}"
-                        )
+                        report.recommendations.append(f"{name} has broken cross-references: {missing_links}")
 
             report.passed = len(report.recommendations) == 0
 

@@ -39,9 +39,7 @@ class DailyDogfoodingCycle:
         self.vmodel = VModelIntegratedLeverSystem(self.lever_system)
         self.parser = AutoImprovingParser()
         self.phase_optimizer = PhaseOptimizer()
-        self.predictive_adjuster = PredictiveLeverAdjuster(
-            self.lever_system, auto_approve_threshold=0.75
-        )
+        self.predictive_adjuster = PredictiveLeverAdjuster(self.lever_system, auto_approve_threshold=0.75)
 
         self.results_log = []
 
@@ -82,10 +80,7 @@ class DailyDogfoodingCycle:
         print("DAILY CYCLE COMPLETE")
         print("=" * 70)
         print(f"Dashboard Review:      {len(dashboard['levers_reviewed'])} levers")
-        print(
-            f"Predictive Adjustments: {predictions['executed']} executed, "
-            + f"{predictions['pending']} pending"
-        )
+        print(f"Predictive Adjustments: {predictions['executed']} executed, " + f"{predictions['pending']} pending")
         print(f"Auto-Improvements:     {improvements['patterns_learned']} patterns")
         print(f"Phase Optimization:    {optimization['recommendations']} recommendations")
         print("=" * 70)
@@ -113,9 +108,7 @@ class DailyDogfoodingCycle:
         print(f"  Priorities: {len(priorities)} items")
 
         if priorities:
-            print(
-                f"  Top Priority: {priorities[0]['lever']} " + f"({priorities[0]['progress']:.0%})"
-            )
+            print(f"  Top Priority: {priorities[0]['lever']} " + f"({priorities[0]['progress']:.0%})")
 
         return {
             "levers_reviewed": dashboard["total_levers"],
@@ -142,10 +135,7 @@ class DailyDogfoodingCycle:
                 if request:
                     if request.approved is not None:
                         executed += 1
-                        print(
-                            f"  ✓ {name}: {request.current_value:.2f} → "
-                            + f"{request.proposed_value:.2f}"
-                        )
+                        print(f"  ✓ {name}: {request.current_value:.2f} → " + f"{request.proposed_value:.2f}")
                     else:
                         pending += 1
                         print(f"  ⏳ {name}: Pending approval")
@@ -239,13 +229,9 @@ class DailyDogfoodingCycle:
         print(f"  Total Cycles: {len(self.results_log)}")
 
         # Aggregate stats
-        total_adjustments = sum(
-            c["steps"]["predictive_adjustments"]["executed"] for c in self.results_log
-        )
+        total_adjustments = sum(c["steps"]["predictive_adjustments"]["executed"] for c in self.results_log)
 
-        total_patterns = sum(
-            c["steps"]["auto_improvement"].get("patterns_learned", 0) for c in self.results_log
-        )
+        total_patterns = sum(c["steps"]["auto_improvement"].get("patterns_learned", 0) for c in self.results_log)
 
         print(f"  Total Adjustments: {total_adjustments}")
         print(f"  Total Patterns Learned: {total_patterns}")

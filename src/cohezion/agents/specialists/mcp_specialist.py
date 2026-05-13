@@ -34,23 +34,14 @@ class MCPSpecialist(PlatformSpecialist):
             "enforce.mcp.trust_boundary",
         ),
         principles=(
-            (
-                "AGENTS.md MUST have `name`+`description` frontmatter. "
-                "Missing = silent capability loss."
-            ),
-            (
-                "Config lookups are lazy — no eager vault/Bitwarden checks at import time "
-                "(handshake timeout)."
-            ),
+            ("AGENTS.md MUST have `name`+`description` frontmatter. Missing = silent capability loss."),
+            ("Config lookups are lazy — no eager vault/Bitwarden checks at import time (handshake timeout)."),
             "stdout is the protocol channel — any module-scope print/log corrupts the stream.",
             (
                 "Tools accessing secrets require caller-identity verification or "
                 "orchestrator-only documentation in AGENTS.md."
             ),
-            (
-                "New MCP servers copy from `cloud-vault-mcp` (proven FastMCP template), "
-                "not greenfield."
-            ),
+            ("New MCP servers copy from `cloud-vault-mcp` (proven FastMCP template), not greenfield."),
         ),
         prime_skill_ref="src/cohezion/skills/mcp-specialist.md",
         canonical_modules=("cloud-vault-mcp",),

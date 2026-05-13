@@ -263,9 +263,7 @@ class DatameshQuery:
             return []
 
         # Get similar pages
-        similar = await self.flume.search_by_embedding(
-            query=filter.content_contains or "", limit=limit
-        )
+        similar = await self.flume.search_by_embedding(query=filter.content_contains or "", limit=limit)
 
         records = []
         for path, similarity in similar:

@@ -110,9 +110,7 @@ class RecursiveChallenger:
 
                 # Security Gate 1: Perimeter Check
                 if not self._validate_path(source_path):
-                    logger.error(
-                        f"Security Violation: Target path {source_path} is outside safe perimeter."
-                    )
+                    logger.error(f"Security Violation: Target path {source_path} is outside safe perimeter.")
                     return False
 
                 # Security Gate 2: Shadow Staging (Non-Executable)
@@ -121,9 +119,7 @@ class RecursiveChallenger:
                     staging_dir = Path("src/staging")
                     staging_dir.mkdir(exist_ok=True)
                     target_path = str(staging_dir / "immune_system_patch.txt")
-                    logger.info(
-                        f"Security: Writing non-executable patch to Shadow Staging at {target_path}"
-                    )
+                    logger.info(f"Security: Writing non-executable patch to Shadow Staging at {target_path}")
 
                 with open(source_path) as f:
                     lines = f.readlines()

@@ -113,9 +113,7 @@ class TestVaultGraph:
 
     def _sample_graph(self) -> VaultGraph:
         nodes = [
-            GraphNode(
-                "a", "Note A", ("concept", "indigenous-cosmology"), "knower", 0.9, "mature", 5, 3
-            ),
+            GraphNode("a", "Note A", ("concept", "indigenous-cosmology"), "knower", 0.9, "mature", 5, 3),
             GraphNode("b", "Note B", ("concept", "TOE"), "thinker", 0.7, "growing", 3, 2),
             GraphNode("c", "Note C", ("pattern",), "doer", 0.5, "seed", 1, 1),
             GraphNode("d", "Note D", ("concept", "cross-tradition"), "knower", 0.8, "mature", 4, 2),

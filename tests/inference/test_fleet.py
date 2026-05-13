@@ -107,12 +107,8 @@ async def test_route_records_attempts_list():
         checked_at=time.time(),
         lanes={
             "npu": LaneHealth("npu", "http://localhost:13306", LaneStatus.UP, 10.0),
-            "igpu_rocwmma": LaneHealth(
-                "igpu_rocwmma", "http://localhost:13307", LaneStatus.UP, 10.0
-            ),
-            "igpu_unified": LaneHealth(
-                "igpu_unified", "http://localhost:13308", LaneStatus.UP, 10.0
-            ),
+            "igpu_rocwmma": LaneHealth("igpu_rocwmma", "http://localhost:13307", LaneStatus.UP, 10.0),
+            "igpu_unified": LaneHealth("igpu_unified", "http://localhost:13308", LaneStatus.UP, 10.0),
             "cpu": LaneHealth("cpu", "http://localhost:13309", LaneStatus.UP, 10.0),
             "ollama": LaneHealth("ollama", "http://localhost:11434", LaneStatus.UP, 10.0),
             "claude": LaneHealth("claude", "https://api.anthropic.com", LaneStatus.UP),
@@ -166,8 +162,7 @@ async def test_extend_claude_rejects_unknown_model_before_local_loop():
         result = await extend_claude("test", claude_model="this-model-does-not-exist")
 
     assert route_mock.await_count == 0, (
-        "route() must not be called when claude_model is invalid; "
-        f"was called {route_mock.await_count} times"
+        f"route() must not be called when claude_model is invalid; was called {route_mock.await_count} times"
     )
     assert result.error is not None
     assert "this-model-does-not-exist" in result.error
@@ -223,9 +218,7 @@ def test_parse_self_reported_confidence_ignores_marker_in_body():
     only end-of-text markers count."""
     from cohezion.inference.fleet import _parse_self_reported_confidence
 
-    conf, cleaned = _parse_self_reported_confidence(
-        "We have high confidence in this result. The answer is 42."
-    )
+    conf, cleaned = _parse_self_reported_confidence("We have high confidence in this result. The answer is 42.")
     assert conf is None
     assert cleaned == "We have high confidence in this result. The answer is 42."
 

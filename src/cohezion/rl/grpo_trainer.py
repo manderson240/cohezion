@@ -51,6 +51,7 @@ from __future__ import annotations
 import logging
 from collections.abc import Callable
 from dataclasses import dataclass
+from pathlib import Path
 from typing import Any
 
 import torch
@@ -90,9 +91,7 @@ class GRPOConfig:
     log_interval: int = 10
 
     def __post_init__(self):
-        logger.info(
-            f"GRPO Config: group_size={self.group_size}, beta={self.beta}, lr={self.learning_rate}"
-        )
+        logger.info(f"GRPO Config: group_size={self.group_size}, beta={self.beta}, lr={self.learning_rate}")
 
 
 @dataclass
@@ -190,9 +189,7 @@ class GRPOTrainer:
 
         # Compute log probs under reference policy
         with torch.no_grad():
-            ref_log_probs = self._compute_ref_log_probs(
-                prompts, completions, batch_size, group_size
-            )
+            ref_log_probs = self._compute_ref_log_probs(prompts, completions, batch_size, group_size)
 
         # Compute KL penalty
         kl_penalty = log_probs - ref_log_probs  # log(π/π_ref)
@@ -384,11 +381,7 @@ class AsyncGRPOTrainer(GRPOTrainer):
             epoch_metrics["kl_div"].append(metrics.kl_loss)
 
             if batch_idx % self.config.log_interval == 0:
-                logger.info(
-                    f"Step {metrics.step}: "
-                    f"loss={metrics.loss:.4f}, "
-                    f"reward={metrics.mean_reward:.4f}"
-                )
+                logger.info(f"Step {metrics.step}: loss={metrics.loss:.4f}, reward={metrics.mean_reward:.4f}")
 
         return {k: sum(v) / len(v) for k, v in epoch_metrics.items()}
 

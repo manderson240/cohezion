@@ -44,9 +44,7 @@ class NightlyReporter:
             logger.error(f"Failed to write nightly report: {e}")
             return ""
 
-    def generate_nightly_report_dict(
-        self, r_zero_metrics: list[dict[str, float]]
-    ) -> dict[str, Any]:
+    def generate_nightly_report_dict(self, r_zero_metrics: list[dict[str, float]]) -> dict[str, Any]:
         """Generate report data as a dict for programmatic consumption."""
         today = datetime.datetime.now().strftime("%Y-%m-%d")
 

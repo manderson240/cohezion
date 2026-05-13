@@ -205,9 +205,7 @@ class UlogmeBridge:
         # Default
         return "other"
 
-    def aggregate_sessions(
-        self, entries: list[ActivityEntry], session_gap_minutes: int = 5
-    ) -> list[FocusSession]:
+    def aggregate_sessions(self, entries: list[ActivityEntry], session_gap_minutes: int = 5) -> list[FocusSession]:
         """Aggregate raw entries into focus sessions.
 
         A new session starts after 5 minutes of inactivity (configurable).
@@ -386,7 +384,7 @@ Coherence: {session.coherence:.2f}"""
 
         # Build SurrealQL query
         query = """
-        SELECT 
+        SELECT
             metadata.category as category,
             math::sum(metadata.keystrokes) as total_keystrokes,
             count() as session_count,

@@ -45,9 +45,7 @@ def slerp(z1: torch.Tensor, z2: torch.Tensor, alpha: float, eps: float = 1e-7) -
 
     sin_theta = torch.sin(theta)
 
-    res = (
-        torch.sin((1.0 - alpha) * theta) * z1_norm + torch.sin(alpha * theta) * z2_norm
-    ) / sin_theta
+    res = (torch.sin((1.0 - alpha) * theta) * z1_norm + torch.sin(alpha * theta) * z2_norm) / sin_theta
 
     # Scale back to original average norm if needed?
     # For FLUME, we usually operate on unit-sphere or normalized latents.

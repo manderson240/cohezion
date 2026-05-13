@@ -200,10 +200,7 @@ class AutoImprovingParser:
         successes_before = sum(1 for line in test_lines if self.parser._parse_line_improved(line))
         accuracy_before = successes_before / len(test_lines) if test_lines else 0
 
-        print(
-            f"\nBaseline: {successes_before}/{len(test_lines)} lines parsed "
-            + f"({accuracy_before:.1%})"
-        )
+        print(f"\nBaseline: {successes_before}/{len(test_lines)} lines parsed " + f"({accuracy_before:.1%})")
 
         # Process failures
         failures = [line for line in test_lines if self.parser._parse_line_improved(line) is None]
@@ -216,8 +213,7 @@ class AutoImprovingParser:
             if pattern:
                 patterns_learned += 1
                 print(
-                    f"  Learned: {pattern.pattern} ({pattern.pattern_type}, "
-                    + f"confidence: {pattern.confidence:.1%})"
+                    f"  Learned: {pattern.pattern} ({pattern.pattern_type}, " + f"confidence: {pattern.confidence:.1%})"
                 )
 
         # Review pending patterns (simulated)
@@ -242,18 +238,11 @@ class AutoImprovingParser:
         successes_after = sum(1 for line in test_lines if self._parse_with_all_patterns(line))
         accuracy_after = successes_after / len(test_lines) if test_lines else 0
 
-        improvement = (
-            ((accuracy_after - accuracy_before) / accuracy_before * 100)
-            if accuracy_before > 0
-            else 0
-        )
+        improvement = ((accuracy_after - accuracy_before) / accuracy_before * 100) if accuracy_before > 0 else 0
 
         print("\nAfter Improvement:")
         print(f"  Parsed: {successes_after}/{len(test_lines)} lines " + f"({accuracy_after:.1%})")
-        print(
-            f"  Improvement: +{successes_after - successes_before} lines "
-            + f"(+{improvement:.1f}%)"
-        )
+        print(f"  Improvement: +{successes_after - successes_before} lines " + f"(+{improvement:.1f}%)")
 
         result = AutoImprovementResult(
             failures_processed=len(failures),
@@ -265,9 +254,7 @@ class AutoImprovingParser:
             improvement_percent=improvement,
         )
 
-        self.improvement_history.append(
-            {"timestamp": time.strftime("%Y-%m-%dT%H:%M:%SZ"), "result": result}
-        )
+        self.improvement_history.append({"timestamp": time.strftime("%Y-%m-%dT%H:%M:%SZ"), "result": result})
 
         return result
 
@@ -299,9 +286,7 @@ class AutoImprovingParser:
             "total_cycles": len(self.improvement_history),
             "total_patterns_approved": len(self.learner.approved_patterns),
             "total_patterns_rejected": len(self.learner.rejected_patterns),
-            "latest_accuracy": self.improvement_history[-1]["result"].accuracy_after
-            if self.improvement_history
-            else 0,
+            "latest_accuracy": self.improvement_history[-1]["result"].accuracy_after if self.improvement_history else 0,
             "cycles": self.improvement_history,
         }
 

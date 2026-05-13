@@ -106,9 +106,7 @@ class OuroborosBridge:
     def healing_events(self) -> list[HealingEvent]:
         return list(self._healing_events)
 
-    async def check_coherence(
-        self, coherence_drop: float, task_id: str = "physics"
-    ) -> PhysicsAnomaly | None:
+    async def check_coherence(self, coherence_drop: float, task_id: str = "physics") -> PhysicsAnomaly | None:
         """Check coherence and trigger anomaly if drop exceeds threshold."""
         if coherence_drop <= self._coherence_threshold:
             return None
@@ -122,9 +120,7 @@ class OuroborosBridge:
         )
         self._anomalies.append(anomaly)
 
-        logger.warning(
-            "Coherence drop %.3f > threshold %.3f", coherence_drop, self._coherence_threshold
-        )
+        logger.warning("Coherence drop %.3f > threshold %.3f", coherence_drop, self._coherence_threshold)
 
         exhaust = ExecutionExhaust(
             task_id=task_id,
@@ -137,9 +133,7 @@ class OuroborosBridge:
         self._record_healing(task_id, triggered, "manifold_coherence_correction")
         return anomaly
 
-    async def check_jepa_error(
-        self, prediction_error: float, task_id: str = "jepa"
-    ) -> PhysicsAnomaly | None:
+    async def check_jepa_error(self, prediction_error: float, task_id: str = "jepa") -> PhysicsAnomaly | None:
         """Check JEPA prediction error and trigger VAE fine-tuning if needed."""
         if prediction_error <= self._jepa_threshold:
             return None
@@ -158,9 +152,7 @@ class OuroborosBridge:
         failure_hash = f"jepa_{task_id}_{int(time.time())}"
         event = self._trigger.trigger(failure_hash, trigger_source="coherence_collapse")
 
-        interpretation = (
-            "vae_fine_tuning_initiated" if event.state == TriggerState.TRAINING else "vae_deferred"
-        )
+        interpretation = "vae_fine_tuning_initiated" if event.state == TriggerState.TRAINING else "vae_deferred"
         self._record_healing(task_id, event.state == TriggerState.TRAINING, interpretation)
         return anomaly
 

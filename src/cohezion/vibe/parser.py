@@ -170,6 +170,4 @@ class VibeParser:
             flags=re.IGNORECASE,
         )
         stripped = text.strip()
-        return [
-            p.strip() for p in parts if p.strip() and len(p.strip()) > 5 and p.strip() != stripped
-        ]
+        return [p.strip() for p in parts if p.strip() and len(p.strip()) > 5 and p.strip() != stripped]

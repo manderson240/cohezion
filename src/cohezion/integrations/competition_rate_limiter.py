@@ -22,7 +22,7 @@ class CompetitionRateLimiter:
         if self.lock_path.exists():
             try:
                 return json.loads(self.lock_path.read_text())
-            except:
+            except Exception:
                 return {}
         return {}
 
@@ -66,9 +66,7 @@ def check_rate_limit(leaderboard_id: str, lock_file: str = ".submission_lock"):
     if not allowed:
         minutes = int(remaining // 60)
         seconds = int(remaining % 60)
-        print(
-            f"\n[!] RATE LIMITED: You must wait {minutes}m {seconds}s before submitting to '{leaderboard_id}' again."
-        )
+        print(f"\n[!] RATE LIMITED: You must wait {minutes}m {seconds}s before submitting to '{leaderboard_id}' again.")
         print("[!] Refer to @RATE_LIMIT_EXPLANATION.md for details.")
         return False
 

@@ -25,9 +25,7 @@ class ConnectionManager:
     def disconnect(self, websocket: WebSocket):
         if websocket in self.active_connections:
             self.active_connections.remove(websocket)
-            logger.info(
-                f"Telemetry client disconnected. Total clients: {len(self.active_connections)}"
-            )
+            logger.info(f"Telemetry client disconnected. Total clients: {len(self.active_connections)}")
 
     async def broadcast(self, message: dict[str, Any]):
         """Broadcasts telemetry data to all connected clients."""

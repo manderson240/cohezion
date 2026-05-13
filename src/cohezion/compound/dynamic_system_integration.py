@@ -288,10 +288,7 @@ class EventLoggingAdapter:
         failures = data.get("failures", "N/A")
 
         if event == SystemEvent.CIRCUIT_OPENED:
-            logger.warning(
-                f"🚨 CIRCUIT_OPENED | backend={backend} | "
-                f"failures={failures} | routing_around_failure"
-            )
+            logger.warning(f"🚨 CIRCUIT_OPENED | backend={backend} | failures={failures} | routing_around_failure")
         elif event == SystemEvent.CIRCUIT_CLOSED:
             logger.info(f"✅ CIRCUIT_CLOSED | backend={backend} | recovered, restoring_traffic")
 
@@ -324,9 +321,7 @@ class EventLoggingAdapter:
         severity = data.get("severity", "unknown")
         current_load = data.get("current_load", 0)
 
-        logger.warning(
-            f"📈 WORKLOAD_SPIKE | severity={severity} | load={current_load} | scaling_up"
-        )
+        logger.warning(f"📈 WORKLOAD_SPIKE | severity={severity} | load={current_load} | scaling_up")
 
 
 class VaultPatternAdapter:

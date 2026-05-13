@@ -198,9 +198,7 @@ class AgenticBenchmark:
             "cleanup": lambda: None,
         }
 
-    async def _run_agent(
-        self, agent: Any, task: AgenticTask, env: dict[str, Any], timeout: int
-    ) -> dict[str, Any]:
+    async def _run_agent(self, agent: Any, task: AgenticTask, env: dict[str, Any], timeout: int) -> dict[str, Any]:
         """Run agent on task with monitoring."""
 
         # Check if agent has unified harness interface
@@ -260,11 +258,7 @@ class AgenticBenchmark:
         successes = sum(1 for r in self.results if r.overall_success)
 
         step_completion = (
-            sum(
-                r.steps_completed / r.steps_expected if r.steps_expected > 0 else 0
-                for r in self.results
-            )
-            / total
+            sum(r.steps_completed / r.steps_expected if r.steps_expected > 0 else 0 for r in self.results) / total
             if total > 0
             else 0
         )

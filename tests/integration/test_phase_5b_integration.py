@@ -87,7 +87,7 @@ class MockRedisClient:
                 return None
         return self.store.get(key)
 
-    async def set(self, key: str, value: bytes, ex: int = None) -> bool:
+    async def set(self, key: str, value: bytes, ex: int | None = None) -> bool:
         """Set value with optional TTL."""
         if self.failure_mode:
             raise ConnectionError("Mock Redis unavailable")
@@ -137,7 +137,7 @@ class MockSkillRegistry:
         self,
         agent_id: str,
         query: str,
-        weights: dict[str, float] = None,
+        weights: dict[str, float] | None = None,
     ) -> list[tuple[str, float]]:
         """Rank skills by score using weights."""
         if weights is None:
@@ -145,9 +145,7 @@ class MockSkillRegistry:
 
         ranked = []
         for skill_name, metrics in self.skills.items():
-            score = sum(
-                metrics.get(key, 0) * weights[key] for key in weights.keys() if key in metrics
-            )
+            score = sum(metrics.get(key, 0) * weights[key] for key in weights.keys() if key in metrics)
             ranked.append((skill_name, score))
 
         return sorted(ranked, key=lambda x: x[1], reverse=True)
@@ -447,10 +445,7 @@ class TestCostAwareRouter:
         least_available = primary_models[0][0]
         most_available = primary_models[-1][0]
 
-        assert (
-            router_config.availability[most_available]
-            >= router_config.availability[least_available]
-        )
+        assert router_config.availability[most_available] >= router_config.availability[least_available]
 
 
 # ============================================================================
@@ -934,11 +929,7 @@ class TestEndToEndPhase5B:
         for agent in agents:
             for i in range(num_queries_per_agent):
                 key = f"agent-{agent.agent_id}-query-{i % 5}"
-                tasks.append(
-                    mock_redis_client.set(
-                        key, json.dumps({"agent": agent.agent_id, "q": i}).encode()
-                    )
-                )
+                tasks.append(mock_redis_client.set(key, json.dumps({"agent": agent.agent_id, "q": i}).encode()))
 
         await asyncio.gather(*tasks)
 

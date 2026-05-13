@@ -114,18 +114,14 @@ class CompoundTelemetry:
         self._current_step: StepMetrics | None = None
 
     @contextmanager
-    def span(
-        self, operation: str, request_id: str, skill_name: str = ""
-    ) -> Generator[None, None, None]:
+    def span(self, operation: str, request_id: str, skill_name: str = "") -> Generator[None, None, None]:
         """Context manager for pipeline span.
 
         Usage:
             with telemetry.span("compound_pipeline", request_id="abc"):
                 result = await executor.execute(...)
         """
-        self._current_pipeline = PipelineMetrics(
-            request_id=request_id, start_time=time.time(), skill_name=skill_name
-        )
+        self._current_pipeline = PipelineMetrics(request_id=request_id, start_time=time.time(), skill_name=skill_name)
 
         logger.info(f"[telemetry] Pipeline {operation} started: {request_id}")
 
@@ -169,10 +165,7 @@ class CompoundTelemetry:
 
         self._current_pipeline.steps.append(self._current_step)
 
-        logger.debug(
-            f"[telemetry] Step ended: {self._current_step.step_name} "
-            f"({self._current_step.latency_ms:.1f}ms)"
-        )
+        logger.debug(f"[telemetry] Step ended: {self._current_step.step_name} ({self._current_step.latency_ms:.1f}ms)")
 
         self._current_step = None
 

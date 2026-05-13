@@ -65,9 +65,7 @@ class EcoResilienceCompoundEngine:
         current_strategy = result.final_strategy
 
         # Use the agent's current state to get the manifold projection
-        last_projection = self.agent.translator.project(
-            self.agent.translator.encoder.encode(current_strategy)
-        )
+        last_projection = self.agent.translator.project(self.agent.translator.encoder.encode(current_strategy))
 
         while iteration < self.max_depth:
             iteration += 1
@@ -102,7 +100,9 @@ class EcoResilienceCompoundEngine:
             )
 
             # Update the input to force the agent to la-phase the correction
-            refined_input = f"Refine the previous strategy using these corrections: {critique}\nOriginal Request: {input_text}"
+            refined_input = (
+                f"Refine the previous strategy using these corrections: {critique}\nOriginal Request: {input_text}"
+            )
 
             # Execute the agent cycle again
             current_strategy = await self.agent.execute_cycle(refined_input)

@@ -115,19 +115,13 @@ def test_claude_probe_uses_live_dispatch_not_version_flag():
             with patch("subprocess.run", return_value=FakeCompleted()) as mock_run:
                 check_fleet(force=True)
 
-    claude_calls = [
-        call for call in mock_run.call_args_list if "/usr/local/bin/claude" in call.args[0]
-    ]
+    claude_calls = [call for call in mock_run.call_args_list if "/usr/local/bin/claude" in call.args[0]]
     assert claude_calls, "claude probe did not shell out"
     argv = claude_calls[0].args[0]
     # Must be a live -p dispatch with budget cap, not --version.
     assert argv[1] == "-p", f"claude probe must use -p (live dispatch), got argv={argv!r}"
-    assert "--max-budget-usd" in argv, (
-        f"claude probe must cap spend with --max-budget-usd, got argv={argv!r}"
-    )
-    assert "--version" not in argv, (
-        f"claude probe must not fall back to --version (too weak), got argv={argv!r}"
-    )
+    assert "--max-budget-usd" in argv, f"claude probe must cap spend with --max-budget-usd, got argv={argv!r}"
+    assert "--version" not in argv, f"claude probe must not fall back to --version (too weak), got argv={argv!r}"
 
 
 def test_format_fleet_summary_renders_all_lanes():

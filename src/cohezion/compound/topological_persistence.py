@@ -612,12 +612,8 @@ class TopologicalPersistence:
         float
             Wasserstein-p distance.
         """
-        pairs1 = [
-            (pp.birth, pp.death) for pp in dgm1.get_pairs(dimension) if not math.isinf(pp.death)
-        ]
-        pairs2 = [
-            (pp.birth, pp.death) for pp in dgm2.get_pairs(dimension) if not math.isinf(pp.death)
-        ]
+        pairs1 = [(pp.birth, pp.death) for pp in dgm1.get_pairs(dimension) if not math.isinf(pp.death)]
+        pairs2 = [(pp.birth, pp.death) for pp in dgm2.get_pairs(dimension) if not math.isinf(pp.death)]
 
         if not pairs1 and not pairs2:
             return 0.0

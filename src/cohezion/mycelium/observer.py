@@ -24,9 +24,9 @@ class ChangeObserver:
             List[str]: List of paths to modified files.
         """
         try:
-            output = subprocess.check_output(
-                ["git", "diff", "--name-only", since_commit], cwd=self.root_dir
-            ).decode("utf-8")
+            output = subprocess.check_output(["git", "diff", "--name-only", since_commit], cwd=self.root_dir).decode(
+                "utf-8"
+            )
 
             files = [f.strip() for f in output.split("\n") if f.strip()]
             # Filter for .py files only for now
@@ -48,9 +48,9 @@ class ChangeObserver:
             str: The diff content.
         """
         try:
-            output = subprocess.check_output(
-                ["git", "diff", since_commit, "--", file_path], cwd=self.root_dir
-            ).decode("utf-8")
+            output = subprocess.check_output(["git", "diff", since_commit, "--", file_path], cwd=self.root_dir).decode(
+                "utf-8"
+            )
             return output
         except subprocess.CalledProcessError as e:
             logger.error(f"Failed to extract diff context for {file_path}: {e}")

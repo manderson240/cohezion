@@ -125,17 +125,14 @@ class PhaseOptimizer:
             for p in phases:
                 phase_durations[p["phase"]].append(p["duration_ms"])
         else:
-            phase_durations = {
-                name: metrics.durations_ms for name, metrics in self.phase_metrics.items()
-            }
+            phase_durations = {name: metrics.durations_ms for name, metrics in self.phase_metrics.items()}
 
         if not phase_durations:
             return []
 
         # Calculate total duration per phase (mean)
         phase_totals = {
-            name: statistics.mean(durations) if durations else 0
-            for name, durations in phase_durations.items()
+            name: statistics.mean(durations) if durations else 0 for name, durations in phase_durations.items()
         }
 
         # Sort by duration (slowest first)
@@ -195,9 +192,7 @@ class PhaseOptimizer:
             ],
         }
 
-    def compare_before_after(
-        self, phase_name: str, optimization_applied: str, window_size: int = 10
-    ) -> dict[str, Any]:
+    def compare_before_after(self, phase_name: str, optimization_applied: str, window_size: int = 10) -> dict[str, Any]:
         """Compare phase performance before and after optimization."""
         metrics = self.phase_metrics.get(phase_name)
         if not metrics or len(metrics.durations_ms) < window_size * 2:
@@ -234,9 +229,7 @@ class PhaseOptimizer:
         phase_stats = {name: metrics.get_stats() for name, metrics in self.phase_metrics.items()}
 
         # Total lifecycles tracked
-        lifecycle_count = len(
-            set(h["lifecycle_id"] for h in self.lifecycle_history if h.get("lifecycle_id"))
-        )
+        lifecycle_count = len(set(h["lifecycle_id"] for h in self.lifecycle_history if h.get("lifecycle_id")))
 
         return {
             "timestamp": time.strftime("%Y-%m-%dT%H:%M:%SZ"),
@@ -249,8 +242,7 @@ class PhaseOptimizer:
                 "suggestion": bottlenecks[0].suggestion if bottlenecks else None,
             },
             "phase_stats": phase_stats,
-            "optimization_recommended": len(bottlenecks) > 0
-            and bottlenecks[0].percentage_of_total > 20,
+            "optimization_recommended": len(bottlenecks) > 0 and bottlenecks[0].percentage_of_total > 20,
         }
 
     def print_dashboard(self):
@@ -346,9 +338,7 @@ class InstrumentedVModelEngineering:
         duration_ms = (end_time - start_time) * 1000
 
         # Record metrics
-        self.optimizer.record_phase_execution(
-            phase_name=phase_name, duration_ms=duration_ms, success=success
-        )
+        self.optimizer.record_phase_execution(phase_name=phase_name, duration_ms=duration_ms, success=success)
 
         return result, duration_ms, success
 

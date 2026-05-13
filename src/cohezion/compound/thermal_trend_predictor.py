@@ -159,8 +159,7 @@ class ThermalTrendPredictor:
         self._last_prediction = (predicted_temp, confidence)
 
         logger.debug(
-            f"30-min prediction: {predicted_temp:.1f}°C (confidence: {confidence:.2f}), "
-            f"trend: {trend:.2f}°C/30min"
+            f"30-min prediction: {predicted_temp:.1f}°C (confidence: {confidence:.2f}), trend: {trend:.2f}°C/30min"
         )
 
         return self._last_prediction
@@ -193,9 +192,7 @@ class ThermalTrendPredictor:
 
         # Find samples within window
         _current_temp = self.history[-1].gpu_temp_c
-        window_temps = [
-            s.gpu_temp_c for s in self.history if (current_time - s.timestamp) <= window_seconds
-        ]
+        window_temps = [s.gpu_temp_c for s in self.history if (current_time - s.timestamp) <= window_seconds]
 
         if len(window_temps) < 2:
             return 0.0
@@ -207,9 +204,7 @@ class ThermalTrendPredictor:
         trend_per_min = (avg_end - avg_start) / window_minutes if window_minutes > 0 else 0.0
         return trend_per_min
 
-    def _predict_heuristic(
-        self, current_temp: float, trend: float, lookahead_minutes: int
-    ) -> float:
+    def _predict_heuristic(self, current_temp: float, trend: float, lookahead_minutes: int) -> float:
         """Predict using simple trend extrapolation (cold start fallback).
 
         predicted = current + (trend * lookahead)
@@ -234,8 +229,7 @@ class ThermalTrendPredictor:
         predicted = current_temp + (trend * lookahead_minutes * damping)
 
         logger.debug(
-            f"Heuristic prediction: current={current_temp:.1f}°C, "
-            f"trend={trend:.2f}°C/min, predicted={predicted:.1f}°C"
+            f"Heuristic prediction: current={current_temp:.1f}°C, trend={trend:.2f}°C/min, predicted={predicted:.1f}°C"
         )
 
         return predicted

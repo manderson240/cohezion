@@ -54,9 +54,7 @@ Examples:
     subparsers = parser.add_subparsers(dest="command", help="Available commands")
 
     # Journey commands
-    journey_parser = subparsers.add_parser(
-        "journey", help="Manage universe journeys through the 12D/512D manifold"
-    )
+    journey_parser = subparsers.add_parser("journey", help="Manage universe journeys through the 12D/512D manifold")
     journey_sub = journey_parser.add_subparsers(dest="journey_cmd")
 
     # journey start
@@ -77,9 +75,7 @@ Examples:
     status_cmd.add_argument("journey_id", help="Journey ID to check")
 
     # Simulate commands
-    simulate_parser = subparsers.add_parser(
-        "simulate", help="Run sandboxed simulations with isolation backends"
-    )
+    simulate_parser = subparsers.add_parser("simulate", help="Run sandboxed simulations with isolation backends")
     simulate_parser.add_argument(
         "--tier",
         "-t",
@@ -94,9 +90,7 @@ Examples:
         default=None,
         help="Isolation backend (auto-selected if omitted)",
     )
-    simulate_parser.add_argument(
-        "--script", help="Path to a Python script to execute in the sandbox"
-    )
+    simulate_parser.add_argument("--script", help="Path to a Python script to execute in the sandbox")
     simulate_parser.add_argument(
         "--example",
         "-e",
@@ -109,16 +103,12 @@ Examples:
         "precipitate", help="Manifest journey results into reality (code/docs/actions)"
     )
     precipitate_parser.add_argument("journey_id", help="Journey to precipitate")
-    precipitate_parser.add_argument(
-        "--target", "-t", choices=["git", "production", "staging"], default="git"
-    )
+    precipitate_parser.add_argument("--target", "-t", choices=["git", "production", "staging"], default="git")
     precipitate_parser.add_argument("--branch", "-b", help="Git branch name")
     precipitate_parser.add_argument("--verify", "-v", action="store_true", help="Run verification")
 
     # Rewards command
-    rewards_parser = subparsers.add_parser(
-        "rewards", help="View rewards, achievements, and progress"
-    )
+    rewards_parser = subparsers.add_parser("rewards", help="View rewards, achievements, and progress")
     rewards_sub = rewards_parser.add_subparsers(dest="rewards_cmd")
 
     # rewards status
@@ -131,38 +121,22 @@ Examples:
 
     # rewards achievements
     rewards_achievements = rewards_sub.add_parser("achievements", help="View achievements")
-    rewards_achievements.add_argument(
-        "--locked", action="store_true", help="Show locked achievements"
-    )
+    rewards_achievements.add_argument("--locked", action="store_true", help="Show locked achievements")
 
     # Reflect command
-    reflect_parser = subparsers.add_parser(
-        "reflect", help="Deep retrospective and learning capture"
-    )
+    reflect_parser = subparsers.add_parser("reflect", help="Deep retrospective and learning capture")
     reflect_parser.add_argument("--journey", "-j", help="Journey to reflect on")
-    reflect_parser.add_argument(
-        "--depth", choices=["quick", "standard", "comprehensive"], default="standard"
-    )
-    reflect_parser.add_argument(
-        "--auto_apply", action="store_true", help="Apply learnings automatically"
-    )
+    reflect_parser.add_argument("--depth", choices=["quick", "standard", "comprehensive"], default="standard")
+    reflect_parser.add_argument("--auto_apply", action="store_true", help="Apply learnings automatically")
 
     # Evolve command
     evolve_parser = subparsers.add_parser("evolve", help="Self-improvement and code evolution")
-    evolve_parser.add_argument(
-        "--detect_patterns", action="store_true", help="Detect improvement patterns"
-    )
-    evolve_parser.add_argument(
-        "--auto_deploy", action="store_true", help="Auto-deploy safe changes"
-    )
-    evolve_parser.add_argument(
-        "--risk_threshold", type=float, default=0.3, help="Risk threshold (0-1)"
-    )
+    evolve_parser.add_argument("--detect_patterns", action="store_true", help="Detect improvement patterns")
+    evolve_parser.add_argument("--auto_deploy", action="store_true", help="Auto-deploy safe changes")
+    evolve_parser.add_argument("--risk_threshold", type=float, default=0.3, help="Risk threshold (0-1)")
 
     # Generate command (Meta-Programming)
-    generate_parser = subparsers.add_parser(
-        "generate", help="Generate agents from YAML specifications"
-    )
+    generate_parser = subparsers.add_parser("generate", help="Generate agents from YAML specifications")
     generate_sub = generate_parser.add_subparsers(dest="generate_cmd")
 
     _generate_list = generate_sub.add_parser("list", help="List available specs")
@@ -172,20 +146,14 @@ Examples:
     generate_agent.add_argument("--dry-run", action="store_true", help="Preview without generating")
 
     # Ouroboros command (System Flight Recorder)
-    ouroboros_parser = subparsers.add_parser(
-        "ouroboros", help="Ouroboros system flight recorder and self-healing"
-    )
+    ouroboros_parser = subparsers.add_parser("ouroboros", help="Ouroboros system flight recorder and self-healing")
     ouroboros_sub = ouroboros_parser.add_subparsers(dest="ouroboros_cmd")
 
     ouroboros_status = ouroboros_sub.add_parser("status", help="Check Ouroboros status")
-    ouroboros_status.add_argument(
-        "--detailed", action="store_true", help="Show detailed sensor data"
-    )
+    ouroboros_status.add_argument("--detailed", action="store_true", help="Show detailed sensor data")
 
     ouroboros_start = ouroboros_sub.add_parser("start", help="Start Ouroboros recorder")
-    ouroboros_start.add_argument(
-        "--interval", type=int, default=10, help="Recording interval in seconds"
-    )
+    ouroboros_start.add_argument("--interval", type=int, default=10, help="Recording interval in seconds")
 
     _ouroboros_stop = ouroboros_sub.add_parser("stop", help="Stop Ouroboros recorder")
 
@@ -202,9 +170,7 @@ Examples:
     mycelium_garden.add_argument("--model", "-m", default="qwen2.5-coder:7b", help="Model to use")
 
     # Mass Simulation command
-    mass_sim_parser = subparsers.add_parser(
-        "mass-sim", help="Run mass FLUME simulation across universes"
-    )
+    mass_sim_parser = subparsers.add_parser("mass-sim", help="Run mass FLUME simulation across universes")
     mass_sim_parser.add_argument(
         "--scale",
         "-s",
@@ -262,6 +228,13 @@ async def cmd_journey_start(args: argparse.Namespace) -> int:
     return 0
 
 
+async def cmd_journey_status(args: argparse.Namespace) -> int:
+    """Handle journey status command."""
+    logger.info("📊 Journey status...")
+    print("Journey status: not yet implemented")
+    return 0
+
+
 async def cmd_journey_list(args: argparse.Namespace) -> int:
     """Handle journey list command."""
     logger.info("📋 Listing journeys...")
@@ -284,9 +257,7 @@ async def cmd_journey_list(args: argparse.Namespace) -> int:
 
     for journey in journeys:
         status_icon = "✅" if journey["status"] == "completed" else "🔄"
-        print(
-            f"{status_icon} {journey['id']}: {journey['intent'][:40]}... (phi: {journey['phi']:.2f})"
-        )
+        print(f"{status_icon} {journey['id']}: {journey['intent'][:40]}... (phi: {journey['phi']:.2f})")
 
     return 0
 
@@ -342,9 +313,7 @@ async def cmd_simulate(args: argparse.Namespace) -> int:
 
     logger.info(f"Sandbox run {run_id}")
     logger.info(f"  Script: {script_label}")
-    logger.info(
-        f"  Tier: {args.tier} (mem={profile.memory_limit_mb}MB, cpu={profile.cpu_quota_percent}%)"
-    )
+    logger.info(f"  Tier: {args.tier} (mem={profile.memory_limit_mb}MB, cpu={profile.cpu_quota_percent}%)")
     logger.info(f"  Backend: {backend_name}")
 
     result = await backend.execute(script, profile)
@@ -359,9 +328,7 @@ async def cmd_simulate(args: argparse.Namespace) -> int:
 
     # Print summary
     status = "SUCCESS" if result.success else "FAILED"
-    logger.info(
-        f"\n  Result: {status} (exit_code={result.exit_code}, duration={result.duration:.2f}s)"
-    )
+    logger.info(f"\n  Result: {status} (exit_code={result.exit_code}, duration={result.duration:.2f}s)")
 
     if result.stdout:
         print(result.stdout)
@@ -425,9 +392,7 @@ async def cmd_rewards_status(args: argparse.Namespace) -> int:
     print(f"🎖️ Achievements: {len(status['achievements'])}")
 
     if status["next_unlock"]:
-        print(
-            f"\n⬆️  Next: {status['next_unlock']['name']} (need {status['next_unlock']['xp_needed']:,} more XP)"
-        )
+        print(f"\n⬆️  Next: {status['next_unlock']['name']} (need {status['next_unlock']['xp_needed']:,} more XP)")
 
     return 0
 
@@ -445,15 +410,7 @@ async def cmd_rewards_leaderboard(args: argparse.Namespace) -> int:
 
     print()
     for entry in leaderboard:
-        medal = (
-            "🥇"
-            if entry["rank"] == 1
-            else "🥈"
-            if entry["rank"] == 2
-            else "🥉"
-            if entry["rank"] == 3
-            else "  "
-        )
+        medal = "🥇" if entry["rank"] == 1 else "🥈" if entry["rank"] == 2 else "🥉" if entry["rank"] == 3 else "  "
         print(f"{medal} #{entry['rank']} {entry['agent']}: {entry['xp']:,} XP ({entry['tier']})")
 
     return 0

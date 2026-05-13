@@ -27,9 +27,7 @@ class MockMCPClient:
         """Mock vault search."""
         return [{"path": "test", "content": "test pattern"}]
 
-    def vault_log_decision(
-        self, project: str, title: str, context: str, decision: str, rationale: str
-    ) -> str:
+    def vault_log_decision(self, project: str, title: str, context: str, decision: str, rationale: str) -> str:
         """Mock decision logging."""
         return "decisions/test-decision.md"
 
@@ -100,17 +98,13 @@ class TestRequestParsing:
 
     def test_classify_intent_analyze(self):
         """Test intent classification for analyze."""
-        intent_type, confidence = self.analyzer._classify_intent(
-            "Analyze the data and evaluate results"
-        )
+        intent_type, confidence = self.analyzer._classify_intent("Analyze the data and evaluate results")
         assert intent_type == IntentType.ANALYZE
         assert confidence > 0.0
 
     def test_classify_intent_search(self):
         """Test intent classification for search."""
-        intent_type, confidence = self.analyzer._classify_intent(
-            "Find all documents related to machine learning"
-        )
+        intent_type, confidence = self.analyzer._classify_intent("Find all documents related to machine learning")
         assert intent_type == IntentType.SEARCH
         assert confidence > 0.0
 
@@ -199,11 +193,7 @@ class TestAlignmentAnalysis:
             raw_text="Generate 10 ideas in under 500 tokens",
             intent=IntentType.GENERATE,
             intent_confidence=0.9,
-            constraints=[
-                ExecutionConstraint(
-                    type=ConstraintType.TOKENS, value=500, unit="tokens", is_hard=True
-                )
-            ],
+            constraints=[ExecutionConstraint(type=ConstraintType.TOKENS, value=500, unit="tokens", is_hard=True)],
             criteria=[SuccessCriterion("Output is coherent", "coherence", 0.7, False)],
         )
 
@@ -414,9 +404,7 @@ class TestIssueGeneration:
         from cohezion.compound.models import ConstraintViolation
 
         constraint = ExecutionConstraint(type=ConstraintType.TOKENS, value=500, unit="tokens")
-        violation = ConstraintViolation(
-            constraint=constraint, requested_value=500, actual_value=600, severity=0.2
-        )
+        violation = ConstraintViolation(constraint=constraint, requested_value=500, actual_value=600, severity=0.2)
 
         issues = self.analyzer._generate_issues([violation], [], [], 0.9)
 
@@ -428,13 +416,9 @@ class TestIssueGeneration:
         from cohezion.compound.models import ConstraintViolation
 
         constraint = ExecutionConstraint(type=ConstraintType.TOKENS, value=500, unit="tokens")
-        violation = ConstraintViolation(
-            constraint=constraint, requested_value=500, actual_value=600, severity=0.2
-        )
+        violation = ConstraintViolation(constraint=constraint, requested_value=500, actual_value=600, severity=0.2)
 
-        recommendations = self.analyzer._generate_recommendations(
-            [violation], [], [], IntentType.GENERATE
-        )
+        recommendations = self.analyzer._generate_recommendations([violation], [], [], IntentType.GENERATE)
 
         assert len(recommendations) > 0
 

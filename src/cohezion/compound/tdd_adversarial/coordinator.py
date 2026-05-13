@@ -109,9 +109,7 @@ class TDDAdversarialCoordinator:
             session_id=session_id,
             tdd_tests_run=state.tdd_metrics.get("tests_run", 0),
             tdd_pass_rate=state.tdd_metrics.get("pass_rate", 0.0),
-            adversarial_score=state.adversarial_metrics.get("latest_review", {}).get(
-                "overall_score", 0.0
-            ),
+            adversarial_score=state.adversarial_metrics.get("latest_review", {}).get("overall_score", 0.0),
         )
 
         return {
@@ -161,9 +159,7 @@ class TDDAdversarialCoordinator:
             tdd_tests_run=state.tdd_metrics.get("tests_run", 0),
             tdd_pass_rate=state.tdd_metrics.get("pass_rate", 0.0),
             tdd_improvements=tdd_improvements,
-            adversarial_score=state.adversarial_metrics.get("latest_review", {}).get(
-                "overall_score", 0.0
-            ),
+            adversarial_score=state.adversarial_metrics.get("latest_review", {}).get("overall_score", 0.0),
             review_improvements=review_improvements,
             integration_cycles=state.integration_cycles,
         )
@@ -213,13 +209,9 @@ class TDDAdversarialCoordinator:
         latest_review = state.adversarial_metrics.get("latest_review")
         if latest_review:
             findings = latest_review.get("findings", [])
-            critical_findings = [
-                f for f in findings if isinstance(f, dict) and f.get("severity") == "critical"
-            ]
+            critical_findings = [f for f in findings if isinstance(f, dict) and f.get("severity") == "critical"]
             if critical_findings:
-                blocking_issues.append(
-                    f"Critical adversarial findings: {len(critical_findings)} issues"
-                )
+                blocking_issues.append(f"Critical adversarial findings: {len(critical_findings)} issues")
 
         # Check for failing critical tests
         tdd_metrics = state.tdd_metrics
@@ -240,15 +232,11 @@ class TDDAdversarialCoordinator:
         # TDD-based recommendations
         pass_rate = tdd_metrics.get("pass_rate", 0.0)
         if pass_rate < 0.8:
-            recommendations.append(
-                f"Improve test pass rate before engineering (current: {pass_rate:.1%})"
-            )
+            recommendations.append(f"Improve test pass rate before engineering (current: {pass_rate:.1%})")
 
         coverage = tdd_metrics.get("latest_coverage")
         if coverage is not None and coverage < 70.0:
-            recommendations.append(
-                f"Increase test coverage before engineering (current: {coverage:.1f}%)"
-            )
+            recommendations.append(f"Increase test coverage before engineering (current: {coverage:.1f}%)")
 
         # Adversarial review-based recommendations
         latest_review = adversarial_metrics.get("latest_review")
@@ -260,15 +248,9 @@ class TDDAdversarialCoordinator:
                 )
 
             findings = latest_review.get("findings", [])
-            high_critical = [
-                f
-                for f in findings
-                if isinstance(f, dict) and f.get("severity") in ["high", "critical"]
-            ]
+            high_critical = [f for f in findings if isinstance(f, dict) and f.get("severity") in ["high", "critical"]]
             if len(high_critical) > 3:
-                recommendations.append(
-                    f"Address {len(high_critical)} high/critical adversarial findings"
-                )
+                recommendations.append(f"Address {len(high_critical)} high/critical adversarial findings")
 
         return recommendations
 
@@ -293,9 +275,7 @@ class TDDAdversarialCoordinator:
         if latest_review:
             overall_score = latest_review.get("overall_score", 0.0)
             if overall_score < 0.8:
-                recommendations.append(
-                    f"Consider addressing adversarial review feedback (score: {overall_score:.2f})"
-                )
+                recommendations.append(f"Consider addressing adversarial review feedback (score: {overall_score:.2f})")
 
             conflicts = latest_review.get("conflicts", [])
             if len(conflicts) > 2:
@@ -322,9 +302,7 @@ class TDDAdversarialCoordinator:
             all_perspectives = {p.value for p in ReviewPerspective}
             missing = all_perspectives - consulted
             if missing:
-                actions.append(
-                    f"Consider reviewing from missing perspectives: {', '.join(missing)}"
-                )
+                actions.append(f"Consider reviewing from missing perspectives: {', '.join(missing)}")
 
         # Suggest integration actions
         if state.integration_cycles < 3:
@@ -387,17 +365,11 @@ class TDDAdversarialCoordinator:
         if latest_review:
             # Count high/severity findings that would drive improvements
             findings = latest_review.get("findings", [])
-            high_critical = [
-                f
-                for f in findings
-                if isinstance(f, dict) and f.get("severity") in ["high", "critical"]
-            ]
+            high_critical = [f for f in findings if isinstance(f, dict) and f.get("severity") in ["high", "critical"]]
             return len(high_critical)
         return 0
 
-    def get_integration_feedback_for_skill_refinement(
-        self, session_id: str
-    ) -> list[SkillRefinementInput]:
+    def get_integration_feedback_for_skill_refinement(self, session_id: str) -> list[SkillRefinementInput]:
         """
         Get skill refinement inputs from both TDD and adversarial review systems.
 
@@ -411,9 +383,7 @@ class TDDAdversarialCoordinator:
         feedback_list.extend(tdd_feedback)
 
         # Get adversarial review feedback
-        review_feedback = self._adversarial_review.get_adversarial_feedback_for_skill_refinement(
-            session_id
-        )
+        review_feedback = self._adversarial_review.get_adversarial_feedback_for_skill_refinement(session_id)
         feedback_list.extend(review_feedback)
 
         # Add integration-specific feedback
@@ -426,12 +396,8 @@ class TDDAdversarialCoordinator:
 
             for skill_name in common_skills:
                 # Find the feedback entries for this skill from both systems
-                tdd_feedback_entry = next(
-                    (f for f in tdd_feedback if f.skill_name == skill_name), None
-                )
-                review_feedback_entry = next(
-                    (f for f in review_feedback if f.skill_name == skill_name), None
-                )
+                tdd_feedback_entry = next((f for f in tdd_feedback if f.skill_name == skill_name), None)
+                review_feedback_entry = next((f for f in review_feedback if f.skill_name == skill_name), None)
 
                 if tdd_feedback_entry and review_feedback_entry:
                     # Boost the feedback when both systems agree

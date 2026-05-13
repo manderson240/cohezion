@@ -337,9 +337,7 @@ class RetrospectionEngine:
                 f"Execution of '{plan_name}' completed {completed}/{total} tasks",
                 f"Token usage: {sum(tokens_by_task.values())} across {total} tasks",
             ],
-            "suggested_refinements": [
-                {"skill": r.skill_name, "reason": r.reason} for r in suggestions
-            ],
+            "suggested_refinements": [{"skill": r.skill_name, "reason": r.reason} for r in suggestions],
         }
 
         logger.info(

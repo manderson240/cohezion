@@ -18,9 +18,7 @@ async def test_engine_initialization(initial_state):
     mock_surreal = AsyncMock()
     mock_obsidian = AsyncMock()
 
-    engine = TriuneSimulationEngine(
-        state=initial_state, surreal_logger=mock_surreal, obsidian_mcp=mock_obsidian
-    )
+    engine = TriuneSimulationEngine(state=initial_state, surreal_logger=mock_surreal, obsidian_mcp=mock_obsidian)
 
     assert engine.state == initial_state
     assert engine.surreal_logger == mock_surreal
@@ -33,9 +31,7 @@ async def test_engine_step_persistence(initial_state):
     mock_surreal = AsyncMock()
     mock_obsidian = AsyncMock()
 
-    engine = TriuneSimulationEngine(
-        state=initial_state, surreal_logger=mock_surreal, obsidian_mcp=mock_obsidian
-    )
+    engine = TriuneSimulationEngine(state=initial_state, surreal_logger=mock_surreal, obsidian_mcp=mock_obsidian)
 
     # We provide a dummy 'environment' for coherence calculation
     dummy_env = torch.ones(12)
@@ -47,10 +43,10 @@ async def test_engine_step_persistence(initial_state):
     mock_obsidian.store_state_summary.assert_called_once()
 
     # Verify state was updated (e.g. doer should have changed if we implement simple drift)
-    # For now, we just check that coherence was passed
-    args, _ = mock_surreal.log_trajectory.call_args
-    assert args[0] == "step_test_1"
-    assert isinstance(args[2], float)  # coherence
+    # For now, we just check that coherence was passed (called with keyword args)
+    kwargs = mock_surreal.log_trajectory.call_args.kwargs
+    assert kwargs.get("trajectory_id") == "step_test_1"
+    assert isinstance(kwargs.get("coherence"), float)
 
 
 @pytest.mark.asyncio
@@ -60,9 +56,9 @@ async def test_engine_step_persistence_failure(initial_state):
     mock_surreal.log_trajectory.side_effect = Exception("Surreal Failure")
     mock_obsidian = AsyncMock()
 
-    engine = TriuneSimulationEngine(
-        state=initial_state, surreal_logger=mock_surreal, obsidian_mcp=mock_obsidian
-    )
+    engine = TriuneSimulationEngine(state=initial_state, surreal_logger=mock_surreal, obsidian_mcp=mock_obsidian)
 
-    with pytest.raises(Exception, match="Surreal Failure"):
-        await engine.step(dt=0.1, environment=torch.ones(12), trajectory_id="fail_test")
+    # Engine swallows persistence exceptions (non-fatal by design) — step should NOT raise
+    await engine.step(dt=0.1, environment=torch.ones(12), trajectory_id="fail_test")
+    # Verify the failure was logged (surreal called but raised)
+    mock_surreal.log_trajectory.assert_called_once()

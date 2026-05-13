@@ -31,10 +31,7 @@ def get_bmad_data_path() -> Path:
 
 def get_redis_url() -> str:
     """Get Redis URL."""
-    return (
-        get_credentials().get_secret("COHEZION_REDIS_URL", env_var="REDIS_URL")
-        or "redis://localhost:6379"
-    )
+    return get_credentials().get_secret("COHEZION_REDIS_URL", env_var="REDIS_URL") or "redis://localhost:6379"
 
 
 _engine: BMADEngine | None = None

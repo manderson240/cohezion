@@ -250,9 +250,7 @@ async def reset_cosmogony() -> CosmogonyStateResponse:
 
 
 @genesis_router.get("/cosmogony/free-energy-landscape")
-async def get_free_energy_landscape(
-    t_min: float = 0.001, t_max: float = 200.0, n_points: int = 200
-) -> dict:
+async def get_free_energy_landscape(t_min: float = 0.001, t_max: float = 200.0, n_points: int = 200) -> dict:
     """Compute the Landau free energy landscape across a temperature range.
 
     Returns F(T), susceptibility χ(T), and critical temperature markers
@@ -342,9 +340,7 @@ class LagrangianTrajectoryRequest(BaseModel):
     initial_state: list[float] = Field(
         default_factory=lambda: [0.5] * 12, description="Initial 12D position (default: HIHO)"
     )
-    initial_velocity: list[float] = Field(
-        default_factory=lambda: [0.01] * 12, description="Initial 12D velocity"
-    )
+    initial_velocity: list[float] = Field(default_factory=lambda: [0.01] * 12, description="Initial 12D velocity")
     n_steps: int = Field(100, ge=10, le=1000, description="Simulation steps")
     dt: float = Field(0.01, gt=0, le=0.1, description="Time step")
     damping: float = Field(0.1, ge=0, le=2.0, description="Viscous damping")

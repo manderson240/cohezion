@@ -74,9 +74,7 @@ class ResourceGuard:
     def __init__(self, limits: ResourceLimits | None = None):
         self.limits = limits or ResourceLimits()
         self.agent_usage: dict[str, AgentResourceUsage] = {}
-        self._system_memory_limit = (
-            psutil.virtual_memory().total * self.limits.system_memory_threshold / 1024 / 1024
-        )
+        self._system_memory_limit = psutil.virtual_memory().total * self.limits.system_memory_threshold / 1024 / 1024
         self._circuit_open = False
         self._semaphore = asyncio.Semaphore(self.limits.max_concurrent_agents)
 

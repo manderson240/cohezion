@@ -79,9 +79,7 @@ class TestLCSPWiring:
         assert 0.0 <= data["hiho_stability"] <= 1.0
 
     def test_predict_custom_state(self):
-        state = ",".join(
-            str(x) for x in [1.0, 0.5, 0.25, 0.7, 0.8, 0.9, 1.0, 0.9, 0.8, 0.7, 0.5, 0.25]
-        )
+        state = ",".join(str(x) for x in [1.0, 0.5, 0.25, 0.7, 0.8, 0.9, 1.0, 0.9, 0.8, 0.7, 0.5, 0.25])
         resp = client.get(f"/api/physics/lcsp/predict?state={state}")
         assert resp.status_code == 200
         data = resp.json()

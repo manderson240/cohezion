@@ -47,11 +47,7 @@ class MCPClient:
         session = await self._get_session()
 
         # In our simplified HTTP MCP implementation, tool calls are POST to /tools/{name}
-        url = (
-            f"{self.base_url}/tools/{tool_name}"
-            if self.base_url
-            else f"http://localhost/tools/{tool_name}"
-        )
+        url = f"{self.base_url}/tools/{tool_name}" if self.base_url else f"http://localhost/tools/{tool_name}"
 
         try:
             async with session.post(

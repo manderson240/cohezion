@@ -170,9 +170,7 @@ class TestHookifyConditionEvaluation:
         validator = HookifyValidator()
 
         context = {"goal": "cosmology", "coherence": 0.3}
-        result = validator._check_condition(
-            'goal.contains("cosmology") AND coherence < 0.5', context
-        )
+        result = validator._check_condition('goal.contains("cosmology") AND coherence < 0.5', context)
         assert result is True
 
 
@@ -303,9 +301,7 @@ class TestHookifyRalphLoopIntegration:
             "iteration": 25,  # Beyond max
         }
 
-        result = validator._execute_action(
-            "ralph_loop.orchestrate", context, {"max_iterations": 20}
-        )
+        result = validator._execute_action("ralph_loop.orchestrate", context, {"max_iterations": 20})
 
         # Ralph Loop sets ralph_mode with max_iterations configuration
         assert result.modifications.get("ralph_mode") is True
@@ -338,14 +334,10 @@ class TestHookifyPersistence:
         validator = HookifyValidator()
 
         # When: Updating lever position
-        validator._save_lever_override(
-            rule_id="cosmological_ralph_loop", lever_name="coherence_threshold", value=0.7
-        )
+        validator._save_lever_override(rule_id="cosmological_ralph_loop", lever_name="coherence_threshold", value=0.7)
 
         # Then: Saved to SurrealDB
-        saved = validator._load_lever_override(
-            rule_id="cosmological_ralph_loop", lever_name="coherence_threshold"
-        )
+        saved = validator._load_lever_override(rule_id="cosmological_ralph_loop", lever_name="coherence_threshold")
         assert saved == 0.7
 
     def test_log_violation_to_vault(self):
@@ -419,10 +411,7 @@ class TestHookifyCrossPlatformTriggers:
 
         # Map platform-specific triggers to normalized names
         assert validator._normalize_trigger("session_start", "opencode") == "session_start"
-        assert (
-            validator._normalize_trigger("CompoundSessionManager.check_alignment", "opencode")
-            == "pre_execute"
-        )
+        assert validator._normalize_trigger("CompoundSessionManager.check_alignment", "opencode") == "pre_execute"
 
     def test_claude_code_triggers(self):
         """Claude Code trigger mapping"""
@@ -452,9 +441,7 @@ class TestHookifyMCPBridge:
     @pytest.mark.asyncio
     async def test_mcp_validate_tool(self, mcp_bridge):
         """MCP tool: validate_rule"""
-        result = await mcp_bridge.validate_rule(
-            trigger="pre_execute", context={"coherence": 0.3, "goal": "test"}
-        )
+        result = await mcp_bridge.validate_rule(trigger="pre_execute", context={"coherence": 0.3, "goal": "test"})
 
         # With no rules configured, should proceed=True
         assert "proceed" in result

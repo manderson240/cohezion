@@ -209,9 +209,7 @@ async def flume_encode(request: FlumeEncodeRequest):
     vae = _get_vae()
     z_dim = vae.config.z_dim
     if len(request.vector) != z_dim:
-        raise HTTPException(
-            status_code=422, detail=f"Expected {z_dim}D vector, got {len(request.vector)}D"
-        )
+        raise HTTPException(status_code=422, detail=f"Expected {z_dim}D vector, got {len(request.vector)}D")
 
     with torch.no_grad():
         x = torch.tensor([request.vector], dtype=torch.float32, device=vae.device)
@@ -235,9 +233,7 @@ async def flume_decode(request: FlumeDecodeRequest):
         z = torch.tensor([request.latent], dtype=torch.float32, device=vae.device)
         recon = vae.decoder(z)
     recon_list = recon.squeeze(0).tolist()
-    return FlumeDecodeResponse(
-        reconstruction=recon_list, coherence=_compute_coherence(recon_list, len(recon_list))
-    )
+    return FlumeDecodeResponse(reconstruction=recon_list, coherence=_compute_coherence(recon_list, len(recon_list)))
 
 
 @flume_router.post("/flume/interpolate", response_model=FlumeInterpolateResponse)
@@ -280,9 +276,7 @@ async def flume_latent_space(request: FlumeLatentSpaceRequest):
     try:
         vae = _get_vae()
     except Exception as e:
-        raise HTTPException(
-            status_code=500, detail=f"FLUME VAE not available ({type(e).__name__})"
-        ) from e
+        raise HTTPException(status_code=500, detail=f"FLUME VAE not available ({type(e).__name__})") from e
 
     z_dim = vae.config.z_dim
     if request.seed is not None:
@@ -313,9 +307,7 @@ async def flume_latent_space(request: FlumeLatentSpaceRequest):
         padding = np.zeros((samples_3d.shape[0], 3 - samples_3d.shape[1]))
         samples_3d = np.hstack([samples_3d, padding])
 
-    coherence_scores = [
-        _compute_coherence(z_samples_np[i].tolist(), z_dim) for i in range(len(z_samples_np))
-    ]
+    coherence_scores = [_compute_coherence(z_samples_np[i].tolist(), z_dim) for i in range(len(z_samples_np))]
 
     return FlumeLatentSpaceResponse(
         latent_dim=z_dim,

@@ -198,9 +198,7 @@ class SemanticCache:
         # Hit rate in target range (5-40%)
         return self.similarity_threshold
 
-    async def get(
-        self, prompt: str, system: str | None = None, model: str | None = None
-    ) -> str | None:
+    async def get(self, prompt: str, system: str | None = None, model: str | None = None) -> str | None:
         """Lookup with 3-tier fallback.
 
         Checks L1 (exact), L2 (semantic), then L3 (vault).
@@ -335,9 +333,7 @@ class SemanticCache:
         # Incremental append to matrix (cheap path — no eviction)
         self._l2_keys.append(hash_key)
         row = entry.embedding.reshape(1, -1)
-        self._l2_matrix = (
-            np.vstack([self._l2_matrix, row]) if self._l2_matrix is not None else row.copy()
-        )
+        self._l2_matrix = np.vstack([self._l2_matrix, row]) if self._l2_matrix is not None else row.copy()
 
     def _promote_to_l1(self, hash_key: str, entry: CacheEntry) -> None:
         """Promote L2 hit to L1."""
@@ -383,9 +379,7 @@ class SemanticCache:
                     path = first_result.get("path", "")
                     if path:
                         try:
-                            content = await loop.run_in_executor(
-                                None, self.mcp_client.vault_read, path
-                            )
+                            content = await loop.run_in_executor(None, self.mcp_client.vault_read, path)
                             # Parse as JSON cache entry
                             cache_data = json.loads(content)
                             response = cache_data.get("response", "")

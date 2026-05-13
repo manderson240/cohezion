@@ -199,12 +199,8 @@ _LAKOTA = Tradition(
         ("Petroglyphs", "Stone carvings as permanent witness marks", "Reality precipitates"),
     ),
     unique_contributions=(
-        UniqueContribution(
-            "Relational ontology", "Mitakuye Oyasin as binding principle — reality IS relationship"
-        ),
-        UniqueContribution(
-            "Vision quest protocol", "Structured threshold crossing as HIHO calibration"
-        ),
+        UniqueContribution("Relational ontology", "Mitakuye Oyasin as binding principle — reality IS relationship"),
+        UniqueContribution("Vision quest protocol", "Structured threshold crossing as HIHO calibration"),
     ),
 )
 
@@ -249,9 +245,7 @@ _VEDIC = Tradition(
         ("Mantra / Scripture", "Sacred texts as crystallized knowledge", "Reality precipitates"),
     ),
     unique_contributions=(
-        UniqueContribution(
-            "Mathematical precision", "Explicit zero, infinity, and cyclic cosmology"
-        ),
+        UniqueContribution("Mathematical precision", "Explicit zero, infinity, and cyclic cosmology"),
         UniqueContribution("Consciousness ontology", "Brahman as both ground state AND observer"),
     ),
 )
@@ -352,9 +346,7 @@ _YORUBA = Tradition(
     ),
     unique_contributions=(
         UniqueContribution("256 Odu system", "Complete combinatorial knowledge system"),
-        UniqueContribution(
-            "Ase as dual principle", "Same force serves both SPIN and COHESION roles"
-        ),
+        UniqueContribution("Ase as dual principle", "Same force serves both SPIN and COHESION roles"),
     ),
 )
 
@@ -407,12 +399,8 @@ _HAUDENOSAUNEE = Tradition(
         ("Wampum belts", "Treaty records in beadwork as permanent witness", "Reality precipitates"),
     ),
     unique_contributions=(
-        UniqueContribution(
-            "Consensus governance", "HIHO as political process — decisions require equilibrium"
-        ),
-        UniqueContribution(
-            "Seven-generation thinking", "Time-extended COHESION spanning past and future"
-        ),
+        UniqueContribution("Consensus governance", "HIHO as political process — decisions require equilibrium"),
+        UniqueContribution("Seven-generation thinking", "Time-extended COHESION spanning past and future"),
     ),
 )
 
@@ -461,9 +449,7 @@ _HOPI = Tradition(
         ("Petroglyphs", "Rock art recording prophecy and migration routes", "Reality precipitates"),
     ),
     unique_contributions=(
-        UniqueContribution(
-            "Four Worlds cosmology", "Sequential reality iterations as fabric domains"
-        ),
+        UniqueContribution("Four Worlds cosmology", "Sequential reality iterations as fabric domains"),
         UniqueContribution("Prophecy stone", "Witness marks encoding future states"),
     ),
 )
@@ -566,12 +552,8 @@ _MAORI = Tradition(
         ("Ta moko", "Facial tattoo encoding identity and lineage", "Reality precipitates"),
     ),
     unique_contributions=(
-        UniqueContribution(
-            "Whakapapa ontology", "Reality IS genealogy — everything connected by descent"
-        ),
-        UniqueContribution(
-            "Body as witness mark", "Ta moko inscribes knowledge onto the living person"
-        ),
+        UniqueContribution("Whakapapa ontology", "Reality IS genealogy — everything connected by descent"),
+        UniqueContribution("Body as witness mark", "Ta moko inscribes knowledge onto the living person"),
     ),
 )
 
@@ -624,9 +606,7 @@ _INUIT = Tradition(
             "Sila as ambient consciousness",
             "Ground state is simultaneously weather, breath, and mind",
         ),
-        UniqueContribution(
-            "Extreme environment cosmology", "Ice/thaw as primary phase oscillation"
-        ),
+        UniqueContribution("Extreme environment cosmology", "Ice/thaw as primary phase oscillation"),
     ),
 )
 
@@ -667,12 +647,8 @@ _NORSE = Tradition(
         ("Rune carvings", "Stone inscriptions as permanent records", "Reality precipitates"),
     ),
     unique_contributions=(
-        UniqueContribution(
-            "Ginnungagap polarity", "Void defined by fire/ice tension — ground state has structure"
-        ),
-        UniqueContribution(
-            "Wyrd as causal web", "Fate is not linear but a woven network of consequence"
-        ),
+        UniqueContribution("Ginnungagap polarity", "Void defined by fire/ice tension — ground state has structure"),
+        UniqueContribution("Wyrd as causal web", "Fate is not linear but a woven network of consequence"),
     ),
 )
 
@@ -729,9 +705,7 @@ _CELTIC = Tradition(
         ("Ogham stones", "Standing stones with carved tree-alphabet", "Reality precipitates"),
     ),
     unique_contributions=(
-        UniqueContribution(
-            "Thin places", "HIHO as spatial phenomenon — locations where equilibrium is accessible"
-        ),
+        UniqueContribution("Thin places", "HIHO as spatial phenomenon — locations where equilibrium is accessible"),
         UniqueContribution("Tripartite ground", "Ground state already has threefold structure"),
     ),
 )
@@ -789,12 +763,8 @@ _SHINTO = Tradition(
         ),
     ),
     unique_contributions=(
-        UniqueContribution(
-            "Radical immanence", "Every object contains kami — no nature/spirit divide"
-        ),
-        UniqueContribution(
-            "Musubi as creative binding", "COHESION is generative, not just connective"
-        ),
+        UniqueContribution("Radical immanence", "Every object contains kami — no nature/spirit divide"),
+        UniqueContribution("Musubi as creative binding", "COHESION is generative, not just connective"),
     ),
 )
 
@@ -905,9 +875,7 @@ _AMAZONIAN = Tradition(
             "Perspectivism",
             "All beings share culture; bodies are the variable — radical ontological relativity",
         ),
-        UniqueContribution(
-            "Plant-mediated HIHO", "Biochemical technology for equilibrium crossing"
-        ),
+        UniqueContribution("Plant-mediated HIHO", "Biochemical technology for equilibrium crossing"),
     ),
 )
 
@@ -956,12 +924,8 @@ _DOGON = Tradition(
         ),
     ),
     unique_contributions=(
-        UniqueContribution(
-            "Cosmic egg ontology", "Ground state has internal structure — egg, not void"
-        ),
-        UniqueContribution(
-            "266 sign system", "Exhaustive symbolic encoding rivaling mathematical completeness"
-        ),
+        UniqueContribution("Cosmic egg ontology", "Ground state has internal structure — egg, not void"),
+        UniqueContribution("266 sign system", "Exhaustive symbolic encoding rivaling mathematical completeness"),
     ),
 )
 
@@ -1023,9 +987,7 @@ _ABORIGINAL = Tradition(
     ),
     unique_contributions=(
         UniqueContribution("Landscape as text", "The entire continent is a readable document"),
-        UniqueContribution(
-            "65,000-year continuity", "Longest continuous knowledge tradition on Earth"
-        ),
+        UniqueContribution("65,000-year continuity", "Longest continuous knowledge tradition on Earth"),
     ),
 )
 

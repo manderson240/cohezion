@@ -73,9 +73,7 @@ class RateLimiter:
             return
 
         cutoff = now - 3600  # 1 hour ago
-        expired = [
-            client_id for client_id, entry in self._clients.items() if entry.last_request < cutoff
-        ]
+        expired = [client_id for client_id, entry in self._clients.items() if entry.last_request < cutoff]
         for client_id in expired:
             del self._clients[client_id]
 

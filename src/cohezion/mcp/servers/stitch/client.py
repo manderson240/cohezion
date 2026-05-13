@@ -80,9 +80,7 @@ class StitchMCPClient:
             stitch_api_key: Stitch API key (default: from env STITCH_API_KEY)
             local_mcp_url: Local MCP server URL (default: http://localhost:8370)
         """
-        self.stitch_api_url = stitch_api_url or os.getenv(
-            "STITCH_API_URL", "https://stitch-mcp.withgoogle.com"
-        )
+        self.stitch_api_url = stitch_api_url or os.getenv("STITCH_API_URL", "https://stitch-mcp.withgoogle.com")
         self.stitch_api_key = stitch_api_key or os.getenv("STITCH_API_KEY", "")
         self.local_mcp_url = local_mcp_url or "http://localhost:8370"
 
@@ -102,9 +100,7 @@ class StitchMCPClient:
             self._stitch_session = aiohttp.ClientSession(headers=headers)
         return self._stitch_session
 
-    async def generate_design(
-        self, prompt: str, sovereignty_context: dict[str, Any] | None = None
-    ) -> StitchDesign:
+    async def generate_design(self, prompt: str, sovereignty_context: dict[str, Any] | None = None) -> StitchDesign:
         """Generate UI design from natural language prompt.
 
         Args:
@@ -120,9 +116,7 @@ class StitchMCPClient:
         # Check prompt for deceptive patterns (constitutional compliance)
         deceptive_check = self._check_prompt_for_deception(prompt)
         if deceptive_check["is_deceptive"]:
-            raise ValueError(
-                f"Deceptive UI pattern detected in prompt: {deceptive_check['reason']}"
-            )
+            raise ValueError(f"Deceptive UI pattern detected in prompt: {deceptive_check['reason']}")
 
         # Call local MCP server tool
         result = await self.mcp_client.call_tool(

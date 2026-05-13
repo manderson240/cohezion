@@ -92,35 +92,17 @@ class LeverAdjustmentLifecycle:
     current_value: float
 
     # Left side of V (Design)
-    requirements_phase: VPhaseState = field(
-        default_factory=lambda: VPhaseState(VPhase.REQUIREMENTS)
-    )
-    system_design_phase: VPhaseState = field(
-        default_factory=lambda: VPhaseState(VPhase.SYSTEM_DESIGN)
-    )
-    architecture_phase: VPhaseState = field(
-        default_factory=lambda: VPhaseState(VPhase.ARCHITECTURE)
-    )
-    module_design_phase: VPhaseState = field(
-        default_factory=lambda: VPhaseState(VPhase.MODULE_DESIGN)
-    )
-    implementation_phase: VPhaseState = field(
-        default_factory=lambda: VPhaseState(VPhase.IMPLEMENTATION)
-    )
+    requirements_phase: VPhaseState = field(default_factory=lambda: VPhaseState(VPhase.REQUIREMENTS))
+    system_design_phase: VPhaseState = field(default_factory=lambda: VPhaseState(VPhase.SYSTEM_DESIGN))
+    architecture_phase: VPhaseState = field(default_factory=lambda: VPhaseState(VPhase.ARCHITECTURE))
+    module_design_phase: VPhaseState = field(default_factory=lambda: VPhaseState(VPhase.MODULE_DESIGN))
+    implementation_phase: VPhaseState = field(default_factory=lambda: VPhaseState(VPhase.IMPLEMENTATION))
 
     # Right side of V (Verification)
-    unit_test_phase: VPhaseState = field(
-        default_factory=lambda: VPhaseState(VVerification.UNIT_TEST)
-    )
-    integration_test_phase: VPhaseState = field(
-        default_factory=lambda: VPhaseState(VVerification.INTEGRATION_TEST)
-    )
-    system_test_phase: VPhaseState = field(
-        default_factory=lambda: VPhaseState(VVerification.SYSTEM_TEST)
-    )
-    validation_phase: VPhaseState = field(
-        default_factory=lambda: VPhaseState(VVerification.SYSTEM_VALIDATION)
-    )
+    unit_test_phase: VPhaseState = field(default_factory=lambda: VPhaseState(VVerification.UNIT_TEST))
+    integration_test_phase: VPhaseState = field(default_factory=lambda: VPhaseState(VVerification.INTEGRATION_TEST))
+    system_test_phase: VPhaseState = field(default_factory=lambda: VPhaseState(VVerification.SYSTEM_TEST))
+    validation_phase: VPhaseState = field(default_factory=lambda: VPhaseState(VVerification.SYSTEM_VALIDATION))
 
     created_at: str = field(default_factory=lambda: time.strftime("%Y-%m-%dT%H:%M:%SZ"))
     completed: bool = False
@@ -179,9 +161,7 @@ class VModelEngineeringProcess:
         self.completed_lifecycles: list[LeverAdjustmentLifecycle] = []
         self.requirement_registry: dict[str, dict[str, Any]] = {}
 
-    def start_adjustment(
-        self, lever_name: str, target_value: float, requirements: dict[str, Any]
-    ) -> str:
+    def start_adjustment(self, lever_name: str, target_value: float, requirements: dict[str, Any]) -> str:
         """Start a new V-Model adjustment lifecycle."""
         adjustment_id = f"adj_{lever_name}_{int(time.time())}"
 
@@ -257,9 +237,7 @@ class VModelEngineeringProcess:
             "goal": goal_dict,
             "current_value": lever.current_value if lever else None,
             "target_value": self.active_lifecycles[adjustment_id].target_value,
-            "justification": self.requirement_registry.get(adjustment_id, {}).get(
-                "justification", ""
-            ),
+            "justification": self.requirement_registry.get(adjustment_id, {}).get("justification", ""),
             "constraints": self.requirement_registry.get(adjustment_id, {}).get("constraints", []),
         }
 
@@ -401,9 +379,7 @@ class VModelEngineeringProcess:
             "requirement_met": requirement_met,
             "final_value": lever.current_value,
             "target_value": lifecycle.target_value,
-            "goal_achieved": lever.get_progress_toward_goal() >= 1.0
-            if lever and lever.goal
-            else None,
+            "goal_achieved": lever.get_progress_toward_goal() >= 1.0 if lever and lever.goal else None,
         }
 
     # Helper methods
@@ -467,9 +443,7 @@ class VModelEngineeringProcess:
         """Get integration points."""
         return ["DynamicLeverSystem", "DiscoveryModule", "ValidationModule"]
 
-    def _generate_implementation_plan(
-        self, lifecycle: LeverAdjustmentLifecycle
-    ) -> list[dict[str, Any]]:
+    def _generate_implementation_plan(self, lifecycle: LeverAdjustmentLifecycle) -> list[dict[str, Any]]:
         """Generate implementation steps."""
         return [
             {
@@ -519,9 +493,7 @@ class VModelEngineeringProcess:
             "test": "consistency_check",
         }
 
-    def _check_requirements(
-        self, lifecycle: LeverAdjustmentLifecycle, requirements: dict[str, Any]
-    ) -> bool:
+    def _check_requirements(self, lifecycle: LeverAdjustmentLifecycle, requirements: dict[str, Any]) -> bool:
         """Check if requirements are met."""
         lever = self.lever_system.get_lever(lifecycle.lever_name)
         if not lever:
@@ -549,9 +521,7 @@ class VModelEngineeringProcess:
             "adjustment_id": adjustment_id,
             "lever": lifecycle.lever_name,
             "progress": lifecycle.get_progress(),
-            "current_phase": lifecycle.get_current_phase().phase.value
-            if lifecycle.get_current_phase()
-            else None,
+            "current_phase": lifecycle.get_current_phase().phase.value if lifecycle.get_current_phase() else None,
             "left_side_complete": all(p.status == "complete" for p in lifecycle.get_left_side()),
             "right_side_complete": all(p.status == "complete" for p in lifecycle.get_right_side()),
             "validated": lifecycle.is_validated(),
@@ -591,9 +561,7 @@ class VModelIntegratedLeverSystem:
         self.lever_system = lever_system
         self.ve_process = VModelEngineeringProcess(lever_system)
 
-    def adjust_lever_vmodel(
-        self, lever_name: str, target_value: float, requirements: dict[str, Any]
-    ) -> str:
+    def adjust_lever_vmodel(self, lever_name: str, target_value: float, requirements: dict[str, Any]) -> str:
         """Adjust a lever following V-Model process."""
         # Start lifecycle
         adjustment_id = self.ve_process.start_adjustment(lever_name, target_value, requirements)

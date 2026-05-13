@@ -30,9 +30,7 @@ async def api_key_middleware(request: web.Request, handler):
 
     mcp_api_key = get_mcp_api_key()
     if not mcp_api_key:
-        logger.warning(
-            "MCP_API_KEY is not set in the environment. Denying access to secure endpoint."
-        )
+        logger.warning("MCP_API_KEY is not set in the environment. Denying access to secure endpoint.")
         return web.json_response({"error": "Server authentication not configured"}, status=500)
 
     auth_header = request.headers.get("Authorization")

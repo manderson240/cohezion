@@ -618,6 +618,4 @@ class TestCompareTaskArchetypes:
 
         assert "bonferroni" in archetype_metrics
         assert archetype_metrics["bonferroni"]["adjusted_alpha"] is not None
-        assert archetype_metrics["bonferroni"]["adjusted_alpha"] == pytest.approx(
-            0.05 / (2 * 6), abs=0.001
-        )
+        assert archetype_metrics["bonferroni"]["adjusted_alpha"] == pytest.approx(0.05 / (2 * 6), abs=0.001)

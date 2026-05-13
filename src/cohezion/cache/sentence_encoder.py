@@ -49,9 +49,7 @@ class SentenceTransformerEncoder:
             self.model = SentenceTransformer(self.model_name)
             logger.info("✅ SentenceTransformer model loaded successfully")
         except ImportError:
-            logger.error(
-                "sentence-transformers not installed. Install with: uv add sentence-transformers"
-            )
+            logger.error("sentence-transformers not installed. Install with: uv add sentence-transformers")
             self.model = None
         except Exception as e:
             logger.error("Failed to load SentenceTransformer model: %s", e)
@@ -76,9 +74,7 @@ class SentenceTransformerEncoder:
             return np.zeros(384, dtype=np.float32)
 
         try:
-            embedding = self.model.encode(
-                text, convert_to_numpy=True, normalize_embeddings=normalize
-            )
+            embedding = self.model.encode(text, convert_to_numpy=True, normalize_embeddings=normalize)
             return embedding.astype(np.float32)
         except Exception as e:
             logger.debug("Encoding failed for text: %s", e)

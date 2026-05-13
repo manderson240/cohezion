@@ -17,9 +17,7 @@ class TestOllamaEmbeddingProvider:
 
         fake_response = {"embeddings": [list(np.random.randn(768))]}
         with patch("cohezion.flume.embedding_provider.requests") as mock_req:
-            mock_req.post.return_value = MagicMock(
-                status_code=200, json=MagicMock(return_value=fake_response)
-            )
+            mock_req.post.return_value = MagicMock(status_code=200, json=MagicMock(return_value=fake_response))
             provider = OllamaEmbeddingProvider()
             result = provider.embed("deploy the API")
 
@@ -34,9 +32,7 @@ class TestOllamaEmbeddingProvider:
         raw = np.random.randn(768).tolist()
         fake_response = {"embeddings": [raw]}
         with patch("cohezion.flume.embedding_provider.requests") as mock_req:
-            mock_req.post.return_value = MagicMock(
-                status_code=200, json=MagicMock(return_value=fake_response)
-            )
+            mock_req.post.return_value = MagicMock(status_code=200, json=MagicMock(return_value=fake_response))
             provider = OllamaEmbeddingProvider()
             result = provider.embed("test text")
 
@@ -50,9 +46,7 @@ class TestOllamaEmbeddingProvider:
         texts = ["deploy API", "run tests", "check logs"]
         fake_response = {"embeddings": [list(np.random.randn(768)) for _ in texts]}
         with patch("cohezion.flume.embedding_provider.requests") as mock_req:
-            mock_req.post.return_value = MagicMock(
-                status_code=200, json=MagicMock(return_value=fake_response)
-            )
+            mock_req.post.return_value = MagicMock(status_code=200, json=MagicMock(return_value=fake_response))
             provider = OllamaEmbeddingProvider()
             result = provider.embed_batch(texts)
 

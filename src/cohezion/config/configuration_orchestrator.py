@@ -190,9 +190,7 @@ class ConfigurationOrchestrator:
                         violation_check = self.size_enforcer.check_violations(file_path)
 
                         if violation_check["violates"]:
-                            logger.warning(
-                                f"{filename} size violation: {violation_check['violations']}"
-                            )
+                            logger.warning(f"{filename} size violation: {violation_check['violations']}")
 
                             # Archive old sections
                             archive_result = await self.archiver.archive_old_sections(file_path)

@@ -60,9 +60,7 @@ class VaultLogger:
     def log_execution_start(self, ctx: ExecutionContext) -> str:
         """Log the start of an execution to the Vault."""
         try:
-            path = (
-                f"experiments/{ctx.project}/{ctx.skill_name}/{int(ctx.start_time.timestamp())}.json"
-            )
+            path = f"experiments/{ctx.project}/{ctx.skill_name}/{int(ctx.start_time.timestamp())}.json"
             data = {
                 "project": ctx.project,
                 "skill_name": ctx.skill_name,
@@ -71,16 +69,14 @@ class VaultLogger:
                 "start_time": ctx.start_time.isoformat(),
                 "status": "started",
             }
-            
+
             _fire_vault_write(self.mcp, path, json.dumps(data, indent=2))
             return path
         except Exception as e:
             logger.error(f"Failed to log execution start to Vault: {e}")
             return ""
 
-    def log_execution_result(
-        self, experiment_path: str, success: bool, output: str, metrics: dict[str, Any]
-    ):
+    def log_execution_result(self, experiment_path: str, success: bool, output: str, metrics: dict[str, Any]):
         """Update the execution log with results."""
         if not experiment_path:
             return
@@ -96,14 +92,11 @@ class VaultLogger:
             data["status"] = "completed"
             data["end_time"] = datetime.now().isoformat()
 
-            
             _fire_vault_write(self.mcp, experiment_path, json.dumps(data, indent=2))
         except Exception as e:
             logger.error(f"Failed to log execution result to Vault: {e}")
 
-    def get_experience_guidance(
-        self, task_description: str, project: str = "cohezion"
-    ) -> dict[str, Any]:
+    def get_experience_guidance(self, task_description: str, project: str = "cohezion") -> dict[str, Any]:
         """Fetch similar patterns from the Vault for guidance."""
         try:
             # Simple keyword extraction for search
@@ -139,16 +132,14 @@ class VaultLogger:
 {code_example}
 ```
 """
-            
+
             _fire_vault_write(self.mcp, path, content)
             return path
         except Exception as e:
             logger.error(f"Failed to extract pattern to Vault: {e}")
             return ""
 
-    def log_decision_point(
-        self, project: str, title: str, context: str, decision: str, rationale: str
-    ) -> str:
+    def log_decision_point(self, project: str, title: str, context: str, decision: str, rationale: str) -> str:
         """Log a critical decision point to the vault."""
         try:
             timestamp = int(datetime.now().timestamp())
@@ -167,7 +158,7 @@ class VaultLogger:
 ## Rationale
 {rationale}
 """
-            
+
             _fire_vault_write(self.mcp, path, content)
             return path
         except Exception as e:
@@ -208,16 +199,14 @@ class VaultLogger:
                 "end_time": datetime.now().isoformat(),
                 "success": success,
                 "output_summary": output[:500] if output else "",
-                "metrics": {
-                    k: v for k, v in metrics.items() if isinstance(v, (int, float, str, bool))
-                },
+                "metrics": {k: v for k, v in metrics.items() if isinstance(v, (int, float, str, bool))},
                 "token_metrics": token_metrics or {},
                 "coherence": metrics.get("coherence", 0.0),
                 "anomaly_score": metrics.get("anomaly_score", 0.0),
                 "natural_capital": metrics.get("natural_capital", 0.0),
                 "bioelectric_coherence": metrics.get("bioelectric_coherence", 0.0),
             }
-            
+
             _fire_vault_write(self.mcp, trace_path, json.dumps(trace_data, indent=2))
 
             # Prune old traces (keep last 100 per skill)
@@ -307,15 +296,15 @@ class VaultLogger:
 
                 filename = f"missions/{mission_id}.md"
                 # Add links to relevant project and skill for Obsidian Graph connectivity
-                content += f"\n\n--- \nTags: #retrospective #{data.get('agent', 'agent').lower()} #{data.get('skill_name', 'skill').lower()}\n"
+                agent_tag = data.get("agent", "agent").lower()
+                skill_tag = data.get("skill_name", "skill").lower()
+                content += f"\n\n--- \nTags: #retrospective #{agent_tag} #{skill_tag}\n"
 
                 _fire_vault_write(self.mcp, filename, content)
                 logger.info(f"Architectural insight persisted to Vault: {filename}")
 
             except Exception as e:
-                logger.error(
-                    f"Vault human-readable persistence failed for mission {data.get('mission_id')}: {e}"
-                )
+                logger.error(f"Vault human-readable persistence failed for mission {data.get('mission_id')}: {e}")
 
 
 def get_vault_logger() -> VaultLogger:

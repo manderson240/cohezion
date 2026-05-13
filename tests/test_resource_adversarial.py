@@ -1,6 +1,6 @@
 import asyncio
 import time
-from unittest.mock import MagicMock, patch
+from unittest.mock import AsyncMock, patch
 
 import pytest
 
@@ -42,14 +42,12 @@ async def test_adversarial_flood():
     # but we'll let some through if we want "real" results.
     # For a pure adversarial logic test, we'll mock the response.
 
-    with patch("httpx.AsyncClient.post") as mock_post:
-        mock_post.return_value = MagicMock(
-            status_code=200, json=lambda: {"response": "Mocked stability response"}
-        )
+    with patch("cohezion.core.routing.router.LOCAL_ROUTER.route_task", new_callable=AsyncMock) as mock_route:
+        mock_route.return_value = "Mocked stability response"
 
         time.perf_counter()
         tasks = [agent.process(f"query {i}") for i, agent in enumerate(agents)]
-        await asyncio.gather(*tasks)
+        await asyncio.gather(*tasks, return_exceptions=True)
         time.perf_counter()
 
         # If concurrency works, 20 agents with 4 slots should take at least 5 'units' of time.

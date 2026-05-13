@@ -352,17 +352,13 @@ DEFINE FIELD stability_score ON TABLE universe_nodes VALUE (
             await self._client.use(self.namespace, self.database)
             self._connected = True
             breaker.record_success()
-            logger.info(
-                f"✅ REAL CLIENT: Connected to SurrealDB at {self.url} ({self.namespace}/{self.database})"
-            )
+            logger.info(f"✅ REAL CLIENT: Connected to SurrealDB at {self.url} ({self.namespace}/{self.database})")
             return True
         except InsecureSurrealCredentialsError:
             # Do NOT fall back to InMemoryStore on an insecure-credentials refusal — that
             # would mask the misconfiguration. Surface the error loudly and refuse to proceed.
             breaker.record_failure()
-            logger.error(
-                "❌ SurrealDB refused: insecure credentials — see InsecureSurrealCredentialsError above."
-            )
+            logger.error("❌ SurrealDB refused: insecure credentials — see InsecureSurrealCredentialsError above.")
             raise
         except Exception as e:
             breaker.record_failure()
@@ -497,7 +493,9 @@ DEFINE FIELD stability_score ON TABLE universe_nodes VALUE (
 
                     return [{"result": [mission] if mission else [], "status": "OK"}]
                 if "FROM agent_thought" in sql:
-                    # Handle queries like: SELECT content, metadata.query_hash as qh, metadata.agent as agent FROM agent_thought ORDER BY timestamp DESC LIMIT 100
+                    # Handle queries like:
+                    # SELECT content, metadata.query_hash as qh, metadata.agent as agent
+                    # FROM agent_thought ORDER BY timestamp DESC LIMIT 100
                     all_nodes = self._client.get_all(1000)
                     # Filter for agent_thought type
                     matches = [n for n in all_nodes if n.get("node_type") == "agent_thought"]
@@ -532,7 +530,8 @@ DEFINE FIELD stability_score ON TABLE universe_nodes VALUE (
                                 continue
 
                             # Physics check (Mocking the SQL logic: physics_state.dim_12_coherence > 0.9)
-                            # We just return them if they are snapshots, assuming the caller filters or we mock the success
+                            # We just return them if they are snapshots,
+                            # assuming the caller filters or we mock the success
                             # But let's try to be a bit specific if possible
                             ps = item.get("physics_state", {})
 
@@ -558,17 +557,11 @@ DEFINE FIELD stability_score ON TABLE universe_nodes VALUE (
 
                             if var_name in vars:
                                 target_value = vars[var_name]
-                                all_items = self._client.get_all(
-                                    1000
-                                )  # Assuming all items are nodes for now
+                                all_items = self._client.get_all(1000)  # Assuming all items are nodes for now
 
                                 # Filter based on the field and value
-                                filtered_items = [
-                                    item for item in all_items if item.get(field) == target_value
-                                ]
-                                return [
-                                    filtered_items
-                                ]  # SurrealDB returns a list of results, each a list of records
+                                filtered_items = [item for item in all_items if item.get(field) == target_value]
+                                return [filtered_items]  # SurrealDB returns a list of results, each a list of records
 
                 logger.warning("Query not supported in InMemoryStore")
                 return []
@@ -847,9 +840,7 @@ DEFINE FIELD stability_score ON TABLE universe_nodes VALUE (
             embedding=data.get("embedding"),
             physics_state=physics_state,
             node_type=data.get("node_type", "document"),
-            created_at=datetime.fromisoformat(data["created_at"])
-            if "created_at" in data
-            else datetime.now(),
+            created_at=datetime.fromisoformat(data["created_at"]) if "created_at" in data else datetime.now(),
             metadata=data.get("metadata", {}),
             compressed=compressed,
         )
@@ -914,9 +905,7 @@ class InMemoryStore:
             if embedding:
                 doc_vec = np.array(embedding)
                 # Cosine similarity
-                similarity = np.dot(query_vec, doc_vec) / (
-                    np.linalg.norm(query_vec) * np.linalg.norm(doc_vec) + 1e-8
-                )
+                similarity = np.dot(query_vec, doc_vec) / (np.linalg.norm(query_vec) * np.linalg.norm(doc_vec) + 1e-8)
                 scores.append((similarity, data))
 
         scores.sort(reverse=True, key=lambda x: x[0])
@@ -963,9 +952,7 @@ async def main() -> None:
         if retrieved:
             print(f"Retrieved node: {retrieved.id}")
             print(f"Content: {retrieved.content[:50]}...")
-            print(
-                f"Physics: x={retrieved.physics_state.x}, physics={retrieved.physics_state.physics}"
-            )
+            print(f"Physics: x={retrieved.physics_state.x}, physics={retrieved.physics_state.physics}")
 
     await client.close()
 

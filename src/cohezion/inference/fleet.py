@@ -26,6 +26,7 @@ from __future__ import annotations
 
 import asyncio
 import logging
+import os
 import time
 from dataclasses import dataclass, field
 from typing import Any
@@ -157,6 +158,7 @@ def _inject_symmetry_axis(payload: dict[str, Any], coherence: float | None) -> d
     """Inject ``turboquant_axis`` into the payload via the SymmetryHardwareBridge."""
     if coherence is None:
         return payload
+    strict = os.environ.get("COHEZION_STRICT_AXIS") == "1"
     try:
         from cohezion.core.symmetry_hardware_bridge import get_symmetry_bridge
 
@@ -168,6 +170,8 @@ def _inject_symmetry_axis(payload: dict[str, Any], coherence: float | None) -> d
         # KeyError / TypeError / ValueError — malformed payload the bridge rejects
         # Anything else (MemoryError, KeyboardInterrupt, custom BridgeError)
         # must propagate so the caller sees it rather than getting silent no-op.
+        if strict:
+            raise RuntimeError(f"strict axis mode (COHEZION_STRICT_AXIS=1): bridge unavailable: {exc}") from exc
         logger.debug("Symmetry bridge unavailable: %s", exc)
         return payload
 
@@ -208,10 +212,7 @@ async def _dispatch_openai_compatible(
         usage = data.get("usage", {})
         in_tok = usage.get("prompt_tokens", 0)
         out_tok = usage.get("completion_tokens", 0)
-        cost = (
-            in_tok * model.cost_per_1k_input_usd / 1000
-            + out_tok * model.cost_per_1k_output_usd / 1000
-        )
+        cost = in_tok * model.cost_per_1k_input_usd / 1000 + out_tok * model.cost_per_1k_output_usd / 1000
         return text, cost, None, None
 
     # Streaming path — record TTFT + throughput.
@@ -225,9 +226,7 @@ async def _dispatch_openai_compatible(
     out_tok = 0
 
     async with (
-        httpx.AsyncClient(
-            timeout=httpx.Timeout(connect=5.0, read=timeout, write=timeout, pool=timeout)
-        ) as client,
+        httpx.AsyncClient(timeout=httpx.Timeout(connect=5.0, read=timeout, write=timeout, pool=timeout)) as client,
         client.stream("POST", f"{model.endpoint}/v1/chat/completions", json=payload) as resp,
     ):
         resp.raise_for_status()
@@ -263,9 +262,7 @@ async def _dispatch_openai_compatible(
     ttft_ms = ((first_chunk_at - start) * 1000) if first_chunk_at else None
     gen_duration = end - (first_chunk_at or end)
     tokens_per_sec = len(text.split()) / gen_duration if gen_duration > 0.01 and text else None
-    cost = (
-        in_tok * model.cost_per_1k_input_usd / 1000 + out_tok * model.cost_per_1k_output_usd / 1000
-    )
+    cost = in_tok * model.cost_per_1k_input_usd / 1000 + out_tok * model.cost_per_1k_output_usd / 1000
     return text, cost, ttft_ms, tokens_per_sec
 
 
@@ -287,9 +284,7 @@ async def _dispatch_ollama(model: ModelEntry, prompt: str, timeout: float) -> tu
     # Ollama local is free; cloud has a small cost (tracked in registry).
     in_tok = data.get("prompt_eval_count", 0)
     out_tok = data.get("eval_count", 0)
-    cost = (
-        in_tok * model.cost_per_1k_input_usd / 1000 + out_tok * model.cost_per_1k_output_usd / 1000
-    )
+    cost = in_tok * model.cost_per_1k_input_usd / 1000 + out_tok * model.cost_per_1k_output_usd / 1000
     return text, cost
 
 
@@ -363,20 +358,12 @@ async def _dispatch_headless_cli(
         raise
 
     if proc.returncode != 0:
-        raise RuntimeError(
-            f"{binary} CLI exit {proc.returncode}: {stderr_b.decode(errors='replace')[:400]}"
-        )
+        raise RuntimeError(f"{binary} CLI exit {proc.returncode}: {stderr_b.decode(errors='replace')[:400]}")
 
     stdout = stdout_b.decode(errors="replace")
     try:
         data = json.loads(stdout)
-        text = (
-            data.get("result")
-            or data.get("text")
-            or data.get("response")
-            or data.get("content")
-            or ""
-        )
+        text = data.get("result") or data.get("text") or data.get("response") or data.get("content") or ""
         cost = float(data.get("total_cost_usd", 0.0))
     except json.JSONDecodeError:
         text = stdout.strip()
@@ -404,15 +391,11 @@ async def _dispatch_one(
     if model.lane in {Lane.CLOUD_CLAUDE, Lane.CLOUD_GEMINI}:
         text, cost = await _dispatch_headless_cli(model, prompt, timeout, budget_usd)
         return text, cost, None, None
-    if model.lane == Lane.CLOUD_OLLAMA or (
-        model.lane == Lane.CPU and model.endpoint.endswith(":11434")
-    ):
+    if model.lane == Lane.CLOUD_OLLAMA or (model.lane == Lane.CPU and model.endpoint.endswith(":11434")):
         text, cost = await _dispatch_ollama(model, prompt, timeout)
         return text, cost, None, None
     # Default: Lemonade-style OpenAI-compatible (supports streaming TTFT)
-    return await _dispatch_openai_compatible(
-        model, prompt, coherence, timeout, stream=stream, max_tokens=max_tokens
-    )
+    return await _dispatch_openai_compatible(model, prompt, coherence, timeout, stream=stream, max_tokens=max_tokens)
 
 
 async def route(
@@ -475,9 +458,7 @@ async def route(
     # Budget filter.
     if budget_usd is not None:
         candidates = [
-            c
-            for c in candidates
-            if (c.cost_per_1k_input_usd + c.cost_per_1k_output_usd) * 1.0 <= budget_usd * 2
+            c for c in candidates if (c.cost_per_1k_input_usd + c.cost_per_1k_output_usd) * 1.0 <= budget_usd * 2
         ]
 
     if not candidates:

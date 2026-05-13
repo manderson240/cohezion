@@ -165,9 +165,7 @@ async def tool_index_library(request: web.Request) -> web.Response:
         source_path = data.get("source_path", "")
 
         if not library_id or not source_path:
-            return web.json_response(
-                {"error": "library_id and source_path are required"}, status=400
-            )
+            return web.json_response({"error": "library_id and source_path are required"}, status=400)
 
         indexer = await get_indexer()
         result = await indexer.index_library(library_id, Path(source_path))

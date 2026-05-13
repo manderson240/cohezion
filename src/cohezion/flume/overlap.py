@@ -10,9 +10,7 @@ from typing import Any
 import torch
 
 
-def calculate_geometric_overlap(
-    latent_state: torch.Tensor, universe_state: torch.Tensor
-) -> dict[str, Any]:
+def calculate_geometric_overlap(latent_state: torch.Tensor, universe_state: torch.Tensor) -> dict[str, Any]:
     """
     Calculate the geometric overlap (L2 distance) between a down-projected
     latent vector and an axiomatic physical state vector.
@@ -25,9 +23,7 @@ def calculate_geometric_overlap(
         Dictionary containing L2 distance, coherence match, and metadata.
     """
     if latent_state.shape != universe_state.shape:
-        raise ValueError(
-            f"Shape mismatch: latent {latent_state.shape} vs universe {universe_state.shape}"
-        )
+        raise ValueError(f"Shape mismatch: latent {latent_state.shape} vs universe {universe_state.shape}")
 
     # 1. L2 Distance (Euclidean)
     l2_dist = torch.norm(latent_state - universe_state, p=2).item()

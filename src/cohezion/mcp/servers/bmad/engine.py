@@ -415,9 +415,7 @@ class BMADEngine:
             )
         return results
 
-    def list_workflows(
-        self, module: str | None = None, phase: str | None = None
-    ) -> list[dict[str, Any]]:
+    def list_workflows(self, module: str | None = None, phase: str | None = None) -> list[dict[str, Any]]:
         """List available workflows from the catalog."""
         if not self._catalog:
             # Fallback to skills that have workflow.md
@@ -638,9 +636,7 @@ class BMADEngine:
         # Fallback
         if not recommendations["suggested_skills"] and not recommendations["phases"]:
             first_steps = [
-                e
-                for e in self._catalog
-                if e.get("phase", "").startswith("1-") or e.get("phase") == "anytime"
+                e for e in self._catalog if e.get("phase", "").startswith("1-") or e.get("phase") == "anytime"
             ]
             for entry in first_steps[:5]:
                 skill = entry.get("skill", entry.get("name", ""))

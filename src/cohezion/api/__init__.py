@@ -29,9 +29,7 @@ logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
 # Allowed CORS origins from environment, default to localhost only
-_CORS_ORIGINS = os.environ.get(
-    "COHEZION_CORS_ORIGINS", "http://localhost:3000,http://localhost:8080"
-).split(",")
+_CORS_ORIGINS = os.environ.get("COHEZION_CORS_ORIGINS", "http://localhost:3000,http://localhost:8080").split(",")
 
 app = FastAPI(
     title="Cohezion API",
@@ -113,11 +111,7 @@ async def health():
 async def list_servers():
     """List all available MCP servers."""
     registry = get_registry()
-    return {
-        "servers": [
-            {"name": s.name, "type": s.type, "status": s.status} for s in registry.list_servers()
-        ]
-    }
+    return {"servers": [{"name": s.name, "type": s.type, "status": s.status} for s in registry.list_servers()]}
 
 
 @app.get("/mcp/tools")
@@ -705,9 +699,7 @@ async def flume_latent_space(request: FlumeLatentSpaceRequest):
 
     # Compute coherence scores (Issue #1: still uses list comp, but optimized access)
     # Note: Full vectorization requires refactoring _compute_coherence to accept arrays
-    coherence_scores = [
-        _compute_coherence(z_samples_np[i].tolist(), z_dim) for i in range(len(z_samples_np))
-    ]
+    coherence_scores = [_compute_coherence(z_samples_np[i].tolist(), z_dim) for i in range(len(z_samples_np))]
 
     return FlumeLatentSpaceResponse(
         latent_dim=z_dim,
@@ -1494,9 +1486,7 @@ async def compound_execute(request: CompoundExecuteRequest):
             model=request.model,
         )
     except KeyError as exc:
-        raise HTTPException(
-            status_code=404, detail=f"Skill not found: {request.skill_name}"
-        ) from exc
+        raise HTTPException(status_code=404, detail=f"Skill not found: {request.skill_name}") from exc
     except Exception as exc:
         logger.exception("Compound execution failed: %s", request.skill_name)
         raise HTTPException(status_code=500, detail="Execution failed") from exc
@@ -1577,9 +1567,7 @@ async def compound_feedback(request: CompoundFeedbackRequest):
                 patterns=result.patterns,
             )
     except KeyError as exc:
-        raise HTTPException(
-            status_code=404, detail=f"Skill not found: {request.skill_name}"
-        ) from exc
+        raise HTTPException(status_code=404, detail=f"Skill not found: {request.skill_name}") from exc
     except Exception as exc:
         logger.exception("Compound feedback failed: %s", request.skill_name)
         raise HTTPException(status_code=500, detail="Feedback cycle failed") from exc
@@ -1868,7 +1856,10 @@ from cohezion.protocols.a2a_server import A2AServer, AgentCard
 _a2a_server = A2AServer(
     agent_card=AgentCard(
         name="Cohezion Portfolio Agent",
-        description="FLUME VAE latent space navigation, Compound Loop engineering, Universe Simulation, Swarm Orchestration, and Evaluation Infrastructure",
+        description=(
+            "FLUME VAE latent space navigation, Compound Loop engineering,"
+            " Universe Simulation, Swarm Orchestration, and Evaluation Infrastructure"
+        ),
         url=os.getenv("PUBLIC_API_URL", "http://localhost:8080"),
         version="1.0.2",
         capabilities=[
@@ -1978,9 +1969,7 @@ class A2AMessageModel(BaseModel):
         max_size = 1_048_576  # 1 MB
 
         if size_bytes > max_size:
-            raise ValueError(
-                f"Message parts exceed maximum size of {max_size} bytes (got {size_bytes} bytes)"
-            )
+            raise ValueError(f"Message parts exceed maximum size of {max_size} bytes (got {size_bytes} bytes)")
 
         return parts
 

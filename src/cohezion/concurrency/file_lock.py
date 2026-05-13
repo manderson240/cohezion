@@ -80,9 +80,7 @@ class FileLock:
                 last_error = e
                 time.sleep(0.1)
 
-        raise FileLockError(
-            f"Could not acquire lock on {self.filepath} within {self.timeout}s: {last_error}"
-        )
+        raise FileLockError(f"Could not acquire lock on {self.filepath} within {self.timeout}s: {last_error}")
 
     def release(self) -> None:
         """Release lock on file."""

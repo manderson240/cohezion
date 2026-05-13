@@ -169,12 +169,8 @@ class FlumeNavEnv(gym.Env):
 
         if self._evo_tracker is not None:
             self._current_evo = self._evo_tracker.create_evo()
-            self._current_evo.stability_well = (
-                task_spec.stability_well if task_spec else "HIHO_Origin"
-            )
-            self._current_evo.kordylewski_cloud_id = (
-                task_spec.kordylewski_cloud_id if task_spec else "none"
-            )
+            self._current_evo.stability_well = task_spec.stability_well if task_spec else "HIHO_Origin"
+            self._current_evo.kordylewski_cloud_id = task_spec.kordylewski_cloud_id if task_spec else "none"
         else:
             self._current_evo = None
 
@@ -206,9 +202,7 @@ class FlumeNavEnv(gym.Env):
                 "coherence": self._compute_coherence(self._state),
                 "step": self._step_count,
                 "paused": True,
-                "mean_episode_coherence": np.mean(self._episode_coherences)
-                if self._episode_coherences
-                else 0.0,
+                "mean_episode_coherence": np.mean(self._episode_coherences) if self._episode_coherences else 0.0,
             }
             return self._state.copy(), 0.0, False, False, info
 
@@ -247,9 +241,7 @@ class FlumeNavEnv(gym.Env):
             self._current_evo.record_step(
                 {
                     "step": self._step_count,
-                    "doer_state": self._state[:12].copy()
-                    if len(self._state) >= 12
-                    else self._state.copy(),
+                    "doer_state": self._state[:12].copy() if len(self._state) >= 12 else self._state.copy(),
                     "coherence": coherence,
                     "reward": reward,
                     "exotic_charge_density": exotic_charge,

@@ -248,12 +248,8 @@ class TestMonitoringAndMetrics:
 
         # Check alert conditions
         should_warn_error = current_metrics["error_rate"] > alert_thresholds["error_rate_warning"]
-        should_critical_error = (
-            current_metrics["error_rate"] > alert_thresholds["error_rate_critical"]
-        )
-        should_warn_latency = (
-            current_metrics["latency_change"] > alert_thresholds["latency_degradation_warning"]
-        )
+        should_critical_error = current_metrics["error_rate"] > alert_thresholds["error_rate_critical"]
+        should_warn_latency = current_metrics["latency_change"] > alert_thresholds["latency_degradation_warning"]
 
         assert should_warn_error is False
         assert should_critical_error is False

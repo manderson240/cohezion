@@ -213,9 +213,7 @@ class TrainingDataPipeline:
                 data = np.load(cache_path)
                 cached_emb = data["embeddings"]
                 if cached_emb.shape[0] == len(texts):
-                    logger.info(
-                        "Loaded cached embeddings from %s (%d samples)", cache_path, len(texts)
-                    )
+                    logger.info("Loaded cached embeddings from %s (%d samples)", cache_path, len(texts))
                     return cached_emb
                 logger.warning("Cache shape mismatch, re-embedding")
 

@@ -92,9 +92,7 @@ class BatchSimulationRunner:
         while epochs_completed < total_epochs:
             # OOM check
             if self.guard.should_abort():
-                logger.error(
-                    f"  Aborting universe {universe_spec.universe_id} at epoch {epochs_completed} (memory)"
-                )
+                logger.error(f"  Aborting universe {universe_spec.universe_id} at epoch {epochs_completed} (memory)")
                 break
 
             # Adaptive batch size
@@ -122,11 +120,7 @@ class BatchSimulationRunner:
 
             # Checkpoint: compute statistics (in Rust, fast)
             stats = physics.compute_batch_stats(current)
-            sample = (
-                current[: cfg.checkpoint_sample_size].tolist()
-                if cfg.checkpoint_sample_size > 0
-                else None
-            )
+            sample = current[: cfg.checkpoint_sample_size].tolist() if cfg.checkpoint_sample_size > 0 else None
             checkpoints.append(
                 CheckpointData(
                     epoch=epochs_completed,

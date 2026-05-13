@@ -94,9 +94,7 @@ async def compound_execute(request: CompoundExecuteRequest):
             model=request.model,
         )
     except KeyError as exc:
-        raise HTTPException(
-            status_code=404, detail=f"Skill not found: {request.skill_name}"
-        ) from exc
+        raise HTTPException(status_code=404, detail=f"Skill not found: {request.skill_name}") from exc
     except Exception as exc:
         # FastAPI endpoint — convert any executor failure to clean 500 with logged detail.
         logger.exception("Compound execution failed: %s", request.skill_name)
@@ -161,9 +159,7 @@ async def compound_feedback(request: CompoundFeedbackRequest):
                 patterns=result.patterns,
             )
     except KeyError as exc:
-        raise HTTPException(
-            status_code=404, detail=f"Skill not found: {request.skill_name}"
-        ) from exc
+        raise HTTPException(status_code=404, detail=f"Skill not found: {request.skill_name}") from exc
     except Exception as exc:
         # FastAPI endpoint — convert any feedback-loop failure to clean 500 with logged detail.
         logger.exception("Compound feedback failed: %s", request.skill_name)

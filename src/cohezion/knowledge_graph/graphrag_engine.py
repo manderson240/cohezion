@@ -32,9 +32,7 @@ class RetrievalResult:
     title: str
     content: str
     score: float  # Similarity score
-    connections: list[dict[str, Any]] = field(
-        default_factory=list
-    )  # Connected neurons via synapses
+    connections: list[dict[str, Any]] = field(default_factory=list)  # Connected neurons via synapses
     valid_from: datetime | None = None
     valid_to: datetime | None = None
 
@@ -178,9 +176,7 @@ class GraphRAGEngine:
         temporal_filter = ""
         if as_of:
             iso = as_of.isoformat()
-            temporal_filter = (
-                f"AND valid_from <= d'{iso}' AND (valid_to IS NONE OR valid_to > d'{iso}')"
-            )
+            temporal_filter = f"AND valid_from <= d'{iso}' AND (valid_to IS NONE OR valid_to > d'{iso}')"
 
         query = f"""
             SELECT id, title, content,

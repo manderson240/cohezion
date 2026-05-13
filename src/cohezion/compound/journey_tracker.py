@@ -136,6 +136,17 @@ class JourneyTracker:
         # Operation modulation profiles (12D vectors)
         self._modulation_profiles = self._create_modulation_profiles()
 
+        # TemporalEncoder for step-sequence encoding — attempt to load checkpoint
+        self._temporal_encoder = None
+        try:
+            from cohezion.flume.temporal_encoder import TemporalVAELoader
+
+            loader = TemporalVAELoader()
+            if loader.enabled:
+                self._temporal_encoder = loader
+        except Exception:
+            pass  # Checkpoint unavailable — fall back to hash-based encoding
+
         logger.debug("Initialized JourneyTracker with seed=%d", seed)
 
     def _create_modulation_profiles(self) -> dict[str, np.ndarray]:
@@ -291,10 +302,7 @@ class JourneyTracker:
         # Chunk-mean projection: 2048 → 16 dimensions (128-element chunks)
         num_chunks = self.HASH_DIMS // self.CHUNK_SIZE
         chunk_means = np.array(
-            [
-                np.mean(latent_2048d[i * self.CHUNK_SIZE : (i + 1) * self.CHUNK_SIZE])
-                for i in range(num_chunks)
-            ]
+            [np.mean(latent_2048d[i * self.CHUNK_SIZE : (i + 1) * self.CHUNK_SIZE]) for i in range(num_chunks)]
         )
 
         # Interpolate 16D → 12D
@@ -308,9 +316,7 @@ class JourneyTracker:
             result_12d = np.interp(indices, np.arange(len(chunk_means)), chunk_means)
 
         # Normalize to [0, 1]
-        result_12d = (result_12d - np.min(result_12d)) / (
-            np.max(result_12d) - np.min(result_12d) + 1e-8
-        )
+        result_12d = (result_12d - np.min(result_12d)) / (np.max(result_12d) - np.min(result_12d) + 1e-8)
 
         # Cache result (evict oldest if at capacity)
         if len(self._projection_cache) >= self.MAX_CACHE_SIZE:
@@ -399,9 +405,7 @@ class JourneyTracker:
         # Extract metrics
         coherence = execution_result.metrics.get("coherence", 0.5)
         efficiency = (
-            execution_result.token_metrics.get("cache_hit_rate", 0.5)
-            if execution_result.token_metrics
-            else 0.5
+            execution_result.token_metrics.get("cache_hit_rate", 0.5) if execution_result.token_metrics else 0.5
         )
 
         # Generate embeddings
@@ -409,9 +413,7 @@ class JourneyTracker:
         projection_12d = self._holographic_project(latent_2048d)
 
         # Apply operation modulation
-        axiomatic_12d = self._step_to_axiomatic(
-            projection_12d, operation_type, coherence, efficiency
-        )
+        axiomatic_12d = self._step_to_axiomatic(projection_12d, operation_type, coherence, efficiency)
 
         # Compute quality score using real trajectory history
         smoothness = 0.5
@@ -481,9 +483,7 @@ class JourneyTracker:
             pass  # Non-blocking: SurrealDB may be unavailable
 
         # Append to audit hash chain (non-blocking)
-        chain_id = hashlib.sha256(
-            f"{operation_type}:{task_description[:100]}".encode()
-        ).hexdigest()[:16]
+        chain_id = hashlib.sha256(f"{operation_type}:{task_description[:100]}".encode()).hexdigest()[:16]
         chain_payload = {
             "coherence": point.coherence,
             "efficiency": point.efficiency,
@@ -494,8 +494,7 @@ class JourneyTracker:
         self._record_chain_entry(chain_id, chain_payload)
 
         logger.debug(
-            "Tracked execution: %s (phi=%.2f, coherence=%.2f, "
-            "smoothness=%.2f, convergence=%.2f, buffer=%d)",
+            "Tracked execution: %s (phi=%.2f, coherence=%.2f, smoothness=%.2f, convergence=%.2f, buffer=%d)",
             task_description[:50],
             phi_score,
             coherence,
@@ -524,20 +523,24 @@ class JourneyTracker:
                 "efficiency": point.efficiency,
                 "operation_type": point.operation_type,
                 "task_description": point.task_description[:200],
-                "metadata": {
-                    k: v
-                    for k, v in (point.metadata or {}).items()
-                    if isinstance(v, (str, int, float, bool))
-                },
+                "metadata": {k: v for k, v in (point.metadata or {}).items() if isinstance(v, (str, int, float, bool))},
             }
         ).encode("utf-8")
 
         surql = "CREATE journey_transition CONTENT $data;"
         body = json.dumps({"surql": surql, "data": json.loads(data)}).encode("utf-8")
 
+        dims = point.dimensions.tolist() if hasattr(point.dimensions, "tolist") else list(point.dimensions)
+        task_escaped = point.task_description[:100].replace(chr(39), "")
+        sql = (
+            f"CREATE journey_transition SET dimensions = {dims},"
+            f" coherence = {point.coherence}, efficiency = {point.efficiency},"
+            f" operation_type = '{point.operation_type}', task = '{task_escaped}',"
+            " created = time::now();"
+        )
         req = urllib.request.Request(
             "http://localhost:8001/sql",
-            data=f"CREATE journey_transition SET dimensions = {point.dimensions.tolist() if hasattr(point.dimensions, 'tolist') else list(point.dimensions)}, coherence = {point.coherence}, efficiency = {point.efficiency}, operation_type = '{point.operation_type}', task = '{point.task_description[:100].replace(chr(39), '')}', created = time::now();".encode(),
+            data=sql.encode(),
             headers={
                 "Accept": "application/json",
                 "surreal-ns": "cohezion",
@@ -562,12 +565,9 @@ class JourneyTracker:
     def text_to_latent(self, text: str) -> np.ndarray:
         """Convert text to 2048D latent vector via FLUME encoding pipeline.
 
-        Uses HFEmbeddingBridge (sentence-transformers) when available,
-        falls back to deterministic hash-based encoding for environments
-        without GPU/model dependencies.
-
-        The 2048D vector represents the raw semantic embedding BEFORE
-        the FLUME compression pipeline (2048→256→12D manifold).
+        Uses _flume_encoder (FlumeVAEEncoder) when available — produces 256D
+        embeddings tiled to 2048D. Falls back to deterministic hash-based
+        encoding for environments without a loaded encoder.
 
         Args:
             text: Text to encode
@@ -575,8 +575,13 @@ class JourneyTracker:
         Returns:
             Normalized 2048D numpy array
         """
+        flume_encoder = getattr(self, "_flume_encoder", None)
+        if flume_encoder is not None and getattr(flume_encoder, "is_available", lambda: False)():
+            from cohezion.compound.holographic_projection import text_to_latent as _t2l
+
+            return _t2l(text, flume_encoder=flume_encoder)
+
         # Fallback: deterministic hash-based encoding
-        # Always produces 2048D for consistency with FLUME compression pipeline
         import hashlib
 
         h = hashlib.sha512(text.encode("utf-8")).digest()
@@ -615,15 +620,29 @@ class JourneyTracker:
             latent_flat = padded
             chunk_size = 1
 
-        projected = np.array(
-            [np.mean(latent_flat[i * chunk_size : (i + 1) * chunk_size]) for i in range(dim)]
-        )
+        projected = np.array([np.mean(latent_flat[i * chunk_size : (i + 1) * chunk_size]) for i in range(dim)])
 
         # Normalize to [0, 1] via sigmoid
         result = (1.0 / (1.0 + np.exp(-projected * 5.0))).astype(np.float64)
 
         self._projection_cache[cache_key] = result
         return result
+
+    def encode_step_sequence(self, steps: list[dict]) -> np.ndarray:
+        """Encode a sequence of execution steps to a 2048D latent vector.
+
+        Delegates to ``holographic_projection.encode_step_sequence``, passing
+        the tracker's temporal encoder if one has been loaded.
+
+        Args:
+            steps: Ordered list of execution step dicts.
+
+        Returns:
+            2048D float32 array normalised to [-1, 1].
+        """
+        from cohezion.compound.holographic_projection import encode_step_sequence
+
+        return encode_step_sequence(steps, temporal_encoder=self._temporal_encoder)
 
     def _compute_observer_consistency(self, current_12d: np.ndarray) -> float:
         """Compute observer consistency between current execution and previous.
@@ -691,9 +710,7 @@ class JourneyTracker:
         """
         state = self._chain_state.setdefault(chain_id, {"sequence": 0, "last_hash": "0" * 64})
 
-        payload_hash = hashlib.sha256(
-            json.dumps(payload, sort_keys=True, default=str).encode()
-        ).hexdigest()
+        payload_hash = hashlib.sha256(json.dumps(payload, sort_keys=True, default=str).encode()).hexdigest()
         prev_hash = str(state["last_hash"])
         # chain_hash links prev_hash → payload_hash so verification needs only stored fields
         chain_hash = hashlib.sha256(f"{prev_hash}:{payload_hash}".encode()).hexdigest()

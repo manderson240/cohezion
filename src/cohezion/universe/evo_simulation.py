@@ -97,9 +97,7 @@ class ExoticVacuumObject:
             self._journey_loaded = True
         return self._journey
 
-    def transition_vacuum_state(
-        self, new_state: VacuumState, coupling_constant: float = 0.1
-    ) -> float:
+    def transition_vacuum_state(self, new_state: VacuumState, coupling_constant: float = 0.1) -> float:
         """
         Transition to a new vacuum state.
 
@@ -133,9 +131,7 @@ class ExoticVacuumObject:
 
         return delta_e
 
-    def compute_trajectory_step(
-        self, dt: float, force_field: np.ndarray | None = None
-    ) -> np.ndarray:
+    def compute_trajectory_step(self, dt: float, force_field: np.ndarray | None = None) -> np.ndarray:
         """
         Compute next position given current state.
 
@@ -186,9 +182,7 @@ class FLUMEJourneyStream:
         self._cache: dict[str, list[JourneyEvent]] = {}
         self._active_segments: set = set()
 
-    async def load_segment(
-        self, evo_id: str, timestep_range: tuple[int, int]
-    ) -> list[JourneyEvent]:
+    async def load_segment(self, evo_id: str, timestep_range: tuple[int, int]) -> list[JourneyEvent]:
         """Lazy load a segment of journey history."""
         key = f"{evo_id}_{timestep_range[0]}_{timestep_range[1]}"
 
@@ -241,9 +235,7 @@ class VAIEMetrics:
         return entropy
 
     @staticmethod
-    def detect_entanglement(
-        evo1: ExoticVacuumObject, evo2: ExoticVacuumObject, window_size: int = 10
-    ) -> float:
+    def detect_entanglement(evo1: ExoticVacuumObject, evo2: ExoticVacuumObject, window_size: int = 10) -> float:
         """
         Detect quantum-like entanglement between EVOs.
 

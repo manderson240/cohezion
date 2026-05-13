@@ -13,6 +13,7 @@ from cohezion.compound.request_alignment_analyzer import RequestAlignmentAnalyze
 
 class _MockVirtualMemory:
     """Fake psutil virtual_memory result for resource guardrail bypass."""
+
     percent = 50.0  # Well below the guardrail threshold
 
 
@@ -29,9 +30,7 @@ class MockMCPClient:
         self.vault_queries.append({"query": query, "project": project})
         return [{"path": "patterns/alignment.md", "content": "test"}]
 
-    def vault_log_decision(
-        self, project: str, title: str, context: str, decision: str, rationale: str
-    ) -> str:
+    def vault_log_decision(self, project: str, title: str, context: str, decision: str, rationale: str) -> str:
         """Mock decision logging."""
         self.vault_logs.append({"type": "decision", "project": project, "title": title})
         return "decisions/alignment-test.md"
@@ -329,9 +328,7 @@ class TestAlignmentNonBlocking:
         mcp_client = MockMCPClient()
 
         # Mock alignment analyzer to raise exception
-        with patch.object(
-            RequestAlignmentAnalyzer, "analyze_alignment", side_effect=Exception("Test error")
-        ):
+        with patch.object(RequestAlignmentAnalyzer, "analyze_alignment", side_effect=Exception("Test error")):
             executor = ExecutorFactory.create(mcp_client, enable_alignment_analysis=True)
 
             def mock_execute(guidance):

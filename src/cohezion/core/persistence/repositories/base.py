@@ -144,9 +144,7 @@ class BaseRepository(ABC, Generic[T, TFilter]):
                 items_processed=metrics.items_processed,
             )
 
-    def _get_recent_metrics(
-        self, operation: str | None = None, limit: int = 100
-    ) -> list[RepositoryMetrics]:
+    def _get_recent_metrics(self, operation: str | None = None, limit: int = 100) -> list[RepositoryMetrics]:
         """Get recent metrics for analysis.
 
         Used by:

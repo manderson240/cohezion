@@ -267,9 +267,7 @@ class UniverseEvaluator:
         # Basic aggregates
         converged = [m for m in metrics if m.terminated]
         evaluation.convergence_rate = len(converged) / n
-        evaluation.mean_convergence_step = (
-            np.mean([m.convergence_step for m in converged]) if converged else 0.0
-        )
+        evaluation.mean_convergence_step = np.mean([m.convergence_step for m in converged]) if converged else 0.0
         evaluation.mean_stability_duration = np.mean([m.hiho_stability_duration for m in metrics])
         evaluation.mean_reward = np.mean([m.total_reward for m in metrics])
         evaluation.mean_energy = np.mean([m.total_energy for m in metrics])
@@ -283,10 +281,7 @@ class UniverseEvaluator:
             if len(values) < 2:
                 return (0.0, 0.0)
             arr = np.array(values)
-            boot_means = [
-                np.mean(rng.choice(arr, size=len(arr), replace=True))
-                for _ in range(self.n_bootstrap)
-            ]
+            boot_means = [np.mean(rng.choice(arr, size=len(arr), replace=True)) for _ in range(self.n_bootstrap)]
             alpha = (1 - self.ci_level) / 2
             return (
                 float(np.percentile(boot_means, alpha * 100)),

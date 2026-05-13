@@ -21,6 +21,7 @@ import inspect
 import logging
 from typing import Any, Awaitable, Callable, TypeVar
 
+
 logger = logging.getLogger(__name__)
 
 F = TypeVar("F", bound=Callable[..., Awaitable[dict[str, Any]]])

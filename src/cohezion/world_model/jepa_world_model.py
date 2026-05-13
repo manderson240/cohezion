@@ -121,9 +121,7 @@ class CausalMask(nn.Module):
         """Apply causal masking during training; scale by importance at inference."""
         if training and self.mask_ratio > 0:
             # Random binary mask: 1 = keep, 0 = mask
-            mask = torch.bernoulli(
-                torch.full((x.shape[-1],), 1.0 - self.mask_ratio, device=x.device)
-            )
+            mask = torch.bernoulli(torch.full((x.shape[-1],), 1.0 - self.mask_ratio, device=x.device))
             # Scale remaining dims to preserve expected magnitude
             scale = 1.0 / max(1.0 - self.mask_ratio, 0.1)
             return x * mask * scale
@@ -313,11 +311,7 @@ class JEPAWorldModel:
         # Gaussian KL regularizer (dual-loss, Le-WM arxiv 2603.19312)
         regularizer_loss = self._compute_regularizer_loss(mu, logvar)
 
-        total_loss = (
-            prediction_loss
-            + self.sigreg_weight * sigreg_loss
-            + self.regularizer_lambda * regularizer_loss
-        )
+        total_loss = prediction_loss + self.sigreg_weight * sigreg_loss + self.regularizer_lambda * regularizer_loss
 
         self.optimizer.zero_grad()
         total_loss.backward()
@@ -399,9 +393,7 @@ class JEPAWorldModel:
         return decoded.squeeze(0).numpy()
 
     @torch.no_grad()
-    def surprise_score(
-        self, state: np.ndarray, action: np.ndarray, observed_next: np.ndarray
-    ) -> float:
+    def surprise_score(self, state: np.ndarray, action: np.ndarray, observed_next: np.ndarray) -> float:
         """Compute surprise: MSE between predicted and actual embeddings.
 
         High surprise = unexpected transition. Low = predicted behavior.
@@ -420,9 +412,7 @@ class JEPAWorldModel:
         return float(nn.functional.mse_loss(predicted_emb, actual_emb).item())
 
     @torch.no_grad()
-    def simulate_latent_trajectory(
-        self, initial_state: np.ndarray, actions: list[np.ndarray]
-    ) -> list[torch.Tensor]:
+    def simulate_latent_trajectory(self, initial_state: np.ndarray, actions: list[np.ndarray]) -> list[torch.Tensor]:
         """Roll out N steps in latent space and return embeddings.
 
         Used to measure Temporal Straightening (Le-WM).
@@ -445,9 +435,7 @@ class JEPAWorldModel:
         return trajectory_z
 
     @torch.no_grad()
-    def simulate_trajectory(
-        self, initial_state: np.ndarray, actions: list[np.ndarray]
-    ) -> list[np.ndarray]:
+    def simulate_trajectory(self, initial_state: np.ndarray, actions: list[np.ndarray]) -> list[np.ndarray]:
         """Roll out N steps autoregressively."""
         trajectory = [initial_state.copy()]
         state = initial_state.copy()
@@ -458,9 +446,7 @@ class JEPAWorldModel:
         return trajectory
 
     @torch.no_grad()
-    def fast_predict(
-        self, state: np.ndarray, action: np.ndarray, k: int | None = None
-    ) -> np.ndarray:
+    def fast_predict(self, state: np.ndarray, action: np.ndarray, k: int | None = None) -> np.ndarray:
         """Fast prediction using only the top-k causal dimensions.
 
         Uses CausalMask.top_k_causal_dims() to identify the most informative
@@ -489,9 +475,7 @@ class JEPAWorldModel:
         return decoded.squeeze(0).numpy()
 
     @torch.no_grad()
-    def counterfactual_predict(
-        self, state: np.ndarray, actions: list[np.ndarray]
-    ) -> list[np.ndarray]:
+    def counterfactual_predict(self, state: np.ndarray, actions: list[np.ndarray]) -> list[np.ndarray]:
         """Predict outcomes for multiple alternative actions (counterfactual reasoning).
 
         Given a state and N possible actions, returns N predicted next states.

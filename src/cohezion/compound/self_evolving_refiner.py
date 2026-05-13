@@ -75,9 +75,7 @@ class SelfEvolvingRefiner:
 
         return success
 
-    async def _analyze_failure(
-        self, skill_name: str, trace: str, outcome: str
-    ) -> FailureAnalysis | None:
+    async def _analyze_failure(self, skill_name: str, trace: str, outcome: str) -> FailureAnalysis | None:
         """
         Simulates the LLM-based failure attribution selector.
         In a full implementation, this would call an LLM to analyze the trace.
@@ -101,9 +99,7 @@ class SelfEvolvingRefiner:
             confidence=0.85,
         )
 
-    async def _apply_mutation(
-        self, skill_name: str, analysis: FailureAnalysis, regime: str
-    ) -> bool:
+    async def _apply_mutation(self, skill_name: str, analysis: FailureAnalysis, regime: str) -> bool:
         """
         Rewrites the skill specification based on the regime.
         - E7 (A-type): Focus on technical constraints.
@@ -129,7 +125,11 @@ class SelfEvolvingRefiner:
             else:
                 mutation_prefix = "GENERAL IMPROVEMENT: "
 
-            refinement = f"\\n\\n### Evolutionary Mutation ({mutation_prefix})\\n- **Attribution**: {analysis.attribution}\\n- **Fix**: {analysis.suggested_fix}\\n"
+            refinement = (
+                f"\\n\\n### Evolutionary Mutation ({mutation_prefix})\\n"
+                f"- **Attribution**: {analysis.attribution}\\n"
+                f"- **Fix**: {analysis.suggested_fix}\\n"
+            )
 
             # We prepend the mutation to the top of the skill's 'Instructions' section
             # to ensure the LLM sees the most recent evolution first.

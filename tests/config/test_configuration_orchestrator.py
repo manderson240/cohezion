@@ -113,9 +113,7 @@ class TestGitUtils:
         test_file = tmp_path / "test.txt"
         test_file.write_text("initial")
         subprocess.run(["git", "add", "test.txt"], cwd=tmp_path, capture_output=True, check=True)
-        subprocess.run(
-            ["git", "commit", "-m", "initial"], cwd=tmp_path, capture_output=True, check=True
-        )
+        subprocess.run(["git", "commit", "-m", "initial"], cwd=tmp_path, capture_output=True, check=True)
 
         # No changes yet
         git = GitUtils(tmp_path)
@@ -154,9 +152,7 @@ class TestGitUtils:
         test_file = tmp_path / "test.txt"
         test_file.write_text("line1\nline2")
         subprocess.run(["git", "add", "test.txt"], cwd=tmp_path, capture_output=True, check=True)
-        subprocess.run(
-            ["git", "commit", "-m", "initial"], cwd=tmp_path, capture_output=True, check=True
-        )
+        subprocess.run(["git", "commit", "-m", "initial"], cwd=tmp_path, capture_output=True, check=True)
 
         # Make changes
         test_file.write_text("line1\nmodified\nline3")
@@ -197,9 +193,7 @@ class TestGitUtils:
         test_file = tmp_path / "test.txt"
         test_file.write_text("initial")
         subprocess.run(["git", "add", "test.txt"], cwd=tmp_path, capture_output=True, check=True)
-        subprocess.run(
-            ["git", "commit", "-m", "initial"], cwd=tmp_path, capture_output=True, check=True
-        )
+        subprocess.run(["git", "commit", "-m", "initial"], cwd=tmp_path, capture_output=True, check=True)
 
         # Make changes
         test_file.write_text("modified")

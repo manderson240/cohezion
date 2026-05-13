@@ -340,9 +340,7 @@ class TestResourceDaemon:
     async def test_poll_ollama_state_returns_default_on_failure(self) -> None:
         daemon = ResourceDaemon()
         with patch("aiohttp.ClientSession") as mock_cls:
-            mock_cls.return_value.__aenter__ = AsyncMock(
-                side_effect=Exception("Ollama not running")
-            )
+            mock_cls.return_value.__aenter__ = AsyncMock(side_effect=Exception("Ollama not running"))
             state = await daemon.poll_ollama_state()
         assert isinstance(state, PlatformMemoryState)
         assert state.ollama_used_gb == 0.0

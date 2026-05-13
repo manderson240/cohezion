@@ -324,9 +324,7 @@ class LLMExecutor:
                 # Handle non-200 status codes
                 error_text = await response.aread()
                 error_text_str = (
-                    error_text.decode("utf-8", errors="replace")
-                    if isinstance(error_text, bytes)
-                    else error_text
+                    error_text.decode("utf-8", errors="replace") if isinstance(error_text, bytes) else error_text
                 )
                 error_ref_match = re.search(r"ref:\s*([a-f0-9-]+)", error_text_str)
                 error_ref = f" (ref: {error_ref_match.group(1)})" if error_ref_match else ""
@@ -336,9 +334,7 @@ class LLMExecutor:
                 if not is_retryable or attempt == max_retries - 1:
                     # Non-retryable or last attempt failed
                     self._circuit_breaker.record_failure(endpoint)
-                    raise RuntimeError(
-                        f"Ollama API error {response.status_code}{error_ref}: {error_text[:200]}"
-                    )
+                    raise RuntimeError(f"Ollama API error {response.status_code}{error_ref}: {error_text[:200]}")
 
                 # Retryable error - log and retry with backoff
                 delay = self._calculate_retry_delay(attempt)

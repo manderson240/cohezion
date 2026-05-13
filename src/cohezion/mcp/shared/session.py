@@ -20,10 +20,7 @@ def get_redis_url() -> str:
     """Get Redis URL with lazy initialization."""
     global _redis_url
     if _redis_url is None:
-        _redis_url = (
-            get_credentials().get_secret("COHEZION_REDIS_URL", env_var="REDIS_URL")
-            or "redis://localhost:6379"
-        )
+        _redis_url = get_credentials().get_secret("COHEZION_REDIS_URL", env_var="REDIS_URL") or "redis://localhost:6379"
     return _redis_url
 
 

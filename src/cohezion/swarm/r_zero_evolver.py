@@ -12,9 +12,7 @@ import aiofiles
 
 # Dynamically load the module from the kaggle-agi-benchmark directory
 prompt_path = str(
-    Path(__file__).resolve().parent.parent.parent.parent
-    / "kaggle-agi-benchmark"
-    / "generate_evo_hiho_tasks.py"
+    Path(__file__).resolve().parent.parent.parent.parent / "kaggle-agi-benchmark" / "generate_evo_hiho_tasks.py"
 )
 try:
     spec = importlib.util.spec_from_file_location("generate_evo_hiho_tasks", prompt_path)
@@ -36,11 +34,7 @@ from cohezion.swarm.compound_client import get_compound_client
 logger = logging.getLogger(__name__)
 
 # Output dataset file
-BENCHMARK_FILE = (
-    Path(__file__).resolve().parent.parent.parent.parent
-    / "kaggle-agi-benchmark"
-    / "submission.jsonl"
-)
+BENCHMARK_FILE = Path(__file__).resolve().parent.parent.parent.parent / "kaggle-agi-benchmark" / "submission.jsonl"
 
 
 class RZeroEvolver:
@@ -100,7 +94,10 @@ class RZeroEvolver:
             prompt += f"Example {i + 1}:\nInput: {ex['input']}\nOutput: {ex['output']}\n\n"
 
         prompt += f"Test Input: {test_input}\n\n"
-        prompt += "Provide your detailed reasoning, identifying the rule, then output ONLY the resulting 2D integer array for the Test Input. Output the grid in [[...]] format."
+        prompt += (
+            "Provide your detailed reasoning, identifying the rule, then output ONLY the"
+            " resulting 2D integer array for the Test Input. Output the grid in [[...]] format."
+        )
 
         client = get_compound_client()
         response_text, _ = await client.generate(
@@ -112,9 +109,7 @@ class RZeroEvolver:
 
     async def run_loop(self) -> None:
         # Load existing grounded benchmark
-        benchmark_path = prompt_path.replace(
-            "generate_evo_hiho_tasks.py", "evo_hiho_benchmark.json"
-        )
+        benchmark_path = prompt_path.replace("generate_evo_hiho_tasks.py", "evo_hiho_benchmark.json")
         async with aiofiles.open(benchmark_path) as f:
             data = json.loads(await f.read())
 

@@ -173,9 +173,7 @@ class SystemdRunBackend:
             )
 
             try:
-                stdout_bytes, stderr_bytes = await asyncio.wait_for(
-                    proc.communicate(), timeout=profile.timeout_seconds
-                )
+                stdout_bytes, stderr_bytes = await asyncio.wait_for(proc.communicate(), timeout=profile.timeout_seconds)
             except TimeoutError:
                 proc.kill()
                 await proc.wait()

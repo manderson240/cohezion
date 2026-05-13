@@ -49,9 +49,7 @@ class CloudGraderConfig:
     """Cloud grading configuration"""
 
     primary_model: str = "kimi-k2.5"
-    fallback_models: list[str] = field(
-        default_factory=lambda: ["qwen3-coder:30b", "deepseek-r1:7b", "phi4"]
-    )
+    fallback_models: list[str] = field(default_factory=lambda: ["qwen3-coder:30b", "deepseek-r1:7b", "phi4"])
     consensus_threshold: float = 0.7
     request_timeout: int = 120
     max_retries: int = 3

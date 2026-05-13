@@ -335,9 +335,7 @@ class ModelCapabilityRegistry:
         )
         try:
             stdout, stderr = await asyncio.wait_for(proc.communicate(), timeout=timeout)
-            return subprocess.CompletedProcess(
-                cmd, proc.returncode, stdout.decode(), stderr.decode()
-            )
+            return subprocess.CompletedProcess(cmd, proc.returncode, stdout.decode(), stderr.decode())
         except TimeoutError:
             proc.kill()
             raise
@@ -378,7 +376,7 @@ class ModelCapabilityRegistry:
         # Memory measurement
         try:
             benchmark.memory_mb = await self._measure_memory()
-        except:
+        except Exception:
             pass
 
         # Capability tests
@@ -405,7 +403,7 @@ class ModelCapabilityRegistry:
             try:
                 result = await self._run_cmd(["flm", "info", model_name], timeout=10)
                 return result.returncode == 0
-            except:
+            except Exception:
                 return False
         else:
             # For GPU Vulkan/ROCm, assume available if file exists

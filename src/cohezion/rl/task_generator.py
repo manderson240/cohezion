@@ -235,9 +235,7 @@ class TaskGenerator:
             Generated task specification.
         """
         if archetype not in TASK_ARCHETYPES:
-            raise ValueError(
-                f"Unknown archetype: {archetype}. Must be one of {list(TASK_ARCHETYPES.keys())}"
-            )
+            raise ValueError(f"Unknown archetype: {archetype}. Must be one of {list(TASK_ARCHETYPES.keys())}")
 
         cfg = TASK_ARCHETYPES[archetype]
         m = self.DIFFICULTY_MULTIPLIERS[clamp(difficulty, 1, 4)]

@@ -98,9 +98,7 @@ class ResearchSquad:
         self.optimization_history: list[OptimizationResult] = []
         logger.info("Research Squad initialized")
 
-    def _run_optimization_experiment(
-        self, task: Task, context: dict[str, Any]
-    ) -> tuple[str, dict[str, Any]]:
+    def _run_optimization_experiment(self, task: Task, context: dict[str, Any]) -> tuple[str, dict[str, Any]]:
         """Execute a single optimization experiment."""
         skill_name = task.metadata.get("skill_name", "unknown")
         experiment_config = task.metadata.get("config", {})
@@ -120,9 +118,7 @@ class ResearchSquad:
             },
         )
 
-    def detect_degradation(
-        self, skill_name: str, metrics: dict[str, float]
-    ) -> DegradationSignal | None:
+    def detect_degradation(self, skill_name: str, metrics: dict[str, float]) -> DegradationSignal | None:
         """Detect if a skill needs optimization. Returns None if healthy."""
         signals = []
 
@@ -204,9 +200,7 @@ class ResearchSquad:
         )
 
         self.optimization_history.append(result)
-        logger.info(
-            f"Optimization complete: {skill_name} improved by {result.improvement_pct:.1f}%"
-        )
+        logger.info(f"Optimization complete: {skill_name} improved by {result.improvement_pct:.1f}%")
         return result
 
     def apply_refinement(self, result: OptimizationResult) -> bool:
@@ -219,9 +213,7 @@ class ResearchSquad:
             logger.error(f"Failed to apply refinement: {e}")
             return False
 
-    def run_optimization_cycle(
-        self, skill_metrics: dict[str, dict[str, float]]
-    ) -> list[OptimizationResult]:
+    def run_optimization_cycle(self, skill_metrics: dict[str, dict[str, float]]) -> list[OptimizationResult]:
         """Run full optimization cycle on degraded skills."""
         results = []
 
@@ -260,9 +252,7 @@ class ResearchSquad:
             "total_cost_usd": round(total_cost, 2),
             "total_improvement_pct": round(total_improvement, 2),
             "average_improvement_pct": round(avg_improvement, 2),
-            "successful_refinements": sum(
-                1 for r in self.optimization_history if r.refinement_applied
-            ),
+            "successful_refinements": sum(1 for r in self.optimization_history if r.refinement_applied),
             "optimizations": [r.to_dict() for r in self.optimization_history],
         }
 

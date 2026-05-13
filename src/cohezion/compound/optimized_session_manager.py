@@ -110,9 +110,7 @@ class OptimizedSessionRuntime:
         from cohezion.compound.cache_persistence import WarmCacheLoader
 
         loader = WarmCacheLoader()
-        entries_loaded = await asyncio.to_thread(
-            loader.warm_client, self.mcp_client, max_entries=256
-        )
+        entries_loaded = await asyncio.to_thread(loader.warm_client, self.mcp_client, max_entries=256)
         logger.info(f"Cache warmed: {entries_loaded} entries")
 
         # Metrics restoration
@@ -429,9 +427,7 @@ class CompoundSessionManager:
         if self._runtime:
             await self._runtime.clean_shutdown()
 
-    async def start_session(
-        self, skill_name: str = "auto", max_cache_entries: int = 256
-    ) -> dict[str, Any]:
+    async def start_session(self, skill_name: str = "auto", max_cache_entries: int = 256) -> dict[str, Any]:
         """Start new session with warming (v0.65.0 pattern)."""
         if not self._runtime:
             self._runtime = await OptimizedSessionRuntime.get_instance()
@@ -487,9 +483,7 @@ class CompoundSessionManager:
 
 
 # Convenience function for simple usage
-async def create_optimized_session(
-    skill_name: str = "auto", config: SessionConfig | None = None
-) -> InferenceSession:
+async def create_optimized_session(skill_name: str = "auto", config: SessionConfig | None = None) -> InferenceSession:
     """Create optimized session with warm-start."""
     runtime = await OptimizedSessionRuntime.get_instance()
     return await runtime.create_session(config=config)

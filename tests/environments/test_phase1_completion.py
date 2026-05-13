@@ -169,12 +169,8 @@ class TestEvaluatorIntegration:
 
         env = ManifoldEnv(max_steps=50, seed=42)
         evaluator = UniverseEvaluator(n_bootstrap=50)
-        greedy = evaluator.evaluate_policy(
-            env, greedy_hiho_policy, n_episodes=5, policy_name="greedy"
-        )
-        random_eval = evaluator.evaluate_policy(
-            env, random_policy, n_episodes=5, policy_name="random"
-        )
+        greedy = evaluator.evaluate_policy(env, greedy_hiho_policy, n_episodes=5, policy_name="greedy")
+        random_eval = evaluator.evaluate_policy(env, random_policy, n_episodes=5, policy_name="random")
         assert greedy.mean_stability_duration >= random_eval.mean_stability_duration
 
     def test_bootstrap_ci_populated(self):

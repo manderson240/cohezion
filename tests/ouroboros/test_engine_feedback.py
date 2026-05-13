@@ -18,9 +18,7 @@ async def test_engine_inject_patch_success(initial_state):
     mock_surreal = AsyncMock()
     mock_obsidian = AsyncMock()
 
-    engine = TriuneSimulationEngine(
-        state=initial_state, surreal_logger=mock_surreal, obsidian_mcp=mock_obsidian
-    )
+    engine = TriuneSimulationEngine(state=initial_state, surreal_logger=mock_surreal, obsidian_mcp=mock_obsidian)
 
     patch_proposal = "PATCH Proposal: Adjust manifold stiffness to 0.15."
 

@@ -100,9 +100,7 @@ async def run_benchmark(req: BenchmarkRequest) -> BenchmarkResponse:
 
     if not submission_path.exists():
         # Try finding it in the worktree if we're in a dev environment
-        worktree_path = Path(
-            "/home/mike-anderson/dev/cohezion/.worktrees/spec-genesis-engine-395e48851"
-        )
+        worktree_path = Path("/home/mike-anderson/dev/cohezion/.worktrees/spec-genesis-engine-395e48851")
         submission_path = worktree_path / "luma_speedrun" / submission_rel_path
 
     if not submission_path.exists():

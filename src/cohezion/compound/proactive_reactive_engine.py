@@ -481,9 +481,7 @@ class ProactiveReactiveEngine:
 
     async def _check_agent_degradation(self, agent_name: str):
         """Check for agent performance degradation over time."""
-        recent = [r for r in self._workload_history if r.get("agent") == agent_name][
-            -10:
-        ]  # Last 10 executions
+        recent = [r for r in self._workload_history if r.get("agent") == agent_name][-10:]  # Last 10 executions
 
         if len(recent) < 5:
             return
@@ -561,8 +559,7 @@ class ProactiveReactiveEngine:
                 hour=hour,
                 day_of_week=day,
                 task_types=list(set(task_types)),
-                avg_requests_per_hour=len(records)
-                / len(set(r.get("timestamp").date() for r in records)),
+                avg_requests_per_hour=len(records) / len(set(r.get("timestamp").date() for r in records)),
                 preferred_agents=preferred,
                 confidence=confidence,
             )

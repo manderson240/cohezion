@@ -134,9 +134,7 @@ exit 0
         print(f"Violations: {result['violations']}")
         print(f"Score: {result['compliance_score']:.1%}")
 
-        status_icon = (
-            "✅" if result["status"] == "pass" else "⚠️" if result["status"] == "warn" else "❌"
-        )
+        status_icon = "✅" if result["status"] == "pass" else "⚠️" if result["status"] == "warn" else "❌"
         print(f"Status: {status_icon} {result['status'].upper()}")
 
         if result.get("violations", 0) > 0:
@@ -151,9 +149,7 @@ class PerformanceMonitor:
     """Continuous performance monitoring for systems."""
 
     def __init__(self, data_path: Path | None = None):
-        self.data_path = (
-            data_path or Path("~/.config/cohezion/performance_metrics.jsonl").expanduser()
-        )
+        self.data_path = data_path or Path("~/.config/cohezion/performance_metrics.jsonl").expanduser()
         self.data_path.parent.mkdir(parents=True, exist_ok=True)
 
         self.thresholds = {
@@ -163,7 +159,7 @@ class PerformanceMonitor:
             "lever_adjustment_ms": {"warning": 500, "critical": 1000},
         }
 
-    def record_metric(self, metric_name: str, value_ms: float, context: dict[str, Any] = None):
+    def record_metric(self, metric_name: str, value_ms: float, context: dict[str, Any] | None = None):
         """Record a performance metric."""
         metric = {
             "timestamp": datetime.now().isoformat(),
@@ -206,7 +202,7 @@ class PerformanceMonitor:
                     metric_time = datetime.fromisoformat(metric["timestamp"]).timestamp()
                     if metric_time > cutoff:
                         recent.append(metric)
-                except:
+                except Exception:
                     pass
 
         return recent
@@ -268,9 +264,7 @@ class PerformanceMonitor:
         if alerts:
             print(f"\n⚠️  Active Alerts: {len(alerts)}")
             for alert in alerts[-3:]:
-                print(
-                    f"    {alert['severity'].upper()}: {alert['metric']} = {alert['value_ms']:.1f}ms"
-                )
+                print(f"    {alert['severity'].upper()}: {alert['metric']} = {alert['value_ms']:.1f}ms")
         else:
             print("\n✅ No active alerts")
 
@@ -341,7 +335,7 @@ class DisasterRecovery:
                         "size_kb": cp_path.stat().st_size / 1024,
                     }
                 )
-            except:
+            except Exception:
                 pass
 
         return sorted(checkpoints, key=lambda x: x["timestamp"], reverse=True)
@@ -400,9 +394,7 @@ class ProductionHardening:
         _ = lever_system.get_dashboard()
         dashboard_time = (datetime.now().timestamp() - start) * 1000
 
-        self.monitoring.record_metric(
-            "dashboard_load_ms", dashboard_time, {"levers_count": len(lever_system.levers)}
-        )
+        self.monitoring.record_metric("dashboard_load_ms", dashboard_time, {"levers_count": len(lever_system.levers)})
 
         self.monitoring.print_monitoring_dashboard()
         results["performance"] = {"dashboard_load_ms": dashboard_time}
@@ -496,18 +488,12 @@ async def main():
     print("✅ PHASE 4 PRODUCTION HARDENING COMPLETE")
     print("=" * 70)
     print("\n🎯 Production Status:")
-    print(
-        f"   CI/CD:      {'✅' if results['ci_compliance']['compliance_score'] > 0.8 else '⚠️'}  Compliance"
-    )
-    print(
-        f"   Monitoring: {'✅' if results['performance']['dashboard_load_ms'] < 5000 else '⚠️'}  Performance"
-    )
+    print(f"   CI/CD:      {'✅' if results['ci_compliance']['compliance_score'] > 0.8 else '⚠️'}  Compliance")
+    print(f"   Monitoring: {'✅' if results['performance']['dashboard_load_ms'] < 5000 else '⚠️'}  Performance")
     print("   Backup:     ✅  Disaster Recovery")
     print(f"   Health:     {results['health']['status'].upper()}")
     print("\n🎯 Next: Schedule hourly hardening checks")
-    print(
-        "🎯 Cron: 0 * * * * cd /path/to/cohezion && uv run python -m cohezion.dogfooding.production_hardening"
-    )
+    print("🎯 Cron: 0 * * * * cd /path/to/cohezion && uv run python -m cohezion.dogfooding.production_hardening")
 
 
 if __name__ == "__main__":

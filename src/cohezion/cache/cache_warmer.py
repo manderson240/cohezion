@@ -225,9 +225,7 @@ class CacheWarmer:
                     logger.debug(f"Failed to cache entry from {item['path']}: {e}")
                     continue
 
-            logger.info(
-                f"Warmed cache with {loaded} high-coherence executions for skill '{skill_name}'"
-            )
+            logger.info(f"Warmed cache with {loaded} high-coherence executions for skill '{skill_name}'")
             return loaded
 
         except Exception as e:
@@ -315,8 +313,7 @@ class CacheWarmer:
                     continue
 
             logger.info(
-                f"Warmed cache with {loaded} recent high-coherence executions "
-                f"(from {len(execution_data)} candidates)"
+                f"Warmed cache with {loaded} recent high-coherence executions (from {len(execution_data)} candidates)"
             )
             return loaded
 

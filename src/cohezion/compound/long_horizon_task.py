@@ -35,9 +35,7 @@ class LongHorizonTask:
     CONTEXT_GUARDRAIL = 80.0
     MIN_HEADROOM_PERCENT = 5.0  # Need at least 5% free context to attempt a step
 
-    def __init__(
-        self, task_id: str, budget_sessions: int = 5, initial_state: dict[str, Any] | None = None
-    ):
+    def __init__(self, task_id: str, budget_sessions: int = 5, initial_state: dict[str, Any] | None = None):
         """Initialize a long horizon task.
 
         Args:

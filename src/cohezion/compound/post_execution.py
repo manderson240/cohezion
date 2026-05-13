@@ -5,11 +5,17 @@ cognitive load.  All methods are non-blocking: failures are logged and
 swallowed so the execution result is never lost.
 """
 
+from __future__ import annotations
+
 import asyncio
 import json
 import logging
 import time
-from typing import Any
+from typing import TYPE_CHECKING, Any
+
+
+if TYPE_CHECKING:
+    from cohezion.compound.executor import CompoundExecutor
 
 
 logger = logging.getLogger(__name__)
@@ -140,9 +146,7 @@ class PostExecutionOrchestrator:
         drr_passed = metrics.get("drr_passed", True)
         if not drr_passed:
             should_refine = False
-            logger.info(
-                "Skill refinement blocked: DRR gate failed (%s)", metrics.get("drr_gate", "?")
-            )
+            logger.info("Skill refinement blocked: DRR gate failed (%s)", metrics.get("drr_gate", "?"))
         if success and self._ex.skill_refiner and should_refine:
             try:
                 exec_result = {
@@ -289,9 +293,7 @@ class PostExecutionOrchestrator:
             parsed_request, temp_result, operation_type, anomaly_analysis
         )
         if alignment.misalignment_score > 0.3:
-            vault_path = self._ex.alignment_analyzer.log_alignment_to_vault(
-                parsed_request, alignment, project
-            )
+            vault_path = self._ex.alignment_analyzer.log_alignment_to_vault(parsed_request, alignment, project)
             if vault_path:
                 decision_paths.append(vault_path)
                 logger.debug("Logged alignment analysis: %s", vault_path)
@@ -316,9 +318,7 @@ class PostExecutionOrchestrator:
             cohesion_components.append(alignment_data.get("intent_match", 0.5))
         metrics["coherence"] = sum(cohesion_components) / len(cohesion_components)
 
-    def _run_drr_gate(
-        self, metrics: dict[str, Any], skill_name: str, task_description: str
-    ) -> None:
+    def _run_drr_gate(self, metrics: dict[str, Any], skill_name: str, task_description: str) -> None:
         if self._ex._drr_generator:
             try:
                 from cohezion.compound.design_review_report import GateLevel
@@ -400,9 +400,7 @@ class PostExecutionOrchestrator:
                     duration_seconds=duration_seconds,
                     token_metrics=token_metrics,
                 )
-                ctx = self._ex._retrospection_engine.analyze_execution_result(
-                    temp_result, skill_name
-                )
+                ctx = self._ex._retrospection_engine.analyze_execution_result(temp_result, skill_name)
                 should_refine = ctx.get("should_refine", True) if ctx is not None else True
                 if ctx and ctx.get("insights"):
                     metrics["retrospection_insights"] = ctx["insights"]
@@ -442,9 +440,7 @@ class PostExecutionOrchestrator:
     ) -> None:
         coherence_val = metrics.get("coherence", 0.5)
         if 0.4 <= coherence_val <= 0.6 and self._ex._degradation_mode:
-            logger.info(
-                "Coherence returned to HIHO band (%.2f), exiting degradation mode", coherence_val
-            )
+            logger.info("Coherence returned to HIHO band (%.2f), exiting degradation mode", coherence_val)
             self._ex._degradation_mode = False
 
         if not self._ex._degradation_detector:
@@ -469,16 +465,18 @@ class PostExecutionOrchestrator:
                 if critical_alerts:
                     self._ex._degradation_mode = True
                     metrics["execution_degraded"] = True
-                    logger.warning(
-                        "Entering degradation mode: %d CRITICAL alerts", len(critical_alerts)
-                    )
+                    logger.warning("Entering degradation mode: %d CRITICAL alerts", len(critical_alerts))
                 for alert in critical_alerts:
                     try:
                         dp = self._ex.log_inflection_point(
                             title=f"Degradation: {alert.metric}",
                             context=f"Task: {task_description}\n{alert.message}",
                             decision="Investigate degradation",
-                            rationale=f"Current: {alert.current_value:.3f}, Baseline: {alert.baseline_value:.3f}, Threshold: {alert.threshold:.3f}",
+                            rationale=(
+                                f"Current: {alert.current_value:.3f},"
+                                f" Baseline: {alert.baseline_value:.3f},"
+                                f" Threshold: {alert.threshold:.3f}"
+                            ),
                             project=project,
                         )
                         if dp:
@@ -605,9 +603,7 @@ class PostExecutionOrchestrator:
                 duration_seconds=duration_seconds,
                 token_metrics=token_metrics,
             )
-            point = self._ex._journey_tracker.track_execution(
-                temp_result, task_description, operation_type
-            )
+            point = self._ex._journey_tracker.track_execution(temp_result, task_description, operation_type)
             if point and point.metadata:
                 metrics["phi_score"] = point.metadata.get("phi_score", 0.0)
             if self._ex._journey_persistence and point:
@@ -624,13 +620,9 @@ class PostExecutionOrchestrator:
                     _id = f"exec_{int(time.time())}"
                     try:
                         asyncio.get_running_loop()
-                        asyncio.ensure_future(
-                            self._ex._journey_persistence.save_trajectory_point(_id, point_data)
-                        )
+                        asyncio.ensure_future(self._ex._journey_persistence.save_trajectory_point(_id, point_data))
                     except RuntimeError:
-                        asyncio.run(
-                            self._ex._journey_persistence.save_trajectory_point(_id, point_data)
-                        )
+                        asyncio.run(self._ex._journey_persistence.save_trajectory_point(_id, point_data))
                 except Exception as e:
                     logger.debug("Journey persistence failed: %s", e)
             return True
@@ -698,9 +690,7 @@ class PostExecutionOrchestrator:
         except Exception as e:
             logger.debug("Universe bridge completion failed: %s", e)
 
-    def _run_ouroboros_bridge(
-        self, metrics: dict[str, Any], task_description: str, skill_name: str
-    ) -> None:
+    def _run_ouroboros_bridge(self, metrics: dict[str, Any], task_description: str, skill_name: str) -> None:
         try:
             from cohezion.physics.ouroboros_bridge import OuroborosBridge
 
@@ -714,9 +704,7 @@ class PostExecutionOrchestrator:
                         logger.debug("Ouroboros: coherence drop %.3f (async deferred)", drop)
                     else:
                         loop.run_until_complete(
-                            self._ex._ouroboros_bridge_instance.check_coherence(
-                                drop, task_id=skill_name
-                            )
+                            self._ex._ouroboros_bridge_instance.check_coherence(drop, task_id=skill_name)
                         )
                 except RuntimeError:
                     pass
@@ -737,10 +725,7 @@ class PostExecutionOrchestrator:
                 domain="pattern",
             )
             self._ex._mycelium_registry.ingest_entry(entry)
-            if (
-                hasattr(self._ex._mycelium_registry, "_entries")
-                and len(self._ex._mycelium_registry._entries) % 10 == 0
-            ):
+            if hasattr(self._ex._mycelium_registry, "_entries") and len(self._ex._mycelium_registry._entries) % 10 == 0:
                 try:
                     report = self._ex._mycelium_registry.run_audit()
                     logger.info(

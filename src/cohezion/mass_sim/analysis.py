@@ -159,9 +159,7 @@ class SimulationAnalyzer:
         return {
             "mean_dim_std": float(np.mean(norm_stds)) if norm_stds else 0,
             "coherence_spread": float(np.std(mean_coherences)) if mean_coherences else 0,
-            "mean_effective_dimensionality": (
-                float(np.mean(effective_dims)) if effective_dims else 0
-            ),
+            "mean_effective_dimensionality": (float(np.mean(effective_dims)) if effective_dims else 0),
         }
 
     def _universe_ranking(self, results: list[UniverseResult]) -> list[dict]:

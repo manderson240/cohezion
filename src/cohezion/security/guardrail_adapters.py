@@ -149,9 +149,7 @@ class ResourceGuard:
         if self.current_requests >= self.max_concurrent_requests:
             return GuardrailResult(
                 action=GuardrailAction.BLOCK,
-                reason=(
-                    f"System at capacity ({self.current_requests}/{self.max_concurrent_requests})"
-                ),
+                reason=(f"System at capacity ({self.current_requests}/{self.max_concurrent_requests})"),
                 guard_name="resource",
             )
 
@@ -163,8 +161,7 @@ class ResourceGuard:
             return GuardrailResult(
                 action=GuardrailAction.BLOCK,
                 reason=(
-                    f"Resources constrained: CPU={stats['cpu_percent']:.1f}%, "
-                    f"Memory={stats['memory_percent']:.1f}%"
+                    f"Resources constrained: CPU={stats['cpu_percent']:.1f}%, Memory={stats['memory_percent']:.1f}%"
                 ),
                 guard_name="resource",
                 metadata={"stats": stats},
@@ -172,10 +169,7 @@ class ResourceGuard:
 
         return GuardrailResult(
             action=GuardrailAction.ALLOW,
-            reason=(
-                f"Resources available: CPU={stats['cpu_percent']:.1f}%, "
-                f"Memory={stats['memory_percent']:.1f}%"
-            ),
+            reason=(f"Resources available: CPU={stats['cpu_percent']:.1f}%, Memory={stats['memory_percent']:.1f}%"),
             guard_name="resource",
             metadata={"stats": stats},
         )

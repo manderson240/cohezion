@@ -53,9 +53,7 @@ class CreditManager:
 
         if balance >= amount:
             self._balances[agent_id] = balance - amount
-            logger.debug(
-                f"Agent {agent_id}: Deducted {amount} credits. New balance: {self._balances[agent_id]}"
-            )
+            logger.debug(f"Agent {agent_id}: Deducted {amount} credits. New balance: {self._balances[agent_id]}")
             return True
 
         logger.warning(f"Agent {agent_id}: Insufficient credits ({balance} < {amount})")
@@ -95,9 +93,7 @@ class CreditManager:
             "qwen3-coder:32b",
             "deepseek-r1:70b",
         ]
-        affordable_locals = [
-            m for m in local_models if m in MODEL_COSTS and balance >= MODEL_COSTS[m]
-        ]
+        affordable_locals = [m for m in local_models if m in MODEL_COSTS and balance >= MODEL_COSTS[m]]
 
         if affordable_locals:
             # Sort by cost descending (best affordable local)

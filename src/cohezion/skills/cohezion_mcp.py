@@ -45,8 +45,7 @@ class CohezionMCP:
         )
         self.knowledge_graph_path = "/home/mike-anderson/dev/cohezion/src/cohezion/knowledge_graph"
         self.model_registry_path = (
-            os.environ.get("COHEZION_ROOT", "/home/mike-anderson/dev/cohezion")
-            + "/model_registry.json"
+            os.environ.get("COHEZION_ROOT", "/home/mike-anderson/dev/cohezion") + "/model_registry.json"
         )
         self.compound_config_path = "/home/mike-anderson/.config/opencode/compound_engineering.json"
 
@@ -734,9 +733,7 @@ class CohezionMCP:
             output_type = args.get("output_type", "full-solution")
 
             if not task_description:
-                return {
-                    "content": [{"type": "text", "text": "Error: task_description is required"}]
-                }
+                return {"content": [{"type": "text", "text": "Error: task_description is required"}]}
 
             # Select optimal model based on complexity
             model_mapping = {
@@ -934,9 +931,7 @@ Generate production-ready, maintainable code that follows industry standards.
                 },
             }
 
-            return {
-                "content": [{"type": "text", "text": json.dumps(orchestration_result, indent=2)}]
-            }
+            return {"content": [{"type": "text", "text": json.dumps(orchestration_result, indent=2)}]}
 
         except Exception as e:
             return {
@@ -1128,9 +1123,7 @@ Generate production-ready, maintainable code that follows industry standards.
         except Exception as e:
             return {"content": [{"type": "text", "text": f"Offload execution failed: {e}"}]}
 
-    def batch_offload(
-        self, tasks: list[dict[str, Any]], model: str | None = None
-    ) -> dict[str, Any]:
+    def batch_offload(self, tasks: list[dict[str, Any]], model: str | None = None) -> dict[str, Any]:
         from cohezion.reliability.batch_manager import BatchManager
         from cohezion.reliability.context_harness import ContextHarness
 
@@ -1313,9 +1306,7 @@ Generate production-ready, maintainable code that follows industry standards.
                 if base_id in installed_models:
                     candidates.append((base_id, m_info))
                 else:
-                    sys.stderr.write(
-                        f"Warning: Specialist model {base_id} not installed in Ollama.\n"
-                    )
+                    sys.stderr.write(f"Warning: Specialist model {base_id} not installed in Ollama.\n")
 
         if candidates:
             candidates.sort(key=lambda x: x[1].get("priority", 99))

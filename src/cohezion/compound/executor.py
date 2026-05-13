@@ -387,7 +387,8 @@ class CompoundExecutor(CompoundContextMixin, ExecutorIntegrationMixin):
 
             req = urllib.request.Request(
                 "http://localhost:8001/sql",
-                data=b"SELECT skill, should_refine, compound_score, recommendation FROM retrospection ORDER BY created DESC LIMIT 3;",
+                data=b"SELECT skill, should_refine, compound_score, recommendation"
+                b" FROM retrospection ORDER BY created DESC LIMIT 3;",
                 headers={
                     "Accept": "application/json",
                     "surreal-ns": "cohezion",
@@ -400,9 +401,7 @@ class CompoundExecutor(CompoundContextMixin, ExecutorIntegrationMixin):
             data = json.loads(resp.read())
             if data and data[0].get("status") == "OK" and data[0]["result"]:
                 result["recent_retrospections"] = data[0]["result"]
-                logger.debug(
-                    "Guidance enriched with %d recent retrospections", len(data[0]["result"])
-                )
+                logger.debug("Guidance enriched with %d recent retrospections", len(data[0]["result"]))
         except Exception:
             pass  # Non-blocking: SurrealDB may be unavailable
 
@@ -564,17 +563,11 @@ class CompoundExecutor(CompoundContextMixin, ExecutorIntegrationMixin):
         # Skip in degradation mode to conserve resources
         parsed_request = None
         _alignment_patterns = None
-        if (
-            self._enable_alignment_analysis
-            and self.alignment_analyzer
-            and not self._degradation_mode
-        ):
+        if self._enable_alignment_analysis and self.alignment_analyzer and not self._degradation_mode:
             try:
                 request_text = human_request or task_description
                 parsed_request = self.alignment_analyzer.parse_request(request_text)
-                _alignment_patterns = self.alignment_analyzer.query_alignment_patterns(
-                    task_description, project
-                )
+                _alignment_patterns = self.alignment_analyzer.query_alignment_patterns(task_description, project)
                 logger.debug(
                     "Parsed request: intent=%s (confidence=%.2f), %d constraints, %d criteria",
                     parsed_request.intent.value,
@@ -583,9 +576,7 @@ class CompoundExecutor(CompoundContextMixin, ExecutorIntegrationMixin):
                     len(parsed_request.criteria),
                 )
             except Exception as e:
-                logger.debug(
-                    "Request alignment parsing failed (non-blocking): %s", e, exc_info=True
-                )
+                logger.debug("Request alignment parsing failed (non-blocking): %s", e, exc_info=True)
 
         # Step 1.7: Reactive context adjustment (Tier 1 — critical signals only)
         if _context_budget is not None and self._context_policy:
@@ -617,9 +608,7 @@ class CompoundExecutor(CompoundContextMixin, ExecutorIntegrationMixin):
                 "operation_type": operation_type,
                 "task_description": task_description,
             }
-            input_check = _run_async_guardrail(
-                self.guardrail_pipeline.check_input(task_description, guard_context)
-            )
+            input_check = _run_async_guardrail(self.guardrail_pipeline.check_input(task_description, guard_context))
             if input_check and input_check.action == GuardrailAction.BLOCK:
                 error_msg = f"Input blocked by guardrails: {input_check.reason}"
                 output = f"Error: {error_msg}"
@@ -652,7 +641,7 @@ class CompoundExecutor(CompoundContextMixin, ExecutorIntegrationMixin):
         except Exception as e:
             error_msg = str(e)
             output = f"Error: {error_msg}"
-            metrics = {"error": error_msg}
+            metrics = {"error": error_msg, "error_type": type(e).__name__}
             logger.error("Task failed: %s", error_msg, exc_info=True)
 
         # Capture token metrics after execution (if token_client available)
@@ -668,9 +657,7 @@ class CompoundExecutor(CompoundContextMixin, ExecutorIntegrationMixin):
                 "operation_type": operation_type,
                 "task_description": task_description,
             }
-            output_check = _run_async_guardrail(
-                self.guardrail_pipeline.check_output(output, guard_context)
-            )
+            output_check = _run_async_guardrail(self.guardrail_pipeline.check_output(output, guard_context))
             if output_check:
                 if output_check.action == GuardrailAction.BLOCK:
                     output = "[Output blocked by content filter]"
@@ -737,7 +724,10 @@ class CompoundExecutor(CompoundContextMixin, ExecutorIntegrationMixin):
                         title=f"Critical anomaly in {skill_name}",
                         context=f"Task: {task_description}\nIssues: {'; '.join(anomaly.issues)}",
                         decision="Re-execution recommended",
-                        rationale=f"Quality score {anomaly.score:.2f}, {anomaly.recommendations[0] if anomaly.recommendations else 'Investigate issues'}",
+                        rationale=(
+                            f"Quality score {anomaly.score:.2f}, "
+                            f"{anomaly.recommendations[0] if anomaly.recommendations else 'Investigate issues'}"
+                        ),
                         project=project,
                     )
                     if decision_path:
@@ -777,9 +767,7 @@ class CompoundExecutor(CompoundContextMixin, ExecutorIntegrationMixin):
 
                 # Log alignment to vault if high misalignment
                 if alignment.misalignment_score > 0.3:
-                    vault_path = self.alignment_analyzer.log_alignment_to_vault(
-                        parsed_request, alignment, project
-                    )
+                    vault_path = self.alignment_analyzer.log_alignment_to_vault(parsed_request, alignment, project)
                     if vault_path:
                         decision_paths.append(vault_path)
                         logger.debug("Logged alignment analysis: %s", vault_path)
@@ -872,9 +860,7 @@ class CompoundExecutor(CompoundContextMixin, ExecutorIntegrationMixin):
                         "flume_vae"
                         if "flume" in task_description.lower()
                         else (
-                            "rl_ppo"
-                            if any(w in task_description.lower() for w in ("rl", "ppo", "reward"))
-                            else "jepa"
+                            "rl_ppo" if any(w in task_description.lower() for w in ("rl", "ppo", "reward")) else "jepa"
                         )
                     )
                 )
@@ -914,9 +900,7 @@ class CompoundExecutor(CompoundContextMixin, ExecutorIntegrationMixin):
                     duration_seconds=duration_seconds,
                     token_metrics=token_metrics,
                 )
-                retrospection_context = self._retrospection_engine.analyze_execution_result(
-                    temp_result, skill_name
-                )
+                retrospection_context = self._retrospection_engine.analyze_execution_result(temp_result, skill_name)
                 if retrospection_context is not None:
                     should_refine = retrospection_context.get("should_refine", True)
                     if retrospection_context.get("insights"):
@@ -924,9 +908,7 @@ class CompoundExecutor(CompoundContextMixin, ExecutorIntegrationMixin):
                 logger.debug(
                     "Retrospection: should_refine=%s, compound=%.3f",
                     should_refine,
-                    retrospection_context.get("compound_score", 0.0)
-                    if retrospection_context
-                    else 0.0,
+                    retrospection_context.get("compound_score", 0.0) if retrospection_context else 0.0,
                 )
             except Exception as e:
                 logger.debug("Retrospection failed (non-blocking): %s", e, exc_info=True)
@@ -989,9 +971,7 @@ class CompoundExecutor(CompoundContextMixin, ExecutorIntegrationMixin):
         # Coherence outside band with CRITICAL alert -> enter degradation mode
         coherence_val = metrics.get("coherence", 0.5)
         if 0.4 <= coherence_val <= 0.6 and self._degradation_mode:
-            logger.info(
-                "Cohesion returned to HIHO band (%.2f), exiting degradation mode", coherence_val
-            )
+            logger.info("Cohesion returned to HIHO band (%.2f), exiting degradation mode", coherence_val)
             self._degradation_mode = False
 
         if self._degradation_detector:
@@ -1007,9 +987,7 @@ class CompoundExecutor(CompoundContextMixin, ExecutorIntegrationMixin):
                     degradation_metrics["combined_hit_rate"] = token_metrics.get(
                         "cache_hit_rate", token_metrics.get("combined_hit_rate", 0.0)
                     )
-                    degradation_metrics["tokens_per_second"] = token_metrics.get(
-                        "tokens_per_second", 0.0
-                    )
+                    degradation_metrics["tokens_per_second"] = token_metrics.get("tokens_per_second", 0.0)
                 alerts = self._degradation_detector.check_degradation(degradation_metrics)
                 if alerts:
                     metrics["degradation_alerts"] = len(alerts)
@@ -1025,8 +1003,7 @@ class CompoundExecutor(CompoundContextMixin, ExecutorIntegrationMixin):
                         self._degradation_mode = True
                         metrics["execution_degraded"] = True
                         logger.warning(
-                            "Entering degradation mode: %d CRITICAL alerts, "
-                            "cohesion=%.2f outside HIHO band",
+                            "Entering degradation mode: %d CRITICAL alerts, cohesion=%.2f outside HIHO band",
                             len(critical_alerts),
                             coherence_val,
                         )
@@ -1154,9 +1131,7 @@ class CompoundExecutor(CompoundContextMixin, ExecutorIntegrationMixin):
                     duration_seconds=duration_seconds,
                     token_metrics=token_metrics,
                 )
-                point = self._journey_tracker.track_execution(
-                    temp_result, task_description, operation_type
-                )
+                point = self._journey_tracker.track_execution(temp_result, task_description, operation_type)
                 journey_point_tracked = True
                 # Propagate phi_score to metrics for retrospection
                 if point and point.metadata:
@@ -1261,14 +1236,10 @@ class CompoundExecutor(CompoundContextMixin, ExecutorIntegrationMixin):
                 try:
                     loop = asyncio.get_event_loop()
                     if loop.is_running():
-                        logger.debug(
-                            "Ouroboros: coherence drop %.3f (async deferred)", coherence_drop
-                        )
+                        logger.debug("Ouroboros: coherence drop %.3f (async deferred)", coherence_drop)
                     else:
                         loop.run_until_complete(
-                            self._ouroboros_bridge_instance.check_coherence(
-                                coherence_drop, task_id=skill_name
-                            )
+                            self._ouroboros_bridge_instance.check_coherence(coherence_drop, task_id=skill_name)
                         )
                 except RuntimeError:
                     logger.debug("Ouroboros: no event loop, skipping async check")
@@ -1290,10 +1261,7 @@ class CompoundExecutor(CompoundContextMixin, ExecutorIntegrationMixin):
                 )
                 self._mycelium_registry.ingest_entry(entry)
                 # Trigger audit every 10 entries to synthesize new skills
-                if (
-                    hasattr(self._mycelium_registry, "_entries")
-                    and len(self._mycelium_registry._entries) % 10 == 0
-                ):
+                if hasattr(self._mycelium_registry, "_entries") and len(self._mycelium_registry._entries) % 10 == 0:
                     try:
                         report = self._mycelium_registry.run_audit()
                         logger.info(

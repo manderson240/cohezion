@@ -34,9 +34,7 @@ def _make_init_response(mock_client):
     init_response = MagicMock()
     init_response.status_code = 200
     init_response.headers = {"mcp-session-id": "test-session-123"}
-    init_response.text = _make_sse_text(
-        {"jsonrpc": "2.0", "id": 0, "result": {"protocolVersion": "2024-11-05"}}
-    )
+    init_response.text = _make_sse_text({"jsonrpc": "2.0", "id": 0, "result": {"protocolVersion": "2024-11-05"}})
     init_response.raise_for_status = MagicMock()
     # AsyncClient.post is a coroutine; AsyncMock makes it awaitable
     mock_client.post = AsyncMock(return_value=init_response)
@@ -49,9 +47,7 @@ class TestMCPClient(unittest.TestCase):
 
     def setUp(self):
         """Set up test fixtures."""
-        self.config = MCPConfig(
-            server_url="http://localhost:8360", api_key="test-api-key", timeout=5.0
-        )
+        self.config = MCPConfig(server_url="http://localhost:8360", api_key="test-api-key", timeout=5.0)
 
     @patch("cohezion.core.mcp_client.httpx.AsyncClient")
     def test_connect_success(self, mock_client_class):
@@ -149,9 +145,7 @@ class TestMCPClient(unittest.TestCase):
         tool_response = MagicMock()
         tool_response.status_code = 200
         tool_response.raise_for_status = MagicMock()
-        tool_response.text = _make_sse_text(
-            {"jsonrpc": "2.0", "id": 1, "error": {"message": "Tool execution failed"}}
-        )
+        tool_response.text = _make_sse_text({"jsonrpc": "2.0", "id": 1, "error": {"message": "Tool execution failed"}})
         mock_client.post = AsyncMock(return_value=tool_response)
 
         with self.assertRaises(MCPToolError):
@@ -205,9 +199,7 @@ class TestMCPClient(unittest.TestCase):
             {
                 "jsonrpc": "2.0",
                 "id": 1,
-                "result": {
-                    "content": [{"type": "text", "text": "decisions/2025-01-15-test-decision.md"}]
-                },
+                "result": {"content": [{"type": "text", "text": "decisions/2025-01-15-test-decision.md"}]},
             }
         )
         mock_client.post = AsyncMock(return_value=tool_response)
@@ -228,11 +220,7 @@ class TestMCPClient(unittest.TestCase):
             {
                 "jsonrpc": "2.0",
                 "id": 1,
-                "result": {
-                    "content": [
-                        {"type": "text", "text": "experiments/2025-01-15-test-experiment.md"}
-                    ]
-                },
+                "result": {"content": [{"type": "text", "text": "experiments/2025-01-15-test-experiment.md"}]},
             }
         )
         result = asyncio.run(
@@ -276,9 +264,7 @@ class TestMCPClient(unittest.TestCase):
         tool_response = MagicMock()
         tool_response.status_code = 200
         tool_response.raise_for_status = MagicMock()
-        context_json = json.dumps(
-            [{"path": "decisions/test.md", "category": "decision", "match_count": 3}]
-        )
+        context_json = json.dumps([{"path": "decisions/test.md", "category": "decision", "match_count": 3}])
         tool_response.text = _make_sse_text(
             {
                 "jsonrpc": "2.0",

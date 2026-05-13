@@ -37,9 +37,7 @@ def unpack_values(vq: ValueQuantized) -> torch.Tensor:
         v1 = (packed >> 2) & 0x03
         v2 = (packed >> 4) & 0x03
         v3 = (packed >> 6) & 0x03
-        return torch.stack([v0, v1, v2, v3], dim=-1).reshape(
-            *packed.shape[:-1], packed.shape[-1] * 4
-        )
+        return torch.stack([v0, v1, v2, v3], dim=-1).reshape(*packed.shape[:-1], packed.shape[-1] * 4)
     elif bits == 4:
         v0 = packed & 0x0F
         v1 = (packed >> 4) & 0x0F
@@ -205,9 +203,7 @@ class TurboQuantKVCache:
         self.key_quantized = self.key_quantizer.quantize(keys_to_quant)
 
         # Quantize values with group quantization
-        self.value_quantized = quantize_values(
-            values_to_quant, bits=self.value_bits, group_size=self.value_group_size
-        )
+        self.value_quantized = quantize_values(values_to_quant, bits=self.value_bits, group_size=self.value_group_size)
 
     def append(self, key: torch.Tensor, value: torch.Tensor):
         """
@@ -244,9 +240,7 @@ class TurboQuantKVCache:
         new_key_q = self.key_quantizer.quantize(keys_flush)
 
         # Quantize flushed values
-        new_val_q = quantize_values(
-            values_flush, bits=self.value_bits, group_size=self.value_group_size
-        )
+        new_val_q = quantize_values(values_flush, bits=self.value_bits, group_size=self.value_group_size)
 
         if self.key_quantized is None:
             self.key_quantized = new_key_q
@@ -254,13 +248,9 @@ class TurboQuantKVCache:
         else:
             # Concatenate along sequence dimension
             self.key_quantized = ProdQuantized(
-                mse_indices=torch.cat(
-                    [self.key_quantized.mse_indices, new_key_q.mse_indices], dim=-2
-                ),
+                mse_indices=torch.cat([self.key_quantized.mse_indices, new_key_q.mse_indices], dim=-2),
                 qjl_signs=torch.cat([self.key_quantized.qjl_signs, new_key_q.qjl_signs], dim=-2),
-                residual_norms=torch.cat(
-                    [self.key_quantized.residual_norms, new_key_q.residual_norms], dim=-1
-                ),
+                residual_norms=torch.cat([self.key_quantized.residual_norms, new_key_q.residual_norms], dim=-1),
                 norms=torch.cat([self.key_quantized.norms, new_key_q.norms], dim=-1),
                 mse_bits=new_key_q.mse_bits,
             )
@@ -271,7 +261,7 @@ class TurboQuantKVCache:
                 bits=self.value_bits,
             )
 
-    def attention_scores(self, query: torch.Tensor, scale: float = None) -> torch.Tensor:
+    def attention_scores(self, query: torch.Tensor, scale: float | None = None) -> torch.Tensor:
         """
         Compute attention logits: score[i,j] = <query_i, key_j> / sqrt(d).
 
@@ -334,9 +324,7 @@ class TurboQuantKVCache:
 
         if self.key_quantized is not None:
             # MSE indices: bit-packed uint8
-            info["quantized_keys"] += (
-                self.key_quantized.mse_indices.nelement()
-            )  # already packed bytes
+            info["quantized_keys"] += self.key_quantized.mse_indices.nelement()  # already packed bytes
             # QJL packed signs: 1 bit per coord, packed 8 per byte
             info["quantized_keys"] += self.key_quantized.qjl_signs.nelement()
             # Norms: float16 each (could use float16 for storage)

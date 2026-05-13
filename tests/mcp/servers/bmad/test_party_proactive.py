@@ -297,9 +297,7 @@ async def test_party_mode_suggestion_priority_display():
 
     # Sort by priority (as party mode would)
     priority_order = {"critical": 0, "high": 1, "medium": 2, "low": 3}
-    sorted_suggestions = sorted(
-        suggestions, key=lambda s: (priority_order.get(s.priority, 4), -s.confidence)
-    )
+    sorted_suggestions = sorted(suggestions, key=lambda s: (priority_order.get(s.priority, 4), -s.confidence))
 
     # Verify order: high (confidence desc), medium, low
     assert sorted_suggestions[0].priority == "high"

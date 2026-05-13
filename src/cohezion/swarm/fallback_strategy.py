@@ -181,10 +181,7 @@ class CircuitBreaker:
             self.metrics.avg_latency_ms = 0.7 * self.metrics.avg_latency_ms + 0.3 * latency_ms
 
         # If HALF_OPEN and succeeded, go back to CLOSED
-        if (
-            self.state == CircuitBreakerState.HALF_OPEN
-            and self.metrics.success_count >= self.success_threshold
-        ):
+        if self.state == CircuitBreakerState.HALF_OPEN and self.metrics.success_count >= self.success_threshold:
             self._transition_to_closed()
 
     def record_error(self, latency_ms: float = 0.0) -> None:
@@ -208,10 +205,7 @@ class CircuitBreaker:
             self._transition_to_open()
 
         # If error rate too high (only check after enough samples)
-        if (
-            self.metrics.total_requests >= 10
-            and self.metrics.error_rate >= self.error_rate_threshold
-        ):
+        if self.metrics.total_requests >= 10 and self.metrics.error_rate >= self.error_rate_threshold:
             logger.warning(
                 f"Circuit breaker: {self.model} - error rate {self.metrics.error_rate:.1%} exceeds threshold"
             )
@@ -272,9 +266,7 @@ class CircuitBreaker:
         """Transition to CLOSED state (recovered)."""
         if self.state != CircuitBreakerState.CLOSED:
             downtime_sec = time.time() - (self.opened_at or 0)
-            logger.info(
-                f"Circuit breaker CLOSED for {self.model}: recovered after {downtime_sec:.1f}s downtime"
-            )
+            logger.info(f"Circuit breaker CLOSED for {self.model}: recovered after {downtime_sec:.1f}s downtime")
             self.state = CircuitBreakerState.CLOSED
             self.opened_at = None
             self.metrics.error_count = 0
@@ -474,9 +466,7 @@ class FallbackStrategy:
         logger.error(f"No alternative models available, forced to use primary: {primary_model}")
         return primary_model, True, 0.0
 
-    def detect_model_unavailability(
-        self, model: str, latency_ms: float, error_occurred: bool
-    ) -> bool:
+    def detect_model_unavailability(self, model: str, latency_ms: float, error_occurred: bool) -> bool:
         """Detect if model is becoming unavailable.
 
         Args:
@@ -600,9 +590,7 @@ class FallbackStrategy:
         """
         stats = {
             "total_fallbacks": self.fallback_count,
-            "recent_fallbacks": len(
-                [e for e in self.fallback_history if time.time() - e.timestamp < 3600]
-            ),
+            "recent_fallbacks": len([e for e in self.fallback_history if time.time() - e.timestamp < 3600]),
             "total_cost_saved_usd": self.total_cost_saved,
         }
 

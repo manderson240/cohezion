@@ -23,9 +23,7 @@ async def run_holistic_demo():
 
     # 1. KINETIC MANIFOLD GROUNDING
     engine = UniverseSimulationEngine()
-    journey = await engine.start_journey(
-        agent_name="DemoAgent", intent="Showcase 12D grounding in real hardware."
-    )
+    journey = await engine.start_journey(agent_name="DemoAgent", intent="Showcase 12D grounding in real hardware.")
     ax = journey.initial_axiomatic
     print("\n[1] Physical Projection (12D) grounded in vitals:")
     print(f"    - Physics (CPU Load): {ax.physics:.3f}")
@@ -43,9 +41,7 @@ async def run_holistic_demo():
     await engine.evolve_trajectory(
         gaia_journey, action="Analyzing astronomy data", phi_score=0.4
     )  # Low quality = drift
-    await engine.evolve_trajectory(
-        gaia_journey, action="Cross-referencing star charts", phi_score=0.8
-    )
+    await engine.evolve_trajectory(gaia_journey, action="Cross-referencing star charts", phi_score=0.8)
 
     # Calculate drift manually for the demo
     drift = evaluator.calculate_manifold_drift(gaia_journey)

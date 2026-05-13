@@ -45,9 +45,7 @@ class AnomalyDetector:
         is_degraded = anomaly_count > (len(trajectories) / 2)
 
         if is_degraded:
-            logger.warning(
-                f"System degradation detected! {anomaly_count}/{len(trajectories)} anomalous."
-            )
+            logger.warning(f"System degradation detected! {anomaly_count}/{len(trajectories)} anomalous.")
 
         return {
             "is_degraded": is_degraded,

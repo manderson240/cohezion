@@ -301,9 +301,7 @@ class MultiAgentCompoundBridge:
 
         # Task clarity: longer, more specific tasks score higher
         task_length = len(task)
-        has_specifics = any(
-            word in task.lower() for word in ["function", "class", "method", "implement", "create"]
-        )
+        has_specifics = any(word in task.lower() for word in ["function", "class", "method", "implement", "create"])
         clarity = min(1.0, (task_length / 100) * (1.2 if has_specifics else 0.8))
 
         return (confidence + clarity) / 2

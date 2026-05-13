@@ -360,9 +360,7 @@ class DynamicAgentRegistry:
             return module.create_instance()
         return None
 
-    def list_agents(
-        self, active_only: bool = True, capability: str | None = None
-    ) -> list[AgentModule]:
+    def list_agents(self, active_only: bool = True, capability: str | None = None) -> list[AgentModule]:
         """List agents with optional filtering.
 
         Args:

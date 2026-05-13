@@ -58,9 +58,7 @@ async def create_workforce(request: WorkforceRequest, background_tasks: Backgrou
             _agents[agent_id] = EigentAgent(role=request.role)
 
         # Add the long-running task to background processing
-        background_tasks.add_task(
-            run_long_horizon_task, agent_id, request.task, request.duration_days
-        )
+        background_tasks.add_task(run_long_horizon_task, agent_id, request.task, request.duration_days)
 
         return WorkforceResponse(
             agent_id=agent_id,

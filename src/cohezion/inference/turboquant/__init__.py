@@ -6,4 +6,16 @@ from cohezion.inference.turboquant.score import compute_hybrid_attention
 from cohezion.inference.turboquant.store import CompressedKVStore
 
 
+__all__ = [
+    "KVCaptureEngine",
+    "RingBuffer",
+    "compute_lloyd_max_codebook",
+    "get_codebook",
+    "TurboQuantKVCache",
+    "TurboQuantMSE",
+    "TurboQuantProd",
+    "compute_hybrid_attention",
+    "CompressedKVStore",
+]
+
 __version__ = "0.2.0"

@@ -164,9 +164,7 @@ class QuadratureNexus:
         # E57: persistent cross-cycle calibration accumulator (additive, never reset)
         self._mycelium_calibration: dict[VoiceType, float] = dict.fromkeys(VoiceType, 0.0)
 
-    def apply_mycelium_feedback(
-        self, synthesized_skill_content: str, learning_rate: float = 0.5
-    ) -> dict:
+    def apply_mycelium_feedback(self, synthesized_skill_content: str, learning_rate: float = 0.5) -> dict:
         """Apply Mycelium-synthesized patterns as per-voice score adjustments (E6/E8).
 
         Reads per-voice mean scores from the synthesized skill content.
@@ -221,9 +219,7 @@ class QuadratureNexus:
                 # E57: accumulate into _mycelium_calibration (+=) rather than SET _score_adjustments.
                 # SET semantics caused cycle-2 to replace cycle-1's calibration with a smaller value
                 # as the observed mean rose. Additive semantics produce monotonic compounding.
-                self._mycelium_calibration[vt] = (
-                    self._mycelium_calibration.get(vt, 0.0) + adjustment
-                )
+                self._mycelium_calibration[vt] = self._mycelium_calibration.get(vt, 0.0) + adjustment
                 self._score_adjustments[vt] = self._mycelium_calibration[vt]
                 adjustments_applied[voice_name] = {
                     "baseline": baseline,
@@ -525,10 +521,7 @@ class QuadratureNexus:
     def _evaluate_engineer(self, proposal: QuadratureProposal) -> float:
         """Evaluate proposal from Engineer perspective."""
         base_score = 0.75
-        if (
-            "efficient" in proposal.description.lower()
-            or "optimize" in proposal.description.lower()
-        ):
+        if "efficient" in proposal.description.lower() or "optimize" in proposal.description.lower():
             base_score += 0.1
         return min(1.0, max(0.0, base_score + self._score_adjustments[VoiceType.ENGINEER]))
 
@@ -681,9 +674,7 @@ class QuadratureNexus:
             f"{min_response.voice.value} raised concerns: {concerns}"
         )
 
-    def ratify(
-        self, result: QuadratureResult, expires_hours: float | None = None
-    ) -> StrategicDirective:
+    def ratify(self, result: QuadratureResult, expires_hours: float | None = None) -> StrategicDirective:
         """Ratify an approved QuadratureResult into a StrategicDirective.
 
         Args:

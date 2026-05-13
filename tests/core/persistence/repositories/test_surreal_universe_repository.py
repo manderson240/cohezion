@@ -45,9 +45,7 @@ class TestSurrealUniverseRepository:
     """Tests for SurrealUniverseRepository."""
 
     @pytest.mark.asyncio
-    async def test_create_universe_node(
-        self, universe_repo, mock_surreal_client, sample_universe_node
-    ):
+    async def test_create_universe_node(self, universe_repo, mock_surreal_client, sample_universe_node):
         """Test creating a universe node."""
         # Setup
         mock_surreal_client.query.return_value = [
@@ -75,9 +73,7 @@ class TestSurrealUniverseRepository:
         assert call_args[0][1]["data"]["content"] == "Test node content"
 
     @pytest.mark.asyncio
-    async def test_get_universe_node_found(
-        self, universe_repo, mock_surreal_client, sample_universe_node
-    ):
+    async def test_get_universe_node_found(self, universe_repo, mock_surreal_client, sample_universe_node):
         """Test getting a universe node that exists."""
         # Setup
         mock_surreal_client.query.return_value = [
@@ -258,17 +254,12 @@ class TestSurrealUniverseRepository:
         mock_surreal_client.query.assert_called_once()
         call_args = mock_surreal_client.query.call_args
         # Verify parameterized query with filter
-        assert (
-            "SELECT * FROM universe_nodes WHERE node_type = $node_type LIMIT $limit"
-            in call_args[0][0]
-        )
+        assert "SELECT * FROM universe_nodes WHERE node_type = $node_type LIMIT $limit" in call_args[0][0]
         assert call_args[0][1]["node_type"] == "energy_snapshot"
         assert call_args[0][1]["limit"] == 10
 
     @pytest.mark.asyncio
-    async def test_update_universe_node(
-        self, universe_repo, mock_surreal_client, sample_universe_node
-    ):
+    async def test_update_universe_node(self, universe_repo, mock_surreal_client, sample_universe_node):
         """Test updating a universe node."""
         # Setup
         updated_node = UniverseNode(
@@ -303,9 +294,7 @@ class TestSurrealUniverseRepository:
         assert "DELETE universe_nodes:test_node_1" in call_args[0][0]
 
     @pytest.mark.asyncio
-    async def test_search_by_embedding(
-        self, universe_repo, mock_surreal_client, sample_universe_node
-    ):
+    async def test_search_by_embedding(self, universe_repo, mock_surreal_client, sample_universe_node):
         """Test searching for nodes by embedding similarity."""
         # Setup
         query_embedding = [0.1, 0.2, 0.3]
@@ -352,10 +341,7 @@ class TestSurrealUniverseRepository:
         mock_surreal_client.query.assert_called_once()
         call_args = mock_surreal_client.query.call_args
         # Verify vector similarity query with parameterized variables
-        assert (
-            "SELECT *, vector::similarity::cosine(embedding, $embedding) AS score"
-            in call_args[0][0]
-        )
+        assert "SELECT *, vector::similarity::cosine(embedding, $embedding) AS score" in call_args[0][0]
         assert call_args[0][1]["table"] == "universe_nodes"
         assert call_args[0][1]["embedding"] == [0.1, 0.2, 0.3]
         assert call_args[0][1]["limit"] == 5

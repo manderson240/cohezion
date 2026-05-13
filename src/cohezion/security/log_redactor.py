@@ -86,8 +86,7 @@ class RedactionFilter(logging.Filter):
                 }
             elif isinstance(record.args, (list, tuple)):
                 record.args = tuple(
-                    self._redact_string(str(arg)) if isinstance(arg, str) else arg
-                    for arg in record.args
+                    self._redact_string(str(arg)) if isinstance(arg, str) else arg for arg in record.args
                 )
 
         return True

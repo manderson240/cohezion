@@ -16,6 +16,7 @@ Usage:
 
 from __future__ import annotations
 
+import asyncio
 import logging
 import time
 from dataclasses import asdict
@@ -154,9 +155,7 @@ class ModelPoolManager:
 
         # Check if we need to evict to make room
         loaded_count = sum(
-            1
-            for m in self._pool.values()
-            if m.loaded and m.tier not in (ModelTierPolicy.CLOUD, ModelTierPolicy.EDGE)
+            1 for m in self._pool.values() if m.loaded and m.tier not in (ModelTierPolicy.CLOUD, ModelTierPolicy.EDGE)
         )
         if loaded_count >= self._config.max_concurrent_loaded:
             evicted = await self._evict_one(exclude=model_name)
@@ -199,9 +198,7 @@ class ModelPoolManager:
 
         # Check if we need to evict to make room
         loaded_count = sum(
-            1
-            for m in self._pool.values()
-            if m.loaded and m.tier not in (ModelTierPolicy.CLOUD, ModelTierPolicy.EDGE)
+            1 for m in self._pool.values() if m.loaded and m.tier not in (ModelTierPolicy.CLOUD, ModelTierPolicy.EDGE)
         )
         if loaded_count >= self._config.max_concurrent_loaded:
             evicted = await self._evict_one(exclude=model_name)
@@ -380,7 +377,8 @@ class ModelPoolManager:
         """Return a snapshot of the current pool state."""
         loaded = [m.name for m in self._pool.values() if m.loaded]
         healthy = [m.name for m in self._pool.values() if m.loaded and m.healthy]
-        total_mem = sum(m.size_gb for m in self._pool.values() if m.loaded)
+        local_tiers = (ModelTierPolicy.HOT, ModelTierPolicy.WARM, ModelTierPolicy.COLD)
+        total_mem = sum(m.size_gb for m in self._pool.values() if m.loaded and m.tier in local_tiers)
 
         return PoolStatus(
             loaded_models=loaded,
@@ -451,9 +449,7 @@ class ModelPoolManager:
         """Query private Lemonade server for installed models."""
         try:
             async with httpx.AsyncClient(timeout=10.0) as client:
-                resp = await client.get(
-                    f"http://{self.lemonade.host}:{self.lemonade.port}/api/v1/models"
-                )
+                resp = await client.get(f"http://{self.lemonade.host}:{self.lemonade.port}/api/v1/models")
                 resp.raise_for_status()
                 # Lemonade API returns a list of models
                 return resp.json().get("data", [])
@@ -509,9 +505,7 @@ class ModelPoolManager:
                     },
                 )
                 resp.raise_for_status()
-                logger.info(
-                    "Loaded model %s (tier=%s, keep_alive=%s)", model_name, tier.value, keep_alive
-                )
+                logger.info("Loaded model %s (tier=%s, keep_alive=%s)", model_name, tier.value, keep_alive)
                 return True
         except Exception as exc:
             logger.error("Failed to load model %s: %s", model_name, exc)
@@ -520,11 +514,7 @@ class ModelPoolManager:
     async def _evict_one(self, exclude: str = "") -> bool:
         """Evict one model to free a slot. Returns True if a model was evicted."""
         candidates = sorted(
-            [
-                m
-                for m in self._pool.values()
-                if m.loaded and m.tier != ModelTierPolicy.HOT and m.name != exclude
-            ],
+            [m for m in self._pool.values() if m.loaded and m.tier != ModelTierPolicy.HOT and m.name != exclude],
             key=lambda m: (
                 0 if m.tier == ModelTierPolicy.COLD else 1,
                 m.last_used,

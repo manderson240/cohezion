@@ -342,10 +342,7 @@ class TestContextErrorRecovery:
             with pytest.raises(Exception) as exc_info:
                 mgr.load_manifest()
 
-            assert (
-                "not found" in str(exc_info.value).lower()
-                or "manifest" in str(exc_info.value).lower()
-            )
+            assert "not found" in str(exc_info.value).lower() or "manifest" in str(exc_info.value).lower()
 
     def test_context_handles_missing_core_file(self, tmp_path, caplog):
         """[P1] Should handle missing core file gracefully (warn, don't raise).
@@ -384,8 +381,7 @@ class TestContextErrorRecovery:
                 mgr.load_core_context()
 
             assert any(
-                "nonexistent.md" in record.message and "Skipping" in record.message
-                for record in caplog.records
+                "nonexistent.md" in record.message and "Skipping" in record.message for record in caplog.records
             ), f"Expected warning naming missing file; got: {[r.message for r in caplog.records]}"
 
 
@@ -416,9 +412,7 @@ class TestContextWithCompoundWorkflow:
         with open(ctx_dir / "traceability" / "manifest.json", "w") as f:
             json.dump(manifest, f)
 
-        (ctx_dir / "core" / "test-rules.md").write_text(
-            "# Test Rules\n\nAsync/await required.", encoding="utf-8"
-        )
+        (ctx_dir / "core" / "test-rules.md").write_text("# Test Rules\n\nAsync/await required.", encoding="utf-8")
 
         with patch.object(Path, "cwd", return_value=tmp_path):
             # Initialize context manager

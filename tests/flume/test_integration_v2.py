@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 from pathlib import Path
-from unittest.mock import MagicMock, patch
+from unittest.mock import MagicMock
 
 import numpy as np
 import torch
@@ -29,13 +29,7 @@ class TestVAEEncoderV2Integration:
             ckpt_path,
         )
 
-        # Mock Ollama to return 768D
-        fake_768d = np.random.randn(768).astype(np.float32)
-        fake_768d /= np.linalg.norm(fake_768d)
-
-        with patch("cohezion.flume.vae_encoder.OllamaEmbeddingProvider") as MockOllama:
-            MockOllama.return_value.embed.return_value = fake_768d
-            encoder = FlumeVAEEncoder(model_path=ckpt_path, fallback_to_hash=True)
+        encoder = FlumeVAEEncoder(model_path=ckpt_path, fallback_to_hash=True)
 
         if encoder.is_available():
             result = encoder.encode("deploy the API")

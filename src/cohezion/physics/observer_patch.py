@@ -180,10 +180,6 @@ def evo_observer_consistency(
       - The Thinker: evaluates consistency
       - The Doer: takes corrective action if decoherent
     """
-    patch_a = ObserverPatch(
-        agent_id=agent_a_id, spinor=agent_a_spinor, angular_radius=angular_radius
-    )
-    patch_b = ObserverPatch(
-        agent_id=agent_b_id, spinor=agent_b_spinor, angular_radius=angular_radius
-    )
+    patch_a = ObserverPatch(agent_id=agent_a_id, spinor=agent_a_spinor, angular_radius=angular_radius)
+    patch_b = ObserverPatch(agent_id=agent_b_id, spinor=agent_b_spinor, angular_radius=angular_radius)
     return verify_observer_consistency(patch_a, patch_b)

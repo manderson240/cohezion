@@ -162,9 +162,7 @@ def test_flume_latent_space_handles_no_vae_with_sanitized_error(client):
     - Error message explains VAE not available
     - Frontend can handle failure gracefully
     """
-    with patch(
-        "cohezion.api._get_vae", side_effect=FileNotFoundError("/secret/path/checkpoint.pt")
-    ):
+    with patch("cohezion.api._get_vae", side_effect=FileNotFoundError("/secret/path/checkpoint.pt")):
         response = client.post(
             "/flume/latent-space",
             json={"n_samples": 10, "seed": 42},

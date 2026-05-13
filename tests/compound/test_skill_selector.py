@@ -247,11 +247,7 @@ class TestSkillScoreComputation:
         )
 
         # Manually compute with selector's weights
-        expected = (
-            selector.coherence_weight * 0.5
-            + selector.efficiency_weight * 0.5
-            + selector.success_weight * 0.5
-        )
+        expected = selector.coherence_weight * 0.5 + selector.efficiency_weight * 0.5 + selector.success_weight * 0.5
 
         # All equal means composite should be 0.5
         assert expected == 0.5

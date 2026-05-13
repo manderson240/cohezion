@@ -132,7 +132,6 @@ class TestRetrospectionLive:
 
         assert analysis["should_refine"] is False
         assert (
-            "degradation" in analysis["recommendation"].lower()
-            or "investigate" in analysis["recommendation"].lower()
+            "degradation" in analysis["recommendation"].lower() or "investigate" in analysis["recommendation"].lower()
         )
         assert analysis["degraded"] is True

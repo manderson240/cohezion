@@ -52,14 +52,8 @@ def load_task(task_id: str, subset: str = "training") -> dict[str, Any]:
         return np.array(g, dtype=np.uint8)
 
     return {
-        "train": [
-            {"input": convert_grid(ex["input"]), "output": convert_grid(ex["output"])}
-            for ex in raw["train"]
-        ],
-        "test": [
-            {"input": convert_grid(ex["input"]), "output": convert_grid(ex["output"])}
-            for ex in raw["test"]
-        ],
+        "train": [{"input": convert_grid(ex["input"]), "output": convert_grid(ex["output"])} for ex in raw["train"]],
+        "test": [{"input": convert_grid(ex["input"]), "output": convert_grid(ex["output"])} for ex in raw["test"]],
     }
 
 

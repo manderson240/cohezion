@@ -17,13 +17,9 @@ logger = logging.getLogger(__name__)
 class CopernicusState(BaseModel):
     """Represents the spectral and spatial state of a region from satellite data."""
 
-    coordinates: tuple[
-        float, float, float, float
-    ]  # Bounding box (min_lon, min_lat, max_lon, max_lat)
+    coordinates: tuple[float, float, float, float]  # Bounding box (min_lon, min_lat, max_lon, max_lat)
     time_range: tuple[str, str]  # (start_date, end_date)
-    spectral_indices: dict[str, float] = Field(
-        default_factory=dict, description="Calculated indices like NDVI, NDWI"
-    )
+    spectral_indices: dict[str, float] = Field(default_factory=dict, description="Calculated indices like NDVI, NDWI")
     cloud_cover: float = 0.0
     image_url: str | None = None
     raw_metadata: dict[str, Any] = Field(default_factory=dict)

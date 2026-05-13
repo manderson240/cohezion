@@ -185,9 +185,7 @@ class StateRequest(BaseModel):
 
 @modules_router.post("/hamiltonian/simulate", response_model=HamiltonianResponse)
 async def simulate_hamiltonian(
-    potential: str = Query(
-        "double_well", description="Potential type: double_well, harmonic, hiho_well"
-    ),
+    potential: str = Query("double_well", description="Potential type: double_well, harmonic, hiho_well"),
     epochs: int = Query(50, ge=1, le=500),
     temperature: float = Query(0.01, ge=0.0, le=1.0),
     n_agents: int = Query(4, ge=1, le=32),
@@ -516,16 +514,8 @@ async def get_persistence_diagram(
     analyzer = TopologicalPersistence()
     diagram = analyzer.compute_persistence(trajectory)
 
-    h0_pairs = [
-        [p.birth, p.death if not np.isinf(p.death) else -1.0]
-        for p in diagram.pairs
-        if p.dimension == 0
-    ]
-    h1_pairs = [
-        [p.birth, p.death if not np.isinf(p.death) else -1.0]
-        for p in diagram.pairs
-        if p.dimension == 1
-    ]
+    h0_pairs = [[p.birth, p.death if not np.isinf(p.death) else -1.0] for p in diagram.pairs if p.dimension == 0]
+    h1_pairs = [[p.birth, p.death if not np.isinf(p.death) else -1.0] for p in diagram.pairs if p.dimension == 1]
 
     return PersistenceData(
         h0_pairs=h0_pairs,

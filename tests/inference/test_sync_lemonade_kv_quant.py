@@ -79,9 +79,7 @@ def test_plan_and_apply_dry_run_invokes_no_subprocess() -> None:
         patch.object(sk, "fetch_recipe_options", return_value={}) as mock_fetch,
         patch.object(sk, "apply_sync") as mock_apply,
     ):
-        in_sync, planned, applied = sk.plan_and_apply(
-            registry, "http://fake", dry_run=True, verbose=False
-        )
+        in_sync, planned, applied = sk.plan_and_apply(registry, "http://fake", dry_run=True, verbose=False)
     assert mock_apply.call_count == 0, "dry-run must not invoke apply_sync"
     assert planned == 2, "both iGPU Gemma models should need sync (post-kv8 pivot)"
     assert applied == 0
@@ -100,9 +98,7 @@ def test_plan_and_apply_skips_models_already_in_sync() -> None:
         patch.object(sk, "fetch_recipe_options", return_value=in_sync_options),
         patch.object(sk, "apply_sync") as mock_apply,
     ):
-        in_sync, planned, applied = sk.plan_and_apply(
-            registry, "http://fake", dry_run=False, verbose=False
-        )
+        in_sync, planned, applied = sk.plan_and_apply(registry, "http://fake", dry_run=False, verbose=False)
     assert in_sync == 2
     assert planned == 0
     assert applied == 0

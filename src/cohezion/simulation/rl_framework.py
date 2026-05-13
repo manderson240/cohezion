@@ -73,9 +73,7 @@ class ExperienceBuffer:
         self._buffer.append(transition)
 
     def sample(self, batch_size: int) -> list[Transition]:
-        indices = np.random.choice(
-            len(self._buffer), size=min(batch_size, len(self._buffer)), replace=False
-        )
+        indices = np.random.choice(len(self._buffer), size=min(batch_size, len(self._buffer)), replace=False)
         return [self._buffer[i] for i in indices]
 
     def get_all(self) -> list[Transition]:
@@ -250,9 +248,7 @@ class PolicyNetwork:
     Suitable for small-scale local training on CPU.
     """
 
-    def __init__(
-        self, state_dim: int = STATE_DIM, hidden_dim: int = 64, n_actions: int = NUM_ACTIONS
-    ):
+    def __init__(self, state_dim: int = STATE_DIM, hidden_dim: int = 64, n_actions: int = NUM_ACTIONS):
         self.state_dim = state_dim
         self.hidden_dim = hidden_dim
         self.n_actions = n_actions
@@ -391,9 +387,7 @@ class PPOAgent:
             next_value = 0.0 if t == n - 1 or transitions[t].done else transitions[t + 1].value
 
             delta = transitions[t].reward + self.gamma * next_value - transitions[t].value
-            last_gae = delta + self.gamma * self.gae_lambda * (
-                0.0 if transitions[t].done else last_gae
-            )
+            last_gae = delta + self.gamma * self.gae_lambda * (0.0 if transitions[t].done else last_gae)
             advantages[t] = last_gae
             returns[t] = advantages[t] + transitions[t].value
 
@@ -440,9 +434,7 @@ class PPOAgent:
 
                 # Gradient approximation (finite differences for numpy-only)
                 # In production, this would use autograd (PyTorch/JAX)
-                grad_scale = self.lr * (
-                    policy_loss + 0.5 * value_loss - self.entropy_coeff * entropy
-                )
+                grad_scale = self.lr * (policy_loss + 0.5 * value_loss - self.entropy_coeff * entropy)
 
                 # Stochastic weight perturbation (evolutionary strategy approximation)
                 noise_p = np.random.randn(*self.policy.w2.shape) * grad_scale * 0.01

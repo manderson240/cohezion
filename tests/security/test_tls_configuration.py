@@ -76,9 +76,7 @@ class TestTLSCertificateGeneration:
         try:
             import OpenSSL
 
-            cert = OpenSSL.crypto.load_certificate(
-                OpenSSL.crypto.FILETYPE_PEM, cert_path.read_bytes()
-            )
+            cert = OpenSSL.crypto.load_certificate(OpenSSL.crypto.FILETYPE_PEM, cert_path.read_bytes())
             cn = cert.get_subject().CN
             assert cn == "localhost", f"Certificate CN should be 'localhost', got '{cn}'"
         except ImportError:
@@ -94,9 +92,7 @@ class TestTLSCertificateGeneration:
         try:
             import OpenSSL
 
-            cert = OpenSSL.crypto.load_certificate(
-                OpenSSL.crypto.FILETYPE_PEM, cert_path.read_bytes()
-            )
+            cert = OpenSSL.crypto.load_certificate(OpenSSL.crypto.FILETYPE_PEM, cert_path.read_bytes())
             # Self-signed: issuer == subject
             issuer = cert.get_issuer()
             subject = cert.get_subject()
@@ -250,9 +246,7 @@ class TestTLSIntegration:
         if not cert_path.exists() or not key_path.exists():
             pytest.skip("Deployment certificates not present")
 
-        assert cert_path.exists() and key_path.exists(), (
-            "Both certificate and key must exist for HTTPS"
-        )
+        assert cert_path.exists() and key_path.exists(), "Both certificate and key must exist for HTTPS"
 
     def test_tls_environment_variables_documented(self):
         """Verify TLS configuration environment variables are documented."""
@@ -281,9 +275,7 @@ class TestTLSIntegration:
 
             import OpenSSL
 
-            cert = OpenSSL.crypto.load_certificate(
-                OpenSSL.crypto.FILETYPE_PEM, cert_path.read_bytes()
-            )
+            cert = OpenSSL.crypto.load_certificate(OpenSSL.crypto.FILETYPE_PEM, cert_path.read_bytes())
 
             not_after = cert.get_notAfter().decode()
             # Parse the date (format: YYYYMMDDHHmmssZ)

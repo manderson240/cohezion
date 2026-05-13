@@ -254,8 +254,7 @@ class WarmCheckpointLoader:
             agent.session.best_checkpoint = Path(checkpoint.best_checkpoint_path)
 
         logger.info(
-            f"Session restored from checkpoint: {session_id} "
-            f"({checkpoint.experiments_completed} experiments completed)"
+            f"Session restored from checkpoint: {session_id} ({checkpoint.experiments_completed} experiments completed)"
         )
         return True
 

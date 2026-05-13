@@ -120,9 +120,7 @@ class ThermalAutoresearchExecutor:
         self.config = config or self._default_config()
 
         # Initialize protection systems
-        self.thermal_manager: ThermalCheckpointManager = ThermalCheckpointManager(
-            self.config.thermal_config
-        )
+        self.thermal_manager: ThermalCheckpointManager = ThermalCheckpointManager(self.config.thermal_config)
         self.tdp_tracker: TDPBudgetTracker = TDPBudgetTracker(self.config.tdp_config)
         self.journey_tracker: JourneyTracker = JourneyTracker()
         self.journey_persistence: JourneyPersistence = get_journey_persistence()
@@ -215,9 +213,7 @@ class ThermalAutoresearchExecutor:
         logger.info("STARTING 8-HOUR AUTORESEARCH JOURNEY")
         logger.info(f"Journey ID: {journey_id}")
         logger.info(f"Start time: {time.strftime('%Y-%m-%d %H:%M:%S')}")
-        logger.info(
-            f"Expected end: {time.strftime('%Y-%m-%d %H:%M:%S', time.localtime(self.start_time + 8 * 3600))}"
-        )
+        logger.info(f"Expected end: {time.strftime('%Y-%m-%d %H:%M:%S', time.localtime(self.start_time + 8 * 3600))}")
         logger.info("=" * 80)
 
         # Start protection systems
@@ -268,10 +264,7 @@ class ThermalAutoresearchExecutor:
         hypotheses_completed = 0
         results = []
 
-        logger.info(
-            f"Domain '{domain.name}': {len(domain.hypotheses)} hypotheses, "
-            f"{domain.duration_hours}h duration"
-        )
+        logger.info(f"Domain '{domain.name}': {len(domain.hypotheses)} hypotheses, {domain.duration_hours}h duration")
 
         async with CompoundSessionManager() as mgr:
             mgr.start_session(max_cache_entries=256)
@@ -294,9 +287,7 @@ class ThermalAutoresearchExecutor:
                 # Check TDP budget
                 tdp_status = self.tdp_tracker.get_budget_status()
                 if tdp_status["should_throttle"]:
-                    logger.warning(
-                        f"TDP budget warning: {tdp_status['consumed_percent']:.1f}% consumed"
-                    )
+                    logger.warning(f"TDP budget warning: {tdp_status['consumed_percent']:.1f}% consumed")
                     # Reduce intensity
                     await asyncio.sleep(30)  # Brief pause
 
@@ -325,9 +316,7 @@ class ThermalAutoresearchExecutor:
                     )
 
                 # Execute hypothesis with Ralph Loop coherence gate
-                logger.info(
-                    f"[{domain.name}] Hypothesis {i + 1}/{len(domain.hypotheses)}: {hypothesis[:60]}..."
-                )
+                logger.info(f"[{domain.name}] Hypothesis {i + 1}/{len(domain.hypotheses)}: {hypothesis[:60]}...")
 
                 try:
                     result = await self._evaluate_hypothesis_with_thermal(hypothesis, mgr, domain)
@@ -344,21 +333,15 @@ class ThermalAutoresearchExecutor:
 
                     # Check Ralph Loop gate
                     if result.get("coherence", 0) >= self.config.ralph_coherence_threshold:
-                        logger.info(
-                            f"HIHO gate passed (coherence {result['coherence']:.2f} >= 0.5)"
-                        )
+                        logger.info(f"HIHO gate passed (coherence {result['coherence']:.2f} >= 0.5)")
 
                         # Trigger R-Zero if high coherence
                         if result.get("coherence", 0) >= 0.8:
                             logger.info("High coherence - triggering R-Zero Evolver")
-                            evolver = RZeroEvolver(
-                                target_success_count=self.config.r_zero_success_target
-                            )
+                            evolver = RZeroEvolver(target_success_count=self.config.r_zero_success_target)
                             await evolver.run_loop()
                     else:
-                        logger.warning(
-                            f"HIHO gate failed (coherence {result['coherence']:.2f} < 0.5)"
-                        )
+                        logger.warning(f"HIHO gate failed (coherence {result['coherence']:.2f} < 0.5)")
 
                 except Exception as e:
                     logger.error(f"Hypothesis evaluation failed: {e}")
@@ -383,9 +366,7 @@ class ThermalAutoresearchExecutor:
             "hypotheses_total": len(domain.hypotheses),
             "duration_hours": domain_duration / 3600,
             "results": results,
-            "thermal_events_in_domain": len(
-                [e for e in self.thermal_events if e.get("domain") == domain.name]
-            ),
+            "thermal_events_in_domain": len([e for e in self.thermal_events if e.get("domain") == domain.name]),
         }
 
     async def _evaluate_hypothesis_with_thermal(
@@ -396,10 +377,7 @@ class ThermalAutoresearchExecutor:
 
         # Pre-execution thermal check
         metrics = self.monitor.get_current_metrics()
-        logger.debug(
-            f"Pre-execution temps: GPU={metrics.gpu_temp_current}°C, "
-            f"CPU={metrics.cpu_temp_current}°C"
-        )
+        logger.debug(f"Pre-execution temps: GPU={metrics.gpu_temp_current}°C, CPU={metrics.cpu_temp_current}°C")
 
         t0 = time.time()
 
@@ -428,10 +406,7 @@ class ThermalAutoresearchExecutor:
 
         # Post-execution thermal check
         metrics = self.monitor.get_current_metrics()
-        logger.debug(
-            f"Post-execution temps: GPU={metrics.gpu_temp_current}°C, "
-            f"CPU={metrics.cpu_temp_current}°C"
-        )
+        logger.debug(f"Post-execution temps: GPU={metrics.gpu_temp_current}°C, CPU={metrics.cpu_temp_current}°C")
 
         # Parse coherence
         coherence = self._parse_coherence(response_text)
@@ -507,10 +482,7 @@ class ThermalAutoresearchExecutor:
         logger.info(f"Hypotheses: {result['total_hypotheses_evaluated']}")
         logger.info(f"Thermal events: {result['thermal_events_count']}")
         logger.info(f"TDP consumed: {result['tdp_consumed_percent']:.1f}%")
-        logger.info(
-            f"Final temps: GPU={result['final_temps']['gpu_c']}°C, "
-            f"CPU={result['final_temps']['cpu_c']}°C"
-        )
+        logger.info(f"Final temps: GPU={result['final_temps']['gpu_c']}°C, CPU={result['final_temps']['cpu_c']}°C")
         logger.info("=" * 80)
 
         return result

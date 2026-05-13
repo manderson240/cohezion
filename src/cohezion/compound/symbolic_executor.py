@@ -110,12 +110,10 @@ result = {{"factors": factors, "count": count}}
             return self.execute(code)
 
         # 3. SEQUENCE(formula, var, start, end)
-        seq_match = re.match(
-            r"SEQUENCE\((.+?),\s*(.+?),\s*(\d+),\s*(\d+)\)", command_str, re.IGNORECASE
-        )
+        seq_match = re.match(r"SEQUENCE\((.+?),\s*(.+?),\s*(\d+),\s*(\d+)\)", command_str, re.IGNORECASE)
         if seq_match:
             formula, var, start, end = seq_match.groups()
-            code = f"result = [{formula.replace(var, str(i))} for {var} in range({start}, {int(end) + 1})]"
+            code = f"result = [{formula} for {var} in range({start}, {int(end) + 1})]"
             return self.execute(code)
 
         # 4. FACTOR(n)

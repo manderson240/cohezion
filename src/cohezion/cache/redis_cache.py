@@ -164,9 +164,7 @@ class RedisSemanticCache(SemanticCache):
         hash_val = hashlib.sha256(prompt.encode()).hexdigest()
         return f"cache:{hash_val[:16]}"
 
-    async def get(
-        self, prompt: str, system: str | None = None, model: str | None = None
-    ) -> str | None:
+    async def get(self, prompt: str, system: str | None = None, model: str | None = None) -> str | None:
         """Get entry from cache with L0→L1→L2→L3 fallback.
 
         Args:

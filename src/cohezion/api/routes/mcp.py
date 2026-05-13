@@ -17,11 +17,7 @@ mcp_router = APIRouter(tags=["mcp"])
 async def list_servers():
     """List all available MCP servers."""
     registry = get_registry()
-    return {
-        "servers": [
-            {"name": s.name, "type": s.type, "status": s.status} for s in registry.list_servers()
-        ]
-    }
+    return {"servers": [{"name": s.name, "type": s.type, "status": s.status} for s in registry.list_servers()]}
 
 
 @mcp_router.get("/mcp/tools")

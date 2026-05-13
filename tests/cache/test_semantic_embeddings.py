@@ -6,6 +6,8 @@ related and unrelated texts, replacing hash-based embeddings.
 Phase 2 Priority 2 Implementation Tests.
 """
 
+import sys
+
 import numpy as np
 import pytest
 
@@ -13,6 +15,21 @@ from cohezion.cache.text_encoder import (
     SemanticTextEncoder,
     get_text_encoder,
     reset_encoder,
+)
+
+# Skip entire module when sentence_transformers is mocked (test/conftest guards against
+# BLAS segfaults by mocking the package globally — real semantic tests require actual model)
+_st_is_mocked = (
+    isinstance(sys.modules.get("sentence_transformers"), type(sys))
+    and hasattr(sys.modules.get("sentence_transformers"), "_mock_methods")
+    or (hasattr(sys.modules.get("sentence_transformers", None), "_mock_name"))
+)
+
+pytestmark = pytest.mark.skipif(
+    not hasattr(sys.modules.get("sentence_transformers", object()), "SentenceTransformer")
+    or not callable(getattr(sys.modules.get("sentence_transformers", None), "SentenceTransformer", None))
+    or str(type(sys.modules.get("sentence_transformers"))).find("MagicMock") != -1,
+    reason="sentence_transformers is mocked in this test session — skip real model tests",
 )
 
 
@@ -58,9 +75,7 @@ class TestSemanticTextEncoder:
         similarity = encoder.similarity(emb1, emb2)
 
         print(f"Similar texts similarity: {similarity:.3f}")
-        assert similarity > 0.65, (
-            f"Similar texts should have similarity >0.65, got {similarity:.3f}"
-        )
+        assert similarity > 0.65, f"Similar texts should have similarity >0.65, got {similarity:.3f}"
 
     def test_related_texts_moderate_similarity(self):
         """Test that related (but different topic) texts have moderate similarity (0.20-0.60)."""
@@ -75,9 +90,7 @@ class TestSemanticTextEncoder:
 
         print(f"Related topics similarity: {similarity:.3f}")
         # These are related (both programming) but different enough that similarity is lower
-        assert 0.20 < similarity < 0.60, (
-            f"Related topics should have similarity 0.20-0.60, got {similarity:.3f}"
-        )
+        assert 0.20 < similarity < 0.60, f"Related topics should have similarity 0.20-0.60, got {similarity:.3f}"
 
     def test_unrelated_texts_low_similarity(self):
         """Test that unrelated texts have low similarity (<0.50)."""
@@ -91,9 +104,7 @@ class TestSemanticTextEncoder:
         similarity = encoder.similarity(emb1, emb2)
 
         print(f"Unrelated texts similarity: {similarity:.3f}")
-        assert similarity < 0.50, (
-            f"Unrelated texts should have similarity <0.50, got {similarity:.3f}"
-        )
+        assert similarity < 0.50, f"Unrelated texts should have similarity <0.50, got {similarity:.3f}"
 
     def test_identical_texts_maximum_similarity(self):
         """Test that identical texts have similarity ~1.0."""
@@ -105,9 +116,7 @@ class TestSemanticTextEncoder:
         similarity = encoder.similarity(emb1, emb2)
 
         print(f"Identical texts similarity: {similarity:.3f}")
-        assert similarity > 0.99, (
-            f"Identical texts should have similarity >0.99, got {similarity:.3f}"
-        )
+        assert similarity > 0.99, f"Identical texts should have similarity >0.99, got {similarity:.3f}"
 
     def test_paraphrase_matching(self):
         """Test that paraphrases have high similarity (semantic equivalence >0.70)."""

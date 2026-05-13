@@ -644,9 +644,7 @@ class TestTeamExecution:
     @pytest.mark.asyncio
     async def test_execute_team_missing_agent(self, team_executor):
         """Test handling missing agent."""
-        tasks = [
-            AgentTask("task1", "agent_missing", "Task", "generate", available_skills=["skill1"])
-        ]
+        tasks = [AgentTask("task1", "agent_missing", "Task", "generate", available_skills=["skill1"])]
 
         result = await team_executor.execute_team(tasks)
 

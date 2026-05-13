@@ -29,9 +29,7 @@ class PlasmaTheosophySynthesizer:
 
     def __init__(self, router: DynamicModelRouter | None = None) -> None:
         self.router: DynamicModelRouter = router or DynamicModelRouter()
-        self.circuit: CircuitBreaker = get_circuit(
-            "plasma_theosophy", failure_threshold=2, recovery_timeout=60.0
-        )
+        self.circuit: CircuitBreaker = get_circuit("plasma_theosophy", failure_threshold=2, recovery_timeout=60.0)
 
     async def analyze_anomaly(self, data: PlasmaAnomalyData) -> str:
         """Synthesize esoteric meaning from an EVO physical plasma anomaly."""

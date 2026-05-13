@@ -101,9 +101,7 @@ class WikiMCP:
                 result["linked_to"].extend(concepts)
 
         # 6. Log
-        await self.wiki.append_log(
-            "ingest", f"Ingested {source_type}: {title if auto_extract else 'unnamed'}"
-        )
+        await self.wiki.append_log("ingest", f"Ingested {source_type}: {title if auto_extract else 'unnamed'}")
 
         return result
 
@@ -231,14 +229,10 @@ class WikiMCP:
         if missing:
             issues["suggested_sources"] = [f"Search for: {m}" for m in list(missing)[:5]]
 
-        issues["total_issues"] = (
-            len(issues["orphans"]) + len(issues["dead_links"]) + len(issues["missing_concepts"])
-        )
+        issues["total_issues"] = len(issues["orphans"]) + len(issues["dead_links"]) + len(issues["missing_concepts"])
 
         # Log the lint
-        await self.wiki.append_log(
-            "lint", f"Found {issues['total_issues']} issues, fixed {len(fixed)}"
-        )
+        await self.wiki.append_log("lint", f"Found {issues['total_issues']} issues, fixed {len(fixed)}")
 
         return issues
 

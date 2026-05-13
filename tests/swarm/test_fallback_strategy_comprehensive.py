@@ -291,9 +291,7 @@ class TestFallbackStrategyDetection:
         """Test detection when error occurs."""
         strategy = FallbackStrategy()
 
-        unavailable = strategy.detect_model_unavailability(
-            model="test-model", latency_ms=100.0, error_occurred=True
-        )
+        unavailable = strategy.detect_model_unavailability(model="test-model", latency_ms=100.0, error_occurred=True)
 
         # Single error doesn't immediately mark as unavailable (need 2+ errors)
         assert unavailable is False
@@ -303,9 +301,7 @@ class TestFallbackStrategyDetection:
         strategy = FallbackStrategy(latency_threshold_ms=1000.0)
 
         # Within threshold - should not trigger
-        unavailable = strategy.detect_model_unavailability(
-            model="test-model", latency_ms=500.0, error_occurred=False
-        )
+        unavailable = strategy.detect_model_unavailability(model="test-model", latency_ms=500.0, error_occurred=False)
 
         assert unavailable is False
 
@@ -314,9 +310,7 @@ class TestFallbackStrategyDetection:
         strategy = FallbackStrategy(latency_threshold_ms=1000.0)
 
         # Exceeds threshold
-        unavailable = strategy.detect_model_unavailability(
-            model="test-model", latency_ms=5000.0, error_occurred=False
-        )
+        unavailable = strategy.detect_model_unavailability(model="test-model", latency_ms=5000.0, error_occurred=False)
 
         # Should not open immediately (just one spike)
         assert unavailable is False

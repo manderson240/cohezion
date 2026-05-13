@@ -220,9 +220,7 @@ class CapabilityMatrix:
                 key = f"model:{model_id}"
                 if key in self._entries and predictor.coherence_history:
                     entry = self._entries[key]
-                    entry.quality_score = sum(predictor.coherence_history) / len(
-                        predictor.coherence_history
-                    )
+                    entry.quality_score = sum(predictor.coherence_history) / len(predictor.coherence_history)
                     entry.success_rate = (
                         sum(predictor.success_history) / len(predictor.success_history)
                         if predictor.success_history
@@ -380,9 +378,7 @@ class CapabilityMatrix:
 
         matrix = self.get_matrix()
         for entity_type in ["model", "skill", "agent"]:
-            entries = sorted(
-                matrix.get(entity_type, []), key=lambda e: e.quality_score, reverse=True
-            )
+            entries = sorted(matrix.get(entity_type, []), key=lambda e: e.quality_score, reverse=True)
             if not entries:
                 continue
 
@@ -483,9 +479,7 @@ class CapabilityMatrix:
         except Exception:
             logger.debug("EVO scorecard enrichment failed (non-blocking)", exc_info=True)
 
-    def run_self_evaluation(
-        self, plan: str, prd_context: str = ""
-    ) -> dict[str, float | bool | str]:
+    def run_self_evaluation(self, plan: str, prd_context: str = "") -> dict[str, float | bool | str]:
         """Run pre-flight self-evaluation via evaluation/self_eval.
 
         Connects evaluation/self_eval.py as a quality gate.
@@ -536,9 +530,7 @@ class CapabilityMatrix:
                     entity_type="data_product",
                     entity_id=product.name,
                     capabilities=["data-access", product.domain],
-                    quality_score={"gold": 1.0, "silver": 0.7, "bronze": 0.4}.get(
-                        product.quality_tier.value, 0.5
-                    ),
+                    quality_score={"gold": 1.0, "silver": 0.7, "bronze": 0.4}.get(product.quality_tier.value, 0.5),
                     speed_tier=2,
                     success_rate=1.0,
                     affinity={product.domain: 0.9},
@@ -567,15 +559,27 @@ class CapabilityMatrix:
         known_overlaps = [
             {
                 "modules": "healing/ + resilience/",
-                "recommendation": "Both handle self-healing. healing/ provides DriftDetector+Diagnostician+Corrector (component-level). resilience/ provides AutonomicManager MAPE-K (system-level). Keep both but document ownership: healing/=component health, resilience/=system health.",
+                "recommendation": (
+                    "Both handle self-healing. healing/ provides DriftDetector+Diagnostician+Corrector"
+                    " (component-level). resilience/ provides AutonomicManager MAPE-K (system-level)."
+                    " Keep both but document ownership: healing/=component health, resilience/=system health."
+                ),
             },
             {
                 "modules": "eval/ + evaluation/",
-                "recommendation": "eval/ has CapabilityScorecard (6-axis EVO) + pipeline. evaluation/ has SelfEvaluationEngine (pre-flight). Both wired to CapabilityMatrix. Consider merging evaluation/self_eval.py into eval/.",
+                "recommendation": (
+                    "eval/ has CapabilityScorecard (6-axis EVO) + pipeline."
+                    " evaluation/ has SelfEvaluationEngine (pre-flight). Both wired to CapabilityMatrix."
+                    " Consider merging evaluation/self_eval.py into eval/."
+                ),
             },
             {
                 "modules": "pipeline/ + pipelines/",
-                "recommendation": "pipeline/ has active modules (weight_bridge, hyperparameter_debate). pipelines/ has only traceability stub. Merge traceability.py into pipeline/ and remove pipelines/.",
+                "recommendation": (
+                    "pipeline/ has active modules (weight_bridge, hyperparameter_debate)."
+                    " pipelines/ has only traceability stub."
+                    " Merge traceability.py into pipeline/ and remove pipelines/."
+                ),
             },
         ]
         return known_overlaps
@@ -595,7 +599,9 @@ class CapabilityMatrix:
             if gap.best_available_score < 0.3:
                 action = {
                     "gap": f"{gap.task_type}: best score {gap.best_available_score:.2f}",
-                    "action": f"Scout new model for {gap.task_type} capability (current best: {gap.best_available_score:.2f})",
+                    "action": (
+                        f"Scout new model for {gap.task_type} capability (current best: {gap.best_available_score:.2f})"
+                    ),
                     "priority": "HIGH",
                 }
             elif gap.best_available_score < 0.5:

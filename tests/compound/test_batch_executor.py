@@ -35,9 +35,7 @@ class TestBatchCompoundResult:
 
     def test_initialization(self):
         """[P0] Should initialize BatchCompoundResult."""
-        result = BatchCompoundResult(
-            success=True, tasks_executed=1, tasks_failed=0, total_duration_seconds=1.0
-        )
+        result = BatchCompoundResult(success=True, tasks_executed=1, tasks_failed=0, total_duration_seconds=1.0)
         assert result.success is True
         assert result.tasks_executed == 1
 
@@ -107,9 +105,7 @@ class TestBatchableExecutor:
         ]
 
         mock_executor.execute_task = AsyncMock(
-            return_value=ExecutionResult(
-                success=True, output="test output", metrics={}, duration_seconds=0.5
-            )
+            return_value=ExecutionResult(success=True, output="test output", metrics={}, duration_seconds=0.5)
         )
 
         # Act
@@ -129,9 +125,7 @@ class TestBatchExecutorFactory:
         mock_mcp_client = MagicMock()
 
         with patch("cohezion.compound.batch_executor.get_batch_size_predictor"):
-            executor = BatchExecutorFactory.create(
-                executor=mock_executor, mcp_client=mock_mcp_client
-            )
+            executor = BatchExecutorFactory.create(executor=mock_executor, mcp_client=mock_mcp_client)
 
         assert isinstance(executor, BatchableExecutor)
         assert executor.executor == mock_executor

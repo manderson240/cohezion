@@ -43,9 +43,7 @@ class OuroborosMonitor:
                 await db.signin({"user": user, "pass": password})
 
                 # Query recent trajectories ordered by timestamp
-                result = await db.query(
-                    f"SELECT * FROM trajectory ORDER BY timestamp DESC LIMIT {limit}"
-                )
+                result = await db.query(f"SELECT * FROM trajectory ORDER BY timestamp DESC LIMIT {limit}")
 
                 # SurrealDB query returns a list of results (one per statement)
                 if result and result[0].get("result"):

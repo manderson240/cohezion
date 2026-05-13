@@ -122,9 +122,7 @@ class InflectionDetector:
         if result.token_metrics:
             cache_hit_rate = result.token_metrics.get("cache_hit_rate", 0.0)
             if cache_hit_rate < self.cache_hit_threshold:
-                issues.append(
-                    f"Cache hit rate low: {cache_hit_rate:.2f} < {self.cache_hit_threshold}"
-                )
+                issues.append(f"Cache hit rate low: {cache_hit_rate:.2f} < {self.cache_hit_threshold}")
                 score *= 0.7
 
             # Track token history
@@ -137,18 +135,14 @@ class InflectionDetector:
             if len(self.token_history) > 3:
                 avg_tokens = sum(self.token_history[:-1]) / len(self.token_history[:-1])
                 if tokens_used > avg_tokens * 2:  # 2x normal consumption
-                    issues.append(
-                        f"Token consumption high: {tokens_used} > 2x avg ({avg_tokens:.0f})"
-                    )
+                    issues.append(f"Token consumption high: {tokens_used} > 2x avg ({avg_tokens:.0f})")
                     score *= 0.7
 
         # Determine severity based on issues and score
         if self.consecutive_failures >= self.failure_streak_limit:
             severity = Severity.CRITICAL
             if f"Failure streak: {self.consecutive_failures}" not in str(issues):
-                issues.append(
-                    f"Failure streak: {self.consecutive_failures} >= {self.failure_streak_limit}"
-                )
+                issues.append(f"Failure streak: {self.consecutive_failures} >= {self.failure_streak_limit}")
             score = min(score, 0.2)  # Very low score
         elif len(issues) > 0 and score < 0.6:
             # Multiple issues or low score → critical
@@ -173,9 +167,7 @@ class InflectionDetector:
             should_reexecute=severity == Severity.CRITICAL,
         )
 
-    def _generate_recommendations(
-        self, result: "ExecutionResult", issues: list[str], severity: Severity
-    ) -> list[str]:
+    def _generate_recommendations(self, result: "ExecutionResult", issues: list[str], severity: Severity) -> list[str]:
         """Generate recommendations based on detected issues.
 
         Args:

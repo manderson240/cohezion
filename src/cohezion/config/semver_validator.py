@@ -173,9 +173,7 @@ class SemverValidator:
             errors.append(f"No version bump applied but {expected.value} bump expected")
 
         if bump_order[actual] < bump_order[expected]:
-            errors.append(
-                f"Insufficient bump: {actual.value} applied but {expected.value} required"
-            )
+            errors.append(f"Insufficient bump: {actual.value} applied but {expected.value} required")
             suggestions.append(f"Use {expected.value} bump: {old} -> expected {expected.value}")
 
         valid = len(errors) == 0

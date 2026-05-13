@@ -206,8 +206,7 @@ class StreamingKVCompressor:
 
         return {
             "total_compression_events": len(self._stats),
-            "avg_compression_ratio": sum(s.compression_ratio for s in self._stats)
-            / len(self._stats),
+            "avg_compression_ratio": sum(s.compression_ratio for s in self._stats) / len(self._stats),
             "max_context_length": max(s.context_length for s in self._stats),
             "target_128k_achieved": self.validate_target(128_000),
         }

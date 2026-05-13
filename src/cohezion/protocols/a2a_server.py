@@ -97,10 +97,7 @@ class AgentCard:
                 "pushNotifications": False,
                 "stateTransitionHistory": True,
             },
-            "skills": [
-                {"id": s, "name": s, "description": f"Cohezion {s} skill"}
-                for s in self.capabilities
-            ],
+            "skills": [{"id": s, "name": s, "description": f"Cohezion {s} skill"} for s in self.capabilities],
             "authentication": self.authentication,
             "defaultInputModes": ["text/plain", "application/json"],
             "defaultOutputModes": ["text/plain", "application/json"],

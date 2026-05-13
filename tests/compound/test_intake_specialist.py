@@ -147,9 +147,7 @@ class TestPromptOptimizer:
         entities = self.optimizer.extract_entities(text)
 
         # Check for CSV file
-        assert any("csv" in f.lower() for f in entities["files"]), (
-            f"Expected CSV file, got: {entities['files']}"
-        )
+        assert any("csv" in f.lower() for f in entities["files"]), f"Expected CSV file, got: {entities['files']}"
         assert "12345" in entities["numbers"]
 
     def test_extract_entities_quoted_strings(self):
@@ -417,9 +415,7 @@ class TestIntakeSpecialist:
 
         for request, expected_op in operations.items():
             task = await self.intake.process_request(request)
-            assert task.operation_type == expected_op, (
-                f"Expected {expected_op}, got {task.operation_type}"
-            )
+            assert task.operation_type == expected_op, f"Expected {expected_op}, got {task.operation_type}"
 
     @pytest.mark.asyncio
     async def test_prompt_optimization(self):

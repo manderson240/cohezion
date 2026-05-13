@@ -36,9 +36,7 @@ class BlackwellHandshake:
 
         # Mocking the presence of the binary for the Proving Ground
         if not ptxas_path.exists():
-            logger.warning(
-                "Blackwell Handshake: ptxas-blackwell not found in /tmp. Attempting to locate..."
-            )
+            logger.warning("Blackwell Handshake: ptxas-blackwell not found in /tmp. Attempting to locate...")
             # Simulate locating from a Kaggle dataset path
             source_ptxas = Path("/kaggle/input/nvidia-blackwell-tools/ptxas-blackwell")
             if source_ptxas.exists():
@@ -50,18 +48,14 @@ class BlackwellHandshake:
                 ptxas_path.chmod(0o755)
 
         os.environ["TRITON_PTXAS_PATH"] = str(ptxas_path)
-        logger.info(
-            "Blackwell Handshake: TRITON_PTXAS_PATH set to %s", os.environ["TRITON_PTXAS_PATH"]
-        )
+        logger.info("Blackwell Handshake: TRITON_PTXAS_PATH set to %s", os.environ["TRITON_PTXAS_PATH"])
 
         # 3. Verify CUDA Version
         try:
             cuda_version = subprocess.check_output(["nvcc", "--version"]).decode()
             logger.info("Blackwell Handshake: CUDA detected.\n%s", cuda_version.splitlines()[-1])
         except Exception:
-            logger.warning(
-                "Blackwell Handshake: nvcc not found. Assuming runtime-only environment."
-            )
+            logger.warning("Blackwell Handshake: nvcc not found. Assuming runtime-only environment.")
 
         # 4. Final Optimization Flags
         os.environ["TORCH_CUDA_ARCH_LIST"] = "9.0"  # Blackwell Arch

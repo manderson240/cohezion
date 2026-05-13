@@ -84,9 +84,7 @@ class TrainingExecutor:
                         val_loss = self._validate(model, val_loader, device)
                         best_val_loss = min(best_val_loss, val_loss)
 
-                        logger.debug(
-                            f"Step {step}: train_loss={loss.item():.4f}, val_loss={val_loss:.4f}"
-                        )
+                        logger.debug(f"Step {step}: train_loss={loss.item():.4f}, val_loss={val_loss:.4f}")
 
             # Final validation
             final_val_loss = self._validate(model, val_loader, device)

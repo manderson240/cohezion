@@ -135,9 +135,7 @@ class VersionTelemetry:
         self._panels.append(panel)
         return panel
 
-    def _compute_coherence(
-        self, drifts: list[DependencyDrift], conflicts: list[VersionConflict], total: int
-    ) -> float:
+    def _compute_coherence(self, drifts: list[DependencyDrift], conflicts: list[VersionConflict], total: int) -> float:
         if total == 0:
             return 1.0
         drift_penalty = sum(0.1 * d.minor_versions_behind for d in drifts)

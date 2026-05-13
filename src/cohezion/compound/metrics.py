@@ -208,9 +208,7 @@ class CompoundMetricsCollector:
             "success_rate": round(self.success_rate(), 4),
             "total_tokens": self.total_tokens(),
             "model_usage": self.model_usage(),
-            "top_refined_skills": [
-                {"skill": name, "count": count} for name, count in self.top_refined_skills()
-            ],
+            "top_refined_skills": [{"skill": name, "count": count} for name, count in self.top_refined_skills()],
             "compound_score_trend": self.compound_score_trend(),
         }
 

@@ -108,9 +108,7 @@ class HealthChecker:
         """Check all registered services."""
         return {name: self.check_service(name) for name in self.endpoints}
 
-    def wait_for_service(
-        self, service: str, max_wait: float = 60.0, poll_interval: float = 1.0
-    ) -> bool:
+    def wait_for_service(self, service: str, max_wait: float = 60.0, poll_interval: float = 1.0) -> bool:
         """
         Wait for service to become healthy.
 
@@ -164,9 +162,7 @@ class CheckpointManager:
             Path to checkpoint file
         """
         path = self.checkpoint_path(phase_id)
-        checkpoint = Checkpoint(
-            phase_id=phase_id, timestamp=time.time(), state=state, version="1.0"
-        )
+        checkpoint = Checkpoint(phase_id=phase_id, timestamp=time.time(), state=state, version="1.0")
 
         # Atomic write (write temp, then rename)
         temp_path = path.with_suffix(".tmp")
@@ -209,9 +205,7 @@ class CheckpointManager:
 
     def load_latest(self) -> Checkpoint | None:
         """Load most recent checkpoint."""
-        checkpoints = sorted(
-            self.checkpoint_dir.glob("phase_*.json"), key=lambda p: p.stat().st_mtime, reverse=True
-        )
+        checkpoints = sorted(self.checkpoint_dir.glob("phase_*.json"), key=lambda p: p.stat().st_mtime, reverse=True)
 
         if not checkpoints:
             return None
@@ -433,15 +427,11 @@ if __name__ == "__main__":
 
     # Test 2: HealthChecker
     print("\n2. HealthChecker")
-    hc = HealthChecker(
-        {"npu": "http://localhost:8004/health", "gpu": "http://localhost:8002/health"}
-    )
+    hc = HealthChecker({"npu": "http://localhost:8004/health", "gpu": "http://localhost:8002/health"})
     health = hc.check_all()
     for service, status in health.items():
         symbol = "✅" if status["healthy"] else "⚠️"
-        print(
-            f"   {symbol} {service}: {'healthy' if status['healthy'] else status.get('error', 'unavailable')}"
-        )
+        print(f"   {symbol} {service}: {'healthy' if status['healthy'] else status.get('error', 'unavailable')}")
 
     # Test 3: CheckpointManager
     print("\n3. CheckpointManager")

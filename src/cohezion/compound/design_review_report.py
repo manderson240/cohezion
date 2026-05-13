@@ -82,9 +82,7 @@ class DesignReviewReport:
     def report_hash(self) -> str:
         """SHA-256 hash of the full report content (for tamper detection)."""
         content = f"{self.gate.value}|{self.artifact_hash}|{self.test_hash}|"
-        content += "|".join(
-            f"{f.severity.value}:{f.category}:{f.description}" for f in self.findings
-        )
+        content += "|".join(f"{f.severity.value}:{f.category}:{f.description}" for f in self.findings)
         return hashlib.sha256(content.encode()).hexdigest()
 
     @property

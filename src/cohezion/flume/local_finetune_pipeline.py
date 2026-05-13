@@ -114,7 +114,10 @@ You are Cohezion, an expert software engineering agent trained on high-quality j
             samples.append(
                 {
                     "instruction": f"Execute a {skill} task with phi_score target {phi:.2f}",
-                    "output": f"## Execution\n\nPhi: {phi:.3f}\n\nApproach: Systematic analysis\n\nCode: implementation\n\nVerification: tests pass",
+                    "output": (
+                        f"## Execution\n\nPhi: {phi:.3f}\n\nApproach: Systematic analysis"
+                        "\n\nCode: implementation\n\nVerification: tests pass"
+                    ),
                     "metadata": {"skill": skill, "phi_score": phi},
                 }
             )
@@ -193,7 +196,8 @@ Then export to GGUF:
         """Create Ollama Modelfile from base model + journey patterns."""
         modelfile = f"""FROM {self.base_model}
 
-SYSTEM '''You are Cohezion - an expert software engineering agent trained on high-quality journey executions from the Cohezion universe simulation system.
+SYSTEM '''You are Cohezion - an expert software engineering agent
+trained on high-quality journey executions from the Cohezion universe simulation system.
 
 ## Your Expertise
 - Research: Deep investigation, fact-checking, multi-source synthesis

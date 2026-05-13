@@ -145,9 +145,7 @@ class CompoundBenchmarkLoop:
         for i in range(self.config.max_iterations):
             logger.info("Loop iteration %d/%d", i + 1, self.config.max_iterations)
 
-            iteration_result = await self._run_iteration(
-                tasks, i, current_coherence, refined_skills
-            )
+            iteration_result = await self._run_iteration(tasks, i, current_coherence, refined_skills)
             iterations.append(iteration_result)
             self._iteration_history.append(iteration_result)
 
@@ -248,10 +246,7 @@ class CompoundBenchmarkLoop:
 
         if self.config.enable_parallel_refinement:
             refinements = await asyncio.gather(
-                *[
-                    self._refine_single_skill(skill, self._get_task_for_skill(skill, tasks))
-                    for skill in skills
-                ],
+                *[self._refine_single_skill(skill, self._get_task_for_skill(skill, tasks)) for skill in skills],
                 return_exceptions=True,
             )
             for skill, result in zip(skills, refinements, strict=True):

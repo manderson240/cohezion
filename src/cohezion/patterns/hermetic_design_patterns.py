@@ -511,14 +511,9 @@ class RhythmPattern:
             suggestions.extend(missing)
 
         # Check for phase balance
-        phase_lengths = {
-            phase: len(description) for phase, description in breath_cycle.phases.items()
-        }
+        phase_lengths = {phase: len(description) for phase, description in breath_cycle.phases.items()}
 
-        if (
-            phase_lengths.get(BreathPhase.HOLD, 0)
-            > sum(phase_lengths.get(p, 0) for p in BreathPhase) * 0.6
-        ):
+        if phase_lengths.get(BreathPhase.HOLD, 0) > sum(phase_lengths.get(p, 0) for p in BreathPhase) * 0.6:
             suggestions.append("Hold phase is too long - consider breaking into smaller functions")
 
         return suggestions

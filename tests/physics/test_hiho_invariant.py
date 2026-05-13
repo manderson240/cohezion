@@ -76,8 +76,7 @@ class TestExperienceEncoderHIHO:
             vec = encoder.encode(self._make_experience(phi_score=phi))
             mean = float(np.mean(vec))
             assert _in_hiho_band(mean), (
-                f"phi={phi}: encoder mean={mean:.3f} outside HIHO band. "
-                "Encoder must normalize extreme inputs."
+                f"phi={phi}: encoder mean={mean:.3f} outside HIHO band. Encoder must normalize extreme inputs."
             )
 
     def test_encoder_trajectory_component_in_hiho_band(self) -> None:
@@ -90,9 +89,7 @@ class TestExperienceEncoderHIHO:
         exp["trajectory"] = np.full(12, 0.5, dtype=np.float32)
         vec = encoder.encode(exp)
         trajectory_mean = float(np.mean(vec[:12]))
-        assert _in_hiho_band(trajectory_mean), (
-            f"Trajectory dims mean={trajectory_mean:.3f} outside HIHO band."
-        )
+        assert _in_hiho_band(trajectory_mean), f"Trajectory dims mean={trajectory_mean:.3f} outside HIHO band."
 
 
 # ──────────────────────────────────────────────────────────────────────────────
@@ -299,10 +296,7 @@ class TestOuroborosVersionHealerHIHO:
         healer.heal("complex", {"pkg": "1.0.0"}, {}, is_complex=True)
 
         rate = healer.auto_heal_rate()
-        assert rate >= 0.8, (
-            f"Auto-heal rate={rate:.2f} below target 0.8. "
-            "HIHO requires high self-healing efficiency."
-        )
+        assert rate >= 0.8, f"Auto-heal rate={rate:.2f} below target 0.8. HIHO requires high self-healing efficiency."
 
 
 # ──────────────────────────────────────────────────────────────────────────────
@@ -341,6 +335,4 @@ class TestVersionTelemetryHIHO:
         conflicts = [VersionConflict("x", ">=2.0", "<2.0", ["a", "b"])]
 
         panel = telemetry.scan(current, latest, conflicts=conflicts)
-        assert panel.healing_triggered, (
-            "Severe coherence drift must trigger HIHO healing to prevent collapse."
-        )
+        assert panel.healing_triggered, "Severe coherence drift must trigger HIHO healing to prevent collapse."

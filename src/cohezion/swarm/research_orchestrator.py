@@ -267,17 +267,10 @@ class ArXivAgent:
                                 category="paper",
                                 title=title.text[:200] if title.text else "unknown",
                                 url=link.text if link.text else "",
-                                summary=(
-                                    summary.text[:300]
-                                    if summary is not None and summary.text
-                                    else "No abstract"
-                                ),
-                                relevance_score=self._score_paper(
-                                    title.text or "", summary.text or ""
-                                ),
+                                summary=(summary.text[:300] if summary is not None and summary.text else "No abstract"),
+                                relevance_score=self._score_paper(title.text or "", summary.text or ""),
                                 timestamp=datetime.now(),
-                                compound_tags=["research", "paper"]
-                                + [t.replace(" ", "_") for t in topics[:2]],
+                                compound_tags=["research", "paper"] + [t.replace(" ", "_") for t in topics[:2]],
                                 metadata={
                                     "published": published.text if published is not None else "",
                                     "source": "arxiv",
@@ -347,16 +340,17 @@ class GitHubAgent:
                                 category="repo",
                                 title=repo.get("full_name", "unknown"),
                                 url=repo.get("html_url", ""),
-                                summary=f"⭐ {repo.get('stargazers_count', 0)} | {repo.get('description', 'No description')[:100]}",
+                                summary=(
+                                    f"⭐ {repo.get('stargazers_count', 0)} |"
+                                    f" {repo.get('description', 'No description')[:100]}"
+                                ),
                                 relevance_score=self._score_repo(repo),
                                 timestamp=datetime.now(),
                                 compound_tags=["opensource", "tool"] + topic.split()[:2],
                                 metadata={
                                     "stars": repo.get("stargazers_count"),
                                     "language": repo.get("language"),
-                                    "license": repo.get("license", {}).get("key")
-                                    if repo.get("license")
-                                    else None,
+                                    "license": repo.get("license", {}).get("key") if repo.get("license") else None,
                                 },
                             )
                             findings.append(finding)
@@ -409,7 +403,10 @@ class WebAgent:
                 category="trend",
                 title=f"Industry trends: {topic}",
                 url=f"https://duckduckgo.com/?q={topic.replace(' ', '+')}+agentic+AI+2026",
-                summary=f"Aggregated web search for {topic} in agentic AI landscape. Focus on emerging patterns and benchmarks.",
+                summary=(
+                    f"Aggregated web search for {topic} in agentic AI landscape."
+                    " Focus on emerging patterns and benchmarks."
+                ),
                 relevance_score=0.5,  # Medium - web is noisy
                 timestamp=datetime.now(),
                 compound_tags=["trend", "industry"],
@@ -607,8 +604,7 @@ class ResearchOrchestrator:
                 "sources_queried": list(self.agents.keys()),
             },
             "by_source": {
-                name: [f.to_token_efficient_dict() for f in findings]
-                for name, findings in agent_results.items()
+                name: [f.to_token_efficient_dict() for f in findings] for name, findings in agent_results.items()
             },
             "syntheses": [
                 {

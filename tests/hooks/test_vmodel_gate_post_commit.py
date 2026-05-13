@@ -114,9 +114,7 @@ def test_top_level_names_returns_empty_on_syntax_error(tmp_path) -> None:
 
 def test_check_import_drift_clean_when_all_names_exist(tmp_path) -> None:
     (tmp_path / "src" / "cohezion").mkdir(parents=True)
-    (tmp_path / "src" / "cohezion" / "api.py").write_text(
-        "def submit(): pass\nclass KaggleAPI: pass\n"
-    )
+    (tmp_path / "src" / "cohezion" / "api.py").write_text("def submit(): pass\nclass KaggleAPI: pass\n")
     caller = tmp_path / "caller.py"
     caller.write_text("from cohezion.api import submit, KaggleAPI\n")
     assert h._check_import_drift(caller, tmp_path) == []

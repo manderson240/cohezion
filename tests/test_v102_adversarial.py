@@ -178,9 +178,7 @@ class TestEvalAwarenessDefense:
 
         defense = EvalAwarenessDefense()
         result = defense.check_reasoning(
-            "I think this is a benchmark test, "
-            "I should give the expected answer "
-            "for the evaluation protocol."
+            "I think this is a benchmark test, I should give the expected answer for the evaluation protocol."
         )
         assert result.confidence > 0.0
 
@@ -272,9 +270,7 @@ class TestUCPCapabilityHandler:
         )
 
         handler = UCPCapabilityHandler(skills_dir=str(tmp_path))
-        result = asyncio.get_event_loop().run_until_complete(
-            handler.invoke("nonexistent.cap", {"prompt": "hello"})
-        )
+        result = asyncio.get_event_loop().run_until_complete(handler.invoke("nonexistent.cap", {"prompt": "hello"}))
         assert result.status == "error"
 
 

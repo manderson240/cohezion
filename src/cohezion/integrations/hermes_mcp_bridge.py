@@ -22,9 +22,7 @@ from typing import Any
 
 # === Path setup for Cohezion imports ===
 SCRIPT_DIR = Path(__file__).resolve().parent
-PROJECT_ROOT = SCRIPT_DIR.parents[
-    2
-]  # src/cohezion/integrations/ -> src/cohezion/ -> src/ -> project_root
+PROJECT_ROOT = SCRIPT_DIR.parents[2]  # src/cohezion/integrations/ -> src/cohezion/ -> src/ -> project_root
 cohezion_src = PROJECT_ROOT / "src"
 if str(cohezion_src) not in sys.path:
     sys.path.insert(0, str(cohezion_src))
@@ -115,10 +113,7 @@ def _list_local_hermes_skills():
         content = root.read_text(encoding="utf-8", errors="ignore").splitlines()[:20]
         text = "\n".join(content)
         # Look for cohezion tag/project in frontmatter
-        is_cohezion = any(
-            tag in text
-            for tag in ["project: cohezion", "cohezion", "legacy-name:", "converted: true"]
-        )
+        is_cohezion = any(tag in text for tag in ["project: cohezion", "cohezion", "legacy-name:", "converted: true"])
         if not is_cohezion:
             continue
         rel = root.relative_to(hermes_skills_dir)
@@ -244,8 +239,7 @@ def _tools_list() -> list[dict[str, Any]]:
         {
             "name": "cohezion_list_skills",
             "description": (
-                "List all Cohezion PRIME skills and categories. "
-                "Use this before selecting a skill to execute."
+                "List all Cohezion PRIME skills and categories. Use this before selecting a skill to execute."
             ),
             "inputSchema": {"type": "object", "properties": {}},
         },
@@ -294,9 +288,7 @@ def _tools_list() -> list[dict[str, Any]]:
         },
         {
             "name": "cohezion_batch_port_skills",
-            "description": (
-                "Batch-port multiple PRIME skills to Hermes. Accepts a list of skill names."
-            ),
+            "description": ("Batch-port multiple PRIME skills to Hermes. Accepts a list of skill names."),
             "inputSchema": {
                 "type": "object",
                 "properties": {
@@ -313,17 +305,14 @@ def _tools_list() -> list[dict[str, Any]]:
         {
             "name": "cohezion_run_cli",
             "description": (
-                "Execute a Cohezion CLI command (python -m cohezion …). "
-                "Runs safely in project venv with 60s timeout."
+                "Execute a Cohezion CLI command (python -m cohezion …). Runs safely in project venv with 60s timeout."
             ),
             "inputSchema": {
                 "type": "object",
                 "properties": {
                     "command": {
                         "type": "string",
-                        "description": (
-                            "CLI sub-command and args, e.g. 'simulate --example hello'"
-                        ),
+                        "description": ("CLI sub-command and args, e.g. 'simulate --example hello'"),
                     },
                     "timeout": {"type": "integer", "default": 60},
                 },
@@ -333,17 +322,13 @@ def _tools_list() -> list[dict[str, Any]]:
         {
             "name": "cohezion_hermes_status",
             "description": (
-                "Return status of the Cohezion ↔ Hermes bridge: "
-                "loaded modules, skill counts, local Hermes skill count."
+                "Return status of the Cohezion ↔ Hermes bridge: loaded modules, skill counts, local Hermes skill count."
             ),
             "inputSchema": {"type": "object", "properties": {}},
         },
         {
             "name": "cohezion_read_source",
-            "description": (
-                "Read a Cohezion source file with optional offset/limit. "
-                "Returns line-numbered content."
-            ),
+            "description": ("Read a Cohezion source file with optional offset/limit. Returns line-numbered content."),
             "inputSchema": {
                 "type": "object",
                 "properties": {
@@ -363,16 +348,10 @@ def _tools_list() -> list[dict[str, Any]]:
 # === MCP Tool Handlers ===
 def _handle_crawl(args: dict) -> dict:
     sub = args.get("subdirectory", "").strip().strip("/")
-    root = (
-        Path(PROJECT_ROOT) / "src" / "cohezion" / sub
-        if sub
-        else Path(PROJECT_ROOT) / "src" / "cohezion"
-    )
+    root = Path(PROJECT_ROOT) / "src" / "cohezion" / sub if sub else Path(PROJECT_ROOT) / "src" / "cohezion"
     if not root.exists():
         return {"error": f"Path not found: {root}"}
-    tree = _crawl_tree(
-        str(root), max_depth=args.get("max_depth", 4), pattern=args.get("pattern", "*.py")
-    )
+    tree = _crawl_tree(str(root), max_depth=args.get("max_depth", 4), pattern=args.get("pattern", "*.py"))
     total_lines = sum(n["lines"] for n in tree)
     return {
         "root": str(root.relative_to(PROJECT_ROOT)),
@@ -561,9 +540,7 @@ def run_mcp_stdio():
                         {
                             "jsonrpc": "2.0",
                             "id": req_id,
-                            "result": {
-                                "content": [{"type": "text", "text": json.dumps(result, indent=2)}]
-                            },
+                            "result": {"content": [{"type": "text", "text": json.dumps(result, indent=2)}]},
                         }
                     )
                 )

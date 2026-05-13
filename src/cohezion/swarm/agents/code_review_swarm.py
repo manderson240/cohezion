@@ -80,15 +80,11 @@ class CodeReviewSwarm:
             logger.info(f"Static Phase: Scanned {report.scanned_files}/{len(all_files)} files...")
             await asyncio.sleep(1.0)  # Breath between batches
 
-        logger.info(
-            f"✅ Static Phase Complete. Found {len(report.high_complexity_files)} high-complexity files."
-        )
+        logger.info(f"✅ Static Phase Complete. Found {len(report.high_complexity_files)} high-complexity files.")
 
         # Phase 2: Selective LLM Scan
         if report.high_complexity_files:
-            logger.info(
-                f"🧠 Starting Semantic Phase on {len(report.high_complexity_files)} files..."
-            )
+            logger.info(f"🧠 Starting Semantic Phase on {len(report.high_complexity_files)} files...")
             for file_path_str in report.high_complexity_files:
                 file_path = Path(file_path_str)
                 for scout in self.llm_scouts:

@@ -181,8 +181,19 @@ class TestKSearchTree:
         tree = _load_tree("test_target", hypotheses)
 
         # Mark first two as already explored
-        _update_tree(tree, "lr=1e-4", reward=0.8)
-        _update_tree(tree, "lr=3e-4", reward=0.7)
+        def _make_outcome(hyp):
+            return ExperimentOutcome(
+                run_id="test",
+                target="test_target",
+                hypothesis=hyp,
+                metric_name="val_loss",
+                metric_value=0.5,
+                wall_time_s=1.0,
+                status="improvement",
+            )
+
+        _update_tree(tree, _make_outcome("lr=1e-4"), reward=0.8)
+        _update_tree(tree, _make_outcome("lr=3e-4"), reward=0.7)
 
         selected = _ucb1_select(tree)
         assert selected == "lr=1e-3"  # only unexplored one
@@ -190,7 +201,16 @@ class TestKSearchTree:
     def test_update_increments_trials(self, tmp_path, monkeypatch):
         monkeypatch.setattr("cohezion.research.autoresearch_driver.KSEARCH_DIR", tmp_path)
         tree = _load_tree("test_target2", ["lr=1e-4"])
-        _update_tree(tree, "lr=1e-4", reward=0.6)
+        outcome = ExperimentOutcome(
+            run_id="t1",
+            target="test_target2",
+            hypothesis="lr=1e-4",
+            metric_name="val_loss",
+            metric_value=0.5,
+            wall_time_s=1.0,
+            status="improvement",
+        )
+        _update_tree(tree, outcome, reward=0.6)
 
         node = tree["nodes"]["lr=1e-4"]
         assert node["trials"] == 1

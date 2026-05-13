@@ -16,6 +16,7 @@ from __future__ import annotations
 import hashlib
 import json
 import logging
+import math
 import time
 from dataclasses import dataclass, field
 from typing import TYPE_CHECKING
@@ -202,15 +203,11 @@ class AxiomaticState:
             state_after.control,
             state_after.novelty,
         ]
-        displacement = sum(
-            (a - b) ** 2 for a, b in zip(brane_dims_before, brane_dims_after, strict=True)
-        )
+        displacement = sum((a - b) ** 2 for a, b in zip(brane_dims_before, brane_dims_after, strict=True))
         return displacement**0.5
 
     @staticmethod
-    def compute_tempic_vector(
-        state_before: AxiomaticState, state_after: AxiomaticState
-    ) -> list[float]:
+    def compute_tempic_vector(state_before: AxiomaticState, state_after: AxiomaticState) -> list[float]:
         """Compute per-dimension Tempic field (directional change vector).
 
         Returns the signed change in each brane dimension, showing not just
@@ -266,6 +263,50 @@ class AxiomaticState:
         equatorial_alignment = 1.0 - spinor.hiho_deviation  # 1.0 at HIHO, 0 at poles
         spin_weight = 0.7 + 0.3 * equatorial_alignment
         return base_coherence * spin_weight
+
+    def check_precipitation(self) -> dict:
+        """Smith's precipitation gate: thermodynamic (F=E-TS) + Shannon + Born rule.
+
+        Physics: Smith HIHO (1962) + Boltzmann free energy F=E-TS + Shannon entropy H.
+        Temperature proxy = 1 - awareness (temporal dimension): aware system is cold/stable.
+
+        Returns dict with:
+        - precipitate (bool): True when coherence > 0.5 (HIHO threshold)
+        - coherence (float): HIHO coherence score in [0, 1]
+        - hiho_stability (float): 1 - |coherence - 0.5| * 2, max at coherence=0.5
+        - free_energy (float): F = coherence - T·H (negative ↔ spontaneous)
+        - shannon_entropy_bits (float): binary Shannon entropy H(coherence)
+        - spontaneous (bool): True when free_energy < 0
+        - mechanism (str): physics documentation
+        """
+        coherence = float(self.coherence_score())
+        hiho_stability = float(1.0 - abs(coherence - 0.5) * 2.0)
+
+        # Binary Shannon entropy H(p) = -p·log2(p) - (1-p)·log2(1-p)
+        # with coherence as the probability p
+        p = max(1e-10, min(coherence, 1.0 - 1e-10))
+        shannon_entropy_bits = float(-(p * math.log2(p) + (1.0 - p) * math.log2(1.0 - p)))
+
+        # Thermodynamic temperature proxy: T = 1 - awareness
+        # Awareness = temporal dimension; high awareness → cold (stable) system
+        temperature = float(1.0 - self.temporal)
+
+        # Free energy F = E - T·S (Boltzmann)
+        # Here: E = coherence (organised energy), S = shannon_entropy_bits
+        free_energy = float(coherence - temperature * shannon_entropy_bits)
+
+        return {
+            "precipitate": bool(coherence > 0.5),
+            "coherence": coherence,
+            "hiho_stability": hiho_stability,
+            "free_energy": free_energy,
+            "shannon_entropy_bits": shannon_entropy_bits,
+            "spontaneous": bool(free_energy < 0.0),
+            "mechanism": (
+                "Smith HIHO precipitation gate: HIHO threshold (coherence>0.5) + "
+                "thermodynamic free energy F=E-TS + information-theoretic Shannon entropy"
+            ),
+        }
 
 
 @dataclass
@@ -349,9 +390,7 @@ class UniverseJourney:
             "intent": self.intent,
             "status": self.status,
             "initial_axiomatic": self.initial_axiomatic.to_vector(),
-            "initial_latent_embedding": self.initial_latent.embedding
-            if self.initial_latent
-            else [],
+            "initial_latent_embedding": self.initial_latent.embedding if self.initial_latent else [],
             "trajectory_count": len(self.trajectory),
             "precipitation_type": list(self.precipitation.keys()),
             "final_coherence": self.final_coherence,
@@ -687,9 +726,7 @@ class UniverseSimulationEngine:
 
         journey.add_trajectory_point(point)
 
-        logger.debug(
-            f"   Trajectory step {step_num}: coherence={coherence:.3f}, phi={phi_score:.3f}"
-        )
+        logger.debug(f"   Trajectory step {step_num}: coherence={coherence:.3f}, phi={phi_score:.3f}")
 
         return point
 
@@ -698,9 +735,7 @@ class UniverseSimulationEngine:
         distance = target - current
         return current + distance * factor * 0.5  # 0.5 for gentle convergence
 
-    async def precipitate_latent_action(
-        self, journey: UniverseJourney, prompt: str
-    ) -> TrajectoryPoint:
+    async def precipitate_latent_action(self, journey: UniverseJourney, prompt: str) -> TrajectoryPoint:
         """
         TRANSFORMATION: Predict and precipitate the next 'Latent Action'.
         Uses the ManifoldBridge to convert intent into reality.
@@ -802,8 +837,7 @@ that would push this project into the 'Unknown'.
                     "type": "process_pattern",
                     "pattern": "Multi-step refinement successful",
                     "step_count": len(journey.trajectory),
-                    "avg_coherence": sum(t.coherence for t in journey.trajectory)
-                    / len(journey.trajectory),
+                    "avg_coherence": sum(t.coherence for t in journey.trajectory) / len(journey.trajectory),
                 }
             )
 

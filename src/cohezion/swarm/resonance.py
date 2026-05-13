@@ -64,9 +64,7 @@ class SwarmOrchestrator:
         """Register an agent for resonance collaboration."""
         self.agents[agent.id] = agent
 
-    async def execute_resonance_loop(
-        self, task: Task, lead_agent_id: str
-    ) -> dict[str, AgentResult]:
+    async def execute_resonance_loop(self, task: Task, lead_agent_id: str) -> dict[str, AgentResult]:
         """Execute a collaborative loop with parallel execution and production fallbacks."""
         results: dict[str, AgentResult] = {}
 
@@ -85,18 +83,14 @@ class SwarmOrchestrator:
                 continue
 
             results[aid] = result
-            await self.resonance.share(
-                ResonanceState(agent_id=aid, coherence=0.5 if result.success else 0.1)
-            )
+            await self.resonance.share(ResonanceState(agent_id=aid, coherence=0.5 if result.success else 0.1))
 
         # 3. Execute Lead Agent with production fallback (Gemma 4 -> Gemini Flash)
         logger.info(f"Executing lead agent sequentially: {lead_agent_id}")
         try:
             lead_result = await self.agents[lead_agent_id].execute(task)
         except Exception:
-            logger.warning(
-                f"Lead agent {lead_agent_id} failed, attempting production fallback to Gemini Flash..."
-            )
+            logger.warning(f"Lead agent {lead_agent_id} failed, attempting production fallback to Gemini Flash...")
             # Fallback logic (simulated for the resonance loop)
             fallback_task = task
             fallback_task.description += " [FALLBACK MODE: Gemini Flash]"

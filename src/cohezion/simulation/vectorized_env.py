@@ -81,9 +81,7 @@ class VectorizedHihoEnv:
         base_seed: int = 42,
     ):
         self.num_envs = num_envs
-        self.envs = [
-            HihoEnvironment(grid_size=grid_size, max_steps=max_steps) for _ in range(num_envs)
-        ]
+        self.envs = [HihoEnvironment(grid_size=grid_size, max_steps=max_steps) for _ in range(num_envs)]
         self.base_seed = base_seed
         self._episode_counts = np.zeros(num_envs, dtype=np.int32)
         self._episode_rewards = np.zeros(num_envs)
@@ -112,9 +110,7 @@ class VectorizedHihoEnv:
         self._episode_lengths[:] = 0
         return observations
 
-    def step(
-        self, actions: np.ndarray
-    ) -> tuple[np.ndarray, np.ndarray, np.ndarray, list[dict[str, Any]]]:
+    def step(self, actions: np.ndarray) -> tuple[np.ndarray, np.ndarray, np.ndarray, list[dict[str, Any]]]:
         """Step all environments with batched actions.
 
         Parameters
@@ -153,9 +149,7 @@ class VectorizedHihoEnv:
                 self._episode_rewards[i] = 0.0
                 self._episode_lengths[i] = 0
                 # Auto-reset
-                observations[i] = env.reset(
-                    seed=self.base_seed + i + int(self._episode_counts[i]) * 1000
-                )
+                observations[i] = env.reset(seed=self.base_seed + i + int(self._episode_counts[i]) * 1000)
 
             infos.append(info)
 
@@ -281,9 +275,7 @@ class AsyncVectorizedHihoEnv:
 
         return observations
 
-    def step(
-        self, actions: np.ndarray
-    ) -> tuple[np.ndarray, np.ndarray, np.ndarray, list[dict[str, Any]]]:
+    def step(self, actions: np.ndarray) -> tuple[np.ndarray, np.ndarray, np.ndarray, list[dict[str, Any]]]:
         """Step all environments in parallel."""
         # Send actions
         for i, pipe in enumerate(self._parent_pipes):
@@ -416,9 +408,7 @@ class CurriculumScheduler:
         schedule = self.config.schedule_type
 
         if schedule == ScheduleType.LINEAR:
-            progress = (self._episode_count - self.config.warmup_episodes) / max(
-                1, 1000 - self.config.warmup_episodes
-            )
+            progress = (self._episode_count - self.config.warmup_episodes) / max(1, 1000 - self.config.warmup_episodes)
             self._current_difficulty = min(
                 self.config.max_difficulty,
                 self.config.initial_difficulty
@@ -426,14 +416,11 @@ class CurriculumScheduler:
             )
 
         elif schedule == ScheduleType.EXPONENTIAL:
-            progress = (self._episode_count - self.config.warmup_episodes) / max(
-                1, 1000 - self.config.warmup_episodes
-            )
+            progress = (self._episode_count - self.config.warmup_episodes) / max(1, 1000 - self.config.warmup_episodes)
             self._current_difficulty = min(
                 self.config.max_difficulty,
                 self.config.initial_difficulty
-                + (1.0 - np.exp(-3.0 * progress))
-                * (self.config.max_difficulty - self.config.initial_difficulty),
+                + (1.0 - np.exp(-3.0 * progress)) * (self.config.max_difficulty - self.config.initial_difficulty),
             )
 
         elif schedule == ScheduleType.STEP:
@@ -490,13 +477,9 @@ class CurriculumScheduler:
             "current_difficulty": self._current_difficulty,
             "episode_count": self._episode_count,
             "recent_success_rate": (
-                sum(self._success_history[-20:]) / min(20, len(self._success_history))
-                if self._success_history
-                else 0.0
+                sum(self._success_history[-20:]) / min(20, len(self._success_history)) if self._success_history else 0.0
             ),
-            "recent_avg_reward": (
-                float(np.mean(self._reward_history[-20:])) if self._reward_history else 0.0
-            ),
+            "recent_avg_reward": (float(np.mean(self._reward_history[-20:])) if self._reward_history else 0.0),
             "difficulty_changes": len(self._difficulty_history),
         }
 
@@ -600,11 +583,7 @@ def train_vectorized_ppo(
             training_metrics.append(metrics)
 
         if verbose and completed_episodes > 0 and completed_episodes % (num_envs * 10) == 0:
-            recent = (
-                episode_rewards[-num_envs * 10 :]
-                if len(episode_rewards) >= num_envs * 10
-                else episode_rewards
-            )
+            recent = episode_rewards[-num_envs * 10 :] if len(episode_rewards) >= num_envs * 10 else episode_rewards
             avg_reward = float(np.mean(recent)) if recent else 0.0
             curr_diff = curriculum.current_difficulty if curriculum else 0.0
             logger.info(

@@ -46,10 +46,7 @@ class PhiScoreJudger:
         hiho_high: float = _HIHO_HIGH,
     ) -> None:
         if not 0.0 <= hiho_low < hiho_high <= 1.0:
-            raise ValueError(
-                f"HIHO band must satisfy 0 <= hiho_low < hiho_high <= 1, "
-                f"got [{hiho_low}, {hiho_high}]"
-            )
+            raise ValueError(f"HIHO band must satisfy 0 <= hiho_low < hiho_high <= 1, got [{hiho_low}, {hiho_high}]")
         self._hiho_low = hiho_low
         self._hiho_high = hiho_high
 

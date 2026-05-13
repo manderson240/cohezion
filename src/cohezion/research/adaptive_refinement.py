@@ -158,9 +158,7 @@ class AdaptiveSkillRefiner:
         old_weight = (metrics.total_invocations - 1) / metrics.total_invocations
         new_weight = 1 / metrics.total_invocations
 
-        metrics.success_rate = (
-            metrics.success_rate * old_weight + (1.0 if success else 0.0) * new_weight
-        )
+        metrics.success_rate = metrics.success_rate * old_weight + (1.0 if success else 0.0) * new_weight
         metrics.avg_coherence = metrics.avg_coherence * old_weight + coherence * new_weight
 
         logger.debug(f"Recorded usage for {skill_name}: success={success}")

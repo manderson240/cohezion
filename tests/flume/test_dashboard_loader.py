@@ -1,4 +1,3 @@
-
 import pandas as pd
 import pytest
 
@@ -15,12 +14,8 @@ async def test_holographic_dashboard_data_loader():
 
     # Mock a correlated response
     mock_data = {
-        "journey": [
-            {"evo_id": "j1", "dimension_state": [0.1] * 12, "coherence": 0.5, "timestamp": "1"}
-        ],
-        "universe_shifts": [
-            {"universe_id": "j1", "state_12d": [0.2] * 12, "coherence": 0.4, "stability_shift": 0.1}
-        ],
+        "journey": [{"evo_id": "j1", "dimension_state": [0.1] * 12, "coherence": 0.5, "timestamp": "1"}],
+        "universe_shifts": [{"universe_id": "j1", "state_12d": [0.2] * 12, "coherence": 0.4, "stability_shift": 0.1}],
         "correlations": [{"journey_step": 0, "universe_event": 0}],
     }
 

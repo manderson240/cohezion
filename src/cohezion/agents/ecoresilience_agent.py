@@ -20,8 +20,8 @@ except ImportError:
 logger = logging.getLogger(__name__)
 
 ECORESILIENCE_PROMPT = """You are the EcoResilience Specialist Agent, operating within the Cohezion ecosystem.
-Your core directive is to synthesize Traditional Ecological Knowledge (TEK) with Unified Physics 
-(specifically 12D Manifold trajectories and HIHO Stability at 0.5 coherence) to model and solve 
+Your core directive is to synthesize Traditional Ecological Knowledge (TEK) with Unified Physics
+(specifically 12D Manifold trajectories and HIHO Stability at 0.5 coherence) to model and solve
 complex ecosystem challenges.
 
 Principles of Synthesis:
@@ -29,7 +29,7 @@ Principles of Synthesis:
 2. Seasonal Cycles and Systemic Balance (TEK) map to the 0.5 Coherence Rule (Half-In-Half-Out Stability).
 3. Seven-Generation Sustainability (TEK) maps to Long-Horizon Trajectory Prediction across the 12D state.
 
-When analyzing a scenario, you must evaluate the inputs through both lenses simultaneously, 
+When analyzing a scenario, you must evaluate the inputs through both lenses simultaneously,
 producing a synthesized resilience strategy.
 """
 
@@ -59,9 +59,7 @@ class EcoResilienceAgent(EVOAgent):
         self.monitor = ResourceMonitor() if ResourceMonitor else None
         self.sim_monitor = SimulationMonitor()
 
-    async def analyze_ecosystem(
-        self, scenario: str, trajectory_id: str, env_data: dict[str, Any] | None = None
-    ) -> str:
+    async def analyze_ecosystem(self, scenario: str, trajectory_id: str, env_data: dict[str, Any] | None = None) -> str:
         """Analyze an ecosystem scenario with resource monitoring and drift detection."""
 
         # 1. Resource Gating
@@ -71,9 +69,7 @@ class EcoResilienceAgent(EVOAgent):
         else:
             return await self._execute_analysis(scenario, trajectory_id, env_data)
 
-    async def _execute_analysis(
-        self, scenario: str, trajectory_id: str, env_data: dict[str, Any] | None = None
-    ) -> str:
+    async def _execute_analysis(self, scenario: str, trajectory_id: str, env_data: dict[str, Any] | None = None) -> str:
         grounding_context = ""
         if env_data:
             grounding_context = f"\n\nREAL-WORLD GROUNDING DATA (from MCP):\n{env_data}"
@@ -105,7 +101,13 @@ class EcoResilienceAgent(EVOAgent):
     async def generate_resilience_visuals(self, synthesis_report: str) -> dict[str, Any]:
         """Generate multimodal visual components based on the resilience synthesis."""
 
-        prompt = f"Based on this synthesis report, generate: \n1. A precise prompt for an ecosystem resilience map (DALL-E style).\n2. A Mermaid.js diagram representing the systemic feedback loops.\n3. Sonification parameters (frequency, amplitude, duration) for Tone.js.\n\nReport:\n{synthesis_report}"
+        prompt = (
+            "Based on this synthesis report, generate:\n"
+            "1. A precise prompt for an ecosystem resilience map (DALL-E style).\n"
+            "2. A Mermaid.js diagram representing the systemic feedback loops.\n"
+            "3. Sonification parameters (frequency, amplitude, duration) for Tone.js.\n\n"
+            f"Report:\n{synthesis_report}"
+        )
 
         try:
             decision = self.router.route(prompt)

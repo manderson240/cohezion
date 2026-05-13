@@ -88,9 +88,7 @@ class TierOptimizer:
                 total_sessions=total_sessions,
                 sessions_used=len(session_per_model.get(model, set())),
                 has_inference=bool(inference_sessions.get(model)),
-                has_only_training=(
-                    bool(training_sessions.get(model)) and not inference_sessions.get(model)
-                ),
+                has_only_training=(bool(training_sessions.get(model)) and not inference_sessions.get(model)),
                 last_used_at=newest_use.get(model, 0.0),
             )
             if change is not None:
@@ -126,11 +124,7 @@ class TierOptimizer:
 
         # Rule 2: high-traffic promotion candidate
         session_pct = (sessions_used / total_sessions) if total_sessions > 0 else 0.0
-        if (
-            hours_per_day >= self.PROMOTE_THRESHOLD_HOURS
-            and session_pct >= self.PROMOTE_SESSION_PCT
-            and has_inference
-        ):
+        if hours_per_day >= self.PROMOTE_THRESHOLD_HOURS and session_pct >= self.PROMOTE_SESSION_PCT and has_inference:
             target = self._next_tier_up(current_tier)
             if target != current_tier:
                 confidence = (
@@ -145,10 +139,7 @@ class TierOptimizer:
                     model_name=model,
                     current_tier=current_tier,
                     recommended_tier=target,
-                    reason=(
-                        f"High usage: {hours_per_day:.2f} h/day avg, "
-                        f"{session_pct:.0%} session penetration."
-                    ),
+                    reason=(f"High usage: {hours_per_day:.2f} h/day avg, {session_pct:.0%} session penetration."),
                     recommendation=TierRecommendation.PROMOTE,
                     confidence=round(confidence, 3),
                 )
@@ -164,10 +155,7 @@ class TierOptimizer:
                     model_name=model,
                     current_tier=current_tier,
                     recommended_tier=target,
-                    reason=(
-                        f"Unused for {days_since_use:.0f} days "
-                        f"(threshold: {self.DEMOTE_UNUSED_DAYS} days)."
-                    ),
+                    reason=(f"Unused for {days_since_use:.0f} days (threshold: {self.DEMOTE_UNUSED_DAYS} days)."),
                     recommendation=TierRecommendation.DEMOTE,
                     confidence=round(confidence, 3),
                 )

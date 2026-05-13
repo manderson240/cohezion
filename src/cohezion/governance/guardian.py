@@ -84,11 +84,7 @@ class GuardianRegistry:
                         spec.loader.exec_module(module)
 
                         for name, obj in inspect.getmembers(module, inspect.isclass):
-                            if (
-                                issubclass(obj, Guardian)
-                                and obj is not Guardian
-                                and obj.__module__ == module_name
-                            ):
+                            if issubclass(obj, Guardian) and obj is not Guardian and obj.__module__ == module_name:
                                 try:
                                     self.register(obj())
                                 except Exception as e:

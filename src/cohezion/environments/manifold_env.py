@@ -130,9 +130,7 @@ class ManifoldEnv(gym.Env):
 
         # Physics engine selection
         if dynamics_engine not in DYNAMICS_ENGINES:
-            raise ValueError(
-                f"dynamics_engine must be one of {DYNAMICS_ENGINES}, got '{dynamics_engine}'"
-            )
+            raise ValueError(f"dynamics_engine must be one of {DYNAMICS_ENGINES}, got '{dynamics_engine}'")
         self.dynamics_engine = dynamics_engine
 
         self._metric = fabric_block_metric(dim)
@@ -275,9 +273,7 @@ class ManifoldEnv(gym.Env):
 
         return self._get_obs_and_info(float(reward))
 
-    def _get_obs_and_info(
-        self, reward: float
-    ) -> tuple[np.ndarray, float, bool, bool, dict[str, Any]]:
+    def _get_obs_and_info(self, reward: float) -> tuple[np.ndarray, float, bool, bool, dict[str, Any]]:
         """Construct observation and info dict together, sharing computed values.
 
         Performance: computes gauge state once via update_and_compute(),
@@ -294,14 +290,10 @@ class ManifoldEnv(gym.Env):
         phi = quantum * 2.0 * np.pi
         sin_theta = np.sin(theta)
         cos_theta = np.cos(theta)
-        bloch = np.array(
-            [sin_theta * np.cos(phi), sin_theta * np.sin(phi), cos_theta], dtype=np.float32
-        )
+        bloch = np.array([sin_theta * np.cos(phi), sin_theta * np.sin(phi), cos_theta], dtype=np.float32)
 
         # Construct 19D observation
-        fiber_base = self._fiber_bundle.project_to_base(self._position.astype(np.float64)).astype(
-            np.float32
-        )
+        fiber_base = self._fiber_bundle.project_to_base(self._position.astype(np.float64)).astype(np.float32)
         obs = np.concatenate([self._position, bloch, fiber_base])
 
         # Compute gauge state + yang-mills action + HIHO check in one call
@@ -329,9 +321,7 @@ class ManifoldEnv(gym.Env):
             "episode_reward": self._episode_reward,
             "trajectory_length": len(self._trajectory),
             # Curriculum stage: 1=reach, 2=maintain, 3=optimize
-            "curriculum_stage": 1
-            if self._hiho_streak < 5
-            else (2 if self._hiho_streak < 20 else 3),
+            "curriculum_stage": 1 if self._hiho_streak < 5 else (2 if self._hiho_streak < 20 else 3),
             # Episode statistics
             "avg_coherence": self._episode_coherence_sum / max(1, self._step_count),
             "avg_energy": self._episode_energy_sum / max(1, self._step_count),
@@ -358,9 +348,7 @@ class ManifoldEnv(gym.Env):
         bloch = spinor.bloch_vector.astype(np.float32)
 
         # Fiber base
-        fiber_base = self._fiber_bundle.project_to_base(self._position.astype(np.float64)).astype(
-            np.float32
-        )
+        fiber_base = self._fiber_bundle.project_to_base(self._position.astype(np.float64)).astype(np.float32)
 
         return np.concatenate([self._position, bloch, fiber_base])
 
@@ -398,9 +386,7 @@ class ManifoldEnv(gym.Env):
             "episode_reward": self._episode_reward,
             "trajectory_length": len(self._trajectory),
             # Curriculum stage: 1=reach, 2=maintain, 3=optimize
-            "curriculum_stage": 1
-            if self._hiho_streak < 5
-            else (2 if self._hiho_streak < 20 else 3),
+            "curriculum_stage": 1 if self._hiho_streak < 5 else (2 if self._hiho_streak < 20 else 3),
             # Episode statistics
             "avg_coherence": self._episode_coherence_sum / max(1, self._step_count),
             "avg_energy": self._episode_energy_sum / max(1, self._step_count),

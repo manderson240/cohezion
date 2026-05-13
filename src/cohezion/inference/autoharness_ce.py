@@ -185,7 +185,7 @@ class MyceliumKnowledgeGraph:
         self.nodes: dict[str, Any] = {}
         self.edges: list[tuple[str, str, str]] = []  # (from, to, relation)
 
-    def add_node(self, node_id: str, data: dict, tags: list[str] = None):
+    def add_node(self, node_id: str, data: dict, tags: list[str] | None = None):
         """Add a knowledge node with optional tags."""
         self.nodes[node_id] = {
             **data,
@@ -243,7 +243,7 @@ class FlumeDataPipeline:
     def __init__(self):
         self.streams: dict[str, list] = {}
 
-    def create_stream(self, stream_id: str, reference_files: list[str] = None):
+    def create_stream(self, stream_id: str, reference_files: list[str] | None = None):
         """
         Create a lazy-loading stream.
         Only loads reference files when explicitly requested.
@@ -342,9 +342,7 @@ class CompoundEngineeringAutoHarness:
         )
 
         # Connect
-        self.mycelium.connect(
-            f"model:{self.model_id}", f"config:{self.model_id}:baseline", "has_baseline"
-        )
+        self.mycelium.connect(f"model:{self.model_id}", f"config:{self.model_id}:baseline", "has_baseline")
 
     def _detect_capabilities(self) -> dict:
         """Detect model capabilities from model card."""
@@ -356,7 +354,7 @@ class CompoundEngineeringAutoHarness:
         }
 
     def craft_payload(
-        self, user_prompt: str, task_type: str = "default", load_references: list[str] = None
+        self, user_prompt: str, task_type: str = "default", load_references: list[str] | None = None
     ) -> dict:
         """
         Craft optimized payload with token-efficient design.
@@ -446,9 +444,7 @@ class CompoundEngineeringAutoHarness:
         """
         # Store in knowledge graph
         result_id = f"experiment:{datetime.now().isoformat()}"
-        self.mycelium.add_node(
-            result_id, result, tags=["experiment", result.get("status", "unknown")]
-        )
+        self.mycelium.add_node(result_id, result, tags=["experiment", result.get("status", "unknown")])
 
         # Connect to model
         self.mycelium.connect(f"model:{self.model_id}", result_id, "has_experiment")
@@ -515,16 +511,14 @@ class CompoundEngineeringAutoHarness:
 
 
 # Global factory
-def create_compound_autoharness(
-    model_id: str, workspace: Path | None = None
-) -> CompoundEngineeringAutoHarness:
+def create_compound_autoharness(model_id: str, workspace: Path | None = None) -> CompoundEngineeringAutoHarness:
     """Factory function for creating a compound engineering autoharness."""
     return CompoundEngineeringAutoHarness(model_id, workspace)
 
 
 if __name__ == "__main__":
     # Demo
-    harness = create_compound_engineering_autoharness("gemini-2.5-flash")
+    harness = create_compound_autoharness("gemini-2.5-flash")
 
     # Craft payload with lazy-loaded references
     payload = harness.craft_payload(

@@ -193,9 +193,7 @@ class ConciergeAgent:
                             best_sim = sim
                             best_record = record
                 if best_record and best_sim > 0.7:
-                    hist_conf = self._historical_confidence(
-                        f"switch_worktree:{best_record.suggested_target}"
-                    )
+                    hist_conf = self._historical_confidence(f"switch_worktree:{best_record.suggested_target}")
                     confidence = min(0.95, best_sim * max(hist_conf, 0.6))
                     return RoutingSuggestion(
                         action="switch_worktree",
@@ -265,9 +263,7 @@ class ConciergeAgent:
             autonomy_tier="SO(12)",
         )
 
-    def suggest_batch_execution(
-        self, tasks: list[str], briefing: SessionBriefing
-    ) -> dict[str, Any]:
+    def suggest_batch_execution(self, tasks: list[str], briefing: SessionBriefing) -> dict[str, Any]:
         """Check if multiple tasks can be batched for efficient execution.
 
         Groups tasks by target worktree/context, identifies duplicates,
@@ -310,8 +306,7 @@ class ConciergeAgent:
             "dedup_count": dedup_count,
             "unique_tasks": len(tasks) - dedup_count,
             "recommendation": (
-                f"Batch {sum(len(v) for v in batchable_groups.values())} tasks "
-                f"across {len(batchable_groups)} groups"
+                f"Batch {sum(len(v) for v in batchable_groups.values())} tasks across {len(batchable_groups)} groups"
                 if batchable_groups
                 else "Execute individually"
             ),

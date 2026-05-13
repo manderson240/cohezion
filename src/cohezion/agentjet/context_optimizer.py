@@ -77,9 +77,7 @@ _BASE_PROFILES: list[ModelContextProfile] = [
     _mk("qwen3-coder-next", num_ctx=16384, size_gb=50.0, flash_attention=True),
     _mk("minimax-m2.7", num_ctx=16384, size_gb=25.0, flash_attention=True),
     # Deep reasoning (70B+): 8192 ctx
-    _mk(
-        "nemotron-3-super:120b", num_ctx=8192, size_gb=30.0, flash_attention=True
-    ),  # MoE, 12B active
+    _mk("nemotron-3-super:120b", num_ctx=8192, size_gb=30.0, flash_attention=True),  # MoE, 12B active
     _mk("glm-5", num_ctx=8192, size_gb=20.0, flash_attention=True),  # 40B active params
     _mk("openai/gpt-oss-20b", num_ctx=8192, size_gb=22.0, flash_attention=True),
     # Utility / fine-tuned domain
@@ -120,9 +118,7 @@ class OllamaContextManager:
 
     def __init__(self, base_url: str = OLLAMA_BASE_URL) -> None:
         self._base_url = base_url.rstrip("/")
-        self._cached_available_gb: float = (
-            TOTAL_SYSTEM_MEMORY_GB - OS_OVERHEAD_GB - SAFETY_BUFFER_GB
-        )
+        self._cached_available_gb: float = TOTAL_SYSTEM_MEMORY_GB - OS_OVERHEAD_GB - SAFETY_BUFFER_GB
 
     # ------------------------------------------------------------------
     # Profile lookup
@@ -228,9 +224,7 @@ class OllamaContextManager:
             try:
                 async with (
                     aiohttp.ClientSession() as session,
-                    session.post(
-                        url, json=payload, timeout=aiohttp.ClientTimeout(total=60.0)
-                    ) as resp,
+                    session.post(url, json=payload, timeout=aiohttp.ClientTimeout(total=60.0)) as resp,
                 ):
                     if resp.status == 200:
                         logger.info("Reloaded inference model: %s", model)
