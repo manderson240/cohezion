@@ -245,7 +245,7 @@ _GPU_PATTERNS = [
     # Test/spec generation — "write a unit test for...", "write tests for..."
     (
         re.compile(
-            r"\b(write|create|generate)\s+(a |an |the )?(unit |integration |regression |)test(s?)\b",
+            r"\b(write|create|generate|add)\s+(a |an |the )?(unit |integration |regression |end.to.end |smoke |e2e |)test(s?)\b",
             re.I,
         ),
         0.95,
@@ -516,7 +516,7 @@ _GPU_PATTERNS = [
     # "Make [the/a] X more/less [readable/efficient/testable/...] — code quality improvement
     (
         re.compile(
-            r"\bmake\s+(?:the\s+|a\s+|this\s+)?\w+\s+(?:more\s+|less\s+)?(?:readable|efficient|testable|maintainable|performant|scalable|clean|modular|robust|reusable|thread.safe|clear(?:er)?|simple(?:r)?|fast(?:er)?|small(?:er)?|concise(?:r)?)\b",
+            r"\bmake\s+(?:the\s+|a\s+|this\s+)?(?:[\w-]+\s+)?(?:more\s+|less\s+)?(?:readable|efficient|testable|maintainable|performant|scalable|clean|modular|robust|reusable|thread.safe|async(?:hronous)?|synchronous|idempotent|stateless|observable|resilient|fault.tolerant|clear(?:er)?|simple(?:r)?|fast(?:er)?|small(?:er)?|concise(?:r)?)\b",
             re.I,
         ),
         0.82,
