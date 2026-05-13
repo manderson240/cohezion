@@ -166,11 +166,6 @@ def solve_gravity(examples: list[tuple[str, str]], test_t: str) -> str:
                     fmt_d = str(int(round(pred)))
                 else:
                     fmt_d = f"{pred:.{prec}f}"
-                target = (
-                    str(d)
-                    if d == int(d)
-                    else f"{d:.{len(str(d).split('.')[-1]) if '.' in str(d) else 0}f}"
-                )
                 # Accept if formatted value matches training output exactly
                 d_str_expected = re.search(r"([0-9]+\.?[0-9]*)", str(d))
                 if d_str_expected and fmt_d == d_str_expected.group(1):
@@ -186,7 +181,7 @@ def solve_gravity(examples: list[tuple[str, str]], test_t: str) -> str:
     for _model_name, feat_fn, pred_fn in models:
         try:
             xs = [feat_fn(t) for t in ts]
-            g = _ls_fit(xs, ds)
+            g = _ls_fit_nb(xs, ds)
             if g <= 0:
                 continue
             mse = sum((pred_fn(g, t) - d) ** 2 for t, d in zip(ts, ds))
@@ -963,43 +958,121 @@ def _symbol_eq_nb(examples, test_in):
     return test_in
 
 
+def _nb_dsum(n):
+    return sum(int(d) for d in str(abs(n)))
+
+
+def _nb_dprod(n):
+    p = 1
+    for d in str(abs(n)):
+        p *= int(d)
+    return p
+
+
+def _nb_drev(n):
+    return int(str(abs(n))[::-1])
+
+
 def solve_equations(examples, test_in):
+    from math import gcd as _gcd
+
     first_in = examples[0][0] if examples else ""
     if not any(c.isdigit() for c in first_in):
         return _symbol_eq_nb(examples, test_in)
-    _parts = [p for p in re.split(r"[^0-9]", test_in) if p]
-    if len(_parts) < 2:
-        return test_in
+
+    def _pn(s):
+        return [int(p) for p in re.split(r"[^0-9]+", s) if p]
+
+    def _po(s):
+        m = re.search(r"-?[0-9]+", s)
+        return int(m.group()) if m else None
+
+    # Phase 0: single-input unary
+    _unary = [
+        lambda a: a,
+        lambda a: -a,
+        lambda a: _nb_dsum(a),
+        lambda a: _nb_dprod(a),
+        lambda a: _nb_drev(a),
+        lambda a: len(str(abs(a))),
+        lambda a: _nb_dsum(_nb_dsum(a)),
+        lambda a: a * a,
+        lambda a: a * a * a,
+        lambda a: a + 1,
+        lambda a: a - 1,
+        lambda a: a * 2,
+        lambda a: a * 10,
+        lambda a: a // 10,
+        lambda a: a % 10,
+        lambda a: a // 2,
+    ]
+    tn = _pn(test_in)
+    if len(tn) == 1:
+        for fn in _unary:
+            ok = True
+            for inp, out in examples:
+                ns = _pn(inp)
+                exp = _po(out)
+                if len(ns) != 1 or exp is None:
+                    ok = False
+                    break
+                try:
+                    if fn(ns[0]) != exp:
+                        ok = False
+                        break
+                except Exception:
+                    ok = False
+                    break
+            if ok:
+                try:
+                    return str(fn(tn[0]))
+                except Exception:
+                    pass
+
     _base_ops = [
         lambda a, b: a + b,
-        lambda a, b: abs(a - b),
         lambda a, b: a - b,
+        lambda a, b: abs(a - b),
         lambda a, b: a * b,
         lambda a, b: a // b if b != 0 else 0,
         lambda a, b: a % b if b != 0 else 0,
+        lambda a, b: b - a,
         lambda a, b: max(a, b),
         lambda a, b: min(a, b),
         lambda a, b: a | b,
         lambda a, b: a & b,
         lambda a, b: a ^ b,
-        lambda a, b: sum(int(d) for d in str(a) + str(b)),
-        lambda a, b: int(str(a) + str(b)),
-        lambda a, b: int(str(b) + str(a)),
-        lambda a, b: len(str(a)) + len(str(b)),
+        lambda a, b: _nb_dsum(a) + _nb_dsum(b),
+        lambda a, b: abs(_nb_dsum(a) - _nb_dsum(b)),
+        lambda a, b: _nb_dsum(a) * _nb_dsum(b),
+        lambda a, b: int(str(abs(a)) + str(abs(b))),
+        lambda a, b: int(str(abs(b)) + str(abs(a))),
+        lambda a, b: len(str(abs(a))) + len(str(abs(b))),
+        lambda a, b: len(str(abs(a))) * len(str(abs(b))),
+        lambda a, b: abs(len(str(abs(a))) - len(str(abs(b)))),
+        lambda a, b: _nb_dprod(a) + _nb_dprod(b),
+        lambda a, b: _nb_dprod(a) * b,
+        lambda a, b: a * _nb_dsum(b),
+        lambda a, b: _nb_drev(a) + b,
+        lambda a, b: _nb_drev(a + b),
+        lambda a, b: _gcd(abs(a), abs(b)) if (a or b) else 0,
+        lambda a, b: (abs(a * b) // _gcd(abs(a), abs(b))) if _gcd(abs(a), abs(b)) else 0,
+        lambda a, b: (a + b) * (a - b),
+        lambda a, b: a * a + b * b,
+        lambda a, b: a * a - b * b,
     ]
 
-    def _try(op_fn):
+    def _try_bin(op_fn):
         ok = True
         for inp, out in examples:
             try:
-                p = [x for x in re.split(r"[^0-9]", inp) if x]
+                p = _pn(inp)
                 if len(p) != 2:
                     continue
-                a, b = int(p[0]), int(p[1])
-                m = re.search(r"-?[0-9]+", out)
-                if not m:
+                exp = _po(out)
+                if exp is None:
                     continue
-                if op_fn(a, b) != int(m.group()):
+                if op_fn(p[0], p[1]) != exp:
                     ok = False
                     break
             except Exception:
@@ -1007,19 +1080,73 @@ def solve_equations(examples, test_in):
                 break
         if ok:
             try:
-                p = [x for x in re.split(r"[^0-9]", test_in) if x]
+                p = _pn(test_in)
                 if len(p) == 2:
-                    return str(op_fn(int(p[0]), int(p[1])))
+                    return str(op_fn(p[0], p[1]))
             except Exception:
                 pass
         return None
 
     for op in _base_ops:
-        r = _try(op)
+        r = _try_bin(op)
         if r is not None:
             return r
-    for outer in _base_ops[:8]:
-        for inner in _base_ops[:8]:
+
+    # Phase 1b: ternary
+    _ternary = [
+        lambda a, b, c: a + b + c,
+        lambda a, b, c: a + b - c,
+        lambda a, b, c: a - b + c,
+        lambda a, b, c: a * b + c,
+        lambda a, b, c: a * b * c,
+        lambda a, b, c: (a + b) * c,
+        lambda a, b, c: a * (b + c),
+        lambda a, b, c: a + b * c,
+        lambda a, b, c: max(a, b, c),
+        lambda a, b, c: min(a, b, c),
+        lambda a, b, c: a | b | c,
+        lambda a, b, c: a & b & c,
+        lambda a, b, c: a ^ b ^ c,
+        lambda a, b, c: _nb_dsum(a) + _nb_dsum(b) + _nb_dsum(c),
+        lambda a, b, c: int(str(abs(a)) + str(abs(b)) + str(abs(c))),
+        lambda a, b, c: a * b - c,
+        lambda a, b, c: abs(a - b - c),
+        lambda a, b, c: a * a + b * b + c * c,
+    ]
+
+    def _try_ter(op_fn):
+        ok = True
+        for inp, out in examples:
+            try:
+                p = _pn(inp)
+                if len(p) != 3:
+                    continue
+                exp = _po(out)
+                if exp is None:
+                    continue
+                if op_fn(p[0], p[1], p[2]) != exp:
+                    ok = False
+                    break
+            except Exception:
+                ok = False
+                break
+        if ok:
+            try:
+                p = _pn(test_in)
+                if len(p) == 3:
+                    return str(op_fn(p[0], p[1], p[2]))
+            except Exception:
+                pass
+        return None
+
+    for op in _ternary:
+        r = _try_ter(op)
+        if r is not None:
+            return r
+
+    # Phase 2: depth-2 binary trees
+    for outer in _base_ops[:10]:
+        for inner in _base_ops[:10]:
             for make_ab in [
                 lambda a, b, f=inner: (f(a, b), a),
                 lambda a, b, f=inner: (f(a, b), b),
@@ -1031,7 +1158,7 @@ def solve_equations(examples, test_in):
                     x, y = make_ab(a, b)
                     return outer(x, y)
 
-                r = _try(tree_op)
+                r = _try_bin(tree_op)
                 if r is not None:
                     return r
         for inner in _base_ops[:6]:
@@ -1040,7 +1167,7 @@ def solve_equations(examples, test_in):
                 def tree_const(a, b, outer=outer, inner=inner, c=c):
                     return outer(inner(a, b), c)
 
-                r = _try(tree_const)
+                r = _try_bin(tree_const)
                 if r is not None:
                     return r
     return test_in
