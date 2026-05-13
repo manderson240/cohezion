@@ -1,5 +1,3 @@
-module,party_csv,agent_count,agents_included
-bmm,bmm/teams/default-party.csv,19,analyst;architect;dev;pm;quick-flow-solo-dev;sm;tech-writer;ux-designer;brainstorming-coach;creative-problem-solver;design-thinking-coach;innovation-strategist;presentation-master;storyteller;renaissance-polymath;surrealist-provocateur;lateral-thinker;mythic-storyteller;combinatorial-genius
-cis,cis/teams/default-party.csv,11,brainstorming-coach;creative-problem-solver;design-thinking-coach;innovation-strategist;presentation-master;storyteller;renaissance-polymath;surrealist-provocateur;lateral-thinker;mythic-storyteller;combinatorial-genius
-tea,tea/teams/default-party.csv,1,tea
-gds,gds/teams/default-party.csv,11,game-architect;game-designer;game-dev;game-scrum-master;game-qa;game-solo-dev;sound-wizard;dungeon-keeper;narrative-weaver;particle-mage;bug-hunter
+version https://git-lfs.github.com/spec/v1
+oid sha256:2552f948d4fa642edb08a82f4a7daa3491ab45978c4b48dece570cb3af7389f5
+size 853
