@@ -13,6 +13,7 @@ import re
 from dataclasses import dataclass
 from typing import Literal
 
+
 # Output type → (preferred node, quality gate chars)
 # quality_gate_chars=0 means "trust any non-empty response"
 _TYPE_CONFIG: dict[str, tuple[Literal["npu", "gpu"], int]] = {
@@ -135,17 +136,18 @@ _GPU_PATTERNS = [
         "multi-step math",
     ),
     (re.compile(r"\bsolve.*show.*(work|steps)\b", re.I), 0.85, "show-work problem"),
-    # Procedural guidance — "how do/can/should we/I [do something]"
-    # Catches multi-step guidance questions that need full reasoning (not single-word answers)
+    # Procedural guidance — "how do/can/should we [do something]"
+    # "we" = team-level architectural question; excludes "I/you" + simple run/check verbs
     (
-        re.compile(r"\bhow (do|can|should|might|would) (we|I|you)\b", re.I),
+        re.compile(r"\bhow (do|can|should|might|would) we\b", re.I),
         0.80,
         "procedural guidance how-do-we",
     ),
-    # "How to configure/implement/handle/manage" — setup and integration questions
+    # "How to configure/implement/handle/manage" — requires substantial follow-up context
+    # (≥10 chars after the keyword to exclude "How to configure nginx?" style short queries)
     (
         re.compile(
-            r"\bhow (do|can|should|to) (set up|configure|implement|handle|fix|manage)\b",
+            r"\bhow (do|can|should|to) (set up|configure|implement|handle|fix|manage)\b.{10,}",
             re.I,
         ),
         0.82,
@@ -298,29 +300,47 @@ _GPU_PATTERNS = [
         0.80,
         "test with various configurations",
     ),
-    # ML/training task verbs — fine-tune, train, finetune
+    # ML/training task verbs — fine-tune, train, finetune (expanded targets)
     (
         re.compile(
-            r"\b(fine-tune|finetune|train|retrain|fine tune)\b.{0,30}\b(model|network|classifier|detector)\b",
+            r"\b(fine-tune|finetune|train|retrain|fine tune)\b.{0,40}\b(model|network|classifier|detector|adapter|checkpoint|weights|embeddings|backbone|encoder)\b",
             re.I,
         ),
         0.88,
         "ml training task",
     ),
-    # System integration verbs — integrate, wire, connect, hook up
+    # System integration verbs — integrate, wire, connect, hook up, set up X integration
     (
-        re.compile(r"\b(integrate|wire up|connect|hook up)\b.{0,30}\b(with|into|to)\b", re.I),
+        re.compile(
+            r"\b(integrate|wire up|connect|hook up|set up)\b.{0,40}\b(with|into|to|integration|monitoring|tracking|observability)\b",
+            re.I,
+        ),
         0.82,
         "system integration task",
     ),
-    # "Why is/are [X] [doing/returning/failing/scoring]" — debugging question
+    # Wire X into Y (without "up") — service wiring
     (
         re.compile(
-            r"\bwhy (is|are|does|did|isn't|aren't|doesn't|didn't)\b.{0,50}\b(returning|failing|scoring|not|error|broken|wrong|zero|null|empty)\b",
+            r"\bwire\s+(?:the\s+)?\w+(?:\s+\w+)?\s+(?:service|module|component|layer|system)\b",
+            re.I,
+        ),
+        0.82,
+        "service wiring task",
+    ),
+    # "Why is/are [X] [doing/returning/failing/scoring]" — specific debugging verbs
+    (
+        re.compile(
+            r"\bwhy (is|are|does|did|isn't|aren't|doesn't|didn't)\b.{0,60}\b(returning|fail(ing)?|scoring|not|error|broken|wrong|zero|null|empty|opening|dropping|crashing|slow|leaking|growing|blocking|hanging?|stuck|exhausting|falling|rising|spiking|timing\s+out|degrading|throwing|breaking)\b",
             re.I,
         ),
         0.82,
         "debugging why-question",
+    ),
+    # Long "why" question (≥45 chars) — complex system behavior investigation
+    (
+        re.compile(r"\bwhy\s+(?:does|is|are|did|doesn't|isn't|aren't|didn't)\b.{42,}", re.I),
+        0.78,
+        "long debugging why-question",
     ),
     # "Generate the [config/JSON/YAML/entry/file] for [X]" — config generation
     (
@@ -331,14 +351,65 @@ _GPU_PATTERNS = [
         0.85,
         "configuration generation",
     ),
-    # "Run the [X] and [report/show/list/output]" — execution + reporting
+    # IaC/infra tool generation — nginx, k8s, terraform, docker, helm config files
     (
         re.compile(
-            r"\brun (the |a |an )(\w+ ){0,3}(and|then) (report|show|list|output|print|display|log)\b",
+            r"\b(generate|create|produce|write|build)\s+(?:a\s+)?(?:nginx|kubernetes|k8s|terraform|helm|docker|ansible|puppet|grafana|prometheus)\b",
+            re.I,
+        ),
+        0.88,
+        "iac config generation",
+    ),
+    # SQL query generation — "Generate a SQL query", "Write the SQL for"
+    (
+        re.compile(r"\b(generate|write|create)\s+(?:a\s+|the\s+)?sql\b", re.I),
+        0.88,
+        "sql query generation",
+    ),
+    # "Implement X in [language]" — language-specific algorithm/feature
+    (
+        re.compile(
+            r"\bimplement\b.{0,40}\bin\s+(python|java|c\+\+|cpp|javascript|typescript|go|rust|kotlin|swift|scala|ruby)(?:\W|$)",
+            re.I,
+        ),
+        0.88,
+        "implement in language",
+    ),
+    # Create/build a [adjective(s)] endpoint/service/cache/pipeline/queue
+    (
+        re.compile(
+            r"\b(create|build|add)\s+(?:a\s+)?(?:[\w-]+\s+){0,3}(endpoint|service|api\b|cache|pipeline|queue|handler|middleware)\b",
+            re.I,
+        ),
+        0.82,
+        "build service or endpoint",
+    ),
+    # "Create a K8s/Terraform deployment manifest/spec" — infra manifest
+    (
+        re.compile(
+            r"\b(create|write|produce|generate)\s+(?:a\s+)?(?:\w+\s+)?(manifest|deployment\s+spec|helm\s+chart|infra\s+config)\b",
+            re.I,
+        ),
+        0.85,
+        "infra manifest generation",
+    ),
+    # "Run the [X] and [report/show/list/output]" or "Execute the [X] and report"
+    (
+        re.compile(
+            r"\b(run|execute)\s+(the |a |an )(\w+ ){0,3}(and|then) (report|show|list|output|print|display|log)\b",
             re.I,
         ),
         0.80,
         "run-and-report task",
+    ),
+    # "Run [tool] experiment/tracking" — ML experiment management
+    (
+        re.compile(
+            r"\brun\s+(?:the\s+)?\w+\s+(?:experiment|tracking|benchmark|evaluation|ablation)\b",
+            re.I,
+        ),
+        0.82,
+        "ml experiment run",
     ),
     # Derive/calculate without explicit "step" — complex mathematical operations
     (
@@ -352,11 +423,61 @@ _GPU_PATTERNS = [
     # Code generation with hyphenated adjective (e.g. "Implement the JEPA-based reward function")
     (
         re.compile(
-            r"\b(write|implement|create|generate|build) (the |a |an )[\w-]+.{0,40}\b(function|class|method|module|component|system)\b",
+            r"\b(write|implement|create|generate|build) (the |a |an )[\w-]+.{0,40}\b(function|class|method|module|component|system|autoencoder|encoder|decoder|network|pipeline|layer)\b",
             re.I,
         ),
         0.88,
         "code generation hyphenated adjective",
+    ),
+    # Comparative analysis — "Compare the X vs Y", "Analyze the X metrics", "Evaluate the trade-offs"
+    (
+        re.compile(r"\b(compare|analyze|evaluate|assess)\s+the\b", re.I),
+        0.82,
+        "comparative or analytical task",
+    ),
+    # "Compare X vs Y" / "Compare X versus Y" — direct comparison without "the"
+    (
+        re.compile(r"\bcompare\s+\w+\s+(?:vs\.?|versus)\b", re.I),
+        0.82,
+        "direct A-vs-B comparison",
+    ),
+    # Walk-through / describe full lifecycle
+    (
+        re.compile(
+            r"\b(walk\s+(?:me\s+)?through|describe\s+the\s+(full|complete|entire|detailed))\b", re.I
+        ),
+        0.82,
+        "walk-through or full description",
+    ),
+    # "Plan how to [migrate/build/redesign]" — architectural planning
+    (
+        re.compile(r"\bplan\s+how\s+to\b", re.I),
+        0.82,
+        "architectural planning task",
+    ),
+    # Draft/write document types — README, ADR, post-mortem, report, proposal
+    (
+        re.compile(
+            r"\b(draft|write)\s+(?:a\s+|an\s+|the\s+)?(?:\w+\s+)?(readme|adr|architecture\s+decision|post.mortem|incident\s+report|design\s+document|proposal|specification)\b",
+            re.I,
+        ),
+        0.88,
+        "draft document task",
+    ),
+    # "Create an end-to-end test" or "build an end-to-end X"
+    (
+        re.compile(r"\b(?:create|write|build|add)\s+an?\s+end.to.end\s+test\b", re.I),
+        0.85,
+        "end-to-end test creation",
+    ),
+    # "Recommended approaches/practices/strategies for X" — GPU analysis tasks
+    (
+        re.compile(
+            r"\b(?:recommended|best)\s+(?:approaches|strategies|patterns|ways|practices)\s+(?:for|to)\b",
+            re.I,
+        ),
+        0.82,
+        "recommended approaches analysis",
     ),
 ]
 
