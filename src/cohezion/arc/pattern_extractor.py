@@ -287,6 +287,39 @@ def _crop_to_object(g: Grid) -> Grid | None:
     return None
 
 
+def _fill_with_modal(g: Grid) -> Grid | None:
+    """Fill every cell with the most-common color in the grid."""
+    if not g or not g[0]:
+        return None
+    from collections import Counter
+
+    modal = Counter(c for row in g for c in row).most_common(1)[0][0]
+    out = [[modal] * len(row) for row in g]
+    return out if out != g else None
+
+
+def _shift_down_1(g: Grid) -> Grid | None:
+    """Shift every row down by one; top row becomes all zeros."""
+    if not g or not g[0]:
+        return None
+    h, w = len(g), len(g[0])
+    out = [[0] * w] + [g[r][:] for r in range(h - 1)]
+    return out if out != g else None
+
+
+def _grid_lines(g: Grid) -> Grid | None:
+    """Fill every cell at an even row OR even column with 1, rest 0.
+
+    Produces the 'grid lines' checkerboard that many ARC-2 tasks require when
+    the input is an all-zero grid of a given size.
+    """
+    if not g or not g[0]:
+        return None
+    h, w = len(g), len(g[0])
+    out = [[1 if (r % 2 == 0 or c % 2 == 0) else 0 for c in range(w)] for r in range(h)]
+    return out if out != g else None
+
+
 def _deduplicate_cols(g: Grid) -> Grid | None:
     """Remove duplicate columns, keeping first occurrence of each unique column pattern."""
     if not g or not g[0]:
@@ -936,6 +969,8 @@ def _build_strategy(name: str, train: list[dict[str, Grid]]) -> list[tuple[str, 
 
     geo = [
         *base,
+        ("grid_lines", _grid_lines),
+        ("fill_modal", _fill_with_modal),
         ("mirror_h", _mirror_h),
         ("mirror_v", _mirror_v),
         ("extend_down", _extend_down),
@@ -966,6 +1001,8 @@ def _build_strategy(name: str, train: list[dict[str, Grid]]) -> list[tuple[str, 
         *base,
         ("fill_holes", _fill_holes),
         ("remove_bg", _remove_bg),
+        ("fill_modal", _fill_with_modal),
+        ("shift_d1", _shift_down_1),
         ("gravity_d", _gravity_down),
         ("gravity_u", _gravity_up),
         ("crop_obj", _crop_to_object),
@@ -989,6 +1026,9 @@ def _build_strategy(name: str, train: list[dict[str, Grid]]) -> list[tuple[str, 
         ("invert", _invert_colors),
         ("remove_bg", _remove_bg),
         ("fill_holes", _fill_holes),
+        ("fill_modal", _fill_with_modal),
+        ("shift_d1", _shift_down_1),
+        ("grid_lines", _grid_lines),
         ("gravity_d", _gravity_down),
         ("gravity_u", _gravity_up),
         ("mirror_h", _mirror_h),
