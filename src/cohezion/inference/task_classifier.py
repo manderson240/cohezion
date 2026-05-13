@@ -223,10 +223,10 @@ _GPU_PATTERNS = [
         0.85,
         "deploy/provision task",
     ),
-    # Cloud infrastructure operations — "Set up [cloud service]" / "Implement [cloud ops]"
+    # Cloud/system infrastructure operations — "Set up [service]" / "Implement [cloud ops]"
     (
         re.compile(
-            r"\b(?:set\s+up|implement|configure)\s+(?:the\s+|a\s+|an\s+)?(?:[\w-]+\s+)?(?:auto.?scal(?:e|ing)|health\s+checks?|lifecycle|monitoring|alerting|logging|iam\s+role|iam\s+policy|s3\s+bucket|lambda|ec2|cloudwatch|azure\s+ad|gcp|gcr|eks|ecs|fargate|sns|sqs)\b",
+            r"\b(?:set\s+up|implement|configure)\s+(?:the\s+|a\s+|an\s+)?(?:[\w-]+\s+)?(?:auto.?scal(?:e|ing)|health\s+checks?|lifecycle|monitoring|alerting|logging|iam\s+role|iam\s+policy|s3\s+bucket|lambda|ec2|cloudwatch|azure\s+ad|gcp|gcr|eks|ecs|fargate|sns|sqs|ssh\s+key|vpn\s+tunnel|vpn|firewall|iptables|cron\s+job|log\s+rotation|systemd|syslog)\b",
             re.I,
         ),
         0.85,
@@ -460,7 +460,7 @@ _GPU_PATTERNS = [
     # Requires configure to be at start of prompt or after sentence-ending punctuation
     (
         re.compile(
-            r"(?:^|[.!;]\s+)configure\s+(?:the\s+|a\s+|this\s+)?(?:redis|rabbitmq|kafka|nginx|postgresql|mysql|mongodb|elasticsearch|grafana|prometheus|vault|consul|ssl|tls|https?|ldap|smtp|dns)\b",
+            r"(?:^|[.!;]\s+)configure\s+(?:the\s+|a\s+|this\s+)?(?:redis|rabbitmq|kafka|nginx|postgresql|mysql|mongodb|elasticsearch|grafana|prometheus|vault|consul|ssl|tls|https?|ldap|smtp|dns|iptables|sshd?|vpn|openvpn|wireguard|fail2ban|ufw|nfs|samba)\b",
             re.I | re.M,
         ),
         0.85,
