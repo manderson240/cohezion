@@ -309,14 +309,20 @@ class {class_name}(BaseAgent):
         expander = InstructionExpander()
         plan = expander.expand(spec)
 
-        # Serialize plan steps as a list of dicts
+        # Serialize plan steps as multi-line format with double-quoted keys
         steps_repr = "[\n"
         for step in plan.steps:
-            steps_repr += f'        PlanStep(operation="{step.operation}", '
-            params_repr = repr(step.params)
-            steps_repr += f"params={params_repr}, "
+            import json
+
+            params_repr = json.dumps(step.params)
             desc_escaped = step.description.replace('"', '\\"')
-            steps_repr += f'description="{desc_escaped}"),\n'
+            steps_repr += (
+                f"        PlanStep(\n"
+                f'            operation="{step.operation}",\n'
+                f"            params={params_repr},\n"
+                f'            description="{desc_escaped}",\n'
+                f"        ),\n"
+            )
         steps_repr += "    ]"
 
         domain_escaped = (plan.domain or "").replace('"', '\\"')
