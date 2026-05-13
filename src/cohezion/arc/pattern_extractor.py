@@ -399,6 +399,29 @@ def _extract_largest_object(g: Grid) -> Grid | None:
     return cropped
 
 
+def _kronecker_invert(g: Grid) -> Grid | None:
+    """Fractal tile: non-zero cells place the COLOR-INVERTED grid; zero cells → zeros.
+
+    Variant of _kronecker_tile where the placed template is invert_colors(g)
+    instead of g itself.  Handles tasks where each activating cell produces
+    the complement pattern rather than a copy of the original.
+    """
+    inv = _invert_colors(g)
+    if inv is None:
+        return None
+    h, w = len(g), len(g[0])
+    if h * h > 30 or w * w > 30:
+        return None
+    out = [[0] * (w * w) for _ in range(h * h)]
+    for i in range(h):
+        for j in range(w):
+            if g[i][j] != 0:
+                for di in range(h):
+                    for dj in range(w):
+                        out[i * h + di][j * w + dj] = inv[di][dj]
+    return out if any(out[r][c] != 0 for r in range(h * h) for c in range(w * w)) else None
+
+
 def _tile_3_alt_flip(g: Grid) -> Grid | None:
     """Tile 3x: even repetitions normal, odd repetitions flip each row horizontally.
 
@@ -628,6 +651,7 @@ def _build_strategy(name: str, train: list[dict[str, Grid]]) -> list[tuple[str, 
         ("tile_3", _tile_3),
         ("tile_3_altflip", _tile_3_alt_flip),
         ("kronecker", _kronecker_tile),
+        ("kronecker_inv", _kronecker_invert),
     ]
 
     obj = [
