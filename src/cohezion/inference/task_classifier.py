@@ -202,11 +202,11 @@ _GPU_PATTERNS = [
     # Security analysis verbs — identify, analyze, assess, scan, detect (with security context)
     (
         re.compile(
-            r"\b(identify|analyze|assess|scan|detect)\b.{0,30}\b(vuln(?:erabilit(?:y|ies))?|attack\s+vector|security\s+issue|weakness|exploit|injection|xss|csrf|threat)\b",
+            r"\b(identify|analyze|assess|scan|detect)\b.{0,30}\b(vuln(?:erabilit(?:y|ies))?|attack\s+vector|security\s+issue|weakness|exploit|injection|xss|csrf|threat|limitations?|gaps?|biases?|issues?|inconsistenc(?:y|ies)|findings?)\b",
             re.I,
         ),
         0.85,
-        "security analysis task",
+        "security and analytical task",
     ),
     # "When implementing X" / "While implementing X" — gerund form of implement
     (
@@ -247,9 +247,10 @@ _GPU_PATTERNS = [
     # business (memo, analysis, summary, narrative), security (policy, template, playbook, runbook),
     # content/creative (description, email, post, story, copy, announcement, changelog, letter,
     #   slide, presentation, pitch, newsletter, tweet, thread, caption, bio)
+    # academic (review, abstract, hypothesis, findings, conclusion, methodology, literature-review)
     (
         re.compile(
-            r"\b(write|create|generate|draft|prepare|compose)\s+(a |an |the )?([\w-]+ )*(essay|report|article|document|proposal|note|diagnosis|assessment|agreement|brief|contract|memo|analysis|summary|narrative|specification|amendment|plan|template|policy|playbook|runbook|guide|handbook|description|email|post|story|stories|copy|announcement|changelog|letter|slide|presentation|pitch|newsletter|thread|caption|bio|blurb|readme|script|storyboard)\b",
+            r"\b(write|create|generate|draft|prepare|compose)\s+(a |an |the )?([\w-]+ )*(essay|report|article|document|proposal|note|diagnosis|assessment|agreement|brief|contract|memo|analysis|summary|narrative|specification|amendment|plan|template|policy|playbook|runbook|guide|handbook|description|email|post|story|stories|copy|announcement|changelog|letter|slide|presentation|pitch|newsletter|thread|caption|bio|blurb|readme|script|storyboard|review|abstract|hypothesis|findings|conclusion|methodology|critique|overview|synopsis|annotation)\b",
             re.I,
         ),
         0.95,
@@ -333,7 +334,7 @@ _GPU_PATTERNS = [
     # "review" excluded — too ambiguous ("review before meeting" FP). Use code-review pattern below.
     (
         re.compile(
-            r"\b(refactor|optimize|profile|debug|audit|trace|rewrite|rework|improve|translate|adapt)\b.{0,30}\b(the|a|an|this|it)\b",
+            r"\b(refactor|optimize|profile|debug|audit|trace|rewrite|rework|improve|translate|adapt|summarize|critique|formulate|interpret|hypothesize)\b.{0,30}\b(the|a|an|this|it|these|those)\b",
             re.I,
         ),
         0.82,
