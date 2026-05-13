@@ -321,7 +321,7 @@ class SubmissionBuilder:
                     _sys.path.insert(0, _solver_path)
                 from arc_solver import apply_program, search_program  # type: ignore[import]  # noqa: I001
 
-                program = search_program(_train, max_depth=2)
+                program = search_program(_train, max_depth=3)
                 if program:
                     pred = apply_program(test_input, program)
                     if pred is not None and self._valid_grid(pred):
