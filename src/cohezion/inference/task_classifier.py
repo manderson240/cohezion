@@ -298,6 +298,66 @@ _GPU_PATTERNS = [
         0.80,
         "test with various configurations",
     ),
+    # ML/training task verbs — fine-tune, train, finetune
+    (
+        re.compile(
+            r"\b(fine-tune|finetune|train|retrain|fine tune)\b.{0,30}\b(model|network|classifier|detector)\b",
+            re.I,
+        ),
+        0.88,
+        "ml training task",
+    ),
+    # System integration verbs — integrate, wire, connect, hook up
+    (
+        re.compile(r"\b(integrate|wire up|connect|hook up)\b.{0,30}\b(with|into|to)\b", re.I),
+        0.82,
+        "system integration task",
+    ),
+    # "Why is/are [X] [doing/returning/failing/scoring]" — debugging question
+    (
+        re.compile(
+            r"\bwhy (is|are|does|did|isn't|aren't|doesn't|didn't)\b.{0,50}\b(returning|failing|scoring|not|error|broken|wrong|zero|null|empty)\b",
+            re.I,
+        ),
+        0.82,
+        "debugging why-question",
+    ),
+    # "Generate the [config/JSON/YAML/entry/file] for [X]" — config generation
+    (
+        re.compile(
+            r"\bgenerate (the |a |an |this )(config|configuration|settings|json|yaml|entry|file|manifest|schema)\b",
+            re.I,
+        ),
+        0.85,
+        "configuration generation",
+    ),
+    # "Run the [X] and [report/show/list/output]" — execution + reporting
+    (
+        re.compile(
+            r"\brun (the |a |an )(\w+ ){0,3}(and|then) (report|show|list|output|print|display|log)\b",
+            re.I,
+        ),
+        0.80,
+        "run-and-report task",
+    ),
+    # Derive/calculate without explicit "step" — complex mathematical operations
+    (
+        re.compile(
+            r"\b(derive|calculate|compute) (the |a |an )(\w+ )*(matrix|transform|projection|distribution|gradient|kernel|embedding)\b",
+            re.I,
+        ),
+        0.88,
+        "derive/calculate complex math",
+    ),
+    # Code generation with hyphenated adjective (e.g. "Implement the JEPA-based reward function")
+    (
+        re.compile(
+            r"\b(write|implement|create|generate|build) (the |a |an )[\w-]+.{0,40}\b(function|class|method|module|component|system)\b",
+            re.I,
+        ),
+        0.88,
+        "code generation hyphenated adjective",
+    ),
 ]
 
 
