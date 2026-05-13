@@ -352,6 +352,81 @@ class SubmissionBuilder:
             pass
         return None
 
+    def _fallback_llm_deepseek(
+        self,
+        test_input: Grid,
+        train: list[dict[str, Grid]] | None = None,
+        lemonade_url: str = "http://localhost:13307",
+        model: str = "DeepSeek-Qwen3-8B-GGUF",
+    ) -> Grid | None:
+        """DeepSeek-based LLM fallback via local Lemonade server.
+
+        Uses prompt-completion with examples as Python list literals to encourage
+        the model to output a valid grid on the first line of its response.
+        Requires a running Lemonade server (lemond --port 13307).
+        """
+        import ast
+        import re
+
+        _train = train if train is not None else []
+        if not _train:
+            return None
+        try:
+            import urllib.request  # lighter than requests for single call
+
+            prompt = (
+                "Find transformation. Output ONLY the result grid (list of lists, one line):\n\n"
+            )
+            for i, ex in enumerate(_train[:3], 1):
+                prompt += f"Ex {i}: In={ex['input']} Out={ex['output']}\n"
+            prompt += f"\nTest: In={test_input}\nOut="
+
+            data = {
+                "model": model,
+                "prompt": prompt,
+                "max_tokens": 300,
+                "stream": False,
+                "temperature": 0,
+            }
+            req = urllib.request.Request(  # noqa: S310
+                f"{lemonade_url}/v1/completions",
+                data=json.dumps(data).encode(),
+                headers={"Content-Type": "application/json"},
+                method="POST",
+            )
+            with urllib.request.urlopen(req, timeout=35) as resp:  # noqa: S310
+                result = json.loads(resp.read())
+            text = result.get("choices", [{}])[0].get("text", "").strip()
+
+            # Method 1: Python list literal on first line
+            for line in text.split("\n")[:5]:
+                line = line.strip()
+                if line.startswith("[["):
+                    try:
+                        parsed = ast.literal_eval(line)
+                        if (
+                            isinstance(parsed, list)
+                            and all(isinstance(r, list) for r in parsed)
+                            and self._valid_grid(parsed)
+                        ):
+                            return parsed
+                    except (ValueError, SyntaxError):
+                        pass
+
+            # Method 2: Row-by-row digit extraction
+            rows: list[list[int]] = []
+            for line in text.split("\n")[:35]:
+                nums = [int(m) for m in re.findall(r"\b([0-9])\b", line) if 0 <= int(m) <= 9]
+                if nums:
+                    rows.append(nums)
+                elif rows:
+                    break
+            if rows and self._valid_grid(rows):
+                return rows
+        except Exception:  # noqa: S110
+            pass
+        return None
+
     def _valid_grid(self, grid: Any) -> bool:
         """ARC grid invariants: rectangular, values 0..9, size ≤30."""
         if not isinstance(grid, list) or not grid:
