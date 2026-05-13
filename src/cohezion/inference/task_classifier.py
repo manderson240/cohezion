@@ -266,15 +266,24 @@ _GPU_PATTERNS = [
         0.95,
         "code generation multi-adjective",
     ),
-    # Engineering task verbs — refactor, debug, profile, optimize, audit, review
-    # These require detailed analysis of code/systems → GPU
+    # Engineering task verbs — refactor, debug, profile, optimize, audit, trace
+    # "review" excluded — too ambiguous ("review before meeting" FP). Use code-review pattern below.
     (
         re.compile(
-            r"\b(refactor|optimize|profile|debug|audit|review|trace)\b.{0,30}\b(the|a|an|this)\b",
+            r"\b(refactor|optimize|profile|debug|audit|trace)\b.{0,30}\b(the|a|an|this)\b",
             re.I,
         ),
         0.82,
         "engineering task verb",
+    ),
+    # Code review — "review" only when paired with code-specific nouns
+    (
+        re.compile(
+            r"\breview\b.{0,30}\b(code|implementation|pull\s+request|pr\b|changes|diff|api|module|test|function|class|endpoint|service)\b",
+            re.I,
+        ),
+        0.82,
+        "code review task",
     ),
     # "Document the [X] with examples/API/guide" — structured documentation
     (
