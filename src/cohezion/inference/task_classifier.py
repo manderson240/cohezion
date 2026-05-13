@@ -454,11 +454,52 @@ _GPU_PATTERNS = [
     # Derive/calculate without explicit "step" — complex mathematical operations
     (
         re.compile(
-            r"\b(derive|calculate|compute) (the |a |an )(\w+ )*(matrix|transform|projection|distribution|gradient|kernel|embedding)\b",
+            r"\b(derive|calculate|compute) (the |a |an )(\w+ )*(matrix|transform|projection|distribution|gradient|kernel|embedding|decomposition|eigendecomposition|eigenvalue|jacobian|hessian|integral|derivative|divergence|entropy|covariance|correlation)\b",
             re.I,
         ),
         0.88,
         "derive/calculate complex math",
+    ),
+    # "Prove that X" / "Prove X is/holds/satisfies" — mathematical proof
+    (
+        re.compile(r"\bprove\s+(?:that\b|the\b|\w+\s+is\b|\w+\s+holds\b|\w+\s+satisfies\b)", re.I),
+        0.88,
+        "mathematical proof",
+    ),
+    # "Show the derivation/proof/calculation" — derivation tasks
+    (
+        re.compile(
+            r"\bshow\s+(?:the\s+|a\s+)?(?:derivation|proof|calculation|working|steps)\b", re.I
+        ),
+        0.85,
+        "show derivation task",
+    ),
+    # "Solve [equation/ODE/PDE/system/optimization problem]" — problem solving
+    (
+        re.compile(
+            r"\bsolve\s+(?:the\s+|this\s+)?(?:differential|linear|quadratic|cubic|optimization|eigenvalue|integral|system)\b",
+            re.I,
+        ),
+        0.88,
+        "mathematical problem solving",
+    ),
+    # "Find the optimal/minimum/maximum/critical X [Y] using Z" — optimization
+    (
+        re.compile(
+            r"\bfind\s+(?:the\s+)?(?:optimal|minimum|maximum|critical|saddle|fixed)\s+(?:\w+\s+){1,3}(?:using|with|by|via)\b",
+            re.I,
+        ),
+        0.85,
+        "find-optimal task",
+    ),
+    # "Calculate X for N [units/calls/queries]" — quantitative calculation
+    (
+        re.compile(
+            r"\bcalculate\s+(?:the\s+)?(?:\w+\s+){1,3}(?:for|with|given|across|over)\s+",
+            re.I,
+        ),
+        0.82,
+        "calculate-for quantitative task",
     ),
     # Code generation with hyphenated adjective (e.g. "Implement the JEPA-based reward function")
     (
