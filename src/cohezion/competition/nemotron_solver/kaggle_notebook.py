@@ -1,5 +1,9 @@
 import csv
+import math
 import os
+import re
+from collections import Counter
+from itertools import combinations
 
 
 INPUT_PATH = None
@@ -114,85 +118,110 @@ def _format_number(value, examples):
     return fmt
 
 
+def _ls_fit_nb(xs, ys):
+    sum_xy = sum(x * y for x, y in zip(xs, ys))
+    sum_x2 = sum(x * x for x in xs)
+    return sum_xy / sum_x2 if sum_x2 != 0 else 0.0
+
+
 def solve_gravity(examples, test_t):
     ts, ds = [], []
     for t_str, d_str in examples:
         try:
-            t = float(__import__("re").search(r"([0-9.]+)", t_str).group(1))
-            d = float(__import__("re").search(r"([0-9.]+)", d_str).group(1))
+            t = float(re.search(r"([0-9.]+)", t_str).group(1))
+            d = float(re.search(r"([0-9.]+)", d_str).group(1))
             ts.append(t)
             ds.append(d)
         except Exception:
             pass
     if not ts or len(ts) < 2:
         return "0.0"
-    xs = [0.5 * t * t for t in ts]
-    sum_xy = sum(d * x for d, x in zip(ds, xs))
-    sum_x2 = sum(x * x for x in xs)
-    g_ls = sum_xy / sum_x2 if sum_x2 != 0 else 0.0
-    best_g = g_ls
-    best_err = float("inf")
-    candidates = [g_ls]
-    for t, d in zip(ts, ds):
-        if t > 0:
-            candidates.append(2 * d / (t * t))
-    for g0 in candidates:
-        for step in [0.01, 0.005, 0.002, 0.001]:
-            for offset in range(-5, 6):
-                g = g0 + offset * step
-                err = sum((0.5 * g * t * t - d) ** 2 for t, d in zip(ts, ds))
-                if err < best_err:
-                    best_err = err
-                    best_g = g
     try:
-        test_t_val = float(__import__("re").search(r"([0-9.]+)", test_t).group(1))
+        test_t_val = float(re.search(r"([0-9.]+)", test_t).group(1))
     except Exception:
         return "0.0"
-    result = 0.5 * best_g * test_t_val * test_t_val
-    fmt = _format_number(result, examples)
-    if "." in fmt:
-        parts = fmt.split(".")
-        if len(parts[1]) == 1:
-            fmt2 = f"{result:.2f}"
-            dec1_count = sum(1 for _, out in examples if "." in out and len(out.split(".")[1]) == 1)
-            dec2_count = sum(1 for _, out in examples if "." in out and len(out.split(".")[1]) == 2)
-            if dec2_count >= dec1_count:
-                return fmt2
-    return fmt
+    models = [
+        (lambda t: 0.5 * t * t, lambda g, t: 0.5 * g * t * t),
+        (lambda t: t * t, lambda g, t: g * t * t),
+        (lambda t: 0.5 * t * t * t, lambda g, t: 0.5 * g * t * t * t),
+        (lambda t: t, lambda g, t: g * t),
+        (lambda t: t * t * t, lambda g, t: g * t * t * t),
+    ]
+    best_result = None
+    best_mse = float("inf")
+    for feat_fn, pred_fn in models:
+        try:
+            xs = [feat_fn(t) for t in ts]
+            g = _ls_fit_nb(xs, ds)
+            if g <= 0:
+                continue
+            mse = sum((pred_fn(g, t) - d) ** 2 for t, d in zip(ts, ds))
+            if mse < best_mse:
+                best_mse = mse
+                best_result = _format_number(pred_fn(g, test_t_val), examples)
+        except Exception:
+            continue
+    return best_result if best_result is not None else "0.0"
 
 
 def solve_unit_conversion(examples, test_x):
     xs, ys = [], []
     for x_str, y_str in examples:
         try:
-            x = float(__import__("re").search(r"([0-9.]+)", x_str).group(1))
-            y = float(__import__("re").search(r"([0-9.]+)", y_str).group(1))
-            xs.append(x)
-            ys.append(y)
+            xs.append(float(re.search(r"([0-9.]+)", x_str).group(1)))
+            ys.append(float(re.search(r"([0-9.]+)", y_str).group(1)))
         except Exception:
             pass
     if len(xs) < 2:
         return "0.0"
+    try:
+        test_val = float(re.search(r"([0-9.]+)", test_x).group(1))
+    except Exception:
+        return "0.0"
+
+    def _mse(preds):
+        return sum((p - y) ** 2 for p, y in zip(preds, ys))
+
+    best_result, best_mse = None, float("inf")
     n = len(xs)
-    sum_x = sum(xs)
-    sum_y = sum(ys)
+    sum_x, sum_y = sum(xs), sum(ys)
     sum_xy = sum(x * y for x, y in zip(xs, ys))
     sum_x2 = sum(x * x for x in xs)
     denom = n * sum_x2 - sum_x * sum_x
-    if abs(denom) < 1e-10:
-        k = sum_y / sum_x if sum_x != 0 else 1.0
+    if abs(denom) > 1e-10:
+        a = (n * sum_xy - sum_x * sum_y) / denom
+        b = (sum_y - a * sum_x) / n
+        mse = _mse([a * x + b for x in xs])
+        if mse < best_mse:
+            best_mse = mse
+            best_result = _format_number(a * test_val + b, examples)
+    if sum_x != 0:
+        k = sum_y / sum_x
+        mse = _mse([k * x for x in xs])
+        if mse < best_mse:
+            best_mse = mse
+            best_result = _format_number(k * test_val, examples)
+    nl_models = [
+        (lambda x: 1.0 / x if x != 0 else None, lambda k, x: k / x if x != 0 else 0),
+        (lambda x: math.sqrt(x) if x >= 0 else None, lambda k, x: k * math.sqrt(abs(x))),
+        (lambda x: x * x, lambda k, x: k * x * x),
+        (lambda x: x * x * x, lambda k, x: k * x * x * x),
+    ]
+    for feat_fn, pred_fn in nl_models:
         try:
-            test_val = float(__import__("re").search(r"([0-9.]+)", test_x).group(1))
+            feats = [feat_fn(x) for x in xs]
+            if any(f is None for f in feats):
+                continue
+            k = _ls_fit_nb(feats, ys)
+            if k == 0:
+                continue
+            mse = _mse([pred_fn(k, x) for x in xs])
+            if mse < best_mse:
+                best_mse = mse
+                best_result = _format_number(pred_fn(k, test_val), examples)
         except Exception:
-            return "0.0"
-        return _format_number(k * test_val, examples)
-    a = (n * sum_xy - sum_x * sum_y) / denom
-    b = (sum_y - a * sum_x) / n
-    try:
-        test_val = float(__import__("re").search(r"([0-9.]+)", test_x).group(1))
-    except Exception:
-        return "0.0"
-    return _format_number(a * test_val + b, examples)
+            continue
+    return best_result if best_result is not None else "0.0"
 
 
 def int_to_roman(n):
@@ -214,7 +243,65 @@ def solve_numeral(examples, test_n):
     return int_to_roman(n)
 
 
-def solve_bit_manip(examples, test_in):
+def _lut_search(pairs: list[tuple[int, int]], max_k: int = 3) -> dict | None:
+    """Find a k-ary Boolean function (truth table) for each output bit."""
+    _named_tt_k2 = [6, 8, 14, 1, 7, 9, 12, 10, 3, 5, 11, 13, 4, 2, 0, 15]
+    result = {}
+    for out_bit in range(8):
+        found = False
+        for in_bits in combinations(range(8), 2):
+            obs: dict[int, int] = {}
+            consistent = True
+            for a, b in pairs:
+                idx = ((a >> in_bits[0]) & 1) | (((a >> in_bits[1]) & 1) << 1)
+                expected = (b >> out_bit) & 1
+                if idx in obs and obs[idx] != expected:
+                    consistent = False
+                    break
+                obs[idx] = expected
+            if not consistent:
+                continue
+            for tt in _named_tt_k2:
+                if all((tt >> idx) & 1 == val for idx, val in obs.items()):
+                    result[out_bit] = (in_bits, tt)
+                    found = True
+                    break
+            if not found:
+                for tt in range(16):
+                    if tt in _named_tt_k2:
+                        continue
+                    if all((tt >> idx) & 1 == val for idx, val in obs.items()):
+                        result[out_bit] = (in_bits, tt)
+                        found = True
+                        break
+            if found:
+                break
+        if not found and max_k >= 3:
+            for in_bits in combinations(range(8), 3):
+                obs_k3: dict[int, int] = {}
+                consistent = True
+                for a, b in pairs:
+                    idx = sum(((a >> ib) & 1) << i for i, ib in enumerate(in_bits))
+                    expected = (b >> out_bit) & 1
+                    if idx in obs_k3 and obs_k3[idx] != expected:
+                        consistent = False
+                        break
+                    obs_k3[idx] = expected
+                if not consistent:
+                    continue
+                for tt in range(256):
+                    if all((tt >> idx) & 1 == val for idx, val in obs_k3.items()):
+                        result[out_bit] = (in_bits, tt)
+                        found = True
+                        break
+                if found:
+                    break
+        if not found:
+            return None
+    return result
+
+
+def solve_bit_manip(examples: list[tuple[str, str]], test_in: str) -> str:
     pairs = []
     for inp, out in examples:
         if len(inp) == 8 and set(inp).issubset({"0", "1"}):
@@ -225,143 +312,93 @@ def solve_bit_manip(examples, test_in):
     if not pairs:
         return test_in
 
-    # Phase 1: Per-bit mapping (fast path)
-    mapping = {}
+    # Phase 1: detect pure bijective bit permutations and constant output bits.
+    # Inverted mappings are skipped (spurious with small examples); handled by Phase 2+.
+    def _bit_matches_direct(out_bit: int, in_bit: int) -> bool:
+        for a, b in pairs:
+            if ((b >> out_bit) & 1) != ((a >> in_bit) & 1):
+                return False
+        return True
+
+    mapping: dict[int, tuple] = {}
     for out_bit in range(8):
-        for in_bit in range(8):
-            ok = True
-            for a, b in pairs:
-                if ((b >> out_bit) & 1) != ((a >> in_bit) & 1):
-                    ok = False
+        if all(((b >> out_bit) & 1) == 0 for _, b in pairs):
+            mapping[out_bit] = ("const", 0, False)
+        elif all(((b >> out_bit) & 1) == 1 for _, b in pairs):
+            mapping[out_bit] = ("const", 1, False)
+        else:
+            for in_bit in range(8):
+                if _bit_matches_direct(out_bit, in_bit):
+                    mapping[out_bit] = ("bit", in_bit, False)
                     break
-            if ok:
-                mapping[out_bit] = ("bit", in_bit, False)
-                break
-            ok = True
-            for a, b in pairs:
-                if ((b >> out_bit) & 1) != (1 - ((a >> in_bit) & 1)):
-                    ok = False
-                    break
-            if ok:
-                mapping[out_bit] = ("bit", in_bit, True)
-                break
-        if out_bit not in mapping:
-            ok = True
-            for a, b in pairs:
-                if ((b >> out_bit) & 1) != 0:
-                    ok = False
-                    break
-            if ok:
-                mapping[out_bit] = ("const", 0, False)
-            else:
-                ok = True
-                for a, b in pairs:
-                    if ((b >> out_bit) & 1) != 1:
-                        ok = False
-                        break
-                if ok:
-                    mapping[out_bit] = ("const", 1, False)
 
     if len(mapping) == 8:
+        source_bits = [v[1] for v in mapping.values() if v[0] == "bit"]
+        if len(source_bits) == len(set(source_bits)):  # bijection check
+            try:
+                test_val = int(test_in, 2)
+                result = 0
+                for out_bit in range(8):
+                    typ, val, _ = mapping[out_bit]
+                    bit = val if typ == "const" else (test_val >> val) & 1
+                    result |= bit << out_bit
+                return f"{result:08b}"
+            except Exception:
+                pass
+
+    # Affine
+    def _check_affine():
+        for xor_const in range(256):
+            ok = True
+            for a, b in pairs:
+                if (a ^ xor_const) != b:
+                    ok = False
+                    break
+            if ok:
+                return ("xor", xor_const)
+        for and_const in range(256):
+            ok = True
+            for a, b in pairs:
+                if (a & and_const) != b:
+                    ok = False
+                    break
+            if ok:
+                return ("and", and_const)
+        for or_const in range(256):
+            ok = True
+            for a, b in pairs:
+                if (a | or_const) != b:
+                    ok = False
+                    break
+            if ok:
+                return ("or", or_const)
+        for add_const in range(256):
+            ok = True
+            for a, b in pairs:
+                if ((a + add_const) & 0xFF) != b:
+                    ok = False
+                    break
+            if ok:
+                return ("add", add_const)
+        return None
+
+    affine = _check_affine()
+    if affine:
         try:
             test_val = int(test_in, 2)
-            result = 0
-            for out_bit in range(8):
-                typ, val, invert = mapping[out_bit]
-                if typ == "const":
-                    bit = val
-                else:
-                    bit = (test_val >> val) & 1
-                    if invert:
-                        bit = 1 - bit
-                result |= bit << out_bit
-            return f"{result:08b}"
+            op_name, const = affine
+            if op_name == "xor":
+                return f"{(test_val ^ const):08b}"
+            elif op_name == "and":
+                return f"{(test_val & const):08b}"
+            elif op_name == "or":
+                return f"{(test_val | const):08b}"
+            elif op_name == "add":
+                return f"{((test_val + const) & 0xFF):08b}"
         except Exception:
             pass
 
-    # Phase 2: XOR-linear model (GF(2) linear algebra)
-    try:
-        test_val = int(test_in, 2)
-        result = 0
-        for out_bit in range(8):
-            matched = False
-            for r_shift in range(9):
-                for subset in __import__("itertools").combinations(range(8), r_shift):
-                    for const in [0, 1]:
-                        ok = True
-                        for a, b in pairs:
-                            val = const
-                            for j in subset:
-                                val ^= (a >> j) & 1
-                            if val != ((b >> out_bit) & 1):
-                                ok = False
-                                break
-                        if ok:
-                            bit_val = const
-                            for j in subset:
-                                bit_val ^= (test_val >> j) & 1
-                            result |= bit_val << out_bit
-                            matched = True
-                            break
-                    if matched:
-                        break
-                if matched:
-                    break
-            if not matched:
-                result = None
-                break
-        if result is not None:
-            return f"{result:08b}"
-    except Exception:
-        pass
-
-    # Phase 3: Affine constants
-    for xor_const in range(256):
-        ok = True
-        for a, b in pairs:
-            if (a ^ xor_const) != b:
-                ok = False
-                break
-        if ok:
-            try:
-                return f"{(int(test_in, 2) ^ xor_const):08b}"
-            except Exception:
-                pass
-    for and_const in range(256):
-        ok = True
-        for a, b in pairs:
-            if (a & and_const) != b:
-                ok = False
-                break
-        if ok:
-            try:
-                return f"{(int(test_in, 2) & and_const):08b}"
-            except Exception:
-                pass
-    for or_const in range(256):
-        ok = True
-        for a, b in pairs:
-            if (a | or_const) != b:
-                ok = False
-                break
-        if ok:
-            try:
-                return f"{(int(test_in, 2) | or_const):08b}"
-            except Exception:
-                pass
-    for add_const in range(256):
-        ok = True
-        for a, b in pairs:
-            if ((a + add_const) & 0xFF) != b:
-                ok = False
-                break
-        if ok:
-            try:
-                return f"{((int(test_in, 2) + add_const) & 0xFF):08b}"
-            except Exception:
-                pass
-
-    # Phase 4: Unary ops
+    # Unary ops
     unary_ops = [
         ("not", lambda x: (~x) & 0xFF),
         ("reverse", lambda x: int(f"{x:08b}"[::-1], 2)),
@@ -370,8 +407,23 @@ def solve_bit_manip(examples, test_in):
         ("shift_right_1", lambda x: x >> 1),
         ("rot_left_1", lambda x: ((x << 1) & 0xFF) | (x >> 7)),
         ("rot_right_1", lambda x: (x >> 1) | ((x & 1) << 7)),
+        ("shift_left_2", lambda x: (x << 2) & 0xFF),
+        ("shift_right_2", lambda x: x >> 2),
+        ("rot_left_2", lambda x: ((x << 2) & 0xFF) | (x >> 6)),
+        ("rot_right_2", lambda x: (x >> 2) | ((x & 0x3) << 6)),
+        ("shift_left_3", lambda x: (x << 3) & 0xFF),
+        ("shift_right_3", lambda x: x >> 3),
+        ("rot_left_3", lambda x: ((x << 3) & 0xFF) | (x >> 5)),
+        ("rot_right_3", lambda x: (x >> 3) | ((x & 0x7) << 5)),
+        ("shift_left_4", lambda x: (x << 4) & 0xFF),
+        ("shift_right_4", lambda x: x >> 4),
+        ("rot_left_4", lambda x: ((x << 4) & 0xFF) | (x >> 4)),
+        ("rot_right_4", lambda x: (x >> 4) | ((x & 0xF) << 4)),
+        ("reverse_nibble", lambda x: ((x & 0x0F) << 4) | ((x & 0xF0) >> 4)),
+        ("not_reverse", lambda x: int(f"{(~x) & 0xFF:08b}"[::-1], 2)),
     ]
-    for name, op in unary_ops:
+
+    for _name, op in unary_ops:
         ok = True
         for a, b in pairs:
             if op(a) != b:
@@ -379,11 +431,113 @@ def solve_bit_manip(examples, test_in):
                 break
         if ok:
             try:
-                return f"{op(int(test_in, 2)):08b}"
+                test_val = int(test_in, 2)
+                return f"{op(test_val):08b}"
             except Exception:
                 pass
 
+    for _n1, o1 in unary_ops:
+        for _n2, o2 in unary_ops:
+            ok = True
+            for a, b in pairs:
+                if o2(o1(a)) != b:
+                    ok = False
+                    break
+            if ok:
+                try:
+                    test_val = int(test_in, 2)
+                    return f"{o2(o1(test_val)):08b}"
+                except Exception:
+                    pass
+
+    for const in range(256):
+        for _op_name, op_fn in [
+            ("xor", lambda x, c: x ^ c),
+            ("and", lambda x, c: x & c),
+            ("or", lambda x, c: x | c),
+            ("add", lambda x, c: (x + c) & 0xFF),
+            ("sub", lambda x, c: (x - c) & 0xFF),
+        ]:
+            for _n1, o1 in unary_ops:
+                ok = True
+                for a, b in pairs:
+                    if op_fn(o1(a), const) != b:
+                        ok = False
+                        break
+                if ok:
+                    try:
+                        test_val = int(test_in, 2)
+                        return f"{op_fn(o1(test_val), const):08b}"
+                    except Exception:
+                        pass
+            for _n2, o2 in unary_ops:
+                ok = True
+                for a, b in pairs:
+                    if o2(op_fn(a, const)) != b:
+                        ok = False
+                        break
+                if ok:
+                    try:
+                        test_val = int(test_in, 2)
+                        return f"{o2(op_fn(test_val, const)):08b}"
+                    except Exception:
+                        pass
+
+    # Phase 6a: global uniform cross-bit — output[i] = f(input[i], input[(i+k)%8])
+    _cross_bit_funcs = [
+        lambda a, b: a ^ b,
+        lambda a, b: a & b,
+        lambda a, b: a | b,
+        lambda a, b: 1 - (a & b),
+        lambda a, b: 1 - (a | b),
+        lambda a, b: 1 - (a ^ b),
+        lambda a, b: a & (1 - b),
+        lambda a, b: (1 - a) & b,
+        lambda a, b: a,
+        lambda a, b: b,
+        lambda a, b: 1 - a,
+        lambda a, b: 1 - b,
+    ]
+    for offset in range(1, 8):
+        for ffn in _cross_bit_funcs:
+            ok = True
+            for a, b in pairs:
+                for out_bit in range(8):
+                    ai = (a >> out_bit) & 1
+                    bi = (a >> ((out_bit + offset) % 8)) & 1
+                    if ffn(ai, bi) != ((b >> out_bit) & 1):
+                        ok = False
+                        break
+                if not ok:
+                    break
+            if ok:
+                try:
+                    test_val = int(test_in, 2)
+                    result = 0
+                    for out_bit in range(8):
+                        ai = (test_val >> out_bit) & 1
+                        bi = (test_val >> ((out_bit + offset) % 8)) & 1
+                        result |= ffn(ai, bi) << out_bit
+                    return f"{result:08b}"
+                except Exception:
+                    pass
+
+    # Phase 6b: per-bit LUT synthesis
+    lut_mapping = _lut_search(pairs, max_k=3)
+    if lut_mapping is not None:
+        try:
+            test_val = int(test_in, 2)
+            result = 0
+            for out_bit in range(8):
+                in_bits, tt = lut_mapping[out_bit]
+                idx = sum(((test_val >> ib) & 1) << i for i, ib in enumerate(in_bits))
+                result |= ((tt >> idx) & 1) << out_bit
+            return f"{result:08b}"
+        except Exception:
+            pass
+
     return test_in
+
 
 
 _ENCRYPTION_VOCAB = [
@@ -623,62 +777,141 @@ def solve_encryption(examples, test_in):
                     if c_in not in mapping:
                         mapping[c_in] = c_out
 
+    # Runtime vocab: extract from example outputs (domain-specific, frequency-ranked)
+    runtime_counts = Counter()
+    for _, out in examples:
+        for w in out.split():
+            runtime_counts[w.lower()] += 1
+    runtime_vocab = sorted(runtime_counts.keys(), key=lambda w: -runtime_counts[w])
+    combined_vocab = runtime_vocab + [w for w in _ENCRYPTION_VOCAB if w not in runtime_counts]
+
     test_words = test_in.split()
-    result_words = []
-    for tw in test_words:
-        mapped = ""
-        for c in tw:
-            mapped += mapping.get(c, "?")
-        result_words.append(mapped)
+    result_words = ["".join(mapping.get(c, "?") for c in tw) for tw in test_words]
 
     changed = True
     while changed:
         changed = False
-        for i, (tw, pw) in enumerate(zip(test_words, result_words)):
+        for _i, (tw, pw) in enumerate(zip(test_words, result_words)):
             if "?" not in pw:
                 continue
-            pattern = pw.replace("?", "?")
-            matches = [
-                w
-                for w in _ENCRYPTION_VOCAB
-                if len(w) == len(pattern) and _match_pattern(pattern, w)
-            ]
-            if len(matches) >= 1:
+            matches = [w for w in combined_vocab if len(w) == len(pw) and _match_pattern(pw, w)]
+            if matches:
                 best = matches[0]
                 for c_in, c_out in zip(tw, best):
                     if c_in not in mapping:
                         mapping[c_in] = c_out
                         changed = True
-        result_words = []
-        for tw in test_words:
-            mapped = ""
-            for c in tw:
-                mapped += mapping.get(c, "?")
-            result_words.append(mapped)
+        result_words = ["".join(mapping.get(c, "?") for c in tw) for tw in test_words]
 
     return " ".join(result_words)
 
 
+def _symbol_eq_nb(examples, test_in):
+    rules = [
+        lambda s: s[0] + s[-1] if len(s) >= 2 else s,
+        lambda s: s[-1] + s[0] if len(s) >= 2 else s,
+        lambda s: s[::-1],
+        lambda s: s[0] if s else "",
+        lambda s: s[-1] if s else "",
+        lambda s: s[::2],
+        lambda s: s[1::2],
+    ]
+    for rule in rules:
+        ok = True
+        for inp, out in examples:
+            ci, co = inp.strip("`'\" "), out.strip("`'\" ")
+            try:
+                if rule(ci) != co:
+                    ok = False
+                    break
+            except Exception:
+                ok = False
+                break
+        if ok:
+            try:
+                return rule(test_in.strip("`'\" "))
+            except Exception:
+                pass
+    return test_in
+
+
 def solve_equations(examples, test_in):
     first_in = examples[0][0] if examples else ""
-    has_digits = any(c.isdigit() for c in first_in)
-    if not has_digits:
+    if not any(c.isdigit() for c in first_in):
+        return _symbol_eq_nb(examples, test_in)
+    _parts = [p for p in re.split(r"[^0-9]", test_in) if p]
+    if len(_parts) < 2:
+        return test_in
+    _base_ops = [
+        lambda a, b: a + b,
+        lambda a, b: abs(a - b),
+        lambda a, b: a - b,
+        lambda a, b: a * b,
+        lambda a, b: a // b if b != 0 else 0,
+        lambda a, b: a % b if b != 0 else 0,
+        lambda a, b: max(a, b),
+        lambda a, b: min(a, b),
+        lambda a, b: a | b,
+        lambda a, b: a & b,
+        lambda a, b: a ^ b,
+        lambda a, b: sum(int(d) for d in str(a) + str(b)),
+        lambda a, b: int(str(a) + str(b)),
+        lambda a, b: int(str(b) + str(a)),
+        lambda a, b: len(str(a)) + len(str(b)),
+    ]
+
+    def _try(op_fn):
+        ok = True
         for inp, out in examples:
-            if len(inp) == len(out) and inp[::-1] == out:
-                try:
-                    return test_in[::-1]
-                except Exception:
-                    pass
-        return ""
-    try:
-        parts = __import__("re").split(r"[^0-9]", test_in)
-        parts = [p for p in parts if p]
-        if len(parts) == 2:
-            a, b = int(parts[0]), int(parts[1])
-            return str(a + b)
-    except Exception:
-        pass
-    return ""
+            try:
+                p = [x for x in re.split(r"[^0-9]", inp) if x]
+                if len(p) != 2:
+                    continue
+                a, b = int(p[0]), int(p[1])
+                m = re.search(r"-?[0-9]+", out)
+                if not m:
+                    continue
+                if op_fn(a, b) != int(m.group()):
+                    ok = False
+                    break
+            except Exception:
+                ok = False
+                break
+        if ok:
+            try:
+                p = [x for x in re.split(r"[^0-9]", test_in) if x]
+                if len(p) == 2:
+                    return str(op_fn(int(p[0]), int(p[1])))
+            except Exception:
+                pass
+        return None
+
+    for op in _base_ops:
+        r = _try(op)
+        if r is not None:
+            return r
+    for outer in _base_ops[:8]:
+        for inner in _base_ops[:8]:
+            for make_ab in [
+                lambda a, b, f=inner: (f(a, b), a),
+                lambda a, b, f=inner: (f(a, b), b),
+                lambda a, b, f=inner: (a, f(a, b)),
+                lambda a, b, f=inner: (b, f(a, b)),
+            ]:
+                def tree_op(a, b, outer=outer, make_ab=make_ab):
+                    x, y = make_ab(a, b)
+                    return outer(x, y)
+                r = _try(tree_op)
+                if r is not None:
+                    return r
+        for inner in _base_ops[:6]:
+            for c in [1, 2, 3, 10, 100]:
+                def tree_const(a, b, outer=outer, inner=inner, c=c):
+                    return outer(inner(a, b), c)
+                r = _try(tree_const)
+                if r is not None:
+                    return r
+    return test_in
 
 
 def solve(prompt):
