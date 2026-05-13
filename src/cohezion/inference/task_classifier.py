@@ -109,8 +109,13 @@ _GPU_PATTERNS = [
     ),
     # Code context: keyword must appear after backtick/newline/tab (actual code, not prose)
     # Prevents "What does class inheritance mean?" from routing to GPU
+    # Also matches inline code-fix requests with Python-like syntax after colon
     (
-        re.compile(r"```|(?:^|[\n\t`])[ \t]*(?:def |class |import )|#include|func |fn ", re.S),
+        re.compile(
+            r"```|(?:^|[\n\t`])[ \t]*(?:def |class |import )|#include|func |fn |"
+            r"\bfix\s+it\s*:.*\bfor\b|\bfix\s+this\s*:.*\bfor\b",
+            re.S | re.I,
+        ),
         0.95,
         "code context",
     ),
@@ -174,6 +179,15 @@ _GPU_PATTERNS = [
         re.compile(r"\bimplement (the |a |an )\w+\s+\w+\b.{5,}", re.I),
         0.78,
         "implement multi-word component",
+    ),
+    # "implement JWT/OAuth/SAML/etc." — tech acronym without article (common in mixed-signal prompts)
+    (
+        re.compile(
+            r"\bimplement\s+(?:jwt|oauth|oauth2|saml|ldap|ssl|tls|grpc|websocket|webhook|oidc|sso)\b",
+            re.I,
+        ),
+        0.88,
+        "implement tech protocol",
     ),
     # "When implementing X" / "While implementing X" — gerund form of implement
     (
@@ -277,7 +291,7 @@ _GPU_PATTERNS = [
     # "review" excluded — too ambiguous ("review before meeting" FP). Use code-review pattern below.
     (
         re.compile(
-            r"\b(refactor|optimize|profile|debug|audit|trace)\b.{0,30}\b(the|a|an|this)\b",
+            r"\b(refactor|optimize|profile|debug|audit|trace|rewrite|rework)\b.{0,30}\b(the|a|an|this|it)\b",
             re.I,
         ),
         0.82,
