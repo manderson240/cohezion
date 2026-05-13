@@ -221,7 +221,7 @@ _GPU_PATTERNS = [
     # Security analysis verbs — identify, analyze, assess, scan, detect (with security context)
     (
         re.compile(
-            r"\b(identify|analyze|assess|scan|detect)\b.{0,30}\b(vuln(?:erabilit(?:y|ies))?|attack\s+vector|security\s+issue|weakness|exploit|injection|xss|csrf|threat|limitations?|gaps?|biases?|issues?|inconsistenc(?:y|ies)|findings?)\b",
+            r"\b(identify|analyze|assess|scan|detect|investigate)\b.{0,30}\b(vuln(?:erabilit(?:y|ies))?|attack\s+vector|security\s+issue|weakness|exploit|injection|xss|csrf|threat|limitations?|gaps?|biases?|issues?|inconsistenc(?:y|ies)|findings?|root\s+cause|cause|spike|regression|bottleneck|anomaly|incident)\b",
             re.I,
         ),
         0.85,
@@ -236,7 +236,7 @@ _GPU_PATTERNS = [
     # "Deploy/provision/migrate X to/from/on Y" — cloud deployment verbs
     (
         re.compile(
-            r"\b(?:deploy|provision|migrate|rollout|release)\s+(?:the\s+|a\s+|an\s+|this\s+)?\w+",
+            r"\b(?:deploy|provision|migrate|rollout|release|rollback|revert|redeploy|undeploy|restart)\s+(?:the\s+|a\s+|an\s+|this\s+|last\s+)?\w+",
             re.I,
         ),
         0.85,
@@ -245,7 +245,7 @@ _GPU_PATTERNS = [
     # Cloud/system infrastructure operations — "Set up [service]" / "Implement [cloud ops]"
     (
         re.compile(
-            r"\b(?:set\s+up|implement|configure)\s+(?:the\s+|a\s+|an\s+)?(?:[\w-]+\s+)?(?:auto.?scal(?:e|ing)|health\s+checks?|lifecycle|monitoring|alerting|logging|iam\s+role|iam\s+policy|s3\s+bucket|lambda|ec2|cloudwatch|azure\s+ad|gcp|gcr|eks|ecs|fargate|sns|sqs|ssh\s+key|vpn\s+tunnel|vpn|firewall|iptables|cron\s+job|log\s+rotation|systemd|syslog)\b",
+            r"\b(?:set\s+up|implement|configure)\s+(?:the\s+|a\s+|an\s+)?(?:[\w-]+\s+)?(?:auto.?scal(?:e|ing)|health\s+checks?|lifecycle|monitoring|alerting|logging|iam\s+role|iam\s+policy|s3\s+bucket|lambda|ec2|cloudwatch|azure\s+ad|gcp|gcr|eks|ecs|fargate|sns|sqs|ssh\s+key|vpn\s+tunnel|vpn|firewall|iptables|cron\s+job|log\s+rotation|systemd|syslog|pagerduty|opsgenie|escalation|on.call|incident|slo|sla|sre)\b",
             re.I,
         ),
         0.85,
