@@ -423,6 +423,30 @@ def solve_bit_manip(examples: list[tuple[str, str]], test_in: str) -> str:
             pass
 
     # Unary ops
+    # --- Phase 3: Unary ops ---
+    def _gray_code(x: int) -> int:
+        return x ^ (x >> 1)
+
+    def _degray(x: int) -> int:
+        r = x
+        for _ in range(4):
+            r ^= r >> 1
+        return r & 0xFF
+
+    def _popcount_byte(x: int) -> int:
+        return bin(x).count("1")
+
+    def _parity(x: int) -> int:
+        return _popcount_byte(x) & 1
+
+    def _swap_adj_bits(x: int) -> int:
+        return ((x & 0xAA) >> 1) | ((x & 0x55) << 1)
+
+    def _rev_bits_in_nibbles(x: int) -> int:
+        lo = int(f"{x & 0xF:04b}"[::-1], 2)
+        hi = int(f"{(x >> 4) & 0xF:04b}"[::-1], 2)
+        return lo | (hi << 4)
+
     unary_ops = [
         ("not", lambda x: (~x) & 0xFF),
         ("reverse", lambda x: int(f"{x:08b}"[::-1], 2)),
@@ -445,6 +469,19 @@ def solve_bit_manip(examples: list[tuple[str, str]], test_in: str) -> str:
         ("rot_right_4", lambda x: (x >> 4) | ((x & 0xF) << 4)),
         ("reverse_nibble", lambda x: ((x & 0x0F) << 4) | ((x & 0xF0) >> 4)),
         ("not_reverse", lambda x: int(f"{(~x) & 0xFF:08b}"[::-1], 2)),
+        # Extended ops (hardware/crypto bit manipulation patterns)
+        ("gray_code", _gray_code),
+        ("degray", _degray),
+        ("swap_adj_bits", _swap_adj_bits),
+        ("rev_bits_in_nibbles", _rev_bits_in_nibbles),
+        ("rot_left_5", lambda x: ((x << 5) & 0xFF) | (x >> 3)),
+        ("rot_right_5", lambda x: (x >> 5) | ((x & 0x1F) << 3)),
+        ("rot_left_6", lambda x: ((x << 6) & 0xFF) | (x >> 2)),
+        ("rot_right_6", lambda x: (x >> 6) | ((x & 0x3F) << 2)),
+        ("rot_left_7", lambda x: ((x << 7) & 0xFF) | (x >> 1)),
+        ("rot_right_7", lambda x: (x >> 7) | ((x & 0x7F) << 1)),
+        ("not_rot_left_1", lambda x: (~((x << 1) & 0xFF | (x >> 7))) & 0xFF),
+        ("not_rot_right_1", lambda x: (~((x >> 1) | ((x & 1) << 7))) & 0xFF),
     ]
 
     for _name, op in unary_ops:
