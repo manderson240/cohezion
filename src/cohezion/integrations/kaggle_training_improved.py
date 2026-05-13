@@ -535,15 +535,85 @@ try:
         save_strategy="no",
     )
 
-    trainer = Trainer(
-        model=model,
-        tokenizer=tokenizer,
-        train_dataset=split["train"],
-        eval_dataset=split["test"],
-        args=training_args,
-        data_collator=data_collator,
-    )
-    trainer.train()
+    # AceReason-Nemotron curriculum (arXiv:2505.16400):
+    # Phase 1 (1 epoch): easy categories only (numeric, gravity, unit_conversion)
+    # Phase 2 (1 epoch): full dataset (add bit_manip, equations, encryption)
+    # Two-phase curriculum stabilizes early learning before hard categories.
+    CURRICULUM_ENABLED = True
+
+    if CURRICULUM_ENABLED:
+        def _is_easy_answer(ans):
+            a = ans.strip()
+            return bool(
+                _re.match(r'^-?[0-9]+\.?[0-9]*$', a)  # numeric
+                or (a.endswith(' m') and _re.match(r'^[0-9]+\.?[0-9]*', a))  # gravity
+            )
+
+        easy_data = [r for r in filtered_data if _is_easy_answer(r['answer'])]
+        print(f"\n  Curriculum phase 1: {len(easy_data)} easy examples")
+
+        tokenized_easy = Dataset.from_list(easy_data).map(
+            tokenize, remove_columns=["prompt", "answer", "trace"]
+        )
+        split_easy = tokenized_easy.train_test_split(test_size=0.05, seed=42)
+
+        phase1_args = TrainingArguments(
+            output_dir="./nemotron_lora_adapter",
+            num_train_epochs=1,
+            per_device_train_batch_size=1,
+            gradient_accumulation_steps=8,
+            learning_rate=1e-4,
+            warmup_ratio=0.05,
+            bf16=True,
+            gradient_checkpointing=True,
+            logging_steps=50,
+            eval_strategy="steps",
+            eval_steps=200,
+            report_to="none",
+            save_strategy="no",
+        )
+        trainer = Trainer(
+            model=model,
+            tokenizer=tokenizer,
+            train_dataset=split_easy["train"],
+            eval_dataset=split_easy["test"],
+            args=phase1_args,
+            data_collator=data_collator,
+        )
+        print("\n  Curriculum phase 1 training...")
+        trainer.train()
+
+        print(f"\n  Curriculum phase 2: {len(split['train'])} full examples")
+        phase2_args = TrainingArguments(
+            output_dir="./nemotron_lora_adapter",
+            num_train_epochs=1,
+            per_device_train_batch_size=1,
+            gradient_accumulation_steps=8,
+            learning_rate=5e-5,  # lower LR for phase 2
+            warmup_ratio=0.03,
+            bf16=True,
+            gradient_checkpointing=True,
+            logging_steps=50,
+            eval_strategy="steps",
+            eval_steps=200,
+            report_to="none",
+            save_strategy="no",
+        )
+        trainer.args = phase2_args
+        trainer.train_dataset = split["train"]
+        trainer.eval_dataset = split["test"]
+        print("\n  Curriculum phase 2 training...")
+        trainer.train()
+    else:
+        trainer = Trainer(
+            model=model,
+            tokenizer=tokenizer,
+            train_dataset=split["train"],
+            eval_dataset=split["test"],
+            args=training_args,
+            data_collator=data_collator,
+        )
+        trainer.train()
 
     trainer.save_model("./nemotron_lora_adapter")
     tokenizer.save_pretrained("./nemotron_lora_adapter")
