@@ -487,6 +487,24 @@ def solve_bit_manip(examples: list[tuple[str, str]], test_in: str) -> str:
                 except Exception:
                     pass
 
+    # --- Phase 4.5: Three-op compositions (subset of unary ops for tractability) ---
+    # Only run if we have time budget. Uses 12 most common ops: 12^3 = 1728 combinations.
+    _fast_ops = unary_ops[:12]  # first 12: not, reverse, flip, shifts 1-4, rots 1-2, nibble swap
+    for _n1, o1 in _fast_ops:
+        for _n2, o2 in _fast_ops:
+            for _n3, o3 in _fast_ops:
+                ok = True
+                for a, b in pairs:
+                    if o3(o2(o1(a))) != b:
+                        ok = False
+                        break
+                if ok:
+                    try:
+                        test_val = int(test_in, 2)
+                        return f"{o3(o2(o1(test_val))):08b}"
+                    except Exception:
+                        pass
+
     for const in range(256):
         for _op_name, op_fn in [
             ("xor", lambda x, c: x ^ c),
