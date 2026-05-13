@@ -351,10 +351,10 @@ _GPU_PATTERNS = [
         0.80,
         "test with various configurations",
     ),
-    # ML/training task verbs — fine-tune, train, finetune (expanded targets)
+    # ML/training task verbs — fine-tune, train, finetune (expanded targets including model names)
     (
         re.compile(
-            r"\b(fine-tune|finetune|train|retrain|fine tune)\b.{0,40}\b(model|network|classifier|detector|adapter|checkpoint|weights|embeddings|backbone|encoder)\b",
+            r"\b(fine-tune|finetune|train|retrain|fine tune)\b.{0,40}\b(model|network|classifier|detector|adapter|checkpoint|weights|embeddings|backbone|encoder|bert|gpt|llama|gemma|mistral|falcon|claude|palm|t5|roberta|deberta|electra|xlnet|bloom)\b",
             re.I,
         ),
         0.88,
@@ -429,11 +429,20 @@ _GPU_PATTERNS = [
     # Create/build a [adjective(s)] endpoint/service/cache/pipeline/queue
     (
         re.compile(
-            r"\b(create|build|add)\s+(?:a\s+)?(?:[\w-]+\s+){0,3}(endpoint|service|api\b|cache|pipeline|queue|handler|middleware)\b",
+            r"\b(create|build|add)\s+(?:a\s+)?(?:[\w-]+\s+){0,3}(endpoint|service|api\b|cache|pipeline|queue|handler|middleware|dashboard|visualization|report|portal)\b",
             re.I,
         ),
         0.82,
         "build service or endpoint",
+    ),
+    # "Perform [data analysis/EDA/audit/assessment]" — analysis execution verb
+    (
+        re.compile(
+            r"\bperform\s+(?:a\s+|an\s+|the\s+)?(?:[\w-]+\s+){0,3}(?:analysis|audit|assessment|evaluation|benchmarking|profiling|eda|testing|migration|review)\b",
+            re.I,
+        ),
+        0.82,
+        "perform analysis task",
     ),
     # "Add X to the [adjective] [function/class/module/code/system]" — code modification
     (
