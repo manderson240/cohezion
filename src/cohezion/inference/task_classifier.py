@@ -121,7 +121,7 @@ _GPU_PATTERNS = [
     # Extended: formula, macro, procedure, query, snippet, lambda, decorator, mixin, interface
     (
         re.compile(
-            r"\b(write|implement|create|generate|build)\s+(a |an |the )?(?:[\w-]+ ){0,3}(?:function|class|script|module|code|program|formula|macro|procedure|query|snippet|lambda|decorator|mixin|interface|getters?|setters?|validators?|serializers?|deserializers?|accessors?|migrations?|fixtures?|resolvers?|middlewares?|driver|routine|handler|client|library|daemon|firmware|plugin|extension|adapter|wrapper|proxy|stub|mock|task\b|job\b|service\b|worker|processor|listener|observer|consumer|producer|publisher|subscriber|widget|screen|fragment|composable|activity\b|viewmodel|repository\b|dao\b|coroutine|category\b|entity\b|component|[\w]*viewcontroller|[\w]*recyclerview|[\w]*tableview|[\w]*collectionview|shader|loop\b|controller\b|renderer|pass\b|pipeline|algorithm|simulation|generator|visualiz(?:er|ation)|importer|exporter|converter|transformer|dispatcher|scheduler|executor|runner|scanner|parser\b|loader|hook\b|contract\b|token\b|wallet|oracle|integration\b|connector|bridge\b|gateway\b|registry\b|factory\b|builder\b|chain\b|circuit\b|calculator\b|analyzer|analyser|simulator\b|model\b|harness\b|profiler|embedder|clusterer|classifier\b|detector\b|extractor|tokenizer|vectorizer|optimizer\b|sampler|trainer|evaluator|scorer|node\b|planner|reasoner|router\b|orchestrator\b|limiter\b|broker\b|balancer\b|deployer\b|replicator\b|notifier\b|aggregator\b|collector\b|batcher\b|monitor\b|poller\b|pusher\b|forwarder\b|compactor\b|resolver\b|mapper\b|reconciler\b|crawler\b|debugger\b|profiler\b|watcher\b|observer\b)\b",
+            r"\b(write|implement|create|generate|build)\s+(a |an |the )?(?:[\w-]+ ){0,3}(?:function|class|script|module|code|program|formula|macro|procedure|query|snippet|lambda|decorator|mixin|interface|getters?|setters?|validators?|serializers?|deserializers?|accessors?|migrations?|fixtures?|resolvers?|middlewares?|driver|routine|handler|client|library|daemon|firmware|plugin|extension|adapter|wrapper|proxy|stub|mock|task\b|job\b|service\b|worker|processor|listener|observer|consumer|producer|publisher|subscriber|widget|screen|fragment|composable|activity\b|viewmodel|repository\b|dao\b|coroutine|category\b|entity\b|component|[\w]*viewcontroller|[\w]*recyclerview|[\w]*tableview|[\w]*collectionview|shader|loop\b|controller\b|renderer|pass\b|pipeline|algorithm|simulation|generator|visualiz(?:er|ation)|importer|exporter|converter|transformer|dispatcher|scheduler|executor|runner|scanner|parser\b|loader|hook\b|contract\b|token\b|wallet|oracle|integration\b|connector|bridge\b|gateway\b|registry\b|factory\b|builder\b|chain\b|circuit\b|calculator\b|analyzer|analyser|simulator\b|model\b|harness\b|profiler|embedder|clusterer|classifier\b|detector\b|extractor|tokenizer|vectorizer|optimizer\b|sampler|trainer|evaluator|scorer|node\b|planner|reasoner|router\b|orchestrator\b|limiter\b|broker\b|balancer\b|deployer\b|replicator\b|notifier\b|aggregator\b|collector\b|batcher\b|monitor\b|poller\b|pusher\b|forwarder\b|compactor\b|resolver\b|mapper\b|reconciler\b|crawler\b|debugger\b|watcher\b|semaphore\b|mutex\b|debouncer\b|throttler\b|sentinel\b|accumulator\b|combiner\b|partitioner\b|splitter\b|forker\b|joiner\b|interceptor\b|validator\b|sanitizer\b|encoder\b|decoder\b)\b",
             re.I,
         ),
         1.0,
@@ -506,14 +506,23 @@ _GPU_PATTERNS = [
         0.90,
         "using quantum/ML/bio/devops framework",
     ),
-    # Create/build a [adjective(s)] endpoint/service/cache/pipeline/queue
+    # Create/build/write a [adjective(s)] endpoint/service/cache/pipeline/queue
     (
         re.compile(
-            r"\b(create|build|add)\s+(?:a\s+)?(?:[\w-]+\s+){0,3}(endpoint|service|api\b|cache|pipeline|queue|handler|middleware|dashboard|visualization|report|portal|agent|bot|workflow|framework|harness|scaffold|index\b|view\b|trigger\b|constraint|migration|role\b|policy|lifecycle|bucket|cluster|repository|registry)\b",
+            r"\b(create|build|add|write)\s+(?:a\s+)?(?:[\w-]+\s+){0,3}(endpoint|service|api\b|cache|pipeline|queue|handler|middleware|dashboard|visualization|report|portal|agent|bot|workflow|framework|harness|scaffold|index\b|view\b|trigger\b|constraint|migration|role\b|policy|lifecycle|bucket|cluster|repository|registry)\b",
             re.I,
         ),
         0.82,
         "build service or endpoint",
+    ),
+    # Compound data structure / distributed systems patterns — short but clearly code
+    (
+        re.compile(
+            r"\b(?:build|create|implement|write)\s+(?:a\s+)?(?:[\w-]+\s+)?(?:event\s+(?:bus|store|queue|sourcing)|message\s+(?:bus|queue|broker)|bloom\s+filter|write.ahead\s+log|consistent\s+hash|b.tree|lsm.tree|cqrs\s+(?:event|store|pattern)|saga\s+(?:orchestrat|pattern|coordinator)|raft\s+(?:leader|consensus|election)|paxos\s+(?:consensus|protocol)|gossip\s+(?:protocol|dissemination)|two.phase\s+commit|retry\s+(?:mechanism|handler|policy|logic|strategy)|bulkhead\s+(?:isolation|pattern|boundary)|backpressure\s+(?:mechanism|handler|strategy)|rate.limit\s+(?:mechanism|policy|strategy)|timeout\s+(?:mechanism|handler|strategy)|dead.letter\s+(?:queue|handler)|health.check\s+(?:endpoint|handler|probe)|circuit.breaker\s+(?:pattern|handler))\b",
+            re.I,
+        ),
+        0.90,
+        "compound data structure or dist-sys pattern",
     ),
     # "Configure [tech/service]" as an imperative — NOT part of "How to configure X?" question
     # Requires configure to be at start of prompt or after sentence-ending punctuation
