@@ -238,7 +238,9 @@ def solve_unit_conversion(examples: list[tuple[str, str]], test_x: str) -> str:
 
     def _cand(pred_test: float, pred_train: list[float], n_params: int = 1) -> None:
         nonlocal best_result, best_score
-        score = (_hits(pred_train), -n_params, -_mse(pred_train))
+        h = _hits(pred_train)
+        adjusted_h = h - (n_params - 1)  # proportional gets h, linear gets h-1 effective
+        score = (adjusted_h, -n_params, -_mse(pred_train))
         if score > best_score:
             best_score = score
             best_result = _format_number(pred_test, examples)

@@ -235,7 +235,9 @@ def solve_unit_conversion(examples, test_x):
 
     def _cand(pred_test, pred_train, n_params=1):
         nonlocal best_result, best_score
-        score = (_hits(pred_train), -n_params, -_mse(pred_train))
+        h = _hits(pred_train)
+        adjusted_h = h - (n_params - 1)
+        score = (adjusted_h, -n_params, -_mse(pred_train))
         if score > best_score:
             best_score = score
             best_result = _format_number(pred_test, examples)
