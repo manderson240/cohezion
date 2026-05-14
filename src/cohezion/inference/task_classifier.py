@@ -182,7 +182,7 @@ _GPU_PATTERNS = [
     # Short "Explain why X?" (< 30 chars) stays NPU via describe-or-explain fallback
     (
         re.compile(r"\bexplain why\b.{30,}", re.I | re.S),
-        0.82,
+        0.85,
         "explain-why causal question",
     ),
     # Explain [content] in detail / step-by-step — preamble content may separate them
@@ -197,7 +197,7 @@ _GPU_PATTERNS = [
             r"\bimplement (the |a |an )\w+.{5,}\b(logic|pipeline|system|workflow|mechanism)\b",
             re.I,
         ),
-        0.83,
+        0.85,
         "implement complex logic/system",
     ),
     # Language-specific code generation: "Implement/write/build/create X in Java/Python/..."
@@ -215,7 +215,7 @@ _GPU_PATTERNS = [
     # Excludes "why did we implement" (retrospective decision — NPU)
     (
         re.compile(r"\bimplement (the |a |an )\w+\s+\w+\b.{5,}", re.I),
-        0.78,
+        0.82,
         "implement multi-word component",
     ),
     # "implement the feature/fix/change/solution" — single-word object (feature, fix, etc.)
@@ -361,7 +361,7 @@ _GPU_PATTERNS = [
     # "How to run / execute / set up [task]" — procedural execution
     (
         re.compile(r"\bhow to (run|execute|start|launch|trigger|perform|conduct)\b", re.I),
-        0.83,
+        0.85,
         "how-to-run-execute",
     ),
     # "Implement the [adjective(s)]* policy/strategy/approach/pipeline"
@@ -401,7 +401,7 @@ _GPU_PATTERNS = [
             r"\b(refactor|optimize|profile|debug|audit|trace|rewrite|rework|improve|translate|adapt|summarize|critique|formulate|interpret|hypothesize)\b.{0,30}\b(the|a|an|this|it|these|those)\b",
             re.I,
         ),
-        0.82,
+        0.85,
         "engineering task verb",
     ),
     # Direct refactoring verbs without article — "Refactor X to Y", "Rewrite X to use Y"
