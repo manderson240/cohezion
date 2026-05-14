@@ -115,8 +115,10 @@ class SkillRefiner:
                 logger.debug(f"No PRIME file found for skill: {skill_name}")
                 return None
 
-            # Append refinement
-            refined_path = self._append_refinement(prime_file, signal)
+            # Try reflection optimization first (Autogenesis SEPL loop).
+            # Falls back to append-based refinement if Lemonade is unavailable
+            # or confidence is below the optimizer threshold.
+            refined_path = self._optimize_or_append(prime_file, signal, skill_name, operation_type)
 
             if refined_path:
                 logger.info(f"Refined skill {skill_name}: {signal.key_insight}")
@@ -377,6 +379,57 @@ class SkillRefiner:
 
 """
         return section
+
+    def _optimize_or_append(
+        self,
+        prime_file: Path,
+        signal: "LearningSignal",
+        skill_name: str,
+        operation_type: str,
+    ) -> Path | None:
+        """Attempt Autogenesis reflection optimization; fall back to append.
+
+        When confidence is >= 0.65 and Lemonade is available, runs the
+        SkillOptimizer (SEPL propose→assess→commit loop) to rewrite the
+        Instructions section with LLM-generated improvements.
+
+        Falls back to _append_refinement() when:
+        - Confidence is too low
+        - Lemonade is unavailable
+        - The optimizer returns no satisfying improvement
+        """
+        if signal.confidence >= 0.65:
+            try:
+                from cohezion.evolution.skill_optimizer import SkillOptimizer
+
+                opt = SkillOptimizer()
+                feedback = [
+                    signal.key_insight,
+                    signal.recommendation,
+                    f"operation: {operation_type}, metric change: {signal.metric_change}",
+                ]
+                task = (
+                    f"Improve skill '{skill_name}' for {operation_type} tasks. "
+                    f"Key issue: {signal.key_insight}"
+                )
+                result = opt.optimize_prime(
+                    prime_path=prime_file,
+                    feedback=feedback,
+                    task=task,
+                    confidence=signal.confidence,
+                )
+                if result:
+                    logger.info(
+                        "reflection-optimized %s (confidence=%.2f)",
+                        skill_name,
+                        signal.confidence,
+                    )
+                    return result
+            except Exception as e:
+                logger.debug("Reflection optimization failed, falling back: %s", e)
+
+        # Fallback: append the learning signal as a note
+        return self._append_refinement(prime_file, signal)
 
     def _bump_version(self, version: str) -> str:
         """Bump patch version.
