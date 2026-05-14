@@ -178,6 +178,13 @@ _GPU_PATTERNS = [
         0.82,
         "procedural how-to-configure",
     ),
+    # "Explain why X [causes/affects/reduces/...]" — causal technical question, ≥30 chars
+    # Short "Explain why X?" (< 30 chars) stays NPU via describe-or-explain fallback
+    (
+        re.compile(r"\bexplain why\b.{30,}", re.I | re.S),
+        0.82,
+        "explain-why causal question",
+    ),
     # Explain [content] in detail / step-by-step — preamble content may separate them
     (
         re.compile(r"\bexplain\b.{5,80}\b(in detail|thoroughly|step.by.step)\b", re.I | re.S),
