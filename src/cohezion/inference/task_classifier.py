@@ -599,7 +599,7 @@ _GPU_PATTERNS = [
     # Short imperative code operations: scaffold/stub/mock/process/handle/extend/simplify/dockerize
     (
         re.compile(
-            r"\b(scaffold|stub\s+out?|mock|process|handle|extend|simplify|dockerize|containerize|serialize|paginate)\s+(?:the\s+|a\s+|an\s+|this\s+)?(?:[\w-]+\s+){0,3}\w+\b",
+            r"(?:^|[.!;]\s+)(?:scaffold|stub\s+out?|mock|process|handle|extend|simplify|dockerize|containerize|serialize|paginate)\s+(?:the\s+|a\s+|an\s+|this\s+)?(?:[\w-]+\s+){0,3}\w+\b",
             re.I,
         ),
         0.82,
@@ -618,7 +618,7 @@ _GPU_PATTERNS = [
     # Requires a technical object (module/table/schema/weights/endpoint/etc.) to avoid FP
     (
         re.compile(
-            r"\b(?:benchmark|validate|parse|compress|decompress|rename|delete|remove|truncate|drop|enable|disable|toggle|backfill|reindex|sync(?:hronize)?|replay|snapshot|checkpoint|encrypt|decrypt|sign|verify|hash|marshal|unmarshal|minify|transpile|lint|typecheck|fuzz|port|convert|wrap|split|merge|hoist|annotate|inject|extract\b|patch|upgrade|downgrade|publish|subscribe|bootstrap|seed|hydrate|dehydrate|memoize|debounce|throttle|diagnose|investigate|trace\b)\s+(?:the\s+|a\s+|an\s+|all\s+|this\s+)?(?:[\w.-]+\s+){0,3}(?:imports?|dependencies?|modules?|functions?|class(?:es)?|methods?|services?|api\b|endpoints?|schemas?|tables?|databases?|collections?|buckets?|indexes?|indices?|data|files?\b|records?|rows?|models?|weights?|configs?|pipelines?|caches?|queues?|tokens?|certs?|keys?\b|signatures?|graphs?|trees?|logs?\b|traces?|tests?|suites?|validators?|entries?|columns?|fields?|constraints?|migrations?|nodes?\b|edges?\b|queries|yaml|json\b|csvs?|vcfs?\b|similarity\b|metrics?\b|algorithms?\b|performances?\b|overhead\b|latency\b|throughput\b|accuracy\b|precision\b|recall\b|fallback\b|features?\b|flags?\b|threshold\b|limits?\b|rates?\b|budgets?\b|tiers?\b|policies?|rules?\b|annotations?|types?\b|interfaces?\b|clients?\b|renderers?|executors?\b|pools?\b|singletons?\b|instances?|components?|hooks?\b|middlewares?|frameworks?|routers?\b|stores?\b|contexts?\b|streams?|buffers?|channels?|sockets?|proxies?|adapters?\b|patterns?\b|strategies?|handlers?\b|listeners?\b|containers?|microservices?)\b",
+            r"\b(?:benchmark|validate|parse|compress|decompress|rename|delete|remove|truncate|drop|enable|disable|toggle|backfill|reindex|sync(?:hronize)?|replay|snapshot|checkpoint|encrypt|decrypt|sign|verify|hash|marshal|unmarshal|minify|transpile|lint|typecheck|fuzz|port|convert|wrap|split|merge|hoist|annotate|inject|extract\b|patch|upgrade|downgrade|publish|subscribe|bootstrap|seed|hydrate|dehydrate|memoize|debounce|throttle|diagnose|investigate|trace\b|sort|filter|map\b|reduce|flatten|deduplicate|normalize|denormalize|sanitize|obfuscate|mask)\s+(?:the\s+|a\s+|an\s+|all\s+|this\s+)?(?:[\w.-]+\s+){0,3}(?:imports?|dependencies?|modules?|functions?|class(?:es)?|methods?|services?|api\b|endpoints?|schemas?|tables?|databases?|collections?|buckets?|indexes?|indices?|data|files?\b|records?|rows?|models?|weights?|configs?|pipelines?|caches?|queues?|tokens?|certs?|keys?\b|signatures?|graphs?|trees?|logs?\b|traces?|tests?|suites?|validators?|entries?|columns?|fields?|constraints?|migrations?|nodes?\b|edges?\b|queries|yaml|json\b|csvs?|vcfs?\b|similarity\b|metrics?\b|algorithms?\b|performances?\b|overhead\b|latency\b|throughput\b|accuracy\b|precision\b|recall\b|fallback\b|features?\b|flags?\b|threshold\b|limits?\b|rates?\b|budgets?\b|tiers?\b|policies?|rules?\b|annotations?|types?\b|interfaces?\b|clients?\b|renderers?|executors?\b|pools?\b|singletons?\b|instances?|components?|hooks?\b|middlewares?|frameworks?|routers?\b|stores?\b|contexts?\b|streams?|buffers?|channels?|sockets?|proxies?|adapters?\b|patterns?\b|strategies?|handlers?\b|listeners?\b|containers?|microservices?|lists?\b|arrays?|strings?\b|images?\b|videos?\b|passwords?\b|emails?\b|inputs?\b|outputs?\b|requests?\b|responses?\b|payloads?\b|messages?\b|events?\b|objects?\b|values?\b|numbers?\b|integers?\b|floats?\b)\b",
             re.I,
         ),
         0.85,
@@ -894,6 +894,14 @@ _NEGATION_PATTERN = re.compile(
     re.I,
 )
 
+# "How does/did X [verb] Y?" — behavioral/factual question about system behavior
+# Should route NPU before GPU patterns catch action verbs in the middle of the question
+# Fires only for ≤85 chars (prevents false-negating complex how-does architectural questions)
+_HOW_DOES_PATTERN = re.compile(
+    r"^how\s+(?:does|did|do|can)\s+(?!we\b)(?:the\s+|a\s+|an\s+|this\s+|your\s+|it\s+)?",
+    re.I,
+)
+
 # Brevity-qualified summarize/critique/interpret: "Summarize X in one paragraph" → short answer (NPU)
 # Also: "Briefly summarize/critique/interpret X" → NPU
 # Also: "...? One sentence." terminal brevity qualifier overrides domain GPU signals
@@ -971,7 +979,7 @@ def classify(prompt: str) -> RouteDecision:
     # Prevents "What is a multi-agent system?" from matching ai-agent-engineering-domain
     # Threshold: ≤ 75 chars total (short enough to be definitional, not complex)
     # Does NOT fire for long what-is questions like "What is the implementation of X that..."
-    if prompt_len <= 75 and _SHORT_WHAT_IS_PATTERN.search(prompt):
+    if prompt_len <= 75 and _SHORT_WHAT_IS_PATTERN.search(prompt):  # noqa: SIM102
         node, gate = _TYPE_CONFIG["short_answer"]
         # Confidence depends on term length (1-2 words = 0.78, 3-4 words = 0.74)
         return RouteDecision(
@@ -980,6 +988,20 @@ def classify(prompt: str) -> RouteDecision:
             quality_gate_chars=gate,
             confidence=0.77,
             reason="short what-is definitional pre-override",
+        )
+
+    # 4. "How does/did/can X [verb] Y?" — behavioral question about system behavior
+    # Should route NPU before GPU patterns catch action verbs mid-question
+    # "How does the cache handle cache misses?" → NPU (explains behavior, doesn't need code)
+    # Threshold ≤ 85 chars: complex "How does X enable Y to Z?" may still need GPU analysis
+    if prompt_len <= 85 and _HOW_DOES_PATTERN.search(prompt):
+        node, gate = _TYPE_CONFIG["short_answer"]
+        return RouteDecision(
+            node=node,
+            output_type="short_answer",
+            quality_gate_chars=gate,
+            confidence=0.73,
+            reason="how-does behavioral question pre-override",
         )
 
     # ── Check GPU patterns first (highest cost to mis-route) ────────────────
