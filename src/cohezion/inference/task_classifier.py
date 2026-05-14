@@ -589,6 +589,16 @@ _GPU_PATTERNS = [
         0.82,
         "make-code-quality",
     ),
+    # Extended engineering verbs — broader set of coding action verbs not in write/implement/build
+    # Requires a technical object (module/table/schema/weights/endpoint/etc.) to avoid FP
+    (
+        re.compile(
+            r"\b(?:benchmark|validate|parse|compress|decompress|rename|delete|remove|truncate|drop|enable|disable|toggle|backfill|reindex|sync(?:hronize)?|replay|snapshot|checkpoint|encrypt|decrypt|sign|verify|hash|marshal|unmarshal|minify|transpile|lint|typecheck|fuzz)\s+(?:the\s+|a\s+|an\s+|all\s+|this\s+)?(?:[\w.-]+\s+){0,3}(?:module|function|class|method|service|api\b|endpoint|schema|table|database|collection|bucket|index|data|file|record|records|row|rows|model|weights|config|pipeline|cache|queue|token|cert|key\b|signature|graph|tree|log\b|trace|test|suite|validator|entry|entries|column|field|constraint|migration|node\b|edge\b|query|yaml|json\b|csv|vcf\b|fastq|similarity\b|metric\b|algorithm\b|performance\b|overhead\b|latency\b|throughput\b|accuracy\b|precision\b|recall\b|fallback\b|feature\b|flag\b|threshold\b|limit\b|rate\b|budget\b|tier\b|policy\b|rule\b)\b",
+            re.I,
+        ),
+        0.83,
+        "extended engineering verb",
+    ),
     # "Update the [tests/function/class/code/module] to [action]" — code update task
     (
         re.compile(
