@@ -371,7 +371,7 @@ _GPU_PATTERNS = [
             r"\bimplement (the |a |an ).{0,40}\b(policy|strategy|approach|mechanism|framework|workflow)\b",
             re.I,
         ),
-        0.82,
+        0.85,
         "implement policy/strategy",
     ),
     # "Write a [adj]* test suite" — broader test generation
@@ -462,7 +462,7 @@ _GPU_PATTERNS = [
             r"\b(integrate|wire up|connect|hook up|set up)\b.{0,40}\b(with|into|to|integration|monitoring|tracking|observability)\b",
             re.I,
         ),
-        0.82,
+        0.85,
         "system integration task",
     ),
     # Wire X into Y (without "up") — service wiring
@@ -537,7 +537,7 @@ _GPU_PATTERNS = [
             r"\b(create|build|add|write)\s+(?:a\s+)?(?:[\w-]+\s+){0,3}(endpoint|service|api\b|cache|pipeline|queue|handler|middleware|dashboard|visualization|report|portal|agent|bot|workflow|framework|harness|scaffold|index\b|view\b|trigger\b|constraint|migration|role\b|policy|lifecycle|bucket|cluster|repository|registry)\b",
             re.I,
         ),
-        0.82,
+        0.85,
         "build service or endpoint",
     ),
     # Compound data structure / distributed systems patterns — short but clearly code
