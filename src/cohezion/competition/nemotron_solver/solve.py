@@ -439,7 +439,39 @@ def _lut_search(pairs: list[tuple[int, int]], max_k: int = 3) -> dict | None:
                 if found:
                     break
 
-        # k=3 fallback
+        # k=3 fallback — try named 3-input functions first to reduce spurious matches
+        # Named k=3 TTs (indexed by b0|b1<<1|b2<<2): majority, XOR3, AND3, OR3, etc.
+        _named_tt_k3 = [
+            # XOR of all 3: output = b0^b1^b2
+            # (0,0,0)=0,(1,0,0)=1,(0,1,0)=1,(1,1,0)=0,(0,0,1)=1,(1,0,1)=0,(0,1,1)=0,(1,1,1)=1
+            0b10010110,  # XOR3 = 150
+            # XNOR3 (NOT XOR3)
+            0b01101001,  # XNOR3 = 105
+            # Majority (at least 2 of 3)
+            0b11101000,  # MAJ = 232
+            # Minority (NOT majority)
+            0b00010111,  # NMIN = 23
+            # AND3
+            0b10000000,  # AND3 = 128
+            # OR3
+            0b11111110,  # OR3 = 254
+            # NAND3
+            0b01111111,  # NAND3 = 127
+            # NOR3
+            0b00000001,  # NOR3 = 1
+            # b2 identity (last bit passes through): b2
+            0b11110000,  # b2 = 240
+            # b1 identity
+            0b11001100,  # b1 = 204
+            # b0 identity
+            0b10101010,  # b0 = 170
+            # NOT b2
+            0b00001111,  # NOT b2 = 15
+            # NOT b1
+            0b00110011,  # NOT b1 = 51
+            # NOT b0
+            0b01010101,  # NOT b0 = 85
+        ]
         if not found and max_k >= 3:
             for in_bits in combinations(range(8), 3):
                 obs_k3: dict[int, int] = {}
@@ -453,7 +485,9 @@ def _lut_search(pairs: list[tuple[int, int]], max_k: int = 3) -> dict | None:
                     obs_k3[idx] = expected
                 if not consistent:
                     continue
-                for tt in range(256):
+                # Try named k=3 functions first, then arbitrary
+                # Only try named TTs (no arbitrary fallback — too slow and underdetermined)
+                for tt in _named_tt_k3:
                     if all((tt >> idx) & 1 == val for idx, val in obs_k3.items()):
                         result[out_bit] = (in_bits, tt)
                         found = True
@@ -699,6 +733,34 @@ def solve_bit_manip(examples: list[tuple[str, str]], test_in: str) -> str:
                     try:
                         test_val = int(test_in, 2)
                         return f"{o3(o2(o1(test_val))):08b}"
+                    except Exception:
+                        pass
+
+    # --- Phase 5.5: Two-unary binary ops: binary_fn(unary1(x), unary2(x)) ---
+    # Covers patterns like (x >> 4) ^ (x & 0x0F), (x << 3) XOR rotr1(x), etc.
+    # 32 × 32 × 6 = 6,144 combos, ~1ms worst-case.
+    _bin_fns = [
+        (lambda a, b: a ^ b),
+        (lambda a, b: a & b),
+        (lambda a, b: a | b),
+        (lambda a, b: (a + b) & 0xFF),
+        (lambda a, b: (a - b) & 0xFF),
+        (lambda a, b: (b - a) & 0xFF),
+    ]
+    for _n1, o1 in unary_ops:
+        for _n2, o2 in unary_ops:
+            if o1 is o2:
+                continue  # skip trivial self-combinations (handled by Phase 2/3)
+            for bf in _bin_fns:
+                ok = True
+                for a, b in pairs:
+                    if bf(o1(a), o2(a)) != b:
+                        ok = False
+                        break
+                if ok:
+                    try:
+                        test_val = int(test_in, 2)
+                        return f"{bf(o1(test_val), o2(test_val)):08b}"
                     except Exception:
                         pass
 

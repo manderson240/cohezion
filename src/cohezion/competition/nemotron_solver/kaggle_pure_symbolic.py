@@ -340,6 +340,22 @@ def _lut_search(pairs: list[tuple[int, int]], max_k: int = 3) -> dict | None:
                         break
             if found:
                 break
+        _named_tt_k3 = [
+            0b10010110,
+            0b01101001,  # XOR3, XNOR3
+            0b11101000,
+            0b00010111,  # MAJ, NMIN
+            0b10000000,
+            0b11111110,  # AND3, OR3
+            0b01111111,
+            0b00000001,  # NAND3, NOR3
+            0b11110000,
+            0b11001100,
+            0b10101010,  # b2, b1, b0
+            0b00001111,
+            0b00110011,
+            0b01010101,  # !b2, !b1, !b0
+        ]
         if not found and max_k >= 3:
             for in_bits in combinations(range(8), 3):
                 obs_k3: dict[int, int] = {}
@@ -353,7 +369,7 @@ def _lut_search(pairs: list[tuple[int, int]], max_k: int = 3) -> dict | None:
                     obs_k3[idx] = expected
                 if not consistent:
                     continue
-                for tt in range(256):
+                for tt in _named_tt_k3:
                     if all((tt >> idx) & 1 == val for idx, val in obs_k3.items()):
                         result[out_bit] = (in_bits, tt)
                         found = True
@@ -576,6 +592,32 @@ def solve_bit_manip(examples: list[tuple[str, str]], test_in: str) -> str:
                     try:
                         test_val = int(test_in, 2)
                         return f"{o3(o2(o1(test_val))):08b}"
+                    except Exception:
+                        pass
+
+    # --- Phase 5.5: Two-unary binary ops: binary_fn(unary1(x), unary2(x)) ---
+    _bin_fns_55 = [
+        (lambda a, b: a ^ b),
+        (lambda a, b: a & b),
+        (lambda a, b: a | b),
+        (lambda a, b: (a + b) & 0xFF),
+        (lambda a, b: (a - b) & 0xFF),
+        (lambda a, b: (b - a) & 0xFF),
+    ]
+    for _n1, o1 in unary_ops:
+        for _n2, o2 in unary_ops:
+            if o1 is o2:
+                continue
+            for bf in _bin_fns_55:
+                ok = True
+                for a, b in pairs:
+                    if bf(o1(a), o2(a)) != b:
+                        ok = False
+                        break
+                if ok:
+                    try:
+                        test_val = int(test_in, 2)
+                        return f"{bf(o1(test_val), o2(test_val)):08b}"
                     except Exception:
                         pass
 
