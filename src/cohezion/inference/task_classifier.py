@@ -618,7 +618,7 @@ _GPU_PATTERNS = [
     # Requires a technical object (module/table/schema/weights/endpoint/etc.) to avoid FP
     (
         re.compile(
-            r"\b(?:benchmark|validate|parse|compress|decompress|rename|delete|remove|truncate|drop|enable|disable|toggle|backfill|reindex|sync(?:hronize)?|replay|snapshot|checkpoint|encrypt|decrypt|sign|verify|hash|marshal|unmarshal|minify|transpile|lint|typecheck|fuzz|port|convert|wrap|split|merge|hoist|annotate|inject|extract\b|patch|upgrade|downgrade|publish|subscribe|bootstrap|seed|hydrate|dehydrate|memoize|debounce|throttle|diagnose|investigate|trace\b|sort|filter|map\b|reduce|flatten|deduplicate|normalize|denormalize|sanitize|obfuscate|mask)\s+(?:the\s+|a\s+|an\s+|all\s+|this\s+)?(?:[\w.-]+\s+){0,3}(?:imports?|dependencies?|modules?|functions?|class(?:es)?|methods?|services?|api\b|endpoints?|schemas?|tables?|databases?|collections?|buckets?|indexes?|indices?|data|files?\b|records?|rows?|models?|weights?|configs?|pipelines?|caches?|queues?|tokens?|certs?|keys?\b|signatures?|graphs?|trees?|logs?\b|traces?|tests?|suites?|validators?|entries?|columns?|fields?|constraints?|migrations?|nodes?\b|edges?\b|queries|yaml|json\b|csvs?|vcfs?\b|similarity\b|metrics?\b|algorithms?\b|performances?\b|overhead\b|latency\b|throughput\b|accuracy\b|precision\b|recall\b|fallback\b|features?\b|flags?\b|threshold\b|limits?\b|rates?\b|budgets?\b|tiers?\b|policies?|rules?\b|annotations?|types?\b|interfaces?\b|clients?\b|renderers?|executors?\b|pools?\b|singletons?\b|instances?|components?|hooks?\b|middlewares?|frameworks?|routers?\b|stores?\b|contexts?\b|streams?|buffers?|channels?|sockets?|proxies?|adapters?\b|patterns?\b|strategies?|handlers?\b|listeners?\b|containers?|microservices?|lists?\b|arrays?|strings?\b|images?\b|videos?\b|passwords?\b|emails?\b|inputs?\b|outputs?\b|requests?\b|responses?\b|payloads?\b|messages?\b|events?\b|objects?\b|values?\b|numbers?\b|integers?\b|floats?\b)\b",
+            r"\b(?:benchmark|validate|parse|compress|decompress|rename|delete|remove|truncate|drop|enable|disable|toggle|backfill|reindex|sync(?:hronize)?|replay|snapshot|checkpoint|encrypt|decrypt|sign|verify|hash|marshal|unmarshal|minify|transpile|lint|typecheck|fuzz|port|convert|wrap|split|merge|hoist|annotate|inject|extract\b|patch|upgrade|downgrade|publish|subscribe|bootstrap|seed|hydrate|dehydrate|memoize|debounce|throttle|diagnose|investigate|trace\b|sort|filter|map\b|reduce|flatten|deduplicate|normalize|denormalize|sanitize|obfuscate|mask|test\b|trigger\b)\s+(?:the\s+|a\s+|an\s+|all\s+|this\s+)?(?:[\w.-]+\s+){0,3}(?:imports?|dependencies?|modules?|functions?|class(?:es)?|methods?|services?|api\b|endpoints?|schemas?|tables?|databases?|collections?|buckets?|indexes?|indices?|data|files?\b|records?|rows?|models?|weights?|configs?|pipelines?|caches?|queues?|tokens?|certs?|keys?\b|signatures?|graphs?|trees?|logs?\b|traces?|tests?|suites?|validators?|entries?|columns?|fields?|constraints?|migrations?|nodes?\b|edges?\b|queries|yaml|json\b|csvs?|vcfs?\b|similarity\b|metrics?\b|algorithms?\b|performances?\b|overhead\b|latency\b|throughput\b|accuracy\b|precision\b|recall\b|fallback\b|features?\b|flags?\b|threshold\b|limits?\b|rates?\b|budgets?\b|tiers?\b|policies?|rules?\b|annotations?|types?\b|interfaces?\b|clients?\b|renderers?|executors?\b|pools?\b|singletons?\b|instances?|components?|hooks?\b|middlewares?|frameworks?|routers?\b|stores?\b|contexts?\b|streams?|buffers?|channels?|sockets?|proxies?|adapters?\b|patterns?\b|strategies?|handlers?\b|listeners?\b|containers?|microservices?|lists?\b|arrays?|strings?\b|images?\b|videos?\b|passwords?\b|emails?\b|inputs?\b|outputs?\b|requests?\b|responses?\b|payloads?\b|messages?\b|events?\b|objects?\b|values?\b|numbers?\b|integers?\b|floats?\b)\b",
             re.I,
         ),
         0.85,
@@ -877,10 +877,11 @@ _GPU_PATTERNS = [
 ]
 
 
-# Short "What is/are X?" definitional pre-override — fires before domain GPU patterns
-# Catches "What is a multi-agent system?" before the AI-agent domain pattern can fire
+# Short "What is/are/should/does/do/did X?" definitional pre-override
+# Catches domain-noun questions before domain GPU patterns can fire
+# "What should the rollback procedure do?" → NPU (behavioral question, not code imperative)
 _SHORT_WHAT_IS_PATTERN = re.compile(
-    r"^what\s+(?:is|are)\b",
+    r"^what\s+(?:is|are|should|does|do|did)\b",
     re.I,
 )
 
