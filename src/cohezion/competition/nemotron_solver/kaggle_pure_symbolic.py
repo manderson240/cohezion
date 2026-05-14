@@ -603,6 +603,9 @@ def solve_bit_manip(examples: list[tuple[str, str]], test_in: str) -> str:
         (lambda a, b: (a + b) & 0xFF),
         (lambda a, b: (a - b) & 0xFF),
         (lambda a, b: (b - a) & 0xFF),
+        (lambda a, b: (~(a & b)) & 0xFF),
+        (lambda a, b: (~(a | b)) & 0xFF),
+        (lambda a, b: (~(a ^ b)) & 0xFF),
     ]
     for _n1, o1 in unary_ops:
         for _n2, o2 in unary_ops:

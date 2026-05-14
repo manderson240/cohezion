@@ -738,7 +738,7 @@ def solve_bit_manip(examples: list[tuple[str, str]], test_in: str) -> str:
 
     # --- Phase 5.5: Two-unary binary ops: binary_fn(unary1(x), unary2(x)) ---
     # Covers patterns like (x >> 4) ^ (x & 0x0F), (x << 3) XOR rotr1(x), etc.
-    # 32 × 32 × 6 = 6,144 combos, ~1ms worst-case.
+    # 32 × 32 × 9 = 9,216 combos with NAND/NOR/XNOR extensions.
     _bin_fns = [
         (lambda a, b: a ^ b),
         (lambda a, b: a & b),
@@ -746,6 +746,9 @@ def solve_bit_manip(examples: list[tuple[str, str]], test_in: str) -> str:
         (lambda a, b: (a + b) & 0xFF),
         (lambda a, b: (a - b) & 0xFF),
         (lambda a, b: (b - a) & 0xFF),
+        (lambda a, b: (~(a & b)) & 0xFF),  # NAND
+        (lambda a, b: (~(a | b)) & 0xFF),  # NOR
+        (lambda a, b: (~(a ^ b)) & 0xFF),  # XNOR
     ]
     for _n1, o1 in unary_ops:
         for _n2, o2 in unary_ops:
