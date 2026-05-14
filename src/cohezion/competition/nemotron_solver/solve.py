@@ -688,6 +688,10 @@ def solve_bit_manip(examples: list[tuple[str, str]], test_in: str) -> str:
         ("rot_right_7", lambda x: (x >> 7) | ((x & 0x7F) << 1)),
         ("not_rot_left_1", lambda x: (~((x << 1) & 0xFF | (x >> 7))) & 0xFF),
         ("not_rot_right_1", lambda x: (~((x >> 1) | ((x & 1) << 7))) & 0xFF),
+        # Bit-count and parity ops (defined above but previously missing from list)
+        ("popcount", _popcount_byte),
+        ("parity_byte", lambda x: 0xFF if (_popcount_byte(x) & 1) else 0x00),
+        ("popcount_spread", lambda x: ((1 << _popcount_byte(x)) - 1) & 0xFF),
     ]
 
     for _name, op in unary_ops:
@@ -1582,10 +1586,10 @@ def solve(prompt: str) -> str:
     elif ptype == "numeral":
         return solve_numeral(examples, test_input)
     elif ptype == "bit_manip":
-        # Try symbolic first, fallback to model
+        # Symbolic solver — model fallback not reliable
         result = solve_bit_manip(examples, test_input)
-        if result == test_input or len(result) != 8:
-            result = solve_with_model(examples, test_input, ptype)
+        if not result or len(result) != 8:
+            result = test_input  # return test_input rather than garbage from model
         return result
     elif ptype == "equations":
         # Symbolic only — model fallback is slow (7s/call) and inaccurate (0%)
