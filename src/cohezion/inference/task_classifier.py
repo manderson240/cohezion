@@ -86,7 +86,6 @@ _SHORT_ANSWER_PATTERNS = [
     (re.compile(r"\bname (the|a|one)\b", re.I), 0.75, "name-the entity"),
     # Definitional 1-2 word questions — "What is X?", "What is X Y?" → high-conf NPU
     # Caps at 2 words (compound terms like "buffer overflow", "quantum entanglement")
-    # 3+ word what-is questions may require complex explanation → keep at 0.70
     (
         re.compile(r"\bwhat (is|are)\s+(?:a\s+|an\s+|the\s+)?(?:[\w-]+\s+)?[\w-]+\s*\?$", re.I),
         0.78,
@@ -96,6 +95,13 @@ _SHORT_ANSWER_PATTERNS = [
         re.compile(r"\bwhat does [\w-]+\s+(?:stand for|mean|represent)\b", re.I),
         0.78,
         "acronym or term expansion question",
+    ),
+    # 3-4 word definitional questions — "What is X Y Z?" — slightly lower conf than 1-2 term
+    # but still clearly definitional, not complex explanation requests
+    (
+        re.compile(r"\bwhat (is|are)\s+(?:a\s+|an\s+|the\s+)?(?:[\w-]+\s+){2,4}[\w-]+\s*\?$", re.I),
+        0.74,
+        "3-4-term definitional question",
     ),
     # Compound loop explanation patterns — high frequency, NPU-suitable
     (
@@ -186,6 +192,17 @@ _GPU_PATTERNS = [
         ),
         0.80,
         "implement complex logic/system",
+    ),
+    # Language-specific code generation: "Implement/write/build/create X in Java/Python/..."
+    # EARLY placement: must fire BEFORE "implement multi-word component" (0.78 catch-all)
+    # so "Implement a BST in Java" gets 0.90 instead of 0.78
+    (
+        re.compile(
+            r"\b(?:implement|create|build|write)\b.{0,55}\bin\s+(?:python|java|c\+\+|cpp|javascript|typescript|go|rust|kotlin|swift|scala|ruby|c\b|c#|php|perl|bash|sh\b)(?:\W|$)",
+            re.I,
+        ),
+        0.90,
+        "implement in language early",
     ),
     # Implement [multi-word component] (broader than above — catches "impl the semantic cache with...")
     # Excludes "why did we implement" (retrospective decision — NPU)
