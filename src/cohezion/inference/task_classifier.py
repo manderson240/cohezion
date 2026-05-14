@@ -337,7 +337,7 @@ _GPU_PATTERNS = [
     # These verbs are always diagnostic/analytical GPU tasks regardless of following noun
     (
         re.compile(r"\b(?:diagnose|investigate)\s+.{10,}", re.I | re.S),
-        0.82,
+        0.85,
         "diagnose or investigate task",
     ),
     # Document generation extended — analysis, guide, benchmark, comparison, overview
@@ -411,7 +411,7 @@ _GPU_PATTERNS = [
             r"\b(refactor|rewrite|rework)\s+[\w.-]+\b.{5,}",
             re.I,
         ),
-        0.83,
+        0.85,
         "direct refactoring verb",
     ),
     # Code/document review — "review" when paired with code artifacts or legal/compliance documents
@@ -621,7 +621,7 @@ _GPU_PATTERNS = [
             r"\b(?:benchmark|validate|parse|compress|decompress|rename|delete|remove|truncate|drop|enable|disable|toggle|backfill|reindex|sync(?:hronize)?|replay|snapshot|checkpoint|encrypt|decrypt|sign|verify|hash|marshal|unmarshal|minify|transpile|lint|typecheck|fuzz|port|convert|wrap|split|merge|hoist|annotate|inject|extract\b|patch|upgrade|downgrade|publish|subscribe|bootstrap|seed|hydrate|dehydrate|memoize|debounce|throttle|diagnose|investigate|trace\b)\s+(?:the\s+|a\s+|an\s+|all\s+|this\s+)?(?:[\w.-]+\s+){0,3}(?:imports?|dependencies?|modules?|functions?|class(?:es)?|methods?|services?|api\b|endpoints?|schemas?|tables?|databases?|collections?|buckets?|indexes?|indices?|data|files?\b|records?|rows?|models?|weights?|configs?|pipelines?|caches?|queues?|tokens?|certs?|keys?\b|signatures?|graphs?|trees?|logs?\b|traces?|tests?|suites?|validators?|entries?|columns?|fields?|constraints?|migrations?|nodes?\b|edges?\b|queries|yaml|json\b|csvs?|vcfs?\b|similarity\b|metrics?\b|algorithms?\b|performances?\b|overhead\b|latency\b|throughput\b|accuracy\b|precision\b|recall\b|fallback\b|features?\b|flags?\b|threshold\b|limits?\b|rates?\b|budgets?\b|tiers?\b|policies?|rules?\b|annotations?|types?\b|interfaces?\b|clients?\b|renderers?|executors?\b|pools?\b|singletons?\b|instances?|components?|hooks?\b|middlewares?|frameworks?|routers?\b|stores?\b|contexts?\b|streams?|buffers?|channels?|sockets?|proxies?|adapters?\b|patterns?\b|strategies?|handlers?\b|listeners?\b|containers?|microservices?)\b",
             re.I,
         ),
-        0.83,
+        0.85,
         "extended engineering verb",
     ),
     # "Update the [tests/function/class/code/module] to [action]" — code update task
@@ -639,7 +639,7 @@ _GPU_PATTERNS = [
             r"\bfind\s+(?:the\s+)?(?:source|root\s+cause|origin|bug|issue|cause|reason|culprit|bottleneck|regression|anomaly|leak|deadlock)\s+(?:of|in|for|behind)\b",
             re.I,
         ),
-        0.83,
+        0.85,
         "find root-cause task",
     ),
     # "Check if [X] handles/supports/works/is" — code validation question ≥20 chars
@@ -648,7 +648,7 @@ _GPU_PATTERNS = [
             r"\bcheck\s+(?:if|whether)\s+(?:the\s+|a\s+|an\s+|this\s+)?(?:[\w.-]+\s+){1,4}(?:handles?|supports?|works?|is\s+(?:correct|valid|safe|thread.safe|idempotent)|throws?|returns?|connects?|reconnects?|retries?|fails?|passes?|guards?|covers?)\b",
             re.I,
         ),
-        0.82,
+        0.85,
         "check-if code validation",
     ),
     # "Create a K8s/Terraform deployment manifest/spec" — infra manifest
