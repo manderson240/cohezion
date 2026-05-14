@@ -535,10 +535,11 @@ _GPU_PATTERNS = [
         0.82,
         "add observability/docs",
     ),
-    # "Fix the [bug/issue] in X" OR "Fix it/them/this" — code fix commands
+    # "Fix the [adj] [bug/issue] in/where X" OR "Fix it/them/this" — code fix commands
+    # .{0,40} prefix allows adjectives ("routing regression", "critical bug")
     (
         re.compile(
-            r"\bfix\s+(?:(?:the\s+)?(?:bug|issue|error|problem|crash|failure|regression)\b.{0,30}\b(?:in|with|at|for)\b|(?:it|them|this|that)\b)",
+            r"\bfix\s+(?:.{0,40}\b(?:bug|issue|error|problem|crash|failure|regression)\b.{0,60}\b(?:in|with|at|for|where)\b|(?:it|them|this|that)\b)",
             re.I,
         ),
         0.85,
