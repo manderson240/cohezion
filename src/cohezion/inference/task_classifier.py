@@ -197,7 +197,7 @@ _GPU_PATTERNS = [
             r"\bimplement (the |a |an )\w+.{5,}\b(logic|pipeline|system|workflow|mechanism)\b",
             re.I,
         ),
-        0.80,
+        0.83,
         "implement complex logic/system",
     ),
     # Language-specific code generation: "Implement/write/build/create X in Java/Python/..."
@@ -355,13 +355,13 @@ _GPU_PATTERNS = [
             r"\bcan you (resume|manage|orchestrate|handle|coordinate|configure|implement|create|build)\b",
             re.I,
         ),
-        0.80,
+        0.83,
         "can-you-action-request",
     ),
     # "How to run / execute / set up [task]" — procedural execution
     (
         re.compile(r"\bhow to (run|execute|start|launch|trigger|perform|conduct)\b", re.I),
-        0.80,
+        0.83,
         "how-to-run-execute",
     ),
     # "Implement the [adjective(s)]* policy/strategy/approach/pipeline"
@@ -608,10 +608,10 @@ _GPU_PATTERNS = [
     # "Make [the/a] X more/less [readable/efficient/testable/...] — code quality improvement
     (
         re.compile(
-            r"\bmake\s+(?:the\s+|a\s+|this\s+)?(?:[\w-]+\s+)?(?:more\s+|less\s+)?(?:readable|efficient|testable|maintainable|performant|scalable|clean|modular|robust|reusable|thread.safe|async(?:hronous)?|synchronous|idempotent|stateless|observable|resilient|fault.tolerant|clear(?:er)?|simple(?:r)?|fast(?:er)?|small(?:er)?|concise(?:r)?)\b",
+            r"\bmake\s+(?:the\s+|a\s+|this\s+)?(?:[\w-]+\s+){0,2}(?:more\s+|less\s+)?(?:readable|efficient|testable|maintainable|performant|scalable|clean|modular|robust|reusable|thread.safe|async(?:hronous)?|synchronous|idempotent|stateless|observable|resilient|fault.tolerant|clear(?:er)?|simple(?:r)?|fast(?:er)?|small(?:er)?|concise(?:r)?)\b",
             re.I,
         ),
-        0.82,
+        0.85,
         "make-code-quality",
     ),
     # Extended engineering verbs — broader set of coding action verbs not in write/implement/build
@@ -740,7 +740,7 @@ _GPU_PATTERNS = [
     # Comparative analysis — "Compare the X vs Y", "Analyze the X metrics", "Evaluate the trade-offs"
     (
         re.compile(r"\b(compare|analyze|evaluate|assess)\s+the\b", re.I),
-        0.82,
+        0.85,
         "comparative or analytical task",
     ),
     # "Compare X vs Y" / "Compare X versus Y" — direct comparison without "the"
@@ -754,7 +754,7 @@ _GPU_PATTERNS = [
         re.compile(
             r"\b(walk\s+(?:me\s+)?through|describe\s+the\s+(full|complete|entire|detailed))\b", re.I
         ),
-        0.82,
+        0.85,
         "walk-through or full description",
     ),
     # "Plan how to [migrate/build/redesign]" — architectural planning
@@ -784,7 +784,7 @@ _GPU_PATTERNS = [
             r"\b(?:recommended|best)\s+(?:approaches|strategies|patterns|ways|practices)\s+(?:for|to)\b",
             re.I,
         ),
-        0.82,
+        0.85,
         "recommended approaches analysis",
     ),
     # Financial analysis — domain-specific complex nouns requiring multi-step GPU work
