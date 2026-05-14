@@ -84,6 +84,19 @@ _SHORT_ANSWER_PATTERNS = [
         "direct what-is question",
     ),
     (re.compile(r"\bname (the|a|one)\b", re.I), 0.75, "name-the entity"),
+    # Definitional 1-2 word questions — "What is X?", "What is X Y?" → high-conf NPU
+    # Caps at 2 words (compound terms like "buffer overflow", "quantum entanglement")
+    # 3+ word what-is questions may require complex explanation → keep at 0.70
+    (
+        re.compile(r"\bwhat (is|are)\s+(?:a\s+|an\s+|the\s+)?(?:[\w-]+\s+)?[\w-]+\s*\?$", re.I),
+        0.78,
+        "1-2-term definitional question",
+    ),
+    (
+        re.compile(r"\bwhat does [\w-]+\s+(?:stand for|mean|represent)\b", re.I),
+        0.78,
+        "acronym or term expansion question",
+    ),
     # Compound loop explanation patterns — high frequency, NPU-suitable
     (
         re.compile(r"\bwhat (is|are|does|do)\b.{0,60}\?$", re.I | re.S),
