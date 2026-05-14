@@ -394,6 +394,7 @@ _GPU_PATTERNS = [
         "code generation multi-adjective",
     ),
     # Engineering task verbs — refactor, debug, profile, optimize, audit, trace
+    # Two patterns: (1) with article requirement for broad verbs, (2) without article for specific coding verbs
     # "review" excluded — too ambiguous ("review before meeting" FP). Use code-review pattern below.
     (
         re.compile(
@@ -402,6 +403,16 @@ _GPU_PATTERNS = [
         ),
         0.82,
         "engineering task verb",
+    ),
+    # Direct refactoring verbs without article — "Refactor X to Y", "Rewrite X to use Y"
+    # These always produce code output when followed by a technical term
+    (
+        re.compile(
+            r"\b(refactor|rewrite|rework)\s+[\w.-]+\b.{5,}",
+            re.I,
+        ),
+        0.83,
+        "direct refactoring verb",
     ),
     # Code/document review — "review" when paired with code artifacts or legal/compliance documents
     (
@@ -560,7 +571,7 @@ _GPU_PATTERNS = [
     # "Add X to the [adjective] [function/class/module/code/system]" — code modification
     (
         re.compile(
-            r"\badd\s+(?:[\w-]+\s+){0,4}(?:to\s+(?:the\s+|a\s+|this\s+)?(?:[\w.-]+\s+){0,2})(functions?|class(?:es)?|methods?|modules?|code|system|service|api|handlers?|tests?|endpoint|files?\b|scripts?|configs?|schemas?)\b",
+            r"\badd\s+(?:[\w-]+\s+){0,4}(?:to\s+(?:the\s+|a\s+|this\s+)?(?:[\w.-]+\s+){0,2})(functions?|class(?:es)?|methods?|modules?|code|system|services?|api|handlers?|tests?|endpoint|files?\b|scripts?|configs?|schemas?|clients?\b|routers?\b|proxies?|adapters?\b|wrappers?|stores?\b|caches?|queues?)\b",
             re.I,
         ),
         0.82,
@@ -607,7 +618,7 @@ _GPU_PATTERNS = [
     # Requires a technical object (module/table/schema/weights/endpoint/etc.) to avoid FP
     (
         re.compile(
-            r"\b(?:benchmark|validate|parse|compress|decompress|rename|delete|remove|truncate|drop|enable|disable|toggle|backfill|reindex|sync(?:hronize)?|replay|snapshot|checkpoint|encrypt|decrypt|sign|verify|hash|marshal|unmarshal|minify|transpile|lint|typecheck|fuzz|port|convert|wrap|split|merge|hoist|annotate|inject|extract\b|patch|upgrade|downgrade|publish|subscribe|bootstrap|seed|hydrate|dehydrate|memoize|debounce|throttle|diagnose|investigate|trace\b)\s+(?:the\s+|a\s+|an\s+|all\s+|this\s+)?(?:[\w.-]+\s+){0,3}(?:modules?|functions?|class(?:es)?|methods?|services?|api\b|endpoints?|schemas?|tables?|databases?|collections?|buckets?|indexes?|indices?|data|files?\b|records?|rows?|models?|weights?|configs?|pipelines?|caches?|queues?|tokens?|certs?|keys?\b|signatures?|graphs?|trees?|logs?\b|traces?|tests?|suites?|validators?|entries?|columns?|fields?|constraints?|migrations?|nodes?\b|edges?\b|queries|yaml|json\b|csvs?|vcfs?\b|similarity\b|metrics?\b|algorithms?\b|performances?\b|overhead\b|latency\b|throughput\b|accuracy\b|precision\b|recall\b|fallback\b|features?\b|flags?\b|threshold\b|limits?\b|rates?\b|budgets?\b|tiers?\b|policies?|rules?\b|annotations?|types?\b|interfaces?\b|clients?\b|renderers?|executors?\b|pools?\b|singletons?\b|instances?|components?|hooks?\b|middlewares?|frameworks?|routers?\b|stores?\b|contexts?\b|streams?|buffers?|channels?|sockets?|proxies?|adapters?\b|patterns?\b|strategies?|handlers?\b|listeners?\b|containers?|microservices?)\b",
+            r"\b(?:benchmark|validate|parse|compress|decompress|rename|delete|remove|truncate|drop|enable|disable|toggle|backfill|reindex|sync(?:hronize)?|replay|snapshot|checkpoint|encrypt|decrypt|sign|verify|hash|marshal|unmarshal|minify|transpile|lint|typecheck|fuzz|port|convert|wrap|split|merge|hoist|annotate|inject|extract\b|patch|upgrade|downgrade|publish|subscribe|bootstrap|seed|hydrate|dehydrate|memoize|debounce|throttle|diagnose|investigate|trace\b)\s+(?:the\s+|a\s+|an\s+|all\s+|this\s+)?(?:[\w.-]+\s+){0,3}(?:imports?|dependencies?|modules?|functions?|class(?:es)?|methods?|services?|api\b|endpoints?|schemas?|tables?|databases?|collections?|buckets?|indexes?|indices?|data|files?\b|records?|rows?|models?|weights?|configs?|pipelines?|caches?|queues?|tokens?|certs?|keys?\b|signatures?|graphs?|trees?|logs?\b|traces?|tests?|suites?|validators?|entries?|columns?|fields?|constraints?|migrations?|nodes?\b|edges?\b|queries|yaml|json\b|csvs?|vcfs?\b|similarity\b|metrics?\b|algorithms?\b|performances?\b|overhead\b|latency\b|throughput\b|accuracy\b|precision\b|recall\b|fallback\b|features?\b|flags?\b|threshold\b|limits?\b|rates?\b|budgets?\b|tiers?\b|policies?|rules?\b|annotations?|types?\b|interfaces?\b|clients?\b|renderers?|executors?\b|pools?\b|singletons?\b|instances?|components?|hooks?\b|middlewares?|frameworks?|routers?\b|stores?\b|contexts?\b|streams?|buffers?|channels?|sockets?|proxies?|adapters?\b|patterns?\b|strategies?|handlers?\b|listeners?\b|containers?|microservices?)\b",
             re.I,
         ),
         0.83,
