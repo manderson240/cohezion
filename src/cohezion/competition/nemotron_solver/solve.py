@@ -1092,6 +1092,15 @@ def _solve_number_equations(examples: list[tuple[str, str]], test_in: str) -> st
         lambda a, b: (a + b) * (a - b),
         lambda a, b: a * a + b * b,
         lambda a, b: a * a - b * b,
+        # Arithmetic with offset (common in competition equations)
+        lambda a, b: a + b + 1,
+        lambda a, b: a + b - 1,
+        lambda a, b: a * b + 1,
+        lambda a, b: a * b - 1,
+        lambda a, b: a - b + 1,
+        lambda a, b: a - b - 1,
+        lambda a, b: b - a + 1,
+        lambda a, b: b - a - 1,
     ]
 
     def _try_binary(op_fn: object, examples: list, test_in: str) -> str | None:
