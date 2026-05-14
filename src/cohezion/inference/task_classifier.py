@@ -102,7 +102,7 @@ _GPU_PATTERNS = [
     # Extended: formula, macro, procedure, query, snippet, lambda, decorator, mixin, interface
     (
         re.compile(
-            r"\b(write|implement|create|generate|build)\s+(a |an |the )?(?:[\w-]+ ){0,3}(?:function|class|script|module|code|program|formula|macro|procedure|query|snippet|lambda|decorator|mixin|interface|getters?|setters?|validators?|serializers?|deserializers?|accessors?|migrations?|fixtures?|resolvers?|middlewares?|driver|routine|handler|client|library|daemon|firmware|plugin|extension|adapter|wrapper|proxy|stub|mock|task\b|job\b|service\b|worker|processor|listener|observer|consumer|producer|publisher|subscriber|widget|screen|fragment|composable|activity\b|viewmodel|repository\b|dao\b|coroutine|category\b|entity\b|component|[\w]*viewcontroller|[\w]*recyclerview|[\w]*tableview|[\w]*collectionview|shader|loop\b|controller\b|renderer|pass\b|pipeline|algorithm|simulation|generator|visualiz(?:er|ation)|importer|exporter|converter|transformer|dispatcher|scheduler|executor|runner|scanner|parser\b|loader|hook\b|contract\b|token\b|wallet|oracle|integration\b|connector|bridge\b|gateway\b|registry\b|factory\b|builder\b|chain\b)\b",
+            r"\b(write|implement|create|generate|build)\s+(a |an |the )?(?:[\w-]+ ){0,3}(?:function|class|script|module|code|program|formula|macro|procedure|query|snippet|lambda|decorator|mixin|interface|getters?|setters?|validators?|serializers?|deserializers?|accessors?|migrations?|fixtures?|resolvers?|middlewares?|driver|routine|handler|client|library|daemon|firmware|plugin|extension|adapter|wrapper|proxy|stub|mock|task\b|job\b|service\b|worker|processor|listener|observer|consumer|producer|publisher|subscriber|widget|screen|fragment|composable|activity\b|viewmodel|repository\b|dao\b|coroutine|category\b|entity\b|component|[\w]*viewcontroller|[\w]*recyclerview|[\w]*tableview|[\w]*collectionview|shader|loop\b|controller\b|renderer|pass\b|pipeline|algorithm|simulation|generator|visualiz(?:er|ation)|importer|exporter|converter|transformer|dispatcher|scheduler|executor|runner|scanner|parser\b|loader|hook\b|contract\b|token\b|wallet|oracle|integration\b|connector|bridge\b|gateway\b|registry\b|factory\b|builder\b|chain\b|circuit\b|calculator\b|analyzer|analyser|simulator\b|model\b|harness\b|profiler|embedder|clusterer|classifier\b|detector\b|extractor|tokenizer|vectorizer|optimizer\b|sampler|trainer|evaluator|scorer)\b",
             re.I,
         ),
         1.0,
@@ -161,7 +161,7 @@ _GPU_PATTERNS = [
     ),
     # Explain [content] in detail / step-by-step — preamble content may separate them
     (
-        re.compile(r"\bexplain\b.{5,50}\b(in detail|thoroughly|step.by.step)\b", re.I | re.S),
+        re.compile(r"\bexplain\b.{5,80}\b(in detail|thoroughly|step.by.step)\b", re.I | re.S),
         0.88,
         "detailed explanation with preamble",
     ),
@@ -191,10 +191,10 @@ _GPU_PATTERNS = [
         0.82,
         "implement the feature/fix",
     ),
-    # "implement sorting/caching/searching/batching/anonymization/etc" — algorithm/operation as direct object
+    # "implement sorting/caching/searching/alignment/etc" — algorithm/operation as direct object
     (
         re.compile(
-            r"\bimplement\s+(?:the\s+|a\s+|an\s+)?(?:[\w-]+\s+){0,3}(?:sort(?:ing)?|search(?:ing)?|cach(?:e|ing)|hash(?:ing)?|batch(?:ing)?|rout(?:e|ing)|queu(?:e|ing)|stack(?:ing)?|heap|tree|graph|shard(?:ing)?|auto.shard(?:ing)?|auto.scal(?:e|ing)?|index(?:ing)?|filter(?:ing)?|compres(?:s|sion)|encod(?:e|ing)|anon(?:ymiz(?:e|ation)|ymisation)?|encrypt(?:ion)?|decrypt(?:ion)?|authenticat(?:e|ion)|authoriz(?:e|ation)|paginat(?:e|ion)|throttl(?:e|ing)|algorithm|protocol|webhook|recogni(?:tion|ze)|summariz(?:ation|ing|e)|classif(?:ication|y)|translat(?:ion|e)|detect(?:ion)?|extract(?:ion)?|pars(?:ing|e)|tagg(?:ing)?|segment(?:ation)?|cluster(?:ing)?|embed(?:ding)?|ota\s+(?:update|firmware)|firmware\s+update|isr|interrupt|persistence|notification\s+handling|push\s+notification|sync(?:hronization)?)\b",
+            r"\bimplement\s+(?:the\s+|a\s+|an\s+)?(?:[\w-]+\s+){0,3}(?:sort(?:ing)?|search(?:ing)?|cach(?:e|ing)|hash(?:ing)?|batch(?:ing)?|rout(?:e|ing)|queu(?:e|ing)|stack(?:ing)?|heap|tree|graph|shard(?:ing)?|auto.shard(?:ing)?|auto.scal(?:e|ing)?|index(?:ing)?|filter(?:ing)?|compres(?:s|sion)|encod(?:e|ing)|anon(?:ymiz(?:e|ation)|ymisation)?|encrypt(?:ion)?|decrypt(?:ion)?|authenticat(?:e|ion)|authoriz(?:e|ation)|paginat(?:e|ion)|throttl(?:e|ing)|algorithm|protocol|webhook|recogni(?:tion|ze)|summariz(?:ation|ing|e)|classif(?:ication|y)|translat(?:ion|e)|detect(?:ion)?|extract(?:ion)?|pars(?:ing|e)|tagg(?:ing)?|segment(?:ation)?|cluster(?:ing)?|embed(?:ding)?|ota\s+(?:update|firmware)|firmware\s+update|isr|interrupt|persistence|notification\s+handling|push\s+notification|sync(?:hronization)?|align(?:ment)?|assembly|sequenc(?:e|ing)|annot(?:ation|ate)|genotyp(?:e|ing)|variant\s+call(?:ing)?|teleportation|error\s+correction|handshake|consensus|replication)\b",
             re.I,
         ),
         0.85,
@@ -458,14 +458,23 @@ _GPU_PATTERNS = [
         0.88,
         "sql query generation",
     ),
-    # "Implement X in [language]" — language-specific algorithm/feature
+    # "Implement X in [language/framework]" — language or framework-specific algorithm/feature
     (
         re.compile(
-            r"\bimplement\b.{0,40}\bin\s+(python|java|c\+\+|cpp|javascript|typescript|go|rust|kotlin|swift|scala|ruby)(?:\W|$)",
+            r"\bimplement\b.{0,40}\bin\s+(python|java|c\+\+|cpp|javascript|typescript|go|rust|kotlin|swift|scala|ruby|qiskit|pennylane|cirq|braket|pyquil|pytorch|tensorflow|jax)(?:\W|$)",
             re.I,
         ),
         0.88,
         "implement in language",
+    ),
+    # "X using [quantum framework/ML framework]" — framework-keyed code generation
+    (
+        re.compile(
+            r"\busing\s+(qiskit|pennylane|cirq|braket|pyquil|pytorch|tensorflow|jax|scikit.learn|sklearn|biopython|bioconductor|deseq2|edger|samtools|gatk|bowtie|hisat|star\b|blast\b)\b",
+            re.I,
+        ),
+        0.90,
+        "using quantum/ML/bio framework",
     ),
     # Create/build a [adjective(s)] endpoint/service/cache/pipeline/queue
     (
@@ -579,7 +588,7 @@ _GPU_PATTERNS = [
     # Derive/calculate without explicit "step" — complex mathematical operations
     (
         re.compile(
-            r"\b(derive|calculate|compute) (the |a |an )(\w+ )*(matrix|transform|projection|distribution|gradient|kernel|embedding|decomposition|eigendecomposition|eigenvalue|jacobian|hessian|integral|derivative|divergence|entropy|covariance|correlation)\b",
+            r"\b(derive|calculate|compute) (the |a |an )(\w+ )*(matrix|transform|projection|distribution|gradient|kernel|embedding|decomposition|eigendecomposition|eigenvalue|jacobian|hessian|integral|derivative|divergence|entropy|covariance|correlation|stabilizer|hamiltonian|eigenstate|wavefunction|density\s+matrix|fidelity|expectation|variance|risk\s+metric|volatility|drawdown|portfolio\s+return|content|usage\s+bias|alignment\s+score|similarity\s+score)\b",
             re.I,
         ),
         0.88,
@@ -620,7 +629,7 @@ _GPU_PATTERNS = [
     # "Calculate X for N [units/calls/queries]" — quantitative calculation
     (
         re.compile(
-            r"\bcalculate\s+(?:the\s+)?(?:\w+\s+){1,3}(?:for|with|given|across|over)\s+",
+            r"\bcalculate\s+(?:the\s+)?(?:[\w()]+\s+){1,8}(?:for|with|given|across|over)\s+",
             re.I,
         ),
         0.82,
@@ -685,6 +694,36 @@ _GPU_PATTERNS = [
         0.82,
         "recommended approaches analysis",
     ),
+    # Financial analysis — domain-specific complex nouns requiring multi-step GPU work
+    # "VaR / DCF / Black-Scholes / backtesting / Sharpe / Monte Carlo / options pricing"
+    (
+        re.compile(
+            r"\b(?:value\s+at\s+risk|var\s+(?:at|for|of)|discounted\s+cash\s+flow|dcf\s+(?:model|analysis|report)|black.scholes|monte\s+carlo\s+(?:sim|model|analysis)|portfolio\s+optim|sharpe\s+ratio|drawdown\s+anal|backtesting?\s+(?:framework|strategy|for)|momentum\s+(?:trading|strategy)|options?\s+pricing|implied\s+volatility|yield\s+curve|credit\s+default\s+swap|asset\s+allocation\s+model)\b",
+            re.I,
+        ),
+        0.88,
+        "financial analysis domain",
+    ),
+    # Bioinformatics — domain-specific pipelines and tools requiring GPU depth
+    # Smith-Waterman / RNA-seq / FASTQ / BLAST / phylogenetic / GATK / primer design
+    (
+        re.compile(
+            r"\b(?:smith.waterman|needleman.wunsch|rna.seq|fastq\s+(?:parser|process|filter|qual)|vcf\s+(?:parser|process|extract|annot)|blast.like|gene\s+regulatory|phylogenetic\s+anal|pcr\s+primer|primer\s+(?:pair|design)|sequence\s+alignment|genome\s+assembl|variant\s+(?:call|annot|filter)|differential\s+expression|de.novo\s+assembl|codon\s+usage|gc\s+content\s+(?:and|calc)|motif\s+(?:find|search|scan))\b",
+            re.I,
+        ),
+        0.88,
+        "bioinformatics domain",
+    ),
+    # Quantum computing — domain-specific algorithms/protocols requiring GPU depth
+    # Grover / Shor / VQE / quantum error correction / decoherence / entanglement
+    (
+        re.compile(
+            r"\b(?:grover.s\s+(?:algorithm|search)|shor.s\s+algorithm|quantum\s+(?:fourier\s+transform|error\s+correction|circuit|teleportation|key\s+distribution|anneal|walk|gate\s+synthesis|noise\s+model|decoherence|advantage)|bell\s+state|bloch\s+sphere|qubit\s+(?:circuit|gate|error|fidelity|measurement\s+outcome)|variational\s+quantum|steane\s+code|toffoli|hadamard\s+(?:gate|transform)|qasm|qiskit|pennylane\s+(?:impl|code))\b",
+            re.I,
+        ),
+        0.90,
+        "quantum computing domain",
+    ),
 ]
 
 
@@ -700,10 +739,13 @@ _NEGATION_PATTERN = re.compile(
 
 # Brevity-qualified summarize/critique/interpret: "Summarize X in one paragraph" → short answer (NPU)
 # Also: "Briefly summarize/critique/interpret X" → NPU
+# Also: "...? One sentence." terminal brevity qualifier overrides domain GPU signals
 # Without brevity qualifier: "Summarize the contributions of BERT" → GPU
 _BREVITY_SUMMARIZE_PATTERN = re.compile(
     r"(?:\bbriefly\s+(?:summarize|critique|interpret|formulate|explain)\b)|"
-    r"(?:\bsummariz(?:e|ing)\b.{0,80}\b(?:in\s+(?:one|two|three|a\s+single)\s+(?:sentence|paragraph|bullet|word|line)|in\s+brief)\b)",
+    r"(?:\bsummariz(?:e|ing)\b.{0,80}\b(?:in\s+(?:one|two|three|a\s+single)\s+(?:sentence|paragraph|bullet|word|line)|in\s+brief)\b)|"
+    r"(?:[\.\?!]\s+(?:one|a\s+single)\s+sentence\.?\s*$)|"
+    r"(?:\bin\s+(?:one|two|three|a\s+single)\s+sentence[,:])",
     re.I | re.S,
 )
 
@@ -769,12 +811,14 @@ def classify(prompt: str) -> RouteDecision:
         )
 
     # ── Check GPU patterns first (highest cost to mis-route) ────────────────
+    _CODE_REASON_KEYWORDS = frozenset(
+        {"code", "implement", "test", "sql", "iac", "infra", "domain", "framework", "language"}
+    )
     for pattern, confidence, reason in _GPU_PATTERNS:
         if pattern.search(prompt):
-            node, gate = (
-                _TYPE_CONFIG["code"] if "code" in reason else _TYPE_CONFIG["long_generation"]
-            )
-            otype = "code" if "code" in reason else "long_generation"
+            is_code = any(kw in reason for kw in _CODE_REASON_KEYWORDS)
+            node, gate = _TYPE_CONFIG["code"] if is_code else _TYPE_CONFIG["long_generation"]
+            otype = "code" if is_code else "long_generation"
             return RouteDecision(
                 node=node,
                 output_type=otype,
