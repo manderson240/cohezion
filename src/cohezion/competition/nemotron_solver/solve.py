@@ -946,6 +946,13 @@ def _solve_symbol_equations(examples: list[tuple[str, str]], test_in: str) -> st
         lambda s: s[-3:] if len(s) >= 3 else s,
         lambda s: s[1:] + s[0],
         lambda s: s[-1] + s[:-1],
+        # Additional structural patterns
+        lambda s: s[:2] + s[-2:] if len(s) >= 4 else s,
+        lambda s: s[::2] + s[1::2],
+        lambda s: s[1::2] + s[::2],
+        lambda s: s[0] + s[2:] if len(s) >= 3 else s,
+        lambda s: s[0:1] * len(s),
+        lambda s: s[-1:] * len(s),
     ]
     # Also try character substitution (position-dependent)
     for rule in rules:
