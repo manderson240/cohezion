@@ -174,8 +174,12 @@ def solve_gravity(examples: list[tuple[str, str]], test_t: str) -> str:
                 best_prec = prec
         raw = pred_fn(g_val, test_t_val)
         if best_prec == 0:
-            return str(int(round(raw)))
-        return _norm(f"{raw:.{best_prec}f}")
+            val_str = str(int(round(raw)))
+            return val_str + ".0" if "." not in val_str else val_str
+        result = _norm(f"{raw:.{best_prec}f}")
+        if "." not in result and best_prec >= 1:
+            result += ".0"
+        return result
 
     for _model_name, feat_fn, pred_fn in models:
         try:
