@@ -553,7 +553,7 @@ _GPU_PATTERNS = [
     # Requires configure to be at start of prompt or after sentence-ending punctuation
     (
         re.compile(
-            r"(?:^|[.!;]\s+)configure\s+(?:the\s+|a\s+|this\s+)?(?:redis|rabbitmq|kafka|nginx|postgresql|mysql|mongodb|elasticsearch|grafana|prometheus|vault|consul|ssl|tls|https?|ldap|smtp|dns|iptables|sshd?|vpn|openvpn|wireguard|fail2ban|ufw|nfs|samba|waf|rate\s+limit|load\s+balanc|circuit\s+breaker|cdn|adc|dac|uart|spi\b|i2c\b|gpio|pwm|timer|hal|freertos|rtos|mqtt|zigbee|bluetooth|wifi)\b",
+            r"(?:^|[.!;]\s+)configure\s+(?:the\s+|a\s+|this\s+)?(?:[\w.-]+\s+){0,2}(?:redis|rabbitmq|kafka|nginx|postgresql|mysql|mongodb|elasticsearch|grafana|prometheus|vault|consul|ssl|tls|https?|ldap|smtp|dns|iptables|sshd?|vpn|openvpn|wireguard|fail2ban|ufw|nfs|samba|waf|rate\s+limit|load\s+balanc|circuit\s+breaker|cdn|adc|dac|uart|spi\b|i2c\b|gpio|pwm|timer|hal|freertos|rtos|mqtt|zigbee|bluetooth|wifi|endpoint|port\b|connection|timeout|backoff|retry|threshold|queue|pool\b|proxy\b|router\b|api\b|webhook|token\b|secret\b|credential|auth)\b",
             re.I | re.M,
         ),
         0.85,
