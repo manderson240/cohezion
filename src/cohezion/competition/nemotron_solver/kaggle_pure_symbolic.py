@@ -16,6 +16,7 @@ from __future__ import annotations
 
 import csv
 import re
+from collections import Counter
 from itertools import combinations
 
 
@@ -1134,6 +1135,96 @@ def _eq_drev(n: int) -> int:
     return int(str(abs(n))[::-1])
 
 
+def _per_op_lookup(examples: list[tuple[str, str]], test_in: str) -> str | None:
+    """Per-operator lookup: each example teaches one operator's semantics."""
+    from math import gcd as _gcd_po
+
+    def _get_op(s: str) -> str | None:
+        ops = re.findall(r"[^0-9a-zA-Z\s]", s)
+        if not ops:
+            return None
+        return Counter(ops).most_common(1)[0][0]
+
+    def _num_strs(s: str) -> list[str]:
+        return re.findall(r"\d+", s)
+
+    def _single_pair(a_str: str, b_str: str, out_str: str, ta_str: str, tb_str: str) -> str | None:
+        if a_str + b_str == out_str:
+            return ta_str + tb_str
+        if b_str + a_str == out_str:
+            return tb_str + ta_str
+        try:
+            c = int(out_str)
+        except ValueError:
+            return None
+        a, b, ta, tb = int(a_str), int(b_str), int(ta_str), int(tb_str)
+        for fn in [
+            lambda a, b: a + b,
+            lambda a, b: abs(a - b),
+            lambda a, b: a * b,
+            lambda a, b: a - b,
+            lambda a, b: b - a,
+            lambda a, b: a // b if b else None,
+            lambda a, b: b // a if a else None,
+            lambda a, b: a % b if b else None,
+            lambda a, b: b % a if a else None,
+            lambda a, b: _eq_dsum(a) + _eq_dsum(b),
+            lambda a, b: _eq_dsum(a) * _eq_dsum(b),
+            lambda a, b: abs(_eq_dsum(a) - _eq_dsum(b)),
+            lambda a, b: _gcd_po(abs(a), abs(b)) if (a or b) else 0,
+            lambda a, b: a + b + 1,
+            lambda a, b: abs(a - b) + 1,
+            lambda a, b: a * b + 1,
+            lambda a, b: a * b - 1,
+            lambda a, b: a + b - 1,
+            lambda a, b: a * b * 2,
+            lambda a, b: (a + b) * 2,
+        ]:
+            try:
+                if fn(a, b) == c:
+                    r = fn(ta, tb)
+                    if r is not None:
+                        return str(r)
+            except Exception:
+                pass
+        return None
+
+    op_map: dict[str, tuple[str, str]] = {}
+    for inp, out in examples:
+        op = _get_op(inp)
+        if op:
+            op_map[op] = (inp, out)
+
+    test_op = _get_op(test_in)
+    if not test_op or test_op not in op_map:
+        return None
+
+    train_inp, train_out = op_map[test_op]
+    out_prefix = ""
+    out_suffix = ""
+    clean_out = train_out
+    _math_signs = {"-", "+", ".", "/"}
+    if test_op not in _math_signs:
+        if train_out and train_out[0] == test_op:
+            out_prefix = test_op
+            clean_out = train_out[1:]
+        elif train_out and train_out[-1] == test_op:
+            out_suffix = test_op
+            clean_out = train_out[:-1]
+
+    a_strs = _num_strs(train_inp)
+    c_strs = _num_strs(clean_out)
+    ta_strs = _num_strs(test_in)
+
+    if len(a_strs) < 2 or not c_strs or len(ta_strs) < 2:
+        return None
+
+    result = _single_pair(a_strs[0], a_strs[1], c_strs[0], ta_strs[0], ta_strs[1])
+    if result is not None:
+        return out_prefix + result + out_suffix
+    return None
+
+
 def solve_equations(examples: list[tuple[str, str]], test_in: str) -> str:
     """Equation solver: symbol transformations + expression tree enumeration."""
     from math import gcd as _gcd
@@ -1141,6 +1232,7 @@ def solve_equations(examples: list[tuple[str, str]], test_in: str) -> str:
     first_in = examples[0][0] if examples else ""
     if not any(c.isdigit() for c in first_in):
         return _symbol_equations(examples, test_in)
+    # (numeric path continues below; fallback to per-op lookup at end)
 
     def _pn(s: str) -> list[int]:
         return [int(p) for p in re.split(r"[^0-9]+", s) if p]
@@ -1338,7 +1430,9 @@ def solve_equations(examples: list[tuple[str, str]], test_in: str) -> str:
                 if r is not None:
                     return r
 
-    return test_in
+    # Fallback: per-operator lookup for multi-operator numeric equations
+    pop = _per_op_lookup(examples, test_in)
+    return pop if pop is not None else test_in
 
 
 # ---------------------------------------------------------------------------

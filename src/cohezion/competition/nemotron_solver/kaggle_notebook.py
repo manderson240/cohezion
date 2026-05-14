@@ -1100,6 +1100,96 @@ def _nb_drev(n):
     return int(str(abs(n))[::-1])
 
 
+def _nb_per_op_lookup(examples, test_in):
+    """Per-operator lookup for multi-operator numeric equations."""
+    from math import gcd as _gcd_nb
+
+    def _get_op(s):
+        ops = re.findall(r"[^0-9a-zA-Z\s]", s)
+        if not ops:
+            return None
+        return Counter(ops).most_common(1)[0][0]
+
+    def _num_strs(s):
+        return re.findall(r"\d+", s)
+
+    def _single_pair(a_str, b_str, out_str, ta_str, tb_str):
+        if a_str + b_str == out_str:
+            return ta_str + tb_str
+        if b_str + a_str == out_str:
+            return tb_str + ta_str
+        try:
+            c = int(out_str)
+        except ValueError:
+            return None
+        a, b, ta, tb = int(a_str), int(b_str), int(ta_str), int(tb_str)
+        for fn in [
+            lambda a, b: a + b,
+            lambda a, b: abs(a - b),
+            lambda a, b: a * b,
+            lambda a, b: a - b,
+            lambda a, b: b - a,
+            lambda a, b: a // b if b else None,
+            lambda a, b: b // a if a else None,
+            lambda a, b: a % b if b else None,
+            lambda a, b: b % a if a else None,
+            lambda a, b: _nb_dsum(a) + _nb_dsum(b),
+            lambda a, b: _nb_dsum(a) * _nb_dsum(b),
+            lambda a, b: abs(_nb_dsum(a) - _nb_dsum(b)),
+            lambda a, b: _gcd_nb(abs(a), abs(b)) if (a or b) else 0,
+            lambda a, b: a + b + 1,
+            lambda a, b: abs(a - b) + 1,
+            lambda a, b: a * b + 1,
+            lambda a, b: a * b - 1,
+            lambda a, b: a + b - 1,
+            lambda a, b: a * b * 2,
+            lambda a, b: (a + b) * 2,
+        ]:
+            try:
+                if fn(a, b) == c:
+                    r = fn(ta, tb)
+                    if r is not None:
+                        return str(r)
+            except Exception:
+                pass
+        return None
+
+    op_map = {}
+    for inp, out in examples:
+        op = _get_op(inp)
+        if op:
+            op_map[op] = (inp, out)
+
+    test_op = _get_op(test_in)
+    if not test_op or test_op not in op_map:
+        return None
+
+    train_inp, train_out = op_map[test_op]
+    out_prefix = ""
+    out_suffix = ""
+    clean_out = train_out
+    _math_signs = {"-", "+", ".", "/"}
+    if test_op not in _math_signs:
+        if train_out and train_out[0] == test_op:
+            out_prefix = test_op
+            clean_out = train_out[1:]
+        elif train_out and train_out[-1] == test_op:
+            out_suffix = test_op
+            clean_out = train_out[:-1]
+
+    a_strs = _num_strs(train_inp)
+    c_strs = _num_strs(clean_out)
+    ta_strs = _num_strs(test_in)
+
+    if len(a_strs) < 2 or not c_strs or len(ta_strs) < 2:
+        return None
+
+    result = _single_pair(a_strs[0], a_strs[1], c_strs[0], ta_strs[0], ta_strs[1])
+    if result is not None:
+        return out_prefix + result + out_suffix
+    return None
+
+
 def solve_equations(examples, test_in):
     from math import gcd as _gcd
 
@@ -1297,7 +1387,10 @@ def solve_equations(examples, test_in):
                 r = _try_bin(tree_const)
                 if r is not None:
                     return r
-    return test_in
+
+    # Fallback: per-operator lookup for multi-operator numeric equations
+    pop = _nb_per_op_lookup(examples, test_in)
+    return pop if pop is not None else test_in
 
 
 def solve(prompt):

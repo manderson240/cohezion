@@ -14,6 +14,7 @@ from __future__ import annotations
 import csv
 import random
 import re
+from collections import Counter
 from itertools import combinations
 from pathlib import Path
 
@@ -904,11 +905,112 @@ def solve_bit_manip(examples: list[tuple[str, str]], test_in: str) -> str:
 # ---------------------------------------------------------------------------
 
 
+def _per_op_lookup(examples: list[tuple[str, str]], test_in: str) -> str | None:
+    """Per-operator lookup: each example teaches one operator's semantics.
+
+    Groups examples by operator character. For the test input, finds the
+    matching training example (same operator) and infers a single-pair rule.
+    """
+    from math import gcd as _gcd2
+
+    def _get_op(s: str) -> str | None:
+        ops = re.findall(r"[^0-9a-zA-Z\s]", s)
+        if not ops:
+            return None
+        return Counter(ops).most_common(1)[0][0]
+
+    def _num_strs(s: str) -> list[str]:
+        return re.findall(r"\d+", s)
+
+    def _single_pair(a_str: str, b_str: str, out_str: str, ta_str: str, tb_str: str) -> str | None:
+        # String-level concat (preserves zero-padding)
+        if a_str + b_str == out_str:
+            return ta_str + tb_str
+        if b_str + a_str == out_str:
+            return tb_str + ta_str
+        # Integer arithmetic
+        try:
+            c = int(out_str)
+        except ValueError:
+            return None
+        a, b, ta, tb = int(a_str), int(b_str), int(ta_str), int(tb_str)
+        for fn in [
+            lambda a, b: a + b,
+            lambda a, b: abs(a - b),  # before signed differences: avoids sign ambiguity
+            lambda a, b: a * b,
+            lambda a, b: a - b,
+            lambda a, b: b - a,
+            lambda a, b: a // b if b else None,
+            lambda a, b: b // a if a else None,
+            lambda a, b: a % b if b else None,
+            lambda a, b: b % a if a else None,
+            lambda a, b: _dsum(a) + _dsum(b),
+            lambda a, b: _dsum(a) * _dsum(b),
+            lambda a, b: abs(_dsum(a) - _dsum(b)),
+            lambda a, b: _gcd2(abs(a), abs(b)) if (a or b) else 0,
+            lambda a, b: a + b + 1,
+            lambda a, b: abs(a - b) + 1,
+            lambda a, b: a * b + 1,
+            lambda a, b: a * b - 1,
+            lambda a, b: a + b - 1,
+            lambda a, b: a * b * 2,
+            lambda a, b: (a + b) * 2,
+        ]:
+            try:
+                if fn(a, b) == c:
+                    r = fn(ta, tb)
+                    if r is not None:
+                        return str(r)
+            except Exception:
+                pass
+        return None
+
+    # Build per-operator map
+    op_map: dict[str, tuple[str, str]] = {}
+    for inp, out in examples:
+        op = _get_op(inp)
+        if op:
+            op_map[op] = (inp, out)
+
+    test_op = _get_op(test_in)
+    if not test_op or test_op not in op_map:
+        return None
+
+    train_inp, train_out = op_map[test_op]
+
+    # Detect op-char prefix/suffix in output, strip for arithmetic.
+    # Skip for '-'/'+' (numeric signs) and '.' (decimal point).
+    out_prefix = ""
+    out_suffix = ""
+    clean_out = train_out
+    _math_signs = {"-", "+", ".", "/"}
+    if test_op not in _math_signs:
+        if train_out and train_out[0] == test_op:
+            out_prefix = test_op
+            clean_out = train_out[1:]
+        elif train_out and train_out[-1] == test_op:
+            out_suffix = test_op
+            clean_out = train_out[:-1]
+
+    a_strs = _num_strs(train_inp)
+    c_strs = _num_strs(clean_out)
+    ta_strs = _num_strs(test_in)
+
+    if len(a_strs) < 2 or not c_strs or len(ta_strs) < 2:
+        return None
+
+    result = _single_pair(a_strs[0], a_strs[1], c_strs[0], ta_strs[0], ta_strs[1])
+    if result is not None:
+        return out_prefix + result + out_suffix
+    return None
+
+
 def solve_equations(examples: list[tuple[str, str]], test_in: str) -> str:
     """Try to infer transformation rule from examples.
 
     For symbol equations, try structural rules (first+last, reverse, etc.).
     For number equations, try digit-wise operations.
+    Falls back to per-operator lookup for multi-operator problems.
     """
     # Check if this is a number-based or symbol-based equation
     first_in = examples[0][0] if examples else ""
@@ -916,7 +1018,12 @@ def solve_equations(examples: list[tuple[str, str]], test_in: str) -> str:
 
     if has_digits:
         # Number equations: try digit-wise operations
-        return _solve_number_equations(examples, test_in)
+        result = _solve_number_equations(examples, test_in)
+        if result != test_in:
+            return result
+        # Fallback: per-operator lookup for multi-operator problems
+        pop = _per_op_lookup(examples, test_in)
+        return pop if pop is not None else test_in
     else:
         # Symbol equations: try structural rules
         return _solve_symbol_equations(examples, test_in)
