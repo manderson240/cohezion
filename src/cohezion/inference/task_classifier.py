@@ -53,7 +53,7 @@ _CATEGORICAL_PATTERNS = [
         "explicit one-letter instruction",
     ),
     (re.compile(r"\banswer with (a |one )?letter\b", re.I), 1.0, "explicit letter answer"),
-    (re.compile(r"\breply with (yes|no) or (no|yes)\b", re.I), 1.0, "yes/no question"),
+    (re.compile(r"\breply (?:with )?(yes|no) or (no|yes)\b", re.I), 1.0, "yes/no question"),
     (re.compile(r"\b(true|false) only\b", re.I), 0.95, "true/false only"),
     # Categorical options in prompt
     (
@@ -458,23 +458,23 @@ _GPU_PATTERNS = [
         0.88,
         "sql query generation",
     ),
-    # "Implement X in [language/framework]" — language or framework-specific algorithm/feature
+    # "Implement/Create/Build/Write X in [language/framework]" — language-specific code task
     (
         re.compile(
-            r"\bimplement\b.{0,40}\bin\s+(python|java|c\+\+|cpp|javascript|typescript|go|rust|kotlin|swift|scala|ruby|qiskit|pennylane|cirq|braket|pyquil|pytorch|tensorflow|jax)(?:\W|$)",
+            r"\b(?:implement|create|build|write)\b.{0,55}\bin\s+(python|java|c\+\+|cpp|javascript|typescript|go|rust|kotlin|swift|scala|ruby|qiskit|pennylane|cirq|braket|pyquil|pytorch|tensorflow|jax)(?:\W|$)",
             re.I,
         ),
         0.88,
         "implement in language",
     ),
-    # "X using [quantum framework/ML framework]" — framework-keyed code generation
+    # "X using/with [framework]" — framework-keyed code generation
     (
         re.compile(
-            r"\busing\s+(qiskit|pennylane|cirq|braket|pyquil|pytorch|tensorflow|jax|scikit.learn|sklearn|biopython|bioconductor|deseq2|edger|samtools|gatk|bowtie|hisat|star\b|blast\b)\b",
+            r"\b(?:using|with)\s+(qiskit|pennylane|cirq|braket|pyquil|pytorch|tensorflow|jax|scikit.learn|sklearn|biopython|bioconductor|deseq2|edger|samtools|gatk|bowtie|hisat|star\b|blast\b|llamaindex|langchain|opentelemetry|great.expectations|apache\s+beam|apache\s+flink|debezium|argocd|fluxcd|helm\b|argo\s+rollout|vault\s+(?:secret|sidecar))\b",
             re.I,
         ),
         0.90,
-        "using quantum/ML/bio framework",
+        "using quantum/ML/bio/devops framework",
     ),
     # Create/build a [adjective(s)] endpoint/service/cache/pipeline/queue
     (
@@ -723,6 +723,24 @@ _GPU_PATTERNS = [
         ),
         0.90,
         "quantum computing domain",
+    ),
+    # NLP/ML engineering domain — transformers, RAG, embeddings, LLM pipelines
+    (
+        re.compile(
+            r"\b(?:attention\s+mechanism|self.attention\s+layer|multi.head\s+(?:attention|self.attention)|positional\s+encoding|word2vec\s+(?:skip.gram|cbow|training)|rag\s+(?:pipeline|vector|retrieval|database|embed)|retrieval.augmented|document\s+chunk(?:ing)?|llamaindex|langchain|beam\s+search\s+decod|bpe\s+(?:algorithm|tokeniz)|subword\s+(?:segment|tokeniz)|data\s+augment\s+(?:pipeline|nlp)|text\s+classifier\s+(?:fine|bert|transformer)|ner\s+(?:dataset|fine|train))\b",
+            re.I,
+        ),
+        0.90,
+        "nlp ml engineering domain",
+    ),
+    # DevOps/platform engineering domain — GitOps, ArgoCD, OpenTelemetry, cost allocation
+    (
+        re.compile(
+            r"\b(?:gitops\s+workflow|argocd|fluxcd|argo\s+rollout|blue.green\s+deploy|canary\s+deploy|distributed\s+trac(?:ing)?|opentelemetry|open\s+telemetry|cost\s+alloc(?:ation)?\s+tagg(?:ing)?|cost\s+tagg(?:ing)?\s+strategy|vault\s+secret\s+(?:inject|sidecar)|kubernetes\s+hpa|eks\s+(?:cluster|provision|terraform)|terraform\s+module|helm\s+chart|github\s+actions\s+(?:ci|pipeline|workflow)|gitops\s+(?:workflow|argo|flux))\b",
+            re.I,
+        ),
+        0.90,
+        "devops platform engineering domain",
     ),
     # Legal/compliance domain — contracts, GDPR, IP, license review
     (
