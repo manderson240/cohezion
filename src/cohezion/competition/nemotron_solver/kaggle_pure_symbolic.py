@@ -635,6 +635,7 @@ def solve_bit_manip(examples: list[tuple[str, str]], test_in: str) -> str:
             ("or", lambda x, c: x | c),
             ("add", lambda x, c: (x + c) & 0xFF),
             ("sub", lambda x, c: (x - c) & 0xFF),
+            ("mul", lambda x, c: (x * c) & 0xFF),
         ]:
             for _n1, o1 in unary_ops:
                 ok = True
