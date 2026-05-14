@@ -291,7 +291,7 @@ _GPU_PATTERNS = [
     # Test/spec generation — "write a unit test for...", "write tests for..."
     (
         re.compile(
-            r"\b(write|create|generate|add)\s+(a |an |the )?(?:[\w-]+\s+)?(unit |integration |regression |end.to.end |smoke |e2e |api |load |performance |acceptance |contract |)test(s?)\b",
+            r"\b(write|create|generate|add)\s+(a |an |the )?(?:[\w-]+\s+){0,2}(unit |integration |regression |end.to.end |smoke |e2e |api |load |performance |acceptance |contract |failing |broken |missing |)test(s?|ing)\b",
             re.I,
         ),
         0.95,
@@ -618,7 +618,7 @@ _GPU_PATTERNS = [
     # Requires a technical object (module/table/schema/weights/endpoint/etc.) to avoid FP
     (
         re.compile(
-            r"\b(?:benchmark|validate|parse|compress|decompress|rename|delete|remove|truncate|drop|enable|disable|toggle|backfill|reindex|sync(?:hronize)?|replay|snapshot|checkpoint|encrypt|decrypt|sign|verify|hash|marshal|unmarshal|minify|transpile|lint|typecheck|fuzz|port|convert|wrap|split|merge|hoist|annotate|inject|extract\b|patch|upgrade|downgrade|publish|subscribe|bootstrap|seed|hydrate|dehydrate|memoize|debounce|throttle|diagnose|investigate|trace\b|sort|filter|map\b|reduce|flatten|deduplicate|normalize|denormalize|sanitize|obfuscate|mask|test\b|trigger\b)\s+(?:the\s+|a\s+|an\s+|all\s+|this\s+)?(?:[\w.-]+\s+){0,3}(?:imports?|dependencies?|modules?|functions?|class(?:es)?|methods?|services?|api\b|endpoints?|schemas?|tables?|databases?|collections?|buckets?|indexes?|indices?|data|files?\b|records?|rows?|models?|weights?|configs?|pipelines?|caches?|queues?|tokens?|certs?|keys?\b|signatures?|graphs?|trees?|logs?\b|traces?|tests?|suites?|validators?|entries?|columns?|fields?|constraints?|migrations?|nodes?\b|edges?\b|queries|yaml|json\b|csvs?|vcfs?\b|similarity\b|metrics?\b|algorithms?\b|performances?\b|overhead\b|latency\b|throughput\b|accuracy\b|precision\b|recall\b|fallback\b|features?\b|flags?\b|threshold\b|limits?\b|rates?\b|budgets?\b|tiers?\b|policies?|rules?\b|annotations?|types?\b|interfaces?\b|clients?\b|renderers?|executors?\b|pools?\b|singletons?\b|instances?|components?|hooks?\b|middlewares?|frameworks?|routers?\b|stores?\b|contexts?\b|streams?|buffers?|channels?|sockets?|proxies?|adapters?\b|patterns?\b|strategies?|handlers?\b|listeners?\b|containers?|microservices?|lists?\b|arrays?|strings?\b|images?\b|videos?\b|passwords?\b|emails?\b|inputs?\b|outputs?\b|requests?\b|responses?\b|payloads?\b|messages?\b|events?\b|objects?\b|values?\b|numbers?\b|integers?\b|floats?\b)\b",
+            r"\b(?:benchmark|validate|parse|compress|decompress|rename|delete|remove|truncate|drop|enable|disable|toggle|backfill|reindex|sync(?:hronize)?|replay|snapshot|checkpoint|encrypt|decrypt|sign|verify|hash|marshal|unmarshal|minify|transpile|lint|typecheck|fuzz|port|convert|wrap|split|merge|hoist|annotate|inject|extract\b|patch|upgrade|downgrade|publish|subscribe|bootstrap|seed|hydrate|dehydrate|memoize|debounce|throttle|diagnose|investigate|trace\b|sort|filter|map\b|reduce|flatten|deduplicate|normalize|denormalize|sanitize|obfuscate|mask|test\b|trigger\b|check\b)\s+(?:the\s+|a\s+|an\s+|all\s+|this\s+)?(?:[\w.-]+\s+){0,3}(?:imports?|dependencies?|modules?|functions?|class(?:es)?|methods?|services?|api\b|endpoints?|schemas?|tables?|databases?|collections?|buckets?|indexes?|indices?|data|files?\b|records?|rows?|models?|weights?|configs?|pipelines?|caches?|queues?|tokens?|certs?|keys?\b|signatures?|graphs?|trees?|logs?\b|traces?|tests?|suites?|validators?|entries?|columns?|fields?|constraints?|migrations?|nodes?\b|edges?\b|queries|yaml|json\b|csvs?|vcfs?\b|similarity\b|metrics?\b|algorithms?\b|performances?\b|overhead\b|latency\b|throughput\b|accuracy\b|precision\b|recall\b|fallback\b|features?\b|flags?\b|threshold\b|limits?\b|rates?\b|budgets?\b|tiers?\b|policies?|rules?\b|annotations?|types?\b|interfaces?\b|clients?\b|renderers?|executors?\b|pools?\b|singletons?\b|instances?|components?|hooks?\b|middlewares?|frameworks?|routers?\b|stores?\b|contexts?\b|streams?|buffers?|channels?|sockets?|proxies?|adapters?\b|patterns?\b|strategies?|handlers?\b|listeners?\b|containers?|microservices?|lists?\b|arrays?|strings?\b|images?\b|videos?\b|passwords?\b|emails?\b|inputs?\b|outputs?\b|requests?\b|responses?\b|payloads?\b|messages?\b|events?\b|objects?\b|values?\b|numbers?\b|integers?\b|floats?\b|annotations?|type\s+hints?|ones\b|items?\b|entries?|missing\s+\w+|duplicates?|orphan\w*)\b",
             re.I,
         ),
         0.85,
@@ -891,7 +891,7 @@ _RETROSPECTIVE_PATTERN = re.compile(
 )
 
 _NEGATION_PATTERN = re.compile(
-    r"\b(?:not\s+asking\s+(?:you\s+)?to\s+write|without\s+writing\s+(?:any\s+)?code|don'?t\s+write\s+(?:any\s+)?code|no\s+code\b)",
+    r"\b(?:not\s+asking\s+(?:you\s+)?to\s+(?:write|implement|build|code|create|generate)|without\s+(?:writing|implementing|building|coding)\s+(?:any\s+)?code|don'?t\s+(?:write|implement)\s+(?:any\s+)?code|no\s+code\b)",
     re.I,
 )
 
