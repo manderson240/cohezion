@@ -121,7 +121,7 @@ _GPU_PATTERNS = [
     # Extended: formula, macro, procedure, query, snippet, lambda, decorator, mixin, interface
     (
         re.compile(
-            r"\b(write|implement|create|generate|build)\s+(a |an |the )?(?:[\w-]+ ){0,3}(?:function|class|script|module|code|program|formula|macro|procedure|query|snippet|lambda|decorator|mixin|interface|getters?|setters?|validators?|serializers?|deserializers?|accessors?|migrations?|fixtures?|resolvers?|middlewares?|driver|routine|handler|client|library|daemon|firmware|plugin|extension|adapter|wrapper|proxy|stub|mock|task\b|job\b|service\b|worker|processor|listener|observer|consumer|producer|publisher|subscriber|widget|screen|fragment|composable|activity\b|viewmodel|repository\b|dao\b|coroutine|category\b|entity\b|component|[\w]*viewcontroller|[\w]*recyclerview|[\w]*tableview|[\w]*collectionview|shader|loop\b|controller\b|renderer|pass\b|pipeline|algorithm|simulation|generator|visualiz(?:er|ation)|importer|exporter|converter|transformer|dispatcher|scheduler|executor|runner|scanner|parser\b|loader|hook\b|contract\b|token\b|wallet|oracle|integration\b|connector|bridge\b|gateway\b|registry\b|factory\b|builder\b|chain\b|circuit\b|calculator\b|analyzer|analyser|simulator\b|model\b|harness\b|profiler|embedder|clusterer|classifier\b|detector\b|extractor|tokenizer|vectorizer|optimizer\b|sampler|trainer|evaluator|scorer|node\b|planner|reasoner|router\b|orchestrator\b|limiter\b|broker\b|balancer\b|deployer\b|replicator\b|notifier\b|aggregator\b|collector\b|batcher\b|monitor\b|poller\b|pusher\b|forwarder\b|compactor\b|resolver\b|mapper\b|reconciler\b|crawler\b|debugger\b|watcher\b|semaphore\b|mutex\b|debouncer\b|throttler\b|sentinel\b|accumulator\b|combiner\b|partitioner\b|splitter\b|forker\b|joiner\b|interceptor\b|validator\b|sanitizer\b|encoder\b|decoder\b)\b",
+            r"\b(write|implement|create|generate|build)\s+(a |an |the )?(?:[\w-]+ ){0,3}(?:function|class|script|module|code|program|formula|macro|procedure|query|snippet|lambda|decorator|mixin|interface|getters?|setters?|validators?|serializers?|deserializers?|accessors?|migrations?|fixtures?|resolvers?|middlewares?|driver|routine|handler|client|library|daemon|firmware|plugin|extension|adapter|wrapper|proxy|stub|mock|task\b|job\b|service\b|worker|processor|listener|observer|consumer|producer|publisher|subscriber|widget|screen|fragment|composable|activity\b|viewmodel|repository\b|dao\b|coroutine|category\b|entity\b|component|[\w]*viewcontroller|[\w]*recyclerview|[\w]*tableview|[\w]*collectionview|shader|loop\b|controller\b|renderer|pass\b|pipeline|algorithm|simulation|generator|visualiz(?:er|ation)|importer|exporter|converter|transformer|dispatcher|scheduler|executor|runner|scanner|parser\b|loader|hook\b|contract\b|token\b|wallet|oracle|integration\b|connector|bridge\b|gateway\b|registry\b|factory\b|builder\b|chain\b|circuit\b|calculator\b|analyzer|analyser|simulator\b|model\b|harness\b|profiler|embedder|clusterer|classifier\b|detector\b|extractor|tokenizer|vectorizer|optimizer\b|sampler|trainer|evaluator|scorer|node\b|planner|reasoner|router\b|orchestrator\b|limiter\b|broker\b|balancer\b|deployer\b|replicator\b|notifier\b|aggregator\b|collector\b|batcher\b|monitor\b|poller\b|pusher\b|forwarder\b|compactor\b|resolver\b|mapper\b|reconciler\b|crawler\b|debugger\b|watcher\b|semaphore\b|mutex\b|debouncer\b|throttler\b|sentinel\b|accumulator\b|combiner\b|partitioner\b|splitter\b|forker\b|joiner\b|interceptor\b|validator\b|sanitizer\b|encoder\b|decoder\b|architecture\b|scaffold\b|skeleton\b|boilerplate\b)\b",
             re.I,
         ),
         1.0,
@@ -713,7 +713,7 @@ _GPU_PATTERNS = [
     # "Find the optimal/minimum/maximum/critical X [Y] using Z" — optimization
     (
         re.compile(
-            r"\bfind\s+(?:the\s+)?(?:optimal|minimum|maximum|critical|saddle|fixed)\s+(?:\w+\s+){1,3}(?:using|with|by|via)\b",
+            r"\bfind\s+(?:the\s+)?(?:optimal|minimum|maximum|critical|saddle|fixed)\b.{0,60}\b(?:using|with|by|via)\b",
             re.I,
         ),
         0.85,
@@ -826,10 +826,21 @@ _GPU_PATTERNS = [
         0.90,
         "nlp ml engineering domain",
     ),
+    # AI agent engineering domain — compound noun phrases that unambiguously signal code tasks
+    # Only include multi-word compounds that cannot appear in "What is X?" questions
+    # (e.g., "multi-agent debate framework" vs bare "ReAct agent" which appears in what-is)
+    (
+        re.compile(
+            r"\b(?:multi.agent\s+(?:system|framework|debate|coordination)|tool.augmented\s+(?:agent|llm)|context\s+window\s+(?:compress|manag)|tree.of.thought\s+(?:reason|impl|chain)|chain.of.thought\s+(?:reason|impl|prompt)|agent\s+scaffold|task\s+planner\s+agent|episodic\s+(?:memory|recall)\s+(?:layer|store)|semantic\s+memory\s+(?:layer|store|embed)|planning.and.execution|rlhf\s+(?:update|fine.tun|feedback|loop)|structured\s+output\s+pars(?:ing|er)|function\s+calling\s+(?:agent|pattern|schema)|tool\s+(?:execution|routing|orchestrat)\s+(?:loop|agent|framework)|agentic\s+(?:loop|workflow|framework)|agent\s+(?:memory|planning|execution|loop)\s+(?:layer|system|loop|module))\b",
+            re.I,
+        ),
+        0.90,
+        "ai agent engineering domain",
+    ),
     # DevOps/platform engineering domain — GitOps, ArgoCD, OpenTelemetry, cost allocation
     (
         re.compile(
-            r"\b(?:gitops\s+workflow|argocd|fluxcd|argo\s+rollout|blue.green\s+deploy|canary\s+deploy|distributed\s+trac(?:ing)?|opentelemetry|open\s+telemetry|cost\s+alloc(?:ation)?\s+tagg(?:ing)?|cost\s+tagg(?:ing)?\s+strategy|vault\s+secret\s+(?:inject|sidecar)|kubernetes\s+hpa|eks\s+(?:cluster|provision|terraform)|terraform\s+module|helm\s+chart|github\s+actions\s+(?:ci|pipeline|workflow)|gitops\s+(?:workflow|argo|flux))\b",
+            r"\b(?:gitops\s+workflow|argocd\s+(?:workflow|pipeline|deploy|sync|install|config|manifest|app|setup)|fluxcd|argo\s+rollout|blue.green\s+deploy|canary\s+deploy|distributed\s+trac(?:ing)?|opentelemetry|open\s+telemetry|cost\s+alloc(?:ation)?\s+tagg(?:ing)?|cost\s+tagg(?:ing)?\s+strategy|vault\s+secret\s+(?:inject|sidecar)|kubernetes\s+hpa|eks\s+(?:cluster|provision|terraform)|terraform\s+module|helm\s+chart|github\s+actions\s+(?:ci|pipeline|workflow)|gitops\s+(?:workflow|argo|flux)|deploy\s+(?:using|with)\s+argocd|argocd\s+(?:application|project|sync))\b",
             re.I,
         ),
         0.90,
@@ -865,6 +876,13 @@ _GPU_PATTERNS = [
     ),
 ]
 
+
+# Short "What is/are X?" definitional pre-override — fires before domain GPU patterns
+# Catches "What is a multi-agent system?" before the AI-agent domain pattern can fire
+_SHORT_WHAT_IS_PATTERN = re.compile(
+    r"^what\s+(?:is|are)\b",
+    re.I,
+)
 
 _RETROSPECTIVE_PATTERN = re.compile(
     r"\bwhy\s+did\s+(?:we|you|they|the\s+team)\s+(?:choose|decide|select|use|go\s+with|adopt|implement|pick)\b",
@@ -947,6 +965,21 @@ def classify(prompt: str) -> RouteDecision:
             quality_gate_chars=gate,
             confidence=0.72,
             reason="retrospective decision question",
+        )
+
+    # 3. Short "What is/are X?" definitional question — fires BEFORE domain GPU patterns
+    # Prevents "What is a multi-agent system?" from matching ai-agent-engineering-domain
+    # Threshold: ≤ 75 chars total (short enough to be definitional, not complex)
+    # Does NOT fire for long what-is questions like "What is the implementation of X that..."
+    if prompt_len <= 75 and _SHORT_WHAT_IS_PATTERN.search(prompt):
+        node, gate = _TYPE_CONFIG["short_answer"]
+        # Confidence depends on term length (1-2 words = 0.78, 3-4 words = 0.74)
+        return RouteDecision(
+            node=node,
+            output_type="short_answer",
+            quality_gate_chars=gate,
+            confidence=0.77,
+            reason="short what-is definitional pre-override",
         )
 
     # ── Check GPU patterns first (highest cost to mis-route) ────────────────
