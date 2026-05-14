@@ -1588,11 +1588,9 @@ def solve(prompt: str) -> str:
             result = solve_with_model(examples, test_input, ptype)
         return result
     elif ptype == "equations":
-        # Try symbolic first — model (Lemonade) is unreliable for equations
+        # Symbolic only — model fallback is slow (7s/call) and inaccurate (0%)
         result = solve_equations(examples, test_input)
-        if not result or result == test_input:
-            result = solve_with_model(examples, test_input, ptype)
-        return result
+        return result if result else test_input
     elif ptype == "encryption":
         # Symbolic then model fallback
         result = solve_encryption(examples, test_input)
