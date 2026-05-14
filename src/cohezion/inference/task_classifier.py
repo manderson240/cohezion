@@ -359,14 +359,14 @@ _GPU_PATTERNS = [
         0.82,
         "engineering task verb",
     ),
-    # Code review — "review" only when paired with code-specific nouns
+    # Code/document review — "review" when paired with code artifacts or legal/compliance documents
     (
         re.compile(
-            r"\breview\b.{0,30}\b(code|implementation|pull\s+request|pr\b|changes|diff|api|module|test|function|class|endpoint|service)\b",
+            r"\breview\b.{0,30}\b(code|implementation|pull\s+request|pr\b|changes|diff|api|module|test|function|class|endpoint|service|agreement|contract|license|policy|terms|compliance|patent|ip\b|clause|provisions?)\b",
             re.I,
         ),
         0.82,
-        "code review task",
+        "code or legal document review",
     ),
     # "Document the [X] with examples/API/guide" — structured documentation
     (
@@ -723,6 +723,34 @@ _GPU_PATTERNS = [
         ),
         0.90,
         "quantum computing domain",
+    ),
+    # Legal/compliance domain — contracts, GDPR, IP, license review
+    (
+        re.compile(
+            r"\b(?:non.disclosure\s+agreement|nda\s+(?:draft|clause|review)|gdpr\s+(?:compli|articl|policy|consent|data\s+subject)|ccpa\s+(?:compli|request)|software\s+license\s+(?:agreement|review|audit)|ip\s+rights?|intellectual\s+property\s+(?:clause|rights?|policy)|license\s+(?:compatibility|compli|audit|review)|terms\s+of\s+service|privacy\s+policy|data\s+process\s+agreement|consent\s+management|rbac\s+(?:gdpr|permission|access)|legal\s+(?:risk|memo|brief)|patentability|open.source\s+license)\b",
+            re.I,
+        ),
+        0.88,
+        "legal compliance domain",
+    ),
+    # Scientific research domain — experimental design, clinical trials, paper writing
+    (
+        re.compile(
+            r"\b(?:experimental\s+(?:protocol|design|methodology|plan)|research\s+hypothesis|null\s+hypothesis|clinical\s+trial\s+(?:design|protocol|phase|plan)|systematic\s+review|meta.analysis|statistical\s+power\s+(?:anal|calc)|sample\s+size\s+calc|randomized\s+controlled\s+trial|rct\s+(?:design|protocol)|methods\s+section|crispr\s+(?:gene|edit|effic)|cortisol\s+response|literature\s+review|research\s+paper|bootstrap\s+resamp|confidence\s+interval\s+(?:calc|bootstrap)|statistical\s+analysis\s+plan|phase\s+(?:i{1,3}|iii?|iv)\s+(?:trial|study|clinical))\b",
+            re.I,
+        ),
+        0.88,
+        "scientific research domain",
+    ),
+    # Data engineering domain — Airflow/Spark/dbt/Kafka/Flink/ETL/CDC pipelines
+    # Note: bare nouns (data lakehouse, ETL) are NOT included — need action-verb context
+    (
+        re.compile(
+            r"\b(?:airflow\s+(?:dag|pipeline|task|operator|hook)|dbt\s+(?:model|transform|test|project)|spark\s+(?:stream|job|pipeline|etl|session)|kafka\s+(?:consumer|producer|stream|topic|lag)|flink\s+(?:job|stream|window|operator)|debezium\s+(?:cdc|pipeline)|change\s+data\s+capture|cdc\s+pipeline|delta\s+lake\s+(?:table|schema|pipeline|migration)|apache\s+iceberg\s+(?:table|migration|catalog)|data\s+lakehouse\s+(?:architect|design|implement|migrat)|great\s+expectations\s+(?:check|suite|pipeline|for)|feature\s+store\s+(?:ingestion|pipeline)|feast\s+(?:registry|feature)|etl\s+(?:pipeline|dag|job|process)|data\s+quality\s+check|tumbling\s+window|snowflake\s+(?:schema|sql|model)|star.schema\s+(?:data|warehouse)|data\s+warehouse\s+(?:schema|model)|streaming\s+pipeline|clickstream\s+process)\b",
+            re.I,
+        ),
+        0.90,
+        "data engineering domain",
     ),
 ]
 
