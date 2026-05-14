@@ -1148,52 +1148,106 @@ def _per_op_lookup(examples: list[tuple[str, str]], test_in: str) -> str | None:
     def _num_strs(s: str) -> list[str]:
         return re.findall(r"\d+", s)
 
-    def _single_pair(a_str: str, b_str: str, out_str: str, ta_str: str, tb_str: str) -> str | None:
+    def _single_pair(
+        a_str: str,
+        b_str: str,
+        out_str: str,
+        ta_str: str,
+        tb_str: str,
+        prefer: str | None = None,
+        allowed: set[str] | None = None,
+    ) -> str | None:
+        matches: list[tuple[str, str]] = []
         if a_str + b_str == out_str:
-            return ta_str + tb_str
+            matches.append(("concat_ab", ta_str + tb_str))
         if b_str + a_str == out_str:
-            return tb_str + ta_str
+            matches.append(("concat_ba", tb_str + ta_str))
         try:
             c = int(out_str)
+            a, b, ta, tb = int(a_str), int(b_str), int(ta_str), int(tb_str)
+            named_fns: list[tuple[str, object]] = [
+                ("a+b", lambda a, b: a + b),
+                ("abs", lambda a, b: abs(a - b)),
+                ("a*b", lambda a, b: a * b),
+                ("a-b", lambda a, b: a - b),
+                ("b-a", lambda a, b: b - a),
+                ("a//b", lambda a, b: a // b if b else None),
+                ("b//a", lambda a, b: b // a if a else None),
+                ("a%b", lambda a, b: a % b if b else None),
+                ("b%a", lambda a, b: b % a if a else None),
+                ("dsum+", lambda a, b: _eq_dsum(a) + _eq_dsum(b)),
+                ("dsum*", lambda a, b: _eq_dsum(a) * _eq_dsum(b)),
+                ("dsum-", lambda a, b: abs(_eq_dsum(a) - _eq_dsum(b))),
+                ("gcd", lambda a, b: _gcd_po(abs(a), abs(b)) if (a or b) else 0),
+                ("a+b+1", lambda a, b: a + b + 1),
+                ("abs+1", lambda a, b: abs(a - b) + 1),
+                ("a*b+1", lambda a, b: a * b + 1),
+                ("a*b-1", lambda a, b: a * b - 1),
+                ("a+b-1", lambda a, b: a + b - 1),
+                ("a*b*2", lambda a, b: a * b * 2),
+                ("a+b*2", lambda a, b: (a + b) * 2),
+            ]
+            for name, fn in named_fns:
+                try:
+                    if fn(a, b) == c:  # type: ignore[operator]
+                        r = fn(ta, tb)  # type: ignore[operator]
+                        if r is not None:
+                            matches.append((name, str(r)))
+                except Exception:
+                    pass
         except ValueError:
+            pass
+        if not matches:
             return None
-        a, b, ta, tb = int(a_str), int(b_str), int(ta_str), int(tb_str)
-        for fn in [
-            lambda a, b: a + b,
-            lambda a, b: abs(a - b),
-            lambda a, b: a * b,
-            lambda a, b: a - b,
-            lambda a, b: b - a,
-            lambda a, b: a // b if b else None,
-            lambda a, b: b // a if a else None,
-            lambda a, b: a % b if b else None,
-            lambda a, b: b % a if a else None,
-            lambda a, b: _eq_dsum(a) + _eq_dsum(b),
-            lambda a, b: _eq_dsum(a) * _eq_dsum(b),
-            lambda a, b: abs(_eq_dsum(a) - _eq_dsum(b)),
-            lambda a, b: _gcd_po(abs(a), abs(b)) if (a or b) else 0,
-            lambda a, b: a + b + 1,
-            lambda a, b: abs(a - b) + 1,
-            lambda a, b: a * b + 1,
-            lambda a, b: a * b - 1,
-            lambda a, b: a + b - 1,
-            lambda a, b: a * b * 2,
-            lambda a, b: (a + b) * 2,
-        ]:
-            try:
-                if fn(a, b) == c:
-                    r = fn(ta, tb)
-                    if r is not None:
-                        return str(r)
-            except Exception:
-                pass
-        return None
+        filtered = [(n, r) for n, r in matches if allowed is None or n in allowed]
+        if not filtered:
+            filtered = matches
+        if prefer:
+            for name, res in filtered:
+                if name == prefer:
+                    return res
+        return filtered[0][1]
 
-    op_map: dict[str, tuple[str, str]] = {}
+    def _rule_names(a_str: str, b_str: str, out_str: str) -> set[str]:
+        names: set[str] = set()
+        if a_str + b_str == out_str:
+            names.add("concat_ab")
+        if b_str + a_str == out_str:
+            names.add("concat_ba")
+        try:
+            c = int(out_str)
+            a, b = int(a_str), int(b_str)
+            named_fns2: list[tuple[str, object]] = [
+                ("a+b", lambda a, b: a + b),
+                ("abs", lambda a, b: abs(a - b)),
+                ("a*b", lambda a, b: a * b),
+                ("a-b", lambda a, b: a - b),
+                ("b-a", lambda a, b: b - a),
+                ("a//b", lambda a, b: a // b if b else None),
+                ("b//a", lambda a, b: b // a if a else None),
+                ("a+b+1", lambda a, b: a + b + 1),
+                ("abs+1", lambda a, b: abs(a - b) + 1),
+                ("a*b+1", lambda a, b: a * b + 1),
+                ("a*b-1", lambda a, b: a * b - 1),
+                ("a+b-1", lambda a, b: a + b - 1),
+                ("a*b*2", lambda a, b: a * b * 2),
+                ("a+b*2", lambda a, b: (a + b) * 2),
+            ]
+            for name, fn in named_fns2:
+                try:
+                    if fn(a, b) == c:  # type: ignore[operator]
+                        names.add(name)
+                except Exception:
+                    pass
+        except ValueError:
+            pass
+        return names
+
+    op_list: dict[str, list[tuple[str, str]]] = {}
     for inp, out in examples:
         op = _get_op(inp)
         if op:
-            op_map[op] = (inp, out)
+            op_list.setdefault(op, []).append((inp, out))
 
     _GLOBAL_OP_RULE: dict[str, str] = {
         "+": "concat_ba",
@@ -1247,7 +1301,7 @@ def _per_op_lookup(examples: list[tuple[str, str]], test_in: str) -> str | None:
             return None
 
     test_op = _get_op(test_in)
-    if not test_op or test_op not in op_map:
+    if not test_op or test_op not in op_list:
         if test_op and test_op in _GLOBAL_OP_RULE:
             ta_strs = _num_strs(test_in)
             if len(ta_strs) >= 2:
@@ -1256,30 +1310,74 @@ def _per_op_lookup(examples: list[tuple[str, str]], test_in: str) -> str | None:
                     return g
         return None
 
-    train_inp, train_out = op_map[test_op]
-    out_prefix = ""
-    out_suffix = ""
-    clean_out = train_out
-    _math_signs = {"-", "+", ".", "/"}
-    if test_op not in _math_signs:
-        if train_out and train_out[0] == test_op:
-            out_prefix = test_op
-            clean_out = train_out[1:]
-        elif train_out and train_out[-1] == test_op:
-            out_suffix = test_op
-            clean_out = train_out[:-1]
-
-    a_strs = _num_strs(train_inp)
-    c_strs = _num_strs(clean_out)
     ta_strs = _num_strs(test_in)
-
-    if len(a_strs) < 2 or not c_strs or len(ta_strs) < 2:
+    if len(ta_strs) < 2:
         return None
 
-    result = _single_pair(a_strs[0], a_strs[1], c_strs[0], ta_strs[0], ta_strs[1])
-    if result is not None:
-        return out_prefix + result + out_suffix
-    return None
+    prefer = _GLOBAL_OP_RULE.get(test_op) if test_op else None
+    _math_signs = {"-", "+", ".", "/"}
+    op_pairs = op_list[test_op]
+
+    # Compute intersection of consistent rules across all training pairs for this op
+    best_rules: set[str] | None = None
+    for train_inp, train_out in op_pairs:
+        clean = train_out
+        if test_op not in _math_signs:
+            if train_out and train_out[0] == test_op:
+                clean = train_out[1:]
+            elif train_out and train_out[-1] == test_op:
+                clean = train_out[:-1]
+        a_strs = _num_strs(train_inp)
+        c_strs = _num_strs(clean)
+        if len(a_strs) < 2 or not c_strs:
+            continue
+        rset = _rule_names(a_strs[0], a_strs[1], c_strs[0])
+        if not rset:
+            continue
+        if best_rules is None:
+            best_rules = rset
+        else:
+            inter = best_rules & rset
+            if inter:
+                best_rules = inter
+            elif len(rset) < len(best_rules):
+                best_rules = rset
+
+    if best_rules is None:
+        return None
+
+    # Majority vote across all training pairs
+    votes: Counter[str] = Counter()
+    for train_inp, train_out in op_pairs:
+        out_prefix = ""
+        out_suffix = ""
+        clean_out = train_out
+        if test_op not in _math_signs:
+            if train_out and train_out[0] == test_op:
+                out_prefix = test_op
+                clean_out = train_out[1:]
+            elif train_out and train_out[-1] == test_op:
+                out_suffix = test_op
+                clean_out = train_out[:-1]
+        a_strs = _num_strs(train_inp)
+        c_strs = _num_strs(clean_out)
+        if len(a_strs) < 2 or not c_strs:
+            continue
+        result = _single_pair(
+            a_strs[0],
+            a_strs[1],
+            c_strs[0],
+            ta_strs[0],
+            ta_strs[1],
+            prefer=prefer,
+            allowed=best_rules,
+        )
+        if result is not None:
+            votes[out_prefix + result + out_suffix] += 1
+
+    if not votes:
+        return None
+    return votes.most_common(1)[0][0]
 
 
 def solve_equations(examples: list[tuple[str, str]], test_in: str) -> str:
