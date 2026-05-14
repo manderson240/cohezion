@@ -972,8 +972,71 @@ def _per_op_lookup(examples: list[tuple[str, str]], test_in: str) -> str | None:
         if op:
             op_map[op] = (inp, out)
 
+    # Cross-problem operator semantics: when test op not in training examples,
+    # use the global distribution of operator→rule learned from training data.
+    _GLOBAL_OP_RULE: dict[str, str] = {
+        "+": "concat_ba",
+        "*": "concat_ba",
+        "-": "a-b",
+        "/": "concat_ab",
+        ":": "a-b",
+        "^": "a+b-1",
+        "&": "a+b-1",
+        "|": "b-a",
+        "%": "a+b+1",
+        "!": "a*b+1",
+        '"': "a*b",
+        "#": "concat_ab",
+        "$": "a*b",
+        "'": "a+b",
+        "(": "b-a",
+        ")": "a-b",
+        "<": "a*b+1",
+        ">": "a-b",
+        "?": "concat_ab",
+        "@": "a+b+1",
+        "[": "a+b+1",
+        "\\": "a+b+1",
+        "]": "a+b-1",
+        "`": "a-b",
+        "{": "concat_ab",
+        "}": "a*b+1",
+    }
+
+    def _apply_global(rule: str, a_str: str, b_str: str) -> str | None:
+        if rule == "concat_ab":
+            return a_str + b_str
+        if rule == "concat_ba":
+            return b_str + a_str
+        try:
+            a, b = int(a_str), int(b_str)
+            fn_map: dict[str, int | None] = {
+                "a+b": a + b,
+                "a-b": a - b,
+                "b-a": b - a,
+                "a*b": a * b,
+                "abs": abs(a - b),
+                "a+b+1": a + b + 1,
+                "a+b-1": a + b - 1,
+                "a*b+1": a * b + 1,
+                "a*b-1": a * b - 1,
+                "a*b*2": a * b * 2,
+                "a+b*2": (a + b) * 2,
+            }
+            val = fn_map.get(rule)
+            return str(val) if val is not None else None
+        except Exception:
+            return None
+
     test_op = _get_op(test_in)
     if not test_op or test_op not in op_map:
+        # Fallback: global distribution
+        if test_op and test_op in _GLOBAL_OP_RULE:
+            ta_strs = _num_strs(test_in)
+            if len(ta_strs) >= 2:
+                g = _apply_global(_GLOBAL_OP_RULE[test_op], ta_strs[0], ta_strs[1])
+                if g is not None:
+                    return g
         return None
 
     train_inp, train_out = op_map[test_op]

@@ -1160,8 +1160,65 @@ def _nb_per_op_lookup(examples, test_in):
         if op:
             op_map[op] = (inp, out)
 
+    _GLOBAL_OP_RULE = {
+        "+": "concat_ba",
+        "*": "concat_ba",
+        "-": "a-b",
+        "/": "concat_ab",
+        ":": "a-b",
+        "^": "a+b-1",
+        "&": "a+b-1",
+        "|": "b-a",
+        "%": "a+b+1",
+        "!": "a*b+1",
+        '"': "a*b",
+        "#": "concat_ab",
+        "$": "a*b",
+        "'": "a+b",
+        "(": "b-a",
+        ")": "a-b",
+        "<": "a*b+1",
+        ">": "a-b",
+        "?": "concat_ab",
+        "@": "a+b+1",
+        "[": "a+b+1",
+        "\\": "a+b+1",
+        "]": "a+b-1",
+        "`": "a-b",
+        "{": "concat_ab",
+        "}": "a*b+1",
+    }
+
+    def _apply_global(rule, a_str, b_str):
+        if rule == "concat_ab":
+            return a_str + b_str
+        if rule == "concat_ba":
+            return b_str + a_str
+        try:
+            a, b = int(a_str), int(b_str)
+            fmap = {
+                "a+b": a + b,
+                "a-b": a - b,
+                "b-a": b - a,
+                "a*b": a * b,
+                "a+b+1": a + b + 1,
+                "a+b-1": a + b - 1,
+                "a*b+1": a * b + 1,
+                "a*b-1": a * b - 1,
+            }
+            v = fmap.get(rule)
+            return str(v) if v is not None else None
+        except Exception:
+            return None
+
     test_op = _get_op(test_in)
     if not test_op or test_op not in op_map:
+        if test_op and test_op in _GLOBAL_OP_RULE:
+            ta_strs = _num_strs(test_in)
+            if len(ta_strs) >= 2:
+                g = _apply_global(_GLOBAL_OP_RULE[test_op], ta_strs[0], ta_strs[1])
+                if g is not None:
+                    return g
         return None
 
     train_inp, train_out = op_map[test_op]
