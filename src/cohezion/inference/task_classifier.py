@@ -553,7 +553,7 @@ _GPU_PATTERNS = [
     # "Add X to the [adjective] [function/class/module/code/system]" — code modification
     (
         re.compile(
-            r"\badd\s+(?:[\w-]+\s+){0,4}(?:to\s+(?:the\s+|a\s+|this\s+)?(?:[\w-]+\s+){0,2})(function|class|method|module|code|system|service|api|handler|test|endpoint)\b",
+            r"\badd\s+(?:[\w-]+\s+){0,4}(?:to\s+(?:the\s+|a\s+|this\s+)?(?:[\w.-]+\s+){0,2})(functions?|class(?:es)?|methods?|modules?|code|system|service|api|handlers?|tests?|endpoint|files?\b|scripts?|configs?|schemas?)\b",
             re.I,
         ),
         0.82,
@@ -600,7 +600,7 @@ _GPU_PATTERNS = [
     # Requires a technical object (module/table/schema/weights/endpoint/etc.) to avoid FP
     (
         re.compile(
-            r"\b(?:benchmark|validate|parse|compress|decompress|rename|delete|remove|truncate|drop|enable|disable|toggle|backfill|reindex|sync(?:hronize)?|replay|snapshot|checkpoint|encrypt|decrypt|sign|verify|hash|marshal|unmarshal|minify|transpile|lint|typecheck|fuzz)\s+(?:the\s+|a\s+|an\s+|all\s+|this\s+)?(?:[\w.-]+\s+){0,3}(?:module|function|class|method|service|api\b|endpoint|schema|table|database|collection|bucket|index|data|file|record|records|row|rows|model|weights|config|pipeline|cache|queue|token|cert|key\b|signature|graph|tree|log\b|trace|test|suite|validator|entry|entries|column|field|constraint|migration|node\b|edge\b|query|yaml|json\b|csv|vcf\b|fastq|similarity\b|metric\b|algorithm\b|performance\b|overhead\b|latency\b|throughput\b|accuracy\b|precision\b|recall\b|fallback\b|feature\b|flag\b|threshold\b|limit\b|rate\b|budget\b|tier\b|policy\b|rule\b)\b",
+            r"\b(?:benchmark|validate|parse|compress|decompress|rename|delete|remove|truncate|drop|enable|disable|toggle|backfill|reindex|sync(?:hronize)?|replay|snapshot|checkpoint|encrypt|decrypt|sign|verify|hash|marshal|unmarshal|minify|transpile|lint|typecheck|fuzz|port|convert|wrap|split|merge|hoist|annotate|inject|extract\b|patch|upgrade|downgrade|publish|subscribe|bootstrap|seed|hydrate|dehydrate|memoize|debounce|throttle)\s+(?:the\s+|a\s+|an\s+|all\s+|this\s+)?(?:[\w.-]+\s+){0,3}(?:modules?|functions?|class(?:es)?|methods?|services?|api\b|endpoints?|schemas?|tables?|databases?|collections?|buckets?|indexes?|indices?|data|files?\b|records?|rows?|models?|weights?|configs?|pipelines?|caches?|queues?|tokens?|certs?|keys?\b|signatures?|graphs?|trees?|logs?\b|traces?|tests?|suites?|validators?|entries?|columns?|fields?|constraints?|migrations?|nodes?\b|edges?\b|queries|yaml|json\b|csvs?|vcfs?\b|similarity\b|metrics?\b|algorithms?\b|performances?\b|overhead\b|latency\b|throughput\b|accuracy\b|precision\b|recall\b|fallback\b|features?\b|flags?\b|threshold\b|limits?\b|rates?\b|budgets?\b|tiers?\b|policies?|rules?\b|annotations?|types?\b|interfaces?\b|clients?\b|renderers?|executors?\b|pools?\b|singletons?\b|instances?|components?|hooks?\b|middlewares?|frameworks?|routers?\b|stores?\b|contexts?\b|streams?|buffers?|channels?|sockets?|proxies?|adapters?\b|patterns?\b|strategies?|handlers?\b|listeners?\b|containers?|microservices?)\b",
             re.I,
         ),
         0.83,
