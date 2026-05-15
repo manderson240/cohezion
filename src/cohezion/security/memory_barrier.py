@@ -62,7 +62,13 @@ class MemoryMappedBarrier:
     def allocate(self, allocation_id: str, size_bytes: int) -> GTTAllocation:
         """Allocate a GTT range for a process."""
         if allocation_id in self._allocations:
-            return self._allocations[allocation_id]
+            existing = self._allocations[allocation_id]
+            if existing.size_bytes != size_bytes:
+                raise ValueError(
+                    f"Re-allocation size mismatch for {allocation_id!r}: "
+                    f"existing={existing.size_bytes}, requested={size_bytes}"
+                )
+            return existing
 
         if self._next_base + size_bytes > self._total_gtt:
             raise MemoryError(f"GTT exhausted: cannot allocate {size_bytes} bytes")
