@@ -147,14 +147,16 @@ class TestShortAnswerPatterns:
         assert d.node == "npu"
 
     def test_medium_prompt_tries_npu(self):
-        # 150-400 chars: try NPU first
+        # 150-400 chars with no GPU signal: try NPU first via length heuristic
+        # (Prompt deliberately avoids GPU-trigger verbs like "implement", "write", "explain difference")
         prompt = (
-            "Explain the difference between NPU and GPU routing in the cohezion inference stack and when each is preferred for different task types in the tiered orchestrator. "
-            * 2
+            "In the cohezion inference stack NPU and GPU routing serve different roles. "
+            "The tiered orchestrator selects a node based on task complexity and output length. "
+            "Shorter categorical outputs prefer the NPU tier for latency reasons. "
         )
         prompt = prompt[:300]
         d = classify(prompt)
-        assert d.node == "npu"  # medium prompt → try NPU
+        assert d.node == "npu"  # medium prompt with no GPU signal → NPU
 
 
 # ── Gate correctness invariants ───────────────────────────────────────────────
@@ -246,3 +248,64 @@ def test_route_decision_str_format():
     assert "short_categorical" in s
     assert "gate=0" in s
     assert "conf=1.00" in s
+
+
+# ── EXP-EXPLAIN-HOW-FIX: infinitive verb forms + 0.80→0.85 boosts ────────────
+
+
+class TestExplainHowInfinitives:
+    """explain-how mechanism pattern now matches infinitive verb forms (work/operate/function)."""
+
+    def test_explain_how_jepa_work(self):
+        d = classify("Explain how JEPA world models work")
+        assert d.node == "gpu"
+        assert d.confidence >= 0.85
+
+    def test_explain_how_attention_operate(self):
+        d = classify("Explain how attention mechanisms operate")
+        assert d.node == "gpu"
+        assert d.confidence >= 0.85
+
+    def test_explain_how_cache_function(self):
+        d = classify("Explain how semantic caches function")
+        assert d.node == "gpu"
+        assert d.confidence >= 0.85
+
+    def test_explain_how_prevents_unchanged(self):
+        d = classify("Explain how the circuit breaker prevents cascading failures")
+        assert d.node == "gpu"
+        assert d.confidence >= 0.85
+
+    def test_explain_how_short_stays_npu(self):
+        # Trivial "Explain how this works" — only 5 chars between 'how' and 'works' → NPU
+        d = classify("Explain how this works")
+        assert d.node == "npu"
+
+    def test_explain_how_it_works_stays_npu(self):
+        d = classify("Explain how it works")
+        assert d.node == "npu"
+
+
+@pytest.mark.parametrize(
+    "prompt",
+    [
+        "How do we handle database migrations safely?",
+        "How can we architect the multi-tier router?",
+        "How do you debug a memory leak in Python?",
+        "How do you troubleshoot Kafka consumer lag?",
+        "How to run the compound engineering pipeline?",
+        "How to start the Lemonade NPU server?",
+        "Can you configure the Redis cache settings?",
+        "Can you implement the retry logic for the client?",
+        "Run the benchmark and report the results",
+        "Execute the test suite and show the coverage",
+        "When implementing the semantic cache layer, consider...",
+        "Test the classifier with various edge case inputs",
+        "Test the router with various payload configurations",
+    ],
+)
+def test_procedural_gpu_patterns_at_085(prompt):
+    """Procedural/contextual GPU patterns boosted from 0.80→0.85."""
+    d = classify(prompt)
+    assert d.node == "gpu", f"Expected gpu for: {prompt!r}"
+    assert d.confidence >= 0.85, f"Expected conf >= 0.85, got {d.confidence} for: {prompt!r}"

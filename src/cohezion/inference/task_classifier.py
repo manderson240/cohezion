@@ -102,7 +102,7 @@ _GPU_PATTERNS = [
     # Extended: formula, macro, procedure, query, snippet, lambda, decorator, mixin, interface
     (
         re.compile(
-            r"\b(write|implement|create|generate|build)\s+(a |an |the )?(?:[\w-]+ ){0,3}(?:function|class|script|module|code|program|formula|macro|procedure|query|snippet|lambda|decorator|mixin|interface|getters?|setters?|validators?|serializers?|deserializers?|accessors?|migrations?|fixtures?|resolvers?|middlewares?|driver|routine|handler|client|library|daemon|firmware|plugin|extension|adapter|wrapper|proxy|stub|mock|task\b|job\b|service\b|worker|processor|listener|observer|consumer|producer|publisher|subscriber|widget|screen|fragment|composable|activity\b|viewmodel|repository\b|dao\b|coroutine|category\b|entity\b|component|[\w]*viewcontroller|[\w]*recyclerview|[\w]*tableview|[\w]*collectionview|shader|loop\b|controller\b|renderer|pass\b|pipeline|algorithm|simulation|generator|visualiz(?:er|ation)|importer|exporter|converter|transformer|dispatcher|scheduler|executor|runner|scanner|parser\b|loader|hook\b|contract\b|token\b|wallet|oracle|integration\b|connector|bridge\b|gateway\b|registry\b|factory\b|builder\b|chain\b)\b",
+            r"\b(write|implement|create|generate|build)\s+(a |an |the )?(?:[\w-]+ ){0,3}(?:function|class|script|module|code|program|formula|macro|procedure|query|snippet|lambda|decorator|mixin|interface|getters?|setters?|validators?|serializers?|deserializers?|accessors?|migrations?|fixtures?|resolvers?|middlewares?|driver|routine|handler|client|library|daemon|firmware|plugin|extension|adapter|wrapper|proxy|stub|mock|task\b|job\b|service\b|worker|processor|listener|observer|consumer|producer|publisher|subscriber|widget|screen|fragment|composable|activity\b|viewmodel|repository\b|dao\b|coroutine|category\b|entity\b|component|[\w]*viewcontroller|[\w]*recyclerview|[\w]*tableview|[\w]*collectionview|shader|loop\b|controller\b|renderer|pass\b|pipeline|algorithm|simulation|generator|visualiz(?:er|ation)|importer|exporter|converter|transformer|dispatcher|scheduler|executor|runner|scanner|parser\b|loader|hook\b|contract\b|token\b|wallet|oracle|integration\b|connector|bridge\b|gateway\b|registry\b|factory\b|builder\b|chain\b|pool\b|lock(?:ing)?\b|replicas?\b|replication\b|cluster\b|shard(?:ing)?\b|partition(?:ing)?\b|trigger\b|view\b|materialized\b|microservices?)\b",
             re.I,
         ),
         1.0,
@@ -146,7 +146,7 @@ _GPU_PATTERNS = [
     # "we" = team-level architectural question; excludes "I/you" + simple run/check verbs
     (
         re.compile(r"\bhow (do|can|should|might|would) we\b", re.I),
-        0.80,
+        0.85,
         "procedural guidance how-do-we",
     ),
     # "How to configure/implement/handle/manage" — requires substantial follow-up context
@@ -166,12 +166,13 @@ _GPU_PATTERNS = [
         "detailed explanation with preamble",
     ),
     # Implement [complex artifact] — logic/pipeline/system/workflow/mechanism
+    # Article is optional: "implement complex logic for..." and "implement the X logic..." both match
     (
         re.compile(
-            r"\bimplement (the |a |an )\w+.{5,}\b(logic|pipeline|system|workflow|mechanism)\b",
+            r"\bimplement (?:the |a |an )?\w+.{5,}\b(logic|pipeline|system|workflow|mechanism)\b",
             re.I,
         ),
-        0.80,
+        0.85,
         "implement complex logic/system",
     ),
     # Implement [multi-word component] (broader than above — catches "impl the semantic cache with...")
@@ -230,7 +231,7 @@ _GPU_PATTERNS = [
     # "When implementing X" / "While implementing X" — gerund form of implement
     (
         re.compile(r"\b(?:when|while|after|before)\s+implementing\b", re.I),
-        0.80,
+        0.85,
         "implementing gerund context",
     ),
     # "Deploy/provision/migrate X to/from/on Y" — cloud deployment verbs
@@ -282,19 +283,48 @@ _GPU_PATTERNS = [
         "best practices enumeration",
     ),
     # Explain how [mechanism] [does something] — causation explanation
+    # .{8,} excludes trivial "Explain how this works" (≤7 chars gap); allows multi-word subjects
+    # Matches both third-person singular (works, operates) and infinitive (work, operate)
     (
         re.compile(
-            r"\bexplain how\b.{5,}\b(prevents|enables|improves|works|operates|handles)\b",
+            r"\bexplain how\b.{8,}\b(prevents?|enables?|improves?|works?|operates?|handles?|functions?|behaves?)\b",
             re.I | re.S,
         ),
-        0.80,
+        0.85,
         "explain how mechanism",
     ),
     # How do you [diagnose/fix/solve/debug] — troubleshooting questions
     (
         re.compile(r"\bhow do you (diagnose|debug|fix|solve|troubleshoot|handle)\b", re.I),
-        0.80,
+        0.85,
         "troubleshooting how-do-you",
+    ),
+    # Imperative troubleshoot/diagnose — "Troubleshoot slow queries", "Debug the OOM error"
+    (
+        re.compile(
+            r"^(?:troubleshoot|diagnose|debug|investigate)\s+.{5,}",
+            re.I,
+        ),
+        0.85,
+        "imperative troubleshoot/debug",
+    ),
+    # "Explain the difference between X and Y" — comparative explanation
+    (
+        re.compile(
+            r"\bexplain (the )?(difference|distinction|trade-?offs?|pros and cons|advantages|disadvantages)\b",
+            re.I,
+        ),
+        0.88,
+        "explain difference/tradeoffs",
+    ),
+    # "How does X work" — mechanism explanation (does ≠ imperative do)
+    (
+        re.compile(
+            r"\bhow does?\s+\w+(?:\s+\w+)?\s+(work|function|operate|behave|handle)\b",
+            re.I,
+        ),
+        0.85,
+        "how does X work",
     ),
     # Document generation extended — analysis, guide, benchmark, comparison, overview
     (
@@ -311,13 +341,13 @@ _GPU_PATTERNS = [
             r"\bcan you (resume|manage|orchestrate|handle|coordinate|configure|implement|create|build)\b",
             re.I,
         ),
-        0.80,
+        0.85,
         "can-you-action-request",
     ),
     # "How to run / execute / set up [task]" — procedural execution
     (
         re.compile(r"\bhow to (run|execute|start|launch|trigger|perform|conduct)\b", re.I),
-        0.80,
+        0.85,
         "how-to-run-execute",
     ),
     # "Implement the [adjective(s)]* policy/strategy/approach/pipeline"
@@ -389,7 +419,7 @@ _GPU_PATTERNS = [
             r"\btest (the |a |an )\w+.{0,30}\b(configurations?|scenarios?|cases?|fixture|input)\b",
             re.I,
         ),
-        0.80,
+        0.85,
         "test with various configurations",
     ),
     # ML/training task verbs — fine-tune, train, finetune (expanded targets including model names)
@@ -422,10 +452,10 @@ _GPU_PATTERNS = [
     # "Why is/are [X] [doing/returning/failing/scoring]" — specific debugging verbs
     (
         re.compile(
-            r"\bwhy (is|are|does|did|isn't|aren't|doesn't|didn't)\b.{0,60}\b(returning|fail(ing)?|scoring|not|error|broken|wrong|zero|null|empty|opening|dropping|crashing|slow|leaking|growing|blocking|hanging?|stuck|exhausting|falling|rising|spiking|timing\s+out|degrading|throwing|breaking)\b",
+            r"\bwhy (is|are|does|did|isn't|aren't|doesn't|didn't)\b.{0,60}\b(returning|fail(ing)?|scoring|not|error|broken|wrong|zero|null|empty|opening|dropping|crashing|slow|leaking|growing|blocking|hanging?|stuck|exhausting|falling|rising|spiking|timing\s+out|degrading|throwing|breaking|oscillating|converging|diverging|saturating|plateauing)\b",
             re.I,
         ),
-        0.82,
+        0.85,
         "debugging why-question",
     ),
     # Long "why" question (≥45 chars) — complex system behavior investigation
@@ -564,7 +594,7 @@ _GPU_PATTERNS = [
             r"\b(run|execute)\s+(the |a |an )(\w+ ){0,3}(and|then) (report|show|list|output|print|display|log)\b",
             re.I,
         ),
-        0.80,
+        0.85,
         "run-and-report task",
     ),
     # "Run [tool] experiment/tracking" — ML experiment management
@@ -700,10 +730,12 @@ _NEGATION_PATTERN = re.compile(
 
 # Brevity-qualified summarize/critique/interpret: "Summarize X in one paragraph" → short answer (NPU)
 # Also: "Briefly summarize/critique/interpret X" → NPU
+# Also: "In one sentence, summarize X" (leading brevity qualifier) → NPU
 # Without brevity qualifier: "Summarize the contributions of BERT" → GPU
 _BREVITY_SUMMARIZE_PATTERN = re.compile(
     r"(?:\bbriefly\s+(?:summarize|critique|interpret|formulate|explain)\b)|"
-    r"(?:\bsummariz(?:e|ing)\b.{0,80}\b(?:in\s+(?:one|two|three|a\s+single)\s+(?:sentence|paragraph|bullet|word|line)|in\s+brief)\b)",
+    r"(?:\bsummariz(?:e|ing)\b.{0,80}\b(?:in\s+(?:one|two|three|a\s+single)\s+(?:sentence|paragraph|bullet|word|line)|in\s+brief)\b)|"
+    r"(?:^in\s+(?:one|two|three|a\s+single)\s+(?:sentence|paragraph|word|line)[,.]?\s+(?:summarize|explain|describe|state|tell|give)\b)",
     re.I | re.S,
 )
 
