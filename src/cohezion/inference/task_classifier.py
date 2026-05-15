@@ -420,7 +420,7 @@ _GPU_PATTERNS = [
     # "Give me an example / Show me how" — code demonstration request
     (
         re.compile(
-            r"\b(?:give\s+me|show\s+me)\s+(?:an?\s+)?(?:example|demo|sample|snippet|usage|use\s+case|how\s+to\s+use|how\s+this\s+works?)\b",
+            r"\b(?:give\s+me|show\s+me)\s+(?:an?\s+)?(?:[\w-]+\s+)?(?:example|demo|sample|snippet|usage|use\s+case|how\s+to\s+use|how\s+this\s+works?)\b",
             re.I,
         ),
         0.85,
