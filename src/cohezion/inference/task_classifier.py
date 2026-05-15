@@ -156,7 +156,7 @@ _GPU_PATTERNS = [
             r"\bhow (do|can|should|to) (set up|configure|implement|handle|fix|manage)\b.{10,}",
             re.I,
         ),
-        0.82,
+        0.85,
         "procedural how-to-configure",
     ),
     # Explain [content] in detail / step-by-step — preamble content may separate them
@@ -189,7 +189,7 @@ _GPU_PATTERNS = [
             r"\bimplement\s+(?:(?:the|a|an|this)\s+(?:feature|fix|change|solution|logic|idea|concept|requirement|improvement|enhancement|refactor|optimization|integration|endpoint|service|check|guard|hook)|(?:one|it|them|this|that)\b)",
             re.I,
         ),
-        0.82,
+        0.85,
         "implement the feature/fix",
     ),
     # "implement sorting/caching/searching/batching/anonymization/etc" — algorithm/operation as direct object
@@ -279,7 +279,7 @@ _GPU_PATTERNS = [
     # Best practices / guidelines / recommendations — requires detailed enumeration
     (
         re.compile(r"\bwhat are (the |some )?(best practices|guidelines|recommendations)\b", re.I),
-        0.82,
+        0.85,
         "best practices enumeration",
     ),
     # Explain how [mechanism] [does something] — causation explanation
@@ -357,7 +357,7 @@ _GPU_PATTERNS = [
             r"\bimplement (the |a |an ).{0,40}\b(policy|strategy|approach|mechanism|framework|workflow)\b",
             re.I,
         ),
-        0.82,
+        0.85,
         "implement policy/strategy",
     ),
     # "Write a [adj]* test suite" — broader test generation
@@ -386,7 +386,7 @@ _GPU_PATTERNS = [
             r"\b(refactor|optimize|profile|debug|audit|trace|rewrite|rework|improve|translate|adapt|summarize|critique|formulate|interpret|hypothesize)\b.{0,30}\b(the|a|an|this|it|these|those)\b",
             re.I,
         ),
-        0.82,
+        0.85,
         "engineering task verb",
     ),
     # Code review — "review" only when paired with code-specific nouns
@@ -395,7 +395,7 @@ _GPU_PATTERNS = [
             r"\breview\b.{0,30}\b(code|implementation|pull\s+request|pr\b|changes|diff|api|module|test|function|class|endpoint|service)\b",
             re.I,
         ),
-        0.82,
+        0.85,
         "code review task",
     ),
     # "Document the [X] with examples/API/guide" — structured documentation
@@ -410,7 +410,7 @@ _GPU_PATTERNS = [
             r"\bcompare\b.{0,40}\b(and|vs|versus)\b.{0,40}\b(quality|performance|latency|accuracy|response)\b",
             re.I,
         ),
-        0.82,
+        0.85,
         "comparative evaluation",
     ),
     # "Test the [X] with various [Y] configurations" — test design requiring analysis
@@ -437,7 +437,7 @@ _GPU_PATTERNS = [
             r"\b(integrate|wire up|connect|hook up|set up)\b.{0,40}\b(with|into|to|integration|monitoring|tracking|observability)\b",
             re.I,
         ),
-        0.82,
+        0.85,
         "system integration task",
     ),
     # Wire X into Y (without "up") — service wiring
@@ -446,7 +446,7 @@ _GPU_PATTERNS = [
             r"\bwire\s+(?:the\s+)?\w+(?:\s+\w+)?\s+(?:service|module|component|layer|system)\b",
             re.I,
         ),
-        0.82,
+        0.85,
         "service wiring task",
     ),
     # "Why is/are [X] [doing/returning/failing/scoring]" — specific debugging verbs
@@ -503,7 +503,7 @@ _GPU_PATTERNS = [
             r"\b(create|build|add)\s+(?:a\s+)?(?:[\w-]+\s+){0,3}(endpoint|service|api\b|cache|pipeline|queue|handler|middleware|dashboard|visualization|report|portal|agent|bot|workflow|framework|harness|scaffold|index\b|view\b|trigger\b|constraint|migration|role\b|policy|lifecycle|bucket|cluster|repository|registry)\b",
             re.I,
         ),
-        0.82,
+        0.85,
         "build service or endpoint",
     ),
     # "Configure [tech/service]" as an imperative — NOT part of "How to configure X?" question
@@ -522,7 +522,7 @@ _GPU_PATTERNS = [
             r"\bperform\s+(?:a\s+|an\s+|the\s+)?(?:[\w-]+\s+){0,3}(?:analysis|audit|assessment|evaluation|benchmarking|profiling|eda|testing|migration|review)\b",
             re.I,
         ),
-        0.82,
+        0.85,
         "perform analysis task",
     ),
     # "Add X to the [adjective] [function/class/module/code/system]" — code modification
@@ -531,7 +531,7 @@ _GPU_PATTERNS = [
             r"\badd\s+(?:[\w-]+\s+){0,4}(?:to\s+(?:the\s+|a\s+|this\s+)?(?:[\w-]+\s+){0,2})(function|class|method|module|code|system|service|api|handler|test|endpoint)\b",
             re.I,
         ),
-        0.82,
+        0.85,
         "add to code artifact",
     ),
     # "Add documentation/logging/monitoring/metrics to X" — observability additions
@@ -540,7 +540,7 @@ _GPU_PATTERNS = [
             r"\badd\s+(?:[\w/.-]+\s+)*(documentation|logging|monitoring|metrics|tracing|observability|telemetry|swagger|openapi)\s+(?:to|for)\b",
             re.I,
         ),
-        0.82,
+        0.85,
         "add observability/docs",
     ),
     # "Fix the [bug/issue] in X" OR "Fix it/them/this" — code fix commands
@@ -558,25 +558,27 @@ _GPU_PATTERNS = [
             r"\b(scaffold|stub\s+out?|mock|process|handle|extend|simplify|dockerize|containerize|serialize|paginate)\s+(?:the\s+|a\s+|an\s+|this\s+)?(?:[\w-]+\s+){0,3}\w+\b",
             re.I,
         ),
-        0.82,
+        0.85,
         "short imperative code op",
     ),
     # "Make [the/a] X more/less [readable/efficient/testable/...] — code quality improvement
+    # {0,3} allows multi-word subjects like "Make the task classifier more readable"
     (
         re.compile(
-            r"\bmake\s+(?:the\s+|a\s+|this\s+)?(?:[\w-]+\s+)?(?:more\s+|less\s+)?(?:readable|efficient|testable|maintainable|performant|scalable|clean|modular|robust|reusable|thread.safe|async(?:hronous)?|synchronous|idempotent|stateless|observable|resilient|fault.tolerant|clear(?:er)?|simple(?:r)?|fast(?:er)?|small(?:er)?|concise(?:r)?)\b",
+            r"\bmake\s+(?:the\s+|a\s+|this\s+)?(?:[\w-]+\s+){0,3}(?:more\s+|less\s+)?(?:readable|efficient|testable|maintainable|performant|scalable|clean|modular|robust|reusable|thread.safe|async(?:hronous)?|synchronous|idempotent|stateless|observable|resilient|fault.tolerant|clear(?:er)?|simple(?:r)?|fast(?:er)?|small(?:er)?|concise(?:r)?)\b",
             re.I,
         ),
-        0.82,
+        0.85,
         "make-code-quality",
     ),
-    # "Update the [tests/function/class/code/module] to [action]" — code update task
+    # "Update the [artifact] to [action]" — code update task
+    # Expanded noun list covers specialist nouns (classifier, orchestrator, suite, etc.)
     (
         re.compile(
-            r"\bupdate\s+(?:the\s+)?(?:[\w-]+\s+){0,2}(tests?|function|class|method|module|code|schema|config|service|api|endpoint)\s+to\b",
+            r"\bupdate\s+(?:the\s+)?(?:[\w-]+\s+){0,2}(tests?|suite|function|class|method|module|code|schema|config|service|api|endpoint|classifier|router|orchestrator|pipeline|handler|adapter|registry|scheduler|processor|harness|agent|worker|workflow)\s+to\b",
             re.I,
         ),
-        0.82,
+        0.85,
         "update code artifact",
     ),
     # "Create a K8s/Terraform deployment manifest/spec" — infra manifest
@@ -603,7 +605,7 @@ _GPU_PATTERNS = [
             r"\brun\s+(?:the\s+)?\w+\s+(?:experiment|tracking|benchmark|evaluation|ablation)\b",
             re.I,
         ),
-        0.82,
+        0.85,
         "ml experiment run",
     ),
     # Derive/calculate without explicit "step" — complex mathematical operations
@@ -653,7 +655,7 @@ _GPU_PATTERNS = [
             r"\bcalculate\s+(?:the\s+)?(?:\w+\s+){1,3}(?:for|with|given|across|over)\s+",
             re.I,
         ),
-        0.82,
+        0.85,
         "calculate-for quantitative task",
     ),
     # Code generation with hyphenated adjective (e.g. "Implement the JEPA-based reward function")
@@ -668,13 +670,13 @@ _GPU_PATTERNS = [
     # Comparative analysis — "Compare the X vs Y", "Analyze the X metrics", "Evaluate the trade-offs"
     (
         re.compile(r"\b(compare|analyze|evaluate|assess)\s+the\b", re.I),
-        0.82,
+        0.85,
         "comparative or analytical task",
     ),
     # "Compare X vs Y" / "Compare X versus Y" — direct comparison without "the"
     (
         re.compile(r"\bcompare\s+\w+\s+(?:vs\.?|versus)\b", re.I),
-        0.82,
+        0.85,
         "direct A-vs-B comparison",
     ),
     # Walk-through / describe full lifecycle
@@ -682,13 +684,13 @@ _GPU_PATTERNS = [
         re.compile(
             r"\b(walk\s+(?:me\s+)?through|describe\s+the\s+(full|complete|entire|detailed))\b", re.I
         ),
-        0.82,
+        0.85,
         "walk-through or full description",
     ),
     # "Plan how to [migrate/build/redesign]" — architectural planning
     (
         re.compile(r"\bplan\s+how\s+to\b", re.I),
-        0.82,
+        0.85,
         "architectural planning task",
     ),
     # Draft/write document types — README, ADR, post-mortem, report, proposal
@@ -712,7 +714,7 @@ _GPU_PATTERNS = [
             r"\b(?:recommended|best)\s+(?:approaches|strategies|patterns|ways|practices)\s+(?:for|to)\b",
             re.I,
         ),
-        0.82,
+        0.85,
         "recommended approaches analysis",
     ),
 ]

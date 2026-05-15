@@ -309,3 +309,61 @@ def test_procedural_gpu_patterns_at_085(prompt):
     d = classify(prompt)
     assert d.node == "gpu", f"Expected gpu for: {prompt!r}"
     assert d.confidence >= 0.85, f"Expected conf >= 0.85, got {d.confidence} for: {prompt!r}"
+
+
+# ── EXP-0.82-BATCH-BOOST: bug fixes + 21×0.82→0.85 ──────────────────────────
+
+
+class TestMakeCodeQualityMultiWord:
+    """make-code-quality now allows up to 3 words before quality adjective."""
+
+    def test_two_word_subject(self):
+        d = classify("Make the task classifier more readable")
+        assert d.node == "gpu"
+        assert d.confidence >= 0.85
+
+    def test_two_word_subject_maintainable(self):
+        d = classify("Make the routing logic more maintainable")
+        assert d.node == "gpu"
+        assert d.confidence >= 0.85
+
+    def test_fp_guard_no_quality_adj(self):
+        d = classify("Make it work")
+        assert d.node == "npu"
+
+
+class TestUpdateCodeArtifactExpanded:
+    """update-code-artifact now covers suite, classifier, orchestrator, etc."""
+
+    def test_update_test_suite(self):
+        d = classify("Update the test suite to use async fixtures")
+        assert d.node == "gpu"
+        assert d.confidence >= 0.85
+
+    def test_update_classifier(self):
+        d = classify("Update the classifier to handle streaming inputs")
+        assert d.node == "gpu"
+        assert d.confidence >= 0.85
+
+
+@pytest.mark.parametrize(
+    "prompt",
+    [
+        "What are the best practices for distributed systems design?",
+        "Refactor the cost-aware router to use async patterns",
+        "Review the compound executor implementation",
+        "Compare the triune orchestrator vs flat routing approach",
+        "Perform a security audit of the auth service",
+        "Add logging to the classifier for debugging",
+        "Scaffold a new microservice with FastAPI",
+        "Run the inference benchmark and report results",
+        "Calculate the average latency for 1000 concurrent requests",
+        "Walk me through the complete compound engineering loop",
+        "Plan how to migrate the SurrealDB schema",
+    ],
+)
+def test_batch_0_82_boost_to_085(prompt):
+    """21 GPU patterns boosted from 0.82→0.85 with no regressions."""
+    d = classify(prompt)
+    assert d.node == "gpu", f"Expected gpu for: {prompt!r}"
+    assert d.confidence >= 0.85, f"Expected conf >= 0.85, got {d.confidence} for: {prompt!r}"
