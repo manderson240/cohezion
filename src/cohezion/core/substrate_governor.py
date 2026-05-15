@@ -116,7 +116,7 @@ class SubstrateGovernor:
                 self._state.factor,
             )
 
-        elif pressure < self._recovery_target and self._state.factor > 1.0:
+        elif pressure <= self._recovery_target and self._state.factor > 1.0:
             self._state.level = PressureLevel.NORMAL
             self._state.factor = 1.0
             self._emit("recovery", pressure, 1.0)
