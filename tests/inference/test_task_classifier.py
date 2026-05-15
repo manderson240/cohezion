@@ -665,6 +665,87 @@ def test_can_this_be_done_stays_npu():
     assert d.node == "npu"
 
 
+# ── EXP-IMPLEMENT-MULTIWORD-FIX + EXP-MISC-QUESTIONS ────────────────────────
+
+
+@pytest.mark.parametrize(
+    "prompt",
+    [
+        "Implement the retry mechanism",
+        "Implement a CQRS pattern",
+        "Implement the event sourcing system",
+        "Implement the outbox pattern",
+    ],
+)
+def test_implement_multi_word_short_form_gpu(prompt):
+    """Short 'implement X Y' forms no longer fall to NPU (removed .{5,} guard)."""
+    d = classify(prompt)
+    assert d.node == "gpu", f"Expected gpu for: {prompt!r}"
+    assert d.confidence >= 0.82
+
+
+@pytest.mark.parametrize(
+    "prompt",
+    [
+        "Is this idiomatic?",
+        "Is this the right approach?",
+        "Is this an anti-pattern?",
+    ],
+)
+def test_is_this_right_approach_gpu(prompt):
+    """'Is this idiomatic/right approach/anti-pattern' routes GPU."""
+    d = classify(prompt)
+    assert d.node == "gpu", f"Expected gpu for: {prompt!r}"
+    assert d.confidence >= 0.85
+
+
+@pytest.mark.parametrize(
+    "prompt",
+    [
+        "How do I resolve this merge conflict?",
+        "How do I squash these commits?",
+        "How do I deploy this service?",
+        "How do we migrate this database?",
+    ],
+)
+def test_how_do_i_dev_op_gpu(prompt):
+    """'How do I/we [dev operation]' routes GPU."""
+    d = classify(prompt)
+    assert d.node == "gpu", f"Expected gpu for: {prompt!r}"
+    assert d.confidence >= 0.85
+
+
+@pytest.mark.parametrize(
+    "prompt",
+    [
+        "Give me an example of this",
+        "Show me how to use this",
+        "Give me a code example",
+    ],
+)
+def test_give_me_example_gpu(prompt):
+    """'Give me an example / Show me how' routes GPU."""
+    d = classify(prompt)
+    assert d.node == "gpu", f"Expected gpu for: {prompt!r}"
+    assert d.confidence >= 0.85
+
+
+@pytest.mark.parametrize(
+    "prompt",
+    [
+        "What is the memory usage here?",
+        "What is the latency of this call?",
+        "How expensive is this operation?",
+        "How slow is this query?",
+    ],
+)
+def test_performance_metric_gpu(prompt):
+    """Performance metric questions route GPU."""
+    d = classify(prompt)
+    assert d.node == "gpu", f"Expected gpu for: {prompt!r}"
+    assert d.confidence >= 0.85
+
+
 # ── EXP-CONDITIONAL-EXPLAIN: what-happens, explain-artifact, config, passive ─
 
 

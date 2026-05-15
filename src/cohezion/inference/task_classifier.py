@@ -216,16 +216,17 @@ _GPU_PATTERNS = [
     # Article is optional: "implement complex logic for..." and "implement the X logic..." both match
     (
         re.compile(
-            r"\bimplement (?:the |a |an )?\w+.{5,}\b(logic|pipeline|system|workflow|mechanism)\b",
+            r"\bimplement (?:the |a |an )?\w+.{5,}\b(logic|pipeline|system|workflow|mechanism|pattern|strategy|architecture|framework|approach|protocol|solution)\b",
             re.I,
         ),
         0.85,
         "implement complex logic/system",
     ),
-    # Implement [multi-word component] (broader than above — catches "impl the semantic cache with...")
-    # Excludes "why did we implement" (retrospective decision — NPU)
+    # Implement [multi-word component] — catches any "implement the/a/an X Y" form
+    # Removed .{5,} guard: "Implement the retry mechanism" (short, still GPU) was failing
+    # Excludes "why did we implement" (retrospective decision — NPU, fired earlier)
     (
-        re.compile(r"\bimplement (the |a |an )\w+\s+\w+\b.{5,}", re.I),
+        re.compile(r"\bimplement (the |a |an )\w+\s+\w+\b", re.I),
         0.82,
         "implement multi-word component",
     ),
@@ -242,7 +243,7 @@ _GPU_PATTERNS = [
     # "implement sorting/caching/searching/batching/anonymization/etc" — algorithm/operation as direct object
     (
         re.compile(
-            r"\bimplement\s+(?:the\s+|a\s+|an\s+)?(?:[\w-]+\s+){0,3}(?:sort(?:ing)?|search(?:ing)?|cach(?:e|ing)|hash(?:ing)?|batch(?:ing)?|rout(?:e|ing)|queu(?:e|ing)|stack(?:ing)?|heap|tree|graph|shard(?:ing)?|auto.shard(?:ing)?|auto.scal(?:e|ing)?|index(?:ing)?|filter(?:ing)?|compres(?:s|sion)|encod(?:e|ing)|anon(?:ymiz(?:e|ation)|ymisation)?|encrypt(?:ion)?|decrypt(?:ion)?|authenticat(?:e|ion)|authoriz(?:e|ation)|paginat(?:e|ion)|throttl(?:e|ing)|algorithm|protocol|webhook|recogni(?:tion|ze)|summariz(?:ation|ing|e)|classif(?:ication|y)|translat(?:ion|e)|detect(?:ion)?|extract(?:ion)?|pars(?:ing|e)|tagg(?:ing)?|segment(?:ation)?|cluster(?:ing)?|embed(?:ding)?|ota\s+(?:update|firmware)|firmware\s+update|isr|interrupt|persistence|notification\s+handling|push\s+notification|sync(?:hronization)?)\b",
+            r"\bimplement\s+(?:the\s+|a\s+|an\s+)?(?:[\w-]+\s+){0,3}(?:sort(?:ing)?|search(?:ing)?|cach(?:e|ing)|hash(?:ing)?|batch(?:ing)?|rout(?:e|ing)|queu(?:e|ing)|stack(?:ing)?|heap|tree|graph|shard(?:ing)?|auto.shard(?:ing)?|auto.scal(?:e|ing)?|index(?:ing)?|filter(?:ing)?|compres(?:s|sion)|encod(?:e|ing)|anon(?:ymiz(?:e|ation)|ymisation)?|encrypt(?:ion)?|decrypt(?:ion)?|authenticat(?:e|ion)|authoriz(?:e|ation)|paginat(?:e|ion)|throttl(?:e|ing)|algorithm|protocol|webhook|recogni(?:tion|ze)|summariz(?:ation|ing|e)|classif(?:ication|y)|translat(?:ion|e)|detect(?:ion)?|extract(?:ion)?|pars(?:ing|e)|tagg(?:ing)?|segment(?:ation)?|cluster(?:ing)?|embed(?:ding)?|ota\s+(?:update|firmware)|firmware\s+update|isr|interrupt|persistence|notification\s+handling|push\s+notification|sync(?:hronization)?|retry(?:\s+logic|\s+mechanism|\s+policy)?|backoff(?:\s+strategy)?|circuit\s+break(?:er|ing)?|observer|singleton|factory\s+pattern|strategy\s+pattern|command\s+pattern|decorator\s+pattern|facade|mediator|visitor|cqrs|event\s+sourc(?:ing)?|saga\s+pattern|outbox|inbox|pub.?sub|ddd|hexagonal|onion\s+architecture|clean\s+architecture|repository\s+pattern|unit\s+of\s+work)\b",
             re.I,
         ),
         0.85,
