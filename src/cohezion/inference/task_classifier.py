@@ -158,6 +158,15 @@ _GPU_PATTERNS = [
         0.85,
         "how-should-I-structure architectural guidance",
     ),
+    # "How should [subject] be [handled/structured/done]" — passive voice architectural guidance
+    (
+        re.compile(
+            r"\bhow should\s+(?:\w+\s+){0,3}be\s+(?:handled|done|implemented|structured|organized|managed|configured|tested|used|written|designed|built|stored|cached|deployed|monitored|secured|validated|parsed|serialized|authorized|authenticated)\b",
+            re.I,
+        ),
+        0.85,
+        "how-should-X-be passive architectural guidance",
+    ),
     # "Should I use X or Y" / "Should this query use X" — architectural/tool decision
     (
         re.compile(
@@ -355,6 +364,66 @@ _GPU_PATTERNS = [
         ),
         0.85,
         "imperative troubleshoot/debug",
+    ),
+    # "What happens if/when X" — conditional/failure analysis
+    (
+        re.compile(r"\bwhat happens\s+(?:if|when|after|before)\b.{5,}", re.I),
+        0.85,
+        "what-happens-if conditional analysis",
+    ),
+    # "Explain this regex / SQL / function" — technical artifact explanation
+    (
+        re.compile(
+            r"\bexplain\s+(?:this|the)\s+(?:regex|regexp?|sql|query|function|method|class|code|algorithm|pattern|expression|formula|snippet|line|block|command|statement|loop|condition|assertion|decorator|hook|middleware|schema|migration|config|rule)\b",
+            re.I,
+        ),
+        0.85,
+        "explain-this-artifact",
+    ),
+    # "Should this/the X be async/stateless/cached" — design property decision
+    (
+        re.compile(
+            r"\bshould\s+(?:this|the)\s+(?:\w+\s+){0,3}be\s+(?:async(?:hronous)?|sync(?:hronous)?|cached|lazy|eager|stateful|stateless|idempotent|atomic|transactional|immutable|mutable|concurrent|sequential|blocking|non.blocking|threaded|single.threaded)\b",
+            re.I,
+        ),
+        0.85,
+        "should-this-be property decision",
+    ),
+    # "What should the X be / What is a good/reasonable X" — config/tuning guidance
+    (
+        re.compile(
+            r"\bwhat\s+(?:should\s+(?:the\s+)?(?:\w+\s+){0,3}be\s+(?:set\s+to|configured|set)?|is\s+(?:a\s+)?(?:good|reasonable|appropriate|optimal|recommended|sensible|safe|typical|standard|normal)\b)",
+            re.I,
+        ),
+        0.85,
+        "config tuning guidance",
+    ),
+    # "How many [connections/requests/threads/workers]" — capacity analysis
+    (
+        re.compile(
+            r"\bhow many\s+(?:\w+\s+){0,3}(?:connections?|requests?|threads?|workers?|instances?|retries?|replicas?|shards?|partitions?|nodes?|pods?|tasks?|jobs?|queries?|records?|rows?|entries?)\b",
+            re.I,
+        ),
+        0.85,
+        "how-many-capacity analysis",
+    ),
+    # "What exceptions/errors/cases should I handle/catch" — error handling design
+    (
+        re.compile(
+            r"\bwhat\s+(?:exceptions?|errors?|cases?|scenarios?|edge\s+cases?)\s+should\s+(?:I|we)\s+(?:catch|handle|cover|test|consider|account\s+for|be\s+aware\s+of)\b",
+            re.I,
+        ),
+        0.85,
+        "what-exceptions-to-handle",
+    ),
+    # "What are the alternatives to X" / "What is a reasonable X strategy" — design alternatives
+    (
+        re.compile(
+            r"\bwhat\s+(?:are\s+(?:the\s+)?alternatives?\s+to\b|is\s+(?:a\s+)?(?:good|reasonable|appropriate|recommended)\s+\w+\s+(?:strategy|approach|policy|configuration|setting|value|threshold|limit|size|interval|timeout|ttl)\b)",
+            re.I,
+        ),
+        0.85,
+        "design alternatives/configuration",
     ),
     # "Is there a [race condition/memory leak/bottleneck/bug]" — diagnostic code question
     (

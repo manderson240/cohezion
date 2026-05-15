@@ -665,6 +665,102 @@ def test_can_this_be_done_stays_npu():
     assert d.node == "npu"
 
 
+# ── EXP-CONDITIONAL-EXPLAIN: what-happens, explain-artifact, config, passive ─
+
+
+@pytest.mark.parametrize(
+    "prompt",
+    [
+        "What happens if the database goes down?",
+        "What happens when the cache expires?",
+        "What happens after a connection timeout?",
+    ],
+)
+def test_what_happens_if_gpu(prompt):
+    """'What happens if/when X' routes GPU as conditional analysis."""
+    d = classify(prompt)
+    assert d.node == "gpu", f"Expected gpu for: {prompt!r}"
+    assert d.confidence >= 0.85
+
+
+@pytest.mark.parametrize(
+    "prompt",
+    [
+        "Explain this regex",
+        "Explain this SQL query",
+        "Explain this algorithm",
+        "Explain the migration",
+    ],
+)
+def test_explain_this_artifact_gpu(prompt):
+    """'Explain this [technical artifact]' routes GPU."""
+    d = classify(prompt)
+    assert d.node == "gpu", f"Expected gpu for: {prompt!r}"
+    assert d.confidence >= 0.85
+
+
+@pytest.mark.parametrize(
+    "prompt",
+    [
+        "How should errors be handled here?",
+        "How should the data be structured?",
+        "How should authentication be implemented?",
+    ],
+)
+def test_how_should_x_be_passive_gpu(prompt):
+    """'How should X be [done]' passive-voice architectural guidance routes GPU."""
+    d = classify(prompt)
+    assert d.node == "gpu", f"Expected gpu for: {prompt!r}"
+    assert d.confidence >= 0.85
+
+
+@pytest.mark.parametrize(
+    "prompt",
+    [
+        "Should this be async?",
+        "Should this function be stateless?",
+        "Should this operation be atomic?",
+    ],
+)
+def test_should_this_be_property_gpu(prompt):
+    """'Should this be [technical property]' routes GPU."""
+    d = classify(prompt)
+    assert d.node == "gpu", f"Expected gpu for: {prompt!r}"
+    assert d.confidence >= 0.85
+
+
+@pytest.mark.parametrize(
+    "prompt",
+    [
+        "What exceptions should I catch?",
+        "What errors should I handle?",
+        "What edge cases should I consider?",
+    ],
+)
+def test_what_exceptions_to_handle_gpu(prompt):
+    """'What exceptions/errors/edge cases should I handle' routes GPU."""
+    d = classify(prompt)
+    assert d.node == "gpu", f"Expected gpu for: {prompt!r}"
+    assert d.confidence >= 0.85
+
+
+@pytest.mark.parametrize(
+    "prompt",
+    [
+        "What should the timeout be set to?",
+        "What is a good cache TTL here?",
+        "What are the alternatives to Redis?",
+        "What is a reasonable retry strategy?",
+        "How many connections can this pool hold?",
+    ],
+)
+def test_config_tuning_guidance_gpu(prompt):
+    """Config/tuning guidance and design alternatives route GPU."""
+    d = classify(prompt)
+    assert d.node == "gpu", f"Expected gpu for: {prompt!r}"
+    assert d.confidence >= 0.85
+
+
 # ── EXP-SHORT-FORMS: enable/setup, code-review, help-me, vulnerability, idiom ─
 
 
