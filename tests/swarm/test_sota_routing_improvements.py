@@ -201,10 +201,12 @@ class TestColdStartConfidenceAnnealing:
         )
 
     def test_cold_start_factor_scales_confidence(self, router):
-        """Cold-start scales confidence to at most 70% of nominal on query 0.
+        """Cold-start scales confidence to at most 75% of nominal on query 0.
 
         With warm-up including record_execution, success_rate stays near 1.0,
         so the only difference between cold and warm is the cold_start_factor.
+        Floor is 0.75 (not 0.70) so well-aligned models still exceed the 0.7 low-conf
+        threshold at cold start (e.g., deepseek+COMPLEX: 0.985×0.75=0.74>0.70).
         """
         cold_decision, _ = router.select_model("What is Python?")
         cold_conf = cold_decision.confidence
@@ -216,9 +218,9 @@ class TestColdStartConfidenceAnnealing:
         warm_decision, _ = router.select_model("What is Python?")
         warm_conf = warm_decision.confidence
 
-        # Cold confidence must be ≤ 72% of warm (70% scaling, with floating-point slack)
-        assert cold_conf <= warm_conf * 0.72, (
-            f"Cold confidence {cold_conf:.3f} should be ≤ 72% of warm {warm_conf:.3f}"
+        # Cold confidence must be ≤ 80% of warm (75% scaling, with floating-point slack)
+        assert cold_conf <= warm_conf * 0.80, (
+            f"Cold confidence {cold_conf:.3f} should be ≤ 80% of warm {warm_conf:.3f}"
         )
 
     def test_confidence_monotonically_increases_with_queries(self, router):

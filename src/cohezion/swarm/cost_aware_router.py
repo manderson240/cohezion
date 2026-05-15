@@ -1204,13 +1204,14 @@ class CostAwareRouter:
         confidence = (quality * 0.3 + success_rate * 0.4 + alignment * 0.3) * degradation_factor
 
         # ── Improvement 3: Cold-start confidence annealing (arXiv:2310.15440 routing analogy)
-        # During cold start (no session history), confidence is conservatively scaled to 0.7×.
+        # During cold start (no session history), confidence is conservatively scaled to 0.75×.
         # Linearly anneals to 1.0× as query count reaches COLD_START_WARMUP.
-        # Prevents over-committed routing decisions before calibration data accumulates.
+        # Floor of 0.75 ensures well-aligned models (quality≈0.95) still exceed the 0.7
+        # low-confidence threshold even at cold start (0.95 × 0.75 = 0.713 > 0.7).
         _COLD_START_WARMUP = 10
         total_decisions = sum(self.query_count_per_model.values())
         cold_start_factor = min(1.0, total_decisions / _COLD_START_WARMUP)
-        confidence = confidence * (0.7 + 0.3 * cold_start_factor)
+        confidence = confidence * (0.75 + 0.25 * cold_start_factor)
 
         return min(1.0, max(0.0, confidence))
 
