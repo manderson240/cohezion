@@ -22,9 +22,13 @@ class ModelConfig:
     transform: str = "phi3:mini"
     persist: str = "phi3:mini"
 
+    _KNOWN_OPS: frozenset[str] = frozenset({"generate", "analyze", "search", "transform", "persist"})
+
     def for_operation(self, operation: str) -> str:
         """Get model for operation."""
-        return getattr(self, operation, "phi3:mini")
+        if operation not in self._KNOWN_OPS:
+            return "phi3:mini"
+        return getattr(self, operation)
 
 
 @dataclass
@@ -119,7 +123,7 @@ class CohezionConfig:
         return self.token_budget.for_operation
 
     def to_dict(self) -> dict:
-        """Export config as dictionary."""
+        """Export config as dictionary (all fields)."""
         return {
             "models": {
                 "generate": self.models.generate,
@@ -129,20 +133,37 @@ class CohezionConfig:
                 "persist": self.models.persist,
             },
             "token_budget": {
+                "generate_max": self.token_budget.generate_max,
+                "analyze_max": self.token_budget.analyze_max,
+                "search_max": self.token_budget.search_max,
+                "transform_max": self.token_budget.transform_max,
+                "persist_max": self.token_budget.persist_max,
                 "per_execution_max": self.token_budget.per_execution_max,
                 "per_session_max": self.token_budget.per_session_max,
             },
             "cache": {
                 "enabled": self.cache.enabled,
                 "max_size": self.cache.max_size,
+                "ttl_seconds": self.cache.ttl_seconds,
+                "hash_method": self.cache.hash_method,
             },
             "batch": {
                 "enabled": self.batch.enabled,
                 "max_batch_size": self.batch.max_batch_size,
                 "parallel_tasks": self.batch.parallel_tasks,
+                "timeout_seconds": self.batch.timeout_seconds,
+                "phase1_cache_check": self.batch.phase1_cache_check,
+                "phase2_parallel_execute": self.batch.phase2_parallel_execute,
             },
             "inference": {
                 "context_max_tokens": self.inference.context_max_tokens,
+                "context_prune_ratio": self.inference.context_prune_ratio,
+                "num_predict_default": self.inference.num_predict_default,
                 "timeout_default": self.inference.timeout_default,
+                "timeout_per_token": self.inference.timeout_per_token,
+                "retry_on_timeout": self.inference.retry_on_timeout,
+                "stream_responses": self.inference.stream_responses,
             },
+            "debug": self.debug,
+            "verbose": self.verbose,
         }
