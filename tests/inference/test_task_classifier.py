@@ -504,3 +504,67 @@ def test_what_should_i_do_no_context_stays_npu():
     """Bare 'What should I do?' with no when/if context stays NPU."""
     d = classify("What should I do?")
     assert d.node == "npu"
+
+
+# ── EXP-COVERAGE-GAPS: code transforms, diagnostics, indirect why ─────────────
+
+
+@pytest.mark.parametrize(
+    "prompt",
+    [
+        "Port this code to TypeScript",
+        "Convert the function to async",
+        "Wrap this in a try-catch",
+        "Extract a utility function",
+        "Rename this variable to snake_case",
+        "Benchmark the two approaches",
+    ],
+)
+def test_code_transform_verbs_gpu(prompt):
+    """Code transformation verbs (port/convert/wrap/extract/rename/benchmark) route GPU."""
+    d = classify(prompt)
+    assert d.node == "gpu", f"Expected gpu for: {prompt!r}"
+    assert d.confidence >= 0.85
+
+
+@pytest.mark.parametrize(
+    "prompt",
+    [
+        "Is there a race condition here?",
+        "Is there a memory leak in this code?",
+        "Is there a deadlock in the transaction handler?",
+    ],
+)
+def test_is_there_diagnostic(prompt):
+    """'Is there a [technical issue]' routes GPU via diagnostic pattern."""
+    d = classify(prompt)
+    assert d.node == "gpu", f"Expected gpu for: {prompt!r}"
+    assert d.confidence >= 0.85
+
+
+@pytest.mark.parametrize(
+    "prompt",
+    [
+        "What is wrong with this code?",
+        "What could be causing the memory leak?",
+        "What might be the reason for the performance issue?",
+    ],
+)
+def test_root_cause_analysis(prompt):
+    """'What is wrong / what could be causing' routes GPU as root-cause analysis."""
+    d = classify(prompt)
+    assert d.node == "gpu", f"Expected gpu for: {prompt!r}"
+    assert d.confidence >= 0.85
+
+
+def test_can_you_explain_why_gpu():
+    """'Can you explain why' indirect form routes GPU after can-you-action extension."""
+    d = classify("Can you explain why this might be slower than expected?")
+    assert d.node == "gpu"
+    assert d.confidence >= 0.85
+
+
+def test_is_there_meeting_stays_npu():
+    """'Is there a meeting' (non-technical) stays NPU — no matching issue keyword."""
+    d = classify("Is there a meeting tomorrow?")
+    assert d.node == "npu"

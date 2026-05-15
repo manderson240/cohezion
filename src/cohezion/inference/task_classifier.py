@@ -318,6 +318,24 @@ _GPU_PATTERNS = [
         0.85,
         "imperative troubleshoot/debug",
     ),
+    # "Is there a [race condition/memory leak/bottleneck/bug]" — diagnostic code question
+    (
+        re.compile(
+            r"\bis there\s+(?:a\s+|an\s+)?(?:potential\s+|possible\s+|any\s+)?(?:race\s+condition|memory\s+leak|bottleneck|deadlock|bug|security\s+(?:issue|vulnerability|flaw)|performance\s+(?:issue|problem)|data\s+race|infinite\s+loop|null\s+pointer|off.by.one|buffer\s+overflow|sql\s+injection)\b",
+            re.I,
+        ),
+        0.85,
+        "diagnostic code issue question",
+    ),
+    # "What is wrong with / what could be causing / what might cause" — root-cause analysis
+    (
+        re.compile(
+            r"\bwhat (is|are|could be|might be|would be)\s+(?:wrong|causing|the\s+(?:cause|reason|issue|problem|bug|error))\b",
+            re.I,
+        ),
+        0.85,
+        "root-cause analysis question",
+    ),
     # "Explain the difference between X and Y" — comparative explanation
     (
         re.compile(
@@ -347,10 +365,11 @@ _GPU_PATTERNS = [
         0.92,
         "document generation extended nouns",
     ),
-    # "Can you [action verb] those/these/the [noun]" — multi-step task requests
+    # "Can you [action verb]" — multi-step task requests
+    # Extended with explain/analyze/review/check for indirect GPU questions
     (
         re.compile(
-            r"\bcan you (resume|manage|orchestrate|handle|coordinate|configure|implement|create|build)\b",
+            r"\bcan you (resume|manage|orchestrate|handle|coordinate|configure|implement|create|build|explain|analyze|review|check|diagnose|debug|optimize|refactor)\b",
             re.I,
         ),
         0.85,
@@ -566,10 +585,11 @@ _GPU_PATTERNS = [
         0.85,
         "fix bug in code",
     ),
-    # Short imperative code operations: scaffold/stub/mock/process/handle/extend/simplify/dockerize
+    # Short imperative code operations: scaffold/stub/mock + transformation verbs
+    # Extended with code-transformation verbs: port/convert/wrap/extract/rename/benchmark/etc.
     (
         re.compile(
-            r"\b(scaffold|stub\s+out?|mock|process|handle|extend|simplify|dockerize|containerize|serialize|paginate)\s+(?:the\s+|a\s+|an\s+|this\s+)?(?:[\w-]+\s+){0,3}\w+\b",
+            r"\b(scaffold|stub\s+out?|mock|process|handle|extend|simplify|dockerize|containerize|serialize|paginate|port|convert|wrap|extract|rename|inline|flatten|normalize|canonicalize|benchmark)\s+(?:the\s+|a\s+|an\s+|this\s+)?(?:[\w-]+\s+){0,3}\w+\b",
             re.I,
         ),
         0.85,
