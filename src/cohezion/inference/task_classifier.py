@@ -18,7 +18,10 @@ from typing import Literal
 # quality_gate_chars=0 means "trust any non-empty response"
 _TYPE_CONFIG: dict[str, tuple[Literal["npu", "gpu"], int]] = {
     "short_categorical": ("npu", 0),  # single word / letter / label
-    "short_answer": ("npu", 10),  # 1-3 sentences, direct answer
+    "short_answer": (
+        "npu",
+        50,
+    ),  # 1-3 sentences; gate=50 empirically calibrated (1B-FLM warm responses: 350-600 chars)
     "medium_generation": ("gpu", 0),  # multi-sentence, some structure
     "long_generation": ("gpu", 0),  # essay, detailed explanation
     "code": ("gpu", 0),  # code output
