@@ -865,7 +865,7 @@ _GPU_PATTERNS = [
     # Allows qualifier adjectives before bug noun (off-by-one error, null pointer exception)
     (
         re.compile(
-            r"\bfix\s+(?:(?:(?:the|a|an|this|that|your|my)\s+)?(?:[\w.-]+\s+){0,3}(?:bug|issue|error|problem|crash|failure|regression|exception|warning|test)\b.{0,30}\b(?:in|with|at|for)\b|(?:it|them|this|that)\b)",
+            r"\bfix\s+(?:(?:(?:the|a|an|this|that|your|my)\s+)?(?:[\w.-]+\s+){0,5}(?:bug|issue|error|problem|crash|failure|regression|exception|warning|test)\b(?:.{0,30}\b(?:in|with|at|for)\b)?|(?:it|them|this|that)\b)",
             re.I,
         ),
         0.85,
