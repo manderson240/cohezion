@@ -570,6 +570,101 @@ def test_is_there_meeting_stays_npu():
     assert d.node == "npu"
 
 
+# ── EXP-REVIEW-QUESTIONS: code review, scale, test coverage, O(n), DRY ───────
+
+
+@pytest.mark.parametrize(
+    "prompt",
+    [
+        "Is this thread-safe?",
+        "Is this query optimized?",
+        "Is this O(n²)?",
+        "Is this following the DRY principle?",
+    ],
+)
+def test_is_this_code_property_gpu(prompt):
+    """'Is this [property]' code review questions route GPU."""
+    d = classify(prompt)
+    assert d.node == "gpu", f"Expected gpu for: {prompt!r}"
+    assert d.confidence >= 0.85
+
+
+@pytest.mark.parametrize(
+    "prompt",
+    [
+        "Does this follow the single responsibility principle?",
+        "Is this following the DRY principle?",
+    ],
+)
+def test_code_principle_check_gpu(prompt):
+    """'Does/Is this follow/following [principle]' routes GPU."""
+    d = classify(prompt)
+    assert d.node == "gpu", f"Expected gpu for: {prompt!r}"
+    assert d.confidence >= 0.85
+
+
+@pytest.mark.parametrize(
+    "prompt",
+    [
+        "Can this be parallelized?",
+        "Can this be memoized?",
+        "Can this be cached?",
+    ],
+)
+def test_can_this_be_gpu(prompt):
+    """'Can this be [capability]' routes GPU."""
+    d = classify(prompt)
+    assert d.node == "gpu", f"Expected gpu for: {prompt!r}"
+    assert d.confidence >= 0.85
+
+
+@pytest.mark.parametrize(
+    "prompt",
+    [
+        "What should I test here?",
+        "Am I missing any test cases?",
+    ],
+)
+def test_test_coverage_question_gpu(prompt):
+    """Test coverage questions route GPU."""
+    d = classify(prompt)
+    assert d.node == "gpu", f"Expected gpu for: {prompt!r}"
+    assert d.confidence >= 0.85
+
+
+def test_will_this_scale_gpu():
+    """'Will this scale to X' routes GPU as scalability analysis."""
+    d = classify("Will this scale to 1 million users?")
+    assert d.node == "gpu"
+    assert d.confidence >= 0.85
+
+
+def test_should_this_query_use_index_gpu():
+    """'Should this query use an index?' routes GPU."""
+    d = classify("Should this query use an index?")
+    assert d.node == "gpu"
+    assert d.confidence >= 0.85
+
+
+def test_is_there_better_way_gpu():
+    """'Is there a better way to do this?' routes GPU."""
+    d = classify("Is there a better way to do this?")
+    assert d.node == "gpu"
+    assert d.confidence >= 0.85
+
+
+def test_is_this_correct_stays_npu():
+    """'Is this correct?' (too vague) stays NPU."""
+    d = classify("Is this correct?")
+    assert d.node == "npu"
+
+
+def test_can_this_be_done_stays_npu():
+    """'Can this be done?' (not in capability list) stays NPU."""
+    d = classify("Can this be done?")
+    assert d.node == "npu"
+
+
 # ── EXP-SHORT-FORMS: enable/setup, code-review, help-me, vulnerability, idiom ─
 
 

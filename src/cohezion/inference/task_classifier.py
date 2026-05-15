@@ -158,10 +158,11 @@ _GPU_PATTERNS = [
         0.85,
         "how-should-I-structure architectural guidance",
     ),
-    # "Should I use X or Y" — architectural/tool decision
+    # "Should I use X or Y" / "Should this query use X" — architectural/tool decision
     (
         re.compile(
-            r"\bshould (?:I|we)\s+use\b.{3,}\b(?:or|vs\.?|versus)\b",
+            r"\bshould (?:I|we)\s+use\b.{3,}\b(?:or|vs\.?|versus)\b"
+            r"|\bshould (?:this|the)\s+(?:\w+\s+){0,2}use\b",
             re.I,
         ),
         0.85,
@@ -363,6 +364,70 @@ _GPU_PATTERNS = [
         ),
         0.85,
         "diagnostic code issue question",
+    ),
+    # "Is there a better way / approach / alternative" — improvement question
+    (
+        re.compile(
+            r"\bis\s+there\s+(?:a\s+|an\s+)?better\s+(?:way|approach|solution|alternative|method|pattern|design)\b",
+            re.I,
+        ),
+        0.85,
+        "is-there-a-better-way",
+    ),
+    # "Is this [thread-safe/optimized/O(n)/following DRY]" — code review property check
+    # Note: O\( without \b — unicode superscripts (²) are \w so \b fails after n
+    (
+        re.compile(
+            r"\bis\s+this\s+(?:\w+\s+){0,3}(?:thread.safe|type.safe|null.safe|idempotent|optimized|efficient|scalable|secure|concurrent.safe|following|following\s+the|O\()",
+            re.I,
+        ),
+        0.85,
+        "is-this-code-property",
+    ),
+    # "Does this follow the [principle/pattern]" — code quality principle check
+    (
+        re.compile(
+            r"\b(?:does|is)\s+this\s+(?:follow|following|comply|adhere|conform)\b",
+            re.I,
+        ),
+        0.85,
+        "code-principle-check",
+    ),
+    # "Can this be [parallelized/optimized/cached/...]" — code capability question
+    (
+        re.compile(
+            r"\bcan\s+this\s+be\s+(?:parallelized|optimized|vectorized|cached|memoized|batched|streamed|distributed|shared|reused|simplified|generalized|abstracted|tested|mocked|inlined|refactored)\b",
+            re.I,
+        ),
+        0.85,
+        "can-this-be code question",
+    ),
+    # "Will/Can this scale/handle/work/perform" — scalability analysis
+    (
+        re.compile(
+            r"\b(?:will|can)\s+this\s+(?:scale|handle|work|perform|run|support)\b.{5,}",
+            re.I,
+        ),
+        0.85,
+        "scalability analysis question",
+    ),
+    # "What should I test / Am I missing test cases" — test coverage question
+    (
+        re.compile(
+            r"\b(?:what\s+should\s+(?:I|we)\s+test|am\s+I\s+missing\s+(?:any\s+)?test|what\s+test\s+cases?\s+(?:am\s+I\s+missing|should\s+I\s+add))\b",
+            re.I,
+        ),
+        0.85,
+        "test coverage question",
+    ),
+    # "What is the bottleneck / What do I need" — GPU-appropriate what-is questions
+    (
+        re.compile(
+            r"\bwhat\s+(?:is\s+(?:the\s+)?(?:bottleneck|root\s+cause|issue|problem|bug)\s+(?:here|in\s+this)|do\s+(?:I|we)\s+need\s+(?:to\s+)?\w+|environment\s+variables?|(?:env|config)\s+vars?)\b",
+            re.I,
+        ),
+        0.85,
+        "what-is-the-bottleneck/need",
     ),
     # "What is wrong / what could be causing / what caused X to fail / what does this mean" — analysis
     (
