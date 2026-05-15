@@ -11,6 +11,8 @@ Implements:
 Verified against adversarial review findings.
 """
 
+from __future__ import annotations
+
 import asyncio
 import concurrent.futures
 import json
@@ -224,7 +226,7 @@ class CheckpointManager:
         removed = 0
         for path in self.checkpoint_dir.glob("phase_*.json"):
             pid = int(path.stem.split("_")[1])
-            if pid >= phase_id:
+            if pid < phase_id:
                 path.unlink()
                 removed += 1
         return removed
@@ -374,11 +376,12 @@ async def retry_with_backoff(
     Raises:
         Exception: If all retries fail
     """
-    for attempt in range(max_retries):
+    # range(max_retries + 1): 1 initial attempt + up to max_retries retries
+    for attempt in range(max_retries + 1):
         try:
             return await operation()
         except exceptions as e:
-            if attempt == max_retries - 1:
+            if attempt == max_retries:
                 raise
 
             delay = min(base_delay * (2**attempt), max_delay)

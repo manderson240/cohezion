@@ -164,10 +164,13 @@ class TaskQueue:
             while queue:
                 task = queue.pop(0)
 
-                # Check expiry
+                # Check expiry and retry exhaustion
                 if task.has_expired():
                     logger.debug(f"Task {task.task_id} expired after {time.time() - task.enqueued_at:.1f}s")
                     self.metrics.total_expired += 1
+                    continue
+                if not task.can_retry():
+                    logger.debug(f"Task {task.task_id} exhausted ({task.attempts}/{task.max_attempts} attempts)")
                     continue
 
                 # Task is valid
