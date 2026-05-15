@@ -640,3 +640,101 @@ def test_make_pythonic_gpu():
     d = classify("Make this more Pythonic")
     assert d.node == "gpu"
     assert d.confidence >= 0.85
+
+
+# ── EXP-ARCH-SHORT-OPS: structural ops, arch questions, error analysis ────────
+
+
+@pytest.mark.parametrize(
+    "prompt",
+    [
+        "Split this into smaller functions",
+        "Remove the duplication",
+        "Move this to a separate module",
+        "Decouple the authentication from the router",
+    ],
+)
+def test_structural_code_ops_gpu(prompt):
+    """split/move/remove/decouple added to engineering-task-verb."""
+    d = classify(prompt)
+    assert d.node == "gpu", f"Expected gpu for: {prompt!r}"
+    assert d.confidence >= 0.85
+
+
+@pytest.mark.parametrize(
+    "prompt",
+    [
+        "Add pagination support",
+        "Add type hints",
+        "Add caching",
+        "Add retry logic",
+    ],
+)
+def test_add_feature_directly_gpu(prompt):
+    """'Add [feature/support]' without 'to [artifact]' routes GPU."""
+    d = classify(prompt)
+    assert d.node == "gpu", f"Expected gpu for: {prompt!r}"
+    assert d.confidence >= 0.85
+
+
+@pytest.mark.parametrize(
+    "prompt",
+    [
+        "How should I structure this codebase?",
+        "How should I design the data model?",
+        "Should I use a monorepo or separate repos?",
+        "What is the best architecture for a microservices system?",
+        "What is the best approach for handling retries?",
+    ],
+)
+def test_architectural_guidance_gpu(prompt):
+    """Architectural guidance questions (how-should-I, best-architecture) route GPU."""
+    d = classify(prompt)
+    assert d.node == "gpu", f"Expected gpu for: {prompt!r}"
+    assert d.confidence >= 0.85
+
+
+@pytest.mark.parametrize(
+    "prompt",
+    [
+        "What is the time complexity of this algorithm?",
+        "What are the edge cases I should handle?",
+        "What are the tradeoffs between REST and GraphQL?",
+    ],
+)
+def test_technical_analysis_the_gpu(prompt):
+    """'What are THE [tradeoffs/edge-cases/complexity]' routes GPU (requires 'the')."""
+    d = classify(prompt)
+    assert d.node == "gpu", f"Expected gpu for: {prompt!r}"
+    assert d.confidence >= 0.85
+
+
+@pytest.mark.parametrize(
+    "prompt",
+    [
+        "What are edge cases?",
+        "What is time complexity?",
+        "What is a monorepo?",
+    ],
+)
+def test_definitional_what_stays_npu(prompt):
+    """'What are/is X?' without 'the' stays NPU (definitional, not analysis)."""
+    d = classify(prompt)
+    assert d.node == "npu", f"Expected npu for: {prompt!r}"
+
+
+@pytest.mark.parametrize(
+    "prompt",
+    [
+        "Why am I getting a 503 error?",
+        "Why am I seeing unexpected null values?",
+        "What does this stack trace mean?",
+        "What caused this test to fail?",
+        "What triggered the memory spike?",
+    ],
+)
+def test_error_analysis_gpu(prompt):
+    """Error/cause analysis prompts route GPU."""
+    d = classify(prompt)
+    assert d.node == "gpu", f"Expected gpu for: {prompt!r}"
+    assert d.confidence >= 0.85

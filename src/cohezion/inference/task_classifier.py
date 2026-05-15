@@ -149,6 +149,43 @@ _GPU_PATTERNS = [
         0.85,
         "procedural guidance how-do-we",
     ),
+    # "How should I structure/design/organize/architect X" — individual architectural guidance
+    (
+        re.compile(
+            r"\bhow should (?:I|we)\s+(?:structure|design|organize|architect|layout|model|approach|handle|set\s+up)\b",
+            re.I,
+        ),
+        0.85,
+        "how-should-I-structure architectural guidance",
+    ),
+    # "Should I use X or Y" — architectural/tool decision
+    (
+        re.compile(
+            r"\bshould (?:I|we)\s+use\b.{3,}\b(?:or|vs\.?|versus)\b",
+            re.I,
+        ),
+        0.85,
+        "should-I-use A-or-B decision",
+    ),
+    # "What are THE [edge cases / time complexity / tradeoffs]" — technical analysis
+    # Requires "the" to avoid FP on definitional "What are edge cases?" (no "the")
+    (
+        re.compile(
+            r"\bwhat (is|are)\s+the\s+(?:edge\s+cases?|time\s+complexity|space\s+complexity|big.?o|tradeoffs?|trade.offs?|performance\s+implications?|memory\s+implications?|implications?\s+of|limitations?\s+of|constraints?\s+of|downsides?\s+of|risks?\s+of|best\s+(?:architecture|approach|design|solution|option|choice|way))\b",
+            re.I,
+        ),
+        0.85,
+        "technical analysis question",
+    ),
+    # "What is the best [architecture/approach/design] for X" — architectural guidance
+    (
+        re.compile(
+            r"\bwhat(?:'s| is| are)\s+(?:the\s+)?(?:best|recommended|preferred|ideal|proper|right)\s+(?:architecture|approach|design|solution|option|way|method|strategy|pattern)\s+(?:for|to|when)\b",
+            re.I,
+        ),
+        0.85,
+        "best architecture/approach question",
+    ),
     # "How to configure/implement/handle/manage" — requires substantial follow-up context
     # (≥10 chars after the keyword to exclude "How to configure nginx?" style short queries)
     (
@@ -327,10 +364,11 @@ _GPU_PATTERNS = [
         0.85,
         "diagnostic code issue question",
     ),
-    # "What is wrong with / what could be causing / what might cause" — root-cause analysis
+    # "What is wrong / what could be causing / what caused X to fail / what does this mean" — analysis
     (
         re.compile(
-            r"\bwhat (is|are|could be|might be|would be)\s+(?:wrong|causing|the\s+(?:cause|reason|issue|problem|bug|error))\b",
+            r"\bwhat (is|are|could be|might be|would be|caused|does\s+this|does\s+the)\s+(?:wrong|causing|the\s+(?:cause|reason|issue|problem|bug|error)|(?:stack\s+trace|error|warning|exception|traceback|output)(?:\s+mean)?|mean\b)"
+            r"|\bwhat (caused|triggered|broke|made|led\s+to)\b.{3,40}\b(?:fail(?:ure|ing)?|break|crash|stop|hang|slow\s+down|return|throw|spike|surge|drop|leak|error|timeout|regression|degradation)\b",
             re.I,
         ),
         0.85,
@@ -411,10 +449,11 @@ _GPU_PATTERNS = [
         "code generation multi-adjective",
     ),
     # Engineering task verbs — refactor, debug, profile, optimize, audit, trace
-    # "review" excluded — too ambiguous ("review before meeting" FP). Use code-review pattern below.
+    # Extended with structural ops: split/move/remove/delete/decouple/decompose
+    # "review" excluded — too ambiguous. Use code-review pattern below.
     (
         re.compile(
-            r"\b(refactor|optimize|profile|debug|audit|trace|rewrite|rework|improve|translate|adapt|summarize|critique|formulate|interpret|hypothesize)\b.{0,30}\b(the|a|an|this|it|these|those)\b",
+            r"\b(refactor|optimize|profile|debug|audit|trace|rewrite|rework|improve|translate|adapt|summarize|critique|formulate|interpret|hypothesize|split|move|remove|delete|decouple|decompose|consolidate|migrate|merge|inline|flatten|hoist)\b.{0,30}\b(the|a|an|this|it|these|those)\b",
             re.I,
         ),
         0.85,
@@ -483,9 +522,10 @@ _GPU_PATTERNS = [
     # "Why is/are [X] [doing/returning/failing/scoring]" — specific debugging verbs
     # Also covers noun-form degradation/drop (e.g. "throughput degradation", "hit rate drop")
     # and trend verbs (increasing/decreasing) for performance investigation questions
+    # Also: "why am I getting/seeing" first-person error form
     (
         re.compile(
-            r"\bwhy (is|are|does|did|isn't|aren't|doesn't|didn't)\b.{0,60}\b(returning|fail(ing)?|scoring|not|error|broken|wrong|zero|null|empty|opening|dropping|crashing|slow|leaking|growing|blocking|hanging?|stuck|exhausting|falling|rising|spiking|timing\s+out|degrading|degradation|throwing|breaking|oscillating|converging|diverging|saturating|plateauing|drop(?:\s+below)?|declin(?:e|ing)|decreas(?:e|ing)|increas(?:e|ing)|persisting?)\b",
+            r"\bwhy (is|are|am|does|did|isn't|aren't|am\s+not|doesn't|didn't)\b.{0,60}\b(returning|fail(ing)?|scoring|not|error|broken|wrong|zero|null|empty|opening|dropping|crashing|slow|leaking|growing|blocking|hanging?|stuck|exhausting|falling|rising|spiking|timing\s+out|degrading|degradation|throwing|breaking|oscillating|converging|diverging|saturating|plateauing|drop(?:\s+below)?|declin(?:e|ing)|decreas(?:e|ing)|increas(?:e|ing)|persisting?|getting|seeing|experiencing|having)\b",
             re.I,
         ),
         0.85,
@@ -575,6 +615,15 @@ _GPU_PATTERNS = [
         ),
         0.85,
         "add observability/docs",
+    ),
+    # "Add X support/feature/type-hints" — direct feature addition without "to [artifact]"
+    (
+        re.compile(
+            r"\badd\s+(?:[\w-]+\s+){0,3}(?:support|feature|functionality|capability|handling|hints?\b|annotations?\b|docstrings?\b|validation|caching|pagination|retry(?:\s+logic)?|timeout|types?\b|generics?|overloads?)\b",
+            re.I,
+        ),
+        0.85,
+        "add feature directly",
     ),
     # "Fix the [bug/issue] in X" OR "Fix it/them/this" — code fix commands
     (
