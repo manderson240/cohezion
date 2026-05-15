@@ -221,6 +221,12 @@ class AuditLogger:
                                     continue
                                 if resource and not entry.resource.startswith(resource):
                                     continue
+                                # Intra-day timestamp bounds
+                                ts = entry.timestamp
+                                if ts.tzinfo is None:
+                                    ts = ts.replace(tzinfo=UTC)
+                                if ts < start_date or ts > end_date:
+                                    continue
 
                                 entries.append(entry)
 
@@ -264,21 +270,19 @@ class AuditLogger:
             from io import StringIO
 
             output = StringIO()
+            fieldnames = [
+                "timestamp",
+                "agent_id",
+                "action",
+                "resource",
+                "status",
+                "details",
+                "ip_address",
+                "user_agent",
+            ]
+            writer = csv.DictWriter(output, fieldnames=fieldnames)
+            writer.writeheader()
             if entries:
-                writer = csv.DictWriter(
-                    output,
-                    fieldnames=[
-                        "timestamp",
-                        "agent_id",
-                        "action",
-                        "resource",
-                        "status",
-                        "details",
-                        "ip_address",
-                        "user_agent",
-                    ],
-                )
-                writer.writeheader()
                 for entry in entries:
                     row = asdict(entry)
                     row["action"] = row["action"].value
