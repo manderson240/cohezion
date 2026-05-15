@@ -113,7 +113,8 @@ class ZeroCopyValidator:
             if self._last_good_snapshot is None:
                 raise ChecksumValidationError("Checksum failed and no snapshot available")
 
-            values = list(struct.unpack(f"{MANIFOLD_DIM}d", self._last_good_snapshot))
+            snap_dim = len(self._last_good_snapshot) // FLOAT64_BYTES
+            values = list(struct.unpack(f"{snap_dim}d", self._last_good_snapshot))
             return values
 
         # Successfully validated — update snapshot
