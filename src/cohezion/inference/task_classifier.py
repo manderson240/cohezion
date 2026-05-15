@@ -181,7 +181,7 @@ _GPU_PATTERNS = [
     # Requires "the" to avoid FP on definitional "What are edge cases?" (no "the")
     (
         re.compile(
-            r"\bwhat (is|are)\s+the\s+(?:edge\s+cases?|time\s+complexity|space\s+complexity|big.?o|tradeoffs?|trade.offs?|performance\s+implications?|memory\s+implications?|implications?\s+of|limitations?\s+of|constraints?\s+of|downsides?\s+of|risks?\s+of|best\s+(?:architecture|approach|design|solution|option|choice|way))\b",
+            r"\bwhat (is|are)\s+the\s+(?:edge\s+cases?|time\s+complexity|space\s+complexity|tradeoffs?|trade.offs?|performance\s+implications?|memory\s+implications?|implications?\s+of|limitations?\s+of|constraints?\s+of|downsides?\s+of|risks?\s+of|best\s+(?:architecture|approach|design|solution|option|choice|way))\b",
             re.I,
         ),
         0.85,
@@ -601,7 +601,8 @@ _GPU_PATTERNS = [
     # "What is wrong / what could be causing / what caused X to fail / what does this mean" — analysis
     (
         re.compile(
-            r"\bwhat (is|are|could be|might be|would be|caused|does\s+this|does\s+the)\s+(?:wrong|causing|the\s+(?:cause|reason|issue|problem|bug|error)|(?:stack\s+trace|error|warning|exception|traceback|output)(?:\s+mean)?|mean\b)"
+            r"\bwhat (is|are|could be|might be|would be|caused)\s+(?:wrong|causing|the\s+(?:cause|reason|issue|problem|bug|error))\b"
+            r"|\bwhat does\s+(?:this|the)\s+(?:stack\s+trace|warning|exception|traceback|output)\b"
             r"|\bwhat (caused|triggered|broke|made|led\s+to)\b.{3,40}\b(?:fail(?:ure|ing)?|break|crash|stop|hang|slow\s+down|return|throw|spike|surge|drop|leak|error|timeout|regression|degradation)\b",
             re.I,
         ),
