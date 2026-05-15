@@ -585,6 +585,42 @@ _GPU_PATTERNS = [
         0.85,
         "fix bug in code",
     ),
+    # "Set up / Enable / Activate [infra/config]" — imperative config tasks
+    (
+        re.compile(
+            r"\b(?:set\s+up|enable|activate|turn\s+on)\s+(?:a\s+|an\s+|the\s+)?(?:[\w-]+\s+){0,2}(?:rate\s+limit(?:ing)?|connection\s+pool(?:ing)?|load\s+balanc(?:er|ing)?|circuit\s+breaker|cache(?:\s+invalidation)?|health\s+check(?:s|ing)?|retry(?:\s+logic)?|timeout|failover|caching|tracing|monitoring|logging|rate\s+limiting|auth(?:entication|orization)?|ssl|tls|compression|pagination|webhook|event\s+streaming)\b",
+            re.I,
+        ),
+        0.85,
+        "imperative enable/setup config",
+    ),
+    # "Does/Would/Could this [code/impl] [look correct/cause issue/introduce bug]" — code review impact
+    (
+        re.compile(
+            r"\b(?:does|would|could|might)\s+this\s+(?:\w+\s+){0,3}(?:look\s+(?:correct|right|good|ok)|cause\s+(?:a\s+)?(?:performance|memory|security|concurrency)\s+(?:issue|problem|leak|race|bug)|introduce\s+(?:a\s+)?(?:\w+\s+)?(?:bug|regression|issue|vulnerability|race|leak|bottleneck|deadlock|conflict|error))\b",
+            re.I,
+        ),
+        0.85,
+        "code review impact question",
+    ),
+    # "Help me [debug/understand/analyze]" — guided debugging/analysis
+    (
+        re.compile(
+            r"\bhelp\s+me\s+(?:debug|understand|analyze|analyse|investigate|figure\s+out|interpret|diagnose|fix|optimize|review)\b",
+            re.I,
+        ),
+        0.85,
+        "help me debug/analyze",
+    ),
+    # Security vulnerability questions — "Is this vulnerable to X" / "Are there any vulnerabilities"
+    (
+        re.compile(
+            r"\b(?:vulnerable\s+to|vulnerability|xss|csrf|sql\s+injection|injection\s+(?:attack|vulnerability)|security\s+(?:flaw|hole|gap|risk))\b",
+            re.I,
+        ),
+        0.85,
+        "security vulnerability question",
+    ),
     # Short imperative code operations: scaffold/stub/mock + transformation verbs
     # Extended with code-transformation verbs: port/convert/wrap/extract/rename/benchmark/etc.
     (
@@ -599,7 +635,7 @@ _GPU_PATTERNS = [
     # {0,3} allows multi-word subjects like "Make the task classifier more readable"
     (
         re.compile(
-            r"\bmake\s+(?:the\s+|a\s+|this\s+)?(?:[\w-]+\s+){0,3}(?:more\s+|less\s+)?(?:readable|efficient|testable|maintainable|performant|scalable|clean|modular|robust|reusable|thread.safe|async(?:hronous)?|synchronous|idempotent|stateless|observable|resilient|fault.tolerant|clear(?:er)?|simple(?:r)?|fast(?:er)?|small(?:er)?|concise(?:r)?)\b",
+            r"\bmake\s+(?:the\s+|a\s+|this\s+)?(?:[\w-]+\s+){0,3}(?:more\s+|less\s+)?(?:readable|efficient|testable|maintainable|performant|scalable|clean|modular|robust|reusable|thread.safe|async(?:hronous)?|synchronous|idempotent|stateless|observable|resilient|fault.tolerant|clear(?:er)?|simple(?:r)?|fast(?:er)?|small(?:er)?|concise(?:r)?|Pythonic|idiomatic|elegant|type.safe|functional|declarative|composable)\b",
             re.I,
         ),
         0.85,

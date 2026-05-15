@@ -568,3 +568,75 @@ def test_is_there_meeting_stays_npu():
     """'Is there a meeting' (non-technical) stays NPU — no matching issue keyword."""
     d = classify("Is there a meeting tomorrow?")
     assert d.node == "npu"
+
+
+# ── EXP-SHORT-FORMS: enable/setup, code-review, help-me, vulnerability, idiom ─
+
+
+@pytest.mark.parametrize(
+    "prompt",
+    [
+        "Set up rate limiting",
+        "Enable connection pooling",
+        "Enable caching",
+        "Turn on distributed tracing",
+    ],
+)
+def test_enable_setup_config_gpu(prompt):
+    """'Set up / Enable / Activate [infra term]' routes GPU as imperative config."""
+    d = classify(prompt)
+    assert d.node == "gpu", f"Expected gpu for: {prompt!r}"
+    assert d.confidence >= 0.85
+
+
+@pytest.mark.parametrize(
+    "prompt",
+    [
+        "Does this implementation look correct?",
+        "Would this cause a performance issue?",
+        "Could this introduce a memory leak?",
+    ],
+)
+def test_code_review_impact_gpu(prompt):
+    """'Does/Would/Could this cause/look correct' routes GPU as code review impact."""
+    d = classify(prompt)
+    assert d.node == "gpu", f"Expected gpu for: {prompt!r}"
+    assert d.confidence >= 0.85
+
+
+@pytest.mark.parametrize(
+    "prompt",
+    [
+        "Help me understand the error",
+        "Help me debug this function",
+        "Help me optimize the query",
+        "Help me analyze the performance regression",
+    ],
+)
+def test_help_me_analyze_gpu(prompt):
+    """'Help me debug/understand/analyze' routes GPU."""
+    d = classify(prompt)
+    assert d.node == "gpu", f"Expected gpu for: {prompt!r}"
+    assert d.confidence >= 0.85
+
+
+@pytest.mark.parametrize(
+    "prompt",
+    [
+        "Is this code vulnerable to SQL injection?",
+        "Are there any XSS vulnerabilities here?",
+        "Does this have a CSRF vulnerability?",
+    ],
+)
+def test_security_vulnerability_gpu(prompt):
+    """Security vulnerability questions route GPU."""
+    d = classify(prompt)
+    assert d.node == "gpu", f"Expected gpu for: {prompt!r}"
+    assert d.confidence >= 0.85
+
+
+def test_make_pythonic_gpu():
+    """'Make this more Pythonic' routes GPU via extended make-code-quality adjectives."""
+    d = classify("Make this more Pythonic")
+    assert d.node == "gpu"
+    assert d.confidence >= 0.85
