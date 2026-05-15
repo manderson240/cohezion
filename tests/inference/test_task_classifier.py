@@ -367,3 +367,43 @@ def test_batch_0_82_boost_to_085(prompt):
     d = classify(prompt)
     assert d.node == "gpu", f"Expected gpu for: {prompt!r}"
     assert d.confidence >= 0.85, f"Expected conf >= 0.85, got {d.confidence} for: {prompt!r}"
+
+
+# ── EXP-0.78-PATTERNS: noun-form why-verbs + implement-multi-word boost ───────
+
+
+@pytest.mark.parametrize(
+    "prompt",
+    [
+        # noun-form degradation/drop/increase now hit specific why-question at 0.85
+        "Why does the compound loop experience throughput degradation after 50 concurrent sessions?",
+        "Why did the semantic cache hit rate drop below 80% on production yesterday?",
+        "Why does the JEPA world model produce increasing surprise scores over time?",
+    ],
+)
+def test_why_noun_form_verbs_at_085(prompt):
+    """Why-question pattern extended with noun-form degradation/drop/increase terms."""
+    d = classify(prompt)
+    assert d.node == "gpu", f"Expected gpu for: {prompt!r}"
+    assert d.confidence >= 0.85, f"Expected conf >= 0.85, got {d.confidence} for: {prompt!r}"
+
+
+@pytest.mark.parametrize(
+    "prompt",
+    [
+        "Implement the semantic cache with TTL eviction",
+        "Implement a retry policy with exponential backoff",
+        "Implement an async message queue using Redis",
+    ],
+)
+def test_implement_multi_word_at_082(prompt):
+    """implement multi-word component boosted from 0.78→0.82."""
+    d = classify(prompt)
+    assert d.node == "gpu", f"Expected gpu for: {prompt!r}"
+    assert d.confidence >= 0.82, f"Expected conf >= 0.82, got {d.confidence} for: {prompt!r}"
+
+
+def test_retrospective_why_still_npu():
+    """Retrospective why-did-we pattern still overrides GPU patterns."""
+    d = classify("Why did we choose to implement this?")
+    assert d.node == "npu"

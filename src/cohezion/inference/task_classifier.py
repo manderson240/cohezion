@@ -179,7 +179,7 @@ _GPU_PATTERNS = [
     # Excludes "why did we implement" (retrospective decision — NPU)
     (
         re.compile(r"\bimplement (the |a |an )\w+\s+\w+\b.{5,}", re.I),
-        0.78,
+        0.82,
         "implement multi-word component",
     ),
     # "implement the feature/fix/change/solution" — single-word object (feature, fix, etc.)
@@ -450,18 +450,20 @@ _GPU_PATTERNS = [
         "service wiring task",
     ),
     # "Why is/are [X] [doing/returning/failing/scoring]" — specific debugging verbs
+    # Also covers noun-form degradation/drop (e.g. "throughput degradation", "hit rate drop")
+    # and trend verbs (increasing/decreasing) for performance investigation questions
     (
         re.compile(
-            r"\bwhy (is|are|does|did|isn't|aren't|doesn't|didn't)\b.{0,60}\b(returning|fail(ing)?|scoring|not|error|broken|wrong|zero|null|empty|opening|dropping|crashing|slow|leaking|growing|blocking|hanging?|stuck|exhausting|falling|rising|spiking|timing\s+out|degrading|throwing|breaking|oscillating|converging|diverging|saturating|plateauing)\b",
+            r"\bwhy (is|are|does|did|isn't|aren't|doesn't|didn't)\b.{0,60}\b(returning|fail(ing)?|scoring|not|error|broken|wrong|zero|null|empty|opening|dropping|crashing|slow|leaking|growing|blocking|hanging?|stuck|exhausting|falling|rising|spiking|timing\s+out|degrading|degradation|throwing|breaking|oscillating|converging|diverging|saturating|plateauing|drop(?:\s+below)?|declin(?:e|ing)|decreas(?:e|ing)|increas(?:e|ing)|persisting?)\b",
             re.I,
         ),
         0.85,
         "debugging why-question",
     ),
-    # Long "why" question (≥45 chars) — complex system behavior investigation
+    # Long "why" question (≥42 chars) — complex system behavior investigation
     (
         re.compile(r"\bwhy\s+(?:does|is|are|did|doesn't|isn't|aren't|didn't)\b.{42,}", re.I),
-        0.78,
+        0.82,
         "long debugging why-question",
     ),
     # "Generate the [adjective*] [config/JSON/YAML/entry/file] for [X]" — config generation
