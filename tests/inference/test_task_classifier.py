@@ -665,6 +665,32 @@ def test_can_this_be_done_stays_npu():
     assert d.node == "npu"
 
 
+# ── EXP-REDUNDANCY-AUDIT: coverage for 50 untested patterns (spot-check 12) ──
+
+
+@pytest.mark.parametrize(
+    "prompt",
+    [
+        "Generate a YAML configuration for the deployment",
+        "Configure nginx for HTTPS termination",
+        "Create a Kubernetes deployment manifest",
+        "Deploy the service to the staging environment",
+        "Integrate Redis with the caching layer for performance monitoring",
+        "Wire the authentication service into the API gateway",
+        "Fine-tune the BERT model on the classification dataset",
+        "Solve the differential equation step by step",
+        "Prove that the algorithm terminates in polynomial time",
+        "Calculate the eigenvalue decomposition of this matrix",
+        "Define the schema for the user profile model",
+        "Write a comprehensive document about the API design",
+    ],
+)
+def test_untested_patterns_route_gpu(prompt):
+    """Spot-check: 12 previously-untested GPU patterns all route gpu correctly."""
+    d = classify(prompt)
+    assert d.node == "gpu", f"Expected gpu for: {prompt!r}"
+
+
 # ── EXP-IMPLEMENT-MULTIWORD-FIX + EXP-MISC-QUESTIONS ────────────────────────
 
 
