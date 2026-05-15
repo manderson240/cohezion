@@ -1158,10 +1158,33 @@ def classify(prompt: str) -> RouteDecision:
         )
 
     # ── Check GPU patterns first (highest cost to mis-route) ────────────────
-    # KONAMI: output_type signals expected response length for iGPU gate calibration.
-    # Analytical patterns (enumeration, comparison, review) produce medium-length responses
-    # (100-400 chars) so use "medium_generation" with gate=0 (GPU-routed, iGPU accepts any).
-    # Code/impl/math patterns stay "code" or "long_generation".
+    # KONAMI: use output_type to signal expected response length for iGPU gate calibration.
+    # code       → actual code output (functions, classes, tests, configs)
+    # medium_gen → analytical/review responses (100-400 chars); avoids over-triggering CPU
+    # long_gen   → detailed explanations, implementations, essays (400+ chars)
+    _CODE_GEN_REASONS = frozenset(
+        {
+            "code generation",
+            "code generation multi-adjective",
+            "code generation hyphenated adjective",
+            "code context",
+            "implement complex logic/system",
+            "implement multi-word component",
+            "implement the feature/fix",
+            "implement algorithm/operation",
+            "implement tech protocol",
+            "implement in language",
+            "test generation",
+            "test suite generation",
+            "sql query generation",
+            "configuration generation",
+            "iac config generation",
+            "infra manifest generation",
+            "short imperative code op",
+            "end-to-end test creation",
+            "draft document task",
+        }
+    )
     _ANALYTICAL_REASONS = frozenset(
         {
             "best practices enumeration",
@@ -1173,6 +1196,7 @@ def classify(prompt: str) -> RouteDecision:
             "is-there-a-better-way",
             "is-this-code-property",
             "code-principle-check",
+            "code review task",
             "diagnostic code issue question",
             "root-cause analysis question",
             "what-happens-if conditional analysis",
@@ -1182,11 +1206,14 @@ def classify(prompt: str) -> RouteDecision:
             "recommended approaches analysis",
             "test coverage question",
             "what-should-I-do troubleshooting",
+            "security vulnerability question",
+            "should-this-be property decision",
+            "can-this-be code question",
         }
     )
     for pattern, confidence, reason in _GPU_PATTERNS:
         if pattern.search(prompt):
-            if "code" in reason:
+            if reason in _CODE_GEN_REASONS:
                 otype, gate = "code", _TYPE_CONFIG["code"][1]
             elif reason in _ANALYTICAL_REASONS:
                 otype, gate = "medium_generation", 0
