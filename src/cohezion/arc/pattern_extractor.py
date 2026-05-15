@@ -320,6 +320,31 @@ def _grid_lines(g: Grid) -> Grid | None:
     return out if out != g else None
 
 
+def _border_fill(g: Grid) -> Grid | None:
+    """Fill the outer border with the single unique non-zero color; zero the interior.
+
+    Matches tasks where a seed cell (any position) causes the grid border to be
+    drawn with that color and everything else zeroed out.
+    """
+    if not g or not g[0]:
+        return None
+    h, w = len(g), len(g[0])
+
+    nz = [c for row in g for c in row if c != 0]
+    if not nz:
+        return None
+    colors = set(nz)
+    if len(colors) != 1:
+        return None
+    color = colors.pop()
+    out = [[0] * w for _ in range(h)]
+    for r in range(h):
+        for c in range(w):
+            if r == 0 or r == h - 1 or c == 0 or c == w - 1:
+                out[r][c] = color
+    return out if out != g else None
+
+
 def _deduplicate_cols(g: Grid) -> Grid | None:
     """Remove duplicate columns, keeping first occurrence of each unique column pattern."""
     if not g or not g[0]:
@@ -1002,6 +1027,7 @@ def _build_strategy(name: str, train: list[dict[str, Grid]]) -> list[tuple[str, 
         ("fill_holes", _fill_holes),
         ("remove_bg", _remove_bg),
         ("fill_modal", _fill_with_modal),
+        ("border_fill", _border_fill),
         ("shift_d1", _shift_down_1),
         ("gravity_d", _gravity_down),
         ("gravity_u", _gravity_up),
@@ -1027,6 +1053,7 @@ def _build_strategy(name: str, train: list[dict[str, Grid]]) -> list[tuple[str, 
         ("remove_bg", _remove_bg),
         ("fill_holes", _fill_holes),
         ("fill_modal", _fill_with_modal),
+        ("border_fill", _border_fill),
         ("shift_d1", _shift_down_1),
         ("grid_lines", _grid_lines),
         ("gravity_d", _gravity_down),
