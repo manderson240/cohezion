@@ -317,10 +317,12 @@ _GPU_PATTERNS = [
         0.88,
         "explain difference/tradeoffs",
     ),
-    # "How does X work" — mechanism explanation (does ≠ imperative do)
+    # "How does X work/produce/prevent" — mechanism explanation (does ≠ imperative do)
+    # {2,4} word subject prevents FP on trivial "How does this work?" (1-word subject)
+    # Extended: technical process verbs + causation verbs (prevent/enable/improve/allow)
     (
         re.compile(
-            r"\bhow does?\s+\w+(?:\s+\w+)?\s+(work|function|operate|behave|handle)\b",
+            r"\bhow does?\s+(?:\w+\s+){2,4}(work|function|operate|behave|handle|produce|generate|compute|calculate|determine|decide|select|route|detect|process|return|prevent|enable|improve|allow|enforce|guarantee|ensure|coordinate|synchronize)\b",
             re.I,
         ),
         0.85,

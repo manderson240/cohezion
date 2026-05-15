@@ -407,3 +407,31 @@ def test_retrospective_why_still_npu():
     """Retrospective why-did-we pattern still overrides GPU patterns."""
     d = classify("Why did we choose to implement this?")
     assert d.node == "npu"
+
+
+# ── EXP-HOW-DOES-EXTENDED: {2,4} subject + produce/prevent/enable verbs ──────
+
+
+@pytest.mark.parametrize(
+    "prompt",
+    [
+        "How does the JEPA encoder produce embeddings?",
+        "How does the circuit breaker prevent cascading failures?",
+        "How does the rate limiter enforce quotas?",
+        "How does the consensus algorithm ensure consistency?",
+        "How does the cache determine when to evict?",
+        "How does the router decide which tier to use?",
+        "How does the classifier compute confidence scores?",
+    ],
+)
+def test_how_does_extended_verbs_at_085(prompt):
+    """how-does-X-work extended with technical process and causation verbs."""
+    d = classify(prompt)
+    assert d.node == "gpu", f"Expected gpu for: {prompt!r}"
+    assert d.confidence >= 0.85, f"Expected conf >= 0.85, got {d.confidence} for: {prompt!r}"
+
+
+def test_how_does_this_stays_npu():
+    """Trivial 'How does this work?' (1-word subject) stays NPU via length fallback."""
+    d = classify("How does this work?")
+    assert d.node == "npu"
