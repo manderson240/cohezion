@@ -152,7 +152,7 @@ _GPU_PATTERNS = [
     # "How should I structure/design/organize/architect X" — individual architectural guidance
     (
         re.compile(
-            r"\bhow should (?:I|we)\s+(?:structure|design|organize|architect|layout|model|approach|handle|set\s+up)\b",
+            r"\bhow should (?:I|we)\s+(?:structure|design|organize|architect|layout|model|approach|handle|set\s+up|store|manage|protect|secure|configure|deploy|test|name|format|version|document)\b",
             re.I,
         ),
         0.85,
@@ -411,7 +411,7 @@ _GPU_PATTERNS = [
     # "How do I [git/dev operation]" — procedural dev operation
     (
         re.compile(
-            r"\bhow do (?:I|we)\s+(?:resolve|fix|handle|squash|rebase|merge|cherry.pick|amend|reset|revert|stash|push|pull|deploy|install|upgrade|downgrade|configure|setup|init|clone|fork|tag|release|publish|package|build|run|test|debug|profile|monitor|check|verify|validate|lint|format|generate|scaffold|migrate|rollback|backup|restore)\b",
+            r"\bhow do (?:I|we)\s+(?:resolve|fix|handle|squash|rebase|merge|cherry.pick|amend|reset|revert|stash|push|pull|deploy|install|upgrade|downgrade|configure|setup|init|clone|fork|tag|release|publish|package|build|run|test|debug|profile|monitor|check|verify|validate|lint|format|generate|scaffold|migrate|rollback|backup|restore|hash|salt|encrypt|decrypt|sign|sanitize|escape|store|rotate|revoke|authenticate|authorize|secure|protect|implement|containerize|dockerize|provision|set\s+up)\b",
             re.I,
         ),
         0.85,
@@ -465,11 +465,65 @@ _GPU_PATTERNS = [
     # "What are the alternatives to X" / "What is a reasonable X strategy" — design alternatives
     (
         re.compile(
-            r"\bwhat\s+(?:are\s+(?:the\s+)?alternatives?\s+to\b|is\s+(?:a\s+)?(?:good|reasonable|appropriate|recommended)\s+\w+\s+(?:strategy|approach|policy|configuration|setting|value|threshold|limit|size|interval|timeout|ttl)\b)",
+            r"\bwhat\s+(?:are\s+(?:the\s+)?alternatives?\s+to\b|is\s+(?:a\s+)?(?:good|reasonable|appropriate|recommended)\s+\w+\s+(?:strategy|approach|policy|configuration|setting|value|threshold|limit|size|interval|timeout|ttl|algorithm|format|method|technique|practice)\b)",
             re.I,
         ),
         0.85,
         "design alternatives/configuration",
+    ),
+    # "What X should I use/return/send" — API/architecture/security choice questions
+    (
+        re.compile(
+            r"\bwhat\s+(?:http\s+status\s+code|response\s+(?:format|body|code|type)|(?:hashing|encryption|signing|auth|cors|csp|jwt|api\s+key|cookie|header|content.type)\s+(?:algorithm|policy|format|strategy|approach|standard|method))\s+should\s+(?:I|we|this)\b",
+            re.I,
+        ),
+        0.85,
+        "api-security-choice question",
+    ),
+    # "Should this be a GET/POST/REST/GraphQL" — API method/style decision
+    (
+        re.compile(
+            r"\bshould\s+(?:this|I|we)\s+(?:(?:use|be)\s+(?:a\s+)?)?(?:get|post|put|patch|delete|rest|graphql|grpc|websocket|sse|polling|event.driven|microservice|monolith|serverless)\b",
+            re.I,
+        ),
+        0.85,
+        "api-method/style decision",
+    ),
+    # "Set up / Configure [CI/CD/cloud/infra]" — extended cloud config
+    (
+        re.compile(
+            r"\b(?:set\s+up|configure|create|add)\s+(?:a\s+|an\s+|the\s+)?(?:[\w/.-]+\s+)?(?:ci.?cd\s*pipeline?|github\s+actions?|gitlab\s+ci|jenkins\s+pipeline|docker(?:file|compose|file)?|kubernetes|k8s|helm\s+chart|terraform|ansible|iac|infrastructure|container|pod|deployment\s+manifest|ingress|load\s+balancer|reverse\s+proxy|service\s+mesh|api\s+gateway|secret|env(?:ironment)?\s+var(?:iable)?)\b",
+            re.I,
+        ),
+        0.85,
+        "cloud/infra setup pattern",
+    ),
+    # "What [architecture/queue/cache/strategy] should I use" — architecture choice
+    (
+        re.compile(
+            r"\bwhat\s+(?:caching|message\s+queue|messaging|event\s+bus|architecture|database|storage|queue|broker|framework|orm|pattern|approach)\s+(?:\w+\s+)?(?:should\s+I\s+use|is\s+(?:best|recommended|appropriate|ideal)\s+(?:here|for\s+this))\b",
+            re.I,
+        ),
+        0.85,
+        "architecture choice question",
+    ),
+    # "Should I use event-driven / microservices / monolith / serverless" — arch style choice
+    (
+        re.compile(
+            r"\bshould\s+(?:I|we)\s+use\s+(?:event.driven|microservice|monolith|serverless|monorepo|multi.repo|shared\s+library|service\s+mesh|cqrs|event\s+sourc|saga|outbox)\b",
+            re.I,
+        ),
+        0.85,
+        "should-I-use architecture style",
+    ),
+    # "What IAM/roles/permissions do I need" — cloud security/policy question
+    (
+        re.compile(
+            r"\bwhat\s+(?:iam\s+(?:roles?|policies?|permissions?)|roles?|permissions?|access\s+(?:rights?|control)|secrets?|env(?:ironment)?\s+vars?|credentials?)\s+do\s+(?:I|we|this)\s+need\b",
+            re.I,
+        ),
+        0.85,
+        "what-iam-roles-needed",
     ),
     # "Is there a [race condition/memory leak/bottleneck/bug]" — diagnostic code question
     (
@@ -493,7 +547,7 @@ _GPU_PATTERNS = [
     # Note: O\( without \b — unicode superscripts (²) are \w so \b fails after n
     (
         re.compile(
-            r"\bis\s+this\s+(?:\w+\s+){0,3}(?:thread.safe|type.safe|null.safe|idempotent|optimized|efficient|scalable|secure|concurrent.safe|following|following\s+the|O\(|idiomatic|the\s+right|the\s+correct|the\s+best|appropriate\s+here|an?\s+anti.pattern)",
+            r"\bis\s+this\s+(?:\w+\s+){0,3}(?:thread.safe|type.safe|null.safe|idempotent|optimized|efficient|scalable|secure|concurrent.safe|following|following\s+the|O\(|idiomatic|the\s+right|the\s+correct|the\s+best|appropriate\s+here|an?\s+anti.pattern|sanitized|validated|escaped|encoded|encrypted|signed|authenticated|authorized|rate.limited|properly\s+\w+)",
             re.I,
         ),
         0.85,
