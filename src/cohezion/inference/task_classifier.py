@@ -411,7 +411,7 @@ _GPU_PATTERNS = [
     # "How do I [git/dev operation]" — procedural dev operation
     (
         re.compile(
-            r"\bhow do (?:I|we)\s+(?:resolve|fix|handle|squash|rebase|merge|cherry.pick|amend|reset|revert|stash|push|pull|deploy|install|upgrade|downgrade|configure|setup|init|clone|fork|tag|release|publish|package|build|run|test|debug|profile|monitor|check|verify|validate|lint|format|generate|scaffold|migrate|rollback|backup|restore|hash|salt|encrypt|decrypt|sign|sanitize|escape|store|rotate|revoke|authenticate|authorize|secure|protect|implement|containerize|dockerize|provision|set\s+up|iterate|loop|center|align|position|style|animate|make|call|fetch|send|request|post|read|write|parse|serialize|deserialize|connect|query|sort|filter|map|reduce|import|require|use|access|open|close|create|delete|update|render|display|show|hide|load|save|export)\b",
+            r"\bhow do (?:I|we)\s+(?:resolve|fix|handle|squash|rebase|merge|cherry.pick|amend|reset|revert|stash|push|pull|deploy|install|upgrade|downgrade|configure|setup|init|clone|fork|tag|release|publish|package|build|run|test|debug|profile|monitor|check|verify|validate|lint|format|generate|scaffold|migrate|rollback|backup|restore|hash|salt|encrypt|decrypt|sign|sanitize|escape|store|rotate|revoke|authenticate|authorize|secure|protect|implement|containerize|dockerize|provision|set\s+up|iterate|loop|center|align|position|style|animate|make|call|fetch|send|request|post|read|write|parse|serialize|deserialize|connect|query|sort|filter|map|reduce|import|require|use|access|open|close|create|delete|update|render|display|show|hide|load|save|export|allocate|free|deallocate|initialize|instantiate|inherit|extend|override|mock|inject|autowire|compile|link|run|launch|spawn|kill|terminate|signal|interrupt|lock|unlock|synchronize|parallelize)\b",
             re.I,
         ),
         0.85,
@@ -547,7 +547,8 @@ _GPU_PATTERNS = [
     # Note: O\( without \b — unicode superscripts (²) are \w so \b fails after n
     (
         re.compile(
-            r"\bis\s+this\s+(?:\w+\s+){0,3}(?:thread.safe|type.safe|null.safe|idempotent|optimized|efficient|scalable|secure|concurrent.safe|following|following\s+the|O\(|idiomatic|the\s+right|the\s+correct|the\s+best|appropriate\s+here|an?\s+anti.pattern|sanitized|validated|escaped|encoded|encrypted|signed|authenticated|authorized|rate.limited|properly\s+\w+)",
+            r"\bis\s+this\s+(?:\w+\s+){0,3}(?:thread.safe|type.safe|null.safe|idempotent|optimized|efficient|scalable|secure|concurrent.safe|following|following\s+the|O\(|idiomatic|the\s+right|the\s+correct|the\s+best|appropriate\s+here|an?\s+anti.pattern|sanitized|validated|escaped|encoded|encrypted|signed|authenticated|authorized|rate.limited|properly\s+\w+)"
+            r"|\bis\s+this\s+(?:\w+\s+)+(?:correct|valid|accurate|appropriate)\b",
             re.I,
         ),
         0.85,
