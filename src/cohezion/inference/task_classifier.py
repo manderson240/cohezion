@@ -761,7 +761,7 @@ _GPU_PATTERNS = [
     # Also: "why am I getting/seeing" first-person error form
     (
         re.compile(
-            r"\bwhy (is|are|am|does|did|isn't|aren't|am\s+not|doesn't|didn't)\b.{0,60}\b(returning|fail(ing)?|scoring|not|error|broken|wrong|zero|null|empty|opening|dropping|crashing|slow|leaking|growing|blocking|hanging?|stuck|exhausting|falling|rising|spiking|timing\s+out|degrading|degradation|throwing|breaking|oscillating|converging|diverging|saturating|plateauing|drop(?:\s+below)?|declin(?:e|ing)|decreas(?:e|ing)|increas(?:e|ing)|persisting?|getting|seeing|experiencing|having)\b",
+            r"\bwhy (is|are|am|does|did|isn't|aren't|am\s+not|doesn't|didn't)\b.{0,60}\b(returning|fail(ing)?|scoring|not|error|broken|wrong|zero|null|empty|opening|dropping|crashing|slow|leaking|growing|blocking|hanging?|stuck|exhausting|falling|rising|spiking|timing\s+out|degrading|degradation|throwing|breaking|oscillating|converging|diverging|saturating|plateauing|drop(?:\s+below)?|declin(?:e|ing)|decreas(?:e|ing)|increas(?:e|ing)|persisting?|getting|seeing|experiencing|having|infinite|not\s+stopping|looping|spinning|freezing|panicking|oom|overflowing)\b",
             re.I,
         ),
         0.85,
@@ -1029,9 +1029,9 @@ _GPU_PATTERNS = [
         0.85,
         "comparative or analytical task",
     ),
-    # "Compare X vs Y" / "Compare X versus Y" — direct comparison without "the"
+    # "Compare X vs Y" / "Compare X versus Y" / "Compare X and Y" — direct comparison
     (
-        re.compile(r"\bcompare\s+\w+\s+(?:vs\.?|versus)\b", re.I),
+        re.compile(r"\bcompare\s+\w+\s+(?:vs\.?|versus|and)\b", re.I),
         0.85,
         "direct A-vs-B comparison",
     ),
