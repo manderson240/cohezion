@@ -411,7 +411,7 @@ _GPU_PATTERNS = [
     # "How do I [git/dev operation]" — procedural dev operation
     (
         re.compile(
-            r"\bhow do (?:I|we)\s+(?:resolve|fix|handle|squash|rebase|merge|cherry.pick|amend|reset|revert|stash|push|pull|deploy|install|upgrade|downgrade|configure|setup|init|clone|fork|tag|release|publish|package|build|run|test|debug|profile|monitor|check|verify|validate|lint|format|generate|scaffold|migrate|rollback|backup|restore|hash|salt|encrypt|decrypt|sign|sanitize|escape|store|rotate|revoke|authenticate|authorize|secure|protect|implement|containerize|dockerize|provision|set\s+up)\b",
+            r"\bhow do (?:I|we)\s+(?:resolve|fix|handle|squash|rebase|merge|cherry.pick|amend|reset|revert|stash|push|pull|deploy|install|upgrade|downgrade|configure|setup|init|clone|fork|tag|release|publish|package|build|run|test|debug|profile|monitor|check|verify|validate|lint|format|generate|scaffold|migrate|rollback|backup|restore|hash|salt|encrypt|decrypt|sign|sanitize|escape|store|rotate|revoke|authenticate|authorize|secure|protect|implement|containerize|dockerize|provision|set\s+up|iterate|loop|center|align|position|style|animate|make|call|fetch|send|request|post|read|write|parse|serialize|deserialize|connect|query|sort|filter|map|reduce|import|require|use|access|open|close|create|delete|update|render|display|show|hide|load|save|export)\b",
             re.I,
         ),
         0.85,
@@ -861,10 +861,11 @@ _GPU_PATTERNS = [
         0.85,
         "add feature directly",
     ),
-    # "Fix the [bug/issue] in X" OR "Fix it/them/this" — code fix commands
+    # "Fix the [adjective] [bug/issue] in X" OR "Fix it/them/this" — code fix commands
+    # Allows qualifier adjectives before bug noun (off-by-one error, null pointer exception)
     (
         re.compile(
-            r"\bfix\s+(?:(?:the\s+)?(?:bug|issue|error|problem|crash|failure|regression)\b.{0,30}\b(?:in|with|at|for)\b|(?:it|them|this|that)\b)",
+            r"\bfix\s+(?:(?:(?:the|a|an|this|that|your|my)\s+)?(?:[\w.-]+\s+){0,3}(?:bug|issue|error|problem|crash|failure|regression|exception|warning|test)\b.{0,30}\b(?:in|with|at|for)\b|(?:it|them|this|that)\b)",
             re.I,
         ),
         0.85,

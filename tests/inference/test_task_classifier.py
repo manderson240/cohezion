@@ -671,6 +671,22 @@ def test_can_this_be_done_stays_npu():
 @pytest.mark.parametrize(
     "prompt",
     [
+        "How do I iterate over a dictionary in Python?",
+        "Fix the off-by-one error in this loop",
+        "How do I center a div in CSS?",
+        "How do I make an HTTP request in JavaScript?",
+    ],
+)
+def test_high_freq_dev_questions_gpu(prompt):
+    """High-frequency developer questions route GPU (not length-fallback NPU)."""
+    d = classify(prompt)
+    assert d.node == "gpu", f"Expected gpu for: {prompt!r}"
+    assert d.confidence >= 0.85
+
+
+@pytest.mark.parametrize(
+    "prompt",
+    [
         "Generate a YAML configuration for the deployment",
         "Configure nginx for HTTPS termination",
         "Create a Kubernetes deployment manifest",
