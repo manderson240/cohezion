@@ -641,7 +641,8 @@ _GPU_PATTERNS = [
     # Extended with explain/analyze/review/check for indirect GPU questions
     (
         re.compile(
-            r"\bcan you (resume|manage|orchestrate|handle|coordinate|configure|implement|create|build|explain|analyze|review|check|diagnose|debug|optimize|refactor)\b",
+            r"\bcan you (resume|manage|orchestrate|handle|coordinate|configure|implement|create|build|analyze|review|check|diagnose|debug|optimize|refactor)\b"
+            r"|\bcan you explain\b.{5,}(?:why|how|what|the|this|it|this|that|them|these|those|a |an |the )\b",
             re.I,
         ),
         0.85,
@@ -908,7 +909,8 @@ _GPU_PATTERNS = [
     # Extended with code-transformation verbs: port/convert/wrap/extract/rename/benchmark/etc.
     (
         re.compile(
-            r"\b(scaffold|stub\s+out?|mock|process|handle|extend|simplify|dockerize|containerize|serialize|paginate|port|convert|wrap|extract|rename|inline|flatten|normalize|canonicalize|benchmark)\s+(?:the\s+|a\s+|an\s+|this\s+)?(?:[\w-]+\s+){0,3}\w+\b",
+            r"\b(scaffold|stub\s+out?|mock|process|handle|extend|simplify|dockerize|containerize|serialize|paginate|convert|wrap|extract|rename|inline|flatten|normalize|canonicalize|benchmark)\s+(?:the\s+|a\s+|an\s+|this\s+)?(?:[\w-]+\s+){0,3}\w+\b"
+            r"|\bport\s+(?:this|the)\b.{3,}",
             re.I,
         ),
         0.85,
