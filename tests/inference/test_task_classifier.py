@@ -435,3 +435,72 @@ def test_how_does_this_stays_npu():
     """Trivial 'How does this work?' (1-word subject) stays NPU via length fallback."""
     d = classify("How does this work?")
     assert d.node == "npu"
+
+
+# ── EXP-GAPS-SWEEP: ML verbs, server noun, language list, what-should ────────
+
+
+@pytest.mark.parametrize(
+    "prompt",
+    [
+        "How does a neural network learn?",
+        "How does the model adapt to new data?",
+        "How does the optimizer converge?",
+    ],
+)
+def test_how_does_ml_verbs(prompt):
+    """how-does-X-work extended with ML training verbs (learn/adapt/converge)."""
+    d = classify(prompt)
+    assert d.node == "gpu"
+    assert d.confidence >= 0.85
+
+
+@pytest.mark.parametrize(
+    "prompt",
+    [
+        "Build a Go HTTP server with middleware",
+        "Create a gRPC server with streaming",
+    ],
+)
+def test_build_server_gpu(prompt):
+    """'server' added to build-service-or-endpoint noun list."""
+    d = classify(prompt)
+    assert d.node == "gpu"
+    assert d.confidence >= 0.85
+
+
+@pytest.mark.parametrize(
+    "prompt",
+    [
+        "Implement a REST client in Go",
+        "Implement a parser in Haskell",
+        "Implement a web crawler in Rust",
+    ],
+)
+def test_implement_in_expanded_languages(prompt):
+    """implement-in-language expanded with Haskell, Erlang, Elixir, Go, etc."""
+    d = classify(prompt)
+    assert d.node == "gpu"
+    assert d.confidence >= 0.85
+
+
+@pytest.mark.parametrize(
+    "prompt",
+    [
+        "What should I do when the GPU memory is exhausted?",
+        "What should I check if the tests are failing?",
+        "What should we do if the cache becomes stale?",
+        "What should I investigate when latency spikes?",
+    ],
+)
+def test_what_should_i_do_troubleshooting(prompt):
+    """New what-should-I-do-if/when troubleshooting pattern at 0.85."""
+    d = classify(prompt)
+    assert d.node == "gpu", f"Expected gpu for: {prompt!r}"
+    assert d.confidence >= 0.85
+
+
+def test_what_should_i_do_no_context_stays_npu():
+    """Bare 'What should I do?' with no when/if context stays NPU."""
+    d = classify("What should I do?")
+    assert d.node == "npu"

@@ -102,7 +102,7 @@ _GPU_PATTERNS = [
     # Extended: formula, macro, procedure, query, snippet, lambda, decorator, mixin, interface
     (
         re.compile(
-            r"\b(write|implement|create|generate|build)\s+(a |an |the )?(?:[\w-]+ ){0,3}(?:function|class|script|module|code|program|formula|macro|procedure|query|snippet|lambda|decorator|mixin|interface|getters?|setters?|validators?|serializers?|deserializers?|accessors?|migrations?|fixtures?|resolvers?|middlewares?|driver|routine|handler|client|library|daemon|firmware|plugin|extension|adapter|wrapper|proxy|stub|mock|task\b|job\b|service\b|worker|processor|listener|observer|consumer|producer|publisher|subscriber|widget|screen|fragment|composable|activity\b|viewmodel|repository\b|dao\b|coroutine|category\b|entity\b|component|[\w]*viewcontroller|[\w]*recyclerview|[\w]*tableview|[\w]*collectionview|shader|loop\b|controller\b|renderer|pass\b|pipeline|algorithm|simulation|generator|visualiz(?:er|ation)|importer|exporter|converter|transformer|dispatcher|scheduler|executor|runner|scanner|parser\b|loader|hook\b|contract\b|token\b|wallet|oracle|integration\b|connector|bridge\b|gateway\b|registry\b|factory\b|builder\b|chain\b|pool\b|lock(?:ing)?\b|replicas?\b|replication\b|cluster\b|shard(?:ing)?\b|partition(?:ing)?\b|trigger\b|view\b|materialized\b|microservices?)\b",
+            r"\b(write|implement|create|generate|build)\s+(a |an |the )?(?:[\w-]+ ){0,3}(?:function|class|script|module|code|program|formula|macro|procedure|query|snippet|lambda|decorator|mixin|interface|getters?|setters?|validators?|serializers?|deserializers?|accessors?|migrations?|fixtures?|resolvers?|middlewares?|driver|routine|handler|client|library|daemon|firmware|plugin|extension|adapter|wrapper|proxy|stub|mock|task\b|job\b|service\b|worker|processor|listener|observer|consumer|producer|publisher|subscriber|widget|screen|fragment|composable|activity\b|viewmodel|repository\b|dao\b|coroutine|category\b|entity\b|component|[\w]*viewcontroller|[\w]*recyclerview|[\w]*tableview|[\w]*collectionview|shader|loop\b|controller\b|renderer|pass\b|pipeline|algorithm|simulation|generator|visualiz(?:er|ation)|importer|exporter|converter|transformer|dispatcher|scheduler|executor|runner|scanner|parser\b|loader|hook\b|contract\b|token\b|wallet|oracle|integration\b|connector|bridge\b|gateway\b|registry\b|factory\b|builder\b|chain\b|pool\b|lock(?:ing)?\b|replicas?\b|replication\b|cluster\b|shard(?:ing)?\b|partition(?:ing)?\b|trigger\b|view\b|materialized\b|microservices?|crawler|scraper|spider|fetcher|extractor|classifier\b|embedder|tokenizer|normalizer|vectorizer|profiler|tracer|sampler|prober|collector)\b",
             re.I,
         ),
         1.0,
@@ -299,6 +299,16 @@ _GPU_PATTERNS = [
         0.85,
         "troubleshooting how-do-you",
     ),
+    # "What should I do when/if X" — actionable troubleshooting advice
+    # Clause order: action-verb + if/when immediately, then context
+    (
+        re.compile(
+            r"\bwhat should (?:I|we) (do|check|try|investigate|look\s+at)\s+(?:if|when|after|before)\b.{3,}",
+            re.I,
+        ),
+        0.85,
+        "what-should-I-do troubleshooting",
+    ),
     # Imperative troubleshoot/diagnose — "Troubleshoot slow queries", "Debug the OOM error"
     (
         re.compile(
@@ -322,7 +332,7 @@ _GPU_PATTERNS = [
     # Extended: technical process verbs + causation verbs (prevent/enable/improve/allow)
     (
         re.compile(
-            r"\bhow does?\s+(?:\w+\s+){2,4}(work|function|operate|behave|handle|produce|generate|compute|calculate|determine|decide|select|route|detect|process|return|prevent|enable|improve|allow|enforce|guarantee|ensure|coordinate|synchronize)\b",
+            r"\bhow does?\s+(?:\w+\s+){2,4}(work|function|operate|behave|handle|produce|generate|compute|calculate|determine|decide|select|route|detect|process|return|prevent|enable|improve|allow|enforce|guarantee|ensure|coordinate|synchronize|learn|train|adapt|converge|update|propagate|scale|balance|distribute|replicate|partition|shard|index|cache|serialize|deserialize)\b",
             re.I,
         ),
         0.85,
@@ -495,16 +505,16 @@ _GPU_PATTERNS = [
     # "Implement X in [language]" — language-specific algorithm/feature
     (
         re.compile(
-            r"\bimplement\b.{0,40}\bin\s+(python|java|c\+\+|cpp|javascript|typescript|go|rust|kotlin|swift|scala|ruby)(?:\W|$)",
+            r"\bimplement\b.{0,40}\bin\s+(python|java|c\+\+|cpp|javascript|typescript|go\b|rust|kotlin|swift|scala|ruby|haskell|erlang|elixir|clojure|ocaml|f#|lua|r\b|matlab|dart|zig|nim|crystal|julia|groovy|perl|bash|shell|powershell)(?:\W|$)",
             re.I,
         ),
         0.88,
         "implement in language",
     ),
-    # Create/build a [adjective(s)] endpoint/service/cache/pipeline/queue
+    # Create/build a [adjective(s)] endpoint/service/server/cache/pipeline/queue
     (
         re.compile(
-            r"\b(create|build|add)\s+(?:a\s+)?(?:[\w-]+\s+){0,3}(endpoint|service|api\b|cache|pipeline|queue|handler|middleware|dashboard|visualization|report|portal|agent|bot|workflow|framework|harness|scaffold|index\b|view\b|trigger\b|constraint|migration|role\b|policy|lifecycle|bucket|cluster|repository|registry)\b",
+            r"\b(create|build|add)\s+(?:a\s+)?(?:[\w-]+\s+){0,3}(endpoint|service|server\b|api\b|cache|pipeline|queue|handler|middleware|dashboard|visualization|report|portal|agent|bot|workflow|framework|harness|scaffold|index\b|view\b|trigger\b|constraint|migration|role\b|policy|lifecycle|bucket|cluster|repository|registry)\b",
             re.I,
         ),
         0.85,
