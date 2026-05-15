@@ -699,7 +699,7 @@ _GPU_PATTERNS = [
     # Code review — "review" only when paired with code-specific nouns
     (
         re.compile(
-            r"\breview\b.{0,30}\b(code|implementation|pull\s+request|pr\b|changes|diff|api|module|test|function|class|endpoint|service)\b",
+            r"\breview\b.{0,30}\b(code|implementation|pull\s+request|pr\b|changes|diff|api|module|test|function|class|endpoint|service|executor|orchestrator|classifier|handler|processor|router|pipeline|manager|controller|dispatcher|component|script|query|schema|config|workflow|algorithm)\b",
             re.I,
         ),
         0.85,
