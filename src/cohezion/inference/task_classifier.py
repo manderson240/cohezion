@@ -1158,14 +1158,42 @@ def classify(prompt: str) -> RouteDecision:
         )
 
     # ── Check GPU patterns first (highest cost to mis-route) ────────────────
+    # KONAMI: output_type signals expected response length for iGPU gate calibration.
+    # Analytical patterns (enumeration, comparison, review) produce medium-length responses
+    # (100-400 chars) so use "medium_generation" with gate=0 (GPU-routed, iGPU accepts any).
+    # Code/impl/math patterns stay "code" or "long_generation".
+    _ANALYTICAL_REASONS = frozenset(
+        {
+            "best practices enumeration",
+            "comparative or analytical task",
+            "direct A-vs-B comparison",
+            "comparative evaluation",
+            "technical analysis question",
+            "best architecture/approach question",
+            "is-there-a-better-way",
+            "is-this-code-property",
+            "code-principle-check",
+            "diagnostic code issue question",
+            "root-cause analysis question",
+            "what-happens-if conditional analysis",
+            "scalability analysis question",
+            "performance-metric question",
+            "how-expensive performance question",
+            "recommended approaches analysis",
+            "test coverage question",
+            "what-should-I-do troubleshooting",
+        }
+    )
     for pattern, confidence, reason in _GPU_PATTERNS:
         if pattern.search(prompt):
-            node, gate = (
-                _TYPE_CONFIG["code"] if "code" in reason else _TYPE_CONFIG["long_generation"]
-            )
-            otype = "code" if "code" in reason else "long_generation"
+            if "code" in reason:
+                otype, gate = "code", _TYPE_CONFIG["code"][1]
+            elif reason in _ANALYTICAL_REASONS:
+                otype, gate = "medium_generation", 0
+            else:
+                otype, gate = "long_generation", _TYPE_CONFIG["long_generation"][1]
             return RouteDecision(
-                node=node,
+                node="gpu",
                 output_type=otype,
                 quality_gate_chars=gate,
                 confidence=confidence,
