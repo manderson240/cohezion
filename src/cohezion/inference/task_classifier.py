@@ -407,6 +407,51 @@ _GPU_PATTERNS = [
         0.85,
         "how-many-capacity analysis",
     ),
+    # "How do I [git/dev operation]" — procedural dev operation
+    (
+        re.compile(
+            r"\bhow do (?:I|we)\s+(?:resolve|fix|handle|squash|rebase|merge|cherry.pick|amend|reset|revert|stash|push|pull|deploy|install|upgrade|downgrade|configure|setup|init|clone|fork|tag|release|publish|package|build|run|test|debug|profile|monitor|check|verify|validate|lint|format|generate|scaffold|migrate|rollback|backup|restore)\b",
+            re.I,
+        ),
+        0.85,
+        "how-do-I procedural dev op",
+    ),
+    # "Give me an example / Show me how" — code demonstration request
+    (
+        re.compile(
+            r"\b(?:give\s+me|show\s+me)\s+(?:an?\s+)?(?:example|demo|sample|snippet|usage|use\s+case|how\s+to\s+use|how\s+this\s+works?)\b",
+            re.I,
+        ),
+        0.85,
+        "give-me-example demonstration",
+    ),
+    # "What [type/interface/version/dependencies] should this" — type/dependency guidance
+    (
+        re.compile(
+            r"\bwhat\s+(?:type|interface|class|signature|return\s+type|version|dependency|dependencies|package|library|module)\s+(?:should|does|do)\s+(?:this|I|we)\b",
+            re.I,
+        ),
+        0.85,
+        "what-type/dependency-should guidance",
+    ),
+    # "What is the [memory/latency/cost/performance] of/here" — performance metric question
+    (
+        re.compile(
+            r"\bwhat\s+is\s+(?:the\s+)?(?:memory\s+(?:usage|footprint|cost)|latency|throughput|cpu\s+usage|time\s+complexity|space\s+complexity|cost|overhead|performance|bottleneck)\s+(?:of|for|here|in\s+this)\b",
+            re.I,
+        ),
+        0.85,
+        "performance-metric question",
+    ),
+    # "How expensive/fast/slow is this" — performance evaluation
+    (
+        re.compile(
+            r"\bhow\s+(?:expensive|fast|slow|efficient|inefficient|costly|cheap)\s+is\s+(?:this|the)\b",
+            re.I,
+        ),
+        0.85,
+        "how-expensive performance question",
+    ),
     # "What exceptions/errors/cases should I handle/catch" — error handling design
     (
         re.compile(
@@ -447,7 +492,7 @@ _GPU_PATTERNS = [
     # Note: O\( without \b — unicode superscripts (²) are \w so \b fails after n
     (
         re.compile(
-            r"\bis\s+this\s+(?:\w+\s+){0,3}(?:thread.safe|type.safe|null.safe|idempotent|optimized|efficient|scalable|secure|concurrent.safe|following|following\s+the|O\()",
+            r"\bis\s+this\s+(?:\w+\s+){0,3}(?:thread.safe|type.safe|null.safe|idempotent|optimized|efficient|scalable|secure|concurrent.safe|following|following\s+the|O\(|idiomatic|the\s+right|the\s+correct|the\s+best|appropriate\s+here|an?\s+anti.pattern)",
             re.I,
         ),
         0.85,
