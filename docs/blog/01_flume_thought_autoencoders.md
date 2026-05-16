@@ -187,10 +187,10 @@ def compute_loss(self, x, recon, mu, log_var):
 ```
 
 **Hyperparameters**:
-- `kl_weight = 0.1`: Balance reconstruction vs regularization
+- `kl_weight = 0.01`: Balance reconstruction vs regularization (updated from 0.1 — β≥0.1 causes posterior collapse per autoresearch 2026-05-15)
 - `coherence_weight = 0.05`: Soft constraint toward HIHO stability
 - `lr = 1e-3`: Adam optimizer with cosine annealing schedule
-- `batch_size = 64`: Fits in 128GB RAM on Strix Halo (no GPU)
+- `batch_size = 128`: Fits in 128GB RAM on Strix Halo (no GPU); updated from 64 — bs=128 gives +0.8% reconstruction improvement
 
 ### Training Results
 

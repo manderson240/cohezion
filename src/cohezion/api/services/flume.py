@@ -19,10 +19,10 @@ logger = logging.getLogger(__name__)
 
 class FlumeTrainRequest(BaseModel):
     epochs: int = 50
-    batch_size: int = 64
+    batch_size: int = 128  # was 64 — autoresearch 2026-05-15: bs=128 gives +0.8% over bs=64
     lr: float = 1e-3
     z_dim: int = 256
-    kl_weight: float = 0.1
+    kl_weight: float = 0.01  # was 0.1 — β≥0.1 causes posterior collapse (autoresearch 2026-05-15)
     coherence_weight: float = 0.05
     n_samples: int = 10000
 

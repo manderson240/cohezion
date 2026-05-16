@@ -39,7 +39,8 @@ Dims [29:256] -- 227 semantic fingerprint (SHA-256 hash expansion)
 - Compatible with existing `FlumeVAETrainer.train(dataset=...)`
 
 ### 4. Train VAE
-- Uses `TrainConfig(z_dim=256)` and `FlumeVAETrainer`
+- Uses `TrainConfig(z_dim=256, kl_weight=0.01)` and `FlumeVAETrainer`
+- **CRITICAL**: `kl_weight` default is now 0.01 (was 0.1 which caused posterior collapse — autoresearch 2026-05-15)
 - Graceful fallback: if real data < threshold, pad with `SyntheticFlumeDataset`
 - Checkpoints saved to `data/flume/checkpoints/`
 

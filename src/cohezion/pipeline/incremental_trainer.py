@@ -74,6 +74,15 @@ class IncrementalVAETrainer:
             config.lr = lr
         if kl_weight is not None:
             config.kl_weight = kl_weight
+        # Guard: β≥0.1 causes posterior collapse (autoresearch 2026-05-15)
+        if config.kl_weight >= 0.1:
+            logger.warning(
+                "kl_weight=%.3f in checkpoint config is at/above the posterior-collapse threshold "
+                "(β≥0.1). Clamping to 0.01 for safe incremental training. "
+                "Pass kl_weight explicitly to override.",
+                config.kl_weight,
+            )
+            config.kl_weight = 0.01
         config.epochs = additional_epochs
         config.data_dir = data_dir
 

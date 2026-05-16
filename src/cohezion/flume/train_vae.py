@@ -67,7 +67,7 @@ class VAETrainer:
         self,
         data: torch.Tensor,
         epochs: int = 50,
-        batch_size: int = 64,
+        batch_size: int = 128,  # was 64 — autoresearch 2026-05-15: bs=128 gives +0.8% recon
         contrastive_pairs: list[tuple[int, int]] | None = None,
         lambda_contrastive: float = 0.0,
         lambda_sim_match: float = 0.0,

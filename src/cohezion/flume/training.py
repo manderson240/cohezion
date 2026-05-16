@@ -28,10 +28,17 @@ class TrainConfig:
     """FLUME VAE training configuration."""
 
     z_dim: int = 256
-    batch_size: int = 64
+    latent_dim: int | None = (
+        None  # None = use z_dim (no compression, optimal); explicit for compression experiments
+    )
+    hidden_dim: int | None = None  # None = use z_dim * 2 (legacy); set to 4096 for skill embeddings
+    use_legacy_3layer_decoder: bool = (
+        True  # True = backward-compatible; False = 2-layer decoder (optimal per autoresearch)
+    )
+    batch_size: int = 128
     epochs: int = 50
     lr: float = 1e-3
-    kl_weight: float = 0.1
+    kl_weight: float = 0.01  # β≥0.1 causes posterior collapse — phase transition, not gradual
     coherence_weight: float = 0.05
     grad_clip: float = 1.0
     lr_schedule: str = "cosine"  # "cosine" or "step"
@@ -51,6 +58,14 @@ class FlumeVAETrainer:
     Architecture:
         Encoder: z_dim -> hidden -> mu, log_var (z_dim each)
         Decoder: z_dim -> hidden -> z_dim (reconstruction)
+
+    Autoresearch findings (2026-05-15, 195+ experiments) — for 768-dim skill embeddings:
+        kl_weight = 0.01        (β≥0.1 causes posterior collapse)
+        batch_size = 128        (log-linear scaling law confirmed)
+        hidden_dim = 4096       (optimal architecture, +13.2% vs baseline; 2-layer decoder)
+        use_legacy_3layer_decoder = False  (2-layer gives kl=0.79, 3-layer causes kl collapse to 0.30)
+        z_dim = 768             (= input_dim, no bottleneck)
+        Use build_optimal_vae() from cohezion.flume.vae for the pre-configured optimal architecture.
     """
 
     def __init__(self, config: TrainConfig | None = None) -> None:
@@ -58,7 +73,8 @@ class FlumeVAETrainer:
         self.device = torch.device("cpu")  # No CUDA on Strix Halo
 
         z = self.config.z_dim
-        hidden = z * 2
+        latent = self.config.latent_dim if self.config.latent_dim is not None else z
+        hidden = self.config.hidden_dim if self.config.hidden_dim is not None else z * 2
 
         # Encoder: outputs mu and log_var for VAE
         self.encoder = nn.Sequential(
@@ -67,17 +83,24 @@ class FlumeVAETrainer:
             nn.Linear(hidden, hidden),
             nn.ReLU(),
         ).to(self.device)
-        self.mu_head = nn.Linear(hidden, z).to(self.device)
-        self.logvar_head = nn.Linear(hidden, z).to(self.device)
+        self.mu_head = nn.Linear(hidden, latent).to(self.device)
+        self.logvar_head = nn.Linear(hidden, latent).to(self.device)
 
-        # Decoder
-        self.decoder = nn.Sequential(
-            nn.Linear(z, hidden),
-            nn.ReLU(),
-            nn.Linear(hidden, hidden),
-            nn.ReLU(),
-            nn.Linear(hidden, z),
-        ).to(self.device)
+        # Decoder: 2-layer (optimal) or 3-layer (legacy backward-compat)
+        if self.config.use_legacy_3layer_decoder:
+            self.decoder = nn.Sequential(
+                nn.Linear(latent, hidden),
+                nn.ReLU(),
+                nn.Linear(hidden, hidden),
+                nn.ReLU(),
+                nn.Linear(hidden, z),
+            ).to(self.device)
+        else:
+            self.decoder = nn.Sequential(
+                nn.Linear(latent, hidden),
+                nn.ReLU(),
+                nn.Linear(hidden, z),
+            ).to(self.device)
 
         self._all_params = (
             list(self.encoder.parameters())

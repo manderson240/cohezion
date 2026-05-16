@@ -21,7 +21,8 @@ import pytest
 # ROCm/AMD GPU subprocess tests crash with SIGSEGV when amdgpu.ids is missing
 _AMDGPU_IDS_MISSING = not Path("/usr/share/misc/amdgpu.ids").exists()
 _skip_amd_subprocess = pytest.mark.skipif(
-    _AMDGPU_IDS_MISSING, reason="amdgpu.ids missing — GPU subprocess tests segfault on this hardware"
+    _AMDGPU_IDS_MISSING,
+    reason="amdgpu.ids missing — GPU subprocess tests segfault on this hardware",
 )
 
 
@@ -81,7 +82,7 @@ class TestArgumentParsing:
         assert self._parse(["--batch-size", "32"]).batch_size == 32
 
     def test_batch_size_default(self):
-        assert self._parse([]).batch_size == 64
+        assert self._parse([]).batch_size == 128
 
     def test_lr_flag(self):
         args = self._parse(["--lr", "5e-4"])

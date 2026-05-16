@@ -59,3 +59,19 @@ Generated: 2026-05-02. Updated via `/autoharness-update`.
   is authoritative. The skills dir copy is stale/dead.
 - **Auto-test pollution:** `auto-generate-tests` CI job committed 998 scaffold files
   to main on every push. Disabled permanently.
+
+## Lessons Captured (2026-05-15) — Autoresearch FLUME VAE
+
+- **kl_weight=0.01 is mandatory**: β≥0.1 causes posterior collapse (phase transition).
+  Fixed across 11 training surfaces. IncrementalVAETrainer has safety clamp.
+- **2-layer decoder is optimal**: Adding `Linear(hd,hd)` in the decoder causes KL to drop
+  from healthy 0.79 to collapsed 0.30. Always use `hd → output` not `hd → hd → output`.
+- **cyclic β amplitude must be 0.005**: `amp=0.01` doubles the KL pressure (max β=0.02).
+  Correct formula: `0.005 * (1 - cos(2π * step / period))` → max β=0.01.
+- **Architecture law peaks at hd=4096**: For 768-dim inputs: hd=4096 (0.8815 mean) is optimal.
+  hd=6144 and hd=8192 are WORSE (over-capacity for 500 training steps).
+- **batch_size default**: Changed 64→128 across 9 surfaces. CLI test updated accordingly.
+- **test_batch_size_default**: Fixed in `tests/flume/test_cli_train.py` to assert 128 not 64.
+- **build_optimal_vae()**: Factory function added to `vae.py`. Use for production skill VAEs.
+- **LIFE framework (arXiv:2605.14892)**: L=individual_caps, I=integrate, F=find_faults, E=evolve.
+  Maps exactly to Cohezion: PRIME→FlumeVAE→CompoundExecutor→RetrospectionEngine→SkillRefiner.

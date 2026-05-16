@@ -29,7 +29,9 @@ def build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(description="Train FLUME VAE autoencoder")
     # Core training
     parser.add_argument("--epochs", type=int, default=50)
-    parser.add_argument("--batch-size", type=int, default=64)
+    parser.add_argument(
+        "--batch-size", type=int, default=128
+    )  # was 64 — autoresearch 2026-05-15: bs=128 +0.8% recon
     parser.add_argument("--lr", type=float, default=1e-3)
     parser.add_argument("--z-dim", type=int, default=256)
     parser.add_argument("--n-samples", type=int, default=10000)
