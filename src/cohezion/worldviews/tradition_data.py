@@ -1002,7 +1002,7 @@ STEALTHSKATER_ARCHIVE_URL: str = "https://stealthskater.com"
 _STEALTHSKATER = Tradition(
     name="Stealthskater",
     slug="stealthskater",
-    origin_region="Classified-physics archive; global suppressed-science synthesis",
+    origin_region="Fringe physics synthesis; stealthskater.com archive (primarily US/Western, 1980s–2020s)",
     step_mappings=_steps(
         (
             "Zero-Point Field",
@@ -1075,21 +1075,24 @@ _STEALTHSKATER = Tradition(
         ),
         (
             "Witness Marks",
-            "Reality precipitates as physical evidence: LENR transmutation "
-            "products (He-4, tritium, anomalous isotopes), EVO etch pits on "
-            "metal, UAP landing traces (Vallee ground-truth catalogue), "
-            "declassified radar returns. The suppressed canon leaves marks.",
-            "Reality precipitates; verifiable transmutation products",
+            "Reality precipitates as measurable physical residue: LENR "
+            "transmutation products (anomalous He-4 yields, tritium above "
+            "background, isotopic ratio anomalies reported in peer-reviewed "
+            "condensed-matter literature), EVO etch pits on metal substrates "
+            "(Ken Shoulders lab samples). Physical measurement is the standard; "
+            "observational reports without reproducible measurement are excluded.",
+            "Reality precipitates; verifiable transmutation products; lab-measurable residue",
         ),
     ),
     unique_contributions=(
         UniqueContribution(
-            "Suppression as convergence signal",
-            "Institutional suppression of LENR, EVO, diaelectrics, and remote "
-            "viewing across independent agencies validates structural convergence: "
-            "if unrelated groups suppress the same phenomena, the phenomena are "
-            "real and threatening to the existing paradigm. Forbidden = structural "
-            "proof of power. No other tradition carries this epistemological marker.",
+            "Cross-agency research convergence",
+            "LENR (DARPA, US Navy NRL), EVO (Ken Shoulders, SRI), remote viewing "
+            "(SRI STARGATE programme), and diaelectrics (USAF Talley 1991) were all "
+            "independently funded by separate government programmes without shared "
+            "institutional lineage. Independent funding of structurally similar "
+            "phenomena constitutes a sociological convergence signal — distinct "
+            "from the epistemological claim that suppression implies truth.",
         ),
         UniqueContribution(
             "Sarfatti SU(2)→consciousness bridge",
