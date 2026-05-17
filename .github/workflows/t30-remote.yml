@@ -1,0 +1,285 @@
+name: T30 Remote Exec
+
+# Run shell commands on the self-hosted t30 runner. Two ways to trigger:
+#
+#   1. workflow_dispatch from the Actions tab (UI / gh cli)
+#   2. Posting `/t30 <command>` as the first line of an issue or PR comment
+#      (commenter must be OWNER, MEMBER, or COLLABORATOR)
+#
+# Output is committed back to the triggering branch under .remote-exec/
+# and (for comment triggers) replied on the same issue/PR.
+
+on:
+  workflow_dispatch:
+    inputs:
+      command:
+        description: 'Shell command to run on t30 (bash -lc <command>)'
+        required: true
+        type: string
+      working_directory:
+        description: 'Working directory relative to repo root'
+        required: false
+        default: '.'
+        type: string
+      timeout_minutes:
+        description: 'Hard timeout in minutes (1-60)'
+        required: false
+        default: '10'
+        type: string
+      commit_log:
+        description: 'Commit the log file back to the triggering branch'
+        required: false
+        default: true
+        type: boolean
+  issue_comment:
+    types: [created]
+
+concurrency:
+  group: t30-remote-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  exec:
+    if: |
+      github.event_name == 'workflow_dispatch' ||
+      (github.event_name == 'issue_comment' &&
+       startsWith(github.event.comment.body, '/t30 ') &&
+       (github.event.comment.author_association == 'OWNER' ||
+        github.event.comment.author_association == 'MEMBER' ||
+        github.event.comment.author_association == 'COLLABORATOR'))
+    runs-on: self-hosted
+    timeout-minutes: 65
+    permissions:
+      contents: write
+      issues: write
+      pull-requests: write
+    steps:
+      - name: Acknowledge comment trigger
+        if: github.event_name == 'issue_comment'
+        uses: actions/github-script@v9
+        env:
+          RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+        with:
+          script: |
+            await github.rest.reactions.createForIssueComment({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              comment_id: context.payload.comment.id,
+              content: 'rocket',
+            });
+            await github.rest.issues.createComment({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: context.issue.number,
+              body: `t30-remote queued: [run #${{ github.run_id }}](${process.env.RUN_URL})`,
+            });
+
+      - name: Resolve target ref (comment on PR uses PR head)
+        id: ref
+        env:
+          EVENT_NAME: ${{ github.event_name }}
+          IS_PR: ${{ github.event.issue.pull_request != null }}
+          PR_NUMBER: ${{ github.event.issue.number }}
+        run: |
+          if [ "$EVENT_NAME" = "issue_comment" ] && [ "$IS_PR" = "true" ]; then
+            pr_head=$(curl -s -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" \
+              "${{ github.api_url }}/repos/${{ github.repository }}/pulls/$PR_NUMBER" \
+              | python3 -c "import json,sys; print(json.load(sys.stdin)['head']['ref'])")
+            echo "ref=$pr_head" >> "$GITHUB_OUTPUT"
+          else
+            echo "ref=${{ github.ref_name }}" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Checkout
+        uses: actions/checkout@v6
+        with:
+          ref: ${{ steps.ref.outputs.ref }}
+          fetch-depth: 0
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Parse inputs
+        id: parse
+        env:
+          EVENT_NAME: ${{ github.event_name }}
+          COMMENT_BODY: ${{ github.event.comment.body }}
+          DISPATCH_COMMAND: ${{ inputs.command }}
+          DISPATCH_WORKDIR: ${{ inputs.working_directory }}
+          DISPATCH_TIMEOUT: ${{ inputs.timeout_minutes }}
+        run: |
+          if [ "$EVENT_NAME" = "issue_comment" ]; then
+            # Strip the leading "/t30 " token; keep the rest (may be multi-line).
+            command="${COMMENT_BODY#/t30 }"
+            workdir="."
+            timeout="10"
+          else
+            command="$DISPATCH_COMMAND"
+            workdir="$DISPATCH_WORKDIR"
+            timeout="$DISPATCH_TIMEOUT"
+          fi
+
+          if ! [[ "$timeout" =~ ^[0-9]+$ ]] || [ "$timeout" -lt 1 ] || [ "$timeout" -gt 60 ]; then
+            echo "::error::timeout_minutes must be an integer between 1 and 60 (got: $timeout)"
+            exit 1
+          fi
+          if [ ! -d "$workdir" ]; then
+            echo "::error::working_directory '$workdir' does not exist in repo"
+            exit 1
+          fi
+
+          # Pass via $GITHUB_ENV so multi-line values stay intact and never
+          # get interpolated through a shell expression.
+          {
+            echo "T30_COMMAND<<__EOF__"
+            echo "$command"
+            echo "__EOF__"
+          } >> "$GITHUB_ENV"
+          echo "T30_WORKDIR=$workdir" >> "$GITHUB_ENV"
+          echo "T30_TIMEOUT_S=$((timeout * 60))" >> "$GITHUB_ENV"
+
+      - name: Run command
+        id: run
+        continue-on-error: true
+        run: |
+          mkdir -p .remote-exec
+          log_path=".remote-exec/${{ github.run_id }}-${{ github.run_attempt }}.log"
+          echo "log_path=$log_path" >> "$GITHUB_OUTPUT"
+
+          {
+            echo "# t30-remote run ${{ github.run_id }} attempt ${{ github.run_attempt }}"
+            echo "# trigger:    ${{ github.event_name }}"
+            echo "# actor:      ${{ github.actor }}"
+            echo "# branch:     ${{ steps.ref.outputs.ref }}"
+            echo "# commit:     ${{ github.sha }}"
+            echo "# workdir:    $T30_WORKDIR"
+            echo "# timeout:    ${T30_TIMEOUT_S}s"
+            echo "# command:    |"
+            printf '#   %s\n' "$T30_COMMAND" | head -20
+            echo "# ---"
+          } > "$log_path"
+
+          set +e
+          (
+            cd "$T30_WORKDIR"
+            timeout --signal=TERM --kill-after=15s "${T30_TIMEOUT_S}" \
+              bash -lc "$T30_COMMAND"
+          ) >> "$GITHUB_WORKSPACE/$log_path" 2>&1
+          exit_code=$?
+          set -e
+
+          {
+            echo "# ---"
+            echo "# exit_code:  $exit_code"
+            echo "# finished:   $(date -u +%FT%TZ)"
+          } >> "$log_path"
+
+          echo "exit_code=$exit_code" >> "$GITHUB_OUTPUT"
+
+      - name: Summarize
+        if: always()
+        run: |
+          log_path="${{ steps.run.outputs.log_path }}"
+          exit_code="${{ steps.run.outputs.exit_code }}"
+          {
+            echo "## T30 Remote Exec"
+            echo ""
+            echo "| Field | Value |"
+            echo "|-------|-------|"
+            echo "| Trigger | \`${{ github.event_name }}\` |"
+            echo "| Branch | \`${{ steps.ref.outputs.ref }}\` |"
+            echo "| Exit code | \`$exit_code\` |"
+            echo "| Log | \`$log_path\` |"
+            echo ""
+            echo "### Command"
+            echo '```'
+            echo "$T30_COMMAND"
+            echo '```'
+            echo ""
+            echo "### Output (tail 200 lines)"
+            echo '```'
+            tail -n 200 "$log_path" 2>/dev/null || echo "(no log)"
+            echo '```'
+          } >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Upload log artifact
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: t30-remote-${{ github.run_id }}-${{ github.run_attempt }}
+          path: ${{ steps.run.outputs.log_path }}
+          if-no-files-found: warn
+          retention-days: 14
+
+      - name: Commit log back to branch
+        if: |
+          always() &&
+          (github.event_name == 'issue_comment' || inputs.commit_log == true)
+        run: |
+          log_path="${{ steps.run.outputs.log_path }}"
+          [ -f "$log_path" ] || { echo "no log to commit"; exit 0; }
+
+          git config user.name  "t30-remote-bot"
+          git config user.email "t30-remote-bot@users.noreply.github.com"
+          git pull --rebase origin "${{ steps.ref.outputs.ref }}" || true
+
+          git add "$log_path"
+          if git diff --cached --quiet; then
+            echo "no changes to commit"
+            exit 0
+          fi
+          git commit -m "chore(t30-remote): log run ${{ github.run_id }} [skip ci]"
+
+          for attempt in 1 2 3 4; do
+            if git push origin "HEAD:${{ steps.ref.outputs.ref }}"; then
+              exit 0
+            fi
+            sleep $((2 ** attempt))
+            git pull --rebase origin "${{ steps.ref.outputs.ref }}" || true
+          done
+          echo "::warning::failed to push log after 4 attempts"
+
+      - name: Reply on issue/PR with output
+        if: always() && github.event_name == 'issue_comment'
+        uses: actions/github-script@v9
+        env:
+          LOG_PATH: ${{ steps.run.outputs.log_path }}
+          EXIT_CODE: ${{ steps.run.outputs.exit_code }}
+          RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+          REF: ${{ steps.ref.outputs.ref }}
+        with:
+          script: |
+            const fs = require('fs');
+            const path = process.env.LOG_PATH;
+            let tail = '(no log captured)';
+            try {
+              const raw = fs.readFileSync(path, 'utf8');
+              const lines = raw.split('\n');
+              const slice = lines.slice(-120).join('\n');
+              tail = slice.length > 25000 ? slice.slice(-25000) : slice;
+            } catch (e) {
+              tail = `failed to read log: ${e.message}`;
+            }
+            const status = process.env.EXIT_CODE === '0' ? 'exit 0' : `exit ${process.env.EXIT_CODE}`;
+            const body = [
+              `### t30-remote: ${status}`,
+              ``,
+              `[run #${{ github.run_id }}](${process.env.RUN_URL}) - branch \`${process.env.REF}\` - log \`${path}\``,
+              ``,
+              '```',
+              tail,
+              '```',
+            ].join('\n');
+            await github.rest.issues.createComment({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: context.issue.number,
+              body,
+            });
+
+      - name: Propagate exit code
+        if: always()
+        run: |
+          exit_code="${{ steps.run.outputs.exit_code }}"
+          if [ "$exit_code" != "0" ]; then
+            echo "::error::command exited with $exit_code (see log and artifact above)"
+            exit "$exit_code"
+          fi
