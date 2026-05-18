@@ -88,7 +88,13 @@ class KaggleTrainingManager:
 
     def get_training_script_template(self) -> str:
         """
-        Returns the v5 training script for Kaggle Blackwell (Docker 31287).
+        Returns the v6 training script for Kaggle Blackwell (Docker 31287).
+
+        v6 changes (2026-05-14):
+        - Bug fix: removed tokenizer= kwarg from Trainer() (not accepted in newer transformers)
+        - EVAL_SUFFIX: prompt suffix aligned to NVIDIA_METRIC.py:233 (exact evaluator format)
+        - apply_chat_template(enable_thinking=True) matching evaluator; fallback to v5 format
+        - Completion format: "</think>\\n\\boxed{answer}" for thinking-mode alignment
 
         v5 changes (adversarial review 2026-05-02):
         - Bug fix: enable_thinking removed from generate() (TypeError for DeepSeek-R1-distill)
@@ -111,12 +117,14 @@ import sys
 import time
 import traceback
 
-# v5: metric-matching prompt suffix
+# v5: metric-matching prompt suffix (fallback)
 BOXED_INSTRUCTION = "Solve step by step and put your final answer inside \\boxed{}."
+# v6: exact suffix from NVIDIA_METRIC.py:233 — must match evaluator
+EVAL_SUFFIX = '\nPlease put your final answer inside `\\boxed{}`. For example: `\\boxed{your answer}`'
 
 print("=" * 60)
-print("NEMOTRON LORA TRAINING v5")
-print("9500 symbolic | Native BF16 | all-linear | DataCollatorForSeq2Seq")
+print("NEMOTRON LORA TRAINING v6")
+print("9500 symbolic | Native BF16 | all-linear | eval-aligned prompts | thinking completions")
 print("=" * 60)
 
 try:
@@ -146,9 +154,18 @@ try:
     sys.path.insert(0, "/tmp/pip_packages")
     os.environ["PYTHONPATH"] = f"/tmp/pip_packages:{os.environ.get('PYTHONPATH', '')}"
 
+    # v6 fix: Docker 31287 ships huggingface-hub==0.36.2; peft requires >=1.5.0.
+    # Upgrade in-place (system site-packages) so the new version is seen globally.
+    subprocess.run(
+        [sys.executable, "-m", "pip", "install", "-q", "huggingface-hub>=1.5.0,<2.0"],
+        check=False,
+    )
+
     for root, _, files in os.walk("/kaggle/input"):
         for f in files:
-            if f.endswith(".whl") and not any(s in f for s in ("setuptools", "six", "urllib3")):
+            # Skip huggingface-hub wheels — they would downgrade to 0.36.2 in /tmp/pip_packages,
+            # overriding the >=1.5.0 upgrade above (sys.path has /tmp/pip_packages first).
+            if f.endswith(".whl") and not any(s in f for s in ("setuptools", "six", "urllib3", "huggingface_hub", "huggingface-hub")):
                 try:
                     subprocess.run(
                         [sys.executable, "-m", "pip", "install", "-q",
@@ -158,6 +175,12 @@ try:
                     )
                 except Exception as e:
                     print(f"  wheel failed: {e}")
+
+    # Safety: remove any huggingface_hub that landed in /tmp/pip_packages (breaks imports)
+    import shutil as _shutil, pathlib as _pathlib
+    for _p in _pathlib.Path("/tmp/pip_packages").glob("huggingface_hub*"):
+        _shutil.rmtree(_p, ignore_errors=True)
+    print("  huggingface-hub v7 fix applied")
 
     for pkg in ["peft", "accelerate"]:
         try:
@@ -287,8 +310,20 @@ try:
         return None
 
     def tokenize(example):
-        prompt_text = f"{BOXED_INSTRUCTION}\n\nProblem: {example['prompt']}\n\n"
-        completion = f"Answer: {example['answer']}"
+        user_content = str(example['prompt']) + EVAL_SUFFIX
+        try:
+            # v6: exact evaluator format (NVIDIA_METRIC.py:237-246)
+            prompt_text = tokenizer.apply_chat_template(
+                [{'role': 'user', 'content': user_content}],
+                tokenize=False,
+                add_generation_prompt=True,
+                enable_thinking=True,
+            )
+            # Thinking-mode completion: model starts after <think>; produce minimal trace then answer
+            completion = "\n</think>\n\\boxed{" + str(example['answer']) + "}"
+        except Exception:
+            prompt_text = f"{BOXED_INSTRUCTION}\n\nProblem: {example['prompt']}\n\n"
+            completion = "Answer: " + str(example['answer'])
         enc = tokenizer(prompt_text + completion, truncation=True, max_length=2048)
         prompt_ids = tokenizer(prompt_text, truncation=True, max_length=2048)["input_ids"]
         # label_pad_token_id=-100: mask prompt so only completion contributes to loss
@@ -329,7 +364,6 @@ try:
 
     trainer = Trainer(
         model=model,
-        tokenizer=tokenizer,
         train_dataset=split["train"],
         eval_dataset=split["test"],
         args=training_args,
