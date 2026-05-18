@@ -135,7 +135,31 @@ class AutonomyEngine:
             state.coherence_history.append(0.0)
 
         logger.warning("Autonomy: VIOLATION recorded for %s (severity %s)", agent_id, severity)
-        return self._check_demotion(state)
+        new_tier = self._check_demotion(state)
+        if new_tier != state.current_tier:
+            self._transition(state, new_tier, "violation")
+        return state.current_tier
+
+    def record_physics_coherence(
+        self, agent_id: str, physics_source: str, coherence: float
+    ) -> AutonomyTier:
+        """Record coherence from a stealthskater physics bridge.
+
+        Routes signals from LENR, EVO, diaelectric, and ionic cluster bridges into
+        the tier promotion/demotion system. The HIHO threshold (0.5) is the same
+        across all physics substrates — nuclear, plasma, electromagnetic, and bioelectric.
+
+        physics_source: 'lenr', 'evo', 'diaelectric', 'ionic_cluster'
+        coherence: 0.0–1.0 (LENR uses reaction_rate, EVO uses nucleation_probability)
+        """
+        tier = self.record_coherence(agent_id, coherence)
+        logger.info(
+            "Autonomy: physics bridge '%s' → coherence %.3f → tier %s",
+            physics_source,
+            coherence,
+            tier.value,
+        )
+        return tier
 
     def record_coherence(self, agent_id: str, coherence: float) -> AutonomyTier:
         """Record a coherence measurement and check for tier transitions.

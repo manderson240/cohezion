@@ -1031,6 +1031,83 @@ _ABORIGINAL = Tradition(
 )
 
 
+_STEALTHSKATER = Tradition(
+    name="Stealthskater Archive",
+    slug="stealthskater",
+    origin_region="Classified Research Archives (USA/Global)",
+    step_mappings=_steps(
+        (
+            "Zero-Point Field",
+            "Vacuum manipulation programs -- ZPF as the ground state of all suppressed physics (Puthoff, Sarfatti)",
+            "Quantum vacuum / ZPF ground",
+        ),
+        (
+            "Quadrature Nexus",
+            "Phase-conjugate EM first distinction; quadrature intersection as the first observable from vacuum (Philadelphia Experiment)",
+            "First bifurcation / SU(2) quadrature axes",
+        ),
+        (
+            "12 Scalar Parameters",
+            "Sarfatti post-quantum metric = Smith 12-parameter reality; classified craft dynamics encoded in 12D manifold",
+            "12D manifold / Smith FABRIC_MAP",
+        ),
+        (
+            "4 Spacetime Fabrics",
+            "Classified brane propulsion -- Area 51 craft dynamics across 4 computational/spacetime domains",
+            "4 fabric domains (Space/Mass/Energy/Consciousness)",
+        ),
+        (
+            "LENR Phase Lock",
+            "Lattice confinement resonance = scalar wave coherence; cold fusion as phase-locked nuclear oscillation",
+            "Phase oscillation / LENR reaction rate",
+        ),
+        (
+            "EVO Nucleation",
+            "Exotic Vacuum Object charge cluster formation = vacuum symmetry breaking (Ken Shoulders, IEEE papers)",
+            "SO(12) to SO(3)^4 symmetry breaking",
+        ),
+        (
+            "Remote Viewing SPIN",
+            "Coherent SPIN-mode perceptual access across spacetime; psychotronics as structured observer-patch access",
+            "SPIN information unit / observer-patch holography",
+        ),
+        (
+            "Itonic Equilibrium",
+            "Plasma HIHO threshold at 0.5 coherence; ionic cluster resonance enabling altered consciousness training",
+            "HIHO dynamic equilibrium / ionic cluster state",
+        ),
+        (
+            "Diaelectric Binding",
+            "Biefield-Brown EHD field coupling as the mechanism of unified field cohesion and propulsion",
+            "COHESION binding / dielectric gauge connection",
+        ),
+        (
+            "Witness Marks",
+            "Landing traces, radar returns, LENR transmutation products, declassified documents -- physical precipitates of suppressed phenomena",
+            "Reality precipitates / physical evidence",
+        ),
+    ),
+    unique_contributions=(
+        UniqueContribution(
+            "Institutional suppression as structural proof",
+            "The pattern of classification and suppression across independent researchers validates convergence -- forbidden knowledge is forbidden precisely because it is structurally correct",
+        ),
+        UniqueContribution(
+            "Sarfatti SU(2) consciousness bridge",
+            "Direct mathematical path from SU(2) spinor algebra to conscious observation -- consciousness as a gauge degree of freedom",
+        ),
+        UniqueContribution(
+            "Remote viewing as holographic access",
+            "Puthoff-Targ protocols establish observer-patch holography from the inside -- the mind as a non-local antenna in the ZPF",
+        ),
+        UniqueContribution(
+            "EVO-LENR nuclear-scale HIHO",
+            "Exotic Vacuum Objects catalyze Low Energy Nuclear Reactions at exactly the HIHO 0.5 coherence threshold -- nuclear transmutation as witness mark of phase transition",
+        ),
+    ),
+)
+
+
 # ─── Registry ───────────────────────────────────────────────────────────
 
 _ALL_TRADITIONS: tuple[Tradition, ...] = (
@@ -1050,6 +1127,7 @@ _ALL_TRADITIONS: tuple[Tradition, ...] = (
     _AMAZONIAN,
     _DOGON,
     _ABORIGINAL,
+    _STEALTHSKATER,
 )
 
 _BY_SLUG: dict[str, Tradition] = {t.slug: t for t in _ALL_TRADITIONS}
