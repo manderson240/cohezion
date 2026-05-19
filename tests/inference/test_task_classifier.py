@@ -201,9 +201,13 @@ class TestConfidence:
         d = classify("Reply with exactly one word.")
         assert d.confidence >= 0.95
 
-    def test_length_fallback_lower_confidence(self):
+    def test_definitional_question_confidence(self):
+        # "What is X?" routes NPU via 1-2-term definitional pattern (0.78) — not length fallback
         d = classify("What is a compiler?")
-        assert d.confidence <= 0.75
+        assert d.node == "npu"
+        assert (
+            0.70 <= d.confidence < 0.90
+        )  # higher than length fallback (0.60), lower than explicit (0.95)
 
     def test_gpu_code_high_confidence(self):
         d = classify("Write a Python function to reverse a string.")

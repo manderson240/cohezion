@@ -53,7 +53,7 @@ _CATEGORICAL_PATTERNS = [
         "explicit one-letter instruction",
     ),
     (re.compile(r"\banswer with (a |one )?letter\b", re.I), 1.0, "explicit letter answer"),
-    (re.compile(r"\breply with (yes|no) or (no|yes)\b", re.I), 1.0, "yes/no question"),
+    (re.compile(r"\breply (?:with )?(yes|no) or (no|yes)\b", re.I), 1.0, "yes/no question"),
     (re.compile(r"\b(true|false) only\b", re.I), 0.95, "true/false only"),
     # Categorical options in prompt
     (
@@ -84,6 +84,25 @@ _SHORT_ANSWER_PATTERNS = [
         "direct what-is question",
     ),
     (re.compile(r"\bname (the|a|one)\b", re.I), 0.75, "name-the entity"),
+    # Definitional 1-2 word questions — "What is X?", "What is X Y?" → high-conf NPU
+    # Caps at 2 words (compound terms like "buffer overflow", "quantum entanglement")
+    (
+        re.compile(r"\bwhat (is|are)\s+(?:a\s+|an\s+|the\s+)?(?:[\w-]+\s+)?[\w-]+\s*\?$", re.I),
+        0.78,
+        "1-2-term definitional question",
+    ),
+    (
+        re.compile(r"\bwhat does [\w-]+\s+(?:stand for|mean|represent)\b", re.I),
+        0.78,
+        "acronym or term expansion question",
+    ),
+    # 3-4 word definitional questions — "What is X Y Z?" — slightly lower conf than 1-2 term
+    # but still clearly definitional, not complex explanation requests
+    (
+        re.compile(r"\bwhat (is|are)\s+(?:a\s+|an\s+|the\s+)?(?:[\w-]+\s+){2,4}[\w-]+\s*\?$", re.I),
+        0.74,
+        "3-4-term definitional question",
+    ),
     # Compound loop explanation patterns — high frequency, NPU-suitable
     (
         re.compile(r"\bwhat (is|are|does|do)\b.{0,60}\?$", re.I | re.S),
@@ -102,7 +121,7 @@ _GPU_PATTERNS = [
     # Extended: formula, macro, procedure, query, snippet, lambda, decorator, mixin, interface
     (
         re.compile(
-            r"\b(write|implement|create|generate|build)\s+(a |an |the )?(?:[\w-]+ ){0,3}(?:function|class|script|module|code|program|formula|macro|procedure|query|snippet|lambda|decorator|mixin|interface|getters?|setters?|validators?|serializers?|deserializers?|accessors?|migrations?|fixtures?|resolvers?|middlewares?|driver|routine|handler|client|library|daemon|firmware|plugin|extension|adapter|wrapper|proxy|stub|mock|task\b|job\b|service\b|worker|processor|listener|observer|consumer|producer|publisher|subscriber|widget|screen|fragment|composable|activity\b|viewmodel|repository\b|dao\b|coroutine|category\b|entity\b|component|[\w]*viewcontroller|[\w]*recyclerview|[\w]*tableview|[\w]*collectionview|shader|loop\b|controller\b|renderer|pass\b|pipeline|algorithm|simulation|generator|visualiz(?:er|ation)|importer|exporter|converter|transformer|dispatcher|scheduler|executor|runner|scanner|parser\b|loader|hook\b|contract\b|token\b|wallet|oracle|integration\b|connector|bridge\b|gateway\b|registry\b|factory\b|builder\b|chain\b)\b",
+            r"\b(write|implement|create|generate|build)\s+(a |an |the )?(?:[\w-]+ ){0,3}(?:function|class|script|module|code|program|formula|macro|procedure|query|snippet|lambda|decorator|mixin|interface|getters?|setters?|validators?|serializers?|deserializers?|accessors?|migrations?|fixtures?|resolvers?|middlewares?|driver|routine|handler|client|library|daemon|firmware|plugin|extension|adapter|wrapper|proxy|stub|mock|task\b|job\b|service\b|worker|processor|listener|observer|consumer|producer|publisher|subscriber|widget|screen|fragment|composable|activity\b|viewmodel|repository\b|dao\b|coroutine|category\b|entity\b|component|[\w]*viewcontroller|[\w]*recyclerview|[\w]*tableview|[\w]*collectionview|shader|loop\b|controller\b|renderer|pass\b|pipeline|algorithm|simulation|generator|visualiz(?:er|ation)|importer|exporter|converter|transformer|dispatcher|scheduler|executor|runner|scanner|parser\b|loader|hook\b|contract\b|token\b|wallet|oracle|integration\b|connector|bridge\b|gateway\b|registry\b|factory\b|builder\b|chain\b|circuit\b|calculator\b|analyzer|analyser|simulator\b|model\b|harness\b|profiler|embedder|clusterer|classifier\b|detector\b|extractor|tokenizer|vectorizer|optimizer\b|sampler|trainer|evaluator|scorer|node\b|planner|reasoner|router\b|orchestrator\b|limiter\b|broker\b|balancer\b|deployer\b|replicator\b|notifier\b|aggregator\b|collector\b|batcher\b|monitor\b|poller\b|pusher\b|forwarder\b|compactor\b|resolver\b|mapper\b|reconciler\b|crawler\b|debugger\b|watcher\b|semaphore\b|mutex\b|debouncer\b|throttler\b|sentinel\b|accumulator\b|combiner\b|partitioner\b|splitter\b|forker\b|joiner\b|interceptor\b|validator\b|sanitizer\b|encoder\b|decoder\b|architecture\b|scaffold\b|skeleton\b|boilerplate\b)\b",
             re.I,
         ),
         1.0,
@@ -159,9 +178,16 @@ _GPU_PATTERNS = [
         0.82,
         "procedural how-to-configure",
     ),
+    # "Explain why X [causes/affects/reduces/...]" — causal technical question, ≥30 chars
+    # Short "Explain why X?" (< 30 chars) stays NPU via describe-or-explain fallback
+    (
+        re.compile(r"\bexplain why\b.{30,}", re.I | re.S),
+        0.85,
+        "explain-why causal question",
+    ),
     # Explain [content] in detail / step-by-step — preamble content may separate them
     (
-        re.compile(r"\bexplain\b.{5,50}\b(in detail|thoroughly|step.by.step)\b", re.I | re.S),
+        re.compile(r"\bexplain\b.{5,80}\b(in detail|thoroughly|step.by.step)\b", re.I | re.S),
         0.88,
         "detailed explanation with preamble",
     ),
@@ -171,14 +197,25 @@ _GPU_PATTERNS = [
             r"\bimplement (the |a |an )\w+.{5,}\b(logic|pipeline|system|workflow|mechanism)\b",
             re.I,
         ),
-        0.80,
+        0.85,
         "implement complex logic/system",
+    ),
+    # Language-specific code generation: "Implement/write/build/create X in Java/Python/..."
+    # EARLY placement: must fire BEFORE "implement multi-word component" (0.78 catch-all)
+    # so "Implement a BST in Java" gets 0.90 instead of 0.78
+    (
+        re.compile(
+            r"\b(?:implement|create|build|write)\b.{0,55}\bin\s+(?:python|java|c\+\+|cpp|javascript|typescript|go|rust|kotlin|swift|scala|ruby|c\b|c#|php|perl|bash|sh\b)(?:\W|$)",
+            re.I,
+        ),
+        0.90,
+        "implement in language early",
     ),
     # Implement [multi-word component] (broader than above — catches "impl the semantic cache with...")
     # Excludes "why did we implement" (retrospective decision — NPU)
     (
         re.compile(r"\bimplement (the |a |an )\w+\s+\w+\b.{5,}", re.I),
-        0.78,
+        0.82,
         "implement multi-word component",
     ),
     # "implement the feature/fix/change/solution" — single-word object (feature, fix, etc.)
@@ -191,10 +228,10 @@ _GPU_PATTERNS = [
         0.82,
         "implement the feature/fix",
     ),
-    # "implement sorting/caching/searching/batching/anonymization/etc" — algorithm/operation as direct object
+    # "implement sorting/caching/searching/alignment/etc" — algorithm/operation as direct object
     (
         re.compile(
-            r"\bimplement\s+(?:the\s+|a\s+|an\s+)?(?:[\w-]+\s+){0,3}(?:sort(?:ing)?|search(?:ing)?|cach(?:e|ing)|hash(?:ing)?|batch(?:ing)?|rout(?:e|ing)|queu(?:e|ing)|stack(?:ing)?|heap|tree|graph|shard(?:ing)?|auto.shard(?:ing)?|auto.scal(?:e|ing)?|index(?:ing)?|filter(?:ing)?|compres(?:s|sion)|encod(?:e|ing)|anon(?:ymiz(?:e|ation)|ymisation)?|encrypt(?:ion)?|decrypt(?:ion)?|authenticat(?:e|ion)|authoriz(?:e|ation)|paginat(?:e|ion)|throttl(?:e|ing)|algorithm|protocol|webhook|recogni(?:tion|ze)|summariz(?:ation|ing|e)|classif(?:ication|y)|translat(?:ion|e)|detect(?:ion)?|extract(?:ion)?|pars(?:ing|e)|tagg(?:ing)?|segment(?:ation)?|cluster(?:ing)?|embed(?:ding)?|ota\s+(?:update|firmware)|firmware\s+update|isr|interrupt|persistence|notification\s+handling|push\s+notification|sync(?:hronization)?)\b",
+            r"\bimplement\s+(?:the\s+|a\s+|an\s+)?(?:[\w-]+\s+){0,3}(?:sort(?:ing)?|search(?:ing)?|cach(?:e|ing)|hash(?:ing)?|batch(?:ing)?|rout(?:e|ing)|queu(?:e|ing)|stack(?:ing)?|heap|tree|graph|shard(?:ing)?|auto.shard(?:ing)?|auto.scal(?:e|ing)?|index(?:ing)?|filter(?:ing)?|compres(?:s|sion)|encod(?:e|ing)|anon(?:ymiz(?:e|ation)|ymisation)?|encrypt(?:ion)?|decrypt(?:ion)?|authenticat(?:e|ion)|authoriz(?:e|ation)|paginat(?:e|ion)|throttl(?:e|ing)|algorithm|protocol|webhook|recogni(?:tion|ze)|summariz(?:ation|ing|e)|classif(?:ication|y)|translat(?:ion|e)|detect(?:ion)?|extract(?:ion)?|pars(?:ing|e)|tagg(?:ing)?|segment(?:ation)?|cluster(?:ing)?|embed(?:ding)?|ota\s+(?:update|firmware)|firmware\s+update|isr|interrupt|persistence|notification\s+handling|push\s+notification|sync(?:hronization)?|align(?:ment)?|assembly|sequenc(?:e|ing)|annot(?:ation|ate)|genotyp(?:e|ing)|variant\s+call(?:ing)?|teleportation|error\s+correction|handshake|consensus|replication|kinematics|dynamics\b|trajectory\s+(?:plan|track|optim)|path\s+planning|pid\s+(?:controller|loop|control)|localization|slam\b|odometry|navigation)\b",
             re.I,
         ),
         0.85,
@@ -254,7 +291,7 @@ _GPU_PATTERNS = [
     # Test/spec generation — "write a unit test for...", "write tests for..."
     (
         re.compile(
-            r"\b(write|create|generate|add)\s+(a |an |the )?(?:[\w-]+\s+)?(unit |integration |regression |end.to.end |smoke |e2e |api |load |performance |acceptance |contract |)test(s?)\b",
+            r"\b(write|create|generate|add)\s+(a |an |the )?(?:[\w-]+\s+){0,2}(unit |integration |regression |end.to.end |smoke |e2e |api |load |performance |acceptance |contract |failing |broken |missing |)test(s?|ing)\b",
             re.I,
         ),
         0.95,
@@ -296,6 +333,13 @@ _GPU_PATTERNS = [
         0.80,
         "troubleshooting how-do-you",
     ),
+    # Imperative diagnose/investigate — open-ended diagnostic tasks (≥10 chars of content)
+    # These verbs are always diagnostic/analytical GPU tasks regardless of following noun
+    (
+        re.compile(r"\b(?:diagnose|investigate)\s+.{10,}", re.I | re.S),
+        0.85,
+        "diagnose or investigate task",
+    ),
     # Document generation extended — analysis, guide, benchmark, comparison, overview
     (
         re.compile(
@@ -311,13 +355,13 @@ _GPU_PATTERNS = [
             r"\bcan you (resume|manage|orchestrate|handle|coordinate|configure|implement|create|build)\b",
             re.I,
         ),
-        0.80,
+        0.83,
         "can-you-action-request",
     ),
     # "How to run / execute / set up [task]" — procedural execution
     (
         re.compile(r"\bhow to (run|execute|start|launch|trigger|perform|conduct)\b", re.I),
-        0.80,
+        0.85,
         "how-to-run-execute",
     ),
     # "Implement the [adjective(s)]* policy/strategy/approach/pipeline"
@@ -327,7 +371,7 @@ _GPU_PATTERNS = [
             r"\bimplement (the |a |an ).{0,40}\b(policy|strategy|approach|mechanism|framework|workflow)\b",
             re.I,
         ),
-        0.82,
+        0.85,
         "implement policy/strategy",
     ),
     # "Write a [adj]* test suite" — broader test generation
@@ -350,23 +394,34 @@ _GPU_PATTERNS = [
         "code generation multi-adjective",
     ),
     # Engineering task verbs — refactor, debug, profile, optimize, audit, trace
+    # Two patterns: (1) with article requirement for broad verbs, (2) without article for specific coding verbs
     # "review" excluded — too ambiguous ("review before meeting" FP). Use code-review pattern below.
     (
         re.compile(
             r"\b(refactor|optimize|profile|debug|audit|trace|rewrite|rework|improve|translate|adapt|summarize|critique|formulate|interpret|hypothesize)\b.{0,30}\b(the|a|an|this|it|these|those)\b",
             re.I,
         ),
-        0.82,
+        0.85,
         "engineering task verb",
     ),
-    # Code review — "review" only when paired with code-specific nouns
+    # Direct refactoring verbs without article — "Refactor X to Y", "Rewrite X to use Y"
+    # These always produce code output when followed by a technical term
     (
         re.compile(
-            r"\breview\b.{0,30}\b(code|implementation|pull\s+request|pr\b|changes|diff|api|module|test|function|class|endpoint|service)\b",
+            r"\b(refactor|rewrite|rework)\s+[\w.-]+\b.{5,}",
+            re.I,
+        ),
+        0.85,
+        "direct refactoring verb",
+    ),
+    # Code/document review — "review" when paired with code artifacts or legal/compliance documents
+    (
+        re.compile(
+            r"\breview\b.{0,30}\b(code|implementation|pull\s+request|pr\b|changes|diff|api|module|test|function|class|endpoint|service|agreement|contract|license|policy|terms|compliance|patent|ip\b|clause|provisions?)\b",
             re.I,
         ),
         0.82,
-        "code review task",
+        "code or legal document review",
     ),
     # "Document the [X] with examples/API/guide" — structured documentation
     (
@@ -407,7 +462,7 @@ _GPU_PATTERNS = [
             r"\b(integrate|wire up|connect|hook up|set up)\b.{0,40}\b(with|into|to|integration|monitoring|tracking|observability)\b",
             re.I,
         ),
-        0.82,
+        0.85,
         "system integration task",
     ),
     # Wire X into Y (without "up") — service wiring
@@ -422,16 +477,16 @@ _GPU_PATTERNS = [
     # "Why is/are [X] [doing/returning/failing/scoring]" — specific debugging verbs
     (
         re.compile(
-            r"\bwhy (is|are|does|did|isn't|aren't|doesn't|didn't)\b.{0,60}\b(returning|fail(ing)?|scoring|not|error|broken|wrong|zero|null|empty|opening|dropping|crashing|slow|leaking|growing|blocking|hanging?|stuck|exhausting|falling|rising|spiking|timing\s+out|degrading|throwing|breaking)\b",
+            r"\bwhy (is|are|does|did|isn't|aren't|doesn't|didn't)\b.{0,60}\b(returning|fail(?:ing)?|scoring|not|error|broken|wrong|zero|null|empty|opening|dropping|crashing|slow|leaking|growing|blocking|hanging?|stuck|exhausting|falling|rising|spiking|timing\s+out|degrading|throwing|breaking|explod(?:ing|e)|vanish(?:ing)?|oscillat(?:ing)?|diverge|overfit(?:ting)?|underfit(?:ting)?|collaps(?:ing|e)|saturat(?:ing|e)|misclassif(?:y|ied|ying))\b",
             re.I,
         ),
-        0.82,
+        0.85,
         "debugging why-question",
     ),
     # Long "why" question (≥45 chars) — complex system behavior investigation
     (
         re.compile(r"\bwhy\s+(?:does|is|are|did|doesn't|isn't|aren't|didn't)\b.{42,}", re.I),
-        0.78,
+        0.82,
         "long debugging why-question",
     ),
     # "Generate the [adjective*] [config/JSON/YAML/entry/file] for [X]" — config generation
@@ -458,29 +513,47 @@ _GPU_PATTERNS = [
         0.88,
         "sql query generation",
     ),
-    # "Implement X in [language]" — language-specific algorithm/feature
+    # "Implement/Create/Build/Write X in [language/framework]" — language-specific code task
     (
         re.compile(
-            r"\bimplement\b.{0,40}\bin\s+(python|java|c\+\+|cpp|javascript|typescript|go|rust|kotlin|swift|scala|ruby)(?:\W|$)",
+            r"\b(?:implement|create|build|write)\b.{0,55}\bin\s+(python|java|c\+\+|cpp|javascript|typescript|go|rust|kotlin|swift|scala|ruby|qiskit|pennylane|cirq|braket|pyquil|pytorch|tensorflow|jax)(?:\W|$)",
             re.I,
         ),
         0.88,
         "implement in language",
     ),
-    # Create/build a [adjective(s)] endpoint/service/cache/pipeline/queue
+    # "X using/with [framework]" — framework-keyed code generation
     (
         re.compile(
-            r"\b(create|build|add)\s+(?:a\s+)?(?:[\w-]+\s+){0,3}(endpoint|service|api\b|cache|pipeline|queue|handler|middleware|dashboard|visualization|report|portal|agent|bot|workflow|framework|harness|scaffold|index\b|view\b|trigger\b|constraint|migration|role\b|policy|lifecycle|bucket|cluster|repository|registry)\b",
+            r"\b(?:using|with)\s+(qiskit|pennylane|cirq|braket|pyquil|pytorch|tensorflow|jax|scikit.learn|sklearn|biopython|bioconductor|deseq2|edger|samtools|gatk|bowtie|hisat|star\b|blast\b|llamaindex|langchain|opentelemetry|great.expectations|apache\s+beam|apache\s+flink|debezium|argocd|fluxcd|helm\b|argo\s+rollout|vault\s+(?:secret|sidecar))\b",
             re.I,
         ),
-        0.82,
+        0.90,
+        "using quantum/ML/bio/devops framework",
+    ),
+    # Create/build/write a [adjective(s)] endpoint/service/cache/pipeline/queue
+    (
+        re.compile(
+            r"\b(create|build|add|write)\s+(?:a\s+)?(?:[\w-]+\s+){0,3}(endpoint|service|api\b|cache|pipeline|queue|handler|middleware|dashboard|visualization|report|portal|agent|bot|workflow|framework|harness|scaffold|index\b|view\b|trigger\b|constraint|migration|role\b|policy|lifecycle|bucket|cluster|repository|registry)\b",
+            re.I,
+        ),
+        0.85,
         "build service or endpoint",
+    ),
+    # Compound data structure / distributed systems patterns — short but clearly code
+    (
+        re.compile(
+            r"\b(?:build|create|implement|write)\s+(?:a\s+)?(?:[\w-]+\s+)?(?:event\s+(?:bus|store|queue|sourcing)|message\s+(?:bus|queue|broker)|bloom\s+filter|write.ahead\s+log|consistent\s+hash|b.tree|lsm.tree|cqrs\s+(?:event|store|pattern)|saga\s+(?:orchestrat|pattern|coordinator)|raft\s+(?:leader|consensus|election)|paxos\s+(?:consensus|protocol)|gossip\s+(?:protocol|dissemination)|two.phase\s+commit|retry\s+(?:mechanism|handler|policy|logic|strategy)|bulkhead\s+(?:isolation|pattern|boundary)|backpressure\s+(?:mechanism|handler|strategy)|rate.limit\s+(?:mechanism|policy|strategy)|timeout\s+(?:mechanism|handler|strategy)|dead.letter\s+(?:queue|handler)|health.check\s+(?:endpoint|handler|probe)|circuit.breaker\s+(?:pattern|handler))\b",
+            re.I,
+        ),
+        0.90,
+        "compound data structure or dist-sys pattern",
     ),
     # "Configure [tech/service]" as an imperative — NOT part of "How to configure X?" question
     # Requires configure to be at start of prompt or after sentence-ending punctuation
     (
         re.compile(
-            r"(?:^|[.!;]\s+)configure\s+(?:the\s+|a\s+|this\s+)?(?:redis|rabbitmq|kafka|nginx|postgresql|mysql|mongodb|elasticsearch|grafana|prometheus|vault|consul|ssl|tls|https?|ldap|smtp|dns|iptables|sshd?|vpn|openvpn|wireguard|fail2ban|ufw|nfs|samba|waf|rate\s+limit|load\s+balanc|circuit\s+breaker|cdn|adc|dac|uart|spi\b|i2c\b|gpio|pwm|timer|hal|freertos|rtos|mqtt|zigbee|bluetooth|wifi)\b",
+            r"(?:^|[.!;]\s+)configure\s+(?:the\s+|a\s+|this\s+)?(?:[\w.-]+\s+){0,2}(?:redis|rabbitmq|kafka|nginx|postgresql|mysql|mongodb|elasticsearch|grafana|prometheus|vault|consul|ssl|tls|https?|ldap|smtp|dns|iptables|sshd?|vpn|openvpn|wireguard|fail2ban|ufw|nfs|samba|waf|rate\s+limit|load\s+balanc|circuit\s+breaker|cdn|adc|dac|uart|spi\b|i2c\b|gpio|pwm|timer|hal|freertos|rtos|mqtt|zigbee|bluetooth|wifi|endpoint|port\b|connection|timeout|backoff|retry|threshold|queue|pool\b|proxy\b|router\b|api\b|webhook|token\b|secret\b|credential|auth)\b",
             re.I | re.M,
         ),
         0.85,
@@ -498,7 +571,7 @@ _GPU_PATTERNS = [
     # "Add X to the [adjective] [function/class/module/code/system]" — code modification
     (
         re.compile(
-            r"\badd\s+(?:[\w-]+\s+){0,4}(?:to\s+(?:the\s+|a\s+|this\s+)?(?:[\w-]+\s+){0,2})(function|class|method|module|code|system|service|api|handler|test|endpoint)\b",
+            r"\badd\s+(?:[\w-]+\s+){0,4}(?:to\s+(?:the\s+|a\s+|this\s+)?(?:[\w.-]+\s+){0,2})(functions?|class(?:es)?|methods?|modules?|code|system|services?|api|handlers?|tests?|endpoint|files?\b|scripts?|configs?|schemas?|clients?\b|routers?\b|proxies?|adapters?\b|wrappers?|stores?\b|caches?|queues?)\b",
             re.I,
         ),
         0.82,
@@ -513,10 +586,11 @@ _GPU_PATTERNS = [
         0.82,
         "add observability/docs",
     ),
-    # "Fix the [bug/issue] in X" OR "Fix it/them/this" — code fix commands
+    # "Fix the [adj] [bug/issue] in/where X" OR "Fix it/them/this" — code fix commands
+    # .{0,40} prefix allows adjectives ("routing regression", "critical bug")
     (
         re.compile(
-            r"\bfix\s+(?:(?:the\s+)?(?:bug|issue|error|problem|crash|failure|regression)\b.{0,30}\b(?:in|with|at|for)\b|(?:it|them|this|that)\b)",
+            r"\bfix\s+(?:.{0,40}\b(?:bug|issue|error|problem|crash|failure|regression)\b.{0,60}\b(?:in|with|at|for|where)\b|(?:it|them|this|that)\b)",
             re.I,
         ),
         0.85,
@@ -525,7 +599,7 @@ _GPU_PATTERNS = [
     # Short imperative code operations: scaffold/stub/mock/process/handle/extend/simplify/dockerize
     (
         re.compile(
-            r"\b(scaffold|stub\s+out?|mock|process|handle|extend|simplify|dockerize|containerize|serialize|paginate)\s+(?:the\s+|a\s+|an\s+|this\s+)?(?:[\w-]+\s+){0,3}\w+\b",
+            r"(?:^|[.!;]\s+)(?:scaffold|stub\s+out?|mock|process|handle|extend|simplify|dockerize|containerize|serialize|paginate)\s+(?:the\s+|a\s+|an\s+|this\s+)?(?:[\w-]+\s+){0,3}\w+\b",
             re.I,
         ),
         0.82,
@@ -534,11 +608,21 @@ _GPU_PATTERNS = [
     # "Make [the/a] X more/less [readable/efficient/testable/...] — code quality improvement
     (
         re.compile(
-            r"\bmake\s+(?:the\s+|a\s+|this\s+)?(?:[\w-]+\s+)?(?:more\s+|less\s+)?(?:readable|efficient|testable|maintainable|performant|scalable|clean|modular|robust|reusable|thread.safe|async(?:hronous)?|synchronous|idempotent|stateless|observable|resilient|fault.tolerant|clear(?:er)?|simple(?:r)?|fast(?:er)?|small(?:er)?|concise(?:r)?)\b",
+            r"\bmake\s+(?:the\s+|a\s+|this\s+)?(?:[\w-]+\s+){0,2}(?:more\s+|less\s+)?(?:readable|efficient|testable|maintainable|performant|scalable|clean|modular|robust|reusable|thread.safe|async(?:hronous)?|synchronous|idempotent|stateless|observable|resilient|fault.tolerant|clear(?:er)?|simple(?:r)?|fast(?:er)?|small(?:er)?|concise(?:r)?)\b",
             re.I,
         ),
-        0.82,
+        0.85,
         "make-code-quality",
+    ),
+    # Extended engineering verbs — broader set of coding action verbs not in write/implement/build
+    # Requires a technical object (module/table/schema/weights/endpoint/etc.) to avoid FP
+    (
+        re.compile(
+            r"\b(?:benchmark|validate|parse|compress|decompress|rename|delete|remove|truncate|drop|enable|disable|toggle|backfill|reindex|sync(?:hronize)?|replay|snapshot|checkpoint|encrypt|decrypt|sign|verify|hash|marshal|unmarshal|minify|transpile|lint|typecheck|fuzz|port|convert|wrap|split|merge|hoist|annotate|inject|extract\b|patch|upgrade|downgrade|publish|subscribe|bootstrap|seed|hydrate|dehydrate|memoize|debounce|throttle|diagnose|investigate|trace\b|sort|filter|map\b|reduce|flatten|deduplicate|normalize|denormalize|sanitize|obfuscate|mask|test\b|trigger\b|check\b)\s+(?:the\s+|a\s+|an\s+|all\s+|this\s+)?(?:[\w.-]+\s+){0,3}(?:imports?|dependencies?|modules?|functions?|class(?:es)?|methods?|services?|api\b|endpoints?|schemas?|tables?|databases?|collections?|buckets?|indexes?|indices?|data|files?\b|records?|rows?|models?|weights?|configs?|pipelines?|caches?|queues?|tokens?|certs?|keys?\b|signatures?|graphs?|trees?|logs?\b|traces?|tests?|suites?|validators?|entries?|columns?|fields?|constraints?|migrations?|nodes?\b|edges?\b|queries|yaml|json\b|csvs?|vcfs?\b|similarity\b|metrics?\b|algorithms?\b|performances?\b|overhead\b|latency\b|throughput\b|accuracy\b|precision\b|recall\b|fallback\b|features?\b|flags?\b|threshold\b|limits?\b|rates?\b|budgets?\b|tiers?\b|policies?|rules?\b|annotations?|types?\b|interfaces?\b|clients?\b|renderers?|executors?\b|pools?\b|singletons?\b|instances?|components?|hooks?\b|middlewares?|frameworks?|routers?\b|stores?\b|contexts?\b|streams?|buffers?|channels?|sockets?|proxies?|adapters?\b|patterns?\b|strategies?|handlers?\b|listeners?\b|containers?|microservices?|lists?\b|arrays?|strings?\b|images?\b|videos?\b|passwords?\b|emails?\b|inputs?\b|outputs?\b|requests?\b|responses?\b|payloads?\b|messages?\b|events?\b|objects?\b|values?\b|numbers?\b|integers?\b|floats?\b|annotations?|type\s+hints?|ones\b|items?\b|entries?|missing\s+\w+|duplicates?|orphan\w*)\b",
+            re.I,
+        ),
+        0.85,
+        "extended engineering verb",
     ),
     # "Update the [tests/function/class/code/module] to [action]" — code update task
     (
@@ -548,6 +632,24 @@ _GPU_PATTERNS = [
         ),
         0.82,
         "update code artifact",
+    ),
+    # "Find the [source/root cause/origin/bug] of [X]" — debugging investigation
+    (
+        re.compile(
+            r"\bfind\s+(?:the\s+)?(?:source|root\s+cause|origin|bug|issue|cause|reason|culprit|bottleneck|regression|anomaly|leak|deadlock)\s+(?:of|in|for|behind)\b",
+            re.I,
+        ),
+        0.85,
+        "find root-cause task",
+    ),
+    # "Check if [X] handles/supports/works/is" — code validation question ≥20 chars
+    (
+        re.compile(
+            r"\bcheck\s+(?:if|whether)\s+(?:the\s+|a\s+|an\s+|this\s+)?(?:[\w.-]+\s+){1,4}(?:handles?|supports?|works?|is\s+(?:correct|valid|safe|thread.safe|idempotent)|throws?|returns?|connects?|reconnects?|retries?|fails?|passes?|guards?|covers?)\b",
+            re.I,
+        ),
+        0.85,
+        "check-if code validation",
     ),
     # "Create a K8s/Terraform deployment manifest/spec" — infra manifest
     (
@@ -579,7 +681,7 @@ _GPU_PATTERNS = [
     # Derive/calculate without explicit "step" — complex mathematical operations
     (
         re.compile(
-            r"\b(derive|calculate|compute) (the |a |an )(\w+ )*(matrix|transform|projection|distribution|gradient|kernel|embedding|decomposition|eigendecomposition|eigenvalue|jacobian|hessian|integral|derivative|divergence|entropy|covariance|correlation)\b",
+            r"\b(derive|calculate|compute) (the |a |an )(\w+ )*(matrix|transform|projection|distribution|gradient|kernel|embedding|decomposition|eigendecomposition|eigenvalue|jacobian|hessian|integral|derivative|divergence|entropy|covariance|correlation|stabilizer|hamiltonian|eigenstate|wavefunction|density\s+matrix|fidelity|expectation|variance|risk\s+metric|volatility|drawdown|portfolio\s+return|content|usage\s+bias|alignment\s+score|similarity\s+score)\b",
             re.I,
         ),
         0.88,
@@ -611,7 +713,7 @@ _GPU_PATTERNS = [
     # "Find the optimal/minimum/maximum/critical X [Y] using Z" — optimization
     (
         re.compile(
-            r"\bfind\s+(?:the\s+)?(?:optimal|minimum|maximum|critical|saddle|fixed)\s+(?:\w+\s+){1,3}(?:using|with|by|via)\b",
+            r"\bfind\s+(?:the\s+)?(?:optimal|minimum|maximum|critical|saddle|fixed)\b.{0,60}\b(?:using|with|by|via)\b",
             re.I,
         ),
         0.85,
@@ -620,7 +722,7 @@ _GPU_PATTERNS = [
     # "Calculate X for N [units/calls/queries]" — quantitative calculation
     (
         re.compile(
-            r"\bcalculate\s+(?:the\s+)?(?:\w+\s+){1,3}(?:for|with|given|across|over)\s+",
+            r"\bcalculate\s+(?:the\s+)?(?:[\w()]+\s+){1,8}(?:for|with|given|across|over)\s+",
             re.I,
         ),
         0.82,
@@ -638,7 +740,7 @@ _GPU_PATTERNS = [
     # Comparative analysis — "Compare the X vs Y", "Analyze the X metrics", "Evaluate the trade-offs"
     (
         re.compile(r"\b(compare|analyze|evaluate|assess)\s+the\b", re.I),
-        0.82,
+        0.85,
         "comparative or analytical task",
     ),
     # "Compare X vs Y" / "Compare X versus Y" — direct comparison without "the"
@@ -652,7 +754,7 @@ _GPU_PATTERNS = [
         re.compile(
             r"\b(walk\s+(?:me\s+)?through|describe\s+the\s+(full|complete|entire|detailed))\b", re.I
         ),
-        0.82,
+        0.85,
         "walk-through or full description",
     ),
     # "Plan how to [migrate/build/redesign]" — architectural planning
@@ -682,11 +784,106 @@ _GPU_PATTERNS = [
             r"\b(?:recommended|best)\s+(?:approaches|strategies|patterns|ways|practices)\s+(?:for|to)\b",
             re.I,
         ),
-        0.82,
+        0.85,
         "recommended approaches analysis",
+    ),
+    # Financial analysis — domain-specific complex nouns requiring multi-step GPU work
+    # "VaR / DCF / Black-Scholes / backtesting / Sharpe / Monte Carlo / options pricing"
+    (
+        re.compile(
+            r"\b(?:value\s+at\s+risk|var\s+(?:at|for|of)|discounted\s+cash\s+flow|dcf\s+(?:model|analysis|report)|black.scholes|monte\s+carlo\s+(?:sim|model|analysis)|portfolio\s+optim|sharpe\s+ratio|drawdown\s+anal|backtesting?\s+(?:framework|strategy|for)|momentum\s+(?:trading|strategy)|options?\s+pricing|implied\s+volatility|yield\s+curve|credit\s+default\s+swap|asset\s+allocation\s+model)\b",
+            re.I,
+        ),
+        0.88,
+        "financial analysis domain",
+    ),
+    # Bioinformatics — domain-specific pipelines and tools requiring GPU depth
+    # Smith-Waterman / RNA-seq / FASTQ / BLAST / phylogenetic / GATK / primer design
+    (
+        re.compile(
+            r"\b(?:smith.waterman|needleman.wunsch|rna.seq|fastq\s+(?:parser|process|filter|qual)|vcf\s+(?:parser|process|extract|annot)|blast.like|gene\s+regulatory|phylogenetic\s+anal|pcr\s+primer|primer\s+(?:pair|design)|sequence\s+alignment|genome\s+assembl|variant\s+(?:call|annot|filter)|differential\s+expression|de.novo\s+assembl|codon\s+usage|gc\s+content\s+(?:and|calc)|motif\s+(?:find|search|scan))\b",
+            re.I,
+        ),
+        0.88,
+        "bioinformatics domain",
+    ),
+    # Quantum computing — domain-specific algorithms/protocols requiring GPU depth
+    # Grover / Shor / VQE / quantum error correction / decoherence / entanglement
+    (
+        re.compile(
+            r"\b(?:grover.s\s+(?:algorithm|search)|shor.s\s+algorithm|quantum\s+(?:fourier\s+transform|error\s+correction|circuit|teleportation|key\s+distribution|anneal|walk|gate\s+synthesis|noise\s+model|decoherence|advantage)|bell\s+state|bloch\s+sphere|qubit\s+(?:circuit|gate|error|fidelity|measurement\s+outcome)|variational\s+quantum|steane\s+code|toffoli|hadamard\s+(?:gate|transform)|qasm|qiskit|pennylane\s+(?:impl|code))\b",
+            re.I,
+        ),
+        0.90,
+        "quantum computing domain",
+    ),
+    # NLP/ML engineering domain — transformers, RAG, embeddings, LLM pipelines
+    (
+        re.compile(
+            r"\b(?:attention\s+mechanism|self.attention\s+layer|multi.head\s+(?:attention|self.attention)|positional\s+encoding|word2vec\s+(?:skip.gram|cbow|training)|rag\s+(?:pipeline|vector|retrieval|database|embed)|retrieval.augmented|document\s+chunk(?:ing)?|llamaindex|langchain|beam\s+search\s+decod|bpe\s+(?:algorithm|tokeniz)|subword\s+(?:segment|tokeniz)|data\s+augment\s+(?:pipeline|nlp)|text\s+classifier\s+(?:fine|bert|transformer)|ner\s+(?:dataset|fine|train))\b",
+            re.I,
+        ),
+        0.90,
+        "nlp ml engineering domain",
+    ),
+    # AI agent engineering domain — compound noun phrases that unambiguously signal code tasks
+    # Only include multi-word compounds that cannot appear in "What is X?" questions
+    # (e.g., "multi-agent debate framework" vs bare "ReAct agent" which appears in what-is)
+    (
+        re.compile(
+            r"\b(?:multi.agent\s+(?:system|framework|debate|coordination)|tool.augmented\s+(?:agent|llm)|context\s+window\s+(?:compress|manag)|tree.of.thought\s+(?:reason|impl|chain)|chain.of.thought\s+(?:reason|impl|prompt)|agent\s+scaffold|task\s+planner\s+agent|episodic\s+(?:memory|recall)\s+(?:layer|store)|semantic\s+memory\s+(?:layer|store|embed)|planning.and.execution|rlhf\s+(?:update|fine.tun|feedback|loop)|structured\s+output\s+pars(?:ing|er)|function\s+calling\s+(?:agent|pattern|schema)|tool\s+(?:execution|routing|orchestrat)\s+(?:loop|agent|framework)|agentic\s+(?:loop|workflow|framework)|agent\s+(?:memory|planning|execution|loop)\s+(?:layer|system|loop|module))\b",
+            re.I,
+        ),
+        0.90,
+        "ai agent engineering domain",
+    ),
+    # DevOps/platform engineering domain — GitOps, ArgoCD, OpenTelemetry, cost allocation
+    (
+        re.compile(
+            r"\b(?:gitops\s+workflow|argocd\s+(?:workflow|pipeline|deploy|sync|install|config|manifest|app|setup)|fluxcd|argo\s+rollout|blue.green\s+deploy|canary\s+deploy|distributed\s+trac(?:ing)?|opentelemetry|open\s+telemetry|cost\s+alloc(?:ation)?\s+tagg(?:ing)?|cost\s+tagg(?:ing)?\s+strategy|vault\s+secret\s+(?:inject|sidecar)|kubernetes\s+hpa|eks\s+(?:cluster|provision|terraform)|terraform\s+module|helm\s+chart|github\s+actions\s+(?:ci|pipeline|workflow)|gitops\s+(?:workflow|argo|flux)|deploy\s+(?:using|with)\s+argocd|argocd\s+(?:application|project|sync))\b",
+            re.I,
+        ),
+        0.90,
+        "devops platform engineering domain",
+    ),
+    # Legal/compliance domain — contracts, GDPR, IP, license review
+    (
+        re.compile(
+            r"\b(?:non.disclosure\s+agreement|nda\s+(?:draft|clause|review)|gdpr\s+(?:compli|articl|policy|consent|data\s+subject)|ccpa\s+(?:compli|request)|software\s+license\s+(?:agreement|review|audit)|ip\s+rights?|intellectual\s+property\s+(?:clause|rights?|policy)|license\s+(?:compatibility|compli|audit|review)|terms\s+of\s+service|privacy\s+policy|data\s+process\s+agreement|consent\s+management|rbac\s+(?:gdpr|permission|access)|legal\s+(?:risk|memo|brief)|patentability|open.source\s+license)\b",
+            re.I,
+        ),
+        0.88,
+        "legal compliance domain",
+    ),
+    # Scientific research domain — experimental design, clinical trials, paper writing
+    (
+        re.compile(
+            r"\b(?:experimental\s+(?:protocol|design|methodology|plan)|research\s+hypothesis|null\s+hypothesis|clinical\s+trial\s+(?:design|protocol|phase|plan)|systematic\s+review|meta.analysis|statistical\s+power\s+(?:anal|calc)|sample\s+size\s+calc|randomized\s+controlled\s+trial|rct\s+(?:design|protocol)|methods\s+section|crispr\s+(?:gene|edit|effic)|cortisol\s+response|literature\s+review|research\s+paper|bootstrap\s+resamp|confidence\s+interval\s+(?:calc|bootstrap)|statistical\s+analysis\s+plan|phase\s+(?:i{1,3}|iii?|iv)\s+(?:trial|study|clinical))\b",
+            re.I,
+        ),
+        0.88,
+        "scientific research domain",
+    ),
+    # Data engineering domain — Airflow/Spark/dbt/Kafka/Flink/ETL/CDC pipelines
+    # Note: bare nouns (data lakehouse, ETL) are NOT included — need action-verb context
+    (
+        re.compile(
+            r"\b(?:airflow\s+(?:dag|pipeline|task|operator|hook)|dbt\s+(?:model|transform|test|project)|spark\s+(?:stream|job|pipeline|etl|session)|kafka\s+(?:consumer|producer|stream|topic|lag)|flink\s+(?:job|stream|window|operator)|debezium\s+(?:cdc|pipeline)|change\s+data\s+capture|cdc\s+pipeline|delta\s+lake\s+(?:table|schema|pipeline|migration)|apache\s+iceberg\s+(?:table|migration|catalog)|data\s+lakehouse\s+(?:architect|design|implement|migrat)|great\s+expectations\s+(?:check|suite|pipeline|for)|feature\s+store\s+(?:ingestion|pipeline)|feast\s+(?:registry|feature)|etl\s+(?:pipeline|dag|job|process)|data\s+quality\s+check|tumbling\s+window|snowflake\s+(?:schema|sql|model)|star.schema\s+(?:data|warehouse)|data\s+warehouse\s+(?:schema|model)|streaming\s+pipeline|clickstream\s+process)",
+            re.I,
+        ),
+        0.90,
+        "data engineering domain",
     ),
 ]
 
+
+# Short "What is/are/should/does/do/did X?" definitional pre-override
+# Catches domain-noun questions before domain GPU patterns can fire
+# "What should the rollback procedure do?" → NPU (behavioral question, not code imperative)
+_SHORT_WHAT_IS_PATTERN = re.compile(
+    r"^what\s+(?:is|are|should|does|do|did)\b",
+    re.I,
+)
 
 _RETROSPECTIVE_PATTERN = re.compile(
     r"\bwhy\s+did\s+(?:we|you|they|the\s+team)\s+(?:choose|decide|select|use|go\s+with|adopt|implement|pick)\b",
@@ -694,16 +891,27 @@ _RETROSPECTIVE_PATTERN = re.compile(
 )
 
 _NEGATION_PATTERN = re.compile(
-    r"\b(?:not\s+asking\s+(?:you\s+)?to\s+write|without\s+writing\s+(?:any\s+)?code|don'?t\s+write\s+(?:any\s+)?code|no\s+code\b)",
+    r"\b(?:not\s+asking\s+(?:you\s+)?to\s+(?:write|implement|build|code|create|generate)|without\s+(?:writing|implementing|building|coding)\s+(?:any\s+)?code|don'?t\s+(?:write|implement)\s+(?:any\s+)?code|no\s+code\b)",
+    re.I,
+)
+
+# "How does/did X [verb] Y?" — behavioral/factual question about system behavior
+# Should route NPU before GPU patterns catch action verbs in the middle of the question
+# Fires only for ≤85 chars (prevents false-negating complex how-does architectural questions)
+_HOW_DOES_PATTERN = re.compile(
+    r"^how\s+(?:does|did|do|can)\s+(?!we\b)(?:the\s+|a\s+|an\s+|this\s+|your\s+|it\s+)?",
     re.I,
 )
 
 # Brevity-qualified summarize/critique/interpret: "Summarize X in one paragraph" → short answer (NPU)
 # Also: "Briefly summarize/critique/interpret X" → NPU
+# Also: "...? One sentence." terminal brevity qualifier overrides domain GPU signals
 # Without brevity qualifier: "Summarize the contributions of BERT" → GPU
 _BREVITY_SUMMARIZE_PATTERN = re.compile(
     r"(?:\bbriefly\s+(?:summarize|critique|interpret|formulate|explain)\b)|"
-    r"(?:\bsummariz(?:e|ing)\b.{0,80}\b(?:in\s+(?:one|two|three|a\s+single)\s+(?:sentence|paragraph|bullet|word|line)|in\s+brief)\b)",
+    r"(?:\bsummariz(?:e|ing)\b.{0,80}\b(?:in\s+(?:one|two|three|a\s+single)\s+(?:sentence|paragraph|bullet|word|line)|in\s+brief)\b)|"
+    r"(?:[\.\?!]\s+(?:one|a\s+single)\s+sentence\.?\s*$)|"
+    r"(?:\bin\s+(?:one|two|three|a\s+single)\s+sentence[,:])",
     re.I | re.S,
 )
 
@@ -768,13 +976,44 @@ def classify(prompt: str) -> RouteDecision:
             reason="retrospective decision question",
         )
 
+    # 3. Short "What is/are X?" definitional question — fires BEFORE domain GPU patterns
+    # Prevents "What is a multi-agent system?" from matching ai-agent-engineering-domain
+    # Threshold: ≤ 75 chars total (short enough to be definitional, not complex)
+    # Does NOT fire for long what-is questions like "What is the implementation of X that..."
+    if prompt_len <= 75 and _SHORT_WHAT_IS_PATTERN.search(prompt):  # noqa: SIM102
+        node, gate = _TYPE_CONFIG["short_answer"]
+        # Confidence depends on term length (1-2 words = 0.78, 3-4 words = 0.74)
+        return RouteDecision(
+            node=node,
+            output_type="short_answer",
+            quality_gate_chars=gate,
+            confidence=0.77,
+            reason="short what-is definitional pre-override",
+        )
+
+    # 4. "How does/did/can X [verb] Y?" — behavioral question about system behavior
+    # Should route NPU before GPU patterns catch action verbs mid-question
+    # "How does the cache handle cache misses?" → NPU (explains behavior, doesn't need code)
+    # Threshold ≤ 85 chars: complex "How does X enable Y to Z?" may still need GPU analysis
+    if prompt_len <= 85 and _HOW_DOES_PATTERN.search(prompt):
+        node, gate = _TYPE_CONFIG["short_answer"]
+        return RouteDecision(
+            node=node,
+            output_type="short_answer",
+            quality_gate_chars=gate,
+            confidence=0.73,
+            reason="how-does behavioral question pre-override",
+        )
+
     # ── Check GPU patterns first (highest cost to mis-route) ────────────────
+    _CODE_REASON_KEYWORDS = frozenset(
+        {"code", "implement", "test", "sql", "iac", "infra", "domain", "framework", "language"}
+    )
     for pattern, confidence, reason in _GPU_PATTERNS:
         if pattern.search(prompt):
-            node, gate = (
-                _TYPE_CONFIG["code"] if "code" in reason else _TYPE_CONFIG["long_generation"]
-            )
-            otype = "code" if "code" in reason else "long_generation"
+            is_code = any(kw in reason for kw in _CODE_REASON_KEYWORDS)
+            node, gate = _TYPE_CONFIG["code"] if is_code else _TYPE_CONFIG["long_generation"]
+            otype = "code" if is_code else "long_generation"
             return RouteDecision(
                 node=node,
                 output_type=otype,

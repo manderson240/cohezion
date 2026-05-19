@@ -550,6 +550,41 @@ class CostAwareRouter:
         self._degradation_cooldown: int = 0
         self._degradation_upgrade_model: str | None = None
 
+        # ── Improvement 1: Rolling EMA quality + hysteresis ──────────────
+        # Source: arXiv:2605.00410 "Agent Capsules" — Quality-Gated Granularity Control
+        # EMA of quality per tier prevents threshold oscillation from transient dips.
+        # Hysteresis band requires N consecutive below-threshold readings before reducing.
+        self._EMA_ALPHA: float = 0.1
+        self._ESCALATE_THRESHOLD: float = 0.6  # below this: increment consecutive counter
+        self._DE_ESCALATE_THRESHOLD: float = 0.75  # above this: reset + allow threshold increase
+        self._HYSTERESIS_CONSEC_REQUIRED: int = 3
+        self._ema_quality: dict[str, float] = {
+            self.TIER_SIMPLE: 0.7,
+            self.TIER_MEDIUM: 0.7,
+            self.TIER_COMPLEX: 0.7,
+        }
+        self._consec_below_escalate: dict[str, int] = {
+            self.TIER_SIMPLE: 0,
+            self.TIER_MEDIUM: 0,
+            self.TIER_COMPLEX: 0,
+        }
+
+        # ── Improvement 2: Contextual bandit model selection ──────────────
+        # Source: arXiv:2605.14241 "Latency-Quality Routing for Functionally Equivalent Tools"
+        # Routes to argmax(q[node] - λ*lat[node]) after sufficient warm-up.
+        self._BANDIT_WARMUP: int = 10
+        self._BANDIT_LAMBDA: float = 0.001  # quality cost per ms of latency
+        self._BANDIT_ALPHA: float = 0.1
+        self._bandit_quality_ema: dict[str, float] = {
+            m: self.MODEL_QUALITY.get(m, 0.5)
+            for m in [self.TIER_SIMPLE, self.TIER_MEDIUM, self.TIER_COMPLEX]
+        }
+        self._bandit_latency_ema: dict[str, float] = {
+            m: self.MODEL_LATENCY.get(m, 100.0)
+            for m in [self.TIER_SIMPLE, self.TIER_MEDIUM, self.TIER_COMPLEX]
+        }
+        self._bandit_exec_count: int = 0
+
     @classmethod
     def get_default(cls) -> "CostAwareRouter":
         """Get or create singleton instance."""
@@ -621,6 +656,18 @@ class CostAwareRouter:
 
         # Optimize model selection based on cost/token ratio if enabled
         model = self._optimize_model_selection(primary_model, complexity, estimated_tokens)
+
+        # Bandit override: after warm-up, use empirical quality-latency tradeoff
+        # (Improvement 2 — arXiv:2605.14241)
+        bandit_model = self._bandit_select(model, complexity)
+        if bandit_model != model:
+            logger.info(
+                "Bandit override: %s → %s (empirical q-lat score improved)",
+                model,
+                bandit_model,
+            )
+            model = bandit_model
+            self.token_optimization_swaps += 1
 
         # Check pool availability (if pool_manager is configured)
         if self._pool_manager is not None:
@@ -971,6 +1018,21 @@ class CostAwareRouter:
         # Track latency for threshold adjustment
         self._cumulative_latency_ms += duration_ms
 
+        # ── Improvement 1: Rolling EMA quality update (arXiv:2605.00410) ────
+        quality_signal = 1.0 if success else 0.0
+        self._ema_quality[model] = (1.0 - self._EMA_ALPHA) * self._ema_quality.get(
+            model, 0.7
+        ) + self._EMA_ALPHA * quality_signal
+
+        # ── Improvement 2: Bandit EMA update (arXiv:2605.14241) ──────────────
+        self._bandit_quality_ema[model] = (1.0 - self._BANDIT_ALPHA) * self._bandit_quality_ema.get(
+            model, 0.5
+        ) + self._BANDIT_ALPHA * quality_signal
+        self._bandit_latency_ema[model] = (1.0 - self._BANDIT_ALPHA) * self._bandit_latency_ema.get(
+            model, 100.0
+        ) + self._BANDIT_ALPHA * duration_ms
+        self._bandit_exec_count += 1
+
         # Auto-tune thresholds if enabled
         if self.dynamic_threshold_tuning:
             self._tune_thresholds_based_on_success()
@@ -1001,7 +1063,33 @@ class CostAwareRouter:
         """Dynamically tune cost/latency thresholds based on success patterns.
 
         If phi3 has high success rate, gradually relax thresholds to route more queries to it.
+
+        Improvement 1 addition (arXiv:2605.00410): Rolling EMA hysteresis guard.
+        Prevents threshold oscillation by requiring N consecutive below-threshold
+        EMA readings before reducing cost_threshold.
         """
+        # ── Rolling EMA hysteresis (Improvement 1 — arXiv:2605.00410) ───────
+        # Runs INDEPENDENTLY of the sample-size check below (catches quality issues early)
+        tier_ema = self._ema_quality.get(self.TIER_SIMPLE, 0.7)
+        if tier_ema < self._ESCALATE_THRESHOLD:
+            # EMA is below threshold — increment consecutive counter
+            self._consec_below_escalate[self.TIER_SIMPLE] = (
+                self._consec_below_escalate.get(self.TIER_SIMPLE, 0) + 1
+            )
+        else:
+            # EMA has recovered — reset consecutive counter
+            self._consec_below_escalate[self.TIER_SIMPLE] = 0
+            if tier_ema > self._DE_ESCALATE_THRESHOLD:
+                # Quality is high — gently increase cost threshold
+                if self.cost_threshold < 0.25:
+                    self.cost_threshold = min(0.25, self.cost_threshold + 0.005)
+
+        # Hysteresis-gated threshold reduction: only trigger after N consecutive readings
+        if self._consec_below_escalate.get(self.TIER_SIMPLE, 0) >= self._HYSTERESIS_CONSEC_REQUIRED:
+            if self.cost_threshold > 0.05:
+                self.cost_threshold = max(0.05, self.cost_threshold - 0.02)
+
+        # ── Existing: cumulative success-rate tuning (kept unchanged) ────────
         # Calculate success rates
         phi3_total = self._phi3_success_count
         qwen_total = self._qwen_success_count
@@ -1029,6 +1117,53 @@ class CostAwareRouter:
             # Reduce latency threshold tolerance
             if self.latency_threshold > 100.0:
                 self.latency_threshold = max(100.0, self.latency_threshold - 5.0)
+
+    def _bandit_score(self, model: str) -> float:
+        """Compute quality-latency bandit score: q[model] - λ * lat[model].
+
+        Source: arXiv:2605.14241 "Latency-Quality Routing for Functionally Equivalent Tools".
+        Higher score = better quality-latency tradeoff.
+        """
+        q = self._bandit_quality_ema.get(model, self.MODEL_QUALITY.get(model, 0.5))
+        lat = self._bandit_latency_ema.get(model, self.MODEL_LATENCY.get(model, 100.0))
+        return q - self._BANDIT_LAMBDA * lat
+
+    def _get_bandit_candidates(self, complexity: QueryComplexity) -> list[str]:
+        """Get candidate models for bandit selection.
+
+        Never escalates beyond the primary model's tier — only maintains or downgrades.
+        This preserves the quality semantics of complexity-based routing.
+        """
+        if complexity == QueryComplexity.SIMPLE:
+            return [self.TIER_SIMPLE]
+        elif complexity == QueryComplexity.MEDIUM:
+            return [self.TIER_SIMPLE, self.TIER_MEDIUM]
+        else:  # COMPLEX
+            return [self.TIER_SIMPLE, self.TIER_MEDIUM, self.TIER_COMPLEX]
+
+    def _bandit_select(self, primary_model: str, complexity: QueryComplexity) -> str:
+        """Bandit-based model selection using empirical quality-latency scores.
+
+        Returns primary_model until BANDIT_WARMUP executions have been recorded.
+        After warmup, selects argmax(q[candidate] - λ*lat[candidate]) from tier-candidates.
+        A 0.02 margin prevents spurious swaps from noise.
+        """
+        if self._bandit_exec_count < self._BANDIT_WARMUP:
+            return primary_model
+
+        candidates = self._get_bandit_candidates(complexity)
+        if len(candidates) == 1:
+            return candidates[0]
+
+        best_model = primary_model
+        best_score = self._bandit_score(primary_model)
+        for candidate in candidates:
+            score = self._bandit_score(candidate)
+            if score > best_score + 0.02:  # margin prevents noise-driven swaps
+                best_model = candidate
+                best_score = score
+
+        return best_model
 
     def _compute_routing_confidence(self, model: str, complexity: QueryComplexity) -> float:
         """Compute OI-MAS joint role+scale confidence for a routing decision.
@@ -1067,6 +1202,17 @@ class CostAwareRouter:
         degradation_factor = 0.8 if self._degradation_cooldown > 0 else 1.0
 
         confidence = (quality * 0.3 + success_rate * 0.4 + alignment * 0.3) * degradation_factor
+
+        # ── Improvement 3: Cold-start confidence annealing (arXiv:2310.15440 routing analogy)
+        # During cold start (no session history), confidence is conservatively scaled to 0.75×.
+        # Linearly anneals to 1.0× as query count reaches COLD_START_WARMUP.
+        # Floor of 0.75 ensures well-aligned models (quality≈0.95) still exceed the 0.7
+        # low-confidence threshold even at cold start (0.95 × 0.75 = 0.713 > 0.7).
+        _COLD_START_WARMUP = 10
+        total_decisions = sum(self.query_count_per_model.values())
+        cold_start_factor = min(1.0, total_decisions / _COLD_START_WARMUP)
+        confidence = confidence * (0.75 + 0.25 * cold_start_factor)
+
         return min(1.0, max(0.0, confidence))
 
     def _get_r_zero(self) -> Any:
