@@ -104,8 +104,8 @@ class HookifyValidator:
                 rule = self._parse_rule_section(section)
                 if rule:
                     rules.append(rule)
-            except Exception:
-                # Invalid rule format - skip gracefully
+            except Exception as e:
+                logger.debug("Invalid rule format, skipping: %s", e)
                 continue
 
         return rules
@@ -499,12 +499,7 @@ class HookifyValidator:
                 )
                 if result and len(result) > 0:
                     return result[0].get("lever_overrides", {})
-            except (
-                OSError,
-                ValueError,
-                TypeError,
-                SurrealDBMethodError,
-            ) as e:
+            except Exception as e:
                 logger.debug("load_db_overrides failed: %s", e)
 
         return {}

@@ -16,12 +16,10 @@ class TestGemma4ProviderRegistration:
 
     def test_gemma4_registered(self):
         # Import triggers auto-registration
-        import cohezion.swarm.providers.gemma4_provider  # noqa: F401
 
         assert "gemma4" in list_providers()
 
     def test_get_gemma4_provider(self):
-        import cohezion.swarm.providers.gemma4_provider  # noqa: F401
 
         provider = get_model_provider("gemma4", use_singleton=False)
         assert provider is not None

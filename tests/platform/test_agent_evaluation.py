@@ -173,7 +173,7 @@ class TestAgentExecutionContext:
         assert context.confidence_claimed == 0.5
 
         # Invalid confidence (should raise validation error)
-        with pytest.raises(Exception):  # Pydantic ValidationError
+        with pytest.raises((ValueError, TypeError)):  # Pydantic ValidationError
             AgentExecutionContext(
                 agent_id="agent-123",
                 task_description="Test",

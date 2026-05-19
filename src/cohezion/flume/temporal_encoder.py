@@ -20,12 +20,11 @@ import math
 from pathlib import Path
 
 import numpy as np
+import torch
+import torch.nn as nn
 
 
 logger = logging.getLogger(__name__)
-
-import torch
-import torch.nn as nn
 
 
 class TemporalEncoder(nn.Module):

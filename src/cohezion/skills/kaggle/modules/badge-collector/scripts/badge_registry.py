@@ -13,7 +13,7 @@ Each badge has:
   - automatable: whether the badge collector can earn it
 """
 
-from dataclasses import dataclass
+from dataclasses import dataclass  # noqa: E402
 
 
 @dataclass

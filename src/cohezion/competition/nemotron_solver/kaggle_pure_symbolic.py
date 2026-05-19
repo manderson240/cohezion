@@ -818,7 +818,7 @@ def solve(prompt: str) -> str:
 # ---------------------------------------------------------------------------
 # Kaggle: read test.csv, write submission.csv
 # ---------------------------------------------------------------------------
-import os
+import os  # noqa: E402
 
 
 if os.path.exists("/kaggle/input/nvidia-nemotron-model-reasoning-challenge/test.csv"):

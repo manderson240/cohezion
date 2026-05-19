@@ -158,7 +158,7 @@ class WikiMirixBridge:
         )
 
         node = UniverseNode(
-            id=f"wiki:{hash(page.title) & 0xFFFFFFFF}",
+            id=f"wiki_{hash(page.title) & 0xFFFFFFFF}",
             content=page.content[:1000],  # Truncate for DB storage
             physics_state=physics,
             metadata={
@@ -179,7 +179,7 @@ class WikiMirixBridge:
             # Create relation: this_page --relates_to--> linked_page
             try:
                 await self.surreal.query(
-                    f"RELATE wiki:{hash(page.title) & 0xFFFFFFFF}->relates_to->wiki:{hash(link) & 0xFFFFFFFF}"
+                    f"RELATE universe_nodes:wiki_{hash(page.title) & 0xFFFFFFFF}->relates_to->universe_nodes:wiki_{hash(link) & 0xFFFFFFFF}"
                 )
             except Exception:
                 pass  # Target may not exist yet

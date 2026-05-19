@@ -33,7 +33,8 @@ def load_metrics(pattern: str = "*.json") -> list[dict[str, Any]]:
         try:
             data = json.loads(f.read_text())
             metrics.append(data)
-        except Exception:
+        except Exception as _e:
+            print(f"Warning: skipping {f}: {_e}", file=sys.stderr)
             continue
 
     return metrics

@@ -16,6 +16,7 @@ Base hypothesis: "v20_baseline_50_samples_1e-4"
 """
 
 import json
+import math
 import subprocess
 import sys
 from pathlib import Path
@@ -40,6 +41,11 @@ def load_state():
     if STATE_PATH.exists():
         return json.loads(STATE_PATH.read_text())
     return {"runs": 0, "best_score": 0.0, "active_kernel": None}
+
+
+def save_state(state):
+    STATE_PATH.write_text(json.dumps(state, indent=2))
+
 
 UCB_C = 1.414
 

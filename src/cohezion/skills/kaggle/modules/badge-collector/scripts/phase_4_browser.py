@@ -40,7 +40,7 @@ def _get_kaggle_cookies() -> dict | None:
 def _try_playwright() -> bool:
     """Check if Playwright is available."""
     try:
-        from playwright.sync_api import sync_playwright
+        from playwright.sync_api import sync_playwright  # noqa: F401
 
         return True
     except ImportError:
@@ -70,7 +70,7 @@ def _fill_profile(username: str) -> bool:
         return False
 
     try:
-        from playwright.sync_api import sync_playwright
+        from playwright.sync_api import sync_playwright  # noqa: F401
 
         creds = _get_kaggle_cookies()
         if not creds:
@@ -143,7 +143,7 @@ def _dark_theme(username: str) -> bool:
         return False
 
     try:
-        from playwright.sync_api import sync_playwright
+        from playwright.sync_api import sync_playwright  # noqa: F401
 
         creds = _get_kaggle_cookies()
         if not creds:
@@ -196,7 +196,7 @@ def _bookmark(username: str) -> bool:
         return False
 
     try:
-        from playwright.sync_api import sync_playwright
+        from playwright.sync_api import sync_playwright  # noqa: F401
 
         with sync_playwright() as p:
             browser = p.chromium.launch(headless=True)

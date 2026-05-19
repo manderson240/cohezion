@@ -15,13 +15,13 @@ import json
 import logging
 import shutil
 import subprocess
-
-
-_UV = shutil.which("uv") or "/usr/local/bin/uv"
 from dataclasses import asdict, dataclass
 from datetime import UTC, datetime
 from pathlib import Path
 from typing import Any
+
+
+_UV = shutil.which("uv") or "/usr/local/bin/uv"
 
 
 logger = logging.getLogger(__name__)

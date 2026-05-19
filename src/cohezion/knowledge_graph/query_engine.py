@@ -71,7 +71,8 @@ class KnowledgeGraphQueryEngine:
             try:
                 data = json.loads(path.read_text())
                 records.append(data)
-            except Exception:
+            except Exception as _e:
+                logger.debug("Skipping: %s", _e)
                 continue
         return records
 
@@ -130,7 +131,8 @@ class KnowledgeGraphQueryEngine:
         for md_path in self._knowledge_dir.glob("*.md"):
             try:
                 text = md_path.read_text(encoding="utf-8")
-            except Exception:
+            except Exception as _e:
+                logger.debug("Skipping: %s", _e)
                 continue
 
             text_lower = text.lower()

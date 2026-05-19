@@ -29,8 +29,8 @@ from dataclasses import dataclass
 
 # Resolve git executable at module load to avoid S607 partial-path warnings.
 _GIT = shutil.which("git") or "/usr/bin/git"
-from pathlib import Path
-from typing import Any
+from pathlib import Path  # noqa: E402
+from typing import Any  # noqa: E402
 
 
 logger = logging.getLogger(__name__)

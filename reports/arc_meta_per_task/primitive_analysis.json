@@ -1,0 +1,5014 @@
+{
+  "counts": {
+    "upscale_or_pad": 81,
+    "same_size_unknown": 675,
+    "downscale_or_crop": 237,
+    "rot180": 2,
+    "flip_v": 1,
+    "flip_h": 1,
+    "transpose": 2,
+    "rot270": 1
+  },
+  "per_task": {
+    "00576224": {
+      "label": "upscale_or_pad",
+      "train_pairs": 2,
+      "size": "2x2"
+    },
+    "007bbfb7": {
+      "label": "upscale_or_pad",
+      "train_pairs": 5,
+      "size": "3x3"
+    },
+    "009d5c81": {
+      "label": "same_size_unknown",
+      "train_pairs": 5,
+      "size": "14x14"
+    },
+    "00d62c1b": {
+      "label": "same_size_unknown",
+      "train_pairs": 5,
+      "size": "10x10"
+    },
+    "00dbd492": {
+      "label": "same_size_unknown",
+      "train_pairs": 4,
+      "size": "15x15"
+    },
+    "017c7c7b": {
+      "label": "upscale_or_pad",
+      "train_pairs": 3,
+      "size": "6x3"
+    },
+    "025d127b": {
+      "label": "same_size_unknown",
+      "train_pairs": 2,
+      "size": "8x9"
+    },
+    "03560426": {
+      "label": "same_size_unknown",
+      "train_pairs": 3,
+      "size": "10x10"
+    },
+    "045e512c": {
+      "label": "same_size_unknown",
+      "train_pairs": 3,
+      "size": "21x21"
+    },
+    "0520fde7": {
+      "label": "downscale_or_crop",
+      "train_pairs": 3,
+      "size": "3x7"
+    },
+    "05269061": {
+      "label": "same_size_unknown",
+      "train_pairs": 3,
+      "size": "7x7"
+    },
+    "05a7bcf2": {
+      "label": "same_size_unknown",
+      "train_pairs": 3,
+      "size": "30x30"
+    },
+    "05f2a901": {
+      "label": "same_size_unknown",
+      "train_pairs": 3,
+      "size": "9x10"
+    },
+    "0607ce86": {
+      "label": "same_size_unknown",
+      "train_pairs": 3,
+      "size": "21x22"
+    },
+    "0692e18c": {
+      "label": "upscale_or_pad",
+      "train_pairs": 3,
+      "size": "3x3"
+    },
+    "06df4c85": {
+      "label": "same_size_unknown",
+      "train_pairs": 3,
+      "size": "23x23"
+    },
+    "070dd51e": {
+      "label": "same_size_unknown",
+      "train_pairs": 2,
+      "size": "20x10"
+    },
+    "08ed6ac7": {
+      "label": "same_size_unknown",
+      "train_pairs": 2,
+      "size": "9x9"
+    },
+    "09629e4f": {
+      "label": "same_size_unknown",
+      "train_pairs": 4,
+      "size": "11x11"
+    },
+    "0962bcdd": {
+      "label": "same_size_unknown",
+      "train_pairs": 2,
+      "size": "12x12"
+    },
+    "09c534e7": {
+      "label": "same_size_unknown",
+      "train_pairs": 3,
+      "size": "20x20"
+    },
+    "0a1d4ef5": {
+      "label": "downscale_or_crop",
+      "train_pairs": 3,
+      "size": "30x30"
+    },
+    "0a2355a6": {
+      "label": "same_size_unknown",
+      "train_pairs": 4,
+      "size": "14x14"
+    },
+    "0a938d79": {
+      "label": "same_size_unknown",
+      "train_pairs": 4,
+      "size": "22x9"
+    },
+    "0b148d64": {
+      "label": "downscale_or_crop",
+      "train_pairs": 3,
+      "size": "18x19"
+    },
+    "0b17323b": {
+      "label": "same_size_unknown",
+      "train_pairs": 2,
+      "size": "15x15"
+    },
+    "0bb8deee": {
+      "label": "downscale_or_crop",
+      "train_pairs": 3,
+      "size": "15x13"
+    },
+    "0becf7df": {
+      "label": "same_size_unknown",
+      "train_pairs": 3,
+      "size": "10x10"
+    },
+    "0c786b71": {
+      "label": "upscale_or_pad",
+      "train_pairs": 3,
+      "size": "3x4"
+    },
+    "0c9aba6e": {
+      "label": "downscale_or_crop",
+      "train_pairs": 4,
+      "size": "13x4"
+    },
+    "0ca9ddb6": {
+      "label": "same_size_unknown",
+      "train_pairs": 3,
+      "size": "9x9"
+    },
+    "0d3d703e": {
+      "label": "same_size_unknown",
+      "train_pairs": 4,
+      "size": "3x3"
+    },
+    "0d87d2a6": {
+      "label": "same_size_unknown",
+      "train_pairs": 3,
+      "size": "10x20"
+    },
+    "0e206a2e": {
+      "label": "same_size_unknown",
+      "train_pairs": 3,
+      "size": "14x15"
+    },
+    "0e671a1a": {
+      "label": "same_size_unknown",
+      "train_pairs": 4,
+      "size": "13x13"
+    },
+    "0f63c0b9": {
+      "label": "same_size_unknown",
+      "train_pairs": 4,
+      "size": "15x15"
+    },
+    "103eff5b": {
+      "label": "same_size_unknown",
+      "train_pairs": 2,
+      "size": "22x12"
+    },
+    "10fcaaa3": {
+      "label": "upscale_or_pad",
+      "train_pairs": 4,
+      "size": "5x3"
+    },
+    "11852cab": {
+      "label": "same_size_unknown",
+      "train_pairs": 3,
+      "size": "10x10"
+    },
+    "1190bc91": {
+      "label": "same_size_unknown",
+      "train_pairs": 3,
+      "size": "10x10"
+    },
+    "1190e5a7": {
+      "label": "downscale_or_crop",
+      "train_pairs": 3,
+      "size": "11x11"
+    },
+    "11dc524f": {
+      "label": "same_size_unknown",
+      "train_pairs": 3,
+      "size": "13x13"
+    },
+    "11e1fe23": {
+      "label": "same_size_unknown",
+      "train_pairs": 2,
+      "size": "12x11"
+    },
+    "12422b43": {
+      "label": "same_size_unknown",
+      "train_pairs": 5,
+      "size": "13x6"
+    },
+    "12997ef3": {
+      "label": "downscale_or_crop",
+      "train_pairs": 4,
+      "size": "11x11"
+    },
+    "12eac192": {
+      "label": "same_size_unknown",
+      "train_pairs": 4,
+      "size": "5x8"
+    },
+    "13713586": {
+      "label": "same_size_unknown",
+      "train_pairs": 3,
+      "size": "16x17"
+    },
+    "137eaa0f": {
+      "label": "downscale_or_crop",
+      "train_pairs": 3,
+      "size": "11x11"
+    },
+    "137f0df0": {
+      "label": "same_size_unknown",
+      "train_pairs": 3,
+      "size": "10x10"
+    },
+    "13f06aa5": {
+      "label": "same_size_unknown",
+      "train_pairs": 3,
+      "size": "12x14"
+    },
+    "140c817e": {
+      "label": "same_size_unknown",
+      "train_pairs": 3,
+      "size": "9x9"
+    },
+    "14754a24": {
+      "label": "same_size_unknown",
+      "train_pairs": 4,
+      "size": "14x15"
+    },
+    "1478ab18": {
+      "label": "same_size_unknown",
+      "train_pairs": 3,
+      "size": "8x8"
+    },
+    "14b8e18c": {
+      "label": "same_size_unknown",
+      "train_pairs": 3,
+      "size": "10x10"
+    },
+    "150deff5": {
+      "label": "same_size_unknown",
+      "train_pairs": 3,
+      "size": "8x10"
+    },
+    "15113be4": {
+      "label": "same_size_unknown",
+      "train_pairs": 3,
+      "size": "23x23"
+    },
+    "15660dd6": {
+      "label": "downscale_or_crop",
+      "train_pairs": 2,
+      "size": "19x19"
+    },
+    "15663ba9": {
+      "label": "same_size_unknown",
+      "train_pairs": 3,
+      "size": "12x15"
+    },
+    "15696249": {
+      "label": "upscale_or_pad",
+      "train_pairs": 4,
+      "size": "3x3"
+    },
+    "17829a00": {
+      "label": "same_size_unknown",
+      "train_pairs": 2,
+      "size": "16x16"
+    },
+    "178fcbfb": {
+      "label": "same_size_unknown",
+      "train_pairs": 3,
+      "size": "10x8"
+    },
+    "17b80ad2": {
+      "label": "same_size_unknown",
+      "train_pairs": 4,
+      "size": "12x12"
+    },
+    "17b866bd": {
+      "label": "same_size_unknown",
+      "train_pairs": 2,
+      "size": "16x21"
+    },
+    "17cae0c1": {
+      "label": "same_size_unknown",
+      "train_pairs": 4,
+      "size": "3x9"
+    },
+    "18286ef8": {
+      "label": "same_size_unknown",
+      "train_pairs": 3,
+      "size": "12x12"
+    },
+    "182e5d0f": {
+      "label": "same_size_unknown",
+      "train_pairs": 3,
+      "size": "12x12"
+    },
+    "18419cfa": {
+      "label": "same_size_unknown",
+      "train_pairs": 3,
+      "size": "18x17"
+    },
+    "18447a8d": {
+      "label": "same_size_unknown",
+      "train_pairs": 3,
+      "size": "13x11"
+    },
+    "184a9768": {
+      "label": "same_size_unknown",
+      "train_pairs": 3,
+      "size": "20x22"
+    },
+    "195ba7dc": {
+      "label": "downscale_or_crop",
+      "train_pairs": 4,
+      "size": "5x13"
+    },
+    "1990f7a8": {
+      "label": "downscale_or_crop",
+      "train_pairs": 3,
+      "size": "17x19"
+    },
+    "19bb5feb": {
+      "label": "downscale_or_crop",
+      "train_pairs": 3,
+      "size": "16x15"
+    },
+    "1a07d186": {
+      "label": "same_size_unknown",
+      "train_pairs": 3,
+      "size": "15x14"
+    },
+    "1a244afd": {
+      "label": "same_size_unknown",
+      "train_pairs": 3,
+      "size": "16x16"
+    },
+    "1a2e2828": {
+      "label": "downscale_or_crop",
+      "train_pairs": 5,
+      "size": "11x12"
+    },
+    "1a6449f1": {
+      "label": "downscale_or_crop",
+      "train_pairs": 3,
+      "size": "21x23"
+    },
+    "1acc24af": {
+      "label": "same_size_unknown",
+      "train_pairs": 4,
+      "size": "12x12"
+    },
+    "1b2d62fb": {
+      "label": "downscale_or_crop",
+      "train_pairs": 5,
+      "size": "5x7"
+    },
+    "1b59e163": {
+      "label": "same_size_unknown",
+      "train_pairs": 2,
+      "size": "18x18"
+    },
+    "1b60fb0c": {
+      "label": "same_size_unknown",
+      "train_pairs": 3,
+      "size": "10x10"
+    },
+    "1b8318e3": {
+      "label": "same_size_unknown",
+      "train_pairs": 3,
+      "size": "15x15"
+    },
+    "1be83260": {
+      "label": "downscale_or_crop",
+      "train_pairs": 2,
+      "size": "27x15"
+    },
+    "1bfc4729": {
+      "label": "same_size_unknown",
+      "train_pairs": 2,
+      "size": "10x10"
+    },
+    "1c02dbbe": {
+      "label": "same_size_unknown",
+      "train_pairs": 3,
+      "size": "15x15"
+    },
+    "1c0d0a4b": {
+      "label": "same_size_unknown",
+      "train_pairs": 3,
+      "size": "9x13"
+    },
+    "1c56ad9f": {
+      "label": "same_size_unknown",
+      "train_pairs": 4,
+      "size": "15x15"
+    },
+    "1c786137": {
+      "label": "downscale_or_crop",
+      "train_pairs": 3,
+      "size": "13x16"
+    },
+    "1caeab9d": {
+      "label": "same_size_unknown",
+      "train_pairs": 3,
+      "size": "10x10"
+    },
+    "1cf80156": {
+      "label": "downscale_or_crop",
+      "train_pairs": 3,
+      "size": "11x12"
+    },
+    "1d0a4b61": {
+      "label": "same_size_unknown",
+      "train_pairs": 3,
+      "size": "25x25"
+    },
+    "1d398264": {
+      "label": "same_size_unknown",
+      "train_pairs": 3,
+      "size": "20x20"
+    },
+    "1d61978c": {
+      "label": "same_size_unknown",
+      "train_pairs": 2,
+      "size": "16x16"
+    },
+    "1da012fc": {
+      "label": "same_size_unknown",
+      "train_pairs": 2,
+      "size": "14x20"
+    },
+    "1e0a9b12": {
+      "label": "same_size_unknown",
+      "train_pairs": 3,
+      "size": "6x6"
+    },
+    "1e32b0e9": {
+      "label": "same_size_unknown",
+      "train_pairs": 3,
+      "size": "17x17"
+    },
+    "1e5d6875": {
+      "label": "same_size_unknown",
+      "train_pairs": 2,
+      "size": "8x8"
+    },
+    "1e81d6f9": {
+      "label": "same_size_unknown",
+      "train_pairs": 3,
+      "size": "15x15"
+    },
+    "1efba499": {
+      "label": "same_size_unknown",
+      "train_pairs": 3,
+      "size": "12x12"
+    },
+    "1f0c79e5": {
+      "label": "same_size_unknown",
+      "train_pairs": 4,
+      "size": "9x9"
+    },
+    "1f642eb9": {
+      "label": "same_size_unknown",
+      "train_pairs": 3,
+      "size": "10x10"
+    },
+    "1f85a75f": {
+      "label": "downscale_or_crop",
+      "train_pairs": 2,
+      "size": "30x30"
+    },
+    "1f876c06": {
+      "label": "same_size_unknown",
+      "train_pairs": 3,
+      "size": "10x10"
+    },
+    "1fad071e": {
+      "label": "downscale_or_crop",
+      "train_pairs": 3,
+      "size": "9x9"
+    },
+    "2013d3e2": {
+      "label": "downscale_or_crop",
+      "train_pairs": 2,
+      "size": "10x10"
+    },
+    "2037f2c7": {
+      "label": "downscale_or_crop",
+      "train_pairs": 3,
+      "size": "25x25"
+    },
+    "2072aba6": {
+      "label": "upscale_or_pad",
+      "train_pairs": 3,
+      "size": "3x3"
+    },
+    "20818e16": {
+      "label": "downscale_or_crop",
+      "train_pairs": 3,
+      "size": "16x15"
+    },
+    "20981f0e": {
+      "label": "same_size_unknown",
+      "train_pairs": 3,
+      "size": "14x16"
+    },
+    "20fb2937": {
+      "label": "downscale_or_crop",
+      "train_pairs": 2,
+      "size": "20x11"
+    },
+    "212895b5": {
+      "label": "same_size_unknown",
+      "train_pairs": 3,
+      "size": "18x17"
+    },
+    "21f83797": {
+      "label": "same_size_unknown",
+      "train_pairs": 2,
+      "size": "13x13"
+    },
+    "2204b7a8": {
+      "label": "same_size_unknown",
+      "train_pairs": 3,
+      "size": "10x10"
+    },
+    "22168020": {
+      "label": "same_size_unknown",
+      "train_pairs": 3,
+      "size": "10x10"
+    },
+    "22208ba4": {
+      "label": "same_size_unknown",
+      "train_pairs": 4,
+      "size": "16x16"
+    },
+    "22233c11": {
+      "label": "same_size_unknown",
+      "train_pairs": 3,
+      "size": "10x10"
+    },
+    "22425bda": {
+      "label": "downscale_or_crop",
+      "train_pairs": 4,
+      "size": "7x7"
+    },
+    "22806e14": {
+      "label": "same_size_unknown",
+      "train_pairs": 3,
+      "size": "16x16"
+    },
+    "2281f1f4": {
+      "label": "same_size_unknown",
+      "train_pairs": 3,
+      "size": "10x10"
+    },
+    "228f6490": {
+      "label": "same_size_unknown",
+      "train_pairs": 3,
+      "size": "10x10"
+    },
+    "22a4bbc2": {
+      "label": "same_size_unknown",
+      "train_pairs": 4,
+      "size": "20x4"
+    },
+    "22eb0ac0": {
+      "label": "same_size_unknown",
+      "train_pairs": 3,
+      "size": "10x10"
+    },
+    "230f2e48": {
+      "label": "same_size_unknown",
+      "train_pairs": 3,
+      "size": "10x10"
+    },
+    "234bbc79": {
+      "label": "downscale_or_crop",
+      "train_pairs": 4,
+      "size": "3x11"
+    },
+    "23581191": {
+      "label": "same_size_unknown",
+      "train_pairs": 2,
+      "size": "9x9"
+    },
+    "239be575": {
+      "label": "downscale_or_crop",
+      "train_pairs": 6,
+      "size": "6x7"
+    },
+    "23b5c85d": {
+      "label": "downscale_or_crop",
+      "train_pairs": 5,
+      "size": "13x15"
+    },
+    "25094a63": {
+      "label": "same_size_unknown",
+      "train_pairs": 2,
+      "size": "30x30"
+    },
+    "252143c9": {
+      "label": "same_size_unknown",
+      "train_pairs": 2,
+      "size": "11x11"
+    },
+    "253bf280": {
+      "label": "same_size_unknown",
+      "train_pairs": 8,
+      "size": "9x6"
+    },
+    "2546ccf6": {
+      "label": "same_size_unknown",
+      "train_pairs": 2,
+      "size": "19x18"
+    },
+    "256b0a75": {
+      "label": "same_size_unknown",
+      "train_pairs": 3,
+      "size": "22x24"
+    },
+    "25c199f5": {
+      "label": "downscale_or_crop",
+      "train_pairs": 5,
+      "size": "5x17"
+    },
+    "25d487eb": {
+      "label": "same_size_unknown",
+      "train_pairs": 3,
+      "size": "12x12"
+    },
+    "25d8a9c8": {
+      "label": "same_size_unknown",
+      "train_pairs": 4,
+      "size": "3x3"
+    },
+    "25e02866": {
+      "label": "downscale_or_crop",
+      "train_pairs": 2,
+      "size": "14x14"
+    },
+    "25ff71a9": {
+      "label": "same_size_unknown",
+      "train_pairs": 4,
+      "size": "3x3"
+    },
+    "2601afb7": {
+      "label": "same_size_unknown",
+      "train_pairs": 3,
+      "size": "9x9"
+    },
+    "264363fd": {
+      "label": "same_size_unknown",
+      "train_pairs": 3,
+      "size": "30x30"
+    },
+    "2685904e": {
+      "label": "same_size_unknown",
+      "train_pairs": 6,
+      "size": "10x10"
+    },
+    "2697da3f": {
+      "label": "upscale_or_pad",
+      "train_pairs": 4,
+      "size": "7x8"
+    },
+    "272f95fa": {
+      "label": "same_size_unknown",
+      "train_pairs": 2,
+      "size": "12x14"
+    },
+    "2753e76c": {
+      "label": "downscale_or_crop",
+      "train_pairs": 3,
+      "size": "16x16"
+    },
+    "278e5215": {
+      "label": "downscale_or_crop",
+      "train_pairs": 3,
+      "size": "15x10"
+    },
+    "27a28665": {
+      "label": "downscale_or_crop",
+      "train_pairs": 7,
+      "size": "3x3"
+    },
+    "27a77e38": {
+      "label": "same_size_unknown",
+      "train_pairs": 3,
+      "size": "5x5"
+    },
+    "27f8ce4f": {
+      "label": "upscale_or_pad",
+      "train_pairs": 4,
+      "size": "3x3"
+    },
+    "281123b4": {
+      "label": "downscale_or_crop",
+      "train_pairs": 6,
+      "size": "4x19"
+    },
+    "28bf18c6": {
+      "label": "downscale_or_crop",
+      "train_pairs": 3,
+      "size": "8x8"
+    },
+    "28e73c20": {
+      "label": "same_size_unknown",
+      "train_pairs": 5,
+      "size": "13x13"
+    },
+    "292dd178": {
+      "label": "same_size_unknown",
+      "train_pairs": 3,
+      "size": "7x9"
+    },
+    "29623171": {
+      "label": "same_size_unknown",
+      "train_pairs": 3,
+      "size": "11x11"
+    },
+    "29700607": {
+      "label": "same_size_unknown",
+      "train_pairs": 3,
+      "size": "12x12"
+    },
+    "29c11459": {
+      "label": "same_size_unknown",
+      "train_pairs": 2,
+      "size": "5x11"
+    },
+    "2a28add5": {
+      "label": "same_size_unknown",
+      "train_pairs": 2,
+      "size": "10x10"
+    },
+    "2a5f8217": {
+      "label": "same_size_unknown",
+      "train_pairs": 3,
+      "size": "9x9"
+    },
+    "2b01abd0": {
+      "label": "same_size_unknown",
+      "train_pairs": 3,
+      "size": "11x12"
+    },
+    "2b9ef948": {
+      "label": "same_size_unknown",
+      "train_pairs": 3,
+      "size": "15x20"
+    },
+    "2bcee788": {
+      "label": "same_size_unknown",
+      "train_pairs": 4,
+      "size": "10x10"
+    },
+    "2bee17df": {
+      "label": "same_size_unknown",
+      "train_pairs": 3,
+      "size": "12x12"
+    },
+    "2c0b0aff": {
+      "label": "downscale_or_crop",
+      "train_pairs": 4,
+      "size": "24x24"
+    },
+    "2c608aff": {
+      "label": "same_size_unknown",
+      "train_pairs": 4,
+      "size": "14x12"
+    },
+    "2c737e39": {
+      "label": "same_size_unknown",
+      "train_pairs": 3,
+      "size": "12x12"
+    },
+    "2ccd9fef": {
+      "label": "downscale_or_crop",
+      "train_pairs": 2,
+      "size": "24x11"
+    },
+    "2dc579da": {
+      "label": "downscale_or_crop",
+      "train_pairs": 3,
+      "size": "7x7"
+    },
+    "2dd70a9a": {
+      "label": "same_size_unknown",
+      "train_pairs": 3,
+      "size": "10x10"
+    },
+    "2de01db2": {
+      "label": "same_size_unknown",
+      "train_pairs": 3,
+      "size": "3x10"
+    },
+    "2dee498d": {
+      "label": "downscale_or_crop",
+      "train_pairs": 3,
+      "size": "4x12"
+    },
+    "2e65ae53": {
+      "label": "same_size_unknown",
+      "train_pairs": 2,
+      "size": "22x22"
+    },
+    "2f0c5170": {
+      "label": "downscale_or_crop",
+      "train_pairs": 3,
+      "size": "21x22"
+    },
+    "2f767503": {
+      "label": "same_size_unknown",
+      "train_pairs": 3,
+      "size": "10x10"
+    },
+    "2faf500b": {
+      "label": "same_size_unknown",
+      "train_pairs": 3,
+      "size": "12x12"
+    },
+    "305b1341": {
+      "label": "same_size_unknown",
+      "train_pairs": 3,
+      "size": "20x20"
+    },
+    "30f42897": {
+      "label": "same_size_unknown",
+      "train_pairs": 3,
+      "size": "7x10"
+    },
+    "310f3251": {
+      "label": "upscale_or_pad",
+      "train_pairs": 5,
+      "size": "4x4"
+    },
+    "3194b014": {
+      "label": "downscale_or_crop",
+      "train_pairs": 3,
+      "size": "20x20"
+    },
+    "319f2597": {
+      "label": "same_size_unknown",
+      "train_pairs": 3,
+      "size": "20x20"
+    },
+    "31aa019c": {
+      "label": "same_size_unknown",
+      "train_pairs": 3,
+      "size": "10x10"
+    },
+    "31adaf00": {
+      "label": "same_size_unknown",
+      "train_pairs": 3,
+      "size": "10x10"
+    },
+    "31d5ba1a": {
+      "label": "downscale_or_crop",
+      "train_pairs": 5,
+      "size": "6x5"
+    },
+    "320afe60": {
+      "label": "same_size_unknown",
+      "train_pairs": 3,
+      "size": "22x22"
+    },
+    "321b1fc6": {
+      "label": "same_size_unknown",
+      "train_pairs": 2,
+      "size": "10x10"
+    },
+    "32597951": {
+      "label": "same_size_unknown",
+      "train_pairs": 3,
+      "size": "17x17"
+    },
+    "32e9702f": {
+      "label": "same_size_unknown",
+      "train_pairs": 3,
+      "size": "8x8"
+    },
+    "33067df9": {
+      "label": "upscale_or_pad",
+      "train_pairs": 4,
+      "size": "9x5"
+    },
+    "332202d5": {
+      "label": "same_size_unknown",
+      "train_pairs": 3,
+      "size": "16x16"
+    },
+    "332efdb3": {
+      "label": "same_size_unknown",
+      "train_pairs": 3,
+      "size": "5x5"
+    },
+    "3345333e": {
+      "label": "same_size_unknown",
+      "train_pairs": 2,
+      "size": "16x16"
+    },
+    "337b420f": {
+      "label": "downscale_or_crop",
+      "train_pairs": 4,
+      "size": "5x17"
+    },
+    "3391f8c0": {
+      "label": "same_size_unknown",
+      "train_pairs": 4,
+      "size": "9x10"
+    },
+    "33b52de3": {
+      "label": "same_size_unknown",
+      "train_pairs": 2,
+      "size": "23x23"
+    },
+    "3428a4f5": {
+      "label": "downscale_or_crop",
+      "train_pairs": 4,
+      "size": "13x5"
+    },
+    "342ae2ed": {
+      "label": "same_size_unknown",
+      "train_pairs": 3,
+      "size": "16x16"
+    },
+    "342dd610": {
+      "label": "same_size_unknown",
+      "train_pairs": 4,
+      "size": "10x10"
+    },
+    "3490cc26": {
+      "label": "same_size_unknown",
+      "train_pairs": 4,
+      "size": "16x18"
+    },
+    "34b99a2b": {
+      "label": "downscale_or_crop",
+      "train_pairs": 4,
+      "size": "5x9"
+    },
+    "34cfa167": {
+      "label": "same_size_unknown",
+      "train_pairs": 2,
+      "size": "24x26"
+    },
+    "351d6448": {
+      "label": "downscale_or_crop",
+      "train_pairs": 2,
+      "size": "15x13"
+    },
+    "358ba94e": {
+      "label": "downscale_or_crop",
+      "train_pairs": 4,
+      "size": "16x19"
+    },
+    "3618c87e": {
+      "label": "same_size_unknown",
+      "train_pairs": 3,
+      "size": "5x5"
+    },
+    "363442ee": {
+      "label": "same_size_unknown",
+      "train_pairs": 3,
+      "size": "9x13"
+    },
+    "36d67576": {
+      "label": "same_size_unknown",
+      "train_pairs": 3,
+      "size": "13x13"
+    },
+    "36fdfd69": {
+      "label": "same_size_unknown",
+      "train_pairs": 3,
+      "size": "15x16"
+    },
+    "37ce87bb": {
+      "label": "same_size_unknown",
+      "train_pairs": 3,
+      "size": "6x7"
+    },
+    "37d3e8b2": {
+      "label": "same_size_unknown",
+      "train_pairs": 3,
+      "size": "17x17"
+    },
+    "3906de3d": {
+      "label": "same_size_unknown",
+      "train_pairs": 3,
+      "size": "10x10"
+    },
+    "396d80d7": {
+      "label": "same_size_unknown",
+      "train_pairs": 2,
+      "size": "16x16"
+    },
+    "3979b1a8": {
+      "label": "upscale_or_pad",
+      "train_pairs": 2,
+      "size": "5x5"
+    },
+    "39a8645d": {
+      "label": "downscale_or_crop",
+      "train_pairs": 3,
+      "size": "14x14"
+    },
+    "39e1d7f9": {
+      "label": "same_size_unknown",
+      "train_pairs": 3,
+      "size": "27x27"
+    },
+    "3a301edc": {
+      "label": "same_size_unknown",
+      "train_pairs": 5,
+      "size": "16x17"
+    },
+    "3aa6fb7a": {
+      "label": "same_size_unknown",
+      "train_pairs": 2,
+      "size": "7x7"
+    },
+    "3ac3eb23": {
+      "label": "same_size_unknown",
+      "train_pairs": 2,
+      "size": "6x7"
+    },
+    "3ad05f52": {
+      "label": "same_size_unknown",
+      "train_pairs": 3,
+      "size": "22x26"
+    },
+    "3af2c5a8": {
+      "label": "upscale_or_pad",
+      "train_pairs": 3,
+      "size": "3x4"
+    },
+    "3b4c2228": {
+      "label": "downscale_or_crop",
+      "train_pairs": 5,
+      "size": "7x5"
+    },
+    "3bd292e8": {
+      "label": "same_size_unknown",
+      "train_pairs": 3,
+      "size": "7x7"
+    },
+    "3bd67248": {
+      "label": "same_size_unknown",
+      "train_pairs": 3,
+      "size": "3x3"
+    },
+    "3bdb4ada": {
+      "label": "same_size_unknown",
+      "train_pairs": 2,
+      "size": "8x20"
+    },
+    "3befdf3e": {
+      "label": "same_size_unknown",
+      "train_pairs": 3,
+      "size": "10x10"
+    },
+    "3c9b0459": {
+      "label": "rot180",
+      "train_pairs": 4,
+      "size": "3x3"
+    },
+    "3cd86f4f": {
+      "label": "upscale_or_pad",
+      "train_pairs": 3,
+      "size": "4x9"
+    },
+    "3d31c5b3": {
+      "label": "downscale_or_crop",
+      "train_pairs": 6,
+      "size": "12x6"
+    },
+    "3d588dc9": {
+      "label": "same_size_unknown",
+      "train_pairs": 2,
+      "size": "16x16"
+    },
+    "3d6c6e23": {
+      "label": "same_size_unknown",
+      "train_pairs": 3,
+      "size": "16x13"
+    },
+    "3de23699": {
+      "label": "downscale_or_crop",
+      "train_pairs": 4,
+      "size": "12x14"
+    },
+    "3e980e27": {
+      "label": "same_size_unknown",
+      "train_pairs": 4,
+      "size": "13x13"
+    },
+    "3eda0437": {
+      "label": "same_size_unknown",
+      "train_pairs": 4,
+      "size": "2x20"
+    },
+    "3ee1011a": {
+      "label": "downscale_or_crop",
+      "train_pairs": 3,
+      "size": "21x22"
+    },
+    "3f23242b": {
+      "label": "same_size_unknown",
+      "train_pairs": 2,
+      "size": "10x10"
+    },
+    "3f7978a0": {
+      "label": "downscale_or_crop",
+      "train_pairs": 3,
+      "size": "9x11"
+    },
+    "4093f84a": {
+      "label": "same_size_unknown",
+      "train_pairs": 3,
+      "size": "14x14"
+    },
+    "40f6cd08": {
+      "label": "same_size_unknown",
+      "train_pairs": 3,
+      "size": "30x30"
+    },
+    "412b6263": {
+      "label": "upscale_or_pad",
+      "train_pairs": 3,
+      "size": "9x6"
+    },
+    "414297c0": {
+      "label": "downscale_or_crop",
+      "train_pairs": 3,
+      "size": "16x20"
+    },
+    "41ace6b5": {
+      "label": "same_size_unknown",
+      "train_pairs": 3,
+      "size": "11x11"
+    },
+    "41e4d17e": {
+      "label": "same_size_unknown",
+      "train_pairs": 2,
+      "size": "15x15"
+    },
+    "423a55dc": {
+      "label": "same_size_unknown",
+      "train_pairs": 5,
+      "size": "11x13"
+    },
+    "4258a5f9": {
+      "label": "same_size_unknown",
+      "train_pairs": 2,
+      "size": "9x9"
+    },
+    "4290ef0e": {
+      "label": "downscale_or_crop",
+      "train_pairs": 3,
+      "size": "18x18"
+    },
+    "42918530": {
+      "label": "same_size_unknown",
+      "train_pairs": 4,
+      "size": "25x19"
+    },
+    "42a15761": {
+      "label": "same_size_unknown",
+      "train_pairs": 3,
+      "size": "9x15"
+    },
+    "42a50994": {
+      "label": "same_size_unknown",
+      "train_pairs": 4,
+      "size": "11x19"
+    },
+    "42f14c03": {
+      "label": "downscale_or_crop",
+      "train_pairs": 3,
+      "size": "16x16"
+    },
+    "42f83767": {
+      "label": "downscale_or_crop",
+      "train_pairs": 3,
+      "size": "15x20"
+    },
+    "4347f46a": {
+      "label": "same_size_unknown",
+      "train_pairs": 3,
+      "size": "8x7"
+    },
+    "4364c1c4": {
+      "label": "same_size_unknown",
+      "train_pairs": 3,
+      "size": "12x12"
+    },
+    "444801d8": {
+      "label": "same_size_unknown",
+      "train_pairs": 3,
+      "size": "10x10"
+    },
+    "445eab21": {
+      "label": "downscale_or_crop",
+      "train_pairs": 3,
+      "size": "10x10"
+    },
+    "447fd412": {
+      "label": "same_size_unknown",
+      "train_pairs": 3,
+      "size": "14x12"
+    },
+    "44d8ac46": {
+      "label": "same_size_unknown",
+      "train_pairs": 4,
+      "size": "12x12"
+    },
+    "44f52bb0": {
+      "label": "downscale_or_crop",
+      "train_pairs": 6,
+      "size": "3x3"
+    },
+    "4522001f": {
+      "label": "upscale_or_pad",
+      "train_pairs": 2,
+      "size": "3x3"
+    },
+    "456873bc": {
+      "label": "same_size_unknown",
+      "train_pairs": 3,
+      "size": "11x11"
+    },
+    "45737921": {
+      "label": "same_size_unknown",
+      "train_pairs": 3,
+      "size": "7x7"
+    },
+    "458e3a53": {
+      "label": "downscale_or_crop",
+      "train_pairs": 2,
+      "size": "29x29"
+    },
+    "45bbe264": {
+      "label": "same_size_unknown",
+      "train_pairs": 3,
+      "size": "14x14"
+    },
+    "4612dd53": {
+      "label": "same_size_unknown",
+      "train_pairs": 3,
+      "size": "11x13"
+    },
+    "46442a0e": {
+      "label": "upscale_or_pad",
+      "train_pairs": 3,
+      "size": "3x3"
+    },
+    "465b7d93": {
+      "label": "same_size_unknown",
+      "train_pairs": 3,
+      "size": "10x10"
+    },
+    "469497ad": {
+      "label": "upscale_or_pad",
+      "train_pairs": 3,
+      "size": "5x5"
+    },
+    "46c35fc7": {
+      "label": "same_size_unknown",
+      "train_pairs": 3,
+      "size": "7x7"
+    },
+    "46f33fce": {
+      "label": "upscale_or_pad",
+      "train_pairs": 3,
+      "size": "10x10"
+    },
+    "470c91de": {
+      "label": "same_size_unknown",
+      "train_pairs": 3,
+      "size": "10x10"
+    },
+    "47c1f68c": {
+      "label": "downscale_or_crop",
+      "train_pairs": 3,
+      "size": "9x9"
+    },
+    "48131b3c": {
+      "label": "upscale_or_pad",
+      "train_pairs": 3,
+      "size": "2x2"
+    },
+    "484b58aa": {
+      "label": "same_size_unknown",
+      "train_pairs": 3,
+      "size": "29x29"
+    },
+    "4852f2fa": {
+      "label": "downscale_or_crop",
+      "train_pairs": 5,
+      "size": "9x9"
+    },
+    "48634b99": {
+      "label": "same_size_unknown",
+      "train_pairs": 3,
+      "size": "16x16"
+    },
+    "48d8fb45": {
+      "label": "downscale_or_crop",
+      "train_pairs": 3,
+      "size": "10x10"
+    },
+    "48f8583b": {
+      "label": "upscale_or_pad",
+      "train_pairs": 6,
+      "size": "3x3"
+    },
+    "4938f0c2": {
+      "label": "same_size_unknown",
+      "train_pairs": 3,
+      "size": "10x10"
+    },
+    "494ef9d7": {
+      "label": "same_size_unknown",
+      "train_pairs": 4,
+      "size": "10x10"
+    },
+    "496994bd": {
+      "label": "same_size_unknown",
+      "train_pairs": 2,
+      "size": "10x5"
+    },
+    "49d1d64f": {
+      "label": "upscale_or_pad",
+      "train_pairs": 3,
+      "size": "2x3"
+    },
+    "4a1cacc2": {
+      "label": "same_size_unknown",
+      "train_pairs": 4,
+      "size": "6x8"
+    },
+    "4acc7107": {
+      "label": "same_size_unknown",
+      "train_pairs": 4,
+      "size": "10x10"
+    },
+    "4b6b68e5": {
+      "label": "same_size_unknown",
+      "train_pairs": 3,
+      "size": "19x18"
+    },
+    "4be741c5": {
+      "label": "downscale_or_crop",
+      "train_pairs": 3,
+      "size": "9x7"
+    },
+    "4c177718": {
+      "label": "downscale_or_crop",
+      "train_pairs": 4,
+      "size": "15x15"
+    },
+    "4c4377d9": {
+      "label": "upscale_or_pad",
+      "train_pairs": 4,
+      "size": "3x4"
+    },
+    "4c5c2cf0": {
+      "label": "same_size_unknown",
+      "train_pairs": 3,
+      "size": "14x14"
+    },
+    "4cd1b7b2": {
+      "label": "same_size_unknown",
+      "train_pairs": 3,
+      "size": "4x4"
+    },
+    "4df5b0ae": {
+      "label": "same_size_unknown",
+      "train_pairs": 3,
+      "size": "10x10"
+    },
+    "4e45f183": {
+      "label": "same_size_unknown",
+      "train_pairs": 3,
+      "size": "19x19"
+    },
+    "4e469f39": {
+      "label": "same_size_unknown",
+      "train_pairs": 3,
+      "size": "10x10"
+    },
+    "4e7e0eb9": {
+      "label": "same_size_unknown",
+      "train_pairs": 4,
+      "size": "9x9"
+    },
+    "4f537728": {
+      "label": "same_size_unknown",
+      "train_pairs": 2,
+      "size": "20x20"
+    },
+    "4ff4c9da": {
+      "label": "same_size_unknown",
+      "train_pairs": 3,
+      "size": "23x23"
+    },
+    "5034a0b5": {
+      "label": "same_size_unknown",
+      "train_pairs": 4,
+      "size": "12x12"
+    },
+    "505fff84": {
+      "label": "downscale_or_crop",
+      "train_pairs": 5,
+      "size": "6x12"
+    },
+    "506d28a5": {
+      "label": "downscale_or_crop",
+      "train_pairs": 4,
+      "size": "9x5"
+    },
+    "50846271": {
+      "label": "same_size_unknown",
+      "train_pairs": 4,
+      "size": "18x19"
+    },
+    "508bd3b6": {
+      "label": "same_size_unknown",
+      "train_pairs": 3,
+      "size": "12x12"
+    },
+    "50a16a69": {
+      "label": "same_size_unknown",
+      "train_pairs": 3,
+      "size": "20x20"
+    },
+    "50aad11f": {
+      "label": "downscale_or_crop",
+      "train_pairs": 3,
+      "size": "12x14"
+    },
+    "50c07299": {
+      "label": "same_size_unknown",
+      "train_pairs": 3,
+      "size": "16x16"
+    },
+    "50cb2852": {
+      "label": "same_size_unknown",
+      "train_pairs": 3,
+      "size": "12x11"
+    },
+    "50f325b5": {
+      "label": "same_size_unknown",
+      "train_pairs": 4,
+      "size": "15x18"
+    },
+    "5117e062": {
+      "label": "downscale_or_crop",
+      "train_pairs": 3,
+      "size": "13x13"
+    },
+    "5168d44c": {
+      "label": "same_size_unknown",
+      "train_pairs": 3,
+      "size": "13x7"
+    },
+    "516b51b7": {
+      "label": "same_size_unknown",
+      "train_pairs": 3,
+      "size": "12x13"
+    },
+    "5207a7b5": {
+      "label": "same_size_unknown",
+      "train_pairs": 3,
+      "size": "11x8"
+    },
+    "522fdd07": {
+      "label": "same_size_unknown",
+      "train_pairs": 4,
+      "size": "16x16"
+    },
+    "52364a65": {
+      "label": "same_size_unknown",
+      "train_pairs": 2,
+      "size": "11x11"
+    },
+    "5289ad53": {
+      "label": "downscale_or_crop",
+      "train_pairs": 4,
+      "size": "10x14"
+    },
+    "52df9849": {
+      "label": "same_size_unknown",
+      "train_pairs": 2,
+      "size": "16x16"
+    },
+    "52fd389e": {
+      "label": "same_size_unknown",
+      "train_pairs": 3,
+      "size": "25x25"
+    },
+    "538b439f": {
+      "label": "same_size_unknown",
+      "train_pairs": 2,
+      "size": "20x20"
+    },
+    "539a4f51": {
+      "label": "upscale_or_pad",
+      "train_pairs": 3,
+      "size": "5x5"
+    },
+    "53b68214": {
+      "label": "upscale_or_pad",
+      "train_pairs": 3,
+      "size": "8x10"
+    },
+    "543a7ed5": {
+      "label": "same_size_unknown",
+      "train_pairs": 2,
+      "size": "15x15"
+    },
+    "54d82841": {
+      "label": "same_size_unknown",
+      "train_pairs": 3,
+      "size": "5x5"
+    },
+    "54d9e175": {
+      "label": "same_size_unknown",
+      "train_pairs": 4,
+      "size": "3x11"
+    },
+    "54db823b": {
+      "label": "same_size_unknown",
+      "train_pairs": 4,
+      "size": "15x15"
+    },
+    "54dc2872": {
+      "label": "same_size_unknown",
+      "train_pairs": 2,
+      "size": "12x13"
+    },
+    "55059096": {
+      "label": "same_size_unknown",
+      "train_pairs": 3,
+      "size": "14x16"
+    },
+    "551d5bf1": {
+      "label": "same_size_unknown",
+      "train_pairs": 2,
+      "size": "24x25"
+    },
+    "5521c0d9": {
+      "label": "same_size_unknown",
+      "train_pairs": 3,
+      "size": "15x15"
+    },
+    "5582e5ca": {
+      "label": "same_size_unknown",
+      "train_pairs": 3,
+      "size": "3x3"
+    },
+    "5587a8d0": {
+      "label": "downscale_or_crop",
+      "train_pairs": 3,
+      "size": "6x6"
+    },
+    "5614dbcf": {
+      "label": "downscale_or_crop",
+      "train_pairs": 2,
+      "size": "9x9"
+    },
+    "5623160b": {
+      "label": "same_size_unknown",
+      "train_pairs": 3,
+      "size": "10x10"
+    },
+    "56dc2b01": {
+      "label": "same_size_unknown",
+      "train_pairs": 3,
+      "size": "17x5"
+    },
+    "56ff96f3": {
+      "label": "same_size_unknown",
+      "train_pairs": 4,
+      "size": "10x10"
+    },
+    "5751f35e": {
+      "label": "same_size_unknown",
+      "train_pairs": 2,
+      "size": "10x10"
+    },
+    "575b1a71": {
+      "label": "same_size_unknown",
+      "train_pairs": 3,
+      "size": "10x10"
+    },
+    "5783df64": {
+      "label": "downscale_or_crop",
+      "train_pairs": 3,
+      "size": "9x9"
+    },
+    "5792cb4d": {
+      "label": "same_size_unknown",
+      "train_pairs": 2,
+      "size": "10x10"
+    },
+    "57aa92db": {
+      "label": "same_size_unknown",
+      "train_pairs": 4,
+      "size": "17x18"
+    },
+    "57edb29d": {
+      "label": "downscale_or_crop",
+      "train_pairs": 3,
+      "size": "20x24"
+    },
+    "5833af48": {
+      "label": "downscale_or_crop",
+      "train_pairs": 3,
+      "size": "16x18"
+    },
+    "58743b76": {
+      "label": "same_size_unknown",
+      "train_pairs": 2,
+      "size": "12x12"
+    },
+    "58c02a16": {
+      "label": "same_size_unknown",
+      "train_pairs": 3,
+      "size": "7x7"
+    },
+    "58e15b12": {
+      "label": "same_size_unknown",
+      "train_pairs": 3,
+      "size": "22x18"
+    },
+    "59341089": {
+      "label": "upscale_or_pad",
+      "train_pairs": 4,
+      "size": "3x3"
+    },
+    "5a5a2103": {
+      "label": "same_size_unknown",
+      "train_pairs": 2,
+      "size": "19x19"
+    },
+    "5a719d11": {
+      "label": "same_size_unknown",
+      "train_pairs": 3,
+      "size": "25x17"
+    },
+    "5ad4f10b": {
+      "label": "downscale_or_crop",
+      "train_pairs": 3,
+      "size": "22x23"
+    },
+    "5ad8a7c0": {
+      "label": "same_size_unknown",
+      "train_pairs": 5,
+      "size": "4x6"
+    },
+    "5adee1b2": {
+      "label": "same_size_unknown",
+      "train_pairs": 2,
+      "size": "20x20"
+    },
+    "5af49b42": {
+      "label": "same_size_unknown",
+      "train_pairs": 3,
+      "size": "13x15"
+    },
+    "5b37cb25": {
+      "label": "same_size_unknown",
+      "train_pairs": 2,
+      "size": "30x30"
+    },
+    "5b526a93": {
+      "label": "same_size_unknown",
+      "train_pairs": 2,
+      "size": "22x16"
+    },
+    "5b692c0f": {
+      "label": "same_size_unknown",
+      "train_pairs": 2,
+      "size": "14x14"
+    },
+    "5b6cbef5": {
+      "label": "upscale_or_pad",
+      "train_pairs": 5,
+      "size": "4x4"
+    },
+    "5bd6f4ac": {
+      "label": "downscale_or_crop",
+      "train_pairs": 4,
+      "size": "9x9"
+    },
+    "5c0a986e": {
+      "label": "same_size_unknown",
+      "train_pairs": 3,
+      "size": "10x10"
+    },
+    "5c2c9af4": {
+      "label": "same_size_unknown",
+      "train_pairs": 3,
+      "size": "23x23"
+    },
+    "5d2a5c43": {
+      "label": "downscale_or_crop",
+      "train_pairs": 5,
+      "size": "6x9"
+    },
+    "5d588b4d": {
+      "label": "downscale_or_crop",
+      "train_pairs": 4,
+      "size": "8x11"
+    },
+    "5daaa586": {
+      "label": "downscale_or_crop",
+      "train_pairs": 3,
+      "size": "12x12"
+    },
+    "5e6bbc0b": {
+      "label": "same_size_unknown",
+      "train_pairs": 4,
+      "size": "5x6"
+    },
+    "5ecac7f7": {
+      "label": "downscale_or_crop",
+      "train_pairs": 3,
+      "size": "5x17"
+    },
+    "5ffb2104": {
+      "label": "same_size_unknown",
+      "train_pairs": 3,
+      "size": "6x6"
+    },
+    "60a26a3e": {
+      "label": "same_size_unknown",
+      "train_pairs": 3,
+      "size": "14x16"
+    },
+    "60b61512": {
+      "label": "same_size_unknown",
+      "train_pairs": 2,
+      "size": "9x9"
+    },
+    "60c09cac": {
+      "label": "upscale_or_pad",
+      "train_pairs": 2,
+      "size": "4x4"
+    },
+    "60d73be6": {
+      "label": "same_size_unknown",
+      "train_pairs": 3,
+      "size": "10x15"
+    },
+    "6150a2bd": {
+      "label": "rot180",
+      "train_pairs": 2,
+      "size": "3x3"
+    },
+    "6165ea8f": {
+      "label": "downscale_or_crop",
+      "train_pairs": 3,
+      "size": "20x20"
+    },
+    "623ea044": {
+      "label": "same_size_unknown",
+      "train_pairs": 3,
+      "size": "15x15"
+    },
+    "626c0bcc": {
+      "label": "same_size_unknown",
+      "train_pairs": 3,
+      "size": "7x7"
+    },
+    "62ab2642": {
+      "label": "same_size_unknown",
+      "train_pairs": 3,
+      "size": "10x9"
+    },
+    "62b74c02": {
+      "label": "same_size_unknown",
+      "train_pairs": 3,
+      "size": "4x12"
+    },
+    "62c24649": {
+      "label": "upscale_or_pad",
+      "train_pairs": 3,
+      "size": "3x3"
+    },
+    "6350f1f4": {
+      "label": "same_size_unknown",
+      "train_pairs": 4,
+      "size": "5x5"
+    },
+    "63613498": {
+      "label": "same_size_unknown",
+      "train_pairs": 3,
+      "size": "10x10"
+    },
+    "639f5a19": {
+      "label": "same_size_unknown",
+      "train_pairs": 2,
+      "size": "23x23"
+    },
+    "642248e4": {
+      "label": "same_size_unknown",
+      "train_pairs": 3,
+      "size": "14x10"
+    },
+    "642d658d": {
+      "label": "downscale_or_crop",
+      "train_pairs": 3,
+      "size": "22x22"
+    },
+    "6430c8c4": {
+      "label": "downscale_or_crop",
+      "train_pairs": 4,
+      "size": "9x4"
+    },
+    "6455b5f5": {
+      "label": "same_size_unknown",
+      "train_pairs": 4,
+      "size": "11x16"
+    },
+    "64a7c07e": {
+      "label": "same_size_unknown",
+      "train_pairs": 3,
+      "size": "5x5"
+    },
+    "652646ff": {
+      "label": "downscale_or_crop",
+      "train_pairs": 4,
+      "size": "20x20"
+    },
+    "662c240a": {
+      "label": "downscale_or_crop",
+      "train_pairs": 4,
+      "size": "9x3"
+    },
+    "668eec9a": {
+      "label": "downscale_or_crop",
+      "train_pairs": 3,
+      "size": "16x16"
+    },
+    "66ac4c3b": {
+      "label": "same_size_unknown",
+      "train_pairs": 2,
+      "size": "22x22"
+    },
+    "66e6c45b": {
+      "label": "same_size_unknown",
+      "train_pairs": 2,
+      "size": "4x4"
+    },
+    "66f2d22f": {
+      "label": "downscale_or_crop",
+      "train_pairs": 4,
+      "size": "4x14"
+    },
+    "67385a82": {
+      "label": "same_size_unknown",
+      "train_pairs": 4,
+      "size": "4x4"
+    },
+    "673ef223": {
+      "label": "same_size_unknown",
+      "train_pairs": 3,
+      "size": "20x10"
+    },
+    "67636eac": {
+      "label": "downscale_or_crop",
+      "train_pairs": 3,
+      "size": "16x10"
+    },
+    "6773b310": {
+      "label": "downscale_or_crop",
+      "train_pairs": 4,
+      "size": "11x11"
+    },
+    "67a3c6ac": {
+      "label": "flip_v",
+      "train_pairs": 3,
+      "size": "7x7"
+    },
+    "67a423a3": {
+      "label": "same_size_unknown",
+      "train_pairs": 3,
+      "size": "8x8"
+    },
+    "67c52801": {
+      "label": "same_size_unknown",
+      "train_pairs": 4,
+      "size": "4x5"
+    },
+    "67e8384a": {
+      "label": "upscale_or_pad",
+      "train_pairs": 4,
+      "size": "3x3"
+    },
+    "681b3aeb": {
+      "label": "downscale_or_crop",
+      "train_pairs": 3,
+      "size": "10x10"
+    },
+    "6855a6e4": {
+      "label": "same_size_unknown",
+      "train_pairs": 3,
+      "size": "15x15"
+    },
+    "689c358e": {
+      "label": "same_size_unknown",
+      "train_pairs": 2,
+      "size": "11x11"
+    },
+    "68b16354": {
+      "label": "flip_h",
+      "train_pairs": 3,
+      "size": "5x5"
+    },
+    "68b67ca3": {
+      "label": "downscale_or_crop",
+      "train_pairs": 3,
+      "size": "6x6"
+    },
+    "68bc2e87": {
+      "label": "downscale_or_crop",
+      "train_pairs": 4,
+      "size": "18x19"
+    },
+    "692cd3b6": {
+      "label": "same_size_unknown",
+      "train_pairs": 3,
+      "size": "15x15"
+    },
+    "694f12f3": {
+      "label": "same_size_unknown",
+      "train_pairs": 2,
+      "size": "10x10"
+    },
+    "695367ec": {
+      "label": "upscale_or_pad",
+      "train_pairs": 3,
+      "size": "2x2"
+    },
+    "696d4842": {
+      "label": "same_size_unknown",
+      "train_pairs": 3,
+      "size": "20x20"
+    },
+    "69889d6e": {
+      "label": "same_size_unknown",
+      "train_pairs": 4,
+      "size": "10x10"
+    },
+    "6a11f6da": {
+      "label": "downscale_or_crop",
+      "train_pairs": 5,
+      "size": "15x5"
+    },
+    "6a1e5592": {
+      "label": "same_size_unknown",
+      "train_pairs": 2,
+      "size": "10x15"
+    },
+    "6a980be1": {
+      "label": "same_size_unknown",
+      "train_pairs": 3,
+      "size": "18x19"
+    },
+    "6aa20dc0": {
+      "label": "same_size_unknown",
+      "train_pairs": 3,
+      "size": "20x21"
+    },
+    "6ad5bdfd": {
+      "label": "same_size_unknown",
+      "train_pairs": 3,
+      "size": "5x11"
+    },
+    "6b9890af": {
+      "label": "downscale_or_crop",
+      "train_pairs": 3,
+      "size": "19x22"
+    },
+    "6bcdb01e": {
+      "label": "same_size_unknown",
+      "train_pairs": 2,
+      "size": "7x7"
+    },
+    "6c434453": {
+      "label": "same_size_unknown",
+      "train_pairs": 2,
+      "size": "10x10"
+    },
+    "6ca952ad": {
+      "label": "same_size_unknown",
+      "train_pairs": 3,
+      "size": "7x7"
+    },
+    "6cbe9eb8": {
+      "label": "downscale_or_crop",
+      "train_pairs": 3,
+      "size": "14x22"
+    },
+    "6cdd2623": {
+      "label": "same_size_unknown",
+      "train_pairs": 3,
+      "size": "13x20"
+    },
+    "6cf79266": {
+      "label": "same_size_unknown",
+      "train_pairs": 3,
+      "size": "20x20"
+    },
+    "6d0160f0": {
+      "label": "same_size_unknown",
+      "train_pairs": 4,
+      "size": "11x11"
+    },
+    "6d0aefbc": {
+      "label": "upscale_or_pad",
+      "train_pairs": 4,
+      "size": "3x3"
+    },
+    "6d1d5c90": {
+      "label": "downscale_or_crop",
+      "train_pairs": 3,
+      "size": "6x7"
+    },
+    "6d58a25d": {
+      "label": "same_size_unknown",
+      "train_pairs": 3,
+      "size": "20x20"
+    },
+    "6d75e8bb": {
+      "label": "same_size_unknown",
+      "train_pairs": 3,
+      "size": "7x8"
+    },
+    "6df30ad6": {
+      "label": "same_size_unknown",
+      "train_pairs": 5,
+      "size": "10x10"
+    },
+    "6e02f1e3": {
+      "label": "same_size_unknown",
+      "train_pairs": 5,
+      "size": "3x3"
+    },
+    "6e19193c": {
+      "label": "same_size_unknown",
+      "train_pairs": 2,
+      "size": "10x10"
+    },
+    "6e82a1ae": {
+      "label": "same_size_unknown",
+      "train_pairs": 3,
+      "size": "10x10"
+    },
+    "6ea4a07e": {
+      "label": "same_size_unknown",
+      "train_pairs": 6,
+      "size": "3x3"
+    },
+    "6ecd11f4": {
+      "label": "downscale_or_crop",
+      "train_pairs": 3,
+      "size": "27x25"
+    },
+    "6f473927": {
+      "label": "upscale_or_pad",
+      "train_pairs": 4,
+      "size": "3x3"
+    },
+    "6f8cd79b": {
+      "label": "same_size_unknown",
+      "train_pairs": 4,
+      "size": "5x4"
+    },
+    "6fa7a44f": {
+      "label": "upscale_or_pad",
+      "train_pairs": 4,
+      "size": "3x3"
+    },
+    "6ffe8f07": {
+      "label": "same_size_unknown",
+      "train_pairs": 4,
+      "size": "19x19"
+    },
+    "7039b2d7": {
+      "label": "downscale_or_crop",
+      "train_pairs": 3,
+      "size": "27x27"
+    },
+    "705a3229": {
+      "label": "same_size_unknown",
+      "train_pairs": 4,
+      "size": "12x10"
+    },
+    "712bf12e": {
+      "label": "same_size_unknown",
+      "train_pairs": 3,
+      "size": "13x14"
+    },
+    "72207abc": {
+      "label": "same_size_unknown",
+      "train_pairs": 3,
+      "size": "3x19"
+    },
+    "72322fa7": {
+      "label": "same_size_unknown",
+      "train_pairs": 3,
+      "size": "13x12"
+    },
+    "72a961c9": {
+      "label": "same_size_unknown",
+      "train_pairs": 4,
+      "size": "9x6"
+    },
+    "72ca375d": {
+      "label": "downscale_or_crop",
+      "train_pairs": 3,
+      "size": "10x10"
+    },
+    "73182012": {
+      "label": "downscale_or_crop",
+      "train_pairs": 3,
+      "size": "12x12"
+    },
+    "73c3b0d8": {
+      "label": "same_size_unknown",
+      "train_pairs": 4,
+      "size": "12x8"
+    },
+    "73ccf9c2": {
+      "label": "downscale_or_crop",
+      "train_pairs": 3,
+      "size": "21x21"
+    },
+    "7447852a": {
+      "label": "same_size_unknown",
+      "train_pairs": 3,
+      "size": "3x15"
+    },
+    "7468f01a": {
+      "label": "downscale_or_crop",
+      "train_pairs": 3,
+      "size": "12x16"
+    },
+    "746b3537": {
+      "label": "downscale_or_crop",
+      "train_pairs": 5,
+      "size": "4x2"
+    },
+    "74dd1130": {
+      "label": "transpose",
+      "train_pairs": 4,
+      "size": "3x3"
+    },
+    "753ea09b": {
+      "label": "same_size_unknown",
+      "train_pairs": 3,
+      "size": "30x30"
+    },
+    "758abdf0": {
+      "label": "same_size_unknown",
+      "train_pairs": 2,
+      "size": "16x8"
+    },
+    "759f3fd3": {
+      "label": "same_size_unknown",
+      "train_pairs": 2,
+      "size": "10x10"
+    },
+    "75b8110e": {
+      "label": "downscale_or_crop",
+      "train_pairs": 5,
+      "size": "8x8"
+    },
+    "760b3cac": {
+      "label": "same_size_unknown",
+      "train_pairs": 3,
+      "size": "6x9"
+    },
+    "762cd429": {
+      "label": "same_size_unknown",
+      "train_pairs": 3,
+      "size": "10x14"
+    },
+    "770cc55f": {
+      "label": "same_size_unknown",
+      "train_pairs": 4,
+      "size": "13x5"
+    },
+    "776ffc46": {
+      "label": "same_size_unknown",
+      "train_pairs": 4,
+      "size": "20x20"
+    },
+    "77fdfe62": {
+      "label": "downscale_or_crop",
+      "train_pairs": 3,
+      "size": "6x6"
+    },
+    "780d0b14": {
+      "label": "downscale_or_crop",
+      "train_pairs": 3,
+      "size": "18x22"
+    },
+    "782b5218": {
+      "label": "same_size_unknown",
+      "train_pairs": 3,
+      "size": "10x10"
+    },
+    "7837ac64": {
+      "label": "downscale_or_crop",
+      "train_pairs": 4,
+      "size": "29x29"
+    },
+    "78e78cff": {
+      "label": "same_size_unknown",
+      "train_pairs": 2,
+      "size": "11x11"
+    },
+    "79369cc6": {
+      "label": "same_size_unknown",
+      "train_pairs": 3,
+      "size": "18x16"
+    },
+    "794b24be": {
+      "label": "same_size_unknown",
+      "train_pairs": 10,
+      "size": "3x3"
+    },
+    "7953d61e": {
+      "label": "upscale_or_pad",
+      "train_pairs": 5,
+      "size": "4x4"
+    },
+    "79cce52d": {
+      "label": "downscale_or_crop",
+      "train_pairs": 3,
+      "size": "7x7"
+    },
+    "7acdf6d3": {
+      "label": "same_size_unknown",
+      "train_pairs": 2,
+      "size": "16x16"
+    },
+    "7b6016b9": {
+      "label": "same_size_unknown",
+      "train_pairs": 3,
+      "size": "22x25"
+    },
+    "7b7f7511": {
+      "label": "downscale_or_crop",
+      "train_pairs": 3,
+      "size": "3x6"
+    },
+    "7bb29440": {
+      "label": "downscale_or_crop",
+      "train_pairs": 5,
+      "size": "12x11"
+    },
+    "7c008303": {
+      "label": "downscale_or_crop",
+      "train_pairs": 3,
+      "size": "9x9"
+    },
+    "7c8af763": {
+      "label": "same_size_unknown",
+      "train_pairs": 3,
+      "size": "10x10"
+    },
+    "7c9b52a0": {
+      "label": "downscale_or_crop",
+      "train_pairs": 3,
+      "size": "16x16"
+    },
+    "7d18a6fb": {
+      "label": "downscale_or_crop",
+      "train_pairs": 3,
+      "size": "17x17"
+    },
+    "7d1f7ee8": {
+      "label": "same_size_unknown",
+      "train_pairs": 3,
+      "size": "22x28"
+    },
+    "7d419a02": {
+      "label": "same_size_unknown",
+      "train_pairs": 3,
+      "size": "16x14"
+    },
+    "7d7772cc": {
+      "label": "same_size_unknown",
+      "train_pairs": 2,
+      "size": "16x16"
+    },
+    "7ddcd7ec": {
+      "label": "same_size_unknown",
+      "train_pairs": 3,
+      "size": "10x10"
+    },
+    "7df24a62": {
+      "label": "same_size_unknown",
+      "train_pairs": 4,
+      "size": "23x23"
+    },
+    "7e02026e": {
+      "label": "same_size_unknown",
+      "train_pairs": 3,
+      "size": "12x12"
+    },
+    "7e0986d6": {
+      "label": "same_size_unknown",
+      "train_pairs": 2,
+      "size": "13x16"
+    },
+    "7e2bad24": {
+      "label": "same_size_unknown",
+      "train_pairs": 3,
+      "size": "16x16"
+    },
+    "7e4d4f7c": {
+      "label": "downscale_or_crop",
+      "train_pairs": 4,
+      "size": "6x8"
+    },
+    "7e576d6e": {
+      "label": "same_size_unknown",
+      "train_pairs": 3,
+      "size": "30x30"
+    },
+    "7ec998c9": {
+      "label": "same_size_unknown",
+      "train_pairs": 3,
+      "size": "8x8"
+    },
+    "7ee1c6ea": {
+      "label": "same_size_unknown",
+      "train_pairs": 3,
+      "size": "10x10"
+    },
+    "7f4411dc": {
+      "label": "same_size_unknown",
+      "train_pairs": 3,
+      "size": "17x17"
+    },
+    "7fe24cdd": {
+      "label": "upscale_or_pad",
+      "train_pairs": 3,
+      "size": "3x3"
+    },
+    "80214e03": {
+      "label": "downscale_or_crop",
+      "train_pairs": 3,
+      "size": "20x14"
+    },
+    "80af3007": {
+      "label": "downscale_or_crop",
+      "train_pairs": 3,
+      "size": "16x18"
+    },
+    "810b9b61": {
+      "label": "same_size_unknown",
+      "train_pairs": 3,
+      "size": "15x15"
+    },
+    "817e6c09": {
+      "label": "same_size_unknown",
+      "train_pairs": 5,
+      "size": "7x7"
+    },
+    "81c0276b": {
+      "label": "downscale_or_crop",
+      "train_pairs": 3,
+      "size": "16x16"
+    },
+    "825aa9e9": {
+      "label": "same_size_unknown",
+      "train_pairs": 4,
+      "size": "6x10"
+    },
+    "82819916": {
+      "label": "same_size_unknown",
+      "train_pairs": 4,
+      "size": "12x8"
+    },
+    "83302e8f": {
+      "label": "same_size_unknown",
+      "train_pairs": 3,
+      "size": "29x29"
+    },
+    "833966f4": {
+      "label": "same_size_unknown",
+      "train_pairs": 2,
+      "size": "5x1"
+    },
+    "833dafe3": {
+      "label": "upscale_or_pad",
+      "train_pairs": 2,
+      "size": "4x4"
+    },
+    "834ec97d": {
+      "label": "same_size_unknown",
+      "train_pairs": 3,
+      "size": "5x5"
+    },
+    "83b6b474": {
+      "label": "downscale_or_crop",
+      "train_pairs": 2,
+      "size": "6x6"
+    },
+    "83eb0a57": {
+      "label": "downscale_or_crop",
+      "train_pairs": 3,
+      "size": "30x30"
+    },
+    "8403a5d5": {
+      "label": "same_size_unknown",
+      "train_pairs": 3,
+      "size": "10x10"
+    },
+    "84551f4c": {
+      "label": "same_size_unknown",
+      "train_pairs": 3,
+      "size": "3x16"
+    },
+    "845d6e51": {
+      "label": "same_size_unknown",
+      "train_pairs": 3,
+      "size": "16x16"
+    },
+    "846bdb03": {
+      "label": "downscale_or_crop",
+      "train_pairs": 4,
+      "size": "13x13"
+    },
+    "84ba50d3": {
+      "label": "same_size_unknown",
+      "train_pairs": 3,
+      "size": "9x9"
+    },
+    "84db8fc4": {
+      "label": "same_size_unknown",
+      "train_pairs": 4,
+      "size": "10x10"
+    },
+    "84f2aca1": {
+      "label": "same_size_unknown",
+      "train_pairs": 4,
+      "size": "6x6"
+    },
+    "855e0971": {
+      "label": "same_size_unknown",
+      "train_pairs": 4,
+      "size": "13x15"
+    },
+    "8597cfd7": {
+      "label": "downscale_or_crop",
+      "train_pairs": 4,
+      "size": "11x9"
+    },
+    "85b81ff1": {
+      "label": "same_size_unknown",
+      "train_pairs": 4,
+      "size": "13x14"
+    },
+    "85c4e7cd": {
+      "label": "same_size_unknown",
+      "train_pairs": 4,
+      "size": "8x8"
+    },
+    "85fa5666": {
+      "label": "same_size_unknown",
+      "train_pairs": 4,
+      "size": "12x12"
+    },
+    "8618d23e": {
+      "label": "upscale_or_pad",
+      "train_pairs": 3,
+      "size": "4x2"
+    },
+    "868de0fa": {
+      "label": "same_size_unknown",
+      "train_pairs": 5,
+      "size": "11x11"
+    },
+    "8719f442": {
+      "label": "upscale_or_pad",
+      "train_pairs": 3,
+      "size": "3x3"
+    },
+    "8731374e": {
+      "label": "downscale_or_crop",
+      "train_pairs": 3,
+      "size": "27x23"
+    },
+    "878187ab": {
+      "label": "same_size_unknown",
+      "train_pairs": 2,
+      "size": "16x16"
+    },
+    "87ab05b8": {
+      "label": "same_size_unknown",
+      "train_pairs": 3,
+      "size": "4x4"
+    },
+    "880c1354": {
+      "label": "same_size_unknown",
+      "train_pairs": 3,
+      "size": "8x8"
+    },
+    "88207623": {
+      "label": "same_size_unknown",
+      "train_pairs": 2,
+      "size": "16x16"
+    },
+    "8886d717": {
+      "label": "same_size_unknown",
+      "train_pairs": 3,
+      "size": "11x11"
+    },
+    "88a10436": {
+      "label": "same_size_unknown",
+      "train_pairs": 3,
+      "size": "8x7"
+    },
+    "88a62173": {
+      "label": "downscale_or_crop",
+      "train_pairs": 3,
+      "size": "5x5"
+    },
+    "890034e9": {
+      "label": "same_size_unknown",
+      "train_pairs": 3,
+      "size": "21x21"
+    },
+    "891232d6": {
+      "label": "same_size_unknown",
+      "train_pairs": 4,
+      "size": "23x20"
+    },
+    "896d5239": {
+      "label": "same_size_unknown",
+      "train_pairs": 3,
+      "size": "15x12"
+    },
+    "8a004b2b": {
+      "label": "downscale_or_crop",
+      "train_pairs": 3,
+      "size": "17x18"
+    },
+    "8a371977": {
+      "label": "same_size_unknown",
+      "train_pairs": 3,
+      "size": "23x23"
+    },
+    "8a6d367c": {
+      "label": "downscale_or_crop",
+      "train_pairs": 3,
+      "size": "27x21"
+    },
+    "8abad3cf": {
+      "label": "downscale_or_crop",
+      "train_pairs": 2,
+      "size": "7x7"
+    },
+    "8b28cd80": {
+      "label": "upscale_or_pad",
+      "train_pairs": 5,
+      "size": "3x3"
+    },
+    "8ba14f53": {
+      "label": "downscale_or_crop",
+      "train_pairs": 6,
+      "size": "4x9"
+    },
+    "8be77c9e": {
+      "label": "upscale_or_pad",
+      "train_pairs": 3,
+      "size": "3x3"
+    },
+    "8cb8642d": {
+      "label": "same_size_unknown",
+      "train_pairs": 3,
+      "size": "13x14"
+    },
+    "8d5021e8": {
+      "label": "upscale_or_pad",
+      "train_pairs": 3,
+      "size": "3x2"
+    },
+    "8d510a79": {
+      "label": "same_size_unknown",
+      "train_pairs": 2,
+      "size": "10x10"
+    },
+    "8dab14c2": {
+      "label": "same_size_unknown",
+      "train_pairs": 4,
+      "size": "14x16"
+    },
+    "8dae5dfc": {
+      "label": "same_size_unknown",
+      "train_pairs": 4,
+      "size": "17x17"
+    },
+    "8e1813be": {
+      "label": "downscale_or_crop",
+      "train_pairs": 3,
+      "size": "12x10"
+    },
+    "8e2edd66": {
+      "label": "upscale_or_pad",
+      "train_pairs": 3,
+      "size": "3x3"
+    },
+    "8e301a54": {
+      "label": "same_size_unknown",
+      "train_pairs": 3,
+      "size": "10x10"
+    },
+    "8e5a5113": {
+      "label": "same_size_unknown",
+      "train_pairs": 3,
+      "size": "3x11"
+    },
+    "8eb1be9a": {
+      "label": "same_size_unknown",
+      "train_pairs": 2,
+      "size": "10x12"
+    },
+    "8ee62060": {
+      "label": "same_size_unknown",
+      "train_pairs": 3,
+      "size": "12x12"
+    },
+    "8efcae92": {
+      "label": "downscale_or_crop",
+      "train_pairs": 3,
+      "size": "20x20"
+    },
+    "8f2ea7aa": {
+      "label": "same_size_unknown",
+      "train_pairs": 3,
+      "size": "9x9"
+    },
+    "8fbca751": {
+      "label": "same_size_unknown",
+      "train_pairs": 3,
+      "size": "8x12"
+    },
+    "8fff9e47": {
+      "label": "upscale_or_pad",
+      "train_pairs": 2,
+      "size": "6x4"
+    },
+    "902510d5": {
+      "label": "same_size_unknown",
+      "train_pairs": 4,
+      "size": "6x9"
+    },
+    "90347967": {
+      "label": "same_size_unknown",
+      "train_pairs": 3,
+      "size": "3x3"
+    },
+    "90c28cc7": {
+      "label": "downscale_or_crop",
+      "train_pairs": 3,
+      "size": "21x21"
+    },
+    "90f3ed37": {
+      "label": "same_size_unknown",
+      "train_pairs": 3,
+      "size": "15x10"
+    },
+    "9110e3c5": {
+      "label": "downscale_or_crop",
+      "train_pairs": 7,
+      "size": "7x7"
+    },
+    "913fb3ed": {
+      "label": "same_size_unknown",
+      "train_pairs": 4,
+      "size": "16x16"
+    },
+    "91413438": {
+      "label": "upscale_or_pad",
+      "train_pairs": 4,
+      "size": "3x3"
+    },
+    "91714a58": {
+      "label": "same_size_unknown",
+      "train_pairs": 3,
+      "size": "16x16"
+    },
+    "9172f3a0": {
+      "label": "upscale_or_pad",
+      "train_pairs": 2,
+      "size": "3x3"
+    },
+    "917bccba": {
+      "label": "same_size_unknown",
+      "train_pairs": 3,
+      "size": "12x12"
+    },
+    "928ad970": {
+      "label": "same_size_unknown",
+      "train_pairs": 3,
+      "size": "15x13"
+    },
+    "92e50de0": {
+      "label": "same_size_unknown",
+      "train_pairs": 3,
+      "size": "23x23"
+    },
+    "9344f635": {
+      "label": "same_size_unknown",
+      "train_pairs": 3,
+      "size": "8x8"
+    },
+    "9356391f": {
+      "label": "same_size_unknown",
+      "train_pairs": 2,
+      "size": "16x16"
+    },
+    "93b4f4b3": {
+      "label": "downscale_or_crop",
+      "train_pairs": 2,
+      "size": "13x12"
+    },
+    "93b581b8": {
+      "label": "same_size_unknown",
+      "train_pairs": 3,
+      "size": "6x6"
+    },
+    "93c31fbe": {
+      "label": "same_size_unknown",
+      "train_pairs": 3,
+      "size": "22x23"
+    },
+    "94133066": {
+      "label": "downscale_or_crop",
+      "train_pairs": 3,
+      "size": "22x21"
+    },
+    "941d9a10": {
+      "label": "same_size_unknown",
+      "train_pairs": 3,
+      "size": "10x10"
+    },
+    "94414823": {
+      "label": "same_size_unknown",
+      "train_pairs": 3,
+      "size": "10x10"
+    },
+    "9473c6fb": {
+      "label": "same_size_unknown",
+      "train_pairs": 3,
+      "size": "6x10"
+    },
+    "94be5b80": {
+      "label": "same_size_unknown",
+      "train_pairs": 2,
+      "size": "18x14"
+    },
+    "94f9d214": {
+      "label": "downscale_or_crop",
+      "train_pairs": 4,
+      "size": "8x4"
+    },
+    "952a094c": {
+      "label": "same_size_unknown",
+      "train_pairs": 3,
+      "size": "10x10"
+    },
+    "9565186b": {
+      "label": "same_size_unknown",
+      "train_pairs": 4,
+      "size": "3x3"
+    },
+    "95755ff2": {
+      "label": "same_size_unknown",
+      "train_pairs": 3,
+      "size": "11x11"
+    },
+    "95990924": {
+      "label": "same_size_unknown",
+      "train_pairs": 3,
+      "size": "10x10"
+    },
+    "95a58926": {
+      "label": "same_size_unknown",
+      "train_pairs": 3,
+      "size": "21x17"
+    },
+    "963c33f8": {
+      "label": "same_size_unknown",
+      "train_pairs": 3,
+      "size": "16x16"
+    },
+    "963e52fc": {
+      "label": "upscale_or_pad",
+      "train_pairs": 3,
+      "size": "5x7"
+    },
+    "963f59bc": {
+      "label": "same_size_unknown",
+      "train_pairs": 4,
+      "size": "12x12"
+    },
+    "96a8c0cd": {
+      "label": "same_size_unknown",
+      "train_pairs": 4,
+      "size": "22x12"
+    },
+    "9720b24f": {
+      "label": "same_size_unknown",
+      "train_pairs": 4,
+      "size": "3x3"
+    },
+    "97239e3d": {
+      "label": "same_size_unknown",
+      "train_pairs": 3,
+      "size": "17x17"
+    },
+    "973e499e": {
+      "label": "upscale_or_pad",
+      "train_pairs": 3,
+      "size": "3x3"
+    },
+    "9772c176": {
+      "label": "same_size_unknown",
+      "train_pairs": 2,
+      "size": "22x21"
+    },
+    "97999447": {
+      "label": "same_size_unknown",
+      "train_pairs": 3,
+      "size": "10x12"
+    },
+    "97a05b5b": {
+      "label": "downscale_or_crop",
+      "train_pairs": 3,
+      "size": "20x10"
+    },
+    "97c75046": {
+      "label": "same_size_unknown",
+      "train_pairs": 3,
+      "size": "10x6"
+    },
+    "981add89": {
+      "label": "same_size_unknown",
+      "train_pairs": 2,
+      "size": "20x20"
+    },
+    "9841fdad": {
+      "label": "same_size_unknown",
+      "train_pairs": 2,
+      "size": "14x25"
+    },
+    "984d8a3e": {
+      "label": "same_size_unknown",
+      "train_pairs": 2,
+      "size": "10x10"
+    },
+    "985ae207": {
+      "label": "same_size_unknown",
+      "train_pairs": 3,
+      "size": "20x20"
+    },
+    "98c475bf": {
+      "label": "same_size_unknown",
+      "train_pairs": 4,
+      "size": "20x20"
+    },
+    "98cf29f8": {
+      "label": "same_size_unknown",
+      "train_pairs": 3,
+      "size": "13x18"
+    },
+    "992798f6": {
+      "label": "same_size_unknown",
+      "train_pairs": 4,
+      "size": "15x16"
+    },
+    "99306f82": {
+      "label": "same_size_unknown",
+      "train_pairs": 3,
+      "size": "15x15"
+    },
+    "995c5fa3": {
+      "label": "downscale_or_crop",
+      "train_pairs": 4,
+      "size": "4x14"
+    },
+    "9968a131": {
+      "label": "same_size_unknown",
+      "train_pairs": 2,
+      "size": "4x4"
+    },
+    "996ec1f3": {
+      "label": "downscale_or_crop",
+      "train_pairs": 3,
+      "size": "19x19"
+    },
+    "99b1bc43": {
+      "label": "downscale_or_crop",
+      "train_pairs": 4,
+      "size": "9x4"
+    },
+    "99caaf76": {
+      "label": "same_size_unknown",
+      "train_pairs": 3,
+      "size": "8x8"
+    },
+    "99fa7670": {
+      "label": "same_size_unknown",
+      "train_pairs": 4,
+      "size": "6x6"
+    },
+    "9a4bb226": {
+      "label": "downscale_or_crop",
+      "train_pairs": 3,
+      "size": "15x15"
+    },
+    "9aec4887": {
+      "label": "downscale_or_crop",
+      "train_pairs": 3,
+      "size": "14x16"
+    },
+    "9af7a82c": {
+      "label": "upscale_or_pad",
+      "train_pairs": 4,
+      "size": "4x3"
+    },
+    "9b2a60aa": {
+      "label": "same_size_unknown",
+      "train_pairs": 3,
+      "size": "23x17"
+    },
+    "9b30e358": {
+      "label": "same_size_unknown",
+      "train_pairs": 2,
+      "size": "10x5"
+    },
+    "9b365c51": {
+      "label": "same_size_unknown",
+      "train_pairs": 3,
+      "size": "6x15"
+    },
+    "9b4c17c4": {
+      "label": "same_size_unknown",
+      "train_pairs": 4,
+      "size": "12x11"
+    },
+    "9b5080bb": {
+      "label": "same_size_unknown",
+      "train_pairs": 3,
+      "size": "23x23"
+    },
+    "9ba4a9aa": {
+      "label": "downscale_or_crop",
+      "train_pairs": 3,
+      "size": "22x22"
+    },
+    "9bebae7a": {
+      "label": "same_size_unknown",
+      "train_pairs": 5,
+      "size": "11x10"
+    },
+    "9c1e755f": {
+      "label": "same_size_unknown",
+      "train_pairs": 4,
+      "size": "10x10"
+    },
+    "9c56f360": {
+      "label": "same_size_unknown",
+      "train_pairs": 3,
+      "size": "7x8"
+    },
+    "9caba7c3": {
+      "label": "same_size_unknown",
+      "train_pairs": 3,
+      "size": "19x19"
+    },
+    "9caf5b84": {
+      "label": "same_size_unknown",
+      "train_pairs": 4,
+      "size": "6x6"
+    },
+    "9d9215db": {
+      "label": "same_size_unknown",
+      "train_pairs": 3,
+      "size": "19x19"
+    },
+    "9ddd00f0": {
+      "label": "same_size_unknown",
+      "train_pairs": 2,
+      "size": "5x5"
+    },
+    "9def23fe": {
+      "label": "same_size_unknown",
+      "train_pairs": 3,
+      "size": "20x15"
+    },
+    "9dfd6313": {
+      "label": "transpose",
+      "train_pairs": 3,
+      "size": "4x4"
+    },
+    "9edfc990": {
+      "label": "same_size_unknown",
+      "train_pairs": 3,
+      "size": "15x15"
+    },
+    "9f236235": {
+      "label": "downscale_or_crop",
+      "train_pairs": 3,
+      "size": "19x19"
+    },
+    "9f27f097": {
+      "label": "same_size_unknown",
+      "train_pairs": 3,
+      "size": "12x12"
+    },
+    "9f41bd9c": {
+      "label": "same_size_unknown",
+      "train_pairs": 2,
+      "size": "17x17"
+    },
+    "9f5f939b": {
+      "label": "same_size_unknown",
+      "train_pairs": 3,
+      "size": "16x16"
+    },
+    "9f669b64": {
+      "label": "same_size_unknown",
+      "train_pairs": 3,
+      "size": "10x10"
+    },
+    "9f8de559": {
+      "label": "same_size_unknown",
+      "train_pairs": 4,
+      "size": "14x14"
+    },
+    "a04b2602": {
+      "label": "same_size_unknown",
+      "train_pairs": 3,
+      "size": "20x20"
+    },
+    "a096bf4d": {
+      "label": "same_size_unknown",
+      "train_pairs": 3,
+      "size": "26x21"
+    },
+    "a09f6c25": {
+      "label": "same_size_unknown",
+      "train_pairs": 3,
+      "size": "19x19"
+    },
+    "a1570a43": {
+      "label": "same_size_unknown",
+      "train_pairs": 4,
+      "size": "9x10"
+    },
+    "a1aa0c1e": {
+      "label": "downscale_or_crop",
+      "train_pairs": 3,
+      "size": "21x21"
+    },
+    "a2d730bd": {
+      "label": "same_size_unknown",
+      "train_pairs": 3,
+      "size": "22x16"
+    },
+    "a2fd1cf0": {
+      "label": "same_size_unknown",
+      "train_pairs": 3,
+      "size": "10x16"
+    },
+    "a3325580": {
+      "label": "downscale_or_crop",
+      "train_pairs": 6,
+      "size": "10x10"
+    },
+    "a3f84088": {
+      "label": "same_size_unknown",
+      "train_pairs": 4,
+      "size": "16x16"
+    },
+    "a406ac07": {
+      "label": "same_size_unknown",
+      "train_pairs": 3,
+      "size": "10x10"
+    },
+    "a416b8f3": {
+      "label": "upscale_or_pad",
+      "train_pairs": 3,
+      "size": "4x3"
+    },
+    "a416fc5b": {
+      "label": "same_size_unknown",
+      "train_pairs": 3,
+      "size": "11x11"
+    },
+    "a48eeaf7": {
+      "label": "same_size_unknown",
+      "train_pairs": 2,
+      "size": "10x10"
+    },
+    "a5313dff": {
+      "label": "same_size_unknown",
+      "train_pairs": 3,
+      "size": "8x8"
+    },
+    "a57f2f04": {
+      "label": "same_size_unknown",
+      "train_pairs": 3,
+      "size": "23x19"
+    },
+    "a59b95c0": {
+      "label": "upscale_or_pad",
+      "train_pairs": 5,
+      "size": "3x3"
+    },
+    "a5f85a15": {
+      "label": "same_size_unknown",
+      "train_pairs": 3,
+      "size": "8x8"
+    },
+    "a61ba2ce": {
+      "label": "downscale_or_crop",
+      "train_pairs": 2,
+      "size": "13x13"
+    },
+    "a61f2674": {
+      "label": "same_size_unknown",
+      "train_pairs": 2,
+      "size": "9x9"
+    },
+    "a644e277": {
+      "label": "downscale_or_crop",
+      "train_pairs": 2,
+      "size": "17x21"
+    },
+    "a64e4611": {
+      "label": "same_size_unknown",
+      "train_pairs": 3,
+      "size": "30x30"
+    },
+    "a65b410d": {
+      "label": "same_size_unknown",
+      "train_pairs": 3,
+      "size": "8x9"
+    },
+    "a680ac02": {
+      "label": "downscale_or_crop",
+      "train_pairs": 3,
+      "size": "21x16"
+    },
+    "a68b268e": {
+      "label": "downscale_or_crop",
+      "train_pairs": 6,
+      "size": "9x9"
+    },
+    "a6953f00": {
+      "label": "downscale_or_crop",
+      "train_pairs": 3,
+      "size": "4x4"
+    },
+    "a699fb00": {
+      "label": "same_size_unknown",
+      "train_pairs": 3,
+      "size": "10x10"
+    },
+    "a740d043": {
+      "label": "downscale_or_crop",
+      "train_pairs": 3,
+      "size": "7x7"
+    },
+    "a78176bb": {
+      "label": "same_size_unknown",
+      "train_pairs": 3,
+      "size": "10x10"
+    },
+    "a79310a0": {
+      "label": "same_size_unknown",
+      "train_pairs": 3,
+      "size": "3x3"
+    },
+    "a834deea": {
+      "label": "same_size_unknown",
+      "train_pairs": 3,
+      "size": "12x12"
+    },
+    "a85d4709": {
+      "label": "same_size_unknown",
+      "train_pairs": 4,
+      "size": "3x3"
+    },
+    "a8610ef7": {
+      "label": "same_size_unknown",
+      "train_pairs": 4,
+      "size": "6x6"
+    },
+    "a87f7484": {
+      "label": "downscale_or_crop",
+      "train_pairs": 4,
+      "size": "3x15"
+    },
+    "a8c38be5": {
+      "label": "downscale_or_crop",
+      "train_pairs": 2,
+      "size": "16x14"
+    },
+    "a8d7556c": {
+      "label": "same_size_unknown",
+      "train_pairs": 3,
+      "size": "18x18"
+    },
+    "a934301b": {
+      "label": "same_size_unknown",
+      "train_pairs": 3,
+      "size": "14x14"
+    },
+    "a9f96cdd": {
+      "label": "same_size_unknown",
+      "train_pairs": 4,
+      "size": "3x5"
+    },
+    "aa18de87": {
+      "label": "same_size_unknown",
+      "train_pairs": 4,
+      "size": "5x12"
+    },
+    "aa300dc3": {
+      "label": "same_size_unknown",
+      "train_pairs": 4,
+      "size": "10x10"
+    },
+    "aa62e3f4": {
+      "label": "same_size_unknown",
+      "train_pairs": 2,
+      "size": "16x16"
+    },
+    "aab50785": {
+      "label": "downscale_or_crop",
+      "train_pairs": 5,
+      "size": "12x17"
+    },
+    "aabf363d": {
+      "label": "same_size_unknown",
+      "train_pairs": 2,
+      "size": "7x7"
+    },
+    "aaecdb9a": {
+      "label": "downscale_or_crop",
+      "train_pairs": 3,
+      "size": "10x10"
+    },
+    "aaef0977": {
+      "label": "same_size_unknown",
+      "train_pairs": 2,
+      "size": "8x8"
+    },
+    "aba27056": {
+      "label": "same_size_unknown",
+      "train_pairs": 3,
+      "size": "9x9"
+    },
+    "abbfd121": {
+      "label": "downscale_or_crop",
+      "train_pairs": 3,
+      "size": "22x20"
+    },
+    "ac0a08a4": {
+      "label": "upscale_or_pad",
+      "train_pairs": 3,
+      "size": "3x3"
+    },
+    "ac0c2ac3": {
+      "label": "same_size_unknown",
+      "train_pairs": 3,
+      "size": "9x9"
+    },
+    "ac0c5833": {
+      "label": "same_size_unknown",
+      "train_pairs": 3,
+      "size": "26x26"
+    },
+    "ac2e8ecf": {
+      "label": "same_size_unknown",
+      "train_pairs": 3,
+      "size": "13x13"
+    },
+    "ac3e2b04": {
+      "label": "same_size_unknown",
+      "train_pairs": 4,
+      "size": "12x12"
+    },
+    "ac605cbb": {
+      "label": "same_size_unknown",
+      "train_pairs": 6,
+      "size": "11x11"
+    },
+    "ac6f9922": {
+      "label": "downscale_or_crop",
+      "train_pairs": 3,
+      "size": "17x17"
+    },
+    "ad173014": {
+      "label": "same_size_unknown",
+      "train_pairs": 3,
+      "size": "20x22"
+    },
+    "ad38a9d0": {
+      "label": "same_size_unknown",
+      "train_pairs": 2,
+      "size": "9x9"
+    },
+    "ad3b40cf": {
+      "label": "same_size_unknown",
+      "train_pairs": 3,
+      "size": "9x9"
+    },
+    "ad7e01d0": {
+      "label": "upscale_or_pad",
+      "train_pairs": 4,
+      "size": "4x4"
+    },
+    "ae3edfdc": {
+      "label": "same_size_unknown",
+      "train_pairs": 3,
+      "size": "15x15"
+    },
+    "ae4f1146": {
+      "label": "downscale_or_crop",
+      "train_pairs": 4,
+      "size": "9x9"
+    },
+    "ae58858e": {
+      "label": "same_size_unknown",
+      "train_pairs": 4,
+      "size": "6x6"
+    },
+    "aedd82e4": {
+      "label": "same_size_unknown",
+      "train_pairs": 4,
+      "size": "5x4"
+    },
+    "aee291af": {
+      "label": "downscale_or_crop",
+      "train_pairs": 3,
+      "size": "16x16"
+    },
+    "af24b4cc": {
+      "label": "downscale_or_crop",
+      "train_pairs": 3,
+      "size": "9x10"
+    },
+    "af726779": {
+      "label": "same_size_unknown",
+      "train_pairs": 3,
+      "size": "11x16"
+    },
+    "af902bf9": {
+      "label": "same_size_unknown",
+      "train_pairs": 3,
+      "size": "10x10"
+    },
+    "afe3afe9": {
+      "label": "downscale_or_crop",
+      "train_pairs": 3,
+      "size": "30x30"
+    },
+    "b0722778": {
+      "label": "downscale_or_crop",
+      "train_pairs": 2,
+      "size": "8x9"
+    },
+    "b0c4d837": {
+      "label": "downscale_or_crop",
+      "train_pairs": 6,
+      "size": "9x9"
+    },
+    "b0f4d537": {
+      "label": "downscale_or_crop",
+      "train_pairs": 4,
+      "size": "11x13"
+    },
+    "b15fca0b": {
+      "label": "same_size_unknown",
+      "train_pairs": 5,
+      "size": "6x6"
+    },
+    "b190f7f5": {
+      "label": "upscale_or_pad",
+      "train_pairs": 3,
+      "size": "3x6"
+    },
+    "b1948b0a": {
+      "label": "same_size_unknown",
+      "train_pairs": 3,
+      "size": "6x4"
+    },
+    "b1986d4b": {
+      "label": "downscale_or_crop",
+      "train_pairs": 3,
+      "size": "28x28"
+    },
+    "b1fc8b8e": {
+      "label": "downscale_or_crop",
+      "train_pairs": 5,
+      "size": "6x6"
+    },
+    "b20f7c8b": {
+      "label": "same_size_unknown",
+      "train_pairs": 3,
+      "size": "18x22"
+    },
+    "b230c067": {
+      "label": "same_size_unknown",
+      "train_pairs": 3,
+      "size": "10x10"
+    },
+    "b25e450b": {
+      "label": "same_size_unknown",
+      "train_pairs": 3,
+      "size": "10x10"
+    },
+    "b27ca6d3": {
+      "label": "same_size_unknown",
+      "train_pairs": 2,
+      "size": "15x16"
+    },
+    "b2862040": {
+      "label": "same_size_unknown",
+      "train_pairs": 4,
+      "size": "12x13"
+    },
+    "b2bc3ffd": {
+      "label": "same_size_unknown",
+      "train_pairs": 3,
+      "size": "8x8"
+    },
+    "b457fec5": {
+      "label": "same_size_unknown",
+      "train_pairs": 3,
+      "size": "17x18"
+    },
+    "b4a43f3b": {
+      "label": "upscale_or_pad",
+      "train_pairs": 4,
+      "size": "13x6"
+    },
+    "b527c5c6": {
+      "label": "same_size_unknown",
+      "train_pairs": 4,
+      "size": "20x20"
+    },
+    "b548a754": {
+      "label": "same_size_unknown",
+      "train_pairs": 3,
+      "size": "11x11"
+    },
+    "b5bb5719": {
+      "label": "same_size_unknown",
+      "train_pairs": 7,
+      "size": "3x5"
+    },
+    "b60334d2": {
+      "label": "same_size_unknown",
+      "train_pairs": 2,
+      "size": "9x9"
+    },
+    "b6afb2da": {
+      "label": "same_size_unknown",
+      "train_pairs": 2,
+      "size": "10x10"
+    },
+    "b71a7747": {
+      "label": "downscale_or_crop",
+      "train_pairs": 2,
+      "size": "19x19"
+    },
+    "b7249182": {
+      "label": "same_size_unknown",
+      "train_pairs": 3,
+      "size": "10x13"
+    },
+    "b7256dcd": {
+      "label": "same_size_unknown",
+      "train_pairs": 2,
+      "size": "5x5"
+    },
+    "b745798f": {
+      "label": "same_size_unknown",
+      "train_pairs": 3,
+      "size": "11x11"
+    },
+    "b74ca5d1": {
+      "label": "same_size_unknown",
+      "train_pairs": 3,
+      "size": "30x30"
+    },
+    "b775ac94": {
+      "label": "same_size_unknown",
+      "train_pairs": 3,
+      "size": "20x20"
+    },
+    "b782dc8a": {
+      "label": "same_size_unknown",
+      "train_pairs": 2,
+      "size": "13x14"
+    },
+    "b7955b3c": {
+      "label": "same_size_unknown",
+      "train_pairs": 3,
+      "size": "18x14"
+    },
+    "b7999b51": {
+      "label": "downscale_or_crop",
+      "train_pairs": 3,
+      "size": "10x15"
+    },
+    "b7cb93ac": {
+      "label": "downscale_or_crop",
+      "train_pairs": 3,
+      "size": "10x12"
+    },
+    "b7f8a4d8": {
+      "label": "same_size_unknown",
+      "train_pairs": 3,
+      "size": "24x29"
+    },
+    "b7fb29bc": {
+      "label": "same_size_unknown",
+      "train_pairs": 3,
+      "size": "15x15"
+    },
+    "b8825c91": {
+      "label": "same_size_unknown",
+      "train_pairs": 4,
+      "size": "16x16"
+    },
+    "b8cdaf2b": {
+      "label": "same_size_unknown",
+      "train_pairs": 4,
+      "size": "5x5"
+    },
+    "b91ae062": {
+      "label": "upscale_or_pad",
+      "train_pairs": 5,
+      "size": "3x3"
+    },
+    "b942fd60": {
+      "label": "same_size_unknown",
+      "train_pairs": 6,
+      "size": "8x8"
+    },
+    "b94a9452": {
+      "label": "downscale_or_crop",
+      "train_pairs": 3,
+      "size": "12x11"
+    },
+    "b9630600": {
+      "label": "same_size_unknown",
+      "train_pairs": 3,
+      "size": "30x30"
+    },
+    "b9b7f026": {
+      "label": "downscale_or_crop",
+      "train_pairs": 3,
+      "size": "15x17"
+    },
+    "ba1aa698": {
+      "label": "downscale_or_crop",
+      "train_pairs": 3,
+      "size": "16x21"
+    },
+    "ba26e723": {
+      "label": "same_size_unknown",
+      "train_pairs": 5,
+      "size": "3x13"
+    },
+    "ba97ae07": {
+      "label": "same_size_unknown",
+      "train_pairs": 4,
+      "size": "8x7"
+    },
+    "ba9d41b8": {
+      "label": "same_size_unknown",
+      "train_pairs": 3,
+      "size": "13x15"
+    },
+    "bae5c565": {
+      "label": "same_size_unknown",
+      "train_pairs": 2,
+      "size": "13x13"
+    },
+    "baf41dbf": {
+      "label": "same_size_unknown",
+      "train_pairs": 3,
+      "size": "11x15"
+    },
+    "bb43febb": {
+      "label": "same_size_unknown",
+      "train_pairs": 2,
+      "size": "10x10"
+    },
+    "bb52a14b": {
+      "label": "same_size_unknown",
+      "train_pairs": 3,
+      "size": "22x22"
+    },
+    "bbb1b8b6": {
+      "label": "downscale_or_crop",
+      "train_pairs": 7,
+      "size": "4x9"
+    },
+    "bbc9ae5d": {
+      "label": "upscale_or_pad",
+      "train_pairs": 5,
+      "size": "1x6"
+    },
+    "bc1d5164": {
+      "label": "downscale_or_crop",
+      "train_pairs": 5,
+      "size": "5x7"
+    },
+    "bc4146bd": {
+      "label": "upscale_or_pad",
+      "train_pairs": 4,
+      "size": "4x4"
+    },
+    "bc93ec48": {
+      "label": "same_size_unknown",
+      "train_pairs": 3,
+      "size": "10x10"
+    },
+    "bcb3040b": {
+      "label": "same_size_unknown",
+      "train_pairs": 3,
+      "size": "12x12"
+    },
+    "bd14c3bf": {
+      "label": "same_size_unknown",
+      "train_pairs": 3,
+      "size": "18x18"
+    },
+    "bd283c4a": {
+      "label": "same_size_unknown",
+      "train_pairs": 2,
+      "size": "10x10"
+    },
+    "bd4472b8": {
+      "label": "same_size_unknown",
+      "train_pairs": 3,
+      "size": "10x4"
+    },
+    "bd5af378": {
+      "label": "same_size_unknown",
+      "train_pairs": 4,
+      "size": "5x6"
+    },
+    "bda2d7a6": {
+      "label": "same_size_unknown",
+      "train_pairs": 3,
+      "size": "8x8"
+    },
+    "bdad9b1f": {
+      "label": "same_size_unknown",
+      "train_pairs": 2,
+      "size": "6x6"
+    },
+    "be03b35f": {
+      "label": "downscale_or_crop",
+      "train_pairs": 3,
+      "size": "5x5"
+    },
+    "be94b721": {
+      "label": "downscale_or_crop",
+      "train_pairs": 4,
+      "size": "6x11"
+    },
+    "beb8660c": {
+      "label": "same_size_unknown",
+      "train_pairs": 3,
+      "size": "7x4"
+    },
+    "bf32578f": {
+      "label": "same_size_unknown",
+      "train_pairs": 3,
+      "size": "6x6"
+    },
+    "bf699163": {
+      "label": "downscale_or_crop",
+      "train_pairs": 2,
+      "size": "17x18"
+    },
+    "bf89d739": {
+      "label": "same_size_unknown",
+      "train_pairs": 4,
+      "size": "14x10"
+    },
+    "c074846d": {
+      "label": "same_size_unknown",
+      "train_pairs": 5,
+      "size": "6x7"
+    },
+    "c0f76784": {
+      "label": "same_size_unknown",
+      "train_pairs": 3,
+      "size": "12x12"
+    },
+    "c1990cce": {
+      "label": "upscale_or_pad",
+      "train_pairs": 3,
+      "size": "1x5"
+    },
+    "c1d99e64": {
+      "label": "same_size_unknown",
+      "train_pairs": 3,
+      "size": "12x14"
+    },
+    "c3202e5a": {
+      "label": "downscale_or_crop",
+      "train_pairs": 3,
+      "size": "23x23"
+    },
+    "c35c1b4c": {
+      "label": "same_size_unknown",
+      "train_pairs": 3,
+      "size": "10x10"
+    },
+    "c3e719e8": {
+      "label": "upscale_or_pad",
+      "train_pairs": 3,
+      "size": "3x3"
+    },
+    "c3fa4749": {
+      "label": "same_size_unknown",
+      "train_pairs": 3,
+      "size": "25x25"
+    },
+    "c444b776": {
+      "label": "same_size_unknown",
+      "train_pairs": 2,
+      "size": "19x9"
+    },
+    "c48954c1": {
+      "label": "upscale_or_pad",
+      "train_pairs": 3,
+      "size": "3x3"
+    },
+    "c4d1a9ae": {
+      "label": "same_size_unknown",
+      "train_pairs": 2,
+      "size": "10x8"
+    },
+    "c59eb873": {
+      "label": "upscale_or_pad",
+      "train_pairs": 3,
+      "size": "2x2"
+    },
+    "c6141b15": {
+      "label": "same_size_unknown",
+      "train_pairs": 3,
+      "size": "16x16"
+    },
+    "c61be7dc": {
+      "label": "same_size_unknown",
+      "train_pairs": 3,
+      "size": "11x11"
+    },
+    "c62e2108": {
+      "label": "same_size_unknown",
+      "train_pairs": 3,
+      "size": "22x19"
+    },
+    "c64f1187": {
+      "label": "downscale_or_crop",
+      "train_pairs": 2,
+      "size": "17x18"
+    },
+    "c658a4bd": {
+      "label": "downscale_or_crop",
+      "train_pairs": 2,
+      "size": "16x16"
+    },
+    "c6e1b8da": {
+      "label": "same_size_unknown",
+      "train_pairs": 3,
+      "size": "20x20"
+    },
+    "c7d4e6ad": {
+      "label": "same_size_unknown",
+      "train_pairs": 2,
+      "size": "10x10"
+    },
+    "c803e39c": {
+      "label": "downscale_or_crop",
+      "train_pairs": 3,
+      "size": "5x23"
+    },
+    "c87289bb": {
+      "label": "same_size_unknown",
+      "train_pairs": 4,
+      "size": "10x12"
+    },
+    "c8b7cc0f": {
+      "label": "downscale_or_crop",
+      "train_pairs": 3,
+      "size": "9x9"
+    },
+    "c8cbb738": {
+      "label": "downscale_or_crop",
+      "train_pairs": 3,
+      "size": "10x8"
+    },
+    "c8f0f002": {
+      "label": "same_size_unknown",
+      "train_pairs": 3,
+      "size": "3x4"
+    },
+    "c909285e": {
+      "label": "downscale_or_crop",
+      "train_pairs": 3,
+      "size": "26x26"
+    },
+    "c920a713": {
+      "label": "downscale_or_crop",
+      "train_pairs": 3,
+      "size": "20x20"
+    },
+    "c92b942c": {
+      "label": "upscale_or_pad",
+      "train_pairs": 4,
+      "size": "4x6"
+    },
+    "c9680e90": {
+      "label": "same_size_unknown",
+      "train_pairs": 3,
+      "size": "9x9"
+    },
+    "c97c0139": {
+      "label": "same_size_unknown",
+      "train_pairs": 2,
+      "size": "19x21"
+    },
+    "c9e6f938": {
+      "label": "upscale_or_pad",
+      "train_pairs": 3,
+      "size": "3x3"
+    },
+    "c9f8e694": {
+      "label": "same_size_unknown",
+      "train_pairs": 2,
+      "size": "12x12"
+    },
+    "ca8de6ea": {
+      "label": "downscale_or_crop",
+      "train_pairs": 3,
+      "size": "5x5"
+    },
+    "caa06a1f": {
+      "label": "same_size_unknown",
+      "train_pairs": 3,
+      "size": "8x8"
+    },
+    "cad67732": {
+      "label": "upscale_or_pad",
+      "train_pairs": 3,
+      "size": "5x5"
+    },
+    "cb227835": {
+      "label": "same_size_unknown",
+      "train_pairs": 3,
+      "size": "12x14"
+    },
+    "cbded52d": {
+      "label": "same_size_unknown",
+      "train_pairs": 3,
+      "size": "8x8"
+    },
+    "cc9053aa": {
+      "label": "same_size_unknown",
+      "train_pairs": 3,
+      "size": "7x9"
+    },
+    "ccd554ac": {
+      "label": "upscale_or_pad",
+      "train_pairs": 6,
+      "size": "3x3"
+    },
+    "cce03e0d": {
+      "label": "upscale_or_pad",
+      "train_pairs": 3,
+      "size": "3x3"
+    },
+    "cd3c21df": {
+      "label": "downscale_or_crop",
+      "train_pairs": 3,
+      "size": "12x12"
+    },
+    "cdecee7f": {
+      "label": "downscale_or_crop",
+      "train_pairs": 3,
+      "size": "10x10"
+    },
+    "ce039d91": {
+      "label": "same_size_unknown",
+      "train_pairs": 4,
+      "size": "10x10"
+    },
+    "ce22a75a": {
+      "label": "same_size_unknown",
+      "train_pairs": 2,
+      "size": "9x9"
+    },
+    "ce4f8723": {
+      "label": "downscale_or_crop",
+      "train_pairs": 4,
+      "size": "9x4"
+    },
+    "ce602527": {
+      "label": "downscale_or_crop",
+      "train_pairs": 4,
+      "size": "19x17"
+    },
+    "ce8d95cc": {
+      "label": "downscale_or_crop",
+      "train_pairs": 4,
+      "size": "12x9"
+    },
+    "ce9e57f2": {
+      "label": "same_size_unknown",
+      "train_pairs": 3,
+      "size": "8x9"
+    },
+    "cf133acc": {
+      "label": "same_size_unknown",
+      "train_pairs": 3,
+      "size": "15x15"
+    },
+    "cf5fd0ad": {
+      "label": "upscale_or_pad",
+      "train_pairs": 3,
+      "size": "3x3"
+    },
+    "cf98881b": {
+      "label": "downscale_or_crop",
+      "train_pairs": 5,
+      "size": "4x14"
+    },
+    "cfb2ce5a": {
+      "label": "same_size_unknown",
+      "train_pairs": 3,
+      "size": "10x10"
+    },
+    "d017b73f": {
+      "label": "downscale_or_crop",
+      "train_pairs": 4,
+      "size": "3x11"
+    },
+    "d037b0a7": {
+      "label": "same_size_unknown",
+      "train_pairs": 3,
+      "size": "3x3"
+    },
+    "d06dbe63": {
+      "label": "same_size_unknown",
+      "train_pairs": 2,
+      "size": "13x13"
+    },
+    "d07ae81c": {
+      "label": "same_size_unknown",
+      "train_pairs": 3,
+      "size": "12x14"
+    },
+    "d0f5fe59": {
+      "label": "downscale_or_crop",
+      "train_pairs": 3,
+      "size": "12x12"
+    },
+    "d10ecb37": {
+      "label": "downscale_or_crop",
+      "train_pairs": 3,
+      "size": "8x8"
+    },
+    "d13f3404": {
+      "label": "upscale_or_pad",
+      "train_pairs": 3,
+      "size": "3x3"
+    },
+    "d19f7514": {
+      "label": "downscale_or_crop",
+      "train_pairs": 4,
+      "size": "12x4"
+    },
+    "d22278a0": {
+      "label": "same_size_unknown",
+      "train_pairs": 4,
+      "size": "13x13"
+    },
+    "d23f8c26": {
+      "label": "same_size_unknown",
+      "train_pairs": 3,
+      "size": "5x5"
+    },
+    "d255d7a7": {
+      "label": "same_size_unknown",
+      "train_pairs": 3,
+      "size": "14x14"
+    },
+    "d282b262": {
+      "label": "same_size_unknown",
+      "train_pairs": 3,
+      "size": "15x15"
+    },
+    "d2abd087": {
+      "label": "same_size_unknown",
+      "train_pairs": 3,
+      "size": "10x10"
+    },
+    "d2acf2cb": {
+      "label": "same_size_unknown",
+      "train_pairs": 3,
+      "size": "9x9"
+    },
+    "d304284e": {
+      "label": "same_size_unknown",
+      "train_pairs": 2,
+      "size": "23x28"
+    },
+    "d364b489": {
+      "label": "same_size_unknown",
+      "train_pairs": 2,
+      "size": "10x10"
+    },
+    "d37a1ef5": {
+      "label": "same_size_unknown",
+      "train_pairs": 3,
+      "size": "12x11"
+    },
+    "d406998b": {
+      "label": "same_size_unknown",
+      "train_pairs": 4,
+      "size": "3x13"
+    },
+    "d43fd935": {
+      "label": "same_size_unknown",
+      "train_pairs": 3,
+      "size": "10x10"
+    },
+    "d4469b4b": {
+      "label": "downscale_or_crop",
+      "train_pairs": 7,
+      "size": "5x5"
+    },
+    "d47aa2ff": {
+      "label": "downscale_or_crop",
+      "train_pairs": 3,
+      "size": "10x21"
+    },
+    "d492a647": {
+      "label": "same_size_unknown",
+      "train_pairs": 2,
+      "size": "13x13"
+    },
+    "d4a91cb9": {
+      "label": "same_size_unknown",
+      "train_pairs": 3,
+      "size": "8x11"
+    },
+    "d4b1c2b1": {
+      "label": "upscale_or_pad",
+      "train_pairs": 7,
+      "size": "3x3"
+    },
+    "d4c90558": {
+      "label": "downscale_or_crop",
+      "train_pairs": 3,
+      "size": "20x20"
+    },
+    "d4f3cd78": {
+      "label": "same_size_unknown",
+      "train_pairs": 2,
+      "size": "10x10"
+    },
+    "d511f180": {
+      "label": "same_size_unknown",
+      "train_pairs": 3,
+      "size": "3x3"
+    },
+    "d56f2372": {
+      "label": "downscale_or_crop",
+      "train_pairs": 3,
+      "size": "22x17"
+    },
+    "d5c634a2": {
+      "label": "downscale_or_crop",
+      "train_pairs": 7,
+      "size": "6x7"
+    },
+    "d5d6de2d": {
+      "label": "same_size_unknown",
+      "train_pairs": 3,
+      "size": "15x15"
+    },
+    "d631b094": {
+      "label": "downscale_or_crop",
+      "train_pairs": 4,
+      "size": "3x3"
+    },
+    "d6542281": {
+      "label": "same_size_unknown",
+      "train_pairs": 3,
+      "size": "19x19"
+    },
+    "d687bc17": {
+      "label": "same_size_unknown",
+      "train_pairs": 3,
+      "size": "12x12"
+    },
+    "d6ad076f": {
+      "label": "same_size_unknown",
+      "train_pairs": 3,
+      "size": "10x10"
+    },
+    "d6e50e54": {
+      "label": "same_size_unknown",
+      "train_pairs": 3,
+      "size": "10x10"
+    },
+    "d749d46f": {
+      "label": "upscale_or_pad",
+      "train_pairs": 3,
+      "size": "4x13"
+    },
+    "d753a70b": {
+      "label": "same_size_unknown",
+      "train_pairs": 3,
+      "size": "16x16"
+    },
+    "d89b689b": {
+      "label": "same_size_unknown",
+      "train_pairs": 3,
+      "size": "10x10"
+    },
+    "d8c310e9": {
+      "label": "same_size_unknown",
+      "train_pairs": 3,
+      "size": "5x15"
+    },
+    "d90796e8": {
+      "label": "same_size_unknown",
+      "train_pairs": 3,
+      "size": "7x6"
+    },
+    "d931c21c": {
+      "label": "same_size_unknown",
+      "train_pairs": 4,
+      "size": "16x14"
+    },
+    "d93c6891": {
+      "label": "same_size_unknown",
+      "train_pairs": 3,
+      "size": "16x16"
+    },
+    "d94c3b52": {
+      "label": "same_size_unknown",
+      "train_pairs": 3,
+      "size": "17x25"
+    },
+    "d968ffd4": {
+      "label": "same_size_unknown",
+      "train_pairs": 3,
+      "size": "5x16"
+    },
+    "d9f24cd1": {
+      "label": "same_size_unknown",
+      "train_pairs": 2,
+      "size": "10x10"
+    },
+    "d9fac9be": {
+      "label": "downscale_or_crop",
+      "train_pairs": 4,
+      "size": "11x9"
+    },
+    "da2b0fe3": {
+      "label": "same_size_unknown",
+      "train_pairs": 3,
+      "size": "10x10"
+    },
+    "da6e95e5": {
+      "label": "downscale_or_crop",
+      "train_pairs": 3,
+      "size": "30x30"
+    },
+    "dae9d2b5": {
+      "label": "downscale_or_crop",
+      "train_pairs": 5,
+      "size": "3x6"
+    },
+    "db118e2a": {
+      "label": "upscale_or_pad",
+      "train_pairs": 4,
+      "size": "9x7"
+    },
+    "db3e9e38": {
+      "label": "same_size_unknown",
+      "train_pairs": 2,
+      "size": "7x8"
+    },
+    "db615bd4": {
+      "label": "same_size_unknown",
+      "train_pairs": 3,
+      "size": "25x25"
+    },
+    "db7260a4": {
+      "label": "same_size_unknown",
+      "train_pairs": 5,
+      "size": "10x10"
+    },
+    "db93a21d": {
+      "label": "same_size_unknown",
+      "train_pairs": 4,
+      "size": "20x20"
+    },
+    "dbc1a6ce": {
+      "label": "same_size_unknown",
+      "train_pairs": 4,
+      "size": "12x12"
+    },
+    "dc1df850": {
+      "label": "same_size_unknown",
+      "train_pairs": 3,
+      "size": "8x8"
+    },
+    "dc2aa30b": {
+      "label": "same_size_unknown",
+      "train_pairs": 3,
+      "size": "11x11"
+    },
+    "dc2e9a9d": {
+      "label": "same_size_unknown",
+      "train_pairs": 3,
+      "size": "23x19"
+    },
+    "dc433765": {
+      "label": "same_size_unknown",
+      "train_pairs": 7,
+      "size": "7x7"
+    },
+    "dc46ea44": {
+      "label": "same_size_unknown",
+      "train_pairs": 3,
+      "size": "11x11"
+    },
+    "dce56571": {
+      "label": "same_size_unknown",
+      "train_pairs": 3,
+      "size": "7x11"
+    },
+    "dd2401ed": {
+      "label": "same_size_unknown",
+      "train_pairs": 4,
+      "size": "7x15"
+    },
+    "ddf7fa4f": {
+      "label": "same_size_unknown",
+      "train_pairs": 3,
+      "size": "10x10"
+    },
+    "de1cd16c": {
+      "label": "downscale_or_crop",
+      "train_pairs": 4,
+      "size": "16x17"
+    },
+    "de493100": {
+      "label": "downscale_or_crop",
+      "train_pairs": 4,
+      "size": "30x30"
+    },
+    "ded97339": {
+      "label": "same_size_unknown",
+      "train_pairs": 3,
+      "size": "10x10"
+    },
+    "df8cc377": {
+      "label": "same_size_unknown",
+      "train_pairs": 3,
+      "size": "20x20"
+    },
+    "df978a02": {
+      "label": "same_size_unknown",
+      "train_pairs": 3,
+      "size": "16x16"
+    },
+    "df9fd884": {
+      "label": "same_size_unknown",
+      "train_pairs": 3,
+      "size": "9x9"
+    },
+    "e048c9ed": {
+      "label": "same_size_unknown",
+      "train_pairs": 4,
+      "size": "4x3"
+    },
+    "e0fb7511": {
+      "label": "same_size_unknown",
+      "train_pairs": 3,
+      "size": "13x13"
+    },
+    "e133d23d": {
+      "label": "downscale_or_crop",
+      "train_pairs": 5,
+      "size": "3x7"
+    },
+    "e179c5f4": {
+      "label": "same_size_unknown",
+      "train_pairs": 3,
+      "size": "10x3"
+    },
+    "e1baa8a4": {
+      "label": "downscale_or_crop",
+      "train_pairs": 4,
+      "size": "15x14"
+    },
+    "e1d2900e": {
+      "label": "same_size_unknown",
+      "train_pairs": 3,
+      "size": "30x30"
+    },
+    "e2092e0c": {
+      "label": "same_size_unknown",
+      "train_pairs": 3,
+      "size": "15x15"
+    },
+    "e21a174a": {
+      "label": "same_size_unknown",
+      "train_pairs": 3,
+      "size": "7x7"
+    },
+    "e21d9049": {
+      "label": "same_size_unknown",
+      "train_pairs": 2,
+      "size": "15x14"
+    },
+    "e26a3af2": {
+      "label": "same_size_unknown",
+      "train_pairs": 3,
+      "size": "13x14"
+    },
+    "e345f17b": {
+      "label": "downscale_or_crop",
+      "train_pairs": 4,
+      "size": "4x8"
+    },
+    "e3497940": {
+      "label": "downscale_or_crop",
+      "train_pairs": 3,
+      "size": "10x9"
+    },
+    "e39e9282": {
+      "label": "same_size_unknown",
+      "train_pairs": 3,
+      "size": "11x11"
+    },
+    "e3f79277": {
+      "label": "upscale_or_pad",
+      "train_pairs": 2,
+      "size": "6x6"
+    },
+    "e3fe1151": {
+      "label": "same_size_unknown",
+      "train_pairs": 3,
+      "size": "5x5"
+    },
+    "e4075551": {
+      "label": "same_size_unknown",
+      "train_pairs": 3,
+      "size": "15x14"
+    },
+    "e40b9e2f": {
+      "label": "same_size_unknown",
+      "train_pairs": 3,
+      "size": "10x10"
+    },
+    "e41c6fd3": {
+      "label": "same_size_unknown",
+      "train_pairs": 3,
+      "size": "14x30"
+    },
+    "e45ef808": {
+      "label": "same_size_unknown",
+      "train_pairs": 2,
+      "size": "12x12"
+    },
+    "e4888269": {
+      "label": "same_size_unknown",
+      "train_pairs": 3,
+      "size": "10x20"
+    },
+    "e48d4e1a": {
+      "label": "same_size_unknown",
+      "train_pairs": 4,
+      "size": "10x10"
+    },
+    "e4941b18": {
+      "label": "same_size_unknown",
+      "train_pairs": 3,
+      "size": "9x9"
+    },
+    "e5062a87": {
+      "label": "same_size_unknown",
+      "train_pairs": 3,
+      "size": "10x10"
+    },
+    "e509e548": {
+      "label": "same_size_unknown",
+      "train_pairs": 3,
+      "size": "10x11"
+    },
+    "e50d258f": {
+      "label": "downscale_or_crop",
+      "train_pairs": 3,
+      "size": "10x10"
+    },
+    "e57337a4": {
+      "label": "downscale_or_crop",
+      "train_pairs": 3,
+      "size": "15x15"
+    },
+    "e5790162": {
+      "label": "same_size_unknown",
+      "train_pairs": 5,
+      "size": "6x6"
+    },
+    "e5c44e8f": {
+      "label": "same_size_unknown",
+      "train_pairs": 3,
+      "size": "11x11"
+    },
+    "e619ca6e": {
+      "label": "same_size_unknown",
+      "train_pairs": 3,
+      "size": "25x22"
+    },
+    "e633a9e5": {
+      "label": "upscale_or_pad",
+      "train_pairs": 3,
+      "size": "3x3"
+    },
+    "e6721834": {
+      "label": "downscale_or_crop",
+      "train_pairs": 3,
+      "size": "11x20"
+    },
+    "e681b708": {
+      "label": "same_size_unknown",
+      "train_pairs": 3,
+      "size": "22x24"
+    },
+    "e69241bd": {
+      "label": "same_size_unknown",
+      "train_pairs": 3,
+      "size": "9x9"
+    },
+    "e6de6e8f": {
+      "label": "downscale_or_crop",
+      "train_pairs": 3,
+      "size": "2x12"
+    },
+    "e729b7be": {
+      "label": "same_size_unknown",
+      "train_pairs": 3,
+      "size": "17x17"
+    },
+    "e73095fd": {
+      "label": "same_size_unknown",
+      "train_pairs": 3,
+      "size": "13x16"
+    },
+    "e734a0e8": {
+      "label": "same_size_unknown",
+      "train_pairs": 2,
+      "size": "23x23"
+    },
+    "e74e1818": {
+      "label": "same_size_unknown",
+      "train_pairs": 3,
+      "size": "11x11"
+    },
+    "e760a62e": {
+      "label": "same_size_unknown",
+      "train_pairs": 3,
+      "size": "24x24"
+    },
+    "e7639916": {
+      "label": "same_size_unknown",
+      "train_pairs": 3,
+      "size": "8x12"
+    },
+    "e76a88a6": {
+      "label": "same_size_unknown",
+      "train_pairs": 2,
+      "size": "10x10"
+    },
+    "e78887d1": {
+      "label": "downscale_or_crop",
+      "train_pairs": 4,
+      "size": "5x15"
+    },
+    "e7a25a18": {
+      "label": "downscale_or_crop",
+      "train_pairs": 2,
+      "size": "14x14"
+    },
+    "e7b06bea": {
+      "label": "same_size_unknown",
+      "train_pairs": 5,
+      "size": "12x8"
+    },
+    "e7dd8335": {
+      "label": "same_size_unknown",
+      "train_pairs": 3,
+      "size": "8x9"
+    },
+    "e84fef15": {
+      "label": "downscale_or_crop",
+      "train_pairs": 3,
+      "size": "29x29"
+    },
+    "e8593010": {
+      "label": "same_size_unknown",
+      "train_pairs": 3,
+      "size": "10x10"
+    },
+    "e872b94a": {
+      "label": "downscale_or_crop",
+      "train_pairs": 4,
+      "size": "7x7"
+    },
+    "e88171ec": {
+      "label": "same_size_unknown",
+      "train_pairs": 3,
+      "size": "15x15"
+    },
+    "e8dc4411": {
+      "label": "same_size_unknown",
+      "train_pairs": 3,
+      "size": "13x15"
+    },
+    "e9614598": {
+      "label": "same_size_unknown",
+      "train_pairs": 2,
+      "size": "10x10"
+    },
+    "e98196ab": {
+      "label": "downscale_or_crop",
+      "train_pairs": 3,
+      "size": "11x11"
+    },
+    "e99362f0": {
+      "label": "downscale_or_crop",
+      "train_pairs": 6,
+      "size": "11x9"
+    },
+    "e9ac8c9e": {
+      "label": "same_size_unknown",
+      "train_pairs": 3,
+      "size": "10x10"
+    },
+    "e9afcf9a": {
+      "label": "same_size_unknown",
+      "train_pairs": 2,
+      "size": "2x6"
+    },
+    "e9b4f6fc": {
+      "label": "downscale_or_crop",
+      "train_pairs": 4,
+      "size": "13x13"
+    },
+    "e9bb6954": {
+      "label": "same_size_unknown",
+      "train_pairs": 4,
+      "size": "18x14"
+    },
+    "e9c9d9a1": {
+      "label": "same_size_unknown",
+      "train_pairs": 3,
+      "size": "15x12"
+    },
+    "e9fc42f2": {
+      "label": "downscale_or_crop",
+      "train_pairs": 3,
+      "size": "13x13"
+    },
+    "ea32f347": {
+      "label": "same_size_unknown",
+      "train_pairs": 4,
+      "size": "10x10"
+    },
+    "ea786f4a": {
+      "label": "same_size_unknown",
+      "train_pairs": 3,
+      "size": "5x5"
+    },
+    "ea959feb": {
+      "label": "same_size_unknown",
+      "train_pairs": 3,
+      "size": "22x25"
+    },
+    "ea9794b1": {
+      "label": "downscale_or_crop",
+      "train_pairs": 6,
+      "size": "10x10"
+    },
+    "eb281b96": {
+      "label": "upscale_or_pad",
+      "train_pairs": 2,
+      "size": "4x17"
+    },
+    "eb5a1d5d": {
+      "label": "downscale_or_crop",
+      "train_pairs": 3,
+      "size": "22x25"
+    },
+    "ec883f72": {
+      "label": "same_size_unknown",
+      "train_pairs": 4,
+      "size": "9x9"
+    },
+    "ecaa0ec1": {
+      "label": "same_size_unknown",
+      "train_pairs": 4,
+      "size": "11x10"
+    },
+    "ecb67b6d": {
+      "label": "same_size_unknown",
+      "train_pairs": 3,
+      "size": "6x8"
+    },
+    "ecdecbb3": {
+      "label": "same_size_unknown",
+      "train_pairs": 3,
+      "size": "13x18"
+    },
+    "ed36ccf7": {
+      "label": "rot270",
+      "train_pairs": 4,
+      "size": "3x3"
+    },
+    "ed74f2f2": {
+      "label": "downscale_or_crop",
+      "train_pairs": 6,
+      "size": "5x9"
+    },
+    "ed98d772": {
+      "label": "upscale_or_pad",
+      "train_pairs": 5,
+      "size": "3x3"
+    },
+    "edcc2ff0": {
+      "label": "same_size_unknown",
+      "train_pairs": 3,
+      "size": "20x10"
+    },
+    "ef135b50": {
+      "label": "same_size_unknown",
+      "train_pairs": 3,
+      "size": "10x10"
+    },
+    "ef26cbf6": {
+      "label": "same_size_unknown",
+      "train_pairs": 2,
+      "size": "11x7"
+    },
+    "f0100645": {
+      "label": "same_size_unknown",
+      "train_pairs": 2,
+      "size": "10x10"
+    },
+    "f0afb749": {
+      "label": "upscale_or_pad",
+      "train_pairs": 3,
+      "size": "2x2"
+    },
+    "f0df5ff0": {
+      "label": "same_size_unknown",
+      "train_pairs": 3,
+      "size": "15x15"
+    },
+    "f0f8a26d": {
+      "label": "same_size_unknown",
+      "train_pairs": 3,
+      "size": "9x9"
+    },
+    "f15e1fac": {
+      "label": "same_size_unknown",
+      "train_pairs": 3,
+      "size": "14x10"
+    },
+    "f18ec8cc": {
+      "label": "same_size_unknown",
+      "train_pairs": 4,
+      "size": "9x14"
+    },
+    "f1bcbc2c": {
+      "label": "same_size_unknown",
+      "train_pairs": 4,
+      "size": "10x10"
+    },
+    "f1cefba8": {
+      "label": "same_size_unknown",
+      "train_pairs": 3,
+      "size": "15x17"
+    },
+    "f21745ec": {
+      "label": "same_size_unknown",
+      "train_pairs": 3,
+      "size": "21x21"
+    },
+    "f25fbde4": {
+      "label": "downscale_or_crop",
+      "train_pairs": 3,
+      "size": "9x9"
+    },
+    "f25ffba3": {
+      "label": "same_size_unknown",
+      "train_pairs": 2,
+      "size": "10x4"
+    },
+    "f2829549": {
+      "label": "downscale_or_crop",
+      "train_pairs": 5,
+      "size": "4x7"
+    },
+    "f28a3cbb": {
+      "label": "same_size_unknown",
+      "train_pairs": 2,
+      "size": "9x9"
+    },
+    "f341894c": {
+      "label": "same_size_unknown",
+      "train_pairs": 3,
+      "size": "10x10"
+    },
+    "f35d900a": {
+      "label": "same_size_unknown",
+      "train_pairs": 4,
+      "size": "17x16"
+    },
+    "f3b10344": {
+      "label": "same_size_unknown",
+      "train_pairs": 3,
+      "size": "30x30"
+    },
+    "f3cdc58f": {
+      "label": "same_size_unknown",
+      "train_pairs": 3,
+      "size": "10x10"
+    },
+    "f3e14006": {
+      "label": "same_size_unknown",
+      "train_pairs": 4,
+      "size": "12x12"
+    },
+    "f3e62deb": {
+      "label": "same_size_unknown",
+      "train_pairs": 6,
+      "size": "10x10"
+    },
+    "f45f5ca7": {
+      "label": "same_size_unknown",
+      "train_pairs": 3,
+      "size": "10x10"
+    },
+    "f5aa3634": {
+      "label": "downscale_or_crop",
+      "train_pairs": 3,
+      "size": "15x13"
+    },
+    "f5b8619d": {
+      "label": "upscale_or_pad",
+      "train_pairs": 3,
+      "size": "6x6"
+    },
+    "f5c89df1": {
+      "label": "same_size_unknown",
+      "train_pairs": 3,
+      "size": "13x13"
+    },
+    "f76d97a5": {
+      "label": "same_size_unknown",
+      "train_pairs": 3,
+      "size": "5x5"
+    },
+    "f823c43c": {
+      "label": "same_size_unknown",
+      "train_pairs": 2,
+      "size": "12x12"
+    },
+    "f83cb3f6": {
+      "label": "same_size_unknown",
+      "train_pairs": 3,
+      "size": "12x14"
+    },
+    "f8a8fe49": {
+      "label": "same_size_unknown",
+      "train_pairs": 3,
+      "size": "15x15"
+    },
+    "f8b3ba0a": {
+      "label": "downscale_or_crop",
+      "train_pairs": 4,
+      "size": "13x10"
+    },
+    "f8be4b64": {
+      "label": "same_size_unknown",
+      "train_pairs": 4,
+      "size": "18x18"
+    },
+    "f8c80d96": {
+      "label": "same_size_unknown",
+      "train_pairs": 3,
+      "size": "10x10"
+    },
+    "f8cc533f": {
+      "label": "same_size_unknown",
+      "train_pairs": 3,
+      "size": "19x19"
+    },
+    "f8f52ecc": {
+      "label": "same_size_unknown",
+      "train_pairs": 3,
+      "size": "10x10"
+    },
+    "f8ff0b80": {
+      "label": "downscale_or_crop",
+      "train_pairs": 3,
+      "size": "12x12"
+    },
+    "f9012d9b": {
+      "label": "downscale_or_crop",
+      "train_pairs": 3,
+      "size": "4x4"
+    },
+    "f9a67cb5": {
+      "label": "same_size_unknown",
+      "train_pairs": 3,
+      "size": "11x12"
+    },
+    "f9d67f8b": {
+      "label": "same_size_unknown",
+      "train_pairs": 4,
+      "size": "30x30"
+    },
+    "fafd9572": {
+      "label": "same_size_unknown",
+      "train_pairs": 2,
+      "size": "10x12"
+    },
+    "fafffa47": {
+      "label": "downscale_or_crop",
+      "train_pairs": 5,
+      "size": "6x3"
+    },
+    "fb791726": {
+      "label": "upscale_or_pad",
+      "train_pairs": 3,
+      "size": "3x3"
+    },
+    "fbf15a0b": {
+      "label": "downscale_or_crop",
+      "train_pairs": 4,
+      "size": "20x20"
+    },
+    "fc10701f": {
+      "label": "same_size_unknown",
+      "train_pairs": 3,
+      "size": "12x12"
+    },
+    "fc4aaf52": {
+      "label": "same_size_unknown",
+      "train_pairs": 2,
+      "size": "16x16"
+    },
+    "fc754716": {
+      "label": "same_size_unknown",
+      "train_pairs": 4,
+      "size": "5x7"
+    },
+    "fcb5c309": {
+      "label": "downscale_or_crop",
+      "train_pairs": 3,
+      "size": "13x16"
+    },
+    "fcc82909": {
+      "label": "same_size_unknown",
+      "train_pairs": 3,
+      "size": "10x10"
+    },
+    "fd02da9e": {
+      "label": "same_size_unknown",
+      "train_pairs": 4,
+      "size": "8x8"
+    },
+    "fd096ab6": {
+      "label": "same_size_unknown",
+      "train_pairs": 2,
+      "size": "24x24"
+    },
+    "fd4b2b02": {
+      "label": "same_size_unknown",
+      "train_pairs": 3,
+      "size": "16x16"
+    },
+    "fe45cba4": {
+      "label": "same_size_unknown",
+      "train_pairs": 2,
+      "size": "8x8"
+    },
+    "fe9372f3": {
+      "label": "same_size_unknown",
+      "train_pairs": 2,
+      "size": "7x16"
+    },
+    "fea12743": {
+      "label": "same_size_unknown",
+      "train_pairs": 3,
+      "size": "16x11"
+    },
+    "feca6190": {
+      "label": "upscale_or_pad",
+      "train_pairs": 5,
+      "size": "1x5"
+    },
+    "ff2825db": {
+      "label": "same_size_unknown",
+      "train_pairs": 3,
+      "size": "10x10"
+    },
+    "ff28f65a": {
+      "label": "downscale_or_crop",
+      "train_pairs": 8,
+      "size": "6x6"
+    },
+    "ff72ca3e": {
+      "label": "same_size_unknown",
+      "train_pairs": 4,
+      "size": "9x8"
+    },
+    "ff805c23": {
+      "label": "downscale_or_crop",
+      "train_pairs": 3,
+      "size": "24x24"
+    }
+  }
+}

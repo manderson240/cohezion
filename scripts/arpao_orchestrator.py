@@ -46,6 +46,7 @@ _LOGGER = logging.getLogger("arpao")
 
 COHEZION_ROOT = Path.home() / "dev" / "cohezion"
 ARC_DATA_DIR = COHEZION_ROOT / "data" / "arc-agi-2"
+WINNER_DIR = COHEZION_ROOT / "data" / "arpao_winners"
 SOLVER_PATH = COHEZION_ROOT / "kaggle-dataset" / "arc_solver.py"
 KSEARCH_DIR = Path.home() / ".cohezion-research" / "ksearch"
 VAULT_DIR = COHEZION_ROOT / "cloud-vault-mcp" / "vault" / "cerebellum"
@@ -272,7 +273,7 @@ def _verify_syntax(code: str) -> tuple[bool, str]:
 
 
 def _eval_locally(
-    code: str, max_tasks: int = None, timeout: int = BUDGET_SECONDS
+    code: str, max_tasks: int | None = None, timeout: int = BUDGET_SECONDS
 ) -> tuple[float, int, int, str]:
     """Run eval_arc_solver.py on the variant."""
     tmp = Path(f"/tmp/arpao_solver_{uuid.uuid4().hex[:8]}.py")

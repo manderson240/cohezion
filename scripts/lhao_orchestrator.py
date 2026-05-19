@@ -378,7 +378,7 @@ def _load_or_generate_hypotheses() -> list[str]:
         ]
 
         prompt = f"""Working hypotheses (high reward): {winners}
-Failed hypotheses (0 reward after 2+ trials): {losectors}
+Failed hypotheses (0 reward after 2+ trials): {losers}
 
 Generate 3 NEW complementary hypotheses for ARC-AGI pattern recognition.
 Each should be a short phrase like "add_X_transform".

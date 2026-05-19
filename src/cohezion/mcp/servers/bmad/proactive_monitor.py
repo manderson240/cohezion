@@ -553,10 +553,9 @@ uv run pytest tests/compound/tdd_adversarial/ -v
 
         await self._repository.record_acceptance(acceptance)
         logger.info(
-            "feedback_recorded",
-            suggestion_id=suggestion.id,
-            accepted=accepted,
-            feedback=feedback,
+            "feedback_recorded: suggestion=%s accepted=%s",
+            suggestion.id,
+            accepted,
         )
         return acceptance
 
@@ -584,9 +583,9 @@ uv run pytest tests/compound/tdd_adversarial/ -v
             if effectiveness.total_suggestions < 5:
                 # Not enough data for adjustment
                 logger.debug(
-                    "confidence_adjustment_insufficient_data",
-                    pattern_name=pattern_name,
-                    samples=effectiveness.total_suggestions,
+                    "confidence_adjustment_insufficient_data: pattern=%s samples=%d",
+                    pattern_name,
+                    effectiveness.total_suggestions,
                 )
                 return 0.0
 
@@ -607,16 +606,16 @@ uv run pytest tests/compound/tdd_adversarial/ -v
                 new_confidence = current_confidence
 
             logger.info(
-                "pattern_confidence_adjusted",
-                pattern_name=pattern_name,
-                old_confidence=current_confidence,
-                new_confidence=new_confidence,
-                acceptance_rate=acceptance_rate,
+                "pattern_confidence_adjusted: pattern=%s old=%.3f new=%.3f rate=%.3f",
+                pattern_name,
+                current_confidence,
+                new_confidence,
+                acceptance_rate,
             )
             return new_confidence
 
         except Exception as e:
-            logger.error("confidence_adjustment_failed", pattern_name=pattern_name, error=str(e))
+            logger.error("confidence_adjustment_failed: pattern=%s error=%s", pattern_name, e)
             return 0.0
 
     async def get_pattern_effectiveness_report(self) -> list[PatternEffectiveness]:
@@ -632,10 +631,7 @@ uv run pytest tests/compound/tdd_adversarial/ -v
         effectiveness_list = await self._repository.get_all_pattern_effectiveness()
         sorted_list = sorted(effectiveness_list, key=lambda x: x.effectiveness_score, reverse=True)
 
-        logger.info(
-            "effectiveness_report_generated",
-            patterns_count=len(sorted_list),
-        )
+        logger.info("effectiveness_report_generated: patterns=%d", len(sorted_list))
         return sorted_list
 
     async def cleanup_old_records(self, days_old: int = 90) -> int:
@@ -652,7 +648,7 @@ uv run pytest tests/compound/tdd_adversarial/ -v
             return 0
 
         deleted = await self._repository.delete_old_records(days_old)
-        logger.info("old_records_cleaned_up", deleted_count=deleted)
+        logger.info("old_records_cleaned_up: count=%d", deleted)
         return deleted
 
     def get_summary(self) -> dict[str, Any]:

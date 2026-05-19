@@ -26,7 +26,7 @@ from cohezion.compound.batch_executor import (
 from cohezion.compound.batch_executor import (
     BatchExecutorFactory as BatchExecutorFactory,
 )
-from cohezion.compound.config import CompoundConfig as Config
+from cohezion.compound.config import CompoundConfig as Config  # noqa: F401
 from cohezion.compound.core.batch_processor import BatchProcessor as BatchProcessor
 from cohezion.compound.core.executor import (
     CompoundExecutor as CompoundExecutor,
@@ -34,8 +34,10 @@ from cohezion.compound.core.executor import (
 from cohezion.compound.core.executor import (
     execute_simple as execute_simple,
 )
-from cohezion.compound.executor import CompoundExecutor as LegacyCompoundExecutor
-from cohezion.compound.executor_factory import ExecutorFactory as CompoundExecutorFactory
+from cohezion.compound.executor import CompoundExecutor as LegacyCompoundExecutor  # noqa: F401
+from cohezion.compound.executor_factory import (  # noqa: F401
+    ExecutorFactory as CompoundExecutorFactory,
+)
 
 # New Simplified API
 from cohezion.compound.models import (
