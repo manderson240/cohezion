@@ -60,6 +60,26 @@ Generated: 2026-05-02. Updated via `/autoharness-update`.
 - **Auto-test pollution:** `auto-generate-tests` CI job committed 998 scaffold files
   to main on every push. Disabled permanently.
 
+## Stealthskater Bridge Invariants (2026-05-17)
+
+### S1: Physics bridges must import without error
+- `dielectric.py`, `lenr.py`, `ionic_cluster.py`, `evo_model.LENRCoupling` must all import cleanly
+- **Verification**: `python -c "from cohezion.physics.dielectric import DielectricField; from cohezion.physics.lenr import LENRHamiltonian; from cohezion.physics.ionic_cluster import IonicClusterState; from cohezion.physics.evo_model import LENRCoupling; print('S1 OK')"`
+
+### S2: Stealthskater tradition must have exactly 10 step_mappings
+- `get_tradition('stealthskater')` must return a Tradition with 10 StepMappings
+- **Verification**: `python -c "from cohezion.worldviews.tradition_data import get_tradition; t=get_tradition('stealthskater'); assert len(t.step_mappings)==10, len(t.step_mappings); print('S2 OK')"`
+
+### S3: LENR threshold must equal HIHO threshold (0.5) across all bridge modules
+- `LENRHamiltonian().reaction_threshold == 0.5`
+- `LENRCoupling().reaction_threshold == 0.5`
+- `IonicClusterState` uses `_HIHO_THRESHOLD = 0.5` internally
+- **Verification**: `python -c "from cohezion.physics.lenr import LENRHamiltonian; from cohezion.physics.evo_model import LENRCoupling, ExoticVacuumObject; e=ExoticVacuumObject('t'); assert LENRHamiltonian().reaction_threshold==0.5; assert LENRCoupling(evo=e).reaction_threshold==0.5; print('S3 OK')"`
+
+### S4: No hardcoded stealthskater.com URLs in src/cohezion/physics/
+- URL is only allowed in STEALTHSKATER_CORPUS.md as a comment constant
+- **Verification**: `grep -r 'stealthskater.com' src/cohezion/physics/ | wc -l` must return 0
+
 ## Lessons Captured (2026-05-15) — Autoresearch FLUME VAE
 
 - **kl_weight=0.01 is mandatory**: β≥0.1 causes posterior collapse (phase transition).

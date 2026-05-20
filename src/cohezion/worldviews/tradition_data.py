@@ -1031,6 +1031,79 @@ _ABORIGINAL = Tradition(
 )
 
 
+# ─── Stealthskater tradition (suppressed/classified physics synthesis) ───
+
+_STEALTHSKATER = Tradition(
+    name="Stealthskater",
+    slug="stealthskater",
+    origin_region="Global (declassified US/Soviet programs, independent researchers)",
+    step_mappings=_steps(
+        (
+            "Zero-Point Field",
+            "Vacuum manipulation; Puthoff ZPF model; 10^94 erg/cc vacuum energy density",
+            "Quantum vacuum / ZPF ground state",
+        ),
+        (
+            "Quadrature Nexus",
+            "Phase-conjugate EM first distinction; Tesla longitudinal-transverse coupling; Philadelphia Experiment",
+            "SU(2) quadrature axes; first bifurcation",
+        ),
+        (
+            "Sarfatti Post-Quantum Metric",
+            "12 physical constants defining reality; retrocausal back-action from future observers",
+            "Smith 12-parameter manifold; post-quantum degrees of freedom",
+        ),
+        (
+            "4 Spacetime Fabrics",
+            "Classified brane propulsion dynamics; 4 computational domains of craft physics",
+            "4 fabric domains (Space, Mass, Energy, Consciousness)",
+        ),
+        (
+            "LENR Phase Lock",
+            "Lattice confinement resonance at D/Pd >= 0.9 loading; sub-Coulomb fusion without heating",
+            "Phase oscillation; LENR coherence threshold",
+        ),
+        (
+            "EVO Nucleation",
+            "Charge cluster formation from vacuum discharge; Ken Shoulders EV; ball lightning; handedness selection",
+            "SO(12)->SO(3)^4 symmetry breaking; EVO formation",
+        ),
+        (
+            "Remote Viewing SPIN",
+            "Stanford SRI CRV protocol; Ingo Swann Jupiter rings prediction; STARGATE declassified 1995",
+            "SPIN information unit; coherent perceptual access",
+        ),
+        (
+            "Itonic Equilibrium",
+            "Plasma crystal at coupling parameter Gamma_c=172; dusty plasma HIHO threshold",
+            "HIHO 0.5 dynamic equilibrium; half-in/half-out plasma state",
+        ),
+        (
+            "Diaelectric Binding",
+            "Biefield-Brown EHD thrust; permittivity tensor couples matter to vacuum geometry; US Patent 2,949,550",
+            "COHESION binding principle; U(1) gauge field modification",
+        ),
+        (
+            "Witness Marks",
+            "Physical evidence: landing traces, LENR transmutation isotopes, radar returns, declassified documents",
+            "Reality precipitates; observer-confirmed physical residue",
+        ),
+    ),
+    unique_contributions=(
+        UniqueContribution(
+            "Institutional suppression validates convergence",
+            "Classified status of these phenomena confirms structural importance -- "
+            "forbidden knowledge indicates proximity to foundational physics",
+        ),
+        UniqueContribution(
+            "Retrocausal back-action",
+            "Sarfatti: universe physical constants fine-tuned by future observers via "
+            "post-quantum back-action -- anthropic principle as physics, not selection",
+        ),
+    ),
+)
+
+
 # ─── Registry ───────────────────────────────────────────────────────────
 
 _ALL_TRADITIONS: tuple[Tradition, ...] = (
@@ -1050,6 +1123,7 @@ _ALL_TRADITIONS: tuple[Tradition, ...] = (
     _AMAZONIAN,
     _DOGON,
     _ABORIGINAL,
+    _STEALTHSKATER,
 )
 
 _BY_SLUG: dict[str, Tradition] = {t.slug: t for t in _ALL_TRADITIONS}

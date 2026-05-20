@@ -8,10 +8,13 @@ SU(2) spinor algebra for grounded SPIN coherence.
 
 from cohezion.physics.bioelectric_model import BioelectricNetwork
 from cohezion.physics.cosmogony import SymmetryBreaking, SymmetryGroup
+from cohezion.physics.dielectric import DielectricField
 from cohezion.physics.dimension_extractor import DimensionExtractor
-from cohezion.physics.evo_model import ExoticVacuumObject
+from cohezion.physics.evo_model import ExoticVacuumObject, LENRCoupling
 from cohezion.physics.fiber_bundle import FiberBundle
 from cohezion.physics.gauge_theory import FourFabricGauge, GaugeConnection
+from cohezion.physics.ionic_cluster import IonicClusterState
+from cohezion.physics.lenr import LENRHamiltonian
 from cohezion.physics.information_geometry import FisherInformationMetric
 from cohezion.physics.lagrangian import LagrangianDynamics
 from cohezion.physics.natural_capital import NaturalCapitalValuation
@@ -23,13 +26,17 @@ from cohezion.physics.spinor import SpinorState
 __all__ = [
     "BioelectricNetwork",
     "CoherenceRatchet",
+    "DielectricField",
     "DimensionExtractor",
     "ExoticVacuumObject",
     "FiberBundle",
     "FisherInformationMetric",
     "FourFabricGauge",
     "GaugeConnection",
+    "IonicClusterState",
     "LagrangianDynamics",
+    "LENRCoupling",
+    "LENRHamiltonian",
     "NaturalCapitalValuation",
     "RewardsBridge",
     "RiemannianMetric",

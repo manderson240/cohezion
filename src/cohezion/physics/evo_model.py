@@ -211,8 +211,35 @@ def _emit_witness_mark(evo: ExoticVacuumObject, mark: WitnessMark) -> None:
         logger.debug("Precipitation emit failed for EVO %s", evo.agent_id, exc_info=True)
 
 
+@dataclass
+class LENRCoupling:
+    """EVO charge clusters as LENR catalysts (Shoulders 1991, Miley-Patterson 1996).
+
+    EVO formation threshold = HIHO 0.5 coherence — same cross-scale invariant as
+    IonicClusterState and BioelectricNetwork. Catalysis rate combines EVO coherence
+    metric with LENR beta-binomial reaction rate for a multiplicative enhancement.
+    """
+
+    evo: ExoticVacuumObject
+    reaction_threshold: float = 0.5  # HIHO threshold — synchronized across all bridge modules
+
+    def catalysis_rate(self, coherence: float) -> float:
+        """Combined catalysis: EVO coherence × LENR beta-binomial reaction rate."""
+        from cohezion.physics.lenr import LENRHamiltonian  # lazy — avoids circular import
+
+        lenr = LENRHamiltonian(reaction_threshold=self.reaction_threshold)
+        evo_quality = self.evo.evo_coherence_metric()
+        lenr_rate = lenr.reaction_rate(coherence)
+        return evo_quality * lenr_rate
+
+    def is_active(self) -> bool:
+        """True when EVO is in the coherent lifecycle state."""
+        return self.evo.state == "coherent"
+
+
 __all__ = [
     "HIHO_BASELINE",
     "ExoticVacuumObject",
+    "LENRCoupling",
     "WitnessMark",
 ]
