@@ -36,6 +36,8 @@ class APIResult:
     tokens_used: int
     cost_usd: float  # Estimated cost
     error: str | None = None
+    cache_read_tokens: int = 0  # Anthropic: tokens served from cache (0.10× rate)
+    cache_write_tokens: int = 0  # Anthropic: tokens written to cache (1.25× rate)
 
 
 class APILLMExecutor:
@@ -236,10 +238,13 @@ class APILLMExecutor:
             data = response.json()
 
             output = data["content"][0]["text"]
-            tokens_in = data["usage"]["input_tokens"]
-            tokens_out = data["usage"]["output_tokens"]
+            usage = data["usage"]
+            tokens_in = usage["input_tokens"]
+            tokens_out = usage["output_tokens"]
+            cache_read = usage.get("cache_read_input_tokens", 0)
+            cache_write = usage.get("cache_write_input_tokens", 0)
 
-            cost = self._calculate_cost(tokens_in, tokens_out)
+            cost = self._calculate_cost_with_cache(tokens_in, tokens_out, cache_read, cache_write)
 
             elapsed = (time.monotonic() - start_time) * 1000
 
@@ -249,17 +254,232 @@ class APILLMExecutor:
                 latency_ms=elapsed,
                 tokens_used=tokens_in + tokens_out,
                 cost_usd=cost,
+                cache_read_tokens=cache_read,
+                cache_write_tokens=cache_write,
             )
 
     def _calculate_cost(self, input_tokens: int, output_tokens: int) -> float:
-        """Calculate API cost in USD."""
+        """Calculate API cost in USD (no cache adjustment)."""
+        return self._calculate_cost_with_cache(input_tokens, output_tokens)
+
+    def _calculate_cost_with_cache(
+        self,
+        input_tokens: int,
+        output_tokens: int,
+        cache_read_tokens: int = 0,
+        cache_write_tokens: int = 0,
+    ) -> float:
+        """Calculate Anthropic cost accounting for prompt-cache token rates.
+
+        Anthropic prompt caching rates (GA, all Sonnet/Opus/Haiku models):
+          - Normal input:      1.00× base input rate
+          - Cache write:       1.25× base input rate (25% premium for storing)
+          - Cache read:        0.10× base input rate (90% discount for retrieval)
+          - Output:            standard output rate (unchanged)
+        """
         provider_costs = self.COSTS.get(self.provider, {})
         model_costs = provider_costs.get(self.model, {"input": 0, "output": 0})
+        input_rate = model_costs["input"] / 1_000_000
+        output_rate = model_costs["output"] / 1_000_000
 
-        input_cost = (input_tokens / 1_000_000) * model_costs["input"]
-        output_cost = (output_tokens / 1_000_000) * model_costs["output"]
+        return (
+            input_tokens * input_rate
+            + cache_write_tokens * input_rate * 1.25
+            + cache_read_tokens * input_rate * 0.10
+            + output_tokens * output_rate
+        )
 
-        return input_cost + output_cost
+    async def batch_submit(
+        self,
+        requests: list[dict[str, Any]],
+    ) -> str:
+        """Submit a Message Batch to the Anthropic Batches API.
+
+        Use for bulk async work (skill evals, autoresearch sweeps, retro jobs)
+        where up to 24h latency is acceptable in exchange for 50% cost savings.
+
+        Args:
+            requests: List of dicts with keys:
+                custom_id (str): caller-assigned identifier for result matching
+                prompt (str): user message
+                system (str | None): system prompt (will be cache-controlled)
+                max_tokens (int, optional): default 1024
+                temperature (float, optional): default 0.7
+
+        Returns:
+            batch_id: Anthropic batch identifier to pass to batch_poll().
+        """
+        if self.provider != "anthropic":
+            raise ValueError("batch_submit only supports provider='anthropic'")
+
+        batch_requests = []
+        for req in requests:
+            params: dict[str, Any] = {
+                "model": self.model,
+                "max_tokens": req.get("max_tokens", 1024),
+                "temperature": req.get("temperature", 0.7),
+                "messages": [{"role": "user", "content": req["prompt"]}],
+            }
+            system = req.get("system")
+            if system:
+                params["system"] = [
+                    {"type": "text", "text": system, "cache_control": {"type": "ephemeral"}}
+                ]
+            batch_requests.append({"custom_id": req["custom_id"], "params": params})
+
+        headers = {
+            "x-api-key": self.api_key,
+            "Content-Type": "application/json",
+            "anthropic-version": "2023-06-01",
+        }
+
+        async with httpx.AsyncClient(timeout=self.timeout) as client:
+            response = await client.post(
+                f"{self.base_url}/messages/batches",
+                headers=headers,
+                json={"requests": batch_requests},
+            )
+            response.raise_for_status()
+            return response.json()["id"]
+
+    async def batch_poll(
+        self,
+        batch_id: str,
+    ) -> list[dict[str, Any]] | None:
+        """Poll a Message Batch for completion and return results.
+
+        Returns None if the batch is still processing.
+        Returns a list of result dicts (keyed by custom_id) when ended.
+
+        Each result dict has:
+            custom_id (str), success (bool), output (str),
+            tokens_used (int), cost_usd (float),
+            cache_read_tokens (int), cache_write_tokens (int),
+            error (str | None)
+        """
+        if self.provider != "anthropic":
+            raise ValueError("batch_poll only supports provider='anthropic'")
+
+        headers = {
+            "x-api-key": self.api_key,
+            "anthropic-version": "2023-06-01",
+        }
+
+        async with httpx.AsyncClient(timeout=self.timeout) as client:
+            status_resp = await client.get(
+                f"{self.base_url}/messages/batches/{batch_id}",
+                headers=headers,
+            )
+            status_resp.raise_for_status()
+            status_data = status_resp.json()
+
+            if status_data["processing_status"] != "ended":
+                return None
+
+            results_resp = await client.get(
+                f"{self.base_url}/messages/batches/{batch_id}/results",
+                headers=headers,
+            )
+            results_resp.raise_for_status()
+
+        results = []
+        for line in results_resp.text.splitlines():
+            if not line.strip():
+                continue
+            import json as _json
+
+            item = _json.loads(line)
+            custom_id = item["custom_id"]
+            result_type = item["result"]["type"]
+
+            if result_type == "succeeded":
+                msg = item["result"]["message"]
+                usage = msg.get("usage", {})
+                tokens_in = usage.get("input_tokens", 0)
+                tokens_out = usage.get("output_tokens", 0)
+                cache_read = usage.get("cache_read_input_tokens", 0)
+                cache_write = usage.get("cache_write_input_tokens", 0)
+                output = msg["content"][0]["text"] if msg.get("content") else ""
+                cost = self._calculate_cost_with_cache(
+                    tokens_in, tokens_out, cache_read, cache_write
+                )
+                results.append(
+                    {
+                        "custom_id": custom_id,
+                        "success": True,
+                        "output": output,
+                        "tokens_used": tokens_in + tokens_out,
+                        "cost_usd": cost,
+                        "cache_read_tokens": cache_read,
+                        "cache_write_tokens": cache_write,
+                        "error": None,
+                    }
+                )
+            else:
+                error_detail = item["result"].get("error", {}).get("message", result_type)
+                results.append(
+                    {
+                        "custom_id": custom_id,
+                        "success": False,
+                        "output": "",
+                        "tokens_used": 0,
+                        "cost_usd": 0.0,
+                        "cache_read_tokens": 0,
+                        "cache_write_tokens": 0,
+                        "error": error_detail,
+                    }
+                )
+
+        return results
+
+    async def batch_execute(
+        self,
+        requests: list[dict[str, Any]],
+        poll_interval_s: float = 5.0,
+        max_wait_s: float = 86_400.0,
+    ) -> list[dict[str, Any]]:
+        """Submit a batch and poll until complete. Blocking convenience wrapper.
+
+        Submits via batch_submit, then polls with exponential backoff until
+        processing_status == 'ended' or max_wait_s is exceeded.
+
+        Args:
+            requests: Same format as batch_submit (custom_id, prompt, system, …).
+            poll_interval_s: Initial polling interval (doubles each miss, capped at 60s).
+            max_wait_s: Maximum total seconds to wait before raising TimeoutError.
+
+        Returns:
+            List of result dicts (same format as batch_poll).
+
+        Raises:
+            TimeoutError: If batch hasn't finished within max_wait_s.
+        """
+        import asyncio as _asyncio
+
+        batch_id = await self.batch_submit(requests)
+        logger.info("Batch %s submitted (%d requests)", batch_id, len(requests))
+
+        waited = 0.0
+        interval = poll_interval_s
+        while waited < max_wait_s:
+            results = await self.batch_poll(batch_id)
+            if results is not None:
+                total_cost = sum(r["cost_usd"] for r in results)
+                cache_read = sum(r["cache_read_tokens"] for r in results)
+                logger.info(
+                    "Batch %s done: %d/%d succeeded, cost=$%.6f, cache_read=%d tokens",
+                    batch_id,
+                    sum(1 for r in results if r["success"]),
+                    len(results),
+                    total_cost,
+                    cache_read,
+                )
+                return results
+            await _asyncio.sleep(interval)
+            waited += interval
+            interval = min(interval * 2.0, 60.0)
+
+        raise TimeoutError(f"Batch {batch_id} did not complete within {max_wait_s:.0f}s")
 
 
 class HybridExecutor:
@@ -315,6 +535,74 @@ class HybridExecutor:
 
         # Fallback to API
         return await self.api.execute(prompt, system, max_tokens, temperature)
+
+    async def batch_execute(
+        self,
+        requests: list[dict[str, Any]],
+        poll_interval_s: float = 5.0,
+        max_wait_s: float = 86_400.0,
+    ) -> list[APIResult]:
+        """Execute multiple independent prompts as a batch.
+
+        When the underlying API executor is Anthropic, routes through
+        batch_submit / batch_poll for 50% cost savings. Falls back to
+        asyncio.gather of individual execute() calls for all other providers.
+
+        Args:
+            requests: List of dicts with keys: custom_id, prompt, system (opt),
+                      max_tokens (opt), temperature (opt).
+            poll_interval_s: Batch API polling interval (Anthropic path only).
+            max_wait_s: Max wait for batch completion (Anthropic path only).
+
+        Returns:
+            List of APIResult in the same order as requests.
+        """
+        import asyncio as _asyncio
+
+        if self.api.provider == "anthropic":
+            raw = await self.api.batch_execute(requests, poll_interval_s, max_wait_s)
+            # Re-order to match input order and convert to APIResult
+            id_to_raw = {r["custom_id"]: r for r in raw}
+            results = []
+            for req in requests:
+                r = id_to_raw.get(req["custom_id"])
+                if r is None:
+                    results.append(
+                        APIResult(
+                            success=False,
+                            output="",
+                            latency_ms=0,
+                            tokens_used=0,
+                            cost_usd=0,
+                            error="missing from batch response",
+                        )
+                    )
+                else:
+                    results.append(
+                        APIResult(
+                            success=r["success"],
+                            output=r["output"],
+                            latency_ms=0,
+                            tokens_used=r["tokens_used"],
+                            cost_usd=r["cost_usd"],
+                            error=r["error"],
+                            cache_read_tokens=r["cache_read_tokens"],
+                            cache_write_tokens=r["cache_write_tokens"],
+                        )
+                    )
+            return results
+
+        # Non-Anthropic: fire in parallel
+        coros = [
+            self.execute(
+                req["prompt"],
+                req.get("system"),
+                req.get("max_tokens", 1024),
+                req.get("temperature", 0.7),
+            )
+            for req in requests
+        ]
+        return list(await _asyncio.gather(*coros))
 
 
 async def main():
