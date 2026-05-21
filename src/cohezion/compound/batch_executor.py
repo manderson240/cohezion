@@ -85,6 +85,7 @@ class BatchableExecutor:
         batch_size: int = 8,
         enable_deduplication: bool = True,
         enable_adaptive_batch_sizing: bool = True,
+        api_executor: Any | None = None,
     ):
         """Initialize batch executor.
 
@@ -94,6 +95,11 @@ class BatchableExecutor:
             batch_size: Maximum batch size (can be overridden by predictor)
             enable_deduplication: Enable deduplication
             enable_adaptive_batch_sizing: Enable experience-guided batch sizing (default: True)
+            api_executor: Optional HybridExecutor (or any object with ``batch_execute``).
+                When set, Phase 2 routes independent tasks through
+                ``api_executor.batch_execute`` instead of individual execute_task
+                calls — collapsing N sequential HTTP round-trips into one batch
+                submission for the Anthropic path.
         """
         self.executor = executor
         self.mcp_client = mcp_client
@@ -101,6 +107,7 @@ class BatchableExecutor:
         self.batch_size = batch_size
         self.enable_deduplication = enable_deduplication
         self.enable_adaptive_batch_sizing = enable_adaptive_batch_sizing
+        self.api_executor = api_executor  # optional Anthropic batch fast-path
 
         # Phase 3 Sprint 1: Experience-guided batch sizing
         if enable_adaptive_batch_sizing:
@@ -371,18 +378,20 @@ class BatchableExecutor:
     ) -> list[ExecutionResult]:
         """Phase 2: Execute batch LLM operations.
 
-        Executes all tasks' main LLM calls with cache optimization.
-        Handles within-batch deduplication if enabled.
+        Fast path (api_executor set): all unique tasks are submitted as a single
+        batch request via HybridExecutor.batch_execute. For the Anthropic provider
+        this collapses N sequential HTTP round-trips into one batch submission.
+
+        Fallback path (api_executor is None): retains original sequential
+        executor.execute_task loop — no behaviour change for existing callers.
 
         Args:
             tasks: List of tasks to execute
             guidance_map: Guidance dict from Phase 1
 
         Returns:
-            List of ExecutionResults
+            List of ExecutionResults (one per task, order preserved)
         """
-        results = []
-
         # Optional: Deduplicate identical prompts within batch
         task_groups = (
             self._deduplicate_tasks(tasks)
@@ -390,19 +399,116 @@ class BatchableExecutor:
             else {id(task): [task] for task in tasks}
         )
 
-        # Execute each unique task
-        unique_results = {}
-        for task_id, task_group in task_groups.items():
-            representative_task = task_group[0]
-            guidance = guidance_map.get(representative_task.task_id, {})
+        unique_tasks = [group[0] for group in task_groups.values()]
 
+        # ── Anthropic batch fast-path ───────────────────────────────────────
+        if self.api_executor is not None and hasattr(self.api_executor, "batch_execute"):
+            requests = [
+                {
+                    "custom_id": str(task_id),
+                    "prompt": task.prompt,
+                    "system": task.system_prompt,
+                    "max_tokens": 1024,
+                }
+                for task_id, task in zip(task_groups.keys(), unique_tasks, strict=True)
+            ]
             try:
-                # Execute single task
+                import time as _time
+
+                t0 = _time.monotonic()
+                api_results = await self.api_executor.batch_execute(requests)
+                elapsed = _time.monotonic() - t0
+
+                id_to_api = {
+                    r["custom_id"] if isinstance(r, dict) else str(i): r
+                    for i, r in enumerate(api_results)
+                }
+
+                unique_results: dict[int, ExecutionResult] = {}
+                for task_id, task in zip(task_groups.keys(), unique_tasks, strict=True):
+                    api_res = id_to_api.get(str(task_id))
+                    if api_res is None:
+                        unique_results[task_id] = ExecutionResult(
+                            success=False,
+                            output="missing from batch response",
+                            metrics={"error": "missing"},
+                            duration_seconds=elapsed,
+                        )
+                        continue
+                    # Unify dict/APIResult access
+                    success = (
+                        api_res.success
+                        if hasattr(api_res, "success")
+                        else api_res.get("success", False)
+                    )
+                    output = (
+                        api_res.output if hasattr(api_res, "output") else api_res.get("output", "")
+                    )
+                    tokens = (
+                        api_res.tokens_used
+                        if hasattr(api_res, "tokens_used")
+                        else api_res.get("tokens_used", 0)
+                    )
+                    cost = (
+                        api_res.cost_usd
+                        if hasattr(api_res, "cost_usd")
+                        else api_res.get("cost_usd", 0.0)
+                    )
+                    cache_read = (
+                        getattr(api_res, "cache_read_tokens", None)
+                        if not isinstance(api_res, dict)
+                        else api_res.get("cache_read_tokens", 0)
+                    ) or 0
+                    unique_results[task_id] = ExecutionResult(
+                        success=success,
+                        output=output,
+                        metrics={
+                            "tokens_used": tokens,
+                            "cost_usd": cost,
+                            "cache_read_tokens": cache_read,
+                            "via": "anthropic_batch",
+                        },
+                        duration_seconds=elapsed / max(len(unique_tasks), 1),
+                    )
+                logger.info(
+                    "Phase 2 batch fast-path: %d tasks in %.2fs (via api_executor)",
+                    len(unique_tasks),
+                    elapsed,
+                )
+            except Exception as exc:
+                logger.warning("api_executor.batch_execute failed, falling back: %s", exc)
+                unique_results = await self._phase2_sequential(
+                    unique_tasks, task_groups, guidance_map
+                )
+        else:
+            # ── Sequential fallback ─────────────────────────────────────────
+            unique_results = await self._phase2_sequential(unique_tasks, task_groups, guidance_map)
+
+        # Replicate results to all deduplicated tasks (order preserved)
+        results: list[ExecutionResult] = []
+        for task_id, task_group in task_groups.items():
+            result = unique_results[task_id]
+            for _ in task_group:
+                results.append(result)
+
+        return results
+
+    async def _phase2_sequential(
+        self,
+        unique_tasks: list[CompoundTask],
+        task_groups: dict[int, list[CompoundTask]],
+        guidance_map: dict[str, dict[str, Any]],
+    ) -> dict[int, ExecutionResult]:
+        """Original sequential execute_task loop (fallback / non-Anthropic path)."""
+        unique_results: dict[int, ExecutionResult] = {}
+        for task_id, task in zip(task_groups.keys(), unique_tasks, strict=True):
+            guidance = guidance_map.get(task.task_id, {})
+            try:
                 result = await self.executor.execute_task(
-                    representative_task.prompt,
-                    system_prompt=representative_task.system_prompt,
-                    model=representative_task.model,
-                    timeout_seconds=representative_task.timeout_seconds,
+                    task.prompt,
+                    system_prompt=task.system_prompt,
+                    model=task.model,
+                    timeout_seconds=task.timeout_seconds,
                     guidance=guidance,
                 )
                 unique_results[task_id] = result
@@ -414,15 +520,7 @@ class BatchableExecutor:
                     metrics={"error": str(e)},
                     duration_seconds=0.0,
                 )
-
-        # Replicate results to all deduplicated tasks
-        for task_id, task_group in task_groups.items():
-            result = unique_results[task_id]
-            for _ in task_group:
-                # Copy result for each task in the group
-                results.append(result)
-
-        return results
+        return unique_results
 
     async def _execute_batch_phase3(
         self,
