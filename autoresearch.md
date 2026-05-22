@@ -129,6 +129,34 @@ prevents further core skill overrides. Remaining opportunities require human dec
 2. **Real session routing accuracy**: Task classifier tested on 8 synthetic tasks.
    Need to extract real compound loop task prompts to measure production accuracy.
 
+## Round 7: HIHO Gate Training — Corpus Optimization (2026-05-22)
+
+| Experiment | Type | Result | Key Metric |
+|---|---|---|---|
+| exp_PPPP2 | Weighted pool sampling | **WIN** | 65% regression rescue; NL within noise of baseline |
+| exp_QQQQ2 | Weight tuning sweep (0.25, 0.33) | FAIL | Rounding cliff — code_mult < 5 under-suppresses |
+| exp_RRRR2 | seq_len sweep (128/192/256) | FAIL | Longer seq hurts NL, weakens P5 gate |
+| exp_SSSS2 | d_model=512 at 320 steps | FAIL | Underfits at 320 steps; P5 improves but NL +32% |
+| exp_TTTT2 | 40 distinct snippets + weight=0.5 | FAIL | Domain relevance > diversity; general Python hurts |
+
+### Key Findings: Code Corpus Limits
+
+- **Weighted sampling mechanism validated** (exp_PPPP2): weight=0.5 with n_code=40 achieves ~7.3% effective code fraction in batches, within noise of 20-snippet baseline. Infrastructure now supports `code_sample_weight` param.
+- **Domain relevance > diversity**: New Python snippets (async, pathlib, pydantic) WORSE than duplicated ML training snippets. Byte-level model relies on byte n-gram overlap with domain text. Future code additions must come from cohesion ML/training files.
+- **Architecture ceiling**: seq_len=128 and d_model=256 are both confirmed optimal. No further gains from scaling either dimension with current dataset.
+- **Weight=0.5 is optimal for n_code=40**: lower weights hit rounding cliff (effective fraction drops below 7%).
+
+### Current State (2026-05-22, Round 7)
+- **v5 gate remains optimal**: 320+SGDR+smart_seed+lr=5e-4+20 domain-specific snippets → NL=15.43
+- **New infrastructure**: `n_code` and `code_sample_weight` params in `from_autoresearch()` and `build_balanced_training_dataset()`
+- **_CODE_EXAMPLES expanded**: 40 entries (20 original ML + 20 new general Python — default n_code=20 uses only original 20)
+- **Autoresearch commits**: 3 Anthropic API cost-saving commits cherry-picked to main (ceabbb325..de0d5d0ac)
+
+### Updated Frontier
+1. **Domain-relevant code expansion**: Add 20 more snippets from `src/cohezion/inference/*.py` or `src/cohezion/compound/*.py` — should match byte statistics of domain text better than general Python
+2. **Sycophancy v5 calibration** (exp_UUUU2, running): Docstring marks v3 threshold as uncalibrated for v5 — measure PPL separation between substantive and sycophantic text
+3. **eval_text diversity for smart_seed**: Currently uses 1 eval phrase — 3-phrase average might select a more generalizable seed
+
 ## Round 6: 100% Module Coverage (2026-05-11)
 
 | Experiment | Type | Result | Key Metric |
