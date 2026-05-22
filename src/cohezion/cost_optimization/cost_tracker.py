@@ -153,13 +153,17 @@ class SessionCostTracker:
         model: str,
         tokens: int,
         duration_ms: float = 0.0,
+        cache_read_tokens: int = 0,
+        cache_write_tokens: int = 0,
     ) -> float:
         """Track usage in hot path (<0.05ms).
 
         Args:
             model: Model name
-            tokens: Tokens used
+            tokens: Normal (uncached) tokens used
             duration_ms: Request duration (optional, for analytics)
+            cache_read_tokens: Tokens served from cache (charged at 0.10× input rate)
+            cache_write_tokens: Tokens written to cache with 1-hour TTL (charged at 2.0× input rate)
 
         Returns:
             Estimated cost in USD
@@ -167,6 +171,8 @@ class SessionCostTracker:
         # Calculate cost (in-memory, O(1))
         cost_per_1k = self.model_costs.get(model, 0.015)  # Conservative default
         cost_usd = (tokens / 1000.0) * cost_per_1k
+        cost_usd += (cache_read_tokens / 1000.0) * cost_per_1k * 0.10
+        cost_usd += (cache_write_tokens / 1000.0) * cost_per_1k * 2.0
 
         # Record (in-memory, O(1) amortized)
         record = CostRecord(

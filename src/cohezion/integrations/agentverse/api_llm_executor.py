@@ -26,6 +26,16 @@ import httpx
 logger = logging.getLogger(__name__)
 
 
+def _get_session_tracker():
+    """Get current session cost tracker (lazy import, no-op if unavailable)."""
+    try:
+        from cohezion.cost_optimization.cost_tracker import SessionCostTracker
+
+        return SessionCostTracker.get_current()
+    except ImportError:
+        return None
+
+
 @dataclass
 class APIResult:
     """Result from API LLM execution."""
@@ -105,14 +115,22 @@ class APILLMExecutor:
         system: str | None = None,
         max_tokens: int = 1024,
         temperature: float = 0.7,
+        system_stable: str | None = None,
+        tools: list[dict] | None = None,
     ) -> APIResult:
         """Execute single LLM call via API.
 
         Args:
             prompt: User prompt
-            system: System message (optional)
+            system: System message — dynamic portion (no cache_control applied when
+                system_stable is also provided; otherwise cached as a single block).
             max_tokens: Max tokens to generate
             temperature: Sampling temperature
+            system_stable: Stable cacheable prefix sent as the first system block with
+                1-hour cache_control. When combined with *system*, two blocks are emitted:
+                stable (cached) then dynamic (uncached). Anthropic-only.
+            tools: Optional tool definitions; the last entry receives cache_control so
+                Anthropic caches the entire tools block. Anthropic-only.
 
         Returns:
             APIResult with output and metadata
@@ -125,7 +143,14 @@ class APILLMExecutor:
             if self.provider == "openai":
                 return await self._execute_openai(prompt, system, max_tokens, temperature)
             elif self.provider == "anthropic":
-                return await self._execute_anthropic(prompt, system, max_tokens, temperature)
+                return await self._execute_anthropic(
+                    prompt,
+                    system,
+                    max_tokens,
+                    temperature,
+                    system_stable=system_stable,
+                    tools=tools,
+                )
             else:
                 raise ValueError(f"Unknown provider: {self.provider}")
 
@@ -203,6 +228,8 @@ class APILLMExecutor:
         system: str | None,
         max_tokens: int,
         temperature: float,
+        system_stable: str | None = None,
+        tools: list[dict] | None = None,
     ) -> APIResult:
         """Execute via Anthropic API."""
         import time
@@ -213,6 +240,7 @@ class APILLMExecutor:
             "x-api-key": self.api_key,
             "Content-Type": "application/json",
             "anthropic-version": "2023-06-01",
+            "anthropic-beta": "extended-cache-ttl-2025-04-11",
         }
 
         payload = {
@@ -222,10 +250,32 @@ class APILLMExecutor:
             "messages": [{"role": "user", "content": prompt}],
         }
 
-        if system:
-            payload["system"] = [
-                {"type": "text", "text": system, "cache_control": {"type": "ephemeral"}}
+        # Build system block(s): stable prefix (cached) + optional dynamic suffix (uncached)
+        if system_stable is not None:
+            system_blocks: list[dict] = [
+                {
+                    "type": "text",
+                    "text": system_stable,
+                    "cache_control": {"type": "ephemeral", "ttl": "1h"},
+                },
             ]
+            if system is not None:
+                system_blocks.append({"type": "text", "text": system})
+            payload["system"] = system_blocks
+        elif system is not None:
+            payload["system"] = [
+                {
+                    "type": "text",
+                    "text": system,
+                    "cache_control": {"type": "ephemeral", "ttl": "1h"},
+                }
+            ]
+
+        # Cache tool definitions by marking the last entry (caches the full tools block)
+        if tools:
+            tools_payload = [t.copy() for t in tools]
+            tools_payload[-1]["cache_control"] = {"type": "ephemeral", "ttl": "1h"}
+            payload["tools"] = tools_payload
 
         async with httpx.AsyncClient(timeout=self.timeout) as client:
             response = await client.post(
@@ -242,11 +292,21 @@ class APILLMExecutor:
             tokens_in = usage["input_tokens"]
             tokens_out = usage["output_tokens"]
             cache_read = usage.get("cache_read_input_tokens", 0)
-            cache_write = usage.get("cache_write_input_tokens", 0)
+            cache_write = usage.get("cache_creation_input_tokens", 0)
 
             cost = self._calculate_cost_with_cache(tokens_in, tokens_out, cache_read, cache_write)
 
             elapsed = (time.monotonic() - start_time) * 1000
+
+            tracker = _get_session_tracker()
+            if tracker is not None:
+                tracker.track_usage_fast(
+                    self.model,
+                    tokens_in + tokens_out,
+                    duration_ms=elapsed,
+                    cache_read_tokens=cache_read,
+                    cache_write_tokens=cache_write,
+                )
 
             return APIResult(
                 success=True,
@@ -271,11 +331,13 @@ class APILLMExecutor:
     ) -> float:
         """Calculate Anthropic cost accounting for prompt-cache token rates.
 
-        Anthropic prompt caching rates (GA, all Sonnet/Opus/Haiku models):
+        Anthropic prompt caching rates with 1-hour TTL (extended-cache-ttl beta):
           - Normal input:      1.00× base input rate
-          - Cache write:       1.25× base input rate (25% premium for storing)
+          - Cache write (1h):  2.00× base input rate (doubled premium for 1-hour storage)
           - Cache read:        0.10× base input rate (90% discount for retrieval)
           - Output:            standard output rate (unchanged)
+
+        Break-even vs 5-min TTL (1.25×): need ≥3 reads per write within 1 hour.
         """
         provider_costs = self.COSTS.get(self.provider, {})
         model_costs = provider_costs.get(self.model, {"input": 0, "output": 0})
@@ -284,7 +346,7 @@ class APILLMExecutor:
 
         return (
             input_tokens * input_rate
-            + cache_write_tokens * input_rate * 1.25
+            + cache_write_tokens * input_rate * 2.0
             + cache_read_tokens * input_rate * 0.10
             + output_tokens * output_rate
         )
@@ -321,16 +383,38 @@ class APILLMExecutor:
                 "messages": [{"role": "user", "content": req["prompt"]}],
             }
             system = req.get("system")
-            if system:
-                params["system"] = [
-                    {"type": "text", "text": system, "cache_control": {"type": "ephemeral"}}
+            system_stable = req.get("system_stable")
+            if system_stable is not None:
+                system_blocks: list[dict] = [
+                    {
+                        "type": "text",
+                        "text": system_stable,
+                        "cache_control": {"type": "ephemeral", "ttl": "1h"},
+                    },
                 ]
+                if system is not None:
+                    system_blocks.append({"type": "text", "text": system})
+                params["system"] = system_blocks
+            elif system is not None:
+                params["system"] = [
+                    {
+                        "type": "text",
+                        "text": system,
+                        "cache_control": {"type": "ephemeral", "ttl": "1h"},
+                    }
+                ]
+            tools_req = req.get("tools")
+            if tools_req:
+                tools_payload = [t.copy() for t in tools_req]
+                tools_payload[-1]["cache_control"] = {"type": "ephemeral", "ttl": "1h"}
+                params["tools"] = tools_payload
             batch_requests.append({"custom_id": req["custom_id"], "params": params})
 
         headers = {
             "x-api-key": self.api_key,
             "Content-Type": "application/json",
             "anthropic-version": "2023-06-01",
+            "anthropic-beta": "extended-cache-ttl-2025-04-11",
         }
 
         async with httpx.AsyncClient(timeout=self.timeout) as client:
@@ -398,7 +482,7 @@ class APILLMExecutor:
                 tokens_in = usage.get("input_tokens", 0)
                 tokens_out = usage.get("output_tokens", 0)
                 cache_read = usage.get("cache_read_input_tokens", 0)
-                cache_write = usage.get("cache_write_input_tokens", 0)
+                cache_write = usage.get("cache_creation_input_tokens", 0)
                 output = msg["content"][0]["text"] if msg.get("content") else ""
                 cost = self._calculate_cost_with_cache(
                     tokens_in, tokens_out, cache_read, cache_write
@@ -474,6 +558,16 @@ class APILLMExecutor:
                     total_cost,
                     cache_read,
                 )
+                tracker = _get_session_tracker()
+                if tracker is not None:
+                    for r in results:
+                        if r["success"]:
+                            tracker.track_usage_fast(
+                                self.model,
+                                r["tokens_used"],
+                                cache_read_tokens=r.get("cache_read_tokens", 0),
+                                cache_write_tokens=r.get("cache_write_tokens", 0),
+                            )
                 return results
             await _asyncio.sleep(interval)
             waited += interval
@@ -500,19 +594,30 @@ class HybridExecutor:
         max_tokens: int = 1024,
         temperature: float = 0.7,
         prefer_api: bool = False,
+        system_stable: str | None = None,
+        tools: list[dict] | None = None,
     ) -> APIResult:
         """Execute with fallback.
 
         Args:
             prompt: User prompt
             prefer_api: Use API even if Ollama available (for reliability)
+            system_stable: Stable cacheable prefix (Anthropic only, see APILLMExecutor.execute)
+            tools: Tool definitions to cache (Anthropic only, see APILLMExecutor.execute)
 
         Returns:
             APIResult from whichever executor succeeded
         """
         if prefer_api or self.ollama is None:
             # Use API first or exclusively
-            return await self.api.execute(prompt, system, max_tokens, temperature)
+            return await self.api.execute(
+                prompt,
+                system,
+                max_tokens,
+                temperature,
+                system_stable=system_stable,
+                tools=tools,
+            )
 
         # Try Ollama first
         try:
@@ -534,7 +639,14 @@ class HybridExecutor:
             logger.warning(f"Ollama failed, falling back to API: {e}")
 
         # Fallback to API
-        return await self.api.execute(prompt, system, max_tokens, temperature)
+        return await self.api.execute(
+            prompt,
+            system,
+            max_tokens,
+            temperature,
+            system_stable=system_stable,
+            tools=tools,
+        )
 
     async def batch_execute(
         self,

@@ -81,7 +81,7 @@ class TokenEfficientCompoundExecutor(CompoundExecutor):
         task_description: str,
         skill_name: str,
         operation_type: str,
-        execute_fn: Callable[[str, str], Any],
+        execute_fn: Callable[..., Any],
         project: str = "cohezion",
     ) -> ExecutionResult:
         """Execute task with explicit prefix/suffix separation.
@@ -90,7 +90,11 @@ class TokenEfficientCompoundExecutor(CompoundExecutor):
             task_description: What the task does (becomes dynamic suffix)
             skill_name: Name of the skill
             operation_type: Type of operation
-            execute_fn: Async callable that takes (prefix, suffix)
+            execute_fn: Async callable(system_stable, system) → (output, metrics).
+                The first arg is the stable cacheable prefix (passed as ``system_stable``
+                kwarg); the second is the dynamic task-specific portion (passed as
+                ``system`` kwarg). When wrapping APILLMExecutor.execute(), pass them
+                as ``system_stable=`` and ``system=`` for optimal cache utilisation.
             project: Vault project name
 
         Returns:
@@ -128,8 +132,8 @@ class TokenEfficientCompoundExecutor(CompoundExecutor):
         token_metrics_before = self.token_client.get_metrics() if self.token_client else None
 
         try:
-            # Note: execute_fn must be async and accept (prefix, suffix)
-            output, metrics = await execute_fn(static_prefix, dynamic_suffix)
+            # execute_fn receives system_stable (cacheable prefix) and system (dynamic)
+            output, metrics = await execute_fn(system_stable=static_prefix, system=dynamic_suffix)
             success = True
         except Exception as e:
             logger.error(f"Efficient task execution failed: {e}", exc_info=True)
