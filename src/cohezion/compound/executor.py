@@ -1106,7 +1106,7 @@ class CompoundExecutor(CompoundContextMixin, ExecutorIntegrationMixin):
                                     point_data,
                                 )
                             )
-                    except (TimeoutError, AttributeError, RuntimeError, OSError, ConnectionError) as e:
+                    except (AttributeError, RuntimeError, OSError) as e:
                         logger.debug("Journey persistence failed (non-blocking): %s", e)
             except (AttributeError, RuntimeError, ValueError, KeyError, TypeError) as e:
                 logger.debug("Journey tracking failed (non-blocking): %s", e)
