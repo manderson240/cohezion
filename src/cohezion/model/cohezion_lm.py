@@ -33,6 +33,7 @@ import math
 from dataclasses import dataclass
 from pathlib import Path
 
+
 logger = logging.getLogger(__name__)
 
 
@@ -91,7 +92,7 @@ class CohezionLMConfig:
         return embed + self.n_layers * per_layer
 
     @classmethod
-    def mini(cls) -> "CohezionLMConfig":
+    def mini(cls) -> CohezionLMConfig:
         """HIHO-Mini: ~10M params, NPU target (llama3.2-1b replacement)."""
         return cls(
             d_model=256,
@@ -103,7 +104,7 @@ class CohezionLMConfig:
         )
 
     @classmethod
-    def small(cls) -> "CohezionLMConfig":
+    def small(cls) -> CohezionLMConfig:
         """HIHO-Small: ~45M params, iGPU target."""
         return cls(
             d_model=512,
@@ -115,7 +116,7 @@ class CohezionLMConfig:
         )
 
     @classmethod
-    def base(cls) -> "CohezionLMConfig":
+    def base(cls) -> CohezionLMConfig:
         """HIHO-Base: ~110M params, CPU (AVX-512) target."""
         return cls(
             d_model=768,
@@ -127,7 +128,7 @@ class CohezionLMConfig:
         )
 
     @classmethod
-    def byte_level(cls) -> "CohezionLMConfig":
+    def byte_level(cls) -> CohezionLMConfig:
         """Byte-level mini: vocab=256, aligned to UTF-8 byte tokenizer.
 
         exp_XXXX1: vocab=256 starts at loss≈log(256)=5.545 (vs 9.01 for vocab=8192).
@@ -147,6 +148,7 @@ class CohezionLMConfig:
 try:
     import torch
     import torch.nn as nn
+
     from cohezion.model.hiho_attention import HIHOTransformerLayer
 
     class CohezionLM(nn.Module):
@@ -205,17 +207,17 @@ try:
             if isinstance(module, nn.Linear) and module.bias is not None:
                 nn.init.zeros_(module.bias)
 
-        def _causal_mask(self, seq_len: int, device: "torch.device") -> "torch.Tensor":
+        def _causal_mask(self, seq_len: int, device: torch.device) -> torch.Tensor:
             """Generate causal (autoregressive) attention mask."""
             mask = torch.triu(
                 torch.ones(seq_len, seq_len, dtype=torch.bool, device=device), diagonal=1
             )
             return mask.unsqueeze(0).unsqueeze(0)  # [1, 1, T, T]
 
-        def forward(self, input_ids: "torch.Tensor") -> "torch.Tensor":
+        def forward(self, input_ids: torch.Tensor) -> torch.Tensor:
             """Forward pass — returns logits [B, T, vocab_size]."""
             B, T = input_ids.shape
-            assert T <= self.config.max_seq_len, (
+            assert self.config.max_seq_len >= T, (
                 f"Sequence too long: {T} > {self.config.max_seq_len}"
             )
 
@@ -233,10 +235,10 @@ try:
 
         def loss(
             self,
-            input_ids: "torch.Tensor",
-            target_ids: "torch.Tensor",
-            quality_weight: "torch.Tensor | None" = None,
-        ) -> "torch.Tensor":
+            input_ids: torch.Tensor,
+            target_ids: torch.Tensor,
+            quality_weight: torch.Tensor | None = None,
+        ) -> torch.Tensor:
             """Next-token prediction loss with optional HIHO quality weighting.
 
             Parameters
@@ -272,11 +274,11 @@ try:
         @torch.no_grad()
         def generate(
             self,
-            prompt_ids: "torch.Tensor",
+            prompt_ids: torch.Tensor,
             max_new: int = 128,
             temperature: float = 0.8,
             top_k: int = 50,
-        ) -> "torch.Tensor":
+        ) -> torch.Tensor:
             """Autoregressive generation with temperature and top-k sampling."""
             self.eval()
             ids = prompt_ids.clone()
@@ -317,7 +319,7 @@ try:
             new_ids = output_ids[0, len(byte_ids) :].tolist()
             return bytes(new_ids).decode("utf-8", errors="replace")
 
-        def hiho_coherence(self, input_ids: "torch.Tensor") -> float:
+        def hiho_coherence(self, input_ids: torch.Tensor) -> float:
             """Measure model's HIHO coherence using the 4q(1-q) kernel on attention entropy.
 
             Applies the HIHO kernel to normalized attention entropy per layer:
@@ -399,23 +401,23 @@ try:
         @classmethod
         def from_autoresearch(
             cls,
-            autoresearch_path: "Path | None" = None,
+            autoresearch_path: Path | None = None,
             steps: int = 80,
             lr: float | None = None,
             batch_size: int = 8,
             seq_len: int = 128,
             n_seeds: int = 3,
-            config_override: "CohezionLMConfig | None" = None,
+            config_override: CohezionLMConfig | None = None,
             freeze_deep_layers: bool = False,
             smart_seed: bool = False,
             lr_schedule: str = "cosine",
             optimizer: str = "rmsprop",
-            seeds: "list[int] | None" = None,
+            seeds: list[int] | None = None,
             include_code: bool = True,
-            sgdr_t0: "int | None" = None,
+            sgdr_t0: int | None = None,
             n_code: int = 20,
             code_sample_weight: float = 1.0,
-        ) -> "CohezionLM":
+        ) -> CohezionLM:
             """Build and train a byte_level HIHO-LM on autoresearch winner history.
 
             Trains n_seeds models with different random seeds, returns the best one
@@ -440,10 +442,12 @@ try:
 
             Self-improving: each new autoresearch run adds to training data.
             """
+            from pathlib import Path as _Path
+
             import torch
             import torch.optim as optim
+
             from cohezion.model.training_data import build_balanced_training_dataset
-            from pathlib import Path as _Path
 
             path = _Path(autoresearch_path) if autoresearch_path else _Path("autoresearch.jsonl")
             config = (
@@ -486,7 +490,7 @@ try:
                 logger.warning("from_autoresearch: no training examples found at %s", path)
                 return cls(config)
 
-            def _tokenize(text: str) -> "torch.Tensor":
+            def _tokenize(text: str) -> torch.Tensor:
                 enc = text.encode("utf-8")[: seq_len + 1]
                 ids = list(enc) + [0] * max(0, seq_len + 1 - len(enc))
                 return torch.tensor(ids[: seq_len + 1], dtype=torch.long)
@@ -529,7 +533,7 @@ try:
                 # exp_BBBB0: cosine decay gives 10.2% PPL improvement over constant LR
                 # exp_PPPP0: 'sgdr' (CosineWarmRestarts T0=steps/4) gives -5.5% for steps>160
                 if lr_schedule == "cosine":
-                    scheduler: "optim.lr_scheduler.LRScheduler | None" = (
+                    scheduler: optim.lr_scheduler.LRScheduler | None = (
                         optim.lr_scheduler.CosineAnnealingLR(
                             _opt, T_max=max(1, steps), eta_min=_lr * 0.01
                         )
@@ -587,7 +591,7 @@ except ImportError:
             logger.warning("CohezionLM: PyTorch not available — stub only")
 
 
-def build_cohezion_lm(size: str = "mini") -> "CohezionLM":
+def build_cohezion_lm(size: str = "mini") -> CohezionLM:
     """Factory function returning a CohezionLM of the specified size.
 
     Parameters

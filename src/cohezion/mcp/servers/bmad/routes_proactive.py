@@ -48,7 +48,7 @@ async def proactive_scan(request: web.Request) -> web.Response:
     try:
         from .proactive_monitor import ProactiveMonitor
 
-        project_root = Path(request.app.get("project_root", "."))
+        project_root = Path(request.app.get("project_root") or ".")
         monitor = ProactiveMonitor(project_root)
 
         suggestions = await monitor.scan_for_suggestions()
@@ -110,7 +110,7 @@ async def proactive_execute(request: web.Request) -> web.Response:
                 status=400,
             )
 
-        project_root = Path(request.app.get("project_root", "."))
+        project_root = Path(request.app.get("project_root") or ".")
         monitor = ProactiveMonitor(project_root)
 
         # Find suggestion
@@ -170,7 +170,7 @@ async def proactive_summary(request: web.Request) -> web.Response:
     try:
         from .proactive_monitor import ProactiveMonitor
 
-        project_root = Path(request.app.get("project_root", "."))
+        project_root = Path(request.app.get("project_root") or ".")
         monitor = ProactiveMonitor(project_root)
         await monitor.scan_for_suggestions()  # Refresh suggestions
 
@@ -212,7 +212,7 @@ async def proactive_enable_pattern(request: web.Request) -> web.Response:
                 status=400,
             )
 
-        project_root = Path(request.app.get("project_root", "."))
+        project_root = Path(request.app.get("project_root") or ".")
         monitor = ProactiveMonitor(project_root)
 
         # Find pattern
@@ -261,7 +261,7 @@ async def proactive_list_patterns(request: web.Request) -> web.Response:
     try:
         from .proactive_monitor import ProactiveMonitor
 
-        project_root = Path(request.app.get("project_root", "."))
+        project_root = Path(request.app.get("project_root") or ".")
         monitor = ProactiveMonitor(project_root)
 
         return web.json_response(
@@ -348,7 +348,7 @@ async def proactive_record_feedback(request: web.Request) -> web.Response:
                 status=400,
             )
 
-        project_root = Path(request.app.get("project_root", "."))
+        project_root = Path(request.app.get("project_root") or ".")
         db = request.app.get("db")
 
         if db is None:
@@ -421,7 +421,7 @@ async def proactive_pattern_effectiveness(request: web.Request) -> web.Response:
     try:
         from .proactive_monitor import ProactiveMonitor
 
-        project_root = Path(request.app.get("project_root", "."))
+        project_root = Path(request.app.get("project_root") or ".")
         db = request.app.get("db")
 
         if db is None:
@@ -481,7 +481,7 @@ async def proactive_cleanup(request: web.Request) -> web.Response:
         data = await request.json()
         days_old = data.get("days_old", 90)
 
-        project_root = Path(request.app.get("project_root", "."))
+        project_root = Path(request.app.get("project_root") or ".")
         db = request.app.get("db")
 
         if db is None:

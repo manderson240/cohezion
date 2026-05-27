@@ -1,4 +1,4 @@
-# ruff: noqa: E501  # long lines: SQL/URLs/docstrings — wrapping reduces readability
+# long lines: SQL/URLs/docstrings — wrapping reduces readability
 """MCP Compound Server - Unified interface for compound engineering.
 
 Elegant refactor: 782 lines compounded into ~380.
@@ -482,6 +482,7 @@ async def check_redis_health() -> dict[str, Any]:
     except Exception as exc:
         logger.warning("Redis health check failed: %s", exc)
         return err(str(exc), url=redis_url)
+
 
 def main() -> None:
     """Run the MCP server."""

@@ -4,6 +4,7 @@ The compound_score (0.6*coherence + 0.3*success + 0.1*efficiency) is computed
 by execute_task() and stored in result.metrics["compound_score"]. This module
 provides trend analysis over a window of results.
 """
+
 from __future__ import annotations
 
 from collections import deque
@@ -36,8 +37,8 @@ class CompoundScoreWindow:
         """Trend: positive = improving, negative = degrading, 0 = stable."""
         if len(self._scores) < 4:
             return 0.0
-        first_half = list(self._scores)[:len(self._scores) // 2]
-        second_half = list(self._scores)[len(self._scores) // 2:]
+        first_half = list(self._scores)[: len(self._scores) // 2]
+        second_half = list(self._scores)[len(self._scores) // 2 :]
         first_mean = sum(first_half) / len(first_half)
         second_mean = sum(second_half) / len(second_half)
         return round(second_mean - first_mean, 4)

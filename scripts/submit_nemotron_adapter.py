@@ -28,7 +28,7 @@ if api_token:
 from cohezion.integrations.kaggle_api import KaggleAPI
 
 
-async def submit_adapter_to_competition(adapter_path: Path, message: str = None):
+async def submit_adapter_to_competition(adapter_path: Path, message: str | None = None):
     """Submit the trained LoRA adapter to the Kaggle competition."""
     if not username or not api_token:
         print("❌ Missing KAGGLE_USERNAME or KAGGLE_API_TOKEN in .env")

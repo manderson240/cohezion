@@ -41,7 +41,8 @@ def embed(text: str, timeout: float = 12.0) -> list[float] | None:
     """Embed a single text via Ollama. Returns None on failure (no silent fallback)."""
     body = json.dumps({"model": EMBED_MODEL, "prompt": text}).encode("utf-8")
     req = urllib.request.Request(
-        OLLAMA_URL, data=body,
+        OLLAMA_URL,
+        data=body,
         headers={"Content-Type": "application/json", "Accept": "application/json"},
         method="POST",
     )
@@ -85,12 +86,17 @@ class SemanticDedupCache:
                 self.cache = {}
 
     def save(self) -> None:
-        self.path.write_text(json.dumps({
-            "model": EMBED_MODEL, "dim": EMBED_DIM,
-            "embeddings": self.cache,
-            "saved_at": datetime.now(UTC).strftime("%Y-%m-%dT%H:%M:%SZ"),
-            "count": len(self.cache),
-        }))
+        self.path.write_text(
+            json.dumps(
+                {
+                    "model": EMBED_MODEL,
+                    "dim": EMBED_DIM,
+                    "embeddings": self.cache,
+                    "saved_at": datetime.now(UTC).strftime("%Y-%m-%dT%H:%M:%SZ"),
+                    "count": len(self.cache),
+                }
+            )
+        )
 
     def add(self, paper_id: str, text: str) -> tuple[list[float] | None, list[tuple[str, float]]]:
         """Embed `text`, store under `paper_id`, and return (embedding, near_duplicates).
@@ -149,6 +155,7 @@ def smoke_test() -> dict:
 
 if __name__ == "__main__":
     import sys
+
     print("=== embed_lane smoke test ===")
     r = smoke_test()
     print(json.dumps(r, indent=2))

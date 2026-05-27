@@ -1,4 +1,4 @@
-# ruff: noqa: B904  # raise pattern in HTTP/API handlers — explicit user-facing errors
+# raise pattern in HTTP/API handlers — explicit user-facing errors
 """FLUME VAE API routes — training, encoding, decoding, interpolation, latent space.
 
 Extracted from api/__init__.py (Session 87) to keep files under 500 lines.
@@ -32,7 +32,7 @@ class FlumeTrainRequest(BaseModel):
     batch_size: int = 64
     lr: float = 1e-3
     z_dim: int = 256
-    kl_weight: float = 0.1
+    kl_weight: float = 0.01
     coherence_weight: float = 0.05
     n_samples: int = 10000
 

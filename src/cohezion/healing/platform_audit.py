@@ -1,4 +1,4 @@
-# ruff: noqa: E402, E501  # long lines: SQL/URLs/docstrings — wrapping reduces readability
+# long lines: SQL/URLs/docstrings — wrapping reduces readability
 """
 Platform Audit - Comprehensive health check for Cohezion.
 
@@ -92,7 +92,7 @@ def run_audit(audit_type: str = "pre") -> PlatformAudit:
 
     # 3. Run tests (quick check)
     try:
-        result = subprocess.run(  # noqa: S603 - static pytest invocation
+        result = subprocess.run(
             [_UV, "run", "pytest", "tests/", "-q", "--tb=no"],
             capture_output=True,
             text=True,

@@ -1,4 +1,4 @@
-# ruff: noqa: E741, E501  # long lines: SQL/URLs/docstrings — wrapping reduces readability
+# long lines: SQL/URLs/docstrings — wrapping reduces readability
 """Journey Analyzer - Comprehensive analysis of agent trajectories in 12D HIHO manifold.
 
 Analyzes captured journeys for patterns, clusters, anomalies, and behavioral modes.

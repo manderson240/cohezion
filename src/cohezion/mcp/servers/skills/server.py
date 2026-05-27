@@ -1,4 +1,4 @@
-# ruff: noqa: S104  # binds 0.0.0.0 in dev/internal services
+# binds 0.0.0.0 in dev/internal services
 """Skills.sh MCP Server.
 
 Port: 8362
@@ -194,7 +194,7 @@ async def tool_skills_install(request: web.Request) -> web.Response:
         npx_exec = shutil.which("npx") or "/usr/bin/npx"
         cmd = [npx_exec, "skills", "add", skill_id]
 
-        result = subprocess.run(  # noqa: S603 - skill_id validated upstream against owner/repo regex
+        result = subprocess.run(
             cmd,
             capture_output=True,
             text=True,

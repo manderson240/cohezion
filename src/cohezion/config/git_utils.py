@@ -33,7 +33,7 @@ class GitUtils:
     def get_last_commit_author(self, file_path: Path) -> str | None:
         """Get the author of the last commit for a file."""
         try:
-            result = subprocess.run(  # noqa: S603 - git args static, file_path internal
+            result = subprocess.run(
                 [_GIT, "log", "--format=%an", "-1", str(file_path)],
                 cwd=self.repo_root,
                 capture_output=True,
@@ -49,7 +49,7 @@ class GitUtils:
     def get_last_commit_time(self, file_path: Path) -> datetime | None:
         """Get the timestamp of the last commit for a file."""
         try:
-            result = subprocess.run(  # noqa: S603 - git args static, file_path internal
+            result = subprocess.run(
                 [_GIT, "log", "--format=%ai", "-1", str(file_path)],
                 cwd=self.repo_root,
                 capture_output=True,
@@ -80,7 +80,7 @@ class GitUtils:
     def get_uncommitted_changes(self, file_path: Path) -> bool:
         """Check if file has uncommitted changes."""
         try:
-            result = subprocess.run(  # noqa: S603 - git args static, file_path internal
+            result = subprocess.run(
                 [_GIT, "diff", "--quiet", str(file_path)],
                 cwd=self.repo_root,
                 timeout=5,
@@ -94,7 +94,7 @@ class GitUtils:
     def get_file_diff(self, file_path: Path) -> str | None:
         """Get diff of uncommitted changes for a file."""
         try:
-            result = subprocess.run(  # noqa: S603 - git args static, file_path internal
+            result = subprocess.run(
                 [_GIT, "diff", str(file_path)],
                 cwd=self.repo_root,
                 capture_output=True,
@@ -127,7 +127,7 @@ class GitUtils:
         """
         try:
             # Stage file
-            subprocess.run(  # noqa: S603 - git args static, file_path internal
+            subprocess.run(
                 [_GIT, "add", str(file_path)],
                 cwd=self.repo_root,
                 capture_output=True,
@@ -142,7 +142,7 @@ class GitUtils:
                 "GIT_COMMITTER_NAME": author_name,
                 "GIT_COMMITTER_EMAIL": author_email,
             }
-            result = subprocess.run(  # noqa: S603 - git args static, message internal
+            result = subprocess.run(
                 [_GIT, "commit", "-m", message],
                 cwd=self.repo_root,
                 capture_output=True,
@@ -173,7 +173,7 @@ class GitUtils:
     def get_commit_history(self, file_path: Path, max_count: int = 10) -> list[dict]:
         """Get recent commit history for a file."""
         try:
-            result = subprocess.run(  # noqa: S603 - git args static, file_path internal
+            result = subprocess.run(
                 [
                     _GIT,
                     "log",
@@ -209,7 +209,7 @@ class GitUtils:
         """Get overall git repository status."""
         try:
             # Get current branch
-            branch_result = subprocess.run(  # noqa: S603 - git args static
+            branch_result = subprocess.run(
                 [_GIT, "rev-parse", "--abbrev-ref", "HEAD"],
                 cwd=self.repo_root,
                 capture_output=True,
@@ -221,7 +221,7 @@ class GitUtils:
             )
 
             # Get dirty status
-            dirty_result = subprocess.run(  # noqa: S603 - git args static
+            dirty_result = subprocess.run(
                 [_GIT, "status", "--porcelain"],
                 cwd=self.repo_root,
                 capture_output=True,

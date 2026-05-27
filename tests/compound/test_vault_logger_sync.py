@@ -55,7 +55,9 @@ def test_vault_write_sync_no_unawaited_warning():
     # Failure path returns "" rather than raising
     assert path == ""
     coro_warnings = [
-        w for w in captured if "coroutine" in str(w.message).lower() and "await" in str(w.message).lower()
+        w
+        for w in captured
+        if "coroutine" in str(w.message).lower() and "await" in str(w.message).lower()
     ]
     assert not coro_warnings, f"unexpected coroutine warnings: {coro_warnings}"
 

@@ -1,4 +1,4 @@
-# ruff: noqa: A002, E501  # long lines: SQL/URLs/docstrings — wrapping reduces readability
+# ruff: noqa: A002  # long lines: SQL/URLs/docstrings — wrapping reduces readability
 """
 SurrealDB Client - Multi-model database for the Universe Simulation.
 
@@ -22,6 +22,7 @@ from typing import Any
 
 import httpx
 import numpy as np
+
 
 # Defensive imports — the surrealdb library's exception surface evolves
 # across versions. Older versions don't ship SurrealDBMethodError; CBOR
@@ -414,10 +415,8 @@ DEFINE FIELD stability_score ON TABLE universe_nodes VALUE (
             logger.info("Schema created successfully")
             return True
         except (
-
             OSError,
             httpx.HTTPError,
-
             RuntimeError,
             ValueError,
             TypeError,
@@ -450,10 +449,8 @@ DEFINE FIELD stability_score ON TABLE universe_nodes VALUE (
             return node.id
 
         except (
-
             OSError,
             httpx.HTTPError,
-
             RuntimeError,
             ValueError,
             KeyError,
@@ -479,10 +476,8 @@ DEFINE FIELD stability_score ON TABLE universe_nodes VALUE (
             else:
                 return await self._client.create(table, data)
         except (
-
             OSError,
             httpx.HTTPError,
-
             RuntimeError,
             ValueError,
             KeyError,
@@ -571,6 +566,41 @@ DEFINE FIELD stability_score ON TABLE universe_nodes VALUE (
 
                     return [matches]
 
+                if "UPDATE pending_mutations" in sql:
+                    status = vars.get("status") if vars else None
+                    valid_to = vars.get("valid_to") if vars else None
+                    mutation_id = vars.get("mutation_id") if vars else None
+                    updated_records = []
+                    for key, val in list(self._client._data.items()):
+                        if (
+                            val.get("mutation_id") == mutation_id
+                            or key == mutation_id
+                            or key == f"pending_mutations:{mutation_id}"
+                            or key.startswith(f"pending_mutations:{mutation_id}")
+                        ):
+                            if status is not None:
+                                val["status"] = status
+                            if valid_to is not None:
+                                val["valid_to"] = valid_to
+                            updated_records.append(val)
+                    return [{"result": updated_records, "status": "OK"}]
+
+                if "FROM pending_mutations" in sql:
+                    mutation_id = vars.get("mutation_id") if vars else None
+                    if not mutation_id and vars:
+                        match = re.search(r"WHERE\s+mutation_id\s*=\s*\$(\w+)", sql)
+                        if match:
+                            mutation_id = vars.get(match.group(1))
+
+                    all_items = self._client.get_all(1000)
+                    results = []
+                    for item in all_items:
+                        if "mutation_id" in item and (
+                            mutation_id is None or item.get("mutation_id") == mutation_id
+                        ):
+                            results.append(item)
+                    return [{"result": results, "status": "OK"}]
+
                 # Table-based filtering mock (e.g., SELECT * FROM table WHERE field = $value)
                 if "SELECT * FROM" in sql and "WHERE" in sql:
                     # Generic mock for "WHERE x > y AND a > b" type queries based on EvolutionaryDriver
@@ -631,10 +661,8 @@ DEFINE FIELD stability_score ON TABLE universe_nodes VALUE (
             logger.info(f"SurrealDB Response: {res}")
             return res
         except (
-
             OSError,
             httpx.HTTPError,
-
             RuntimeError,
             ValueError,
             KeyError,
@@ -665,10 +693,8 @@ DEFINE FIELD stability_score ON TABLE universe_nodes VALUE (
             return self._dict_to_node(data)
 
         except (
-
             OSError,
             httpx.HTTPError,
-
             RuntimeError,
             ValueError,
             KeyError,
@@ -714,10 +740,8 @@ DEFINE FIELD stability_score ON TABLE universe_nodes VALUE (
             return [self._dict_to_node(r) for r in results]
 
         except (
-
             OSError,
             httpx.HTTPError,
-
             RuntimeError,
             ValueError,
             KeyError,
@@ -748,10 +772,8 @@ DEFINE FIELD stability_score ON TABLE universe_nodes VALUE (
             return [self._dict_to_node(r) for r in results]
 
         except (
-
             OSError,
             httpx.HTTPError,
-
             RuntimeError,
             ValueError,
             KeyError,
@@ -825,10 +847,8 @@ DEFINE FIELD stability_score ON TABLE universe_nodes VALUE (
                 return None
 
         except (
-
             OSError,
             httpx.HTTPError,
-
             RuntimeError,
             ValueError,
             KeyError,
@@ -877,10 +897,8 @@ DEFINE FIELD stability_score ON TABLE universe_nodes VALUE (
                 return []
 
         except (
-
             OSError,
             httpx.HTTPError,
-
             RuntimeError,
             ValueError,
             KeyError,
@@ -940,10 +958,8 @@ DEFINE FIELD stability_score ON TABLE universe_nodes VALUE (
                 return []
 
         except (
-
             OSError,
             httpx.HTTPError,
-
             RuntimeError,
             ValueError,
             KeyError,

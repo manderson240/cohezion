@@ -1,4 +1,4 @@
-# ruff: noqa: E501  # long lines: SQL/URLs/docstrings — wrapping reduces readability
+# long lines: SQL/URLs/docstrings — wrapping reduces readability
 """
 Code Review Swarm - Orchestrates specialized scouts for codebase analysis.
 Enforces Phase-based scanning (Static First -> Selective LLM) and Safe Mode batching.

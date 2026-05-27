@@ -98,9 +98,7 @@ class LemonadeProvider(ModelProvider):
                         "precision": turbo_quant.get("precision", "default"),
                     }
 
-                tokens_used = (
-                    usage.get("prompt_tokens", 0) + usage.get("completion_tokens", 0)
-                )
+                tokens_used = usage.get("prompt_tokens", 0) + usage.get("completion_tokens", 0)
                 return GenerationResult(
                     response=content,
                     model=model,

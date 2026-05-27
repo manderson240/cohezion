@@ -133,7 +133,7 @@ class CompoundEngineeringWorkflowInitializer:
 
         try:
             # Get current git info
-            result = subprocess.run(  # noqa: S603 - git args static
+            result = subprocess.run(
                 [_GIT, "rev-parse", "--is-inside-work-tree"],
                 capture_output=True,
                 text=True,
@@ -144,14 +144,14 @@ class CompoundEngineeringWorkflowInitializer:
                 return {"success": False, "error": "Not in a git repository", "worktree_path": None}
 
             # Get current branch and commit
-            branch_result = subprocess.run(  # noqa: S603 - git args static
+            branch_result = subprocess.run(
                 [_GIT, "rev-parse", "--abbrev-ref", "HEAD"],
                 capture_output=True,
                 text=True,
                 cwd=str(self.project_root),
             )
 
-            commit_result = subprocess.run(  # noqa: S603 - git args static
+            commit_result = subprocess.run(
                 [_GIT, "rev-parse", "HEAD"],
                 capture_output=True,
                 text=True,
@@ -201,7 +201,7 @@ class CompoundEngineeringWorkflowInitializer:
 
             # Create new worktree if needed
             if not worktree_path.exists() or not (worktree_path / ".git").exists():
-                result = subprocess.run(  # noqa: S603 - branch_name and worktree_path are internally derived from session_id
+                result = subprocess.run(
                     [
                         _GIT,
                         "worktree",
@@ -228,7 +228,7 @@ class CompoundEngineeringWorkflowInitializer:
             os.chdir(str(worktree_path))
 
             # Verify we're in the right place
-            verify_result = subprocess.run(  # noqa: S603 - git args static
+            verify_result = subprocess.run(
                 [_GIT, "rev-parse", "--is-inside-work-tree"],
                 capture_output=True,
                 text=True,
@@ -340,7 +340,7 @@ class CompoundEngineeringWorkflowInitializer:
     def _is_in_git_worktree(self) -> bool:
         """Check if we're currently in a git worktree."""
         try:
-            result = subprocess.run(  # noqa: S603 - git args static
+            result = subprocess.run(
                 [_GIT, "rev-parse", "--is-inside-work-tree"],
                 capture_output=True,
                 text=True,

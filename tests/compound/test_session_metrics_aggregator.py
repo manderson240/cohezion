@@ -1,11 +1,11 @@
 """Tests for SessionMetricsAggregator."""
+
 import asyncio
 
 from cohezion.compound.session_metrics_aggregator import SessionMetricsAggregator
 
 
 class TestSessionMetricsAggregator:
-
     def test_empty_aggregator_returns_neutral(self):
         agg = SessionMetricsAggregator()
         summary = agg.compute_summary()
@@ -54,4 +54,3 @@ class TestSessionMetricsAggregator:
         result = asyncio.run(agg.suggest_next(n=3))
         assert len(result) == 3
         assert all("hypothesis" in e for e in result)
-

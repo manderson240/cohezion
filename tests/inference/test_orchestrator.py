@@ -471,3 +471,47 @@ async def test_telemetry_hardware_tier_branches():
         ):
             result = await orch.run("test")
         assert result.error is None, f"Failed for model {model_id}"
+
+
+# ---------------------------------------------------------------------------
+# run_batch() — concurrent dispatch (exp_OOOO, 3.44x throughput measured)
+# ---------------------------------------------------------------------------
+
+
+@pytest.mark.asyncio
+async def test_run_batch_returns_results_in_order():
+    """run_batch() dispatches prompts concurrently and returns ordered results."""
+    orch = TieredOrchestrator(tiers=[("llama3.2-1b-FLM", QualityGate.TRUST)])
+    prompts = ["prompt 1", "prompt 2", "prompt 3"]
+    call_order: list[str] = []
+
+    async def fake_route(prompt, **_):
+        call_order.append(prompt)
+        return _rr(f"answer for: {prompt}")
+
+    with patch("cohezion.inference.orchestrator.route", side_effect=fake_route):
+        results = await orch.run_batch(prompts)
+
+    assert len(results) == 3
+    for i, r in enumerate(results):
+        assert f"answer for: {prompts[i]}" in r.text or r.text, f"result {i} text mismatch"
+    assert all(r.error is None for r in results)
+
+
+@pytest.mark.asyncio
+async def test_run_batch_empty_prompts():
+    """run_batch([]) returns empty list."""
+    orch = TieredOrchestrator(tiers=[("m", QualityGate.TRUST)])
+    results = await orch.run_batch([])
+    assert results == []
+
+
+@pytest.mark.asyncio
+async def test_run_batch_single_prompt_same_as_run():
+    """run_batch([p]) gives same result as run(p)."""
+    orch = TieredOrchestrator(tiers=[("llama3.2-1b-FLM", QualityGate.TRUST)])
+    with patch("cohezion.inference.orchestrator.route", AsyncMock(return_value=_rr("single"))):
+        r_single = await orch.run("one prompt")
+        r_batch = await orch.run_batch(["one prompt"])
+    assert r_single.text == r_batch[0].text
+    assert r_single.error == r_batch[0].error

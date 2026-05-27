@@ -1,6 +1,5 @@
 """Tests for Gemma 4 Router."""
 
-
 from cohezion.swarm.gemma4_router import Gemma4Router, RoutingDecision
 
 

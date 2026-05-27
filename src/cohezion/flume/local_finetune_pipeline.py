@@ -1,4 +1,4 @@
-# ruff: noqa: E501  # long lines: SQL/URLs/docstrings — wrapping reduces readability
+# long lines: SQL/URLs/docstrings — wrapping reduces readability
 """Custom Model Finetuning Pipeline - Build your own Qwen3.5/Phi4 variant.
 
 This pipeline finetunes open-weight models using your journey data with:
@@ -231,7 +231,7 @@ PARAMETER top_k 20
         """Deploy finetuned model to Ollama."""
         modelfile = self.create_ollama_modelfile()
 
-        result = subprocess.run(  # noqa: S603 - output_name internal config; modelfile internal path
+        result = subprocess.run(
             [_OLLAMA, "create", self.output_name, "-f", str(modelfile)],
             capture_output=True,
             text=True,
@@ -244,7 +244,7 @@ PARAMETER top_k 20
             logger.warning(f"Modelfile deploy failed: {result.stderr}")
             logger.info("Trying alternative method...")
 
-            result = subprocess.run(  # noqa: S603 - base_model is internal config
+            result = subprocess.run(
                 [_OLLAMA, "run", "--dry-run", self.base_model],
                 capture_output=True,
                 text=True,

@@ -3,6 +3,7 @@
 Tests the full flow: experiment analytics → recommendations →
 health check → session metrics — verifying all components integrate.
 """
+
 import asyncio
 
 
@@ -24,9 +25,13 @@ class TestCompoundPipelineE2E:
         jsonl = tmp_path / "test.jsonl"
         records = (
             # E50: constant metric → retirement candidate
-            [{"metric": 0.125, "status": "keep", "asi": {"experiment": "E50"}} for _ in range(15)] +
+            [{"metric": 0.125, "status": "keep", "asi": {"experiment": "E50"}} for _ in range(15)]
+            +
             # E63: variable metric → not yet retired
-            [{"metric": 0.15 if i % 2 else 0.125, "status": "keep", "asi": {"experiment": "E63"}} for i in range(15)]
+            [
+                {"metric": 0.15 if i % 2 else 0.125, "status": "keep", "asi": {"experiment": "E63"}}
+                for i in range(15)
+            ]
         )
         jsonl.write_text("\n".join(json.dumps(r) for r in records))
 
@@ -90,9 +95,10 @@ class TestCompoundPipelineE2E:
 
         for exc, expected_cat, expected_retryable in test_cases:
             result = classify_error(exc)
-            assert result["error_category"] == expected_cat, f"{type(exc).__name__}: expected {expected_cat}"
+            assert result["error_category"] == expected_cat, (
+                f"{type(exc).__name__}: expected {expected_cat}"
+            )
             assert result["retryable"] == expected_retryable
-
 
 
 class TestCompoundAnalyticsPipelineE2E:
@@ -119,9 +125,18 @@ class TestCompoundAnalyticsPipelineE2E:
         with tempfile.TemporaryDirectory() as tmpdir:
             jsonl = Path(tmpdir) / "test.jsonl"
             records = (
-                [{"metric": 0.125, "status": "keep", "asi": {"experiment": "E50"}} for _ in range(15)] +
-                [{"metric": 0.149, "status": "keep", "asi": {"experiment": "E63"}} for _ in range(15)] +
-                [{"metric": 0.0, "status": "discard", "asi": {"experiment": "E99"}} for _ in range(5)]
+                [
+                    {"metric": 0.125, "status": "keep", "asi": {"experiment": "E50"}}
+                    for _ in range(15)
+                ]
+                + [
+                    {"metric": 0.149, "status": "keep", "asi": {"experiment": "E63"}}
+                    for _ in range(15)
+                ]
+                + [
+                    {"metric": 0.0, "status": "discard", "asi": {"experiment": "E99"}}
+                    for _ in range(5)
+                ]
             )
             jsonl.write_text("\n".join(json.dumps(r) for r in records))
 
@@ -157,6 +172,7 @@ class TestCompoundAnalyticsPipelineE2E:
     def test_compound_engine_full_cycle(self):
         """CompoundEngine integrates all subsystems in one interface."""
         from cohezion.compound.compound_engine import CompoundEngine
+
         engine = CompoundEngine()
 
         # Record executions
@@ -176,4 +192,3 @@ class TestCompoundAnalyticsPipelineE2E:
         # Health check
         health = engine.get_health()
         assert health["healthy"] is True
-

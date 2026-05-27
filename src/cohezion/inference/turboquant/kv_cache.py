@@ -271,7 +271,7 @@ class TurboQuantKVCache:
                 bits=self.value_bits,
             )
 
-    def attention_scores(self, query: torch.Tensor, scale: float = None) -> torch.Tensor:
+    def attention_scores(self, query: torch.Tensor, scale: float | None = None) -> torch.Tensor:
         """
         Compute attention logits: score[i,j] = <query_i, key_j> / sqrt(d).
 

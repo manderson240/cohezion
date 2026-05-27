@@ -84,6 +84,15 @@ _SHORT_ANSWER_PATTERNS = [
         "direct what-is question",
     ),
     (re.compile(r"\bname (the|a|one)\b", re.I), 0.75, "name-the entity"),
+    # "Which port/version/model/file/url/endpoint does X use/have?" — factual lookup, one-word/number answer
+    (
+        re.compile(
+            r"\bwhich\s+(?:port|endpoint|url|version|model|file|path|command|flag|setting|key|value|parameter|variable|env(?:ironment)?\s+var(?:iable)?|default)\s+(?:does|is|should|would|do)\b",
+            re.I,
+        ),
+        0.78,
+        "which-resource factual lookup",
+    ),
     # Definitional 1-2 word questions — "What is X?", "What is X Y?" → high-conf NPU
     # Caps at 2 words (compound terms like "buffer overflow", "quantum entanglement")
     (
@@ -273,7 +282,7 @@ _GPU_PATTERNS = [
     # "Deploy/provision/migrate X to/from/on Y" — cloud deployment verbs
     (
         re.compile(
-            r"\b(?:deploy|provision|migrate|rollout|release|rollback|revert|redeploy|undeploy|restart)\s+(?:the\s+|a\s+|an\s+|this\s+|last\s+)?\w+",
+            r"\b(?:deploy|provision|migrate|rollout|release(?!\s+notes?\b)|rollback|revert|redeploy|undeploy|restart)\s+(?:the\s+|a\s+|an\s+|this\s+|last\s+)?\w+",
             re.I,
         ),
         0.85,
@@ -422,6 +431,43 @@ _GPU_PATTERNS = [
         ),
         0.82,
         "code or legal document review",
+    ),
+    # "review X and update/identify/fix/improve" — compound engineering action (e.g. "review /release-notes and update config")
+    (
+        re.compile(
+            r"\breview\b.{5,120}\band\s+(?:update|identify|fix|improve|apply|configure|adjust|change|modify|implement)\b",
+            re.I | re.S,
+        ),
+        0.82,
+        "review and act compound task",
+    ),
+    # "Which library/framework/approach should I/we use?" — recommendation requires trade-off analysis
+    # Distinct from _SHORT_WHICH_RESOURCE_PATTERN (factual lookups with known answers)
+    (
+        re.compile(
+            r"\bwhich\s+(?:library|tool|framework|package|dependency|approach|strategy|design|algorithm|method|pattern|technique|solution|architecture|stack|provider|backend|implementation|option)\s+(?:should|would)\s+(?:I|we|you)\b",
+            re.I,
+        ),
+        0.82,
+        "which recommendation requires analysis",
+    ),
+    # Evaluate/analyze code — "evaluate this code", "analyze this implementation"
+    (
+        re.compile(
+            r"\b(evaluate|analyze|analyse|audit|inspect)\s+(?:this\s+|the\s+|my\s+)?(?:[\w-]+\s+){0,3}(code|implementation|function|class|module|script|program|snippet|endpoint|service|query|schema|migration|test|algorithm)\b",
+            re.I,
+        ),
+        0.82,
+        "evaluate/analyze code artifact",
+    ),
+    # Compare implementations — "compare these implementations", "compare these two approaches"
+    (
+        re.compile(
+            r"\bcompare\s+(?:these|this|my|the|both)\b.{0,40}\b(?:implementation|approach|version|solution|method|algorithm|code|function|class|option|variant|strategy|candidate)(?:s|es)?\b",
+            re.I,
+        ),
+        0.82,
+        "compare implementations or approaches",
     ),
     # "Document the [X] with examples/API/guide" — structured documentation
     (
@@ -586,11 +632,11 @@ _GPU_PATTERNS = [
         0.82,
         "add observability/docs",
     ),
-    # "Fix the [adj] [bug/issue] in/where X" OR "Fix it/them/this" — code fix commands
-    # .{0,40} prefix allows adjectives ("routing regression", "critical bug")
+    # "Fix the [adj] [bug/issue/test] in/where X" OR "Fix it/them/this" — code fix commands
+    # .{0,40} prefix allows adjectives ("routing regression", "critical bug", "failing tests")
     (
         re.compile(
-            r"\bfix\s+(?:.{0,40}\b(?:bug|issue|error|problem|crash|failure|regression)\b.{0,60}\b(?:in|with|at|for|where)\b|(?:it|them|this|that)\b)",
+            r"\bfix\s+(?:.{0,40}\b(?:bug|issue|error|problem|crash|failure|regression|test|tests|failing|flaky)\b.{0,60}\b(?:in|with|at|for|where)\b|(?:it|them|this|that)\b)",
             re.I,
         ),
         0.85,
@@ -661,18 +707,19 @@ _GPU_PATTERNS = [
         "infra manifest generation",
     ),
     # "Run the [X] and [report/show/list/output]" or "Execute the [X] and report"
+    # Uses [\w-]+ (not \w+) so hyphenated tokens like "dry-run" don't break the match
     (
         re.compile(
-            r"\b(run|execute)\s+(the |a |an )(\w+ ){0,3}(and|then) (report|show|list|output|print|display|log)\b",
+            r"\b(run|execute)\s+(?:the |a |an )(?:[\w-]+ ){0,4}(?:and|then)\s+(?:report|show|list|output|print|display|log)\b",
             re.I,
         ),
         0.80,
         "run-and-report task",
     ),
-    # "Run [tool] experiment/tracking" — ML experiment management
+    # "Run [tool] experiment(s)/tracking" — ML/autoresearch experiment management
     (
         re.compile(
-            r"\brun\s+(?:the\s+)?\w+\s+(?:experiment|tracking|benchmark|evaluation|ablation)\b",
+            r"\brun\s+(?:the\s+|all\s+)?\w+\s+(?:experiments?|tracking|benchmark|evaluation|ablation)\b",
             re.I,
         ),
         0.82,
@@ -737,6 +784,15 @@ _GPU_PATTERNS = [
         0.88,
         "code generation hyphenated adjective",
     ),
+    # Code generation: "Implement func_name() function/method" — allows parens in names
+    (
+        re.compile(
+            r"\b(write|implement|create)\s+[\w_]+\(\)\s+(?:function|method|class)\b",
+            re.I,
+        ),
+        0.88,
+        "implement named function with parens",
+    ),
     # Comparative analysis — "Compare the X vs Y", "Analyze the X metrics", "Evaluate the trade-offs"
     (
         re.compile(r"\b(compare|analyze|evaluate|assess)\s+the\b", re.I),
@@ -744,8 +800,9 @@ _GPU_PATTERNS = [
         "comparative or analytical task",
     ),
     # "Compare X vs Y" / "Compare X versus Y" — direct comparison without "the"
+    # Allow multi-word X: "Compare HIHO attention vs softmax stability"
     (
-        re.compile(r"\bcompare\s+\w+\s+(?:vs\.?|versus)\b", re.I),
+        re.compile(r"\bcompare\s+[\w-]+(?:\s+[\w-]+)?\s+(?:vs\.?|versus)\b", re.I),
         0.82,
         "direct A-vs-B comparison",
     ),
@@ -864,6 +921,27 @@ _GPU_PATTERNS = [
         0.88,
         "scientific research domain",
     ),
+    # External research/discovery tasks — "do additional research on X", "research huggingface/arxiv"
+    # "now research https://...", "research https://..."
+    # These require multi-step web lookup + synthesis → long_generation / GPU
+    (
+        re.compile(
+            r"\b(?:do\s+(?:additional\s+)?research|research\s+(?:on\s+)?(?:hugging\s*face|arxiv|github|google\s+scholar|papers?|the\s+(?:web|internet)|recent|new|https?://\S+)|find\s+(?:relevant\s+)?(?:papers?|repos?|models?|datasets?))\b",
+            re.I,
+        ),
+        0.82,
+        "external research task",
+    ),
+    # Integrate or try external URL/repo — "integrate https://...", "can we try https://..."
+    # URL integration / evaluation implies reading + synthesizing external content → GPU
+    (
+        re.compile(
+            r"\b(?:integrate|try|test|evaluate|check\s+out|load|use)\s+https?://\S+",
+            re.I,
+        ),
+        0.82,
+        "integrate/try external URL",
+    ),
     # Data engineering domain — Airflow/Spark/dbt/Kafka/Flink/ETL/CDC pipelines
     # Note: bare nouns (data lakehouse, ETL) are NOT included — need action-verb context
     (
@@ -903,16 +981,49 @@ _HOW_DOES_PATTERN = re.compile(
     re.I,
 )
 
+# "Route this task: X" / "Classify this request: X" — meta-routing instructions
+# These prompts ask Claude to route or classify the *content after the colon*, not to perform the task.
+# Without this, GPU "extended engineering verb" fires on technical nouns in the content (e.g. "port").
+_ROUTE_TASK_PREFIX_PATTERN = re.compile(
+    r"^(?:route|classify|categorize|label|tag)\s+this\s+(?:task|prompt|request|query|message|input)\b",
+    re.I,
+)
+
+# "Which port/version/model does X use?" — "port" is also a verb, triggers GPU "extended engineering verb"
+# Pre-override fires before GPU scan for short factual resource-lookup questions (≤75 chars)
+_SHORT_WHICH_RESOURCE_PATTERN = re.compile(
+    r"^which\s+(?:port|endpoint|url|version|model|file|path|command|flag|setting|key|value|parameter|variable|env(?:ironment)?\s+var(?:iable)?|default)\s+(?:does|is|should|would|do)\b",
+    re.I,
+)
+
 # Brevity-qualified summarize/critique/interpret: "Summarize X in one paragraph" → short answer (NPU)
 # Also: "Briefly summarize/critique/interpret X" → NPU
 # Also: "...? One sentence." terminal brevity qualifier overrides domain GPU signals
 # Without brevity qualifier: "Summarize the contributions of BERT" → GPU
 _BREVITY_SUMMARIZE_PATTERN = re.compile(
     r"(?:\bbriefly\s+(?:summarize|critique|interpret|formulate|explain)\b)|"
-    r"(?:\bsummariz(?:e|ing)\b.{0,80}\b(?:in\s+(?:one|two|three|a\s+single)\s+(?:sentence|paragraph|bullet|word|line)|in\s+brief)\b)|"
+    r"(?:\bsummariz(?:e|ing)\b.{0,80}\b(?:in\s+(?:one|two|three|a\s+few|a\s+single|\d+)\s+(?:sentence|paragraph|bullet|word|line)s?|in\s+brief)\b)|"
     r"(?:[\.\?!]\s+(?:one|a\s+single)\s+sentence\.?\s*$)|"
-    r"(?:\bin\s+(?:one|two|three|a\s+single)\s+sentence[,:])",
+    r"(?:\bin\s+(?:one|two|three|a\s+few|a\s+single|\d+)\s+sentences?[,:])",
     re.I | re.S,
+)
+
+
+# Prompt starts with a backtick-wrapped engineering command verb — almost always an imperative task.
+# e.g., `port` the triune_orchestrator, `migrate` the schema, `convert` the pipeline
+# Excludes: test/validate/check/verify (too ambiguous with categorical prompts)
+_BACKTICK_VERB_ENGINEERING_PATTERN = re.compile(
+    r"^`(?:port|migrate|convert|transpile|lift|transform"
+    r"|refactor|restructure|rewrite|rearchitect"
+    r"|deploy|publish|ship|release"
+    r"|configure|setup|bootstrap|initialize"
+    r"|integrate|wire|connect"
+    r"|document|annotate"
+    r"|seed|hydrate|backfill|populate"
+    r"|deduplicate|normalize|sanitize"
+    r"|optimize|profile"
+    r")`\s",
+    re.I,
 )
 
 
@@ -939,6 +1050,19 @@ def classify(prompt: str) -> RouteDecision:
                 confidence=cat_conf,
                 reason=f"categorical override: {cat_reason}",
             )
+
+    # -0.5. "Route this task: X" / "Classify this request: X" meta-instructions → NPU categorical
+    # The prompt asks Claude to route/classify the *content after the colon*, not to perform the task.
+    # GPU "extended engineering verb" would otherwise fire on technical nouns in the content (e.g. "port").
+    if _ROUTE_TASK_PREFIX_PATTERN.match(prompt):
+        node, gate = _TYPE_CONFIG["short_categorical"]
+        return RouteDecision(
+            node=node,
+            output_type="short_categorical",
+            quality_gate_chars=gate,
+            confidence=0.82,
+            reason="route-task-prefix meta-instruction",
+        )
 
     # 0. Brevity-qualified summarize: "Summarize X in one paragraph" → NPU
     # Without brevity qualifier, "summarize" → GPU (see engineering task verb pattern)
@@ -980,7 +1104,7 @@ def classify(prompt: str) -> RouteDecision:
     # Prevents "What is a multi-agent system?" from matching ai-agent-engineering-domain
     # Threshold: ≤ 75 chars total (short enough to be definitional, not complex)
     # Does NOT fire for long what-is questions like "What is the implementation of X that..."
-    if prompt_len <= 75 and _SHORT_WHAT_IS_PATTERN.search(prompt):  # noqa: SIM102
+    if prompt_len <= 75 and _SHORT_WHAT_IS_PATTERN.search(prompt):
         node, gate = _TYPE_CONFIG["short_answer"]
         # Confidence depends on term length (1-2 words = 0.78, 3-4 words = 0.74)
         return RouteDecision(
@@ -1005,12 +1129,40 @@ def classify(prompt: str) -> RouteDecision:
             reason="how-does behavioral question pre-override",
         )
 
+    # 4b. "Which port/version/model does X use?" — "port" is a verb in GPU patterns
+    # Without this, "Which port does the NPU tier use?" matches GPU "extended engineering verb"
+    # Fires only for ≤75 chars (definitionally short, question about a single resource value)
+    if prompt_len <= 75 and _SHORT_WHICH_RESOURCE_PATTERN.search(prompt):
+        node, gate = _TYPE_CONFIG["short_answer"]
+        return RouteDecision(
+            node=node,
+            output_type="short_answer",
+            quality_gate_chars=gate,
+            confidence=0.78,
+            reason="which-resource factual lookup pre-override",
+        )
+
+    # 4c. Backtick-wrapped engineering verb → GPU (prompt_len ≥ 30 avoids short stubs)
+    # `port` the triune_orchestrator, `migrate` the schema — imperative commands, not questions
+    if prompt_len >= 30 and _BACKTICK_VERB_ENGINEERING_PATTERN.match(prompt):
+        node, gate = _TYPE_CONFIG["medium_generation"]
+        return RouteDecision(
+            node=node,
+            output_type="medium_generation",
+            quality_gate_chars=gate,
+            confidence=0.80,
+            reason="backtick-prefixed engineering command",
+        )
+
     # ── Check GPU patterns first (highest cost to mis-route) ────────────────
+    # Normalize backtick-quoted verbs: `port` → port (backtick prevents \s+ after \bport\b)
+    # Only used for GPU scan — pre-GPU overrides still use the original prompt.
+    _prompt_for_gpu = re.sub(r"`(\w+)`", r"\1", prompt)
     _CODE_REASON_KEYWORDS = frozenset(
         {"code", "implement", "test", "sql", "iac", "infra", "domain", "framework", "language"}
     )
     for pattern, confidence, reason in _GPU_PATTERNS:
-        if pattern.search(prompt):
+        if pattern.search(_prompt_for_gpu):
             is_code = any(kw in reason for kw in _CODE_REASON_KEYWORDS)
             node, gate = _TYPE_CONFIG["code"] if is_code else _TYPE_CONFIG["long_generation"]
             otype = "code" if is_code else "long_generation"

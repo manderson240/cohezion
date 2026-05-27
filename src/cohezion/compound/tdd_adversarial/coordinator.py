@@ -1,4 +1,4 @@
-# ruff: noqa: E501  # long lines: SQL/URLs/docstrings — wrapping reduces readability
+# long lines: SQL/URLs/docstrings — wrapping reduces readability
 """
 Coordination system for TDD and Adversarial Review in Compound Engineering
 Integrates test-driven development with multiperspective adversarial review.

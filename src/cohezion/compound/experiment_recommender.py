@@ -4,6 +4,7 @@ Combines ExperimentAnalytics and AutoresearchEngine to recommend
 next experiments based on current session state (HIHO balance,
 retirement candidates, and performance trends).
 """
+
 from __future__ import annotations
 
 import asyncio
@@ -44,21 +45,25 @@ def recommend_next_experiments(
     hiho = compute_hiho_balance(records)
 
     engine = AutoresearchEngine()
-    proposals = asyncio.run(engine.generate_next_experiments(
-        n=n,
-        session_metrics={"avg_coherence": hiho},
-        retired_labels=retired[:n],
-    ))
+    proposals = asyncio.run(
+        engine.generate_next_experiments(
+            n=n,
+            session_metrics={"avg_coherence": hiho},
+            retired_labels=retired[:n],
+        )
+    )
 
     recommendations = []
     for i, p in enumerate(proposals):
-        recommendations.append({
-            "experiment_name": f"E{77 + i}_{p.get('parameter', p['hypothesis'].split()[0].lower()[:15])}",
-            "hypothesis": p["hypothesis"],
-            "replaces": p.get("replaces"),
-            "priority": p.get("priority", "medium"),
-            "mode": p["mode"],
-        })
+        recommendations.append(
+            {
+                "experiment_name": f"E{77 + i}_{p.get('parameter', p['hypothesis'].split()[0].lower()[:15])}",
+                "hypothesis": p["hypothesis"],
+                "replaces": p.get("replaces"),
+                "priority": p.get("priority", "medium"),
+                "mode": p["mode"],
+            }
+        )
 
     return recommendations
 

@@ -1,4 +1,4 @@
-# ruff: noqa: SIM116, S112,S608, RUF012, S110  # best-effort: ignored exceptions are intentional in init/cleanup paths
+# ruff: noqa: SIM116  # best-effort: ignored exceptions are intentional in init/cleanup paths
 """
 Hookify Rule Engine - Core Implementation
 Universal rule system with cross-platform MCP bridge support

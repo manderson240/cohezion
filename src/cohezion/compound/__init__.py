@@ -150,3 +150,29 @@ from cohezion.compound.tdd_adversarial.tdd_integration import (
 from cohezion.compound.tdd_adversarial.tdd_integration import (
     get_tdd_integration as get_tdd_integration,
 )
+
+
+def make_executor(mcp_client: object, **kwargs: object) -> CompoundExecutor:
+    """Factory that wires local AMD silicon (Triune) inference by default.
+
+    Checks Lemonade liveness before building the TieredOrchestrator — no
+    model weights are loaded in Python; only HTTP endpoints are probed.
+    Falls back to inference_provider=None (caller must supply execute_fn)
+    when Lemonade is offline.
+
+    Also sets recommended max_concurrent on the orchestrator based on live
+    model load count (exp_NNNN1: heavy load → sequential, light load → concurrent).
+    """
+    from cohezion.compound.executor import CompoundExecutor  # avoid circular at module level
+    from cohezion.compound.local_inference import get_recommended_concurrency, lemonade_available
+    from cohezion.inference.triune_orchestrator import build_triune_orchestrator
+
+    if lemonade_available():
+        provider = build_triune_orchestrator()
+        # Wire adaptive concurrency: under heavy model load, use sequential dispatch
+        max_concurrent = get_recommended_concurrency()
+        provider._max_concurrent = max_concurrent  # type: ignore[attr-defined]
+    else:
+        provider = None
+
+    return CompoundExecutor(mcp_client, inference_provider=provider, **kwargs)  # type: ignore[arg-type]

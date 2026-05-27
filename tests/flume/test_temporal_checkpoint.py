@@ -150,6 +150,8 @@ class TestJourneyTrackerTemporalCheckpoint:
 
         tracker = JourneyTracker()
         assert tracker._temporal_encoder is not None
+
+
 # NOTE: Removed TestJourneyTrackerTemporalCheckpoint (Wave 3E).
 # Tested removed JourneyTracker._temporal_encoder/encode_step_sequence path.
 # NOTE: Removed TestJourneyTrackerTemporalCheckpoint (Wave 3E).

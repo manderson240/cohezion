@@ -438,7 +438,6 @@ class TestProactiveFeedbackRoutes:
         data = json.loads(response.text)
         assert "error" in data
 
-    @pytest.mark.skip(reason="Route error handling returns 500 instead of 503 - integration test needed")
     @pytest.mark.asyncio
     async def test_pattern_effectiveness_route_no_database(self):
         """Test pattern effectiveness route without database."""

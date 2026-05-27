@@ -39,6 +39,7 @@ import numpy as np
 
 from cohezion.inference.orchestrator import QualityGate
 
+
 logger = logging.getLogger(__name__)
 
 # Path where training data is collected
@@ -92,7 +93,7 @@ class EscalationProbe:
     fallback_gate: QualityGate = field(default_factory=lambda: QualityGate(min_chars=200))
 
     @classmethod
-    def load(cls, path: Path = _PROBE_PATH) -> "EscalationProbe":
+    def load(cls, path: Path = _PROBE_PATH) -> EscalationProbe:
         """Load probe from .npz file, return fallback probe if not found."""
         if path.exists():
             try:
@@ -173,7 +174,7 @@ class LYNXGate:
         self._decisions: list[dict[str, Any]] = []
 
     @classmethod
-    def from_probe(cls, output_type: str = "short_answer") -> "LYNXGate":
+    def from_probe(cls, output_type: str = "short_answer") -> LYNXGate:
         """Create a LYNXGate with auto-loaded probe."""
         return cls(probe=EscalationProbe.load(), output_type=output_type)
 

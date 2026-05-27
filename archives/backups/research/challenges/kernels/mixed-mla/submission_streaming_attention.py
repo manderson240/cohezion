@@ -9,7 +9,6 @@ Reduces O(N^2) memory to O(N) for linear scan, O(N log N) for hierarchical.
 POPCORN: amd-mixed-mla
 """
 
-
 import torch
 import torch.nn.functional as F
 from task import input_t, output_t

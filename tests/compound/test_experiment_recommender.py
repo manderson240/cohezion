@@ -1,4 +1,5 @@
 """Tests for experiment recommendation engine."""
+
 import json
 
 from cohezion.compound.experiment_recommender import (
@@ -12,12 +13,10 @@ def _make_jsonl(path, records):
 
 
 class TestExperimentRecommender:
-
     def test_recommend_returns_n_experiments(self, tmp_path):
         f = tmp_path / "test.jsonl"
         records = [
-            {"metric": 0.15, "status": "keep", "asi": {"experiment": "E63"}}
-            for _ in range(5)
+            {"metric": 0.15, "status": "keep", "asi": {"experiment": "E63"}} for _ in range(5)
         ]
         _make_jsonl(f, records)
         recs = recommend_next_experiments(n=3, jsonl_path=f)
@@ -43,7 +42,9 @@ class TestExperimentRecommender:
     def test_retired_experiments_appear_in_replaces(self, tmp_path):
         f = tmp_path / "test.jsonl"
         # E50 with constant 0.125 for 15 runs → retirement candidate
-        records = [{"metric": 0.125, "status": "keep", "asi": {"experiment": "E50"}} for _ in range(15)]
+        records = [
+            {"metric": 0.125, "status": "keep", "asi": {"experiment": "E50"}} for _ in range(15)
+        ]
         _make_jsonl(f, records)
         recs = recommend_next_experiments(n=1, jsonl_path=f)
         replaces = [r.get("replaces") for r in recs]
@@ -55,9 +56,9 @@ class TestExperimentRecommender:
         # Use a patched jsonl path - can't easily test without patching
         # Just verify the structure from a live call with tiny dataset
         import unittest.mock as mock
-        with mock.patch('cohezion.compound.experiment_analytics.JSONL_PATH', f):
+
+        with mock.patch("cohezion.compound.experiment_analytics.JSONL_PATH", f):
             summary = get_session_recommendation_summary()
         assert "hiho_balance" in summary
         assert "recommendations" in summary
         assert "mode" in summary
-

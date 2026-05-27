@@ -7,7 +7,6 @@ Key insight: Not all values need full precision. Dynamic selection
 reduces compute for well-behaved data.
 """
 
-
 import aiter
 import torch
 from aiter import dtypes

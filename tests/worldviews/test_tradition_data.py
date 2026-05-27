@@ -14,10 +14,10 @@ from cohezion.worldviews.tradition_data import (
 
 
 class TestTraditionRegistry:
-    """Verify the 16-tradition registry is complete and well-formed."""
+    """Verify the tradition registry is complete and well-formed (16 + stealthskater = 17)."""
 
-    def test_exactly_16_traditions(self):
-        assert len(get_traditions()) == 16
+    def test_exactly_17_traditions(self):
+        assert len(get_traditions()) == 17
 
     def test_all_slugs_unique(self):
         slugs = [t.slug for t in get_traditions()]
@@ -101,9 +101,9 @@ class TestTraditionProperties:
 class TestStepComparison:
     """Test cross-tradition step view."""
 
-    def test_step_0_returns_16_entries(self):
+    def test_step_0_returns_17_entries(self):
         result = get_step_across_traditions(0)
-        assert len(result) == 16
+        assert len(result) == 17
 
     def test_step_entries_have_required_fields(self):
         result = get_step_across_traditions(0)
@@ -184,3 +184,38 @@ class TestTOESteps:
 
     def test_last_step_is_precipitates(self):
         assert "Precipitates" in TOE_STEPS[9]
+
+
+class TestStealthskaterTradition:
+    """S2 harness invariant: stealthskater tradition has exactly 10 step_mappings."""
+
+    def test_stealthskater_tradition_exists(self):
+        t = get_tradition("stealthskater")
+        assert t is not None
+        assert t.slug == "stealthskater"
+
+    def test_stealthskater_has_10_step_mappings(self):
+        """S2: tradition must have exactly 10 step_mappings."""
+        t = get_tradition("stealthskater")
+        assert len(t.step_mappings) == 10
+
+    def test_stealthskater_has_4_unique_contributions(self):
+        t = get_tradition("stealthskater")
+        assert len(t.unique_contributions) == 4
+
+    def test_stealthskater_hiho_name(self):
+        """Step 7 (HIHO) should be 'Itonic Equilibrium' in stealthskater mapping."""
+        t = get_tradition("stealthskater")
+        assert t.hiho_name == "Itonic Equilibrium"
+
+    def test_stealthskater_step_7_is_hiho(self):
+        t = get_tradition("stealthskater")
+        step7 = t.step_mappings[7]
+        assert step7.step_index == 7
+        assert "Itonic" in step7.indigenous_term or "HIHO" in step7.toe_concept
+
+    def test_total_traditions_includes_stealthskater(self):
+        traditions = get_traditions()
+        slugs = [t.slug for t in traditions]
+        assert "stealthskater" in slugs
+        assert len(traditions) == 17

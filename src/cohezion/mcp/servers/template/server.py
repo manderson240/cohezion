@@ -1,4 +1,4 @@
-# ruff: noqa: S104  # binds 0.0.0.0 in dev/internal services
+# binds 0.0.0.0 in dev/internal services
 """Template for creating new MCP servers.
 
 This is a complete example showing how to create a new MCP server

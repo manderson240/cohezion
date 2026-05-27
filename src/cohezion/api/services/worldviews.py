@@ -1,6 +1,6 @@
 """Worldview Explorer API — indigenous cosmological traditions mapped to the ToE chain.
 
-Exposes 16 traditions' 10-step mappings, cross-tradition convergences,
+Exposes 17 traditions' 10-step mappings (16 indigenous + stealthskater synthesis), cross-tradition convergences,
 per-step comparative views, and vault knowledge graph data for the
 Genesis Engine webapp (Tab 9: Worldview Explorer + VaultKnowledgeGraph).
 """
@@ -28,7 +28,7 @@ worldviews_router = APIRouter(prefix="/worldviews", tags=["worldviews"])
 
 @worldviews_router.get("/traditions")
 async def list_traditions() -> dict:
-    """List all 16 indigenous traditions with summary metadata."""
+    """List all traditions with summary metadata."""
     traditions = get_traditions()
     return {
         "count": len(traditions),
@@ -60,7 +60,7 @@ async def list_convergences() -> dict:
 
 @worldviews_router.get("/step/{step_index}")
 async def get_step_comparison(step_index: int) -> dict:
-    """Compare all 16 traditions' mapping for a single ToE step (0-9)."""
+    """Compare all traditions' mapping for a single ToE step (0-9)."""
     if not 0 <= step_index <= 9:
         raise HTTPException(status_code=400, detail=f"Step index must be 0-9, got {step_index}")
     return {

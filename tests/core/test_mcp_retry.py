@@ -1,4 +1,5 @@
 """Tests for MCP retry logic."""
+
 import asyncio
 
 import pytest
@@ -7,7 +8,6 @@ from cohezion.core.mcp_retry import retry_async, retry_sync
 
 
 class TestRetryAsync:
-
     def test_successful_first_attempt_no_retry(self):
         calls = []
 
@@ -53,10 +53,10 @@ class TestRetryAsync:
 
 
 class TestRetrySync:
-
     def test_successful_first_attempt(self):
         def fn():
             return 42
+
         assert retry_sync(fn, max_retries=3) == 42
 
     def test_retries_on_connection_error(self):
@@ -78,4 +78,3 @@ class TestRetrySync:
 
         with pytest.raises(ConnectionError):
             retry_sync(always_fail, max_retries=2, base_delay_s=0.001)
-

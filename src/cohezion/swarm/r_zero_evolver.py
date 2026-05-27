@@ -1,4 +1,4 @@
-# ruff: noqa: E402, E501  # long lines: SQL/URLs/docstrings — wrapping reduces readability
+# ruff: noqa: E402  # long lines: SQL/URLs/docstrings — wrapping reduces readability
 import asyncio
 import importlib.util
 import json
@@ -29,8 +29,8 @@ try:
 except (FileNotFoundError, ImportError, AttributeError):
     GENERATION_PROMPT = ""  # Fallback if file missing or error loading
 
-from cohezion.compound.session_manager import CompoundSessionManager  # noqa: E402
-from cohezion.swarm.compound_client import get_compound_client  # noqa: E402
+from cohezion.compound.session_manager import CompoundSessionManager
+from cohezion.swarm.compound_client import get_compound_client
 
 
 # Set up logging

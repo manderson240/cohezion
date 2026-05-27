@@ -22,17 +22,23 @@ def build_triune_orchestrator(
     *,
     npu_port: int = 13306,
     igpu_port: int = 13307,
-    cpu_port: int = 11434,
+    cpu_port: int = 13309,
     clasp_draft_port: int | None = 13308,
+    include_cloud: bool = True,
 ) -> TieredOrchestrator:
     """
     Constructs a TieredOrchestrator mapped to the Triune Substrate.
 
-    Tiers:
-    0. NPU (FastFlowLM): llama3.2-1b-FLM (Port 13306) — fits in XDNA2 SRAM, 42 TPS
-    1. iGPU (CLaSp/TurboKV Wave32): Gemma-4-E4B-it-GGUF (Port 13307)
+    Tiers (rich tapestry):
+    0. NPU (FastFlowLM): llama3.2-1b-FLM (Port 13306) — fits in XDNA2 SRAM, 42 TPS, $0
+    1. iGPU (CLaSp/TurboKV Wave32): Gemma-4-E4B-it-GGUF (Port 13307), $0
        With CLaSp: draft via Gemma-4-E2B-it-GGUF (Port 13308, optional)
-    2. CPU (Vectorized AVX-512): Gemma-4-31B-it-GGUF (Port 11434)
+    2. CPU (Vectorized AVX-512): Gemma-4-31B-it-GGUF (Port 13309, lemonade), $0
+    3. Haiku 4.5 (cloud): 3.75× cheaper than Sonnet, covers CPU quality gate failures
+    4. Sonnet 4.6 (cloud): final fallback for BBQ low-and-slow and complex synthesis
+
+    Token asymmetry: Tiers 0-2 cost $0.00. Tier 3 ≈ $0.001/avg call. Tier 4 ≈ $0.01/avg call.
+    Feynman routing: local always dominates on amplitude; cloud only invoked on gate failure.
 
     CLaSp (arXiv:2505.24196): E2B serves as the "shallow draft" (half the params),
     E4B as the full verifier. Expected 1.5-2.5x iGPU throughput improvement when
@@ -80,11 +86,22 @@ def build_triune_orchestrator(
         model_id="Gemma-4-31B-it-GGUF", base_url=f"http://localhost:{cpu_port}/v1", silent=True
     )
 
+    tiers: list[tuple] = [
+        (npu_tier, QualityGate(min_chars=500)),  # NPU: XDNA2 SRAM, $0
+        (igpu_tier, QualityGate(min_chars=750)),  # iGPU: ROCWMMA, $0 (EXP-ROUTE-12)
+        (cpu_tier, QualityGate(min_chars=1000)),  # CPU: AVX-512, $0
+    ]
+
+    if include_cloud:
+        # Haiku 4.5: cloud tier 1 — 3.75× cheaper than Sonnet, covers CPU gate failures
+        tiers.append(("claude-haiku-4-5", QualityGate.TRUST))  # type: ignore[arg-type]
+        # Sonnet 4.6: cloud tier 2 — final fallback for BBQ low-and-slow synthesis
+        tiers.append(("claude-sonnet-4-6", QualityGate.TRUST))  # type: ignore[arg-type]
+        logger.info("Triune: 5-tier tapestry (NPU→iGPU→CPU→Haiku→Sonnet), include_cloud=True")
+    else:
+        logger.info("Triune: 3-tier local-only (NPU→iGPU→CPU), include_cloud=False")
+
     return TieredOrchestrator(
-        tiers=[
-            (npu_tier, QualityGate(min_chars=500)),  # NPU must provide a solid start
-            (igpu_tier, QualityGate(min_chars=750)),  # iGPU gate calibrated (EXP-ROUTE-12)
-            (cpu_tier, QualityGate.TRUST),  # CPU for guaranteed completion
-        ],
+        tiers=tiers,
         pre_dispatch_classifier=classify_task,  # overrides quality gate per output_type
     )

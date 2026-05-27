@@ -3,6 +3,7 @@
 Tests fundamental properties (contracts) that must hold for ALL inputs,
 not just example-based cases. Uses parametrize for combinatorial coverage.
 """
+
 import asyncio
 from itertools import product
 
@@ -29,9 +30,9 @@ class TestGenerateNextExperimentsProperties:
     def test_mode_is_always_valid(self, coherence):
         """P2: Mode is always 'exploit' or 'explore' for any coherence."""
         engine = AutoresearchEngine()
-        result = _run(engine.generate_next_experiments(
-            n=5, session_metrics={"avg_coherence": coherence}
-        ))
+        result = _run(
+            engine.generate_next_experiments(n=5, session_metrics={"avg_coherence": coherence})
+        )
         for exp in result:
             assert exp["mode"] in ("exploit", "explore"), (
                 f"Invalid mode '{exp['mode']}' for coherence={coherence}"
@@ -41,9 +42,9 @@ class TestGenerateNextExperimentsProperties:
     def test_all_explore_when_below_threshold(self, coherence):
         """P3: When coherence < HIHO_THRESHOLD (0.5), all experiments are 'explore'."""
         engine = AutoresearchEngine()
-        result = _run(engine.generate_next_experiments(
-            n=5, session_metrics={"avg_coherence": coherence}
-        ))
+        result = _run(
+            engine.generate_next_experiments(n=5, session_metrics={"avg_coherence": coherence})
+        )
         for exp in result:
             assert exp["mode"] == "explore", (
                 f"Expected 'explore' for coherence={coherence}, got '{exp['mode']}'"
@@ -53,9 +54,9 @@ class TestGenerateNextExperimentsProperties:
     def test_all_exploit_when_at_or_above_threshold(self, coherence):
         """P4: When coherence >= HIHO_THRESHOLD (0.5), all experiments are 'exploit'."""
         engine = AutoresearchEngine()
-        result = _run(engine.generate_next_experiments(
-            n=5, session_metrics={"avg_coherence": coherence}
-        ))
+        result = _run(
+            engine.generate_next_experiments(n=5, session_metrics={"avg_coherence": coherence})
+        )
         for exp in result:
             assert exp["mode"] == "exploit", (
                 f"Expected 'exploit' for coherence={coherence}, got '{exp['mode']}'"
@@ -66,9 +67,9 @@ class TestGenerateNextExperimentsProperties:
         """P5: All retired_labels appear as 'replaces' in the first retired_count results."""
         engine = AutoresearchEngine()
         retired = [f"E{i}_test" for i in range(retired_count)]
-        result = _run(engine.generate_next_experiments(
-            n=n, session_metrics={}, retired_labels=retired
-        ))
+        result = _run(
+            engine.generate_next_experiments(n=n, session_metrics={}, retired_labels=retired)
+        )
         result_replaces = {exp.get("replaces") for exp in result if exp.get("replaces")}
         for label in retired:
             assert label in result_replaces, (
@@ -79,9 +80,9 @@ class TestGenerateNextExperimentsProperties:
         """P6: Every experiment result has a 'hypothesis' field."""
         engine = AutoresearchEngine()
         for coherence in [0.0, 0.5, 1.0]:
-            result = _run(engine.generate_next_experiments(
-                n=10, session_metrics={"avg_coherence": coherence}
-            ))
+            result = _run(
+                engine.generate_next_experiments(n=10, session_metrics={"avg_coherence": coherence})
+            )
             for exp in result:
                 assert "hypothesis" in exp, f"Missing 'hypothesis' in {exp}"
                 assert isinstance(exp["hypothesis"], str)
@@ -98,9 +99,8 @@ class TestGenerateNextExperimentsProperties:
     def test_priority_always_set(self, n, coherence):
         """P8: Every experiment has a 'priority' field."""
         engine = AutoresearchEngine()
-        result = _run(engine.generate_next_experiments(
-            n=n, session_metrics={"avg_coherence": coherence}
-        ))
+        result = _run(
+            engine.generate_next_experiments(n=n, session_metrics={"avg_coherence": coherence})
+        )
         for exp in result:
             assert "priority" in exp, f"Missing 'priority' in {exp}"
-

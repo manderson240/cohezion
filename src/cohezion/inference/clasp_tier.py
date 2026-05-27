@@ -24,12 +24,9 @@ from __future__ import annotations
 import logging
 import time
 from dataclasses import dataclass, field
-from typing import TYPE_CHECKING
-
-if TYPE_CHECKING:
-    pass
 
 from cohezion.inference.orchestrator import OrchestrationResult, QualityGate
+
 
 logger = logging.getLogger(__name__)
 
@@ -131,13 +128,17 @@ class CLaSpTier:
                     draft_ms,
                     len(draft_result.text),
                 )
+                draft_model_id = getattr(draft_result, "final_model", None) or getattr(
+                    draft_result, "model", "E2B"
+                )
                 return OrchestrationResult(
                     text=draft_result.text,
-                    model=f"clasp-draft:{draft_result.model}",
+                    primary_model=self.label,
+                    final_model=f"clasp-draft:{draft_model_id}",
+                    escalation_count=0,
                     cost_usd=draft_result.cost_usd,
-                    total_ms=draft_ms,
+                    latency_ms=draft_ms,
                     ttft_ms=draft_result.ttft_ms,
-                    tier_path=[f"clasp-draft:{draft_result.model}"],
                     error=None,
                 )
             else:
@@ -153,13 +154,17 @@ class CLaSpTier:
         verify_ms = (time.perf_counter() - verify_start) * 1000
         _clasp_stats.total_verify_ms += verify_ms
 
+        verify_model_id = getattr(verify_result, "final_model", None) or getattr(
+            verify_result, "model", "E4B"
+        )
         return OrchestrationResult(
             text=verify_result.text,
-            model=f"clasp-verify:{verify_result.model}",
+            primary_model=self.label,
+            final_model=f"clasp-verify:{verify_model_id}",
+            escalation_count=1,
             cost_usd=(draft_result.cost_usd if draft_result else 0.0) + verify_result.cost_usd,
-            total_ms=verify_ms + (draft_ms if draft_result else 0.0),
+            latency_ms=verify_ms + (draft_ms if draft_result else 0.0),
             ttft_ms=verify_result.ttft_ms,
-            tier_path=["clasp-draft:rejected", f"clasp-verify:{verify_result.model}"],
             error=verify_result.error,
         )
 

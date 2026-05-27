@@ -17,7 +17,7 @@ from datetime import date
 
 _OLLAMA = shutil.which("ollama") or "/usr/local/bin/ollama"
 
-from cohezion.compound.capability_matrix import (  # noqa: E402
+from cohezion.compound.capability_matrix import (
     CapabilityGap,
     CapabilityMatrix,
     FinetuneCandidate,
@@ -94,7 +94,7 @@ class WorkflowManager:
 
         # Step 1: Check if model is available locally
         try:
-            output = subprocess.run(  # noqa: S603 - static probe with constant args
+            output = subprocess.run(
                 [_OLLAMA, "list"],
                 capture_output=True,
                 text=True,

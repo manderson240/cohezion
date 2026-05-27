@@ -321,7 +321,6 @@ class TestExecutorFactory:
 class TestCompoundExecutorIntegrationScenarios:
     """Integration scenarios with token client."""
 
-
     def setup_method(self):
         ExecutorFactory.reset_singleton()
 

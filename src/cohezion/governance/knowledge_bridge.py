@@ -86,7 +86,7 @@ learning_number: {learning.number}{links_str}
 {learning.propagate_to}
 
 ## Cross-References
-See: [[indigenous-cosmologies-toe-synthesis]] for the 16-tradition validation.
+See: [[indigenous-cosmologies-toe-synthesis]] for the 17-tradition validation (incl. stealthskater).
 See: [[theory-of-everything-synthesis]] for the unified physics framework.
 """
 

@@ -32,7 +32,7 @@ class CoverageLoop:
         try:
             # We assume tests for src/cohezion/x.py are in tests/
             # For simplicity in the loop, we run all tests but report on the specific file
-            output = subprocess.check_output(  # noqa: S603 - file_path comes from internal coverage loop config
+            output = subprocess.check_output(
                 [_UV, "run", "pytest", "--cov=" + file_path],
                 cwd=self.root_dir,
                 stderr=subprocess.STDOUT,

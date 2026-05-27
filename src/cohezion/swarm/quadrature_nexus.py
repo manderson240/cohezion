@@ -254,9 +254,9 @@ class QuadratureNexus:
                 # Append signed adjustment to history (keep last 5)
                 self._mycelium_calibration_history[vt].append(adjustment)
                 if len(self._mycelium_calibration_history[vt]) > 5:
-                    self._mycelium_calibration_history[vt] = (
-                        self._mycelium_calibration_history[vt][-5:]
-                    )
+                    self._mycelium_calibration_history[vt] = self._mycelium_calibration_history[vt][
+                        -5:
+                    ]
                 # E57: accumulate into _mycelium_calibration (+=) rather than SET _score_adjustments.
                 # SET semantics caused cycle-2 to replace cycle-1's calibration with a smaller value
                 # as the observed mean rose. Additive semantics produce monotonic compounding.

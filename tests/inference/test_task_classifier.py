@@ -250,3 +250,275 @@ def test_route_decision_str_format():
     assert "short_categorical" in s
     assert "gate=0" in s
     assert "conf=1.00" in s
+
+
+# ---------------------------------------------------------------------------
+# Real-world routing: external research and URL patterns (exp_MMMM findings)
+# ---------------------------------------------------------------------------
+
+
+@pytest.mark.parametrize(
+    "prompt",
+    [
+        "Do additional research on huggingface and arxiv to identify tip of the spear developments",
+        "research new papers on LENR physics",
+        "research huggingface for better embedding models",
+        "now research https://www.stealthskater.com/Intro.htm",
+    ],
+)
+def test_external_research_routes_to_gpu(prompt):
+    d = classify(prompt)
+    assert d.node == "gpu", f"Expected gpu for research task: {prompt!r}"
+    assert d.output_type == "long_generation"
+
+
+@pytest.mark.parametrize(
+    "prompt",
+    [
+        "Integrate https://github.com/DVampire/Autogenesis",
+        "can we try https://huggingface.co/Ring-2.6-1T with lemonade server",
+        "test https://github.com/some/repo integration",
+    ],
+)
+def test_url_action_routes_to_gpu(prompt):
+    d = classify(prompt)
+    assert d.node == "gpu", f"Expected gpu for URL action: {prompt!r}"
+
+
+def test_real_world_routing_accuracy_19_prompts():
+    """Regression: 19 real human prompts from session history must route correctly."""
+    cases = [
+        (
+            "How do we recover the other local claude code sessions that were killed to prevent OOM",
+            "gpu",
+        ),
+        ("Can you resume and manage those sessions with headless claude code sessions?", "gpu"),
+        ("Yes, give them different PRs each", "npu"),
+        (
+            "Do additional research on huggingface and arxiv to identify tip of the spear developments",
+            "gpu",
+        ),
+        ("Integrate https://github.com/DVampire/Autogenesis", "gpu"),
+        ("how can we extend this to improve FLUME?", "gpu"),
+        ("now research https://www.stealthskater.com/Intro.htm", "gpu"),
+        ("can we try https://huggingface.co/Ring-2.6-1T with lemonade server", "gpu"),
+        ("Create a merge request to main", "gpu"),
+        ("check the CI pipeline", "gpu"),
+        ("Why is /ultraplan broken?", "gpu"),
+        ("investigate that 96MB file", "gpu"),
+        ("write tests for another paper", "gpu"),
+        ("refactor skill_registry.json", "gpu"),
+        ("How do we enable autocompact?", "gpu"),
+        ("Be careful with destructive operations.", "npu"),
+        ("Are we using all gemma 4 models?", "npu"),
+        ("Let's stay low and slow for now.", "npu"),
+        ("shoud be in .env don't print it", "npu"),
+    ]
+    misses = [(p, e, classify(p).node) for p, e in cases if classify(p).node != e]
+    assert not misses, f"Routing misses: {misses}"
+
+
+# ── Round 8 patterns (2026-05-27) ────────────────────────────────────────────
+
+
+class TestWhichResourcePreOverride:
+    """exp_YYYY2: 'Which port/model/version does X use?' → NPU before GPU scan.
+
+    'port' is in the extended engineering verb list (can trigger GPU), but
+    'Which port does the NPU tier use?' is a factual lookup, not an engineering task.
+    The pre-override fires on ^which + resource-noun + does/is (≤75 chars).
+    """
+
+    def test_which_port_routes_npu(self):
+        d = classify("Which port does the NPU tier use?")
+        assert d.node == "npu"
+        assert "which-resource" in d.reason
+
+    def test_which_model_routes_npu(self):
+        d = classify("Which model does the iGPU tier run?")
+        assert d.node == "npu"
+
+    def test_which_default_routes_npu(self):
+        d = classify("Which default does CLAUDE_CODE_STOP_HOOK_BLOCK_CAP use?")
+        assert d.node == "npu"
+
+    def test_which_library_recommendation_routes_gpu(self):
+        # 'Which library should I use?' is a recommendation, not a factual lookup
+        d = classify("Which library should I use for structured logging?")
+        assert d.node == "gpu"
+
+    def test_which_approach_recommendation_routes_gpu(self):
+        d = classify("Which approach should I use for the new caching strategy?")
+        assert d.node == "gpu"
+
+
+class TestRouteTaskPrefixPreOverride:
+    """exp_ZZZZ2: 'Route/Classify this task: X' → NPU (meta-routing instruction).
+
+    Without the override, GPU patterns fire on technical nouns in the content after
+    the colon (e.g., 'port', 'implement', 'batch processing pipeline').
+    """
+
+    def test_route_this_task_routes_npu(self):
+        d = classify("Route this task: short factual question about a port number")
+        assert d.node == "npu"
+        assert "route-task-prefix" in d.reason
+
+    def test_route_this_request_routes_npu(self):
+        d = classify("Route this request: is this a code generation task?")
+        assert d.node == "npu"
+
+    def test_classify_this_prompt_routes_npu(self):
+        d = classify("Classify this prompt: is it code or text?")
+        assert d.node == "npu"
+
+    def test_route_task_with_gpu_content_still_npu(self):
+        # Content after colon has GPU verbs, but prefix overrides
+        d = classify(
+            "Route this task: implement a new batch processing pipeline for the compound loop"
+        )
+        assert d.node == "npu"
+
+
+class TestBrevitySummarizeDigitForms:
+    """exp_DDDDD3: 'Summarize in N sentences' → NPU (brevity-qualified).
+
+    The pattern previously only matched 'one/two/three/a single'; digit forms like
+    '2 sentences' or '3 bullets' now also route to NPU.
+    """
+
+    def test_summarize_in_one_sentence_npu(self):
+        d = classify("Summarize the compound loop in one sentence")
+        assert d.node == "npu"
+
+    def test_summarize_in_2_sentences_npu(self):
+        d = classify("Summarize the compound loop in 2 sentences")
+        assert d.node == "npu"
+
+    def test_summarize_in_3_sentences_npu(self):
+        d = classify("Summarize the HIHO stability principle in 3 sentences")
+        assert d.node == "npu"
+
+    def test_briefly_summarize_routes_npu(self):
+        d = classify("Briefly summarize the HIHO stability principle")
+        assert d.node == "npu"
+
+    def test_summarize_without_brevity_routes_gpu(self):
+        # No brevity qualifier → GPU (complex architectural summary)
+        d = classify(
+            "Summarize the entire compound engineering loop architecture with diagrams and code examples"
+        )
+        assert d.node == "gpu"
+
+
+class TestBacktickVerbEngineeringPreOverride:
+    """exp_EEEEE3: Backtick-prefixed engineering verb → GPU (imperative command form).
+
+    Users wrap engineering command verbs in backticks to signal intent explicitly.
+    The override fires before the extended engineering verb object-allowlist check,
+    which fails when the object is a system name not in the allowlist.
+    """
+
+    def test_backtick_port_with_unrecognized_object_routes_gpu(self):
+        d = classify("`port` the triune_orchestrator to support async batch processing")
+        assert d.node == "gpu"
+        assert "backtick" in d.reason
+
+    def test_backtick_port_with_compound_path_routes_gpu(self):
+        d = classify("`port` the routing logic to the new AsyncFleet API")
+        assert d.node == "gpu"
+
+    def test_backtick_migrate_routes_gpu(self):
+        d = classify("`migrate` the triune_orchestrator to async")
+        assert d.node == "gpu"
+
+    def test_backtick_refactor_still_routes_gpu(self):
+        # refactor already worked via engineering-task-verb; backtick override also fires
+        d = classify("`refactor` the executor.py module to use async patterns")
+        assert d.node == "gpu"
+
+    def test_no_backtick_port_with_unrecognized_object_routes_npu(self):
+        # Without backticks, 'port the triune_orchestrator' falls to length-default NPU
+        # Quality gate handles escalation if response is insufficient
+        d = classify("Port the triune_orchestrator to support async batch processing")
+        assert d.node == "npu"
+
+    def test_backtick_true_false_not_triggered(self):
+        # Non-engineering backtick tokens should not fire the override
+        d = classify("`true` or `false`: the FlumeVAE uses 256D latent space")
+        assert d.node == "npu"
+
+
+class TestReleaseNotesFalsePositiveFix:
+    """exp_FFFFF3: 'release notes' noun phrase must not trigger deploy/provision GPU pattern.
+
+    The deploy/provision GPU pattern matched 'release' as a verb, catching documentation
+    references like 'List cached release notes files'. Fixed with negative lookahead
+    release(?!\\s+notes?\\b) — deployment actions still route GPU.
+    """
+
+    def test_list_release_notes_routes_npu(self):
+        d = classify("List cached release notes files")
+        assert d.node == "npu"
+
+    def test_read_release_notes_cache_routes_npu(self):
+        d = classify("Read the most recent release notes cache")
+        assert d.node == "npu"
+
+    def test_fetch_release_notes_routes_npu(self):
+        d = classify("Fetch release notes for v2.1.137 through v2.1.152")
+        assert d.node == "npu"
+
+    def test_release_to_production_still_gpu(self):
+        # Actual deployment action — must still route GPU
+        d = classify("Release the new API version to production")
+        assert d.node == "gpu"
+        assert "deploy" in d.reason
+
+    def test_release_version_to_appstore_still_gpu(self):
+        d = classify("Release version 2.0 to the AppStore")
+        assert d.node == "gpu"
+
+    def test_review_release_notes_and_update_config_still_gpu(self):
+        # 'Review /release-notes and update' — compound task, must stay GPU
+        d = classify("Review /release-notes and update our configuration accordingly")
+        assert d.node == "gpu"
+
+
+class TestRunAndReportHyphenatedFix:
+    """exp_ZZZZ2: run-and-report GPU pattern must match hyphenated tokens.
+
+    The original pattern used (\\w+ ){0,3} which excludes hyphens. 'dry-run' contains
+    a hyphen so 'Run the compound cycle dry-run and report' did not match. Fixed by
+    changing to (?:[\\w-]+ ){0,4} to allow hyphenated words.
+    """
+
+    def test_run_dry_run_and_report_routes_gpu(self):
+        d = classify("Run the compound cycle dry-run and report which phases pass")
+        assert d.node == "gpu"
+        assert "run-and-report" in d.reason
+
+    def test_execute_pre_commit_and_report_routes_gpu(self):
+        d = classify("Execute the pre-commit hook and report any errors")
+        assert d.node == "gpu"
+
+    def test_run_benchmark_and_report_routes_gpu(self):
+        d = classify("Run a benchmark and report the scores")
+        assert d.node == "gpu"
+
+
+class TestBacktickNormalizationNonEngineeringPath:
+    """exp_DDDDD3: Backtick-quoted verbs normalized before GPU scan.
+
+    `re.sub(r'`(\\w+)`', r'\\1', prompt)` strips backticks before the GPU pattern scan
+    so that extended engineering verb patterns can match verbs like `validate`, `parse`.
+    Verbs not in the _BACKTICK_VERB_ENGINEERING_PATTERN but in GPU patterns still work.
+    """
+
+    def test_backtick_validate_routes_gpu_via_extended_verb(self):
+        d = classify("`validate` the pipeline schemas before deployment")
+        assert d.node == "gpu"
+
+    def test_backtick_parse_routes_gpu_via_extended_verb(self):
+        d = classify("`parse` the JSON schemas for the API validation layer")
+        assert d.node == "gpu"

@@ -6,6 +6,7 @@ Reads autoresearch.jsonl and computes:
 - Retirement candidates (CV < threshold)
 - Top-performing experiments
 """
+
 from __future__ import annotations
 
 import contextlib
@@ -36,6 +37,28 @@ def load_experiment_records(
     return records
 
 
+def _extract_experiment_id(r: dict[str, Any]) -> str:
+    """Handle multiple JSONL schemas across autoresearch rounds."""
+    return r.get("asi", {}).get("experiment") or r.get("experiment_id") or r.get("id") or "unknown"
+
+
+def _extract_metric(r: dict[str, Any]) -> float:
+    """Safe metric extraction across Round 1-7+ JSONL schemas.
+
+    Round 1-6: metric is a float scalar.
+    Round 7 (HIHO): metric is a dict {'jsd_trained': float, 'jsd_random': float, ...}.
+    Round 8+: no metric field at all.
+    """
+    m = r.get("metric", 0)
+    if isinstance(m, (int, float)):
+        return float(m)
+    if isinstance(m, dict):
+        for key in ("jsd_trained", "compound_lift", "score", "value"):
+            if isinstance(m.get(key), (int, float)):
+                return float(m[key])
+    return 0.0
+
+
 def compute_experiment_stats(records: list[dict[str, Any]]) -> dict[str, dict[str, Any]]:
     """Compute per-experiment statistics."""
     experiments: dict[str, dict[str, Any]] = defaultdict(
@@ -43,8 +66,8 @@ def compute_experiment_stats(records: list[dict[str, Any]]) -> dict[str, dict[st
     )
 
     for r in records:
-        exp = r.get("asi", {}).get("experiment", "unknown")
-        metric = float(r.get("metric", 0))
+        exp = _extract_experiment_id(r)
+        metric = _extract_metric(r)
         status = r.get("status", "")
         experiments[exp]["total"] += 1
         if status == "keep":
@@ -129,7 +152,8 @@ def compute_experiment_velocity(
 
     cutoff_ms = now_ms - time_window_ms
     recent = [
-        r for r in records
+        r
+        for r in records
         if r.get("asi", {}).get("experiment") == experiment
         and r.get("timestamp", 0) >= cutoff_ms
         and r.get("status") == "keep"

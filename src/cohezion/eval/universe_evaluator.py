@@ -1,4 +1,4 @@
-# ruff: noqa: E501  # long lines: SQL/URLs/docstrings — wrapping reduces readability
+# long lines: SQL/URLs/docstrings — wrapping reduces readability
 """UniverseEvaluator — Rigorous evaluation framework for Cohezion RL environments.
 
 Provides unified benchmarking across ManifoldEnv and SwarmEnv with:

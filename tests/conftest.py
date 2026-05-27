@@ -200,7 +200,21 @@ def reset_singletons():
     except ImportError:
         pass
 
-    # Reset DynamicConcurrencyGate module-level singleton (Wave 3G).
+    # Reset TelemetryBus + JourneyWorker singletons (asyncio.Queue is loop-bound).
+    # Without this, the bus Queue from test N's event loop breaks in test N+1's loop.
+    try:
+        import cohezion.core.telemetry_bus as _tbus_module
+
+        _tbus_module._BUS = None
+    except (ImportError, AttributeError):
+        pass
+    try:
+        import cohezion.core.journey_worker as _jworker_module
+
+        _jworker_module._WORKER = None
+    except (ImportError, AttributeError):
+        pass
+
     # Reset DynamicConcurrencyGate module-level singleton (Wave 3G).
     # Test pollution surfaced via audit: _gate_instance retained metrics across tests.
     try:
@@ -257,6 +271,20 @@ def reset_singletons():
         import cohezion.swarm.dynamic_concurrency_gate as _dcg_module
 
         _dcg_module._gate_instance = None
+    except (ImportError, AttributeError):
+        pass
+
+    # Reset TelemetryBus + JourneyWorker singletons after test
+    try:
+        import cohezion.core.telemetry_bus as _tbus_module
+
+        _tbus_module._BUS = None
+    except (ImportError, AttributeError):
+        pass
+    try:
+        import cohezion.core.journey_worker as _jworker_module
+
+        _jworker_module._WORKER = None
     except (ImportError, AttributeError):
         pass
 

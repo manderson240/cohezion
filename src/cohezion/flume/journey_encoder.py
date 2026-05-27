@@ -188,7 +188,7 @@ def compute_journey_vae_loss(
     mask: Tensor,
     mu: Tensor,
     log_var: Tensor,
-    kl_weight: float = 0.1,
+    kl_weight: float = 0.01,
 ) -> tuple[Tensor, Tensor, Tensor]:
     """Compute MSE reconstruction + KL divergence losses.
 

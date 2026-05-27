@@ -1,4 +1,4 @@
-# ruff: noqa: SIM105, RUF006  # fire-and-forget async tasks — intentional
+# ruff: noqa: SIM105  # fire-and-forget async tasks — intentional
 """30-minute ahead thermal prediction for pre-emptive throttling.
 
 Extends existing ThermalTrendAnalyzer with time-series forecasting.

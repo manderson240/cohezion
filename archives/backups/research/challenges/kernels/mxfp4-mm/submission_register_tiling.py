@@ -7,7 +7,6 @@ Key insight: MI355X has specific register file constraints.
 Matching tile sizes to available registers improves performance.
 """
 
-
 import aiter
 import torch
 from aiter import dtypes

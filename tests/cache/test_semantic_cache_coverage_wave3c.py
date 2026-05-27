@@ -402,4 +402,3 @@ class TestStatsAndClearEdges:
             "l2_size": 0,
             "similarity_threshold": cache.similarity_threshold,
         }
-        }

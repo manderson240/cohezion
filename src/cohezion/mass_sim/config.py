@@ -1,4 +1,4 @@
-# ruff: noqa: E501  # long lines: SQL/URLs/docstrings — wrapping reduces readability
+# long lines: SQL/URLs/docstrings — wrapping reduces readability
 """Configuration for mass simulation runs.
 
 Defines scale tiers, universe specs, and simulation parameters with

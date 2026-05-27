@@ -7,7 +7,6 @@ Key insight: Quantization is element-wise and can be vectorized
 across 256-bit vectors (8 bf16 elements) for better throughput.
 """
 
-
 import aiter
 import torch
 from aiter import dtypes

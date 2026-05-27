@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-# ruff: noqa: E501  # long lines: SQL/URLs/docstrings — wrapping reduces readability
+# long lines: SQL/URLs/docstrings — wrapping reduces readability
 """Traceability MCP Server - Autonomous repo health monitoring via MCP protocol.
 
 Usage:
@@ -66,7 +66,7 @@ def traceability_run_engine(self_trace: bool = False) -> dict[str, Any]:
     if self_trace:
         args.append("--self-trace")
 
-    result = subprocess.run(  # noqa: S603 - args static, paths internal
+    result = subprocess.run(
         args, capture_output=True, text=True, cwd=PROJECT_ROOT, timeout=300
     )
 
@@ -100,7 +100,7 @@ def traceability_run_health() -> dict[str, Any]:
     Returns:
         Dict with health score, category breakdown, and findings
     """
-    result = subprocess.run(  # noqa: S603 - args static, paths internal
+    result = subprocess.run(
         [_UV, "run", "python", str(TRACEABILITY_DIR / "repo_health" / "repo_health_engine.py")],
         capture_output=True,
         text=True,
@@ -129,7 +129,7 @@ def traceability_trigger_party() -> dict[str, Any]:
     Returns:
         Dict with findings count and severity breakdown
     """
-    result = subprocess.run(  # noqa: S603 - args static, paths internal
+    result = subprocess.run(
         [_UV, "run", "python", str(TRACEABILITY_DIR / "workflows" / "run_party_review.py")],
         capture_output=True,
         text=True,
@@ -239,17 +239,17 @@ def traceability_auto_commit(
         Dict with commit hash and status
     """
     # Stage changes
-    subprocess.run(  # noqa: S603 - git args static, path constant
+    subprocess.run(
         [_GIT, "add", "_bmad/_config/traceability/"], cwd=PROJECT_ROOT, capture_output=True
     )
 
     # Commit
-    result = subprocess.run(  # noqa: S603 - git args static, message internal
+    result = subprocess.run(
         [_GIT, "commit", "-m", message], capture_output=True, text=True, cwd=PROJECT_ROOT
     )
 
     # Get commit hash
-    hash_result = subprocess.run(  # noqa: S603 - git args static
+    hash_result = subprocess.run(
         [_GIT, "rev-parse", "HEAD"], capture_output=True, text=True, cwd=PROJECT_ROOT
     )
 

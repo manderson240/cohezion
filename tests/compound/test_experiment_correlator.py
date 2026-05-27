@@ -1,4 +1,5 @@
 """Tests for experiment correlator."""
+
 from cohezion.compound.experiment_correlator import (
     compute_temporal_correlation,
     find_strong_correlations,
@@ -10,7 +11,6 @@ def _make_seq(exp, status="keep"):
 
 
 class TestTemporalCorrelation:
-
     def test_empty_records_returns_empty(self):
         assert compute_temporal_correlation([]) == {}
 
@@ -48,7 +48,6 @@ class TestTemporalCorrelation:
 
 
 class TestFindStrongCorrelations:
-
     def test_empty_returns_empty(self):
         assert find_strong_correlations({}) == []
 

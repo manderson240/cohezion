@@ -4,13 +4,14 @@ Provides an exponential backoff retry wrapper for MCPClient operations.
 Designed to handle connection failures, timeouts, and transient errors
 without blocking the main thread.
 """
+
 from __future__ import annotations
 
 import asyncio
 import logging
 import time
-from typing import Any, TypeVar
 from collections.abc import Callable
+from typing import Any, TypeVar
 
 
 logger = logging.getLogger(__name__)
@@ -54,14 +55,15 @@ async def retry_async(
             if attempt < max_retries:
                 logger.debug(
                     "retry_async: attempt %d/%d failed (%s), retrying in %.1fs",
-                    attempt + 1, max_retries, type(e).__name__, delay,
+                    attempt + 1,
+                    max_retries,
+                    type(e).__name__,
+                    delay,
                 )
                 await asyncio.sleep(delay)
                 delay = min(delay * 2, max_delay_s)
             else:
-                logger.debug(
-                    "retry_async: all %d attempts exhausted", max_retries
-                )
+                logger.debug("retry_async: all %d attempts exhausted", max_retries)
 
     raise last_exc
 

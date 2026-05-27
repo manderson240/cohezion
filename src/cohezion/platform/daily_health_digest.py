@@ -1,4 +1,4 @@
-# ruff: noqa: E402, E501  # long lines: SQL/URLs/docstrings — wrapping reduces readability
+# long lines: SQL/URLs/docstrings — wrapping reduces readability
 """
 Daily Platform Health Digest with Charter-aligned scoring.
 
@@ -206,7 +206,7 @@ class DailyHealthDigest:
 
         try:
             # Get repository size
-            result = subprocess.run(  # noqa: S603 - static system probe with constant args
+            result = subprocess.run(
                 [_DU, "-sb", ".git"],
                 capture_output=True,
                 text=True,
@@ -216,7 +216,7 @@ class DailyHealthDigest:
             size_gb = size_bytes / (1024**3)
 
             # Count large files (>1MB) in history
-            result = subprocess.run(  # noqa: S603 - static bash one-liner counting large blobs
+            result = subprocess.run(
                 [
                     _BASH,
                     "-c",
@@ -231,7 +231,7 @@ class DailyHealthDigest:
             large_file_count = int(result.stdout.strip())
 
             # Get pack efficiency
-            result = subprocess.run(  # noqa: S603 - static git probe
+            result = subprocess.run(
                 [_GIT, "count-objects", "-v"],
                 capture_output=True,
                 text=True,

@@ -169,7 +169,7 @@ def validate_all_agent_files(
         If any agent file fails validation (all errors combined).
     """
     if directory is None:
-        result = subprocess.run(  # noqa: S603 - static git probe
+        result = subprocess.run(
             [_GIT, "rev-parse", "--show-toplevel"],
             capture_output=True,
             text=True,

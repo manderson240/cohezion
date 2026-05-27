@@ -137,7 +137,7 @@ class CoherenceTracker:
         import subprocess
 
         uv_exec = shutil.which("uv") or "/usr/local/bin/uv"
-        result = subprocess.run(  # noqa: S603 - static ruff check, no user input
+        result = subprocess.run(
             [uv_exec, "run", "ruff", "check", "src/", "--statistics"],
             capture_output=True,
             text=True,

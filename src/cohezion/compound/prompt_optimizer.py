@@ -1,4 +1,4 @@
-# ruff: noqa: RUF012  # class attrs treated as immutable config; never mutated per-instance
+# class attrs treated as immutable config; never mutated per-instance
 """Prompt optimizer - compress verbose requests to token-efficient format.
 
 Applies template-based substitution, filler word removal, and entity extraction

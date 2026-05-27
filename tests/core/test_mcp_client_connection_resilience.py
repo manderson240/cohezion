@@ -1,7 +1,7 @@
 """Tests for MCPClient connection resilience with retry logic."""
+
 import asyncio
 from unittest.mock import AsyncMock, MagicMock, patch
-
 
 from cohezion.core.mcp_client import MCPClient, MCPConfig
 
@@ -58,4 +58,3 @@ class TestConnectionResilience:
         client = _make_client()
         result = client.vault_search("test query")
         assert isinstance(result, list)  # Returns list (possibly empty)
-

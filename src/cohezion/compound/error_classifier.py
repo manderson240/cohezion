@@ -4,6 +4,7 @@ Provides a single classify() function that takes an exception and returns
 error_category + retryable flag. Extracted to a separate module so the
 logic is testable independently and can be imported by executor.py.
 """
+
 from __future__ import annotations
 
 import asyncio

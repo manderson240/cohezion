@@ -1,4 +1,4 @@
-# ruff: noqa: S104, E501  # long lines: SQL/URLs/docstrings — wrapping reduces readability
+# long lines: SQL/URLs/docstrings — wrapping reduces readability
 """Plasma Physics MCP Server - For 400-year unification and exotic vacuum objects.
 
 Port: 8371

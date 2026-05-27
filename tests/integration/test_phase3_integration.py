@@ -48,9 +48,7 @@ class TestPhase3GuardrailIntegration:
     async def test_default_pipeline_blocks_injection(self):
         """Test default pipeline blocks prompt injection."""
         # Mock resource monitor so test is not flaky under CI load
-        with patch(
-            "cohezion.security.guardrail_adapters.get_resource_monitor"
-        ) as mock_monitor:
+        with patch("cohezion.security.guardrail_adapters.get_resource_monitor") as mock_monitor:
             mock_monitor.return_value.should_rent.return_value = True
             mock_monitor.return_value.get_stats.return_value = {
                 "cpu_percent": 10.0,
@@ -340,9 +338,7 @@ class TestPhase3EndToEnd:
     @pytest.mark.asyncio
     async def test_cache_with_pipeline(self):
         """Test semantic cache with guardrail pipeline."""
-        with patch(
-            "cohezion.security.guardrail_adapters.get_resource_monitor"
-        ) as mock_monitor:
+        with patch("cohezion.security.guardrail_adapters.get_resource_monitor") as mock_monitor:
             mock_monitor.return_value.should_rent.return_value = True
             mock_monitor.return_value.get_stats.return_value = {
                 "cpu_percent": 10.0,

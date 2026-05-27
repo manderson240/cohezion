@@ -1,4 +1,5 @@
 """Tests for compound loop ASCII visualizer."""
+
 from cohezion.compound.loop_visualizer import (
     render_experiment_table,
     render_hiho_bar,
@@ -7,7 +8,6 @@ from cohezion.compound.loop_visualizer import (
 
 
 class TestHIHOBar:
-
     def test_exploit_mode_label(self):
         bar = render_hiho_bar(0.8)
         assert "EXPLOIT" in bar
@@ -30,29 +30,33 @@ class TestHIHOBar:
 
 
 class TestExperimentTable:
-
     def test_empty_stats(self):
         table = render_experiment_table({})
         assert "Experiment" in table  # Header still present
 
     def test_shows_experiment_name(self):
-        stats = {"E63": {"total": 100, "keep_rate": 1.0, "mean_metric": 0.15, "cv": 0.05, "n_keeps": 100}}
+        stats = {
+            "E63": {"total": 100, "keep_rate": 1.0, "mean_metric": 0.15, "cv": 0.05, "n_keeps": 100}
+        }
         table = render_experiment_table(stats)
         assert "E63" in table
 
     def test_retirement_candidate_labeled(self):
-        stats = {"E50": {"total": 50, "keep_rate": 1.0, "mean_metric": 0.125, "cv": 0.0, "n_keeps": 50}}
+        stats = {
+            "E50": {"total": 50, "keep_rate": 1.0, "mean_metric": 0.125, "cv": 0.0, "n_keeps": 50}
+        }
         table = render_experiment_table(stats, retirement_candidates=["E50"])
         assert "RETIRE" in table
 
     def test_active_experiment_labeled(self):
-        stats = {"E63": {"total": 50, "keep_rate": 0.9, "mean_metric": 0.15, "cv": 0.06, "n_keeps": 45}}
+        stats = {
+            "E63": {"total": 50, "keep_rate": 0.9, "mean_metric": 0.15, "cv": 0.06, "n_keeps": 45}
+        }
         table = render_experiment_table(stats, retirement_candidates=[])
         assert "active" in table
 
 
 class TestSessionSummary:
-
     def test_basic_summary(self):
         summary = render_session_summary(
             n_experiments=100,
@@ -76,4 +80,3 @@ class TestSessionSummary:
         )
         assert "Score Trend" in summary
         assert "▲" in summary  # Improving arrow
-

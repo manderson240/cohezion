@@ -3,6 +3,7 @@
 When remaining_s < 30, asyncio.wait_for must never be called with
 timeout = remaining_s - 10 (which would be negative and raise ValueError).
 """
+
 import asyncio
 from pathlib import Path
 from unittest.mock import MagicMock, patch
@@ -11,6 +12,7 @@ from unittest.mock import MagicMock, patch
 def _get_autorun_main():
     """Dynamically import the main() async function from autorun_2h.py."""
     import importlib.util
+
     spec = importlib.util.spec_from_file_location(
         "autorun_2h",
         Path("scripts/autorun_2h.py"),
@@ -46,6 +48,7 @@ class TestAutorunSpinLoopGuard:
 
         # Simulate: deadline is 5 seconds from now (< 30 threshold)
         import timeit
+
         fake_deadline = timeit.default_timer() + 5  # Only 5 seconds left
 
         async def run_scenario():
@@ -84,4 +87,3 @@ class TestAutorunSpinLoopGuard:
         assert "max(30.0" in source, (
             "Missing timeout floor: `max(30.0, ...)` not found in autorun_2h.py"
         )
-

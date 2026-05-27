@@ -1,4 +1,4 @@
-# ruff: noqa: N806  # math/physics: T, F, B, P, S, G, R, A — single-letter conventions
+# math/physics: T, F, B, P, S, G, R, A — single-letter conventions
 """Trajectory sequence dataset for FLUME Phase 2 temporal encoder training.
 
 Reads data/overnight/journeys.jsonl (or any compatible JSONL), groups records

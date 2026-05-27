@@ -16,6 +16,7 @@ Usage:
     uv run python3 scripts/research/vmodel_gate.py [--level fast|full]
     Exit 0 = pass, Exit 1 = gate failure
 """
+
 from __future__ import annotations
 
 import subprocess
@@ -28,17 +29,25 @@ ROOT = Path(__file__).parent.parent.parent
 
 # ── Structural invariants (V-model Layer 1 — always run) ────────────────────
 
+
 def check_nemotron_template() -> tuple[bool, str]:
     """O1: Nemotron v5 template has all required markers."""
     t0 = timeit.default_timer()
     try:
-        sys.path.insert(0, str(ROOT / 'src'))
+        sys.path.insert(0, str(ROOT / "src"))
         from cohezion.integrations.kaggle_training_improved import KaggleTrainingManager
+
         tmpl = KaggleTrainingManager().get_training_script_template()
         required = [
-            'all-linear', 'DataCollatorForSeq2Seq', 'label_pad_token_id=-100',
-            'torch_dtype=torch.bfloat16', 'lora_alpha=64', 'BOXED_INSTRUCTION',
-            'adapter_config.json', 'enable_input_require_grads', 'extract_boxed',
+            "all-linear",
+            "DataCollatorForSeq2Seq",
+            "label_pad_token_id=-100",
+            "torch_dtype=torch.bfloat16",
+            "lora_alpha=64",
+            "BOXED_INSTRUCTION",
+            "adapter_config.json",
+            "enable_input_require_grads",
+            "extract_boxed",
         ]
         missing = [m for m in required if m not in tmpl]
         ms = (timeit.default_timer() - t0) * 1000
@@ -54,8 +63,9 @@ def check_post_execution_wired() -> tuple[bool, str]:
     """O2: PostExecutionOrchestrator is importable from compound entry point."""
     t0 = timeit.default_timer()
     try:
-        sys.path.insert(0, str(ROOT / 'src'))
+        sys.path.insert(0, str(ROOT / "src"))
         from cohezion.compound.executor import PostExecutionOrchestrator  # noqa: F401
+
         ms = (timeit.default_timer() - t0) * 1000
         return True, f"O2 PASS: PostExecutionOrchestrator reachable ({ms:.1f}ms)"
     except ImportError as e:
@@ -67,8 +77,9 @@ def check_autocontext_importable() -> tuple[bool, str]:
     """O3: autocontext module importable (5th pillar of research framework)."""
     t0 = timeit.default_timer()
     try:
-        sys.path.insert(0, str(ROOT / 'src'))
+        sys.path.insert(0, str(ROOT / "src"))
         from cohezion.research.autocontext import monitor, compress, budget, archive  # noqa: F401
+
         ms = (timeit.default_timer() - t0) * 1000
         return True, f"O3 PASS: autocontext 4 functions importable ({ms:.1f}ms)"
     except ImportError as e:
@@ -80,11 +91,12 @@ def check_adaptive_schedule_importable() -> tuple[bool, str]:
     """O4: AdaptiveSchedule importable (compound research core)."""
     t0 = timeit.default_timer()
     try:
-        spec_path = ROOT / 'scripts' / 'research' / 'adaptive_schedule.py'
+        spec_path = ROOT / "scripts" / "research" / "adaptive_schedule.py"
         if not spec_path.exists():
             return False, "O4 FAIL: adaptive_schedule.py not found"
         sys.path.insert(0, str(ROOT))
         from scripts.research.adaptive_schedule import AdaptiveSchedule  # noqa: F401
+
         ms = (timeit.default_timer() - t0) * 1000
         return True, f"O4 PASS: AdaptiveSchedule importable ({ms:.1f}ms)"
     except Exception as e:
@@ -94,14 +106,28 @@ def check_adaptive_schedule_importable() -> tuple[bool, str]:
 
 # ── Behavioral layer (V-model Layer 2 — fast tests) ─────────────────────────
 
+
 def check_unit_tests_fast() -> tuple[bool, str]:
     """B1: Fast unit tests pass (autoharness behavioral gate)."""
     t0 = timeit.default_timer()
     result = subprocess.run(
-        ['uv', 'run', 'pytest', 'tests/unit',
-         '--import-mode=append', '-q', '--tb=no', '-p', 'no:warnings',
-         '--co', '-q'],
-        capture_output=True, text=True, timeout=30, cwd=ROOT
+        [
+            "uv",
+            "run",
+            "pytest",
+            "tests/unit",
+            "--import-mode=append",
+            "-q",
+            "--tb=no",
+            "-p",
+            "no:warnings",
+            "--co",
+            "-q",
+        ],
+        capture_output=True,
+        text=True,
+        timeout=30,
+        cwd=ROOT,
     )
     collect_ok = result.returncode == 0
     ms = (timeit.default_timer() - t0) * 1000
@@ -110,8 +136,8 @@ def check_unit_tests_fast() -> tuple[bool, str]:
         return False, f"B1 FAIL: test collection errors in {ms:.0f}ms"
 
     # Count collected tests
-    lines = result.stdout.strip().split('\n')
-    n_tests = sum(1 for l in lines if '::' in l)
+    lines = result.stdout.strip().split("\n")
+    n_tests = sum(1 for l in lines if "::" in l)
     return True, f"B1 PASS: {n_tests} tests collect cleanly ({ms:.0f}ms)"
 
 
@@ -129,9 +155,9 @@ FULL_GATES = FAST_GATES + [
 ]
 
 
-def run_gates(level: str = 'fast') -> int:
+def run_gates(level: str = "fast") -> int:
     """Run V-model gates. Returns 0 (pass) or 1 (fail)."""
-    gates = FULL_GATES if level == 'full' else FAST_GATES
+    gates = FULL_GATES if level == "full" else FAST_GATES
     t_total = timeit.default_timer()
     results = []
 
@@ -154,9 +180,10 @@ def run_gates(level: str = 'fast') -> int:
         return 1
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     import argparse
+
     parser = argparse.ArgumentParser()
-    parser.add_argument('--level', choices=['fast', 'full'], default='fast')
+    parser.add_argument("--level", choices=["fast", "full"], default="fast")
     args = parser.parse_args()
     sys.exit(run_gates(args.level))

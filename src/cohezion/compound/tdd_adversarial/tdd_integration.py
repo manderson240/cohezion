@@ -1,4 +1,4 @@
-# ruff: noqa: E501  # long lines: SQL/URLs/docstrings — wrapping reduces readability
+# long lines: SQL/URLs/docstrings — wrapping reduces readability
 """
 TDD (Test-Driven Development) Integration for Compound Engineering
 Provides test-driven development capabilities to the compound engineering system.
@@ -203,7 +203,7 @@ class TDDIntegration:
 
         try:
             start_time = time.time()
-            result = subprocess.run(  # noqa: S603 - cmd built from internal config and pytest args
+            result = subprocess.run(
                 cmd,
                 capture_output=True,
                 text=True,
@@ -265,7 +265,7 @@ class TDDIntegration:
         """Get code coverage percentage."""
         try:
             # Run coverage command
-            result = subprocess.run(  # noqa: S603 - args fully static
+            result = subprocess.run(
                 [_python_exec(), "-m", "coverage", "report", "--format=total"],
                 capture_output=True,
                 text=True,

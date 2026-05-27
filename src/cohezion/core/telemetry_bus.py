@@ -52,7 +52,7 @@ class TelemetryBus:
         """
         Emit a telemetry event. Non-blocking (fast-fail if queue full).
         """
-        print(f"[DEBUG] TelemetryBus: Emitting event {event.event_id}")
+        logger.debug("TelemetryBus: emitting %s", event.event_id)
         try:
             self._queue.put_nowait(event)
         except asyncio.QueueFull:
@@ -63,8 +63,10 @@ class TelemetryBus:
         while self._running:
             try:
                 event = await self._queue.get()
-                print(
-                    f"[DEBUG] TelemetryBus: Processing event {event.event_id} for {len(self._subscribers)} subscribers"
+                logger.debug(
+                    "TelemetryBus: processing %s for %d subscribers",
+                    event.event_id,
+                    len(self._subscribers),
                 )
 
                 # Distribute to subscribers (e.g., SurrealDB, Ouroboros)

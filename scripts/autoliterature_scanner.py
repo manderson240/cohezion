@@ -50,12 +50,27 @@ SEEN_MODELS_PATH = STATE_DIR / "seen_model_ids.json"
 #   * Reject > 70B params (won't fit even quantized)
 MODEL_SCOUT_MAX_PARAMS = 35_000_000_000  # 35B param cap for QLoRA on Strix Halo
 MODEL_SCOUT_OPEN_LICENSES = {
-    "apache-2.0", "mit", "bsd-3-clause", "bsd-2-clause",
-    "llama2", "llama3", "llama3.1", "llama3.2", "llama3.3", "llama4",
-    "gemma", "gemma-3", "gemma-4",
-    "qwen", "qwen-research", "qwen-license",
-    "deepseek-license", "deepseek",
-    "openrail", "openrail++", "creativeml-openrail-m",
+    "apache-2.0",
+    "mit",
+    "bsd-3-clause",
+    "bsd-2-clause",
+    "llama2",
+    "llama3",
+    "llama3.1",
+    "llama3.2",
+    "llama3.3",
+    "llama4",
+    "gemma",
+    "gemma-3",
+    "gemma-4",
+    "qwen",
+    "qwen-research",
+    "qwen-license",
+    "deepseek-license",
+    "deepseek",
+    "openrail",
+    "openrail++",
+    "creativeml-openrail-m",
     # Mistral/codestral are non-commercial — NOT included.
 }
 MODEL_SCOUT_BLOCKED_LIBS = {"diffusers", "tortoise-tts", "tensorflowtts"}  # not LLMs
@@ -75,15 +90,27 @@ LEMONADE_BASE = "http://localhost:13307/v1"
 # Day-0 Gemma 4 announcement), the scanner switches to it automatically without
 # any code change.
 LEMONADE_LANES = [
-    {"name": "npu",  "model": "gemma3-4b-FLM",
-     "preferred_models": ["gemma4-it:e2b", "Gemma-4-E2B-FLM", "gemma3-4b-FLM"],
-     "timeout": 12.0, "max_tokens": 180},  # bumped 8→12 for cold-load tolerance
-    {"name": "igpu", "model": "Gemma-4-E4B-it-GGUF",
-     "preferred_models": ["Gemma-4-E4B-it-GGUF", "Gemma-4-E2B-it-GGUF"],
-     "timeout": 20.0, "max_tokens": 180},
-    {"name": "cpu",  "model": "Qwen3-0.6B-GGUF",
-     "preferred_models": ["Qwen3-0.6B-GGUF", "Gemma-4-E2B-it-GGUF"],
-     "timeout": 15.0, "max_tokens": 180},
+    {
+        "name": "npu",
+        "model": "gemma3-4b-FLM",
+        "preferred_models": ["gemma4-it:e2b", "Gemma-4-E2B-FLM", "gemma3-4b-FLM"],
+        "timeout": 12.0,
+        "max_tokens": 180,
+    },  # bumped 8→12 for cold-load tolerance
+    {
+        "name": "igpu",
+        "model": "Gemma-4-E4B-it-GGUF",
+        "preferred_models": ["Gemma-4-E4B-it-GGUF", "Gemma-4-E2B-it-GGUF"],
+        "timeout": 20.0,
+        "max_tokens": 180,
+    },
+    {
+        "name": "cpu",
+        "model": "Qwen3-0.6B-GGUF",
+        "preferred_models": ["Qwen3-0.6B-GGUF", "Gemma-4-E2B-it-GGUF"],
+        "timeout": 15.0,
+        "max_tokens": 180,
+    },
 ]
 # Round-robin starting offset bumps each call so load spreads across lanes
 # (writes back to the seen-cache state file so it persists across invocations)
@@ -98,38 +125,79 @@ SILICON_PROFILE_PATH = STATE_DIR / "silicon_profile.json"
 # Maintained from E72-E76 findings — extend as new problems emerge.
 OPEN_PROBLEMS = {
     "open_loop_drivers": {
-        "keywords": ["self-improving", "recursive self-improvement", "autoresearch",
-                     "agentic research", "automated experimentation", "agent loop"],
+        "keywords": [
+            "self-improving",
+            "recursive self-improvement",
+            "autoresearch",
+            "agentic research",
+            "automated experimentation",
+            "agent loop",
+        ],
         "unblocks": ["E72", "E74"],
     },
     "stuck_optimizer": {
-        "keywords": ["prompt optimization", "reflective prompt", "gepa", "dspy",
-                     "evolutionary prompt", "trace optimizer"],
+        "keywords": [
+            "prompt optimization",
+            "reflective prompt",
+            "gepa",
+            "dspy",
+            "evolutionary prompt",
+            "trace optimizer",
+        ],
         "unblocks": ["E74"],
     },
     "voting_aggregation": {
-        "keywords": ["multi-agent voting", "weighted voting", "majority voting",
-                     "council", "ensemble", "dawid-skene", "calibrated confidence"],
+        "keywords": [
+            "multi-agent voting",
+            "weighted voting",
+            "majority voting",
+            "council",
+            "ensemble",
+            "dawid-skene",
+            "calibrated confidence",
+        ],
         "unblocks": ["E69"],
     },
     "world_model_jepa": {
-        "keywords": ["jepa", "v-jepa", "world model", "latent action",
-                     "self-supervised video", "action-conditioned"],
+        "keywords": [
+            "jepa",
+            "v-jepa",
+            "world model",
+            "latent action",
+            "self-supervised video",
+            "action-conditioned",
+        ],
         "unblocks": ["E11", "E46"],
     },
     "early_stopping": {
-        "keywords": ["early stopping", "convergence detection", "majority then stopping",
-                     "adaptive termination", "coefficient of variation"],
+        "keywords": [
+            "early stopping",
+            "convergence detection",
+            "majority then stopping",
+            "adaptive termination",
+            "coefficient of variation",
+        ],
         "unblocks": ["E70", "E71"],
     },
     "scoring_calibration": {
-        "keywords": ["proper scoring rule", "brier score", "log-loss",
-                     "calibration", "overconfidence", "abstention"],
+        "keywords": [
+            "proper scoring rule",
+            "brier score",
+            "log-loss",
+            "calibration",
+            "overconfidence",
+            "abstention",
+        ],
         "unblocks": ["E69", "metacognitive-calibration"],
     },
     "graph_provenance": {
-        "keywords": ["graphrag", "knowledge graph", "provenance graph",
-                     "graph-of-thought", "neuro-symbolic"],
+        "keywords": [
+            "graphrag",
+            "knowledge graph",
+            "provenance graph",
+            "graph-of-thought",
+            "neuro-symbolic",
+        ],
         "unblocks": ["E72-graph-edges-empty"],
     },
 }
@@ -143,12 +211,14 @@ ARXIV_CATEGORIES = "cs.LG+OR+cs.AI+OR+cs.CL+OR+cs.MA"
 def fetch_arxiv(query: str, max_results: int = 25, timeout: float = 10.0) -> list[dict]:
     """Hit arXiv export API for a single query, return parsed papers."""
     # arXiv search_query DSL: "all:keywords" picks up title + abstract + authors
-    qs = urllib.parse.urlencode({
-        "search_query": f"all:({query}) AND (cat:cs.LG OR cat:cs.AI OR cat:cs.CL OR cat:cs.MA)",
-        "sortBy": "submittedDate",
-        "sortOrder": "descending",
-        "max_results": max_results,
-    })
+    qs = urllib.parse.urlencode(
+        {
+            "search_query": f"all:({query}) AND (cat:cs.LG OR cat:cs.AI OR cat:cs.CL OR cat:cs.MA)",
+            "sortBy": "submittedDate",
+            "sortOrder": "descending",
+            "max_results": max_results,
+        }
+    )
     url = f"http://export.arxiv.org/api/query?{qs}"
     try:
         with urllib.request.urlopen(url, timeout=timeout) as r:
@@ -173,14 +243,16 @@ def fetch_arxiv(query: str, max_results: int = 25, timeout: float = 10.0) -> lis
         title = re.sub(r"\s+", " ", title)
         summary = (entry.findtext("atom:summary", "", ARXIV_NS) or "").strip()[:600]
         published = entry.findtext("atom:published", "", ARXIV_NS) or ""
-        out.append({
-            "source": "arxiv",
-            "id": f"arxiv:{arxiv_id}",
-            "title": title,
-            "summary": summary,
-            "published": published,
-            "url": f"https://arxiv.org/abs/{arxiv_id}",
-        })
+        out.append(
+            {
+                "source": "arxiv",
+                "id": f"arxiv:{arxiv_id}",
+                "title": title,
+                "summary": summary,
+                "published": published,
+                "url": f"https://arxiv.org/abs/{arxiv_id}",
+            }
+        )
     return out
 
 
@@ -191,12 +263,15 @@ def fetch_hf_models(limit: int = 60, timeout: float = 12.0) -> list[dict]:
     Returns dicts with: id, downloads, likes, library, license, params_estimate, tags, url.
     Only models that pass the open-license + size filter are returned.
     """
-    qs = urllib.parse.urlencode({
-        "filter": MODEL_SCOUT_TASK_FILTER,
-        "sort": "trendingScore", "direction": "-1",
-        "limit": limit,
-        "full": "true",  # get tags + library_name
-    })
+    qs = urllib.parse.urlencode(
+        {
+            "filter": MODEL_SCOUT_TASK_FILTER,
+            "sort": "trendingScore",
+            "direction": "-1",
+            "limit": limit,
+            "full": "true",  # get tags + library_name
+        }
+    )
     url = f"https://huggingface.co/api/models?{qs}"
     try:
         req = urllib.request.Request(url, headers={"Accept": "application/json"})
@@ -229,18 +304,20 @@ def fetch_hf_models(limit: int = 60, timeout: float = 12.0) -> list[dict]:
             m = re.search(r"[-_](\d+(?:\.\d+)?)([Bb])(?=[-_]|$)", mid)
             if m:
                 params = int(float(m.group(1)) * 1_000_000_000)
-        out.append({
-            "id": f"hfmodel:{mid}",
-            "model_id": mid,
-            "url": f"https://huggingface.co/{mid}",
-            "downloads": entry.get("downloads", 0),
-            "likes": entry.get("likes", 0),
-            "library": library,
-            "license": license_str,
-            "params_estimate": params,
-            "tags": tags[:20],
-            "pipeline_tag": entry.get("pipeline_tag", ""),
-        })
+        out.append(
+            {
+                "id": f"hfmodel:{mid}",
+                "model_id": mid,
+                "url": f"https://huggingface.co/{mid}",
+                "downloads": entry.get("downloads", 0),
+                "likes": entry.get("likes", 0),
+                "library": library,
+                "license": license_str,
+                "params_estimate": params,
+                "tags": tags[:20],
+                "pipeline_tag": entry.get("pipeline_tag", ""),
+            }
+        )
     return out
 
 
@@ -255,7 +332,8 @@ def filter_finetunable(models: list[dict]) -> list[dict]:
         ok_license = False
         for okl in MODEL_SCOUT_OPEN_LICENSES:
             if lic == okl or lic.startswith(okl):
-                ok_license = True; break
+                ok_license = True
+                break
         if not ok_license:
             # Some popular open-weights tag as "other" but README is permissive — keep but flag
             if "other" in lic or lic == "":
@@ -280,11 +358,15 @@ def load_seen_models() -> set[str]:
 
 
 def save_seen_models(seen: set[str]) -> None:
-    SEEN_MODELS_PATH.write_text(json.dumps({
-        "ids": sorted(seen),
-        "last_updated": datetime.now(UTC).strftime("%Y-%m-%dT%H:%M:%SZ"),
-        "count": len(seen),
-    }))
+    SEEN_MODELS_PATH.write_text(
+        json.dumps(
+            {
+                "ids": sorted(seen),
+                "last_updated": datetime.now(UTC).strftime("%Y-%m-%dT%H:%M:%SZ"),
+                "count": len(seen),
+            }
+        )
+    )
 
 
 # ── Hugging Face daily papers ─────────────────────────────────────────────────
@@ -308,21 +390,23 @@ def fetch_hf_daily(timeout: float = 10.0) -> list[dict]:
         published = entry.get("publishedAt") or paper.get("publishedAt") or ""
         if not pid:
             continue
-        out.append({
-            "source": "hf_daily",
-            "id": f"hf:{pid}",
-            "title": title,
-            "summary": summary,
-            "published": published,
-            "url": f"https://huggingface.co/papers/{pid}",
-        })
+        out.append(
+            {
+                "source": "hf_daily",
+                "id": f"hf:{pid}",
+                "title": title,
+                "summary": summary,
+                "published": published,
+                "url": f"https://huggingface.co/papers/{pid}",
+            }
+        )
     return out
 
 
 # ── scoring: map paper text → open problems ───────────────────────────────────
 def score_paper(paper: dict) -> tuple[list[str], int]:
     """Return (matching_problem_keys, total_keyword_hits)."""
-    text = f"{paper.get('title','')} {paper.get('summary','')}".lower()
+    text = f"{paper.get('title', '')} {paper.get('summary', '')}".lower()
     matches: list[str] = []
     total_hits = 0
     for problem_key, problem in OPEN_PROBLEMS.items():
@@ -344,10 +428,14 @@ def _load_lane_rotation_offset() -> int:
 
 
 def _save_lane_rotation_offset(offset: int) -> None:
-    LANE_ROTATION_PATH.write_text(json.dumps({
-        "offset": offset % len(LEMONADE_LANES),
-        "last_updated": datetime.now(UTC).strftime("%Y-%m-%dT%H:%M:%SZ"),
-    }))
+    LANE_ROTATION_PATH.write_text(
+        json.dumps(
+            {
+                "offset": offset % len(LEMONADE_LANES),
+                "last_updated": datetime.now(UTC).strftime("%Y-%m-%dT%H:%M:%SZ"),
+            }
+        )
+    )
 
 
 def _post_chat(model: str, prompt: str, timeout: float, max_tokens: int) -> tuple[str | None, dict]:
@@ -357,12 +445,14 @@ def _post_chat(model: str, prompt: str, timeout: float, max_tokens: int) -> tupl
       latency_ms, ok (bool), error_class, response_tokens (best-effort),
       tokens_per_sec (best-effort).
     """
-    body = json.dumps({
-        "model": model,
-        "messages": [{"role": "user", "content": prompt}],
-        "max_tokens": max_tokens,
-        "temperature": 0.2,
-    }).encode("utf-8")
+    body = json.dumps(
+        {
+            "model": model,
+            "messages": [{"role": "user", "content": prompt}],
+            "max_tokens": max_tokens,
+            "temperature": 0.2,
+        }
+    ).encode("utf-8")
     req = urllib.request.Request(
         f"{LEMONADE_BASE}/chat/completions",
         data=body,
@@ -389,26 +479,34 @@ def _post_chat(model: str, prompt: str, timeout: float, max_tokens: int) -> tupl
     except urllib.error.HTTPError as e:
         return None, {
             "latency_ms": round((timeit.default_timer() - t0) * 1000.0, 1),
-            "ok": False, "error_class": f"http_{e.code}",
-            "response_tokens": 0, "tokens_per_sec": 0.0,
+            "ok": False,
+            "error_class": f"http_{e.code}",
+            "response_tokens": 0,
+            "tokens_per_sec": 0.0,
         }
     except urllib.error.URLError as e:
         return None, {
             "latency_ms": round((timeit.default_timer() - t0) * 1000.0, 1),
-            "ok": False, "error_class": f"url_{type(e.reason).__name__}",
-            "response_tokens": 0, "tokens_per_sec": 0.0,
+            "ok": False,
+            "error_class": f"url_{type(e.reason).__name__}",
+            "response_tokens": 0,
+            "tokens_per_sec": 0.0,
         }
     except TimeoutError:
         return None, {
             "latency_ms": round((timeit.default_timer() - t0) * 1000.0, 1),
-            "ok": False, "error_class": "timeout",
-            "response_tokens": 0, "tokens_per_sec": 0.0,
+            "ok": False,
+            "error_class": "timeout",
+            "response_tokens": 0,
+            "tokens_per_sec": 0.0,
         }
     except Exception as e:
         return None, {
             "latency_ms": round((timeit.default_timer() - t0) * 1000.0, 1),
-            "ok": False, "error_class": f"other_{type(e).__name__}",
-            "response_tokens": 0, "tokens_per_sec": 0.0,
+            "ok": False,
+            "error_class": f"other_{type(e).__name__}",
+            "response_tokens": 0,
+            "tokens_per_sec": 0.0,
         }
 
 
@@ -431,12 +529,17 @@ def _update_silicon_profile(profile: dict, lane_name: str, telemetry: dict) -> N
     """Exponentially-weighted moving average over per-lane latency / tps / failure."""
     ALPHA = 0.3  # weight on the new observation; older runs decay
     lanes = profile.setdefault("lanes", {})
-    lane = lanes.setdefault(lane_name, {
-        "calls": 0, "ok_count": 0, "fail_count": 0,
-        "ewma_latency_ms": telemetry["latency_ms"],
-        "ewma_tokens_per_sec": telemetry["tokens_per_sec"],
-        "last_error": None,
-    })
+    lane = lanes.setdefault(
+        lane_name,
+        {
+            "calls": 0,
+            "ok_count": 0,
+            "fail_count": 0,
+            "ewma_latency_ms": telemetry["latency_ms"],
+            "ewma_tokens_per_sec": telemetry["tokens_per_sec"],
+            "last_error": None,
+        },
+    )
     lane["calls"] += 1
     if telemetry["ok"]:
         lane["ok_count"] += 1
@@ -464,11 +567,17 @@ def pick_sticky_lane(profile: dict) -> dict | None:
         _update_silicon_profile(profile, lane["name"], telemetry)
         if probe and probe.strip():
             _save_lane_rotation_offset(offset + 1)
-            print(f"[autoliterature] sticky lane = {lane['name']} ({lane['model']}) "
-                  f"probe_latency={telemetry['latency_ms']:.0f}ms", flush=True)
+            print(
+                f"[autoliterature] sticky lane = {lane['name']} ({lane['model']}) "
+                f"probe_latency={telemetry['latency_ms']:.0f}ms",
+                flush=True,
+            )
             return lane
-        print(f"  [probe] lane '{lane['name']}' didn't respond — error={telemetry['error_class']} "
-              f"latency={telemetry['latency_ms']:.0f}ms — trying next", flush=True)
+        print(
+            f"  [probe] lane '{lane['name']}' didn't respond — error={telemetry['error_class']} "
+            f"latency={telemetry['latency_ms']:.0f}ms — trying next",
+            flush=True,
+        )
         time.sleep(1.5)
     print("[autoliterature] no Lemonade lane responsive — keyword-only mode", flush=True)
     return None
@@ -485,28 +594,38 @@ def ensemble_score_paper(paper: dict, problem_keys: list[str], profile: dict) ->
     """
     problems_text = "; ".join(f"{k}: {OPEN_PROBLEMS[k]['unblocks']}" for k in problem_keys)
     prompt = (
-        f'You are an autoresearch reviewer. Given a paper and a list of open problems, '
+        f"You are an autoresearch reviewer. Given a paper and a list of open problems, "
         f'output ONLY JSON: {{"relevant": true|false, "best_problem": "<key>", "rationale": "<one short sentence>"}}.\n\n'
-        f'Paper title: {paper.get("title","")[:240]}\n'
-        f'Abstract: {paper.get("summary","")[:600]}\n\n'
-        f'Open problems with their unblocked experiment IDs:\n{problems_text}\n\n'
-        f'Pick the single best matching problem key (or null), and judge true relevance.'
+        f"Paper title: {paper.get('title', '')[:240]}\n"
+        f"Abstract: {paper.get('summary', '')[:600]}\n\n"
+        f"Open problems with their unblocked experiment IDs:\n{problems_text}\n\n"
+        f"Pick the single best matching problem key (or null), and judge true relevance."
     )
 
     def _one_lane(lane: dict) -> tuple[dict, dict]:
-        txt, telem = _post_chat(lane["model"], prompt, timeout=lane["timeout"], max_tokens=lane["max_tokens"])
-        verdict: dict = {"lane": lane["name"], "model": lane["model"],
-                         "latency_ms": telem["latency_ms"],
-                         "tokens_per_sec": telem["tokens_per_sec"],
-                         "ok": telem["ok"], "error_class": telem["error_class"]}
+        txt, telem = _post_chat(
+            lane["model"], prompt, timeout=lane["timeout"], max_tokens=lane["max_tokens"]
+        )
+        verdict: dict = {
+            "lane": lane["name"],
+            "model": lane["model"],
+            "latency_ms": telem["latency_ms"],
+            "tokens_per_sec": telem["tokens_per_sec"],
+            "ok": telem["ok"],
+            "error_class": telem["error_class"],
+        }
         if txt:
             m = re.search(r"\{.*\}", txt, re.DOTALL)
             if m:
                 try:
                     parsed = json.loads(m.group(0))
-                    verdict.update({"relevant": parsed.get("relevant"),
-                                    "best_problem": parsed.get("best_problem"),
-                                    "rationale": parsed.get("rationale", "")[:160]})
+                    verdict.update(
+                        {
+                            "relevant": parsed.get("relevant"),
+                            "best_problem": parsed.get("best_problem"),
+                            "rationale": parsed.get("rationale", "")[:160],
+                        }
+                    )
                 except Exception:
                     verdict["raw"] = txt[:200]
             else:
@@ -523,12 +642,14 @@ def ensemble_score_paper(paper: dict, problem_keys: list[str], profile: dict) ->
                 lane_verdicts.append(verdict)
             except Exception as exc:
                 lane_name = futures[fut]["name"]
-                lane_verdicts.append({"lane": lane_name, "ok": False,
-                                      "error_class": f"future_{type(exc).__name__}"})
+                lane_verdicts.append(
+                    {"lane": lane_name, "ok": False, "error_class": f"future_{type(exc).__name__}"}
+                )
 
     # Aggregate — confidence-weighted majority vote (Beyond Majority Voting / OW)
     # Weight = success_rate from silicon_profile (default 0.5 if untested)
-    yes_weight = 0.0; no_weight = 0.0
+    yes_weight = 0.0
+    no_weight = 0.0
     problem_votes: dict[str, float] = {}
     voters_ok = 0
     for v in lane_verdicts:
@@ -545,8 +666,10 @@ def ensemble_score_paper(paper: dict, problem_keys: list[str], profile: dict) ->
         if bp:
             problem_votes[bp] = problem_votes.get(bp, 0.0) + weight
 
-    consensus = "relevant" if yes_weight > no_weight else (
-        "irrelevant" if no_weight > yes_weight else "tie"
+    consensus = (
+        "relevant"
+        if yes_weight > no_weight
+        else ("irrelevant" if no_weight > yes_weight else "tie")
     )
     best_problem = max(problem_votes.items(), key=lambda kv: kv[1])[0] if problem_votes else None
     # Disagreement = how split was the vote (0 = unanimous, 1 = perfectly split)
@@ -570,31 +693,51 @@ def llm_score_paper(lane: dict, paper: dict, problem_keys: list[str], profile: d
     """GEPA-style reflective score with telemetry capture."""
     problems_text = "; ".join(f"{k}: {OPEN_PROBLEMS[k]['unblocks']}" for k in problem_keys)
     prompt = (
-        f'You are an autoresearch reviewer. Given a paper and a list of open problems, '
+        f"You are an autoresearch reviewer. Given a paper and a list of open problems, "
         f'output ONLY JSON: {{"relevant": true|false, "best_problem": "<key>", "rationale": "<one short sentence>"}}.\n\n'
-        f'Paper title: {paper.get("title","")[:240]}\n'
-        f'Abstract: {paper.get("summary","")[:600]}\n\n'
-        f'Open problems with their unblocked experiment IDs:\n{problems_text}\n\n'
-        f'Pick the single best matching problem key (or null), and judge true relevance.'
+        f"Paper title: {paper.get('title', '')[:240]}\n"
+        f"Abstract: {paper.get('summary', '')[:600]}\n\n"
+        f"Open problems with their unblocked experiment IDs:\n{problems_text}\n\n"
+        f"Pick the single best matching problem key (or null), and judge true relevance."
     )
-    txt, telemetry = _post_chat(lane["model"], prompt, timeout=lane["timeout"], max_tokens=lane["max_tokens"])
+    txt, telemetry = _post_chat(
+        lane["model"], prompt, timeout=lane["timeout"], max_tokens=lane["max_tokens"]
+    )
     _update_silicon_profile(profile, lane["name"], telemetry)
     if not txt:
-        return {"lane": lane["name"], "raw": None, "relevant": None,
-                "latency_ms": telemetry["latency_ms"], "error": telemetry["error_class"]}
+        return {
+            "lane": lane["name"],
+            "raw": None,
+            "relevant": None,
+            "latency_ms": telemetry["latency_ms"],
+            "error": telemetry["error_class"],
+        }
     m = re.search(r"\{.*\}", txt, re.DOTALL)
     if not m:
-        return {"lane": lane["name"], "raw": txt[:200], "relevant": None,
-                "latency_ms": telemetry["latency_ms"]}
+        return {
+            "lane": lane["name"],
+            "raw": txt[:200],
+            "relevant": None,
+            "latency_ms": telemetry["latency_ms"],
+        }
     try:
         parsed = json.loads(m.group(0))
-        parsed.update({"lane": lane["name"], "raw": txt[:200],
-                       "latency_ms": telemetry["latency_ms"],
-                       "tokens_per_sec": telemetry["tokens_per_sec"]})
+        parsed.update(
+            {
+                "lane": lane["name"],
+                "raw": txt[:200],
+                "latency_ms": telemetry["latency_ms"],
+                "tokens_per_sec": telemetry["tokens_per_sec"],
+            }
+        )
         return parsed
     except Exception:
-        return {"lane": lane["name"], "raw": txt[:200], "relevant": None,
-                "latency_ms": telemetry["latency_ms"]}
+        return {
+            "lane": lane["name"],
+            "raw": txt[:200],
+            "relevant": None,
+            "latency_ms": telemetry["latency_ms"],
+        }
 
 
 # ── seen-papers cache ─────────────────────────────────────────────────────────
@@ -608,11 +751,15 @@ def load_seen() -> set[str]:
 
 
 def save_seen(seen: set[str]) -> None:
-    SEEN_PATH.write_text(json.dumps({
-        "ids": sorted(seen),
-        "last_updated": datetime.now(UTC).strftime("%Y-%m-%dT%H:%M:%SZ"),
-        "count": len(seen),
-    }))
+    SEEN_PATH.write_text(
+        json.dumps(
+            {
+                "ids": sorted(seen),
+                "last_updated": datetime.now(UTC).strftime("%Y-%m-%dT%H:%M:%SZ"),
+                "count": len(seen),
+            }
+        )
+    )
 
 
 # ── persistence helpers ───────────────────────────────────────────────────────
@@ -629,8 +776,14 @@ def append_vault_observation(title: str, text: str, obs_type: str = "literature"
             pass
     new_id = last_id + 1
     ts = datetime.now(UTC).strftime("%Y-%m-%dT%H:%M:%SZ")
-    obs = {"id": new_id, "timestamp": ts, "type": obs_type,
-           "project": "cohezion", "title": title, "text": text}
+    obs = {
+        "id": new_id,
+        "timestamp": ts,
+        "type": obs_type,
+        "project": "cohezion",
+        "title": title,
+        "text": text,
+    }
     with VAULT_OBS.open("a") as f:
         f.write(json.dumps(obs) + "\n")
     return new_id
@@ -645,9 +798,14 @@ def append_jsonl(metric: float, metrics: dict, status: str, description: str, **
             pass
     run = last_run + 1
     entry = {
-        "run": run, "metric": metric, "metrics": metrics, "status": status,
-        "description": description, "timestamp": int(time.time() * 1000),
-        "segment": 99, "confidence": 1.0,
+        "run": run,
+        "metric": metric,
+        "metrics": metrics,
+        "status": status,
+        "description": description,
+        "timestamp": int(time.time() * 1000),
+        "segment": 99,
+        "confidence": 1.0,
         "asi": {"experiment": "E77", **asi},
     }
     with JSONL.open("a") as f:
@@ -700,12 +858,14 @@ def run_scan(queries: list[str] | None = None, max_per_query: int = 20) -> dict:
         unblocks: set[str] = set()
         for prob_key in problems:
             unblocks.update(OPEN_PROBLEMS[prob_key]["unblocks"])
-        scored.append({
-            **p,
-            "matched_problems": problems,
-            "keyword_hits": hits,
-            "unblocks_experiments": sorted(unblocks),
-        })
+        scored.append(
+            {
+                **p,
+                "matched_problems": problems,
+                "keyword_hits": hits,
+                "unblocks_experiments": sorted(unblocks),
+            }
+        )
 
     scored.sort(key=lambda x: -x["keyword_hits"])
 
@@ -756,10 +916,13 @@ def run_scan(queries: list[str] | None = None, max_per_query: int = 20) -> dict:
     for lane_name in ("npu", "igpu", "cpu"):
         s = profile.get("lanes", {}).get(lane_name)
         if s:
-            print(f"  {lane_name:5s}: calls={s['calls']:3d} ok={s['ok_count']:3d} "
-                  f"fail={s['fail_count']:3d} success={s['success_rate']*100:3.0f}% "
-                  f"ewma_lat={s['ewma_latency_ms']:6.0f}ms ewma_tps={s['ewma_tokens_per_sec']:5.1f} "
-                  f"last_err={s['last_error']}", flush=True)
+            print(
+                f"  {lane_name:5s}: calls={s['calls']:3d} ok={s['ok_count']:3d} "
+                f"fail={s['fail_count']:3d} success={s['success_rate'] * 100:3.0f}% "
+                f"ewma_lat={s['ewma_latency_ms']:6.0f}ms ewma_tps={s['ewma_tokens_per_sec']:5.1f} "
+                f"last_err={s['last_error']}",
+                flush=True,
+            )
         else:
             print(f"  {lane_name:5s}: not yet tested", flush=True)
 
@@ -769,8 +932,11 @@ def run_scan(queries: list[str] | None = None, max_per_query: int = 20) -> dict:
 
     elapsed = timeit.default_timer() - t0
 
-    print(f"[autoliterature] pulled={len(pulled)} unique={len(by_id)} new={len(new_papers)} "
-          f"on_topic={len(scored)} elapsed={elapsed:.1f}s", flush=True)
+    print(
+        f"[autoliterature] pulled={len(pulled)} unique={len(by_id)} new={len(new_papers)} "
+        f"on_topic={len(scored)} elapsed={elapsed:.1f}s",
+        flush=True,
+    )
 
     if scored:
         print(f"\n  Top {min(5, len(scored))} on-topic papers:")
@@ -785,8 +951,11 @@ def run_scan(queries: list[str] | None = None, max_per_query: int = 20) -> dict:
     pulled_models = fetch_hf_models(limit=60)
     finetunable = filter_finetunable(pulled_models)
     new_models = [m for m in finetunable if m["id"] not in seen_models]
-    print(f"[autoliterature] scout: pulled={len(pulled_models)} finetunable={len(finetunable)} "
-          f"new={len(new_models)} (seen_cache={len(seen_models)})", flush=True)
+    print(
+        f"[autoliterature] scout: pulled={len(pulled_models)} finetunable={len(finetunable)} "
+        f"new={len(new_models)} (seen_cache={len(seen_models)})",
+        flush=True,
+    )
 
     # Update seen-models cache with everything we pulled (so off-license models don't keep showing up)
     seen_models.update(m["id"] for m in pulled_models)
@@ -796,14 +965,15 @@ def run_scan(queries: list[str] | None = None, max_per_query: int = 20) -> dict:
         print(f"\n  Top {min(5, len(new_models))} fine-tuning candidates:")
         # Sort by likes * sqrt(downloads + 1) — heuristic for "interesting AND adopted"
         import math as _math
-        new_models.sort(
-            key=lambda m: -(m.get("likes", 0) * _math.sqrt(m.get("downloads", 0) + 1))
-        )
+
+        new_models.sort(key=lambda m: -(m.get("likes", 0) * _math.sqrt(m.get("downloads", 0) + 1)))
         for m in new_models[:5]:
             params_b = m["params_estimate"] / 1e9 if m["params_estimate"] else 0.0
             uncertain = " [license:?]" if m.get("license_uncertain") else ""
-            print(f"    {m['model_id']} ({params_b:.1f}B, lic={m['license']}{uncertain}, "
-                  f"likes={m['likes']}, dl={m['downloads']})")
+            print(
+                f"    {m['model_id']} ({params_b:.1f}B, lic={m['license']}{uncertain}, "
+                f"likes={m['likes']}, dl={m['downloads']})"
+            )
 
     summary = {
         "queries_run": len(queries) + 1,  # +1 for HF daily
@@ -815,10 +985,15 @@ def run_scan(queries: list[str] | None = None, max_per_query: int = 20) -> dict:
         "ensemble_verdicts": ensemble_verdicts_count,
         "ensemble_consensus_breakdown": consensus_breakdown,
         "scored_top10": [
-            {"id": p["id"], "title": p["title"][:120], "url": p["url"],
-             "matched_problems": p["matched_problems"], "keyword_hits": p["keyword_hits"],
-             "unblocks_experiments": p["unblocks_experiments"],
-             "llm_verdict": p.get("llm_verdict")}
+            {
+                "id": p["id"],
+                "title": p["title"][:120],
+                "url": p["url"],
+                "matched_problems": p["matched_problems"],
+                "keyword_hits": p["keyword_hits"],
+                "unblocks_experiments": p["unblocks_experiments"],
+                "llm_verdict": p.get("llm_verdict"),
+            }
             for p in scored[:10]
         ],
         # Model scout
@@ -826,9 +1001,15 @@ def run_scan(queries: list[str] | None = None, max_per_query: int = 20) -> dict:
         "models_finetunable": len(finetunable),
         "new_finetunable_models": len(new_models),
         "top_finetuning_candidates": [
-            {"model_id": m["model_id"], "params_b": round(m["params_estimate"]/1e9, 2),
-             "license": m["license"], "likes": m["likes"], "downloads": m["downloads"],
-             "url": m["url"], "library": m["library"]}
+            {
+                "model_id": m["model_id"],
+                "params_b": round(m["params_estimate"] / 1e9, 2),
+                "license": m["license"],
+                "likes": m["likes"],
+                "downloads": m["downloads"],
+                "url": m["url"],
+                "library": m["library"],
+            }
             for m in new_models[:8]
         ],
         "models_seen_cache_size": len(seen_models),
@@ -845,18 +1026,25 @@ def run_scan(queries: list[str] | None = None, max_per_query: int = 20) -> dict:
 
     # Persist
     status = "keep" if len(scored) > 0 else "discard"
-    description = (f"E77 autoliterature: pulled={len(pulled)} unique={len(by_id)} "
-                   f"new={len(new_papers)} on_topic={len(scored)}")
-    run = append_jsonl(metric=float(len(scored)), metrics=summary,
-                       status=status, description=description,
-                       on_topic=len(scored), new_papers=len(new_papers))
+    description = (
+        f"E77 autoliterature: pulled={len(pulled)} unique={len(by_id)} "
+        f"new={len(new_papers)} on_topic={len(scored)}"
+    )
+    run = append_jsonl(
+        metric=float(len(scored)),
+        metrics=summary,
+        status=status,
+        description=description,
+        on_topic=len(scored),
+        new_papers=len(new_papers),
+    )
     summary["jsonl_run"] = run
 
     if scored:
         # Compose vault observation summarizing the top hits
         text_parts = [
             f"E77 autoliterature scan: {len(scored)} on-topic new papers across "
-            f"{len(queries)+1} queries (elapsed {elapsed:.1f}s).",
+            f"{len(queries) + 1} queries (elapsed {elapsed:.1f}s).",
             "Top hits:",
         ]
         for p in scored[:5]:
@@ -878,9 +1066,9 @@ def run_scan(queries: list[str] | None = None, max_per_query: int = 20) -> dict:
         # Even discard runs get a vault marker so we have a heartbeat
         obs_id = append_vault_observation(
             title=f"E77 scan: 0 on-topic papers ({len(new_papers)} new total)",
-            text=f"E77 autoliterature scan ran {len(queries)+1} queries, found "
-                 f"{len(new_papers)} new papers total but none matched the open-problem "
-                 f"keyword registry. Cache size now {len(seen)}.",
+            text=f"E77 autoliterature scan ran {len(queries) + 1} queries, found "
+            f"{len(new_papers)} new papers total but none matched the open-problem "
+            f"keyword registry. Cache size now {len(seen)}.",
         )
         summary["vault_obs_id"] = obs_id
 
@@ -889,5 +1077,8 @@ def run_scan(queries: list[str] | None = None, max_per_query: int = 20) -> dict:
 
 if __name__ == "__main__":
     summary = run_scan()
-    print(f"\n[autoliterature] DONE — vault obs #{summary.get('vault_obs_id')}, "
-          f"jsonl run #{summary.get('jsonl_run')}", flush=True)
+    print(
+        f"\n[autoliterature] DONE — vault obs #{summary.get('vault_obs_id')}, "
+        f"jsonl run #{summary.get('jsonl_run')}",
+        flush=True,
+    )

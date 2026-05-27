@@ -90,11 +90,14 @@ class TestRetryLogic:
         mock_response_200.status_code = 200
         mock_response_200.json.return_value = {"response": "Success after retry!"}
 
-        with patch.object(
-            executor._client,
-            "post",
-            new=AsyncMock(side_effect=[mock_response_500, mock_response_200]),
-        ), patch("asyncio.sleep", new=AsyncMock()):
+        with (
+            patch.object(
+                executor._client,
+                "post",
+                new=AsyncMock(side_effect=[mock_response_500, mock_response_200]),
+            ),
+            patch("asyncio.sleep", new=AsyncMock()),
+        ):
             result = await executor._generate("Prompt", "test_model")
             assert result == "Success after retry!"
             assert executor._client.post.call_count == 2
@@ -112,11 +115,14 @@ class TestRetryLogic:
         mock_response_200.status_code = 200
         mock_response_200.json.return_value = {"response": "Success!"}
 
-        with patch.object(
-            executor._client,
-            "post",
-            new=AsyncMock(side_effect=[mock_response_429, mock_response_200]),
-        ), patch("asyncio.sleep", new=AsyncMock()):
+        with (
+            patch.object(
+                executor._client,
+                "post",
+                new=AsyncMock(side_effect=[mock_response_429, mock_response_200]),
+            ),
+            patch("asyncio.sleep", new=AsyncMock()),
+        ):
             result = await executor._generate("Prompt", "test_model")
             assert result == "Success!"
 
@@ -129,11 +135,14 @@ class TestRetryLogic:
         mock_response_500.status_code = 500
         mock_response_500.aread = AsyncMock(return_value=b"500 Error")
 
-        with patch.object(
-            executor._client,
-            "post",
-            new=AsyncMock(return_value=mock_response_500),
-        ), patch("asyncio.sleep", new=AsyncMock()):
+        with (
+            patch.object(
+                executor._client,
+                "post",
+                new=AsyncMock(return_value=mock_response_500),
+            ),
+            patch("asyncio.sleep", new=AsyncMock()),
+        ):
             with pytest.raises(RuntimeError) as exc_info:
                 await executor._generate("Prompt", "test_model", max_retries=3)
 
@@ -145,17 +154,20 @@ class TestRetryLogic:
         """Timeout exceptions trigger retry."""
         executor = LLMExecutor()
 
-        with patch.object(
-            executor._client,
-            "post",
-            new=AsyncMock(
-                side_effect=[
-                    httpx.TimeoutException("Timeout"),
-                    httpx.TimeoutException("Timeout"),
-                    httpx.TimeoutException("Timeout"),
-                ]
+        with (
+            patch.object(
+                executor._client,
+                "post",
+                new=AsyncMock(
+                    side_effect=[
+                        httpx.TimeoutException("Timeout"),
+                        httpx.TimeoutException("Timeout"),
+                        httpx.TimeoutException("Timeout"),
+                    ]
+                ),
             ),
-        ), patch("asyncio.sleep", new=AsyncMock()):
+            patch("asyncio.sleep", new=AsyncMock()),
+        ):
             with pytest.raises(RuntimeError) as exc_info:
                 await executor._generate("Prompt", "test_model", max_retries=3)
 

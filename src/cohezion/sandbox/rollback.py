@@ -1,4 +1,4 @@
-# ruff: noqa: SIM102,SIM105, S108  # temp file paths in /tmp are intentional for ephemeral data
+# ruff: noqa: SIM102, SIM105  # temp file paths in /tmp are intentional for ephemeral data
 """
 RollbackEngine: Transaction semantics for sandboxed operations.
 
@@ -291,7 +291,7 @@ class GitSnapshotBackend(SnapshotBackend):
     def create_snapshot(self, snapshot_id: str, working_dir: Path) -> bool:
         """Create snapshot by stashing changes."""
         try:
-            result = subprocess.run(  # noqa: S603 - git args static, snapshot_id internal UUID
+            result = subprocess.run(
                 [_GIT, "stash", "push", "-u", "-m", f"txn_{snapshot_id}"],
                 cwd=working_dir,
                 capture_output=True,
@@ -309,7 +309,7 @@ class GitSnapshotBackend(SnapshotBackend):
         """Restore snapshot by applying stash."""
         try:
             # Find stash with our marker
-            result = subprocess.run(  # noqa: S603 - git args static
+            result = subprocess.run(
                 [_GIT, "stash", "list"],
                 cwd=working_dir,
                 capture_output=True,
@@ -319,7 +319,7 @@ class GitSnapshotBackend(SnapshotBackend):
             for line in result.stdout.decode().split("\n"):
                 if f"txn_{snapshot_id}" in line:
                     stash_ref = line.split(":")[0]
-                    apply_result = subprocess.run(  # noqa: S603 - stash_ref parsed from git output
+                    apply_result = subprocess.run(
                         [_GIT, "stash", "apply", stash_ref],
                         cwd=working_dir,
                         capture_output=True,
@@ -344,7 +344,7 @@ class BtrfsSnapshotBackend(SnapshotBackend):
         """Create BTRFS snapshot."""
         try:
             snapshot_path = working_dir.parent / f".snapshots_{snapshot_id}"
-            result = subprocess.run(  # noqa: S603 - btrfs args, paths internal
+            result = subprocess.run(
                 [_BTRFS, "subvolume", "snapshot", str(working_dir), str(snapshot_path)],
                 capture_output=True,
                 timeout=30,
@@ -362,12 +362,12 @@ class BtrfsSnapshotBackend(SnapshotBackend):
                 return False
 
             # Remove current and restore from snapshot
-            subprocess.run(  # noqa: S603 - paths internal to snapshot manager
+            subprocess.run(
                 [_RM, "-rf", str(working_dir)],
                 timeout=30,
                 capture_output=True,
             )
-            subprocess.run(  # noqa: S603 - paths internal to snapshot manager
+            subprocess.run(
                 [_MV, str(snapshot_path), str(working_dir)],
                 timeout=30,
                 capture_output=True,

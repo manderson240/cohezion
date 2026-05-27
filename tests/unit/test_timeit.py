@@ -1,4 +1,5 @@
 """Tests for cohezion.core.timeit."""
+
 from __future__ import annotations
 
 import time
@@ -13,6 +14,7 @@ class TestTimeitDecorator:
         @timeit()
         def fast():
             return 42
+
         assert hasattr(fast, "_timeit_stats")
         assert isinstance(fast._timeit_stats, TimeitStats)
         assert fast._timeit_stats.count == 0
@@ -21,6 +23,7 @@ class TestTimeitDecorator:
         @timeit()
         def inc():
             return 1
+
         inc()
         assert inc._timeit_stats.count == 1
         assert inc._timeit_stats.total > 0
@@ -30,6 +33,7 @@ class TestTimeitDecorator:
         @timeit()
         def noop():
             pass
+
         for _ in range(5):
             noop()
         assert noop._timeit_stats.count == 5
@@ -39,6 +43,7 @@ class TestTimeitDecorator:
         @timeit()
         def identity(x):
             return x
+
         identity("hello")
         s = get_stats(identity)
         assert s.count == 1
@@ -46,14 +51,17 @@ class TestTimeitDecorator:
     def test_get_stats_raises_on_undecorated(self):
         def plain():
             pass
+
         with pytest.raises(AttributeError):
             get_stats(plain)
 
     def test_threshold_warning(self, caplog):
         caplog.set_level("WARN", logger="cohezion.core.timeit")
+
         @timeit(threshold_ms=0.001)
         def slow():
             time.sleep(0.02)
+
         slow()
         assert "slow took" in caplog.text
         assert "threshold 0.00" in caplog.text
@@ -62,6 +70,7 @@ class TestTimeitDecorator:
         @timeit()
         def work():
             return sum(range(10))
+
         work()
         s = get_stats(work)
         d = s.as_dict()

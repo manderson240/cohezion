@@ -1,10 +1,12 @@
 """Tests for JourneyAnalyzer — behavioral clustering and archetype detection."""
+
 import pytest
 
 
 @pytest.fixture
 def analyzer():
     from cohezion.compound.journey_analyzer import JourneyAnalyzer
+
     return JourneyAnalyzer()
 
 
@@ -48,10 +50,12 @@ class TestJourneyAnalyzerImport:
 
     def test_importable(self):
         from cohezion.compound.journey_analyzer import JourneyAnalyzer
+
         assert JourneyAnalyzer is not None
 
     def test_archetype_type_enum(self):
         from cohezion.compound.journey_analyzer import ArchetypeType
+
         assert hasattr(ArchetypeType, "__members__")
         assert len(ArchetypeType.__members__) > 0
 
@@ -59,5 +63,5 @@ class TestJourneyAnalyzerImport:
         import dataclasses
 
         from cohezion.compound.journey_analyzer import JourneyReport
-        assert dataclasses.is_dataclass(JourneyReport)
 
+        assert dataclasses.is_dataclass(JourneyReport)

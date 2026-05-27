@@ -10,7 +10,7 @@ import time
 from enum import Enum
 from typing import Any
 
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, ConfigDict, Field
 
 
 class HardwareTier(str, Enum):
@@ -53,9 +53,7 @@ class FlumeJourneyEvent(BaseModel):
 
     # 1. Latent State (The Knower)
     z_vector: list[float] = Field(..., description="256-dim FLUME latent thought vector")
-    predicted_z_vector: list[float] | None = Field(
-        None, description="JEPA world-model prediction"
-    )
+    predicted_z_vector: list[float] | None = Field(None, description="JEPA world-model prediction")
     prediction_error: float = Field(
         0.0, description="Surprise/L2 delta between actual and predicted z"
     )
@@ -80,8 +78,8 @@ class FlumeJourneyEvent(BaseModel):
 
     metadata: dict[str, Any] = Field(default_factory=dict)
 
-    class Config:
-        json_schema_extra = {
+    model_config = ConfigDict(
+        json_schema_extra={
             "example": {
                 "journey_id": "journey_alpha_001",
                 "z_vector": [0.1] * 256,
@@ -92,3 +90,4 @@ class FlumeJourneyEvent(BaseModel):
                 "expert_stream": "architect",
             }
         }
+    )

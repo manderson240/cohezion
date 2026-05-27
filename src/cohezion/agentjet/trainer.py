@@ -265,7 +265,6 @@ class AgentJetTrainer:
         available = await self.context_manager.get_available_memory_gb()
         headroom_required = required_gb * 1.2
         if available < headroom_required:
-
             # Import OOMRiskError from resource_manager if available, else define locally
             try:
                 from cohezion.platform.resource_manager import OOMRiskError

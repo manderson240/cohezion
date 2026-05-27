@@ -34,7 +34,9 @@ class LocalAgent:
         self.role = role
         self.model = model
 
-    async def speak(self, conversation_history: str, specific_instruction: str = None) -> str:
+    async def speak(
+        self, conversation_history: str, specific_instruction: str | None = None
+    ) -> str:
         instruction = (
             specific_instruction
             or f"""
@@ -77,7 +79,7 @@ class LocalAgent:
 
 
 class Roundtable:
-    def __init__(self, duration_hours: float = 2.0, seed_file: Path = None):
+    def __init__(self, duration_hours: float = 2.0, seed_file: Path | None = None):
         self.start_time = datetime.now()
         self.end_time = self.start_time + timedelta(hours=duration_hours)
         self.agents = [

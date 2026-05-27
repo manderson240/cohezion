@@ -14,7 +14,6 @@ from __future__ import annotations
 
 import logging
 import math
-from typing import Optional
 
 import torch
 import torch.nn.functional as F
@@ -32,10 +31,10 @@ MIN_HISTORY_FOR_TQ = 16
 def compute_hybrid_attention(
     query: torch.Tensor,
     store: CompressedKVStore,
-    recent_k: Optional[torch.Tensor],
-    recent_v: Optional[torch.Tensor],
+    recent_k: torch.Tensor | None,
+    recent_v: torch.Tensor | None,
     num_query_heads: int,
-    scale: Optional[float] = None,
+    scale: float | None = None,
 ) -> torch.Tensor:
     """Compute attention output combining compressed history and exact recent buffer.
 

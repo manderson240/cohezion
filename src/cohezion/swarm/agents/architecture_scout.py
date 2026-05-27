@@ -1,4 +1,4 @@
-# ruff: noqa: E501  # long lines: SQL/URLs/docstrings — wrapping reduces readability
+# long lines: SQL/URLs/docstrings — wrapping reduces readability
 """
 Architecture Scout - Identifies high-level design patterns and module coupling.
 Uses qwen2.5-coder:7b to classify structural findings.

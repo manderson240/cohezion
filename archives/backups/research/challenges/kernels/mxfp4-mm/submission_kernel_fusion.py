@@ -7,7 +7,6 @@ Key insight: Multiple small kernels have significant launch overhead.
 Fusing them reduces dispatch cost.
 """
 
-
 import aiter
 from aiter import dtypes
 from aiter.ops.triton.quant import dynamic_mxfp4_quant

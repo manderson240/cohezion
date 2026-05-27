@@ -4,6 +4,7 @@ and proposes replacements using HIHO balance.
 Designed to be called at the end of each iteration in overnight_evo_loop.py
 to dynamically update the experiment schedule.
 """
+
 from __future__ import annotations
 
 import asyncio
@@ -43,6 +44,7 @@ class ExperimentScheduler:
             find_retirement_candidates,
             load_experiment_records,
         )
+
         records = load_experiment_records(n=n_records, jsonl_path=jsonl_path)
         stats = compute_experiment_stats(records)
         candidates = find_retirement_candidates(
@@ -73,11 +75,13 @@ class ExperimentScheduler:
 
         engine = AutoresearchEngine()
         n_proposals = n or len(retired_labels)
-        return asyncio.run(engine.generate_next_experiments(
-            n=n_proposals,
-            session_metrics={"avg_coherence": hiho},
-            retired_labels=retired_labels,
-        ))
+        return asyncio.run(
+            engine.generate_next_experiments(
+                n=n_proposals,
+                session_metrics={"avg_coherence": hiho},
+                retired_labels=retired_labels,
+            )
+        )
 
     def get_schedule_summary(self) -> dict[str, Any]:
         """Return current scheduler state."""

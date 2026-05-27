@@ -1,4 +1,4 @@
-# ruff: noqa: E501, RUF012  # class attrs treated as immutable config; never mutated per-instance
+# class attrs treated as immutable config; never mutated per-instance
 """Adapters to wrap existing guardrails into unified protocol.
 
 These adapters implement the Guardrail protocol for existing

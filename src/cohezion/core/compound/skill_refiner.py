@@ -1,4 +1,4 @@
-# ruff: noqa: S112  # best-effort skip in cleanup paths
+# best-effort skip in cleanup paths
 """Skill refiner: closes the compound loop by applying insights to PRIME skills.
 
 Takes retrospection suggestions and appends a ``## LEARNED REFINEMENTS``

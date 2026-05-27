@@ -1,4 +1,4 @@
-# ruff: noqa: E501  # long lines: SQL/URLs/docstrings — wrapping reduces readability
+# long lines: SQL/URLs/docstrings — wrapping reduces readability
 """LLM Training Bridge: Universe Simulation → Language Model Training Signals.
 
 Converts 12D universe trajectories into training data for language models:

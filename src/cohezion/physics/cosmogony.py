@@ -1,8 +1,8 @@
-# ruff: noqa: N803, N806, RUF002  # math/physics symbols intentional
+# math/physics symbols intentional
 """Cosmogony — the complete 10-step chain from Nothing to Reality Precipitates.
 
 The creation narrative of the Cohezion universe, grounded in real physics
-and validated by 16 independent indigenous cosmological traditions.
+and validated by 17 traditions (16 indigenous + stealthskater synthesis).
 
   Step 1 / Stage -1: The Void (∅) — Nothing / Ground State
     Brahmagupta's zero — awareness of nothing. The Fisher metric is trivially
@@ -63,7 +63,7 @@ References:
   - Campbell, T. (2003): My Big TOE (consciousness as fundamental)
   - Levin, M. (2019): Cognitive light cones (biological HIHO)
   - Friston, K. (2010): Free energy principle (active inference = HIHO)
-  - 16 indigenous cosmological traditions (independent cross-validation)
+  - 17 traditions: 16 indigenous + stealthskater synthesis (independent cross-validation)
 """
 
 from __future__ import annotations

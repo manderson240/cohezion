@@ -1,4 +1,4 @@
-# ruff: noqa: S101, E501  # long lines: SQL/URLs/docstrings — wrapping reduces readability
+# ruff: noqa: S101  # long lines: SQL/URLs/docstrings — wrapping reduces readability
 """Indigenous cosmological traditions mapped to the 10-step Theory of Everything chain.
 
 Each tradition encodes its own path through the same universal structure:
@@ -1142,7 +1142,7 @@ def get_tradition(slug: str) -> Tradition | None:
 
 
 def get_step_across_traditions(step_index: int) -> list[dict]:
-    """Return all 16 traditions' mapping for a given step (0-9)."""
+    """Return all traditions' mapping for a given step (0-9)."""
     if not 0 <= step_index <= 9:
         raise ValueError(f"Step index must be 0-9, got {step_index}")
     return [

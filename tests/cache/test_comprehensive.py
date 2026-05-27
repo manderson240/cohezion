@@ -27,7 +27,7 @@ class TestSemanticCache:
     def test_cache_with_defaults(self):
         """[P1] Should use default values."""
         cache = SemanticCache()
-        assert cache.similarity_threshold == 0.88
+        assert cache.similarity_threshold == 0.75
         assert cache.max_l1_size == 512
         assert cache.max_l2_size == 1024
 

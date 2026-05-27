@@ -1,4 +1,4 @@
-# ruff: noqa: E501  # long lines: SQL/URLs/docstrings — wrapping reduces readability
+# long lines: SQL/URLs/docstrings — wrapping reduces readability
 """Central orchestrator for sandboxed simulation execution.
 
 Provides a singleton ``SandboxManager`` that:

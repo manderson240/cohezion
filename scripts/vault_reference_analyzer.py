@@ -21,7 +21,7 @@ from pathlib import Path
 class VaultReferenceAnalyzer:
     """Analyze cross-document references and dependencies"""
 
-    def __init__(self, vault_path: str = None):
+    def __init__(self, vault_path: str | None = None):
         if vault_path is None:
             vault_path = Path.cwd() / "cloud-vault-mcp" / "vault"
         self.vault_path = Path(vault_path)
@@ -274,7 +274,7 @@ class VaultReferenceAnalyzer:
         hubs.sort(key=lambda x: x[1], reverse=True)
         return hubs[:10]
 
-    def export_report(self, output_path: str = None) -> dict:
+    def export_report(self, output_path: str | None = None) -> dict:
         """Export detailed reference report"""
         if output_path is None:
             output_path = self.vault_path.parent / "vault_reference_report.json"

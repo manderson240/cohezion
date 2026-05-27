@@ -5,9 +5,9 @@ from __future__ import annotations
 import pytest
 
 from cohezion.inference.model_card_harness import (
+    _OUTPUT_TYPE_MAX_TOKENS,
     InferenceParams,
     ModelCardHarness,
-    _OUTPUT_TYPE_MAX_TOKENS,
 )
 
 
@@ -237,6 +237,53 @@ class TestFromLiveApi:
 
         assert h.get_labels("Granite-4.1-8B-GGUF") == ["coding"]
         assert h.best_model_for_output_type("code") == "Granite-4.1-8B-GGUF"
+
+
+class TestIsThinkingModelCatalogAware:
+    """is_thinking_model uses lemonade 'reasoning' label when model is in the catalog."""
+
+    def test_gemma4_in_catalog_without_reasoning_label_is_not_thinking(self):
+        """Live data: Gemma-4-E4B has tool-calling/vision/llamacpp but NOT reasoning."""
+        h = _harness_with_models(
+            _model("Gemma-4-E4B-it-GGUF", labels=["tool-calling", "vision", "llamacpp"])
+        )
+        assert h.is_thinking_model("Gemma-4-E4B-it-GGUF") is False
+
+    def test_gemma4_not_in_catalog_uses_prefix_fallback(self):
+        """FLM/NPU Gemma-4 variants not in 13305 catalog fall back to prefix → True."""
+        h = ModelCardHarness([])
+        assert h.is_thinking_model("Gemma-4-E4B-it-GGUF") is True
+
+    def test_reasoning_label_non_qwen3_is_thinking(self):
+        """A non-Qwen3 model with 'reasoning' label IS a thinking model."""
+        h = _harness_with_models(_model("DeepSeek-R1-0528-GGUF", labels=["reasoning"]))
+        assert h.is_thinking_model("DeepSeek-R1-0528-GGUF") is True
+
+    def test_qwen3_with_reasoning_label_is_not_thinking_model(self):
+        """Qwen3 family has 'reasoning' label but uses /no_think — not a thinking model."""
+        h = _harness_with_models(_model("DeepSeek-Qwen3-8B-GGUF", labels=["reasoning"]))
+        assert h.is_thinking_model("DeepSeek-Qwen3-8B-GGUF") is False
+
+    def test_in_catalog_with_empty_labels_is_not_thinking(self):
+        """Catalog entry with no labels: trust the catalog → not a thinking model."""
+        h = _harness_with_models(_model("Gemma-4-E4B-it-GGUF", labels=[]))
+        assert h.is_thinking_model("Gemma-4-E4B-it-GGUF") is False
+
+    def test_get_params_gemma4_in_catalog_no_thinking_overhead(self):
+        """When Gemma-4 is in catalog without 'reasoning' label, no thinking budget set."""
+        h = _harness_with_models(
+            _model("Gemma-4-E4B-it-GGUF", labels=["tool-calling", "vision", "llamacpp"])
+        )
+        p = h.get_params("code", "Gemma-4-E4B-it-GGUF")
+        assert "thinking" not in p.extra_body
+        assert p.prompt_prefix == ""
+
+    def test_get_params_reasoning_model_in_catalog_gets_budget(self):
+        """A non-Qwen3 model with 'reasoning' label in catalog gets thinking budget."""
+        h = _harness_with_models(_model("DeepSeek-R1-0528-GGUF", labels=["reasoning"]))
+        p = h.get_params("short_answer", "DeepSeek-R1-0528-GGUF")
+        assert "thinking" in p.extra_body
+        assert p.extra_body["thinking"]["budget_tokens"] > 0
 
 
 class TestGetCtxSize:

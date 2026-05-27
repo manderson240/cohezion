@@ -54,7 +54,7 @@ def evaluate_solver(
     solver_module,
     tasks: dict,
     solutions: dict,
-    max_tasks: int = None,
+    max_tasks: int | None = None,
     budget: int = 5000,
     max_depth: int = 3,
 ) -> tuple[float, int, int]:

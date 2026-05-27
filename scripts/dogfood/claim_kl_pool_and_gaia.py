@@ -91,7 +91,11 @@ def verify_claim_l() -> bool:
         return False
 
     # iGPU pair must come before CPU.
-    igpu_indices = [ranked.index(m) for m in ranked if m.startswith("Gemma-4-E4B") or m.startswith("Gemma-4-26B")]
+    igpu_indices = [
+        ranked.index(m)
+        for m in ranked
+        if m.startswith("Gemma-4-E4B") or m.startswith("Gemma-4-26B")
+    ]
     cpu_idx = ranked.index("Gemma-4-31B-it-GGUF")
     if not all(i < cpu_idx for i in igpu_indices):
         _fail("L-igpu-before-cpu", f"iGPU indices {igpu_indices} vs CPU {cpu_idx} in {ranked}")

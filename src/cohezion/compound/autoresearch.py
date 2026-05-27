@@ -1,4 +1,4 @@
-# ruff: noqa: SIM102, S112, E501  # long lines: SQL/URLs/docstrings — wrapping reduces readability
+# ruff: noqa: SIM102  # long lines: SQL/URLs/docstrings — wrapping reduces readability
 """Autoresearch-driven refinement and experiential learning.
 
 This module provides:
@@ -210,20 +210,22 @@ class AutoresearchEngine:
         results: list[dict[str, Any]] = []
 
         # First: generate replacements for retired experiments
-        for label in (retired_labels or []):
+        for label in retired_labels or []:
             if len(results) >= n:
                 break
-            results.append({
-                "mode": mode,
-                "replaces": label,
-                "hypothesis": (
-                    f"Parameter sweep of {label} (exploit variant)"
-                    if mode == "exploit"
-                    else f"New hypothesis replacing {label}"
-                ),
-                "parameter": f"{label}_lr" if mode == "exploit" else None,
-                "priority": "high",
-            })
+            results.append(
+                {
+                    "mode": mode,
+                    "replaces": label,
+                    "hypothesis": (
+                        f"Parameter sweep of {label} (exploit variant)"
+                        if mode == "exploit"
+                        else f"New hypothesis replacing {label}"
+                    ),
+                    "parameter": f"{label}_lr" if mode == "exploit" else None,
+                    "priority": "high",
+                }
+            )
 
         exploit_templates = [
             {"parameter": "learning_rate", "range": [0.5, 1.0, 1.5, 2.0]},
@@ -244,19 +246,23 @@ class AutoresearchEngine:
         while len(results) < n:
             if mode == "exploit":
                 t = exploit_templates[idx % len(exploit_templates)]
-                results.append({
-                    "mode": "exploit",
-                    "hypothesis": f"Sweep {t['parameter']} over {t['range']}",
-                    "parameter": t["parameter"],
-                    "priority": "medium",
-                })
+                results.append(
+                    {
+                        "mode": "exploit",
+                        "hypothesis": f"Sweep {t['parameter']} over {t['range']}",
+                        "parameter": t["parameter"],
+                        "priority": "medium",
+                    }
+                )
             else:
                 t = explore_templates[idx % len(explore_templates)]
-                results.append({
-                    "mode": "explore",
-                    "hypothesis": t["hypothesis"],
-                    "priority": "medium",
-                })
+                results.append(
+                    {
+                        "mode": "explore",
+                        "hypothesis": t["hypothesis"],
+                        "priority": "medium",
+                    }
+                )
             idx += 1
 
         return results[:n]

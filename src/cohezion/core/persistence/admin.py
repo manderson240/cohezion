@@ -1,4 +1,4 @@
-# ruff: noqa: SIM108, S608, E501  # long lines: SQL/URLs/docstrings — wrapping reduces readability
+# ruff: noqa: SIM108  # long lines: SQL/URLs/docstrings — wrapping reduces readability
 """
 Cohezion Database Administration (DBA) Module
 =============================================

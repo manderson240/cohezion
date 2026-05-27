@@ -1,4 +1,4 @@
-# ruff: noqa: E402,RUF006, E501  # long lines: SQL/URLs/docstrings — wrapping reduces readability
+# long lines: SQL/URLs/docstrings — wrapping reduces readability
 """Compound executor with vault-integrated knowledge persistence.
 
 Orchestrates execution lifecycle:
@@ -97,6 +97,7 @@ class CompoundExecutor(CompoundContextMixin, ExecutorIntegrationMixin):
         retrospection_engine: Any | None = None,
         universe_bridge: Any | None = None,
         skill_health_tracker: Any | None = None,
+        inference_provider: Any | None = None,
     ):
         """Initialize compound executor.
 
@@ -139,6 +140,10 @@ class CompoundExecutor(CompoundContextMixin, ExecutorIntegrationMixin):
             skill_health_tracker: Optional SkillHealthTracker for recording per-skill
                 usage metrics (invocations, success rate, tokens, quality).
                 If None, no health tracking recorded.
+            inference_provider: Optional TieredOrchestrator for local AMD silicon
+                inference (NPU→iGPU→CPU via GAIA/Lemonade). When set, execute_task
+                uses this as the default execute_fn when none is supplied by the
+                caller. Use make_local_execute_fn() from compound.local_inference.
         """
         self.mcp_client = mcp_client
         self.token_client = token_client
@@ -155,6 +160,7 @@ class CompoundExecutor(CompoundContextMixin, ExecutorIntegrationMixin):
         self._model_quality_classifier = model_quality_classifier
         self._retrospection_engine = retrospection_engine
         self._universe_bridge = universe_bridge
+        self._inference_provider = inference_provider
         self._drr_generator = None
         self._drr_session_id = ""
         try:
@@ -364,7 +370,7 @@ class CompoundExecutor(CompoundContextMixin, ExecutorIntegrationMixin):
         task_description: str,
         skill_name: str,
         operation_type: str,
-        execute_fn: Callable,
+        execute_fn: Callable | None = None,
         project: str = "cohezion",
         human_request: str | None = None,
     ) -> ExecutionResult:
@@ -550,6 +556,36 @@ class CompoundExecutor(CompoundContextMixin, ExecutorIntegrationMixin):
                     duration_seconds=time.time() - start_seconds,
                     vault_experiment_path=experiment_path,
                 )
+
+        # Resolve execute_fn: prefer caller-supplied; fall back to local AMD silicon.
+        if execute_fn is None and self._inference_provider is not None:
+            from cohezion.compound.local_inference import (
+                lemonade_available,
+                make_local_execute_fn,
+            )
+            from cohezion.compound.telegram_notify import notify_lemonade_offline
+
+            if lemonade_available():
+                execute_fn = make_local_execute_fn(task_description)
+                logger.debug("Using local Triune inference (NPU→iGPU→CPU)")
+            else:
+                notify_lemonade_offline(13306)
+                logger.warning("Lemonade offline — execute_fn unavailable; skipping task body")
+
+                def _offline_fn(guidance: str) -> tuple[str, dict]:
+                    return "", {"local_silicon": False, "error": "lemonade_offline"}
+
+                execute_fn = _offline_fn
+
+        if execute_fn is None:
+            logger.error("No execute_fn provided and no inference_provider configured")
+            return ExecutionResult(
+                success=False,
+                output="",
+                metrics={"error": "no_execute_fn"},
+                duration_seconds=time.time() - start_seconds,
+                vault_experiment_path="",
+            )
 
         # Capture token metrics before execution (if token_client available)
         token_metrics_before = None
@@ -1106,7 +1142,13 @@ class CompoundExecutor(CompoundContextMixin, ExecutorIntegrationMixin):
                                     point_data,
                                 )
                             )
-                    except (TimeoutError, AttributeError, RuntimeError, OSError, ConnectionError) as e:
+                    except (
+                        TimeoutError,
+                        AttributeError,
+                        RuntimeError,
+                        OSError,
+                        ConnectionError,
+                    ) as e:
                         logger.debug("Journey persistence failed (non-blocking): %s", e)
             except (AttributeError, RuntimeError, ValueError, KeyError, TypeError) as e:
                 logger.debug("Journey tracking failed (non-blocking): %s", e)

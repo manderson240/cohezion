@@ -9,7 +9,8 @@ from __future__ import annotations
 import base64
 import json
 import logging
-from typing import Any, Callable, cast
+from collections.abc import Callable
+from typing import Any, cast
 
 from pydantic import BaseModel
 
@@ -86,7 +87,7 @@ class SurrealDBClient:
                     content=query,
                 )
                 resp.raise_for_status()
-                return cast(list[Any], resp.json())
+                return cast("list[Any]", resp.json())
         except Exception as e:
             logger.debug("SurrealDB SQL error: %s | query: %.120s", e, query)
             return []

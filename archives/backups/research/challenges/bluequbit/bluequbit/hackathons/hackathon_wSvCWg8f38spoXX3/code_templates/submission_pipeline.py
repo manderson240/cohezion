@@ -168,9 +168,7 @@ class SubmissionPipeline:
 
         raise TimeoutError(f"Job {job_id} did not complete within {timeout}s")
 
-    def extract_heavy_output(
-        self, counts: dict, threshold: float = 0.5
-    ) -> SubmissionResult | None:
+    def extract_heavy_output(self, counts: dict, threshold: float = 0.5) -> SubmissionResult | None:
         """
         Extract heavy output from counts.
 

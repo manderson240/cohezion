@@ -95,7 +95,11 @@ class TestLatencyThresholdTuning:
         decision_medium, _ = router.select_model("Write a Python function")
         decision_complex, _ = router.select_model("Design a distributed system")
 
-        assert decision_medium.model in ["phi3:mini", "qwen3-coder:32b", "Phi-4-mini-instruct-Hybrid"]
+        assert decision_medium.model in [
+            "phi3:mini",
+            "qwen3-coder:32b",
+            "Phi-4-mini-instruct-Hybrid",
+        ]
         assert decision_complex.model in ["deepseek-r1:8b", "qwen3-coder:32b"]
 
     def test_latency_threshold_parameter_persistence(self):
@@ -149,7 +153,11 @@ class TestCombinedParameterTuning:
         decision_medium, _ = router.select_model("Write a Python function")
         decision_complex, _ = router.select_model("Design a distributed system")
 
-        assert decision_medium.model in ["phi3:mini", "qwen3-coder:32b", "Phi-4-mini-instruct-Hybrid"]
+        assert decision_medium.model in [
+            "phi3:mini",
+            "qwen3-coder:32b",
+            "Phi-4-mini-instruct-Hybrid",
+        ]
         assert decision_complex.model in ["deepseek-r1:8b", "qwen3-coder:32b"]
 
     def test_both_thresholds_high_enables_optimization(self):
@@ -166,7 +174,9 @@ class TestCombinedParameterTuning:
             decision, _ = router.select_model("Write a function")
             decisions.append(decision.model)
 
-        assert all(m in ["phi3:mini", "qwen3-coder:32b", "Phi-4-mini-instruct-Hybrid"] for m in decisions)
+        assert all(
+            m in ["phi3:mini", "qwen3-coder:32b", "Phi-4-mini-instruct-Hybrid"] for m in decisions
+        )
 
     def test_parameter_tuning_convergence(self):
         """Test that parameter adjustments achieve optimization levels."""
@@ -196,5 +206,11 @@ class TestCombinedParameterTuning:
             d, _ = router_conservative.select_model(medium_query)
             cons_decisions.append(d.model)
 
-        assert all(m in ["phi3:mini", "qwen3-coder:32b", "Phi-4-mini-instruct-Hybrid"] for m in agg_decisions)
-        assert all(m in ["phi3:mini", "qwen3-coder:32b", "Phi-4-mini-instruct-Hybrid"] for m in cons_decisions)
+        assert all(
+            m in ["phi3:mini", "qwen3-coder:32b", "Phi-4-mini-instruct-Hybrid"]
+            for m in agg_decisions
+        )
+        assert all(
+            m in ["phi3:mini", "qwen3-coder:32b", "Phi-4-mini-instruct-Hybrid"]
+            for m in cons_decisions
+        )

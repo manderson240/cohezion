@@ -1,7 +1,7 @@
 import pytest
 import torch
 
-from cohezion.flume.vae import FlumeVAE, FlumeVAEConfig, ThoughtVector
+from cohezion.flume.vae import FlumeVAE, FlumeVAEConfig, ThoughtVector, build_optimal_vae
 
 
 def test_thought_vector_initialization():
@@ -82,3 +82,26 @@ def test_flume_vae_compute_loss():
     assert total_loss > 0
     assert recon_loss > 0
     assert not torch.isnan(kl_loss)
+
+
+def test_build_optimal_vae_returns_two_layer_decoder():
+    """A4 harness invariant: build_optimal_vae must have exactly 2 decoder weight layers."""
+    vae = build_optimal_vae()
+    decoder_weight_layers = [m for m in vae._dec if hasattr(m, "weight")]
+    assert len(decoder_weight_layers) == 2
+
+
+def test_build_optimal_vae_hidden_dim():
+    """A4: optimal decoder hidden dim is 4096 by default."""
+    vae = build_optimal_vae()
+    dims = [m.out_features for m in vae._dec if hasattr(m, "out_features")]
+    assert dims[0] == 4096
+
+
+def test_build_optimal_vae_custom_dims():
+    """build_optimal_vae accepts custom input/latent/hidden dimensions."""
+    vae = build_optimal_vae(input_dim=512, latent_dim=128, hidden_dim=2048)
+    assert vae._input_dim == 512
+    assert vae._latent_dim == 128
+    decoder_out_dims = [m.out_features for m in vae._dec if hasattr(m, "out_features")]
+    assert decoder_out_dims == [2048, 512]

@@ -1,4 +1,4 @@
-# ruff: noqa: E501  # long lines: SQL/URLs/docstrings — wrapping reduces readability
+# long lines: SQL/URLs/docstrings — wrapping reduces readability
 """Ralph Lopps Red Team adversarial review system.
 
 Ralph Lopps is the adversarial reviewer who injects failure modes,

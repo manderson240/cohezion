@@ -1,4 +1,4 @@
-# ruff: noqa: E501  # long lines: SQL/URLs/docstrings — wrapping reduces readability
+# long lines: SQL/URLs/docstrings — wrapping reduces readability
 """Configuration archival and size management - Phase 3.
 
 Handles archiving old content to vault when size limits exceeded.

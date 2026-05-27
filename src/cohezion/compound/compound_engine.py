@@ -11,6 +11,7 @@ Integrates all compound engineering subsystems:
 
 Provides a single CompoundEngine class with convenience methods.
 """
+
 from __future__ import annotations
 
 from typing import Any
@@ -67,8 +68,7 @@ class CompoundEngine:
             "score_trend": score,
             "scheduler": sched,
             "overall_health": (
-                session.get("hiho_balance", 0) >= 0.3
-                and not score.get("degrading", False)
+                session.get("hiho_balance", 0) >= 0.3 and not score.get("degrading", False)
             ),
         }
 
@@ -79,9 +79,11 @@ class CompoundEngine:
     def get_next_experiments(self, n: int = 3) -> list[dict[str, Any]]:
         """Get recommended next experiments."""
         from cohezion.compound.experiment_recommender import recommend_next_experiments
+
         return recommend_next_experiments(n=n)
 
     def get_health(self) -> dict[str, Any]:
         """Run health checks on all compound engineering components."""
         from cohezion.compound.health_monitor import get_health_report
+
         return get_health_report()

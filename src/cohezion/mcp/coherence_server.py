@@ -318,7 +318,10 @@ async def _track_journey_step(arguments: dict[str, Any]) -> list[TextContent]:
     # Create synthetic execution result for tracking
     # Σ2: ExecutionMetrics may not be re-exported from compound.executor module
     # surface; the runtime import works because it's defined there.
-    from cohezion.compound.executor import ExecutionMetrics, ExecutionResult  # type: ignore[attr-defined]
+    from cohezion.compound.executor import (  # type: ignore[attr-defined]
+        ExecutionMetrics,
+        ExecutionResult,
+    )
 
     metrics = ExecutionMetrics(
         coherence=arguments.get("coherence", 0.5),

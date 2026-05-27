@@ -1,4 +1,4 @@
-# ruff: noqa: RUF012  # class attrs treated as immutable config; never mutated per-instance
+# class attrs treated as immutable config; never mutated per-instance
 """ARCEnvironment — Gymnasium wrapper for ARC-AGI-3 interactive games.
 
 Wraps the arcengine SDK into a standard Gymnasium interface so that

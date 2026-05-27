@@ -1,4 +1,4 @@
-# ruff: noqa: E501  # long lines: SQL/URLs/docstrings — wrapping reduces readability
+# long lines: SQL/URLs/docstrings — wrapping reduces readability
 """Request-execution alignment analysis for closed-loop compound engineering.
 
 Analyzes how well task execution aligns with human intent and constraints.

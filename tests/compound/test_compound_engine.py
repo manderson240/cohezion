@@ -1,9 +1,9 @@
 """Tests for the unified CompoundEngine."""
+
 from cohezion.compound.compound_engine import CompoundEngine
 
 
 class TestCompoundEngine:
-
     def test_default_initialization(self):
         engine = CompoundEngine()
         assert engine.metrics is not None
@@ -50,4 +50,3 @@ class TestCompoundEngine:
         engine = CompoundEngine()
         health = engine.get_health()
         assert health["healthy"] is True
-

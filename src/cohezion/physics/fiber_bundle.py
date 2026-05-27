@@ -1,4 +1,4 @@
-# ruff: noqa: RUF002  # math/physics symbols intentional
+# math/physics symbols intentional
 """Fiber bundle structure for the 12D axiomatic manifold.
 
 The 12D manifold M¹² has a natural principal fiber bundle structure:

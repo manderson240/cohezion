@@ -25,7 +25,7 @@ from pathlib import Path
 class VaultIntegrityChecker:
     """Comprehensive vault data integrity validator"""
 
-    def __init__(self, vault_path: str = None):
+    def __init__(self, vault_path: str | None = None):
         if vault_path is None:
             vault_path = Path.cwd() / "cloud-vault-mcp" / "vault"
         self.vault_path = Path(vault_path)
@@ -372,7 +372,7 @@ class VaultIntegrityChecker:
 
         return recommendations
 
-    def export_report(self, output_path: str = None):
+    def export_report(self, output_path: str | None = None):
         """Export detailed report to JSON"""
         if output_path is None:
             output_path = self.vault_path.parent / "vault_integrity_report.json"

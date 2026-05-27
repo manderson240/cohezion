@@ -1,4 +1,4 @@
-# ruff: noqa: E501  # long lines: SQL/URLs/docstrings — wrapping reduces readability
+# long lines: SQL/URLs/docstrings — wrapping reduces readability
 """SurrealDB schema definitions for Universe Simulation v2.0.
 
 This module defines the database schema for capturing every agent interaction

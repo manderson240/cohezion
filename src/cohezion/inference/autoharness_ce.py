@@ -185,7 +185,7 @@ class MyceliumKnowledgeGraph:
         self.nodes: dict[str, Any] = {}
         self.edges: list[tuple[str, str, str]] = []  # (from, to, relation)
 
-    def add_node(self, node_id: str, data: dict, tags: list[str] = None):
+    def add_node(self, node_id: str, data: dict, tags: list[str] | None = None):
         """Add a knowledge node with optional tags."""
         self.nodes[node_id] = {
             **data,
@@ -243,7 +243,7 @@ class FlumeDataPipeline:
     def __init__(self):
         self.streams: dict[str, list] = {}
 
-    def create_stream(self, stream_id: str, reference_files: list[str] = None):
+    def create_stream(self, stream_id: str, reference_files: list[str] | None = None):
         """
         Create a lazy-loading stream.
         Only loads reference files when explicitly requested.
@@ -356,7 +356,7 @@ class CompoundEngineeringAutoHarness:
         }
 
     def craft_payload(
-        self, user_prompt: str, task_type: str = "default", load_references: list[str] = None
+        self, user_prompt: str, task_type: str = "default", load_references: list[str] | None = None
     ) -> dict:
         """
         Craft optimized payload with token-efficient design.

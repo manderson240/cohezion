@@ -1,4 +1,4 @@
-# ruff: noqa: S108  # temp file paths in /tmp are intentional for ephemeral data
+# temp file paths in /tmp are intentional for ephemeral data
 """SandboxExecutor - Container-based isolated execution with resource management."""
 
 import asyncio

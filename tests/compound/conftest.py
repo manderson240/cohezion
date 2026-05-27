@@ -1,5 +1,6 @@
-"""Fixtures for compound integration tests."""
-"""Compound test fixtures.
+"""Fixtures for compound integration tests.
+
+Compound test fixtures.
 
 Ensures the project ``.context/`` tree has the placeholder source files that
 ``cohezion.compound.context_integration.ContextManager`` expects when loading
@@ -10,10 +11,9 @@ worktree (sparse checkouts, fresh clones). When they're missing, the
 CompoundExecutor's ``__init_context__`` chain raises ``ContextLoadError`` and
 every test that instantiates an executor errors out.
 
-This fixture is autouse + session-scoped so that the placeholders exist for
-the entire compound test run without per-test overhead. It does NOT modify
-real source files — it only ensures byte-identical placeholders for the
-context loader.
+This fixture is autouse + session-scoped so that the placeholders exist for the
+entire compound test run without per-test overhead. It does NOT modify real
+source files — it only ensures byte-identical placeholders for the context loader.
 """
 
 from __future__ import annotations
@@ -23,7 +23,6 @@ from pathlib import Path
 from unittest.mock import MagicMock, patch
 
 import pytest
-import pytest_asyncio
 
 from cohezion.core.mcp_client import MCPClient
 
@@ -60,12 +59,10 @@ def _mock_psutil_resources():
         yield
 
 
-@pytest_asyncio.fixture
-async def mcp_client():
+@pytest.fixture
+def mcp_client():
     """Create mock MCP client for testing."""
     return MagicMock(spec=MCPClient)
-
-import pytest
 
 
 def _find_project_root(start: Path) -> Path | None:
@@ -114,5 +111,4 @@ def _ensure_context_placeholders() -> None:
             "# Real content lives in the corresponding src/ module; this file exists so\n"
             "# ContextManager._load_file() does not raise ContextLoadError during tests.\n",
             encoding="utf-8",
-        )
         )

@@ -1,4 +1,4 @@
-# ruff: noqa: E501, RUF002  # math/physics symbols intentional
+# math/physics symbols intentional
 """SemanticCache - Phase 2 Task #2.2 + Phase 5A Task #5A.1: Fuzzy matching with semantic embeddings.
 
 Implements L2 cache tier for fuzzy prompt matching using semantic embeddings.

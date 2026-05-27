@@ -83,7 +83,7 @@ def train(
     optimizer = optim.AdamW(model.parameters(), lr=lr, weight_decay=0.01)
     scheduler = optim.lr_scheduler.CosineAnnealingLR(optimizer, T_max=steps, eta_min=lr * 0.1)
 
-    def _tokenize(text: str) -> "torch.Tensor":
+    def _tokenize(text: str) -> torch.Tensor:
         """Byte-level tokenizer: each UTF-8 byte → token id in [0, 255]."""
         enc = text.encode("utf-8")[: seq_len + 1]
         ids = list(enc) + [0] * max(0, seq_len + 1 - len(enc))
