@@ -75,7 +75,10 @@ async def generate_batch(num_tasks: int = 3):
         for i in range(num_tasks):
             print(f"Generating AGI-3 task {i + 1}/{num_tasks}...")
 
-            unique_prompt = GENERATION_PROMPT + f"\n\nTask ID: AGI3_Interactive_{len(tasks)} - Generate a unique agentic puzzle."
+            unique_prompt = (
+                GENERATION_PROMPT
+                + f"\n\nTask ID: AGI3_Interactive_{len(tasks)} - Generate a unique agentic puzzle."
+            )
 
             async def real_execute(*args, i=i, unique_prompt=unique_prompt, **kwargs):
                 client = get_compound_client()

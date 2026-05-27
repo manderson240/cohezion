@@ -7,7 +7,6 @@ Key insight: For large output tiles, multiple waves can collaborate
 on partial results, reducing synchronization overhead.
 """
 
-
 import aiter
 import torch
 from aiter import dtypes

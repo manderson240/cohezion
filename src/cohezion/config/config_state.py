@@ -9,13 +9,10 @@ from __future__ import annotations
 import hashlib
 from dataclasses import dataclass, field
 from datetime import datetime
-from typing import TYPE_CHECKING, Any
+from pathlib import Path
+from typing import Any
 
 from pydantic import BaseModel, ConfigDict, Field
-
-
-if TYPE_CHECKING:
-    from pathlib import Path
 
 
 @dataclass

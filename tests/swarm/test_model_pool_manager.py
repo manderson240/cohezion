@@ -341,7 +341,12 @@ class TestPoolManagerIntegration:
         decision, _can_proceed = router.select_model("What is Python?")
 
         # Normal routing, no pool interference
-        assert decision.model in ("phi3:mini", "qwen3-coder:32b", "deepseek-r1:8b", "Phi-4-mini-instruct-Hybrid")
+        assert decision.model in (
+            "phi3:mini",
+            "qwen3-coder:32b",
+            "deepseek-r1:8b",
+            "Phi-4-mini-instruct-Hybrid",
+        )
 
 
 # ---------------------------------------------------------------------------

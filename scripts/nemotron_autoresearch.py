@@ -29,13 +29,16 @@ STATE_PATH = KSEARCH_DIR / "nemotron_autoresearch_state.json"
 
 COMPETITION = "nvidia-nemotron-model-reasoning-challenge"
 
+
 def load_tree():
     if TREE_PATH.exists():
         return json.loads(TREE_PATH.read_text())
     return {"target": "nemotron_lora", "total_trials": 0, "best_score": 0.0, "nodes": {}}
 
+
 def save_tree(tree):
     TREE_PATH.write_text(json.dumps(tree, indent=2))
+
 
 def load_state():
     if STATE_PATH.exists():
@@ -49,10 +52,11 @@ def save_state(state):
 
 UCB_C = 1.414
 
+
 def select_hypothesis(tree, hypotheses):
     total = max(tree.get("total_trials", 0), 1)
     nodes = tree.get("nodes", {})
-    best_score = -float('inf')
+    best_score = -float("inf")
     best_h = hypotheses[0]
 
     for h in hypotheses:
@@ -67,6 +71,7 @@ def select_hypothesis(tree, hypotheses):
             best_h = h
     return best_h
 
+
 def update_tree(tree, hypothesis, score):
     tree["total_trials"] = tree.get("total_trials", 0) + 1
     nodes = tree.setdefault("nodes", {})
@@ -76,11 +81,11 @@ def update_tree(tree, hypothesis, score):
     if score > tree.get("best_score", 0.0):
         tree["best_score"] = score
 
+
 def check_kernel_status(kernel_id):
     """Autoharness: check if kernel completed successfully."""
     result = subprocess.run(
-        ["kaggle", "kernels", "status", kernel_id],
-        capture_output=True, text=True, timeout=30
+        ["kaggle", "kernels", "status", kernel_id], capture_output=True, text=True, timeout=30
     )
     if "COMPLETE" in result.stdout:
         return "complete"
@@ -92,15 +97,19 @@ def check_kernel_status(kernel_id):
         return "queued"
     return "unknown"
 
+
 def get_kernel_log(kernel_id):
     result = subprocess.run(
         ["kaggle", "kernels", "output", kernel_id, "-p", "/tmp/kaggle_out"],
-        capture_output=True, text=True, timeout=60
+        capture_output=True,
+        text=True,
+        timeout=60,
     )
     log_path = Path("/tmp/kaggle_out") / f"{kernel_id.split('/')[-1]}.log"
     if log_path.exists():
         return log_path.read_text()[:5000]
     return ""
+
 
 def poll_active_kernel(state):
     """Poll an active kernel and handle completion."""
@@ -129,15 +138,17 @@ def poll_active_kernel(state):
         print("Kernel still running. Check again later.")
         sys.exit(0)  # Wait for next cron run
 
+
 HYPOTHESES = [
-    "v20_baseline_50_samples_1e-4",           # v20 baseline
-    "v40_more_data_9500_samples_1e-4",        # Train on all data
-    "two_epoch_1000_samples_1e-4",            # More epochs, moderate data
-    "lr_2e-4_grad_accum_4",                 # Different optimization params
-    "deepseek_teacher_50_samples_only",       # Teacher model approach
-    "symbolic_verified_only_5200",            # Only where symbolic solver works
-    "max_seq_len_2048_chat_template",         # Different formatting
+    "v20_baseline_50_samples_1e-4",  # v20 baseline
+    "v40_more_data_9500_samples_1e-4",  # Train on all data
+    "two_epoch_1000_samples_1e-4",  # More epochs, moderate data
+    "lr_2e-4_grad_accum_4",  # Different optimization params
+    "deepseek_teacher_50_samples_only",  # Teacher model approach
+    "symbolic_verified_only_5200",  # Only where symbolic solver works
+    "max_seq_len_2048_chat_template",  # Different formatting
 ]
+
 
 def main():
     tree = load_tree()
@@ -155,6 +166,7 @@ def main():
     # For now, just show selection -- push via user action
     print(f"Ready to push kernel for: {hypothesis}")
     # Future: build kernel from template, push, update state
+
 
 if __name__ == "__main__":
     main()

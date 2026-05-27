@@ -117,3 +117,12 @@ class TestVAEExperienceTraining:
         vec2 = encoder.encode(exp)
 
         np.testing.assert_array_equal(vec1, vec2)
+
+
+def test_train_config_kl_weight_safe_default():
+    """A3 regression guard: TrainConfig default must be 0.01 not 0.1."""
+    config = TrainConfig()
+    assert config.kl_weight == 0.01, f"Posterior collapse risk: kl_weight={config.kl_weight}"
+    assert config.kl_weight < 0.015, (
+        "kl_weight >= 0.015 causes posterior collapse (empirical threshold)"
+    )

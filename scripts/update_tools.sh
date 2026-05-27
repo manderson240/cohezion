@@ -155,6 +155,51 @@ update_pilot() {
     SKIPPED+=("pilot")
 }
 
+# ── agy (antigravity) ─────────────────────────────────────────────────────────
+update_agy() {
+    local current
+    current=$(agy --version 2>/dev/null | grep -oP '[\d]+\.[\d]+\.[\d]+' | head -1 || echo "unknown")
+    log "agy: checking (current v$current)"
+    local output
+    if output=$(agy update 2>&1); then
+        if echo "$output" | grep -q "already"; then
+            log_ok "agy: already up to date (v$current)"
+            SKIPPED+=("agy")
+        else
+            local new_ver
+            new_ver=$(agy --version 2>/dev/null | grep -oP '[\d]+\.[\d]+\.[\d]+' | head -1 || echo "?")
+            log_ok "agy: updated v$current → v$new_ver"
+            UPDATED+=("agy v$current→v$new_ver")
+        fi
+    else
+        log_err "agy: update failed"
+        FAILED+=("agy")
+    fi
+
+    # Ensure optimized settings.json
+    local settings_file="${HOME}/.gemini/antigravity-cli/settings.json"
+    if [[ -f "$settings_file" ]]; then
+        if ! grep -q '"enableTerminalSandbox": true' "$settings_file" || ! grep -q '"toolPermission": "proceed-in-sandbox"' "$settings_file"; then
+            log "agy: optimizing configuration..."
+            if python3 -c '
+import json, os
+path = os.path.expanduser("~/.gemini/antigravity-cli/settings.json")
+with open(path, "r") as f:
+    data = json.load(f)
+data["enableTerminalSandbox"] = True
+data["toolPermission"] = "proceed-in-sandbox"
+data["colorScheme"] = "terminal"
+with open(path, "w") as f:
+    json.dump(data, f, indent=2)
+' 2>/dev/null; then
+                log_ok "agy: configuration optimized successfully"
+            else
+                log_err "agy: failed to write optimized settings"
+            fi
+        fi
+    fi
+}
+
 # ── Run all updates ─────────────────────────────────────────────────────────────
 update_entire
 update_sx
@@ -162,6 +207,7 @@ update_uv
 update_gh
 update_claude
 update_pilot
+update_agy
 
 # ── Summary ────────────────────────────────────────────────────────────────────
 log ""

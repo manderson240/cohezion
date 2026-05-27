@@ -10,7 +10,6 @@ This hybrid applies both optimizations for maximum theoretical speedup.
 POPCORN: amd-mxfp4-mm
 """
 
-
 import torch
 import torch.nn.functional as F
 from task import input_t, output_t

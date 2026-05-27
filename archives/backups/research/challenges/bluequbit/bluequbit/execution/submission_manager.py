@@ -125,9 +125,7 @@ class SubmissionManager:
             passed=all_passed, checks=checks, warnings=warnings, recommendation=recommendation
         )
 
-    def validate_and_submit(
-        self, result: dict, confidence_threshold: str = "HIGH"
-    ) -> dict | None:
+    def validate_and_submit(self, result: dict, confidence_threshold: str = "HIGH") -> dict | None:
         """
         Validate and submit if confidence is high enough.
 

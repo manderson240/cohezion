@@ -74,14 +74,16 @@ def run_baseline_training():
             total_loss += loss.item()
 
         avg_loss = total_loss / len(loader)
-        print(f"Epoch {epoch+1}/{epochs} | Loss: {avg_loss:.4f}")
+        print(f"Epoch {epoch + 1}/{epochs} | Loss: {avg_loss:.4f}")
 
     # 5. Save Artifacts
     torch.save(model.state_dict(), "src/cohezion/audio/checkpoints/birdclef_perch_proto_v1.pt")
     print("Training Complete. Model saved.")
 
+
 if __name__ == "__main__":
     # Ensure checkpoint directory exists
     import os
+
     os.makedirs("src/cohezion/audio/checkpoints", exist_ok=True)
     run_baseline_training()

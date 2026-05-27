@@ -137,7 +137,6 @@ class TestTrainingRuns:
         """Trained policy should achieve higher coherence than random actions."""
         import gymnasium as gym
 
-
         # Train for 50 episodes
         config = TrainingConfig(
             n_episodes=50,

@@ -11,6 +11,7 @@ import pytest
 
 from cohezion.api.services.flume import (
     FlumeEncodeRequest,
+    FlumeTrainRequest,
     compute_coherence,
     flume_encode_service,
 )
@@ -46,3 +47,14 @@ async def test_flume_encode_service():
 
         assert len(result.mu) == 256
         assert result.coherence > 0.9
+
+
+def test_flume_train_request_kl_weight_safe_default():
+    """A3 regression guard: API default must be 0.01 not 0.1 (posterior collapse threshold)."""
+    req = FlumeTrainRequest()
+    assert req.kl_weight == 0.01, (
+        f"Posterior collapse risk: kl_weight={req.kl_weight} (must be <= 0.01)"
+    )
+    assert req.kl_weight < 0.015, (
+        "kl_weight >= 0.015 causes posterior collapse (empirical threshold, 2026-05-19)"
+    )

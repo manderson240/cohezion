@@ -1,4 +1,5 @@
 """Tests for overnight_evo_loop retirement logic field name correctness."""
+
 import statistics
 
 
@@ -59,8 +60,12 @@ class TestRetirementLogicFieldNames:
     def test_read_recent_results_returns_correct_format(self):
         """_read_recent_results returns dicts with 'status' and 'asi' keys."""
         entries = [
-            {"run": i, "metric": 0.1 * i, "status": "keep" if i % 2 else "discard",
-             "asi": {"experiment": f"E{i % 3 + 63}"}}
+            {
+                "run": i,
+                "metric": 0.1 * i,
+                "status": "keep" if i % 2 else "discard",
+                "asi": {"experiment": f"E{i % 3 + 63}"},
+            }
             for i in range(1, 11)
         ]
         keeps = [e for e in entries if e.get("status") == "keep"]
@@ -90,4 +95,3 @@ class TestRetirementDecisionLogic:
         cv = statistics.stdev(keeps) / mean_k
         assert cv > 0.05  # sanity: this really is high CV
         assert should_retire(keeps) is False
-

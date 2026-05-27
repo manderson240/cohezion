@@ -7,7 +7,6 @@ Key insight: Many neural network weights are sparse. By skipping blocks
 below a threshold, we can reduce computation while maintaining accuracy.
 """
 
-
 import aiter
 import torch
 from aiter import dtypes

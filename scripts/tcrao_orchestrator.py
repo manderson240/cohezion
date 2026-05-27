@@ -58,9 +58,21 @@ BUDGET_SECONDS = 300  # 5 min per experiment
 UCB_C = math.sqrt(2)
 
 TARGETS = {
-    "arc_solver": {"metric": "solve_rate", "direction": "maximize"},
-    "jepa_world_model": {"metric": "loss", "direction": "minimize"},
-    "flume_vae": {"metric": "reconstruction_loss", "direction": "minimize"},
+    "arc_solver": {
+        "metric": "solve_rate",
+        "direction": "maximize",
+        "path": COHEZION_ROOT / "kaggle-dataset" / "arc_solver.py",
+    },
+    "jepa_world_model": {
+        "metric": "loss",
+        "direction": "minimize",
+        "path": COHEZION_ROOT / "src" / "cohezion" / "world_model" / "jepa_world_model.py",
+    },
+    "flume_vae": {
+        "metric": "reconstruction_loss",
+        "direction": "minimize",
+        "path": COHEZION_ROOT / "src" / "cohezion" / "flume" / "train_vae.py",
+    },
 }
 
 # Endpoints (confirmed running on this machine)
@@ -104,10 +116,12 @@ def _load_tree(target: str, hypotheses: list[str]) -> dict:
             return json.loads(p.read_text())
         except Exception:
             pass
+    direction = TARGETS[target]["direction"]
+    initial_best = float("-inf") if direction == "maximize" else float("inf")
     return {
         "target": target,
         "total_trials": 0,
-        "best_score": float("-inf"),
+        "best_score": initial_best,
         "nodes": {
             h: {"hypothesis": h, "wins": 0, "trials": 0, "metric_values": []} for h in hypotheses
         },
@@ -165,7 +179,7 @@ def _igpu_infer(prompt: str, max_tokens: int = 4096) -> str | None:
         resp = requests.post(
             LEMONADE_URL,
             json={
-                "model": "gemma-4-e4b-it",
+                "model": "Gemma-4-E4B-it-GGUF",
                 "messages": [
                     {
                         "role": "system",
@@ -304,7 +318,7 @@ def _verify_code(code: str, target: str) -> tuple[bool, str]:
 # ════════════════════════════════════════════════════════════════
 
 
-def _evaluate_arc_solver(code: str, timeout: int = 60) -> tuple[float, str]:
+def _evaluate_arc_solver(code: str, timeout: int = 900) -> tuple[float, str]:
     """Real ARC evaluation using local eval harness."""
     # Write variant to temp file
     tmp_solver = Path(f"/tmp/tcrao_arc_solver_{uuid.uuid4().hex[:8]}.py")
@@ -321,6 +335,8 @@ def _evaluate_arc_solver(code: str, timeout: int = 60) -> tuple[float, str]:
                 "3000",
                 "--max-depth",
                 "3",
+                "--max-tasks",
+                "10",
             ],
             capture_output=True,
             text=True,

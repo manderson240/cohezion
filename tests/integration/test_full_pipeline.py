@@ -20,6 +20,7 @@ from cohezion.rl.trainer import PolicyNetwork, TrainingConfig, train
 def _flume_nav_registered() -> bool:
     try:
         import gymnasium as gym
+
         return "cohezion/FlumeNav-v0" in gym.envs.registry
     except Exception:
         return False

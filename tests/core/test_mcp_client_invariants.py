@@ -7,6 +7,7 @@ These tests verify:
    the known pattern so future changes are visible
 4. The vault_search fallback handles RuntimeError from running event loop
 """
+
 import inspect
 from unittest.mock import AsyncMock, MagicMock, patch
 
@@ -208,6 +209,7 @@ class TestVaultWriteSyncWrapper:
         """vault_write_sync must be a sync method."""
         client = _make_client()
         import inspect
+
         assert not inspect.iscoroutinefunction(client.vault_write_sync)
 
 
@@ -243,6 +245,7 @@ class TestVaultReadSyncWrapper:
         """vault_read_sync must be a sync method."""
         client = _make_client()
         import inspect
+
         assert not inspect.iscoroutinefunction(client.vault_read_sync)
 
 
@@ -276,6 +279,7 @@ class TestVaultDeleteSyncWrapper:
         """vault_delete_sync must be a sync method."""
         client = _make_client()
         import inspect
+
         assert not inspect.iscoroutinefunction(client.vault_delete_sync)
 
 
@@ -289,6 +293,7 @@ class TestAdditionalSyncWrappers:
         """All _sync wrappers must be synchronous (not coroutines)."""
         client = _make_client()
         import inspect
+
         assert not inspect.iscoroutinefunction(getattr(client, method_name)), (
             f"{method_name} must NOT be async"
         )
@@ -296,8 +301,10 @@ class TestAdditionalSyncWrappers:
     def test_vault_read_sync_returns_string_or_empty(self):
         """vault_read_sync returns str, never raises."""
         client = _make_client()
+
         async def fake_read(path):
             raise RuntimeError("vault offline")
+
         with patch.object(client, "vault_read", side_effect=fake_read):
             result = client.vault_read_sync("test.md")
         assert isinstance(result, str)
@@ -306,7 +313,9 @@ class TestAdditionalSyncWrappers:
     def test_vault_delete_sync_silences_exceptions(self):
         """vault_delete_sync never raises."""
         client = _make_client()
+
         async def always_fails(path):
             raise RuntimeError("vault offline")
+
         with patch.object(client, "vault_delete", side_effect=always_fails):
             client.vault_delete_sync("test.md")  # Should NOT raise

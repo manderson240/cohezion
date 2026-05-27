@@ -31,7 +31,7 @@ class TrainConfig:
     batch_size: int = 64
     epochs: int = 50
     lr: float = 1e-3
-    kl_weight: float = 0.1
+    kl_weight: float = 0.01  # β=0.1 causes posterior collapse; 0.01 is empirically validated
     coherence_weight: float = 0.05
     grad_clip: float = 1.0
     lr_schedule: str = "cosine"  # "cosine" or "step"

@@ -77,9 +77,14 @@ async def verify_claim_b() -> bool:
         result = await parent.run("test")
 
     if m.await_count != 2:
-        _fail("B-behavioral", f"expected 2 route() calls (parent-t0 + inner-t0); got {m.await_count}")
+        _fail(
+            "B-behavioral", f"expected 2 route() calls (parent-t0 + inner-t0); got {m.await_count}"
+        )
         return False
-    _pass("B-behavioral", f"route() called 2x as expected (inner-t1 correctly skipped); cost=${result.cost_usd:.4f}")
+    _pass(
+        "B-behavioral",
+        f"route() called 2x as expected (inner-t1 correctly skipped); cost=${result.cost_usd:.4f}",
+    )
     return True
 
 
@@ -92,7 +97,9 @@ async def verify_claim_c() -> bool:
         result = await extend_claude("test", claude_model="this-model-does-not-exist-at-all")
 
     if mock_route.await_count != 0:
-        _fail("C", f"route() was called {mock_route.await_count} times; should be 0 on unknown model")
+        _fail(
+            "C", f"route() was called {mock_route.await_count} times; should be 0 on unknown model"
+        )
         return False
     if not result.error or "this-model-does-not-exist-at-all" not in result.error:
         _fail("C", f"expected error mentioning model name; got {result.error!r}")

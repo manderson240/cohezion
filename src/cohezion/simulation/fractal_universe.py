@@ -43,7 +43,7 @@ logging.basicConfig(
 )
 logger = logging.getLogger("FractalNexus")
 
-from cohezion.simulation.analysis_prime import SimulationAnalyzer  # noqa: E402
+from cohezion.simulation.analysis_prime import SimulationAnalyzer
 
 
 # Constants

@@ -54,6 +54,7 @@ class TestExecutorErrorClassification:
     def test_executor_imports_error_classifier(self):
         """Structural: error_classifier module exists and is importable."""
         from cohezion.compound.error_classifier import classify_error
+
         assert callable(classify_error)
 
     def test_classify_error_dict_has_required_keys(self):
@@ -61,4 +62,3 @@ class TestExecutorErrorClassification:
         assert "error_type" in result
         assert "error_category" in result
         assert "retryable" in result
-

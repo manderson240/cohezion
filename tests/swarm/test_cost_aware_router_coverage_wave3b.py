@@ -236,7 +236,9 @@ class TestCostTracking:
 
     def test_record_execution_increments_success_counter(self, router):
         """record_execution(success=True) on TIER_SIMPLE → _phi3_success_count++."""
-        router.record_execution(router.TIER_SIMPLE, actual_tokens=100, duration_ms=50.0, success=True)
+        router.record_execution(
+            router.TIER_SIMPLE, actual_tokens=100, duration_ms=50.0, success=True
+        )
         assert router._phi3_success_count == 1
 
     def test_select_model_increments_query_count(self, router):

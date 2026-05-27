@@ -71,10 +71,8 @@ class PreFlightJury:
     @staticmethod
     def test_libs():
         try:
-
             # Optional: bitsandbytes
             try:
-
                 print("bitsandbytes available for 4-bit optimization.")
             except Exception as e:
                 print(f"bitsandbytes not available: {e}. Falling back to standard precision.")
@@ -289,7 +287,6 @@ def load_environment():
         load_args = {"torch_dtype": torch.bfloat16, "device_map": "auto", "trust_remote_code": True}
 
         try:
-
             load_args["load_in_4bit"] = True
             print("Using 4-bit quantization.")
         except:

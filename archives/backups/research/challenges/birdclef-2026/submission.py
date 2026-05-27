@@ -96,7 +96,6 @@ def predict(test_audio_path, model_path=None, config=None):
     # Load components once
     print(f"Loading pre-trained AST components from {config['model_name']}...")
     try:
-
         # Force a fresh client if needed, or just rely on standard loading with a retry
         feature_extractor = ASTFeatureExtractor.from_pretrained(
             config["model_name"], local_files_only=False

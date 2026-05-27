@@ -111,9 +111,12 @@ class TestCompoundUtils:
         fake_client = AsyncMock()
         resolver = McpClientResolver(get_default_client=lambda: fake_client)
 
-        with patch.object(resolver, "_get_default", return_value=fake_client), patch(
-            "cohezion.core.mcp_client.create_mcp_client",
-            return_value=fake_client,
+        with (
+            patch.object(resolver, "_get_default", return_value=fake_client),
+            patch(
+                "cohezion.core.mcp_client.create_mcp_client",
+                return_value=fake_client,
+            ),
         ):
             client, _is_fresh = await resolver.resolve("http://test:8080")
             assert client is fake_client

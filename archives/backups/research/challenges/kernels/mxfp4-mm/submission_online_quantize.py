@@ -7,7 +7,6 @@ Key insight: For large M dimension, we can stream through input rows,
 keeping only a working set in memory at once.
 """
 
-
 import aiter
 import torch
 from aiter import dtypes

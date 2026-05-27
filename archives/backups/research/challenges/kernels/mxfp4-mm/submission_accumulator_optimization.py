@@ -7,7 +7,6 @@ Key insight: bf16 has limited precision for accumulation.
 Using fp32 accumulators reduces numerical error in long reductions.
 """
 
-
 import aiter
 import torch
 from aiter import dtypes

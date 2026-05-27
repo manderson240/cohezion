@@ -12,8 +12,7 @@ platform = importlib.import_module("platform")
 
 @pytest.mark.asyncio
 @pytest.mark.skipif(
-    not __import__("importlib").util.find_spec("camel"),
-    reason="CAMEL-AI not installed"
+    not __import__("importlib").util.find_spec("camel"), reason="CAMEL-AI not installed"
 )
 async def test_eigent_integration():
     print("Testing Eigent integration with Lemonade server...")

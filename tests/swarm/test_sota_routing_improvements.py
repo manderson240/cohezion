@@ -9,6 +9,7 @@ Each test is written RED-first; implementation in cost_aware_router.py makes the
 """
 
 from __future__ import annotations
+
 from unittest.mock import MagicMock, patch
 
 import pytest

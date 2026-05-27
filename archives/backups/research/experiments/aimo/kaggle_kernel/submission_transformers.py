@@ -40,7 +40,6 @@ class PreFlightJury:
     @staticmethod
     def test_libs():
         try:
-
             return True
         except:
             return False

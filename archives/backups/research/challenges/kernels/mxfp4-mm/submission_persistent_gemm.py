@@ -9,7 +9,6 @@ persistent kernel that processes them sequentially without
 writing intermediate results to global memory.
 """
 
-
 import aiter
 import torch
 from aiter import dtypes

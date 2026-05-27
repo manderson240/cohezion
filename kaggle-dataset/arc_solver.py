@@ -6,6 +6,7 @@ Key primitives added:
   - remove_noise: Remove isolated pixels
   - color_by_object_order: Assign colors by object size rank
 """
+
 from __future__ import annotations
 
 from typing import Callable
@@ -14,6 +15,7 @@ try:
     import torch
     import torch.nn as nn
     import torch.nn.functional as F
+
     HAS_TORCH = True
 except Exception:
     HAS_TORCH = False
@@ -41,6 +43,7 @@ def grids_equal(a: Grid | None, b: Grid | None) -> bool:
 # ═══════════════════════════════════════════════════════════════
 # TOPOLOGY PRIMITIVES
 # ═══════════════════════════════════════════════════════════════
+
 
 def _connected_components(g: Grid, bg: int = 0) -> list[list[tuple[int, int]]]:
     if not g:
@@ -86,7 +89,9 @@ def select_largest_object(g: Grid, bg: int = 0) -> Grid | None:
     return out
 
 
-def fill_enclosed(g: Grid, fill_color: int = 1, bg: int = 0, border: int | None = None) -> Grid | None:
+def fill_enclosed(
+    g: Grid, fill_color: int = 1, bg: int = 0, border: int | None = None
+) -> Grid | None:
     """Flood fill bg pixels that are enclosed by non-bg pixels. Simple approach."""
     if not g:
         return None
@@ -95,6 +100,7 @@ def fill_enclosed(g: Grid, fill_color: int = 1, bg: int = 0, border: int | None 
     # Mark all bg cells connected to border as non-enclosed
     non_enclosed = [[False] * w for _ in range(h)]
     from collections import deque
+
     q = deque()
     for r in range(h):
         for c in range(w):
@@ -147,23 +153,30 @@ def color_by_object_rank(g: Grid, bg: int = 0) -> Grid | None:
 # GEOMETRIC PRIMITIVES
 # ═══════════════════════════════════════════════════════════════
 
+
 def identity(g: Grid) -> Grid:
     return [r[:] for r in g]
+
 
 def flip_h(g: Grid) -> Grid:
     return [list(r) for r in g[::-1]]
 
+
 def flip_v(g: Grid) -> Grid:
     return [r[::-1] for r in g]
+
 
 def transpose(g: Grid) -> Grid:
     return list(map(list, zip(*g)))
 
+
 def rot90(g: Grid) -> Grid:
     return [list(r) for r in zip(*g[::-1])]
 
+
 def rot180(g: Grid) -> Grid:
     return [r[::-1] for r in g[::-1]]
+
 
 def rot270(g: Grid) -> Grid:
     return [list(r) for r in zip(*g)][::-1]
@@ -202,13 +215,16 @@ def get_all_ops(train: list[dict[str, Grid]]) -> list[tuple[str, Op]]:
     for old_c in colors:
         for new_c in colors:
             if old_c != new_c:
-                ops.append((f"rep_{old_c}_to_{new_c}", lambda g, o=old_c, n=new_c: _replace_color(g, o, n)))
+                ops.append(
+                    (f"rep_{old_c}_to_{new_c}", lambda g, o=old_c, n=new_c: _replace_color(g, o, n))
+                )
     return ops
 
 
 # ═══════════════════════════════════════════════════════════════
 # SEARCH
 # ═══════════════════════════════════════════════════════════════
+
 
 def _search_depth(train, depth, ops, budget):
     if depth == 1:
@@ -282,6 +298,7 @@ def apply_program(g: Grid, program: list[Op]) -> Grid | None:
 # TINYCONV (one-hot fallback)
 # ═══════════════════════════════════════════════════════════════
 
+
 class _TinyConv(nn.Module):
     def __init__(self, colors=10, hidden=32):
         super().__init__()
@@ -342,6 +359,7 @@ def _predict_conv(model, grid):
 # TCRAO INTERFACE
 # ═══════════════════════════════════════════════════════════════
 
+
 def solve_task(task: dict, max_depth: int = 3):
     task_id = task.get("id", "unknown")
     train = task.get("train", [])
@@ -355,6 +373,10 @@ def solve_task(task: dict, max_depth: int = 3):
             predictions.append({"attempt_1": [pred], "attempt_2": [pred]})
     else:
         for test_ex in test:
-            predictions.append({"attempt_1": [deepcopy_grid(test_ex["input"])],
-                              "attempt_2": [deepcopy_grid(test_ex["input"])]})
+            predictions.append(
+                {
+                    "attempt_1": [deepcopy_grid(test_ex["input"])],
+                    "attempt_2": [deepcopy_grid(test_ex["input"])],
+                }
+            )
     return {task_id: predictions}

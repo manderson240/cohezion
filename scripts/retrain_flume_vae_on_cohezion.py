@@ -56,7 +56,7 @@ def extract_corpus() -> int:
             for line in VAULT_OBS.read_text().splitlines():
                 try:
                     o = json.loads(line)
-                    txt = f"{o.get('title','')}. {o.get('text','')}".strip()
+                    txt = f"{o.get('title', '')}. {o.get('text', '')}".strip()
                     if len(txt) >= 20 and txt not in seen_text:
                         seen_text.add(txt)
                         out.write(json.dumps({"id": f"vault:{o.get('id')}", "text": txt}) + "\n")
@@ -98,6 +98,7 @@ def teacher_embed(max_docs: int = 5000) -> int:
         print("[teacher] corpus missing — run --extract-only first")
         return 0
     import urllib.request
+
     docs = []
     for line in CORPUS_OUT.read_text().splitlines()[:max_docs]:
         try:
@@ -110,26 +111,34 @@ def teacher_embed(max_docs: int = 5000) -> int:
     TEACHER_EMB_OUT.parent.mkdir(parents=True, exist_ok=True)
     with TEACHER_EMB_OUT.open("w") as out:
         for i, d in enumerate(docs):
-            body = json.dumps({"model": "nomic-embed-text:v1.5",
-                               "prompt": d["text"][:2000]}).encode()
+            body = json.dumps(
+                {"model": "nomic-embed-text:v1.5", "prompt": d["text"][:2000]}
+            ).encode()
             req = urllib.request.Request(
-                "http://localhost:11434/api/embeddings", data=body,
-                headers={"Content-Type": "application/json"}, method="POST")
+                "http://localhost:11434/api/embeddings",
+                data=body,
+                headers={"Content-Type": "application/json"},
+                method="POST",
+            )
             try:
                 with urllib.request.urlopen(req, timeout=15) as r:
                     resp = json.loads(r.read().decode())
                 emb = resp.get("embedding")
                 if emb:
-                    out.write(json.dumps({"id": d["id"], "text": d["text"][:200],
-                                          "embedding": emb}) + "\n")
+                    out.write(
+                        json.dumps({"id": d["id"], "text": d["text"][:200], "embedding": emb})
+                        + "\n"
+                    )
                     written += 1
             except Exception as e:
                 print(f"  [{i}] failed: {e}")
             if i % 25 == 0 and i > 0:
                 rate = i / (time.time() - t0)
-                print(f"  progress: {i}/{len(docs)} ({rate:.1f} doc/s, ETA {(len(docs)-i)/rate:.0f}s)")
+                print(
+                    f"  progress: {i}/{len(docs)} ({rate:.1f} doc/s, ETA {(len(docs) - i) / rate:.0f}s)"
+                )
             time.sleep(0.05)  # Ollama embed is fast (~10ms)
-    print(f"[teacher] wrote {written} embeddings to {TEACHER_EMB_OUT} ({time.time()-t0:.1f}s)")
+    print(f"[teacher] wrote {written} embeddings to {TEACHER_EMB_OUT} ({time.time() - t0:.1f}s)")
     return written
 
 
@@ -168,6 +177,7 @@ def train(epochs: int = 5, batch_size: int = 32) -> None:
             super().__init__()
             self.encoder = nn.Sequential(nn.Linear(768, 384), nn.ReLU(), nn.Linear(384, 256))
             self.decoder = nn.Sequential(nn.Linear(256, 384), nn.ReLU(), nn.Linear(384, 768))
+
         def forward(self, x):
             z = self.encoder(x)
             return self.decoder(z), z
@@ -175,11 +185,15 @@ def train(epochs: int = 5, batch_size: int = 32) -> None:
     # Force CPU on Strix Halo — ROCm iGPU init is unreliable per CLAUDE.md
     # HARDWARE_PROFILE_PRIME ("never assume RTX/CUDA"). Tiny MLP, CPU is fine.
     import os as _os
+
     if _os.environ.get("FLUME_TRAIN_DEVICE"):
         device = _os.environ["FLUME_TRAIN_DEVICE"]
     else:
         device = "cpu"
-    print(f"[train] device={device} epochs={epochs} (CPU forced; set FLUME_TRAIN_DEVICE=cuda to override)", flush=True)
+    print(
+        f"[train] device={device} epochs={epochs} (CPU forced; set FLUME_TRAIN_DEVICE=cuda to override)",
+        flush=True,
+    )
     model = Student().to(device)
     opt = torch.optim.Adam(model.parameters(), lr=3e-4)
     teacher_t = torch.tensor([it["embedding"] for it in items], dtype=torch.float32).to(device)
@@ -190,7 +204,7 @@ def train(epochs: int = 5, batch_size: int = 32) -> None:
         perm = torch.randperm(n)
         ep_loss = 0.0
         for i in range(0, n, batch_size):
-            idx = perm[i:i + batch_size]
+            idx = perm[i : i + batch_size]
             x = teacher_t[idx]
             x_recon, z = model(x)
             recon_loss = ((x_recon - x) ** 2).mean()
@@ -198,24 +212,34 @@ def train(epochs: int = 5, batch_size: int = 32) -> None:
             z_var = z.var(dim=0).mean()
             collapse_penalty = -0.1 * z_var.clamp(max=1.0)
             loss = recon_loss + collapse_penalty
-            opt.zero_grad(); loss.backward(); opt.step()
+            opt.zero_grad()
+            loss.backward()
+            opt.step()
             ep_loss += loss.item()
-        print(f"  epoch {ep}/{epochs}: loss={ep_loss / max(1, n//batch_size):.4f}")
+        print(f"  epoch {ep}/{epochs}: loss={ep_loss / max(1, n // batch_size):.4f}")
 
     NEW_CKPT.parent.mkdir(parents=True, exist_ok=True)
-    torch.save({"encoder": model.encoder.state_dict(),
-                "mu_head": {"weight": torch.eye(256, 256), "bias": torch.zeros(256)},
-                "decoder": model.decoder.state_dict(),
-                "teacher_model": "nomic-embed-text:v1.5",
-                "epochs": epochs, "n_train": n}, NEW_CKPT)
+    torch.save(
+        {
+            "encoder": model.encoder.state_dict(),
+            "mu_head": {"weight": torch.eye(256, 256), "bias": torch.zeros(256)},
+            "decoder": model.decoder.state_dict(),
+            "teacher_model": "nomic-embed-text:v1.5",
+            "epochs": epochs,
+            "n_train": n,
+        },
+        NEW_CKPT,
+    )
     print(f"[train] saved {NEW_CKPT}")
 
 
 def evaluate(ckpt_path: str) -> None:
     """Run the posterior-collapse test (E89.3) on a candidate checkpoint."""
     import sys as _sys
+
     _sys.path.insert(0, str(REPO / "src"))
     from cohezion.flume.vae_encoder import FlumeVAEEncoder
+
     enc = FlumeVAEEncoder(model_path=Path(ckpt_path))
     print(f"[eval] enabled={enc.enabled} ckpt={ckpt_path}")
 
@@ -227,9 +251,12 @@ def evaluate(ckpt_path: str) -> None:
     ]
     embs = [enc.encode(t) for t in texts]
     import math as _m
+
     def cos(a, b):
-        na = _m.sqrt(sum(x * x for x in a)); nb = _m.sqrt(sum(x * x for x in b))
+        na = _m.sqrt(sum(x * x for x in a))
+        nb = _m.sqrt(sum(x * x for x in b))
         return sum(a[i] * b[i] for i in range(len(a))) / (na * nb)
+
     pairs = [cos(embs[i], embs[j]) for i in range(4) for j in range(i + 1, 4)]
     dr = max(pairs) - min(pairs)
     print(f"[eval] dynamic_range={dr:.4f} (FLUME ep20={0.003}, nomic-embed={0.142})")

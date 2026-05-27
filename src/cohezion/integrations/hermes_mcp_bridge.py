@@ -159,6 +159,54 @@ def _crawl_tree(root: str, max_depth: int = 4, pattern: str = "*.py") -> list[di
     return results
 
 
+# === Local inference configuration ===
+_NPU_PORT = int(os.environ.get("COHEZION_NPU_PORT", 13306))
+_IGPU_PORT = int(os.environ.get("COHEZION_IGPU_PORT", 13307))
+_CPU_PORT = int(os.environ.get("COHEZION_CPU_PORT", 13309))
+
+# Model IDs loaded by default on each tier (overridable via env)
+_NPU_MODEL = os.environ.get("COHEZION_NPU_MODEL", "llama3.2-1b-FLM")
+_IGPU_MODEL = os.environ.get("COHEZION_IGPU_MODEL", "Gemma-4-E4B-it-GGUF")
+_CPU_MODEL = os.environ.get("COHEZION_CPU_MODEL", "Gemma-4-31B-it-GGUF")
+
+
+def _lemonade_complete(
+    port: int, model_id: str, prompt: str, max_tokens: int = 512, timeout: int = 10
+) -> str:
+    """Call lemonade OpenAI-compatible /v1/chat/completions. Returns response text or raises."""
+    import urllib.request
+
+    payload = json.dumps(
+        {
+            "model": model_id,
+            "messages": [{"role": "user", "content": prompt}],
+            "max_tokens": max_tokens,
+            "stream": False,
+        }
+    ).encode()
+    req = urllib.request.Request(
+        f"http://localhost:{port}/v1/chat/completions",
+        data=payload,
+        headers={"Content-Type": "application/json"},
+    )
+    with urllib.request.urlopen(req, timeout=timeout) as resp:
+        d = json.loads(resp.read())
+    return d["choices"][0]["message"]["content"]
+
+
+def _lemonade_models(port: int, timeout: int = 2) -> list[str]:
+    """Return list of model IDs loaded on a lemonade port, or [] on failure."""
+    import urllib.request
+
+    try:
+        req = urllib.request.Request(f"http://localhost:{port}/v1/models")
+        with urllib.request.urlopen(req, timeout=timeout) as resp:
+            d = json.loads(resp.read())
+        return [m["id"] for m in d.get("data", [])]
+    except Exception:
+        return []
+
+
 # === Python execution helper ===
 def _resolve_python() -> str:
     """Find the right Python: venv first, then sys.executable."""
@@ -357,6 +405,95 @@ def _tools_list() -> list[dict[str, Any]]:
                 "required": ["relative_path"],
             },
         },
+        {
+            "name": "cohezion_infer",
+            "description": (
+                "Send a prompt to the Cohezion local inference stack running on Strix Halo AMD silicon. "
+                "Automatically routes NPU → iGPU → CPU (tiered fallback). "
+                "NPU (llama3.2-1b-FLM) is fastest (~450ms). "
+                "Use tier='npu'/'igpu'/'cpu' to pin to a specific tier, or leave 'auto' for automatic fallback. "
+                "Returns the model response along with which tier was used and latency."
+            ),
+            "inputSchema": {
+                "type": "object",
+                "properties": {
+                    "prompt": {
+                        "type": "string",
+                        "description": "The prompt or question to send to the local model",
+                    },
+                    "max_tokens": {
+                        "type": "integer",
+                        "description": "Maximum tokens in the response (default 512)",
+                        "default": 512,
+                    },
+                    "tier": {
+                        "type": "string",
+                        "description": "Inference tier: 'auto' (default), 'npu', 'igpu', or 'cpu'",
+                        "default": "auto",
+                        "enum": ["auto", "npu", "igpu", "cpu"],
+                    },
+                },
+                "required": ["prompt"],
+            },
+        },
+        {
+            "name": "cohezion_inference_status",
+            "description": (
+                "Check the status of all Cohezion local inference nodes (NPU/iGPU/CLaSp/CPU). "
+                "Reports which nodes are up, which models are loaded, and live TTFT from the NPU. "
+                "Also reports available system memory."
+            ),
+            "inputSchema": {"type": "object", "properties": {}},
+        },
+        {
+            "name": "cohezion_zerolang_run",
+            "description": (
+                "Execute a Zerolang (.0) program using the local `zero` CLI. "
+                "Accepts either inline code (as a string) or a file path to a .0 file. "
+                "Zerolang is an agent-first language designed for AI agents — use cohezion_infer "
+                "with tier='igpu' to generate Zerolang code, then pass it here to run it. "
+                "Returns stdout, stderr, exit code, and execution latency."
+            ),
+            "inputSchema": {
+                "type": "object",
+                "properties": {
+                    "code": {
+                        "type": "string",
+                        "description": "Inline Zerolang source code to execute (use this or file_path)",
+                    },
+                    "file_path": {
+                        "type": "string",
+                        "description": "Absolute path to an existing .0 file to run (use this or code)",
+                    },
+                    "timeout": {
+                        "type": "integer",
+                        "description": "Max execution time in seconds (default 15)",
+                        "default": 15,
+                    },
+                },
+            },
+        },
+        {
+            "name": "cohezion_zerolang_check",
+            "description": (
+                "Validate a Zerolang (.0) program without running it. "
+                "Returns whether the code is valid and any diagnostic messages. "
+                "Use this before cohezion_zerolang_run to catch syntax errors."
+            ),
+            "inputSchema": {
+                "type": "object",
+                "properties": {
+                    "code": {
+                        "type": "string",
+                        "description": "Inline Zerolang source code to validate",
+                    },
+                    "file_path": {
+                        "type": "string",
+                        "description": "Absolute path to a .0 file to validate",
+                    },
+                },
+            },
+        },
     ]
 
 
@@ -495,6 +632,203 @@ def _handle_read_source(args: dict) -> dict:
     }
 
 
+def _handle_infer(args: dict) -> dict:
+    """Route a prompt through the local inference stack with tiered fallback."""
+    import time
+
+    prompt = args["prompt"]
+    max_tokens = args.get("max_tokens", 512)
+    tier_pref = args.get("tier", "auto")
+
+    tiers = {
+        "npu": (_NPU_PORT, _NPU_MODEL, 5),
+        "igpu": (_IGPU_PORT, _IGPU_MODEL, 15),
+        "cpu": (_CPU_PORT, _CPU_MODEL, 45),
+    }
+
+    if tier_pref != "auto":
+        order = [tier_pref] if tier_pref in tiers else list(tiers.keys())
+    else:
+        order = ["npu", "igpu", "cpu"]
+
+    escalations = 0
+    for tier_name in order:
+        port, model_id, timeout = tiers[tier_name]
+        t0 = time.perf_counter()
+        try:
+            text = _lemonade_complete(
+                port, model_id, prompt, max_tokens=max_tokens, timeout=timeout
+            )
+            latency_ms = int((time.perf_counter() - t0) * 1000)
+            if text and text.strip():
+                return {
+                    "response": text.strip(),
+                    "tier_used": tier_name,
+                    "model": model_id,
+                    "port": port,
+                    "latency_ms": latency_ms,
+                    "escalations": escalations,
+                }
+            # Empty response — escalate
+            escalations += 1
+            logger.warning("Tier %s returned empty response, escalating", tier_name)
+        except Exception as exc:
+            escalations += 1
+            logger.warning("Tier %s failed (%s), escalating", tier_name, exc)
+
+    return {
+        "error": "All inference tiers failed or returned empty",
+        "escalations": escalations,
+        "tiers_tried": order,
+    }
+
+
+def _handle_inference_status(_args: dict) -> dict:
+    """Report live status of all inference nodes and NPU TTFT probe."""
+    import time
+
+    node_configs = [
+        (13306, "npu", _NPU_MODEL),
+        (13307, "igpu", _IGPU_MODEL),
+        (13308, "clasp", "Gemma-4-E2B-it-GGUF"),
+        (13309, "cpu", _CPU_MODEL),
+    ]
+
+    nodes = []
+    for port, role, default_model in node_configs:
+        models = _lemonade_models(port, timeout=2)
+        nodes.append(
+            {
+                "port": port,
+                "role": role,
+                "status": "up" if models else "offline",
+                "loaded_models": models[:3],  # cap list length
+            }
+        )
+
+    # NPU TTFT probe (1-token completion)
+    npu_ttft_ms = None
+    if nodes[0]["status"] == "up":
+        t0 = time.perf_counter()
+        try:
+            _lemonade_complete(_NPU_PORT, _NPU_MODEL, "hi", max_tokens=1, timeout=8)
+            npu_ttft_ms = int((time.perf_counter() - t0) * 1000)
+        except Exception:
+            pass
+
+    # Available memory
+    mem_available_gib = None
+    try:
+        with open("/proc/meminfo") as f:
+            for line in f:
+                if line.startswith("MemAvailable"):
+                    mem_available_gib = int(line.split()[1]) // (1024 * 1024)
+                    break
+    except Exception:
+        pass
+
+    # lemonade version
+    lemonade_version = None
+    try:
+        import subprocess
+
+        r = subprocess.run(["lemonade", "--version"], capture_output=True, text=True, timeout=3)
+        lemonade_version = r.stdout.strip() or r.stderr.strip()
+    except Exception:
+        pass
+
+    return {
+        "nodes": nodes,
+        "npu_ttft_ms": npu_ttft_ms,
+        "memory_available_gib": mem_available_gib,
+        "lemonade_version": lemonade_version,
+    }
+
+
+def _zerolang_bin() -> str:
+    """Return the zero CLI path: ~/.zero/bin/zero if present, else fall back to PATH."""
+    candidate = os.path.expanduser("~/.zero/bin/zero")
+    return candidate if os.path.exists(candidate) else "zero"
+
+
+def _zerolang_run_cmd(cmd: str, code: str, file_path: str, timeout: int) -> dict:
+    """Shared runner for both 'run' and 'check' subcommands."""
+    import subprocess
+    import tempfile
+    import time
+
+    code = (code or "").strip()
+    file_path = (file_path or "").strip()
+
+    if not code and not file_path:
+        return {"error": "Provide 'code' (inline source) or 'file_path' (path to .0 file)"}
+
+    cleanup = False
+    run_path = file_path
+    if code:
+        try:
+            tmp = tempfile.NamedTemporaryFile(suffix=".0", mode="w", delete=False, encoding="utf-8")
+            tmp.write(code)
+            tmp.close()
+            run_path = tmp.name
+            cleanup = True
+        except OSError as e:
+            return {"error": f"Failed to write temp file: {e}"}
+
+    t0 = time.perf_counter()
+    try:
+        result = subprocess.run(
+            [_zerolang_bin(), cmd, run_path],
+            capture_output=True,
+            text=True,
+            timeout=timeout,
+        )
+        latency_ms = int((time.perf_counter() - t0) * 1000)
+        return {
+            "success": result.returncode == 0,
+            "stdout": result.stdout,
+            "stderr": result.stderr,
+            "returncode": result.returncode,
+            "latency_ms": latency_ms,
+        }
+    except subprocess.TimeoutExpired:
+        return {"error": f"timed out after {timeout}s"}
+    except FileNotFoundError:
+        return {
+            "error": "zero CLI not found — install: curl -fsSL https://zerolang.ai/install.sh | bash"
+        }
+    finally:
+        if cleanup and run_path and os.path.exists(run_path):
+            try:
+                os.unlink(run_path)
+            except OSError:
+                pass
+
+
+def _handle_zerolang_run(args: dict) -> dict:
+    """Execute a Zerolang program with `zero run`."""
+    return _zerolang_run_cmd(
+        cmd="run",
+        code=args.get("code", ""),
+        file_path=args.get("file_path", ""),
+        timeout=args.get("timeout", 15),
+    )
+
+
+def _handle_zerolang_check(args: dict) -> dict:
+    """Validate a Zerolang program with `zero check`."""
+    result = _zerolang_run_cmd(
+        cmd="check",
+        code=args.get("code", ""),
+        file_path=args.get("file_path", ""),
+        timeout=args.get("timeout", 10),
+    )
+    if "error" not in result:
+        result["valid"] = result["success"]
+        result["diagnostics"] = result.get("stderr", "") or result.get("stdout", "")
+    return result
+
+
 _TOOL_DISPATCH = {
     "cohezion_crawl_codebase": _handle_crawl,
     "cohezion_list_skills": _handle_list_skills,
@@ -504,6 +838,10 @@ _TOOL_DISPATCH = {
     "cohezion_run_cli": _handle_run_cli,
     "cohezion_hermes_status": _handle_status,
     "cohezion_read_source": _handle_read_source,
+    "cohezion_infer": _handle_infer,
+    "cohezion_inference_status": _handle_inference_status,
+    "cohezion_zerolang_run": _handle_zerolang_run,
+    "cohezion_zerolang_check": _handle_zerolang_check,
 }
 
 
@@ -582,15 +920,21 @@ def run_mcp_stdio():
                 )
 
         else:
-            print(
-                json.dumps(
-                    {
-                        "jsonrpc": "2.0",
-                        "id": req_id,
-                        "error": {"code": -32601, "message": f"Method '{method}' not found"},
-                    }
+            # MCP notifications (e.g. notifications/initialized) have id=None.
+            # Sending an error response to a notification is a protocol violation —
+            # silently ignore them. Only respond to genuine unknown requests with an id.
+            if req_id is not None:
+                print(
+                    json.dumps(
+                        {
+                            "jsonrpc": "2.0",
+                            "id": req_id,
+                            "error": {"code": -32601, "message": f"Method '{method}' not found"},
+                        }
+                    )
                 )
-            )
+            else:
+                logger.debug("Ignoring notification: %s", method)
 
         sys.stdout.flush()
 

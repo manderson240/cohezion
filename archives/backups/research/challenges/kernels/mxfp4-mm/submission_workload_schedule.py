@@ -7,7 +7,6 @@ Key insight: Different M,N,K dimensions benefit from different
 scheduling strategies. Adapting to workload improves performance.
 """
 
-
 import aiter
 import torch
 from aiter import dtypes

@@ -1,9 +1,9 @@
 """Tests for CompoundScoreWindow."""
+
 from cohezion.compound.compound_score_tracker import CompoundScoreWindow
 
 
 class TestCompoundScoreWindow:
-
     def test_empty_window_mean_is_neutral(self):
         w = CompoundScoreWindow()
         assert w.mean == 0.5
@@ -60,4 +60,3 @@ class TestCompoundScoreWindow:
         assert "trend" in summary
         assert "improving" in summary
         assert "degrading" in summary
-

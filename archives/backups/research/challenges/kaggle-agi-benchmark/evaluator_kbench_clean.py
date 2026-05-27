@@ -92,7 +92,6 @@ def agi_cognitive_framework_overall(llm) -> float:
 
 
 if __name__ == "__main__":
-
     import requests
 
     class OllamaLLM:

@@ -1,4 +1,3 @@
-
 import pytest
 
 from cohezion.storage.surreal_client import SurrealDBClient

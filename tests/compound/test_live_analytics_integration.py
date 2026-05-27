@@ -4,6 +4,7 @@ These tests use the actual autoresearch.jsonl file from the running
 overnight EVO loop. They verify that the analytics pipeline produces
 meaningful results on real data.
 """
+
 from pathlib import Path
 
 import pytest
@@ -22,15 +23,21 @@ class TestLiveAnalyticsIntegration:
 
     def test_can_load_records(self):
         from cohezion.compound.experiment_analytics import load_experiment_records
+
         records = load_experiment_records(n=100)
         assert len(records) > 0
-        assert all("asi" in r or "experiment" in r for r in records[:5])
+        # Supports all JSONL schemas: Round 1-6 (asi), Round 7 (id), experiment_id variants
+        assert all(
+            "asi" in r or "experiment" in r or "experiment_id" in r or "id" in r
+            for r in records[:5]
+        )
 
     def test_stats_have_required_fields(self):
         from cohezion.compound.experiment_analytics import (
             compute_experiment_stats,
             load_experiment_records,
         )
+
         records = load_experiment_records(n=500)
         stats = compute_experiment_stats(records)
         for _exp, d in stats.items():
@@ -44,6 +51,7 @@ class TestLiveAnalyticsIntegration:
             compute_hiho_balance,
             load_experiment_records,
         )
+
         records = load_experiment_records(n=1000)
         hiho = compute_hiho_balance(records)
         assert 0.0 <= hiho <= 1.0, f"HIHO balance {hiho} out of range"
@@ -54,6 +62,7 @@ class TestLiveAnalyticsIntegration:
             find_retirement_candidates,
             load_experiment_records,
         )
+
         records = load_experiment_records(n=2000)
         stats = compute_experiment_stats(records)
         retired = find_retirement_candidates(stats)
@@ -64,6 +73,7 @@ class TestLiveAnalyticsIntegration:
 
     def test_get_analytics_report_structure(self):
         from cohezion.compound.experiment_analytics import get_analytics_report
+
         report = get_analytics_report(n=1000)
         assert "n_records" in report
         assert "hiho_balance" in report
@@ -74,13 +84,13 @@ class TestLiveAnalyticsIntegration:
     def test_visualizer_renders_live_data(self):
         from cohezion.compound.experiment_analytics import get_analytics_report
         from cohezion.compound.loop_visualizer import render_experiment_table, render_hiho_bar
+
         report = get_analytics_report(n=500)
         bar = render_hiho_bar(report["hiho_balance"])
         assert "|" in bar
         assert "EXPLOIT" in bar or "EXPLORE" in bar
 
         table = render_experiment_table(
-            report["per_experiment"],
-            retirement_candidates=report["retirement_candidates"]
+            report["per_experiment"], retirement_candidates=report["retirement_candidates"]
         )
         assert "Experiment" in table  # Header present
