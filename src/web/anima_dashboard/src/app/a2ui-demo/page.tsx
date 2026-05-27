@@ -77,7 +77,7 @@ export default function A2UIDemoPage() {
               {actions.map((a, i) => (
                 <div key={i} className="text-[10px] text-gray-400">
                   <span className="text-green-400">{a.event}</span>
-                  {a.data && <span className="text-gray-600"> {JSON.stringify(a.data)}</span>}
+                  {!!a.data && <span className="text-gray-600"> {JSON.stringify(a.data)}</span>}
                 </div>
               ))}
             </div>
