@@ -16,7 +16,7 @@ from datetime import date
 
 _OLLAMA = shutil.which("ollama") or "/usr/local/bin/ollama"
 
-from cohezion.compound.capability_matrix import (  # noqa: E402
+from cohezion.compound.capability_matrix import (
     CapabilityGap,
     CapabilityMatrix,
     FinetuneCandidate,
