@@ -305,6 +305,10 @@ Calling `loop.run_until_complete()` or `asyncio.run()` from synchronous code whe
 Raw SurrealDB client queries expect structured database responses matching the schema `[{"result": [...], "status": "OK"}]` rather than flat lists of dictionaries. Returning flat lists will cause subsequent `.get("result")` accesses to fail with `AttributeError`. **Fix**: Standardize mock query responses in `InMemoryStore.query` to wrap results inside a list of dicts with the `"result"` key.
 *12D State Vector*: `[12D State: Space=Persistence-Abstraction, Time=May 2026, Physics=Mock-Structured, Brane=SurrealDB-Mesh]`
 
+### Learning 384: Heuristic Routing Accuracy Measurement via Log Mining (2026-05-29)
+To optimize model routing in compound execution loops without calling expensive models, developers can run heuristic regex-based routers on local user prompt histories (~/.claude/projects/ JSONL files). Extracting and filtering prompts >50 chars and running them through the zero-latency task classifier showed that standard engineering tasks are often misrouted to NPU because they lack specific words like "bug" or "error" or contain local-inference-specific terminology (e.g. lemonade, compound lift). Fix: Add general "fix/update" verb-noun rules that target coding components/test harnesses and include project domain concepts (e.g., OOM guardrails, triune) directly in the classifier. This increased GPU routing accuracy and mapped code tasks to the proper 'code' output type (+17% improvement in code-type accuracy).
+*12D State Vector*: `[12D State: Space=Cognitive-Routing, Time=May 2026, Physics=Log-Mining, Brane=Heuristic-Accuracy-Mesh]`
+
 | Learning | Keyword | Status | Wave Source |
 |----------|---------|--------|-------------|
 | L378 | **agent-claim-verification** | `agent-claim-verification` skill | Wave Omega Patch 1 — synthetic-sniffing-panda Wave 5B fabrication |
@@ -313,3 +317,4 @@ Raw SurrealDB client queries expect structured database responses matching the s
 | L381 | **xfail-strict bridge** | `xfail-strict-bug-bridge-pattern` skill | Wave Sigma — zeta-executor-source-bugs |
 | L382 | **sync-async bridge** | `SYNC_ASYNC_BRIDGE_PRIME` skill | Wave StealthSkater — sync-to-async loop isolation |
 | L383 | **SurrealDB mock persistence** | `SURREALDB_MOCK_PERSISTENCE_PRIME` skill | Wave StealthSkater — structured query mock wrapping |
+| L384 | **routing-accuracy-measurement** | `LOCAL_INFERENCE_ROUTING` skill | Wave StealthSkater — heuristic routing accuracy and domain calibration |

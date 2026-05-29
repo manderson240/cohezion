@@ -126,6 +126,33 @@ _SHORT_ANSWER_PATTERNS = [
 ]
 
 _GPU_PATTERNS = [
+    # Cohezion domain terms — route domain engineering concepts to GPU
+    (
+        re.compile(
+            r"\b(?:local\s+inference|compound\s+lift|lemonade\s+(?:server|router|port|model|catalog|config)|triune\s+(?:orchestrator|stack|inference|routing|loop)|oom\s+guardrails?|semantic\s+cache|similarity\s+threshold|embedding\s+dim|context\s+density|skill\s+override|harness\s+invariant|fleet\.py)\b",
+            re.I,
+        ),
+        0.88,
+        "cohezion domain terminology",
+    ),
+    # General code-fixing command targeting components, logic, bots, test harnesses, etc.
+    (
+        re.compile(
+            r"\bfix\s+(?:the\s+|a\s+|an\s+|this\s+)?(?:[\w.-]+\s+){0,3}(?:function|class|method|module|code|script|program|test|tests|suite|harness|bot|server|client|api|endpoint|service|pipeline|route|router|database|db\b|query|schema|migration|config|settings|interface|contract|logic|decorator|handler|middleware|implementation|algorithm|adapter|wrapper|validator|serializer|workflow|framework|parser)\b",
+            re.I,
+        ),
+        0.88,
+        "fix code or component",
+    ),
+    # General code-updating command targeting components, logic, bots, test harnesses, etc.
+    (
+        re.compile(
+            r"\bupdate\s+(?:the\s+|a\s+|an\s+|this\s+)?(?:[\w.-]+\s+){0,3}(?:function|class|method|module|code|script|program|test|tests|suite|harness|bot|server|client|api|endpoint|service|pipeline|route|router|database|db\b|query|schema|migration|config|settings|interface|contract|logic|decorator|handler|middleware|implementation|algorithm|adapter|wrapper|validator|serializer|workflow|framework|parser)\b",
+            re.I,
+        ),
+        0.85,
+        "update code or component",
+    ),
     # Code generation — allow adjectives between article and noun ("a Python function", "a simple script")
     # Extended: formula, macro, procedure, query, snippet, lambda, decorator, mixin, interface
     (
