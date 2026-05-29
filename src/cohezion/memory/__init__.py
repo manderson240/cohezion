@@ -19,6 +19,7 @@ from cohezion.memory.mem0_adapter import (
     build_local_mem0,
     mem0_available,
 )
+from cohezion.memory.service import CohezionMemory
 
 
-__all__ = ["Mem0Config", "build_local_mem0", "mem0_available"]
+__all__ = ["CohezionMemory", "Mem0Config", "build_local_mem0", "mem0_available"]

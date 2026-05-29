@@ -37,7 +37,10 @@ logger = logging.getLogger(__name__)
 _DEFAULT_LLM_BASE_URL = "http://localhost:13309/v1"
 _DEFAULT_LLM_MODEL = "Gemma-4-E4B-it-GGUF"
 _DEFAULT_EMBED_BASE_URL = "http://localhost:13309/v1"
-_DEFAULT_EMBED_MODEL = "nomic-embed-text"
+# Verified live on Lemonade 13309 (dogfood exp_mem0_dogfood): the generic
+# "nomic-embed-text" id does NOT exist there and hard-fails; this moe GGUF is the
+# harness-CA1 primary 768-dim encoder actually served.
+_DEFAULT_EMBED_MODEL = "nomic-embed-text-v2-moe-GGUF"
 _DEFAULT_EMBED_DIMS = 768  # Lemonade nomic embeddings are 768-dim (harness CA1)
 _LOCAL_API_KEY = "lemonade-local"  # nosec B105 - dummy; Lemonade ignores auth
 
