@@ -74,6 +74,10 @@ class Mem0Config:
     surreal_url: str = "http://localhost:8001/sql"
     surreal_namespace: str = "cohezion"
     surreal_database: str = "main"
+    # Opt-in: also write a SurrealDB provenance graph (agent -[remembers]-> fact,
+    # preserving superseded text) alongside the vector store. Off by default so the
+    # default path is unchanged; graph writes are always best-effort.
+    provenance_graph: bool = False
 
     def _vector_store_dict(self) -> dict[str, Any]:
         if self.vector_store_provider == "surrealdb":

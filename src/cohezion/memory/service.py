@@ -42,11 +42,14 @@ class CohezionMemory:
         *,
         enabled: bool = True,
         memory: Any | None = None,
+        graph: Any | None = None,
     ) -> None:
         self._config = config or Mem0Config()
         self._enabled = enabled
         self._memory = memory  # may be injected (tests) or built lazily
         self._build_attempted = memory is not None
+        self._graph = graph  # provenance graph: injected (tests) or built lazily
+        self._graph_attempted = graph is not None
         # If the extra is missing, disable up front — no point retrying imports.
         if enabled and memory is None and not mem0_available():
             logger.info("CohezionMemory disabled: mem0 extra not installed (.[memory])")
@@ -77,6 +80,27 @@ class CohezionMemory:
                 self._enabled = False
         return self._memory
 
+    def _ensure_graph(self) -> Any | None:
+        """Lazily build the SurrealDB provenance graph when opted in; degrade on failure.
+
+        Returns an injected graph as-is. Otherwise builds one only if
+        ``config.provenance_graph`` is set. The graph is independent of mem0 — it has
+        no extra dependency — so it can be active even when the memory build fails.
+        """
+        if self._graph is None and not self._graph_attempted and self._config.provenance_graph:
+            self._graph_attempted = True
+            try:
+                from cohezion.memory.surreal_graph import SurrealMemoryGraph
+
+                self._graph = SurrealMemoryGraph(
+                    url=self._config.surreal_url,
+                    namespace=self._config.surreal_namespace,
+                    database=self._config.surreal_database,
+                )
+            except Exception as exc:  # provenance is optional, never fatal
+                logger.warning("provenance graph init failed (%s); continuing without it", exc)
+        return self._graph
+
     def remember(self, messages: Sequence[dict[str, str]] | str, agent_id: str) -> list[dict]:
         """Extract + store salient facts from a turn. Returns extracted facts (or [])."""
         mem = self._ensure_memory()
@@ -87,7 +111,16 @@ class CohezionMemory:
         except Exception as exc:
             logger.warning("CohezionMemory.remember failed (%s); skipping", exc)
             return []
-        return result.get("results", []) if isinstance(result, dict) else []
+        facts = result.get("results", []) if isinstance(result, dict) else []
+        # Best-effort provenance: feed the extracted facts to the graph. This must
+        # NEVER change remember()'s return or raise — a graph hiccup is invisible here.
+        graph = self._ensure_graph()
+        if graph is not None and facts:
+            try:
+                graph.record_facts(agent_id, facts)
+            except Exception as exc:  # provenance is best-effort
+                logger.warning("provenance record_facts failed (%s); memory unaffected", exc)
+        return facts
 
     def recall(self, query: str, agent_id: str, limit: int = 5) -> list[str]:
         """Semantic-search stored memories for this agent. Returns memory strings (or [])."""
@@ -102,3 +135,14 @@ class CohezionMemory:
             return []
         results = hits.get("results", []) if isinstance(hits, dict) else []
         return [h.get("memory", "") for h in results if h.get("memory")]
+
+    def provenance(self, agent_id: str, limit: int = 100) -> list[dict]:
+        """Return provenance rows (event/memory/prior_memory/fact_id) for an agent.
+
+        Returns [] when the provenance graph is not enabled or is unreachable —
+        never raises, mirroring recall()'s graceful-degradation contract.
+        """
+        graph = self._ensure_graph()
+        if graph is None:
+            return []
+        return graph.facts_for_agent(agent_id, limit=limit)

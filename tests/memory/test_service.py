@@ -36,6 +36,23 @@ class _BrokenMemory:
         raise RuntimeError("lemonade node offline")
 
 
+class _FakeGraph:
+    """Records record_facts calls and returns canned provenance rows."""
+
+    def __init__(self, *, broken: bool = False):
+        self.recorded: list[dict] = []
+        self._broken = broken
+
+    def record_facts(self, agent_id, facts):
+        if self._broken:
+            raise RuntimeError("surreal unreachable")
+        self.recorded.append({"agent_id": agent_id, "facts": list(facts)})
+        return len(self.recorded[-1]["facts"])
+
+    def facts_for_agent(self, agent_id, limit=100):
+        return [{"fact_id": "f1", "event": "ADD", "memory": "m", "prior_memory": None}]
+
+
 def test_remember_passes_user_id_top_level():
     """add() takes user_id as a top-level kwarg (mem0 2.0.4)."""
     fake = _FakeMemory()
@@ -102,3 +119,33 @@ def test_get_instance_is_singleton():
     a = CohezionMemory.get_instance()
     b = CohezionMemory.get_instance()
     assert a is b
+
+
+def test_remember_feeds_provenance_graph_when_wired():
+    """When a graph is injected, remember() feeds it the extracted facts."""
+    fake_mem = _FakeMemory()
+    graph = _FakeGraph()
+    mem = CohezionMemory(memory=fake_mem, graph=graph)
+    facts = mem.remember([{"role": "user", "content": "x"}], agent_id="dev")
+    assert facts and facts[0]["event"] == "ADD"  # mem0 return is unchanged
+    assert graph.recorded[0]["agent_id"] == "dev"
+    assert graph.recorded[0]["facts"] == facts  # the same facts were fed to the graph
+
+
+def test_remember_unaffected_by_graph_failure():
+    """A provenance-graph failure must not change remember()'s return or raise."""
+    mem = CohezionMemory(memory=_FakeMemory(), graph=_FakeGraph(broken=True))
+    facts = mem.remember("x", agent_id="dev")
+    assert facts and facts[0]["event"] == "ADD"  # memory result intact despite graph error
+
+
+def test_provenance_returns_graph_rows():
+    mem = CohezionMemory(memory=_FakeMemory(), graph=_FakeGraph())
+    rows = mem.provenance("dev")
+    assert rows and rows[0]["fact_id"] == "f1"
+
+
+def test_provenance_empty_without_graph():
+    """No graph wired (default) → provenance() degrades to [] without raising."""
+    mem = CohezionMemory(memory=_FakeMemory())
+    assert mem.provenance("dev") == []
