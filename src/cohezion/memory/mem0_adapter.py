@@ -69,6 +69,33 @@ class Mem0Config:
     api_key: str = _LOCAL_API_KEY
     temperature: float = 0.1
     max_tokens: int = 2000
+    # Vector backend: "qdrant" (embedded, default) or "surrealdb" (canonical engine).
+    vector_store_provider: str = "qdrant"
+    surreal_url: str = "http://localhost:8001/sql"
+    surreal_namespace: str = "cohezion"
+    surreal_database: str = "main"
+
+    def _vector_store_dict(self) -> dict[str, Any]:
+        if self.vector_store_provider == "surrealdb":
+            return {
+                "provider": "surrealdb",
+                "config": {
+                    "collection_name": self.collection_name,
+                    "embedding_model_dims": self.embed_dims,
+                    "url": self.surreal_url,
+                    "namespace": self.surreal_namespace,
+                    "database": self.surreal_database,
+                },
+            }
+        return {
+            "provider": "qdrant",
+            "config": {
+                "collection_name": self.collection_name,
+                "path": self.storage_path,
+                "embedding_model_dims": self.embed_dims,
+                "on_disk": True,
+            },
+        }
 
     def to_mem0_dict(self) -> dict[str, Any]:
         """Render the dict consumed by ``mem0.Memory.from_config``."""
@@ -92,15 +119,7 @@ class Mem0Config:
                     "embedding_dims": self.embed_dims,
                 },
             },
-            "vector_store": {
-                "provider": "qdrant",
-                "config": {
-                    "collection_name": self.collection_name,
-                    "path": self.storage_path,
-                    "embedding_model_dims": self.embed_dims,
-                    "on_disk": True,
-                },
-            },
+            "vector_store": self._vector_store_dict(),
         }
 
 
@@ -129,6 +148,12 @@ def build_local_mem0(config: Mem0Config | None = None) -> Memory:
             "mem0 not installed. Install the optional extra: "
             "uv pip install -e '.[memory]'  (or: uv pip install mem0ai)"
         ) from exc
+
+    # Register the custom SurrealDB vector provider into mem0's lookup tables.
+    if cfg.vector_store_provider == "surrealdb":
+        from cohezion.memory.surreal_vector_store import register_surreal_provider
+
+        register_surreal_provider()
 
     logger.info(
         "Building local mem0: llm=%s@%s embedder=%s@%s(dims=%d) "
