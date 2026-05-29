@@ -299,3 +299,9 @@ analyze_overnight*.py
 sandbox/*.py
 simulations/
 conductor/
+
+# Temporary untested scan scripts
+tmp_untested_*.py
+
+# TCRAO dynamically generated cerebellum experiment reports
+cloud-vault-mcp/vault/cerebellum/tcrao_*.md

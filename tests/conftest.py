@@ -38,6 +38,11 @@ if "transformers" not in sys.modules:
     # Import and expose PretrainedConfig/PreTrainedModel/PreTrainedTokenizer as real classes
     # so that FlumeEncoder, FlumeTokenizer, etc. can inherit from them correctly.
     try:
+        # Mock torchao to avoid import errors (such as missing torch.int1 on torch 2.5.1)
+        # since it is only imported transitively by transformers quantizers.
+        if "torchao" not in sys.modules:
+            sys.modules["torchao"] = None
+
         import transformers as _real_tr
 
         _mock_tr.PretrainedConfig = _real_tr.PretrainedConfig
@@ -224,11 +229,21 @@ def reset_singletons():
     except (ImportError, AttributeError):
         pass
 
+    # Reset SemanticCache module-level singleton (exp_SSSS, 2026-05-29).
+    # Without reset: cached responses from test N pollute test N+1 — tasks that
+    # should fail get a cache hit and succeed; expected outputs don't match.
+    try:
+        import cohezion.cache.semantic_cache as _sc_module
+
+        _sc_module._singleton = None
+    except (ImportError, AttributeError):
+        pass
+
     # Reset FLUME VAE singleton to prevent state pollution across tests
     api_module: ModuleType | None = None
     try:
         import cohezion.api as api_module
-    except Exception:  # noqa: S110 — intentional: optional API module may not be present
+    except Exception:
         pass
     if api_module is not None and hasattr(api_module, "_vae_trainer"):
         api_module._vae_trainer = None
