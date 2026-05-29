@@ -80,7 +80,8 @@ class SurrealMemoryGraph:
             method="POST",
         )
         with urllib.request.urlopen(req, timeout=self._timeout) as resp:  # noqa: S310
-            return json.loads(resp.read().decode())
+            parsed = json.loads(resp.read().decode())
+        return parsed if isinstance(parsed, list) else []
 
     @staticmethod
     def _last_result(resp: list[dict]) -> list:

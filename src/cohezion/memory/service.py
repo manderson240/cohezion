@@ -145,4 +145,5 @@ class CohezionMemory:
         graph = self._ensure_graph()
         if graph is None:
             return []
-        return graph.facts_for_agent(agent_id, limit=limit)
+        rows = graph.facts_for_agent(agent_id, limit=limit)
+        return rows if isinstance(rows, list) else []

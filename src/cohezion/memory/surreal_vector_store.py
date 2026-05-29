@@ -75,7 +75,8 @@ class SurrealVectorStore(VectorStoreBase):
             method="POST",
         )
         with urllib.request.urlopen(req, timeout=10) as resp:  # noqa: S310
-            return json.loads(resp.read().decode())
+            parsed = json.loads(resp.read().decode())
+        return parsed if isinstance(parsed, list) else []
 
     @staticmethod
     def _last_result(resp: list[dict]) -> list:
@@ -153,15 +154,6 @@ class SurrealVectorStore(VectorStoreBase):
     def delete(self, vector_id: str) -> None:
         self._sql(f"DELETE {self._record(vector_id)};")
 
-    def list(self, filters: dict | None = None, top_k: int | None = 100) -> list[list[OutputData]]:
-        limit = f" LIMIT {int(top_k)}" if top_k else ""
-        q = (
-            f"SELECT meta::id(id) AS id, payload FROM "
-            f"`{self.collection_name}`{self._where(filters)}{limit};"
-        )
-        rows = self._last_result(self._sql(q))
-        return [[OutputData(id=r.get("id"), payload=r.get("payload"), score=None) for r in rows]]
-
     def list_cols(self) -> list[str]:
         resp = self._sql("INFO FOR DB;")
         res = self._last_result(resp)
@@ -181,6 +173,18 @@ class SurrealVectorStore(VectorStoreBase):
     def reset(self) -> None:
         self.delete_col()
         self.create_col(self.collection_name, self.dims, "cosine")
+
+    # Defined last: the method name `list` shadows builtin ``list`` for annotations
+    # textually after it (mypy binds class names top-to-bottom), so keep it below the
+    # methods whose return types use ``list[...]``.
+    def list(self, filters: dict | None = None, top_k: int | None = 100) -> list[list[OutputData]]:
+        limit = f" LIMIT {int(top_k)}" if top_k else ""
+        q = (
+            f"SELECT meta::id(id) AS id, payload FROM "
+            f"`{self.collection_name}`{self._where(filters)}{limit};"
+        )
+        rows = self._last_result(self._sql(q))
+        return [[OutputData(id=r.get("id"), payload=r.get("payload"), score=None) for r in rows]]
 
 
 def register_surreal_provider() -> None:
@@ -214,7 +218,7 @@ def register_surreal_provider() -> None:
             model_config = {"extra": "allow"}
 
         module = types.ModuleType(mod_name)
-        module.SurrealDBConfig = SurrealDBConfig
+        module.SurrealDBConfig = SurrealDBConfig  # type: ignore[attr-defined]
         sys.modules[mod_name] = module
 
     # 3. factory class map
