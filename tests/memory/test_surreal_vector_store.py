@@ -12,6 +12,13 @@ from unittest.mock import patch
 
 import pytest
 
+
+# surreal_vector_store imports mem0 at module scope (it subclasses VectorStoreBase),
+# so this whole module needs the optional `memory` extra. CI installs only `--extra
+# dev` yet runs tests/, so without this guard collection ImportErrors and reds CI.
+# importorskip must precede the import to turn that hard error into a clean skip.
+pytest.importorskip("mem0")
+
 from cohezion.memory.surreal_vector_store import (
     OutputData,
     SurrealVectorStore,
