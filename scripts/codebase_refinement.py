@@ -210,7 +210,9 @@ async def run_refinement_pipeline():
 
     # Initialize components
     mcp_client = MCPClient()
-    executor = ExecutorFactory.create(mcp_client)
+    # enable_memory: this is a dynamic-workflow entry point, so each successful turn
+    # compounds into the project's CohezionMemory (best-effort, self-disabling).
+    executor = ExecutorFactory.create(mcp_client, enable_memory=True)
     feedback_loop = CompoundFeedbackLoopFactory.create(
         executor, max_retries=2, enable_learning=True
     )
