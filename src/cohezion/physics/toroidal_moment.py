@@ -57,6 +57,9 @@ class FractalToroidalMoment:
 
     def __post_init__(self) -> None:
         self.coherence = max(0.0, min(1.0, float(self.coherence)))
+        # At least one ring — a negative ring_count produced a negative toroidal
+        # moment magnitude while still reporting time_reversal_broken=True.
+        self.ring_count = max(1, int(self.ring_count))
 
     def toroidal_moment_magnitude(self) -> float:
         """Toroidal dipole moment |T|.

@@ -40,6 +40,10 @@ logger = logging.getLogger(__name__)
 _HIHO_THRESHOLD: float = 0.5
 _DEFAULT_TOLERANCE: float = 0.05
 
+# Smallest sample mass (kg) we model for diamagnetic levitation — keeps `volume`
+# above the 1e-20 floor in levitation_threshold_tesla so it returns a finite number.
+_MIN_BISMUTH_MASS_KG: float = 1e-9
+
 
 @dataclass
 class MHDEquilibrium:
@@ -115,6 +119,13 @@ class BismuthDiamagnet:
     magnetic_susceptibility: float = -1.66e-4  # Bi at 300K
     field_strength_tesla: float = 10.0
     mass_kg: float = 1e-3
+
+    def __post_init__(self) -> None:
+        # Field magnitude and sample mass are non-negative physical quantities.
+        # A negative field produced a negative diamagnetic_coherence (out of [0,1]);
+        # a zero/degenerate mass produced an inf threshold (serialized as null).
+        self.field_strength_tesla = max(0.0, float(self.field_strength_tesla))
+        self.mass_kg = max(_MIN_BISMUTH_MASS_KG, float(self.mass_kg))
 
     def levitation_threshold_tesla(self) -> float:
         """Minimum field for diamagnetic levitation of bismuth sample.

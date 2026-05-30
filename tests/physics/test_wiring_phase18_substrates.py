@@ -36,6 +36,15 @@ class TestBECWiring:
             assert resp.status_code == 200
             assert resp.json()["transition_rate"] == 0.0
 
+    def test_bec_negative_atom_count_clamped_non_negative(self):
+        # Regression: negative atom_count previously returned negative condensed/
+        # thermal atom counts. atom_count is now clamped to >= 0.
+        resp = client.get("/api/physics/bec/status?atom_count=-100")
+        assert resp.status_code == 200
+        data = resp.json()
+        assert data["condensed_atoms"] >= 0
+        assert data["thermal_atoms"] >= 0
+
 
 class TestMercuryWiring:
     """Verify Mercury BCS lattice endpoint."""
@@ -67,6 +76,19 @@ class TestColibreWiring:
         # 4 * 0.5 * 0.5 = 1.0 (HIHO peak)
         assert data["colibre_coherence"] == 1.0
         assert data["hiho_engaged"] is True
+        # Default endpoint sfr_density=0.02 (overrides the dataclass default 0.0),
+        # so the default engineer agent IS at the star-forming HIHO point.
+        assert data["agent_particle_type"] == "gas"
+        assert data["agent_can_star_form"] is True
+
+    def test_colibre_negative_redshift_clamped_not_500(self):
+        # Regression: redshift < -1 previously produced a complex cosmic_time_gyr
+        # → HTTP 500. Redshift is now clamped to >= 0.
+        resp = client.get("/api/physics/colibre/status?redshift=-2.0")
+        assert resp.status_code == 200
+        data = resp.json()
+        assert data["redshift"] == 0.0
+        assert data["cosmic_time_gyr"] > 0.0
 
     def test_colibre_engineer_agent_star_forms_at_hiho(self):
         resp = client.get(
@@ -134,6 +156,15 @@ class TestToroidalWiring:
         resp = client.get("/api/physics/toroidal/status?coherence=1.0")
         assert resp.status_code == 200
         assert resp.json()["toroidal_moment_magnitude"] == pytest.approx(0.0)
+
+    def test_toroidal_negative_ring_count_clamped(self):
+        # Regression: negative ring_count previously produced a negative moment
+        # magnitude with time_reversal_broken=True. ring_count is clamped to >= 1.
+        resp = client.get("/api/physics/toroidal/status?ring_count=-3")
+        assert resp.status_code == 200
+        data = resp.json()
+        assert data["ring_count"] >= 1
+        assert data["toroidal_moment_magnitude"] >= 0.0
 
 
 class TestTensorMetricWiring:
