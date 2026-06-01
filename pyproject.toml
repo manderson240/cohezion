@@ -128,6 +128,7 @@ target-version = "py311"
 line-length = 100  # Extended from 88 to accommodate f-strings and comprehensions (Retrospective Session 14)
 exclude = [
     ".archives",
+    "archives",
     "src/cohezion-archive",  # archived/legacy code — not actively maintained
     "*.ipynb",
     ".claude/worktrees",  # agent worktree copies — not source of truth

@@ -113,11 +113,11 @@ def fetch_session_signals(session_id: str) -> dict:
     # accept the lint warning — session_id comes from $COHEZION_SESSION_ID
     # or os.getpid(), not untrusted user input.
     sid = session_id.replace("'", "\\'")
-    gates = _surreal_query(f"SELECT * FROM vmodel_gate WHERE session_id = '{sid}';") or []  # noqa: S608
+    gates = _surreal_query(f"SELECT * FROM vmodel_gate WHERE session_id = '{sid}';") or []
     narratives = (
-        _surreal_query(f"SELECT * FROM narrative_learning WHERE session_id = '{sid}';") or []  # noqa: S608
+        _surreal_query(f"SELECT * FROM narrative_learning WHERE session_id = '{sid}';") or []
     )
-    drifts = _surreal_query(f"SELECT * FROM import_drift WHERE session_id = '{sid}';") or []  # noqa: S608
+    drifts = _surreal_query(f"SELECT * FROM import_drift WHERE session_id = '{sid}';") or []
 
     total_gates = len(gates)
     passed_gates = sum(1 for g in gates if g.get("passed") is True)
@@ -156,8 +156,8 @@ def session_commits_touching_skills(session_id: str, repo_root: Path) -> list[st
     COHEZION_SESSION_ID is unset, OR by the session_id env var on direct
     writes. Safe to just grep the entire recent history and intersect."""
     try:
-        out = subprocess.run(  # noqa: S603
-            ["git", "-C", str(repo_root), "log", "--since=7 days ago", "--name-only", "--format="],  # noqa: S607
+        out = subprocess.run(
+            ["git", "-C", str(repo_root), "log", "--since=7 days ago", "--name-only", "--format="],
             capture_output=True,
             text=True,
             check=False,
@@ -361,6 +361,33 @@ def main(argv: list[str] | None = None) -> int:
             refined_count += 1
     if refined_count:
         print(f"[session-end] refined {refined_count} skill definition(s)")
+
+    # Auto-Calibration Sweep: Kick off parameter sweeps asynchronously in the background.
+    if not args.dry_run:
+        routing_script = repo_root / "scripts" / "calibration" / "run_routing_calibration.py"
+        cache_script = repo_root / "scripts" / "calibration" / "run_cache_calibration.py"
+        python_exe = sys.executable or "python3"
+        try:
+            if cache_script.exists():
+                subprocess.Popen(
+                    [python_exe, str(cache_script)],
+                    stdout=subprocess.DEVNULL,
+                    stderr=subprocess.DEVNULL,
+                    close_fds=True,
+                )
+                print("[session-end] spawned Semantic Cache calibration sweep in background.")
+            if routing_script.exists():
+                subprocess.Popen(
+                    [python_exe, str(routing_script)],
+                    stdout=subprocess.DEVNULL,
+                    stderr=subprocess.DEVNULL,
+                    close_fds=True,
+                )
+                print(
+                    "[session-end] spawned Task Classifier routing calibration sweep in background."
+                )
+        except Exception as e:
+            print(f"[session-end] failed to spawn calibration sweeps: {e}", file=sys.stderr)
 
     return 0
 
