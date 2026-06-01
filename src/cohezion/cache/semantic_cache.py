@@ -2,11 +2,12 @@
 
 Architecture:
     L1: Exact hash matching (FIFO, 512 entries)
-    L2: Semantic similarity (cosine >0.92, LFU, 1024 entries)
+    L2: Semantic similarity (cosine >0.58/0.80, LFU, 1024 entries)
     L3: Vault lookup (async, non-blocking)
 
-Embeddings: FLUME VAE encoder (256D) for real semantic similarity
-Target: 70%+ cache hit rate with sub-100ms lookup latency.
+Embeddings: nomic-embed-text-v2-moe-GGUF (768D, lemonade) primary on XDNA2;
+            sentence-transformers all-MiniLM-L6-v2 (384D) on other systems; FLUME VAE fallback.
+Target: 100% near-duplicate hit rate, 0% novel-prompt false positives (exp_OOOO2).
 """
 
 import asyncio
@@ -19,6 +20,8 @@ from typing import Any
 
 import numpy as np
 
+from cohezion.cache.lemonade_encoder import OPTIMAL_THRESHOLD as _LEMONADE_THRESHOLD
+from cohezion.cache.lemonade_encoder import get_lemonade_encoder
 from cohezion.cache.text_encoder import get_text_encoder
 from cohezion.flume.vae_encoder import get_encoder
 
@@ -36,6 +39,9 @@ class CacheEntry:
     embedding: np.ndarray
     timestamp: float = field(default_factory=time.time)
     hit_count: int = 0
+
+
+_singleton: "SemanticCache | None" = None
 
 
 class SemanticCache:
@@ -58,9 +64,53 @@ class SemanticCache:
         Optional MCPClient for L3 vault lookups (default: None = disabled)
     """
 
+    # Default thresholds per encoder dimension (exp_RRRR + exp_OOOO2, 2026-05-29)
+    # nomic-embed 768D: 0.58 (exp_OOOO2 — 0% FP, 100% near-dup hits; primary on XDNA2)
+    # sentence-transformers 384D: 0.80 (exp_BBBB — 0% FP, 87% near-dup hits)
+    # FLUME VAE 256D: 0.45 (exp_RRRR — 0% FP, 88% paraphrase hits; XDNA2 fallback)
+    _THRESHOLD_BY_DIM: dict = {768: _LEMONADE_THRESHOLD, 384: 0.80, 256: 0.45}
+    _DEFAULT_THRESHOLD = 0.80
+
+    def _load_profile_threshold(self) -> float | None:
+        """Load calibrated threshold from config/calibration_profiles.json if present.
+
+        Bypasses loading if running under pytest to ensure test isolation.
+        """
+        import os
+
+        if (
+            "PYTEST_CURRENT_TEST" in os.environ
+            or "COHEZION_IGNORE_CALIBRATION_PROFILE" in os.environ
+        ):
+            return None
+
+        try:
+            from pathlib import Path
+
+            from cohezion.config.unified import get_config
+
+            root_dir = Path(get_config().root_dir)
+            profile_path = root_dir / "config" / "calibration_profiles.json"
+            if profile_path.exists():
+                with open(profile_path, encoding="utf-8") as f:
+                    data = json.load(f)
+                    val = (
+                        data.get("semantic_cache", {})
+                        .get("parameters", {})
+                        .get("similarity_threshold")
+                    )
+                    if isinstance(val, (int, float)) and 0.0 <= val <= 1.0:
+                        logger.info(
+                            "SemanticCache: Loaded calibrated threshold = %s from profile", val
+                        )
+                        return float(val)
+        except Exception as e:
+            logger.debug("SemanticCache: Failed to load profile: %s", e)
+        return None
+
     def __init__(
         self,
-        similarity_threshold: float = 0.75,  # exp_QQQQ: 0.75 optimal (100% semantic hits, 0% false pos)
+        similarity_threshold: float = 0.80,  # exp_BBBB: 0.80 for sentence-transformers; auto-tuned to 0.45 for FLUME VAE (exp_RRRR)
         max_l1_size: int = 512,
         max_l2_size: int = 1024,
         mcp_client: Any = None,
@@ -75,12 +125,27 @@ class SemanticCache:
             mcp_client: Optional MCPClient for L3 vault operations
             enable_adaptive_threshold: Enable adaptive threshold tuning (default: True)
         """
-        self.similarity_threshold = similarity_threshold
-        self.initial_threshold = similarity_threshold
         self.max_l1_size = max_l1_size
         self.max_l2_size = max_l2_size
         self.mcp_client = mcp_client
         self.enable_adaptive_threshold = enable_adaptive_threshold
+
+        # Auto-tune threshold for the active encoder (exp_RRRR, 2026-05-29)
+        # When using the default (0.80), probe the actual encoder dimension and adjust.
+        # sentence-transformers crashes on XDNA2, falling back to FLUME VAE 256D;
+        # FLUME VAE similarity scores are lower (0.40-0.65 range vs 0.80-0.97).
+        profile_threshold = self._load_profile_threshold()
+        if profile_threshold is not None:
+            similarity_threshold = profile_threshold
+        elif similarity_threshold == self._DEFAULT_THRESHOLD:
+            similarity_threshold = self._auto_tune_threshold_for_encoder()
+        self.similarity_threshold = similarity_threshold
+        self.initial_threshold = similarity_threshold
+
+        # Register as singleton only when using auto-tuned default (not test-overridden)
+        global _singleton
+        if _singleton is None and similarity_threshold in self._THRESHOLD_BY_DIM.values():
+            _singleton = self
 
         # L1 cache: exact hash matches
         self.l1_cache: dict[str, CacheEntry] = {}
@@ -105,44 +170,81 @@ class SemanticCache:
         self._background_tasks: set[asyncio.Task] = set()
 
     @staticmethod
+    def _auto_tune_threshold_for_encoder() -> float:
+        """Probe the embedding encoder and return the appropriate threshold.
+
+        Calibrated thresholds per encoder (exp_RRRR + exp_OOOO2, 2026-05-29):
+          768D → 0.58 (nomic-embed via lemonade, 0% FP, 100% near-dup hits — exp_OOOO2)
+          384D → 0.80 (sentence-transformers, 0% FP, 87% near-dup hits — exp_BBBB)
+          256D → 0.45 (FLUME VAE, 0% FP, 88% paraphrase hits — exp_RRRR)
+        """
+        try:
+            probe = SemanticCache._text_to_embedding("routing task probe")
+            dim = probe.shape[0]
+            threshold = SemanticCache._THRESHOLD_BY_DIM.get(dim, SemanticCache._DEFAULT_THRESHOLD)
+            if threshold != SemanticCache._DEFAULT_THRESHOLD:
+                logger.debug("Encoder detected: %dD → threshold %.2f", dim, threshold)
+            return threshold
+        except Exception:
+            return SemanticCache._DEFAULT_THRESHOLD
+
+    @classmethod
+    def get_instance(cls) -> "SemanticCache":
+        """Return the module-level singleton, creating it on first call.
+
+        Called by template_matcher.try_template_match() to activate cache
+        in the CompoundExecutor pipeline without requiring explicit wiring.
+        The singleton uses default parameters (threshold=0.80, exp_BBBB optimal).
+        """
+        global _singleton
+        if _singleton is None:
+            _singleton = cls()
+        return _singleton
+
+    @staticmethod
     def _text_to_embedding(text: str) -> np.ndarray:
         """Convert text to production semantic embedding.
 
-        Uses semantic text encoder (sentence-transformers) for native 384D
-        semantic embeddings with proper semantic discrimination.
-
-        Args:
-            text: Text to embed
+        Priority chain on XDNA2 (exp_OOOO2, 2026-05-29):
+          1. nomic-embed-text-v2-moe-GGUF (768D, lemonade 13305) — primary
+          2. sentence-transformers all-MiniLM-L6-v2 (384D) — non-XDNA2
+          3. FLUME VAE (256D) — fallback when checkpoint available
+          4. SHA-256 hash (384D) — absolute last resort, no semantic discrimination
 
         Returns:
-            384D numpy array, normalized for cosine similarity
+            numpy array (dim varies by encoder), L2-normalized
         """
+        # 1. Lemonade nomic-embed (primary on XDNA2 — sentence-transformers crashes there)
         try:
-            # Use semantic encoder (all-MiniLM-L6-v2 native 384D)
+            enc = get_lemonade_encoder()
+            if enc.is_available():
+                return enc.encode(text)
+        except Exception as e:
+            logger.debug("Lemonade encoder failed: %s", e)
+
+        # 2. sentence-transformers (primary on non-XDNA2 systems)
+        try:
             encoder = get_text_encoder()
             return encoder.encode(text)
         except Exception as e:
-            logger.debug(f"Semantic encoding failed: {e}")
-            # Fallback to FLUME VAE if available
-            try:
-                vae_encoder = get_encoder()
-                return vae_encoder.encode(text)
-            except Exception as vae_e:
-                logger.debug(f"VAE encoding also failed: {vae_e}, using hash fallback")
-                # Final fallback to deterministic hash
-                hash_obj = hashlib.sha256(text.encode())
-                hash_bytes = hash_obj.digest()
+            logger.debug("Semantic encoding failed: %s", e)
 
-                embedding = np.zeros(384, dtype=np.float32)
-                for i in range(384):
-                    byte_idx = i % len(hash_bytes)
-                    embedding[i] = hash_bytes[byte_idx] / 255.0
+        # 3. FLUME VAE fallback
+        try:
+            vae_encoder = get_encoder()
+            return vae_encoder.encode(text)
+        except Exception as vae_e:
+            logger.debug("VAE encoding also failed: %s — using hash fallback", vae_e)
 
-                norm = np.linalg.norm(embedding)
-                if norm > 0:
-                    embedding /= norm
-
-                return embedding
+        # 4. SHA-256 hash — no semantic discrimination, last resort
+        hash_bytes = hashlib.sha256(text.encode()).digest()
+        embedding = np.zeros(384, dtype=np.float32)
+        for i in range(384):
+            embedding[i] = hash_bytes[i % len(hash_bytes)] / 255.0
+        norm = np.linalg.norm(embedding)
+        if norm > 0:
+            embedding /= norm
+        return embedding
 
     @staticmethod
     def _cosine_similarity(a: np.ndarray, b: np.ndarray) -> float:
@@ -180,8 +282,8 @@ class SemanticCache:
         l2_hit_rate = self.hits_l2 / total_ops if total_ops > 0 else 0
 
         if l2_hit_rate < 0.05:
-            # Too many misses - relax threshold
-            new_threshold = max(0.70, self.initial_threshold - 0.05)
+            # Too many misses - relax threshold (floor = 85% of initial, encoder-aware)
+            new_threshold = max(self.initial_threshold * 0.85, self.initial_threshold - 0.05)
             logger.debug(
                 f"L2 hit rate {l2_hit_rate:.1%} too low, "
                 f"relaxing threshold: {self.similarity_threshold:.2f} → {new_threshold:.2f}"

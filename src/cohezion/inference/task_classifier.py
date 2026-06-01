@@ -11,14 +11,14 @@ from __future__ import annotations
 
 import re
 from dataclasses import dataclass
-from typing import Literal
+from typing import Any, Literal
 
 
 # Output type → (preferred node, quality gate chars)
 # quality_gate_chars=0 means "trust any non-empty response"
 _TYPE_CONFIG: dict[str, tuple[Literal["npu", "gpu"], int]] = {
     "short_categorical": ("npu", 0),  # single word / letter / label
-    "short_answer": ("npu", 10),  # 1-3 sentences, direct answer
+    "short_answer": ("npu", 1),  # 1-3 sentences; gate=1 accepts single-word/number answers
     "medium_generation": ("gpu", 0),  # multi-sentence, some structure
     "long_generation": ("gpu", 0),  # essay, detailed explanation
     "code": ("gpu", 0),  # code output
@@ -990,6 +990,18 @@ _SHORT_WHAT_IS_PATTERN = re.compile(
     re.I,
 )
 
+# "Describe X." / "Explain X." — short definitional prompts, ≤75 chars.
+# Fires before GPU domain patterns to prevent "triune orchestrator" etc. from matching
+# "cohezion domain terminology" (CL3: describe patterns → NPU, exp_HH 2026-05-11).
+# Does NOT match "Describe how to implement/write/build X" (those contain impl verbs → GPU).
+_SHORT_DESCRIBE_PATTERN = re.compile(
+    r"^(?:describe|explain)\s+(?!"
+    r"(?:how\s+to\s+(?:implement|write|build|create|design|code)|"
+    r"step[- ]by[- ]step|in\s+detail|thoroughly|comprehensively|fully|completely"
+    r"))",
+    re.I,
+)
+
 _RETROSPECTIVE_PATTERN = re.compile(
     r"\bwhy\s+did\s+(?:we|you|they|the\s+team)\s+(?:choose|decide|select|use|go\s+with|adopt|implement|pick)\b",
     re.I,
@@ -1013,6 +1025,16 @@ _HOW_DOES_PATTERN = re.compile(
 # Without this, GPU "extended engineering verb" fires on technical nouns in the content (e.g. "port").
 _ROUTE_TASK_PREFIX_PATTERN = re.compile(
     r"^(?:route|classify|categorize|label|tag)\s+this\s+(?:task|prompt|request|query|message|input)\b",
+    re.I,
+)
+
+# "Are we / Have we / Is this / Did we / Do we" — session-state status questions (≤90 chars).
+# e.g. "Are we on the newest version? Review /release-notes and update config."
+# "update config" would otherwise match GPU "update code or component" (conf=0.85).
+# Status question form is the primary signal — even trailing action verbs are meta-instructions,
+# not code generation requests (the compound loop handles routing from there).
+_STATUS_QUESTION_PATTERN = re.compile(
+    r"^(?:are we|have we|is this|is the|has the|did we|do we)\b",
     re.I,
 )
 
@@ -1053,6 +1075,60 @@ _BACKTICK_VERB_ENGINEERING_PATTERN = re.compile(
     re.I,
 )
 
+_calibrated_overrides: dict[str, Any] | None = None
+_overrides_loaded = False
+
+
+def _load_overrides() -> dict[str, Any]:
+    """Load calibrated routing parameters from config/calibration_profiles.json.
+
+    Bypasses loading if running under pytest for test isolation.
+    """
+    global _calibrated_overrides, _overrides_loaded
+    if _overrides_loaded:
+        return _calibrated_overrides or {}
+
+    import os
+
+    if "PYTEST_CURRENT_TEST" in os.environ or "COHEZION_IGNORE_CALIBRATION_PROFILE" in os.environ:
+        _overrides_loaded = True
+        return {}
+
+    try:
+        from pathlib import Path
+
+        from cohezion.config.unified import get_config
+
+        root_dir = Path(get_config().root_dir)
+        profile_path = root_dir / "config" / "calibration_profiles.json"
+        if profile_path.exists():
+            import json
+
+            with open(profile_path, encoding="utf-8") as f:
+                data = json.load(f)
+                overrides = data.get("task_classifier", {}).get("parameters", {})
+                if isinstance(overrides, dict):
+                    valid_overrides = {}
+                    for k, v in overrides.items():
+                        if isinstance(v, (int, float)):
+                            valid_overrides[k] = v
+                    if valid_overrides:
+                        import logging
+
+                        logger = logging.getLogger(__name__)
+                        logger.info(
+                            "TaskClassifier: Loaded calibrated parameters: %s",
+                            list(valid_overrides.keys()),
+                        )
+                        _calibrated_overrides = valid_overrides
+    except Exception as e:
+        import logging
+
+        logging.getLogger(__name__).debug("TaskClassifier: Failed to load overrides: %s", e)
+
+    _overrides_loaded = True
+    return _calibrated_overrides or {}
+
 
 def classify(prompt: str) -> RouteDecision:
     """Classify a prompt and return routing decision. Zero model calls."""
@@ -1061,6 +1137,14 @@ def classify(prompt: str) -> RouteDecision:
     if len(prompt) > 500:
         prompt = prompt[:500]
     prompt_len = len(prompt)
+
+    # Load dynamic overrides
+    overrides = _load_overrides()
+    status_question_max_len = overrides.get("status_question_max_len", 90)
+    short_what_is_max_len = overrides.get("short_what_is_max_len", 75)
+    how_does_max_len = overrides.get("how_does_max_len", 85)
+    fallback_short_max_len = overrides.get("fallback_short_max_len", 150)
+    fallback_medium_max_len = overrides.get("fallback_medium_max_len", 400)
 
     # ── Pre-GPU overrides (fire before GPU patterns) ─────────────────────────
     # -1. Explicit categorical instruction — always overrides ANY GPU signals
@@ -1089,6 +1173,20 @@ def classify(prompt: str) -> RouteDecision:
             quality_gate_chars=gate,
             confidence=0.82,
             reason="route-task-prefix meta-instruction",
+        )
+
+    # -0.4. "Are we / Have we / Is this / Did we" session-state status questions (≤90 chars) → NPU
+    # "Are we on the newest version? Review /release-notes and update config."
+    # GPU "update code or component" fires on "update config" without this guard (conf=0.85).
+    # Status question form is the primary intent; trailing imperatives are meta-instructions.
+    if prompt_len <= status_question_max_len and _STATUS_QUESTION_PATTERN.match(prompt):
+        node, gate = _TYPE_CONFIG["short_answer"]
+        return RouteDecision(
+            node=node,
+            output_type="short_answer",
+            quality_gate_chars=gate,
+            confidence=0.76,
+            reason="status-question pre-override",
         )
 
     # 0. Brevity-qualified summarize: "Summarize X in one paragraph" → NPU
@@ -1127,11 +1225,13 @@ def classify(prompt: str) -> RouteDecision:
             reason="retrospective decision question",
         )
 
-    # 3. Short "What is/are X?" definitional question — fires BEFORE domain GPU patterns
+    # 3. Short "What is/are X?" or "Describe/Explain X." — fires BEFORE domain GPU patterns (CL3)
     # Prevents "What is a multi-agent system?" from matching ai-agent-engineering-domain
+    # Prevents "Describe the triune orchestrator's hardware tiers." from matching cohezion domain
     # Threshold: ≤ 75 chars total (short enough to be definitional, not complex)
-    # Does NOT fire for long what-is questions like "What is the implementation of X that..."
-    if prompt_len <= 75 and _SHORT_WHAT_IS_PATTERN.search(prompt):
+    if prompt_len <= short_what_is_max_len and (
+        _SHORT_WHAT_IS_PATTERN.search(prompt) or _SHORT_DESCRIBE_PATTERN.match(prompt)
+    ):
         node, gate = _TYPE_CONFIG["short_answer"]
         # Confidence depends on term length (1-2 words = 0.78, 3-4 words = 0.74)
         return RouteDecision(
@@ -1146,7 +1246,7 @@ def classify(prompt: str) -> RouteDecision:
     # Should route NPU before GPU patterns catch action verbs mid-question
     # "How does the cache handle cache misses?" → NPU (explains behavior, doesn't need code)
     # Threshold ≤ 85 chars: complex "How does X enable Y to Z?" may still need GPU analysis
-    if prompt_len <= 85 and _HOW_DOES_PATTERN.search(prompt):
+    if prompt_len <= how_does_max_len and _HOW_DOES_PATTERN.search(prompt):
         node, gate = _TYPE_CONFIG["short_answer"]
         return RouteDecision(
             node=node,
@@ -1226,15 +1326,15 @@ def classify(prompt: str) -> RouteDecision:
             )
 
     # ── Length-based fallback ────────────────────────────────────────────────
-    if prompt_len <= 150:
+    if prompt_len <= fallback_short_max_len:
         return RouteDecision(
             node="npu",
             output_type="short_answer",
-            quality_gate_chars=10,
+            quality_gate_chars=1,
             confidence=0.60,
             reason=f"short prompt ({prompt_len} chars), defaulting to NPU",
         )
-    elif prompt_len <= 400:
+    elif prompt_len <= fallback_medium_max_len:
         return RouteDecision(
             node="npu",
             output_type="medium_generation",
@@ -1250,3 +1350,41 @@ def classify(prompt: str) -> RouteDecision:
             confidence=0.60,
             reason=f"long prompt ({prompt_len} chars), routing to GPU",
         )
+
+
+async def classify_with_vacuum_hint(prompt: str, response: str = "") -> RouteDecision:
+    """Augment classify() with a FLUME vacuum phase pre-filter.
+
+    When the vacuum atlas classifies the (prompt, response) pair as 'route' phase
+    with HIGH confidence (margin > 0.02), overrides the output to short_categorical/NPU
+    regardless of what the keyword classifier returned. This captures meta-cognitive
+    routing queries that are phrased as factual questions and would otherwise get
+    misrouted to GPU medium_generation.
+
+    Falls back to classify(prompt) on any encoder error or LOW atlas confidence.
+
+    Validated in exp_PPPP4 (Round 24): 83% accuracy on meta-routing queries vs 33% for
+    classify() alone. Only fires when margin > 0.02 (100% precision threshold from exp_JJJJ4).
+    """
+    base = classify(prompt)
+    try:
+        from cohezion.flume.vacuum_encoder import classify_journey_phase, encode_journey_text
+
+        z = await encode_journey_text(prompt, response)
+        phase, margin = classify_journey_phase(z)
+        if phase == "route" and margin > 0.02 and base.confidence < 0.80:
+            # HIGH-confidence route phase: override to short_categorical/NPU.
+            # Guard: do NOT override when the keyword classifier is already highly confident
+            # (conf >= 0.80). "Implement X" at conf=0.88 is a GPU task — the vacuum atlas
+            # correctly notes it involves dispatch semantics but the keyword signal wins.
+            # (exp_VVVV4 fix: prevents false positive on "Implement bi-temporal schema")
+            return RouteDecision(
+                node="npu",
+                output_type="short_categorical",
+                quality_gate_chars=0,
+                confidence=min(0.95, base.confidence + margin),
+                reason=f"vacuum_route_phase (margin={margin:.3f}) overrides {base.output_type}",
+            )
+    except Exception:
+        pass  # vacuum encoder unavailable — fall through to base classification
+    return base
