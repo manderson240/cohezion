@@ -1,0 +1,8 @@
+blank_issues_enabled: true
+contact_links:
+  - name: 📖 Read the docs first
+    url: https://github.com/manderson240/cohezion#readme
+    about: The README quick start and "Where to start" section answer most setup questions.
+  - name: 💼 Commercial / closed-source use
+    url: https://github.com/manderson240/cohezion/blob/main/LICENSING.md
+    about: Cohezion is AGPL-3.0. Using it in a closed-source product or hosted service? See licensing options.
