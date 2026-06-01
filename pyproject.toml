@@ -202,6 +202,9 @@ ignore = [
 "scripts/**/*.py" = [
     "E501",  # Research scripts use intentionally verbose description strings
 ]
+"examples/**/*.py" = [
+    "E501",  # Demonstrator scripts use intentionally verbose evidence f-strings
+]
 # Import sorting configuration
 [tool.ruff.lint.isort]
 known-first-party = ["cohezion"]
