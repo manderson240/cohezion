@@ -733,7 +733,10 @@ class PostExecutionOrchestrator:
             from cohezion.learning.mycelium_registry import JournalEntry, MyceliumRegistry
 
             if not hasattr(self._ex, "_mycelium_registry"):
-                self._ex._mycelium_registry = MyceliumRegistry()
+                # Shared singleton so synthesized skills are visible to the
+                # mycelium API reader (closes the recursion loop). Matches the
+                # executor Step 10.6 writer path.
+                self._ex._mycelium_registry = MyceliumRegistry.get_instance()
             entry = JournalEntry(
                 entry_id=f"exec_{int(time.time())}_{skill_name}",
                 content=f"Executed {skill_name}: {task_description[:200]}",

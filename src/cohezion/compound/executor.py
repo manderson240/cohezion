@@ -1249,7 +1249,9 @@ class CompoundExecutor(CompoundContextMixin, ExecutorIntegrationMixin):
                 from cohezion.learning.mycelium_registry import JournalEntry, MyceliumRegistry
 
                 if not hasattr(self, "_mycelium_registry"):
-                    self._mycelium_registry = MyceliumRegistry()
+                    # Shared singleton so synthesized skills are visible to the
+                    # mycelium API reader (closes the recursion loop).
+                    self._mycelium_registry = MyceliumRegistry.get_instance()
                 entry = JournalEntry(
                     entry_id=f"exec_{int(time.time())}_{skill_name}",
                     content=f"Executed {skill_name}: {task_description[:200]}",
