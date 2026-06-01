@@ -16,16 +16,11 @@ Architecture:
 
 from __future__ import annotations
 
-# Import existing FLUME components
-import sys
 import time
 from dataclasses import dataclass, field
 from enum import Enum
 
 import numpy as np
-
-
-sys.path.insert(0, "/home/mike-anderson/dev/cohezion/src")
 
 
 class VacuumCoherence(Enum):
