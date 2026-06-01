@@ -97,6 +97,7 @@ def git_repo(tmp_path: Path) -> Path:
 
     Returns the repo root path.
     """
+
     def _run(cmd):
         return subprocess.run(
             cmd,
@@ -104,6 +105,7 @@ def git_repo(tmp_path: Path) -> Path:
             capture_output=True,
             check=True,
         )
+
     _run(["git", "init"])
     _run(["git", "config", "user.email", "test@cohezion.dev"])
     _run(["git", "config", "user.name", "Test User"])
@@ -194,6 +196,14 @@ def reset_singletons():
     if hasattr(BudgetEnforcer, "reset_instance"):
         BudgetEnforcer.reset_instance()
 
+    # Reset the MyceliumRegistry singleton (shared writer/reader registry).
+    try:
+        from cohezion.learning.mycelium_registry import MyceliumRegistry
+
+        MyceliumRegistry.reset_instance()
+    except (ImportError, AttributeError):
+        pass
+
     # Reset the precipitation bus singleton.
     try:
         from cohezion.precipitation.bus import set_bus
@@ -249,6 +259,14 @@ def reset_singletons():
         SessionCostTracker.reset_instance()
     if hasattr(BudgetEnforcer, "reset_instance"):
         BudgetEnforcer.reset_instance()
+
+    # Reset the MyceliumRegistry singleton after test (shared writer/reader registry).
+    try:
+        from cohezion.learning.mycelium_registry import MyceliumRegistry
+
+        MyceliumRegistry.reset_instance()
+    except (ImportError, AttributeError):
+        pass
 
     # Reset DynamicConcurrencyGate module-level singleton (Wave 3G)
     try:

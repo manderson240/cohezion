@@ -15,6 +15,9 @@ from dataclasses import dataclass, field
 
 logger = logging.getLogger(__name__)
 
+# Module-level singleton shared by the executor (writer) and mycelium API (reader).
+_singleton: MyceliumRegistry | None = None
+
 
 @dataclass
 class JournalEntry:
@@ -59,6 +62,26 @@ class MyceliumRegistry:
         self._entries: list[JournalEntry] = []
         self._skills: dict[str, SynthesizedSkill] = {}
         self._audit_history: list[AuditReport] = []
+
+    @classmethod
+    def get_instance(cls) -> MyceliumRegistry:
+        """Return the module-level singleton, creating it on first call.
+
+        Closes the recursion loop: the CompoundExecutor (writer, Step 10.6) and
+        the mycelium API (reader, ``/skills``) must share ONE registry, or skills
+        synthesized on the write side are invisible on the read side. Mirrors
+        ``SemanticCache.get_instance()`` (harness CA2).
+        """
+        global _singleton
+        if _singleton is None:
+            _singleton = cls()
+        return _singleton
+
+    @classmethod
+    def reset_instance(cls) -> None:
+        """Clear the module-level singleton (test isolation). Mirrors CA2."""
+        global _singleton
+        _singleton = None
 
     @property
     def skills(self) -> dict[str, SynthesizedSkill]:
