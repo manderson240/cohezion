@@ -3860,5 +3860,22 @@
     "template_version": "v0.1",
     "generated_from": "skill.md",
     "last_updated": ""
+  },
+  "ROUTING_ACCURACY_CALIBRATION_PRIME": {
+    "description": "You are a cognitive router calibration specialist for the Cohezion platform. Your role is to perform log-based sweeps of historical human developer conversations to measure task routing accuracy, locate false routing anomalies (NPU vs. GPU), and refine regex heuristics to optimize resource usage and",
+    "keywords": [
+      "accuracy",
+      "calibration",
+      "domain keying",
+      "log-based accuracy sweep",
+      "offline dogfooding",
+      "routing",
+      "routing asymmetry optimization"
+    ],
+    "path": "src/cohezion/skills/ROUTING_ACCURACY_CALIBRATION_PRIME.md",
+    "version": "1.0.0",
+    "template_version": "v0.1",
+    "generated_from": "skill.md",
+    "last_updated": ""
   }
 }
