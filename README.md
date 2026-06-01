@@ -2,169 +2,190 @@
 
 [![Health Check](https://github.com/manderson240/cohezion/actions/workflows/health-check.yml/badge.svg)](https://github.com/manderson240/cohezion/actions/workflows/health-check.yml)
 [![CI](https://github.com/manderson240/cohezion/actions/workflows/ci.yml/badge.svg)](https://github.com/manderson240/cohezion/actions/workflows/ci.yml)
+[![License: AGPL v3](https://img.shields.io/badge/License-AGPL_v3-blue.svg)](LICENSE)
+[![Python 3.11](https://img.shields.io/badge/python-3.11-blue.svg)](pyproject.toml)
 
-**Physics-grounded training universes for safe AI agents.**
+**An RL environment where agent safety comes from physics, not reward penalties.**
 
-Cohezion is a platform where AI agents learn within a 12D Riemannian manifold governed by Lagrangian mechanics, SU(2) gauge theory, and the HIHO stability principle. Instead of learning safety constraints from reward signals that can be gamed, agents operate in environments where physics itself prevents unsafe behavior.
+Most RL safety research bolts penalty terms onto a reward function — and agents learn
+to game them. Cohezion takes the opposite approach: agents act inside a simulated
+physics where unsafe states are *energetically unfavorable*. Safety isn't a rule the
+agent learns to satisfy; it's an attractor the environment's dynamics pull toward.
 
-## Quick Start
+The result is a [Gymnasium](https://gymnasium.farama.org/)-compatible training
+environment plus the tooling to train, evaluate, and reproduce agents in it — all of
+it CPU-friendly and CUDA-free.
 
 ```bash
 git clone https://github.com/manderson240/cohezion.git
 cd cohezion
 uv sync
 
-# Validate the compound engineering loop (18 checks, ~18s)
-make validate
-
-# Train a PPO agent on the 12D manifold (20K steps, ~5 min)
-make train
-
-# Quick demo: train + evaluate + show compound loop
-make demo
+make demo          # train + evaluate + show the loop (~5 min, no GPU needed)
 ```
 
-## What Makes This Different
+---
 
-Most RL safety research adds penalty terms to reward functions. Cohezion takes a fundamentally different approach: **the environment's physics provides structural safety guarantees**.
+## Who this is for
 
-| Standard RL Safety | Cohezion |
+- **RL researchers** curious about structural (vs. learned) safety constraints, reward
+  shaping that cooperates with — instead of fighting — the environment, and a concrete
+  testbed for either.
+- **Agent / orchestration builders** who want a worked example of a cost-aware,
+  local-first inference router (NPU → iGPU → CPU → cloud) and a self-improving
+  "compound engineering" execution loop.
+- **The physics-curious** who want to see SU(2) gauge theory, Lagrangian mechanics, and
+  information geometry doing real work in an ML system rather than sitting in slides.
+
+If you just want to *run an agent*, start with `make demo`. If you want to *understand
+why it's safe*, read [The HIHO principle](#the-hiho-principle). If you want to
+*contribute*, jump to [Where to start](#where-to-start).
+
+## What makes it different
+
+| Standard RL safety | Cohezion |
 |---|---|
-| Safety = learned constraint | Safety = physical law |
-| Agents learn to avoid violations | Physics prevents violations |
-| Reward hacking bypasses constraints | Large actions fight the attractor (self-correcting) |
-| Random agent has 0% safe behavior | Random agent converges toward HIHO attractor (physics guides it) |
+| Safety = a learned constraint | Safety = a property of the dynamics |
+| Agents learn to avoid violations | The attractor makes violations cost energy |
+| Reward hacking bypasses constraints | Large/erratic actions fight the attractor and self-correct |
+| A random policy is ~0% safe | A random policy drifts *toward* the safe equilibrium |
 
-**Key result**: PPO agents trained with small actions ([-0.1, 0.1]) achieve ~0.9 coherence — the Lagrangian attractor cooperates with learning instead of fighting it. Checkpoint: `data/rl/checkpoints/policy_final.pt`. Reproduce: `make train && make evaluate`.
+**Headline result:** with small actions that cooperate with the Lagrangian attractor,
+PPO agents reach ~0.9 coherence (1.0 = the safe HIHO equilibrium). The environment's
+geometry does part of the learning for you. Reproduce: `make train && make evaluate`.
+
+## Quick start
+
+```bash
+uv sync                 # install (uses uv; no bare pip)
+
+make validate           # sanity-check the compound loop (~18s)
+make train              # train PPO on the 12D manifold (20K steps, ~5 min, CPU OK)
+make evaluate           # compare the trained policy against random / greedy baselines
+make demo               # the whole thing end-to-end
+```
+
+Use the environment directly:
+
+```python
+import gymnasium as gym
+import cohezion.environments  # registers the env
+
+env = gym.make("Cohezion/ManifoldEnv-v0")   # 19D obs, 12D action
+obs, info = env.reset(seed=0)
+obs, reward, terminated, truncated, info = env.step(env.action_space.sample())
+print(info["coherence"])   # distance from the HIHO safe equilibrium
+```
+
+## Training results
+
+The full algorithm × reward-mode matrix at 100K steps (reproduce with `make benchmark`).
+Earlier 20K-step diagnostic runs — including a deliberately broken-reward baseline we
+kept for the record — live in `CHANGELOG.md` and the training logs.
+
+| Algorithm | Reward mode | Reward | vs. random | vs. greedy |
+|-----------|-------------|-------:|-----------:|-----------:|
+| **SAC**   | **dense**       | **40.77** | +3.40 | −1.20 |
+| PPO       | dense           | 38.95 | −1.79 | **+3.73** |
+| PPO       | curriculum      | 14.23 | +7.51 | +1.34 |
+| SAC       | curriculum      | 10.91 | +8.59 | −1.98 |
+
+**Takeaway:** the reward structure has to match the algorithm's learning dynamics.
+On-policy PPO benefits from a structured curriculum; off-policy SAC wants simpler dense
+gradients. Both need small actions that cooperate with the attractor rather than
+overpowering it.
 
 ## Architecture
 
 ```
-Compound Engineering Loop
-  PRIME Skill (markdown)
-    -> InstructionExpander -> PlanExecutor
-    -> ExecutionOrchestrator (11-step pipeline)
-         |-- RequestAlignmentAnalyzer (coherence check)
-         |-- DegradationDetector -> CostAwareRouter (backward feedback)
-         |-- JourneyTracker (12D trajectory) + JEPA surprise
-         |-- Bioelectric percolation + Natural capital valuation
-    -> RetrospectionEngine (extract learnings)
-    -> SkillRefiner (update skills) -> loop again
+Physics layer (the "Genesis Engine")
+  12D Riemannian manifold
+    ├── SU(2) spinors on the Bloch sphere   (coherence = |Bloch vector|)
+    ├── Lagrangian dynamics                 (Euler–Lagrange + Störmer–Verlet)
+    ├── Yang–Mills gauge theory             (flat connection = HIHO vacuum)
+    └── Fisher information metric           (ties geometry, dynamics, thermodynamics)
 
-Physics Layer (Genesis Engine)
-  12D Riemannian Manifold
-    |-- SU(2) spinors on Bloch sphere (coherence = |Bloch vector|)
-    |-- Lagrangian dynamics (Euler-Lagrange + Stormer-Verlet integrator)
-    |-- Fiber bundle P(B^4, SO(3)^4) decomposition
-    |-- Yang-Mills gauge theory (flat connection = HIHO vacuum)
-    |-- Fisher information metric (connects FLUME/manifold/thermodynamics)
-    |-- 10-step cosmogony chain (symmetry breaking cascade)
+RL environments (Gymnasium)
+    ├── ManifoldEnv  — single agent, 19D obs / 12D action, curriculum & dense modes
+    └── SwarmEnv     — N agents coupled through a shared gauge field
 
-RL Environments
-    |-- ManifoldEnv (19D obs, 12D action, curriculum/dense reward modes)
-    |-- SwarmEnv (N agents with gauge field coupling)
-    |-- Registered: gym.make('Cohezion/ManifoldEnv-v0')
-
-Evaluation
-    |-- UniverseEvaluator (bootstrap CIs, 3+ baselines)
-    |-- DegradationDetector (thermal + quality monitoring)
-    |-- RoutingOrchestrator (unified 4-router system)
+Compound engineering loop  (optional; the "agent that improves itself" layer)
+    skill → expand → plan → execute (with coherence + degradation monitoring)
+         → retrospect → refine skill → repeat
 ```
 
-## Training Results
+The physics and RL layers stand alone — you can train agents without ever touching the
+compound loop. The loop is for the second audience above.
 
-8-run diagnostic loop completing the 2x2 algorithm-reward matrix (PPO/SAC x curriculum/dense). Reproduce with `make train` (20K steps) or `make benchmark` (100K steps):
+## Key modules
 
-| Run | Algorithm | Reward Mode | Steps | Reward | vs Random | vs Greedy |
-|-----|-----------|-------------|-------|--------|-----------|-----------|
-| 1 | PPO | curriculum (broken) | 20K | -1.48 | Worse | — |
-| 2 | PPO | curriculum (fixed) | 20K | -67.68 | Worse | — |
-| 3 | PPO | curriculum + small actions | 20K | **12.04** | **+18.0** | — |
-| 4 | PPO | curriculum | 100K | 14.23 | +7.51 | +1.34 |
-| 5 | SAC | curriculum | 20K | 1.38 | -5.34 | — |
-| 6 | SAC | curriculum (ent=0.05) | 100K | 10.91 | +8.59 | -1.98 |
-| 7 | **SAC** | **dense (ent=0.05)** | 100K | **40.77** | +3.40 | **-1.20** |
-| 8 | PPO | dense | 100K | 38.95 | -1.79 | **+3.73** |
-
-**2x2 Matrix** (best pairing per algorithm):
-- **PPO + curriculum** = best on-policy (reward 14.23, +7.51 vs random)
-- **SAC + dense** = best off-policy (reward 40.77, only 1.20 from greedy)
-- PPO + dense inverts hierarchy: beats greedy but loses to random
-- SAC + curriculum works but dense is strictly better
-
-**Key insight**: The reward structure must match the algorithm's learning dynamics. On-policy (PPO) benefits from structured curriculum. Off-policy (SAC) needs simpler gradients. Both require small actions that cooperate with the Lagrangian attractor.
-
-## Key Modules
-
-| Module | Purpose | Entry Point |
+| Module | Purpose | Entry point |
 |--------|---------|-------------|
-| `physics/` | SU(2) spinors, Riemannian metric, Lagrangian dynamics, gauge theory, cosmogony, Fisher metric | `SpinorState` |
-| `environments/` | Gymnasium RL: ManifoldEnv (single-agent), SwarmEnv (multi-agent gauge coupling) | `gym.make('Cohezion/ManifoldEnv-v0')` |
-| `eval/` | UniverseEvaluator with bootstrap CIs, convergence metrics, baseline comparisons | `UniverseEvaluator` |
-| `compound/` | 11-step execution pipeline, journey tracking, skill refinement, retrospection | `CompoundExecutor` |
-| `swarm/` | Team orchestration, cost-tiered routing (70/20/10 tier split), OI-MAS confidence scoring | `CostAwareRouter` |
-| `world_model/` | JEPA predictor (86K params), bioelectric network, natural capital, EVO model | `JEPAWorldModel` |
-| `flume/` | FLUME VAE (256D), PolarQuant (2.7x), QJL (32x), LatentMAS communication | `ThoughtEncoder` |
-| `ouroboros/` | Self-referential loop closure, mycelium distributed transport | `OuroborosBridge` |
-| `governance/` | Cosmogonic autonomy tiers, concierge routing, knowledge bridge | `AutonomyEngine` |
-| `cache/` | L1 hash + L2 cosine + L3 vault semantic cache (95%+ hit rate) | `SemanticCache` |
-| `skills/` | 151 PRIME skill definitions (206 total) for cross-platform compound engineering | `skill_registry.json` |
-| `api/` | FastAPI backend with 93 route handlers, AG-UI event streaming | `uvicorn cohezion.api:app` |
+| `physics/` | SU(2) spinors, Riemannian metric, Lagrangian dynamics, gauge theory, Fisher metric | `SpinorState` |
+| `environments/` | Gymnasium envs: `ManifoldEnv` (single), `SwarmEnv` (multi-agent) | `gym.make("Cohezion/ManifoldEnv-v0")` |
+| `eval/` | Evaluator with bootstrap CIs, convergence metrics, baseline comparisons | `UniverseEvaluator` |
+| `compound/` | Self-improving execution pipeline: journey tracking, retrospection, skill refinement | `CompoundExecutor` |
+| `swarm/` | Team orchestration + cost-aware, local-first model routing | `CostAwareRouter` |
+| `world_model/` | Small JEPA predictor + surprise-driven exploration | `JEPAWorldModel` |
+| `cache/` | Layered semantic cache (hash + cosine + persistent store) | `SemanticCache` |
+| `api/` | FastAPI backend with AG-UI event streaming | `uvicorn cohezion.api:app` |
 
-## The HIHO Principle
+## The HIHO principle
 
-HIHO (Half-In, Half-Out) at 0.5 coherence is where six mathematical frameworks converge:
+HIHO — **Half-In, Half-Out**, coherence = 0.5 — is the equilibrium the environment is
+built around. It's the point where several independent formalisms describe the same
+balance between order and freedom:
 
-1. **Brahmagupta's zero** (628 CE): deviation = coherence - 0.5 = 0
-2. **Friston's Free Energy Principle**: F = E - TS minimization
-3. **Flat gauge connection**: Yang-Mills curvature vanishes at equilibrium
-4. **Fisher metric minimum**: natural gradient of information geometry
-5. **Bloch sphere equator**: (|up> + |down>)/sqrt(2) superposition
-6. **Landau phase transition**: order parameter at critical temperature
+- **Bloch-sphere equator** — the maximal superposition `(|↑⟩ + |↓⟩)/√2`
+- **Flat gauge connection** — Yang–Mills curvature vanishes
+- **Fisher-metric minimum** — the natural-gradient sweet spot of information geometry
+- **Friston free energy** — `F = E − TS` minimized
+- **Landau phase transition** — an order parameter at its critical point
 
-## Compound Engineering
-
-Cohezion practices compound engineering: every feature makes future features easier.
-
-- **151 PRIME skills** encode reusable patterns from 95 sessions
-- **SkillRefiner** updates skills based on execution results
-- **DegradationDetector** monitors quality and feeds back to CostAwareRouter
-- **JourneyTracker** records 12D trajectories for pattern extraction
-- **Execution traces** stored as browsable filesystem (Meta-Harness pattern)
-- **SurrealDB + Obsidian vault** for long-term knowledge persistence
-
-## Persistence
-
-- **SurrealDB** (port 8001): learnings, training runs, universe snapshots, domain-organized schema
-- **Obsidian vault** (`~/vaults/cohezion-vault/`): brain-region organized (prefrontal, cerebellum, hippocampus)
-- **KEY_LEARNINGS.md**: 290 extracted learnings across 95 sessions
-- **Execution traces**: `execution_traces/` filesystem for SkillRefiner consumption
-
-## Development
-
-```bash
-make format          # Format with ruff
-make lint            # Lint and auto-fix
-make test            # Run full test suite
-make validate        # Validate compound loop (18 checks)
-make train           # Train PPO on ManifoldEnv (20K steps)
-make evaluate        # Evaluate trained model vs baselines
-make benchmark       # Full 100K training + comparisons
-make demo            # Quick 5K demo with evaluation
-```
+Coherence below 0.5 is rigid/exploitative; above it is unstable/exploratory. The safe
+attractor sits in the middle, which is also where capable agents want to be. Details and
+the derivation: `src/cohezion/physics/cosmogony.py`.
 
 ## Hardware
 
-Built on AMD Strix Halo: Ryzen AI MAX+ 395 (16C/32T), Radeon 8060S (unified memory), 128 GiB LPDDR5X. Local models via Ollama (deepseek-r1:70b, qwen3-coder:30b). No CUDA required.
+Runs CPU-only — **no CUDA required**. Training the demo agent takes minutes on a laptop.
+It's developed on AMD (Ryzen AI + Radeon iGPU, unified memory), and the optional
+local-inference router targets that silicon, but nothing in the core RL/physics stack
+depends on a specific accelerator.
+
+## Where to start
+
+New here? Good entry points, roughly easiest-first:
+
+1. Run `make demo` and read what it prints — that's the whole loop in one command.
+2. Read `src/cohezion/environments/manifold_env.py` — the environment is the heart of the project.
+3. Skim the design paper (draft): `docs/papers/genesis-engine-paper.md`.
+4. Look for [`good first issue`](https://github.com/manderson240/cohezion/labels/good%20first%20issue) and `help wanted` labels.
+
+**Contributions are welcome** — see [CONTRIBUTING.md](CONTRIBUTING.md) for the dev
+setup, test commands, and PR conventions. Bugs, docs fixes, new baselines, and
+additional reward modes are all genuinely useful. Open an issue to discuss anything
+larger before you build it.
 
 ## References
 
-- Gymnasium API: https://gymnasium.farama.org/
-- Friston FEP: https://doi.org/10.1038/nrn2787
-- Levin bioelectric: https://doi.org/10.1016/j.biosystems.2022.104787
-- HIHO convergence: `src/cohezion/physics/cosmogony.py`
-- Research paper: `research/papers/physics-grounded-training-universes.md`
+- Gymnasium API — https://gymnasium.farama.org/
+- Friston, *The free-energy principle* — https://doi.org/10.1038/nrn2787
+- Levin, *Bioelectric networks* — https://doi.org/10.1016/j.biosystems.2022.104787
+- Design paper (draft) — `docs/papers/genesis-engine-paper.md`
 
 ## License
 
-See LICENSE file.
+Cohezion is **dual-licensed** — pick whichever fits:
+
+- **[AGPL-3.0](LICENSE)** (open source, free). Use, modify, and self-host freely. Because
+  the AGPL is network-copyleft, running a *modified* version as a service obligates you to
+  offer that version's source to its users under the AGPL. Ideal for research, evaluation,
+  and other open-source projects.
+- **Commercial license.** To build on Cohezion in a closed-source product or hosted
+  service without the AGPL's source-sharing terms, a commercial license is available.
+  See **[LICENSING.md](LICENSING.md)** or email manderson240@gmail.com.
+
+Contributions are accepted under the
+[Contributor License Agreement](CONTRIBUTOR_LICENSE_AGREEMENT.md), which is what lets the
+project offer both licenses.

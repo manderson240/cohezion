@@ -1,0 +1,42 @@
+name: 🐛 Bug report
+description: Something doesn't work the way it should
+title: "bug: "
+labels: ["bug"]
+body:
+  - type: markdown
+    attributes:
+      value: Thanks for the report! A minimal way to reproduce (a failing `make` target or a short script) helps the most.
+  - type: textarea
+    id: what-happened
+    attributes:
+      label: What happened?
+      description: What did you expect, and what actually occurred?
+      placeholder: I ran `make train` and ...
+    validations:
+      required: true
+  - type: textarea
+    id: repro
+    attributes:
+      label: Steps to reproduce
+      description: Commands or a short script. Include the seed if relevant.
+      render: shell
+    validations:
+      required: true
+  - type: textarea
+    id: environment
+    attributes:
+      label: Environment
+      description: OS, Python version (`python --version`), and how you installed (`uv sync`?).
+      placeholder: |
+        OS: Ubuntu 24.04
+        Python: 3.11.x
+        Install: uv sync
+    validations:
+      required: false
+  - type: textarea
+    id: logs
+    attributes:
+      label: Relevant logs / traceback
+      render: shell
+    validations:
+      required: false
