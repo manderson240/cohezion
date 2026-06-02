@@ -132,9 +132,14 @@ jobs:
           --cov-report=xml:coverage.xml
           --cov-report=term
 
+      # Gating: tests/inference/ must pass (verified 423 green). Unlike the broad
+      # integration step below, a failure here fails the job and blocks merge.
+      - name: Run inference tests (gating)
+        run: uv run pytest tests/inference/ -q --tb=short
+
       - name: Run integration tests
         run: >
-          uv run pytest tests/ --ignore=tests/unit/ -v
+          uv run pytest tests/ --ignore=tests/unit/ --ignore=tests/inference/ -v
           --tb=short
           --junitxml=integration-report.xml
         continue-on-error: true
