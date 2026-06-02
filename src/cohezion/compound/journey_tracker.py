@@ -130,6 +130,10 @@ class JourneyTracker:
         # Recent trajectory points for real smoothness/convergence
         self._recent_points: list[TrajectoryPoint] = []
 
+        # Active-Inference router: turns JEPA surprise into explore/exploit + tier hints.
+        # Instance-level so its EWMA surprise scale accumulates across the trajectory.
+        self._surprise_router: object | None = None
+
         # Hash-chain state for OLIF audit trail: {chain_id: {sequence, last_hash}}
         self._chain_state: dict[str, dict[str, int | str]] = {}
 
@@ -468,6 +472,15 @@ class JourneyTracker:
                     action = axiomatic_12d - prev
                     surprise = jepa.surprise_score(prev, action, axiomatic_12d)
                     point.metadata["jepa_surprise"] = float(surprise)
+                    # Active-Inference: turn surprise into an explore/exploit + tier hint.
+                    # Advisory metadata (a downstream router may read it); never overrides
+                    # the production routing decision here. Closes the surprise->action seam.
+                    if self._surprise_router is None:
+                        from cohezion.world_model.surprise_router import SurpriseRouter
+
+                        self._surprise_router = SurpriseRouter()
+                    decision = self._surprise_router.observe(float(surprise))
+                    point.metadata["surprise_routing"] = decision.to_dict()
             except Exception:
                 pass
 

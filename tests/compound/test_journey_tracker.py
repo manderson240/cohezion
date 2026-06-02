@@ -315,6 +315,53 @@ class TestTrackExecution:
         assert point.efficiency == 0.7
         assert point.operation_type == "generate"
 
+    def test_track_execution_attaches_surprise_routing(
+        self, tracker, execution_result, monkeypatch
+    ):
+        """When the JEPA model is trained, the surprise->action seam fires: each enriched
+        point carries an advisory `surprise_routing` decision (mode + fleet tier)."""
+
+        class _FakeTrainedJEPA:
+            _trained = True
+
+            def surprise_score(self, prev, action, nxt):
+                return 0.5  # constant -> EWMA steady state
+
+        monkeypatch.setattr(
+            "cohezion.api.services.world_model._get_model",
+            lambda: _FakeTrainedJEPA(),
+        )
+        # First call seeds _recent_points; enrichment needs a prior point.
+        tracker.track_execution(execution_result, "first task", "generate")
+        point = tracker.track_execution(execution_result, "second task", "generate")
+
+        assert "jepa_surprise" in point.metadata
+        routing = point.metadata.get("surprise_routing")
+        assert routing is not None
+        assert routing["mode"] in {"explore", "exploit"}
+        assert routing["tier"] in {"npu", "igpu", "cpu"}
+        # Router is instance-level so its EWMA scale persists across the trajectory.
+        assert tracker._surprise_router is not None
+
+    def test_track_execution_no_routing_when_untrained(
+        self, tracker, execution_result, monkeypatch
+    ):
+        """Untrained model -> no surprise enrichment -> no routing hint (no-op, not fabricated)."""
+
+        class _FakeUntrainedJEPA:
+            _trained = False
+
+            def surprise_score(self, prev, action, nxt):  # pragma: no cover - never called
+                raise AssertionError("surprise_score must not run when untrained")
+
+        monkeypatch.setattr(
+            "cohezion.api.services.world_model._get_model",
+            lambda: _FakeUntrainedJEPA(),
+        )
+        tracker.track_execution(execution_result, "first task", "generate")
+        point = tracker.track_execution(execution_result, "second task", "generate")
+        assert "surprise_routing" not in point.metadata
+
     def test_track_execution_with_no_token_metrics(self, tracker):
         """Test tracking without token metrics."""
         result = ExecutionResult(
