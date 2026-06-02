@@ -1,14 +1,14 @@
 {
-  "generated_at": "2026-06-02T14:52:27-0400",
+  "generated_at": "2026-06-02T14:54:31-0400",
   "git_branch": "feat/anthropic-universes-living-resume",
-  "git_sha": "44cfbf22a",
+  "git_sha": "096a9d363",
   "python": "3.11.15",
   "package_under_test": "/home/mike-anderson/dev/cohezion/.claude/worktrees/lazy-tumbling-cascade/src/cohezion/__init__.py",
   "summary": {
-    "pass": 20,
+    "pass": 23,
     "fail": 0,
     "skip": 1,
-    "total": 21
+    "total": 24
   },
   "checks": [
     {
@@ -16,7 +16,7 @@
       "box": "Build agentic training environments (RL envs/simulations)",
       "status": "PASS",
       "strength": "STRONG",
-      "evidence": "Cohezion/ManifoldEnv-v0: 19D obs / 12D action, 20-step return=-1.582",
+      "evidence": "Cohezion/ManifoldEnv-v0: 19D obs / 12D action, 20-step return=-1.594",
       "detail": ""
     },
     {
@@ -161,6 +161,30 @@
       "status": "PASS",
       "strength": "MEDIUM",
       "evidence": "EcoResilienceAgent importable (synthesizes TEK with 12D Unified Physics)",
+      "detail": ""
+    },
+    {
+      "name": "bioelectric",
+      "box": "Bioelectric / developmental-bio-inspired dynamics (Levin)",
+      "status": "PASS",
+      "strength": "STRONG",
+      "evidence": "BioelectricNetwork percolation_analysis ok, coherence=0.923 (HIHO gap-junction)",
+      "detail": ""
+    },
+    {
+      "name": "mass_sim",
+      "box": "Large-scale simulation (mass-sim scale tiers)",
+      "status": "PASS",
+      "strength": "STRONG",
+      "evidence": "4 scale tiers; aspirational = 25,000,000 agents",
+      "detail": ""
+    },
+    {
+      "name": "self_improvement",
+      "box": "Self-improving infrastructure (ouroboros/mycelium/evolution)",
+      "status": "PASS",
+      "strength": "MEDIUM",
+      "evidence": "importable: ouroboros, mycelium, evolution (self-heal + skill synthesis + evolutionary opt)",
       "detail": ""
     },
     {

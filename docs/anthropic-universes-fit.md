@@ -13,7 +13,7 @@
 > make resume                                 # same, via Make
 > ```
 >
-> **Last receipt:** `20 PASS / 0 FAIL / 1 SKIP` across 21 checks
+> **Last receipt:** `23 PASS / 0 FAIL / 1 SKIP` across 24 checks
 > (`docs/resume_receipt.json`, regenerate to refresh). Each check is graded by
 > **verification strength** — `STRONG` (ran end-to-end), `MEDIUM` (imported + instantiated),
 > `WEAK` (import only) — so no claim outruns its evidence.
@@ -58,6 +58,8 @@ Legend: ✅ verified live by `resume_verify.py` · 📄 evidence in-repo · 🌐
 | **Sandboxing / containerization / isolation** | `sandbox/isolation.py`, `sandboxing/executor.py`, `sandbox/shadow_worktree.py`, `Dockerfile`; Kaggle Blackwell handshake (containerized GPU) | MEDIUM | ✅ `sandboxing` |
 | **Large-scale / distributed ML infrastructure** | `inference/orchestrator.py` `TieredOrchestrator` routes across NPU/iGPU/CPU local fleet | MEDIUM | ✅ `distributed_inference` |
 | **Local-first inference fleet (heterogeneous accel.)** | `inference/triune_orchestrator.py` routes NPU(13306)/iGPU(13307)/CPU(13309) on AMD Strix Halo; `fleet.extend_claude()` escalates to cloud only on a quality-gate miss — a 10k-token loop runs at **$0** | MEDIUM | ✅ `local_inference` |
+| **Large-scale simulation** | `mass_sim/` scale tiers up to a **25M-agent** "aspirational" universe (checkpointed, batched) | STRONG | ✅ `mass_sim` |
+| **Self-improving infrastructure** | `ouroboros/` self-healing loop + `mycelium/` skill synthesis from execution traces + `evolution/` evolutionary skill optimization | MEDIUM | ✅ `self_improvement` |
 | **Batched inference for throughput** | `async run_batch(prompts, *, budget_usd)` → `asyncio.gather` fan-out (3.44× throughput, harness CB1) | MEDIUM | ✅ `batching` |
 | **Caching for efficiency at scale** | `cache/semantic_cache.py` L1 hash + L2 cosine + L3 vault, encoder-calibrated thresholds (harness CA1/CA2); 11 cache test files | MEDIUM | ➖ `semantic_cache` (SKIP — **latent bug surfaced**: unimportable at this commit, `lemonade_encoder` absent; `tests/cache/` errors on collection here) |
 | **World models / simulations** | `world_model/jepa_world_model.py` (JEPA predictor, causal masking, CPU-trainable) | MEDIUM | ✅ `world_model` |
@@ -108,6 +110,7 @@ is import-and-run checked, with honest framing about what's ML-core vs research-
 | **Worldview lattice** | `worldviews/` — **17** cosmological traditions × **10** Theory-of-Everything steps, with cross-tradition convergence mapping. | ✅ `worldviews`: 17 traditions × 10 ToE steps. | Diverse environment/world priors; breadth, not an ML benchmark. |
 | **ToE bridge (Observer Patch Holography)** | `physics/observer_patch.py` — observer-centric consistency; overlapping observer patches must agree (SPIN coherence). | ✅ `toe_observer`: two patches yield a valid `overlap_fraction ∈ [0,1]`. | The formal root of the structural-safety thesis (observers agree ⇒ coherence). |
 | **TEK × Unified Physics** | `agents/specialists/ecoresilience_agent.py` — synthesizes Traditional Ecological Knowledge with the 12D manifold. | ✅ `tek_agent`: `EcoResilienceAgent` importable. | A specialist agent demonstrating cross-domain synthesis; applied, not core ML. |
+| **Bioelectric (Levin)** | `physics/bioelectric_model.py` — gap-junction percolation + cognitive light cone on the manifold. | ✅ `bioelectric`: `BioelectricNetwork` percolation runs, coherence ≈ 0.92. | Developmental-bio-inspired collective dynamics; research-exploratory. |
 
 I flag these as **research range**, not as "this is production LLM training." For a *Research*
 Engineer role that prizes taste and the ability to build novel environments, the signal is: I
