@@ -202,7 +202,7 @@ def check_rl_training_infra() -> CheckResult:
         from cohezion.rl.ppo_trainer import PPOTrainer
 
         trainer = PPOTrainer()
-        action, log_prob, value = trainer.get_action(np.zeros(256, np.float32))
+        action, _log_prob, value = trainer.get_action(np.zeros(256, np.float32))
         action = np.asarray(action)
         present = []
         for mod in ("grpo_trainer", "lora_trainer", "distributed_trainer"):
@@ -614,22 +614,139 @@ def check_toe_observer() -> CheckResult:
 
 
 def check_tek_agent() -> CheckResult:
-    """MEDIUM: the TEK x Unified-Physics ecoresilience specialist imports."""
-    box = "Traditional Ecological Knowledge x Unified Physics agent"
-    try:
-        from cohezion.agents.specialists.ecoresilience_agent import (  # noqa: F401
-            EcoResilienceAgent,
-        )
+    """STRONG: EcoResilienceAgent (TEK x 12D Unified Physics) runs one $0-local cycle.
 
+    Constructs the REAL agent with its real wired collaborators (Gemma4Provider,
+    ManifoldTranslator, SpectralEncoder, FlumeVAEEncoder), drives genuine 12D
+    physics via translator.project() (as execute_cycle does), then makes ONE real
+    $0 LLM generate through the agent's OWN provider against the local lemonade
+    fleet. SKIPs cleanly when the fleet is offline; never raises.
+    """
+    box = "Traditional Ecological Knowledge x Unified Physics agent"
+    # llama3.2-1b-FLM is load-bearing: FLM tolerates the provider's SENSING-regime
+    # options (thinking/prune_cache/prune_threshold); the Gemma GGUF worker rejects
+    # them with HTTP 500. Do NOT swap to a GGUF id or this FAILs spuriously.
+    fleet_url = "http://localhost:13306"
+    model_id = "llama3.2-1b-FLM"
+    try:
+        # --- Liveness gate (the ONE non-generate network call): SKIP if fleet down ---
+        import urllib.request
+
+        try:
+            with urllib.request.urlopen(f"{fleet_url}/api/v1/models", timeout=1.5) as _r:  # noqa: S310 (fixed localhost URL)
+                if _r.status != 200:
+                    return CheckResult(
+                        "tek_agent",
+                        box,
+                        "SKIP",
+                        STRONG,
+                        f"local fleet at {fleet_url} returned HTTP {_r.status}",
+                    )
+        except Exception:
+            return CheckResult(
+                "tek_agent",
+                box,
+                "SKIP",
+                STRONG,
+                f"local fleet at {fleet_url} offline (no $0 inference available)",
+            )
+
+        import asyncio
+
+        import numpy as np
+
+        from cohezion.agents.specialists.ecoresilience_agent import EcoResilienceAgent
+        from cohezion.flume.manifolds.translator import ManifoldTranslator
+        from cohezion.flume.spectral_encoder import SpectralEncoder
+        from cohezion.flume.vae_encoder import FlumeVAEEncoder
+        from cohezion.swarm.providers.gemma4_provider import Gemma4Provider
+
+        async def _run():
+            enc = FlumeVAEEncoder()  # hash-fallback; no checkpoint needed
+            prov = Gemma4Provider({"base_url": fleet_url, "timeout": 60})
+            translator = ManifoldTranslator(encoder=enc)
+            spectral = SpectralEncoder(encoder=enc)
+            # BaseAgent.__init__ does asyncio.create_task -> must build in a loop.
+            agent = EcoResilienceAgent(
+                provider=prov,
+                translator=translator,
+                spectral_encoder=spectral,
+                model_name=model_id,
+            )
+            # Genuine 12D Unified Physics through the agent's wired collaborators
+            # (mirrors execute_cycle lines 140, 149-152).
+            latent = agent.translator.encoder.encode(
+                "ecological interconnectedness and systemic balance"
+            )
+            proj = agent.translator.project(latent)
+            agent.state.manifold_coords = proj.coordinates
+            agent.state.stability_score = proj.coherence
+            agent.state.is_stable = proj.stability
+            status = agent.get_current_status()
+            # ONE real $0 LLM generate through the agent's OWN provider (SENSING).
+            res = await agent.provider.generate(
+                model=model_id,
+                prompt="Reply with exactly one word: OK",
+                regime="SENSING",
+                max_tokens=8,
+            )
+            try:
+                if hasattr(agent.provider, "close"):
+                    await agent.provider.close()
+            except Exception:
+                pass
+            return status, res
+
+        status, res = asyncio.run(_run())
+
+        coords = np.asarray(status.get("coords"))
+        coherence = float(status.get("stability"))
+        hw = (res.metadata or {}).get("hardware_target", "")
+        is_local = ("localhost" in hw) or ("127.0.0.1" in hw)
+        resp_ok = bool(res.response and res.response.strip())
+
+        # Substantiate "12D": coords shape AND coherence range; plus a $0-local token.
+        ok = coords.shape == (12,) and 0.0 <= coherence <= 1.0 and is_local and resp_ok
+        if not ok:
+            return CheckResult(
+                "tek_agent",
+                box,
+                "FAIL",
+                STRONG,
+                f"assertion failed: coords={coords.shape}, coherence={coherence}, "
+                f"hw={hw!r}, resp_ok={resp_ok}",
+            )
         return CheckResult(
             "tek_agent",
             box,
             "PASS",
-            MEDIUM,
-            "EcoResilienceAgent importable (synthesizes TEK with 12D Unified Physics)",
+            STRONG,
+            f"EcoResilienceAgent ran $0-local: 12D projection coords={coords.shape} "
+            f"coherence={coherence:.3f}, +1 SENSING LLM token via agent.provider "
+            f"(hw_target={hw}, resp={res.response.strip()[:24]!r}). Full 4-regime "
+            f"execute_cycle not run (CALCULATION is cloud-named; SYNTHESIS gpu-pinned).",
         )
     except Exception as exc:
-        return CheckResult("tek_agent", box, "FAIL", MEDIUM, "import failed", repr(exc))
+        msg = repr(exc)
+        # Connection signatures => fleet/backend down => SKIP, not FAIL.
+        if any(
+            s in msg
+            for s in (
+                "Could not connect",
+                "Cannot connect",
+                "Connection refused",
+                "Server returned nothing",
+            )
+        ):
+            return CheckResult(
+                "tek_agent",
+                box,
+                "SKIP",
+                STRONG,
+                "local fleet backend unreachable for $0 inference",
+                msg,
+            )
+        return CheckResult("tek_agent", box, "FAIL", STRONG, "raised", msg)
 
 
 def check_bioelectric() -> CheckResult:
@@ -684,27 +801,76 @@ def check_mass_sim() -> CheckResult:
 
 
 def check_self_improvement() -> CheckResult:
-    """MEDIUM: self-referential improvement loop — ouroboros + mycelium + evolution import."""
+    """STRONG: a real self-improvement step runs end-to-end $0 on the local fleet.
+
+    Drives the evolution ReflectionOptimizer's genuine propose->assess->commit loop
+    (the actual self-improvement primitive) against a served local model. STRONG only
+    when a trainable skill Variable's value is actually rewritten by the LLM and the
+    update is recorded in its history -- not merely that the modules import. SKIP when
+    the local fleet is offline (no /api/tags endpoint), so the check never lies.
+    """
     box = "Self-improving infrastructure (ouroboros/mycelium/evolution)"
-    present = []
-    for mod in (
-        "cohezion.ouroboros.healer",
-        "cohezion.mycelium.loop",
-        "cohezion.evolution.skill_optimizer",
-    ):
-        try:
-            __import__(mod)
-            present.append(mod.split(".")[1])
-        except Exception:
-            pass
-    ok = len(present) >= 3
-    return CheckResult(
-        "self_improvement",
-        box,
-        "PASS" if ok else "FAIL",
-        WEAK,
-        f"importable: {', '.join(present) or 'none'} (self-heal + skill synthesis + evolutionary opt)",
-    )
+    try:
+        from cohezion.evolution.reflection_optimizer import ReflectionOptimizer
+        from cohezion.evolution.variable import from_prime_section
+
+        # llama3.2-1b-FLM (NPU) is a served local model that completes both the
+        # propose and assess calls well within _call_llm's hardcoded 30s timeout;
+        # heavier reasoning models (DeepSeek) blow the timeout under num_predict=1024.
+        opt = ReflectionOptimizer(model="llama3.2-1b-FLM", max_steps=1)
+        if opt._get_client_url() is None:
+            return CheckResult(
+                "self_improvement",
+                box,
+                "SKIP",
+                STRONG,
+                "local fleet offline (no Lemonade/Ollama /api/tags endpoint) -- "
+                "cannot run a real self-improvement step",
+            )
+
+        original = "Route all prompts to the NPU tier."
+        var = from_prime_section("Instructions", original)
+        # optimize() skips variables with no gradient text, so feedback must be passed.
+        results = opt.optimize(
+            variables=[var],
+            task="Improve the routing instruction so code prompts escalate to iGPU.",
+            feedback=["Does not mention that code prompts should escalate to iGPU."],
+        )
+
+        ran = len(results) >= 1
+        changed = bool(results) and results[0].new_value != results[0].old_value
+        recorded = len(var.history) >= 1 and var.value != original
+        ok = ran and changed and recorded
+
+        if not ok:
+            return CheckResult(
+                "self_improvement",
+                box,
+                "FAIL",
+                STRONG,
+                f"ReflectionOptimizer produced no committed change "
+                f"(results={len(results)}, value_changed={var.value != original})",
+            )
+
+        preview = results[0].new_value.strip().replace("\n", " ")[:80]
+        return CheckResult(
+            "self_improvement",
+            box,
+            "PASS",
+            STRONG,
+            f"ReflectionOptimizer ran 1 propose->assess->commit step on local fleet "
+            f"($0, llama3.2-1b-FLM): trainable skill Variable rewritten by the LLM and "
+            f"recorded in history. new='{preview}'",
+        )
+    except Exception as exc:  # pragma: no cover - reported as FAIL, never raises
+        return CheckResult(
+            "self_improvement",
+            box,
+            "FAIL",
+            STRONG,
+            "self-improvement step raised",
+            repr(exc),
+        )
 
 
 def check_training_result() -> CheckResult:
@@ -811,23 +977,57 @@ def check_smart_delegation() -> CheckResult:
 
 
 def check_coordination_channel() -> CheckResult:
-    """MEDIUM: cross-session coordination channel present (Telegram notify API + redaction)."""
+    """MEDIUM: the broadcast-remote core runs end-to-end offline, but the SEND is unproven.
+
+    Exercises src/cohezion/compound/session_broadcast.build_broadcast: it redacts a
+    leaked credential from a directive, classifies the smart-delegation tier, and
+    formats the broadcast message -- all $0, no network. This is genuinely more than
+    an import (the offline core is computed end-to-end), but it is NOT STRONG: the
+    box is "cross-session coordination CHANNEL", and the defining capability -- the
+    outbound send to all sessions -- is the one step this check never exercises (it
+    deliberately never calls notify(), so it cannot fire a real message even with a
+    token in the env). Honest grade: MEDIUM until a live send is verified. The send
+    requires the user's bot token AND is an outward-facing action that must be
+    user-gated, so it is intentionally left un-run here.
+    """
     box = "Cross-session coordination channel (Telegram)"
     try:
-        from cohezion.compound.telegram_notify import (  # noqa: F401
-            notify_task_complete,
-            notify_tier_escalation,
-        )
+        from cohezion.compound import telegram_notify as tn
+        from cohezion.compound.session_broadcast import BroadcastPlan, build_broadcast
 
+        # Informational only: report whether creds are wired. We do NOT branch on
+        # this and we never call notify() -- the broadcast core is proven offline.
+        creds_present = tn._creds() is not None
+
+        # 1. Redaction + categorical delegation. Directive carries a leaked sk- key.
+        p1 = build_broadcast("Reply with one word only. My key is sk-ABCDEFGHIJ1234567890XYZ")
+        # 2. Code directive escalates to the iGPU tier.
+        p2 = build_broadcast("Write a python function to merge two sorted lists")
+
+        redacted = "[REDACTED]" in p1.directive
+        no_leak = "sk-ABCDEF" not in p1.message and "sk-ABCDEF" not in p1.directive
+        npu_ok = p1.tier == "npu" and p1.port == 13306
+        igpu_ok = p2.tier == "igpu" and p2.port == 13307
+        formatted = "Broadcast" in p2.message and "tier=" in p2.message
+        typed = isinstance(p1, BroadcastPlan) and p1.port in (13306, 13307, 13309)
+
+        ok = redacted and no_leak and npu_ok and igpu_ok and formatted and typed
         return CheckResult(
             "coordination_channel",
             box,
-            "PASS",
+            "PASS" if ok else "FAIL",
             MEDIUM,
-            "telegram_notify present (notify_task_complete/tier_escalation, fire-and-forget, redacted) -- outbound channel",
+            (
+                f"build_broadcast offline core ($0, no send): redacted={redacted} "
+                f"no_leak={no_leak} p1={p1.tier}/{p1.port}({p1.output_type}) "
+                f"p2={p2.tier}/{p2.port}({p2.output_type}) creds_wired={creds_present} "
+                f"-- SEND not exercised (MEDIUM: the defining channel capability is unproven)"
+            ),
         )
     except Exception as exc:
-        return CheckResult("coordination_channel", box, "FAIL", MEDIUM, "import failed", repr(exc))
+        return CheckResult(
+            "coordination_channel", box, "FAIL", MEDIUM, "broadcast core raised", repr(exc)
+        )
 
 
 def check_test_collection() -> CheckResult:
