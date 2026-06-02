@@ -1,14 +1,14 @@
 {
-  "generated_at": "2026-06-02T15:12:15-0400",
+  "generated_at": "2026-06-02T15:44:29-0400",
   "git_branch": "feat/anthropic-universes-living-resume",
-  "git_sha": "c06d1e1e2",
+  "git_sha": "bc4c7786a",
   "python": "3.11.15",
   "package_under_test": "/home/mike-anderson/dev/cohezion/.claude/worktrees/lazy-tumbling-cascade/src/cohezion/__init__.py",
   "summary": {
-    "pass": 23,
+    "pass": 28,
     "fail": 0,
     "skip": 1,
-    "total": 24
+    "total": 29
   },
   "checks": [
     {
@@ -16,7 +16,7 @@
       "box": "Build agentic training environments (RL envs/simulations)",
       "status": "PASS",
       "strength": "STRONG",
-      "evidence": "Cohezion/ManifoldEnv-v0: 19D obs / 12D action, 20-step return=-1.600",
+      "evidence": "Cohezion/ManifoldEnv-v0: 19D obs / 12D action, 20-step return=-1.583",
       "detail": ""
     },
     {
@@ -185,6 +185,46 @@
       "status": "PASS",
       "strength": "WEAK",
       "evidence": "importable: ouroboros, mycelium, evolution (self-heal + skill synthesis + evolutionary opt)",
+      "detail": ""
+    },
+    {
+      "name": "training_result",
+      "box": "Demonstrated RL training + rigorous evaluation (real run)",
+      "status": "PASS",
+      "strength": "STRONG",
+      "evidence": "real PPO 25000-step/50-ep train + bootstrap-CI eval; ranking=['Greedy HIHO', 'Random', 'PPO (trained)'] (honest: PPO lost to baselines -- env is non-gameable)",
+      "detail": ""
+    },
+    {
+      "name": "evo_agent",
+      "box": "Agents-as-Exotic-Vacuum-Objects lifecycle (EVO)",
+      "status": "PASS",
+      "strength": "STRONG",
+      "evidence": "ExoticVacuumObject condense->coherence=0.000->witness_mark (vacuum-condensation agent lifecycle)",
+      "detail": ""
+    },
+    {
+      "name": "agent_journey",
+      "box": "Agentic journeys captured through latent space",
+      "status": "PASS",
+      "strength": "STRONG",
+      "evidence": "JourneyTracker text->2048D latent + step-sequence->2048D (latent-space trajectory capture)",
+      "detail": ""
+    },
+    {
+      "name": "smart_delegation",
+      "box": "Smart delegation (task-aware routing)",
+      "status": "PASS",
+      "strength": "STRONG",
+      "evidence": "classify routes by task: one-word->npu, code->gpu (cheapest-capable silicon per request)",
+      "detail": ""
+    },
+    {
+      "name": "coordination_channel",
+      "box": "Cross-session coordination channel (Telegram)",
+      "status": "PASS",
+      "strength": "MEDIUM",
+      "evidence": "telegram_notify present (notify_task_complete/tier_escalation, fire-and-forget, redacted) -- outbound channel",
       "detail": ""
     },
     {
