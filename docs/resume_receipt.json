@@ -1,7 +1,7 @@
 {
-  "generated_at": "2026-06-02T16:20:24-0400",
+  "generated_at": "2026-06-02T16:24:05-0400",
   "git_branch": "feat/anthropic-universes-living-resume",
-  "git_sha": "b3c5f7e57",
+  "git_sha": "4ba203d42",
   "python": "3.11.15",
   "package_under_test": "/home/mike-anderson/dev/cohezion/.claude/worktrees/lazy-tumbling-cascade/src/cohezion/__init__.py",
   "summary": {
@@ -16,7 +16,7 @@
       "box": "Build agentic training environments (RL envs/simulations)",
       "status": "PASS",
       "strength": "STRONG",
-      "evidence": "Cohezion/ManifoldEnv-v0: 19D obs / 12D action, 20-step return=-1.599",
+      "evidence": "Cohezion/ManifoldEnv-v0: 19D obs / 12D action, 20-step return=-1.589",
       "detail": ""
     },
     {
@@ -47,8 +47,8 @@
       "name": "eval_benchmarks",
       "box": "Rigorous evaluations \u2014 benchmark suites",
       "status": "PASS",
-      "strength": "WEAK",
-      "evidence": "importable: agentic_benchmark, benchmark_suite, coding_benchmark (agentic + coding benchmark suites)",
+      "strength": "STRONG",
+      "evidence": "CohezionBenchmark.compute_intrinsic_metrics ran -> IntrinsicResults (hiho_stability=0.0)",
       "detail": ""
     },
     {
@@ -56,7 +56,7 @@
       "box": "RL/LLM training stack (own TRIUNE PPO)",
       "status": "PASS",
       "strength": "STRONG",
-      "evidence": "PPOTrainer.get_action -> (256,) action (value=0.065); +grpo_trainer,distributed_trainer importable",
+      "evidence": "PPOTrainer.get_action -> (256,) action (value=0.043); +grpo_trainer,distributed_trainer importable",
       "detail": ""
     },
     {
@@ -173,10 +173,10 @@
     },
     {
       "name": "mass_sim",
-      "box": "Large-scale simulation (mass-sim scale tiers)",
+      "box": "Large-scale simulation (mass-sim orchestrator)",
       "status": "PASS",
-      "strength": "MEDIUM",
-      "evidence": "4 scale tiers DECLARED in config; aspirational = 25,000,000 agents (not run here)",
+      "strength": "STRONG",
+      "evidence": "orchestrator ran -> SimulationReport (n_universes=0; OOM guard active under memory pressure); aspirational tier declares 25,000,000 agents",
       "detail": ""
     },
     {
