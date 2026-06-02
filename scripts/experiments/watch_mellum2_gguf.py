@@ -19,16 +19,21 @@ Read-only: queries HF, optionally logs to the bus. Exit 0 always (cron-safe).
 
 from __future__ import annotations
 
+import base64
 import json
 import sys
 import urllib.request
 
 
 BUS = "http://localhost:8001/sql"
+# SurrealDB HTTP /sql requires Basic auth (root:root dev creds) + ns/db headers + a JSON Accept.
+# Without Authorization the server returns HTTP 403 Forbidden (the prior silent bus-log failure).
 BUS_HEADERS = {
     "surreal-ns": "cohezion",
     "surreal-db": "main",
     "Content-Type": "text/plain",
+    "Accept": "application/json",
+    "Authorization": "Basic " + base64.b64encode(b"root:root").decode("ascii"),
 }
 
 
