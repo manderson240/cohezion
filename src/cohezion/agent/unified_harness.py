@@ -16,7 +16,7 @@ from __future__ import annotations
 import asyncio
 import json
 import logging
-from collections.abc import Callable
+from collections.abc import Callable, Iterator
 from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Any
@@ -42,7 +42,14 @@ class ToolCall:
 
 @dataclass
 class ExecutionTrace:
-    """Full execution record for a task."""
+    """Full execution record for a task.
+
+    Recursive: when an agent delegates a subtask to a nested agent run, the child's
+    ExecutionTrace is attached via :meth:`add_child`, forming a tree. This lets
+    retrospection (the A-Evolve "Diagnose" step) reason over the whole recursive call
+    tree rather than a flat list — e.g. roll up tool calls / recoveries per subtree
+    (see :meth:`aggregate`), or locate which subtree failed.
+    """
 
     task_id: str
     start_time: str
@@ -52,6 +59,36 @@ class ExecutionTrace:
     completed: bool = field(default=False)
     error: str | None = field(default=None)
     recoveries: int = field(default=0)
+    # --- recursive structure ---
+    parent_task_id: str | None = field(default=None)
+    depth: int = field(default=0)
+    children: list[ExecutionTrace] = field(default_factory=list)
+
+    def add_child(self, child: ExecutionTrace) -> ExecutionTrace:
+        """Attach a sub-task trace, stamping its parent link and depth."""
+        child.parent_task_id = self.task_id
+        child.depth = self.depth + 1
+        self.children.append(child)
+        return child
+
+    def walk(self) -> Iterator[ExecutionTrace]:
+        """Pre-order traversal: yield this trace, then each descendant."""
+        yield self
+        for c in self.children:
+            yield from c.walk()
+
+    def aggregate(self) -> dict[str, Any]:
+        """Recursively roll up metrics across the whole subtree (retrospection primitive)."""
+        nodes = list(self.walk())
+        return {
+            "node_count": len(nodes),
+            "max_depth": max(n.depth for n in nodes),
+            "total_steps": sum(len(n.steps) for n in nodes),
+            "total_tool_calls": sum(len(n.tool_calls) for n in nodes),
+            "total_recoveries": sum(n.recoveries for n in nodes),
+            "completed_subtree": all(n.completed for n in nodes),
+            "failed_task_ids": [n.task_id for n in nodes if n.error],
+        }
 
 
 class ToolRegistry:
@@ -188,8 +225,15 @@ class UnifiedAgent:
         self.max_steps = 50
         self.recovery_attempts = 3
 
+    # Cap recursive delegation so a planner that keeps delegating cannot loop forever.
+    max_delegation_depth: int = 3
+
     async def run_task(
-        self, task: str | Any, env: dict[str, Any] | None = None, timeout: int = 1800
+        self,
+        task: str | Any,
+        env: dict[str, Any] | None = None,
+        timeout: int = 1800,
+        _depth: int = 0,
     ) -> ExecutionTrace:
         """Execute long-horizon task.
 
@@ -197,15 +241,17 @@ class UnifiedAgent:
             task: Task description or AgenticTask object
             env: Environment context with workdir, tools, etc.
             timeout: Maximum execution time in seconds
+            _depth: recursion depth (set internally when a parent delegates a subtask).
 
         Returns:
-            ExecutionTrace with full execution record
+            ExecutionTrace with full execution record. If the agent delegates subtasks,
+            child traces are nested under this one (see ExecutionTrace.add_child / walk).
         """
         import time
         from datetime import datetime
 
         task_id = str(uuid4())[:8]
-        trace = ExecutionTrace(task_id=task_id, start_time=datetime.now().isoformat())
+        trace = ExecutionTrace(task_id=task_id, start_time=datetime.now().isoformat(), depth=_depth)
 
         # Setup environment
         workdir = env.get("workdir", f"/tmp/agent_{task_id}") if env else f"/tmp/agent_{task_id}"
@@ -249,6 +295,29 @@ class UnifiedAgent:
                             if trace.recoveries >= self.recovery_attempts:
                                 trace.error = f"Max recoveries exceeded at step {step}"
                                 break
+
+                    elif action.get("delegate") and _depth < self.max_delegation_depth:
+                        # Recursive delegation: run a subtask in a nested agent and
+                        # nest its trace under this one (depth-guarded).
+                        subtask = action.get("subtask") or action.get("args", {}).get("subtask", "")
+                        child = await self.run_task(
+                            subtask, env=env, timeout=timeout, _depth=_depth + 1
+                        )
+                        trace.add_child(child)
+                        trace.tool_calls.append(
+                            ToolCall(
+                                tool_name="delegate",
+                                arguments={"subtask": subtask},
+                                result={
+                                    "child_task_id": child.task_id,
+                                    "completed": child.completed,
+                                },
+                                error=child.error,
+                                duration_ms=(time.monotonic() - step_start) * 1000,
+                            )
+                        )
+                        if child.error:
+                            trace.recoveries += 1
 
                     elif action.get("complete"):
                         trace.completed = True

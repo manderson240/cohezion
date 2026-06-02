@@ -397,6 +397,68 @@ class RetrospectionEngine:
 
         return insights
 
+    def analyze_recursive_trace(self, trace: object, skill_name: str = "") -> dict:
+        """Retrospect over a RECURSIVE execution trace tree (A-Evolve Diagnose substrate).
+
+        Duck-typed: ``trace`` need only provide ``aggregate() -> dict`` (the recursive-trace
+        protocol from ``agent.unified_harness.ExecutionTrace``) — no agent import, no coupling.
+
+        Unlike the flat :meth:`analyze_execution_result`, this consults the WHOLE delegation
+        tree: a top-level "success" whose *delegated subtask* FAILED does NOT pass the refine
+        gate. This prevents the compound loop from learning a lesson out of a partially-broken
+        recursive run — the kind of mistake a flat trace can't catch.
+
+        Returns the same contract as ``analyze_execution_result``: ``should_refine``,
+        ``insights``, ``compound_score``, ``recommendation``.
+        """
+        agg = trace.aggregate()
+        node_count = agg.get("node_count", 1)
+        failed = agg.get("failed_task_ids", [])
+        completed_subtree = agg.get("completed_subtree", False)
+        recoveries = agg.get("total_recoveries", 0)
+        max_depth = agg.get("max_depth", 0)
+
+        insights: list[str] = [
+            f"Recursive trace: {node_count} node(s), depth {max_depth}, "
+            f"{agg.get('total_tool_calls', 0)} tool call(s), {recoveries} recovery(ies)"
+        ]
+        if failed:
+            insights.append(f"FAILED subtask(s): {', '.join(failed)} — recursive failure")
+        elif completed_subtree:
+            insights.append("Whole delegation subtree completed")
+
+        # Recovery rate across the tree dampens the quality signal.
+        recovery_penalty = min(recoveries / max(node_count, 1), 1.0)
+        compound_score = round((1.0 - recovery_penalty) if completed_subtree else 0.0, 4)
+
+        # Recursive-aware gate: refine ONLY when the ENTIRE subtree succeeded.
+        should_refine = bool(completed_subtree and not failed)
+
+        if failed:
+            recommendation = f"Fix delegated failure(s) {failed} before refining {skill_name}"
+        elif should_refine:
+            recommendation = f"Refine {skill_name} (recursive subtree clean, depth {max_depth})"
+        else:
+            recommendation = f"Subtree incomplete — do not refine {skill_name}"
+
+        logger.info(
+            "Recursive retrospection for %s: nodes=%d depth=%d should_refine=%s failed=%d",
+            skill_name,
+            node_count,
+            max_depth,
+            should_refine,
+            len(failed),
+        )
+        return {
+            "should_refine": should_refine,
+            "insights": insights,
+            "compound_score": compound_score,
+            "recommendation": recommendation,
+            "node_count": node_count,
+            "max_depth": max_depth,
+            "failed_task_ids": failed,
+        }
+
     def analyze_execution_result(self, result: object, skill_name: str = "") -> dict:
         """Analyze a live ExecutionResult and extract compound insights.
 

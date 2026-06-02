@@ -158,9 +158,15 @@ def build_gaia_native_tier(
     silent: bool = True,
     base_url: str | None = "http://localhost:13306/v1",
 ) -> GaiaAgentTier:
-    """Instantiate a GAIA Agent bound to a specific lane, wrap as a tier.
+    """Instantiate a GAIA ChatAgent bound to a specific lane, wrap as a tier.
 
     Uses ``skip_lemonade=True`` so we can pin the dispatch to the specific port.
+
+    .. deprecated:: amd-gaia 0.19.0
+        ChatAgent now hard-requires RAG deps (pypdf/sentence-transformers/faiss-cpu)
+        at init; sentence-transformers segfaults on XDNA2 (harness CA1). This path
+        fails init -> silent empty result. **Use :func:`build_gaia_llm_tier` instead**
+        (GAIA's LemonadeClient, zero RAG deps, talks to the same fleet).
     """
     try:
         from gaia.agents.chat.agent import ChatAgent, ChatAgentConfig
@@ -180,3 +186,56 @@ def build_gaia_native_tier(
     )
     agent = FixedChatAgent(config=config)
     return GaiaAgentTier(agent=agent, label=f"gaia:{model_id}")
+
+
+class _GaiaLLMClientShim:
+    """Adapt GAIA's ``LemonadeClient`` to the ``.prompt(text) -> str`` surface that
+    :class:`GaiaAgentTier` probes for.
+
+    This is the WORKING GAIA path under amd-gaia 0.19.0: ``LemonadeClient`` is what the
+    ``gaia llm`` CLI uses, has zero RAG dependencies, and talks to our already-running
+    lemonade fleet (default router :13305). Unlike ``ChatAgent`` it does not pull in
+    pypdf/sentence-transformers/faiss-cpu at init.
+    """
+
+    def __init__(self, client: object, model_id: str, *, max_tokens: int, temperature: float):
+        self._client = client
+        self._model = model_id
+        self._max_tokens = max_tokens
+        self._temperature = temperature
+
+    def prompt(self, text: str) -> str:
+        resp = self._client.chat_completions(  # type: ignore[attr-defined]
+            model=self._model,
+            messages=[{"role": "user", "content": text}],
+            max_tokens=self._max_tokens,
+            temperature=self._temperature,
+        )
+        # OpenAI-compatible shape; raise (don't silently return '') on an unexpected body
+        return resp["choices"][0]["message"].get("content", "") or ""
+
+
+def build_gaia_llm_tier(
+    model_id: str = "Granite-4.1-8B-GGUF",
+    *,
+    base_url: str = "http://localhost:13305/api/v1",
+    max_tokens: int = 512,
+    temperature: float = 0.0,
+    silent: bool = True,
+) -> GaiaAgentTier:
+    """Wrap GAIA's ``LemonadeClient`` as a tier — the supported GAIA path (0.19.0+).
+
+    Prefer this over :func:`build_gaia_native_tier`. Points at the existing fleet
+    (router :13305) so GAIA does NOT spawn a second lemonade (OOM-safe on the shared box).
+    Note: GAIA may reload the target model to its expected ctx (32768) on first call,
+    which mutates shared fleet state — pin a model the fleet already serves at that ctx,
+    or accept the one-time reload.
+    """
+    try:
+        from gaia.llm.lemonade_client import LemonadeClient
+    except ImportError as exc:
+        raise RuntimeError("amd-gaia not installed — `uv pip install amd-gaia`") from exc
+
+    client = LemonadeClient(base_url=base_url, model=model_id, verbose=not silent)
+    shim = _GaiaLLMClientShim(client, model_id, max_tokens=max_tokens, temperature=temperature)
+    return GaiaAgentTier(agent=shim, label=f"gaia-llm:{model_id}")

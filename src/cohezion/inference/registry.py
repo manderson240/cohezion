@@ -288,6 +288,29 @@ def _build_default_registry() -> dict[str, ModelEntry]:
                 "YARN extension to 1M. Reduce to ctx=32768 if OOM per model card guidance."
             ),
         ),
+        # --- Fast FIM code-completion specialist (JetBrains Mellum) ---
+        ModelEntry(
+            model_id="Mellum-4b-base-gguf-mellum-4b-base.Q8_0.gguf",
+            lane=Lane.IGPU_ROCWMMA,
+            endpoint="http://localhost:13305",  # lemonade router (serves by model name)
+            runtime_backend="llamacpp_hip",
+            task_affinity=frozenset({Task.CODE_GEN}),
+            weight_quant=WeightQuant.INT8,  # GGUF Q8_0
+            context_window=8192,
+            # priority 25: below qwen3-coder:30b (30) so fast FIM completion is preferred
+            # for CODE_GEN, while the heavier qwen coder remains the fallback.
+            priority=25,
+            verified_working=True,  # live FIM smoke 2026-06-01: "return " -> "a + b"
+            last_verified_at=datetime(2026, 6, 1),
+            reasoning_mode=False,  # base FIM model — no thinking tokens, content-clean
+            notes=(
+                "JetBrains Mellum-4b — fast FIM code-completion specialist (Apache-2.0, "
+                "4B dense, 8192 ctx, Q8_0). BASE = fill-in-the-middle completion: prompt with "
+                "<fim_prefix>…<fim_suffix>…<fim_middle>, use /completions (not chat). Natural "
+                "backend for `gaia api` IDE completion. Upgrade target when an official "
+                "Mellum-2 (12B-A2.5B) GGUF lands — see watch_mellum2_gguf.py."
+            ),
+        ),
         ModelEntry(
             model_id="deepseek-r1:70b",
             lane=Lane.CPU,

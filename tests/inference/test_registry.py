@@ -194,3 +194,28 @@ def test_audit_liveness_skips_cloud_and_cli_lanes() -> None:
             f"{item.model_id} got audited with non-local lane {item.lane!r}; "
             "cloud/CLI models should be filtered out."
         )
+
+
+# --- JetBrains Mellum FIM code-completion specialist ---
+
+_MELLUM_ID = "Mellum-4b-base-gguf-mellum-4b-base.Q8_0.gguf"
+
+
+def test_mellum_entry_registered_as_code_completion_specialist() -> None:
+    """Mellum-4b is present, an iGPU CODE_GEN model served by llama.cpp."""
+    registry = FleetRegistry()
+    assert _MELLUM_ID in registry.models, "Mellum-4b must be registered"
+    e = registry.models[_MELLUM_ID]
+    assert e.lane == Lane.IGPU_ROCWMMA
+    assert e.task_affinity == frozenset({Task.CODE_GEN})
+    assert e.runtime_backend == "llamacpp_hip"
+    assert e.endpoint == "http://localhost:13305"
+    assert e.reasoning_mode is False  # base FIM model is content-clean
+
+
+def test_mellum_preferred_over_heavy_coder_for_code_gen() -> None:
+    """Fast FIM completion (Mellum) ranks ahead of the heavy qwen3-coder for CODE_GEN."""
+    registry = FleetRegistry()
+    order = [m.model_id for m in registry.for_task(Task.CODE_GEN)]
+    assert _MELLUM_ID in order
+    assert order.index(_MELLUM_ID) < order.index("qwen3-coder:30b")
