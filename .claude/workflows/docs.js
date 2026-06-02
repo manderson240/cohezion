@@ -13,6 +13,10 @@ export const meta = {
 const SCOPE = (typeof args === 'string' && args.trim()) ? args.trim() : '';
 const MAX_MODULES = 6;
 
+// Forced-schema agents must always emit via StructuredOutput, even when empty — otherwise
+// "nothing found" is answered in prose and the result is silently dropped.
+const STRUCT = '\n\nIMPORTANT: Report your result by calling the StructuredOutput tool exactly once; never answer in prose. If there is nothing to report, still call it with an empty array.';
+
 const AUDIT_SCHEMA = {
   type: 'object',
   required: ['modules'],
@@ -50,7 +54,7 @@ const scopeNote = SCOPE
 const audit = await agent(
   `Audit Python modules under src/cohezion for documentation gaps. ${scopeNote}\n` +
   `A gap is a public module/class/function (no leading underscore) whose docstring is missing or a useless one-liner. ` +
-  `Read the actual files. Return at most ${MAX_MODULES} modules where better docs would most help a newcomer, best first.`,
+  `Read the actual files. Return at most ${MAX_MODULES} modules where better docs would most help a newcomer, best first.` + STRUCT,
   { label: 'audit-docs', phase: 'Audit', schema: AUDIT_SCHEMA },
 );
 
@@ -66,7 +70,7 @@ const results = await pipeline(
     `Audience: ${t.audience || 'contributor'}.\n` +
     `Rules: edit ONLY docstrings/comments — do NOT change code, signatures, or behavior. ` +
     `Describe args, returns, raises, and any non-obvious invariants (e.g. HIHO coherence semantics). Keep it accurate to the code you read; do not invent behavior. ` +
-    `Use the Edit tool in place, then return a one-paragraph plain-language summary of the module.`,
+    `Use the Edit tool in place, then return a one-paragraph plain-language summary of the module.` + STRUCT,
     { label: `doc:${t.module_path}`, phase: 'Document', schema: DOC_RESULT_SCHEMA, isolation: 'worktree' },
   ),
 );
