@@ -59,13 +59,28 @@ async def evaluate_cache_threshold(samples: list[dict], candidate: dict) -> dict
         response = sample["response"] or "dummy_response"
 
         # 1. Check lookup
-        match = await cache.get(prompt)
+        match = None
+        matched_prompt = None
+        import numpy as np
+
+        if cache._l2_matrix is not None and len(cache._l2_keys) > 0:
+            query_embedding = cache._text_to_embedding(prompt)
+            sims = np.dot(cache._l2_matrix, query_embedding)
+            best_idx = int(np.argmax(sims))
+            best_similarity = float(sims[best_idx])
+            if best_similarity > threshold:
+                best_key = cache._l2_keys[best_idx]
+                entry = cache.l2_cache.get(best_key)
+                if entry:
+                    match = entry.response
+                    matched_prompt = entry.prompt
+
         total_lookups += 1
 
-        if match is not None:
+        if match is not None and matched_prompt is not None:
             hits += 1
             # Check for semantic collision
-            jacc = jaccard_similarity(prompt, match)
+            jacc = jaccard_similarity(prompt, matched_prompt)
             if jacc < 0.25:
                 collisions += 1
             else:
