@@ -14,6 +14,10 @@ const SCOPE = (typeof args === 'string' && args.trim()) ? args.trim() : '';
 // Cap how many modules we tackle per run so the workflow stays bounded.
 const MAX_MODULES = 6;
 
+// Forced-schema agents must always emit via StructuredOutput, even when the result is empty —
+// otherwise "nothing found" is answered in prose and the result is silently dropped.
+const STRUCT = '\n\nIMPORTANT: Report your result by calling the StructuredOutput tool exactly once; never answer in prose. If there is nothing to report, still call it with an empty array.';
+
 const TARGETS_SCHEMA = {
   type: 'object',
   required: ['modules'],
@@ -61,7 +65,7 @@ const discovery = await agent(
   `Find Python modules under src/cohezion that are under-tested. ${scopeNote}\n` +
   `Heuristics: a module is a candidate if there is no matching tests/.../test_<name>.py, or the source has many public functions/classes but a tiny/absent test file. ` +
   `Prefer modules that are testable WITHOUT live services (no network, no SurrealDB, no model inference) — pure functions, dataclasses, validators, math/physics helpers. ` +
-  `Avoid anything requiring Ollama/lemonade or a running API. Return at most ${MAX_MODULES} modules, best first.`,
+  `Avoid anything requiring Ollama/lemonade or a running API. Return at most ${MAX_MODULES} modules, best first.` + STRUCT,
   { label: 'discover-gaps', phase: 'Discover', schema: TARGETS_SCHEMA },
 );
 
@@ -75,7 +79,7 @@ const written = await pipeline(
   (t) => agent(
     `Design a focused pytest plan for \`${t.module_path}\`. Public API of interest: ${(t.public_api || []).join(', ') || '(infer from the source)'}.\n` +
     `Read the actual source first. Cover the happy path plus edge cases (empty/zero/negative/boundary). ` +
-    `Tests must run offline (no network/DB/model). Follow the repo's conventions: pytest, async tests via pytest-asyncio, mock live services at their source (see tests/conftest.py for singleton resets).`,
+    `Tests must run offline (no network/DB/model). Follow the repo's conventions: pytest, async tests via pytest-asyncio, mock live services at their source (see tests/conftest.py for singleton resets).` + STRUCT,
     { label: `plan:${t.module_path}`, phase: 'Plan', schema: PLAN_SCHEMA },
   ),
   (plan, t) => agent(
