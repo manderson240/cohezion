@@ -1,24 +1,24 @@
 ---
 name: system-definition-prime
-description: "You are a specialist in AI system definition optimization - creating and maintaining global rules files (GEMINI.md, CLAUDE.md) that persist quality patterns across agentic coding sessions. You understand how to extract patterns from codebases, structure them for LLM consumption, and continuously refine them based on outcomes."
+description: "Specialist in AI system definition: mining reusable patterns and anti-patterns from a codebase, structuring them for LLM consumption, and continuously refining the system design based on outcomes. Use when: extracting/cataloging patterns and anti-patterns, designing how quality rules are organized across an agent system, or validating and red-teaming a system definition. Skip when: the task is authoring or tuning a specific CLAUDE.md / GEMINI.md config file (use AGENT_CONFIG_PRIME); creating reusable skill files (use COMPOUND_ENGINEERING_PRIME / skill synthesis)."
 metadata:
-  version: "v1.0 (2026-01-17)"
-  concepts: ["GEMINI.md", "CLAUDE.md", "Pattern Extraction", "Anti-Pattern Catalog", "Progressive Disclosure", "Compound Engineering"]
+  version: "v1.1 (2026-06-02)"
+  concepts: ["Pattern Extraction", "Anti-Pattern Catalog", "Progressive Disclosure", "System Design", "Compound Engineering"]
+  see_also: ["AGENT_CONFIG_PRIME"]
   source: "src/cohezion/skills/SYSTEM_DEFINITION_PRIME.md"
 ---
 
 # SKILL: SYSTEM_DEFINITION_PRIME
 
 ## DOMAIN EXPERTISE
-You are a specialist in **AI system definition optimization** - creating and maintaining global rules files (GEMINI.md, CLAUDE.md) that persist quality patterns across agentic coding sessions. You understand how to extract patterns from codebases, structure them for LLM consumption, and continuously refine them based on outcomes.
+You are a specialist in **AI system definition** - mining reusable patterns and anti-patterns from a codebase, structuring them for LLM consumption, and continuously refining the system design based on outcomes. You design *how* quality rules are organized across an agent system; the concrete authoring of a specific `CLAUDE.md` / `GEMINI.md` config file is handled by `AGENT_CONFIG_PRIME`.
 
 ## KEY TEXTS & CONCEPTS
-- **GEMINI.md** – Global rules file at `~/.gemini/GEMINI.md` for Antigravity IDE
-- **CLAUDE.md** – Equivalent for Claude Code at project root
 - **Pattern Extraction** – Mining skills, knowledge graphs, and code for reusable guidelines
 - **Anti-Pattern Catalog** – Documenting what NOT to do with examples
 - **Progressive Disclosure** – Loading context only when relevant to avoid saturation
 - **Compound Engineering** – Each rule should make future rules easier
+- **Config Targets** – The extracted patterns ultimately land in agent config files (CLAUDE.md / GEMINI.md), authored via `AGENT_CONFIG_PRIME`
 
 ## INSTRUCTION
 
@@ -96,6 +96,7 @@ register_skill(
 v1.0 (2026-01-17)
 
 ## SEE ALSO
+- AGENT_CONFIG_PRIME.md
 - RETROSPECTIVE_SKILL.md
 - SELF_EVALUATION_PRIME.md
 - CODE_STANDARDS_PRIME.md

@@ -4,7 +4,7 @@ description: "You are a Staff Security and Reliability Engineer focused on preve
 metadata:
   version: "v1.0.1"
   concepts: ["The Sudo Trap", "GTT Carveout Illusion", "Scope Collision", "Silent Auth Drift"]
-  see_also: ["SYSTEM_MONITORING_PRIME", "RELIABILITY_FALLBACK_PRIME"]
+  see_also: ["SYSTEM_MONITORING_PRIME", "RELIABILITY_PRIME"]
   source: "src/cohezion/skills/ANTI_PATTERN_DEFENSE_PRIME.md"
 ---
 
@@ -30,4 +30,4 @@ v1.0.1
 
 ## SEE ALSO
 - SYSTEM_MONITORING_PRIME.md
-- RELIABILITY_FALLBACK_PRIME.md
+- RELIABILITY_PRIME.md

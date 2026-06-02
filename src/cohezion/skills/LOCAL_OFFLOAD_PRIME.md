@@ -36,6 +36,23 @@ if self._offload_mgr.is_offloadable(query):
     return result
 ```
 
+## "QUARTER ON A STRING" MENTAL MODEL
+
+A complementary framing for the same offload pattern: use local SLMs as the "hands and
+feet" for routine execution while reserving premium high-reasoning models for the
+"cortex" orchestration.
+
+- **The String**: The context harness and prompt instructions that guide the local model.
+- **The Quarter**: The "expensive" premium inference used to pull the string and initiate the task.
+- **Local Fallback**: Using Ollama (Qwen, DeepSeek, Mistral) for boilerplate, tests, and documentation.
+- **Context Injection**: Providing the local model with the exact files and snippets it needs to succeed.
+
+### Routine-Task Workflow
+1. **Identify routine tasks**: Unit tests, script boilerplate, markdown documentation, or simple refactors.
+2. **Construct the Harness**: Aggregate required file context and a clear, bounded prompt.
+3. **Dispatch to Local**: Use local models (e.g., `uv run python -c "..."` or specialized agents like `LocalReasonerAgent`).
+4. **Resorb & Verify**: The premium ("cortex") model reviews the output for architectural alignment.
+
 ## VERSION
 v1.0
 
@@ -43,3 +60,5 @@ v1.0
 - HALLUCINATION_RESOLVER_PRIME
 - PERSISTENT_QUALITY_PRIME
 - COHEZION_BRIDGE_PRIME
+- MODEL_ROUTING_PRIME
+- COMPOUND_ENGINEERING_PRIME

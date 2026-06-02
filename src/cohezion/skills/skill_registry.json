@@ -10,7 +10,7 @@
     "see_also": [
       "TEMPLATE_DRIVEN_DEVELOPMENT_PRIME",
       "RETROSPECTIVE_SKILL",
-      "SKILL_GENERATOR_PRIME",
+      "skill_generator",
       "COMPOUND_ENGINEERING_PRIME"
     ],
     "source": "src/cohezion/skills/ADAPTIVE_TEMPLATE_PRIME.md"
@@ -62,7 +62,7 @@
       "Pre-filling Claude's Response"
     ],
     "see_also": [
-      "SKILL_GENERATOR_PRIME.md",
+      "skill_generator",
       "RETROSPECTIVE_SKILL.md"
     ],
     "source": "src/cohezion/skills/ANTHROPIC_SKILL_BUILDER_PRIME.md"
@@ -77,7 +77,7 @@
     ],
     "see_also": [
       "SYSTEM_MONITORING_PRIME",
-      "RELIABILITY_FALLBACK_PRIME"
+      "RELIABILITY_PRIME"
     ],
     "source": "src/cohezion/skills/ANTI_PATTERN_DEFENSE_PRIME.md"
   },
@@ -89,10 +89,7 @@
       "Mycelium Reinforcement",
       "High-Fidelity Context"
     ],
-    "see_also": [
-      "REWARD_AND_RATCHET_PRIME",
-      "FLUME_DYNAMICS_PRIME"
-    ],
+    "see_also": [],
     "source": "src/cohezion/skills/ASCENSION_SKILL_PRIME.md"
   },
   "AUTONOMOUS_RESILIENCE_PRIME": {
@@ -159,8 +156,8 @@
       "Automatic Skill Scaffold"
     ],
     "see_also": [
-      "METAPHYSICS_PRIME",
-      "PHYSICS_PRIME",
+      "metaphysics",
+      "physics",
       "RETROSPECTIVE_SKILL"
     ],
     "source": "src/cohezion/skills/compound_engineering.md"
@@ -175,7 +172,7 @@
     ],
     "see_also": [
       "TEMPORAL_PRECISION_PRIME",
-      "PHYSICS_INFORMED_PREDICTION_PRIME"
+      "physics_informed_prediction"
     ],
     "source": "src/cohezion/skills/COMPUTATIONAL_RELATIVITY_PRIME.md"
   },
@@ -195,7 +192,7 @@
     "concepts": [],
     "see_also": [
       "FLUME_METHODOLOGY_PRIME",
-      "PHYSICS_EXPLAINABILITY_PRIME"
+      "physics_explainability"
     ],
     "source": "src/cohezion/skills/CONSTITUTION_PRIME.md"
   },
@@ -296,9 +293,7 @@
       "Adversarial Review"
     ],
     "see_also": [
-      "REPO_HYGIENE_PRIME",
-      "PERSISTENT_QUALITY_PRIME",
-      "COHEZION_BRIDGE_PRIME"
+      "REPO_HYGIENE_PRIME"
     ],
     "source": "src/cohezion/skills/HALLUCINATION_RESOLVER_PRIME.md"
   },
@@ -310,8 +305,7 @@
       "12-Parameter Reality"
     ],
     "see_also": [
-      "SWARM_ORCHESTRATION_PRIME",
-      "FLUME_NAVIGATOR_PRIME"
+      "swarm_orchestration"
     ],
     "source": "src/cohezion/skills/HIHO_STABILITY_PRIME.md"
   },
@@ -324,7 +318,6 @@
       "Persistence Guard"
     ],
     "see_also": [
-      "PERSISTENT_QUALITY_PRIME",
       "SELF_HEALING_PRIME",
       "SURREALDB_MCP_PRIME"
     ],
@@ -340,7 +333,7 @@
     ],
     "see_also": [
       "RECOVERY_PRIME",
-      "SWARM_ORCHESTRATION_PRIME"
+      "swarm_orchestration"
     ],
     "source": "src/cohezion/skills/INTERPRETABILITY_PRIME.md"
   },
@@ -385,9 +378,7 @@
       "Token Efficiency"
     ],
     "see_also": [
-      "HALLUCINATION_RESOLVER_PRIME",
-      "PERSISTENT_QUALITY_PRIME",
-      "COHEZION_BRIDGE_PRIME"
+      "HALLUCINATION_RESOLVER_PRIME"
     ],
     "source": "src/cohezion/skills/LOCAL_OFFLOAD_PRIME.md"
   },
@@ -461,7 +452,7 @@
     "see_also": [
       "COMPOUND_ENGINEERING_PRIME",
       "TEAM_ORCHESTRATION_PRIME",
-      "SWARM_ORCHESTRATION_PRIME"
+      "swarm_orchestration"
     ],
     "source": "src/cohezion/skills/POLYGLOT_DELEGATION_PRIME.md"
   },
@@ -498,22 +489,8 @@
       "Eager Compression",
       "Peaked Signal Sieve"
     ],
-    "see_also": [
-      "PERSISTENT_QUALITY_PRIME",
-      "FLUME_ENCODER_PRIME"
-    ],
-    "source": "src/cohezion/skills/QUANTUM_MPS_ROUTING_PRIME.md"
-  },
-  "QUARTER_ON_A_STRING_PRIME": {
-    "version": "v1.0",
-    "concepts": [
-      "The String",
-      "The Quarter",
-      "Local Fallback",
-      "Context Injection"
-    ],
     "see_also": [],
-    "source": "src/cohezion/skills/QUARTER_ON_A_STRING_PRIME.md"
+    "source": "src/cohezion/skills/QUANTUM_MPS_ROUTING_PRIME.md"
   },
   "RECOVERY_PRIME": {
     "version": "v0.1",
@@ -524,7 +501,7 @@
       "Contextual Decay"
     ],
     "see_also": [
-      "SWARM_ORCHESTRATION_PRIME",
+      "swarm_orchestration",
       "PERSISTENT_UNIVERSE_PRIME"
     ],
     "source": "src/cohezion/skills/RECOVERY_PRIME.md"
@@ -549,17 +526,6 @@
     ],
     "see_also": [],
     "source": "src/cohezion/skills/REDUNDANCY_SUPPRESSION_PRIME.md"
-  },
-  "RELIABILITY_FALLBACK_PRIME": {
-    "version": "v1.0 (Hermetic Persistence Pattern)",
-    "concepts": [
-      "Primary-Buffer Duality",
-      "Circuit Breaking",
-      "Reconciliation Loop",
-      "Checksum Integrity"
-    ],
-    "see_also": [],
-    "source": "src/cohezion/skills/RELIABILITY_FALLBACK_PRIME.md"
   },
   "RELIABILITY_PRIME": {
     "version": "1.0",
@@ -615,8 +581,7 @@
     ],
     "see_also": [
       "ADVERSARIAL_TESTING_PRIME",
-      "SECURITY_GUARDRAILS_PRIME",
-      "SYSTEM_HARDENING_PRIME"
+      "SECURITY_GUARDRAILS_PRIME"
     ],
     "source": "src/cohezion/skills/RIGOROUS_EVALUATION_PRIME.md"
   },
@@ -750,7 +715,9 @@
       "Progressive Disclosure",
       "Compound Engineering"
     ],
-    "see_also": [],
+    "see_also": [
+      "AGENT_CONFIG_PRIME"
+    ],
     "source": "src/cohezion/skills/SYSTEM_DEFINITION_PRIME.md"
   },
   "SYSTEM_GUARDRAILS_PRIME": {
@@ -784,7 +751,7 @@
     ],
     "see_also": [
       "COMPOUND_ENGINEERING_PRIME",
-      "SWARM_ORCHESTRATION_PRIME",
+      "swarm_orchestration",
       "MODEL_ROUTING_PRIME",
       "RETROSPECTIVE_SKILL"
     ],
@@ -810,7 +777,7 @@
       "Inference Latency Budgeting"
     ],
     "see_also": [
-      "RESOURCE_MANAGEMENT_PRIME",
+      "resource_management",
       "INTERPRETABILITY_PRIME"
     ],
     "source": "src/cohezion/skills/TEMPORAL_PRECISION_PRIME.md"
@@ -942,9 +909,82 @@
       "Git atomic commits"
     ],
     "see_also": [
-      "COHEZION_VAULT_WORKFLOW_PRIME",
       "COMPOUND_ENGINEERING_PRIME"
     ],
     "source": "src/cohezion/skills/SURGICAL_COMMIT_UNDER_CHURN_PRIME.md"
+  },
+  "AGENT_CONFIG_PRIME": {
+    "version": "v1.0 (2026-06-02)",
+    "concepts": [
+      "CLAUDE.md",
+      "GEMINI.md",
+      "Global Rules File",
+      "Progressive Disclosure",
+      "Agent Config Authoring"
+    ],
+    "see_also": [
+      "SYSTEM_DEFINITION_PRIME"
+    ],
+    "source": "src/cohezion/skills/AGENT_CONFIG_PRIME.md"
+  },
+  "AUTODQA_PRIME": {
+    "version": "v1.0",
+    "see_also": [],
+    "source": "src/cohezion/skills/AUTODQA_PRIME.md"
+  },
+  "LOCAL_INFERENCE_ROUTING": {
+    "version": "v1.0",
+    "see_also": [],
+    "source": "src/cohezion/skills/LOCAL_INFERENCE_ROUTING.md"
+  },
+  "STEALTHSKATER_CORPUS": {
+    "version": "v1.0",
+    "see_also": [],
+    "source": "src/cohezion/skills/STEALTHSKATER_CORPUS.md"
+  },
+  "TENSOR_METRIC_ENGINEERING_PRIME": {
+    "version": "v1.0",
+    "see_also": [],
+    "source": "src/cohezion/skills/TENSOR_METRIC_ENGINEERING_PRIME.md"
+  },
+  "HIHO_LM_PRIME": {
+    "version": "1.0",
+    "see_also": [],
+    "source": "src/cohezion/skills/HIHO_LM_PRIME.md"
+  },
+  "LANGCHAIN_RAG_TIER_PRIME": {
+    "version": "v1.0",
+    "see_also": [],
+    "source": "src/cohezion/skills/LANGCHAIN_RAG_TIER_PRIME.md"
+  },
+  "GREEK_PARAMETERS_PRIME": {
+    "version": "v1.0",
+    "see_also": [],
+    "source": "src/cohezion/skills/GREEK_PARAMETERS_PRIME.md"
+  },
+  "R0_SIGMA_PRIME": {
+    "version": "v1.0",
+    "see_also": [],
+    "source": "src/cohezion/skills/R0_SIGMA_PRIME.md"
+  },
+  "TRIUNE_SELF_PRIME": {
+    "version": "v1.0",
+    "see_also": [],
+    "source": "src/cohezion/skills/TRIUNE_SELF_PRIME.md"
+  },
+  "COSMIC_FIRE_PROTOCOL_PRIME": {
+    "version": "v1.0",
+    "see_also": [],
+    "source": "src/cohezion/skills/COSMIC_FIRE_PROTOCOL_PRIME.md"
+  },
+  "SURREALDB_MOCK_PERSISTENCE_PRIME": {
+    "version": "v1.0",
+    "see_also": [],
+    "source": "src/cohezion/skills/SURREALDB_MOCK_PERSISTENCE_PRIME.md"
+  },
+  "SYNC_ASYNC_BRIDGE_PRIME": {
+    "version": "v1.0",
+    "see_also": [],
+    "source": "src/cohezion/skills/SYNC_ASYNC_BRIDGE_PRIME.md"
   }
 }

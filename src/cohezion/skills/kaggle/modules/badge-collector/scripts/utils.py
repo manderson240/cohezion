@@ -59,7 +59,7 @@ def run_kaggle_cli(
 ) -> subprocess.CompletedProcess:
     """Run a kaggle CLI command with rate limiting."""
     cli = get_kaggle_cli()
-    cmd = [cli, *args]
+    cmd = [cli] + args
     print(f"  $ {' '.join(cmd)}")
     result = subprocess.run(cmd, capture_output=True, text=True, timeout=timeout)
     if check and result.returncode != 0:
