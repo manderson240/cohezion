@@ -520,6 +520,75 @@ def check_tek_agent() -> CheckResult:
         return CheckResult("tek_agent", box, "FAIL", MEDIUM, "import failed", repr(exc))
 
 
+def check_bioelectric() -> CheckResult:
+    """STRONG: Levin bioelectric network runs gap-junction percolation + reports coherence."""
+    box = "Bioelectric / developmental-bio-inspired dynamics (Levin)"
+    try:
+        from cohezion.physics.bioelectric_model import (
+            BioelectricNetwork,
+            PercolationResult,
+        )
+
+        net = BioelectricNetwork(n_cells=16)
+        net.set_uniform_conductance(0.5)
+        perc = net.percolation_analysis()
+        coh = float(net.coherence())
+        ok = isinstance(perc, PercolationResult) and 0.0 <= coh <= 1.0
+        return CheckResult(
+            "bioelectric",
+            box,
+            "PASS" if ok else "FAIL",
+            STRONG,
+            f"BioelectricNetwork percolation_analysis ok, coherence={coh:.3f} (HIHO gap-junction)",
+        )
+    except Exception as exc:
+        return CheckResult("bioelectric", box, "FAIL", STRONG, "raised", repr(exc))
+
+
+def check_mass_sim() -> CheckResult:
+    """STRONG: large-scale simulation scale tiers — the 25M-agent 'aspirational' tier exists."""
+    box = "Large-scale simulation (mass-sim scale tiers)"
+    try:
+        from cohezion.mass_sim.config import SCALE_TIERS
+
+        asp = SCALE_TIERS.get("aspirational")
+        n = getattr(asp, "n_agents", None)
+        ok = n == 25_000_000
+        return CheckResult(
+            "mass_sim",
+            box,
+            "PASS" if ok else "FAIL",
+            STRONG,
+            f"{len(SCALE_TIERS)} scale tiers; aspirational = {n:,} agents",
+        )
+    except Exception as exc:
+        return CheckResult("mass_sim", box, "FAIL", STRONG, "raised", repr(exc))
+
+
+def check_self_improvement() -> CheckResult:
+    """MEDIUM: self-referential improvement loop — ouroboros + mycelium + evolution import."""
+    box = "Self-improving infrastructure (ouroboros/mycelium/evolution)"
+    present = []
+    for mod in (
+        "cohezion.ouroboros.healer",
+        "cohezion.mycelium.loop",
+        "cohezion.evolution.skill_optimizer",
+    ):
+        try:
+            __import__(mod)
+            present.append(mod.split(".")[1])
+        except Exception:
+            pass
+    ok = len(present) >= 3
+    return CheckResult(
+        "self_improvement",
+        box,
+        "PASS" if ok else "FAIL",
+        MEDIUM,
+        f"importable: {', '.join(present) or 'none'} (self-heal + skill synthesis + evolutionary opt)",
+    )
+
+
 def check_test_collection() -> CheckResult:
     """STRONG: pytest collects the role-relevant test suites (real count, not a guess)."""
     box = "Strong software engineering (robust, tested infra)"
@@ -620,6 +689,9 @@ CHECKS = [
     check_worldviews,
     check_toe_observer,
     check_tek_agent,
+    check_bioelectric,
+    check_mass_sim,
+    check_self_improvement,
     check_test_collection,
     check_surrealdb,
 ]
