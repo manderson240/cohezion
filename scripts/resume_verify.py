@@ -224,17 +224,43 @@ def check_rl_training_infra() -> CheckResult:
 
 
 def check_sandboxing() -> CheckResult:
-    """MEDIUM: sandbox isolation + executor import (the 'sandboxing/VMs' box)."""
+    """STRONG: execute real code in a Docker sandbox (the agentic-env safety substrate).
+
+    Degrades to SKIP when no container runtime is available (the check is honest about
+    env-gating). Two real bugs were fixed to make this work on this host: a hardcoded
+    seccomp profile path that doesn't exist, and 0600/0700 temp perms unreadable under
+    Docker userns-remap.
+    """
     box = "Sandboxing / containerization / isolation"
     try:
-        from cohezion.sandbox import isolation  # noqa: F401
-        from cohezion.sandboxing import executor  # noqa: F401
+        import asyncio
+        import inspect
 
+        from cohezion.sandboxing.executor import SandboxManager
+
+        mgr = SandboxManager(preferred_backend="docker")
+        health = mgr.health_check()
+        if inspect.isawaitable(health):
+            health = asyncio.run(health)
+        if not health.get("docker") and not health.get("firecracker"):
+            return CheckResult(
+                "sandboxing",
+                box,
+                "SKIP",
+                STRONG,
+                f"no container runtime available ({health}); sandbox code path present",
+            )
+        result = asyncio.run(mgr.execute_task("resume-verify", "print(6*7)"))
+        ok = getattr(result, "success", False) and "42" in (getattr(result, "stdout", "") or "")
         return CheckResult(
-            "sandboxing", box, "PASS", MEDIUM, "sandbox.isolation + sandboxing.executor importable"
+            "sandboxing",
+            box,
+            "PASS" if ok else "FAIL",
+            STRONG,
+            f"executed code in Docker sandbox -> success={result.success}, stdout={result.stdout!r} (isolated)",
         )
     except Exception as exc:
-        return CheckResult("sandboxing", box, "FAIL", MEDIUM, "import failed", repr(exc))
+        return CheckResult("sandboxing", box, "FAIL", STRONG, "raised", repr(exc))
 
 
 def check_world_model() -> CheckResult:

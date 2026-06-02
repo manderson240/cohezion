@@ -76,7 +76,13 @@ class DockerSandbox:
         seccomp_profile: Path | None = None,
     ):
         self.image = image
-        self.seccomp = seccomp_profile or Path("/etc/docker/seccomp.json")
+        # Use a custom seccomp profile only if one is explicitly provided AND exists on
+        # disk. Otherwise fall back to Docker's BUILT-IN default seccomp profile (which is
+        # already restrictive, ~44 syscalls blocked) by omitting the flag entirely. The
+        # previous hardcoded "/etc/docker/seccomp.json" does not exist on most hosts, so
+        # `docker run` failed with exit 125 ("opening seccomp profile ... no such file"),
+        # making the sandbox non-functional everywhere.
+        self.seccomp = seccomp_profile
         self._initialized = False
 
     async def _ensure_image(self) -> None:
@@ -107,15 +113,23 @@ class DockerSandbox:
         # Create temporary directory for code and artifacts
         with tempfile.TemporaryDirectory() as tmpdir:
             tmp_path = Path(tmpdir)
+            # TemporaryDirectory is 0700 and write_text files are 0600 -- unreadable by the
+            # container's user when Docker uses userns-remap (container-root maps to a high
+            # host UID). Make the dir traversable and the files world-readable so the mounted
+            # code is readable regardless of UID mapping. (The mount is :ro, so this does not
+            # widen what the container can WRITE.)
+            tmp_path.chmod(0o755)
 
             # Write code to file
             code_hash = hashlib.sha256(code.encode()).hexdigest()[:16]
             code_file = tmp_path / f"agent_task_{code_hash}.py"
             code_file.write_text(code)
+            code_file.chmod(0o644)
 
             # Write context as JSON
             ctx_file = tmp_path / "context.json"
             ctx_file.write_text(json.dumps(context or {}))
+            ctx_file.chmod(0o644)
 
             # Prepare Docker args
             cmd = [
@@ -127,13 +141,16 @@ class DockerSandbox:
                 f"--memory-swap={limits.memory_limit}",
                 f"--cpus={limits.cpu_quota}",
                 f"--pids-limit={limits.pids_limit}",
-                "--security-opt",
-                f"seccomp={self.seccomp}",
                 "--cap-drop",
                 "ALL",  # Drop all capabilities
                 "--cap-add",
                 "SYS_PTRACE",  # Allow debugging
             ]
+
+            # Apply a custom seccomp profile only when one is provided and present on disk;
+            # otherwise rely on Docker's built-in default seccomp profile (omit the flag).
+            if self.seccomp is not None and Path(self.seccomp).exists():
+                cmd.extend(["--security-opt", f"seccomp={self.seccomp}"])
 
             if not limits.network:
                 cmd.extend(["--network", "none"])
