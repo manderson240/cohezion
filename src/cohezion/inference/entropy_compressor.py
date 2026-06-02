@@ -130,3 +130,25 @@ class StepEntropyCompressor:
                 pass
 
         return "\n".join(compressed_lines)
+
+    def compress_prompt(self, prompt: str) -> str:
+        """Find and compress all `<thought>...</thought>` blocks within a prompt.
+
+        Parameters
+        ----------
+        prompt : str
+            The input prompt which may contain one or more `<thought>` sections.
+
+        Returns
+        -------
+        str
+            The prompt with compressed `<thought>` sections.
+        """
+
+        def replace_match(match: re.Match[str]) -> str:
+            inner_text = match.group(1)
+            compressed_inner = self.compress_thought(inner_text)
+            # Ensure proper line formatting
+            return f"<thought>\n{compressed_inner.strip()}\n</thought>"
+
+        return re.sub(r"<thought>(.*?)</thought>", replace_match, prompt, flags=re.DOTALL)

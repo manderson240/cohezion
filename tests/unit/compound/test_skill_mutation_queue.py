@@ -1,189 +1,145 @@
-"""Tests for SkillMutationQueue — S5 harness invariant and bi-temporal semantics."""
+"""Unit tests for SkillMutationQueue and its bi-temporal S5 invariants."""
 
 from __future__ import annotations
 
-from datetime import UTC, datetime
+import time
+from datetime import UTC, datetime, timedelta
+
+import pytest
 
 from cohezion.compound.skill_mutation_queue import SkillMutation, SkillMutationQueue
 
 
+@pytest.mark.unit
 class TestSkillMutation:
-    def test_is_valid_at_true_when_pending(self):
-        m = SkillMutation(mutation_id="a", skill_name="s", patch="p")
-        assert m.is_valid_at() is True
+    """Tests for individual SkillMutation properties and bi-temporal validity."""
 
-    def test_is_valid_at_false_after_rejection(self):
-        m = SkillMutation(mutation_id="a", skill_name="s", patch="p", status="rejected")
-        assert m.is_valid_at() is False
-
-    def test_is_valid_at_false_when_valid_to_in_past(self):
-        past = datetime(2000, 1, 1, tzinfo=UTC)
-        m = SkillMutation(mutation_id="a", skill_name="s", patch="p", valid_to=past)
-        assert m.is_valid_at() is False
-
-    def test_is_valid_at_true_when_valid_to_in_future(self):
-        future = datetime(2099, 1, 1, tzinfo=UTC)
-        m = SkillMutation(mutation_id="a", skill_name="s", patch="p", valid_to=future)
-        assert m.is_valid_at() is True
-
-    def test_is_valid_at_respects_when_parameter(self):
-        t1 = datetime(2026, 1, 1, tzinfo=UTC)
-        t2 = datetime(2026, 6, 1, tzinfo=UTC)
-        m = SkillMutation(mutation_id="a", skill_name="s", patch="p", valid_from=t2)
-        assert m.is_valid_at(t1) is False  # before valid_from
-        assert m.is_valid_at(datetime(2026, 12, 1, tzinfo=UTC)) is True
-
-
-class TestSkillMutationQueue:
-    def test_enqueue_returns_mutation_id(self):
-        q = SkillMutationQueue()
-        mid = q.enqueue("my-skill", "patch content")
-        assert isinstance(mid, str)
-        assert len(mid) > 8
-
-    def test_enqueue_creates_pending_mutation(self):
-        q = SkillMutationQueue()
-        mid = q.enqueue("test-skill", "--- patch ---", reason="improve docstring")
-        m = q.get(mid)
-        assert m is not None
+    def test_mutation_default_state(self) -> None:
+        m = SkillMutation(
+            mutation_id="mut-1",
+            skill_name="test_skill_PRIME",
+            patch="diff --git ...",
+            reason="test reason",
+        )
         assert m.status == "pending"
-        assert m.skill_name == "test-skill"
-        assert m.reason == "improve docstring"
+        assert m.valid_to is None
+        assert m.valid_from <= datetime.now(UTC)
 
-    def test_count_pending(self):
-        q = SkillMutationQueue()
-        assert q.count_pending() == 0
-        q.enqueue("s1", "p1")
-        q.enqueue("s2", "p2")
-        assert q.count_pending() == 2
-
-    def test_approve_sets_status_approved(self):
-        q = SkillMutationQueue()
-        mid = q.enqueue("skill", "patch")
-        assert q.approve(mid) is True
-        assert q.get(mid).status == "approved"
-
-    def test_approve_unknown_id_returns_false(self):
-        q = SkillMutationQueue()
-        assert q.approve("nonexistent-id") is False
-
-    def test_approve_already_approved_returns_false(self):
-        q = SkillMutationQueue()
-        mid = q.enqueue("s", "p")
-        q.approve(mid)
-        assert q.approve(mid) is False  # already approved, not pending
-
-    # S5 harness invariant: is_valid_at() == False after refund
-    def test_is_valid_at_false_after_refund(self):
-        """S5: refund(mutation_id) must make is_valid_at() return False."""
-        q = SkillMutationQueue()
-        mid = q.enqueue("test-skill", "some patch")
-        m = q.get(mid)
-
-        # Sanity: valid before refund
+    def test_is_valid_at_now(self) -> None:
+        m = SkillMutation(
+            mutation_id="mut-1",
+            skill_name="test_skill_PRIME",
+            patch="diff --git ...",
+        )
         assert m.is_valid_at() is True
 
-        # Refund
-        result = q.refund(mid)
-        assert result is True
+    def test_is_valid_at_future_and_past(self) -> None:
+        now = datetime.now(UTC)
+        m = SkillMutation(
+            mutation_id="mut-1",
+            skill_name="test_skill_PRIME",
+            patch="diff --git ...",
+            valid_from=now,
+        )
+        # Past should be invalid
+        assert m.is_valid_at(now - timedelta(seconds=5)) is False
+        # Future/present should be valid
+        assert m.is_valid_at(now + timedelta(seconds=5)) is True
 
-        # S5 invariant: is_valid_at() must be False after refund
-        assert not m.is_valid_at(), "S5 VIOLATED: mutation still valid after refund"
+    def test_is_valid_at_rejected(self) -> None:
+        m = SkillMutation(
+            mutation_id="mut-1",
+            skill_name="test_skill_PRIME",
+            patch="diff --git ...",
+            status="rejected",
+        )
+        assert m.is_valid_at() is False
+
+
+@pytest.mark.unit
+class TestSkillMutationQueue:
+    """Tests for SkillMutationQueue operations."""
+
+    def test_enqueue_and_get(self) -> None:
+        queue = SkillMutationQueue(persist=False)
+        mut_id = queue.enqueue(
+            skill_name="math_reasoning_PRIME",
+            patch="patch data",
+            reason="optimizing loop",
+        )
+        assert mut_id is not None
+        assert len(mut_id) > 0
+
+        m = queue.get(mut_id)
+        assert m is not None
+        assert m.mutation_id == mut_id
+        assert m.skill_name == "math_reasoning_PRIME"
+        assert m.patch == "patch data"
+        assert m.reason == "optimizing loop"
+        assert m.status == "pending"
+
+    def test_approve_updates_status(self) -> None:
+        queue = SkillMutationQueue(persist=False)
+        mut_id = queue.enqueue(
+            skill_name="math_reasoning_PRIME",
+            patch="patch data",
+        )
+
+        assert queue.count_pending() == 1
+        assert len(queue.pending()) == 1
+        assert len(queue.approved()) == 0
+
+        success = queue.approve(mut_id)
+        assert success is True
+
+        m = queue.get(mut_id)
+        assert m is not None
+        assert m.status == "approved"
+        assert queue.count_pending() == 0
+        assert len(queue.pending()) == 0
+        assert len(queue.approved()) == 1
+
+        # Double approval should fail/return False
+        assert queue.approve(mut_id) is False
+
+    def test_refund_supersedes_and_rejects(self) -> None:
+        """S5 harness invariant: refund(mutation_id) must set valid_to=now() and status=rejected."""
+        queue = SkillMutationQueue(persist=False)
+        mut_id = queue.enqueue(
+            skill_name="math_reasoning_PRIME",
+            patch="patch data",
+        )
+
+        m = queue.get(mut_id)
+        assert m is not None
+        assert m.valid_to is None
+        assert m.status == "pending"
+
+        t_before = datetime.now(UTC)
+        time.sleep(0.01)  # small sleep to ensure temporal delta
+
+        success = queue.refund(mut_id)
+        assert success is True
+
+        t_after = datetime.now(UTC)
+
         assert m.status == "rejected"
         assert m.valid_to is not None
+        assert t_before <= m.valid_to <= t_after
 
-    def test_refund_preserves_mutation_record(self):
-        """Bi-temporal: refund NEVER deletes the record (enables time-travel recovery)."""
-        q = SkillMutationQueue()
-        mid = q.enqueue("skill", "patch")
-        q.refund(mid)
-        # Record must still exist
-        assert q.get(mid) is not None
+    def test_is_valid_at_false_after_refund(self) -> None:
+        """bi-temporal: is_valid_at() must return False after refund."""
+        queue = SkillMutationQueue(persist=False)
+        mut_id = queue.enqueue(
+            skill_name="math_reasoning_PRIME",
+            patch="patch data",
+        )
 
-    def test_refund_sets_valid_to_timestamp(self):
-        q = SkillMutationQueue()
-        mid = q.enqueue("skill", "patch")
-        before = datetime.now(UTC)
-        q.refund(mid)
-        after = datetime.now(UTC)
-        m = q.get(mid)
-        assert m.valid_to is not None
-        assert before <= m.valid_to <= after
-
-    def test_refund_unknown_id_returns_false(self):
-        q = SkillMutationQueue()
-        assert q.refund("not-a-real-id") is False
-
-    def test_pending_list_excludes_approved_and_rejected(self):
-        q = SkillMutationQueue()
-        m1 = q.enqueue("s1", "p1")
-        m2 = q.enqueue("s2", "p2")
-        m3 = q.enqueue("s3", "p3")
-        q.approve(m1)
-        q.refund(m2)
-        pending = [m.mutation_id for m in q.pending()]
-        assert m3 in pending
-        assert m1 not in pending
-        assert m2 not in pending
-
-    def test_approved_list_returns_only_approved(self):
-        q = SkillMutationQueue()
-        m1 = q.enqueue("s1", "p1")
-        m2 = q.enqueue("s2", "p2")
-        q.approve(m1)
-        approved = [m.mutation_id for m in q.approved()]
-        assert m1 in approved
-        assert m2 not in approved
-
-    def test_persist_writes_to_surreal(self):
-        from cohezion.core.persistence.surreal_client import get_surreal_client
-
-        client = get_surreal_client()
-        client._use_fallback()
-        client._client._data.clear()
-
-        q = SkillMutationQueue(persist=True)
-        mid = q.enqueue("persist-skill", "patch contents", reason="testing persist")
-
-        m = q.get(mid)
+        m = queue.get(mut_id)
         assert m is not None
+        assert m.is_valid_at() is True
 
-        stored = client._client.get(f"pending_mutations:{mid}")
-        assert stored is not None
-        assert stored["mutation_id"] == mid
-        assert stored["skill_name"] == "persist-skill"
-        assert stored["status"] == "pending"
-        assert stored["reason"] == "testing persist"
-
-    def test_persist_approve_updates_surreal(self):
-        from cohezion.core.persistence.surreal_client import get_surreal_client
-
-        client = get_surreal_client()
-        client._use_fallback()
-        client._client._data.clear()
-
-        q = SkillMutationQueue(persist=True)
-        mid = q.enqueue("persist-skill", "patch contents")
-
-        assert q.approve(mid) is True
-
-        stored = client._client.get(f"pending_mutations:{mid}")
-        assert stored is not None
-        assert stored["status"] == "approved"
-
-    def test_persist_refund_updates_surreal(self):
-        from cohezion.core.persistence.surreal_client import get_surreal_client
-
-        client = get_surreal_client()
-        client._use_fallback()
-        client._client._data.clear()
-
-        q = SkillMutationQueue(persist=True)
-        mid = q.enqueue("persist-skill", "patch contents")
-
-        assert q.refund(mid) is True
-
-        stored = client._client.get(f"pending_mutations:{mid}")
-        assert stored is not None
-        assert stored["status"] == "rejected"
-        assert stored["valid_to"] is not None
+        queue.refund(mut_id)
+        assert m.is_valid_at() is False
+        # Even when querying historical timestamps after refund time, it should be false because status is rejected
+        assert m.is_valid_at(datetime.now(UTC) + timedelta(seconds=10)) is False

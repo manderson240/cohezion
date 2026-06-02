@@ -203,3 +203,48 @@ class TestDualLoopOptimizer:
         assert record.pre_refinement_score == 1.0
         assert record.post_refinement_score == 1.0
         assert record.was_invoked is True
+
+
+from cohezion.inference.orchestrator import QualityGate, TieredOrchestrator
+
+
+@pytest.mark.unit
+class TestOrchestratorStepEntropyCompression:
+    """Verifies that TieredOrchestrator prunes low-entropy thoughts from the prompt before execution."""
+
+    @pytest.mark.asyncio
+    async def test_tiered_orchestrator_compresses_thought_prompt(self, monkeypatch) -> None:
+        received_prompts = []
+
+        async def mock_invoke_tier(target: Any, prompt: str, remaining_budget: float | None) -> Any:
+            received_prompts.append(prompt)
+            from cohezion.inference.fleet import RouteResult
+
+            return (
+                RouteResult(text="response", model="mock", lane="test", latency_ms=10.0),
+                0.0,
+                None,
+            )
+
+        orchestrator = TieredOrchestrator(tiers=[("mock_model", QualityGate(min_chars=1))])
+        monkeypatch.setattr(orchestrator, "_invoke_tier", mock_invoke_tier)
+
+        prompt = (
+            "Here is the context:\n"
+            "<thought>\n"
+            "This is a very high entropy reasoning line describing a bug fix.\n"
+            "Checking step A. Checking step A. Checking step A.\n"
+            "Wait, I found an error in rule formulation.\n"
+            "</thought>\n"
+            "Solve the math task."
+        )
+
+        await orchestrator.run(prompt)
+
+        assert len(received_prompts) == 1
+        compressed_prompt = received_prompts[0]
+
+        assert "Checking step A. Checking step A." not in compressed_prompt
+        assert "This is a very high entropy reasoning line" in compressed_prompt
+        assert "Wait, I found an error in rule formulation." in compressed_prompt
+        assert "Solve the math task." in compressed_prompt
