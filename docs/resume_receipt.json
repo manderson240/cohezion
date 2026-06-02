@@ -1,7 +1,7 @@
 {
-  "generated_at": "2026-06-02T16:17:39-0400",
+  "generated_at": "2026-06-02T16:20:24-0400",
   "git_branch": "feat/anthropic-universes-living-resume",
-  "git_sha": "51605c4fa",
+  "git_sha": "b3c5f7e57",
   "python": "3.11.15",
   "package_under_test": "/home/mike-anderson/dev/cohezion/.claude/worktrees/lazy-tumbling-cascade/src/cohezion/__init__.py",
   "summary": {
@@ -56,7 +56,7 @@
       "box": "RL/LLM training stack (own TRIUNE PPO)",
       "status": "PASS",
       "strength": "STRONG",
-      "evidence": "PPOTrainer.get_action -> (256,) action (value=0.048); +grpo_trainer,distributed_trainer importable",
+      "evidence": "PPOTrainer.get_action -> (256,) action (value=0.065); +grpo_trainer,distributed_trainer importable",
       "detail": ""
     },
     {
@@ -103,8 +103,8 @@
       "name": "distributed_inference",
       "box": "Large-scale / distributed ML infrastructure",
       "status": "PASS",
-      "strength": "MEDIUM",
-      "evidence": "TieredOrchestrator.run_batch(prompts, *, budget_usd) present (NPU/iGPU/CPU routing)",
+      "strength": "STRONG",
+      "evidence": "TieredOrchestrator routed via direct:llama3.2-1b-FLM -> '4' ($0 local)",
       "detail": ""
     },
     {
@@ -127,8 +127,8 @@
       "name": "batching",
       "box": "Batched inference for throughput at scale",
       "status": "PASS",
-      "strength": "MEDIUM",
-      "evidence": "async run_batch(prompts, *, budget_usd) -> asyncio.gather fan-out (async=True)",
+      "strength": "STRONG",
+      "evidence": "run_batch fan-out over 2 prompts -> ['4', '6'] ($0 local, asyncio.gather)",
       "detail": ""
     },
     {
