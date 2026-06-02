@@ -1,3 +1,8 @@
+---
+name: BRANDING_OPS_PRIME
+description: Maintain, evolve, and operationalize the Cohezion "Organic Modularity" brand identity. Bridges hardware heritage (Framework/AMD) with ecological motifs ("Touch Grass") while ensuring legal sovereignty via "Inspired Motifs" (geometric abstraction instead of trademarked logos). Covers brand-as-code access via cohezion.branding, the Quadrature Nexus identity, color tokens (NEXUS_GREEN, MATTE_BLACK, EARTH_BLUE), IP-safety checks, 12D narrative alignment, and SurrealDB identity sync.
+---
+
 # SKILL: BRANDING_OPS_PRIME
 
 ## DOMAIN EXPERTISE

@@ -1,3 +1,8 @@
+---
+name: TENSOR_NETWORK_OPS_PRIME
+description: HPC for quantum simulation and LLM compression using tensor networks, targeting memory-constrained (VRAM/RAM < 80GB) hardware. Covers LLM embedding compression in the TensorGPT style (reshape token vectors into high-order tensors, SVD-factorize into MPS cores at a target bond dimension), Matrix Product States / Tensor-Train decomposition, Saten sparse-augmented networks, and quantum circuit simulation via cotengra/quimb contraction-path optimization with kahypar partitioning and index slicing. Pins numpy 1.26.4 (<2.0 for Numba).
+---
+
 # SKILL: TENSOR_NETWORK_OPS_PRIME
 
 ## DOMAIN EXPERTISE

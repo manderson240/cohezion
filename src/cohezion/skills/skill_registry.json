@@ -986,5 +986,57 @@
     "version": "v1.0",
     "see_also": [],
     "source": "src/cohezion/skills/SYNC_ASYNC_BRIDGE_PRIME.md"
+  },
+  "BRANDING_OPS": {
+    "version": "v1.0",
+    "concepts": [
+      "Organic Modularity",
+      "Inspired Motifs",
+      "Brand as Code",
+      "Quadrature Nexus",
+      "12D Alignment",
+      "color tokens"
+    ],
+    "see_also": [],
+    "source": "src/cohezion/skills/BRANDING_OPS_PRIME/SKILL.md"
+  },
+  "TENSOR_NETWORK_OPS": {
+    "version": "v1.0",
+    "concepts": [
+      "Matrix Product States (MPS)",
+      "TensorGPT",
+      "bond dimension",
+      "Tensor-Train decomposition",
+      "cotengra/quimb",
+      "Saten sparse networks"
+    ],
+    "see_also": [],
+    "source": "src/cohezion/skills/TENSOR_NETWORK_OPS_PRIME/SKILL.md"
+  },
+  "MCP_BUILDER": {
+    "version": "v1.0",
+    "concepts": [
+      "MCP server design",
+      "tool naming and discoverability",
+      "input/output schemas (Zod/Pydantic)",
+      "streamable HTTP vs stdio transport",
+      "evaluation question creation",
+      "actionable error messages"
+    ],
+    "see_also": [],
+    "source": "src/cohezion/skills/mcp-builder/SKILL.md"
+  },
+  "KAGGLE": {
+    "version": "v1.0",
+    "concepts": [
+      "credential setup (KAGGLE_API_TOKEN)",
+      "competition reports",
+      "kagglehub/kaggle-cli/MCP interaction",
+      "badge collector",
+      "notebook execution (KKB)",
+      "competition submission"
+    ],
+    "see_also": [],
+    "source": "src/cohezion/skills/kaggle/SKILL.md"
   }
 }
