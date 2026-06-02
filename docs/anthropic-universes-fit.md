@@ -13,7 +13,7 @@
 > make resume                                 # same, via Make
 > ```
 >
-> **Last receipt:** `23 PASS / 0 FAIL / 1 SKIP` across 24 checks
+> **Last receipt:** `28 PASS / 0 FAIL / 1 SKIP` across 29 checks
 > (`docs/resume_receipt.json`, regenerate to refresh). Each check is graded by
 > **verification strength** — `STRONG` (ran end-to-end), `MEDIUM` (imported + instantiated),
 > `WEAK` (import only) — so no claim outruns its evidence.
@@ -54,7 +54,8 @@ Legend: ✅ verified live by `resume_verify.py` · 📄 evidence in-repo · 🌐
 | **Build *next-generation* training environments** | `environments/auto_generator.py`: `EnvironmentGenerator` + `GeneratedCodeValidator` synthesize + validate new envs from spec | MEDIUM | ✅ `env_generation` |
 | **Rigorous, reproducible evaluations** | Same seed reproduces reward exactly; `eval/universe_evaluator.py` (bootstrap CIs, ≥3 baselines) + `capability_scorecard.py` | STRONG / MEDIUM | ✅ `reward_determinism`, `eval_harness` |
 | **Evaluation breadth (agentic/coding benchmarks)** | `benchmarks/{agentic_benchmark,coding_benchmark,cyber_benchmark,benchmark_suite}.py`; `competition/` (ARC-AGI-3 solver + eval-identity checks) | WEAK *(import only)* | ✅ `eval_benchmarks` |
-| **LLM training / fine-tuning / RL** | `rl/{ppo,grpo,distributed,lora}_trainer.py` import; GRPO + LoRA present | WEAK *(import only — not a training-run claim)* | ✅ `rl_training_infra` |
+| **Demonstrated RL training + rigorous eval** | A **real** PPO run (25K steps, 50 episodes, $0 on CPU) on the harder `ManifoldEnv`, evaluated with **bootstrap CIs** vs Greedy/Random — honest outcome in the section below | STRONG *(real train→eval ran)* | ✅ `training_result` |
+| **RL/LLM training infrastructure** | `rl/{ppo,grpo,distributed,lora}_trainer.py` — own TRIUNE PPO + GRPO + LoRA + distributed | WEAK *(import only)* | ✅ `rl_training_infra` |
 | **Sandboxing / containerization / isolation** | `sandbox/isolation.py`, `sandboxing/executor.py`, `sandbox/shadow_worktree.py`, `Dockerfile`; Kaggle Blackwell handshake (containerized GPU) | MEDIUM | ✅ `sandboxing` |
 | **Heterogeneous-accelerator ML infrastructure** | `inference/orchestrator.py` `TieredOrchestrator` routes across NPU/iGPU/CPU on a *single* Strix Halo box (heterogeneous local fleet — **not** cluster-scale distributed training; honest scoping) | MEDIUM | ✅ `distributed_inference` |
 | **Local-first inference fleet (heterogeneous accel.)** | `inference/triune_orchestrator.py` routes NPU(13306)/iGPU(13307)/CPU(13309) on AMD Strix Halo; `fleet.extend_claude()` escalates to cloud only on a quality-gate miss — a 10k-token loop runs at **$0** | MEDIUM | ✅ `local_inference` |
