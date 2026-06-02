@@ -1,6 +1,16 @@
+> ⚠️ **SUPERSEDED (2026-06-02).** This document predates the self-verifying fit doc and
+> contains figures that are **not reproducible / unverified**: the "FlumeNav-v0 256D" env
+> (the registered env is `Cohezion/ManifoldEnv-v0`, 19D obs / 12D action), "0.991 coherence
+> over 25M cycles" (the 0.991 was a REINFORCE result later flagged as a *too-easy environment*;
+> 25M cycles is a separate HIHO physics-convergence run), and "27.3% cost reduction" (no
+> measurable provenance — appears only as hardcoded UI text). Test counts here (3,300 / 4,426)
+> are stale. **For the canonical, runnable-checked claims see
+> [`anthropic-universes-fit.md`](anthropic-universes-fit.md)** (`make resume` to re-verify).
+> Retained for historical context only; numbers below are unverified.
+
 # The Triune Self Manifest: Hierarchical Compression for Agentic AI
 
-**Mike Anderson** | github.com/manderson240/cohezion | [your-email@domain.com]
+**Mike Anderson** | github.com/manderson240/cohezion | manderson240@gmail.com
 
 ---
 
