@@ -149,18 +149,22 @@
     "source": "src/cohezion/skills/CITATIONS_PRIME.md"
   },
   "COMPOUND_ENGINEERING_PRIME": {
-    "version": "v0.1",
+    "version": "v1.1",
     "concepts": [
-      "Meta‑Pattern Library",
-      "Skill Tokens",
-      "Automatic Skill Scaffold"
+      "Unified Configuration",
+      "MCP Bridge Topology",
+      "Registry-Driven Swarm",
+      "Defensive Grounding",
+      "Offload Parity"
     ],
     "see_also": [
-      "metaphysics",
-      "physics",
+      "SKILL_SYNTHESIS_PRIME",
+      "CROSS_PLATFORM_SKILL_FORMAT_PRIME",
+      "HALLUCINATION_RESOLVER_PRIME",
+      "LOCAL_OFFLOAD_PRIME",
       "RETROSPECTIVE_SKILL"
     ],
-    "source": "src/cohezion/skills/compound_engineering.md"
+    "source": "src/cohezion/skills/COMPOUND_ENGINEERING_PRIME.md"
   },
   "COMPUTATIONAL_RELATIVITY_PRIME": {
     "version": "v0.1",
@@ -319,7 +323,7 @@
     ],
     "see_also": [
       "SELF_HEALING_PRIME",
-      "SURREALDB_MCP_PRIME"
+      "SURREALDB_ADVANCED_PRIME"
     ],
     "source": "src/cohezion/skills/IDE_OPTIMIZATION_PRIME.md"
   },
@@ -663,38 +667,6 @@
     ],
     "source": "src/cohezion/skills/SIMULATION_PROFILES_PRIME.md"
   },
-  "SURREALDB_MCP_PRIME": {
-    "version": "v1.0 (New MCP Component)",
-    "concepts": [],
-    "see_also": [],
-    "source": "src/cohezion/skills/SURREALDB_MCP_PRIME.md"
-  },
-  "SURREALDB_OPTIMIZER_PRIME": {
-    "version": "v1.0",
-    "concepts": [
-      "FETCH Optimization",
-      "HNSW Vector Indexing",
-      "Live Queries",
-      "Pre-computed Fields",
-      "Graph Pruning"
-    ],
-    "see_also": [],
-    "source": "src/cohezion/skills/SURREALDB_OPTIMIZER_PRIME.md"
-  },
-  "SWARM_PLANNER_PRIME": {
-    "version": "v1.0.1",
-    "concepts": [
-      "Ouroboros Improvement",
-      "Component Granularity",
-      "Specialized Tiers",
-      "Polyglot Harmony"
-    ],
-    "see_also": [
-      "TEAM_ORCHESTRATION_PRIME.md",
-      "MODEL_ROUTING_PRIME.md"
-    ],
-    "source": "src/cohezion/skills/SWARM_PLANNER_PRIME.md"
-  },
   "SYMBIOTIC_FILE_PRIME": {
     "version": "v1.0 (Sovereign Era)",
     "concepts": [
@@ -741,18 +713,23 @@
     "source": "src/cohezion/skills/SYSTEM_MONITORING_PRIME.md"
   },
   "TEAM_ORCHESTRATION_PRIME": {
-    "version": "1.0.0",
+    "version": "v1.1",
     "concepts": [
       "Team Planning",
       "Agent Specification",
       "Task Decomposition",
       "Model Routing",
-      "Dependency Tracking"
+      "Dependency Tracking",
+      "Ouroboros Improvement",
+      "Component Granularity",
+      "Specialized Tiers",
+      "Polyglot Harmony"
     ],
     "see_also": [
       "COMPOUND_ENGINEERING_PRIME",
       "swarm_orchestration",
       "MODEL_ROUTING_PRIME",
+      "ANTHROPIC_SKILL_BUILDER_PRIME",
       "RETROSPECTIVE_SKILL"
     ],
     "source": "src/cohezion/skills/TEAM_ORCHESTRATION_PRIME.md"
@@ -977,11 +954,6 @@
     "see_also": [],
     "source": "src/cohezion/skills/COSMIC_FIRE_PROTOCOL_PRIME.md"
   },
-  "SURREALDB_MOCK_PERSISTENCE_PRIME": {
-    "version": "v1.0",
-    "see_also": [],
-    "source": "src/cohezion/skills/SURREALDB_MOCK_PERSISTENCE_PRIME.md"
-  },
   "SYNC_ASYNC_BRIDGE_PRIME": {
     "version": "v1.0",
     "see_also": [],
@@ -1038,5 +1010,67 @@
     ],
     "see_also": [],
     "source": "src/cohezion/skills/kaggle/SKILL.md"
+  },
+  "SURREALDB_CORE_PRIME": {
+    "version": "v1.1",
+    "concepts": [
+      "Dual SurrealDB Topology (port 8001)",
+      "Namespace/Database",
+      "v3.0 Syntax",
+      "Genesis Schema",
+      "HNSW Vector Indexing",
+      "Live Queries",
+      "Graph Edges (RELATE)",
+      "Schema Migration",
+      "Orphan Detection",
+      "Bi-temporal / SurrealKV Versioned"
+    ],
+    "see_also": [
+      "SURREALDB_ADVANCED_PRIME",
+      "VAULT_KEEPER_PRIME",
+      "DATABASE_PRIME"
+    ],
+    "source": "src/cohezion/skills/SURREALDB_CORE_PRIME.md"
+  },
+  "SURREALDB_ADVANCED_PRIME": {
+    "version": "v1.1",
+    "concepts": [
+      "MCP Tools (execute_surrealql / query_graph / vector_search / live_subscribe)",
+      "Multi-Model Query",
+      "FETCH Optimization",
+      "HNSW Vector Indexing",
+      "Live Queries",
+      "Pre-computed Fields",
+      "Graph Pruning",
+      "Structured Query Result",
+      "Flat vs Nest Mismatches",
+      "Query Mocking"
+    ],
+    "see_also": [
+      "SURREALDB_CORE_PRIME",
+      "DATABASE_PRIME",
+      "KNOWLEDGE_GRAPH_INTEGRATION_PRIME",
+      "embedding_strategy",
+      "FLUME_METHODOLOGY_PRIME",
+      "VISUALIZATION_PRIME"
+    ],
+    "source": "src/cohezion/skills/SURREALDB_ADVANCED_PRIME.md"
+  },
+  "SKILL_SYNTHESIS_PRIME": {
+    "version": "v1.1",
+    "concepts": [
+      "Meta-Pattern Library",
+      "Skill Tokens",
+      "Automatic Skill Scaffold",
+      "Concept Mapping Block"
+    ],
+    "see_also": [
+      "COMPOUND_ENGINEERING_PRIME",
+      "CROSS_PLATFORM_SKILL_FORMAT_PRIME",
+      "RETROSPECTIVE_SKILL",
+      "metaphysics",
+      "physics"
+    ],
+    "source": "src/cohezion/skills/SKILL_SYNTHESIS_PRIME.md"
   }
 }

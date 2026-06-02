@@ -33,8 +33,8 @@
 | MODEL_ROUTING_PRIME.md | model-routing-prime | mcp | 327 | ⏳ | — | general |
 | parallel_orchestration.md | parallel-orchestration | mcp | 91 | ⏳ | — | general |
 | POLYGLOT_DELEGATION_PRIME.md | polyglot-delegation-prime | mcp | 79 | ⏳ | — | general |
-| SURREALDB_MCP_PRIME.md | surrealdb-mcp-prime | mcp | 56 | ⏳ | — | general |
-| SWARM_PLANNER_PRIME.md | swarm-planner-prime | mcp | 35 | ⏳ | — | general |
+| SURREALDB_ADVANCED_PRIME.md | surrealdb-mcp-prime | mcp | 56 | ⏳ | — | general |
+| TEAM_ORCHESTRATION_PRIME.md | swarm-planner-prime | mcp | 35 | ⏳ | — | general |
 | SYSTEM_MONITORING_PRIME.md | system-monitoring-prime | mcp | 132 | ⏳ | — | general |
 | VECTOR_STORE_PRIME.md | vector-store-prime | mcp | 63 | ⏳ | — | general |
 | allostatica_prime.md | allostatica-prime | mlops | 35 | ⏳ | — | 256=FLUME |
@@ -72,8 +72,8 @@
 | RESEARCH_PATTERNS_PRIME.md | research-patterns-prime | mlops | 58 | ⏳ | — | 256=FLUME |
 | RIGOROUS_EVALUATION_PRIME.md | rigorous-evaluation-prime | mlops | 42 | ⏳ | — | 256=FLUME |
 | SPATIAL_PHONONS_PRIME.md | spatial-phonons-prime | mlops | 45 | ⏳ | — | 256=FLUME |
-| SURREAL_DBA_PRIME.md | surreal-dba-prime | mlops | 75 | ⏳ | — | 256=FLUME |
-| SURREALDB_OPTIMIZER_PRIME.md | surrealdb-optimizer-prime | mlops | 52 | ⏳ | — | 256=FLUME |
+| SURREALDB_CORE_PRIME.md | surreal-dba-prime | mlops | 75 | ⏳ | — | 256=FLUME |
+| SURREALDB_ADVANCED_PRIME.md | surrealdb-optimizer-prime | mlops | 52 | ⏳ | — | 256=FLUME |
 | Symphony_Orchestration_PRIME.md | symphony-orchestration-prime | mlops | 42 | ⏳ | — | 256=FLUME |
 | SYSTEMS_ENGINEERING_V_MODEL_PRIME.md | systems-engineering-v-model-prime | mlops | 36 | ✅ | `/home/mike-anderson/.hermes/skills/.archive/systems-engineering-v-model-prime/SKILL.md` | 256=FLUME |
 | TOPOLOGICAL_VERIFICATION_PRIME.md | topological-verification-prime | mlops | 39 | ⏳ | — | 256=FLUME |
@@ -213,7 +213,7 @@
 | SMALL_MODEL_SPECIALIST_PRIME.md | small-model-specialist-prime | software-development | 288 | ⏳ | — | general |
 | smart_routing.md | smart-routing | software-development | 226 | ⏳ | — | general |
 | SURGICAL_COMMIT_UNDER_CHURN_PRIME.md | surgical-commit-under-churn-prime | software-development | 125 | ⏳ | — | general |
-| SURREALDB_OPERATIONS_PRIME.md | surrealdb-operations-prime | software-development | 309 | ✅ | `/home/mike-anderson/.hermes/skills/.archive/surrealdb-operations-prime/SKILL.md` | general |
+| SURREALDB_CORE_PRIME.md | surrealdb-operations-prime | software-development | 309 | ✅ | `/home/mike-anderson/.hermes/skills/.archive/surrealdb-operations-prime/SKILL.md` | general |
 | swarm_orchestration.md | swarm-orchestration | software-development | 55 | ⏳ | — | general |
 | swarm_synthesis.md | swarm-synthesis | software-development | 43 | ⏳ | — | general |
 | SYMBIOTIC_FILE_PRIME.md | symbiotic-file-prime | software-development | 52 | ⏳ | — | general |
@@ -249,8 +249,8 @@
 | COMPOUND_ENGINEERING_PRIME | `src/cohezion/compound/` | `dynamic_compound_system.py` | general |
 | TURBO_QUANT_PRIME | `src/cohezion/inference/turboquant/` | `quantizer.py`, `kv_cache.py` | 256=FLUME |
 | MODEL_ROUTING_PRIME | `src/cohezion/swarm/` | `adaptive_router.py` | general |
-| SURREALDB_OPERATIONS_PRIME | `src/cohezion/storage/` | `surreal_client.py` | general |
-| SWARM_PLANNER_PRIME | `src/cohezion/swarm/` | `multi_agent_orchestrator.py` | general |
+| SURREALDB_CORE_PRIME | `src/cohezion/storage/` | `surreal_client.py` | general |
+| TEAM_ORCHESTRATION_PRIME | `src/cohezion/swarm/` | `multi_agent_orchestrator.py` | general |
 | VAULT_KEEPER_PRIME | `cloud-vault-mcp/` | `vault_graph/tools.py` | general |
 | AUTORESEARCH_PRIME | `src/cohezion/research/` | `autoresearch_driver.py` | general |
 | SEMANTIC_CACHING_PRIME | `src/cohezion/cache/` | `semantic_cache.py` | general |

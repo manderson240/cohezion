@@ -1,12 +1,12 @@
 ---
 name: data-product-sla-prime
-description: "Expert in Cohezion Data Mesh typed data products with SLA contracts (Dehghani 2022). Use when: creating a new DataProduct definition, wiring an MCP server to the data mesh via get_cohezion_data_products(), setting latency/availability/quality SLAs, debugging MCP tier access control, or implementing the data-as-a-product pattern for a new domain. Skip: general database queries (use DATABASE_PRIME); SurrealDB administration (use SURREAL_DBA_PRIME); MCP server creation (use MCP_SPECIALIST_PRIME)."
+description: "Expert in Cohezion Data Mesh typed data products with SLA contracts (Dehghani 2022). Use when: creating a new DataProduct definition, wiring an MCP server to the data mesh via get_cohezion_data_products(), setting latency/availability/quality SLAs, debugging MCP tier access control, or implementing the data-as-a-product pattern for a new domain. Skip: general database queries (use DATABASE_PRIME); SurrealDB administration (use SURREALDB_CORE_PRIME); MCP server creation (use MCP_SPECIALIST_PRIME)."
 version: v0.1-stub
 tier: PRIME
 domain: Data Mesh
 status: stub
 created: 2026-06-02
-see_also: [DATA_MESH_ARCHITECT_PRIME, DATABASE_PRIME, MCP_SPECIALIST_PRIME, SURREALDB_MCP_PRIME]
+see_also: [DATA_MESH_ARCHITECT_PRIME, DATABASE_PRIME, MCP_SPECIALIST_PRIME, SURREALDB_ADVANCED_PRIME]
 ---
 
 # SKILL: DATA_PRODUCT_SLA_PRIME

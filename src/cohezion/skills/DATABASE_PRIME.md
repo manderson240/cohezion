@@ -1,6 +1,6 @@
 ---
 name: database-prime
-description: "Specialist in SQL/relational database patterns for AI applications: SQLite, PostgreSQL, connection pooling, migrations, query optimization, and hybrid SQL+NoSQL design. Use when implementing traditional RDBMS patterns or cross-database strategies. Skip: for SurrealDB-specific work use SURREAL_DBA_PRIME or SURREALDB_OPERATIONS_PRIME; for vector stores use VECTOR_STORE_PRIME; for Redis caching use the caching skill."
+description: "Specialist in SQL/relational database patterns for AI applications: SQLite, PostgreSQL, connection pooling, migrations, query optimization, and hybrid SQL+NoSQL design. Use when implementing traditional RDBMS patterns or cross-database strategies. Skip: for SurrealDB-specific work use SURREALDB_CORE_PRIME or SURREALDB_CORE_PRIME; for vector stores use VECTOR_STORE_PRIME; for Redis caching use the caching skill."
 metadata:
   version: "v1.0"
   concepts: ["SurrealDB", "SQLite", "PostgreSQL", "Redis", "Vector Stores"]

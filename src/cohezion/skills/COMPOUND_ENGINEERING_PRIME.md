@@ -3,17 +3,18 @@ name: compound-engineering
 description: Compound AI orchestration methodology for multi-agent coordination,
   local model optimization, and hallucination mitigation. Use when implementing
   compound features, debugging coherence drift, setting up model routing, or
-  when user mentions "compound engineering", "skill refinement", "orchestration
-  loop", or "compound impact".
+  when user mentions "compound engineering", "skill refinement", "orchestration loop", "compound
+  impact", or treating each feature as a reusable macro for the next. For
+  creating/scaffolding NEW skill files, see SKILL_SYNTHESIS_PRIME.
 metadata:
-  version: "1.0"
+  version: "1.1"
   legacy-name: COMPOUND_ENGINEERING_PRIME
 ---
 
 # SKILL: COMPOUND_ENGINEERING_PRIME
 
 ## DOMAIN EXPERTISE
-Unified technical methodology for cross-platform agentic orchestration, local model optimization, and defensive intelligence (Hallucination Mitigation) within the Cohezion ecosystem.
+Unified technical methodology for cross-platform agentic orchestration, local model optimization, and defensive intelligence (Hallucination Mitigation) within the Cohezion ecosystem. The core stance is **self-extending engineering**: treat each feature as a reusable macro for the next, so every execution makes future tasks easier.
 
 ## KEY TEXTS & CONCEPTS
 - **Unified Configuration**: Centralizing shared parameters (compound_engineering, logging, performance) in standalone JSON blocks to avoid tool-specific schema conflicts.
@@ -25,9 +26,9 @@ Unified technical methodology for cross-platform agentic orchestration, local mo
 ## FUTURE HOOKS
 - **Registry Integration**: Metadata hooks for `CapabilityRegistry` to suggest this skill in new contexts.
 - **State Vector Feedback**: 12D state updates that inform system-wide "Compound Impact" scores.
-- **Recursive Refinement**: Automated extraction of sub-skills via `RETROSPECTIVE_SKILL`.
+- **Recursive Refinement**: Automated extraction of sub-skills via `RETROSPECTIVE_SKILL` (skill-creation mechanics live in `SKILL_SYNTHESIS_PRIME`).
 
-## INSTRUCTION
+## INSTRUCTION (Core Execution + Self-Improvement Loop)
 1. **Plan via Implementation Plan**: For all complex tasks, create a gated `implementation_plan.md` for user approval.
 2. **Execute with Grounding**:
     - Consult `get_truth_anchors` for hardware/path vitals.
@@ -45,10 +46,13 @@ Unified technical methodology for cross-platform agentic orchestration, local mo
     - Increment the `compound_impact_score` in the `CapabilityRegistry`.
 
 ## VERSION
-v1.0
+v1.1
 
 ## SEE ALSO
+- SKILL_SYNTHESIS_PRIME
+- CROSS_PLATFORM_SKILL_FORMAT_PRIME
 - PERSISTENT_QUALITY_PRIME
 - HALLUCINATION_RESOLVER_PRIME
 - LOCAL_OFFLOAD_PRIME
 - COHEZION_BRIDGE_PRIME
+- RETROSPECTIVE_SKILL

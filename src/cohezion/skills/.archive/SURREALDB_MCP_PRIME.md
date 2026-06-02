@@ -21,7 +21,7 @@ You are a specialist in **SurrealDB Model Context Protocol (MCP)**. You know how
 1. **Initialize Surreal Client**
    ```python
    from cohezion.db.surreal_client import SurrealClient
-   
+
    db = SurrealClient()
    await db.connect()
    ```

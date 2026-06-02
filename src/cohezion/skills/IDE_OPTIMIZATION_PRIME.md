@@ -4,7 +4,7 @@ description: "You are a specialist in optimizing the Antigravity IDE environment
 metadata:
   version: "v1.0"
   concepts: ["Sprint Momentum", "R-Zero Methodology", "HIHO Stability", "Persistence Guard"]
-  see_also: ["PERSISTENT_QUALITY_PRIME", "SELF_HEALING_PRIME", "SURREALDB_MCP_PRIME"]
+  see_also: ["PERSISTENT_QUALITY_PRIME", "SELF_HEALING_PRIME", "SURREALDB_ADVANCED_PRIME"]
   source: "src/cohezion/skills/IDE_OPTIMIZATION_PRIME.md"
 ---
 
@@ -47,4 +47,4 @@ v1.0
 ## SEE ALSO
 - PERSISTENT_QUALITY_PRIME
 - SELF_HEALING_PRIME
-- SURREALDB_MCP_PRIME
+- SURREALDB_ADVANCED_PRIME

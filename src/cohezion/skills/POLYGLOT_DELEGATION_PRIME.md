@@ -75,5 +75,5 @@ When the Executive Leader orchestrates a Polyglot pipeline, follow this multi-ag
 v1.0.0
 
 ## SEE ALSO
-- SWARM_PLANNER_PRIME.md
+- TEAM_ORCHESTRATION_PRIME.md
 - HARDWARE_PROFILE_PRIME.md
