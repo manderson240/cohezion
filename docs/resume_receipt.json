@@ -1,0 +1,183 @@
+{
+  "generated_at": "2026-06-02T14:46:55-0400",
+  "git_branch": "worktree-lazy-tumbling-cascade",
+  "git_sha": "aa2f10631",
+  "python": "3.11.15",
+  "package_under_test": "/home/mike-anderson/dev/cohezion/.claude/worktrees/lazy-tumbling-cascade/src/cohezion/__init__.py",
+  "summary": {
+    "pass": 20,
+    "fail": 0,
+    "skip": 1,
+    "total": 21
+  },
+  "checks": [
+    {
+      "name": "env_rollout",
+      "box": "Build agentic training environments (RL envs/simulations)",
+      "status": "PASS",
+      "strength": "STRONG",
+      "evidence": "Cohezion/ManifoldEnv-v0: 19D obs / 12D action, 20-step return=-1.560",
+      "detail": ""
+    },
+    {
+      "name": "reward_determinism",
+      "box": "Construct rigorous, reproducible evaluations",
+      "status": "PASS",
+      "strength": "STRONG",
+      "evidence": "seed=7 reproduces reward (-0.08272 == -0.08272)",
+      "detail": ""
+    },
+    {
+      "name": "env_generation",
+      "box": "Build NEXT-GENERATION agentic training environments",
+      "status": "PASS",
+      "strength": "MEDIUM",
+      "evidence": "EnvironmentGenerator + GeneratedCodeValidator present (spec->env synthesis)",
+      "detail": ""
+    },
+    {
+      "name": "eval_harness",
+      "box": "Construct rigorous evaluations measuring genuine capability",
+      "status": "PASS",
+      "strength": "MEDIUM",
+      "evidence": "UniverseEvaluator + capability_scorecard importable",
+      "detail": ""
+    },
+    {
+      "name": "eval_benchmarks",
+      "box": "Rigorous evaluations \u2014 benchmark suites",
+      "status": "PASS",
+      "strength": "MEDIUM",
+      "evidence": "importable: agentic_benchmark, benchmark_suite, coding_benchmark (agentic + coding benchmark suites)",
+      "detail": ""
+    },
+    {
+      "name": "rl_training_infra",
+      "box": "LLM training / fine-tuning / RL (infrastructure)",
+      "status": "PASS",
+      "strength": "WEAK",
+      "evidence": "importable: ppo_trainer, grpo_trainer, distributed_trainer (import only -- not a training-run claim)",
+      "detail": ""
+    },
+    {
+      "name": "sandboxing",
+      "box": "Sandboxing / containerization / isolation",
+      "status": "PASS",
+      "strength": "MEDIUM",
+      "evidence": "sandbox.isolation + sandboxing.executor importable",
+      "detail": ""
+    },
+    {
+      "name": "world_model",
+      "box": "Simulations / world models",
+      "status": "PASS",
+      "strength": "MEDIUM",
+      "evidence": "JEPAWorldModel importable (predictive world model)",
+      "detail": ""
+    },
+    {
+      "name": "geometric_correspondence",
+      "box": "Geometric correspondence (information geometry)",
+      "status": "PASS",
+      "strength": "STRONG",
+      "evidence": "Fisher->Riemannian metric (6, 6): symmetric=True, PSD=True (min_eig=1.35e+00)",
+      "detail": ""
+    },
+    {
+      "name": "unified_physics",
+      "box": "Unified physics (FLUME latent <-> 12D manifold)",
+      "status": "PASS",
+      "strength": "STRONG",
+      "evidence": "256D FLUME latent -> 12D Unified Physics coords (coherence=0.066)",
+      "detail": ""
+    },
+    {
+      "name": "quadrature_nexus",
+      "box": "Quadrature Nexus (4-voice consensus governance)",
+      "status": "PASS",
+      "strength": "MEDIUM",
+      "evidence": "QuadratureNexus importable (4-voice consensus mechanism of the swarm)",
+      "detail": ""
+    },
+    {
+      "name": "distributed_inference",
+      "box": "Large-scale / distributed ML infrastructure",
+      "status": "PASS",
+      "strength": "MEDIUM",
+      "evidence": "TieredOrchestrator.run_batch(prompts, *, budget_usd) present (NPU/iGPU/CPU routing)",
+      "detail": ""
+    },
+    {
+      "name": "local_inference",
+      "box": "Local-first inference fleet (NPU/iGPU/CPU, $0)",
+      "status": "PASS",
+      "strength": "MEDIUM",
+      "evidence": "triune fleet NPU=13306/iGPU=13307/CPU=13309; extend_claude() quality-gated escalation",
+      "detail": ""
+    },
+    {
+      "name": "semantic_cache",
+      "box": "Caching for large-scale efficiency (avoid recompute)",
+      "status": "SKIP",
+      "strength": "MEDIUM",
+      "evidence": "cache code present but unimportable at this commit (latent bug: lemonade_encoder absent)",
+      "detail": "ModuleNotFoundError(\"No module named 'cohezion.cache.lemonade_encoder'\")"
+    },
+    {
+      "name": "batching",
+      "box": "Batched inference for throughput at scale",
+      "status": "PASS",
+      "strength": "MEDIUM",
+      "evidence": "async run_batch(prompts, *, budget_usd) -> asyncio.gather fan-out (async=True)",
+      "detail": ""
+    },
+    {
+      "name": "cosmogony",
+      "box": "Cosmogony (symmetry-breaking universe genesis)",
+      "status": "PASS",
+      "strength": "STRONG",
+      "evidence": "SymmetryBreaking -> 12D state (12,), symmetry group=void",
+      "detail": ""
+    },
+    {
+      "name": "worldviews",
+      "box": "Worldview lattice (17 traditions x 10 ToE steps)",
+      "status": "PASS",
+      "strength": "STRONG",
+      "evidence": "17 traditions x 10 ToE cosmogony steps",
+      "detail": ""
+    },
+    {
+      "name": "toe_observer",
+      "box": "Theory of Everything bridge (Observer Patch Holography)",
+      "status": "PASS",
+      "strength": "STRONG",
+      "evidence": "OPH observer-patch overlap_fraction=0.000 in [0,1] (SPIN coherence bridge)",
+      "detail": ""
+    },
+    {
+      "name": "tek_agent",
+      "box": "Traditional Ecological Knowledge x Unified Physics agent",
+      "status": "PASS",
+      "strength": "MEDIUM",
+      "evidence": "EcoResilienceAgent importable (synthesizes TEK with 12D Unified Physics)",
+      "detail": ""
+    },
+    {
+      "name": "test_collection",
+      "box": "Strong software engineering (robust, tested infra)",
+      "status": "PASS",
+      "strength": "STRONG",
+      "evidence": "745 tests collected across 5 role-relevant suites",
+      "detail": ""
+    },
+    {
+      "name": "surrealdb",
+      "box": "Observability / persistence / audit trail",
+      "status": "PASS",
+      "strength": "MEDIUM",
+      "evidence": "live: 49 tables (incl. agent_journey, hash_chain, vmodel_gate)",
+      "detail": ""
+    }
+  ]
+}

@@ -1,5 +1,10 @@
 # Why Anthropic: Universes Team Application Essay
 
+> 📎 Narrative companion to the evidence-backed, self-verifying fit doc:
+> [`anthropic-universes-fit.md`](anthropic-universes-fit.md) (run `make resume` for live numbers).
+> Commit/test counts in this essay are point-in-time (2026-02); the fit doc carries current,
+> machine-checked figures.
+
 **Applicant**: Mike Anderson
 **Position**: Universes Team -- Training Environments for Agentic AI
 **Date**: 2026-02-17
