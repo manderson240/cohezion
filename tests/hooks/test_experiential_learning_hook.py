@@ -19,7 +19,7 @@ _HOOKS_DIR = Path(__file__).resolve().parents[2] / "scripts" / "hooks"
 if str(_HOOKS_DIR) not in sys.path:
     sys.path.insert(0, str(_HOOKS_DIR))
 
-import experiential_learning_hook as hook  # noqa: E402
+import experiential_learning_hook as hook
 
 
 def test_escape_sql_string_escapes_single_quotes() -> None:
@@ -85,7 +85,7 @@ def test_main_returns_0_when_delegate_returns_none(monkeypatch) -> None:
         patch.object(hook, "_head_sha", return_value="abc123def456"),
         patch.object(hook, "_head_subject", return_value="fix: something"),
         patch.object(hook, "_head_diff_and_files", return_value=("diff content", ["f.py"])),
-        patch.object(hook, "_git", return_value="/tmp"),  # noqa: S108 — test fixture only
+        patch.object(hook, "_git", return_value="/tmp"),
         patch.object(hook, "_delegate_narrative", return_value=None) as mock_delegate,
         patch.object(hook, "_insert_narrative") as mock_insert,
         patch("pathlib.Path.exists", return_value=True),
@@ -108,7 +108,7 @@ def test_main_records_narrative_on_happy_path(monkeypatch) -> None:
         patch.object(hook, "_head_sha", return_value="abc123def4567890"),
         patch.object(hook, "_head_subject", return_value="feat: add X"),
         patch.object(hook, "_head_diff_and_files", return_value=("+x\n", ["a.py", "b.py"])),
-        patch.object(hook, "_git", return_value="/tmp"),  # noqa: S108 — test fixture only
+        patch.object(hook, "_git", return_value="/tmp"),
         patch.object(
             hook,
             "_delegate_narrative",

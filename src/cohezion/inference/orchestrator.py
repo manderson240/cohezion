@@ -124,7 +124,17 @@ class TieredOrchestrator:
         self.stream = stream
         # Optional callable: (prompt: str) -> RouteDecision
         # Sets start_tier_index and per-tier gate override based on output_type.
+        # Use the pre_dispatch_classifier property (not _pre_dispatch_classifier directly)
+        # for external assignment to avoid the private-attribute name mismatch trap.
         self._pre_dispatch_classifier = pre_dispatch_classifier
+
+    @property
+    def pre_dispatch_classifier(self) -> object | None:
+        return self._pre_dispatch_classifier
+
+    @pre_dispatch_classifier.setter
+    def pre_dispatch_classifier(self, value: object | None) -> None:
+        self._pre_dispatch_classifier = value
 
     async def _invoke_tier(
         self,
@@ -159,6 +169,23 @@ class TieredOrchestrator:
         two. This is how nested orchestrators inherit the parent's envelope
         without plumbing a shared mutable counter (O3b).
         """
+        # Compress prompt history if StepEntropyCompressor is enabled / available
+        if "<thought>" in prompt:
+            try:
+                from cohezion.inference.entropy_compressor import StepEntropyCompressor
+
+                compressor = StepEntropyCompressor()
+                compressed_prompt = compressor.compress_prompt(prompt)
+                if compressed_prompt != prompt:
+                    logger.info(
+                        "StepEntropyCoTCompressor: compressed prompt from %d to %d chars",
+                        len(prompt),
+                        len(compressed_prompt),
+                    )
+                    prompt = compressed_prompt
+            except Exception as exc:
+                logger.warning("Failed to compress prompt via StepEntropyCompressor: %s", exc)
+
         # Effective ceiling: min(self.max_cost_usd, budget_usd), ignoring Nones.
         if self.max_cost_usd is None:
             effective_max_cost: float | None = budget_usd
@@ -194,7 +221,7 @@ class TieredOrchestrator:
                     # New: type-aware gates matched to expected iGPU response length.
                     _IGPU_GATE_BY_TYPE: dict[str, int] = {
                         "short_categorical": 1,  # any non-empty response (letter/word)
-                        "short_answer": 50,  # 1-2 sentence factual answer
+                        "short_answer": 1,  # 1-2 sentence factual answer (gate=1 for single-word answers)
                         "medium_generation": 200,  # paragraph response
                         "long_generation": 750,  # detailed multi-paragraph answer
                         "code": 600,  # code block (may be short)
@@ -313,6 +340,9 @@ class TieredOrchestrator:
             )
 
             # --- JOURNEY TELEMETRY INSTRUMENTATION ---
+            # Emits FlumeJourneyEvent with a REAL 256D FLUME z_vector (vacuum object).
+            # z_vector is encoded asynchronously via nomic-embed(768D)→VAE ep21-distilled(256D)
+            # so the main inference path is never blocked (fire-and-forget background task).
             try:
                 from datetime import datetime
 
@@ -335,33 +365,69 @@ class TieredOrchestrator:
                     h_tier = HardwareTier.CLOUD
 
                 bus = get_telemetry_bus()
-                event = FlumeJourneyEvent(
-                    event_id=f"tier_{int(datetime.now().timestamp())}_{idx}",
-                    journey_id=f"orch_{int(start)}",
-                    z_vector=[0.0] * 256,
-                    state_12d=[0.0] * 12,
-                    coherence=1.0 if passed else 0.5,
-                    fabrics=QuadratureFabrics(
-                        space=0.8, field=0.2, control=0.9, precipitation=1.0 if passed else 0.0
-                    ),
-                    awareness_parameter=0.8,
-                    expert_stream=SwarmExpert.ENGINEER,
-                    hardware_tier=h_tier,
-                    latency_ms=tier_latency,
-                    r_zero=RZeroMetrics(
-                        success_rate=1.0 if passed else 0.0,
-                        iteration_count=idx + 1,
-                        difficulty_adjustment=1.0,
-                    ),
-                    metadata={"reason": reason, "model": model_name},
-                )
+
+                # Capture locals for background closure (all immutable at this point).
+                _enc_prompt = prompt
+                _enc_response = view.text
+                _event_id = f"tier_{int(datetime.now().timestamp())}_{idx}"
+                _journey_id = f"orch_{int(start)}"
+                _coherence = 1.0 if passed else 0.5
+                _precip = 1.0 if passed else 0.0
+                _h_tier = h_tier
+                _tier_latency = tier_latency
+                _reason = reason
+                _model_name = model_name
+                _idx = idx
+
+                async def _emit_vacuum_event(
+                    _bus=bus,
+                    _ep=_enc_prompt,
+                    _er=_enc_response,
+                    _eid=_event_id,
+                    _jid=_journey_id,
+                    _coh=_coherence,
+                    _pr=_precip,
+                    _ht=_h_tier,
+                    _lat=_tier_latency,
+                    _rsn=_reason,
+                    _mn=_model_name,
+                    _i=_idx,
+                ) -> None:
+                    """Encode journey as exotic vacuum object and emit to telemetry bus."""
+                    try:
+                        from cohezion.flume.vacuum_encoder import encode_journey_text
+
+                        _z = await encode_journey_text(_ep, _er)
+                    except Exception:
+                        _z = [0.0] * 256
+                    _evt = FlumeJourneyEvent(
+                        event_id=_eid,
+                        journey_id=_jid,
+                        z_vector=_z,
+                        state_12d=[0.0] * 12,
+                        coherence=_coh,
+                        fabrics=QuadratureFabrics(
+                            space=0.8, field=0.2, control=0.9, precipitation=_pr
+                        ),
+                        awareness_parameter=0.8,
+                        expert_stream=SwarmExpert.ENGINEER,
+                        hardware_tier=_ht,
+                        latency_ms=_lat,
+                        r_zero=RZeroMetrics(
+                            success_rate=1.0 if _coh >= 1.0 else 0.0,
+                            iteration_count=_i + 1,
+                            difficulty_adjustment=1.0,
+                        ),
+                        metadata={"reason": _rsn, "model": _mn},
+                    )
+                    await _bus.emit(_evt)
 
                 import asyncio
 
                 try:
                     loop = asyncio.get_event_loop()
                     if loop.is_running():
-                        loop.create_task(bus.emit(event))
+                        loop.create_task(_emit_vacuum_event())
                 except RuntimeError:
                     pass
             except Exception as te:
