@@ -13,7 +13,7 @@
 > make resume                                 # same, via Make
 > ```
 >
-> **Last receipt:** `28 PASS / 0 FAIL / 1 SKIP` across 29 checks
+> **Last receipt:** `29 PASS / 0 FAIL / 0 SKIP` across 29 checks (19 STRONG / 8 MEDIUM / 2 WEAK)
 > (`docs/resume_receipt.json`, regenerate to refresh). Each check is graded by
 > **verification strength** — `STRONG` (ran end-to-end), `MEDIUM` (imported + instantiated),
 > `WEAK` (import only) — so no claim outruns its evidence.
@@ -62,8 +62,8 @@ Legend: ✅ verified live by `resume_verify.py` · 📄 evidence in-repo · 🌐
 | **Large-scale simulation** | `mass_sim/` scale tiers — a **25M-agent** "aspirational" tier *declared in config* (`SCALE_TIERS`); not run by the verifier | MEDIUM *(config, not a run)* | ✅ `mass_sim` |
 | **Self-improving infrastructure** | `ouroboros/` self-healing loop + `mycelium/` skill synthesis from execution traces + `evolution/` evolutionary skill optimization | WEAK *(import only)* | ✅ `self_improvement` |
 | **Batched inference for throughput** | `async run_batch(prompts, *, budget_usd)` → `asyncio.gather` fan-out (3.44× throughput, harness CB1) | MEDIUM | ✅ `batching` |
-| **Caching for efficiency at scale** | `cache/semantic_cache.py` L1 hash + L2 cosine + L3 vault, encoder-calibrated thresholds (harness CA1/CA2); 11 cache test files | MEDIUM | ➖ `semantic_cache` (SKIP — **latent bug surfaced**: unimportable at this commit, `lemonade_encoder` absent; `tests/cache/` errors on collection here) |
-| **World models / simulations** | `world_model/jepa_world_model.py` (JEPA predictor, causal masking, CPU-trainable) | MEDIUM | ✅ `world_model` |
+| **Caching for efficiency at scale** | `cache/semantic_cache.py` L1 hash + L2 cosine + L3 vault, encoder-calibrated thresholds (harness CA1/CA2) | STRONG *(real put→get)* | ✅ `semantic_cache` — **bug fixed**: restored the missing `lemonade_encoder` module (768D nomic-embed, thr 0.58); `tests/cache` went 11 collection-errors → 142 collect clean; the check now round-trips put→get |
+| **World models / simulations** | `world_model/jepa_world_model.py` (JEPA predictor, causal masking, CPU-trainable) | STRONG *(predicts a state)* | ✅ `world_model` — instantiates (86,732 params) + `predict_next_state` runs |
 | **Published / influential ML research** | physics-grounded training-universes write-ups in `docs/`; `CITATION.cff`; sibling repo `observer-patch-holography/` | — | 📄 *(software citation, not peer-reviewed — see gaps)* |
 | **Software engineering for robust infra** | 745 tests *collect* (modules import; not executed by the verifier) across 5 role-relevant suites (env/rl/eval/world_model/physics); the full `tests/` tree collects in the thousands (a couple of collection errors in `tests/test_aimo_*` vary by checkout); pre-commit, ruff, mypy, CI | MEDIUM *(collected, not run)* | ✅ `test_collection` |
 | **Observability / persistence / audit** | Live SurrealDB: 49 tables incl. bi-temporal `agent_journey`, `hash_chain` audit trail, `vmodel_gate`/`proof_obligation` (V-Model) | MEDIUM | ✅ `surrealdb` |
@@ -268,13 +268,19 @@ Calibration is a feature, not a disclaimer. Per the role's emphasis on *genuine*
   `docs/ANTHROPIC_TECHNICAL_SUMMARY.md` are **not** reproduced here: 25M cycles is a HIHO
   *physics-convergence* run (not the RL result), and "27.3%" had no measurable provenance
   (it appears only as hardcoded UI text). That older doc is superseded by this one.
-- **Latent bug the verifier surfaced (and I'm reporting, not hiding):** at this commit
-  `cache/semantic_cache.py` has a top-level import of `cohezion.cache.lemonade_encoder`, which
-  is absent — so the cache is **unimportable under this worktree's `src`** (the verifier SKIPs
-  it). Under the shared *editable install* (main checkout) the symbol resolves and `tests/cache`
-  collects, so whether you see the breakage depends on which tree `import cohezion` hits — itself
-  a finding. The cache design/calibration is documented (harness CA1/CA2) but is not runnable
-  under the worktree at this SHA. Exactly the kind of regression a self-verifying resume catches.
+- **A latent bug the verifier surfaced — then I FIXED it.** `cache/semantic_cache.py` imported
+  a `cohezion.cache.lemonade_encoder` module that was absent, so the cache was unimportable and
+  `tests/cache` errored on collection (11 errors). I restored the module properly (768D
+  nomic-embed via lemonade :13305, calibrated threshold 0.58 per harness CA1) — now the cache
+  imports, `tests/cache` collects 142 clean, and the `semantic_cache` check does a real put→get
+  round-trip (SKIP → STRONG). The full surface→fix→re-verify loop, in one artifact.
+- **Not every box is STRONG — and that's the honest ceiling, not laziness.** 19/29 checks
+  genuinely exercise code end-to-end (STRONG). The other 10 stop at MEDIUM/WEAK because true
+  STRONG needs external resources I won't fake or risk: `sandboxing` needs a Docker/Firecracker
+  runtime; `tek_agent`/`self_improvement` need a live LLM provider; `local_inference`/`batching`/
+  `distributed_inference` would need live-fleet calls that risk a *paid* cloud fallback;
+  `coordination_channel` needs Telegram creds + an external send; `surrealdb` is env-gated. Each
+  is honestly labeled with what it would take to make it STRONG.
 - **Cross-worktree note:** this repo is developed across ~40 worktrees sharing one editable
   install; `resume_verify.py` validates the importable `cohezion` package. Reproduce from a
   clean `uv sync` for a canonical run.
