@@ -13,9 +13,13 @@
 > make resume                                 # same, via Make
 > ```
 >
-> **Last receipt:** `29 PASS / 0 FAIL / 0 SKIP` across 29 checks — **26 STRONG / 2 MEDIUM / 1 WEAK**
-> (a "make-it-STRONG" campaign exercised each capability end-to-end and fixed 4 real bugs along
-> the way — see "Verification campaign" below)
+> **Last receipt:** `29 PASS / 0 FAIL / 0 SKIP` across 29 checks — **28 STRONG / 1 MEDIUM / 0 WEAK**
+> (a "make-it-STRONG" campaign exercised every capability end-to-end and fixed 4 real bugs; two
+> of the last three boxes were *earned* STRONG by a live $0 agent run and a genuine LLM self-edit.
+> The one remaining MEDIUM — the Telegram coordination *channel* — is graded honestly: its
+> offline core is proven, but the defining outbound **send** is intentionally un-run (it is an
+> outward-facing, user-gated action). Refusing to inflate that box is the point — see "Verification
+> campaign" below)
 > (`docs/resume_receipt.json`, regenerate to refresh). Each check is graded by
 > **verification strength** — `STRONG` (ran end-to-end), `MEDIUM` (imported + instantiated),
 > `WEAK` (import only) — so no claim outruns its evidence.
@@ -54,7 +58,7 @@ Legend: ✅ verified live by `resume_verify.py` · 📄 evidence in-repo · 🌐
 |---|---|---|---|
 | **Building RL environments / simulations** | `Cohezion/ManifoldEnv-v0` (19D obs / 12D action) resets, steps, returns finite verifiable reward; `SwarmEnv` multi-agent; `arc_env.py` | STRONG | ✅ `env_rollout` |
 | **Build *next-generation* training environments** | `environments/auto_generator.py`: `EnvironmentGenerator` + `GeneratedCodeValidator` synthesize + validate new envs from spec | STRONG *(validator runs)* | ✅ `env_generation` |
-| **Rigorous, reproducible evaluations** | Same seed reproduces reward exactly; `eval/universe_evaluator.py` (bootstrap CIs, ≥3 baselines) + `capability_scorecard.py` | STRONG / MEDIUM | ✅ `reward_determinism`, `eval_harness` |
+| **Rigorous, reproducible evaluations** | Same seed reproduces reward exactly; `eval/universe_evaluator.py` (bootstrap CIs, ≥3 baselines) + `capability_scorecard.py` | STRONG | ✅ `reward_determinism`, `eval_harness` |
 | **Evaluation breadth (agentic/coding benchmarks)** | `benchmarks/{agentic_benchmark,coding_benchmark,cyber_benchmark,benchmark_suite}.py`; `competition/` (ARC-AGI-3 solver + eval-identity checks) | STRONG *(intrinsic metrics run)* | ✅ `eval_benchmarks` |
 | **Demonstrated RL training + rigorous eval** | A **real** PPO run (25K steps, 50 episodes, $0 on CPU) on the harder `ManifoldEnv`, evaluated with **bootstrap CIs** vs Greedy/Random — honest outcome in the section below | STRONG *(real train→eval ran)* | ✅ `training_result` |
 | **RL/LLM training infrastructure** | `rl/{ppo,grpo,distributed,lora}_trainer.py` — own TRIUNE PPO + GRPO + LoRA + distributed | STRONG *(policy emits actions)* | ✅ `rl_training_infra` |
@@ -62,7 +66,7 @@ Legend: ✅ verified live by `resume_verify.py` · 📄 evidence in-repo · 🌐
 | **Heterogeneous-accelerator ML infrastructure** | `inference/orchestrator.py` `TieredOrchestrator` routes across NPU/iGPU/CPU on a *single* Strix Halo box (heterogeneous local fleet — **not** cluster-scale distributed training; honest scoping) | STRONG *($0 local route)* | ✅ `distributed_inference` |
 | **Local-first inference fleet (heterogeneous accel.)** | `inference/triune_orchestrator.py` routes NPU(13306)/iGPU(13307)/CPU(13309) on AMD Strix Halo; `fleet.extend_claude()` escalates to cloud only on a quality-gate miss — a 10k-token loop runs at **$0** | STRONG *(real $0 call)* | ✅ `local_inference` |
 | **Large-scale simulation** | `mass_sim/` scale tiers — a **25M-agent** "aspirational" tier *declared in config* (`SCALE_TIERS`); declared in config | STRONG *(orchestrator runs)* | ✅ `mass_sim` |
-| **Self-improving infrastructure** | `ouroboros/` self-healing loop + `mycelium/` skill synthesis from execution traces + `evolution/` evolutionary skill optimization | WEAK *(import only)* | ✅ `self_improvement` |
+| **Self-improving infrastructure** | `evolution/reflection_optimizer.py` runs a real propose→assess→commit loop: the LLM rewrites a trainable skill `Variable` and records it in history (+ `ouroboros/` self-healing, `mycelium/` skill synthesis) | STRONG *(real $0-local LLM self-edit)* | ✅ `self_improvement` |
 | **Batched inference for throughput** | `async run_batch(prompts, *, budget_usd)` → `asyncio.gather` fan-out (3.44× throughput, harness CB1) | STRONG *($0 local batch)* | ✅ `batching` |
 | **Caching for efficiency at scale** | `cache/semantic_cache.py` L1 hash + L2 cosine + L3 vault, encoder-calibrated thresholds (harness CA1/CA2) | STRONG *(real put→get)* | ✅ `semantic_cache` — **bug fixed**: restored the missing `lemonade_encoder` module (768D nomic-embed, thr 0.58); `tests/cache` went 11 collection-errors → 142 collect clean; the check now round-trips put→get |
 | **World models / simulations** | `world_model/jepa_world_model.py` (JEPA predictor, causal masking, CPU-trainable) | STRONG *(predicts a state)* | ✅ `world_model` — instantiates (86,732 params) + `predict_next_state` runs |
@@ -112,7 +116,7 @@ is import-and-run checked, with honest framing about what's ML-core vs research-
 | **Cosmogony engine** | `physics/cosmogony.py` `SymmetryBreaking` — a symmetry-breaking cascade that generates universe states (`void → … → 12D`). | ✅ `cosmogony`: produces a valid **12D** state from the `void` symmetry stage. | Procedural environment *genesis* / initial-condition generation — research-exploratory. |
 | **Worldview lattice** | `worldviews/` — **17** cosmological traditions × **10** Theory-of-Everything steps, with cross-tradition convergence mapping. | ✅ `worldviews`: 17 traditions × 10 ToE steps (data registry). | Diverse environment/world priors; breadth, not an ML benchmark. |
 | **ToE bridge (Observer Patch Holography)** | `physics/observer_patch.py` — observer-centric consistency: aligned observers agree more than misaligned ones. | ✅ `toe_observer`: overlap **discriminates** — identical patches = **1.00**, orthogonal = **0.00** (so the bridge actually measures agreement, not just returns a bounded number). | The formal root of the structural-safety thesis (agreement ⇒ coherence). |
-| **TEK × Unified Physics** | `agents/specialists/ecoresilience_agent.py` — synthesizes Traditional Ecological Knowledge with the 12D manifold. | ✅ `tek_agent`: `EcoResilienceAgent` importable. | A specialist agent demonstrating cross-domain synthesis; applied, not core ML. |
+| **TEK × Unified Physics** | `agents/specialists/ecoresilience_agent.py` — synthesizes Traditional Ecological Knowledge with the 12D manifold. | ✅ `tek_agent`: the **real** `EcoResilienceAgent` runs a $0-local cycle — drives a genuine **12D** projection (coords `(12,)`, coherence ≈ 0.07) through its own wired collaborators, then emits one SENSING-regime LLM token via its own provider against the local fleet. | A specialist agent demonstrating cross-domain synthesis; applied, not core ML. |
 | **Bioelectric (Levin)** | `physics/bioelectric_model.py` — gap-junction percolation + cognitive light cone on the manifold. | ✅ `bioelectric`: `BioelectricNetwork` percolation runs, coherence ≈ 0.92. | Developmental-bio-inspired collective dynamics; research-exploratory. |
 
 I flag these as **research range**, not as "this is production LLM training." For a *Research*
@@ -257,13 +261,14 @@ Calibration is a feature, not a disclaimer. Per the role's emphasis on *genuine*
 - **No peer-reviewed publication.** The research is documented in-repo and as a software
   citation (`CITATION.cff`); it has not been through peer review. Treat "published research"
   as **aspirational**, not met.
-- **The biggest honest gap — no demonstrated model-training result.** Everything verified here
-  is environment-side and eval-side. The RL/LLM trainers import and have tests, but this verifier
-  does **not** run a training job (`WEAK` by design — importing `ppo_trainer.py` is not proof of
-  a trained model), and the README's PPO/SAC results are on a custom manifold env, not LLM
-  fine-tuning. For a role whose core deliverable *is* training models on long-horizon agentic
-  tasks, treat this as the load-bearing gap: the strongest next move is to close one — a real
-  GRPO/LoRA or multi-turn-agentic-RL run with a before/after number — and promote it to STRONG.
+- **The biggest honest gap — no demonstrated LLM model-training result.** A *real* PPO run is
+  verified end-to-end (`training_result`: 25K steps, bootstrap-CI eval), and `self_improvement`
+  now shows a real $0-local LLM **self-edit** of a skill variable — but neither is LLM
+  *fine-tuning* with a held-out before/after metric. The RL/LLM trainers (`grpo`/`lora`/
+  `distributed`) import and emit actions but this verifier does not run a fine-tuning job, and the
+  README's PPO/SAC results are on a custom manifold env. For a role whose core deliverable *is*
+  training models on long-horizon agentic tasks, treat this as the load-bearing gap: the
+  strongest next move is a real GRPO/LoRA or multi-turn-agentic-RL run with a before/after number.
 - **The flagship 0.991 metric is explicitly superseded** as a "too-easy environment" result;
   it is presented as a *lesson*, not a capability claim. The previously-circulated figures
   *"0.991 coherence over 25M cycles / 92.7% in HIHO band / 27.3% cost reduction"* in
@@ -293,15 +298,31 @@ artifact):
 4. **Sandbox temp files were 0600/0700** → unreadable under Docker userns-remap (exit 2).
    **Fixed** to 0644/0755 → `sandboxing` now executes real isolated code (`6*7→42`).
 
-Result: STRONG went **11 → 26** of 29. The local fleet (`local_inference`, `batching`,
-`distributed_inference`) is verified running **$0** batched inference on local silicon; the
-RL/eval/world-model/physics/sim layers all run end-to-end.
+Result: STRONG went **11 → 28** of 29; the 29th (`coordination_channel`) is an honest **MEDIUM**.
+The local fleet (`local_inference`, `batching`, `distributed_inference`) is verified running **$0**
+batched inference on local silicon; the RL/eval/world-model/physics/sim layers all run end-to-end.
 
-- **The 3 remaining non-STRONG are honest ceilings, not laziness.** `tek_agent` and
-  `self_improvement` need a full async LLM-agent harness (HealerAgent must even be built inside
-  an event loop + run real model cycles) — a substantial follow-up, not a quick check.
-  `coordination_channel` needs your Telegram creds + an external send. Each is labeled with
-  exactly what it would take.
+Two of the final three were *earned* STRONG by improving Cohezion (not relabeling); the third is
+deliberately **left at MEDIUM** — refusing to inflate the one box that cannot fully self-verify is
+the calibration signal this whole artifact exists to demonstrate:
+
+5. **`tek_agent` → STRONG.** The real `EcoResilienceAgent` now runs a $0-local cycle: a genuine
+   **12D** projection through its own wired collaborators (`ManifoldTranslator`/`FlumeVAEEncoder`)
+   + one SENSING-regime LLM token via its own provider against the local fleet. (Built inside an
+   event loop because `BaseAgent.__init__` schedules an `asyncio` task.)
+6. **`self_improvement` → STRONG.** `evolution/reflection_optimizer.py` runs a real
+   propose→assess→commit step on `llama3.2-1b-FLM` ($0): the LLM **rewrites** a trainable skill
+   `Variable` (`"Route all prompts to the NPU tier."` → `"Route all code prompts to the iGPU
+   tier."`) and records it in history — a self-edit, not an import.
+7. **`coordination_channel` → MEDIUM (honest, not STRONG).** New `compound/session_broadcast.py`
+   (creds-free core): `build_broadcast()` redacts a leaked credential from a directive, classifies
+   the smart-delegation tier (NPU/iGPU/CPU → 13306/13307/13309), and formats the HTML broadcast —
+   all proven end-to-end at $0, no network. But the box is "coordination *channel*," and the
+   defining capability is the outbound **send** to all sessions, which the check **deliberately
+   never runs** (`notify()` is never called). The bot token is now wired via `.env` so the send is
+   *ready* — but verifying it is a live, outward-facing action that must be user-gated, and an
+   un-run send is not STRONG evidence. So this stays MEDIUM until a real broadcast is confirmed.
+   (Going live also requires a launcher to source `cohezion/.env`; nothing auto-loads it.)
 - **Cross-worktree note:** this repo is developed across ~40 worktrees sharing one editable
   install; `resume_verify.py` validates the importable `cohezion` package. Reproduce from a
   clean `uv sync` for a canonical run.
