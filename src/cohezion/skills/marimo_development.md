@@ -1,3 +1,21 @@
+---
+name: marimo_development
+description: Expertise in building high-performance, reactive, and interactive Python
+  notebooks using the Marimo framework. Focus on state management, UI/UX for complex
+  data, and standalone WASM deployment.
+keywords:
+- background execution
+- cell privacy
+- conditional gating
+- development
+- flume_methodology
+- marimo
+- observable_ai
+- reactive dag
+- universe_physics
+- wasm export
+---
+
 # SKILL: MARIMO_DEVELOPMENT_PRIME
 
 ## DOMAIN EXPERTISE

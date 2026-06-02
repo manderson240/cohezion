@@ -1,3 +1,17 @@
+---
+name: flume_comparison
+description: You are a specialist in comparing CALM continuous thought vs standard
+  LLM - visualizing performance differences.
+keywords:
+- calm
+- calm_abstraction
+- comparison
+- flume
+- journey_tracking
+- performance delta
+- standard llm
+---
+
 # SKILL: CALM_COMPARISON_PRIME
 
 ## DOMAIN EXPERTISE

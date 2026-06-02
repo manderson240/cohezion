@@ -1,3 +1,14 @@
+---
+name: meta_skill
+description: Self-Evolution and Automated Knowledge Codification.
+keywords:
+- automated registry
+- meta
+- pattern abstraction
+- recursive self-improvement (rsi)
+- semantic deduplication
+---
+
 # SKILL: META_SKILL_PRIME
 
 ## DOMAIN EXPERTISE

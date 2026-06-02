@@ -1,6 +1,7 @@
 ---
 id: skill-turboquant-restoration
 name: TurboQuant Phase Recovery
+description: "Restore and protect the TurboQuant KV-cache quantization on Strix Halo (it was accidentally reverted post-commit 5bcae51a0). Use when re-applying TurboQuant, verifying the inference backend before dispatch wiring, or debugging KV-cache compression / phase recovery on the AMD fleet."
 domain: ML Inference
 version: v1.1
 tier: PRIME

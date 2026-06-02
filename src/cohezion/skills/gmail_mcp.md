@@ -1,3 +1,17 @@
+---
+name: gmail_mcp
+description: You are a specialist in Gmail Model Context Protocol (MCP). You know
+  how to securely bridge AI agents to Google's workspace via OAuth and the Gmail API.
+  You understand inbox mining, automated label management, and structured response
+  generation.
+keywords:
+- gateway_architecture
+- gmail
+- mcp
+- mcp_server
+- repo_hygiene
+---
+
 # SKILL: GMAIL_MCP_PRIME
 
 ## DOMAIN EXPERTISE

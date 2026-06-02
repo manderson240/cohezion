@@ -1,3 +1,14 @@
+---
+name: async_workflow
+description: Asynchronous task queue using Google Keep or local file, with email notifications.
+keywords:
+- async
+- async_workflow
+- email_notifier
+- keep_integration
+- workflow
+---
+
 # SKILL: ASYNC_WORKFLOW_PRIME
 
 ## DOMAIN EXPERTISE

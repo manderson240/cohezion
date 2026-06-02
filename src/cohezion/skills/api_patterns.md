@@ -1,3 +1,18 @@
+---
+name: api_patterns
+description: You are a specialist in FastAPI development - creating robust REST APIs
+  with Pydantic validation, middleware, and async patterns.
+keywords:
+- api
+- fastapi
+- mcp_server
+- openapi
+- patterns
+- pydantic
+- rest
+- security_guardrails
+---
+
 # SKILL: API_PATTERNS_PRIME
 
 ## DOMAIN EXPERTISE

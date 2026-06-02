@@ -1,3 +1,17 @@
+---
+name: advanced_physics_simulation
+description: 'Expert in simulating exotic physics phenomena for long-horizon exploration:
+  EVOs, LENR, MHD, Fractal Toroidal geometry, Quantum Biology, Penrose Twistors, and
+  Chirality. Cross-domain pattern identification specialist.'
+keywords:
+- advanced
+- gateway_architecture
+- physics
+- r_zero_challenger
+- retrospective_skill
+- simulation
+---
+
 # SKILL: ADVANCED_PHYSICS_SIMULATION_PRIME
 
 ## DOMAIN EXPERTISE

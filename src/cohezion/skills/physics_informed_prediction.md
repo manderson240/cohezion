@@ -1,3 +1,27 @@
+---
+name: physics_informed_prediction
+description: Expert in physics-informed neural networks (PINNs) and world models that
+  integrate physical laws into prediction. Specializes in constraining neural network
+  predictions with governing equations, enabling physically consistent state evolution
+  even with sparse data.
+keywords:
+- counterfactual simulation
+- cross
+- domain
+- flume_methodology
+- gateway
+- gateway_architecture
+- informed
+- lyapunov functions
+- physics
+- physics loss
+- pinn
+- prediction
+- semantic_algebra
+- underlying
+- world model
+---
+
 # SKILL: PHYSICS_INFORMED_PREDICTION_PRIME
 
 ## DOMAIN EXPERTISE

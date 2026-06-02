@@ -1,3 +1,20 @@
+---
+name: caching
+description: You are a specialist in caching strategies for high-performance AI systems.
+  You understand in-memory caches, disk caches, distributed caching, and cache invalidation
+  patterns.
+keywords:
+- caching
+- database
+- disk cache
+- lru cache
+- memoization
+- redis
+- reliability
+- ttl
+- vector_store
+---
+
 # SKILL: CACHING_PRIME
 
 ## DOMAIN EXPERTISE

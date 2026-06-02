@@ -1,3 +1,20 @@
+---
+name: knowledge_mining
+description: You are a specialist in extracting reusable patterns from session logs,
+  code artifacts, and conversational exchanges. You can identify recurring structures,
+  abstract them to templates, and generate new skills from learned experiences.
+keywords:
+- compound_engineering
+- knowledge
+- mining
+- pattern extraction
+- relationship mining
+- retrospective_skill
+- session logs
+- skill synthesis
+- token efficiency
+---
+
 # SKILL: KNOWLEDGE_MINING_PRIME
 
 ## DOMAIN EXPERTISE

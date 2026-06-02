@@ -1,3 +1,21 @@
+---
+name: embedding_strategy
+description: You are a specialist in semantic representation for software‑engineered
+  knowledge. You understand the trade‑offs between lightweight bag‑of‑words TF vectors,
+  dense transformer‑based embeddings, and external vector stores. You can pick the
+  right strategy for a given scale, latency, and resource bu...
+keywords:
+- compound_engineering
+- embedding
+- hybrid approach
+- mem0 mcp / local vector stores
+- sentence‑transformers
+- skill_generator
+- sparse tf‑idf / count vectors
+- strategy
+- vector_store
+---
+
 # SKILL: EMBEDDING_STRATEGY_PRIME
 
 ## DOMAIN EXPERTISE

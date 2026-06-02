@@ -1,3 +1,18 @@
+---
+name: visual_validation
+description: You are a specialist in visual UI validation - automated browser testing,
+  UX auditing, and interactive integrity verification.
+keywords:
+- api_patterns
+- browser subagent
+- modal cycle
+- screenshot evidence
+- state verification
+- testing
+- validation
+- visual
+---
+
 # SKILL: VISUAL_VALIDATION_PRIME
 
 ## DOMAIN EXPERTISE

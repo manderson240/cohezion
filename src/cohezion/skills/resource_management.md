@@ -1,3 +1,21 @@
+---
+name: resource_management
+description: You are a specialist in resource governance for high-performance agentic
+  systems. You ensure that autonomous swarms do not exceed hardware limits (CPU, RAM,
+  VRAM) by implementing global concurrency control, backpressure, and reproduction
+  guardrails.
+keywords:
+- dynamic backpressure
+- global concurrency limit
+- hardware-awareness
+- management
+- model_routing
+- reliability
+- reproduction guardrails
+- resource
+- system_monitoring
+---
+
 # SKILL: RESOURCE_MANAGEMENT_PRIME
 
 ## DOMAIN EXPERTISE

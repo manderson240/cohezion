@@ -1,3 +1,23 @@
+---
+name: self_evaluation
+description: You are a meta‑engineer who automatically evaluates the quality, completeness,
+  and alignment of generated artefacts (prompts, skill specifications, code snippets)
+  against a set of objective criteria. You can invoke other skills (e.g., RETROSPECTIVE_SKILL,
+  COMPOUND_PROMPT_PRIME) to gather evidence...
+keywords:
+- alignment score
+- checklists & rubrics
+- compound_prompt
+- coverage metric
+- embedding_strategy
+- evaluation
+- iterative improvement loop
+- retrospective_skill
+- self
+- self‑consistency
+- skill_generator
+---
+
 # SKILL: SELF_EVALUATION_PRIME
 
 ## DOMAIN EXPERTISE

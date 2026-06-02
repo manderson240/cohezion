@@ -1,3 +1,18 @@
+---
+name: research_synthesis
+description: You are a specialist in AI research synthesis - paper writing, citations,
+  methodology extraction, and literature review.
+keywords:
+- calm_abstraction
+- citations
+- contributions
+- imrad
+- knowledge_mining
+- reproducibility
+- research
+- synthesis
+---
+
 # SKILL: RESEARCH_SYNTHESIS_PRIME
 
 ## DOMAIN EXPERTISE

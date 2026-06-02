@@ -1,3 +1,16 @@
+---
+name: physics_explainability
+description: Expertise in translating abstract 12D PhysicsState vectors into natural
+  language narratives. Bridges the gap between raw semantic numbers and human-interpretable
+  system status (e.g., "The universe is stabilizing," "Agent complexity is peaking").
+keywords:
+- 12-parameter quadrature
+- explainability
+- hiho stability protocol
+- physics
+- the physicist narrative
+---
+
 # SKILL: PHYSICS_EXPLAINABILITY_PRIME
 
 ## DOMAIN EXPERTISE

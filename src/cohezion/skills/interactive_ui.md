@@ -1,3 +1,21 @@
+---
+name: interactive_ui
+description: You are a specialist in interactive UI components for data science and
+  AI applications. You understand Marimo's reactive widgets, Gradio interfaces, Streamlit
+  apps, and web-based dashboards.
+keywords:
+- 3d_rendering
+- dash
+- gradio
+- interactive
+- marimo
+- marimo_notebooks
+- panel
+- streamlit
+- ui
+- universe_visualization
+---
+
 # SKILL: INTERACTIVE_UI_PRIME
 
 ## DOMAIN EXPERTISE

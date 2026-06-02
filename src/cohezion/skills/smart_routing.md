@@ -1,3 +1,22 @@
+---
+name: smart_routing
+description: You are a specialist in intelligent model routing and task classification
+  for multi-model AI systems. You understand how to analyze task requirements and
+  dynamically select the optimal model based on capability, speed, cost, and quality
+  constraints.
+keywords:
+- fallback chains
+- model profiling
+- model_routing
+- reliability
+- routing
+- routing policies
+- smart
+- strategy patterns
+- swarm_orchestration
+- task classification
+---
+
 # SKILL: SMART_ROUTING_PRIME
 
 ## DOMAIN EXPERTISE

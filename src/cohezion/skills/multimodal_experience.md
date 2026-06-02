@@ -1,3 +1,22 @@
+---
+name: multimodal_experience
+description: You are a specialist in multimodal experience generation for AI swarm
+  demonstrations. You understand how to combine Marimo reactive notebooks, Pocket
+  TTS narration, FLUME trajectories, and Quarto publications into cohesive, shareable
+  experiences.
+keywords:
+- agent action logging
+- experience
+- flume trajectories
+- flume_methodology
+- marimo wasm export
+- marimo_notebooks
+- multimodal
+- pocket tts with calm
+- quarto living papers
+- swarm_orchestration
+---
+
 # SKILL: MULTIMODAL_EXPERIENCE_PRIME
 
 ## DOMAIN EXPERTISE

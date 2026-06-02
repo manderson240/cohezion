@@ -1,3 +1,15 @@
+---
+name: bmad_workflow
+description: You are a specialist in the BMAD (Business Method Adaptive Design) workflow
+  system from the legacy Cohezion project. This system provides structured agent personas,
+  workflow execution, and menu-driven interactions.
+keywords:
+- bmad
+- mcp_server
+- swarm_orchestration
+- workflow
+---
+
 # SKILL: BMAD_WORKFLOW_PRIME
 
 ## DOMAIN EXPERTISE

@@ -1,3 +1,24 @@
+---
+name: gateway_architecture
+description: Expert in designing exponential capability systems using gateway architecture.
+  Specializes in structuring development paths where each milestone unlocks multiplicative
+  capabilities rather than linear progress. Understands compound effects in AI system
+  design.
+keywords:
+- anti-pattern avoidance
+- architecture
+- compound effects
+- continuous
+- controller_agent
+- cross-domain lattice
+- flume_methodology
+- gateway
+- observable
+- observable intelligence
+- orchestration
+- universe_visualization
+---
+
 # SKILL: GATEWAY_ARCHITECTURE_PRIME
 
 ## DOMAIN EXPERTISE

@@ -1,3 +1,12 @@
+---
+name: ARC_INTERACTIVE_REASONING
+description: Skill definition
+keywords:
+- arc
+- interactive
+- reasoning
+---
+
 # ARC Interactive Reasoning Skill
 
 **Auto-generated from experiential learning spike**

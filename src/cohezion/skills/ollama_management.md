@@ -1,3 +1,18 @@
+---
+name: ollama_management
+description: You are a specialist in Ollama model management - benchmarking, auto-swapping
+  underperformers, and storage optimization.
+keywords:
+- auto-swap
+- benchmarking
+- management
+- ollama
+- role assignments
+- self_healing
+- storage management
+- swarm_orchestration
+---
+
 # SKILL: OLLAMA_MANAGEMENT_PRIME
 
 ## DOMAIN EXPERTISE

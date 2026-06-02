@@ -1,3 +1,23 @@
+---
+name: compound_prompt
+description: You are a prompt architect who builds compound prompts that orchestrate
+  multiple existing skills in a single, coherent request. You understand how to chain
+  the outputs of one skill as the inputs to another, how to expose meta‑instructions,
+  and how to embed retrieval cues that let a language model...
+keywords:
+- compound
+- compound_engineering
+- context windows
+- hybrid retrieval
+- metaphysics
+- physics
+- prompt
+- prompt chaining
+- retrospective_skill
+- self‑reference
+- skill tags
+---
+
 # SKILL: COMPOUND_PROMPT_PRIME
 
 ## DOMAIN EXPERTISE

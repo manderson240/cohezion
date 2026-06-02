@@ -1,3 +1,11 @@
+---
+name: sandboxed_simulation
+description: '`sandboxed_simulation`'
+keywords:
+- sandboxed
+- simulation
+---
+
 # Sandboxed Simulation
 
 ## Skill ID

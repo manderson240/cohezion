@@ -1,3 +1,16 @@
+---
+name: allostatica_prime
+description: Autonomic stability through proactive change (allostasis). Monitors 12D
+  manifold signals and performs Quadrature Adjustments to maintain system homeostasis
+  at the HIHO attractor (0.5).
+keywords:
+- active regulation
+- allostatica
+- hiho attractor
+- homeostasis engine
+- quadrature adjustment
+---
+
 # SKILL: ALLOSTATICA_PRIME
 
 ## DOMAIN EXPERTISE

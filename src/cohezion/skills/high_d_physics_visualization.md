@@ -1,3 +1,22 @@
+---
+name: high_d_physics_visualization
+description: You are a specialist in physics-informed high-dimensional visualization.
+  You bridge the gap between abstract dimension reduction (PCA, t-SNE, UMAP) and observable
+  physical rendering (Manim, HyperTools). You can projected the 12D physics state
+  into 3D manifolds and animate the evolution of complex...
+keywords:
+- 12d physicsstate
+- d
+- embedding_strategy
+- flume_methodology
+- high
+- physics
+- physics-to-visual (p2v)
+- projection logic
+- trajectory animation
+- visualization
+---
+
 # SKILL: HIGH_D_PHYSICS_VISUALIZATION_PRIME
 
 ## DOMAIN EXPERTISE

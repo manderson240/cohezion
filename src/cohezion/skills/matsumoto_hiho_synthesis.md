@@ -1,3 +1,29 @@
+---
+name: matsumoto_hiho_synthesis
+description: Unifying three independent research programs into a coherent framework
+  for understanding charge cluster coherence, nuclear reactions via electromagnetic
+  force, and the HIHO stability threshold. Synthesizes Matsumoto's Electro-Nuclear
+  Collapse, Shoulders' Exotic Vacuum Objects, and Smith's TensorB...
+keywords:
+- coherence threshold
+- electromagnetic force dominance
+- evo
+- exotic vacuum objects (evos)
+- hiho
+- hiho principle
+- hiho_reality_sim
+- itonic clusters
+- learning
+- matsumoto
+- nattoh model
+- parameter
+- r_zero
+- synthesis
+- takaaki
+- tensorbeam
+- wilbert
+---
+
 # SKILL: MATSUMOTO_HIHO_SYNTHESIS_PRIME
 
 ## DOMAIN EXPERTISE

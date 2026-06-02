@@ -1,3 +1,25 @@
+---
+name: semantic_algebra
+description: Expert in performing mathematical operations on semantic concepts in
+  continuous latent space. Specializes in vector arithmetic on thought representations,
+  enabling cross-domain bridging, conceptual analogy discovery, and semantic interpolation.
+keywords:
+- algebra
+- cosine similarity
+- cross-domain bridge
+- cross_modal_embedding
+- flume_methodology
+- gateway_architecture
+- modal
+- multi
+- semantic
+- semantic addition
+- semantic direction
+- underlying
+- where
+- word2vec analogy
+---
+
 # SKILL: SEMANTIC_ALGEBRA_PRIME
 
 ## DOMAIN EXPERTISE

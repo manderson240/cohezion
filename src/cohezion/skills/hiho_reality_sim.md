@@ -1,3 +1,19 @@
+---
+name: hiho_reality_sim
+description: Expertise in simulating the transition from "Nothing-At-All" to "Precipitated
+  Reality" based on the 12-Parameter Quadrature Model from Wilbert Smith's TensorBeam
+  theory. Specializes in multi-fabric state evolution and stability thresholds.
+keywords:
+- hiho
+- precipitation gate
+- quadrature concept
+- reality
+- sim
+- tempic field
+- the 4 fabrics
+- the hiho principle
+---
+
 # SKILL: HIHO_REALITY_SIM_PRIME
 
 ## DOMAIN EXPERTISE

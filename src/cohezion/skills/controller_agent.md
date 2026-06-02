@@ -1,3 +1,26 @@
+---
+name: controller_agent
+description: Expert in LangGraph-based multi-agent orchestration implementing the
+  Quadrature Nexus pattern. Specializes in routing queries to domain experts through
+  an "Expert Domain Lattice" using stateful graph-based workflows with state persistence
+  and human-in-the-loop checkpoints.
+keywords:
+- advanced
+- agent
+- conditional routing
+- controller
+- controller agent
+- debate
+- democratic_debate
+- expert domain lattice
+- ignition pack
+- langgraph + crewai
+- langgraph_patterns
+- state persistence
+- swarm_orchestration
+- voting
+---
+
 # SKILL: CONTROLLER_AGENT_PRIME
 
 ## DOMAIN EXPERTISE

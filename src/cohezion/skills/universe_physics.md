@@ -1,3 +1,14 @@
+---
+name: universe_physics
+description: You are a specialist in semantic physics - modeling knowledge and thought
+  as physical systems with mass, momentum, and wave dynamics.
+keywords:
+- calm_abstraction
+- physics
+- universe
+- universe_visualization
+---
+
 # SKILL: UNIVERSE_PHYSICS_PRIME
 
 ## DOMAIN EXPERTISE

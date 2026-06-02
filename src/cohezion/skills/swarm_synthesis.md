@@ -1,3 +1,15 @@
+---
+name: swarm_synthesis
+description: High-Dimensional Consensus and Outlier Detection.
+keywords:
+- centroid
+- coherence metric
+- outlier rejection
+- swarm
+- synthesis
+- vector consensus
+---
+
 # SKILL: SWARM_SYNTHESIS_PRIME
 
 ## DOMAIN EXPERTISE

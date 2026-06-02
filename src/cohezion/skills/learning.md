@@ -1,3 +1,20 @@
+---
+name: learning
+description: You are a specialist in machine learning workflows for AI systems. You
+  understand training loops, fine-tuning, evaluation metrics, and the PyTorch ecosystem
+  for building and deploying models.
+keywords:
+- embedding_strategy
+- evaluation
+- fine-tuning
+- flume_methodology
+- learning
+- lora
+- model_routing
+- pytorch
+- transformers
+---
+
 # SKILL: LEARNING_PRIME
 
 ## DOMAIN EXPERTISE

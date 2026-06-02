@@ -1,3 +1,21 @@
+---
+name: democratic_debate
+description: You are a specialist in multi-agent consensus building and collective
+  decision-making. You understand how to orchestrate diverse AI personas to debate,
+  critique, refine, and synthesize solutions for complex problems.
+keywords:
+- adversarial collaboration
+- debate
+- delphi method
+- democratic
+- ensemble methods
+- groupthink prevention
+- parallel_orchestration
+- r_zero_challenger
+- swarm_orchestration
+- wisdom of crowds
+---
+
 # SKILL: DEMOCRATIC_DEBATE_PRIME
 
 ## DOMAIN EXPERTISE

@@ -1,3 +1,19 @@
+---
+name: adaptive_template_engine
+description: You are a specialist in **template-driven code generation** from structured
+  skill definitions. You parse PRIME skill markdown files into typed data structures
+  and generate Python agent stubs and configuration dataclasses
+keywords:
+- adaptive
+- agent_stub_generation
+- config_generation
+- configtemplatemanager
+- engine
+- skillspec
+- template
+- template_engine
+---
+
 # SKILL: ADAPTIVE_TEMPLATE_ENGINE_PRIME
 
 ## DOMAIN EXPERTISE

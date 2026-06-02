@@ -1,3 +1,24 @@
+---
+name: enterprise_ai_server_mastery
+description: You are a specialist in autonomous server operations and reality bridging.
+  You master the transition from semantic thought to verified system action across
+  cloud environments. You understand how to deploy token-efficient Model Context Protocol
+  (MCP) servers, manage secure CI/CD pipelines (Cloud R...
+keywords:
+- ai
+- circuit breaker
+- cloud run/docker
+- common_codebase_health
+- enterprise
+- high_d_physics_visualization
+- mastery
+- model context protocol (mcp)
+- reality bridge
+- server
+- surrealdb_mcp
+- token-efficient deployment
+---
+
 # SKILL: ENTERPRISE_AI_SERVER_MASTERY_PRIME
 
 ## DOMAIN EXPERTISE

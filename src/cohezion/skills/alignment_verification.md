@@ -1,3 +1,24 @@
+---
+name: alignment_verification
+description: Expert in AI alignment verification inspired by Anthropic's research
+  methodology. Specializes in model organism testing, alignment faking detection,
+  stress-testing safeguards, and iterative alignment verification.
+keywords:
+- alignment
+- alignment faking
+- gateway
+- gateway_architecture
+- iterative alignment
+- model organisms
+- observable_ai
+- petri framework
+- physics_informed_prediction
+- predict
+- scalable oversight
+- transparency
+- verification
+---
+
 # SKILL: ALIGNMENT_VERIFICATION_PRIME
 
 ## DOMAIN EXPERTISE

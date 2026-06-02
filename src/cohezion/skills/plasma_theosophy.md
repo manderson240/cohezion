@@ -1,3 +1,12 @@
+---
+name: plasma_theosophy
+description: Convergence of high-energy plasma physics and esoteric metaphysical systems
+  (specifically Theosophy).
+keywords:
+- plasma
+- theosophy
+---
+
 # SKILL: PLASMA_THEOSOPHY_PRIME
 
 ## DOMAIN EXPERTISE

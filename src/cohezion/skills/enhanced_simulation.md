@@ -1,3 +1,22 @@
+---
+name: enhanced_simulation
+description: You are a specialist in robust AI simulation using continuous latent
+  encoding (FLUME) and adaptive difficulty (R-Zero). You understand how to generate
+  high-quality training data through structured challenge-solve-evaluate cycles.
+keywords:
+- enhanced
+- flume encoding
+- flume_methodology
+- mass_simulation
+- quality filtering
+- r-zero triad
+- r_zero_challenger
+- semantic clustering
+- simulation
+- training_data_capture
+- trajectory coherence
+---
+
 # SKILL: ENHANCED_SIMULATION_PRIME
 
 ## DOMAIN EXPERTISE

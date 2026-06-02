@@ -1,3 +1,22 @@
+---
+name: pre_flight_validation
+description: Preventing false starts in autonomous system launches through systematic
+  pre-flight validation. Ensures code compiles, imports resolve, and critical dependencies
+  are met before claiming "launch successful."
+keywords:
+- dependency checks
+- dry run
+- fail fast
+- fail_fast
+- flight
+- import resolution
+- persistent_quality
+- pre
+- r_zero
+- syntax validation
+- validation
+---
+
 # SKILL: PRE_FLIGHT_VALIDATION_PRIME
 
 ## DOMAIN EXPERTISE

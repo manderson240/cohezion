@@ -1,9 +1,6 @@
 ---
 name: pi-integration
-description: Integrate pi coding harness with Cohezion compound loop. Non-destructive
-code assistance using 12D journey tracking, pattern emergence, and skill genome
-refinement. Use when pi needs to query concept space, track trajectories, or
-leverage learned patterns from prior work.
+description: "Integrate pi coding harness with Cohezion compound loop. Non-destructive code assistance using 12D journey tracking, pattern emergence, and skill genome refinement. Use when pi needs to query concept space, track trajectories, or leverage learned patterns from prior work."
 metadata:
   version: "0.1"
 ---
@@ -82,7 +79,7 @@ if result.coherence < 0.5:
 async function editFile(path: string, newContent: string) {
     // 1. Archive current state
     await pi.tools.bash(`cp ${path} .pi/archive/${path}.${Date.now()}`);
-    
+
     // 2. Record trajectory point
     await journeyTracker.recordStep({
         operation: "edit",
@@ -90,7 +87,7 @@ async function editFile(path: string, newContent: string) {
         to_hash: await contentHash(newContent),
         coherence: alignmentResult.coherence
     });
-    
+
     // 3. Apply edit
     await pi.tools.write(path, newContent);
 }

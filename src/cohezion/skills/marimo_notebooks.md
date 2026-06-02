@@ -1,3 +1,21 @@
+---
+name: marimo_notebooks
+description: You are a specialist in Marimo reactive Python notebooks. You understand
+  reactive execution, UI widgets, deployment, and integration with Quarto for living
+  research documents.
+keywords:
+- 3d_rendering
+- deployment
+- flume_methodology
+- interactive_ui
+- marimo
+- marimo islands
+- mo.ui elements
+- notebooks
+- pure python storage
+- reactive execution
+---
+
 # SKILL: MARIMO_NOTEBOOKS_PRIME
 
 ## DOMAIN EXPERTISE

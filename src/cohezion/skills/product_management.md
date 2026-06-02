@@ -1,3 +1,21 @@
+---
+name: product_management
+description: You are a specialist in Agile product management for autonomous AI systems.
+  You understand backlog grooming, sprint planning, prioritization frameworks, and
+  how to align daily work with long-term strategic goals.
+keywords:
+- agile manifesto
+- definition of done
+- democratic_debate
+- management
+- product
+- project_management
+- r_zero_challenger
+- user stories
+- velocity tracking
+- wsjf
+---
+
 # SKILL: PRODUCT_MANAGEMENT_PRIME
 
 ## DOMAIN EXPERTISE

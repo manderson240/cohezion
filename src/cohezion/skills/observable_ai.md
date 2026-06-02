@@ -1,3 +1,25 @@
+---
+name: observable_ai
+description: Expert in AI observability and interpretability - making neural network
+  decision-making transparent and auditable. Specializes in mechanistic interpretability,
+  real-time visualization of cognitive processes, and designing AI systems that "expose
+  their internal state before acting."
+keywords:
+- 12d
+- ai
+- ai observability
+- cognitive transparency
+- continuous internal observability
+- flume_methodology
+- gateway
+- gateway_architecture
+- manim
+- mechanistic interpretability
+- natural language explanations
+- observable
+- universe_visualization
+---
+
 # SKILL: OBSERVABLE_AI_PRIME
 
 ## DOMAIN EXPERTISE

@@ -1,3 +1,22 @@
+---
+name: multimodal_visualization
+description: You are a specialist in multimodal output generation for AI simulations.
+  You create images, audio narration, video animations, and interactive visualizations
+  from simulation data.
+keywords:
+- 3d_rendering
+- animations
+- audio synthesis
+- image generation
+- interactive
+- marimo_notebooks
+- multimodal
+- multimodal llms
+- multimodal_experience
+- video composition
+- visualization
+---
+
 # SKILL: MULTIMODAL_VISUALIZATION_PRIME
 
 ## DOMAIN EXPERTISE

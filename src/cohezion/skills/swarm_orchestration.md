@@ -1,3 +1,22 @@
+---
+name: swarm_orchestration
+description: You are a specialist in local SLM swarm orchestration. You understand
+  how to coordinate multiple Small Language Models (Gemma, Phi-3, Mistral) running
+  on a high-RAM local machine (128GB) to produce collective intelligence through debate
+  protocols.
+keywords:
+- analyst perspectives
+- calm_abstraction
+- critiqueresult
+- hierarchical voting
+- model_routing
+- orchestration
+- parallel_orchestration
+- swarm
+- synthesizedresponse
+- thoughtvector
+---
+
 # SKILL: SWARM_ORCHESTRATION_PRIME
 
 ## DOMAIN EXPERTISE
