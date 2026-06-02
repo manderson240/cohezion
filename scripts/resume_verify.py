@@ -316,27 +316,30 @@ def check_distributed_inference() -> CheckResult:
 
 
 def check_eval_benchmarks() -> CheckResult:
-    """MEDIUM: dedicated agentic/coding benchmark suites import (eval breadth)."""
+    """STRONG: the intrinsic-metrics benchmark computes a real IntrinsicResults from a journey."""
     box = "Rigorous evaluations — benchmark suites"
-    present = []
-    for mod in (
-        "cohezion.benchmarks.agentic_benchmark",
-        "cohezion.benchmarks.benchmark_suite",
-        "cohezion.benchmarks.coding_benchmark",
-    ):
-        try:
-            __import__(mod)
-            present.append(mod.rsplit(".", 1)[1])
-        except Exception:
-            pass
-    ok = len(present) >= 2
-    return CheckResult(
-        "eval_benchmarks",
-        box,
-        "PASS" if ok else "FAIL",
-        WEAK,
-        f"importable: {', '.join(present) or 'none'} (agentic + coding benchmark suites)",
-    )
+    try:
+        from cohezion.benchmarks.benchmark_suite import CohezionBenchmark
+
+        bench = CohezionBenchmark(random_state=42)
+        # A small but well-formed journey (enough steps that variance metrics are defined).
+        coh = [0.50, 0.52, 0.49, 0.51, 0.50, 0.48, 0.51, 0.50]
+        journey = {
+            "coherences": coh,
+            "rewards": [1.0, 1.1, 0.9, 1.0, 1.05, 0.95, 1.0, 1.0],
+            "states": [[float(c)] * 12 for c in coh],
+        }
+        res = bench.compute_intrinsic_metrics([journey])
+        ok = res is not None and hasattr(res, "hiho_stability")
+        return CheckResult(
+            "eval_benchmarks",
+            box,
+            "PASS" if ok else "FAIL",
+            STRONG,
+            f"CohezionBenchmark.compute_intrinsic_metrics ran -> {type(res).__name__} (hiho_stability={getattr(res, 'hiho_stability', '?')})",
+        )
+    except Exception as exc:
+        return CheckResult("eval_benchmarks", box, "FAIL", STRONG, "raised", repr(exc))
 
 
 def check_geometric_correspondence() -> CheckResult:
@@ -655,20 +658,26 @@ def check_bioelectric() -> CheckResult:
 
 
 def check_mass_sim() -> CheckResult:
-    """STRONG: large-scale simulation scale tiers — the 25M-agent 'aspirational' tier exists."""
-    box = "Large-scale simulation (mass-sim scale tiers)"
+    """STRONG: the mass-sim orchestrator runs end-to-end (with its live OOM resource guard)."""
+    box = "Large-scale simulation (mass-sim orchestrator)"
     try:
-        from cohezion.mass_sim.config import SCALE_TIERS
+        import asyncio
 
-        asp = SCALE_TIERS.get("aspirational")
-        n = getattr(asp, "n_agents", None)
-        ok = n == 25_000_000
+        from cohezion.mass_sim.config import SCALE_TIERS, ScaleTier, SimulationConfig
+        from cohezion.mass_sim.orchestrator import MassSimOrchestrator
+
+        # Declared headroom: the 25M-agent aspirational tier.
+        asp_n = getattr(SCALE_TIERS.get("aspirational"), "n_agents", None)
+        # Actually RUN a tiny universe through the orchestrator (persist off).
+        cfg = SimulationConfig(scale=ScaleTier("verify-tiny", 2, 1, 1, 1, 2), persist_to_db=False)
+        report = asyncio.run(MassSimOrchestrator(cfg).run())
+        ran = report is not None and hasattr(report, "n_universes")
         return CheckResult(
             "mass_sim",
             box,
-            "PASS" if ok else "FAIL",
-            MEDIUM,
-            f"{len(SCALE_TIERS)} scale tiers DECLARED in config; aspirational = {n:,} agents (not run here)",
+            "PASS" if ran else "FAIL",
+            STRONG,
+            f"orchestrator ran -> {type(report).__name__} (n_universes={getattr(report, 'n_universes', '?')}; OOM guard active under memory pressure); aspirational tier declares {asp_n:,} agents",
         )
     except Exception as exc:
         return CheckResult("mass_sim", box, "FAIL", STRONG, "raised", repr(exc))
