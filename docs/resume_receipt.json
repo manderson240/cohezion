@@ -1,13 +1,13 @@
 {
-  "generated_at": "2026-06-02T15:44:29-0400",
+  "generated_at": "2026-06-02T15:58:52-0400",
   "git_branch": "feat/anthropic-universes-living-resume",
-  "git_sha": "bc4c7786a",
+  "git_sha": "1bedaf4b5",
   "python": "3.11.15",
   "package_under_test": "/home/mike-anderson/dev/cohezion/.claude/worktrees/lazy-tumbling-cascade/src/cohezion/__init__.py",
   "summary": {
-    "pass": 28,
+    "pass": 29,
     "fail": 0,
-    "skip": 1,
+    "skip": 0,
     "total": 29
   },
   "checks": [
@@ -16,7 +16,7 @@
       "box": "Build agentic training environments (RL envs/simulations)",
       "status": "PASS",
       "strength": "STRONG",
-      "evidence": "Cohezion/ManifoldEnv-v0: 19D obs / 12D action, 20-step return=-1.583",
+      "evidence": "Cohezion/ManifoldEnv-v0: 19D obs / 12D action, 20-step return=-1.604",
       "detail": ""
     },
     {
@@ -31,16 +31,16 @@
       "name": "env_generation",
       "box": "Build NEXT-GENERATION agentic training environments",
       "status": "PASS",
-      "strength": "MEDIUM",
-      "evidence": "EnvironmentGenerator + GeneratedCodeValidator present (spec->env synthesis)",
+      "strength": "STRONG",
+      "evidence": "GeneratedCodeValidator ran on sample env -> valid=False, 2 checks (spec->env synthesis gate)",
       "detail": ""
     },
     {
       "name": "eval_harness",
       "box": "Construct rigorous evaluations measuring genuine capability",
       "status": "PASS",
-      "strength": "MEDIUM",
-      "evidence": "UniverseEvaluator + capability_scorecard importable",
+      "strength": "STRONG",
+      "evidence": "UniverseEvaluator.evaluate_policy ran 2 episodes -> PolicyEvaluation (bootstrap CIs)",
       "detail": ""
     },
     {
@@ -53,10 +53,10 @@
     },
     {
       "name": "rl_training_infra",
-      "box": "LLM training / fine-tuning / RL (infrastructure)",
+      "box": "RL/LLM training stack (own TRIUNE PPO)",
       "status": "PASS",
-      "strength": "WEAK",
-      "evidence": "importable: ppo_trainer, grpo_trainer, distributed_trainer (import only -- not a training-run claim)",
+      "strength": "STRONG",
+      "evidence": "PPOTrainer.get_action -> (256,) action (value=0.077); +grpo_trainer,distributed_trainer importable",
       "detail": ""
     },
     {
@@ -71,8 +71,8 @@
       "name": "world_model",
       "box": "Simulations / world models",
       "status": "PASS",
-      "strength": "MEDIUM",
-      "evidence": "JEPAWorldModel importable (predictive world model)",
+      "strength": "STRONG",
+      "evidence": "JEPAWorldModel (86,732 params) predict_next_state -> (12,) state",
       "detail": ""
     },
     {
@@ -95,8 +95,8 @@
       "name": "quadrature_nexus",
       "box": "Quadrature Nexus (4-voice consensus governance)",
       "status": "PASS",
-      "strength": "MEDIUM",
-      "evidence": "QuadratureNexus importable (4-voice consensus mechanism of the swarm)",
+      "strength": "STRONG",
+      "evidence": "deliberate() ran a 4-voice consensus -> QuadratureResult verdict",
       "detail": ""
     },
     {
@@ -117,11 +117,11 @@
     },
     {
       "name": "semantic_cache",
-      "box": "Caching for large-scale efficiency (avoid recompute)",
-      "status": "SKIP",
-      "strength": "MEDIUM",
-      "evidence": "known latent bug: lemonade_encoder absent at this commit (cache unimportable under worktree src)",
-      "detail": "ModuleNotFoundError(\"No module named 'cohezion.cache.lemonade_encoder'\")"
+      "box": "Caching for large-scale efficiency (real put->get)",
+      "status": "PASS",
+      "strength": "STRONG",
+      "evidence": "put->get round-trip returned '4'; calibrated threshold=0.8 (lemonade_encoder restored)",
+      "detail": ""
     },
     {
       "name": "batching",
@@ -143,8 +143,8 @@
       "name": "worldviews",
       "box": "Worldview lattice (17 traditions x 10 ToE steps)",
       "status": "PASS",
-      "strength": "MEDIUM",
-      "evidence": "17 traditions x 10 ToE cosmogony steps (data registry)",
+      "strength": "STRONG",
+      "evidence": "17 traditions x 10 ToE steps; computed 6 cross-tradition convergences",
       "detail": ""
     },
     {
@@ -229,10 +229,10 @@
     },
     {
       "name": "test_collection",
-      "box": "Strong software engineering (robust, tested infra)",
+      "box": "Strong software engineering (tests run green)",
       "status": "PASS",
-      "strength": "MEDIUM",
-      "evidence": "745 tests collected (modules import; tests not executed) across 5 suites",
+      "strength": "STRONG",
+      "evidence": "executed 15 physics-invariant tests (all passed); 745 collectable across 5 role-relevant suites",
       "detail": ""
     },
     {
