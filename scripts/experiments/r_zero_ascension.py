@@ -113,7 +113,11 @@ def main() -> int:
     rounds = int(sys.argv[1]) if len(sys.argv) > 1 else 30
     deadline_s = float(sys.argv[2]) if len(sys.argv) > 2 else 0.0  # 0 = no wallclock cap
     seed = int(sys.argv[3]) if len(sys.argv) > 3 else 20260601  # vary across overnight cycles
-    episodes, horizon, n_cand = 6, 40, 6
+    # Structural solver budget — swept overnight to test whether the ceiling is budget- or
+    # dynamics-limited: argv[4]=horizon, argv[5]=n_cand (search width), argv[6]=episodes.
+    horizon = int(sys.argv[4]) if len(sys.argv) > 4 else 40
+    n_cand = int(sys.argv[5]) if len(sys.argv) > 5 else 6
+    episodes = int(sys.argv[6]) if len(sys.argv) > 6 else 6
     rng = np.random.default_rng(seed)
     theta = {"pd_gain": 1.0, "explore_noise": 0.1, "explore_threshold": 0.6}
     d = 0.3
@@ -146,6 +150,9 @@ def main() -> int:
                     {
                         "experiment": "r_zero_ascension",
                         "round": rnd,
+                        "seed": seed,
+                        "horizon": horizon,
+                        "n_cand": n_cand,
                         "difficulty": round(d, 4),
                         "success_rate": round(sr, 3),
                         "ceiling": round(ceiling, 4),
@@ -158,7 +165,10 @@ def main() -> int:
         if deadline_s and (time.time() - t0) > deadline_s:
             print(f"\n[deadline {deadline_s:.0f}s reached at round {rnd}]")
             break
-    print(f"\nFINAL capability ceiling (max difficulty held at >=50%): {ceiling:.3f}")
+    print(
+        f"\nFINAL capability ceiling (max difficulty held at >=50%): {ceiling:.3f} "
+        f"[horizon={horizon} n_cand={n_cand} episodes={episodes} seed={seed}]"
+    )
     print("logged -> autoresearch.jsonl")
     return 0
 
