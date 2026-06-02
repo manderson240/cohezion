@@ -22,8 +22,13 @@ def test_build_triune_orchestrator_structure():
     # NOT qwen3.5-4b-FLM (spills to system RAM, 8.6 TPS — 5x slower)
     assert "gaia:llama3.2-1b-FLM" in labels, "N2: NPU tier must use llama3.2-1b-FLM"
     assert "gaia:qwen3.5-4b-FLM" not in labels, "N2: qwen3.5-4b-FLM is banned from NPU tier"
-    assert "gaia:Gemma-4-E4B-it-GGUF" in labels
-    assert "gaia:Gemma-4-31B-it-GGUF" in labels
+    assert "gaia:Gemma-4-31B-it-GGUF" in labels, "CPU tier must be Gemma-4-31B"
+    # iGPU tier is the CLaSp speculative-decoding tier by default (clasp_draft_port=13308):
+    # E2B drafts, E4B verifies. The label must identify both, and the verify model is E4B.
+    igpu_label = labels[1]
+    assert igpu_label.startswith("clasp:"), f"iGPU tier must be CLaSp by default, got {igpu_label}"
+    assert "Gemma-4-E2B-it-GGUF" in igpu_label, "CLaSp draft model must be E2B"
+    assert "Gemma-4-E4B-it-GGUF" in igpu_label, "CLaSp verify model must be E4B"
 
 
 def test_build_triune_orchestrator_quality_gates():
@@ -32,9 +37,9 @@ def test_build_triune_orchestrator_quality_gates():
         "cohezion.inference.triune_orchestrator.build_gaia_native_tier", side_effect=_mock_gaia_tier
     ):
         orch = build_triune_orchestrator()
-    assert orch.tiers[0][1].min_chars == 500
-    assert orch.tiers[1][1].min_chars == 2000
-    assert orch.tiers[2][1].min_chars is None
+    assert orch.tiers[0][1].min_chars == 500  # NPU: solid start
+    assert orch.tiers[1][1].min_chars == 750  # iGPU: calibrated (EXP-ROUTE-12)
+    assert orch.tiers[2][1].min_chars is None  # CPU: TRUST (guaranteed completion)
 
 
 def test_build_triune_orchestrator_pre_dispatch_classifier_wired():
@@ -56,5 +61,6 @@ def test_build_triune_orchestrator_npu_first():
     ):
         orch = build_triune_orchestrator()
     assert orch.tiers[0][0].label == "gaia:llama3.2-1b-FLM", "NPU must be tier 0"
-    assert orch.tiers[1][0].label == "gaia:Gemma-4-E4B-it-GGUF", "iGPU must be tier 1"
+    assert orch.tiers[1][0].label.startswith("clasp:"), "iGPU (CLaSp) must be tier 1"
+    assert "Gemma-4-E4B-it-GGUF" in orch.tiers[1][0].label, "iGPU CLaSp must verify with E4B"
     assert orch.tiers[2][0].label == "gaia:Gemma-4-31B-it-GGUF", "CPU must be tier 2"

@@ -251,11 +251,15 @@ def test_build_clasp_igpu_tier_custom_acceptance_chars(monkeypatch):
 
 def test_build_clasp_igpu_tier_label_from_model_names(monkeypatch):
     _patch_gaia(monkeypatch)
-    draft_model = "DraftModelX"
-    verify_model = "VerifyModelY"
+    # Real same-prefix names: a truncating label (e.g. the old [:6]) collapses both
+    # to "Gemma-", hiding the draft/verify distinction. The label must keep full names.
+    draft_model = "Gemma-4-E2B-it-GGUF"
+    verify_model = "Gemma-4-E4B-it-GGUF"
     tier = build_clasp_igpu_tier(draft_model=draft_model, verify_model=verify_model)
     # Source uses the unicode arrow (→), not "->" — match source ground truth.
-    assert tier.label == f"clasp:{draft_model[:6]}→{verify_model[:6]}"
+    assert tier.label == f"clasp:{draft_model}→{verify_model}"
+    # Discriminating: draft (E2B) and verify (E4B) must remain distinguishable.
+    assert "E2B" in tier.label and "E4B" in tier.label
 
 
 def test_build_clasp_igpu_tier_offline_no_network(monkeypatch):

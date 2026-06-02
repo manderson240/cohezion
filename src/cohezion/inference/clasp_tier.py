@@ -208,5 +208,5 @@ def build_clasp_igpu_tier(
         draft_tier=draft_tier,
         verify_tier=verify_tier,
         draft_gate=QualityGate(min_chars=draft_acceptance_chars),
-        label=f"clasp:{draft_model[:6]}→{verify_model[:6]}",
+        label=f"clasp:{draft_model}→{verify_model}",
     )
