@@ -27,11 +27,10 @@ future ``run_task`` edit will call. No new infra; pure composition of existing m
 
 from __future__ import annotations
 
-import re
 from dataclasses import dataclass, field
 from enum import StrEnum
 
-from cohezion.agent.skill_adaptor import adapt_skill, attribute_fault
+from cohezion.agent.skill_adaptor import adapt_skill, attribute_fault, mask_volatile
 
 
 __all__ = ["ErrorClass", "ErrorClassifier", "ReDispatchLedger", "error_signature", "reflect"]
@@ -54,16 +53,15 @@ _CLASS_BUDGET: dict[ErrorClass, int] = {
     ErrorClass.PERMANENT: 0,
 }
 
-_MASK = re.compile(r"0x[0-9a-fA-F]+|/[^\s'\"]+|\b\d+\.?\d*\b|'[^']*'|\"[^\"]*\"")
-
 
 def error_signature(skill: str, reason: str) -> str:
     """Value-masked fault fingerprint: same failure mode -> same key across runs.
 
-    Masks volatile tokens (hex addresses, file paths, numbers, quoted literals) so
-    'disk full at /tmp/a/1' and 'disk full at /var/b/9' collapse to one signature.
+    Uses the shared ``mask_volatile`` (from skill_adaptor) so the ledger's bound key and the trust
+    store's guard key dedupe a fault to the SAME mode: 'disk full at /tmp/a/1' and
+    'disk full at /var/b/9' collapse to one signature AND one guard.
     """
-    masked = _MASK.sub("#", reason.lower())
+    masked = mask_volatile(reason.lower())
     masked = " ".join(masked.split())[:120]
     return f"{skill}:{masked}"
 

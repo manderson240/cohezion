@@ -75,6 +75,8 @@ class TrustedFact:
             self.contradictions += 1
 
     def to_dict(self) -> dict:
+        # alpha/beta are included so from_dict is LOSSLESS — ``trust`` is a derived convenience field
+        # for human readers, never the source of truth (rounding it would corrupt a round-trip).
         return {
             "content": self.content,
             "tier": int(self.tier),
@@ -82,7 +84,22 @@ class TrustedFact:
             "trust": round(self.trust, 4),
             "corroborations": self.corroborations,
             "contradictions": self.contradictions,
+            "alpha": self.alpha,
+            "beta": self.beta,
         }
+
+    @classmethod
+    def from_dict(cls, state: dict) -> TrustedFact:
+        """Reconstruct a fact losslessly (tier + full Beta posterior survive — trust is recomputed)."""
+        return cls(
+            content=state["content"],
+            tier=TrustTier(state.get("tier", int(TrustTier.UNVERIFIED))),
+            entity=state.get("entity"),
+            corroborations=state.get("corroborations", 0),
+            contradictions=state.get("contradictions", 0),
+            alpha=state.get("alpha", 1.0),
+            beta=state.get("beta", 1.0),
+        )
 
 
 @dataclass
@@ -183,6 +200,19 @@ class GroundTruthHierarchy:
             self.add(str(content), tier, entity=d.get("entity"))
             n += 1
         return n
+
+    def to_dict(self) -> dict:
+        """Serialize the whole store losslessly (each fact keeps tier + full Beta posterior)."""
+        return {"facts": [f.to_dict() for f in self._facts.values()]}
+
+    @classmethod
+    def from_dict(cls, state: dict) -> GroundTruthHierarchy:
+        """Rehydrate a store from ``to_dict`` — tier and trust posterior survive the round-trip."""
+        h = cls()
+        for fd in state.get("facts", []):
+            fact = TrustedFact.from_dict(fd)
+            h._facts[_norm(fact.content)] = fact
+        return h
 
     def __len__(self) -> int:
         return len(self._facts)

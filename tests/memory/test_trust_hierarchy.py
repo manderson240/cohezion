@@ -137,3 +137,20 @@ def test_corroborate_existing_and_missing():
     h.corroborate("claim", agree=True)  # e.g. 4-voice consensus agreed
     assert h.rank()[0].trust > before
     assert h.corroborate("does not exist", agree=True) is None
+
+
+def test_serialization_round_trip_preserves_tier_and_posterior():
+    """to_dict/from_dict must be LOSSLESS — tier + full Beta posterior survive (durability claim)."""
+    from cohezion.memory.trust_hierarchy import TrustTier
+
+    h = GroundTruthHierarchy()
+    h.add("verified base url", TrustTier.STRUCTURED_FACT)
+    h.add("verified base url", TrustTier.STRUCTURED_FACT)  # corroborate -> non-default posterior
+    h.add("a flaky guard")
+    h.corroborate("a flaky guard", agree=False)  # contradiction -> distinct posterior
+    before = {f.content: (int(f.tier), round(f.trust, 6)) for f in h.rank()}
+
+    h2 = GroundTruthHierarchy.from_dict(h.to_dict())
+    after = {f.content: (int(f.tier), round(f.trust, 6)) for f in h2.rank()}
+    assert before == after  # tier AND trust posterior identical across the round-trip
+    assert len(h2) == len(h)

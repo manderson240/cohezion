@@ -27,11 +27,31 @@ revised, and only when the acceptance check passes.
 
 from __future__ import annotations
 
+import re
 from collections.abc import Callable
 from dataclasses import dataclass
 
 
-__all__ = ["AcceptanceCheck", "FaultAttribution", "SkillUpdate", "adapt_skill", "attribute_fault"]
+__all__ = [
+    "AcceptanceCheck",
+    "FaultAttribution",
+    "SkillUpdate",
+    "adapt_skill",
+    "attribute_fault",
+    "mask_volatile",
+]
+
+# Volatile tokens (hex addrs, paths, numbers, quoted literals) that vary run-to-run for the SAME
+# fault mode. Masking them to '#' yields a stable string so a recurring fault corroborates ONE guard
+# instead of creating a fresh trust=0.5 fact each time (which would never cross the injection floor).
+# This is the SINGLE source of masking shared with error_loop.error_signature, so the livelock ledger
+# key and the trust-store guard key agree — both halves of the loop dedupe a fault to the same mode.
+_VOLATILE = re.compile(r"0x[0-9a-fA-F]+|/[^\s'\"]+|\b\d+\.?\d*\b|'[^']*'|\"[^\"]*\"")
+
+
+def mask_volatile(text: str) -> str:
+    """Replace volatile tokens (hex, paths, numbers, quoted literals) with '#'."""
+    return _VOLATILE.sub("#", text)
 
 
 def _tool_error(tc: object) -> str | None:
@@ -162,7 +182,9 @@ def adapt_skill(
     gate = acceptance or AcceptanceCheck()
     accepted = gate.accepts(update, attribution)
     if trust is not None and hasattr(trust, "add"):
-        fact = f"skill '{update.skill}' guarded against: {attribution.reason}"
+        # Mask volatile tokens so recurrences of the SAME fault mode corroborate one guard (and cross
+        # the injection floor) instead of piling up fresh trust=0.5 facts that are never read back.
+        fact = f"skill '{update.skill}' guarded against: {mask_volatile(attribution.reason)}"
         trust.add(fact)  # entity-resolved; re-adoption corroborates
         # A rejected revision is a contradiction — but only record it if the trust object actually
         # supports corroborate(); a partial object (add but no corroborate) must not crash the loop.
