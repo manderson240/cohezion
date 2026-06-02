@@ -129,3 +129,28 @@ def test_adapt_rejected_records_contradiction():
     assert out["adapted"] is False
     fact = trust.rank()[0]
     assert fact.contradictions == 1 and fact.trust < 0.5  # rejection lowered trust
+
+
+def test_adapt_partial_trust_without_corroborate_does_not_crash():
+    """A trust object exposing add() but NOT corroborate() must not crash a rejected adaptation.
+
+    Latent before the guard: the rejected branch called trust.corroborate() unconditionally, so a
+    partial trust object + a rejecting AcceptanceCheck raised AttributeError up through reflect().
+    """
+
+    class _PartialTrust:
+        def __init__(self):
+            self.facts = []
+
+        def add(self, fact):
+            self.facts.append(fact)
+
+        # deliberately NO corroborate()
+
+    n = _node("t0", 0, [_tc("write", error="disk full")])
+    trust = _PartialTrust()
+    out = adapt_skill(
+        _trace(n, [n]), acceptance=AcceptanceCheck(predicate=lambda u, a: False), trust=trust
+    )
+    assert out["adapted"] is False  # rejected, but no crash
+    assert trust.facts == ["skill 'write' guarded against: disk full"]  # add() still recorded it

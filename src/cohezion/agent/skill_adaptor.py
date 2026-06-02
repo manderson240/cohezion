@@ -163,11 +163,11 @@ def adapt_skill(
     accepted = gate.accepts(update, attribution)
     if trust is not None and hasattr(trust, "add"):
         fact = f"skill '{update.skill}' guarded against: {attribution.reason}"
-        if accepted:
-            trust.add(fact)  # entity-resolved; re-adoption corroborates
-        else:
-            trust.add(fact)
-            trust.corroborate(fact, agree=False)  # rejected revision = a contradiction
+        trust.add(fact)  # entity-resolved; re-adoption corroborates
+        # A rejected revision is a contradiction — but only record it if the trust object actually
+        # supports corroborate(); a partial object (add but no corroborate) must not crash the loop.
+        if not accepted and hasattr(trust, "corroborate"):
+            trust.corroborate(fact, agree=False)
     return {
         "adapted": accepted,
         "attribution": attribution.to_dict(),
