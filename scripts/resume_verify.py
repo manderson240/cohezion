@@ -474,28 +474,45 @@ def check_batching() -> CheckResult:
 
 
 def check_local_inference() -> CheckResult:
-    """MEDIUM: local AMD fleet — NPU/iGPU/CPU triune routing, $0, no cloud (structural, no network)."""
+    """STRONG: run a REAL $0 inference on local AMD silicon (no cloud fallback).
+
+    Calls Cohezion's local execute fn, which routes to the triune fleet over direct HTTP
+    (NPU llama3.2-1b-FLM / iGPU / CPU). Asserts a non-empty answer AND cost_usd == 0.0 AND
+    zero cloud escalations — the literal "local silicon as agent interface" claim, verified.
+    Degrades to SKIP when the local fleet is offline (env-gated, honest).
+    """
     box = "Local-first inference fleet (NPU/iGPU/CPU, $0)"
     try:
+        import asyncio
         import inspect
 
-        from cohezion.inference.fleet import extend_claude  # noqa: F401
-        from cohezion.inference.triune_orchestrator import build_triune_orchestrator
+        from cohezion.compound.local_inference import lemonade_available, make_local_execute_fn
 
-        params = inspect.signature(build_triune_orchestrator).parameters
-        npu = params["npu_port"].default
-        igpu = params["igpu_port"].default
-        cpu = params["cpu_port"].default
-        ok = (npu, igpu, cpu) == (13306, 13307, 13309)
+        if not lemonade_available():
+            return CheckResult(
+                "local_inference",
+                box,
+                "SKIP",
+                STRONG,
+                "local lemonade fleet offline (env-gated); start lemonade to verify the $0 path",
+            )
+        fn = make_local_execute_fn()
+        out = fn("Reply with only the number: what is 2+2?")
+        if inspect.isawaitable(out):
+            out = asyncio.run(out)
+        text, meta = out if isinstance(out, tuple) else (out, {})
+        cost = float(meta.get("cost_usd", 0.0)) if isinstance(meta, dict) else 0.0
+        escalations = int(meta.get("escalation_count", 0)) if isinstance(meta, dict) else 0
+        ok = bool(str(text).strip()) and cost == 0.0 and escalations == 0
         return CheckResult(
             "local_inference",
             box,
             "PASS" if ok else "FAIL",
-            MEDIUM,
-            f"triune fleet NPU={npu}/iGPU={igpu}/CPU={cpu}; extend_claude() quality-gated escalation",
+            STRONG,
+            f"REAL local inference: {str(text).strip()[:20]!r} via {meta.get('model', '?') if isinstance(meta, dict) else '?'} @ cost_usd={cost}, cloud_escalations={escalations}",
         )
     except Exception as exc:
-        return CheckResult("local_inference", box, "FAIL", MEDIUM, "import failed", repr(exc))
+        return CheckResult("local_inference", box, "FAIL", STRONG, "raised", repr(exc))
 
 
 def check_cosmogony() -> CheckResult:
