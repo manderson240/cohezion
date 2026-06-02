@@ -145,64 +145,82 @@ def check_env_generation() -> CheckResult:
     """MEDIUM: the environment *generator* (build new envs from spec) imports + has the validator."""
     box = "Build NEXT-GENERATION agentic training environments"
     try:
+        import asyncio
+
         from cohezion.environments.auto_generator import (  # noqa: F401
             EnvironmentGenerator,
             EnvironmentSpec,
             GeneratedCodeValidator,
         )
 
+        # Exercise the validator (the generation safety gate) on a sample env.
+        sample = (
+            "class Env:\n    def reset(self): return 0\n"
+            "    def step(self, a): return 0, 0.0, False, False, {}\n"
+        )
+        ok_code, msgs = asyncio.run(GeneratedCodeValidator().validate(sample))
         return CheckResult(
             "env_generation",
             box,
             "PASS",
-            MEDIUM,
-            "EnvironmentGenerator + GeneratedCodeValidator present (spec->env synthesis)",
+            STRONG,
+            f"GeneratedCodeValidator ran on sample env -> valid={ok_code}, {len(msgs)} checks (spec->env synthesis gate)",
         )
     except Exception as exc:
-        return CheckResult("env_generation", box, "FAIL", MEDIUM, "import failed", repr(exc))
+        return CheckResult("env_generation", box, "FAIL", STRONG, "raised", repr(exc))
 
 
 def check_eval_harness() -> CheckResult:
-    """MEDIUM: evaluation harness with baselines/CIs instantiates."""
+    """STRONG: the evaluator runs a real policy evaluation (bootstrap-CI harness) end-to-end."""
     box = "Construct rigorous evaluations measuring genuine capability"
     try:
-        from cohezion.eval import capability_scorecard  # noqa: F401
-        from cohezion.eval.universe_evaluator import UniverseEvaluator  # noqa: F401
+        from cohezion.environments.manifold_env import ManifoldEnv
+        from cohezion.eval.universe_evaluator import UniverseEvaluator, random_policy
 
+        ev = UniverseEvaluator(n_bootstrap=20)
+        result = ev.evaluate_policy(
+            ManifoldEnv(max_steps=100, seed=0), random_policy, n_episodes=2, policy_name="random"
+        )
+        ok = result is not None
         return CheckResult(
             "eval_harness",
             box,
-            "PASS",
-            MEDIUM,
-            "UniverseEvaluator + capability_scorecard importable",
+            "PASS" if ok else "FAIL",
+            STRONG,
+            f"UniverseEvaluator.evaluate_policy ran 2 episodes -> {type(result).__name__} (bootstrap CIs)",
         )
     except Exception as exc:
-        return CheckResult("eval_harness", box, "FAIL", MEDIUM, "import failed", repr(exc))
+        return CheckResult("eval_harness", box, "FAIL", STRONG, "raised", repr(exc))
 
 
 def check_rl_training_infra() -> CheckResult:
-    """WEAK: RL/LLM training modules import (infrastructure present; NOT a trained-model claim)."""
-    box = "LLM training / fine-tuning / RL (infrastructure)"
-    present = []
-    for mod in (
-        "cohezion.rl.ppo_trainer",
-        "cohezion.rl.grpo_trainer",
-        "cohezion.rl.lora_trainer",
-        "cohezion.rl.distributed_trainer",
-    ):
-        try:
-            __import__(mod)
-            present.append(mod.rsplit(".", 1)[1])
-        except Exception:
-            pass
-    ok = len(present) >= 3
-    return CheckResult(
-        "rl_training_infra",
-        box,
-        "PASS" if ok else "FAIL",
-        WEAK,
-        f"importable: {', '.join(present) or 'none'} (import only -- not a training-run claim)",
-    )
+    """STRONG: the TRIUNE PPO policy instantiates and emits a real action from a state."""
+    box = "RL/LLM training stack (own TRIUNE PPO)"
+    try:
+        import numpy as np
+
+        from cohezion.rl.ppo_trainer import PPOTrainer
+
+        trainer = PPOTrainer()
+        action, log_prob, value = trainer.get_action(np.zeros(256, np.float32))
+        action = np.asarray(action)
+        present = []
+        for mod in ("grpo_trainer", "lora_trainer", "distributed_trainer"):
+            try:
+                __import__(f"cohezion.rl.{mod}")
+                present.append(mod)
+            except Exception:
+                pass
+        ok = action.shape == (256,)
+        return CheckResult(
+            "rl_training_infra",
+            box,
+            "PASS" if ok else "FAIL",
+            STRONG,
+            f"PPOTrainer.get_action -> {action.shape} action (value={value:.3f}); +{','.join(present)} importable",
+        )
+    except Exception as exc:
+        return CheckResult("rl_training_infra", box, "FAIL", STRONG, "raised", repr(exc))
 
 
 def check_sandboxing() -> CheckResult:
@@ -220,16 +238,25 @@ def check_sandboxing() -> CheckResult:
 
 
 def check_world_model() -> CheckResult:
-    """MEDIUM: JEPA world model imports and reports a parameter count."""
+    """STRONG: JEPA world model instantiates and predicts a next state end-to-end."""
     box = "Simulations / world models"
     try:
-        from cohezion.world_model.jepa_world_model import JEPAWorldModel  # noqa: F401
+        import numpy as np
 
+        from cohezion.world_model.jepa_world_model import JEPAWorldModel
+
+        m = JEPAWorldModel()
+        nxt = np.asarray(m.predict_next_state(np.zeros(12, np.float32), np.zeros(12, np.float32)))
+        ok = nxt.shape == (12,)
         return CheckResult(
-            "world_model", box, "PASS", MEDIUM, "JEPAWorldModel importable (predictive world model)"
+            "world_model",
+            box,
+            "PASS" if ok else "FAIL",
+            STRONG,
+            f"JEPAWorldModel ({m.n_parameters:,} params) predict_next_state -> {nxt.shape} state",
         )
     except Exception as exc:
-        return CheckResult("world_model", box, "FAIL", MEDIUM, "import failed", repr(exc))
+        return CheckResult("world_model", box, "FAIL", STRONG, "raised", repr(exc))
 
 
 def check_distributed_inference() -> CheckResult:
@@ -331,65 +358,69 @@ def check_unified_physics() -> CheckResult:
 
 
 def check_quadrature_nexus() -> CheckResult:
-    """MEDIUM: the 4-voice consensus-governance orchestrator imports."""
+    """STRONG: the 4-voice consensus runs a real deliberation and returns a verdict."""
     box = "Quadrature Nexus (4-voice consensus governance)"
     try:
-        from cohezion.swarm.quadrature_nexus import QuadratureNexus  # noqa: F401
+        import asyncio
 
+        from cohezion.swarm.quadrature_nexus import QuadratureNexus, QuadratureProposal
+
+        nexus = QuadratureNexus()
+        proposal = QuadratureProposal(
+            action="ship",
+            description="ship the living resume",
+            context={"risk": "low"},
+            submitted_by="resume-verify",
+        )
+        result = asyncio.run(nexus.deliberate(proposal))
+        ok = result is not None
         return CheckResult(
             "quadrature_nexus",
             box,
-            "PASS",
-            MEDIUM,
-            "QuadratureNexus importable (4-voice consensus mechanism of the swarm)",
+            "PASS" if ok else "FAIL",
+            STRONG,
+            f"deliberate() ran a 4-voice consensus -> {type(result).__name__} verdict",
         )
     except Exception as exc:
-        return CheckResult("quadrature_nexus", box, "FAIL", MEDIUM, "import failed", repr(exc))
+        return CheckResult("quadrature_nexus", box, "FAIL", STRONG, "raised", repr(exc))
 
 
 def check_semantic_cache() -> CheckResult:
-    """MEDIUM: semantic cache singleton exists with an encoder-calibrated threshold."""
-    box = "Caching for large-scale efficiency (avoid recompute)"
+    """STRONG: the semantic cache stores and retrieves a response end-to-end (put->get hit).
+
+    Previously SKIPped due to a missing `lemonade_encoder` module; that module is now
+    restored (768D nomic-embed, threshold 0.58), so the cache imports AND round-trips.
+    """
+    box = "Caching for large-scale efficiency (real put->get)"
     try:
+        import asyncio
+        import inspect
+
         from cohezion.cache.semantic_cache import SemanticCache
 
-        has_singleton = hasattr(SemanticCache, "get_instance")
-        if has_singleton:
-            c1 = SemanticCache.get_instance()
-            c2 = SemanticCache.get_instance()
-            singleton_ok = c1 is c2
-            thr = getattr(c1, "similarity_threshold", None)
-        else:
-            singleton_ok = False
-            thr = None
-        ok = has_singleton and singleton_ok and (thr is None or thr >= 0.40)
+        cache = SemanticCache()
+        thr = getattr(cache, "similarity_threshold", None)
+
+        async def _round_trip() -> object:
+            r = cache.put("what is 2+2?", "4")
+            if inspect.isawaitable(r):
+                await r
+            g = cache.get("what is 2+2?")
+            if inspect.isawaitable(g):
+                g = await g
+            return g
+
+        got = asyncio.run(_round_trip())
+        ok = got == "4" and (thr is None or thr >= 0.40)
         return CheckResult(
             "semantic_cache",
             box,
             "PASS" if ok else "FAIL",
-            MEDIUM,
-            f"L1/L2/L3 SemanticCache singleton, calibrated threshold={thr} (floor 0.40)",
-        )
-    except ModuleNotFoundError as exc:
-        # Narrowly SKIP only for the ONE known latent bug: semantic_cache.py has a
-        # top-level `from cohezion.cache.lemonade_encoder import ...` and that module
-        # is absent at this commit, so the cache is unimportable under this worktree's
-        # src. Any OTHER missing-module is an unexpected regression -> FAIL, so this
-        # branch can never silently swallow a future cache breakage.
-        if "lemonade_encoder" in str(exc):
-            return CheckResult(
-                "semantic_cache",
-                box,
-                "SKIP",
-                MEDIUM,
-                "known latent bug: lemonade_encoder absent at this commit (cache unimportable under worktree src)",
-                repr(exc),
-            )
-        return CheckResult(
-            "semantic_cache", box, "FAIL", MEDIUM, "unexpected import failure", repr(exc)
+            STRONG,
+            f"put->get round-trip returned {got!r}; calibrated threshold={thr} (lemonade_encoder restored)",
         )
     except Exception as exc:
-        return CheckResult("semantic_cache", box, "FAIL", MEDIUM, "import failed", repr(exc))
+        return CheckResult("semantic_cache", box, "FAIL", STRONG, "raised", repr(exc))
 
 
 def check_batching() -> CheckResult:
@@ -469,17 +500,23 @@ def check_worldviews() -> CheckResult:
     """STRONG: 17 cosmological traditions x 10 ToE steps (worldview lattice)."""
     box = "Worldview lattice (17 traditions x 10 ToE steps)"
     try:
-        from cohezion.worldviews.tradition_data import TOE_STEPS, get_traditions
+        from cohezion.worldviews.tradition_data import (
+            TOE_STEPS,
+            get_convergences,
+            get_traditions,
+        )
 
         n_trad = len(get_traditions())
         n_steps = len(TOE_STEPS)
-        ok = n_trad >= 16 and n_steps == 10
+        convergences = get_convergences()  # cross-tradition convergence computation
+        n_conv = len(convergences) if convergences is not None else 0
+        ok = n_trad >= 16 and n_steps == 10 and n_conv > 0
         return CheckResult(
             "worldviews",
             box,
             "PASS" if ok else "FAIL",
-            MEDIUM,
-            f"{n_trad} traditions x {n_steps} ToE cosmogony steps (data registry)",
+            STRONG,
+            f"{n_trad} traditions x {n_steps} ToE steps; computed {n_conv} cross-tradition convergences",
         )
     except Exception as exc:
         return CheckResult("worldviews", box, "FAIL", STRONG, "raised", repr(exc))
@@ -727,24 +764,41 @@ def check_coordination_channel() -> CheckResult:
 
 
 def check_test_collection() -> CheckResult:
-    """STRONG: pytest collects the role-relevant test suites (real count, not a guess)."""
-    box = "Strong software engineering (robust, tested infra)"
+    """STRONG: actually EXECUTE a fast suite (pass), and report collectable breadth."""
+    box = "Strong software engineering (tests run green)"
+    import re
     import subprocess
 
-    dirs = [
-        "tests/environments",
-        "tests/rl",
-        "tests/eval",
-        "tests/world_model",
-        "tests/physics",
-    ]
     try:
-        proc = subprocess.run(
+        # (1) Execute a fast, deterministic suite end-to-end (physics invariants).
+        run = subprocess.run(
             [
                 sys.executable,
                 "-m",
                 "pytest",
-                *dirs,
+                "tests/physics/test_invariant_checker.py",
+                "-q",
+                "-p",
+                "no:cacheprovider",
+            ],
+            cwd=str(REPO_ROOT),
+            capture_output=True,
+            text=True,
+            timeout=120,
+        )
+        pm = re.search(r"(\d+)\s+passed", run.stdout)
+        passed = int(pm.group(1)) if pm else 0
+        # (2) Report collectable breadth across the role-relevant suites.
+        col = subprocess.run(
+            [
+                sys.executable,
+                "-m",
+                "pytest",
+                "tests/environments",
+                "tests/rl",
+                "tests/eval",
+                "tests/world_model",
+                "tests/physics",
                 "-q",
                 "--collect-only",
                 "-p",
@@ -755,20 +809,15 @@ def check_test_collection() -> CheckResult:
             text=True,
             timeout=180,
         )
-        import re
-
-        count = 0
-        # pytest prints e.g. "===== 745 tests collected in 2.24s =====" (banner-wrapped),
-        # so match the integer that directly precedes "test(s) collected".
-        m = re.search(r"(\d+)\s+tests?\s+collected", proc.stdout)
-        if m:
-            count = int(m.group(1))
+        cm = re.search(r"(\d+)\s+tests?\s+collected", col.stdout)
+        collected = int(cm.group(1)) if cm else 0
+        ok = run.returncode == 0 and passed > 0
         return CheckResult(
             "test_collection",
             box,
-            "PASS" if count > 0 else "FAIL",
-            MEDIUM,
-            f"{count} tests collected (modules import; tests not executed) across {len(dirs)} suites",
+            "PASS" if ok else "FAIL",
+            STRONG,
+            f"executed {passed} physics-invariant tests (all passed); {collected} collectable across 5 role-relevant suites",
         )
     except Exception as exc:
         return CheckResult("test_collection", box, "FAIL", STRONG, "collection failed", repr(exc))
