@@ -4,16 +4,14 @@ Covers CLaSpStats math (acceptance_rate, speedup_vs_verify_only, summary with
 its division guards), the module-level get_clasp_stats() singleton, the
 build_clasp_igpu_tier() factory (patched to stay offline), and CLaSpTier.run().
 
-KNOWN SOURCE BUG (documented via xfail, not worked around):
-    CLaSpTier.run() constructs OrchestrationResult with kwargs ``model=`` and
-    ``total_ms=`` which do not exist on the dataclass (it requires
-    ``primary_model``/``final_model``/``escalation_count`` and uses
-    ``latency_ms``), and reads ``draft_result.model`` which is also absent.
-    Every return path of run() therefore raises AttributeError. The three
-    tests that assert run()'s *return value* are xfail(strict=True) so they
-    flip to XPASS the day run() is fixed. The stat side-effects (total_calls,
-    total_draft_ms, total_verify_ms, draft_rejected) all happen *before* the
-    crashing construction, so those tests pass by tolerating the raise.
+run() returns a valid OrchestrationResult on every path:
+    - accept path: primary/final model "clasp-draft:<model>", escalation_count=0
+    - verify path: final model "clasp-verify:<model>", escalation_count=1
+    Earlier, run() built OrchestrationResult with nonexistent ``model=``/``total_ms=``
+    kwargs and read ``draft_result.model``, so every return path raised
+    AttributeError; this was caught by xfail(strict=True) bug-bridge tests and
+    fixed in src/cohezion/inference/clasp_tier.py (the bridges are now ordinary
+    passing assertions on run()'s return value).
 """
 
 from __future__ import annotations
@@ -281,12 +279,6 @@ def test_run_is_async():
 
 
 @pytest.mark.asyncio
-@pytest.mark.xfail(
-    strict=True,
-    raises=AttributeError,
-    reason="clasp_tier.run() builds OrchestrationResult with nonexistent "
-    "model=/total_ms= kwargs and reads .model; raises AttributeError",
-)
 async def test_run_accept_path_increments_accepted_and_skips_verify():
     clasp_tier_mod._clasp_stats = CLaSpStats()
     draft = _FakeTier("x" * 300)  # passes gate of 200
@@ -300,12 +292,6 @@ async def test_run_accept_path_increments_accepted_and_skips_verify():
 
 
 @pytest.mark.asyncio
-@pytest.mark.xfail(
-    strict=True,
-    raises=AttributeError,
-    reason="clasp_tier.run() builds OrchestrationResult with nonexistent "
-    "model=/total_ms= kwargs; raises AttributeError on verify return path",
-)
 async def test_run_reject_path_calls_verify_and_increments_rejected():
     clasp_tier_mod._clasp_stats = CLaSpStats()
     draft = _FakeTier("short")  # fails gate of 200
@@ -319,12 +305,6 @@ async def test_run_reject_path_calls_verify_and_increments_rejected():
 
 
 @pytest.mark.asyncio
-@pytest.mark.xfail(
-    strict=True,
-    raises=AttributeError,
-    reason="clasp_tier.run() builds OrchestrationResult with nonexistent "
-    "model=/total_ms= kwargs; raises AttributeError on verify return path",
-)
 async def test_run_draft_exception_increments_unavailable_and_falls_through():
     clasp_tier_mod._clasp_stats = CLaSpStats()
     draft = _RaisingTier()
@@ -340,31 +320,23 @@ async def test_run_draft_exception_increments_unavailable_and_falls_through():
 
 @pytest.mark.asyncio
 async def test_run_increments_total_calls():
-    # total_calls is incremented at the top of run(), before any crashing
-    # construction. Tolerate the known run() bug and assert the side-effect.
+    # total_calls is incremented at the top of run().
     clasp_tier_mod._clasp_stats = CLaSpStats()
     draft = _FakeTier("short")
     verify = _FakeTier("y" * 900)
     tier = CLaSpTier(draft_tier=draft, verify_tier=verify, draft_gate=QualityGate(min_chars=200))
-    try:
-        await tier.run("hello")
-    except Exception:
-        pass  # run() raises AttributeError post-increment (known bug)
+    await tier.run("hello")
     assert get_clasp_stats().total_calls == 1
 
 
 @pytest.mark.asyncio
 async def test_run_accumulates_draft_and_verify_ms():
-    # Draft timing (line 123) and verify timing (line 154) both accumulate
-    # before run()'s crashing return construction.
+    # Draft timing and verify timing both accumulate on the reject path.
     clasp_tier_mod._clasp_stats = CLaSpStats()
     draft = _FakeTier("short")  # reject path: draft + verify both run
     verify = _FakeTier("y" * 900)
     tier = CLaSpTier(draft_tier=draft, verify_tier=verify, draft_gate=QualityGate(min_chars=200))
-    try:
-        await tier.run("hello")
-    except Exception:
-        pass  # known run() bug raises after ms accumulation
+    await tier.run("hello")
     stats = get_clasp_stats()
     assert stats.total_draft_ms >= 0.0
     assert stats.total_draft_ms > 0.0

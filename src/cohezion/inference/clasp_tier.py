@@ -131,13 +131,15 @@ class CLaSpTier:
                     draft_ms,
                     len(draft_result.text),
                 )
+                draft_model = f"clasp-draft:{draft_result.final_model}"
                 return OrchestrationResult(
                     text=draft_result.text,
-                    model=f"clasp-draft:{draft_result.model}",
+                    primary_model=draft_model,
+                    final_model=draft_model,
+                    escalation_count=0,
                     cost_usd=draft_result.cost_usd,
-                    total_ms=draft_ms,
+                    latency_ms=draft_ms,
                     ttft_ms=draft_result.ttft_ms,
-                    tier_path=[f"clasp-draft:{draft_result.model}"],
                     error=None,
                 )
             else:
@@ -153,13 +155,17 @@ class CLaSpTier:
         verify_ms = (time.perf_counter() - verify_start) * 1000
         _clasp_stats.total_verify_ms += verify_ms
 
+        draft_label = (
+            f"clasp-draft:{draft_result.final_model}" if draft_result else "clasp-draft:unavailable"
+        )
         return OrchestrationResult(
             text=verify_result.text,
-            model=f"clasp-verify:{verify_result.model}",
+            primary_model=draft_label,
+            final_model=f"clasp-verify:{verify_result.final_model}",
+            escalation_count=1,
             cost_usd=(draft_result.cost_usd if draft_result else 0.0) + verify_result.cost_usd,
-            total_ms=verify_ms + (draft_ms if draft_result else 0.0),
+            latency_ms=verify_ms + (draft_ms if draft_result else 0.0),
             ttft_ms=verify_result.ttft_ms,
-            tier_path=["clasp-draft:rejected", f"clasp-verify:{verify_result.model}"],
             error=verify_result.error,
         )
 
