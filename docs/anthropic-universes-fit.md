@@ -53,18 +53,18 @@ Legend: ✅ verified live by `resume_verify.py` · 📄 evidence in-repo · 🌐
 | **Building RL environments / simulations** | `Cohezion/ManifoldEnv-v0` (19D obs / 12D action) resets, steps, returns finite verifiable reward; `SwarmEnv` multi-agent; `arc_env.py` | STRONG | ✅ `env_rollout` |
 | **Build *next-generation* training environments** | `environments/auto_generator.py`: `EnvironmentGenerator` + `GeneratedCodeValidator` synthesize + validate new envs from spec | MEDIUM | ✅ `env_generation` |
 | **Rigorous, reproducible evaluations** | Same seed reproduces reward exactly; `eval/universe_evaluator.py` (bootstrap CIs, ≥3 baselines) + `capability_scorecard.py` | STRONG / MEDIUM | ✅ `reward_determinism`, `eval_harness` |
-| **Evaluation breadth (agentic/coding benchmarks)** | `benchmarks/{agentic_benchmark,coding_benchmark,cyber_benchmark,benchmark_suite}.py`; `competition/` (ARC-AGI-3 solver + eval-identity checks) | MEDIUM | ✅ `eval_benchmarks` |
+| **Evaluation breadth (agentic/coding benchmarks)** | `benchmarks/{agentic_benchmark,coding_benchmark,cyber_benchmark,benchmark_suite}.py`; `competition/` (ARC-AGI-3 solver + eval-identity checks) | WEAK *(import only)* | ✅ `eval_benchmarks` |
 | **LLM training / fine-tuning / RL** | `rl/{ppo,grpo,distributed,lora}_trainer.py` import; GRPO + LoRA present | WEAK *(import only — not a training-run claim)* | ✅ `rl_training_infra` |
 | **Sandboxing / containerization / isolation** | `sandbox/isolation.py`, `sandboxing/executor.py`, `sandbox/shadow_worktree.py`, `Dockerfile`; Kaggle Blackwell handshake (containerized GPU) | MEDIUM | ✅ `sandboxing` |
-| **Large-scale / distributed ML infrastructure** | `inference/orchestrator.py` `TieredOrchestrator` routes across NPU/iGPU/CPU local fleet | MEDIUM | ✅ `distributed_inference` |
+| **Heterogeneous-accelerator ML infrastructure** | `inference/orchestrator.py` `TieredOrchestrator` routes across NPU/iGPU/CPU on a *single* Strix Halo box (heterogeneous local fleet — **not** cluster-scale distributed training; honest scoping) | MEDIUM | ✅ `distributed_inference` |
 | **Local-first inference fleet (heterogeneous accel.)** | `inference/triune_orchestrator.py` routes NPU(13306)/iGPU(13307)/CPU(13309) on AMD Strix Halo; `fleet.extend_claude()` escalates to cloud only on a quality-gate miss — a 10k-token loop runs at **$0** | MEDIUM | ✅ `local_inference` |
-| **Large-scale simulation** | `mass_sim/` scale tiers up to a **25M-agent** "aspirational" universe (checkpointed, batched) | STRONG | ✅ `mass_sim` |
-| **Self-improving infrastructure** | `ouroboros/` self-healing loop + `mycelium/` skill synthesis from execution traces + `evolution/` evolutionary skill optimization | MEDIUM | ✅ `self_improvement` |
+| **Large-scale simulation** | `mass_sim/` scale tiers — a **25M-agent** "aspirational" tier *declared in config* (`SCALE_TIERS`); not run by the verifier | MEDIUM *(config, not a run)* | ✅ `mass_sim` |
+| **Self-improving infrastructure** | `ouroboros/` self-healing loop + `mycelium/` skill synthesis from execution traces + `evolution/` evolutionary skill optimization | WEAK *(import only)* | ✅ `self_improvement` |
 | **Batched inference for throughput** | `async run_batch(prompts, *, budget_usd)` → `asyncio.gather` fan-out (3.44× throughput, harness CB1) | MEDIUM | ✅ `batching` |
 | **Caching for efficiency at scale** | `cache/semantic_cache.py` L1 hash + L2 cosine + L3 vault, encoder-calibrated thresholds (harness CA1/CA2); 11 cache test files | MEDIUM | ➖ `semantic_cache` (SKIP — **latent bug surfaced**: unimportable at this commit, `lemonade_encoder` absent; `tests/cache/` errors on collection here) |
 | **World models / simulations** | `world_model/jepa_world_model.py` (JEPA predictor, causal masking, CPU-trainable) | MEDIUM | ✅ `world_model` |
 | **Published / influential ML research** | physics-grounded training-universes write-ups in `docs/`; `CITATION.cff`; sibling repo `observer-patch-holography/` | — | 📄 *(software citation, not peer-reviewed — see gaps)* |
-| **Software engineering for robust infra** | 745 tests collect cleanly across 5 role-relevant suites (env/rl/eval/world_model/physics); ~2,259 across a wider set (one unrelated collection error in `tests/compound`); pre-commit, ruff, mypy, CI | STRONG | ✅ `test_collection` |
+| **Software engineering for robust infra** | 745 tests *collect* (modules import; not executed by the verifier) across 5 role-relevant suites (env/rl/eval/world_model/physics); the full `tests/` tree collects in the thousands (a couple of collection errors in `tests/test_aimo_*` vary by checkout); pre-commit, ruff, mypy, CI | MEDIUM *(collected, not run)* | ✅ `test_collection` |
 | **Observability / persistence / audit** | Live SurrealDB: 49 tables incl. bi-temporal `agent_journey`, `hash_chain` audit trail, `vmodel_gate`/`proof_obligation` (V-Model) | MEDIUM | ✅ `surrealdb` |
 
 ### Required qualifications (the working style)
@@ -88,8 +88,8 @@ These are not slideware claims — each is demonstrated numerically by `resume_v
 | Component | What it is | Live demonstration |
 |---|---|---|
 | **Geometric correspondence** | The Fisher information metric induced by a VAE's `(μ, logvar)` *is* a Riemannian metric — the bridge between statistical models and differential geometry (`physics/information_geometry.py`). | ✅ `geometric_correspondence`: Fisher→Riemannian tensor is **6×6, symmetric, positive-semidefinite** (min eigenvalue ≈ 1.35 > 0 — a valid metric). |
-| **Unified physics** | A single 12D Riemannian manifold (SU(2) spinors, Lagrangian dynamics, Yang–Mills gauge, Fisher metric) onto which FLUME's 256D latent projects (`flume/manifolds/translator.py`, `physics/`). | ✅ `unified_physics`: a **256D FLUME latent → 12D** Unified-Physics coordinates + coherence, live. |
-| **Quadrature Nexus** | The swarm's **4-voice consensus-governance** mechanism — multi-perspective agreement before action (`swarm/quadrature_nexus.py`). | ✅ `quadrature_nexus`: importable, instantiable consensus orchestrator. |
+| **Unified physics** | A single 12D Riemannian manifold (SU(2) spinors, Lagrangian dynamics, Yang–Mills gauge, Fisher metric) onto which FLUME's 256D latent projects (`flume/manifolds/translator.py`, `physics/`). | ✅ `unified_physics`: a **256D FLUME latent → 12D** Unified-Physics coordinates, live (this random vector's coherence = 0.066 — the projection runs; coherence is just where this point lands). |
+| **Quadrature Nexus** | The swarm's **4-voice consensus-governance** mechanism — multi-perspective agreement before action (`swarm/quadrature_nexus.py`). | ✅ `quadrature_nexus`: importable consensus orchestrator (symbol verified; not instantiated by the check). |
 
 **Why this matters for Universes:** the safety thesis is *structural* — instead of penalizing
 unsafe actions post-hoc, agents operate on a manifold where the stable equilibrium (HIHO,
@@ -107,8 +107,8 @@ is import-and-run checked, with honest framing about what's ML-core vs research-
 | Component | What it is | Live demonstration | Honest framing |
 |---|---|---|---|
 | **Cosmogony engine** | `physics/cosmogony.py` `SymmetryBreaking` — a symmetry-breaking cascade that generates universe states (`void → … → 12D`). | ✅ `cosmogony`: produces a valid **12D** state from the `void` symmetry stage. | Procedural environment *genesis* / initial-condition generation — research-exploratory. |
-| **Worldview lattice** | `worldviews/` — **17** cosmological traditions × **10** Theory-of-Everything steps, with cross-tradition convergence mapping. | ✅ `worldviews`: 17 traditions × 10 ToE steps. | Diverse environment/world priors; breadth, not an ML benchmark. |
-| **ToE bridge (Observer Patch Holography)** | `physics/observer_patch.py` — observer-centric consistency; overlapping observer patches must agree (SPIN coherence). | ✅ `toe_observer`: two patches yield a valid `overlap_fraction ∈ [0,1]`. | The formal root of the structural-safety thesis (observers agree ⇒ coherence). |
+| **Worldview lattice** | `worldviews/` — **17** cosmological traditions × **10** Theory-of-Everything steps, with cross-tradition convergence mapping. | ✅ `worldviews`: 17 traditions × 10 ToE steps (data registry). | Diverse environment/world priors; breadth, not an ML benchmark. |
+| **ToE bridge (Observer Patch Holography)** | `physics/observer_patch.py` — observer-centric consistency: aligned observers agree more than misaligned ones. | ✅ `toe_observer`: overlap **discriminates** — identical patches = **1.00**, orthogonal = **0.00** (so the bridge actually measures agreement, not just returns a bounded number). | The formal root of the structural-safety thesis (agreement ⇒ coherence). |
 | **TEK × Unified Physics** | `agents/specialists/ecoresilience_agent.py` — synthesizes Traditional Ecological Knowledge with the 12D manifold. | ✅ `tek_agent`: `EcoResilienceAgent` importable. | A specialist agent demonstrating cross-domain synthesis; applied, not core ML. |
 | **Bioelectric (Levin)** | `physics/bioelectric_model.py` — gap-junction percolation + cognitive light cone on the manifold. | ✅ `bioelectric`: `BioelectricNetwork` percolation runs, coherence ≈ 0.92. | Developmental-bio-inspired collective dynamics; research-exploratory. |
 
@@ -128,7 +128,9 @@ This is the story to lead an interview with, because it *is* the job.
    text — *"environment too easy."* The agent had found an easy reward, not genuine capability.
 3. **Built a harder successor**, `Cohezion/ManifoldEnv-v0` (19D obs / 12D action), where a
    random agent scores ≈ **−1.6** (verified live this run) and a trained agent must actually
-   learn. The honest results matrix (`README.md`):
+   learn. Selected rows from the **8-run** results matrix in `README.md` (the full matrix there
+   also includes two failed-curriculum runs, e.g. −67.68, and two worse-than-random runs —
+   shown in full upstream, abbreviated here):
 
    | Algorithm | Reward mode | Steps | Reward | vs Random | vs Greedy |
    |---|---|---|---|---|---|
@@ -205,6 +207,17 @@ A second research pass against the **May–June 2026** agentic-RLVR literature, 
 | **OPRL / implicit step rewards** — process reward model on on-policy trajectories ([2509.19199](https://arxiv.org/pdf/2509.19199)) | ✅ Per-step coherence + `DegradationDetector` are process-level signals. ⚠️ Not yet trained as a PRM. |
 | **Scaling Environments for LLM Agents** (survey, [2511.09586](https://arxiv.org/html/2511.09586v1)) | 📄 Umbrella for the env-generation direction Cohezion's `EnvironmentGenerator` sits in. |
 
+A further sweep on **long-horizon agentic *evaluation*** (the team's "rigorous evaluations" mandate):
+
+| Eval frontier (source) | Cohezion mapping |
+|---|---|
+| Sandboxed autonomous eval harness — [RoadmapBench / Harbor](https://arxiv.org/html/2605.15846v2) | ✅ `sandbox/` + `eval/universe_evaluator.py` (bootstrap CIs). ⚠️ Gap: a neutral Harbor-style task packaging. |
+| Long-horizon *attacks* on agents — [AgentLAB](https://arxiv.org/abs/2602.16901) | ✅ `benchmarks/cyber_benchmark.py` + `security/`. ⚠️ Gap: adaptive multi-turn attack suite. |
+| Long-horizon *memory* eval — [AMA-Bench](https://arxiv.org/html/2602.22769v1) | ✅ `JourneyTracker` + bi-temporal SurrealDB trajectories are the substrate; ⚠️ no memory-QA benchmark yet. |
+
+> *Note: a few 2026 arXiv IDs above are recent/borderline-future relative to today (2026-06-02);
+> they're cited as the candidate found them and may not all resolve — flagged honestly.*
+
 ## Where to look (evidence map)
 
 | Capability | File(s) |
@@ -241,9 +254,13 @@ Calibration is a feature, not a disclaimer. Per the role's emphasis on *genuine*
 - **No peer-reviewed publication.** The research is documented in-repo and as a software
   citation (`CITATION.cff`); it has not been through peer review. Treat "published research"
   as **aspirational**, not met.
-- **Training infra is present, not benchmarked here.** The RL/LLM trainers import and have
-  tests, but this verifier does **not** run a full training job (it's `WEAK` evidence by
-  design — importing `ppo_trainer.py` is not proof of a trained model).
+- **The biggest honest gap — no demonstrated model-training result.** Everything verified here
+  is environment-side and eval-side. The RL/LLM trainers import and have tests, but this verifier
+  does **not** run a training job (`WEAK` by design — importing `ppo_trainer.py` is not proof of
+  a trained model), and the README's PPO/SAC results are on a custom manifold env, not LLM
+  fine-tuning. For a role whose core deliverable *is* training models on long-horizon agentic
+  tasks, treat this as the load-bearing gap: the strongest next move is to close one — a real
+  GRPO/LoRA or multi-turn-agentic-RL run with a before/after number — and promote it to STRONG.
 - **The flagship 0.991 metric is explicitly superseded** as a "too-easy environment" result;
   it is presented as a *lesson*, not a capability claim. The previously-circulated figures
   *"0.991 coherence over 25M cycles / 92.7% in HIHO band / 27.3% cost reduction"* in
@@ -251,10 +268,12 @@ Calibration is a feature, not a disclaimer. Per the role's emphasis on *genuine*
   *physics-convergence* run (not the RL result), and "27.3%" had no measurable provenance
   (it appears only as hardcoded UI text). That older doc is superseded by this one.
 - **Latent bug the verifier surfaced (and I'm reporting, not hiding):** at this commit
-  `cache/semantic_cache.py` imports a `cohezion.cache.lemonade_encoder` module that is absent,
-  so the cache is unimportable and `tests/cache/` errors on collection (11 collection errors).
-  The cache design/calibration is documented (harness CA1/CA2) but is **not** runnable at this
-  SHA. This is exactly the kind of regression a self-verifying resume is meant to catch.
+  `cache/semantic_cache.py` has a top-level import of `cohezion.cache.lemonade_encoder`, which
+  is absent — so the cache is **unimportable under this worktree's `src`** (the verifier SKIPs
+  it). Under the shared *editable install* (main checkout) the symbol resolves and `tests/cache`
+  collects, so whether you see the breakage depends on which tree `import cohezion` hits — itself
+  a finding. The cache design/calibration is documented (harness CA1/CA2) but is not runnable
+  under the worktree at this SHA. Exactly the kind of regression a self-verifying resume catches.
 - **Cross-worktree note:** this repo is developed across ~40 worktrees sharing one editable
   install; `resume_verify.py` validates the importable `cohezion` package. Reproduce from a
   clean `uv sync` for a canonical run.
@@ -266,10 +285,21 @@ Calibration is a feature, not a disclaimer. Per the role's emphasis on *genuine*
 
 ```bash
 uv sync
-python scripts/resume_verify.py            # the 12 checks above, live
+python scripts/resume_verify.py            # the 24 checks above, live
 make resume                                 # same, writes docs/resume_receipt.json
-uv run pytest tests/environments tests/rl tests/eval tests/world_model -q   # the suites cited
+# the 745-test figure needs all 5 cited suites (4 of them collect 243):
+uv run pytest tests/environments tests/rl tests/eval tests/world_model tests/physics -q --collect-only
 ```
+
+> **Reproducibility notes (honest):** (1) The headline is `23 PASS / 1 SKIP` *with* a live
+> SurrealDB on `localhost:8001`; on a host without it the canonical baseline is **22 PASS /
+> 2 SKIP** (the `surrealdb` check SKIPs). (2) The committed receipt's `git_sha` is the commit
+> the verifier *ran against* — i.e. the parent of the tiny "refresh receipt" commit that carries
+> it, so it lags HEAD by one chore commit by construction. (3) `resume_verify.py` pins this
+> worktree's `src`; the shared editable install may resolve `cohezion` to the main checkout, so
+> the verifier (worktree) and a bare `pytest` (editable install) can disagree until merged —
+> which is exactly why the `semantic_cache` SKIP appears here but `tests/cache` may collect
+> cleanly under the editable install.
 
 *Generated as a self-verifying artifact. If a claim here ever stops being true, the verifier
 turns red — which is the point.*
