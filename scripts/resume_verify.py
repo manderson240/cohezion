@@ -286,24 +286,33 @@ def check_world_model() -> CheckResult:
 
 
 def check_distributed_inference() -> CheckResult:
-    """MEDIUM: tiered orchestrator (distributed local fleet) imports with run_batch signature."""
+    """STRONG: the tiered orchestrator routes a real query across the local fleet ($0)."""
     box = "Large-scale / distributed ML infrastructure"
     try:
-        import inspect
+        import asyncio
 
-        from cohezion.inference.orchestrator import TieredOrchestrator
+        from cohezion.compound.local_inference import lemonade_available
+        from cohezion.inference.triune_orchestrator import build_triune_orchestrator
 
-        params = inspect.signature(TieredOrchestrator.run_batch).parameters
-        ok = "prompts" in params and "budget_usd" in params
+        if not lemonade_available():
+            return CheckResult(
+                "distributed_inference", box, "SKIP", STRONG, "local fleet offline (env-gated)"
+            )
+        orch = build_triune_orchestrator()
+        res = asyncio.run(
+            orch.run_batch(["What is 2+2? Reply with the number only."], budget_usd=0.0)
+        )
+        first = res[0]
+        ok = len(res) == 1 and bool(str(getattr(first, "text", "")).strip())
         return CheckResult(
             "distributed_inference",
             box,
             "PASS" if ok else "FAIL",
-            MEDIUM,
-            "TieredOrchestrator.run_batch(prompts, *, budget_usd) present (NPU/iGPU/CPU routing)",
+            STRONG,
+            f"TieredOrchestrator routed via {getattr(first, 'final_model', '?')} -> {str(getattr(first, 'text', '')).strip()[:12]!r} ($0 local)",
         )
     except Exception as exc:
-        return CheckResult("distributed_inference", box, "FAIL", MEDIUM, "import failed", repr(exc))
+        return CheckResult("distributed_inference", box, "FAIL", STRONG, "raised", repr(exc))
 
 
 def check_eval_benchmarks() -> CheckResult:
@@ -450,27 +459,33 @@ def check_semantic_cache() -> CheckResult:
 
 
 def check_batching() -> CheckResult:
-    """MEDIUM: orchestrator exposes an async batch path (run_batch) for throughput."""
+    """STRONG: a real batched run over the local fleet returns all results ($0, concurrent)."""
     box = "Batched inference for throughput at scale"
     try:
         import asyncio
-        import inspect
 
-        from cohezion.inference.orchestrator import TieredOrchestrator
+        from cohezion.compound.local_inference import lemonade_available
+        from cohezion.inference.triune_orchestrator import build_triune_orchestrator
 
-        fn = TieredOrchestrator.run_batch
-        params = inspect.signature(fn).parameters
-        is_async = asyncio.iscoroutinefunction(fn)
-        ok = "prompts" in params and "budget_usd" in params and is_async
+        if not lemonade_available():
+            return CheckResult("batching", box, "SKIP", STRONG, "local fleet offline (env-gated)")
+        orch = build_triune_orchestrator()
+        prompts = [
+            "What is 2+2? Reply with the number only.",
+            "What is 3+3? Reply with the number only.",
+        ]
+        res = asyncio.run(orch.run_batch(prompts, budget_usd=0.0))
+        texts = [str(getattr(r, "text", "")).strip() for r in res]
+        ok = len(res) == len(prompts) and all(texts)
         return CheckResult(
             "batching",
             box,
             "PASS" if ok else "FAIL",
-            MEDIUM,
-            f"async run_batch(prompts, *, budget_usd) -> asyncio.gather fan-out (async={is_async})",
+            STRONG,
+            f"run_batch fan-out over {len(prompts)} prompts -> {texts} ($0 local, asyncio.gather)",
         )
     except Exception as exc:
-        return CheckResult("batching", box, "FAIL", MEDIUM, "import failed", repr(exc))
+        return CheckResult("batching", box, "FAIL", STRONG, "raised", repr(exc))
 
 
 def check_local_inference() -> CheckResult:
