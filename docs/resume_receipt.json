@@ -1,7 +1,7 @@
 {
-  "generated_at": "2026-06-02T16:24:05-0400",
+  "generated_at": "2026-06-02T16:27:09-0400",
   "git_branch": "feat/anthropic-universes-living-resume",
-  "git_sha": "4ba203d42",
+  "git_sha": "edc30fb61",
   "python": "3.11.15",
   "package_under_test": "/home/mike-anderson/dev/cohezion/.claude/worktrees/lazy-tumbling-cascade/src/cohezion/__init__.py",
   "summary": {
@@ -16,7 +16,7 @@
       "box": "Build agentic training environments (RL envs/simulations)",
       "status": "PASS",
       "strength": "STRONG",
-      "evidence": "Cohezion/ManifoldEnv-v0: 19D obs / 12D action, 20-step return=-1.589",
+      "evidence": "Cohezion/ManifoldEnv-v0: 19D obs / 12D action, 20-step return=-1.567",
       "detail": ""
     },
     {
@@ -56,7 +56,7 @@
       "box": "RL/LLM training stack (own TRIUNE PPO)",
       "status": "PASS",
       "strength": "STRONG",
-      "evidence": "PPOTrainer.get_action -> (256,) action (value=0.043); +grpo_trainer,distributed_trainer importable",
+      "evidence": "PPOTrainer.get_action -> (256,) action (value=-0.001); +grpo_trainer,distributed_trainer importable",
       "detail": ""
     },
     {
@@ -239,8 +239,8 @@
       "name": "surrealdb",
       "box": "Observability / persistence / audit trail",
       "status": "PASS",
-      "strength": "MEDIUM",
-      "evidence": "live: 49 tables (incl. agent_journey, hash_chain, vmodel_gate)",
+      "strength": "STRONG",
+      "evidence": "live query returned 49 tables (incl. agent_journey, hash_chain, vmodel_gate)",
       "detail": ""
     }
   ]
