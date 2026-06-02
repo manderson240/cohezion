@@ -170,7 +170,9 @@ class ToolRegistry:
             result = {
                 "stdout": stdout.getvalue()[:1000],
                 "stderr": f"{stderr.getvalue()}{type(e).__name__}: {e}",
-                "error": str(e),
+                "error": str(e)[
+                    :500
+                ],  # bounded like stdout/stderr — may be ingested as a fault-guard
                 "duration": time.monotonic() - start,
             }
         finally:
@@ -184,7 +186,7 @@ class ToolRegistry:
             content = Path(path).read_text()
             return {"content": content[:50000], "size": len(content), "exists": True}
         except Exception as e:
-            return {"error": str(e), "exists": False}
+            return {"error": str(e)[:500], "exists": False}
 
     async def _file_write_tool(self, path: str, content: str) -> dict[str, Any]:
         """Write file content."""
@@ -194,7 +196,7 @@ class ToolRegistry:
             p.write_text(content)
             return {"written": True, "bytes": len(content), "path": str(p)}
         except Exception as e:
-            return {"error": str(e), "written": False}
+            return {"error": str(e)[:500], "written": False}
 
     async def _browser_tool(self, url: str, action: str = "fetch") -> dict[str, Any]:
         """Browser interaction (mock for now)."""
@@ -217,13 +219,47 @@ class UnifiedAgent:
     - HIHO stability monitoring via CompoundSession
     """
 
-    def __init__(self, executor: LLMExecutor | None = None, tools: ToolRegistry | None = None):
-        """Initialize agent with executor and tools."""
+    def __init__(
+        self,
+        executor: LLMExecutor | None = None,
+        tools: ToolRegistry | None = None,
+        *,
+        guidance: object | None = None,
+        guidance_min_trust: float = 0.6,
+        guidance_max_facts: int = 5,
+    ):
+        """Initialize agent with executor and tools.
+
+        ``guidance`` enables the READ half of the compound self-improvement loop: pass a
+        ``GroundTruthHierarchy`` (or any object exposing ``inject_context(max_facts=, min_trust=,
+        max_chars=) -> str``) that the orchestrator's ``adapt_skill`` writes accepted fault-guards
+        into. The worker then reads trust-ranked guidance back into its planning prompt, so a fault
+        attributed once can improve future tasks. NOTE: the loop is only LIVE when a driver constructs
+        ``UnifiedAgent(guidance=H)`` AND calls ``run_with_reflection(..., trust=H)`` with the SAME
+        hierarchy ``H`` — no such driver exists yet, so this is wired-but-not-joined (same honest
+        residual as reflective_orchestrator). Defaults are deliberately conservative so the injection
+        is bounded and recurrence-gated:
+          * ``guidance_min_trust=0.6`` — a single occurrence of a fault sits at trust 0.5; 0.6 requires
+            the guard to have RECURRED (been corroborated) before it is treated as ground truth, so
+            one-off faults never flood unrelated tasks.
+          * ``guidance_max_facts=5`` — the injected block is capped regardless of how many guards
+            accumulate, bounding the per-step token cost on the local fleet.
+        """
         self.executor = executor or LLMExecutor(model="qwen3.5:cloud")
         self.tools = tools or ToolRegistry()
         self.session_mgr = CompoundSessionManager()
         self.max_steps = 50
         self.recovery_attempts = 3
+        if not 0.0 <= guidance_min_trust <= 1.0:
+            raise ValueError(f"guidance_min_trust must be in [0,1], got {guidance_min_trust}")
+        if guidance_max_facts < 0:
+            raise ValueError(f"guidance_max_facts must be >= 0, got {guidance_max_facts}")
+        self.guidance = guidance
+        self.guidance_min_trust = guidance_min_trust
+        self.guidance_max_facts = guidance_max_facts
+        # Per-guard char cap: bounds the bytes of each injected fact so a single multi-KB error string
+        # ingested as a guard cannot blow up the per-step prompt (count cap alone is not a token bound).
+        self.guidance_max_chars = 200
 
     # Cap recursive delegation so a planner that keeps delegating cannot loop forever.
     max_delegation_depth: int = 3
@@ -346,9 +382,11 @@ class UnifiedAgent:
     ) -> dict[str, Any]:
         """Use LLM to plan next action."""
 
-        # Build prompt
+        # Build prompt. The guidance block (if any) carries trust-ranked guards learned from prior
+        # faults — the read half of the compound self-improvement loop (see __init__ guidance=).
+        guidance_block = self._prior_guidance_block()
         prompt = f"""You are an autonomous agent working on: {task}
-
+{guidance_block}
 **Current Step**: {step}/{self.max_steps}
 **Work Directory**: {workdir}
 
@@ -403,6 +441,31 @@ OR
         if tool_name in ["bash"] and "cwd" not in args:
             args["cwd"] = workdir
         return await self.tools.execute(tool_name, args)
+
+    def _prior_guidance_block(self) -> str:
+        """Render the trust-ranked guidance block for the planning prompt (read half of the loop).
+
+        Returns "" when no guidance store is configured or it is empty (so the prompt is byte-identical
+        to the un-guided path — additive). Injection is bounded (``guidance_max_facts``) and
+        recurrence-gated (``guidance_min_trust``) so one-off faults from unrelated tasks never flood
+        the prompt. Falls back to "" on any guidance-provider error — guidance is an enhancement,
+        never a hard dependency of planning.
+        """
+        if self.guidance is None or not hasattr(self.guidance, "inject_context"):
+            return ""
+        try:
+            block = self.guidance.inject_context(
+                max_facts=self.guidance_max_facts,
+                min_trust=self.guidance_min_trust,
+                max_chars=self.guidance_max_chars,
+            )
+        except (ValueError, KeyError, RuntimeError, OSError):
+            # Runtime failures of an optional enhancement degrade to "no guidance" (logged). A
+            # TypeError/AttributeError (wrong signature / wiring bug) deliberately PROPAGATES so a
+            # misconfigured provider fails loudly at integration time instead of silently never injecting.
+            logger.warning("guidance provider raised in inject_context; planning without guidance")
+            return ""
+        return f"\n{block}\n" if block else ""
 
     def _format_history(self, trace: ExecutionTrace) -> str:
         """Format execution history for prompt."""

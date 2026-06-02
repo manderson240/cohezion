@@ -144,20 +144,33 @@ class GroundTruthHierarchy:
         matches = [f for f in self._facts.values() if f.entity == entity]
         return self.resolve(matches)
 
-    def inject_context(self, max_facts: int = 10, min_trust: float = 0.0) -> str:
-        """Render an authoritative memory block (Layer 7), highest authority first.
+    def inject_context(
+        self, max_facts: int = 10, min_trust: float = 0.0, max_chars: int | None = None
+    ) -> str:
+        """Render a memory block, highest authority first.
 
-        The header instructs the consumer to treat these as authoritative — the directive that
-        stops the agent re-querying what it already reliably knows.
+        The directive is **tier-gated**: only genuinely high-authority material (verified facts and
+        above) is presented as "treat as ground truth; do not re-derive". Model-asserted / recalled
+        material — which includes self-improvement fault-guards written at tier UNVERIFIED — is
+        rendered as *advisory*. A provisional or demonstrably-failed guard must never be handed to a
+        planner as non-negotiable ground truth (that would tell it to trust precisely what just broke).
+
+        ``max_chars`` (optional) caps each fact's rendered content so a single large fact (e.g. a
+        multi-KB traceback ingested as a guard) cannot blow up the consumer's prompt — the count cap
+        (``max_facts``) bounds how many, this bounds how big.
         """
         chosen = [f for f in self.rank() if f.trust >= min_trust][:max_facts]
         if not chosen:
             return ""
-        lines = [
-            "## Authoritative memory (treat as ground truth; do not re-derive)",
-        ]
+        top_tier = max(f.tier for f in chosen)
+        if top_tier >= TrustTier.STRUCTURED_FACT:
+            header = "## Authoritative memory (treat as ground truth; do not re-derive)"
+        else:
+            header = "## Prior observations (advisory — verify before relying; not ground truth)"
+        lines = [header]
         for f in chosen:
-            lines.append(f"- [{f.tier.name} trust={f.trust:.2f}] {f.content}")
+            content = f.content if max_chars is None else f.content[:max_chars]
+            lines.append(f"- [{f.tier.name} trust={f.trust:.2f}] {content}")
         return "\n".join(lines)
 
     def ingest_mem0(self, facts: list[dict], tier: TrustTier = TrustTier.STRUCTURED_FACT) -> int:
