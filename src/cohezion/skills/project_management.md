@@ -1,5 +1,6 @@
 ---
-description: "Project Management Prime: Managing Chaos with R-Zero Methodology."
+name: project-management-prime
+description: "Project Management Prime: Managing Chaos with R-Zero Methodology. Use when planning complex multi-sprint autonomous sessions, defining Challenger constraints, or tracking task dependencies across agents. Skip for single-file tasks (use WRITING_PLANS_PRIME instead)."
 ---
 
 # Project Management Prime

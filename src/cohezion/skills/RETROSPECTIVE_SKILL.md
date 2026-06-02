@@ -1,3 +1,9 @@
+---
+name: retrospective-skill
+description: "Systematic retrospective over skills and session artifacts to extract reusable patterns and synthesize new higher-order skills. Use after completing a compound loop iteration, at session boundaries, or when told to 'retrospect', 'extract learnings', or 'generate a new skill from this session'. Skip for single bug fixes or one-off tasks."
+version: v1.0
+---
+
 # SKILL: RETROSPECTIVE_SKILL
 
 ## DOMAIN EXPERTISE

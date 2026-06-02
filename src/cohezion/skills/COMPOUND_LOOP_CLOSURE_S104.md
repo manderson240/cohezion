@@ -1,6 +1,7 @@
 ---
 id: skill-compound-loop-closure
 name: Closing the Compound Engineering Loop with HIHO
+description: "Close the compound engineering feedback loop by wiring telemetry back into skill refinement. Pattern for Execute → Telemetry → Analyze → Refine Skill → Repeat. Use when telemetry is generated but not feeding the SkillRefiner, or when implementing HIHO coherence-gated loop closure."
 domain: Compound AI
 version: v1.0
 tier: PRIME

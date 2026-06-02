@@ -1,6 +1,7 @@
 ---
 id: skill-ci-infrastructure-fixes
 name: CI Infrastructure Fixes and Telemetry
+description: "Diagnose and fix CI failures in the Cohezion compound loop — uv lock conflicts, pytest marker errors, telemetry gaps, and GitHub Actions workflow issues. Session 104 incident record with reusable patterns for CI recovery."
 domain: DevOps
 version: v1.0
 tier: PRIME

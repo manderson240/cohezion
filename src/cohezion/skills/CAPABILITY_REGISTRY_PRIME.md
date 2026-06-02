@@ -1,5 +1,6 @@
 ---
-description: "Capability Registry Prime: The Unified Natural Language Discovery Engine."
+name: capability-registry-prime
+description: "Capability Registry Prime: The Unified Natural Language Discovery Engine. Use when building or querying the TF-IDF capability registry that aggregates skills, agents, MCP servers, and memory nodes for natural language discovery."
 ---
 
 # Capability Registry Prime

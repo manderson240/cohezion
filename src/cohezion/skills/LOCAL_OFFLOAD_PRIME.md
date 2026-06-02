@@ -1,6 +1,6 @@
 ---
 name: local-offload-prime
-description: "Expert methodology for offloading menial, supportive, or low-complexity tasks to local Small Language Models (SLMs) using a \"Context Harness\" to maximize token efficiency and maintain sovereign execution."
+description: "Expert methodology for offloading menial, low-complexity, or supportive tasks to local Small Language Models (SLMs) using a Context Harness to maximize token efficiency. Use when: delegating classification, summarization, or formatting tasks to local SLMs to reduce cloud cost. Skip: for Ollama model catalog configuration use MODEL_ROUTING_PRIME; for Lemonade/triune tiered routing use LOCAL_INFERENCE_ROUTING; for token budget tracking use TOKEN_EFFICIENCY_PRIME."
 metadata:
   version: "v1.0"
   concepts: ["Menial Task", "Context Harness", "Sovereign Execution", "Token Efficiency"]

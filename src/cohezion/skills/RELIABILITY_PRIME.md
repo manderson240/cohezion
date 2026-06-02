@@ -1,10 +1,6 @@
 ---
 name: reliability
-description: System reliability patterns including circuit breakers, connection
-  pooling, and graceful degradation for AI services. Use when implementing
-  fault tolerance, handling cascading failures, or when user mentions "circuit
-  breaker", "connection pool", "reliability", "graceful degradation", or
-  "fallback strategy".
+description: "System reliability patterns: circuit breakers, connection pooling, graceful degradation for AI services. Use when implementing fault tolerance, handling cascading failures, or when user mentions 'circuit breaker', 'connection pool', 'graceful degradation', or 'reliability'. Skip: for persistence-layer fallback (primary/buffer duality) use RELIABILITY_FALLBACK_PRIME; for API multi-provider fallback use API_ERROR_RESILIENCE_PRIME."
 metadata:
   version: "1.0"
   legacy-name: RELIABILITY_PRIME

@@ -1,6 +1,6 @@
 ---
 name: database-prime
-description: "You are a specialist in database systems for AI applications. You understand SQL, NoSQL, graph databases, vector stores, and hybrid approaches for storing simulation data and knowledge graphs."
+description: "Specialist in SQL/relational database patterns for AI applications: SQLite, PostgreSQL, connection pooling, migrations, query optimization, and hybrid SQL+NoSQL design. Use when implementing traditional RDBMS patterns or cross-database strategies. Skip: for SurrealDB-specific work use SURREAL_DBA_PRIME or SURREALDB_OPERATIONS_PRIME; for vector stores use VECTOR_STORE_PRIME; for Redis caching use the caching skill."
 metadata:
   version: "v1.0"
   concepts: ["SurrealDB", "SQLite", "PostgreSQL", "Redis", "Vector Stores"]
@@ -29,7 +29,7 @@ async def surreal_example():
     async with AsyncSurreal("ws://localhost:8001/rpc") as db:
         await db.signin({"user": "root", "pass": "root"})
         await db.use("cohezion", "universes")
-        
+
         # Create record
         await db.create("universe", {
             "id": "u001",
@@ -37,10 +37,10 @@ async def surreal_example():
             "stream": "physicist",
             "trajectory": [0.1, 0.2, 0.3]
         })
-        
+
         # Graph query
         results = await db.query("""
-            SELECT * FROM universe 
+            SELECT * FROM universe
             WHERE coherence > 0.7
             FETCH related_universes
         """)
@@ -79,7 +79,7 @@ import asyncpg
 
 async def pg_example():
     conn = await asyncpg.connect('postgresql://user:pass@localhost/cohezion')
-    
+
     # Query with vector extension (pgvector)
     results = await conn.fetch('''
         SELECT id, content, embedding <-> $1 as distance
