@@ -11,6 +11,7 @@ and is driven from a Claude Code session — they are **not** GitHub Actions and
 | `review` | Reviews the current branch's diff across 5 dimensions (correctness, security, performance, simplification, tests), then **adversarially verifies** each finding so only real issues survive. Returns a Markdown report. | diff vs `origin/main` | a base ref string, e.g. `"HEAD~3"` |
 | `cover` | Finds under-tested `src/cohezion` modules and writes focused, offline pytest files (one per module, in isolated worktrees). | highest-value gaps repo-wide | a subpackage, e.g. `"compound"` |
 | `docs` | Audits public modules for missing/weak docstrings, adds Google-style docstrings **in place** (docstrings only — no behavior change), and returns a reference page. | user-facing surfaces | a subpackage, e.g. `"environments"` |
+| `compound` | **Meta-workflow.** Runs `review`, finds the most-affected subpackage from the findings, then runs `cover` + `docs` on it, and finishes with a retrospection that proposes improvements to the collaborators themselves. The compound-engineering loop in one shot. | diff vs `origin/main` | a base ref string |
 
 ## How to run
 
