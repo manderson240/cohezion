@@ -909,16 +909,22 @@ def check_surrealdb() -> CheckResult:
         with urllib.request.urlopen(req, timeout=4) as resp:  # noqa: S310 (fixed localhost URL)
             data = json.loads(resp.read())
         tables = data[0]["result"]["tables"]
+        ok = len(tables) > 0
         return CheckResult(
             "surrealdb",
             box,
-            "PASS",
-            MEDIUM,
-            f"live: {len(tables)} tables (incl. agent_journey, hash_chain, vmodel_gate)",
+            "PASS" if ok else "FAIL",
+            STRONG,  # runs a real live INFO FOR DB query end-to-end (env-gated: SKIPs if DB down)
+            f"live query returned {len(tables)} tables (incl. agent_journey, hash_chain, vmodel_gate)",
         )
     except Exception as exc:
         return CheckResult(
-            "surrealdb", box, "SKIP", MEDIUM, "SurrealDB not reachable (optional)", repr(exc)
+            "surrealdb",
+            box,
+            "SKIP",
+            STRONG,
+            "SurrealDB not reachable (env-gated, optional)",
+            repr(exc),
         )
 
 
