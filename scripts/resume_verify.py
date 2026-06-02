@@ -8,9 +8,11 @@ resume is *living* (re-checkable) rather than a static list of assertions.
 Design constraints (this repo's invariants):
   - No model loading. Checks are import/instantiate/short-rollout only, so the
     OOM guard (K1) is never tripped and the run is $0 and ~seconds.
-  - Each check carries a *strength*: STRONG (ran end-to-end), MEDIUM
-    (imported + instantiated), WEAK (import only). The resume must not claim
-    more than the strength supports -- an imported trainer is not a trained model.
+  - Each check carries a *strength*: STRONG (instantiated AND computed a real
+    result end-to-end), MEDIUM (structural -- imported and a signature / attribute /
+    constant / data-registry verified at runtime, but not a full run), WEAK (import
+    only). The resume must not claim more than the strength supports -- an imported
+    trainer is not a trained model, and a collected test is not a passing one.
 
 Usage:
     python scripts/resume_verify.py            # human table
@@ -270,7 +272,7 @@ def check_eval_benchmarks() -> CheckResult:
         "eval_benchmarks",
         box,
         "PASS" if ok else "FAIL",
-        MEDIUM,
+        WEAK,
         f"importable: {', '.join(present) or 'none'} (agentic + coding benchmark suites)",
     )
 
@@ -369,18 +371,22 @@ def check_semantic_cache() -> CheckResult:
             f"L1/L2/L3 SemanticCache singleton, calibrated threshold={thr} (floor 0.40)",
         )
     except ModuleNotFoundError as exc:
-        # LATENT BUG surfaced by this check: semantic_cache.py has a top-level
-        # `from cohezion.cache.lemonade_encoder import ...` but that module is
-        # absent at this commit, so the cache is unimportable AND tests/cache/
-        # errors on collection here. Reported as SKIP (env/build issue, not a
-        # logic regression) but stated honestly -- this is a real bug to fix.
+        # Narrowly SKIP only for the ONE known latent bug: semantic_cache.py has a
+        # top-level `from cohezion.cache.lemonade_encoder import ...` and that module
+        # is absent at this commit, so the cache is unimportable under this worktree's
+        # src. Any OTHER missing-module is an unexpected regression -> FAIL, so this
+        # branch can never silently swallow a future cache breakage.
+        if "lemonade_encoder" in str(exc):
+            return CheckResult(
+                "semantic_cache",
+                box,
+                "SKIP",
+                MEDIUM,
+                "known latent bug: lemonade_encoder absent at this commit (cache unimportable under worktree src)",
+                repr(exc),
+            )
         return CheckResult(
-            "semantic_cache",
-            box,
-            "SKIP",
-            MEDIUM,
-            "cache code present but unimportable at this commit (latent bug: lemonade_encoder absent)",
-            repr(exc),
+            "semantic_cache", box, "FAIL", MEDIUM, "unexpected import failure", repr(exc)
         )
     except Exception as exc:
         return CheckResult("semantic_cache", box, "FAIL", MEDIUM, "import failed", repr(exc))
@@ -472,8 +478,8 @@ def check_worldviews() -> CheckResult:
             "worldviews",
             box,
             "PASS" if ok else "FAIL",
-            STRONG,
-            f"{n_trad} traditions x {n_steps} ToE cosmogony steps",
+            MEDIUM,
+            f"{n_trad} traditions x {n_steps} ToE cosmogony steps (data registry)",
         )
     except Exception as exc:
         return CheckResult("worldviews", box, "FAIL", STRONG, "raised", repr(exc))
@@ -486,16 +492,24 @@ def check_toe_observer() -> CheckResult:
         from cohezion.physics.observer_patch import ObserverPatch, overlap_fraction
         from cohezion.physics.spinor import SpinorState
 
-        a = ObserverPatch("a", SpinorState(1 + 0j, 0 + 0j), domain="x")
-        b = ObserverPatch("b", SpinorState(0 + 0j, 1 + 0j), domain="y")
-        frac = float(overlap_fraction(a, b))
-        ok = 0.0 <= frac <= 1.0
+        s = SpinorState(1 + 0j, 0 + 0j)
+        identical = float(
+            overlap_fraction(ObserverPatch("a", s, domain="x"), ObserverPatch("b", s, domain="x"))
+        )
+        orthogonal = float(
+            overlap_fraction(
+                ObserverPatch("c", SpinorState(1 + 0j, 0 + 0j), domain="x"),
+                ObserverPatch("d", SpinorState(0 + 0j, 1 + 0j), domain="x"),
+            )
+        )
+        # A real demonstration: aligned observers must agree MORE than orthogonal ones.
+        ok = 0.0 <= orthogonal < identical <= 1.0
         return CheckResult(
             "toe_observer",
             box,
             "PASS" if ok else "FAIL",
             STRONG,
-            f"OPH observer-patch overlap_fraction={frac:.3f} in [0,1] (SPIN coherence bridge)",
+            f"OPH overlap discriminates: identical={identical:.2f} > orthogonal={orthogonal:.2f} (SPIN agreement)",
         )
     except Exception as exc:
         return CheckResult("toe_observer", box, "FAIL", STRONG, "raised", repr(exc))
@@ -558,8 +572,8 @@ def check_mass_sim() -> CheckResult:
             "mass_sim",
             box,
             "PASS" if ok else "FAIL",
-            STRONG,
-            f"{len(SCALE_TIERS)} scale tiers; aspirational = {n:,} agents",
+            MEDIUM,
+            f"{len(SCALE_TIERS)} scale tiers DECLARED in config; aspirational = {n:,} agents (not run here)",
         )
     except Exception as exc:
         return CheckResult("mass_sim", box, "FAIL", STRONG, "raised", repr(exc))
@@ -584,7 +598,7 @@ def check_self_improvement() -> CheckResult:
         "self_improvement",
         box,
         "PASS" if ok else "FAIL",
-        MEDIUM,
+        WEAK,
         f"importable: {', '.join(present) or 'none'} (self-heal + skill synthesis + evolutionary opt)",
     )
 
@@ -630,8 +644,8 @@ def check_test_collection() -> CheckResult:
             "test_collection",
             box,
             "PASS" if count > 0 else "FAIL",
-            STRONG,
-            f"{count} tests collected across {len(dirs)} role-relevant suites",
+            MEDIUM,
+            f"{count} tests collected (modules import; tests not executed) across {len(dirs)} suites",
         )
     except Exception as exc:
         return CheckResult("test_collection", box, "FAIL", STRONG, "collection failed", repr(exc))
@@ -737,11 +751,11 @@ def print_table(receipt: Receipt) -> None:
         f"  result:       {s['pass']} PASS / {s['fail']} FAIL / {s['skip']} SKIP  ({s['total']} checks)\n"
     )
     icon = {"PASS": "✅", "FAIL": "❌", "SKIP": "➖"}
-    print(f"  {'CHECK':<22}{'STR':<8}{'STATUS':<8}EVIDENCE")
-    print(f"  {'-' * 22}{'-' * 8}{'-' * 8}{'-' * 44}")
+    print(f"  {'CHECK':<26}{'STR':<8}{'STATUS':<8}EVIDENCE")
+    print(f"  {'-' * 26}{'-' * 8}{'-' * 8}{'-' * 44}")
     for c in receipt.checks:
         print(
-            f"  {c['name']:<22}{c['strength']:<8}{icon.get(c['status'], '?')} {c['status']:<6}{c['evidence']}"
+            f"  {c['name']:<26}{c['strength']:<8}{icon.get(c['status'], '?')} {c['status']:<6}{c['evidence']}"
         )
     print()
 
