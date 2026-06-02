@@ -6,6 +6,7 @@ Enforces limits on CPU load and RAM usage.
 import asyncio
 import logging
 import os
+import shutil
 from dataclasses import dataclass
 
 import psutil
@@ -20,6 +21,8 @@ class SystemVitals:
     ram_available_mb: int
     ram_percent: float
     swap_used_mb: int
+    disk_free_gb: float
+    disk_percent: float
 
 
 class ResourceGuard:
@@ -32,10 +35,14 @@ class ResourceGuard:
         max_cpu_load: float = 24.0,
         min_ram_available_mb: int = 16384,  # 16GB
         max_ram_percent: float = 90.0,
+        min_disk_free_gb: float = 20.0,  # 20GB for safe copy-on-write / snapshot operations
+        max_disk_percent: float = 85.0,  # 85% max capacity limit to prevent ZFS fragmentation and read-only locks
     ) -> None:
         self.max_cpu_load = max_cpu_load
         self.min_ram_available_mb = min_ram_available_mb
         self.max_ram_percent = max_ram_percent
+        self.min_disk_free_gb = min_disk_free_gb
+        self.max_disk_percent = max_disk_percent
 
     def get_vitals(self) -> SystemVitals:
         """Get current system metrics."""
@@ -43,11 +50,25 @@ class ResourceGuard:
         virtual_mem = psutil.virtual_memory()
         swap_mem = psutil.swap_memory()
 
+        # Check workspace directory for disk usage
+        try:
+            from cohezion.config.unified import get_config
+
+            path = str(get_config().root_dir)
+        except Exception:
+            path = os.getcwd()
+
+        disk = shutil.disk_usage(path)
+        disk_free = disk.free / (1024 * 1024 * 1024)  # convert to GB
+        disk_percent = (disk.used / disk.total) * 100 if disk.total else 0.0
+
         return SystemVitals(
             cpu_load_1m=load_avg,
             ram_available_mb=virtual_mem.available // (1024 * 1024),
             ram_percent=virtual_mem.percent,
             swap_used_mb=swap_mem.used // (1024 * 1024),
+            disk_free_gb=disk_free,
+            disk_percent=disk_percent,
         )
 
     def is_healthy(self) -> tuple[bool, str]:
@@ -62,6 +83,18 @@ class ResourceGuard:
 
         if vitals.ram_percent > self.max_ram_percent:
             return False, f"RAM usage too high: {vitals.ram_percent}%"
+
+        if vitals.disk_free_gb < self.min_disk_free_gb:
+            return (
+                False,
+                f"Disk space too low: {vitals.disk_free_gb:.2f}GB free (required: {self.min_disk_free_gb}GB)",
+            )
+
+        if vitals.disk_percent > self.max_disk_percent:
+            return (
+                False,
+                f"Disk utilization too high: {vitals.disk_percent:.2f}% (max: {self.max_disk_percent}%)",
+            )
 
         return True, "System healthy"
 
