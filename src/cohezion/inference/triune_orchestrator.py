@@ -7,7 +7,7 @@ from __future__ import annotations
 
 import logging
 
-from cohezion.inference.gaia_adapter import build_gaia_native_tier
+from cohezion.inference.activation_router import PrefillActivationRouter
 from cohezion.inference.orchestrator import (
     QualityGate,
     TieredOrchestrator,
@@ -16,6 +16,17 @@ from cohezion.inference.task_classifier import classify as classify_task
 
 
 logger = logging.getLogger(__name__)
+
+
+def _check_port(port: int, timeout: float = 1.0) -> bool:
+    """Return True if lemonade is serving on the given port (fast /v1/models check)."""
+    try:
+        import urllib.request
+
+        urllib.request.urlopen(f"http://localhost:{port}/v1/models", timeout=timeout)
+        return True
+    except Exception:
+        return False
 
 
 def build_triune_orchestrator(
@@ -45,15 +56,55 @@ def build_triune_orchestrator(
     draft acceptance rate is ≥50%. Harness invariant N2 preserved (NPU = llama3.2-1b-FLM).
     """
 
-    # 1. NPU Tier - Fast routing/classification pass
-    # llama3.2-1b-FLM chosen over qwen3.5-4b-FLM: fits in XDNA2 on-chip SRAM (42 TPS vs 8.6 TPS)
-    npu_tier = build_gaia_native_tier(
-        model_id="llama3.2-1b-FLM", base_url=f"http://localhost:{npu_port}/v1", silent=True
+    # OOM guard: check available RAM before loading any local model tiers.
+    # ResourceGuard enforces a 16 GB safety buffer — skips local tiers if unsafe.
+    try:
+        from cohezion.competition.orchestrator.resource_guard import MemorySnapshot
+
+        snap = MemorySnapshot.capture()
+        if snap.available_gb < 16.0:
+            logger.warning(
+                "OOM guard: only %.1f GB RAM available (need 16 GB buffer). "
+                "Local tiers skipped — cloud-only orchestration.",
+                snap.available_gb,
+            )
+            tiers_cloud_only: list[tuple] = []
+            if include_cloud:
+                tiers_cloud_only.append(("claude-haiku-4-5", QualityGate.TRUST))  # type: ignore[arg-type]
+                tiers_cloud_only.append(("claude-sonnet-4-6", QualityGate.TRUST))  # type: ignore[arg-type]
+            if not tiers_cloud_only:
+                logger.warning(
+                    "OOM guard: include_cloud=False and RAM low — proceeding with local (risk accepted)."
+                )
+            else:
+                return TieredOrchestrator(tiers=tiers_cloud_only)
+        logger.debug("OOM guard: %.1f GB available — local tiers safe to load.", snap.available_gb)
+    except ValueError:
+        raise  # Re-raise programming errors (e.g., empty tiers list)
+    except Exception as _oom_err:
+        logger.debug("OOM guard check failed (non-blocking): %s", _oom_err)
+
+    # 1. NPU Tier — fast routing/classification (XDNA2 SRAM, 40 TPS, $0)
+    # Uses DirectLemonadeTier (direct httpx) to bypass GAIA LemonadeManager singleton.
+    # GAIA singleton conflict: class-level _initialized means all tiers share one port.
+    # Direct HTTP is proven correct (exp_OOOO3/PPPP3, 2026-05-30, round 13).
+    from cohezion.inference.direct_tier import (
+        build_direct_cpu_tier,
+        build_direct_igpu_tier,
+        build_direct_npu_tier,
     )
 
-    # 2. iGPU Tier - Deep context analysis (Wave32 unlocked)
-    # With CLaSp speculative drafting when draft_port is configured
-    if clasp_draft_port is not None:
+    npu_tier = build_direct_npu_tier(port=npu_port, model_id="llama3.2-1b-FLM")
+
+    # 2. iGPU Tier — deep context analysis, Wave32 ROCWMMA
+    # CLaSp speculative drafting only when BOTH draft and verify ports are live.
+    # If either port is offline, fall back to direct HTTP iGPU tier immediately.
+    # iGPU FLM model: deepseek-r1-0528-8b-FLM on port 13307 (harness N1/N2 spec).
+    # CLaSp speculative decoding is only available when port 13308 (E2B draft) is live.
+    # When 13308 is offline (default), use direct FLM iGPU tier instead.
+    _igpu_live = _check_port(igpu_port)
+    _draft_live = clasp_draft_port is not None and _check_port(clasp_draft_port)
+    if _igpu_live and _draft_live:
         try:
             from cohezion.inference.clasp_tier import build_clasp_igpu_tier
 
@@ -69,27 +120,24 @@ def build_triune_orchestrator(
                 clasp_draft_port,
                 igpu_port,
             )
-        except ImportError:
-            logger.warning("CLaSp tier unavailable, falling back to standard E4B iGPU")
-            igpu_tier = build_gaia_native_tier(
-                model_id="Gemma-4-E4B-it-GGUF",
-                base_url=f"http://localhost:{igpu_port}/v1",
-                silent=True,
-            )
+        except Exception as exc:
+            logger.warning("CLaSp tier unavailable (%s), falling back to direct FLM iGPU", exc)
+            igpu_tier = build_direct_igpu_tier(port=igpu_port, model_id="deepseek-r1-0528-8b-FLM")
     else:
-        igpu_tier = build_gaia_native_tier(
-            model_id="Gemma-4-E4B-it-GGUF", base_url=f"http://localhost:{igpu_port}/v1", silent=True
-        )
+        if not _igpu_live:
+            logger.debug("iGPU port %d offline — iGPU slot unavailable", igpu_port)
+        igpu_tier = build_direct_igpu_tier(port=igpu_port, model_id="deepseek-r1-0528-8b-FLM")
 
-    # 3. CPU Tier - Ultimate fallback reasoning (AVX-512)
-    cpu_tier = build_gaia_native_tier(
-        model_id="Gemma-4-31B-it-GGUF", base_url=f"http://localhost:{cpu_port}/v1", silent=True
-    )
+    # 3. CPU Tier — AVX-512 reasoning fallback ($0)
+    cpu_tier = build_direct_cpu_tier(port=cpu_port, model_id="Gemma-4-31B-it-GGUF")
 
+    # Quality gates for DirectLemonadeTier (direct HTTP inference).
+    # Note: pre_dispatch_classifier overrides tier-0 and tier-1 gates based on output_type.
+    # These static values are the fallback when the classifier is not set.
     tiers: list[tuple] = [
-        (npu_tier, QualityGate(min_chars=500)),  # NPU: XDNA2 SRAM, $0
-        (igpu_tier, QualityGate(min_chars=750)),  # iGPU: ROCWMMA, $0 (EXP-ROUTE-12)
-        (cpu_tier, QualityGate(min_chars=1000)),  # CPU: AVX-512, $0
+        (npu_tier, QualityGate(min_chars=1)),  # NPU: XDNA2 SRAM, 40 TPS, $0
+        (igpu_tier, QualityGate(min_chars=5)),  # iGPU: ROCWMMA, $0
+        (cpu_tier, QualityGate(min_chars=10)),  # CPU: AVX-512, $0
     ]
 
     if include_cloud:
@@ -101,7 +149,8 @@ def build_triune_orchestrator(
     else:
         logger.info("Triune: 3-tier local-only (NPU→iGPU→CPU), include_cloud=False")
 
+    router = PrefillActivationRouter(base_classifier=classify_task)
     return TieredOrchestrator(
         tiers=tiers,
-        pre_dispatch_classifier=classify_task,  # overrides quality gate per output_type
+        pre_dispatch_classifier=router,  # overrides quality gate per output_type
     )
