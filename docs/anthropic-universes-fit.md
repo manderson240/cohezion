@@ -292,15 +292,15 @@ Calibration is a feature, not a disclaimer. Per the role's emphasis on *genuine*
 
 ```bash
 uv sync
-python scripts/resume_verify.py            # the 24 checks above, live
+python scripts/resume_verify.py            # the 29 checks above, live
 make resume                                 # same, writes docs/resume_receipt.json
 # the 745-test figure needs all 5 cited suites (4 of them collect 243):
 uv run pytest tests/environments tests/rl tests/eval tests/world_model tests/physics -q --collect-only
 ```
 
-> **Reproducibility notes (honest):** (1) The headline is `23 PASS / 1 SKIP` *with* a live
-> SurrealDB on `localhost:8001`; on a host without it the canonical baseline is **22 PASS /
-> 2 SKIP** (the `surrealdb` check SKIPs). (2) The committed receipt's `git_sha` is the commit
+> **Reproducibility notes (honest):** (1) The headline is `29 PASS / 0 SKIP` *with* a live
+> SurrealDB on `localhost:8001`; on a host without it the canonical baseline is **28 PASS /
+> 1 SKIP** (the `surrealdb` check SKIPs). (2) The committed receipt's `git_sha` is the commit
 > the verifier *ran against* — i.e. the parent of the tiny "refresh receipt" commit that carries
 > it, so it lags HEAD by one chore commit by construction. (3) `resume_verify.py` pins this
 > worktree's `src`; the shared editable install may resolve `cohezion` to the main checkout, so
