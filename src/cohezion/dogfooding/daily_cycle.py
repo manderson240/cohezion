@@ -81,7 +81,7 @@ class DailyDogfoodingCycle:
         print("\n" + "=" * 70)
         print("DAILY CYCLE COMPLETE")
         print("=" * 70)
-        print(f"Dashboard Review:      {len(dashboard['levers_reviewed'])} levers")
+        print(f"Dashboard Review:      {dashboard['levers_reviewed']} levers")
         print(
             f"Predictive Adjustments: {predictions['executed']} executed, "
             + f"{predictions['pending']} pending"
