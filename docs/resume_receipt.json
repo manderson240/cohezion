@@ -1,7 +1,7 @@
 {
-  "generated_at": "2026-06-02T14:46:55-0400",
-  "git_branch": "worktree-lazy-tumbling-cascade",
-  "git_sha": "aa2f10631",
+  "generated_at": "2026-06-02T14:52:27-0400",
+  "git_branch": "feat/anthropic-universes-living-resume",
+  "git_sha": "44cfbf22a",
   "python": "3.11.15",
   "package_under_test": "/home/mike-anderson/dev/cohezion/.claude/worktrees/lazy-tumbling-cascade/src/cohezion/__init__.py",
   "summary": {
@@ -16,7 +16,7 @@
       "box": "Build agentic training environments (RL envs/simulations)",
       "status": "PASS",
       "strength": "STRONG",
-      "evidence": "Cohezion/ManifoldEnv-v0: 19D obs / 12D action, 20-step return=-1.560",
+      "evidence": "Cohezion/ManifoldEnv-v0: 19D obs / 12D action, 20-step return=-1.582",
       "detail": ""
     },
     {
