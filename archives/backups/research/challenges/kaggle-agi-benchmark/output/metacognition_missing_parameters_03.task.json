@@ -1,6 +1,0 @@
-{
-  "versionNumber": 1,
-  "name": "metacognition_missing_parameters_03",
-  "description": "Detect missing critical parameters.",
-  "definition": "@kbench.task(name=\"metacognition_missing_parameters_03\")\ndef metacognition_missing_parameters_03():\n    \"\"\"Detect missing critical parameters.\"\"\"\n    prompt = \"\"\"Calculate the area of a rectangle with width 5 meters.\n\nA) 5 square meters\nB) 10 square meters\nC) 25 square meters\nD) Insufficient Information\"\"\"\n    return prompt, \"D\"\n"
-}

@@ -1,6 +1,0 @@
-{
-  "versionNumber": 1,
-  "name": "exec_goal_hierarchy_15",
-  "description": "Understand hierarchical goals.",
-  "definition": "@kbench.task(name=\"exec_goal_hierarchy_15\")\ndef exec_goal_hierarchy_15():\n    \"\"\"Understand hierarchical goals.\"\"\"\n    prompt = \"\"\"Goals hierarchy:\n- Main: Finish project\n  - Sub: Write report (feeds into)\n  - Sub: Create slides (depends on report)\n  - Sub: Present (depends on slides)\n\nCorrect order?\n\nA) Present \u2192 Write \u2192 Slides\nB) Write \u2192 Slides \u2192 Present\nC) Slides \u2192 Write \u2192 Present\nD) All can be parallel\"\"\"\n    return prompt, \"B\"\n"
-}

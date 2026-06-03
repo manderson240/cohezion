@@ -1,6 +1,0 @@
-{
-  "versionNumber": 1,
-  "name": "exec_planning_simple_01",
-  "description": "Simple planning with constraints.",
-  "definition": "@kbench.task(name=\"exec_planning_simple_01\")\ndef exec_planning_simple_01():\n    \"\"\"Simple planning with constraints.\"\"\"\n    prompt = \"\"\"You need to cook dinner. Tasks:\n- Chop vegetables (10 min)\n- Boil water (5 min, can do while chopping)\n- Cook pasta (15 min, needs boiling water)\n- Make sauce (20 min)\n\nMinimum time?\n\nA) 50 minutes\nB) 40 minutes\nC) 35 minutes\nD) 30 minutes\"\"\"\n    return prompt, \"C\"\n"
-}

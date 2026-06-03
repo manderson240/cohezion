@@ -1,6 +1,0 @@
-{
-  "versionNumber": 1,
-  "name": "exec_problem_reformulation_12",
-  "description": "Reformulate problem when blocked.",
-  "definition": "@kbench.task(name=\"exec_problem_reformulation_12\")\ndef exec_problem_reformulation_12():\n    \"\"\"Reformulate problem when blocked.\"\"\"\n    prompt = \"\"\"Goal: Water plants. Constraint: Watering can is broken.\n\nAvailable: Cups, garden hose, ice cubes, spray bottle\n\nBest solution?\n\nA) Give up\nB) Use garden hose\nC) Melt ice cubes\nD) Wait for rain\"\"\"\n    return prompt, \"B\"\n"
-}

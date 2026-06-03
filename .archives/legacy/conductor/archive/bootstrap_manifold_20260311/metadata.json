@@ -1,8 +1,0 @@
-{
-  "track_id": "bootstrap_manifold_20260311",
-  "type": "feature",
-  "status": "new",
-  "created_at": "2026-03-11T00:00:00Z",
-  "updated_at": "2026-03-11T00:00:00Z",
-  "description": "Bootstrap the 12D/512D/2048D Triune Manifold Engine & Persistence Layer (SurrealDB/Obsidian)"
-}
