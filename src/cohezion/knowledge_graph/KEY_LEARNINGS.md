@@ -309,6 +309,14 @@ Raw SurrealDB client queries expect structured database responses matching the s
 To optimize model routing in compound execution loops without calling expensive models, developers can run heuristic regex-based routers on local user prompt histories (~/.claude/projects/ JSONL files). Extracting and filtering prompts >50 chars and running them through the zero-latency task classifier showed that standard engineering tasks are often misrouted to NPU because they lack specific words like "bug" or "error" or contain local-inference-specific terminology (e.g. lemonade, compound lift). Fix: Add general "fix/update" verb-noun rules that target coding components/test harnesses and include project domain concepts (e.g., OOM guardrails, triune) directly in the classifier. This increased GPU routing accuracy and mapped code tasks to the proper 'code' output type (+17% improvement in code-type accuracy).
 *12D State Vector*: `[12D State: Space=Cognitive-Routing, Time=May 2026, Physics=Log-Mining, Brane=Heuristic-Accuracy-Mesh]`
 
+### Learning 385: Git Index Bloat Mitigation (OOM Prevention) (2026-06-03)
+The git index grew to 14,413 files (exceeding the strict 10k file limit rule) because `.archives/` and `archives/` directories (which store legacy session files, backups, and configs) were tracked by git. This caused Node.js OOM crashes in the agent environment when scanning status and index. **Fix**: Untrack `.archives/` and `archives/` from the index using `git rm -r --cached` (leaving them safe on disk) and add them to `.gitignore`. This reduced the git index size to 5,168 files (~64% reduction), resolving the OOM issues.
+*12D State Vector*: `[12D State: Space=Repository-Architecture, Time=June 2026, Physics=Index-Compaction, Brane=Resource-Safety-Mesh]`
+
+### Learning 386: Hardcoded Port and Systemd Crash Loops (2026-06-03)
+Systemd-coredump was launching DrKonqi repeatedly because `gnome-session-init-worker` and `wireplumber` were crashing in a loop triggered by `chrome-remote-desktop@mike-anderson.service` restarting on headless displays. Additionally, `entire-sync.service` failed because its `SURREALDB_URL` was hardcoded to `http://localhost:8000` while SurrealDB listens on `8001`. **Fix**: Corrected `entire-sync.service` config to point to `8001`, reloaded/restarted, and disabled/stopped the `chrome-remote-desktop` service to halt the crash loop alerts.
+*12D State Vector*: `[12D State: Space=Autonomic-Healing, Time=June 2026, Physics=Daemon-Stabilization, Brane=Systemd-Port-Mesh]`
+
 | Learning | Keyword | Status | Wave Source |
 |----------|---------|--------|-------------|
 | L378 | **agent-claim-verification** | `agent-claim-verification` skill | Wave Omega Patch 1 — synthetic-sniffing-panda Wave 5B fabrication |
@@ -318,3 +326,5 @@ To optimize model routing in compound execution loops without calling expensive 
 | L382 | **sync-async bridge** | `SYNC_ASYNC_BRIDGE_PRIME` skill | Wave StealthSkater — sync-to-async loop isolation |
 | L383 | **SurrealDB mock persistence** | `SURREALDB_MOCK_PERSISTENCE_PRIME` skill | Wave StealthSkater — structured query mock wrapping |
 | L384 | **routing-accuracy-measurement** | `LOCAL_INFERENCE_ROUTING` skill | Wave StealthSkater — heuristic routing accuracy and domain calibration |
+| L385 | **git-index-bloat-mitigation** | `git-index-bloat-mitigation` skill | Wave StealthSkater — git index size optimization for OOM prevention |
+| L386 | **hardcoded-port-crash-loops** | `systemd-service-stabilization` skill | Wave StealthSkater — systemd port mapping and crash-loop remediation |
