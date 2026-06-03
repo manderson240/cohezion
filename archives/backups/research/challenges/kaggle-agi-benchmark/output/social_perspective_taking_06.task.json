@@ -1,6 +1,0 @@
-{
-  "versionNumber": 1,
-  "name": "social_perspective_taking_06",
-  "description": "Take another's perspective.",
-  "definition": "@kbench.task(name=\"social_perspective_taking_06\")\ndef social_perspective_taking_06():\n    \"\"\"Take another's perspective.\"\"\"\n    prompt = \"\"\"From your view: The cube has a star on top.\nFrom the other side: The cube has a circle on the bottom.\n\nSomeone across from you says \"I see a circle.\"\n\nAre they telling the truth?\n\nA) Yes, from their perspective\nB) No, the cube has a star\nC) Cannot determine\nD) They're lying\"\"\"\n    return prompt, \"A\"\n"
-}

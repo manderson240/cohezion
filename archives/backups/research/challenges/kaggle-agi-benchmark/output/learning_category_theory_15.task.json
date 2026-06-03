@@ -1,6 +1,0 @@
-{
-  "versionNumber": 1,
-  "name": "learning_category_theory_15",
-  "description": "Learn category theory concepts.",
-  "definition": "@kbench.task(name=\"learning_category_theory_15\")\ndef learning_category_theory_15():\n    \"\"\"Learn category theory concepts.\"\"\"\n    prompt = \"\"\"In a category C:\n\n- Objects: A, B, C\n- Morphisms: f: A\u2192B, g: B\u2192C, h: A\u2192C\n- Composition: g \u2218 f = h\n\nA functor F: C \u2192 D maps:\n- F(A) = X, F(B) = Y, F(C) = Z\n\nWhat must F(g \u2218 f) equal?\n\nA) F(g) \u2218 F(f)\nB) F(f) \u2218 F(g)\nC) F(h)\nD) Both A and C\"\"\"\n    return prompt, \"D\"\n"
-}

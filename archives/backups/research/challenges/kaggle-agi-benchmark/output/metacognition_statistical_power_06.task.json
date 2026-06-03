@@ -1,6 +1,0 @@
-{
-  "versionNumber": 1,
-  "name": "metacognition_statistical_power_06",
-  "description": "Recognize statistical power issues.",
-  "definition": "@kbench.task(name=\"metacognition_statistical_power_06\")\ndef metacognition_statistical_power_06():\n    \"\"\"Recognize statistical power issues.\"\"\"\n    prompt = \"\"\"A study of 5 patients showed that Drug X cured all of them.\n\nWhat is the efficacy rate of Drug X?\n\nA) 100%\nB) Unknown, sample size too small for generalization\nC) Approximately 100%\nD) Insufficient Information\"\"\"\n    return prompt, \"D\"\n"
-}

@@ -218,6 +218,8 @@ data/cache/
 
 # Session archives
 .archived/
+.archives/
+archives/
 
 # Large generated files
 COHEZION_ANTHROPIC_PORTFOLIO_2026.zip

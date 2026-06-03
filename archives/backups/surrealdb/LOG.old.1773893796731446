@@ -1,1 +1,0 @@
-2026/03/19-00:15:56.463489 9070 [WARN] [db/db_impl/db_impl_open.cc:2687] DB::Open() failed: Corruption: Corruption: IO error: No such file or directory: While open a file for random read: /home/mike-anderson/dev/cohezion/surrealdb/000016.sst: No such file or directory  The file /home/mike-anderson/dev/cohezion/surrealdb/MANIFEST-000020 may be corrupted.

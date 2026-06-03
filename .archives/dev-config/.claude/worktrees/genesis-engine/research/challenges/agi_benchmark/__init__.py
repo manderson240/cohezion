@@ -1,1 +1,0 @@
-"""AGI Benchmark submission package."""
