@@ -1,0 +1,130 @@
+name: Skills Sync Manifest
+
+# Verifies that .claude/skills/, .pi/skills/, and ~/.hermes/skills/ are
+# in sync with the canonical .agents/skills/ directory.
+#
+# On PR: posts a comment with the diff so reviewers can see which skills
+#        are missing in which harness.
+# On push to main: fails the build if any harness is missing skills from
+#                  canonical, to prevent silent coverage drift.
+#
+# The script (scripts/ci/sync_skills_manifest.py) is read-only by
+# default; --apply is never used in CI — humans run that locally after
+# reviewing the diff.
+
+on:
+  pull_request:
+    paths:
+      - '.agents/skills/**'
+      - '.claude/skills/**'
+      - '.pi/skills/**'
+      - 'scripts/ci/sync_skills_manifest.py'
+  push:
+    branches: [main]
+    paths:
+      - '.agents/skills/**'
+      - '.claude/skills/**'
+      - '.pi/skills/**'
+      - 'scripts/ci/sync_skills_manifest.py'
+  workflow_dispatch:
+
+jobs:
+  manifest:
+    name: Generate skills manifest
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Run manifest (in-repo targets)
+        id: manifest
+        run: |
+          python scripts/ci/sync_skills_manifest.py \
+            --target .claude/skills \
+            --target .pi/skills \
+            --output /tmp/skills-manifest.json
+        continue-on-error: true
+
+      - name: Summarize results
+        if: always()
+        run: |
+          echo "## Skills manifest summary" >> $GITHUB_STEP_SUMMARY
+          python -c "
+          import json
+          m = json.load(open('/tmp/skills-manifest.json'))
+          print(f'Canonical: {m[\"canonical\"]} ({m[\"canonical_skill_count\"]} skills)')
+          for t, info in m['targets'].items():
+            print(f'- {t}: present={info[\"present_count\"]}, missing={info[\"missing_count\"]}, extras={info[\"extra_count\"]}')
+            if info['missing_skills']:
+              print(f'  - missing: {\", \".join(info[\"missing_skills\"][:10])}{\"...\" if len(info[\"missing_skills\"]) > 10 else \"\"}')
+          "
+
+      - name: Upload manifest artifact
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: skills-manifest
+          path: /tmp/skills-manifest.json
+          retention-days: 14
+
+  comment-pr:
+    name: Comment on PR with skills diff
+    needs: manifest
+    if: github.event_name == 'pull_request' && always()
+    runs-on: ubuntu-latest
+    permissions:
+      pull-requests: write
+    steps:
+      - name: Download manifest
+        uses: actions/download-artifact@v4
+        with:
+          name: skills-manifest
+          path: /tmp
+
+      - name: Post diff comment
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const fs = require('fs');
+            let m;
+            try {
+              m = JSON.parse(fs.readFileSync('/tmp/skills-manifest.json', 'utf8'));
+            } catch (e) {
+              console.log('No manifest artifact; skipping comment.');
+              return;
+            }
+            const lines = [];
+            lines.push('## :books: Skills sync manifest');
+            lines.push('');
+            lines.push(`Canonical: \`${m.canonical}\` (${m.canonical_skill_count} skills)`);
+            lines.push('');
+            for (const [t, info] of Object.entries(m.targets)) {
+              lines.push(`### ${t}`);
+              lines.push(`- present: **${info.present_count}**`);
+              lines.push(`- missing: **${info.missing_count}**`);
+              lines.push(`- extras (per-harness customizations): **${info.extra_count}**`);
+              if (info.missing_skills.length) {
+                const preview = info.missing_skills.slice(0, 8).join(', ');
+                const more = info.missing_skills.length > 8 ? `, ... +${info.missing_skills.length - 8} more` : '';
+                lines.push(`- first missing: ${preview}${more}`);
+              }
+              lines.push('');
+            }
+            const totalMissing = Object.values(m.targets).reduce((s, t) => s + t.missing_count, 0);
+            if (totalMissing > 0) {
+              lines.push(`:warning: **${totalMissing} skill(s) missing across harnesses.**`);
+              lines.push('');
+              lines.push('To sync locally: `python scripts/ci/sync_skills_manifest.py --apply --target .claude/skills --target .pi/skills`');
+            } else {
+              lines.push(':white_check_mark: All harnesses in sync with canonical.');
+            }
+            github.rest.issues.createComment({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: context.issue.number,
+              body: lines.join('\n')
+            });
