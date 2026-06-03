@@ -75,7 +75,7 @@ CLAUDE_TASK_PROMPT='You are a verification agent for the Cohezion project. Use O
 For each, report "ok: <path>" on its own line. Be terse. Do not run any bash command. Do not edit anything.'
 
 LAUNCH_CLAUDE=(tmux new-session -d -s harness-claude -c /tmp \
-    "unset TMUX; claude --print '$CLAUDE_TASK_PROMPT' 2>&1 | tee $LOG_DIR/claude.log")
+    "unset TMUX; source /home/mike-anderson/.config/cohezion/safe-env.sh; claude --print '$CLAUDE_TASK_PROMPT' 2>&1 | tee $LOG_DIR/claude.log")
 
 LAUNCH_PI=(tmux new-session -d -s harness-pi -c /tmp \
     "unset TMUX; pi --print --no-extensions '$TASK_PROMPT' 2>&1 | tee $LOG_DIR/pi.log")
