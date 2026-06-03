@@ -1,0 +1,44 @@
+{
+  "session": "harness-bash-unification-2026-06-03",
+  "ouroboros": {
+    "target": "claude-bwrap-bind",
+    "is_recoverable": true,
+    "learning_id": "ouro_claude-bwrap-bind_1780516153",
+    "root_cause": "Unknown failure (OuroborosFailureAnalyzer returned a generic analysis; the actual root cause — LD_LIBRARY_PATH containing 3 non-existent mesa paths — was identified manually and recorded in the vault retro and SurrealDB record)",
+    "suggested_mutation": "Investigate log context"
+  },
+  "mycelium": {
+    "cluster_count": 1,
+    "clusters": [
+      {
+        "cluster_id": "mycelium-0",
+        "size": 1,
+        "member_universes": [
+          "harness-bash-unification-2026-06-03"
+        ]
+      }
+    ]
+  },
+  "input_event": {
+    "kind": "MYCELIUM_PATTERN",
+    "universe_id": "harness-bash-unification-2026-06-03",
+    "coherence": 0.5,
+    "payload": {
+      "pattern": "bwrap-missing-bind",
+      "target": "claude-bash",
+      "env_var": "LD_LIBRARY_PATH",
+      "missing_paths": [
+        "/usr/lib/mesa-diverted/x86_64-linux-gnu",
+        "/usr/lib/x86_64-linux-gnu/mesa",
+        "/usr/lib/x86_64-linux-gnu/gallium-pipe"
+      ],
+      "fix": "~/.config/cohezion/safe-env.sh",
+      "ouroboros_learning_id": "ouro_claude-bwrap-bind_1780516153"
+    },
+    "agent_id": "harness-bash-unification-2026-06-03"
+  },
+  "notes": [
+    "_emit_pattern_event has a bug at line 11 of src/cohezion/mycelium/registry.py: 'cluster.size' is a @property, not a method, so 'cluster.size()' raises TypeError. Out of scope here; not blocking the feedback loop (we never call _emit_pattern_event explicitly).",
+    "OuroborosFailureAnalyzer.analyze() returned a generic 'Unknown failure' / 'Investigate log context' for the bwrap log — the analyzer doesn't yet have a pattern rule for bwrap bind errors. Refining the analyzer's pattern set is a follow-up; the manual diagnosis captured the real root cause."
+  ]
+}
