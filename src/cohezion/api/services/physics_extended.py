@@ -7,7 +7,7 @@ Follows the router pattern established in genesis.py.
 from __future__ import annotations
 
 import logging
-from typing import TYPE_CHECKING
+from typing import Any, TYPE_CHECKING
 
 from fastapi import APIRouter
 from pydantic import BaseModel, Field
@@ -21,6 +21,24 @@ if TYPE_CHECKING:
 logger = logging.getLogger(__name__)
 
 physics_ext_router = APIRouter(prefix="/physics", tags=["physics-extended"])
+
+
+def _sanitize_numpy(val: Any) -> Any:
+    import numpy as np
+
+    if isinstance(val, dict):
+        return {k: _sanitize_numpy(v) for k, v in val.items()}
+    elif isinstance(val, list):
+        return [_sanitize_numpy(v) for v in val]
+    elif isinstance(val, np.integer):
+        return int(val)
+    elif isinstance(val, np.floating):
+        return float(val)
+    elif isinstance(val, np.bool_):
+        return bool(val)
+    elif isinstance(val, np.ndarray):
+        return val.tolist()
+    return val
 
 
 # ─── Response Models ───────────────────────────────────────────────
@@ -277,10 +295,10 @@ async def get_natural_capital(
 
     projection = valuation.seventh_generation_projection(metrics.total_natural_capital)
 
-    return NaturalCapitalResponse(
-        **metrics.to_dict(),
-        seventh_generation=projection.to_dict(),
-    )
+    raw_data = metrics.to_dict()
+    raw_data["seventh_generation"] = projection.to_dict()
+    sanitized = _sanitize_numpy(raw_data)
+    return NaturalCapitalResponse(**sanitized)
 
 
 @physics_ext_router.get("/cosmogony/full-chain", response_model=CosmogonyChainResponse)
