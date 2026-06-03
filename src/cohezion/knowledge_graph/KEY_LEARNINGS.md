@@ -317,6 +317,14 @@ The git index grew to 14,413 files (exceeding the strict 10k file limit rule) be
 Systemd-coredump was launching DrKonqi repeatedly because `gnome-session-init-worker` and `wireplumber` were crashing in a loop triggered by `chrome-remote-desktop@mike-anderson.service` restarting on headless displays. Additionally, `entire-sync.service` failed because its `SURREALDB_URL` was hardcoded to `http://localhost:8000` while SurrealDB listens on `8001`. **Fix**: Corrected `entire-sync.service` config to point to `8001`, reloaded/restarted, and disabled/stopped the `chrome-remote-desktop` service to halt the crash loop alerts.
 *12D State Vector*: `[12D State: Space=Autonomic-Healing, Time=June 2026, Physics=Daemon-Stabilization, Brane=Systemd-Port-Mesh]`
 
+### Learning 387: Asynchronous Background Execution and Real-Time Log Piping via tmux (2026-06-03)
+Running long-running processes (tests, swarms, migrations) directly in the shell is vulnerable to connection dropouts and prompt context terminations. Using named, detached tmux sessions preserves execution state. Paging outputs via `tmux pipe-pane -o 'cat >> log_file'` allows real-time telemetry extraction without manual pane attachment, while capturing `$?` to a sentinel file reliably signals process termination.
+*12D State Vector*: `[12D State: Space=Terminal-Orchestration, Time=June 2026, Physics=Log-Piping-Isolation, Brane=Tmux-Swarm-Mesh]`
+
+### Learning 388: Autonomic Systemd Path Validation and Surgical File Rollback (2026-06-03)
+To prevent silent daemon crash loops, the self-diagnosis loop must validate `ExecStart` and `WorkingDirectory` path existence for all registered services (e.g. `surrealdb.service`, `cohezion-compound.service`). Furthermore, autonomous file modifications must be wrapped in a secure rollback harness: writing a `.bak` backup file before modifying the target file, running pytest verification, and automatically reverting the target file state if verification checks fail or raise exceptions.
+*12D State Vector*: `[12D State: Space=Autonomic-Healing, Time=June 2026, Physics=Verification-Rollback, Brane=Stale-Path-Mesh]`
+
 | Learning | Keyword | Status | Wave Source |
 |----------|---------|--------|-------------|
 | L378 | **agent-claim-verification** | `agent-claim-verification` skill | Wave Omega Patch 1 — synthetic-sniffing-panda Wave 5B fabrication |
@@ -328,3 +336,5 @@ Systemd-coredump was launching DrKonqi repeatedly because `gnome-session-init-wo
 | L384 | **routing-accuracy-measurement** | `LOCAL_INFERENCE_ROUTING` skill | Wave StealthSkater — heuristic routing accuracy and domain calibration |
 | L385 | **git-index-bloat-mitigation** | `git-index-bloat-mitigation` skill | Wave StealthSkater — git index size optimization for OOM prevention |
 | L386 | **hardcoded-port-crash-loops** | `systemd-service-stabilization` skill | Wave StealthSkater — systemd port mapping and crash-loop remediation |
+| L387 | **tmux-orchestration** | `TMUX_ORCHESTRATION_PRIME` skill | Wave StealthSkater — persistent background execution and log piping |
+| L388 | **autonomic-systemd-rollback** | `self-healing` skill | Wave StealthSkater — systemd path verification and file rollback |
