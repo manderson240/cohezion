@@ -56,6 +56,24 @@ healed = await system.heal(issues)
 print(f"Healed {healed} issues")
 ```
 
+### 5. Autonomous Patching with Rollback Safety
+Always wrap non-deterministic code modifications in a backup-restore harness to prevent verification failures (e.g. pytest errors or crashes) from leaving the codebase in a broken state:
+```python
+backup_path = Path(file_path).with_suffix(".bak")
+# 1. Back up original file state
+original_content = Path(file_path).read_text()
+Path(backup_path).write_text(original_content)
+
+# 2. Apply modifications and verify
+success = verify_via_tests()
+
+# 3. Roll back on failure, or clean up backup on success
+if not success:
+    Path(file_path).write_text(original_content)
+if backup_path.exists():
+    backup_path.unlink()
+```
+
 ## PATTERNS
 
 ### Known Issue Patterns (runtime metrics)
@@ -65,12 +83,13 @@ print(f"Healed {healed} issues")
 | quality_score | <0.6 | failing | Benchmark alternatives |
 | available | 0 | failing | Restart service |
 
-### Systemd Crash-Loop Patterns (added 2026-04-21)
+### Systemd Crash-Loop Patterns (updated 2026-06-03)
 Repo reorganizations (e.g. an "archaeology" commit that relocates files to `archives/backups/`) frequently leave systemd unit files -- which live outside the repo at `~/.config/systemd/user/` and `/etc/systemd/system/` -- pointing at stale paths. Units with `Restart=always` then crash-loop at ~12 restarts/minute per affected service. This can contribute to system-wide instability on memory-pressured hardware.
 
 | Symptom | Diagnosis | Remediation |
 |---------|-----------|-------------|
 | `restart counter` >100/hr on a unit | `ExecStart`/`WorkingDirectory` path missing post-reorg | Drop-in override at `<name>.service.d/NN-*.conf`, OR mask if source truly lost |
+| Stale ExecStart/WorkingDirectory | Target paths do not exist on disk | SelfDiagnostic flags path existence failure and triggers correction request |
 | Many units spinning after repo reorg | Archaeology commit didn't grep `/etc/systemd/system/` or `~/.config/systemd/user/` | `grep -rE "dev/cohezion" ~/.config/systemd/user/ /etc/systemd/system/` post-reorg to find stale refs |
 | `/tmp/<dir>` fails hard on fresh boot | tmpfs wipes `/tmp/*` on every boot | `ExecStartPre=/bin/mkdir -p /tmp/<dir>` OR `RuntimeDirectory=<name>` + point arg at `%t/<name>` |
 | Crash-loop detection unit itself failing | guardian script missing/broken | Rebuild from `scripts/service_guardian.sh` (see ref below); narrow remediations only |
@@ -97,7 +116,7 @@ done
 - `learnings/2026-04-21-turboquant-phase0-and-crash-loop-triage.md` (vault)
 
 ## VERSION
-v0.2 -- 2026-04-21 added systemd crash-loop patterns from turbo-distributed-torvalds session
+v0.3 -- 2026-06-03 added systemd stale path verification and backup/rollback mechanisms
 
 ## SEE ALSO
 - SWARM_ORCHESTRATION_PRIME.md
