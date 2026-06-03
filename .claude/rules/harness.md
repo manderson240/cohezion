@@ -235,3 +235,35 @@ print('U1 OK: all 7 substrates = 1.0 at HIHO', results)
 - exp_QQQQ5: StdDev=91 across seeds; n_seeds=3 selection gives PPL=28.35 in 5.83s total
 - Do NOT change these defaults without benchmarking
 - **Verification**: `uv run python -c "import inspect; from cohezion.model.cohezion_lm import CohezionLM; sig=inspect.signature(CohezionLM.from_autoresearch); p=sig.parameters; assert p['steps'].default==80 and p['lr'].default==1e-2 and p['n_seeds'].default==3; print('LM7 OK')"`
+
+## Harness Bash Unification Invariants (2026-06-03)
+
+### H1: Every harness must be able to use Bash (deployment invariant)
+- All three harnesses (Claude Code, Pi, Hermes) must be able to run shell
+  commands via the deploy script. This is a deployment invariant, not a
+  feature: any agent verifying the cohezion repo must be able to invoke
+  `python3 .claude/rules/harness_check.py`.
+- Captured retro: `docs/ops/learnings/RETRO-2026-06-03-harness-bash-unification.md`
+- SurrealDB: `learnings:bash_unification_2026_06_03`
+
+### H2: Claude Code Bash must be guarded by safe-env.sh
+- `~/.config/cohezion/safe-env.sh` strips invalid PATH-like env vars
+  (`LD_LIBRARY_PATH`, `PATH`, `PYTHONPATH`, `ROCM_PATH`, `HIP_PATH`,
+  `CUDA_PATH`) before Claude Code spawns subprocesses. Prevents
+  `bwrap: Can't create file at <PATH>` total Bash outage.
+- Skill: `claude-code-bwrap-sandbox-missing-bind` (refined v1.1.0,
+  2026-06-03; canonical copy in `~/.claude/skills/`, mirrored to
+  `.claude/skills/`, `.pi/skills/`, `.agents/skills/`).
+- **Verification**: `source ~/.config/cohezion/safe-env.sh && claude --print
+  "bash -c 'cd /home/mike-anderson/dev/cohezion && python3
+  .claude/rules/harness_check.py --fast'"` exits with the harness check
+  output (not a bwrap error).
+
+### H3: Deploy script must source safe-env.sh before launching claude
+- `scripts/ci/deploy_harness_agents.sh` must `source
+  ~/.config/cohezion/safe-env.sh` before `tmux new-session -d ...` for
+  the harness-claude session. Without this, every Claude deploy silently
+  fails with bwrap error and the agent reports "Bash blocked" instead of
+  real findings.
+- **Verification**: `grep "safe-env.sh" scripts/ci/deploy_harness_agents.sh`
+  returns a non-empty result.
