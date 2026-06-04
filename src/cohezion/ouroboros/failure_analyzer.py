@@ -76,9 +76,7 @@ class OuroborosFailureAnalyzer:
             )
         elif "bwrap" in logs and "Can't find source path" in logs:
             root_cause = "bwrap sandbox bind failure (stale PATH-like env var)"
-            suggested_mutation = (
-                "source ~/.config/cohezion/safe-env.sh before launching claude"
-            )
+            suggested_mutation = "source ~/.config/cohezion/safe-env.sh before launching claude"
         elif "ModuleNotFoundError" in logs and "arxiv" in logs.lower():
             root_cause = "arxiv Python lib not installed in venv"
             suggested_mutation = (
@@ -99,14 +97,10 @@ class OuroborosFailureAnalyzer:
             suggested_mutation = "Switch to stable Transformers backend or match PyTorch versions"
         elif "APIConnectionError" in logs and ("524" in logs or "503" in logs):
             root_cause = "Cloud LLM provider transient failure (5xx)"
-            suggested_mutation = (
-                "Switch to local AMD silicon (lemonade) via cohezion.inference.fleet.extend_claude()"
-            )
+            suggested_mutation = "Switch to local AMD silicon (lemonade) via cohezion.inference.fleet.extend_claude()"
         elif "Tool result missing due to internal error" in logs:
             root_cause = "MCP tool transport failure (vault path / mcp server crash)"
-            suggested_mutation = (
-                "Restart mcp server; verify VAULT_PATH / cloud-vault-mcp env vars"
-            )
+            suggested_mutation = "Restart mcp server; verify VAULT_PATH / cloud-vault-mcp env vars"
 
         logger.info(f"[Ouroboros] Failure analyzed: {root_cause}")
 

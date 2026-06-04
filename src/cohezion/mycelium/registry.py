@@ -269,18 +269,15 @@ class MyceliumRegistry:
             import urllib.request
             import base64
 
-            surreal_url = __import__("os").environ.get(
-                "SURREALDB_URL", "http://localhost:8001/sql"
-            )
+            surreal_url = __import__("os").environ.get("SURREALDB_URL", "http://localhost:8001/sql")
             surreal_user = __import__("os").environ.get("SURREALDB_USER", "root")
             surreal_pass = __import__("os").environ.get("SURREALDB_PASS", "root")
             # Sanitize cluster_id for use as record ID
-            sanitized = (
-                cluster.cluster_id.replace("-", "_").replace(" ", "_")
-            )
+            sanitized = cluster.cluster_id.replace("-", "_").replace(" ", "_")
             db_id = f"mycelium_patterns:{sanitized}_{ts}"
             payload_json = json.dumps(payload)
             created_at = datetime.now(UTC).isoformat()
+
             # Inline values into the SQL (safe — no user input flows here;
             # all values come from numeric fields + a JSON payload we built)
             def _sql_str(v: str) -> str:
