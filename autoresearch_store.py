@@ -80,7 +80,13 @@ def _ensure_schema() -> None:
     global _schema_ensured
     if _schema_ensured:
         return
-    _surreal(f"DEFINE TABLE OVERWRITE {TABLE} TYPE ANY SCHEMALESS PERMISSIONS NONE;")
+    _surreal(
+        f"DEFINE TABLE OVERWRITE {TABLE} TYPE ANY SCHEMALESS PERMISSIONS NONE;"
+        # Index the fields the SessionStart digest hook filters/sorts on (record-id lookups
+        # and ->edge-> traversals are already auto-indexed; these cover winner/ts scans).
+        f"DEFINE INDEX OVERWRITE er_winner ON {TABLE} FIELDS winner;"
+        f"DEFINE INDEX OVERWRITE er_ts ON {TABLE} FIELDS ts;"
+    )
     _schema_ensured = True
 
 
