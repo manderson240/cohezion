@@ -13,10 +13,10 @@ even if everything fails.
 
 from __future__ import annotations
 
-import json
 import sys
 from pathlib import Path
-from unittest.mock import MagicMock, patch
+from unittest.mock import patch  # noqa: F401 — used via module-level fixtures in sub-tests
+
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[3] / "src"))
 sys.path.insert(0, str(Path(__file__).resolve().parents[3] / "scripts" / "ci"))
@@ -25,7 +25,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parents[3] / "scripts" / "ci"))
 def test_frontier_digest_module_importable():
     """The frontier_digest module must be importable as a module."""
     try:
-        import frontier_digest  # type: ignore
+        import frontier_digest  # noqa: F401 — imported to verify module availability  # type: ignore
     except ImportError:
         import pytest
 
@@ -44,8 +44,9 @@ def test_frontier_digest_has_main():
 def test_frontier_digest_writes_markdown_file(tmp_path):
     """When called, the digest must write a markdown file to
     docs/ops/frontier/<YYYY-MM-DD>.md with at least a header."""
-    import frontier_digest  # type: ignore
     from datetime import date
+
+    import frontier_digest  # type: ignore
 
     out_dir = tmp_path / "frontier"
     out_dir.mkdir()

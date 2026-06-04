@@ -71,6 +71,13 @@ repos:
         files: ^tests/
         stages: [pre-commit]
 
+      - id: jscpd-duplication-gate
+        name: jscpd duplication gate
+        entry: python scripts/hooks/jscpd_duplication_gate.py
+        language: python
+        pass_filenames: false
+        stages: [pre-commit]
+
       - id: playwright-tests
         name: Run Playwright Tests
         entry: bash -c 'cd src/web/anima_dashboard && npx playwright test'
