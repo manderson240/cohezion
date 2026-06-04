@@ -15,9 +15,12 @@ tight to avoid false positives):
 | ModuleNotFoundError + mamba_ssm / cutlass                 | Kaggle Blackwell missing ML kernel       | Pin torch==2.4.0+cu121 in notebook        |
 | APIConnectionError + OpenAI + 524 / 503                   | Cloud LLM provider transient failure      | Switch to local AMD silicon (lemonade)     |
 | Tool result missing due to internal error                 | MCP tool transport failure                | Restart MCP server / check vault path     |
+| arxiv + 429                                               | arxiv rate limited (HTTP 429)             | Back off 5-15s; arxiv asks for 3s between |
+| huggingface + 401 / 403                                  | HF API auth required                      | Set HF_TOKEN env var from hf.co/settings  |
+| semantic.scholar + 429                                   | SS rate limited                           | Back off; SS allows ~100 req/5min no-key   |
 
-Last extended: 2026-06-03 (session harness-bash-unification). Trigger
-to add a new branch: the failure pattern has been seen 2+ times
+Last extended: 2026-06-03 (WS4 of the followups-resolved round).
+Trigger to add a new branch: the failure pattern has been seen 2+ times
 in different sessions without a matching pattern already.
 """
 
@@ -101,6 +104,15 @@ class OuroborosFailureAnalyzer:
         elif "Tool result missing due to internal error" in logs:
             root_cause = "MCP tool transport failure (vault path / mcp server crash)"
             suggested_mutation = "Restart mcp server; verify VAULT_PATH / cloud-vault-mcp env vars"
+        elif "arxiv" in logs.lower() and "429" in logs:
+            root_cause = "arxiv API rate limited (HTTP 429)"
+            suggested_mutation = "Back off 5-15s; arxiv asks for ~3s between requests. Increase the jitter in _arxiv_jitter()."
+        elif ("huggingface" in logs.lower() or "hf.co" in logs.lower()) and ("401" in logs or "403" in logs):
+            root_cause = "Hugging Face API auth required (HTTP 401/403)"
+            suggested_mutation = "Set HF_TOKEN env var (free token at huggingface.co/settings/tokens)"
+        elif "semantic" in logs.lower() and "scholar" in logs.lower() and "429" in logs:
+            root_cause = "Semantic Scholar rate limited (HTTP 429)"
+            suggested_mutation = "Back off; SS allows ~100 req/5min without API key. Use --quiet mode or stagger requests."
 
         logger.info(f"[Ouroboros] Failure analyzed: {root_cause}")
 

@@ -5,6 +5,7 @@ from __future__ import annotations
 import sys
 from pathlib import Path
 
+
 sys.path.insert(0, str(Path(__file__).resolve().parents[3] / "src"))
 
 from cohezion.ouroboros.failure_analyzer import OuroborosFailureAnalyzer
@@ -115,12 +116,47 @@ def test_cloud_5xx_pattern():
 
 
 def test_mcp_tool_failure_pattern():
-    rc, mut = _analyze(
+    log = (
         "Tool result missing due to internal error from mcp__cohezion__vault_query. "
         "The MCP server crashed mid-call. Verify VAULT_PATH env var is set and "
         "the cloud-vault-mcp subprocess is still alive in the gateway."
     )
+    rc, mut = _analyze(log)
     assert "MCP" in rc or "mcp" in rc.lower()
+
+
+def test_arxiv_rate_limit_429():
+    log = (
+        "arxiv query failed: HTTP 429 Too Many Requests. arxiv asks for ~3 seconds "
+        "between requests. The request was retried twice before giving up. This "
+        "is a rate-limit response from the arxiv public API, not a code bug."
+    )
+    rc, mut = _analyze(log)
+    assert "rate" in rc.lower() or "429" in rc
+    assert "back" in mut.lower() or "jitter" in mut.lower()
+
+
+def test_hf_auth_required():
+    log = (
+        "huggingface.co API returned HTTP 401 Unauthorized. The request to "
+        "https://huggingface.co/api/models did not include a valid HF_TOKEN. "
+        "Set the HF_TOKEN env var to a free token from "
+        "huggingface.co/settings/tokens before retrying."
+    )
+    rc, mut = _analyze(log)
+    assert "auth" in rc.lower() or "401" in rc or "403" in rc
+    assert "HF_TOKEN" in mut or "token" in mut.lower()
+
+
+def test_semantic_scholar_rate_limit_429():
+    log = (
+        "Semantic Scholar paper lookup returned HTTP 429. The API allows "
+        "approximately 100 requests per 5 minutes without an API key. "
+        "Back off before retrying or use a paid API key for higher quotas."
+    )
+    rc, mut = _analyze(log)
+    assert "rate" in rc.lower() or "429" in rc or "scholar" in rc.lower()
+    assert "back" in mut.lower() or "100" in mut or "stagger" in mut.lower()
 
 
 def test_unknown_long_log_falls_through():
