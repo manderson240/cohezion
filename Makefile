@@ -38,7 +38,7 @@ resume:  ## Re-verify the Anthropic Universes living resume (docs/anthropic-univ
 	@echo "✓ Resume receipt refreshed: docs/resume_receipt.json"
 
 test-fast:  ## Run fast unit tests only (<1s each, no live services)
-	uv run pytest tests/unit --import-mode=append --tb=short -q -p no:warnings
+	uv run pytest tests/unit tests/ouroboros tests/mycelium tests/integrations tests/mcp --import-mode=append --tb=short -q -p no:warnings
 	@echo "✓ Fast tests complete"
 
 test-integration:  ## Run integration tests (require live services)
