@@ -122,6 +122,12 @@ class ModelEntry:
     cost_per_1k_input_usd: float = 0.0
     cost_per_1k_output_usd: float = 0.0
     priority: int = 100  # lower = preferred
+    # Card-aligned recipe (WS2A). Default None preserves the
+    # pre-WS2A behavior: route() and friends work fine without a
+    # profile. The route_by_capability router filters out entries
+    # whose profile is None (recipe_guard rule: cardless entries
+    # cannot be dispatched).
+    profile: CapabilityProfile | None = field(default=None)  # type: ignore[name-defined]  # noqa: F821
     # HISTORICAL marker — True means this model was successfully invoked at least
     # once (see `FleetRegistry.mark_verified` / `last_verified_at`). It does NOT
     # mean the endpoint is reachable right now. For LIVE status, use
@@ -414,6 +420,19 @@ def _build_default_registry() -> dict[str, ModelEntry]:
             notes="Gemini 3 Pro via headless `gemini -p -m gemini-3-pro -o json`",
         ),
     ]
+    # WS2A: attach hand-built CapabilityProfile records to the default
+    # entries. The profile carries card-derived strengths/weaknesses,
+    # sampling sweet spot, and known failure modes. Entries whose
+    # model_id has no profile in default_profiles get profile=None
+    # (the route_by_capability router filters those out).
+    try:
+        from cohezion.inference.default_profiles import DEFAULT_PROFILES
+        for entry in entries:
+            entry.profile = DEFAULT_PROFILES.get(entry.model_id)
+    except ImportError:
+        # Optional dep — keep registry building even if default_profiles
+        # somehow isn't on the path (e.g. during a partial install).
+        pass
     return {entry.model_id: entry for entry in entries}
 
 

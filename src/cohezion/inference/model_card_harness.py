@@ -19,7 +19,12 @@ from __future__ import annotations
 import json
 import urllib.request
 from dataclasses import dataclass, field
-from typing import Any
+from typing import TYPE_CHECKING, Any
+
+
+if TYPE_CHECKING:
+    from cohezion.inference.capability_profile import CapabilityProfile
+    from cohezion.inference.registry import Task
 
 # ── Model capability facts (from model card + empirical measurement) ─────────
 
@@ -69,7 +74,7 @@ class ModelCardHarness:
         self._by_id: dict[str, dict] = {m["id"]: m for m in models}
 
     @classmethod
-    def from_live_api(cls, port: int = 13305) -> "ModelCardHarness":
+    def from_live_api(cls, port: int = 13305) -> ModelCardHarness:
         """Build from the Lemonade /v1/models endpoint."""
         try:
             with urllib.request.urlopen(f"http://127.0.0.1:{port}/v1/models", timeout=3) as r:
@@ -146,3 +151,99 @@ class ModelCardHarness:
             prompt_prefix=prompt_prefix,
             extra_body=extra_body,
         )
+
+    # ── NEW (WS2A): card-aware accessors ──────────────────────────────────
+    #
+    # These methods were added in the daily-researcher-agent WS2A build.
+    # They look up a model's CapabilityProfile (from the live catalog or
+    # the hand-built default_profiles table) and expose the card facts
+    # the rest of the system needs.
+    #
+    # The methods are additive; existing callers (get_params, is_thinking_model,
+    # best_model_for_output_type) are unchanged.
+
+    def profile_for(self, model_id: str) -> CapabilityProfile | None:
+        """Return the CapabilityProfile for `model_id`.
+
+        Resolution order:
+        1. The hand-built default_profiles table (14 default entries).
+        2. The live catalog (`self._by_id`); if labels and ctx_size are
+           present, we can synthesize a minimal profile on the fly.
+        3. None — caller is responsible for fallback.
+
+        The "live catalog" path is a best-effort reconstruction from the
+        Lemonade /v1/models response. Full card parsing happens in
+        Lane 1 (model_scout) of the daily researcher.
+        """
+        # Lazy import to avoid a cycle: capability_profile imports from
+        # the card parser; we import here so anyone who uses the harness
+        # without profiles still works.
+        from cohezion.inference.default_profiles import get_profile
+
+        prof = get_profile(model_id)
+        if prof is not None:
+            return prof
+
+        live = self._by_id.get(model_id)
+        if not live:
+            return None
+
+        # Synthesize a minimal profile from the live catalog. This is
+        # best-effort — many fields (strengths, weaknesses, sampling) are
+        # unknown until ScoutLane reads the real card.
+        from datetime import UTC, datetime
+
+        from cohezion.inference.capability_profile import CapabilityProfile
+
+        labels = live.get("labels", [])
+        is_thinking = "reasoning" in labels
+        is_qwen3 = any(model_id.startswith(p) for p in _QWEN3_THINKING_PREFIXES)
+        is_coding = "coding" in labels
+        modes = frozenset({"chat"})
+        if "tool" in str(live).lower() or any("tool" in l for l in labels):
+            modes = modes | {"tool_use"}
+
+        strengths: set[str] = set()
+        if is_coding:
+            strengths.add("code")
+            strengths.add("code_completion")
+        if is_thinking:
+            strengths.add("reasoning")
+            strengths.add("math")
+        if not strengths:
+            strengths.add("general_chat")
+
+        return CapabilityProfile(
+            model_id=model_id,
+            family=model_id.split("-")[0].lower(),
+            supported_modes=modes,
+            optimal_ctx=self.get_ctx_size(model_id) or 8192,
+            min_ctx=512,
+            strengths=frozenset(strengths),
+            weaknesses=frozenset(),
+            sampling_sweet_spot={},
+            prompt_template_fingerprint="chatml" if is_qwen3 else "unknown",
+            thinking_mode=("always" if is_thinking and not is_qwen3 else "never"),
+            known_failure_modes=(),
+            source_url=f"https://huggingface.co/{model_id}",
+            read_at=datetime.now(UTC),
+        )
+
+    def aligned_params(self, model_id: str, task: Task) -> InferenceParams:
+        """Return card-aligned InferenceParams for `model_id` on `task`.
+
+        Convenience wrapper around route_by_capability that always picks
+        the registry entry for `model_id` (rather than letting the router
+        choose). Use this when the caller has already decided which model
+        to dispatch to and only needs the params filled in from the card.
+        """
+        from cohezion.inference.recipe_guard import RecipeGuard
+        from cohezion.inference.registry import get_registry
+        from cohezion.inference.route_by_capability import _build_aligned_params
+
+        reg = get_registry()
+        entry = reg.models.get(model_id)
+        if entry is None:
+            raise ValueError(f"unknown model_id {model_id!r}")
+        RecipeGuard.assert_card_present(entry)
+        return _build_aligned_params(entry, task)
