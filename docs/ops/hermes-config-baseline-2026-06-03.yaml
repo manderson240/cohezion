@@ -31,17 +31,23 @@ providers:
     - Qwen3-Embedding-0.6B-GGUF
     - Qwen3.6-35B-A3B-NoThinking
     name: Lemonade (Local NPU)
+    model:
+      provider: lemonade-local
   lemonade-npu:
     api: http://127.0.0.1:13306/v1
     default_model: llama3.2-1b-FLM
     models:
     - llama3.2-1b-FLM
     name: Lemonade (NPU XDNA2)
+    model:
+      provider: lemonade-local
   local-localhost:11434:
     api: http://localhost:11434/v1
     api_key: ollama
     default_model: minimax-m2.7:cloud
     name: Local (localhost:11434)
+    model:
+      provider: lemonade-local
   ollama-launch:
     api: http://127.0.0.1:11434/v1
     context_length: 256000
@@ -67,6 +73,8 @@ providers:
     - glm-4.7:cloud
     - kimi-k2.5:cloud
     name: Ollama
+    model:
+      provider: lemonade-local
 fallback_providers: '["lemonade-local", "ollama-launch"]'
 credential_pool_strategies: {}
 toolsets:
@@ -330,6 +338,7 @@ display:
   resume_max_assistant_lines: 3
   resume_skip_tool_only: true
   busy_input_mode: interrupt
+  interface: cli
   tui_auto_resume_recent: false
   tui_agents_nudge: true
   bell_on_complete: false
@@ -354,7 +363,11 @@ display:
   tool_progress_overrides: {}
   tool_preview_length: 0
   ephemeral_system_ttl: 0
-  platforms: {}
+  platforms:
+    telegram:
+      streaming: true
+    discord:
+      streaming: false
   runtime_footer:
     enabled: false
     fields:
@@ -544,10 +557,12 @@ quick_commands:
     sheets append $1 "$2" --values "[[\"$3\"]]"
   sheets-read: python /home/mike-anderson/.hermes/skills/productivity/google-workspace/scripts/google_api.py
     sheets get $1 "$2"
-  cohezion-harness-check: cd /home/mike-anderson/dev/cohezion && python .claude/rules/harness_check.py --fast
+  cohezion-harness-check: cd /home/mike-anderson/dev/cohezion && python .claude/rules/harness_check.py
+    --fast
   cohezion-harness-full: cd /home/mike-anderson/dev/cohezion && python .claude/rules/harness_check.py
 hooks: {}
 hooks_auto_accept: false
+personalities: {}
 security:
   allow_private_urls: false
   redact_secrets: true
@@ -606,6 +621,13 @@ gateway:
   trust_recent_files: true
   trust_recent_files_seconds: 600
   busy_ack_enabled: false
+streaming:
+  enabled: true
+  transport: auto
+  edit_interval: 0.8
+  buffer_threshold: 24
+  cursor: " \u2589"
+  fresh_final_after_seconds: 60.0
 sessions:
   auto_prune: false
   retention_days: 90
@@ -642,11 +664,23 @@ secrets:
 paste_collapse_threshold: 5
 paste_collapse_threshold_fallback: 5
 paste_collapse_char_threshold: 2000
-_config_version: 25
+_config_version: 26
 group_sessions_per_user: true
 known_plugin_toolsets:
   cli:
   - spotify
+# cohezion MCP bridge (hermes_mcp_bridge.py v1.1.0+).
+# Tools: cohezion_run_cli, cohezion_infer, cohezion_inference_status,
+# cohezion_crawl_codebase, cohezion_list_skills, cohezion_read_source,
+# cohezion_port_skill_to_hermes, cohezion_hermes_status,
+# cohezion_zerolang_run, cohezion_zerolang_check.
+#
+# Sentinel for cohezion_run_cli: prefix the command with '!raw '
+# to bypass the default 'python -m cohezion' prefix and run the
+# rest as a raw shell command via 'bash -c'. Example:
+#   command='!raw python3 .claude/rules/harness_check.py --fast'
+# Without the sentinel, the command is treated as a cohezion
+# CLI subcommand (simulate, journey, etc.) and prefixed accordingly.
 mcp_servers:
   cohezion:
     args:
@@ -701,5 +735,23 @@ smart_model_routing:
   enabled: true
   max_simple_chars: 500
   max_simple_words: 50
-streaming:
-  enabled: true
+tuned:
+  compression:
+    threshold: 0.35
+    target_ratio: 0.5
+  memory:
+    memory_char_limit: 3000
+    user_char_limit: 2000
+  delegation:
+    max_spawn_depth: 2
+    max_concurrent_children: 6
+    orchestrator: true
+  browser:
+    inactivity_timeout: 30
+  terminal:
+    timeout: 300
+selected_model:
+  engine: local
+  provider: lemonade-local
+  fallback_providers:
+  - ollama-launch
