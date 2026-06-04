@@ -1,0 +1,518 @@
+# Instincts generated from https://github.com/manderson240/cohezion
+# Generated: 2026-06-04T20:35:28.208Z
+# Version: 2.0
+# NOTE: This file supplements (does not replace) any existing curated instincts.
+# High-confidence manually curated instincts should be preserved alongside these.
+
+---
+id: cohezion-commit-conventional
+trigger: "when writing a commit message"
+confidence: 0.85
+domain: git
+source: repo-analysis
+source_repo: https://github.com/manderson240/cohezion
+---
+
+# Cohezion Commit Conventional
+
+## Action
+
+Use conventional commit format with prefixes: feat
+
+## Evidence
+
+- 2 commits analyzed
+- Detected conventional commit pattern
+- Examples: feat(researcher): foundation for daily-researcher-agent (WS1), feat(inference): card-aware router + 14 default profiles + extend_claude_aligned (WS2A)
+
+---
+id: cohezion-commit-length
+trigger: "when writing a commit message"
+confidence: 0.6
+domain: git
+source: repo-analysis
+source_repo: https://github.com/manderson240/cohezion
+---
+
+# Cohezion Commit Length
+
+## Action
+
+Write moderate-length commit messages (~74 characters)
+
+## Evidence
+
+- Average commit message length: 74 chars
+- Based on 2 commits
+
+---
+id: cohezion-naming-files
+trigger: "when creating a new file"
+confidence: 0.8
+domain: code-style
+source: repo-analysis
+source_repo: https://github.com/manderson240/cohezion
+---
+
+# Cohezion Naming Files
+
+## Action
+
+Use snake_case naming convention
+
+## Evidence
+
+- Analyzed file naming patterns in repository
+- Dominant pattern: snake_case
+
+---
+id: cohezion-import-relative
+trigger: "when importing modules"
+confidence: 0.75
+domain: code-style
+source: repo-analysis
+source_repo: https://github.com/manderson240/cohezion
+---
+
+# Cohezion Import Relative
+
+## Action
+
+Use relative imports for project files
+
+## Evidence
+
+- Import analysis shows relative import pattern
+- Example: import { x } from '../lib/x'
+
+---
+id: cohezion-export-style
+trigger: "when exporting from a module"
+confidence: 0.7
+domain: code-style
+source: repo-analysis
+source_repo: https://github.com/manderson240/cohezion
+---
+
+# Cohezion Export Style
+
+## Action
+
+Prefer named exports
+
+## Evidence
+
+- Export pattern analysis
+- Dominant style: named
+
+---
+id: cohezion-test-separate
+trigger: "when writing tests"
+confidence: 0.8
+domain: testing
+source: repo-analysis
+source_repo: https://github.com/manderson240/cohezion
+---
+
+# Cohezion Test Separate
+
+## Action
+
+Place tests in the tests/ or __tests__/ directory, mirroring src structure
+
+## Evidence
+
+- Separate test directory pattern detected
+- Tests live in dedicated test folders
+
+---
+id: cohezion-test-naming
+trigger: "when creating a test file"
+confidence: 0.85
+domain: testing
+source: repo-analysis
+source_repo: https://github.com/manderson240/cohezion
+---
+
+# Cohezion Test Naming
+
+## Action
+
+Name test files using the pattern: *.test.ts
+
+## Evidence
+
+- File pattern: *.test.ts
+- Consistent across test files
+
+---
+id: cohezion-workflow-add-new-inference-feature-with-tests
+trigger: "when doing add new inference feature with tests"
+confidence: 0.6
+domain: workflow
+source: repo-analysis
+source_repo: https://github.com/manderson240/cohezion
+---
+
+# Cohezion Workflow Add New Inference Feature With Tests
+
+## Action
+
+Follow the add-new-inference-feature-with-tests workflow:
+1. Create or modify core inference logic in src/cohezion/inference/ (e.g., capability_profile.py, route_by_capability.py, default_profiles.py).
+2. Update or extend registry/model harness logic (e.g., registry.py, model_card_harness.py, fleet.py) to integrate the new feature.
+3. Write new tests in tests/inference/ for the new feature, covering both positive and negative cases.
+4. Run and verify tests (pytest, make test-fast) and lint checks.
+5. Document or note follow-up integration points if the feature is foundational.
+
+## Evidence
+
+- Workflow detected from commit patterns
+- Frequency: ~2x per month
+- Files: src/cohezion/inference/*.py, src/cohezion/inference/registry.py, src/cohezion/inference/model_card_harness.py
+
+---
+id: cohezion-workflow-add-or-update-model-profiles-and-routing
+trigger: "when doing add or update model profiles and routing"
+confidence: 0.6
+domain: workflow
+source: repo-analysis
+source_repo: https://github.com/manderson240/cohezion
+---
+
+# Cohezion Workflow Add Or Update Model Profiles And Routing
+
+## Action
+
+Follow the add-or-update-model-profiles-and-routing workflow:
+1. Create or update profile data in src/cohezion/inference/default_profiles.py.
+2. Integrate profiles into registry entries (src/cohezion/inference/registry.py).
+3. Update or add routing logic (src/cohezion/inference/route_by_capability.py) to utilize new profiles.
+4. Write or update tests in tests/inference/ to validate profile correctness and routing behavior.
+5. Verify all tests and lint checks pass.
+
+## Evidence
+
+- Workflow detected from commit patterns
+- Frequency: ~2x per month
+- Files: src/cohezion/inference/default_profiles.py, src/cohezion/inference/registry.py, src/cohezion/inference/route_by_capability.py
+
+---
+id: cohezion-workflow-feature-development-with-test-first
+trigger: "when doing feature development with test first"
+confidence: 0.6
+domain: workflow
+source: repo-analysis
+source_repo: https://github.com/manderson240/cohezion
+---
+
+# Cohezion Workflow Feature Development With Test First
+
+## Action
+
+Follow the feature-development-with-test-first workflow:
+1. Write new test cases in tests/inference/ for the intended feature (RED).
+2. Implement or modify feature logic in src/cohezion/inference/ or related modules.
+3. Iterate until all new tests pass (GREEN).
+4. Verify no regressions in existing tests.
+5. Document follow-up work if the feature is foundational.
+
+## Evidence
+
+- Workflow detected from commit patterns
+- Frequency: ~2x per month
+- Files: tests/inference/*.py, src/cohezion/inference/*.py
+
+---
+id: cohezion-instinct-file-naming
+trigger: "When creating a new Python file in the repository"
+confidence: 0.9
+domain: code-style
+source: repo-analysis
+source_repo: manderson240/cohezion
+---
+
+# Cohezion Instinct File Naming
+
+## Action
+
+Name the file using snake_case convention
+
+## Evidence
+
+- Pattern in codeStyle.namingConventions.files
+- Observed in src/cohezion/inference/*.py
+
+---
+id: cohezion-instinct-function-naming
+trigger: "When defining a new function"
+confidence: 0.8
+domain: code-style
+source: repo-analysis
+source_repo: manderson240/cohezion
+---
+
+# Cohezion Instinct Function Naming
+
+## Action
+
+Use camelCase for function names
+
+## Evidence
+
+- Pattern in codeStyle.namingConventions.functions
+
+---
+id: cohezion-instinct-class-naming
+trigger: "When defining a new class"
+confidence: 0.9
+domain: code-style
+source: repo-analysis
+source_repo: manderson240/cohezion
+---
+
+# Cohezion Instinct Class Naming
+
+## Action
+
+Use PascalCase for class names
+
+## Evidence
+
+- Pattern in codeStyle.namingConventions.classes
+
+---
+id: cohezion-instinct-constant-naming
+trigger: "When declaring a constant"
+confidence: 0.9
+domain: code-style
+source: repo-analysis
+source_repo: manderson240/cohezion
+---
+
+# Cohezion Instinct Constant Naming
+
+## Action
+
+Use SCREAMING_SNAKE_CASE for constant names
+
+## Evidence
+
+- Pattern in codeStyle.namingConventions.constants
+
+---
+id: cohezion-instinct-import-style
+trigger: "When importing modules within the package"
+confidence: 0.8
+domain: code-style
+source: repo-analysis
+source_repo: manderson240/cohezion
+---
+
+# Cohezion Instinct Import Style
+
+## Action
+
+Use relative imports
+
+## Evidence
+
+- Pattern in codeStyle.importStyle
+
+---
+id: cohezion-instinct-export-style
+trigger: "When exporting functions or classes from a module"
+confidence: 0.8
+domain: code-style
+source: repo-analysis
+source_repo: manderson240/cohezion
+---
+
+# Cohezion Instinct Export Style
+
+## Action
+
+Use named exports
+
+## Evidence
+
+- Pattern in codeStyle.exportStyle
+
+---
+id: cohezion-instinct-test-location
+trigger: "When adding or updating tests"
+confidence: 0.9
+domain: testing
+source: repo-analysis
+source_repo: manderson240/cohezion
+---
+
+# Cohezion Instinct Test Location
+
+## Action
+
+Place test files in the separate 'tests' directory, mirroring the structure of the src directory
+
+## Evidence
+
+- Pattern in architecture.folderStructure.testLocation
+- Pattern in tests/inference/*.py
+
+---
+id: cohezion-instinct-test-pattern
+trigger: "When naming a test file"
+confidence: 0.7
+domain: testing
+source: repo-analysis
+source_repo: manderson240/cohezion
+---
+
+# Cohezion Instinct Test Pattern
+
+## Action
+
+Use the pattern '*.test.ts' for test files
+
+## Evidence
+
+- Pattern in testing.filePattern
+
+---
+id: cohezion-instinct-test-type
+trigger: "When writing tests"
+confidence: 0.8
+domain: testing
+source: repo-analysis
+source_repo: manderson240/cohezion
+---
+
+# Cohezion Instinct Test Type
+
+## Action
+
+Focus on unit tests for new features
+
+## Evidence
+
+- Pattern in testing.testTypes
+- tests/inference/*.py
+
+---
+id: cohezion-instinct-test-driven-development
+trigger: "When developing a new feature"
+confidence: 0.85
+domain: testing
+source: repo-analysis
+source_repo: manderson240/cohezion
+---
+
+# Cohezion Instinct Test Driven Development
+
+## Action
+
+Write failing tests first (RED), then implement feature until tests pass (GREEN)
+
+## Evidence
+
+- feature-development-with-test-first workflow
+- Commit sequence in workflow
+
+---
+id: cohezion-instinct-git-commit-format
+trigger: "When making a commit"
+confidence: 0.9
+domain: git
+source: repo-analysis
+source_repo: manderson240/cohezion
+---
+
+# Cohezion Instinct Git Commit Format
+
+## Action
+
+Use the conventional commit format with 'feat' prefix for features, and include scope in parentheses
+
+## Evidence
+
+- Pattern in commits.prefixes
+- Examples: 'feat(researcher): foundation for daily-researcher-agent (WS1)'
+
+---
+id: cohezion-instinct-git-commit-length
+trigger: "When writing a commit message"
+confidence: 0.7
+domain: git
+source: repo-analysis
+source_repo: manderson240/cohezion
+---
+
+# Cohezion Instinct Git Commit Length
+
+## Action
+
+Keep the commit message concise, around 74 characters on average
+
+## Evidence
+
+- Pattern in commits.averageLength
+
+---
+id: cohezion-instinct-new-inference-feature
+trigger: "When someone wants to add a new inference capability, router, or profile to the system"
+confidence: 0.95
+domain: workflow
+source: repo-analysis
+source_repo: manderson240/cohezion
+---
+
+# Cohezion Instinct New Inference Feature
+
+## Action
+
+Create or modify core inference logic, update registry/model harness, write comprehensive tests, run tests/lint, and document follow-up integration points if foundational
+
+## Evidence
+
+- add-new-inference-feature-with-tests workflow
+- Commit sequence and files involved
+
+---
+id: cohezion-instinct-update-model-profiles-routing
+trigger: "When someone wants to introduce new model profiles or improve routing based on model capabilities"
+confidence: 0.9
+domain: workflow
+source: repo-analysis
+source_repo: manderson240/cohezion
+---
+
+# Cohezion Instinct Update Model Profiles Routing
+
+## Action
+
+Update profile data, integrate profiles into registry, update routing logic, write/update tests, and verify all checks pass
+
+## Evidence
+
+- add-or-update-model-profiles-and-routing workflow
+- Commit sequence and files involved
+
+---
+id: cohezion-instinct-feature-tdd
+trigger: "When someone wants to ensure robust, test-driven feature development"
+confidence: 0.85
+domain: workflow
+source: repo-analysis
+source_repo: manderson240/cohezion
+---
+
+# Cohezion Instinct Feature Tdd
+
+## Action
+
+Write new failing tests, implement or modify feature logic, iterate until tests pass, verify no regressions, and document follow-up work if foundational
+
+## Evidence
+
+- feature-development-with-test-first workflow
+- Commit sequence and files involved
+
