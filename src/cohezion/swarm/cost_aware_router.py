@@ -1,4 +1,4 @@
-# ruff: noqa: SIM102  # math/physics symbols intentional
+# math/physics symbols intentional
 """Cost-aware smart routing across local models with budget enforcement.
 
 Features:

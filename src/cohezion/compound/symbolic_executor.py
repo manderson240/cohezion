@@ -143,7 +143,7 @@ result = {{"factors": factors, "count": count}}
         return {"success": False, "error": f"Unknown command: {command_str}"}
 
 
-import re  # noqa: E402
+import re
 
 
 if __name__ == "__main__":

@@ -13,16 +13,16 @@ import cohezion_core
 
 
 print(f"DEBUG: cohezion_core loaded from: {cohezion_core.__file__}")
-from cohezion_core import FlumePhysics  # noqa: E402
+from cohezion_core import FlumePhysics
 
 
 print(f"DEBUG: FlumePhysics dir: {dir(FlumePhysics)}")
 
-import cohezion.flume.predictor  # noqa: E402
+import cohezion.flume.predictor
 
 
 print(f"DEBUG: predictor loaded from: {cohezion.flume.predictor.__file__}")
-from cohezion.flume.predictor import TrajectoryPredictor  # noqa: E402
+from cohezion.flume.predictor import TrajectoryPredictor
 
 
 def benchmark_swarm():

@@ -1,4 +1,4 @@
-# ruff: noqa: SIM102  # long lines: SQL/URLs/docstrings — wrapping reduces readability
+# long lines: SQL/URLs/docstrings — wrapping reduces readability
 """
 Adversarial Review Harness with Multi-Perspective Analysis
 Graph-aware review system with adversarial test generation

@@ -1,5 +1,5 @@
 #!/usr/bin/python3
-# ruff: noqa: S606  # subprocess without shell — intentional
+# subprocess without shell — intentional
 """Redirection to a moved location"""
 
 import os

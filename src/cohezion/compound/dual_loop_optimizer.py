@@ -132,7 +132,7 @@ class DualLoopOptimizer:
         # Create python callable from verifier_code (for local evaluation)
         local_namespace: dict[str, Any] = {}
         try:
-            exec(verifier_code, local_namespace)  # noqa: S102
+            exec(verifier_code, local_namespace)
             harness_fn = local_namespace.get("verify_action")
         except Exception as e:
             logger.error("Failed to compile synthesized verifier: %s", e)

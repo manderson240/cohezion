@@ -1,4 +1,4 @@
-# ruff: noqa: SIM102  # nested if for clarity over single combined condition
+# nested if for clarity over single combined condition
 """Topology-aware agent routing using persistent homology and Laplacian spectra.
 
 Goes beyond visualization to use TDA as an OPTIMIZATION signal for

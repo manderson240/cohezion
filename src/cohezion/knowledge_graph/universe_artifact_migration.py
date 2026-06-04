@@ -1,4 +1,4 @@
-# ruff: noqa: E402  # temp file paths in /tmp are intentional for ephemeral data
+# temp file paths in /tmp are intentional for ephemeral data
 """
 Universe Artifact Migration Service
 

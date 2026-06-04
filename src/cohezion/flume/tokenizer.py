@@ -1,4 +1,4 @@
-# ruff: noqa: S107  # default arg is non-secret placeholder
+# default arg is non-secret placeholder
 import json
 from typing import ClassVar
 
