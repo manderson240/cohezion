@@ -205,7 +205,7 @@ class MyceliumRegistry:
             )
             return
 
-        from datetime import datetime, UTC
+        from datetime import UTC, datetime
         from pathlib import Path
 
         ts = datetime.now(UTC).strftime("%Y%m%d-%H%M%S")
@@ -264,17 +264,20 @@ class MyceliumRegistry:
 
         # 2) Write to SurrealDB
         try:
+            import base64
             import json
             import urllib.error
             import urllib.request
-            import base64
 
             surreal_url = __import__("os").environ.get("SURREALDB_URL", "http://localhost:8001/sql")
             surreal_user = __import__("os").environ.get("SURREALDB_USER", "root")
             surreal_pass = __import__("os").environ.get("SURREALDB_PASS", "root")
-            # Sanitize cluster_id for use as record ID
+            # Sanitize cluster_id for use as record ID. Also strip dashes
+            # from the timestamp — SurrealDB parses `tablename:id-with-dashes`
+            # as a subtraction expression, which fails type validation.
             sanitized = cluster.cluster_id.replace("-", "_").replace(" ", "_")
-            db_id = f"mycelium_patterns:{sanitized}_{ts}"
+            ts_compact = ts.replace("-", "")  # 20260604-032226 -> 20260604032226
+            db_id = f"mycelium_patterns:{sanitized}_{ts_compact}"
             payload_json = json.dumps(payload)
             created_at = datetime.now(UTC).isoformat()
 
@@ -306,7 +309,22 @@ class MyceliumRegistry:
                     "Content-Type": "text/plain",
                 },
             )
-            urllib.request.urlopen(req, timeout=5).read()
+            response_bytes = urllib.request.urlopen(req, timeout=5).read()
+            # SurrealDB returns 200 even on logical errors (e.g. type
+            # validation). Check the response for an error status.
+            try:
+                response_json = json.loads(response_bytes)
+                if isinstance(response_json, list) and response_json:
+                    first = response_json[0]
+                    if isinstance(first, dict) and first.get("status") == "ERR":
+                        logger.debug(
+                            "surrealdb UPSERT returned ERR for %s: %s",
+                            db_id,
+                            str(first.get("result", ""))[:200],
+                        )
+                        return
+            except (json.JSONDecodeError, KeyError, IndexError, TypeError):
+                pass  # Non-JSON response, assume success (urllib raised on real error)
             logger.info("wrote mycelium pattern to surrealdb: %s", db_id)
         except (urllib.error.URLError, OSError, Exception) as exc:
             logger.debug("surrealdb write failed for %s: %s", cluster.cluster_id, exc)
