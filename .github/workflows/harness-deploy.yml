@@ -1,0 +1,58 @@
+name: Harness Deploy Smoke
+
+# Runs `scripts/ci/deploy_harness_agents.sh --dry-run` on every push to main
+# + weekly cron. Verifies the launch commands are well-formed and the
+# script can resolve paths. Does NOT spawn real harness subprocesses (that
+# would consume API credits and require per-harness auth).
+#
+# This is a regression gate for the harness-alignment workstream
+# (deploy script was added 2026-06-03). Any commit that breaks the
+# deploy script's --dry-run output will fail this CI.
+#
+# Manual real-deploy verification still happens via:
+#   scripts/ci/deploy_harness_agents.sh --timeout 120
+# on a developer machine with the 3 harness CLIs installed.
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'scripts/ci/deploy_harness_agents.sh'
+      - '.claude/skills/**'
+      - '.pi/skills/**'
+      - '.hermes/**'
+  pull_request:
+    paths:
+      - 'scripts/ci/deploy_harness_agents.sh'
+  schedule:
+    # Weekly Sunday 09:00 UTC — catches harness binary drift
+    - cron: '0 9 * * 0'
+  workflow_dispatch:
+
+jobs:
+  dry-run:
+    name: Deploy script --dry-run
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Verify deploy script --dry-run is well-formed
+        run: |
+          chmod +x scripts/ci/deploy_harness_agents.sh
+          bash scripts/ci/deploy_harness_agents.sh --dry-run | tee /tmp/deploy-dryrun.log
+          # Verify all 3 launch commands appear
+          grep -q "harness-claude" /tmp/deploy-dryrun.log
+          grep -q "harness-pi" /tmp/deploy-dryrun.log
+          grep -q "harness-hermes" /tmp/deploy-dryrun.log
+          # Verify safe-env.sh is sourced in the claude launcher
+          grep -q "safe-env.sh" /tmp/deploy-dryrun.log
+          echo "deploy-dry-run PASSED"
+        continue-on-error: false
+
+      - name: Upload dry-run log
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: deploy-dryrun
+          path: /tmp/deploy-dryrun.log
+          retention-days: 7
