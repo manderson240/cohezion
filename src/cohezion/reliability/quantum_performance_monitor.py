@@ -642,9 +642,7 @@ class QuantumPerformanceMonitor:
     async def _get_loaded_models(self) -> list[str]:
         """Get list of currently loaded models"""
         try:
-            result = subprocess.run(
-                [_OLLAMA, "list"], capture_output=True, text=True, timeout=10
-            )
+            result = subprocess.run([_OLLAMA, "list"], capture_output=True, text=True, timeout=10)
 
             if result.returncode == 0:
                 models = []

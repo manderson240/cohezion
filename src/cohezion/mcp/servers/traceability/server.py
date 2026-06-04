@@ -66,9 +66,7 @@ def traceability_run_engine(self_trace: bool = False) -> dict[str, Any]:
     if self_trace:
         args.append("--self-trace")
 
-    result = subprocess.run(
-        args, capture_output=True, text=True, cwd=PROJECT_ROOT, timeout=300
-    )
+    result = subprocess.run(args, capture_output=True, text=True, cwd=PROJECT_ROOT, timeout=300)
 
     # Parse matrix counts from output
     matrices = {}

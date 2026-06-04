@@ -1296,9 +1296,7 @@ class CompoundExecutor(CompoundContextMixin, ExecutorIntegrationMixin):
                             id(self),
                         )
                     except (ImportError, AttributeError, RuntimeError) as e:
-                        logger.debug(
-                            "Mycelium bus subscriber unavailable (non-blocking): %s", e
-                        )
+                        logger.debug("Mycelium bus subscriber unavailable (non-blocking): %s", e)
 
                 if getattr(self, "_bus_subscribed", False):
                     from cohezion.precipitation.events import (
@@ -1323,9 +1321,7 @@ class CompoundExecutor(CompoundContextMixin, ExecutorIntegrationMixin):
                         )
                     )
             except (ImportError, AttributeError, RuntimeError) as e:
-                logger.debug(
-                    "WITNESS MARK emission failed (non-blocking): %s", e
-                )
+                logger.debug("WITNESS MARK emission failed (non-blocking): %s", e)
 
         # Step 10.7: Persist prompt artifact (L183)
         # Record prompt/response pair to SurrealDB for retrospective analysis

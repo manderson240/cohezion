@@ -291,6 +291,57 @@ class TieredOrchestrator:
             remaining = (
                 (effective_max_cost - accumulated_cost) if effective_max_cost is not None else None
             )
+
+            # Block routing to local accelerated tiers (NPU/iGPU)
+            # if confidence margin falls below 0.01 threshold.
+            is_npu = (
+                "FLM" in model_name or "Gemma-4-E2B" in model_name or "npu" in model_name.lower()
+            )
+            is_igpu = (
+                "Gemma-4-26B" in model_name
+                or "Gemma-4-E4B" in model_name
+                or "igpu" in model_name.lower()
+            )
+            if is_npu or is_igpu:
+                try:
+                    from cohezion.flume.vacuum_encoder import (
+                        classify_journey_phase,
+                        encode_journey_text,
+                    )
+
+                    z_vec = await encode_journey_text(prompt, "")
+                    phase, margin = classify_journey_phase(z_vec)
+
+                    import numpy as np
+
+                    is_fallback = np.isclose(np.linalg.norm(z_vec), 0.38)
+
+                    if not is_fallback and phase != "unknown" and margin < 0.01:
+                        logger.warning(
+                            "Routing to local accelerated tier %d (%s) blocked: "
+                            "confidence margin (%.4f) below 0.01 (phase: %s)",
+                            idx,
+                            model_name,
+                            margin,
+                            phase,
+                        )
+                        path.append(
+                            TierAttempt(
+                                tier_index=idx,
+                                model_or_sub=model_name,
+                                passed=False,
+                                reason=(
+                                    f"blocked: confidence margin too low ({margin:.4f} < 0.01)"
+                                ),
+                                cost_usd=0.0,
+                                latency_ms=0.0,
+                                ttft_ms=None,
+                            )
+                        )
+                        continue
+                except Exception as exc:
+                    logger.debug("Failed to evaluate journey phase for routing gate: %s", exc)
+
             tier_start = time.perf_counter()
             try:
                 result, tier_cost, tier_ttft = await self._invoke_tier(target, prompt, remaining)
