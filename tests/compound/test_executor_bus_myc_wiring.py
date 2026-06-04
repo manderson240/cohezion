@@ -46,6 +46,7 @@ def test_executor_registers_bus_subscriber_idempotently():
         try:
             from cohezion.mycelium.registry import MyceliumRegistry as BusMyceliumRegistry
             from cohezion.precipitation.bus import get_bus
+
             ex._bus_myc_registry = BusMyceliumRegistry(bus=get_bus())
             ex._bus_myc_registry.subscribe()
             ex._bus_subscribed = True
@@ -102,9 +103,7 @@ def test_executor_emits_witness_mark_on_successful_skill_execution():
 
     # Verify: at least one WITNESS_MARK was emitted with our universe_id pattern
     matching = [
-        e
-        for e in captured_events
-        if e.universe_id.startswith("cohezion.execution.test_skill")
+        e for e in captured_events if e.universe_id.startswith("cohezion.execution.test_skill")
     ]
     # If the test environment supported the full execute_task path, we expect >= 1.
     # If not, we expect 0 and just verify the helper functions are wired.
