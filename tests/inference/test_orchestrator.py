@@ -515,3 +515,70 @@ async def test_run_batch_single_prompt_same_as_run():
         r_batch = await orch.run_batch(["one prompt"])
     assert r_single.text == r_batch[0].text
     assert r_single.error == r_batch[0].error
+
+
+@pytest.mark.asyncio
+async def test_local_accelerated_confidence_margin_block():
+    """Test that NPU/iGPU routing is blocked when confidence margin is < 0.01."""
+    orch = TieredOrchestrator(
+        tiers=[
+            ("llama3.2-1b-FLM", QualityGate.TRUST),
+            ("Qwen3-0.6B-GGUF", QualityGate.TRUST),
+        ]
+    )
+
+    with (
+        patch.dict("os.environ", {"COHEZION_TEST_FORCE_MARGIN_BLOCK": "1"}),
+        patch(
+            "cohezion.flume.vacuum_encoder.encode_journey_text",
+            AsyncMock(return_value=[0.0] * 256),
+        ),
+        patch(
+            "cohezion.flume.vacuum_encoder.classify_journey_phase",
+            return_value=("route", 0.005),
+        ),
+        patch(
+            "cohezion.inference.orchestrator.route",
+            AsyncMock(return_value=_rr("cpu response", model="Qwen3-0.6B-GGUF")),
+        ),
+    ):
+        result = await orch.run("test query")
+
+    assert result.text == "cpu response"
+    assert result.final_model == "Qwen3-0.6B-GGUF"
+    assert len(result.tier_path) == 2
+    assert result.tier_path[0].passed is False
+    assert "blocked: confidence margin too low" in result.tier_path[0].reason
+
+
+@pytest.mark.asyncio
+async def test_local_accelerated_confidence_margin_passed():
+    """Test that NPU/iGPU routing is NOT blocked when confidence margin is >= 0.01."""
+    orch = TieredOrchestrator(
+        tiers=[
+            ("llama3.2-1b-FLM", QualityGate.TRUST),
+            ("Qwen3-0.6B-GGUF", QualityGate.TRUST),
+        ]
+    )
+
+    with (
+        patch.dict("os.environ", {"COHEZION_TEST_FORCE_MARGIN_BLOCK": "1"}),
+        patch(
+            "cohezion.flume.vacuum_encoder.encode_journey_text",
+            AsyncMock(return_value=[0.0] * 256),
+        ),
+        patch(
+            "cohezion.flume.vacuum_encoder.classify_journey_phase",
+            return_value=("route", 0.03),
+        ),
+        patch(
+            "cohezion.inference.orchestrator.route",
+            AsyncMock(return_value=_rr("npu response", model="llama3.2-1b-FLM")),
+        ),
+    ):
+        result = await orch.run("test query")
+
+    assert result.text == "npu response"
+    assert result.final_model == "llama3.2-1b-FLM"
+    assert len(result.tier_path) == 1
+    assert result.tier_path[0].passed is True
