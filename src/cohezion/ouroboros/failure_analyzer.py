@@ -107,9 +107,13 @@ class OuroborosFailureAnalyzer:
         elif "arxiv" in logs.lower() and "429" in logs:
             root_cause = "arxiv API rate limited (HTTP 429)"
             suggested_mutation = "Back off 5-15s; arxiv asks for ~3s between requests. Increase the jitter in _arxiv_jitter()."
-        elif ("huggingface" in logs.lower() or "hf.co" in logs.lower()) and ("401" in logs or "403" in logs):
+        elif ("huggingface" in logs.lower() or "hf.co" in logs.lower()) and (
+            "401" in logs or "403" in logs
+        ):
             root_cause = "Hugging Face API auth required (HTTP 401/403)"
-            suggested_mutation = "Set HF_TOKEN env var (free token at huggingface.co/settings/tokens)"
+            suggested_mutation = (
+                "Set HF_TOKEN env var (free token at huggingface.co/settings/tokens)"
+            )
         elif "semantic" in logs.lower() and "scholar" in logs.lower() and "429" in logs:
             root_cause = "Semantic Scholar rate limited (HTTP 429)"
             suggested_mutation = "Back off; SS allows ~100 req/5min without API key. Use --quiet mode or stagger requests."
