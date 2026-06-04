@@ -7,7 +7,7 @@ Follows the router pattern established in genesis.py.
 from __future__ import annotations
 
 import logging
-from typing import Any, TYPE_CHECKING
+from typing import TYPE_CHECKING, Any
 
 from fastapi import APIRouter
 from pydantic import BaseModel, Field

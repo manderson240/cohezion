@@ -1,4 +1,4 @@
-# ruff: noqa: A002  # binds 0.0.0.0 in dev/internal services / temp file paths in /tmp are intentional for ephemeral data
+# binds 0.0.0.0 in dev/internal services / temp file paths in /tmp are intentional for ephemeral data
 """Report Generation MCP Server - With Reactive Marimo Notebooks.
 
 Port: 8372
@@ -313,7 +313,7 @@ if __name__ == "__main__":
             # Background process; redirect stdout/stderr to a log file in the
             # output_dir so we don't depend on /tmp permissions.
             log_path = self.output_dir / f"marimo_{report_id}.log"
-            log_fh = open(log_path, "ab")  # noqa: SIM115 - lives for child's lifetime
+            log_fh = open(log_path, "ab")
             subprocess.Popen(
                 cmd,
                 stdout=log_fh,

@@ -1,4 +1,4 @@
-# ruff: noqa: A002  # long lines: SQL/URLs/docstrings — wrapping reduces readability
+# long lines: SQL/URLs/docstrings — wrapping reduces readability
 """
 SurrealDB Client - Multi-model database for the Universe Simulation.
 

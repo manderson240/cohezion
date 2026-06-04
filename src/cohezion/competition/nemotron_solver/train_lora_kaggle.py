@@ -154,10 +154,7 @@ def solve_gravity(examples, test_t: str) -> str:
         m = re.search(r"([0-9]+\.([0-9]+))", out)
         if m:
             decimals.append(len(m.group(2)))
-    if decimals:
-        precision = max(set(decimals), key=decimals.count)
-    else:
-        precision = 0
+    precision = max(set(decimals), key=decimals.count) if decimals else 0
     if precision == 0:
         return f"{int(round(result))}"
     return f"{result:.{precision}f}"
@@ -201,10 +198,7 @@ def solve_unit_conversion(examples, test_x: str) -> str:
         m = re.search(r"([0-9]+\.([0-9]+))", out)
         if m:
             decimals.append(len(m.group(2)))
-    if decimals:
-        precision = max(set(decimals), key=decimals.count)
-    else:
-        precision = 2
+    precision = max(set(decimals), key=decimals.count) if decimals else 2
     return f"{result:.{max(precision, 2)}f}"
 
 
@@ -492,7 +486,7 @@ def solve_equations(examples, test_in: str) -> str:
     for inp, out in examples:
         all_input_chars.update(set(inp))
         all_output_chars.update(set(out))
-    delete_set = set(c for c in all_input_chars if c not in all_output_chars)
+    delete_set = {c for c in all_input_chars if c not in all_output_chars}
     if delete_set:
         pred = "".join(c for c in test_in if c not in delete_set)
         all_match = all(

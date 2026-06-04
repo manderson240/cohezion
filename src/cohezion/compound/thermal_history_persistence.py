@@ -1,4 +1,4 @@
-# ruff: noqa: SIM117  # fire-and-forget async tasks — intentional
+# fire-and-forget async tasks — intentional
 """JSONL-based persistence for thermal time-series data.
 
 Collects thermal samples every 5 minutes, persists to JSONL for long-term learning.

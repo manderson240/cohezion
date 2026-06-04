@@ -1,4 +1,4 @@
-# ruff: noqa: SIM102  # long lines: SQL/URLs/docstrings — wrapping reduces readability
+# long lines: SQL/URLs/docstrings — wrapping reduces readability
 """Concierge Agent — session routing with dynamic learning.
 
 The concierge eliminates cold starts by synthesizing 7 state sources into

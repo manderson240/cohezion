@@ -76,10 +76,7 @@ def structural_alignment_score(candidate_output: Any, expected: Any) -> float:
         out_bg = Counter(c for row in candidate_output for c in row).most_common(1)
     else:
         out_bg = None
-    if expected:
-        exp_bg = Counter(c for row in expected for c in row).most_common(1)
-    else:
-        exp_bg = None
+    exp_bg = Counter(c for row in expected for c in row).most_common(1) if expected else None
     bg_score = 1.0 if out_bg and exp_bg and out_bg[0][0] == exp_bg[0][0] else 0.0
 
     return (dim_score + color_score + size_score + bg_score) / 4.0

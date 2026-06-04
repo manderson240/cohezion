@@ -141,5 +141,5 @@ def score_draft(path: str) -> dict[str, Any]:
 if __name__ == "__main__":
     result = score_draft(Path(__file__).with_name("DRAFT_v2.md"))
     for s, v in result["sections"].items():
-        print(f"  {s:20s}: {v:2d}/{[m for n, m in SECTIONS if n == s][0]}")
+        print(f"  {s:20s}: {v:2d}/{next(m for n, m in SECTIONS if n == s)}")
     print(f"\n  Total: {result['total']}/{result['max']} = {result['percent']}%")

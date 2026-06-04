@@ -166,11 +166,11 @@ def remove_background(g: Grid) -> Grid | None:
 
 
 def count_colors(g: Grid) -> int:
-    return len(set(c for row in g for c in row))
+    return len({c for row in g for c in row})
 
 
 def grid_to_colors(g: Grid) -> set[int]:
-    return set(c for row in g for c in row)
+    return {c for row in g for c in row}
 
 
 # ---------------------------------------------------------------------------
@@ -200,7 +200,7 @@ def keep_only(g: Grid, keep: int) -> Grid | None:
 
 
 def invert_colors(g: Grid) -> Grid | None:
-    colors = sorted(set(c for row in g for c in row))
+    colors = sorted({c for row in g for c in row})
     if len(colors) != 2:
         return None
     c1, c2 = colors
@@ -749,8 +749,8 @@ def _select_strategies(train: list[dict[str, Grid]]) -> list[tuple[str, list[tup
     inp_shapes = []
     out_shapes = []
     for ex in train:
-        inp_colors |= set(c for row in ex["input"] for c in row)
-        out_colors |= set(c for row in ex["output"] for c in row)
+        inp_colors |= {c for row in ex["input"] for c in row}
+        out_colors |= {c for row in ex["output"] for c in row}
         inp_shapes.append((len(ex["input"]), len(ex["input"][0]) if ex["input"] else 0))
         out_shapes.append((len(ex["output"]), len(ex["output"][0]) if ex["output"] else 0))
 

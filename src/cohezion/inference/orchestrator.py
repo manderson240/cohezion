@@ -314,6 +314,7 @@ class TieredOrchestrator:
 
                     import os
                     import sys
+
                     import numpy as np
 
                     is_fallback = np.isclose(np.linalg.norm(z_vec), 0.38)

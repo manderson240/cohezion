@@ -1,4 +1,4 @@
-# ruff: noqa: SIM102  # nested if for clarity over single combined condition
+# nested if for clarity over single combined condition
 """Per-agent authentication management for Cohezion multi-agent systems.
 
 This module implements per-agent credential management, replacing the shared API key

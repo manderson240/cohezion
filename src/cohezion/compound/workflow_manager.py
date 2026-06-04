@@ -1,4 +1,4 @@
-# ruff: noqa: E402  # deferred imports for circular-dep workarounds
+# deferred imports for circular-dep workarounds
 """Workflow manager for multi-step capability management workflows.
 
 Orchestrates: model onboarding, gap analysis, periodic reassessment,

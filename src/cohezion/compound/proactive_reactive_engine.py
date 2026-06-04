@@ -561,7 +561,7 @@ class ProactiveReactiveEngine:
                 day_of_week=day,
                 task_types=list(set(task_types)),
                 avg_requests_per_hour=len(records)
-                / len(set(r.get("timestamp").date() for r in records)),
+                / len({r.get("timestamp").date() for r in records}),
                 preferred_agents=preferred,
                 confidence=confidence,
             )

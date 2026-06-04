@@ -128,4 +128,4 @@ class OuroborosFailureAnalyzer:
         )
 
 
-import time  # noqa: E402
+import time

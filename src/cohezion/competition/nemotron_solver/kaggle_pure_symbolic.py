@@ -93,10 +93,7 @@ def _format_number(value: float, examples: list[tuple[str, str]]) -> str:
         m = re.search(r"([0-9]+\.([0-9]+))", out)
         if m:
             decimals.append(len(m.group(2)))
-    if decimals:
-        precision = max(set(decimals), key=decimals.count)
-    else:
-        precision = 0
+    precision = max(set(decimals), key=decimals.count) if decimals else 0
     if precision == 0:
         return f"{int(round(value))}"
     # Try 2-decimal if the most common is 1-decimal but 2-decimal examples also exist
@@ -818,7 +815,7 @@ def solve(prompt: str) -> str:
 # ---------------------------------------------------------------------------
 # Kaggle: read test.csv, write submission.csv
 # ---------------------------------------------------------------------------
-import os  # noqa: E402
+import os
 
 
 if os.path.exists("/kaggle/input/nvidia-nemotron-model-reasoning-challenge/test.csv"):

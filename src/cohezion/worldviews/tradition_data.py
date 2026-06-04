@@ -1,4 +1,4 @@
-# ruff: noqa: S101  # long lines: SQL/URLs/docstrings — wrapping reduces readability
+# long lines: SQL/URLs/docstrings — wrapping reduces readability
 """Indigenous cosmological traditions mapped to the 10-step Theory of Everything chain.
 
 Each tradition encodes its own path through the same universal structure:

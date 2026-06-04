@@ -1,4 +1,4 @@
-# ruff: noqa: B008  # SQL strings parameterized via SurrealDB driver, not raw string concat
+# SQL strings parameterized via SurrealDB driver, not raw string concat
 """Bidirectional linking system for Cohezion knowledge graph.
 
 Integrates with:

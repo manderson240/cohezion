@@ -146,4 +146,13 @@ STANDARD_JOBS = [
             "run next experiment, log result."
         ),
     },
+    {
+        "name": "experiential-distillation",
+        "description": "Run the nightly Experiential Distillation pipeline for local model fine-tuning",
+        "cron": "0 3 * * *",
+        "prompt": (
+            "Run DPO distillation: from cohezion.compound.distillation_pipeline import run_distillation; "
+            "import asyncio; asyncio.run(run_distillation())"
+        ),
+    },
 ]

@@ -1,4 +1,4 @@
-# ruff: noqa: S310, S112  # urllib to localhost Lemonade — S310/S112 are false positives here
+# urllib to localhost Lemonade — S310/S112 are false positives here
 """Reflection-based optimizer for Cohezion skill Variables.
 
 Adapted from Autogenesis ReflectionOptimizer (Zhang et al., 2026).

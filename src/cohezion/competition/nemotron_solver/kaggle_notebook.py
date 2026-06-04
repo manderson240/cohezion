@@ -96,10 +96,7 @@ def _format_number(value, examples):
         m = __import__("re").search(r"([0-9]+\.([0-9]+))", out)
         if m:
             decimals.append(len(m.group(2)))
-    if decimals:
-        precision = max(set(decimals), key=decimals.count)
-    else:
-        precision = 0
+    precision = max(set(decimals), key=decimals.count) if decimals else 0
     if precision == 0:
         return f"{int(round(value))}"
     fmt = f"{value:.{precision}f}"

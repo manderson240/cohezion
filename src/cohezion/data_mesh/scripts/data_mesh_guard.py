@@ -21,7 +21,7 @@ SCRIPT_PATH = Path(__file__).resolve()
 PROJECT_ROOT = SCRIPT_PATH.parent.parent.parent.parent.parent
 sys.path.insert(0, str(PROJECT_ROOT / "src"))
 
-from cohezion.mcp.servers.github.server import get_service  # noqa: E402
+from cohezion.mcp.servers.github.server import get_service
 
 
 # Paths

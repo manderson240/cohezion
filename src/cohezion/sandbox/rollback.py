@@ -1,4 +1,4 @@
-# ruff: noqa: SIM102, SIM105  # temp file paths in /tmp are intentional for ephemeral data
+# ruff: noqa: SIM105  # temp file paths in /tmp are intentional for ephemeral data
 """
 RollbackEngine: Transaction semantics for sandboxed operations.
 

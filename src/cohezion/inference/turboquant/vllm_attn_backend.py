@@ -85,12 +85,12 @@ def enable_no_alloc(
     """Call BEFORE creating vllm.LLM(). Patches the executor so TQ hooks
     are installed automatically during engine initialization."""
     global _TQ_NO_ALLOC_CONFIG
-    _TQ_NO_ALLOC_CONFIG = dict(
-        key_bits=key_bits,
-        value_bits=value_bits,
-        buffer_size=buffer_size,
-        initial_layers_count=initial_layers_count,
-    )
+    _TQ_NO_ALLOC_CONFIG = {
+        "key_bits": key_bits,
+        "value_bits": value_bits,
+        "buffer_size": buffer_size,
+        "initial_layers_count": initial_layers_count,
+    }
 
     from vllm.v1.executor.abstract import Executor
     from vllm.v1.worker.gpu_model_runner import GPUModelRunner

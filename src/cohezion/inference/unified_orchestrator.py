@@ -53,7 +53,6 @@ import asyncio
 import hashlib
 import json
 import logging
-import os
 import time
 from collections import deque
 from dataclasses import dataclass, field
@@ -65,20 +64,16 @@ from uuid import uuid4
 import httpx
 
 from cohezion.config.defaults import (
+    COMPLEXITY_THRESHOLD,
     CPU_SMALL_MODELS,
     LANE_MODELS,
     LANE_PORTS,
     MIN_QUALITY_ACCEPT,
     N_CPU_WORKERS,
     OLLAMA_BASE_URL,
-    OLLAMA_PORT,
     SCORE_WINDOW,
-    COMPLEXITY_THRESHOLD,
-    DEFAULT_TIER0_MODEL,
-    DEFAULT_TIER1_MODEL,
-    DEFAULT_TIER2_MODEL,
-    DEFAULT_TIER3_MODEL,
 )
+
 
 logger = logging.getLogger(__name__)
 

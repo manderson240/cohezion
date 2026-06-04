@@ -1,0 +1,11 @@
+{
+  "corrections": [
+    {
+      "timestamp": "2026-06-03T10:09:14.956446",
+      "component": "surrealdb",
+      "issue": "Connection to SurrealDB failed",
+      "action": "Restart surrealdb.service",
+      "applied": true
+    }
+  ]
+}

@@ -361,7 +361,7 @@ async def _track_journey_step(arguments: dict[str, Any]) -> list[TextContent]:
         logger.debug("Vault store failed (non-blocking): %s", e)
 
     # Σ2: variable reused as result dict; phi_score is computed at runtime on TrajectoryPoint.
-    result_dict: dict[str, Any] = {
+    {
         "phi_score": getattr(point, "phi_score", 0.0),
         "dimensions": point.dimensions.tolist(),
         "coherence": point.coherence,
