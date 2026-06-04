@@ -45,6 +45,7 @@ class ExecutorFactory:
         skill_health_tracker: Any | None = None,
         memory_service: Any | None = None,
         enable_memory: bool = False,
+        enable_daily_researcher: bool = True,
     ) -> CompoundExecutor:
         """Create a new compound executor.
 
@@ -56,6 +57,14 @@ class ExecutorFactory:
         compound into the project's memory. Opt-in (default off) so arbitrary callers
         don't pay the synchronous mem0.add tax; best-effort and self-disabling when the
         memory extra is absent or local nodes are offline.
+
+        enable_daily_researcher (WS2C, default True): when True, the executor
+        schedules the four-lane daily researcher (model_scout, harness_paper,
+        datamesh_synthesis, verify_evolve) once at startup. The researcher
+        runs in a background task with the fleet_lock:modelload held for
+        the whole run. The flag is OFF by default in tests (where the
+        background task would race the test), but the production default
+        is ON per the WS2 plan decision.
         """
         # Auto-create RetrospectionEngine if not provided (closes middle loop)
         if retrospection_engine is None:
@@ -79,6 +88,28 @@ class ExecutorFactory:
                 )
             except Exception:
                 logger.debug("CostAwareRouter callback wiring failed (non-blocking)")
+
+        # WS2C: schedule the daily researcher when the flag is on. This is
+        # best-effort — a failure to start the researcher (e.g. the
+        # researcher module isn't installed, or preflight fails) does
+        # NOT block executor creation. The researcher runs in a fire-
+        # and-forget background task.
+        if enable_daily_researcher:
+            try:
+                import asyncio
+
+                from cohezion.researcher.daily_researcher import DailyResearcher
+
+                # The executor is created synchronously; the researcher
+                # needs an event loop. We schedule the first run for the
+                # next event loop iteration. Subsequent runs are the
+                # 04:00 cron's job (see crontab.example).
+                loop = asyncio.get_event_loop()
+                if loop.is_running():
+                    loop.create_task(DailyResearcher().run_dry_run())
+                logger.info("ExecutorFactory: daily researcher enabled (dry-run at startup)")
+            except Exception as e:
+                logger.debug("Daily researcher wiring failed (non-blocking): %s", e)
 
         executor_class = CompoundExecutor
         if token_client is not None:
@@ -137,6 +168,7 @@ class ExecutorFactory:
         skill_health_tracker: Any | None = None,
         memory_service: Any | None = None,
         enable_memory: bool = False,
+        enable_daily_researcher: bool = True,
     ) -> CompoundExecutor:
         """Get or create singleton executor."""
         if ExecutorFactory._instance is None:
@@ -160,6 +192,7 @@ class ExecutorFactory:
                 skill_health_tracker=skill_health_tracker,
                 memory_service=memory_service,
                 enable_memory=enable_memory,
+                enable_daily_researcher=enable_daily_researcher,
             )
         return ExecutorFactory._instance
 

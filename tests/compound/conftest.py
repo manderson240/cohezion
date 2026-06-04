@@ -1,4 +1,3 @@
-"""Fixtures for compound integration tests."""
 """Compound test fixtures.
 
 Ensures the project ``.context/`` tree has the placeholder source files that
@@ -114,5 +113,4 @@ def _ensure_context_placeholders() -> None:
             "# Real content lives in the corresponding src/ module; this file exists so\n"
             "# ContextManager._load_file() does not raise ContextLoadError during tests.\n",
             encoding="utf-8",
-        )
         )
