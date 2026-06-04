@@ -1474,6 +1474,64 @@ class CompoundExecutor(CompoundContextMixin, ExecutorIntegrationMixin):
         logger.info("Compound session started")
         return summary
 
+    def _maybe_kick_mycelium_loop(self, file_path: str, code_context: str) -> None:
+        """WS1D (2026-06-04): kick off the MyceliumLoop + ShadowScripter
+        for a newly-created .py file.
+
+        Best-effort: any failure is caught and logged at debug level.
+        Constructs ShadowScripter + CoverageLoop on first call; both
+        are then reused for subsequent calls.
+
+        Args:
+            file_path: Path to the .py file (must exist on disk).
+            code_context: Optional string context (the file's source).
+        """
+        if not file_path or not file_path.endswith(".py"):
+            return
+        if "/src/cohezion/" not in file_path:
+            return
+        try:
+            from cohezion.mycelium.scripter import ShadowScripter
+
+            if not hasattr(self, "_shadow_scripter"):
+                self._shadow_scripter = ShadowScripter()
+            if not hasattr(self, "_mycelium_loop"):
+                from cohezion.mycelium.loop import CoverageLoop
+
+                self._mycelium_loop = CoverageLoop(
+                    scripter=self._shadow_scripter,
+                    root_dir=str(Path(__file__).resolve().parent.parent.parent),
+                )
+            if not hasattr(self, "_loop_scheduled_paths"):
+                self._loop_scheduled_paths: set[str] = set()
+            if file_path in self._loop_scheduled_paths:
+                return
+            self._loop_scheduled_paths.add(file_path)
+            import asyncio as _asyncio
+
+            try:
+                try:
+                    _asyncio.get_running_loop()
+                    # Already in a loop: schedule as task
+                    _asyncio.ensure_future(self._mycelium_loop.execute(file_path, code_context))
+                except RuntimeError:
+                    # No running loop: create a fresh one and run to completion
+                    new_loop = _asyncio.new_event_loop()
+                    try:
+                        new_loop.run_until_complete(
+                            self._mycelium_loop.execute(file_path, code_context)
+                        )
+                    finally:
+                        new_loop.close()
+                logger.debug("MyceliumLoop kicked off for %s", file_path)
+            except (RuntimeError, OSError, ValueError) as e:
+                logger.debug("MyceliumLoop.execute failed (non-blocking): %s", e)
+        except (ImportError, AttributeError, RuntimeError, OSError) as loop_err:
+            logger.debug(
+                "MyceliumLoop wiring unavailable (non-blocking): %s",
+                loop_err,
+            )
+
     def start_recorder(self, interval_seconds: float = 30.0) -> bool:
         """Start the OuroborosRecorder (flight recorder) in the background.
 
