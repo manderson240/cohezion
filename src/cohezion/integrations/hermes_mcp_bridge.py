@@ -362,7 +362,12 @@ def _tools_list() -> list[dict[str, Any]]:
             "name": "cohezion_run_cli",
             "description": (
                 "Execute a Cohezion CLI command (python -m cohezion …). "
-                "Runs safely in project venv with 60s timeout."
+                "Runs safely in project venv with 60s timeout. "
+                "Sentinel: prefix the command with '!raw ' to bypass the cohezion "
+                "CLI prefix and execute the rest as a raw shell command via "
+                "`bash -c`. Use this for running standalone python scripts, "
+                "ruff/pytest/curl, etc. that the cohezion CLI does not handle. "
+                "Example: command='!raw python3 .claude/rules/harness_check.py --fast'"
             ),
             "inputSchema": {
                 "type": "object",
@@ -370,7 +375,8 @@ def _tools_list() -> list[dict[str, Any]]:
                     "command": {
                         "type": "string",
                         "description": (
-                            "CLI sub-command and args, e.g. 'simulate --example hello'"
+                            "CLI sub-command and args, e.g. 'simulate --example hello'. "
+                            "Or '!raw <shell command>' to bypass the cohezion prefix."
                         ),
                     },
                     "timeout": {"type": "integer", "default": 60},
@@ -586,9 +592,25 @@ def _handle_batch_port(args: dict) -> dict:
 
 
 def _handle_run_cli(args: dict) -> dict:
-    """Execute a Cohezion CLI command via python -m cohezion."""
+    """Execute a Cohezion CLI command via python -m cohezion.
+
+    Sentinel: if `command` starts with `!raw `, strip the sentinel and
+    execute the rest as a raw shell command via `bash -c`. This lets
+    hermes run any shell tool (pytest, ruff, curl, scripts) without
+    forcing it through the cohezion CLI namespace.
+    """
     cmd = args["command"]
     timeout = args.get("timeout", 60)
+
+    if cmd.startswith("!raw "):
+        raw_cmd = cmd[len("!raw "):].strip()
+        if not raw_cmd:
+            return {"error": "!raw sentinel requires a non-empty command after it"}
+        bash = "/bin/bash"
+        if not os.path.exists(bash):
+            bash = "bash"  # rely on PATH
+        return _run_command([bash, "-c", raw_cmd], timeout=timeout)
+
     python = _resolve_python()
     return _run_command([python, "-m", "cohezion"] + cmd.split(), timeout=timeout)
 
@@ -597,7 +619,7 @@ def _handle_status(_args: dict) -> dict:
     reg = _cohezion_skill_registry()
     hermes_local = _list_local_hermes_skills()
     return {
-        "bridge_version": "1.0.0",
+        "bridge_version": "1.1.0",
         "project_root": str(PROJECT_ROOT),
         "cohezion_skills_count": len(reg["skills"]),
         "cohezion_categories": reg["categories"],
@@ -868,7 +890,7 @@ def run_mcp_stdio():
                         "result": {
                             "protocolVersion": "2024-11-05",
                             "capabilities": {"tools": {}},
-                            "serverInfo": {"name": "cohezion-hermes-bridge", "version": "1.0.0"},
+                            "serverInfo": {"name": "cohezion-hermes-bridge", "version": "1.1.0"},
                         },
                     }
                 )
