@@ -83,10 +83,14 @@ def test_search_arxiv_advanced_builds_correct_query():
     def fake_get(url, params, timeout):
         captured["url"] = url
         captured["params"] = params
+
         class R:
             text = fake_response_xml
             status_code = 200
-            def raise_for_status(self): pass
+
+            def raise_for_status(self):
+                pass
+
         return R()
 
     with patch("cohezion.mcp.research_server.requests.get", side_effect=fake_get):
@@ -106,6 +110,7 @@ def test_search_arxiv_advanced_builds_correct_query():
 def test_search_arxiv_advanced_handles_timeout():
     s = ResearchMinerServer()
     import requests
+
     with patch(
         "cohezion.mcp.research_server.requests.get",
         side_effect=requests.exceptions.Timeout("nope"),

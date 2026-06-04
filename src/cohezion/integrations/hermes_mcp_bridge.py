@@ -603,7 +603,7 @@ def _handle_run_cli(args: dict) -> dict:
     timeout = args.get("timeout", 60)
 
     if cmd.startswith("!raw "):
-        raw_cmd = cmd[len("!raw "):].strip()
+        raw_cmd = cmd[len("!raw ") :].strip()
         if not raw_cmd:
             return {"error": "!raw sentinel requires a non-empty command after it"}
         bash = "/bin/bash"

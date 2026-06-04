@@ -66,12 +66,9 @@ def _parse_arxiv_xml(xml_text: str) -> list[dict[str, Any]]:
         # arxiv IDs look like "http://arxiv.org/abs/2402.12345v1"
         arxiv_id = eid.rsplit("/", 1)[-1] if eid else ""
         authors = [
-            a.findtext("a:name", default="", namespaces=ns)
-            for a in entry.findall("a:author", ns)
+            a.findtext("a:name", default="", namespaces=ns) for a in entry.findall("a:author", ns)
         ]
-        categories = [
-            c.get("term", "") for c in entry.findall("a:category", ns)
-        ]
+        categories = [c.get("term", "") for c in entry.findall("a:category", ns)]
         out.append(
             {
                 "id": arxiv_id,
@@ -205,7 +202,9 @@ class ResearchMinerServer:
             logger.error(f"HF fetch failed: {e}")
             return [{"error": str(e)}]
 
-    def get_hf_trending_models(self, limit: int = 10, task: str | None = None) -> list[dict[str, Any]]:
+    def get_hf_trending_models(
+        self, limit: int = 10, task: str | None = None
+    ) -> list[dict[str, Any]]:
         """Fetch trending models from Hugging Face. Optionally filter by task
         (e.g. 'text-generation', 'image-classification'). See _HF_TASKS for
         the full list.
@@ -417,7 +416,9 @@ async def tool_search_arxiv_advanced(request: web.Request) -> web.Response:
 @routes.post("/tools/search_arxiv_by_author")
 async def tool_search_arxiv_by_author(request: web.Request) -> web.Response:
     data = await request.json()
-    return web.json_response(get_server().search_arxiv_by_author(data.get("author", ""), data.get("limit", 10)))
+    return web.json_response(
+        get_server().search_arxiv_by_author(data.get("author", ""), data.get("limit", 10))
+    )
 
 
 @routes.post("/tools/get_hf_trending")
@@ -430,9 +431,7 @@ async def tool_get_hf_trending(request: web.Request) -> web.Response:
 async def tool_get_hf_trending_models(request: web.Request) -> web.Response:
     data = await request.json()
     return web.json_response(
-        get_server().get_hf_trending_models(
-            limit=data.get("limit", 10), task=data.get("task")
-        )
+        get_server().get_hf_trending_models(limit=data.get("limit", 10), task=data.get("task"))
     )
 
 
