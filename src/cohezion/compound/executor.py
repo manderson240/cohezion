@@ -191,6 +191,12 @@ class CompoundExecutor(CompoundContextMixin, ExecutorIntegrationMixin):
         # avoid double-firing events on repeated execute_task calls)
         self._bus_subscribed = False
         self._bus_myc_registry: Any | None = None
+        # OuroborosRecorder (WS1A, 2026-06-04): start a flight recorder in
+        # the background to capture system vitals + bus trajectories.
+        # Lifecycle matches executor lifetime; started in start_recorder()
+        # (called explicitly, NOT in __init__, to keep __init__ side-effect
+        # free for tests). Best-effort: None if module unavailable.
+        self._ouroboros_recorder: Any | None = None
         # Lazy import to avoid circular dependency
         if inflection_detector:
             self.inflection_detector = inflection_detector
@@ -1408,12 +1414,82 @@ class CompoundExecutor(CompoundContextMixin, ExecutorIntegrationMixin):
         logger.info("Compound session started")
         return summary
 
+    def start_recorder(self, interval_seconds: float = 30.0) -> bool:
+        """Start the OuroborosRecorder (flight recorder) in the background.
+
+        Lifecycle matches the executor instance. Best-effort: returns
+        False if OuroborosRecorder is unavailable (e.g. import error
+        or no asyncio event loop). Idempotent: subsequent calls are
+        no-ops.
+
+        Returns:
+            True if recorder was started (or already running), False otherwise.
+        """
+        if self._ouroboros_recorder is None:
+            try:
+                from cohezion.ouroboros.recorder import OuroborosRecorder
+
+                self._ouroboros_recorder = OuroborosRecorder(
+                    interval_seconds=interval_seconds
+                )
+            except (ImportError, AttributeError, RuntimeError, OSError) as e:
+                logger.debug("OuroborosRecorder unavailable (non-blocking): %s", e)
+                self._ouroboros_recorder = None
+                return False
+
+        if getattr(self._ouroboros_recorder, "_running", False):
+            return True  # already running; idempotent no-op
+
+        try:
+            import asyncio as _asyncio
+
+            try:
+                loop = _asyncio.get_event_loop()
+                if loop.is_running():
+                    _asyncio.ensure_future(self._ouroboros_recorder.start())
+                else:
+                    loop.run_until_complete(self._ouroboros_recorder.start())
+            except RuntimeError:
+                _asyncio.run(self._ouroboros_recorder.start())
+            logger.debug("OuroborosRecorder started (interval=%ss)", interval_seconds)
+            return True
+        except Exception as e:
+            logger.debug("OuroborosRecorder.start() failed (non-blocking): %s", e)
+            return False
+
+    def stop_recorder(self) -> bool:
+        """Stop the OuroborosRecorder (best-effort, idempotent).
+
+        Returns:
+            True if stopped cleanly, False otherwise.
+        """
+        if self._ouroboros_recorder is None:
+            return True
+        try:
+            import asyncio as _asyncio
+
+            try:
+                loop = _asyncio.get_event_loop()
+                if loop.is_running():
+                    _asyncio.ensure_future(self._ouroboros_recorder.stop())
+                else:
+                    loop.run_until_complete(self._ouroboros_recorder.stop())
+            except RuntimeError:
+                _asyncio.run(self._ouroboros_recorder.stop())
+            return True
+        except Exception as e:
+            logger.debug("OuroborosRecorder.stop() failed (non-blocking): %s", e)
+            return False
+
     def end_session(self) -> dict[str, Any]:
         """End compound session: archive outcome and persist state.
 
         Returns:
             Session summary dict
         """
+        # Stop the ouroboros recorder (best-effort) — same lifecycle as the
+        # executor instance
+        self.stop_recorder()
         # Gather outcome from context state if available
         outcome: dict[str, Any] = {}
         with contextlib.suppress(Exception):
