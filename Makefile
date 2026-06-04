@@ -30,8 +30,11 @@ test:  ## Run test suite
 	@echo "✓ Tests complete"
 
 test-fast:  ## Run fast unit tests only (<1s each, no live services)
-	uv run pytest tests/unit tests/ouroboros tests/mycelium tests/integrations tests/mcp --import-mode=append --tb=short -q -p no:warnings
+	PYTHONPATH=src:scripts/ci uv run pytest tests/unit tests/ouroboros tests/mycelium tests/integrations tests/mcp tests/scripts --import-mode=append --tb=short -q -p no:warnings
 	@echo "✓ Fast tests complete"
+
+frontier-digest:  ## Generate today's frontier digest
+	uv run python scripts/ci/frontier_digest.py
 
 test-integration:  ## Run integration tests (require live services)
 	uv run pytest tests/ -m integration -v
