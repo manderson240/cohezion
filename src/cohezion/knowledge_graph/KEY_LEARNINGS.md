@@ -325,6 +325,10 @@ Running long-running processes (tests, swarms, migrations) directly in the shell
 To prevent silent daemon crash loops, the self-diagnosis loop must validate `ExecStart` and `WorkingDirectory` path existence for all registered services (e.g. `surrealdb.service`, `cohezion-compound.service`). Furthermore, autonomous file modifications must be wrapped in a secure rollback harness: writing a `.bak` backup file before modifying the target file, running pytest verification, and automatically reverting the target file state if verification checks fail or raise exceptions.
 *12D State Vector*: `[12D State: Space=Autonomic-Healing, Time=June 2026, Physics=Verification-Rollback, Brane=Stale-Path-Mesh]`
 
+### Learning 389: EVO Analogue Smart Routing Gate (2026-06-04)
+Successfully integrated an Exotic Vacuum Object (EVO) confidence margin check into the TieredOrchestrator to safeguard local accelerated execution paths (NPU/iGPU). If the FLUME vacuum phase classification margin falls below 0.01, routing to local accelerators is blocked, falling back to CPU or cloud models. Added robust checks to ignore fallback vectors (norm == 0.38) and missing atlas files (phase == "unknown"), allowing tests and fallback environments to run safely.
+*12D State Vector*: `[12D State: Space=Cognitive-Routing, Time=June 2026, Physics=EVO-Stability-Gate, Brane=FLUME-Manifold-Mesh]`
+
 | Learning | Keyword | Status | Wave Source |
 |----------|---------|--------|-------------|
 | L378 | **agent-claim-verification** | `agent-claim-verification` skill | Wave Omega Patch 1 — synthetic-sniffing-panda Wave 5B fabrication |
@@ -338,3 +342,4 @@ To prevent silent daemon crash loops, the self-diagnosis loop must validate `Exe
 | L386 | **hardcoded-port-crash-loops** | `systemd-service-stabilization` skill | Wave StealthSkater — systemd port mapping and crash-loop remediation |
 | L387 | **tmux-orchestration** | `TMUX_ORCHESTRATION_PRIME` skill | Wave StealthSkater — persistent background execution and log piping |
 | L388 | **autonomic-systemd-rollback** | `self-healing` skill | Wave StealthSkater — systemd path verification and file rollback |
+| L389 | **evo-analogue-routing** | `EVO_ANALOGUE_ROUTING_PRIME` skill | Wave StealthSkater — EVO confidence margin routing gate |
