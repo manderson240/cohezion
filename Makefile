@@ -30,7 +30,7 @@ test:  ## Run test suite
 	@echo "✓ Tests complete"
 
 test-fast:  ## Run fast unit tests only (<1s each, no live services)
-	uv run pytest tests/unit --import-mode=append --tb=short -q -p no:warnings
+	uv run pytest tests/unit tests/ouroboros tests/mycelium tests/integrations tests/mcp --import-mode=append --tb=short -q -p no:warnings
 	@echo "✓ Fast tests complete"
 
 test-integration:  ## Run integration tests (require live services)
