@@ -6,12 +6,13 @@ import sys
 from pathlib import Path
 from unittest.mock import patch
 
+
 sys.path.insert(0, str(Path(__file__).resolve().parents[3] / "src"))
 
 from cohezion.mcp.research_server import (
-    ResearchMinerServer,
     _ARXIV_CATEGORIES,
     _HF_TASKS,
+    ResearchMinerServer,
     _parse_arxiv_xml,
 )
 

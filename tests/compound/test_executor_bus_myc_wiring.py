@@ -11,9 +11,11 @@ so the bus-based registry can cluster and auto-promote to vault+DB.
 
 from __future__ import annotations
 
+import contextlib
 import sys
 from pathlib import Path
-from unittest.mock import MagicMock, patch
+from unittest.mock import MagicMock
+
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[3] / "src"))
 
@@ -93,7 +95,7 @@ def test_executor_emits_witness_mark_on_successful_skill_execution():
         )
         # The execution should have succeeded
         assert result.success is True
-    except Exception as e:
+    except Exception:
         # Some initialization may fail in test env (vault logger etc).
         # We only need the bus event to have been emitted.
         pass
@@ -133,15 +135,13 @@ def test_executor_does_not_emit_on_failed_execution():
     def failing_fn(guidance: str) -> tuple[str, dict]:
         raise RuntimeError("intentional failure for test")
 
-    try:
+    with contextlib.suppress(Exception):
         ex.execute_task(
             task_description="test failed witness mark suppression",
             skill_name="failing_skill",
             operation_type="generate",
             execute_fn=failing_fn,
         )
-    except Exception:
-        pass
 
     bus.unsubscribe(spy)
     assert len(captured) == 0

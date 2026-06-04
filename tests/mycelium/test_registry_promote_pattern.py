@@ -12,11 +12,11 @@ from __future__ import annotations
 
 import sys
 from pathlib import Path
-from unittest.mock import MagicMock, patch
+
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[3] / "src"))
 
-from cohezion.mycelium.registry import MyceliumCluster, MyceliumRegistry
+from cohezion.mycelium.registry import MyceliumRegistry
 from cohezion.precipitation.events import PrecipitationEvent, PrecipitationKind
 
 
@@ -91,7 +91,7 @@ def test_promote_pattern_handles_surrealdb_failure_gracefully(tmp_path, monkeypa
 
     # _make_registry_with_cluster already fired _promote_pattern; we
     # expect no exception even though surrealdb is down.
-    reg = _make_registry_with_cluster()
+    _make_registry_with_cluster()
     # If we got here, no exception was raised — that's the success.
     # Vault file should still be written.
     improvements = tmp_path / "wiki" / "ouroboros" / "improvements"
