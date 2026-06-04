@@ -36,16 +36,17 @@ import asyncio
 import re
 import shutil
 import subprocess
+from collections.abc import AsyncIterator
 from contextlib import asynccontextmanager
 from dataclasses import dataclass, field
 from datetime import datetime
-from typing import Any, AsyncIterator
+from typing import Any
 
 
 # ── FleetLock: single-flight coordination ────────────────────────────────────
 
 
-class LockTimeout(RuntimeError):
+class LockTimeout(RuntimeError):  # noqa: N818 — public API, tests reference this name
     """Raised when a FleetLock.acquire times out waiting for the lock."""
 
 
@@ -83,10 +84,10 @@ class FleetLock:
                     )
                 try:
                     await asyncio.wait_for(cond.wait(), timeout=remaining)
-                except asyncio.TimeoutError:
+                except TimeoutError:
                     raise LockTimeout(
                         f"FleetLock timed out waiting on {lock_key!r} after {timeout}s"
-                    )
+                    ) from None
             self._owner[lock_key] = owner_token
         try:
             yield
@@ -267,7 +268,7 @@ class _BaseLane:
 
     lane_name: str = "base"
 
-    def __init__(self, researcher: "DailyResearcher") -> None:
+    def __init__(self, researcher: DailyResearcher) -> None:
         self.researcher = researcher
 
     async def run(self, dry_run: bool) -> DryRunReport:
