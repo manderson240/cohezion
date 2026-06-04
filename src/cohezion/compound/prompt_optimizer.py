@@ -221,3 +221,125 @@ class PromptOptimizer:
             "original_chars": len(original),
             "compressed_chars": len(compressed),
         }
+
+    def prune_rules(
+        self,
+        rules_content: str,
+        task_description: str | None = None,
+        seen_word_sets: list[set[str]] | None = None,
+    ) -> tuple[str, list[set[str]]]:
+        """Deduplicate and contextually prune rules blocks based on task relevance.
+
+        Uses zero-cost overlap coefficient and keyword relevance mapping to keep
+        only non-redundant and task-relevant rules.
+
+        Args:
+            rules_content: Raw rules markdown text
+            task_description: Optional task description to prune by relevance
+            seen_word_sets: List of word sets already processed (for cross-file dedup)
+
+        Returns:
+            Tuple of (pruned_rules_content, updated_seen_word_sets)
+        """
+        if not rules_content:
+            return rules_content, seen_word_sets or []
+
+        if seen_word_sets is None:
+            seen_word_sets = []
+
+        desc_lower = task_description.lower() if task_description else ""
+
+        # Split into blocks
+        raw_blocks = rules_content.split("\n\n")
+        pruned_blocks = []
+
+        # Category keyword triggers
+        categories = {
+            "test": ["test", "pytest", "mock", "assert", "unit", "coverage"],
+            "git": ["git", "commit", "branch", "stash", "pr", "repo", "lfs"],
+            "db": ["db", "surreal", "persist", "sql", "kv", "table"],
+            "physics": ["spin", "manifold", "hiho", "coherence", "quantum", "spinor"],
+            "mcp": ["mcp", "stdio", "tool", "server", "agents.md"],
+            "kaggle": ["kaggle", "leaderboard", "blackwell", "gpu", "submission"],
+            "ui": ["web", "next.js", "component", "react", "agui", "anima", "ts", "typescript"],
+        }
+
+        for block in raw_blocks:
+            cleaned_block = block.strip()
+            if not cleaned_block:
+                continue
+
+            # Always keep headers, titles, and structural markers
+            if cleaned_block.startswith("#") and len(cleaned_block.splitlines()) == 1:
+                pruned_blocks.append(cleaned_block)
+                continue
+
+            # Extract words for deduplication
+            words = set(re.findall(r"\b\w+\b", cleaned_block.lower()))
+            if not words:
+                pruned_blocks.append(cleaned_block)
+                continue
+
+            # 1. Deduplication check (Overlap coefficient >= 0.65)
+            is_redundant = False
+            for seen_set in seen_word_sets:
+                intersection = words.intersection(seen_set)
+                min_len = min(len(words), len(seen_set))
+                if min_len > 0 and (len(intersection) / min_len) >= 0.65:
+                    is_redundant = True
+                    break
+
+            if is_redundant:
+                logger.debug(f"Pruning redundant rules block: {cleaned_block[:60]}...")
+                continue
+
+            # 2. Relevance check
+            # Keep if block contains mandatory/critical core terms
+            is_core = any(
+                term in cleaned_block.upper()
+                for term in [
+                    "MANDATORY",
+                    "CONSTRAINTS",
+                    "CRITICAL",
+                    "CONSTITUTION",
+                    "CHARTER",
+                    "INVARIANT",
+                    "RULES",
+                ]
+            )
+
+            # Keep headers, short templates, or if no task description is provided
+            if len(cleaned_block) < 60 or is_core or not desc_lower:
+                pruned_blocks.append(cleaned_block)
+                seen_word_sets.append(words)
+                continue
+
+            # Determine block category based on rule content
+            block_lower = cleaned_block.lower()
+            matched_categories = []
+            for cat, keywords in categories.items():
+                if any(kw in block_lower for kw in keywords):
+                    matched_categories.append(cat)
+
+            # If block belongs to specific categories, check if the task references them
+            keep = True
+            if matched_categories:
+                # Keep only if at least one matched category is referenced in task_description
+                has_task_reference = False
+                for cat in matched_categories:
+                    # Check if task description has any keyword of this category
+                    if any(kw in desc_lower for kw in categories[cat]):
+                        has_task_reference = True
+                        break
+                if not has_task_reference:
+                    keep = False
+
+            if keep:
+                pruned_blocks.append(cleaned_block)
+                seen_word_sets.append(words)
+            else:
+                logger.debug(
+                    f"Pruning irrelevant rules block ({'/'.join(matched_categories)}): {cleaned_block[:60]}..."
+                )
+
+        return "\n\n".join(pruned_blocks), seen_word_sets

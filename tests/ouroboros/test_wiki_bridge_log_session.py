@@ -14,6 +14,7 @@ import sys
 from pathlib import Path
 from unittest.mock import MagicMock, patch
 
+
 sys.path.insert(0, str(Path(__file__).resolve().parents[3] / "src"))
 
 
@@ -38,9 +39,7 @@ def test_wiki_bridge_log_session_method_exists():
             return_value=None,
         ):
             try:
-                bridge = OuroborosWikiBridge(
-                    vault_path=Path("/tmp/fake-vault")
-                )
+                bridge = OuroborosWikiBridge(vault_path=Path("/tmp/fake-vault"))
             except Exception:
                 return  # Skip if other deps required; test is structural
 
@@ -97,7 +96,7 @@ def test_executor_wires_wiki_bridge_on_success():
     the vault."""
     from cohezion.compound.executor import CompoundExecutor
     from cohezion.precipitation.bus import get_bus
-    from cohezion.precipitation.events import PrecipitationEvent, PrecipitationKind
+    from cohezion.precipitation.events import PrecipitationEvent
 
     bus = get_bus()
     captured: list[PrecipitationEvent] = []

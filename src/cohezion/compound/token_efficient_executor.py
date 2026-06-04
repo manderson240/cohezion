@@ -13,6 +13,7 @@ from typing import TYPE_CHECKING, Any
 
 from cohezion.compound.executor import CompoundExecutor, ExecutionResult
 from cohezion.compound.exp_persistence.vault import ExecutionContext
+from cohezion.compound.prompt_optimizer import PromptOptimizer
 
 
 if TYPE_CHECKING:
@@ -36,6 +37,9 @@ class TokenEfficientCompoundExecutor(CompoundExecutor):
         self._anchored_base_prefix: str | None = None
         self._anchored_overlay: str | None = None
         self._overlay_version: int = 0
+        self._prompt_optimizer = PromptOptimizer()
+        self._active_task_description: str | None = None
+        self._last_task_description: str | None = None
 
     def _get_cacheable_prefix(self, guidance: dict[str, Any]) -> str:
         """Build a static, cacheable prefix for the LLM request.
@@ -45,7 +49,12 @@ class TokenEfficientCompoundExecutor(CompoundExecutor):
         can be rotated if new critical intelligence is discovered, balancing
         efficiency with adaptability.
         """
-        # 1. Base Anchor (Immutable)
+        # If the task description changed, clear the anchored base prefix to recalculate
+        if self._last_task_description != self._active_task_description:
+            self._anchored_base_prefix = None
+            self._last_task_description = self._active_task_description
+
+        # 1. Base Anchor (Immutable for a given task)
         if not self._anchored_base_prefix:
             prefix_parts = ["# SYSTEM INSTRUCTIONS\n"]
             prefix_parts.append(
@@ -54,9 +63,14 @@ class TokenEfficientCompoundExecutor(CompoundExecutor):
             )
             if self._context_manager.loaded_files:
                 prefix_parts.append("\n## CORE CONTEXT")
+                seen_word_sets: list[set[str]] = []
                 for file_path in self._context_manager.loaded_files:
                     try:
                         content = self._context_manager._load_file(file_path)
+                        # Dynamically prune redundant and task-irrelevant rules
+                        content, seen_word_sets = self._prompt_optimizer.prune_rules(
+                            content, self._active_task_description, seen_word_sets
+                        )
                         prefix_parts.append(f"\n### {file_path}\n{content}")
                     except Exception as e:
                         logger.debug(f"Failed to load context file {file_path} for prefix: {e}")
@@ -97,6 +111,7 @@ class TokenEfficientCompoundExecutor(CompoundExecutor):
             ExecutionResult with token metrics
         """
         start_seconds = time.time()
+        self._active_task_description = task_description
 
         # 1. Standard setup (Context, Logging)
         if not self._context_loaded:
