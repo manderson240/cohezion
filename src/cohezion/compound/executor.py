@@ -1296,6 +1296,42 @@ class CompoundExecutor(CompoundContextMixin, ExecutorIntegrationMixin):
                     heal_err,
                 )
 
+        # Step 10.53: WS1C — log the session to the Obsidian vault via
+        # OuroborosWikiBridge.log_session() (best-effort, non-blocking).
+        # Creates a per-execution note at
+        # wiki/ouroboros/improvements/<ts>_<skill>.md so the success
+        # is durable and discoverable for retrospection.
+        if success:
+            try:
+                from cohezion.ouroboros.wiki_integration import OuroborosWikiBridge
+
+                if not hasattr(self, "_wiki_bridge"):
+                    # Lazy init: build on first use with a sane default
+                    # vault path. If the path doesn't exist, the bridge's
+                    # mkdir will create it; if it can't, the helper
+                    # returns None and we log at debug.
+                    default_vault = Path(__file__).resolve().parent.parent.parent
+                    # try several common locations for the vault
+                    for candidate in [
+                        default_vault / "data" / "vault",
+                        Path.home() / "vaults" / "cohezion-vault",
+                    ]:
+                        if candidate.exists():
+                            default_vault = candidate
+                            break
+                    self._wiki_bridge = OuroborosWikiBridge(vault_path=default_vault)
+                self._wiki_bridge.log_session(
+                    skill_name=skill_name,
+                    task_description=task_description,
+                    metrics=metrics,
+                    execution_id=f"exec_{int(time.time())}_{skill_name}",
+                )
+            except (ImportError, AttributeError, RuntimeError, OSError) as wiki_err:
+                logger.debug(
+                    "OuroborosWikiBridge.log_session failed (non-blocking): %s",
+                    wiki_err,
+                )
+
         # Step 10.55: Emit WITNESS MARK to the precipitation bus (non-blocking).
         # This is the bridge between the executor's journal-based mycelium
         # (which tracks per-skill execution) and the bus-based mycelium
@@ -1453,9 +1489,7 @@ class CompoundExecutor(CompoundContextMixin, ExecutorIntegrationMixin):
             try:
                 from cohezion.ouroboros.recorder import OuroborosRecorder
 
-                self._ouroboros_recorder = OuroborosRecorder(
-                    interval_seconds=interval_seconds
-                )
+                self._ouroboros_recorder = OuroborosRecorder(interval_seconds=interval_seconds)
             except (ImportError, AttributeError, RuntimeError, OSError) as e:
                 logger.debug("OuroborosRecorder unavailable (non-blocking): %s", e)
                 self._ouroboros_recorder = None
