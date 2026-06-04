@@ -31,7 +31,7 @@ class ChaosSymmetryBreaker:
         return ManifoldProjection(
             coordinates=new_coords,
             coherence=self.original.coherence * (1.0 - amplitude),  # Degrade coherence
-            stability=False if amplitude > 0.2 else True,
+            stability=not amplitude > 0.2,
         )
 
     def create_contradiction(self, strategy: str) -> str:

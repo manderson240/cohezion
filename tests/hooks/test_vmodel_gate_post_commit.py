@@ -16,7 +16,7 @@ _HOOK_DIR = Path(__file__).resolve().parents[2] / "scripts" / "hooks"
 if str(_HOOK_DIR) not in sys.path:
     sys.path.insert(0, str(_HOOK_DIR))
 
-import vmodel_gate_post_commit as h  # noqa: E402
+import vmodel_gate_post_commit as h
 
 
 def test_escape_sql_string_handles_quotes_and_backslashes() -> None:

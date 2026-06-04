@@ -46,7 +46,7 @@ def _mock_cohezion_core_modules():
             sys.modules[key] = original
 
 
-from cohezion.universe.engine import (  # noqa: E402
+from cohezion.universe.engine import (
     AxiomaticState,
     LatentState,
     UniverseJourney,

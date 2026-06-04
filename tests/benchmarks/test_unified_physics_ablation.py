@@ -414,7 +414,7 @@ class TestUnifiedPhysicsAblation:
         full_dev = np.mean(
             [np.mean([abs(c - 0.5) for c in r.coherence_history]) for r in results["FULL"]]
         )
-        full_drift = np.mean([r.avg_drift for r in results["FULL"]])
+        np.mean([r.avg_drift for r in results["FULL"]])
 
         print("\n" + "=" * 80)
         print("UNIFIED PHYSICS ABLATION STUDY - STATISTICAL RESULTS")

@@ -133,7 +133,7 @@ async def test_orchestrator_invokes_subprocess_when_real_training_enabled(
         stdout = "fake ok"
         stderr = ""
 
-    def fake_run(cmd, **kwargs):  # noqa: ANN001
+    def fake_run(cmd, **kwargs):
         called_with_args.append(list(cmd))
         # Simulate the trainer producing the expected artifact.
         output_dir = Path(cmd[cmd.index("--output-dir") + 1])

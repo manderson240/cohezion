@@ -15,8 +15,8 @@ import pytest
 
 torch = pytest.importorskip("torch")
 
-from cohezion.inference.registry import KVQuant  # noqa: E402
-from cohezion.inference.turboquant_reference import (  # noqa: E402
+from cohezion.inference.registry import KVQuant
+from cohezion.inference.turboquant_reference import (
     HadamardRotation,
     PolarQuant,
     TurboQuantReference,

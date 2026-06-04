@@ -5,6 +5,7 @@ from __future__ import annotations
 import sys
 from pathlib import Path
 
+
 sys.path.insert(0, str(Path(__file__).resolve().parents[3] / "src"))
 
 from cohezion.integrations.hermes_mcp_bridge import _handle_run_cli

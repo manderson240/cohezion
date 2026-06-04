@@ -202,15 +202,15 @@ class TestL2Eviction:
         await cache.put("p2", "r2", model="m")
         # Bump p1's LFU so p2 is the LFU victim.
         h1 = hashlib.sha256(b"\np1\nm").hexdigest()[:16]
-        h1 = hashlib.sha256("\np1\nm".encode()).hexdigest()[:16]
+        h1 = hashlib.sha256(b"\np1\nm").hexdigest()[:16]
         cache.l2_lfu_counts[h1] = 5
 
         await cache.put("p3", "r3", model="m")
 
         h2 = hashlib.sha256(b"\np2\nm").hexdigest()[:16]
         h3 = hashlib.sha256(b"\np3\nm").hexdigest()[:16]
-        h2 = hashlib.sha256("\np2\nm".encode()).hexdigest()[:16]
-        h3 = hashlib.sha256("\np3\nm".encode()).hexdigest()[:16]
+        h2 = hashlib.sha256(b"\np2\nm").hexdigest()[:16]
+        h3 = hashlib.sha256(b"\np3\nm").hexdigest()[:16]
         assert h2 not in cache.l2_cache
         assert h1 in cache.l2_cache
         assert h3 in cache.l2_cache
