@@ -187,6 +187,10 @@ class CompoundExecutor(CompoundContextMixin, ExecutorIntegrationMixin):
             logger.debug("GeometricLatentBridge not available")
 
         self._degradation_mode = False  # HIHO band violation flag
+        # Mycelium bus subscriber guard (set True after first subscribe to
+        # avoid double-firing events on repeated execute_task calls)
+        self._bus_subscribed = False
+        self._bus_myc_registry: Any | None = None
         # Lazy import to avoid circular dependency
         if inflection_detector:
             self.inflection_detector = inflection_detector
@@ -1261,6 +1265,67 @@ class CompoundExecutor(CompoundContextMixin, ExecutorIntegrationMixin):
                 logger.debug("Mycelium: captured execution as pattern entry")
         except Exception:
             pass  # Non-blocking: mycelium may not be available
+
+        # Step 10.55: Emit WITNESS MARK to the precipitation bus (non-blocking).
+        # This is the bridge between the executor's journal-based mycelium
+        # (which tracks per-skill execution) and the bus-based mycelium
+        # (which clusters across universes and auto-promotes to vault+DB
+        # when cross-universe patterns emerge). The bus subscriber in
+        # cohezion.mycelium.registry.MyceliumRegistry will pick this up
+        # automatically; the auto-promotion is gated by a `len(universes)
+        # >= 2` cooldown so a single agent's events don't spam the vault.
+        # Idempotency: self._bus_subscribed guards against double-subscribe.
+        if success:
+            try:
+                if not getattr(self, "_bus_subscribed", False):
+                    try:
+                        from cohezion.mycelium.registry import (
+                            MyceliumRegistry as BusMyceliumRegistry,
+                        )
+                        from cohezion.precipitation.bus import get_bus
+                        from cohezion.precipitation.events import (
+                            PrecipitationEvent,
+                            PrecipitationKind,
+                        )
+
+                        self._bus_myc_registry = BusMyceliumRegistry(bus=get_bus())
+                        self._bus_myc_registry.subscribe()
+                        self._bus_subscribed = True
+                        logger.debug(
+                            "Mycelium bus subscriber registered for executor %s",
+                            id(self),
+                        )
+                    except (ImportError, AttributeError, RuntimeError) as e:
+                        logger.debug(
+                            "Mycelium bus subscriber unavailable (non-blocking): %s", e
+                        )
+
+                if getattr(self, "_bus_subscribed", False):
+                    from cohezion.precipitation.events import (
+                        PrecipitationEvent,
+                        PrecipitationKind,
+                    )
+
+                    coherence = float(metrics.get("coherence", 0.5))
+                    get_bus().emit(
+                        PrecipitationEvent(
+                            kind=PrecipitationKind.WITNESS_MARK,
+                            universe_id=f"cohezion.execution.{skill_name}",
+                            coherence=coherence,
+                            agent_id="compound-executor",
+                            payload={
+                                "skill_name": skill_name,
+                                "operation_type": operation_type,
+                                "task_description": task_description[:200],
+                                "success": True,
+                                "duration_seconds": duration_seconds,
+                            },
+                        )
+                    )
+            except (ImportError, AttributeError, RuntimeError) as e:
+                logger.debug(
+                    "WITNESS MARK emission failed (non-blocking): %s", e
+                )
 
         # Step 10.7: Persist prompt artifact (L183)
         # Record prompt/response pair to SurrealDB for retrospective analysis
