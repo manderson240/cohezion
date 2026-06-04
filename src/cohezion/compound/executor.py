@@ -1272,6 +1272,30 @@ class CompoundExecutor(CompoundContextMixin, ExecutorIntegrationMixin):
         except Exception:
             pass  # Non-blocking: mycelium may not be available
 
+        # WS1B (2026-06-04): wire the OuroborosHealer into the failure path.
+        # On every execute_task failure, call healer.analyze_and_heal()
+        # which emits a HEALING_EVENT to the bus. This closes the
+        # previously-broken self-healing loop. Best-effort.
+        if not success and error_msg:
+            try:
+                from cohezion.ouroboros.healer import HealerAgent
+
+                if not hasattr(self, "_healer"):
+                    self._healer = HealerAgent()
+                # Build a log excerpt that includes the exception type
+                full_log = (
+                    f"Task: {task_description}\n"
+                    f"Skill: {skill_name}\n"
+                    f"Error: {error_msg}\n"
+                    f"Exception type: {metrics.get('error_type', 'unknown')}"
+                )
+                self._healer.analyze_and_heal(failure_log=full_log, target=skill_name)
+            except (ImportError, AttributeError, RuntimeError, OSError) as heal_err:
+                logger.debug(
+                    "OuroborosHealer.analyze_and_heal failed (non-blocking): %s",
+                    heal_err,
+                )
+
         # Step 10.55: Emit WITNESS MARK to the precipitation bus (non-blocking).
         # This is the bridge between the executor's journal-based mycelium
         # (which tracks per-skill execution) and the bus-based mycelium
