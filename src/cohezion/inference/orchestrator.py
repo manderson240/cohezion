@@ -202,10 +202,12 @@ class TieredOrchestrator:
 
         # Pre-dispatch classification: determines start tier + per-tier gate override
         _start_tier = 0
+        _output_type = "unknown"  # failure_class for the recursive-trace resolution log
         _gate_override: dict[int, QualityGate] = {}
         if self._pre_dispatch_classifier is not None:
             try:
                 decision = self._pre_dispatch_classifier(prompt)
+                _output_type = decision.output_type
                 if decision.node == "gpu":
                     _start_tier = 1  # skip tier 0 (NPU) entirely
                     # Also override tier 1's gate: classifier knows the expected output length,
@@ -499,6 +501,20 @@ class TieredOrchestrator:
 
             if passed:
                 # O1: higher tiers don't run once a lower tier passes.
+                # Recursive-trace corpus: log ONLY escalated resolutions (a lower tier's
+                # gate failed and this tier resolved) — the non-circular case where a real
+                # counterfactual was observed. Fail-soft; never breaks the inference path.
+                if idx > _start_tier:
+                    try:
+                        from cohezion.recursive_trace.resolution_log import (
+                            log_quality_gate_resolution,
+                        )
+
+                        log_quality_gate_resolution(
+                            _output_type, model_name, [p.model_or_sub for p in path]
+                        )
+                    except Exception:
+                        pass
                 return OrchestrationResult(
                     text=view.text,
                     primary_model=self.tiers[0][0]
