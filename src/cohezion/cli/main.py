@@ -754,7 +754,7 @@ def universe_seed(
         _service = PhysicsService(repo)
 
         # In a real impl, we'd use a dedicated UniverseService
-        from cohezion.core.persistence.repositories.universe_repository import (
+        from cohezion.core.persistence.surreal_client import (
             PhysicsState,
             UniverseNode,
         )
