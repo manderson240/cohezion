@@ -358,3 +358,26 @@ fix revealed the next link — classic stacked bug):
 - **Deferred** (not chased mid-task per one-change-at-a-time): a future loop iteration should
   resolve `swarm_service`'s import — locate the intended registry (likely `swarm/` model routing)
   or stub it. Bridge stays fail-soft; nothing is broken, cli is degraded-but-logged.
+
+## 11. Iteration 7 — retro + state refresh (2026-06-05)
+
+Retro for the recursive-trace value-gate arc (3 completed tasks): refined the
+`falsifiable-eval-harness` skill to **v1.1.0**, adding rule 9 (CIRCULARITY — oracle must
+not be the mechanism's own model; the tell is hand-derivability; fix = conditional-vs-
+marginal dependence over real pairs + label-permutation null + counterfactual-only
+observations) and rule 10 (VIABILITY — an experiment that can't RUN is as useless as one
+that can't FAIL; viability is an environment fact; never synthesize the event batch).
+
+**Audit state (re-run of `vmodel_module_audit.py`):** 80 modules · 0 orphans · 0 missing
+`__init__` · 0 compile fails. Remaining V-model debt:
+- **No test/verification leg (17):** agent, cli, datamesh, dogfooding, evaluation,
+  evolution, hookify, infrastructure, knowledge, optimization, pipeline, policies,
+  reporting, sandboxing, services, simulations, traceability.
+- **God-objects HARD>500 LOC (36):** top offenders api/__init__.py(2113),
+  compound/executor.py(1645), inference/task_classifier.py(1390), swarm/cost_aware_router.py(1360).
+
+**Next iteration target (bounded):** add a discriminating verification leg to ONE no-test
+module. Preferred candidate: `hookify` (hookify/validator.py, 658 LOC of real validation
+logic) — confirm it imports cleanly first, then pin its public contract with discriminating
+tests (per the testing rule: write the test that fails the most plausible WRONG impl).
+Avoid the broken `services` (swarm_service → missing model_registry, §10 deferred finding).
