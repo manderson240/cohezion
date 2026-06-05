@@ -381,3 +381,30 @@ module. Preferred candidate: `hookify` (hookify/validator.py, 658 LOC of real va
 logic) — confirm it imports cleanly first, then pin its public contract with discriminating
 tests (per the testing rule: write the test that fails the most plausible WRONG impl).
 Avoid the broken `services` (swarm_service → missing model_registry, §10 deferred finding).
+
+## 12. Iterations 8-11 — verification-leg backfill + a latent-bug finding (2026-06-05)
+
+Continued converting the S1 no-test-dir gap into verification legs (additive, report-only,
+non-destructive). Each module: pure-logic core pinned with DISCRIMINATING tests (fail the most
+plausible wrong impl, per the testing rule), construction kept offline (no DB/LLM in unit path).
+
+| Module | test file | tests | pinned contract |
+|---|---|--:|---|
+| hookify | tests/hookify/test_validator.py | 10 | condition eval **security boundary** (raises on `os.`/`eval`/`import`) |
+| evolution | tests/evolution/test_variable.py | 6 | TextGrad Variable dedup/skip-empty; `__str__`→raw value |
+| traceability | tests/traceability/test_plan_graph_helpers.py | 5 | SurrealDB response parse (`_first_result` skips empty list) |
+| optimization | tests/optimization/test_r_zero.py | 5 | R-Zero success-rate arithmetic + clamp |
+
+**No-test modules: 17 → 13.** Structural legs still clean (0 orphans, 0 missing `__init__`, 0 compile fails).
+
+### 12.1 Latent-bug finding (flagged, NOT fixed — report-only)
+`optimization/r_zero.py::LocalModelOptimizer.record_execution`: `recent_successes` counts prior
+records whose `success_rate == 1.0`, but a fresh optimizer can never PRODUCE a 1.0 record
+(`base_rate = (recent_successes + success) / (total+1)` is bounded below 1 because the +1 denominator
+always exceeds the numerator on the first record, and the numerator only grows by counting 1.0-records
+that never exist). Consequence: `success_rate` never climbs above 0.5 — it actually *trends toward 0*
+as history grows (denominator grows, numerator stuck) — so `difficulty_adjustment`'s `>0.8` branch
+(multiplier 1.0) is **unreachable**; the optimizer is permanently stuck at the 0.8 "hard" multiplier.
+Pinned by `test_success_rate_does_not_climb_above_half_on_repeated_success`. **Remediation is a
+behavior change → separate, gated track** (per non-destructive policy); the test documents current
+reality so a future fix updates it deliberately.
