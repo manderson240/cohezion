@@ -1,120 +1,75 @@
 #!/usr/bin/env python3
-"""Recursive-trace value gate — the test that can actually return RETIRE.
+"""Recursive-trace value gate — per-domain, non-circular, can return RETIRE.
 
-Spec: docs/research/RECURSIVE_TRACE_FALSIFIABLE_GATE_2026-06-05.md
+Designs:
+  docs/research/RECURSIVE_TRACE_FALSIFIABLE_GATE_2026-06-05.md      (original gate)
+  docs/research/FAILURE_RESOLUTION_COLLECTION_DESIGN_2026-06-05.md  (this corpus + metric)
 
-CORRECTED after advisor review (2026-06-05): the original synthetic A/B in this file
-was CIRCULAR — the task generator drew `solving_strategy` from the *same* `failure_map`
-the mechanism consults, so the verdict was fixed by the chosen coupling p. It proved
-only "a correct lookup table retrieves correct answers" — which the unit test
-`test_failure_map_routes_to_mapped_strategy_first` already proves. It is retained below
-ONLY as an explicitly-labelled mechanism-correctness sanity check, NOT as a value test.
+Reads the real `(failure_class, strategy, success)` corpus collected by
+`record_resolution(...)` and, PER DOMAIN, measures whether the resolving strategy is
+statistically dependent on the failure class (conditional vs marginal ordering, with a
+label-permutation null). No hand-written map — the verdict comes from real outcomes:
 
-The REAL question (Stage 2): does cohezion's *real* failure stream have empirical
-coupling p = P(fixing_strategy == failure_map[failure_class]) meaningfully above the
-0.25 chance baseline? That can only be measured from outcomes the code did NOT generate.
-This script scans for such a corpus and reports the only verdict the data supports:
+    domain has signal (Δ>0, p<0.05)  -> KEEP    (recursive-trace's premise holds here)
+    strategy ⊥ failure-class         -> RETIRE  (it's autoresearch with a dedup cache)
+    below volume floor               -> UNPROVEN (need more pairs)
 
-    corpus exists, p > 0.25 + margin  -> KEEP   (value proven on real data)
-    corpus exists, p ~= 0.25          -> RETIRE (it's autoresearch with a dedup cache)
-    no corpus                         -> UNPROVEN (implemented+tested; value pending data)
+Today this prints UNPROVEN for every domain because the corpus is empty — the honest
+current state. It flips to KEEP/RETIRE per domain the moment real pairs accumulate, with
+zero code change.
 """
 from __future__ import annotations
 
-import contextlib
-import json
-from pathlib import Path
+from cohezion.recursive_trace.coupling_analysis import analyze_domain
+from cohezion.recursive_trace.resolution_log import (
+    VALID_DOMAINS,
+    read_resolutions,
+)
 
 
-FAILURE_MAP = {
-    "latency": "semantic_remap",
-    "coherence_drop": "contextual_modifier",
-    "structural_mismatch": "chain_insertion",
-}
-CHANCE = 0.25          # 1 / |strategies|
-MARGIN = 0.10          # p must clear chance by this to count as real signal
-
-# Known places a (failure_class, fixing_strategy) corpus could live.
-CORPUS_PATHS = [
-    Path.home() / ".cohezion-research" / "ouroboros" / "debug",
-    Path.home() / ".cohezion-research" / "logs" / "traces.jsonl",
-    Path.home() / ".cohezion-research" / "logs",
-]
-
-
-def _iter_records():
-    """Yield dicts from any JSON / JSONL files in the corpus locations."""
-    for base in CORPUS_PATHS:
-        if base.is_file():
-            files = [base]
-        elif base.is_dir():
-            files = [p for p in base.rglob("*") if p.suffix in (".json", ".jsonl")]
-        else:
-            continue
-        for f in files:
-            try:
-                text = f.read_text(encoding="utf-8", errors="replace")
-            except OSError:
-                continue
-            if f.suffix == ".jsonl":
-                for line in text.splitlines():
-                    line = line.strip()
-                    if line:
-                        with contextlib.suppress(json.JSONDecodeError):
-                            yield json.loads(line)
-            else:
-                try:
-                    obj = json.loads(text)
-                except json.JSONDecodeError:
-                    continue
-                if isinstance(obj, list):
-                    yield from (o for o in obj if isinstance(o, dict))
-                elif isinstance(obj, dict):
-                    yield obj
-
-
-def _extract_pair(rec: dict) -> tuple[str, str] | None:
-    """Pull (failure_class, fixing_strategy) from a record if both are present."""
-    fc = rec.get("failure_class")
-    strat = (
-        rec.get("solving_strategy")
-        or rec.get("fixing_strategy")
-        or rec.get("resolved_by")
-    )
-    if isinstance(fc, str) and isinstance(strat, str):
-        return fc, strat
-    return None
-
-
-def measure_real_coupling() -> tuple[int, float | None]:
-    pairs = [p for rec in _iter_records() if (p := _extract_pair(rec))]
-    if not pairs:
-        return 0, None
-    hits = sum(1 for fc, strat in pairs if FAILURE_MAP.get(fc) == strat)
-    return len(pairs), hits / len(pairs)
+# Routing pairs are only causally valid for `duration` (other metrics are computed
+# upstream of tier dispatch) — see the collection design §2 routing caveat.
+CAUSALLY_VALID = {"quality_gate", "skill_mutation", "routing"}
 
 
 def main() -> int:
-    n, p = measure_real_coupling()
-    print("# Recursive-Trace VALUE Gate (Stage 2 — real corpus)\n")
-    if p is None:
-        print(f"  corpus pairs found: {n}")
-        print("  No (failure_class, fixing_strategy) corpus exists in any known location:")
-        for path in CORPUS_PATHS:
-            print(f"    - {path}  [{'present' if path.exists() else 'absent'}]")
-        print("\n  VERDICT: UNPROVEN")
-        print("  The mechanism is implemented and unit-tested, but its production value")
-        print("  cannot be confirmed or refuted without real failure-resolution data.")
-        print("  This script will return KEEP or RETIRE the moment such a corpus exists.")
-        return 0
+    print("# Recursive-Trace VALUE Gate (per-domain, real corpus)\n")
+    pairs_by_domain = {
+        domain: [
+            (r["failure_class"], r["strategy"])
+            for r in read_resolutions(domain, successful_only=True)
+        ]
+        for domain in sorted(VALID_DOMAINS)
+    }
+    # Bonferroni: a domain is "testable" iff it clears the volume floor; correct alpha
+    # by the number of testable domains so KEEP-if-any doesn't inflate family-wise error.
+    testable = sum(
+        1 for p in pairs_by_domain.values()
+        if analyze_domain(p)["verdict"] != "UNPROVEN"
+    )
+    alpha = 0.05 / testable if testable else 0.05
+    if testable > 1:
+        print(f"  (Bonferroni: {testable} testable domains -> per-domain alpha={alpha:.4f})\n")
 
-    print(f"  corpus pairs found: {n}")
-    print(f"  empirical p = P(fixing_strategy == failure_map[failure_class]) = {p:.3f}")
-    print(f"  chance baseline = {CHANCE:.3f}, margin = {MARGIN:.3f}")
-    if p > CHANCE + MARGIN:
-        print("\n  VERDICT: KEEP — real failure data carries exploitable failure->strategy signal.")
+    verdicts: dict[str, str] = {}
+    for domain in sorted(VALID_DOMAINS):
+        res = analyze_domain(pairs_by_domain[domain], alpha=alpha)
+        verdicts[domain] = res["verdict"]
+        print(f"## {domain}")
+        print(f"  pairs={res['n']}  failure_classes={res['k']}  strategies={res['n_strategies']}")
+        print(f"  {res['verdict']}: {res['reason']}\n")
+
+    causal = {d: v for d, v in verdicts.items() if d in CAUSALLY_VALID}
+    if "KEEP" in causal.values():
+        overall = "KEEP"
+    elif causal and all(v == "RETIRE" for v in causal.values()):
+        overall = "RETIRE"
     else:
-        print("\n  VERDICT: RETIRE — coupling ~= chance; recursive-trace == autoresearch + dedup cache.")
+        overall = "UNPROVEN"
+    print(f"OVERALL (causally-valid domains): {overall}")
+    if overall == "UNPROVEN":
+        print("  No domain has enough real (failure_class, strategy) pairs yet.")
+        print("  Wire record_resolution() into the remediation hooks and re-run.")
     return 0
 
 
