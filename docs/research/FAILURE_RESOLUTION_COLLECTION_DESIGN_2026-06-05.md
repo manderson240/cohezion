@@ -62,7 +62,7 @@ quality-gate's). Each domain is tagged and scored independently; the gate emits 
 
 | Domain | failure_class | strategy (action) | outcome (success) | hook point | causal match | volume |
 |---|---|---|---|---|---|---|
-| **quality_gate** | `output_type` / `verdict.reason` | tier that produced the accepted output (npu/igpu/cpu/cloud) | gate `accept` | `compound/autodqa.py:evaluate` + `inference/quality_eval.py` | strong (stronger tier fixes quality) | HIGH (every task) |
+| **quality_gate** | `output_type` (pre-dispatch) | tier that resolved after escalation (npu/igpu/cpu/cloud) | a tier passed its gate | **`inference/orchestrator.py:run` — logged ONLY when `escalation_count>0`** | strong (stronger tier fixes quality) | HIGH *iff* a workload runs the orchestrator |
 | **skill_mutation** | typed skill-failure reason | `mutation_type`/patch kind | `approved` vs `refund/rejected` | `compound/skill_mutation_queue.py:approve/refund` | strong, discrete | LOW (rare) |
 | **routing** | degraded metric (`duration` only — see caveat) | chosen tier | metric returned to baseline | `compound/degradation_detector.py:check_degradation`+`suggest_routing_tier` | weak except `duration` | MED |
 
@@ -90,6 +90,15 @@ strategies would have done. For the conditional-vs-marginal metric this is accep
 `P(rs|fc)` over *successful resolutions*, which is exactly the quantity the mechanism would exploit.
 Where the escalation chain tries multiple tiers before success (quality_gate does), we get the full
 *tried-order + which one resolved* — richer than single-shot.
+
+**Why only ESCALATED resolutions are non-circular (critical).** Logging *every* task's
+`(output_type, tier_used)` would be **circular**: the router already picks the tier from
+`output_type` (task_classifier → pre-dispatch), so `tier_used` is a deterministic function of
+`output_type` *by the router's design* — `P(tier|output_type)≈1` reflects the router's map, not which
+tier actually resolves best. Escalation breaks the circularity: when tier N's gate **fails** and tier
+N+1 **passes**, a real counterfactual was observed (N+1 resolved what N could not for this
+`output_type`). So the seam logs **only when `escalation_count>0`** — the cases that carry ground
+truth. Non-escalated immediate passes are deliberately dropped.
 
 ## 4. Collection VIABILITY is unconfirmed — and is a user/environment fact, not a code fact
 
@@ -134,10 +143,15 @@ only `success=true` pairs.
   `recursive_trace_gate.py` (per-domain conditional-vs-marginal lift + permutation null); discriminating
   tests for both. The analysis is validated on **clearly-labeled synthetic pairs** (to prove the metric
   separates dependent from independent data — NOT to fake a verdict).
-- **Pending (gated on the §4 viability question, NOT on more building):** the three one-line
-  `record_resolution` calls in AutoDQA / SkillMutationQueue / DegradationDetector. Wiring is deferred
-  until a real organic event source is confirmed — otherwise the loggers would sit on a flow nothing
-  exercises and the gate would return UNPROVEN forever.
+- **WIRED (quality_gate, 2026-06-05):** `inference/orchestrator.py:run` now calls
+  `log_quality_gate_resolution(...)` fail-soft, **only on `escalation_count>0`**, pytest-skipped so the
+  orchestrator's own 27 tests don't pollute the corpus. 4 discriminating tests prove it logs the
+  resolving tier on escalation and stays silent on immediate passes. CB1 invariant intact.
+  **To generate pairs: run any workload that drives the TieredOrchestrator** (the compound loop /
+  `extend_claude` / the API's tiered endpoints). Pairs accrue to `~/.cohezion-research/logs/`; re-run
+  the gate to read the verdict.
+- **Pending (gated on §4 viability per-domain):** the `record_resolution` calls in SkillMutationQueue
+  (low volume) and DegradationDetector (`duration` only). Deferred until those flows are exercised.
 
 ## 7. Pre-registered decision rule (summary)
 

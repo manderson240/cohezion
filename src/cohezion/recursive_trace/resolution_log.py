@@ -58,6 +58,50 @@ def record_resolution(
     return rec
 
 
+def _coarse_tier(model_name: str) -> str:
+    """Collapse a model id to a coarse hardware-tier strategy label (fewer = better stats)."""
+    m = (model_name or "").lower()
+    if "flm" in m or "gemma-4-e2b" in m or "npu" in m:
+        return "npu"
+    if "gemma-4-26b" in m or "gemma-4-e4b" in m or "igpu" in m:
+        return "igpu"
+    if "claude" in m or "gpt" in m or "gemini" in m or "cloud" in m:
+        return "cloud"
+    return "cpu"
+
+
+def log_quality_gate_resolution(
+    output_type: str,
+    resolving_model: str,
+    tried_models: list[str],
+    *,
+    path: Path | None = None,
+) -> dict | None:
+    """Fail-soft hook for the orchestrator: log an ESCALATED resolution pair.
+
+    Called only when escalation occurred (a lower tier's gate failed and a higher tier
+    resolved) — the non-circular case where a counterfactual was actually observed. Never
+    raises (must not break the inference path). Skips writing under pytest unless an
+    explicit `path` is given (so the orchestrator's own tests don't pollute the corpus).
+    """
+    try:
+        import sys
+
+        if path is None and ("pytest" in sys.modules or "unittest" in sys.modules):
+            return None
+        return record_resolution(
+            "quality_gate",
+            output_type,
+            _coarse_tier(resolving_model),
+            True,
+            source="live",
+            tried_order=[_coarse_tier(m) for m in tried_models],
+            path=path,
+        )
+    except Exception:
+        return None
+
+
 def read_resolutions(
     domain: str | None = None,
     *,
