@@ -36,6 +36,12 @@ class TokenEfficientCompoundExecutor(CompoundExecutor):
         self._anchored_base_prefix: str | None = None
         self._anchored_overlay: str | None = None
         self._overlay_version: int = 0
+        # PR 3: the current card. Set by the caller before
+        # execute_task_efficient (e.g. by the PR 1 aligned execute_fn)
+        # so the prefix block carries the right model_id + family +
+        # thinking_mode. None means "no card yet" — the prefix block
+        # still renders, with <unset> placeholders.
+        self._current_card: tuple[str, str, str] | None = None
 
     def _get_cacheable_prefix(self, guidance: dict[str, Any]) -> str:
         """Build a static, cacheable prefix for the LLM request.
@@ -44,6 +50,12 @@ class TokenEfficientCompoundExecutor(CompoundExecutor):
         is immutable to guarantee cache hits. The Versioned Overlay (Vault Guidance)
         can be rotated if new critical intelligence is discovered, balancing
         efficiency with adaptability.
+
+        PR 3 (datamesh-native): the prefix now also includes a
+        `# CARD-ALIGNED RECIPE` block with the model's
+        (model_id, family, thinking_mode) plus a `# FLUME_VAE: <hash>`
+        line. A card change produces a different hash, which
+        invalidates the Anthropic prompt cache automatically.
         """
         # 1. Base Anchor (Immutable)
         if not self._anchored_base_prefix:
@@ -74,7 +86,79 @@ class TokenEfficientCompoundExecutor(CompoundExecutor):
                     overlay_parts.append(f"\n[Pattern {i + 1}]: {item}")
             self._anchored_overlay = "\n".join(overlay_parts)
 
-        return self._anchored_base_prefix + "\n" + self._anchored_overlay
+        # 3. PR 3: card-aligned recipe block. The block is part of the
+        # static prefix, so the Anthropic prompt cache keys on it.
+        # A card change → different block → cache miss (correctly).
+        card = getattr(self, "_current_card", None)
+        recipe_block = self._render_card_recipe_block(card)
+
+        return self._anchored_base_prefix + "\n" + self._anchored_overlay + recipe_block
+
+    @staticmethod
+    def _render_card_recipe_block(card: tuple[str, str, str] | None) -> str:
+        """Render the `# CARD-ALIGNED RECIPE` block for the prefix.
+
+        Includes a `# FLUME_VAE: <hash>` line so the Anthropic prompt
+        cache's server-side fingerprint is reproducible from a
+        SurrealDB row. A card change → different hash → cache miss.
+        """
+        import hashlib
+        if card is None:
+            return (
+                "\n# CARD-ALIGNED RECIPE\n"
+                "# model: <unset>\n"
+                "# family: <unset>\n"
+                "# thinking_mode: <unset>\n"
+                "# FLUME_VAE: 0000000000000000\n"
+            )
+        model_id, family, thinking_mode = card
+        # The FLUME_VAE hash is sha256(card) prefixed — a stable
+        # 16-char digest. In production this would be a real VAE
+        # embedding of the card text; sha256 is the deterministic
+        # fallback.
+        h = hashlib.sha256(f"{model_id}|{family}|{thinking_mode}".encode()).hexdigest()[:16]
+        return (
+            "\n# CARD-ALIGNED RECIPE\n"
+            f"# model: {model_id}\n"
+            f"# family: {family}\n"
+            f"# thinking_mode: {thinking_mode}\n"
+            f"# FLUME_VAE: {h}\n"
+        )
+
+    def _emit_prefix_hit_witness_mark(
+        self, model_id: str, task: str
+    ) -> None:
+        """Connection A: emit a WITNESS_MARK with coherence=0.8 on
+        Anthropic prompt cache hit. Higher than the 0.6 used for
+        normal executions because a prefix cache hit means the
+        entire system message was cached, which is the strongest
+        coherence signal we have.
+        """
+        try:
+            from cohezion.precipitation import bus
+            from cohezion.precipitation.events import (
+                PrecipitationEvent,
+                PrecipitationKind,
+            )
+
+            event = PrecipitationEvent(
+                kind=PrecipitationKind.WITNESS_MARK,
+                universe_id="cohezion_compound_executor",
+                coherence=0.8,
+                twelve_d={
+                    "x": 0.5, "y": 0.5, "z": 0.5, "time": 0.5,
+                    "physics": 0.5, "biology": 0.5, "logic": 0.5, "quantum": 0.5,
+                    "field": 0.5, "control": 0.5, "novelty": 0.5, "precipitation": 0.5,
+                },
+                payload={
+                    "source": "compound.executor.prefix_hit",
+                    "model_id": model_id,
+                    "task": task[:200],
+                },
+            )
+            bus.emit(event)
+        except Exception as e:
+            logger.debug("Prefix-hit WITNESS_MARK failed (non-blocking): %s", e)
 
     async def execute_task_efficient(
         self,
