@@ -423,3 +423,38 @@ in this report-only audit. Note: capability_matrix.py:574 already suggests mergi
 into eval/ (CapabilityScorecard) — a wiring target for that remediation.
 
 No-test modules: **13 → 12.**
+
+## 13. Verification-leg backfill — consolidated ledger + remaining-surface triage (2026-06-05)
+
+S1 (no-test-dir) gap closed from **17 → 6** this session. All additive, report-only, non-destructive;
+every module: pure-logic core pinned with discriminating tests, construction kept offline.
+
+| Module | tests | headline pinned |
+|---|--:|---|
+| cost_optimization | 13 | BudgetCircuitBreaker strikes + BudgetEnforcer policy bands |
+| hookify | 10 | condition-eval security boundary (raises on `os.`/`eval`/`import`) |
+| evolution | 6 | Variable dedup/skip-empty; `__str__`→raw value |
+| traceability | 5 | SurrealDB `_first_result` skips empty list |
+| optimization | 5 | R-Zero arithmetic + **latent-bug finding** (§12.1) |
+| evaluation | 4 | **always-pass stub gate** finding (§12.2) |
+| knowledge | 5 | LLMWiki persist/reload round-trip |
+| reporting | 4 | missing-key→0.0 averaging |
+| sandboxing | 5 | backend selection + `network=False` default; gvisor-gap finding |
+| agent | 5 | ToolRegistry dispatch; autocontext no-op-monitor finding |
+| pipeline | 6 | **harness A3** (kl_weight ≤ 0.015) pinned AT SOURCE |
+| dogfooding | 5 | PerformanceMonitor strict-`>` thresholds + time-window filter |
+
+### 13.1 The remaining 6 "no-test" modules are NOT test gaps — they are findings
+Re-running the instrument shows 6 left: `cli, datamesh, dogfooding*, infrastructure, policies,
+services, simulations`. These are **not** "modules that need unit tests" — they are pre-existing
+structural findings (adding tests would be testing things slated for removal or that don't import):
+- **datamesh** — orphan slated for deletion (CLAUDE.md / ORPHAN_AUDIT_2026_04_24); do NOT test.
+- **infrastructure**, **policies** — effectively EMPTY (0 / ~0 LOC of real logic); nothing to verify.
+- **cli**, **services** — broken transitive import chain (`cohezion.models.model_registry` missing,
+  §10); unit tests would fail at import. **Wiring/repair is the prerequisite**, not tests.
+- **simulations** — orphan (no-underscore twin of `simulation`); consolidation target, not a test gap.
+
+**Conclusion:** the *testable* no-test surface is effectively exhausted. The audit's next high-value
+work is the flagged remediations (the §10 cli/services missing-module, the §12 latent bugs, the
+orphan consolidations) — each a separate, permission-gated, ADDITIVE track per the non-destructive
+policy, not part of this report-only pass.
