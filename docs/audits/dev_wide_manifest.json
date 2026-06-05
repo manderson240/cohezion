@@ -1,0 +1,252 @@
+[
+  {
+    "repo": "A2UI",
+    "language": "TypeScript",
+    "file_counts": {
+      "Markdown/docs": 120,
+      "Python": 110,
+      "TypeScript": 752,
+      "JavaScript": 12,
+      "Notebook": 1
+    },
+    "status": "N/A \u2014 TypeScript"
+  },
+  {
+    "repo": "CAID",
+    "language": "Python",
+    "file_counts": {
+      "Python": 13,
+      "Markdown/docs": 1
+    },
+    "py_files": 13,
+    "packaged": true,
+    "has_tests": false,
+    "missing_init_dirs": [],
+    "max_loc": 1301,
+    "max_file": "core/utils.py",
+    "oversize": true,
+    "status": "audited"
+  },
+  {
+    "repo": "WarpX",
+    "language": "Python",
+    "file_counts": {
+      "Markdown/docs": 11,
+      "Python": 397,
+      "Notebook": 6,
+      "C++": 240
+    },
+    "py_files": 397,
+    "packaged": true,
+    "has_tests": false,
+    "missing_init_dirs": [
+      "Examples"
+    ],
+    "max_loc": 4964,
+    "max_file": "Python/pywarpx/picmi.py",
+    "oversize": true,
+    "status": "audited"
+  },
+  {
+    "repo": "aimo-progress-prize-3",
+    "language": "Python",
+    "file_counts": {
+      "Markdown/docs": 17,
+      "Python": 40
+    },
+    "py_files": 40,
+    "packaged": true,
+    "has_tests": true,
+    "missing_init_dirs": [],
+    "max_loc": 354,
+    "max_file": "src/compound/flume/trajectory.py",
+    "oversize": false,
+    "status": "audited"
+  },
+  {
+    "repo": "aiter",
+    "language": "Python",
+    "file_counts": {
+      "Markdown/docs": 32,
+      "Python": 635,
+      "C++": 15,
+      "C++/CUDA": 227,
+      "C/C++": 85
+    },
+    "py_files": 635,
+    "packaged": true,
+    "has_tests": false,
+    "missing_init_dirs": [
+      "aiter_logs",
+      "hsa",
+      "docs",
+      "gradlib"
+    ],
+    "max_loc": 9527,
+    "max_file": "aiter/jit/utils/hipify/cuda_to_hip_mappings.py",
+    "oversize": true,
+    "status": "audited"
+  },
+  {
+    "repo": "amrvac",
+    "language": "Fortran",
+    "file_counts": {
+      "C/C++": 8,
+      "Markdown/docs": 64,
+      "Fortran": 280,
+      "Python": 39
+    },
+    "status": "N/A \u2014 Fortran"
+  },
+  {
+    "repo": "autoresearch-amd",
+    "language": "Python",
+    "file_counts": {
+      "Python": 2,
+      "Notebook": 1,
+      "Markdown/docs": 2
+    },
+    "py_files": 2,
+    "packaged": true,
+    "has_tests": false,
+    "missing_init_dirs": [],
+    "max_loc": 859,
+    "max_file": "train.py",
+    "oversize": true,
+    "status": "audited"
+  },
+  {
+    "repo": "cohezion",
+    "language": "Python",
+    "file_counts": {
+      "Markdown/docs": 162603,
+      "Python": 243091,
+      "Notebook": 2102,
+      "JavaScript": 979,
+      "TypeScript": 6294,
+      "C++": 48,
+      "Fortran": 24,
+      "Rust": 1015
+    },
+    "py_files": 243091,
+    "packaged": true,
+    "has_tests": true,
+    "missing_init_dirs": [
+      "src/cohezioion"
+    ],
+    "max_loc": 36243,
+    "max_file": ".gemini/worktrees/2026-05-21-13-45-13-596-0bgs/environment_files/r11l/495a7899/r11l.py",
+    "oversize": true,
+    "status": "audited"
+  },
+  {
+    "repo": "cohezion-archive",
+    "language": "Python",
+    "file_counts": {
+      "Markdown/docs": 4377,
+      "Python": 4219,
+      "TypeScript": 173,
+      "JavaScript": 18
+    },
+    "py_files": 4219,
+    "packaged": true,
+    "has_tests": true,
+    "missing_init_dirs": [],
+    "max_loc": 2115,
+    "max_file": "src/cohezion/api/__init__.py",
+    "oversize": true,
+    "status": "audited"
+  },
+  {
+    "repo": "cs249r_book",
+    "language": "Python",
+    "file_counts": {
+      "Markdown/docs": 163,
+      "JavaScript": 33,
+      "Python": 342,
+      "TypeScript": 15
+    },
+    "py_files": 342,
+    "packaged": true,
+    "has_tests": false,
+    "missing_init_dirs": [],
+    "max_loc": 6576,
+    "max_file": "book/tools/scripts/genai/quizzes.py",
+    "oversize": true,
+    "status": "audited"
+  },
+  {
+    "repo": "geak",
+    "language": "Python",
+    "file_counts": {
+      "Markdown/docs": 365,
+      "Python": 191,
+      "C++": 12,
+      "C++/CUDA": 1
+    },
+    "py_files": 191,
+    "packaged": true,
+    "has_tests": true,
+    "missing_init_dirs": [],
+    "max_loc": 1274,
+    "max_file": "src/minisweagent/run/preprocess/preprocessor.py",
+    "oversize": true,
+    "status": "audited"
+  },
+  {
+    "repo": "le-wm",
+    "language": "Python",
+    "file_counts": {
+      "Python": 5,
+      "Markdown/docs": 1
+    },
+    "py_files": 5,
+    "packaged": false,
+    "has_tests": false,
+    "missing_init_dirs": [],
+    "max_loc": 285,
+    "max_file": "module.py",
+    "oversize": false,
+    "status": "audited"
+  },
+  {
+    "repo": "observer-patch-holography",
+    "language": "Python",
+    "file_counts": {
+      "Markdown/docs": 44,
+      "Python": 343
+    },
+    "py_files": 343,
+    "packaged": false,
+    "has_tests": false,
+    "missing_init_dirs": [
+      "tools"
+    ],
+    "max_loc": 1547,
+    "max_file": "code/particles/scripts/generate_mass_derivation_svg.py",
+    "oversize": true,
+    "status": "audited"
+  },
+  {
+    "repo": "reference-kernels",
+    "language": "Python",
+    "file_counts": {
+      "Markdown/docs": 4,
+      "Python": 201
+    },
+    "py_files": 201,
+    "packaged": false,
+    "has_tests": false,
+    "missing_init_dirs": [],
+    "max_loc": 1059,
+    "max_file": "problems/nvidia/nvfp4_group_gemm/submission.py",
+    "oversize": true,
+    "status": "audited"
+  },
+  {
+    "repo": "temp-gemma-push",
+    "language": "unknown/empty",
+    "file_counts": {},
+    "status": "N/A \u2014 unknown/empty"
+  }
+]
