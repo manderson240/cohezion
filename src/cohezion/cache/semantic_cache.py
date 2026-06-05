@@ -7,12 +7,20 @@ Architecture:
 
 Embeddings: FLUME VAE encoder (256D) for real semantic similarity
 Target: 70%+ cache hit rate with sub-100ms lookup latency.
+
+PR 2 (datamesh-native): the cache key is card-aligned (model_id,
+family, thinking_mode) and the L2 embedding is the FLUME VAE joint
+encoding of (prompt, card_signature). A 1-hour-TTL row is written
+to SurrealDB on every put() so the cache participates in the
+datamesh rather than being an in-process island.
 """
 
 import asyncio
+import base64
 import hashlib
 import json
 import logging
+import os
 import time
 from dataclasses import dataclass, field
 from typing import Any
@@ -21,6 +29,49 @@ import numpy as np
 
 from cohezion.cache.text_encoder import get_text_encoder
 from cohezion.flume.vae_encoder import get_encoder
+
+
+# ── SurrealDB upsert for the cache (PR 2 / Connection D) ────────────────────
+
+
+async def _upsert_cache_entry(
+    *, model_id: str, family: str, hash_key: str, ttl_seconds: int = 3600
+) -> None:
+    """Upsert a `cache:entry` row in SurrealDB with a 1-hour TTL.
+
+    Best-effort, async, never raises. Used by SemanticCache.put()
+    to write every cache entry into the datamesh so the
+    verify_evolve lane (PR 4) can query "how many card-aligned
+    cache entries back this synthesis?"
+    """
+    try:
+        import urllib.request
+        url = os.environ.get("SURREAL_URL", "http://localhost:8001/sql")
+        user = os.environ.get("SURREAL_USER", "root")
+        password = os.environ.get("SURREAL_PASSWORD", "root")
+        body = {
+            "query": (
+                "UPSERT cache:entry CONTENT { "
+                f"hash_key: '{hash_key}', "
+                f"model_id: '{model_id}', "
+                f"family: '{family}', "
+                f"ttl_seconds: {ttl_seconds} "
+                "};"
+            )
+        }
+        req = urllib.request.Request(  # noqa: S310 — SurrealDB URL is env-controlled
+            url,
+            data=json.dumps(body).encode(),
+            headers={
+                "Content-Type": "application/json",
+                "Authorization": "Basic "
+                + base64.b64encode(f"{user}:{password}".encode()).decode(),
+            },
+            method="POST",
+        )
+        urllib.request.urlopen(req, timeout=2.0).read()  # noqa: S310 — see above
+    except Exception as e:
+        logger.debug("SurrealDB cache upsert failed (non-blocking): %s", e)
 
 
 logger = logging.getLogger(__name__)
@@ -36,6 +87,7 @@ class CacheEntry:
     embedding: np.ndarray
     timestamp: float = field(default_factory=time.time)
     hit_count: int = 0
+    card_signature: tuple[str, str, str] | None = None  # (model_id, family, thinking_mode)
 
 
 class SemanticCache:
@@ -199,7 +251,8 @@ class SemanticCache:
         return self.similarity_threshold
 
     async def get(
-        self, prompt: str, system: str | None = None, model: str | None = None
+        self, prompt: str, system: str | None = None, model: str | None = None,
+        card_signature: tuple[str, str, str] | None = None,
     ) -> str | None:
         """Lookup with 3-tier fallback.
 
@@ -210,11 +263,17 @@ class SemanticCache:
             prompt: Prompt to lookup
             system: System prompt (included in cache key)
             model: Model name (included in cache key)
+            card_signature: Optional (model_id, family, thinking_mode)
+                triple. When provided, the cache key includes the
+                signature so two consumers with different cards for the
+                same prompt miss each other (no false hits on stale
+                reasoning). The PR 1 card-aligned execute_fn always
+                passes this.
 
         Returns:
             Cached response or None if miss
         """
-        full_prompt = f"{system or ''}\n{prompt}\n{model or ''}"
+        full_prompt = self._full_key(prompt, system, model, card_signature)
         hash_key = hashlib.sha256(full_prompt.encode()).hexdigest()[:16]
 
         # L1: Exact match
@@ -224,7 +283,10 @@ class SemanticCache:
             return entry.response
 
         # L2: Vectorized semantic similarity via pre-stacked BLAS dot
-        query_embedding = self._text_to_embedding(prompt)
+        # The encoding is over the JOINT (prompt, card_signature) so the
+        # embedding carries the card. Two consumers with different cards
+        # for similar prompts will get different embeddings and miss.
+        query_embedding = self._text_to_embedding(full_prompt)
         best_match = None
         best_similarity = 0.0
         current_threshold = self._get_adaptive_threshold()
@@ -247,7 +309,7 @@ class SemanticCache:
         if vault_result:
             self.hits_l3 += 1
             # Create entry and promote to L1
-            embedding = self._text_to_embedding(prompt)
+            embedding = self._text_to_embedding(full_prompt)
             entry = CacheEntry(
                 key=hash_key,
                 prompt=prompt,
@@ -260,12 +322,75 @@ class SemanticCache:
         self.misses += 1
         return None
 
+    async def get_with_observed_card(
+        self, prompt: str, system: str | None = None, model: str | None = None,
+        card_signature: tuple[str, str, str] | None = None,
+    ) -> tuple[str | None, tuple[str, str, str] | None]:
+        """Like get(), but returns the card_signature the cached entry
+        was stored under alongside the response (or None on miss).
+
+        The card_signature lets the caller detect a card change:
+        the cache hit's signature is the card that PRODUCED the cached
+        response, which may differ from the caller's current card.
+        """
+        full_prompt = self._full_key(prompt, system, model, card_signature)
+        hash_key = hashlib.sha256(full_prompt.encode()).hexdigest()[:16]
+
+        if hash_key in self.l1_cache:
+            entry = self.l1_cache[hash_key]
+            self.hits_l1 += 1
+            observed = getattr(entry, "card_signature", None)
+            return entry.response, observed
+
+        # L2 path (same as get() but with observation)
+        query_embedding = self._text_to_embedding(full_prompt)
+        current_threshold = self._get_adaptive_threshold()
+        if self._l2_matrix is not None and len(self._l2_keys) > 0:
+            sims = np.dot(self._l2_matrix, query_embedding)
+            best_idx = int(np.argmax(sims))
+            best_similarity = float(sims[best_idx])
+            best_key = self._l2_keys[best_idx]
+            best_match = self.l2_cache.get(best_key)
+        else:
+            best_match = None
+            best_similarity = 0.0
+        if best_match and best_similarity > current_threshold:
+            self.hits_l2 += 1
+            observed = getattr(best_match, "card_signature", None)
+            self._promote_to_l1(hash_key, best_match)
+            return best_match.response, observed
+
+        vault_result = await self._vault_lookup(prompt)
+        if vault_result:
+            self.hits_l3 += 1
+            observed = None  # vault doesn't carry card info
+            return vault_result, observed
+        self.misses += 1
+        return None, None
+
+    @staticmethod
+    def _full_key(
+        prompt: str, system: str | None, model: str | None,
+        card_signature: tuple[str, str, str] | None,
+    ) -> str:
+        """The full string used as the hash key and as input to the L2
+        FLUME VAE encoder. When card_signature is provided, the card
+        is part of the key so two consumers with different cards for
+        the same prompt produce different keys.
+        """
+        if card_signature is None:
+            return f"{system or ''}\n{prompt}\n{model or ''}"
+        # Use a delimiter that won't appear in a normal prompt
+        card_str = "|".join(card_signature)
+        return f"{system or ''}\n{prompt}\n{model or ''}\n<<CARD:{card_str}>>"
+
     async def put(
         self,
         prompt: str,
         response: str,
         system: str | None = None,
         model: str | None = None,
+        card_signature: tuple[str, str, str] | None = None,
     ) -> None:
         """Store in all cache tiers.
 
@@ -274,16 +399,24 @@ class SemanticCache:
             response: Response to cache
             system: System prompt
             model: Model name
+            card_signature: Optional (model_id, family, thinking_mode)
+                triple. When provided, the cache key includes the
+                signature (PR 2 / Connection B). A SurrealDB row is
+                also written with the card's model_id and a 1-hour
+                TTL (Connection D).
         """
-        full_prompt = f"{system or ''}\n{prompt}\n{model or ''}"
+        full_prompt = self._full_key(prompt, system, model, card_signature)
         hash_key = hashlib.sha256(full_prompt.encode()).hexdigest()[:16]
-        embedding = self._text_to_embedding(prompt)
+        # The L2 FLUME VAE encoding is over the JOINT (prompt,
+        # card_signature) so the embedding carries the card.
+        embedding = self._text_to_embedding(full_prompt)
 
         entry = CacheEntry(
             key=hash_key,
             prompt=prompt,
             response=response,
             embedding=embedding,
+            card_signature=card_signature,
         )
 
         # Store in L1 (exact match)
@@ -301,6 +434,26 @@ class SemanticCache:
         except RuntimeError:
             # No event loop running (e.g., sync context) - skip L3 storage
             logger.debug("No event loop for L3 vault store (non-critical)")
+
+        # Connection D: SurrealDB row with a 1-hour TTL so the cache
+        # participates in the datamesh rather than being an in-process
+        # island. The row carries the model_id so verify_evolve (PR 4)
+        # can query "how many card-aligned cache entries back this
+        # synthesis?" Best-effort, fire-and-forget.
+        if card_signature is not None and model is not None:
+            try:
+                _t2 = asyncio.create_task(
+                    _upsert_cache_entry(
+                        model_id=model,
+                        family=card_signature[1],
+                        hash_key=hash_key,
+                        ttl_seconds=3600,
+                    )
+                )
+                self._background_tasks.add(_t2)
+                _t2.add_done_callback(self._background_tasks.discard)
+            except RuntimeError:
+                logger.debug("No event loop for SurrealDB cache upsert (non-critical)")
 
     def _put_l1(self, hash_key: str, entry: CacheEntry) -> None:
         """Add entry to L1 cache."""
