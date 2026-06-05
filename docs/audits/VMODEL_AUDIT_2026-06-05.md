@@ -408,3 +408,18 @@ as history grows (denominator grows, numerator stuck) — so `difficulty_adjustm
 Pinned by `test_success_rate_does_not_climb_above_half_on_repeated_success`. **Remediation is a
 behavior change → separate, gated track** (per non-destructive policy); the test documents current
 reality so a future fix updates it deliberately.
+
+### 12.2 Stub-gate finding — evaluation/self_eval.py is an always-pass quality gate (flagged, report-only)
+`SelfEvaluationEngine.evaluate_execution_plan(plan, prd_context)` is a STUB: it discards both
+arguments (`_ = plan; _ = prd_context`) and returns a hardcoded `score = 0.92` ("a real impl would
+use Gemini 3 Pro"). So the only live logic is the threshold gate `passed = score >= passing_threshold`,
+which — with the default 0.85 — **always passes regardless of input**. This is **called for real** at
+`src/cohezion/compound/capability_matrix.py:504` (`engine.evaluate_execution_plan(plan, prd_context)`),
+so the CapabilityMatrix's "self-evaluation pre-flight" is non-functional (a fake green light), same
+hazard class as the recursive_trace stub (§7) and the always-pass risk the AUTODQA I6 invariant guards.
+Pinned by `tests/evaluation/test_self_eval.py` (pin-actual pattern). **Remediation (wire real scoring,
+e.g. via the local fleet / quality_eval) is a separate, permission-gated, additive track** — not done
+in this report-only audit. Note: capability_matrix.py:574 already suggests merging evaluation/self_eval
+into eval/ (CapabilityScorecard) — a wiring target for that remediation.
+
+No-test modules: **13 → 12.**
