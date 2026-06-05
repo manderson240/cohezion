@@ -270,6 +270,37 @@ integrated"). Findings + fixes (all additive, 0 deletions):
 - **Result:** bridge wired **9 → 10 / 11**; only `cli` degraded (blocked on missing module).
   8347 tests still collect clean; ruff clean; 0 deletions. Not committed.
 
+## 8b. Finding — recursive-trace logic is an unfinished, fragmented sketch (NOT leveraged)
+
+Investigation prompted by "are we fully leveraging recursive trace logic?". Answer: **no —
+the orchestrator was never implemented.** Four fragmented copies, none with a working
+`RecursiveTraceLoop.run()`:
+
+| Copy | compiles | run() body | state |
+|---|---|---|---|
+| `recursive_trace/core.py` (the imported package) | yes | absent | empty `pass` stubs |
+| `recursive_trace.py` (shadowed by the package) | yes | **absent** | config+types+`OuroborosBridge` (2 bugs: `to_dict` returns field defs not values; `__init__` calls non-existent `self.analysis_dir`); no orchestrator |
+| `src/cohezioion/recursive_trace.py` (TYPO dir "cohezio**io**n") | **NO — SyntaxError** | signature only, empty docstring ("NOTE TODO: implement next patch pass") | abandoned sketch |
+| `compound/recursive_trace_router.py` | yes | (separate `RecursiveTraceRouter`) | real + tested, but **wired into nothing** (not in executor/factory/any path) |
+
+Root cause: a stub package `recursive_trace/` shadows the partial `recursive_trace.py`; the
+fullest-looking copy is stranded in a typo directory and does not parse. The valuable
+algorithm (failure trajectories informing the next hypothesis vs. flat regeneration) exists
+only as docstrings.
+
+**Self-correction:** an earlier pass called the typo-dir copy "substantially implemented, just
+shadowed." Reading the *bodies* (not signatures) + `py_compile` disproved this — `run()` is an
+empty docstring and the file won't compile. Wiring any copy would inject broken/empty code.
+
+**Recommendation (a decision, not a wiring fix):**
+1. BUILD behind a falsifiable gate — implement a minimal `run()` and A/B failure-informed
+   recursion vs. flat autoresearch on seeded failures ($0 local fleet, `falsifiable-eval-harness`);
+   keep only if it wins. The premise is an unproven claim, not a given.
+2. Or RETIRE — consolidate to one location, mark Phase-5 unimplemented; the non-compiling
+   typo-dir copy is the one genuinely-safe deletion (broken + superseded) — pending owner OK
+   (non-destructive policy).
+NOT done speculatively here (would be "infrastructure for a product that doesn't exist").
+
 ## 8. Iteration 5 — closing the #1 test-debt gap (`cost_optimization`)
 
 Added the first verification leg for `cost_optimization` (was 18 importers × 26 public
