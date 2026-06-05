@@ -313,18 +313,6 @@ class TestAlignmentNonBlocking:
         """Set up test fixtures."""
         self.mcp_client = MockMCPClient()
 
-    @pytest.mark.xfail(
-        reason=(
-            "bug: executor.py:641 catches only "
-            "(ImportError, AttributeError, RuntimeError, ValueError, KeyError) "
-            "around alignment_analyzer.analyze_alignment(); a bare Exception "
-            "(or any subclass outside that tuple) raised by the analyzer "
-            "propagates and crashes the execute_task call. Test expects "
-            "non-blocking behavior for ANY exception raised by the analyzer. "
-            "Surfaced by Sigma1 test triage; needs separate review/PR."
-        ),
-        strict=True,
-    )
     def test_alignment_failure_does_not_block_execution(self):
         """Test that alignment analysis failure doesn't block execution."""
         mcp_client = MockMCPClient()
