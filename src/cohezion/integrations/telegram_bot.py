@@ -42,6 +42,8 @@ class TelegramCommunicationHub:
         self.base_url = f"https://api.telegram.org/bot{self.token}"
         self.last_update_id = 0
         self._running = False
+        self.conversation_history: list[dict[str, str]] = []
+        self.max_history = 20
 
     async def _run_cmd(self, *args: Any, **kwargs: Any) -> subprocess.CompletedProcess[Any]:
         """Run subprocess.run in a background thread to keep event loop responsive."""
@@ -75,18 +77,20 @@ class TelegramCommunicationHub:
         logger.info("Stopping Telegram Hub...")
         await self._send_msg("🛑 Telegram Hub is shutting down.")
 
-    async def _send_msg(self, text: str) -> None:
+    async def _send_msg(self, text: str, parse_mode: str | None = "HTML") -> None:
         """Sends a message back to the allowed chat ID."""
         try:
+            payload: dict[str, Any] = {
+                "chat_id": self.allowed_chat_id,
+                "text": text,
+            }
+            if parse_mode:
+                payload["parse_mode"] = parse_mode
             async with httpx.AsyncClient() as client:
                 await client.post(
                     f"{self.base_url}/sendMessage",
-                    json={
-                        "chat_id": self.allowed_chat_id,
-                        "text": text,
-                        "parse_mode": "HTML",
-                    },
-                    timeout=5.0,
+                    json=payload,
+                    timeout=15.0,
                 )
         except Exception as e:
             logger.debug("Failed to send telegram msg: %s", e)
@@ -126,8 +130,8 @@ class TelegramCommunicationHub:
             return
 
         if not text.startswith("/"):
-            # Echo help for general text inputs
-            await self._send_msg(self._get_help_message())
+            # Route to local model chat by default
+            await self._handle_chat(text)
             return
 
         parts = text.split(maxsplit=2)
@@ -141,6 +145,10 @@ class TelegramCommunicationHub:
 
         elif command == "/list":
             await self._handle_list()
+
+        elif command == "/clear":
+            self.conversation_history.clear()
+            await self._send_msg("🧹 Conversation history cleared.")
 
         elif command.startswith("/read"):
             if len(parts) < 2:
@@ -177,6 +185,9 @@ class TelegramCommunicationHub:
     def _get_help_message(self) -> str:
         return (
             "🚀 <b>Cohezion Telemetry Hub Commands</b>\n\n"
+            "💬 <b>Local Inference Chat</b>\n"
+            "Simply send any plain text message to chat with the local model.\n"
+            "/clear - Clear conversation history\n\n"
             "🎛 <b>System & Session Diagnostics</b>\n"
             "/status - View CPU/RAM/GPU vitals & active models\n"
             "/list - List running tmux sessions (claude, agy, pi, hermes)\n"
@@ -187,6 +198,95 @@ class TelegramCommunicationHub:
             "/agents - List active side agents\n"
             "/help - Display this manual"
         )
+
+    async def _select_model(self) -> str | None:
+        """Selects the best available local model for chat."""
+        try:
+            from cohezion.config.defaults import OLLAMA_PORT
+
+            async with httpx.AsyncClient() as client:
+                r = await client.get(f"http://localhost:{OLLAMA_PORT}/api/tags", timeout=3.0)
+                if r.status_code == 200:
+                    data = r.json()
+                    models_list = data.get("models", [])
+                    models = [str(m.get("name", "")) for m in models_list if isinstance(m, dict)]
+                    # Filter out embedding models
+                    models = [m for m in models if "embed" not in m]
+
+                    # Preference order for local chat
+                    preferred = ["phi4:latest", "phi4", "phi4-mini", "mistral:7b", "gemma"]
+                    for pref in preferred:
+                        if pref in models:
+                            return pref
+
+                    # Next preference: any model that is NOT a cloud endpoint (doesn't contain "cloud")
+                    local_models = [m for m in models if "cloud" not in m]
+                    if local_models:
+                        return local_models[0]
+
+                    # Fallback to any model
+                    if models:
+                        return models[0]
+        except Exception as e:
+            logger.warning("Error querying Ollama tags: %s", e)
+        return None
+
+    async def _handle_chat(self, text: str) -> None:
+        """Handles general text input by querying local Ollama model."""
+        model = await self._select_model()
+        if not model:
+            await self._send_msg(
+                "⚠️ <b>Ollama Offline or No Models Found</b>\n"
+                "Please ensure Ollama is running (<code>ollama serve</code>) and at least one model is pulled."
+            )
+            return
+
+        # Append user message to history
+        self.conversation_history.append({"role": "user", "content": text})
+
+        # Enforce history limit
+        if len(self.conversation_history) > self.max_history:
+            self.conversation_history = self.conversation_history[-self.max_history :]
+
+        # Add system prompt for role grounding
+        system_prompt = (
+            "You are the Cohezion assistant, a helpful and technical AI companion for the Cohezion platform. "
+            "Cohezion is an agentic AI framework featuring FLUME methodology, compound engineering, and multi-agent swarms. "
+            "Answer concisely and technically. You have access to local silicon telemetry (CPU/RAM/GPU) via the bot's status command."
+        )
+
+        messages = [{"role": "system", "content": system_prompt}, *self.conversation_history]
+
+        try:
+            from cohezion.config.defaults import OLLAMA_PORT
+
+            async with httpx.AsyncClient() as client:
+                r = await client.post(
+                    f"http://localhost:{OLLAMA_PORT}/api/chat",
+                    json={
+                        "model": model,
+                        "messages": messages,
+                        "stream": False,
+                    },
+                    timeout=60.0,
+                )
+                if r.status_code == 200:
+                    reply = r.json().get("message", {}).get("content", "").strip()
+                    if reply:
+                        # Append assistant reply to history
+                        self.conversation_history.append({"role": "assistant", "content": reply})
+                        await self._send_msg(reply, parse_mode=None)
+                    else:
+                        await self._send_msg("⚠️ Received empty response from local model.")
+                else:
+                    await self._send_msg(
+                        f"⚠️ Ollama error (HTTP {r.status_code}): {safe_html(r.text)}"
+                    )
+        except Exception as e:
+            logger.error("Failed to call local model: %s", e)
+            await self._send_msg(
+                f"⚠️ Failed to communicate with local model: <code>{safe_html(str(e))}</code>"
+            )
 
     async def _handle_status(self) -> None:
         """Queries local silicon metrics."""

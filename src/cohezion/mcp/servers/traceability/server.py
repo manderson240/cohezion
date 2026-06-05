@@ -286,12 +286,13 @@ async def get_findings_resource() -> str:
 def main():
     """Main entry point."""
     import asyncio
+    import sys
 
     from mcp.server import stdio
 
-    print(f"🔍 Traceability MCP Server starting on port {MCP_PORT}")
-    print(f"📁 Project root: {PROJECT_ROOT}")
-    print("📊 Tools: 6 (engine, health, party, dashboard, findings, commit)")
+    print(f"🔍 Traceability MCP Server starting on port {MCP_PORT}", file=sys.stderr)
+    print(f"📁 Project root: {PROJECT_ROOT}", file=sys.stderr)
+    print("📊 Tools: 6 (engine, health, party, dashboard, findings, commit)", file=sys.stderr)
 
     # Run server
     asyncio.run(stdio.run(app))

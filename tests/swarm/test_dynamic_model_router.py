@@ -63,3 +63,15 @@ def test_detect_model_template(router):
     assert tm.detect_model_template("qwen3-7b") == "chatml"
     assert tm.detect_model_template("llama-3-8b") == "llama3"
     assert tm.detect_model_template("phi-4") == "microsoft"
+
+
+@pytest.mark.asyncio
+async def test_conformal_prediction_set(router):
+    """[P0] Should construct conformal prediction set and filter models accordingly."""
+    request = {"task_type": "coding", "ide_priority": IDEPriority.ZED.value, "alpha": 0.1}
+    pred_set = router.calculate_conformal_prediction_set(request, alpha=0.1)
+    assert len(pred_set) > 0
+
+    # Higher confidence threshold (low alpha) should restrict prediction set (e.g., only more capable models)
+    high_confidence_set = router.calculate_conformal_prediction_set(request, alpha=0.01)
+    assert len(high_confidence_set) <= len(pred_set)

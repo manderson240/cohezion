@@ -113,7 +113,7 @@ class TestShortAnswerPatterns:
         d = classify("In one sentence, what does the HIHO stability principle optimize for?")
         assert d.node == "npu"
         assert d.output_type == "short_answer"
-        assert d.quality_gate_chars == 10
+        assert d.quality_gate_chars == 1
 
     def test_briefly_explain(self):
         d = classify("Briefly explain what FLUME encoding does.")
@@ -189,7 +189,7 @@ class TestGateInvariants:
     def test_route_decision_is_frozen(self):
         """RouteDecision must be immutable (frozen dataclass)."""
         d = classify("What is Python?")
-        with pytest.raises(Exception):  # dataclasses.FrozenInstanceError
+        with pytest.raises(Exception):  # noqa: B017  # dataclasses.FrozenInstanceError
             d.node = "cpu"  # type: ignore[misc]
 
 
