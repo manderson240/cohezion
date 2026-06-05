@@ -317,3 +317,44 @@ open/closed, `>` vs `>=`, missing auto-reset). 6/6 green.
 - Remaining `cost_optimization` surface (`BudgetEnforcer`, `SessionCostTracker`,
   `ForecastEngine`, `CostDashboard`) still untested — follow-up batches.
 - `cost_optimization` drops off the no-test-dir list (20 → 18 over iters 3–5). 0 deletions.
+
+## 9. Iteration 6 — recursive-trace BUILT behind a pre-registered gate → verdict UNPROVEN (honest)
+
+Resolved §7's open decision by BUILDING under a gate (not retiring, not building speculatively).
+Pre-registration written **before** any code: `docs/research/RECURSIVE_TRACE_FALSIFIABLE_GATE_2026-06-05.md`.
+
+**What was built (clean impl in `recursive_trace/core.py`, no re-tangling of the dead copies):**
+- `TraceTask`, `RecursiveTraceResult`, and `RecursiveTraceLoop.run()` — failure-class-informed
+  strategy selection (`failure_map[failure_class] → strategy`, with dedup + bounded depth).
+- 4 discriminating tests (`tests/recursive_trace/test_recursive_trace_core.py`), each written to
+  fail the "autoresearch-with-dedup" wrong impl (map ignored → list-order). 4/4 green.
+
+**Verdict: UNPROVEN (corrected after advisor review).** The first pass ran a synthetic A/B
+(A_inf=1.593 vs B_inf=2.473) and mechanically read "KEEP" — **that KEEP was withdrawn as
+non-evidence.** The synthetic generator drew `solving_strategy` from the *same* `failure_map` the
+mechanism consults, so the verdict was fixed by the chosen coupling `p`, not discovered (the means
+were hand-derived before the run — the tell that an experiment can't fail). It proved only what the
+unit test already proves.
+- The **real** value test (the one that can return RETIRE) is the rewritten
+  `scripts/experiments/recursive_trace_gate.py`: it measures empirical
+  `p = P(fixing_strategy == failure_map[failure_class])` from a real corpus. **Run 2026-06-05:
+  0 pairs found** — nothing in cohezion records which strategy resolved which failure class
+  (codebase grep for `solving_strategy|fixing_strategy|resolved_by` matched only the new `core.py`).
+- **What this licenses:** the code is kept (correct, reachable, unit-tested, wired via
+  `orphan_bridge`); any "improves healing" claim is NOT licensed. To earn a real KEEP/RETIRE the
+  healing path must log `(failure_class, fixing_strategy)` pairs; then re-run the gate, no code
+  change needed. Honest landing: **built + tested, value unproven in situ.**
+- The two dead copies (`recursive_trace.py` shadow, `cohezioion/` typo-dir non-compiling) left as
+  documented findings — NOT resurrected, NOT deleted (non-destructive; the clean impl supersedes).
+
+## 10. Deferred finding (surfaced by the orphan-bridge, stacked behind the §earlier cli/PhysicsState fix)
+
+The fail-soft `orphan_bridge` now reports `cli` **degraded** with a NEW root cause (the PhysicsState
+fix revealed the next link — classic stacked bug):
+`ModuleNotFoundError: No module named 'cohezion.models.model_registry'`.
+- `model_registry.py` exists **nowhere** under `src/cohezion/`; cli reaches it **transitively** via
+  `src/cohezion/services/swarm_service.py` (which imports `cohezion.models.model_registry`).
+- This is a genuine missing-module, not a `model`/`models` typo (neither path has the file).
+- **Deferred** (not chased mid-task per one-change-at-a-time): a future loop iteration should
+  resolve `swarm_service`'s import — locate the intended registry (likely `swarm/` model routing)
+  or stub it. Bridge stays fail-soft; nothing is broken, cli is degraded-but-logged.
