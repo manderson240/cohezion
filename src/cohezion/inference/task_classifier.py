@@ -11,7 +11,41 @@ from __future__ import annotations
 
 import re
 from dataclasses import dataclass
+from enum import StrEnum
 from typing import Any, Literal
+
+
+class Harness(StrEnum):
+    """Agentic scaffold for a tier (item 7, arXiv 2605.30621 — Lin et al. 2026).
+
+    Harness-BENEFIT is non-monotonic: the mid-tier gains most, weak models don't faithfully
+    follow scaffolds. So: NPU stays plain (never ReAct), the mid-tier gets the tool-loop for
+    tool tasks, and strong/cloud tiers go minimal.
+    """
+
+    COT = "cot"  # plain chain-of-thought, no agentic scaffold (NPU / mid-tier non-tool)
+    REACT = "react"  # ReAct tool-loop (goose-style) — mid-tier tool/agentic tasks
+    MINIMAL = "minimal"  # strong/cloud tier — little scaffold needed
+
+
+def select_harness(lane: str, *, tool_task: bool = False) -> Harness:
+    """Recommend an agentic harness for a tier. Pure/advisory — does NOT change routing.
+
+    - NPU (weak 1B) → ``COT``, NEVER ``REACT`` (the §rule-3 guarantee: weak models don't
+      reliably activate/follow harnesses, so a ReAct scaffold hurts more than it helps).
+    - mid-tier iGPU (benefits most) → ``REACT`` for tool/agentic tasks, else ``COT``.
+    - CPU / cloud (strong) → ``MINIMAL``.
+
+    ``lane`` accepts a lane label or the classifier's binary node ("npu"/"gpu"); "gpu" is the
+    mid-tier in that binary taxonomy.
+    """
+    line = lane.lower()
+    if "npu" in line:
+        return Harness.COT
+    if "cpu" in line or "cloud" in line:
+        return Harness.MINIMAL
+    # mid-tier (igpu / the classifier's "gpu"): the tier that benefits most from a harness.
+    return Harness.REACT if tool_task else Harness.COT
 
 
 # Output type → (preferred node, quality gate chars)
@@ -1350,6 +1384,18 @@ def classify(prompt: str) -> RouteDecision:
             confidence=0.60,
             reason=f"long prompt ({prompt_len} chars), routing to GPU",
         )
+
+
+def classify_with_harness(
+    prompt: str, *, tool_task: bool = False
+) -> tuple[RouteDecision, Harness]:
+    """``classify`` + an advisory harness recommendation for the chosen node.
+
+    Returns the EXISTING ``RouteDecision`` unchanged (routing/CL invariants intact) paired
+    with a ``Harness`` — additive: nothing forces the dispatcher to apply it. Item 7.
+    """
+    decision = classify(prompt)
+    return decision, select_harness(decision.node, tool_task=tool_task)
 
 
 async def classify_with_vacuum_hint(prompt: str, response: str = "") -> RouteDecision:
