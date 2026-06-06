@@ -6,6 +6,7 @@ Covers two builds:
   #5 — get_best_for_task is task-TYPE aware: classify task → FleetRegistry.for_task →
        preferred specialist; fall back to complexity routing; fail-soft.
 """
+
 from __future__ import annotations
 
 from unittest.mock import patch
@@ -48,9 +49,18 @@ def test_new_tasks_have_no_models_yet_and_existing_unchanged() -> None:
     assert reg.for_task(Task.FUNCTION_CALL)[0].model_id == "Granite-4.1-3b-GGUF"
     # OCR_DOC now has the GLM-OCR specialist (item 23, 2026-06-06).
     assert reg.for_task(Task.OCR_DOC)[0].model_id == "GLM-OCR-GGUF"
-    # FIM is the last new specialist task with no model yet -> empty (not an error).
-    for t in (Task.FIM,):
-        assert reg.for_task(t) == []
+    # FIM now has the Mellum-4b specialist (item 28, 2026-06-06) — the LAST empty slot is filled.
+    assert reg.for_task(Task.FIM)[0].model_id == "Mellum-4b-base-GGUF"
+    # All 6 new specialist slots now have a model (none empty).
+    for t in (
+        Task.EXTRACTION,
+        Task.VISION,
+        Task.FIM,
+        Task.FUNCTION_CALL,
+        Task.RERANK,
+        Task.OCR_DOC,
+    ):
+        assert reg.for_task(t), f"specialist slot {t.name} unexpectedly empty"
     # Falsifiable regression guard: existing task buckets are untouched & still coherent.
     reasoning = reg.for_task(Task.REASONING)
     assert len(reasoning) >= 1
@@ -68,7 +78,7 @@ def test_classify_task_keyword_and_direct_mapping() -> None:
     assert _classify_task("rerank these chunks") == Task.RERANK
     assert _classify_task("VQA on this image") == Task.VISION
     assert _classify_task("summarize the doc") == Task.SUMMARIZATION
-    assert _classify_task("reasoning") == Task.REASONING        # direct value match
+    assert _classify_task("reasoning") == Task.REASONING  # direct value match
     assert _classify_task("xyzzy plugh foobar") is None
     assert _classify_task("") is None
 
@@ -86,14 +96,20 @@ def test_task_aware_returns_registry_specialist_for_known_task() -> None:
     assert fake.calls == []  # router NOT consulted when a specialist exists
 
 
-def test_unregistered_task_falls_back_to_complexity_router() -> None:
-    # "fill in the middle of this code" classifies to FIM, which is the LAST specialist task
-    # STILL without a model -> falls through to the router. Proves classification AND graceful
-    # fallback both work. (OCR_DOC is no longer the example: it now has GLM-OCR — item 23.)
+def test_fim_task_routes_to_the_mellum_specialist_even_unverified() -> None:
+    # "fill in the middle of this code" classifies to FIM. Item 28 (2026-06-06) registered the
+    # Mellum FIM specialist (verified_working=False), so get_best_for_task now returns IT without
+    # consulting the router — proving (a) FIM classification works AND (b) a registered specialist
+    # surfaces through get_best_for_task even though its SERVING is unverified (the registry tracks
+    # availability/affinity, not serving-proof). All 6 specialist slots are now filled, so the old
+    # "classifies-to-empty-specialist -> router" example is retired; the unclassifiable -> router
+    # fallback below still guards graceful degradation.
     fake = _FakeRouter()
-    got = ModelRegistry(router=fake).get_best_for_task("fill in the middle of this code", budget=0.01)
-    assert got == "complexity-fallback-model"
-    assert fake.calls[0] == ("fill in the middle of this code", 0.01, 0.95)
+    got = ModelRegistry(router=fake).get_best_for_task(
+        "fill in the middle of this code", budget=0.01
+    )
+    assert got == "Mellum-4b-base-GGUF"
+    assert fake.calls == []  # router NOT consulted — a specialist exists for FIM
 
 
 def test_unclassifiable_task_falls_back_to_router() -> None:
@@ -138,8 +154,8 @@ def test_feynman_cc2_preserved_when_no_energy() -> None:
 def test_feynman_energy_penalizes_more_joules() -> None:
     # Electricity term: more joules → lower amplitude, monotonically.
     a0 = feynman_path_weight(1.0, 0.0, 0.0)
-    a_npu = feynman_path_weight(1.0, 0.0, 4.0)    # ~NPU turn
-    a_cpu = feynman_path_weight(1.0, 0.0, 55.0)   # ~CPU turn
+    a_npu = feynman_path_weight(1.0, 0.0, 4.0)  # ~NPU turn
+    a_cpu = feynman_path_weight(1.0, 0.0, 55.0)  # ~CPU turn
     assert a0 == 1.0
     assert a0 > a_npu > a_cpu
 

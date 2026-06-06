@@ -326,6 +326,25 @@ def _build_default_registry() -> dict[str, ModelEntry]:
             ),
         ),
         ModelEntry(
+            model_id="Mellum-4b-base-GGUF",
+            lane=Lane.IGPU_ROCWMMA,
+            endpoint="http://localhost:13307",
+            runtime_backend="llamacpp_hip",  # FIM completion via /api/v1/completions (NOT chat)
+            task_affinity=frozenset({Task.FIM}),
+            weight_quant=WeightQuant.INT8,  # GGUF mellum-4b-base.Q8_0 (≈8-bit); enum has no Q8_0
+            context_window=8192,
+            priority=25,  # the FIM specialist (was none) — the LAST empty Task slot now filled
+            verified_working=False,  # FIM-completion serving proof NOT yet run — see item 28
+            notes=(
+                "JetBrains Mellum-4b FIM-native BASE model (the seed for Task.FIM; HF id VERIFIED "
+                "huggingface_hub.model_info — JetBrains/Mellum-4b-base-gguf, 406 dl, 1 GGUF "
+                "mellum-4b-base.Q8_0.gguf, research round 4). Fill-in-the-middle via "
+                "/api/v1/completions with <fim_prefix>…<fim_suffix>…<fim_middle> tokens — NOT a "
+                "chat model. Q8_0 ≈ 4 GB → load on-demand, do NOT pin (K1/rule-5). "
+                "verified_working flips True only after a real FIM-completion serving proof."
+            ),
+        ),
+        ModelEntry(
             model_id="Granite-4.1-8B-GGUF",
             lane=Lane.IGPU_ROCWMMA,  # Granite backend lives on the iGPU; fronted by the router
             endpoint="http://localhost:13305",  # the ALWAYS-UP lemonade router (Hermes-shared)
