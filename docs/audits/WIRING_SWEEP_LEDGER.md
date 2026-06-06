@@ -29,6 +29,16 @@ The crude grep (`grep compound.<mod>`) over-reports B/C/D as orphans. Per-tick t
 must classify with `findReferences` / import-grep across BOTH `src/` and `tests/`, and check
 `skill_registry.json` + entry-points, before wiring.
 
+**Elegant simplicity (audit principle, 2026-06-06, user request).** The "do NOT force a fake edge"
+rule (re-exporting a server's `main()` to manufacture an import edge) is a special case of a
+broader principle now part of the audit loop: complexity — an import edge, a wrapper, a branch —
+must EARN ITS KEEP. The build-loop audit measures the structural COST of code (control-flow
+complexity = backlog item 43; needless indirection = item 44; cohesion/LCOM4 = item 10;
+reachability = this sweep) and flags OUTLIERS report-only. It NEVER auto-refactors and NEVER
+asserts "inelegant" (a number is a smell, not a verdict). An orphan and a pass-through wrapper are
+duals: one is unreachable-but-present, the other present-but-meaningless — both are ceremony
+without function. Canonical statement: `docs/IMPROVEMENT_BACKLOG.md` Notes.
+
 **Methodology note (retro 2026-06-06): compiles ≠ reachable.** A `.py` module shadowed by a
 same-named PACKAGE (`foo.py` + `foo/`) is dead-on-arrival — Python's finder always picks the
 package `__init__`, so the file is reachable by no import even though it compiles cleanly. The
