@@ -64,13 +64,47 @@ class SkillRefiner:
 
     SKILLS_DIR = Path(__file__).parent.parent / "skills"
 
-    def __init__(self, mcp_client: Any = None):
+    def __init__(self, mcp_client: Any = None, rho_enabled: bool = False):
         """Initialize skill refiner.
 
         Args:
             mcp_client: Optional MCPClient for vault operations
+            rho_enabled: Item 27 — when True, ``propose_rho_update`` consults the RHO
+                self-preference selector (item 22) over the routing corpus. OFF by default:
+                with the flag off, refinement behavior is byte-identical to before (the new
+                method is the ONLY surface the flag touches; ``refine`` is unchanged).
         """
         self.mcp_client = mcp_client
+        self.rho_enabled = rho_enabled
+
+    def propose_rho_update(
+        self,
+        records: list[dict[str, Any]],
+        candidates: list[Any],
+        *,
+        min_samples: int = 5,
+        fallback_threshold: float = 0.5,
+    ) -> Any | None:
+        """Report-only RHO harness-update proposal (item 27 — gated by ``rho_enabled``).
+
+        When the flag is OFF (default) this returns ``None`` without consulting RHO — so it is a
+        pure no-op and ``refine`` is untouched. When ON, it runs the item-22 RHO pairwise
+        self-preference tournament (:func:`cohezion.models.rho_selector.select_harness_update`)
+        over the routing corpus's chronically-fallback coreset and returns the ``RHOSelection``
+        iff a winner emerged. An empty/healthy corpus yields no coreset → UNPROVEN → ``None``
+        (never a fabricated proposal). PROPOSES only — never writes a skill file.
+        """
+        if not self.rho_enabled:
+            return None
+        from cohezion.models.rho_selector import select_harness_update
+
+        selection = select_harness_update(
+            records,
+            candidates,
+            min_samples=min_samples,
+            fallback_threshold=fallback_threshold,
+        )
+        return selection if selection.winner is not None else None
 
     def refine(
         self,
