@@ -226,6 +226,20 @@ pipeline/ file-level sweep COMPLETE (0 genuine-A remaining).
   Both-order robust (substrate-first + compound-first).
 substrate/ file-level sweep COMPLETE (0 genuine-A remaining).
 
+### gateway/ — CLASSIFIED + DONE (2026-06-06), 0 genuine-A (1 entry-point recorded)
+4 modules; `__init__` re-exported ngrok_adapter. Classification:
+- **Reachable**: demo_gateway (intra-edge), mcp_server (intra-edge — imported by mcp_http_server),
+  ngrok_adapter (`__init__` re-export + tests).
+- **Class D · entry-point (1)**: **mcp_http_server** — the pre-scout flagged it as a zero-static-edge
+  candidate, but a deeper look shows it is a runnable SERVER entry-point (`def main()` +
+  `if __name__ == "__main__"`, the HTTP MCP server for Claude.ai connectors). Reachability is its
+  runnability (`python -m cohezion.gateway.mcp_http_server`), NOT an import edge. Per the rule,
+  entry-point files are functionally live → recorded wired-by-entry-point; re-exporting its `main()`
+  would be a consumer-less FAKE edge (forbidden). Imports cleanly (no latent import bug). NOTE: no
+  TRACKED launcher references it (no pyproject `[project.scripts]`, systemd unit, or shell script) —
+  a deployment-wiring TODO for a human, NOT a fake import edge the loop should force.
+gateway/ file-level sweep COMPLETE (0 genuine-A; 1 Class-D entry-point recorded).
+
 ## Swept packages
 | Package | Swept | Candidates | A wired | A remaining | B/C/D recorded | Needs-human |
 |---|---|---|---|---|---|---|
@@ -243,6 +257,7 @@ substrate/ file-level sweep COMPLETE (0 genuine-A remaining).
 | data_mesh | **DONE** | 4 | 1 (audio_telemetry) | 0 | 3 reachable | 0 |
 | pipeline | **DONE** | 4 | 1 (incremental_trainer) | 0 | 2 B + 1 reachable | 0 |
 | substrate | **DONE** | 4 | 1 (popcorn) | 0 | 1 B + 2 reachable | 0 |
+| gateway | **DONE** | 4 | 0 | 0 | 1 D (entry-point) + 3 reachable | 0 |
 
 ## Needs human decision
 - **compound↔swarm circular import (blocks swarm/ wiring).** `compound/dynamic_compound_system.py`
@@ -276,13 +291,17 @@ substrate/ file-level sweep COMPLETE (0 genuine-A remaining).
   re-export above is the non-behavior-changing edge; deeper integration is deferred to a human.
 
 ## Next tick
-**12 packages fully DONE**: compound, inference, physics, platform, persistence, models, governance,
-world_model, environments, data_mesh, pipeline, substrate. `cache/` classified (0 clean-A; 1 dup →
-human); `swarm/` BLOCKED (cycle — human decision).
+**13 packages fully DONE**: compound, inference, physics, platform, persistence, models, governance,
+world_model, environments, data_mesh, pipeline, substrate, gateway. `cache/` classified (0 clean-A;
+1 dup → human); `swarm/` BLOCKED (cycle — human decision).
 
-**Pre-scouted genuine-A candidate (zero static edge anywhere):** `gateway/mcp_http_server` (verify
-Class-D entry-point first — an HTTP server `main()` run as a script may be entry-point-live, not a
-forced import edge).
+**No pre-scouted candidates remain.** Next tick: pick a fresh not-yet-swept `src/cohezion/<pkg>/`
+(unswept incl. `api`, `mcp`, `agents`, `core`, `flume`, `universe`, `security`, `swarm`-blocked,
+`rl`, `mycelium`, `simulation`, `audio`, `cost_optimization`, `knowledge_graph`, `healing`,
+`reliability`, `hookify`, `dogfooding`, `worldviews`, `ouroboros`, `agents`, …) — classify
+file-level, wire genuine Class-A orphans one per tick. For SERVER/CLI modules with a `__main__`
+guard and no static importer, classify Class-D entry-point (record, do NOT force a fake `main()`
+re-export). ALWAYS cycle-check + full `tests/wiring/` suite + both-import-order check after.
 (Single-module packages already confirmed reachable, NOT orphans — skip: knowledge/llm_wiki,
 storage/surreal_client, tools/test_generator [C], reporting/nightly [B], optimization/r_zero,
 patterns/hermetic_design_patterns [B], sandboxing/executor [C], evaluation/self_eval,
