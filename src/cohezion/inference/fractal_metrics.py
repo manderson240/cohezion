@@ -109,6 +109,25 @@ def feynman_path_weight(
     )
 
 
+def feynman_amplitude_rank(
+    candidates: list[tuple[str, float, float, float]],
+) -> list[str]:
+    """Rank candidate tiers best-first by Feynman amplitude (quality × cost × energy).
+
+    Each candidate is ``(name, quality_score, cost_usd, energy_joules)``. Returns the names
+    ordered by descending ``feynman_path_weight``. Quality dominates (it is the linear factor);
+    cost and energy are exponential penalties that only break ties among equal-quality lanes —
+    a higher-quality heavier lane still wins. Stable: equal-amplitude candidates keep input
+    order. With ``energy_joules=0`` everywhere the ranking reduces to the CC2 cost-only order.
+    """
+    scored = [
+        (feynman_path_weight(q, cost, joules), idx, name)
+        for idx, (name, q, cost, joules) in enumerate(candidates)
+    ]
+    scored.sort(key=lambda t: (-t[0], t[1]))  # amplitude desc, then stable by input index
+    return [name for _, _, name in scored]
+
+
 def hiho_fixed_point_deviation(scores: list[float]) -> float:
     """Measure deviation of quality score mean from the HIHO fixed point (0.5).
 
