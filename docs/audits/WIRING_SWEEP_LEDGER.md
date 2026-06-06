@@ -250,15 +250,18 @@ gateway/ file-level sweep COMPLETE (0 genuine-A; 1 Class-D entry-point recorded)
     InterpretabilityReport — causal-intervention interpretability) → **WIRED** via `rl/__init__`
     guarded (torch) re-export. `tests/wiring/test_causal_interpreter_wired.py` (identity + `__all__`,
     importorskip torch). Both-order robust. Imports cleanly (test RUNS, not skipped).
-  - **distributed_trainer** (DistributedConfig / DistributedLauncher / DistributedPPOTrainer) —
-    imports cleanly; remaining genuine-A → next tick.
+  - **distributed_trainer** (DistributedConfig / ScalingMetrics / DistributedPPOTrainer /
+    DistributedLauncher / ScalingBenchmark — DDP/FSDP distributed PPO) → **WIRED** via a SECOND
+    guarded `rl/__init__` block (torch). `tests/wiring/test_distributed_trainer_wired.py` (identity
+    + `__all__` + a coexistence pin that the causal_interpreter edge stays intact). Both-order robust.
   - **grpo_trainer** (AsyncGRPOTrainer / GRPOConfig) — imports cleanly; remaining genuine-A → next tick.
   - **lora_trainer** — **BLOCKED: broken import** (the wiring discipline surfaced it). `import
     cohezion.rl.lora_trainer` raises `ImportError: cannot import name 'PreTrainedModel' from
     'transformers'` (a transformers-internal `integration_utils` failure in this env). It sat as an
     orphan so its broken import was invisible. NOT wireable with a runnable test until the
     transformers import is resolved — surfaced under "## Needs human decision".
-rl/ NOT complete — 2 clean genuine-A remain (distributed_trainer, grpo_trainer) + 1 blocked (lora_trainer).
+rl/ NOT complete — 2 of 4 genuine-A WIRED (causal_interpreter, distributed_trainer); 1 clean genuine-A
+remains (grpo_trainer → next tick) + 1 blocked (lora_trainer, transformers import).
 
 ## Swept packages
 | Package | Swept | Candidates | A wired | A remaining | B/C/D recorded | Needs-human |
@@ -278,7 +281,7 @@ rl/ NOT complete — 2 clean genuine-A remain (distributed_trainer, grpo_trainer
 | pipeline | **DONE** | 4 | 1 (incremental_trainer) | 0 | 2 B + 1 reachable | 0 |
 | substrate | **DONE** | 4 | 1 (popcorn) | 0 | 1 B + 2 reachable | 0 |
 | gateway | **DONE** | 4 | 0 | 0 | 1 D (entry-point) + 3 reachable | 0 |
-| rl | classified | 10 | 1 (causal_interpreter) | 3 | 1 B + 5 reachable | 1 (lora_trainer import) |
+| rl | classified | 10 | 2 (causal_interpreter, distributed_trainer) | 2 | 1 B + 5 reachable | 1 (lora_trainer import) |
 
 ## Needs human decision
 - **`rl/lora_trainer` broken import (transformers).** `import cohezion.rl.lora_trainer` raises
@@ -324,12 +327,12 @@ rl/ NOT complete — 2 clean genuine-A remain (distributed_trainer, grpo_trainer
 world_model, environments, data_mesh, pipeline, substrate, gateway. `cache/` classified (0 clean-A;
 1 dup → human); `swarm/` BLOCKED (cycle — human decision).
 
-**Next tick: finish `rl/`** — 2 clean genuine-A remain (`distributed_trainer`, `grpo_trainer`,
-both import cleanly), wire one per tick via the same guarded `rl/__init__` (torch) re-export +
-discriminating test; then `rl/lora_trainer` stays BLOCKED on the transformers import (human).
+**Next tick: finish `rl/`** — 1 clean genuine-A remains (`grpo_trainer`, imports cleanly), wire it
+via the same guarded `rl/__init__` (torch) re-export + discriminating test; then `rl/` has only
+`lora_trainer` left, BLOCKED on the transformers import (human). After grpo_trainer, mark rl/ DONE.
 **Pre-scouted clean genuine-A in other unswept packages** (from the multi-package scan, all
 main_guard=0 libraries): `hookify/adversarial_review`, `audio/{moshi_client, protoclr}`,
-`rl/{distributed_trainer, grpo_trainer}`. Entry-point (main_guard=1, record Class-D not wire):
+`rl/grpo_trainer`. Entry-point (main_guard=1, record Class-D not wire):
 `healing/{amd_s2idle_report, deep_audit, drift_analyzer, platform_audit, utilization_audit}`,
 `knowledge_graph/cli`, `simulation/{distributed, glass_box_debate}`,
 `reliability/{blackwell_handshake, quantum_performance_monitor}`.
