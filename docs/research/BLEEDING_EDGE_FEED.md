@@ -130,3 +130,18 @@ the released GGUF id verified via `model_info`.
 the OCR_DOC slot → backlog item 54 (additive registration; serving + bake-off needs-experiment, on
 item-18's mmproj path). Filter tally across user-shared links: 2 embraced (Gemma-4 QAT → item 50,
 PaddleOCR-VL → item 54), 3 declined-but-mined (LangChain→48, BigSet→49, Nemotron-ASR→none, TaskMem→52).
+
+## 2026-06-06 (round 10)
+
+Source: user-shared GitHub (RyanCodrai/turbovec). PyPI package verified via the JSON API.
+
+| Finding (HF id / pkg) | Verified | Class | Fleet seam | Notes |
+|---|---|---|---|---|
+| **`turbovec` (PyPI 0.7.0)** — Rust+Python ANN index, Google-Research TurboQuant quantizer | ✅ PyPI JSON (0.7.0, "2-4 bit compression + SIMD search", py≥3.9) | **NEW · additive · needs-experiment** | `knowledge_bridge` neurons-store recall (item 29) / vault embeddings — NOT the calibrated `semantic_cache` | Data-oblivious (no training) 2-4 bit embedding quantization, SIMD (AVX-512BW — the AMD box has it), local-only, 16× compression (10M docs 31GB→4GB), 12-20% faster than FAISS-PQ-FastScan on ARM, +0.4-3.4 R@1. On-philosophy (local, $0, memory-tight Strix Halo / K1/rule-5). **Cohezion ALREADY uses the TurboQuant algorithm** — `inference/turboquant_streaming.py` (StreamingKVCompressor) for KV-CACHE; turbovec extends the same family to the EMBEDDING-INDEX domain. Best fit: the GROWING neurons store — item-29 `recall_neurons` does a LINEAR SurrealDB SELECT; a turbovec ANN index would scale recall + cut memory. **Caveat 1**: NOT a `semantic_cache` drop-in — CA1 is calibrated (nomic-embed 768D → 0.58, 0% FP); 2-4 bit quantization shifts similarity → threshold recalibration (regression-risk, same as round-1 Qwen3-Embedding). **Caveat 2**: a Rust-backed pip dep, community single-maintainer → moderate supply-chain trust (the algorithm is Google Research; the impl is community). → backlog item 56. |
+
+**Round verdict**: 1 verified, on-philosophy lever — `turbovec` (local TurboQuant ANN index) for the
+GROWING neurons-store recall (item 29 currently linear-scans). Cohezion already uses TurboQuant for
+KV-cache, so the algorithm is familiar. → backlog item 56 (needs-experiment: add dep + benchmark
+recall/memory/latency vs the linear SELECT on a synthetic neuron corpus; NOT the calibrated cache
+without a CA1 recalibration). Filter tally across user-shared links: 3 embraced (Gemma-4 QAT→50,
+PaddleOCR-VL→54, turbovec→56), 4 declined-but-mined (LangChain→48, BigSet→49, Nemotron-ASR→none, TaskMem→52).
