@@ -55,3 +55,35 @@ def skill_adoption_report(
     if registry_skills is None:
         registry_skills = _registry_skill_names(registry_path)
     return sorted({str(s) for s in registry_skills} - used)
+
+
+def low_adoption_report(
+    usage_events: Iterable[dict],
+    registry_skills: Iterable[str] | None = None,
+    *,
+    min_uses: int,
+    registry_path: Path | None = None,
+) -> dict[str, int]:
+    """Registered skills fired FEWER than ``min_uses`` times → ``{skill: exact_count}``. READ-ONLY.
+
+    Generalizes item-32 from binary (zero events) to a threshold — the "vs expectations" nuance
+    from claude.com #16, where ``min_uses`` is the expected firing count. Iterates the REGISTRY
+    (not the event stream), so a never-fired registered skill is reported with count 0, and an
+    unregistered skill that fires is ignored. ``min_uses=1`` reproduces item-32's zero-only set
+    (a count of 1 is not ``< 1``). The threshold is strict: a skill used exactly ``min_uses`` times
+    is NOT reported. Never reads SurrealDB (the caller injects ``usage_events``).
+    """
+    counts: dict[str, int] = {}
+    for e in usage_events:
+        if isinstance(e, dict) and e.get("skill_name"):
+            name = str(e["skill_name"])
+            counts[name] = counts.get(name, 0) + 1
+    if registry_skills is None:
+        registry_skills = _registry_skill_names(registry_path)
+    report: dict[str, int] = {}
+    for s in registry_skills:
+        name = str(s)
+        count = counts.get(name, 0)
+        if count < min_uses:
+            report[name] = count
+    return report

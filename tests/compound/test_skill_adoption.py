@@ -66,3 +66,52 @@ def test_live_registry_smoke_reports_many_unadopted() -> None:
     out = skill_adoption_report([])
     assert isinstance(out, list)
     assert len(out) > 50  # the real registry is large; an empty result would mean a broken load
+
+
+# --- item 41: low_adoption_report (threshold generalization of item 32) ------------------------
+
+from cohezion.compound.skill_adoption import low_adoption_report
+
+
+def _evn(name: str, n: int) -> list[dict]:
+    return [{"skill_name": name} for _ in range(n)]
+
+
+def test_below_threshold_surfaced_with_exact_count() -> None:
+    events = _evn("alpha", 1)
+    rep = low_adoption_report(events, ["alpha"], min_uses=3)
+    assert rep == {"alpha": 1}
+
+
+def test_at_or_above_threshold_absent() -> None:
+    # 5 uses (>3) absent; exactly-3 uses (NOT < 3) also absent — strict "fewer than".
+    events = _evn("alpha", 5) + _evn("beta", 3)
+    rep = low_adoption_report(events, ["alpha", "beta"], min_uses=3)
+    assert rep == {}
+
+
+def test_min_uses_1_reproduces_zero_only_set() -> None:
+    # min_uses=1 ⇒ only zero-use skills (count 1 is NOT < 1). Keys must equal item-32's set.
+    events = _evn("alpha", 1)  # beta never fires
+    rep = low_adoption_report(events, ["alpha", "beta"], min_uses=1)
+    assert rep == {"beta": 0}
+    assert set(rep) == set(skill_adoption_report(events, ["alpha", "beta"]))
+
+
+def test_exact_counts_including_never_fired() -> None:
+    events = _evn("alpha", 2) + _evn("beta", 1)  # gamma never fires
+    rep = low_adoption_report(events, ["alpha", "beta", "gamma"], min_uses=5)
+    assert rep == {"alpha": 2, "beta": 1, "gamma": 0}
+
+
+def test_unregistered_skill_usage_is_ignored() -> None:
+    # An event for a skill NOT in the registry must not appear; only registered names are reported.
+    events = _evn("not_registered", 9) + _evn("alpha", 0)
+    rep = low_adoption_report(events, ["alpha"], min_uses=3)
+    assert rep == {"alpha": 0}  # 'not_registered' absent despite 9 events
+
+
+def test_malformed_events_do_not_crash() -> None:
+    events = [{"skill_name": "alpha"}, {}, {"skill_name": None}, "junk"]  # type: ignore[list-item]
+    rep = low_adoption_report(events, ["alpha", "beta"], min_uses=2)
+    assert rep == {"alpha": 1, "beta": 0}
