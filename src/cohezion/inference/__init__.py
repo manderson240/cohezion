@@ -28,6 +28,20 @@ The ``turboquant_axis`` injection (SU(2) spinor coherence → KV cache rotation
 axis) happens inside ``fleet.route()`` via ``SymmetryHardwareBridge``.
 """
 
+import contextlib
+
+
+# Wiring-sweep 2026-06-06: lynx_gate was a genuine import-graph orphan. Guarded re-export makes
+# its escalation gate part of the inference surface + statically reachable (cycle-safe: lynx_gate
+# imports no swarm/compound, unlike the swarm/ blockers).
+with contextlib.suppress(Exception):
+    from cohezion.inference.lynx_gate import (
+        EscalationProbe as EscalationProbe,
+    )
+    from cohezion.inference.lynx_gate import (
+        LYNXGate as LYNXGate,
+    )
+
 from cohezion.inference.fleet import RouteResult, extend_claude, route
 from cohezion.inference.gaia_adapter import (
     GaiaAgentTier,
