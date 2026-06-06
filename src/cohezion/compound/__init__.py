@@ -70,6 +70,12 @@ with contextlib.suppress(Exception):
     from cohezion.compound.thermal_autoresearch_executor import (
         ThermalAutoresearchExecutor as ThermalAutoresearchExecutor,
     )
+
+# Wiring-sweep 2026-06-06: distillation_engine was a genuine import-graph orphan.
+with contextlib.suppress(Exception):
+    from cohezion.compound.distillation_engine import (
+        DistillationEngine as DistillationEngine,
+    )
 from cohezion.compound.core.executor import (
     CompoundExecutor as CompoundExecutor,
 )
