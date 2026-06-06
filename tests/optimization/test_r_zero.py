@@ -1,16 +1,14 @@
-"""Discriminating tests for optimization.r_zero.LocalModelOptimizer (V-model audit, 2026-06-05).
+"""Discriminating tests for optimization.r_zero.LocalModelOptimizer.
 
-`optimization` was a no-test module. These tests pin the ACTUAL arithmetic of the R-Zero
-success-rate tracker (report-only audit — behavior is pinned, not changed). Each fails a
+FIXED 2026-06-06 (backlog item 8 / audit §12.1): the success-rate tracker previously counted
+prior records whose DERIVED rate == 1.0 (impossible for a fresh optimizer) and divided by
+total+1, so the rate never exceeded 0.5 and the >0.8 difficulty branch was unreachable. The
+rate is now computed from the RAW per-execution success bools. These tests assert the FIXED
+behavior (the two formerly-pinned-buggy tests were flipped deliberately); each still fails a
 plausible wrong impl:
   - get_current_multiplier that returns 0.8 (not 1.0) on an empty history,
-  - a missing max(1, len) clamp that would divide the first success by 1 (rate 1.0) instead of 2,
+  - a rate that doesn't reflect the real success ratio,
   - difficulty_adjustment thresholded at >= 0.8 instead of > 0.8.
-
-OBSERVATION (latent smell, flagged not fixed): `recent_successes` counts prior records whose
-success_rate == 1.0, which a fresh optimizer can never produce, so success_rate never climbs
-above 0.5 and the >0.8 (multiplier 1.0) branch is effectively unreachable. Recorded in the
-audit report for a future, separately-gated remediation.
 """
 from __future__ import annotations
 
@@ -22,15 +20,15 @@ def test_empty_history_multiplier_is_one() -> None:
     assert LocalModelOptimizer().get_current_multiplier() == 1.0
 
 
-def test_first_success_rate_is_half_not_one() -> None:
-    # base_rate = (0 + 1) / (min(10,max(1,0)) + 1) = 1/2. A missing max(1,len) clamp would
-    # make the denominator 1 -> rate 1.0. Pin 0.5.
+def test_first_success_rate_is_one_after_fix() -> None:
+    # FIXED §12.1: rate = raw successes / window. 1 success / 1 execution = 1.0 (was a buggy
+    # 0.5). 1.0 > 0.8 → the multiplier reaches 1.0 (the branch that used to be dead).
     opt = LocalModelOptimizer()
     opt.record_execution("qwen3-coder", success=True, iterations=3)
     m = opt.metrics_history[-1]
-    assert m.success_rate == 0.5
+    assert m.success_rate == 1.0
     assert m.iteration_count == 3
-    assert opt.get_current_multiplier() == 0.8  # 0.5 is NOT > 0.8
+    assert opt.get_current_multiplier() == 1.0
 
 
 def test_first_failure_rate_is_zero() -> None:
@@ -40,14 +38,24 @@ def test_first_failure_rate_is_zero() -> None:
     assert opt.get_current_multiplier() == 0.8
 
 
-def test_success_rate_does_not_climb_above_half_on_repeated_success() -> None:
-    # Pins the latent quirk: repeated successes never reach rate 1.0, so the multiplier
-    # stays at 0.8 (the >0.8 branch is unreachable from a fresh optimizer). If a future fix
-    # changes this, THIS test should be updated deliberately.
+def test_repeated_success_reaches_full_rate_and_high_multiplier() -> None:
+    # THE falsifiable check for §12.1: repeated successes now climb to rate 1.0 (was capped
+    # ≤0.5), so success_rate CAN exceed 0.5 and the >0.8 branch fires.
     opt = LocalModelOptimizer()
     for _ in range(6):
         opt.record_execution("m", success=True, iterations=1)
-    assert all(m.success_rate <= 0.5 for m in opt.metrics_history)
+    assert opt.metrics_history[-1].success_rate == 1.0
+    assert any(m.success_rate > 0.5 for m in opt.metrics_history)
+    assert opt.get_current_multiplier() == 1.0
+
+
+def test_rate_reflects_real_success_ratio() -> None:
+    # Discriminates: the rate is the real trailing ratio, not stuck and not always 1.0.
+    # 7 successes + 3 failures in the 10-window → 0.7 (and 0.7 is NOT > 0.8 → multiplier 0.8).
+    opt = LocalModelOptimizer()
+    for s in [True] * 7 + [False] * 3:
+        opt.record_execution("m", success=s, iterations=1)
+    assert opt.metrics_history[-1].success_rate == 0.7
     assert opt.get_current_multiplier() == 0.8
 
 
