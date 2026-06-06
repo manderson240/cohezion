@@ -466,6 +466,32 @@ def recall_neurons(
         return []
 
 
+_RECALL_COUNTRIES = ("inference", "skill", "cerebellum")
+
+
+def routing_memory_context(
+    task_class: str,
+    *,
+    store: list[dict] | None = None,
+) -> dict[str, list[dict]]:
+    """Recall procedural memory across ALL three neuron countries for ``task_class`` (item 37).
+
+    Composes :func:`recall_neurons` (item 29) once per country into one advisory map a
+    routing/refinement decision COULD consult::
+
+        {"inference": [...], "skill": [...], "cerebellum": [...]}
+
+    REPORT-ONLY: it never alters the RouteDecision (CL1/CL2/CL3 routing invariants stay intact) and
+    never writes. The dict always has exactly the three country keys; a country with no matching
+    neuron maps to ``[]``. Read-only and fail-soft — with an injected ``store`` it filters that
+    store; with ``store=None`` under pytest it returns all-empty (no real-graph read, inherited from
+    :func:`recall_neurons`).
+    """
+    return {
+        country: recall_neurons(country, task_class, store=store) for country in _RECALL_COUNTRIES
+    }
+
+
 def update_key_learnings_with_link(
     learnings_path: Path,
     learning: Learning,
