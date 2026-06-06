@@ -324,6 +324,22 @@ a string is invisible to static analysis" lesson. Classification:
 require a leading `from`/`import` token, else a dotted path quoted as metadata/config (`canonical_modules`,
 registry keys, `importlib.import_module` args) false-positives as a static importer.
 
+### mycelium/ — CLASSIFIED + DONE (2026-06-06), 0 genuine-A (all reachable via production)
+4 modules (loop, observer, registry, scripter). Every module is reached by a LITERAL production
+`src/` import — statically confirming the CLAUDE.md "Mycelium network wired into Genesis chain" claim
+with import-graph evidence (not just prose). Classification:
+- **Reachable (4)**: `loop` ← `compound/executor.py:1500` (`from cohezion.mycelium.loop import
+  CoverageLoop`); `observer` ← `compound/degradation_detector.py:339` (`ChangeObserver`); `registry`
+  ← 4 prod importers (`compound/{executor,self_improvement_orchestrator,post_execution}`,
+  `api/services/mycelium_api`) + 7 scripts; `scripter` ← `compound/executor.py:1495` (`ShadowScripter`)
+  + intra-package `mycelium/loop.py`.
+**Lazy-but-literal note:** the executor edges are deferred (inside functions), but a literal
+`from cohezion.mycelium.X import …` is a static edge regardless of scope — visible to the audit regex,
+IDE find-references, and import-graph BFS. Only `importlib`-on-a-string is invisible. 0 genuine-A;
+record-only sweep (no wiring, no new test, like models/ and persistence/). The
+`COMPOUND_SELF_IMPROVEMENT_PRIME.md` grep hit is a skill-doc code block, NOT a Python edge (irrelevant
+— real `.py` importers exist).
+
 ## Swept packages
 | Package | Swept | Candidates | A wired | A remaining | B/C/D recorded | Needs-human |
 |---|---|---|---|---|---|---|
@@ -346,6 +362,7 @@ registry keys, `importlib.import_module` args) false-positives as a static impor
 | audio | **DONE** | 5 | 0 | 0 | 2 B + 3 reachable (2 via scripts/) | 0 |
 | rl | classified | 10 | 3 (causal_interpreter, distributed_trainer, grpo_trainer) | 1 (blocked) | 1 B + 5 reachable | 1 (lora_trainer import) |
 | knowledge_graph | **DONE** | 6 | 1 (graphrag_engine) | 0 | 2 D (cli, universe_genealogy_migration) + 3 reachable | 0 |
+| mycelium | **DONE** | 4 | 0 | 0 | 4 reachable (all via prod src imports) | 0 |
 
 ## Needs human decision
 - **`rl/lora_trainer` broken import (transformers).** `import cohezion.rl.lora_trainer` raises
@@ -387,9 +404,9 @@ registry keys, `importlib.import_module` args) false-positives as a static impor
   re-export above is the non-behavior-changing edge; deeper integration is deferred to a human.
 
 ## Next tick
-**16 packages fully DONE**: compound, inference, physics, platform, persistence, models, governance,
-world_model, environments, data_mesh, pipeline, substrate, gateway, hookify, audio, knowledge_graph.
-`cache/` classified (0 clean-A; 1 dup → human); `swarm/` BLOCKED (cycle — human decision).
+**17 packages fully DONE**: compound, inference, physics, platform, persistence, models, governance,
+world_model, environments, data_mesh, pipeline, substrate, gateway, hookify, audio, knowledge_graph,
+mycelium. `cache/` classified (0 clean-A; 1 dup → human); `swarm/` BLOCKED (cycle — human decision).
 
 **`rl/` clean genuine-A all wired (3/3).** Only `lora_trainer` remains, BLOCKED on transformers
 (human — Needs-human). rl/ stays `classified` until that import is fixed.
@@ -400,8 +417,12 @@ methodology guard:** the per-tick grep MUST require a leading `from`/`import` to
 literal import statements, never a dotted path inside a string (metadata, registry keys,
 `importlib.import_module` args all false-positive otherwise).
 
+**`mycelium/` DONE this tick** — 0 genuine-A; all 4 modules reachable via literal production `src/`
+imports (executor + degradation_detector). Statically confirms the CLAUDE.md "Mycelium wired into
+Genesis chain" claim. Record-only sweep (lazy-but-literal imports ARE static edges).
+
 **Next tick: pick a fresh not-yet-swept package.** Unswept incl. `api`, `mcp`, `agents`, `core`,
-`flume`, `universe`, `security`, `mycelium`, `simulation`, `cost_optimization`, `healing`
+`flume`, `universe`, `security`, `simulation`, `cost_optimization`, `healing`
 (entry-points), `reliability` (entry-points), `dogfooding`, `worldviews`, `ouroboros`, `evolution`,
 `flux`, `observability`, `precipitation`, `vanguard`, `concurrency`, `eval`, `services`. Per-tick
 broad grep MUST cover `src/ tests/ scripts/` (the audio lesson — a script import is a static edge)
