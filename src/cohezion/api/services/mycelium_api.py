@@ -20,7 +20,6 @@ mycelium_router = APIRouter(prefix="/mycelium", tags=["mycelium"])
 
 # Module-level singletons
 _network: MyceliumNetwork | None = None
-_registry: MyceliumRegistry | None = None
 
 
 def _get_network() -> MyceliumNetwork:
@@ -31,10 +30,9 @@ def _get_network() -> MyceliumNetwork:
 
 
 def _get_registry() -> MyceliumRegistry:
-    global _registry
-    if _registry is None:
-        _registry = MyceliumRegistry()
-    return _registry
+    # Shared singleton so the executor (writer) and this reader see the same
+    # synthesized skills — closes the experience->skill->read-back recursion loop.
+    return MyceliumRegistry.get_instance()
 
 
 class NetworkStatusResponse(BaseModel):

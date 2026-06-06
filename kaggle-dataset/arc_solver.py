@@ -7,6 +7,12 @@ Key primitives added:
   - color_by_object_order: Assign colors by object size rank
 """
 
+Key primitives added:
+  - select_largest_object: Keep biggest connected component
+  - fill_enclosed: Fill 0s enclosed by non-zero borders
+  - remove_noise: Remove isolated pixels
+  - color_by_object_order: Assign colors by object size rank
+"""
 from __future__ import annotations
 
 from typing import Callable

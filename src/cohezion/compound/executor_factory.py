@@ -43,11 +43,19 @@ class ExecutorFactory:
         retrospection_engine: Any | None = None,
         universe_bridge: Any | None = None,
         skill_health_tracker: Any | None = None,
+        memory_service: Any | None = None,
+        enable_memory: bool = False,
     ) -> CompoundExecutor:
         """Create a new compound executor.
 
         When token_client is provided, attempts to use TokenEfficientCompoundExecutor
         for automatic API prompt caching (40-60% token savings).
+
+        memory_service / enable_memory wire in CohezionMemory (mem0 + SurrealDB): when
+        enable_memory=True the executor remembers each successful turn so executions
+        compound into the project's memory. Opt-in (default off) so arbitrary callers
+        don't pay the synchronous mem0.add tax; best-effort and self-disabling when the
+        memory extra is absent or local nodes are offline.
         """
         # Auto-create RetrospectionEngine if not provided (closes middle loop)
         if retrospection_engine is None:
@@ -104,6 +112,8 @@ class ExecutorFactory:
             retrospection_engine=retrospection_engine,
             universe_bridge=universe_bridge,
             skill_health_tracker=skill_health_tracker,
+            memory_service=memory_service,
+            enable_memory=enable_memory,
         )
 
     @staticmethod
@@ -125,6 +135,8 @@ class ExecutorFactory:
         retrospection_engine: Any | None = None,
         universe_bridge: Any | None = None,
         skill_health_tracker: Any | None = None,
+        memory_service: Any | None = None,
+        enable_memory: bool = False,
     ) -> CompoundExecutor:
         """Get or create singleton executor."""
         if ExecutorFactory._instance is None:
@@ -146,6 +158,8 @@ class ExecutorFactory:
                 retrospection_engine=retrospection_engine,
                 universe_bridge=universe_bridge,
                 skill_health_tracker=skill_health_tracker,
+                memory_service=memory_service,
+                enable_memory=enable_memory,
             )
         return ExecutorFactory._instance
 

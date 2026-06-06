@@ -271,6 +271,27 @@ class CompoundExecutor(CompoundContextMixin, ExecutorIntegrationMixin):
 
         return self._alignment_analyzer
 
+    @property
+    def memory_service(self) -> Any | None:
+        """Lazy CohezionMemory (mem0 + SurrealDB conversational memory).
+
+        Opt-in: returns None unless ``enable_memory=True`` was passed (default off,
+        so arbitrary CompoundExecutor callers never pay the synchronous mem0.add tax).
+        The singleton self-disables gracefully if the optional `memory` extra is
+        absent or the local nodes are offline, so remember() is a safe no-op then.
+        """
+        if not self._enable_memory:
+            return None
+        if self._memory_service is None:
+            try:
+                from cohezion.memory import CohezionMemory
+
+                self._memory_service = CohezionMemory.get_instance()
+            except Exception as e:  # import/init failure must never block execution
+                logger.debug("CohezionMemory unavailable (non-blocking): %s", e)
+                self._enable_memory = False
+        return self._memory_service
+
     @cached_property
     def _bioelectric_network(self) -> Any:
         """Single BioelectricNetwork instance reused across executions.
@@ -464,6 +485,11 @@ class CompoundExecutor(CompoundContextMixin, ExecutorIntegrationMixin):
         guidance = self.get_experience_guidance(task_description, project, operation_type)
         logger.debug("Experience guidance: %s", guidance)
 
+        # Note: conversational-memory *recall* is intentionally not wired here yet —
+        # no execute_fn consumes guidance["recalled_memories"], so a search() on every
+        # task would pay latency for data nothing reads. The write path (remember, below)
+        # is what makes executions compound; recall lands when a consumer exists.
+
         # Step 1.3: Template matching — check cache for similar completed task
         # If a high-similarity match exists, skip the LLM call entirely
         template_match = self._try_template_match(task_description)
@@ -645,6 +671,23 @@ class CompoundExecutor(CompoundContextMixin, ExecutorIntegrationMixin):
 
         duration_seconds = time.time() - start_seconds
         metrics["duration_seconds"] = duration_seconds
+
+        # Step 3.9: Record this turn to conversational memory (best-effort, success only).
+        # mem0 extracts salient facts; this is what makes every execution compound into
+        # the project's memory. Synchronous + guarded so it can never break execution.
+        if success:
+            _mem = self.memory_service  # property returns None when disabled/unavailable
+            if _mem is not None:
+                try:
+                    _mem.remember(
+                        [
+                            {"role": "user", "content": task_description},
+                            {"role": "assistant", "content": output[:4000]},
+                        ],
+                        agent_id=project,
+                    )
+                except Exception as e:  # remember must never block execution
+                    logger.debug("Memory remember failed (non-blocking): %s", e)
 
         # Step 4: Log execution results
         self.logger.log_execution_result(
@@ -1249,7 +1292,9 @@ class CompoundExecutor(CompoundContextMixin, ExecutorIntegrationMixin):
                 from cohezion.learning.mycelium_registry import JournalEntry, MyceliumRegistry
 
                 if not hasattr(self, "_mycelium_registry"):
-                    self._mycelium_registry = MyceliumRegistry()
+                    # Shared singleton so synthesized skills are visible to the
+                    # mycelium API reader (closes the recursion loop).
+                    self._mycelium_registry = MyceliumRegistry.get_instance()
                 entry = JournalEntry(
                     entry_id=f"exec_{int(time.time())}_{skill_name}",
                     content=f"Executed {skill_name}: {task_description[:200]}",

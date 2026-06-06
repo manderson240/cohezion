@@ -206,7 +206,7 @@ class OllamaProvider(ModelProvider):
 
 
 # Auto-register Ollama provider
-from cohezion.swarm.providers.model_provider import register_model_provider
+from cohezion.swarm.providers.model_provider import register_model_provider  # noqa: E402
 
 
 register_model_provider("ollama", OllamaProvider)

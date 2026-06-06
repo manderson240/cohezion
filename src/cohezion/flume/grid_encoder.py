@@ -165,4 +165,4 @@ class FlumeGridHarness:
             return np.zeros(256, dtype=np.float32)
 
 
-import json
+import json  # noqa: E402

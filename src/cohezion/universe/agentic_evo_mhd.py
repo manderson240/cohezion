@@ -21,7 +21,7 @@ from enum import Enum
 import numpy as np
 
 # Import base EVO classes
-from agentic_evo_swift import (
+from cohezion.universe.agentic_evo_swift import (
     AgenticEVO,
 )
 

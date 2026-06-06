@@ -49,6 +49,11 @@ from cohezion.inference.registry import (
 
 logger = logging.getLogger(__name__)
 
+# Reasoning-model content guard: when a thinking model (DeepSeek-R1, Gemma-4 FLM) produces
+# content shorter than this threshold, the response is likely a bare numerical answer with
+# all reasoning hidden in reasoning_content. Fall back to reasoning_content in that case.
+_REASONING_MIN_TOKENS = 50
+
 
 @dataclass
 class RouteResult:

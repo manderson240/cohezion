@@ -152,7 +152,7 @@ class CausalMask(nn.Module):
         return list(np.argsort(scores)[-k:][::-1])
 
 
-from .sigreg import SIGReg
+from .sigreg import SIGReg  # noqa: E402
 
 
 @dataclass

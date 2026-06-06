@@ -22,9 +22,9 @@ SCRIPT_PATH = Path(__file__).resolve()
 PROJECT_ROOT = SCRIPT_PATH.parent.parent.parent.parent.parent
 sys.path.insert(0, str(PROJECT_ROOT / "src"))
 
-import contextlib
+import contextlib  # noqa: E402
 
-from cohezion.flume.embedding_provider import AsyncOllamaEmbeddingProvider
+from cohezion.flume.embedding_provider import AsyncOllamaEmbeddingProvider  # noqa: E402
 
 
 # Paths

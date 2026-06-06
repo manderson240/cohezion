@@ -1,3 +1,4 @@
+from contextlib import contextmanager
 from unittest.mock import MagicMock, patch
 
 from cohezion.inference.activation_router import PrefillActivationRouter
@@ -20,6 +21,28 @@ def _build_local_only(**kwargs):
     with patch(_OOM_GUARD_PATH) as mock_ms:
         mock_ms.capture.return_value = _sufficient_ram()
         return build_triune_orchestrator(include_cloud=False, clasp_draft_port=None, **kwargs)
+
+
+@contextmanager
+def _mock_tiers():
+    """Mock build_gaia_native_tier at BOTH import sites so the build is fully offline.
+
+    The NPU/CPU tiers resolve it from the triune_orchestrator module; the default
+    CLaSp iGPU tier resolves it (function-local) from gaia_adapter. Patching only the
+    former leaves the CLaSp path importing real `gaia` — which fails where amd-gaia
+    is not installed (e.g. CI).
+    """
+    with (
+        patch(
+            "cohezion.inference.triune_orchestrator.build_gaia_native_tier",
+            side_effect=_mock_gaia_tier,
+        ),
+        patch(
+            "cohezion.inference.gaia_adapter.build_gaia_native_tier",
+            side_effect=_mock_gaia_tier,
+        ),
+    ):
+        yield
 
 
 def test_build_triune_orchestrator_structure():

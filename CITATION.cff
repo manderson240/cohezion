@@ -15,6 +15,6 @@ keywords:
   - multi-agent
   - simulation
   - semantic-cache
-license: MIT
+license: AGPL-3.0-or-later
 version: 1.0.2
 date-released: '2026-05-02'
