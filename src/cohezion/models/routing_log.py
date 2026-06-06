@@ -159,3 +159,63 @@ def propose_tuning_from_log(
     return propose_tuning(
         records, min_samples=min_samples, fallback_threshold=fallback_threshold
     )
+
+
+# ── item 14: Hebbian specialist recruitment (proposes, never registers) ──────────────────
+# Task class → suggested lane. Light/classification tasks recruit onto the cheap NPU; most
+# generation/extraction tasks onto the iGPU; deep-reasoning tasks onto the CPU. Heuristic only —
+# a human reviewing the proposal picks the concrete model.
+_TASK_LANE_HINT: dict[str, str] = {
+    "ROUTING": "npu",
+    "SENSING": "npu",
+    "REASONING": "cpu",
+    "MATH": "cpu",
+    "LONG_HORIZON": "cpu",
+    "ARCHITECT": "cpu",
+    "GOVERNANCE": "cpu",
+}
+_DEFAULT_LANE_HINT = "igpu_rocwmma"  # EXTRACTION/VISION/CODE_GEN/STRUCTURED/FUNCTION_CALL/RERANK/…
+
+
+@dataclass(frozen=True)
+class SpecialistProposal:
+    """A concrete, HUMAN-GATED recruitment suggestion. Proposes a task→lane specialist; a human
+    reviews and picks the model. Never auto-registers into the FleetRegistry."""
+
+    task_class: str
+    suggested_lane: str
+    fallback_rate: float
+    rationale: str
+
+
+def propose_specialists(
+    records: list[dict],
+    *,
+    min_samples: int = 5,
+    fallback_threshold: float = 0.5,
+) -> list[SpecialistProposal]:
+    """Enrich item-9's recruit_specialist signals into concrete specialist proposals.
+
+    For each task class that chronically falls back (via :func:`propose_tuning`), suggest a
+    lane (cheap NPU for routing/sensing, CPU for deep reasoning, iGPU otherwise). HUMAN-GATED:
+    this returns proposals and NEVER touches the registry. Empty/healthy corpus → [].
+    """
+    proposals: list[SpecialistProposal] = []
+    for tuning in propose_tuning(
+        records, min_samples=min_samples, fallback_threshold=fallback_threshold
+    ):
+        if tuning.kind != "recruit_specialist":
+            continue
+        lane = _TASK_LANE_HINT.get(tuning.target, _DEFAULT_LANE_HINT)
+        proposals.append(
+            SpecialistProposal(
+                task_class=tuning.target,
+                suggested_lane=lane,
+                fallback_rate=tuning.metric,
+                rationale=(
+                    f"{tuning.target} falls back {tuning.metric:.0%} of the time → recruit a "
+                    f"{lane} specialist. PROPOSAL ONLY — a human picks the model and registers it."
+                ),
+            )
+        )
+    return proposals
