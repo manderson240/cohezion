@@ -278,6 +278,21 @@ unwired module is **lora_trainer**, BLOCKED on its transformers import (human �
 rl/ stays `classified` (not **DONE**) until lora_trainer's import is resolved — like swarm/cache, a
 blocked package, NOT a sweep gap the loop can close.
 
+### hookify/ — CLASSIFIED + DONE (2026-06-06), 1 A wired (surface-name hazard verified DISTINCT)
+3 modules. Classification:
+- **Reachable**: validator (`__init__` + intra + tests), vault_writer (src_ext=2).
+- **Class A · genuine orphan (1)**: **adversarial_review** — AdversarialReviewHarness /
+  ConsensusVoter / AdversarialReviewResult / ReviewPerspective (graph-aware adversarial review OF
+  HOOKIFY RULES, `review_rule(Rule)`) had 0 importers. SURFACE-NAME HAZARD (rule 3): a same-named
+  `compound/tdd_adversarial/adversarial_review.py` (`AdversarialReviewSystem`) IS wired. **VERIFIED
+  DISTINCT, not a duplicate** — different domain (hookify rules vs compound decisions), API
+  (`review_rule(Rule)` vs `__init__(project_root)`), and class set; shared `ReviewPerspective` name
+  is coincidence (dataclass vs Enum). The discriminator was the METHOD SIGNATURE (what each operates
+  on), not the name. → WIRED via `hookify/__init__` guarded re-export.
+  `tests/wiring/test_adversarial_review_wired.py` (identity + `__all__` + a collision guard pinning
+  hookify.ReviewPerspective is NOT the compound Enum). Both-order robust.
+hookify/ file-level sweep COMPLETE (0 genuine-A remaining).
+
 ## Swept packages
 | Package | Swept | Candidates | A wired | A remaining | B/C/D recorded | Needs-human |
 |---|---|---|---|---|---|---|
@@ -296,6 +311,7 @@ blocked package, NOT a sweep gap the loop can close.
 | pipeline | **DONE** | 4 | 1 (incremental_trainer) | 0 | 2 B + 1 reachable | 0 |
 | substrate | **DONE** | 4 | 1 (popcorn) | 0 | 1 B + 2 reachable | 0 |
 | gateway | **DONE** | 4 | 0 | 0 | 1 D (entry-point) + 3 reachable | 0 |
+| hookify | **DONE** | 3 | 1 (adversarial_review) | 0 | 2 reachable | 0 (name-hazard verified distinct) |
 | rl | classified | 10 | 3 (causal_interpreter, distributed_trainer, grpo_trainer) | 1 (blocked) | 1 B + 5 reachable | 1 (lora_trainer import) |
 
 ## Needs human decision
@@ -345,7 +361,7 @@ world_model, environments, data_mesh, pipeline, substrate, gateway. `cache/` cla
 **`rl/` clean genuine-A all wired (3/3).** Only `lora_trainer` remains, BLOCKED on transformers
 (human — Needs-human). rl/ stays `classified` until that import is fixed.
 **Next tick: pick a fresh package — pre-scouted clean genuine-A** (from the multi-package scan, all
-main_guard=0 libraries): `hookify/adversarial_review`, `audio/{moshi_client, protoclr}`.
+main_guard=0 libraries): `audio/{moshi_client, protoclr}`.
 Entry-point (main_guard=1, record Class-D not wire):
 `healing/{amd_s2idle_report, deep_audit, drift_analyzer, platform_audit, utilization_audit}`,
 `knowledge_graph/cli`, `simulation/{distributed, glass_box_debate}`,
