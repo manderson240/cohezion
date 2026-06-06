@@ -219,3 +219,63 @@ def propose_specialists(
             )
         )
     return proposals
+
+
+# ── item 15: inference → neuron deposition (makes "inference forms new neurons" literal) ──
+def build_inference_neuron(
+    task_class: str,
+    chosen_model: str,
+    lane: str,
+    *,
+    reward: float = 1.0,
+    embedding: list[float] | None = None,
+) -> dict:
+    """Build a neuron record for a rewarded inference path — the SAME schema KnowledgeBridge
+    writes to the existing ``neurons`` table, but in a new ``country='inference'`` region.
+
+    No new graph: a rewarded routing decision becomes a persistent, embedding-addressable node
+    in the same store the knowledge-graph neurons live in. Dense ``country='inference'`` regions
+    accumulate the fleet's learned routing competence.
+    """
+    return {
+        "name": f"infer:{task_class}",
+        "content": f"{chosen_model} @ {lane}",
+        "country": "inference",
+        "tags": [lane, "rewarded", task_class],
+        "embedding": list(embedding or [])[:32],
+        "reward": float(reward),
+    }
+
+
+def deposit_inference_neuron(record: dict, *, store: list[dict] | None = None) -> dict | None:
+    """Deposit a neuron for a REWARDED routing decision; return it (or None if not deposited).
+
+    Only a *rewarded* path forms a neuron — a fallback or a model-less decision deposits
+    NOTHING (success-only growth; mirrors the Knower-only-on-accept rule, harness P5). With an
+    injected ``store`` (a list) the neuron is appended for round-trip inspection. Without a
+    store: under pytest it is a NO-OP (never writes the real SurrealDB graph — the routing_log
+    pytest-skip pattern); in production it routes through KnowledgeBridge's ``CREATE neuron``.
+    Fail-soft: a write error never breaks the routing path.
+    """
+    if record.get("fell_back") or not record.get("chosen_model"):
+        return None
+    neuron = build_inference_neuron(
+        str(record["task_class"]),
+        str(record["chosen_model"]),
+        str(record.get("lane", "")),
+        reward=float(record.get("reward", 1.0)),
+    )
+    if store is not None:
+        store.append(neuron)
+        return neuron
+    try:
+        import sys
+
+        if "pytest" in sys.modules or "unittest" in sys.modules:
+            return None  # never touch the real graph during tests
+        from cohezion.governance.knowledge_bridge import deposit_inference_neuron_record
+
+        deposit_inference_neuron_record(neuron)
+        return neuron
+    except Exception:
+        return None

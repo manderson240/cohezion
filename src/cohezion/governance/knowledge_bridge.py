@@ -193,6 +193,49 @@ def persist_to_surrealdb(learning: Learning) -> bool:
         return False
 
 
+def deposit_inference_neuron_record(neuron: dict) -> bool:
+    """Write an inference neuron (country='inference') into the EXISTING neurons table.
+
+    The production sink for item 15 (inference → neuron deposition). Reuses the same SurrealDB
+    HTTP ``CREATE neuron`` path as :func:`persist_to_surrealdb`, but in the ``inference`` region.
+    Fail-soft: returns False on any error (never breaks the routing path that called it).
+    """
+    try:
+        import base64
+        import urllib.request
+
+        def _q(value: str) -> str:
+            return value.replace("'", "")
+
+        name = _q(str(neuron.get("name", "infer:unknown")))
+        content = _q(str(neuron.get("content", "")))[:500]
+        tags = json.dumps([_q(str(t)) for t in neuron.get("tags", [])])
+        embedding = json.dumps(list(neuron.get("embedding", []))[:32])
+        reward = float(neuron.get("reward", 1.0))
+        surql = (
+            f"CREATE neuron SET name = '{name}', content = '{content}', "
+            f"country = 'inference', tags = {tags}, embedding = {embedding}, "
+            f"reward = {reward}, created = time::now();"
+        )
+        auth = base64.b64encode(b"root:root").decode()
+        req = urllib.request.Request(  # noqa: S310 (localhost SurrealDB only)
+            f"{SURREAL_URL}/sql",
+            data=surql.encode(),
+            headers={
+                "Accept": "application/json",
+                "Authorization": f"Basic {auth}",
+                "surreal-ns": "cohezion",
+                "surreal-db": "vault",
+                "Content-Type": "application/json",
+            },
+        )
+        with urllib.request.urlopen(req, timeout=5) as resp:  # noqa: S310 (localhost only)
+            return resp.status == 200
+    except (OSError, json.JSONDecodeError, ValueError) as exc:
+        logger.warning("SurrealDB: inference-neuron deposit failed: %s", exc)
+        return False
+
+
 def update_key_learnings_with_link(
     learnings_path: Path,
     learning: Learning,
