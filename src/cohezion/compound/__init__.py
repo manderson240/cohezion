@@ -55,6 +55,15 @@ with contextlib.suppress(Exception):
     from cohezion.compound.journey_to_training import (
         ValidationResult as ValidationResult,
     )
+
+# Wiring-sweep 2026-06-06: optimized_session_manager was a genuine import-graph orphan.
+with contextlib.suppress(Exception):
+    from cohezion.compound.optimized_session_manager import (
+        CompoundSessionManager as CompoundSessionManager,
+    )
+    from cohezion.compound.optimized_session_manager import (
+        OptimizedSessionRuntime as OptimizedSessionRuntime,
+    )
 from cohezion.compound.core.executor import (
     CompoundExecutor as CompoundExecutor,
 )
