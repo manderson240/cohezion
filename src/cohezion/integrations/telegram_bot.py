@@ -12,9 +12,21 @@ import logging
 import os
 import subprocess
 import sys
-from typing import Any
+from typing import Any, NamedTuple
 
 import httpx
+
+
+class ModelSelection(NamedTuple):
+    """A selected chat model plus which backend serves it.
+
+    ``backend`` is ``"lemonade"`` (OpenAI-compatible router :13305) or
+    ``"ollama"`` (legacy :11434 fallback). ``_handle_chat`` uses it to pick the
+    right endpoint and response parser.
+    """
+
+    model: str
+    backend: str
 
 
 try:
@@ -199,8 +211,60 @@ class TelegramCommunicationHub:
             "/help - Display this manual"
         )
 
-    async def _select_model(self) -> str | None:
-        """Selects the best available local model for chat."""
+    async def _select_model(self) -> ModelSelection | None:
+        """Selects the best available chat model, preferring the lemonade fleet.
+
+        FIRST tries the always-up lemonade OpenAI-compatible router (:13305).
+        If the router is unreachable or lists no usable model, FALLS BACK to the
+        legacy Ollama path (:11434), which is preserved intact.
+        """
+        lemonade_model = await self._select_lemonade_model()
+        if lemonade_model is not None:
+            return ModelSelection(lemonade_model, "lemonade")
+
+        ollama_model = await self._select_ollama_model()
+        if ollama_model is not None:
+            return ModelSelection(ollama_model, "ollama")
+
+        return None
+
+    async def _select_lemonade_model(self) -> str | None:
+        """Picks a served model from the lemonade router, or None if unavailable.
+
+        Prefers ``Granite-4.1-8B-GGUF`` (validated no-thinking main-loop model),
+        then any served id containing "Granite", then any non-embedding,
+        non-cloud id. Returns None when the router is down or lists nothing.
+        """
+        try:
+            from cohezion.config.defaults import LEMONADE_ROUTER_PORT
+
+            async with httpx.AsyncClient() as client:
+                r = await client.get(
+                    f"http://localhost:{LEMONADE_ROUTER_PORT}/v1/models", timeout=3.0
+                )
+                if r.status_code != 200:
+                    return None
+                data = r.json()
+                ids = [str(m.get("id", "")) for m in data.get("data", []) if isinstance(m, dict)]
+                ids = [m for m in ids if m]
+                if not ids:
+                    return None
+
+                if "Granite-4.1-8B-GGUF" in ids:
+                    return "Granite-4.1-8B-GGUF"
+                for model_id in ids:
+                    if "granite" in model_id.lower():
+                        return model_id
+                for model_id in ids:
+                    lowered = model_id.lower()
+                    if "embed" not in lowered and "cloud" not in lowered:
+                        return model_id
+        except Exception as e:
+            logger.warning("Error querying lemonade router models: %s", e)
+        return None
+
+    async def _select_ollama_model(self) -> str | None:
+        """Legacy Ollama model selection (fallback path, preserved intact)."""
         try:
             from cohezion.config.defaults import OLLAMA_PORT
 
@@ -232,14 +296,22 @@ class TelegramCommunicationHub:
         return None
 
     async def _handle_chat(self, text: str) -> None:
-        """Handles general text input by querying local Ollama model."""
-        model = await self._select_model()
-        if not model:
+        """Handles general text input via the local fleet (lemonade-first).
+
+        Routes to the lemonade router (:13305, OpenAI format) when the selected
+        model came from it; otherwise uses the legacy Ollama ``/api/chat`` path.
+        """
+        selection = await self._select_model()
+        if not selection:
             await self._send_msg(
-                "⚠️ <b>Ollama Offline or No Models Found</b>\n"
-                "Please ensure Ollama is running (<code>ollama serve</code>) and at least one model is pulled."
+                "⚠️ <b>Local Fleet Offline or No Models Found</b>\n"
+                "The lemonade router (:13305) and Ollama (:11434) are both unreachable. "
+                "Please ensure the local AMD fleet is up (or <code>ollama serve</code>) "
+                "with at least one model loaded."
             )
             return
+
+        model = selection.model
 
         # Append user message to history
         self.conversation_history.append({"role": "user", "content": text})
@@ -258,35 +330,72 @@ class TelegramCommunicationHub:
         messages = [{"role": "system", "content": system_prompt}, *self.conversation_history]
 
         try:
-            from cohezion.config.defaults import OLLAMA_PORT
+            if selection.backend == "lemonade":
+                reply = await self._chat_lemonade(model, messages)
+            else:
+                reply = await self._chat_ollama(model, messages)
 
-            async with httpx.AsyncClient() as client:
-                r = await client.post(
-                    f"http://localhost:{OLLAMA_PORT}/api/chat",
-                    json={
-                        "model": model,
-                        "messages": messages,
-                        "stream": False,
-                    },
-                    timeout=60.0,
-                )
-                if r.status_code == 200:
-                    reply = r.json().get("message", {}).get("content", "").strip()
-                    if reply:
-                        # Append assistant reply to history
-                        self.conversation_history.append({"role": "assistant", "content": reply})
-                        await self._send_msg(reply, parse_mode=None)
-                    else:
-                        await self._send_msg("⚠️ Received empty response from local model.")
-                else:
-                    await self._send_msg(
-                        f"⚠️ Ollama error (HTTP {r.status_code}): {safe_html(r.text)}"
-                    )
+            if reply is None:
+                return  # error already surfaced to user
+            if reply:
+                self.conversation_history.append({"role": "assistant", "content": reply})
+                await self._send_msg(reply, parse_mode=None)
+            else:
+                await self._send_msg("⚠️ Received empty response from local model.")
         except Exception as e:
             logger.error("Failed to call local model: %s", e)
             await self._send_msg(
                 f"⚠️ Failed to communicate with local model: <code>{safe_html(str(e))}</code>"
             )
+
+    async def _chat_lemonade(self, model: str, messages: list[dict[str, str]]) -> str | None:
+        """POSTs to the lemonade OpenAI router and parses choices[].message.content.
+
+        Returns the (possibly empty) reply string, or None if an HTTP error was
+        already surfaced to the user. ``max_tokens`` is 1024 so even a borderline
+        reasoning model has headroom before its budget is consumed.
+        """
+        from cohezion.config.defaults import LEMONADE_ROUTER_PORT
+
+        async with httpx.AsyncClient() as client:
+            r = await client.post(
+                f"http://localhost:{LEMONADE_ROUTER_PORT}/v1/chat/completions",
+                json={
+                    "model": model,
+                    "messages": messages,
+                    "max_tokens": 1024,
+                    "stream": False,
+                },
+                timeout=60.0,
+            )
+            if r.status_code != 200:
+                await self._send_msg(
+                    f"⚠️ Lemonade router error (HTTP {r.status_code}): {safe_html(r.text)}"
+                )
+                return None
+            choices = r.json().get("choices", [])
+            if choices:
+                return str(choices[0].get("message", {}).get("content", "")).strip()
+            return ""
+
+    async def _chat_ollama(self, model: str, messages: list[dict[str, str]]) -> str | None:
+        """Legacy Ollama ``/api/chat`` path (fallback, preserved intact)."""
+        from cohezion.config.defaults import OLLAMA_PORT
+
+        async with httpx.AsyncClient() as client:
+            r = await client.post(
+                f"http://localhost:{OLLAMA_PORT}/api/chat",
+                json={
+                    "model": model,
+                    "messages": messages,
+                    "stream": False,
+                },
+                timeout=60.0,
+            )
+            if r.status_code != 200:
+                await self._send_msg(f"⚠️ Ollama error (HTTP {r.status_code}): {safe_html(r.text)}")
+                return None
+            return str(r.json().get("message", {}).get("content", "")).strip()
 
     async def _handle_status(self) -> None:
         """Queries local silicon metrics."""

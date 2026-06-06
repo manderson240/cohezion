@@ -14,6 +14,7 @@ Usage::
 Environment variables (all optional — sensible defaults provided):
 
     OLLAMA_PORT            – Ollama HTTP port           (default 11434)
+    LEMONADE_ROUTER_PORT   – Lemonade OpenAI router     (default 13305)
     LEMONADE_NPU_PORT      – Lemonade NPU lane port     (default 13306)
     LEMONADE_IGPU_ROCWMMA_PORT  – iGPU ROCWMMA port    (default 13307)
     LEMONADE_IGPU_UNIFIED_PORT  – iGPU Unified port    (default 13308)
@@ -38,6 +39,9 @@ import os
 
 OLLAMA_PORT: int = int(os.environ.get("OLLAMA_PORT", "11434"))
 """Default Ollama HTTP API port."""
+
+LEMONADE_ROUTER_PORT: int = int(os.environ.get("LEMONADE_ROUTER_PORT", "13305"))
+"""Lemonade always-up OpenAI-compatible router port (NPU/iGPU/CPU fleet)."""
 
 LEMONADE_NPU_PORT: int = int(os.environ.get("LEMONADE_NPU_PORT", "13306"))
 """Lemonade lane port for NPU (XDNA2)."""
