@@ -39,5 +39,37 @@ when no verified alternative exists) is a *separate behavior change* worth consi
 silently built. Note: 10/14 existing registry entries are also `verified_working=False` (presumed
 working but never `mark_verified`'d), so such a gate must be designed carefully, not blanket-applied.
 
+## UPDATE 2026-06-06 — SERVING PROVEN via llama-mtmd-cli sidecar (item 18 partial)
+User granted broad authorization. Did the safe, additive, OOM-gated subset (box: 42 GiB avail,
+swap 36% < 50% ceiling, isolated from live Hermes on 13305/13307):
+
+1. **Pulled** the two needed files (targeted, not the whole repo): `LFM2.5-VL-1.6B-Extract-Q4_0.gguf`
+   (663 MB) + `mmproj-LFM2.5-VL-1.6B-Extract-F16.gguf` (814 MB). HF repo verified to ship the mmproj.
+2. **mmproj mechanism RESOLVED**: lemonade `load` has **NO `--mmproj` flag** (its options are
+   --ctx-size/--llamacpp-args/--vllm-args/…). The vision projector is served by the
+   **`llama-mtmd-cli` sidecar** bundled in `~/.cache/lemonade/bin/llamacpp/rocm-stable/` (also
+   reachable via lemonade `--llamacpp-args "--mmproj …"` passthrough, or a pull-time
+   `--checkpoint`/`--label …:vision`/`collection.omni`).
+3. **SERVING SMOKE — PASS**:
+   ```
+   llama-mtmd-cli -m LFM…-Q4_0.gguf --mmproj mmproj-…-F16.gguf --image smoke.png \
+     -p "Extract all fields from this invoice as YAML." -n 200 --temp 0
+   → {"INVOICE #4471", "Vendor: Acme Cohesion Ltd", "Date: 2026-06-06",
+      "Item: GPU rental", "TOTAL: $82.50"}
+   ```
+   Exit 0. The image carried text I controlled; the output echoes 4/5 fields verbatim AND misreads
+   "Cohezion"→"Cohesion" — proving it genuinely reads pixels (not echoing the prompt). This is a
+   **serving** proof (the vision pipeline works), explicitly **NOT** an accuracy proof.
+
+### Still NOT done (the honest residual) — `verified_working` stays False
+The **accuracy bake-off** — field-accuracy ≥ a baseline on a labeled 10-image set — has NOT run.
+I will not self-author ground truth (circular = measurement-integrity violation). To flip
+`verified_working` we still need: (a) a labeled ~10-image image→YAML set (your real use case, or a
+public set like FUNSD/CORD/OmniDocBench), and (b) a chosen baseline VLM (cloud = real $ + external
+data, or a large local one). Everything else (pull, mmproj serving) is now PROVEN. This same sidecar
+path also unblocks the OCR_DOC serving for items 23 (GLM-OCR) and 54 (PaddleOCR-VL).
+
+Downloaded artifacts live under `$TMPDIR/lfmvl/` (ephemeral) — re-pull is ~1.5 GB if cleaned.
+
 ## License
 `lfm1.0` — verify commercial terms before any production/commercial use.

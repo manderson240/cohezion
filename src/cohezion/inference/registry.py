@@ -290,13 +290,15 @@ def _build_default_registry() -> dict[str, ModelEntry]:
             weight_quant=WeightQuant.Q4_K_M,  # actual GGUF is Q4_0 (~696 MB); F16 ~2.34 GB
             context_window=32768,
             priority=25,  # the EXTRACTION/VISION specialist (was none); small VLM, low VRAM
-            verified_working=False,  # mmproj proof NOT yet run — see LFM_VL_EXTRACTION_2026-06-06.md
+            verified_working=False,  # SERVING proven; ACCURACY proof still pending — see LFM_VL_EXTRACTION_2026-06-06.md
             notes=(
                 "LiquidAI image→YAML field-extraction VLM (the seed for Task.EXTRACTION). "
-                "mmproj-GATED: needs the vision projector (mmproj-…-F16.gguf) loaded — lemonade "
-                "--mmproj support UNPROVEN → llama-mtmd sidecar fallback. Model not yet downloaded; "
-                "verified_working flips True only after the 10-image extraction proof (item 18). "
-                "License lfm1.0 — verify commercial terms before production use."
+                "SERVING PROVEN 2026-06-06 via the llama-mtmd-cli sidecar (bundled in lemonade "
+                "bin/llamacpp/rocm-stable/) with --mmproj mmproj-…-F16.gguf — lemonade `load` has NO "
+                "--mmproj flag, so the sidecar (or --llamacpp-args passthrough) is the path. Smoke: a "
+                "known-text image → structured YAML echoing the image fields (read 'Cohezion'→'Cohesion', "
+                "i.e. genuinely reading pixels). verified_working stays False until the 10-image ACCURACY "
+                "proof vs a baseline (item 18) — serving ≠ accuracy. License lfm1.0 — verify commercial terms."
             ),
         ),
         ModelEntry(
