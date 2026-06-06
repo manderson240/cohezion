@@ -154,3 +154,37 @@ def generate_harness_candidates(
         )
         for p in proposals
     ]
+
+
+def rho_proposal_record(
+    records: list[dict],
+    *,
+    min_samples: int = 5,
+    fallback_threshold: float = 0.5,
+) -> dict:
+    """Run the FULL autonomous RHO chain → ONE human-reviewable proposal dict (item 42).
+
+    Composes :func:`generate_harness_candidates` (item 33) → :func:`select_harness_update`
+    (item 22) over the routing corpus (item 9). The single artifact a human reviews before
+    applying any harness change — RHO PROPOSES, never auto-applies. Pure: no SurrealDB read, no
+    skill-file write, input corpus not mutated.
+
+    Returns ``{winner_id, targets, coreset, wins, rationale, candidate_count}``. A healthy or empty
+    corpus yields ``winner_id=None`` / empty ``coreset`` / ``candidate_count=0`` (honest UNPROVEN,
+    never a fabricated proposal).
+    """
+    candidates = generate_harness_candidates(
+        records, min_samples=min_samples, fallback_threshold=fallback_threshold
+    )
+    selection = select_harness_update(
+        records, candidates, min_samples=min_samples, fallback_threshold=fallback_threshold
+    )
+    winner = selection.winner
+    return {
+        "winner_id": winner.candidate_id if winner else None,
+        "targets": sorted(winner.targets) if winner else [],
+        "coreset": list(selection.coreset),
+        "wins": dict(selection.wins),
+        "rationale": selection.rationale,
+        "candidate_count": len(candidates),
+    }
