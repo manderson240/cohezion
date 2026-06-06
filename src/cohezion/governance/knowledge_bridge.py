@@ -169,12 +169,18 @@ def persist_to_surrealdb(learning: Learning) -> bool:
         return False
 
 
-def deposit_inference_neuron_record(neuron: dict) -> bool:
-    """Write an inference neuron (country='inference') into the EXISTING neurons table.
+# Neuron regions writable by the deposition sink. Allowlisted because `country` is interpolated
+# into SurrealQL — only these literal values may reach the query (no user/external strings).
+_NEURON_COUNTRIES = {"inference", "skill", "cerebellum"}
 
-    The production sink for item 15 (inference → neuron deposition). Reuses the same SurrealDB
-    HTTP ``CREATE neuron`` path as :func:`persist_to_surrealdb`, but in the ``inference`` region.
-    Fail-soft: returns False on any error (never breaks the routing path that called it).
+
+def deposit_neuron_record(neuron: dict) -> bool:
+    """Write a neuron into the EXISTING neurons table, in the region given by ``neuron['country']``.
+
+    The shared production sink for the neurogenesis tracks: item 15 (country='inference') and
+    item 16 (country='skill'). Reuses the same SurrealDB HTTP ``CREATE neuron`` path as
+    :func:`persist_to_surrealdb`. ``country`` is allowlisted (SQL-injection guard). Fail-soft:
+    returns False on any error (never breaks the path that called it).
     """
     try:
         import base64
@@ -183,14 +189,17 @@ def deposit_inference_neuron_record(neuron: dict) -> bool:
         def _q(value: str) -> str:
             return value.replace("'", "")
 
-        name = _q(str(neuron.get("name", "infer:unknown")))
+        country = str(neuron.get("country", "inference"))
+        if country not in _NEURON_COUNTRIES:
+            country = "inference"
+        name = _q(str(neuron.get("name", "neuron:unknown")))
         content = _q(str(neuron.get("content", "")))[:500]
         tags = json.dumps([_q(str(t)) for t in neuron.get("tags", [])])
         embedding = json.dumps(list(neuron.get("embedding", []))[:32])
         reward = float(neuron.get("reward", 1.0))
         surql = (
             f"CREATE neuron SET name = '{name}', content = '{content}', "
-            f"country = 'inference', tags = {tags}, embedding = {embedding}, "
+            f"country = '{country}', tags = {tags}, embedding = {embedding}, "
             f"reward = {reward}, created = time::now();"
         )
         auth = base64.b64encode(b"root:root").decode()
@@ -208,8 +217,64 @@ def deposit_inference_neuron_record(neuron: dict) -> bool:
         with urllib.request.urlopen(req, timeout=5) as resp:  # noqa: S310 (localhost only)
             return resp.status == 200
     except (OSError, json.JSONDecodeError, ValueError) as exc:
-        logger.warning("SurrealDB: inference-neuron deposit failed: %s", exc)
+        logger.warning("SurrealDB: neuron deposit failed: %s", exc)
         return False
+
+
+# Backward-compat alias: item 15 (routing_log) imports this name. Same country-aware writer.
+deposit_inference_neuron_record = deposit_neuron_record
+
+
+def build_skill_neuron(
+    skill_name: str,
+    content: str,
+    *,
+    score: float = 1.0,
+    embedding: list[float] | None = None,
+) -> dict:
+    """Build a ``country='skill'`` neuron for a distilled skill (item 16) — same schema as the
+    inference/knowledge neurons, in the ``skill`` region."""
+    return {
+        "name": f"skill:{skill_name}",
+        "content": content[:500],
+        "country": "skill",
+        "tags": ["skill", skill_name],
+        "embedding": list(embedding or [])[:32],
+        "reward": float(score),
+    }
+
+
+def deposit_skill_neuron(
+    skill_name: str,
+    content: str,
+    *,
+    gate_passed: bool,
+    score: float = 1.0,
+    store: list[dict] | None = None,
+) -> dict | None:
+    """Deposit a ``country='skill'`` neuron iff the distilled skill SURVIVED the value gate.
+
+    Item 16 — the third neurogenesis track: a new neuron = a distilled skill that passed the
+    value gate. ``gate_passed=False`` deposits NOTHING (gate-survivors only — the same
+    success-only growth as item 15's reward gate). With an injected ``store`` the neuron is
+    appended for round-trip inspection; without a store it is a NO-OP under pytest (never
+    writes the real graph) and routes through :func:`deposit_neuron_record` in production.
+    """
+    if not gate_passed or not skill_name:
+        return None
+    neuron = build_skill_neuron(skill_name, content, score=score)
+    if store is not None:
+        store.append(neuron)
+        return neuron
+    try:
+        import sys
+
+        if "pytest" in sys.modules or "unittest" in sys.modules:
+            return None
+        deposit_neuron_record(neuron)
+        return neuron
+    except Exception:
+        return None
 
 
 def update_key_learnings_with_link(
