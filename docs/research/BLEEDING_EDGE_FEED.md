@@ -83,3 +83,17 @@ and impressive but off-stack (NeMo `.nemo`, CUDA-centric) and off-seam (no Cohez
 → logged as a WATCH-ITEM, deliberately NOT a backlog row (would fabricate actionability). Filter
 tally across user-shared links: 1 embraced (Gemma-4 QAT, round 5 / item 50), 3 declined (LangChain
 cloud-microVMs → item 48 audit only, BigSet TS-SaaS → item 49 data-discipline only, this ASR model).
+
+## 2026-06-06 (round 7)
+
+Source: user-shared HF paper. Verified via WebFetch (HF papers abstract).
+
+| Finding (HF id / arXiv) | Verified | Class | Fleet seam | Notes |
+|---|---|---|---|---|
+| **arXiv 2605.31075** — Task-Focused Memorization for Multimodal Agents (TaskMem; ByteDance Seed + Fudan) | ✅ WebFetch (title/authors/abstract/method/benchmarks) | **grounded · METHOD · watch-item (method) + 1 transferable principle** | `governance/knowledge_bridge` deposit gates (items 15/16/24/29/51) — the neurogenesis "what to memorize" thread | Memory as a LEARNABLE policy (GSPO phase-1 + a 2,048-param DPO adapter phase-2), multi-objective rewards: **accuracy, non-redundancy, format compliance**. Built on Qwen3-VL-30B; +6.3% VideoMME / +7.0% EgoLife. **Method DECLINED** as off-stack (RL-train a 30B VL — not $0-fleet), off-modality (video-stream memory ≠ Cohezion's routing/skill/inference neurons), no confirmed artifact release. **Principle EMBRACED**: Cohezion's deposit gates are FIXED heuristics; TaskMem's reward taxonomy is the quality lens the store never measures. Note item 51 (recall-dedup) already = TaskMem's "non-redundancy" reward → paper validates that direction. → backlog item 52 (read-only deposit-quality audit over the existing neurons store). |
+
+**Round verdict**: 0 fleet-runnable model levers; 1 transferable PRINCIPLE. TaskMem's method is too
+heavy/off-modality for the $0 fleet (watch-item), but its memory-quality reward taxonomy
+(non-redundancy / accuracy / format) maps cleanly onto Cohezion's neurogenesis deposit thread →
+report-only item 52 (deposit-quality audit). Filter tally across user-shared links: 1 model embraced
+(Gemma-4 QAT), 4 declined-but-mined-for-principle (LangChain→48, BigSet→49, Nemotron-ASR→none, TaskMem→52).
