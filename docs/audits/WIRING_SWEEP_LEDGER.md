@@ -214,6 +214,18 @@ data_mesh/ file-level sweep COMPLETE (0 genuine-A remaining).
   Both-order robust (pipeline-first + compound-first).
 pipeline/ file-level sweep COMPLETE (0 genuine-A remaining).
 
+### substrate/ — CLASSIFIED + DONE (2026-06-06), 1 A wired
+4 modules; `__init__` re-exported kv_cache_tracker + overload_coordinator. Classification:
+- **Reachable**: kv_cache_tracker (`__init__` + intra), overload_coordinator (`__init__` + intra).
+- **Class B · tests-only (1)**: hardware_monitor (test-covered).
+- **Class A · genuine orphan (1)**: **popcorn** — Popcorn-CLI kernel submission API
+  (submit / SubmitResult) had ZERO importers anywhere; the lone "Popcorn" hit in
+  `scripts/compound_kernel_cycle.py` is a LOG STRING, not an import. Cycle-safe (subprocess/stdlib
+  only) → WIRED via `substrate/__init__` guarded re-export. Proven by
+  `tests/wiring/test_popcorn_wired.py` (identity on submit + SubmitResult + `__all__`).
+  Both-order robust (substrate-first + compound-first).
+substrate/ file-level sweep COMPLETE (0 genuine-A remaining).
+
 ## Swept packages
 | Package | Swept | Candidates | A wired | A remaining | B/C/D recorded | Needs-human |
 |---|---|---|---|---|---|---|
@@ -230,6 +242,7 @@ pipeline/ file-level sweep COMPLETE (0 genuine-A remaining).
 | environments | **DONE** | 4 | 1 (auto_generator) | 0 | 1 B + 1 reachable | 0 |
 | data_mesh | **DONE** | 4 | 1 (audio_telemetry) | 0 | 3 reachable | 0 |
 | pipeline | **DONE** | 4 | 1 (incremental_trainer) | 0 | 2 B + 1 reachable | 0 |
+| substrate | **DONE** | 4 | 1 (popcorn) | 0 | 1 B + 2 reachable | 0 |
 
 ## Needs human decision
 - **compound↔swarm circular import (blocks swarm/ wiring).** `compound/dynamic_compound_system.py`
@@ -263,12 +276,13 @@ pipeline/ file-level sweep COMPLETE (0 genuine-A remaining).
   re-export above is the non-behavior-changing edge; deeper integration is deferred to a human.
 
 ## Next tick
-**11 packages fully DONE**: compound, inference, physics, platform, persistence, models, governance,
-world_model, environments, data_mesh, pipeline. `cache/` classified (0 clean-A; 1 dup → human);
-`swarm/` BLOCKED (cycle — human decision).
+**12 packages fully DONE**: compound, inference, physics, platform, persistence, models, governance,
+world_model, environments, data_mesh, pipeline, substrate. `cache/` classified (0 clean-A; 1 dup →
+human); `swarm/` BLOCKED (cycle — human decision).
 
-**Pre-scouted genuine-A candidates (zero static edge anywhere — wire one per tick, classify the rest
-of each package first):** `substrate/popcorn`, `gateway/mcp_http_server`.
+**Pre-scouted genuine-A candidate (zero static edge anywhere):** `gateway/mcp_http_server` (verify
+Class-D entry-point first — an HTTP server `main()` run as a script may be entry-point-live, not a
+forced import edge).
 (Single-module packages already confirmed reachable, NOT orphans — skip: knowledge/llm_wiki,
 storage/surreal_client, tools/test_generator [C], reporting/nightly [B], optimization/r_zero,
 patterns/hermetic_design_patterns [B], sandboxing/executor [C], evaluation/self_eval,
