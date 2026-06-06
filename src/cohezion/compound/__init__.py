@@ -76,6 +76,15 @@ with contextlib.suppress(Exception):
     from cohezion.compound.distillation_engine import (
         DistillationEngine as DistillationEngine,
     )
+
+# Wiring-sweep 2026-06-06: dynamic_compound_system was a genuine import-graph orphan.
+with contextlib.suppress(Exception):
+    from cohezion.compound.dynamic_compound_system import (
+        DynamicCompoundSystem as DynamicCompoundSystem,
+    )
+    from cohezion.compound.dynamic_compound_system import (
+        DynamicExecutionResult as DynamicExecutionResult,
+    )
 from cohezion.compound.core.executor import (
     CompoundExecutor as CompoundExecutor,
 )
