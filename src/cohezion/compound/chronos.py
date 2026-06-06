@@ -260,3 +260,60 @@ def get_chronos() -> ChronosRegistry:
     if _registry is None:
         _registry = ChronosRegistry()
     return _registry
+
+
+# ── item 12: auto-deconfliction subscriber (report-only) ─────────────────────────────────
+class ChronosAdvisor:
+    """Subscribes to the memory-pressure monitor and LOGS Chronos's deferral advisory on a
+    CRITICAL *rising* edge — report-only (it advises, it does not act; acting is the
+    permission-gated item 13). Reuses the OOM-evictor wiring pattern: act only on the rising
+    edge, so exactly one advisory per CRITICAL transition (never on WARNING or sustained).
+    """
+
+    def __init__(self, registry: ChronosRegistry, *, log_path: Path | None = None) -> None:
+        self._registry = registry
+        self._log_path = log_path
+        self._advisories: list[list[ChronosJob]] = []
+
+    @property
+    def advisories(self) -> list[list[ChronosJob]]:
+        return list(self._advisories)
+
+    def on_event(self, event: object) -> list[ChronosJob]:
+        """Subscriber handler. Acts ONLY on a CRITICAL rising transition; else returns []."""
+        level = getattr(event, "level", None)
+        rising = getattr(event, "rising", False)
+        if level != PressureLevel.CRITICAL or not rising:
+            return []
+        advised = self._registry.resource_advisory(level=PressureLevel.CRITICAL)
+        self._advisories.append(advised)
+        self._log_advisory(advised)
+        return advised
+
+    def _log_advisory(self, advised: list[ChronosJob]) -> None:
+        """Report-only JSONL append. Skips the real log under pytest unless a path is given."""
+        try:
+            import sys
+
+            if self._log_path is None and ("pytest" in sys.modules or "unittest" in sys.modules):
+                return
+            sink = self._log_path or (Path.home() / ".cohezion-research" / "logs" / "chronos_advisory.jsonl")
+            sink.parent.mkdir(parents=True, exist_ok=True)
+            line = json.dumps({"defer": [j.name for j in advised]})
+            with sink.open("a", encoding="utf-8") as fh:
+                fh.write(line + "\n")
+        except Exception as exc:
+            logger.debug("Chronos advisory log skipped: %s", exc)
+
+
+def install_chronos_advisor(
+    *,
+    monitor: object | None = None,
+    registry: ChronosRegistry | None = None,
+    log_path: Path | None = None,
+) -> ChronosAdvisor:
+    """Subscribe a :class:`ChronosAdvisor` to the pressure monitor and return it."""
+    mon = monitor if monitor is not None else get_pressure_monitor()
+    advisor = ChronosAdvisor(registry if registry is not None else get_chronos(), log_path=log_path)
+    mon.subscribe(advisor.on_event)  # type: ignore[attr-defined]
+    return advisor
