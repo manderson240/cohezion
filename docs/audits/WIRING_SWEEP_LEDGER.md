@@ -202,6 +202,18 @@ environments/ file-level sweep COMPLETE (0 genuine-A remaining).
   Both-order robust (data_mesh-first + compound-first).
 data_mesh/ file-level sweep COMPLETE (0 genuine-A remaining).
 
+### pipeline/ — CLASSIFIED + DONE (2026-06-06), 1 A wired
+4 modules; `__init__` re-exported nothing. Classification:
+- **Reachable**: weight_bridge (intra-package edge + tests).
+- **Class B · tests-only (2)**: hyperparameter_debate, trained_navigator (test-covered).
+- **Class A · genuine orphan (1)**: **incremental_trainer** — IncrementalResult /
+  IncrementalVAETrainer / IncrementalRLTrainer (online/incremental VAE+RL training) had ZERO
+  importers anywhere; cycle-safe (numpy only, no cohezion module-scope import) → WIRED via
+  `pipeline/__init__` guarded re-export. Proven by
+  `tests/wiring/test_incremental_trainer_wired.py` (identity on all 3 names + `__all__`).
+  Both-order robust (pipeline-first + compound-first).
+pipeline/ file-level sweep COMPLETE (0 genuine-A remaining).
+
 ## Swept packages
 | Package | Swept | Candidates | A wired | A remaining | B/C/D recorded | Needs-human |
 |---|---|---|---|---|---|---|
@@ -217,6 +229,7 @@ data_mesh/ file-level sweep COMPLETE (0 genuine-A remaining).
 | world_model | **DONE** | 4 | 3 (surprise_explorer, sigreg, jepa_persistent) | 0 | 1 reachable | 0 |
 | environments | **DONE** | 4 | 1 (auto_generator) | 0 | 1 B + 1 reachable | 0 |
 | data_mesh | **DONE** | 4 | 1 (audio_telemetry) | 0 | 3 reachable | 0 |
+| pipeline | **DONE** | 4 | 1 (incremental_trainer) | 0 | 2 B + 1 reachable | 0 |
 
 ## Needs human decision
 - **compound↔swarm circular import (blocks swarm/ wiring).** `compound/dynamic_compound_system.py`
@@ -250,12 +263,12 @@ data_mesh/ file-level sweep COMPLETE (0 genuine-A remaining).
   re-export above is the non-behavior-changing edge; deeper integration is deferred to a human.
 
 ## Next tick
-**10 packages fully DONE**: compound, inference, physics, platform, persistence, models, governance,
-world_model, environments, data_mesh. `cache/` classified (0 clean-A; 1 dup → human); `swarm/`
-BLOCKED (cycle — human decision).
+**11 packages fully DONE**: compound, inference, physics, platform, persistence, models, governance,
+world_model, environments, data_mesh, pipeline. `cache/` classified (0 clean-A; 1 dup → human);
+`swarm/` BLOCKED (cycle — human decision).
 
 **Pre-scouted genuine-A candidates (zero static edge anywhere — wire one per tick, classify the rest
-of each package first):** `pipeline/incremental_trainer`, `substrate/popcorn`, `gateway/mcp_http_server`.
+of each package first):** `substrate/popcorn`, `gateway/mcp_http_server`.
 (Single-module packages already confirmed reachable, NOT orphans — skip: knowledge/llm_wiki,
 storage/surreal_client, tools/test_generator [C], reporting/nightly [B], optimization/r_zero,
 patterns/hermetic_design_patterns [B], sandboxing/executor [C], evaluation/self_eval,
