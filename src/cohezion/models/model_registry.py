@@ -38,6 +38,20 @@ _TASK_KEYWORDS: list[tuple[tuple[str, ...], str]] = [
     (("reason", "analy", "think", "plan", "evaluate"), "REASONING"),
 ]
 
+# Per-lane average power draw (watts) on Strix Halo. On a $0-dollar local fleet, ELECTRICITY is
+# the differentiator the dollar-based CC2 cost term can't see (all local cost_usd=0). Used to
+# break quality/priority ties toward the lower-wattage lane. NEEDS-CALIBRATION against real
+# hardware_telemetry.tokens_per_watt before being treated as load-bearing. Lane is a StrEnum so
+# its members hash as their string value ("npu", ...) and index this map directly.
+_LANE_WATTS: dict[str, float] = {
+    "npu": 2.0,  # XDNA2, FastFlowLM <2 W
+    "igpu_rocwmma": 35.0,  # RDNA3.5
+    "igpu_unified": 35.0,
+    "cpu": 55.0,
+    # cloud lanes draw ~0 LOCAL watts; their real cost is dollars (handled by CC2).
+}
+_DEFAULT_WATTS = 50.0
+
 
 def _classify_task(task: str):
     """Map a free task string to a Task enum member, or None if no confident match."""
@@ -99,12 +113,22 @@ class ModelRegistry:
             candidates = get_registry().for_task(task_enum)  # priority-sorted (best first)
             if not candidates:
                 return None
+
+            # Electricity-aware ranking: quality/fitness FIRST (priority, lower=better — encodes
+            # task-affinity), then ELECTRICITY (watts) as the tie-breaker among equal-quality
+            # candidates. We do NOT let watts override a better-fit model — the NPU is only
+            # preferred when it ties on priority, never when a heavier lane is genuinely better
+            # at the task. (The continuous quality×energy trade — feynman_path_weight's energy
+            # term — belongs in CostAwareRouter, which has real per-model quality scores.)
+            def _rank(c) -> tuple[int, float]:
+                return (c.priority, _LANE_WATTS.get(c.lane, _DEFAULT_WATTS))
+
             if prefer_fast:
                 local = {Lane.NPU, Lane.IGPU_ROCWMMA, Lane.IGPU_UNIFIED, Lane.CPU}
                 preferred = [c for c in candidates if c.lane in local]
                 if preferred:
-                    return preferred[0].model_id
-            return candidates[0].model_id
+                    return min(preferred, key=_rank).model_id
+            return min(candidates, key=_rank).model_id
         except Exception as exc:
             logger.debug("task-specialist lookup failed for %r: %s", task, exc)
             return None

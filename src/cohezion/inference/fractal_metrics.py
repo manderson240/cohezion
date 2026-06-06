@@ -78,20 +78,35 @@ def higuchi_fd(series: list[float], k_max: int = 5) -> float:
     return max(1.0, min(2.0, -slope))
 
 
-def feynman_path_weight(quality_score: float, cost_usd: float = 0.0) -> float:
-    """Feynman path integral amplitude for a tier.
+# Energy penalty coefficient (1/joule). On a $0 local fleet the cost term is uniformly 0, so
+# electricity is the ONLY thing distinguishing NPU (~2 W) from iGPU (~35 W) from CPU (~55 W).
+# NEEDS-CALIBRATION: 0.01 is a sensible starting weight (a 55 J CPU turn → ~0.58× amplitude, a
+# 4 J NPU turn → ~0.96×) but the exact value should be tuned against real tokens-per-watt
+# telemetry (hardware_telemetry.tokens_per_watt) before being treated as load-bearing.
+LAMBDA_ENERGY = 0.01
 
-    A(tier) = quality_score × exp(-lambda × cost_usd)
 
-    where lambda = 100 (calibrated: $0.01 penalty halves the amplitude).
+def feynman_path_weight(
+    quality_score: float, cost_usd: float = 0.0, energy_joules: float = 0.0
+) -> float:
+    """Feynman path integral amplitude for a tier — quality vs DOLLARS vs ELECTRICITY.
 
-    At zero cost (local silicon), A = quality_score.
-    At cloud cost ($0.01), A ≈ 0.37 × quality_score.
+    A(tier) = quality_score × exp(-lambda_cost × cost_usd) × exp(-LAMBDA_ENERGY × energy_joules)
 
-    The dominant tier is argmax(A) — maximize quality, penalize cost.
+    - lambda_cost = 100 (CC2, calibrated: $0.01 halves the amplitude). UNCHANGED.
+    - LAMBDA_ENERGY penalizes joules so that, among $0 local tiers, the lower-wattage lane wins
+      when quality ties. ``energy_joules`` defaults to 0.0 → identical to the prior CC2 behavior
+      (the CC2 harness check, which passes energy=0, is byte-for-byte unaffected).
+
+    At zero cost AND zero energy, A = quality_score. The dominant tier is argmax(A): maximize
+    quality, penalize dollars (cloud), then penalize watts (NPU > iGPU > CPU among local).
     """
     lambda_cost = 100.0
-    return quality_score * math.exp(-lambda_cost * cost_usd)
+    return (
+        quality_score
+        * math.exp(-lambda_cost * cost_usd)
+        * math.exp(-LAMBDA_ENERGY * energy_joules)
+    )
 
 
 def hiho_fixed_point_deviation(scores: list[float]) -> float:

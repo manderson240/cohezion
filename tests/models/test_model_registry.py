@@ -8,7 +8,10 @@ Covers two builds:
 """
 from __future__ import annotations
 
-from cohezion.inference.registry import Task, get_registry
+from unittest.mock import patch
+
+from cohezion.inference.fractal_metrics import feynman_path_weight
+from cohezion.inference.registry import Lane, Task, get_registry
 from cohezion.models.model_registry import ModelRegistry, _classify_task
 
 
@@ -109,3 +112,55 @@ def test_swarm_service_and_cli_still_import() -> None:
 
     importlib.import_module("cohezion.services.swarm_service")
     importlib.import_module("cohezion.cli")
+
+
+# ---- electricity + quality in the routing amplitude -----------------------------
+
+
+def test_feynman_cc2_preserved_when_no_energy() -> None:
+    # CC2 (harness-protected): default energy=0 must be byte-identical to the old behavior.
+    assert feynman_path_weight(0.5, 0.0) == 0.5
+    assert feynman_path_weight(0.5, 0.0, 0.0) == 0.5
+    # the exact CC2 harness invariant still holds (local $0 beats cloud $0.01):
+    assert feynman_path_weight(0.5, 0.0) > feynman_path_weight(1.0, 0.01)
+
+
+def test_feynman_energy_penalizes_more_joules() -> None:
+    # Electricity term: more joules → lower amplitude, monotonically.
+    a0 = feynman_path_weight(1.0, 0.0, 0.0)
+    a_npu = feynman_path_weight(1.0, 0.0, 4.0)    # ~NPU turn
+    a_cpu = feynman_path_weight(1.0, 0.0, 55.0)   # ~CPU turn
+    assert a0 == 1.0
+    assert a0 > a_npu > a_cpu
+
+
+class _FakeEntry:
+    def __init__(self, model_id: str, lane, priority: int) -> None:
+        self.model_id = model_id
+        self.lane = lane
+        self.priority = priority
+
+
+class _FakeReg:
+    def __init__(self, entries: list) -> None:
+        self._entries = entries
+
+    def for_task(self, task) -> list:
+        return self._entries
+
+
+def test_electricity_tiebreaks_to_npu_at_equal_priority() -> None:
+    # Equal task-fit (priority) → the lower-wattage lane (NPU 2W) wins over CPU (55W).
+    entries = [_FakeEntry("cpu-model", Lane.CPU, 10), _FakeEntry("npu-model", Lane.NPU, 10)]
+    with patch("cohezion.inference.registry.get_registry", return_value=_FakeReg(entries)):
+        got = ModelRegistry().get_best_for_task("reasoning")
+    assert got == "npu-model"
+
+
+def test_quality_beats_electricity_no_watts_override() -> None:
+    # Discriminating: a better-FIT CPU model (priority 10) must beat a worse-fit NPU (priority
+    # 50) even though the NPU draws far fewer watts. Electricity is a TIE-breaker, NOT an override.
+    entries = [_FakeEntry("npu-weak", Lane.NPU, 50), _FakeEntry("cpu-strong", Lane.CPU, 10)]
+    with patch("cohezion.inference.registry.get_registry", return_value=_FakeReg(entries)):
+        got = ModelRegistry().get_best_for_task("reasoning")
+    assert got == "cpu-strong"
