@@ -233,6 +233,24 @@ def _build_default_registry() -> dict[str, ModelEntry]:
             ),
         ),
         ModelEntry(
+            model_id="LFM2.5-VL-1.6B-Extract-GGUF",
+            lane=Lane.IGPU_ROCWMMA,
+            endpoint="http://localhost:13307",
+            runtime_backend="llamacpp_hip",  # vision needs --mmproj (llama-mtmd) — unproven on lemonade
+            task_affinity=frozenset({Task.EXTRACTION, Task.VISION}),
+            weight_quant=WeightQuant.Q4_K_M,  # actual GGUF is Q4_0 (~696 MB); F16 ~2.34 GB
+            context_window=32768,
+            priority=25,  # the EXTRACTION/VISION specialist (was none); small VLM, low VRAM
+            verified_working=False,  # mmproj proof NOT yet run — see LFM_VL_EXTRACTION_2026-06-06.md
+            notes=(
+                "LiquidAI image→YAML field-extraction VLM (the seed for Task.EXTRACTION). "
+                "mmproj-GATED: needs the vision projector (mmproj-…-F16.gguf) loaded — lemonade "
+                "--mmproj support UNPROVEN → llama-mtmd sidecar fallback. Model not yet downloaded; "
+                "verified_working flips True only after the 10-image extraction proof (item 18). "
+                "License lfm1.0 — verify commercial terms before production use."
+            ),
+        ),
+        ModelEntry(
             model_id="Gemma-4-26B-A4B-it-GGUF",
             lane=Lane.IGPU_UNIFIED,
             endpoint="http://localhost:13308",

@@ -39,8 +39,11 @@ def test_new_task_members_exist() -> None:
 
 def test_new_tasks_have_no_models_yet_and_existing_unchanged() -> None:
     reg = get_registry()
-    # New specialist tasks: no model registered yet -> empty (not an error).
-    for t in (Task.EXTRACTION, Task.VISION, Task.FIM, Task.FUNCTION_CALL, Task.RERANK, Task.OCR_DOC):
+    # EXTRACTION/VISION now have the LFM2.5-VL specialist (item 4, 2026-06-06).
+    assert reg.for_task(Task.EXTRACTION)[0].model_id == "LFM2.5-VL-1.6B-Extract-GGUF"
+    assert any(m.model_id == "LFM2.5-VL-1.6B-Extract-GGUF" for m in reg.for_task(Task.VISION))
+    # The remaining new specialist tasks have no model yet -> empty (not an error).
+    for t in (Task.FIM, Task.FUNCTION_CALL, Task.RERANK, Task.OCR_DOC):
         assert reg.for_task(t) == []
     # Falsifiable regression guard: existing task buckets are untouched & still coherent.
     reasoning = reg.for_task(Task.REASONING)
@@ -78,12 +81,13 @@ def test_task_aware_returns_registry_specialist_for_known_task() -> None:
 
 
 def test_unregistered_task_falls_back_to_complexity_router() -> None:
-    # "extract data" classifies to EXTRACTION, which has no model yet -> falls through to the
-    # router. Proves classification AND graceful fallback both work.
+    # "ocr this scanned document" classifies to OCR_DOC, which STILL has no specialist ->
+    # falls through to the router. Proves classification AND graceful fallback both work.
+    # (EXTRACTION is no longer the example here: it now has the LFM specialist — item 4.)
     fake = _FakeRouter()
-    got = ModelRegistry(router=fake).get_best_for_task("extract data", budget=0.01)
+    got = ModelRegistry(router=fake).get_best_for_task("ocr this scanned document", budget=0.01)
     assert got == "complexity-fallback-model"
-    assert fake.calls[0] == ("extract data", 0.01, 0.95)
+    assert fake.calls[0] == ("ocr this scanned document", 0.01, 0.95)
 
 
 def test_unclassifiable_task_falls_back_to_router() -> None:
