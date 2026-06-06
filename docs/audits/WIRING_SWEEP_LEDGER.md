@@ -370,6 +370,16 @@ NOT an edge to `cohezion.ouroboros.recorder`. Always confirm the FULL dotted pat
 package, not a same-leaf-named module elsewhere. (recorder is reachable anyway via executor.) 0
 genuine-A; record-only sweep (lazy-but-literal executor imports ARE static edges).
 
+### evolution/ — CLASSIFIED + DONE (2026-06-06), 0 genuine-A (all reachable)
+3 modules (reflection_optimizer, skill_optimizer, variable). Classification:
+- **Reachable via production (1)**: `skill_optimizer` ← `compound/skill_refiner.py:437`
+  (`from cohezion.evolution.skill_optimizer import SkillOptimizer`).
+- **Class C · `__init__` re-export (2)**: `reflection_optimizer` + `variable` — re-exported by
+  `evolution/__init__.py` (lines 9/11), which is REACHED because importing `skill_optimizer` (the
+  production edge) loads the package `__init__`. Minor: those re-exports use plain `from … import X`
+  (not `X as X`); pre-existing, not an orphan — left untouched (non-destructive). 0 genuine-A;
+  record-only sweep.
+
 ## Swept packages
 | Package | Swept | Candidates | A wired | A remaining | B/C/D recorded | Needs-human |
 |---|---|---|---|---|---|---|
@@ -395,6 +405,7 @@ genuine-A; record-only sweep (lazy-but-literal executor imports ARE static edges
 | mycelium | **DONE** | 4 | 0 | 0 | 4 reachable (all via prod src imports) | 0 |
 | cost_optimization | **DONE** | 4 | 2 (cost_dashboard, forecast_engine) | 0 | 2 reachable | 0 |
 | ouroboros | **DONE** | 6 | 0 | 0 | 6 reachable (all via prod src imports) | 0 |
+| evolution | **DONE** | 3 | 0 | 0 | 1 reachable + 2 C (__init__ re-export) | 0 |
 
 ## Needs human decision
 - **`rl/lora_trainer` broken import (transformers).** `import cohezion.rl.lora_trainer` raises
@@ -436,9 +447,9 @@ genuine-A; record-only sweep (lazy-but-literal executor imports ARE static edges
   re-export above is the non-behavior-changing edge; deeper integration is deferred to a human.
 
 ## Next tick
-**19 packages fully DONE**: compound, inference, physics, platform, persistence, models, governance,
+**20 packages fully DONE**: compound, inference, physics, platform, persistence, models, governance,
 world_model, environments, data_mesh, pipeline, substrate, gateway, hookify, audio, knowledge_graph,
-mycelium, cost_optimization, ouroboros. `cache/` classified (0 clean-A; 1 dup → human); `swarm/` BLOCKED (cycle — human decision).
+mycelium, cost_optimization, ouroboros, evolution. `cache/` classified (0 clean-A; 1 dup → human); `swarm/` BLOCKED (cycle — human decision).
 
 **`rl/` clean genuine-A all wired (3/3).** Only `lora_trainer` remains, BLOCKED on transformers
 (human — Needs-human). rl/ stays `classified` until that import is fixed.
