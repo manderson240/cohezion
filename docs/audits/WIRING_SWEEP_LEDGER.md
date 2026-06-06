@@ -240,6 +240,26 @@ substrate/ file-level sweep COMPLETE (0 genuine-A remaining).
   a deployment-wiring TODO for a human, NOT a fake import edge the loop should force.
 gateway/ file-level sweep COMPLETE (0 genuine-A; 1 Class-D entry-point recorded).
 
+### rl/ — CLASSIFIED (2026-06-06), IN PROGRESS (1 of 4 genuine-A wired)
+10 modules. Classification:
+- **Reachable**: environment (src_ext=3), evo (intra+tests), reward_shaping (intra+tests),
+  task_generator (src_ext+intra), trainer (src_ext=6).
+- **Class B · tests-only (1)**: ppo_trainer.
+- **Class A · genuine orphans (4)** — all 0 importers anywhere:
+  - **causal_interpreter** (ActivationPatcher / CausalInterventionTester / InterventionResult /
+    InterpretabilityReport — causal-intervention interpretability) → **WIRED** via `rl/__init__`
+    guarded (torch) re-export. `tests/wiring/test_causal_interpreter_wired.py` (identity + `__all__`,
+    importorskip torch). Both-order robust. Imports cleanly (test RUNS, not skipped).
+  - **distributed_trainer** (DistributedConfig / DistributedLauncher / DistributedPPOTrainer) —
+    imports cleanly; remaining genuine-A → next tick.
+  - **grpo_trainer** (AsyncGRPOTrainer / GRPOConfig) — imports cleanly; remaining genuine-A → next tick.
+  - **lora_trainer** — **BLOCKED: broken import** (the wiring discipline surfaced it). `import
+    cohezion.rl.lora_trainer` raises `ImportError: cannot import name 'PreTrainedModel' from
+    'transformers'` (a transformers-internal `integration_utils` failure in this env). It sat as an
+    orphan so its broken import was invisible. NOT wireable with a runnable test until the
+    transformers import is resolved — surfaced under "## Needs human decision".
+rl/ NOT complete — 2 clean genuine-A remain (distributed_trainer, grpo_trainer) + 1 blocked (lora_trainer).
+
 ## Swept packages
 | Package | Swept | Candidates | A wired | A remaining | B/C/D recorded | Needs-human |
 |---|---|---|---|---|---|---|
@@ -258,8 +278,17 @@ gateway/ file-level sweep COMPLETE (0 genuine-A; 1 Class-D entry-point recorded)
 | pipeline | **DONE** | 4 | 1 (incremental_trainer) | 0 | 2 B + 1 reachable | 0 |
 | substrate | **DONE** | 4 | 1 (popcorn) | 0 | 1 B + 2 reachable | 0 |
 | gateway | **DONE** | 4 | 0 | 0 | 1 D (entry-point) + 3 reachable | 0 |
+| rl | classified | 10 | 1 (causal_interpreter) | 3 | 1 B + 5 reachable | 1 (lora_trainer import) |
 
 ## Needs human decision
+- **`rl/lora_trainer` broken import (transformers).** `import cohezion.rl.lora_trainer` raises
+  `ImportError: cannot import name 'PreTrainedModel' from 'transformers'` (failure inside
+  `transformers/integrations/integration_utils.py: from .. import PreTrainedModel, TrainingArguments`
+  — a transformers-version internal issue). The module sat as an orphan (0 importers), so this latent
+  breakage was invisible; the wiring sweep surfaced it. NOT a wiring fix — needs a dependency/version
+  resolution (pin/upgrade transformers, or make lora_trainer's transformers import lazy/guarded).
+  Until then lora_trainer cannot be wired with a runnable discriminating test. (LoRAConfig/LoRAModel/
+  SFTTrainer/RLHFTrainer remain unreachable.)
 - **compound↔swarm circular import (blocks swarm/ wiring).** `compound/dynamic_compound_system.py`
   + `compound/dynamic_system_integration.py` import `cohezion.swarm` at MODULE scope, so their
   `compound/__init__` guarded re-exports silently unbind under swarm-first import order. Resolve the
@@ -295,9 +324,19 @@ gateway/ file-level sweep COMPLETE (0 genuine-A; 1 Class-D entry-point recorded)
 world_model, environments, data_mesh, pipeline, substrate, gateway. `cache/` classified (0 clean-A;
 1 dup → human); `swarm/` BLOCKED (cycle — human decision).
 
-**No pre-scouted candidates remain.** Next tick: pick a fresh not-yet-swept `src/cohezion/<pkg>/`
+**Next tick: finish `rl/`** — 2 clean genuine-A remain (`distributed_trainer`, `grpo_trainer`,
+both import cleanly), wire one per tick via the same guarded `rl/__init__` (torch) re-export +
+discriminating test; then `rl/lora_trainer` stays BLOCKED on the transformers import (human).
+**Pre-scouted clean genuine-A in other unswept packages** (from the multi-package scan, all
+main_guard=0 libraries): `hookify/adversarial_review`, `audio/{moshi_client, protoclr}`,
+`rl/{distributed_trainer, grpo_trainer}`. Entry-point (main_guard=1, record Class-D not wire):
+`healing/{amd_s2idle_report, deep_audit, drift_analyzer, platform_audit, utilization_audit}`,
+`knowledge_graph/cli`, `simulation/{distributed, glass_box_debate}`,
+`reliability/{blackwell_handshake, quantum_performance_monitor}`.
+
+After `rl/`: pick a fresh not-yet-swept `src/cohezion/<pkg>/`
 (unswept incl. `api`, `mcp`, `agents`, `core`, `flume`, `universe`, `security`, `swarm`-blocked,
-`rl`, `mycelium`, `simulation`, `audio`, `cost_optimization`, `knowledge_graph`, `healing`,
+`mycelium`, `simulation`, `audio`, `cost_optimization`, `knowledge_graph`, `healing`,
 `reliability`, `hookify`, `dogfooding`, `worldviews`, `ouroboros`, `agents`, …) — classify
 file-level, wire genuine Class-A orphans one per tick. For SERVER/CLI modules with a `__main__`
 guard and no static importer, classify Class-D entry-point (record, do NOT force a fake `main()`
