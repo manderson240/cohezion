@@ -277,6 +277,99 @@ def deposit_skill_neuron(
         return None
 
 
+def _detect_stable_routing_pattern(
+    records: list[dict], *, min_samples: int = 5, min_consistency: float = 0.8
+) -> tuple[str, str, float, int] | None:
+    """The strongest stabilized routing pattern in the corpus, or None (UNPROVEN on noise).
+
+    A task_class is *procedurally stable* when, across >= ``min_samples`` decisions, a single
+    lane carries >= ``min_consistency`` of them WITHOUT falling back. Returns
+    ``(task_class, lane, consistency, n_samples)`` for the strongest such pattern (by
+    consistency x samples), else None. Pure — no graph access.
+    """
+    from collections import Counter
+
+    by_class: dict[str, list[dict]] = {}
+    for rec in records:
+        tc = rec.get("task_class")
+        if tc:
+            by_class.setdefault(str(tc), []).append(rec)
+
+    best: tuple[str, str, float, int] | None = None
+    for task_class, recs in by_class.items():
+        if len(recs) < min_samples:
+            continue  # noise, not a pattern
+        succeeded = [r for r in recs if not r.get("fell_back") and r.get("lane")]
+        if len(succeeded) < min_samples:
+            continue  # mostly fell back → no successful stable lane
+        modal_lane, count = Counter(str(r["lane"]) for r in succeeded).most_common(1)[0]
+        consistency = count / len(recs)
+        if consistency >= min_consistency:
+            cand = (task_class, modal_lane, round(consistency, 4), len(recs))
+            if best is None or cand[2] * cand[3] > best[2] * best[3]:
+                best = cand
+    return best
+
+
+def build_cerebellum_neuron(
+    task_class: str,
+    lane: str,
+    *,
+    consistency: float,
+    samples: int,
+    embedding: list[float] | None = None,
+) -> dict:
+    """Build a ``country='cerebellum'`` neuron for a stabilized routing pattern (item 24) —
+    procedural memory: "this task class reliably routes to this lane"."""
+    return {
+        "name": f"cerebellum:{task_class}->{lane}",
+        "content": (
+            f"stabilized routing: {task_class} -> {lane} "
+            f"({consistency:.0%} consistent over {samples} decisions)"
+        ),
+        "country": "cerebellum",
+        "tags": ["cerebellum", "procedural", task_class, lane],
+        "embedding": list(embedding or [])[:32],
+        "reward": float(consistency),
+    }
+
+
+def deposit_cerebellum_neuron(
+    records: list[dict],
+    *,
+    min_samples: int = 5,
+    min_consistency: float = 0.8,
+    store: list[dict] | None = None,
+) -> dict | None:
+    """Deposit a ``country='cerebellum'`` neuron iff the routing corpus shows a STABILIZED pattern.
+
+    Item 24 — completes the neurogenesis triad (inference/skill/cerebellum). A noisy or
+    fallback-heavy corpus deposits NOTHING (only stabilized procedural patterns grow a neuron,
+    the same evidence-gated growth as items 15/16). With an injected ``store`` the neuron is
+    appended for round-trip inspection; without a store it is a NO-OP under pytest (never writes
+    the real graph) and routes through :func:`deposit_neuron_record` in production.
+    """
+    pattern = _detect_stable_routing_pattern(
+        records, min_samples=min_samples, min_consistency=min_consistency
+    )
+    if pattern is None:
+        return None
+    task_class, lane, consistency, samples = pattern
+    neuron = build_cerebellum_neuron(task_class, lane, consistency=consistency, samples=samples)
+    if store is not None:
+        store.append(neuron)
+        return neuron
+    try:
+        import sys
+
+        if "pytest" in sys.modules or "unittest" in sys.modules:
+            return None  # never touch the real graph during tests
+        deposit_neuron_record(neuron)
+        return neuron
+    except Exception:
+        return None
+
+
 def update_key_learnings_with_link(
     learnings_path: Path,
     learning: Learning,
