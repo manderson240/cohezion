@@ -125,3 +125,30 @@ def correspondences_from_backlog(
     enc = encoder or _flume_encoder()
     corpus = _backlog_solution_corpus(backlog_path or _DEFAULT_BACKLOG)
     return geometric_correspondence(query, corpus, encoder=enc, top_k=top_k, floor=floor)
+
+
+def compound_context_for(
+    item_text: str,
+    *,
+    backlog_path: Path | None = None,
+    encoder: Encoder | None = None,
+    top_k: int = 3,
+    floor: float = 0.0,
+) -> str:
+    """Advisory compound-engineering context for a NEW item (item 67 — wires item 66 into the tick).
+
+    The build-loop tick calls this BEFORE implementing an item: it surfaces the geometrically-
+    corresponding prior COMMITS to compound on (from :func:`correspondences_from_backlog`). Returns a
+    human-readable advisory string; report-only — it does NOT alter what gets implemented (wiring it
+    into the LIVE executor pre-step is a separate gated change). Pure given the encoder.
+    """
+    matches = correspondences_from_backlog(
+        item_text, backlog_path=backlog_path, encoder=encoder, top_k=top_k, floor=floor
+    )
+    if not matches:
+        return "No geometrically-corresponding prior solution found — treat as a novel item."
+    lines = [
+        "Compound-engineering context — prior commits geometrically near this item (compound on them):"
+    ]
+    lines.extend(f"  - {m.ref} (correspondence {m.score:.2f}): {m.text}" for m in matches)
+    return "\n".join(lines)
