@@ -75,11 +75,21 @@ import order (the `contextlib.suppress` swallows the partial-import ImportError)
 import works; swarm-first does not. This is a latent compound↔swarm cycle that wiring exposed.
 Reverted the agent_factory edit; swarm/ deferred to the human-decision item below.
 
+### inference/ — CLASSIFIED + DONE (2026-06-06)
+14 candidates: 13 Class-B (tests-only: anti_sycophancy, autoharness, autoharness_ce,
+context_engineering, distributed_swarm, evaluation_harness, gemini_cli_tier, hardware_telemetry,
+headless_claude_tier, orchestrator_autoharness, p0_resilience_mixins, tri_compute_orchestrator,
+turboquant_streaming) + 1 genuine-A: **lynx_gate** → WIRED via `inference/__init__` guarded re-export
+(LYNXGate, EscalationProbe). Cycle-safe (lynx_gate imports no swarm/compound). Verified robust under
+BOTH import orders (inference-first AND compound-first) — the discipline the swarm cycle taught.
+inference/ file-level sweep COMPLETE (0 genuine-A remaining).
+
 ## Swept packages
 | Package | Swept | Candidates | A wired | A remaining | B/C/D recorded | Needs-human |
 |---|---|---|---|---|---|---|
 | compound | **DONE** | 24 | 9 (+aimo_reasoning) | 0 | 13 B + 1 D | 3 (below) |
 | swarm | classified | 24 | 0 (BLOCKED) | 12 | — | circular import (below) |
+| inference | **DONE** | 14 | 1 (lynx_gate) | 0 | 13 B | 0 |
 
 ## Needs human decision
 - **compound↔swarm circular import (blocks swarm/ wiring).** `compound/dynamic_compound_system.py`
@@ -102,6 +112,7 @@ Reverted the agent_factory edit; swarm/ deferred to the human-decision item belo
   re-export above is the non-behavior-changing edge; deeper integration is deferred to a human.
 
 ## Next tick
-`compound/` DONE; `swarm/` classified but BLOCKED (circular import — human decision). Advance to
-the NEXT unblocked package (e.g. `inference/` or `physics/`): classify file-level, wire genuine
-Class-A orphans one per tick. Do NOT re-attempt swarm/ until the compound↔swarm cycle is resolved.
+`compound/` + `inference/` DONE; `swarm/` BLOCKED (cycle — human decision). Advance to the NEXT
+unblocked package (e.g. `physics/` or `platform/`): classify file-level, wire genuine Class-A orphans
+one per tick. ALWAYS run the FULL `tests/wiring/` suite + both-import-order check after wiring (the
+swarm lesson). Do NOT re-attempt swarm/ until the compound↔swarm cycle is resolved.
