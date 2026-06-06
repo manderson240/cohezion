@@ -275,11 +275,29 @@ class ResourceClient:
     async def can_load_model(self, model_name: str, size_gb: float) -> bool:
         """Return True if there is enough memory to load the model safely.
 
-        Two independent guards must BOTH pass: (1) the cross-session reservation budget
-        (PlatformMemoryState), and (2) the hard real-memory + swap gate (`oom_safe_to_load`,
-        harness K1 / strix-halo rule 5). The second catches actual memory pressure / swap
-        thrash the budget model cannot see.
+        Three guards must ALL pass: (0) the EVENT-DRIVEN memory-pressure monitor — evaluating it
+        here both advances the shared pressure state (emitting a transition event to subscribers)
+        and proactively blocks loads at CRITICAL; (1) the cross-session reservation budget
+        (PlatformMemoryState); (2) the hard real-memory + swap gate (`oom_safe_to_load`, harness
+        K1 / strix-halo rule 5). Guards 1-2 catch what the budget model cannot see.
         """
+        # (0) Event-driven pressure gate. Lazy import avoids a module-level cycle
+        # (memory_pressure imports this module's helpers).
+        try:
+            from cohezion.platform.memory_pressure import get_pressure_monitor
+
+            monitor = get_pressure_monitor()
+            monitor.evaluate()  # drives the monitor + fires transition events to subscribers
+            if monitor.loads_blocked():
+                logger.warning(
+                    "OOM guard blocked load of %s (%.1f GiB): memory pressure CRITICAL",
+                    model_name,
+                    size_gb,
+                )
+                return False
+        except Exception as exc:
+            logger.debug("pressure monitor unavailable: %s", exc)
+
         state = await self.check_memory()
         if state.available_gb <= size_gb * MEMORY_HEADROOM:
             return False
