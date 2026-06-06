@@ -115,3 +115,18 @@ agent contexts; relevant to `resource_manager`/`semantic_cache` IF a future tick
 confirms the §1 MTP claim (apache-2.0, 33k dl) and unlocks ~1.7-1.9× self-speculative decoding on
 the iGPU main tier at $0 → backlog item 53 (needs-experiment: direct-llama-server MTP serving +
 memory/quality proof + K1/rule-5 gate). No fabricated or regression-risk items.
+
+## 2026-06-06 (round 9)
+
+Source: user-shared HF paper (arXiv 2606.03264, PaddleOCR-VL-1.6). Paper abstract via WebFetch;
+the released GGUF id verified via `model_info`.
+
+| Finding (HF id / arXiv) | Verified | Class | Fleet seam | Notes |
+|---|---|---|---|---|
+| **`PaddlePaddle/PaddleOCR-VL-1.6-GGUF`** (arXiv 2606.03264) | ✅ model_info (4981 dl, apache-2.0, 2 GGUF: model + **mmproj**) | **NEW · additive · needs-experiment** | `FleetRegistry` / `Task.OCR_DOC` — an ALTERNATIVE to GLM-OCR (item 23) | OFFICIAL PaddlePaddle GGUF of the round's paper model — a **0.9B** document-parsing VLM, **96.33% OmniDocBench v1.6 (SOTA)** via data-curation + staged post-training (CPT→SFT→RL/GRPO). mmproj INCLUDED → serves on the SAME `llama-mtmd` vision-projector path as GLM-OCR (item 23) / item 18. At 0.9B it is far smaller than most OCR VLMs → easy K1/rule-5 gate, $0. Directly competes with the current OCR_DOC seed (GLM-OCR): a head-to-head on OmniDocBench picks the winner. So *registration* is additive (verified_working=False, like items 4/19/21/23); *serving + the GLM-OCR-vs-PaddleOCR bake-off* is needs-experiment (shares item-18's mmproj serving work). → backlog item 54. |
+
+**Round verdict**: 1 HIGH-VALUE verified, fleet-runnable lever — `PaddlePaddle/PaddleOCR-VL-1.6-GGUF`
+(official apache-2.0 GGUF+mmproj, 0.9B SOTA doc-OCR) is a strong alternative/upgrade to GLM-OCR for
+the OCR_DOC slot → backlog item 54 (additive registration; serving + bake-off needs-experiment, on
+item-18's mmproj path). Filter tally across user-shared links: 2 embraced (Gemma-4 QAT → item 50,
+PaddleOCR-VL → item 54), 3 declined-but-mined (LangChain→48, BigSet→49, Nemotron-ASR→none, TaskMem→52).
