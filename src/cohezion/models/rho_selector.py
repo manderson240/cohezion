@@ -127,3 +127,30 @@ def select_harness_update_from_log(
         fallback_threshold=fallback_threshold,
         prefer=prefer,
     )
+
+
+def generate_harness_candidates(
+    records: list[dict],
+    *,
+    min_samples: int = 5,
+    fallback_threshold: float = 0.5,
+) -> list[HarnessCandidate]:
+    """One ``HarnessCandidate`` per chronically-fallback task class (item 33).
+
+    Closes item-27's loop: :func:`select_harness_update` needs candidates handed in; this
+    derives them AUTONOMOUSLY from the routing corpus by reusing :func:`propose_tuning` (item 9).
+    Each chronically-fallback task class becomes a candidate that recruits a task-specialist for
+    it. A healthy or empty corpus yields ``[]`` (UNPROVEN — never a fabricated candidate), and a
+    class below ``min_samples`` is noise, not a candidate (the same evidence gate as propose_tuning).
+    """
+    proposals = propose_tuning(
+        records, min_samples=min_samples, fallback_threshold=fallback_threshold
+    )
+    return [
+        HarnessCandidate(
+            candidate_id=f"recruit:{p.target}",
+            description=f"recruit a task-specialist for {p.target} ({p.metric:.0%} fallback)",
+            targets=frozenset({p.target}),
+        )
+        for p in proposals
+    ]
