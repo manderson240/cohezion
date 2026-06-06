@@ -251,6 +251,24 @@ def _build_default_registry() -> dict[str, ModelEntry]:
             ),
         ),
         ModelEntry(
+            model_id="Qwen3-Reranker-0.6B-GGUF",
+            lane=Lane.IGPU_ROCWMMA,
+            endpoint="http://localhost:13307",
+            runtime_backend="llamacpp_hip",  # needs --pooling rank (llama-server reranker mode)
+            task_affinity=frozenset({Task.RERANK}),
+            weight_quant=WeightQuant.Q5_K_M,  # ~0.6B; Q5_K_M GGUF ~520 MB, low VRAM
+            context_window=32768,
+            priority=25,  # the RERANK specialist (was none); tiny cross-encoder, cheap to host
+            verified_working=False,  # /v1/rerank proof NOT yet run — see item 19 / BLEEDING_EDGE_FEED
+            notes=(
+                "Qwen3-Reranker-0.6B cross-encoder (the seed for Task.RERANK; HF id "
+                "Mungert/Qwen3-Reranker-0.6B-GGUF, 21 GGUF variants). SERVING-GATED: llama.cpp "
+                "rerankers need `--pooling rank` + a proper convert_hf_to_gguf.py; the known trap is "
+                "degenerate near-zero scores (~4.5e-23) for every pair. verified_working flips True "
+                "only after a real NON-DEGENERATE /v1/rerank proof passes. Apache-2.0."
+            ),
+        ),
+        ModelEntry(
             model_id="Gemma-4-26B-A4B-it-GGUF",
             lane=Lane.IGPU_UNIFIED,
             endpoint="http://localhost:13308",
