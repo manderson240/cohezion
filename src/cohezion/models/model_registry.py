@@ -10,12 +10,29 @@ the right task". It falls back to the complexity-based `CostAwareRouter` when no
 is registered (e.g. EXTRACTION before LFM2.5-VL is added), and to `None` when both are
 unavailable (so callers fall back to their own default). Fail-soft throughout; never raises.
 """
+
 from __future__ import annotations
 
 import logging
 
+from cohezion.models.routing_log import record_routing_decision
+
 
 logger = logging.getLogger(__name__)
+
+
+def _lane_for(model_id: str | None) -> str:
+    """Best-effort lane label for a chosen model (from the fleet registry). Fail-soft → ''."""
+    if not model_id:
+        return ""
+    try:
+        from cohezion.inference.registry import get_registry
+
+        entry = get_registry().models.get(model_id)
+        return str(entry.lane) if entry is not None else ""
+    except Exception:
+        return ""
+
 
 # task-string keyword → Task, ordered specific → general (first match wins). Kept here (the
 # consumer) rather than in registry.py so the declarative map stays free of heuristics.
@@ -133,6 +150,20 @@ class ModelRegistry:
             logger.debug("task-specialist lookup failed for %r: %s", task, exc)
             return None
 
+    def _log_routing(self, task: str, model: str | None, *, fell_back: bool) -> None:
+        """Fail-soft: record one routing decision to the corpus (item 9 tunes from it)."""
+        try:
+            task_enum = _classify_task(task)
+            task_class = task_enum.name if task_enum is not None else "unclassified"
+            record_routing_decision(
+                task_class=task_class,
+                chosen_model=model,
+                lane=_lane_for(model),
+                fell_back=fell_back,
+            )
+        except Exception:
+            pass  # logging must never break the routing path
+
     def get_best_for_task(
         self, task: str, budget: float | None = None, prefer_fast: bool = True
     ) -> str | None:
@@ -140,14 +171,17 @@ class ModelRegistry:
 
         Order: (1) task-TYPE specialist from FleetRegistry.for_task (the right model for the
         right task); (2) complexity-based CostAwareRouter; (3) None. ``prefer_fast`` biases
-        toward local lanes in (1) and the router's cache-aware fast path in (2).
+        toward local lanes in (1) and the router's cache-aware fast path in (2). Every
+        decision (incl. fallback / no-route) is recorded to the routing corpus (item 2).
         """
         specialist = self._best_specialist(task, prefer_fast)
         if specialist is not None:
+            self._log_routing(task, specialist, fell_back=False)
             return specialist
 
         router = self._ensure_router()
         if router is None:
+            self._log_routing(task, None, fell_back=True)
             return None
         try:
             decision, _ = router.select_model(  # type: ignore[attr-defined]
@@ -155,7 +189,10 @@ class ModelRegistry:
                 max_cost_usd=budget,
                 cache_hit_rate=0.95 if prefer_fast else None,
             )
-            return getattr(decision, "model", None)
+            model = getattr(decision, "model", None)
+            self._log_routing(task, model, fell_back=True)
+            return model
         except Exception as exc:
             logger.debug("ModelRegistry.get_best_for_task failed: %s", exc)
+            self._log_routing(task, None, fell_back=True)
             return None
