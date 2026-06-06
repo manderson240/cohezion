@@ -17,6 +17,17 @@ from typing import Any, NamedTuple
 import httpx
 
 
+# Real transient-network exception classes captured at import time. Tests patch
+# the module-level ``httpx`` symbol with a MagicMock, which would otherwise make
+# ``httpx.TimeoutException`` un-catchable; this tuple stays bound to the real
+# classes so the lemonade-probe retry works under both production and tests.
+_TRANSIENT_HTTP_ERRORS = (
+    httpx.TimeoutException,
+    httpx.ConnectError,
+    httpx.ReadError,
+)
+
+
 class ModelSelection(NamedTuple):
     """A selected chat model plus which backend serves it.
 
@@ -235,13 +246,18 @@ class TelegramCommunicationHub:
         then any served id containing "Granite", then any non-embedding,
         non-cloud id. Returns None when the router is down or lists nothing.
         """
-        try:
-            from cohezion.config.defaults import LEMONADE_ROUTER_PORT
+        from cohezion.config.defaults import LEMONADE_ROUTER_PORT
 
-            async with httpx.AsyncClient() as client:
-                r = await client.get(
-                    f"http://localhost:{LEMONADE_ROUTER_PORT}/v1/models", timeout=3.0
-                )
+        url = f"http://localhost:{LEMONADE_ROUTER_PORT}/v1/models"
+
+        # The fleet is normally up; a single slow/dropped probe must NOT collapse
+        # to "Local Fleet Offline". Retry the probe once on a transient network
+        # error (timeout / connection reset) before giving up to the Ollama path.
+        last_exc: Exception | None = None
+        for attempt in range(2):
+            try:
+                async with httpx.AsyncClient() as client:
+                    r = await client.get(url, timeout=5.0)
                 if r.status_code != 200:
                     return None
                 data = r.json()
@@ -259,8 +275,19 @@ class TelegramCommunicationHub:
                     lowered = model_id.lower()
                     if "embed" not in lowered and "cloud" not in lowered:
                         return model_id
-        except Exception as e:
-            logger.warning("Error querying lemonade router models: %s", e)
+                return None
+            except _TRANSIENT_HTTP_ERRORS as e:
+                # Transient: the router may be momentarily busy. Retry once.
+                last_exc = e
+                logger.warning(
+                    "Transient error querying lemonade router (attempt %d/2): %s", attempt + 1, e
+                )
+                continue
+            except Exception as e:  # non-transient: do not retry
+                logger.warning("Error querying lemonade router models: %s", e)
+                return None
+
+        logger.warning("Lemonade router probe failed after retry: %s", last_exc)
         return None
 
     async def _select_ollama_model(self) -> str | None:
@@ -615,6 +642,10 @@ if __name__ == "__main__":
         level=logging.INFO,
         format="%(asctime)s - %(name)s - %(levelname)s - %(message)s",
     )
+    # httpx logs full request URLs at INFO, which embeds the bot token
+    # (https://api.telegram.org/bot<TOKEN>/...). Silence it to avoid leaking the
+    # secret into the pane/journal; warnings/errors still surface.
+    logging.getLogger("httpx").setLevel(logging.WARNING)
     hub = TelegramCommunicationHub()
     if not hub.is_configured():
         print("Error: TELEGRAM_BOT_TOKEN and TELEGRAM_CHAT_ID must be set in environment.")

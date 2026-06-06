@@ -10,6 +10,7 @@ or parses the wrong response shape will fail.
 import types
 from unittest.mock import AsyncMock, MagicMock, patch
 
+import httpx
 import pytest
 
 from cohezion.integrations.telegram_bot import ModelSelection, TelegramCommunicationHub
@@ -232,3 +233,37 @@ async def test_handle_chat_ollama_fallback_uses_api_chat(mock_env):
     assert any("/api/chat" in u for u in client.post_urls), client.post_urls
     assert not any("/v1/chat/completions" in u for u in client.post_urls)
     assert any(reply in m for m in sent), sent
+
+
+@pytest.mark.asyncio
+async def test_select_lemonade_retries_once_on_transient_timeout(mock_env):
+    """A single transient router timeout must NOT collapse to offline/Ollama.
+
+    Discriminating: the old implementation caught the first ``httpx.TimeoutException``
+    and returned ``None`` immediately, so a momentarily slow-but-up router produced
+    "Local Fleet Offline" and/or an Ollama fallback. The hardened implementation
+    retries the ``/v1/models`` probe once; the second attempt succeeds and Granite
+    is selected. A wrong impl with no retry returns ``None`` here and this fails.
+    """
+    hub = TelegramCommunicationHub()
+
+    calls = {"n": 0}
+
+    def _models_flaky():
+        calls["n"] += 1
+        if calls["n"] == 1:
+            raise httpx.ReadTimeout("router slow on first probe")
+        return _ok_response({"data": [{"id": "Granite-4.1-8B-GGUF"}]})
+
+    client = _RecordingClient(get_router={"/v1/models": _models_flaky})
+
+    with patch("cohezion.integrations.telegram_bot.httpx") as mock_httpx:
+        mock_httpx.AsyncClient.return_value = client
+        model, backend = await hub._select_model()
+
+    # The retry rescued the transient failure: still lemonade Granite, no offline.
+    assert backend == "lemonade", "transient timeout must not fall through to Ollama/offline"
+    assert model == "Granite-4.1-8B-GGUF"
+    assert calls["n"] == 2, f"expected exactly one retry of the models probe, got {calls['n']}"
+    # Never reached Ollama because the router was actually up.
+    assert not any("11434" in u for u in client.get_urls), client.get_urls
