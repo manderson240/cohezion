@@ -50,3 +50,22 @@ classes: "NEW · grounded · needs-experiment · regression-risk"
 **arXiv this round**: RHO 2606.05922 (already item 22) and QuantSpec 2502.10424 / XQuant 2508.10395 / adaptive-KV-quant 2604.04722 all surfaced but are either already-queued or older than the ~30-day window — not re-logged. Only the May-17 VeriCache is in-window and new; logged as a watch-item.
 
 **Round verdict**: 1 high-value verified, fleet-runnable lever — `JetBrains/Mellum-4b-base-gguf` VERIFIED, **un-gating backlog item 28** (the last empty `Task.FIM` slot; same family of empty-slot specialists as items 19/21/23). VeriCache (2605.17613) verified but logged as a KV-cache WATCH-ITEM (no implementation → not fleet-runnable; deliberately NOT made a backlog row). No fabricated or regression-risk items.
+
+## 2026-06-06 (round 5)
+
+Source: user-shared @googledevs post (x.com/.../2062930781945700861, 2026-06-05) — "Gemma 4 QAT
+models". Tweet text verified via the syndication endpoint; HF ids verified via `model_info`.
+
+| Finding (HF id / arXiv) | Verified | Class | Fleet seam | Notes |
+|---|---|---|---|---|
+| **`google/gemma-4-E2B-it-qat-q4_0-gguf`** | ✅ model_info (1948 dl, 2 GGUF: model + mmproj) | **NEW · additive · needs-experiment** | `triune_orchestrator` NPU :13306 / `FleetRegistry` Gemma-4-E2B (Sensing) | Official Google QAT q4_0 of the fleet's E2B tier. QAT > PTQ at the same 4-bit width → better quality at ≤ current memory. Also the CLaSp draft tier. |
+| **`google/gemma-4-E4B-it-qat-q4_0-gguf`** | ✅ model_info (1595 dl, 2 GGUF incl mmproj) | **NEW · additive · needs-experiment** | iGPU :13307 / `FleetRegistry` Gemma-4-E4B (Governance/Knower) | QAT q4_0 of the MAIN iGPU interactive tier. mmproj included → vision-capable (could also feed VISION/EXTRACTION/OCR mmproj path, items 4/18/23). |
+| **`google/gemma-4-26B-A4B-it-qat-q4_0-gguf`** | ✅ list_models (search hit; verify `model_info` before serve) | **NEW · additive · needs-experiment** | iGPU Unified :13308 / Gemma-4-26B-A4B (Thinker, MoE) | QAT q4_0 of the 26B-A4B MoE tier. K1/rule-5 OOM gate MUST pass before pinning (MoE size). |
+| **`google/gemma-4-31B-it-qat-q4_0-gguf`** | ✅ model_info (3821 dl, 37 likes, 2 GGUF incl mmproj) | **NEW · additive · needs-experiment** | CPU :13309 / Gemma-4-31B (Architect/Safety) | QAT q4_0 of the CPU reasoning tier. Highest-traction QAT repo. |
+
+**Round verdict**: HIGH-VALUE verified lever — official Google **Gemma-4 QAT q4_0 GGUF** exists for
+ALL FOUR fleet Gemma-4 tiers (E2B/E4B/26B-A4B/31B). QAT beats post-training quant at the same
+bit-width → better quality at lower/equal memory, $0, directly relevant to the memory-tight Strix
+Halo box (K1/rule-5). → backlog item 50 (per-tier swap, needs-experiment: serve + memory + quality
+proof + K1/rule-5 gate + lanes-up window; NEVER auto-swapped). `unsloth/gemma-4-*-it-qat-GGUF`
+mirrors exist (incl. `-mobile-` E2B/E4B) as alternates. NOT a behavior change until the proof passes.
