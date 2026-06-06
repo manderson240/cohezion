@@ -269,6 +269,26 @@ def _build_default_registry() -> dict[str, ModelEntry]:
             ),
         ),
         ModelEntry(
+            model_id="Granite-4.1-3b-GGUF",
+            lane=Lane.IGPU_ROCWMMA,
+            endpoint="http://localhost:13307",
+            runtime_backend="llamacpp_hip",  # tool-calling needs template/tool-token alignment
+            task_affinity=frozenset({Task.FUNCTION_CALL}),
+            weight_quant=WeightQuant.Q4_K_M,  # ~3B; Q4_K_M GGUF ~2 GB, low VRAM
+            context_window=131072,
+            priority=22,  # the FUNCTION_CALL specialist (was none); small no-thinking tool model
+            verified_working=False,  # tool-call proof NOT yet run — see item 21 / BLEEDING_EDGE_FEED
+            notes=(
+                "IBM Granite-4.1-3b (the seed for Task.FUNCTION_CALL; HF id "
+                "ibm-granite/granite-4.1-3b-GGUF, 15 GGUF variants). SAME validated no-thinking, "
+                "tool-capable family as Hermes's main Granite-4.1-8B, but $0-local-small. "
+                "SERVING-GATED: llama.cpp tool-calling breaks on chat-template / tool-call "
+                "special-token mismatch (orchestrator prompt format must match the model template). "
+                "verified_working flips True only after a real finish_reason=tool_calls proof with "
+                "valid args. Apache-2.0."
+            ),
+        ),
+        ModelEntry(
             model_id="Gemma-4-26B-A4B-it-GGUF",
             lane=Lane.IGPU_UNIFIED,
             endpoint="http://localhost:13308",

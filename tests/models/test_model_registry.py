@@ -44,8 +44,10 @@ def test_new_tasks_have_no_models_yet_and_existing_unchanged() -> None:
     assert any(m.model_id == "LFM2.5-VL-1.6B-Extract-GGUF" for m in reg.for_task(Task.VISION))
     # RERANK now has the Qwen3-Reranker specialist (item 19, 2026-06-06).
     assert reg.for_task(Task.RERANK)[0].model_id == "Qwen3-Reranker-0.6B-GGUF"
+    # FUNCTION_CALL now has the Granite-4.1-3b specialist (item 21, 2026-06-06).
+    assert reg.for_task(Task.FUNCTION_CALL)[0].model_id == "Granite-4.1-3b-GGUF"
     # The remaining new specialist tasks have no model yet -> empty (not an error).
-    for t in (Task.FIM, Task.FUNCTION_CALL, Task.OCR_DOC):
+    for t in (Task.FIM, Task.OCR_DOC):
         assert reg.for_task(t) == []
     # Falsifiable regression guard: existing task buckets are untouched & still coherent.
     reasoning = reg.for_task(Task.REASONING)
