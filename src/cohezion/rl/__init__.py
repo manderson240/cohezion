@@ -3,6 +3,8 @@
 import contextlib
 
 
+__all__: list[str] = []
+
 # Wiring-sweep 2026-06-06: causal_interpreter was a genuine production orphan — its
 # ActivationPatcher / CausalInterventionTester / InterventionResult / InterpretabilityReport
 # (causal-intervention interpretability for RL policies) had ZERO importers anywhere. Cycle-safe
@@ -22,9 +24,39 @@ with contextlib.suppress(Exception):
         InterventionResult as InterventionResult,
     )
 
-    __all__ = [
+    __all__ += [
         "ActivationPatcher",
         "CausalInterventionTester",
         "InterpretabilityReport",
         "InterventionResult",
+    ]
+
+# Wiring-sweep 2026-06-06: distributed_trainer was a genuine production orphan — its
+# DistributedConfig / ScalingMetrics / DistributedPPOTrainer / DistributedLauncher /
+# ScalingBenchmark (DDP/FSDP distributed PPO training) had ZERO importers anywhere. Cycle-safe.
+# SEPARATE guarded block (torch + torch.distributed at module scope) so its failure domain is
+# isolated from the causal_interpreter re-export above.
+with contextlib.suppress(Exception):
+    from cohezion.rl.distributed_trainer import (
+        DistributedConfig as DistributedConfig,
+    )
+    from cohezion.rl.distributed_trainer import (
+        DistributedLauncher as DistributedLauncher,
+    )
+    from cohezion.rl.distributed_trainer import (
+        DistributedPPOTrainer as DistributedPPOTrainer,
+    )
+    from cohezion.rl.distributed_trainer import (
+        ScalingBenchmark as ScalingBenchmark,
+    )
+    from cohezion.rl.distributed_trainer import (
+        ScalingMetrics as ScalingMetrics,
+    )
+
+    __all__ += [
+        "DistributedConfig",
+        "DistributedLauncher",
+        "DistributedPPOTrainer",
+        "ScalingBenchmark",
+        "ScalingMetrics",
     ]
