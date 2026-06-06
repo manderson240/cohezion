@@ -71,5 +71,29 @@ path also unblocks the OCR_DOC serving for items 23 (GLM-OCR) and 54 (PaddleOCR-
 
 Downloaded artifacts live under `$TMPDIR/lfmvl/` (ephemeral) — re-pull is ~1.5 GB if cleaned.
 
+## UPDATE 2026-06-06 (b) — ACCURACY BAKE-OFF RAN → honest NULL (LFM < baseline)
+User chose "public set, run it now". Ran a PUBLIC labeled set (CORD-v2 receipts, 10 test images, real
+ground truth) head-to-head vs a LOCAL baseline ($0, no data left the box). Harness:
+`scripts/experiments/lfm_vl_extraction_bakeoff.py`. **Pre-registered** metric + verdict BEFORE running
+(no post-hoc bias): mean VALUE-RECALL (fraction of GT leaf values appearing, alphanumeric-boundary, in
+each model's temp=0 output); flip `verified_working` IFF `recall(LFM) >= recall(baseline)`.
+
+| Model | mean value-recall (10 img) | size | parse-fail |
+|---|---|---|---|
+| LFM2.5-VL-1.6B-Extract | **0.771** | 663 MB | 0 |
+| Qwen2.5-VL-7B-Instruct (baseline) | **0.864** | 4466 MB | 0 |
+
+**VERDICT: honest NULL.** `0.771 < 0.864` → LFM does NOT beat the 6.7×-larger baseline →
+`verified_working` stays **False** (the pre-registered rule, honored as written). The specialist
+*serves* correctly (0 parse failures, reads real receipt fields) and is far smaller, but it is ~9 pts
+less accurate on CORD. Both models ran via the isolated llama-mtmd-cli sidecar; box stayed healthy
+(≥25 GiB avail, swap 37%, no Hermes impact).
+
+Caveats (honest): value-recall is presence-based (not structural exact-match), applied identically to
+both models so the COMPARISON is fair; CORD is receipts, not necessarily the user's document types —
+a re-run on the user's real labeled docs could differ (LFM is *extraction-specialized*; it may do
+better on the forms it was tuned for). Item 18's falsifiable check resolved to the NULL branch with the
+sidecar PROVEN+wired — experiment COMPLETE.
+
 ## License
 `lfm1.0` — verify commercial terms before any production/commercial use.
