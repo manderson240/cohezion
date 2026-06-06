@@ -15,6 +15,7 @@ from __future__ import annotations
 
 import json
 from collections.abc import Iterator
+from dataclasses import dataclass
 from datetime import UTC, datetime
 from pathlib import Path
 
@@ -91,3 +92,70 @@ def _iter_lines(sink: Path) -> Iterator[dict]:
                     yield json.loads(line)
                 except json.JSONDecodeError:
                     continue
+
+
+# ── item 9: routing corpus → autoresearch tuning proposals ───────────────────────────────
+@dataclass(frozen=True)
+class TuningProposal:
+    """A measurable, evidence-backed tuning suggestion derived from the routing corpus."""
+
+    kind: str  # "recruit_specialist" (a task class chronically falls back → needs a specialist)
+    target: str  # the task_class (or lane) the proposal is about
+    evidence: str  # human-readable justification
+    metric: float  # the driving statistic (e.g. fallback rate) — higher = more urgent
+
+
+def propose_tuning(
+    records: list[dict],
+    *,
+    min_samples: int = 5,
+    fallback_threshold: float = 0.5,
+) -> list[TuningProposal]:
+    """Derive tuning proposals from routing-decision records. Empty/insufficient → [].
+
+    This closes the agentic self-improvement loop (item 9): the autoresearch loop feeds the
+    corpus produced by ``record_routing_decision`` (item 2) here, and acts on the proposals.
+    The only currently-derivable signal is *chronic fallback*: a task class whose decisions
+    fall back to the complexity router more than ``fallback_threshold`` of the time over at
+    least ``min_samples`` samples is missing a task-specialist — propose recruiting one
+    (the Hebbian-recruitment seed, item 14). Below ``min_samples`` is treated as noise, never
+    a signal — so a fresh/empty corpus honestly yields no proposal (UNPROVEN), never a
+    fabricated one.
+    """
+    by_class: dict[str, list[dict]] = {}
+    for rec in records:
+        tc = rec.get("task_class")
+        if tc:
+            by_class.setdefault(str(tc), []).append(rec)
+
+    proposals: list[TuningProposal] = []
+    for task_class, recs in by_class.items():
+        if len(recs) < min_samples:
+            continue  # not enough evidence — do not propose from noise
+        fallback_rate = sum(1 for r in recs if r.get("fell_back")) / len(recs)
+        if fallback_rate > fallback_threshold:
+            proposals.append(
+                TuningProposal(
+                    kind="recruit_specialist",
+                    target=task_class,
+                    evidence=(
+                        f"{task_class}: {fallback_rate:.0%} of {len(recs)} routing decisions "
+                        f"fell back to the complexity router — a task-specialist is missing."
+                    ),
+                    metric=round(fallback_rate, 4),
+                )
+            )
+    return sorted(proposals, key=lambda p: -p.metric)
+
+
+def propose_tuning_from_log(
+    *,
+    path: Path | None = None,
+    min_samples: int = 5,
+    fallback_threshold: float = 0.5,
+) -> list[TuningProposal]:
+    """Read the routing corpus and derive tuning proposals. No corpus → [] (honest UNPROVEN)."""
+    records = read_routing_decisions(path=path)
+    return propose_tuning(
+        records, min_samples=min_samples, fallback_threshold=fallback_threshold
+    )
