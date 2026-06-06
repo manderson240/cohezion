@@ -97,3 +97,46 @@ def test_from_backlog_surfaces_prior_commit(tmp_path: Path) -> None:
     assert out[0].ref == "aaa1111"  # the DONE commit of the geometrically-corresponding prior item
     # TODO rows have no commit → not in the corpus of prior SOLUTIONS.
     assert "ccc" not in {m.ref[:3] for m in out}
+
+
+# --- item 67: compound_context_for (wires item 66 into the loop tick) -------------------------
+
+from cohezion.compound.geometric_correspondence import compound_context_for
+
+
+def _title_enc(text: str) -> np.ndarray:
+    for k in _VECS:
+        if k in text:
+            return _VECS[k]
+    return np.zeros(3)
+
+
+_DONE_BACKLOG = (
+    "| 1 | A | **alpha** thing | check | additive | DONE aaa1111 (did alpha) |\n"
+    "| 2 | A | **beta** thing | check | additive | DONE bbb2222 (did beta) |\n"
+)
+
+
+def test_compound_context_surfaces_prior_commits(tmp_path: Path) -> None:
+    b = tmp_path / "B.md"
+    b.write_text(_DONE_BACKLOG)
+    advisory = compound_context_for("alpha prime", backlog_path=b, encoder=_title_enc, top_k=2)
+    assert "aaa1111" in advisory  # the geometrically-corresponding prior commit
+    assert "compound" in advisory.lower()
+
+
+def test_compound_context_novel_item(tmp_path: Path) -> None:
+    # A backlog with only TODO rows → no prior SOLUTIONS → novel advisory.
+    b = tmp_path / "B.md"
+    b.write_text("| 1 | A | **alpha** thing | check | additive | TODO |\n")
+    advisory = compound_context_for("alpha prime", backlog_path=b, encoder=_title_enc)
+    assert "novel" in advisory.lower()
+    assert "aaa" not in advisory
+
+
+def test_compound_context_is_string_and_pure(tmp_path: Path) -> None:
+    b = tmp_path / "B.md"
+    b.write_text(_DONE_BACKLOG)
+    a1 = compound_context_for("alpha prime", backlog_path=b, encoder=_title_enc)
+    a2 = compound_context_for("alpha prime", backlog_path=b, encoder=_title_enc)
+    assert isinstance(a1, str) and a1 == a2
