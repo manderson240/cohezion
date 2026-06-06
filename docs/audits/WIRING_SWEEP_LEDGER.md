@@ -29,6 +29,16 @@ The crude grep (`grep compound.<mod>`) over-reports B/C/D as orphans. Per-tick t
 must classify with `findReferences` / import-grep across BOTH `src/` and `tests/`, and check
 `skill_registry.json` + entry-points, before wiring.
 
+**Methodology note (retro 2026-06-06): compiles ≠ reachable.** A `.py` module shadowed by a
+same-named PACKAGE (`foo.py` + `foo/`) is dead-on-arrival — Python's finder always picks the
+package `__init__`, so the file is reachable by no import even though it compiles cleanly. The
+audit's compile check cannot see this. The discriminating probe is `import X; print(X.__file__)`
+— if it resolves to `…/X/__init__.py`, the sibling `X.py` is a shadowed husk (human-decision
+removal, NOT a wire). This caught the untracked `recursive_trace.py` husk this session (the
+tracked `recursive_trace/` package wins; its `resolution_log` is load-bearing). Also: a grep hit
+that is a METHOD NAME (`def analyze_audio_telemetry`) is NOT an import edge — verify the hit is a
+real `import`, not a substring, before classifying a module reachable.
+
 ## Baseline scan — `compound/` (first package, 2026-06-06)
 
 24 file-level candidates surfaced (NOT yet classified — that is the next ticks' work):
