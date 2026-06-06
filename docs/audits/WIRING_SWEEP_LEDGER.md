@@ -86,9 +86,9 @@ inference/ file-level sweep COMPLETE (0 genuine-A remaining).
 
 ### physics/ — CLASSIFIED (2026-06-06), in progress
 5 candidates: 2 Class-B (usd_simulator, vliw_bridge) + 3 genuine-A (flier_routing, mereon_data,
-mhd_mereon), all cycle-safe. WIRED (1): **flier_routing** → `physics/__init__` guarded re-export
-(FLIERRouter, QubitNode). Verified both-import-order robust. Remaining genuine-A (2): mereon_data
-(funcs get_m120p/m144p_vertices — no classes), mhd_mereon (MHDMereonOperator, MHDState).
+mhd_mereon), all cycle-safe. WIRED (2): **flier_routing** (FLIERRouter, QubitNode), **mhd_mereon** (MHDMereonOperator, MHDState)
+→ `physics/__init__` guarded re-exports, both-order robust. Remaining genuine-A (1): mereon_data
+(funcs get_m120p/m144p_vertices — no classes; wire via function re-export next tick).
 
 ## Swept packages
 | Package | Swept | Candidates | A wired | A remaining | B/C/D recorded | Needs-human |
@@ -96,7 +96,7 @@ mhd_mereon), all cycle-safe. WIRED (1): **flier_routing** → `physics/__init__`
 | compound | **DONE** | 24 | 9 (+aimo_reasoning) | 0 | 13 B + 1 D | 3 (below) |
 | swarm | classified | 24 | 0 (BLOCKED) | 12 | — | circular import (below) |
 | inference | **DONE** | 14 | 1 (lynx_gate) | 0 | 13 B | 0 |
-| physics | in progress | 5 | 1 (flier_routing) | 2 | 2 B | 0 |
+| physics | in progress | 5 | 2 (flier_routing, mhd_mereon) | 1 | 2 B | 0 |
 
 ## Needs human decision
 - **compound↔swarm circular import (blocks swarm/ wiring).** `compound/dynamic_compound_system.py`
