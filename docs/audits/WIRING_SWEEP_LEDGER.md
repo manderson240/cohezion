@@ -44,10 +44,10 @@ thermal_autoresearch_executor, workflow_manager
 ```
 
 ### compound/ — CLASSIFIED (2026-06-06)
-- **Class A · genuine orphans (1 remaining)**: aimo_reasoning.
-  ← wire one per tick. (WIRED: hiho_lm_gate, journey_to_training, optimized_session_manager,
+- **Class A · genuine orphans: 0 remaining — `compound/` file-level sweep COMPLETE.**
+  WIRED (9): hiho_lm_gate, journey_to_training, optimized_session_manager,
   thermal_autoresearch_executor, distillation_engine, dynamic_compound_system,
-  dynamic_system_integration, consortium_instigator, agi_reasoning.)
+  dynamic_system_integration, consortium_instigator, agi_reasoning, aimo_reasoning.
 - **Class B · tests-only (13)**: behavioral_eval, chronos, dual_loop_optimizer, eco_symphony,
   experiment_correlator, post_execution, recursive_trace_router, retrospection_validator,
   self_improvement_orchestrator, skill_mutation_queue, skill_refinement_validator, tape_logger,
@@ -62,9 +62,14 @@ thermal_autoresearch_executor, workflow_manager
 ## Swept packages
 | Package | Swept | Candidates | A wired | A remaining | B/C/D recorded | Needs-human |
 |---|---|---|---|---|---|---|
-| compound | classified | 24 | 9 (…+agi_reasoning) | 1 | 13 B + 1 D | 2 (below) |
+| compound | **DONE** | 24 | 9 (+aimo_reasoning) | 0 | 13 B + 1 D | 3 (below) |
 
 ## Needs human decision
+- **`ReasoningModel` surface-name duplicate** — both `compound/agi_reasoning.py` and
+  `compound/aimo_reasoning.py` define a class `ReasoningModel`. Per non-destructive policy rule 3
+  (surface-name duplicates are hazards to VERIFY, not merge blind): confirm whether these are the
+  same concept (consolidate) or legitimately distinct (rename one). NOT merged by the loop. The
+  wiring re-exports agi's `ReasoningModel` + aimo's distinctive `AIMOScaler`/`ProcessRewardModel`.
 - `src/cohezion/compound/test_basic_import.py` — a `test_` file living under `src/` not `tests/`.
   Moving or removing it is destructive; surfaced for a human call (the loop will not touch it).
 - **hiho_lm_gate deeper integration** — its MODEL-BASED sycophancy/ppl gate overlaps
@@ -73,5 +78,6 @@ thermal_autoresearch_executor, workflow_manager
   re-export above is the non-behavior-changing edge; deeper integration is deferred to a human.
 
 ## Next tick
-Wire one more `compound/` Class-A genuine orphan (8 left) to a real consumer / guarded edge with
-a discriminating test, then advance to the next package once compound's Class-A set is exhausted.
+`compound/` is DONE. Advance to the NEXT package: classify `src/cohezion/swarm/` at file level
+(grep each `.py` for static intra-repo import edges across src+tests, check the registry), then
+wire its genuine Class-A orphans one per tick. Track here.
