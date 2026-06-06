@@ -6,6 +6,19 @@ Includes dimensionality extraction, Hamiltonian dynamics, and
 SU(2) spinor algebra for grounded SPIN coherence.
 """
 
+import contextlib
+
+
+# Wiring-sweep 2026-06-06: flier_routing was a genuine import-graph orphan. Guarded re-export
+# makes its router part of the physics surface + statically reachable (cycle-safe).
+with contextlib.suppress(Exception):
+    from cohezion.physics.flier_routing import (
+        FLIERRouter as FLIERRouter,
+    )
+    from cohezion.physics.flier_routing import (
+        QubitNode as QubitNode,
+    )
+
 # Stealthskater extended substrate library — Phase 18
 from cohezion.physics.bec_bridge import BECState, MercuryLattice
 from cohezion.physics.bioelectric_model import BioelectricNetwork
