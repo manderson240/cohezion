@@ -87,3 +87,47 @@ updates:
       actions-updates:
         patterns:
           - "*"
+
+  # Rust (physics core) — added 2026-06-05; was previously uncovered (polyglot repo).
+  - package-ecosystem: "cargo"
+    directory: "/src/cohezion-physics-core"
+    schedule:
+      interval: "daily"
+      time: "00:00"
+      timezone: "UTC"
+    open-pull-requests-limit: 5
+    reviewers:
+      - "manderson240"
+    labels:
+      - "dependencies"
+      - "rust"
+    commit-message:
+      prefix: "chore(deps-rust)"
+      include: "scope"
+    groups:
+      cargo-minor-patch:
+        update-types:
+          - "minor"
+          - "patch"
+
+  # Frontend (Next.js / Three.js dashboard) — added 2026-06-05; was previously uncovered.
+  - package-ecosystem: "npm"
+    directory: "/src/web/anima_dashboard"
+    schedule:
+      interval: "daily"
+      time: "00:00"
+      timezone: "UTC"
+    open-pull-requests-limit: 10
+    reviewers:
+      - "manderson240"
+    labels:
+      - "dependencies"
+      - "javascript"
+    commit-message:
+      prefix: "chore(deps-js)"
+      include: "scope"
+    groups:
+      npm-minor-patch:
+        update-types:
+          - "minor"
+          - "patch"
