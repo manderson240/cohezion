@@ -134,3 +134,36 @@ def detect_loop_stall(before: LoopTelemetry, after: LoopTelemetry) -> StallRepor
             "with no DONE progress",
         )
     return StallReport(False, "quiescent: no TODO remaining and no new BLOCKED — not a stall")
+
+
+@dataclass(frozen=True)
+class LoopProgressDelta:
+    """Signed per-field delta between two LoopTelemetry snapshots (item 39, extends item 25).
+
+    Mirrors the harness-blessed ``DegradationDetector.diff_snapshots`` (CB11) pure-delta pattern:
+    deltas are HONEST and SIGNED — a regression (DONE or swept count dropping) shows as a NEGATIVE
+    delta, never clamped to zero. Both ``detect_loop_stall`` (item 30) and the Fleet-Health
+    Specialist (item 36) can consume this as the numeric layer under their verdicts.
+    """
+
+    done_delta: int
+    todo_delta: int
+    blocked_delta: int
+    swept_delta: int
+    rounds_delta: int
+
+
+def loop_progress_delta(before: LoopTelemetry, after: LoopTelemetry) -> LoopProgressDelta:
+    """The signed ``after - before`` delta for each LoopTelemetry field. Pure (no I/O, no writes).
+
+    Report-only: a structured numeric diff, never clamped or absolute-valued, so a regression is
+    visible as a negative component (e.g. a backlog where items were re-opened, or a swept-package
+    count corrected downward).
+    """
+    return LoopProgressDelta(
+        done_delta=after.backlog_done - before.backlog_done,
+        todo_delta=after.backlog_todo - before.backlog_todo,
+        blocked_delta=after.backlog_blocked - before.backlog_blocked,
+        swept_delta=after.swept_packages_done - before.swept_packages_done,
+        rounds_delta=after.research_rounds - before.research_rounds,
+    )
