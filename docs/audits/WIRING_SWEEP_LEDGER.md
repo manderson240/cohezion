@@ -44,10 +44,11 @@ thermal_autoresearch_executor, workflow_manager
 ```
 
 ### compound/ — CLASSIFIED (2026-06-06)
-- **Class A · genuine orphans (8 remaining)**: agi_reasoning, aimo_reasoning,
+- **Class A · genuine orphans (7 remaining)**: agi_reasoning, aimo_reasoning,
   consortium_instigator, distillation_engine, dynamic_compound_system,
-  dynamic_system_integration, journey_to_training, optimized_session_manager,
+  dynamic_system_integration, optimized_session_manager,
   thermal_autoresearch_executor. ← wire one per tick to a real consumer / guarded re-export.
+  (WIRED: hiho_lm_gate, journey_to_training.)
 - **Class B · tests-only (13)**: behavioral_eval, chronos, dual_loop_optimizer, eco_symphony,
   experiment_correlator, post_execution, recursive_trace_router, retrospection_validator,
   self_improvement_orchestrator, skill_mutation_queue, skill_refinement_validator, tape_logger,
@@ -62,7 +63,7 @@ thermal_autoresearch_executor, workflow_manager
 ## Swept packages
 | Package | Swept | Candidates | A wired | A remaining | B/C/D recorded | Needs-human |
 |---|---|---|---|---|---|---|
-| compound | classified | 24 | 1 (hiho_lm_gate) | 8 | 13 B + 1 D | 2 (below) |
+| compound | classified | 24 | 2 (hiho_lm_gate, journey_to_training) | 7 | 13 B + 1 D | 2 (below) |
 
 ## Needs human decision
 - `src/cohezion/compound/test_basic_import.py` — a `test_` file living under `src/` not `tests/`.
