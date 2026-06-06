@@ -64,6 +64,12 @@ with contextlib.suppress(Exception):
     from cohezion.compound.optimized_session_manager import (
         OptimizedSessionRuntime as OptimizedSessionRuntime,
     )
+
+# Wiring-sweep 2026-06-06: thermal_autoresearch_executor was a genuine import-graph orphan.
+with contextlib.suppress(Exception):
+    from cohezion.compound.thermal_autoresearch_executor import (
+        ThermalAutoresearchExecutor as ThermalAutoresearchExecutor,
+    )
 from cohezion.compound.core.executor import (
     CompoundExecutor as CompoundExecutor,
 )
