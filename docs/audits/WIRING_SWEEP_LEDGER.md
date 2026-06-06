@@ -59,12 +59,36 @@ thermal_autoresearch_executor, workflow_manager
   `tests/wiring/test_hiho_lm_gate_wired.py` (asserts the names resolve from the package AND are
   the gate's own objects — fails if the edge is removed). Commit: see git.
 
+### swarm/ — CLASSIFIED (2026-06-06), wiring BLOCKED on a circular import
+File-level scan found 12 genuine-A candidates (agent_factory, deterministic_discovery_with_skill_fallback,
+hf_modelfile_builder, intelligence_pipeline, latent_research_team, lemonade_model_enhancer,
+model_capability_registry, model_capability_registry_resource_safe, ollama_context_manager,
+parser_v3_validation_oracle, plasma_swarm_router, triune_integration).
+
+**BLOCKED — circular import surfaced (the wiring did its job).** Attempting to wire `agent_factory`
+into `swarm/__init__` + adding the required swarm-importing discriminating test changed pytest's
+import order to **swarm-first**, which broke 4 already-green compound wiring tests. Root cause
+(PRE-EXISTING, verified at baseline): `compound/dynamic_compound_system.py:70` and
+`compound/dynamic_system_integration.py` do **module-scope** `from cohezion.swarm import …`. So
+`compound/__init__`'s guarded re-exports of those two modules **silently unbind** under swarm-first
+import order (the `contextlib.suppress` swallows the partial-import ImportError). Compound-first
+import works; swarm-first does not. This is a latent compound↔swarm cycle that wiring exposed.
+Reverted the agent_factory edit; swarm/ deferred to the human-decision item below.
+
 ## Swept packages
 | Package | Swept | Candidates | A wired | A remaining | B/C/D recorded | Needs-human |
 |---|---|---|---|---|---|---|
 | compound | **DONE** | 24 | 9 (+aimo_reasoning) | 0 | 13 B + 1 D | 3 (below) |
+| swarm | classified | 24 | 0 (BLOCKED) | 12 | — | circular import (below) |
 
 ## Needs human decision
+- **compound↔swarm circular import (blocks swarm/ wiring).** `compound/dynamic_compound_system.py`
+  + `compound/dynamic_system_integration.py` import `cohezion.swarm` at MODULE scope, so their
+  `compound/__init__` guarded re-exports silently unbind under swarm-first import order. Resolve the
+  cycle (lazy-import swarm inside those modules' functions, OR make the re-exports order-robust)
+  before file-level-wiring swarm/. NOT fixed by the loop (architectural / behavior-affecting).
+- **`model_capability_registry` vs `model_capability_registry_resource_safe`** — surface-name pair
+  in swarm/; verify same-concept (consolidate) vs distinct (rename) before wiring. Hazard, not merge.
 - **`ReasoningModel` surface-name duplicate** — both `compound/agi_reasoning.py` and
   `compound/aimo_reasoning.py` define a class `ReasoningModel`. Per non-destructive policy rule 3
   (surface-name duplicates are hazards to VERIFY, not merge blind): confirm whether these are the
@@ -78,6 +102,6 @@ thermal_autoresearch_executor, workflow_manager
   re-export above is the non-behavior-changing edge; deeper integration is deferred to a human.
 
 ## Next tick
-`compound/` is DONE. Advance to the NEXT package: classify `src/cohezion/swarm/` at file level
-(grep each `.py` for static intra-repo import edges across src+tests, check the registry), then
-wire its genuine Class-A orphans one per tick. Track here.
+`compound/` DONE; `swarm/` classified but BLOCKED (circular import — human decision). Advance to
+the NEXT unblocked package (e.g. `inference/` or `physics/`): classify file-level, wire genuine
+Class-A orphans one per tick. Do NOT re-attempt swarm/ until the compound↔swarm cycle is resolved.
