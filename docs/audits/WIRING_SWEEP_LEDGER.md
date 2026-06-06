@@ -305,6 +305,25 @@ audio/ file-level sweep COMPLETE (0 genuine-A). **Methodology fix:** the orphan 
 literal import wires a module. The fast multi-package pre-scout is a CANDIDATE filter only; the
 authoritative check is the per-tick broad grep over `src/ tests/ scripts/`.
 
+### knowledge_graph/ — CLASSIFIED + DONE (2026-06-06), 1 genuine-A wired (string-ref trap caught)
+6 modules. The broad grep first showed `graphrag_engine` with 2 importers (surreal_dba + a test),
+which would have read as "reachable" — but the surreal_dba "importer" is a STRING literal
+`"cohezion.knowledge_graph.graphrag_engine"` inside its `canonical_modules` metadata tuple, NOT a
+literal `import` statement. Tightening the grep to `^(from|import) …` showed ZERO literal edges in
+`src/`+`scripts/` → genuine Class-A orphan. This is the exact "importlib-on-a-string / dotted path in
+a string is invisible to static analysis" lesson. Classification:
+- **Class A · wired this tick (1)**: `graphrag_engine` (GraphRAGEngine / GraphRAGResponse /
+  RetrievalResult) — failure-isolated guarded re-export in `knowledge_graph/__init__.py`; test
+  `tests/wiring/test_graphrag_engine_wired.py` (identity + `__all__` + both-import-order).
+- **Reachable (3)**: `query_engine` (← `api/__init__`, `api/routes/knowledge`, `cli`),
+  `bidirectional_linker` (← `scripts/research/register_breakthroughs.py` — script edge),
+  `universe_artifact_migration` (already re-exported in the `__init__` migration block).
+- **Class D · entry-point (2)**: `cli` (`main()`), `universe_genealogy_migration` (runnable async
+  migration `main()` — record wired-by-entry-point, NOT a forced fake edge).
+0 genuine-A remaining. **Methodology reinforcement:** the per-tick grep MUST exclude string matches —
+require a leading `from`/`import` token, else a dotted path quoted as metadata/config (`canonical_modules`,
+registry keys, `importlib.import_module` args) false-positives as a static importer.
+
 ## Swept packages
 | Package | Swept | Candidates | A wired | A remaining | B/C/D recorded | Needs-human |
 |---|---|---|---|---|---|---|
@@ -326,6 +345,7 @@ authoritative check is the per-tick broad grep over `src/ tests/ scripts/`.
 | hookify | **DONE** | 3 | 1 (adversarial_review) | 0 | 2 reachable | 0 (name-hazard verified distinct) |
 | audio | **DONE** | 5 | 0 | 0 | 2 B + 3 reachable (2 via scripts/) | 0 |
 | rl | classified | 10 | 3 (causal_interpreter, distributed_trainer, grpo_trainer) | 1 (blocked) | 1 B + 5 reachable | 1 (lora_trainer import) |
+| knowledge_graph | **DONE** | 6 | 1 (graphrag_engine) | 0 | 2 D (cli, universe_genealogy_migration) + 3 reachable | 0 |
 
 ## Needs human decision
 - **`rl/lora_trainer` broken import (transformers).** `import cohezion.rl.lora_trainer` raises
@@ -367,21 +387,28 @@ authoritative check is the per-tick broad grep over `src/ tests/ scripts/`.
   re-export above is the non-behavior-changing edge; deeper integration is deferred to a human.
 
 ## Next tick
-**13 packages fully DONE**: compound, inference, physics, platform, persistence, models, governance,
-world_model, environments, data_mesh, pipeline, substrate, gateway. `cache/` classified (0 clean-A;
-1 dup → human); `swarm/` BLOCKED (cycle — human decision).
+**16 packages fully DONE**: compound, inference, physics, platform, persistence, models, governance,
+world_model, environments, data_mesh, pipeline, substrate, gateway, hookify, audio, knowledge_graph.
+`cache/` classified (0 clean-A; 1 dup → human); `swarm/` BLOCKED (cycle — human decision).
 
 **`rl/` clean genuine-A all wired (3/3).** Only `lora_trainer` remains, BLOCKED on transformers
 (human — Needs-human). rl/ stays `classified` until that import is fixed.
-**Next tick: pick a fresh not-yet-swept package** (no verified pre-scout remains — `audio` cleared,
-both candidates were script-reachable). Unswept incl. `api`, `mcp`, `agents`, `core`, `flume`,
-`universe`, `security`, `mycelium`, `simulation`, `cost_optimization`, `knowledge_graph`, `healing`
+
+**`knowledge_graph/` DONE this tick** — 1 genuine-A (`graphrag_engine`) wired; the string-ref trap
+caught (a dotted path quoted in `surreal_dba.canonical_modules` is NOT a static edge). **New
+methodology guard:** the per-tick grep MUST require a leading `from`/`import` token — match only
+literal import statements, never a dotted path inside a string (metadata, registry keys,
+`importlib.import_module` args all false-positive otherwise).
+
+**Next tick: pick a fresh not-yet-swept package.** Unswept incl. `api`, `mcp`, `agents`, `core`,
+`flume`, `universe`, `security`, `mycelium`, `simulation`, `cost_optimization`, `healing`
 (entry-points), `reliability` (entry-points), `dogfooding`, `worldviews`, `ouroboros`, `evolution`,
 `flux`, `observability`, `precipitation`, `vanguard`, `concurrency`, `eval`, `services`. Per-tick
-broad grep MUST cover `src/ tests/ scripts/` (the audio lesson — a script import is a static edge).
+broad grep MUST cover `src/ tests/ scripts/` (the audio lesson — a script import is a static edge)
+AND exclude string matches (the knowledge_graph lesson — a quoted dotted path is not an edge).
 Entry-point (main_guard=1, record Class-D not wire):
 `healing/{amd_s2idle_report, deep_audit, drift_analyzer, platform_audit, utilization_audit}`,
-`knowledge_graph/cli`, `simulation/{distributed, glass_box_debate}`,
+`simulation/{distributed, glass_box_debate}`,
 `reliability/{blackwell_handshake, quantum_performance_monitor}`.
 
 After `rl/`: pick a fresh not-yet-swept `src/cohezion/<pkg>/`
