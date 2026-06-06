@@ -45,6 +45,16 @@ with contextlib.suppress(Exception):
     from cohezion.compound.hiho_lm_gate import (
         ppl_score as ppl_score,
     )
+
+# Wiring-sweep 2026-06-06: journey_to_training was a genuine import-graph orphan. Re-exported
+# so the journey→training bridge is part of compound's public surface + statically reachable.
+with contextlib.suppress(Exception):
+    from cohezion.compound.journey_to_training import (
+        JourneyToTrainingBridge as JourneyToTrainingBridge,
+    )
+    from cohezion.compound.journey_to_training import (
+        ValidationResult as ValidationResult,
+    )
 from cohezion.compound.core.executor import (
     CompoundExecutor as CompoundExecutor,
 )
