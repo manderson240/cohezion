@@ -44,8 +44,20 @@ from cohezion.cost_optimization.cost_tracker import (
     set_current_tracker,
 )
 
+# Wiring-sweep (2026-06-06): forecast_engine — the last cost_optimization/ Class-A orphan (0
+# production importers, only a test edge). Re-exported here, completing the package's public surface.
+from cohezion.cost_optimization.forecast_engine import (
+    AnomalyScore,
+    Forecast,
+    ForecastEngine,
+    ForecastSummary,
+    get_forecast_engine,
+    reset_forecast_engine,
+)
+
 
 __all__ = [
+    "AnomalyScore",
     "BudgetCircuitBreaker",
     "BudgetEnforcer",
     "BudgetPolicy",
@@ -55,14 +67,19 @@ __all__ = [
     "CostBreakdown",
     "CostDashboard",
     "CostRecord",
+    "Forecast",
+    "ForecastEngine",
+    "ForecastSummary",
     "SessionCostTracker",
     "SpendRate",
     "TrendPoint",
     "get_cost_dashboard",
     "get_current_enforcer",
     "get_current_tracker",
+    "get_forecast_engine",
     "reset_current_enforcer",
     "reset_current_tracker",
+    "reset_forecast_engine",
     "set_current_enforcer",
     "set_current_tracker",
 ]
