@@ -1,0 +1,13 @@
+[Unit]
+Description=Cohezion self-improvement loop — one guardrailed /loop tick
+# Fleet-dependent: needs the local box. Not a network service.
+
+[Service]
+Type=oneshot
+# The wrapper enforces kill-switch, branch-guard, daily budget cap, flock, logging.
+ExecStart=/bin/bash /home/mike-anderson/dev/cohezion/scripts/loop/loop_tick.sh
+# SAFE DEFAULT permission mode (cannot commit). To grant full autonomy (spends $, self-commits),
+# uncomment the next line DELIBERATELY:
+# Environment=COHEZION_LOOP_PERMISSION_MODE=bypassPermissions
+Environment=COHEZION_LOOP_MAX_TICKS=40
+Nice=10

@@ -1,0 +1,13 @@
+[Unit]
+Description=Cohezion self-improvement loop cadence (persistent across sessions + reboot)
+
+[Timer]
+# Every 30 minutes. Adjust OnUnitActiveSec to change cadence (cost scales with frequency).
+OnBootSec=10min
+OnUnitActiveSec=30min
+# If the machine was asleep, do not stampede missed ticks — run at most one on resume.
+Persistent=false
+AccuracySec=2min
+
+[Install]
+WantedBy=timers.target
