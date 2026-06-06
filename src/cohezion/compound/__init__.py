@@ -106,6 +106,17 @@ with contextlib.suppress(Exception):
     from cohezion.compound.agi_reasoning import (
         ReasoningModel as ReasoningModel,
     )
+
+# Wiring-sweep 2026-06-06: aimo_reasoning was a genuine import-graph orphan. Re-export its
+# DISTINCTIVE classes only — `ReasoningModel` collides with agi_reasoning's (surface-name
+# duplicate flagged for human review in WIRING_SWEEP_LEDGER.md), so it is NOT re-exported here.
+with contextlib.suppress(Exception):
+    from cohezion.compound.aimo_reasoning import (
+        AIMOScaler as AIMOScaler,
+    )
+    from cohezion.compound.aimo_reasoning import (
+        ProcessRewardModel as ProcessRewardModel,
+    )
 from cohezion.compound.core.executor import (
     CompoundExecutor as CompoundExecutor,
 )
