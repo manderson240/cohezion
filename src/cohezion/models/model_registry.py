@@ -1,14 +1,14 @@
-"""Task-based model selection registry for SwarmService.
+"""Task-aware model selection registry for SwarmService.
 
-Non-destructive remediation of the V-Model audit §10 finding: `services/swarm_service.py`
-(and transitively `cli`) imported `cohezion.models.model_registry.ModelRegistry`, a class
-that was *intended but never built* — so both modules were dark with
-`ModuleNotFoundError: No module named 'cohezion.models.model_registry'`.
+Originally a non-destructive remediation of the V-Model audit §10 finding (`swarm_service.py`
++ `cli` were dark on a missing `cohezion.models.model_registry.ModelRegistry`). Upgraded
+2026-06-05 to be **task-aware** (research: docs/research/TASK_HARNESS_ROUTING_LEVERS_2026-06-05.md):
 
-Rather than stub it (an always-None registry would be a fake gate, the hazard flagged in
-audit §12.2), this WIRES the intended `get_best_for_task` behavior to the real
-`CostAwareRouter` (cost/quality task→model routing). It is fail-soft: any unavailability
-returns `None`, and callers (e.g. swarm_service) fall back to their default model.
+`get_best_for_task(task, ...)` now classifies the task STRING to a `Task` type and asks the
+declarative `FleetRegistry.for_task(Task)` for the preferred specialist — "the right model for
+the right task". It falls back to the complexity-based `CostAwareRouter` when no task-specialist
+is registered (e.g. EXTRACTION before LFM2.5-VL is added), and to `None` when both are
+unavailable (so callers fall back to their own default). Fail-soft throughout; never raises.
 """
 from __future__ import annotations
 
@@ -17,13 +17,53 @@ import logging
 
 logger = logging.getLogger(__name__)
 
+# task-string keyword → Task, ordered specific → general (first match wins). Kept here (the
+# consumer) rather than in registry.py so the declarative map stays free of heuristics.
+_TASK_KEYWORDS: list[tuple[tuple[str, ...], str]] = [
+    (("extract", "field extraction", "key-value"), "EXTRACTION"),
+    (("ocr", "scanned", "document parse", "doc parse"), "OCR_DOC"),
+    (("vision", "image", "visual", "vlm", "caption", "vqa"), "VISION"),
+    (("rerank", "re-rank", "reranking"), "RERANK"),
+    (("fim", "fill-in", "fill in the middle", "autocomplete", "code completion"), "FIM"),
+    (("function call", "function-call", "tool call", "tool-use", "tool use"), "FUNCTION_CALL"),
+    (("code", "program", "refactor", "implement"), "CODE_GEN"),
+    (("math", "arithmetic", "calculate", "proof", "gsm", "solve for"), "MATH"),
+    (("summar", "tl;dr", "condense"), "SUMMARIZATION"),
+    (("architect", "design the", "system design"), "ARCHITECT"),
+    (("classify", "route to", "dispatch", "triage"), "ROUTING"),
+    (("structured", "json", "schema"), "STRUCTURED"),
+    (("govern", "policy", "constitution"), "GOVERNANCE"),
+    (("long horizon", "long-horizon", "multi-step", "long context"), "LONG_HORIZON"),
+    (("sensor", "sensing", "perceiv"), "SENSING"),
+    (("reason", "analy", "think", "plan", "evaluate"), "REASONING"),
+]
+
+
+def _classify_task(task: str):
+    """Map a free task string to a Task enum member, or None if no confident match."""
+    try:
+        from cohezion.inference.registry import Task
+    except Exception:
+        return None
+    s = (task or "").strip().lower()
+    if not s:
+        return None
+    # Direct value match first ("reasoning" -> Task.REASONING).
+    for member in Task:
+        if s == member.value:
+            return member
+    for keywords, name in _TASK_KEYWORDS:
+        if any(k in s for k in keywords) and hasattr(Task, name):
+            return getattr(Task, name)
+    return None
+
 
 class ModelRegistry:
-    """Selects the best model for a task, delegating to CostAwareRouter.
+    """Selects the best model for a task: task-type specialist first, complexity routing second.
 
-    The router is built lazily on first use so construction stays cheap (swarm_service builds
-    a ModelRegistry eagerly). `get_best_for_task` returns a model-name string, or ``None`` when
-    routing is unavailable so the caller can fall back to a default.
+    The CostAwareRouter is built lazily so construction stays cheap (swarm_service builds a
+    ModelRegistry eagerly). `get_best_for_task` returns a model-name string, or ``None`` when
+    nothing is available so the caller can fall back to its own default.
     """
 
     def __init__(self, router: object | None = None) -> None:
@@ -44,15 +84,44 @@ class ModelRegistry:
                 self._router = None
         return self._router
 
+    def _best_specialist(self, task: str, prefer_fast: bool) -> str | None:
+        """Task-TYPE routing: classify task → FleetRegistry.for_task → preferred specialist.
+
+        Returns a model_id, or None when the task is unclassifiable or has no registered
+        specialist (so the caller falls back to complexity routing). Fail-soft.
+        """
+        task_enum = _classify_task(task)
+        if task_enum is None:
+            return None
+        try:
+            from cohezion.inference.registry import Lane, get_registry
+
+            candidates = get_registry().for_task(task_enum)  # priority-sorted (best first)
+            if not candidates:
+                return None
+            if prefer_fast:
+                local = {Lane.NPU, Lane.IGPU_ROCWMMA, Lane.IGPU_UNIFIED, Lane.CPU}
+                preferred = [c for c in candidates if c.lane in local]
+                if preferred:
+                    return preferred[0].model_id
+            return candidates[0].model_id
+        except Exception as exc:
+            logger.debug("task-specialist lookup failed for %r: %s", task, exc)
+            return None
+
     def get_best_for_task(
         self, task: str, budget: float | None = None, prefer_fast: bool = True
     ) -> str | None:
         """Return the best model name for ``task`` within ``budget``, or ``None`` to fall back.
 
-        ``prefer_fast`` biases toward cheaper/faster models via the router's cache-aware path
-        (a high cache_hit_rate downgrades query complexity), mapping cleanly onto the existing
-        CostAwareRouter API without a new code path.
+        Order: (1) task-TYPE specialist from FleetRegistry.for_task (the right model for the
+        right task); (2) complexity-based CostAwareRouter; (3) None. ``prefer_fast`` biases
+        toward local lanes in (1) and the router's cache-aware fast path in (2).
         """
+        specialist = self._best_specialist(task, prefer_fast)
+        if specialist is not None:
+            return specialist
+
         router = self._ensure_router()
         if router is None:
             return None

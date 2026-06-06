@@ -1,14 +1,15 @@
-"""Tests for the model_registry remediation (V-model audit §10 fix, 2026-06-05).
+"""Tests for task-aware ModelRegistry (audit §10 remediation + task-aware upgrade, 2026-06-05).
 
-services/swarm_service.py + cli were dark because they import a ModelRegistry from
-cohezion.models.model_registry that never existed. This wires it to the real CostAwareRouter
-(non-destructive remediation). Tests use an injected fake router for hermetic behavior, plus
-one integration check that no-arg construction + real routing works and that swarm_service/cli
-now import.
+Covers two builds:
+  #1 — the Task-enum seam: new members exist, for_task is expressible, EXISTING for_task
+       results are unchanged (falsifiable regression guard).
+  #5 — get_best_for_task is task-TYPE aware: classify task → FleetRegistry.for_task →
+       preferred specialist; fall back to complexity routing; fail-soft.
 """
 from __future__ import annotations
 
-from cohezion.models.model_registry import ModelRegistry
+from cohezion.inference.registry import Task, get_registry
+from cohezion.models.model_registry import ModelRegistry, _classify_task
 
 
 class _FakeDecision:
@@ -22,41 +23,88 @@ class _FakeRouter:
 
     def select_model(self, query, max_cost_usd=None, cache_hit_rate=None):
         self.calls.append((query, max_cost_usd, cache_hit_rate))
-        return _FakeDecision("fast-model"), True
+        return _FakeDecision("complexity-fallback-model"), True
 
 
-def test_get_best_for_task_returns_decision_model() -> None:
+# ---- #1: Task-enum seam (falsifiable regression guard) --------------------------
+
+
+def test_new_task_members_exist() -> None:
+    for name in ("EXTRACTION", "VISION", "FIM", "FUNCTION_CALL", "RERANK", "OCR_DOC"):
+        assert hasattr(Task, name)
+
+
+def test_new_tasks_have_no_models_yet_and_existing_unchanged() -> None:
+    reg = get_registry()
+    # New specialist tasks: no model registered yet -> empty (not an error).
+    for t in (Task.EXTRACTION, Task.VISION, Task.FIM, Task.FUNCTION_CALL, Task.RERANK, Task.OCR_DOC):
+        assert reg.for_task(t) == []
+    # Falsifiable regression guard: existing task buckets are untouched & still coherent.
+    reasoning = reg.for_task(Task.REASONING)
+    assert len(reasoning) >= 1
+    assert all(Task.REASONING in m.task_affinity for m in reasoning)
+    # priority-sorted (best first)
+    assert [m.priority for m in reasoning] == sorted(m.priority for m in reasoning)
+
+
+# ---- #5: task classification ----------------------------------------------------
+
+
+def test_classify_task_keyword_and_direct_mapping() -> None:
+    assert _classify_task("extract the invoice fields") == Task.EXTRACTION
+    assert _classify_task("write code to refactor this") == Task.CODE_GEN
+    assert _classify_task("rerank these chunks") == Task.RERANK
+    assert _classify_task("VQA on this image") == Task.VISION
+    assert _classify_task("summarize the doc") == Task.SUMMARIZATION
+    assert _classify_task("reasoning") == Task.REASONING        # direct value match
+    assert _classify_task("xyzzy plugh foobar") is None
+    assert _classify_task("") is None
+
+
+# ---- #5: task-aware selection vs fallback ---------------------------------------
+
+
+def test_task_aware_returns_registry_specialist_for_known_task() -> None:
+    # "reasoning" -> Task.REASONING -> a registry model with REASONING affinity (NOT the
+    # complexity router). Discriminates the old behavior that discarded task type.
     fake = _FakeRouter()
-    reg = ModelRegistry(router=fake)
-    assert reg.get_best_for_task("analysis") == "fast-model"
-    # prefer_fast=True must bias the router via cache_hit_rate=0.95 (its fast-path).
-    assert fake.calls[0] == ("analysis", None, 0.95)
+    got = ModelRegistry(router=fake).get_best_for_task("reasoning")
+    reasoning_ids = {m.model_id for m in get_registry().for_task(Task.REASONING)}
+    assert got in reasoning_ids
+    assert fake.calls == []  # router NOT consulted when a specialist exists
 
 
-def test_prefer_fast_false_passes_no_cache_bias() -> None:
+def test_unregistered_task_falls_back_to_complexity_router() -> None:
+    # "extract data" classifies to EXTRACTION, which has no model yet -> falls through to the
+    # router. Proves classification AND graceful fallback both work.
     fake = _FakeRouter()
-    ModelRegistry(router=fake).get_best_for_task("x", budget=0.01, prefer_fast=False)
-    assert fake.calls[0] == ("x", 0.01, None)
+    got = ModelRegistry(router=fake).get_best_for_task("extract data", budget=0.01)
+    assert got == "complexity-fallback-model"
+    assert fake.calls[0] == ("extract data", 0.01, 0.95)
+
+
+def test_unclassifiable_task_falls_back_to_router() -> None:
+    fake = _FakeRouter()
+    got = ModelRegistry(router=fake).get_best_for_task("xyzzy plugh foobar", prefer_fast=False)
+    assert got == "complexity-fallback-model"
+    assert fake.calls[0] == ("xyzzy plugh foobar", None, None)  # prefer_fast=False -> no cache bias
 
 
 def test_fail_soft_returns_none_on_router_error() -> None:
-    # Discriminating: a router failure must NOT propagate (swarm_service falls back to a
-    # default model on None). An impl that lets the exception escape fails here.
+    # Unclassifiable task reaches the router; a router failure must NOT propagate.
     class _Boom:
         def select_model(self, **kw):
             raise RuntimeError("router down")
 
-    assert ModelRegistry(router=_Boom()).get_best_for_task("x") is None
+    assert ModelRegistry(router=_Boom()).get_best_for_task("xyzzy plugh foobar") is None
 
 
 def test_no_arg_construction_and_real_routing_integration() -> None:
-    # No-arg construct lazily builds a real CostAwareRouter; returns a model name or None.
     result = ModelRegistry().get_best_for_task("analyze this codebase")
     assert result is None or isinstance(result, str)
 
 
-def test_swarm_service_and_cli_now_import() -> None:
-    # The whole point of the remediation: these were dark (ImportError on model_registry).
+def test_swarm_service_and_cli_still_import() -> None:
     import importlib
 
     importlib.import_module("cohezion.services.swarm_service")

@@ -63,6 +63,16 @@ class Task(StrEnum):
     LONG_HORIZON = "long_horizon"
     ARCHITECT = "architect"
     GENERAL = "general"
+    # Task-specialist members (task-aware routing, 2026-06-05; research:
+    # docs/research/TASK_HARNESS_ROUTING_LEVERS_2026-06-05.md). Added so for_task() can
+    # express small-specialist lanes. No model is registered for these yet, so for_task
+    # returns [] for them until a specialist ModelEntry is added (e.g. LFM2.5-VL → EXTRACTION).
+    EXTRACTION = "extraction"
+    VISION = "vision"
+    FIM = "fim"
+    FUNCTION_CALL = "function_call"
+    RERANK = "rerank"
+    OCR_DOC = "ocr_doc"
 
 
 class WeightQuant(StrEnum):
