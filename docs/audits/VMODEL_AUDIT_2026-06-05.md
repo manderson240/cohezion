@@ -347,7 +347,7 @@ unit test already proves.
 - The two dead copies (`recursive_trace.py` shadow, `cohezioion/` typo-dir non-compiling) left as
   documented findings — NOT resurrected, NOT deleted (non-destructive; the clean impl supersedes).
 
-## 10. Deferred finding (surfaced by the orphan-bridge, stacked behind the §earlier cli/PhysicsState fix)
+## 10. Deferred finding [RESOLVED 2026-06-05] (surfaced by the orphan-bridge, stacked behind the §earlier cli/PhysicsState fix)
 
 The fail-soft `orphan_bridge` now reports `cli` **degraded** with a NEW root cause (the PhysicsState
 fix revealed the next link — classic stacked bug):
@@ -458,3 +458,10 @@ structural findings (adding tests would be testing things slated for removal or 
 work is the flagged remediations (the §10 cli/services missing-module, the §12 latent bugs, the
 orphan consolidations) — each a separate, permission-gated, ADDITIVE track per the non-destructive
 policy, not part of this report-only pass.
+
+### 10.1 RESOLUTION (2026-06-05, user-authorized remediation)
+Root cause: `services/swarm_service.py` imported `cohezion.models.model_registry.ModelRegistry` — a class *intended but never built* (`get_best_for_task` existed nowhere). Fixed **non-destructively** by WIRING the intended behavior to the real `CostAwareRouter`:
+- New `src/cohezion/models/model_registry.py` — `ModelRegistry.get_best_for_task(task, budget, prefer_fast)` delegates to `CostAwareRouter.select_model` (fail-soft → None so callers fall back to a default; NOT an always-None stub, avoiding the §12.2 hazard).
+- `prefer_fast` maps onto the router's cache-aware fast path (cache_hit_rate=0.95) — no new code path.
+- 5 tests (`tests/models/test_model_registry.py`), incl. an integration check that `cohezion.services.swarm_service` + `cohezion.cli` now import.
+- **Verified:** orphan-bridge `degraded` went `['cli'] → []`, `wired_count 10 → 11`. The cli + services import chain is repaired. 0 edits to swarm_service/cli (they expected this module; we supplied it).
