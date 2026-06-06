@@ -307,6 +307,25 @@ def _build_default_registry() -> dict[str, ModelEntry]:
             ),
         ),
         ModelEntry(
+            model_id="GLM-OCR-GGUF",
+            lane=Lane.IGPU_ROCWMMA,
+            endpoint="http://localhost:13307",
+            runtime_backend="llamacpp_hip",  # vision/OCR needs --mmproj (llama-mtmd) — shares item 18
+            task_affinity=frozenset({Task.OCR_DOC}),
+            weight_quant=WeightQuant.Q4_K_M,  # GGUF: GLM-OCR-Q8_0 + GLM-OCR-f16 + mmproj-GLM-OCR-Q8_0
+            context_window=32768,
+            priority=25,  # the OCR_DOC specialist (was none) — the LAST empty Task slot
+            verified_working=False,  # mmproj serving proof NOT yet run (shares item 18's path)
+            notes=(
+                "Official ggml-org OCR/document VLM (the seed for Task.OCR_DOC; HF id verified "
+                "ggml-org/GLM-OCR-GGUF, 23,009 dl, GGUF + mmproj-GLM-OCR-Q8_0). Runs via "
+                "`llama-server -hf ggml-org/GLM-OCR-GGUF` (mmproj auto-paired). mmproj-GATED: "
+                "lemonade --mmproj support UNPROVEN → llama-mtmd sidecar fallback; K1/rule-5 OOM "
+                "gate must pass before pinning (size unconfirmed). verified_working flips True only "
+                "after a real OCR/doc proof — SHARES item 18's vision-projector experiment."
+            ),
+        ),
+        ModelEntry(
             model_id="Granite-4.1-8B-GGUF",
             lane=Lane.IGPU_ROCWMMA,  # Granite backend lives on the iGPU; fronted by the router
             endpoint="http://localhost:13305",  # the ALWAYS-UP lemonade router (Hermes-shared)

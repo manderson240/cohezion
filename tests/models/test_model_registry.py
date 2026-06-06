@@ -46,8 +46,10 @@ def test_new_tasks_have_no_models_yet_and_existing_unchanged() -> None:
     assert reg.for_task(Task.RERANK)[0].model_id == "Qwen3-Reranker-0.6B-GGUF"
     # FUNCTION_CALL now has the Granite-4.1-3b specialist (item 21, 2026-06-06).
     assert reg.for_task(Task.FUNCTION_CALL)[0].model_id == "Granite-4.1-3b-GGUF"
-    # The remaining new specialist tasks have no model yet -> empty (not an error).
-    for t in (Task.FIM, Task.OCR_DOC):
+    # OCR_DOC now has the GLM-OCR specialist (item 23, 2026-06-06).
+    assert reg.for_task(Task.OCR_DOC)[0].model_id == "GLM-OCR-GGUF"
+    # FIM is the last new specialist task with no model yet -> empty (not an error).
+    for t in (Task.FIM,):
         assert reg.for_task(t) == []
     # Falsifiable regression guard: existing task buckets are untouched & still coherent.
     reasoning = reg.for_task(Task.REASONING)
@@ -85,13 +87,13 @@ def test_task_aware_returns_registry_specialist_for_known_task() -> None:
 
 
 def test_unregistered_task_falls_back_to_complexity_router() -> None:
-    # "ocr this scanned document" classifies to OCR_DOC, which STILL has no specialist ->
-    # falls through to the router. Proves classification AND graceful fallback both work.
-    # (EXTRACTION is no longer the example here: it now has the LFM specialist — item 4.)
+    # "fill in the middle of this code" classifies to FIM, which is the LAST specialist task
+    # STILL without a model -> falls through to the router. Proves classification AND graceful
+    # fallback both work. (OCR_DOC is no longer the example: it now has GLM-OCR — item 23.)
     fake = _FakeRouter()
-    got = ModelRegistry(router=fake).get_best_for_task("ocr this scanned document", budget=0.01)
+    got = ModelRegistry(router=fake).get_best_for_task("fill in the middle of this code", budget=0.01)
     assert got == "complexity-fallback-model"
-    assert fake.calls[0] == ("ocr this scanned document", 0.01, 0.95)
+    assert fake.calls[0] == ("fill in the middle of this code", 0.01, 0.95)
 
 
 def test_unclassifiable_task_falls_back_to_router() -> None:
