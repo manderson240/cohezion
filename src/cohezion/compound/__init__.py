@@ -85,6 +85,12 @@ with contextlib.suppress(Exception):
     from cohezion.compound.dynamic_compound_system import (
         DynamicExecutionResult as DynamicExecutionResult,
     )
+
+# Wiring-sweep 2026-06-06: dynamic_system_integration was a genuine import-graph orphan.
+with contextlib.suppress(Exception):
+    from cohezion.compound.dynamic_system_integration import (
+        DynamicSystemCoordinator as DynamicSystemCoordinator,
+    )
 from cohezion.compound.core.executor import (
     CompoundExecutor as CompoundExecutor,
 )
