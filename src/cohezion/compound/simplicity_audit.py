@@ -60,6 +60,65 @@ def _cyclomatic_complexity(func: ast.FunctionDef | ast.AsyncFunctionDef) -> int:
     return complexity
 
 
+# Block statements that increase visual nesting depth (the "arrow anti-pattern").
+_NEST_NODES: tuple[type[ast.AST], ...] = (
+    ast.If,
+    ast.For,
+    ast.AsyncFor,
+    ast.While,
+    ast.With,
+    ast.AsyncWith,
+    ast.Try,
+)
+
+
+def _max_nesting(func: ast.FunctionDef | ast.AsyncFunctionDef) -> int:
+    """Deepest stack of block statements within a function's OWN body (item 47).
+
+    Each ``if``/``for``/``while``/``with``/``try`` deepens its body by one level. Recursion stops at
+    nested function/lambda boundaries, so a nested def's deep body does NOT inflate the enclosing
+    function — each scope is scored on its own. A function with no blocks has depth 0.
+    """
+    max_depth = 0
+
+    def _walk(node: ast.AST, depth: int) -> None:
+        nonlocal max_depth
+        for child in ast.iter_child_nodes(node):
+            if isinstance(child, ast.FunctionDef | ast.AsyncFunctionDef | ast.Lambda):
+                continue  # a nested scope starts its own depth count
+            if isinstance(child, _NEST_NODES):
+                d = depth + 1
+                max_depth = max(max_depth, d)
+                _walk(child, d)  # its body/orelse/handlers are one level deeper
+            else:
+                _walk(child, depth)
+
+    _walk(func, 0)
+    return max_depth
+
+
+def nesting_outliers(paths: Iterable[Path], *, threshold: int = 5) -> list[tuple[str, int]]:
+    """Functions whose max block-nesting depth exceeds ``threshold``. READ-ONLY.
+
+    The "arrow anti-pattern" (DEPTH) — how DEEP control blocks stack — the complement to item-43's
+    cyclomatic complexity (BREADTH: how MANY branches). Returns ``[(<filename>::<funcname>, depth)]``
+    for ``depth > threshold``, sorted by depth descending then name. A nested def is scored as its
+    own function (its depth does not inflate the enclosing scope). Pure — reads source, no writes.
+    """
+    out: list[tuple[str, int]] = []
+    for path in _iter_python_files(paths):
+        try:
+            tree = ast.parse(path.read_text(encoding="utf-8", errors="replace"))
+        except (OSError, SyntaxError, ValueError):
+            continue
+        for node in ast.walk(tree):
+            if isinstance(node, ast.FunctionDef | ast.AsyncFunctionDef):
+                depth = _max_nesting(node)
+                if depth > threshold:
+                    out.append((f"{path.name}::{node.name}", depth))
+    return sorted(out, key=lambda t: (-t[1], t[0]))
+
+
 def _iter_python_files(paths: Iterable[Path]) -> Iterable[Path]:
     for p in paths:
         if p.is_dir():
