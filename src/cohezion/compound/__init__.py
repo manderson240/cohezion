@@ -91,6 +91,12 @@ with contextlib.suppress(Exception):
     from cohezion.compound.dynamic_system_integration import (
         DynamicSystemCoordinator as DynamicSystemCoordinator,
     )
+
+# Wiring-sweep 2026-06-06: consortium_instigator was a genuine import-graph orphan.
+with contextlib.suppress(Exception):
+    from cohezion.compound.consortium_instigator import (
+        ConsortiumInstigator as ConsortiumInstigator,
+    )
 from cohezion.compound.core.executor import (
     CompoundExecutor as CompoundExecutor,
 )
