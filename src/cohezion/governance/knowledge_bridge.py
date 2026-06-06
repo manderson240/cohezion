@@ -370,6 +370,78 @@ def deposit_cerebellum_neuron(
         return None
 
 
+def _select_neurons_from_graph(country: str, key: str) -> list[dict]:
+    """Read-only SurrealDB SELECT of neurons in ``country`` tagged ``key`` (production only).
+
+    Mirrors :func:`deposit_neuron_record`'s HTTP path but as a SELECT. ``country`` is
+    pre-validated against the allowlist by the caller; ``key`` is quote-stripped before
+    interpolation. Returns [] on any non-200 / parse error (fail-soft, never raises out).
+    """
+    import base64
+    import urllib.request
+
+    safe_key = str(key).replace("'", "")
+    surql = (
+        "SELECT name, content, country, tags, embedding, reward "
+        f"FROM neuron WHERE country = '{country}' AND '{safe_key}' IN tags;"
+    )
+    auth = base64.b64encode(b"root:root").decode()
+    req = urllib.request.Request(  # noqa: S310 (localhost SurrealDB only)
+        f"{SURREAL_URL}/sql",
+        data=surql.encode(),
+        headers={
+            "Accept": "application/json",
+            "Authorization": f"Basic {auth}",
+            "surreal-ns": "cohezion",
+            "surreal-db": "vault",
+            "Content-Type": "application/json",
+        },
+    )
+    with urllib.request.urlopen(req, timeout=5) as resp:  # noqa: S310 (localhost only)
+        if resp.status != 200:
+            return []
+        payload = json.loads(resp.read().decode())
+    # SurrealDB HTTP returns [{"result": [...], "status": "OK"}].
+    if isinstance(payload, list) and payload and isinstance(payload[0], dict):
+        result = payload[0].get("result", [])
+        return result if isinstance(result, list) else []
+    return []
+
+
+def recall_neurons(
+    country: str,
+    key: str,
+    *,
+    store: list[dict] | None = None,
+) -> list[dict]:
+    """Recall deposited neurons of ``country`` whose key (task_class / skill name) is tagged.
+
+    Item 29 — the read side that closes the neurogenesis deposit->recall loop. The triad
+    (items 15 inference / 16 skill / 24 cerebellum) only DEPOSITED neurons; nothing consulted
+    them, so every deposit was write-only. This returns the matching neurons so the next
+    routing/refinement decision can consult prior procedural memory. PROPOSES context only —
+    it never acts and never writes.
+
+    Read-only and fail-soft. With an injected ``store`` it filters that list by
+    ``country`` AND ``key`` membership in the neuron's ``tags`` (no graph access). Without a
+    store it is a NO-OP under pytest (returns [] — never reads the real graph) and issues a
+    read-only SurrealDB SELECT in production. ``country`` is allowlisted (unknown -> []);
+    ``key`` is sanitized before interpolation.
+    """
+    if country not in _NEURON_COUNTRIES or not key:
+        return []
+    if store is not None:
+        return [n for n in store if n.get("country") == country and key in (n.get("tags") or [])]
+    try:
+        import sys
+
+        if "pytest" in sys.modules or "unittest" in sys.modules:
+            return []  # never read the real graph during tests
+        return _select_neurons_from_graph(country, key)
+    except Exception:
+        return []
+
+
 def update_key_learnings_with_link(
     learnings_path: Path,
     learning: Learning,
