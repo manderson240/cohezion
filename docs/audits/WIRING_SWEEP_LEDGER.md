@@ -355,6 +355,21 @@ imports — a relative-only `^from \.` grep misses them; use the broad literal g
   same shape (0 prod importers, only their test edge); both added to the `__init__` re-export block
   with a discriminating test. cost_optimization/ COMPLETE (0 genuine-A remaining).
 
+### ouroboros/ — CLASSIFIED + DONE (2026-06-06), 0 genuine-A (all reachable via production)
+6 modules (detector, failure_analyzer, healer, monitor, recorder, wiki_integration). Every module is
+reached by a LITERAL production `src/` import — statically confirming the CLAUDE.md "Ouroboros bridge
++ Mycelium wired into Genesis chain" claim. Classification:
+- **Reachable (6)**: `detector` ← `compound/degradation_detector.py:308` (`AnomalyDetector`); `healer`
+  ← `compound/executor.py:1282` (`HealerAgent`); `wiki_integration` ← `executor.py:1307`
+  (`OuroborosWikiBridge`); `recorder` ← `executor.py:1549` (`OuroborosRecorder`); `failure_analyzer`
+  ← `ouroboros/healer.py` (intra) + `research/autoresearch_driver.py`; `monitor` ← `ouroboros/
+  recorder.py` (intra) + `healing/scripts/trajectory_guard.py`.
+**Methodology note (same-leaf-name false match):** `__main__.py:572` imports
+`cohezion.system.ouroboros_recorder` — a DIFFERENT module that shares the leaf name `recorder`; it is
+NOT an edge to `cohezion.ouroboros.recorder`. Always confirm the FULL dotted path matches the target
+package, not a same-leaf-named module elsewhere. (recorder is reachable anyway via executor.) 0
+genuine-A; record-only sweep (lazy-but-literal executor imports ARE static edges).
+
 ## Swept packages
 | Package | Swept | Candidates | A wired | A remaining | B/C/D recorded | Needs-human |
 |---|---|---|---|---|---|---|
@@ -379,6 +394,7 @@ imports — a relative-only `^from \.` grep misses them; use the broad literal g
 | knowledge_graph | **DONE** | 6 | 1 (graphrag_engine) | 0 | 2 D (cli, universe_genealogy_migration) + 3 reachable | 0 |
 | mycelium | **DONE** | 4 | 0 | 0 | 4 reachable (all via prod src imports) | 0 |
 | cost_optimization | **DONE** | 4 | 2 (cost_dashboard, forecast_engine) | 0 | 2 reachable | 0 |
+| ouroboros | **DONE** | 6 | 0 | 0 | 6 reachable (all via prod src imports) | 0 |
 
 ## Needs human decision
 - **`rl/lora_trainer` broken import (transformers).** `import cohezion.rl.lora_trainer` raises
@@ -420,9 +436,9 @@ imports — a relative-only `^from \.` grep misses them; use the broad literal g
   re-export above is the non-behavior-changing edge; deeper integration is deferred to a human.
 
 ## Next tick
-**17 packages fully DONE**: compound, inference, physics, platform, persistence, models, governance,
+**19 packages fully DONE**: compound, inference, physics, platform, persistence, models, governance,
 world_model, environments, data_mesh, pipeline, substrate, gateway, hookify, audio, knowledge_graph,
-mycelium. `cache/` classified (0 clean-A; 1 dup → human); `swarm/` BLOCKED (cycle — human decision).
+mycelium, cost_optimization, ouroboros. `cache/` classified (0 clean-A; 1 dup → human); `swarm/` BLOCKED (cycle — human decision).
 
 **`rl/` clean genuine-A all wired (3/3).** Only `lora_trainer` remains, BLOCKED on transformers
 (human — Needs-human). rl/ stays `classified` until that import is fixed.
