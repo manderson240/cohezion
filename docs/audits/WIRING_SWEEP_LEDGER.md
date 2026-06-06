@@ -164,6 +164,21 @@ persistence/ file-level sweep COMPLETE (0 candidates, 0 genuine-A — already wi
   resource_manager + compound/chronos), resource_manager (imported by memory_pressure + agentjet/trainer).
 platform/ file-level sweep COMPLETE (0 genuine-A remaining).
 
+### environments/ — CLASSIFIED + DONE (2026-06-06), 1 A wired
+4 modules; `__init__` re-exported manifold_env + swarm_env. Classification:
+- **Reachable**: manifold_env (`__init__` re-export + src/tests + gym-registered), swarm_env
+  (`__init__` re-export, Class C).
+- **Class B · tests-only (1)**: arc_env (`tests/` covers it; no core production consumer).
+- **Class A · genuine orphan (1)**: **auto_generator** — EnvironmentGenerator / EnvironmentSpec /
+  GeneratedEnvironment / GeneratedCodeValidator (specification-driven environment synthesis) had
+  ZERO importers anywhere (src, tests, registry, entry-points); cycle-safe (imports no cohezion
+  module at scope, only torch + transformers) → WIRED via `environments/__init__` guarded re-export
+  in a SEPARATE suppress block (transformers/torch are heavy module-scope deps — isolating them so
+  their absence can't unbind the load-bearing ManifoldEnv/SwarmEnv imports). Proven by
+  `tests/wiring/test_auto_generator_wired.py` (identity check on all 4 names + `__all__` membership;
+  importorskip transformers/torch). Both-order robust (env-first + compound-first).
+environments/ file-level sweep COMPLETE (0 genuine-A remaining).
+
 ## Swept packages
 | Package | Swept | Candidates | A wired | A remaining | B/C/D recorded | Needs-human |
 |---|---|---|---|---|---|---|
@@ -177,6 +192,7 @@ platform/ file-level sweep COMPLETE (0 genuine-A remaining).
 | models | **DONE** | 5 | 0 | 0 | 2 B + 3 reachable | 0 |
 | governance | **DONE** | 7 | 1 (concierge) | 0 | 6 reachable | 0 |
 | world_model | **DONE** | 4 | 3 (surprise_explorer, sigreg, jepa_persistent) | 0 | 1 reachable | 0 |
+| environments | **DONE** | 4 | 1 (auto_generator) | 0 | 1 B + 1 reachable | 0 |
 
 ## Needs human decision
 - **compound↔swarm circular import (blocks swarm/ wiring).** `compound/dynamic_compound_system.py`
@@ -210,10 +226,10 @@ platform/ file-level sweep COMPLETE (0 genuine-A remaining).
   re-export above is the non-behavior-changing edge; deeper integration is deferred to a human.
 
 ## Next tick
-`compound/`, `inference/`, `physics/`, `platform/`, `persistence/`, `models/`, `governance/` DONE;
-`cache/` classified (0 clean-A; 1 dup → human); `swarm/` BLOCKED (cycle — human decision). Advance
-`world_model/` **DONE** (3/3). 8 packages fully DONE. Advance to the NEXT unswept package
-(`environments/`, `api/`, `mcp/`, `swarm/` is blocked, `cache` classified): classify file-level,
-wire genuine Class-A orphans one per tick. ALWAYS cycle-check before wiring + run the FULL `tests/wiring/` suite +
-both-import-order check after (the swarm lesson). Do NOT re-attempt swarm/ or cache/sentence_encoder
-until the human decisions resolve.
+**9 packages fully DONE**: compound, inference, physics, platform, persistence, models, governance,
+world_model, environments. `cache/` classified (0 clean-A; 1 dup → human); `swarm/` BLOCKED (cycle
+— human decision). Advance to the NEXT unswept package (candidates: `api/`, `mcp/`, `agents/`,
+`core/`, `flume/`, `universe/`, `security/`, `physics` done, etc. — pick the next not-yet-swept
+`src/cohezion/<pkg>/`): classify file-level, wire genuine Class-A orphans one per tick. ALWAYS
+cycle-check before wiring + run the FULL `tests/wiring/` suite + both-import-order check after (the
+swarm lesson). Do NOT re-attempt swarm/ or cache/sentence_encoder until the human decisions resolve.
