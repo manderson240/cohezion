@@ -90,6 +90,15 @@ mhd_mereon), all cycle-safe. WIRED (3): **flier_routing** (FLIERRouter, QubitNod
 **mereon_data** (get_m120p_vertices, get_m144p_vertices — function re-export) → `physics/__init__`
 guarded re-exports, both-order robust. physics/ file-level sweep COMPLETE (0 genuine-A remaining).
 
+### persistence/ — CLASSIFIED + DONE (2026-06-06), already fully reachable
+3 modules, `__init__` re-exports none — but all 3 are production-reachable via direct static
+import edges (0 orphans, nothing to wire):
+- **genesis_persistence** — imported by flume/trajectory_capture, compound/post_execution,
+  compound/executor, world_model/jepa_world_model_persistent, integrations/telegram_bot (5 src).
+- **obsidian_mcp** — imported by universe/triune_engine, agents/evo_agent, rewards/ratchet (3 src).
+- **surreal_logger** — imported by universe/triune_engine, agents/evo_agent (2 src).
+persistence/ file-level sweep COMPLETE (0 candidates, 0 genuine-A — already wired by design).
+
 ### cache/ — CLASSIFIED (2026-06-06), 1 needs-human (true duplicate)
 6 modules; 2 already `__init__`-re-exported (redis_cache, semantic_cache). 4 candidates classified:
 - **Reachable (intra-edge present, not orphans)**: cache_warmer (imported by
@@ -130,6 +139,7 @@ platform/ file-level sweep COMPLETE (0 genuine-A remaining).
 | physics | **DONE** | 5 | 3 (+mereon_data) | 0 | 2 B | 0 |
 | platform | **DONE** | 7 | 1 (agnostic_integrations) | 0 | 3 B + 1 D | 0 |
 | cache | classified | 4 | 0 | 1 (dup) | 3 reachable | 1 (sentence_encoder dup) |
+| persistence | **DONE** | 3 | 0 | 0 | 3 reachable | 0 |
 
 ## Needs human decision
 - **compound↔swarm circular import (blocks swarm/ wiring).** `compound/dynamic_compound_system.py`
@@ -163,9 +173,9 @@ platform/ file-level sweep COMPLETE (0 genuine-A remaining).
   re-export above is the non-behavior-changing edge; deeper integration is deferred to a human.
 
 ## Next tick
-`compound/`, `inference/`, `physics/`, `platform/` DONE; `cache/` classified (0 clean-A; 1 dup →
-human); `swarm/` BLOCKED (cycle — human decision). Advance to the NEXT unblocked package (e.g.
-`persistence/`, `models/`, `governance/`): classify file-level, wire genuine Class-A orphans one per
-tick. ALWAYS cycle-check before wiring + run the FULL `tests/wiring/` suite + both-import-order check
-after (the swarm lesson). Do NOT re-attempt swarm/ or cache/sentence_encoder until the human
-decisions resolve.
+`compound/`, `inference/`, `physics/`, `platform/`, `persistence/` DONE; `cache/` classified (0
+clean-A; 1 dup → human); `swarm/` BLOCKED (cycle — human decision). Advance to the NEXT unblocked
+package (e.g. `models/`, `governance/`, `swarm` is blocked): classify file-level, wire genuine
+Class-A orphans one per tick. ALWAYS cycle-check before wiring + run the FULL `tests/wiring/` suite +
+both-import-order check after (the swarm lesson). Do NOT re-attempt swarm/ or cache/sentence_encoder
+until the human decisions resolve.
