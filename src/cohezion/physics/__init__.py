@@ -19,6 +19,15 @@ with contextlib.suppress(Exception):
         QubitNode as QubitNode,
     )
 
+# Wiring-sweep 2026-06-06: mhd_mereon was a genuine import-graph orphan (cycle-safe).
+with contextlib.suppress(Exception):
+    from cohezion.physics.mhd_mereon import (
+        MHDMereonOperator as MHDMereonOperator,
+    )
+    from cohezion.physics.mhd_mereon import (
+        MHDState as MHDState,
+    )
+
 # Stealthskater extended substrate library — Phase 18
 from cohezion.physics.bec_bridge import BECState, MercuryLattice
 from cohezion.physics.bioelectric_model import BioelectricNetwork
