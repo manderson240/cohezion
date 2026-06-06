@@ -57,3 +57,18 @@ controlled harness — a measurement session, not a passive read. Until then the
 - CC2 harness check — **green** (LAMBDA_ENERGY unchanged, energy term defaults to 0).
 The check came back *informative*, not faked: the attempt to measure surfaced a real
 hardware confound, which is the honest negative result.
+
+## Item 17 update (2026-06-06): ΔP harness built; live 3-lane run UNPROVEN
+The controlled-load ΔP harness core is in place: `hardware_monitor.marginal_power_w(idle, load)`
+returns `mean(load) − mean(idle)` (None-safe, no fabricated delta from insufficient data). With
+every OTHER lane idle, this isolates a single lane's marginal SoC draw — the isolable measurement
+the confounded absolute split (item 3) lacked. 4 discriminating tests prove it separates a light
+lane from a heavy one.
+
+**Live run NOT executed (honest UNPROVEN).** Fleet probe this tick: router :13305 UP, iGPU :13307
+UP, but **NPU :13306 and CPU :13309 are DOWN**. The NPU<iGPU<CPU separation needs all three lanes
+up; with two down it cannot be measured. Running a sustained iGPU load to grab the one available
+lane would also perturb the live Hermes bot (shares Granite on the router) — not worth it for 1/3
+of the data. So `_LANE_WATTS` stays at its physical priors (ordering intact, CC2 green). The
+per-lane recalibration is an OPERATIONAL task for a maintenance window with all lanes up + Hermes
+paused — the harness is ready; only the live data is pending.

@@ -23,6 +23,24 @@ from pathlib import Path
 logger = logging.getLogger(__name__)
 
 
+def marginal_power_w(
+    idle_samples: list[float | None], load_samples: list[float | None]
+) -> float | None:
+    """Marginal SoC power for a single lane's activity: mean(load) − mean(idle).
+
+    The per-lane ΔP harness core (item 17). With every OTHER lane idle, the rise in whole-SoC
+    power (``read_soc_power_w``) while one lane runs sustained inference is that lane's marginal
+    draw — which IS isolable, unlike the absolute per-lane split item 3 found confounded. None
+    readings are ignored; insufficient data returns None (never a fabricated delta). The live
+    3-lane run (NPU<iGPU<CPU separation) needs all lanes up + a controlled harness.
+    """
+    idle = [v for v in idle_samples if v is not None]
+    load = [v for v in load_samples if v is not None]
+    if not idle or not load:
+        return None
+    return round(sum(load) / len(load) - sum(idle) / len(idle), 3)
+
+
 def joules_per_token(power_w: float, tokens: int, duration_s: float) -> float:
     """Energy cost per generated token: (power × duration) / tokens.
 
