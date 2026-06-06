@@ -97,3 +97,21 @@ heavy/off-modality for the $0 fleet (watch-item), but its memory-quality reward 
 (non-redundancy / accuracy / format) maps cleanly onto Cohezion's neurogenesis deposit thread →
 report-only item 52 (deposit-quality audit). Filter tally across user-shared links: 1 model embraced
 (Gemma-4 QAT), 4 declined-but-mined-for-principle (LangChain→48, BigSet→49, Nemotron-ASR→none, TaskMem→52).
+
+## 2026-06-06 (round 8)
+
+| Finding (HF id / arXiv) | Verified | Class | Fleet seam | Notes |
+|---|---|---|---|---|
+| **`byteshape/Qwen3.6-35B-A3B-MTP-GGUF`** | ✅ model_info (33,361 dl, 56 likes, apache-2.0, 6 GGUF IQ2_S→IQ4_XS, tag `mtp`) | **NEW · additive · needs-experiment** | `triune_orchestrator` iGPU main interactive tier (:13307) / `FleetRegistry` | CONFIRMS the strix-halo-fleet-orchestration §1 claim (`Qwen3.6-35B-A3B-MTP-GGUF`) — the MTP heads ship INSIDE the GGUF (no separate draft model, no vocab-match). Self-speculative decoding via `llama-server --spec-type draft-mtp --spec-draft-n-max 3` → ~1.7-1.9× at $0 on the 3B-active MoE. **Serving trap (§1)**: lemonade does NOT expose `--spec-type` → must launch `llama-server` directly (or a custom lemonade recipe), NOT the standard `lemonade load`. **K1/rule-5**: IQ4_XS ≈ 17 GB (under the 20 GB pin gate; 35 GB free now) — heavier than the current ~5 GB Gemma-4-E4B main tier, so a quality/speed-vs-memory swap. So *registration* is additive; *MTP serving + the model swap* is needs-experiment. → backlog item 53. |
+
+**arXiv this round**: no NEW in-window (~30-day) verifiable method surfaced. The relevant KV-cache
+papers — `2603.04428` (Persistent Q4 KV Cache for multi-agent edge, MARCH) and `2604.04722`
+(adaptive on-device KV quant, APRIL) — are older than the window; `CostRoute` + the "Qwen3.5 on a
+laptop @10.33 t/s" claims have no verifiable arXiv id. Not fabricating one — omitted honestly.
+(`2603.04428` noted as an out-of-window watch candidate: multi-agent persistent Q4 KV → 4× more
+agent contexts; relevant to `resource_manager`/`semantic_cache` IF a future tick re-scopes it.)
+
+**Round verdict**: 1 HIGH-VALUE verified, fleet-runnable lever — `byteshape/Qwen3.6-35B-A3B-MTP-GGUF`
+confirms the §1 MTP claim (apache-2.0, 33k dl) and unlocks ~1.7-1.9× self-speculative decoding on
+the iGPU main tier at $0 → backlog item 53 (needs-experiment: direct-llama-server MTP serving +
+memory/quality proof + K1/rule-5 gate). No fabricated or regression-risk items.
