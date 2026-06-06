@@ -246,10 +246,18 @@ class TestSemanticCacheDiscrimination:
         query = "Explain what Python is"
         result = asyncio.run(cache.get(query))
 
-        # Should find a match (L2 semantic hit or at least check)
-        # If result is None, check the cache stats
         print(f"Cache hits L1: {cache.hits_l1}, L2: {cache.hits_l2}, L3: {cache.hits_l3}")
         print(f"Query result: {result}")
+
+        # item 20: was assertion-free (a fully-broken cache returning None always passed).
+        # Discriminating now: the query is NOT identical to any stored prompt, so a hash-only
+        # (L1) cache MISSES here. The semantic cache must land an L2 hit AND return the right
+        # stored response — exactly the "better discrimination than hash-based" the name claims.
+        # A wrong impl that disables the L2 semantic path returns None → fails (old test passed).
+        assert result is not None, "semantic cache returned no match for a paraphrased query"
+        assert result == "Python is a programming language"
+        assert cache.hits_l2 >= 1, "the match must come from the L2 semantic path, not exact hash"
+        assert cache.hits_l1 == 0, "a paraphrase must NOT produce an L1 exact-hash hit"
 
     @requires_real_st
     def test_threshold_discrimination(self):

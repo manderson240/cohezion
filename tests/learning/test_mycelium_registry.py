@@ -10,10 +10,20 @@ from cohezion.learning.mycelium_registry import (
 
 class TestMyceliumRegistry:
     def test_ingest_entry(self):
-        """Journal entries can be ingested."""
+        """Journal entries can be ingested AND stored (item 20: was non-discriminating).
+
+        Discriminating: a no-op ``ingest_entry`` (the most plausible wrong impl) would leave
+        ``_entries`` empty and previously passed the assertion-free version. Now it fails.
+        """
         registry = MyceliumRegistry()
-        registry.ingest_entry(JournalEntry("e1", "Some learning", "pattern"))
-        # No crash, internal state updated
+        entry = JournalEntry("e1", "Some learning", "pattern")
+        registry.ingest_entry(entry)
+        # The entry must actually land in internal state (not just "no crash").
+        assert len(registry._entries) == 1
+        assert registry._entries[0] is entry
+        # Append-semantics, not assignment: a second ingest grows to 2.
+        registry.ingest_entry(JournalEntry("e2", "More learning", "pattern"))
+        assert len(registry._entries) == 2
 
     def test_audit_synthesizes_from_patterns(self):
         """Audit synthesizes skills when domain has enough entries."""
