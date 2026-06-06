@@ -19,6 +19,17 @@ from cohezion.platform.agent_evaluation import (
     get_agent_evaluator,
     reset_agent_evaluator,
 )
+
+# Wiring-sweep 2026-06-06: agnostic_integrations was a genuine Class-A file-level orphan
+# (0 static importers anywhere; cycle-safe). Guarded re-export makes its IDE-adapter surface
+# statically reachable + part of the platform package API. Names listed in __all__ (ruff-safe).
+from cohezion.platform.agnostic_integrations import (
+    AgnosticExecutionBroker,
+    AntigravityIDEAdapter,
+    ClaudeCodeAdapter,
+    IDEIntegrationAdapter,
+    ZedCodeAdapter,
+)
 from cohezion.platform.coherence_tracker import (
     CoherenceMetrics,
     CoherenceTracker,
@@ -81,7 +92,9 @@ __all__ = [
     "ActionProposal",
     "AgentEvaluationResult",
     "AgentExecutionContext",
+    "AgnosticExecutionBroker",
     "AnthropicAlignedEvaluator",
+    "AntigravityIDEAdapter",
     "CICDMetrics",
     "CharterAlignedSkillAnalytics",
     "CharterAlignedSkillScorer",
@@ -89,6 +102,7 @@ __all__ = [
     "CharterComplianceScore",
     "CharterSkillInsights",
     "CharterSkillScore",
+    "ClaudeCodeAdapter",
     "CoherenceMetrics",
     "CoherenceTracker",
     "ConstitutionalPrinciple",
@@ -100,6 +114,7 @@ __all__ = [
     "HealthCheckResult",
     "HealthDigest",
     "HealthStatus",
+    "IDEIntegrationAdapter",
     "Journey",
     "JourneyLogger",
     "ObservableActionProposer",
@@ -109,6 +124,7 @@ __all__ = [
     "StreamRecommendation",
     "TestMetrics",
     "ViolationSeverity",
+    "ZedCodeAdapter",
     "get_agent_evaluator",
     "get_coherence_tracker",
     "get_daily_health_digest",

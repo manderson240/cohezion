@@ -90,6 +90,22 @@ mhd_mereon), all cycle-safe. WIRED (3): **flier_routing** (FLIERRouter, QubitNod
 **mereon_data** (get_m120p_vertices, get_m144p_vertices — function re-export) → `physics/__init__`
 guarded re-exports, both-order robust. physics/ file-level sweep COMPLETE (0 genuine-A remaining).
 
+### platform/ — CLASSIFIED + DONE (2026-06-06)
+16 modules; 9 already `__init__`-re-exported. 7 remaining candidates classified:
+- **Class A · genuine orphan (1)**: **agnostic_integrations** (0 static importers anywhere — src,
+  tests, registry, entry-points; cycle-safe, imports nothing from cohezion) → WIRED via
+  `platform/__init__` guarded re-export (IDEIntegrationAdapter, AntigravityIDEAdapter,
+  ClaudeCodeAdapter, ZedCodeAdapter, AgnosticExecutionBroker), names in `__all__` (ruff-safe).
+  Edge proven by `tests/wiring/test_agnostic_integrations_wired.py` (identity check + constructs
+  the broker through the package surface — fails if the edge is removed). Both-order robust.
+- **Class B · tests-only (3)**: oom_evictor (item-1 act-layer; `tests/platform/test_oom_evictor.py`),
+  session_tracker, tier_optimizer (`tests/platform/test_tier_optimizer.py`). Test-covered → not
+  dead; production-consumer wiring OPTIONAL/lower-priority.
+- **Class D · registry-live (1)**: mcp_server (referenced in `registry/skill_registry.json`).
+- **Reachable (intra-edge present, not candidates)**: memory_pressure (imported by oom_evictor +
+  resource_manager + compound/chronos), resource_manager (imported by memory_pressure + agentjet/trainer).
+platform/ file-level sweep COMPLETE (0 genuine-A remaining).
+
 ## Swept packages
 | Package | Swept | Candidates | A wired | A remaining | B/C/D recorded | Needs-human |
 |---|---|---|---|---|---|---|
@@ -97,6 +113,7 @@ guarded re-exports, both-order robust. physics/ file-level sweep COMPLETE (0 gen
 | swarm | classified | 24 | 0 (BLOCKED) | 12 | — | circular import (below) |
 | inference | **DONE** | 14 | 1 (lynx_gate) | 0 | 13 B | 0 |
 | physics | **DONE** | 5 | 3 (+mereon_data) | 0 | 2 B | 0 |
+| platform | **DONE** | 7 | 1 (agnostic_integrations) | 0 | 3 B + 1 D | 0 |
 
 ## Needs human decision
 - **compound↔swarm circular import (blocks swarm/ wiring).** `compound/dynamic_compound_system.py`
@@ -119,7 +136,8 @@ guarded re-exports, both-order robust. physics/ file-level sweep COMPLETE (0 gen
   re-export above is the non-behavior-changing edge; deeper integration is deferred to a human.
 
 ## Next tick
-`compound/`, `inference/`, `physics/` DONE; `swarm/` BLOCKED (cycle — human decision). Advance to
-the NEXT unblocked package (e.g. `platform/`, `cache/`, `persistence/`): classify file-level, wire
-genuine Class-A orphans one per tick. ALWAYS cycle-check before wiring + run the FULL `tests/wiring/`
-suite + both-import-order check after (the swarm lesson). Do NOT re-attempt swarm/ until resolved.
+`compound/`, `inference/`, `physics/`, `platform/` DONE; `swarm/` BLOCKED (cycle — human decision).
+Advance to the NEXT unblocked package (e.g. `cache/`, `persistence/`, `models/`, `governance/`):
+classify file-level, wire genuine Class-A orphans one per tick. ALWAYS cycle-check before wiring +
+run the FULL `tests/wiring/` suite + both-import-order check after (the swarm lesson). Do NOT
+re-attempt swarm/ until resolved.
