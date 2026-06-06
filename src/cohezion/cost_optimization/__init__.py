@@ -24,6 +24,18 @@ from cohezion.cost_optimization.budget_enforcer import (
     reset_current_enforcer,
     set_current_enforcer,
 )
+
+# Wiring-sweep (2026-06-06): cost_dashboard was a genuine Class-A orphan (0 production importers —
+# only a test edge), though its siblings above were already re-exported. Added to the public surface
+# (observability layer, per the module docstring) so it is reachable via a literal static edge.
+from cohezion.cost_optimization.cost_dashboard import (
+    BudgetStatus,
+    CostBreakdown,
+    CostDashboard,
+    SpendRate,
+    TrendPoint,
+    get_cost_dashboard,
+)
 from cohezion.cost_optimization.cost_tracker import (
     CostRecord,
     SessionCostTracker,
@@ -38,9 +50,15 @@ __all__ = [
     "BudgetEnforcer",
     "BudgetPolicy",
     "BudgetState",
+    "BudgetStatus",
     "CostAlertManager",
+    "CostBreakdown",
+    "CostDashboard",
     "CostRecord",
     "SessionCostTracker",
+    "SpendRate",
+    "TrendPoint",
+    "get_cost_dashboard",
     "get_current_enforcer",
     "get_current_tracker",
     "reset_current_enforcer",

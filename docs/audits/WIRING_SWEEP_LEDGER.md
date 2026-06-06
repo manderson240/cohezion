@@ -340,6 +340,21 @@ record-only sweep (no wiring, no new test, like models/ and persistence/). The
 `COMPOUND_SELF_IMPROVEMENT_PRIME.md` grep hit is a skill-doc code block, NOT a Python edge (irrelevant
 — real `.py` importers exist).
 
+### cost_optimization/ — CLASSIFIED + IN PROGRESS (2026-06-06), 1 of 2 genuine-A wired
+4 modules. The package `__init__` already re-exported budget_enforcer + cost_tracker (absolute
+imports — a relative-only `^from \.` grep misses them; use the broad literal grep). Classification:
+- **Reachable (2)**: `budget_enforcer`, `cost_tracker` — both ← production `swarm/cost_aware_router.py`
+  (literal imports) + the package `__init__` re-export.
+- **Class A · wired this tick (1)**: `cost_dashboard` — 0 production importers (only `tests/compound/
+  test_cost_dashboard.py`); its siblings were re-exported but the dashboard never was. Added to the
+  `__init__` re-export block (CostDashboard/get_cost_dashboard + 4 dataclasses), same convention.
+  Test `tests/wiring/test_cost_dashboard_wired.py` (identity + `__all__` + both-import-order). No
+  cycle (cost_dashboard imports the submodules, not the package). NB: wiring it into an API route
+  would be a behavior change → out of scope; the `__init__` re-export is the non-behavior edge.
+- **Class A · NEXT tick (1)**: `forecast_engine` — same shape (0 prod importers, only
+  `tests/compound/test_forecast_engine.py`); ForecastEngine/get_forecast_engine to re-export next.
+cost_optimization/ stays `in progress` until forecast_engine is wired.
+
 ## Swept packages
 | Package | Swept | Candidates | A wired | A remaining | B/C/D recorded | Needs-human |
 |---|---|---|---|---|---|---|
@@ -363,6 +378,7 @@ record-only sweep (no wiring, no new test, like models/ and persistence/). The
 | rl | classified | 10 | 3 (causal_interpreter, distributed_trainer, grpo_trainer) | 1 (blocked) | 1 B + 5 reachable | 1 (lora_trainer import) |
 | knowledge_graph | **DONE** | 6 | 1 (graphrag_engine) | 0 | 2 D (cli, universe_genealogy_migration) + 3 reachable | 0 |
 | mycelium | **DONE** | 4 | 0 | 0 | 4 reachable (all via prod src imports) | 0 |
+| cost_optimization | in progress | 4 | 1 (cost_dashboard) | 1 (forecast_engine, next tick) | 2 reachable | 0 |
 
 ## Needs human decision
 - **`rl/lora_trainer` broken import (transformers).** `import cohezion.rl.lora_trainer` raises
@@ -417,9 +433,14 @@ methodology guard:** the per-tick grep MUST require a leading `from`/`import` to
 literal import statements, never a dotted path inside a string (metadata, registry keys,
 `importlib.import_module` args all false-positive otherwise).
 
-**`mycelium/` DONE this tick** — 0 genuine-A; all 4 modules reachable via literal production `src/`
+**`mycelium/` DONE** — 0 genuine-A; all 4 modules reachable via literal production `src/`
 imports (executor + degradation_detector). Statically confirms the CLAUDE.md "Mycelium wired into
 Genesis chain" claim. Record-only sweep (lazy-but-literal imports ARE static edges).
+
+**`cost_optimization/` IN PROGRESS this tick** — wired `cost_dashboard` (genuine Class-A, 0 prod
+importers) via the existing `__init__` re-export convention + discriminating test. `forecast_engine`
+is the same-shape orphan, queued NEXT tick (one file/tick). budget_enforcer + cost_tracker reachable
+via `swarm/cost_aware_router`.
 
 **Next tick: pick a fresh not-yet-swept package.** Unswept incl. `api`, `mcp`, `agents`, `core`,
 `flume`, `universe`, `security`, `simulation`, `cost_optimization`, `healing`
