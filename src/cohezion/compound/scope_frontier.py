@@ -13,6 +13,7 @@ allowlist so a caller can ask "what's the next thing to grow?" without wiring th
 
 from __future__ import annotations
 
+from collections.abc import Iterable
 from dataclasses import dataclass
 from pathlib import Path
 
@@ -148,4 +149,81 @@ def propose_scope_frontier_from_state() -> list[ScopeProposal]:
         empty_task_slots=empty_slots,
         unused_neuron_countries=unused_countries,
         unswept_packages=unswept,
+    )
+
+
+def frontier_is_human_gated(
+    proposals: list[ScopeProposal], *, gated_targets: Iterable[str]
+) -> bool:
+    """The build loop's STOP condition as a pure, testable predicate (item 40).
+
+    Returns True iff EVERY remaining proposal's ``target`` is in ``gated_targets`` (or there are no
+    proposals) — i.e. scope cannot be expanded without a human decision. Returns False as soon as
+    ONE proposal is auto-actionable (its target is NOT gated): the loop should keep working while
+    any gap is auto-actionable. Uses ``all(...)`` (not ``any``/intersection) so a single gated
+    target among auto-actionable ones does NOT prematurely declare the frontier exhausted.
+    ``all([]) == True`` gives the no-proposals → gated case for free. Pure (no I/O).
+    """
+    gated = set(gated_targets)
+    return all(p.target in gated for p in proposals)
+
+
+def _ledger_cell_is_gated(cell: str) -> bool:
+    """A Needs-human cell is gated when its leading token is a positive count or a non-numeric note.
+
+    ``"0"`` / ``"0 (verified distinct)"`` (leading zero) → NOT gated; ``"3 (below)"`` → gated;
+    ``"circular import (below)"`` (non-numeric note) → gated; empty → NOT gated.
+    """
+    cell = cell.strip()
+    if not cell:
+        return False
+    first = cell.split()[0]
+    try:
+        return int(first) > 0
+    except ValueError:
+        return True
+
+
+def gated_targets_from_ledger(ledger_path: Path | None = None) -> set[str]:
+    """Package names flagged human-gated in the ledger's '## Swept packages' Needs-human column (item 40).
+
+    A package is gated when its Needs-human cell ``_ledger_cell_is_gated``. Section-scoped strictly
+    to ``## Swept packages`` (mirrors ``unswept_packages_from_ledger``) and fail-soft: a missing or
+    unreadable ledger, or a table without the 7th column, yields ``set()`` (never raises).
+    """
+    path = ledger_path or _DEFAULT_LEDGER
+    try:
+        lines = path.read_text(encoding="utf-8", errors="replace").splitlines()
+    except OSError:
+        return set()
+
+    in_section = False
+    gated: set[str] = set()
+    for line in lines:
+        if line.startswith("## "):
+            in_section = line.strip().lower().startswith("## swept packages")
+            continue
+        if not in_section or not line.lstrip().startswith("|"):
+            continue
+        cells = [c.strip() for c in line.strip().strip("|").split("|")]
+        if len(cells) < 7:
+            continue  # not the 7-col swept-package row (header/separator/short row)
+        pkg, needs_human = cells[0], cells[-1]
+        if pkg.lower() == "package" or set(pkg) <= set("-: "):
+            continue  # header row or |---| separator
+        if _ledger_cell_is_gated(needs_human):
+            gated.add(pkg)
+    return gated
+
+
+def frontier_is_human_gated_from_state() -> bool:
+    """Live composition (item 40): the current frontier proposals are ALL human-gated.
+
+    Composes ``propose_scope_frontier_from_state`` (items 26/31) with ``gated_targets_from_ledger``.
+    True = the build loop's scope-expansion is exhausted without a human decision. Fail-soft via
+    its two constituents (each returns empty on error → predicate over [] is True).
+    """
+    return frontier_is_human_gated(
+        propose_scope_frontier_from_state(),
+        gated_targets=gated_targets_from_ledger(),
     )
