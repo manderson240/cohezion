@@ -93,3 +93,44 @@ def loop_telemetry(
         swept_packages_done=swept_done,
         research_rounds=rounds,
     )
+
+
+@dataclass(frozen=True)
+class StallReport:
+    """The verdict of comparing two LoopTelemetry snapshots. REPORT-ONLY (proposes, never acts)."""
+
+    stalled: bool
+    reason: str
+
+
+def detect_loop_stall(before: LoopTelemetry, after: LoopTelemetry) -> StallReport:
+    """Flag a STALLED build loop across two telemetry snapshots (item 30, extends item 25).
+
+    A stall is *outstanding work with no completions between snapshots*:
+      - ``backlog_done`` unchanged while ``backlog_todo > 0`` (items remain but none completed), OR
+      - ``backlog_blocked`` grew while ``backlog_done`` did not (work piling into BLOCKED).
+
+    NOT a stall:
+      - ``backlog_done`` advanced → healthy progress.
+      - identical snapshots with ``backlog_todo == 0`` and no new BLOCKED → quiescent (nothing
+        left to do — done, not stuck). This guards against the naive "done unchanged ⇒ stalled"
+        impl that would false-flag an empty backlog.
+
+    Report-only: returns a verdict; it never mutates state or acts on the flag.
+    """
+    if after.backlog_done > before.backlog_done:
+        return StallReport(
+            False, f"healthy: backlog_done {before.backlog_done}->{after.backlog_done}"
+        )
+    # From here, DONE did not advance.
+    if after.backlog_todo > 0:
+        return StallReport(
+            True, f"stalled: no DONE progress with {after.backlog_todo} TODO remaining"
+        )
+    if after.backlog_blocked > before.backlog_blocked:
+        return StallReport(
+            True,
+            f"stalled: BLOCKED grew {before.backlog_blocked}->{after.backlog_blocked} "
+            "with no DONE progress",
+        )
+    return StallReport(False, "quiescent: no TODO remaining and no new BLOCKED — not a stall")
