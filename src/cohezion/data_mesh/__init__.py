@@ -12,3 +12,39 @@ Smith fabric mapping: Field fabric (data topology)
 Attribution: Zhamak Dehghani, "Data Mesh: Delivering Data-Driven Value at Scale"
   (O'Reilly, 2022)
 """
+
+import contextlib
+
+
+# Wiring-sweep 2026-06-06: audio_telemetry was a genuine production orphan — its bioacoustic
+# schema (TaxonomyLevel / BirdSpeciesNode / AudioSegmentMetadata / SpectrogramConfig /
+# AudioTelemetryEvent, the BirdCLEF-2026 telemetry data product) had ZERO importers anywhere
+# (the one "audio_telemetry" hit in learning/ouroboros.py is a method NAME, not an import).
+# Guarded re-export (pydantic is a hard dep; suppress keeps the package importable if it is
+# ever absent) puts the data product on the package surface and makes it statically reachable.
+__all__: list[str] = []
+
+with contextlib.suppress(Exception):
+    from cohezion.data_mesh.audio_telemetry import (
+        AudioSegmentMetadata as AudioSegmentMetadata,
+    )
+    from cohezion.data_mesh.audio_telemetry import (
+        AudioTelemetryEvent as AudioTelemetryEvent,
+    )
+    from cohezion.data_mesh.audio_telemetry import (
+        BirdSpeciesNode as BirdSpeciesNode,
+    )
+    from cohezion.data_mesh.audio_telemetry import (
+        SpectrogramConfig as SpectrogramConfig,
+    )
+    from cohezion.data_mesh.audio_telemetry import (
+        TaxonomyLevel as TaxonomyLevel,
+    )
+
+    __all__ += [
+        "AudioSegmentMetadata",
+        "AudioTelemetryEvent",
+        "BirdSpeciesNode",
+        "SpectrogramConfig",
+        "TaxonomyLevel",
+    ]

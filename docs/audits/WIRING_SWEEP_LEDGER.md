@@ -179,6 +179,19 @@ platform/ file-level sweep COMPLETE (0 genuine-A remaining).
   importorskip transformers/torch). Both-order robust (env-first + compound-first).
 environments/ file-level sweep COMPLETE (0 genuine-A remaining).
 
+### data_mesh/ — CLASSIFIED + DONE (2026-06-06), 1 A wired
+4 modules; `__init__` re-exported nothing. Classification:
+- **Reachable (static src edge)**: data_product (src_ext=2), journey_telemetry (src_ext=7),
+  universe_telemetry (src_ext=3).
+- **Class A · genuine orphan (1)**: **audio_telemetry** — the BirdCLEF-2026 bioacoustic schema
+  (TaxonomyLevel / BirdSpeciesNode / AudioSegmentMetadata / SpectrogramConfig /
+  AudioTelemetryEvent) had ZERO importers anywhere; the lone "audio_telemetry" grep hit in
+  `learning/ouroboros.py:83` is a METHOD NAME (`analyze_audio_telemetry`), not an import.
+  Cycle-safe (imports only stdlib + pydantic) → WIRED via `data_mesh/__init__` guarded re-export.
+  Proven by `tests/wiring/test_audio_telemetry_wired.py` (identity on all 5 names + `__all__`).
+  Both-order robust (data_mesh-first + compound-first).
+data_mesh/ file-level sweep COMPLETE (0 genuine-A remaining).
+
 ## Swept packages
 | Package | Swept | Candidates | A wired | A remaining | B/C/D recorded | Needs-human |
 |---|---|---|---|---|---|---|
@@ -193,6 +206,7 @@ environments/ file-level sweep COMPLETE (0 genuine-A remaining).
 | governance | **DONE** | 7 | 1 (concierge) | 0 | 6 reachable | 0 |
 | world_model | **DONE** | 4 | 3 (surprise_explorer, sigreg, jepa_persistent) | 0 | 1 reachable | 0 |
 | environments | **DONE** | 4 | 1 (auto_generator) | 0 | 1 B + 1 reachable | 0 |
+| data_mesh | **DONE** | 4 | 1 (audio_telemetry) | 0 | 3 reachable | 0 |
 
 ## Needs human decision
 - **compound↔swarm circular import (blocks swarm/ wiring).** `compound/dynamic_compound_system.py`
@@ -226,10 +240,19 @@ environments/ file-level sweep COMPLETE (0 genuine-A remaining).
   re-export above is the non-behavior-changing edge; deeper integration is deferred to a human.
 
 ## Next tick
-**9 packages fully DONE**: compound, inference, physics, platform, persistence, models, governance,
-world_model, environments. `cache/` classified (0 clean-A; 1 dup → human); `swarm/` BLOCKED (cycle
-— human decision). Advance to the NEXT unswept package (candidates: `api/`, `mcp/`, `agents/`,
-`core/`, `flume/`, `universe/`, `security/`, `physics` done, etc. — pick the next not-yet-swept
-`src/cohezion/<pkg>/`): classify file-level, wire genuine Class-A orphans one per tick. ALWAYS
-cycle-check before wiring + run the FULL `tests/wiring/` suite + both-import-order check after (the
-swarm lesson). Do NOT re-attempt swarm/ or cache/sentence_encoder until the human decisions resolve.
+**10 packages fully DONE**: compound, inference, physics, platform, persistence, models, governance,
+world_model, environments, data_mesh. `cache/` classified (0 clean-A; 1 dup → human); `swarm/`
+BLOCKED (cycle — human decision).
+
+**Pre-scouted genuine-A candidates (zero static edge anywhere — wire one per tick, classify the rest
+of each package first):** `pipeline/incremental_trainer`, `substrate/popcorn`, `gateway/mcp_http_server`.
+(Single-module packages already confirmed reachable, NOT orphans — skip: knowledge/llm_wiki,
+storage/surreal_client, tools/test_generator [C], reporting/nightly [B], optimization/r_zero,
+patterns/hermetic_design_patterns [B], sandboxing/executor [C], evaluation/self_eval,
+deployment/feature_flags.)
+
+Advance to the next not-yet-swept `src/cohezion/<pkg>/`: classify file-level, wire genuine Class-A
+orphans one per tick. ALWAYS cycle-check before wiring + run the FULL `tests/wiring/` suite +
+both-import-order check after (the swarm lesson). For an entry-point-only module (e.g. an HTTP
+server `main()` run as a script) confirm it is Class-D registry/entry-point-live before forcing an
+import edge. Do NOT re-attempt swarm/ or cache/sentence_encoder until the human decisions resolve.
