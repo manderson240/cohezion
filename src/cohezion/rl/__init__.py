@@ -60,3 +60,24 @@ with contextlib.suppress(Exception):
         "ScalingBenchmark",
         "ScalingMetrics",
     ]
+
+# Wiring-sweep 2026-06-06: grpo_trainer was a genuine production orphan — its GRPOConfig /
+# GRPOMetrics / GRPOTrainer / AsyncGRPOTrainer (Group Relative Policy Optimization training) had
+# ZERO importers anywhere. Cycle-safe (torch only, no transformers — imports cleanly). SEPARATE
+# guarded block (failure-domain isolation). Completes rl/'s clean genuine-A wiring (lora_trainer
+# stays blocked on its transformers import — see ledger Needs-human).
+with contextlib.suppress(Exception):
+    from cohezion.rl.grpo_trainer import (
+        AsyncGRPOTrainer as AsyncGRPOTrainer,
+    )
+    from cohezion.rl.grpo_trainer import (
+        GRPOConfig as GRPOConfig,
+    )
+    from cohezion.rl.grpo_trainer import (
+        GRPOMetrics as GRPOMetrics,
+    )
+    from cohezion.rl.grpo_trainer import (
+        GRPOTrainer as GRPOTrainer,
+    )
+
+    __all__ += ["AsyncGRPOTrainer", "GRPOConfig", "GRPOMetrics", "GRPOTrainer"]
