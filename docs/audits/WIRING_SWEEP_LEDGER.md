@@ -99,8 +99,9 @@ guarded re-exports, both-order robust. physics/ file-level sweep COMPLETE (0 gen
     (`tests/wiring/test_surprise_explorer_wired.py`, both-order robust).
   - **sigreg** (SIGReg) → WIRED 089b9a362 (`tests/wiring/test_sigreg_wired.py`, torch-guarded,
     separate block so torch-absent can't take down surprise_explorer; both-order robust).
-  - **jepa_world_model_persistent** (JEPAWorldModelPersistent) → NEXT tick.
-world_model/ sweep continues until all 3 wired (2/3 done).
+  - **jepa_world_model_persistent** (JEPAWorldModelPersistent) → WIRED 4de0b6b88
+    (`tests/wiring/test_jepa_persistent_wired.py`, torch-guarded; both-order robust).
+world_model/ file-level sweep COMPLETE (3/3 wired, 0 genuine-A remaining).
 
 ### governance/ — CLASSIFIED + DONE (2026-06-06), 1 A wired
 7 modules, `__init__` re-exported nothing. Classification:
@@ -175,7 +176,7 @@ platform/ file-level sweep COMPLETE (0 genuine-A remaining).
 | persistence | **DONE** | 3 | 0 | 0 | 3 reachable | 0 |
 | models | **DONE** | 5 | 0 | 0 | 2 B + 3 reachable | 0 |
 | governance | **DONE** | 7 | 1 (concierge) | 0 | 6 reachable | 0 |
-| world_model | in progress | 4 | 2/3 (surprise_explorer, sigreg) | 1 (jepa_persistent) | 1 reachable | 0 |
+| world_model | **DONE** | 4 | 3 (surprise_explorer, sigreg, jepa_persistent) | 0 | 1 reachable | 0 |
 
 ## Needs human decision
 - **compound↔swarm circular import (blocks swarm/ wiring).** `compound/dynamic_compound_system.py`
@@ -211,8 +212,8 @@ platform/ file-level sweep COMPLETE (0 genuine-A remaining).
 ## Next tick
 `compound/`, `inference/`, `physics/`, `platform/`, `persistence/`, `models/`, `governance/` DONE;
 `cache/` classified (0 clean-A; 1 dup → human); `swarm/` BLOCKED (cycle — human decision). Advance
-`world_model/` IN PROGRESS (surprise_explorer + sigreg wired; **next: jepa_world_model_persistent** — last one).
-After world_model/, advance to `environments/`, `api/` (`cache` classified, `swarm/` blocked): classify
-file-level, wire genuine Class-A orphans one per tick. ALWAYS cycle-check before wiring + run the FULL `tests/wiring/` suite +
+`world_model/` **DONE** (3/3). 8 packages fully DONE. Advance to the NEXT unswept package
+(`environments/`, `api/`, `mcp/`, `swarm/` is blocked, `cache` classified): classify file-level,
+wire genuine Class-A orphans one per tick. ALWAYS cycle-check before wiring + run the FULL `tests/wiring/` suite +
 both-import-order check after (the swarm lesson). Do NOT re-attempt swarm/ or cache/sentence_encoder
 until the human decisions resolve.
