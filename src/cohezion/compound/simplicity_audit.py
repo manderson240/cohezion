@@ -86,3 +86,83 @@ def complexity_outliers(paths: Iterable[Path], *, threshold: int = 15) -> list[t
                 if cc > threshold:
                     out.append((f"{path.name}::{node.name}", cc))
     return sorted(out, key=lambda t: (-t[1], t[0]))
+
+
+# Decorators that make single-call forwarding LEGITIMATE (required indirection, not a smell).
+_INDIRECTION_DECORATORS = frozenset(
+    {"property", "cached_property", "abstractmethod", "abstractproperty"}
+)
+
+
+def _strip_docstring(body: list[ast.stmt]) -> list[ast.stmt]:
+    if (
+        body
+        and isinstance(body[0], ast.Expr)
+        and isinstance(body[0].value, ast.Constant)
+        and isinstance(body[0].value.value, str)
+    ):
+        return body[1:]
+    return body
+
+
+def _forwards_only_names(call: ast.Call) -> bool:
+    """True iff the call's arguments are pure forwarding — bare names or *name/**name — with NO
+    literals, operators, or nested calls (any of which would be *added logic*, not a pass-through)."""
+
+    def _ok_arg(a: ast.expr) -> bool:
+        if isinstance(a, ast.Name):
+            return True
+        return isinstance(a, ast.Starred) and isinstance(a.value, ast.Name)
+
+    return all(_ok_arg(a) for a in call.args) and all(
+        isinstance(k.value, ast.Name) for k in call.keywords
+    )
+
+
+def _is_passthrough(func: ast.FunctionDef | ast.AsyncFunctionDef) -> bool:
+    name = func.name
+    if name.startswith("__") and name.endswith("__"):
+        return False  # dunders (e.g. __init__ → super().__init__()) are legit forwarding
+    for dec in func.decorator_list:
+        dname = (
+            dec.id
+            if isinstance(dec, ast.Name)
+            else dec.attr
+            if isinstance(dec, ast.Attribute)
+            else None
+        )
+        if dname in _INDIRECTION_DECORATORS:
+            return False  # property / abstractmethod: required indirection
+    body = _strip_docstring(func.body)
+    if len(body) != 1:
+        return False
+    stmt = body[0]
+    if isinstance(stmt, ast.Return) and isinstance(stmt.value, ast.Call):
+        call: ast.Call = stmt.value
+    elif isinstance(stmt, ast.Expr) and isinstance(stmt.value, ast.Call):
+        call = stmt.value
+    else:
+        return False
+    return _forwards_only_names(call)
+
+
+def passthrough_functions(paths: Iterable[Path]) -> list[str]:
+    """Functions whose entire body forwards to ONE call with no added logic. READ-ONLY.
+
+    The wrapper-that-earns-nothing (item 44) — the dual of an orphan: present but meaningless. A
+    body that is a single ``return g(...)`` / ``g(...)`` forwarding only bare names is flagged;
+    any added logic (a literal/operator/nested-call argument, a branch, >1 statement, a non-call
+    return), a dunder, or a ``@property``/``@abstractmethod`` is NOT (legit indirection). Returns
+    sorted ``<relpath>::<funcname>``. Report-only — a candidate for inlining (a human call), never
+    auto-inlined. Pure: reads source, never writes.
+    """
+    out: list[str] = []
+    for path in _iter_python_files(paths):
+        try:
+            tree = ast.parse(path.read_text(encoding="utf-8", errors="replace"))
+        except (OSError, SyntaxError, ValueError):
+            continue
+        for node in ast.walk(tree):
+            if isinstance(node, ast.FunctionDef | ast.AsyncFunctionDef) and _is_passthrough(node):
+                out.append(f"{path.name}::{node.name}")
+    return sorted(out)
