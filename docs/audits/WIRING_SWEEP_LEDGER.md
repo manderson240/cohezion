@@ -90,6 +90,21 @@ mhd_mereon), all cycle-safe. WIRED (3): **flier_routing** (FLIERRouter, QubitNod
 **mereon_data** (get_m120p_vertices, get_m144p_vertices — function re-export) → `physics/__init__`
 guarded re-exports, both-order robust. physics/ file-level sweep COMPLETE (0 genuine-A remaining).
 
+### cache/ — CLASSIFIED (2026-06-06), 1 needs-human (true duplicate)
+6 modules; 2 already `__init__`-re-exported (redis_cache, semantic_cache). 4 candidates classified:
+- **Reachable (intra-edge present, not orphans)**: cache_warmer (imported by
+  compound/executor_helpers/template_matcher), lemonade_encoder + text_encoder (both imported by
+  cache/semantic_cache).
+- **Class A-as-duplicate → NEEDS HUMAN (1)**: **sentence_encoder** — 0 production importers; its
+  `SentenceTransformerEncoder`/`get_encoder()` is a SIMPLER re-implementation of what
+  `text_encoder.SemanticTextEncoder`/`get_text_encoder()` already does (SAME model all-MiniLM-L6-v2;
+  text_encoder is a strict SUPERSET: adds 256D pad/truncate, n-gram fallback, device handling, and
+  is the one `semantic_cache` actually uses). NOT a clean Class-A to auto-wire: re-exporting it would
+  legitimize a dead duplicate AND its `get_encoder` name collides with the FLUME `vae_encoder.get_encoder`
+  already imported in semantic_cache. Per rule 3 (verify, don't merge blind) + step 5 (true duplicate →
+  surface, don't guess): flagged below. NOT wired this tick (no fake edge, no deletion).
+0 clean Class-A wired this tick — cache/ is production-reachable except the duplicate (human-gated).
+
 ### platform/ — CLASSIFIED + DONE (2026-06-06)
 16 modules; 9 already `__init__`-re-exported. 7 remaining candidates classified:
 - **Class A · genuine orphan (1)**: **agnostic_integrations** (0 static importers anywhere — src,
@@ -114,6 +129,7 @@ platform/ file-level sweep COMPLETE (0 genuine-A remaining).
 | inference | **DONE** | 14 | 1 (lynx_gate) | 0 | 13 B | 0 |
 | physics | **DONE** | 5 | 3 (+mereon_data) | 0 | 2 B | 0 |
 | platform | **DONE** | 7 | 1 (agnostic_integrations) | 0 | 3 B + 1 D | 0 |
+| cache | classified | 4 | 0 | 1 (dup) | 3 reachable | 1 (sentence_encoder dup) |
 
 ## Needs human decision
 - **compound↔swarm circular import (blocks swarm/ wiring).** `compound/dynamic_compound_system.py`
@@ -121,6 +137,17 @@ platform/ file-level sweep COMPLETE (0 genuine-A remaining).
   `compound/__init__` guarded re-exports silently unbind under swarm-first import order. Resolve the
   cycle (lazy-import swarm inside those modules' functions, OR make the re-exports order-robust)
   before file-level-wiring swarm/. NOT fixed by the loop (architectural / behavior-affecting).
+- **`cache/sentence_encoder` vs `cache/text_encoder` — TRUE functional duplicate.**
+  `sentence_encoder.SentenceTransformerEncoder`/`get_encoder()` is a simpler re-implementation of
+  `text_encoder.SemanticTextEncoder`/`get_text_encoder()`: SAME model (all-MiniLM-L6-v2), but
+  text_encoder is a strict superset (256D pad/truncate + n-gram fallback + device handling) and is
+  the one `semantic_cache` uses. sentence_encoder has 0 production importers (test-only). Per
+  non-destructive policy rule 4 (consolidation = integrate INTO the canonical sibling first, the
+  empty husk is a downstream consequence — never a blind delete): the likely resolution is to fold
+  any unique value of sentence_encoder INTO text_encoder, then sentence_encoder's removal is
+  bookkeeping. NOT done by the loop (consolidation is permission-gated + behavior-affecting). Also
+  note the `get_encoder` name collides with FLUME `vae_encoder.get_encoder` (imported in
+  semantic_cache) — a re-export would be a footgun. Decision needed: consolidate vs keep-as-distinct.
 - **`model_capability_registry` vs `model_capability_registry_resource_safe`** — surface-name pair
   in swarm/; verify same-concept (consolidate) vs distinct (rename) before wiring. Hazard, not merge.
 - **`ReasoningModel` surface-name duplicate** — both `compound/agi_reasoning.py` and
@@ -136,8 +163,9 @@ platform/ file-level sweep COMPLETE (0 genuine-A remaining).
   re-export above is the non-behavior-changing edge; deeper integration is deferred to a human.
 
 ## Next tick
-`compound/`, `inference/`, `physics/`, `platform/` DONE; `swarm/` BLOCKED (cycle — human decision).
-Advance to the NEXT unblocked package (e.g. `cache/`, `persistence/`, `models/`, `governance/`):
-classify file-level, wire genuine Class-A orphans one per tick. ALWAYS cycle-check before wiring +
-run the FULL `tests/wiring/` suite + both-import-order check after (the swarm lesson). Do NOT
-re-attempt swarm/ until resolved.
+`compound/`, `inference/`, `physics/`, `platform/` DONE; `cache/` classified (0 clean-A; 1 dup →
+human); `swarm/` BLOCKED (cycle — human decision). Advance to the NEXT unblocked package (e.g.
+`persistence/`, `models/`, `governance/`): classify file-level, wire genuine Class-A orphans one per
+tick. ALWAYS cycle-check before wiring + run the FULL `tests/wiring/` suite + both-import-order check
+after (the swarm lesson). Do NOT re-attempt swarm/ or cache/sentence_encoder until the human
+decisions resolve.
