@@ -86,9 +86,9 @@ inference/ file-level sweep COMPLETE (0 genuine-A remaining).
 
 ### physics/ — CLASSIFIED (2026-06-06), in progress
 5 candidates: 2 Class-B (usd_simulator, vliw_bridge) + 3 genuine-A (flier_routing, mereon_data,
-mhd_mereon), all cycle-safe. WIRED (2): **flier_routing** (FLIERRouter, QubitNode), **mhd_mereon** (MHDMereonOperator, MHDState)
-→ `physics/__init__` guarded re-exports, both-order robust. Remaining genuine-A (1): mereon_data
-(funcs get_m120p/m144p_vertices — no classes; wire via function re-export next tick).
+mhd_mereon), all cycle-safe. WIRED (3): **flier_routing** (FLIERRouter, QubitNode), **mhd_mereon** (MHDMereonOperator, MHDState),
+**mereon_data** (get_m120p_vertices, get_m144p_vertices — function re-export) → `physics/__init__`
+guarded re-exports, both-order robust. physics/ file-level sweep COMPLETE (0 genuine-A remaining).
 
 ## Swept packages
 | Package | Swept | Candidates | A wired | A remaining | B/C/D recorded | Needs-human |
@@ -96,7 +96,7 @@ mhd_mereon), all cycle-safe. WIRED (2): **flier_routing** (FLIERRouter, QubitNod
 | compound | **DONE** | 24 | 9 (+aimo_reasoning) | 0 | 13 B + 1 D | 3 (below) |
 | swarm | classified | 24 | 0 (BLOCKED) | 12 | — | circular import (below) |
 | inference | **DONE** | 14 | 1 (lynx_gate) | 0 | 13 B | 0 |
-| physics | in progress | 5 | 2 (flier_routing, mhd_mereon) | 1 | 2 B | 0 |
+| physics | **DONE** | 5 | 3 (+mereon_data) | 0 | 2 B | 0 |
 
 ## Needs human decision
 - **compound↔swarm circular import (blocks swarm/ wiring).** `compound/dynamic_compound_system.py`
@@ -119,7 +119,7 @@ mhd_mereon), all cycle-safe. WIRED (2): **flier_routing** (FLIERRouter, QubitNod
   re-export above is the non-behavior-changing edge; deeper integration is deferred to a human.
 
 ## Next tick
-`compound/` + `inference/` DONE; `swarm/` BLOCKED (cycle — human decision). Advance to the NEXT
-unblocked package (e.g. `physics/` or `platform/`): classify file-level, wire genuine Class-A orphans
-one per tick. ALWAYS run the FULL `tests/wiring/` suite + both-import-order check after wiring (the
-swarm lesson). Do NOT re-attempt swarm/ until the compound↔swarm cycle is resolved.
+`compound/`, `inference/`, `physics/` DONE; `swarm/` BLOCKED (cycle — human decision). Advance to
+the NEXT unblocked package (e.g. `platform/`, `cache/`, `persistence/`): classify file-level, wire
+genuine Class-A orphans one per tick. ALWAYS cycle-check before wiring + run the FULL `tests/wiring/`
+suite + both-import-order check after (the swarm lesson). Do NOT re-attempt swarm/ until resolved.

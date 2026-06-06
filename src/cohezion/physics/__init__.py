@@ -28,6 +28,15 @@ with contextlib.suppress(Exception):
         MHDState as MHDState,
     )
 
+# Wiring-sweep 2026-06-06: mereon_data was a genuine import-graph orphan (functions only).
+with contextlib.suppress(Exception):
+    from cohezion.physics.mereon_data import (
+        get_m120p_vertices as get_m120p_vertices,
+    )
+    from cohezion.physics.mereon_data import (
+        get_m144p_vertices as get_m144p_vertices,
+    )
+
 # Stealthskater extended substrate library — Phase 18
 from cohezion.physics.bec_bridge import BECState, MercuryLattice
 from cohezion.physics.bioelectric_model import BioelectricNetwork
