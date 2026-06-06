@@ -43,28 +43,35 @@ skill_mutation_queue, skill_refinement_validator, tape_logger, test_basic_import
 thermal_autoresearch_executor, workflow_manager
 ```
 
-### Known classifications (seeded — saves the loop re-deriving)
-- `chronos` → **Class A (genuine, new 2026-06-06).** `get_chronos()` has no consumer yet.
-  Wire target: the OOM/Chronos deconfliction subscriber (backlog **item 12**) — subscribe to
-  `memory_pressure` and log `resource_advisory()`. Until item 12 lands, wire a re-export so it's
-  import-reachable.
-- `skill_mutation_queue` → likely **Class B/D**: harness invariant **CB2** + `tests/unit/compound/
-  test_skill_mutation_queue.py` exercise `SkillMutationQueue`; confirm prod consumer before acting.
-- `tape_logger` → CLAUDE.md lists `TapeLogger` as a Compound-layer component → likely **Class C/D**
-  (re-exported or registry-live); verify the `__init__` edge.
-- `test_basic_import` → a stray test file under `src/` (not `tests/`) → flag for **human decision**
-  (move to `tests/` or delete is a deletion → surface, don't act).
+### compound/ — CLASSIFIED (2026-06-06)
+- **Class A · genuine orphans (8 remaining)**: agi_reasoning, aimo_reasoning,
+  consortium_instigator, distillation_engine, dynamic_compound_system,
+  dynamic_system_integration, journey_to_training, optimized_session_manager,
+  thermal_autoresearch_executor. ← wire one per tick to a real consumer / guarded re-export.
+- **Class B · tests-only (13)**: behavioral_eval, chronos, dual_loop_optimizer, eco_symphony,
+  experiment_correlator, post_execution, recursive_trace_router, retrospection_validator,
+  self_improvement_orchestrator, skill_mutation_queue, skill_refinement_validator, tape_logger,
+  workflow_manager. Test-covered → not dead; production-consumer wiring is OPTIONAL/lower-priority.
+  (Note: `chronos` reclassified A→B — my own `tests/compound/test_chronos.py` covers it.)
+- **Class D · registry-live (1)**: harness.
+- **WIRED this loop**: `hiho_lm_gate` (was Class A) → re-exported through `compound/__init__.py`
+  (`check_quality`/`check_sycophancy`/`ppl_score`), guarded. Edge proven by
+  `tests/wiring/test_hiho_lm_gate_wired.py` (asserts the names resolve from the package AND are
+  the gate's own objects — fails if the edge is removed). Commit: see git.
 
 ## Swept packages
-| Package | Swept | Candidates | A wired | B/C/D recorded | Needs-human |
-|---|---|---|---|---|---|
-| compound | partial (scan only) | 24 | 0 | 0 | test_basic_import (stray) |
+| Package | Swept | Candidates | A wired | A remaining | B/C/D recorded | Needs-human |
+|---|---|---|---|---|---|---|
+| compound | classified | 24 | 1 (hiho_lm_gate) | 8 | 13 B + 1 D | 2 (below) |
 
 ## Needs human decision
 - `src/cohezion/compound/test_basic_import.py` — a `test_` file living under `src/` not `tests/`.
   Moving or removing it is destructive; surfaced for a human call (the loop will not touch it).
+- **hiho_lm_gate deeper integration** — its MODEL-BASED sycophancy/ppl gate overlaps
+  `inference/anti_sycophancy.py` (which has its own heuristic `check_sycophancy_risk`) and AUTODQA.
+  Wiring the model gate INTO either would CHANGE behavior → human decision, not an auto-wire. The
+  re-export above is the non-behavior-changing edge; deeper integration is deferred to a human.
 
 ## Next tick
-Classify the `compound/` candidates (A vs B/C/D) using cross-`src`+`tests` references +
-`skill_registry.json`, wire the Class-A ones one per tick with a discriminating test, then
-advance to the next package.
+Wire one more `compound/` Class-A genuine orphan (8 left) to a real consumer / guarded edge with
+a discriminating test, then advance to the next package once compound's Class-A set is exhausted.

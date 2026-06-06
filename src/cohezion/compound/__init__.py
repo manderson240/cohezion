@@ -28,6 +28,23 @@ from cohezion.compound.batch_executor import (
 )
 from cohezion.compound.config import CompoundConfig as Config  # noqa: F401
 from cohezion.compound.core.batch_processor import BatchProcessor as BatchProcessor
+
+
+# Wiring-sweep 2026-06-06: hiho_lm_gate was an import-graph orphan (no production importer).
+# Re-exported here so its HIHO-LM quality gate is part of compound's public surface and
+# reachable by static analysis. Guarded — a future LM-import fragility must not take down
+# the whole package. (Deeper integration of this model-based gate INTO anti_sycophancy /
+# AUTODQA is a BEHAVIOR change — flagged for human decision in WIRING_SWEEP_LEDGER.md.)
+with contextlib.suppress(Exception):
+    from cohezion.compound.hiho_lm_gate import (
+        check_quality as check_quality,
+    )
+    from cohezion.compound.hiho_lm_gate import (
+        check_sycophancy as check_sycophancy,
+    )
+    from cohezion.compound.hiho_lm_gate import (
+        ppl_score as ppl_score,
+    )
 from cohezion.compound.core.executor import (
     CompoundExecutor as CompoundExecutor,
 )
