@@ -97,6 +97,15 @@ with contextlib.suppress(Exception):
     from cohezion.compound.consortium_instigator import (
         ConsortiumInstigator as ConsortiumInstigator,
     )
+
+# Wiring-sweep 2026-06-06: agi_reasoning was a genuine import-graph orphan.
+with contextlib.suppress(Exception):
+    from cohezion.compound.agi_reasoning import (
+        AGIEvaluator as AGIEvaluator,
+    )
+    from cohezion.compound.agi_reasoning import (
+        ReasoningModel as ReasoningModel,
+    )
 from cohezion.compound.core.executor import (
     CompoundExecutor as CompoundExecutor,
 )
