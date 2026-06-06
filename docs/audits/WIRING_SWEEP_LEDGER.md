@@ -90,6 +90,17 @@ mhd_mereon), all cycle-safe. WIRED (3): **flier_routing** (FLIERRouter, QubitNod
 **mereon_data** (get_m120p_vertices, get_m144p_vertices — function re-export) → `physics/__init__`
 guarded re-exports, both-order robust. physics/ file-level sweep COMPLETE (0 genuine-A remaining).
 
+### world_model/ — CLASSIFIED (2026-06-06), IN PROGRESS (3 genuine-A, 1 wired/tick)
+4 modules, `__init__` re-exported nothing. Classification:
+- **Reachable (static src edge)**: jepa_world_model (← world_model/jepa_world_model_persistent + tests).
+- **Class A · genuine orphans (3)** — all documented World Model components, 0 src importers,
+  cycle-safe; same guarded `world_model/__init__` re-export pattern, one per tick:
+  - **surprise_explorer** (SurpriseExplorer, SurpriseRegion) → WIRED d0e8b3b1b
+    (`tests/wiring/test_surprise_explorer_wired.py`, both-order robust).
+  - **sigreg** (SIGReg) → NEXT tick.
+  - **jepa_world_model_persistent** (JEPAWorldModelPersistent) → tick after.
+world_model/ sweep continues until all 3 wired.
+
 ### governance/ — CLASSIFIED + DONE (2026-06-06), 1 A wired
 7 modules, `__init__` re-exported nothing. Classification:
 - **Reachable (static src edge)**: autonomy_engine (← mcp/agentskills_bridge), fleet_monitor (←
@@ -163,6 +174,7 @@ platform/ file-level sweep COMPLETE (0 genuine-A remaining).
 | persistence | **DONE** | 3 | 0 | 0 | 3 reachable | 0 |
 | models | **DONE** | 5 | 0 | 0 | 2 B + 3 reachable | 0 |
 | governance | **DONE** | 7 | 1 (concierge) | 0 | 6 reachable | 0 |
+| world_model | in progress | 4 | 1/3 (surprise_explorer) | 2 (sigreg, jepa_persistent) | 1 reachable | 0 |
 
 ## Needs human decision
 - **compound↔swarm circular import (blocks swarm/ wiring).** `compound/dynamic_compound_system.py`
@@ -198,7 +210,8 @@ platform/ file-level sweep COMPLETE (0 genuine-A remaining).
 ## Next tick
 `compound/`, `inference/`, `physics/`, `platform/`, `persistence/`, `models/`, `governance/` DONE;
 `cache/` classified (0 clean-A; 1 dup → human); `swarm/` BLOCKED (cycle — human decision). Advance
-to the NEXT unblocked package (e.g. `world_model/`, `environments/`, `api/`, `cache` is classified,
-`swarm/` is blocked): classify file-level, wire genuine Class-A orphans one per tick. ALWAYS cycle-check before wiring + run the FULL `tests/wiring/` suite +
+`world_model/` IN PROGRESS (surprise_explorer wired; **next: sigreg**, then jepa_world_model_persistent).
+After world_model/, advance to `environments/`, `api/` (`cache` classified, `swarm/` blocked): classify
+file-level, wire genuine Class-A orphans one per tick. ALWAYS cycle-check before wiring + run the FULL `tests/wiring/` suite +
 both-import-order check after (the swarm lesson). Do NOT re-attempt swarm/ or cache/sentence_encoder
 until the human decisions resolve.
