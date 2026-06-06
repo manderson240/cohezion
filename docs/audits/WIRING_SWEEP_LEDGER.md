@@ -293,6 +293,18 @@ blocked package, NOT a sweep gap the loop can close.
   hookify.ReviewPerspective is NOT the compound Enum). Both-order robust.
 hookify/ file-level sweep COMPLETE (0 genuine-A remaining).
 
+### audio/ — CLASSIFIED + DONE (2026-06-06), 0 genuine-A (pre-scout corrected)
+5 modules. The pre-scout flagged `moshi_client` + `protoclr` as zero-edge candidates, but the
+per-tick broad grep (incl. `scripts/`) shows BOTH are reachable via repo-root SCRIPT imports — a
+literal `from cohezion.audio.X import …` is a static edge. Classification:
+- **Reachable**: narrator (src_ext=3), **moshi_client** (← `scripts/verify_tip_of_spear.py`),
+  **protoclr** (← `scripts/train_birdclef_baseline.py`).
+- **Class B · tests-only (2)**: bioacoustic_encoder, neural_audio.
+audio/ file-level sweep COMPLETE (0 genuine-A). **Methodology fix:** the orphan scan MUST include
+`scripts/` importers — `src_ext`/`tests`/`init` alone undercounts reachability; a repo-root script's
+literal import wires a module. The fast multi-package pre-scout is a CANDIDATE filter only; the
+authoritative check is the per-tick broad grep over `src/ tests/ scripts/`.
+
 ## Swept packages
 | Package | Swept | Candidates | A wired | A remaining | B/C/D recorded | Needs-human |
 |---|---|---|---|---|---|---|
@@ -312,6 +324,7 @@ hookify/ file-level sweep COMPLETE (0 genuine-A remaining).
 | substrate | **DONE** | 4 | 1 (popcorn) | 0 | 1 B + 2 reachable | 0 |
 | gateway | **DONE** | 4 | 0 | 0 | 1 D (entry-point) + 3 reachable | 0 |
 | hookify | **DONE** | 3 | 1 (adversarial_review) | 0 | 2 reachable | 0 (name-hazard verified distinct) |
+| audio | **DONE** | 5 | 0 | 0 | 2 B + 3 reachable (2 via scripts/) | 0 |
 | rl | classified | 10 | 3 (causal_interpreter, distributed_trainer, grpo_trainer) | 1 (blocked) | 1 B + 5 reachable | 1 (lora_trainer import) |
 
 ## Needs human decision
@@ -360,8 +373,12 @@ world_model, environments, data_mesh, pipeline, substrate, gateway. `cache/` cla
 
 **`rl/` clean genuine-A all wired (3/3).** Only `lora_trainer` remains, BLOCKED on transformers
 (human — Needs-human). rl/ stays `classified` until that import is fixed.
-**Next tick: pick a fresh package — pre-scouted clean genuine-A** (from the multi-package scan, all
-main_guard=0 libraries): `audio/{moshi_client, protoclr}`.
+**Next tick: pick a fresh not-yet-swept package** (no verified pre-scout remains — `audio` cleared,
+both candidates were script-reachable). Unswept incl. `api`, `mcp`, `agents`, `core`, `flume`,
+`universe`, `security`, `mycelium`, `simulation`, `cost_optimization`, `knowledge_graph`, `healing`
+(entry-points), `reliability` (entry-points), `dogfooding`, `worldviews`, `ouroboros`, `evolution`,
+`flux`, `observability`, `precipitation`, `vanguard`, `concurrency`, `eval`, `services`. Per-tick
+broad grep MUST cover `src/ tests/ scripts/` (the audio lesson — a script import is a static edge).
 Entry-point (main_guard=1, record Class-D not wire):
 `healing/{amd_s2idle_report, deep_audit, drift_analyzer, platform_audit, utilization_audit}`,
 `knowledge_graph/cli`, `simulation/{distributed, glass_box_debate}`,
