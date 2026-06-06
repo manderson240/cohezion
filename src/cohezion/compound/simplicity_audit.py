@@ -15,6 +15,7 @@ from __future__ import annotations
 
 import ast
 from collections.abc import Iterable
+from dataclasses import dataclass
 from pathlib import Path
 
 
@@ -166,3 +167,59 @@ def passthrough_functions(paths: Iterable[Path]) -> list[str]:
             if isinstance(node, ast.FunctionDef | ast.AsyncFunctionDef) and _is_passthrough(node):
                 out.append(f"{path.name}::{node.name}")
     return sorted(out)
+
+
+@dataclass(frozen=True)
+class NeedlessPassthrough:
+    """A forwarder narrowed by reachability (item 46). ``orphan`` = zero static callers."""
+
+    qualified_name: str
+    caller_count: int
+    orphan: bool
+
+
+def _call_name(node: ast.Call) -> str | None:
+    """The called name of a Call: bare ``f()`` → 'f', attribute ``x.f()`` → 'f'."""
+    fn = node.func
+    if isinstance(fn, ast.Name):
+        return fn.id
+    if isinstance(fn, ast.Attribute):
+        return fn.attr
+    return None
+
+
+def _caller_counts(paths: Iterable[Path]) -> dict[str, int]:
+    """Count call expressions per called name across the paths (both ``f()`` and ``x.f()``)."""
+    counts: dict[str, int] = {}
+    for path in _iter_python_files(paths):
+        try:
+            tree = ast.parse(path.read_text(encoding="utf-8", errors="replace"))
+        except (OSError, SyntaxError, ValueError):
+            continue
+        for node in ast.walk(tree):
+            if isinstance(node, ast.Call):
+                name = _call_name(node)
+                if name:
+                    counts[name] = counts.get(name, 0) + 1
+    return counts
+
+
+def needless_passthroughs(paths: Iterable[Path]) -> list[NeedlessPassthrough]:
+    """Item-44 forwarders with <=1 static caller — the wrapper that earns nothing. READ-ONLY.
+
+    Narrows ``passthrough_functions`` by reachability: a forwarder called from exactly ONE site is
+    needless indirection; one called from ZERO sites is also an orphan (kept, ``orphan=True``); one
+    called from >=2 sites is a FACADE (a real API surface) and is dropped. Counting is by called
+    NAME across the paths (conservative: a same-named function elsewhere inflates the count toward
+    "facade", so the report errs AWAY from false "needless" flags). Pure — reads source, no writes.
+    """
+    plist = list(paths)
+    forwarders = passthrough_functions(plist)
+    counts = _caller_counts(plist)
+    out: list[NeedlessPassthrough] = []
+    for q in forwarders:
+        name = q.split("::")[-1]
+        count = counts.get(name, 0)
+        if count <= 1:
+            out.append(NeedlessPassthrough(qualified_name=q, caller_count=count, orphan=count == 0))
+    return sorted(out, key=lambda n: n.qualified_name)
