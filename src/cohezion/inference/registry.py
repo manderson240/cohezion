@@ -297,8 +297,10 @@ def _build_default_registry() -> dict[str, ModelEntry]:
                 "bin/llamacpp/rocm-stable/) with --mmproj mmproj-…-F16.gguf — lemonade `load` has NO "
                 "--mmproj flag, so the sidecar (or --llamacpp-args passthrough) is the path. Smoke: a "
                 "known-text image → structured YAML echoing the image fields (read 'Cohezion'→'Cohesion', "
-                "i.e. genuinely reading pixels). verified_working stays False until the 10-image ACCURACY "
-                "proof vs a baseline (item 18) — serving ≠ accuracy. License lfm1.0 — verify commercial terms."
+                "i.e. genuinely reading pixels). ACCURACY bake-off RAN 2026-06-06 on CORD-v2 (10 img, "
+                "pre-registered value-recall): LFM 0.771 vs Qwen2.5-VL-7B baseline 0.864 → honest NULL, "
+                "verified_working stays False (LFM serves + is 6.7x smaller but ~9pts less accurate than "
+                "the bigger VLM). Re-run on real user docs may differ. License lfm1.0 — verify commercial terms."
             ),
         ),
         ModelEntry(
