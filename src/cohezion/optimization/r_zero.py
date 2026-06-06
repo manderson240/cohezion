@@ -23,14 +23,19 @@ class LocalModelOptimizer:
 
     def __init__(self) -> None:
         self.metrics_history: list[RZeroMetrics] = []
+        # Raw per-execution outcomes — the source of the trailing success rate.
+        self._successes: list[bool] = []
 
     def record_execution(self, model_name: str, success: bool, iterations: int) -> None:
         """Record the execution pass of a local model."""
-        # Calculate trailing success rate
-        recent_successes = sum(1 for m in self.metrics_history[-10:] if m.success_rate == 1.0)
-        total = min(10, max(1, len(self.metrics_history)))
-
-        base_rate = (recent_successes + (1 if success else 0)) / (total + 1)
+        # Trailing success rate over the last 10 executions (FIX 2026-06-06, audit §12.1).
+        # The prior impl counted prior records whose DERIVED rate == 1.0 — which a fresh
+        # optimizer can never produce — and divided by total+1, so base_rate never exceeded
+        # 0.5 and the >0.8 difficulty branch was permanently unreachable. We now compute the
+        # rate from the RAW success bools, so 10 successes → rate 1.0 → the >0.8 branch fires.
+        self._successes.append(bool(success))
+        window = self._successes[-10:]
+        base_rate = sum(window) / len(window)
 
         metrics = RZeroMetrics(
             success_rate=base_rate,

@@ -397,7 +397,7 @@ plausible wrong impl, per the testing rule), construction kept offline (no DB/LL
 
 **No-test modules: 17 → 13.** Structural legs still clean (0 orphans, 0 missing `__init__`, 0 compile fails).
 
-### 12.1 Latent-bug finding (flagged, NOT fixed — report-only)
+### 12.1 Latent-bug finding — RESOLVED 2026-06-06 (item 8, see git)
 `optimization/r_zero.py::LocalModelOptimizer.record_execution`: `recent_successes` counts prior
 records whose `success_rate == 1.0`, but a fresh optimizer can never PRODUCE a 1.0 record
 (`base_rate = (recent_successes + success) / (total+1)` is bounded below 1 because the +1 denominator
@@ -409,7 +409,7 @@ Pinned by `test_success_rate_does_not_climb_above_half_on_repeated_success`. **R
 behavior change → separate, gated track** (per non-destructive policy); the test documents current
 reality so a future fix updates it deliberately.
 
-### 12.2 Stub-gate finding — evaluation/self_eval.py is an always-pass quality gate (flagged, report-only)
+### 12.2 Stub-gate finding — RESOLVED 2026-06-06 (item 8, see git)
 `SelfEvaluationEngine.evaluate_execution_plan(plan, prd_context)` is a STUB: it discards both
 arguments (`_ = plan; _ = prd_context`) and returns a hardcoded `score = 0.92` ("a real impl would
 use Gemini 3 Pro"). So the only live logic is the threshold gate `passed = score >= passing_threshold`,
