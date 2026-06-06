@@ -307,3 +307,7 @@ tmp_untested_*.py
 
 # TCRAO dynamically generated cerebellum experiment reports
 cloud-vault-mcp/vault/cerebellum/tcrao_*.md
+
+# persistent-loop runtime state
+.loop-state/
+.loop-off
