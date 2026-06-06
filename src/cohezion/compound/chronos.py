@@ -24,6 +24,7 @@ from __future__ import annotations
 import json
 import logging
 import re
+from collections.abc import Callable
 from dataclasses import dataclass
 from pathlib import Path
 
@@ -317,3 +318,66 @@ def install_chronos_advisor(
     advisor = ChronosAdvisor(registry if registry is not None else get_chronos(), log_path=log_path)
     mon.subscribe(advisor.on_event)  # type: ignore[attr-defined]
     return advisor
+
+
+# ── item 13: permission-gated control surface (DRY-RUN by default) ───────────────────────
+@dataclass(frozen=True)
+class ControlResult:
+    """Outcome of a pause/resume request — what WOULD or DID happen."""
+
+    action: str  # "pause" | "resume"
+    job: str
+    command: list[str] | None  # the exact argv (None when refused)
+    applied: bool  # was the command actually executed?
+    refused: bool  # refused (system-critical job, or unsupported source)?
+    reason: str
+
+
+class ChronosController:
+    """Pause/resume scheduled jobs — DRY-RUN by default, real action only behind ``apply=True``.
+
+    Safety by construction: a system-critical (non-deferrable) job is REFUSED even with
+    ``apply=True`` (the controller only ever touches deferrable jobs — never vault-backup,
+    guardian, …). Today only ``systemd`` units are controllable (``systemctl --user
+    stop/start``); other sources are refused honestly rather than faked. The subprocess
+    ``runner`` is injectable so the executing path is testable without touching the system.
+    """
+
+    def __init__(self, *, runner: Callable[[list[str]], int] | None = None) -> None:
+        self._runner = runner
+
+    def pause(self, job: ChronosJob, *, apply: bool = False) -> ControlResult:
+        return self._control("pause", "stop", job, apply)
+
+    def resume(self, job: ChronosJob, *, apply: bool = False) -> ControlResult:
+        return self._control("resume", "start", job, apply)
+
+    def _control(self, action: str, verb: str, job: ChronosJob, apply: bool) -> ControlResult:
+        if not job.deferrable:
+            return ControlResult(
+                action, job.name, None, False, True,
+                "refused: system-critical (non-deferrable) job is never paused/resumed",
+            )
+        if job.source != "systemd":
+            return ControlResult(
+                action, job.name, None, False, True,
+                f"refused: control not wired for source '{job.source}' (systemd only)",
+            )
+        cmd = ["systemctl", "--user", verb, job.job_id]
+        if not apply:
+            return ControlResult(
+                action, job.name, cmd, False, False, "dry-run (apply=False) — command not executed"
+            )
+        rc = self._run(cmd)
+        return ControlResult(action, job.name, cmd, rc == 0, False, f"executed (rc={rc})")
+
+    def _run(self, cmd: list[str]) -> int:
+        if self._runner is not None:
+            return self._runner(cmd)
+        import subprocess
+
+        try:
+            return subprocess.run(cmd, capture_output=True, timeout=30).returncode
+        except Exception as exc:
+            logger.warning("ChronosController: %s failed: %s", cmd, exc)
+            return 1
