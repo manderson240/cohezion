@@ -69,3 +69,17 @@ bit-width → better quality at lower/equal memory, $0, directly relevant to the
 Halo box (K1/rule-5). → backlog item 50 (per-tier swap, needs-experiment: serve + memory + quality
 proof + K1/rule-5 gate + lanes-up window; NEVER auto-swapped). `unsloth/gemma-4-*-it-qat-GGUF`
 mirrors exist (incl. `-mobile-` E2B/E4B) as alternates. NOT a behavior change until the proof passes.
+
+## 2026-06-06 (round 6)
+
+Source: user-shared HF model. Verified via `model_info`; assessed against the local AMD fleet.
+
+| Finding (HF id / arXiv) | Verified | Class | Fleet seam | Notes |
+|---|---|---|---|---|
+| **`nvidia/nemotron-3.5-asr-streaming-0.6b`** | ✅ model_info (1380 dl, 216 likes, pipeline=automatic-speech-recognition) | **grounded · WATCH-ITEM (NOT fleet-runnable today; NOT a backlog row)** | (would-be) audio speech-INPUT — but no such seam exists | High-quality streaming multilingual ASR (FastConformer-RNNT/Parakeet). **DECLINED for now, 3 blockers**: (1) format is `.nemo` ONLY — NO GGUF; runs on the NeMo toolkit/PyTorch, NOT lemonade/llama.cpp; `nemo` not even installed; (2) NeMo ASR is CUDA-centric → unverified/painful on AMD ROCm Strix Halo; (3) NO existing Cohezion ASR consumer — `audio/` is the TTS/narration OUTPUT side, not speech-input. License "other" (NVIDIA). Same filter as BigSet/LangChain: verified but off-stack/off-seam → watch-item, not actionable. **Name coincidence**: distinct from the Kaggle "Nemotron" reasoning challenge (`competition/nemotron_solver/`). Revisit IF a GGUF/ONNX export lands AND a voice-input feature is wanted. |
+
+**Round verdict**: 0 fleet-runnable levers. `nvidia/nemotron-3.5-asr-streaming-0.6b` is verified
+and impressive but off-stack (NeMo `.nemo`, CUDA-centric) and off-seam (no Cohezion ASR consumer)
+→ logged as a WATCH-ITEM, deliberately NOT a backlog row (would fabricate actionability). Filter
+tally across user-shared links: 1 embraced (Gemma-4 QAT, round 5 / item 50), 3 declined (LangChain
+cloud-microVMs → item 48 audit only, BigSet TS-SaaS → item 49 data-discipline only, this ASR model).
