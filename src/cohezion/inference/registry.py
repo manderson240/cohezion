@@ -307,6 +307,29 @@ def _build_default_registry() -> dict[str, ModelEntry]:
             ),
         ),
         ModelEntry(
+            model_id="Granite-4.1-8B-GGUF",
+            lane=Lane.IGPU_ROCWMMA,  # Granite backend lives on the iGPU; fronted by the router
+            endpoint="http://localhost:13305",  # the ALWAYS-UP lemonade router (Hermes-shared)
+            runtime_backend="llamacpp_hip",
+            task_affinity=frozenset(
+                {Task.REASONING, Task.GENERAL}
+            ),  # 3b stays FUNCTION_CALL specialist
+            weight_quant=WeightQuant.Q4_K_M,
+            context_window=131072,
+            priority=12,  # preferred LOCAL reasoning/agent-offload pick (below the 26B's 15)
+            verified_working=True,  # live-proven 2026-06-06 (V1_OK, reasoning_content=0)
+            last_verified_at=datetime(2026, 6, 6),
+            notes=(
+                "Extends agent availability with $0 local inference: the verified-live, "
+                "NO-THINKING, tool-capable Granite-4.1-8B served by the always-up lemonade router "
+                ":13305 (the same model Hermes runs). Registered because the registry's other local "
+                "REASONING model (Gemma-4-26B-A4B) points at the DOWN :13308 lane — so route(REASONING,"
+                " $0) was returning 'all candidates exhausted' and silently escalating to cloud. This "
+                "is the local-first target for extend_claude. No thinking-trap (reasoning_content "
+                "empty on plain turns); finish_reason=tool_calls on tool turns."
+            ),
+        ),
+        ModelEntry(
             model_id="Gemma-4-31B-it-GGUF",
             lane=Lane.CPU,
             endpoint="http://localhost:13309",
