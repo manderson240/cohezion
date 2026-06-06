@@ -14,3 +14,11 @@ with contextlib.suppress(Exception):
     from cohezion.world_model.surprise_explorer import (
         SurpriseRegion as SurpriseRegion,
     )
+
+# Wiring-sweep 2026-06-06: sigreg was a genuine production orphan (SIGReg, an nn.Module, had 0 src
+# importers). Separate guarded block so a torch-absent environment can't take down the
+# surprise_explorer re-export above.
+with contextlib.suppress(Exception):
+    from cohezion.world_model.sigreg import (
+        SIGReg as SIGReg,
+    )
