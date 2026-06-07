@@ -188,3 +188,29 @@ def rho_proposal_record(
         "rationale": selection.rationale,
         "candidate_count": len(candidates),
     }
+
+
+def rho_selection_margin(
+    records: list[dict],
+    *,
+    min_samples: int = 5,
+    fallback_threshold: float = 0.5,
+) -> int | None:
+    """The winner's win-margin over the runner-up: a CONFIDENCE signal for the reviewer (item 61).
+
+    Runs the same autonomous RHO chain as :func:`rho_proposal_record` and returns
+    ``top_wins − second_wins`` from the tournament tally — a decisive winner (large margin) is safer
+    to apply than a photo-finish (margin 0/1). Ties the RHO thread to metacognitive-calibration's
+    "confidence ∝ evidence". An uncontested single candidate has no runner-up → ``second_wins`` is
+    0, so the margin equals that candidate's wins. A healthy/empty corpus has no winner → ``None``
+    (honest UNPROVEN, never a fabricated confidence). Pure: no I/O, input corpus not mutated.
+    """
+    proposal = rho_proposal_record(
+        records, min_samples=min_samples, fallback_threshold=fallback_threshold
+    )
+    if proposal["winner_id"] is None:
+        return None
+    counts = sorted(proposal["wins"].values(), reverse=True)
+    top = counts[0]
+    second = counts[1] if len(counts) > 1 else 0
+    return top - second
