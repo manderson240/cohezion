@@ -542,6 +542,12 @@ The `WorldviewExplorer` route service is the real consumer. 0 genuine-A. (44th p
 Guarded-bridge lesson applied: lazily-imported `immune_system` had its edge resolved to surface any
 latent ImportError — none. 0 genuine-A. (46th package swept.)
 
+### cli/ — CLASSIFIED + DONE (2026-06-07), 0 genuine-A (fully intra-package reachable)
+3 files: `main.py` (Typer `app`) reached intra-package by BOTH `cli/__init__.py:3` and
+`cli/__main__.py:7` (`from .main import app`); `__main__.py` is the `python -m cohezion.cli` Class-D
+entry-point. Edges import-verified (`cli.main.app` → Typer; `cli.__main__` imports clean). Nothing to
+wire. 0 genuine-A. (47th package swept.)
+
 ## Swept packages
 | Package | Swept | Candidates | A wired | A remaining | B/C/D recorded | Needs-human |
 |---|---|---|---|---|---|---|
@@ -596,6 +602,7 @@ latent ImportError — none. 0 genuine-A. (46th package swept.)
 | optimization | **DONE** | 1 | 0 (prod-reachable) | 0 | r_zero (LocalModelOptimizer) ← swarm/cost_aware_router.py:1270 | 0 |
 | patterns | **DONE** | 1 | 0 (Class-D entry-point + test-covered) | 0 | hermetic_design_patterns = `__main__` demo/entry-point, 2 test edges — functionally live, not forced | 0 |
 | healing | **DONE** | 6 | 0 (all reachable/recorded) | 0 | immune_system ← __init__ static edge; deep_audit ← 3 scripts/ edges + entry-point; amd_s2idle_report/drift_analyzer/platform_audit/utilization_audit = Class-D `__main__` CLIs (recorded). Edges import-verified. | 0 |
+| cli | **DONE** | 2 | 0 (fully reachable) | 0 | main.py ← __init__ + __main__ intra-package edges (Typer app); __main__.py = `python -m cohezion.cli` entry-point. Edges import-verified. | 0 |
 
 ## Needs human decision
 - **`graph/persistence.WorkflowPersistence` is a CAPABILITY-orphan (2026-06-07).** It is statically
