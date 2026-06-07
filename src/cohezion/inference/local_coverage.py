@@ -54,3 +54,28 @@ def local_coverage_report(
     return LocalCoverageReport(
         local=local, fallback=fallback, escalated=escalated, coverage=coverage
     )
+
+
+def coverage_gaps(
+    queries: Iterable[str],
+    *,
+    budget_usd: float = 0.0,
+    local_quality_gate: Callable[[ModelEntry], bool] | None = None,
+    specialist: FleetRoutingSpecialist | None = None,
+) -> set[str]:
+    """Task classes that route to FALLBACK *with a task set* — the "register a specialist" list (item 62).
+
+    Splits item-45's ``fallback`` bucket into its two causes and keeps only the actionable one: a GAP
+    is a query that classified to a task (``task is not None``) but found NO local $0 specialist
+    (``model_id is None``) — a missing-specialist hole the specialist thread (38/57) should fill. An
+    UNCLASSIFIABLE query (``task is None``) is a complexity-router fallback, NOT a task gap, so it is
+    excluded (an impl that lumps all ``model_id is None`` fallbacks would wrongly include it). Returns
+    the deduplicated SET of gap task names. Pure — ``route`` only classifies + looks up the registry.
+    """
+    spec = specialist or FleetRoutingSpecialist()
+    gaps: set[str] = set()
+    for q in queries:
+        decision = spec.route(q, budget_usd=budget_usd, local_quality_gate=local_quality_gate)
+        if decision.model_id is None and decision.task is not None:
+            gaps.add(decision.task)
+    return gaps
