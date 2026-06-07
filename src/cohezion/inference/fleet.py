@@ -446,6 +446,23 @@ async def _dispatch_one(
     )
 
 
+def _candidate_oom_deferred(candidate: ModelEntry, snapshot: MemorySnapshot | None) -> str | None:
+    """Per-candidate OOM headroom check (item 132). Defer reason, or None if it fits / unknown.
+
+    Defers a local candidate that individually won't fit (avail < ``size_gb`` * 1.2) even when the
+    fleet-wide OOM buffer (item 131) passed. Returns None when the candidate has no ``size_gb``
+    (never fabricate a size) or no snapshot is available. Reuses the resource_aware_route headroom
+    branch — its OOM-guard branch is a no-op here because the global gate already ran.
+    """
+    size = getattr(candidate, "size_gb", None)
+    if size is None or snapshot is None:
+        return None
+    from cohezion.inference.resource_aware_router import resource_aware_route
+
+    decision = resource_aware_route(float(size), snapshot=snapshot)
+    return decision.reason if decision.action == "defer" else None
+
+
 async def route(
     prompt: str,
     *,
@@ -569,6 +586,13 @@ async def route(
             if oom_defer_reason is not None:
                 attempts.append(f"{candidate.model_id}(oom-defer: {oom_defer_reason})")
                 last_error = oom_defer_reason
+                continue
+            # Per-candidate headroom (item 132): defer THIS local candidate if its own size
+            # won't fit even when the fleet-wide buffer is OK. Skipped when size is unknown.
+            headroom_reason = _candidate_oom_deferred(candidate, snapshot)
+            if headroom_reason is not None:
+                attempts.append(f"{candidate.model_id}(headroom-defer: {headroom_reason})")
+                last_error = headroom_reason
                 continue
             if health is None:
                 health = check_fleet()

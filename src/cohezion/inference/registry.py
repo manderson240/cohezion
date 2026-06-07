@@ -156,6 +156,10 @@ class ModelEntry:
     observed_ttft_ms_p95: float | None = None  # 95th percentile TTFT
     observed_total_ms_p50: float | None = None  # 50th percentile full-response latency
     observed_tokens_per_sec: float | None = None  # sustained generation throughput
+    # Approximate resident size in GB (weights + KV) for the per-candidate OOM headroom gate
+    # (fleet.route, item 132). None = unknown → the headroom gate is skipped for this candidate
+    # (never fabricate a size); the fleet-wide OOM buffer (item 131) still applies.
+    size_gb: float | None = None
     # Reasoning-mode models (e.g. Gemma 4 FLM) emit <thinking> tokens first and
     # only then produce visible output. With small `max_tokens` budgets the
     # thinking block consumes the whole budget and the caller sees empty text.
