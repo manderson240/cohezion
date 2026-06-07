@@ -429,6 +429,7 @@ genuine-A; record-only sweep (lazy-but-literal executor imports ARE static edges
 | flux | **DONE** | 8 | 5 (providers/__init__ re-exports CacheFlux/HistoryFlux/SurrealFlux/ToolFlux/VaultFlux — was empty; cache/surreal/tool/vault were tests-only intra-package orphans) | 0 | 3 reachable (aggregator/provider/types via flux/__init__) | 0 |
 | observability | **DONE** | 3 | 0 (clean — no wiring needed) | 0 | 3 reachable (gpu_monitor 2 edges, metrics_analytics 3, unified_metrics 8 + __init__ re-export) | 0 |
 | concurrency | **DONE** | 4 | 0 (clean — no wiring needed) | 0 | 4 reachable (file_lock 6, ollama_gate 7, safe_singleton 8, shared_resources 2 — all re-exported by __init__) | 0 |
+| eval | **DONE** | 4 | 3 (eval/__init__ re-exports HuggingFaceExporter/EvalPipeline/UniverseEvaluator — was empty; these 3 were tests-only intra-package orphans) | 0 | 1 reachable (capability_scorecard via compound/capability_matrix:442) | 0 |
 
 ## Needs human decision
 - **`traceability/` is an ORPHAN ISLAND (production-integration wiring TODO, not a file-orphan).**
@@ -479,7 +480,7 @@ genuine-A; record-only sweep (lazy-but-literal executor imports ARE static edges
   re-export above is the non-behavior-changing edge; deeper integration is deferred to a human.
 
 ## Next tick
-**32 packages fully DONE**: concurrency, observability, flux, compound, inference, physics, platform, persistence, models, governance,
+**33 packages fully DONE**: eval, concurrency, observability, flux, compound, inference, physics, platform, persistence, models, governance,
 world_model, environments, data_mesh, pipeline, substrate, gateway, hookify, audio, knowledge_graph,
 mycelium, cost_optimization, ouroboros, evolution, precipitation, learning, reporting, tools, storage,
 policies, infrastructure, traceability (file-clean; orphan-island production-wiring TODO → Needs-human). `cache/` classified (0 clean-A; 1 dup → human); `swarm/` BLOCKED (cycle — human decision).
