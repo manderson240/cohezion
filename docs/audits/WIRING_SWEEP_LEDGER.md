@@ -394,6 +394,7 @@ genuine-A; record-only sweep (lazy-but-literal executor imports ARE static edges
 ## Swept packages
 | Package | Swept | Candidates | A wired | A remaining | B/C/D recorded | Needs-human |
 |---|---|---|---|---|---|---|
+| reporting | **DONE** | 1 | 1 (nightly→__init__ re-export, NightlyReporter; was Class-B tests-only) | 0 | 0 | 0 |
 | learning | **DONE** | 3 | 2 (skill_acquisition, deep_research → __init__ re-exports) | 0 | 1 B (shadow_scripter — SAME-LEAF-NAME hazard: refs point to mycelium/shadow_scripter, NOT learning/; learning/ one is tests-only) | 0 |
 | compound | **DONE** | 24 | 9 (+aimo_reasoning) | 0 | 13 B + 1 D | 3 (below) |
 | swarm | classified | 24 | 0 (BLOCKED) | 12 | — | circular import (below) |
@@ -460,9 +461,15 @@ genuine-A; record-only sweep (lazy-but-literal executor imports ARE static edges
   re-export above is the non-behavior-changing edge; deeper integration is deferred to a human.
 
 ## Next tick
-**21 packages fully DONE**: compound, inference, physics, platform, persistence, models, governance,
+**23 packages fully DONE**: compound, inference, physics, platform, persistence, models, governance,
 world_model, environments, data_mesh, pipeline, substrate, gateway, hookify, audio, knowledge_graph,
-mycelium, cost_optimization, ouroboros, evolution, precipitation. `cache/` classified (0 clean-A; 1 dup → human); `swarm/` BLOCKED (cycle — human decision).
+mycelium, cost_optimization, ouroboros, evolution, precipitation, learning, reporting. `cache/` classified (0 clean-A; 1 dup → human); `swarm/` BLOCKED (cycle — human decision).
+
+**Pre-scouted (next ticks, fast — already scanned 2026-06-06):** `storage` = CLEAN (surreal_client
+imported by core/journey_worker.py → reachable; __init__ is a marker — record DONE, no wiring). `tools`
+= Class-C (test_generator re-exported in __init__ as `import TestGenerator, main` — VERIFY it is
+ruff-safe / convert to `X as X` before marking DONE). `policies`, `infrastructure` = `__init__`-only
+(trivially swept → record DONE). Do these first; each is a near-zero-work record except tools' form check.
 
 **`rl/` clean genuine-A all wired (3/3).** Only `lora_trainer` remains, BLOCKED on transformers
 (human — Needs-human). rl/ stays `classified` until that import is fixed.
