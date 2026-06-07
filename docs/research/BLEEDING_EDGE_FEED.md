@@ -406,3 +406,22 @@ Source: WebSearch → `huggingface_hub.model_info` (HF) + crossref vs registry/b
 | **arXiv 2605.05914** "Quantum-enhanced LLMs on Quantum Hardware via Cayley Unitary Adapters" (Aizpurua, Singh, Kshetrimayum, Jahromi, Orús; submitted 2026-05-07; phys.org 2026-06). Quantum circuit blocks inserted into frozen projection layers of Llama 3.1 8B, run on a **156-qubit IBM QPU at inference**; 1.4% perplexity gain with ~6,000 added params. | ✅ `WebFetch` arXiv/abs (title, 5 authors, date, QPU-at-inference + numbers confirmed); cross-checked vs the phys.org summary | **VERIFIED but NOT fleet-runnable (requires a QPU at inference; modest, hardware-limited gain) → INSIGHT only** | conceptual: `physics/` (SU(2)/unitary/gauge, Cayley transform) + the adapter/LoRA path; NOT `inference/`fleet (no QPU) | The literal method needs an IBM QPU every forward pass — cohezion is a classical AMD Strix Halo fleet ($0, NPU/iGPU/CPU), so it is **un-runnable here**, full stop. The only transferable piece is the CLASSICAL shadow: a Cayley-parameterized ORTHOGONAL adapter (skew-symmetric→orthogonal, ~few-k params) as a parameter-efficient LoRA alternative — but that is (a) speculative (the paper's gains are QPU-specific, 1.4% modest), and (b) a WEIGHT-TRAINING experiment, failing the $0/additive gate exactly like SIA (Round 30). Honest non-overclaim: cohezion's quantum-INSPIRED physics layer gives it a conceptual *home*, not a runnable lever. **Feed-only INSIGHT, NO backlog item** (default needs-experiment; fails fleet-runnable + additive). |
 
 **Round verdict**: **0 new fleet-runnable levers; 1 verified paper (2605.05914) → 1 INSIGHT.** A genuine, well-executed quantum-ML result, but QPU-at-inference makes it un-runnable on the classical fleet; the transferable classical Cayley-orthogonal-adapter idea is weight-training-heavy and speculative (same gate-failure class as Round 30's SIA). Logged so the consideration is durable and a future "should we explore parameter-efficient unitary adapters classically?" decision is grounded — but no action, no hype. verify-before-cite held (arXiv id fetched, not taken from the pop-sci framing).
+
+### Round 31 follow-up (user: "what about with our bluequbit access") — RECLASSIFIED
+Cohezion HAS BlueQubit access (`.env` token, `skills/QUANTUM_HACKATHON_PRIME.md`, `scripts/inspect_bq.py`,
+vault hackathon solutions): GPU statevector + **MPS/tensor-network** simulators (`device='mps.gpu'`,
+tunable bond dimension) + brokered real QPUs (Rigetti/IonQ). This changes 2605.05914 from
+"un-runnable" but NOT to a fleet lever:
+- **Statevector**: 156 qubits = 2^156 → impossible. **MPS**: MAYBE — IF the Cayley adapter circuits are
+  LOW-ENTANGLEMENT (a unitary adapter on a projection subspace plausibly is), MPS at a feasible bond
+  dimension could simulate them; this is the skill's "bypass simulator limits" regime. **Brokered QPU**:
+  Rigetti/IonQ are smaller/noisier than the paper's 156-qubit IBM, but the adapter circuit (≈6k params)
+  is likely far smaller than 156 qubits.
+- **DECIDING UNVERIFIED FACT**: the adapter circuit's per-block qubit count + entanglement (not read from
+  the paper's methods this round). That gates simulability.
+- **Correct destination is NOT the inference fleet** (inference-time cloud-quantum calls = round-trip
+  latency + cost, fails the $0/local gate) but **task #14 — quantum-ML HACKATHONS** (where BlueQubit IS
+  the platform and money is the prize). Reclassify: **needs-experiment HACKATHON-TECHNIQUE candidate**,
+  gated on (a) adapter-circuit qubit/entanglement count, (b) whether the authors released code. Still
+  weight-training (adapters are trained) and modest (1.4%). **Parked behind the Nemotron deadline** — a
+  bounded "read methods + check code + 1-shot mps.gpu test" spike, only when the clock allows.
