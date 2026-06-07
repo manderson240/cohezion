@@ -394,6 +394,7 @@ genuine-A; record-only sweep (lazy-but-literal executor imports ARE static edges
 ## Swept packages
 | Package | Swept | Candidates | A wired | A remaining | B/C/D recorded | Needs-human |
 |---|---|---|---|---|---|---|
+| learning | classified | 3 | 1 (skill_acquisition→__init__ re-export) | 1 (deep_research, next tick) | 1 B (shadow_scripter — SAME-LEAF-NAME hazard: refs point to mycelium/shadow_scripter, NOT learning/; learning/ one is tests-only) | 0 |
 | compound | **DONE** | 24 | 9 (+aimo_reasoning) | 0 | 13 B + 1 D | 3 (below) |
 | swarm | classified | 24 | 0 (BLOCKED) | 12 | — | circular import (below) |
 | inference | **DONE** | 14 | 1 (lynx_gate) | 0 | 13 B | 0 |
