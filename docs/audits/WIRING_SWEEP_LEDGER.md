@@ -529,6 +529,19 @@ The `WorldviewExplorer` route service is the real consumer. 0 genuine-A. (44th p
   change). Record, do NOT force — distinct from graph/persistence (which awaits a consumer); this one
   awaits the BACKEND. 0 genuine-A. (45th package swept.)
 
+### healing/ — CLASSIFIED + DONE (2026-06-07), 0 genuine-A (matches pre-scout; edges verified)
+6 modules; `__init__` is itself substantial healing logic. All reachable/recorded — nothing to force:
+- **immune_system** (`ActuatorSystem`) ← literal (function-local but AST-visible) import in
+  `healing/__init__.py:219`. Intra-package static edge → reachable. Import verified: resolves, symbol exists.
+- **deep_audit** (`DeepAuditor`) — STRONGER than the pre-scout's "entry-point" call: 3 real `scripts/`
+  static import edges (`assess_git_health.py`, `bug_hunt.py`, `drivers/code_simplifier.py`) +
+  `__main__` guard. Reachable-by-script-import. Verified resolves, symbol exists.
+- **amd_s2idle_report** (redirect stub, "moved location"), **drift_analyzer**, **platform_audit**,
+  **utilization_audit** — `__main__`-guard CLI entry-points, no static importer → Class-D, functionally
+  live, RECORDED not force-wired (protocol step 3). Non-destructive: stub kept, not deleted.
+Guarded-bridge lesson applied: lazily-imported `immune_system` had its edge resolved to surface any
+latent ImportError — none. 0 genuine-A. (46th package swept.)
+
 ## Swept packages
 | Package | Swept | Candidates | A wired | A remaining | B/C/D recorded | Needs-human |
 |---|---|---|---|---|---|---|
@@ -582,6 +595,7 @@ The `WorldviewExplorer` route service is the real consumer. 0 genuine-A. (44th p
 | agentjet | **DONE** | 7 | 0 (6 reachable + unsloth_bridge documented standby) | 0 | context_optimizer/trainer/embeddings/judger/task_reader/workflow reachable; unsloth_bridge = standby (Phase-2 backend not yet available) | 0 |
 | optimization | **DONE** | 1 | 0 (prod-reachable) | 0 | r_zero (LocalModelOptimizer) ← swarm/cost_aware_router.py:1270 | 0 |
 | patterns | **DONE** | 1 | 0 (Class-D entry-point + test-covered) | 0 | hermetic_design_patterns = `__main__` demo/entry-point, 2 test edges — functionally live, not forced | 0 |
+| healing | **DONE** | 6 | 0 (all reachable/recorded) | 0 | immune_system ← __init__ static edge; deep_audit ← 3 scripts/ edges + entry-point; amd_s2idle_report/drift_analyzer/platform_audit/utilization_audit = Class-D `__main__` CLIs (recorded). Edges import-verified. | 0 |
 
 ## Needs human decision
 - **`graph/persistence.WorkflowPersistence` is a CAPABILITY-orphan (2026-06-07).** It is statically
