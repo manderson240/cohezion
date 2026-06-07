@@ -394,6 +394,7 @@ genuine-A; record-only sweep (lazy-but-literal executor imports ARE static edges
 ## Swept packages
 | Package | Swept | Candidates | A wired | A remaining | B/C/D recorded | Needs-human |
 |---|---|---|---|---|---|---|
+| knowledge | **DONE** | 1 | 0 | 0 | llm_wiki (LLMWiki/WikiEntry) reached by prod edge swarm/providers/gemma4_provider.py + a test; __init__ marker. NO wiring needed. | 0 |
 | traceability | **DONE** | 2 | 0 | 0 | plan_graph reached intra-package by register_plan (PlanGraph, SurrealDB); register_plan = Class-D CLI entry-point (`__main__` guard). Both file-reachable, NO wiring needed. | island (below) |
 | tools | **DONE** | 1 | 0 | 0 | 1 C (test_generator re-exported via `__init__` `__all__` — ruff-safe; already test-covered) | 0 |
 | storage | **DONE** | 1 | 0 | 0 | 1 reachable (surreal_client imported by core/journey_worker.py; __init__ marker) | 0 |
@@ -475,7 +476,7 @@ genuine-A; record-only sweep (lazy-but-literal executor imports ARE static edges
   re-export above is the non-behavior-changing edge; deeper integration is deferred to a human.
 
 ## Next tick
-**28 packages fully DONE**: compound, inference, physics, platform, persistence, models, governance,
+**29 packages fully DONE**: compound, inference, physics, platform, persistence, models, governance,
 world_model, environments, data_mesh, pipeline, substrate, gateway, hookify, audio, knowledge_graph,
 mycelium, cost_optimization, ouroboros, evolution, precipitation, learning, reporting, tools, storage,
 policies, infrastructure, traceability (file-clean; orphan-island production-wiring TODO → Needs-human). `cache/` classified (0 clean-A; 1 dup → human); `swarm/` BLOCKED (cycle — human decision).
