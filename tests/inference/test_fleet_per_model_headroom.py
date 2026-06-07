@@ -78,3 +78,26 @@ async def test_unknown_size_not_spuriously_deferred() -> None:
 
     assert result.model == "nosize"  # no fabricated size → dispatched normally
     assert dispatch.await_count == 1
+
+
+def test_gemma_12b_qat_is_codegen_oom_fallback_below_26b() -> None:
+    """Item 144: the 6.5 GB Gemma-4-12B-QAT is the CODE_GEN memory-pressure fallback below the 26B.
+
+    At available_gb=17.0 the 15.7 GB 26B is OOM-deferred (17 < 15.7*1.2=18.84) but the 6.5 GB 12B
+    fits (17 >= 6.5*1.2=7.8). The first non-deferred CODE_GEN candidate must therefore be the 12B —
+    a FAST iGPU fallback. Without the entry the first fit is `qwen3-coder` on CPU (slow), so this
+    asserts a REAL OOM-fallback consumer (route's per-candidate headroom ladder), not a cosmetic add.
+    The 12B sits BELOW the 26B (priority > 15) so normal selection is unchanged (non-displacing).
+    """
+    from cohezion.inference.fleet import _candidate_oom_deferred
+
+    reg = FleetRegistry()  # default registry (all entries, including the new 12B)
+    snap = MemorySnapshot(total_gb=128.0, available_gb=17.0, used_gb=111.0)
+    cands = reg.for_task(Task.CODE_GEN)
+    first_fit = next(c for c in cands if _candidate_oom_deferred(c, snap) is None)
+    assert first_fit.model_id == "Gemma-4-12B-it-qat-q4_0-GGUF"
+    # the 26B is genuinely OOM-deferred at 17 GB → the fallback is needed, not forced
+    e26 = next(c for c in cands if "26B" in c.model_id)
+    assert _candidate_oom_deferred(e26, snap) is not None
+    # non-displacing fast-local fallback: below the 26B (priority 15), iGPU lane, 6.5 GB
+    assert first_fit.priority > 15 and "igpu" in first_fit.lane.value and first_fit.size_gb == 6.5
