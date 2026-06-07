@@ -225,6 +225,57 @@ def long_functions(paths: Iterable[Path], *, threshold: int = 50) -> list[tuple[
     return sorted(out, key=lambda t: (-t[1], t[0]))
 
 
+_CATCHALL_EXCEPTIONS = frozenset({"Exception", "BaseException"})
+
+
+def _exception_names(node: ast.expr) -> set[str]:
+    """The exception type names in an ``except`` clause (a Name, an Attribute's attr, or a Tuple)."""
+    if isinstance(node, ast.Name):
+        return {node.id}
+    if isinstance(node, ast.Attribute):
+        return {node.attr}  # e.g. builtins.Exception → "Exception"
+    if isinstance(node, ast.Tuple):
+        names: set[str] = set()
+        for elt in node.elts:
+            names |= _exception_names(elt)
+        return names
+    return set()
+
+
+def stealth_bare_excepts(paths: Iterable[Path]) -> list[tuple[str, str]]:
+    """Flag bare-except handlers, including STEALTH ones hiding in a tuple (item 65, L359). READ-ONLY.
+
+    Returns ``[(location, kind)]`` for each `except` that catches everything: ``kind`` is ``"bare"``
+    (a truly bare ``except:``), ``"Exception"``/``"BaseException"`` (a single catch-all), or
+    ``"stealth-tuple"`` (a tuple CONTAINING ``Exception``/``BaseException`` — L359: because the
+    supertype is present, ``except (ValueError, Exception):`` is semantically ``except Exception:``).
+    A sibling-only tuple (``except (ImportError, KeyError):``) is NOT flagged. ``location`` is
+    ``<relpath>:<lineno>``. Report-only — a candidate to narrow, a human call. Pure (stdlib ast).
+    """
+    out: list[tuple[str, str]] = []
+    for path in _iter_python_files(paths):
+        try:
+            tree = ast.parse(path.read_text(encoding="utf-8", errors="replace"))
+        except (OSError, SyntaxError, ValueError):
+            continue  # unreadable / not valid Python → skip, never crash the audit
+        for node in ast.walk(tree):
+            if not isinstance(node, ast.ExceptHandler):
+                continue
+            loc = f"{path.name}:{node.lineno}"
+            if node.type is None:
+                out.append((loc, "bare"))
+                continue
+            names = _exception_names(node.type)
+            catchall = names & _CATCHALL_EXCEPTIONS
+            if not catchall:
+                continue  # narrow / sibling-only → legitimate
+            if isinstance(node.type, ast.Tuple):
+                out.append((loc, "stealth-tuple"))
+            else:
+                out.append((loc, sorted(catchall)[0]))
+    return sorted(out)
+
+
 # Decorators that make single-call forwarding LEGITIMATE (required indirection, not a smell).
 _INDIRECTION_DECORATORS = frozenset(
     {"property", "cached_property", "abstractmethod", "abstractproperty"}
