@@ -517,6 +517,18 @@ human-decision removal (already in Needs-human). (42nd package swept.)
 - **vault_graph** (`get_vault_graph`) ← `api/services/worldviews.py:21` + `__init__` re-export.
 The `WorldviewExplorer` route service is the real consumer. 0 genuine-A. (44th package swept.)
 
+### agentjet/ — CLASSIFIED + DONE (2026-06-07), 0 genuine-A (1 documented standby interface)
+7 modules; `__init__` re-exports all. 6 production/intra/script-reachable:
+- **context_optimizer** ← `reliability/context_*` (prod); **trainer** ← `compound/workflow_manager` (prod);
+  **embeddings** ← `scripts/index_vault_embeddings.py` (script); **judger/task_reader/workflow** ←
+  `agentjet/trainer.py` (intra-package).
+- **unsloth_bridge** (`UnslothBridge`) — reachable only via the legit `__init__` re-export; its sole
+  non-test reference is `skills/AGENTJET_PRIME.md`: *"Phase 2 training backend (AMD Unsloth QLoRA).
+  Not yet available; standby interface defined for drop-in replacement."* A DOCUMENTED STANDBY
+  capability-orphan: unconsumed BY DESIGN (wiring it = activating an unready backend, a behavior
+  change). Record, do NOT force — distinct from graph/persistence (which awaits a consumer); this one
+  awaits the BACKEND. 0 genuine-A. (45th package swept.)
+
 ## Swept packages
 | Package | Swept | Candidates | A wired | A remaining | B/C/D recorded | Needs-human |
 |---|---|---|---|---|---|---|
@@ -567,6 +579,7 @@ The `WorldviewExplorer` route service is the real consumer. 0 genuine-A. (44th p
 | recursive_trace | **DONE** | 3 | 0 (resolution_log prod, coupling_analysis script) | 0 | core reachable via legit __init__ but capability-orphan | 1 (core RecursiveTraceLoop) |
 | arc | **DONE** | 8 | 0 (7 reachable + evaluate_local Class-D entry-point) | 0 | codec/pattern_extractor/data_loader/transforms/grid_pipeline/submission/solver reachable; evaluate_local = `__main__` CLI | 0 |
 | worldviews | **DONE** | 2 | 0 (both prod-consumed) | 0 | tradition_data + vault_graph ← api/services/worldviews | 0 |
+| agentjet | **DONE** | 7 | 0 (6 reachable + unsloth_bridge documented standby) | 0 | context_optimizer/trainer/embeddings/judger/task_reader/workflow reachable; unsloth_bridge = standby (Phase-2 backend not yet available) | 0 |
 
 ## Needs human decision
 - **`graph/persistence.WorkflowPersistence` is a CAPABILITY-orphan (2026-06-07).** It is statically
@@ -637,7 +650,7 @@ The `WorldviewExplorer` route service is the real consumer. 0 genuine-A. (44th p
   re-export above is the non-behavior-changing edge; deeper integration is deferred to a human.
 
 ## Next tick
-**44 packages fully DONE**: worldviews, arc, recursive_trace, validation, vibe, graph, resilience, rewards, protocols, services, vanguard, eval, concurrency, observability, flux, compound, inference, physics, platform, persistence, models, governance,
+**45 packages fully DONE**: agentjet, worldviews, arc, recursive_trace, validation, vibe, graph, resilience, rewards, protocols, services, vanguard, eval, concurrency, observability, flux, compound, inference, physics, platform, persistence, models, governance,
 world_model, environments, data_mesh, pipeline, substrate, gateway, hookify, audio, knowledge_graph,
 mycelium, cost_optimization, ouroboros, evolution, precipitation, learning, reporting, tools, storage,
 policies, infrastructure, traceability (file-clean; orphan-island production-wiring TODO → Needs-human). `cache/` classified (0 clean-A; 1 dup → human); `swarm/` BLOCKED (cycle — human decision).
