@@ -431,6 +431,7 @@ genuine-A; record-only sweep (lazy-but-literal executor imports ARE static edges
 | concurrency | **DONE** | 4 | 0 (clean — no wiring needed) | 0 | 4 reachable (file_lock 6, ollama_gate 7, safe_singleton 8, shared_resources 2 — all re-exported by __init__) | 0 |
 | eval | **DONE** | 4 | 3 (eval/__init__ re-exports HuggingFaceExporter/EvalPipeline/UniverseEvaluator — was empty; these 3 were tests-only intra-package orphans) | 0 | 1 reachable (capability_scorecard via compound/capability_matrix:442) | 0 |
 | vanguard | **DONE** | 4 | 2 (vanguard/__init__ re-exports AttributionEngine/VanguardScoutReport — was empty; attribution+connectors were tests-only orphans) | 0 | 2 reachable (sandbox_validation via executor_integration, source_connector via connectors/attribution) | 1 latent-bug (below) |
+| services | **DONE** | 4 | 0 (clean — already wired) | 0 | 4 reachable (all 4 re-exported by __init__ AND imported by cli/main.py) | 0 |
 
 ## Needs human decision
 - **LATENT BUG surfaced by the vanguard sweep (2026-06-07): sandbox validation is silently disabled.**
@@ -493,7 +494,7 @@ genuine-A; record-only sweep (lazy-but-literal executor imports ARE static edges
   re-export above is the non-behavior-changing edge; deeper integration is deferred to a human.
 
 ## Next tick
-**34 packages fully DONE**: vanguard, eval, concurrency, observability, flux, compound, inference, physics, platform, persistence, models, governance,
+**35 packages fully DONE**: services, vanguard, eval, concurrency, observability, flux, compound, inference, physics, platform, persistence, models, governance,
 world_model, environments, data_mesh, pipeline, substrate, gateway, hookify, audio, knowledge_graph,
 mycelium, cost_optimization, ouroboros, evolution, precipitation, learning, reporting, tools, storage,
 policies, infrastructure, traceability (file-clean; orphan-island production-wiring TODO → Needs-human). `cache/` classified (0 clean-A; 1 dup → human); `swarm/` BLOCKED (cycle — human decision).
