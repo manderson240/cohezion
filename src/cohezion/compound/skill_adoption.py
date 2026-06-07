@@ -57,6 +57,27 @@ def skill_adoption_report(
     return sorted({str(s) for s in registry_skills} - used)
 
 
+def _counts_per_registered_skill(
+    usage_events: Iterable[dict],
+    registry_skills: Iterable[str] | None,
+    registry_path: Path | None,
+) -> dict[str, int]:
+    """``{registered_skill: firing_count}`` for EVERY registered skill (never-fired → 0). READ-ONLY.
+
+    The shared counting core of ``low_adoption_report`` (item 41) and ``least_adopted`` (item 60):
+    iterates the REGISTRY (not the event stream), so a never-fired registered skill is included with
+    count 0 and an unregistered firing is ignored. Never reads SurrealDB (caller injects events).
+    """
+    counts: dict[str, int] = {}
+    for e in usage_events:
+        if isinstance(e, dict) and e.get("skill_name"):
+            name = str(e["skill_name"])
+            counts[name] = counts.get(name, 0) + 1
+    if registry_skills is None:
+        registry_skills = _registry_skill_names(registry_path)
+    return {str(s): counts.get(str(s), 0) for s in registry_skills}
+
+
 def low_adoption_report(
     usage_events: Iterable[dict],
     registry_skills: Iterable[str] | None = None,
@@ -73,17 +94,26 @@ def low_adoption_report(
     (a count of 1 is not ``< 1``). The threshold is strict: a skill used exactly ``min_uses`` times
     is NOT reported. Never reads SurrealDB (the caller injects ``usage_events``).
     """
-    counts: dict[str, int] = {}
-    for e in usage_events:
-        if isinstance(e, dict) and e.get("skill_name"):
-            name = str(e["skill_name"])
-            counts[name] = counts.get(name, 0) + 1
-    if registry_skills is None:
-        registry_skills = _registry_skill_names(registry_path)
-    report: dict[str, int] = {}
-    for s in registry_skills:
-        name = str(s)
-        count = counts.get(name, 0)
-        if count < min_uses:
-            report[name] = count
-    return report
+    counts = _counts_per_registered_skill(usage_events, registry_skills, registry_path)
+    return {name: count for name, count in counts.items() if count < min_uses}
+
+
+def least_adopted(
+    usage_events: Iterable[dict],
+    registry_skills: Iterable[str] | None = None,
+    *,
+    n: int,
+    registry_path: Path | None = None,
+) -> list[tuple[str, int]]:
+    """The ``n`` LOWEST-firing registered skills as ``[(skill, count)]`` ascending (item 60). READ-ONLY.
+
+    The prioritized "investigate these under-triggers first" queue claude.com #16 wants — distinct
+    from item-41 ``low_adoption_report`` (threshold-gated, unordered map): no threshold, RANKED. All
+    registered skills are counted (never-fired → count 0, sorts first); ordered by ``(count, name)``
+    ascending so ties break deterministically by name; the first ``n`` are returned. ``n <= 0`` → []
+    (clamped); ``n >= len(registry)`` → every skill ranked. Unregistered firings are ignored. Never
+    reads SurrealDB (caller injects ``usage_events``).
+    """
+    counts = _counts_per_registered_skill(usage_events, registry_skills, registry_path)
+    ranked = sorted(counts.items(), key=lambda kv: (kv[1], kv[0]))
+    return ranked[: max(0, n)]
