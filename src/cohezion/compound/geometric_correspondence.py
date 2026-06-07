@@ -76,6 +76,38 @@ def geometric_correspondence(
     return out[:top_k]
 
 
+def correspondence_is_discriminating(
+    corpus: dict[str, list[str]], encoder: Encoder
+) -> bool:
+    """Metacognitive self-check: does the encoder DISCRIMINATE related from unrelated? (item 68).
+
+    ``corpus`` maps a group label → its member texts. Returns True iff BOTH hold:
+      (a) every item's self-correspondence ``cosine(e(x), e(x)) ≈ 1.0`` (no zero/degenerate vectors),
+      (b) the MEAN within-group correspondence strictly exceeds the MEAN cross-group correspondence
+          (related items are geometrically nearer than unrelated ones).
+    A vacuous corpus (<2 items, or no within/cross pair to compare) → True. This validates item-66's
+    FLUME substrate is signal, not noise — and FALSELY-passes nothing: a degenerate encoder mapping
+    everything to one vector has self≈1 but intra==inter, so it returns False. Pure (injected encoder).
+    """
+    items = [(g, t) for g, texts in corpus.items() for t in texts]
+    if len(items) < 2:
+        return True  # vacuous
+    vecs = [(g, encoder(t)) for g, t in items]
+    # (a) self-correspondence ≈ 1.0 for every item (guards zero/degenerate vectors).
+    if any(abs(_cosine(v, v) - 1.0) > 1e-6 for _g, v in vecs):
+        return False
+    # (b) mean intra-group > mean inter-group correspondence.
+    intra: list[float] = []
+    inter: list[float] = []
+    for i in range(len(vecs)):
+        for j in range(i + 1, len(vecs)):
+            c = _cosine(vecs[i][1], vecs[j][1])
+            (intra if vecs[i][0] == vecs[j][0] else inter).append(c)
+    if not intra or not inter:
+        return True  # only one group, or all singletons → nothing to discriminate (vacuous)
+    return (sum(intra) / len(intra)) > (sum(inter) / len(inter))
+
+
 def _flume_encoder() -> Encoder:
     """Default encoder: the FLUME 256D text encoder (hash-embedding fallback if no VAE checkpoint).
 
