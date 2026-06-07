@@ -212,3 +212,28 @@ video) AND use-case (robotics/AR/AV); cohezion's VLMs are document-extraction ti
 no transferable principle with a target task. Like Nemotron-ASR (round 6), the honest outcome is "no real
 seam → no item" — the filter declining is the filter WORKING. Filter tally (user-shared links): 4 embraced,
 5 declined-but-mined/declined, 2 overlaps-existing, 1 needs-exp-instrument, 1 checklist-validates.
+
+### CORRECTION (2026-06-06, user pushback) — RECLASSIFY: DECLINE-product → decline-product / **mine the spatial-reasoning HIERARCHY**
+
+The original DECLINE judged OVO-S-Bench on its **modality** (egocentric video) and **artifact** (a
+benchmark, no servable model) — both still true; we register no video model. But the user pointed out the
+miss: *"capture agentic journeys as EVO analogues … spatial awareness for novel physics research."* The
+**structural principle** — that spatial intelligence is a HIERARCHY of abstraction levels — is modality-
+independent, and cohezion already moves agents through a literal 12D/256D manifold. The hierarchy maps:
+
+| OVO-S-Bench level | cohezion seam | Status |
+|---|---|---|
+| L1 instantaneous position | a journey's current FLUME / 12D point | exists (`JourneyTracker.record_state`) |
+| L2 spatiotemporal tracking | the recorded 12D trajectory | exists (`JourneyTracker`, FLUME `journey_encoder` / `trajectory_capture`) |
+| L3 spatial simulation | per-trajectory CURVATURE | exists (JEPA `measure_temporal_straightening`) |
+| **L4 allocentric mapping** | GLOBAL geometry of where ALL journeys live relative to each other | **was THE GAP — now built** |
+
+**Mined → real lever**: built `compound/journey_spatial.py::journey_allocentric_map` (centroids /
+pairwise distance / nearest-neighbour over injected trajectory vectors; report-only, pure) — the L4
+allocentric view, committed `87bacb79e`, 5 discriminating tests. The benchmark itself stays DECLINED (no
+video task); the **hierarchy-as-design-principle** is embraced and instrumented. Backlog item 79 tracks the
+full hierarchy as the frontier (L4 done; L1–L3→L4 composition + a curvature/allocentric drift signal next).
+Lesson recorded: judge a research artifact's transferable PRINCIPLE separately from its modality/artifact —
+an off-modality benchmark can still carry an on-substrate structural idea. Tally update: OVO-S-Bench moves
+from `declined` to `declined-product / mined-principle` (4 embraced, 4 declined, 1 declined-but-mined→**+1
+OVO-S-Bench = 2 declined-but-mined**, 2 overlaps-existing, 1 needs-exp-instrument, 1 checklist-validates).
