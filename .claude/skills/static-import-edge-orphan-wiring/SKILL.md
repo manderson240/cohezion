@@ -15,7 +15,7 @@ description: |
   else classify the module tests-only/Class-B and RECORD it, do not force an `__init__`
   re-export nothing calls.
 author: Claude Code
-version: 1.1.0
+version: 1.1.1
 ---
 
 # Static-Import-Edge Orphan Wiring
