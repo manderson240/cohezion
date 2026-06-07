@@ -1,0 +1,30 @@
+# The Neuron — local-inference-mined digest
+
+## 😺 Claude Improves Itself Now?  (2026-06-05)
+- Anthropic says Claude now writes 80% of its code — Claude's ability to author production code and accelerate AI development is directly relevant to a local-first agent fleet, as it suggests that on-device or near-device models can handle significant portions of the execution layer, potentially reducing the need for cloud fallback. [VERIFY: Confirm the specifics of the code quality, integration ease, and whether the models can run efficiently on local hardware like NPUs, iGPUs, or CPUs.]  
+- Google brought Gemma 4 12B to laptop apps — Gemma 4 12B being available for local deployment on laptops aligns with the local-first inference strategy, indicating a small, efficient model that can run on-device without heavy cloud reliance. [VERIFY: Check the system requirements, performance benchmarks on typical laptop hardware, and any licensing or usage constraints.]  
+- Ethan Mollick argued humans must negotiate with agents — This highlights the need for agentic coding tools that facilitate human-agent collaboration, crucial for self-improving agents and competitive advantage in hackathons or Kaggle tracks. [VERIFY: Identify specific tools or frameworks mentioned that enable negotiation or decision-making between humans and agents.]  
+- Cognition is adding a receipt — The AI Productivity Guarantee from Cognition, which measures actual engineering value delivered by AI agents like Devin, is pertinent for cost/usage monitoring and ensuring that local-first deployments are economically justified. [VERIFY: Determine how the measurement system works, what metrics are tracked, and whether it can be adapted for local model usage monitoring.]  
+- TSMC warned AI chip demand will outstrip supply for years — While not directly about local models, this supply constraint may impact the availability and cost of hardware needed for local inference fleets, affecting budgeting and fallback strategies. [VERIFY: Confirm the timeline and magnitude of the supply shortfall and its projected impact on pricing for AI accelerators.]  
+
+NONE
+
+## 😺 NVIDIA agents in your laptop?  (2026-06-02)
+- RTX Spark PCs will offer up to 1 petaflop of AI performance and 128GB of unified memory — This matters to a local-first agent fleet because it enables running large models (e.g., 120B-parameter models) on-device, reducing reliance on cloud credits and enhancing privacy and performance for everyday tasks. [VERIFY: Confirm the actual model sizes supported and the safety mechanisms (e.g., OpenShell) to ensure agents operate within secure boundaries.]  
+- MiniMax M3 brought 1M context to open weights — This is relevant as it provides a large-context, multimodal, open-weight model suitable for on-device agent workflows, aligning with the goal of local-first inference. [VERIFY: Verify the availability of the open version and the specifics of the agent API integration.]  
+- Google Gemma released gemma-skills, a repo of agent skills — This is pertinent because reusable agent skills can be loaded on-demand by local agents, facilitating efficient and on-device agent development without constant cloud dependencies. [VERIFY: Check the current state of the gemma-skills repository and its compatibility with on-device inference setups.]  
+- OpenClicky, an open-source version of a cursor-adjacent AI agent app — This is directly relevant as it demonstrates a local, voice/gesture-driven agent interface that can be self-hosted, fitting the local-first agent fleet paradigm. [VERIFY: Confirm the open-source availability and the underlying model (e.g., GPT Realtime 2.0) used for local inference.]  
+
+NONE
+
+## 😺 New Codex, Copilot, Hermes, Microst Build 2026 AI  (2026-06-03)
+- Windows AI API updates (Aion 1.0 Instruct and Aion 1.0 Plan) for local Windows models, reasoning, planning, tool use, and on-device agent workflows — relevant for a local-first agent fleet as it provides native support for running AI agents directly on Windows devices, reducing reliance on cloud services. [VERIFY: Confirm the availability and performance benchmarks of Aion models on local hardware.]  
+- Surface RTX Spark Dev Box with 1 petaflop of AI compute, 128GB unified memory, and support for up to 120B parameter models locally — crucial for developers running large local inference fleets, ensuring high-performance on-device processing. [VERIFY: Check compatibility with existing NPU/iGPU/CPU setups and pricing details.]  
+- GitHub Copilot app with access to OpenAI, Anthropic, and Google models for coding agents — important for agentic coding tools, offering integrated AI assistance for developers within the GitHub ecosystem. [VERIFY: Determine the licensing model and integration depth with local development environments.]  
+- Hermes Desktop from Nous Research, an open-source desktop agent for Mac, Windows, and Linux with unified memory across multiple platforms — directly relevant for local/on-device models and agentic workflows, simplifying installation and enhancing cross-platform agent capabilities. [VERIFY: Validate the ease of installation and performance on target operating systems.]  
+- Factory Router from Factory, an enterprise model router that reduces coding-agent token spend by 20-25% while maintaining near-frontier performance — pertinent for cost/usage monitoring and optimizing local inference budgets. [VERIFY: Obtain detailed cost savings metrics and deployment requirements.]
+
+## 😼 Robinhood agents can trade stocks now  (2026-05-28)
+NONE
+
+The provided newsletter text does not contain any items that are genuinely relevant to the specified topics: local/on-device models (e.g., GGUF, llama.cpp, Gemma, Qwen, small models), agentic coding tools, speculative decoding/quantization, cost/usage monitoring, self-improving agents, or competitions/grants. The content focuses on AI applications in cooking, stock trading by AI agents, AI proofs, cyber defense, app design integration, and various AI-related announcements, none of which directly address the requested criteria. Therefore, the output is "NONE" as no relevant items were found.
