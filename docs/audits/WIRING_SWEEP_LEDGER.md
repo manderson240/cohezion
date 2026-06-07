@@ -437,6 +437,15 @@ production-consumer scan proved the re-export had ZERO real caller. Honest class
 0 genuine-A. The empty `__init__` is FINE here: UCP does not need production reachability until UCP
 is activated. (36th package swept; recorded, not "wired".)
 
+### rewards/ — CLASSIFIED + DONE (2026-06-07), 0 genuine-A (all real direct-import edges)
+3 modules, `__init__` re-exports nothing — yet ALL THREE are production-reachable by literal
+direct imports (the honest edge, not an `__init__` re-export forced to clear the audit):
+- **calculator** (`RewardCalculator`) ← `physics/rewards_bridge.py:15` + `agents/evo_agent.py:10`.
+- **ratchet** (`RatchetMechanism`) ← `agents/evo_agent.py:11`.
+- **system** (`RewardSystem`) ← `__main__.py:571/650` + `agents/base.py:36` (+ `scripts/demo_compound_engineering.py:75`).
+0 genuine-A, 0 orphans, NOTHING to wire. The model case for the new doctrine: a package that is
+genuinely consumed needs no ceremony — record the real edges and move on. (37th package swept.)
+
 ## Swept packages
 | Package | Swept | Candidates | A wired | A remaining | B/C/D recorded | Needs-human |
 |---|---|---|---|---|---|---|
@@ -479,6 +488,7 @@ is activated. (36th package swept; recorded, not "wired".)
 | vanguard | **DONE** | 4 | 2 (vanguard/__init__ re-exports AttributionEngine/VanguardScoutReport — was empty; attribution+connectors were tests-only orphans) | 0 | 2 reachable (sandbox_validation via executor_integration, source_connector via connectors/attribution) | 1 latent-bug (below) |
 | services | **DONE** | 4 | 0 (clean — already wired) | 0 | 4 reachable (all 4 re-exported by __init__ AND imported by cli/main.py) | 0 |
 | protocols | **DONE** | 2 | 0 (ucp force-wire REVERTED — was gaming; UCP is N/A, no consumer) | 0 | a2a_server reachable (api); ucp_capability_handler Class-B tests-only (UCP N/A) | 0 |
+| rewards | **DONE** | 3 | 0 (all real direct-import edges, no forcing) | 0 | calculator (physics/rewards_bridge + evo_agent), ratchet (evo_agent), system (__main__ + agents/base) | 0 |
 
 ## Needs human decision
 - **LATENT BUG surfaced by the vanguard sweep (2026-06-07): sandbox validation is silently disabled.**
@@ -541,7 +551,7 @@ is activated. (36th package swept; recorded, not "wired".)
   re-export above is the non-behavior-changing edge; deeper integration is deferred to a human.
 
 ## Next tick
-**36 packages fully DONE**: protocols, services, vanguard, eval, concurrency, observability, flux, compound, inference, physics, platform, persistence, models, governance,
+**37 packages fully DONE**: rewards, protocols, services, vanguard, eval, concurrency, observability, flux, compound, inference, physics, platform, persistence, models, governance,
 world_model, environments, data_mesh, pipeline, substrate, gateway, hookify, audio, knowledge_graph,
 mycelium, cost_optimization, ouroboros, evolution, precipitation, learning, reporting, tools, storage,
 policies, infrastructure, traceability (file-clean; orphan-island production-wiring TODO → Needs-human). `cache/` classified (0 clean-A; 1 dup → human); `swarm/` BLOCKED (cycle — human decision).
