@@ -126,6 +126,18 @@ manufacturing green checkmarks.
 4. **No consumer and none is wanted** (tests-only experiment, or a protocol marked N/A like
    `protocols/ucp_capability_handler`) → **Class-B: RECORD, do not force an edge.** An empty
    `__init__` is correct for a module that should not yet be reachable.
+5. **Already statically reachable (legit pre-existing public `__init__`) but ZERO behavioral
+   consumer** → **CAPABILITY-orphan, not a file-orphan and not gaming.** Do NOT force or delete:
+   it already passes the static audit. Name its natural consumer and gate the wiring on a HUMAN
+   decision, because connecting it changes runtime behavior (e.g. `graph/persistence.WorkflowPersistence`
+   — reachable via the package API, but nothing persists; wiring the engine to write to SurrealDB is
+   a behavior change). This is the wire-at-creation TODO (Learning 227): file-reachable, capability-
+   unconsumed. Distinct from #4 (which isn't even statically reachable).
+
+The three false-orphan classes a naive grep mis-flags as #1 (force a fake edge) when the edge
+already exists: registry-string/filesystem (`skills/`), a quoted dotted path that isn't an import,
+and a RELATIVE intra-package import (`from .mod import`). Always match `from \.\w+ import` and check
+registry/entry-points before classifying a module orphaned.
 
 The guard-test smell: if your test asserts *"the re-export exists"* rather than *"behavior X
 happens,"* you are testing the wiring you just added to pass the audit — a tautology. Strengthen
