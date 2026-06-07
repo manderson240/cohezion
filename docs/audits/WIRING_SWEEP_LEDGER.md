@@ -48,9 +48,15 @@ eval.{huggingface_exporter,pipeline,universe_evaluator}, vanguard.{attribution,c
 governance.concierge, world_model.surprise_explorer, inference.lynx_gate,
 platform.agnostic_integrations, environments.auto_generator, cost_optimization.cost_dashboard,
 knowledge_graph.graphrag_engine. Each is either (i) given a REAL behavioral consumer, or (ii)
-honestly reclassified Class-B. No more `__init__`-re-export "wins". Higher-priority real consumers
-that DO have callers + consequences: `inference.resource_aware_route` → fleet dispatcher (fixes bot
-saturation); the `executor_integration.validate_sandbox` fails-open security bug (Needs-human).
+honestly reclassified Class-B. No more `__init__`-re-export "wins".
+
+**First real-consumer landed (2026-06-07):** `inference.resource_aware_route` → **`fleet.route()`**
+OOM dispatch gate (commit pending). Behavior-asserting test `tests/inference/test_fleet_resource_gate.py`
+proves route() skips local lanes under injected memory pressure (`await_count == 0`) — a wrong impl
+that ignores the snapshot dispatches the saturated lane. This is the saturation fix that left the bot
+replying empty (2026-06-06). NOT an `__init__` edge — a real caller with a behavioral consequence.
+Remaining higher-priority real consumer: the `executor_integration.validate_sandbox` fails-open
+security bug (Needs-human — enabling validation can block tasks).
 
 **Elegant simplicity (audit principle, 2026-06-06, user request).** The "do NOT force a fake edge"
 rule (re-exporting a server's `main()` to manufacture an import edge) is a special case of a
