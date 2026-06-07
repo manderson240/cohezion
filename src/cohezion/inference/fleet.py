@@ -608,6 +608,7 @@ async def extend_claude(
     quality_threshold: float = 0.8,
     max_local_attempts: int = 2,
     timeout: float = 30.0,
+    claude_quota: str | None = None,
 ) -> RouteResult:
     """Route through the local fleet first; escalate to Claude only if local insufficient.
 
@@ -634,6 +635,7 @@ async def extend_claude(
             error=f"Unknown claude_model {claude_model}",
         )
 
+    local_result: RouteResult | None = None
     for _ in range(max_local_attempts):
         local_result = await route(
             prompt,
@@ -657,6 +659,23 @@ async def extend_claude(
             local_result.error or "short output",
             confidence,
         )
+
+    # Hybrid quota gate (item 137): local was insufficient. Escalate to cloud ONLY if the Claude
+    # quota allows it — when throttled/halted, return the best local result rather than exhaust the
+    # plan quota ("never run out of Claude", doctrine bullet 5). claude_quota=None → escalate as
+    # before (backward-compatible default; callers opt into quota-awareness by passing the guard).
+    if claude_quota is not None:
+        from cohezion.inference.hybrid_router import hybrid_route_decision
+
+        decision = hybrid_route_decision(
+            local_capacity="defer",  # local already failed the gate this call
+            claude_quota=claude_quota,  # type: ignore[arg-type]
+            local_quality=0.0,
+            quality_threshold=quality_threshold,
+        )
+        if decision != "cloud" and local_result is not None:
+            logger.info("extend_claude: quota=%s → staying local (no cloud escalation)", claude_quota)
+            return local_result
 
     result = await route(prompt, task=Task.REASONING, prefer=claude_model, timeout=timeout)
     result.escalated_to_cloud = True
