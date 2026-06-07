@@ -22,6 +22,7 @@ import json
 from collections.abc import Iterable, Mapping
 from dataclasses import dataclass
 from pathlib import Path
+from typing import Literal
 
 
 @dataclass(frozen=True)
@@ -91,6 +92,45 @@ def summarize_usage(
             burn_per_hour=total / hours,
         )
     return out
+
+
+def usage_guard(
+    summary: Mapping[str, WindowUsage],
+    *,
+    window: str = "week",
+    soft_budget: int = 0,
+    hard_budget: int = 0,
+    metric: str = "total",
+) -> Literal["proceed", "throttle", "halt"]:
+    """Throttle decision for the autonomous loops (task #15 / item 134, 2026-06-07).
+
+    The behavioral consumer of the usage monitor — so the loops NEVER run the Claude Code
+    plan quota to zero. Given a ``summary`` (from :func:`summarize_usage`) and per-window token
+    budgets, returns what a loop tick should do BEFORE spending an agent turn:
+
+    - ``"proceed"`` — burn below ``soft_budget`` (or no budget configured → gate off).
+    - ``"throttle"`` — ``soft_budget <= value < hard_budget``: the loop should widen its
+      ScheduleWakeup interval and shift inference to the local fleet (``extend_claude``) instead
+      of spending agent turns.
+    - ``"halt"`` — ``value >= hard_budget``: stop scheduling new autonomous wakeups; only
+      user-driven turns and local-fleet work continue, preserving Claude availability.
+
+    Budgets are EXPLICIT (user/config-supplied) — this never invents a token→plan-% mapping (the
+    server-side % is opaque). ``metric`` selects which token field to gate on (``"total"`` or
+    ``"output"``; output is the scarce one — cache_read dominates totals but is cheap).
+    Pure: depends only on the injected summary + budgets.
+    """
+    if soft_budget <= 0 and hard_budget <= 0:
+        return "proceed"  # gate off — no budget configured
+    w = summary.get(window)
+    if w is None:
+        return "proceed"
+    value = float(getattr(w, metric, w.total))
+    if hard_budget > 0 and value >= hard_budget:
+        return "halt"
+    if soft_budget > 0 and value >= soft_budget:
+        return "throttle"
+    return "proceed"
 
 
 def load_usage_records(projects_dir: str | Path) -> list[UsageRecord]:
