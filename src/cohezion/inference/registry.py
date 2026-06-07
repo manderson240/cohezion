@@ -359,6 +359,7 @@ def _build_default_registry() -> dict[str, ModelEntry]:
         ),
         ModelEntry(
             model_id="Gemma-4-26B-A4B-it-GGUF",
+            size_gb=15.7,  # measured GGUF on disk via measure_gguf_sizes (item 136, non-fabricated)
             lane=Lane.IGPU_UNIFIED,
             endpoint="http://localhost:13308",
             # DECLARED vllm_rocm; today served via Lemonade (llamacpp) when loaded.

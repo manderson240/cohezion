@@ -19,6 +19,8 @@ def test_measured_models_have_their_gguf_size() -> None:
     # measured: gemma-4-E2B-it-Q4_K_M.gguf = 2.9 GB, gemma-4-E4B-it-Q4_K_M.gguf = 4.6 GB
     assert reg.models["Gemma-4-E2B-it-GGUF"].size_gb == 2.9
     assert reg.models["Gemma-4-E4B-it-GGUF"].size_gb == 4.6
+    # item 136: measure_gguf_sizes surfaced the 26B-A4B GGUF (15.7 GB on disk), now populated
+    assert reg.models["Gemma-4-26B-A4B-it-GGUF"].size_gb == 15.7
 
 
 def test_unmeasured_and_cloud_models_stay_none() -> None:
