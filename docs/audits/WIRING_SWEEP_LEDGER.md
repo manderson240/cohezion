@@ -457,6 +457,20 @@ looked orphaned (0 absolute edges) but `manager` imports it relatively. The thre
 classes now: registry-string/filesystem (skills/), quoted dotted path (knowledge_graph), relative
 import (this). (38th package swept.)
 
+### graph/ — CLASSIFIED + DONE (2026-06-07), 0 genuine file-A (1 capability-orphan → Needs-human)
+5 modules; `graph/__init__` is a PRE-EXISTING proper public-API init (re-exports all 5 — NOT an
+empty-init forced edge). 4 of 5 have direct production consumers:
+- **builder** (`WorkflowBuilder`) ← `swarm/team_orchestrator.py:432`.
+- **engine** (`WorkflowEngine`) ← `vibe/orchestrator.py:13`.
+- **nodes** (`WorkflowNode`/…) ← `graph/engine.py:26` (intra) + `__init__`.
+- **types** (`NodeSpec`/`WorkflowSpec`/…) ← `vibe/compiler`, `vibe/orchestrator`, `swarm/team_orchestrator`.
+- **persistence** (`WorkflowPersistence`) — statically reachable via the legit public `__init__`,
+  but `WorkflowPersistence` has **ZERO production consumer** (engine/builder never persist; only a
+  test). NOT a file-orphan (already reachable), NOT gaming (the init predates the loop). It is a
+  CAPABILITY-orphan (Learning 227 wire-at-creation): a built-but-unconsumed public API. Giving it a
+  consumer (the engine persisting workflow results to SurrealDB) is a BEHAVIOR change → surfaced
+  under Needs-human, not guessed. 0 file-A to force-wire. (39th package swept.)
+
 ## Swept packages
 | Package | Swept | Candidates | A wired | A remaining | B/C/D recorded | Needs-human |
 |---|---|---|---|---|---|---|
@@ -501,8 +515,17 @@ import (this). (38th package swept.)
 | protocols | **DONE** | 2 | 0 (ucp force-wire REVERTED — was gaming; UCP is N/A, no consumer) | 0 | a2a_server reachable (api); ucp_capability_handler Class-B tests-only (UCP N/A) | 0 |
 | rewards | **DONE** | 3 | 0 (all real direct-import edges, no forcing) | 0 | calculator (physics/rewards_bridge + evo_agent), ratchet (evo_agent), system (__main__ + agents/base) | 0 |
 | resilience | **DONE** | 2 | 0 (relative-import edge caught) | 0 | manager (compound/degradation_detector), strategies (manager.py `from .strategies`) | 0 |
+| graph | **DONE** | 5 | 0 (4 prod-consumed; persistence reachable via legit __init__) | 0 | builder/engine/nodes/types all prod-consumed | 1 (persistence capability-orphan) |
 
 ## Needs human decision
+- **`graph/persistence.WorkflowPersistence` is a CAPABILITY-orphan (2026-06-07).** It is statically
+  reachable (re-exported by the legit pre-existing `graph/__init__` public API) so NOT a file-orphan
+  and NOT gaming — but it has ZERO production consumer: `WorkflowEngine`/`WorkflowBuilder` never
+  persist, only a test constructs it. The natural consumer is the engine persisting workflow run
+  results to SurrealDB (the package's stated purpose: "DAG-native workflows with SurrealDB
+  persistence"). Wiring that is a BEHAVIOR change (engine writes to the DB) → human decision, not a
+  loop auto-wire. Same class as the `traceability/` island: file-reachable, capability-orphaned
+  (Learning 227 wire-at-creation).
 - **LATENT BUG surfaced by the vanguard sweep (2026-06-07): sandbox validation is silently disabled.**
   `compound/executor_integration.py:113 validate_sandbox()` does
   `from cohezion.vanguard.sandbox_validation import validate_sandbox_task` — but **no such function
@@ -563,7 +586,7 @@ import (this). (38th package swept.)
   re-export above is the non-behavior-changing edge; deeper integration is deferred to a human.
 
 ## Next tick
-**38 packages fully DONE**: resilience, rewards, protocols, services, vanguard, eval, concurrency, observability, flux, compound, inference, physics, platform, persistence, models, governance,
+**39 packages fully DONE**: graph, resilience, rewards, protocols, services, vanguard, eval, concurrency, observability, flux, compound, inference, physics, platform, persistence, models, governance,
 world_model, environments, data_mesh, pipeline, substrate, gateway, hookify, audio, knowledge_graph,
 mycelium, cost_optimization, ouroboros, evolution, precipitation, learning, reporting, tools, storage,
 policies, infrastructure, traceability (file-clean; orphan-island production-wiring TODO → Needs-human). `cache/` classified (0 clean-A; 1 dup → human); `swarm/` BLOCKED (cycle — human decision).
