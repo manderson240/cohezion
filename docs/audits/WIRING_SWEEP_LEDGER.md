@@ -487,6 +487,18 @@ All intra-package literal imports, rooted at `executor_integration`'s use of `Vi
 A repo `scripts/` import IS a static edge (the audio-sweep lesson) — agent_schema + calibration_harness
 are CI/hook/calibration-driven, not orphans. 0 genuine-A. (41st package swept.)
 
+### recursive_trace/ — CLASSIFIED + DONE (2026-06-07), 0 genuine file-A (1 capability-orphan → human)
+3 modules; `__init__` is a legit public-API init (`from .core import …`). Classification:
+- **resolution_log** ← `inference/orchestrator.py:509` (production src) — load-bearing.
+- **coupling_analysis** (`analyze_domain`) ← `scripts/experiments/recursive_trace_gate.py:23` (script).
+- **core** (`RecursiveTraceLoop`) — statically reachable via the legit `__init__` re-export (reached
+  because the package loads when `resolution_log` is imported), but `RecursiveTraceLoop` has ZERO
+  production consumer (only `__init__` + tests; the `src/cohezion/recursive_trace.py` hits are the
+  KNOWN shadowed-husk's comments). CAPABILITY-orphan (same class as `graph/persistence`): wiring the
+  recursion orchestrator into the compound loop is a BEHAVIOR change → Needs-human, not forced.
+0 file-A to force-wire. Husk `recursive_trace.py` (shadowed by the package) remains a separate
+human-decision removal (already in Needs-human). (42nd package swept.)
+
 ## Swept packages
 | Package | Swept | Candidates | A wired | A remaining | B/C/D recorded | Needs-human |
 |---|---|---|---|---|---|---|
@@ -534,6 +546,7 @@ are CI/hook/calibration-driven, not orphans. 0 genuine-A. (41st package swept.)
 | graph | **DONE** | 5 | 0 (4 prod-consumed; persistence reachable via legit __init__) | 0 | builder/engine/nodes/types all prod-consumed | 1 (persistence capability-orphan) |
 | vibe | **DONE** | 6 | 0 (chain rooted at compound/executor_integration) | 0 | orchestrator (prod) → compiler/parser/specifier → _vocab/types | 0 |
 | validation | **DONE** | 3 | 0 (1 prod src + 2 via scripts) | 0 | constitutional (degradation_detector), agent_schema + calibration_harness (CI/hook/calib scripts) | 0 |
+| recursive_trace | **DONE** | 3 | 0 (resolution_log prod, coupling_analysis script) | 0 | core reachable via legit __init__ but capability-orphan | 1 (core RecursiveTraceLoop) |
 
 ## Needs human decision
 - **`graph/persistence.WorkflowPersistence` is a CAPABILITY-orphan (2026-06-07).** It is statically
@@ -604,7 +617,7 @@ are CI/hook/calibration-driven, not orphans. 0 genuine-A. (41st package swept.)
   re-export above is the non-behavior-changing edge; deeper integration is deferred to a human.
 
 ## Next tick
-**41 packages fully DONE**: validation, vibe, graph, resilience, rewards, protocols, services, vanguard, eval, concurrency, observability, flux, compound, inference, physics, platform, persistence, models, governance,
+**42 packages fully DONE**: recursive_trace, validation, vibe, graph, resilience, rewards, protocols, services, vanguard, eval, concurrency, observability, flux, compound, inference, physics, platform, persistence, models, governance,
 world_model, environments, data_mesh, pipeline, substrate, gateway, hookify, audio, knowledge_graph,
 mycelium, cost_optimization, ouroboros, evolution, precipitation, learning, reporting, tools, storage,
 policies, infrastructure, traceability (file-clean; orphan-island production-wiring TODO → Needs-human). `cache/` classified (0 clean-A; 1 dup → human); `swarm/` BLOCKED (cycle — human decision).
