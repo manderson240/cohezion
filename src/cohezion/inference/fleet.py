@@ -28,7 +28,11 @@ import asyncio
 import logging
 import time
 from dataclasses import dataclass, field
-from typing import Any
+from typing import TYPE_CHECKING, Any
+
+
+if TYPE_CHECKING:
+    from cohezion.competition.orchestrator.resource_guard import MemorySnapshot
 
 import httpx
 
@@ -452,6 +456,7 @@ async def route(
     registry: FleetRegistry | None = None,
     stream: bool = False,
     max_tokens: int = 512,
+    resource_snapshot: MemorySnapshot | None = None,
 ) -> RouteResult:
     """Dispatch a prompt to the optimal lane of the fleet.
 
@@ -530,6 +535,29 @@ async def route(
     attempts: list[str] = []
     last_error: str | None = None
 
+    # Resource-aware OOM gate (real consumer of resource_aware_route, item 122 / 2026-06-07).
+    # Under memory pressure a local dispatch piles onto a saturated lane and the bot replies
+    # empty (the 2026-06-06 saturation). When the live/injected snapshot trips the K1/rule-5
+    # OOM buffer we DEFER local lanes here — cloud candidates (no local RAM) still proceed,
+    # and if none exist route() returns an honest oom error instead of a saturated-lane empty.
+    # Fail-open: a memory PROBE failure is advisory (not a security gate), so it never blocks.
+    oom_defer_reason: str | None = None
+    snapshot = resource_snapshot
+    if snapshot is None:
+        try:
+            from cohezion.competition.orchestrator.resource_guard import MemorySnapshot
+
+            snapshot = MemorySnapshot.capture()
+        except Exception:
+            # probe failure is advisory (not a security gate) — never block dispatch
+            snapshot = None
+    if snapshot is not None:
+        from cohezion.inference.resource_aware_router import resource_aware_route
+
+        decision = resource_aware_route(0.0, snapshot=snapshot)
+        if decision.action == "defer":
+            oom_defer_reason = decision.reason
+
     for candidate in candidates:
         # Check lane health for local candidates.
         if candidate.lane in {
@@ -538,6 +566,10 @@ async def route(
             Lane.IGPU_UNIFIED,
             Lane.CPU,
         }:
+            if oom_defer_reason is not None:
+                attempts.append(f"{candidate.model_id}(oom-defer: {oom_defer_reason})")
+                last_error = oom_defer_reason
+                continue
             if health is None:
                 health = check_fleet()
             lane_key = candidate.lane.value

@@ -13,10 +13,13 @@ and where should this run, given what's free RIGHT NOW?".
   - item-113 fleet-fairness (a batch job yields to the NPU lane when the bot is busy),
   - item-114 placement (interactive→iGPU, batch→NPU, deep-reasoning→CPU).
 
-Report-only: it returns a `RouteDecision` (action + engine + reason); it NEVER loads a model.
-Wiring it into the live dispatcher (orchestrator pre_dispatch / fleet._dispatch_one) is a
-SEPARATE, gated behaviour change. Pure given an injected snapshot — `route_now` is the thin
-live-capture convenience (not unit-tested against live hardware).
+Report-only at the decision layer: it returns a `RouteDecision` (action + engine + reason); it
+NEVER loads a model. **As of 2026-06-07 it has a real production consumer**: `fleet.route()`
+captures a memory snapshot and uses the OOM-guard branch to DEFER local lanes under memory
+pressure (so a saturated fleet falls through to cloud instead of returning empty — the
+2026-06-06 bot saturation). See `tests/inference/test_fleet_resource_gate.py`. Pure given an
+injected snapshot — `route_now` is the thin live-capture convenience (not unit-tested against
+live hardware).
 
 Engine labels map to the triune ports: npu=13306 (via omnirouter 13305), igpu=13307, cpu=13309.
 """
