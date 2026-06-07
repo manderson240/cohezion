@@ -12,11 +12,42 @@ the window (the most plausible wrong version) fails test_window_excludes_old_rec
 
 from __future__ import annotations
 
-from cohezion.observability.claude_usage import UsageRecord, summarize_usage
+from cohezion.observability.claude_usage import (
+    UsageRecord,
+    summarize_usage,
+    usage_guard,
+)
 
 
 _HOUR = 3600.0
 _DAY = 86400.0
+
+
+def _summary_with_total(total_tokens: int) -> dict:
+    # one record whose output drives the window total to `total_tokens` (input=0).
+    rec = UsageRecord(ts=1_000_000.0, input=0, output=total_tokens, cache_read=0, cache_creation=0)
+    return summarize_usage([rec], now_ts=1_000_000.0, windows={"week": 7 * _DAY})
+
+
+def test_usage_guard_proceeds_below_soft() -> None:
+    s = _summary_with_total(100)
+    assert usage_guard(s, window="week", soft_budget=1000, hard_budget=2000) == "proceed"
+
+
+def test_usage_guard_throttles_between_soft_and_hard() -> None:
+    s = _summary_with_total(1500)
+    assert usage_guard(s, window="week", soft_budget=1000, hard_budget=2000) == "throttle"
+
+
+def test_usage_guard_halts_at_or_above_hard() -> None:
+    s = _summary_with_total(2000)
+    assert usage_guard(s, window="week", soft_budget=1000, hard_budget=2000) == "halt"
+
+
+def test_usage_guard_off_when_no_budget() -> None:
+    # No budget configured → never throttle (gate off), even at huge spend.
+    s = _summary_with_total(10**12)
+    assert usage_guard(s, window="week", soft_budget=0, hard_budget=0) == "proceed"
 
 
 def _rec(ts: float, out: int) -> UsageRecord:
