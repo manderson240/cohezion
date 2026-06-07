@@ -25,15 +25,23 @@ MODEL = "Granite-4.1-8B-GGUF"  # no-thinking, tool-capable (hermes-skill validat
 
 def fetch_raw(path: str) -> str:
     """Raw file bytes via the GitHub contents API (gh handles auth)."""
-    out = subprocess.run(
-        ["gh", "api", f"repos/{REPO}/contents/{path}", "--jq", ".download_url"],
-        capture_output=True, text=True, timeout=30,
-    )
-    url = out.stdout.strip()
-    if not url:
+    try:
+        out = subprocess.run(
+            ["gh", "api", f"repos/{REPO}/contents/{path}", "--jq", ".download_url"],
+            capture_output=True, text=True, timeout=30,
+        )
+    except (subprocess.SubprocessError, OSError):
         return ""
-    with urllib.request.urlopen(url, timeout=30) as r:  # noqa: S310 (github raw)
-        return r.read().decode("utf-8", errors="replace")
+    url = out.stdout.strip()
+    # Guard: a gh error (rate-limit / 404 / dir) yields a JSON error or empty, NOT an http URL.
+    # urlopen-ing that string crashes the whole batch — skip instead (transient-failure tolerance).
+    if out.returncode != 0 or not url.startswith("http"):
+        return ""
+    try:
+        with urllib.request.urlopen(url, timeout=30) as r:  # noqa: S310
+            return r.read().decode("utf-8", errors="replace")
+    except (OSError, ValueError):
+        return ""  # network blip on one file must not kill the batch
 
 
 def extract_text(name: str, raw: str, *, cap: int = 6000) -> str:
@@ -103,11 +111,26 @@ def _load_targets() -> list[str]:
     return args or TARGETS
 
 
+def _already_done() -> set[str]:
+    """Names already distilled (from the results file at $DISTILL_DONE_FILE) — for resume."""
+    import os
+    import re
+
+    path = os.environ.get("DISTILL_DONE_FILE", "")
+    if not path or not os.path.exists(path):
+        return set()
+    text = open(path, encoding="utf-8").read()
+    return set(re.findall(r"^## (.+)$", text, flags=re.MULTILINE))
+
+
 def main() -> int:
     targets = _load_targets()
+    done = _already_done()
     total = len(targets)
     for i, path in enumerate(targets, 1):
         name = path.split("/")[-1]
+        if name in done:
+            continue  # resume: already distilled in a prior (crashed) run
         raw = fetch_raw(path)
         print(f"<!-- {i}/{total} -->", flush=True)
         if not raw:
