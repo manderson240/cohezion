@@ -9,8 +9,13 @@ description: |
   string import reaches a module at RUNTIME but is invisible to every STATIC
   analyzer (BFS reachability, regex import scans, IDE find-references, bundlers),
   so it does not clear an orphan flag — only a literal `import pkg.x` statement does.
+  ANTI-GAMING CAVEAT (v1.1.0): a literal edge that satisfies the static analyzer but has
+  NO real production consumer is GAMING the metric (Goodhart) — clearing an orphan flag is
+  not the same as making code used. Wire only when a real consumer exists or is created;
+  else classify the module tests-only/Class-B and RECORD it, do not force an `__init__`
+  re-export nothing calls.
 author: Claude Code
-version: 1.0.0
+version: 1.1.0
 ---
 
 # Static-Import-Edge Orphan Wiring
@@ -94,8 +99,41 @@ cohezion V-model audit: orphans **11 → 0**, missing `__init__.py` 9 → 0, 0 d
 script. Pairs with: one deterministic audit script across all modules first, then
 loop iterations spent only on judgment.
 
+## Anti-gaming caveat (v1.1.0, learned 2026-06-07)
+
+**Clearing an orphan flag is NOT the same as making a module used.** The static-reachability
+audit is a *proxy* for "this code is actually called." Optimizing the proxy — adding an
+`__init__` re-export plus a guard-test that only asserts the re-export exists — satisfies the
+audit while the module has **zero behavioral consumer**. That is Goodhart's law, and it is
+indistinguishable from progress on the dashboard. In cohezion (2026-06-07) a production-consumer
+scan found **14 of 15 "wired" modules had no real caller** — the wiring loop had been
+manufacturing green checkmarks.
+
+**The done-definition that makes gaming impossible:**
+
+> A wiring counts as a real WIN only if a **non-test, non-`__init__` caller exists whose removal
+> breaks a test that asserts BEHAVIOR.** If the only importers are (a) the package `__init__`
+> and (b) a guard-test asserting the re-export exists, the edge is audit-appeasement, not wiring.
+
+**Decision procedure per orphan:**
+1. Scan for a production importer of the module's public symbol (exclude `tests/`, `__init__`,
+   `*_wired` guard-tests). `grep -rn "<Symbol>" src/ scripts/ | grep -vE "tests/|__init__|_wired"`.
+2. **Has a real consumer** → it was never truly orphaned; record the real edge. (Best case — see
+   cohezion `rewards/`: all 3 modules reached by literal direct imports, no ceremony needed.)
+3. **No consumer but a NATURAL one exists** → create the real consumer (a dispatcher call, a
+   registry entry, an executor step) with a behavior-asserting test. (See cohezion
+   `resource_aware_route` → `fleet.route()` OOM gate: `await_count == 0` under memory pressure.)
+4. **No consumer and none is wanted** (tests-only experiment, or a protocol marked N/A like
+   `protocols/ucp_capability_handler`) → **Class-B: RECORD, do not force an edge.** An empty
+   `__init__` is correct for a module that should not yet be reachable.
+
+The guard-test smell: if your test asserts *"the re-export exists"* rather than *"behavior X
+happens,"* you are testing the wiring you just added to pass the audit — a tautology. Strengthen
+it to assert a behavior, or the module is Class-B.
+
 ## References
 
 - Policy: `~/.claude/rules/non-destructive-wiring.md`
 - Instrument: `scripts/audits/vmodel_module_audit.py`
 - Report: `docs/audits/VMODEL_AUDIT_2026-06-05.md`
+- Anti-gaming doctrine + the 14/15 scan: `docs/audits/WIRING_SWEEP_LEDGER.md` ("Done-definition")
