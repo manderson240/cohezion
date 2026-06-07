@@ -471,6 +471,14 @@ empty-init forced edge). 4 of 5 have direct production consumers:
   consumer (the engine persisting workflow results to SurrealDB) is a BEHAVIOR change → surfaced
   under Needs-human, not guessed. 0 file-A to force-wire. (39th package swept.)
 
+### vibe/ — CLASSIFIED + DONE (2026-06-07), 0 genuine-A (chain rooted at a prod consumer)
+6 modules, all reachable; the package chains from a real external consumer:
+- **orchestrator** (`VibeOrchestrator`) ← `compound/executor_integration.py:80` (PRODUCTION root).
+- **compiler** ← `orchestrator.py:15`; **parser** ← `orchestrator.py:16`; **specifier** ← `orchestrator.py:17`.
+- **_vocab** ← `parser.py:14`; **types** ← `specifier.py:15` + `_vocab.py:8`.
+All intra-package literal imports, rooted at `executor_integration`'s use of `VibeOrchestrator`.
+0 genuine-A, nothing to wire — a genuinely-used NL→workflow subsystem. (40th package swept.)
+
 ## Swept packages
 | Package | Swept | Candidates | A wired | A remaining | B/C/D recorded | Needs-human |
 |---|---|---|---|---|---|---|
@@ -516,6 +524,7 @@ empty-init forced edge). 4 of 5 have direct production consumers:
 | rewards | **DONE** | 3 | 0 (all real direct-import edges, no forcing) | 0 | calculator (physics/rewards_bridge + evo_agent), ratchet (evo_agent), system (__main__ + agents/base) | 0 |
 | resilience | **DONE** | 2 | 0 (relative-import edge caught) | 0 | manager (compound/degradation_detector), strategies (manager.py `from .strategies`) | 0 |
 | graph | **DONE** | 5 | 0 (4 prod-consumed; persistence reachable via legit __init__) | 0 | builder/engine/nodes/types all prod-consumed | 1 (persistence capability-orphan) |
+| vibe | **DONE** | 6 | 0 (chain rooted at compound/executor_integration) | 0 | orchestrator (prod) → compiler/parser/specifier → _vocab/types | 0 |
 
 ## Needs human decision
 - **`graph/persistence.WorkflowPersistence` is a CAPABILITY-orphan (2026-06-07).** It is statically
@@ -586,7 +595,7 @@ empty-init forced edge). 4 of 5 have direct production consumers:
   re-export above is the non-behavior-changing edge; deeper integration is deferred to a human.
 
 ## Next tick
-**39 packages fully DONE**: graph, resilience, rewards, protocols, services, vanguard, eval, concurrency, observability, flux, compound, inference, physics, platform, persistence, models, governance,
+**40 packages fully DONE**: vibe, graph, resilience, rewards, protocols, services, vanguard, eval, concurrency, observability, flux, compound, inference, physics, platform, persistence, models, governance,
 world_model, environments, data_mesh, pipeline, substrate, gateway, hookify, audio, knowledge_graph,
 mycelium, cost_optimization, ouroboros, evolution, precipitation, learning, reporting, tools, storage,
 policies, infrastructure, traceability (file-clean; orphan-island production-wiring TODO → Needs-human). `cache/` classified (0 clean-A; 1 dup → human); `swarm/` BLOCKED (cycle — human decision).
