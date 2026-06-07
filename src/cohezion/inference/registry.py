@@ -212,6 +212,7 @@ def _build_default_registry() -> dict[str, ModelEntry]:
         # --- Strix Halo Symphony: 4-lane Gemma 4 ---
         ModelEntry(
             model_id="Gemma-4-E2B-it-GGUF",
+            size_gb=2.9,  # measured GGUF on disk: gemma-4-E2B-it-Q4_K_M.gguf (non-fabricated)
             lane=Lane.NPU,
             endpoint="http://localhost:13306",
             runtime_backend="flm",
@@ -280,6 +281,7 @@ def _build_default_registry() -> dict[str, ModelEntry]:
         ),
         ModelEntry(
             model_id="Gemma-4-E4B-it-GGUF",
+            size_gb=4.6,  # measured GGUF on disk: gemma-4-E4B-it-Q4_K_M.gguf (non-fabricated)
             lane=Lane.IGPU_ROCWMMA,
             endpoint="http://localhost:13307",
             runtime_backend="llamacpp_hip",  # served by Lemonade (lemond :13307)
