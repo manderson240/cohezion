@@ -31,12 +31,12 @@ main class, **excluding** the module's own file, `__init__.py` re-exports, and t
 
 | Module | Main class | Live seam? | Classification | Natural consumer / decision |
 |---|---|---|---|---|
-| `flux.cache_flux` | `CacheFlux` | **YES** — `compile_natural_language()` → `VibeOrchestrator(flux_aggregator=…)`; specifier `_search_similar_workflows` queries it. Degrades gracefully (`cache=None → []`). | **mechanically-wireable** | Construct `FluxAggregator([CacheFlux(SemanticCache.get_instance()), HistoryFlux()])` at the live seam; test: seed → compile NL → assert surfaced. |
-| `flux.history_flux` | `HistoryFlux` | **YES** — same seam; pure in-memory, zero backend. | **mechanically-wireable** | Same wire as above (registered alongside CacheFlux). |
+| `flux.cache_flux` | `CacheFlux` | **YES** — `compile_natural_language()` → `VibeOrchestrator(flux_aggregator=…)`; specifier `_find_similar_workflows` queries it **and the return reaches the spec** (`specifier.py:239 similar_past_workflows=similar`). `SemanticCache` **is** populated in prod (harness CB4) → real data flows. Degrades gracefully (`cache=None → []`). | **mechanically-wireable** | Construct `FluxAggregator([CacheFlux(SemanticCache.get_instance())])` at the live seam; discriminating test: seed SemanticCache L2 with a workflow-tagged entry → compile NL → assert `spec.similar_past_workflows` non-empty (asserts **real** prod data, not a test-only precondition). |
+| `flux.history_flux` | `HistoryFlux` | seam yes, but its **write path** (`record_history`) runs only on `graph/engine.py`'s aggregator, which itself defaults `None` and is **never constructed-with-providers in prod**. A *separate* vibe-seam aggregator's HistoryFlux is therefore **always empty** in prod. | **architecture-decision** | A test would only pass by seeding history itself (tautological). Real surfacing needs graph-engine writes and vibe reads to **share one aggregator** — a "context bus" decision (exists only in `tests/graph/test_context_bus.py`). Decide: should the NL compiler be stateful across the session via a shared FLUX bus? |
 | `flux.surreal_flux` | `SurrealFlux` | seam yes, but `__init__(surreal_client)` **requires** a live client (no graceful no-backend ctor). | **architecture-decision** | Decide whether NL-compilation should hit SurrealDB vector search live → needs a backend-client wiring decision. |
 | `eval.pipeline` | `EvalPipeline` / `RalphLoop` | no | **architecture-decision** | eval subsystem has no driver. Decision: what triggers an eval run, and where do results land? |
 | `eval.universe_evaluator` | `UniverseEvaluator` | no | **architecture-decision** | RL-env evaluation harness with no caller. Decision: scheduled? on-PR? CLI? |
-| `eval.huggingface_exporter` | `HuggingFaceExporter` | no | **architecture-decision** | Exports EVO research data. Decision: export target + cadence (a publishing surface). |
+| `eval.huggingface_export` (`huggingface_export.py`) | `HuggingFaceExporter` | no | **architecture-decision** | Exports EVO research data. Decision: export target + cadence (a publishing surface). |
 | `vanguard.attribution` | `AttributionEngine` | no | **architecture-decision** | License/attribution compliance with no ingestion point. Decision: when/where is attribution computed? |
 | `vanguard.connectors` | `VanguardScoutReport` | no | **architecture-decision** | Multi-source scout with no consumer. Decision: what consumes scout reports (a feed? the research loop?). |
 | `environments.auto_generator` | `AutoEnvGenerator` | no | **architecture-decision** | Auto env-generation with no trigger. Decision: what asks for a new env, and when? |
@@ -49,15 +49,22 @@ main class, **excluding** the module's own file, `__init__.py` re-exports, and t
 
 ## Batched recommendation for the human
 
-- **2 rows the loop can clear without you** (`flux.cache_flux` + `flux.history_flux`):
-  one additive wire into the existing live NL-compile seam, behind a discriminating test.
-  *This is the only mechanical win in the cluster — my pre-verification draft wrongly
-  thought there were more; tracing showed the `FluxAggregator` itself is never
-  constructed with providers in production, so the rest have no live seam.*
-- **9 architecture decisions, naturally grouped into 4 subsystems** — decide per group,
+- **1 row the loop can clear without you** (`flux.cache_flux`): one additive wire of
+  `CacheFlux(SemanticCache.get_instance())` into the existing live NL-compile seam,
+  behind a discriminating test that asserts **real** SemanticCache neighbors surface
+  into the spec (not a test-seeded precondition).
+  *Two corrections from verification: (1) my pre-draft thought there were more mechanical
+  wins — tracing showed `FluxAggregator` is never constructed-with-providers in prod, so
+  the rest have no live data flow; (2) `flux.history_flux` looked mechanical but its write
+  path (`record_history`) only runs on a different, never-populated aggregator, so via the
+  vibe seam it is always empty — its test would be tautological. It is therefore an
+  architecture (shared-context-bus) decision, not a mechanical wire.*
+- **10 architecture decisions, naturally grouped into 5 subsystems** — decide per group,
   not per module:
-  1. **flux backend** — `surreal_flux` (does NL-compile hit SurrealDB live?)
-  2. **eval subsystem** — `pipeline`, `universe_evaluator`, `huggingface_exporter`
+  1. **flux context bus** — `history_flux` (share one aggregator across graph-engine
+     writes + vibe reads → stateful compiler?) and `surreal_flux` (does NL-compile hit
+     SurrealDB live?)
+  2. **eval subsystem** — `pipeline`, `universe_evaluator`, `huggingface_export`
      (one driver/cadence decision covers all three)
   3. **vanguard subsystem** — `attribution`, `connectors` (one ingestion-consumer decision)
   4. **standalone surfaces** — `auto_generator` (env-gen trigger), `graphrag_engine`
