@@ -111,3 +111,29 @@ def deposit_quality_report(
         low_evidence=low_evidence,
         format_invalid=format_invalid,
     )
+
+
+@dataclass(frozen=True)
+class DepositQualityDelta:
+    """Signed change in neuron-store quality across two snapshots (item 74). Negative = improving."""
+
+    redundancy_delta: int  # change in # of duplicate-named neurons
+    low_evidence_delta: int  # change in # of below-floor-reward neurons
+    format_invalid_delta: int  # change in # of malformed neurons
+
+
+def deposit_quality_delta(
+    before: DepositQualityReport, after: DepositQualityReport
+) -> DepositQualityDelta:
+    """Quality-trend monitor: is the growing neuron store getting BETTER or WORSE? (item 74).
+
+    Returns the SIGNED change in each problem count (``len(after.*) - len(before.*)``) — mirroring
+    the harness-blessed :meth:`DegradationDetector.diff_snapshots` (CB11) pure-delta pattern.
+    Negative = fewer problems = improving; positive = degrading. NOT clamped (an honest -1 for a
+    redundancy drop, not 0). Pure — no I/O, operates on two injected reports.
+    """
+    return DepositQualityDelta(
+        redundancy_delta=len(after.redundant) - len(before.redundant),
+        low_evidence_delta=len(after.low_evidence) - len(before.low_evidence),
+        format_invalid_delta=len(after.format_invalid) - len(before.format_invalid),
+    )
