@@ -446,6 +446,17 @@ direct imports (the honest edge, not an `__init__` re-export forced to clear the
 0 genuine-A, 0 orphans, NOTHING to wire. The model case for the new doctrine: a package that is
 genuinely consumed needs no ceremony — record the real edges and move on. (37th package swept.)
 
+### resilience/ — CLASSIFIED + DONE (2026-06-07), 0 genuine-A (relative-import edge caught)
+2 modules, `__init__` empty. Both production-reachable:
+- **manager** (`get_rah_manager`) ← `compound/degradation_detector.py:442` (lazy literal import).
+- **strategies** (`HealingStrategy`/`ModelSwapStrategy`/`ContextReductionStrategy`/`SystemRestartStrategy`)
+  ← `resilience/manager.py:17` (`from .strategies import …` — a RELATIVE intra-package edge).
+0 genuine-A. **Methodology note (3rd false-orphan class):** the per-tick grep must match the
+RELATIVE form `from \.<mod> import` too, not only `cohezion.<pkg>.<mod>` — `strategies` first
+looked orphaned (0 absolute edges) but `manager` imports it relatively. The three false-orphan
+classes now: registry-string/filesystem (skills/), quoted dotted path (knowledge_graph), relative
+import (this). (38th package swept.)
+
 ## Swept packages
 | Package | Swept | Candidates | A wired | A remaining | B/C/D recorded | Needs-human |
 |---|---|---|---|---|---|---|
@@ -489,6 +500,7 @@ genuinely consumed needs no ceremony — record the real edges and move on. (37t
 | services | **DONE** | 4 | 0 (clean — already wired) | 0 | 4 reachable (all 4 re-exported by __init__ AND imported by cli/main.py) | 0 |
 | protocols | **DONE** | 2 | 0 (ucp force-wire REVERTED — was gaming; UCP is N/A, no consumer) | 0 | a2a_server reachable (api); ucp_capability_handler Class-B tests-only (UCP N/A) | 0 |
 | rewards | **DONE** | 3 | 0 (all real direct-import edges, no forcing) | 0 | calculator (physics/rewards_bridge + evo_agent), ratchet (evo_agent), system (__main__ + agents/base) | 0 |
+| resilience | **DONE** | 2 | 0 (relative-import edge caught) | 0 | manager (compound/degradation_detector), strategies (manager.py `from .strategies`) | 0 |
 
 ## Needs human decision
 - **LATENT BUG surfaced by the vanguard sweep (2026-06-07): sandbox validation is silently disabled.**
@@ -551,7 +563,7 @@ genuinely consumed needs no ceremony — record the real edges and move on. (37t
   re-export above is the non-behavior-changing edge; deeper integration is deferred to a human.
 
 ## Next tick
-**37 packages fully DONE**: rewards, protocols, services, vanguard, eval, concurrency, observability, flux, compound, inference, physics, platform, persistence, models, governance,
+**38 packages fully DONE**: resilience, rewards, protocols, services, vanguard, eval, concurrency, observability, flux, compound, inference, physics, platform, persistence, models, governance,
 world_model, environments, data_mesh, pipeline, substrate, gateway, hookify, audio, knowledge_graph,
 mycelium, cost_optimization, ouroboros, evolution, precipitation, learning, reporting, tools, storage,
 policies, infrastructure, traceability (file-clean; orphan-island production-wiring TODO → Needs-human). `cache/` classified (0 clean-A; 1 dup → human); `swarm/` BLOCKED (cycle — human decision).
