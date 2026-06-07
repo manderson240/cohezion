@@ -16,6 +16,7 @@ from pathlib import Path
 
 _REPO = Path(__file__).resolve().parents[3]
 _DEFAULT_FEED = _REPO / "docs" / "research" / "BLEEDING_EDGE_FEED.md"
+_DEFAULT_BACKLOG = _REPO / "docs" / "IMPROVEMENT_BACKLOG.md"
 # The feed uses TWO header conventions: `## Round N — date` (recent) and `## date (round N)`
 # (earlier). Match a `##` line containing `round <N>` in either position.
 _ROUND_HEADER = re.compile(r"^##.*?\bround\s+(\d+)", re.IGNORECASE)
@@ -81,6 +82,61 @@ def parse_research_feed(feed_path: Path | None = None) -> list[FeedRecord]:
             )
         )
     return out
+
+
+@dataclass(frozen=True)
+class CrossrefReport:
+    """Research→build traceability: which verified findings became backlog items vs dropped."""
+
+    actioned: list[tuple[str, int]]  # (finding, backlog item number) — logged AND in a backlog row
+    dropped: list[str]  # findings with NO backlog row (logged then dropped)
+
+
+_BACKLOG_ITEM_ROW = re.compile(r"^\|\s*(\d+)\s*\|")
+
+
+def _backlog_rows(backlog_path: Path) -> list[tuple[int, str]]:
+    """Backlog item rows → ``[(item_number, full_row_text), ...]``. Missing/unreadable → ``[]``."""
+    try:
+        lines = backlog_path.read_text(encoding="utf-8", errors="replace").splitlines()
+    except OSError:
+        return []
+    rows: list[tuple[int, str]] = []
+    for line in lines:
+        m = _BACKLOG_ITEM_ROW.match(line)
+        if m:
+            rows.append((int(m.group(1)), line))
+    return rows
+
+
+def feed_backlog_crossref(
+    *, feed_path: Path | None = None, backlog_path: Path | None = None
+) -> CrossrefReport:
+    """For each VERIFIED feed finding, did it become a backlog item (actioned) or get dropped?
+
+    Composes item-49 :func:`parse_research_feed` + the backlog. A finding is *actioned* if its
+    normalized id appears (case-insensitive substring) in some backlog row → ``(finding, item#)``;
+    else *dropped*. A finding logged in multiple rounds is counted ONCE (first-seen order).
+    Report-only, pure/read-only. Missing/unreadable inputs → empty report (never raises).
+    """
+    records = parse_research_feed(feed_path)
+    rows = _backlog_rows(backlog_path or _DEFAULT_BACKLOG)
+
+    seen: set[str] = set()
+    actioned: list[tuple[str, int]] = []
+    dropped: list[str] = []
+    for rec in records:
+        finding = rec.finding
+        if finding in seen:
+            continue  # a finding in >=2 rounds is counted once
+        seen.add(finding)
+        needle = finding.lower()
+        item = next((num for num, text in rows if needle in text.lower()), None)
+        if item is not None:
+            actioned.append((finding, item))
+        else:
+            dropped.append(finding)
+    return CrossrefReport(actioned=actioned, dropped=dropped)
 
 
 def feed_dedup_hits(records: Iterable[FeedRecord]) -> dict[str, list[int]]:
