@@ -148,6 +148,49 @@ def complexity_outliers(paths: Iterable[Path], *, threshold: int = 15) -> list[t
     return sorted(out, key=lambda t: (-t[1], t[0]))
 
 
+def _param_count(func: ast.FunctionDef | ast.AsyncFunctionDef) -> int:
+    """Parameter count of ``func`` — the data-clump dimension (item 63).
+
+    Counts positional-only + positional + keyword-only params, plus ``*args`` and ``**kwargs`` as
+    ONE each. A leading ``self``/``cls`` is excluded (by name — a method's receiver is not an
+    argument the caller passes). Pure: inspects the AST node, never executes.
+    """
+    a = func.args
+    positional = list(a.posonlyargs) + list(a.args)
+    if positional and positional[0].arg in ("self", "cls"):
+        positional = positional[1:]  # receiver is not a caller-supplied argument
+    n = len(positional) + len(a.kwonlyargs)
+    if a.vararg is not None:
+        n += 1  # *args counts as one
+    if a.kwarg is not None:
+        n += 1  # **kwargs counts as one
+    return n
+
+
+def long_parameter_lists(
+    paths: Iterable[Path], *, threshold: int = 6
+) -> list[tuple[str, int]]:
+    """Functions whose parameter count exceeds ``threshold`` — the data-clump smell (item 63). READ-ONLY.
+
+    Returns ``[(qualified_name, param_count)]`` for every function/method with ``params > threshold``,
+    sorted by ``param_count`` descending then name. ``self``/``cls`` excluded; ``*args``/``**kwargs``
+    each count as one (see :func:`_param_count`). A clean/empty set of files → ``[]``. Pure (stdlib
+    ast, no writes) — a number is a smell flagged for judgment, not a verdict.
+    """
+    out: list[tuple[str, int]] = []
+    for path in _iter_python_files(paths):
+        try:
+            tree = ast.parse(path.read_text(encoding="utf-8", errors="replace"))
+        except (OSError, SyntaxError, ValueError):
+            continue  # unreadable / not valid Python → skip, never crash the audit
+        for node in ast.walk(tree):
+            if isinstance(node, ast.FunctionDef | ast.AsyncFunctionDef):
+                count = _param_count(node)
+                if count > threshold:
+                    out.append((f"{path.name}::{node.name}", count))
+    return sorted(out, key=lambda t: (-t[1], t[0]))
+
+
 # Decorators that make single-call forwarding LEGITIMATE (required indirection, not a smell).
 _INDIRECTION_DECORATORS = frozenset(
     {"property", "cached_property", "abstractmethod", "abstractproperty"}
