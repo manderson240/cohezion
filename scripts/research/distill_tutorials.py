@@ -17,12 +17,18 @@ import os
 import re
 import subprocess
 import sys
+import time
 import urllib.request
 
 
 REPO = "Marktechpost/AI-Agents-Projects-Tutorials"
 LEMONADE = "http://localhost:13305/api/v1/chat/completions"
-MODEL = "Granite-4.1-8B-GGUF"  # no-thinking, tool-capable (hermes-skill validated)
+# FLEET FAIRNESS (incident 2026-06-06): the live Hermes bot runs on the iGPU (Qwen3.6 via :13305).
+# To stay CONCURRENT with the bot, this batch defaults to an NPU (XDNA2) model — a SEPARATE compute
+# engine — so it never competes for the bot's iGPU queue. Plus a throttle (sleep between calls) so
+# even on a shared tier the bot's requests interleave. Override via env for a one-off iGPU run.
+MODEL = os.environ.get("DISTILL_MODEL", "qwen3-4b-FLM")  # NPU tier, leaves the iGPU for the bot
+THROTTLE_S = float(os.environ.get("DISTILL_THROTTLE_S", "0.5"))  # yield between calls
 
 
 def fetch_raw(path: str) -> str:
@@ -139,6 +145,7 @@ def main() -> int:
         text = extract_text(name, raw)
         verdict = distill(name, text)
         print(f"## {name}\n{verdict}\n", flush=True)
+        time.sleep(THROTTLE_S)  # fleet fairness: yield between calls so the live bot interleaves
     return 0
 
 
