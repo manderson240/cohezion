@@ -33,6 +33,7 @@ from typing import TYPE_CHECKING, Any
 
 if TYPE_CHECKING:
     from cohezion.competition.orchestrator.resource_guard import MemorySnapshot
+    from cohezion.inference.lynx_gate import EscalationProbe
 
 import httpx
 
@@ -651,6 +652,7 @@ async def extend_claude(
     max_local_attempts: int = 2,
     timeout: float = 30.0,
     claude_quota: str | None = None,
+    escalation_probe: EscalationProbe | None = None,
 ) -> RouteResult:
     """Route through the local fleet first; escalate to Claude only if local insufficient.
 
@@ -685,17 +687,21 @@ async def extend_claude(
             budget_usd=0.0,  # local only
             timeout=timeout,
         )
-        # Quality gate: non-empty, long-enough response — AND if the model
-        # self-reported a confidence, it must clear the threshold. This lets
-        # a calibrated model force an escalation on ambiguous answers even
-        # when the text is long enough to pass the length heuristic
-        # (ARC Lesson 7). No-op for callers whose prompts don't ask for
-        # confidence — the field stays None and only the length heuristic fires.
+        # Quality gate. When an EscalationProbe is supplied (item 139), use its learned
+        # length/vocab/completeness signal to decide local-sufficiency — a richer gate than the
+        # raw length heuristic. Otherwise fall back to: non-empty, long-enough response AND (if the
+        # model self-reported a confidence) the confidence clears the threshold (ARC Lesson 7).
         confidence = local_result.self_reported_confidence
-        length_ok = local_result.error is None and len(local_result.text) >= 40
-        confidence_ok = confidence is None or confidence >= quality_threshold
-        if length_ok and confidence_ok:
-            return local_result
+        if escalation_probe is not None:
+            if local_result.error is None:
+                should_escalate, _ = escalation_probe.predict_escalate(local_result.text)
+                if not should_escalate:
+                    return local_result
+        else:
+            length_ok = local_result.error is None and len(local_result.text) >= 40
+            confidence_ok = confidence is None or confidence >= quality_threshold
+            if length_ok and confidence_ok:
+                return local_result
         logger.info(
             "Local attempt insufficient (%s, confidence=%s); retrying",
             local_result.error or "short output",
