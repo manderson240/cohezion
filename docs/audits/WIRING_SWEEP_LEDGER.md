@@ -29,6 +29,29 @@ The crude grep (`grep compound.<mod>`) over-reports B/C/D as orphans. Per-tick t
 must classify with `findReferences` / import-grep across BOTH `src/` and `tests/`, and check
 `skill_registry.json` + entry-points, before wiring.
 
+### Done-definition — the anti-gaming knob (2026-06-07, user directive "are we gaming the metrics")
+
+**A Class-A wiring counts as a genuine WIN only if a non-test, non-`__init__` caller exists whose
+removal breaks a test that asserts BEHAVIOR.** If the only thing importing the re-exported symbol
+is (a) the package `__init__` and (b) a guard-test that asserts the re-export exists, the edge is
+**audit-appeasement, not wiring** — Goodhart on static reachability. In that case the module is
+**Class-B (record, do NOT force the edge)**.
+
+Why: a production-consumer scan on 2026-06-07 found **14 of 15 sampled "genuine-A wired" modules
+have NO production consumer** (only `__init__` + guard-test). The static-reachability audit was
+being satisfied by re-exports nothing calls. `protocols/ucp` was the live example — force-wired,
+then reverted. **The empty `__init__` is not always a bug to fix; for a tests-only/inactive module
+it is correct.** Do not populate an empty `__init__` purely to clear the audit.
+
+**Real-consumer backlog (the 14 — these are the actual work, not "done"):** flux.providers.{cache,surreal}_flux,
+eval.{huggingface_exporter,pipeline,universe_evaluator}, vanguard.{attribution,connectors},
+governance.concierge, world_model.surprise_explorer, inference.lynx_gate,
+platform.agnostic_integrations, environments.auto_generator, cost_optimization.cost_dashboard,
+knowledge_graph.graphrag_engine. Each is either (i) given a REAL behavioral consumer, or (ii)
+honestly reclassified Class-B. No more `__init__`-re-export "wins". Higher-priority real consumers
+that DO have callers + consequences: `inference.resource_aware_route` → fleet dispatcher (fixes bot
+saturation); the `executor_integration.validate_sandbox` fails-open security bug (Needs-human).
+
 **Elegant simplicity (audit principle, 2026-06-06, user request).** The "do NOT force a fake edge"
 rule (re-exporting a server's `main()` to manufacture an import edge) is a special case of a
 broader principle now part of the audit loop: complexity — an import edge, a wrapper, a branch —
@@ -391,6 +414,23 @@ genuine-A; record-only sweep (lazy-but-literal executor imports ARE static edges
   the `__init__` is REACHED because executor imports `precipitation.bus`/`.events` → loads the package.
 0 genuine-A; record-only sweep (21st package).
 
+### protocols/ — CLASSIFIED + DONE (2026-06-07), 0 genuine-A (anti-gaming reclassification)
+2 modules; `__init__` is EMPTY. **This sweep first force-wired UCP via an `__init__` re-export +
+guard-test, then REVERTED it** — the user flagged "make sure we aren't gaming the metrics" and a
+production-consumer scan proved the re-export had ZERO real caller. Honest classification:
+- **Reachable via production**: `a2a_server` ← `api/__init__.py:1872` + `api/routes/a2a.py:18`
+  (real consumer: `api/routes/a2a.py:25` instantiates `A2AServer(agent_card=AgentCard(...))`).
+  NOT an orphan.
+- **Class B · tests-only (1)**: `ucp_capability_handler` — `UCPCapabilityHandler` is the UCP
+  (Universal Commerce Protocol) arm, but CLAUDE.md marks UCP **`N/A`** in cohezion (no commerce
+  flow exists yet). 0 production importers; only tests. Per the ledger's own Class-B rule (and the
+  new done-definition below), a tests-only module for an inactive protocol is RECORDED, not
+  force-wired. A real edge appears only when there's a real commerce consumer to sell through —
+  forcing an `__init__` re-export to clear the audit is gaming. NOT wired. (Capability is complete
+  and ready: handler `discover()`/`invoke()`/`generate_manifest()` with per-capability `pricing`.)
+0 genuine-A. The empty `__init__` is FINE here: UCP does not need production reachability until UCP
+is activated. (36th package swept; recorded, not "wired".)
+
 ## Swept packages
 | Package | Swept | Candidates | A wired | A remaining | B/C/D recorded | Needs-human |
 |---|---|---|---|---|---|---|
@@ -432,6 +472,7 @@ genuine-A; record-only sweep (lazy-but-literal executor imports ARE static edges
 | eval | **DONE** | 4 | 3 (eval/__init__ re-exports HuggingFaceExporter/EvalPipeline/UniverseEvaluator — was empty; these 3 were tests-only intra-package orphans) | 0 | 1 reachable (capability_scorecard via compound/capability_matrix:442) | 0 |
 | vanguard | **DONE** | 4 | 2 (vanguard/__init__ re-exports AttributionEngine/VanguardScoutReport — was empty; attribution+connectors were tests-only orphans) | 0 | 2 reachable (sandbox_validation via executor_integration, source_connector via connectors/attribution) | 1 latent-bug (below) |
 | services | **DONE** | 4 | 0 (clean — already wired) | 0 | 4 reachable (all 4 re-exported by __init__ AND imported by cli/main.py) | 0 |
+| protocols | **DONE** | 2 | 0 (ucp force-wire REVERTED — was gaming; UCP is N/A, no consumer) | 0 | a2a_server reachable (api); ucp_capability_handler Class-B tests-only (UCP N/A) | 0 |
 
 ## Needs human decision
 - **LATENT BUG surfaced by the vanguard sweep (2026-06-07): sandbox validation is silently disabled.**
@@ -494,7 +535,7 @@ genuine-A; record-only sweep (lazy-but-literal executor imports ARE static edges
   re-export above is the non-behavior-changing edge; deeper integration is deferred to a human.
 
 ## Next tick
-**35 packages fully DONE**: services, vanguard, eval, concurrency, observability, flux, compound, inference, physics, platform, persistence, models, governance,
+**36 packages fully DONE**: protocols, services, vanguard, eval, concurrency, observability, flux, compound, inference, physics, platform, persistence, models, governance,
 world_model, environments, data_mesh, pipeline, substrate, gateway, hookify, audio, knowledge_graph,
 mycelium, cost_optimization, ouroboros, evolution, precipitation, learning, reporting, tools, storage,
 policies, infrastructure, traceability (file-clean; orphan-island production-wiring TODO → Needs-human). `cache/` classified (0 clean-A; 1 dup → human); `swarm/` BLOCKED (cycle — human decision).
