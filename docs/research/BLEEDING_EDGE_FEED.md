@@ -145,3 +145,17 @@ KV-cache, so the algorithm is familiar. → backlog item 56 (needs-experiment: a
 recall/memory/latency vs the linear SELECT on a synthetic neuron corpus; NOT the calibrated cache
 without a CA1 recalibration). Filter tally across user-shared links: 3 embraced (Gemma-4 QAT→50,
 PaddleOCR-VL→54, turbovec→56), 4 declined-but-mined (LangChain→48, BigSet→49, Nemotron-ASR→none, TaskMem→52).
+
+## Round 11 — 2026-06-06 (user-shared: arXiv 2606.02060, DRIFT / span-level error localization)
+Source: user-shared HF paper. Verified via WebFetch (HF papers page + abstract).
+
+| Finding | Verified | Class | Fleet seam | Notes |
+|---|---|---|---|---|
+| **DRIFT** — claim-centric span-level error localization in agent trajectories (arXiv 2606.02060: *"Where Do Deep-Research Agents Go Wrong?"*) | ✅ HF papers + abstract (Claim Keeper → Support Seeker → Dependency Tracer; TELBench 1000 trajectories) | **NEW · additive · needs-experiment** | trajectory/claim seam: `compound/tape_logger`, `compound/journey_tracker`, `compound/retrospection_validator`, `inference/anti_sycophancy` | A methodology + dataset paper (no GGUF/model artifact). The PRINCIPLE maps directly to cohezion's observability: build a CLAIM LEDGER over an agent trajectory (introduced → consequential → reused), classify each consequential claim's support (supported / weakly / missing / contradicted), and DEPENDENCY-TRACE which spans propagate an unsupported claim → localize WHERE a trajectory "went wrong" (vs only checking the final answer). Separates "benign exploration from harmful commitments." Aligns with cohezion's metacognitive-calibration + measurement-integrity theme (the honest-NULL / pre-registered-bake-off discipline). **Caveat 1 (the experiment)**: faithful DRIFT uses STRONG judge models (GPT-5/Gemini-2.5/Sonnet-4.5) for support classification — cloud, which conflicts with local-$0/CC2. The LOCAL version routes support-classification through the fleet (extend_claude); whether a local judge is strong enough is the open question (regression-risk: a weak judge → noisy localization). **Caveat 2**: it is a methodology, not a drop-in — the structural instrument (claim ledger + dependency tracer + first-unsupported-claim localization) is additive/falsifiable with an INJECTED judge; the production judge quality is needs-experiment. → backlog item 69. |
+
+**Round verdict**: 1 verified, on-theme methodology — DRIFT span-level claim-support localization for
+cohezion's trajectory/retrospection seam. Structural instrument is additive + falsifiable (injected
+judge); the local-judge support-classification quality is the needs-experiment part (faithful DRIFT
+used cloud judges). NOT a model pull (no artifact). → backlog item 69 (report-only instrument with an
+injectable judge; production judge = local fleet, quality TBD). Filter tally (user-shared links):
+4 embraced (Gemma-4 QAT→50, PaddleOCR-VL→54, turbovec→56, DRIFT→69), 4 declined-but-mined.
