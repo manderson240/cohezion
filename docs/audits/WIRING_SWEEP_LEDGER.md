@@ -499,6 +499,18 @@ are CI/hook/calibration-driven, not orphans. 0 genuine-A. (41st package swept.)
 0 file-A to force-wire. Husk `recursive_trace.py` (shadowed by the package) remains a separate
 human-decision removal (already in Needs-human). (42nd package swept.)
 
+### arc/ — CLASSIFIED + DONE (2026-06-07), 0 genuine-A (7 reachable + 1 entry-point)
+8 top-level modules; `__init__` re-exports several. Classification:
+- **codec/pattern_extractor/data_loader/transforms** — intra-package (← `solver.py`, `submission.py`,
+  `pattern_extractor.py`) + `__init__` re-exports.
+- **grid_pipeline/submission** ← `arc/tracks/orchestrator.py` (nested subpackage consumer) + `__init__`.
+- **solver** ← `scripts/arc_continuous_autoresearch.py` (script edge).
+- **evaluate_local** — Class-D ENTRY-POINT: `if __name__=="__main__"` + `sys.argv[1]` (local-eval CLI:
+  `python -m cohezion.arc.evaluate_local <submission.json>`). 0 importers but functionally live as a
+  script — recorded as wired-by-entry-point, NOT forced. (`arc/tracks/` subpackage is a separate nested
+  sweep if needed; its orchestrator is the consumer of grid_pipeline/submission.)
+0 genuine-A. (43rd package swept.)
+
 ## Swept packages
 | Package | Swept | Candidates | A wired | A remaining | B/C/D recorded | Needs-human |
 |---|---|---|---|---|---|---|
@@ -547,6 +559,7 @@ human-decision removal (already in Needs-human). (42nd package swept.)
 | vibe | **DONE** | 6 | 0 (chain rooted at compound/executor_integration) | 0 | orchestrator (prod) → compiler/parser/specifier → _vocab/types | 0 |
 | validation | **DONE** | 3 | 0 (1 prod src + 2 via scripts) | 0 | constitutional (degradation_detector), agent_schema + calibration_harness (CI/hook/calib scripts) | 0 |
 | recursive_trace | **DONE** | 3 | 0 (resolution_log prod, coupling_analysis script) | 0 | core reachable via legit __init__ but capability-orphan | 1 (core RecursiveTraceLoop) |
+| arc | **DONE** | 8 | 0 (7 reachable + evaluate_local Class-D entry-point) | 0 | codec/pattern_extractor/data_loader/transforms/grid_pipeline/submission/solver reachable; evaluate_local = `__main__` CLI | 0 |
 
 ## Needs human decision
 - **`graph/persistence.WorkflowPersistence` is a CAPABILITY-orphan (2026-06-07).** It is statically
@@ -617,7 +630,7 @@ human-decision removal (already in Needs-human). (42nd package swept.)
   re-export above is the non-behavior-changing edge; deeper integration is deferred to a human.
 
 ## Next tick
-**42 packages fully DONE**: recursive_trace, validation, vibe, graph, resilience, rewards, protocols, services, vanguard, eval, concurrency, observability, flux, compound, inference, physics, platform, persistence, models, governance,
+**43 packages fully DONE**: arc, recursive_trace, validation, vibe, graph, resilience, rewards, protocols, services, vanguard, eval, concurrency, observability, flux, compound, inference, physics, platform, persistence, models, governance,
 world_model, environments, data_mesh, pipeline, substrate, gateway, hookify, audio, knowledge_graph,
 mycelium, cost_optimization, ouroboros, evolution, precipitation, learning, reporting, tools, storage,
 policies, infrastructure, traceability (file-clean; orphan-island production-wiring TODO → Needs-human). `cache/` classified (0 clean-A; 1 dup → human); `swarm/` BLOCKED (cycle — human decision).
