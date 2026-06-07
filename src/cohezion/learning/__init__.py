@@ -18,6 +18,9 @@ if TYPE_CHECKING:
 # Wiring sweep (2026-06-06): re-export the package's continuous-improvement surface so it is reachable
 # by a STATIC import edge (was a Class-A orphan — 0 prod edges, 0 tests, 0 string refs). `X as X` is
 # the ruff-safe re-export form. Imports are light (pydantic/pathlib only) → no load-time cost at init.
+from cohezion.learning.deep_research import (
+    DeepResearchPipeline as DeepResearchPipeline,
+)
 from cohezion.learning.skill_acquisition import (
     DynamicSkillAcquisition as DynamicSkillAcquisition,
 )
