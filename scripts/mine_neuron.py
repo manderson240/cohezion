@@ -83,16 +83,20 @@ def mine_one(text: str, subject: str) -> str:
 def main() -> int:
     tool_dir = Path(sys.argv[1]) if len(sys.argv) > 1 else Path.cwd()
     out = Path(sys.argv[2]) if len(sys.argv) > 2 else Path("docs/research/NEURON_DIGEST.md")
+    # optional 3rd arg: only mine messages whose sender contains this substring
+    sender_filter = sys.argv[3] if len(sys.argv) > 3 else ""
     files = sorted(tool_dir.glob("*get_thread*.txt"))
     if not files:
         print(f"No get_thread result files in {tool_dir}")
         return 1
-    sections = ["# The Neuron — local-inference-mined digest", ""]
+    sections = [f"# Newsletter digest (local-inference-mined){' — ' + sender_filter if sender_filter else ''}", ""]
     for f in files:
         try:
             d = json.loads(f.read_text())
             m = d["messages"][0]
-        except Exception:
+        except Exception:  # noqa: S112 — skip unreadable result files
+            continue
+        if sender_filter and sender_filter.lower() not in (m.get("sender") or "").lower():
             continue
         subject = m.get("subject", "(no subject)")
         body = m.get("htmlBody") or m.get("plaintextBody") or ""
