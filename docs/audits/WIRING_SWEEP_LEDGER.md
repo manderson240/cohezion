@@ -394,6 +394,10 @@ genuine-A; record-only sweep (lazy-but-literal executor imports ARE static edges
 ## Swept packages
 | Package | Swept | Candidates | A wired | A remaining | B/C/D recorded | Needs-human |
 |---|---|---|---|---|---|---|
+| tools | **DONE** | 1 | 0 | 0 | 1 C (test_generator re-exported via `__init__` `__all__` — ruff-safe; already test-covered) | 0 |
+| storage | **DONE** | 1 | 0 | 0 | 1 reachable (surreal_client imported by core/journey_worker.py; __init__ marker) | 0 |
+| policies | **DONE** | 0 | 0 | 0 | __init__-only (no module to sweep) | 0 |
+| infrastructure | **DONE** | 0 | 0 | 0 | __init__-only (no module to sweep) | 0 |
 | reporting | **DONE** | 1 | 1 (nightly→__init__ re-export, NightlyReporter; was Class-B tests-only) | 0 | 0 | 0 |
 | learning | **DONE** | 3 | 2 (skill_acquisition, deep_research → __init__ re-exports) | 0 | 1 B (shadow_scripter — SAME-LEAF-NAME hazard: refs point to mycelium/shadow_scripter, NOT learning/; learning/ one is tests-only) | 0 |
 | compound | **DONE** | 24 | 9 (+aimo_reasoning) | 0 | 13 B + 1 D | 3 (below) |
@@ -461,15 +465,21 @@ genuine-A; record-only sweep (lazy-but-literal executor imports ARE static edges
   re-export above is the non-behavior-changing edge; deeper integration is deferred to a human.
 
 ## Next tick
-**23 packages fully DONE**: compound, inference, physics, platform, persistence, models, governance,
+**27 packages fully DONE**: compound, inference, physics, platform, persistence, models, governance,
 world_model, environments, data_mesh, pipeline, substrate, gateway, hookify, audio, knowledge_graph,
-mycelium, cost_optimization, ouroboros, evolution, precipitation, learning, reporting. `cache/` classified (0 clean-A; 1 dup → human); `swarm/` BLOCKED (cycle — human decision).
+mycelium, cost_optimization, ouroboros, evolution, precipitation, learning, reporting, tools, storage,
+policies, infrastructure. `cache/` classified (0 clean-A; 1 dup → human); `swarm/` BLOCKED (cycle — human decision).
+(tools = Class-C `__all__` re-export, ruff-safe, already test-covered — no code change; storage reachable
+via core/journey_worker; policies/infrastructure __init__-only.)
 
-**Pre-scouted (next ticks, fast — already scanned 2026-06-06):** `storage` = CLEAN (surreal_client
-imported by core/journey_worker.py → reachable; __init__ is a marker — record DONE, no wiring). `tools`
-= Class-C (test_generator re-exported in __init__ as `import TestGenerator, main` — VERIFY it is
-ruff-safe / convert to `X as X` before marking DONE). `policies`, `infrastructure` = `__init__`-only
-(trivially swept → record DONE). Do these first; each is a near-zero-work record except tools' form check.
+**Still unswept (file-level):** agent (dup-name hazard vs agents — verify), agents, api, arc, benchmarks,
+cli, competition, concurrency, config, core, datamesh (dup vs data_mesh — human), deployment, dogfooding,
+eval, evaluation, flume, flux, graph, healing, integrations, knowledge, mass_sim, mcp, model (load-bearing
+CohezionLM, NOT models/), optimization, patterns, protocols, recursive_trace, registry, reliability,
+research, resilience, rewards, rl (BLOCKED: lora_trainer transformers import), sandbox, sandboxing (dup vs
+sandbox — human), security, services, simulation, simulations (dup — human), skills (Class-D registry-live),
+tools done, traceability, universe, vanguard, vibe, worldviews. Prefer small clean ones next (graph, knowledge,
+optimization, patterns, protocols, resilience, rewards, traceability, vanguard, vibe).
 
 **`rl/` clean genuine-A all wired (3/3).** Only `lora_trainer` remains, BLOCKED on transformers
 (human — Needs-human). rl/ stays `classified` until that import is fixed.
