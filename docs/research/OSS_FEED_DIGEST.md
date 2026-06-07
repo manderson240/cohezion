@@ -1,7 +1,7 @@
 # OSS feed digest (local-inference-mined) — https://opensourceprojects.dev/rss
 _filter: local-LLM · 4/12 relevant · agent must VERIFY each GitHub repo before citing_
 
-- **Headroom compresses everything your AI agent reads before it reaches the LLM.** — Headroom compresses everything your AI agent reads before it reaches the LLM, crucial for local-first agents with limited context windows.  [VERIFY: https://opensourceprojects.dev/post/2a98534a-c335-4c6e-bf5e-28d71634d308]
-- **Odysseus is a self-hosted AI workspace with local-first, privacy-first everything.** — Odysseus provides a self-hosted AI workspace optimized for local-first, privacy-first operation, aligning with the developer's inference fleet strategy.  [VERIFY: https://opensourceprojects.dev/post/c76d31bf-2601-4915-aa61-728b4c712b29]
-- **Muon optimizer scaled to 16B MoE with 2x compute efficiency over AdamW** — Muon optimizer's 2x compute efficiency over AdamW for large MoE models directly supports training-efficiency goals for local model development.  [VERIFY: https://opensourceprojects.dev/post/ddd9e7de-9cd8-4031-99b4-6b83255e3e86]
-- **Predict user intent to prefetch content before it's needed, zero config.** — Predictive prefetching reduces latency for local agents, enhancing user experience without additional configuration, fitting the local-first agenda.  [VERIFY: https://opensourceprojects.dev/post/0fd50d45-9140-4512-9793-058111ae7218]
+- **Stop stitching screenshots and hand-timing keyframes — let your agent generate the whole video.** — agentic video generation reduces manual engineering loops  [VERIFY: https://opensourceprojects.dev/post/6cf09db4-0723-48e8-98fd-e24e1f0bd9c9]
+- **Headroom compresses everything your AI agent reads before it reaches the LLM.** — context compression optimizes agentic prompt windows  [VERIFY: https://opensourceprojects.dev/post/2a98534a-c335-4c6e-bf5e-28d71634d308]
+- **Odysseus is a self-hosted AI workspace with local-first, privacy-first everything.** — local-first workspace aligns with $0 local-first fleet strategy  [VERIFY: https://opensourceprojects.dev/post/c76d31bf-2601-4915-aa61-728b4c712b29]
+- **Muon optimizer scaled to 16B MoE with 2x compute efficiency over AdamW** — Muon optimizer improves training efficiency for MoE models  [VERIFY: https://opensourceprojects.dev/post/ddd9e7de-9cd8-4031-99b4-6b83255e3e86]

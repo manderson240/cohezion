@@ -31,11 +31,13 @@ import httpx
 
 LEMONADE = "http://localhost:13305/api/v1/chat/completions"
 DEFAULT_FEED = "https://opensourceprojects.dev/rss"
-# Granite is the validated no-thinking, instruction-following local model (hermes-routing skill
-# rules 1-2): thinking models (Gemma/Qwen/DeepSeek) spend the token budget on reasoning_content and
-# return empty content for a triage prompt. mine_neuron.py uses Granite for the same reason. The
-# router (:13305) auto-loads it on first request.
-DEFAULT_MODEL = "Granite-4.1-8B-GGUF"
+# Quality > speed (we are not in a hurry): default to the CAPABLE model with thinking suppressed
+# (`chat_template_kwargs.enable_thinking=False`, set in llm_triage). Measured 2026-06-07 on the
+# Phoronix triage: Gemma-26B thinking-ON → 0 picks (CoT eats the budget); thinking-OFF → higher
+# precision than no-thinking Granite-8B (dropped HDMI/display/non-x86 noise, accurate reasoning).
+# 26B-A4B is MoE (~4B active params/token) so it is fast despite the 15.7 GB footprint, and it is
+# already loaded on :13305. Override via argv[3]; Granite remains a valid no-thinking fallback.
+DEFAULT_MODEL = "Gemma-4-26B-A4B-it-GGUF"
 
 # Cheap keyword prefilter — used to RANK/annotate, and as the sole filter if the fleet is down.
 # Two complementary lenses: (1) AI-tooling (opensourceprojects.dev-style feeds) and (2) the fleet's
@@ -107,8 +109,14 @@ def llm_triage(items: list[dict[str, str]], model: str) -> dict[int, str]:
                     {"role": "system", "content": _PROMPT},
                     {"role": "user", "content": listing},
                 ],
-                "max_tokens": 500,
+                "max_tokens": 900,
                 "temperature": 0.1,
+                # Quality > speed (not in a hurry): use the CAPABLE model with thinking SUPPRESSED.
+                # Measured 2026-06-07: Gemma-26B thinking-ON returns 0 content (CoT eats the budget);
+                # thinking-OFF gives higher precision than no-thinking Granite-8B. enable_thinking=False
+                # is the correct fix, NOT dropping to a weaker model. (Granite ignores this flag, so it
+                # also works as a fallback.)
+                "chat_template_kwargs": {"enable_thinking": False},
             },
             timeout=180.0,
         )

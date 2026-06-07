@@ -22,8 +22,12 @@ from pathlib import Path
 
 import httpx
 
+
 LEMONADE = "http://localhost:13305/api/v1/chat/completions"
-MODEL = "Granite-4.1-8B-GGUF"
+# Quality > speed: capable model with thinking suppressed (see mine_rss.py note, measured 2026-06-07).
+# enable_thinking=False is set in the request below so the MoE 26B emits content instead of burning
+# the budget on chain-of-thought. Granite remains a valid no-thinking fallback (it ignores the flag).
+MODEL = "Gemma-4-26B-A4B-it-GGUF"
 
 _PROMPT = (
     "You are mining an AI-news newsletter for a developer running a LOCAL AMD inference fleet "
@@ -69,14 +73,15 @@ def mine_one(text: str, subject: str) -> str:
                     {"role": "system", "content": _PROMPT},
                     {"role": "user", "content": f"SUBJECT: {subject}\n\n{body}"},
                 ],
-                "max_tokens": 400,
+                "max_tokens": 500,
                 "temperature": 0.2,
+                "chat_template_kwargs": {"enable_thinking": False},
             },
-            timeout=120.0,
+            timeout=180.0,
         )
         r.raise_for_status()
         return (r.json()["choices"][0]["message"]["content"] or "").strip()
-    except Exception as exc:  # noqa: BLE001 — local probe; report, don't crash the batch
+    except Exception as exc:  # local probe; report, do not crash the batch
         return f"[local-inference error: {type(exc).__name__}: {exc}]"
 
 
