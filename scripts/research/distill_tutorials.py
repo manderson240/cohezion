@@ -94,17 +94,28 @@ TARGETS = [
 ]
 
 
+def _load_targets() -> list[str]:
+    """argv paths, OR lines from a single `.txt` file arg, OR the default batch-1 TARGETS."""
+    args = sys.argv[1:]
+    if len(args) == 1 and args[0].endswith(".txt"):
+        with open(args[0], encoding="utf-8") as fh:
+            return [ln.strip() for ln in fh if ln.strip()]
+    return args or TARGETS
+
+
 def main() -> int:
-    targets = sys.argv[1:] or TARGETS
-    for path in targets:
+    targets = _load_targets()
+    total = len(targets)
+    for i, path in enumerate(targets, 1):
         name = path.split("/")[-1]
         raw = fetch_raw(path)
+        print(f"<!-- {i}/{total} -->", flush=True)
         if not raw:
-            print(f"## {name}\n[fetch failed]\n")
+            print(f"## {name}\n[fetch failed]\n", flush=True)
             continue
         text = extract_text(name, raw)
         verdict = distill(name, text)
-        print(f"## {name}\n{verdict}\n")
+        print(f"## {name}\n{verdict}\n", flush=True)
     return 0
 
 
