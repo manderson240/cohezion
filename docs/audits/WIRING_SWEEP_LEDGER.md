@@ -394,6 +394,7 @@ genuine-A; record-only sweep (lazy-but-literal executor imports ARE static edges
 ## Swept packages
 | Package | Swept | Candidates | A wired | A remaining | B/C/D recorded | Needs-human |
 |---|---|---|---|---|---|---|
+| traceability | **DONE** | 2 | 0 | 0 | plan_graph reached intra-package by register_plan (PlanGraph, SurrealDB); register_plan = Class-D CLI entry-point (`__main__` guard). Both file-reachable, NO wiring needed. | island (below) |
 | tools | **DONE** | 1 | 0 | 0 | 1 C (test_generator re-exported via `__init__` `__all__` — ruff-safe; already test-covered) | 0 |
 | storage | **DONE** | 1 | 0 | 0 | 1 reachable (surreal_client imported by core/journey_worker.py; __init__ marker) | 0 |
 | policies | **DONE** | 0 | 0 | 0 | __init__-only (no module to sweep) | 0 |
@@ -426,6 +427,15 @@ genuine-A; record-only sweep (lazy-but-literal executor imports ARE static edges
 | precipitation | **DONE** | 4 | 0 | 0 | 2 reachable + 1 script + 1 C | 0 |
 
 ## Needs human decision
+- **`traceability/` is an ORPHAN ISLAND (production-integration wiring TODO, not a file-orphan).**
+  File-level it is clean: `plan_graph.PlanGraph` (SurrealDB plan-lifecycle persistence) is reached
+  intra-package by `register_plan`, and `register_plan` is a CLI entry-point (`__main__`). BUT NOTHING
+  in production imports `cohezion.traceability.*` — the whole package is reached only by the CLI script
+  + tests. Per non-destructive-wiring, an island is a WIRING TARGET, not a deletion: a human should
+  decide which production consumer should use `PlanGraph` (the plan lifecycle / `cz plan` flow / the
+  V-model `traces` table?) — then re-export it via `__init__` and import it from that consumer. NOT
+  guessed here (forcing a fake edge to an arbitrary consumer would be ceremony). Same class as a
+  build-then-forget module (Learning 227): file-reachable, capability-orphaned.
 - **`rl/lora_trainer` broken import (transformers).** `import cohezion.rl.lora_trainer` raises
   `ImportError: cannot import name 'PreTrainedModel' from 'transformers'` (failure inside
   `transformers/integrations/integration_utils.py: from .. import PreTrainedModel, TrainingArguments`
@@ -465,10 +475,10 @@ genuine-A; record-only sweep (lazy-but-literal executor imports ARE static edges
   re-export above is the non-behavior-changing edge; deeper integration is deferred to a human.
 
 ## Next tick
-**27 packages fully DONE**: compound, inference, physics, platform, persistence, models, governance,
+**28 packages fully DONE**: compound, inference, physics, platform, persistence, models, governance,
 world_model, environments, data_mesh, pipeline, substrate, gateway, hookify, audio, knowledge_graph,
 mycelium, cost_optimization, ouroboros, evolution, precipitation, learning, reporting, tools, storage,
-policies, infrastructure. `cache/` classified (0 clean-A; 1 dup → human); `swarm/` BLOCKED (cycle — human decision).
+policies, infrastructure, traceability (file-clean; orphan-island production-wiring TODO → Needs-human). `cache/` classified (0 clean-A; 1 dup → human); `swarm/` BLOCKED (cycle — human decision).
 (tools = Class-C `__all__` re-export, ruff-safe, already test-covered — no code change; storage reachable
 via core/journey_worker; policies/infrastructure __init__-only.)
 
