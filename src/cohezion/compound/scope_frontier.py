@@ -184,21 +184,24 @@ def _ledger_cell_is_gated(cell: str) -> bool:
         return True
 
 
-def gated_targets_from_ledger(ledger_path: Path | None = None) -> set[str]:
-    """Package names flagged human-gated in the ledger's '## Swept packages' Needs-human column (item 40).
+def gated_reasons_from_ledger(ledger_path: Path | None = None) -> dict[str, str]:
+    """Human-gated package → its EXACT '## Swept packages' Needs-human cell (item 59).
 
-    A package is gated when its Needs-human cell ``_ledger_cell_is_gated``. Section-scoped strictly
-    to ``## Swept packages`` (mirrors ``unswept_packages_from_ledger``) and fail-soft: a missing or
-    unreadable ledger, or a table without the 7th column, yields ``set()`` (never raises).
+    Extends ``gated_targets_from_ledger`` (item 40) from a SET to a ``{target: reason}`` MAP: the
+    reason is the verbatim Needs-human cell text (e.g. ``"3 (below)"``, ``"circular import (below)"``)
+    — the concrete decision a human must make. Same gating predicate (``_ledger_cell_is_gated``),
+    same strict ``## Swept packages`` scoping, same fail-soft contract (missing/unreadable ledger or a
+    table without the 7th column → ``{}``, never raises). The reason is never fabricated — it is
+    exactly what the ledger says.
     """
     path = ledger_path or _DEFAULT_LEDGER
     try:
         lines = path.read_text(encoding="utf-8", errors="replace").splitlines()
     except OSError:
-        return set()
+        return {}
 
     in_section = False
-    gated: set[str] = set()
+    reasons: dict[str, str] = {}
     for line in lines:
         if line.startswith("## "):
             in_section = line.strip().lower().startswith("## swept packages")
@@ -212,8 +215,17 @@ def gated_targets_from_ledger(ledger_path: Path | None = None) -> set[str]:
         if pkg.lower() == "package" or set(pkg) <= set("-: "):
             continue  # header row or |---| separator
         if _ledger_cell_is_gated(needs_human):
-            gated.add(pkg)
-    return gated
+            reasons[pkg] = needs_human
+    return reasons
+
+
+def gated_targets_from_ledger(ledger_path: Path | None = None) -> set[str]:
+    """Package names flagged human-gated in the ledger's '## Swept packages' Needs-human column (item 40).
+
+    The KEYS of ``gated_reasons_from_ledger`` (item 59 made the parse return reasons too; this is the
+    membership-only view it always was). Section-scoped, fail-soft → ``set()`` on a missing ledger.
+    """
+    return set(gated_reasons_from_ledger(ledger_path))
 
 
 def frontier_is_human_gated_from_state() -> bool:
@@ -226,4 +238,45 @@ def frontier_is_human_gated_from_state() -> bool:
     return frontier_is_human_gated(
         propose_scope_frontier_from_state(),
         gated_targets=gated_targets_from_ledger(),
+    )
+
+
+@dataclass(frozen=True)
+class HumanGateDecision:
+    """One concrete decision a human must make to unblock a gated frontier proposal (item 59)."""
+
+    target: str
+    kind: str  # carried from the ScopeProposal (empty_task_slot | unused_neuron_country | unswept_package)
+    gate_reason: str  # the EXACT ledger Needs-human cell ("" if gated but the cell is blank — never fabricated)
+
+
+def human_gate_report(
+    proposals: list[ScopeProposal], *, gated_reasons: dict[str, str]
+) -> list[HumanGateDecision]:
+    """The actionable form of item-40's boolean oracle: WHICH decisions block scope-expansion (item 59).
+
+    For each proposal whose ``target`` is human-gated (a key of ``gated_reasons``), emit a
+    ``HumanGateDecision`` carrying the proposal's kind and the EXACT ledger reason. An auto-actionable
+    proposal (target NOT gated) is ABSENT — this is a report of *blockers*, not of every proposal, so
+    an impl that lists them all is wrong. A gated target whose reason cell is blank yields
+    ``gate_reason == ""`` (honest, never invented). Pure: no I/O, no writes; order follows ``proposals``.
+    """
+    return [
+        HumanGateDecision(target=p.target, kind=p.kind, gate_reason=gated_reasons.get(p.target, ""))
+        for p in proposals
+        if p.target in gated_reasons
+    ]
+
+
+def human_gate_report_from_state() -> list[HumanGateDecision]:
+    """Live composition (item 59): the current human-gate decisions blocking auto-scope-expansion.
+
+    Composes ``propose_scope_frontier_from_state`` (items 26/31) with ``gated_reasons_from_ledger``
+    (item 59). Returns the concrete ``{target, kind, gate_reason}`` list a human must resolve. An
+    empty list means no proposal is human-gated — either the frontier is empty or every gap is
+    auto-actionable. Fail-soft via its two constituents (each returns empty on error → ``[]``).
+    """
+    return human_gate_report(
+        propose_scope_frontier_from_state(),
+        gated_reasons=gated_reasons_from_ledger(),
     )
