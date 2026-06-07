@@ -90,3 +90,46 @@ def specialist_coverage_report(
         else:
             rows.append(SpecialistCoverage(task=str(task), model_id=None, verified_working=False))
     return SpecialistCoverageReport(rows=rows)
+
+
+@dataclass(frozen=True)
+class SpecialistCoverageDelta:
+    """Signed change in specialist coverage between two snapshots (item 57). Report-only."""
+
+    newly_registered: list[str]  # Tasks that went gap → has-model
+    newly_verified: list[str]  # Tasks that went unverified → verified (model_id unchanged)
+    regressed: list[str]  # Tasks that LOST verification (verified → unverified)
+
+
+def specialist_coverage_delta(
+    before: SpecialistCoverageReport,
+    after: SpecialistCoverageReport,
+) -> SpecialistCoverageDelta:
+    """Track the specialist verification campaign across two coverage snapshots (item 57).
+
+    Extends item 38 into the harness-blessed pure-delta family (CB11 ``diff_snapshots`` / item-39
+    ``loop_progress_delta``). Per Task (matched by name, present in both):
+      - ``newly_registered``: a gap (``model_id=None``) gained a model;
+      - ``newly_verified``: an unverified specialist flipped to verified (model unchanged);
+      - ``regressed``: a verified specialist LOST verification.
+    A Task unchanged in both dimensions appears in NO list. Pure — no I/O.
+    """
+    by_task_before = {r.task: r for r in before.rows}
+    newly_registered: list[str] = []
+    newly_verified: list[str] = []
+    regressed: list[str] = []
+    for after_row in after.rows:
+        before_row = by_task_before.get(after_row.task)
+        if before_row is None:
+            continue
+        if before_row.model_id is None and after_row.model_id is not None:
+            newly_registered.append(after_row.task)
+        if not before_row.verified_working and after_row.verified_working:
+            newly_verified.append(after_row.task)
+        if before_row.verified_working and not after_row.verified_working:
+            regressed.append(after_row.task)
+    return SpecialistCoverageDelta(
+        newly_registered=sorted(newly_registered),
+        newly_verified=sorted(newly_verified),
+        regressed=sorted(regressed),
+    )
