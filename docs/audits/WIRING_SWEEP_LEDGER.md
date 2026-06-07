@@ -580,6 +580,7 @@ The `WorldviewExplorer` route service is the real consumer. 0 genuine-A. (44th p
 | arc | **DONE** | 8 | 0 (7 reachable + evaluate_local Class-D entry-point) | 0 | codec/pattern_extractor/data_loader/transforms/grid_pipeline/submission/solver reachable; evaluate_local = `__main__` CLI | 0 |
 | worldviews | **DONE** | 2 | 0 (both prod-consumed) | 0 | tradition_data + vault_graph ← api/services/worldviews | 0 |
 | agentjet | **DONE** | 7 | 0 (6 reachable + unsloth_bridge documented standby) | 0 | context_optimizer/trainer/embeddings/judger/task_reader/workflow reachable; unsloth_bridge = standby (Phase-2 backend not yet available) | 0 |
+| optimization | **DONE** | 1 | 0 (prod-reachable) | 0 | r_zero (LocalModelOptimizer) ← swarm/cost_aware_router.py:1270 | 0 |
 
 ## Needs human decision
 - **`graph/persistence.WorkflowPersistence` is a CAPABILITY-orphan (2026-06-07).** It is statically
@@ -650,7 +651,7 @@ The `WorldviewExplorer` route service is the real consumer. 0 genuine-A. (44th p
   re-export above is the non-behavior-changing edge; deeper integration is deferred to a human.
 
 ## Next tick
-**45 packages fully DONE**: agentjet, worldviews, arc, recursive_trace, validation, vibe, graph, resilience, rewards, protocols, services, vanguard, eval, concurrency, observability, flux, compound, inference, physics, platform, persistence, models, governance,
+**46 packages fully DONE**: optimization, agentjet, worldviews, arc, recursive_trace, validation, vibe, graph, resilience, rewards, protocols, services, vanguard, eval, concurrency, observability, flux, compound, inference, physics, platform, persistence, models, governance,
 world_model, environments, data_mesh, pipeline, substrate, gateway, hookify, audio, knowledge_graph,
 mycelium, cost_optimization, ouroboros, evolution, precipitation, learning, reporting, tools, storage,
 policies, infrastructure, traceability (file-clean; orphan-island production-wiring TODO → Needs-human). `cache/` classified (0 clean-A; 1 dup → human); `swarm/` BLOCKED (cycle — human decision).
