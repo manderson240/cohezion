@@ -173,3 +173,16 @@ local-$0. Honest lever = a DSPy-on-fleet vs RHO VALIDATION benchmark ($0 via lem
 framework swap (human/architecture decision). → backlog item 70 (needs-experiment + dep-gated;
 validates the existing loop, does not replace it). Filter tally (user-shared links): 4 embraced,
 4 declined-but-mined, 1 overlaps-existing-validate (DSPy→70).
+
+## Round 13 — 2026-06-06 (user-shared: arXiv 2606.04743, TIDE / proactive multi-problem discovery)
+Source: user-shared HF paper. Verified via WebFetch (abstract + datasets + backbones).
+
+| Finding | Verified | Class | Fleet seam | Notes |
+|---|---|---|---|---|
+| **TIDE** — proactive multi-problem discovery via template-guided iteration (arXiv 2606.04743) | ✅ HF papers + abstract (iterative discovery + thought templates; 150 workspace problems / 146 repo bugs; GPT-5/Sonnet/Gemini/Qwen3.6 backbones) | **GROUNDED · OVERLAPS-EXISTING · additive-lever** | `compound/simplicity_audit` + `exec_sandbox_audit` + `skill_adoption` (the audit instruments = implicit "thought templates"); `scope_frontier` + `research_feed_parser` (the iterative-discovery seam) | A methodology + dataset paper (no released code/model). TWO mechanisms, BOTH already present in cohezion but SCATTERED: (1) **thought templates** = reusable problem-class schemas → cohezion's deterministic audit instruments (complexity_outliers/nesting_outliers/passthrough_functions/needless_passthroughs/unsandboxed_exec_paths/skill_adoption_report) ARE exactly this — each encodes "what signals indicate a problem class"; (2) **iterative discovery conditioning on already-found** (so salient problems don't overshadow subtle) → the loop's accumulating backlog + scope-expansion, BUT no instrument CONDITIONS ON already-known findings to avoid re-surfacing. **The genuinely-additive lever**: a `ProblemTemplate` registry that unifies the scattered audit instruments under one `discover_problems(paths, *, exclude_known)` entry point + adds the TIDE iterative-discovery dedup (suppress findings already in the backlog). **Caveat**: TIDE's paper uses CLOUD backbones for discovery; cohezion's audit instruments are DETERMINISTIC (AST-based), so the local version is report-only/$0 (NOT needs-experiment) — the deterministic instruments ARE the templates. Not new capability per-instrument; the unification + condition-on-known IS new. → backlog item 73. |
+
+**Round verdict**: 1 verified, on-architecture methodology — TIDE formalizes what the self-improvement
+loop already does (proactive audit discovery + scope expansion + skills-as-templates). The additive
+lever is UNIFICATION + iterative-discovery dedup over the EXISTING deterministic audit instruments
+($0, report-only — not needs-experiment). → backlog item 73. Filter tally (user-shared links): 4
+embraced, 4 declined-but-mined, 2 overlaps-existing (DSPy→70 validate, TIDE→73 unify), 1 needs-exp-instrument (DRIFT→69).
