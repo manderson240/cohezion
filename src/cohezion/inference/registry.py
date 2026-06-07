@@ -328,6 +328,28 @@ def _build_default_registry() -> dict[str, ModelEntry]:
             ),
         ),
         ModelEntry(
+            model_id="Gemma-4-12B-it-qat-q4_0-GGUF",
+            size_gb=6.5,  # google/gemma-4-12B-it-qat-q4_0-gguf q4_0 = 6.50 GiB (item 144, model_info-verified)
+            lane=Lane.IGPU_ROCWMMA,
+            endpoint="http://localhost:13307",
+            runtime_backend="llamacpp_hip",
+            task_affinity=frozenset({Task.REASONING, Task.CODE_GEN, Task.GENERAL}),
+            weight_quant=WeightQuant.Q4_K_M,  # QAT q4_0: near-FP quality at q4 (quantization-aware training)
+            kv_quant=kv8_q80,
+            context_window=131072,
+            # priority 18 is BELOW the 26B (15): non-displacing memory-pressure FALLBACK, not the default.
+            # When the 15.7 GB 26B is OOM-deferred (item 132), this 6.5 GB model fits and keeps
+            # REASONING/CODE_GEN on the fast iGPU lane instead of falling to CPU (qwen3-coder) or cloud.
+            priority=18,
+            verified_working=False,  # needs-experiment: benchmark TPS+quality on XDNA2 before mark_verified
+            notes=(
+                "Mid-tier fleet-gap fallback (item 144). VERIFIED google/gemma-4-12B-it-qat-q4_0-gguf, "
+                "6.50 GiB official QAT (25,077 dl). Fills the 4.6 GB (E4B) -> 15.7 GB (26B) iGPU gap. "
+                "Load-on-demand, NOT pinned (K1/rule-5). Do NOT mark_verified until a TPS+quality "
+                "benchmark on XDNA2/ROCWMMA confirms it beats the alternatives under memory pressure."
+            ),
+        ),
+        ModelEntry(
             model_id="GLM-OCR-GGUF",
             lane=Lane.IGPU_ROCWMMA,
             endpoint="http://localhost:13307",

@@ -13,8 +13,16 @@ from cohezion.inference.registry import (
 
 def test_default_registry_has_four_gemma_lanes() -> None:
     registry = FleetRegistry()
-    gemma_models = [m for m in registry.models.values() if m.model_id.startswith("Gemma-4-")]
-    assert len(gemma_models) == 4, "Expect E2B, E4B, 26B-A4B, 31B per Symphony Guide"
+    present = {m.model_id for m in registry.models.values() if m.model_id.startswith("Gemma-4-")}
+    symphony = {
+        "Gemma-4-E2B-it-GGUF",
+        "Gemma-4-E4B-it-GGUF",
+        "Gemma-4-26B-A4B-it-GGUF",
+        "Gemma-4-31B-it-GGUF",
+    }
+    # The 4-lane Symphony must be present; additional Gemma entries (e.g. the 12B-QAT mid-tier
+    # OOM-fallback, item 144) are allowed — assert the invariant, not a brittle total count.
+    assert symphony <= present, f"Symphony 4-lane Gemmas missing: {symphony - present}"
 
 
 def test_gemma_lanes_bind_to_correct_silicon() -> None:
