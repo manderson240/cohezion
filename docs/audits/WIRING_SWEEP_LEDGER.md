@@ -479,6 +479,14 @@ empty-init forced edge). 4 of 5 have direct production consumers:
 All intra-package literal imports, rooted at `executor_integration`'s use of `VibeOrchestrator`.
 0 genuine-A, nothing to wire — a genuinely-used NL→workflow subsystem. (40th package swept.)
 
+### validation/ — CLASSIFIED + DONE (2026-06-07), 0 genuine-A (1 prod src + 2 via scripts)
+3 modules, `__init__` empty; all reachable:
+- **constitutional** (`ManifoldEquilibrium`) ← `compound/degradation_detector.py:280` (production src).
+- **agent_schema** ← `scripts/hooks/validate-agent-files.py:20` + `scripts/ci/validate_agents.py:8`.
+- **calibration_harness** ← `scripts/calibration/run_{cache,routing}_calibration.py` (script imports).
+A repo `scripts/` import IS a static edge (the audio-sweep lesson) — agent_schema + calibration_harness
+are CI/hook/calibration-driven, not orphans. 0 genuine-A. (41st package swept.)
+
 ## Swept packages
 | Package | Swept | Candidates | A wired | A remaining | B/C/D recorded | Needs-human |
 |---|---|---|---|---|---|---|
@@ -525,6 +533,7 @@ All intra-package literal imports, rooted at `executor_integration`'s use of `Vi
 | resilience | **DONE** | 2 | 0 (relative-import edge caught) | 0 | manager (compound/degradation_detector), strategies (manager.py `from .strategies`) | 0 |
 | graph | **DONE** | 5 | 0 (4 prod-consumed; persistence reachable via legit __init__) | 0 | builder/engine/nodes/types all prod-consumed | 1 (persistence capability-orphan) |
 | vibe | **DONE** | 6 | 0 (chain rooted at compound/executor_integration) | 0 | orchestrator (prod) → compiler/parser/specifier → _vocab/types | 0 |
+| validation | **DONE** | 3 | 0 (1 prod src + 2 via scripts) | 0 | constitutional (degradation_detector), agent_schema + calibration_harness (CI/hook/calib scripts) | 0 |
 
 ## Needs human decision
 - **`graph/persistence.WorkflowPersistence` is a CAPABILITY-orphan (2026-06-07).** It is statically
@@ -595,7 +604,7 @@ All intra-package literal imports, rooted at `executor_integration`'s use of `Vi
   re-export above is the non-behavior-changing edge; deeper integration is deferred to a human.
 
 ## Next tick
-**40 packages fully DONE**: vibe, graph, resilience, rewards, protocols, services, vanguard, eval, concurrency, observability, flux, compound, inference, physics, platform, persistence, models, governance,
+**41 packages fully DONE**: validation, vibe, graph, resilience, rewards, protocols, services, vanguard, eval, concurrency, observability, flux, compound, inference, physics, platform, persistence, models, governance,
 world_model, environments, data_mesh, pipeline, substrate, gateway, hookify, audio, knowledge_graph,
 mycelium, cost_optimization, ouroboros, evolution, precipitation, learning, reporting, tools, storage,
 policies, infrastructure, traceability (file-clean; orphan-island production-wiring TODO → Needs-human). `cache/` classified (0 clean-A; 1 dup → human); `swarm/` BLOCKED (cycle — human decision).
