@@ -7,9 +7,16 @@ from unittest.mock import AsyncMock, patch
 import httpx
 import pytest
 
+from cohezion.competition.orchestrator.resource_guard import MemorySnapshot
 from cohezion.inference import RouteResult, route
 from cohezion.inference.fleet import _classify_task, _inject_symmetry_axis
 from cohezion.inference.registry import Task
+
+
+# Ample-memory snapshot so these routing/health tests do NOT depend on the box's LIVE free RAM.
+# Without it, route() captures /proc/meminfo and — when the box is under memory pressure
+# (< 16 GB free) — the global OOM gate defers ALL local lanes, flipping local-dispatch assertions.
+_AMPLE_MEM = MemorySnapshot(total_gb=128.0, available_gb=64.0, used_gb=64.0)
 
 
 def test_classify_task_honors_explicit_hint():
@@ -57,7 +64,7 @@ async def test_route_returns_error_when_all_candidates_down():
                 "cohezion.inference.fleet._dispatch_ollama",
                 AsyncMock(side_effect=Exception("connect refused")),
             ):
-                result = await route("test prompt", task=Task.ROUTING)
+                result = await route("test prompt", task=Task.ROUTING, resource_snapshot=_AMPLE_MEM)
 
     assert result.error is not None
     assert result.text == ""
@@ -88,7 +95,7 @@ async def test_route_dispatches_to_first_healthy_candidate():
     # Returns (text, cost, ttft_ms, tokens_per_sec) per updated dispatch contract.
     dispatch_mock = AsyncMock(return_value=("routed text", 0.0, None, None))
     with patch("cohezion.inference.fleet._dispatch_openai_compatible", dispatch_mock):
-        result = await route("short query", task=Task.ROUTING)
+        result = await route("short query", task=Task.ROUTING, resource_snapshot=_AMPLE_MEM)
 
     assert result.error is None
     assert result.text == "routed text"
@@ -140,7 +147,7 @@ async def test_route_records_attempts_list():
     with patch("cohezion.inference.fleet._dispatch_openai_compatible", side_effect=sometimes):
         with patch("cohezion.inference.fleet._dispatch_ollama", side_effect=sometimes):
             with patch("cohezion.inference.fleet._dispatch_headless_cli", side_effect=cli_mock):
-                result = await route("explain reasoning", task=Task.REASONING)
+                result = await route("explain reasoning", task=Task.REASONING, resource_snapshot=_AMPLE_MEM)
 
     assert result.error is None
     assert result.text == "second lane response"
