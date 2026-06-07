@@ -167,3 +167,38 @@ def loop_progress_delta(before: LoopTelemetry, after: LoopTelemetry) -> LoopProg
         swept_delta=after.swept_packages_done - before.swept_packages_done,
         rounds_delta=after.research_rounds - before.research_rounds,
     )
+
+
+@dataclass(frozen=True)
+class RegressionReport:
+    """Verdict of comparing two snapshots for a REGRESSION (item 58). REPORT-ONLY."""
+
+    regressed: bool
+    reason: str
+
+
+def detect_loop_regression(before: LoopTelemetry, after: LoopTelemetry) -> RegressionReport:
+    """Flag a REGRESSION — a monotone-should-increase count moved BACKWARD (item 58).
+
+    Consumes item-39 ``loop_progress_delta``: a regression is ``done_delta < 0`` OR ``swept_delta < 0``
+    OR ``rounds_delta < 0`` — work that was completed/swept/researched became un-done. This is the
+    predicate that justifies item 39's UNCLAMPED signed delta (a clamped delta could never go
+    negative, so it could not express this).
+
+    Distinct from item-30's STALL (no *progress*): a regression is *negative* progress (worse). New
+    TODO work (``todo_delta > 0``) is healthy growth, NOT a regression; growing ``blocked`` is stall
+    territory, NOT a regression. Report-only; pure.
+    """
+    delta = loop_progress_delta(before, after)
+    backward: list[str] = []
+    if delta.done_delta < 0:
+        backward.append(f"done {before.backlog_done}->{after.backlog_done}")
+    if delta.swept_delta < 0:
+        backward.append(f"swept {before.swept_packages_done}->{after.swept_packages_done}")
+    if delta.rounds_delta < 0:
+        backward.append(f"rounds {before.research_rounds}->{after.research_rounds}")
+    if backward:
+        return RegressionReport(True, "regression: " + "; ".join(backward))
+    return RegressionReport(
+        False, "no regression: no completed/swept/researched count moved backward"
+    )
