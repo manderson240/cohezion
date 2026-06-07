@@ -370,6 +370,35 @@ def deposit_cerebellum_neuron(
         return None
 
 
+def deposit_cerebellum_if_novel(
+    records: list[dict],
+    *,
+    min_samples: int = 5,
+    min_consistency: float = 0.8,
+    store: list[dict] | None = None,
+) -> dict | None:
+    """Deposit a cerebellum neuron for a stabilized pattern ONLY if none exists yet (item 51).
+
+    Closes the gap item 36 surfaced: a STABLE fleet re-deposits a DUPLICATE cerebellum neuron on
+    every health snapshot. Composes items 24/29/36 — detect the stable routing pattern, RECALL
+    (item 29) the existing cerebellum neuron for its ``task_class``, and DEPOSIT (item 24) ONLY when
+    recall returns nothing (procedural-memory dedup, per task_class). Returns the new neuron, or
+    None when there is no stable pattern OR one already exists. Injected ``store`` → no real graph;
+    ``store=None`` under pytest → no-op (inherited from recall/deposit).
+    """
+    pattern = _detect_stable_routing_pattern(
+        records, min_samples=min_samples, min_consistency=min_consistency
+    )
+    if pattern is None:
+        return None  # no stabilized pattern → nothing to deposit
+    task_class = pattern[0]
+    if recall_neurons("cerebellum", task_class, store=store):
+        return None  # dedup: a cerebellum neuron for this task_class already exists
+    return deposit_cerebellum_neuron(
+        records, min_samples=min_samples, min_consistency=min_consistency, store=store
+    )
+
+
 def _select_neurons_from_graph(country: str, key: str) -> list[dict]:
     """Read-only SurrealDB SELECT of neurons in ``country`` tagged ``key`` (production only).
 
