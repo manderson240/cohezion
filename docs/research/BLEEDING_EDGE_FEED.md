@@ -159,3 +159,17 @@ judge); the local-judge support-classification quality is the needs-experiment p
 used cloud judges). NOT a model pull (no artifact). → backlog item 69 (report-only instrument with an
 injectable judge; production judge = local fleet, quality TBD). Filter tally (user-shared links):
 4 embraced (Gemma-4 QAT→50, PaddleOCR-VL→54, turbovec→56, DRIFT→69), 4 declined-but-mined.
+
+## Round 12 — 2026-06-06 (user-shared: TDS "Automate Writing Your LLM Prompts" → DSPy)
+Source: user-shared Towards Data Science article. Verified via WebFetch.
+
+| Finding | Verified | Class | Fleet seam | Notes |
+|---|---|---|---|---|
+| **DSPy** (Stanford) — automated prompt optimization: generate candidates → evaluate vs test data + scoring fn → keep best → iterate (meta-prompting) | ✅ WebFetch (DSPy named; `dspy.LM("openai/gpt-4o-mini", …)`; "supports dozens of providers") | **GROUNDED · OVERLAPS-EXISTING · needs-experiment (dep-gated)** | `models/rho_selector` + `compound/skill_refiner` + `compound/harness_tuning_specialist` (cohezion's EXISTING prompt/harness optimizer) | **Not new capability** — cohezion ALREADY does generate→evaluate→keep-best: `generate_harness_candidates`→`select_harness_update` (RHO self-preference tournament, "winner beats baseline on a held-out check"), items 22/33/42. DSPy is the canonical external version. **Caveat 1 (off-philosophy as-demoed)**: the article uses PAID OpenAI; DSPy's value for cohezion exists ONLY pointed at the LOCAL fleet (lemonade exposes OpenAI-compatible `/api/v1` on :13305 → `dspy.LM("openai/Granite-4.1-8B-GGUF", api_base="http://localhost:13305/api/v1")` for $0). **Caveat 2 (architecture/dep decision)**: adopting DSPy = a framework dependency that could DUPLICATE or REPLACE the hand-rolled RHO — that is a human/architecture decision, NOT an auto-wire. The legitimate additive lever is a VALIDATION benchmark: DSPy-on-local-fleet vs the RHO selector on the SAME skill-optimization task — "is our hand-rolled loop competitive with the canonical framework?" (the systematic-debugging leaderboard-gap check). → backlog item 70 (needs-experiment, dep-gated). |
+
+**Round verdict**: 1 verified but OVERLAPS existing capability — DSPy formalizes what cohezion's RHO
+selector already does (items 22/33/42). NOT new capability; the article's paid-OpenAI demo is off
+local-$0. Honest lever = a DSPy-on-fleet vs RHO VALIDATION benchmark ($0 via lemonade :13305), NOT a
+framework swap (human/architecture decision). → backlog item 70 (needs-experiment + dep-gated;
+validates the existing loop, does not replace it). Filter tally (user-shared links): 4 embraced,
+4 declined-but-mined, 1 overlaps-existing-validate (DSPy→70).
