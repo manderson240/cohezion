@@ -1,0 +1,7 @@
+# OSS feed digest (local-inference-mined) — https://opensourceprojects.dev/rss
+_filter: local-LLM · 4/12 relevant · agent must VERIFY each GitHub repo before citing_
+
+- **Headroom compresses everything your AI agent reads before it reaches the LLM.** — Headroom compresses everything your AI agent reads before it reaches the LLM, crucial for local-first agents with limited context windows.  [VERIFY: https://opensourceprojects.dev/post/2a98534a-c335-4c6e-bf5e-28d71634d308]
+- **Odysseus is a self-hosted AI workspace with local-first, privacy-first everything.** — Odysseus provides a self-hosted AI workspace optimized for local-first, privacy-first operation, aligning with the developer's inference fleet strategy.  [VERIFY: https://opensourceprojects.dev/post/c76d31bf-2601-4915-aa61-728b4c712b29]
+- **Muon optimizer scaled to 16B MoE with 2x compute efficiency over AdamW** — Muon optimizer's 2x compute efficiency over AdamW for large MoE models directly supports training-efficiency goals for local model development.  [VERIFY: https://opensourceprojects.dev/post/ddd9e7de-9cd8-4031-99b4-6b83255e3e86]
+- **Predict user intent to prefetch content before it's needed, zero config.** — Predictive prefetching reduces latency for local agents, enhancing user experience without additional configuration, fitting the local-first agenda.  [VERIFY: https://opensourceprojects.dev/post/0fd50d45-9140-4512-9793-058111ae7218]

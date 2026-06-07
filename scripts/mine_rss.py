@@ -1,0 +1,151 @@
+#!/usr/bin/env python3
+"""Mine an OSS-discovery RSS feed via LOCAL inference — $0, out of Claude's context.
+
+User directive 2026-06-07: "can we leverage opensourceprojects.dev/rss". The feed is a
+5-minute-fresh stream of new GitHub projects; reading the raw XML (and each linked post) in
+the agent's context would burn the Claude plan quota the throttle exists to protect. So the
+BULK relevance filtering runs on the local fleet (lemonade :13305): fetch RSS → one batched
+local-LLM pass over all item titles+descriptions → emit only the cohezion-relevant ones with a
+`[VERIFY: <post-url>]` tag. The AGENT then does verify-before-cite on the few survivors
+(fetch the post, extract the GitHub repo, confirm it exists via the GitHub API — the SkillClaw
+pattern) before anything lands in docs/research/BLEEDING_EDGE_FEED.md.
+
+Division of labor: local LLM = cheap recall filter over many items; agent = rigorous
+verification over the handful that pass. Neither step puts the raw feed into Claude's context.
+
+Usage:
+    python scripts/mine_rss.py [feed_url] [out.md] [model]
+Defaults: https://opensourceprojects.dev/rss , docs/research/OSS_FEED_DIGEST.md ,
+          Gemma-4-26B-A4B-it-GGUF (a currently-loaded, instruction-following local model).
+"""
+
+from __future__ import annotations
+
+import sys
+import urllib.request
+import xml.etree.ElementTree as ET
+from pathlib import Path
+
+import httpx
+
+
+LEMONADE = "http://localhost:13305/api/v1/chat/completions"
+DEFAULT_FEED = "https://opensourceprojects.dev/rss"
+# Granite is the validated no-thinking, instruction-following local model (hermes-routing skill
+# rules 1-2): thinking models (Gemma/Qwen/DeepSeek) spend the token budget on reasoning_content and
+# return empty content for a triage prompt. mine_neuron.py uses Granite for the same reason. The
+# router (:13305) auto-loads it on first request.
+DEFAULT_MODEL = "Granite-4.1-8B-GGUF"
+
+# Cheap keyword prefilter — used to RANK/annotate, and as the sole filter if the fleet is down.
+_RELEVANT_HINTS = (
+    "local", "on-device", "llama.cpp", "gguf", "gemma", "qwen", "npu", "igpu", "inference",
+    "agent", "agentic", "llm", "context", "compress", "cache", "quantiz", "speculative",
+    "moe", "optimizer", "training", "fine-tun", "lora", "kaggle", "rag", "embedding", "skill",
+    "self-host", "privacy-first", "mcp", "router", "token",
+)
+
+_PROMPT = (
+    "You are triaging an open-source-project feed for a developer running a LOCAL AMD inference "
+    "fleet (NPU/iGPU/CPU, $0 local-first, cloud only as fallback), an agentic compound-engineering "
+    "loop, a Claude-usage budget, and Kaggle/hackathon money tracks. You are given a numbered list "
+    "of GitHub-project headlines. Output ONLY the numbers that are genuinely relevant to: "
+    "local/on-device models (GGUF/llama.cpp/Gemma/Qwen/small models), agentic coding tools, "
+    "context compression / caching, speculative decoding / quantization, training-efficiency "
+    "(optimizers, LoRA, MoE), cost/usage monitoring, self-improving agents, RAG/embeddings, or "
+    "competitions/grants. For each relevant one output exactly one line: "
+    "'<n> | <why it matters to a local-first agent fleet, one clause>'. Skip web scrapers, form "
+    "builders, media tooling, generic web frameworks, and anything unrelated. If none are relevant, "
+    "output exactly 'NONE'. Do not invent items that are not in the list."
+)
+
+
+def fetch_items(feed_url: str) -> list[dict[str, str]]:
+    req = urllib.request.Request(feed_url, headers={"User-Agent": "cohezion-research/1.0"})  # noqa: S310
+    raw = urllib.request.urlopen(req, timeout=20).read()  # noqa: S310 (fixed https research feed)
+    root = ET.fromstring(raw)  # noqa: S314 (public RSS, not attacker-controlled; defusedxml not a dep)
+    items = []
+    for it in root.findall(".//item"):
+        items.append(
+            {
+                "title": (it.findtext("title") or "").strip(),
+                "desc": (it.findtext("description") or "").strip(),
+                "link": (it.findtext("link") or "").strip(),
+            }
+        )
+    return items
+
+
+def keyword_relevant(item: dict[str, str]) -> bool:
+    blob = f"{item['title']} {item['desc']}".lower()
+    return any(h in blob for h in _RELEVANT_HINTS)
+
+
+def llm_triage(items: list[dict[str, str]], model: str) -> dict[int, str]:
+    """Return {item_index: why} for LLM-judged relevant items. Empty dict on any failure."""
+    listing = "\n".join(
+        f"{i}. {it['title']} — {it['desc'][:160]}" for i, it in enumerate(items)
+    )
+    try:
+        r = httpx.post(
+            LEMONADE,
+            json={
+                "model": model,
+                "messages": [
+                    {"role": "system", "content": _PROMPT},
+                    {"role": "user", "content": listing},
+                ],
+                "max_tokens": 500,
+                "temperature": 0.1,
+            },
+            timeout=180.0,
+        )
+        r.raise_for_status()
+        out = (r.json()["choices"][0]["message"]["content"] or "").strip()
+    except Exception as exc:  # local probe; report, do not crash the batch
+        print(f"[local-inference unavailable: {type(exc).__name__}: {exc}] → keyword prefilter only")
+        return {}
+    if out.upper().startswith("NONE"):
+        return {}
+    picks: dict[int, str] = {}
+    for line in out.splitlines():
+        if "|" not in line:
+            continue
+        num, _, why = line.partition("|")
+        num = num.strip().lstrip("-* ").rstrip(".")
+        if num.isdigit() and int(num) < len(items):
+            picks[int(num)] = why.strip()
+    return picks
+
+
+def main() -> int:
+    feed = sys.argv[1] if len(sys.argv) > 1 else DEFAULT_FEED
+    out = Path(sys.argv[2]) if len(sys.argv) > 2 else Path("docs/research/OSS_FEED_DIGEST.md")
+    model = sys.argv[3] if len(sys.argv) > 3 else DEFAULT_MODEL
+    try:
+        items = fetch_items(feed)
+    except Exception as exc:  # feed fetch is best-effort; report, do not crash
+        print(f"feed fetch failed: {type(exc).__name__}: {exc}")
+        return 1
+    print(f"fetched {len(items)} items from {feed}")
+    picks = llm_triage(items, model)
+    used = "local-LLM"
+    if not picks:  # fleet down or NONE → fall back to keyword prefilter (never silent-empty)
+        picks = {i: "(keyword-matched)" for i, it in enumerate(items) if keyword_relevant(it)}
+        used = "keyword-prefilter"
+    lines = [
+        f"# OSS feed digest (local-inference-mined) — {feed}",
+        f"_filter: {used} · {len(picks)}/{len(items)} relevant · agent must VERIFY each GitHub repo before citing_",
+        "",
+    ]
+    for i in sorted(picks):
+        it = items[i]
+        lines.append(f"- **{it['title']}** — {picks[i]}  [VERIFY: {it['link']}]")
+    out.parent.mkdir(parents=True, exist_ok=True)
+    out.write_text("\n".join(lines) + "\n", encoding="utf-8")
+    print(f"wrote {len(picks)} relevant → {out}")
+    return 0
+
+
+if __name__ == "__main__":
+    raise SystemExit(main())
