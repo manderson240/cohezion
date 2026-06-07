@@ -185,7 +185,7 @@ async def _dispatch(
     """Call cohezion.inference.fleet.{route,extend_claude} and return a dict
     summary suitable for stderr metadata output or JSON envelope."""
     # Lazy import — running under `uv run` from this script, not at module load.
-    from cohezion.inference.fleet import extend_claude, route
+    from cohezion.inference.fleet import extend_claude_guarded, route
 
     start = time.perf_counter()
     if local_only:
@@ -200,8 +200,9 @@ async def _dispatch(
         # Explicit model pin: no escalation, just route to the named model.
         result = await route(prompt, prefer=model, timeout=timeout, max_tokens=max_tokens)
     else:
-        # Default path: local first, escalate to cloud Claude if quality gate fails.
-        result = await extend_claude(
+        # Default path: local first, escalate to cloud Claude if quality gate fails AND the
+        # live Claude-quota allows it (item 138 — never run out of Claude, doctrine bullet 5).
+        result = await extend_claude_guarded(
             prompt,
             claude_model=claude_model,
             timeout=timeout,

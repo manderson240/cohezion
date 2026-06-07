@@ -722,3 +722,45 @@ async def extend_claude(
     result = await route(prompt, task=Task.REASONING, prefer=claude_model, timeout=timeout)
     result.escalated_to_cloud = True
     return result
+
+
+def _live_claude_quota(
+    *,
+    soft_budget: int = 26_000_000_000,
+    hard_budget: int = 33_000_000_000,
+    projects_dir: str = "~/.claude/projects",
+    window_secs: float = 7 * 86400.0,
+) -> str:
+    """Compute the live Claude-Code plan-quota action from transcript token spend (item 138).
+
+    Reads the Claude Code transcripts and runs ``usage_guard`` over the weekly window. Returns
+    ``"proceed"`` / ``"throttle"`` / ``"halt"``. Fail-open to ``"proceed"`` on any read error — a
+    quota PROBE failure must not block work (advisory gate, like the fleet OOM probe). Budgets
+    default to the same values as ``scripts/loop_usage_guard.py`` (override via env there).
+    """
+    try:
+        from cohezion.observability.claude_usage import (
+            load_usage_records,
+            summarize_usage,
+            usage_guard,
+        )
+
+        records = load_usage_records(projects_dir)
+        summary = summarize_usage(records, now_ts=time.time(), windows={"week": window_secs})
+        return usage_guard(
+            summary, window="week", soft_budget=soft_budget, hard_budget=hard_budget
+        )
+    except Exception:
+        return "proceed"  # probe failure is advisory — never block work
+
+
+async def extend_claude_guarded(prompt: str, **kwargs: Any) -> RouteResult:
+    """`extend_claude` with the LIVE Claude-quota gate wired in (item 138, the prod activation).
+
+    Computes the current quota from transcript spend and passes it through, so the cloud
+    escalation conserves Claude under load ("never run out", doctrine bullet 5). All other
+    ``extend_claude`` kwargs pass through. This is the quota-aware entry point the delegate CLI
+    (and other live callers) should use instead of raw ``extend_claude``.
+    """
+    quota = _live_claude_quota()
+    return await extend_claude(prompt, claude_quota=quota, **kwargs)
