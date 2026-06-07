@@ -199,3 +199,16 @@ already covers exec/injection/memory/session/inter-agent modes via items 48/52 +
 The single net-new deterministic instrument = an MCP tool-description-poisoning audit (the one mode with
 a real cohezion surface + no existing check). → backlog item 76. Filter tally (user-shared links): 4
 embraced, 4 declined-but-mined, 2 overlaps-existing, 1 needs-exp-instrument, 1 checklist-validates+1-gap.
+
+## Round 15 — 2026-06-06 (user-shared: arXiv 2606.03890, OVO-S-Bench)
+Source: user-shared HF paper. Verified via WebFetch.
+
+| Finding | Verified | Class | Fleet seam | Notes |
+|---|---|---|---|---|
+| **OVO-S-Bench** — hierarchical benchmark for STREAMING SPATIAL intelligence in multimodal LLMs (arXiv 2606.03890; 1,680 Q / 348 egocentric videos / 4 abstraction levels; dataset+code on GitHub) | ✅ HF papers + abstract (InternLM; Gemini-3.1-Pro 59.2 vs human 86.6) | **DECLINE · off-modality · off-use-case** | NONE | A streaming egocentric-VIDEO spatial-reasoning BENCHMARK for robotics/AR/autonomous-driving. **No cohezion seam**: cohezion's only VLM surface is the DOCUMENT/EXTRACTION tier (EXTRACTION/VISION/OCR_DOC — tiny 1.6B LFM2.5-VL / 0.9B PaddleOCR for image→YAML + doc OCR), NOT streaming video; cohezion has no robotics/AR/AV/egocentric surface. It is a benchmark (no servable model artifact to register). The mineable eval-design ideas (PREFIX-ONLY streaming evaluation; HIERARCHICAL abstraction levels) have no cohezion task to apply to — cohezion has no streaming-video task. Same class as round-6 Nemotron-ASR (off-modality streaming, declined). **No transferable principle that maps to an existing seam → NO backlog item** (non-fabrication: a row with no real seam is drift). |
+
+**Round verdict**: 0 levers — clean DECLINE. OVO-S-Bench is off cohezion's modality (streaming egocentric
+video) AND use-case (robotics/AR/AV); cohezion's VLMs are document-extraction tier; no servable artifact;
+no transferable principle with a target task. Like Nemotron-ASR (round 6), the honest outcome is "no real
+seam → no item" — the filter declining is the filter WORKING. Filter tally (user-shared links): 4 embraced,
+5 declined-but-mined/declined, 2 overlaps-existing, 1 needs-exp-instrument, 1 checklist-validates.
