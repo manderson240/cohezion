@@ -13,6 +13,8 @@ reads the actual tutorial text. Read-only w.r.t. the repo (writes only the diges
 from __future__ import annotations
 
 import json
+import os
+import re
 import subprocess
 import sys
 import urllib.request
@@ -113,13 +115,11 @@ def _load_targets() -> list[str]:
 
 def _already_done() -> set[str]:
     """Names already distilled (from the results file at $DISTILL_DONE_FILE) — for resume."""
-    import os
-    import re
-
     path = os.environ.get("DISTILL_DONE_FILE", "")
     if not path or not os.path.exists(path):
         return set()
-    text = open(path, encoding="utf-8").read()
+    with open(path, encoding="utf-8") as fh:
+        text = fh.read()
     return set(re.findall(r"^## (.+)$", text, flags=re.MULTILINE))
 
 
