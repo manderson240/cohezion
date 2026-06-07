@@ -38,25 +38,37 @@ DEFAULT_FEED = "https://opensourceprojects.dev/rss"
 DEFAULT_MODEL = "Granite-4.1-8B-GGUF"
 
 # Cheap keyword prefilter — used to RANK/annotate, and as the sole filter if the fleet is down.
+# Two complementary lenses: (1) AI-tooling (opensourceprojects.dev-style feeds) and (2) the fleet's
+# HARDWARE SUBSTRATE (phoronix-style feeds) — kernel/driver/ROCm news that affects whether the fleet runs.
 _RELEVANT_HINTS = (
+    # AI tooling
     "local", "on-device", "llama.cpp", "gguf", "gemma", "qwen", "npu", "igpu", "inference",
     "agent", "agentic", "llm", "context", "compress", "cache", "quantiz", "speculative",
     "moe", "optimizer", "training", "fine-tun", "lora", "kaggle", "rag", "embedding", "skill",
     "self-host", "privacy-first", "mcp", "router", "token",
+    # hardware substrate (Strix Halo: gfx1151 iGPU + XDNA2 NPU on Linux)
+    "amd", "rocm", "ryzen", "radeon", "strix", "gfx", "xdna", "rdna", "amdgpu", "kernel",
+    "mesa", "radv", "vulkan", "s2idle", "power management", "driver", "ai max",
 )
 
 _PROMPT = (
-    "You are triaging an open-source-project feed for a developer running a LOCAL AMD inference "
-    "fleet (NPU/iGPU/CPU, $0 local-first, cloud only as fallback), an agentic compound-engineering "
-    "loop, a Claude-usage budget, and Kaggle/hackathon money tracks. You are given a numbered list "
-    "of GitHub-project headlines. Output ONLY the numbers that are genuinely relevant to: "
-    "local/on-device models (GGUF/llama.cpp/Gemma/Qwen/small models), agentic coding tools, "
-    "context compression / caching, speculative decoding / quantization, training-efficiency "
-    "(optimizers, LoRA, MoE), cost/usage monitoring, self-improving agents, RAG/embeddings, or "
-    "competitions/grants. For each relevant one output exactly one line: "
-    "'<n> | <why it matters to a local-first agent fleet, one clause>'. Skip web scrapers, form "
-    "builders, media tooling, generic web frameworks, and anything unrelated. If none are relevant, "
-    "output exactly 'NONE'. Do not invent items that are not in the list."
+    "You are triaging a feed for a developer running a LOCAL AMD Strix Halo inference fleet "
+    "(Ryzen AI MAX+ 395: gfx1151 iGPU + XDNA2 NPU, on Linux; $0 local-first, cloud only as fallback), "
+    "an agentic compound-engineering loop, a Claude-usage budget, and Kaggle/hackathon money tracks. "
+    "You are given a numbered list of headlines (open-source projects OR Linux-hardware news). "
+    "Output ONLY the numbers genuinely relevant to EITHER: "
+    "(A) local/on-device models (GGUF/llama.cpp/Gemma/Qwen/small models), agentic coding tools, "
+    "context compression/caching, speculative decoding/quantization, training-efficiency "
+    "(optimizers, LoRA, MoE), cost/usage monitoring, self-improving agents, RAG/embeddings, "
+    "competitions/grants; OR "
+    "(B) the fleet's COMPUTE SUBSTRATE — ROCm, gfx1151/RDNA3.5 GPU-compute, XDNA2/NPU, llama.cpp/"
+    "Vulkan compute, AMD GAIA/Ryzen-AI, or Linux-kernel/Mesa/AMDGPU changes that affect AMD COMPUTE "
+    "or Strix Halo specifically, or s2idle power management on this APU. "
+    "For each relevant one output exactly one line: "
+    "'<n> | <why it matters to THIS AMD inference fleet, one clause>'. Do NOT output a line for an "
+    "irrelevant item (no 'None' lines) — just omit it. Skip gaming (anti-lag/FSR), display/HDMI, "
+    "non-x86 (POWER/ARM), generic distro news, and anything unrelated. If none are relevant, output "
+    "exactly 'NONE'. Do not invent items that are not in the list."
 )
 
 
@@ -113,8 +125,13 @@ def llm_triage(items: list[dict[str, str]], model: str) -> dict[int, str]:
             continue
         num, _, why = line.partition("|")
         num = num.strip().lstrip("-* ").rstrip(".")
+        why = why.strip()
+        # Guard: a small local model sometimes lists irrelevant items with a "None (...)" reason
+        # instead of omitting them. Drop those — keep only genuine relevance clauses.
+        if not why or why.lower().startswith("none"):
+            continue
         if num.isdigit() and int(num) < len(items):
-            picks[int(num)] = why.strip()
+            picks[int(num)] = why
     return picks
 
 
