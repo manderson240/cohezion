@@ -31,7 +31,7 @@ main class, **excluding** the module's own file, `__init__.py` re-exports, and t
 
 | Module | Main class | Live seam? | Classification | Natural consumer / decision |
 |---|---|---|---|---|
-| `flux.cache_flux` | `CacheFlux` | **YES** — `compile_natural_language()` → `VibeOrchestrator(flux_aggregator=…)`; specifier `_find_similar_workflows` queries it **and the return reaches the spec** (`specifier.py:239 similar_past_workflows=similar`). `SemanticCache` **is** populated in prod (harness CB4) → real data flows. Degrades gracefully (`cache=None → []`). | **mechanically-wireable** | Construct `FluxAggregator([CacheFlux(SemanticCache.get_instance())])` at the live seam; discriminating test: seed SemanticCache L2 with a workflow-tagged entry → compile NL → assert `spec.similar_past_workflows` non-empty (asserts **real** prod data, not a test-only precondition). |
+| `flux.cache_flux` | `CacheFlux` | seam yes, but **SIGNAL-TYPE MISMATCH** (caught 2026-06-07, build tick): the specifier's `_find_similar_workflows` extracts `block.metadata["workflow_id"]` / `["template_name"]`, but `CacheFlux.get_context` returns `FluxBlock(content, source, relevance_score)` with **no `metadata`** (defaults to `{}`). Every CacheFlux block → `wf_id=None` → `similar_past_workflows` stays empty. The consumer was designed for `HistoryFlux` (which DOES set `metadata=`), not for a content-cache provider. | **architecture-decision** (was wrongly "mechanically-wireable") | Two real options, both design changes: (a) have `CacheFlux` tag its blocks with `metadata={"workflow_id": …}` — but SemanticCache L2 entries are prompt/response, not workflows, so there is no honest workflow_id to attach; or (b) give CacheFlux a DIFFERENT consumer that reads `block.content` (semantic recall), not the workflow-id specifier. Either is a surface decision. **Item-141 lesson, deepened: "return reaches the spec" ≠ "return carries the key the spec reads."** |
 | `flux.history_flux` | `HistoryFlux` | seam yes, but its **write path** (`record_history`) runs only on `graph/engine.py`'s aggregator, which itself defaults `None` and is **never constructed-with-providers in prod**. A *separate* vibe-seam aggregator's HistoryFlux is therefore **always empty** in prod. | **architecture-decision** | A test would only pass by seeding history itself (tautological). Real surfacing needs graph-engine writes and vibe reads to **share one aggregator** — a "context bus" decision (exists only in `tests/graph/test_context_bus.py`). Decide: should the NL compiler be stateful across the session via a shared FLUX bus? |
 | `flux.surreal_flux` | `SurrealFlux` | seam yes, but `__init__(surreal_client)` **requires** a live client (no graceful no-backend ctor). | **architecture-decision** | Decide whether NL-compilation should hit SurrealDB vector search live → needs a backend-client wiring decision. |
 | `eval.pipeline` | `EvalPipeline` / `RalphLoop` | no | **architecture-decision** | eval subsystem has no driver. Decision: what triggers an eval run, and where do results land? |
@@ -49,21 +49,25 @@ main class, **excluding** the module's own file, `__init__.py` re-exports, and t
 
 ## Batched recommendation for the human
 
-- **1 row the loop can clear without you** (`flux.cache_flux`): one additive wire of
-  `CacheFlux(SemanticCache.get_instance())` into the existing live NL-compile seam,
-  behind a discriminating test that asserts **real** SemanticCache neighbors surface
-  into the spec (not a test-seeded precondition).
-  *Two corrections from verification: (1) my pre-draft thought there were more mechanical
-  wins — tracing showed `FluxAggregator` is never constructed-with-providers in prod, so
-  the rest have no live data flow; (2) `flux.history_flux` looked mechanical but its write
-  path (`record_history`) only runs on a different, never-populated aggregator, so via the
-  vibe seam it is always empty — its test would be tautological. It is therefore an
-  architecture (shared-context-bus) decision, not a mechanical wire.*
-- **10 architecture decisions, naturally grouped into 5 subsystems** — decide per group,
+- **0 rows the loop can clear without you.** Three verification-driven reversals collapsed
+  the headline from "2 easy wins" to zero — each from pushing the signal-match check one
+  level deeper:
+  1. *pre-draft → 2:* thought several flux providers were mechanical; tracing showed
+     `FluxAggregator` is never constructed-with-providers in prod, so most have no live data flow.
+  2. *advisor → 1:* `flux.history_flux` looked mechanical, but its write path (`record_history`)
+     only runs on a different, never-populated aggregator → always empty via the vibe seam →
+     a test would be tautological → architecture (shared-context-bus).
+  3. *build tick → 0:* `flux.cache_flux` fell too — the specifier reads `metadata.workflow_id`,
+     which CacheFlux blocks never carry (empty metadata). "Return reaches the spec" ≠ "return
+     carries the key the spec reads" (item-141, deepened). Signal-type mismatch → architecture.
+  **This is the doctrine working:** verifying the signal type before wiring prevented three
+  forced couplings that each would have looked green to a counter that only checks "consumer absent."
+- **11 architecture decisions, naturally grouped into 5 subsystems** — decide per group,
   not per module:
-  1. **flux context bus** — `history_flux` (share one aggregator across graph-engine
-     writes + vibe reads → stateful compiler?) and `surreal_flux` (does NL-compile hit
-     SurrealDB live?)
+  1. **flux providers** (all 3 now architecture) — `history_flux` (share one aggregator
+     across graph-engine writes + vibe reads → stateful compiler?), `surreal_flux` (does
+     NL-compile hit SurrealDB live?), and `cache_flux` (either tag its blocks with workflow
+     metadata, or give it a content-recall consumer instead of the workflow-id specifier)
   2. **eval subsystem** — `pipeline`, `universe_evaluator`, `huggingface_export`
      (one driver/cadence decision covers all three)
   3. **vanguard subsystem** — `attribution`, `connectors` (one ingestion-consumer decision)
