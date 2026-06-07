@@ -191,6 +191,40 @@ def long_parameter_lists(
     return sorted(out, key=lambda t: (-t[1], t[0]))
 
 
+def _func_span(func: ast.FunctionDef | ast.AsyncFunctionDef) -> int:
+    """Source-line span of ``func`` — the SIZE dimension (item 64).
+
+    ``end_lineno - lineno + 1`` (inclusive of both the ``def`` line and the last body line). The span
+    of a function CONTAINING a nested def includes the nested lines; the nested def is reported
+    separately by :func:`long_functions` (``ast.walk`` visits it too). Pure: inspects the AST node.
+    """
+    end = func.end_lineno if func.end_lineno is not None else func.lineno
+    return end - func.lineno + 1
+
+
+def long_functions(paths: Iterable[Path], *, threshold: int = 50) -> list[tuple[str, int]]:
+    """Functions whose source span exceeds ``threshold`` — the SIZE smell (item 64). READ-ONLY.
+
+    Returns ``[(qualified_name, span)]`` for every function/method with ``span > threshold``, sorted
+    by ``span`` descending then name. Distinct from cyclomatic complexity (item 43): a long function
+    can be flat yet still hard to hold in the head. Nested defs appear as their own entries. A
+    clean/empty set of files → ``[]``. Pure (stdlib ast ``end_lineno``, no writes) — a line count is
+    a smell flagged for judgment, not a verdict.
+    """
+    out: list[tuple[str, int]] = []
+    for path in _iter_python_files(paths):
+        try:
+            tree = ast.parse(path.read_text(encoding="utf-8", errors="replace"))
+        except (OSError, SyntaxError, ValueError):
+            continue  # unreadable / not valid Python → skip, never crash the audit
+        for node in ast.walk(tree):
+            if isinstance(node, ast.FunctionDef | ast.AsyncFunctionDef):
+                span = _func_span(node)
+                if span > threshold:
+                    out.append((f"{path.name}::{node.name}", span))
+    return sorted(out, key=lambda t: (-t[1], t[0]))
+
+
 # Decorators that make single-call forwarding LEGITIMATE (required indirection, not a smell).
 _INDIRECTION_DECORATORS = frozenset(
     {"property", "cached_property", "abstractmethod", "abstractproperty"}
