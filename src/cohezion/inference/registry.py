@@ -73,6 +73,16 @@ class Task(StrEnum):
     FUNCTION_CALL = "function_call"
     RERANK = "rerank"
     OCR_DOC = "ocr_doc"
+    # Multimodal in+out members (thread M item 83 + user video directive, 2026-06-06). cohezion
+    # already ingests images (VISION/EXTRACTION/OCR_DOC); these declare the OUTPUT modalities plus
+    # video INPUT. No model is registered for them yet → for_task returns [] until a specialist
+    # ModelEntry is added behind its serving proof: IMAGE_GEN (sd.cpp Vulkan, item 86), AUDIO_TTS
+    # (PocketTTS item 85 / Higgs research-only item 93), VIDEO_GEN (research-gated item 87),
+    # VIDEO_UNDERSTAND (video input — research-gated until a fleet-runnable video VLM is verified).
+    IMAGE_GEN = "image_gen"
+    AUDIO_TTS = "audio_tts"
+    VIDEO_GEN = "video_gen"
+    VIDEO_UNDERSTAND = "video_understand"
 
 
 class WeightQuant(StrEnum):
