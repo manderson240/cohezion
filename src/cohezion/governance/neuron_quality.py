@@ -113,6 +113,27 @@ def deposit_quality_report(
     )
 
 
+def memory_gaps(
+    store: Iterable[object], *, task_classes: Iterable[str] | None = None
+) -> dict[str, set[str]]:
+    """Per neuron country, the task classes the fleet handles but has NO procedural memory for.
+
+    The actionable complement to item-55 :func:`memory_coverage`: ``wanted - covered`` per country,
+    where ``wanted`` is the task-class set of interest (default: the FleetRegistry ``Task`` names).
+    An empty store → every country has ALL ``task_classes`` as gaps (NOT an empty dict — the three
+    country keys are always present). Report-only, pure — injected ``task_classes`` means no registry
+    read under pytest.
+    """
+    if task_classes is None:
+        from cohezion.inference.registry import Task
+
+        wanted = {t.value for t in Task}
+    else:
+        wanted = {str(t) for t in task_classes}
+    coverage = memory_coverage(store)
+    return {country: wanted - covered for country, covered in coverage.items()}
+
+
 @dataclass(frozen=True)
 class DepositQualityDelta:
     """Signed change in neuron-store quality across two snapshots (item 74). Negative = improving."""
