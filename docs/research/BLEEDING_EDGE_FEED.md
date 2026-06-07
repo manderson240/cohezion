@@ -186,3 +186,16 @@ loop already does (proactive audit discovery + scope expansion + skills-as-templ
 lever is UNIFICATION + iterative-discovery dedup over the EXISTING deterministic audit instruments
 ($0, report-only — not needs-experiment). → backlog item 73. Filter tally (user-shared links): 4
 embraced, 4 declined-but-mined, 2 overlaps-existing (DSPy→70 validate, TIDE→73 unify), 1 needs-exp-instrument (DRIFT→69).
+
+## Round 14 — 2026-06-06 (user-shared: MS AI Red Team failure-mode taxonomy v2.0)
+Source: user-shared Microsoft Security blog (2026-06-04). Verified via WebFetch.
+
+| Finding | Verified | Class | Fleet seam | Notes |
+|---|---|---|---|---|
+| **Agentic AI failure-mode taxonomy v2.0** (MS AI Red Team) — 7 new modes: supply-chain compromise, goal hijacking, inter-agent trust escalation, CUA visual attack, session context contamination, MCP/plugin abuse, capability disclosure | ✅ WebFetch (MS Security blog, detailed taxonomy) | **GROUNDED · CHECKLIST · mostly-covered + 1 additive gap** | maps to MANY cohezion security seams (see below) | A security CHECKLIST, not a model/tool. **Validation outcome**: most modes ALREADY have cohezion coverage — exec/code-exec → item-48 `exec_sandbox_audit`; prompt-injection/credential-leak (goal hijacking / XPIA) → `inference/security_spec` (harness I7); memory poisoning → item-52 `neuron_quality` (non-redundancy/evidence/format); session context contamination → the Session Control Plane invariants (harness SCP1-5, UNTRUSTED framing); inter-agent trust escalation → SCP1 atomic ack/claim + record-id guards. **The one genuine GAP**: MCP/Plugin Abuse ("tool description poisoning, server-side instruction injection") — cohezion's MCP bridge (`integrations/hermes_mcp_bridge` `_tools_list`) exposes tool descriptions but has NO audit for instruction-injection IN those descriptions. **Caveat**: most of the taxonomy is architectural posture (already addressed), not net-new deterministic checks; CUA-visual-attack + supply-chain are off cohezion's current surface (no CUA; dep supply-chain already flagged per-lever in this feed). → 1 additive lever: backlog item 76 (tool-description-poisoning audit). |
+
+**Round verdict**: 1 verified security CHECKLIST — and the honest outcome is mostly VALIDATION (cohezion
+already covers exec/injection/memory/session/inter-agent modes via items 48/52 + security_spec + SCP).
+The single net-new deterministic instrument = an MCP tool-description-poisoning audit (the one mode with
+a real cohezion surface + no existing check). → backlog item 76. Filter tally (user-shared links): 4
+embraced, 4 declined-but-mined, 2 overlaps-existing, 1 needs-exp-instrument, 1 checklist-validates+1-gap.
