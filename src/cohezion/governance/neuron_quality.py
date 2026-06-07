@@ -18,6 +18,53 @@ from dataclasses import dataclass
 # recall_neurons filters by tags, so an untagged neuron is unrecallable = format-invalid).
 _REQUIRED_FIELDS = ("country", "name", "tags")
 
+_NEURON_COUNTRIES = ("inference", "skill", "cerebellum")
+# A neuron's tags mix the task_class with structural labels and the lane (schemas differ per country:
+# inference=[lane,"rewarded",task_class], skill=["skill",skill_name], cerebellum=[country,"procedural",
+# task_class,lane]). The task_class is read from the tags by EXCLUDING this structural/lane denylist.
+# Documented limitation: a task_class that collides with a structural/lane token would be excluded
+# (rare; a coverage list is a smell, not a verdict).
+_STRUCTURAL_TAGS = frozenset(
+    {
+        "inference",
+        "skill",
+        "cerebellum",  # country labels
+        "procedural",
+        "rewarded",
+        "distilled",  # deposit structural labels
+        "npu",
+        "igpu",
+        "cpu",
+        "igpu_unified",
+        "igpu_rocwmma",
+        "cloud",
+        "cli",  # lane vocabulary
+    }
+)
+
+
+def _task_classes_of(neuron: dict) -> set[str]:
+    """The task_class tag(s) of a neuron = its tags minus the structural/lane denylist."""
+    return {str(t) for t in (neuron.get("tags") or []) if str(t) not in _STRUCTURAL_TAGS}
+
+
+def memory_coverage(store: Iterable[object]) -> dict[str, set[str]]:
+    """Per neuron country, the SET of task classes the fleet has procedural memory for (item 55).
+
+    "What does the fleet remember?" — the observability complement to item-37's per-task recall.
+    Reads the task_class from each neuron's TAGS (not its name) via ``_task_classes_of``. Always
+    returns exactly the three country keys; a country with no neurons maps to an empty set. Pure —
+    read-only over the injected ``store`` (no SurrealDB), non-dict entries ignored.
+    """
+    coverage: dict[str, set[str]] = {c: set() for c in _NEURON_COUNTRIES}
+    for neuron in store:
+        if not isinstance(neuron, dict):
+            continue
+        country = str(neuron.get("country", ""))
+        if country in coverage:
+            coverage[country] |= _task_classes_of(neuron)
+    return coverage
+
 
 @dataclass(frozen=True)
 class DepositQualityReport:
