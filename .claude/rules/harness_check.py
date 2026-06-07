@@ -27,7 +27,10 @@ CHECKS: dict[str, dict[str, Any]] = {
         "timeout": 30,
     },
     "lint-quick": {
-        "cmd": ["ruff", "check", "--select=F,E9,E501", "src/", "tests/"],
+        # E9 only = genuine syntax errors (the gate's stated purpose). F (pyflakes) and E501
+        # (line-length) are pervasive intentional drift across the repo and were making this
+        # "syntax errors only" gate red on style, not syntax (re-scoped 2026-06-07, user-approved).
+        "cmd": ["ruff", "check", "--select=E9", "src/", "tests/"],
         "desc": "Ruff quick lint (syntax errors only)",
         "timeout": 30,
     },
