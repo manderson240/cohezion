@@ -229,3 +229,112 @@ def specialist_liveness_gaps(
 #     is down (rather than surfacing a misleading "can't verify" failure).
 # [ ] Item 77d: stream-delta variant — emit a ``SpecialistLivenessReport`` diff
 #     on each autoresearch round so the operator can track lane-recovery events.
+
+
+# ---------------------------------------------------------------------------
+# Item 84 — Modality-coverage report (Thread M)
+# ---------------------------------------------------------------------------
+
+# The five I/O modalities the report tracks, mapped to the single most-representative
+# FleetRegistry Task for each.  Text = GENERAL (the broadest generation Task);
+# the three output modalities map to the Tasks added in item 83.
+_MODALITY_TASKS: dict[str, Task] = {
+    "text": Task.GENERAL,
+    "vision_in": Task.VISION,
+    "image_out": Task.IMAGE_GEN,
+    "audio_out": Task.AUDIO_TTS,
+    "video_out": Task.VIDEO_GEN,
+}
+
+# Three-state coverage per modality.
+MODALITY_COVERED = "covered"  # ≥1 verified ModelEntry exists
+MODALITY_REGISTERED_UNVERIFIED = "registered_unverified"  # entry exists, none verified
+MODALITY_GAP = "gap"  # no ModelEntry at all
+
+
+@dataclass(frozen=True)
+class ModalityCoverageRow:
+    """Coverage for one I/O modality. ``status`` is a three-state string (item 84)."""
+
+    modality: str  # human name: "text", "vision_in", "image_out", "audio_out", "video_out"
+    status: str  # MODALITY_COVERED | MODALITY_REGISTERED_UNVERIFIED | MODALITY_GAP
+    model_ids: list[str]  # IDs of all registered ModelEntries for this modality (empty if gap)
+
+
+@dataclass(frozen=True)
+class ModalityCoverageReport:
+    """Per-modality three-state coverage for the 5 I/O modalities (item 84). Report-only.
+
+    The five modalities: text, vision_in (input), image_out, audio_out, video_out (outputs).
+    Each row is one of three states: ``covered`` (≥1 verified), ``registered_unverified``
+    (registered but awaiting serving proof), or ``gap`` (no model registered).
+
+    ``registered_unverified`` is DISTINCT from both ``covered`` and ``gap`` — the binary
+    "is there a model?" is insufficient to express the verification campaign's state.
+    """
+
+    rows: list[ModalityCoverageRow]
+
+    @property
+    def gaps(self) -> list[str]:
+        return [r.modality for r in self.rows if r.status == MODALITY_GAP]
+
+    @property
+    def covered(self) -> list[str]:
+        return [r.modality for r in self.rows if r.status == MODALITY_COVERED]
+
+    @property
+    def registered_unverified(self) -> list[str]:
+        return [r.modality for r in self.rows if r.status == MODALITY_REGISTERED_UNVERIFIED]
+
+
+def modality_coverage_report(
+    registry: FleetRegistry | None = None,
+) -> ModalityCoverageReport:
+    """Report three-state coverage for each I/O modality in the local fleet (item 84). READ-ONLY.
+
+    For each of the five modalities (text, vision_in, image_out, audio_out, video_out):
+    - **covered**: at least ONE ``ModelEntry`` for the modality's Task has ``verified_working=True``.
+    - **registered_unverified**: ≥1 entry exists but NONE are verified (the verification
+      campaign's work-in-progress state — distinct from a true gap).
+    - **gap**: no ``ModelEntry`` registered for the modality's Task at all.
+
+    Coverage is checked across ALL registered candidates for the Task (not just the top
+    priority one) — a secondary low-priority model that IS verified counts as covered.
+
+    Composes item-38/57 specialist-coverage family. Pure — no inference, no I/O.
+    """
+    reg = registry if registry is not None else get_registry()
+    rows: list[ModalityCoverageRow] = []
+    for modality, task in _MODALITY_TASKS.items():
+        candidates = reg.for_task(task)
+        if not candidates:
+            rows.append(ModalityCoverageRow(modality=modality, status=MODALITY_GAP, model_ids=[]))
+        elif any(c.verified_working for c in candidates):
+            rows.append(
+                ModalityCoverageRow(
+                    modality=modality,
+                    status=MODALITY_COVERED,
+                    model_ids=[c.model_id for c in candidates],
+                )
+            )
+        else:
+            rows.append(
+                ModalityCoverageRow(
+                    modality=modality,
+                    status=MODALITY_REGISTERED_UNVERIFIED,
+                    model_ids=[c.model_id for c in candidates],
+                )
+            )
+    return ModalityCoverageReport(rows=rows)
+
+
+# ---------------------------------------------------------------------------
+# ## FUTURE HOOKS
+# ---------------------------------------------------------------------------
+# 84b: Expose modality_coverage_report on /api/compound/health so the operator
+#      can see modality-coverage state at a glance alongside DegradationDetector.
+# 84c: Wire into the autoresearch experiment planner — a GAP modality is a
+#      higher-priority research target than a registered_unverified one.
+# 84d: modality_coverage_delta(before, after) — track campaign progress over ticks
+#      (mirrors specialist_coverage_delta, item 57).
