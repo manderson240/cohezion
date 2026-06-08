@@ -70,6 +70,7 @@ def default_templates() -> list[ProblemTemplate]:
     when the default registry is actually used). Each ``key`` extracts a finding's stable id."""
     from cohezion.compound.exec_sandbox_audit import unsandboxed_exec_paths
     from cohezion.compound.simplicity_audit import (
+        boolean_flag_params,
         complexity_outliers,
         needless_passthroughs,
         nesting_outliers,
@@ -79,6 +80,7 @@ def default_templates() -> list[ProblemTemplate]:
     return [
         ProblemTemplate("complexity_outlier", complexity_outliers, lambda f: str(f[0])),
         ProblemTemplate("nesting_outlier", nesting_outliers, lambda f: str(f[0])),
+        ProblemTemplate("boolean_flag_params", boolean_flag_params, lambda f: str(f[0])),
         ProblemTemplate("passthrough_function", passthrough_functions, str),
         ProblemTemplate("needless_passthrough", needless_passthroughs, lambda f: f.qualified_name),
         ProblemTemplate(

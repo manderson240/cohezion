@@ -167,9 +167,7 @@ def _param_count(func: ast.FunctionDef | ast.AsyncFunctionDef) -> int:
     return n
 
 
-def long_parameter_lists(
-    paths: Iterable[Path], *, threshold: int = 6
-) -> list[tuple[str, int]]:
+def long_parameter_lists(paths: Iterable[Path], *, threshold: int = 6) -> list[tuple[str, int]]:
     """Functions whose parameter count exceeds ``threshold`` — the data-clump smell (item 63). READ-ONLY.
 
     Returns ``[(qualified_name, param_count)]`` for every function/method with ``params > threshold``,
@@ -222,6 +220,52 @@ def long_functions(paths: Iterable[Path], *, threshold: int = 50) -> list[tuple[
                 span = _func_span(node)
                 if span > threshold:
                     out.append((f"{path.name}::{node.name}", span))
+    return sorted(out, key=lambda t: (-t[1], t[0]))
+
+
+def _boolean_default_count(func: ast.FunctionDef | ast.AsyncFunctionDef) -> int:
+    """Count params of ``func`` whose default value is a boolean literal (``True``/``False``).
+
+    The flag-argument dimension (item 97 — CONTROL COUPLING): a boolean default signals the
+    function branches on caller intent ("secretly does N things"). Both positional defaults
+    (``args.defaults``) and keyword-only defaults (``args.kw_defaults``) are inspected; a param
+    without a default contributes nothing (no default → not a flag). ``bool`` is checked
+    SPECIFICALLY, not any truthy constant — ``bool`` is an ``int`` subclass, so ``isinstance(1,
+    bool)`` is ``False`` and ``a=1`` / ``a=0`` are NOT counted, only real ``True``/``False`` are.
+    Pure: inspects the AST node, never executes.
+    """
+    a = func.args
+    # args.defaults are expr nodes; kw_defaults is a parallel list whose entries are Python None
+    # (not an AST node) for kw-only params lacking a default — those are skipped by the isinstance.
+    defaults = list(a.defaults) + list(a.kw_defaults)
+    return sum(1 for d in defaults if isinstance(d, ast.Constant) and isinstance(d.value, bool))
+
+
+def boolean_flag_params(paths: Iterable[Path], *, threshold: int = 2) -> list[tuple[str, int]]:
+    """Functions with ``>= threshold`` boolean-literal-default params — the flag-argument smell. READ-ONLY.
+
+    Control coupling (item 97), distinct from the data-clump COUNT of :func:`long_parameter_lists`
+    (item 63) and the SIZE of :func:`long_functions` (item 64): a function with several boolean
+    defaults branches on caller intent rather than being split into focused functions. Returns
+    ``[(qualified_name, bool_default_count)]`` for every function/method with ``count >= threshold``,
+    sorted by count descending then name. ``qualified_name`` is ``<filename>::<funcname>``. Params
+    with no default and non-boolean defaults (``0``, ``""``, ``None``) are not counted (see
+    :func:`_boolean_default_count`). Note the boundary is ``>=`` (a function AT the threshold is the
+    smallest flagged offender), unlike the strict ``>`` of the count/size siblings. A clean/empty
+    set of files → ``[]``. Pure (stdlib ast, no writes) — a number is a smell flagged for judgment,
+    not a verdict.
+    """
+    out: list[tuple[str, int]] = []
+    for path in _iter_python_files(paths):
+        try:
+            tree = ast.parse(path.read_text(encoding="utf-8", errors="replace"))
+        except (OSError, SyntaxError, ValueError):
+            continue  # unreadable / not valid Python → skip, never crash the audit
+        for node in ast.walk(tree):
+            if isinstance(node, ast.FunctionDef | ast.AsyncFunctionDef):
+                count = _boolean_default_count(node)
+                if count >= threshold:  # item-97 spec: >= (a function AT the threshold is flagged)
+                    out.append((f"{path.name}::{node.name}", count))
     return sorted(out, key=lambda t: (-t[1], t[0]))
 
 
