@@ -11481,3 +11481,28 @@ def fid_severity_gini(problems: list[Problem]) -> dict[str, float]:
         gini = 1.0 - sum((c / total) ** 2 for c in sev_counts.values())
         result[fid] = gini
     return result
+
+
+def class_severity_variance(problems: list[Problem]) -> dict[str, float]:
+    """Return variance of per-severity raw counts per class.  Item 604.
+
+    Computes population variance of the INTEGER problem counts per severity.
+    var = mean((count - mean_count)^2) over all severity buckets of the class.
+    Single-severity -> 0.0.  Uniform distribution -> 0.0.
+    Empty -> {}.  Pure; no I/O.
+    """
+    if not problems:
+        return {}
+    counts: dict[str, dict[str, int]] = {}
+    for p in problems:
+        if p.problem_class not in counts:
+            counts[p.problem_class] = {}
+        sev = p.severity or ""
+        counts[p.problem_class][sev] = counts[p.problem_class].get(sev, 0) + 1
+    result: dict[str, float] = {}
+    for cls, sev_counts in counts.items():
+        vals = list(sev_counts.values())
+        mean = sum(vals) / len(vals)
+        variance = sum((v - mean) ** 2 for v in vals) / len(vals)
+        result[cls] = variance
+    return result
