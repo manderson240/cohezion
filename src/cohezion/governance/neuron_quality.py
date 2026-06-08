@@ -10,7 +10,7 @@ write-time dedup; operates on an injected neuron list, so it never reads Surreal
 from __future__ import annotations
 
 from collections import Counter
-from collections.abc import Iterable
+from collections.abc import Iterable, Mapping
 from dataclasses import dataclass
 
 
@@ -132,6 +132,32 @@ def memory_gaps(
         wanted = {str(t) for t in task_classes}
     coverage = memory_coverage(store)
     return {country: wanted - covered for country, covered in coverage.items()}
+
+
+def memory_gap_priority(
+    store: Iterable[object],
+    routing_records: Iterable[Mapping[str, object]],
+    *,
+    task_classes: Iterable[str] | None = None,
+) -> list[tuple[str, int]]:
+    """Rank cerebellum (procedural-memory) gaps by routing frequency — fill the busiest first (item 129).
+
+    Item-75 :func:`memory_gaps` says WHERE memory is missing; this says WHICH gap to grow FIRST. Of
+    the *cerebellum* gaps, rank the gap task_classes by how OFTEN the fleet routes them (count in
+    ``routing_records``, each ``{"task_class", "lane", ...}``) — the most-routed UNREMEMBERED task is
+    the highest-value memory to deposit. A COVERED task (not a gap) is EXCLUDED even if routed often;
+    a gap never routed has no traffic and is EXCLUDED. Returns ``[(task_class, route_count)]``
+    descending (ties broken by name). Report-only, pure — the deposit is the gated action.
+    """
+    gaps = memory_gaps(store, task_classes=task_classes).get("cerebellum", set())
+    counts: dict[str, int] = {}
+    for rec in routing_records:
+        if not isinstance(rec, Mapping):
+            continue
+        task_class = rec.get("task_class")
+        if task_class is not None and str(task_class) in gaps:
+            counts[str(task_class)] = counts.get(str(task_class), 0) + 1
+    return sorted(counts.items(), key=lambda kv: (-kv[1], kv[0]))
 
 
 @dataclass(frozen=True)

@@ -43,3 +43,34 @@ def test_empty_store_all_gaps() -> None:
         "inference": {"TASK_A", "TASK_B"},
         "skill": {"TASK_A", "TASK_B"},
     }
+
+
+# ── item 129: prioritized memory gaps (which cerebellum gap to fill FIRST) ──────
+from cohezion.governance.neuron_quality import memory_gap_priority
+
+
+def test_gap_priority_ranks_by_route_count() -> None:
+    # cerebellum gaps {A, B} (C covered); A routed 3x, B 1x -> A ranks first.
+    store = [{"country": "cerebellum", "tags": ["C"]}]
+    records = [{"task_class": "A"}] * 3 + [{"task_class": "B"}]
+    out = memory_gap_priority(store, records, task_classes={"A", "B", "C"})
+    assert out == [("A", 3), ("B", 1)]
+
+
+def test_covered_task_excluded_even_if_routed_often() -> None:
+    # DISCRIMINATING: C is COVERED (not a gap); routed 10x but EXCLUDED.
+    # Kills an impl that ranks all routed tasks instead of only gaps.
+    store = [{"country": "cerebellum", "tags": ["C"]}]
+    records = [{"task_class": "C"}] * 10 + [{"task_class": "A"}] * 2
+    out = memory_gap_priority(store, records, task_classes={"A", "B", "C"})
+    assert ("C", 10) not in out
+    assert out == [("A", 2)]  # only the routed gap A; B (gap, 0 routes) excluded
+
+
+def test_gap_never_routed_excluded() -> None:
+    out = memory_gap_priority([], [{"task_class": "A"}], task_classes={"A", "B"})
+    assert out == [("A", 1)]  # B is a gap but never routed -> excluded
+
+
+def test_priority_empty_inputs() -> None:
+    assert memory_gap_priority([], [], task_classes={"A"}) == []
