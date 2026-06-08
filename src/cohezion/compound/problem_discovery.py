@@ -6355,3 +6355,33 @@ def class_to_severities(
     for p in problems:
         index.setdefault(p.problem_class, set()).add(p.severity)
     return {cls: frozenset(sevs) for cls, sevs in index.items()}
+
+
+def severity_to_classes(
+    problems: list[Problem],
+) -> dict[str, frozenset[str]]:
+    """Build an index mapping each severity to the classes that carry it — item 379.
+
+    Returns a :class:`dict` mapping each distinct ``severity`` string to the
+    :class:`frozenset` of ``problem_class`` names that have at least one
+    :class:`Problem` with that severity.  The empty string ``''`` is included
+    as a key when any unlabelled :class:`Problem` is present.
+    Transpose of :func:`class_to_severities`.
+
+    Args:
+        problems: List of :class:`Problem` instances.  Empty → ``{}``.
+
+    Returns:
+        ``dict[str, frozenset[str]]``.  Every distinct severity (including
+        ``''``) in *problems* appears exactly once as a key.  Values are
+        non-empty :class:`frozenset` objects of class name strings.
+        Empty when *problems* is empty.
+
+    Pure (no I/O, no SurrealDB).
+    """
+    if not problems:
+        return {}
+    index: dict[str, set[str]] = {}
+    for p in problems:
+        index.setdefault(p.severity, set()).add(p.problem_class)
+    return {sev: frozenset(classes) for sev, classes in index.items()}
