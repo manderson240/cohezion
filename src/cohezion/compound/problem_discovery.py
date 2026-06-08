@@ -1674,3 +1674,24 @@ def count_unique_finding_ids(problems: list[Problem]) -> int:
     Pure (no I/O, no SurrealDB).
     """
     return len({p.finding_id for p in problems})
+
+
+def has_duplicate_finding_ids(problems: list[Problem]) -> bool:
+    """Return True iff any finding_id appears more than once — item 211.
+
+    Boolean face of :func:`count_unique_finding_ids`::
+
+        if has_duplicate_finding_ids(findings):
+            warn("duplicate ids detected")
+
+    Args:
+        problems:
+            A list of :class:`Problem` instances.  Empty list → ``False``.
+
+    Returns:
+        ``True`` when any ``finding_id`` appears on multiple :class:`Problem`
+        instances; ``False`` when all ids are distinct or the list is empty.
+
+    Pure (no I/O, no SurrealDB).
+    """
+    return count_unique_finding_ids(problems) < len(problems)
