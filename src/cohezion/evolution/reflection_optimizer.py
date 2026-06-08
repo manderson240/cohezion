@@ -218,7 +218,7 @@ Does the improvement address the feedback? Answer with JSON only:
                         assess_json = json.loads(assess_raw)
                         satisfied = bool(assess_json.get("satisfied", False))
                         reasoning = assess_json.get("reasoning", assess_raw)
-                    except (json.JSONDecodeError, ValueError):
+                    except ValueError:
                         satisfied = "true" in assess_raw.lower()
 
                     # Commit
