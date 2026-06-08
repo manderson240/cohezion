@@ -12485,3 +12485,20 @@ def class_severity_spread(problems: list[Problem]) -> dict[str, int]:
             severities[p.problem_class] = set()
         severities[p.problem_class].add(p.severity or "")
     return {cls: len(sev_set) for cls, sev_set in severities.items()}
+
+
+def fid_severity_spread(problems: list[Problem]) -> dict[str, int]:
+    """Return count of distinct severity levels per fid.  Item 652.
+
+    FID-axis complement of class_severity_spread (item 651).
+    For each fid: number of distinct severity strings observed.
+    int >= 1.  Empty -> {}.  Pure; no I/O.
+    """
+    if not problems:
+        return {}
+    severities: dict[str, set[str]] = {}
+    for p in problems:
+        if p.finding_id not in severities:
+            severities[p.finding_id] = set()
+        severities[p.finding_id].add(p.severity or "")
+    return {fid: len(sev_set) for fid, sev_set in severities.items()}
