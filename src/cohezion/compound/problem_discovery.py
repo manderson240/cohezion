@@ -2675,3 +2675,53 @@ def total_problems_in_classes(
     """
     counts = problem_count_by_class(problems)
     return sum(counts.get(cls, 0) for cls in classes)
+
+
+def threshold_class_partition(
+    problems: list[Problem],
+    thresholds: dict[str, int],
+) -> dict[str, frozenset[str]]:
+    """Partition monitored classes into within-budget / at-threshold / over-budget.
+
+    Returns a dict with exactly three ``frozenset[str]`` values::
+
+        {
+            "within_budget":  classes whose count  < threshold,
+            "at_threshold":   classes whose count == threshold,
+            "over_budget":    classes whose count  > threshold,
+        }
+
+    The three sets are disjoint; their union equals ``frozenset(thresholds)``.
+    Unmonitored classes (absent from *thresholds*) appear in none of the sets.
+
+    NOTE: Distinct from :func:`partition_problems_by_threshold` (item 202),
+    which returns a 2-tuple of ``Problem`` lists.  This function operates on
+    class names and produces a three-way dict.
+
+    Args:
+        problems:   List of :class:`Problem` instances from a scan.
+        thresholds: ``{problem_class: max_allowed_count}`` mapping.
+
+    Returns:
+        ``dict[str, frozenset[str]]`` with keys
+        ``"within_budget"``, ``"at_threshold"``, ``"over_budget"``.
+
+    Pure (no I/O, no SurrealDB).
+    """
+    counts = problem_count_by_class(problems)
+    within: list[str] = []
+    at: list[str] = []
+    over: list[str] = []
+    for cls, limit in thresholds.items():
+        count = counts.get(cls, 0)
+        if count < limit:
+            within.append(cls)
+        elif count == limit:
+            at.append(cls)
+        else:
+            over.append(cls)
+    return {
+        "within_budget": frozenset(within),
+        "at_threshold": frozenset(at),
+        "over_budget": frozenset(over),
+    }
