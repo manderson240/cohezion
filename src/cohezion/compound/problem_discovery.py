@@ -15340,7 +15340,9 @@ def fid_severity_rank_low_fraction(problems: list[Problem]) -> dict[str, float]:
     return {fid: float(low_counts[fid]) / totals[fid] for fid in totals}
 
 
-def class_severity_rank_fraction_below(problems: list["Problem"], threshold: int) -> dict[str, float]:
+def class_severity_rank_fraction_below(
+    problems: list[Problem], threshold: int
+) -> dict[str, float]:
     """Fraction with rank strictly below threshold per class.  Item 788.
 
     fraction = count(rank < threshold) / n per class.
@@ -15362,7 +15364,7 @@ def class_severity_rank_fraction_below(problems: list["Problem"], threshold: int
     return {cls: float(counts[cls]) / totals[cls] for cls in totals}
 
 
-def fid_severity_rank_fraction_below(problems: list["Problem"], threshold: int) -> dict[str, float]:
+def fid_severity_rank_fraction_below(problems: list[Problem], threshold: int) -> dict[str, float]:
     """Fraction with rank strictly below threshold per fid.  Item 789.
 
     Fid-axis complement of class_severity_rank_fraction_below (item 788).
@@ -15429,3 +15431,39 @@ def fid_severity_rank_medium_fraction(problems: list[Problem]) -> dict[str, floa
     below3 = fid_severity_rank_fraction_below(problems, 3)
     below2 = fid_severity_rank_fraction_below(problems, 2)
     return {fid: below3[fid] - below2.get(fid, 0.0) for fid in below3}
+
+
+def class_severity_rank_low_count(problems: list[Problem]) -> dict[str, int]:
+    """Absolute count of problems with rank <= 1 (INFO or LOW) per class.  Item 796.
+
+    count = count(rank <= 1) per class.
+    All HIGH -> 0.  All INFO -> n.  Empty -> {}.  Pure; no I/O.
+    """
+    if not problems:
+        return {}
+    counts: dict[str, int] = {}
+    for p in problems:
+        cls = p.problem_class
+        if cls not in counts:
+            counts[cls] = 0
+        if _SEVERITY_RANK.get(p.severity, 0) <= 1:
+            counts[cls] += 1
+    return counts
+
+
+def fid_severity_rank_low_count(problems: list[Problem]) -> dict[str, int]:
+    """Absolute count of problems with rank <= 1 (INFO or LOW) per fid.  Item 797.
+
+    Fid-axis complement of class_severity_rank_low_count (item 796).
+    count = count(rank <= 1) per fid.  All HIGH -> 0.  Empty -> {}.  Pure; no I/O.
+    """
+    if not problems:
+        return {}
+    counts: dict[str, int] = {}
+    for p in problems:
+        fid = p.finding_id
+        if fid not in counts:
+            counts[fid] = 0
+        if _SEVERITY_RANK.get(p.severity, 0) <= 1:
+            counts[fid] += 1
+    return counts
