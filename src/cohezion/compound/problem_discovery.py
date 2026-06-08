@@ -11257,3 +11257,24 @@ def class_score_rank_competition(
         score_to_rank[score] = rank
         rank += sum(1 for s in totals.values() if s == score)
     return {cls: score_to_rank[score] for cls, score in totals.items()}
+
+
+def class_fid_ratio(problems: list[Problem]) -> dict[str, float]:
+    """Return ratio of distinct fids to total problems per class.  Item 594.
+
+    Returns {class: distinct_fids / total_problems}.
+    Reciprocal of class_problem_density (total_problems / distinct_fids).
+    ratio=1.0 means every problem has a unique fid (maximum spread).
+    ratio near 0 means problems cluster on very few fids.
+    Single-problem class -> 1.0.  Empty -> {}.  Pure; no I/O.
+    """
+    if not problems:
+        return {}
+    totals: dict[str, int] = {}
+    fids: dict[str, set[str]] = {}
+    for p in problems:
+        totals[p.problem_class] = totals.get(p.problem_class, 0) + 1
+        if p.problem_class not in fids:
+            fids[p.problem_class] = set()
+        fids[p.problem_class].add(p.finding_id)
+    return {cls: float(len(fids[cls])) / totals[cls] for cls in totals}
