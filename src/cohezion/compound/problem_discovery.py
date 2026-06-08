@@ -13882,3 +13882,65 @@ def fid_severity_rank_iqr(problems: list[Problem]) -> dict[str, float]:
             q3 = _median_of_sorted(ranks[(n + 1) // 2 :])
             result[fid] = q3 - q1
     return result
+
+
+def class_severity_rank_skew(problems: list[Problem]) -> dict[str, float]:
+    """Fisher-Pearson sample skewness of severity ranks per class.  Item 732.
+
+    g1 = n/((n-1)*(n-2)) * sum(((x-mean)/s)^3) where s = sample std.
+    n < 3 -> 0.0.  All-same -> 0.0.  Empty -> {}.  Pure; no I/O.
+    """
+    if not problems:
+        return {}
+    ranks_by_class: dict[str, list[int]] = {}
+    for p in problems:
+        cls = p.problem_class
+        if cls not in ranks_by_class:
+            ranks_by_class[cls] = []
+        ranks_by_class[cls].append(_SEVERITY_RANK.get(p.severity, 0))
+    result: dict[str, float] = {}
+    for cls, ranks in ranks_by_class.items():
+        n = len(ranks)
+        if n < 3:
+            result[cls] = 0.0
+        else:
+            mean = sum(ranks) / n
+            sample_var = sum((r - mean) ** 2 for r in ranks) / (n - 1)
+            if sample_var == 0.0:
+                result[cls] = 0.0
+            else:
+                s = math.sqrt(sample_var)
+                skew = (n / ((n - 1) * (n - 2))) * sum(((r - mean) / s) ** 3 for r in ranks)
+                result[cls] = skew
+    return result
+
+
+def fid_severity_rank_skew(problems: list[Problem]) -> dict[str, float]:
+    """Fisher-Pearson sample skewness of severity ranks per fid.  Item 733.
+
+    Fid-axis complement of class_severity_rank_skew (item 732).
+    n < 3 -> 0.0.  All-same -> 0.0.  Empty -> {}.  Pure; no I/O.
+    """
+    if not problems:
+        return {}
+    ranks_by_fid: dict[str, list[int]] = {}
+    for p in problems:
+        fid = p.finding_id
+        if fid not in ranks_by_fid:
+            ranks_by_fid[fid] = []
+        ranks_by_fid[fid].append(_SEVERITY_RANK.get(p.severity, 0))
+    result: dict[str, float] = {}
+    for fid, ranks in ranks_by_fid.items():
+        n = len(ranks)
+        if n < 3:
+            result[fid] = 0.0
+        else:
+            mean = sum(ranks) / n
+            sample_var = sum((r - mean) ** 2 for r in ranks) / (n - 1)
+            if sample_var == 0.0:
+                result[fid] = 0.0
+            else:
+                s = math.sqrt(sample_var)
+                skew = (n / ((n - 1) * (n - 2))) * sum(((r - mean) / s) ** 3 for r in ranks)
+                result[fid] = skew
+    return result
