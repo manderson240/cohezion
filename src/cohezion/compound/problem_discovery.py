@@ -2478,3 +2478,28 @@ def sample_problems_by_class(
         elif n == 0 and p.problem_class not in groups:
             groups[p.problem_class] = []
     return groups
+
+
+def problems_added_since_scan(
+    problems: list[Problem],
+    baseline_ids: frozenset[str],
+) -> list[Problem]:
+    """Return problems whose finding_id was not present in a prior scan.
+
+    Compares each problem's ``finding_id`` against *baseline_ids* (the set
+    of finding IDs from a previous scan).  Problems absent from the baseline
+    are "new" findings.  Input order is preserved among returned problems.
+
+    Args:
+        problems:     Current list of ``Problem`` instances.
+        baseline_ids: ``frozenset[str]`` of finding IDs from the prior scan.
+                      Empty frozenset → all current problems are new.
+
+    Returns:
+        ``list[Problem]`` of problems not present in the baseline, in
+        original input order.  Returns ``[]`` when *problems* is empty or
+        all problems are already in the baseline.
+
+    Pure (no I/O, no SurrealDB).
+    """
+    return [p for p in problems if p.finding_id not in baseline_ids]
