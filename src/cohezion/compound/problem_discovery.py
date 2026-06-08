@@ -13208,3 +13208,21 @@ def fid_severity_rank_avg(problems: list[Problem]) -> dict[str, float]:
         totals[fid][0] += _SEVERITY_RANK.get(p.severity, 0)
         totals[fid][1] += 1
     return {fid: float(v[0]) / v[1] for fid, v in totals.items()}
+
+
+def class_severity_rank_max(problems: list[Problem]) -> dict[str, int]:
+    """Return maximum severity rank per class as int.  Item 698.
+
+    Returns the highest _SEVERITY_RANK value present for each class.
+    Unknown severities rank as 0.
+    Returns {class: max_rank}.  Empty -> {}.  Pure; no I/O.
+    """
+    if not problems:
+        return {}
+    result: dict[str, int] = {}
+    for p in problems:
+        cls = p.problem_class
+        rank = _SEVERITY_RANK.get(p.severity, 0)
+        if cls not in result or rank > result[cls]:
+            result[cls] = rank
+    return result
