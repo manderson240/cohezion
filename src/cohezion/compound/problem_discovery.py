@@ -11796,3 +11796,22 @@ def fid_class_distinct_count(problems: list[Problem]) -> dict[str, int]:
             classes[p.finding_id] = set()
         classes[p.finding_id].add(p.problem_class)
     return {fid: len(cls_set) for fid, cls_set in classes.items()}
+
+
+def fid_class_coverage_ratio(problems: list[Problem]) -> dict[str, float]:
+    """Return fraction of total distinct classes covered per fid.  Item 620.
+
+    FID-axis complement of class_fid_coverage_ratio.
+    Returns {fid: distinct_classes_for_fid / total_distinct_classes}.
+    Empty -> {}.  Float in (0.0, 1.0].  Pure; no I/O.
+    """
+    if not problems:
+        return {}
+    total_classes: set[str] = {p.problem_class for p in problems}
+    total = len(total_classes)
+    fid_classes: dict[str, set[str]] = {}
+    for p in problems:
+        if p.finding_id not in fid_classes:
+            fid_classes[p.finding_id] = set()
+        fid_classes[p.finding_id].add(p.problem_class)
+    return {fid: float(len(cls_set)) / total for fid, cls_set in fid_classes.items()}
