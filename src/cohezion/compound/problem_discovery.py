@@ -2970,3 +2970,34 @@ def cross_class_severity_map(problems: list[Problem]) -> dict[str, dict[str, int
         inner = result.setdefault(p.problem_class, {})
         inner[p.severity] = inner.get(p.severity, 0) + 1
     return result
+
+
+def top_classes_by_severity(
+    problems: list[Problem],
+    severity: str,
+    n: int,
+) -> list[str]:
+    """Return the top *n* class names ranked by their count at *severity*.
+
+    Classes are ranked by their problem count at *severity* in descending
+    order.  Ties are broken alphabetically ascending by class name.  Classes
+    that have no problems at *severity* are excluded from the result.
+
+    Args:
+        problems: List of :class:`Problem` instances from a scan.
+        severity: Exact severity string to rank by (case-sensitive).
+        n:        Maximum number of class names to return.  n=0 → ``[]``.
+
+    Returns:
+        ``list[str]`` of at most *n* class names, ranked as described above.
+
+    Pure (no I/O, no SurrealDB).
+    """
+    if n == 0:
+        return []
+    counts: dict[str, int] = {}
+    for p in problems:
+        if p.severity == severity:
+            counts[p.problem_class] = counts.get(p.problem_class, 0) + 1
+    ranked = sorted(counts, key=lambda cls: (-counts[cls], cls))
+    return ranked[:n]
