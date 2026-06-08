@@ -45,9 +45,13 @@ def test_two_dimensional_structure() -> None:
     result = class_severity_matrix(problems)
     assert isinstance(result, dict), "Must return dict; got " + repr(type(result))
     # Outer keys are classes
-    assert set(result.keys()) == {"bug", "perf"}, "Outer keys = classes; got " + repr(set(result.keys()))
+    assert set(result.keys()) == {"bug", "perf"}, "Outer keys = classes; got " + repr(
+        set(result.keys())
+    )
     # Inner values are dicts
-    assert isinstance(result["bug"], dict), "Inner value must be dict; got " + repr(type(result["bug"]))
+    assert isinstance(result["bug"], dict), "Inner value must be dict; got " + repr(
+        type(result["bug"])
+    )
     # Correct inner key/value
     assert result["bug"]["HIGH"] == 1, "bug/HIGH=1; got " + repr(result["bug"].get("HIGH"))
     assert result["bug"]["LOW"] == 1, "bug/LOW=1; got " + repr(result["bug"].get("LOW"))

@@ -44,9 +44,7 @@ def test_keyed_on_severity_not_class() -> None:
     assert isinstance(result, float), "Must return float; got " + repr(type(result))
     # Both have 'HIGH' severity -> single severity -> H=0.0
     # class_entropy would be 1.0 (two equal classes)
-    assert abs(result - 0.0) < 1e-9, (
-        "Single severity 'HIGH' -> 0.0; got " + repr(result)
-    )
+    assert abs(result - 0.0) < 1e-9, "Single severity 'HIGH' -> 0.0; got " + repr(result)
 
 
 def test_two_equal_severities_returns_one_bit() -> None:

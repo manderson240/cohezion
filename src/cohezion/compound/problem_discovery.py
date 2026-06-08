@@ -7603,3 +7603,32 @@ def severity_entropy(problems: list[Problem]) -> float:
         counts[p.severity] = counts.get(p.severity, 0) + 1
     total = len(problems)
     return -sum((c / total) * math.log2(c / total) for c in counts.values())
+
+
+def severity_gini_impurity(problems: list[Problem]) -> float:
+    """Return the Gini impurity of the severity distribution -- item 438.
+
+    Computes ``G = 1 - sum(p^2)`` where *p* is the fraction of problems with
+    each distinct severity value.
+
+    Special cases:
+
+    - Empty *problems* -> 0.0
+    - Single distinct severity -> 0.0 (pure)
+    - Two equal severities -> 0.5
+
+    Args:
+        problems: List of :class:`Problem` instances.
+
+    Returns:
+        Gini impurity as a float in ``[0.0, 1.0)``.
+
+    Pure (no I/O, no SurrealDB).
+    """
+    if not problems:
+        return 0.0
+    total = len(problems)
+    counts: dict[str, int] = {}
+    for p in problems:
+        counts[p.severity] = counts.get(p.severity, 0) + 1
+    return 1.0 - sum((c / total) ** 2 for c in counts.values())
