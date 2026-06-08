@@ -378,3 +378,84 @@ def test_qwen36_mtp_on_igpu_unified_lane() -> None:
     assert "13308" in m.endpoint, (
         f"{_MTP_MODEL_ID} endpoint={m.endpoint!r}; expected port 13308 (iGPU Unified)"
     )
+
+
+# ---------------------------------------------------------------------------
+# Item 54 — PaddleOCR-VL-1.6-GGUF second OCR_DOC specialist registration
+# ---------------------------------------------------------------------------
+
+_PADDLEOCR_ID = "PaddleOCR-VL-1.6-GGUF"
+_GLM_OCR_ID = "GLM-OCR-GGUF"  # the existing OCR_DOC seed (priority=25); must remain present
+
+
+def test_paddleocr_vl16_registered() -> None:
+    """Item 54: PaddleOCR-VL-1.6-GGUF must be present in the default registry."""
+    registry = FleetRegistry()
+    assert _PADDLEOCR_ID in registry.models, (
+        f"{_PADDLEOCR_ID} missing from registry; item 54 additive registration not done"
+    )
+
+
+def test_paddleocr_vl16_unverified_working() -> None:
+    """Item 54: PaddleOCR is additive-first — OmniDocBench bake-off is experiment-gated."""
+    registry = FleetRegistry()
+    m = registry.models.get(_PADDLEOCR_ID)
+    assert m is not None, f"{_PADDLEOCR_ID} not in registry"
+    assert not m.verified_working, (
+        f"{_PADDLEOCR_ID} has verified_working=True; the mmproj serving proof and "
+        "OmniDocBench field-accuracy bake-off must pass first (item 54 policy)"
+    )
+
+
+def test_for_task_ocr_doc_includes_both_candidates() -> None:
+    """Item 54 FALSIFIABLE check: for_task(OCR_DOC) must include BOTH GLM-OCR AND PaddleOCR.
+
+    This check CAN come back negative in two ways:
+    - PaddleOCR missing task_affinity OCR_DOC → not in for_task
+    - GLM-OCR accidentally removed → only one candidate returned
+    Either would reveal a bug the test successfully catches.
+    """
+    registry = FleetRegistry()
+    ocr_ids = {m.model_id for m in registry.for_task(Task.OCR_DOC)}
+    assert _GLM_OCR_ID in ocr_ids, (
+        f"{_GLM_OCR_ID} must remain in for_task(OCR_DOC) after item 54 — "
+        "PaddleOCR registration is ADDITIVE; GLM-OCR must not be displaced"
+    )
+    assert _PADDLEOCR_ID in ocr_ids, (
+        f"{_PADDLEOCR_ID} must appear in for_task(OCR_DOC) — "
+        "0.9B 96.33% OmniDocBench SOTA model must be routable"
+    )
+
+
+def test_paddleocr_vl16_non_displacing_priority() -> None:
+    """Item 54: PaddleOCR priority > GLM-OCR so the unverified alternative never auto-displaces.
+
+    The bake-off (OmniDocBench accuracy >= GLM-OCR at <= memory) must pass before raising
+    PaddleOCR's priority above GLM-OCR. Until then, GLM-OCR is preferred.
+    """
+    registry = FleetRegistry()
+    paddle = registry.models[_PADDLEOCR_ID]
+    glm = registry.models[_GLM_OCR_ID]
+    assert paddle.priority > glm.priority, (
+        f"{_PADDLEOCR_ID} (priority={paddle.priority}) must have LOWER preference than "
+        f"{_GLM_OCR_ID} (priority={glm.priority}) — the unverified PaddleOCR must not "
+        "displace the existing OCR seed before the bake-off proof passes."
+    )
+
+
+def test_paddleocr_vl16_shares_lane_with_glm_ocr() -> None:
+    """Item 54: PaddleOCR targets the same lane/endpoint as GLM-OCR (same mmproj path).
+
+    Both are VLMs served via llama-mtmd sidecar on the IGPU_ROCWMMA lane. Using the
+    same endpoint ensures the serving recipe (item 18 path) applies to both.
+    """
+    registry = FleetRegistry()
+    paddle = registry.models[_PADDLEOCR_ID]
+    glm = registry.models[_GLM_OCR_ID]
+    assert paddle.lane == glm.lane, (
+        f"{_PADDLEOCR_ID} lane={paddle.lane} != {_GLM_OCR_ID} lane={glm.lane}; "
+        "both OCR_DOC VLMs share the mmproj serving path on the same silicon"
+    )
+    assert paddle.endpoint == glm.endpoint, (
+        f"{_PADDLEOCR_ID} endpoint={paddle.endpoint!r} != {_GLM_OCR_ID} endpoint={glm.endpoint!r}"
+    )

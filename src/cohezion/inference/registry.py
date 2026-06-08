@@ -368,6 +368,33 @@ def _build_default_registry() -> dict[str, ModelEntry]:
                 "after a real OCR/doc proof — SHARES item 18's vision-projector experiment."
             ),
         ),
+        # --- Item 54: PaddleOCR-VL-1.6-GGUF second OCR_DOC specialist (additive-first) ---
+        # PaddlePaddle/PaddleOCR-VL-1.6-GGUF (model_info: official apache-2.0, GGUF + mmproj,
+        # 0.9B, 96.33% OmniDocBench v1.6 SOTA). Registered as a SECOND OCR_DOC candidate
+        # alongside GLM-OCR-GGUF. for_task(OCR_DOC) returns both, priority-sorted.
+        # Priority=26 (non-displacing: GLM-OCR is 25). Bake-off is the experiment:
+        #   OmniDocBench field-accuracy >= GLM-OCR AND memory <= K1/rule-5 → raise priority;
+        #   else keep GLM-OCR as primary. Shares item-18 mmproj serving path (llama-mtmd).
+        ModelEntry(
+            model_id="PaddleOCR-VL-1.6-GGUF",
+            lane=Lane.IGPU_ROCWMMA,
+            endpoint="http://localhost:13307",
+            runtime_backend="llamacpp_hip",  # vision/OCR needs --mmproj (llama-mtmd) — shares item 18
+            task_affinity=frozenset({Task.OCR_DOC}),
+            weight_quant=WeightQuant.Q4_K_M,  # 0.9B VLM; GGUF + mmproj (official PaddlePaddle)
+            context_window=4096,  # OCR/document task (natural 2K-4K for structured doc parsing)
+            priority=26,  # non-displacing: GLM-OCR is 25; raise only after bake-off proof passes
+            verified_working=False,  # mmproj serving proof + OmniDocBench bake-off not yet run
+            notes=(
+                "PaddleOCR-VL-1.6 second OCR_DOC specialist (item 54). "
+                "PaddlePaddle/PaddleOCR-VL-1.6-GGUF (model_info-verified: official apache-2.0, "
+                "GGUF + mmproj, 0.9B, 96.33% OmniDocBench v1.6 SOTA). Strong alternative to "
+                "GLM-OCR-GGUF for document parsing. 0.9B → tiny memory footprint, easy K1/rule-5. "
+                "mmproj-GATED: shares item-18 serving path (llama-mtmd sidecar). "
+                "verified_working flips True only after real OCR/doc proof AND OmniDocBench "
+                "field-accuracy >= GLM-OCR at <= its memory — THEN raise priority below 25 to prefer."
+            ),
+        ),
         ModelEntry(
             model_id="Mellum-4b-base-GGUF",
             lane=Lane.IGPU_ROCWMMA,
