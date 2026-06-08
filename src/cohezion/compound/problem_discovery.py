@@ -3860,3 +3860,37 @@ def problem_count_by_severity_in_class(
         if p.problem_class == cls and p.severity:
             counts[p.severity] = counts.get(p.severity, 0) + 1
     return counts
+
+
+def dominant_severity_per_class(problems: list[Problem]) -> dict[str, str]:
+    """Return the most common labelled severity for each class.
+
+    For every class that has at least one labelled problem, maps the class name
+    to its most frequent severity label.  Classes whose problems are all
+    unlabelled (``severity=""``) are omitted from the result.
+
+    Tie-breaking: when two severities share the same count, the
+    lexicographically smallest severity label wins.
+
+    Args:
+        problems: List of :class:`Problem` instances from a scan.
+
+    Returns:
+        dict mapping class_name → dominant severity string.  Empty dict when
+        *problems* is empty or no class has a labelled problem.
+
+    Pure (no I/O, no SurrealDB).
+    """
+    # Accumulate per-class severity counts
+    class_counts: dict[str, dict[str, int]] = {}
+    for p in problems:
+        if p.severity:
+            class_counts.setdefault(p.problem_class, {})
+            class_counts[p.problem_class][p.severity] = (
+                class_counts[p.problem_class].get(p.severity, 0) + 1
+            )
+    # For each class pick the severity with max count (lex-smallest on tie)
+    return {
+        cls: max(sev_counts, key=lambda s: (sev_counts[s], [-ord(c) for c in s]))
+        for cls, sev_counts in class_counts.items()
+    }
