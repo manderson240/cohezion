@@ -15579,3 +15579,41 @@ def fid_severity_rank_info_count(problems: list[Problem]) -> dict[str, int]:
         if _SEVERITY_RANK.get(p.severity, 0) == 0:
             counts[fid] += 1
     return counts
+
+
+def class_severity_rank_medium_count(problems: list[Problem]) -> dict[str, int]:
+    """Absolute count of problems with rank == 2 (MEDIUM only) per class.  Item 806.
+
+    count = count(rank == 2) per class.
+    LOW (rank 1) and HIGH (rank 3) are NOT included; only MEDIUM (rank 2).
+    Zero-inclusive: class with no MEDIUM still appears with count=0.
+    Empty -> {}.  Pure; no I/O.
+    """
+    if not problems:
+        return {}
+    counts: dict[str, int] = {}
+    for p in problems:
+        cls = p.problem_class
+        if cls not in counts:
+            counts[cls] = 0
+        if _SEVERITY_RANK.get(p.severity, 0) == 2:
+            counts[cls] += 1
+    return counts
+
+
+def fid_severity_rank_medium_count(problems: list[Problem]) -> dict[str, int]:
+    """Absolute count of problems with rank == 2 (MEDIUM only) per fid.  Item 807.
+
+    Fid-axis complement of class_severity_rank_medium_count (item 806).
+    count = count(rank == 2) per fid.  Zero-inclusive.  Empty -> {}.  Pure; no I/O.
+    """
+    if not problems:
+        return {}
+    counts: dict[str, int] = {}
+    for p in problems:
+        fid = p.finding_id
+        if fid not in counts:
+            counts[fid] = 0
+        if _SEVERITY_RANK.get(p.severity, 0) == 2:
+            counts[fid] += 1
+    return counts
