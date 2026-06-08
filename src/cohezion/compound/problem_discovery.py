@@ -11025,3 +11025,37 @@ def fid_problem_density(
             classes[p.finding_id] = set()
         classes[p.finding_id].add(p.problem_class)
     return {fid: float(totals[fid]) / len(classes[fid]) for fid in totals}
+
+
+def class_severity_entropies(problems: list[Problem]) -> dict[str, float]:
+    """Return Shannon entropy (bits) of severity distribution per class.  Item 582.
+
+    H = -sum(p * log2(p)) over severity labels for each class.
+    Single-severity class -> 0.0 (no uncertainty).
+    Distinct from class_severity_entropy(problems, cls) which returns a single float.
+    Empty -> {}.  Pure; no I/O.
+    """
+    import math
+
+    if not problems:
+        return {}
+    # Collect severity counts per class
+    sev_counts: dict[str, dict[str, int]] = {}
+    for p in problems:
+        if p.problem_class not in sev_counts:
+            sev_counts[p.problem_class] = {}
+        sev = p.severity or ""
+        sev_counts[p.problem_class][sev] = sev_counts[p.problem_class].get(sev, 0) + 1
+    result: dict[str, float] = {}
+    for cls, counts in sev_counts.items():
+        total = sum(counts.values())
+        if total == 0:
+            result[cls] = 0.0
+            continue
+        entropy = 0.0
+        for cnt in counts.values():
+            if cnt > 0:
+                p = cnt / total
+                entropy -= p * math.log2(p)
+        result[cls] = entropy
+    return result
