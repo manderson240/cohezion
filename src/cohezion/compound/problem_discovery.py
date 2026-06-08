@@ -1915,3 +1915,40 @@ def filter_by_finding_id_prefix(
     if not id_prefixes or not problems:
         return []
     return [p for p in problems if any(p.finding_id.startswith(prefix) for prefix in id_prefixes)]
+
+
+def partition_by_threshold(
+    problems: list[Problem],
+    thresholds: dict[str, int],
+) -> tuple[frozenset[str], frozenset[str]]:
+    """Split monitored classes into over-threshold and at-or-under-threshold sets.
+
+    Returns ``(over, under)`` where:
+    - ``over``  = monitored classes whose count *strictly exceeds* their threshold
+    - ``under`` = monitored classes whose count is *at or below* their threshold
+
+    The two sets are always disjoint and their union equals
+    ``frozenset(thresholds.keys())``.  Unmonitored classes (not in *thresholds*)
+    are absent from both sets.
+
+    Args:
+        problems:   List of ``Problem`` instances to examine.
+        thresholds: Mapping of ``{problem_class: max_allowed_count}``.
+                    Empty mapping -> ``(frozenset(), frozenset())``.
+
+    Returns:
+        ``tuple[frozenset[str], frozenset[str]]`` -- ``(over, under)``.
+
+    Pure (no I/O, no SurrealDB).
+    """
+    if not thresholds:
+        return frozenset(), frozenset()
+    counts = problem_count_by_class(problems)
+    over: set[str] = set()
+    under: set[str] = set()
+    for cls, limit in thresholds.items():
+        if counts.get(cls, 0) > limit:
+            over.add(cls)
+        else:
+            under.add(cls)
+    return frozenset(over), frozenset(under)
