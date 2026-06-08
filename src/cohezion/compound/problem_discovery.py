@@ -11432,3 +11432,28 @@ def fid_problem_rate(problems: list[Problem]) -> dict[str, float]:
             classes[p.finding_id] = set()
         classes[p.finding_id].add(p.problem_class)
     return {fid: float(totals[fid]) / len(classes[fid]) for fid in totals}
+
+
+def class_severity_gini(problems: list[Problem]) -> dict[str, float]:
+    """Return Gini impurity of severity distribution per class.  Item 602.
+
+    Gini impurity = 1 - sum(p_i^2) where p_i = fraction of problems with severity i.
+    Single-severity class -> 0.0 (pure).
+    Uniform 2-severity class -> 0.5 (NOT 1.0 which would be Shannon entropy).
+    Uniform k-severity class -> (k-1)/k.
+    Empty -> {}.  Pure; no I/O.
+    """
+    if not problems:
+        return {}
+    counts: dict[str, dict[str, int]] = {}
+    for p in problems:
+        if p.problem_class not in counts:
+            counts[p.problem_class] = {}
+        sev = p.severity or ""
+        counts[p.problem_class][sev] = counts[p.problem_class].get(sev, 0) + 1
+    result: dict[str, float] = {}
+    for cls, sev_counts in counts.items():
+        total = sum(sev_counts.values())
+        gini = 1.0 - sum((c / total) ** 2 for c in sev_counts.values())
+        result[cls] = gini
+    return result
