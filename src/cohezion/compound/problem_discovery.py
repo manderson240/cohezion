@@ -13367,3 +13367,22 @@ def fid_severity_above_threshold(problems: list[Problem], threshold: int) -> dic
         if _SEVERITY_RANK.get(p.severity, 0) > threshold:
             result[fid] += 1
     return result
+
+
+def class_severity_at_threshold(problems: list[Problem], threshold: int) -> dict[str, int]:
+    """Count problems per class whose severity rank exactly equals threshold.  Item 706.
+
+    Exact equality (not > and not >=).
+    Zero-inclusive: classes with no exact match appear with count 0.
+    Returns {class: count_at}.  Empty -> {}.  Pure; no I/O.
+    """
+    if not problems:
+        return {}
+    result: dict[str, int] = {}
+    for p in problems:
+        cls = p.problem_class
+        if cls not in result:
+            result[cls] = 0
+        if _SEVERITY_RANK.get(p.severity, 0) == threshold:
+            result[cls] += 1
+    return result
