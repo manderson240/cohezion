@@ -10581,3 +10581,22 @@ def class_fid_count(
             fids[p.problem_class] = set()
         fids[p.problem_class].add(p.finding_id)
     return {cls: len(fid_set) for cls, fid_set in fids.items()}
+
+
+def fid_class_count(
+    problems: list[Problem],
+) -> dict[str, int]:
+    """Return count of distinct classes each fid appears in.  Item 559.
+
+    Spread indicator: fids in many classes are cross-cutting concerns.
+    FID-axis complement of class_fid_count.
+    Unweighted -- ignores severity.  Empty -> {}.  Pure; no I/O.
+    """
+    if not problems:
+        return {}
+    classes: dict[str, set[str]] = {}
+    for p in problems:
+        if p.finding_id not in classes:
+            classes[p.finding_id] = set()
+        classes[p.finding_id].add(p.problem_class)
+    return {fid: len(cls_set) for fid, cls_set in classes.items()}
