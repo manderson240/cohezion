@@ -11841,3 +11841,27 @@ def class_global_density(problems: list[Problem]) -> dict[str, float]:
     return {
         cls: float(class_probs[cls]) / (len(class_fids[cls]) * total_fids) for cls in class_probs
     }
+
+
+def class_severity_concentration(problems: list[Problem]) -> dict[str, float]:
+    """Return the dominance fraction of the most frequent severity per class.  Item 622.
+
+    concentration = max_severity_count / total_class_problems.
+    1.0 means all problems share a single severity bucket; lower values indicate
+    spread across multiple severities.
+    Empty -> {}.  Float in (0, 1].  Pure; no I/O.
+    """
+    if not problems:
+        return {}
+    sev_counts: dict[str, dict[str, int]] = {}
+    totals: dict[str, int] = {}
+    for p in problems:
+        if p.problem_class not in sev_counts:
+            sev_counts[p.problem_class] = {}
+        sev = p.severity if p.severity else ""
+        sev_counts[p.problem_class][sev] = sev_counts[p.problem_class].get(sev, 0) + 1
+        totals[p.problem_class] = totals.get(p.problem_class, 0) + 1
+    return {
+        cls: float(max(bucket.values())) / totals[cls]
+        for cls, bucket in sev_counts.items()
+    }
