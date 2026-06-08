@@ -1594,3 +1594,31 @@ def budget_status(
     return {
         cls: "over" if counts.get(cls, 0) > limit else "ok" for cls, limit in thresholds.items()
     }
+
+
+def finding_ids_for_class(
+    problems: list[Problem],
+    problem_class: str,
+) -> list[str]:
+    """Return all finding-ids belonging to the given class — item 208.
+
+    The bulk ID-extraction face: extracts ``finding_id`` strings for every
+    :class:`Problem` in *problems* whose ``problem_class`` matches.  Preserves
+    input order; absent class returns ``[]``; empty list returns ``[]``::
+
+        ids = finding_ids_for_class(findings, "complexity_outlier")
+        # ["complexity_outlier:src/foo.py", ...]
+
+    Args:
+        problems:
+            A list of :class:`Problem` instances.
+        problem_class:
+            The class to filter by.
+
+    Returns:
+        ``list[str]`` of ``finding_id`` values in input order.
+        ``[]`` when *problem_class* is absent or *problems* is empty.
+
+    Pure (no I/O, no SurrealDB).
+    """
+    return [p.finding_id for p in problems if p.problem_class == problem_class]
