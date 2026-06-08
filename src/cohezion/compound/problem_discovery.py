@@ -13115,3 +13115,24 @@ def class_severity_ratio(problems: list[Problem], severity: str) -> dict[str, fl
         if p.severity == severity:
             counts[cls][0] += 1
     return {cls: float(v[0]) / v[1] for cls, v in counts.items()}
+
+
+def fid_severity_ratio(problems: list[Problem], severity: str) -> dict[str, float]:
+    """Return fraction of problems matching severity per fid.  Item 691.
+
+    Fid-axis complement of class_severity_ratio (item 690).
+    ratio = matching_count / total_count_for_fid.  Float 0.0..1.0.
+    Zero-inclusive: fids without the severity return 0.0 (not absent).
+    Returns {fid: float}.  Empty -> {}.  Pure; no I/O.
+    """
+    if not problems:
+        return {}
+    counts: dict[str, list[int]] = {}  # [matching, total]
+    for p in problems:
+        fid = p.finding_id
+        if fid not in counts:
+            counts[fid] = [0, 0]
+        counts[fid][1] += 1
+        if p.severity == severity:
+            counts[fid][0] += 1
+    return {fid: float(v[0]) / v[1] for fid, v in counts.items()}
