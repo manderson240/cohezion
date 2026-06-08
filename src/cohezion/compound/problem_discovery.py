@@ -4483,3 +4483,40 @@ def severity_heatmap(
             inner = result.setdefault(p.problem_class, {})
             inner[p.severity] = inner.get(p.severity, 0) + 1
     return result
+
+
+def most_severe_class(
+    problems: list[Problem],
+    severity_order: list[str],
+) -> str | None:
+    """Return the class whose dominant severity ranks highest in *severity_order*.
+
+    Uses :func:`dominant_severity_per_class` to determine each class's dominant
+    severity, then ranks those severities by their position in *severity_order*
+    (lower index = higher priority).  Classes whose dominant severity is absent
+    from *severity_order* are treated as having the lowest possible rank.
+
+    Ties in rank are broken by class name ascending (lexicographically smallest
+    class name wins when two classes share the same severity rank).
+
+    Args:
+        problems:       Flat list of :class:`Problem` records.
+        severity_order: Caller-supplied list of severity strings from most
+                        severe to least severe (e.g. ``["CRITICAL","HIGH","LOW"]``).
+
+    Returns:
+        Class name with the highest-priority dominant severity, or ``None``
+        when there are no labelled classes.
+
+    Pure (no I/O, no SurrealDB).
+    """
+    dominant = dominant_severity_per_class(problems)
+    if not dominant:
+        return None
+    # Build rank lookup; absent severities get the worst rank.
+    worst_rank = len(severity_order)
+    rank = {sev: idx for idx, sev in enumerate(severity_order)}
+    return min(
+        dominant,
+        key=lambda cls: (rank.get(dominant[cls], worst_rank), cls),
+    )
