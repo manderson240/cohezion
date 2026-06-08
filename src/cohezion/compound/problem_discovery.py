@@ -1417,3 +1417,44 @@ def partition_problems_by_threshold(
         else:
             within.append(p)
     return (above, within)
+
+
+def threshold_violations(
+    problems: list[Problem],
+    thresholds: dict[str, int],
+) -> dict[str, int]:
+    """Per-class threshold breach report: how far over budget each monitored class is — item 203.
+
+    Returns ``{problem_class: excess_count}`` for every monitored class whose
+    finding count strictly EXCEEDS its configured threshold.  The value is the
+    *excess* (``count - threshold``), not the raw count, so the caller can
+    reason about budget overruns directly::
+
+        violations = threshold_violations(findings, {"complexity_outlier": 2})
+        # → {"complexity_outlier": 1}  if 3 findings exist (3 - 2 = 1 over)
+
+    Classes whose count equals the threshold are NOT violations (0 excess) and
+    are absent from the result.  Unmonitored classes (absent from *thresholds*)
+    are also absent.  Empty *thresholds* → ``{}``.
+
+    Args:
+        problems:
+            A list of :class:`Problem` instances.  Empty list → ``{}``.
+        thresholds:
+            ``{problem_class: max_allowed_count}`` mapping.  Only classes
+            present in *thresholds* are monitored.  Empty → ``{}``.
+
+    Returns:
+        ``{problem_class: excess_count}`` where every value is a positive
+        integer (> 0).  Classes at or below their threshold are absent.
+
+    Pure (no I/O, no SurrealDB).
+    """
+    if not thresholds or not problems:
+        return {}
+    counts = problem_count_by_class(problems)
+    return {
+        cls: counts[cls] - limit
+        for cls, limit in thresholds.items()
+        if cls in counts and counts[cls] > limit
+    }
