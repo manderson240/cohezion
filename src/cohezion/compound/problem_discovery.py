@@ -8272,34 +8272,6 @@ def dominant_severity_for_fid(problems: list[Problem], finding_id: str) -> str |
 
 
 def dominant_class_for_severity(problems: list[Problem], severity: str) -> str | None:
-    """Return the problem class most associated with *severity* -- item 467.
-
-    Counts per-class records for problems whose ``severity`` matches exactly.
-    Returns the class with the highest count.  Tie-break: alphabetically-first
-    class name wins, ensuring a deterministic result.
-
-    Special cases:
-    - Empty *problems* or absent *severity* → ``None``
-
-    Args:
-        problems: List of :class:`Problem` instances.
-        severity: Target severity to filter on.
-
-    Returns:
-        The dominant class string, or ``None`` when the severity is absent.
-
-    Pure (no I/O, no SurrealDB).
-    """
-    counts: dict[str, int] = {}
-    for p in problems:
-        if p.severity == severity:
-            counts[p.problem_class] = counts.get(p.problem_class, 0) + 1
-    if not counts:
-        return None
-    return min(counts, key=lambda c: (-counts[c], c))
-
-
-def dominant_class_for_severity(problems: list[Problem], severity: str) -> str | None:
     """Return the problem_class most associated with *severity* -- item 467.
 
     Counts per-class records for problems whose ``severity`` matches exactly.
@@ -8324,3 +8296,30 @@ def dominant_class_for_severity(problems: list[Problem], severity: str) -> str |
     if not class_counts:
         return None
     return min(class_counts, key=lambda c: (-class_counts[c], c))
+
+
+def dominant_fid_for_severity(problems: list[Problem], severity: str) -> str | None:
+    """Return the finding_id most associated with *severity* -- item 468.
+
+    Counts per-fid records for problems whose ``severity`` matches exactly.
+    Returns the fid with the highest count.  Tie-break: alphabetically first.
+
+    Special cases:
+    - Empty *problems* or absent *severity* -> ``None``
+
+    Args:
+        problems: List of :class:`Problem` instances.
+        severity: Target severity to filter on.
+
+    Returns:
+        The dominant fid string, or ``None`` when the severity is absent.
+
+    Pure (no I/O, no SurrealDB).
+    """
+    fid_counts: dict[str, int] = {}
+    for p in problems:
+        if p.severity == severity:
+            fid_counts[p.finding_id] = fid_counts.get(p.finding_id, 0) + 1
+    if not fid_counts:
+        return None
+    return min(fid_counts, key=lambda f: (-fid_counts[f], f))
