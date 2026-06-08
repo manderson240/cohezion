@@ -4956,3 +4956,28 @@ def severity_coverage_ratio(problems: list["Problem"]) -> dict[str, float]:
     return {sev: count / total_classes for sev, count in counts.items()}
 
 
+def class_finding_id_counts(problems: list["Problem"]) -> dict[str, int]:
+    """Return the number of distinct finding_ids for each class.
+
+    Counts how many unique ``finding_id`` values appear in the problems
+    belonging to each class.  A finding_id that appears in multiple records
+    of the same class still counts as 1.  All problems are included regardless
+    of severity label (including unlabelled).
+
+    Args:
+        problems: List of :class:`Problem` instances from a scan.
+
+    Returns:
+        dict mapping class_name → distinct finding_id count.
+        Empty input → {}.
+
+    Pure (no I/O, no SurrealDB).
+    """
+    if not problems:
+        return {}
+    class_fids: dict[str, set[str]] = {}
+    for p in problems:
+        class_fids.setdefault(p.problem_class, set()).add(p.finding_id)
+    return {cls: len(fids) for cls, fids in class_fids.items()}
+
+
