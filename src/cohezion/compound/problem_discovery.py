@@ -4738,6 +4738,37 @@ def problem_density_by_class(problems: list[Problem]) -> dict[str, float]:
     return {cls: cnt / total for cls, cnt in counts.items()}
 
 
+def problems_above_density_threshold(
+    problems: list[Problem],
+    threshold: float,
+) -> list[Problem]:
+    """Return problems whose class density (class_count/total) >= threshold — item 331.
+
+    Delegates density computation to :func:`problem_density_by_class` and
+    filters the original list to retain only problems whose class meets or
+    exceeds the threshold.  Insertion order is preserved.
+
+    Args:
+        problems:
+            Flat list of :class:`Problem` records.  Empty list -> ``[]``.
+        threshold:
+            Minimum density (inclusive) for a class to qualify.  A value of
+            ``0.0`` returns all problems; a value above ``1.0`` returns ``[]``
+            because no class density can exceed 1.0.
+
+    Returns:
+        A new list of :class:`Problem` objects, preserving the original order,
+        from classes whose density >= threshold.
+
+    Pure (no I/O, no SurrealDB).
+    """
+    if not problems:
+        return []
+    densities = problem_density_by_class(problems)
+    qualifying = {cls for cls, d in densities.items() if d >= threshold}
+    return [p for p in problems if p.problem_class in qualifying]
+
+
 def severity_density_by_class(
     problems: list[Problem],
 ) -> dict[str, dict[str, float]]:
@@ -5123,9 +5154,9 @@ def severity_rank_distribution(
 
 
 def top_severity_class(
-    problems: list["Problem"],
+    problems: list[Problem],
     severity_order: list[str],
-) -> "str | None":
+) -> str | None:
     """Return the class with the highest count at the most-severe rank present.
 
     Iterates through *severity_order* from index 0 (most severe) and finds the
@@ -5162,9 +5193,7 @@ def top_severity_class(
     # Fall through severity_order to find the first rank with ≥1 class
     for sev in severity_order:
         counts_at_rank = {
-            cls: inner[sev]
-            for cls, inner in class_sev_counts.items()
-            if sev in inner
+            cls: inner[sev] for cls, inner in class_sev_counts.items() if sev in inner
         }
         if counts_at_rank:
             return min(counts_at_rank, key=lambda cls: (-counts_at_rank[cls], cls))
