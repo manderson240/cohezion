@@ -1855,3 +1855,34 @@ def top_k_classes(problems: list[Problem], k: int) -> list[str]:
         counts[p.problem_class] += 1
     ordered = sorted(counts, key=lambda cls: (counts[cls], -first_seen[cls]), reverse=True)
     return ordered[:k]
+
+
+def count_problems_added_since(
+    problems: list[Problem],
+    id_prefixes: set[str],
+) -> int:
+    """Count Problems whose finding_id starts with any given prefix — item 217.
+
+    Models "how many new problems appeared in this scan?" when scan IDs
+    share a common prefix::
+
+        n = count_problems_added_since(findings, {"scan-2026-06-08:"})
+
+    Args:
+        problems:
+            A list of :class:`Problem` instances.  Empty list → ``0``.
+        id_prefixes:
+            Set of prefix strings.  A problem is counted when its
+            ``finding_id`` starts with ANY element of the set.
+            Empty set → ``0``.
+
+    Returns:
+        ``int`` — the count of problems matching at least one prefix.
+
+    Pure (no I/O, no SurrealDB).
+    """
+    if not id_prefixes or not problems:
+        return 0
+    return sum(
+        1 for p in problems if any(p.finding_id.startswith(prefix) for prefix in id_prefixes)
+    )
