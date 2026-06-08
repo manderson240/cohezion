@@ -278,11 +278,14 @@ def _mutable_default_count(func: ast.FunctionDef | ast.AsyncFunctionDef) -> int:
     """Count params of ``func`` whose default is a MUTABLE literal — the shared-default footgun (item 147).
 
     A default created once and mutated across calls leaks state between invocations. Mutable forms:
-    a list/dict/set DISPLAY (``[]``, ``{}``, ``{1}`` → ``ast.List``/``ast.Dict``/``ast.Set``) or a
-    ``list()``/``dict()``/``set()`` CALL. Immutable defaults are NOT counted: ``ast.Constant``
-    (``0``/``""``/``None``/``True``), an ``ast.Tuple`` (``()`` is immutable — never conflate with
-    ``[]``), and ``frozenset()``/``tuple()`` calls. Both positional (``args.defaults``) and
-    keyword-only (``args.kw_defaults``) defaults are inspected. Pure: inspects the AST, never executes.
+    a list/dict/set DISPLAY (``[]``, ``{}``, ``{1}`` → ``ast.List``/``ast.Dict``/``ast.Set``), a
+    list/dict/set COMPREHENSION (``[i for i in r]`` → ``ast.ListComp``/``ast.DictComp``/``ast.SetComp``
+    — item 149, also a fresh container built once), or a ``list()``/``dict()``/``set()`` CALL.
+    Immutable defaults are NOT counted: ``ast.Constant`` (``0``/``""``/``None``/``True``), an
+    ``ast.Tuple`` (``()`` is immutable — never conflate with ``[]``), a generator expression
+    (``(i for i in r)`` → ``ast.GeneratorExp``, a one-shot iterator, not a container), and
+    ``frozenset()``/``tuple()`` calls. Both positional (``args.defaults``) and keyword-only
+    (``args.kw_defaults``) defaults are inspected. Pure: inspects the AST, never executes.
 
     **Scope boundary:** defaults that are ``ast.Lambda`` nodes (``lambda: []``) or ``ast.Name``
     references to a module-level mutable sentinel (``EMPTY = []; def f(x=EMPTY)``) are NOT
@@ -293,8 +296,11 @@ def _mutable_default_count(func: ast.FunctionDef | ast.AsyncFunctionDef) -> int:
     defaults = list(a.defaults) + list(a.kw_defaults)
     count = 0
     for d in defaults:
-        if isinstance(d, ast.List | ast.Dict | ast.Set):
-            count += 1  # a literal [], {}, or {…} display is a fresh mutable object
+        # Literal displays AND comprehensions (item 149) all build a FRESH mutable container once
+        # at def time. A GeneratorExp is deliberately excluded: it is a one-shot iterator, not a
+        # mutable container (and is not in this isinstance tuple).
+        if isinstance(d, ast.List | ast.Dict | ast.Set | ast.ListComp | ast.DictComp | ast.SetComp):
+            count += 1
         elif (
             isinstance(d, ast.Call)
             and isinstance(d.func, ast.Name)

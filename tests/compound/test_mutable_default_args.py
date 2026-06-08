@@ -74,3 +74,30 @@ def test_clean_and_badfile_skipped(tmp_path: Path) -> None:
     (tmp_path / "clean.py").write_text("def f(a, b=None):\n    return 0\n")  # immutable default
     (tmp_path / "broken.py").write_text("def f(:\n  oops\n")  # syntax error → skipped, no crash
     assert mutable_default_args([tmp_path]) == []
+
+
+# --- item 149: comprehension-literal defaults (from the swarm review of item 147) ---
+
+
+def test_list_comprehension_default_flagged() -> None:
+    # [i for i in r] is ast.ListComp — a fresh mutable list created once, same footgun as []
+    assert _mdc("def f(x=[i for i in range(3)]):\n    return 0\n") == 1
+
+
+def test_dict_comprehension_default_flagged() -> None:
+    assert _mdc("def f(x={k: v for k, v in items}):\n    return 0\n") == 1
+
+
+def test_set_comprehension_default_flagged() -> None:
+    assert _mdc("def f(x={i for i in range(3)}):\n    return 0\n") == 1
+
+
+def test_generator_expression_default_not_flagged() -> None:
+    # (i for i in r) is ast.GeneratorExp — a one-shot iterator, NOT a mutable container.
+    # Kills an impl that flags all comprehension-like nodes indiscriminately.
+    assert _mdc("def f(x=(i for i in range(3))):\n    return 0\n") == 0
+
+
+def test_literal_and_comprehension_defaults_both_counted() -> None:
+    # regression: literal forms still counted, plus the new comprehension form
+    assert _mdc("def f(a=[], b=[i for i in r], c=0):\n    return 0\n") == 2
