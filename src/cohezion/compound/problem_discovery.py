@@ -12026,3 +12026,25 @@ def fid_min_class_count(problems: list[Problem]) -> dict[str, int]:
             class_counts[p.finding_id].get(p.problem_class, 0) + 1
         )
     return {fid: min(bucket.values()) for fid, bucket in class_counts.items()}
+
+
+def class_fid_count_range(problems: list[Problem]) -> dict[str, int]:
+    """Return the range (max - min) of per-fid problem counts per class.  Item 631.
+
+    For each class, counts problems per fid, then returns max_count - min_count.
+    0 = all fids contribute equally (or single fid).
+    Empty -> {}.  int >= 0.  Pure; no I/O.
+    """
+    if not problems:
+        return {}
+    fid_counts: dict[str, dict[str, int]] = {}
+    for p in problems:
+        if p.problem_class not in fid_counts:
+            fid_counts[p.problem_class] = {}
+        fid_counts[p.problem_class][p.finding_id] = (
+            fid_counts[p.problem_class].get(p.finding_id, 0) + 1
+        )
+    return {
+        cls: max(bucket.values()) - min(bucket.values())
+        for cls, bucket in fid_counts.items()
+    }
