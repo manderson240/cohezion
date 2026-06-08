@@ -13055,3 +13055,26 @@ def fid_severity_all(
         if p.severity not in severity_set:
             result[fid] = False
     return result
+
+
+def class_severity_none(
+    problems: list[Problem], severities: set[str] | list[str]
+) -> dict[str, bool]:
+    """Return True per class if NO problem in that class matches the severity set.  Item 686.
+
+    Logical complement of class_severity_any (item 682): zero matches required.
+    Zero-inclusive: ALL classes present in input appear in result.
+    Empty severity set -> all True (no problem can match frozenset(), exclusion vacuously holds).
+    Returns {class: bool}.  Empty -> {}.  Pure; no I/O.
+    """
+    if not problems:
+        return {}
+    severity_set = frozenset(severities)
+    result: dict[str, bool] = {}
+    for p in problems:
+        cls = p.problem_class
+        if cls not in result:
+            result[cls] = True
+        if p.severity in severity_set:
+            result[cls] = False
+    return result
