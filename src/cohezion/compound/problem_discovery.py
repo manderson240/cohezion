@@ -15745,14 +15745,47 @@ def fid_severity_rank_low_only_count(problems: list[Problem]) -> dict[str, int]:
     return counts
 
 
-def class_severity_rank_low_only_count(problems: list["Problem"]) -> dict[str, int]:
-    """Count of problems with rank == 1 (LOW only) per class.  Item 812.
+def class_severity_rank_high_only_count(problems: list[Problem]) -> dict[str, int]:
+    """Absolute count of problems with rank == 3 (HIGH only) per class.  Item 814.
 
-    Distinct from class_severity_rank_low_count (item 796) which counts rank <= 1 (INFO+LOW).
-    INFO (rank 0) is NOT included.
-    Zero-inclusive: classes with no LOW still appear with count 0.
+    count = count(rank == 3) per class.
+    CRITICAL (rank 4) is NOT included; only HIGH (rank 3).
+    Zero-inclusive: class with no HIGH still appears with count=0.
     Empty -> {}.  Pure; no I/O.
     """
+    if not problems:
+        return {}
+    counts: dict[str, int] = {}
+    for p in problems:
+        cls = p.problem_class
+        if cls not in counts:
+            counts[cls] = 0
+        if _SEVERITY_RANK.get(p.severity, 0) == 3:
+            counts[cls] += 1
+    return counts
+
+
+def fid_severity_rank_high_only_count(problems: list[Problem]) -> dict[str, int]:
+    """Absolute count of problems with rank == 3 (HIGH only) per fid.  Item 815.
+
+    Fid-axis complement of class_severity_rank_high_only_count (item 814).
+    count = count(rank == 3) per fid.  Zero-inclusive.  Empty -> {}.  Pure; no I/O.
+    """
+    if not problems:
+        return {}
+    counts: dict[str, int] = {}
+    for p in problems:
+        fid = p.finding_id
+        if fid not in counts:
+            counts[fid] = 0
+        if _SEVERITY_RANK.get(p.severity, 0) == 3:
+            counts[fid] += 1
+    return counts
+
+
+def class_severity_rank_medium_only_count(problems: list["Problem"]) -> dict[str, int]:
+    """Count of problems with rank == 2 (MEDIUM only) per class.  Item 816.
+    Distinct from medium_fraction (float) and high_count (rank>=3). Zero-inclusive. Empty -> {}."""
     if not problems:
         return {}
     result: dict[str, int] = {}
@@ -15760,17 +15793,13 @@ def class_severity_rank_low_only_count(problems: list["Problem"]) -> dict[str, i
         cls = p.problem_class
         if cls not in result:
             result[cls] = 0
-        if _SEVERITY_RANK.get(p.severity, 0) == 1:
+        if _SEVERITY_RANK.get(p.severity, 0) == 2:
             result[cls] += 1
     return result
 
 
-def fid_severity_rank_low_only_count(problems: list["Problem"]) -> dict[str, int]:
-    """Count of problems with rank == 1 (LOW only) per fid.  Item 813.
-
-    Fid-axis complement of class_severity_rank_low_only_count (item 812).
-    Zero-inclusive.  Empty -> {}.  Pure; no I/O.
-    """
+def fid_severity_rank_medium_only_count(problems: list["Problem"]) -> dict[str, int]:
+    """Count rank == 2 (MEDIUM only) per fid.  Item 817. Fid-axis complement of 816. Zero-inclusive."""
     if not problems:
         return {}
     result: dict[str, int] = {}
@@ -15778,6 +15807,6 @@ def fid_severity_rank_low_only_count(problems: list["Problem"]) -> dict[str, int
         fid = p.finding_id
         if fid not in result:
             result[fid] = 0
-        if _SEVERITY_RANK.get(p.severity, 0) == 1:
+        if _SEVERITY_RANK.get(p.severity, 0) == 2:
             result[fid] += 1
     return result
