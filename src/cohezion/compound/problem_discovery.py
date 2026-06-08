@@ -3972,3 +3972,23 @@ def per_class_labelling_coverage(problems: list[Problem]) -> dict[str, float]:
         cls: float(labelled_counts.get(cls, 0) / totals[cls])
         for cls in totals
     }
+
+
+def worst_labelled_classes(problems: list[Problem]) -> list[tuple[str, float]]:
+    """Return classes sorted by labelling coverage ascending (worst first).
+
+    Delegates per-class coverage to :func:`per_class_labelling_coverage` then
+    sorts by coverage ascending with class name as the lexicographic tie-breaker.
+
+    Args:
+        problems: List of :class:`Problem` instances from a scan.
+
+    Returns:
+        List of ``(class_name, coverage)`` tuples sorted by coverage ascending,
+        then class name ascending on ties.  Returns ``[]`` when *problems* is
+        empty.
+
+    Pure (no I/O, no SurrealDB).
+    """
+    coverage = per_class_labelling_coverage(problems)
+    return sorted(coverage.items(), key=lambda t: (t[1], t[0]))
