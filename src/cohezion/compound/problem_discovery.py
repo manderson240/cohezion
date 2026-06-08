@@ -6879,3 +6879,20 @@ def is_cross_class_finding_id(problems: list[Problem], target_fid: str) -> bool:
     Pure (no I/O, no SurrealDB).
     """
     return class_count_for_finding_id(problems, target_fid) >= 2
+
+
+def unique_classes_count(problems: list[Problem]) -> int:
+    """Return the count of distinct problem_class values — item 405.
+
+    Each distinct :attr:`Problem.problem_class` is counted once regardless
+    of how many records share it.  Returns ``0`` for empty input.
+
+    Args:
+        problems: List of :class:`Problem` instances.
+
+    Returns:
+        Integer count of distinct classes.  ``0`` when *problems* is empty.
+
+    Pure (no I/O, no SurrealDB).
+    """
+    return len(frozenset(p.problem_class for p in problems))
