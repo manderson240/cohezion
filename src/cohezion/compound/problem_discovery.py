@@ -14400,55 +14400,6 @@ def fid_severity_rank_concentration(problems: list[Problem]) -> dict[str, float]
 
 
 def class_severity_rank_dominant_ratio(problems: list[Problem]) -> dict[str, float]:
-    """Fraction of problems at the modal severity rank per class.  Item 751.
-
-    dominant_ratio = count(majority_rank) / n per class.
-    All-same -> 1.0.  n=1 -> 1.0.  Empty -> {}.  Pure; no I/O.
-    """
-    if not problems:
-        return {}
-    ranks_by_class: dict[str, list[int]] = {}
-    for p in problems:
-        cls = p.problem_class
-        if cls not in ranks_by_class:
-            ranks_by_class[cls] = []
-        ranks_by_class[cls].append(_SEVERITY_RANK.get(p.severity, 0))
-    result: dict[str, float] = {}
-    for cls, ranks in ranks_by_class.items():
-        n = len(ranks)
-        counts: dict[int, int] = {}
-        for r in ranks:
-            counts[r] = counts.get(r, 0) + 1
-        result[cls] = float(max(counts.values())) / n
-    return result
-
-
-def fid_severity_rank_dominant_ratio(problems: list[Problem]) -> dict[str, float]:
-    """Fraction of problems at the modal severity rank per fid.  Item 752.
-
-    Fid-axis complement of class_severity_rank_dominant_ratio (item 751).
-    dominant_ratio = count(majority_rank) / n per fid.
-    All-same -> 1.0.  Empty -> {}.  Pure; no I/O.
-    """
-    if not problems:
-        return {}
-    ranks_by_fid: dict[str, list[int]] = {}
-    for p in problems:
-        fid = p.finding_id
-        if fid not in ranks_by_fid:
-            ranks_by_fid[fid] = []
-        ranks_by_fid[fid].append(_SEVERITY_RANK.get(p.severity, 0))
-    result: dict[str, float] = {}
-    for fid, ranks in ranks_by_fid.items():
-        n = len(ranks)
-        counts: dict[int, int] = {}
-        for r in ranks:
-            counts[r] = counts.get(r, 0) + 1
-        result[fid] = float(max(counts.values())) / n
-    return result
-
-
-def class_severity_rank_dominant_ratio(problems: list[Problem]) -> dict[str, float]:
     """Fraction of problems at the majority (modal) severity rank per class.  Item 751.
 
     dominant_ratio = count(majority_rank) / n where majority_rank is the rank with
@@ -14499,4 +14450,57 @@ def fid_severity_rank_dominant_ratio(problems: list[Problem]) -> dict[str, float
         max_count = max(counts.values())
         majority_rank = min(r for r, c in counts.items() if c == max_count)
         result[fid] = float(counts[majority_rank]) / n
+    return result
+
+
+def class_severity_rank_minority_ratio(problems: list[Problem]) -> dict[str, float]:
+    """Fraction of problems NOT at the majority rank per class.  Item 753.
+
+    minority_ratio = 1.0 - dominant_ratio = (n - count(majority_rank)) / n.
+    All-same -> 0.0.  Empty -> {}.  Pure; no I/O.
+    """
+    if not problems:
+        return {}
+    ranks_by_class: dict[str, list[int]] = {}
+    for p in problems:
+        cls = p.problem_class
+        if cls not in ranks_by_class:
+            ranks_by_class[cls] = []
+        ranks_by_class[cls].append(_SEVERITY_RANK.get(p.severity, 0))
+    result: dict[str, float] = {}
+    for cls, ranks in ranks_by_class.items():
+        n = len(ranks)
+        counts: dict[int, int] = {}
+        for r in ranks:
+            counts[r] = counts.get(r, 0) + 1
+        max_count = max(counts.values())
+        majority_rank = min(r for r, c in counts.items() if c == max_count)
+        result[cls] = float(n - counts[majority_rank]) / n
+    return result
+
+
+def fid_severity_rank_minority_ratio(problems: list[Problem]) -> dict[str, float]:
+    """Fraction of problems NOT at the majority rank per fid.  Item 754.
+
+    Fid-axis complement of class_severity_rank_minority_ratio (item 753).
+    minority_ratio = 1.0 - dominant_ratio per fid.
+    All-same -> 0.0.  Empty -> {}.  Pure; no I/O.
+    """
+    if not problems:
+        return {}
+    ranks_by_fid: dict[str, list[int]] = {}
+    for p in problems:
+        fid = p.finding_id
+        if fid not in ranks_by_fid:
+            ranks_by_fid[fid] = []
+        ranks_by_fid[fid].append(_SEVERITY_RANK.get(p.severity, 0))
+    result: dict[str, float] = {}
+    for fid, ranks in ranks_by_fid.items():
+        n = len(ranks)
+        counts: dict[int, int] = {}
+        for r in ranks:
+            counts[r] = counts.get(r, 0) + 1
+        max_count = max(counts.values())
+        majority_rank = min(r for r, c in counts.items() if c == max_count)
+        result[fid] = float(n - counts[majority_rank]) / n
     return result
