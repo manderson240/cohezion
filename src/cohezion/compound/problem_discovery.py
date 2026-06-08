@@ -8602,3 +8602,33 @@ def problems_matching_class_and_fid(
         p for p in problems
         if p.problem_class == problem_class and p.finding_id == finding_id
     ]
+
+
+def class_total_severity_score(
+    problems: list[Problem],
+    problem_class: str,
+    weights: dict[str, float],
+) -> float:
+    """Return the aggregate severity score for *problem_class* using *weights* -- item 482.
+
+    For each :class:`Problem` in *problem_class*, adds ``weights.get(p.severity, 0.0)``
+    to the running total.  Unrecognised severities contribute 0.  Returns 0.0 when
+    *problem_class* is absent or *weights* is empty.
+
+    Args:
+        problems: List of :class:`Problem` instances.
+        problem_class: Target problem_class.
+        weights: Mapping of severity label to score (e.g. ``{"HIGH": 3.0, "LOW": 1.0}``).
+
+    Returns:
+        float.  Non-negative when all weights are non-negative.
+
+    Pure (no I/O, no SurrealDB).
+    """
+    return float(
+        sum(
+            weights.get(p.severity, 0.0)
+            for p in problems
+            if p.problem_class == problem_class
+        )
+    )
