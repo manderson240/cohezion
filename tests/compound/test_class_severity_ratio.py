@@ -31,20 +31,16 @@ def test_class_local_denominator_primary_discriminator() -> None:
     class B: 2 problems, 0 HIGH -> ratio=0.0.
     Global denominator (5) gives A=0.4 (WRONG).
     """
-    problems = [_p("A", "HIGH"), _p("A", "HIGH"), _p("A", "LOW"),
-                _p("B", "LOW"), _p("B", "MEDIUM")]
+    problems = [_p("A", "HIGH"), _p("A", "HIGH"), _p("A", "LOW"), _p("B", "LOW"), _p("B", "MEDIUM")]
     result = class_severity_ratio(problems, "HIGH")
     assert isinstance(result, dict), "Must return dict"
     assert "A" in result, f"Class 'A' must be present; got {list(result)}"
-    assert abs(result["A"] - 2/3) < 1e-9, (
-        f"A: 2/3 HIGH (class-local denom=3); got {result['A']} "
-        f"(0.4=global-denom wrong)"
+    assert abs(result["A"] - 2 / 3) < 1e-9, (
+        f"A: 2/3 HIGH (class-local denom=3); got {result['A']} (0.4=global-denom wrong)"
     )
     assert isinstance(result["A"], float), "Must be float"
     assert "B" in result, "B must be present (zero-inclusive)"
-    assert result["B"] == 0.0, (
-        f"B: 0 HIGH out of 2 -> 0.0; got {result['B']}"
-    )
+    assert result["B"] == 0.0, f"B: 0 HIGH out of 2 -> 0.0; got {result['B']}"
 
 
 def test_zero_inclusive_no_match_returns_zero() -> None:
@@ -72,4 +68,4 @@ def test_return_type_float() -> None:
     problems = [_p("E", "HIGH"), _p("E", "HIGH"), _p("E", "LOW")]
     result = class_severity_ratio(problems, "LOW")
     assert isinstance(result["E"], float), f"Must be float; got {type(result['E']).__name__}"
-    assert abs(result["E"] - 1/3) < 1e-9, f"1/3 expected; got {result['E']}"
+    assert abs(result["E"] - 1 / 3) < 1e-9, f"1/3 expected; got {result['E']}"

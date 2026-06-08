@@ -12987,9 +12987,7 @@ def class_severity_any(
     return result
 
 
-def fid_severity_any(
-    problems: list[Problem], severities: set[str] | list[str]
-) -> dict[str, bool]:
+def fid_severity_any(problems: list[Problem], severities: set[str] | list[str]) -> dict[str, bool]:
     """Return whether each fid has any problem matching the given severity set.  Item 683.
 
     Fid-axis complement of class_severity_any (item 682).
@@ -13034,9 +13032,7 @@ def class_severity_all(
     return result
 
 
-def fid_severity_all(
-    problems: list[Problem], severities: set[str] | list[str]
-) -> dict[str, bool]:
+def fid_severity_all(problems: list[Problem], severities: set[str] | list[str]) -> dict[str, bool]:
     """Return True per fid if ALL problems for that fid match the given severity set.  Item 685.
 
     Fid-axis complement of class_severity_all (item 684).
@@ -13080,9 +13076,7 @@ def class_severity_none(
     return result
 
 
-def fid_severity_none(
-    problems: list[Problem], severities: set[str] | list[str]
-) -> dict[str, bool]:
+def fid_severity_none(problems: list[Problem], severities: set[str] | list[str]) -> dict[str, bool]:
     """Return True per fid if NO problem for that fid matches the severity set.  Item 688.
 
     Fid-axis complement of class_severity_none (item 686).
