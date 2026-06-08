@@ -16,6 +16,7 @@ from __future__ import annotations
 
 import json
 from collections.abc import Iterable
+from dataclasses import dataclass
 from pathlib import Path
 
 
@@ -117,3 +118,46 @@ def least_adopted(
     counts = _counts_per_registered_skill(usage_events, registry_skills, registry_path)
     ranked = sorted(counts.items(), key=lambda kv: (kv[1], kv[0]))
     return ranked[: max(0, n)]
+
+
+@dataclass(frozen=True)
+class FiringConcentration:
+    """How SKEWED the skill-firing distribution is — the scalar behind item-60's long tail."""
+
+    top_skill_share: float  # fraction of all (registered) firings to the single most-fired skill
+    unused_share: float  # fraction of REGISTERED skills that never fired
+    total_firings: int  # count of firings that went to registered skills
+
+
+def firing_concentration(
+    usage_events: Iterable[dict],
+    registry_skills: Iterable[str] | None = None,
+    *,
+    registry_path: Path | None = None,
+) -> FiringConcentration:
+    """How top-heavy is skill firing? (item 82). READ-ONLY.
+
+    item-60 ``least_adopted`` RANKS the worst under-triggers; this returns ONE scalar triple saying
+    HOW skewed the whole distribution is — a few skills hogging firings while many sit unused. Shares
+    item-60's ``_counts_per_registered_skill`` core, so unregistered firings are ignored (excluded
+    from BOTH the numerator and ``total_firings``) and never-fired registered skills count toward
+    ``unused_share``.
+
+    * ``top_skill_share`` = ``max(count) / total_firings`` (0.0 when there are no firings — no
+      ZeroDivision);
+    * ``unused_share`` = ``(# registered skills with count 0) / (# registered skills)`` — over ALL
+      registered skills, NOT just the fired ones (0.0 when the registry is empty);
+    * ``total_firings`` = sum of registered-skill counts.
+
+    Zero events → ``(0.0, 1.0, 0)``. Pure (injected events; no SurrealDB read under pytest).
+    """
+    counts = _counts_per_registered_skill(usage_events, registry_skills, registry_path)
+    total_firings = sum(counts.values())
+    n_registered = len(counts)
+    unused = sum(1 for c in counts.values() if c == 0)
+    top = max(counts.values(), default=0)
+    return FiringConcentration(
+        top_skill_share=(top / total_firings) if total_firings > 0 else 0.0,
+        unused_share=(unused / n_registered) if n_registered > 0 else 0.0,
+        total_firings=total_firings,
+    )
