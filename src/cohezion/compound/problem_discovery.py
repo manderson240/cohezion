@@ -3203,3 +3203,24 @@ def highest_entropy_class(problems: list[Problem]) -> str | None:
     if not candidates:
         return None
     return max(candidates, key=lambda cls: (candidates[cls], [-ord(c) for c in cls]))
+
+
+def problems_in_class(problems: list[Problem], cls: str) -> list[Problem]:
+    """Return all problems whose ``problem_class`` equals *cls*, in input order.
+
+    This is the foundational per-class filter.  Higher-order per-class
+    functions (entropy, concentration, top-N) can be expressed as a
+    composition of :func:`problems_in_class` followed by a summary operation.
+
+    Args:
+        problems: List of :class:`Problem` instances from a scan.
+        cls:      Exact class name to filter by (case-sensitive).
+
+    Returns:
+        New ``list[Problem]`` containing only problems where
+        ``p.problem_class == cls``, in the same order as *problems*.
+        Empty list if *cls* is not present or *problems* is empty.
+
+    Pure (no I/O, no SurrealDB).
+    """
+    return [p for p in problems if p.problem_class == cls]
