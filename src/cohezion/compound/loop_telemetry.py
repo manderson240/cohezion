@@ -169,6 +169,60 @@ def loop_progress_delta(before: LoopTelemetry, after: LoopTelemetry) -> LoopProg
     )
 
 
+# ---------------------------------------------------------------------------
+# Item 78 — Regressed-items identifier (Thread A)
+# ---------------------------------------------------------------------------
+
+_BACKLOG_ROW_NUMBERED = re.compile(r"^\|\s*(\d+)\s*\|")
+
+
+def _parse_backlog_item_statuses(text: str) -> dict[int, str]:
+    """Parse a backlog snapshot text into ``{item_number: status_first_word}`` (upper-cased).
+
+    Only numbered rows (``| <N> | …``) are included.  The status is the first word of the last
+    pipe-delimited cell, which matches ``_status_first_word``'s behaviour.  Missing/empty status
+    cells produce ``""`` (safe to compare against "DONE"/"TODO"/"BLOCKED").
+
+    Pure — no I/O; the caller supplies the text.
+    """
+    statuses: dict[int, str] = {}
+    for line in text.splitlines():
+        m = _BACKLOG_ROW_NUMBERED.match(line)
+        if not m:
+            continue
+        item_num = int(m.group(1))
+        status = _status_first_word(line).upper()
+        statuses[item_num] = status
+    return statuses
+
+
+def regressed_backlog_items(before_text: str, after_text: str) -> list[int]:
+    """Return the item numbers that moved from DONE (before) to not-DONE (after).
+
+    A regression is an item whose status was ``DONE …`` in the *before* snapshot and is now
+    ``TODO …``, ``BLOCKED …``, or any other non-DONE status in the *after* snapshot.
+
+    Rules (all falsifiable):
+    - Item DONE-in-before + TODO/BLOCKED-in-after → **listed** (a regression).
+    - Item DONE-in-before + still DONE-in-after → **not listed** (stable progress).
+    - Item absent from *before* + TODO/BLOCKED-in-after → **not listed** (never done; not a
+      regression — a new TODO item is healthy scope growth, not a step backward).
+    - Identical snapshots → **[]** (nothing changed).
+
+    Report-only: returns a sorted list of item numbers; does not modify state.
+    """
+    before = _parse_backlog_item_statuses(before_text)
+    after = _parse_backlog_item_statuses(after_text)
+    regressed: list[int] = []
+    for item_num, before_status in before.items():
+        if before_status != "DONE":
+            continue  # only items that were DONE in 'before' can regress
+        after_status = after.get(item_num, "DONE")  # absent-from-after treated as DONE (no change)
+        if after_status != "DONE":
+            regressed.append(item_num)
+    return sorted(regressed)
+
+
 @dataclass(frozen=True)
 class RegressionReport:
     """Verdict of comparing two snapshots for a REGRESSION (item 58). REPORT-ONLY."""
