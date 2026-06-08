@@ -2018,3 +2018,39 @@ def class_violation_ratio(
         return {}
     counts = problem_count_by_class(problems)
     return {cls: counts.get(cls, 0) / limit for cls, limit in thresholds.items() if limit > 0}
+
+
+def most_critical_class(
+    problems: list[Problem],
+    thresholds: dict[str, int],
+) -> str | None:
+    """Return the class name with the highest ``count / threshold`` ratio.
+
+    Delegates to :func:`class_violation_ratio` to compute ratios, then picks
+    the class with the maximum value.  Ties are broken by first occurrence in
+    *problems* (the class seen earliest in the input list wins); if no class
+    appears in problems (all counts are 0), the first key in *thresholds* with
+    a positive limit wins.
+
+    Zero-threshold classes are excluded (same guard as :func:`class_violation_ratio`).
+    Returns ``None`` when there are no eligible classes (empty *thresholds* or all
+    thresholds are zero).
+
+    Args:
+        problems:   List of ``Problem`` instances to examine.
+        thresholds: Mapping of ``{problem_class: max_allowed_count}``.
+
+    Returns:
+        ``str`` class name with highest ratio, or ``None`` if no eligible class.
+
+    Pure (no I/O, no SurrealDB).
+    """
+    ratios = class_violation_ratio(problems, thresholds)
+    if not ratios:
+        return None
+    # Build first-seen index for tie-breaking (classes absent from problems get index=inf)
+    first_seen: dict[str, int] = {}
+    for i, p in enumerate(problems):
+        if p.problem_class not in first_seen:
+            first_seen[p.problem_class] = i
+    return max(ratios, key=lambda cls: (ratios[cls], -first_seen.get(cls, len(problems))))
