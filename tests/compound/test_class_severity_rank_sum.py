@@ -33,9 +33,7 @@ def test_sum_of_ranks_not_counts_primary_discriminator() -> None:
     result = class_severity_rank_sum(problems)
     assert isinstance(result, dict), "Must return dict"
     assert "A" in result, f"Class A must be present; got {list(result)}"
-    assert result["A"] == 8, (
-        f"CRITICAL(4)+HIGH(3)+LOW(1)=8; got {result['A']} (count=3 wrong)"
-    )
+    assert result["A"] == 8, f"CRITICAL(4)+HIGH(3)+LOW(1)=8; got {result['A']} (count=3 wrong)"
     assert isinstance(result["A"], int), "Must be int"
 
 
@@ -43,9 +41,7 @@ def test_unknown_severity_contributes_zero() -> None:
     """Unknown severity strings contribute 0 to sum."""
     problems = [_p("B", "HIGH"), _p("B", "UNKNOWN_SEV")]
     result = class_severity_rank_sum(problems)
-    assert result["B"] == 3, (
-        f"HIGH(3)+UNKNOWN(0)=3; got {result.get('B')}"
-    )
+    assert result["B"] == 3, f"HIGH(3)+UNKNOWN(0)=3; got {result.get('B')}"
 
 
 def test_empty_returns_empty_dict() -> None:

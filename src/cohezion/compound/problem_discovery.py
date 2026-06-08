@@ -13153,3 +13153,21 @@ def class_severity_rank_sum(problems: list[Problem]) -> dict[str, int]:
             result[cls] = 0
         result[cls] += _SEVERITY_RANK.get(p.severity, 0)
     return result
+
+
+def fid_severity_rank_sum(problems: list[Problem]) -> dict[str, int]:
+    """Return sum of severity ranks per fid.  Item 695.
+
+    Fid-axis complement of class_severity_rank_sum (item 694).
+    CRITICAL=4, HIGH=3, MEDIUM=2, LOW=1, INFO=0.  Unknown severities contribute 0.
+    Returns {fid: rank_sum}.  Empty -> {}.  Pure; no I/O.
+    """
+    if not problems:
+        return {}
+    result: dict[str, int] = {}
+    for p in problems:
+        fid = p.finding_id
+        if fid not in result:
+            result[fid] = 0
+        result[fid] += _SEVERITY_RANK.get(p.severity, 0)
+    return result
