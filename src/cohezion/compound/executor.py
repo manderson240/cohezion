@@ -191,6 +191,7 @@ class CompoundExecutor(CompoundContextMixin, ExecutorIntegrationMixin):
         # Mycelium bus subscriber guard (set True after first subscribe to
         # avoid double-firing events on repeated execute_task calls)
         self._bus_subscribed = False
+        self._bus: Any | None = None  # cached get_bus() result; avoids UnboundLocalError on 2nd call
         self._bus_myc_registry: Any | None = None
         # OuroborosRecorder (WS1A, 2026-06-04): start a flight recorder in
         # the background to capture system vitals + bus trajectories.
@@ -1355,7 +1356,8 @@ class CompoundExecutor(CompoundContextMixin, ExecutorIntegrationMixin):
                             PrecipitationKind,
                         )
 
-                        self._bus_myc_registry = BusMyceliumRegistry(bus=get_bus())
+                        self._bus = get_bus()  # cache ref; get_bus is only in scope inside this try
+                        self._bus_myc_registry = BusMyceliumRegistry(bus=self._bus)
                         self._bus_myc_registry.subscribe()
                         self._bus_subscribed = True
                         logger.debug(
@@ -1372,7 +1374,7 @@ class CompoundExecutor(CompoundContextMixin, ExecutorIntegrationMixin):
                     )
 
                     coherence = float(metrics.get("coherence", 0.5))
-                    get_bus().emit(
+                    self._bus.emit(
                         PrecipitationEvent(
                             kind=PrecipitationKind.WITNESS_MARK,
                             universe_id=f"cohezion.execution.{skill_name}",
