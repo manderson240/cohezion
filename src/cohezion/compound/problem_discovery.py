@@ -14241,3 +14241,106 @@ def fid_severity_rank_trimmed_mean(
             trimmed = ranks[trim: n - trim] if trim > 0 else ranks
             result[fid] = float(sum(trimmed)) / len(trimmed)
     return result
+
+
+def class_severity_rank_entropy(problems: list[Problem]) -> dict[str, float]:
+    """Shannon entropy of severity rank distribution per class.  Item 744.
+
+    H = -sum(p_k * log2(p_k)) where p_k = count(rank=k)/n.
+    All-same -> 0.0 (H=0).  Empty -> {}.  Pure; no I/O.
+    """
+    if not problems:
+        return {}
+    ranks_by_class: dict[str, list[int]] = {}
+    for p in problems:
+        cls = p.problem_class
+        if cls not in ranks_by_class:
+            ranks_by_class[cls] = []
+        ranks_by_class[cls].append(_SEVERITY_RANK.get(p.severity, 0))
+    result: dict[str, float] = {}
+    for cls, ranks in ranks_by_class.items():
+        n = len(ranks)
+        counts: dict[int, int] = {}
+        for r in ranks:
+            counts[r] = counts.get(r, 0) + 1
+        entropy = 0.0
+        for count in counts.values():
+            p_k = count / n
+            entropy -= p_k * math.log2(p_k)
+        result[cls] = entropy
+    return result
+
+
+def fid_severity_rank_entropy(problems: list[Problem]) -> dict[str, float]:
+    """Shannon entropy of severity rank distribution per fid.  Item 745.
+
+    Fid-axis complement of class_severity_rank_entropy (item 744).
+    H = -sum(p_k * log2(p_k)) where p_k = count(rank=k)/n.
+    All-same -> 0.0.  Empty -> {}.  Pure; no I/O.
+    """
+    if not problems:
+        return {}
+    ranks_by_fid: dict[str, list[int]] = {}
+    for p in problems:
+        fid = p.finding_id
+        if fid not in ranks_by_fid:
+            ranks_by_fid[fid] = []
+        ranks_by_fid[fid].append(_SEVERITY_RANK.get(p.severity, 0))
+    result: dict[str, float] = {}
+    for fid, ranks in ranks_by_fid.items():
+        n = len(ranks)
+        counts: dict[int, int] = {}
+        for r in ranks:
+            counts[r] = counts.get(r, 0) + 1
+        entropy = 0.0
+        for count in counts.values():
+            p_k = count / n
+            entropy -= p_k * math.log2(p_k)
+        result[fid] = entropy
+    return result
+
+
+def class_problem_rank_majority_class(problems: list[Problem]) -> dict[str, int]:
+    """Majority severity rank per class.  Item 746.
+
+    Returns the rank (int 0-4) with highest count per class.
+    Ties broken by min rank.  Empty -> {}.  Pure; no I/O.
+    """
+    if not problems:
+        return {}
+    counts: dict[str, dict[int, int]] = {}
+    for p in problems:
+        cls = p.problem_class
+        if cls not in counts:
+            counts[cls] = {}
+        rank = _SEVERITY_RANK.get(p.severity, 0)
+        counts[cls][rank] = counts[cls].get(rank, 0) + 1
+    result: dict[str, int] = {}
+    for cls, rank_counts in counts.items():
+        max_count = max(rank_counts.values())
+        tied = sorted(r for r, c in rank_counts.items() if c == max_count)
+        result[cls] = tied[0]
+    return result
+
+
+def fid_problem_rank_majority_class(problems: list[Problem]) -> dict[str, int]:
+    """Majority severity rank per fid.  Item 747.
+
+    Fid-axis complement of class_problem_rank_majority_class (item 746).
+    Ties broken by min rank.  Empty -> {}.  Pure; no I/O.
+    """
+    if not problems:
+        return {}
+    counts: dict[str, dict[int, int]] = {}
+    for p in problems:
+        fid = p.finding_id
+        if fid not in counts:
+            counts[fid] = {}
+        rank = _SEVERITY_RANK.get(p.severity, 0)
+        counts[fid][rank] = counts[fid].get(rank, 0) + 1
+    result: dict[str, int] = {}
+    for fid, rank_counts in counts.items():
+        max_count = max(rank_counts.values())
+        tied = sorted(r for r, c in rank_counts.items() if c == max_count)
+        result[fid] = tied[0]
+    return result
