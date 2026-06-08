@@ -2927,3 +2927,22 @@ def severity_report(problems: list[Problem]) -> dict[str, object]:
         "fractions": fractions,
         "labelled_total": labelled_total,
     }
+
+
+def classes_at_severity(problems: list[Problem], severity: str) -> frozenset[str]:
+    """Return the set of class names that have ≥1 problem at *severity*.
+
+    Bridges the severity analytics family with the class-level analytics
+    family.  Passing ``severity=""`` returns classes that have unlabelled
+    problems (``problem.severity == ""``).
+
+    Args:
+        problems: List of :class:`Problem` instances from a scan.
+        severity: Exact severity string to match (case-sensitive).
+
+    Returns:
+        ``frozenset[str]`` of class names.  Empty when no problems match.
+
+    Pure (no I/O, no SurrealDB).
+    """
+    return frozenset(p.problem_class for p in problems if p.severity == severity)
