@@ -8918,3 +8918,30 @@ def all_score_deltas_between_snapshots(
         cls: float(scores_after.get(cls, 0.0) - scores_before.get(cls, 0.0))
         for cls in all_classes
     }
+
+
+def regressing_classes(
+    before: list[Problem],
+    after: list[Problem],
+    weights: dict[str, float],
+) -> frozenset[str]:
+    """Return class names whose weighted severity score INCREASED between snapshots -- item 493.
+
+    A class is *regressing* when its total severity score is strictly higher in
+    *after* than in *before* (delta > 0).  Improving classes (delta < 0) and
+    stable classes (delta == 0) are excluded.  New classes that appear only in
+    *after* with a positive score are considered regressing (score 0 → positive).
+
+    Args:
+        before: Problem list from the earlier scan.
+        after:  Problem list from the more recent scan.
+        weights: Mapping of severity label to numeric score.
+
+    Returns:
+        ``frozenset[str]`` of class names with strictly positive score delta.
+        ``frozenset()`` when both *before* and *after* are empty.
+
+    Pure (no I/O, no SurrealDB).
+    """
+    deltas = all_score_deltas_between_snapshots(before, after, weights)
+    return frozenset(cls for cls, delta in deltas.items() if delta > 0.0)
