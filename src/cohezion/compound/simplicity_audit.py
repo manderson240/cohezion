@@ -617,3 +617,51 @@ def silent_except_swallows(paths: Iterable[Path]) -> list[tuple[str, str]]:
             loc = f"{path.name}:{node.lineno}"
             out.append((loc, kind))
     return sorted(out)
+
+
+# Logger method names whose message arg is built eagerly by the CALLER (before the level check).
+_LOG_METHODS = frozenset(
+    {"debug", "info", "warning", "warn", "error", "critical", "exception", "log"}
+)
+
+
+def _is_interpolated_fstring(node: ast.expr) -> bool:
+    """True if ``node`` is an f-string that actually interpolates (has ≥1 ``FormattedValue``).
+
+    A constant-only f-string (``f"started"`` → ``ast.JoinedStr`` of only ``Constant``) has no eager
+    formatting cost and is NOT the smell. Pure: inspects the AST node.
+    """
+    return isinstance(node, ast.JoinedStr) and any(
+        isinstance(v, ast.FormattedValue) for v in node.values
+    )
+
+
+def eager_log_fstrings(paths: Iterable[Path]) -> list[tuple[str, int]]:
+    """Logger calls whose message is an interpolating f-string — eager formatting. READ-ONLY.
+
+    ``log.info(f"x={x}")`` builds the string EAGERLY in the caller, even when the log level is
+    disabled; the lazy form ``log.info("x=%s", x)`` defers formatting to the handler (only paid if
+    the record is emitted). Flags calls to a logger method (see :data:`_LOG_METHODS`, matched on the
+    attribute name — ``<anything>.info(...)``) whose FIRST positional arg is an interpolating
+    f-string. Constant-only f-strings and the ``%``-style lazy form are NOT flagged. Returns
+    ``[(<filename>, lineno)]`` sorted by name then line. A clean/empty set → ``[]``. Pure (stdlib
+    ast, no writes). **Heuristic note:** matches on method NAME only, so a non-logger object with an
+    ``.info``/``.log`` method + an f-string arg is a possible false positive — a smell flagged for
+    judgment, not a verdict (consistent with the rest of this module).
+    """
+    out: list[tuple[str, int]] = []
+    for path in _iter_python_files(paths):
+        try:
+            tree = ast.parse(path.read_text(encoding="utf-8", errors="replace"))
+        except (OSError, SyntaxError, ValueError):
+            continue  # unreadable / not valid Python → skip, never crash the audit
+        for node in ast.walk(tree):
+            if (
+                isinstance(node, ast.Call)
+                and isinstance(node.func, ast.Attribute)
+                and node.func.attr in _LOG_METHODS
+                and node.args
+                and _is_interpolated_fstring(node.args[0])
+            ):
+                out.append((path.name, node.lineno))
+    return sorted(out, key=lambda t: (t[0], t[1]))
