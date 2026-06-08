@@ -15276,3 +15276,23 @@ def fid_severity_rank_fraction_at_or_above(
         if _SEVERITY_RANK.get(p.severity, 0) >= threshold:
             counts[fid] += 1
     return {fid: float(counts[fid]) / totals[fid] for fid in totals}
+
+
+def class_severity_rank_critical_fraction(problems: list[Problem]) -> dict[str, float]:
+    """Fraction of problems with rank == 4 (CRITICAL only) per class.  Item 788.
+
+    Since CRITICAL(4) is the max rank, rank>=4 iff rank==4.
+    Wires over class_severity_rank_fraction_at_or_above(problems, 4).
+    All HIGH -> 0.0.  All CRITICAL -> 1.0.  Empty -> {}.  Pure; no I/O.
+    """
+    return class_severity_rank_fraction_at_or_above(problems, 4)
+
+
+def fid_severity_rank_critical_fraction(problems: list[Problem]) -> dict[str, float]:
+    """Fraction of problems with rank == 4 (CRITICAL only) per fid.  Item 789.
+
+    Fid-axis complement of class_severity_rank_critical_fraction (item 788).
+    Wires over fid_severity_rank_fraction_at_or_above(problems, 4).
+    All HIGH -> 0.0.  Empty -> {}.  Pure; no I/O.
+    """
+    return fid_severity_rank_fraction_at_or_above(problems, 4)
