@@ -840,6 +840,35 @@ def present_problem_classes(problems: list[Problem], classes: frozenset[str]) ->
     return frozenset(classes & present)
 
 
+def deduplicate_problems(problems: list[Problem]) -> list[Problem]:
+    """Return a new list with duplicate ``finding_id`` values removed — item 185.
+
+    Keeps the FIRST occurrence of each ``finding_id``; subsequent duplicates
+    are dropped.  Insertion order is preserved for the surviving elements.
+
+    Enables safe merge of two overlapping discovery runs::
+
+        combined = deduplicate_problems(run_a + run_b)
+
+    Args:
+        problems:
+            A list of :class:`Problem` instances.  Empty list → ``[]``.
+
+    Returns:
+        A new list of :class:`Problem` instances, length ≤ ``len(problems)``.
+        The input list is not mutated.
+
+    Pure (no I/O, no SurrealDB).
+    """
+    seen: set[str] = set()
+    result: list[Problem] = []
+    for p in problems:
+        if p.finding_id not in seen:
+            seen.add(p.finding_id)
+            result.append(p)
+    return result
+
+
 def default_template_classes() -> frozenset[str]:
     """Return the exact set of ``problem_class`` names in :func:`default_templates` — item 158.
 
