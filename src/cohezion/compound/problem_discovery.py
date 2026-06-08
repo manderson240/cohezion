@@ -8499,3 +8499,24 @@ def problems_at_triple(
         and p.finding_id == finding_id
         and p.severity == severity
     ]
+
+
+def problems_for_fid(
+    problems: list[Problem],
+    finding_id: str,
+) -> list[Problem]:
+    """Return Problem records matching *finding_id* -- item 477.
+
+    Symmetric to :func:`problems_for_class` on the finding_id axis.
+    Preserves insertion order of matching records.
+
+    Args:
+        problems: List of :class:`Problem` instances.
+        finding_id: Target finding_id.
+
+    Returns:
+        List of :class:`Problem` instances.  Empty list when absent.
+
+    Pure (no I/O, no SurrealDB).
+    """
+    return [p for p in problems if p.finding_id == finding_id]
