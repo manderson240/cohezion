@@ -10980,3 +10980,25 @@ def fid_problem_count_below(problems: list[Problem], n: int) -> int:
     for p in problems:
         counts[p.finding_id] = counts.get(p.finding_id, 0) + 1
     return sum(1 for cnt in counts.values() if cnt < n)
+
+
+def class_problem_density(
+    problems: list[Problem],
+) -> dict[str, float]:
+    """Return problem density per class (total problems / distinct fids).  Item 580.
+
+    Measures how concentrated problems are within each class's finding_ids.
+    A class where every problem has a unique fid has density=1.0.
+    A class where N problems share one fid has density=N.0.
+    Unweighted (ignores severity).  Empty -> {}.  Pure; no I/O.
+    """
+    if not problems:
+        return {}
+    totals: dict[str, int] = {}
+    fids: dict[str, set[str]] = {}
+    for p in problems:
+        totals[p.problem_class] = totals.get(p.problem_class, 0) + 1
+        if p.problem_class not in fids:
+            fids[p.problem_class] = set()
+        fids[p.problem_class].add(p.finding_id)
+    return {cls: float(totals[cls]) / len(fids[cls]) for cls in totals}
