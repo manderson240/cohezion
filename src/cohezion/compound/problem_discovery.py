@@ -3894,3 +3894,29 @@ def dominant_severity_per_class(problems: list[Problem]) -> dict[str, str]:
         cls: max(sev_counts, key=lambda s: (sev_counts[s], [-ord(c) for c in s]))
         for cls, sev_counts in class_counts.items()
     }
+
+
+def classes_without_severity(problems: list[Problem]) -> frozenset[str]:
+    """Return the frozenset of class names where every problem is unlabelled.
+
+    A class is included only when ALL of its problems have ``severity=""``.
+    If a class has even one labelled problem it is excluded.
+
+    Args:
+        problems: List of :class:`Problem` instances from a scan.
+
+    Returns:
+        frozenset of class names that have zero labelled problems.
+        Returns ``frozenset()`` when *problems* is empty.
+
+    Pure (no I/O, no SurrealDB).
+    """
+    if not problems:
+        return frozenset()
+    all_classes: set[str] = set()
+    labelled_classes: set[str] = set()
+    for p in problems:
+        all_classes.add(p.problem_class)
+        if p.severity:
+            labelled_classes.add(p.problem_class)
+    return frozenset(all_classes - labelled_classes)
