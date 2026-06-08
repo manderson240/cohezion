@@ -1036,6 +1036,48 @@ def filter_by_class(
     return [p for p in problems if p.problem_class in keep_classes]
 
 
+def partition_problems_by_class(
+    problems: list[Problem],
+    target_classes: frozenset[str],
+) -> tuple[list[Problem], list[Problem]]:
+    """Split *problems* into ``(matched, rest)`` in a single pass — item 193.
+
+    Returns a two-tuple where the first element contains all findings whose
+    ``problem_class`` is in *target_classes* and the second contains all others.
+    Both lists preserve the original insertion order.  Empty *target_classes*
+    → ``([], list(problems))``.  Pure; no I/O.
+
+    Avoids two separate filtering passes for callers that need both halves::
+
+        matched, rest = partition_problems_by_class(
+            findings, frozenset({"complexity_outlier"})
+        )
+
+    Args:
+        problems:
+            A list of :class:`Problem` instances.
+        target_classes:
+            A :class:`frozenset` of ``problem_class`` strings to match.
+            Empty frozenset → all findings go into *rest*.
+
+    Returns:
+        ``(matched, rest)`` — a tuple of two :class:`Problem` lists.
+        ``matched + rest`` covers every finding in *problems* exactly once.
+
+    Pure (no I/O, no SurrealDB).
+    """
+    if not target_classes:
+        return ([], list(problems))
+    matched: list[Problem] = []
+    rest: list[Problem] = []
+    for p in problems:
+        if p.problem_class in target_classes:
+            matched.append(p)
+        else:
+            rest.append(p)
+    return (matched, rest)
+
+
 def default_template_classes() -> frozenset[str]:
     """Return the exact set of ``problem_class`` names in :func:`default_templates` — item 158.
 
