@@ -12866,3 +12866,22 @@ def class_avg_problems_per_fid(problems: list[Problem]) -> dict[str, float]:
             cell_counts[cls] = {}
         cell_counts[cls][fid] = cell_counts[cls].get(fid, 0) + 1
     return {cls: float(sum(inner.values())) / len(inner) for cls, inner in cell_counts.items()}
+
+
+def fid_avg_problems_per_class(problems: list[Problem]) -> dict[str, float]:
+    """Return average problem count per (fid, class) cell, aggregated per fid.  Item 676.
+
+    Fid-axis complement of class_avg_problems_per_fid (item 675).
+    For each fid: mean(cell_count) over all classes that appear for that fid.
+    Returns {fid: avg}.  float.  Empty -> {}.  Pure; no I/O.
+    """
+    if not problems:
+        return {}
+    cell_counts: dict[str, dict[str, int]] = {}
+    for p in problems:
+        fid = p.finding_id
+        cls = p.problem_class
+        if fid not in cell_counts:
+            cell_counts[fid] = {}
+        cell_counts[fid][cls] = cell_counts[fid].get(cls, 0) + 1
+    return {fid: float(sum(inner.values())) / len(inner) for fid, inner in cell_counts.items()}
