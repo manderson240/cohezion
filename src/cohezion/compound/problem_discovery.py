@@ -3735,3 +3735,30 @@ def finding_ids_by_class(problems: list[Problem]) -> dict[str, frozenset[str]]:
     for p in problems:
         result.setdefault(p.problem_class, set()).add(p.finding_id)
     return {cls: frozenset(ids) for cls, ids in result.items()}
+
+
+def shared_finding_ids(problems: list[Problem]) -> frozenset[str]:
+    """Return the frozenset of finding_ids that appear in two or more distinct classes.
+
+    A finding_id is "shared" when it belongs to AT LEAST two distinct
+    ``problem_class`` values.  Finding_ids exclusive to a single class are
+    excluded.  This is the exact complement of the per-class frozensets
+    returned by :func:`finding_ids_unique_to_class`.
+
+    Args:
+        problems: List of :class:`Problem` instances from a scan.
+
+    Returns:
+        frozenset of finding_id strings that appear under 2+ distinct
+        problem_class values.  Returns ``frozenset()`` when *problems* is
+        empty or when every finding_id appears in only one class.
+
+    Pure (no I/O, no SurrealDB).
+    """
+    if not problems:
+        return frozenset()
+    # Invert: finding_id -> set of classes containing it
+    id_to_classes: dict[str, set[str]] = {}
+    for p in problems:
+        id_to_classes.setdefault(p.finding_id, set()).add(p.problem_class)
+    return frozenset(fid for fid, classes in id_to_classes.items() if len(classes) >= 2)
