@@ -296,3 +296,85 @@ def test_qat_variants_bind_to_same_silicon_as_ptq() -> None:
         assert qat.endpoint == ptq.endpoint, (
             f"{qat_id} endpoint={qat.endpoint} != {ptq_id} endpoint={ptq.endpoint}"
         )
+
+
+# ---------------------------------------------------------------------------
+# Item 53 — Qwen3.6-35B-A3B-MTP-GGUF iGPU main-tier MTP candidate registration
+# ---------------------------------------------------------------------------
+
+_MTP_MODEL_ID = "Qwen3.6-35B-A3B-MTP-GGUF"
+# The primary iGPU main-tier model it would eventually displace (after the speed proof).
+_MTP_PRIMARY_ID = "Gemma-4-26B-A4B-it-GGUF"
+
+
+def test_qwen36_mtp_registered() -> None:
+    """Item 53: Qwen3.6-35B-A3B-MTP-GGUF must be present in the default registry."""
+    registry = FleetRegistry()
+    assert _MTP_MODEL_ID in registry.models, (
+        f"{_MTP_MODEL_ID} missing from registry; item 53 additive registration not done"
+    )
+
+
+def test_qwen36_mtp_unverified_working() -> None:
+    """Item 53: MTP candidate is additive-first (unverified) — swap is experiment-gated."""
+    registry = FleetRegistry()
+    m = registry.models.get(_MTP_MODEL_ID)
+    assert m is not None, f"{_MTP_MODEL_ID} not in registry"
+    assert not m.verified_working, (
+        f"{_MTP_MODEL_ID} has verified_working=True; registration must be additive "
+        "(verified_working=False) — the SWAP requires a speed/memory/quality proof first"
+    )
+
+
+def test_qwen36_mtp_surfaces_in_for_task() -> None:
+    """Item 53 FALSIFIABLE check: MTP candidate surfaces in for_task() for iGPU-affine tasks.
+
+    This check CAN come back negative: if the task_affinity is wrong (e.g. only SUMMARIZATION)
+    it would PASS test_qwen36_mtp_registered but FAIL here, proving the implementation is wrong.
+    """
+    registry = FleetRegistry()
+    reasoning_ids = {m.model_id for m in registry.for_task(Task.REASONING)}
+    assert _MTP_MODEL_ID in reasoning_ids, (
+        f"{_MTP_MODEL_ID} must surface in for_task(REASONING) — "
+        "Qwen3.6 35B-A3B is a reasoning-capable model"
+    )
+    code_ids = {m.model_id for m in registry.for_task(Task.CODE_GEN)}
+    assert _MTP_MODEL_ID in code_ids, (
+        f"{_MTP_MODEL_ID} must surface in for_task(CODE_GEN) — "
+        "Qwen3 series is particularly strong at code generation"
+    )
+
+
+def test_qwen36_mtp_non_displacing_priority() -> None:
+    """Item 53: MTP candidate priority > iGPU primary so it never auto-displaces the resident.
+
+    The swap from primary to MTP is experiment-gated. Until the proof passes, the MTP
+    entry must have higher priority (= lower preference) than the current primary.
+    """
+    registry = FleetRegistry()
+    mtp = registry.models[_MTP_MODEL_ID]
+    primary = registry.models[_MTP_PRIMARY_ID]
+    assert mtp.priority > primary.priority, (
+        f"{_MTP_MODEL_ID} (priority={mtp.priority}) must have LOWER preference than "
+        f"{_MTP_PRIMARY_ID} (priority={primary.priority}) — an unverified MTP candidate "
+        "must not displace the resident iGPU model before the speed proof passes."
+    )
+
+
+def test_qwen36_mtp_on_igpu_unified_lane() -> None:
+    """Item 53: MTP candidate targets the iGPU Unified lane (the 'main tier' for large models).
+
+    Qwen3.6-35B-A3B at IQ4_XS is ~17-20 GB — fits unified memory (IGPU_UNIFIED/13308).
+    It is NOT on the ROCWMMA lane (which hosts smaller models like E4B at 4.6 GB).
+    """
+    registry = FleetRegistry()
+    m = registry.models.get(_MTP_MODEL_ID)
+    assert m is not None, f"{_MTP_MODEL_ID} not in registry"
+    assert m.lane == Lane.IGPU_UNIFIED, (
+        f"{_MTP_MODEL_ID} lane={m.lane}; expected IGPU_UNIFIED — "
+        "35B-A3B at IQ4_XS (~17-20 GB) is the main-tier iGPU replacement candidate, "
+        "not a small-model ROCWMMA slot"
+    )
+    assert "13308" in m.endpoint, (
+        f"{_MTP_MODEL_ID} endpoint={m.endpoint!r}; expected port 13308 (iGPU Unified)"
+    )

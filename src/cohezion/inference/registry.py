@@ -512,6 +512,39 @@ def _build_default_registry() -> dict[str, ModelEntry]:
                 "sliding window attention (same as PTQ 31B)."
             ),
         ),
+        # --- Item 53: Qwen3.6-35B-A3B-MTP-GGUF iGPU main-tier MTP candidate (additive-first) ---
+        # byteshape/Qwen3.6-35B-A3B-MTP-GGUF (model_info: 33,361 dl, apache-2.0, IQ2_S→IQ4_XS,
+        # MTP heads baked in). Targets the IGPU_UNIFIED main tier (the 26B-A4B slot).
+        # ~1.7-1.9× tok/s via `llama-server --spec-type draft-mtp --spec-draft-n-max 3`.
+        # Registered NON-DISPLACING (priority > 26B-PTQ primary at 15).
+        # SWAP is gated: MTP SERVES + tok/s >= 1.5× baseline + IQ4_XS memory <= K1/rule-5 gate.
+        # lemonade has no --spec-type flag; serving requires direct llama-server + a lanes-up window.
+        ModelEntry(
+            model_id="Qwen3.6-35B-A3B-MTP-GGUF",
+            lane=Lane.IGPU_UNIFIED,
+            endpoint="http://localhost:13308",
+            runtime_backend="llamacpp_hip",  # MTP needs direct llama-server --spec-type draft-mtp
+            task_affinity=frozenset({Task.REASONING, Task.CODE_GEN, Task.GENERAL}),
+            weight_quant=WeightQuant.Q4_K_M,  # IQ4_XS ≈ 4-bit; Q4_K_M is the closest enum value
+            kv_quant=kv8_q80,
+            # Qwen3 native 32K; YaRN extends to 131K. Using native context for the registration.
+            context_window=32768,
+            # priority=17 is above the 26B-PTQ (15) and 26B-QAT (16), below the 12B OOM fallback (18).
+            # Routing cascade on IGPU_UNIFIED: 26B-PTQ → 26B-QAT → MTP-candidate → (12B on ROCWMMA).
+            priority=17,
+            verified_working=False,  # SWAP-GATED: needs llama-server --spec-type proof before mark_verified
+            notes=(
+                "iGPU main-tier MTP candidate (item 53). byteshape/Qwen3.6-35B-A3B-MTP-GGUF "
+                "(model_info-verified: 33,361 dl, apache-2.0, IQ2_S→IQ4_XS, MTP heads baked). "
+                "35B total / 3.6B active MoE. ~1.7-1.9× tok/s via --spec-type draft-mtp "
+                "--spec-draft-n-max 3 at $0. IQ4_XS ~17-20 GB → K1/rule-5 gate (<= 20 GB). "
+                "Qwen3 native 32K ctx; YaRN extends to 131K (declare only proven native). "
+                "SWAP-GATED: flip priority < 15 ONLY after tok/s >= 1.5x 26B-PTQ baseline "
+                "AND IQ4_XS memory fits free -h (not while swap >50%) AND quality >= PTQ. "
+                "Serving requires direct llama-server (lemonade has no --spec-type) "
+                "+ a lanes-up maintenance window; NEVER auto-swapped."
+            ),
+        ),
         # --- Task-specialist models via Ollama (:11434) ---
         ModelEntry(
             model_id="phi4:latest",
