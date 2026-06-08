@@ -11092,3 +11092,21 @@ def fid_severity_entropies(problems: list[Problem]) -> dict[str, float]:
                 entropy -= prob * math.log2(prob)
         result[fid] = entropy
     return result
+
+
+def class_severity_histogram(problems: list[Problem]) -> dict[str, dict[str, int]]:
+    """Return raw severity count histogram per class.  Item 584.
+
+    Returns {class: {severity: count}}.
+    The lossless version of class_severity_entropies — raw counts, not entropy scalar.
+    Empty -> {}.  Pure; no I/O.
+    """
+    if not problems:
+        return {}
+    result: dict[str, dict[str, int]] = {}
+    for p in problems:
+        if p.problem_class not in result:
+            result[p.problem_class] = {}
+        sev = p.severity or ""
+        result[p.problem_class][sev] = result[p.problem_class].get(sev, 0) + 1
+    return result
