@@ -4145,6 +4145,7 @@ def severity_escalation_classes(
 
     Pure (no I/O, no SurrealDB).
     """
+
     def _class_severity_counts(scan: list[Problem], sev: str) -> dict[str, int]:
         counts: dict[str, int] = {}
         for p in scan:
@@ -4155,10 +4156,7 @@ def severity_escalation_classes(
     counts_a = _class_severity_counts(scan_a, severity)
     counts_b = _class_severity_counts(scan_b, severity)
     all_classes = set(counts_a) | set(counts_b)
-    return frozenset(
-        cls for cls in all_classes
-        if counts_b.get(cls, 0) > counts_a.get(cls, 0)
-    )
+    return frozenset(cls for cls in all_classes if counts_b.get(cls, 0) > counts_a.get(cls, 0))
 
 
 def severity_improvement_classes(
@@ -4184,6 +4182,7 @@ def severity_improvement_classes(
 
     Pure (no I/O, no SurrealDB).
     """
+
     def _class_severity_counts(scan: list[Problem], sev: str) -> dict[str, int]:
         counts: dict[str, int] = {}
         for p in scan:
@@ -4194,7 +4193,4 @@ def severity_improvement_classes(
     counts_a = _class_severity_counts(scan_a, severity)
     counts_b = _class_severity_counts(scan_b, severity)
     all_classes = set(counts_a) | set(counts_b)
-    return frozenset(
-        cls for cls in all_classes
-        if counts_b.get(cls, 0) < counts_a.get(cls, 0)
-    )
+    return frozenset(cls for cls in all_classes if counts_b.get(cls, 0) < counts_a.get(cls, 0))
