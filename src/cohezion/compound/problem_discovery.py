@@ -2319,3 +2319,39 @@ def most_pressing_violation(
         return None
     min_class = min(headroom, key=lambda cls: headroom[cls])
     return min_class if headroom[min_class] < 0 else None
+
+
+def violation_depth(
+    problems: list[Problem],
+    thresholds: dict[str, int],
+) -> dict[str, int]:
+    """Return a map of violating classes to their excess count above threshold.
+
+    For each monitored class where ``count > threshold``, returns
+    ``count - threshold`` (always positive).  Compliant classes and
+    at-threshold classes are absent.
+
+    This is the positive-valued complement of :func:`signed_headroom`'s
+    negative portion: ``violation_depth[cls] == -signed_headroom[cls]`` for
+    every violating class.  More readable for "how many findings over the
+    limit?" compared to negative signed headroom.
+
+    Args:
+        problems:   List of ``Problem`` instances to examine.
+        thresholds: Mapping of ``{problem_class: max_allowed_count}``.
+                    Empty mapping -> ``{}``.
+
+    Returns:
+        ``dict[str, int]`` of violating classes mapped to positive excess counts.
+        Returns ``{}`` when no violations or *thresholds* is empty.
+
+    Pure (no I/O, no SurrealDB).
+    """
+    if not thresholds:
+        return {}
+    counts = problem_count_by_class(problems)
+    return {
+        cls: counts.get(cls, 0) - limit
+        for cls, limit in thresholds.items()
+        if counts.get(cls, 0) > limit
+    }
