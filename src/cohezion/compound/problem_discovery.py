@@ -5231,7 +5231,7 @@ def top_severity_class(
     return None
 
 
-def multi_severity_classes(problems: list["Problem"]) -> "frozenset[str]":
+def multi_severity_classes(problems: list[Problem]) -> frozenset[str]:
     """Return class names appearing at 2+ distinct labelled severity levels.
 
     A class is included when it has labelled problems (``severity != ''``) at
@@ -5258,7 +5258,7 @@ def multi_severity_classes(problems: list["Problem"]) -> "frozenset[str]":
     return frozenset(cls for cls, sevs in class_severities.items() if len(sevs) >= 2)
 
 
-def single_severity_classes(problems: list["Problem"]) -> "frozenset[str]":
+def single_severity_classes(problems: list[Problem]) -> frozenset[str]:
     """Return class names with exactly one distinct labelled severity level.
 
     Complement of :func:`multi_severity_classes`.  Together they partition all
@@ -5285,7 +5285,7 @@ def single_severity_classes(problems: list["Problem"]) -> "frozenset[str]":
     return frozenset(cls for cls, sevs in class_severities.items() if len(sevs) == 1)
 
 
-def severity_span(problems: list["Problem"]) -> dict[str, int]:
+def severity_span(problems: list[Problem]) -> dict[str, int]:
     """Return the count of distinct labelled severity levels per class.
 
     The span is the quantified form of the ``multi_severity_classes`` /
@@ -5317,7 +5317,7 @@ def severity_span(problems: list["Problem"]) -> dict[str, int]:
     return {cls: len(sevs) for cls, sevs in class_severities.items()}
 
 
-def max_severity_span_class(problems: list["Problem"]) -> "str | None":
+def max_severity_span_class(problems: list[Problem]) -> str | None:
     """Return the class name with the greatest severity span.
 
     Delegates to :func:`severity_span` and picks the class with the highest
@@ -5339,9 +5339,7 @@ def max_severity_span_class(problems: list["Problem"]) -> "str | None":
     return min(spans, key=lambda cls: (-spans[cls], cls))
 
 
-def classes_for_finding_id(
-    problems: list["Problem"], finding_id: str
-) -> "frozenset[str]":
+def classes_for_finding_id(problems: list[Problem], finding_id: str) -> frozenset[str]:
     """Return all class names that have at least one record with the given finding_id.
 
     Inverse of :func:`finding_ids_for_class`.  When a finding_id appears
@@ -5361,9 +5359,7 @@ def classes_for_finding_id(
     return frozenset(p.problem_class for p in problems if p.finding_id == finding_id)
 
 
-def problems_for_class(
-    problems: list["Problem"], class_name: str
-) -> list["Problem"]:
+def problems_for_class(problems: list[Problem], class_name: str) -> list[Problem]:
     """Return all Problem records whose problem_class matches class_name.
 
     Closes the bidirectional-index quadrant:
@@ -5387,7 +5383,7 @@ def problems_for_class(
     return [p for p in problems if p.problem_class == class_name]
 
 
-def severity_class_matrix(problems: list["Problem"]) -> dict[str, dict[str, int]]:
+def severity_class_matrix(problems: list[Problem]) -> dict[str, dict[str, int]]:
     """Return a 2D count matrix keyed by severity then class.
 
     Transpose of :func:`severity_heatmap` (which keys by class then severity).
@@ -5414,7 +5410,7 @@ def severity_class_matrix(problems: list["Problem"]) -> dict[str, dict[str, int]
     return result
 
 
-def labelled_problems(problems: list["Problem"]) -> list["Problem"]:
+def labelled_problems(problems: list[Problem]) -> list[Problem]:
     """Return only Problem records that have a non-empty severity label.
 
     Complement of the unlabelled filter: where unlabelled returns records with
@@ -5438,7 +5434,7 @@ def labelled_problems(problems: list["Problem"]) -> list["Problem"]:
 # ---------------------------------------------------------------------------
 
 
-def unlabelled_problems(problems: list["Problem"]) -> list["Problem"]:
+def unlabelled_problems(problems: list[Problem]) -> list[Problem]:
     """Return only problems whose severity is empty (complement of labelled_problems).
 
     ``unlabelled_problems(problems) -> list[Problem]``:
@@ -5501,38 +5497,3 @@ def problems_by_severity_rank(
     unranked_sentinel = len(severity_order)
     # Python's sorted() is stable: ties within a tier preserve insertion order
     return sorted(problems, key=lambda p: rank.get(p.severity, unranked_sentinel))
-
-
-# ---------------------------------------------------------------------------
-# Item 347 — problems_by_severity_rank (2026-06-08)
-# ---------------------------------------------------------------------------
-
-
-def problems_by_severity_rank(
-    problems: list["Problem"], severity_order: list[str]
-) -> list["Problem"]:
-    """Return all problems sorted by caller-supplied severity rank order.
-
-    ``problems_by_severity_rank(problems, severity_order) -> list[Problem]``:
-    Returns all :class:`Problem` objects sorted so that problems whose severity
-    appears earliest in *severity_order* come first.  Unlabelled problems
-    (``severity == ''``) and problems whose severity is not in *severity_order*
-    are appended last.  Ties within a tier preserve original insertion order
-    (stable sort).  Empty input → [].  Pure (no I/O, no SurrealDB).
-
-    Args:
-        problems:       Flat list of :class:`Problem` records.
-        severity_order: Ordered list of severity strings; index 0 = highest
-                        priority.
-
-    Returns:
-        New list of all :class:`Problem` objects ordered by severity rank.
-        Unlabelled/unknown severities are appended last, insertion order
-        preserved within each tier.
-
-    Pure (no I/O, no SurrealDB).
-    """
-    rank: dict[str, int] = {sev: i for i, sev in enumerate(severity_order)}
-    sentinel = len(severity_order)  # rank for unlabelled / unknown
-
-    return sorted(problems, key=lambda p: (rank.get(p.severity, sentinel),))
