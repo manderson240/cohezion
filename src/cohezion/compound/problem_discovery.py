@@ -9320,3 +9320,45 @@ def score_rank_of_class(
     # Dense rank: count how many DISTINCT scores are strictly higher
     distinct_higher = len({s for s in class_totals.values() if s > target_score})
     return distinct_higher + 1
+
+
+def score_percentile_of_class(
+    problems: list[Problem],
+    weights: dict[str, float],
+    problem_class: str,
+) -> float | None:
+    """Return the [0.0, 1.0] percentile position of *problem_class* by total score.
+
+    Percentile = (number of OTHER classes with a STRICTLY lower total score)
+                 / (total number of classes - 1).
+
+    * Single class → ``0.0`` (not ``None`` — the class exists, the denominator
+      is ``max(1, total-1) = 1``, and 0 strictly-lower / 1 = 0.0).
+    * Absent class → ``None``.
+    * Empty *problems* → ``None``.
+
+    Args:
+        problems: List of :class:`Problem` instances.
+        weights: Mapping of severity label to numeric score.
+        problem_class: The class name to look up.
+
+    Returns:
+        ``float`` in [0.0, 1.0], or ``None`` if class is absent/empty.
+
+    Pure (no I/O, no SurrealDB).  Item 507.
+    """
+    if not problems:
+        return None
+    class_totals: dict[str, float] = {}
+    for p in problems:
+        class_totals[p.problem_class] = (
+            class_totals.get(p.problem_class, 0.0) + weights.get(p.severity, 0.0)
+        )
+    if problem_class not in class_totals:
+        return None
+    target_score = class_totals[problem_class]
+    n = len(class_totals)
+    if n == 1:
+        return 0.0
+    strictly_lower = sum(1 for s in class_totals.values() if s < target_score)
+    return float(strictly_lower / (n - 1))
