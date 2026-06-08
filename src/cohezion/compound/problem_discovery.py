@@ -12292,3 +12292,27 @@ def fid_problem_entropy(problems: list[Problem]) -> dict[str, float]:
             h -= p * _math.log2(p)
         result[fid] = h
     return result
+
+
+def class_fid_dominance_ratio(problems: list[Problem]) -> dict[str, float]:
+    """Return the dominance ratio (max/min) of per-fid counts for each class.  Item 642.
+
+    dominance_ratio = max_fid_count / min_fid_count.
+    1.0 = all fids equal; > 1.0 = dominant fid exists. float >= 1.0.
+    Single-fid -> 1.0.
+    """
+    if not problems:
+        return {}
+    fid_counts: dict[str, dict[str, int]] = {}
+    for p in problems:
+        if p.problem_class not in fid_counts:
+            fid_counts[p.problem_class] = {}
+        fid_counts[p.problem_class][p.finding_id] = (
+            fid_counts[p.problem_class].get(p.finding_id, 0) + 1
+        )
+    result: dict[str, float] = {}
+    for cls, bucket in fid_counts.items():
+        mx = max(bucket.values())
+        mn = min(bucket.values())
+        result[cls] = float(mx) / mn
+    return result
