@@ -5709,9 +5709,7 @@ def finding_id_overlap_count(problems: list[Problem], class_a: str, class_b: str
 # ---------------------------------------------------------------------------
 
 
-def problems_unique_to_class(
-    problems: list["Problem"], class_name: str
-) -> list["Problem"]:
+def problems_unique_to_class(problems: list["Problem"], class_name: str) -> list["Problem"]:
     """Return problems for class_name whose finding_id appears in no other class.
 
     ``problems_unique_to_class(problems, class_name) -> list[Problem]``:
@@ -5740,10 +5738,29 @@ def problems_unique_to_class(
     for p in problems:
         id_classes.setdefault(p.finding_id, set()).add(p.problem_class)
     # Exclusive finding_ids: appear in ONLY this class
-    exclusive_ids = {
-        fid for fid, classes in id_classes.items() if classes == {class_name}
-    }
-    return [
-        p for p in problems
-        if p.problem_class == class_name and p.finding_id in exclusive_ids
-    ]
+    exclusive_ids = {fid for fid, classes in id_classes.items() if classes == {class_name}}
+    return [p for p in problems if p.problem_class == class_name and p.finding_id in exclusive_ids]
+
+
+# ---------------------------------------------------------------------------
+# Item 355 — count_problems_with_severity (2026-06-08)
+# ---------------------------------------------------------------------------
+
+
+def count_problems_with_severity(problems: list[Problem]) -> int:
+    """Return the count of Problem records that have a non-empty severity label.
+
+    ``count_problems_with_severity(problems) -> int``:
+    Equivalent to ``len(labelled_problems(problems))``.  Returns the number
+    of :class:`Problem` objects whose ``severity`` is not ``''``.
+    Empty input → 0.  Pure (no I/O, no SurrealDB).
+
+    Args:
+        problems: Flat list of :class:`Problem` records.
+
+    Returns:
+        Integer count of labelled (non-empty severity) problems.
+
+    Pure (no I/O, no SurrealDB).
+    """
+    return sum(1 for p in problems if p.severity)
