@@ -11722,3 +11722,22 @@ def class_severity_distinct_count(problems: list[Problem]) -> dict[str, int]:
     # Include classes with zero labelled problems that may still have unlabelled ones
     all_classes: set[str] = {p.problem_class for p in problems}
     return {cls: len(labels.get(cls, set())) for cls in all_classes}
+
+
+def fid_severity_distinct_count(problems: list[Problem]) -> dict[str, int]:
+    """Return number of distinct non-empty severity labels per fid.  Item 616.
+
+    FID-axis complement of class_severity_distinct_count.
+    Returns {fid: distinct_sev_count}.  Unlabelled excluded.
+    Empty -> {}.  Pure; no I/O.
+    """
+    if not problems:
+        return {}
+    labels: dict[str, set[str]] = {}
+    for p in problems:
+        if p.severity:
+            if p.finding_id not in labels:
+                labels[p.finding_id] = set()
+            labels[p.finding_id].add(p.severity)
+    all_fids: set[str] = {p.finding_id for p in problems}
+    return {fid: len(labels.get(fid, set())) for fid in all_fids}
