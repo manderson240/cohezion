@@ -2769,3 +2769,25 @@ def headroom_summary(
         "violated": violated,
         "worst": worst,
     }
+
+
+def filter_problems_by_severity(
+    problems: list[Problem],
+    severity: str,
+) -> list[Problem]:
+    """Return all problems whose severity matches *severity* (exact, case-sensitive).
+
+    The ``Problem.severity`` field is an optional ``str`` with default ``""``.
+    This function is the Problem-list complement of
+    :func:`classes_with_max_severity`, which returns class names instead.
+
+    Args:
+        problems: List of :class:`Problem` instances from a scan.
+        severity: Exact severity string to match (case-sensitive).
+
+    Returns:
+        ``list[Problem]`` — matching problems in input order.
+
+    Pure (no I/O, no SurrealDB).
+    """
+    return [p for p in problems if p.severity == severity]
