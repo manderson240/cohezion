@@ -1495,3 +1495,31 @@ def worst_violation(
             first_seen[p.problem_class] = i
     best = max(violations, key=lambda cls: (violations[cls], -first_seen.get(cls, 0)))
     return (best, violations[best])
+
+
+def violation_summary(
+    problems: list[Problem],
+    thresholds: dict[str, int],
+) -> int:
+    """Return the total excess across all violating classes — item 205.
+
+    Folds all per-class excess counts from :func:`threshold_violations` into
+    a single integer.  Use as a single boolean health gate::
+
+        if violation_summary(findings, limits) > 0:
+            alert("budget exceeded")
+
+    Args:
+        problems:
+            A list of :class:`Problem` instances.
+        thresholds:
+            ``{problem_class: max_allowed_count}`` mapping.
+
+    Returns:
+        Sum of all ``excess_count`` values from
+        :func:`threshold_violations`.  0 when there are no violations,
+        when *thresholds* is empty, or when *problems* is empty.
+
+    Pure (no I/O, no SurrealDB).
+    """
+    return sum(threshold_violations(problems, thresholds).values())
