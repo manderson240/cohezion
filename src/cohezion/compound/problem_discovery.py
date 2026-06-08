@@ -10028,3 +10028,34 @@ def fid_score_kurtosis(
         return 0.0
     raw_kurtosis = sum((v - mean) ** 4 for v in values) / (n * std_dev**4)
     return float(raw_kurtosis - 3.0)
+
+
+def class_score_cv(
+    problems: list[Problem],
+    weights: dict[str, float],
+) -> float:
+    """Return coefficient of variation (std_dev / mean) of class total scores.  Item 533.
+
+    CV is dimensionless: normalises by the mean for cross-scale spread comparison.
+    0.0 for empty, single class (std_dev=0), or mean==0 (avoids division by zero).
+    Pure; no I/O.
+    """
+    import math as _math
+
+    if not problems:
+        return 0.0
+    class_totals: dict[str, float] = {}
+    for p in problems:
+        class_totals[p.problem_class] = class_totals.get(p.problem_class, 0.0) + weights.get(
+            p.severity, 0.0
+        )
+    n = len(class_totals)
+    if n < 2:
+        return 0.0
+    values = list(class_totals.values())
+    mean = sum(values) / n
+    if mean == 0.0:
+        return 0.0
+    variance = sum((v - mean) ** 2 for v in values) / n
+    std_dev = _math.sqrt(variance)
+    return float(std_dev / mean)
