@@ -5026,3 +5026,27 @@ def cross_class_finding_ids(problems: list[Problem]) -> frozenset[str]:
     return frozenset(
         fid for fid, classes in finding_id_class_map(problems).items() if len(classes) >= 2
     )
+
+
+def most_common_finding_id(problems: list["Problem"]) -> "str | None":
+    """Return the finding_id with the highest total Problem record count.
+
+    Counts raw Problem records per finding_id (not distinct classes or
+    distinct severities).  Tie-break: alphabetically ascending finding_id
+    (lexicographically smallest wins).
+
+    Args:
+        problems: List of :class:`Problem` instances from a scan.
+
+    Returns:
+        The finding_id string with the most records, or ``None`` when
+        *problems* is empty.
+
+    Pure (no I/O, no SurrealDB).
+    """
+    if not problems:
+        return None
+    counts: dict[str, int] = {}
+    for p in problems:
+        counts[p.finding_id] = counts.get(p.finding_id, 0) + 1
+    return min(counts, key=lambda fid: (-counts[fid], fid))
