@@ -3519,3 +3519,27 @@ def count_classes_with_severity(problems: list[Problem], severity: str) -> int:
     Pure (no I/O, no SurrealDB).
     """
     return len({p.problem_class for p in problems if p.severity == severity})
+
+
+def most_common_severity(problems: list[Problem]) -> str | None:
+    """Return the labelled severity with the highest frequency across all problems.
+
+    Only labelled problems (severity != '') are counted.
+    Tie-break: ascending severity string (alphabetically smaller wins).
+
+    Args:
+        problems: List of :class:`Problem` instances from a scan.
+
+    Returns:
+        str — the most frequent labelled severity label, or ``None`` when
+        *problems* is empty or all problems are unlabelled.
+
+    Pure (no I/O, no SurrealDB).
+    """
+    counts: dict[str, int] = {}
+    for p in problems:
+        if p.severity:
+            counts[p.severity] = counts.get(p.severity, 0) + 1
+    if not counts:
+        return None
+    return max(counts, key=lambda s: (counts[s], [-ord(c) for c in s]))
