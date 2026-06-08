@@ -14134,3 +14134,52 @@ def fid_severity_rank_gini(problems: list[Problem]) -> dict[str, float]:
                 total_abs = sum(abs(ranks[i] - ranks[j]) for i in range(n) for j in range(n))
                 result[fid] = float(total_abs) / (2 * n * n * mean)
     return result
+
+
+def class_severity_rank_mean_abs_dev(problems: list[Problem]) -> dict[str, float]:
+    """Mean absolute deviation (MAD) of severity ranks per class.  Item 740.
+
+    MAD = mean(|xi - mean|).  n=1 -> 0.0.  Empty -> {}.  Pure; no I/O.
+    """
+    if not problems:
+        return {}
+    ranks_by_class: dict[str, list[int]] = {}
+    for p in problems:
+        cls = p.problem_class
+        if cls not in ranks_by_class:
+            ranks_by_class[cls] = []
+        ranks_by_class[cls].append(_SEVERITY_RANK.get(p.severity, 0))
+    result: dict[str, float] = {}
+    for cls, ranks in ranks_by_class.items():
+        n = len(ranks)
+        if n <= 1:
+            result[cls] = 0.0
+        else:
+            mean = sum(ranks) / n
+            result[cls] = sum(abs(r - mean) for r in ranks) / n
+    return result
+
+
+def fid_severity_rank_mean_abs_dev(problems: list[Problem]) -> dict[str, float]:
+    """Mean absolute deviation (MAD) of severity ranks per fid.  Item 741.
+
+    Fid-axis complement of class_severity_rank_mean_abs_dev (item 740).
+    MAD = mean(|xi - mean|).  n=1 -> 0.0.  Empty -> {}.  Pure; no I/O.
+    """
+    if not problems:
+        return {}
+    ranks_by_fid: dict[str, list[int]] = {}
+    for p in problems:
+        fid = p.finding_id
+        if fid not in ranks_by_fid:
+            ranks_by_fid[fid] = []
+        ranks_by_fid[fid].append(_SEVERITY_RANK.get(p.severity, 0))
+    result: dict[str, float] = {}
+    for fid, ranks in ranks_by_fid.items():
+        n = len(ranks)
+        if n <= 1:
+            result[fid] = 0.0
+        else:
+            mean = sum(ranks) / n
+            result[fid] = sum(abs(r - mean) for r in ranks) / n
+    return result
