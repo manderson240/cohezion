@@ -4981,3 +4981,28 @@ def class_finding_id_counts(problems: list["Problem"]) -> dict[str, int]:
     return {cls: len(fids) for cls, fids in class_fids.items()}
 
 
+def finding_id_class_map(problems: list["Problem"]) -> dict[str, "frozenset[str]"]:
+    """Return an inverse index mapping each finding_id to the classes it appears in.
+
+    For every unique ``finding_id`` in *problems*, builds the frozenset of
+    class names (``problem_class``) that contain at least one Problem with
+    that finding_id.  All problems are included regardless of severity label
+    (including unlabelled).
+
+    Args:
+        problems: List of :class:`Problem` instances from a scan.
+
+    Returns:
+        dict mapping finding_id → frozenset of class names that contain it.
+        Empty input → {}.
+
+    Pure (no I/O, no SurrealDB).
+    """
+    if not problems:
+        return {}
+    fid_classes: dict[str, set[str]] = {}
+    for p in problems:
+        fid_classes.setdefault(p.finding_id, set()).add(p.problem_class)
+    return {fid: frozenset(classes) for fid, classes in fid_classes.items()}
+
+
