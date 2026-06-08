@@ -9003,3 +9003,38 @@ def largest_regression(
     if not positive:
         return None
     return max(positive, key=lambda kv: (kv[1], [-ord(c) for c in kv[0]]))
+
+
+def largest_improvement(
+    before: list[Problem],
+    after: list[Problem],
+    weights: dict[str, float],
+) -> tuple[str, float] | None:
+    """Return the (class, delta) pair for the class with the most negative delta -- item 497.
+
+    Symmetric to :func:`largest_regression` for improving classes.  Scans all
+    per-class score deltas and returns the class whose score decreased the most
+    (lowest/most-negative delta).  Tie-break: alphabetically ascending class name.
+    Returns ``None`` when no class has a negative delta (all stable or worsening).
+
+    The ``delta`` in the returned tuple is negative (it represents the score
+    decrease, not the absolute magnitude).
+
+    Args:
+        before: Problem list from the earlier scan.
+        after:  Problem list from the more recent scan.
+        weights: Mapping of severity label to numeric score.
+
+    Returns:
+        ``(class_name, delta)`` tuple where delta is negative, for the class
+        that improved the most.  ``None`` if no class improved.
+
+    Pure (no I/O, no SurrealDB).
+    """
+    deltas = all_score_deltas_between_snapshots(before, after, weights)
+    negative = [(cls, delta) for cls, delta in deltas.items() if delta < 0.0]
+    if not negative:
+        return None
+    # min delta (most negative) = most improved; tie-break alpha ascending
+    # Use min() with key: (delta ascending, name ascending for ties)
+    return min(negative, key=lambda kv: (kv[1], kv[0]))
