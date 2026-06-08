@@ -2086,3 +2086,44 @@ def problems_by_ratio_rank(
         problems,
         key=lambda p: (-(ratios.get(p.problem_class, -1.0)),),
     )
+
+
+def summarize_scan(
+    problems: list[Problem],
+    thresholds: dict[str, int],
+) -> dict:
+    """Compose TIDE functions into a single-call scan summary.
+
+    Returns a ``dict`` with exactly these 7 keys, all values obtained by
+    calling existing pure TIDE functions (no reimplementation)::
+
+        {
+            "total":               int   -- len(problems),
+            "violations_count":    int   -- number of monitored classes over threshold,
+            "worst_violation":     tuple | None  -- (class, excess) or None,
+            "most_critical_class": str | None    -- class with highest ratio,
+            "violation_summary":   int   -- sum of all excesses,
+            "classes_over":        frozenset[str] -- over-threshold monitored classes,
+            "classes_under":       frozenset[str] -- at-or-under monitored classes,
+        }
+
+    Args:
+        problems:   List of ``Problem`` instances from a TIDE scan.
+        thresholds: Mapping of ``{problem_class: max_allowed_count}``.
+
+    Returns:
+        ``dict`` with the 7 summary keys listed above.
+
+    Pure (no I/O, no SurrealDB).
+    """
+    violations = threshold_violations(problems, thresholds)
+    classes_over, classes_under = partition_by_threshold(problems, thresholds)
+    return {
+        "total": len(problems),
+        "violations_count": len(violations),
+        "worst_violation": worst_violation(problems, thresholds),
+        "most_critical_class": most_critical_class(problems, thresholds),
+        "violation_summary": violation_summary(problems, thresholds),
+        "classes_over": classes_over,
+        "classes_under": classes_under,
+    }
