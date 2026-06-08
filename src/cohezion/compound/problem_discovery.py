@@ -171,6 +171,45 @@ def top_problem_classes(
     return ranked[:n]
 
 
+def top_problem_classes_excluding(
+    problems: list[Problem],
+    *,
+    exclude_classes: frozenset[str] | set[str] = frozenset(),
+    n: int = 5,
+) -> list[tuple[str, int]]:
+    """Return the top-N problem classes with an exclusion guard — item 169.
+
+    Extends :func:`top_problem_classes` with an optional set of class names to
+    omit from the result.  Exclusion happens BEFORE ranking, so *n* refers to
+    the top-n from the *non-excluded* classes only.  Tie-breaking is identical
+    to :func:`top_problem_classes` (descending count, ascending class name).
+
+    When *exclude_classes* is empty, the result is identical to
+    :func:`top_problem_classes` for the same *problems* and *n*.
+
+    Args:
+        problems:
+            A list of :class:`Problem` instances.  Empty list → empty list.
+        exclude_classes:
+            Set of ``problem_class`` strings to omit from the ranking result.
+            ``frozenset()`` (default) → no exclusion.
+        n:
+            Maximum number of entries to return.
+
+    Returns:
+        A list of ``(problem_class, count)`` pairs, sorted descending by count
+        then ascending by class name.  Classes in *exclude_classes* are absent.
+        Length ≤ *n*.
+
+    Pure (no I/O, no SurrealDB).
+    """
+    counts = problem_count_by_class(problems)
+    # Exclude before ranking
+    filtered = {cls: cnt for cls, cnt in counts.items() if cls not in exclude_classes}
+    ranked = sorted(filtered.items(), key=lambda item: (-item[1], item[0]))
+    return ranked[:n]
+
+
 @dataclass(frozen=True)
 class ProblemSummary:
     """Typed summary envelope over a :func:`discover_problems` result — item 163.
