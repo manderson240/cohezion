@@ -45,7 +45,7 @@ def test_outer_keyed_by_severity_inner_set_of_fids_primary_discriminator() -> No
     problems = [
         _p("A", "fa", "HIGH"),
         _p("B", "fa", "HIGH"),  # fa: 2 HIGH
-        _p("C", "fb", "LOW"),   # fb: 1 LOW
+        _p("C", "fb", "LOW"),  # fb: 1 LOW
     ]
     result = fids_by_severity(problems)
     assert isinstance(result, dict), "Must return dict; got " + repr(type(result))
@@ -55,9 +55,11 @@ def test_outer_keyed_by_severity_inner_set_of_fids_primary_discriminator() -> No
         f"'fa' (dominant HIGH) must be in result['HIGH']; got {result['HIGH']} "
         f"(class name 'A'/'B'/'C' present = class axis wrong)"
     )
-    assert "fb" in result["LOW"], f"'fb' (dominant LOW) must be in result['LOW']; got {result['LOW']}"
+    assert "fb" in result["LOW"], (
+        f"'fb' (dominant LOW) must be in result['LOW']; got {result['LOW']}"
+    )
     assert "A" not in result["HIGH"], (
-        f"Inner set must contain fid names not class names; 'A' found in result['HIGH']"
+        "Inner set must contain fid names not class names; 'A' found in result['HIGH']"
     )
 
 
@@ -75,7 +77,7 @@ def test_dominant_severity_only_not_all_severities() -> None:
     ]
     result = fids_by_severity(problems)
     assert "HIGH" in result, f"Severity 'HIGH' must be a key; got {list(result)}"
-    assert "fx" in result["HIGH"], f"'fx' dominated by HIGH must be in result['HIGH']"
+    assert "fx" in result["HIGH"], "'fx' dominated by HIGH must be in result['HIGH']"
     if "LOW" in result:
         assert "fx" not in result["LOW"], (
             f"'fx' must NOT be in result['LOW'] (LOW is non-dominant for fx); "
