@@ -5798,7 +5798,7 @@ def count_unlabelled_problems(problems: list[Problem]) -> int:
 # ---------------------------------------------------------------------------
 
 
-def problems_with_class_prefix(problems: list["Problem"], prefix: str) -> list["Problem"]:
+def problems_with_class_prefix(problems: list[Problem], prefix: str) -> list[Problem]:
     """Return all problems whose class name starts with the given prefix.
 
     ``problems_with_class_prefix(problems, prefix) -> list[Problem]``:
@@ -5859,9 +5859,7 @@ def problems_with_finding_id_prefix(
 # ---------------------------------------------------------------------------
 
 
-def class_name_contains(
-    problems: list["Problem"], substring: str
-) -> list["Problem"]:
+def class_name_contains(problems: list[Problem], substring: str) -> list[Problem]:
     """Return all problems whose class name contains the given substring.
 
     ``class_name_contains(problems, substring) -> list[Problem]``:
@@ -5884,3 +5882,40 @@ def class_name_contains(
     Pure (no I/O, no SurrealDB).
     """
     return [p for p in problems if substring in p.problem_class]
+
+
+# ---------------------------------------------------------------------------
+# Item 361 — deduplicate_exact_problems (2026-06-08)
+# ---------------------------------------------------------------------------
+
+
+def deduplicate_exact_problems(problems: list[Problem]) -> list[Problem]:
+    """Return a new list with exact-duplicate Problem records removed — item 361.
+
+    Two :class:`Problem` objects are considered exact duplicates when ALL three
+    fields match: ``problem_class``, ``finding_id``, AND ``severity``.  Same
+    class+finding_id with different severity = two distinct records (both kept).
+
+    Keeps the FIRST occurrence; insertion order of surviving records is
+    preserved.  Empty *problems* → ``[]``.
+
+    This differs from :func:`deduplicate_problems` (item 185), which
+    deduplicates by ``finding_id`` alone.
+
+    Args:
+        problems:
+            A list of :class:`Problem` instances.  Empty list → ``[]``.
+
+    Returns:
+        A new list of :class:`Problem` instances, length ≤ ``len(problems)``.
+        The input list is not mutated.
+
+    Pure (no I/O, no SurrealDB).
+    """
+    seen: set[Problem] = set()
+    result: list[Problem] = []
+    for p in problems:
+        if p not in seen:
+            seen.add(p)
+            result.append(p)
+    return result
