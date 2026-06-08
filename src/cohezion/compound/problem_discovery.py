@@ -9840,3 +9840,27 @@ def fid_score_std_dev(
     values = list(fid_totals.values())
     mean = sum(values) / n
     return float(math.sqrt(sum((v - mean) ** 2 for v in values) / n))
+
+
+def fid_score_variance(
+    problems: list[Problem],
+    weights: dict[str, float],
+) -> float:
+    """Return population variance of per-fid total weighted scores.  Item 526.
+
+    Formula: mean(x^2) - mean(x)^2 on fid totals.
+    0.0 for empty or single fid.  All equal scores -> 0.0.  Pure; no I/O.
+    """
+    if not problems:
+        return 0.0
+    fid_totals: dict[str, float] = {}
+    for p in problems:
+        fid_totals[p.finding_id] = (
+            fid_totals.get(p.finding_id, 0.0) + weights.get(p.severity, 0.0)
+        )
+    n = len(fid_totals)
+    if n < 2:
+        return 0.0
+    values = list(fid_totals.values())
+    mean = sum(values) / n
+    return float(sum((v - mean) ** 2 for v in values) / n)
