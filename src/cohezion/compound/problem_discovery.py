@@ -9454,3 +9454,35 @@ def top_class_by_score(
         return None
     ranked = classes_by_total_score(problems, weights)
     return ranked[0] if ranked else None
+
+
+def bottom_class_by_score(
+    problems: list[Problem],
+    weights: dict[str, float],
+) -> str | None:
+    """Return the single class name with the LOWEST total weighted severity score.
+
+    Alphabetical tie-break when multiple classes share the bottom score.
+    Returns ``None`` when *problems* is empty.
+
+    The complement of :func:`top_class_by_score`.
+
+    Args:
+        problems: List of :class:`Problem` instances.
+        weights: Mapping of severity label to numeric score.
+
+    Returns:
+        ``str`` class name with the lowest total score, or ``None`` if empty.
+
+    Pure (no I/O, no SurrealDB).  Item 512.
+    """
+    if not problems:
+        return None
+    class_totals: dict[str, float] = {}
+    for p in problems:
+        class_totals[p.problem_class] = (
+            class_totals.get(p.problem_class, 0.0) + weights.get(p.severity, 0.0)
+        )
+    min_score = min(class_totals.values())
+    # Among classes tied at min_score, return alphabetically first
+    return min(cls for cls, score in class_totals.items() if score == min_score)
