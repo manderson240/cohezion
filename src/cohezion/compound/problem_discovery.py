@@ -14971,3 +14971,78 @@ def fid_severity_rank_interdecile_range(problems: list[Problem]) -> dict[str, fl
         p90 = sorted_ranks[lo90] + (i90 - lo90) * (sorted_ranks[hi90] - sorted_ranks[lo90])
         result[fid] = float(p90 - p10)
     return result
+
+
+def class_severity_rank_mode_value(problems: list[Problem]) -> dict[str, float]:
+    """Modal severity rank per class as float.  Item 776.
+
+    Returns the most-frequent rank value (as float) per class.
+    Ties broken by min rank.  All-same -> float(rank).  Empty -> {}.  Pure; no I/O.
+    Wires over class_problem_rank_majority_class (item 746), converting int -> float.
+    """
+    return {
+        cls: float(rank)
+        for cls, rank in class_problem_rank_majority_class(problems).items()
+    }
+
+
+def fid_severity_rank_mode_value(problems: list[Problem]) -> dict[str, float]:
+    """Modal severity rank per fid as float.  Item 777.
+
+    Fid-axis complement of class_severity_rank_mode_value (item 776).
+    Most-frequent rank per fid; ties -> min rank.  Empty -> {}.  Pure; no I/O.
+    Wires over fid_problem_rank_majority_class (item 747), converting int -> float.
+    """
+    return {
+        fid: float(rank)
+        for fid, rank in fid_problem_rank_majority_class(problems).items()
+    }
+
+
+def class_severity_rank_mode_count(problems: list[Problem]) -> dict[str, int]:
+    """Number of distinct ranks tied for max frequency per class.  Item 778.
+
+    Returns the count of modes (ranks with the highest frequency).
+    Unimodal -> 1.  All-same -> 1.  Bimodal tie -> 2.  Empty -> {}.  Pure; no I/O.
+    """
+    if not problems:
+        return {}
+    ranks_by_class: dict[str, list[int]] = {}
+    for p in problems:
+        cls = p.problem_class
+        if cls not in ranks_by_class:
+            ranks_by_class[cls] = []
+        ranks_by_class[cls].append(_SEVERITY_RANK.get(p.severity, 0))
+    result: dict[str, int] = {}
+    for cls, ranks in ranks_by_class.items():
+        counts: dict[int, int] = {}
+        for r in ranks:
+            counts[r] = counts.get(r, 0) + 1
+        max_count = max(counts.values())
+        result[cls] = int(sum(1 for c in counts.values() if c == max_count))
+    return result
+
+
+def fid_severity_rank_mode_count(problems: list[Problem]) -> dict[str, int]:
+    """Number of distinct ranks tied for max frequency per fid.  Item 779.
+
+    Fid-axis complement of class_severity_rank_mode_count (item 778).
+    Count of modes (ranks with the highest frequency).
+    Unimodal -> 1.  Empty -> {}.  Pure; no I/O.
+    """
+    if not problems:
+        return {}
+    ranks_by_fid: dict[str, list[int]] = {}
+    for p in problems:
+        fid = p.finding_id
+        if fid not in ranks_by_fid:
+            ranks_by_fid[fid] = []
+        ranks_by_fid[fid].append(_SEVERITY_RANK.get(p.severity, 0))
+    result: dict[str, int] = {}
+    for fid, ranks in ranks_by_fid.items():
+        counts: dict[int, int] = {}
+        for r in ranks:
+            counts[r] = counts.get(r, 0) + 1
+        max_count = max(counts.values())
+        result[fid] = int(sum(1 for c in counts.values() if c == max_count))
+    return result
