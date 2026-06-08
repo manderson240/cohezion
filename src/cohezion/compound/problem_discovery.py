@@ -1820,3 +1820,38 @@ def most_common_class(problems: list[Problem]) -> str | None:
         counts[p.problem_class] += 1
     # Pick class with highest count; first occurrence breaks ties
     return max(counts, key=lambda cls: (counts[cls], -first_seen[cls]))
+
+
+def top_k_classes(problems: list[Problem], k: int) -> list[str]:
+    """Return the top-K most frequent problem classes — item 216.
+
+    Returns up to *k* class names in descending count order.  Ties broken
+    by first occurrence.  List generalization of :func:`most_common_class`::
+
+        top3 = top_k_classes(findings, 3)
+        # ["complexity_outlier", "nesting_outlier", "long_function"]
+
+    Args:
+        problems:
+            A list of :class:`Problem` instances.  Empty list → ``[]``.
+        k:
+            Number of classes to return.  ``k ≤ 0`` → ``[]``.  When
+            *k* exceeds the number of distinct classes, all classes are
+            returned.
+
+    Returns:
+        ``list[str]`` of up to *k* class names in descending count order.
+
+    Pure (no I/O, no SurrealDB).
+    """
+    if k <= 0 or not problems:
+        return []
+    first_seen: dict[str, int] = {}
+    counts: dict[str, int] = {}
+    for i, p in enumerate(problems):
+        if p.problem_class not in first_seen:
+            first_seen[p.problem_class] = i
+            counts[p.problem_class] = 0
+        counts[p.problem_class] += 1
+    ordered = sorted(counts, key=lambda cls: (counts[cls], -first_seen[cls]), reverse=True)
+    return ordered[:k]
