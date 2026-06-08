@@ -4897,3 +4897,60 @@ def highest_entropy_class_in_scan(problems: list["Problem"]) -> "str | None":
     if not nonzero:
         return None
     return min(nonzero, key=lambda cls: (-nonzero[cls], cls))
+
+
+def class_count_by_severity(problems: list[Problem]) -> dict[str, int]:
+    """Return the number of distinct classes that have ≥1 problem at each severity.
+
+    This is the inverse aggregation of :func:`severity_heatmap`: instead of
+    asking "how many problems of severity S does class C have?" it asks "how
+    many distinct classes are exposed to severity S?"
+
+    Only labelled problems (``severity != ''``) contribute.  A class with
+    five HIGH-severity problems still counts as **one** class for the ``HIGH``
+    bucket.  The empty-string key ``''`` is never present in the result.
+
+    Args:
+        problems: Flat list of :class:`Problem` records.
+
+    Returns:
+        ``{severity_label: distinct_class_count}`` for every non-empty
+        severity label present in *problems*.  Returns ``{}`` when *problems*
+        is empty or all severities are unlabelled.
+
+    Pure (no I/O, no SurrealDB).
+    """
+    if not problems:
+        return {}
+    sev_classes: dict[str, set[str]] = {}
+    for p in problems:
+        if p.severity:
+            sev_classes.setdefault(p.severity, set()).add(p.problem_class)
+    return {sev: len(classes) for sev, classes in sev_classes.items()}
+
+
+def class_count_by_severity(problems: list["Problem"]) -> dict[str, int]:
+    """Return the number of distinct classes that have ≥1 problem at each severity.
+
+    For every distinct labelled severity label, count how many different class
+    names have at least one problem carrying that label.  A class with 5 HIGH
+    problems still counts as 1 for HIGH.  Unlabelled problems (severity='')
+    are excluded from both keys and counts.
+
+    Args:
+        problems: List of :class:`Problem` instances from a scan.
+
+    Returns:
+        dict mapping severity_label → number of distinct classes with ≥1
+        problem at that severity.  Empty input → {}.
+
+    Pure (no I/O, no SurrealDB).
+    """
+    if not problems:
+        return {}
+    # Build severity → set of class names
+    sev_to_classes: dict[str, set[str]] = {}
+    for p in problems:
+        if p.severity:
+            sev_to_classes.setdefault(p.severity, set()).add(p.problem_class)
+    return {sev: len(classes) for sev, classes in sev_to_classes.items()}
