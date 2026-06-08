@@ -5764,3 +5764,30 @@ def count_problems_with_severity(problems: list[Problem]) -> int:
     Pure (no I/O, no SurrealDB).
     """
     return sum(1 for p in problems if p.severity)
+
+
+# ---------------------------------------------------------------------------
+# Item 356 — count_unlabelled_problems (2026-06-08)
+# ---------------------------------------------------------------------------
+
+
+def count_unlabelled_problems(problems: list["Problem"]) -> int:
+    """Return the integer count of problems without any severity label.
+
+    ``count_unlabelled_problems(problems) -> int``:
+    Returns the number of :class:`Problem` records whose ``severity`` is empty.
+    Equivalent to ``len(unlabelled_problems(problems))``.
+    Empty input → 0.  Pure (no I/O, no SurrealDB).
+
+    Together with :func:`count_problems_with_severity`, partitions all problems:
+    ``count_problems_with_severity(p) + count_unlabelled_problems(p) == len(p)``.
+
+    Args:
+        problems: Flat list of :class:`Problem` records.
+
+    Returns:
+        Integer count of unlabelled (empty severity) problems.
+
+    Pure (no I/O, no SurrealDB).
+    """
+    return sum(1 for p in problems if not p.severity)
