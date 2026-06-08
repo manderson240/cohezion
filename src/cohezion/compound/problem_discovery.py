@@ -11741,3 +11741,20 @@ def fid_severity_distinct_count(problems: list[Problem]) -> dict[str, int]:
             labels[p.finding_id].add(p.severity)
     all_fids: set[str] = {p.finding_id for p in problems}
     return {fid: len(labels.get(fid, set())) for fid in all_fids}
+
+
+def class_fid_distinct_count(problems: list[Problem]) -> dict[str, int]:
+    """Return number of distinct finding_ids per class.  Item 617.
+
+    Returns {class: distinct_fid_count} — how many unique fids appear per class.
+    Building block for coverage and problem_rate metrics.
+    Empty -> {}.  Pure; no I/O.
+    """
+    if not problems:
+        return {}
+    fids: dict[str, set[str]] = {}
+    for p in problems:
+        if p.problem_class not in fids:
+            fids[p.problem_class] = set()
+        fids[p.problem_class].add(p.finding_id)
+    return {cls: len(fid_set) for cls, fid_set in fids.items()}
