@@ -3836,9 +3836,7 @@ def class_co_occurrence_count(problems: list[Problem], cls_a: str, cls_b: str) -
     return len(ids_a & ids_b)
 
 
-def problem_count_by_severity_in_class(
-    problems: list[Problem], cls: str
-) -> dict[str, int]:
+def problem_count_by_severity_in_class(problems: list[Problem], cls: str) -> dict[str, int]:
     """Return {severity: count} for labelled problems in the specified class.
 
     Only problems whose ``problem_class == cls`` AND ``severity != ""`` are
@@ -3968,10 +3966,7 @@ def per_class_labelling_coverage(problems: list[Problem]) -> dict[str, float]:
         totals[p.problem_class] = totals.get(p.problem_class, 0) + 1
         if p.severity:
             labelled_counts[p.problem_class] = labelled_counts.get(p.problem_class, 0) + 1
-    return {
-        cls: float(labelled_counts.get(cls, 0) / totals[cls])
-        for cls in totals
-    }
+    return {cls: float(labelled_counts.get(cls, 0) / totals[cls]) for cls in totals}
 
 
 def worst_labelled_classes(problems: list[Problem]) -> list[tuple[str, float]]:
@@ -4045,4 +4040,84 @@ def problem_class_profile(problems: list[Problem], cls: str) -> dict[str, object
         "labelling_coverage": labelling_coverage,
         "dominant_severity": dominant_severity,
         "severity_counts": severity_counts,
+    }
+
+
+def full_scan_report(problems: list[Problem]) -> dict[str, object]:
+    """Return a richer top-level structured summary for an entire scan.
+
+    Provides seven keys that extend beyond the basic :func:`scan_summary`:
+
+    * ``total``                — total Problem count.
+    * ``unique_ids``           — count of GLOBALLY distinct finding_ids
+                                 (shared ids counted once, not per class).
+    * ``class_count``          — number of distinct problem classes.
+    * ``labelling_coverage``   — fraction of problems with a severity label.
+    * ``severity_distribution``— {severity: count} for labelled problems only.
+    * ``top_class_by_count``   — class with the most total problems; ``None``
+                                 if empty; tie-break: alphabetically smallest.
+    * ``most_critical_class``  — class with the most CRITICAL problems; falls
+                                 back to the class with the most HIGH problems
+                                 when no CRITICAL exist; ``None`` if empty or
+                                 no labelled problems at all.
+
+    Args:
+        problems: List of :class:`Problem` instances from a scan.
+
+    Returns:
+        dict with exactly the seven keys above.  All keys present even when
+        *problems* is empty (zero/None/empty defaults).
+
+    Pure (no I/O, no SurrealDB).
+    """
+    if not problems:
+        return {
+            "total": 0,
+            "unique_ids": 0,
+            "class_count": 0,
+            "labelling_coverage": 0.0,
+            "severity_distribution": {},
+            "top_class_by_count": None,
+            "most_critical_class": None,
+        }
+
+    total = len(problems)
+    unique_ids = len({p.finding_id for p in problems})
+    class_count = len({p.problem_class for p in problems})
+
+    # labelling_coverage
+    labelled_count = sum(1 for p in problems if p.severity)
+    labelling_coverage = float(labelled_count / total)
+
+    # severity_distribution (labelled only)
+    severity_distribution: dict[str, int] = {}
+    for p in problems:
+        if p.severity:
+            severity_distribution[p.severity] = severity_distribution.get(p.severity, 0) + 1
+
+    # top_class_by_count
+    class_totals: dict[str, int] = {}
+    for p in problems:
+        class_totals[p.problem_class] = class_totals.get(p.problem_class, 0) + 1
+    top_class_by_count: str | None = min(class_totals, key=lambda c: (-class_totals[c], c))
+
+    # most_critical_class: prefer CRITICAL, fallback to HIGH
+    most_critical_class: str | None = None
+    for target_sev in ("CRITICAL", "HIGH"):
+        sev_counts: dict[str, int] = {}
+        for p in problems:
+            if p.severity == target_sev:
+                sev_counts[p.problem_class] = sev_counts.get(p.problem_class, 0) + 1
+        if sev_counts:
+            most_critical_class = min(sev_counts, key=lambda c: (-sev_counts[c], c))
+            break
+
+    return {
+        "total": total,
+        "unique_ids": unique_ids,
+        "class_count": class_count,
+        "labelling_coverage": labelling_coverage,
+        "severity_distribution": severity_distribution,
+        "top_class_by_count": top_class_by_count,
+        "most_critical_class": most_critical_class,
     }
