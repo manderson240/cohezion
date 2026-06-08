@@ -8269,3 +8269,58 @@ def dominant_severity_for_fid(problems: list[Problem], finding_id: str) -> str |
     if not counts:
         return None
     return min(counts, key=lambda s: (-counts[s], s))
+
+
+def dominant_class_for_severity(problems: list[Problem], severity: str) -> str | None:
+    """Return the problem class most associated with *severity* -- item 467.
+
+    Counts per-class records for problems whose ``severity`` matches exactly.
+    Returns the class with the highest count.  Tie-break: alphabetically-first
+    class name wins, ensuring a deterministic result.
+
+    Special cases:
+    - Empty *problems* or absent *severity* → ``None``
+
+    Args:
+        problems: List of :class:`Problem` instances.
+        severity: Target severity to filter on.
+
+    Returns:
+        The dominant class string, or ``None`` when the severity is absent.
+
+    Pure (no I/O, no SurrealDB).
+    """
+    counts: dict[str, int] = {}
+    for p in problems:
+        if p.severity == severity:
+            counts[p.problem_class] = counts.get(p.problem_class, 0) + 1
+    if not counts:
+        return None
+    return min(counts, key=lambda c: (-counts[c], c))
+
+
+def dominant_class_for_severity(problems: list[Problem], severity: str) -> str | None:
+    """Return the problem_class most associated with *severity* -- item 467.
+
+    Counts per-class records for problems whose ``severity`` matches exactly.
+    Returns the class with the highest count.  Tie-break: alphabetically first.
+
+    Special cases:
+    - Empty *problems* or absent *severity* → ``None``
+
+    Args:
+        problems: List of :class:`Problem` instances.
+        severity: Target severity to filter on.
+
+    Returns:
+        The dominant class string, or ``None`` when the severity is absent.
+
+    Pure (no I/O, no SurrealDB).
+    """
+    class_counts: dict[str, int] = {}
+    for p in problems:
+        if p.severity == severity:
+            class_counts[p.problem_class] = class_counts.get(p.problem_class, 0) + 1
+    if not class_counts:
+        return None
+    return min(class_counts, key=lambda c: (-class_counts[c], c))
