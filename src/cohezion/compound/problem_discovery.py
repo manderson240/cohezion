@@ -2251,3 +2251,34 @@ def classes_at_threshold(
         return frozenset()
     counts = problem_count_by_class(problems)
     return frozenset(cls for cls, limit in thresholds.items() if counts.get(cls, 0) == limit)
+
+
+def signed_headroom(
+    problems: list[Problem],
+    thresholds: dict[str, int],
+) -> dict[str, int]:
+    """Return signed headroom for every monitored class.
+
+    Maps each monitored class to ``threshold - count``:
+    - Positive → class is under budget (remaining headroom).
+    - Zero     → class is exactly at threshold (no headroom left).
+    - Negative → class is a violation (how many findings over the limit).
+
+    Unlike :func:`threshold_headroom` (which omits violating classes), this
+    function covers ALL monitored classes in *thresholds*.  Unmonitored
+    classes (absent from *thresholds*) are not included in the result.
+
+    Args:
+        problems:   List of ``Problem`` instances to examine.
+        thresholds: Mapping of ``{problem_class: max_allowed_count}``.
+                    Empty mapping -> ``{}``.
+
+    Returns:
+        ``dict[str, int]`` mapping each monitored class to its signed headroom.
+
+    Pure (no I/O, no SurrealDB).
+    """
+    if not thresholds:
+        return {}
+    counts = problem_count_by_class(problems)
+    return {cls: limit - counts.get(cls, 0) for cls, limit in thresholds.items()}
