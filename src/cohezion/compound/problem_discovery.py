@@ -8542,10 +8542,7 @@ def problems_matching_class_and_severity(
 
     Pure (no I/O, no SurrealDB).
     """
-    return [
-        p for p in problems
-        if p.problem_class == problem_class and p.severity == severity
-    ]
+    return [p for p in problems if p.problem_class == problem_class and p.severity == severity]
 
 
 def problems_matching_fid_and_severity(
@@ -8569,10 +8566,7 @@ def problems_matching_fid_and_severity(
 
     Pure (no I/O, no SurrealDB).
     """
-    return [
-        p for p in problems
-        if p.finding_id == finding_id and p.severity == severity
-    ]
+    return [p for p in problems if p.finding_id == finding_id and p.severity == severity]
 
 
 def problems_matching_class_and_fid(
@@ -8598,10 +8592,7 @@ def problems_matching_class_and_fid(
 
     Pure (no I/O, no SurrealDB).
     """
-    return [
-        p for p in problems
-        if p.problem_class == problem_class and p.finding_id == finding_id
-    ]
+    return [p for p in problems if p.problem_class == problem_class and p.finding_id == finding_id]
 
 
 def class_total_severity_score(
@@ -8626,11 +8617,7 @@ def class_total_severity_score(
     Pure (no I/O, no SurrealDB).
     """
     return float(
-        sum(
-            weights.get(p.severity, 0.0)
-            for p in problems
-            if p.problem_class == problem_class
-        )
+        sum(weights.get(p.severity, 0.0) for p in problems if p.problem_class == problem_class)
     )
 
 
@@ -8655,10 +8642,34 @@ def fid_total_severity_score(
 
     Pure (no I/O, no SurrealDB).
     """
-    return float(
-        sum(
-            weights.get(p.severity, 0.0)
-            for p in problems
-            if p.finding_id == finding_id
-        )
-    )
+    return float(sum(weights.get(p.severity, 0.0) for p in problems if p.finding_id == finding_id))
+
+
+def all_severity_scores(
+    problems: list[Problem],
+    weights: dict[str, float],
+) -> dict[str, float]:
+    """Return total severity score for every class using *weights* -- item 484.
+
+    Bulk form of :func:`class_total_severity_score`: returns a mapping from
+    every class present in *problems* to its total weighted severity score.
+    Classes whose problems all have unrecognised severities score 0.0 but
+    are still included (non-sparse by class: every class that appears).
+
+    Args:
+        problems: List of :class:`Problem` instances.
+        weights: Mapping of severity label to numeric score.  Unrecognised
+            severity labels contribute 0.0.
+
+    Returns:
+        ``{class_name: total_score}`` for each unique class in *problems*.
+        Empty dict when *problems* is empty.
+
+    Pure (no I/O, no SurrealDB).
+    """
+    scores: dict[str, float] = {}
+    for p in problems:
+        if p.problem_class not in scores:
+            scores[p.problem_class] = 0.0
+        scores[p.problem_class] += weights.get(p.severity, 0.0)
+    return scores
