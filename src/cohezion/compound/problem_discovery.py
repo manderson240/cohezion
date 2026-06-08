@@ -7055,3 +7055,26 @@ def problems_below_threshold(problems: list[Problem], threshold: int) -> list[Pr
     for p in problems:
         counts[p.finding_id] = counts.get(p.finding_id, 0) + 1
     return [p for p in problems if counts[p.finding_id] < threshold]
+
+
+def singleton_finding_ids(problems: list[Problem]) -> frozenset[str]:
+    """Return the frozenset of finding_ids that appear in exactly one record — item 413.
+
+    A *singleton* finding_id is one whose total count in *problems* is exactly
+    ``1``.  Finding_ids with count ``>= 2`` are excluded.
+
+    Args:
+        problems: List of :class:`Problem` instances.
+
+    Returns:
+        :class:`frozenset` of finding_id strings with a total count of
+        exactly ``1``.  ``frozenset()`` when *problems* is empty.
+
+    Pure (no I/O, no SurrealDB).
+    """
+    if not problems:
+        return frozenset()
+    counts: dict[str, int] = {}
+    for p in problems:
+        counts[p.finding_id] = counts.get(p.finding_id, 0) + 1
+    return frozenset(fid for fid, cnt in counts.items() if cnt == 1)
