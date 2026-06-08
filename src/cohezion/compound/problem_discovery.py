@@ -1245,36 +1245,3 @@ def least_frequent_class(problems: list[Problem]) -> str | None:
     # a LARGER last_seen index maps to a SMALLER negative index, so the
     # last-occurrence class is selected.
     return min(counts, key=lambda cls: (counts[cls], -last_seen[cls]))
-
-
-def least_frequent_class(problems: list[Problem]) -> str | None:
-    """Return the ``problem_class`` with the lowest finding count — item 197.
-
-    Symmetric complement of :func:`most_frequent_class` for tail-class
-    analysis.  On ties the class whose LAST appearance is latest in
-    *problems* wins (most-recently-seen rarest class)::
-
-        if cls := least_frequent_class(findings):
-            audit_rare_class(cls)
-
-    Args:
-        problems:
-            A list of :class:`Problem` instances.  Empty list → ``None``.
-
-    Returns:
-        The ``problem_class`` string with the minimum count, or ``None``
-        when *problems* is empty.  Ties resolved by last occurrence.
-
-    Pure (no I/O, no SurrealDB).
-    """
-    if not problems:
-        return None
-    counts: dict[str, int] = {}
-    last_seen: dict[str, int] = {}
-    for i, p in enumerate(problems):
-        counts[p.problem_class] = counts.get(p.problem_class, 0) + 1
-        last_seen[p.problem_class] = i
-    min_count = min(counts.values())
-    # Among tied-minimum classes, return the one whose last appearance is latest.
-    candidates = [cls for cls, cnt in counts.items() if cnt == min_count]
-    return max(candidates, key=lambda cls: last_seen[cls])
