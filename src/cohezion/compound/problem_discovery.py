@@ -7899,3 +7899,26 @@ def severity_labelling_ratio(problems: list[Problem]) -> float:
         return 0.0
     labelled = sum(1 for p in problems if p.severity)
     return labelled / len(problems)
+
+
+def rarest_severity(problems: list[Problem]) -> str | None:
+    """Return the severity value with the fewest Problem records -- item 453.
+
+    Returns the anti-mode of the severity distribution.  When multiple
+    severities share the minimum count, the alphabetically smallest value
+    is returned (deterministic tie-breaking).
+
+    Args:
+        problems: List of :class:`Problem` instances.
+
+    Returns:
+        The least-frequent severity string, or ``None`` for empty input.
+
+    Pure (no I/O, no SurrealDB).
+    """
+    if not problems:
+        return None
+    counts: dict[str, int] = {}
+    for p in problems:
+        counts[p.severity] = counts.get(p.severity, 0) + 1
+    return min(counts, key=lambda sev: (counts[sev], sev))
