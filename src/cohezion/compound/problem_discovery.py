@@ -7231,3 +7231,30 @@ def dominant_class(problems: list[Problem]) -> str | None:
     for p in problems:
         counts[p.problem_class] = counts.get(p.problem_class, 0) + 1
     return min(counts, key=lambda cls: (-counts[cls], cls))
+
+
+def dominant_finding_id(problems: list[Problem]) -> str | None:
+    """Return the finding_id with the highest total record count -- item 422.
+
+    Returns the :attr:`Problem.finding_id` string that appears the most times
+    across the full dataset.  Ties are broken alphabetically ascending (the
+    lexicographically smallest finding_id wins).  Returns ``None`` when
+    *problems* is empty.
+
+    Dual of :func:`dominant_class` operating on the finding_id axis.
+
+    Args:
+        problems: List of :class:`Problem` instances.
+
+    Returns:
+        The :attr:`Problem.finding_id` string with the highest record count,
+        or ``None`` when *problems* is empty.
+
+    Pure (no I/O, no SurrealDB).
+    """
+    if not problems:
+        return None
+    counts: dict[str, int] = {}
+    for p in problems:
+        counts[p.finding_id] = counts.get(p.finding_id, 0) + 1
+    return min(counts, key=lambda fid: (-counts[fid], fid))
