@@ -44,7 +44,7 @@ logger = logging.getLogger(__name__)
 _JUDGE_URL = "http://localhost:13305/v1/chat/completions"
 _JUDGE_MODEL = "Granite-4.1-8B-GGUF"
 _JUDGE_TIMEOUT_S = 10  # per-call HTTP timeout; pairwise pairs are short prompts
-_JUDGE_MAX_TOKENS = 8   # we only need "A" or "B" back
+_JUDGE_MAX_TOKENS = 8  # we only need "A" or "B" back
 _JUDGE_TEMPERATURE = 0  # deterministic / replay-safe
 
 

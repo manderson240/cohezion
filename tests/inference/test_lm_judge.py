@@ -17,6 +17,7 @@ Discriminating tests — each kills a plausible wrong implementation:
   5. is_judge_available() returns bool (not raises) when :13305 is reachable or not.
      Kills impl that propagates exceptions.
 """
+
 from __future__ import annotations
 
 from unittest.mock import MagicMock, patch
@@ -37,7 +38,9 @@ from cohezion.inference.registry import Lane, ModelEntry, Task, WeightQuant
 # ---------------------------------------------------------------------------
 
 
-def _entry(model_id: str, task_affinity: frozenset, verified: bool = False, priority: int = 100) -> ModelEntry:
+def _entry(
+    model_id: str, task_affinity: frozenset, verified: bool = False, priority: int = 100
+) -> ModelEntry:
     """Minimal ModelEntry for testing."""
     return ModelEntry(
         model_id=model_id,
@@ -132,9 +135,7 @@ def test_granite_prefer_falls_back_on_network_failure() -> None:
     with patch("cohezion.inference.lm_judge._call_judge", return_value=None):
         result = granite_prefer(MODEL_A, MODEL_B, Task.GENERAL)
     # Must return one of the two models, not raise, not return None
-    assert result in (MODEL_A, MODEL_B), (
-        f"expected MODEL_A or MODEL_B on fallback; got {result}"
-    )
+    assert result in (MODEL_A, MODEL_B), f"expected MODEL_A or MODEL_B on fallback; got {result}"
     # Should agree with deterministic proxy
     expected = _default_preference(MODEL_A, MODEL_B, Task.GENERAL)
     assert result is expected, (
@@ -173,9 +174,7 @@ def test_granite_prefer_handles_no_task_affinity() -> None:
     with patch("cohezion.inference.lm_judge._call_judge", return_value=None):
         result = granite_prefer(MODEL_C, MODEL_A, Task.MATH)
     # Must return one of the two models, not crash
-    assert result in (MODEL_C, MODEL_A), (
-        f"expected MODEL_C or MODEL_A; got {result}"
-    )
+    assert result in (MODEL_C, MODEL_A), f"expected MODEL_C or MODEL_A; got {result}"
 
 
 # ---------------------------------------------------------------------------
