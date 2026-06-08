@@ -6221,3 +6221,36 @@ def class_count_at_most_threshold(problems: list[Problem], n: int) -> frozenset[
     for p in problems:
         counts[p.problem_class] = counts.get(p.problem_class, 0) + 1
     return frozenset(cls for cls, cnt in counts.items() if cnt <= n)
+
+
+# ---------------------------------------------------------------------------
+# Item 375 — finding_id_to_classes (2026-06-08)
+# ---------------------------------------------------------------------------
+
+
+def finding_id_to_classes(
+    problems: list["Problem"],
+) -> "dict[str, frozenset[str]]":
+    """Build a reverse index mapping each finding_id to its owning classes — item 375.
+
+    Returns a :class:`dict` mapping each distinct ``finding_id`` string to the
+    :class:`frozenset` of ``problem_class`` values that have at least one
+    :class:`Problem` with that finding_id.  This is the inverse of the
+    class→finding_id index: here the **key is the finding_id**.
+
+    Args:
+        problems: List of :class:`Problem` instances.  Empty → ``{}``.
+
+    Returns:
+        ``dict[str, frozenset[str]]``.  Every distinct finding_id in
+        *problems* appears exactly once as a key.  Values are non-empty
+        :class:`frozenset` objects.  Empty when *problems* is empty.
+
+    Pure (no I/O, no SurrealDB).
+    """
+    if not problems:
+        return {}
+    result: dict[str, set[str]] = {}
+    for p in problems:
+        result.setdefault(p.finding_id, set()).add(p.problem_class)
+    return {fid: frozenset(classes) for fid, classes in result.items()}
