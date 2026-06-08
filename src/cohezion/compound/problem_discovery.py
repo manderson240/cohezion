@@ -4622,3 +4622,32 @@ def multi_severity_finding_ids(
     """
     severity_map = finding_id_severity_map(problems)
     return frozenset(fid for fid, sevs in severity_map.items() if len(sevs) >= 2)
+
+
+def problems_by_finding_id(
+    problems: list[Problem],
+) -> dict[str, list[Problem]]:
+    """Group :class:`Problem` records by their ``finding_id``.
+
+    Returns a dict mapping each distinct ``finding_id`` to the list of
+    :class:`Problem` records that carry it, preserving their original order
+    from the input list.  All records are included — both labelled and
+    unlabelled — unlike :func:`finding_id_severity_map` which excludes
+    unlabelled records.
+
+    Useful for drilling into a specific finding to inspect how it is classified
+    across different problem classes or severities.
+
+    Args:
+        problems: Flat list of :class:`Problem` records.
+
+    Returns:
+        ``{finding_id: [Problem, ...]}``.  Returns ``{}`` when *problems*
+        is empty.
+
+    Pure (no I/O, no SurrealDB).
+    """
+    result: dict[str, list[Problem]] = {}
+    for p in problems:
+        result.setdefault(p.finding_id, []).append(p)
+    return result
