@@ -10105,8 +10105,8 @@ def class_score_median(
         return 0.0
     class_totals: dict[str, float] = {}
     for p in problems:
-        class_totals[p.problem_class] = (
-            class_totals.get(p.problem_class, 0.0) + weights.get(p.severity, 0.0)
+        class_totals[p.problem_class] = class_totals.get(p.problem_class, 0.0) + weights.get(
+            p.severity, 0.0
         )
     return float(_stats.median(class_totals.values()))
 
@@ -10126,9 +10126,7 @@ def fid_score_median(
         return 0.0
     fid_totals: dict[str, float] = {}
     for p in problems:
-        fid_totals[p.finding_id] = (
-            fid_totals.get(p.finding_id, 0.0) + weights.get(p.severity, 0.0)
-        )
+        fid_totals[p.finding_id] = fid_totals.get(p.finding_id, 0.0) + weights.get(p.severity, 0.0)
     return float(_stats.median(fid_totals.values()))
 
 
@@ -10147,13 +10145,40 @@ def class_score_mad(
         return 0.0
     class_totals: dict[str, float] = {}
     for p in problems:
-        class_totals[p.problem_class] = (
-            class_totals.get(p.problem_class, 0.0) + weights.get(p.severity, 0.0)
+        class_totals[p.problem_class] = class_totals.get(p.problem_class, 0.0) + weights.get(
+            p.severity, 0.0
         )
     n = len(class_totals)
     if n < 2:
         return 0.0
     values = list(class_totals.values())
+    med = _statistics.median(values)
+    abs_devs = [abs(v - med) for v in values]
+    return float(_statistics.median(abs_devs))
+
+
+def fid_score_mad(
+    problems: list[Problem],
+    weights: dict[str, float],
+) -> float:
+    """Return the median absolute deviation (MAD) of fid total weighted scores.
+
+    MAD = median(|x - median(x)|).  FID-axis complement of class_score_mad.
+    0.0 for empty or single fid.  Item 538.
+    """
+    import statistics as _statistics
+
+    if not problems:
+        return 0.0
+    fid_totals: dict[str, float] = {}
+    for p in problems:
+        fid_totals[p.finding_id] = (
+            fid_totals.get(p.finding_id, 0.0) + weights.get(p.severity, 0.0)
+        )
+    n = len(fid_totals)
+    if n < 2:
+        return 0.0
+    values = list(fid_totals.values())
     med = _statistics.median(values)
     abs_devs = [abs(v - med) for v in values]
     return float(_statistics.median(abs_devs))
