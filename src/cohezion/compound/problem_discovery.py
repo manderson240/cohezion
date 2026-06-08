@@ -4421,3 +4421,35 @@ def severity_delta_per_class(
         if delta != 0:
             result.setdefault(cls, {})[sev] = delta
     return result
+
+
+def most_volatile_class(
+    scan_a: list[Problem],
+    scan_b: list[Problem],
+) -> str | None:
+    """Return the class name with the highest total absolute severity delta.
+
+    Uses :func:`severity_delta_per_class` to obtain per-class, per-severity
+    deltas, then sums ``abs(delta)`` across all severities for each class to
+    compute a *volatility score*.  The class with the highest score is returned.
+    Ties are broken by class name ascending (lexicographically smallest wins).
+
+    Returns ``None`` when no labelled problems exist in either scan (i.e. when
+    ``severity_delta_per_class`` returns an empty dict).
+
+    Args:
+        scan_a: Problems from the baseline scan.
+        scan_b: Problems from the comparison scan.
+
+    Returns:
+        Class name with maximum total absolute delta, or ``None``.
+
+    Pure (no I/O, no SurrealDB).
+    """
+    deltas = severity_delta_per_class(scan_a, scan_b)
+    if not deltas:
+        return None
+    return max(
+        deltas,
+        key=lambda cls: (sum(abs(v) for v in deltas[cls].values()), [-ord(c) for c in cls]),
+    )
