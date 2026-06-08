@@ -6018,3 +6018,39 @@ def finding_ids_above_count(problems: list[Problem], n: int) -> frozenset[str]:
     for p in problems:
         counts[p.finding_id] = counts.get(p.finding_id, 0) + 1
     return frozenset(fid for fid, cnt in counts.items() if cnt > n)
+
+
+# ---------------------------------------------------------------------------
+# Item 367 — finding_ids_at_most_count (2026-06-08)
+# ---------------------------------------------------------------------------
+
+
+def finding_ids_at_most_count(problems: list[Problem], n: int) -> frozenset[str]:
+    """Return finding_ids whose total record count is at most n — item 367.
+
+    Counts raw :class:`Problem` records per ``finding_id`` across the full
+    list.  Returns only those ``finding_id`` strings where count ``<= n``.
+
+    Special cases:
+    - ``n=0`` → ``frozenset()`` (every id appears at least once; no id has
+      count ≤ 0).
+    - Empty *problems* → ``frozenset()``.
+
+    Complement of :func:`finding_ids_above_count`: their union equals the set
+    of all distinct ``finding_id`` values, and their intersection is empty.
+
+    Args:
+        problems: List of :class:`Problem` instances from a scan.
+        n:        Integer ceiling; finding_ids with count <= n are returned.
+
+    Returns:
+        :class:`frozenset` of ``finding_id`` strings.
+
+    Pure (no I/O, no SurrealDB).
+    """
+    if not problems:
+        return frozenset()
+    counts: dict[str, int] = {}
+    for p in problems:
+        counts[p.finding_id] = counts.get(p.finding_id, 0) + 1
+    return frozenset(fid for fid, cnt in counts.items() if cnt <= n)
