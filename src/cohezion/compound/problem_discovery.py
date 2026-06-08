@@ -10521,3 +10521,24 @@ def fid_unique_severity_count(
             severities[p.finding_id] = set()
         severities[p.finding_id].add(p.severity)
     return {fid: len(sev_set) for fid, sev_set in severities.items()}
+
+
+def class_max_severity_weight(
+    problems: list[Problem],
+    weights: dict[str, float],
+) -> dict[str, float]:
+    """Return the maximum single problem weight per class.  Item 556.
+
+    For each class, returns the maximum weight of any single problem in it.
+    NOT the class total score -- this is the "worst individual problem" metric.
+    0.0 for unknown severity weights (graceful fallback).
+    Empty -> {}.  Pure; no I/O.
+    """
+    if not problems:
+        return {}
+    class_maxes: dict[str, float] = {}
+    for p in problems:
+        w = weights.get(p.severity, 0.0)
+        if p.problem_class not in class_maxes or w > class_maxes[p.problem_class]:
+            class_maxes[p.problem_class] = w
+    return class_maxes
