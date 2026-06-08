@@ -6738,3 +6738,22 @@ def problems_by_severity(problems: list[Problem]) -> dict[str, list[Problem]]:
     for p in problems:
         result.setdefault(p.severity, []).append(p)
     return result
+
+
+def problem_count_for_class(problems: list[Problem], target_class: str) -> int:
+    """Return the total Problem record count for a specific class — item 396.
+
+    Counts all :class:`Problem` records where :attr:`Problem.problem_class`
+    equals *target_class*, regardless of severity label.  Returns ``0`` when
+    the class is absent or *problems* is empty — never raises.
+
+    Args:
+        problems: List of :class:`Problem` instances.
+        target_class: The class name to count records for.
+
+    Returns:
+        Integer count of records in *target_class*.  ``0`` when not found.
+
+    Pure (no I/O, no SurrealDB).
+    """
+    return sum(1 for p in problems if p.problem_class == target_class)
