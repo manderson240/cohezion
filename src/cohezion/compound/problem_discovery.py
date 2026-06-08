@@ -9976,3 +9976,35 @@ def fid_score_skewness(
     if std_dev == 0.0:
         return 0.0
     return float(sum((v - mean) ** 3 for v in values) / (n * std_dev ** 3))
+
+
+def class_score_kurtosis(
+    problems: list[Problem],
+    weights: dict[str, float],
+) -> float:
+    """Return excess kurtosis of class total weighted scores.  Item 531.
+
+    Formula: sum((x - mean)^4) / (n * std_dev^4) - 3  (Fisher correction).
+    Excess kurtosis: normal=0.0, heavy-tailed>0, light-tailed<0.
+    0.0 for empty, < 4 classes, or std_dev == 0.  Pure; no I/O.
+    """
+    import math as _math
+
+    if not problems:
+        return 0.0
+    class_totals: dict[str, float] = {}
+    for p in problems:
+        class_totals[p.problem_class] = (
+            class_totals.get(p.problem_class, 0.0) + weights.get(p.severity, 0.0)
+        )
+    n = len(class_totals)
+    if n < 4:
+        return 0.0
+    values = list(class_totals.values())
+    mean = sum(values) / n
+    variance = sum((v - mean) ** 2 for v in values) / n
+    std_dev = _math.sqrt(variance)
+    if std_dev == 0.0:
+        return 0.0
+    raw_kurtosis = sum((v - mean) ** 4 for v in values) / (n * std_dev ** 4)
+    return float(raw_kurtosis - 3.0)
