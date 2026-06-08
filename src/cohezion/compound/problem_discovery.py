@@ -12725,29 +12725,6 @@ _SEVERITY_RANK: dict[str, int] = {
 }
 
 
-def class_fid_min_severity(problems: list[Problem]) -> dict[str, dict[str, str]]:
-    """Return lowest-ranked severity label per class × fid cell.  Item 669.
-
-    Complement of class_fid_max_severity.
-    Severity order: CRITICAL > HIGH > MEDIUM > LOW > INFO.
-    Unknown severities rank below INFO (rank -1, treated as lowest).
-    Returns {class: {fid: min_severity_str}}.  Sparse.  Empty -> {}.  Pure; no I/O.
-    """
-    if not problems:
-        return {}
-    result: dict[str, dict[str, str]] = {}
-    for p in problems:
-        cls = p.problem_class
-        fid = p.finding_id
-        sev = (p.severity or "").upper()
-        if cls not in result:
-            result[cls] = {}
-        current = result[cls].get(fid)
-        if current is None or _SEVERITY_RANK.get(sev, -1) < _SEVERITY_RANK.get(current, -1):
-            result[cls][fid] = sev
-    return result
-
-
 def class_fid_max_severity(problems: list[Problem]) -> dict[str, dict[str, str]]:
     """Return highest-ranked severity label per class × fid cell.  Item 668.
 
@@ -12791,3 +12768,25 @@ def class_fid_min_severity(problems: list[Problem]) -> dict[str, dict[str, str]]
         if current is None or _SEVERITY_RANK.get(sev, -1) < _SEVERITY_RANK.get(current, -1):
             result[cls][fid] = sev
     return result
+
+
+def class_fid_problem_rate(problems: list[Problem]) -> dict[str, dict[str, float]]:
+    """Return fraction of total problems each class x fid cell contributes.  Item 670.
+
+    fraction = cell_count / total_problems (denominator = ALL problems, not class or fid total).
+    float in (0, 1].  Sparse.  Empty -> {}.  Pure; no I/O.
+    """
+    if not problems:
+        return {}
+    total = len(problems)
+    counts: dict[str, dict[str, int]] = {}
+    for p in problems:
+        cls = p.problem_class
+        fid = p.finding_id
+        if cls not in counts:
+            counts[cls] = {}
+        counts[cls][fid] = counts[cls].get(fid, 0) + 1
+    return {
+        cls: {fid: count / total for fid, count in inner.items()}
+        for cls, inner in counts.items()
+    }
