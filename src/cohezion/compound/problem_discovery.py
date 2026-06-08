@@ -11412,3 +11412,23 @@ def class_problem_rate(problems: list[Problem]) -> dict[str, float]:
             fids[p.problem_class] = set()
         fids[p.problem_class].add(p.finding_id)
     return {cls: float(totals[cls]) / len(fids[cls]) for cls in totals}
+
+
+def fid_problem_rate(problems: list[Problem]) -> dict[str, float]:
+    """Return average problems per distinct class per fid.  Item 601.
+
+    Returns {fid: total_problems_with_fid / distinct_classes_containing_fid}.
+    FID-axis complement of class_problem_rate.
+    Reciprocal of fid_class_ratio (distinct_classes / total_problems).
+    Empty -> {}.  Pure; no I/O.
+    """
+    if not problems:
+        return {}
+    totals: dict[str, int] = {}
+    classes: dict[str, set[str]] = {}
+    for p in problems:
+        totals[p.finding_id] = totals.get(p.finding_id, 0) + 1
+        if p.finding_id not in classes:
+            classes[p.finding_id] = set()
+        classes[p.finding_id].add(p.problem_class)
+    return {fid: float(totals[fid]) / len(classes[fid]) for fid in totals}
