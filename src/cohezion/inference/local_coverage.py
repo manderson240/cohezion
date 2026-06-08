@@ -21,6 +21,75 @@ from cohezion.inference.fleet_routing_specialist import FleetRoutingSpecialist
 from cohezion.inference.registry import ModelEntry
 
 
+# ---------------------------------------------------------------------------
+# Item 98 — Model use-case coverage (the INVERSE of item-62 coverage_gaps)
+# ---------------------------------------------------------------------------
+
+
+@dataclass(frozen=True)
+class UsecaseCoverageReport:
+    """Audit of whether every served fleet model maps to ≥1 Task (item 98). Report-only.
+
+    Attributes
+    ----------
+    covered:
+        Served model_ids that have ≥1 Task in their ``task_affinity`` — they earn
+        a routing slot in the local fleet.
+    no_usecase:
+        Served model_ids with empty ``task_affinity`` OR not present in the registry
+        at all — they occupy compute with no routing purpose.
+    """
+
+    covered: frozenset[str]
+    no_usecase: frozenset[str]
+
+
+def model_usecase_coverage(
+    served_models: Iterable[str],
+    registry: Iterable[ModelEntry],
+) -> UsecaseCoverageReport:
+    """Audit which served fleet models map to ≥1 Task and which have no routing purpose (item 98).
+
+    The INVERSE of item-62 ``coverage_gaps``: that function asks "which Tasks have no local
+    specialist?"; this function asks "which served models serve no Task?" — two orthogonal
+    diagnostic axes over the same fleet.
+
+    Args:
+        served_models: model_ids currently being served (e.g. from the :13305 roster).
+            Injected — no live serving call is made.
+        registry: the fleet registry entries.  Injected — use the live
+            ``get_registry().models.values()`` at call sites or a stub for tests.
+
+    Returns:
+        A :class:`UsecaseCoverageReport` with:
+
+        - ``covered``   — served model_ids mapped to ≥1 Task via ``task_affinity``.
+        - ``no_usecase`` — served model_ids with empty affinity OR absent from registry.
+
+        A model in the registry but NOT in ``served_models`` appears in NEITHER set
+        (that model's routing coverage is item 62's concern, not ours).
+        Empty ``served_models`` → both sets empty (no ZeroDivision).
+
+    Pure (injected inputs; no inference, no registry singleton call).
+    """
+    registry_by_id: dict[str, ModelEntry] = {e.model_id: e for e in registry}
+
+    covered: set[str] = set()
+    no_usecase: set[str] = set()
+
+    for model_id in served_models:
+        entry = registry_by_id.get(model_id)
+        if entry is not None and entry.task_affinity:
+            covered.add(model_id)
+        else:
+            no_usecase.add(model_id)
+
+    return UsecaseCoverageReport(
+        covered=frozenset(covered),
+        no_usecase=frozenset(no_usecase),
+    )
+
+
 @dataclass(frozen=True)
 class LocalCoverageReport:
     """The $0 front-door coverage of the local fleet over a query set. Report-only."""
