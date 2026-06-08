@@ -10410,7 +10410,5 @@ def fid_score_max(
         return 0.0
     fid_totals: dict[str, float] = {}
     for p in problems:
-        fid_totals[p.finding_id] = (
-            fid_totals.get(p.finding_id, 0.0) + weights.get(p.severity, 0.0)
-        )
+        fid_totals[p.finding_id] = fid_totals.get(p.finding_id, 0.0) + weights.get(p.severity, 0.0)
     return float(max(fid_totals.values()))

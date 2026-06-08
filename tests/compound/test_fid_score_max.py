@@ -40,9 +40,9 @@ def test_returns_fid_axis_max_not_class_axis() -> None:
     Kills impl reusing class_score_max (returns 15.0, not 10.0).
     """
     problems = [
-        _p("A", "fid_a", "HIGH"),   # fid_a = 10.0
-        _p("A", "fid_b", "MED"),    # fid_b = 5.0 (class A total = 15.0)
-        _p("B", "fid_c", "LOW"),    # fid_c = 3.0
+        _p("A", "fid_a", "HIGH"),  # fid_a = 10.0
+        _p("A", "fid_b", "MED"),  # fid_b = 5.0 (class A total = 15.0)
+        _p("B", "fid_c", "LOW"),  # fid_c = 3.0
     ]
     weights = {"HIGH": 10.0, "MED": 5.0, "LOW": 3.0}
     result = fid_score_max(problems, weights)
@@ -61,10 +61,10 @@ def test_accumulates_same_fid_before_max() -> None:
     Max of individual weights = max(7, 5, 5, 3) = 7.0 (wrong).
     """
     problems = [
-        _p("A", "fid_a", "HIGH"),   # fid_a += 7.0
-        _p("B", "fid_a", "LOW"),    # fid_a += 5.0 -> fid_a = 12.0
-        _p("C", "fid_b", "MED"),    # fid_b = 5.0
-        _p("D", "fid_c", "LOW"),    # fid_c = 3.0
+        _p("A", "fid_a", "HIGH"),  # fid_a += 7.0
+        _p("B", "fid_a", "LOW"),  # fid_a += 5.0 -> fid_a = 12.0
+        _p("C", "fid_b", "MED"),  # fid_b = 5.0
+        _p("D", "fid_c", "LOW"),  # fid_c = 3.0
     ]
     weights = {"HIGH": 7.0, "MED": 5.0, "LOW": 5.0}
     result = fid_score_max(problems, weights)
@@ -80,7 +80,7 @@ def test_single_fid_returns_that_total() -> None:
     """
     problems = [
         _p("A", "only_fid", "HIGH"),  # +6.0
-        _p("B", "only_fid", "MED"),   # +3.0 -> only_fid = 9.0
+        _p("B", "only_fid", "MED"),  # +3.0 -> only_fid = 9.0
     ]
     result = fid_score_max(problems, {"HIGH": 6.0, "MED": 3.0})
     assert abs(result - 9.0) < 1e-9, f"Single fid total 9.0 -> max = 9.0; got {result}"
