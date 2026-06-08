@@ -1,19 +1,26 @@
-"""Specialist verification-gap report (item 38, 2026-06-06) — report-only.
+"""Specialist verification-gap report (items 38 + 77, 2026-06-06/08) — report-only.
 
-Surfaces the gap between two orthogonal registry states for the 6 specialist Tasks:
+Item 38 surfaces the gap between two orthogonal registry states for the 6 specialist Tasks:
   - REGISTERED  — a ``ModelEntry`` exists for the Task (additive; items 4/19/21/23/28
     drove this to 6/6).
   - SERVING-VERIFIED — ``verified_working=True``, i.e. the model was actually invoked
     successfully at least once (needs-experiment; currently 0/6, pending lanes-up proofs).
 
+Item 77 adds live-lane reachability: ``specialist_liveness_gaps`` partitions the 6 Tasks
+into ``ready`` (lane UP → a verification attempt is possible today) vs ``lane_down`` (lane
+DOWN or gap → explains why the verification campaign is stuck). Injectable ``check_fleet_fn``
+keeps it deterministic in tests.
+
 A read-only instrument in the family of ``loop_telemetry`` (item 25) and
-``skill_adoption_report`` (item 32): pure function over an injectable ``FleetRegistry``,
-no writes, no graph, no live health probe (that is ``FleetRegistry.audit_liveness``).
+``skill_adoption_report`` (item 32): pure functions over an injectable ``FleetRegistry``,
+no writes, no graph.
 """
 
 from __future__ import annotations
 
+from collections.abc import Callable
 from dataclasses import dataclass
+from typing import Any
 
 from cohezion.inference.registry import FleetRegistry, Task, get_registry
 
@@ -133,3 +140,92 @@ def specialist_coverage_delta(
         newly_verified=sorted(newly_verified),
         regressed=sorted(regressed),
     )
+
+
+# ---------------------------------------------------------------------------
+# Item 77 — Specialist liveness gaps (live-lane reachability partition)
+# ---------------------------------------------------------------------------
+
+
+@dataclass(frozen=True)
+class SpecialistLivenessReport:
+    """Partition of specialist Tasks by live-lane reachability (item 77). Report-only.
+
+    ``ready`` tasks: the specialist's lane is UP today — a verification attempt is
+    feasible right now.  ``lane_down`` tasks: the lane is DOWN or the Task has no
+    registered model (gap) — explains why the verification campaign is stuck.
+
+    Invariant: ``{r.task for r in ready} ∩ {r.task for r in lane_down} == ∅``
+    Invariant: ``len(ready) + len(lane_down) == len(SPECIALIST_TASKS)``
+    """
+
+    ready: list[SpecialistCoverage]  # lane UP → verification possible
+    lane_down: list[SpecialistCoverage]  # lane DOWN or gap → can't test now
+
+    @property
+    def unverifiable_tasks(self) -> list[str]:
+        """Task names blocked from verification because their lane is down (or gap)."""
+        return [r.task for r in self.lane_down]
+
+    @property
+    def verifiable_tasks(self) -> list[str]:
+        """Task names whose lane is currently UP — verification attempts are possible."""
+        return [r.task for r in self.ready]
+
+
+def specialist_liveness_gaps(
+    *,
+    registry: FleetRegistry | None = None,
+    check_fleet_fn: Callable[[], Any] | None = None,
+) -> SpecialistLivenessReport:
+    """Partition specialist Tasks by live-lane reachability (item 77). Pure/read-only.
+
+    Composes item-38 ``specialist_coverage_report`` with ``FleetRegistry.audit_liveness``
+    to answer the operator question: *which specialist Tasks can even be verified right now?*
+
+    A specialist Task is ``ready`` when its registered model's lane is live (``live_status
+    == "up"``).  It is ``lane_down`` when: (a) the Task has no registered model (gap), or
+    (b) the lane hosting its model is unreachable or unknown.
+
+    Args:
+        registry: injectable ``FleetRegistry`` (module singleton by default).
+        check_fleet_fn: injectable no-arg callable that returns a health object with a
+            ``.lanes`` dict matching the ``FleetRegistry.audit_liveness`` protocol. Defaults
+            to ``cohezion.inference.health.check_fleet``. **Always inject in tests** — the
+            default triggers live network probes.
+
+    Returns:
+        :class:`SpecialistLivenessReport` with ``ready`` and ``lane_down`` partitions.
+    """
+    reg = registry if registry is not None else get_registry()
+    coverage = specialist_coverage_report(reg)
+    audit = reg.audit_liveness(check_fleet_fn)
+
+    up_model_ids: frozenset[str] = frozenset(
+        item.model_id for item in audit.items if item.live_status == "up"
+    )
+
+    ready: list[SpecialistCoverage] = []
+    lane_down: list[SpecialistCoverage] = []
+    for row in coverage.rows:
+        if row.model_id is None:
+            lane_down.append(row)  # no model registered — gap always blocks
+        elif row.model_id in up_model_ids:
+            ready.append(row)
+        else:
+            lane_down.append(row)
+
+    return SpecialistLivenessReport(ready=ready, lane_down=lane_down)
+
+
+# ---------------------------------------------------------------------------
+# FUTURE HOOKS
+# ---------------------------------------------------------------------------
+# [ ] Item 77b: expose ``specialist_liveness_gaps`` on the /api/compound/health
+#     endpoint alongside ``DegradationDetector.get_health_summary()`` — complete
+#     the loop from "lane probe" to "operator dashboard visibility".
+# [ ] Item 77c: wire ``SpecialistLivenessReport.unverifiable_tasks`` into the
+#     autoresearch loop's campaign planner so it silently skips tasks whose lane
+#     is down (rather than surfacing a misleading "can't verify" failure).
+# [ ] Item 77d: stream-delta variant — emit a ``SpecialistLivenessReport`` diff
+#     on each autoresearch round so the operator can track lane-recovery events.
