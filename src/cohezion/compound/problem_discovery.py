@@ -14183,3 +14183,61 @@ def fid_severity_rank_mean_abs_dev(problems: list[Problem]) -> dict[str, float]:
             mean = sum(ranks) / n
             result[fid] = sum(abs(r - mean) for r in ranks) / n
     return result
+
+
+def class_severity_rank_trimmed_mean(
+    problems: list[Problem], trim_frac: float = 0.1
+) -> dict[str, float]:
+    """Trimmed mean of severity ranks per class.  Item 743.
+
+    Sorts ranks, removes floor(n*trim_frac) lowest and highest, mean of remainder.
+    n <= 2 -> plain mean.  Empty -> {}.  Pure; no I/O.
+    """
+    if not problems:
+        return {}
+    ranks_by_class: dict[str, list[int]] = {}
+    for p in problems:
+        cls = p.problem_class
+        if cls not in ranks_by_class:
+            ranks_by_class[cls] = []
+        ranks_by_class[cls].append(_SEVERITY_RANK.get(p.severity, 0))
+    result: dict[str, float] = {}
+    for cls, ranks in ranks_by_class.items():
+        n = len(ranks)
+        if n <= 2:
+            result[cls] = float(sum(ranks)) / n
+        else:
+            trim = int(n * trim_frac)
+            ranks.sort()
+            trimmed = ranks[trim: n - trim] if trim > 0 else ranks
+            result[cls] = float(sum(trimmed)) / len(trimmed)
+    return result
+
+
+def fid_severity_rank_trimmed_mean(
+    problems: list[Problem], trim_frac: float = 0.1
+) -> dict[str, float]:
+    """Trimmed mean of severity ranks per fid.  Item 744.
+
+    Fid-axis complement of class_severity_rank_trimmed_mean (item 743).
+    n <= 2 -> plain mean.  Empty -> {}.  Pure; no I/O.
+    """
+    if not problems:
+        return {}
+    ranks_by_fid: dict[str, list[int]] = {}
+    for p in problems:
+        fid = p.finding_id
+        if fid not in ranks_by_fid:
+            ranks_by_fid[fid] = []
+        ranks_by_fid[fid].append(_SEVERITY_RANK.get(p.severity, 0))
+    result: dict[str, float] = {}
+    for fid, ranks in ranks_by_fid.items():
+        n = len(ranks)
+        if n <= 2:
+            result[fid] = float(sum(ranks)) / n
+        else:
+            trim = int(n * trim_frac)
+            ranks.sort()
+            trimmed = ranks[trim: n - trim] if trim > 0 else ranks
+            result[fid] = float(sum(trimmed)) / len(trimmed)
+    return result
