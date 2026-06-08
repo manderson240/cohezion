@@ -11672,3 +11672,18 @@ def fid_severity_entropy(problems: list[Problem], fid: str) -> float:
     if total == 0:
         return 0.0
     return float(-sum((c / total) * math.log2(c / total) for c in counts.values()))
+
+
+def class_severity_count_total(problems: list[Problem]) -> dict[str, int]:
+    """Return total problem count per class regardless of severity.  Item 613.
+
+    Returns {class: total_count} counting ALL problems (labelled and unlabelled).
+    Building block for normalisation in downstream metrics.
+    Empty -> {}.  Pure; no I/O.
+    """
+    if not problems:
+        return {}
+    totals: dict[str, int] = {}
+    for p in problems:
+        totals[p.problem_class] = totals.get(p.problem_class, 0) + 1
+    return totals
