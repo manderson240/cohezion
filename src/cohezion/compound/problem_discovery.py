@@ -12885,3 +12885,22 @@ def fid_avg_problems_per_class(problems: list[Problem]) -> dict[str, float]:
             cell_counts[fid] = {}
         cell_counts[fid][cls] = cell_counts[fid].get(cls, 0) + 1
     return {fid: float(sum(inner.values())) / len(inner) for fid, inner in cell_counts.items()}
+
+
+def class_severity_count_map(problems: list[Problem]) -> dict[str, dict[str, int]]:
+    """Return 2D cross-tab of class × severity problem counts.  Item 678.
+
+    Returns {class: {severity: count}} — sparse 2D nested dict.
+    Missing (class, severity) combinations are absent (not zero-filled).
+    NOT the 3D class×fid×severity pivot (item 667).  Empty -> {}.  Pure; no I/O.
+    """
+    if not problems:
+        return {}
+    result: dict[str, dict[str, int]] = {}
+    for p in problems:
+        cls = p.problem_class
+        sev = p.severity or ""
+        if cls not in result:
+            result[cls] = {}
+        result[cls][sev] = result[cls].get(sev, 0) + 1
+    return result
