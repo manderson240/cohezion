@@ -10700,7 +10700,7 @@ def class_score_fractions(
         totals[p.problem_class] = totals.get(p.problem_class, 0.0) + weights.get(p.severity, 0.0)
     grand_total = sum(totals.values())
     if grand_total == 0.0:
-        return {cls: 0.0 for cls in totals}
+        return dict.fromkeys(totals, 0.0)
     return {cls: v / grand_total for cls, v in totals.items()}
 
 
@@ -10721,7 +10721,7 @@ def fid_score_fractions(
         totals[p.finding_id] = totals.get(p.finding_id, 0.0) + weights.get(p.severity, 0.0)
     grand_total = sum(totals.values())
     if grand_total == 0.0:
-        return {fid: 0.0 for fid in totals}
+        return dict.fromkeys(totals, 0.0)
     return {fid: v / grand_total for fid, v in totals.items()}
 
 
@@ -13647,7 +13647,7 @@ def class_problem_count_by_severity_rank(problems: list[Problem]) -> dict[str, d
     for p in problems:
         cls = p.problem_class
         if cls not in result:
-            result[cls] = {r: 0 for r in _ALL_RANKS}
+            result[cls] = dict.fromkeys(_ALL_RANKS, 0)
         rank = _SEVERITY_RANK.get(p.severity, 0)
         result[cls][rank] += 1
     return result
@@ -13666,7 +13666,7 @@ def fid_problem_count_by_severity_rank(problems: list[Problem]) -> dict[str, dic
     for p in problems:
         fid = p.finding_id
         if fid not in result:
-            result[fid] = {r: 0 for r in _ALL_RANKS}
+            result[fid] = dict.fromkeys(_ALL_RANKS, 0)
         rank = _SEVERITY_RANK.get(p.severity, 0)
         result[fid][rank] += 1
     return result
@@ -14851,6 +14851,58 @@ def fid_severity_rank_p90(problems: list[Problem]) -> dict[str, float]:
         n = len(ranks)
         sorted_ranks = sorted(ranks)
         i = 0.90 * (n - 1)
+        lo = int(i)
+        hi = min(lo + 1, n - 1)
+        frac = i - lo
+        result[fid] = sorted_ranks[lo] + frac * (sorted_ranks[hi] - sorted_ranks[lo])
+    return result
+
+
+def class_severity_rank_p10(problems: list[Problem]) -> dict[str, float]:
+    """10th percentile of severity ranks per class using linear interpolation.  Item 770.
+
+    i = 0.10*(n-1); p10 = sorted[floor(i)] + frac*(sorted[ceil(i)] - sorted[floor(i)]).
+    All-same -> that rank as float.  Empty -> {}.  Pure; no I/O.
+    """
+    if not problems:
+        return {}
+    ranks_by_class: dict[str, list[int]] = {}
+    for p in problems:
+        cls = p.problem_class
+        if cls not in ranks_by_class:
+            ranks_by_class[cls] = []
+        ranks_by_class[cls].append(_SEVERITY_RANK.get(p.severity, 0))
+    result: dict[str, float] = {}
+    for cls, ranks in ranks_by_class.items():
+        n = len(ranks)
+        sorted_ranks = sorted(ranks)
+        i = 0.10 * (n - 1)
+        lo = int(i)
+        hi = min(lo + 1, n - 1)
+        frac = i - lo
+        result[cls] = sorted_ranks[lo] + frac * (sorted_ranks[hi] - sorted_ranks[lo])
+    return result
+
+
+def fid_severity_rank_p10(problems: list[Problem]) -> dict[str, float]:
+    """10th percentile of severity ranks per fid using linear interpolation.  Item 771.
+
+    Fid-axis complement of class_severity_rank_p10 (item 770).
+    All-same -> that rank as float.  Empty -> {}.  Pure; no I/O.
+    """
+    if not problems:
+        return {}
+    ranks_by_fid: dict[str, list[int]] = {}
+    for p in problems:
+        fid = p.finding_id
+        if fid not in ranks_by_fid:
+            ranks_by_fid[fid] = []
+        ranks_by_fid[fid].append(_SEVERITY_RANK.get(p.severity, 0))
+    result: dict[str, float] = {}
+    for fid, ranks in ranks_by_fid.items():
+        n = len(ranks)
+        sorted_ranks = sorted(ranks)
+        i = 0.10 * (n - 1)
         lo = int(i)
         hi = min(lo + 1, n - 1)
         frac = i - lo
