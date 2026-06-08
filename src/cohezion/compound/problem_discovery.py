@@ -7078,3 +7078,27 @@ def singleton_finding_ids(problems: list[Problem]) -> frozenset[str]:
     for p in problems:
         counts[p.finding_id] = counts.get(p.finding_id, 0) + 1
     return frozenset(fid for fid, cnt in counts.items() if cnt == 1)
+
+
+def repeated_finding_ids(problems: list[Problem]) -> frozenset[str]:
+    """Return the frozenset of finding_ids that appear in two or more records — item 414.
+
+    A *repeated* finding_id is one whose total count in *problems* is ``>= 2``.
+    Finding_ids appearing in different classes still count as repeated — only
+    the total histogram count matters.
+
+    Args:
+        problems: List of :class:`Problem` instances.
+
+    Returns:
+        :class:`frozenset` of finding_id strings with a total count ``>= 2``.
+        ``frozenset()`` when *problems* is empty or all fids are singletons.
+
+    Pure (no I/O, no SurrealDB).
+    """
+    if not problems:
+        return frozenset()
+    counts: dict[str, int] = {}
+    for p in problems:
+        counts[p.finding_id] = counts.get(p.finding_id, 0) + 1
+    return frozenset(fid for fid, cnt in counts.items() if cnt >= 2)
