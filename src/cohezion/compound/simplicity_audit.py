@@ -283,6 +283,11 @@ def _mutable_default_count(func: ast.FunctionDef | ast.AsyncFunctionDef) -> int:
     (``0``/``""``/``None``/``True``), an ``ast.Tuple`` (``()`` is immutable — never conflate with
     ``[]``), and ``frozenset()``/``tuple()`` calls. Both positional (``args.defaults``) and
     keyword-only (``args.kw_defaults``) defaults are inspected. Pure: inspects the AST, never executes.
+
+    **Scope boundary:** defaults that are ``ast.Lambda`` nodes (``lambda: []``) or ``ast.Name``
+    references to a module-level mutable sentinel (``EMPTY = []; def f(x=EMPTY)``) are NOT
+    detected — static analysis cannot evaluate the runtime value of arbitrary expressions. This is
+    intentional: the function targets the common, unambiguous footgun forms only.
     """
     a = func.args
     defaults = list(a.defaults) + list(a.kw_defaults)
@@ -322,6 +327,40 @@ def mutable_default_args(paths: Iterable[Path]) -> list[tuple[str, int]]:
                 if count >= 1:  # any mutable default is the footgun — no threshold needed
                     out.append((f"{path.name}::{node.name}", count))
     return sorted(out, key=lambda t: (-t[1], t[0]))
+
+
+def _is_test_path(path: Path) -> bool:
+    """True if ``path`` is a test module (legitimately uses ``assert``).
+
+    A module is "test" if its filename starts with ``test_`` OR any path segment is ``tests``
+    (covers ``tests/`` trees and their ``conftest.py``/helpers). Pure: inspects the path only.
+    """
+    return path.name.startswith("test_") or "tests" in path.parts
+
+
+def production_asserts(paths: Iterable[Path]) -> list[tuple[str, int]]:
+    """`assert` statements in NON-test production modules — a silent-failure footgun. READ-ONLY.
+
+    Asserts are STRIPPED under ``python -O`` (optimized runs), so an ``assert`` used for runtime
+    VALIDATION in shipping code silently vanishes there — the guard does nothing in production. This
+    flags every ``assert`` (module-level OR in-function — both are stripped) in non-test modules;
+    test modules (see :func:`_is_test_path`) legitimately use ``assert`` and are skipped. Sibling of
+    :func:`stealth_bare_excepts` on the correctness-smell thread. Returns ``[(<filename>, lineno)]``
+    sorted by name then line. A clean/empty set of files → ``[]``. Pure (stdlib ast, no writes) —
+    the fix (raise an explicit exception) is a behavior decision, never auto-applied.
+    """
+    out: list[tuple[str, int]] = []
+    for path in _iter_python_files(paths):
+        if _is_test_path(path):
+            continue  # test code legitimately uses assert
+        try:
+            tree = ast.parse(path.read_text(encoding="utf-8", errors="replace"))
+        except (OSError, SyntaxError, ValueError):
+            continue  # unreadable / not valid Python → skip, never crash the audit
+        for node in ast.walk(tree):
+            if isinstance(node, ast.Assert):
+                out.append((path.name, node.lineno))
+    return sorted(out, key=lambda t: (t[0], t[1]))
 
 
 _CATCHALL_EXCEPTIONS = frozenset({"Exception", "BaseException"})
