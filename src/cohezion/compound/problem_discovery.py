@@ -10237,7 +10237,24 @@ def class_score_sum(
         return 0.0
     class_totals: dict[str, float] = {}
     for p in problems:
-        class_totals[p.problem_class] = (
-            class_totals.get(p.problem_class, 0.0) + weights.get(p.severity, 0.0)
+        class_totals[p.problem_class] = class_totals.get(p.problem_class, 0.0) + weights.get(
+            p.severity, 0.0
         )
     return float(sum(class_totals.values()))
+
+
+def fid_score_sum(
+    problems: list[Problem],
+    weights: dict[str, float],
+) -> float:
+    """Return sum of per-fid total weighted scores.  Item 542.
+
+    Grand total through fid aggregation: sum(fid_totals) == sum(all individual weights).
+    0.0 for empty.  Pure; no I/O.
+    """
+    if not problems:
+        return 0.0
+    fid_totals: dict[str, float] = {}
+    for p in problems:
+        fid_totals[p.finding_id] = fid_totals.get(p.finding_id, 0.0) + weights.get(p.severity, 0.0)
+    return float(sum(fid_totals.values()))
