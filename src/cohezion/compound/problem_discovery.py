@@ -2282,3 +2282,40 @@ def signed_headroom(
         return {}
     counts = problem_count_by_class(problems)
     return {cls: limit - counts.get(cls, 0) for cls, limit in thresholds.items()}
+
+
+def most_pressing_violation(
+    problems: list[Problem],
+    thresholds: dict[str, int],
+) -> str | None:
+    """Return the monitored class with the most-negative signed headroom.
+
+    Scans :func:`signed_headroom` for the entry with the minimum value.
+    Returns the class name only when that minimum is strictly negative
+    (i.e. a genuine violation exists).  Returns ``None`` when:
+    - All headroom values are ≥ 0 (no violations).
+    - *thresholds* is empty.
+
+    Distinct from :func:`worst_violation` (which returns a
+    ``(class, excess)`` tuple using the excess count) — this function
+    measures depth via ``threshold - count`` (signed) and returns just
+    the class name.
+
+    Args:
+        problems:   List of ``Problem`` instances to examine.
+        thresholds: Mapping of ``{problem_class: max_allowed_count}``.
+                    Empty mapping -> ``None``.
+
+    Returns:
+        The class name of the most-over-threshold class, or ``None`` when no
+        violations exist.
+
+    Pure (no I/O, no SurrealDB).
+    """
+    if not thresholds:
+        return None
+    headroom = signed_headroom(problems, thresholds)
+    if not headroom:
+        return None
+    min_class = min(headroom, key=lambda cls: headroom[cls])
+    return min_class if headroom[min_class] < 0 else None
