@@ -6817,3 +6817,24 @@ def has_problems_for_severity(problems: list[Problem], target_severity: str) -> 
     Pure (no I/O, no SurrealDB).
     """
     return any(p.severity == target_severity for p in problems)
+
+
+def severities_for_class(problems: list[Problem], target_class: str) -> frozenset[str]:
+    """Return the distinct severity labels present in a specific class — item 402.
+
+    Collects all :attr:`Problem.severity` strings (including ``''`` for
+    unlabelled records) from records where :attr:`Problem.problem_class`
+    equals *target_class*, deduplicated into a :class:`frozenset`.
+
+    Args:
+        problems: List of :class:`Problem` instances.
+        target_class: The class to inspect.
+
+    Returns:
+        :class:`frozenset` of distinct severity strings present in
+        *target_class*.  ``frozenset()`` when the class is absent or
+        *problems* is empty.
+
+    Pure (no I/O, no SurrealDB).
+    """
+    return frozenset(p.severity for p in problems if p.problem_class == target_class)
