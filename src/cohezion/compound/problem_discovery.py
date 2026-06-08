@@ -5852,3 +5852,35 @@ def problems_with_finding_id_prefix(
     Pure (no I/O, no SurrealDB).
     """
     return [p for p in problems if p.finding_id.startswith(prefix)]
+
+
+# ---------------------------------------------------------------------------
+# Item 360 — class_name_contains (2026-06-08)
+# ---------------------------------------------------------------------------
+
+
+def class_name_contains(
+    problems: list["Problem"], substring: str
+) -> list["Problem"]:
+    """Return all problems whose class name contains the given substring.
+
+    ``class_name_contains(problems, substring) -> list[Problem]``:
+    Returns all :class:`Problem` objects whose ``problem_class`` contains
+    *substring* anywhere (start, middle, or end).  Empty *substring* matches
+    every problem (``'' in s`` is always ``True``).  Case-sensitive.
+    Preserves original order.  Empty *problems* → [].
+    Pure (no I/O, no SurrealDB).
+
+    Complements :func:`problems_with_class_prefix` which matches only at start.
+
+    Args:
+        problems:  Flat list of :class:`Problem` records.
+        substring: String to search for inside class names (case-sensitive).
+
+    Returns:
+        New list of :class:`Problem` objects whose ``problem_class`` contains
+        *substring*, in original order.
+
+    Pure (no I/O, no SurrealDB).
+    """
+    return [p for p in problems if substring in p.problem_class]
