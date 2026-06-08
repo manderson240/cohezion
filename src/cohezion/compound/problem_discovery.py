@@ -6160,3 +6160,33 @@ def problems_in_class_set(
     Pure (no I/O, no SurrealDB).
     """
     return [p for p in problems if p.problem_class in class_set]
+
+
+# ---------------------------------------------------------------------------
+# Item 373 — class_count_above_threshold (2026-06-08)
+# ---------------------------------------------------------------------------
+
+
+def class_count_above_threshold(problems: list["Problem"], n: int) -> "frozenset[str]":
+    """Return class names whose total record count exceeds n — item 373.
+
+    Sister to :func:`finding_ids_above_count` on the class axis.  Returns a
+    :class:`frozenset` of ``problem_class`` strings where the number of
+    :class:`Problem` records for that class is strictly greater than *n*.
+
+    Args:
+        problems: List of :class:`Problem` instances.
+        n: Threshold.  ``n=0`` returns all distinct class names.
+
+    Returns:
+        :class:`frozenset` of class name strings with count > *n*.
+        Empty when *problems* is empty or no class exceeds the threshold.
+
+    Pure (no I/O, no SurrealDB).
+    """
+    if not problems:
+        return frozenset()
+    counts: dict[str, int] = {}
+    for p in problems:
+        counts[p.problem_class] = counts.get(p.problem_class, 0) + 1
+    return frozenset(cls for cls, cnt in counts.items() if cnt > n)
