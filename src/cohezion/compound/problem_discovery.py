@@ -12341,3 +12341,19 @@ def fid_class_dominance_ratio(problems: list[Problem]) -> dict[str, float]:
         mn = min(bucket.values())
         result[fid] = float(mx) / mn
     return result
+
+
+def class_unique_fid_count(problems: list[Problem]) -> dict[str, int]:
+    """Return the number of distinct finding_ids per class.  Item 644.
+
+    Counts DISTINCT fids, not total problem count.
+    int >= 1 for any class present.
+    """
+    if not problems:
+        return {}
+    fid_sets: dict[str, set[str]] = {}
+    for p in problems:
+        if p.problem_class not in fid_sets:
+            fid_sets[p.problem_class] = set()
+        fid_sets[p.problem_class].add(p.finding_id)
+    return {cls: len(fids) for cls, fids in fid_sets.items()}
