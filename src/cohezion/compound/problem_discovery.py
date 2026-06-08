@@ -5457,3 +5457,82 @@ def unlabelled_problems(problems: list["Problem"]) -> list["Problem"]:
     Pure (no I/O, no SurrealDB).
     """
     return [p for p in problems if not p.severity]
+
+
+# ---------------------------------------------------------------------------
+# Item 347 — problems_by_severity_rank (2026-06-08)
+# ---------------------------------------------------------------------------
+
+
+def problems_by_severity_rank(
+    problems: list[Problem],
+    severity_order: list[str],
+) -> list[Problem]:
+    """Return all Problem records ordered by a caller-supplied severity ranking.
+
+    ``problems_by_severity_rank(problems, severity_order) -> list[Problem]``:
+    Problems whose severity appears in *severity_order* are returned first,
+    ordered by the position of their severity in *severity_order* (lower index
+    = earlier in result).  Problems with unknown or empty severity are appended
+    last, in their original insertion order.  Within any tier, the original
+    insertion order is preserved (stable sort).  Empty input or empty
+    *severity_order* (all unranked) returns the list in original insertion
+    order.
+
+    Args:
+        problems: Flat list of :class:`Problem` records.
+        severity_order: Caller-supplied list of severity strings in descending
+            priority order (e.g. ``['CRITICAL', 'HIGH', 'MEDIUM', 'LOW']``).
+            Duplicates are ignored (first occurrence governs rank).
+
+    Returns:
+        All :class:`Problem` objects, ranked problems first (in severity_order
+        position order), unranked/unlabelled appended last.
+
+    Pure (no I/O, no SurrealDB).
+    """
+    if not problems:
+        return []
+    # Build rank map: severity → position index (first occurrence governs)
+    rank: dict[str, int] = {}
+    for i, sev in enumerate(severity_order):
+        if sev not in rank:
+            rank[sev] = i
+    unranked_sentinel = len(severity_order)
+    # Python's sorted() is stable: ties within a tier preserve insertion order
+    return sorted(problems, key=lambda p: rank.get(p.severity, unranked_sentinel))
+
+
+# ---------------------------------------------------------------------------
+# Item 347 — problems_by_severity_rank (2026-06-08)
+# ---------------------------------------------------------------------------
+
+
+def problems_by_severity_rank(
+    problems: list["Problem"], severity_order: list[str]
+) -> list["Problem"]:
+    """Return all problems sorted by caller-supplied severity rank order.
+
+    ``problems_by_severity_rank(problems, severity_order) -> list[Problem]``:
+    Returns all :class:`Problem` objects sorted so that problems whose severity
+    appears earliest in *severity_order* come first.  Unlabelled problems
+    (``severity == ''``) and problems whose severity is not in *severity_order*
+    are appended last.  Ties within a tier preserve original insertion order
+    (stable sort).  Empty input → [].  Pure (no I/O, no SurrealDB).
+
+    Args:
+        problems:       Flat list of :class:`Problem` records.
+        severity_order: Ordered list of severity strings; index 0 = highest
+                        priority.
+
+    Returns:
+        New list of all :class:`Problem` objects ordered by severity rank.
+        Unlabelled/unknown severities are appended last, insertion order
+        preserved within each tier.
+
+    Pure (no I/O, no SurrealDB).
+    """
+    rank: dict[str, int] = {sev: i for i, sev in enumerate(severity_order)}
+    sentinel = len(severity_order)  # rank for unlabelled / unknown
+
+    return sorted(problems, key=lambda p: (rank.get(p.severity, sentinel),))
