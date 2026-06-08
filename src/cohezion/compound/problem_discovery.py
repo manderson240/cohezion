@@ -1622,3 +1622,33 @@ def finding_ids_for_class(
     Pure (no I/O, no SurrealDB).
     """
     return [p.finding_id for p in problems if p.problem_class == problem_class]
+
+
+def group_finding_ids_by_class(
+    problems: list[Problem],
+) -> dict[str, list[str]]:
+    """Build a class→ids reverse-index in one pass — item 209.
+
+    Returns ``{problem_class: [finding_id, ...]}`` with keys in
+    first-occurrence order (CPython 3.7+ dict insertion order) and values
+    in input order within each class.  Avoids O(n) repeated calls to
+    :func:`finding_ids_for_class` when multiple classes are needed::
+
+        index = group_finding_ids_by_class(findings)
+        complexity_ids = index.get("complexity_outlier", [])
+
+    Args:
+        problems:
+            A list of :class:`Problem` instances.  Empty list → ``{}``.
+
+    Returns:
+        ``{problem_class: [finding_id, ...]}`` in first-occurrence key order.
+
+    Pure (no I/O, no SurrealDB).
+    """
+    result: dict[str, list[str]] = {}
+    for p in problems:
+        if p.problem_class not in result:
+            result[p.problem_class] = []
+        result[p.problem_class].append(p.finding_id)
+    return result
