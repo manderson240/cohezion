@@ -51,16 +51,17 @@ def test_only_nonzero_severity_pairs_included() -> None:
     """
     scan_a = [_p("alpha", "HIGH", 0), _p("alpha", "HIGH", 1)]
     scan_b = [
-        _p("alpha", "HIGH", 0), _p("alpha", "HIGH", 1),  # HIGH unchanged
-        _p("alpha", "CRITICAL", 0),                        # CRITICAL new
+        _p("alpha", "HIGH", 0),
+        _p("alpha", "HIGH", 1),  # HIGH unchanged
+        _p("alpha", "CRITICAL", 0),  # CRITICAL new
     ]
     result = severity_delta_per_class(scan_a, scan_b)
     assert "alpha" in result, "alpha has CRITICAL delta -> in result; got " + repr(result)
-    assert "CRITICAL" in result["alpha"], (
-        "alpha/CRITICAL: 0->1 -> included; got " + repr(result.get("alpha"))
+    assert "CRITICAL" in result["alpha"], "alpha/CRITICAL: 0->1 -> included; got " + repr(
+        result.get("alpha")
     )
-    assert "HIGH" not in result.get("alpha", {}), (
-        "alpha/HIGH: delta=0 -> OMITTED; got " + repr(result.get("alpha"))
+    assert "HIGH" not in result.get("alpha", {}), "alpha/HIGH: delta=0 -> OMITTED; got " + repr(
+        result.get("alpha")
     )
 
 
@@ -73,8 +74,8 @@ def test_positive_delta_means_more_in_scan_b() -> None:
     scan_a = [_p("beta", "MEDIUM", 0)]
     scan_b = [_p("beta", "MEDIUM", 0), _p("beta", "MEDIUM", 1), _p("beta", "MEDIUM", 2)]
     result = severity_delta_per_class(scan_a, scan_b)
-    assert result.get("beta", {}).get("MEDIUM") == 2, (
-        "beta/MEDIUM: 1->3, delta=+2; got " + repr(result.get("beta"))
+    assert result.get("beta", {}).get("MEDIUM") == 2, "beta/MEDIUM: 1->3, delta=+2; got " + repr(
+        result.get("beta")
     )
 
 
@@ -100,19 +101,22 @@ def test_class_with_only_zero_delta_severities_omitted_entirely() -> None:
     epsilon_cls: 1 CRITICAL -> 2 CRITICAL -> include.
     """
     scan_a = [
-        _p("delta_cls", "HIGH", 0), _p("delta_cls", "HIGH", 1),
+        _p("delta_cls", "HIGH", 0),
+        _p("delta_cls", "HIGH", 1),
         _p("epsilon_cls", "CRITICAL", 0),
     ]
     scan_b = [
-        _p("delta_cls", "HIGH", 0), _p("delta_cls", "HIGH", 1),  # unchanged
-        _p("epsilon_cls", "CRITICAL", 0), _p("epsilon_cls", "CRITICAL", 1),  # grew
+        _p("delta_cls", "HIGH", 0),
+        _p("delta_cls", "HIGH", 1),  # unchanged
+        _p("epsilon_cls", "CRITICAL", 0),
+        _p("epsilon_cls", "CRITICAL", 1),  # grew
     ]
     result = severity_delta_per_class(scan_a, scan_b)
-    assert "delta_cls" not in result, (
-        "delta_cls all-zero deltas -> omitted; got keys: " + repr(list(result.keys()))
+    assert "delta_cls" not in result, "delta_cls all-zero deltas -> omitted; got keys: " + repr(
+        list(result.keys())
     )
-    assert "epsilon_cls" in result, (
-        "epsilon_cls has CRITICAL delta -> included; got keys: " + repr(list(result.keys()))
+    assert "epsilon_cls" in result, "epsilon_cls has CRITICAL delta -> included; got keys: " + repr(
+        list(result.keys())
     )
 
 
