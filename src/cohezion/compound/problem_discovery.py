@@ -13516,9 +13516,7 @@ def class_severity_entropy_all(problems: list[Problem]) -> dict[str, float]:
         if total <= 1 or len(sev_counts) <= 1:
             result[cls] = 0.0
         else:
-            result[cls] = -sum(
-                (c / total) * math.log2(c / total) for c in sev_counts.values()
-            )
+            result[cls] = -sum((c / total) * math.log2(c / total) for c in sev_counts.values())
     return result
 
 
@@ -13543,9 +13541,7 @@ def fid_severity_entropy_all(problems: list[Problem]) -> dict[str, float]:
         if total <= 1 or len(sev_counts) <= 1:
             result[fid] = 0.0
         else:
-            result[fid] = -sum(
-                (c / total) * math.log2(c / total) for c in sev_counts.values()
-            )
+            result[fid] = -sum((c / total) * math.log2(c / total) for c in sev_counts.values())
     return result
 
 
@@ -13984,9 +13980,8 @@ def class_severity_rank_kurtosis(problems: list[Problem]) -> dict[str, float]:
             else:
                 s = math.sqrt(sample_var)
                 sum_z4 = sum(((r - mean) / s) ** 4 for r in ranks)
-                kurt = (
-                    (n * (n + 1)) / ((n - 1) * (n - 2) * (n - 3)) * sum_z4
-                    - 3 * (n - 1) ** 2 / ((n - 2) * (n - 3))
+                kurt = (n * (n + 1)) / ((n - 1) * (n - 2) * (n - 3)) * sum_z4 - 3 * (n - 1) ** 2 / (
+                    (n - 2) * (n - 3)
                 )
                 result[cls] = kurt
     return result
@@ -14019,9 +14014,8 @@ def fid_severity_rank_kurtosis(problems: list[Problem]) -> dict[str, float]:
             else:
                 s = math.sqrt(sample_var)
                 sum_z4 = sum(((r - mean) / s) ** 4 for r in ranks)
-                kurt = (
-                    (n * (n + 1)) / ((n - 1) * (n - 2) * (n - 3)) * sum_z4
-                    - 3 * (n - 1) ** 2 / ((n - 2) * (n - 3))
+                kurt = (n * (n + 1)) / ((n - 1) * (n - 2) * (n - 3)) * sum_z4 - 3 * (n - 1) ** 2 / (
+                    (n - 2) * (n - 3)
                 )
                 result[fid] = kurt
     return result
@@ -14218,7 +14212,7 @@ def class_severity_rank_trimmed_mean(
         else:
             trim = int(n * trim_frac)
             ranks.sort()
-            trimmed = ranks[trim: n - trim] if trim > 0 else ranks
+            trimmed = ranks[trim : n - trim] if trim > 0 else ranks
             result[cls] = float(sum(trimmed)) / len(trimmed)
     return result
 
@@ -14247,7 +14241,7 @@ def fid_severity_rank_trimmed_mean(
         else:
             trim = int(n * trim_frac)
             ranks.sort()
-            trimmed = ranks[trim: n - trim] if trim > 0 else ranks
+            trimmed = ranks[trim : n - trim] if trim > 0 else ranks
             result[fid] = float(sum(trimmed)) / len(trimmed)
     return result
 
