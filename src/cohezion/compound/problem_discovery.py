@@ -2653,3 +2653,25 @@ def classes_with_max_severity(
     Pure (no I/O, no SurrealDB).
     """
     return frozenset(p.problem_class for p in problems if p.severity == severity)
+
+
+def total_problems_in_classes(
+    problems: list[Problem],
+    classes: frozenset[str],
+) -> int:
+    """Return the total number of problems whose class is in *classes*.
+
+    Classes in *classes* that are not present in the scan contribute 0 —
+    no ``KeyError`` is raised.  Empty *classes* or empty *problems* → 0.
+
+    Args:
+        problems: List of :class:`Problem` instances from a scan.
+        classes:  ``frozenset[str]`` of class names to aggregate.
+
+    Returns:
+        ``int`` — sum of problem counts for all classes in *classes*.
+
+    Pure (no I/O, no SurrealDB).
+    """
+    counts = problem_count_by_class(problems)
+    return sum(counts.get(cls, 0) for cls in classes)
