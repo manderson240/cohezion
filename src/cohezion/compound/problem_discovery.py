@@ -7158,3 +7158,28 @@ def top_n_finding_ids(problems: list[Problem], n: int) -> list[tuple[str, int]]:
         counts[p.finding_id] = counts.get(p.finding_id, 0) + 1
     ranked = sorted(counts.items(), key=lambda item: (-item[1], item[0]))
     return ranked[:n]
+
+
+def class_coverage_ratio(problems: list[Problem]) -> dict[str, float]:
+    """Return each class's fraction of total records — item 419.
+
+    For each :attr:`Problem.problem_class`, computes its record count divided
+    by the total number of records.  All values are in ``(0.0, 1.0]`` and sum
+    to ``1.0``.  ``{}`` when *problems* is empty.
+
+    Args:
+        problems: List of :class:`Problem` instances.
+
+    Returns:
+        ``dict[str, float]`` mapping each class to its proportion of total
+        records.  ``{}`` when *problems* is empty.
+
+    Pure (no I/O, no SurrealDB).
+    """
+    if not problems:
+        return {}
+    total = len(problems)
+    counts: dict[str, int] = {}
+    for p in problems:
+        counts[p.problem_class] = counts.get(p.problem_class, 0) + 1
+    return {cls: count / total for cls, count in counts.items()}
