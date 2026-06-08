@@ -7443,3 +7443,38 @@ def class_pair_co_occurrence(problems: list[Problem], class_a: str, class_b: str
     fids_a: set[str] = {p.finding_id for p in problems if p.problem_class == class_a}
     fids_b: set[str] = {p.finding_id for p in problems if p.problem_class == class_b}
     return len(fids_a & fids_b)
+
+
+def class_pair_exclusive_fids(
+    problems: list[Problem], class_a: str, class_b: str
+) -> frozenset[str]:
+    """Return finding_ids in class_a that are NOT in class_b -- item 429.
+
+    Computes the set difference ``fids_a - fids_b`` where *fids_a* is the set
+    of distinct finding_ids in *class_a* and *fids_b* is the set of distinct
+    finding_ids in *class_b*.  The result is asymmetric: swapping *class_a*
+    and *class_b* generally yields a different result.
+
+    Special cases:
+
+    - Empty *problems* -> ``frozenset()``
+    - Unknown class -> treated as empty set (no raise)
+
+    Args:
+        problems: List of :class:`Problem` instances.
+        class_a: The class whose finding_ids form the base set.
+        class_b: The class whose finding_ids are excluded.
+
+    Returns:
+        Frozenset of finding_id strings exclusive to *class_a*.
+
+    Pure (no I/O, no SurrealDB).
+    """
+    if not problems:
+        return frozenset()
+    classes_present = {p.problem_class for p in problems}
+    if class_a not in classes_present or class_b not in classes_present:
+        return frozenset()
+    fids_a: frozenset[str] = frozenset(p.finding_id for p in problems if p.problem_class == class_a)
+    fids_b: frozenset[str] = frozenset(p.finding_id for p in problems if p.problem_class == class_b)
+    return fids_a - fids_b
