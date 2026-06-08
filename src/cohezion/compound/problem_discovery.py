@@ -503,6 +503,60 @@ def problem_diff_summary(diff: ProblemDiff) -> str:
     return "\n".join(lines)
 
 
+def problem_diff_pipeline(
+    paths_before: Iterable[Path],
+    paths_after: Iterable[Path],
+    *,
+    templates: list[ProblemTemplate] | None = None,
+    exclude_known_before: frozenset[str] | set[str] = frozenset(),
+    exclude_known_after: frozenset[str] | set[str] = frozenset(),
+) -> tuple[list[Problem], list[Problem], ProblemDiff, str]:
+    """End-to-end two-scan TIDE delta pipeline — item 174.
+
+    Runs :func:`discover_problems` on both path sets, calls :func:`problem_diff`,
+    calls :func:`problem_diff_summary`, and returns all four artifacts as a
+    4-tuple ``(before_problems, after_problems, diff, summary)``.
+
+    Mirrors :func:`cohezion.inference.tournament_deposit.snapshot_pipeline`
+    (item 168) but for code-smell TIDE discovery instead of tournament snapshots.
+
+    When *paths_before* and *paths_after* resolve to the same findings (same
+    templates + same paths + same exclude_known), the diff is all-stable and
+    the summary is ``"No changes."``.
+
+    Args:
+        paths_before:
+            Iterable of :class:`~pathlib.Path` objects for the BEFORE scan.
+        paths_after:
+            Iterable of :class:`~pathlib.Path` objects for the AFTER scan.
+        templates:
+            Optional list of :class:`ProblemTemplate` instances.  ``None``
+            (default) uses :func:`default_templates`.  ``[]`` → no audit.
+        exclude_known_before:
+            Set of finding ids to suppress from the BEFORE scan.
+        exclude_known_after:
+            Set of finding ids to suppress from the AFTER scan.
+
+    Returns:
+        ``(before_problems, after_problems, diff, summary)`` where:
+        - *before_problems* = :func:`discover_problems` on *paths_before*.
+        - *after_problems*  = :func:`discover_problems` on *paths_after*.
+        - *diff*    = :class:`ProblemDiff` from :func:`problem_diff`.
+        - *summary* = ``str`` from :func:`problem_diff_summary`.
+
+    Pure (no I/O beyond what the instruments perform).  No SurrealDB.
+    """
+    before_problems = discover_problems(
+        paths_before, templates=templates, exclude_known=exclude_known_before
+    )
+    after_problems = discover_problems(
+        paths_after, templates=templates, exclude_known=exclude_known_after
+    )
+    diff = problem_diff(before_problems, after_problems)
+    summary = problem_diff_summary(diff)
+    return (before_problems, after_problems, diff, summary)
+
+
 def default_template_classes() -> frozenset[str]:
     """Return the exact set of ``problem_class`` names in :func:`default_templates` — item 158.
 
