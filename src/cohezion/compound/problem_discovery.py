@@ -2791,3 +2791,26 @@ def filter_problems_by_severity(
     Pure (no I/O, no SurrealDB).
     """
     return [p for p in problems if p.severity == severity]
+
+
+def count_by_severity(problems: list[Problem]) -> dict[str, int]:
+    """Return a count of problems per severity level.
+
+    Problems with the default ``severity=""`` are excluded — they carry no
+    severity label and should not pollute the output dict.  This function is
+    the severity-axis complement of :func:`problem_count_by_class`.
+
+    Args:
+        problems: List of :class:`Problem` instances from a scan.
+
+    Returns:
+        ``dict[str, int]`` mapping each non-empty severity label to its count.
+        Empty *problems* → ``{}``.
+
+    Pure (no I/O, no SurrealDB).
+    """
+    result: dict[str, int] = {}
+    for p in problems:
+        if p.severity:  # skip default empty string
+            result[p.severity] = result.get(p.severity, 0) + 1
+    return result
