@@ -6254,3 +6254,36 @@ def finding_id_to_classes(
     for p in problems:
         result.setdefault(p.finding_id, set()).add(p.problem_class)
     return {fid: frozenset(classes) for fid, classes in result.items()}
+
+
+# ---------------------------------------------------------------------------
+# Item 376 — class_to_finding_ids (2026-06-08)
+# ---------------------------------------------------------------------------
+
+
+def class_to_finding_ids(
+    problems: list["Problem"],
+) -> "dict[str, frozenset[str]]":
+    """Build a forward index mapping each class to its finding_ids — item 376.
+
+    Mirror of :func:`finding_id_to_classes` with keys and values swapped.
+    Returns a :class:`dict` mapping each distinct ``problem_class`` string to
+    the :class:`frozenset` of ``finding_id`` values that appear under it.
+
+    Args:
+        problems: List of :class:`Problem` instances.  Empty → ``{}``.
+
+    Returns:
+        ``dict[str, frozenset[str]]``.  Every distinct class in *problems*
+        appears exactly once as a key.  Values are non-empty :class:`frozenset`
+        objects of finding_id strings (duplicates collapsed by the set).
+        Empty when *problems* is empty.
+
+    Pure (no I/O, no SurrealDB).
+    """
+    if not problems:
+        return {}
+    index: dict[str, set[str]] = {}
+    for p in problems:
+        index.setdefault(p.problem_class, set()).add(p.finding_id)
+    return {cls: frozenset(fids) for cls, fids in index.items()}
