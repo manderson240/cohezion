@@ -358,3 +358,5 @@ Integrated zero-cost Jaccard/overlap coefficient and keyword relevance pruning d
 | L390 | **autoharness-synthesis** | `autoharness-synthesis` skill | Wave AutoHarness — phi4 dynamic verifier generation |
 | L391 | **semantic-rules-audit** | `redundancy-suppression-prime` skill | Wave AutoHarness — semantic rules overlap audit and cache trim |
 | L395 | **dynamic-context-pruning** | `token-efficient-executor` skill | Wave AutoHarness — zero-cost overlap and keyword relevance pruner |
+| L396 | **router-centric-lemonade** | `fleet_client.LemonadeRouterClient` + `triune_orchestrator` PATH A | loop-backlog-build-0607 — :13305 unified router; per-device ports are fallback only |
+| L397 | **qwen3-no-think-llamacpp** | `lemonade-qwen3-no-think` SKILL.md | loop-backlog-build-0607 — `/no_think` system message; `enable_thinking=false` is cloud-API-only |
