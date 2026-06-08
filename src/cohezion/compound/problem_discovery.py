@@ -6665,3 +6665,26 @@ def finding_id_histogram(problems: list[Problem]) -> dict[str, int]:
     for p in problems:
         counts[p.finding_id] = counts.get(p.finding_id, 0) + 1
     return counts
+
+
+def most_common_problem_class(problems: list[Problem]) -> str | None:
+    """Return the problem_class with the highest total Problem record count — item 392.
+
+    Counts raw Problem records per :attr:`Problem.problem_class`.
+    Tie-break: alphabetically ascending class name (lexicographically smallest wins).
+
+    Args:
+        problems: List of :class:`Problem` instances.  Empty → ``None``.
+
+    Returns:
+        The class name string with the most records, or ``None`` when
+        *problems* is empty.
+
+    Pure (no I/O, no SurrealDB).
+    """
+    if not problems:
+        return None
+    counts: dict[str, int] = {}
+    for p in problems:
+        counts[p.problem_class] = counts.get(p.problem_class, 0) + 1
+    return min(counts, key=lambda cls: (-counts[cls], cls))
