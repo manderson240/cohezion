@@ -12846,3 +12846,23 @@ def fid_distinct_class_count(problems: list[Problem]) -> dict[str, int]:
             class_sets[p.finding_id] = set()
         class_sets[p.finding_id].add(p.problem_class)
     return {fid: len(classes) for fid, classes in class_sets.items()}
+
+
+def class_avg_problems_per_fid(problems: list[Problem]) -> dict[str, float]:
+    """Return average problem count per (class, fid) cell, aggregated per class.  Item 675.
+
+    For each class: mean(cell_count) over all fids that appear in that class.
+    Equivalent to total_problems_in_class / distinct_fid_count_in_class.
+    Returns {class: avg}.  float.  Empty -> {}.  Pure; no I/O.
+    """
+    if not problems:
+        return {}
+    # Build per-class, per-fid counts
+    cell_counts: dict[str, dict[str, int]] = {}
+    for p in problems:
+        cls = p.problem_class
+        fid = p.finding_id
+        if cls not in cell_counts:
+            cell_counts[cls] = {}
+        cell_counts[cls][fid] = cell_counts[cls].get(fid, 0) + 1
+    return {cls: float(sum(inner.values())) / len(inner) for cls, inner in cell_counts.items()}
