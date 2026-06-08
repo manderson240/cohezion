@@ -24,8 +24,7 @@ def test_mean_not_max_not_min_not_range_primary_discriminator() -> None:
     assert isinstance(result, dict), "Must return dict"
     assert "A" in result, f"Class 'A' must be key; got {list(result)}"
     assert abs(result["A"] - 3.5) < 1e-9, (
-        f"f1=5, f2=2 -> mean=7/2=3.5; got {result['A']} "
-        f"(max=5 wrong, min=2 wrong, range=3 wrong)"
+        f"f1=5, f2=2 -> mean=7/2=3.5; got {result['A']} (max=5 wrong, min=2 wrong, range=3 wrong)"
     )
     assert isinstance(result["A"], float), "Must be float; got " + type(result["A"]).__name__
 
@@ -59,8 +58,11 @@ def test_multiple_classes_independent() -> None:
     Class B: f3=1, f4=1, f5=1 -> total=3, fids=3 -> mean=1.0.
     """
     problems = (
-        [_p("A", "f1")] * 4 + [_p("A", "f2")] * 2
-        + [_p("B", "f3")] + [_p("B", "f4")] + [_p("B", "f5")]
+        [_p("A", "f1")] * 4
+        + [_p("A", "f2")] * 2
+        + [_p("B", "f3")]
+        + [_p("B", "f4")]
+        + [_p("B", "f5")]
     )
     result = class_fid_mean_count(problems)
     assert abs(result["A"] - 3.0) < 1e-9, f"A: total=6, fids=2 -> mean=3.0; got {result['A']}"

@@ -60,8 +60,11 @@ def test_multiple_fids_independent() -> None:
     fid 'f2': class A=1, class B=1, class C=1 -> mean=1.0.
     """
     problems = (
-        [_p("A", "f1")] * 4 + [_p("B", "f1")] * 2
-        + [_p("A", "f2")] + [_p("B", "f2")] + [_p("C", "f2")]
+        [_p("A", "f1")] * 4
+        + [_p("B", "f1")] * 2
+        + [_p("A", "f2")]
+        + [_p("B", "f2")]
+        + [_p("C", "f2")]
     )
     result = fid_class_mean_count(problems)
     assert abs(result["f1"] - 3.0) < 1e-9, f"f1: A=4, B=2 -> mean=3.0; got {result['f1']}"

@@ -12044,10 +12044,7 @@ def class_fid_count_range(problems: list[Problem]) -> dict[str, int]:
         fid_counts[p.problem_class][p.finding_id] = (
             fid_counts[p.problem_class].get(p.finding_id, 0) + 1
         )
-    return {
-        cls: max(bucket.values()) - min(bucket.values())
-        for cls, bucket in fid_counts.items()
-    }
+    return {cls: max(bucket.values()) - min(bucket.values()) for cls, bucket in fid_counts.items()}
 
 
 def fid_class_count_range(problems: list[Problem]) -> dict[str, int]:
@@ -12068,8 +12065,7 @@ def fid_class_count_range(problems: list[Problem]) -> dict[str, int]:
             class_counts[p.finding_id].get(p.problem_class, 0) + 1
         )
     return {
-        fid: max(bucket.values()) - min(bucket.values())
-        for fid, bucket in class_counts.items()
+        fid: max(bucket.values()) - min(bucket.values()) for fid, bucket in class_counts.items()
     }
 
 
@@ -12089,10 +12085,7 @@ def class_fid_mean_count(problems: list[Problem]) -> dict[str, float]:
         fid_counts[p.problem_class][p.finding_id] = (
             fid_counts[p.problem_class].get(p.finding_id, 0) + 1
         )
-    return {
-        cls: float(sum(bucket.values())) / len(bucket)
-        for cls, bucket in fid_counts.items()
-    }
+    return {cls: float(sum(bucket.values())) / len(bucket) for cls, bucket in fid_counts.items()}
 
 
 def fid_class_mean_count(problems: list[Problem]) -> dict[str, float]:
@@ -12112,7 +12105,4 @@ def fid_class_mean_count(problems: list[Problem]) -> dict[str, float]:
         class_counts[p.finding_id][p.problem_class] = (
             class_counts[p.finding_id].get(p.problem_class, 0) + 1
         )
-    return {
-        fid: float(sum(bucket.values())) / len(bucket)
-        for fid, bucket in class_counts.items()
-    }
+    return {fid: float(sum(bucket.values())) / len(bucket) for fid, bucket in class_counts.items()}
