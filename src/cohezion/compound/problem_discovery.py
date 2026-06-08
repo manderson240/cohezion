@@ -12543,3 +12543,23 @@ def fid_sev_high_rate(problems: list[Problem]) -> dict[str, float]:
         fid: float(highs.get(fid, 0)) / totals[fid]
         for fid in totals
     }
+
+
+def class_sev_low_rate(problems: list[Problem]) -> dict[str, float]:
+    """Return fraction of LOW severity problems per class.  Item 658.
+
+    For each class: count(LOW) / total_class_problems.
+    float in [0, 1].  0.0 = no LOW.  Empty -> {}.  Pure; no I/O.
+    """
+    if not problems:
+        return {}
+    totals: dict[str, int] = {}
+    lows: dict[str, int] = {}
+    for p in problems:
+        totals[p.problem_class] = totals.get(p.problem_class, 0) + 1
+        if (p.severity or "").upper() == "LOW":
+            lows[p.problem_class] = lows.get(p.problem_class, 0) + 1
+    return {
+        cls: float(lows.get(cls, 0)) / totals[cls]
+        for cls in totals
+    }
