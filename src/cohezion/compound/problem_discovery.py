@@ -2406,3 +2406,42 @@ def scan_pressure(
     """
     violations = threshold_violations(problems, thresholds)
     return float(len(violations) + total_violation_depth(problems, thresholds))
+
+
+def classes_near_threshold(
+    problems: list[Problem],
+    thresholds: dict[str, int],
+    tolerance: int = 1,
+) -> frozenset[str]:
+    """Return monitored classes within *tolerance* findings of their threshold.
+
+    A class is "near threshold" when::
+
+        0 <= threshold - count <= tolerance
+
+    Includes at-threshold classes (headroom = 0) and classes with remaining
+    headroom ≤ *tolerance*.  Excludes over-threshold (violating) classes and
+    classes further than *tolerance* from their limit.
+
+    Special case: ``tolerance=0`` is equivalent to :func:`classes_at_threshold`
+    (only classes with exactly headroom = 0 are included).
+
+    Args:
+        problems:   List of ``Problem`` instances to examine.
+        thresholds: Mapping of ``{problem_class: max_allowed_count}``.
+                    Empty mapping -> ``frozenset()``.
+        tolerance:  Maximum allowed headroom for inclusion. Default 1.
+
+    Returns:
+        ``frozenset[str]`` of near-threshold class names.
+
+    Pure (no I/O, no SurrealDB).
+    """
+    if not thresholds:
+        return frozenset()
+    counts = problem_count_by_class(problems)
+    return frozenset(
+        cls
+        for cls, limit in thresholds.items()
+        if 0 <= limit - counts.get(cls, 0) <= tolerance
+    )
