@@ -49,9 +49,7 @@ def test_returns_frozenset_not_count() -> None:
     """
     problems = [_p("alpha", "a:1"), _p("beta", "b:1")]
     result = unique_finding_ids(problems)
-    assert result == frozenset({"a:1", "b:1"}), (
-        "Must return frozenset of ids; got " + repr(result)
-    )
+    assert result == frozenset({"a:1", "b:1"}), "Must return frozenset of ids; got " + repr(result)
 
 
 def test_duplicate_ids_appear_once() -> None:
@@ -65,8 +63,8 @@ def test_duplicate_ids_appear_once() -> None:
         _p("beta", "y:1"),
     ]
     result = unique_finding_ids(problems)
-    assert result == frozenset({"x:1", "y:1"}), (
-        "Duplicate id 'x:1' must appear once; got " + repr(result)
+    assert result == frozenset({"x:1", "y:1"}), "Duplicate id 'x:1' must appear once; got " + repr(
+        result
     )
     assert len(result) == 2
 
@@ -98,6 +96,4 @@ def test_all_ids_present_nothing_dropped() -> None:
     ids = {f"cls:{i}" for i in range(10)}
     problems = [_p("alpha", fid) for fid in ids]
     result = unique_finding_ids(problems)
-    assert result == frozenset(ids), (
-        "All 10 ids must appear; got " + repr(result)
-    )
+    assert result == frozenset(ids), "All 10 ids must appear; got " + repr(result)
