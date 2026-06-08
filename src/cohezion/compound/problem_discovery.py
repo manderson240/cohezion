@@ -13624,3 +13624,44 @@ def fid_severity_rank_percentile(problems: list[Problem], severity: str) -> dict
         if _SEVERITY_RANK.get(p.severity, 0) <= threshold_rank:
             counts[fid][0] += 1
     return {fid: float(v[0]) / v[1] for fid, v in counts.items()}
+
+
+_ALL_RANKS: tuple[int, ...] = (0, 1, 2, 3, 4)
+
+
+def class_problem_count_by_severity_rank(problems: list[Problem]) -> dict[str, dict[int, int]]:
+    """Problem count per class grouped by severity rank bucket (0-4).  Item 722.
+
+    Returns {class: {0: count, 1: count, 2: count, 3: count, 4: count}}.
+    All 5 rank keys always present per class (missing ranks get count 0).
+    Empty -> {}.  Pure; no I/O.
+    """
+    if not problems:
+        return {}
+    result: dict[str, dict[int, int]] = {}
+    for p in problems:
+        cls = p.problem_class
+        if cls not in result:
+            result[cls] = {r: 0 for r in _ALL_RANKS}
+        rank = _SEVERITY_RANK.get(p.severity, 0)
+        result[cls][rank] += 1
+    return result
+
+
+def fid_problem_count_by_severity_rank(problems: list[Problem]) -> dict[str, dict[int, int]]:
+    """Problem count per fid grouped by severity rank bucket (0-4).  Item 723.
+
+    Fid-axis complement of class_problem_count_by_severity_rank (item 722).
+    Returns {fid: {0: count, 1: count, 2: count, 3: count, 4: count}}.
+    All 5 rank keys always present per fid.  Empty -> {}.  Pure; no I/O.
+    """
+    if not problems:
+        return {}
+    result: dict[str, dict[int, int]] = {}
+    for p in problems:
+        fid = p.finding_id
+        if fid not in result:
+            result[fid] = {r: 0 for r in _ALL_RANKS}
+        rank = _SEVERITY_RANK.get(p.severity, 0)
+        result[fid][rank] += 1
+    return result
