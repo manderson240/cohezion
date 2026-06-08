@@ -13101,3 +13101,23 @@ def fid_severity_none(
         if p.severity in severity_set:
             result[fid] = False
     return result
+
+
+def class_severity_ratio(problems: list[Problem], severity: str) -> dict[str, float]:
+    """Return fraction of problems matching severity per class.  Item 690.
+
+    ratio = matching_count / total_count_for_class.  Float 0.0..1.0.
+    Zero-inclusive: classes without the severity return 0.0 (not absent).
+    Returns {class: float}.  Empty -> {}.  Pure; no I/O.
+    """
+    if not problems:
+        return {}
+    counts: dict[str, list[int]] = {}  # [matching, total]
+    for p in problems:
+        cls = p.problem_class
+        if cls not in counts:
+            counts[cls] = [0, 0]
+        counts[cls][1] += 1
+        if p.severity == severity:
+            counts[cls][0] += 1
+    return {cls: float(v[0]) / v[1] for cls, v in counts.items()}
