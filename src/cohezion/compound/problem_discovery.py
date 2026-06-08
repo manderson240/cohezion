@@ -11110,3 +11110,21 @@ def class_severity_histogram(problems: list[Problem]) -> dict[str, dict[str, int
         sev = p.severity or ""
         result[p.problem_class][sev] = result[p.problem_class].get(sev, 0) + 1
     return result
+
+
+def fid_severity_histogram(problems: list[Problem]) -> dict[str, dict[str, int]]:
+    """Return raw severity count histogram per fid.  Item 585.
+
+    Returns {fid: {severity: count}}.
+    FID-axis complement of class_severity_histogram.
+    Empty -> {}.  Pure; no I/O.
+    """
+    if not problems:
+        return {}
+    result: dict[str, dict[str, int]] = {}
+    for p in problems:
+        if p.finding_id not in result:
+            result[p.finding_id] = {}
+        sev = p.severity or ""
+        result[p.finding_id][sev] = result[p.finding_id].get(sev, 0) + 1
+    return result
