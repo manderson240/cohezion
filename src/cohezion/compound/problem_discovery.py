@@ -2532,3 +2532,39 @@ def problems_resolved_since_scan(
     Pure (no I/O, no SurrealDB).
     """
     return [p for p in baseline if p.finding_id not in current_ids]
+
+
+def problem_list_delta(
+    baseline: list[Problem],
+    current: list[Problem],
+) -> tuple[list[Problem], list[Problem]]:
+    """Return the added and resolved problem lists between two scans.
+
+    Computes the symmetric diff between *baseline* and *current* by
+    ``finding_id``::
+
+        added    = problems in current not in baseline
+        resolved = problems in baseline not in current
+
+    Delegates to :func:`problems_added_since_scan` and
+    :func:`problems_resolved_since_scan`.  Both output lists preserve their
+    respective input orders.
+
+    NOTE: This function operates on raw ``Problem`` lists.  It is distinct
+    from :func:`scan_delta` (item 225), which diffs two
+    ``summarize_scan()`` summary dicts.
+
+    Args:
+        baseline: Prior list of ``Problem`` instances.
+        current:  Current list of ``Problem`` instances.
+
+    Returns:
+        ``(added, resolved)`` — a 2-tuple of ``list[Problem]``.
+
+    Pure (no I/O, no SurrealDB).
+    """
+    baseline_ids = frozenset(p.finding_id for p in baseline)
+    current_ids = frozenset(p.finding_id for p in current)
+    added = problems_added_since_scan(current, baseline_ids)
+    resolved = problems_resolved_since_scan(baseline, current_ids)
+    return added, resolved
