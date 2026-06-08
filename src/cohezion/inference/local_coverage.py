@@ -79,3 +79,32 @@ def coverage_gaps(
         if decision.model_id is None and decision.task is not None:
             gaps.add(decision.task)
     return gaps
+
+
+def coverage_gap_delta(
+    before: set[str],
+    after: set[str],
+) -> dict[str, set[str]]:
+    """Delta between two item-62 ``coverage_gaps`` snapshots — the gap-closure tracker (item 94).
+
+    Args:
+        before: Task-gap set from an earlier ``coverage_gaps`` call.
+        after:  Task-gap set from a later ``coverage_gaps`` call.
+
+    Returns:
+        A dict with two keys:
+
+        - ``"filled"``: gaps present in ``before`` but absent in ``after`` — a local specialist
+          was registered for the task between the two scans (the fleet improved coverage).
+        - ``"opened"``: gaps absent in ``before`` but present in ``after`` — a new coverage
+          hole appeared (a new Task was added without a specialist, or one was removed).
+
+        Gaps present in BOTH snapshots appear in NEITHER list (stable unresolved gaps).
+        Identical snapshots → both sets empty.
+
+    Pure (operates on injected sets; no inference, no registry read).
+    """
+    return {
+        "filled": before - after,  # in before but not after → gap was closed
+        "opened": after - before,  # in after but not before → new gap appeared
+    }
