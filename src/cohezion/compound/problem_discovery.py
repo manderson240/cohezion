@@ -4121,3 +4121,41 @@ def full_scan_report(problems: list[Problem]) -> dict[str, object]:
         "top_class_by_count": top_class_by_count,
         "most_critical_class": most_critical_class,
     }
+
+
+def severity_escalation_classes(
+    scan_a: list[Problem],
+    scan_b: list[Problem],
+    severity: str,
+) -> frozenset[str]:
+    """Return classes where the count of *severity*-labelled problems strictly increased.
+
+    A class is "escalated" when its count of problems with ``severity`` in
+    *scan_b* is STRICTLY GREATER than in *scan_a* (``count_b > count_a``).
+    New classes in *scan_b* only (count_a = 0) are included when count_b > 0.
+
+    Args:
+        scan_a:    Earlier scan's :class:`Problem` list.
+        scan_b:    Later scan's :class:`Problem` list.
+        severity:  The severity label to track (e.g. ``"CRITICAL"``).
+
+    Returns:
+        frozenset of class names where the *severity* count strictly increased.
+        Returns ``frozenset()`` when both scans are empty or severity is absent.
+
+    Pure (no I/O, no SurrealDB).
+    """
+    def _class_severity_counts(scan: list[Problem], sev: str) -> dict[str, int]:
+        counts: dict[str, int] = {}
+        for p in scan:
+            if p.severity == sev:
+                counts[p.problem_class] = counts.get(p.problem_class, 0) + 1
+        return counts
+
+    counts_a = _class_severity_counts(scan_a, severity)
+    counts_b = _class_severity_counts(scan_b, severity)
+    all_classes = set(counts_a) | set(counts_b)
+    return frozenset(
+        cls for cls in all_classes
+        if counts_b.get(cls, 0) > counts_a.get(cls, 0)
+    )
