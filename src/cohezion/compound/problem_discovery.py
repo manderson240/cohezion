@@ -6980,3 +6980,21 @@ def min_problems_in_any_class(problems: list[Problem]) -> int:
     for p in problems:
         counts[p.problem_class] = counts.get(p.problem_class, 0) + 1
     return min(counts.values())
+
+
+def class_distribution_range(problems: list[Problem]) -> int:
+    """Return the range (max - min) of class record counts — item 410.
+
+    Computes ``max_count - min_count`` from the :func:`problem_class_histogram`.
+    Returns ``0`` for empty input or when all classes have equal counts.
+
+    Args:
+        problems: List of :class:`Problem` instances.
+
+    Returns:
+        Integer spread between the most and least populated classes.
+        ``0`` when *problems* is empty or all classes are equal.
+
+    Pure (no I/O, no SurrealDB).
+    """
+    return max_problems_in_any_class(problems) - min_problems_in_any_class(problems)
