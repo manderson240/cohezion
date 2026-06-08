@@ -7102,3 +7102,31 @@ def repeated_finding_ids(problems: list[Problem]) -> frozenset[str]:
     for p in problems:
         counts[p.finding_id] = counts.get(p.finding_id, 0) + 1
     return frozenset(fid for fid, cnt in counts.items() if cnt >= 2)
+
+
+def top_n_classes(problems: list[Problem], n: int) -> list[tuple[str, int]]:
+    """Return the top-N classes with their record counts as (name, count) tuples — item 415.
+
+    Pairs each class name with its total record count and returns the *n*
+    highest-count classes, sorted by descending count then ascending name for
+    tie-breaking.  Returns at most *n* entries; ``[]`` when *n* ≤ 0 or
+    *problems* is empty.
+
+    Args:
+        problems: List of :class:`Problem` instances.
+        n: Maximum number of (class, count) pairs to return.
+
+    Returns:
+        ``list[tuple[str, int]]`` of at most *n* ``(class_name, count)`` pairs,
+        sorted descending by count then ascending class name.  ``[]`` when
+        *problems* is empty or *n* ≤ 0.
+
+    Pure (no I/O, no SurrealDB).
+    """
+    if not problems or n <= 0:
+        return []
+    counts: dict[str, int] = {}
+    for p in problems:
+        counts[p.problem_class] = counts.get(p.problem_class, 0) + 1
+    ranked = sorted(counts.items(), key=lambda item: (-item[1], item[0]))
+    return ranked[:n]
