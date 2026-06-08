@@ -10693,3 +10693,24 @@ def class_score_fractions(
     if grand_total == 0.0:
         return {cls: 0.0 for cls in totals}
     return {cls: v / grand_total for cls, v in totals.items()}
+
+
+def fid_score_fractions(
+    problems: list[Problem],
+    weights: dict[str, float],
+) -> dict[str, float]:
+    """Return each fid's fraction of the total weighted score.  Item 565.
+
+    FID-axis complement of class_score_fractions.
+    Fraction = fid_total_score / sum_of_all_fid_totals. Values sum to 1.0.
+    Empty -> {}.  Pure; no I/O.
+    """
+    if not problems:
+        return {}
+    totals: dict[str, float] = {}
+    for p in problems:
+        totals[p.finding_id] = totals.get(p.finding_id, 0.0) + weights.get(p.severity, 0.0)
+    grand_total = sum(totals.values())
+    if grand_total == 0.0:
+        return {fid: 0.0 for fid in totals}
+    return {fid: v / grand_total for fid, v in totals.items()}
