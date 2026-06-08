@@ -2568,3 +2568,22 @@ def problem_list_delta(
     added = problems_added_since_scan(current, baseline_ids)
     resolved = problems_resolved_since_scan(baseline, current_ids)
     return added, resolved
+
+
+def classes_with_single_problem(problems: list[Problem]) -> frozenset[str]:
+    """Return the set of class names that appear exactly once in *problems*.
+
+    A class with 0 or ≥2 occurrences is excluded.  This is a low-noise
+    triage signal: a class with a single finding may warrant a spot-check
+    without the overhead of a full threshold review.
+
+    Args:
+        problems: List of :class:`Problem` instances from a scan.
+
+    Returns:
+        ``frozenset[str]`` of class names whose count is exactly 1.
+
+    Pure (no I/O, no SurrealDB).
+    """
+    counts = problem_count_by_class(problems)
+    return frozenset(cls for cls, n in counts.items() if n == 1)
