@@ -10222,3 +10222,22 @@ def fid_score_range(
         return 0.0
     values = list(fid_totals.values())
     return float(max(values) - min(values))
+
+
+def class_score_sum(
+    problems: list[Problem],
+    weights: dict[str, float],
+) -> float:
+    """Return sum of per-class total weighted scores.  Item 541.
+
+    Grand total problem burden: sum(class_totals) == sum(all individual weights).
+    0.0 for empty.  Pure; no I/O.
+    """
+    if not problems:
+        return 0.0
+    class_totals: dict[str, float] = {}
+    for p in problems:
+        class_totals[p.problem_class] = (
+            class_totals.get(p.problem_class, 0.0) + weights.get(p.severity, 0.0)
+        )
+    return float(sum(class_totals.values()))
