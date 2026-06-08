@@ -17,6 +17,7 @@ bit. Report-only, pure (no LLM, no writes). The registry is injectable (stub tem
 
 from __future__ import annotations
 
+import math
 from collections.abc import Callable, Iterable
 from dataclasses import dataclass
 from pathlib import Path
@@ -3140,3 +3141,35 @@ def severity_dispersion(problems: list[Problem]) -> int:
     Pure (no I/O, no SurrealDB).
     """
     return len({p.severity for p in problems if p.severity})
+
+
+def class_severity_entropy(problems: list[Problem], cls: str) -> float:
+    """Return the Shannon entropy (bits) of the severity distribution for *cls*.
+
+    The distribution is computed ONLY over labelled (non-empty severity)
+    problems that belong to *cls*.  Unlabelled problems are excluded from both
+    the counts and the total.  The entropy formula is::
+
+        H = -sum(p_i * log2(p_i))  for each non-empty severity i in the class
+
+    Returns ``0.0`` when the class has at most one distinct labelled severity,
+    when it has no labelled problems, when *cls* is not present in *problems*,
+    or when *problems* is empty.
+
+    Args:
+        problems: List of :class:`Problem` instances from a scan.
+        cls:      Class name to compute entropy for.
+
+    Returns:
+        Shannon entropy in bits (float).  Always ≥ 0.0.
+
+    Pure (no I/O, no SurrealDB).
+    """
+    counts: dict[str, int] = {}
+    for p in problems:
+        if p.problem_class == cls and p.severity:
+            counts[p.severity] = counts.get(p.severity, 0) + 1
+    total = sum(counts.values())
+    if total == 0:
+        return 0.0
+    return float(-sum((c / total) * math.log2(c / total) for c in counts.values()))
