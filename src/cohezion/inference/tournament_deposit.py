@@ -1,4 +1,4 @@
-"""Items 151 + 153 + 159: Tournament-winner neuron deposition & recall (2026-06-08).
+"""Items 151 + 153 + 159 + 162: Tournament-winner neuron deposition & recall (2026-06-08).
 
 Item 151 — ``deposit_tournament_winner``:
     Closes the tournament→memory write loop: after ``model_tournament`` confirms
