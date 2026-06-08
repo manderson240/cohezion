@@ -416,6 +416,62 @@ def discover_and_summarize_excluding(
     )
 
 
+@dataclass(frozen=True)
+class ProblemDiff:
+    """Delta between two TIDE discovery scans — item 172.
+
+    Classifies finding ids from two :func:`discover_problems` result lists into
+    three partitions:
+
+    - ``added``    — ids present in *after* but NOT in *before* (new smells).
+    - ``resolved`` — ids present in *before* but NOT in *after* (fixed smells).
+    - ``stable``   — ids present in BOTH before and after (unchanged smells).
+
+    Every finding id appears in exactly ONE partition.  The union
+    ``set(added) | set(resolved) | set(stable)`` == the union of all ids in
+    both lists.
+
+    Frozen (immutable).  Construct via :func:`problem_diff`.
+    """
+
+    added: list[str]
+    resolved: list[str]
+    stable: list[str]
+
+
+def problem_diff(before: list[Problem], after: list[Problem]) -> ProblemDiff:
+    """Compare two TIDE discovery results and classify findings — item 172.
+
+    Pure set-difference fold over the ``finding_id`` keys of *before* and
+    *after*.  Each id falls into exactly one of three partitions:
+
+    - ``added``    — in *after* but NOT in *before*.
+    - ``resolved`` — in *before* but NOT in *after*.
+    - ``stable``   — in both *before* and *after*.
+
+    Ordering within each partition is deterministic: sorted by ``finding_id``
+    for stable output across runs.
+
+    Args:
+        before:
+            Finding list from the earlier scan (output of :func:`discover_problems`).
+        after:
+            Finding list from the later scan.
+
+    Returns:
+        A frozen :class:`ProblemDiff` with the three partitions as ``list[str]``
+        of ``finding_id`` values.
+
+    Pure (no I/O, no SurrealDB).
+    """
+    before_ids = {p.finding_id for p in before}
+    after_ids = {p.finding_id for p in after}
+    added = sorted(after_ids - before_ids)
+    resolved = sorted(before_ids - after_ids)
+    stable = sorted(before_ids & after_ids)
+    return ProblemDiff(added=added, resolved=resolved, stable=stable)
+
+
 def default_template_classes() -> frozenset[str]:
     """Return the exact set of ``problem_class`` names in :func:`default_templates` — item 158.
 
