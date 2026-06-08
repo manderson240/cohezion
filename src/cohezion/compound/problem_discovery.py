@@ -14075,3 +14075,62 @@ def fid_severity_rank_cv(problems: list[Problem]) -> dict[str, float]:
                 sample_var = sum((r - mean) ** 2 for r in ranks) / (n - 1)
                 result[fid] = math.sqrt(sample_var) / mean
     return result
+
+
+def class_severity_rank_gini(problems: list[Problem]) -> dict[str, float]:
+    """Gini coefficient of severity rank distribution per class.  Item 738.
+
+    Gini = sum_i_j |xi-xj| / (2 * n^2 * mean).
+    mean=0 -> 0.0.  n=1 -> 0.0.  Empty -> {}.  Pure; no I/O.
+    """
+    if not problems:
+        return {}
+    ranks_by_class: dict[str, list[int]] = {}
+    for p in problems:
+        cls = p.problem_class
+        if cls not in ranks_by_class:
+            ranks_by_class[cls] = []
+        ranks_by_class[cls].append(_SEVERITY_RANK.get(p.severity, 0))
+    result: dict[str, float] = {}
+    for cls, ranks in ranks_by_class.items():
+        n = len(ranks)
+        if n <= 1:
+            result[cls] = 0.0
+        else:
+            mean = sum(ranks) / n
+            if mean == 0.0:
+                result[cls] = 0.0
+            else:
+                total_abs = sum(abs(ranks[i] - ranks[j]) for i in range(n) for j in range(n))
+                result[cls] = float(total_abs) / (2 * n * n * mean)
+    return result
+
+
+def fid_severity_rank_gini(problems: list[Problem]) -> dict[str, float]:
+    """Gini coefficient of severity rank distribution per fid.  Item 739.
+
+    Fid-axis complement of class_severity_rank_gini (item 738).
+    Gini = sum_i_j |xi-xj| / (2 * n^2 * mean).
+    mean=0 -> 0.0.  n=1 -> 0.0.  Empty -> {}.  Pure; no I/O.
+    """
+    if not problems:
+        return {}
+    ranks_by_fid: dict[str, list[int]] = {}
+    for p in problems:
+        fid = p.finding_id
+        if fid not in ranks_by_fid:
+            ranks_by_fid[fid] = []
+        ranks_by_fid[fid].append(_SEVERITY_RANK.get(p.severity, 0))
+    result: dict[str, float] = {}
+    for fid, ranks in ranks_by_fid.items():
+        n = len(ranks)
+        if n <= 1:
+            result[fid] = 0.0
+        else:
+            mean = sum(ranks) / n
+            if mean == 0.0:
+                result[fid] = 0.0
+            else:
+                total_abs = sum(abs(ranks[i] - ranks[j]) for i in range(n) for j in range(n))
+                result[fid] = float(total_abs) / (2 * n * n * mean)
+    return result
