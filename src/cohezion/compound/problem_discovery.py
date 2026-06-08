@@ -12502,3 +12502,23 @@ def fid_severity_spread(problems: list[Problem]) -> dict[str, int]:
             severities[p.finding_id] = set()
         severities[p.finding_id].add(p.severity or "")
     return {fid: len(sev_set) for fid, sev_set in severities.items()}
+
+
+def class_sev_high_rate(problems: list[Problem]) -> dict[str, float]:
+    """Return fraction of HIGH severity problems per class.  Item 656.
+
+    For each class: count(HIGH) / total_class_problems.
+    float in [0, 1].  0.0 = no HIGH.  Empty -> {}.  Pure; no I/O.
+    """
+    if not problems:
+        return {}
+    totals: dict[str, int] = {}
+    highs: dict[str, int] = {}
+    for p in problems:
+        totals[p.problem_class] = totals.get(p.problem_class, 0) + 1
+        if (p.severity or "").upper() == "HIGH":
+            highs[p.problem_class] = highs.get(p.problem_class, 0) + 1
+    return {
+        cls: float(highs.get(cls, 0)) / totals[cls]
+        for cls in totals
+    }
