@@ -6295,8 +6295,8 @@ def class_to_finding_ids(
 
 
 def severity_to_finding_ids(
-    problems: list["Problem"],
-) -> "dict[str, frozenset[str]]":
+    problems: list[Problem],
+) -> dict[str, frozenset[str]]:
     """Build an index mapping each severity to its finding_ids — item 377.
 
     Returns a :class:`dict` mapping each distinct ``severity`` string to the
@@ -6321,3 +6321,37 @@ def severity_to_finding_ids(
     for p in problems:
         index.setdefault(p.severity, set()).add(p.finding_id)
     return {sev: frozenset(fids) for sev, fids in index.items()}
+
+
+# ---------------------------------------------------------------------------
+# Item 378 — class_to_severities (2026-06-08)
+# ---------------------------------------------------------------------------
+
+
+def class_to_severities(
+    problems: list[Problem],
+) -> dict[str, frozenset[str]]:
+    """Build an index mapping each class to its distinct severity palette — item 378.
+
+    Returns a :class:`dict` mapping each distinct ``problem_class`` string to
+    the :class:`frozenset` of distinct ``severity`` strings present among its
+    records.  The empty string ``''`` is included as a severity value when any
+    unlabelled :class:`Problem` belongs to that class.
+
+    Args:
+        problems: List of :class:`Problem` instances.  Empty → ``{}``.
+
+    Returns:
+        ``dict[str, frozenset[str]]``.  Every distinct class in *problems*
+        appears exactly once as a key.  Values are non-empty :class:`frozenset`
+        objects of severity strings (including ``''`` if unlabelled records
+        exist for that class).  Empty when *problems* is empty.
+
+    Pure (no I/O, no SurrealDB).
+    """
+    if not problems:
+        return {}
+    index: dict[str, set[str]] = {}
+    for p in problems:
+        index.setdefault(p.problem_class, set()).add(p.severity)
+    return {cls: frozenset(sevs) for cls, sevs in index.items()}
