@@ -14908,3 +14908,66 @@ def fid_severity_rank_p10(problems: list[Problem]) -> dict[str, float]:
         frac = i - lo
         result[fid] = sorted_ranks[lo] + frac * (sorted_ranks[hi] - sorted_ranks[lo])
     return result
+
+
+def class_severity_rank_interdecile_range(problems: list[Problem]) -> dict[str, float]:
+    """Inter-decile range (p90 - p10) of severity ranks per class.  Item 772.
+
+    IDR = p90 - p10 using linear interpolation (i = q*(n-1)).
+    All-same -> 0.0.  Empty -> {}.  Pure; no I/O.
+    """
+    if not problems:
+        return {}
+    ranks_by_class: dict[str, list[int]] = {}
+    for p in problems:
+        cls = p.problem_class
+        if cls not in ranks_by_class:
+            ranks_by_class[cls] = []
+        ranks_by_class[cls].append(_SEVERITY_RANK.get(p.severity, 0))
+    result: dict[str, float] = {}
+    for cls, ranks in ranks_by_class.items():
+        n = len(ranks)
+        sorted_ranks = sorted(ranks)
+        # p10
+        i10 = 0.10 * (n - 1)
+        lo10 = int(i10)
+        hi10 = min(lo10 + 1, n - 1)
+        p10 = sorted_ranks[lo10] + (i10 - lo10) * (sorted_ranks[hi10] - sorted_ranks[lo10])
+        # p90
+        i90 = 0.90 * (n - 1)
+        lo90 = int(i90)
+        hi90 = min(lo90 + 1, n - 1)
+        p90 = sorted_ranks[lo90] + (i90 - lo90) * (sorted_ranks[hi90] - sorted_ranks[lo90])
+        result[cls] = float(p90 - p10)
+    return result
+
+
+def fid_severity_rank_interdecile_range(problems: list[Problem]) -> dict[str, float]:
+    """Inter-decile range (p90 - p10) of severity ranks per fid.  Item 773.
+
+    Fid-axis complement of class_severity_rank_interdecile_range (item 772).
+    IDR = p90 - p10 using linear interpolation.
+    All-same -> 0.0.  Empty -> {}.  Pure; no I/O.
+    """
+    if not problems:
+        return {}
+    ranks_by_fid: dict[str, list[int]] = {}
+    for p in problems:
+        fid = p.finding_id
+        if fid not in ranks_by_fid:
+            ranks_by_fid[fid] = []
+        ranks_by_fid[fid].append(_SEVERITY_RANK.get(p.severity, 0))
+    result: dict[str, float] = {}
+    for fid, ranks in ranks_by_fid.items():
+        n = len(ranks)
+        sorted_ranks = sorted(ranks)
+        i10 = 0.10 * (n - 1)
+        lo10 = int(i10)
+        hi10 = min(lo10 + 1, n - 1)
+        p10 = sorted_ranks[lo10] + (i10 - lo10) * (sorted_ranks[hi10] - sorted_ranks[lo10])
+        i90 = 0.90 * (n - 1)
+        lo90 = int(i90)
+        hi90 = min(lo90 + 1, n - 1)
+        p90 = sorted_ranks[lo90] + (i90 - lo90) * (sorted_ranks[hi90] - sorted_ranks[lo90])
+        result[fid] = float(p90 - p10)
+    return result
