@@ -10897,3 +10897,43 @@ def class_score_below_threshold(
         totals[p.problem_class] = totals.get(p.problem_class, 0.0) + weights.get(p.severity, 0.0)
     filtered = [cls for cls, score in totals.items() if score < threshold]
     return sorted(filtered, key=lambda cls: (totals[cls], cls))
+
+
+def fid_score_below_threshold(
+    problems: list[Problem],
+    weights: dict[str, float],
+    threshold: float,
+) -> list[str]:
+    """Return fid names with total weighted score strictly below threshold.  Item 575.
+
+    FID-axis complement of class_score_below_threshold.
+    Sorted ascending by score; ties broken lexicographically by fid name.
+    Empty problems or all-above-threshold -> [].  Pure; no I/O.
+    """
+    if not problems:
+        return []
+    totals: dict[str, float] = {}
+    for p in problems:
+        totals[p.finding_id] = totals.get(p.finding_id, 0.0) + weights.get(p.severity, 0.0)
+    filtered = [fid for fid, score in totals.items() if score < threshold]
+    return sorted(filtered, key=lambda fid: (totals[fid], fid))
+
+
+def fid_score_below_threshold(
+    problems: list[Problem],
+    weights: dict[str, float],
+    threshold: float,
+) -> list[str]:
+    """Return fid names with total weighted score strictly below threshold.  Item 575.
+
+    FID-axis complement of class_score_below_threshold.
+    Sorted ascending by score; ties broken lexicographically by fid name.
+    Empty problems or all-above-threshold -> [].  Pure; no I/O.
+    """
+    if not problems:
+        return []
+    totals: dict[str, float] = {}
+    for p in problems:
+        totals[p.finding_id] = totals.get(p.finding_id, 0.0) + weights.get(p.severity, 0.0)
+    filtered = [fid for fid, score in totals.items() if score < threshold]
+    return sorted(filtered, key=lambda fid: (totals[fid], fid))
