@@ -5565,3 +5565,35 @@ def bottom_n_problem_classes(problems: list["Problem"], n: int) -> list[str]:
         counts[p.problem_class] = counts.get(p.problem_class, 0) + 1
     ranked = sorted(counts, key=lambda cls: (counts[cls], cls))
     return ranked[:n]
+
+
+# ---------------------------------------------------------------------------
+# Item 350 — class_problem_ratio (2026-06-08)
+# ---------------------------------------------------------------------------
+
+
+def class_problem_ratio(problems: list["Problem"], class_name: str) -> float:
+    """Return the fraction of all problems belonging to a given class.
+
+    ``class_problem_ratio(problems, class_name) -> float``:
+    Returns ``count(class_name) / len(problems)`` as a :class:`float` in
+    the range [0.0, 1.0].  Unknown class → 0.0.  Empty input → 0.0.
+    Pure (no I/O, no SurrealDB).
+
+    Complements :func:`problem_density_by_class` for single-class lookups
+    without building the full density dict.
+
+    Args:
+        problems:   Flat list of :class:`Problem` records.
+        class_name: The class to measure concentration for.
+
+    Returns:
+        Ratio in [0.0, 1.0]; 0.0 when *problems* is empty or *class_name*
+        is not present.
+
+    Pure (no I/O, no SurrealDB).
+    """
+    if not problems:
+        return 0.0
+    class_count = sum(1 for p in problems if p.problem_class == class_name)
+    return class_count / len(problems)
