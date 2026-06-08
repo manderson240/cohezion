@@ -12923,3 +12923,22 @@ def fid_severity_count_map(problems: list[Problem]) -> dict[str, dict[str, int]]
             result[fid] = {}
         result[fid][sev] = result[fid].get(sev, 0) + 1
     return result
+
+
+def class_has_severity(problems: list[Problem], severity: str) -> dict[str, bool]:
+    """Return whether each class has at least one problem of the given severity.  Item 680.
+
+    Zero-inclusive: ALL classes present in the input appear in the result.
+    Classes without the queried severity return False (not absent from result).
+    Returns {class: bool}.  Empty -> {}.  Pure; no I/O.
+    """
+    if not problems:
+        return {}
+    result: dict[str, bool] = {}
+    for p in problems:
+        cls = p.problem_class
+        if cls not in result:
+            result[cls] = False
+        if p.severity == severity:
+            result[cls] = True
+    return result
