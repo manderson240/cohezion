@@ -4262,3 +4262,35 @@ def top_growing_classes(
     growing = [(cls, delta) for cls, delta in deltas.items() if delta > 0]
     growing.sort(key=lambda pair: (-pair[1], pair[0]))
     return growing[:n]
+
+
+def top_shrinking_classes(
+    scan_a: list[Problem],
+    scan_b: list[Problem],
+    n: int = 5,
+) -> list[tuple[str, int]]:
+    """Return the top *n* classes with the most negative problem count delta.
+
+    Uses :func:`cross_scan_class_delta` internally and filters to ``delta < 0``.
+    Sorted by delta ascending (most negative / most improved first); ties
+    broken by class name ascending.
+
+    Args:
+        scan_a: Problems from the baseline scan.
+        scan_b: Problems from the comparison scan.
+        n:      Maximum number of results to return (default 5).
+                ``n=0`` returns an empty list.
+
+    Returns:
+        List of ``(class, delta)`` tuples.  Only classes with strictly negative
+        delta are included.  Returns ``[]`` when *n* is 0, when both scans are
+        empty, or when no class shrank.
+
+    Pure (no I/O, no SurrealDB).
+    """
+    if n == 0:
+        return []
+    deltas = cross_scan_class_delta(scan_a, scan_b)
+    shrinking = [(cls, delta) for cls, delta in deltas.items() if delta < 0]
+    shrinking.sort(key=lambda pair: (pair[1], pair[0]))
+    return shrinking[:n]
