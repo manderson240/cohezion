@@ -5431,3 +5431,29 @@ def labelled_problems(problems: list["Problem"]) -> list["Problem"]:
     Pure (no I/O, no SurrealDB).
     """
     return [p for p in problems if p.severity]
+
+
+# ---------------------------------------------------------------------------
+# Item 345 — unlabelled_problems (2026-06-08)
+# ---------------------------------------------------------------------------
+
+
+def unlabelled_problems(problems: list["Problem"]) -> list["Problem"]:
+    """Return only problems whose severity is empty (complement of labelled_problems).
+
+    ``unlabelled_problems(problems) -> list[Problem]``:
+    Returns only :class:`Problem` objects where ``severity == ''``.
+    Complement of :func:`labelled_problems`.  Empty input → [].
+    Pure (no I/O, no SurrealDB).
+
+    Args:
+        problems: Flat list of :class:`Problem` records.
+
+    Returns:
+        New list of :class:`Problem` objects in original order whose
+        ``severity`` is empty.  ``[]`` when *problems* is empty or all
+        records are labelled.
+
+    Pure (no I/O, no SurrealDB).
+    """
+    return [p for p in problems if not p.severity]
