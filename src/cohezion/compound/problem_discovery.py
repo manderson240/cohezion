@@ -5497,3 +5497,36 @@ def problems_by_severity_rank(
     unranked_sentinel = len(severity_order)
     # Python's sorted() is stable: ties within a tier preserve insertion order
     return sorted(problems, key=lambda p: rank.get(p.severity, unranked_sentinel))
+
+
+# ---------------------------------------------------------------------------
+# Item 348 — top_n_problem_classes (2026-06-08)
+# ---------------------------------------------------------------------------
+
+
+def top_n_problem_classes(problems: list["Problem"], n: int) -> list[str]:
+    """Return the top N problem classes ranked by total problem count descending.
+
+    ``top_n_problem_classes(problems, n) -> list[str]``:
+    Returns up to *n* class names ordered by total :class:`Problem` record
+    count descending.  Ties broken by ascending class name.
+    *n=0* → [].  *n* > number of distinct classes → all classes returned.
+    Empty input → [].  Pure (no I/O, no SurrealDB).
+
+    Args:
+        problems: Flat list of :class:`Problem` records.
+        n:        Maximum number of class names to return.
+
+    Returns:
+        List of up to *n* class names, highest-count first, ties broken
+        ascending alphabetically.
+
+    Pure (no I/O, no SurrealDB).
+    """
+    if n == 0 or not problems:
+        return []
+    counts: dict[str, int] = {}
+    for p in problems:
+        counts[p.problem_class] = counts.get(p.problem_class, 0) + 1
+    ranked = sorted(counts, key=lambda cls: (-counts[cls], cls))
+    return ranked[:n]
