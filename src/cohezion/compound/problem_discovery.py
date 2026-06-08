@@ -13538,3 +13538,49 @@ def fid_severity_entropy_all(problems: list[Problem]) -> dict[str, float]:
                 (c / total) * math.log2(c / total) for c in sev_counts.values()
             )
     return result
+
+
+def class_severity_dominant_label(problems: list[Problem]) -> dict[str, str]:
+    """Single most-common severity label per class; ties broken alphabetically.  Item 718.
+
+    Returns {class: label} where label has highest count; on tie returns min(tied_labels).
+    Empty -> {}.  Pure; no I/O.
+    """
+    if not problems:
+        return {}
+    counts: dict[str, dict[str, int]] = {}
+    for p in problems:
+        cls = p.problem_class
+        if cls not in counts:
+            counts[cls] = {}
+        sev = p.severity or ""
+        counts[cls][sev] = counts[cls].get(sev, 0) + 1
+    result: dict[str, str] = {}
+    for cls, sev_counts in counts.items():
+        max_count = max(sev_counts.values())
+        tied = sorted(s for s, c in sev_counts.items() if c == max_count)
+        result[cls] = tied[0]
+    return result
+
+
+def fid_severity_dominant_label(problems: list[Problem]) -> dict[str, str]:
+    """Single most-common severity label per fid; ties broken alphabetically.  Item 719.
+
+    Fid-axis complement of class_severity_dominant_label (item 718).
+    Returns {fid: label}.  Empty -> {}.  Pure; no I/O.
+    """
+    if not problems:
+        return {}
+    counts: dict[str, dict[str, int]] = {}
+    for p in problems:
+        fid = p.finding_id
+        if fid not in counts:
+            counts[fid] = {}
+        sev = p.severity or ""
+        counts[fid][sev] = counts[fid].get(sev, 0) + 1
+    result: dict[str, str] = {}
+    for fid, sev_counts in counts.items():
+        max_count = max(sev_counts.values())
+        tied = sorted(s for s, c in sev_counts.items() if c == max_count)
+        result[fid] = tied[0]
+    return result
