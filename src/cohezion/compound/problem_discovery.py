@@ -4593,3 +4593,32 @@ def finding_id_severity_map(
         if p.severity:
             id_severities.setdefault(p.finding_id, set()).add(p.severity)
     return {fid: frozenset(sevs) for fid, sevs in id_severities.items()}
+
+
+def multi_severity_finding_ids(
+    problems: list[Problem],
+) -> frozenset[str]:
+    """Return finding_ids that carry two or more distinct labelled severities.
+
+    A finding_id that appears in records with different severity labels (e.g.
+    ``HIGH`` in one record and ``LOW`` in another) has a labelling conflict or
+    progressive escalation.  This function surfaces such ids by delegating to
+    :func:`finding_id_severity_map` and filtering to entries with
+    ``len(severity_set) >= 2``.
+
+    Finding_ids with a single repeated severity (e.g. ``HIGH`` in 10 records)
+    are excluded because they have only one *distinct* severity label.
+    Unlabelled-only finding_ids are also excluded (they never appear in
+    ``finding_id_severity_map``).
+
+    Args:
+        problems: Flat list of :class:`Problem` records.
+
+    Returns:
+        Frozenset of finding_ids with ≥ 2 distinct labelled severities.
+        Returns ``frozenset()`` when *problems* is empty.
+
+    Pure (no I/O, no SurrealDB).
+    """
+    severity_map = finding_id_severity_map(problems)
+    return frozenset(fid for fid, sevs in severity_map.items() if len(sevs) >= 2)
