@@ -8868,14 +8868,10 @@ def score_delta_between_snapshots(
     Pure (no I/O, no SurrealDB).
     """
     score_before = sum(
-        weights.get(p.severity, 0.0)
-        for p in before
-        if p.problem_class == problem_class
+        weights.get(p.severity, 0.0) for p in before if p.problem_class == problem_class
     )
     score_after = sum(
-        weights.get(p.severity, 0.0)
-        for p in after
-        if p.problem_class == problem_class
+        weights.get(p.severity, 0.0) for p in after if p.problem_class == problem_class
     )
     return float(score_after - score_before)
 
@@ -8905,18 +8901,17 @@ def all_score_deltas_between_snapshots(
     """
     scores_before: dict[str, float] = {}
     for p in before:
-        scores_before[p.problem_class] = (
-            scores_before.get(p.problem_class, 0.0) + weights.get(p.severity, 0.0)
+        scores_before[p.problem_class] = scores_before.get(p.problem_class, 0.0) + weights.get(
+            p.severity, 0.0
         )
     scores_after: dict[str, float] = {}
     for p in after:
-        scores_after[p.problem_class] = (
-            scores_after.get(p.problem_class, 0.0) + weights.get(p.severity, 0.0)
+        scores_after[p.problem_class] = scores_after.get(p.problem_class, 0.0) + weights.get(
+            p.severity, 0.0
         )
     all_classes = scores_before.keys() | scores_after.keys()
     return {
-        cls: float(scores_after.get(cls, 0.0) - scores_before.get(cls, 0.0))
-        for cls in all_classes
+        cls: float(scores_after.get(cls, 0.0) - scores_before.get(cls, 0.0)) for cls in all_classes
     }
 
 
@@ -9067,9 +9062,7 @@ def score_summary(
     Pure (no I/O, no SurrealDB).
     """
     matching_scores = [
-        weights.get(p.severity, 0.0)
-        for p in problems
-        if p.problem_class == problem_class
+        weights.get(p.severity, 0.0) for p in problems if p.problem_class == problem_class
     ]
     count = len(matching_scores)
     if count == 0:
@@ -9080,3 +9073,46 @@ def score_summary(
         "mean": float(total / count),
         "max_single": float(max(matching_scores)),
     }
+
+
+def all_score_summaries(
+    problems: list[Problem],
+    weights: dict[str, float],
+) -> dict[str, dict[str, float]]:
+    """Return per-class score summaries for every class in problems -- item 499.
+
+    Bulk version of :func:`score_summary`.  Computes ``total``, ``mean``,
+    and ``max_single`` for every distinct ``problem_class`` in *problems*.
+
+    Each inner dict has exactly the three keys:
+    * ``"total"`` — sum of ``weights.get(p.severity, 0.0)`` for class records.
+    * ``"mean"``  — ``total / count`` (0.0 when count is 0, but that cannot
+      occur here since a class only appears when it has ≥1 record).
+    * ``"max_single"`` — maximum per-record weight for the class.
+
+    Args:
+        problems: List of :class:`Problem` instances.
+        weights: Mapping of severity label to numeric score.
+
+    Returns:
+        ``dict[str, dict[str, float]]`` keyed by class name.
+        Empty dict when *problems* is empty.
+
+    Pure (no I/O, no SurrealDB).
+    """
+    # Collect per-class score lists in one pass
+    class_scores: dict[str, list[float]] = {}
+    for p in problems:
+        score = weights.get(p.severity, 0.0)
+        if p.problem_class not in class_scores:
+            class_scores[p.problem_class] = []
+        class_scores[p.problem_class].append(score)
+    result: dict[str, dict[str, float]] = {}
+    for cls, scores in class_scores.items():
+        total = sum(scores)
+        result[cls] = {
+            "total": float(total),
+            "mean": float(total / len(scores)),
+            "max_single": float(max(scores)),
+        }
+    return result
