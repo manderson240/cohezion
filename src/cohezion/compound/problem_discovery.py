@@ -7552,3 +7552,26 @@ def class_severity_matrix(problems: list[Problem]) -> dict[str, dict[str, int]]:
         inner = matrix.setdefault(p.problem_class, {})
         inner[p.severity] = inner.get(p.severity, 0) + 1
     return matrix
+
+
+def fid_severity_matrix(problems: list[Problem]) -> dict[str, dict[str, int]]:
+    """Return a 2-D sparse count matrix keyed by finding_id then severity -- item 435.
+
+    Outer key is :attr:`Problem.finding_id`; inner key is
+    :attr:`Problem.severity`.  Counts are positive integers.  Missing
+    fid/severity combinations are absent (sparse -- not zero-filled).
+
+    Args:
+        problems: List of :class:`Problem` instances.
+
+    Returns:
+        Nested dict ``{finding_id: {severity: count}}``.
+        Empty dict when *problems* is empty.
+
+    Pure (no I/O, no SurrealDB).
+    """
+    matrix: dict[str, dict[str, int]] = {}
+    for p in problems:
+        inner = matrix.setdefault(p.finding_id, {})
+        inner[p.severity] = inner.get(p.severity, 0) + 1
+    return matrix
