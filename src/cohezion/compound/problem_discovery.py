@@ -11861,10 +11861,7 @@ def class_severity_concentration(problems: list[Problem]) -> dict[str, float]:
         sev = p.severity if p.severity else ""
         sev_counts[p.problem_class][sev] = sev_counts[p.problem_class].get(sev, 0) + 1
         totals[p.problem_class] = totals.get(p.problem_class, 0) + 1
-    return {
-        cls: float(max(bucket.values())) / totals[cls]
-        for cls, bucket in sev_counts.items()
-    }
+    return {cls: float(max(bucket.values())) / totals[cls] for cls, bucket in sev_counts.items()}
 
 
 def fid_severity_concentration(problems: list[Problem]) -> dict[str, float]:
@@ -11885,7 +11882,36 @@ def fid_severity_concentration(problems: list[Problem]) -> dict[str, float]:
         sev = p.severity if p.severity else ""
         sev_counts[p.finding_id][sev] = sev_counts[p.finding_id].get(sev, 0) + 1
         totals[p.finding_id] = totals.get(p.finding_id, 0) + 1
-    return {
-        fid: float(max(bucket.values())) / totals[fid]
-        for fid, bucket in sev_counts.items()
-    }
+    return {fid: float(max(bucket.values())) / totals[fid] for fid, bucket in sev_counts.items()}
+
+
+def class_severity_cv(
+    problems: list[Problem],
+) -> dict[str, float]:
+    """Return coefficient of variation of severity counts per class.  Item 625.
+
+    CV = population_std_dev / mean of the per-severity INTEGER counts.
+    Measures relative spread; scale-invariant complement of class_severity_variance.
+    Single-severity -> 0.0 (std=0).  Uniform distribution -> 0.0 (std=0).
+    Empty -> {}.  Float >= 0.0.  Pure; no I/O.
+    """
+    import math as _math
+
+    if not problems:
+        return {}
+    counts: dict[str, dict[str, int]] = {}
+    for p in problems:
+        if p.problem_class not in counts:
+            counts[p.problem_class] = {}
+        sev = p.severity or ""
+        counts[p.problem_class][sev] = counts[p.problem_class].get(sev, 0) + 1
+    result: dict[str, float] = {}
+    for cls, sev_counts in counts.items():
+        vals = list(sev_counts.values())
+        mean = sum(vals) / len(vals)
+        if mean == 0.0:
+            result[cls] = 0.0
+        else:
+            variance = sum((v - mean) ** 2 for v in vals) / len(vals)
+            result[cls] = _math.sqrt(variance) / mean
+    return result
