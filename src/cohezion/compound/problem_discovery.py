@@ -9864,3 +9864,28 @@ def fid_score_variance(
     values = list(fid_totals.values())
     mean = sum(values) / n
     return float(sum((v - mean) ** 2 for v in values) / n)
+
+
+def class_score_iqr(
+    problems: list[Problem],
+    weights: dict[str, float],
+) -> float:
+    """Return Q3 - Q1 (IQR) of class total weighted scores.  Item 527.
+
+    Uses statistics.quantiles with the default 'exclusive' method.
+    0.0 for fewer than 4 distinct classes (convention: quartiles need >= 4).
+    0.0 for empty.  Pure; no I/O.
+    """
+    import statistics as _stats
+
+    if not problems:
+        return 0.0
+    class_totals: dict[str, float] = {}
+    for p in problems:
+        class_totals[p.problem_class] = (
+            class_totals.get(p.problem_class, 0.0) + weights.get(p.severity, 0.0)
+        )
+    if len(class_totals) < 4:
+        return 0.0
+    qs = _stats.quantiles(list(class_totals.values()), n=4)
+    return float(qs[2] - qs[0])
