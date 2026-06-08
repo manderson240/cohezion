@@ -3458,3 +3458,26 @@ def severity_rank_in_class(
     # Sort by (-count, severity_asc) to build rank order
     ranked = sorted(counts.keys(), key=lambda s: (-counts[s], s))
     return ranked.index(severity) + 1
+
+
+def class_problem_fraction(problems: list[Problem], cls: str) -> float:
+    """Return the fraction of ALL problems that belong to *cls*.
+
+    The denominator is ``len(problems)`` (all classes combined), so this
+    measures the weight of *cls* in the overall scan, not within the class.
+
+    Args:
+        problems: List of :class:`Problem` instances from a scan.
+        cls:      Class name to measure.
+
+    Returns:
+        float in [0.0, 1.0]: count(cls) / len(problems).
+        0.0 when *cls* is absent or *problems* is empty.
+
+    Pure (no I/O, no SurrealDB).
+    """
+    total = len(problems)
+    if total == 0:
+        return 0.0
+    cls_count = sum(1 for p in problems if p.problem_class == cls)
+    return float(cls_count / total)
