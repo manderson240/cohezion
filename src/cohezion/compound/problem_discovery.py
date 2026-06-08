@@ -3942,3 +3942,33 @@ def labelling_coverage_fraction(problems: list[Problem]) -> float:
         return 0.0
     labelled = sum(1 for p in problems if p.severity)
     return float(labelled / total)
+
+
+def per_class_labelling_coverage(problems: list[Problem]) -> dict[str, float]:
+    """Return the labelling coverage fraction for each class individually.
+
+    For every class, computes ``labelled_in_class / total_in_class`` where the
+    denominator is the class's OWN problem count (not the global total).
+
+    Args:
+        problems: List of :class:`Problem` instances from a scan.
+
+    Returns:
+        dict mapping class_name → float coverage in [0.0, 1.0].
+        Returns ``{}`` when *problems* is empty.
+
+    Pure (no I/O, no SurrealDB).
+    """
+    if not problems:
+        return {}
+    # Accumulate per-class (total, labelled) counts
+    totals: dict[str, int] = {}
+    labelled_counts: dict[str, int] = {}
+    for p in problems:
+        totals[p.problem_class] = totals.get(p.problem_class, 0) + 1
+        if p.severity:
+            labelled_counts[p.problem_class] = labelled_counts.get(p.problem_class, 0) + 1
+    return {
+        cls: float(labelled_counts.get(cls, 0) / totals[cls])
+        for cls in totals
+    }
