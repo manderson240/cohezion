@@ -781,6 +781,37 @@ def sorted_finding_ids(problems: list[Problem]) -> list[str]:
     return sorted(p.finding_id for p in problems)
 
 
+def rename_problem_class(problems: list[Problem], old_class: str, new_class: str) -> list[Problem]:
+    """Return a new list with every matching ``problem_class`` renamed — item 183.
+
+    Safe, non-destructive rename.  Findings whose ``problem_class`` equals
+    *old_class* are replaced with a new :class:`Problem` carrying *new_class*;
+    all other findings are returned as-is.  ``finding_id`` values are **not**
+    rewritten — IDs remain stable across the rename so downstream diffs and
+    caches are unaffected.
+
+    Args:
+        problems:
+            A list of :class:`Problem` instances.  Empty list → ``[]``.
+        old_class:
+            The ``problem_class`` value to replace.
+        new_class:
+            The replacement ``problem_class`` value.
+
+    Returns:
+        A new list of :class:`Problem` instances; length equals
+        ``len(problems)``.  The input list is not mutated.
+
+    Pure (no I/O, no SurrealDB).
+    """
+    return [
+        Problem(problem_class=new_class, finding_id=p.finding_id)
+        if p.problem_class == old_class
+        else p
+        for p in problems
+    ]
+
+
 def default_template_classes() -> frozenset[str]:
     """Return the exact set of ``problem_class`` names in :func:`default_templates` — item 158.
 
