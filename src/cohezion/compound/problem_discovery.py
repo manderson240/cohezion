@@ -721,6 +721,42 @@ def assert_no_duplicate_finding_ids(problems: list[Problem]) -> None:
         )
 
 
+def assert_class_counts_under(problems: list[Problem], thresholds: dict[str, int]) -> None:
+    """Raise if any monitored class exceeds its count threshold — item 181.
+
+    CI ratchet guard.  Once a class is driven below a threshold, this guard
+    locks the improvement in::
+
+        assert_class_counts_under(findings, {"complexity_outlier": 5})
+
+    Classes absent from *thresholds* are ignored entirely.  All violations
+    are reported in a single :class:`AssertionError` (exhaustive, not
+    fail-fast).
+
+    Args:
+        problems:
+            A list of :class:`Problem` instances.
+        thresholds:
+            ``{problem_class: max_allowed_count}``.  Empty dict → no-op.
+
+    Raises:
+        AssertionError: If one or more monitored classes exceed their
+            threshold.  The message lists ALL violating classes with their
+            actual count vs. the threshold.
+
+    Pure (no I/O, no SurrealDB).
+    """
+    if not thresholds:
+        return
+    counts = problem_count_by_class(problems)
+    violations = sorted(cls for cls, limit in thresholds.items() if counts.get(cls, 0) > limit)
+    if violations:
+        detail = ", ".join(
+            f"{cls}={counts.get(cls, 0)} (limit {thresholds[cls]})" for cls in violations
+        )
+        raise AssertionError(f"assert_class_counts_under: threshold exceeded — {detail}")
+
+
 def default_template_classes() -> frozenset[str]:
     """Return the exact set of ``problem_class`` names in :func:`default_templates` — item 158.
 
