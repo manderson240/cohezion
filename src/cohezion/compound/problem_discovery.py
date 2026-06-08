@@ -14188,7 +14188,7 @@ def fid_severity_rank_mean_abs_dev(problems: list[Problem]) -> dict[str, float]:
 def class_severity_rank_trimmed_mean(
     problems: list[Problem], trim_frac: float = 0.1
 ) -> dict[str, float]:
-    """Trimmed mean of severity ranks per class.  Item 743.
+    """Trimmed mean of severity ranks per class.  Item 742.
 
     Sorts ranks, removes floor(n*trim_frac) lowest and highest, mean of remainder.
     n <= 2 -> plain mean.  Empty -> {}.  Pure; no I/O.
@@ -14217,9 +14217,9 @@ def class_severity_rank_trimmed_mean(
 def fid_severity_rank_trimmed_mean(
     problems: list[Problem], trim_frac: float = 0.1
 ) -> dict[str, float]:
-    """Trimmed mean of severity ranks per fid.  Item 744.
+    """Trimmed mean of severity ranks per fid.  Item 743.
 
-    Fid-axis complement of class_severity_rank_trimmed_mean (item 743).
+    Fid-axis complement of class_severity_rank_trimmed_mean (item 742).
     n <= 2 -> plain mean.  Empty -> {}.  Pure; no I/O.
     """
     if not problems:
