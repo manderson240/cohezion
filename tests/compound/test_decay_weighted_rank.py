@@ -17,6 +17,7 @@ from __future__ import annotations
 
 from cohezion.compound.decay_rank import MemoryHit, decay_weighted_rank
 
+
 _NOW = 1_000_000.0  # arbitrary fixed timestamp (injected; not wall clock)
 
 
