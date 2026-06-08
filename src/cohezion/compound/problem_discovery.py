@@ -5256,3 +5256,30 @@ def multi_severity_classes(problems: list["Problem"]) -> "frozenset[str]":
         if p.severity:
             class_severities.setdefault(p.problem_class, set()).add(p.severity)
     return frozenset(cls for cls, sevs in class_severities.items() if len(sevs) >= 2)
+
+
+def single_severity_classes(problems: list["Problem"]) -> "frozenset[str]":
+    """Return class names with exactly one distinct labelled severity level.
+
+    Complement of :func:`multi_severity_classes`.  Together they partition all
+    classes that have at least one labelled problem:
+    ``multi_severity_classes(p) ∪ single_severity_classes(p) == labelled_classes``
+    and the two sets are disjoint.
+
+    Args:
+        problems: Flat list of :class:`Problem` records.
+
+    Returns:
+        Immutable set of class names whose labelled problems all share a single
+        severity value.  ``frozenset()`` when *problems* is empty or no class
+        has exactly one distinct labelled severity.
+
+    Pure (no I/O, no SurrealDB).
+    """
+    if not problems:
+        return frozenset()
+    class_severities: dict[str, set[str]] = {}
+    for p in problems:
+        if p.severity:
+            class_severities.setdefault(p.problem_class, set()).add(p.severity)
+    return frozenset(cls for cls, sevs in class_severities.items() if len(sevs) == 1)
