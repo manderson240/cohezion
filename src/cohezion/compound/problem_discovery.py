@@ -11702,3 +11702,23 @@ def fid_severity_count_total(problems: list[Problem]) -> dict[str, int]:
     for p in problems:
         totals[p.finding_id] = totals.get(p.finding_id, 0) + 1
     return totals
+
+
+def class_severity_distinct_count(problems: list[Problem]) -> dict[str, int]:
+    """Return number of distinct non-empty severity labels per class.  Item 615.
+
+    Returns {class: distinct_sev_count} — cardinality of the severity label set.
+    Unlabelled (empty severity) excluded.
+    Empty -> {}.  Pure; no I/O.
+    """
+    if not problems:
+        return {}
+    labels: dict[str, set[str]] = {}
+    for p in problems:
+        if p.severity:
+            if p.problem_class not in labels:
+                labels[p.problem_class] = set()
+            labels[p.problem_class].add(p.severity)
+    # Include classes with zero labelled problems that may still have unlabelled ones
+    all_classes: set[str] = {p.problem_class for p in problems}
+    return {cls: len(labels.get(cls, set())) for cls in all_classes}
