@@ -3224,3 +3224,21 @@ def problems_in_class(problems: list[Problem], cls: str) -> list[Problem]:
     Pure (no I/O, no SurrealDB).
     """
     return [p for p in problems if p.problem_class == cls]
+
+
+def unique_finding_ids(problems: list[Problem]) -> frozenset[str]:
+    """Return a frozenset of all distinct ``finding_id`` values in *problems*.
+
+    Useful for deduplication checks: if ``len(unique_finding_ids(problems))
+    < len(problems)``, the scan contains duplicate findings.
+
+    Args:
+        problems: List of :class:`Problem` instances from a scan.
+
+    Returns:
+        :class:`frozenset` of ``finding_id`` strings.  Duplicate ids appear
+        only once.  Empty input → ``frozenset()``.
+
+    Pure (no I/O, no SurrealDB).
+    """
+    return frozenset(p.finding_id for p in problems)
