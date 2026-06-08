@@ -76,9 +76,7 @@ def geometric_correspondence(
     return out[:top_k]
 
 
-def correspondence_is_discriminating(
-    corpus: dict[str, list[str]], encoder: Encoder
-) -> bool:
+def correspondence_is_discriminating(corpus: dict[str, list[str]], encoder: Encoder) -> bool:
     """Metacognitive self-check: does the encoder DISCRIMINATE related from unrelated? (item 68).
 
     ``corpus`` maps a group label → its member texts. Returns True iff BOTH hold:
@@ -106,6 +104,35 @@ def correspondence_is_discriminating(
     if not intra or not inter:
         return True  # only one group, or all singletons → nothing to discriminate (vacuous)
     return (sum(intra) / len(intra)) > (sum(inter) / len(inter))
+
+
+def correspondence_margin(corpus: dict[str, list[str]], encoder: Encoder) -> float:
+    """HOW discriminating is the encoder — ``mean_intra - mean_inter`` (item 117). Report-only.
+
+    The quantified dual of item-68 ``correspondence_is_discriminating`` (which returns only a
+    boolean): the calibration CONFIDENCE of the FLUME substrate. Composes the SAME intra/inter
+    pairwise computation, returning the DIFFERENCE of the means instead of the ``>`` boolean. A large
+    positive margin = the geometric index reliably separates related from unrelated items; a margin
+    near 0 = item-66 results are near-noise (the honest open question); a negative margin = the index
+    is anti-correlated (worse than chance). Mirrors item-61 ``rho_selection_margin``.
+
+    A perfectly-separating encoder (intra ≈ 1, inter ≈ 0) → margin ≈ 1.0; a degenerate encoder
+    (intra == inter) → 0.0; a vacuous corpus (< 2 items, or no within/cross pair to compare) → 0.0.
+    Pure (injected encoder, no writes).
+    """
+    items = [(g, t) for g, texts in corpus.items() for t in texts]
+    if len(items) < 2:
+        return 0.0  # vacuous — nothing to compare
+    vecs = [(g, encoder(t)) for g, t in items]
+    intra: list[float] = []
+    inter: list[float] = []
+    for i in range(len(vecs)):
+        for j in range(i + 1, len(vecs)):
+            c = _cosine(vecs[i][1], vecs[j][1])
+            (intra if vecs[i][0] == vecs[j][0] else inter).append(c)
+    if not intra or not inter:
+        return 0.0  # only one group, or all singletons → no discrimination measurable (vacuous)
+    return (sum(intra) / len(intra)) - (sum(inter) / len(inter))
 
 
 def _flume_encoder() -> Encoder:
