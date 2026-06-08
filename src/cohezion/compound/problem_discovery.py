@@ -10775,3 +10775,24 @@ def class_score_top_n(
         totals[p.problem_class] = totals.get(p.problem_class, 0.0) + weights.get(p.severity, 0.0)
     sorted_classes = sorted(totals, key=lambda cls: (-totals[cls], cls))
     return sorted_classes[:n]
+
+
+def fid_score_top_n(
+    problems: list[Problem],
+    weights: dict[str, float],
+    n: int,
+) -> list[str]:
+    """Return top n fid names by total weighted score (descending).  Item 569.
+
+    FID-axis complement of class_score_top_n.
+    Ties broken lexicographically by fid name (deterministic).
+    Returns fewer than n items when fewer fids exist.
+    n=0 or empty problems -> [].  Pure; no I/O.
+    """
+    if not problems or n <= 0:
+        return []
+    totals: dict[str, float] = {}
+    for p in problems:
+        totals[p.finding_id] = totals.get(p.finding_id, 0.0) + weights.get(p.severity, 0.0)
+    sorted_fids = sorted(totals, key=lambda fid: (-totals[fid], fid))
+    return sorted_fids[:n]
