@@ -9914,3 +9914,34 @@ def fid_score_iqr(
         return 0.0
     qs = _stats.quantiles(list(fid_totals.values()), n=4)
     return float(qs[2] - qs[0])
+
+
+def class_score_skewness(
+    problems: list[Problem],
+    weights: dict[str, float],
+) -> float:
+    """Return population skewness of class total weighted scores.  Item 529.
+
+    Formula: sum((x - mean)^3) / (n * std_dev^3).
+    0.0 for empty, < 3 classes, or std_dev == 0 (uniform distribution).
+    Signed: positive = right-tailed, negative = left-tailed.  Pure; no I/O.
+    """
+    import math as _math
+
+    if not problems:
+        return 0.0
+    class_totals: dict[str, float] = {}
+    for p in problems:
+        class_totals[p.problem_class] = (
+            class_totals.get(p.problem_class, 0.0) + weights.get(p.severity, 0.0)
+        )
+    n = len(class_totals)
+    if n < 3:
+        return 0.0
+    values = list(class_totals.values())
+    mean = sum(values) / n
+    variance = sum((v - mean) ** 2 for v in values) / n
+    std_dev = _math.sqrt(variance)
+    if std_dev == 0.0:
+        return 0.0
+    return float(sum((v - mean) ** 3 for v in values) / (n * std_dev ** 3))
