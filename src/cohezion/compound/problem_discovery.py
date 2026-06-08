@@ -12215,3 +12215,34 @@ def fid_class_gini(problems: list[Problem]) -> dict[str, float]:
         total = totals[fid]
         result[fid] = 1.0 - sum((cnt / total) ** 2 for cnt in bucket.values())
     return result
+
+
+def class_problem_entropy(problems: list[Problem]) -> dict[str, float]:
+    """Return Shannon entropy (bits) of per-fid problem counts for each class.  Item 639.
+
+    H = -sum(p_i * log2(p_i)) where p_i = fid_count_i / total_class_count.
+    0.0 = single fid dominates; log2(N) = N fids of equal count.
+    float >= 0.0.
+    """
+    import math as _math
+
+    if not problems:
+        return {}
+    fid_counts: dict[str, dict[str, int]] = {}
+    totals: dict[str, int] = {}
+    for p in problems:
+        if p.problem_class not in fid_counts:
+            fid_counts[p.problem_class] = {}
+        fid_counts[p.problem_class][p.finding_id] = (
+            fid_counts[p.problem_class].get(p.finding_id, 0) + 1
+        )
+        totals[p.problem_class] = totals.get(p.problem_class, 0) + 1
+    result: dict[str, float] = {}
+    for cls, bucket in fid_counts.items():
+        total = totals[cls]
+        h = 0.0
+        for cnt in bucket.values():
+            p = cnt / total
+            h -= p * _math.log2(p)
+        result[cls] = h
+    return result
