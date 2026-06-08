@@ -2859,3 +2859,31 @@ def severity_fraction(problems: list[Problem], severity: str) -> float:
     if total_labelled == 0:
         return 0.0
     return float(counts.get(severity, 0)) / total_labelled
+
+
+def problems_above_severity_fraction(
+    problems: list[Problem],
+    severity: str,
+    min_fraction: float,
+) -> list[Problem]:
+    """Return problems at *severity* only when their fraction STRICTLY exceeds *min_fraction*.
+
+    Combines :func:`severity_fraction` and :func:`filter_problems_by_severity`
+    into a single fraction-gated alerting call.  When the fraction equals
+    *min_fraction*, returns ``[]`` (strict ``>`` boundary).
+
+    Args:
+        problems:     List of :class:`Problem` instances from a scan.
+        severity:     Exact severity string to test (case-sensitive).
+        min_fraction: Minimum fraction (exclusive) required to trigger.
+
+    Returns:
+        ``list[Problem]`` of matching problems (input order preserved) when
+        ``severity_fraction(problems, severity) > min_fraction``; ``[]``
+        otherwise.
+
+    Pure (no I/O, no SurrealDB).
+    """
+    if severity_fraction(problems, severity) > min_fraction:
+        return filter_problems_by_severity(problems, severity)
+    return []
