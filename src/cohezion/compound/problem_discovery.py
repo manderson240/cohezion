@@ -4683,3 +4683,31 @@ def problem_class_pairs(
         for i in range(len(classes))
         for j in range(i + 1, len(classes))
     )
+
+
+def unique_finding_ids_across_classes(
+    problems: list[Problem],
+) -> frozenset[str]:
+    """Return finding_ids that appear in exactly one distinct problem class.
+
+    A finding_id is *unique to one class* when all of its :class:`Problem`
+    records belong to the same ``problem_class``.  Finding_ids that appear in
+    records from two or more distinct classes are excluded (they are *shared*,
+    as detected by :func:`shared_finding_ids`).
+
+    A finding_id may appear in multiple records within the same class — the
+    record count is irrelevant; only the count of *distinct classes* matters.
+
+    Args:
+        problems: Flat list of :class:`Problem` records.
+
+    Returns:
+        Frozenset of finding_ids with exactly one distinct class.  Returns
+        ``frozenset()`` when *problems* is empty.
+
+    Pure (no I/O, no SurrealDB).
+    """
+    id_to_classes: dict[str, set[str]] = {}
+    for p in problems:
+        id_to_classes.setdefault(p.finding_id, set()).add(p.problem_class)
+    return frozenset(fid for fid, classes in id_to_classes.items() if len(classes) == 1)
