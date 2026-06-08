@@ -322,3 +322,44 @@ def tournament_snapshot_diff(
         changed=changed,
         unchanged=unchanged,
     )
+
+
+def snapshot_pipeline(
+    neurons: list[dict],
+    *,
+    second_neurons: list[dict] | None = None,
+) -> tuple[TournamentSnapshot, TournamentSnapshot, TournamentSnapshotDiff, str]:
+    """End-to-end TournamentSnapshot round-trip pipeline — item 168.
+
+    Exercises the full deposit→recall→diff→summary chain in a single call:
+
+    1. ``before = TournamentSnapshot.from_neurons(neurons)``
+    2. ``after  = TournamentSnapshot.from_neurons(second_neurons or neurons)``
+    3. ``diff   = tournament_snapshot_diff(before, after)``
+    4. ``report = diff_summary(diff)``
+
+    When *second_neurons* is ``None``, ``before`` and ``after`` are built from
+    the same neuron list, so the diff is all-unchanged and the report is
+    ``"No changes."``.
+
+    Args:
+        neurons:
+            The "before" injectable neuron store.
+        second_neurons:
+            Optional "after" injectable neuron store.  ``None`` → same list
+            as *neurons* (self-diff, always produces ``"No changes."``).
+
+    Returns:
+        A 4-tuple ``(before, after, diff, report)`` in that order:
+        - ``before``: :class:`TournamentSnapshot` from *neurons*.
+        - ``after``:  :class:`TournamentSnapshot` from *second_neurons*.
+        - ``diff``:   :class:`TournamentSnapshotDiff` between them.
+        - ``report``: Human-readable string from :func:`diff_summary`.
+
+    Pure (no I/O, no SurrealDB).  Use injectable neuron lists in tests.
+    """
+    before = TournamentSnapshot.from_neurons(neurons)
+    after = TournamentSnapshot.from_neurons(neurons if second_neurons is None else second_neurons)
+    diff = tournament_snapshot_diff(before, after)
+    report = diff_summary(diff)
+    return (before, after, diff, report)
