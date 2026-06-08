@@ -167,9 +167,7 @@ def _param_count(func: ast.FunctionDef | ast.AsyncFunctionDef) -> int:
     return n
 
 
-def long_parameter_lists(
-    paths: Iterable[Path], *, threshold: int = 6
-) -> list[tuple[str, int]]:
+def long_parameter_lists(paths: Iterable[Path], *, threshold: int = 6) -> list[tuple[str, int]]:
     """Functions whose parameter count exceeds ``threshold`` — the data-clump smell (item 63). READ-ONLY.
 
     Returns ``[(qualified_name, param_count)]`` for every function/method with ``params > threshold``,
@@ -273,6 +271,53 @@ def stealth_bare_excepts(paths: Iterable[Path]) -> list[tuple[str, str]]:
                 out.append((loc, "stealth-tuple"))
             else:
                 out.append((loc, sorted(catchall)[0]))
+    return sorted(out)
+
+
+def _silent_swallow_kind(handler: ast.ExceptHandler) -> str | None:
+    """``"pass"``/``"ellipsis"`` iff the handler body is EXACTLY a lone ``pass`` or ``...``.
+
+    A body of any other length, or a single statement that is neither ``pass`` nor the Ellipsis
+    constant (e.g. a logging call, a ``raise``, a ``return``, or even a ``"docstring"`` — a string
+    Constant is NOT Ellipsis), is not a silent swallow.
+    """
+    if len(handler.body) != 1:
+        return None
+    stmt = handler.body[0]
+    if isinstance(stmt, ast.Pass):
+        return "pass"
+    if (
+        isinstance(stmt, ast.Expr)
+        and isinstance(stmt.value, ast.Constant)
+        and stmt.value.value is Ellipsis
+    ):
+        return "ellipsis"
+    return None
+
+
+def silent_except_swallows(paths: Iterable[Path]) -> list[tuple[str, str]]:
+    """Flag except handlers that DROP the error silently — body is exactly ``pass``/``...`` (item 110).
+
+    The DUAL of item-65 ``stealth_bare_excepts`` (which flags catch-all WIDTH): this flags silent
+    DROP regardless of width — a narrow ``except ValueError: pass`` is still an error caught and
+    discarded with no log / re-raise / handling (the ``except: pass`` anti-pattern that hides
+    failures). Returns ``[(location, kind)]`` with ``kind`` in ``{"pass", "ellipsis"}``; ``location``
+    is ``<filename>:<lineno>``. An except that logs / re-raises / returns, or one with ``pass`` PLUS
+    other statements, is NOT flagged. Report-only — a candidate to add handling, a human call. Pure
+    (stdlib ast, no writes). Composes the same ``_iter_python_files`` + ``ast.ExceptHandler`` walk.
+    """
+    out: list[tuple[str, str]] = []
+    for path in _iter_python_files(paths):
+        try:
+            tree = ast.parse(path.read_text(encoding="utf-8", errors="replace"))
+        except (OSError, SyntaxError, ValueError):
+            continue  # unreadable / not valid Python → skip, never crash the audit
+        for node in ast.walk(tree):
+            if not isinstance(node, ast.ExceptHandler):
+                continue
+            kind = _silent_swallow_kind(node)
+            if kind is not None:
+                out.append((f"{path.name}:{node.lineno}", kind))
     return sorted(out)
 
 
