@@ -1788,3 +1788,35 @@ def class_counts_above_threshold(
         for cls, limit in thresholds.items()
         if cls in counts and counts[cls] > limit
     }
+
+
+def most_common_class(problems: list[Problem]) -> str | None:
+    """Return the problem_class with the highest finding count — item 215.
+
+    Tie broken by first occurrence: the class that appears first in
+    *problems* wins when two classes share the maximum count::
+
+        top = most_common_class(findings)   # "complexity_outlier"
+
+    Args:
+        problems:
+            A list of :class:`Problem` instances.  Empty list → ``None``.
+
+    Returns:
+        The ``problem_class`` string with the highest count, or ``None``
+        when *problems* is empty.
+
+    Pure (no I/O, no SurrealDB).
+    """
+    if not problems:
+        return None
+    # Build first-occurrence index alongside counts
+    first_seen: dict[str, int] = {}
+    counts: dict[str, int] = {}
+    for i, p in enumerate(problems):
+        if p.problem_class not in first_seen:
+            first_seen[p.problem_class] = i
+            counts[p.problem_class] = 0
+        counts[p.problem_class] += 1
+    # Pick class with highest count; first occurrence breaks ties
+    return max(counts, key=lambda cls: (counts[cls], -first_seen[cls]))
