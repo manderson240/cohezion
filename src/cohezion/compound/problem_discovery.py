@@ -5077,3 +5077,46 @@ def problem_count_by_severity(problems: list["Problem"]) -> dict[str, int]:
         if p.severity:
             result[p.severity] = result.get(p.severity, 0) + 1
     return result
+
+
+def severity_rank_distribution(
+    problems: list[Problem],
+    severity_order: list[str],
+) -> dict[str, float]:
+    """Return the fraction of total labelled problems at each severity.
+
+    For every severity label that has ≥ 1 labelled problem, computes::
+
+        fraction = count(severity) / total_labelled_problems
+
+    The denominator is the count of **labelled** (non-empty severity) problems
+    only — unlabelled problems are excluded from both the numerator and the
+    denominator.  All labelled fractions therefore sum to 1.0 (within float
+    precision).
+
+    Severities present in *severity_order* but absent from *problems* are
+    omitted from the result.  Severities present in *problems* but absent from
+    *severity_order* are still included (they rank after all ordered severities).
+
+    Args:
+        problems:       Flat list of :class:`Problem` records.
+        severity_order: Caller-supplied ordering of severity labels (e.g.
+                        ``["CRITICAL", "HIGH", "MEDIUM", "LOW"]``).  Used only
+                        for ranking; does not restrict which severities appear
+                        in the result.
+
+    Returns:
+        ``{severity_label: fraction}`` for every severity with ≥ 1 labelled
+        problem.  Returns ``{}`` when *problems* is empty or all problems are
+        unlabelled.
+
+    Pure (no I/O, no SurrealDB).
+    """
+    counts = problem_count_by_severity(problems)
+    total = sum(counts.values())
+    if total == 0:
+        return {}
+    rank = {sev: i for i, sev in enumerate(severity_order)}
+    # Sort: ordered severities first (by rank), then unordered (rank=len).
+    sorted_sevs = sorted(counts, key=lambda s: (rank.get(s, len(severity_order)), s))
+    return {sev: counts[sev] / total for sev in sorted_sevs}
