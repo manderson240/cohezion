@@ -12374,3 +12374,29 @@ def fid_unique_class_count(problems: list[Problem]) -> dict[str, int]:
             class_sets[p.finding_id] = set()
         class_sets[p.finding_id].add(p.problem_class)
     return {fid: len(classes) for fid, classes in class_sets.items()}
+
+
+
+def class_severity_hi_lo_ratio(problems: list[Problem]) -> dict[str, float]:
+    """Return ratio of HIGH to LOW severity problems per class.  Item 647.
+
+    ratio = count(HIGH) / count(LOW).
+    Classes with no LOW problems are omitted (undefined ratio).
+    float > 0.0 for all returned entries.
+    """
+    if not problems:
+        return {}
+    highs: dict[str, int] = {}
+    lows: dict[str, int] = {}
+    for p in problems:
+        sev = (p.severity or "").upper()
+        if sev == "HIGH":
+            highs[p.problem_class] = highs.get(p.problem_class, 0) + 1
+        elif sev == "LOW":
+            lows[p.problem_class] = lows.get(p.problem_class, 0) + 1
+    result: dict[str, float] = {}
+    for cls, low_count in lows.items():
+        high_count = highs.get(cls, 0)
+        if high_count > 0:
+            result[cls] = float(high_count) / low_count
+    return result
