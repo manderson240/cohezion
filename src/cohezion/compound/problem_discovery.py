@@ -11612,3 +11612,22 @@ def fid_max_severity_count(problems: list[Problem]) -> dict[str, int]:
         sev = p.severity or ""
         counts[p.finding_id][sev] = counts[p.finding_id].get(sev, 0) + 1
     return {fid: max(sev_counts.values()) for fid, sev_counts in counts.items()}
+
+
+def class_min_severity_count(problems: list[Problem]) -> dict[str, int]:
+    """Return the count of the least frequent severity per class.  Item 610.
+
+    Returns {class: min_per_severity_count}.
+    Dual of class_max_severity_count (min vs max of the per-severity bucket counts).
+    Returns the INTEGER COUNT (not the label).
+    Empty -> {}.  Pure; no I/O.
+    """
+    if not problems:
+        return {}
+    counts: dict[str, dict[str, int]] = {}
+    for p in problems:
+        if p.problem_class not in counts:
+            counts[p.problem_class] = {}
+        sev = p.severity or ""
+        counts[p.problem_class][sev] = counts[p.problem_class].get(sev, 0) + 1
+    return {cls: min(sev_counts.values()) for cls, sev_counts in counts.items()}
