@@ -5671,3 +5671,36 @@ def classes_with_finding_id_overlap(
             for b in class_list[i + 1 :]:
                 pairs.add(frozenset({a, b}))
     return frozenset(pairs)
+
+
+# ---------------------------------------------------------------------------
+# Item 353 — finding_id_overlap_count (2026-06-08)
+# ---------------------------------------------------------------------------
+
+
+def finding_id_overlap_count(
+    problems: list["Problem"], class_a: str, class_b: str
+) -> int:
+    """Return the count of finding IDs shared between two problem classes.
+
+    ``finding_id_overlap_count(problems, class_a, class_b) -> int``:
+    Returns the number of distinct ``finding_id`` values that appear in both
+    *class_a* and *class_b*.  Delegates to :func:`finding_ids_for_class` for
+    each class, then returns the size of their intersection.
+    Same class for both arguments → count of that class's own distinct
+    finding_ids (self-intersection).  Either unknown class → 0.
+    Empty input → 0.  Pure (no I/O, no SurrealDB).
+
+    Args:
+        problems: Flat list of :class:`Problem` records.
+        class_a:  First class name.
+        class_b:  Second class name.
+
+    Returns:
+        Integer count of shared finding_ids (≥ 0).
+
+    Pure (no I/O, no SurrealDB).
+    """
+    ids_a = frozenset(finding_ids_for_class(problems, class_a))
+    ids_b = frozenset(finding_ids_for_class(problems, class_b))
+    return len(ids_a & ids_b)
