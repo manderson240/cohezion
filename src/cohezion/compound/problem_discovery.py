@@ -8673,3 +8673,33 @@ def all_severity_scores(
             scores[p.problem_class] = 0.0
         scores[p.problem_class] += weights.get(p.severity, 0.0)
     return scores
+
+
+def all_fid_severity_scores(
+    problems: list[Problem],
+    weights: dict[str, float],
+) -> dict[str, float]:
+    """Return total severity score for every finding_id using *weights* -- item 485.
+
+    Bulk form of :func:`fid_total_severity_score` and the fid-axis symmetric
+    complement to :func:`all_severity_scores`.  Every fid present in *problems*
+    appears in the result, including those whose records all have unrecognised
+    severities (score 0.0).
+
+    Args:
+        problems: List of :class:`Problem` instances.
+        weights: Mapping of severity label to numeric score.  Unrecognised
+            severity labels contribute 0.0.
+
+    Returns:
+        ``{finding_id: total_score}`` for each unique fid in *problems*.
+        Empty dict when *problems* is empty.
+
+    Pure (no I/O, no SurrealDB).
+    """
+    scores: dict[str, float] = {}
+    for p in problems:
+        if p.finding_id not in scores:
+            scores[p.finding_id] = 0.0
+        scores[p.finding_id] += weights.get(p.severity, 0.0)
+    return scores
