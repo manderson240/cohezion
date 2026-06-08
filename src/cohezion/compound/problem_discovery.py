@@ -6896,3 +6896,20 @@ def unique_classes_count(problems: list[Problem]) -> int:
     Pure (no I/O, no SurrealDB).
     """
     return len(frozenset(p.problem_class for p in problems))
+
+
+def unique_finding_ids_count(problems: list[Problem]) -> int:
+    """Return the count of distinct finding_id values — item 406.
+
+    Each distinct :attr:`Problem.finding_id` is counted once regardless of
+    how many classes or records share it.  Returns ``0`` for empty input.
+
+    Args:
+        problems: List of :class:`Problem` instances.
+
+    Returns:
+        Integer count of distinct finding_ids.  ``0`` when *problems* is empty.
+
+    Pure (no I/O, no SurrealDB).
+    """
+    return len(frozenset(p.finding_id for p in problems))
