@@ -49,8 +49,8 @@ def test_count_is_distinct_finding_ids_not_record_count() -> None:
     """
     problems = [_ps("alpha", "alpha:0") for _ in range(5)]
     result = class_finding_id_counts(problems)
-    assert result.get("alpha") == 1, (
-        "alpha: 5 records with same fid -> count=1; got " + repr(result.get("alpha"))
+    assert result.get("alpha") == 1, "alpha: 5 records with same fid -> count=1; got " + repr(
+        result.get("alpha")
     )
 
 
@@ -81,8 +81,8 @@ def test_unlabelled_problems_included_in_count() -> None:
         _ps("alpha", "a1", ""),
     ]
     result = class_finding_id_counts(problems)
-    assert result.get("alpha") == 2, (
-        "alpha: 2 unlabelled distinct fids -> count=2; got " + repr(result.get("alpha"))
+    assert result.get("alpha") == 2, "alpha: 2 unlabelled distinct fids -> count=2; got " + repr(
+        result.get("alpha")
     )
 
 
