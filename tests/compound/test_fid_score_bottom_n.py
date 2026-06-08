@@ -40,8 +40,8 @@ def test_fid_axis_not_class_axis_primary_discriminator() -> None:
     """
     problems = [
         _p("A", "f1", "H10"),  # f1 total = 10.0
-        _p("A", "f2", "H5"),   # f2 total = 5.0
-        _p("A", "f3", "H1"),   # f3 total = 1.0
+        _p("A", "f2", "H5"),  # f2 total = 5.0
+        _p("A", "f3", "H1"),  # f3 total = 1.0
     ]
     weights = {"H10": 10.0, "H5": 5.0, "H1": 1.0}
     result = fid_score_bottom_n(problems, weights, 2)
@@ -63,15 +63,14 @@ def test_returns_lowest_not_highest() -> None:
     Kills impl reusing fid_score_top_n without reversal.
     """
     problems = [
-        _p("A", "f1", "HIGH"),    # f1 total = 10.0
+        _p("A", "f1", "HIGH"),  # f1 total = 10.0
         _p("B", "f2", "MEDIUM"),  # f2 total = 5.0
-        _p("C", "f3", "LOW"),     # f3 total = 1.0
+        _p("C", "f3", "LOW"),  # f3 total = 1.0
     ]
     weights = {"HIGH": 10.0, "MEDIUM": 5.0, "LOW": 1.0}
     result = fid_score_bottom_n(problems, weights, 2)
     assert result[0] == "f3", (
-        f"Ascending sort: f3 (1.0) first; got {result} "
-        f"('f1' first = top_n direction is wrong)"
+        f"Ascending sort: f3 (1.0) first; got {result} ('f1' first = top_n direction is wrong)"
     )
     assert result[1] == "f2", f"Second lowest: f2 (5.0); got {result}"
 
