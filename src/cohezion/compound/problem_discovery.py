@@ -1695,3 +1695,32 @@ def has_duplicate_finding_ids(problems: list[Problem]) -> bool:
     Pure (no I/O, no SurrealDB).
     """
     return count_unique_finding_ids(problems) < len(problems)
+
+
+def deduplicate_by_finding_id(problems: list[Problem]) -> list[Problem]:
+    """Return a new list with duplicate finding_ids removed — item 212.
+
+    Keeps the FIRST occurrence of each ``finding_id`` in input order.
+    The corrective complement to :func:`has_duplicate_finding_ids`::
+
+        clean = deduplicate_by_finding_id(findings)
+        assert not has_duplicate_finding_ids(clean)
+
+    Args:
+        problems:
+            A list of :class:`Problem` instances.  Empty list → ``[]``.
+
+    Returns:
+        ``list[Problem]`` — a new list with duplicate ``finding_id`` entries
+        removed; each id appears at most once in the result, at its first
+        position from the original list.
+
+    Pure (no I/O, no SurrealDB).
+    """
+    seen: set[str] = set()
+    result: list[Problem] = []
+    for p in problems:
+        if p.finding_id not in seen:
+            seen.add(p.finding_id)
+            result.append(p)
+    return result
