@@ -3501,3 +3501,21 @@ def problems_at_severity(problems: list[Problem], severity: str) -> list[Problem
     Pure (no I/O, no SurrealDB).
     """
     return [p for p in problems if p.severity == severity]
+
+
+def count_classes_with_severity(problems: list[Problem], severity: str) -> int:
+    """Return the number of distinct classes that have ≥1 problem at *severity*.
+
+    Case-sensitive exact match on severity.
+
+    Args:
+        problems: List of :class:`Problem` instances from a scan.
+        severity: Severity label to count classes for (exact, case-sensitive).
+
+    Returns:
+        int — count of distinct class names with at least one problem whose
+        severity == *severity*.  0 when *problems* is empty or no match found.
+
+    Pure (no I/O, no SurrealDB).
+    """
+    return len({p.problem_class for p in problems if p.severity == severity})
