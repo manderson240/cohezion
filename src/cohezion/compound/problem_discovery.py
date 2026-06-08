@@ -11531,3 +11531,25 @@ def fid_severity_variance(problems: list[Problem]) -> dict[str, float]:
         variance = sum((v - mean) ** 2 for v in vals) / len(vals)
         result[fid] = variance
     return result
+
+
+def class_severity_range(problems: list[Problem]) -> dict[str, int]:
+    """Return range (max - min) of per-severity counts per class.  Item 606.
+
+    Returns {class: max_sev_count - min_sev_count}.
+    Range=0 means all severities equally loaded or single severity.
+    Returns int, not float.
+    Empty -> {}.  Pure; no I/O.
+    """
+    if not problems:
+        return {}
+    counts: dict[str, dict[str, int]] = {}
+    for p in problems:
+        if p.problem_class not in counts:
+            counts[p.problem_class] = {}
+        sev = p.severity or ""
+        counts[p.problem_class][sev] = counts[p.problem_class].get(sev, 0) + 1
+    return {
+        cls: max(sev_counts.values()) - min(sev_counts.values())
+        for cls, sev_counts in counts.items()
+    }
