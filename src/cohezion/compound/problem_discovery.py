@@ -6998,3 +6998,31 @@ def class_distribution_range(problems: list[Problem]) -> int:
     Pure (no I/O, no SurrealDB).
     """
     return max_problems_in_any_class(problems) - min_problems_in_any_class(problems)
+
+
+def problems_exceeding_threshold(problems: list[Problem], threshold: int) -> list[Problem]:
+    """Return Problem records whose finding_id count meets or exceeds threshold — item 411.
+
+    Computes a :func:`finding_id_histogram` over the full *problems* list and
+    returns every record whose :attr:`Problem.finding_id` has a total count
+    ``>= threshold``.  Input order is preserved.
+
+    A *threshold* of ``0`` or ``1`` returns all records because every
+    finding_id appears at least once.
+
+    Args:
+        problems: List of :class:`Problem` instances.
+        threshold: Minimum total fid occurrence count to include a record.
+
+    Returns:
+        :class:`list` of :class:`Problem` records (input order preserved) whose
+        fid total count ``>= threshold``.  ``[]`` when *problems* is empty.
+
+    Pure (no I/O, no SurrealDB).
+    """
+    if not problems:
+        return []
+    counts: dict[str, int] = {}
+    for p in problems:
+        counts[p.finding_id] = counts.get(p.finding_id, 0) + 1
+    return [p for p in problems if counts[p.finding_id] >= threshold]
