@@ -1294,3 +1294,41 @@ def class_finding_count(problems: list[Problem], problem_class: str) -> int:
     Pure (no I/O, no SurrealDB).
     """
     return sum(1 for p in problems if p.problem_class == problem_class)
+
+
+def problems_above_threshold(
+    problems: list[Problem],
+    thresholds: dict[str, int],
+) -> list[Problem]:
+    """Return findings from classes whose count exceeds the configured limit — item 200.
+
+    Functional complement of :func:`assert_class_counts_under` — instead of
+    raising, returns the offending findings so callers can act on them::
+
+        high_priority = problems_above_threshold(
+            findings, {"complexity_outlier": 2}
+        )
+
+    Args:
+        problems:
+            A list of :class:`Problem` instances.  Empty list → ``[]``.
+        thresholds:
+            ``{problem_class: max_allowed_count}`` mapping.  Only classes
+            present in *thresholds* are monitored; all others are excluded
+            from the result.  Empty *thresholds* → ``[]``.
+
+    Returns:
+        A new list containing only findings whose class is in *thresholds*
+        AND whose class count exceeds the configured limit.  Findings are
+        returned in insertion order.
+
+    Pure (no I/O, no SurrealDB).
+    """
+    if not thresholds or not problems:
+        return []
+    counts = problem_count_by_class(problems)
+    return [
+        p
+        for p in problems
+        if p.problem_class in thresholds and counts[p.problem_class] > thresholds[p.problem_class]
+    ]
