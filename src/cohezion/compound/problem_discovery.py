@@ -2441,7 +2441,40 @@ def classes_near_threshold(
         return frozenset()
     counts = problem_count_by_class(problems)
     return frozenset(
-        cls
-        for cls, limit in thresholds.items()
-        if 0 <= limit - counts.get(cls, 0) <= tolerance
+        cls for cls, limit in thresholds.items() if 0 <= limit - counts.get(cls, 0) <= tolerance
     )
+
+
+def sample_problems_by_class(
+    problems: list[Problem],
+    n: int = 5,
+) -> dict[str, list[Problem]]:
+    """Return at most *n* Problem objects per class, preserving insertion order.
+
+    A bounded variant of :func:`group_problems_by_class`: instead of returning
+    all problems for each class, only the first *n* are kept.  Useful when a
+    class has many findings and full listing is impractical.
+
+    When *n* = 0, the dict contains the class keys (for classes present in
+    *problems*) but each value is an empty list.  When a class has fewer than
+    *n* problems, all of them are returned (no padding).
+
+    Args:
+        problems:   List of ``Problem`` instances to examine.
+        n:          Maximum number of problems to return per class.  Default 5.
+
+    Returns:
+        ``dict[str, list[Problem]]`` mapping each present class to its first
+        *n* problems.  Classes with 0 problems are absent.
+        Empty *problems* → ``{}``.
+
+    Pure (no I/O, no SurrealDB).
+    """
+    groups: dict[str, list[Problem]] = {}
+    for p in problems:
+        bucket = groups.setdefault(p.problem_class, [])
+        if len(bucket) < n:
+            bucket.append(p)
+        elif n == 0 and p.problem_class not in groups:
+            groups[p.problem_class] = []
+    return groups
