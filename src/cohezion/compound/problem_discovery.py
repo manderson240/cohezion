@@ -10618,3 +10618,21 @@ def class_score_totals(
     for p in problems:
         totals[p.problem_class] = totals.get(p.problem_class, 0.0) + weights.get(p.severity, 0.0)
     return totals
+
+
+def fid_score_totals(
+    problems: list[Problem],
+    weights: dict[str, float],
+) -> dict[str, float]:
+    """Return total weighted score per fid as a dict.  Item 561.
+
+    FID-axis complement of class_score_totals.
+    Exposes the per-fid accumulation basis used internally by fid_score_sum/max/min.
+    Empty -> {}.  Pure; no I/O.
+    """
+    if not problems:
+        return {}
+    totals: dict[str, float] = {}
+    for p in problems:
+        totals[p.finding_id] = totals.get(p.finding_id, 0.0) + weights.get(p.severity, 0.0)
+    return totals
