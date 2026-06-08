@@ -72,6 +72,7 @@ def default_templates() -> list[ProblemTemplate]:
     from cohezion.compound.simplicity_audit import (
         boolean_flag_params,
         complexity_outliers,
+        compound_smells,
         eager_log_fstrings,
         mutable_default_args,
         needless_passthroughs,
@@ -94,10 +95,13 @@ def default_templates() -> list[ProblemTemplate]:
         ProblemTemplate(
             "unsandboxed_exec", unsandboxed_exec_paths, lambda f: f"{f.location}:{f.sink}"
         ),
-        # Item 153: wire items 65 + 110 instruments into TIDE (closing wiring gap).
+        # Item 155: wire items 65 + 110 instruments into TIDE (closing wiring gap).
         # Both return list[tuple[str, str]] as (location, kind) — same key shape as production_assert.
         ProblemTemplate("stealth_bare_except", stealth_bare_excepts, lambda f: f"{f[0]}:{f[1]}"),
         ProblemTemplate(
             "silent_except_swallow", silent_except_swallows, lambda f: f"{f[0]}:{f[1]}"
         ),
+        # Item 156: wire compound_smells (item 105) into TIDE — multi-axis worst-offenders.
+        # CompoundSmell.qualified_name is the stable id (same pattern as needless_passthrough).
+        ProblemTemplate("compound_smell", compound_smells, lambda f: f.qualified_name),
     ]
