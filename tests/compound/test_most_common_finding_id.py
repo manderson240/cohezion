@@ -47,15 +47,13 @@ def test_most_frequent_fid_wins_not_first_encountered() -> None:
     fid0: 1 record (appears first). fid1: 3 records. Most frequent = fid1.
     """
     problems = [
-        _ps("alpha", "fid0"),   # fid0 appears first, but only 1 time
+        _ps("alpha", "fid0"),  # fid0 appears first, but only 1 time
         _ps("alpha", "fid1"),
         _ps("alpha", "fid1"),
-        _ps("alpha", "fid1"),   # fid1 has 3 records
+        _ps("alpha", "fid1"),  # fid1 has 3 records
     ]
     result = most_common_finding_id(problems)
-    assert result == "fid1", (
-        "fid1 (3 records) beats fid0 (1 record); got " + repr(result)
-    )
+    assert result == "fid1", "fid1 (3 records) beats fid0 (1 record); got " + repr(result)
 
 
 def test_tie_break_selects_alphabetically_first() -> None:
