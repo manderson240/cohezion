@@ -15340,9 +15340,7 @@ def fid_severity_rank_low_fraction(problems: list[Problem]) -> dict[str, float]:
     return {fid: float(low_counts[fid]) / totals[fid] for fid in totals}
 
 
-def class_severity_rank_fraction_below(
-    problems: list[Problem], threshold: int
-) -> dict[str, float]:
+def class_severity_rank_fraction_below(problems: list[Problem], threshold: int) -> dict[str, float]:
     """Fraction with rank strictly below threshold per class.  Item 788.
 
     fraction = count(rank < threshold) / n per class.
@@ -15507,3 +15505,39 @@ def fid_severity_rank_high_count(problems: list[Problem]) -> dict[str, int]:
     return counts
 
 
+def class_severity_rank_critical_count(problems: list[Problem]) -> dict[str, int]:
+    """Absolute count of problems with rank == 4 (CRITICAL only) per class.  Item 802.
+
+    count = count(rank == 4) per class.
+    HIGH (rank 3) is NOT included; only CRITICAL (rank 4).
+    Zero-inclusive: class with no CRITICAL still appears with count=0.
+    Empty -> {}.  Pure; no I/O.
+    """
+    if not problems:
+        return {}
+    counts: dict[str, int] = {}
+    for p in problems:
+        cls = p.problem_class
+        if cls not in counts:
+            counts[cls] = 0
+        if _SEVERITY_RANK.get(p.severity, 0) == 4:
+            counts[cls] += 1
+    return counts
+
+
+def fid_severity_rank_critical_count(problems: list[Problem]) -> dict[str, int]:
+    """Absolute count of problems with rank == 4 (CRITICAL only) per fid.  Item 803.
+
+    Fid-axis complement of class_severity_rank_critical_count (item 802).
+    count = count(rank == 4) per fid.  Zero-inclusive.  Empty -> {}.  Pure; no I/O.
+    """
+    if not problems:
+        return {}
+    counts: dict[str, int] = {}
+    for p in problems:
+        fid = p.finding_id
+        if fid not in counts:
+            counts[fid] = 0
+        if _SEVERITY_RANK.get(p.severity, 0) == 4:
+            counts[fid] += 1
+    return counts
