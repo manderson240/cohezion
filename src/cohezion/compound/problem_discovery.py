@@ -2054,3 +2054,35 @@ def most_critical_class(
         if p.problem_class not in first_seen:
             first_seen[p.problem_class] = i
     return max(ratios, key=lambda cls: (ratios[cls], -first_seen.get(cls, len(problems))))
+
+
+def problems_by_ratio_rank(
+    problems: list[Problem],
+    thresholds: dict[str, int],
+) -> list[Problem]:
+    """Return Problems sorted by their class's violation ratio, highest first.
+
+    Problems from the highest ``count / threshold`` class appear first.
+    Within a class, the original input order is preserved (stable sort).
+    Zero-threshold and unmonitored classes are placed last.
+
+    Args:
+        problems:   List of ``Problem`` instances to sort.
+        thresholds: Mapping of ``{problem_class: max_allowed_count}``.
+                    Empty mapping -> all problems placed last (unmonitored),
+                    preserving input order.
+
+    Returns:
+        ``list[Problem]`` — the same Problem objects, reordered.
+
+    Pure (no I/O, no SurrealDB).
+    """
+    if not problems:
+        return []
+    ratios = class_violation_ratio(problems, thresholds)
+    # Sort key: (-ratio, original_index)
+    # Unmonitored / zero-threshold classes get ratio = -1.0 (sort last)
+    return sorted(
+        problems,
+        key=lambda p: (-(ratios.get(p.problem_class, -1.0)),),
+    )
