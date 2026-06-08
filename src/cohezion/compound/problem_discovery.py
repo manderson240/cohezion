@@ -9697,3 +9697,39 @@ def score_std_dev(
     """
     import math as _math
     return float(_math.sqrt(score_variance(problems, weights)))
+
+
+def normalized_class_scores(
+    problems: list[Problem],
+    weights: dict[str, float],
+) -> dict[str, float]:
+    """Return min-max normalized class scores mapped to the [0.0, 1.0] range.
+
+    Each class total is normalized as ``(score - min) / (max - min)``.
+    When all classes share the same score (zero spread), every class maps to
+    0.0 (avoids division by zero).  Single class returns ``{class: 0.0}``.
+    Empty input returns ``{}``.
+
+    Args:
+        problems: List of :class:`Problem` instances.
+        weights: Mapping of severity label to numeric score.
+
+    Returns:
+        ``dict[str, float]`` mapping each class name to its normalized score in
+        ``[0.0, 1.0]``.  Empty dict when *problems* is empty.
+
+    Pure (no I/O, no SurrealDB).  Item 522.
+    """
+    if not problems:
+        return {}
+    class_totals: dict[str, float] = {}
+    for p in problems:
+        class_totals[p.problem_class] = (
+            class_totals.get(p.problem_class, 0.0) + weights.get(p.severity, 0.0)
+        )
+    min_score = min(class_totals.values())
+    max_score = max(class_totals.values())
+    spread = max_score - min_score
+    if spread == 0.0:
+        return dict.fromkeys(class_totals, 0.0)
+    return {cls: (score - min_score) / spread for cls, score in class_totals.items()}
