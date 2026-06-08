@@ -10919,21 +10919,16 @@ def fid_score_below_threshold(
     return sorted(filtered, key=lambda fid: (totals[fid], fid))
 
 
-def fid_score_below_threshold(
-    problems: list[Problem],
-    weights: dict[str, float],
-    threshold: float,
-) -> list[str]:
-    """Return fid names with total weighted score strictly below threshold.  Item 575.
+def class_problem_count_above(problems: list[Problem], n: int) -> int:
+    """Return count of classes with strictly more than n problems.  Item 576.
 
-    FID-axis complement of class_score_below_threshold.
-    Sorted ascending by score; ties broken lexicographically by fid name.
-    Empty problems or all-above-threshold -> [].  Pure; no I/O.
+    Unweighted; counts distinct classes where problem count > n.
+    n=0 -> counts all classes (all have at least 1 problem).
+    0 for empty.  Pure; no I/O.
     """
     if not problems:
-        return []
-    totals: dict[str, float] = {}
+        return 0
+    counts: dict[str, int] = {}
     for p in problems:
-        totals[p.finding_id] = totals.get(p.finding_id, 0.0) + weights.get(p.severity, 0.0)
-    filtered = [fid for fid, score in totals.items() if score < threshold]
-    return sorted(filtered, key=lambda fid: (totals[fid], fid))
+        counts[p.problem_class] = counts.get(p.problem_class, 0) + 1
+    return sum(1 for cnt in counts.values() if cnt > n)
