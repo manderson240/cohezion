@@ -444,6 +444,37 @@ def _build_default_registry() -> dict[str, ModelEntry]:
                 "HF id: kyutai/pocket-tts (official Kyutai Labs release)."
             ),
         ),
+        # --- Item 103: kokoro-v1 — second AUDIO_TTS candidate (additive-first) ---
+        # Roster finding 2026-06-06: `kokoro-v1` = `mikkoph/kokoro-onnx` (base: hexgrad/Kokoro-82M,
+        # Apache-2.0 — permissive, unlike Higgs item 93's research-noncommercial). ALREADY served
+        # on :13305 (lemonade router). Supersedes item-85's "needs serving proof" — the artifact
+        # already exists. Registered additive-first (verified_working=False) like items 4/19/21/23/85.
+        # The TTS SMOKE (:13305 kokoro-v1 → non-empty audio artifact) is the verification gate;
+        # registration alone changes no routing behavior (CosmoNarrator stays as the item-85 seed).
+        # Priority: 20 (preferred over CosmoNarrator-PocketTTS at 25 — artifact is HTTP-served).
+        # License: Apache-2.0 (HF card hexgrad/Kokoro-82M) — no research-only guard needed.
+        ModelEntry(
+            model_id="kokoro-v1",
+            lane=Lane.CPU,  # ONNX runtime; lemonade dispatches small ONNX models CPU-side
+            endpoint="http://localhost:13305",  # the ALWAYS-UP lemonade router
+            runtime_backend="lemonade",  # served via lemonade HTTP catalog on :13305
+            task_affinity=frozenset({Task.AUDIO_TTS}),
+            weight_quant=WeightQuant.FP16,  # Kokoro-82M ONNX uses FP16 voice models
+            context_window=4096,  # text char limit (TTS has no token context window)
+            priority=20,  # preferred over CosmoNarrator-PocketTTS (already HTTP-served)
+            size_gb=0.3,  # 82M params ONNX ≈ 0.16–0.3 GB resident
+            verified_working=False,  # TTS smoke (:13305 kokoro-v1 → non-empty audio) not yet run
+            notes=(
+                "kokoro-v1 (hexgrad/Kokoro-82M, Apache-2.0) — the second AUDIO_TTS candidate "
+                "(item 103). Served via `mikkoph/kokoro-onnx` on the always-up lemonade router "
+                ":13305; no separate serving setup required (supersedes item-85's 'needs proof'). "
+                "Permissive license (Apache-2.0): no research-only guard needed (unlike Higgs "
+                "item 93). verified_working flips True only after a live TTS smoke: "
+                "GET http://localhost:13305/v1/audio/speech?model=kokoro-v1&input=hello "
+                "returns a non-empty audio artifact. K1/rule-5 OOM gate: ~0.3 GB, well inside "
+                "K1 limits. HF base model: hexgrad/Kokoro-82M; ONNX port: mikkoph/kokoro-onnx."
+            ),
+        ),
         ModelEntry(
             model_id="Granite-4.1-8B-GGUF",
             lane=Lane.IGPU_ROCWMMA,  # Granite backend lives on the iGPU; fronted by the router
