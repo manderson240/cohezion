@@ -11185,3 +11185,27 @@ def fids_by_severity(problems: list[Problem]) -> dict[str, set[str]]:
                     result[sev] = set()
                 result[sev].add(fid)
     return result
+
+
+def class_problem_rank(problems: list[Problem]) -> dict[str, int]:
+    """Return competition rank of each class by total problem count.  Item 588.
+
+    Rank 1 = most problems.  Ties share the lowest rank of their group;
+    the next rank skips (competition / 1-2-2-4 style).
+    [10, 10, 5] -> [rank1, rank1, rank3].
+    Empty -> {}.  Pure; no I/O.
+    """
+    if not problems:
+        return {}
+    counts: dict[str, int] = {}
+    for p in problems:
+        counts[p.problem_class] = counts.get(p.problem_class, 0) + 1
+    # Sort unique counts descending
+    unique_counts_desc = sorted(set(counts.values()), reverse=True)
+    # Map count value -> competition rank
+    count_to_rank: dict[int, int] = {}
+    rank = 1
+    for cnt in unique_counts_desc:
+        count_to_rank[cnt] = rank
+        rank += sum(1 for c in counts.values() if c == cnt)
+    return {cls: count_to_rank[cnt] for cls, cnt in counts.items()}
