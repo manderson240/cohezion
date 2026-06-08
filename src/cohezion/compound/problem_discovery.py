@@ -72,6 +72,7 @@ def default_templates() -> list[ProblemTemplate]:
     from cohezion.compound.simplicity_audit import (
         boolean_flag_params,
         complexity_outliers,
+        mutable_default_args,
         needless_passthroughs,
         nesting_outliers,
         passthrough_functions,
@@ -81,6 +82,7 @@ def default_templates() -> list[ProblemTemplate]:
         ProblemTemplate("complexity_outlier", complexity_outliers, lambda f: str(f[0])),
         ProblemTemplate("nesting_outlier", nesting_outliers, lambda f: str(f[0])),
         ProblemTemplate("boolean_flag_params", boolean_flag_params, lambda f: str(f[0])),
+        ProblemTemplate("mutable_default_args", mutable_default_args, lambda f: str(f[0])),
         ProblemTemplate("passthrough_function", passthrough_functions, str),
         ProblemTemplate("needless_passthrough", needless_passthroughs, lambda f: f.qualified_name),
         ProblemTemplate(

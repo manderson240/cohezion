@@ -269,6 +269,61 @@ def boolean_flag_params(paths: Iterable[Path], *, threshold: int = 2) -> list[tu
     return sorted(out, key=lambda t: (-t[1], t[0]))
 
 
+# The mutable built-in constructors whose call form (`list()`/`dict()`/`set()`) shares the footgun.
+# `frozenset`/`tuple` are immutable and deliberately excluded.
+_MUTABLE_CTOR_NAMES = frozenset({"list", "dict", "set"})
+
+
+def _mutable_default_count(func: ast.FunctionDef | ast.AsyncFunctionDef) -> int:
+    """Count params of ``func`` whose default is a MUTABLE literal — the shared-default footgun (item 110).
+
+    A default created once and mutated across calls leaks state between invocations. Mutable forms:
+    a list/dict/set DISPLAY (``[]``, ``{}``, ``{1}`` → ``ast.List``/``ast.Dict``/``ast.Set``) or a
+    ``list()``/``dict()``/``set()`` CALL. Immutable defaults are NOT counted: ``ast.Constant``
+    (``0``/``""``/``None``/``True``), an ``ast.Tuple`` (``()`` is immutable — never conflate with
+    ``[]``), and ``frozenset()``/``tuple()`` calls. Both positional (``args.defaults``) and
+    keyword-only (``args.kw_defaults``) defaults are inspected. Pure: inspects the AST, never executes.
+    """
+    a = func.args
+    defaults = list(a.defaults) + list(a.kw_defaults)
+    count = 0
+    for d in defaults:
+        if isinstance(d, ast.List | ast.Dict | ast.Set):
+            count += 1  # a literal [], {}, or {…} display is a fresh mutable object
+        elif (
+            isinstance(d, ast.Call)
+            and isinstance(d.func, ast.Name)
+            and d.func.id in _MUTABLE_CTOR_NAMES
+        ):
+            count += 1  # list()/dict()/set() — frozenset()/tuple() excluded (immutable)
+    return count
+
+
+def mutable_default_args(paths: Iterable[Path]) -> list[tuple[str, int]]:
+    """Functions with one or more mutable-literal default arguments — a CORRECTNESS smell. READ-ONLY.
+
+    Extends item-97's default-inspection thread from control-coupling to the classic Python
+    shared-mutable-default footgun (``def f(x=[])`` reuses the SAME list across calls). Returns
+    ``[(qualified_name, mutable_default_count)]`` for every function/method with ``count >= 1``,
+    sorted by count descending then name. ``qualified_name`` is ``<filename>::<funcname>``. Only
+    list/dict/set displays and ``list()``/``dict()``/``set()`` calls count; immutable defaults
+    (constants, tuples, ``frozenset()``) do not (see :func:`_mutable_default_count`). A clean/empty
+    set of files → ``[]``. Pure (stdlib ast, no writes) — a number is a smell flagged for judgment.
+    """
+    out: list[tuple[str, int]] = []
+    for path in _iter_python_files(paths):
+        try:
+            tree = ast.parse(path.read_text(encoding="utf-8", errors="replace"))
+        except (OSError, SyntaxError, ValueError):
+            continue  # unreadable / not valid Python → skip, never crash the audit
+        for node in ast.walk(tree):
+            if isinstance(node, ast.FunctionDef | ast.AsyncFunctionDef):
+                count = _mutable_default_count(node)
+                if count >= 1:  # any mutable default is the footgun — no threshold needed
+                    out.append((f"{path.name}::{node.name}", count))
+    return sorted(out, key=lambda t: (-t[1], t[0]))
+
+
 _CATCHALL_EXCEPTIONS = frozenset({"Exception", "BaseException"})
 
 
