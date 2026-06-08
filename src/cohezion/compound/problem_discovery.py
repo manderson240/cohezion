@@ -7771,3 +7771,35 @@ def severity_pair_co_occurrence(problems: list[Problem], severity_a: str, severi
     fids_a: set[str] = {p.finding_id for p in problems if p.severity == severity_a}
     fids_b: set[str] = {p.finding_id for p in problems if p.severity == severity_b}
     return len(fids_a & fids_b)
+
+
+def severity_pair_exclusive_fids(
+    problems: list[Problem], severity_a: str, severity_b: str
+) -> frozenset[str]:
+    """Return finding_ids in severity_a that are NOT in severity_b -- item 445.
+
+    Computes the set difference of fid sets filtered by severity:
+    ``fids_a - fids_b`` where each fids_x is the set of distinct finding_ids
+    for problems with severity x.
+
+    Args:
+        problems: List of :class:`Problem` instances.
+        severity_a: The source severity (fids must appear here).
+        severity_b: The exclusion severity (fids must NOT appear here).
+
+    Returns:
+        frozenset of finding_ids exclusive to *severity_a*.
+        Returns ``frozenset()`` when *problems* is empty or either severity
+        is not present (unanswerable query sentinel).
+        Asymmetric: ``(a, b)`` differs from ``(b, a)`` in general.
+
+    Pure (no I/O, no SurrealDB).
+    """
+    if not problems:
+        return frozenset()
+    severities_present = {p.severity for p in problems}
+    if severity_a not in severities_present or severity_b not in severities_present:
+        return frozenset()
+    fids_a: frozenset[str] = frozenset(p.finding_id for p in problems if p.severity == severity_a)
+    fids_b: frozenset[str] = frozenset(p.finding_id for p in problems if p.severity == severity_b)
+    return fids_a - fids_b
