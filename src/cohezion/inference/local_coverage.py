@@ -18,7 +18,7 @@ from collections.abc import Callable, Iterable
 from dataclasses import dataclass
 
 from cohezion.inference.fleet_routing_specialist import FleetRoutingSpecialist
-from cohezion.inference.registry import ModelEntry
+from cohezion.inference.registry import FleetRegistry, ModelEntry
 
 
 @dataclass(frozen=True)
@@ -105,3 +105,22 @@ def coverage_gap_delta(before: set[str], after: set[str]) -> CoverageGapDelta:
         filled=sorted(before_set - after_set),
         opened=sorted(after_set - before_set),
     )
+
+
+def model_usecase_coverage(served_models: Iterable[str], registry: FleetRegistry) -> list[str]:
+    """Served fleet models with NO Task affinity — "this model earns no routing slot" (item 98).
+
+    The INVERSE of item-62 ``coverage_gaps`` (which finds Tasks with no model; this finds served
+    models with no Task). A served model (from the :13305 roster, injected here) is COVERED when its
+    registry entry has a non-empty ``task_affinity``; it is flagged ``no_usecase`` when it has NO
+    registry entry at all, OR a registry entry with an EMPTY ``task_affinity`` — both mean no Task
+    will ever route to it. A registered Task with no served model is NOT this report's concern (that
+    is item 62). Returns the sorted, de-duplicated ``no_usecase`` list. Report-only, pure (injected
+    model list + registry; no live serving).
+    """
+    no_usecase: list[str] = []
+    for model in served_models:
+        entry = registry.models.get(str(model))
+        if entry is None or not entry.task_affinity:
+            no_usecase.append(str(model))
+    return sorted(set(no_usecase))
