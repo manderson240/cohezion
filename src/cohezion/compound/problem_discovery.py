@@ -2503,3 +2503,32 @@ def problems_added_since_scan(
     Pure (no I/O, no SurrealDB).
     """
     return [p for p in problems if p.finding_id not in baseline_ids]
+
+
+def problems_resolved_since_scan(
+    baseline: list[Problem],
+    current_ids: frozenset[str],
+) -> list[Problem]:
+    """Return baseline problems that no longer appear in the current scan.
+
+    Compares each baseline problem's ``finding_id`` against *current_ids*
+    (the set of finding IDs from the latest scan).  Problems absent from
+    *current_ids* have been fixed since the baseline.
+
+    This is the symmetric complement of :func:`problems_added_since_scan`:
+    - ``problems_added_since_scan(current, baseline_ids)`` → new problems.
+    - ``problems_resolved_since_scan(baseline, current_ids)`` → fixed problems.
+
+    Args:
+        baseline:    Prior list of ``Problem`` instances.
+        current_ids: ``frozenset[str]`` of finding IDs from the current scan.
+                     Empty frozenset → all baseline problems are resolved.
+
+    Returns:
+        ``list[Problem]`` of resolved problems (baseline order preserved).
+        Returns ``[]`` when *baseline* is empty or all baseline problems
+        are still present.
+
+    Pure (no I/O, no SurrealDB).
+    """
+    return [p for p in baseline if p.finding_id not in current_ids]
