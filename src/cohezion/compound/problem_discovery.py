@@ -9199,3 +9199,25 @@ def fids_by_total_score(
     for p in problems:
         scores[p.finding_id] = scores.get(p.finding_id, 0.0) + weights.get(p.severity, 0.0)
     return sorted(scores.keys(), key=lambda fid: (-scores[fid], fid))
+
+
+def weighted_problem_count(
+    problems: list[Problem],
+    weights: dict[str, float],
+) -> float:
+    """Return the total weighted severity score across ALL Problem records.
+
+    This is the global scalar cost of the entire scan — the sum of
+    ``weights.get(p.severity, 0.0)`` for every record regardless of class or
+    finding_id.  Unknown severities contribute ``0.0``.  Empty → ``0.0``.
+
+    Args:
+        problems: List of :class:`Problem` instances.
+        weights: Mapping of severity label to numeric score.
+
+    Returns:
+        ``float`` total weighted count.  ``0.0`` when *problems* is empty.
+
+    Pure (no I/O, no SurrealDB).  Item 503.
+    """
+    return float(sum(weights.get(p.severity, 0.0) for p in problems))
