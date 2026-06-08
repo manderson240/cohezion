@@ -6453,3 +6453,35 @@ def severity_to_classes(
     for p in problems:
         index.setdefault(p.severity, set()).add(p.problem_class)
     return {sev: frozenset(classes) for sev, classes in index.items()}
+
+
+# ---------------------------------------------------------------------------
+# Item 383 — top_n_classes_by_count
+# ---------------------------------------------------------------------------
+
+
+def top_n_classes_by_count(problems: list[Problem], n: int) -> list[str]:
+    """Return the top-N class names ranked by descending problem record count — item 383.
+
+    Ties in count are broken by class name ascending (lexicographic).
+    Returns at most *n* entries; returns ``[]`` when *n* ≤ 0 or *problems*
+    is empty.
+
+    Args:
+        problems: List of :class:`Problem` instances.
+        n: Maximum number of classes to return.  ``0`` → ``[]``.
+
+    Returns:
+        ``list[str]`` of at most *n* class name strings, sorted by descending
+        record count then ascending class name.  Empty when *problems* is
+        empty or *n* is 0.
+
+    Pure (no I/O, no SurrealDB).
+    """
+    if not problems or n <= 0:
+        return []
+    counts: dict[str, int] = {}
+    for p in problems:
+        counts[p.problem_class] = counts.get(p.problem_class, 0) + 1
+    ranked = sorted(counts.items(), key=lambda item: (-item[1], item[0]))
+    return [cls for cls, _ in ranked[:n]]
