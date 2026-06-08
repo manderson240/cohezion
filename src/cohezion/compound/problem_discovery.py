@@ -4194,3 +4194,40 @@ def severity_improvement_classes(
     counts_b = _class_severity_counts(scan_b, severity)
     all_classes = set(counts_a) | set(counts_b)
     return frozenset(cls for cls in all_classes if counts_b.get(cls, 0) < counts_a.get(cls, 0))
+
+
+def cross_scan_class_delta(
+    scan_a: list[Problem],
+    scan_b: list[Problem],
+) -> dict[str, int]:
+    """Return per-class total problem count delta between two scans.
+
+    For every class appearing in either scan, computes
+    ``count_b(cls) - count_a(cls)``.
+
+    * Positive delta — more problems in scan_b (class grew or appeared).
+    * Zero delta     — unchanged class count (class present in result with 0).
+    * Negative delta — fewer problems in scan_b (class shrank or disappeared).
+
+    Args:
+        scan_a: Problems from the baseline scan.
+        scan_b: Problems from the comparison scan.
+
+    Returns:
+        dict mapping class name to integer delta.  Every class that appears in
+        either scan is included, even if delta is 0.  Returns ``{}`` when both
+        scans are empty.
+
+    Pure (no I/O, no SurrealDB).
+    """
+
+    def _class_counts(scan: list[Problem]) -> dict[str, int]:
+        counts: dict[str, int] = {}
+        for p in scan:
+            counts[p.problem_class] = counts.get(p.problem_class, 0) + 1
+        return counts
+
+    counts_a = _class_counts(scan_a)
+    counts_b = _class_counts(scan_b)
+    all_classes = set(counts_a) | set(counts_b)
+    return {cls: counts_b.get(cls, 0) - counts_a.get(cls, 0) for cls in all_classes}
