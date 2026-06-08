@@ -8363,3 +8363,27 @@ def severity_count_for_fid(problems: list[Problem], finding_id: str, severity: s
     Pure (no I/O, no SurrealDB).
     """
     return sum(1 for p in problems if p.finding_id == finding_id and p.severity == severity)
+
+
+def problem_count_for_class_fid_pair(
+    problems: list[Problem], problem_class: str, finding_id: str
+) -> int:
+    """Return count of records matching BOTH *problem_class* AND *finding_id* -- item 471.
+
+    The raw intersection count at the (class, fid) cell of the 2-D count matrix.
+    Completes the 3-axis cross-product triangle: class×severity (469),
+    fid×severity (470), class×fid (471).
+
+    Args:
+        problems: List of :class:`Problem` instances.
+        problem_class: Target class to filter on.
+        finding_id: Target finding_id to filter on.
+
+    Returns:
+        Non-negative int.  0 when either axis value is absent.
+
+    Pure (no I/O, no SurrealDB).
+    """
+    return sum(
+        1 for p in problems if p.problem_class == problem_class and p.finding_id == finding_id
+    )
