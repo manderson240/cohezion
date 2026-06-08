@@ -1078,6 +1078,35 @@ def partition_problems_by_class(
     return (matched, rest)
 
 
+def first_problem_of_class(
+    problems: list[Problem],
+    problem_class: str,
+) -> Problem | None:
+    """Return the first finding whose ``problem_class`` matches — item 194.
+
+    Enables walrus-operator idioms without a manual ``next(iter(...), None)``::
+
+        if p := first_problem_of_class(findings, "complexity_outlier"):
+            report(p.finding_id)
+
+    Args:
+        problems:
+            A list of :class:`Problem` instances.  Empty list → ``None``.
+        problem_class:
+            The ``problem_class`` string to search for.
+
+    Returns:
+        The first :class:`Problem` in *problems* whose ``problem_class``
+        equals *problem_class*, or ``None`` if no such finding exists.
+
+    Pure (no I/O, no SurrealDB).
+    """
+    for p in problems:
+        if p.problem_class == problem_class:
+            return p
+    return None
+
+
 def default_template_classes() -> frozenset[str]:
     """Return the exact set of ``problem_class`` names in :func:`default_templates` — item 158.
 
