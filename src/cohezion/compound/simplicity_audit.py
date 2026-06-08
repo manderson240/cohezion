@@ -223,6 +223,50 @@ def long_functions(paths: Iterable[Path], *, threshold: int = 50) -> list[tuple[
     return sorted(out, key=lambda t: (-t[1], t[0]))
 
 
+@dataclass(frozen=True)
+class CompoundSmell:
+    """A function flagged on MULTIPLE simplicity axes — a higher-priority refactor candidate."""
+
+    qualified_name: str  # ``<filename>::<funcname>`` (the shared key across all four audits)
+    dimensions: tuple[str, ...]  # which axes flagged it, sorted
+    count: int  # == len(dimensions)
+
+
+def compound_smells(paths: Iterable[Path], *, min_dimensions: int = 2) -> list[CompoundSmell]:
+    """Functions flagged by ``>= min_dimensions`` of the four per-function simplicity audits (item 105).
+
+    The cost basis is now complete — complexity (item 43), nesting (47), parameters (63), size (64) —
+    so this finds functions bad on MULTIPLE axes at once: compounded smells are higher-priority
+    refactor candidates than single-axis ones. Composes the four existing report functions (each at
+    its OWN default threshold), keyed on their shared ``<filename>::<funcname>`` name. A function
+    flagged on exactly ONE axis is ABSENT at the default ``min_dimensions=2`` (this is NOT a union of
+    single-axis flags). The dimension count is EXACT — the number of DISTINCT axes. Report-only, pure
+    (composes four pure AST audits; no writes).
+
+    Known limitation (inherited): the key is the four audits' shared ``<filename>::<funcname>``, which
+    is NOT unique when one file has several same-named methods (e.g. multiple ``__init__``). Such
+    methods alias to one row; the count is still over DISTINCT axes (the same axis hitting two aliased
+    methods counts once), so a same-named collision can never inflate the dimension count.
+    """
+    materialized = list(paths)  # may be a one-shot generator — reused across four audits
+    by_axis = {
+        "complexity": complexity_outliers(materialized),
+        "nesting": nesting_outliers(materialized),
+        "parameters": long_parameter_lists(materialized),
+        "size": long_functions(materialized),
+    }
+    dims_by_fn: dict[str, set[str]] = {}
+    for axis, flagged in by_axis.items():
+        for qualified_name, _value in flagged:
+            dims_by_fn.setdefault(qualified_name, set()).add(axis)  # DISTINCT axes only
+    out = [
+        CompoundSmell(qualified_name=fn, dimensions=tuple(sorted(dims)), count=len(dims))
+        for fn, dims in dims_by_fn.items()
+        if len(dims) >= min_dimensions
+    ]
+    return sorted(out, key=lambda s: (-s.count, s.qualified_name))
+
+
 _CATCHALL_EXCEPTIONS = frozenset({"Exception", "BaseException"})
 
 
