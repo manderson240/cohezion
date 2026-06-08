@@ -10059,3 +10059,32 @@ def class_score_cv(
     variance = sum((v - mean) ** 2 for v in values) / n
     std_dev = _math.sqrt(variance)
     return float(std_dev / mean)
+
+
+def fid_score_cv(
+    problems: list[Problem],
+    weights: dict[str, float],
+) -> float:
+    """Return coefficient of variation (std_dev / mean) of fid total scores.  Item 534.
+
+    CV is dimensionless: normalises by the mean for cross-scale spread comparison.
+    0.0 for empty, single fid (std_dev=0), or mean==0 (avoids division by zero).
+    Pure; no I/O.
+    """
+    import math as _math
+
+    if not problems:
+        return 0.0
+    fid_totals: dict[str, float] = {}
+    for p in problems:
+        fid_totals[p.finding_id] = fid_totals.get(p.finding_id, 0.0) + weights.get(p.severity, 0.0)
+    n = len(fid_totals)
+    if n < 2:
+        return 0.0
+    values = list(fid_totals.values())
+    mean = sum(values) / n
+    if mean == 0.0:
+        return 0.0
+    variance = sum((v - mean) ** 2 for v in values) / n
+    std_dev = _math.sqrt(variance)
+    return float(std_dev / mean)
