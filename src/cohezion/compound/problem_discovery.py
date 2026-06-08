@@ -913,6 +913,36 @@ def count_problems(problems: list[Problem]) -> int:
     return len(problems)
 
 
+def exclude_problems(
+    problems: list[Problem],
+    exclude_ids: frozenset[str],
+) -> list[Problem]:
+    """Return a new list with findings in *exclude_ids* removed — item 188.
+
+    Post-hoc counterpart to the ``exclude_known`` parameter in
+    :func:`discover_problems`.  Enables suppression after a scan::
+
+        novel = exclude_problems(all_findings, previously_actioned_ids)
+
+    Args:
+        problems:
+            A list of :class:`Problem` instances.  Empty list → ``[]``.
+        exclude_ids:
+            A :class:`frozenset` of ``finding_id`` strings to suppress.
+            Empty set → all findings returned unchanged.
+
+    Returns:
+        A new list containing every finding whose ``finding_id`` is NOT in
+        *exclude_ids*.  Insertion order is preserved.  The input list is not
+        mutated.
+
+    Pure (no I/O, no SurrealDB).
+    """
+    if not exclude_ids:
+        return list(problems)
+    return [p for p in problems if p.finding_id not in exclude_ids]
+
+
 def default_template_classes() -> frozenset[str]:
     """Return the exact set of ``problem_class`` names in :func:`default_templates` — item 158.
 
