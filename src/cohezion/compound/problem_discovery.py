@@ -11059,3 +11059,36 @@ def class_severity_entropies(problems: list[Problem]) -> dict[str, float]:
                 entropy -= p * math.log2(p)
         result[cls] = entropy
     return result
+
+
+def fid_severity_entropies(problems: list[Problem]) -> dict[str, float]:
+    """Return Shannon entropy (bits) of severity distribution per fid.  Item 583.
+
+    H = -sum(p * log2(p)) over severity labels for each fid.
+    Single-severity fid -> 0.0 (no uncertainty).
+    FID-axis complement of class_severity_entropies.
+    Empty -> {}.  Pure; no I/O.
+    """
+    import math
+
+    if not problems:
+        return {}
+    sev_counts: dict[str, dict[str, int]] = {}
+    for p in problems:
+        if p.finding_id not in sev_counts:
+            sev_counts[p.finding_id] = {}
+        sev = p.severity or ""
+        sev_counts[p.finding_id][sev] = sev_counts[p.finding_id].get(sev, 0) + 1
+    result: dict[str, float] = {}
+    for fid, counts in sev_counts.items():
+        total = sum(counts.values())
+        if total == 0:
+            result[fid] = 0.0
+            continue
+        entropy = 0.0
+        for cnt in counts.values():
+            if cnt > 0:
+                prob = cnt / total
+                entropy -= prob * math.log2(prob)
+        result[fid] = entropy
+    return result
