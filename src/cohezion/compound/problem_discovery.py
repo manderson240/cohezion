@@ -12448,3 +12448,24 @@ def class_severity_critical_rate(problems: list[Problem]) -> dict[str, float]:
         cls: float(criticals.get(cls, 0)) / totals[cls]
         for cls in totals
     }
+
+
+def fid_severity_critical_rate(problems: list[Problem]) -> dict[str, float]:
+    """Return fraction of CRITICAL-severity problems per fid.  Item 650.
+
+    FID-axis complement of class_severity_critical_rate (item 649).
+    For each fid: count(CRITICAL) / total_fid_problems.
+    float in [0, 1].  Empty -> {}.  Pure; no I/O.
+    """
+    if not problems:
+        return {}
+    totals: dict[str, int] = {}
+    criticals: dict[str, int] = {}
+    for p in problems:
+        totals[p.finding_id] = totals.get(p.finding_id, 0) + 1
+        if (p.severity or "").upper() == "CRITICAL":
+            criticals[p.finding_id] = criticals.get(p.finding_id, 0) + 1
+    return {
+        fid: float(criticals.get(fid, 0)) / totals[fid]
+        for fid in totals
+    }
