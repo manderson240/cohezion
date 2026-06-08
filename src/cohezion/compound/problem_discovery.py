@@ -6713,3 +6713,28 @@ def problems_by_class(problems: list[Problem]) -> dict[str, list[Problem]]:
     for p in problems:
         result.setdefault(p.problem_class, []).append(p)
     return result
+
+
+def problems_by_severity(problems: list[Problem]) -> dict[str, list[Problem]]:
+    """Group Problem records into a dict keyed by severity — item 395.
+
+    Returns a mapping from each distinct :attr:`Problem.severity` to the list
+    of :class:`Problem` records with that severity.  The empty string ``''``
+    is a valid key for unlabelled records.  Input order within each list is
+    preserved.  The original :class:`Problem` objects are referenced directly.
+
+    Args:
+        problems: List of :class:`Problem` instances.  Empty → ``{}``.
+
+    Returns:
+        ``dict[str, list[Problem]]`` — ``{severity: [Problem, ...]}`` for
+        every distinct severity present.  Empty when *problems* is empty.
+
+    Pure (no I/O, no SurrealDB).
+    """
+    if not problems:
+        return {}
+    result: dict[str, list[Problem]] = {}
+    for p in problems:
+        result.setdefault(p.severity, []).append(p)
+    return result
