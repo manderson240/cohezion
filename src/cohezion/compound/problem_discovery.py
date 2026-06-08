@@ -11392,3 +11392,23 @@ def fid_severity_mode(problems: list[Problem]) -> dict[str, frozenset[str]]:
         max_count = max(sev_counts.values())
         result[fid] = frozenset(s for s, c in sev_counts.items() if c == max_count)
     return result
+
+
+def class_problem_rate(problems: list[Problem]) -> dict[str, float]:
+    """Return average problems per distinct fid per class.  Item 600.
+
+    Returns {class: total_problems / distinct_fids}.
+    Reciprocal of class_fid_ratio (distinct_fids / total_problems).
+    Measures average problem intensity per fid within each class.
+    Empty -> {}.  Pure; no I/O.
+    """
+    if not problems:
+        return {}
+    totals: dict[str, int] = {}
+    fids: dict[str, set[str]] = {}
+    for p in problems:
+        totals[p.problem_class] = totals.get(p.problem_class, 0) + 1
+        if p.problem_class not in fids:
+            fids[p.problem_class] = set()
+        fids[p.problem_class].add(p.finding_id)
+    return {cls: float(totals[cls]) / len(fids[cls]) for cls in totals}
