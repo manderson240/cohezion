@@ -140,3 +140,92 @@ def test_compound_context_is_string_and_pure(tmp_path: Path) -> None:
     a1 = compound_context_for("alpha prime", backlog_path=b, encoder=_title_enc)
     a2 = compound_context_for("alpha prime", backlog_path=b, encoder=_title_enc)
     assert isinstance(a1, str) and a1 == a2
+
+
+# ---------------------------------------------------------------------------
+# Item 117 — correspondence_margin tests
+# ---------------------------------------------------------------------------
+
+from cohezion.compound.geometric_correspondence import correspondence_margin
+
+
+def _directional_enc(text: str) -> np.ndarray:
+    """Stub encoder: texts in the same group map to aligned vectors; different groups orthogonal."""
+    if text.startswith("A"):
+        return np.array([1.0, 0.0, 0.0])
+    if text.startswith("B"):
+        return np.array([0.0, 1.0, 0.0])
+    return np.array([0.0, 0.0, 1.0])
+
+
+def _degenerate_enc(text: str) -> np.ndarray:
+    """Degenerate encoder: everything maps to the same vector (no discrimination)."""
+    return np.array([1.0, 0.0, 0.0])
+
+
+def test_margin_perfect_separation() -> None:
+    """Perfectly discriminating encoder → margin ≈ 1.0 (intra=1.0, inter=0.0).
+
+    PRIMARY DISCRIMINATOR: kills an impl that returns a bool or ignores inter-group.
+    """
+    corpus = {
+        "groupA": ["A1", "A2"],
+        "groupB": ["B1", "B2"],
+    }
+    margin = correspondence_margin(corpus, _directional_enc)
+    # intra: A1-A2 → 1.0; B1-B2 → 1.0 → mean_intra = 1.0
+    # inter: A*-B* → 0.0 → mean_inter = 0.0 → margin = 1.0
+    assert abs(margin - 1.0) < 1e-6, f"Perfect separator must give margin=1.0; got {margin:.6f}"
+
+
+def test_margin_degenerate_encoder() -> None:
+    """Degenerate encoder (all same vector) → margin == 0.0.
+
+    Kills an impl that always returns 1.0 or passes item-68's self-correspondence check.
+    """
+    corpus = {
+        "groupA": ["A1", "A2"],
+        "groupB": ["B1", "B2"],
+    }
+    margin = correspondence_margin(corpus, _degenerate_enc)
+    # intra = inter = 1.0 (all same vector) → margin = 0.0
+    assert abs(margin - 0.0) < 1e-6, f"Degenerate encoder must give margin=0.0; got {margin:.6f}"
+
+
+def test_margin_vacuous_one_item() -> None:
+    """Corpus with 1 item → 0.0 (vacuous; no pairs to compare)."""
+    corpus = {"A": ["only"]}
+    assert correspondence_margin(corpus, _directional_enc) == 0.0
+
+
+def test_margin_vacuous_empty() -> None:
+    """Empty corpus → 0.0."""
+    assert correspondence_margin({}, _directional_enc) == 0.0
+
+
+def test_margin_single_group() -> None:
+    """Single group (no cross pairs) → 0.0 (vacuous: nothing to discriminate)."""
+    corpus = {"A": ["A1", "A2", "A3"]}
+    margin = correspondence_margin(corpus, _directional_enc)
+    assert margin == 0.0, "Single group has no inter-group pairs → margin=0.0 (vacuous)"
+
+
+def test_margin_partial_discrimination() -> None:
+    """Partially discriminating encoder → 0 < margin < 1.
+
+    Kills an impl that returns only 0 or 1.
+    """
+
+    def _partial_enc(text: str) -> np.ndarray:
+        # Group A: (1,0,0); Group B: (0.6, 0.8, 0) — not fully orthogonal
+        if text.startswith("A"):
+            return np.array([1.0, 0.0, 0.0])
+        return np.array([0.6, 0.8, 0.0])
+
+    corpus = {"A": ["A1", "A2"], "B": ["B1", "B2"]}
+    margin = correspondence_margin(corpus, _partial_enc)
+    # intra_A = 1.0, intra_B = 1.0, mean_intra = 1.0
+    # inter = cos([1,0,0], [0.6,0.8,0]) = 0.6, mean_inter = 0.6
+    # margin = 1.0 - 0.6 = 0.4
+    assert 0.0 < margin < 1.0, f"Partial encoding must give 0<margin<1; got {margin:.4f}"
+    assert abs(margin - 0.4) < 1e-6, f"Expected margin=0.4; got {margin:.6f}"

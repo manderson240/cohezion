@@ -185,6 +185,58 @@ def compound_context_for(
 
 
 # ---------------------------------------------------------------------------
+# Item 117 — Correspondence discrimination MARGIN (quantified dual of item 68)
+# ---------------------------------------------------------------------------
+
+
+def correspondence_margin(corpus: dict[str, list[str]], encoder: Encoder) -> float:
+    """Return mean_intra − mean_inter: the quantified discrimination margin (item 117). Pure.
+
+    This is the calibration CONFIDENCE for the FLUME geometric substrate:
+      - margin ≈ 1.0  → encoder perfectly separates related vs unrelated items
+      - margin == 0.0 → degenerate encoder (no discrimination; item-66 results near-noise)
+      - 0 < margin < 1 → partial discrimination
+
+    Mirrors item-68's ``correspondence_is_discriminating`` (boolean dual): where
+    item 68 answers "is it discriminating AT ALL?", item 117 answers "HOW discriminating
+    is it?" — the signed gap that calibrates confidence in the geometric index.
+
+    Vacuous cases (corpus with <2 items, or no cross-group pair, or no within-group pair)
+    return 0.0 (honest "unknown" rather than spurious confidence).
+
+    Args:
+        corpus:
+            Mapping of group-label → list of member texts.  Mirrors item-68's input.
+        encoder:
+            Injected encoder ``(text: str) → np.ndarray``.  No live :13305 / VAE under pytest
+            — pass a stub (e.g. identity-like or directional encoder).
+
+    Returns:
+        ``mean_intra − mean_inter`` as a float.  Range is nominally [−1, 1] (cosine
+        differences), but in practice [0, 1] for useful encoders.  0.0 when vacuous.
+
+    Pure (injected encoder; no writes, no I/O).  Report-only.
+    """
+    items = [(g, t) for g, texts in corpus.items() for t in texts]
+    if len(items) < 2:
+        return 0.0
+
+    vecs = [(g, encoder(t)) for g, t in items]
+
+    intra: list[float] = []
+    inter: list[float] = []
+    for i in range(len(vecs)):
+        for j in range(i + 1, len(vecs)):
+            c = _cosine(vecs[i][1], vecs[j][1])
+            (intra if vecs[i][0] == vecs[j][0] else inter).append(c)
+
+    if not intra or not inter:
+        return 0.0  # vacuous: only one group, or all singletons
+
+    return (sum(intra) / len(intra)) - (sum(inter) / len(inter))
+
+
+# ---------------------------------------------------------------------------
 # Item 95 — Loop novelty-density (Eagleman memory-density self-monitor)
 # ---------------------------------------------------------------------------
 
