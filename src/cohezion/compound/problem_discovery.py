@@ -12636,3 +12636,20 @@ def fid_sev_high_count(problems: list[Problem]) -> dict[str, int]:
         if (p.severity or "").upper() == "HIGH":
             result[p.finding_id] += 1
     return result
+
+
+def class_sev_low_count(problems: list[Problem]) -> dict[str, int]:
+    """Return raw count of LOW severity problems per class.  Item 664.
+
+    For each class: count(LOW).
+    int >= 0.  Classes with 0 LOW included.  Empty -> {}.  Pure; no I/O.
+    """
+    if not problems:
+        return {}
+    result: dict[str, int] = {}
+    for p in problems:
+        if p.problem_class not in result:
+            result[p.problem_class] = 0
+        if (p.severity or "").upper() == "LOW":
+            result[p.problem_class] += 1
+    return result
