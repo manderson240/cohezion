@@ -7803,3 +7803,34 @@ def severity_pair_exclusive_fids(
     fids_a: frozenset[str] = frozenset(p.finding_id for p in problems if p.severity == severity_a)
     fids_b: frozenset[str] = frozenset(p.finding_id for p in problems if p.severity == severity_b)
     return fids_a - fids_b
+
+
+def severity_fid_jaccard(
+    problems: list[Problem], severity_a: str, severity_b: str
+) -> float:
+    """Return the Jaccard similarity between severity_a and severity_b fid sets -- item 446.
+
+    Computes ``|fids_a ∩ fids_b| / |fids_a ∪ fids_b|`` where each fids_x is
+    the set of distinct :attr:`Problem.finding_id` values for records with
+    severity x.
+
+    Args:
+        problems: List of :class:`Problem` instances.
+        severity_a: First severity value (case-sensitive).
+        severity_b: Second severity value (case-sensitive).
+
+    Returns:
+        Jaccard similarity as a float in ``[0.0, 1.0]``.
+        Returns 0.0 when the union is empty (either or both severities absent,
+        or *problems* is empty).
+
+    Pure (no I/O, no SurrealDB).
+    """
+    if not problems:
+        return 0.0
+    fids_a: set[str] = {p.finding_id for p in problems if p.severity == severity_a}
+    fids_b: set[str] = {p.finding_id for p in problems if p.severity == severity_b}
+    union_size = len(fids_a | fids_b)
+    if union_size == 0:
+        return 0.0
+    return len(fids_a & fids_b) / union_size
