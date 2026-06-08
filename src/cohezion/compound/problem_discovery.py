@@ -5385,3 +5385,30 @@ def problems_for_class(
     Pure (no I/O, no SurrealDB).
     """
     return [p for p in problems if p.problem_class == class_name]
+
+
+def severity_class_matrix(problems: list["Problem"]) -> dict[str, dict[str, int]]:
+    """Return a 2D count matrix keyed by severity then class.
+
+    Transpose of :func:`severity_heatmap` (which keys by class then severity).
+    For each labelled severity, produces an inner dict mapping class names to
+    their record count at that severity.
+
+    Args:
+        problems: Flat list of :class:`Problem` records.
+
+    Returns:
+        ``{severity: {class_name: count}}`` for all labelled problems.
+        Unlabelled records (``severity == ''``) are excluded.  Returns ``{}``
+        for empty input.
+
+    Pure (no I/O, no SurrealDB).
+    """
+    if not problems:
+        return {}
+    result: dict[str, dict[str, int]] = {}
+    for p in problems:
+        if p.severity:
+            inner = result.setdefault(p.severity, {})
+            inner[p.problem_class] = inner.get(p.problem_class, 0) + 1
+    return result
