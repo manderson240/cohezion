@@ -3764,6 +3764,50 @@ def shared_finding_ids(problems: list[Problem]) -> frozenset[str]:
     return frozenset(fid for fid, classes in id_to_classes.items() if len(classes) >= 2)
 
 
+def all_class_pairs_by_overlap(
+    problems: list[Problem],
+) -> list[tuple[str, str, int]]:
+    """Return all distinct class pairs ranked by their shared finding_id count.
+
+    Each pair ``(cls_a, cls_b, count)`` satisfies ``cls_a < cls_b``
+    (canonical alphabetical ordering).  All pairs of distinct classes are
+    included, even those with zero overlap.  Returns ``[]`` when there is
+    only one class or no problems.
+
+    Sorting: primary key = count **descending**; tie-break = cls_a ascending,
+    then cls_b ascending.
+
+    Args:
+        problems: List of :class:`Problem` instances from a scan.
+
+    Returns:
+        List of ``(cls_a, cls_b, count)`` tuples, sorted by overlap descending
+        then lexicographically.
+
+    Pure (no I/O, no SurrealDB).
+    """
+    if not problems:
+        return []
+    # Build class -> frozenset of distinct finding_ids
+    ids_by_cls: dict[str, frozenset[str]] = {}
+    class_ids_mutable: dict[str, set[str]] = {}
+    for p in problems:
+        class_ids_mutable.setdefault(p.problem_class, set()).add(p.finding_id)
+    ids_by_cls = {cls: frozenset(ids) for cls, ids in class_ids_mutable.items()}
+    classes = sorted(ids_by_cls)
+    if len(classes) < 2:
+        return []
+    result: list[tuple[str, str, int]] = []
+    for i in range(len(classes)):
+        for j in range(i + 1, len(classes)):
+            cls_a = classes[i]
+            cls_b = classes[j]
+            count = len(ids_by_cls[cls_a] & ids_by_cls[cls_b])
+            result.append((cls_a, cls_b, count))
+    result.sort(key=lambda t: (-t[2], t[0], t[1]))
+    return result
+
+
 def class_co_occurrence_count(problems: list[Problem], cls_a: str, cls_b: str) -> int:
     """Return the number of distinct finding_ids shared between cls_a and cls_b.
 
