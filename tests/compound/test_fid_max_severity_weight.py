@@ -19,7 +19,7 @@ def test_empty_returns_empty_dict():
 
 
 def test_fid_axis_not_class_axis_primary_discriminator():
-    """PRIMARY DISC.: single class, multiple fids -> fid max \!= class max.
+    """PRIMARY DISC.: single class, multiple fids -> fid max != class max.
 
     Class A has problems [HIGH, LOW, HIGH] across fids f1, f2, f3.
     class_max_severity_weight => {'A': 5.0} (max across class)
