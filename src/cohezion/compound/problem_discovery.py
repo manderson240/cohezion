@@ -6859,3 +6859,23 @@ def class_count_for_finding_id(problems: list[Problem], target_fid: str) -> int:
     Pure (no I/O, no SurrealDB).
     """
     return len(frozenset(p.problem_class for p in problems if p.finding_id == target_fid))
+
+
+def is_cross_class_finding_id(problems: list[Problem], target_fid: str) -> bool:
+    """Return True if target_fid appears in two or more distinct classes — item 404.
+
+    A cross-class finding_id is one whose records span ≥ 2 distinct
+    :attr:`Problem.problem_class` values.  Single-class fids and absent fids
+    return ``False``.
+
+    Args:
+        problems: List of :class:`Problem` instances.
+        target_fid: The finding_id to test.
+
+    Returns:
+        ``True`` if *target_fid* spans ≥ 2 distinct classes, ``False``
+        otherwise.
+
+    Pure (no I/O, no SurrealDB).
+    """
+    return class_count_for_finding_id(problems, target_fid) >= 2
