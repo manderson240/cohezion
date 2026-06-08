@@ -56,9 +56,7 @@ def test_returns_only_unlabelled_not_labelled() -> None:
     p0 = _ps("alpha", 1, "HIGH")
     u1 = _unlab("beta", 0)
     result = problems_without_severity([u0, p0, u1])
-    assert result == [u0, u1], (
-        "Only unlabelled problems; got " + repr(result)
-    )
+    assert result == [u0, u1], "Only unlabelled problems; got " + repr(result)
 
 
 def test_preserves_input_order() -> None:
