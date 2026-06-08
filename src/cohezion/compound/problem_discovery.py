@@ -642,6 +642,28 @@ def most_frequent_problem_class(problems: list[Problem]) -> str | None:
     return ranked[0]
 
 
+def has_problem_class(problems: list[Problem], problem_class: str) -> bool:
+    """Return ``True`` if any finding belongs to *problem_class* — item 178.
+
+    Convenience presence check composing naturally with :func:`discover_problems`
+    and :func:`filter_problems`.  Useful as a CI gate: ``assert not
+    has_problem_class(problems, "complexity_outlier")``.
+
+    Args:
+        problems:
+            A list of :class:`Problem` instances.  Empty list → ``False``.
+        problem_class:
+            The exact ``problem_class`` string to look for.
+
+    Returns:
+        ``True`` if at least one finding has a matching ``problem_class``;
+        ``False`` otherwise (including when *problems* is empty).
+
+    Pure (no I/O, no SurrealDB).
+    """
+    return any(p.problem_class == problem_class for p in problems)
+
+
 def default_template_classes() -> frozenset[str]:
     """Return the exact set of ``problem_class`` names in :func:`default_templates` — item 158.
 
