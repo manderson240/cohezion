@@ -10365,9 +10365,7 @@ def fid_score_gini(
         return 0.0
     fid_totals: dict[str, float] = {}
     for p in problems:
-        fid_totals[p.finding_id] = fid_totals.get(p.finding_id, 0.0) + weights.get(
-            p.severity, 0.0
-        )
+        fid_totals[p.finding_id] = fid_totals.get(p.finding_id, 0.0) + weights.get(p.severity, 0.0)
     n = len(fid_totals)
     if n < 2:
         return 0.0
@@ -10377,3 +10375,22 @@ def fid_score_gini(
         return 0.0
     numer = 2 * sum((i + 1) * v for i, v in enumerate(values)) - (n + 1) * total
     return float(numer / (n * total))
+
+
+def class_score_max(
+    problems: list[Problem],
+    weights: dict[str, float],
+) -> float:
+    """Return the maximum per-class total weighted score.  Item 547.
+
+    Identifies the most-burdened class.  0.0 for empty.
+    Single class -> that class's total.  Pure; no I/O.
+    """
+    if not problems:
+        return 0.0
+    class_totals: dict[str, float] = {}
+    for p in problems:
+        class_totals[p.problem_class] = class_totals.get(p.problem_class, 0.0) + weights.get(
+            p.severity, 0.0
+        )
+    return float(max(class_totals.values()))

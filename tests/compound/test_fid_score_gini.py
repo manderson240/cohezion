@@ -39,7 +39,7 @@ def test_returns_fid_axis_gini_not_class_axis() -> None:
     Kills impl reusing class_score_gini (returns 0.0 for single class).
     """
     problems = [
-        _p("SameClass", "fid_a", "LOW"),   # fid_a total = 1.0
+        _p("SameClass", "fid_a", "LOW"),  # fid_a total = 1.0
         _p("SameClass", "fid_b", "HIGH"),  # fid_b total = 9.0
     ]
     weights = {"LOW": 1.0, "HIGH": 9.0}
