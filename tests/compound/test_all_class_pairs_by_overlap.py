@@ -60,14 +60,10 @@ def test_highest_overlap_pair_first() -> None:
         _p("gamma", "only_gamma"),
     ]
     result = all_class_pairs_by_overlap(problems)
-    assert result[0] == ("alpha", "beta", 2), (
-        "alpha-beta share 2 ids -> first; got " + repr(result)
-    )
-    assert result[1] == ("beta", "gamma", 1), (
-        "beta-gamma share 1 id -> second; got " + repr(result)
-    )
-    assert result[2] == ("alpha", "gamma", 0), (
-        "alpha-gamma share 0 ids -> third; got " + repr(result)
+    assert result[0] == ("alpha", "beta", 2), "alpha-beta share 2 ids -> first; got " + repr(result)
+    assert result[1] == ("beta", "gamma", 1), "beta-gamma share 1 id -> second; got " + repr(result)
+    assert result[2] == ("alpha", "gamma", 0), "alpha-gamma share 0 ids -> third; got " + repr(
+        result
     )
 
 
@@ -86,8 +82,8 @@ def test_canonical_pair_ordering_cls_a_lt_cls_b() -> None:
     assert cls_a < cls_b, (
         "Canonical ordering: cls_a < cls_b; got (" + repr(cls_a) + ", " + repr(cls_b) + ")"
     )
-    assert cls_a == "alpha" and cls_b == "beta", (
-        "Expected ('alpha', 'beta'); got " + repr(result[0])
+    assert cls_a == "alpha" and cls_b == "beta", "Expected ('alpha', 'beta'); got " + repr(
+        result[0]
     )
 
 
@@ -103,9 +99,7 @@ def test_zero_overlap_pairs_included() -> None:
     ]
     result = all_class_pairs_by_overlap(problems)
     assert len(result) == 1, "One pair; got " + repr(result)
-    assert result[0] == ("alpha", "beta", 0), (
-        "Zero-overlap pair included; got " + repr(result[0])
-    )
+    assert result[0] == ("alpha", "beta", 0), "Zero-overlap pair included; got " + repr(result[0])
 
 
 def test_single_class_returns_empty_list() -> None:
@@ -133,6 +127,5 @@ def test_return_type_is_list_of_three_tuples() -> None:
     )
     cls_a, cls_b, count = pair
     assert isinstance(cls_a, str) and isinstance(cls_b, str) and isinstance(count, int), (
-        "Tuple must be (str, str, int); got types "
-        + repr((type(cls_a), type(cls_b), type(count)))
+        "Tuple must be (str, str, int); got types " + repr((type(cls_a), type(cls_b), type(count)))
     )
