@@ -4565,3 +4565,31 @@ def classes_above_severity_threshold(
         if sev_rank <= threshold_rank:
             class_counts[p.problem_class] = class_counts.get(p.problem_class, 0) + 1
     return frozenset(cls for cls, count in class_counts.items() if count >= n)
+
+
+def finding_id_severity_map(
+    problems: list[Problem],
+) -> dict[str, frozenset[str]]:
+    """Map each finding_id to the frozenset of labelled severities it carries.
+
+    A finding_id may appear in multiple :class:`Problem` records across different
+    classes or with different severity labels.  This function collects the
+    distinct *labelled* severities for each finding_id.  Problems with
+    ``severity=''`` (unlabelled) do not contribute to the frozenset.
+    Finding_ids whose records are all unlabelled are omitted from the result.
+
+    Args:
+        problems: Flat list of :class:`Problem` records.
+
+    Returns:
+        ``{finding_id: frozenset[severity]}``.  Only finding_ids with at
+        least one labelled record appear.  Each frozenset contains only
+        non-empty severity strings.  Returns ``{}`` when *problems* is empty.
+
+    Pure (no I/O, no SurrealDB).
+    """
+    id_severities: dict[str, set[str]] = {}
+    for p in problems:
+        if p.severity:
+            id_severities.setdefault(p.finding_id, set()).add(p.severity)
+    return {fid: frozenset(sevs) for fid, sevs in id_severities.items()}
