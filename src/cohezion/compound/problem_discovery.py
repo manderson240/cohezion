@@ -1557,3 +1557,40 @@ def classes_under_threshold(
         return frozenset()
     counts = problem_count_by_class(problems)
     return frozenset(cls for cls, limit in thresholds.items() if counts.get(cls, 0) <= limit)
+
+
+def budget_status(
+    problems: list[Problem],
+    thresholds: dict[str, int],
+) -> dict[str, str]:
+    """Per-class budget compliance summary — item 207.
+
+    Returns ``{problem_class: status}`` for every monitored class, where
+    ``status`` is ``"ok"`` (count ≤ threshold) or ``"over"`` (count > threshold).
+    Provides the full picture that :func:`threshold_violations` (over-only) and
+    :func:`classes_under_threshold` (ok-only) each show only half of::
+
+        status_by_class = budget_status(findings, limits)
+        # {"complexity_outlier": "over", "nesting_outlier": "ok"}
+
+    Args:
+        problems:
+            A list of :class:`Problem` instances.  Empty list → all monitored
+            classes map to ``"ok"`` (count=0 ≤ any positive threshold).
+        thresholds:
+            ``{problem_class: max_allowed_count}`` mapping.  Only classes
+            present in *thresholds* are monitored.  Empty → ``{}``.
+
+    Returns:
+        ``{problem_class: "ok" | "over"}`` for every key in *thresholds*.
+        Values are the literal strings ``"ok"`` or ``"over"`` — never counts
+        or booleans.  Unmonitored classes are absent.
+
+    Pure (no I/O, no SurrealDB).
+    """
+    if not thresholds:
+        return {}
+    counts = problem_count_by_class(problems)
+    return {
+        cls: "over" if counts.get(cls, 0) > limit else "ok" for cls, limit in thresholds.items()
+    }
