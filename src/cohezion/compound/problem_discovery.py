@@ -5530,3 +5530,38 @@ def top_n_problem_classes(problems: list["Problem"], n: int) -> list[str]:
         counts[p.problem_class] = counts.get(p.problem_class, 0) + 1
     ranked = sorted(counts, key=lambda cls: (-counts[cls], cls))
     return ranked[:n]
+
+
+# ---------------------------------------------------------------------------
+# Item 349 — bottom_n_problem_classes (2026-06-08)
+# ---------------------------------------------------------------------------
+
+
+def bottom_n_problem_classes(problems: list["Problem"], n: int) -> list[str]:
+    """Return the bottom N problem classes ranked by total problem count ascending.
+
+    ``bottom_n_problem_classes(problems, n) -> list[str]``:
+    Returns up to *n* class names ordered by total :class:`Problem` record
+    count ascending (fewest first).  Ties broken by ascending class name.
+    *n=0* → [].  *n* > number of distinct classes → all classes returned.
+    Empty input → [].  Pure (no I/O, no SurrealDB).
+
+    Complements :func:`top_n_problem_classes` (highest-count first).
+
+    Args:
+        problems: Flat list of :class:`Problem` records.
+        n:        Maximum number of class names to return.
+
+    Returns:
+        List of up to *n* class names, lowest-count first, ties broken
+        ascending alphabetically.
+
+    Pure (no I/O, no SurrealDB).
+    """
+    if n == 0 or not problems:
+        return []
+    counts: dict[str, int] = {}
+    for p in problems:
+        counts[p.problem_class] = counts.get(p.problem_class, 0) + 1
+    ranked = sorted(counts, key=lambda cls: (counts[cls], cls))
+    return ranked[:n]
