@@ -7575,3 +7575,31 @@ def fid_severity_matrix(problems: list[Problem]) -> dict[str, dict[str, int]]:
         inner = matrix.setdefault(p.finding_id, {})
         inner[p.severity] = inner.get(p.severity, 0) + 1
     return matrix
+
+
+def severity_entropy(problems: list[Problem]) -> float:
+    """Return the Shannon entropy of the severity distribution -- item 437.
+
+    Computes ``H = -sum(p * log2(p))`` over the severity frequency
+    distribution derived from *problems*.
+
+    Special cases:
+
+    - Empty *problems* -> 0.0
+    - Single distinct severity -> 0.0 (no uncertainty)
+
+    Args:
+        problems: List of :class:`Problem` instances.
+
+    Returns:
+        Shannon entropy in bits (log base 2) as a float.
+
+    Pure (no I/O, no SurrealDB).
+    """
+    if not problems:
+        return 0.0
+    counts: dict[str, int] = {}
+    for p in problems:
+        counts[p.severity] = counts.get(p.severity, 0) + 1
+    total = len(problems)
+    return -sum((c / total) * math.log2(c / total) for c in counts.values())
