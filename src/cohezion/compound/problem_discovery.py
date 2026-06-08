@@ -2191,3 +2191,29 @@ def scan_is_healthy(
     Pure (no I/O, no SurrealDB).
     """
     return violation_summary(problems, thresholds) == 0
+
+
+def classes_within_budget(
+    problems: list[Problem],
+    thresholds: dict[str, int],
+) -> frozenset[str]:
+    """Return monitored classes with COUNT STRICTLY BELOW their threshold.
+
+    Distinct from :func:`classes_under_threshold` (which includes at-threshold):
+    - ``classes_under_threshold``:  ``count <= threshold``  (headroom >= 0)
+    - ``classes_within_budget``:    ``count <  threshold``  (headroom >  0)
+
+    Args:
+        problems:   List of ``Problem`` instances to examine.
+        thresholds: Mapping of ``{problem_class: max_allowed_count}``.
+                    Empty mapping -> ``frozenset()``.
+
+    Returns:
+        ``frozenset[str]`` of monitored class names with positive headroom.
+
+    Pure (no I/O, no SurrealDB).
+    """
+    if not thresholds:
+        return frozenset()
+    counts = problem_count_by_class(problems)
+    return frozenset(cls for cls, limit in thresholds.items() if counts.get(cls, 0) < limit)
