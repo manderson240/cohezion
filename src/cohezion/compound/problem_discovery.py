@@ -6054,3 +6054,29 @@ def finding_ids_at_most_count(problems: list[Problem], n: int) -> frozenset[str]
     for p in problems:
         counts[p.finding_id] = counts.get(p.finding_id, 0) + 1
     return frozenset(fid for fid, cnt in counts.items() if cnt <= n)
+
+
+# ---------------------------------------------------------------------------
+# Item 368 — classes_with_severity (2026-06-08)
+# ---------------------------------------------------------------------------
+
+
+def classes_with_severity(problems: list[Problem], severity: str) -> frozenset[str]:
+    """Return class names that have at least one problem with the given severity — item 368.
+
+    A class qualifies if ANY of its :class:`Problem` records matches *severity*
+    exactly.  Classes with only other severities are excluded.
+
+    Args:
+        problems: List of :class:`Problem` instances from a scan.
+        severity: Target severity string (e.g. ``'HIGH'``, ``'CRITICAL'``).
+                  Unknown or unlabelled (``''``) values simply return an empty
+                  frozenset — no error is raised.
+
+    Returns:
+        :class:`frozenset` of ``problem_class`` strings.  Empty when
+        *problems* is empty or when no record has the target severity.
+
+    Pure (no I/O, no SurrealDB).
+    """
+    return frozenset(p.problem_class for p in problems if p.severity == severity)
