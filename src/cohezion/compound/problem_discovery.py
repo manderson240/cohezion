@@ -812,6 +812,34 @@ def rename_problem_class(problems: list[Problem], old_class: str, new_class: str
     ]
 
 
+def present_problem_classes(problems: list[Problem], classes: frozenset[str]) -> frozenset[str]:
+    """Return the subset of *classes* that appear at least once in *problems* — item 184.
+
+    Watchlist intersection query.  Answers "which of these N classes fired?" rather
+    than "what classes exist in the findings?" (which would be all distinct classes,
+    not just those in the watchlist)::
+
+        fired = present_problem_classes(findings, frozenset({"production_assert", "complexity_outlier"}))
+
+    Args:
+        problems:
+            A list of :class:`Problem` instances.  Empty list → ``frozenset()``.
+        classes:
+            Watchlist of ``problem_class`` strings to query.  Empty →
+            ``frozenset()``.
+
+    Returns:
+        A :class:`frozenset` containing exactly those members of *classes* that
+        appear at least once in *problems*.  Always a subset of *classes*.
+
+    Pure (no I/O, no SurrealDB).
+    """
+    if not classes:
+        return frozenset()
+    present = {p.problem_class for p in problems}
+    return frozenset(classes & present)
+
+
 def default_template_classes() -> frozenset[str]:
     """Return the exact set of ``problem_class`` names in :func:`default_templates` — item 158.
 
