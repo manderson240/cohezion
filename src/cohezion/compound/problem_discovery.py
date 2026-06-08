@@ -9280,3 +9280,43 @@ def weighted_problem_count_by_fid(
     for p in problems:
         scores[p.finding_id] = scores.get(p.finding_id, 0.0) + weights.get(p.severity, 0.0)
     return scores
+
+
+def score_rank_of_class(
+    problems: list[Problem],
+    weights: dict[str, float],
+    problem_class: str,
+) -> int | None:
+    """Return the 1-based dense rank of *problem_class* by total weighted score.
+
+    Rank 1 = highest-scoring class.  Tied classes receive the same rank
+    (dense rank, not standard/Olympic rank).  Returns ``None`` when
+    *problem_class* is absent from *problems* or *problems* is empty.
+
+    Examples:
+        scores = {A: 5.0, B: 5.0, C: 1.0} → rank(A)=1, rank(B)=1, rank(C)=2.
+
+    Args:
+        problems: List of :class:`Problem` instances.
+        weights: Mapping of severity label to numeric score.
+        problem_class: The class name to look up.
+
+    Returns:
+        ``int`` 1-based dense rank, or ``None`` if class is absent/empty.
+
+    Pure (no I/O, no SurrealDB).  Item 506.
+    """
+    if not problems:
+        return None
+    # Compute per-class totals
+    class_totals: dict[str, float] = {}
+    for p in problems:
+        class_totals[p.problem_class] = (
+            class_totals.get(p.problem_class, 0.0) + weights.get(p.severity, 0.0)
+        )
+    if problem_class not in class_totals:
+        return None
+    target_score = class_totals[problem_class]
+    # Dense rank: count how many DISTINCT scores are strictly higher
+    distinct_higher = len({s for s in class_totals.values() if s > target_score})
+    return distinct_higher + 1
