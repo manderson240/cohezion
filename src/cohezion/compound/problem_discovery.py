@@ -10672,3 +10672,24 @@ def fid_problem_fractions(
     for p in problems:
         counts[p.finding_id] = counts.get(p.finding_id, 0) + 1
     return {fid: cnt / total for fid, cnt in counts.items()}
+
+
+def class_score_fractions(
+    problems: list[Problem],
+    weights: dict[str, float],
+) -> dict[str, float]:
+    """Return each class's fraction of the total weighted score.  Item 564.
+
+    Fraction = class_total_score / sum_of_all_class_totals. Values sum to 1.0.
+    Weighted by severity (unlike class_problem_fractions which is unweighted).
+    Empty -> {}.  Pure; no I/O.
+    """
+    if not problems:
+        return {}
+    totals: dict[str, float] = {}
+    for p in problems:
+        totals[p.problem_class] = totals.get(p.problem_class, 0.0) + weights.get(p.severity, 0.0)
+    grand_total = sum(totals.values())
+    if grand_total == 0.0:
+        return {cls: 0.0 for cls in totals}
+    return {cls: v / grand_total for cls, v in totals.items()}
