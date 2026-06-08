@@ -24,6 +24,8 @@ injected store — no I/O, no SurrealDB write in pytest.
 
 from __future__ import annotations
 
+from dataclasses import dataclass, field
+
 from cohezion.inference.model_tournament import TournamentResult
 from cohezion.inference.registry import Task
 
@@ -165,3 +167,54 @@ def tournament_recall_all(neurons: list[dict]) -> dict[str, str]:
                     result[tag] = content
                 break
     return result
+
+
+@dataclass(frozen=True)
+class TournamentSnapshot:
+    """Typed envelope around the output of :func:`tournament_recall_all` — item 162.
+
+    Wraps the raw ``{task.value: model_id}`` dict from item 159 in a named,
+    immutable dataclass so callers have a stable typed interface:
+
+    Attributes:
+        winners: ``{task.value: model_id}`` for every task with a deposited winner.
+        task_count: Number of tasks with at least one winner (== ``len(winners)``).
+
+    Methods:
+        has_winner_for(task): Returns True if *task* has a deposited winner.
+        from_neurons(neurons): Class-method constructor (delegates to
+            :func:`tournament_recall_all`).
+
+    Pure; no I/O.  Use :meth:`from_neurons` with an injected neuron list in tests.
+    """
+
+    winners: dict[str, str] = field(default_factory=dict)
+    task_count: int = 0
+
+    def has_winner_for(self, task: Task) -> bool:
+        """Return ``True`` if *task* has a deposited tournament winner.
+
+        Args:
+            task: The :class:`~cohezion.inference.registry.Task` to check.
+
+        Returns:
+            ``True`` when ``task.value`` is a key in :attr:`winners`.
+        """
+        return task.value in self.winners
+
+    @classmethod
+    def from_neurons(cls, neurons: list[dict]) -> TournamentSnapshot:
+        """Build a :class:`TournamentSnapshot` from an injectable neuron store.
+
+        Delegates to :func:`tournament_recall_all` for winner discovery;
+        computes :attr:`task_count` from the resulting dict.
+
+        Args:
+            neurons: Iterable of neuron dicts (same shape as the item-15
+                injectable store).
+
+        Returns:
+            A new :class:`TournamentSnapshot` instance.
+        """
+        winners = tournament_recall_all(neurons)
+        return cls(winners=winners, task_count=len(winners))
