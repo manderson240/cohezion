@@ -35,8 +35,7 @@ def test_avg_rank_not_sum_not_count_primary_discriminator() -> None:
     assert "A" in result, f"'A' must be outer key; got {list(result)}"
     expected = (4 + 3 + 1) / 3
     assert abs(result["A"] - expected) < 1e-9, (
-        f"(4+3+1)/3={expected:.6f}; got {result['A']:.6f} "
-        f"(rank_sum=8.0 wrong, count=3.0 wrong)"
+        f"(4+3+1)/3={expected:.6f}; got {result['A']:.6f} (rank_sum=8.0 wrong, count=3.0 wrong)"
     )
     assert isinstance(result["A"], float), "Must be float"
 
