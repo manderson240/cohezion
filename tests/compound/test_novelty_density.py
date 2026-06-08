@@ -122,10 +122,13 @@ def test_denominator_is_items_not_corpus() -> None:
     """novelty_density denominator is len(items), NOT len(corpus).
 
     Kills an impl that divides by corpus size.
+    Uses _constant_low_encoder (deterministic) not _orthogonal_encoder (hash-dependent) to
+    guarantee zero cosine between items and corpus regardless of PYTHONHASHSEED.
+    corpus_* texts → [1,0,0]; item_* texts → [0,1,0] → cosine=0 < 0.5 → all novel.
     """
     corp = _corpus("corpus_a", "corpus_b", "corpus_c", "corpus_d", "corpus_e")  # 5 corpus
-    items = ["item_x", "item_y"]  # 2 items, both novel (orthogonal encoder)
-    result = novelty_density(items, corp, encoder=_orthogonal_encoder, novelty_threshold=0.5)
+    items = ["item_x", "item_y"]  # 2 items, both novel (orthogonal by _constant_low_encoder)
+    result = novelty_density(items, corp, encoder=_constant_low_encoder, novelty_threshold=0.5)
     # 2 novel / 2 items = 1.0; wrong impl: 2 / 5 = 0.4
     assert result == 1.0, f"denominator must be items (2), not corpus (5); got {result}"
 
