@@ -1886,3 +1886,32 @@ def count_problems_added_since(
     return sum(
         1 for p in problems if any(p.finding_id.startswith(prefix) for prefix in id_prefixes)
     )
+
+
+def filter_by_finding_id_prefix(
+    problems: list[Problem],
+    id_prefixes: set[str],
+) -> list[Problem]:
+    """Return Problems whose finding_id starts with any given prefix — item 218.
+
+    List face of :func:`count_problems_added_since` — returns the actual
+    matching :class:`Problem` objects rather than a count::
+
+        recent = filter_by_finding_id_prefix(findings, {"scan-2026-06-08:"})
+
+    Args:
+        problems:
+            A list of :class:`Problem` instances.  Empty list → ``[]``.
+        id_prefixes:
+            Set of prefix strings.  A problem is included when its
+            ``finding_id`` starts with ANY element of the set.
+            Empty set → ``[]``.
+
+    Returns:
+        ``list[Problem]`` — matching problems in input order.
+
+    Pure (no I/O, no SurrealDB).
+    """
+    if not id_prefixes or not problems:
+        return []
+    return [p for p in problems if any(p.finding_id.startswith(prefix) for prefix in id_prefixes)]
