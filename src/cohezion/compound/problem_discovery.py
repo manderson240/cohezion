@@ -3481,3 +3481,23 @@ def class_problem_fraction(problems: list[Problem], cls: str) -> float:
         return 0.0
     cls_count = sum(1 for p in problems if p.problem_class == cls)
     return float(cls_count / total)
+
+
+def problems_at_severity(problems: list[Problem], severity: str) -> list[Problem]:
+    """Return all problems whose severity exactly equals *severity*.
+
+    Case-sensitive exact match across all classes.  Preserves input order.
+    When *severity* is ``""`` (empty string), returns unlabelled problems only.
+
+    Args:
+        problems: List of :class:`Problem` instances from a scan.
+        severity: Severity label to filter on (exact, case-sensitive).
+
+    Returns:
+        list of :class:`Problem` instances with ``problem.severity == severity``,
+        in the same order as *problems*.  Empty list when *problems* is empty
+        or no problem matches.
+
+    Pure (no I/O, no SurrealDB).
+    """
+    return [p for p in problems if p.severity == severity]
