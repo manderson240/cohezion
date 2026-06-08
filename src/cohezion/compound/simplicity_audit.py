@@ -554,3 +554,66 @@ def needless_passthroughs(paths: Iterable[Path]) -> list[NeedlessPassthrough]:
         if count <= 1:
             out.append(NeedlessPassthrough(qualified_name=q, caller_count=count, orphan=count == 0))
     return sorted(out, key=lambda n: n.qualified_name)
+
+
+# ---------------------------------------------------------------------------
+# Item 110 — Silent-except-swallow audit (Thread A, error-handling)
+# ---------------------------------------------------------------------------
+
+
+def _body_is_purely_silent(handler: ast.ExceptHandler) -> bool:
+    """True iff the except handler's body consists of ONLY a ``pass`` statement or a lone ``...``
+    (``ast.Constant`` with ``Ellipsis`` value), with no other statements.
+
+    A single ``pass`` or ``...`` with no logging / re-raise / side effects is the "silent swallow"
+    anti-pattern: the error is caught and dropped invisibly.  Two or more statements (even if one
+    is ``pass``) means SOMETHING is happening — not purely silent.
+    """
+    body = handler.body
+    if len(body) != 1:
+        return False  # multiple statements → not purely silent
+    stmt = body[0]
+    if isinstance(stmt, ast.Pass):
+        return True
+    # `...` parses as ast.Expr(value=ast.Constant(value=Ellipsis))
+    if (
+        isinstance(stmt, ast.Expr)
+        and isinstance(stmt.value, ast.Constant)
+        and stmt.value.value is ...
+    ):
+        return True
+    return False
+
+
+def silent_except_swallows(paths: Iterable[Path]) -> list[tuple[str, str]]:
+    """Flag except handlers that silently drop errors with no logging or re-raise (item 110).
+
+    An except handler is a "silent swallow" when its body is EXACTLY one statement: a bare ``pass``
+    or a lone ``...`` (Ellipsis).  Any additional statement — logging, re-raise, return, assignment
+    — means the error is being handled (not purely dropped).
+
+    Distinct from :func:`stealth_bare_excepts` (item 65), which flags CATCH-ALL WIDTH (catching
+    ``Exception`` / bare ``except``).  A narrow ``except ValueError: pass`` is NOT flagged by item
+    65, but IS flagged here (a silent swallow regardless of how narrow the catch is).
+
+    Returns ``[(location, kind)]`` sorted by location, where ``location`` is
+    ``<filename>:<lineno>`` and ``kind`` is ``"pass"`` or ``"ellipsis"``.  READ-ONLY — report-only;
+    pure (stdlib ast, no writes).
+    """
+    out: list[tuple[str, str]] = []
+    for path in _iter_python_files(paths):
+        try:
+            tree = ast.parse(path.read_text(encoding="utf-8", errors="replace"))
+        except (OSError, SyntaxError, ValueError):
+            continue
+        for node in ast.walk(tree):
+            if not isinstance(node, ast.ExceptHandler):
+                continue
+            if not _body_is_purely_silent(node):
+                continue
+            # Determine whether the silent body was `pass` or `...`
+            stmt = node.body[0]
+            kind = "pass" if isinstance(stmt, ast.Pass) else "ellipsis"
+            loc = f"{path.name}:{node.lineno}"
+            out.append((loc, kind))
+    return sorted(out)
