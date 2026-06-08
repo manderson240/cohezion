@@ -6838,3 +6838,24 @@ def severities_for_class(problems: list[Problem], target_class: str) -> frozense
     Pure (no I/O, no SurrealDB).
     """
     return frozenset(p.severity for p in problems if p.problem_class == target_class)
+
+
+def class_count_for_finding_id(problems: list[Problem], target_fid: str) -> int:
+    """Return the count of distinct classes that contain a specific finding_id — item 403.
+
+    Counts distinct :attr:`Problem.problem_class` values among all records
+    where :attr:`Problem.finding_id` equals *target_fid*.  The same class
+    appearing multiple times with *target_fid* counts only once.  Returns
+    ``0`` when the fid is absent or *problems* is empty.
+
+    Args:
+        problems: List of :class:`Problem` instances.
+        target_fid: The finding_id to inspect.
+
+    Returns:
+        Integer count of distinct classes that own *target_fid*.
+        ``0`` when not found.
+
+    Pure (no I/O, no SurrealDB).
+    """
+    return len(frozenset(p.problem_class for p in problems if p.finding_id == target_fid))
