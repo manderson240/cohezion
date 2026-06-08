@@ -475,6 +475,41 @@ def _build_default_registry() -> dict[str, ModelEntry]:
                 "K1 limits. HF base model: hexgrad/Kokoro-82M; ONNX port: mikkoph/kokoro-onnx."
             ),
         ),
+        # --- Item 123: Ideogram4-GGUF — IMAGE_GEN candidate (additive-first) ---
+        # Research round 27, VERIFIED: leejet/ideogram-4-GGUF (9B text-to-image, Q4_0, 5.64GB).
+        # Runs on stable-diffusion.cpp (shares item-86 sd.cpp-Vulkan-on-gfx1151 infra).
+        # Registered additive-first (verified_working=False) like items 4/19/21/23/85/103.
+        # The SERVING PROOF (sd.cpp Vulkan on gfx1151 + image smoke + head-to-head vs SD-Turbo)
+        # is the verification gate — gated under item-86. Registration alone changes no behavior:
+        # for_task(IMAGE_GEN) returns this entry as declared-but-unverified; the registry does
+        # NOT auto-dispatch it until verified_working flips True post-experiment.
+        # License: ideogram-4-fp8 — local serving fine; no redistribution without review.
+        # Lane: CPU (stable-diffusion.cpp CPU fallback; Vulkan/IGPU is the item-86 experiment).
+        ModelEntry(
+            model_id="Ideogram4-GGUF",
+            lane=Lane.CPU,  # sd.cpp CPU fallback; flips to IGPU_ROCWMMA post item-86 Vulkan proof
+            endpoint="local://sd.cpp/ideogram4",  # dispatch marker; sd.cpp CLI, not HTTP server
+            runtime_backend="stable_diffusion_cpp",  # stable-diffusion.cpp -DSD_VULKAN=ON
+            task_affinity=frozenset({Task.IMAGE_GEN}),
+            weight_quant=WeightQuant.INT4,  # Q4_0 (4-bit) — the verified GGUF quant
+            context_window=0,  # text-to-image model: prompt length, not token context window
+            priority=30,  # IMAGE_GEN seed (first and only; like AUDIO_TTS CosmoNarrator at 25)
+            size_gb=5.64,  # Q4_0 9B ≈ 5.64 GB resident (K1/rule-5: 29 GB free; within budget)
+            verified_working=False,  # sd.cpp serving + image smoke + quality proof not yet run
+            notes=(
+                "Ideogram4-GGUF (leejet/ideogram-4-GGUF, 9B text-to-image, Q4_0, 5.64GB) — "
+                "the IMAGE_GEN seed for cohezion's image-output tier (item 123, research round 27 "
+                "VERIFIED). Runs on stable-diffusion.cpp (shares item-86 sd.cpp-Vulkan-on-"
+                "gfx1151 infra — build with -DSD_VULKAN=ON). The head-to-head bake-off vs "
+                "SD-Turbo is the serving experiment. verified_working flips True only after: "
+                "(1) sd.cpp Vulkan build on gfx1151 succeeds (item 86), (2) the 5.64GB GGUF "
+                "+ text-encoder + VAE serve + a real image is generated at the JSON-prompt spec, "
+                "(3) memory ≤ K1/rule-5 budget, (4) quality ≥ SD-Turbo. If quality < SD-Turbo, "
+                "keep SD-Turbo as primary (NEVER auto-swapped). License: ideogram-4-fp8 — "
+                "local serving fine; review before any redistribution. Lane will flip to "
+                "IGPU_ROCWMMA post item-86 Vulkan proof. HF: leejet/ideogram-4-GGUF."
+            ),
+        ),
         ModelEntry(
             model_id="Granite-4.1-8B-GGUF",
             lane=Lane.IGPU_ROCWMMA,  # Granite backend lives on the iGPU; fronted by the router
@@ -788,6 +823,41 @@ def _build_default_registry() -> dict[str, ModelEntry]:
             cost_per_1k_output_usd=0.005,
             priority=85,
             notes="Gemini 3 Pro via headless `gemini -p -m gemini-3-pro -o json`",
+        ),
+        # --- Item 123: ideogram-4-GGUF — IMAGE_GEN seed (additive-first, 2026-06-08) ---
+        # Research round 27, VERIFIED artifact: leejet/ideogram-4-GGUF on HuggingFace.
+        # 9B text-to-image diffusion model, Q4_0 quantisation, ~5.64 GB GGUF on disk.
+        # Runs on stable-diffusion.cpp with Vulkan backend (same path as item-86 SD-Turbo).
+        # Registered additive-first (verified_working=False) like items 4/19/21/23/28/85/103.
+        # The SERVING PROOF (sd.cpp -DSD_VULKAN=ON + a real image generation) is gated
+        # behind item 86 (sd.cpp Vulkan on gfx1151).  Until item 86 resolves, for_task
+        # returns this entry as a registered-but-unverified IMAGE_GEN candidate.
+        # Lane: IGPU_UNIFIED — stable-diffusion.cpp uses Vulkan on the iGPU (gfx1151 / RDNA 3.5).
+        # License: local serving is fine; redistribution of derived weights needs review.
+        ModelEntry(
+            model_id="ideogram-4-GGUF",
+            lane=Lane.IGPU_UNIFIED,  # sd.cpp Vulkan on gfx1151 (RDNA 3.5 iGPU)
+            endpoint="local://stable-diffusion.cpp",  # library-dispatch marker; not HTTP-served yet
+            runtime_backend="sd_cpp_vulkan",  # stable-diffusion.cpp with -DSD_VULKAN=ON
+            task_affinity=frozenset({Task.IMAGE_GEN}),
+            weight_quant=WeightQuant.INT4,  # Q4_0 ≈ INT4 4-bit fixed quantisation
+            context_window=512,  # CLIP-based text encoder; sd.cpp prompt length cap
+            size_gb=5.64,  # non-fabricated: Q4_0 GGUF disk size from leejet/ideogram-4-GGUF
+            priority=50,  # IMAGE_GEN seed; lower priority than serving-proven models
+            verified_working=False,  # sd.cpp Vulkan serving proof NOT yet run — see item 86
+            notes=(
+                "ideogram-4-GGUF (leejet/ideogram-4-GGUF) — the IMAGE_GEN seed for cohezion's "
+                "image-output tier (item 123). 9B text-to-image diffusion model, Q4_0, ~5.64 GB. "
+                "Runs on stable-diffusion.cpp with Vulkan backend on gfx1151 (Strix Halo RDNA 3.5). "
+                "Serving path: build sd.cpp with -DSD_VULKAN=ON, load ideogram-4-GGUF + VAE + "
+                "text-encoder, generate via sd.cpp JSON-prompt spec. This is the SERVING PROOF "
+                "gate (item 86). verified_working flips True only after a real image-gen smoke "
+                "test (sd.cpp → a non-empty image artifact). License: ideogram-4 weights are "
+                "publicly available on HuggingFace for local inference; redistribution of derived "
+                "weights requires a license review. HF artifact: leejet/ideogram-4-GGUF. "
+                "K1/rule-5 OOM gate: 5.64 GB model + ~2 GB runtime ≈ 7.6 GB — well within K1 "
+                "limits (128 GiB unified memory, 16 GB OOM buffer leaves >100 GB available)."
+            ),
         ),
     ]
     return {entry.model_id: entry for entry in entries}
