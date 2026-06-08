@@ -12690,3 +12690,27 @@ def class_fid_problem_count_map(problems: list[Problem]) -> dict[str, dict[str, 
             result[p.problem_class].get(p.finding_id, 0) + 1
         )
     return result
+
+
+def class_fid_severity_pivot(
+    problems: list[Problem],
+) -> dict[str, dict[str, dict[str, int]]]:
+    """Return 3D cross-tab of class × fid × severity counts.  Item 667.
+
+    Returns {class: {fid: {severity: count}}} — sparse 3D nested dict.
+    Missing class/fid/severity combinations are absent.
+    Empty -> {}.  Pure; no I/O.
+    """
+    if not problems:
+        return {}
+    result: dict[str, dict[str, dict[str, int]]] = {}
+    for p in problems:
+        cls = p.problem_class
+        fid = p.finding_id
+        sev = p.severity or ""
+        if cls not in result:
+            result[cls] = {}
+        if fid not in result[cls]:
+            result[cls][fid] = {}
+        result[cls][fid][sev] = result[cls][fid].get(sev, 0) + 1
+    return result
