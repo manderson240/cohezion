@@ -15338,3 +15338,66 @@ def fid_severity_rank_low_fraction(problems: list[Problem]) -> dict[str, float]:
         if _SEVERITY_RANK.get(p.severity, 0) <= 1:
             low_counts[fid] += 1
     return {fid: float(low_counts[fid]) / totals[fid] for fid in totals}
+
+
+def class_severity_rank_fraction_below(problems: list["Problem"], threshold: int) -> dict[str, float]:
+    """Fraction with rank strictly below threshold per class.  Item 788.
+
+    fraction = count(rank < threshold) / n per class.
+    Complement of fraction_at_or_above: below(t) + at_or_above(t) == 1.0.
+    Empty -> {}.  Pure; no I/O.
+    """
+    if not problems:
+        return {}
+    counts: dict[str, int] = {}
+    totals: dict[str, int] = {}
+    for p in problems:
+        cls = p.problem_class
+        if cls not in totals:
+            totals[cls] = 0
+            counts[cls] = 0
+        totals[cls] += 1
+        if _SEVERITY_RANK.get(p.severity, 0) < threshold:
+            counts[cls] += 1
+    return {cls: float(counts[cls]) / totals[cls] for cls in totals}
+
+
+def fid_severity_rank_fraction_below(problems: list["Problem"], threshold: int) -> dict[str, float]:
+    """Fraction with rank strictly below threshold per fid.  Item 789.
+
+    Fid-axis complement of class_severity_rank_fraction_below (item 788).
+    fraction = count(rank < threshold) / n per fid.
+    Empty -> {}.  Pure; no I/O.
+    """
+    if not problems:
+        return {}
+    counts: dict[str, int] = {}
+    totals: dict[str, int] = {}
+    for p in problems:
+        fid = p.finding_id
+        if fid not in totals:
+            totals[fid] = 0
+            counts[fid] = 0
+        totals[fid] += 1
+        if _SEVERITY_RANK.get(p.severity, 0) < threshold:
+            counts[fid] += 1
+    return {fid: float(counts[fid]) / totals[fid] for fid in totals}
+
+
+def class_severity_rank_info_fraction(problems: list[Problem]) -> dict[str, float]:
+    """Fraction of problems with rank == 0 (INFO only) per class.  Item 792.
+
+    INFO(0) is the only rank < 1; info_fraction = fraction_below(problems, 1).
+    All LOW -> 0.0.  All INFO -> 1.0.  Empty -> {}.  Pure; no I/O.
+    """
+    return class_severity_rank_fraction_below(problems, 1)
+
+
+def fid_severity_rank_info_fraction(problems: list[Problem]) -> dict[str, float]:
+    """Fraction of problems with rank == 0 (INFO only) per fid.  Item 793.
+
+    Fid-axis complement of class_severity_rank_info_fraction (item 792).
+    INFO(0) is the only rank < 1; info_fraction = fid_fraction_below(problems, 1).
+    All LOW -> 0.0.  Empty -> {}.  Pure; no I/O.
+    """
+    return fid_severity_rank_fraction_below(problems, 1)
