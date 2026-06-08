@@ -7376,3 +7376,40 @@ def class_balance_score(problems: list[Problem]) -> float:
     entropy = -sum((c / total) * math.log2(c / total) for c in counts.values())
     max_entropy = math.log2(n)
     return entropy / max_entropy
+
+
+def finding_id_balance_score(problems: list[Problem]) -> float:
+    """Return the normalised finding_id balance score -- item 427.
+
+    Computes ``H / log2(n)`` where ``H`` is :func:`finding_id_entropy` and
+    ``n`` is the number of distinct finding_ids.  The score is 1.0 when all
+    finding_ids appear equally often (maximum balance) and approaches 0.0 when
+    one finding_id dominates.
+
+    Dual of :func:`class_balance_score` operating on the finding_id axis.
+
+    Special cases:
+
+    - Empty *problems* -> 1.0 (vacuously balanced)
+    - Single finding_id -> 1.0 (trivially balanced)
+
+    Args:
+        problems: List of :class:`Problem` instances.
+
+    Returns:
+        Normalised balance score as a float in ``[0.0, 1.0]``.
+
+    Pure (no I/O, no SurrealDB).
+    """
+    if not problems:
+        return 1.0
+    counts: dict[str, int] = {}
+    for p in problems:
+        counts[p.finding_id] = counts.get(p.finding_id, 0) + 1
+    n = len(counts)
+    if n == 1:
+        return 1.0
+    total = len(problems)
+    entropy = -sum((c / total) * math.log2(c / total) for c in counts.values())
+    max_entropy = math.log2(n)
+    return entropy / max_entropy
