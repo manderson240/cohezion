@@ -8945,3 +8945,31 @@ def regressing_classes(
     """
     deltas = all_score_deltas_between_snapshots(before, after, weights)
     return frozenset(cls for cls, delta in deltas.items() if delta > 0.0)
+
+
+def improving_classes(
+    before: list[Problem],
+    after: list[Problem],
+    weights: dict[str, float],
+) -> frozenset[str]:
+    """Return class names whose weighted severity score DECREASED between snapshots -- item 494.
+
+    A class is *improving* when its total severity score is strictly lower in
+    *after* than in *before* (delta < 0).  Worsening classes (delta > 0) and
+    stable classes (delta == 0) are excluded.  A class that disappears entirely
+    from *after* has score 0, which is lower than any positive *before* score,
+    so it is considered improving.
+
+    Args:
+        before: Problem list from the earlier scan.
+        after:  Problem list from the more recent scan.
+        weights: Mapping of severity label to numeric score.
+
+    Returns:
+        ``frozenset[str]`` of class names with strictly negative score delta.
+        ``frozenset()`` when both *before* and *after* are empty.
+
+    Pure (no I/O, no SurrealDB).
+    """
+    deltas = all_score_deltas_between_snapshots(before, after, weights)
+    return frozenset(cls for cls, delta in deltas.items() if delta < 0.0)
