@@ -7746,3 +7746,28 @@ def fid_count_for_severity(problems: list[Problem], severity: str) -> int:
     Pure (no I/O, no SurrealDB).
     """
     return len({p.finding_id for p in problems if p.severity == severity})
+
+
+def severity_pair_co_occurrence(problems: list[Problem], severity_a: str, severity_b: str) -> int:
+    """Return the count of distinct fids in both severity_a and severity_b -- item 444.
+
+    Counts distinct :attr:`Problem.finding_id` values that appear in at least
+    one record with *severity_a* AND in at least one record with *severity_b*.
+
+    Args:
+        problems: List of :class:`Problem` instances.
+        severity_a: First severity value (case-sensitive).
+        severity_b: Second severity value (case-sensitive).
+
+    Returns:
+        Count of finding_ids co-occurring in both severity groups.
+        Returns 0 when *problems* is empty or either severity is not found.
+        Symmetric: result is the same when *severity_a* and *severity_b* are swapped.
+
+    Pure (no I/O, no SurrealDB).
+    """
+    if not problems:
+        return 0
+    fids_a: set[str] = {p.finding_id for p in problems if p.severity == severity_a}
+    fids_b: set[str] = {p.finding_id for p in problems if p.severity == severity_b}
+    return len(fids_a & fids_b)
