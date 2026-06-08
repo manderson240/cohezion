@@ -13280,3 +13280,53 @@ def fid_severity_rank_min(problems: list[Problem]) -> dict[str, int]:
         if fid not in result or rank < result[fid]:
             result[fid] = rank
     return result
+
+
+def class_severity_rank_range(problems: list[Problem]) -> dict[str, int]:
+    """Return severity rank range (max_rank - min_rank) per class.  Item 702.
+
+    Range measures the span of severity diversity in rank space.
+    Classes with one distinct severity level return 0.
+    Unknown severities contribute rank 0.
+    Returns {class: rank_range}.  Empty -> {}.  Pure; no I/O.
+    """
+    if not problems:
+        return {}
+    max_ranks: dict[str, int] = {}
+    min_ranks: dict[str, int] = {}
+    for p in problems:
+        cls = p.problem_class
+        rank = _SEVERITY_RANK.get(p.severity, 0)
+        if cls not in max_ranks:
+            max_ranks[cls] = rank
+            min_ranks[cls] = rank
+        else:
+            if rank > max_ranks[cls]:
+                max_ranks[cls] = rank
+            if rank < min_ranks[cls]:
+                min_ranks[cls] = rank
+    return {cls: max_ranks[cls] - min_ranks[cls] for cls in max_ranks}
+
+
+def class_severity_rank_range(problems: list[Problem]) -> dict[str, int]:
+    """Return severity rank range per class (max_rank - min_rank).  Item 702.
+
+    Measures severity span: 0 when all problems share the same severity.
+    Returns {class: rank_range}.  Empty -> {}.  Pure; no I/O.
+    """
+    if not problems:
+        return {}
+    mins: dict[str, int] = {}
+    maxs: dict[str, int] = {}
+    for p in problems:
+        cls = p.problem_class
+        rank = _SEVERITY_RANK.get(p.severity, 0)
+        if cls not in mins:
+            mins[cls] = rank
+            maxs[cls] = rank
+        else:
+            if rank < mins[cls]:
+                mins[cls] = rank
+            if rank > maxs[cls]:
+                maxs[cls] = rank
+    return {cls: maxs[cls] - mins[cls] for cls in mins}
