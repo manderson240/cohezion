@@ -8520,3 +8520,29 @@ def problems_for_fid(
     Pure (no I/O, no SurrealDB).
     """
     return [p for p in problems if p.finding_id == finding_id]
+
+
+def problems_matching_class_and_severity(
+    problems: list[Problem],
+    problem_class: str,
+    severity: str,
+) -> list[Problem]:
+    """Return Problem records matching BOTH problem_class AND severity -- item 479.
+
+    Complements :func:`severity_count_for_class` (returns list, not int).
+    Preserves insertion order of matching records.
+
+    Args:
+        problems: List of :class:`Problem` instances.
+        problem_class: Target problem_class.
+        severity: Target severity.
+
+    Returns:
+        List of :class:`Problem` instances.  Empty list when absent pair.
+
+    Pure (no I/O, no SurrealDB).
+    """
+    return [
+        p for p in problems
+        if p.problem_class == problem_class and p.severity == severity
+    ]
