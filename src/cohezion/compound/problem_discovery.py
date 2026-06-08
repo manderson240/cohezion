@@ -6572,3 +6572,34 @@ def classes_with_shared_finding_ids(problems: list["Problem"]) -> frozenset[str]
         if len(classes) >= 2:
             result.update(classes)
     return frozenset(result)
+
+
+# ---------------------------------------------------------------------------
+# Item 388 — problem_class_histogram
+# ---------------------------------------------------------------------------
+
+
+def problem_class_histogram(problems: list["Problem"]) -> dict[str, int]:
+    """Return a frequency histogram of problem_class values — item 388.
+
+    Maps each distinct ``problem_class`` string to the total number of
+    :class:`Problem` records with that class.  All records are counted
+    regardless of severity label (including unlabelled records).  The same
+    finding_id appearing N times under a class contributes N to the count.
+
+    Args:
+        problems: List of :class:`Problem` instances from a scan.
+
+    Returns:
+        ``dict[str, int]`` mapping class name → total record count.
+        Every distinct class appears exactly once.  Empty when *problems*
+        is empty.
+
+    Pure (no I/O, no SurrealDB).
+    """
+    if not problems:
+        return {}
+    counts: dict[str, int] = {}
+    for p in problems:
+        counts[p.problem_class] = counts.get(p.problem_class, 0) + 1
+    return counts
