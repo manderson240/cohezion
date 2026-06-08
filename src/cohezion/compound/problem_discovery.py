@@ -9803,3 +9803,40 @@ def normalized_fid_scores(
     if spread == 0.0:
         return dict.fromkeys(fid_totals, 0.0)
     return {fid: (score - min_score) / spread for fid, score in fid_totals.items()}
+
+
+def fid_score_std_dev(
+    problems: list[Problem],
+    weights: dict[str, float],
+) -> float:
+    """Return the population standard deviation of all fid total weighted severity scores.
+
+    Computes ``sqrt(population_variance)`` over the distribution of per-fid
+    total scores.  Returns ``0.0`` for empty input or a single fid (variance
+    is zero; avoids division by zero).
+
+    Args:
+        problems: List of :class:`Problem` instances.
+        weights: Mapping of severity label to numeric score.
+
+    Returns:
+        ``float`` population standard deviation of fid total scores.
+        ``0.0`` when *problems* is empty or contains only one fid.
+
+    Pure (no I/O, no SurrealDB).  Item 525.
+    """
+    import math
+
+    if not problems:
+        return 0.0
+    fid_totals: dict[str, float] = {}
+    for p in problems:
+        fid_totals[p.finding_id] = fid_totals.get(p.finding_id, 0.0) + weights.get(
+            p.severity, 0.0
+        )
+    n = len(fid_totals)
+    if n < 2:
+        return 0.0
+    values = list(fid_totals.values())
+    mean = sum(values) / n
+    return float(math.sqrt(sum((v - mean) ** 2 for v in values) / n))
