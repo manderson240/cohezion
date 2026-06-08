@@ -8632,3 +8632,33 @@ def class_total_severity_score(
             if p.problem_class == problem_class
         )
     )
+
+
+def fid_total_severity_score(
+    problems: list[Problem],
+    finding_id: str,
+    weights: dict[str, float],
+) -> float:
+    """Return the aggregate severity score for *finding_id* using *weights* -- item 483.
+
+    Symmetric to :func:`class_total_severity_score` on the finding_id axis.
+    For each :class:`Problem` with *finding_id*, adds ``weights.get(p.severity, 0.0)``
+    to the running total.  Unrecognised severities contribute 0.
+
+    Args:
+        problems: List of :class:`Problem` instances.
+        finding_id: Target finding_id.
+        weights: Mapping of severity label to score.
+
+    Returns:
+        float.  0.0 when *finding_id* is absent or *weights* is empty.
+
+    Pure (no I/O, no SurrealDB).
+    """
+    return float(
+        sum(
+            weights.get(p.severity, 0.0)
+            for p in problems
+            if p.finding_id == finding_id
+        )
+    )
