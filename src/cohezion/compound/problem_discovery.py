@@ -11230,3 +11230,30 @@ def fid_problem_rank(problems: list[Problem]) -> dict[str, int]:
         count_to_rank[cnt] = rank
         rank += sum(1 for c in counts.values() if c == cnt)
     return {fid: count_to_rank[cnt] for fid, cnt in counts.items()}
+
+
+def class_score_rank_competition(
+    problems: list[Problem],
+    weights: dict[str, float],
+) -> dict[str, int]:
+    """Return competition rank of each class by total weighted score.  Item 590.
+
+    Rank 1 = highest weighted score.  Ties share the lowest rank of their group;
+    the next rank skips (competition / 1-2-2-4 style).
+    NOTE: named class_score_rank_competition to avoid clash with class_score_rank
+    (item 566, dense ranking).  Competition: [4.0, 4.0, 1.0] -> [1, 1, 3].
+    Empty -> {}.  Pure; no I/O.
+    """
+    if not problems:
+        return {}
+    totals: dict[str, float] = {}
+    for p in problems:
+        totals[p.problem_class] = totals.get(p.problem_class, 0.0) + weights.get(p.severity, 0.0)
+    # Sort unique scores descending; compute competition ranks
+    unique_scores_desc = sorted(set(totals.values()), reverse=True)
+    score_to_rank: dict[float, int] = {}
+    rank = 1
+    for score in unique_scores_desc:
+        score_to_rank[score] = rank
+        rank += sum(1 for s in totals.values() if s == score)
+    return {cls: score_to_rank[score] for cls, score in totals.items()}
