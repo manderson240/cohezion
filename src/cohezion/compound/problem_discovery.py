@@ -5229,3 +5229,30 @@ def top_severity_class(
         if counts_at_rank:
             return min(counts_at_rank, key=lambda cls: (-counts_at_rank[cls], cls))
     return None
+
+
+def multi_severity_classes(problems: list["Problem"]) -> "frozenset[str]":
+    """Return class names appearing at 2+ distinct labelled severity levels.
+
+    A class is included when it has labelled problems (``severity != ''``) at
+    at least two different severity values.  Unlabelled records do not
+    contribute to the severity count.  Classes whose labelled problems all
+    share a single severity are excluded.
+
+    Args:
+        problems: Flat list of :class:`Problem` records.
+
+    Returns:
+        Immutable set of class names with heterogeneous severity profiles.
+        ``frozenset()`` when *problems* is empty or no class spans multiple
+        severities.
+
+    Pure (no I/O, no SurrealDB).
+    """
+    if not problems:
+        return frozenset()
+    class_severities: dict[str, set[str]] = {}
+    for p in problems:
+        if p.severity:
+            class_severities.setdefault(p.problem_class, set()).add(p.severity)
+    return frozenset(cls for cls, sevs in class_severities.items() if len(sevs) >= 2)
