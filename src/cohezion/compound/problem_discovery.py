@@ -11985,3 +11985,44 @@ def fid_max_class_count(problems: list[Problem]) -> dict[str, int]:
             class_counts[p.finding_id].get(p.problem_class, 0) + 1
         )
     return {fid: max(bucket.values()) for fid, bucket in class_counts.items()}
+
+
+def class_min_fid_count(problems: list[Problem]) -> dict[str, int]:
+    """Return the minimum per-fid problem count for each class.  Item 629.
+
+    Min-side complement of class_max_fid_count (item 627).
+    For each class, counts how many problems each fid contributes, then returns
+    the minimum.  Single fid -> that fid's count.
+    Empty -> {}.  int.  Pure; no I/O.
+    """
+    if not problems:
+        return {}
+    fid_counts: dict[str, dict[str, int]] = {}
+    for p in problems:
+        if p.problem_class not in fid_counts:
+            fid_counts[p.problem_class] = {}
+        fid_counts[p.problem_class][p.finding_id] = (
+            fid_counts[p.problem_class].get(p.finding_id, 0) + 1
+        )
+    return {cls: min(bucket.values()) for cls, bucket in fid_counts.items()}
+
+
+def fid_min_class_count(problems: list[Problem]) -> dict[str, int]:
+    """Return the minimum per-class problem count for each fid.  Item 630.
+
+    FID-axis complement of class_min_fid_count (item 629) and min-side
+    complement of fid_max_class_count (item 628).
+    For each fid, counts how many problems each class contributes, then returns
+    the minimum across classes.
+    Empty -> {}.  int.  Pure; no I/O.
+    """
+    if not problems:
+        return {}
+    class_counts: dict[str, dict[str, int]] = {}
+    for p in problems:
+        if p.finding_id not in class_counts:
+            class_counts[p.finding_id] = {}
+        class_counts[p.finding_id][p.problem_class] = (
+            class_counts[p.finding_id].get(p.problem_class, 0) + 1
+        )
+    return {fid: min(bucket.values()) for fid, bucket in class_counts.items()}
