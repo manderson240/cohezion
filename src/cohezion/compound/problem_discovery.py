@@ -12813,3 +12813,19 @@ def class_fid_problem_rank(problems: list[Problem]) -> dict[str, dict[str, int]]
         rank_for_count = {count: rank + 1 for rank, count in enumerate(sorted_unique)}
         result[cls] = {fid: rank_for_count[count] for fid, count in fid_counts.items()}
     return result
+
+
+def class_distinct_fid_count(problems: list[Problem]) -> dict[str, int]:
+    """Return count of distinct finding_ids per class.  Item 673.
+
+    For each class: how many unique fid values appear (not total problems).
+    Returns {class: distinct_fid_count}.  int >= 1.  Empty -> {}.  Pure; no I/O.
+    """
+    if not problems:
+        return {}
+    fid_sets: dict[str, set[str]] = {}
+    for p in problems:
+        if p.problem_class not in fid_sets:
+            fid_sets[p.problem_class] = set()
+        fid_sets[p.problem_class].add(p.finding_id)
+    return {cls: len(fids) for cls, fids in fid_sets.items()}
