@@ -10182,3 +10182,25 @@ def fid_score_mad(
     med = _statistics.median(values)
     abs_devs = [abs(v - med) for v in values]
     return float(_statistics.median(abs_devs))
+
+
+def class_score_range(
+    problems: list[Problem],
+    weights: dict[str, float],
+) -> float:
+    """Return range (max - min) of per-class total weighted scores.  Item 539.
+
+    Simplest spread measure.  Always >= 0.
+    0.0 for empty or single class.  Pure; no I/O.
+    """
+    if not problems:
+        return 0.0
+    class_totals: dict[str, float] = {}
+    for p in problems:
+        class_totals[p.problem_class] = (
+            class_totals.get(p.problem_class, 0.0) + weights.get(p.severity, 0.0)
+        )
+    if len(class_totals) < 2:
+        return 0.0
+    values = list(class_totals.values())
+    return float(max(values) - min(values))
