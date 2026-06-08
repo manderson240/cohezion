@@ -9674,3 +9674,26 @@ def fid_score_rank(
     # Dense rank: count how many DISTINCT scores are strictly higher
     distinct_higher = len({s for s in fid_totals.values() if s > target_score})
     return distinct_higher + 1
+
+
+def score_std_dev(
+    problems: list[Problem],
+    weights: dict[str, float],
+) -> float:
+    """Return population standard deviation of all class total weighted severity scores.
+
+    Equivalent to ``math.sqrt(score_variance(problems, weights))``.
+    0.0 for empty input or single class.  0.0 when all classes tie.
+
+    Args:
+        problems: List of :class:`Problem` instances.
+        weights: Mapping of severity label to numeric score.
+
+    Returns:
+        ``float`` population standard deviation of the class total scores.
+        0.0 when fewer than 2 classes exist or all classes share the same score.
+
+    Pure (no I/O, no SurrealDB).  Item 521.
+    """
+    import math as _math
+    return float(_math.sqrt(score_variance(problems, weights)))
