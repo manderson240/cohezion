@@ -2760,9 +2760,7 @@ def headroom_summary(
     compliant: list[str] = sorted(cls for cls, h in headroom.items() if h > 0)
     exact: list[str] = sorted(cls for cls, h in headroom.items() if h == 0)
     violated: list[str] = sorted(cls for cls, h in headroom.items() if h < 0)
-    worst: str | None = (
-        min(violated, key=lambda cls: headroom[cls]) if violated else None
-    )
+    worst: str | None = min(violated, key=lambda cls: headroom[cls]) if violated else None
     return {
         "compliant": compliant,
         "exact": exact,
@@ -2887,3 +2885,45 @@ def problems_above_severity_fraction(
     if severity_fraction(problems, severity) > min_fraction:
         return filter_problems_by_severity(problems, severity)
     return []
+
+
+def severity_report(problems: list[Problem]) -> dict[str, object]:
+    """Return a one-call severity analytics summary.
+
+    Consolidates :func:`count_by_severity`, :func:`dominant_severity`, and
+    per-severity fractions into a single dict::
+
+        {
+            "counts":         dict[str, int],
+            "dominant":       str | None,
+            "fractions":      dict[str, float],
+            "labelled_total": int,
+        }
+
+    ``fractions`` sums to 1.0 (floating-point tolerance) when
+    ``labelled_total > 0``.  All four fields are computed from the same
+    ``count_by_severity`` call, ensuring mutual consistency.
+
+    Args:
+        problems: List of :class:`Problem` instances from a scan.
+
+    Returns:
+        ``dict`` with keys ``"counts"``, ``"dominant"``, ``"fractions"``,
+        ``"labelled_total"``.
+
+    Pure (no I/O, no SurrealDB).
+    """
+    counts = count_by_severity(problems)
+    labelled_total = sum(counts.values())
+    fractions: dict[str, float] = (
+        {sev: float(cnt) / labelled_total for sev, cnt in counts.items()}
+        if labelled_total > 0
+        else {}
+    )
+    dom = dominant_severity(problems)
+    return {
+        "counts": counts,
+        "dominant": dom,
+        "fractions": fractions,
+        "labelled_total": labelled_total,
+    }
