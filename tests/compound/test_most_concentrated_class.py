@@ -58,9 +58,7 @@ def test_fraction_based_not_count_based() -> None:
         + [_ps("beta", i + 5, "LOW") for i in range(15)]
     )
     result = most_concentrated_class(problems, "HIGH")
-    assert result == "alpha", (
-        "alpha 1/1=100% beats beta 5/20=25%; got " + repr(result)
-    )
+    assert result == "alpha", "alpha 1/1=100% beats beta 5/20=25%; got " + repr(result)
 
 
 def test_tie_break_alphabetically_ascending() -> None:
@@ -71,9 +69,7 @@ def test_tie_break_alphabetically_ascending() -> None:
     """
     problems = [_ps("zeta", 0, "HIGH"), _ps("alpha", 0, "HIGH")]
     result = most_concentrated_class(problems, "HIGH")
-    assert result == "alpha", (
-        "Tie: alpha < zeta alphabetically → alpha; got " + repr(result)
-    )
+    assert result == "alpha", "Tie: alpha < zeta alphabetically → alpha; got " + repr(result)
 
 
 def test_none_when_no_class_has_target_severity() -> None:
@@ -83,9 +79,7 @@ def test_none_when_no_class_has_target_severity() -> None:
     """
     problems = [_ps("alpha", 0, "LOW"), _ps("beta", 0, "LOW")]
     result = most_concentrated_class(problems, "HIGH")
-    assert result is None, (
-        "No HIGH problems → None; got " + repr(result)
-    )
+    assert result is None, "No HIGH problems → None; got " + repr(result)
 
 
 def test_none_when_empty_input() -> None:
