@@ -12714,3 +12714,34 @@ def class_fid_severity_pivot(
             result[cls][fid] = {}
         result[cls][fid][sev] = result[cls][fid].get(sev, 0) + 1
     return result
+
+
+_SEVERITY_RANK: dict[str, int] = {
+    "CRITICAL": 4,
+    "HIGH": 3,
+    "MEDIUM": 2,
+    "LOW": 1,
+    "INFO": 0,
+}
+
+
+def class_fid_max_severity(problems: list[Problem]) -> dict[str, dict[str, str]]:
+    """Return highest-ranked severity label per class × fid cell.  Item 668.
+
+    Severity order: CRITICAL > HIGH > MEDIUM > LOW > INFO.
+    Unknown severities rank below INFO.
+    Returns {class: {fid: max_severity_str}}.  Sparse.  Empty -> {}.  Pure; no I/O.
+    """
+    if not problems:
+        return {}
+    result: dict[str, dict[str, str]] = {}
+    for p in problems:
+        cls = p.problem_class
+        fid = p.finding_id
+        sev = (p.severity or "").upper()
+        if cls not in result:
+            result[cls] = {}
+        current = result[cls].get(fid)
+        if current is None or _SEVERITY_RANK.get(sev, -1) > _SEVERITY_RANK.get(current, -1):
+            result[cls][fid] = sev
+    return result
