@@ -1,4 +1,4 @@
-"""Item 92 — Neuron-deposit abstraction-quality audit (report-only).
+"""Items 92 + 152 + 154 — Neuron-deposit abstraction-quality audit and trend (report-only).
 
 Grounded in arXiv 2606.04703 (ExpInternalization, June 2026):
   "Abstract principle-level experience beats instance-specific detail for stable self-evolution."
@@ -191,3 +191,56 @@ def abstraction_quality_delta(
         # else: stable — in neither list
 
     return {"improved": improved, "degraded": degraded}
+
+
+def abstraction_quality_trend(
+    deltas: list[dict[str, list[AbstractionFlag]]],
+) -> dict[str, object]:
+    """Summarise a time-series of abstraction-quality deltas — item 154 (2026-06-08).
+
+    Folds a list of :func:`abstraction_quality_delta` outputs into a single
+    trend report.  Each element of *deltas* contributes its ``len(improved)``
+    and ``len(degraded)`` to the running totals; no deduplication by neuron name
+    is performed (a neuron that improves in tick 1 and degrades in tick 2
+    contributes 1 to each total — intentional, records both events).
+
+    Args:
+        deltas:
+            A ``list[dict]`` where each dict has ``"improved"`` and
+            ``"degraded"`` keys each holding a ``list[AbstractionFlag]``
+            (the direct output of :func:`abstraction_quality_delta`).  An
+            empty list is valid and returns all-zero totals.
+
+    Returns:
+        A dict with three keys:
+
+        - ``"net_improved"`` (:class:`int`) — total improved-flag events
+          across all ticks.
+        - ``"net_degraded"`` (:class:`int`) — total degraded-flag events
+          across all ticks.
+        - ``"trend"`` (``"improving" | "degrading" | "stable"``) — set to
+          ``"improving"`` when ``net_improved > net_degraded``, ``"degrading"``
+          when ``net_degraded > net_improved``, and ``"stable"`` when equal
+          (including the zero-zero case from an empty list).
+
+    Pure (no I/O).  Report-only.
+    """
+    net_improved: int = 0
+    net_degraded: int = 0
+
+    for delta in deltas:
+        net_improved += len(delta.get("improved") or [])
+        net_degraded += len(delta.get("degraded") or [])
+
+    if net_improved > net_degraded:
+        trend = "improving"
+    elif net_degraded > net_improved:
+        trend = "degrading"
+    else:
+        trend = "stable"
+
+    return {
+        "net_improved": net_improved,
+        "net_degraded": net_degraded,
+        "trend": trend,
+    }
