@@ -1245,3 +1245,28 @@ def least_frequent_class(problems: list[Problem]) -> str | None:
     # a LARGER last_seen index maps to a SMALLER negative index, so the
     # last-occurrence class is selected.
     return min(counts, key=lambda cls: (counts[cls], -last_seen[cls]))
+
+
+def class_frequency_map(problems: list[Problem]) -> dict[str, int]:
+    """Return ``{problem_class: count}`` with keys in first-occurrence order — item 198.
+
+    Semantically identical to :func:`problem_count_by_class` but the name
+    makes the insertion-order key guarantee explicit: callers can rely on
+    ``list(class_frequency_map(findings).keys())`` returning classes in the
+    order they first appeared in *problems*::
+
+        freq = class_frequency_map(findings)
+        list(freq.keys())   # classes in first-occurrence order
+
+    Args:
+        problems:
+            A list of :class:`Problem` instances.  Empty list → ``{}``.
+
+    Returns:
+        ``{problem_class: count}`` with keys ordered by first occurrence.
+        Values are positive integers; absent classes have no entry (no
+        zero-count phantom keys).
+
+    Pure (no I/O, no SurrealDB).
+    """
+    return problem_count_by_class(problems)
