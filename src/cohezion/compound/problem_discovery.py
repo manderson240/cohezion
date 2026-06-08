@@ -227,6 +227,43 @@ def problem_summary(problems: list[Problem]) -> ProblemSummary:
     )
 
 
+def discover_and_summarize(
+    paths: Iterable[Path],
+    *,
+    templates: list[ProblemTemplate] | None = None,
+    exclude_known: frozenset[str] | set[str] = frozenset(),
+) -> ProblemSummary:
+    """Run TIDE discovery and summarize in one call — item 165.
+
+    Composes :func:`discover_problems` (item 73) and :func:`problem_summary`
+    (item 163) into a single convenience call.  All parameters are forwarded
+    to :func:`discover_problems` unchanged; the resulting findings list is
+    immediately wrapped by :func:`problem_summary`.
+
+    A single discovery pass is performed — the same ``problems`` list is
+    passed directly to ``problem_summary``, so ``summary.total`` is
+    guaranteed to equal ``len(discover_problems(same_args))``.
+
+    Args:
+        paths:
+            Iterable of :class:`~pathlib.Path` objects to audit.
+        templates:
+            Optional list of :class:`ProblemTemplate` instances.  ``None``
+            (default) uses :func:`default_templates`.  ``[]`` → no audit
+            → zero-total summary.
+        exclude_known:
+            Set of finding ids to suppress (already-actioned findings).
+            Forwarded verbatim to :func:`discover_problems`.
+
+    Returns:
+        A frozen :class:`ProblemSummary` wrapping the TIDE findings.
+
+    Pure (no I/O beyond what the instruments perform).  No SurrealDB.
+    """
+    problems = discover_problems(paths, templates=templates, exclude_known=exclude_known)
+    return problem_summary(problems)
+
+
 def default_template_classes() -> frozenset[str]:
     """Return the exact set of ``problem_class`` names in :func:`default_templates` — item 158.
 
