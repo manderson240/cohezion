@@ -12904,3 +12904,22 @@ def class_severity_count_map(problems: list[Problem]) -> dict[str, dict[str, int
             result[cls] = {}
         result[cls][sev] = result[cls].get(sev, 0) + 1
     return result
+
+
+def fid_severity_count_map(problems: list[Problem]) -> dict[str, dict[str, int]]:
+    """Return 2D cross-tab of fid × severity problem counts.  Item 679.
+
+    Fid-axis complement of class_severity_count_map (item 678).
+    Returns {fid: {severity: count}} — sparse 2D nested dict.
+    Missing (fid, severity) combinations are absent.  Empty -> {}.  Pure; no I/O.
+    """
+    if not problems:
+        return {}
+    result: dict[str, dict[str, int]] = {}
+    for p in problems:
+        fid = p.finding_id
+        sev = p.severity or ""
+        if fid not in result:
+            result[fid] = {}
+        result[fid][sev] = result[fid].get(sev, 0) + 1
+    return result
