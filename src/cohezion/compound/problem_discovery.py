@@ -10394,3 +10394,23 @@ def class_score_max(
             p.severity, 0.0
         )
     return float(max(class_totals.values()))
+
+
+def fid_score_max(
+    problems: list[Problem],
+    weights: dict[str, float],
+) -> float:
+    """Return the maximum per-fid total weighted score.  Item 548.
+
+    FID-axis complement of class_score_max.
+    Identifies the most-reported (highest burden) fid.
+    0.0 for empty.  Single fid -> that fid's total.  Pure; no I/O.
+    """
+    if not problems:
+        return 0.0
+    fid_totals: dict[str, float] = {}
+    for p in problems:
+        fid_totals[p.finding_id] = (
+            fid_totals.get(p.finding_id, 0.0) + weights.get(p.severity, 0.0)
+        )
+    return float(max(fid_totals.values()))
