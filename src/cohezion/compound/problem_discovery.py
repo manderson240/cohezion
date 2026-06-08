@@ -8553,36 +8553,6 @@ def problems_matching_fid_and_severity(
     finding_id: str,
     severity: str,
 ) -> list[Problem]:
-    """Return Problem records matching BOTH *finding_id* AND *severity* -- item 480.
-
-    2-axis fid×severity filter returning actual records; list complement to
-    :func:`severity_count_for_fid` (which returns the count).
-    Symmetric to :func:`problems_matching_class_and_severity` on the fid axis.
-    Preserves insertion order.
-
-    Args:
-        problems: List of :class:`Problem` instances.
-        finding_id: Target finding_id to filter on.
-        severity: Target severity to filter on.
-
-    Returns:
-        List of :class:`Problem` objects where both axes match.
-        Empty list when no records match.
-
-    Pure (no I/O, no SurrealDB).
-    """
-    return [
-        p
-        for p in problems
-        if p.finding_id == finding_id and p.severity == severity
-    ]
-
-
-def problems_matching_fid_and_severity(
-    problems: list[Problem],
-    finding_id: str,
-    severity: str,
-) -> list[Problem]:
     """Return Problem records matching BOTH finding_id AND severity -- item 480.
 
     Symmetric to :func:`problems_matching_class_and_severity` on the fid axis.
@@ -8602,4 +8572,33 @@ def problems_matching_fid_and_severity(
     return [
         p for p in problems
         if p.finding_id == finding_id and p.severity == severity
+    ]
+
+
+def problems_matching_class_and_fid(
+    problems: list[Problem],
+    problem_class: str,
+    finding_id: str,
+) -> list[Problem]:
+    """Return Problem records matching BOTH problem_class AND finding_id -- item 481.
+
+    Completes the 3-pair symmetric filter set alongside
+    :func:`problems_matching_class_and_severity` and
+    :func:`problems_matching_fid_and_severity`.
+    Complements :func:`problem_count_for_class_fid_pair` (returns list, not int).
+    Preserves insertion order of matching records.
+
+    Args:
+        problems: List of :class:`Problem` instances.
+        problem_class: Target problem_class.
+        finding_id: Target finding_id.
+
+    Returns:
+        List of :class:`Problem` instances.  Empty list when absent pair.
+
+    Pure (no I/O, no SurrealDB).
+    """
+    return [
+        p for p in problems
+        if p.problem_class == problem_class and p.finding_id == finding_id
     ]
