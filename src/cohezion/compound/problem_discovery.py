@@ -13819,3 +13819,66 @@ def fid_severity_rank_median(problems: list[Problem]) -> dict[str, float]:
         else:
             result[fid] = (ranks[mid - 1] + ranks[mid]) / 2.0
     return result
+
+
+def _median_of_sorted(vals: list[int]) -> float:
+    """Median of a pre-sorted list (used by IQR helpers)."""
+    n = len(vals)
+    if n == 0:
+        return 0.0
+    mid = n // 2
+    return float(vals[mid]) if n % 2 == 1 else (vals[mid - 1] + vals[mid]) / 2.0
+
+
+def class_severity_rank_iqr(problems: list[Problem]) -> dict[str, float]:
+    """Interquartile range (Q3 - Q1) of severity ranks per class.  Item 730.
+
+    Uses exclusive method: lower_half = sorted[:n//2], upper_half = sorted[(n+1)//2:].
+    Returns 0.0 for classes with < 3 problems.  Empty -> {}.  Pure; no I/O.
+    """
+    if not problems:
+        return {}
+    ranks_by_class: dict[str, list[int]] = {}
+    for p in problems:
+        cls = p.problem_class
+        if cls not in ranks_by_class:
+            ranks_by_class[cls] = []
+        ranks_by_class[cls].append(_SEVERITY_RANK.get(p.severity, 0))
+    result: dict[str, float] = {}
+    for cls, ranks in ranks_by_class.items():
+        ranks.sort()
+        n = len(ranks)
+        if n < 3:
+            result[cls] = 0.0
+        else:
+            q1 = _median_of_sorted(ranks[: n // 2])
+            q3 = _median_of_sorted(ranks[(n + 1) // 2 :])
+            result[cls] = q3 - q1
+    return result
+
+
+def fid_severity_rank_iqr(problems: list[Problem]) -> dict[str, float]:
+    """Interquartile range (Q3 - Q1) of severity ranks per fid.  Item 731.
+
+    Fid-axis complement of class_severity_rank_iqr (item 730).
+    Returns 0.0 for fids with < 3 problems.  Empty -> {}.  Pure; no I/O.
+    """
+    if not problems:
+        return {}
+    ranks_by_fid: dict[str, list[int]] = {}
+    for p in problems:
+        fid = p.finding_id
+        if fid not in ranks_by_fid:
+            ranks_by_fid[fid] = []
+        ranks_by_fid[fid].append(_SEVERITY_RANK.get(p.severity, 0))
+    result: dict[str, float] = {}
+    for fid, ranks in ranks_by_fid.items():
+        ranks.sort()
+        n = len(ranks)
+        if n < 3:
+            result[fid] = 0.0
+        else:
+            q1 = _median_of_sorted(ranks[: n // 2])
+            q3 = _median_of_sorted(ranks[(n + 1) // 2 :])
+            result[fid] = q3 - q1
+    return result
