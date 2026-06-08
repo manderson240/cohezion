@@ -12246,3 +12246,15 @@ def class_problem_entropy(problems: list[Problem]) -> dict[str, float]:
             h -= p * _math.log2(p)
         result[cls] = h
     return result
+
+
+def cosmic_fire_cascade_actions(coherence: float) -> list[str]:
+    """Return the ordered CosmicFireProtocol cascade actions at the given coherence.  Item 640.
+
+    Thin observable wrapper around CosmicFireProtocol.ignition_cascade().
+    Returns the 5-action list when coherence >= threshold (0.45), empty list otherwise.
+    Enables TIDE-layer testing of the P3 invariant without importing the full protocol.
+    """
+    from cohezion.compound.cosmic_fire_protocol import CosmicFireProtocol
+
+    return CosmicFireProtocol(notify_telegram=False).ignition_cascade(coherence)
