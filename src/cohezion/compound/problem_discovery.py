@@ -11002,3 +11002,26 @@ def class_problem_density(
             fids[p.problem_class] = set()
         fids[p.problem_class].add(p.finding_id)
     return {cls: float(totals[cls]) / len(fids[cls]) for cls in totals}
+
+
+def fid_problem_density(
+    problems: list[Problem],
+) -> dict[str, float]:
+    """Return problem density per fid (total problems / distinct classes).  Item 581.
+
+    FID-axis complement of class_problem_density.
+    Measures how spread a fid's problems are across classes.
+    A fid appearing once in each of N classes has density=1.0.
+    A fid appearing N times in one class has density=N.0.
+    Unweighted (ignores severity).  Empty -> {}.  Pure; no I/O.
+    """
+    if not problems:
+        return {}
+    totals: dict[str, int] = {}
+    classes: dict[str, set[str]] = {}
+    for p in problems:
+        totals[p.finding_id] = totals.get(p.finding_id, 0) + 1
+        if p.finding_id not in classes:
+            classes[p.finding_id] = set()
+        classes[p.finding_id].add(p.problem_class)
+    return {fid: float(totals[fid]) / len(classes[fid]) for fid in totals}
