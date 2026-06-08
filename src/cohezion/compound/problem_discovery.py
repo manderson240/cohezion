@@ -1652,3 +1652,25 @@ def group_finding_ids_by_class(
             result[p.problem_class] = []
         result[p.problem_class].append(p.finding_id)
     return result
+
+
+def count_unique_finding_ids(problems: list[Problem]) -> int:
+    """Return the number of distinct finding_ids — item 210.
+
+    Deduplication health check: if this is less than ``len(problems)``,
+    the same finding_id appears on multiple :class:`Problem` instances::
+
+        n = count_unique_finding_ids(findings)
+        if n < len(findings):
+            warn(f"{len(findings) - n} duplicate ids detected")
+
+    Args:
+        problems:
+            A list of :class:`Problem` instances.  Empty list → 0.
+
+    Returns:
+        ``int`` — the number of distinct ``finding_id`` values.
+
+    Pure (no I/O, no SurrealDB).
+    """
+    return len({p.finding_id for p in problems})
