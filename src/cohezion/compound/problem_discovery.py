@@ -11322,3 +11322,26 @@ def class_top_severity(problems: list[Problem]) -> dict[str, str]:
         # max by count, tie-break by descending label name
         result[cls] = max(sev_counts, key=lambda s: (sev_counts[s], s))
     return result
+
+
+def fid_top_severity(problems: list[Problem]) -> dict[str, str]:
+    """Return the dominant severity label per fid.  Item 597.
+
+    Returns {fid: dominant_severity_label} where dominant = the severity with
+    the highest count for that fid.  Ties broken by alphabetically descending
+    label name (e.g. 'LOW' > 'HIGH' because 'L' > 'H').
+    FID-axis complement of class_top_severity.
+    Empty -> {}.  Pure; no I/O.
+    """
+    if not problems:
+        return {}
+    counts: dict[str, dict[str, int]] = {}
+    for p in problems:
+        if p.finding_id not in counts:
+            counts[p.finding_id] = {}
+        sev = p.severity or ""
+        counts[p.finding_id][sev] = counts[p.finding_id].get(sev, 0) + 1
+    result: dict[str, str] = {}
+    for fid, sev_counts in counts.items():
+        result[fid] = max(sev_counts, key=lambda s: (sev_counts[s], s))
+    return result
