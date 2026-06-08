@@ -869,6 +869,32 @@ def deduplicate_problems(problems: list[Problem]) -> list[Problem]:
     return result
 
 
+def merge_problems(a: list[Problem], b: list[Problem]) -> list[Problem]:
+    """Return an order-preserving union of two finding lists — item 186.
+
+    All findings from *a* appear first, then findings from *b* whose
+    ``finding_id`` was not already present in *a*.  Equivalent to
+    ``deduplicate_problems(a + b)`` but documents the merge semantics
+    explicitly.
+
+    Enables parallel scanning::
+
+        merged = merge_problems(run_a, run_b)
+
+    Args:
+        a: First (higher-priority) finding list.
+        b: Second finding list.  Findings whose ID already appears in *a*
+           are dropped.
+
+    Returns:
+        A new list of :class:`Problem` instances; length ≤
+        ``len(a) + len(b)``.  Neither input list is mutated.
+
+    Pure (no I/O, no SurrealDB).
+    """
+    return deduplicate_problems(a + b)
+
+
 def default_template_classes() -> frozenset[str]:
     """Return the exact set of ``problem_class`` names in :func:`default_templates` — item 158.
 
