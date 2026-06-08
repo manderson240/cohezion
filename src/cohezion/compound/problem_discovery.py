@@ -15187,3 +15187,92 @@ def fid_severity_rank_count_at_rank(problems: list[Problem], rank: int) -> dict[
         if _SEVERITY_RANK.get(p.severity, 0) == rank:
             counts[fid] += 1
     return counts
+
+
+def class_severity_rank_high_fraction(problems: list[Problem]) -> dict[str, float]:
+    """Fraction of problems with rank >= 3 (HIGH or CRITICAL) per class.  Item 786.
+
+    fraction = count(rank >= 3) / n per class.
+    All INFO/LOW/MEDIUM -> 0.0.  All CRITICAL -> 1.0.  Empty -> {}.  Pure; no I/O.
+    """
+    if not problems:
+        return {}
+    totals: dict[str, int] = {}
+    high_counts: dict[str, int] = {}
+    for p in problems:
+        cls = p.problem_class
+        if cls not in totals:
+            totals[cls] = 0
+            high_counts[cls] = 0
+        totals[cls] += 1
+        if _SEVERITY_RANK.get(p.severity, 0) >= 3:
+            high_counts[cls] += 1
+    return {cls: float(high_counts[cls]) / totals[cls] for cls in totals}
+
+
+def fid_severity_rank_high_fraction(problems: list[Problem]) -> dict[str, float]:
+    """Fraction of problems with rank >= 3 (HIGH or CRITICAL) per fid.  Item 787.
+
+    Fid-axis complement of class_severity_rank_high_fraction (item 786).
+    fraction = count(rank >= 3) / n per fid.  All low -> 0.0.  Empty -> {}.  Pure; no I/O.
+    """
+    if not problems:
+        return {}
+    totals: dict[str, int] = {}
+    high_counts: dict[str, int] = {}
+    for p in problems:
+        fid = p.finding_id
+        if fid not in totals:
+            totals[fid] = 0
+            high_counts[fid] = 0
+        totals[fid] += 1
+        if _SEVERITY_RANK.get(p.severity, 0) >= 3:
+            high_counts[fid] += 1
+    return {fid: float(high_counts[fid]) / totals[fid] for fid in totals}
+
+
+def class_severity_rank_fraction_at_or_above(
+    problems: list[Problem], threshold: int
+) -> dict[str, float]:
+    """Fraction of problems with rank >= threshold per class.  Item 786.
+
+    Returns {class: fraction}; fraction = count(rank >= threshold) / n.
+    Empty -> {}.  Pure; no I/O.
+    """
+    if not problems:
+        return {}
+    counts: dict[str, int] = {}
+    totals: dict[str, int] = {}
+    for p in problems:
+        cls = p.problem_class
+        if cls not in totals:
+            totals[cls] = 0
+            counts[cls] = 0
+        totals[cls] += 1
+        if _SEVERITY_RANK.get(p.severity, 0) >= threshold:
+            counts[cls] += 1
+    return {cls: float(counts[cls]) / totals[cls] for cls in totals}
+
+
+def fid_severity_rank_fraction_at_or_above(
+    problems: list[Problem], threshold: int
+) -> dict[str, float]:
+    """Fraction of problems with rank >= threshold per fid.  Item 787.
+
+    Fid-axis complement of class_severity_rank_fraction_at_or_above (item 786).
+    Returns {fid: fraction}; fraction = count(rank >= threshold) / n.
+    Empty -> {}.  Pure; no I/O.
+    """
+    if not problems:
+        return {}
+    counts: dict[str, int] = {}
+    totals: dict[str, int] = {}
+    for p in problems:
+        fid = p.finding_id
+        if fid not in totals:
+            totals[fid] = 0
+            counts[fid] = 0
+        totals[fid] += 1
+        if _SEVERITY_RANK.get(p.severity, 0) >= threshold:
+            counts[fid] += 1
+    return {fid: float(counts[fid]) / totals[fid] for fid in totals}
