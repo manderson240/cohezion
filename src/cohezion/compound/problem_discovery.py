@@ -12357,3 +12357,20 @@ def class_unique_fid_count(problems: list[Problem]) -> dict[str, int]:
             fid_sets[p.problem_class] = set()
         fid_sets[p.problem_class].add(p.finding_id)
     return {cls: len(fids) for cls, fids in fid_sets.items()}
+
+
+def fid_unique_class_count(problems: list[Problem]) -> dict[str, int]:
+    """Return the number of distinct problem_classes per fid.  Item 645.
+
+    FID-axis complement of class_unique_fid_count (item 644).
+    Counts DISTINCT classes, not total problem count.
+    int >= 1 for any fid present.
+    """
+    if not problems:
+        return {}
+    class_sets: dict[str, set[str]] = {}
+    for p in problems:
+        if p.finding_id not in class_sets:
+            class_sets[p.finding_id] = set()
+        class_sets[p.finding_id].add(p.problem_class)
+    return {fid: len(classes) for fid, classes in class_sets.items()}
