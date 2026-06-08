@@ -8703,3 +8703,39 @@ def all_fid_severity_scores(
             scores[p.finding_id] = 0.0
         scores[p.finding_id] += weights.get(p.severity, 0.0)
     return scores
+
+
+def top_n_classes_by_score(
+    problems: list[Problem],
+    weights: dict[str, float],
+    n: int,
+) -> list[str]:
+    """Return the top-*n* class names ranked by total severity score -- item 486.
+
+    Builds the per-class weighted score (same logic as
+    :func:`all_severity_scores`) then returns the *n* class names with the
+    highest score, sorted descending by score with an alphabetical tie-break.
+    Classes whose problems all have unrecognised severities score 0.0 and
+    appear in the ranking as normal.
+
+    Args:
+        problems: List of :class:`Problem` instances.
+        weights: Mapping of severity label to numeric score.
+        n: Maximum number of class names to return.  ``n=0`` returns ``[]``.
+
+    Returns:
+        ``list[str]`` of at most *n* class names, descending by score,
+        alphabetical tie-break.  Empty list when ``n=0`` or *problems* is
+        empty.
+
+    Pure (no I/O, no SurrealDB).
+    """
+    if n <= 0:
+        return []
+    scores: dict[str, float] = {}
+    for p in problems:
+        if p.problem_class not in scores:
+            scores[p.problem_class] = 0.0
+        scores[p.problem_class] += weights.get(p.severity, 0.0)
+    ranked = sorted(scores.items(), key=lambda kv: (-kv[1], kv[0]))
+    return [cls for cls, _ in ranked[:n]]
