@@ -12985,3 +12985,27 @@ def class_severity_any(
         if p.severity in severity_set:
             result[cls] = True
     return result
+
+
+def fid_severity_any(
+    problems: list[Problem], severities: set[str] | list[str]
+) -> dict[str, bool]:
+    """Return whether each fid has any problem matching the given severity set.  Item 683.
+
+    Fid-axis complement of class_severity_any (item 682).
+    severities may be any iterable of severity strings (set, list, frozenset).
+    Zero-inclusive: ALL fids present in input appear in result.
+    Fids with no matching severity return False (not absent).
+    Returns {fid: bool}.  Empty -> {}.  Pure; no I/O.
+    """
+    if not problems:
+        return {}
+    severity_set = frozenset(severities)
+    result: dict[str, bool] = {}
+    for p in problems:
+        fid = p.finding_id
+        if fid not in result:
+            result[fid] = False
+        if p.severity in severity_set:
+            result[fid] = True
+    return result
