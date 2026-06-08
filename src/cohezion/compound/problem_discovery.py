@@ -14016,3 +14016,62 @@ def fid_severity_rank_kurtosis(problems: list[Problem]) -> dict[str, float]:
                 )
                 result[fid] = kurt
     return result
+
+
+def class_severity_rank_cv(problems: list[Problem]) -> dict[str, float]:
+    """Coefficient of variation (sample_std / mean) of severity ranks per class.  Item 736.
+
+    CV = sample_std / mean.  mean=0 -> 0.0.  n <= 1 -> 0.0.
+    Empty -> {}.  Pure; no I/O.
+    """
+    if not problems:
+        return {}
+    ranks_by_class: dict[str, list[int]] = {}
+    for p in problems:
+        cls = p.problem_class
+        if cls not in ranks_by_class:
+            ranks_by_class[cls] = []
+        ranks_by_class[cls].append(_SEVERITY_RANK.get(p.severity, 0))
+    result: dict[str, float] = {}
+    for cls, ranks in ranks_by_class.items():
+        n = len(ranks)
+        if n <= 1:
+            result[cls] = 0.0
+        else:
+            mean = sum(ranks) / n
+            if mean == 0.0:
+                result[cls] = 0.0
+            else:
+                sample_var = sum((r - mean) ** 2 for r in ranks) / (n - 1)
+                result[cls] = math.sqrt(sample_var) / mean
+    return result
+
+
+def fid_severity_rank_cv(problems: list[Problem]) -> dict[str, float]:
+    """Coefficient of variation (sample_std / mean) of severity ranks per fid.  Item 737.
+
+    Fid-axis complement of class_severity_rank_cv (item 736).
+    CV = sample_std / mean.  mean=0 -> 0.0.  n <= 1 -> 0.0.
+    Empty -> {}.  Pure; no I/O.
+    """
+    if not problems:
+        return {}
+    ranks_by_fid: dict[str, list[int]] = {}
+    for p in problems:
+        fid = p.finding_id
+        if fid not in ranks_by_fid:
+            ranks_by_fid[fid] = []
+        ranks_by_fid[fid].append(_SEVERITY_RANK.get(p.severity, 0))
+    result: dict[str, float] = {}
+    for fid, ranks in ranks_by_fid.items():
+        n = len(ranks)
+        if n <= 1:
+            result[fid] = 0.0
+        else:
+            mean = sum(ranks) / n
+            if mean == 0.0:
+                result[fid] = 0.0
+            else:
+                sample_var = sum((r - mean) ** 2 for r in ranks) / (n - 1)
+                result[fid] = math.sqrt(sample_var) / mean
+    return result
