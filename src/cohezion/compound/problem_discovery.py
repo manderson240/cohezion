@@ -6934,3 +6934,26 @@ def average_problems_per_class(problems: list[Problem]) -> float:
         return 0.0
     n_classes = len(frozenset(p.problem_class for p in problems))
     return len(problems) / n_classes
+
+
+def max_problems_in_any_class(problems: list[Problem]) -> int:
+    """Return the maximum record count across all classes — item 408.
+
+    Returns the highest value in the :func:`problem_class_histogram` — i.e.,
+    the record count of the most-populated class.  Returns ``0`` for empty
+    input (no :class:`ValueError` from :func:`max` on an empty sequence).
+
+    Args:
+        problems: List of :class:`Problem` instances.
+
+    Returns:
+        Integer maximum class count.  ``0`` when *problems* is empty.
+
+    Pure (no I/O, no SurrealDB).
+    """
+    if not problems:
+        return 0
+    counts: dict[str, int] = {}
+    for p in problems:
+        counts[p.problem_class] = counts.get(p.problem_class, 0) + 1
+    return max(counts.values())
