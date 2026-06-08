@@ -45,3 +45,41 @@ def test_no_stable_pattern() -> None:
     # noisy records (every decision a different lane, all fell back) → no stable pattern → None.
     noisy = [{"task_class": "RERANK", "lane": f"lane{i}", "fell_back": True} for i in range(6)]
     assert cerebellum_drift(noisy, store=store) is None
+
+
+# ── item 126: multi-class drift sweep (item-72 surfaces only the strongest class) ──
+from cohezion.governance.cerebellum_drift import cerebellum_drift_all
+
+
+def test_both_drifted_classes_reported() -> None:
+    # DISCRIMINATING: TWO classes drift; item-72 (single strongest) reports only one.
+    store = [
+        build_cerebellum_neuron("RERANK", "igpu", consistency=0.9, samples=10),
+        build_cerebellum_neuron("SUMMARIZE", "npu", consistency=0.9, samples=10),
+    ]
+    records = _records("RERANK", "cpu") + _records("SUMMARIZE", "igpu")
+    out = cerebellum_drift_all(records, store=store)
+    assert out == [("RERANK", "igpu", "cpu"), ("SUMMARIZE", "npu", "igpu")]
+
+
+def test_only_drifted_class_reported() -> None:
+    store = [
+        build_cerebellum_neuron("RERANK", "igpu", consistency=0.9, samples=10),
+        build_cerebellum_neuron("SUMMARIZE", "igpu", consistency=0.9, samples=10),
+    ]
+    # RERANK drifts to cpu; SUMMARIZE stays on igpu → only RERANK reported.
+    records = _records("RERANK", "cpu") + _records("SUMMARIZE", "igpu")
+    assert cerebellum_drift_all(records, store=store) == [("RERANK", "igpu", "cpu")]
+
+
+def test_novel_class_excluded_from_sweep() -> None:
+    # RERANK drifts; SUMMARIZE has NO stored neuron (novel) → excluded.
+    store = [build_cerebellum_neuron("RERANK", "igpu", consistency=0.9, samples=10)]
+    records = _records("RERANK", "cpu") + _records("SUMMARIZE", "igpu")
+    assert cerebellum_drift_all(records, store=store) == [("RERANK", "igpu", "cpu")]
+
+
+def test_no_stable_class_sweep_empty() -> None:
+    store = [build_cerebellum_neuron("RERANK", "igpu", consistency=0.9, samples=10)]
+    # 1 sample < min_samples → no stable pattern → []
+    assert cerebellum_drift_all([{"task_class": "RERANK", "lane": "cpu"}], store=store) == []

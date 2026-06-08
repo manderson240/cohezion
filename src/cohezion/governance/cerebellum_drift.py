@@ -61,3 +61,38 @@ def cerebellum_drift(
     if old_lane is None or old_lane == new_lane:
         return None  # unparseable or unchanged → no drift
     return (task_class, old_lane, new_lane)
+
+
+def cerebellum_drift_all(
+    records: list[dict],
+    *,
+    store: list[dict] | None = None,
+    min_samples: int = 5,
+    min_consistency: float = 0.8,
+) -> list[tuple[str, str, str]]:
+    """Multi-class cerebellum drift sweep (item 126) — composes per-class :func:`cerebellum_drift`.
+
+    item-72 :func:`cerebellum_drift` surfaces only the SINGLE strongest stabilized pattern, so a
+    drift in a secondary task_class is invisible to it. A real fleet stabilizes MANY classes; this
+    groups ``records`` by task_class and runs the per-class drift check on each, returning EVERY
+    stabilized task_class whose current lane contradicts its stored cerebellum neuron (a class with
+    no stored neuron is NOVEL, not drift, and excluded). Returns ``(task_class, old_lane, new_lane)``
+    tuples sorted by task_class. Report-only, pure given ``store``.
+    """
+    by_class: dict[str, list[dict]] = {}
+    for rec in records:
+        task_class = rec.get("task_class")
+        if task_class is not None:
+            by_class.setdefault(str(task_class), []).append(rec)
+
+    drifts: list[tuple[str, str, str]] = []
+    for class_records in by_class.values():
+        drift = cerebellum_drift(
+            class_records,
+            store=store,
+            min_samples=min_samples,
+            min_consistency=min_consistency,
+        )
+        if drift is not None:
+            drifts.append(drift)
+    return sorted(drifts, key=lambda d: d[0])
