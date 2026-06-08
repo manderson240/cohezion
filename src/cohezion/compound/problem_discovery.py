@@ -10427,8 +10427,8 @@ def class_score_min(
         return 0.0
     class_totals: dict[str, float] = {}
     for p in problems:
-        class_totals[p.problem_class] = (
-            class_totals.get(p.problem_class, 0.0) + weights.get(p.severity, 0.0)
+        class_totals[p.problem_class] = class_totals.get(p.problem_class, 0.0) + weights.get(
+            p.severity, 0.0
         )
     return float(min(class_totals.values()))
 
@@ -10447,7 +10447,21 @@ def fid_score_min(
         return 0.0
     fid_totals: dict[str, float] = {}
     for p in problems:
-        fid_totals[p.finding_id] = (
-            fid_totals.get(p.finding_id, 0.0) + weights.get(p.severity, 0.0)
-        )
+        fid_totals[p.finding_id] = fid_totals.get(p.finding_id, 0.0) + weights.get(p.severity, 0.0)
     return float(min(fid_totals.values()))
+
+
+def class_problem_count(
+    problems: list[Problem],
+) -> dict[str, int]:
+    """Return a {class_name: count} mapping of problem counts per class.  Item 551.
+
+    Unweighted -- counts problems, ignores severity.
+    Empty -> {}.  Pure; no I/O.
+    """
+    if not problems:
+        return {}
+    counts: dict[str, int] = {}
+    for p in problems:
+        counts[p.problem_class] = counts.get(p.problem_class, 0) + 1
+    return counts
