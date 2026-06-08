@@ -13347,3 +13347,23 @@ def class_severity_above_threshold(problems: list[Problem], threshold: int) -> d
         if _SEVERITY_RANK.get(p.severity, 0) > threshold:
             result[cls] += 1
     return result
+
+
+def fid_severity_above_threshold(problems: list[Problem], threshold: int) -> dict[str, int]:
+    """Count problems per fid whose severity rank strictly exceeds threshold.  Item 705.
+
+    Fid-axis complement of class_severity_above_threshold (item 704).
+    Threshold is exclusive (strictly > threshold).
+    Zero-inclusive: fids with no above-threshold problems appear with count 0.
+    Returns {fid: count_above}.  Empty -> {}.  Pure; no I/O.
+    """
+    if not problems:
+        return {}
+    result: dict[str, int] = {}
+    for p in problems:
+        fid = p.finding_id
+        if fid not in result:
+            result[fid] = 0
+        if _SEVERITY_RANK.get(p.severity, 0) > threshold:
+            result[fid] += 1
+    return result
