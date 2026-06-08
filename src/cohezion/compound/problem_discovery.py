@@ -9486,3 +9486,33 @@ def bottom_class_by_score(
     min_score = min(class_totals.values())
     # Among classes tied at min_score, return alphabetically first
     return min(cls for cls, score in class_totals.items() if score == min_score)
+
+
+def classes_tied_at_score(
+    problems: list[Problem],
+    weights: dict[str, float],
+    target_score: float,
+) -> frozenset[str]:
+    """Return frozenset of class names whose total weighted score equals target_score exactly.
+
+    Float equality is used (no epsilon).  Empty input or no match -> frozenset().
+
+    Args:
+        problems: List of :class:`Problem` instances.
+        weights: Mapping of severity label to numeric score.
+        target_score: The exact total score to match against.
+
+    Returns:
+        ``frozenset[str]`` of class names whose accumulated score equals
+        ``target_score``.  Empty frozenset when no class matches or input is empty.
+
+    Pure (no I/O, no SurrealDB).  Item 513.
+    """
+    if not problems:
+        return frozenset()
+    class_totals: dict[str, float] = {}
+    for p in problems:
+        class_totals[p.problem_class] = (
+            class_totals.get(p.problem_class, 0.0) + weights.get(p.severity, 0.0)
+        )
+    return frozenset(cls for cls, score in class_totals.items() if score == target_score)
