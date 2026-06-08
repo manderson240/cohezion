@@ -8025,3 +8025,37 @@ def severity_z_score(problems: list[Problem], severity: str) -> float:
     if stdev == 0.0:
         return 0.0
     return (counts[severity] - mean) / stdev
+
+
+def severity_iqr(problems: list[Problem]) -> float:
+    """Return the interquartile range of severity counts -- item 457.
+
+    Computes Q3 - Q1 over the sorted list of per-severity record counts.
+    Uses the inclusive (Tukey hinges / median-of-halves) quartile method
+    via :func:`statistics.quantiles`.
+
+    Special cases:
+    - Empty *problems* → ``0.0``
+    - Single distinct severity → ``0.0`` (no spread)
+    - All severities with equal counts → ``0.0`` (Q1 == Q3)
+
+    Args:
+        problems: List of :class:`Problem` instances.
+
+    Returns:
+        Non-negative float.  ``Q3 - Q1`` of the severity count distribution.
+
+    Pure (no I/O, no SurrealDB).
+    """
+    import statistics
+
+    if not problems:
+        return 0.0
+    counts: dict[str, int] = {}
+    for p in problems:
+        counts[p.severity] = counts.get(p.severity, 0) + 1
+    if len(counts) <= 1:
+        return 0.0
+    sorted_counts = sorted(counts.values())
+    quartiles = statistics.quantiles(sorted_counts, n=4, method="inclusive")
+    return float(quartiles[2] - quartiles[0])
