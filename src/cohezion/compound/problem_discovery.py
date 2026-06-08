@@ -10290,3 +10290,33 @@ def class_score_entropy(
             p = v / total
             entropy -= p * _math.log2(p)
     return float(entropy)
+
+
+def fid_score_entropy(
+    problems: list[Problem],
+    weights: dict[str, float],
+) -> float:
+    """Return Shannon entropy (bits) of the fid total score distribution.  Item 544.
+
+    H = -sum(p_i * log2(p_i)) where p_i = fid_total_i / sum(fid_totals).
+    0.0 for empty, single fid, or zero total.  Max when all fid totals equal.
+    Pure; no I/O.
+    """
+    import math as _math
+
+    if not problems:
+        return 0.0
+    fid_totals: dict[str, float] = {}
+    for p in problems:
+        fid_totals[p.finding_id] = fid_totals.get(p.finding_id, 0.0) + weights.get(p.severity, 0.0)
+    if len(fid_totals) < 2:
+        return 0.0
+    total = sum(fid_totals.values())
+    if total == 0.0:
+        return 0.0
+    entropy = 0.0
+    for v in fid_totals.values():
+        if v > 0.0:
+            p = v / total
+            entropy -= p * _math.log2(p)
+    return float(entropy)
