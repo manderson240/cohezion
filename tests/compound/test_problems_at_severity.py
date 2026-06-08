@@ -1,23 +1,24 @@
-"""Item 277: problems_at_severity() — all problems with exact severity across all classes (2026-06-08).
+"""Item 277: problems_at_severity() — all problems with a given severity (2026-06-08).
 
 ``problems_at_severity(problems: list[Problem], severity: str) -> list[Problem]``:
-Returns all problems whose severity exactly equals *severity* (case-sensitive),
-preserving input order.  Empty input or absent severity → [].  Pure; no I/O.
+Returns all Problem instances in problems where p.severity == severity (exact,
+case-sensitive). Preserves input order. Empty input or absent severity -> [].
+severity="" returns only unlabelled problems. Pure; no I/O.
 
 Discriminating tests — each kills a plausible wrong implementation:
 
-  1. PRIMARY DISC.: filters to EXACT severity string (case-sensitive).
-     Kills impl doing case-insensitive match (e.g. "HIGH" == "high").
-  2. Cross-class: returns problems from ALL classes, not just the first.
-     Kills impl that stops after finding a matching class.
-  3. severity="" returns unlabelled problems only (not all non-empty).
-     Kills impl returning all problems with any non-empty severity when
-     severity="" is passed (i.e. `if p.severity` instead of `== severity`).
-  4. Preserves input order.
-     Kills impl that sorts or de-duplicates the output.
-  5. Returns list[Problem] not a count.
-     Kills impl returning int or frozenset.
+  1. PRIMARY DISC.: match is EXACT and CASE-SENSITIVE ("HIGH" \!= "high").
+     Kills impl doing case-insensitive comparison.
+  2. Preserves input order among returned problems.
+     Kills impl that sorts or reverses the result.
+  3. Empty input -> [] without raising.
+     Kills impl that raises on empty input.
+  4. severity="" returns ONLY unlabelled problems (not all problems).
+     Kills impl treating severity="" as "no filter applied".
+  5. Return type is list[Problem], not a count.
+     Kills impl returning int.
 """
+
 from __future__ import annotations
 
 from cohezion.compound.problem_discovery import (
@@ -31,8 +32,12 @@ from cohezion.compound.problem_discovery import (
 # ---------------------------------------------------------------------------
 
 
-def _p(cls: str, idx: int, sev: str = "") -> Problem:
+def _ps(cls: str, idx: int, sev: str) -> Problem:
     return Problem(problem_class=cls, finding_id=f"{cls}:{idx}", severity=sev)
+
+
+def _p(cls: str, idx: int) -> Problem:
+    return Problem(problem_class=cls, finding_id=f"{cls}:{idx}")
 
 
 # ---------------------------------------------------------------------------
@@ -40,82 +45,67 @@ def _p(cls: str, idx: int, sev: str = "") -> Problem:
 # ---------------------------------------------------------------------------
 
 
-def test_exact_case_sensitive_match() -> None:
-    """Filter is exact and case-sensitive.
+def test_match_is_case_sensitive() -> None:
+    """Match is EXACT and CASE-SENSITIVE: 'HIGH' \!= 'high'.
 
-    PRIMARY DISCRIMINATOR: kills impl doing case-insensitive match.
-    Input has 'HIGH', 'high', 'High'. Only 'HIGH' must match severity='HIGH'.
+    PRIMARY DISCRIMINATOR: kills impl doing case-insensitive comparison.
     """
-    problems = [
-        _p("alpha", 0, "HIGH"),
-        _p("alpha", 1, "high"),
-        _p("alpha", 2, "High"),
-        _p("alpha", 3, "LOW"),
-    ]
+    problems = [_ps("alpha", 0, "HIGH"), _ps("alpha", 1, "high")]
     result = problems_at_severity(problems, "HIGH")
-    assert len(result) == 1, (
-        "Only 'HIGH' (exact) must match; got " + repr([p.finding_id for p in result])
+    assert len(result) == 1, "Only 'HIGH' (uppercase) matches; got " + str(len(result))
+    assert result[0].finding_id == "alpha:0", (
+        "Matched wrong problem; got " + repr(result[0].finding_id)
     )
-    assert result[0].finding_id == "alpha:0"
-
-
-def test_returns_problems_from_all_classes() -> None:
-    """Returns matching problems from ALL classes, not just the first.
-
-    Kills impl that stops after finding a matching class.
-    """
-    problems = [
-        _p("alpha", 0, "HIGH"),
-        _p("beta", 0, "LOW"),
-        _p("gamma", 0, "HIGH"),
-    ]
-    result = problems_at_severity(problems, "HIGH")
-    finding_ids = [p.finding_id for p in result]
-    assert "alpha:0" in finding_ids, "alpha:HIGH must be included"
-    assert "gamma:0" in finding_ids, "gamma:HIGH must be included"
-    assert "beta:0" not in finding_ids, "beta:LOW must not be included"
-
-
-def test_empty_severity_returns_unlabelled_only() -> None:
-    """severity='' returns unlabelled problems only.
-
-    Kills impl returning all problems when severity='' is passed
-    (i.e. using `if p.severity` which excludes '' rather than ==).
-    """
-    problems = [
-        _p("alpha", 0),               # severity=""
-        _p("alpha", 1, "HIGH"),
-        _p("beta", 0),                 # severity=""
-    ]
-    result = problems_at_severity(problems, "")
-    finding_ids = {p.finding_id for p in result}
-    assert "alpha:0" in finding_ids, "Unlabelled alpha:0 must be returned"
-    assert "beta:0" in finding_ids, "Unlabelled beta:0 must be returned"
-    assert "alpha:1" not in finding_ids, "HIGH-labelled alpha:1 must not be returned"
 
 
 def test_preserves_input_order() -> None:
-    """Output preserves the original input order.
+    """Result preserves the same order as the input list.
 
-    Kills impl that sorts or reorders the output.
+    Kills impl that sorts or reverses the result.
     """
     problems = [
-        _p("beta", 0, "HIGH"),
-        _p("alpha", 0, "HIGH"),
-        _p("gamma", 0, "HIGH"),
+        _ps("gamma", 2, "HIGH"),
+        _ps("alpha", 0, "HIGH"),
+        _ps("beta", 1, "HIGH"),
     ]
     result = problems_at_severity(problems, "HIGH")
-    assert [p.finding_id for p in result] == ["beta:0", "alpha:0", "gamma:0"], (
-        "Order must be preserved; got " + repr([p.finding_id for p in result])
+    ids = [p.finding_id for p in result]
+    assert ids == ["gamma:2", "alpha:0", "beta:1"], (
+        "Order must match input; got " + repr(ids)
     )
 
 
-def test_returns_list_of_problems() -> None:
+def test_empty_input_returns_empty_list() -> None:
+    """Empty input -> [] without raising.
+
+    Kills impl that raises on empty input.
+    """
+    result = problems_at_severity([], "HIGH")
+    assert result == [], "Empty input -> []; got " + repr(result)
+
+
+def test_empty_severity_returns_only_unlabelled() -> None:
+    """severity='' returns ONLY unlabelled problems, not all problems.
+
+    Kills impl treating severity='' as 'return all'.
+    """
+    problems = [
+        _ps("alpha", 0, "HIGH"),
+        _p("beta", 1),          # severity="" (unlabelled)
+        _ps("gamma", 2, "LOW"),
+        _p("delta", 3),         # severity="" (unlabelled)
+    ]
+    result = problems_at_severity(problems, "")
+    assert len(result) == 2, "Only 2 unlabelled problems; got " + str(len(result))
+    assert all(p.severity == "" for p in result), "All returned must be unlabelled"
+
+
+def test_return_type_is_list_of_problems() -> None:
     """Return type is list[Problem], not int or frozenset.
 
-    Kills impl returning a count or set.
+    Kills impl returning a count.
     """
-    problems = [_p("alpha", 0, "HIGH"), _p("alpha", 1, "LOW")]
+    problems = [_ps("alpha", 0, "HIGH")]
     result = problems_at_severity(problems, "HIGH")
     assert isinstance(result, list), "Must return list; got " + repr(type(result))
-    assert all(isinstance(p, Problem) for p in result), "List must contain Problem instances"
+    assert all(isinstance(p, Problem) for p in result), "Elements must be Problem instances"
