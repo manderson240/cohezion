@@ -51,10 +51,10 @@ def test_maximises_entropy_not_count() -> None:
     alpha: 100 CRITICAL (H=0). beta: 1 HIGH + 1 LOW (H=1.0).
     beta has fewer problems but higher entropy → beta wins.
     """
-    problems = (
-        [_ps("alpha", i, "CRITICAL") for i in range(100)]
-        + [_ps("beta", 0, "HIGH"), _ps("beta", 1, "LOW")]
-    )
+    problems = [_ps("alpha", i, "CRITICAL") for i in range(100)] + [
+        _ps("beta", 0, "HIGH"),
+        _ps("beta", 1, "LOW"),
+    ]
     result = highest_entropy_class(problems)
     assert result == "beta", (
         "beta H=1.0 > alpha H=0.0; beta wins despite fewer problems; got " + repr(result)
@@ -66,15 +66,11 @@ def test_none_when_all_classes_mono_severity() -> None:
 
     Kills impl that returns the class with the most problems.
     """
-    problems = [
-        _ps("alpha", i, "CRITICAL") for i in range(5)
-    ] + [
+    problems = [_ps("alpha", i, "CRITICAL") for i in range(5)] + [
         _ps("beta", i, "HIGH") for i in range(3)
     ]
     result = highest_entropy_class(problems)
-    assert result is None, (
-        "All classes mono-severity → H=0 → None; got " + repr(result)
-    )
+    assert result is None, "All classes mono-severity → H=0 → None; got " + repr(result)
 
 
 def test_tie_break_alphabetically_ascending() -> None:
@@ -83,8 +79,10 @@ def test_tie_break_alphabetically_ascending() -> None:
     gamma and alpha both have equal HIGH/LOW (H=1.0) → alpha wins.
     """
     problems = [
-        _ps("gamma", 0, "HIGH"), _ps("gamma", 1, "LOW"),
-        _ps("alpha", 0, "HIGH"), _ps("alpha", 1, "LOW"),
+        _ps("gamma", 0, "HIGH"),
+        _ps("gamma", 1, "LOW"),
+        _ps("alpha", 0, "HIGH"),
+        _ps("alpha", 1, "LOW"),
     ]
     result = highest_entropy_class(problems)
     assert result == "alpha", "alpha < gamma → alpha wins on tie; got " + repr(result)
