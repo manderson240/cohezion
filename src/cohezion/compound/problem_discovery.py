@@ -7805,9 +7805,7 @@ def severity_pair_exclusive_fids(
     return fids_a - fids_b
 
 
-def severity_fid_jaccard(
-    problems: list[Problem], severity_a: str, severity_b: str
-) -> float:
+def severity_fid_jaccard(problems: list[Problem], severity_a: str, severity_b: str) -> float:
     """Return the Jaccard similarity between severity_a and severity_b fid sets -- item 446.
 
     Computes ``|fids_a ∩ fids_b| / |fids_a ∪ fids_b|`` where each fids_x is
@@ -7952,3 +7950,39 @@ def severity_rank(problems: list[Problem], severity: str) -> int:
     my_count = counts[severity]
     distinct_higher = len({c for c in counts.values() if c > my_count})
     return distinct_higher + 1
+
+
+def severity_percentile(problems: list[Problem], severity: str) -> float:
+    """Return the percentile rank of *severity* in the count distribution -- item 455.
+
+    Uses the formula ``100.0 * (n - rank) / (n - 1)`` where ``n`` is the
+    number of distinct severities and ``rank`` is the 1-based dense rank
+    (most common = rank 1).  Special cases:
+
+    - Empty *problems* or absent *severity* → ``0.0``
+    - Single distinct severity → ``100.0`` (trivially the most common)
+
+    Args:
+        problems: List of :class:`Problem` instances.
+        severity: The severity value whose percentile to compute.
+
+    Returns:
+        Float in ``[0.0, 100.0]``.  ``100.0`` for the most common severity;
+        ``0.0`` for the rarest or when absent/empty.
+
+    Pure (no I/O, no SurrealDB).
+    """
+    if not problems:
+        return 0.0
+    counts: dict[str, int] = {}
+    for p in problems:
+        counts[p.severity] = counts.get(p.severity, 0) + 1
+    if severity not in counts:
+        return 0.0
+    n = len(counts)
+    if n == 1:
+        return 100.0
+    my_count = counts[severity]
+    distinct_higher = len({c for c in counts.values() if c > my_count})
+    rank = distinct_higher + 1
+    return 100.0 * (n - rank) / (n - 1)
