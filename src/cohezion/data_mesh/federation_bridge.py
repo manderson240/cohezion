@@ -18,12 +18,15 @@ Owner agent: ``surreal-dba`` (its card's ``canonical_modules`` include
 
 from __future__ import annotations
 
+from collections.abc import Callable
+
 from cohezion.data_mesh.data_product import (
     DataProduct,
     DataQualityTier,
     get_cohezion_data_products,
 )
 from cohezion.datamesh.federation import DomainEndpoint, FederationLayer
+from cohezion.datamesh.query import DatameshQuery
 
 
 # Lower number = higher federation priority (matches FederationLayer semantics).
@@ -42,11 +45,17 @@ def _domain_priority(products: list[DataProduct]) -> int:
 def register_data_products(
     federation: FederationLayer | None = None,
     products: dict[str, DataProduct] | None = None,
+    *,
+    query_factory: Callable[[str], DatameshQuery] | None = None,
 ) -> FederationLayer:
     """Register each DataProduct ``owner_domain`` as a federated ``DomainEndpoint``.
 
     Priority is derived from the domain's best quality tier, so the federation's
-    failover/routing honors data-product quality.
+    failover/routing honors data-product quality. Each domain is also given a
+    ``DatameshQuery`` interface so the federation can route unified queries to it
+    (``federation.get_query(domain)``) — wiring the dormant query layer to the
+    canonical products. The default query is backendless ($0, returns empty until
+    backends are injected); pass ``query_factory`` to supply backend-wired queries.
 
     Parameters
     ----------
@@ -54,6 +63,8 @@ def register_data_products(
         Target layer (a fresh :class:`FederationLayer` if omitted).
     products:
         Products to federate (the live :func:`get_cohezion_data_products` if omitted).
+    query_factory:
+        Optional ``domain -> DatameshQuery`` builder for backend-wired queries.
 
     Returns
     -------
@@ -68,5 +79,8 @@ def register_data_products(
         by_domain.setdefault(product.owner_domain, []).append(product)
 
     for domain, prods in sorted(by_domain.items()):
-        federation.register_domain(DomainEndpoint(name=domain, priority=_domain_priority(prods)))
+        query = query_factory(domain) if query_factory else DatameshQuery()
+        federation.register_domain(
+            DomainEndpoint(name=domain, priority=_domain_priority(prods), query=query)
+        )
     return federation

@@ -45,3 +45,28 @@ class TestFederationBridge:
         assert set(fed.list_domains()) == {"alpha", "beta"}
         assert fed.endpoint("alpha").priority == 1  # GOLD
         assert fed.endpoint("beta").priority == 3  # BRONZE
+
+    def test_each_domain_has_a_query_interface(self):
+        # Every federated domain is routable for unified queries (dormant query layer wired).
+        fed = register_data_products()
+        for domain in fed.list_domains():
+            assert fed.get_query(domain) is not None
+
+    def test_query_factory_is_used(self):
+        # DISCRIMINATING: an impl ignoring query_factory would attach a default query,
+        # not the injected sentinel.
+        from cohezion.datamesh.query import DatameshQuery
+
+        seen = []
+
+        def factory(domain):
+            seen.append(domain)
+            q = DatameshQuery()
+            q._injected_for = domain  # tag so we can assert the SAME object was attached
+            return q
+
+        fed = register_data_products(query_factory=factory)
+        domains = fed.list_domains()
+        assert set(seen) == set(domains)  # factory called once per domain
+        for domain in domains:
+            assert getattr(fed.get_query(domain), "_injected_for", None) == domain
