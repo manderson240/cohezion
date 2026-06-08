@@ -10563,3 +10563,21 @@ def fid_max_severity_weight(
         if p.finding_id not in fid_maxes or w > fid_maxes[p.finding_id]:
             fid_maxes[p.finding_id] = w
     return fid_maxes
+
+
+def class_fid_count(
+    problems: list[Problem],
+) -> dict[str, int]:
+    """Return count of distinct finding_ids per class.  Item 558.
+
+    Breadth indicator: classes with many fids have broad problem coverage.
+    Unweighted -- ignores severity.  Empty -> {}.  Pure; no I/O.
+    """
+    if not problems:
+        return {}
+    fids: dict[str, set[str]] = {}
+    for p in problems:
+        if p.problem_class not in fids:
+            fids[p.problem_class] = set()
+        fids[p.problem_class].add(p.finding_id)
+    return {cls: len(fid_set) for cls, fid_set in fids.items()}
