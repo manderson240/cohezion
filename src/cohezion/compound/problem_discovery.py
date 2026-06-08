@@ -4378,3 +4378,46 @@ def scan_diff_summary(
         "new_classes": new_classes,
         "disappeared_classes": disappeared_classes,
     }
+
+
+def severity_delta_per_class(
+    scan_a: list[Problem],
+    scan_b: list[Problem],
+) -> dict[str, dict[str, int]]:
+    """Return per-class, per-severity count deltas between two scans.
+
+    For every ``(class, severity)`` pair that exists in either scan with a
+    non-zero delta, returns ``count_b - count_a``.  Pairs with zero delta are
+    omitted (no change = not interesting in a diff context).  Problems with an
+    empty severity label are ignored.
+
+    Args:
+        scan_a: Problems from the baseline scan.
+        scan_b: Problems from the comparison scan.
+
+    Returns:
+        Nested dict ``{class_name: {severity: delta}}``.  Only classes with at
+        least one non-zero severity delta have an entry.  Returns ``{}`` when
+        both scans are empty.
+
+    Pure (no I/O, no SurrealDB).
+    """
+    # Build per-(class, severity) counts for each scan, ignoring unlabelled.
+    def _counts(scan: list[Problem]) -> dict[tuple[str, str], int]:
+        c: dict[tuple[str, str], int] = {}
+        for p in scan:
+            if p.severity:
+                key = (p.problem_class, p.severity)
+                c[key] = c.get(key, 0) + 1
+        return c
+
+    counts_a = _counts(scan_a)
+    counts_b = _counts(scan_b)
+    all_keys = set(counts_a) | set(counts_b)
+
+    result: dict[str, dict[str, int]] = {}
+    for cls, sev in all_keys:
+        delta = counts_b.get((cls, sev), 0) - counts_a.get((cls, sev), 0)
+        if delta != 0:
+            result.setdefault(cls, {})[sev] = delta
+    return result
