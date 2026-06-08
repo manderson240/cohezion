@@ -14504,3 +14504,37 @@ def fid_severity_rank_minority_ratio(problems: list[Problem]) -> dict[str, float
         majority_rank = min(r for r, c in counts.items() if c == max_count)
         result[fid] = float(n - counts[majority_rank]) / n
     return result
+
+
+def class_severity_rank_unique_count(problems: list[Problem]) -> dict[str, int]:
+    """Number of distinct severity ranks per class.  Item 755.
+
+    Counts how many of the _SEVERITY_RANK values are represented in each class.
+    All-same -> 1.  n=1 -> 1.  Empty -> {}.  Pure; no I/O.
+    """
+    if not problems:
+        return {}
+    ranks_by_class: dict[str, set[int]] = {}
+    for p in problems:
+        cls = p.problem_class
+        if cls not in ranks_by_class:
+            ranks_by_class[cls] = set()
+        ranks_by_class[cls].add(_SEVERITY_RANK.get(p.severity, 0))
+    return {cls: len(ranks) for cls, ranks in ranks_by_class.items()}
+
+
+def fid_severity_rank_unique_count(problems: list[Problem]) -> dict[str, int]:
+    """Number of distinct severity ranks per fid.  Item 756.
+
+    Fid-axis complement of class_severity_rank_unique_count (item 755).
+    All-same -> 1.  Empty -> {}.  Pure; no I/O.
+    """
+    if not problems:
+        return {}
+    ranks_by_fid: dict[str, set[int]] = {}
+    for p in problems:
+        fid = p.finding_id
+        if fid not in ranks_by_fid:
+            ranks_by_fid[fid] = set()
+        ranks_by_fid[fid].add(_SEVERITY_RANK.get(p.severity, 0))
+    return {fid: len(ranks) for fid, ranks in ranks_by_fid.items()}
