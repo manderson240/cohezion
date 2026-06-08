@@ -5919,3 +5919,37 @@ def deduplicate_exact_problems(problems: list[Problem]) -> list[Problem]:
             seen.add(p)
             result.append(p)
     return result
+
+
+# ---------------------------------------------------------------------------
+# Item 363 — group_problems_by_severity (2026-06-08)
+# ---------------------------------------------------------------------------
+
+
+def group_problems_by_severity(
+    problems: list["Problem"],
+) -> dict[str, list["Problem"]]:
+    """Group all problems by severity, including unlabelled under key ''.
+
+    ``group_problems_by_severity(problems) -> dict[str, list[Problem]]``:
+    Returns a :class:`dict` mapping each distinct ``severity`` value to a
+    list of :class:`Problem` objects with that severity.  Unlabelled problems
+    (``severity == ''``) are mapped under key ``''`` — they are NOT dropped.
+    All problems are covered: the union of all values equals *problems*.
+    Original order preserved within each group.
+    Empty input → {}.  Pure (no I/O, no SurrealDB).
+
+    Mirror of :func:`group_problems_by_class` on the severity axis.
+
+    Args:
+        problems: Flat list of :class:`Problem` records.
+
+    Returns:
+        dict mapping severity (including ``''``) to ordered list of Problems.
+
+    Pure (no I/O, no SurrealDB).
+    """
+    result: dict[str, list["Problem"]] = {}
+    for p in problems:
+        result.setdefault(p.severity, []).append(p)
+    return result
