@@ -943,6 +943,26 @@ def exclude_problems(
     return [p for p in problems if p.finding_id not in exclude_ids]
 
 
+def finding_ids(problems: list[Problem]) -> list[str]:
+    """Return finding_id values in insertion order — item 189.
+
+    Named accessor that avoids inline comprehensions at call sites::
+
+        frozenset(finding_ids(actioned))  # vs frozenset(p.finding_id for p in actioned)
+
+    Args:
+        problems:
+            A list of :class:`Problem` instances.  Empty list → ``[]``.
+
+    Returns:
+        A list of ``finding_id`` strings in the same order as *problems*.
+        Duplicates are preserved (no deduplication).
+
+    Pure (no I/O, no SurrealDB).
+    """
+    return [p.finding_id for p in problems]
+
+
 def default_template_classes() -> frozenset[str]:
     """Return the exact set of ``problem_class`` names in :func:`default_templates` — item 158.
 
