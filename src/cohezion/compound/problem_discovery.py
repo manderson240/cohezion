@@ -5412,3 +5412,22 @@ def severity_class_matrix(problems: list["Problem"]) -> dict[str, dict[str, int]
             inner = result.setdefault(p.severity, {})
             inner[p.problem_class] = inner.get(p.problem_class, 0) + 1
     return result
+
+
+def labelled_problems(problems: list["Problem"]) -> list["Problem"]:
+    """Return only Problem records that have a non-empty severity label.
+
+    Complement of the unlabelled filter: where unlabelled returns records with
+    ``severity == ''``, this returns records with ``severity != ''``.
+
+    Args:
+        problems: Flat list of :class:`Problem` records.
+
+    Returns:
+        New list of :class:`Problem` objects in original order whose
+        ``severity`` is not empty.  ``[]`` when *problems* is empty or all
+        records are unlabelled.
+
+    Pure (no I/O, no SurrealDB).
+    """
+    return [p for p in problems if p.severity]
