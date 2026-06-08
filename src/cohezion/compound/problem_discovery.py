@@ -6688,3 +6688,28 @@ def most_common_problem_class(problems: list[Problem]) -> str | None:
     for p in problems:
         counts[p.problem_class] = counts.get(p.problem_class, 0) + 1
     return min(counts, key=lambda cls: (-counts[cls], cls))
+
+
+def problems_by_class(problems: list[Problem]) -> dict[str, list[Problem]]:
+    """Group Problem records into a dict keyed by problem_class — item 394.
+
+    Returns a mapping from each distinct :attr:`Problem.problem_class` to the
+    list of :class:`Problem` records in that class.  Input order within each
+    class list is preserved.  The original :class:`Problem` objects are
+    referenced directly (no copies).
+
+    Args:
+        problems: List of :class:`Problem` instances.  Empty → ``{}``.
+
+    Returns:
+        ``dict[str, list[Problem]]`` — ``{class_name: [Problem, ...]}`` for
+        every distinct class.  Empty when *problems* is empty.
+
+    Pure (no I/O, no SurrealDB).
+    """
+    if not problems:
+        return {}
+    result: dict[str, list[Problem]] = {}
+    for p in problems:
+        result.setdefault(p.problem_class, []).append(p)
+    return result
