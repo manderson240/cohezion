@@ -6537,3 +6537,38 @@ def finding_ids_shared_across_classes(problems: list[Problem]) -> frozenset[str]
         return frozenset()
     index = finding_id_to_classes(problems)
     return frozenset(fid for fid, classes in index.items() if len(classes) >= 2)
+
+
+# ---------------------------------------------------------------------------
+# Item 387 — classes_with_shared_finding_ids
+# ---------------------------------------------------------------------------
+
+
+def classes_with_shared_finding_ids(problems: list["Problem"]) -> frozenset[str]:
+    """Return class names that own at least one cross-class finding_id — item 387.
+
+    Dual of :func:`finding_ids_shared_across_classes`.  A class is included
+    when ANY of its finding_ids also appears in a different class.  Classes
+    whose finding_ids are all unique to that class are excluded.
+
+    Args:
+        problems: List of :class:`Problem` instances.
+
+    Returns:
+        :class:`frozenset` of ``problem_class`` strings.  Empty when
+        *problems* is empty or no finding_id spans more than one class.
+
+    Pure (no I/O, no SurrealDB).
+    """
+    if not problems:
+        return frozenset()
+    # finding_id → set of classes that have it
+    fid_to_classes: dict[str, set[str]] = {}
+    for p in problems:
+        fid_to_classes.setdefault(p.finding_id, set()).add(p.problem_class)
+    # collect all class names from shared finding_ids
+    result: set[str] = set()
+    for classes in fid_to_classes.values():
+        if len(classes) >= 2:
+            result.update(classes)
+    return frozenset(result)
