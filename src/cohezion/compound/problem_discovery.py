@@ -11299,3 +11299,26 @@ def fid_class_ratio(problems: list[Problem]) -> dict[str, float]:
             classes[p.finding_id] = set()
         classes[p.finding_id].add(p.problem_class)
     return {fid: float(len(classes[fid])) / totals[fid] for fid in totals}
+
+
+def class_top_severity(problems: list[Problem]) -> dict[str, str]:
+    """Return the dominant severity label per class.  Item 596.
+
+    Returns {class: dominant_severity_label} where dominant = the severity with
+    the highest count for that class.  Ties are broken by alphabetically descending
+    label name (e.g. 'LOW' > 'HIGH' because 'L' > 'H'; 'MEDIUM' > 'HIGH').
+    Empty -> {}.  Pure; no I/O.
+    """
+    if not problems:
+        return {}
+    counts: dict[str, dict[str, int]] = {}
+    for p in problems:
+        if p.problem_class not in counts:
+            counts[p.problem_class] = {}
+        sev = p.severity or ""
+        counts[p.problem_class][sev] = counts[p.problem_class].get(sev, 0) + 1
+    result: dict[str, str] = {}
+    for cls, sev_counts in counts.items():
+        # max by count, tie-break by descending label name
+        result[cls] = max(sev_counts, key=lambda s: (sev_counts[s], s))
+    return result
