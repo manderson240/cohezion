@@ -12444,10 +12444,7 @@ def class_severity_critical_rate(problems: list[Problem]) -> dict[str, float]:
         totals[p.problem_class] = totals.get(p.problem_class, 0) + 1
         if (p.severity or "").upper() == "CRITICAL":
             criticals[p.problem_class] = criticals.get(p.problem_class, 0) + 1
-    return {
-        cls: float(criticals.get(cls, 0)) / totals[cls]
-        for cls in totals
-    }
+    return {cls: float(criticals.get(cls, 0)) / totals[cls] for cls in totals}
 
 
 def fid_severity_critical_rate(problems: list[Problem]) -> dict[str, float]:
@@ -12465,10 +12462,7 @@ def fid_severity_critical_rate(problems: list[Problem]) -> dict[str, float]:
         totals[p.finding_id] = totals.get(p.finding_id, 0) + 1
         if (p.severity or "").upper() == "CRITICAL":
             criticals[p.finding_id] = criticals.get(p.finding_id, 0) + 1
-    return {
-        fid: float(criticals.get(fid, 0)) / totals[fid]
-        for fid in totals
-    }
+    return {fid: float(criticals.get(fid, 0)) / totals[fid] for fid in totals}
 
 
 def class_severity_spread(problems: list[Problem]) -> dict[str, int]:
@@ -12518,10 +12512,7 @@ def class_sev_high_rate(problems: list[Problem]) -> dict[str, float]:
         totals[p.problem_class] = totals.get(p.problem_class, 0) + 1
         if (p.severity or "").upper() == "HIGH":
             highs[p.problem_class] = highs.get(p.problem_class, 0) + 1
-    return {
-        cls: float(highs.get(cls, 0)) / totals[cls]
-        for cls in totals
-    }
+    return {cls: float(highs.get(cls, 0)) / totals[cls] for cls in totals}
 
 
 def fid_sev_high_rate(problems: list[Problem]) -> dict[str, float]:
@@ -12539,10 +12530,7 @@ def fid_sev_high_rate(problems: list[Problem]) -> dict[str, float]:
         totals[p.finding_id] = totals.get(p.finding_id, 0) + 1
         if (p.severity or "").upper() == "HIGH":
             highs[p.finding_id] = highs.get(p.finding_id, 0) + 1
-    return {
-        fid: float(highs.get(fid, 0)) / totals[fid]
-        for fid in totals
-    }
+    return {fid: float(highs.get(fid, 0)) / totals[fid] for fid in totals}
 
 
 def class_sev_low_rate(problems: list[Problem]) -> dict[str, float]:
@@ -12559,10 +12547,7 @@ def class_sev_low_rate(problems: list[Problem]) -> dict[str, float]:
         totals[p.problem_class] = totals.get(p.problem_class, 0) + 1
         if (p.severity or "").upper() == "LOW":
             lows[p.problem_class] = lows.get(p.problem_class, 0) + 1
-    return {
-        cls: float(lows.get(cls, 0)) / totals[cls]
-        for cls in totals
-    }
+    return {cls: float(lows.get(cls, 0)) / totals[cls] for cls in totals}
 
 
 def fid_sev_low_rate(problems: list[Problem]) -> dict[str, float]:
@@ -12580,10 +12565,7 @@ def fid_sev_low_rate(problems: list[Problem]) -> dict[str, float]:
         totals[p.finding_id] = totals.get(p.finding_id, 0) + 1
         if (p.severity or "").upper() == "LOW":
             lows[p.finding_id] = lows.get(p.finding_id, 0) + 1
-    return {
-        fid: float(lows.get(fid, 0)) / totals[fid]
-        for fid in totals
-    }
+    return {fid: float(lows.get(fid, 0)) / totals[fid] for fid in totals}
 
 
 def class_sev_critical_count(problems: list[Problem]) -> dict[str, int]:
@@ -12618,4 +12600,21 @@ def fid_sev_critical_count(problems: list[Problem]) -> dict[str, int]:
             result[p.finding_id] = 0
         if (p.severity or "").upper() == "CRITICAL":
             result[p.finding_id] += 1
+    return result
+
+
+def class_sev_high_count(problems: list[Problem]) -> dict[str, int]:
+    """Return raw count of HIGH severity problems per class.  Item 662.
+
+    For each class: count(HIGH).
+    int >= 0.  Classes with 0 HIGH included.  Empty -> {}.  Pure; no I/O.
+    """
+    if not problems:
+        return {}
+    result: dict[str, int] = {}
+    for p in problems:
+        if p.problem_class not in result:
+            result[p.problem_class] = 0
+        if (p.severity or "").upper() == "HIGH":
+            result[p.problem_class] += 1
     return result
