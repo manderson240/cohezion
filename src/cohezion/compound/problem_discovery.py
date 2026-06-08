@@ -3691,3 +3691,21 @@ def severity_change_summary(
         "unchanged": unchanged,
         "net_delta": sum(deltas.values()),
     }
+
+
+def finding_ids_by_class(problems: list[Problem]) -> dict[str, frozenset[str]]:
+    """Return a mapping from each class to the frozenset of its finding_ids.
+
+    Args:
+        problems: List of :class:`Problem` instances from a scan.
+
+    Returns:
+        dict mapping class_name → frozenset of finding_id strings for all
+        problems in that class.  Empty dict when *problems* is empty.
+
+    Pure (no I/O, no SurrealDB).
+    """
+    result: dict[str, set[str]] = {}
+    for p in problems:
+        result.setdefault(p.problem_class, set()).add(p.finding_id)
+    return {cls: frozenset(ids) for cls, ids in result.items()}
