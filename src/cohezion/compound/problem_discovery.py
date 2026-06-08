@@ -8241,3 +8241,31 @@ def dominant_severity_for_class(problems: list[Problem], problem_class: str) -> 
     if not counts:
         return None
     return min(counts, key=lambda s: (-counts[s], s))
+
+
+def dominant_severity_for_fid(problems: list[Problem], finding_id: str) -> str | None:
+    """Return the most common severity for *finding_id* -- item 466.
+
+    Counts per-severity records for problems whose ``finding_id`` matches
+    exactly, across all classes.  Returns the severity with the highest count.
+    Tie-break: the alphabetically-first severity wins.
+
+    Special cases:
+    - Empty *problems* or absent *finding_id* → ``None``
+
+    Args:
+        problems: List of :class:`Problem` instances.
+        finding_id: Target finding_id to filter on.
+
+    Returns:
+        The dominant severity string, or ``None`` when the fid is absent.
+
+    Pure (no I/O, no SurrealDB).
+    """
+    counts: dict[str, int] = {}
+    for p in problems:
+        if p.finding_id == finding_id:
+            counts[p.severity] = counts.get(p.severity, 0) + 1
+    if not counts:
+        return None
+    return min(counts, key=lambda s: (-counts[s], s))
