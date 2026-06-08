@@ -142,3 +142,52 @@ def abstraction_quality(neurons: Iterable[object]) -> list[AbstractionFlag]:
         )
 
     return flags
+
+
+def abstraction_quality_delta(
+    before_flags: list[AbstractionFlag],
+    after_flags: list[AbstractionFlag],
+) -> dict[str, list[AbstractionFlag]]:
+    """Delta between two abstraction-quality snapshots — item 152 (2026-06-08).
+
+    Compares before/after :class:`AbstractionFlag` snapshots by neuron ``name``
+    and classifies each change:
+
+    - **improved**: ``instance_specific=True`` in before, ``False`` in after
+      (was volatile / polluted with concrete tokens; now principle-level).
+    - **degraded**: ``instance_specific=False`` in before, ``True`` in after
+      (was principled; now carries volatile tokens).
+
+    Neurons stable in both snapshots (no change to ``instance_specific``) are
+    in neither list.  Neurons absent from one snapshot are also excluded.
+
+    Args:
+        before_flags:
+            Abstraction flags from the EARLIER snapshot (output of
+            :func:`abstraction_quality`).
+        after_flags:
+            Abstraction flags from the LATER snapshot.
+
+    Returns:
+        ``{"improved": [...], "degraded": [...]}`` — only the flags that
+        changed direction, matched by name.
+
+    Pure (no I/O).  Report-only.
+    """
+    before_by_name: dict[str, AbstractionFlag] = {f.name: f for f in before_flags}
+    after_by_name: dict[str, AbstractionFlag] = {f.name: f for f in after_flags}
+
+    improved: list[AbstractionFlag] = []
+    degraded: list[AbstractionFlag] = []
+
+    for name, after_flag in after_by_name.items():
+        before_flag = before_by_name.get(name)
+        if before_flag is None:
+            continue  # new neuron — not a delta (no baseline to compare against)
+        if before_flag.instance_specific and not after_flag.instance_specific:
+            improved.append(after_flag)
+        elif not before_flag.instance_specific and after_flag.instance_specific:
+            degraded.append(after_flag)
+        # else: stable — in neither list
+
+    return {"improved": improved, "degraded": degraded}
