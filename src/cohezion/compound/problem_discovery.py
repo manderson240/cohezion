@@ -4769,6 +4769,37 @@ def problems_above_density_threshold(
     return [p for p in problems if p.problem_class in qualifying]
 
 
+def problems_below_density_threshold(
+    problems: list[Problem],
+    threshold: float,
+) -> list[Problem]:
+    """Return problems whose class density (class_count/total) < threshold -- item 332.
+
+    Symmetric complement of :func:`problems_above_density_threshold` -- together
+    they form a disjoint partition of the full problem list (above uses ``>=``,
+    below uses ``<``).
+
+    Args:
+        problems:
+            Flat list of :class:`Problem` records.  Empty list -> ``[]``.
+        threshold:
+            Exclusive upper bound on density for a class to qualify.  A value
+            of ``0.0`` returns ``[]`` (no density is below 0.0); a value above
+            ``1.0`` returns all problems (every class has density <= 1.0).
+
+    Returns:
+        A new list of :class:`Problem` objects, preserving the original order,
+        from classes whose density < threshold.
+
+    Pure (no I/O, no SurrealDB).
+    """
+    if not problems:
+        return []
+    densities = problem_density_by_class(problems)
+    qualifying = {cls for cls, d in densities.items() if d < threshold}
+    return [p for p in problems if p.problem_class in qualifying]
+
+
 def severity_density_by_class(
     problems: list[Problem],
 ) -> dict[str, dict[str, float]]:
@@ -5198,31 +5229,3 @@ def top_severity_class(
         if counts_at_rank:
             return min(counts_at_rank, key=lambda cls: (-counts_at_rank[cls], cls))
     return None
-
-
-def problems_below_density_threshold(
-    problems: list["Problem"], threshold: float
-) -> list["Problem"]:
-    """Return problems from classes whose density (count/total) is strictly < threshold.
-
-    Complement of :func:`problems_above_density_threshold`.  Together they
-    partition all problems: ``above(t) ∪ below(t) == all`` and
-    ``above(t) ∩ below(t) == ∅`` for any threshold strictly between 0 and 1.
-
-    Args:
-        problems: Flat list of :class:`Problem` records.
-        threshold: Upper bound (exclusive) on class density.  ``0.0`` returns
-            ``[]`` (no density can be < 0).  Values above ``1.0`` return every
-            problem (every density ≤ 1.0 < threshold).
-
-    Returns:
-        New list of :class:`Problem` objects in original order from classes
-        whose density is strictly less than *threshold*.
-
-    Pure (no I/O, no SurrealDB).
-    """
-    if not problems:
-        return []
-    densities = problem_density_by_class(problems)
-    qualifying = {cls for cls, density in densities.items() if density < threshold}
-    return [p for p in problems if p.problem_class in qualifying]
