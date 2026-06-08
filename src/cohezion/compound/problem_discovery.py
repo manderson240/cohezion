@@ -1458,3 +1458,82 @@ def threshold_violations(
         for cls, limit in thresholds.items()
         if cls in counts and counts[cls] > limit
     }
+
+
+def worst_violation(
+    problems: list[Problem],
+    thresholds: dict[str, int],
+) -> tuple[str, int] | None:
+    """Scalar accessor for the largest threshold breach — item 204.
+
+    Returns ``(problem_class, excess_count)`` for the class with the highest
+    excess in :func:`threshold_violations`.  Ties broken by first-occurrence
+    order in *problems* (the class that first appears in the list wins).
+    No violations → ``None``.
+
+    Enables walrus-style alerting without manually calling ``max()`` on the
+    violations dict::
+
+        if v := worst_violation(findings, limits):
+            alert_class, over_by = v
+
+    Args:
+        problems:
+            A list of :class:`Problem` instances.
+        thresholds:
+            ``{problem_class: max_allowed_count}`` mapping.
+
+    Returns:
+        ``(problem_class, excess_count)`` where ``excess_count = count - threshold``
+        for the class with the highest excess, or ``None`` if no class exceeds
+        its threshold.
+
+    Pure (no I/O, no SurrealDB).
+    """
+    violations = threshold_violations(problems, thresholds)
+    if not violations:
+        return None
+    max_excess = max(violations.values())
+    # Tie-break: first occurrence in problems wins.
+    for p in problems:
+        if violations.get(p.problem_class) == max_excess:
+            return (p.problem_class, max_excess)
+    # Unreachable: violations is a subset of classes in problems.
+    return next(iter((cls, exc) for cls, exc in violations.items() if exc == max_excess))
+
+
+def worst_violation(
+    problems: list[Problem],
+    thresholds: dict[str, int],
+) -> tuple[str, int] | None:
+    """Return ``(problem_class, excess_count)`` for the class with the largest excess.
+
+    The scalar counterpart to :func:`threshold_violations`.  When multiple
+    classes share the same excess, the class whose first occurrence appears
+    earliest in *problems* wins (stable, deterministic output)::
+
+        if v := worst_violation(findings, limits):
+            alert(f"{v[0]} exceeds budget by {v[1]}")
+
+    Args:
+        problems:
+            A list of :class:`Problem` instances.
+        thresholds:
+            ``{problem_class: max_allowed_count}`` mapping.
+
+    Returns:
+        ``(problem_class, excess_count)`` for the highest-excess class, or
+        ``None`` when there are no violations.
+
+    Pure (no I/O, no SurrealDB).
+    """
+    violations = threshold_violations(problems, thresholds)
+    if not violations:
+        return None
+    # Build first-occurrence index for deterministic tie-breaking.
+    first_seen: dict[str, int] = {}
+    for i, p in enumerate(problems):
+        if p.problem_class not in first_seen:
+            first_seen[p.problem_class] = i
+    best = max(violations, key=lambda cls: (violations[cls], -first_seen.get(cls, 0)))
+    return (best, violations[best])
