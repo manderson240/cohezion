@@ -3405,3 +3405,24 @@ def top_class_by_problem_count(problems: list[Problem]) -> str | None:
     for p in problems:
         counts[p.problem_class] = counts.get(p.problem_class, 0) + 1
     return max(counts, key=lambda cls: (counts[cls], [-ord(c) for c in cls]))
+
+
+def classes_above_problem_count(problems: list[Problem], min_count: int) -> frozenset[str]:
+    """Return the frozenset of class names whose total problem count >= min_count.
+
+    Counts every problem in a class regardless of severity label.
+
+    Args:
+        problems:  List of :class:`Problem` instances from a scan.
+        min_count: Minimum total count threshold (inclusive).
+
+    Returns:
+        frozenset of class names meeting the threshold, or ``frozenset()``
+        when *problems* is empty or no class meets the threshold.
+
+    Pure (no I/O, no SurrealDB).
+    """
+    counts: dict[str, int] = {}
+    for p in problems:
+        counts[p.problem_class] = counts.get(p.problem_class, 0) + 1
+    return frozenset(cls for cls, cnt in counts.items() if cnt >= min_count)
