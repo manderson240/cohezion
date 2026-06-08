@@ -2217,3 +2217,37 @@ def classes_within_budget(
         return frozenset()
     counts = problem_count_by_class(problems)
     return frozenset(cls for cls, limit in thresholds.items() if counts.get(cls, 0) < limit)
+
+
+def classes_at_threshold(
+    problems: list[Problem],
+    thresholds: dict[str, int],
+) -> frozenset[str]:
+    """Return monitored classes whose finding count equals the threshold exactly.
+
+    These are "yellow-zone" classes: compliant (not yet a violation) but with
+    zero headroom remaining (count == threshold).  Distinct from:
+    - :func:`classes_within_budget`:    ``count <  threshold`` (headroom > 0)
+    - :func:`classes_at_threshold`:     ``count == threshold`` (headroom = 0)
+    - over-threshold (via :func:`threshold_violations`): ``count > threshold``
+
+    The three sets form a complete tripartite partition of all monitored
+    classes::
+
+        classes_within_budget | classes_at_threshold | {over-threshold}
+            == frozenset(thresholds.keys())   (pairwise disjoint)
+
+    Args:
+        problems:   List of ``Problem`` instances to examine.
+        thresholds: Mapping of ``{problem_class: max_allowed_count}``.
+                    Empty mapping -> ``frozenset()``.
+
+    Returns:
+        ``frozenset[str]`` of monitored class names at the exact threshold.
+
+    Pure (no I/O, no SurrealDB).
+    """
+    if not thresholds:
+        return frozenset()
+    counts = problem_count_by_class(problems)
+    return frozenset(cls for cls, limit in thresholds.items() if counts.get(cls, 0) == limit)
