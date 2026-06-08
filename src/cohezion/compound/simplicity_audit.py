@@ -665,3 +665,73 @@ def eager_log_fstrings(paths: Iterable[Path]) -> list[tuple[str, int]]:
             ):
                 out.append((path.name, node.lineno))
     return sorted(out, key=lambda t: (t[0], t[1]))
+
+
+# ---------------------------------------------------------------------------
+# Item 105 — Compound-smell aggregator (multi-axis worst-offenders)
+# ---------------------------------------------------------------------------
+
+
+@dataclass(frozen=True)
+class CompoundSmell:
+    """A function bad on multiple smell axes — highest-priority refactor candidate (item 105).
+
+    ``qualified_name`` matches the ``<filename>::<funcname>`` format of the per-axis audits.
+    ``dimension_count`` is the EXACT number of axes tripped (2..4) — an impl that over/under-counts
+    produces the wrong value and is killed by :func:`test_dimension_count_exact`.
+    ``dimensions`` names which axes: ``"complexity"``, ``"nesting"``, ``"params"``, ``"size"``.
+    """
+
+    qualified_name: str  # <filename>::<funcname>
+    dimension_count: int  # exact count of axes tripped (2..4)
+    dimensions: frozenset[str]  # which axes tripped
+
+
+def compound_smells(
+    paths: Iterable[Path],
+    *,
+    min_dimensions: int = 2,
+) -> list[CompoundSmell]:
+    """Functions flagged on >= ``min_dimensions`` of {complexity, nesting, params, size}. READ-ONLY.
+
+    Composes all four per-axis smell audits (items 43/47/63/64) at their DEFAULT thresholds and
+    returns only the functions that trip MULTIPLE axes simultaneously — the worst-offenders (higher-
+    priority refactor candidates than single-axis outliers).
+
+    The orthogonal-basis dual of the per-axis audits: each axis measures a DIFFERENT dimension of
+    complexity; a function that exceeds thresholds on two or more independent dimensions is harder to
+    read, test, and modify than one that only barely trips a single threshold.
+
+    Args:
+        paths: source paths to audit (dirs → all ``*.py`` recursively; files directly).
+        min_dimensions: minimum number of axes a function must trip to appear in the report.
+            Defaults to 2 (a "compound" smell). Set to 1 to recover the union of all per-axis
+            reports (equivalent to running the four audits separately).
+
+    Returns:
+        Sorted :class:`CompoundSmell` list — by ``dimension_count`` descending, then
+        ``qualified_name``.  Empty input or all-clean source → ``[]``.
+        Pure — composes four pure AST audits; no writes, no third-party deps.
+        Report-only: a count is a smell flagged for judgment, never a verdict.
+    """
+    plist = list(paths)
+    # Run each per-axis audit; extract just the names (values are per-axis magnitudes we don't need).
+    flagged_by_axis: dict[str, set[str]] = {
+        "complexity": {name for name, _ in complexity_outliers(plist)},
+        "nesting": {name for name, _ in nesting_outliers(plist)},
+        "params": {name for name, _ in long_parameter_lists(plist)},
+        "size": {name for name, _ in long_functions(plist)},
+    }
+    all_flagged: set[str] = set().union(*flagged_by_axis.values())
+    out: list[CompoundSmell] = []
+    for name in all_flagged:
+        dims = frozenset(axis for axis, names in flagged_by_axis.items() if name in names)
+        if len(dims) >= min_dimensions:
+            out.append(
+                CompoundSmell(
+                    qualified_name=name,
+                    dimension_count=len(dims),
+                    dimensions=dims,
+                )
+            )
+    return sorted(out, key=lambda s: (-s.dimension_count, s.qualified_name))
