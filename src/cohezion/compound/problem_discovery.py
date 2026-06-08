@@ -264,6 +264,50 @@ def discover_and_summarize(
     return problem_summary(problems)
 
 
+def discover_and_summarize_for(
+    paths: Iterable[Path],
+    *,
+    templates: list[ProblemTemplate] | None = None,
+    exclude_known: frozenset[str] | set[str] = frozenset(),
+    problem_classes: set[str] | frozenset[str] | None = None,
+) -> ProblemSummary:
+    """Run TIDE discovery then summarize a filtered class subset — item 167.
+
+    Extends :func:`discover_and_summarize` with an optional post-discovery class
+    filter.  All instruments run on the full path list; only the findings whose
+    ``problem_class`` is in *problem_classes* are passed to
+    :func:`problem_summary`.  When *problem_classes* is ``None`` the call is
+    identical to :func:`discover_and_summarize`.
+
+    Filtering happens AFTER discovery, not before — this is intentional.
+    Filtering the template list before running would skip instruments, which
+    could produce misleading counts when ``exclude_known`` is also in play.
+
+    Args:
+        paths:
+            Iterable of :class:`~pathlib.Path` objects to audit.
+        templates:
+            Optional list of :class:`ProblemTemplate` instances.  ``None``
+            (default) uses :func:`default_templates`.  ``[]`` → no audit.
+        exclude_known:
+            Set of finding ids to suppress (already-actioned findings).
+            Forwarded verbatim to :func:`discover_problems`.
+        problem_classes:
+            Optional set of ``problem_class`` strings to keep.  ``None``
+            → no filtering (all findings passed through).  An empty set
+            ``set()`` → total=0 (no classes selected).
+
+    Returns:
+        A frozen :class:`ProblemSummary` for the filtered findings.
+
+    Pure (no I/O beyond what the instruments perform).  No SurrealDB.
+    """
+    problems = discover_problems(paths, templates=templates, exclude_known=exclude_known)
+    if problem_classes is not None:
+        problems = [p for p in problems if p.problem_class in problem_classes]
+    return problem_summary(problems)
+
+
 def default_template_classes() -> frozenset[str]:
     """Return the exact set of ``problem_class`` names in :func:`default_templates` — item 158.
 
