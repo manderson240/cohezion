@@ -7876,3 +7876,26 @@ def all_severities(problems: list[Problem]) -> list[str]:
     Pure (no I/O, no SurrealDB).
     """
     return sorted({p.severity for p in problems})
+
+
+def severity_labelling_ratio(problems: list[Problem]) -> float:
+    """Return the fraction of Problem records with a non-empty severity -- item 451.
+
+    Counts the number of records whose :attr:`Problem.severity` field is
+    non-empty (a labelled record) and divides by the total record count.
+    Distinct from :func:`severity_coverage_ratio` which returns a
+    ``dict[str, float]`` of class coverage per severity.
+
+    Args:
+        problems: List of :class:`Problem` instances.
+
+    Returns:
+        Scalar ``float`` in ``[0.0, 1.0]``.  ``0.0`` for empty input or
+        when all records are unlabelled.  ``1.0`` when all records are labelled.
+
+    Pure (no I/O, no SurrealDB).
+    """
+    if not problems:
+        return 0.0
+    labelled = sum(1 for p in problems if p.severity)
+    return labelled / len(problems)
