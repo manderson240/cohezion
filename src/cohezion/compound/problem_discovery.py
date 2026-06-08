@@ -7858,3 +7858,21 @@ def severity_fid_matrix(problems: list[Problem]) -> dict[str, dict[str, int]]:
         inner = matrix.setdefault(p.severity, {})
         inner[p.finding_id] = inner.get(p.finding_id, 0) + 1
     return matrix
+
+
+def all_severities(problems: list[Problem]) -> list[str]:
+    """Return a sorted list of all distinct severity values -- item 449.
+
+    Returns ``sorted(set(p.severity for p in problems))``.  Each severity
+    appears exactly once, regardless of how many records share it.  The result
+    is sorted alphabetically for deterministic output.
+
+    Args:
+        problems: List of :class:`Problem` instances.
+
+    Returns:
+        Sorted list of distinct severity strings.  Empty list for empty input.
+
+    Pure (no I/O, no SurrealDB).
+    """
+    return sorted({p.severity for p in problems})
