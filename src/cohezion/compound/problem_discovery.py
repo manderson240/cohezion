@@ -11687,3 +11687,18 @@ def class_severity_count_total(problems: list[Problem]) -> dict[str, int]:
     for p in problems:
         totals[p.problem_class] = totals.get(p.problem_class, 0) + 1
     return totals
+
+
+def fid_severity_count_total(problems: list[Problem]) -> dict[str, int]:
+    """Return total problem count per fid regardless of severity.  Item 614.
+
+    FID-axis complement of class_severity_count_total.
+    Returns {fid: total_count} counting ALL problems (labelled and unlabelled).
+    Empty -> {}.  Pure; no I/O.
+    """
+    if not problems:
+        return {}
+    totals: dict[str, int] = {}
+    for p in problems:
+        totals[p.finding_id] = totals.get(p.finding_id, 0) + 1
+    return totals
