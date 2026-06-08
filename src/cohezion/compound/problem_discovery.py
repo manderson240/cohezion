@@ -3344,10 +3344,8 @@ def class_labelling_coverage(problems: list[Problem]) -> dict[str, float]:
     Pure (no I/O, no SurrealDB).
     """
     classes = {p.problem_class for p in problems}
-    return {
-        cls: labelling_coverage(problems_in_class(problems, cls))
-        for cls in classes
-    }
+    return {cls: labelling_coverage(problems_in_class(problems, cls)) for cls in classes}
+
 
 def scan_summary(problems: list[Problem]) -> dict[str, object]:
     """Return a one-call executive summary of the scan.
