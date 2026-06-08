@@ -3087,3 +3087,36 @@ def severity_concentration_report(
             "exceeds_threshold": frac >= min_fraction,
         }
     return result
+
+
+def most_concentrated_class(
+    problems: list[Problem],
+    severity: str,
+) -> str | None:
+    """Return the class with the highest fraction of its problems at *severity*.
+
+    The fraction is ``count_at_severity / total_problems_in_class``.  This is a
+    concentration metric — a class with 1/1 = 100% concentration beats a class
+    with 10/1000 = 1% even though the latter has more raw problems.
+
+    Tie-break: alphabetically ascending class name.  Returns ``None`` when no
+    class has any problems at *severity* or when *problems* is empty.
+
+    Args:
+        problems: List of :class:`Problem` instances from a scan.
+        severity: Exact severity string (case-sensitive).
+
+    Returns:
+        Class name string or ``None``.
+
+    Pure (no I/O, no SurrealDB).
+    """
+    total: dict[str, int] = {}
+    at_sev: dict[str, int] = {}
+    for p in problems:
+        total[p.problem_class] = total.get(p.problem_class, 0) + 1
+        if p.severity == severity:
+            at_sev[p.problem_class] = at_sev.get(p.problem_class, 0) + 1
+    if not at_sev:
+        return None
+    return max(at_sev, key=lambda cls: (at_sev[cls] / total[cls], [-ord(c) for c in cls]))
