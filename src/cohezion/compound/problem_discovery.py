@@ -11965,3 +11965,23 @@ def class_max_fid_count(problems: list[Problem]) -> dict[str, int]:
             fid_counts[p.problem_class].get(p.finding_id, 0) + 1
         )
     return {cls: max(bucket.values()) for cls, bucket in fid_counts.items()}
+
+
+def fid_max_class_count(problems: list[Problem]) -> dict[str, int]:
+    """Return the maximum per-class problem count for each fid.  Item 628.
+
+    FID-axis complement of class_max_fid_count (item 627).
+    For each fid, counts how many problems each class contributes, then returns
+    the maximum across classes for that fid.
+    Empty -> {}.  int.  Pure; no I/O.
+    """
+    if not problems:
+        return {}
+    class_counts: dict[str, dict[str, int]] = {}
+    for p in problems:
+        if p.finding_id not in class_counts:
+            class_counts[p.finding_id] = {}
+        class_counts[p.finding_id][p.problem_class] = (
+            class_counts[p.finding_id].get(p.problem_class, 0) + 1
+        )
+    return {fid: max(bucket.values()) for fid, bucket in class_counts.items()}
