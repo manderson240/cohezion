@@ -30,8 +30,9 @@ def test_all_multimodal_members_exist() -> None:
 
 def test_new_tasks_have_no_registered_model() -> None:
     # Non-fabrication: capability declared, not yet served → for_task returns [] (no invented model).
+    # AUDIO_TTS is excluded: item 85 wired CosmoNarrator-PocketTTS as its registered-unverified seed.
     reg = get_registry()
-    for t in (Task.IMAGE_GEN, Task.AUDIO_TTS, Task.VIDEO_GEN, Task.VIDEO_UNDERSTAND):
+    for t in (Task.IMAGE_GEN, Task.VIDEO_GEN, Task.VIDEO_UNDERSTAND):
         assert reg.for_task(t) == [], f"{t.name} must have no registered model yet"
 
 

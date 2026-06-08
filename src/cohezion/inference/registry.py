@@ -414,6 +414,36 @@ def _build_default_registry() -> dict[str, ModelEntry]:
                 "verified_working flips True only after a real FIM-completion serving proof."
             ),
         ),
+        # --- Item 85: CosmoNarrator (PocketTTS) — AUDIO_TTS seed (additive-first) ---
+        # cohezion already has audio/narrator.py::CosmoNarrator + audio/moshi_client.py.
+        # PocketTTS (Kyutai Labs) is a local voice synthesis library (ONNX CPU).
+        # Registered additive-first (verified_working=False) like items 4/19/21/23/28.
+        # The SERVING SMOKE (narrator.speak() emits a non-empty audio artifact) is the
+        # verification gate. Until then, for_task(AUDIO_TTS) returns this entry as a
+        # registered-but-unverified candidate — the registry does not auto-dispatch it.
+        # Lane: CPU (PocketTTS ONNX; voice generation is CPU-resident, not iGPU).
+        ModelEntry(
+            model_id="CosmoNarrator-PocketTTS",
+            lane=Lane.CPU,
+            endpoint="local://cohezion.audio.narrator",  # Python library call, not HTTP
+            runtime_backend="pocket_tts",  # dispatch via CosmoNarrator.speak(), not llama.cpp
+            task_affinity=frozenset({Task.AUDIO_TTS}),
+            weight_quant=WeightQuant.FP16,  # PocketTTS ONNX uses FP16 voice models
+            context_window=4096,  # text char limit (TTS has no token context window)
+            priority=25,  # the AUDIO_TTS specialist seed (first and only; like FIM)
+            verified_working=False,  # TTS smoke (non-empty audio artifact) not yet run
+            notes=(
+                "CosmoNarrator (PocketTTS, Kyutai Labs) — the AUDIO_TTS seed for cohezion's "
+                "audio-output tier (item 85). The seam already exists: "
+                "src/cohezion/audio/narrator.py::CosmoNarrator, voices (default 'alma'), "
+                "audio/moshi_client.py (full-duplex). PocketTTS is a Python library "
+                "(`pip install pocket_tts`); serving is a LOCAL CALL, NOT an HTTP server — "
+                "endpoint is a library-dispatch marker. verified_working flips True only after "
+                "a real TTS smoke test (CosmoNarrator().speak(text) → non-empty audio bytes). "
+                "K1/rule-5 OOM gate: PocketTTS ONNX models are <1GB, well within K1 limits. "
+                "HF id: kyutai/pocket-tts (official Kyutai Labs release)."
+            ),
+        ),
         ModelEntry(
             model_id="Granite-4.1-8B-GGUF",
             lane=Lane.IGPU_ROCWMMA,  # Granite backend lives on the iGPU; fronted by the router
