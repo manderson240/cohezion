@@ -12106,3 +12106,32 @@ def fid_class_mean_count(problems: list[Problem]) -> dict[str, float]:
             class_counts[p.finding_id].get(p.problem_class, 0) + 1
         )
     return {fid: float(sum(bucket.values())) / len(bucket) for fid, bucket in class_counts.items()}
+
+
+def class_fid_count_cv(problems: list[Problem]) -> dict[str, float]:
+    """Return CV of per-fid problem counts for each class.  Item 635.
+
+    CV = population_std_dev / mean of per-fid INTEGER problem counts per class.
+    0.0 when all fids contribute equally or only one fid exists.
+    """
+    import math as _math
+
+    if not problems:
+        return {}
+    fid_counts: dict[str, dict[str, int]] = {}
+    for p in problems:
+        if p.problem_class not in fid_counts:
+            fid_counts[p.problem_class] = {}
+        fid_counts[p.problem_class][p.finding_id] = (
+            fid_counts[p.problem_class].get(p.finding_id, 0) + 1
+        )
+    result: dict[str, float] = {}
+    for cls, bucket in fid_counts.items():
+        vals = list(bucket.values())
+        mean = sum(vals) / len(vals)
+        if mean == 0.0:
+            result[cls] = 0.0
+        else:
+            variance = sum((v - mean) ** 2 for v in vals) / len(vals)
+            result[cls] = _math.sqrt(variance) / mean
+    return result
