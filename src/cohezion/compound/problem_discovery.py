@@ -5709,7 +5709,7 @@ def finding_id_overlap_count(problems: list[Problem], class_a: str, class_b: str
 # ---------------------------------------------------------------------------
 
 
-def problems_unique_to_class(problems: list["Problem"], class_name: str) -> list["Problem"]:
+def problems_unique_to_class(problems: list[Problem], class_name: str) -> list[Problem]:
     """Return problems for class_name whose finding_id appears in no other class.
 
     ``problems_unique_to_class(problems, class_name) -> list[Problem]``:
@@ -5771,7 +5771,7 @@ def count_problems_with_severity(problems: list[Problem]) -> int:
 # ---------------------------------------------------------------------------
 
 
-def count_unlabelled_problems(problems: list["Problem"]) -> int:
+def count_unlabelled_problems(problems: list[Problem]) -> int:
     """Return the integer count of problems without any severity label.
 
     ``count_unlabelled_problems(problems) -> int``:
