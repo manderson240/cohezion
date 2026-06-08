@@ -10412,3 +10412,22 @@ def fid_score_max(
     for p in problems:
         fid_totals[p.finding_id] = fid_totals.get(p.finding_id, 0.0) + weights.get(p.severity, 0.0)
     return float(max(fid_totals.values()))
+
+
+def class_score_min(
+    problems: list[Problem],
+    weights: dict[str, float],
+) -> float:
+    """Return the minimum per-class total weighted score.  Item 549.
+
+    Identifies the least-burdened class.  0.0 for empty.
+    Single class -> that class's total.  Pure; no I/O.
+    """
+    if not problems:
+        return 0.0
+    class_totals: dict[str, float] = {}
+    for p in problems:
+        class_totals[p.problem_class] = (
+            class_totals.get(p.problem_class, 0.0) + weights.get(p.severity, 0.0)
+        )
+    return float(min(class_totals.values()))
