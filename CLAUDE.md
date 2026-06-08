@@ -298,6 +298,10 @@ See skill: `cohezion-worktree-workflow` — covers session scripts (start/end/li
 - **Expert Domain Lattice**: Route complex requests through specialist agents (Architect, Engineer, Biologist, QHW, QAlgo)
 - **SPIN Coherence**: Information unit = Rotation + Precession. Alignment when phases match
 
+### Deployment Ethics (Leiden Declaration mapping, 2026-06-08)
+
+Three of four Leiden Declaration standards are met by existing doctrine: (1) **Transparency** — all outputs logged, sources cited, no silent fabrication (non-fabrication rule); (2) **Accountability** — human-gated decisions for behavior-change; retros document honest outcomes; (3) **Safety/Non-maleficence** — `.agent/CONSTITUTION.md` hard constraints; `local-silicon-first` eliminates third-party data exposure. The one unaddressed standard — **(4) Deployment-Use Consent** — is a human policy decision: no mechanism currently informs end-users that AI-authored code runs in their environment. Flagged for human decision; this note records the gap honestly per Leiden §4. `docs/ops/swarm/cross-domain-synthesis.md`.
+
 ## Critical References (Read First)
 
 | Document | Purpose | Key Insight |

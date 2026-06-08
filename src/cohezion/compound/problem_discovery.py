@@ -9427,3 +9427,30 @@ def score_spread(
     if len(totals) < 2:
         return 0.0
     return float(max(totals) - min(totals))
+
+
+def top_class_by_score(
+    problems: list[Problem],
+    weights: dict[str, float],
+) -> str | None:
+    """Return the single class name with the highest total weighted severity score.
+
+    Alphabetical tie-break when multiple classes share the top score.
+    Returns ``None`` when *problems* is empty.
+
+    This is the ``str | None`` single-return convenience accessor over
+    :func:`classes_by_total_score`, safe to use without indexing the list.
+
+    Args:
+        problems: List of :class:`Problem` instances.
+        weights: Mapping of severity label to numeric score.
+
+    Returns:
+        ``str`` class name with the highest total score, or ``None`` if empty.
+
+    Pure (no I/O, no SurrealDB).  Item 510.
+    """
+    if not problems:
+        return None
+    ranked = classes_by_total_score(problems, weights)
+    return ranked[0] if ranked else None
