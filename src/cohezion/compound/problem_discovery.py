@@ -9516,3 +9516,27 @@ def classes_tied_at_score(
             class_totals.get(p.problem_class, 0.0) + weights.get(p.severity, 0.0)
         )
     return frozenset(cls for cls, score in class_totals.items() if score == target_score)
+
+
+def top_fid_by_score(
+    problems: list[Problem],
+    weights: dict[str, float],
+) -> str | None:
+    """Return the single finding_id with the highest total weighted severity score.
+
+    Alphabetical tie-break (ascending) among fids that share the top score.
+    Returns ``None`` for empty input.
+
+    Args:
+        problems: List of :class:`Problem` instances.
+        weights: Mapping of severity label to numeric score.
+
+    Returns:
+        ``str`` finding_id with the highest total score, or ``None`` if empty.
+
+    Pure (no I/O, no SurrealDB).  Item 517.
+    """
+    if not problems:
+        return None
+    ranked = fids_by_total_score(problems, weights)
+    return ranked[0] if ranked else None
