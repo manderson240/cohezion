@@ -691,6 +691,36 @@ def has_any_problem_class(problems: list[Problem], classes: frozenset[str]) -> b
     return any(p.problem_class in classes for p in problems)
 
 
+def assert_no_duplicate_finding_ids(problems: list[Problem]) -> None:
+    """Raise if any ``finding_id`` appears more than once — item 180.
+
+    Structural integrity guard for finding lists.  Prevents silent data
+    corruption when two templates emit overlapping IDs and downstream
+    diff/group logic silently deduplicates.
+
+    All duplicate IDs are reported in a single :class:`AssertionError` so a
+    single CI run surfaces every gap (exhaustive, not fail-fast).
+
+    Args:
+        problems:
+            A list of :class:`Problem` instances.  Empty list → no-op.
+
+    Raises:
+        AssertionError: If one or more ``finding_id`` values appear more than
+            once.  The message lists ALL duplicate IDs.
+
+    Pure (no I/O, no SurrealDB).
+    """
+    from collections import Counter
+
+    counts = Counter(p.finding_id for p in problems)
+    duplicates = sorted(fid for fid, n in counts.items() if n > 1)
+    if duplicates:
+        raise AssertionError(
+            f"assert_no_duplicate_finding_ids: duplicate finding_id values detected: {duplicates}"
+        )
+
+
 def default_template_classes() -> frozenset[str]:
     """Return the exact set of ``problem_class`` names in :func:`default_templates` — item 158.
 
