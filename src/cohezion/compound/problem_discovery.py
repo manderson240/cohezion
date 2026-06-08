@@ -9394,3 +9394,36 @@ def classes_in_score_band(
             class_totals.get(p.problem_class, 0.0) + weights.get(p.severity, 0.0)
         )
     return frozenset(cls for cls, score in class_totals.items() if lo <= score <= hi)
+
+
+def score_spread(
+    problems: list[Problem],
+    weights: dict[str, float],
+) -> float:
+    """Return the spread (max − min) of total class scores.
+
+    Computes the total weighted severity score for each class, then returns
+    ``max(totals) - min(totals)``.  Returns ``0.0`` when *problems* is empty
+    or when only one distinct class exists.  Returns ``0.0`` when all classes
+    have the same total (max == min).
+
+    Args:
+        problems: List of :class:`Problem` instances.
+        weights: Mapping of severity label to numeric score.
+
+    Returns:
+        ``float`` non-negative spread.  ``0.0`` for empty or single class.
+
+    Pure (no I/O, no SurrealDB).  Item 509.
+    """
+    if not problems:
+        return 0.0
+    class_totals: dict[str, float] = {}
+    for p in problems:
+        class_totals[p.problem_class] = (
+            class_totals.get(p.problem_class, 0.0) + weights.get(p.severity, 0.0)
+        )
+    totals = list(class_totals.values())
+    if len(totals) < 2:
+        return 0.0
+    return float(max(totals) - min(totals))
