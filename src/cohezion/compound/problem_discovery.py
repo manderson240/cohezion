@@ -11209,3 +11209,24 @@ def class_problem_rank(problems: list[Problem]) -> dict[str, int]:
         count_to_rank[cnt] = rank
         rank += sum(1 for c in counts.values() if c == cnt)
     return {cls: count_to_rank[cnt] for cls, cnt in counts.items()}
+
+
+def fid_problem_rank(problems: list[Problem]) -> dict[str, int]:
+    """Return competition rank of each fid by total problem count.  Item 589.
+
+    Rank 1 = fid with most problems.  Ties share rank; next rank skips.
+    FID-axis complement of class_problem_rank.
+    Empty -> {}.  Pure; no I/O.
+    """
+    if not problems:
+        return {}
+    counts: dict[str, int] = {}
+    for p in problems:
+        counts[p.finding_id] = counts.get(p.finding_id, 0) + 1
+    unique_counts_desc = sorted(set(counts.values()), reverse=True)
+    count_to_rank: dict[int, int] = {}
+    rank = 1
+    for cnt in unique_counts_desc:
+        count_to_rank[cnt] = rank
+        rank += sum(1 for c in counts.values() if c == cnt)
+    return {fid: count_to_rank[cnt] for fid, cnt in counts.items()}
