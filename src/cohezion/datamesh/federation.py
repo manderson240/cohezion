@@ -98,6 +98,10 @@ class FederationLayer:
         """List all registered domains."""
         return list(self._domains.keys())
 
+    def endpoint(self, domain: str) -> DomainEndpoint | None:
+        """Return the registered endpoint for a domain (read access for observability)."""
+        return self._domains.get(domain)
+
     def list_healthy(self) -> list[str]:
         """List healthy domains."""
         return [name for name in self._domains if name not in self._unhealthy]
