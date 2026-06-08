@@ -9794,9 +9794,7 @@ def normalized_fid_scores(
         return {}
     fid_totals: dict[str, float] = {}
     for p in problems:
-        fid_totals[p.finding_id] = fid_totals.get(p.finding_id, 0.0) + weights.get(
-            p.severity, 0.0
-        )
+        fid_totals[p.finding_id] = fid_totals.get(p.finding_id, 0.0) + weights.get(p.severity, 0.0)
     min_score = min(fid_totals.values())
     max_score = max(fid_totals.values())
     spread = max_score - min_score
@@ -9831,9 +9829,7 @@ def fid_score_std_dev(
         return 0.0
     fid_totals: dict[str, float] = {}
     for p in problems:
-        fid_totals[p.finding_id] = fid_totals.get(p.finding_id, 0.0) + weights.get(
-            p.severity, 0.0
-        )
+        fid_totals[p.finding_id] = fid_totals.get(p.finding_id, 0.0) + weights.get(p.severity, 0.0)
     n = len(fid_totals)
     if n < 2:
         return 0.0
@@ -9855,9 +9851,7 @@ def fid_score_variance(
         return 0.0
     fid_totals: dict[str, float] = {}
     for p in problems:
-        fid_totals[p.finding_id] = (
-            fid_totals.get(p.finding_id, 0.0) + weights.get(p.severity, 0.0)
-        )
+        fid_totals[p.finding_id] = fid_totals.get(p.finding_id, 0.0) + weights.get(p.severity, 0.0)
     n = len(fid_totals)
     if n < 2:
         return 0.0
@@ -9882,8 +9876,8 @@ def class_score_iqr(
         return 0.0
     class_totals: dict[str, float] = {}
     for p in problems:
-        class_totals[p.problem_class] = (
-            class_totals.get(p.problem_class, 0.0) + weights.get(p.severity, 0.0)
+        class_totals[p.problem_class] = class_totals.get(p.problem_class, 0.0) + weights.get(
+            p.severity, 0.0
         )
     if len(class_totals) < 4:
         return 0.0
@@ -9907,9 +9901,7 @@ def fid_score_iqr(
         return 0.0
     fid_totals: dict[str, float] = {}
     for p in problems:
-        fid_totals[p.finding_id] = (
-            fid_totals.get(p.finding_id, 0.0) + weights.get(p.severity, 0.0)
-        )
+        fid_totals[p.finding_id] = fid_totals.get(p.finding_id, 0.0) + weights.get(p.severity, 0.0)
     if len(fid_totals) < 4:
         return 0.0
     qs = _stats.quantiles(list(fid_totals.values()), n=4)
@@ -9932,8 +9924,8 @@ def class_score_skewness(
         return 0.0
     class_totals: dict[str, float] = {}
     for p in problems:
-        class_totals[p.problem_class] = (
-            class_totals.get(p.problem_class, 0.0) + weights.get(p.severity, 0.0)
+        class_totals[p.problem_class] = class_totals.get(p.problem_class, 0.0) + weights.get(
+            p.severity, 0.0
         )
     n = len(class_totals)
     if n < 3:
@@ -9944,7 +9936,7 @@ def class_score_skewness(
     std_dev = _math.sqrt(variance)
     if std_dev == 0.0:
         return 0.0
-    return float(sum((v - mean) ** 3 for v in values) / (n * std_dev ** 3))
+    return float(sum((v - mean) ** 3 for v in values) / (n * std_dev**3))
 
 
 def fid_score_skewness(
@@ -9963,9 +9955,7 @@ def fid_score_skewness(
         return 0.0
     fid_totals: dict[str, float] = {}
     for p in problems:
-        fid_totals[p.finding_id] = (
-            fid_totals.get(p.finding_id, 0.0) + weights.get(p.severity, 0.0)
-        )
+        fid_totals[p.finding_id] = fid_totals.get(p.finding_id, 0.0) + weights.get(p.severity, 0.0)
     n = len(fid_totals)
     if n < 3:
         return 0.0
@@ -9975,7 +9965,7 @@ def fid_score_skewness(
     std_dev = _math.sqrt(variance)
     if std_dev == 0.0:
         return 0.0
-    return float(sum((v - mean) ** 3 for v in values) / (n * std_dev ** 3))
+    return float(sum((v - mean) ** 3 for v in values) / (n * std_dev**3))
 
 
 def class_score_kurtosis(
@@ -9994,8 +9984,8 @@ def class_score_kurtosis(
         return 0.0
     class_totals: dict[str, float] = {}
     for p in problems:
-        class_totals[p.problem_class] = (
-            class_totals.get(p.problem_class, 0.0) + weights.get(p.severity, 0.0)
+        class_totals[p.problem_class] = class_totals.get(p.problem_class, 0.0) + weights.get(
+            p.severity, 0.0
         )
     n = len(class_totals)
     if n < 4:
@@ -10006,5 +9996,35 @@ def class_score_kurtosis(
     std_dev = _math.sqrt(variance)
     if std_dev == 0.0:
         return 0.0
-    raw_kurtosis = sum((v - mean) ** 4 for v in values) / (n * std_dev ** 4)
+    raw_kurtosis = sum((v - mean) ** 4 for v in values) / (n * std_dev**4)
+    return float(raw_kurtosis - 3.0)
+
+
+def fid_score_kurtosis(
+    problems: list[Problem],
+    weights: dict[str, float],
+) -> float:
+    """Return excess kurtosis of fid total weighted scores.  Item 532.
+
+    Formula: sum((x - mean)^4) / (n * std_dev^4) - 3  (Fisher correction).
+    Excess kurtosis: normal=0.0, heavy-tailed>0, light-tailed<0.
+    0.0 for empty, < 4 fids, or std_dev == 0.  Pure; no I/O.
+    """
+    import math as _math
+
+    if not problems:
+        return 0.0
+    fid_totals: dict[str, float] = {}
+    for p in problems:
+        fid_totals[p.finding_id] = fid_totals.get(p.finding_id, 0.0) + weights.get(p.severity, 0.0)
+    n = len(fid_totals)
+    if n < 4:
+        return 0.0
+    values = list(fid_totals.values())
+    mean = sum(values) / n
+    variance = sum((v - mean) ** 2 for v in values) / n
+    std_dev = _math.sqrt(variance)
+    if std_dev == 0.0:
+        return 0.0
+    raw_kurtosis = sum((v - mean) ** 4 for v in values) / (n * std_dev**4)
     return float(raw_kurtosis - 3.0)
