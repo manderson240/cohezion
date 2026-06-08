@@ -10654,3 +10654,21 @@ def class_problem_fractions(
     for p in problems:
         counts[p.problem_class] = counts.get(p.problem_class, 0) + 1
     return {cls: cnt / total for cls, cnt in counts.items()}
+
+
+def fid_problem_fractions(
+    problems: list[Problem],
+) -> dict[str, float]:
+    """Return fraction of total problems for ALL fids at once.  Item 563.
+
+    FID-axis complement of class_problem_fractions.
+    Each value = count_with_fid / total_problems; values sum to 1.0.
+    Unweighted -- ignores severity.  Empty -> {}.  Pure; no I/O.
+    """
+    if not problems:
+        return {}
+    total = len(problems)
+    counts: dict[str, int] = {}
+    for p in problems:
+        counts[p.finding_id] = counts.get(p.finding_id, 0) + 1
+    return {fid: cnt / total for fid, cnt in counts.items()}
