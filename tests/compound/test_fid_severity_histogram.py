@@ -53,9 +53,7 @@ def test_outer_keyed_by_fid_not_class_primary_discriminator() -> None:
         f"('A' present = class axis wrong)"
     )
     assert "f2" in result, f"fid 'f2' must be in result; got keys={list(result)}"
-    assert "A" not in result, (
-        f"Outer dict must NOT be keyed by class 'A'; got {result}"
-    )
+    assert "A" not in result, f"Outer dict must NOT be keyed by class 'A'; got {result}"
     assert result["f1"] == {"HIGH": 2}, f"f1: {{HIGH:2}}; got {result['f1']}"
     assert result["f2"] == {"LOW": 1}, f"f2: {{LOW:1}}; got {result['f2']}"
 
@@ -70,9 +68,7 @@ def test_inner_dict_keyed_by_severity_not_fid() -> None:
     problems = [_p("A", "fx", "CRITICAL"), _p("B", "fx", "LOW")]
     result = fid_severity_histogram(problems)
     inner = result.get("fx", {})
-    assert "CRITICAL" in inner, (
-        f"Inner dict must be keyed by severity 'CRITICAL'; got {inner}"
-    )
+    assert "CRITICAL" in inner, f"Inner dict must be keyed by severity 'CRITICAL'; got {inner}"
     assert "LOW" in inner, f"Inner dict must contain 'LOW'; got {inner}"
     assert "fx" not in inner, f"Inner dict must NOT be keyed by fid name; got {inner}"
     assert inner["CRITICAL"] == 1, f"CRITICAL count=1; got {inner['CRITICAL']}"
@@ -116,9 +112,7 @@ def test_multiple_fids_independent_histograms() -> None:
         _p("B", "f2", "CRITICAL"),
     ]
     result = fid_severity_histogram(problems)
-    assert result.get("f1") == {"HIGH": 3}, (
-        f"f1: {{HIGH:3}}; got {result.get('f1')}"
-    )
+    assert result.get("f1") == {"HIGH": 3}, f"f1: {{HIGH:3}}; got {result.get('f1')}"
     assert result.get("f2") == {"LOW": 1, "CRITICAL": 1}, (
         f"f2: {{LOW:1, CRITICAL:1}}; got {result.get('f2')}"
     )

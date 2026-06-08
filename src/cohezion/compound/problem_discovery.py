@@ -11128,3 +11128,32 @@ def fid_severity_histogram(problems: list[Problem]) -> dict[str, dict[str, int]]
         sev = p.severity or ""
         result[p.finding_id][sev] = result[p.finding_id].get(sev, 0) + 1
     return result
+
+
+def classes_by_severity(problems: list[Problem]) -> dict[str, set[str]]:
+    """Group class names by their dominant severity.  Item 586.
+
+    Returns {severity: {class, ...}} where each severity key contains the classes
+    for which that severity has the highest count.  Ties: a class appears in ALL
+    tied severity buckets.
+    Empty -> {}.  Pure; no I/O.
+    """
+    if not problems:
+        return {}
+    # Build per-class severity counts
+    sev_counts: dict[str, dict[str, int]] = {}
+    for p in problems:
+        if p.problem_class not in sev_counts:
+            sev_counts[p.problem_class] = {}
+        sev = p.severity or ""
+        sev_counts[p.problem_class][sev] = sev_counts[p.problem_class].get(sev, 0) + 1
+    # For each class, find dominant (max-count) severities; add to output buckets
+    result: dict[str, set[str]] = {}
+    for cls, counts in sev_counts.items():
+        max_count = max(counts.values())
+        for sev, cnt in counts.items():
+            if cnt == max_count:
+                if sev not in result:
+                    result[sev] = set()
+                result[sev].add(cls)
+    return result
