@@ -9116,3 +9116,34 @@ def all_score_summaries(
             "max_single": float(max(scores)),
         }
     return result
+
+
+def problems_with_max_severity_score(
+    problems: list[Problem],
+    weights: dict[str, float],
+) -> list[Problem]:
+    """Return all Problem records whose per-record severity weight equals the global maximum.
+
+    Computes the maximum per-record weight across *all* problems, then returns
+    every record whose weight equals that maximum.  All ties are included.
+    Insertion order is preserved.  When *problems* is empty, returns ``[]``.
+
+    When every record has an unknown severity (not in *weights*), each record
+    receives weight ``0.0`` which becomes the global maximum, so ALL records are
+    returned — consistent with the contract that 0.0 IS the max in that case.
+
+    Args:
+        problems: List of :class:`Problem` instances.
+        weights: Mapping of severity label to numeric score.
+
+    Returns:
+        ``list[Problem]`` of all records at the global maximum weight.
+        Empty list when *problems* is empty.
+
+    Pure (no I/O, no SurrealDB).  Item 500.
+    """
+    if not problems:
+        return []
+    record_weights = [weights.get(p.severity, 0.0) for p in problems]
+    max_weight = max(record_weights)
+    return [p for p, w in zip(problems, record_weights) if w == max_weight]
