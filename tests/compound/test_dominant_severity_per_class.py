@@ -107,6 +107,25 @@ def test_single_labelled_problem_is_dominant() -> None:
     )
 
 
+def test_most_frequent_severity_wins_not_first_encountered() -> None:
+    """Most-frequent severity is dominant, not first-encountered.
+
+    GAP-FILL DISCRIMINATOR (item 322 audit): kills impl returning first
+    severity seen rather than the plurality/mode.
+    alpha: LOW first, then HIGH x3 -> HIGH is dominant (mode), not LOW.
+    """
+    problems = [
+        _ps("alpha", 0, "LOW"),    # LOW appears first
+        _ps("alpha", 1, "HIGH"),
+        _ps("alpha", 2, "HIGH"),
+        _ps("alpha", 3, "HIGH"),   # HIGH appears 3 times vs LOW 1 time
+    ]
+    result = dominant_severity_per_class(problems)
+    assert result.get("alpha") == "HIGH", (
+        "alpha: HIGH×3 vs LOW×1 -> HIGH is dominant; got " + repr(result.get("alpha"))
+    )
+
+
 def test_return_type_is_dict_str_str() -> None:
     """Return type is dict[str, str] — both keys and values are strings.
 
