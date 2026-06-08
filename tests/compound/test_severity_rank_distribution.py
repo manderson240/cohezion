@@ -56,14 +56,14 @@ def test_denominator_is_total_labelled_not_total_problems() -> None:
         _ps("alpha", 0, "HIGH"),
         _ps("alpha", 1, "HIGH"),
         _ps("alpha", 2, "LOW"),
-        _p("alpha", 3),           # unlabelled
+        _p("alpha", 3),  # unlabelled
     ]
     result = severity_rank_distribution(problems, ["HIGH", "LOW", "MEDIUM"])
-    assert abs(result.get("HIGH", -1) - 2 / 3) < 1e-9, (
-        "HIGH = 2/3 (total_labelled=3); got " + repr(result.get("HIGH"))
+    assert abs(result.get("HIGH", -1) - 2 / 3) < 1e-9, "HIGH = 2/3 (total_labelled=3); got " + repr(
+        result.get("HIGH")
     )
-    assert abs(result.get("LOW", -1) - 1 / 3) < 1e-9, (
-        "LOW = 1/3 (total_labelled=3); got " + repr(result.get("LOW"))
+    assert abs(result.get("LOW", -1) - 1 / 3) < 1e-9, "LOW = 1/3 (total_labelled=3); got " + repr(
+        result.get("LOW")
     )
 
 
@@ -92,7 +92,9 @@ def test_severity_not_in_problems_omitted_from_result() -> None:
     problems = [_ps("alpha", 0, "HIGH"), _ps("alpha", 1, "LOW")]
     result = severity_rank_distribution(problems, ["CRITICAL", "HIGH", "MEDIUM", "LOW"])
     assert "MEDIUM" not in result, "MEDIUM not in problems -> not in result; got " + repr(result)
-    assert "CRITICAL" not in result, "CRITICAL not in problems -> not in result; got " + repr(result)
+    assert "CRITICAL" not in result, "CRITICAL not in problems -> not in result; got " + repr(
+        result
+    )
     assert "HIGH" in result and "LOW" in result, "HIGH+LOW in result; got " + repr(result)
 
 
@@ -113,6 +115,12 @@ def test_severity_in_problems_but_not_in_ordering_included() -> None:
     """
     problems = [_ps("alpha", 0, "HIGH"), _ps("alpha", 1, "UNKNOWN")]
     result = severity_rank_distribution(problems, ["HIGH", "LOW"])
-    assert "UNKNOWN" in result, "UNKNOWN in problems but not in ordering -> still in result; got " + repr(result)
-    assert abs(result.get("HIGH", -1) - 0.5) < 1e-9, "HIGH = 1/2 = 0.5; got " + repr(result.get("HIGH"))
-    assert abs(result.get("UNKNOWN", -1) - 0.5) < 1e-9, "UNKNOWN = 1/2 = 0.5; got " + repr(result.get("UNKNOWN"))
+    assert "UNKNOWN" in result, (
+        "UNKNOWN in problems but not in ordering -> still in result; got " + repr(result)
+    )
+    assert abs(result.get("HIGH", -1) - 0.5) < 1e-9, "HIGH = 1/2 = 0.5; got " + repr(
+        result.get("HIGH")
+    )
+    assert abs(result.get("UNKNOWN", -1) - 0.5) < 1e-9, "UNKNOWN = 1/2 = 0.5; got " + repr(
+        result.get("UNKNOWN")
+    )

@@ -5028,7 +5028,7 @@ def cross_class_finding_ids(problems: list[Problem]) -> frozenset[str]:
     )
 
 
-def most_common_finding_id(problems: list["Problem"]) -> "str | None":
+def most_common_finding_id(problems: list[Problem]) -> str | None:
     """Return the finding_id with the highest total Problem record count.
 
     Counts raw Problem records per finding_id (not distinct classes or
@@ -5052,7 +5052,7 @@ def most_common_finding_id(problems: list["Problem"]) -> "str | None":
     return min(counts, key=lambda fid: (-counts[fid], fid))
 
 
-def problem_count_by_severity(problems: list["Problem"]) -> dict[str, int]:
+def problem_count_by_severity(problems: list[Problem]) -> dict[str, int]:
     """Return the total number of Problem records at each labelled severity.
 
     Counts raw Problem records per severity label across all classes.  Unlike
