@@ -5359,3 +5359,29 @@ def classes_for_finding_id(
     Pure (no I/O, no SurrealDB).
     """
     return frozenset(p.problem_class for p in problems if p.finding_id == finding_id)
+
+
+def problems_for_class(
+    problems: list["Problem"], class_name: str
+) -> list["Problem"]:
+    """Return all Problem records whose problem_class matches class_name.
+
+    Closes the bidirectional-index quadrant:
+
+    - :func:`finding_ids_for_class` — class → IDs
+    - :func:`classes_for_finding_id` — ID → classes
+    - :func:`problems_for_finding_id` — ID → full records
+    - :func:`problems_for_class` — class → full records (this function)
+
+    Args:
+        problems: Flat list of :class:`Problem` records.
+        class_name: The class name to look up (exact match).
+
+    Returns:
+        New list of :class:`Problem` objects in original order whose
+        ``problem_class`` equals *class_name*.  ``[]`` when *problems* is
+        empty or no record matches.
+
+    Pure (no I/O, no SurrealDB).
+    """
+    return [p for p in problems if p.problem_class == class_name]
