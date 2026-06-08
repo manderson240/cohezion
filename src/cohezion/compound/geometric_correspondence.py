@@ -76,9 +76,7 @@ def geometric_correspondence(
     return out[:top_k]
 
 
-def correspondence_is_discriminating(
-    corpus: dict[str, list[str]], encoder: Encoder
-) -> bool:
+def correspondence_is_discriminating(corpus: dict[str, list[str]], encoder: Encoder) -> bool:
     """Metacognitive self-check: does the encoder DISCRIMINATE related from unrelated? (item 68).
 
     ``corpus`` maps a group label → its member texts. Returns True iff BOTH hold:
@@ -184,3 +182,51 @@ def compound_context_for(
     ]
     lines.extend(f"  - {m.ref} (correspondence {m.score:.2f}): {m.text}" for m in matches)
     return "\n".join(lines)
+
+
+# ---------------------------------------------------------------------------
+# Item 95 — Loop novelty-density (Eagleman memory-density self-monitor)
+# ---------------------------------------------------------------------------
+
+
+def novelty_density(
+    items: list[str],
+    corpus: list[dict],
+    *,
+    encoder: Encoder,
+    novelty_threshold: float = 0.5,
+) -> float:
+    """Fraction of ``items`` that are geometrically NOVEL vs ``corpus`` (item 95). Report-only.
+
+    Operationalizes Eagleman's memory-density theory: a batch of near-duplicate items produces a
+    LOW novelty_density (loop is SPINNING); a batch of geometrically-distinct items produces a HIGH
+    novelty_density (loop is EVOLVING).
+
+    For each item the MAX :func:`geometric_correspondence` score against ``corpus`` is computed; if
+    that score is BELOW ``novelty_threshold``, the item is counted as NOVEL (no close prior).  An
+    item whose max score is ≥ ``novelty_threshold`` is ROUTINE (near-duplicate of something in
+    corpus).
+
+    Args:
+        items: the batch of items to assess (backlog item texts, loop outputs, etc.).
+        corpus: the reference collection — same format as :func:`geometric_correspondence`.
+        encoder: INJECTABLE — do NOT load a model in pytest; pass a stub encoder.
+        novelty_threshold: cosine-similarity boundary. Default 0.5 (moderate overlap = routine).
+
+    Returns:
+        Float in [0.0, 1.0]: fraction of ``items`` that are novel.
+        Empty ``items`` → 0.0 (no ZeroDivision).
+
+    Note: inherits the ``geometric_correspondence`` short-title imperfection (item 68) — advisory
+    only; a single number, not a verdict.
+    """
+    if not items:
+        return 0.0
+    novel_count = 0
+    for item in items:
+        # top_k=1 + floor=-1.0 → always returns the single best match (or nothing for empty corpus)
+        matches = geometric_correspondence(item, corpus, encoder=encoder, top_k=1, floor=-1.0)
+        max_score = matches[0].score if matches else 0.0
+        if max_score < novelty_threshold:
+            novel_count += 1
+    return novel_count / len(items)
