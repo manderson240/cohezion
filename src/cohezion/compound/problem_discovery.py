@@ -9570,3 +9570,33 @@ def bottom_fid_by_score(
     min_score = min(fid_totals.values())
     # Among fids tied at min_score, return alphabetically first
     return min(fid for fid, score in fid_totals.items() if score == min_score)
+
+
+def fids_tied_at_score(
+    problems: list[Problem],
+    weights: dict[str, float],
+    target_score: float,
+) -> frozenset[str]:
+    """Return frozenset of finding_ids whose total weighted score equals target_score exactly.
+
+    Float equality is used (no epsilon).  Empty input or no match -> frozenset().
+
+    Args:
+        problems: List of :class:`Problem` instances.
+        weights: Mapping of severity label to numeric score.
+        target_score: The exact total score to match against.
+
+    Returns:
+        ``frozenset[str]`` of finding_ids whose accumulated score equals
+        ``target_score``.  Empty frozenset when no fid matches or input is empty.
+
+    Pure (no I/O, no SurrealDB).  Item 519.
+    """
+    if not problems:
+        return frozenset()
+    fid_totals: dict[str, float] = {}
+    for p in problems:
+        fid_totals[p.finding_id] = (
+            fid_totals.get(p.finding_id, 0.0) + weights.get(p.severity, 0.0)
+        )
+    return frozenset(fid for fid, score in fid_totals.items() if score == target_score)
