@@ -77,7 +77,7 @@ def test_unlabelled_only_class_counted_in_denominator() -> None:
     """
     problems = [
         _p("alpha", 0, "HIGH"),
-        _p("beta", 0, ""),   # beta has only unlabelled problems
+        _p("beta", 0, ""),  # beta has only unlabelled problems
         _p("beta", 1, ""),
     ]
     result = severity_coverage_ratio(problems)
