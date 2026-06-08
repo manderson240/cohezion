@@ -36,8 +36,7 @@ def test_fid_outer_exactly_equal_primary_discriminator() -> None:
     assert "f1" in result, f"'f1' must be outer key; got {list(result)}"
     assert "A" not in result, f"Class 'A' must NOT be key; got {list(result)}"
     assert result["f1"] == 2, (
-        f"Two HIGH(rank=3)==threshold(3) -> count=2; got {result['f1']} "
-        f"(above-impl=0 wrong)"
+        f"Two HIGH(rank=3)==threshold(3) -> count=2; got {result['f1']} (above-impl=0 wrong)"
     )
     assert isinstance(result["f1"], int), f"Must be int; got {type(result['f1'])}"
 
@@ -58,7 +57,7 @@ def test_empty_returns_empty_dict() -> None:
 def test_multiple_fids_independent() -> None:
     """Each fid computed independently."""
     problems = [_p("f3", "HIGH"), _p("f3", "HIGH")]  # f3: 2 at rank 3
-    problems += [_p("f4", "LOW"), _p("f4", "INFO")]   # f4: 0 at rank 3
+    problems += [_p("f4", "LOW"), _p("f4", "INFO")]  # f4: 0 at rank 3
     result = fid_severity_at_threshold(problems, 3)
     assert result["f3"] == 2, f"f3: two HIGH at rank 3 -> 2; got {result.get('f3')}"
     assert "f4" in result, "'f4' must be present"
