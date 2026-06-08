@@ -11650,3 +11650,25 @@ def fid_min_severity_count(problems: list[Problem]) -> dict[str, int]:
         sev = p.severity or ""
         counts[p.finding_id][sev] = counts[p.finding_id].get(sev, 0) + 1
     return {fid: min(sev_counts.values()) for fid, sev_counts in counts.items()}
+
+
+def fid_severity_entropy(problems: list[Problem], fid: str) -> float:
+    """Return the Shannon entropy (bits) of the severity distribution for *fid*.
+
+    FID-axis complement of class_severity_entropy (item 260).
+    Distribution computed ONLY over labelled (non-empty severity) problems
+    belonging to *fid*.  Unlabelled excluded from counts and total.
+
+        H = -sum(p_i * log2(p_i))  for each non-empty severity i in the fid
+
+    Returns 0.0 when fid has ≤1 distinct labelled severity, no labelled
+    problems, is not present, or when problems is empty.  Item 612.
+    """
+    counts: dict[str, int] = {}
+    for p in problems:
+        if p.finding_id == fid and p.severity:
+            counts[p.severity] = counts.get(p.severity, 0) + 1
+    total = sum(counts.values())
+    if total == 0:
+        return 0.0
+    return float(-sum((c / total) * math.log2(c / total) for c in counts.values()))
