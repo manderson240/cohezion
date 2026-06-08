@@ -15705,3 +15705,79 @@ def fid_severity_rank_high_only_fraction(problems: list[Problem]) -> dict[str, f
         if _SEVERITY_RANK.get(p.severity, 0) == 3:
             high_counts[fid] += 1
     return {fid: float(high_counts[fid]) / totals[fid] for fid in totals}
+
+
+def class_severity_rank_low_only_count(problems: list[Problem]) -> dict[str, int]:
+    """Absolute count of problems with rank == 1 (LOW only) per class.  Item 812.
+
+    count = count(rank == 1) per class.
+    INFO (rank 0) is NOT included; only LOW (rank 1).
+    Zero-inclusive: class with no LOW still appears with count=0.
+    Empty -> {}.  Pure; no I/O.
+    """
+    if not problems:
+        return {}
+    counts: dict[str, int] = {}
+    for p in problems:
+        cls = p.problem_class
+        if cls not in counts:
+            counts[cls] = 0
+        if _SEVERITY_RANK.get(p.severity, 0) == 1:
+            counts[cls] += 1
+    return counts
+
+
+def fid_severity_rank_low_only_count(problems: list[Problem]) -> dict[str, int]:
+    """Absolute count of problems with rank == 1 (LOW only) per fid.  Item 813.
+
+    Fid-axis complement of class_severity_rank_low_only_count (item 812).
+    count = count(rank == 1) per fid.  Zero-inclusive.  Empty -> {}.  Pure; no I/O.
+    """
+    if not problems:
+        return {}
+    counts: dict[str, int] = {}
+    for p in problems:
+        fid = p.finding_id
+        if fid not in counts:
+            counts[fid] = 0
+        if _SEVERITY_RANK.get(p.severity, 0) == 1:
+            counts[fid] += 1
+    return counts
+
+
+def class_severity_rank_low_only_count(problems: list["Problem"]) -> dict[str, int]:
+    """Count of problems with rank == 1 (LOW only) per class.  Item 812.
+
+    Distinct from class_severity_rank_low_count (item 796) which counts rank <= 1 (INFO+LOW).
+    INFO (rank 0) is NOT included.
+    Zero-inclusive: classes with no LOW still appear with count 0.
+    Empty -> {}.  Pure; no I/O.
+    """
+    if not problems:
+        return {}
+    result: dict[str, int] = {}
+    for p in problems:
+        cls = p.problem_class
+        if cls not in result:
+            result[cls] = 0
+        if _SEVERITY_RANK.get(p.severity, 0) == 1:
+            result[cls] += 1
+    return result
+
+
+def fid_severity_rank_low_only_count(problems: list["Problem"]) -> dict[str, int]:
+    """Count of problems with rank == 1 (LOW only) per fid.  Item 813.
+
+    Fid-axis complement of class_severity_rank_low_only_count (item 812).
+    Zero-inclusive.  Empty -> {}.  Pure; no I/O.
+    """
+    if not problems:
+        return {}
+    result: dict[str, int] = {}
+    for p in problems:
+        fid = p.finding_id
+        if fid not in result:
+            result[fid] = 0
+        if _SEVERITY_RANK.get(p.severity, 0) == 1:
+            result[fid] += 1
+    return result
