@@ -9252,3 +9252,31 @@ def weighted_problem_count_by_class(
     for p in problems:
         scores[p.problem_class] = scores.get(p.problem_class, 0.0) + weights.get(p.severity, 0.0)
     return scores
+
+
+def weighted_problem_count_by_fid(
+    problems: list[Problem],
+    weights: dict[str, float],
+) -> dict[str, float]:
+    """Return the total weighted severity score for EACH finding_id as a flat dict.
+
+    The fid-axis counterpart of :func:`weighted_problem_count_by_class`.  A
+    finding_id that appears in multiple records across different classes
+    accumulates its weighted score.  Unknown severities contribute ``0.0``
+    and the fid is still included in the result.  Empty *problems* returns
+    ``{}``.
+
+    Args:
+        problems: List of :class:`Problem` instances.
+        weights: Mapping of severity label to numeric score.
+
+    Returns:
+        ``dict[str, float]`` mapping finding_id → total weighted score.
+        Empty dict when *problems* is empty.
+
+    Pure (no I/O, no SurrealDB).  Item 505.
+    """
+    scores: dict[str, float] = {}
+    for p in problems:
+        scores[p.finding_id] = scores.get(p.finding_id, 0.0) + weights.get(p.severity, 0.0)
+    return scores
