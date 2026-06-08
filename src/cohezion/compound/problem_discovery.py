@@ -557,6 +557,33 @@ def problem_diff_pipeline(
     return (before_problems, after_problems, diff, summary)
 
 
+def filter_problems(
+    problems: list[Problem],
+    predicate: Callable[[Problem], bool],
+) -> list[Problem]:
+    """Filter a TIDE finding list with a caller-supplied predicate — item 175.
+
+    Returns the sublist of *problems* for which *predicate* returns ``True``.
+    Preserves order.  The predicate receives each :class:`Problem` instance
+    (not the raw finding id string).
+
+    Args:
+        problems:
+            A list of :class:`Problem` instances (e.g., from
+            :func:`discover_problems`).  Empty list → ``[]``.
+        predicate:
+            A callable that accepts one :class:`Problem` and returns ``bool``.
+            Called once per element; order is preserved for matching elements.
+
+    Returns:
+        A new list of :class:`Problem` instances for which *predicate* is
+        ``True``.  May be empty.  Never raises on empty input.
+
+    Pure (no I/O, no SurrealDB).
+    """
+    return [p for p in problems if predicate(p)]
+
+
 def default_template_classes() -> frozenset[str]:
     """Return the exact set of ``problem_class`` names in :func:`default_templates` — item 158.
 
