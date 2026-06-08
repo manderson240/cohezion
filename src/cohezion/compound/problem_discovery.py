@@ -472,6 +472,37 @@ def problem_diff(before: list[Problem], after: list[Problem]) -> ProblemDiff:
     return ProblemDiff(added=added, resolved=resolved, stable=stable)
 
 
+def problem_diff_summary(diff: ProblemDiff) -> str:
+    """Return a compact human-readable audit-log string for *diff* — item 173.
+
+    Lists added and resolved finding ids in sorted order.  When there are
+    neither added nor resolved ids (an all-stable or empty diff), returns
+    exactly ``"No changes."``.  Stable ids are never mentioned (they are the
+    unchanged background, not the signal).
+
+    Mirrors :func:`cohezion.inference.tournament_deposit.diff_summary` (item 166)
+    but operates on :class:`ProblemDiff` / code-smell finding ids.
+
+    Args:
+        diff:
+            A :class:`ProblemDiff` from :func:`problem_diff`.
+
+    Returns:
+        A newline-joined string of labelled findings, or ``"No changes."``
+        when *diff* has no added or resolved ids.
+
+    Pure (no I/O, no SurrealDB).
+    """
+    lines: list[str] = []
+    for fid in diff.added:
+        lines.append(f"added:    {fid}")
+    for fid in diff.resolved:
+        lines.append(f"resolved: {fid}")
+    if not lines:
+        return "No changes."
+    return "\n".join(lines)
+
+
 def default_template_classes() -> frozenset[str]:
     """Return the exact set of ``problem_class`` names in :func:`default_templates` — item 158.
 
