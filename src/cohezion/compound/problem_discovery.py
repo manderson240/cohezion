@@ -5120,3 +5120,52 @@ def severity_rank_distribution(
     # Sort: ordered severities first (by rank), then unordered (rank=len).
     sorted_sevs = sorted(counts, key=lambda s: (rank.get(s, len(severity_order)), s))
     return {sev: counts[sev] / total for sev in sorted_sevs}
+
+
+def top_severity_class(
+    problems: list["Problem"],
+    severity_order: list[str],
+) -> "str | None":
+    """Return the class with the highest count at the most-severe rank present.
+
+    Iterates through *severity_order* from index 0 (most severe) and finds the
+    first rank where at least one class has problems.  Among those classes,
+    returns the one with the highest count.  Tie-break: alphabetically
+    ascending class name.
+
+    Falls through to the next rank if the current rank has no problems in any
+    class.  Returns ``None`` when:
+    - *problems* is empty,
+    - all problems are unlabelled (no severity), OR
+    - *severity_order* is empty.
+
+    Args:
+        problems:       List of :class:`Problem` instances from a scan.
+        severity_order: Caller-supplied severity ordering (most severe first).
+
+    Returns:
+        Class name with the most problems at the highest-present severity rank,
+        or ``None``.
+
+    Pure (no I/O, no SurrealDB).
+    """
+    if not problems or not severity_order:
+        return None
+    # Build per-class, per-severity counts
+    class_sev_counts: dict[str, dict[str, int]] = {}
+    for p in problems:
+        if p.severity:
+            inner = class_sev_counts.setdefault(p.problem_class, {})
+            inner[p.severity] = inner.get(p.severity, 0) + 1
+    if not class_sev_counts:
+        return None
+    # Fall through severity_order to find the first rank with ≥1 class
+    for sev in severity_order:
+        counts_at_rank = {
+            cls: inner[sev]
+            for cls, inner in class_sev_counts.items()
+            if sev in inner
+        }
+        if counts_at_rank:
+            return min(counts_at_rank, key=lambda cls: (-counts_at_rank[cls], cls))
+    return None
