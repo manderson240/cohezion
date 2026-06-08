@@ -6190,3 +6190,34 @@ def class_count_above_threshold(problems: list[Problem], n: int) -> frozenset[st
     for p in problems:
         counts[p.problem_class] = counts.get(p.problem_class, 0) + 1
     return frozenset(cls for cls, cnt in counts.items() if cnt > n)
+
+
+# ---------------------------------------------------------------------------
+# Item 374 — class_count_at_most_threshold (2026-06-08)
+# ---------------------------------------------------------------------------
+
+
+def class_count_at_most_threshold(problems: list[Problem], n: int) -> frozenset[str]:
+    """Return class names whose total record count is at most n — item 374.
+
+    Complement of :func:`class_count_above_threshold`.  Partition invariant:
+    ``class_count_above_threshold(p, n) | class_count_at_most_threshold(p, n)``
+    equals the full set of distinct class names for any *n*.
+
+    Args:
+        problems: List of :class:`Problem` instances.
+        n: Ceiling threshold.  ``n=0`` always returns an empty frozenset
+           (no class can have count ≤ 0 if it appears in the list).
+
+    Returns:
+        :class:`frozenset` of class name strings with count ≤ *n*.
+        Empty when *problems* is empty or *n* < 1.
+
+    Pure (no I/O, no SurrealDB).
+    """
+    if not problems or n < 1:
+        return frozenset()
+    counts: dict[str, int] = {}
+    for p in problems:
+        counts[p.problem_class] = counts.get(p.problem_class, 0) + 1
+    return frozenset(cls for cls, cnt in counts.items() if cnt <= n)
