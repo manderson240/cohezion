@@ -3382,3 +3382,26 @@ def scan_summary(problems: list[Problem]) -> dict[str, object]:
         "dominant_severity": sr["dominant"],
         "has_duplicates": bool(duplicate_finding_ids(problems)),
     }
+
+
+def top_class_by_problem_count(problems: list[Problem]) -> str | None:
+    """Return the class name with the most total problems (all severities).
+
+    Counts every problem in each class regardless of severity label.
+    Tie-break: ascending class name (alphabetically smallest wins).
+
+    Args:
+        problems: List of :class:`Problem` instances from a scan.
+
+    Returns:
+        Class name (str) with the highest total count, or ``None`` when
+        *problems* is empty.
+
+    Pure (no I/O, no SurrealDB).
+    """
+    if not problems:
+        return None
+    counts: dict[str, int] = {}
+    for p in problems:
+        counts[p.problem_class] = counts.get(p.problem_class, 0) + 1
+    return max(counts, key=lambda cls: (counts[cls], [-ord(c) for c in cls]))
