@@ -895,6 +895,24 @@ def merge_problems(a: list[Problem], b: list[Problem]) -> list[Problem]:
     return deduplicate_problems(a + b)
 
 
+def count_problems(problems: list[Problem]) -> int:
+    """Return the total finding count for a problem list — item 187.
+
+    Names the concept so CI scripts write ``count_problems(findings) > threshold``
+    rather than ``len(findings) > threshold``, making intent explicit.
+
+    Args:
+        problems:
+            A list of :class:`Problem` instances.  Empty list → ``0``.
+
+    Returns:
+        The total number of findings (``len(problems)``).
+
+    Pure (no I/O, no SurrealDB).
+    """
+    return len(problems)
+
+
 def default_template_classes() -> frozenset[str]:
     """Return the exact set of ``problem_class`` names in :func:`default_templates` — item 158.
 
