@@ -10482,3 +10482,22 @@ def fid_problem_count(
     for p in problems:
         counts[p.finding_id] = counts.get(p.finding_id, 0) + 1
     return counts
+
+
+def class_unique_severity_count(
+    problems: list[Problem],
+) -> dict[str, int]:
+    """Return count of distinct severity labels per class.  Item 554.
+
+    Counts unique severity strings per class (case-sensitive).
+    Unweighted -- ignores numeric severity values.
+    Empty -> {}.  Pure; no I/O.
+    """
+    if not problems:
+        return {}
+    severities: dict[str, set[str]] = {}
+    for p in problems:
+        if p.problem_class not in severities:
+            severities[p.problem_class] = set()
+        severities[p.problem_class].add(p.severity)
+    return {cls: len(sev_set) for cls, sev_set in severities.items()}
