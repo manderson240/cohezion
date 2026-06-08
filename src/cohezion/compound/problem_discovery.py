@@ -2946,3 +2946,27 @@ def classes_at_severity(problems: list[Problem], severity: str) -> frozenset[str
     Pure (no I/O, no SurrealDB).
     """
     return frozenset(p.problem_class for p in problems if p.severity == severity)
+
+
+def cross_class_severity_map(problems: list[Problem]) -> dict[str, dict[str, int]]:
+    """Return the two-dimensional class × severity count breakdown.
+
+    For each class present in the scan, returns an inner dict mapping
+    severity string → count.  Unlabelled problems (``severity=""``) are
+    included under key ``""`` in the inner dict (unlike
+    :func:`count_by_severity`, which excludes ``""``).
+
+    Args:
+        problems: List of :class:`Problem` instances from a scan.
+
+    Returns:
+        ``{class_name: {severity: count}}`` for all classes in the scan.
+        Empty input → ``{}``.
+
+    Pure (no I/O, no SurrealDB).
+    """
+    result: dict[str, dict[str, int]] = {}
+    for p in problems:
+        inner = result.setdefault(p.problem_class, {})
+        inner[p.severity] = inner.get(p.severity, 0) + 1
+    return result
