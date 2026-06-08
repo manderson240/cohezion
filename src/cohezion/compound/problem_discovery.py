@@ -3920,3 +3920,25 @@ def classes_without_severity(problems: list[Problem]) -> frozenset[str]:
         if p.severity:
             labelled_classes.add(p.problem_class)
     return frozenset(all_classes - labelled_classes)
+
+
+def labelling_coverage_fraction(problems: list[Problem]) -> float:
+    """Return the fraction of problems that have a non-empty severity label.
+
+    Coverage = len(labelled) / len(total).  A score of 1.0 means every
+    problem is labelled; 0.0 means none are (or the input is empty).
+
+    Args:
+        problems: List of :class:`Problem` instances from a scan.
+
+    Returns:
+        float in [0.0, 1.0] representing the labelling coverage.
+        Returns 0.0 when *problems* is empty.
+
+    Pure (no I/O, no SurrealDB).
+    """
+    total = len(problems)
+    if total == 0:
+        return 0.0
+    labelled = sum(1 for p in problems if p.severity)
+    return float(labelled / total)
