@@ -12400,3 +12400,30 @@ def class_severity_hi_lo_ratio(problems: list[Problem]) -> dict[str, float]:
         if high_count > 0:
             result[cls] = float(high_count) / low_count
     return result
+
+
+def fid_severity_hi_lo_ratio(problems: list[Problem]) -> dict[str, float]:
+    """Return ratio of HIGH to LOW severity problems per fid.  Item 648.
+
+    FID-axis complement of class_severity_hi_lo_ratio (item 647).
+    ratio = count(HIGH) / count(LOW).
+    FIDs with no LOW problems are omitted (undefined denominator).
+    FIDs with no HIGH are also omitted (ratio would be 0.0).
+    float > 0.0 for all returned entries.
+    """
+    if not problems:
+        return {}
+    highs: dict[str, int] = {}
+    lows: dict[str, int] = {}
+    for p in problems:
+        sev = (p.severity or "").upper()
+        if sev == "HIGH":
+            highs[p.finding_id] = highs.get(p.finding_id, 0) + 1
+        elif sev == "LOW":
+            lows[p.finding_id] = lows.get(p.finding_id, 0) + 1
+    result: dict[str, float] = {}
+    for fid, low_count in lows.items():
+        high_count = highs.get(fid, 0)
+        if high_count > 0:
+            result[fid] = float(high_count) / low_count
+    return result
