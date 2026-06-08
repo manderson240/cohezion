@@ -15810,3 +15810,32 @@ def fid_severity_rank_medium_only_count(problems: list["Problem"]) -> dict[str, 
         if _SEVERITY_RANK.get(p.severity, 0) == 2:
             result[fid] += 1
     return result
+
+
+def class_severity_rank_critical_only_count(problems: list["Problem"]) -> dict[str, int]:
+    """Count of problems with rank == 4 (CRITICAL only) per class.  Item 818.
+    Distinct from critical_fraction (float) and high_count (rank>=3). Zero-inclusive. Empty -> {}."""
+    if not problems:
+        return {}
+    result: dict[str, int] = {}
+    for p in problems:
+        cls = p.problem_class
+        if cls not in result:
+            result[cls] = 0
+        if _SEVERITY_RANK.get(p.severity, 0) == 4:
+            result[cls] += 1
+    return result
+
+
+def fid_severity_rank_critical_only_count(problems: list["Problem"]) -> dict[str, int]:
+    """Count rank == 4 (CRITICAL only) per fid.  Item 819. Fid-axis complement of 818. Zero-inclusive."""
+    if not problems:
+        return {}
+    result: dict[str, int] = {}
+    for p in problems:
+        fid = p.finding_id
+        if fid not in result:
+            result[fid] = 0
+        if _SEVERITY_RANK.get(p.severity, 0) == 4:
+            result[fid] += 1
+    return result
