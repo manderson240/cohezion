@@ -3568,3 +3568,32 @@ def severity_gini(problems: list[Problem]) -> float:
     if total == 0:
         return 0.0
     return float(1.0 - sum((c / total) ** 2 for c in counts.values()))
+
+
+def top_severity_pairs(
+    problems: list[Problem], n: int = 5
+) -> list[tuple[str, str, int]]:
+    """Return the top-n (class, severity, count) tuples by problem count.
+
+    Counts labelled problems only (severity != '').  Sorted by count
+    descending; ties broken by (class ascending, severity ascending).
+
+    Args:
+        problems: List of :class:`Problem` instances from a scan.
+        n:        Maximum number of entries to return (default 5).
+
+    Returns:
+        list of ``(class_name, severity, count)`` tuples, at most *n* entries.
+        Empty list when *problems* is empty, all unlabelled, or *n* == 0.
+
+    Pure (no I/O, no SurrealDB).
+    """
+    if n == 0:
+        return []
+    counts: dict[tuple[str, str], int] = {}
+    for p in problems:
+        if p.severity:
+            key = (p.problem_class, p.severity)
+            counts[key] = counts.get(key, 0) + 1
+    ranked = sorted(counts.items(), key=lambda kv: (-kv[1], kv[0][0], kv[0][1]))
+    return [(cls, sev, cnt) for (cls, sev), cnt in ranked[:n]]
