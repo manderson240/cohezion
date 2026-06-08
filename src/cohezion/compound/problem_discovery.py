@@ -9221,3 +9221,34 @@ def weighted_problem_count(
     Pure (no I/O, no SurrealDB).  Item 503.
     """
     return float(sum(weights.get(p.severity, 0.0) for p in problems))
+
+
+def weighted_problem_count_by_class(
+    problems: list[Problem],
+    weights: dict[str, float],
+) -> dict[str, float]:
+    """Return the total weighted severity score for EACH class as a flat dict.
+
+    The per-class decomposition of :func:`weighted_problem_count`.  Returns
+    ``{class_name: total_weighted_score}`` for every class in *problems*.
+    Classes whose records all have unknown severities map to ``0.0`` (not
+    omitted).  Empty *problems* returns ``{}``.
+
+    This is the scalar-only alternative to :func:`all_score_summaries`; use
+    this when the caller only needs the total per class, not ``mean`` or
+    ``max_single``.
+
+    Args:
+        problems: List of :class:`Problem` instances.
+        weights: Mapping of severity label to numeric score.
+
+    Returns:
+        ``dict[str, float]`` mapping class name → total weighted score.
+        Empty dict when *problems* is empty.
+
+    Pure (no I/O, no SurrealDB).  Item 504.
+    """
+    scores: dict[str, float] = {}
+    for p in problems:
+        scores[p.problem_class] = scores.get(p.problem_class, 0.0) + weights.get(p.severity, 0.0)
+    return scores
