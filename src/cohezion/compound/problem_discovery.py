@@ -7665,3 +7665,27 @@ def severity_balance_score(problems: list[Problem]) -> float:
     total = len(problems)
     entropy = -sum((c / total) * math.log2(c / total) for c in counts.values())
     return entropy / math.log2(n)
+
+
+def top_n_severities(problems: list[Problem], n: int) -> list[tuple[str, int]]:
+    """Return the *n* most frequent severity values -- item 440.
+
+    Results are sorted by descending count, with ties broken by ascending
+    severity name (alphabetical order).
+
+    Args:
+        problems: List of :class:`Problem` instances.
+        n: Maximum number of results to return.  0 returns an empty list.
+
+    Returns:
+        List of ``(severity, count)`` tuples, at most *n* entries.
+
+    Pure (no I/O, no SurrealDB).
+    """
+    if not problems or n <= 0:
+        return []
+    counts: dict[str, int] = {}
+    for p in problems:
+        counts[p.severity] = counts.get(p.severity, 0) + 1
+    ranked = sorted(counts.items(), key=lambda item: (-item[1], item[0]))
+    return ranked[:n]
