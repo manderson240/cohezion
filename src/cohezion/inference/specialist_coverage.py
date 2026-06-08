@@ -13,6 +13,7 @@ no writes, no graph, no live health probe (that is ``FleetRegistry.audit_livenes
 
 from __future__ import annotations
 
+from collections.abc import Callable
 from dataclasses import dataclass
 
 from cohezion.inference.registry import FleetRegistry, Task, get_registry
@@ -133,3 +134,57 @@ def specialist_coverage_delta(
         newly_verified=sorted(newly_verified),
         regressed=sorted(regressed),
     )
+
+
+@dataclass(frozen=True)
+class SpecialistLivenessGaps:
+    """Registered specialists partitioned by whether a verification attempt is possible NOW.
+
+    ``ready`` — the specialist's preferred lane is live UP, so a serving-verification attempt is
+    possible right now. ``lane_down`` — the lane is DOWN/degraded/unknown, so it can't be tested
+    now (this explains why the item-38 verification campaign is stuck at 0/6). The two lists are
+    DISJOINT and together COVER every registered specialist; gap Tasks (no model) are in neither.
+    """
+
+    ready: list[str]
+    lane_down: list[str]
+
+
+def specialist_liveness_gaps(
+    *,
+    registry: FleetRegistry | None = None,
+    check_fleet_fn: Callable[[], object] | None = None,
+) -> SpecialistLivenessGaps:
+    """Partition registered specialists into testable-now vs lane-down (item 77). Report-only.
+
+    Ties item-38 ``specialist_coverage_report`` (which specialist Tasks are REGISTERED) to the
+    LIVE lane health that ``FleetRegistry.audit_liveness`` reconciles against — reusing that same
+    health contract (``health.lanes[lane_key].status.value == "up"``). For each registered
+    specialist, resolve its preferred lane's live status and bucket it:
+
+      * ``ready``     — lane status is ``"up"`` → a verification ATTEMPT is possible (regardless of
+        whether it has already been ``verified_working`` — readiness is attemptability, not history);
+      * ``lane_down`` — lane status is anything else (down/degraded/unknown) → can't test now.
+
+    A specialist Task with NO registered model is a coverage GAP (item-38's concern) and appears in
+    NEITHER partition. ``check_fleet_fn`` is injectable for deterministic tests; it defaults to the
+    live prober in ``cohezion.inference.health`` (no live probe under pytest when injected). Pure
+    given the injected health — no writes, no mutation.
+    """
+    reg = registry if registry is not None else get_registry()
+    if check_fleet_fn is None:
+        from cohezion.inference.health import check_fleet as check_fleet_fn  # live default
+
+    health = check_fleet_fn()
+    lanes = getattr(health, "lanes", {})
+    ready: list[str] = []
+    lane_down: list[str] = []
+    for task in SPECIALIST_TASKS:
+        candidates = reg.for_task(task)
+        if not candidates:
+            continue  # gap (no model) — a coverage hole, not a liveness-partition member
+        lane_key = candidates[0].lane.value
+        lane_health = lanes.get(lane_key)
+        live_status = lane_health.status.value if lane_health is not None else "unknown"
+        (ready if live_status == "up" else lane_down).append(str(task))
+    return SpecialistLivenessGaps(ready=sorted(ready), lane_down=sorted(lane_down))
