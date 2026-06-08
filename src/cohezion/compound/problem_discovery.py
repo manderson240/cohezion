@@ -11457,3 +11457,27 @@ def class_severity_gini(problems: list[Problem]) -> dict[str, float]:
         gini = 1.0 - sum((c / total) ** 2 for c in sev_counts.values())
         result[cls] = gini
     return result
+
+
+def fid_severity_gini(problems: list[Problem]) -> dict[str, float]:
+    """Return Gini impurity of severity distribution per fid.  Item 603.
+
+    Gini impurity = 1 - sum(p_i^2) where p_i = fraction of problems with severity i.
+    FID-axis complement of class_severity_gini.
+    Single-severity fid -> 0.0.  Uniform 2-severity fid -> 0.5.
+    Empty -> {}.  Pure; no I/O.
+    """
+    if not problems:
+        return {}
+    counts: dict[str, dict[str, int]] = {}
+    for p in problems:
+        if p.finding_id not in counts:
+            counts[p.finding_id] = {}
+        sev = p.severity or ""
+        counts[p.finding_id][sev] = counts[p.finding_id].get(sev, 0) + 1
+    result: dict[str, float] = {}
+    for fid, sev_counts in counts.items():
+        total = sum(sev_counts.values())
+        gini = 1.0 - sum((c / total) ** 2 for c in sev_counts.values())
+        result[fid] = gini
+    return result
