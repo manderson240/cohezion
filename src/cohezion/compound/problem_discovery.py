@@ -1107,6 +1107,35 @@ def first_problem_of_class(
     return None
 
 
+def problems_for_finding_id(
+    problems: list[Problem],
+    finding_id: str,
+) -> list[Problem]:
+    """Return all findings whose ``finding_id`` equals *finding_id* — item 195.
+
+    Reverse direction of :func:`finding_ids` (Problem → ID).  This goes
+    ID → Problem list.  Usually returns 0 or 1 elements; returns all
+    duplicates when they exist (complement of :func:`deduplicate_problems`)::
+
+        assert problems_for_finding_id(findings, fid)   # membership check
+        p_list = problems_for_finding_id(all_findings, target_id)
+
+    Args:
+        problems:
+            A list of :class:`Problem` instances.  Empty list → ``[]``.
+        finding_id:
+            The ``finding_id`` string to search for.
+
+    Returns:
+        A list of all :class:`Problem` instances in *problems* whose
+        ``finding_id`` equals *finding_id*.  Empty list if not found.
+        Multiple elements if duplicate IDs exist.
+
+    Pure (no I/O, no SurrealDB).
+    """
+    return [p for p in problems if p.finding_id == finding_id]
+
+
 def default_template_classes() -> frozenset[str]:
     """Return the exact set of ``problem_class`` names in :func:`default_templates` — item 158.
 
