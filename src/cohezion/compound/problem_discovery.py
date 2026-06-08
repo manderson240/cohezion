@@ -11815,3 +11815,29 @@ def fid_class_coverage_ratio(problems: list[Problem]) -> dict[str, float]:
             fid_classes[p.finding_id] = set()
         fid_classes[p.finding_id].add(p.problem_class)
     return {fid: float(len(cls_set)) / total for fid, cls_set in fid_classes.items()}
+
+
+def class_global_density(problems: list[Problem]) -> dict[str, float]:
+    """Return globally-normalised problem density per class.  Item 621.
+
+    density = total_class_problems / (distinct_fids_in_class * total_distinct_fids).
+    Unlike class_problem_density (item 580, divides by class-fids only), this
+    normalises additionally by total fids -- measuring class concentration in
+    the global fid space.
+    Empty -> {}.  Pure; no I/O.
+    """
+    if not problems:
+        return {}
+    total_fids = len({p.finding_id for p in problems})
+    if total_fids == 0:
+        return {}
+    class_probs: dict[str, int] = {}
+    class_fids: dict[str, set[str]] = {}
+    for p in problems:
+        class_probs[p.problem_class] = class_probs.get(p.problem_class, 0) + 1
+        if p.problem_class not in class_fids:
+            class_fids[p.problem_class] = set()
+        class_fids[p.problem_class].add(p.finding_id)
+    return {
+        cls: float(class_probs[cls]) / (len(class_fids[cls]) * total_fids) for cls in class_probs
+    }
