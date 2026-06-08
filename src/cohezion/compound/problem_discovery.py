@@ -5597,3 +5597,35 @@ def class_problem_ratio(problems: list["Problem"], class_name: str) -> float:
         return 0.0
     class_count = sum(1 for p in problems if p.problem_class == class_name)
     return class_count / len(problems)
+
+
+# ---------------------------------------------------------------------------
+# Item 351 — severity_ratio (2026-06-08)
+# ---------------------------------------------------------------------------
+
+
+def severity_ratio(problems: list["Problem"], severity: str) -> float:
+    """Return the fraction of ALL problems at a given severity level.
+
+    ``severity_ratio(problems, severity) -> float``:
+    Returns ``count(severity) / len(problems)`` as a :class:`float` in
+    [0.0, 1.0].  The denominator is ALL problems (labelled + unlabelled),
+    not just labelled ones.  Unknown severity → 0.0.  Empty input → 0.0.
+    Pure (no I/O, no SurrealDB).
+
+    Complements :func:`class_problem_ratio` for the severity axis.
+
+    Args:
+        problems: Flat list of :class:`Problem` records.
+        severity: The severity string to measure concentration for.
+
+    Returns:
+        Ratio in [0.0, 1.0]; 0.0 when *problems* is empty or *severity*
+        is not present.
+
+    Pure (no I/O, no SurrealDB).
+    """
+    if not problems:
+        return 0.0
+    sev_count = sum(1 for p in problems if p.severity == severity)
+    return sev_count / len(problems)
