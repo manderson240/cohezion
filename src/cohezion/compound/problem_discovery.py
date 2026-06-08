@@ -9311,8 +9311,8 @@ def score_rank_of_class(
     # Compute per-class totals
     class_totals: dict[str, float] = {}
     for p in problems:
-        class_totals[p.problem_class] = (
-            class_totals.get(p.problem_class, 0.0) + weights.get(p.severity, 0.0)
+        class_totals[p.problem_class] = class_totals.get(p.problem_class, 0.0) + weights.get(
+            p.severity, 0.0
         )
     if problem_class not in class_totals:
         return None
@@ -9351,8 +9351,8 @@ def score_percentile_of_class(
         return None
     class_totals: dict[str, float] = {}
     for p in problems:
-        class_totals[p.problem_class] = (
-            class_totals.get(p.problem_class, 0.0) + weights.get(p.severity, 0.0)
+        class_totals[p.problem_class] = class_totals.get(p.problem_class, 0.0) + weights.get(
+            p.severity, 0.0
         )
     if problem_class not in class_totals:
         return None
@@ -9390,8 +9390,8 @@ def classes_in_score_band(
         return frozenset()
     class_totals: dict[str, float] = {}
     for p in problems:
-        class_totals[p.problem_class] = (
-            class_totals.get(p.problem_class, 0.0) + weights.get(p.severity, 0.0)
+        class_totals[p.problem_class] = class_totals.get(p.problem_class, 0.0) + weights.get(
+            p.severity, 0.0
         )
     return frozenset(cls for cls, score in class_totals.items() if lo <= score <= hi)
 
@@ -9420,8 +9420,8 @@ def score_spread(
         return 0.0
     class_totals: dict[str, float] = {}
     for p in problems:
-        class_totals[p.problem_class] = (
-            class_totals.get(p.problem_class, 0.0) + weights.get(p.severity, 0.0)
+        class_totals[p.problem_class] = class_totals.get(p.problem_class, 0.0) + weights.get(
+            p.severity, 0.0
         )
     totals = list(class_totals.values())
     if len(totals) < 2:
@@ -9480,8 +9480,8 @@ def bottom_class_by_score(
         return None
     class_totals: dict[str, float] = {}
     for p in problems:
-        class_totals[p.problem_class] = (
-            class_totals.get(p.problem_class, 0.0) + weights.get(p.severity, 0.0)
+        class_totals[p.problem_class] = class_totals.get(p.problem_class, 0.0) + weights.get(
+            p.severity, 0.0
         )
     min_score = min(class_totals.values())
     # Among classes tied at min_score, return alphabetically first
@@ -9512,8 +9512,8 @@ def classes_tied_at_score(
         return frozenset()
     class_totals: dict[str, float] = {}
     for p in problems:
-        class_totals[p.problem_class] = (
-            class_totals.get(p.problem_class, 0.0) + weights.get(p.severity, 0.0)
+        class_totals[p.problem_class] = class_totals.get(p.problem_class, 0.0) + weights.get(
+            p.severity, 0.0
         )
     return frozenset(cls for cls, score in class_totals.items() if score == target_score)
 
@@ -9564,9 +9564,7 @@ def bottom_fid_by_score(
         return None
     fid_totals: dict[str, float] = {}
     for p in problems:
-        fid_totals[p.finding_id] = (
-            fid_totals.get(p.finding_id, 0.0) + weights.get(p.severity, 0.0)
-        )
+        fid_totals[p.finding_id] = fid_totals.get(p.finding_id, 0.0) + weights.get(p.severity, 0.0)
     min_score = min(fid_totals.values())
     # Among fids tied at min_score, return alphabetically first
     return min(fid for fid, score in fid_totals.items() if score == min_score)
@@ -9596,9 +9594,7 @@ def fids_tied_at_score(
         return frozenset()
     fid_totals: dict[str, float] = {}
     for p in problems:
-        fid_totals[p.finding_id] = (
-            fid_totals.get(p.finding_id, 0.0) + weights.get(p.severity, 0.0)
-        )
+        fid_totals[p.finding_id] = fid_totals.get(p.finding_id, 0.0) + weights.get(p.severity, 0.0)
     return frozenset(fid for fid, score in fid_totals.items() if score == target_score)
 
 
@@ -9625,8 +9621,8 @@ def score_variance(
         return 0.0
     class_totals: dict[str, float] = {}
     for p in problems:
-        class_totals[p.problem_class] = (
-            class_totals.get(p.problem_class, 0.0) + weights.get(p.severity, 0.0)
+        class_totals[p.problem_class] = class_totals.get(p.problem_class, 0.0) + weights.get(
+            p.severity, 0.0
         )
     n = len(class_totals)
     if n < 2:
@@ -9665,9 +9661,7 @@ def fid_score_rank(
         return None
     fid_totals: dict[str, float] = {}
     for p in problems:
-        fid_totals[p.finding_id] = (
-            fid_totals.get(p.finding_id, 0.0) + weights.get(p.severity, 0.0)
-        )
+        fid_totals[p.finding_id] = fid_totals.get(p.finding_id, 0.0) + weights.get(p.severity, 0.0)
     if finding_id not in fid_totals:
         return None
     target_score = fid_totals[finding_id]
@@ -9696,6 +9690,7 @@ def score_std_dev(
     Pure (no I/O, no SurrealDB).  Item 521.
     """
     import math as _math
+
     return float(_math.sqrt(score_variance(problems, weights)))
 
 
@@ -9724,8 +9719,8 @@ def normalized_class_scores(
         return {}
     class_totals: dict[str, float] = {}
     for p in problems:
-        class_totals[p.problem_class] = (
-            class_totals.get(p.problem_class, 0.0) + weights.get(p.severity, 0.0)
+        class_totals[p.problem_class] = class_totals.get(p.problem_class, 0.0) + weights.get(
+            p.severity, 0.0
         )
     min_score = min(class_totals.values())
     max_score = max(class_totals.values())
@@ -9763,9 +9758,7 @@ def fid_score_percentile(
         return None
     fid_totals: dict[str, float] = {}
     for p in problems:
-        fid_totals[p.finding_id] = (
-            fid_totals.get(p.finding_id, 0.0) + weights.get(p.severity, 0.0)
-        )
+        fid_totals[p.finding_id] = fid_totals.get(p.finding_id, 0.0) + weights.get(p.severity, 0.0)
     if finding_id not in fid_totals:
         return None
     target_score = fid_totals[finding_id]

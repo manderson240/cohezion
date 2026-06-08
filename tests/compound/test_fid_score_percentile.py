@@ -37,7 +37,7 @@ def test_returns_float_not_rank() -> None:
     """
     problems = [
         _p("C", "fid_high", "HIGH"),  # 5.0
-        _p("C", "fid_low", "LOW"),    # 1.0
+        _p("C", "fid_low", "LOW"),  # 1.0
     ]
     weights = {"HIGH": 5.0, "LOW": 1.0}
 
@@ -58,16 +58,14 @@ def test_strictly_lower_not_gte() -> None:
     Kills impl with a >= or <= direction error.
     """
     problems = [
-        _p("C", "fid_a", "LOW"),   # 1.0
-        _p("C", "fid_b", "MED"),   # 3.0
-        _p("C", "fid_c", "MED"),   # 3.0
+        _p("C", "fid_a", "LOW"),  # 1.0
+        _p("C", "fid_b", "MED"),  # 3.0
+        _p("C", "fid_c", "MED"),  # 3.0
     ]
     weights = {"LOW": 1.0, "MED": 3.0}
     result = fid_score_percentile(problems, weights, "fid_b")
     assert result is not None, "fid_b is present; must not return None"
-    assert abs(result - 0.5) < 1e-9, (
-        f"1 strictly-lower / (3-1) = 0.5; got {result} (wrong >=: 1.0)"
-    )
+    assert abs(result - 0.5) < 1e-9, f"1 strictly-lower / (3-1) = 0.5; got {result} (wrong >=: 1.0)"
 
 
 def test_single_fid_returns_zero_not_none() -> None:
