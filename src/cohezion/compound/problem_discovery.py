@@ -1952,3 +1952,37 @@ def partition_by_threshold(
         else:
             under.add(cls)
     return frozenset(over), frozenset(under)
+
+
+def threshold_headroom(
+    problems: list[Problem],
+    thresholds: dict[str, int],
+) -> dict[str, int]:
+    """Return per-class remaining budget for monitored classes within threshold.
+
+    For every monitored class whose count is AT OR BELOW its threshold,
+    returns ``{class: threshold - count}``.  Over-threshold classes are absent.
+    Unmonitored classes (not in *thresholds*) are absent.
+
+    The positive complement to ``threshold_violations``:
+    - ``threshold_violations`` gives the *excess* for over-budget classes
+    - ``threshold_headroom`` gives the *remaining budget* for under-budget classes
+
+    Args:
+        problems:   List of ``Problem`` instances to examine.
+        thresholds: Mapping of ``{problem_class: max_allowed_count}``.
+                    Empty mapping -> ``{}``.
+
+    Returns:
+        ``dict[str, int]`` -- ``{class: threshold - count}`` for compliant classes.
+
+    Pure (no I/O, no SurrealDB).
+    """
+    if not thresholds:
+        return {}
+    counts = problem_count_by_class(problems)
+    return {
+        cls: limit - counts.get(cls, 0)
+        for cls, limit in thresholds.items()
+        if counts.get(cls, 0) <= limit
+    }
