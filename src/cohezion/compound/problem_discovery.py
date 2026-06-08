@@ -11368,3 +11368,27 @@ def class_severity_mode(problems: list[Problem]) -> dict[str, frozenset[str]]:
         max_count = max(sev_counts.values())
         result[cls] = frozenset(s for s, c in sev_counts.items() if c == max_count)
     return result
+
+
+def fid_severity_mode(problems: list[Problem]) -> dict[str, frozenset[str]]:
+    """Return full co-dominant severity set per fid.  Item 599.
+
+    Returns {fid: frozenset_of_dominant_severity_labels} where dominant labels
+    are ALL severities sharing the maximum count for that fid.
+    FID-axis complement of class_severity_mode.
+    Single dominant -> singleton frozenset.  Tie -> frozenset with > 1 element.
+    Empty -> {}.  Pure; no I/O.
+    """
+    if not problems:
+        return {}
+    counts: dict[str, dict[str, int]] = {}
+    for p in problems:
+        if p.finding_id not in counts:
+            counts[p.finding_id] = {}
+        sev = p.severity or ""
+        counts[p.finding_id][sev] = counts[p.finding_id].get(sev, 0) + 1
+    result: dict[str, frozenset[str]] = {}
+    for fid, sev_counts in counts.items():
+        max_count = max(sev_counts.values())
+        result[fid] = frozenset(s for s, c in sev_counts.items() if c == max_count)
+    return result
