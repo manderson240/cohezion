@@ -11915,3 +11915,33 @@ def class_severity_cv(
             variance = sum((v - mean) ** 2 for v in vals) / len(vals)
             result[cls] = _math.sqrt(variance) / mean
     return result
+
+
+def fid_severity_cv(problems: list[Problem]) -> dict[str, float]:
+    """Return coefficient of variation of severity counts per fid.  Item 626.
+
+    FID-axis complement of class_severity_cv (item 625).
+    CV = population_std_dev / mean of the per-severity INTEGER counts for each fid.
+    Single-severity -> 0.0 (std=0).  Uniform distribution -> 0.0 (std=0).
+    Empty -> {}.  Float >= 0.0.  Pure; no I/O.
+    """
+    import math as _math
+
+    if not problems:
+        return {}
+    counts: dict[str, dict[str, int]] = {}
+    for p in problems:
+        if p.finding_id not in counts:
+            counts[p.finding_id] = {}
+        sev = p.severity or ""
+        counts[p.finding_id][sev] = counts[p.finding_id].get(sev, 0) + 1
+    result: dict[str, float] = {}
+    for fid, sev_counts in counts.items():
+        vals = list(sev_counts.values())
+        mean = sum(vals) / len(vals)
+        if mean == 0.0:
+            result[fid] = 0.0
+        else:
+            variance = sum((v - mean) ** 2 for v in vals) / len(vals)
+            result[fid] = _math.sqrt(variance) / mean
+    return result
