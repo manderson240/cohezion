@@ -3428,9 +3428,7 @@ def classes_above_problem_count(problems: list[Problem], min_count: int) -> froz
     return frozenset(cls for cls, cnt in counts.items() if cnt >= min_count)
 
 
-def severity_rank_in_class(
-    problems: list[Problem], cls: str, severity: str
-) -> int | None:
+def severity_rank_in_class(problems: list[Problem], cls: str, severity: str) -> int | None:
     """Return the 1-based frequency rank of *severity* among labelled problems in *cls*.
 
     Rank 1 = most frequent.  Ties broken by severity string ascending.
@@ -3570,9 +3568,7 @@ def severity_gini(problems: list[Problem]) -> float:
     return float(1.0 - sum((c / total) ** 2 for c in counts.values()))
 
 
-def top_severity_pairs(
-    problems: list[Problem], n: int = 5
-) -> list[tuple[str, str, int]]:
+def top_severity_pairs(problems: list[Problem], n: int = 5) -> list[tuple[str, str, int]]:
     """Return the top-n (class, severity, count) tuples by problem count.
 
     Counts labelled problems only (severity != '').  Sorted by count
@@ -3628,9 +3624,7 @@ def class_severity_vector(
     return tuple(counts.get(sev, 0) for sev in severities)
 
 
-def compare_severity_distributions(
-    scan_a: list[Problem], scan_b: list[Problem]
-) -> dict[str, int]:
+def compare_severity_distributions(scan_a: list[Problem], scan_b: list[Problem]) -> dict[str, int]:
     """Return the per-severity delta between two scans (count_b - count_a).
 
     Only labelled problems (severity != '') are counted.  Severities that
@@ -3647,6 +3641,7 @@ def compare_severity_distributions(
 
     Pure (no I/O, no SurrealDB).
     """
+
     def _counts(scan: list[Problem]) -> dict[str, int]:
         c: dict[str, int] = {}
         for p in scan:
@@ -3660,9 +3655,7 @@ def compare_severity_distributions(
     return {sev: counts_b.get(sev, 0) - counts_a.get(sev, 0) for sev in all_severities}
 
 
-def severity_change_summary(
-    scan_a: list[Problem], scan_b: list[Problem]
-) -> dict[str, object]:
+def severity_change_summary(scan_a: list[Problem], scan_b: list[Problem]) -> dict[str, object]:
     """Return a human-readable summary of severity changes between two scans.
 
     Delegates to :func:`compare_severity_distributions` and categorises each
@@ -3691,6 +3684,39 @@ def severity_change_summary(
         "unchanged": unchanged,
         "net_delta": sum(deltas.values()),
     }
+
+
+def finding_ids_unique_to_class(problems: list[Problem]) -> dict[str, frozenset[str]]:
+    """Return per-class frozensets of finding_ids that appear in ONLY that class.
+
+    Finding_ids shared across two or more classes are excluded from all classes'
+    frozensets.  Classes with no exclusive ids still appear with an empty frozenset.
+
+    Args:
+        problems: List of :class:`Problem` instances from a scan.
+
+    Returns:
+        dict mapping class_name → frozenset of finding_ids exclusive to that class.
+        Empty dict when *problems* is empty.
+
+    Pure (no I/O, no SurrealDB).
+    """
+    if not problems:
+        return {}
+    # Build finding_id -> set of classes that contain it
+    id_to_classes: dict[str, set[str]] = {}
+    for p in problems:
+        id_to_classes.setdefault(p.finding_id, set()).add(p.problem_class)
+    # Exclusive ids: those belonging to exactly one class
+    exclusive_ids: set[str] = {fid for fid, classes in id_to_classes.items() if len(classes) == 1}
+    # Build per-class frozensets of exclusive ids
+    class_ids: dict[str, set[str]] = {}
+    for p in problems:
+        class_ids.setdefault(p.problem_class, set())
+    for fid in exclusive_ids:
+        cls = next(iter(id_to_classes[fid]))
+        class_ids[cls].add(fid)
+    return {cls: frozenset(ids) for cls, ids in class_ids.items()}
 
 
 def finding_ids_by_class(problems: list[Problem]) -> dict[str, frozenset[str]]:
