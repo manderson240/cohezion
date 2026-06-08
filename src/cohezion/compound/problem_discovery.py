@@ -7708,3 +7708,22 @@ def problems_for_severity(problems: list[Problem], severity: str) -> list[Proble
     Pure (no I/O, no SurrealDB).
     """
     return [p for p in problems if p.severity == severity]
+
+
+def class_count_for_severity(problems: list[Problem], severity: str) -> int:
+    """Return the number of distinct classes with at least one problem of *severity* -- item 442.
+
+    Counts distinct :attr:`Problem.problem_class` values that appear in at
+    least one record whose :attr:`Problem.severity` matches *severity*.
+
+    Args:
+        problems: List of :class:`Problem` instances.
+        severity: The severity value to filter by (case-sensitive).
+
+    Returns:
+        Count of distinct problem classes with the given severity.
+        Returns 0 when *problems* is empty or *severity* is not found.
+
+    Pure (no I/O, no SurrealDB).
+    """
+    return len({p.problem_class for p in problems if p.severity == severity})
