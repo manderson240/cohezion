@@ -8323,3 +8323,27 @@ def dominant_fid_for_severity(problems: list[Problem], severity: str) -> str | N
     if not fid_counts:
         return None
     return min(fid_counts, key=lambda f: (-fid_counts[f], f))
+
+
+def severity_count_for_class(
+    problems: list[Problem], problem_class: str, severity: str
+) -> int:
+    """Return count of records matching both *problem_class* and *severity* -- item 469.
+
+    The raw intersection count at the (class, severity) cell of the 2-D
+    count matrix.
+
+    Args:
+        problems: List of :class:`Problem` instances.
+        problem_class: Target class to filter on.
+        severity: Target severity to filter on.
+
+    Returns:
+        Non-negative int.  0 when either axis value is absent.
+
+    Pure (no I/O, no SurrealDB).
+    """
+    return sum(
+        1 for p in problems
+        if p.problem_class == problem_class and p.severity == severity
+    )
