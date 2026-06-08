@@ -7689,3 +7689,22 @@ def top_n_severities(problems: list[Problem], n: int) -> list[tuple[str, int]]:
         counts[p.severity] = counts.get(p.severity, 0) + 1
     ranked = sorted(counts.items(), key=lambda item: (-item[1], item[0]))
     return ranked[:n]
+
+
+def problems_for_severity(problems: list[Problem], severity: str) -> list[Problem]:
+    """Return all problems whose severity field matches *severity* -- item 441.
+
+    Case-sensitive match on :attr:`Problem.severity`.  Order is preserved.
+    Follows the canonical ``problems_for_X`` accessor naming convention.
+
+    Args:
+        problems: List of :class:`Problem` instances.
+        severity: The severity value to filter by (case-sensitive).
+
+    Returns:
+        New list of :class:`Problem` instances with ``p.severity == severity``.
+        Empty list when *problems* is empty or no match is found.
+
+    Pure (no I/O, no SurrealDB).
+    """
+    return [p for p in problems if p.severity == severity]
