@@ -9540,3 +9540,33 @@ def top_fid_by_score(
         return None
     ranked = fids_by_total_score(problems, weights)
     return ranked[0] if ranked else None
+
+
+def bottom_fid_by_score(
+    problems: list[Problem],
+    weights: dict[str, float],
+) -> str | None:
+    """Return the single finding_id with the lowest total weighted severity score.
+
+    Alphabetical tie-break (ascending) among fids that share the bottom score.
+    Returns ``None`` for empty input.
+
+    Args:
+        problems: List of :class:`Problem` instances.
+        weights: Mapping of severity label to numeric score.
+
+    Returns:
+        ``str`` finding_id with the lowest total score, or ``None`` if empty.
+
+    Pure (no I/O, no SurrealDB).  Item 518.
+    """
+    if not problems:
+        return None
+    fid_totals: dict[str, float] = {}
+    for p in problems:
+        fid_totals[p.finding_id] = (
+            fid_totals.get(p.finding_id, 0.0) + weights.get(p.severity, 0.0)
+        )
+    min_score = min(fid_totals.values())
+    # Among fids tied at min_score, return alphabetically first
+    return min(fid for fid, score in fid_totals.items() if score == min_score)
