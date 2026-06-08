@@ -50,13 +50,11 @@ def test_excludes_unlabelled_from_count() -> None:
     """
     problems = [
         _ps("alpha", 0, "HIGH"),
-        _ps("beta",  0, "LOW"),
+        _ps("beta", 0, "LOW"),
         Problem(problem_class="gamma", finding_id="gamma:0"),  # severity=""
     ]
     result = severity_dispersion(problems)
-    assert result == 2, (
-        "HIGH + LOW = 2 distinct severities; '' excluded; got " + repr(result)
-    )
+    assert result == 2, "HIGH + LOW = 2 distinct severities; '' excluded; got " + repr(result)
 
 
 def test_zero_when_all_unlabelled() -> None:
@@ -66,7 +64,7 @@ def test_zero_when_all_unlabelled() -> None:
     """
     problems = [
         Problem(problem_class="alpha", finding_id="alpha:0"),
-        Problem(problem_class="beta",  finding_id="beta:0"),
+        Problem(problem_class="beta", finding_id="beta:0"),
     ]
     result = severity_dispersion(problems)
     assert result == 0, "All unlabelled → 0; got " + repr(result)
@@ -87,10 +85,9 @@ def test_counts_distinct_labels_not_problems() -> None:
     Kills impl that returns len(labelled_problems) or sum(counts.values()).
     5 HIGH problems + 3 LOW problems = 2 distinct labels (not 8).
     """
-    problems = (
-        [_ps("alpha", i, "HIGH") for i in range(5)]
-        + [_ps("beta", i, "LOW") for i in range(3)]
-    )
+    problems = [_ps("alpha", i, "HIGH") for i in range(5)] + [
+        _ps("beta", i, "LOW") for i in range(3)
+    ]
     result = severity_dispersion(problems)
     assert result == 2, "HIGH + LOW = 2 distinct labels; got " + repr(result)
 
