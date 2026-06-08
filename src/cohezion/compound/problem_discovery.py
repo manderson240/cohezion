@@ -15095,3 +15095,59 @@ def fid_severity_rank_above_mode(problems: list[Problem]) -> dict[str, float]:
         count_above = sum(1 for r in ranks if r > modal_rank)
         result[fid] = float(count_above) / n
     return result
+
+
+def class_severity_rank_below_mode(problems: list[Problem]) -> dict[str, float]:
+    """Fraction of ranks strictly below the modal rank per class.  Item 782.
+
+    Modal rank = most frequent rank; tie -> min rank (same as mode_value/above_mode).
+    fraction = count(rank < modal_rank) / n.
+    All-same -> 0.0.  Empty -> {}.  Pure; no I/O.
+    """
+    if not problems:
+        return {}
+    ranks_by_class: dict[str, list[int]] = {}
+    for p in problems:
+        cls = p.problem_class
+        if cls not in ranks_by_class:
+            ranks_by_class[cls] = []
+        ranks_by_class[cls].append(_SEVERITY_RANK.get(p.severity, 0))
+    result: dict[str, float] = {}
+    for cls, ranks in ranks_by_class.items():
+        n = len(ranks)
+        counts: dict[int, int] = {}
+        for r in ranks:
+            counts[r] = counts.get(r, 0) + 1
+        max_count = max(counts.values())
+        modal_rank = min(r for r, c in counts.items() if c == max_count)
+        count_below = sum(1 for r in ranks if r < modal_rank)
+        result[cls] = float(count_below) / n
+    return result
+
+
+def fid_severity_rank_below_mode(problems: list[Problem]) -> dict[str, float]:
+    """Fraction of ranks strictly below the modal rank per fid.  Item 783.
+
+    Fid-axis complement of class_severity_rank_below_mode (item 782).
+    Modal rank = most frequent; tie -> min rank.
+    All-same -> 0.0.  Empty -> {}.  Pure; no I/O.
+    """
+    if not problems:
+        return {}
+    ranks_by_fid: dict[str, list[int]] = {}
+    for p in problems:
+        fid = p.finding_id
+        if fid not in ranks_by_fid:
+            ranks_by_fid[fid] = []
+        ranks_by_fid[fid].append(_SEVERITY_RANK.get(p.severity, 0))
+    result: dict[str, float] = {}
+    for fid, ranks in ranks_by_fid.items():
+        n = len(ranks)
+        counts: dict[int, int] = {}
+        for r in ranks:
+            counts[r] = counts.get(r, 0) + 1
+        max_count = max(counts.values())
+        modal_rank = min(r for r, c in counts.items() if c == max_count)
+        count_below = sum(1 for r in ranks if r < modal_rank)
+        result[fid] = float(count_below) / n
+    return result
