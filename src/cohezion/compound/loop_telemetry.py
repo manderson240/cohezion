@@ -22,6 +22,8 @@ _DEFAULT_FEED = _REPO / "docs" / "research" / "BLEEDING_EDGE_FEED.md"
 
 # A backlog ROW starts with ``| <number> |``; its STATUS is the last pipe-delimited cell.
 _BACKLOG_ROW = re.compile(r"^\|\s*\d+\s*\|")
+# Same anchor, but CAPTURING the item number (item 78 identifies WHICH rows regressed).
+_BACKLOG_NUM = re.compile(r"^\|\s*(\d+)\s*\|")
 # A swept-package table row: ``| <pkg> | **DONE** | …`` (the 2nd cell is exactly **DONE**).
 _LEDGER_DONE = re.compile(r"^\|\s*[\w/]+\s*\|\s*\*\*DONE\*\*\s*\|")
 # A research round header: ``## … (round N)``.
@@ -201,4 +203,44 @@ def detect_loop_regression(before: LoopTelemetry, after: LoopTelemetry) -> Regre
         return RegressionReport(True, "regression: " + "; ".join(backward))
     return RegressionReport(
         False, "no regression: no completed/swept/researched count moved backward"
+    )
+
+
+def _backlog_status_map(text: str) -> dict[int, str]:
+    """Map ``{item_number: STATUS_first_word}`` from a backlog snapshot's numbered rows.
+
+    Composes item-25's tested parsing primitives (``_BACKLOG_NUM`` + ``_status_first_word``) so
+    the per-item view shares the exact row/status contract the aggregate counts already rely on.
+    A duplicate item number (malformed backlog) keeps the LAST occurrence. Pure (text only).
+    """
+    out: dict[int, str] = {}
+    for line in text.splitlines():
+        m = _BACKLOG_NUM.match(line)
+        if m:
+            out[int(m.group(1))] = _status_first_word(line).upper()
+    return out
+
+
+def regressed_backlog_items(before_text: str, after_text: str) -> list[int]:
+    """Item NUMBERS whose backlog status went DONE -> not-DONE (item 78).
+
+    The actionable detail behind item-58's ``detect_loop_regression`` boolean: WHICH items regressed.
+    An item counts as regressed iff it was ``DONE`` in ``before`` AND is still PRESENT in ``after``
+    with a non-DONE status (``TODO``/``BLOCKED``/anything else). Returned sorted ascending.
+
+    Deliberate boundaries (matching the spec exactly, so the signal is the regression item-58 means):
+      * a NEW item absent from ``before`` is NOT a regression (it was never done);
+      * a stable ``DONE`` item (DONE -> DONE) is NOT listed;
+      * an item DELETED in ``after`` (absent, not TODO/BLOCKED) is NOT flagged — that is a different
+        event (row-renumbering could spoof it), not the DONE->not-DONE status reversal this detects;
+      * identical snapshots -> ``[]``.
+
+    Report-only, pure (text diff, no I/O, no mutation).
+    """
+    before = _backlog_status_map(before_text)
+    after = _backlog_status_map(after_text)
+    return sorted(
+        num
+        for num, status in before.items()
+        if status == "DONE" and after.get(num, "DONE") != "DONE"
     )
