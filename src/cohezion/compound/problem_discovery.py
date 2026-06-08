@@ -1986,3 +1986,35 @@ def threshold_headroom(
         for cls, limit in thresholds.items()
         if counts.get(cls, 0) <= limit
     }
+
+
+def class_violation_ratio(
+    problems: list[Problem],
+    thresholds: dict[str, int],
+) -> dict[str, float]:
+    """Return relative load (count / threshold) for every monitored class.
+
+    Returns ``{cls: count / threshold}`` for every monitored class whose
+    threshold is ``> 0``.  A ratio ``> 1.0`` indicates the class exceeds its
+    threshold; ``== 1.0`` means exactly at threshold; ``< 1.0`` means under.
+
+    Unlike ``threshold_headroom`` (which covers only under-threshold classes
+    and returns the *absolute* remaining budget), this function covers ALL
+    monitored classes with a *relative* load measure.
+
+    Args:
+        problems:   List of ``Problem`` instances to examine.
+        thresholds: Mapping of ``{problem_class: max_allowed_count}``.
+                    Classes with ``threshold == 0`` are excluded (division
+                    guard).  Empty mapping -> ``{}``.
+
+    Returns:
+        ``dict[str, float]`` -- ``{cls: count / threshold}`` for every
+        monitored class with threshold > 0.
+
+    Pure (no I/O, no SurrealDB).
+    """
+    if not thresholds:
+        return {}
+    counts = problem_count_by_class(problems)
+    return {cls: counts.get(cls, 0) / limit for cls, limit in thresholds.items() if limit > 0}
