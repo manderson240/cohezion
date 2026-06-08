@@ -12522,3 +12522,24 @@ def class_sev_high_rate(problems: list[Problem]) -> dict[str, float]:
         cls: float(highs.get(cls, 0)) / totals[cls]
         for cls in totals
     }
+
+
+def fid_sev_high_rate(problems: list[Problem]) -> dict[str, float]:
+    """Return fraction of HIGH severity problems per fid.  Item 657.
+
+    FID-axis complement of class_sev_high_rate (item 656).
+    For each fid: count(HIGH) / total_fid_problems.
+    float in [0, 1].  0.0 = no HIGH.  Empty -> {}.  Pure; no I/O.
+    """
+    if not problems:
+        return {}
+    totals: dict[str, int] = {}
+    highs: dict[str, int] = {}
+    for p in problems:
+        totals[p.finding_id] = totals.get(p.finding_id, 0) + 1
+        if (p.severity or "").upper() == "HIGH":
+            highs[p.finding_id] = highs.get(p.finding_id, 0) + 1
+    return {
+        fid: float(highs.get(fid, 0)) / totals[fid]
+        for fid in totals
+    }
