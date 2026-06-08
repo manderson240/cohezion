@@ -184,3 +184,59 @@ def deposit_quality_delta(
         low_evidence_delta=len(after.low_evidence) - len(before.low_evidence),
         format_invalid_delta=len(after.format_invalid) - len(before.format_invalid),
     )
+
+
+# The memory LAYERS for the distillation ratio: raw = the undistilled journey-point firehose;
+# distilled = the reusable-memory layers it should be compounded into.
+_RAW_LAYER = "journey_point"
+_DISTILLED_LAYERS = ("neuron", "learnings", "compound_learnings", "mem0")
+
+
+@dataclass(frozen=True)
+class MemoryUtilization:
+    """Per-layer fill status + the raw->distilled distillation ratio (item 106). Report-only."""
+
+    layer_status: dict[str, str]  # layer -> "dormant" | "sparse" | "healthy"
+    raw_count: int  # journey_point — the undistilled firehose
+    distilled_count: int  # neuron + learnings + compound_learnings + mem0 (present layers)
+    distillation_ratio: float | None  # raw / distilled; None when distilled == 0
+    under_distilled: bool  # raw dwarfs distilled — the distillation bottleneck
+
+
+def memory_utilization(
+    layer_counts: Mapping[str, int],
+    *,
+    sparse_floor: int = 100,
+    under_distilled_ratio: float = 100.0,
+) -> MemoryUtilization:
+    """Are we LEVERAGING our memory? Per-layer fill + the raw:distilled ratio (item 106). Report-only.
+
+    Over injected per-layer record counts (e.g. ``{journey_point, neuron, learnings,
+    compound_learnings, mem0, vault_notes}``), classify each layer as ``dormant`` (count == 0),
+    ``sparse`` (``0 < count < sparse_floor``), or ``healthy`` (``>= sparse_floor``), and compute the
+    DISTILLATION RATIO = raw / distilled where raw = ``journey_point`` and distilled = the sum of the
+    present ``{neuron, learnings, compound_learnings, mem0}`` layers. A huge ratio means the firehose
+    of raw journey points is barely being distilled into reusable memory (the 2026-06-06 ~15000:1
+    bottleneck). ``under_distilled`` is True when raw > 0 AND either nothing is distilled (ratio
+    undefined → maximal bottleneck) OR ratio > ``under_distilled_ratio``. Empty input → all-empty.
+    Pure (injected counts; no SurrealDB read under pytest), composes item-52/55 neuron-quality.
+    """
+    layer_status = {
+        layer: ("dormant" if count == 0 else "sparse" if count < sparse_floor else "healthy")
+        for layer, count in layer_counts.items()
+    }
+    raw_count = int(layer_counts.get(_RAW_LAYER, 0))
+    distilled_count = sum(int(layer_counts.get(layer, 0)) for layer in _DISTILLED_LAYERS)
+    if distilled_count == 0:
+        distillation_ratio: float | None = None
+        under_distilled = raw_count > 0  # raw exists but nothing distilled → maximal bottleneck
+    else:
+        distillation_ratio = raw_count / distilled_count
+        under_distilled = distillation_ratio > under_distilled_ratio
+    return MemoryUtilization(
+        layer_status=layer_status,
+        raw_count=raw_count,
+        distilled_count=distilled_count,
+        distillation_ratio=distillation_ratio,
+        under_distilled=under_distilled,
+    )
