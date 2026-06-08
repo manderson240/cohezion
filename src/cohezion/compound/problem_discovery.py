@@ -10348,3 +10348,32 @@ def class_score_gini(
         return 0.0
     numer = 2 * sum((i + 1) * v for i, v in enumerate(values)) - (n + 1) * total
     return float(numer / (n * total))
+
+
+def fid_score_gini(
+    problems: list[Problem],
+    weights: dict[str, float],
+) -> float:
+    """Return the Gini coefficient of per-fid total weighted scores.  Item 546.
+
+    FID-axis complement of class_score_gini.
+    G = (2*sum((i+1)*xi for sorted xi) - (n+1)*sum(x)) / (n * sum(x)).
+    Range [0, 1]: 0.0 = perfect equality.  0.0 for empty or single fid.
+    Pure; no I/O.
+    """
+    if not problems:
+        return 0.0
+    fid_totals: dict[str, float] = {}
+    for p in problems:
+        fid_totals[p.finding_id] = fid_totals.get(p.finding_id, 0.0) + weights.get(
+            p.severity, 0.0
+        )
+    n = len(fid_totals)
+    if n < 2:
+        return 0.0
+    values = sorted(fid_totals.values())
+    total = sum(values)
+    if total == 0.0:
+        return 0.0
+    numer = 2 * sum((i + 1) * v for i, v in enumerate(values)) - (n + 1) * total
+    return float(numer / (n * total))
