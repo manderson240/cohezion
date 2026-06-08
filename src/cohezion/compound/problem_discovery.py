@@ -3992,3 +3992,57 @@ def worst_labelled_classes(problems: list[Problem]) -> list[tuple[str, float]]:
     """
     coverage = per_class_labelling_coverage(problems)
     return sorted(coverage.items(), key=lambda t: (t[1], t[0]))
+
+
+def problem_class_profile(problems: list[Problem], cls: str) -> dict[str, object]:
+    """Return a structured summary profile for a single problem class.
+
+    Bundles five per-class metrics:
+
+    * ``total``             — total Problem count in this class (0 if absent).
+    * ``unique_ids``        — count of DISTINCT finding_ids in this class (0 if absent).
+    * ``labelling_coverage``— fraction of class problems with a severity label (0.0 if absent).
+    * ``dominant_severity`` — most-common labelled severity (None if all unlabelled or absent).
+    * ``severity_counts``   — {severity: count} for labelled problems (excludes severity='').
+
+    Args:
+        problems: List of :class:`Problem` instances from a scan.
+        cls:      Target class name.
+
+    Returns:
+        dict with exactly the five keys above.  Always returns all five keys —
+        never raises even when the class is absent.
+
+    Pure (no I/O, no SurrealDB).
+    """
+    class_problems = [p for p in problems if p.problem_class == cls]
+    total = len(class_problems)
+    unique_ids = len({p.finding_id for p in class_problems})
+    if total == 0:
+        return {
+            "total": 0,
+            "unique_ids": 0,
+            "labelling_coverage": 0.0,
+            "dominant_severity": None,
+            "severity_counts": {},
+        }
+    labelled = sum(1 for p in class_problems if p.severity)
+    labelling_coverage = float(labelled / total)
+    # severity_counts (labelled only)
+    severity_counts: dict[str, int] = {}
+    for p in class_problems:
+        if p.severity:
+            severity_counts[p.severity] = severity_counts.get(p.severity, 0) + 1
+    # dominant severity — None when no labelled problems
+    dominant_severity: str | None = None
+    if severity_counts:
+        dominant_severity = max(
+            severity_counts, key=lambda s: (severity_counts[s], [-ord(c) for c in s])
+        )
+    return {
+        "total": total,
+        "unique_ids": unique_ids,
+        "labelling_coverage": labelling_coverage,
+        "dominant_severity": dominant_severity,
+        "severity_counts": severity_counts,
+    }
