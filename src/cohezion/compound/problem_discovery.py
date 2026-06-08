@@ -363,3 +363,34 @@ def default_template_classes() -> frozenset[str]:
     that only need the count or class-name membership check.
     """
     return frozenset(t.problem_class for t in default_templates())
+
+
+def assert_default_classes_cover(required: frozenset[str] | set[str]) -> None:
+    """Assert that the default TIDE registry covers every required class — item 170.
+
+    Raises :exc:`AssertionError` with an actionable message listing the MISSING
+    class names if any class in *required* is absent from
+    :func:`default_template_classes`.  Empty *required* is a no-op (never
+    raises).
+
+    Intended for CI guards that enforce the TIDE wiring invariant without
+    importing the heavy audit instruments themselves.
+
+    Args:
+        required:
+            Set of ``problem_class`` strings that MUST be present in the
+            default registry.  :class:`frozenset` or :class:`set`.
+
+    Raises:
+        AssertionError: If one or more *required* classes are absent from
+            :func:`default_template_classes`.  The message lists ALL missing
+            class names so a single CI run surfaces every gap.
+
+    Pure (reads the template list; no writes, no I/O).
+    """
+    if not required:
+        return  # empty required → no-op
+    present = default_template_classes()
+    missing = sorted(required - present)  # sorted for deterministic message
+    if missing:
+        raise AssertionError(f"default_template_classes() is missing required classes: {missing}")
