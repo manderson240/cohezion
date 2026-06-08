@@ -9945,3 +9945,34 @@ def class_score_skewness(
     if std_dev == 0.0:
         return 0.0
     return float(sum((v - mean) ** 3 for v in values) / (n * std_dev ** 3))
+
+
+def fid_score_skewness(
+    problems: list[Problem],
+    weights: dict[str, float],
+) -> float:
+    """Return population skewness of fid total weighted scores.  Item 530.
+
+    Formula: sum((x - mean)^3) / (n * std_dev^3).
+    0.0 for empty, < 3 fids, or std_dev == 0 (uniform distribution).
+    Signed: positive = right-tailed, negative = left-tailed.  Pure; no I/O.
+    """
+    import math as _math
+
+    if not problems:
+        return 0.0
+    fid_totals: dict[str, float] = {}
+    for p in problems:
+        fid_totals[p.finding_id] = (
+            fid_totals.get(p.finding_id, 0.0) + weights.get(p.severity, 0.0)
+        )
+    n = len(fid_totals)
+    if n < 3:
+        return 0.0
+    values = list(fid_totals.values())
+    mean = sum(values) / n
+    variance = sum((v - mean) ** 2 for v in values) / n
+    std_dev = _math.sqrt(variance)
+    if std_dev == 0.0:
+        return 0.0
+    return float(sum((v - mean) ** 3 for v in values) / (n * std_dev ** 3))
