@@ -7922,3 +7922,33 @@ def rarest_severity(problems: list[Problem]) -> str | None:
     for p in problems:
         counts[p.severity] = counts.get(p.severity, 0) + 1
     return min(counts, key=lambda sev: (counts[sev], sev))
+
+
+def severity_rank(problems: list[Problem], severity: str) -> int:
+    """Return the 1-based dense rank of *severity* by descending record count -- item 454.
+
+    Rank 1 is the most common severity.  Severities with equal counts share
+    the same rank (dense rank: no gaps between adjacent ranks).  Returns 0
+    if *severity* is not found in *problems* or if *problems* is empty.
+
+    Args:
+        problems: List of :class:`Problem` instances.
+        severity: The severity value to rank.
+
+    Returns:
+        1-based integer rank.  ``0`` when *severity* is absent or input
+        is empty.
+
+    Pure (no I/O, no SurrealDB).
+    """
+    if not problems:
+        return 0
+    counts: dict[str, int] = {}
+    for p in problems:
+        counts[p.severity] = counts.get(p.severity, 0) + 1
+    if severity not in counts:
+        return 0
+    # Dense rank: rank = number of distinct counts strictly greater than this one, plus 1
+    my_count = counts[severity]
+    distinct_higher = len({c for c in counts.values() if c > my_count})
+    return distinct_higher + 1
