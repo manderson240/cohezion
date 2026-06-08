@@ -4294,3 +4294,36 @@ def top_shrinking_classes(
     shrinking = [(cls, delta) for cls, delta in deltas.items() if delta < 0]
     shrinking.sort(key=lambda pair: (pair[1], pair[0]))
     return shrinking[:n]
+
+
+def class_stability_report(
+    scan_a: list[Problem],
+    scan_b: list[Problem],
+) -> dict[str, str]:
+    """Classify every class across two scans as "growing", "stable", or "shrinking".
+
+    Uses :func:`cross_scan_class_delta` to compute per-class deltas, then maps:
+    - ``delta > 0`` → ``"growing"``
+    - ``delta == 0`` → ``"stable"``
+    - ``delta < 0`` → ``"shrinking"``
+
+    Every class appearing in either scan is included.  Classes with unchanged
+    count are labelled ``"stable"`` (not omitted), distinguishing this function
+    from :func:`top_growing_classes` / :func:`top_shrinking_classes` which filter
+    to non-zero deltas only.
+
+    Args:
+        scan_a: Problems from the baseline scan.
+        scan_b: Problems from the comparison scan.
+
+    Returns:
+        Dict mapping class name → stability label.  Returns ``{}`` when both
+        scans are empty.
+
+    Pure (no I/O, no SurrealDB).
+    """
+    deltas = cross_scan_class_delta(scan_a, scan_b)
+    return {
+        cls: ("growing" if d > 0 else "shrinking" if d < 0 else "stable")
+        for cls, d in deltas.items()
+    }
