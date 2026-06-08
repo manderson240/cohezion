@@ -71,17 +71,16 @@ def test_asymmetric_swap_gives_different_result() -> None:
     assert b_minus_a == frozenset({"f3"}), "b-a = {f3}; got " + repr(b_minus_a)
 
 
-def test_unknown_class_b_returns_all_fids_of_a() -> None:
-    """Unknown class_b -> all fids of class_a (set_a - empty = set_a), not raise.
+def test_unknown_class_returns_empty_frozenset() -> None:
+    """Unknown class (either arg) -> frozenset(), not raise.
 
-    Mathematical set-difference: fids_a - empty_set = fids_a.
-    Kills impl that raises KeyError or returns frozenset() for unknown class.
+    Both classes must exist for a meaningful difference; absent class
+    is treated as an unanswerable query -> frozenset() sentinel.
+    Kills impl that raises KeyError on absent class.
     """
-    problems = [_p("alpha", "F001"), _p("alpha", "F002")]
+    problems = [_p("alpha", "F001")]
     result = class_pair_exclusive_fids(problems, "alpha", "NONEXISTENT")
-    assert result == frozenset({"F001", "F002"}), (
-        "Unknown class_b -> all fids of alpha; got " + repr(result)
-    )
+    assert result == frozenset(), "Unknown class_b -> frozenset(); got " + repr(result)
 
 
 def test_empty_returns_empty_frozenset() -> None:
