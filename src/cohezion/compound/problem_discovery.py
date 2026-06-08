@@ -6080,3 +6080,27 @@ def classes_with_severity(problems: list[Problem], severity: str) -> frozenset[s
     Pure (no I/O, no SurrealDB).
     """
     return frozenset(p.problem_class for p in problems if p.severity == severity)
+
+
+# ---------------------------------------------------------------------------
+# Item 369 — count_distinct_severities (2026-06-08)
+# ---------------------------------------------------------------------------
+
+
+def count_distinct_severities(problems: list[Problem]) -> int:
+    """Return the number of distinct severity values present — item 369.
+
+    Counts how many distinct ``severity`` strings appear across *problems*.
+    Unlabelled problems (``severity == ''``) contribute ``''`` to the set —
+    they are NOT filtered out.  An all-unlabelled list returns ``1`` (one
+    distinct value: ``''``).
+
+    Args:
+        problems: List of :class:`Problem` instances.  Empty → ``0``.
+
+    Returns:
+        Integer ≥ 0.  ``0`` only when *problems* is empty.
+
+    Pure (no I/O, no SurrealDB).
+    """
+    return len({p.severity for p in problems})
