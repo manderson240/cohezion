@@ -5927,8 +5927,8 @@ def deduplicate_exact_problems(problems: list[Problem]) -> list[Problem]:
 
 
 def group_problems_by_severity(
-    problems: list["Problem"],
-) -> dict[str, list["Problem"]]:
+    problems: list[Problem],
+) -> dict[str, list[Problem]]:
     """Group all problems by severity, including unlabelled under key ''.
 
     ``group_problems_by_severity(problems) -> dict[str, list[Problem]]``:
@@ -5949,7 +5949,38 @@ def group_problems_by_severity(
 
     Pure (no I/O, no SurrealDB).
     """
-    result: dict[str, list["Problem"]] = {}
+    result: dict[str, list[Problem]] = {}
     for p in problems:
         result.setdefault(p.severity, []).append(p)
     return result
+
+
+# ---------------------------------------------------------------------------
+# Item 365 — least_common_finding_id (2026-06-08)
+# ---------------------------------------------------------------------------
+
+
+def least_common_finding_id(problems: list[Problem]) -> str | None:
+    """Return the finding_id with the lowest total Problem record count — item 365.
+
+    Counts raw Problem records per ``finding_id``.  Tie-break: alphabetically
+    ascending ``finding_id`` (lexicographically smallest wins).
+
+    Complement of :func:`most_common_finding_id`; useful for spotting rare /
+    low-priority issues or data-entry errors.
+
+    Args:
+        problems: List of :class:`Problem` instances from a scan.
+
+    Returns:
+        The ``finding_id`` string with the fewest records, or ``None`` when
+        *problems* is empty.
+
+    Pure (no I/O, no SurrealDB).
+    """
+    if not problems:
+        return None
+    counts: dict[str, int] = {}
+    for p in problems:
+        counts[p.finding_id] = counts.get(p.finding_id, 0) + 1
+    return min(counts, key=lambda fid: (counts[fid], fid))
