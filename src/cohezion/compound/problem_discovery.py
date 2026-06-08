@@ -9733,3 +9733,44 @@ def normalized_class_scores(
     if spread == 0.0:
         return dict.fromkeys(class_totals, 0.0)
     return {cls: (score - min_score) / spread for cls, score in class_totals.items()}
+
+
+def fid_score_percentile(
+    problems: list[Problem],
+    weights: dict[str, float],
+    finding_id: str,
+) -> float | None:
+    """Return the [0.0, 1.0] percentile position of *finding_id* by total score.
+
+    Percentile = (number of OTHER fids with a STRICTLY lower total score)
+                 / (total number of fids - 1).
+
+    * Single fid → ``0.0`` (not ``None`` — the fid exists, zero others to compare).
+    * Absent fid → ``None``.
+    * Empty *problems* → ``None``.
+
+    Args:
+        problems: List of :class:`Problem` instances.
+        weights: Mapping of severity label to numeric score.
+        finding_id: The finding ID to look up.
+
+    Returns:
+        ``float`` in [0.0, 1.0], or ``None`` if finding_id is absent or empty.
+
+    Pure (no I/O, no SurrealDB).  Item 523.
+    """
+    if not problems:
+        return None
+    fid_totals: dict[str, float] = {}
+    for p in problems:
+        fid_totals[p.finding_id] = (
+            fid_totals.get(p.finding_id, 0.0) + weights.get(p.severity, 0.0)
+        )
+    if finding_id not in fid_totals:
+        return None
+    target_score = fid_totals[finding_id]
+    n = len(fid_totals)
+    if n == 1:
+        return 0.0
+    strictly_lower = sum(1 for s in fid_totals.values() if s < target_score)
+    return float(strictly_lower / (n - 1))
