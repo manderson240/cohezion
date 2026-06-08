@@ -6127,3 +6127,36 @@ def count_distinct_classes(problems: list[Problem]) -> int:
     Pure (no I/O, no SurrealDB).
     """
     return len({p.problem_class for p in problems})
+
+
+# ---------------------------------------------------------------------------
+# Item 371 — problems_in_class_set (2026-06-08)
+# ---------------------------------------------------------------------------
+
+
+def problems_in_class_set(
+    problems: list[Problem],
+    class_set: frozenset[str] | set[str],
+) -> list[Problem]:
+    """Return problems whose class is a member of class_set — item 371.
+
+    Filters by exact ``problem_class`` membership in *class_set*.  An empty
+    *class_set* returns an empty list (not all problems).  Original insertion
+    order is preserved for matching records.
+
+    Generalises :func:`problems_for_class` to multiple classes at once:
+    ``problems_for_class(p, cls)`` ≡
+    ``problems_in_class_set(p, {cls})``.
+
+    Args:
+        problems:  List of :class:`Problem` instances.
+        class_set: Set (or frozenset) of class name strings to match against.
+
+    Returns:
+        New list of :class:`Problem` objects whose ``problem_class`` is in
+        *class_set*, in original order.  Empty when *problems* or *class_set*
+        is empty, or when no record's class is in the set.
+
+    Pure (no I/O, no SurrealDB).
+    """
+    return [p for p in problems if p.problem_class in class_set]

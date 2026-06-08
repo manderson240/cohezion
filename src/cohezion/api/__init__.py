@@ -1750,6 +1750,15 @@ except ImportError:
     pass  # training routes not available
 
 
+# Portfolio tracker — competition and project tracking
+try:
+    from cohezion.api.services.portfolio import portfolio_router
+
+    app.include_router(portfolio_router, prefix="/api")
+except ImportError:
+    pass  # portfolio module not available
+
+
 __all__ = [
     "_a2a_server",
     "_compute_coherence",
