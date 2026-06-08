@@ -9600,3 +9600,77 @@ def fids_tied_at_score(
             fid_totals.get(p.finding_id, 0.0) + weights.get(p.severity, 0.0)
         )
     return frozenset(fid for fid, score in fid_totals.items() if score == target_score)
+
+
+def score_variance(
+    problems: list[Problem],
+    weights: dict[str, float],
+) -> float:
+    """Return the population variance of all class total weighted severity scores.
+
+    Uses population variance (divides by n, not n-1).
+    0.0 for empty input or single class.  0.0 when all classes tie.
+
+    Args:
+        problems: List of :class:`Problem` instances.
+        weights: Mapping of severity label to numeric score.
+
+    Returns:
+        ``float`` population variance of the class total scores.  0.0 when
+        fewer than 2 classes exist or all classes share the same score.
+
+    Pure (no I/O, no SurrealDB).  Item 520.
+    """
+    if not problems:
+        return 0.0
+    class_totals: dict[str, float] = {}
+    for p in problems:
+        class_totals[p.problem_class] = (
+            class_totals.get(p.problem_class, 0.0) + weights.get(p.severity, 0.0)
+        )
+    n = len(class_totals)
+    if n < 2:
+        return 0.0
+    values = list(class_totals.values())
+    mean = sum(values) / n
+    return float(sum((v - mean) ** 2 for v in values) / n)
+
+
+def fid_score_rank(
+    problems: list[Problem],
+    weights: dict[str, float],
+    finding_id: str,
+) -> int | None:
+    """Return the 1-based dense rank of *finding_id* by total weighted score.
+
+    Rank 1 = highest-scoring fid.  Tied fids receive the same rank
+    (dense rank, not standard/Olympic rank).  Returns ``None`` when
+    *finding_id* is absent from *problems* or *problems* is empty.
+
+    Examples:
+        scores = {fid_a: 5.0, fid_b: 5.0, fid_c: 1.0}
+        → rank(fid_a)=1, rank(fid_b)=1, rank(fid_c)=2.
+
+    Args:
+        problems: List of :class:`Problem` instances.
+        weights: Mapping of severity label to numeric score.
+        finding_id: The finding_id to look up.
+
+    Returns:
+        ``int`` 1-based dense rank, or ``None`` if finding_id is absent/empty.
+
+    Pure (no I/O, no SurrealDB).  Item 520.
+    """
+    if not problems:
+        return None
+    fid_totals: dict[str, float] = {}
+    for p in problems:
+        fid_totals[p.finding_id] = (
+            fid_totals.get(p.finding_id, 0.0) + weights.get(p.severity, 0.0)
+        )
+    if finding_id not in fid_totals:
+        return None
+    target_score = fid_totals[finding_id]
+    # Dense rank: count how many DISTINCT scores are strictly higher
+    distinct_higher = len({s for s in fid_totals.values() if s > target_score})
+    return distinct_higher + 1
