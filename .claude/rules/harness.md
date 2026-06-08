@@ -120,7 +120,12 @@ Generated: 2026-05-02. Updated via `/autoharness-update`.
 
 ### I6: AUTODQA must reject sycophantic outputs
 - Flattering/agreeable-only outputs without substance must be rejected
-- **Verification**: `uv run python -c "from cohezion.compound.autodqa import AutoDQA; dqa = AutoDQA(persist=False, notify_on_reject=False); r = dqa.evaluate('', 'analyze this'); assert not r.verdict.accept, 'empty sycophantic output should be rejected'; print('I6 OK')"`
+- Widened 2026-06-07: the gate must reject BOTH empty non-answers AND flattery-only
+  output (e.g. "Great question! You're absolutely right, brilliant!"), while NOT
+  rejecting a substantive answer that merely opens with praise. Discriminator:
+  `cohezion.compound.autodqa.is_sycophantic`. (Pre-fix the gate only rejected empty —
+  flattery sailed through; the verification below was under-testing.)
+- **Verification**: `uv run python -c "from cohezion.compound.autodqa import AutoDQA; dqa = AutoDQA(persist=False, notify_on_reject=False); assert not dqa.evaluate('', 'analyze this').verdict.accept, 'empty must reject'; assert not dqa.evaluate('Great question! You are absolutely right, brilliant!', 'is this sound?').verdict.accept, 'flattery must reject'; assert dqa.evaluate('The lock releases before the write on line 42, causing a race; use a CAS.', 'is this sound?').verdict.accept, 'substantive must pass'; print('I6 OK')"`
 
 ### I7: Security spec invariants must all pass
 - Prompt injection, credential leak, SurrealQL injection, OOM resistance

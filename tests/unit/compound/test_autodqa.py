@@ -58,6 +58,47 @@ class TestAutoDQA:
         result = dqa.evaluate("", "classify this text")
         assert result.verdict.accept is False
 
+    # ── I6 widened (2026-06-07): reject flattery-only, not just empty ──────────
+    def test_flattery_only_output_rejected(self):
+        dqa = AutoDQA(persist=False, notify_on_reject=False)
+        result = dqa.evaluate(
+            "Great question! You're absolutely right, this is a brilliant idea!",
+            "Is this design sound?",
+        )
+        assert result.verdict.accept is False
+        assert (
+            "sycophan" in result.verdict.reason.lower()
+            or "flatter" in result.verdict.reason.lower()
+        )
+
+    def test_substantive_output_with_praise_not_rejected(self):
+        # DISCRIMINATING: a real answer that opens with praise must NOT be flagged.
+        # A naive substring detector (sees "good point") would wrongly reject this.
+        dqa = AutoDQA(persist=False, notify_on_reject=False)
+        result = dqa.evaluate(
+            "Good point — the bug is on line 42: the lock releases before the write "
+            "completes, so a second reader sees stale state. Move the unlock after the "
+            "commit, or use a compare-and-swap.",
+            "Is this design sound?",
+        )
+        assert result.verdict.accept is True
+
+    def test_substantive_output_no_praise_unaffected(self):
+        dqa = AutoDQA(persist=False, notify_on_reject=False)
+        result = dqa.evaluate(
+            "The design has a race condition: two readers can both pass the check "
+            "before either writes, so the last write wins. Use a CAS or a lock.",
+            "Is this design sound?",
+        )
+        assert result.verdict.accept is True
+
+    def test_is_sycophantic_pure_function(self):
+        from cohezion.compound.autodqa import is_sycophantic
+
+        assert is_sycophantic("Great question! Absolutely brilliant, you're so right!") is True
+        assert is_sycophantic("Use a mutex around the counter increment on line 12.") is False
+        assert is_sycophantic("") is False  # empty handled by length gate, not here
+
     def test_batch_evaluate_returns_list(self):
         dqa = AutoDQA(persist=False, notify_on_reject=False)
         pairs = [

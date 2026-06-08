@@ -20,6 +20,7 @@ Quality gate mapping (HIHO physics → quality theory):
 from __future__ import annotations
 
 import logging
+import re
 import uuid
 from dataclasses import dataclass, field
 from datetime import UTC, datetime
@@ -33,6 +34,89 @@ logger = logging.getLogger(__name__)
 # HIHO equilibrium band — mirrors the 0.5 ± 0.05 tolerance in IonicClusterState
 _HIHO_LOW = 0.45
 _HIHO_HIGH = 0.55
+
+# ── Sycophancy gate (harness I6, widened 2026-06-07) ─────────────────────────
+# quality_eval scores content/length, not sincerity — so pure flattery can pass
+# the length gate. This discriminator flags flattery-WITHOUT-substance. Markers are
+# word-boundary matched (metacognitive-calibration.md: "never substring matching"),
+# and a concrete answer that merely opens with praise is explicitly spared.
+_FLATTERY_RE = re.compile(
+    r"\b(?:"
+    r"great (?:question|point|idea)|good (?:question|point|call)|"
+    r"you(?:'re| are) (?:absolutely |completely |totally |so )?right|"
+    r"absolutely right|exactly right|"
+    r"brilliant|excellent|amazing|fantastic|wonderful|perfect|"
+    r"spot[- ]on|couldn'?t agree more|i (?:completely |totally |fully )?agree|"
+    r"what a (?:great|wonderful|fantastic)|love (?:it|this|that)|"
+    r"so (?:smart|insightful|true)"
+    r")\b",
+    re.IGNORECASE,
+)
+_FILLER = frozenset(
+    {
+        "the",
+        "a",
+        "an",
+        "this",
+        "that",
+        "is",
+        "are",
+        "it",
+        "i",
+        "you",
+        "we",
+        "to",
+        "of",
+        "and",
+        "so",
+        "very",
+        "really",
+        "such",
+        "what",
+        "idea",
+        "question",
+        "yes",
+        "yeah",
+        "thanks",
+        "thank",
+        "great",
+        "good",
+        "love",
+        "agree",
+        "right",
+        "absolutely",
+        "totally",
+        "just",
+    }
+)
+# Concrete-content signal: digits, code tokens, or causal/imperative connectives.
+_CONCRETE_RE = re.compile(
+    r"[0-9`]|[A-Za-z_]+\(|::|\b(?:because|so that|use|via|if|when|fix|cause|line|"
+    r"move|replace|add|remove|return|race|lock|null|error)\b",
+    re.IGNORECASE,
+)
+
+
+def is_sycophantic(output: str) -> bool:
+    """True when output is dominated by flattery/agreement and lacks substance.
+
+    Catches ``"Great question! You're absolutely right, brilliant!"`` (flattery, no
+    content) while sparing ``"Good point — the bug is on line 42 because ..."``
+    (praise that precedes a concrete answer). Empty output returns False — that case
+    is handled by the length gate in quality_eval, not here.
+    """
+    text = (output or "").strip()
+    if not text:
+        return False
+    if not _FLATTERY_RE.search(text):
+        return False  # no flattery → not our concern
+    residual = _FLATTERY_RE.sub(" ", text.lower())
+    words = re.findall(r"[a-z0-9]+", residual)
+    substantive = [w for w in words if w not in _FILLER and len(w) > 2]
+    has_concrete = bool(_CONCRETE_RE.search(text))
+    if has_concrete and len(substantive) >= 4:
+        return False  # real answer that happens to include praise
+    return len(substantive) < 6
 
 
 @dataclass
@@ -97,6 +181,12 @@ class AutoDQA:
         """
         profile = classify(task_description)
         verdict = evaluate(output, profile.output_type, task_description)
+
+        # Sycophancy gate (harness I6): a verdict can pass the length/type gate while
+        # being pure flattery. Override accept→reject when the output is flattery
+        # without substance — quality_eval scores content, not sincerity.
+        if verdict.accept and is_sycophantic(output):
+            verdict = QualityVerdict.reject_output("sycophantic: flattery without substance")
 
         result = DQAResult(
             task_id=str(uuid.uuid4())[:8],
