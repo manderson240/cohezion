@@ -5791,3 +5791,34 @@ def count_unlabelled_problems(problems: list[Problem]) -> int:
     Pure (no I/O, no SurrealDB).
     """
     return sum(1 for p in problems if not p.severity)
+
+
+# ---------------------------------------------------------------------------
+# Item 358 — problems_with_class_prefix (2026-06-08)
+# ---------------------------------------------------------------------------
+
+
+def problems_with_class_prefix(
+    problems: list["Problem"], prefix: str
+) -> list["Problem"]:
+    """Return all problems whose class name starts with the given prefix.
+
+    ``problems_with_class_prefix(problems, prefix) -> list[Problem]``:
+    Returns all :class:`Problem` objects whose ``problem_class`` starts with
+    *prefix*.  Empty *prefix* matches every problem (``str.startswith("")``
+    is always ``True``).  Case-sensitive.  Preserves original order.
+    Empty *problems* → [].  Pure (no I/O, no SurrealDB).
+
+    Useful for namespace-based filtering (e.g. ``'security/'``, ``'perf/'``).
+
+    Args:
+        problems: Flat list of :class:`Problem` records.
+        prefix:   Class name prefix to match against (case-sensitive).
+
+    Returns:
+        New list of :class:`Problem` objects whose class starts with
+        *prefix*, in original order.
+
+    Pure (no I/O, no SurrealDB).
+    """
+    return [p for p in problems if p.problem_class.startswith(prefix)]
