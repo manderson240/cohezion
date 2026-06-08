@@ -2127,3 +2127,42 @@ def summarize_scan(
         "classes_over": classes_over,
         "classes_under": classes_under,
     }
+
+
+def scan_delta(before: dict, after: dict) -> dict:
+    """Diff two ``summarize_scan()`` result dicts, returning a change summary.
+
+    Compares two scan summaries (produced by :func:`summarize_scan`) and
+    returns a dict with 5 keys describing what changed between them:
+
+    - ``new_violations``    -- int: how many additional classes crossed over threshold
+    - ``resolved_violations`` -- int: how many classes moved back under threshold
+    - ``total_delta``       -- int: change in total finding count (may be negative)
+    - ``newly_over``        -- frozenset[str]: classes that are newly above threshold
+    - ``newly_under``       -- frozenset[str]: classes that are newly below threshold
+
+    Identical *before* and *after* → all-zero/empty delta.
+
+    Args:
+        before: A ``summarize_scan()`` dict from the earlier scan.
+        after:  A ``summarize_scan()`` dict from the later scan.
+
+    Returns:
+        ``dict`` with keys ``new_violations``, ``resolved_violations``,
+        ``total_delta``, ``newly_over``, ``newly_under``.
+
+    Pure (no I/O, no SurrealDB).
+    """
+    before_over: frozenset[str] = before.get("classes_over", frozenset())
+    after_over: frozenset[str] = after.get("classes_over", frozenset())
+    newly_over = after_over - before_over
+    newly_under = before_over - after_over
+    before_count: int = before.get("violations_count", 0)
+    after_count: int = after.get("violations_count", 0)
+    return {
+        "new_violations": max(0, after_count - before_count),
+        "resolved_violations": max(0, before_count - after_count),
+        "total_delta": after.get("total", 0) - before.get("total", 0),
+        "newly_over": newly_over,
+        "newly_under": newly_under,
+    }
