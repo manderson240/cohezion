@@ -7261,36 +7261,6 @@ def dominant_finding_id(problems: list[Problem]) -> str | None:
 
 
 def class_entropy(problems: list[Problem]) -> float:
-    """Return the Shannon entropy of the class distribution in bits — item 423.
-
-    Computes ``H = -Σ p · log₂(p)`` where ``p`` is each class's fraction from
-    :func:`class_coverage_ratio`.  A single class (``p=1``) gives ``H=0.0``
-    (no uncertainty).  Two equal classes give ``H=1.0`` bit.  Empty gives
-    ``0.0``.
-
-    Args:
-        problems: List of :class:`Problem` instances.
-
-    Returns:
-        Shannon entropy in bits (``float >= 0.0``).  ``0.0`` when *problems*
-        is empty or contains only one distinct class.
-
-    Pure (no I/O, no SurrealDB).
-    """
-    if not problems:
-        return 0.0
-    total = len(problems)
-    counts: dict[str, int] = {}
-    for p in problems:
-        counts[p.problem_class] = counts.get(p.problem_class, 0) + 1
-    entropy = 0.0
-    for count in counts.values():
-        prob = count / total
-        entropy -= prob * math.log2(prob)
-    return entropy
-
-
-def class_entropy(problems: list[Problem]) -> float:
     """Return the Shannon entropy of the class distribution in bits -- item 423.
 
     Computes H = -sum(p * log2(p)) where *p* is the fraction of total records
@@ -7317,3 +7287,29 @@ def class_entropy(problems: list[Problem]) -> float:
         counts[p.problem_class] = counts.get(p.problem_class, 0) + 1
     total = len(problems)
     return -sum((c / total) * math.log2(c / total) for c in counts.values())
+
+
+def finding_id_entropy(problems: list[Problem]) -> float:
+    """Return the Shannon entropy of the finding_id distribution in bits — item 424.
+
+    Computes ``H = -Σ p · log₂(p)`` where ``p`` is each finding_id's fraction
+    of the total record count.  A single fid gives ``H=0.0``.  Two equal fids
+    give ``H=1.0`` bit.  Empty gives ``0.0``.
+
+    Args:
+        problems: List of :class:`Problem` instances.
+
+    Returns:
+        Shannon entropy in bits (``float >= 0.0``).  ``0.0`` when *problems*
+        is empty or contains only one distinct finding_id.
+
+    Pure (no I/O, no SurrealDB).
+    """
+    if not problems:
+        return 0.0
+    counts: dict[str, int] = {}
+    for p in problems:
+        counts[p.finding_id] = counts.get(p.finding_id, 0) + 1
+    total = len(problems)
+    return -sum((c / total) * math.log2(c / total) for c in counts.values())
+
