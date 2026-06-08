@@ -2609,6 +2609,27 @@ def classes_above_count(problems: list[Problem], n: int) -> frozenset[str]:
     return frozenset(cls for cls, count in counts.items() if count > n)
 
 
+def classes_below_count(problems: list[Problem], n: int) -> frozenset[str]:
+    """Return class names whose problem count is strictly less than *n*.
+
+    Only classes actually present in the scan (count ≥ 1) are considered.
+    Because every present class has count ≥ 1, passing ``n=1`` always returns
+    an empty frozenset.  Passing ``n=2`` returns the same result as
+    :func:`classes_with_single_problem`.
+
+    Args:
+        problems: List of :class:`Problem` instances from a scan.
+        n:        Integer threshold (exclusive upper bound).
+
+    Returns:
+        ``frozenset[str]`` of class names with 0 < count < *n*.
+
+    Pure (no I/O, no SurrealDB).
+    """
+    counts = problem_count_by_class(problems)
+    return frozenset(cls for cls, count in counts.items() if count < n)
+
+
 def classes_with_max_severity(
     problems: list[Problem],
     severity: str,
