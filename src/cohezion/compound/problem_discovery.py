@@ -5315,3 +5315,25 @@ def severity_span(problems: list["Problem"]) -> dict[str, int]:
         if p.severity:
             class_severities.setdefault(p.problem_class, set()).add(p.severity)
     return {cls: len(sevs) for cls, sevs in class_severities.items()}
+
+
+def max_severity_span_class(problems: list["Problem"]) -> "str | None":
+    """Return the class name with the greatest severity span.
+
+    Delegates to :func:`severity_span` and picks the class with the highest
+    distinct-severity count.  Ties are broken by ascending class name
+    (alphabetically earliest wins).
+
+    Args:
+        problems: Flat list of :class:`Problem` records.
+
+    Returns:
+        Class name with the highest span, or ``None`` when *problems* is empty
+        or contains no labelled problems.
+
+    Pure (no I/O, no SurrealDB).
+    """
+    spans = severity_span(problems)
+    if not spans:
+        return None
+    return min(spans, key=lambda cls: (-spans[cls], cls))
