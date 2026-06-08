@@ -11593,3 +11593,22 @@ def class_max_severity_count(problems: list[Problem]) -> dict[str, int]:
         sev = p.severity or ""
         counts[p.problem_class][sev] = counts[p.problem_class].get(sev, 0) + 1
     return {cls: max(sev_counts.values()) for cls, sev_counts in counts.items()}
+
+
+def fid_max_severity_count(problems: list[Problem]) -> dict[str, int]:
+    """Return the count of the most frequent severity per fid.  Item 609.
+
+    Returns {fid: max_per_severity_count}.
+    FID-axis complement of class_max_severity_count.
+    Returns the INTEGER COUNT (not the label -- for the label use fid_top_severity).
+    Empty -> {}.  Pure; no I/O.
+    """
+    if not problems:
+        return {}
+    counts: dict[str, dict[str, int]] = {}
+    for p in problems:
+        if p.finding_id not in counts:
+            counts[p.finding_id] = {}
+        sev = p.severity or ""
+        counts[p.finding_id][sev] = counts[p.finding_id].get(sev, 0) + 1
+    return {fid: max(sev_counts.values()) for fid, sev_counts in counts.items()}
