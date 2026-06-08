@@ -10465,3 +10465,20 @@ def class_problem_count(
     for p in problems:
         counts[p.problem_class] = counts.get(p.problem_class, 0) + 1
     return counts
+
+
+def fid_problem_count(
+    problems: list[Problem],
+) -> dict[str, int]:
+    """Return a {finding_id: count} mapping of problem counts per fid.  Item 552.
+
+    FID-axis complement of class_problem_count.
+    Unweighted -- counts problems, ignores severity.
+    Empty -> {}.  Pure; no I/O.
+    """
+    if not problems:
+        return {}
+    counts: dict[str, int] = {}
+    for p in problems:
+        counts[p.finding_id] = counts.get(p.finding_id, 0) + 1
+    return counts
