@@ -3120,3 +3120,23 @@ def most_concentrated_class(
     if not at_sev:
         return None
     return max(at_sev, key=lambda cls: (at_sev[cls] / total[cls], [-ord(c) for c in cls]))
+
+
+def severity_dispersion(problems: list[Problem]) -> int:
+    """Return the count of distinct non-empty severity strings in the scan.
+
+    Unlabelled problems (``severity=""``) are excluded — they do not
+    contribute to the severity-tier count.  The result measures the *width*
+    of the active severity space (e.g. 0 for an all-unlabelled scan, 1 for a
+    scan with only HIGH findings, 3 for HIGH/MEDIUM/LOW).
+
+    Args:
+        problems: List of :class:`Problem` instances from a scan.
+
+    Returns:
+        Number of distinct non-empty severity labels.  Empty or all-unlabelled
+        input → ``0``.
+
+    Pure (no I/O, no SurrealDB).
+    """
+    return len({p.severity for p in problems if p.severity})
