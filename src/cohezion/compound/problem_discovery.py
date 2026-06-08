@@ -7130,3 +7130,31 @@ def top_n_classes(problems: list[Problem], n: int) -> list[tuple[str, int]]:
         counts[p.problem_class] = counts.get(p.problem_class, 0) + 1
     ranked = sorted(counts.items(), key=lambda item: (-item[1], item[0]))
     return ranked[:n]
+
+
+def top_n_finding_ids(problems: list[Problem], n: int) -> list[tuple[str, int]]:
+    """Return the top-N finding_ids with their record counts as (fid, count) tuples — item 416.
+
+    Pairs each finding_id with its total record count and returns the *n*
+    highest-count fids, sorted by descending count then ascending fid for
+    tie-breaking.  Returns at most *n* entries; ``[]`` when *n* ≤ 0 or
+    *problems* is empty.
+
+    Args:
+        problems: List of :class:`Problem` instances.
+        n: Maximum number of (fid, count) pairs to return.
+
+    Returns:
+        ``list[tuple[str, int]]`` of at most *n* ``(finding_id, count)`` pairs,
+        sorted descending by count then ascending fid.  ``[]`` when
+        *problems* is empty or *n* ≤ 0.
+
+    Pure (no I/O, no SurrealDB).
+    """
+    if not problems or n <= 0:
+        return []
+    counts: dict[str, int] = {}
+    for p in problems:
+        counts[p.finding_id] = counts.get(p.finding_id, 0) + 1
+    ranked = sorted(counts.items(), key=lambda item: (-item[1], item[0]))
+    return ranked[:n]
