@@ -11743,6 +11743,27 @@ def fid_severity_distinct_count(problems: list[Problem]) -> dict[str, int]:
     return {fid: len(labels.get(fid, set())) for fid in all_fids}
 
 
+def class_fid_coverage_ratio(problems: list[Problem]) -> dict[str, float]:
+    """Return fraction of total distinct fids covered per class.  Item 619.
+
+    Returns {class: distinct_fids_in_class / total_distinct_fids}.
+    Proportion of all distinct finding_ids that appear in each class.
+    Renamed from backlog spec 'class_coverage_ratio' to avoid collision with
+    item-419's class_coverage_ratio (record fraction).
+    Range: (0.0, 1.0].  Empty -> {}.  Pure; no I/O.
+    """
+    if not problems:
+        return {}
+    total_fids: set[str] = {p.finding_id for p in problems}
+    total = len(total_fids)
+    class_fids: dict[str, set[str]] = {}
+    for p in problems:
+        if p.problem_class not in class_fids:
+            class_fids[p.problem_class] = set()
+        class_fids[p.problem_class].add(p.finding_id)
+    return {cls: float(len(fids)) / total for cls, fids in class_fids.items()}
+
+
 def class_fid_distinct_count(problems: list[Problem]) -> dict[str, int]:
     """Return number of distinct finding_ids per class.  Item 617.
 
