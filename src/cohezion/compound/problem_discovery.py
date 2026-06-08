@@ -757,6 +757,30 @@ def assert_class_counts_under(problems: list[Problem], thresholds: dict[str, int
         raise AssertionError(f"assert_class_counts_under: threshold exceeded — {detail}")
 
 
+def sorted_finding_ids(problems: list[Problem]) -> list[str]:
+    """Return a sorted list of all ``finding_id`` values — item 182.
+
+    Deterministic snapshot accessor.  Enables stable snapshot assertions::
+
+        assert sorted_finding_ids(findings) == expected_ids
+
+    Duplicates are preserved (not deduplicated) — if two findings share an
+    ID, both appear in the result.  Callers that want uniqueness enforcement
+    should first run :func:`assert_no_duplicate_finding_ids`.
+
+    Args:
+        problems:
+            A list of :class:`Problem` instances.  Empty list → ``[]``.
+
+    Returns:
+        A lexicographically sorted list of ``finding_id`` strings, length
+        equal to ``len(problems)``.
+
+    Pure (no I/O, no SurrealDB).
+    """
+    return sorted(p.finding_id for p in problems)
+
+
 def default_template_classes() -> frozenset[str]:
     """Return the exact set of ``problem_class`` names in :func:`default_templates` — item 158.
 
