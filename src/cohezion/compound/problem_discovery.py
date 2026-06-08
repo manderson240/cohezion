@@ -78,6 +78,8 @@ def default_templates() -> list[ProblemTemplate]:
         nesting_outliers,
         passthrough_functions,
         production_asserts,
+        silent_except_swallows,
+        stealth_bare_excepts,
     )
 
     return [
@@ -91,5 +93,11 @@ def default_templates() -> list[ProblemTemplate]:
         ProblemTemplate("needless_passthrough", needless_passthroughs, lambda f: f.qualified_name),
         ProblemTemplate(
             "unsandboxed_exec", unsandboxed_exec_paths, lambda f: f"{f.location}:{f.sink}"
+        ),
+        # Item 153: wire items 65 + 110 instruments into TIDE (closing wiring gap).
+        # Both return list[tuple[str, str]] as (location, kind) — same key shape as production_assert.
+        ProblemTemplate("stealth_bare_except", stealth_bare_excepts, lambda f: f"{f[0]}:{f[1]}"),
+        ProblemTemplate(
+            "silent_except_swallow", silent_except_swallows, lambda f: f"{f[0]}:{f[1]}"
         ),
     ]
