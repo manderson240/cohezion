@@ -6913,3 +6913,24 @@ def unique_finding_ids_count(problems: list[Problem]) -> int:
     Pure (no I/O, no SurrealDB).
     """
     return len(frozenset(p.finding_id for p in problems))
+
+
+def average_problems_per_class(problems: list[Problem]) -> float:
+    """Return the mean Problem record count per distinct class — item 407.
+
+    Computes ``total_records / distinct_class_count`` as a float.  Returns
+    ``0.0`` for empty input (no :class:`ZeroDivisionError`).
+
+    Args:
+        problems: List of :class:`Problem` instances.
+
+    Returns:
+        Float mean of records per distinct class.  ``0.0`` when *problems*
+        is empty.
+
+    Pure (no I/O, no SurrealDB).
+    """
+    if not problems:
+        return 0.0
+    n_classes = len(frozenset(p.problem_class for p in problems))
+    return len(problems) / n_classes
