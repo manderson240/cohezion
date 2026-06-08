@@ -13244,3 +13244,21 @@ def fid_severity_rank_max(problems: list[Problem]) -> dict[str, int]:
         if fid not in result or rank > result[fid]:
             result[fid] = rank
     return result
+
+
+def class_severity_rank_min(problems: list[Problem]) -> dict[str, int]:
+    """Return minimum severity rank per class as int.  Item 700.
+
+    Floor severity: lowest _SEVERITY_RANK value present in each class.
+    Unknown severities rank as 0.
+    Returns {class: min_rank}.  Empty -> {}.  Pure; no I/O.
+    """
+    if not problems:
+        return {}
+    result: dict[str, int] = {}
+    for p in problems:
+        cls = p.problem_class
+        rank = _SEVERITY_RANK.get(p.severity, 0)
+        if cls not in result or rank < result[cls]:
+            result[cls] = rank
+    return result
