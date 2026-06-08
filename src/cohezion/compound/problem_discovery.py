@@ -10172,9 +10172,7 @@ def fid_score_mad(
         return 0.0
     fid_totals: dict[str, float] = {}
     for p in problems:
-        fid_totals[p.finding_id] = (
-            fid_totals.get(p.finding_id, 0.0) + weights.get(p.severity, 0.0)
-        )
+        fid_totals[p.finding_id] = fid_totals.get(p.finding_id, 0.0) + weights.get(p.severity, 0.0)
     n = len(fid_totals)
     if n < 2:
         return 0.0
@@ -10197,10 +10195,30 @@ def class_score_range(
         return 0.0
     class_totals: dict[str, float] = {}
     for p in problems:
-        class_totals[p.problem_class] = (
-            class_totals.get(p.problem_class, 0.0) + weights.get(p.severity, 0.0)
+        class_totals[p.problem_class] = class_totals.get(p.problem_class, 0.0) + weights.get(
+            p.severity, 0.0
         )
     if len(class_totals) < 2:
         return 0.0
     values = list(class_totals.values())
+    return float(max(values) - min(values))
+
+
+def fid_score_range(
+    problems: list[Problem],
+    weights: dict[str, float],
+) -> float:
+    """Return range (max - min) of per-fid total weighted scores.  Item 540.
+
+    Simplest fid spread measure.  Always >= 0.
+    0.0 for empty or single fid.  Pure; no I/O.
+    """
+    if not problems:
+        return 0.0
+    fid_totals: dict[str, float] = {}
+    for p in problems:
+        fid_totals[p.finding_id] = fid_totals.get(p.finding_id, 0.0) + weights.get(p.severity, 0.0)
+    if len(fid_totals) < 2:
+        return 0.0
+    values = list(fid_totals.values())
     return float(max(values) - min(values))
