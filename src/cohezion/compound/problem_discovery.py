@@ -12585,22 +12585,19 @@ def fid_sev_low_rate(problems: list[Problem]) -> dict[str, float]:
         for fid in totals
     }
 
-def fid_sev_low_rate(problems: list[Problem]) -> dict[str, float]:
-    """Return fraction of LOW severity problems per fid.  Item 659.
 
-    FID-axis complement of class_sev_low_rate (item 658).
-    For each fid: count(LOW) / total_fid_problems.
-    float in [0, 1].  0.0 = no LOW.  Empty -> {}.  Pure; no I/O.
+def class_sev_critical_count(problems: list[Problem]) -> dict[str, int]:
+    """Return raw count of CRITICAL severity problems per class.  Item 660.
+
+    For each class: count(CRITICAL).
+    int >= 0.  Classes with 0 CRITICAL included.  Empty -> {}.  Pure; no I/O.
     """
     if not problems:
         return {}
-    totals: dict[str, int] = {}
-    lows: dict[str, int] = {}
+    result: dict[str, int] = {}
     for p in problems:
-        totals[p.finding_id] = totals.get(p.finding_id, 0) + 1
-        if (p.severity or "").upper() == "LOW":
-            lows[p.finding_id] = lows.get(p.finding_id, 0) + 1
-    return {
-        fid: float(lows.get(fid, 0)) / totals[fid]
-        for fid in totals
-    }
+        if p.problem_class not in result:
+            result[p.problem_class] = 0
+        if (p.severity or "").upper() == "CRITICAL":
+            result[p.problem_class] += 1
+    return result
