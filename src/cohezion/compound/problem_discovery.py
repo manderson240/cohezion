@@ -3834,3 +3834,29 @@ def class_co_occurrence_count(problems: list[Problem], cls_a: str, cls_b: str) -
     ids_a: set[str] = {p.finding_id for p in problems if p.problem_class == cls_a}
     ids_b: set[str] = {p.finding_id for p in problems if p.problem_class == cls_b}
     return len(ids_a & ids_b)
+
+
+def problem_count_by_severity_in_class(
+    problems: list[Problem], cls: str
+) -> dict[str, int]:
+    """Return {severity: count} for labelled problems in the specified class.
+
+    Only problems whose ``problem_class == cls`` AND ``severity != ""`` are
+    counted.  Unlabelled problems (``severity=""``) and problems from other
+    classes are excluded.  Returns ``{}`` when the class is absent, all its
+    problems are unlabelled, or *problems* is empty.
+
+    Args:
+        problems: List of :class:`Problem` instances from a scan.
+        cls:      Target class name.
+
+    Returns:
+        dict mapping severity string → count of labelled problems.
+
+    Pure (no I/O, no SurrealDB).
+    """
+    counts: dict[str, int] = {}
+    for p in problems:
+        if p.problem_class == cls and p.severity:
+            counts[p.severity] = counts.get(p.severity, 0) + 1
+    return counts
