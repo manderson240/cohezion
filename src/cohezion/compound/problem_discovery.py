@@ -171,6 +171,62 @@ def top_problem_classes(
     return ranked[:n]
 
 
+@dataclass(frozen=True)
+class ProblemSummary:
+    """Typed summary envelope over a :func:`discover_problems` result — item 163.
+
+    Composes :func:`problem_count_by_class` (item 160) and
+    :func:`top_problem_classes` (item 161) into a single immutable struct for
+    the loop health report.
+
+    Attributes:
+        total:       Raw ``len(problems)`` — the number of findings in the list.
+        by_class:    ``{problem_class: count}`` mapping from
+                     :func:`problem_count_by_class`.
+        top_classes: Top-N ``(problem_class, count)`` pairs from
+                     :func:`top_problem_classes` (default ``n=5``).
+        has_problems: ``True`` when *total* > 0.
+
+    Frozen (immutable).  Construct via :func:`problem_summary`.
+    """
+
+    total: int
+    by_class: dict[str, int]
+    top_classes: list[tuple[str, int]]
+    has_problems: bool
+
+
+def problem_summary(problems: list[Problem]) -> ProblemSummary:
+    """Build a :class:`ProblemSummary` from a TIDE findings list — item 163.
+
+    Composes :func:`problem_count_by_class` and :func:`top_problem_classes`
+    into a single typed summary struct suitable for the loop health report.
+
+    Args:
+        problems:
+            A list of :class:`Problem` instances, typically the return value of
+            :func:`discover_problems`.  Empty list → zero-total summary.
+
+    Returns:
+        A frozen :class:`ProblemSummary` with:
+        - ``total`` = ``len(problems)`` (raw list length, NOT re-derived from counts)
+        - ``by_class`` = :func:`problem_count_by_class` result
+        - ``top_classes`` = :func:`top_problem_classes` result (default n=5)
+        - ``has_problems`` = ``total > 0``
+
+    Pure (no I/O, no SurrealDB).
+    """
+    total = len(problems)
+    by_class = problem_count_by_class(problems)
+    top = top_problem_classes(problems)
+    return ProblemSummary(
+        total=total,
+        by_class=by_class,
+        top_classes=top,
+        has_problems=total > 0,
+    )
+
+
 def default_template_classes() -> frozenset[str]:
     """Return the exact set of ``problem_class`` names in :func:`default_templates` — item 158.
 
