@@ -3173,3 +3173,33 @@ def class_severity_entropy(problems: list[Problem], cls: str) -> float:
     if total == 0:
         return 0.0
     return float(-sum((c / total) * math.log2(c / total) for c in counts.values()))
+
+
+def highest_entropy_class(problems: list[Problem]) -> str | None:
+    """Return the class with the highest Shannon entropy across its severities.
+
+    Uses :func:`class_severity_entropy` to compute per-class entropy, then
+    returns the class with the maximum value.  Tie-break: alphabetically
+    ascending class name.
+
+    Returns ``None`` when no class has at least two distinct labelled
+    severities (i.e. every class has H=0.0) or when *problems* is empty.
+    This prevents returning a degenerate result for mono-severity scans.
+
+    Args:
+        problems: List of :class:`Problem` instances from a scan.
+
+    Returns:
+        Class name string or ``None``.
+
+    Pure (no I/O, no SurrealDB).
+    """
+    classes = {p.problem_class for p in problems}
+    if not classes:
+        return None
+    entropies = {cls: class_severity_entropy(problems, cls) for cls in classes}
+    # Only consider classes with H > 0 (≥2 distinct labelled severities).
+    candidates = {cls: h for cls, h in entropies.items() if h > 0.0}
+    if not candidates:
+        return None
+    return max(candidates, key=lambda cls: (candidates[cls], [-ord(c) for c in cls]))
