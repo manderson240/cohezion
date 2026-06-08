@@ -7313,3 +7313,32 @@ def finding_id_entropy(problems: list[Problem]) -> float:
     total = len(problems)
     return -sum((c / total) * math.log2(c / total) for c in counts.values())
 
+
+def class_gini_impurity(problems: list[Problem]) -> float:
+    """Return the Gini impurity of the class distribution — item 425.
+
+    Computes ``G = 1 - Σ p²`` where ``p`` is each class's fraction from
+    :func:`class_coverage_ratio`.  A single class gives ``G=0.0`` (pure).
+    Two equal classes give ``G=0.5``.  Empty gives ``0.0``.
+
+    Unlike :func:`class_entropy` (which uses ``-p·log₂(p)``), Gini uses
+    ``p²`` — making it quadratic rather than logarithmic.
+
+    Args:
+        problems: List of :class:`Problem` instances.
+
+    Returns:
+        Gini impurity in ``[0.0, 1.0)``.  ``0.0`` when *problems* is empty
+        or contains only one distinct class.
+
+    Pure (no I/O, no SurrealDB).
+    """
+    if not problems:
+        return 0.0
+    total = len(problems)
+    counts: dict[str, int] = {}
+    for p in problems:
+        counts[p.problem_class] = counts.get(p.problem_class, 0) + 1
+    return 1.0 - sum((c / total) ** 2 for c in counts.values())
+
+
