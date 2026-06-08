@@ -5629,3 +5629,45 @@ def severity_ratio(problems: list["Problem"], severity: str) -> float:
         return 0.0
     sev_count = sum(1 for p in problems if p.severity == severity)
     return sev_count / len(problems)
+
+
+# ---------------------------------------------------------------------------
+# Item 352 — classes_with_finding_id_overlap (2026-06-08)
+# ---------------------------------------------------------------------------
+
+
+def classes_with_finding_id_overlap(
+    problems: list["Problem"],
+) -> "frozenset[frozenset[str]]":
+    """Return all unordered pairs of classes sharing at least one finding ID.
+
+    ``classes_with_finding_id_overlap(problems) -> frozenset[frozenset[str]]``:
+    Returns a :class:`frozenset` of 2-element :class:`frozenset` pairs
+    {class_a, class_b} where both classes have at least one :class:`Problem`
+    with the same ``finding_id``.  A finding_id shared by N classes produces
+    C(N,2) pairs.  Self-pairs (same class twice) are never emitted.
+    Empty input → frozenset().  Pure (no I/O, no SurrealDB).
+
+    Args:
+        problems: Flat list of :class:`Problem` records.
+
+    Returns:
+        frozenset of 2-element frozensets; each inner frozenset is an
+        unordered pair of class names that share a finding_id.
+
+    Pure (no I/O, no SurrealDB).
+    """
+    if not problems:
+        return frozenset()
+    # Build finding_id → set of classes index
+    id_classes: dict[str, set[str]] = {}
+    for p in problems:
+        id_classes.setdefault(p.finding_id, set()).add(p.problem_class)
+    # Emit C(n,2) pairs for each finding_id with 2+ distinct classes
+    pairs: set[frozenset[str]] = set()
+    for classes in id_classes.values():
+        class_list = sorted(classes)  # deterministic iteration
+        for i, a in enumerate(class_list):
+            for b in class_list[i + 1 :]:
+                pairs.add(frozenset({a, b}))
+    return frozenset(pairs)
