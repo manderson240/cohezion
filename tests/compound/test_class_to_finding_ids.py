@@ -43,8 +43,8 @@ def test_maps_class_to_finding_ids_not_reverse() -> None:
     assert result["sec"] == frozenset({"CVE-001", "CVE-002"}), (
         "sec has CVE-001 and CVE-002; got " + repr(result["sec"])
     )
-    assert result["perf"] == frozenset({"CVE-001"}), (
-        "perf has CVE-001 only; got " + repr(result.get("perf"))
+    assert result["perf"] == frozenset({"CVE-001"}), "perf has CVE-001 only; got " + repr(
+        result.get("perf")
     )
 
 
@@ -67,8 +67,8 @@ def test_duplicate_fids_deduplicated_in_value() -> None:
     """
     problems = [_p("sec", "CVE-001"), _p("sec", "CVE-001"), _p("sec", "CVE-001")]
     result = class_to_finding_ids(problems)
-    assert result["sec"] == frozenset({"CVE-001"}), (
-        "Same fid thrice -> appears once; got " + repr(result.get("sec"))
+    assert result["sec"] == frozenset({"CVE-001"}), "Same fid thrice -> appears once; got " + repr(
+        result.get("sec")
     )
 
 
@@ -83,13 +83,16 @@ def test_each_class_appears_once_as_key() -> None:
     Kills impl that creates duplicate keys or misses classes.
     """
     problems = [
-        _p("a", "f:0"), _p("a", "f:1"),
+        _p("a", "f:0"),
+        _p("a", "f:1"),
         _p("b", "f:2"),
-        _p("c", "f:3"), _p("c", "f:4"), _p("c", "f:5"),
+        _p("c", "f:3"),
+        _p("c", "f:4"),
+        _p("c", "f:5"),
     ]
     result = class_to_finding_ids(problems)
-    assert set(result.keys()) == {"a", "b", "c"}, (
-        "All 3 classes as keys; got " + repr(set(result.keys()))
+    assert set(result.keys()) == {"a", "b", "c"}, "All 3 classes as keys; got " + repr(
+        set(result.keys())
     )
     assert len(result["a"]) == 2
     assert len(result["b"]) == 1

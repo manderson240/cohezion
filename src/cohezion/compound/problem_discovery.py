@@ -6229,8 +6229,8 @@ def class_count_at_most_threshold(problems: list[Problem], n: int) -> frozenset[
 
 
 def finding_id_to_classes(
-    problems: list["Problem"],
-) -> "dict[str, frozenset[str]]":
+    problems: list[Problem],
+) -> dict[str, frozenset[str]]:
     """Build a reverse index mapping each finding_id to its owning classes — item 375.
 
     Returns a :class:`dict` mapping each distinct ``finding_id`` string to the
@@ -6262,8 +6262,8 @@ def finding_id_to_classes(
 
 
 def class_to_finding_ids(
-    problems: list["Problem"],
-) -> "dict[str, frozenset[str]]":
+    problems: list[Problem],
+) -> dict[str, frozenset[str]]:
     """Build a forward index mapping each class to its finding_ids — item 376.
 
     Mirror of :func:`finding_id_to_classes` with keys and values swapped.
@@ -6287,3 +6287,37 @@ def class_to_finding_ids(
     for p in problems:
         index.setdefault(p.problem_class, set()).add(p.finding_id)
     return {cls: frozenset(fids) for cls, fids in index.items()}
+
+
+# ---------------------------------------------------------------------------
+# Item 377 — severity_to_finding_ids (2026-06-08)
+# ---------------------------------------------------------------------------
+
+
+def severity_to_finding_ids(
+    problems: list["Problem"],
+) -> "dict[str, frozenset[str]]":
+    """Build an index mapping each severity to its finding_ids — item 377.
+
+    Returns a :class:`dict` mapping each distinct ``severity`` string to the
+    :class:`frozenset` of ``finding_id`` values whose records carry that
+    severity.  The empty string ``''`` is included as a key when any
+    unlabelled :class:`Problem` is present (severity not filtered out).
+
+    Args:
+        problems: List of :class:`Problem` instances.  Empty → ``{}``.
+
+    Returns:
+        ``dict[str, frozenset[str]]``.  Every distinct severity (including
+        ``''``) in *problems* appears exactly once as a key.  Values are
+        non-empty :class:`frozenset` objects of finding_id strings.
+        Empty when *problems* is empty.
+
+    Pure (no I/O, no SurrealDB).
+    """
+    if not problems:
+        return {}
+    index: dict[str, set[str]] = {}
+    for p in problems:
+        index.setdefault(p.severity, set()).add(p.finding_id)
+    return {sev: frozenset(fids) for sev, fids in index.items()}
