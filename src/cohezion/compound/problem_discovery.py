@@ -12686,9 +12686,7 @@ def class_fid_problem_count_map(problems: list[Problem]) -> dict[str, dict[str, 
     for p in problems:
         if p.problem_class not in result:
             result[p.problem_class] = {}
-        result[p.problem_class][p.finding_id] = (
-            result[p.problem_class].get(p.finding_id, 0) + 1
-        )
+        result[p.problem_class][p.finding_id] = result[p.problem_class].get(p.finding_id, 0) + 1
     return result
 
 
@@ -12787,36 +12785,8 @@ def class_fid_problem_rate(problems: list[Problem]) -> dict[str, dict[str, float
             counts[cls] = {}
         counts[cls][fid] = counts[cls].get(fid, 0) + 1
     return {
-        cls: {fid: count / total for fid, count in inner.items()}
-        for cls, inner in counts.items()
+        cls: {fid: count / total for fid, count in inner.items()} for cls, inner in counts.items()
     }
-
-
-def class_fid_problem_rank(problems: list[Problem]) -> dict[str, dict[str, int]]:
-    """Return dense rank of each class × fid cell by problem count (descending).  Item 671.
-
-    Rank 1 = most problems within the class.  Ties share the lower rank (dense ranking:
-    counts 5,3,3 → ranks 1,2,2 not 1,3,3).  Rankings are computed per-class independently.
-    Returns {class: {fid: rank}}.  int >= 1.  Sparse.  Empty -> {}.  Pure; no I/O.
-    """
-    if not problems:
-        return {}
-    # Step 1: count per (class, fid)
-    counts: dict[str, dict[str, int]] = {}
-    for p in problems:
-        cls = p.problem_class
-        fid = p.finding_id
-        if cls not in counts:
-            counts[cls] = {}
-        counts[cls][fid] = counts[cls].get(fid, 0) + 1
-    # Step 2: dense rank within each class (descending by count)
-    result: dict[str, dict[str, int]] = {}
-    for cls, fid_counts in counts.items():
-        # Sorted distinct counts descending → rank mapping
-        distinct_counts = sorted(set(fid_counts.values()), reverse=True)
-        rank_of = {cnt: idx + 1 for idx, cnt in enumerate(distinct_counts)}
-        result[cls] = {fid: rank_of[cnt] for fid, cnt in fid_counts.items()}
-    return result
 
 
 def class_fid_problem_rank(problems: list[Problem]) -> dict[str, dict[str, int]]:
