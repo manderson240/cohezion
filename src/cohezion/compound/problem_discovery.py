@@ -7478,3 +7478,36 @@ def class_pair_exclusive_fids(
     fids_a: frozenset[str] = frozenset(p.finding_id for p in problems if p.problem_class == class_a)
     fids_b: frozenset[str] = frozenset(p.finding_id for p in problems if p.problem_class == class_b)
     return fids_a - fids_b
+
+
+def fid_class_jaccard(problems: list[Problem], class_a: str, class_b: str) -> float:
+    """Return the Jaccard similarity between two classes on the finding_id axis -- item 430.
+
+    Computes ``|fids_a ∩ fids_b| / |fids_a ∪ fids_b|`` where fids_a and fids_b are
+    the sets of distinct finding_ids for *class_a* and *class_b* respectively.
+
+    Special cases:
+
+    - Empty *problems* -> 0.0
+    - Unknown class (either/both) -> 0.0 (empty union -> treated as no overlap)
+    - *class_a* == *class_b* -> 1.0 (identical sets: intersection == union)
+    - Disjoint fid sets -> 0.0
+
+    Args:
+        problems: List of :class:`Problem` instances.
+        class_a: First problem class name.
+        class_b: Second problem class name.
+
+    Returns:
+        Jaccard similarity as a float in ``[0.0, 1.0]``.
+
+    Pure (no I/O, no SurrealDB).
+    """
+    if not problems:
+        return 0.0
+    fids_a: frozenset[str] = frozenset(p.finding_id for p in problems if p.problem_class == class_a)
+    fids_b: frozenset[str] = frozenset(p.finding_id for p in problems if p.problem_class == class_b)
+    union_size = len(fids_a | fids_b)
+    if union_size == 0:
+        return 0.0
+    return len(fids_a & fids_b) / union_size
