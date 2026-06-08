@@ -64,3 +64,35 @@ class TestAgenticTick:
         assert r.vault_health == {"frontmatter_pct": 81}
         assert r.knowledge_owner == "vault-keeper"
         assert isinstance(r.deferred_jobs, list)
+
+
+class TestSpecialistRouting:
+    """The loop routes its knowledge step to ANY specialist by capability."""
+
+    def test_route_capability_resolves_distinct_specialists(self):
+        from cohezion.compound.agentic_loop import route_capability
+
+        # DISCRIMINATING: distinct capabilities resolve to DISTINCT owners — a
+        # hardcoded-vault-keeper impl would fail the surreal/mcp cases.
+        assert route_capability("report.vault.health") == "vault-keeper"
+        assert route_capability("audit.surreal.schema") == "surreal-dba"
+        assert route_capability("monitor.mcp.health") == "mcp-specialist"
+
+    def test_route_capability_unknown_returns_none(self):
+        from cohezion.compound.agentic_loop import route_capability
+
+        assert route_capability("no.such.capability") is None
+
+    def test_tick_routes_knowledge_to_named_capability_owner(self):
+        from cohezion.compound.agentic_loop import agentic_tick
+
+        class _FakeChronos:
+            def resource_advisory(self, *, level=None, manager=None):
+                return []
+
+        r = agentic_tick(
+            improvement_fn=lambda ctx: "x",
+            chronos=_FakeChronos(),
+            capability="audit.surreal.schema",
+        )
+        assert r.knowledge_owner == "surreal-dba"

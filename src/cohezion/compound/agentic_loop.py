@@ -31,16 +31,24 @@ from cohezion.compound.chronos import get_chronos
 _KNOWLEDGE_CAPABILITY = "report.vault.health"
 
 
-def _knowledge_owner() -> str | None:
-    """Name of the specialist that OWNS the vault-health capability (A2A routing).
+def route_capability(capability: str) -> str | None:
+    """Name of the specialist that OWNS a given capability (A2A routing).
 
-    Resolved from the live registry, not hardcoded — if the owning card changes or
-    drops the capability, callers see the change.
+    Generalizes the loop across ALL registered specialists: any capability resolves to
+    its owning specialist card from the live registry (not hardcoded). This is the
+    keystone for extending the loop to every specialist — pass the capability the work
+    needs and the tick routes the knowledge step to its owner (vault-keeper for vault
+    health, surreal-dba for schema, mcp-specialist for MCP health, …).
     """
     for spec in describe_all():
-        if _KNOWLEDGE_CAPABILITY in spec.get("capabilities", ()):
+        if capability in spec.get("capabilities", ()):
             return spec.get("name")
     return None
+
+
+def _knowledge_owner(capability: str = _KNOWLEDGE_CAPABILITY) -> str | None:
+    """Owner of the loop's knowledge capability (defaults to vault health)."""
+    return route_capability(capability)
 
 
 @dataclass
@@ -61,6 +69,7 @@ def agentic_tick(
     improvement_fn: Callable[[list], Any],
     chronos: Any = None,
     level: Any = None,
+    capability: str = _KNOWLEDGE_CAPABILITY,
     vault_health_fn: Callable[[], dict] | None = None,
     context_fn: Callable[[], list] | None = None,
 ) -> TickResult:
@@ -90,10 +99,10 @@ def agentic_tick(
             ran=False,
             deferred_reason="chronos: CRITICAL memory pressure — deferring loop work",
             deferred_jobs=[getattr(j, "name", str(j)) for j in advised],
-            knowledge_owner=_knowledge_owner(),
+            knowledge_owner=_knowledge_owner(capability),
         )
 
-    owner = _knowledge_owner()
+    owner = _knowledge_owner(capability)
     health = vault_health_fn() if vault_health_fn else None
     context = context_fn() if context_fn else []
     work = improvement_fn(context)
