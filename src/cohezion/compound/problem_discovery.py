@@ -7632,3 +7632,36 @@ def severity_gini_impurity(problems: list[Problem]) -> float:
     for p in problems:
         counts[p.severity] = counts.get(p.severity, 0) + 1
     return 1.0 - sum((c / total) ** 2 for c in counts.values())
+
+
+def severity_balance_score(problems: list[Problem]) -> float:
+    """Return the normalised severity balance score -- item 439.
+
+    Computes ``severity_entropy / log2(num_distinct_severities)``, giving 1.0
+    for perfectly uniform severity distributions and approaching 0.0 for
+    maximally imbalanced ones.
+
+    Special cases:
+
+    - Empty *problems* -> 1.0 (vacuously balanced)
+    - Single distinct severity -> 1.0 (trivially balanced)
+
+    Args:
+        problems: List of :class:`Problem` instances.
+
+    Returns:
+        Normalised balance score as a float in ``[0.0, 1.0]``.
+
+    Pure (no I/O, no SurrealDB).
+    """
+    if not problems:
+        return 1.0
+    counts: dict[str, int] = {}
+    for p in problems:
+        counts[p.severity] = counts.get(p.severity, 0) + 1
+    n = len(counts)
+    if n == 1:
+        return 1.0
+    total = len(problems)
+    entropy = -sum((c / total) * math.log2(c / total) for c in counts.values())
+    return entropy / math.log2(n)
