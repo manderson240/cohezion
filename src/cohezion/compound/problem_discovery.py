@@ -1270,3 +1270,27 @@ def class_frequency_map(problems: list[Problem]) -> dict[str, int]:
     Pure (no I/O, no SurrealDB).
     """
     return problem_count_by_class(problems)
+
+
+def class_finding_count(problems: list[Problem], problem_class: str) -> int:
+    """Return the number of findings for *problem_class* — item 199.
+
+    The scalar per-class accessor that avoids building a full frequency
+    dict when only one class count is needed::
+
+        assert class_finding_count(findings, "complexity_outlier") == 0
+
+    Args:
+        problems:
+            A list of :class:`Problem` instances.  Empty list → ``0``.
+        problem_class:
+            The class name to count.  Absent class → ``0`` (not
+            ``None``, no ``KeyError``).
+
+    Returns:
+        The number of findings whose ``problem_class`` equals
+        *problem_class*.  Always a non-negative integer.
+
+    Pure (no I/O, no SurrealDB).
+    """
+    return sum(1 for p in problems if p.problem_class == problem_class)
