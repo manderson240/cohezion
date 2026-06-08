@@ -6512,3 +6512,28 @@ def top_n_finding_ids_by_count(problems: list[Problem], n: int) -> list[str]:
         counts[p.finding_id] = counts.get(p.finding_id, 0) + 1
     ranked = sorted(counts.items(), key=lambda item: (-item[1], item[0]))
     return [fid for fid, _ in ranked[:n]]
+
+
+def finding_ids_shared_across_classes(problems: list[Problem]) -> frozenset[str]:
+    """Return finding_ids that appear under ≥2 distinct classes — item 386.
+
+    A finding_id is "shared" when it has :class:`Problem` records in at least
+    two distinct ``problem_class`` values.  Finding_ids present in only one
+    class are excluded even if they have many records within that class.
+
+    Uses :func:`finding_id_to_classes` as a building block.
+
+    Args:
+        problems: List of :class:`Problem` instances.  Empty → ``frozenset()``.
+
+    Returns:
+        :class:`frozenset` of finding_id strings where the number of distinct
+        classes containing that finding_id is ≥ 2.  Empty when *problems* is
+        empty or all finding_ids appear in only one class.
+
+    Pure (no I/O, no SurrealDB).
+    """
+    if not problems:
+        return frozenset()
+    index = finding_id_to_classes(problems)
+    return frozenset(fid for fid, classes in index.items() if len(classes) >= 2)
