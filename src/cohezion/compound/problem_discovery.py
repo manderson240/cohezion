@@ -3323,3 +3323,64 @@ def labelling_coverage(problems: list[Problem]) -> float:
     if total == 0:
         return 0.0
     return labelled_problem_count(problems) / total
+
+
+def class_labelling_coverage(problems: list[Problem]) -> dict[str, float]:
+    """Return the fraction of labelled problems for each class in the scan.
+
+    For every class present in *problems*, computes the fraction of that
+    class's own problems that carry a non-empty :attr:`~Problem.severity`
+    label.  The denominator is the class's total problem count (not the
+    global total).
+
+    Args:
+        problems: List of :class:`Problem` instances from a scan.
+
+    Returns:
+        ``{class_name: fraction}`` where *fraction* is in ``[0.0, 1.0]``.
+        Classes with all-unlabelled problems appear with value ``0.0``.
+        Empty dict when *problems* is empty.
+
+    Pure (no I/O, no SurrealDB).
+    """
+    classes = {p.problem_class for p in problems}
+    return {
+        cls: labelling_coverage(problems_in_class(problems, cls))
+        for cls in classes
+    }
+
+def scan_summary(problems: list[Problem]) -> dict[str, object]:
+    """Return a one-call executive summary of the scan.
+
+    Composes the full TIDE analytics family into a single dict with exactly
+    seven keys::
+
+        {
+            "total":             int,         # len(problems)
+            "labelled":          int,         # labelled_problem_count
+            "coverage":          float,       # labelling_coverage
+            "class_count":       int,         # distinct problem_class count
+            "severity_counts":   dict,        # count_by_severity (no "")
+            "dominant_severity": str | None,  # dominant_severity
+            "has_duplicates":    bool,        # bool(duplicate_finding_ids)
+        }
+
+    Args:
+        problems: List of :class:`Problem` instances from a scan.
+
+    Returns:
+        Summary dict as described above.  All values zero/None/False/empty
+        when *problems* is empty.
+
+    Pure (no I/O, no SurrealDB).
+    """
+    sr = severity_report(problems)
+    return {
+        "total": len(problems),
+        "labelled": labelled_problem_count(problems),
+        "coverage": labelling_coverage(problems),
+        "class_count": len({p.problem_class for p in problems}),
+        "severity_counts": sr["counts"],
+        "dominant_severity": sr["dominant"],
+        "has_duplicates": bool(duplicate_finding_ids(problems)),
+    }
