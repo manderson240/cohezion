@@ -12253,8 +12253,42 @@ def cosmic_fire_cascade_actions(coherence: float) -> list[str]:
 
     Thin observable wrapper around CosmicFireProtocol.ignition_cascade().
     Returns the 5-action list when coherence >= threshold (0.45), empty list otherwise.
+    Returns [] for coherence outside [0, 1] (invalid physical range).
     Enables TIDE-layer testing of the P3 invariant without importing the full protocol.
     """
+    if coherence < 0.0 or coherence > 1.0:
+        return []
     from cohezion.compound.cosmic_fire_protocol import CosmicFireProtocol
 
     return CosmicFireProtocol(notify_telegram=False).ignition_cascade(coherence)
+
+
+def fid_problem_entropy(problems: list[Problem]) -> dict[str, float]:
+    """Return Shannon entropy (bits) of per-class problem counts for each fid.  Item 641.
+
+    FID-axis complement of class_problem_entropy (item 639).
+    H = -sum(p_i * log2(p_i)) where p_i = class_count_i / total_fid_count.
+    0.0 = single class; log2(N) = N equal classes. float >= 0.0.
+    """
+    import math as _math
+
+    if not problems:
+        return {}
+    class_counts: dict[str, dict[str, int]] = {}
+    totals: dict[str, int] = {}
+    for p in problems:
+        if p.finding_id not in class_counts:
+            class_counts[p.finding_id] = {}
+        class_counts[p.finding_id][p.problem_class] = (
+            class_counts[p.finding_id].get(p.problem_class, 0) + 1
+        )
+        totals[p.finding_id] = totals.get(p.finding_id, 0) + 1
+    result: dict[str, float] = {}
+    for fid, bucket in class_counts.items():
+        total = totals[fid]
+        h = 0.0
+        for cnt in bucket.values():
+            p = cnt / total
+            h -= p * _math.log2(p)
+        result[fid] = h
+    return result
