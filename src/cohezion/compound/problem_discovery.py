@@ -8168,3 +8168,30 @@ def severity_max_count(problems: list[Problem]) -> int:
     for p in problems:
         counts[p.severity] = counts.get(p.severity, 0) + 1
     return max(counts.values())
+
+
+def severity_count_range(problems: list[Problem]) -> int:
+    """Return the range of per-severity record counts -- item 462.
+
+    Computes ``max(counts) - min(counts)``.  When all severities have equal
+    counts the range is 0.
+
+    Special cases:
+    - Empty *problems* → ``0``
+    - Single distinct severity → ``0`` (min == max)
+
+    Args:
+        problems: List of :class:`Problem` instances.
+
+    Returns:
+        Non-negative int.  ``max_count - min_count`` of severity counts.
+
+    Pure (no I/O, no SurrealDB).
+    """
+    if not problems:
+        return 0
+    counts: dict[str, int] = {}
+    for p in problems:
+        counts[p.severity] = counts.get(p.severity, 0) + 1
+    vals = counts.values()
+    return max(vals) - min(vals)
