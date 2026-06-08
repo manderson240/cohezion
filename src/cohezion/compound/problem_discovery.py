@@ -5798,9 +5798,7 @@ def count_unlabelled_problems(problems: list[Problem]) -> int:
 # ---------------------------------------------------------------------------
 
 
-def problems_with_class_prefix(
-    problems: list["Problem"], prefix: str
-) -> list["Problem"]:
+def problems_with_class_prefix(problems: list["Problem"], prefix: str) -> list["Problem"]:
     """Return all problems whose class name starts with the given prefix.
 
     ``problems_with_class_prefix(problems, prefix) -> list[Problem]``:
@@ -5822,3 +5820,35 @@ def problems_with_class_prefix(
     Pure (no I/O, no SurrealDB).
     """
     return [p for p in problems if p.problem_class.startswith(prefix)]
+
+
+# ---------------------------------------------------------------------------
+# Item 359 — problems_with_finding_id_prefix (2026-06-08)
+# ---------------------------------------------------------------------------
+
+
+def problems_with_finding_id_prefix(
+    problems: list[Problem],
+    prefix: str,
+) -> list[Problem]:
+    """Return all Problem records whose finding_id starts with the given prefix.
+
+    ``problems_with_finding_id_prefix(problems, prefix) -> list[Problem]``:
+    Mirror of :func:`problems_with_class_prefix` on the ``finding_id`` axis.
+    Returns :class:`Problem` objects where ``finding_id.startswith(prefix)``.
+    Empty *prefix* matches all (Python str semantics).  Case-sensitive.
+    Preserves original insertion order.  Empty input → [].
+    Pure (no I/O, no SurrealDB).
+
+    Args:
+        problems: Flat list of :class:`Problem` records.
+        prefix:   Finding-id prefix to filter on (case-sensitive; ``''``
+                  matches all).
+
+    Returns:
+        New list of :class:`Problem` objects whose finding_id starts with
+        *prefix*, in original order.
+
+    Pure (no I/O, no SurrealDB).
+    """
+    return [p for p in problems if p.finding_id.startswith(prefix)]
