@@ -3263,3 +3263,23 @@ def duplicate_finding_ids(problems: list[Problem]) -> frozenset[str]:
     for p in problems:
         counts[p.finding_id] = counts.get(p.finding_id, 0) + 1
     return frozenset(fid for fid, cnt in counts.items() if cnt >= 2)
+
+
+def problems_without_severity(problems: list[Problem]) -> list[Problem]:
+    """Return problems whose ``severity`` is the empty string.
+
+    The direct complement to :func:`filter_problems_by_severity`: instead of
+    filtering by a specific severity value, this returns the problems that
+    lack any severity label.  Useful for labelling coverage audits.
+
+    Args:
+        problems: List of :class:`Problem` instances from a scan.
+
+    Returns:
+        New ``list[Problem]`` containing problems where ``p.severity == ""``,
+        in input order.  Empty list when all problems are labelled or
+        *problems* is empty.
+
+    Pure (no I/O, no SurrealDB).
+    """
+    return [p for p in problems if not p.severity]
