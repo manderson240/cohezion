@@ -12563,3 +12563,44 @@ def class_sev_low_rate(problems: list[Problem]) -> dict[str, float]:
         cls: float(lows.get(cls, 0)) / totals[cls]
         for cls in totals
     }
+
+
+def fid_sev_low_rate(problems: list[Problem]) -> dict[str, float]:
+    """Return fraction of LOW severity problems per fid.  Item 659.
+
+    FID-axis complement of class_sev_low_rate (item 658).
+    For each fid: count(LOW) / total_fid_problems.
+    float in [0, 1].  0.0 = no LOW.  Empty -> {}.  Pure; no I/O.
+    """
+    if not problems:
+        return {}
+    totals: dict[str, int] = {}
+    lows: dict[str, int] = {}
+    for p in problems:
+        totals[p.finding_id] = totals.get(p.finding_id, 0) + 1
+        if (p.severity or "").upper() == "LOW":
+            lows[p.finding_id] = lows.get(p.finding_id, 0) + 1
+    return {
+        fid: float(lows.get(fid, 0)) / totals[fid]
+        for fid in totals
+    }
+
+def fid_sev_low_rate(problems: list[Problem]) -> dict[str, float]:
+    """Return fraction of LOW severity problems per fid.  Item 659.
+
+    FID-axis complement of class_sev_low_rate (item 658).
+    For each fid: count(LOW) / total_fid_problems.
+    float in [0, 1].  0.0 = no LOW.  Empty -> {}.  Pure; no I/O.
+    """
+    if not problems:
+        return {}
+    totals: dict[str, int] = {}
+    lows: dict[str, int] = {}
+    for p in problems:
+        totals[p.finding_id] = totals.get(p.finding_id, 0) + 1
+        if (p.severity or "").upper() == "LOW":
+            lows[p.finding_id] = lows.get(p.finding_id, 0) + 1
+    return {
+        fid: float(lows.get(fid, 0)) / totals[fid]
+        for fid in totals
+    }
