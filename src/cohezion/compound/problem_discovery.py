@@ -12942,3 +12942,23 @@ def class_has_severity(problems: list[Problem], severity: str) -> dict[str, bool
         if p.severity == severity:
             result[cls] = True
     return result
+
+
+def fid_has_severity(problems: list[Problem], severity: str) -> dict[str, bool]:
+    """Return whether each fid has at least one problem of the given severity.  Item 681.
+
+    Fid-axis complement of class_has_severity (item 680).
+    Zero-inclusive: ALL fids present in the input appear in the result.
+    Fids without the queried severity return False (not absent from result).
+    Returns {fid: bool}.  Empty -> {}.  Pure; no I/O.
+    """
+    if not problems:
+        return {}
+    result: dict[str, bool] = {}
+    for p in problems:
+        fid = p.finding_id
+        if fid not in result:
+            result[fid] = False
+        if p.severity == severity:
+            result[fid] = True
+    return result
