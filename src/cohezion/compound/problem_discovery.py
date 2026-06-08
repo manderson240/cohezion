@@ -10714,3 +10714,23 @@ def fid_score_fractions(
     if grand_total == 0.0:
         return {fid: 0.0 for fid in totals}
     return {fid: v / grand_total for fid, v in totals.items()}
+
+
+def class_score_rank(
+    problems: list[Problem],
+    weights: dict[str, float],
+) -> dict[str, int]:
+    """Return dense rank of each class by total weighted score (rank 1 = highest).  Item 566.
+
+    Ties get the same rank; ranks are consecutive (dense ranking).
+    Empty -> {}.  Pure; no I/O.
+    """
+    if not problems:
+        return {}
+    totals: dict[str, float] = {}
+    for p in problems:
+        totals[p.problem_class] = totals.get(p.problem_class, 0.0) + weights.get(p.severity, 0.0)
+    # Sort descending by score; assign dense ranks
+    sorted_scores = sorted(set(totals.values()), reverse=True)
+    score_to_rank = {score: rank + 1 for rank, score in enumerate(sorted_scores)}
+    return {cls: score_to_rank[score] for cls, score in totals.items()}
