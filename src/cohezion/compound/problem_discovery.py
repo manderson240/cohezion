@@ -5050,3 +5050,30 @@ def most_common_finding_id(problems: list["Problem"]) -> "str | None":
     for p in problems:
         counts[p.finding_id] = counts.get(p.finding_id, 0) + 1
     return min(counts, key=lambda fid: (-counts[fid], fid))
+
+
+def problem_count_by_severity(problems: list["Problem"]) -> dict[str, int]:
+    """Return the total number of Problem records at each labelled severity.
+
+    Counts raw Problem records per severity label across all classes.  Unlike
+    :func:`class_count_by_severity` (which counts distinct classes), this
+    function counts total records — a class with five HIGH problems contributes
+    5 to the HIGH bucket.
+
+    Unlabelled problems (severity='') are excluded from both keys and counts.
+
+    Args:
+        problems: List of :class:`Problem` instances from a scan.
+
+    Returns:
+        dict mapping severity_label → total record count.  Empty input → {}.
+
+    Pure (no I/O, no SurrealDB).
+    """
+    if not problems:
+        return {}
+    result: dict[str, int] = {}
+    for p in problems:
+        if p.severity:
+            result[p.severity] = result.get(p.severity, 0) + 1
+    return result
