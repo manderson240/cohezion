@@ -10542,3 +10542,24 @@ def class_max_severity_weight(
         if p.problem_class not in class_maxes or w > class_maxes[p.problem_class]:
             class_maxes[p.problem_class] = w
     return class_maxes
+
+
+def fid_max_severity_weight(
+    problems: list[Problem],
+    weights: dict[str, float],
+) -> dict[str, float]:
+    """Return the maximum single problem weight per fid.  Item 557.
+
+    FID-axis complement of class_max_severity_weight.
+    For each finding_id, returns the maximum weight of any single problem with that fid.
+    0.0 for unknown severity weights (graceful fallback).
+    Empty -> {}.  Pure; no I/O.
+    """
+    if not problems:
+        return {}
+    fid_maxes: dict[str, float] = {}
+    for p in problems:
+        w = weights.get(p.severity, 0.0)
+        if p.finding_id not in fid_maxes or w > fid_maxes[p.finding_id]:
+            fid_maxes[p.finding_id] = w
+    return fid_maxes
