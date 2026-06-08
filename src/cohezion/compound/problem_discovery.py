@@ -7834,3 +7834,27 @@ def severity_fid_jaccard(
     if union_size == 0:
         return 0.0
     return len(fids_a & fids_b) / union_size
+
+
+def severity_fid_matrix(problems: list[Problem]) -> dict[str, dict[str, int]]:
+    """Return a 2-D sparse count matrix keyed by severity then finding_id -- item 448.
+
+    Outer key is :attr:`Problem.severity`; inner key is
+    :attr:`Problem.finding_id`.  Counts are positive integers.  Missing
+    severity/fid combinations are absent (sparse -- not zero-filled).
+    Transpose of :func:`fid_severity_matrix`.
+
+    Args:
+        problems: List of :class:`Problem` instances.
+
+    Returns:
+        Nested dict ``{severity: {finding_id: count}}``.
+        Empty dict when *problems* is empty.
+
+    Pure (no I/O, no SurrealDB).
+    """
+    matrix: dict[str, dict[str, int]] = {}
+    for p in problems:
+        inner = matrix.setdefault(p.severity, {})
+        inner[p.finding_id] = inner.get(p.finding_id, 0) + 1
+    return matrix
