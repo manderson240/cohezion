@@ -4520,3 +4520,48 @@ def most_severe_class(
         dominant,
         key=lambda cls: (rank.get(dominant[cls], worst_rank), cls),
     )
+
+
+def classes_above_severity_threshold(
+    problems: list[Problem],
+    severity_order: list[str],
+    threshold: str,
+    n: int = 1,
+) -> frozenset[str]:
+    """Return classes with at least *n* problems at or above *threshold* severity.
+
+    "At or above" means the problem's severity has the same rank as *threshold*
+    or a more-severe (lower-index) rank in *severity_order*.  Problems whose
+    severity is absent from *severity_order* are treated as below every threshold
+    (not counted).
+
+    Special case: ``n=0`` returns a frozenset of **all** class names present in
+    *problems* (regardless of threshold), because any non-negative count ≥ 0.
+
+    Args:
+        problems:       Flat list of :class:`Problem` records.
+        severity_order: Severity strings from most severe to least severe.
+        threshold:      The minimum severity level to count.
+        n:              Minimum cumulative count required (default 1).
+
+    Returns:
+        Frozenset of class names satisfying the criterion.  Returns
+        ``frozenset()`` when *problems* is empty.
+
+    Pure (no I/O, no SurrealDB).
+    """
+    if not problems:
+        return frozenset()
+    # n=0: every class qualifies trivially.
+    if n == 0:
+        return frozenset(p.problem_class for p in problems)
+    # Determine the threshold rank; problems with lower rank (more severe) also count.
+    rank = {sev: idx for idx, sev in enumerate(severity_order)}
+    threshold_rank = rank.get(threshold, len(severity_order))
+    # Sum counts at or above threshold rank per class.
+    class_counts: dict[str, int] = {}
+    for p in problems:
+        sev_rank = rank.get(p.severity, len(severity_order))
+        if sev_rank <= threshold_rank:
+            class_counts[p.problem_class] = class_counts.get(p.problem_class, 0) + 1
+    return frozenset(cls for cls, count in class_counts.items() if count >= n)
