@@ -8059,3 +8059,39 @@ def severity_iqr(problems: list[Problem]) -> float:
     sorted_counts = sorted(counts.values())
     quartiles = statistics.quantiles(sorted_counts, n=4, method="inclusive")
     return float(quartiles[2] - quartiles[0])
+
+
+def severity_cv(problems: list[Problem]) -> float:
+    """Return the coefficient of variation of severity counts -- item 458.
+
+    CV = population_stdev / mean over the per-severity record counts.
+    A dimensionless measure of relative spread in the count distribution.
+
+    Special cases:
+    - Empty *problems* → ``0.0``
+    - Single distinct severity → ``0.0`` (stdev is 0; no spread to measure)
+    - All severities with equal counts → ``0.0`` (stdev == 0)
+
+    Args:
+        problems: List of :class:`Problem` instances.
+
+    Returns:
+        Non-negative float.  ``population_stdev / mean`` of severity counts.
+
+    Pure (no I/O, no SurrealDB).
+    """
+    if not problems:
+        return 0.0
+    counts: dict[str, int] = {}
+    for p in problems:
+        counts[p.severity] = counts.get(p.severity, 0) + 1
+    if len(counts) <= 1:
+        return 0.0
+    values = list(counts.values())
+    n = len(values)
+    mean = sum(values) / n
+    if mean == 0.0:
+        return 0.0
+    variance = sum((v - mean) ** 2 for v in values) / n
+    stdev = variance**0.5
+    return stdev / mean
