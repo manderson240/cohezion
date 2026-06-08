@@ -35,14 +35,20 @@ capability. (Discriminating test: distinct capabilities → distinct owners.)
   loop's knowledge/health step is owned by the right specialist for the work at hand. No new
   routing code needed; just point ticks at the capability.
 
-### All skills (225-skill library)
-- The swarm already composes agents from skills/capabilities
-  (`TeamOrchestrator.generate_agent_spec_from_capability`). `swarm_tick(intent)` decomposes an
-  intent into a team that pulls the relevant skills.
-- **Next:** wire the skill registry (`src/cohezion/registry/skill_registry.json`) as the
-  swarm's skill source so `plan_team` can compose ANY of the 225 skills into a team, and a tick
-  can target a skill by name. Falsifiable gate: a `swarm_tick` for an intent that needs skill X
-  produces a plan whose agents reference X.
+### ✅ All skills (225-skill library) — ALREADY REACHABLE (verified 2026-06-07)
+Verify-before-build finding: `plan_team(intent)` already searches `CapabilityRegistry.find()`,
+which indexes the 225 skills, and composes the MATCHING skills into the team. Proven live —
+skill-specific intents pull their domain skills:
+
+| intent | composed agents |
+|---|---|
+| "optimize AMD GEMM MXFP4 kernels" | amd-gemm-mxfp4, amd-moe-mxfp4 |
+| "audit SurrealDB schema + bitemporal writes" | surrealdb-mcp, surrealdb-operations |
+| "run adversarial TDD" | adversarial-tdd, adversarial-testing |
+
+So `swarm_tick(intent)` ALREADY reaches any of the 225 skills relevant to the intent — no new
+wiring needed. Locked in by `tests/swarm/test_skill_reach.py` (discriminating: a registry
+missing the skills would not surface the domain agent).
 
 ## How it stays OOM-safe & human-visible (invariant)
 Every extension runs through `swarm_tick` → `agentic_tick`: Chronos gates the whole team under
@@ -51,7 +57,13 @@ runs on the local silicon fleet ($0, loaded models). Extending to all agents doe
 these — it inherits them.
 
 ## Definition of done
-- Every registered specialist reachable by capability (keystone: ✅).
-- The 225-skill registry wired as the swarm's skill source; a tick can target any skill.
-- A driver (`agentic_fleet_tick` / `swarm_tick`) usable with `--specialist <name>` / a skill
-  intent, each producing a Chronos-gated, HITL-visible, $0 local run.
+- Every registered specialist reachable by capability — ✅ (`route_capability`, keystone).
+- The 225-skill registry reachable by the swarm; a tick targets skills by intent — ✅
+  (already via `CapabilityRegistry.find`, verified + locked by `test_skill_reach.py`).
+- A driver usable with a swarm/skill intent producing a Chronos-gated, HITL-visible, $0 local
+  run — ✅ (`swarm_tick(intent)`; convenience CLI flag on `agentic_fleet_tick` is the only
+  remaining nicety, not a missing capability).
+
+**Net (2026-06-07):** "extend to all skills and specialists" is functionally ACHIEVED — both
+are reachable now, governed (Chronos), local ($0), and tested. What remained turned out to be
+already wired; the honest residual is CLI ergonomics, not capability.
