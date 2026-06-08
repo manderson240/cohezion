@@ -6760,26 +6760,6 @@ def problem_count_for_class(problems: list[Problem], target_class: str) -> int:
 
 
 def problem_count_for_severity(problems: list[Problem], target_severity: str) -> int:
-    """Return the total record count for a specific severity label — item 397.
-
-    Mirrors :func:`problem_count_for_class` on the severity axis.  The empty
-    string ``''`` is a valid *target_severity* that counts unlabelled records.
-
-    Args:
-        problems: List of :class:`Problem` instances.
-        target_severity: The severity string to count records for.  ``''``
-            counts unlabelled records.
-
-    Returns:
-        Integer count of records with ``severity == target_severity``.
-        ``0`` when not found.
-
-    Pure (no I/O, no SurrealDB).
-    """
-    return sum(1 for p in problems if p.severity == target_severity)
-
-
-def problem_count_for_severity(problems: list[Problem], target_severity: str) -> int:
     """Return the total Problem record count for a specific severity — item 397.
 
     Counts all :class:`Problem` records where :attr:`Problem.severity` equals
@@ -6798,3 +6778,22 @@ def problem_count_for_severity(problems: list[Problem], target_severity: str) ->
     Pure (no I/O, no SurrealDB).
     """
     return sum(1 for p in problems if p.severity == target_severity)
+
+
+def has_problems_for_class(problems: list[Problem], target_class: str) -> bool:
+    """Return True if at least one Problem record matches target_class — item 398.
+
+    Short-circuits at the first matching record.  Returns ``False`` when the
+    class is absent or *problems* is empty — never raises.
+
+    Args:
+        problems: List of :class:`Problem` instances.
+        target_class: The class name to test for.
+
+    Returns:
+        ``True`` if any record has ``problem_class == target_class``,
+        ``False`` otherwise.
+
+    Pure (no I/O, no SurrealDB).
+    """
+    return any(p.problem_class == target_class for p in problems)
