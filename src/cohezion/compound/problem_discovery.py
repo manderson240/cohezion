@@ -10600,3 +10600,21 @@ def fid_class_count(
             classes[p.finding_id] = set()
         classes[p.finding_id].add(p.problem_class)
     return {fid: len(cls_set) for fid, cls_set in classes.items()}
+
+
+def class_score_totals(
+    problems: list[Problem],
+    weights: dict[str, float],
+) -> dict[str, float]:
+    """Return total weighted score per class as a dict.  Item 560.
+
+    Exposes the per-class accumulation basis used internally by class_score_sum/max/min.
+    Useful when callers need ALL per-class totals, not a single aggregate statistic.
+    Empty -> {}.  Pure; no I/O.
+    """
+    if not problems:
+        return {}
+    totals: dict[str, float] = {}
+    for p in problems:
+        totals[p.problem_class] = totals.get(p.problem_class, 0.0) + weights.get(p.severity, 0.0)
+    return totals
