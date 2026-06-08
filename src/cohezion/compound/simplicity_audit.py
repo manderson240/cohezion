@@ -275,7 +275,7 @@ _MUTABLE_CTOR_NAMES = frozenset({"list", "dict", "set"})
 
 
 def _mutable_default_count(func: ast.FunctionDef | ast.AsyncFunctionDef) -> int:
-    """Count params of ``func`` whose default is a MUTABLE literal — the shared-default footgun (item 110).
+    """Count params of ``func`` whose default is a MUTABLE literal — the shared-default footgun (item 147).
 
     A default created once and mutated across calls leaks state between invocations. Mutable forms:
     a list/dict/set DISPLAY (``[]``, ``{}``, ``{1}`` → ``ast.List``/``ast.Dict``/``ast.Set``) or a

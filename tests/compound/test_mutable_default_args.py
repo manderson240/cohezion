@@ -1,4 +1,4 @@
-"""Discriminating tests for the mutable-default-argument report (item 110, 2026-06-07).
+"""Discriminating tests for the mutable-default-argument report (item 147, 2026-06-07).
 
 `mutable_default_args(paths)` flags functions with a parameter whose DEFAULT is a mutable literal
 — a list/dict/set display (`[]`, `{}`, `{1}`) or a `list()`/`dict()`/`set()` call — the classic

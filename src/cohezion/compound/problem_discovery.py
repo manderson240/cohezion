@@ -76,6 +76,7 @@ def default_templates() -> list[ProblemTemplate]:
         needless_passthroughs,
         nesting_outliers,
         passthrough_functions,
+        production_asserts,
     )
 
     return [
@@ -83,6 +84,7 @@ def default_templates() -> list[ProblemTemplate]:
         ProblemTemplate("nesting_outlier", nesting_outliers, lambda f: str(f[0])),
         ProblemTemplate("boolean_flag_params", boolean_flag_params, lambda f: str(f[0])),
         ProblemTemplate("mutable_default_args", mutable_default_args, lambda f: str(f[0])),
+        ProblemTemplate("production_assert", production_asserts, lambda f: f"{f[0]}:{f[1]}"),
         ProblemTemplate("passthrough_function", passthrough_functions, str),
         ProblemTemplate("needless_passthrough", needless_passthroughs, lambda f: f.qualified_name),
         ProblemTemplate(
