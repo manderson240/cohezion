@@ -8878,3 +8878,43 @@ def score_delta_between_snapshots(
         if p.problem_class == problem_class
     )
     return float(score_after - score_before)
+
+
+def all_score_deltas_between_snapshots(
+    before: list[Problem],
+    after: list[Problem],
+    weights: dict[str, float],
+) -> dict[str, float]:
+    """Return per-class signed score deltas between two snapshots -- item 492.
+
+    Computes ``score_after[cls] - score_before[cls]`` for every class in the
+    UNION of *before* and *after*.  Classes present only in *after* contribute
+    a positive delta (their full after score); classes present only in *before*
+    contribute a negative delta (their before score negated).
+
+    Args:
+        before: Problem list from the earlier scan.
+        after:  Problem list from the more recent scan.
+        weights: Mapping of severity label to numeric score.
+
+    Returns:
+        ``dict[str, float]`` mapping each class to its signed score change.
+        Empty dict when both *before* and *after* are empty.
+
+    Pure (no I/O, no SurrealDB).
+    """
+    scores_before: dict[str, float] = {}
+    for p in before:
+        scores_before[p.problem_class] = (
+            scores_before.get(p.problem_class, 0.0) + weights.get(p.severity, 0.0)
+        )
+    scores_after: dict[str, float] = {}
+    for p in after:
+        scores_after[p.problem_class] = (
+            scores_after.get(p.problem_class, 0.0) + weights.get(p.severity, 0.0)
+        )
+    all_classes = scores_before.keys() | scores_after.keys()
+    return {
+        cls: float(scores_after.get(cls, 0.0) - scores_before.get(cls, 0.0))
+        for cls in all_classes
+    }
