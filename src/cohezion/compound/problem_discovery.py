@@ -14752,3 +14752,55 @@ def fid_severity_rank_p75(problems: list[Problem]) -> dict[str, float]:
             ranks_by_fid[fid] = []
         ranks_by_fid[fid].append(_SEVERITY_RANK.get(p.severity, 0))
     return {fid: _percentile_linear(sorted(ranks), 0.75) for fid, ranks in ranks_by_fid.items()}
+
+
+def class_severity_rank_p25(problems: list[Problem]) -> dict[str, float]:
+    """25th percentile of severity ranks per class using linear interpolation.  Item 765.
+
+    i = 0.25*(n-1); p25 = sorted[floor(i)] + frac*(sorted[ceil(i)] - sorted[floor(i)]).
+    All-same -> that rank as float.  Empty -> {}.  Pure; no I/O.
+    """
+    if not problems:
+        return {}
+    ranks_by_class: dict[str, list[int]] = {}
+    for p in problems:
+        cls = p.problem_class
+        if cls not in ranks_by_class:
+            ranks_by_class[cls] = []
+        ranks_by_class[cls].append(_SEVERITY_RANK.get(p.severity, 0))
+    result: dict[str, float] = {}
+    for cls, ranks in ranks_by_class.items():
+        n = len(ranks)
+        sorted_ranks = sorted(ranks)
+        i = 0.25 * (n - 1)
+        lo = int(i)
+        hi = min(lo + 1, n - 1)
+        frac = i - lo
+        result[cls] = sorted_ranks[lo] + frac * (sorted_ranks[hi] - sorted_ranks[lo])
+    return result
+
+
+def fid_severity_rank_p25(problems: list[Problem]) -> dict[str, float]:
+    """25th percentile of severity ranks per fid using linear interpolation.  Item 766.
+
+    Fid-axis complement of class_severity_rank_p25 (item 765).
+    All-same -> that rank as float.  Empty -> {}.  Pure; no I/O.
+    """
+    if not problems:
+        return {}
+    ranks_by_fid: dict[str, list[int]] = {}
+    for p in problems:
+        fid = p.finding_id
+        if fid not in ranks_by_fid:
+            ranks_by_fid[fid] = []
+        ranks_by_fid[fid].append(_SEVERITY_RANK.get(p.severity, 0))
+    result: dict[str, float] = {}
+    for fid, ranks in ranks_by_fid.items():
+        n = len(ranks)
+        sorted_ranks = sorted(ranks)
+        i = 0.25 * (n - 1)
+        lo = int(i)
+        hi = min(lo + 1, n - 1)
+        frac = i - lo
+        result[fid] = sorted_ranks[lo] + frac * (sorted_ranks[hi] - sorted_ranks[lo])
+    return result
