@@ -6957,3 +6957,26 @@ def max_problems_in_any_class(problems: list[Problem]) -> int:
     for p in problems:
         counts[p.problem_class] = counts.get(p.problem_class, 0) + 1
     return max(counts.values())
+
+
+def min_problems_in_any_class(problems: list[Problem]) -> int:
+    """Return the minimum record count across all classes — item 409.
+
+    Returns the lowest value in the :func:`problem_class_histogram` — i.e.,
+    the record count of the least-populated class.  Returns ``0`` for empty
+    input (no :class:`ValueError` from :func:`min` on an empty sequence).
+
+    Args:
+        problems: List of :class:`Problem` instances.
+
+    Returns:
+        Integer minimum class count.  ``0`` when *problems* is empty.
+
+    Pure (no I/O, no SurrealDB).
+    """
+    if not problems:
+        return 0
+    counts: dict[str, int] = {}
+    for p in problems:
+        counts[p.problem_class] = counts.get(p.problem_class, 0) + 1
+    return min(counts.values())
