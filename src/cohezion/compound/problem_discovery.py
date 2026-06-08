@@ -111,3 +111,21 @@ def default_templates() -> list[ProblemTemplate]:
         # CompoundSmell.qualified_name is the stable id (same pattern as needless_passthrough).
         ProblemTemplate("compound_smell", compound_smells, lambda f: f.qualified_name),
     ]
+
+
+def default_template_classes() -> frozenset[str]:
+    """Return the exact set of ``problem_class`` names in :func:`default_templates` — item 158.
+
+    A structural meta-check on the TIDE wiring: callers (harness, CI) can assert
+    ``len(default_template_classes()) >= 14`` without importing the heavy audit
+    instruments (this function still calls ``default_templates`` internally, but
+    the *count / class-name invariant* is cheap to assert at test-collection time).
+
+    Returns:
+        An immutable :class:`frozenset` of the ``problem_class`` strings from
+        every :class:`ProblemTemplate` in the default registry.
+
+    Pure (reads the template list; does not run any audit).  Zero-cost for callers
+    that only need the count or class-name membership check.
+    """
+    return frozenset(t.problem_class for t in default_templates())
