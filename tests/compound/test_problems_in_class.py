@@ -97,7 +97,5 @@ def test_return_type_is_list_of_problems() -> None:
     problems = [_ps("alpha", 0), _ps("alpha", 1)]
     result = problems_in_class(problems, "alpha")
     assert isinstance(result, list), "Must return list; got " + repr(type(result))
-    assert all(isinstance(p, Problem) for p in result), (
-        "Elements must be Problem instances"
-    )
+    assert all(isinstance(p, Problem) for p in result), "Elements must be Problem instances"
     assert len(result) == 2
