@@ -2814,3 +2814,24 @@ def count_by_severity(problems: list[Problem]) -> dict[str, int]:
         if p.severity:  # skip default empty string
             result[p.severity] = result.get(p.severity, 0) + 1
     return result
+
+
+def dominant_severity(problems: list[Problem]) -> str | None:
+    """Return the severity level with the highest problem count.
+
+    Tie-break: lexicographically smallest severity string wins.
+    Returns ``None`` when no problem has a non-empty severity (i.e. all
+    problems use the default ``severity=""``).
+
+    Args:
+        problems: List of :class:`Problem` instances from a scan.
+
+    Returns:
+        The severity string with the highest count, or ``None``.
+
+    Pure (no I/O, no SurrealDB).
+    """
+    counts = count_by_severity(problems)
+    if not counts:
+        return None
+    return max(counts, key=lambda sev: (counts[sev], [-ord(c) for c in sev]))
