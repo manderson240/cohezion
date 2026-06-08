@@ -3302,3 +3302,24 @@ def labelled_problem_count(problems: list[Problem]) -> int:
     Pure (no I/O, no SurrealDB).
     """
     return sum(1 for p in problems if p.severity)
+
+
+def labelling_coverage(problems: list[Problem]) -> float:
+    """Return the fraction of problems that have a non-empty severity label.
+
+    The denominator is ``len(problems)`` (total problems including unlabelled),
+    so unlabelled problems always reduce coverage below 1.0.
+
+    Args:
+        problems: List of :class:`Problem` instances from a scan.
+
+    Returns:
+        Float in ``[0.0, 1.0]``.  ``0.0`` when *problems* is empty or all
+        problems are unlabelled.  ``1.0`` when every problem is labelled.
+
+    Pure (no I/O, no SurrealDB).
+    """
+    total = len(problems)
+    if total == 0:
+        return 0.0
+    return labelled_problem_count(problems) / total
