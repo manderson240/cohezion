@@ -8195,3 +8195,21 @@ def severity_count_range(problems: list[Problem]) -> int:
         counts[p.severity] = counts.get(p.severity, 0) + 1
     vals = counts.values()
     return max(vals) - min(vals)
+
+
+def fids_with_severity(problems: list[Problem], severity: str) -> list[str]:
+    """Return sorted finding_ids that have at least one problem at *severity* -- item 464.
+
+    Symmetric complement to :func:`classes_with_severity` on the finding_id axis.
+
+    Args:
+        problems: List of :class:`Problem` instances.
+        severity: Target severity string.  Unknown values return ``[]``.
+
+    Returns:
+        Sorted :class:`list` of distinct ``finding_id`` strings.  Empty when
+        *problems* is empty or no record matches *severity*.
+
+    Pure (no I/O, no SurrealDB).
+    """
+    return sorted({p.finding_id for p in problems if p.severity == severity})
