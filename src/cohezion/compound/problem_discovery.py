@@ -5337,3 +5337,25 @@ def max_severity_span_class(problems: list["Problem"]) -> "str | None":
     if not spans:
         return None
     return min(spans, key=lambda cls: (-spans[cls], cls))
+
+
+def classes_for_finding_id(
+    problems: list["Problem"], finding_id: str
+) -> "frozenset[str]":
+    """Return all class names that have at least one record with the given finding_id.
+
+    Inverse of :func:`finding_ids_for_class`.  When a finding_id appears
+    across multiple classes, all of those class names are returned.
+
+    Args:
+        problems: Flat list of :class:`Problem` records.
+        finding_id: The finding identifier to look up (exact match).
+
+    Returns:
+        Immutable set of ``problem_class`` values from records whose
+        ``finding_id`` matches exactly.  ``frozenset()`` when *problems* is
+        empty or no record matches.
+
+    Pure (no I/O, no SurrealDB).
+    """
+    return frozenset(p.problem_class for p in problems if p.finding_id == finding_id)
