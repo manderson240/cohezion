@@ -8441,3 +8441,28 @@ def three_axis_count(
         and p.finding_id == finding_id
         and p.severity == severity
     )
+
+
+def three_axis_matrix(
+    problems: list[Problem],
+) -> dict[str, dict[str, dict[str, int]]]:
+    """Return 3-D sparse count tensor: class x fid x severity -- item 474.
+
+    ``tensor[cls][fid][sev]`` is the count of records matching all three axes.
+    Sparse: absent triples are not present as keys.
+    Generalises the 2-D matrices (items 472/fid_severity_matrix) to 3 dimensions.
+
+    Args:
+        problems: List of :class:`Problem` instances.
+
+    Returns:
+        Three-level nested dict.  Empty dict for empty input.
+
+    Pure (no I/O, no SurrealDB).
+    """
+    tensor: dict[str, dict[str, dict[str, int]]] = {}
+    for p in problems:
+        fid_row = tensor.setdefault(p.problem_class, {})
+        sev_row = fid_row.setdefault(p.finding_id, {})
+        sev_row[p.severity] = sev_row.get(p.severity, 0) + 1
+    return tensor
