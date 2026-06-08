@@ -8838,3 +8838,43 @@ def fids_above_score_threshold(
             scores[p.finding_id] = 0.0
         scores[p.finding_id] += weights.get(p.severity, 0.0)
     return frozenset(fid for fid, score in scores.items() if score > threshold)
+
+
+def score_delta_between_snapshots(
+    before: list[Problem],
+    after: list[Problem],
+    problem_class: str,
+    weights: dict[str, float],
+) -> float:
+    """Return signed score change for *problem_class* between two snapshots -- item 491.
+
+    Computes ``class_total_severity_score(after, cls, w)``
+    minus ``class_total_severity_score(before, cls, w)``.
+
+    Positive delta = score increased (class has more/higher-weighted problems
+    in *after* than in *before*).  Negative delta = score decreased (improvement).
+    When the class is absent in both snapshots the delta is 0.0.
+
+    Args:
+        before: Problem list from the earlier scan.
+        after:  Problem list from the more recent scan.
+        problem_class: The class to measure.
+        weights: Mapping of severity label to numeric score.
+
+    Returns:
+        ``float`` signed score delta.  0.0 when *problem_class* is absent in
+        both snapshots.
+
+    Pure (no I/O, no SurrealDB).
+    """
+    score_before = sum(
+        weights.get(p.severity, 0.0)
+        for p in before
+        if p.problem_class == problem_class
+    )
+    score_after = sum(
+        weights.get(p.severity, 0.0)
+        for p in after
+        if p.problem_class == problem_class
+    )
+    return float(score_after - score_before)
