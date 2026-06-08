@@ -8806,3 +8806,35 @@ def classes_above_score_threshold(
             scores[p.problem_class] = 0.0
         scores[p.problem_class] += weights.get(p.severity, 0.0)
     return frozenset(cls for cls, score in scores.items() if score > threshold)
+
+
+def fids_above_score_threshold(
+    problems: list[Problem],
+    weights: dict[str, float],
+    threshold: float,
+) -> frozenset[str]:
+    """Return fid names whose total weighted severity score STRICTLY exceeds threshold -- item 490.
+
+    Symmetric to :func:`classes_above_score_threshold` on the fid axis.
+    Scoring mirrors :func:`all_fid_severity_scores`: each record contributes
+    ``weights.get(p.severity, 0.0)`` to its fid total.  Only fids with
+    ``score > threshold`` (strict) are included; fids at exactly *threshold*
+    are excluded.
+
+    Args:
+        problems: List of :class:`Problem` instances.
+        weights: Mapping of severity label to numeric score.
+        threshold: Score boundary (exclusive upper bound for exclusion).
+
+    Returns:
+        ``frozenset[str]`` of finding_id strings with total score strictly
+        above *threshold*.  ``frozenset()`` when *problems* is empty.
+
+    Pure (no I/O, no SurrealDB).
+    """
+    scores: dict[str, float] = {}
+    for p in problems:
+        if p.finding_id not in scores:
+            scores[p.finding_id] = 0.0
+        scores[p.finding_id] += weights.get(p.severity, 0.0)
+    return frozenset(fid for fid, score in scores.items() if score > threshold)
