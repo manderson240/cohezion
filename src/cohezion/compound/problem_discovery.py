@@ -664,6 +664,33 @@ def has_problem_class(problems: list[Problem], problem_class: str) -> bool:
     return any(p.problem_class == problem_class for p in problems)
 
 
+def has_any_problem_class(problems: list[Problem], classes: frozenset[str]) -> bool:
+    """Return ``True`` if any finding belongs to at least one class in *classes* — item 179.
+
+    Multi-class generalisation of :func:`has_problem_class`.  Enables composite
+    CI gates::
+
+        assert not has_any_problem_class(findings, frozenset({"production_assert", "complexity_outlier"}))
+
+    Args:
+        problems:
+            A list of :class:`Problem` instances.  Empty list → ``False``.
+        classes:
+            A :class:`frozenset` of ``problem_class`` strings.  Empty set →
+            ``False`` (nothing to match against).
+
+    Returns:
+        ``True`` if at least one finding has a ``problem_class`` that is a
+        member of *classes*; ``False`` otherwise (including when *problems* or
+        *classes* is empty).
+
+    Pure (no I/O, no SurrealDB).
+    """
+    if not classes:
+        return False
+    return any(p.problem_class in classes for p in problems)
+
+
 def default_template_classes() -> frozenset[str]:
     """Return the exact set of ``problem_class`` names in :func:`default_templates` — item 158.
 
