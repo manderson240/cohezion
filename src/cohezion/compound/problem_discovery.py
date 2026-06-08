@@ -6797,3 +6797,23 @@ def has_problems_for_class(problems: list[Problem], target_class: str) -> bool:
     Pure (no I/O, no SurrealDB).
     """
     return any(p.problem_class == target_class for p in problems)
+
+
+def has_problems_for_severity(problems: list[Problem], target_severity: str) -> bool:
+    """Return True if at least one Problem record matches target_severity — item 399.
+
+    The empty string ``''`` is a valid target and returns ``True`` when any
+    unlabelled records exist.  Short-circuits at the first matching record.
+    Returns ``False`` when the severity is absent or *problems* is empty.
+
+    Args:
+        problems: List of :class:`Problem` instances.
+        target_severity: The severity label to test for (``''`` for unlabelled).
+
+    Returns:
+        ``True`` if any record has ``severity == target_severity``,
+        ``False`` otherwise.
+
+    Pure (no I/O, no SurrealDB).
+    """
+    return any(p.severity == target_severity for p in problems)
