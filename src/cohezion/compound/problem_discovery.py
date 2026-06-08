@@ -12725,6 +12725,29 @@ _SEVERITY_RANK: dict[str, int] = {
 }
 
 
+def class_fid_min_severity(problems: list[Problem]) -> dict[str, dict[str, str]]:
+    """Return lowest-ranked severity label per class × fid cell.  Item 669.
+
+    Complement of class_fid_max_severity.
+    Severity order: CRITICAL > HIGH > MEDIUM > LOW > INFO.
+    Unknown severities rank below INFO (rank -1, treated as lowest).
+    Returns {class: {fid: min_severity_str}}.  Sparse.  Empty -> {}.  Pure; no I/O.
+    """
+    if not problems:
+        return {}
+    result: dict[str, dict[str, str]] = {}
+    for p in problems:
+        cls = p.problem_class
+        fid = p.finding_id
+        sev = (p.severity or "").upper()
+        if cls not in result:
+            result[cls] = {}
+        current = result[cls].get(fid)
+        if current is None or _SEVERITY_RANK.get(sev, -1) < _SEVERITY_RANK.get(current, -1):
+            result[cls][fid] = sev
+    return result
+
+
 def class_fid_max_severity(problems: list[Problem]) -> dict[str, dict[str, str]]:
     """Return highest-ranked severity label per class × fid cell.  Item 668.
 
@@ -12743,5 +12766,28 @@ def class_fid_max_severity(problems: list[Problem]) -> dict[str, dict[str, str]]
             result[cls] = {}
         current = result[cls].get(fid)
         if current is None or _SEVERITY_RANK.get(sev, -1) > _SEVERITY_RANK.get(current, -1):
+            result[cls][fid] = sev
+    return result
+
+
+def class_fid_min_severity(problems: list[Problem]) -> dict[str, dict[str, str]]:
+    """Return lowest-ranked severity label per class x fid cell.  Item 669.
+
+    Complement of class_fid_max_severity (item 668).
+    Severity order: CRITICAL > HIGH > MEDIUM > LOW > INFO (min = lowest rank).
+    Unknown severities rank below INFO (rank=-1).
+    Returns {class: {fid: min_severity_str}}.  Sparse.  Empty -> {}.  Pure; no I/O.
+    """
+    if not problems:
+        return {}
+    result: dict[str, dict[str, str]] = {}
+    for p in problems:
+        cls = p.problem_class
+        fid = p.finding_id
+        sev = (p.severity or "").upper()
+        if cls not in result:
+            result[cls] = {}
+        current = result[cls].get(fid)
+        if current is None or _SEVERITY_RANK.get(sev, -1) < _SEVERITY_RANK.get(current, -1):
             result[cls][fid] = sev
     return result
