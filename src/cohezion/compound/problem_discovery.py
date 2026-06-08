@@ -1751,3 +1751,40 @@ def problems_not_in_class_set(
     Pure (no I/O, no SurrealDB).
     """
     return [p for p in problems if p.problem_class not in exclude]
+
+
+def class_counts_above_threshold(
+    problems: list[Problem],
+    thresholds: dict[str, int],
+) -> dict[str, int]:
+    """Raw counts for monitored classes that exceed their threshold — item 214.
+
+    Count-dual of :func:`threshold_violations` (which returns excess).
+    Returns ``{problem_class: count}`` (the raw finding count) for every
+    class whose count is strictly above its threshold::
+
+        counts_over = class_counts_above_threshold(findings, limits)
+        # {"complexity_outlier": 7}  (raw count, not excess)
+
+    Args:
+        problems:
+            A list of :class:`Problem` instances.
+        thresholds:
+            ``{problem_class: max_allowed_count}`` mapping.  Only classes
+            present in *thresholds* are monitored.  Empty → ``{}``.
+
+    Returns:
+        ``{problem_class: count}`` for every monitored class with
+        ``count > threshold``.  At-threshold and under-threshold classes
+        are absent.  Unmonitored classes are absent.
+
+    Pure (no I/O, no SurrealDB).
+    """
+    if not thresholds:
+        return {}
+    counts = problem_count_by_class(problems)
+    return {
+        cls: counts[cls]
+        for cls, limit in thresholds.items()
+        if cls in counts and counts[cls] > limit
+    }
