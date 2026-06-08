@@ -113,6 +113,32 @@ def default_templates() -> list[ProblemTemplate]:
     ]
 
 
+def problem_count_by_class(problems: list[Problem]) -> dict[str, int]:
+    """Count TIDE findings by ``problem_class`` — item 160.
+
+    A pure frequency fold over the output of :func:`discover_problems`.  Returns
+    ``{problem_class: count}`` for every class present in *problems*.  Classes
+    absent from *problems* are absent from the result (never present with a zero
+    value — this is NOT a histogram over all known template classes).
+
+    Args:
+        problems:
+            A list of :class:`Problem` instances, typically the return value of
+            :func:`discover_problems`.  Empty list → empty dict.
+
+    Returns:
+        ``{problem_class: count}`` mapping.  The values are positive integers;
+        every key appeared at least once in *problems*.
+
+    Pure (no I/O, no SurrealDB).  Composes with ``loop_telemetry`` (item 25) to
+    add smell-density-per-class to the loop health report.
+    """
+    result: dict[str, int] = {}
+    for problem in problems:
+        result[problem.problem_class] = result.get(problem.problem_class, 0) + 1
+    return result
+
+
 def default_template_classes() -> frozenset[str]:
     """Return the exact set of ``problem_class`` names in :func:`default_templates` — item 158.
 
