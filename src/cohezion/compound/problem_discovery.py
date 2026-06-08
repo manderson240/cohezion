@@ -963,6 +963,27 @@ def finding_ids(problems: list[Problem]) -> list[str]:
     return [p.finding_id for p in problems]
 
 
+def problem_classes(problems: list[Problem]) -> list[str]:
+    """Return ``problem_class`` values in insertion order — item 190.
+
+    Insertion-order class extraction with duplicates preserved::
+
+        set(problem_classes(findings))      # distinct class names
+        Counter(problem_classes(findings))  # alternative to problem_count_by_class
+
+    Args:
+        problems:
+            A list of :class:`Problem` instances.  Empty list → ``[]``.
+
+    Returns:
+        A list of ``problem_class`` strings; length equals ``len(problems)``.
+        Insertion order is preserved; duplicates are NOT deduplicated.
+
+    Pure (no I/O, no SurrealDB).
+    """
+    return [p.problem_class for p in problems]
+
+
 def default_template_classes() -> frozenset[str]:
     """Return the exact set of ``problem_class`` names in :func:`default_templates` — item 158.
 
