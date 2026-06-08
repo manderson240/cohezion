@@ -5702,3 +5702,48 @@ def finding_id_overlap_count(problems: list[Problem], class_a: str, class_b: str
     ids_a = frozenset(finding_ids_for_class(problems, class_a))
     ids_b = frozenset(finding_ids_for_class(problems, class_b))
     return len(ids_a & ids_b)
+
+
+# ---------------------------------------------------------------------------
+# Item 354 — problems_unique_to_class (2026-06-08)
+# ---------------------------------------------------------------------------
+
+
+def problems_unique_to_class(
+    problems: list["Problem"], class_name: str
+) -> list["Problem"]:
+    """Return problems for class_name whose finding_id appears in no other class.
+
+    ``problems_unique_to_class(problems, class_name) -> list[Problem]``:
+    Returns all :class:`Problem` objects in *class_name* whose ``finding_id``
+    does NOT appear under any other ``problem_class`` in *problems*.
+    Finding IDs that are shared across classes are excluded.
+    Within-class duplicates (same ``finding_id``, same class, multiple records)
+    are included — the finding_id is still class-exclusive.
+    Preserves original order.  Unknown class → [].  Empty → [].
+    Pure (no I/O, no SurrealDB).
+
+    Args:
+        problems:   Flat list of :class:`Problem` records.
+        class_name: The class whose exclusive problems to return.
+
+    Returns:
+        New list of :class:`Problem` objects from *class_name* whose
+        ``finding_id`` is exclusive to that class.
+
+    Pure (no I/O, no SurrealDB).
+    """
+    if not problems:
+        return []
+    # Build finding_id -> set of classes index in one pass
+    id_classes: dict[str, set[str]] = {}
+    for p in problems:
+        id_classes.setdefault(p.finding_id, set()).add(p.problem_class)
+    # Exclusive finding_ids: appear in ONLY this class
+    exclusive_ids = {
+        fid for fid, classes in id_classes.items() if classes == {class_name}
+    }
+    return [
+        p for p in problems
+        if p.problem_class == class_name and p.finding_id in exclusive_ids
+    ]
