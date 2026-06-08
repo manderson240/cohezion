@@ -65,6 +65,31 @@ def discover_problems(
     return out
 
 
+@dataclass(frozen=True)
+class ProblemDelta:
+    """The change between two TIDE problem scans: what was resolved vs newly introduced."""
+
+    resolved: list[Problem]  # in the earlier scan, absent from the later → fixed
+    introduced: list[Problem]  # in the later scan, absent from the earlier → new debt
+
+
+def discovered_problem_delta(before: Iterable[Problem], after: Iterable[Problem]) -> ProblemDelta:
+    """Delta between two problem scans (backlog item 127), compared by ``finding_id``.
+
+    A problem in ``before`` but not ``after`` is RESOLVED (fixed since the last scan); one in
+    ``after`` but not ``before`` is INTRODUCED (new debt). A problem present in BOTH is unchanged
+    and appears in NEITHER list. This is what makes :func:`discover_problems` ITERATIVE — it
+    measures the discovery loop's progress between ticks (mirrors
+    ``DegradationDetector.diff_snapshots`` / the item-39/57/74/81 pure-delta family). Pure,
+    report-only (no I/O); matching is by ``finding_id`` only.
+    """
+    before_by_id = {p.finding_id: p for p in before}
+    after_by_id = {p.finding_id: p for p in after}
+    resolved = [p for fid, p in before_by_id.items() if fid not in after_by_id]
+    introduced = [p for fid, p in after_by_id.items() if fid not in before_by_id]
+    return ProblemDelta(resolved=resolved, introduced=introduced)
+
+
 def default_templates() -> list[ProblemTemplate]:
     """The real scattered audit instruments, unified as TIDE templates (lazy import — pay only
     when the default registry is actually used). Each ``key`` extracts a finding's stable id."""

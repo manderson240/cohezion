@@ -60,3 +60,43 @@ def test_default_templates_real() -> None:
     # the unification: the default registry wires the REAL scattered instruments.
     assert {"complexity_outlier", "nesting_outlier", "unsandboxed_exec"} <= classes
     assert len(tmpls) >= 5
+
+
+# ── item 127: discovered-problem delta (the iterative measurement over item 73) ──
+from cohezion.compound.problem_discovery import discovered_problem_delta
+
+
+def _p(fid: str, cls: str = "c") -> Problem:
+    return Problem(problem_class=cls, finding_id=fid)
+
+
+def test_delta_resolved_only() -> None:
+    d = discovered_problem_delta([_p("x:1")], [])
+    assert [p.finding_id for p in d.resolved] == ["x:1"]
+    assert d.introduced == []
+
+
+def test_delta_introduced_only() -> None:
+    d = discovered_problem_delta([], [_p("x:2")])
+    assert [p.finding_id for p in d.introduced] == ["x:2"]
+    assert d.resolved == []
+
+
+def test_delta_common_in_neither() -> None:
+    # DISCRIMINATING: a problem present in BOTH scans is unchanged → in neither list.
+    # An impl reporting every common problem would put x:2 in a list.
+    d = discovered_problem_delta([_p("x:1"), _p("x:2")], [_p("x:2"), _p("x:3")])
+    assert [p.finding_id for p in d.resolved] == ["x:1"]
+    assert [p.finding_id for p in d.introduced] == ["x:3"]
+
+
+def test_delta_identical_scans_empty() -> None:
+    same = [_p("x:1"), _p("x:2")]
+    d = discovered_problem_delta(same, list(same))
+    assert d.resolved == [] and d.introduced == []
+
+
+def test_delta_compared_by_finding_id() -> None:
+    # DISCRIMINATING: matched by finding_id, not by (class, id) or object identity.
+    d = discovered_problem_delta([_p("x:1", cls="a")], [_p("x:1", cls="b")])
+    assert d.resolved == [] and d.introduced == []
