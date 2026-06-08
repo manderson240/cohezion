@@ -10636,3 +10636,21 @@ def fid_score_totals(
     for p in problems:
         totals[p.finding_id] = totals.get(p.finding_id, 0.0) + weights.get(p.severity, 0.0)
     return totals
+
+
+def class_problem_fractions(
+    problems: list[Problem],
+) -> dict[str, float]:
+    """Return fraction of total problems for ALL classes at once.  Item 562.
+
+    Complement to class_problem_fraction(problems, cls) which returns one class.
+    Each value = count_in_class / total_problems; values sum to 1.0.
+    Unweighted -- ignores severity.  Empty -> {}.  Pure; no I/O.
+    """
+    if not problems:
+        return {}
+    total = len(problems)
+    counts: dict[str, int] = {}
+    for p in problems:
+        counts[p.problem_class] = counts.get(p.problem_class, 0) + 1
+    return {cls: cnt / total for cls, cnt in counts.items()}
