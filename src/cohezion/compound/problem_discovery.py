@@ -5984,3 +5984,37 @@ def least_common_finding_id(problems: list[Problem]) -> str | None:
     for p in problems:
         counts[p.finding_id] = counts.get(p.finding_id, 0) + 1
     return min(counts, key=lambda fid: (counts[fid], fid))
+
+
+# ---------------------------------------------------------------------------
+# Item 366 — finding_ids_above_count (2026-06-08)
+# ---------------------------------------------------------------------------
+
+
+def finding_ids_above_count(problems: list[Problem], n: int) -> frozenset[str]:
+    """Return finding_ids whose total record count is strictly greater than n — item 366.
+
+    Counts raw :class:`Problem` records per ``finding_id`` across the full
+    list.  Returns only those ``finding_id`` strings where count ``> n``
+    (strictly greater; count ``== n`` is excluded).
+
+    Special cases:
+    - ``n=0`` → every distinct ``finding_id`` qualifies (all counts ≥ 1 > 0).
+    - Empty *problems* → ``frozenset()``.
+
+    Args:
+        problems: List of :class:`Problem` instances from a scan.
+        n:        Integer threshold; finding_ids with count > n are returned.
+
+    Returns:
+        :class:`frozenset` of ``finding_id`` strings.  Unordered; use ``in``
+        for membership queries, ``&``/``|`` for set algebra with other frozensets.
+
+    Pure (no I/O, no SurrealDB).
+    """
+    if not problems:
+        return frozenset()
+    counts: dict[str, int] = {}
+    for p in problems:
+        counts[p.finding_id] = counts.get(p.finding_id, 0) + 1
+    return frozenset(fid for fid, cnt in counts.items() if cnt > n)
