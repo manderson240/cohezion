@@ -615,6 +615,33 @@ def group_problems_by_class(problems: list[Problem]) -> dict[str, list[Problem]]
     return result
 
 
+def most_frequent_problem_class(problems: list[Problem]) -> str | None:
+    """Return the ``problem_class`` with the highest finding count — item 177.
+
+    Convenience accessor composing :func:`problem_count_by_class` with an
+    ``argmax`` reduction.  Useful as a single-call "what is the worst smell
+    right now?" query for loop health dashboards.
+
+    Ties are broken alphabetically (ascending class name) for determinism.
+
+    Args:
+        problems:
+            A list of :class:`Problem` instances.  Empty list → ``None``.
+
+    Returns:
+        The ``problem_class`` string with the highest count, or ``None``
+        when *problems* is empty.
+
+    Pure (no I/O, no SurrealDB).
+    """
+    counts = problem_count_by_class(problems)
+    if not counts:
+        return None
+    # Sort: descending count (-count), ascending class name for tie-break; return first.
+    ranked = sorted(counts, key=lambda cls: (-counts[cls], cls))
+    return ranked[0]
+
+
 def default_template_classes() -> frozenset[str]:
     """Return the exact set of ``problem_class`` names in :func:`default_templates` — item 158.
 
