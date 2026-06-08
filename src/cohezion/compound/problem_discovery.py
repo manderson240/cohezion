@@ -13328,3 +13328,22 @@ def fid_severity_rank_range(problems: list[Problem]) -> dict[str, int]:
             if rank > maxs[fid]:
                 maxs[fid] = rank
     return {fid: maxs[fid] - mins[fid] for fid in mins}
+
+
+def class_severity_above_threshold(problems: list[Problem], threshold: int) -> dict[str, int]:
+    """Count problems per class whose severity rank strictly exceeds threshold.  Item 704.
+
+    Threshold is exclusive (strictly > threshold).
+    Zero-inclusive: classes with no above-threshold problems appear with count 0.
+    Returns {class: count_above}.  Empty -> {}.  Pure; no I/O.
+    """
+    if not problems:
+        return {}
+    result: dict[str, int] = {}
+    for p in problems:
+        cls = p.problem_class
+        if cls not in result:
+            result[cls] = 0
+        if _SEVERITY_RANK.get(p.severity, 0) > threshold:
+            result[cls] += 1
+    return result
