@@ -3658,3 +3658,36 @@ def compare_severity_distributions(
     counts_b = _counts(scan_b)
     all_severities = set(counts_a) | set(counts_b)
     return {sev: counts_b.get(sev, 0) - counts_a.get(sev, 0) for sev in all_severities}
+
+
+def severity_change_summary(
+    scan_a: list[Problem], scan_b: list[Problem]
+) -> dict[str, object]:
+    """Return a human-readable summary of severity changes between two scans.
+
+    Delegates to :func:`compare_severity_distributions` and categorises each
+    severity into improved (negative delta), worsened (positive), or unchanged.
+
+    Args:
+        scan_a: Baseline scan (list of :class:`Problem` instances).
+        scan_b: Comparison scan (list of :class:`Problem` instances).
+
+    Returns:
+        dict with exactly four keys:
+        - "improved"  (list[str]): severities with fewer problems in scan_b.
+        - "worsened"  (list[str]): severities with more problems in scan_b.
+        - "unchanged" (list[str]): severities with no change.
+        - "net_delta" (int): sum of all individual deltas.
+
+    Pure (no I/O, no SurrealDB).
+    """
+    deltas = compare_severity_distributions(scan_a, scan_b)
+    improved = sorted(sev for sev, d in deltas.items() if d < 0)
+    worsened = sorted(sev for sev, d in deltas.items() if d > 0)
+    unchanged = sorted(sev for sev, d in deltas.items() if d == 0)
+    return {
+        "improved": improved,
+        "worsened": worsened,
+        "unchanged": unchanged,
+        "net_delta": sum(deltas.values()),
+    }
