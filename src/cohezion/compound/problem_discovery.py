@@ -3265,6 +3265,27 @@ def duplicate_finding_ids(problems: list[Problem]) -> frozenset[str]:
     return frozenset(fid for fid, cnt in counts.items() if cnt >= 2)
 
 
+def problems_with_any_severity(problems: list[Problem]) -> list[Problem]:
+    """Return problems whose ``severity`` is a non-empty string — item 380.
+
+    The labelled-only filter: complement of :func:`problems_without_severity`.
+    Answers "give me only the labelled problems" — useful for severity
+    distribution analysis, priority queuing, or any computation that must
+    exclude unlabelled records.
+
+    Args:
+        problems: List of :class:`Problem` instances from a scan.
+
+    Returns:
+        New ``list[Problem]`` containing problems where ``p.severity != ""``,
+        in input order.  Empty list when all problems are unlabelled or
+        *problems* is empty.
+
+    Pure (no I/O, no SurrealDB).
+    """
+    return [p for p in problems if p.severity]
+
+
 def problems_without_severity(problems: list[Problem]) -> list[Problem]:
     """Return problems whose ``severity`` is the empty string.
 
