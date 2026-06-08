@@ -4736,3 +4736,42 @@ def problem_density_by_class(problems: list[Problem]) -> dict[str, float]:
     for p in problems:
         counts[p.problem_class] = counts.get(p.problem_class, 0) + 1
     return {cls: cnt / total for cls, cnt in counts.items()}
+
+
+def severity_density_by_class(
+    problems: list[Problem],
+) -> dict[str, dict[str, float]]:
+    """Return a nested density map: ``{class: {severity: count/class_total}}``.
+
+    For each class, the denominator is the total number of problems **in that
+    class** (not the grand total).  Only labelled problems (``severity != ''``)
+    contribute to the inner dict; unlabelled problems reduce the per-class sum
+    below 1.0 but are not themselves listed.  Classes that have no labelled
+    problems at all are omitted entirely.  The empty-string key ``''`` never
+    appears as an inner-dict key.
+
+    Density = count(class, severity) / count(class).
+
+    Args:
+        problems: Flat list of :class:`Problem` records.
+
+    Returns:
+        Nested ``{class_name: {severity_label: density}}`` where each density
+        value is in ``[0.0, 1.0]``.  Returns ``{}`` when *problems* is empty.
+
+    Pure (no I/O, no SurrealDB).
+    """
+    if not problems:
+        return {}
+    class_total: dict[str, int] = {}
+    class_sev_counts: dict[str, dict[str, int]] = {}
+    for p in problems:
+        class_total[p.problem_class] = class_total.get(p.problem_class, 0) + 1
+        if p.severity:
+            inner = class_sev_counts.setdefault(p.problem_class, {})
+            inner[p.severity] = inner.get(p.severity, 0) + 1
+    result: dict[str, dict[str, float]] = {}
+    for cls, sev_counts in class_sev_counts.items():
+        total = class_total[cls]
+        result[cls] = {sev: cnt / total for sev, cnt in sev_counts.items()}
+    return result
