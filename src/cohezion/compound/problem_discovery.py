@@ -13262,3 +13262,21 @@ def class_severity_rank_min(problems: list[Problem]) -> dict[str, int]:
         if cls not in result or rank < result[cls]:
             result[cls] = rank
     return result
+
+
+def fid_severity_rank_min(problems: list[Problem]) -> dict[str, int]:
+    """Return minimum severity rank per fid as int.  Item 701.
+
+    Fid-axis complement of class_severity_rank_min (item 700).
+    Unknown severities rank as 0.
+    Returns {fid: min_rank}.  Empty -> {}.  Pure; no I/O.
+    """
+    if not problems:
+        return {}
+    result: dict[str, int] = {}
+    for p in problems:
+        fid = p.finding_id
+        rank = _SEVERITY_RANK.get(p.severity, 0)
+        if fid not in result or rank < result[fid]:
+            result[fid] = rank
+    return result
