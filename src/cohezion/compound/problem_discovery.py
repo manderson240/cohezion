@@ -8409,3 +8409,35 @@ def class_fid_matrix(problems: list[Problem]) -> dict[str, dict[str, int]]:
         row = matrix.setdefault(p.problem_class, {})
         row[p.finding_id] = row.get(p.finding_id, 0) + 1
     return matrix
+
+
+def three_axis_count(
+    problems: list[Problem],
+    problem_class: str,
+    finding_id: str,
+    severity: str,
+) -> int:
+    """Return count of records matching ALL THREE axes -- item 473.
+
+    Full 3-axis intersection: *problem_class* AND *finding_id* AND *severity*
+    must all match.  Completes the cross-product triangle (items 469/470/471
+    cover 2-axis joins; this exposes the 3-axis point query).
+
+    Args:
+        problems: List of :class:`Problem` instances.
+        problem_class: Target class to filter on.
+        finding_id: Target finding_id to filter on.
+        severity: Target severity to filter on.
+
+    Returns:
+        Non-negative int.  0 when any axis value is absent.
+
+    Pure (no I/O, no SurrealDB).
+    """
+    return sum(
+        1
+        for p in problems
+        if p.problem_class == problem_class
+        and p.finding_id == finding_id
+        and p.severity == severity
+    )
