@@ -12165,3 +12165,27 @@ def fid_class_count_cv(problems: list[Problem]) -> dict[str, float]:
             variance = sum((v - mean) ** 2 for v in vals) / len(vals)
             result[fid] = _math.sqrt(variance) / mean
     return result
+
+
+def class_fid_gini(problems: list[Problem]) -> dict[str, float]:
+    """Return Gini impurity of per-fid problem counts for each class.  Item 637.
+
+    Gini = 1 - sum(p_i^2) where p_i = fid_count_i / total_class_count.
+    0.0 when a single fid dominates; approaches 1.0 with many equal fids.
+    """
+    if not problems:
+        return {}
+    fid_counts: dict[str, dict[str, int]] = {}
+    totals: dict[str, int] = {}
+    for p in problems:
+        if p.problem_class not in fid_counts:
+            fid_counts[p.problem_class] = {}
+        fid_counts[p.problem_class][p.finding_id] = (
+            fid_counts[p.problem_class].get(p.finding_id, 0) + 1
+        )
+        totals[p.problem_class] = totals.get(p.problem_class, 0) + 1
+    result: dict[str, float] = {}
+    for cls, bucket in fid_counts.items():
+        total = totals[cls]
+        result[cls] = 1.0 - sum((cnt / total) ** 2 for cnt in bucket.values())
+    return result
