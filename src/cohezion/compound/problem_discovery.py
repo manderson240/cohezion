@@ -1523,3 +1523,37 @@ def violation_summary(
     Pure (no I/O, no SurrealDB).
     """
     return sum(threshold_violations(problems, thresholds).values())
+
+
+def classes_under_threshold(
+    problems: list[Problem],
+    thresholds: dict[str, int],
+) -> frozenset[str]:
+    """Return the frozenset of monitored classes whose count is at or below the threshold — item 206.
+
+    Complements :func:`threshold_violations`: that function returns classes that
+    EXCEEDED their limit; this returns the set-theoretic complement among
+    monitored classes — the ones still within budget.  When *problems* is
+    empty, all monitored classes have count=0, which satisfies any positive
+    threshold, so they are all included::
+
+        safe = classes_under_threshold(findings, limits)
+        if "complexity_outlier" in safe:
+            proceed()
+
+    Args:
+        problems:
+            A list of :class:`Problem` instances.
+        thresholds:
+            ``{problem_class: max_allowed_count}`` mapping.
+
+    Returns:
+        ``frozenset[str]`` of every monitored class whose count ≤ threshold.
+        Empty *thresholds* → ``frozenset()``.
+
+    Pure (no I/O, no SurrealDB).
+    """
+    if not thresholds:
+        return frozenset()
+    counts = problem_count_by_class(problems)
+    return frozenset(cls for cls, limit in thresholds.items() if counts.get(cls, 0) <= limit)
