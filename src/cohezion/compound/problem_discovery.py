@@ -13767,3 +13767,55 @@ def fid_severity_rank_variance(problems: list[Problem]) -> dict[str, float]:
             mean = sum(ranks) / n
             result[fid] = sum((r - mean) ** 2 for r in ranks) / n
     return result
+
+
+def class_severity_rank_median(problems: list[Problem]) -> dict[str, float]:
+    """Median severity rank per class.  Item 728.
+
+    For odd count: middle value.  For even count: average of two middle values.
+    Returns float.  Single-problem -> that rank as float.  Empty -> {}.  Pure; no I/O.
+    """
+    if not problems:
+        return {}
+    ranks_by_class: dict[str, list[int]] = {}
+    for p in problems:
+        cls = p.problem_class
+        if cls not in ranks_by_class:
+            ranks_by_class[cls] = []
+        ranks_by_class[cls].append(_SEVERITY_RANK.get(p.severity, 0))
+    result: dict[str, float] = {}
+    for cls, ranks in ranks_by_class.items():
+        ranks.sort()
+        n = len(ranks)
+        mid = n // 2
+        if n % 2 == 1:
+            result[cls] = float(ranks[mid])
+        else:
+            result[cls] = (ranks[mid - 1] + ranks[mid]) / 2.0
+    return result
+
+
+def fid_severity_rank_median(problems: list[Problem]) -> dict[str, float]:
+    """Median severity rank per fid.  Item 729.
+
+    Fid-axis complement of class_severity_rank_median (item 728).
+    Returns float.  Single-problem -> that rank as float.  Empty -> {}.  Pure; no I/O.
+    """
+    if not problems:
+        return {}
+    ranks_by_fid: dict[str, list[int]] = {}
+    for p in problems:
+        fid = p.finding_id
+        if fid not in ranks_by_fid:
+            ranks_by_fid[fid] = []
+        ranks_by_fid[fid].append(_SEVERITY_RANK.get(p.severity, 0))
+    result: dict[str, float] = {}
+    for fid, ranks in ranks_by_fid.items():
+        ranks.sort()
+        n = len(ranks)
+        mid = n // 2
+        if n % 2 == 1:
+            result[fid] = float(ranks[mid])
+        else:
+            result[fid] = (ranks[mid - 1] + ranks[mid]) / 2.0
+    return result
