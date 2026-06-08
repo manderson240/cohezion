@@ -12962,3 +12962,26 @@ def fid_has_severity(problems: list[Problem], severity: str) -> dict[str, bool]:
         if p.severity == severity:
             result[fid] = True
     return result
+
+
+def class_severity_any(
+    problems: list[Problem], severities: set[str] | list[str]
+) -> dict[str, bool]:
+    """Return whether each class has any problem matching the given severity set.  Item 682.
+
+    Generalizes class_has_severity (item 680) from single string to a set of severities.
+    Zero-inclusive: ALL classes present in input appear in result.
+    Classes with no matching severity return False (not absent).
+    Returns {class: bool}.  Empty -> {}.  Pure; no I/O.
+    """
+    if not problems:
+        return {}
+    severity_set = set(severities)
+    result: dict[str, bool] = {}
+    for p in problems:
+        cls = p.problem_class
+        if cls not in result:
+            result[cls] = False
+        if p.severity in severity_set:
+            result[cls] = True
+    return result
