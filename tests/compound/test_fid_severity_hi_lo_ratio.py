@@ -55,8 +55,7 @@ def test_equal_high_low_ratio_one() -> None:
 def test_multiple_fids_no_low_omitted() -> None:
     """Fid 'f4' (has LOW) included; fid 'f5' (no LOW) omitted."""
     problems = (
-        [_p("A", "f4", "HIGH")] * 6 + [_p("A", "f4", "LOW")] * 2
-        + [_p("B", "f5", "HIGH")] * 3
+        [_p("A", "f4", "HIGH")] * 6 + [_p("A", "f4", "LOW")] * 2 + [_p("B", "f5", "HIGH")] * 3
     )
     result = fid_severity_hi_lo_ratio(problems)
     assert "f4" in result and abs(result["f4"] - 3.0) < 1e-9, (

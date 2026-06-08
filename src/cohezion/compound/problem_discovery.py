@@ -12376,7 +12376,6 @@ def fid_unique_class_count(problems: list[Problem]) -> dict[str, int]:
     return {fid: len(classes) for fid, classes in class_sets.items()}
 
 
-
 def class_severity_hi_lo_ratio(problems: list[Problem]) -> dict[str, float]:
     """Return ratio of HIGH to LOW severity problems per class.  Item 647.
 
@@ -12427,3 +12426,25 @@ def fid_severity_hi_lo_ratio(problems: list[Problem]) -> dict[str, float]:
         if high_count > 0:
             result[fid] = float(high_count) / low_count
     return result
+
+
+def class_severity_critical_rate(problems: list[Problem]) -> dict[str, float]:
+    """Return fraction of CRITICAL-severity problems per class.  Item 649.
+
+    For each class: count(CRITICAL) / total_class_problems.
+    Classes with zero total problems cannot exist in the input.
+    Returns 0.0 for classes that have problems but none are CRITICAL.
+    float in [0, 1].  Empty -> {}.  Pure; no I/O.
+    """
+    if not problems:
+        return {}
+    totals: dict[str, int] = {}
+    criticals: dict[str, int] = {}
+    for p in problems:
+        totals[p.problem_class] = totals.get(p.problem_class, 0) + 1
+        if (p.severity or "").upper() == "CRITICAL":
+            criticals[p.problem_class] = criticals.get(p.problem_class, 0) + 1
+    return {
+        cls: float(criticals.get(cls, 0)) / totals[cls]
+        for cls in totals
+    }
