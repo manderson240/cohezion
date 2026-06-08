@@ -53,13 +53,12 @@ def test_count_is_total_records_not_distinct_classes() -> None:
     PRIMARY DISCRIMINATOR: kills impl counting distinct classes.
     alpha: 5 HIGH. beta: 3 HIGH. Total HIGH = 8 (not 2 classes).
     """
-    problems = (
-        [_ps("alpha", i, "HIGH") for i in range(5)]
-        + [_ps("beta", i, "HIGH") for i in range(3)]
-    )
+    problems = [_ps("alpha", i, "HIGH") for i in range(5)] + [
+        _ps("beta", i, "HIGH") for i in range(3)
+    ]
     result = problem_count_by_severity(problems)
-    assert result.get("HIGH") == 8, (
-        "HIGH: 5 alpha + 3 beta = 8 total records; got " + repr(result.get("HIGH"))
+    assert result.get("HIGH") == 8, "HIGH: 5 alpha + 3 beta = 8 total records; got " + repr(
+        result.get("HIGH")
     )
 
 
