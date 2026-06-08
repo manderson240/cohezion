@@ -4868,7 +4868,7 @@ def severity_entropy_by_class(problems: list[Problem]) -> dict[str, float]:
     return result
 
 
-def highest_entropy_class_in_scan(problems: list["Problem"]) -> "str | None":
+def highest_entropy_class_in_scan(problems: list[Problem]) -> str | None:
     """Return the class name with the highest severity-distribution entropy.
 
     Delegates to :func:`severity_entropy_by_class` for per-class Shannon
@@ -4929,7 +4929,7 @@ def class_count_by_severity(problems: list[Problem]) -> dict[str, int]:
     return {sev: len(classes) for sev, classes in sev_classes.items()}
 
 
-def severity_coverage_ratio(problems: list["Problem"]) -> dict[str, float]:
+def severity_coverage_ratio(problems: list[Problem]) -> dict[str, float]:
     """Return the fraction of all classes affected by each labelled severity.
 
     Normalises :func:`class_count_by_severity` by the total number of distinct
@@ -4956,7 +4956,7 @@ def severity_coverage_ratio(problems: list["Problem"]) -> dict[str, float]:
     return {sev: count / total_classes for sev, count in counts.items()}
 
 
-def class_finding_id_counts(problems: list["Problem"]) -> dict[str, int]:
+def class_finding_id_counts(problems: list[Problem]) -> dict[str, int]:
     """Return the number of distinct finding_ids for each class.
 
     Counts how many unique ``finding_id`` values appear in the problems
@@ -4981,7 +4981,7 @@ def class_finding_id_counts(problems: list["Problem"]) -> dict[str, int]:
     return {cls: len(fids) for cls, fids in class_fids.items()}
 
 
-def finding_id_class_map(problems: list["Problem"]) -> dict[str, "frozenset[str]"]:
+def finding_id_class_map(problems: list[Problem]) -> dict[str, frozenset[str]]:
     """Return an inverse index mapping each finding_id to the classes it appears in.
 
     For every unique ``finding_id`` in *problems*, builds the frozenset of
@@ -5006,3 +5006,23 @@ def finding_id_class_map(problems: list["Problem"]) -> dict[str, "frozenset[str]
     return {fid: frozenset(classes) for fid, classes in fid_classes.items()}
 
 
+def cross_class_finding_ids(problems: list[Problem]) -> frozenset[str]:
+    """Return finding_ids that appear in two or more distinct classes.
+
+    Delegates to :func:`finding_id_class_map` to build the per-fid class set,
+    then filters to those with cardinality ≥ 2.  A finding_id that occurs N
+    times in a single class still belongs to only one class and is excluded.
+
+    Args:
+        problems: Flat list of :class:`Problem` records.
+
+    Returns:
+        ``frozenset`` of finding_id strings that span ≥ 2 distinct classes.
+        Returns ``frozenset()`` when *problems* is empty or no finding_id
+        appears in more than one class.
+
+    Pure (no I/O, no SurrealDB).
+    """
+    return frozenset(
+        fid for fid, classes in finding_id_class_map(problems).items() if len(classes) >= 2
+    )
