@@ -280,3 +280,81 @@ def human_gate_report_from_state() -> list[HumanGateDecision]:
         propose_scope_frontier_from_state(),
         gated_reasons=gated_reasons_from_ledger(),
     )
+
+
+# ---------------------------------------------------------------------------
+# Item 81 — Human-gate decision delta (Thread D)
+# ---------------------------------------------------------------------------
+
+
+@dataclass(frozen=True)
+class HumanGateDelta:
+    """The resolution-tracking delta between two human_gate_report snapshots (item 81).
+
+    Mirrors the harness-blessed pure-delta family: CB11 ``diff_snapshots``, item-39
+    ``loop_progress_delta``, item-57 ``specialist_coverage_delta``, item-74
+    ``neuron_quality_delta``.  A target unchanged in both snapshots appears in NO list.
+    Report-only.
+    """
+
+    resolved: list[str]  # targets gated in before but NOT in after → human unblocked them
+    introduced: list[str]  # targets gated in after but NOT in before → new blockers
+    reason_changed: list[str]  # targets in BOTH whose gate_reason text changed
+
+
+def human_gate_delta(
+    before: list[HumanGateDecision],
+    after: list[HumanGateDecision],
+) -> HumanGateDelta:
+    """Measure whether humans are clearing blockers across two ``human_gate_report`` snapshots.
+
+    Closes the loop on item 59: the report says *what* blocks; this delta says *whether* the
+    human is clearing them — the TIDE iteration signal.
+
+    Rules (all falsifiable):
+    - A target gated in ``before`` but absent from ``after`` → **resolved** (unblocked).
+    - A target absent from ``before`` but gated in ``after`` → **introduced** (new blocker).
+    - A target present in BOTH with a changed ``gate_reason`` text → **reason_changed**
+      (the blocker shifted; NOT resolved or introduced — still gated, different reason).
+    - A target present in BOTH with the SAME ``gate_reason`` → in **NO list** (unchanged).
+    - Identical snapshots → all three lists are empty.
+
+    Keyed by ``target`` (the gated scope-expansion target); ``kind`` is not a diff axis.
+    All output lists are sorted ascending. Pure — no I/O, no state mutation.
+    """
+    before_by_target: dict[str, HumanGateDecision] = {d.target: d for d in before}
+    after_by_target: dict[str, HumanGateDecision] = {d.target: d for d in after}
+
+    resolved: list[str] = []
+    introduced: list[str] = []
+    reason_changed: list[str] = []
+
+    for target, b in before_by_target.items():
+        if target not in after_by_target:
+            resolved.append(target)
+        else:
+            a = after_by_target[target]
+            if a.gate_reason != b.gate_reason:
+                reason_changed.append(target)
+            # same reason → unchanged, appears in NO list
+
+    for target in after_by_target:
+        if target not in before_by_target:
+            introduced.append(target)
+
+    return HumanGateDelta(
+        resolved=sorted(resolved),
+        introduced=sorted(introduced),
+        reason_changed=sorted(reason_changed),
+    )
+
+
+# ---------------------------------------------------------------------------
+# ## FUTURE HOOKS
+# ---------------------------------------------------------------------------
+# 81b: Accumulate human_gate_delta over a window to compute RESOLUTION VELOCITY
+#      (how many blockers/tick the human is clearing) — feeds loop health dashboard.
+# 81c: Wire into detect_loop_stall (item 30) as a secondary stall signal:
+#      if introduced > resolved for N ticks → human-gate stall (not just TODO stall).
+# 81d: Feed reason_changed into the research loop to re-evaluate if a shifting
+#      gate_reason implies the requirement has changed (not just the human's excuse).

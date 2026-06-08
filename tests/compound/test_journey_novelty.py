@@ -14,8 +14,8 @@ Each test fails a plausible wrong impl:
 
 from __future__ import annotations
 
-from cohezion.compound.journey_spatial import AllocentricMap, journey_allocentric_map
 from cohezion.compound.journey_novelty import NoveltyReport, journey_novelty
+from cohezion.compound.journey_spatial import AllocentricMap, journey_allocentric_map
 
 
 # ---------------------------------------------------------------------------
