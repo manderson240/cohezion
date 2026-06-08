@@ -3242,3 +3242,24 @@ def unique_finding_ids(problems: list[Problem]) -> frozenset[str]:
     Pure (no I/O, no SurrealDB).
     """
     return frozenset(p.finding_id for p in problems)
+
+
+def duplicate_finding_ids(problems: list[Problem]) -> frozenset[str]:
+    """Return finding_ids that appear in two or more problems.
+
+    The positive dedup signal: if the returned frozenset is non-empty, the
+    scan contains redundant findings that should be investigated or merged.
+
+    Args:
+        problems: List of :class:`Problem` instances from a scan.
+
+    Returns:
+        :class:`frozenset` of ``finding_id`` strings that appear ≥ 2 times.
+        Empty when all ids are unique or *problems* is empty.
+
+    Pure (no I/O, no SurrealDB).
+    """
+    counts: dict[str, int] = {}
+    for p in problems:
+        counts[p.finding_id] = counts.get(p.finding_id, 0) + 1
+    return frozenset(fid for fid, cnt in counts.items() if cnt >= 2)
