@@ -74,6 +74,8 @@ def default_templates() -> list[ProblemTemplate]:
         complexity_outliers,
         compound_smells,
         eager_log_fstrings,
+        long_functions,
+        long_parameter_lists,
         mutable_default_args,
         needless_passthroughs,
         nesting_outliers,
@@ -86,6 +88,10 @@ def default_templates() -> list[ProblemTemplate]:
     return [
         ProblemTemplate("complexity_outlier", complexity_outliers, lambda f: str(f[0])),
         ProblemTemplate("nesting_outlier", nesting_outliers, lambda f: str(f[0])),
+        # Item 157: wire long_functions + long_parameter_lists as standalone templates.
+        # Both return list[tuple[str, int]] as (qualified_name, magnitude) — key is str(f[0]).
+        ProblemTemplate("long_function", long_functions, lambda f: str(f[0])),
+        ProblemTemplate("long_parameter_list", long_parameter_lists, lambda f: str(f[0])),
         ProblemTemplate("boolean_flag_params", boolean_flag_params, lambda f: str(f[0])),
         ProblemTemplate("mutable_default_args", mutable_default_args, lambda f: str(f[0])),
         ProblemTemplate("production_assert", production_asserts, lambda f: f"{f[0]}:{f[1]}"),
