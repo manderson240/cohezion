@@ -3762,3 +3762,31 @@ def shared_finding_ids(problems: list[Problem]) -> frozenset[str]:
     for p in problems:
         id_to_classes.setdefault(p.finding_id, set()).add(p.problem_class)
     return frozenset(fid for fid, classes in id_to_classes.items() if len(classes) >= 2)
+
+
+def class_co_occurrence_count(problems: list[Problem], cls_a: str, cls_b: str) -> int:
+    """Return the number of distinct finding_ids shared between cls_a and cls_b.
+
+    Counts DISTINCT finding_id values that appear in both classes, not Problem
+    instances.  Duplicate Problems with the same finding_id contribute only once.
+
+    When ``cls_a == cls_b`` the result is the count of distinct finding_ids in
+    that class (intersection of the set with itself).  Returns 0 when either
+    class is absent from *problems* or when *problems* is empty.
+
+    Args:
+        problems: List of :class:`Problem` instances from a scan.
+        cls_a:    First class name.
+        cls_b:    Second class name.
+
+    Returns:
+        int — cardinality of
+        ``{ids in cls_a} ∩ {ids in cls_b}``.
+
+    Pure (no I/O, no SurrealDB).
+    """
+    if not problems:
+        return 0
+    ids_a: set[str] = {p.finding_id for p in problems if p.problem_class == cls_a}
+    ids_b: set[str] = {p.finding_id for p in problems if p.problem_class == cls_b}
+    return len(ids_a & ids_b)
