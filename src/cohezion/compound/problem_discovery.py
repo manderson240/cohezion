@@ -6636,3 +6636,32 @@ def severity_histogram(problems: list[Problem]) -> dict[str, int]:
     for p in problems:
         counts[p.severity] = counts.get(p.severity, 0) + 1
     return counts
+
+
+def finding_id_histogram(problems: list[Problem]) -> dict[str, int]:
+    """Return a frequency histogram of finding_id values across all problems — item 390.
+
+    Maps every distinct :attr:`Problem.finding_id` to the total number of
+    :class:`Problem` records that carry it.  The same ``finding_id`` appearing
+    under two different ``problem_class`` values counts as 2 separate records —
+    no deduplication is performed.
+
+    Completes the three-axis histogram set alongside
+    :func:`problem_class_histogram` and :func:`severity_histogram`.
+
+    Args:
+        problems: List of :class:`Problem` instances.  Empty → ``{}``.
+
+    Returns:
+        ``dict[str, int]`` — ``{finding_id: record_count}`` for every distinct
+        ``finding_id`` present.  The sum of all values equals ``len(problems)``.
+        Returns ``{}`` for empty input.
+
+    Pure (no I/O, no SurrealDB).
+    """
+    if not problems:
+        return {}
+    counts: dict[str, int] = {}
+    for p in problems:
+        counts[p.finding_id] = counts.get(p.finding_id, 0) + 1
+    return counts
