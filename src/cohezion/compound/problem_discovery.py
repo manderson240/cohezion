@@ -8387,3 +8387,25 @@ def problem_count_for_class_fid_pair(
     return sum(
         1 for p in problems if p.problem_class == problem_class and p.finding_id == finding_id
     )
+
+
+def class_fid_matrix(problems: list[Problem]) -> dict[str, dict[str, int]]:
+    """Return 2-D count matrix of class × finding_id co-occurrences -- item 472.
+
+    ``matrix[cls][fid]`` is the count of records matching both *problem_class* == cls
+    and *finding_id* == fid.  Sparse: absent pairs are not present as keys.
+    Complements ``class_severity_matrix`` on the fid dimension.
+
+    Args:
+        problems: List of :class:`Problem` instances.
+
+    Returns:
+        Nested dict ``dict[str, dict[str, int]]``.  Empty dict for empty input.
+
+    Pure (no I/O, no SurrealDB).
+    """
+    matrix: dict[str, dict[str, int]] = {}
+    for p in problems:
+        row = matrix.setdefault(p.problem_class, {})
+        row[p.finding_id] = row.get(p.finding_id, 0) + 1
+    return matrix
