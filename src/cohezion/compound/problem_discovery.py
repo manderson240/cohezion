@@ -5504,7 +5504,7 @@ def problems_by_severity_rank(
 # ---------------------------------------------------------------------------
 
 
-def top_n_problem_classes(problems: list["Problem"], n: int) -> list[str]:
+def top_n_problem_classes(problems: list[Problem], n: int) -> list[str]:
     """Return the top N problem classes ranked by total problem count descending.
 
     ``top_n_problem_classes(problems, n) -> list[str]``:
@@ -5537,7 +5537,7 @@ def top_n_problem_classes(problems: list["Problem"], n: int) -> list[str]:
 # ---------------------------------------------------------------------------
 
 
-def bottom_n_problem_classes(problems: list["Problem"], n: int) -> list[str]:
+def bottom_n_problem_classes(problems: list[Problem], n: int) -> list[str]:
     """Return the bottom N problem classes ranked by total problem count ascending.
 
     ``bottom_n_problem_classes(problems, n) -> list[str]``:
@@ -5572,7 +5572,7 @@ def bottom_n_problem_classes(problems: list["Problem"], n: int) -> list[str]:
 # ---------------------------------------------------------------------------
 
 
-def class_problem_ratio(problems: list["Problem"], class_name: str) -> float:
+def class_problem_ratio(problems: list[Problem], class_name: str) -> float:
     """Return the fraction of all problems belonging to a given class.
 
     ``class_problem_ratio(problems, class_name) -> float``:
@@ -5604,7 +5604,7 @@ def class_problem_ratio(problems: list["Problem"], class_name: str) -> float:
 # ---------------------------------------------------------------------------
 
 
-def severity_ratio(problems: list["Problem"], severity: str) -> float:
+def severity_ratio(problems: list[Problem], severity: str) -> float:
     """Return the fraction of ALL problems at a given severity level.
 
     ``severity_ratio(problems, severity) -> float``:
@@ -5637,8 +5637,8 @@ def severity_ratio(problems: list["Problem"], severity: str) -> float:
 
 
 def classes_with_finding_id_overlap(
-    problems: list["Problem"],
-) -> "frozenset[frozenset[str]]":
+    problems: list[Problem],
+) -> frozenset[frozenset[str]]:
     """Return all unordered pairs of classes sharing at least one finding ID.
 
     ``classes_with_finding_id_overlap(problems) -> frozenset[frozenset[str]]``:
@@ -5678,9 +5678,7 @@ def classes_with_finding_id_overlap(
 # ---------------------------------------------------------------------------
 
 
-def finding_id_overlap_count(
-    problems: list["Problem"], class_a: str, class_b: str
-) -> int:
+def finding_id_overlap_count(problems: list[Problem], class_a: str, class_b: str) -> int:
     """Return the count of finding IDs shared between two problem classes.
 
     ``finding_id_overlap_count(problems, class_a, class_b) -> int``:
