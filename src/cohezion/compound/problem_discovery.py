@@ -12671,3 +12671,22 @@ def fid_sev_low_count(problems: list[Problem]) -> dict[str, int]:
         if (p.severity or "").upper() == "LOW":
             result[p.finding_id] += 1
     return result
+
+
+def class_fid_problem_count_map(problems: list[Problem]) -> dict[str, dict[str, int]]:
+    """Return 2D cross-tab of class × fid problem counts.  Item 666.
+
+    Returns {class: {fid: count}} — sparse nested dict.
+    Missing class/fid combinations are absent (not zero-filled).
+    Empty -> {}.  Pure; no I/O.
+    """
+    if not problems:
+        return {}
+    result: dict[str, dict[str, int]] = {}
+    for p in problems:
+        if p.problem_class not in result:
+            result[p.problem_class] = {}
+        result[p.problem_class][p.finding_id] = (
+            result[p.problem_class].get(p.finding_id, 0) + 1
+        )
+    return result
