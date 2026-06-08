@@ -13283,32 +13283,6 @@ def fid_severity_rank_min(problems: list[Problem]) -> dict[str, int]:
 
 
 def class_severity_rank_range(problems: list[Problem]) -> dict[str, int]:
-    """Return severity rank range (max_rank - min_rank) per class.  Item 702.
-
-    Range measures the span of severity diversity in rank space.
-    Classes with one distinct severity level return 0.
-    Unknown severities contribute rank 0.
-    Returns {class: rank_range}.  Empty -> {}.  Pure; no I/O.
-    """
-    if not problems:
-        return {}
-    max_ranks: dict[str, int] = {}
-    min_ranks: dict[str, int] = {}
-    for p in problems:
-        cls = p.problem_class
-        rank = _SEVERITY_RANK.get(p.severity, 0)
-        if cls not in max_ranks:
-            max_ranks[cls] = rank
-            min_ranks[cls] = rank
-        else:
-            if rank > max_ranks[cls]:
-                max_ranks[cls] = rank
-            if rank < min_ranks[cls]:
-                min_ranks[cls] = rank
-    return {cls: max_ranks[cls] - min_ranks[cls] for cls in max_ranks}
-
-
-def class_severity_rank_range(problems: list[Problem]) -> dict[str, int]:
     """Return severity rank range per class (max_rank - min_rank).  Item 702.
 
     Measures severity span: 0 when all problems share the same severity.
@@ -13330,3 +13304,27 @@ def class_severity_rank_range(problems: list[Problem]) -> dict[str, int]:
             if rank > maxs[cls]:
                 maxs[cls] = rank
     return {cls: maxs[cls] - mins[cls] for cls in mins}
+
+
+def fid_severity_rank_range(problems: list[Problem]) -> dict[str, int]:
+    """Return severity rank range per fid (max_rank - min_rank).  Item 703.
+
+    Fid-axis complement of class_severity_rank_range (item 702).
+    Returns {fid: rank_range}.  Uniform severity -> 0.  Empty -> {}.  Pure; no I/O.
+    """
+    if not problems:
+        return {}
+    mins: dict[str, int] = {}
+    maxs: dict[str, int] = {}
+    for p in problems:
+        fid = p.finding_id
+        rank = _SEVERITY_RANK.get(p.severity, 0)
+        if fid not in mins:
+            mins[fid] = rank
+            maxs[fid] = rank
+        else:
+            if rank < mins[fid]:
+                mins[fid] = rank
+            if rank > maxs[fid]:
+                maxs[fid] = rank
+    return {fid: maxs[fid] - mins[fid] for fid in mins}
