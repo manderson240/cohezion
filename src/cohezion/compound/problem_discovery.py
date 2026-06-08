@@ -13136,3 +13136,20 @@ def fid_severity_ratio(problems: list[Problem], severity: str) -> dict[str, floa
         if p.severity == severity:
             counts[fid][0] += 1
     return {fid: float(v[0]) / v[1] for fid, v in counts.items()}
+
+
+def class_severity_rank_sum(problems: list[Problem]) -> dict[str, int]:
+    """Return sum of severity ranks per class using _SEVERITY_RANK weights.  Item 694.
+
+    CRITICAL=4, HIGH=3, MEDIUM=2, LOW=1, INFO=0.  Unknown severities contribute 0.
+    Returns {class: rank_sum}.  Empty -> {}.  Pure; no I/O.
+    """
+    if not problems:
+        return {}
+    result: dict[str, int] = {}
+    for p in problems:
+        cls = p.problem_class
+        if cls not in result:
+            result[cls] = 0
+        result[cls] += _SEVERITY_RANK.get(p.severity, 0)
+    return result
