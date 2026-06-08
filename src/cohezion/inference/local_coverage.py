@@ -79,3 +79,29 @@ def coverage_gaps(
         if decision.model_id is None and decision.task is not None:
             gaps.add(decision.task)
     return gaps
+
+
+@dataclass(frozen=True)
+class CoverageGapDelta:
+    """Whether local-specialist coverage gaps are being CLOSED between two snapshots (item 94)."""
+
+    filled: list[str]  # gaps in `before` but NOT `after` — a $0 specialist got registered (good)
+    opened: list[str]  # gaps new in `after` — a Task gained queries with no specialist (bad)
+
+
+def coverage_gap_delta(before: set[str], after: set[str]) -> CoverageGapDelta:
+    """Gap-closure tracker over two item-62 ``coverage_gaps`` sets (item 94). Report-only.
+
+    item-62 ``coverage_gaps`` says WHICH task gaps exist now; this says whether they are being
+    CLOSED. ``filled`` = gaps in ``before`` but NOT ``after`` (a local $0 specialist was registered
+    for that Task — progress); ``opened`` = gaps new in ``after`` (a Task gained queries but still has
+    no specialist, or a new Task appeared — regression). A gap present in BOTH is in NEITHER list
+    (unchanged); identical sets → both empty. Mirrors the harness-blessed ``DegradationDetector.
+    diff_snapshots`` (CB11) + the items 39/57/74 pure-delta family. Pure (injected ``set[str]``, no
+    inference, no I/O). Both lists are sorted for determinism.
+    """
+    before_set, after_set = set(before), set(after)
+    return CoverageGapDelta(
+        filled=sorted(before_set - after_set),
+        opened=sorted(after_set - before_set),
+    )
