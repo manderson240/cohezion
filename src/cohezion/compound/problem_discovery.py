@@ -1183,3 +1183,32 @@ def assert_default_classes_cover(required: frozenset[str] | set[str]) -> None:
     missing = sorted(required - present)  # sorted for deterministic message
     if missing:
         raise AssertionError(f"default_template_classes() is missing required classes: {missing}")
+
+
+def most_frequent_class(problems: list[Problem]) -> str | None:
+    """Return the ``problem_class`` with the highest finding count — item 196.
+
+    On ties the class that appears FIRST in *problems* wins (insertion-order
+    tiebreaking).  Use :func:`top_problem_classes` for a ranked list::
+
+        if cls := most_frequent_class(findings):
+            flag_hotspot(cls)
+
+    Args:
+        problems:
+            A list of :class:`Problem` instances.  Empty list → ``None``.
+
+    Returns:
+        The ``problem_class`` string with the maximum count, or ``None``
+        when *problems* is empty.  Ties resolved by first occurrence.
+
+    Pure (no I/O, no SurrealDB).
+    """
+    if not problems:
+        return None
+    counts: dict[str, int] = {}
+    for p in problems:
+        counts[p.problem_class] = counts.get(p.problem_class, 0) + 1
+    # max() with strict > keeps the FIRST maximum-count key on ties
+    # (Python dicts preserve insertion order so the first class seen wins).
+    return max(counts, key=counts.__getitem__)
