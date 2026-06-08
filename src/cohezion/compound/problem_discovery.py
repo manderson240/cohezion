@@ -7986,3 +7986,42 @@ def severity_percentile(problems: list[Problem], severity: str) -> float:
     distinct_higher = len({c for c in counts.values() if c > my_count})
     rank = distinct_higher + 1
     return 100.0 * (n - rank) / (n - 1)
+
+
+def severity_z_score(problems: list[Problem], severity: str) -> float:
+    """Return the z-score of *severity*'s count relative to all severity counts -- item 456.
+
+    Computes ``(count[severity] - mean_count) / stdev_count`` using population
+    standard deviation.  Returns ``0.0`` when:
+
+    - *problems* is empty
+    - *severity* is not found in *problems*
+    - Standard deviation is zero (all severities have equal count)
+
+    A negative z-score means the severity is below the mean count (rarer than
+    average); a positive z-score means above average.
+
+    Args:
+        problems: List of :class:`Problem` instances.
+        severity: The severity value whose z-score to compute.
+
+    Returns:
+        Float z-score.  ``0.0`` for edge cases described above.
+
+    Pure (no I/O, no SurrealDB).
+    """
+    if not problems:
+        return 0.0
+    counts: dict[str, int] = {}
+    for p in problems:
+        counts[p.severity] = counts.get(p.severity, 0) + 1
+    if severity not in counts:
+        return 0.0
+    values = list(counts.values())
+    n = len(values)
+    mean = sum(values) / n
+    variance = sum((v - mean) ** 2 for v in values) / n
+    stdev = variance ** 0.5
+    if stdev == 0.0:
+        return 0.0
+    return (counts[severity] - mean) / stdev
