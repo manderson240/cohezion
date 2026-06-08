@@ -218,3 +218,72 @@ class TournamentSnapshot:
         """
         winners = tournament_recall_all(neurons)
         return cls(winners=winners, task_count=len(winners))
+
+
+@dataclass(frozen=True)
+class TournamentSnapshotDiff:
+    """Diff between two :class:`TournamentSnapshot` instances — item 164.
+
+    Classifies every task winner into exactly one of four partitions:
+
+    Attributes:
+        added:     ``{task.value: new_model_id}`` — tasks in *after* but NOT in
+                   *before*.  These are newly deposited winners.
+        removed:   ``{task.value}`` — task values present in *before* but NOT in
+                   *after*.  These winners are no longer recorded.
+        changed:   ``{task.value: (old_model_id, new_model_id)}`` — tasks
+                   present in BOTH but with a different ``model_id``.
+        unchanged: ``{task.value}`` — tasks present in BOTH with the SAME
+                   ``model_id``.  Stable winners.
+
+    Every key in ``before.winners | after.winners`` appears in exactly one
+    partition.  Construct via :func:`tournament_snapshot_diff`.
+
+    Pure (no I/O).  Frozen (immutable).
+    """
+
+    added: dict[str, str]
+    removed: set[str]
+    changed: dict[str, tuple[str, str]]
+    unchanged: set[str]
+
+
+def tournament_snapshot_diff(
+    before: TournamentSnapshot,
+    after: TournamentSnapshot,
+) -> TournamentSnapshotDiff:
+    """Compute the diff between two :class:`TournamentSnapshot` instances — item 164.
+
+    Compares *before* and *after* winner dicts and classifies each task into
+    one of four partitions (added / removed / changed / unchanged).  Every key
+    in ``before.winners | after.winners`` lands in exactly one partition.
+
+    Args:
+        before: The earlier snapshot (typically from a prior scan).
+        after:  The later snapshot (typically from a more recent scan).
+
+    Returns:
+        A frozen :class:`TournamentSnapshotDiff`.
+
+    Pure (no I/O, no SurrealDB).
+    """
+    before_keys = set(before.winners)
+    after_keys = set(after.winners)
+
+    added: dict[str, str] = {k: after.winners[k] for k in after_keys - before_keys}
+    removed: set[str] = before_keys - after_keys
+    changed: dict[str, tuple[str, str]] = {}
+    unchanged: set[str] = set()
+
+    for k in before_keys & after_keys:
+        if before.winners[k] != after.winners[k]:
+            changed[k] = (before.winners[k], after.winners[k])
+        else:
+            unchanged.add(k)
+
+    return TournamentSnapshotDiff(
+        added=added,
+        removed=removed,
+        changed=changed,
+        unchanged=unchanged,
+    )
