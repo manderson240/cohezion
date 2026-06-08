@@ -7511,3 +7511,21 @@ def fid_class_jaccard(problems: list[Problem], class_a: str, class_b: str) -> fl
     if union_size == 0:
         return 0.0
     return len(fids_a & fids_b) / union_size
+
+
+def problems_with_severity(problems: list[Problem], severity: str) -> list[Problem]:
+    """Return problems whose severity field matches *severity* -- item 431.
+
+    Case-sensitive match on :attr:`Problem.severity`.  Order is preserved.
+
+    Args:
+        problems: List of :class:`Problem` instances.
+        severity: The severity value to filter by (case-sensitive).
+
+    Returns:
+        New list of :class:`Problem` instances with ``p.severity == severity``.
+        Empty list when *problems* is empty or no match is found.
+
+    Pure (no I/O, no SurrealDB).
+    """
+    return [p for p in problems if p.severity == severity]
