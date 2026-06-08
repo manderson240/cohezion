@@ -4231,3 +4231,34 @@ def cross_scan_class_delta(
     counts_b = _class_counts(scan_b)
     all_classes = set(counts_a) | set(counts_b)
     return {cls: counts_b.get(cls, 0) - counts_a.get(cls, 0) for cls in all_classes}
+
+
+def top_growing_classes(
+    scan_a: list[Problem],
+    scan_b: list[Problem],
+    n: int = 5,
+) -> list[tuple[str, int]]:
+    """Return the top *n* classes with the largest positive problem count delta.
+
+    Uses :func:`cross_scan_class_delta` internally and filters to ``delta > 0``.
+    Sorted by delta descending; ties broken by class name ascending.
+
+    Args:
+        scan_a: Problems from the baseline scan.
+        scan_b: Problems from the comparison scan.
+        n:      Maximum number of results to return (default 5).
+                ``n=0`` returns an empty list.
+
+    Returns:
+        List of ``(class, delta)`` tuples.  Only classes with strictly positive
+        delta are included.  Returns ``[]`` when *n* is 0, when both scans are
+        empty, or when no class grew.
+
+    Pure (no I/O, no SurrealDB).
+    """
+    if n == 0:
+        return []
+    deltas = cross_scan_class_delta(scan_a, scan_b)
+    growing = [(cls, delta) for cls, delta in deltas.items() if delta > 0]
+    growing.sort(key=lambda pair: (-pair[1], pair[0]))
+    return growing[:n]
