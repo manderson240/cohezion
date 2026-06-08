@@ -9038,3 +9038,45 @@ def largest_improvement(
     # min delta (most negative) = most improved; tie-break alpha ascending
     # Use min() with key: (delta ascending, name ascending for ties)
     return min(negative, key=lambda kv: (kv[1], kv[0]))
+
+
+def score_summary(
+    problems: list[Problem],
+    problem_class: str,
+    weights: dict[str, float],
+) -> dict[str, float]:
+    """Return a scoring statistics summary for *problem_class* -- item 498.
+
+    Computes three scalar statistics for the class in a single pass:
+
+    * ``total`` — sum of ``weights.get(p.severity, 0.0)`` for all matching records.
+    * ``mean``  — ``total / count`` (0.0 when the class is absent or has no records).
+    * ``max_single`` — maximum per-record weight (0.0 when the class is absent).
+
+    All three keys are always present in the returned dict.  Unknown severities
+    (not in *weights*) contribute 0 to all three statistics.
+
+    Args:
+        problems: List of :class:`Problem` instances.
+        problem_class: The class to summarise.
+        weights: Mapping of severity label to numeric score.
+
+    Returns:
+        ``dict[str, float]`` with keys ``"total"``, ``"mean"``, ``"max_single"``.
+
+    Pure (no I/O, no SurrealDB).
+    """
+    matching_scores = [
+        weights.get(p.severity, 0.0)
+        for p in problems
+        if p.problem_class == problem_class
+    ]
+    count = len(matching_scores)
+    if count == 0:
+        return {"total": 0.0, "mean": 0.0, "max_single": 0.0}
+    total = sum(matching_scores)
+    return {
+        "total": float(total),
+        "mean": float(total / count),
+        "max_single": float(max(matching_scores)),
+    }
