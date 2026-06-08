@@ -3283,3 +3283,22 @@ def problems_without_severity(problems: list[Problem]) -> list[Problem]:
     Pure (no I/O, no SurrealDB).
     """
     return [p for p in problems if not p.severity]
+
+
+def labelled_problem_count(problems: list[Problem]) -> int:
+    """Return the count of problems that have a non-empty severity label.
+
+    Equals ``len(problems) - len(problems_without_severity(problems))``.
+    Useful as the denominator when computing severity fractions and for
+    quick labelling-coverage checks.
+
+    Args:
+        problems: List of :class:`Problem` instances from a scan.
+
+    Returns:
+        Count of problems where ``p.severity != ""``.  ``0`` when all
+        problems are unlabelled or *problems* is empty.
+
+    Pure (no I/O, no SurrealDB).
+    """
+    return sum(1 for p in problems if p.severity)
