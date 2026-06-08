@@ -7413,3 +7413,33 @@ def finding_id_balance_score(problems: list[Problem]) -> float:
     entropy = -sum((c / total) * math.log2(c / total) for c in counts.values())
     max_entropy = math.log2(n)
     return entropy / max_entropy
+
+
+def class_pair_co_occurrence(problems: list[Problem], class_a: str, class_b: str) -> int:
+    """Return the count of distinct finding_ids in both class_a and class_b -- item 428.
+
+    Computes the size of the set intersection of finding_ids belonging to
+    *class_a* and finding_ids belonging to *class_b*.  Each finding_id is
+    counted at most once regardless of how many records it has in either class.
+
+    Special cases:
+
+    - Empty *problems* -> 0
+    - Unknown class -> 0 (empty set intersects to empty)
+    - *class_a* == *class_b* -> count of distinct finding_ids in that class
+
+    Args:
+        problems: List of :class:`Problem` instances.
+        class_a: First problem class name.
+        class_b: Second problem class name.
+
+    Returns:
+        Number of distinct finding_ids that appear in both classes.
+
+    Pure (no I/O, no SurrealDB).
+    """
+    if not problems:
+        return 0
+    fids_a: set[str] = {p.finding_id for p in problems if p.problem_class == class_a}
+    fids_b: set[str] = {p.finding_id for p in problems if p.problem_class == class_b}
+    return len(fids_a & fids_b)
