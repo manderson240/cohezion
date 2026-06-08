@@ -13445,3 +13445,42 @@ def fid_severity_below_threshold(problems: list[Problem], threshold: int) -> dic
         if _SEVERITY_RANK.get(p.severity, 0) < threshold:
             result[fid] += 1
     return result
+
+
+def class_severity_rank_weighted_sum(
+    problems: list[Problem], weights: dict[str, float]
+) -> dict[str, float]:
+    """Weighted sum of problem severity labels per class using caller-supplied weights.  Item 710.
+
+    Missing severity labels in weights contribute 0.0.
+    Returns {class: weighted_sum}.  Empty -> {}.  Pure; no I/O.
+    """
+    if not problems:
+        return {}
+    result: dict[str, float] = {}
+    for p in problems:
+        cls = p.problem_class
+        if cls not in result:
+            result[cls] = 0.0
+        result[cls] += weights.get(p.severity, 0.0)
+    return result
+
+
+def fid_severity_rank_weighted_sum(
+    problems: list[Problem], weights: dict[str, float]
+) -> dict[str, float]:
+    """Weighted sum of problem severity labels per fid using caller-supplied weights.  Item 711.
+
+    Fid-axis complement of class_severity_rank_weighted_sum (item 710).
+    Missing severity labels in weights contribute 0.0.
+    Returns {fid: weighted_sum}.  Empty -> {}.  Pure; no I/O.
+    """
+    if not problems:
+        return {}
+    result: dict[str, float] = {}
+    for p in problems:
+        fid = p.finding_id
+        if fid not in result:
+            result[fid] = 0.0
+        result[fid] += weights.get(p.severity, 0.0)
+    return result
