@@ -186,6 +186,52 @@ def deposit_quality_delta(
     )
 
 
+@dataclass(frozen=True)
+class ProblemChurn:
+    """Name-level churn for ONE problem class between two snapshots. Report-only."""
+
+    newly: list[
+        str
+    ]  # names in `after` but NOT `before` (a neuron that just entered the problem set)
+    resolved: list[str]  # names in `before` but NOT `after` (a fix that landed)
+
+
+@dataclass(frozen=True)
+class DepositQualityChurn:
+    """WHICH neurons entered/left each problem set (item 128) — the name-level dual of item-74."""
+
+    redundant: ProblemChurn
+    low_evidence: ProblemChurn
+    format_invalid: ProblemChurn
+
+
+def _problem_churn(before_names: Iterable[str], after_names: Iterable[str]) -> ProblemChurn:
+    before_set, after_set = set(before_names), set(after_names)
+    return ProblemChurn(
+        newly=sorted(after_set - before_set), resolved=sorted(before_set - after_set)
+    )
+
+
+def deposit_quality_churn(
+    before: DepositQualityReport, after: DepositQualityReport
+) -> DepositQualityChurn:
+    """WHICH neuron names entered/left each problem set across two snapshots (item 128). Report-only.
+
+    The name-level dual of item-74 ``deposit_quality_delta`` (which gives only the COUNT change):
+    per problem class (redundant / low_evidence / format_invalid), ``newly`` = names in ``after`` not
+    ``before`` (a neuron that just became problematic — fix THIS), ``resolved`` = names in ``before``
+    not ``after`` (a fix that landed). A name in BOTH snapshots is in NEITHER list (compared by NAME,
+    not by count — a ``redundant`` neuron whose count merely changed is unchanged churn). Identical
+    snapshots → all-empty. Pure (two injected reports, no I/O). ``redundant`` is a dict; its churn is
+    over its KEYS (the neuron names).
+    """
+    return DepositQualityChurn(
+        redundant=_problem_churn(before.redundant, after.redundant),
+        low_evidence=_problem_churn(before.low_evidence, after.low_evidence),
+        format_invalid=_problem_churn(before.format_invalid, after.format_invalid),
+    )
+
+
 # The memory LAYERS for the distillation ratio: raw = the undistilled journey-point firehose;
 # distilled = the reusable-memory layers it should be compounded into.
 _RAW_LAYER = "journey_point"
