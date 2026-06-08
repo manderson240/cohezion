@@ -1007,6 +1007,35 @@ def unique_problem_classes(problems: list[Problem]) -> frozenset[str]:
     return frozenset(p.problem_class for p in problems)
 
 
+def filter_by_class(
+    problems: list[Problem],
+    keep_classes: frozenset[str],
+) -> list[Problem]:
+    """Return only findings whose ``problem_class`` is in *keep_classes* — item 192.
+
+    The class-domain positive dual of :func:`exclude_problems` (which removes
+    by finding ID).  This function KEEPS by class::
+
+        filter_by_class(findings, frozenset({"complexity_outlier"}))
+
+    Args:
+        problems:
+            A list of :class:`Problem` instances.  Empty list → ``[]``.
+        keep_classes:
+            A :class:`frozenset` of ``problem_class`` strings to retain.
+            Empty frozenset → ``[]`` (empty set matches nothing).
+
+    Returns:
+        A new list of findings whose ``problem_class`` is in *keep_classes*,
+        preserving insertion order.  Empty if nothing matches.
+
+    Pure (no I/O, no SurrealDB).
+    """
+    if not keep_classes:
+        return []
+    return [p for p in problems if p.problem_class in keep_classes]
+
+
 def default_template_classes() -> frozenset[str]:
     """Return the exact set of ``problem_class`` names in :func:`default_templates` — item 158.
 
