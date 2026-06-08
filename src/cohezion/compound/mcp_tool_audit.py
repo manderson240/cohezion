@@ -70,3 +70,43 @@ def tool_description_audit(tools: Iterable[dict]) -> list[ToolDescriptionFinding
                 findings.append(ToolDescriptionFinding(tool=name, issue=match.group(0)))
                 break  # one finding per tool
     return findings
+
+
+@dataclass(frozen=True)
+class ToolParameterFinding:
+    """A flagged MCP tool PARAMETER: tool name + param name + matched injection text."""
+
+    tool: str
+    param: str
+    issue: str
+
+
+def tool_parameter_audit(tools: Iterable[dict]) -> list[ToolParameterFinding]:
+    """Flag injection imperatives hidden in tool PARAMETER descriptions (backlog item 130).
+
+    The deeper surface :func:`tool_description_audit` does not cover: an agent reads
+    ``inputSchema.properties.<name>.description`` (or ``parameters.properties.<name>.description``)
+    when deciding how to FILL an argument, so a poisoned parameter description is read as
+    authoritative just like a poisoned top-level one. Reuses the same ``_INJECTION_PATTERNS``.
+
+    Report-only, pure (regex over strings; no I/O). Does NOT re-scan the top-level description —
+    that is :func:`tool_description_audit`'s job (clean separation). One finding per ``(tool,
+    param)`` on the first matched pattern.
+    """
+    findings: list[ToolParameterFinding] = []
+    for tool in tools:
+        name = str(tool.get("name", "<unnamed>"))
+        schema = tool.get("inputSchema") or tool.get("parameters") or {}
+        props = schema.get("properties", {}) if isinstance(schema, dict) else {}
+        for param, spec in props.items() if isinstance(props, dict) else ():
+            desc = spec.get("description") if isinstance(spec, dict) else None
+            if not desc:
+                continue
+            for pattern in _INJECTION_PATTERNS:
+                match = pattern.search(str(desc))
+                if match:
+                    findings.append(
+                        ToolParameterFinding(tool=name, param=str(param), issue=match.group(0))
+                    )
+                    break  # one finding per parameter
+    return findings
