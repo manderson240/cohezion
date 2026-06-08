@@ -6104,3 +6104,26 @@ def count_distinct_severities(problems: list[Problem]) -> int:
     Pure (no I/O, no SurrealDB).
     """
     return len({p.severity for p in problems})
+
+
+# ---------------------------------------------------------------------------
+# Item 370 — count_distinct_classes (2026-06-08)
+# ---------------------------------------------------------------------------
+
+
+def count_distinct_classes(problems: list[Problem]) -> int:
+    """Return the number of distinct class names present — item 370.
+
+    Counts how many distinct ``problem_class`` strings appear across
+    *problems*.  Mirror of :func:`count_distinct_severities` on the class
+    axis.
+
+    Args:
+        problems: List of :class:`Problem` instances.  Empty → ``0``.
+
+    Returns:
+        Integer ≥ 0.  ``0`` only when *problems* is empty.
+
+    Pure (no I/O, no SurrealDB).
+    """
+    return len({p.problem_class for p in problems})
