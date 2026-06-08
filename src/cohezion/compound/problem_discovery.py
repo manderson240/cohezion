@@ -10932,3 +10932,19 @@ def class_problem_count_above(problems: list[Problem], n: int) -> int:
     for p in problems:
         counts[p.problem_class] = counts.get(p.problem_class, 0) + 1
     return sum(1 for cnt in counts.values() if cnt > n)
+
+
+def fid_problem_count_above(problems: list[Problem], n: int) -> int:
+    """Return count of fids with strictly more than n problems.  Item 577.
+
+    FID-axis complement of class_problem_count_above.
+    Unweighted; counts distinct fids where problem count > n.
+    n=0 -> counts all fids (all have at least 1 problem).
+    0 for empty.  Pure; no I/O.
+    """
+    if not problems:
+        return 0
+    counts: dict[str, int] = {}
+    for p in problems:
+        counts[p.finding_id] = counts.get(p.finding_id, 0) + 1
+    return sum(1 for cnt in counts.values() if cnt > n)
