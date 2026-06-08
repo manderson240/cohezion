@@ -4327,3 +4327,54 @@ def class_stability_report(
         cls: ("growing" if d > 0 else "shrinking" if d < 0 else "stable")
         for cls, d in deltas.items()
     }
+
+
+def scan_diff_summary(
+    scan_a: list[Problem],
+    scan_b: list[Problem],
+) -> dict[str, int]:
+    """Return aggregate statistics comparing two problem scans.
+
+    Keys returned:
+    - ``total_a`` / ``total_b`` — raw problem counts for each scan.
+    - ``delta_total`` — ``total_b - total_a`` (positive = more in scan_b).
+    - ``classes_grown`` — count of classes where ``delta > 0``.
+    - ``classes_stable`` — count of classes where ``delta == 0``.
+    - ``classes_shrunk`` — count of classes where ``delta < 0``.
+    - ``new_classes`` — classes in scan_b but absent from scan_a.
+    - ``disappeared_classes`` — classes in scan_a but absent from scan_b.
+
+    Note: ``new_classes`` ⊆ ``classes_grown`` and
+    ``disappeared_classes`` ⊆ ``classes_shrunk``, because a class absent
+    in one scan has an implicit count of 0.
+
+    Args:
+        scan_a: Problems from the baseline scan.
+        scan_b: Problems from the comparison scan.
+
+    Returns:
+        Dict with 8 integer-valued keys.  Returns all-zero dict when both
+        scans are empty.
+
+    Pure (no I/O, no SurrealDB).
+    """
+    total_a = len(scan_a)
+    total_b = len(scan_b)
+    classes_a: set[str] = {p.problem_class for p in scan_a}
+    classes_b: set[str] = {p.problem_class for p in scan_b}
+    stability = class_stability_report(scan_a, scan_b)
+    classes_grown = sum(1 for label in stability.values() if label == "growing")
+    classes_stable = sum(1 for label in stability.values() if label == "stable")
+    classes_shrunk = sum(1 for label in stability.values() if label == "shrinking")
+    new_classes = len(classes_b - classes_a)
+    disappeared_classes = len(classes_a - classes_b)
+    return {
+        "total_a": total_a,
+        "total_b": total_b,
+        "delta_total": total_b - total_a,
+        "classes_grown": classes_grown,
+        "classes_stable": classes_stable,
+        "classes_shrunk": classes_shrunk,
+        "new_classes": new_classes,
+        "disappeared_classes": disappeared_classes,
+    }
