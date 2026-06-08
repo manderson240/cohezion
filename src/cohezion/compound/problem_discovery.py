@@ -347,6 +347,75 @@ def discover_and_summarize_for(
     return problem_summary(problems)
 
 
+def discover_and_summarize_excluding(
+    paths: Iterable[Path],
+    *,
+    templates: list[ProblemTemplate] | None = None,
+    exclude_known: frozenset[str] | set[str] = frozenset(),
+    exclude_classes: frozenset[str] | set[str] = frozenset(),
+    n: int = 5,
+) -> ProblemSummary:
+    """Run TIDE discovery, summarize, then rebuild top_classes with an exclusion guard — item 171.
+
+    Composes :func:`discover_and_summarize` (item 165) with
+    :func:`top_problem_classes_excluding` (item 169) so callers can suppress a
+    known-noisy class from the ``top_classes`` ranking without losing any information
+    from ``total`` or ``by_class``.
+
+    Exclusion happens ONLY on ``top_classes`` — ``total`` and ``by_class`` always
+    reflect ALL findings (the ``problem_classes`` filter in
+    :func:`discover_and_summarize_for` is intentionally different and more
+    aggressive).
+
+    Args:
+        paths:
+            Iterable of :class:`~pathlib.Path` objects to audit.
+        templates:
+            Optional list of :class:`ProblemTemplate` instances.  ``None``
+            (default) uses :func:`default_templates`.  ``[]`` → no audit.
+        exclude_known:
+            Set of finding ids to suppress (already-actioned).
+            Forwarded verbatim to :func:`discover_and_summarize`.
+        exclude_classes:
+            Set of ``problem_class`` strings to omit from the ``top_classes``
+            ranking result.  Does NOT affect ``total`` or ``by_class``.
+            ``frozenset()`` (default) → no exclusion (result identical to
+            :func:`discover_and_summarize`).
+        n:
+            Maximum number of entries in the returned ``top_classes`` list.
+
+    Returns:
+        A frozen :class:`ProblemSummary` where:
+        - ``total`` = total finding count (unaffected by exclusion).
+        - ``by_class`` = per-class counts (unaffected by exclusion).
+        - ``top_classes`` = top-n from the NON-excluded classes.
+        - ``has_problems`` = ``total > 0``.
+
+    Pure (no I/O beyond what the instruments perform).  No SurrealDB.
+    """
+    base = discover_and_summarize(paths, templates=templates, exclude_known=exclude_known)
+    if not exclude_classes:
+        return base
+    # Rebuild top_classes with exclusion; total + by_class are preserved verbatim.
+    filtered_top = top_problem_classes_excluding(
+        # Re-derive problems list from by_class to avoid a second full scan.
+        # We need a list[Problem]; rebuild from by_class counts (ordering is irrelevant).
+        [
+            Problem(problem_class=cls, finding_id=f"{cls}:{i}")
+            for cls, count in base.by_class.items()
+            for i in range(count)
+        ],
+        exclude_classes=exclude_classes,
+        n=n,
+    )
+    return ProblemSummary(
+        total=base.total,
+        by_class=base.by_class,
+        top_classes=filtered_top,
+        has_problems=base.has_problems,
+    )
+
+
 def default_template_classes() -> frozenset[str]:
     """Return the exact set of ``problem_class`` names in :func:`default_templates` — item 158.
 
