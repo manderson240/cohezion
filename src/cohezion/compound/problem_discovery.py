@@ -15617,3 +15617,47 @@ def fid_severity_rank_medium_count(problems: list[Problem]) -> dict[str, int]:
         if _SEVERITY_RANK.get(p.severity, 0) == 2:
             counts[fid] += 1
     return counts
+
+
+def class_severity_rank_low_only_fraction(problems: list[Problem]) -> dict[str, float]:
+    """Fraction of problems with rank == 1 (LOW only) per class.  Item 808.
+
+    Distinct from class_severity_rank_low_fraction (item 790) which includes INFO+LOW (rank<=1).
+    fraction = count(rank == 1) / n per class.
+    INFO (rank 0) is NOT included; only LOW (rank 1).
+    Empty -> {}.  Pure; no I/O.
+    """
+    if not problems:
+        return {}
+    totals: dict[str, int] = {}
+    low_counts: dict[str, int] = {}
+    for p in problems:
+        cls = p.problem_class
+        if cls not in totals:
+            totals[cls] = 0
+            low_counts[cls] = 0
+        totals[cls] += 1
+        if _SEVERITY_RANK.get(p.severity, 0) == 1:
+            low_counts[cls] += 1
+    return {cls: float(low_counts[cls]) / totals[cls] for cls in totals}
+
+
+def fid_severity_rank_low_only_fraction(problems: list[Problem]) -> dict[str, float]:
+    """Fraction of problems with rank == 1 (LOW only) per fid.  Item 809.
+
+    Fid-axis complement of class_severity_rank_low_only_fraction (item 808).
+    fraction = count(rank == 1) / n per fid.  INFO not included.  Empty -> {}.  Pure; no I/O.
+    """
+    if not problems:
+        return {}
+    totals: dict[str, int] = {}
+    low_counts: dict[str, int] = {}
+    for p in problems:
+        fid = p.finding_id
+        if fid not in totals:
+            totals[fid] = 0
+            low_counts[fid] = 0
+        totals[fid] += 1
+        if _SEVERITY_RANK.get(p.severity, 0) == 1:
+            low_counts[fid] += 1
+    return {fid: float(low_counts[fid]) / totals[fid] for fid in totals}
