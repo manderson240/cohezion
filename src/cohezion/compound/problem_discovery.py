@@ -1370,3 +1370,50 @@ def problems_within_threshold(
         for p in problems
         if p.problem_class in thresholds and counts[p.problem_class] <= thresholds[p.problem_class]
     ]
+
+
+def partition_problems_by_threshold(
+    problems: list[Problem],
+    thresholds: dict[str, int],
+) -> tuple[list[Problem], list[Problem]]:
+    """Split findings into (above-threshold, within-threshold) in one pass — item 202.
+
+    One-pass combination of :func:`problems_above_threshold` and
+    :func:`problems_within_threshold`.  Unmonitored classes (absent from
+    *thresholds*) appear in neither partition::
+
+        above, within = partition_problems_by_threshold(
+            findings, {"complexity_outlier": 3}
+        )
+
+    Args:
+        problems:
+            A list of :class:`Problem` instances.  Empty list → ``([], [])``.
+        thresholds:
+            ``{problem_class: max_allowed_count}`` mapping.  Unmonitored
+            classes are excluded from both partitions.
+            Empty *thresholds* → ``([], [])``.
+
+    Returns:
+        A 2-tuple ``(above, within)`` where:
+
+        * ``above``  — findings from monitored classes whose count exceeds the limit.
+        * ``within`` — findings from monitored classes whose count is ≤ the limit.
+
+        Insertion order is preserved within each partition.
+
+    Pure (no I/O, no SurrealDB).
+    """
+    if not thresholds or not problems:
+        return ([], [])
+    counts = problem_count_by_class(problems)
+    above: list[Problem] = []
+    within: list[Problem] = []
+    for p in problems:
+        if p.problem_class not in thresholds:
+            continue
+        if counts[p.problem_class] > thresholds[p.problem_class]:
+            above.append(p)
+        else:
+            within.append(p)
+    return (above, within)
