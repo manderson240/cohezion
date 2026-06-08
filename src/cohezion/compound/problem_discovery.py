@@ -14704,3 +14704,51 @@ def fid_severity_rank_at_median(problems: list[Problem]) -> dict[str, float]:
         count_at = sum(1 for r in ranks if r == median)
         result[fid] = float(count_at) / n
     return result
+
+
+def _percentile_linear(sorted_ranks: list[int], q: float) -> float:
+    """Linear-interpolation percentile on sorted integer list."""
+    n = len(sorted_ranks)
+    if n == 1:
+        return float(sorted_ranks[0])
+    idx = q * (n - 1)
+    lo = int(idx)
+    frac = idx - lo
+    if lo + 1 >= n:
+        return float(sorted_ranks[-1])
+    return sorted_ranks[lo] + frac * (sorted_ranks[lo + 1] - sorted_ranks[lo])
+
+
+def class_severity_rank_p75(problems: list[Problem]) -> dict[str, float]:
+    """75th percentile of severity ranks per class.  Item 763.
+
+    p75 = linear-interpolation 75th percentile rank per class.
+    All-same -> float(rank).  Empty -> {}.  Pure; no I/O.
+    """
+    if not problems:
+        return {}
+    ranks_by_class: dict[str, list[int]] = {}
+    for p in problems:
+        cls = p.problem_class
+        if cls not in ranks_by_class:
+            ranks_by_class[cls] = []
+        ranks_by_class[cls].append(_SEVERITY_RANK.get(p.severity, 0))
+    return {cls: _percentile_linear(sorted(ranks), 0.75) for cls, ranks in ranks_by_class.items()}
+
+
+def fid_severity_rank_p75(problems: list[Problem]) -> dict[str, float]:
+    """75th percentile of severity ranks per fid.  Item 764.
+
+    Fid-axis complement of class_severity_rank_p75 (item 763).
+    p75 = linear-interpolation 75th percentile rank per fid.
+    All-same -> float(rank).  Empty -> {}.  Pure; no I/O.
+    """
+    if not problems:
+        return {}
+    ranks_by_fid: dict[str, list[int]] = {}
+    for p in problems:
+        fid = p.finding_id
+        if fid not in ranks_by_fid:
+            ranks_by_fid[fid] = []
+        ranks_by_fid[fid].append(_SEVERITY_RANK.get(p.severity, 0))
+    return {fid: _percentile_linear(sorted(ranks), 0.75) for fid, ranks in ranks_by_fid.items()}
