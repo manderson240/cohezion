@@ -9173,3 +9173,29 @@ def classes_by_total_score(
     for p in problems:
         scores[p.problem_class] = scores.get(p.problem_class, 0.0) + weights.get(p.severity, 0.0)
     return sorted(scores.keys(), key=lambda cls: (-scores[cls], cls))
+
+
+def fids_by_total_score(
+    problems: list[Problem],
+    weights: dict[str, float],
+) -> list[str]:
+    """Return ALL finding IDs sorted descending by total weighted severity score.
+
+    The fid-axis counterpart of :func:`classes_by_total_score`.  A finding_id
+    that appears in multiple records across different classes accumulates its
+    weighted score.  Alphabetical tie-break.  Empty *problems* returns ``[]``.
+
+    Args:
+        problems: List of :class:`Problem` instances.
+        weights: Mapping of severity label to numeric score.
+
+    Returns:
+        ``list[str]`` of all finding IDs, highest total score first.
+        Alphabetical tie-break.  Empty list when *problems* is empty.
+
+    Pure (no I/O, no SurrealDB).  Item 502.
+    """
+    scores: dict[str, float] = {}
+    for p in problems:
+        scores[p.finding_id] = scores.get(p.finding_id, 0.0) + weights.get(p.severity, 0.0)
+    return sorted(scores.keys(), key=lambda fid: (-scores[fid], fid))
