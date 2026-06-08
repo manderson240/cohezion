@@ -10948,3 +10948,19 @@ def fid_problem_count_above(problems: list[Problem], n: int) -> int:
     for p in problems:
         counts[p.finding_id] = counts.get(p.finding_id, 0) + 1
     return sum(1 for cnt in counts.values() if cnt > n)
+
+
+def class_problem_count_below(problems: list[Problem], n: int) -> int:
+    """Return count of classes with strictly fewer than n problems.  Item 578.
+
+    Complement of class_problem_count_above.
+    Unweighted; counts distinct classes where problem count < n.
+    n=1 -> always 0 (every class has at least 1 problem by definition).
+    0 for empty.  Pure; no I/O.
+    """
+    if not problems:
+        return 0
+    counts: dict[str, int] = {}
+    for p in problems:
+        counts[p.problem_class] = counts.get(p.problem_class, 0) + 1
+    return sum(1 for cnt in counts.values() if cnt < n)
