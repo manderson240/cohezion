@@ -9362,3 +9362,35 @@ def score_percentile_of_class(
         return 0.0
     strictly_lower = sum(1 for s in class_totals.values() if s < target_score)
     return float(strictly_lower / (n - 1))
+
+
+def classes_in_score_band(
+    problems: list[Problem],
+    weights: dict[str, float],
+    lo: float,
+    hi: float,
+) -> frozenset[str]:
+    """Return classes whose total weighted score falls within the inclusive band [lo, hi].
+
+    ``lo > hi`` → ``frozenset()`` (empty by contract, no raise).
+    Empty *problems* → ``frozenset()``.
+
+    Args:
+        problems: List of :class:`Problem` instances.
+        weights: Mapping of severity label to numeric score.
+        lo: Inclusive lower bound.
+        hi: Inclusive upper bound.
+
+    Returns:
+        ``frozenset[str]`` of class names with ``lo <= total_score <= hi``.
+
+    Pure (no I/O, no SurrealDB).  Item 508.
+    """
+    if lo > hi or not problems:
+        return frozenset()
+    class_totals: dict[str, float] = {}
+    for p in problems:
+        class_totals[p.problem_class] = (
+            class_totals.get(p.problem_class, 0.0) + weights.get(p.severity, 0.0)
+        )
+    return frozenset(cls for cls, score in class_totals.items() if lo <= score <= hi)
