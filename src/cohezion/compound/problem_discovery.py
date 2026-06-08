@@ -984,6 +984,29 @@ def problem_classes(problems: list[Problem]) -> list[str]:
     return [p.problem_class for p in problems]
 
 
+def unique_problem_classes(problems: list[Problem]) -> frozenset[str]:
+    """Return the distinct ``problem_class`` values as a frozenset — item 191.
+
+    Completes the TIDE accessor trio:
+
+    * :func:`finding_ids`          — IDs in insertion order
+    * :func:`problem_classes`      — class labels in insertion order
+    * :func:`unique_problem_classes` — distinct-class frozenset (this function)
+
+    Args:
+        problems:
+            A list of :class:`Problem` instances.  Empty list → ``frozenset()``.
+
+    Returns:
+        A :class:`frozenset` of the distinct ``problem_class`` strings.
+        Hashable and immutable — suitable as a dict key or for set algebra.
+        Empty list → ``frozenset()``.
+
+    Pure (no I/O, no SurrealDB).
+    """
+    return frozenset(p.problem_class for p in problems)
+
+
 def default_template_classes() -> frozenset[str]:
     """Return the exact set of ``problem_class`` names in :func:`default_templates` — item 158.
 
