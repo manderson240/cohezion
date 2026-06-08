@@ -10320,3 +10320,31 @@ def fid_score_entropy(
             p = v / total
             entropy -= p * _math.log2(p)
     return float(entropy)
+
+
+def class_score_gini(
+    problems: list[Problem],
+    weights: dict[str, float],
+) -> float:
+    """Return Gini coefficient of per-class total weighted scores.  Item 545.
+
+    G = (2*sum((i+1)*xi for sorted xi) - (n+1)*sum(x)) / (n * sum(x)).
+    Range [0, 1]: 0.0 = perfect equality.  0.0 for empty or single class.
+    Pure; no I/O.
+    """
+    if not problems:
+        return 0.0
+    class_totals: dict[str, float] = {}
+    for p in problems:
+        class_totals[p.problem_class] = class_totals.get(p.problem_class, 0.0) + weights.get(
+            p.severity, 0.0
+        )
+    n = len(class_totals)
+    if n < 2:
+        return 0.0
+    values = sorted(class_totals.values())
+    total = sum(values)
+    if total == 0.0:
+        return 0.0
+    numer = 2 * sum((i + 1) * v for i, v in enumerate(values)) - (n + 1) * total
+    return float(numer / (n * total))
