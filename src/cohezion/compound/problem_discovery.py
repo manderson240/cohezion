@@ -2835,3 +2835,27 @@ def dominant_severity(problems: list[Problem]) -> str | None:
     if not counts:
         return None
     return max(counts, key=lambda sev: (counts[sev], [-ord(c) for c in sev]))
+
+
+def severity_fraction(problems: list[Problem], severity: str) -> float:
+    """Return the fraction of labelled problems at *severity*.
+
+    The denominator is the count of problems with a non-empty ``severity``
+    field — unlabelled problems (``severity=""``) are excluded from both the
+    numerator and the denominator.  Returns ``0.0`` when the severity is
+    absent or when no problems carry a severity label.
+
+    Args:
+        problems: List of :class:`Problem` instances from a scan.
+        severity: Exact severity string to measure (case-sensitive).
+
+    Returns:
+        ``float`` in ``[0.0, 1.0]`` — ``count_at_severity / total_labelled``.
+
+    Pure (no I/O, no SurrealDB).
+    """
+    counts = count_by_severity(problems)
+    total_labelled = sum(counts.values())
+    if total_labelled == 0:
+        return 0.0
+    return float(counts.get(severity, 0)) / total_labelled
