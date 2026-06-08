@@ -8739,3 +8739,39 @@ def top_n_classes_by_score(
         scores[p.problem_class] += weights.get(p.severity, 0.0)
     ranked = sorted(scores.items(), key=lambda kv: (-kv[1], kv[0]))
     return [cls for cls, _ in ranked[:n]]
+
+
+def top_n_fids_by_score(
+    problems: list[Problem],
+    weights: dict[str, float],
+    n: int,
+) -> list[str]:
+    """Return the N finding_ids with the highest total severity score -- item 487.
+
+    Symmetric to :func:`top_n_classes_by_score` on the fid axis.  Scoring is
+    identical to :func:`all_fid_severity_scores`: each matching record
+    contributes ``weights.get(p.severity, 0.0)`` to the fid total.
+
+    Ordering: descending by score; alphabetical (ascending) tie-break.
+
+    Args:
+        problems: List of :class:`Problem` instances.
+        weights: Mapping of severity label to numeric score.
+        n: Maximum number of fid names to return.  ``n=0`` returns ``[]``.
+
+    Returns:
+        ``list[str]`` of at most *n* finding_id strings, descending by score,
+        alphabetical tie-break.  Empty list when ``n=0`` or *problems* is
+        empty.
+
+    Pure (no I/O, no SurrealDB).
+    """
+    if n <= 0:
+        return []
+    scores: dict[str, float] = {}
+    for p in problems:
+        if p.finding_id not in scores:
+            scores[p.finding_id] = 0.0
+        scores[p.finding_id] += weights.get(p.severity, 0.0)
+    ranked = sorted(scores.items(), key=lambda kv: (-kv[1], kv[0]))
+    return [fid for fid, _ in ranked[:n]]
