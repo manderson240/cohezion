@@ -15958,3 +15958,45 @@ def fid_mean_severity_rank(problems: list["Problem"]) -> dict[str, float]:
         totals[fid] += _SEVERITY_RANK.get(p.severity, 0)
         counts[fid] += 1
     return {fid: float(totals[fid]) / counts[fid] for fid in totals}
+
+
+def class_severity_rank_spread(problems: list["Problem"]) -> dict[str, int]:
+    """Severity rank spread (max - min) per class.  Item 828.
+    Single-problem class -> 0.  Empty -> {}.  Pure; no I/O."""
+    if not problems:
+        return {}
+    min_ranks: dict[str, int] = {}
+    max_ranks: dict[str, int] = {}
+    for p in problems:
+        cls = p.problem_class
+        r = _SEVERITY_RANK.get(p.severity, 0)
+        if cls not in min_ranks:
+            min_ranks[cls] = r
+            max_ranks[cls] = r
+        else:
+            if r < min_ranks[cls]:
+                min_ranks[cls] = r
+            if r > max_ranks[cls]:
+                max_ranks[cls] = r
+    return {cls: max_ranks[cls] - min_ranks[cls] for cls in min_ranks}
+
+
+def fid_severity_rank_spread(problems: list["Problem"]) -> dict[str, int]:
+    """Severity rank spread (max - min) per fid.  Item 829. Fid-axis complement of 828.
+    Single-problem fid -> 0.  Empty -> {}.  Pure; no I/O."""
+    if not problems:
+        return {}
+    min_ranks: dict[str, int] = {}
+    max_ranks: dict[str, int] = {}
+    for p in problems:
+        fid = p.finding_id
+        r = _SEVERITY_RANK.get(p.severity, 0)
+        if fid not in min_ranks:
+            min_ranks[fid] = r
+            max_ranks[fid] = r
+        else:
+            if r < min_ranks[fid]:
+                min_ranks[fid] = r
+            if r > max_ranks[fid]:
+                max_ranks[fid] = r
+    return {fid: max_ranks[fid] - min_ranks[fid] for fid in min_ranks}
