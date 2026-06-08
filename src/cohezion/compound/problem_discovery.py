@@ -2355,3 +2355,53 @@ def violation_depth(
         for cls, limit in thresholds.items()
         if counts.get(cls, 0) > limit
     }
+
+
+def total_violation_depth(
+    problems: list[Problem],
+    thresholds: dict[str, int],
+) -> int:
+    """Return the total excess across all violating monitored classes.
+
+    Delegates entirely to :func:`violation_depth` and sums the values::
+
+        total_violation_depth = sum(violation_depth(problems, thresholds).values())
+
+    Returns ``0`` when no classes are violating or *thresholds* is empty.
+
+    Useful as a single-integer "budget pressure" gauge:
+    - ``violations_count`` = how many classes are over their threshold (breadth)
+    - ``total_violation_depth`` = by how much in total (depth / severity)
+
+    Args:
+        problems:   List of ``Problem`` instances to examine.
+        thresholds: Mapping of ``{problem_class: max_allowed_count}``.
+                    Empty mapping -> ``0``.
+
+    Returns:
+        ``int`` — sum of all per-class excess counts; ``0`` when none.
+
+    Pure (no I/O, no SurrealDB).
+    """
+    return sum(violation_depth(problems, thresholds).values())
+def total_violation_depth(
+    problems: list[Problem],
+    thresholds: dict[str, int],
+) -> int:
+    """Return the total excess count across all violating classes.
+
+    Sums ``violation_depth(problems, thresholds).values()``, giving a single
+    integer representing the aggregate budget overrun.  Returns 0 when no
+    classes are violating or when *thresholds* is empty.
+
+    Args:
+        problems:   List of ``Problem`` instances to examine.
+        thresholds: Mapping of ``{problem_class: max_allowed_count}``.
+                    Empty mapping -> ``0``.
+
+    Returns:
+        ``int`` total excess count.  Always ≥ 0.
+
+    Pure (no I/O, no SurrealDB).
+    """
+    return sum(violation_depth(problems, thresholds).values())
