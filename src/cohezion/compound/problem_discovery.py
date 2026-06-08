@@ -12469,3 +12469,19 @@ def fid_severity_critical_rate(problems: list[Problem]) -> dict[str, float]:
         fid: float(criticals.get(fid, 0)) / totals[fid]
         for fid in totals
     }
+
+
+def class_severity_spread(problems: list[Problem]) -> dict[str, int]:
+    """Return count of distinct severity levels per class.  Item 651.
+
+    For each class: number of distinct severity strings observed.
+    int >= 1.  Empty -> {}.  Pure; no I/O.
+    """
+    if not problems:
+        return {}
+    severities: dict[str, set[str]] = {}
+    for p in problems:
+        if p.problem_class not in severities:
+            severities[p.problem_class] = set()
+        severities[p.problem_class].add(p.severity or "")
+    return {cls: len(sev_set) for cls, sev_set in severities.items()}
