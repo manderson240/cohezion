@@ -15401,3 +15401,31 @@ def fid_severity_rank_info_fraction(problems: list[Problem]) -> dict[str, float]
     All LOW -> 0.0.  Empty -> {}.  Pure; no I/O.
     """
     return fid_severity_rank_fraction_below(problems, 1)
+
+
+def class_severity_rank_medium_fraction(problems: list[Problem]) -> dict[str, float]:
+    """Fraction of problems with rank == 2 (MEDIUM only) per class.  Item 794.
+
+    MEDIUM(2) = fraction_below(3) - fraction_below(2):
+    count(rank<3)/n - count(rank<2)/n = count(rank==2)/n.
+    All LOW/INFO -> 0.0.  All MEDIUM -> 1.0.  Empty -> {}.  Pure; no I/O.
+    """
+    if not problems:
+        return {}
+    below3 = class_severity_rank_fraction_below(problems, 3)
+    below2 = class_severity_rank_fraction_below(problems, 2)
+    return {cls: below3[cls] - below2.get(cls, 0.0) for cls in below3}
+
+
+def fid_severity_rank_medium_fraction(problems: list[Problem]) -> dict[str, float]:
+    """Fraction of problems with rank == 2 (MEDIUM only) per fid.  Item 795.
+
+    Fid-axis complement of class_severity_rank_medium_fraction (item 794).
+    MEDIUM(2) = fid_fraction_below(3) - fid_fraction_below(2).
+    All LOW -> 0.0.  Empty -> {}.  Pure; no I/O.
+    """
+    if not problems:
+        return {}
+    below3 = fid_severity_rank_fraction_below(problems, 3)
+    below2 = fid_severity_rank_fraction_below(problems, 2)
+    return {fid: below3[fid] - below2.get(fid, 0.0) for fid in below3}
