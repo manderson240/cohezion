@@ -11506,3 +11506,28 @@ def class_severity_variance(problems: list[Problem]) -> dict[str, float]:
         variance = sum((v - mean) ** 2 for v in vals) / len(vals)
         result[cls] = variance
     return result
+
+
+def fid_severity_variance(problems: list[Problem]) -> dict[str, float]:
+    """Return variance of per-severity raw counts per fid.  Item 605.
+
+    Population variance of the INTEGER problem counts per severity for each fid.
+    FID-axis complement of class_severity_variance.
+    Single-severity -> 0.0.  Uniform distribution -> 0.0.
+    Empty -> {}.  Pure; no I/O.
+    """
+    if not problems:
+        return {}
+    counts: dict[str, dict[str, int]] = {}
+    for p in problems:
+        if p.finding_id not in counts:
+            counts[p.finding_id] = {}
+        sev = p.severity or ""
+        counts[p.finding_id][sev] = counts[p.finding_id].get(sev, 0) + 1
+    result: dict[str, float] = {}
+    for fid, sev_counts in counts.items():
+        vals = list(sev_counts.values())
+        mean = sum(vals) / len(vals)
+        variance = sum((v - mean) ** 2 for v in vals) / len(vals)
+        result[fid] = variance
+    return result
