@@ -39,6 +39,7 @@ class Problem:
 
     problem_class: str
     finding_id: str
+    severity: str = ""
 
 
 def discover_problems(
@@ -2587,3 +2588,47 @@ def classes_with_single_problem(problems: list[Problem]) -> frozenset[str]:
     """
     counts = problem_count_by_class(problems)
     return frozenset(cls for cls, n in counts.items() if n == 1)
+
+
+def classes_above_count(problems: list[Problem], n: int) -> frozenset[str]:
+    """Return class names whose problem count is strictly greater than *n*.
+
+    Classes with count ≤ *n* are excluded.  Passing ``n=0`` returns all
+    non-empty classes (since every non-empty class has count > 0).
+
+    Args:
+        problems: List of :class:`Problem` instances from a scan.
+        n:        Integer threshold (exclusive lower bound).
+
+    Returns:
+        ``frozenset[str]`` of class names with count > *n*.
+
+    Pure (no I/O, no SurrealDB).
+    """
+    counts = problem_count_by_class(problems)
+    return frozenset(cls for cls, count in counts.items() if count > n)
+
+
+def classes_with_max_severity(
+    problems: list[Problem],
+    severity: str,
+) -> frozenset[str]:
+    """Return class names that contain at least one problem at *severity*.
+
+    Filters problems by exact case-sensitive ``problem.severity`` match, then
+    collects the unique class names.  A class appears in the result even if
+    only one of its many problems carries the target severity.
+
+    Args:
+        problems: List of ``Problem`` instances (each with an optional
+                  ``severity`` field, default ``""``).
+        severity: Exact severity string to match (case-sensitive).
+
+    Returns:
+        ``frozenset[str]`` of class names that have at least one problem
+        with ``severity == severity``.  Empty *problems* or no matches →
+        ``frozenset()``.
+
+    Pure (no I/O, no SurrealDB).
+    """
+    return frozenset(p.problem_class for p in problems if p.severity == severity)
