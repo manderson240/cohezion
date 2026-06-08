@@ -2166,3 +2166,28 @@ def scan_delta(before: dict, after: dict) -> dict:
         "newly_over": newly_over,
         "newly_under": newly_under,
     }
+
+
+def scan_is_healthy(
+    problems: list[Problem],
+    thresholds: dict[str, int],
+) -> bool:
+    """Return True iff no monitored class exceeds its threshold.
+
+    A boolean reduction of :func:`violation_summary`: delegates entirely to
+    that function and returns ``violation_summary(...) == 0``.  Suitable for
+    CI gates and health checks that need a single True/False result::
+
+        assert scan_is_healthy(findings, limits), "Health gate failed"
+
+    Args:
+        problems:   List of ``Problem`` instances from a TIDE scan.
+        thresholds: Mapping of ``{problem_class: max_allowed_count}``.
+                    Empty mapping -> ``True`` (no rules = no violations).
+
+    Returns:
+        ``bool`` -- ``True`` when all monitored classes are within budget.
+
+    Pure (no I/O, no SurrealDB).
+    """
+    return violation_summary(problems, thresholds) == 0
