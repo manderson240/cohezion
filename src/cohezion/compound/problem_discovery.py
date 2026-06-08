@@ -6167,7 +6167,7 @@ def problems_in_class_set(
 # ---------------------------------------------------------------------------
 
 
-def class_count_above_threshold(problems: list["Problem"], n: int) -> "frozenset[str]":
+def class_count_above_threshold(problems: list[Problem], n: int) -> frozenset[str]:
     """Return class names whose total record count exceeds n — item 373.
 
     Sister to :func:`finding_ids_above_count` on the class axis.  Returns a

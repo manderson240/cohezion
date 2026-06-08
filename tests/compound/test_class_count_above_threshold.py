@@ -34,7 +34,9 @@ def test_operates_on_class_not_finding_id() -> None:
     Same finding_id across 3 classes; class 'sec' appears 3x, 'perf' 1x.
     """
     problems = [
-        _p("sec", "CVE-001"), _p("sec", "CVE-002"), _p("sec", "CVE-003"),
+        _p("sec", "CVE-001"),
+        _p("sec", "CVE-002"),
+        _p("sec", "CVE-003"),
         _p("perf", "PERF-001"),
     ]
     result = class_count_above_threshold(problems, 2)
