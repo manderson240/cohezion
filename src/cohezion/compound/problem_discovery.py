@@ -8973,3 +8973,33 @@ def improving_classes(
     """
     deltas = all_score_deltas_between_snapshots(before, after, weights)
     return frozenset(cls for cls, delta in deltas.items() if delta < 0.0)
+
+
+def largest_regression(
+    before: list[Problem],
+    after: list[Problem],
+    weights: dict[str, float],
+) -> tuple[str, float] | None:
+    """Return the (class, delta) pair for the class with the biggest positive delta -- item 496.
+
+    Scans all per-class score deltas and returns the class whose score
+    increased the most (highest positive delta).  Tie-break: alphabetically
+    ascending class name.  Returns ``None`` when no class has a positive
+    delta (i.e. all classes are stable or improving).
+
+    Args:
+        before: Problem list from the earlier scan.
+        after:  Problem list from the more recent scan.
+        weights: Mapping of severity label to numeric score.
+
+    Returns:
+        ``(class_name, delta)`` tuple for the highest positive delta, or
+        ``None`` if no class regressed.
+
+    Pure (no I/O, no SurrealDB).
+    """
+    deltas = all_score_deltas_between_snapshots(before, after, weights)
+    positive = [(cls, delta) for cls, delta in deltas.items() if delta > 0.0]
+    if not positive:
+        return None
+    return max(positive, key=lambda kv: (kv[1], [-ord(c) for c in kv[0]]))
