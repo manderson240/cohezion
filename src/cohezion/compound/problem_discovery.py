@@ -11945,3 +11945,23 @@ def fid_severity_cv(problems: list[Problem]) -> dict[str, float]:
             variance = sum((v - mean) ** 2 for v in vals) / len(vals)
             result[fid] = _math.sqrt(variance) / mean
     return result
+
+
+def class_max_fid_count(problems: list[Problem]) -> dict[str, int]:
+    """Return the maximum per-fid problem count for each class.  Item 627.
+
+    For each class, counts how many problems each fid contributes, then returns
+    the maximum.  Single fid -> that fid's count.
+    Empty -> {}.  int.  Pure; no I/O.
+    """
+    if not problems:
+        return {}
+    # class -> {fid -> count}
+    fid_counts: dict[str, dict[str, int]] = {}
+    for p in problems:
+        if p.problem_class not in fid_counts:
+            fid_counts[p.problem_class] = {}
+        fid_counts[p.problem_class][p.finding_id] = (
+            fid_counts[p.problem_class].get(p.finding_id, 0) + 1
+        )
+    return {cls: max(bucket.values()) for cls, bucket in fid_counts.items()}
