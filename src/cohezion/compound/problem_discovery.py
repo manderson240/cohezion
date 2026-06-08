@@ -2361,33 +2361,6 @@ def total_violation_depth(
     problems: list[Problem],
     thresholds: dict[str, int],
 ) -> int:
-    """Return the total excess across all violating monitored classes.
-
-    Delegates entirely to :func:`violation_depth` and sums the values::
-
-        total_violation_depth = sum(violation_depth(problems, thresholds).values())
-
-    Returns ``0`` when no classes are violating or *thresholds* is empty.
-
-    Useful as a single-integer "budget pressure" gauge:
-    - ``violations_count`` = how many classes are over their threshold (breadth)
-    - ``total_violation_depth`` = by how much in total (depth / severity)
-
-    Args:
-        problems:   List of ``Problem`` instances to examine.
-        thresholds: Mapping of ``{problem_class: max_allowed_count}``.
-                    Empty mapping -> ``0``.
-
-    Returns:
-        ``int`` — sum of all per-class excess counts; ``0`` when none.
-
-    Pure (no I/O, no SurrealDB).
-    """
-    return sum(violation_depth(problems, thresholds).values())
-def total_violation_depth(
-    problems: list[Problem],
-    thresholds: dict[str, int],
-) -> int:
     """Return the total excess count across all violating classes.
 
     Sums ``violation_depth(problems, thresholds).values()``, giving a single
@@ -2405,3 +2378,31 @@ def total_violation_depth(
     Pure (no I/O, no SurrealDB).
     """
     return sum(violation_depth(problems, thresholds).values())
+
+
+def scan_pressure(
+    problems: list[Problem],
+    thresholds: dict[str, int],
+) -> float:
+    """Return a composite pressure score for the scan.
+
+    Combines violation count and total violation depth into one float::
+
+        scan_pressure = violations_count + total_violation_depth
+
+    A score of 0.0 means the scan is fully healthy.  Higher values indicate
+    more violating classes (horizontal pressure) and deeper violations
+    (vertical pressure).
+
+    Args:
+        problems:   List of ``Problem`` instances to examine.
+        thresholds: Mapping of ``{problem_class: max_allowed_count}``.
+                    Empty mapping -> ``0.0``.
+
+    Returns:
+        ``float`` composite pressure score ≥ 0.0.
+
+    Pure (no I/O, no SurrealDB).
+    """
+    violations = threshold_violations(problems, thresholds)
+    return float(len(violations) + total_violation_depth(problems, thresholds))
