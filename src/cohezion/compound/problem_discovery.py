@@ -13171,3 +13171,21 @@ def fid_severity_rank_sum(problems: list[Problem]) -> dict[str, int]:
             result[fid] = 0
         result[fid] += _SEVERITY_RANK.get(p.severity, 0)
     return result
+
+
+def class_severity_rank_avg(problems: list[Problem]) -> dict[str, float]:
+    """Return mean severity rank per class.  Item 696.
+
+    avg = rank_sum / problem_count_for_class.  Float.
+    Returns {class: avg_rank}.  Empty -> {}.  Pure; no I/O.
+    """
+    if not problems:
+        return {}
+    totals: dict[str, list[int]] = {}  # [rank_sum, count]
+    for p in problems:
+        cls = p.problem_class
+        if cls not in totals:
+            totals[cls] = [0, 0]
+        totals[cls][0] += _SEVERITY_RANK.get(p.severity, 0)
+        totals[cls][1] += 1
+    return {cls: float(v[0]) / v[1] for cls, v in totals.items()}
