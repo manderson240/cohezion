@@ -14541,63 +14541,6 @@ def fid_severity_rank_unique_count(problems: list[Problem]) -> dict[str, int]:
 
 
 def class_severity_rank_above_median(problems: list[Problem]) -> dict[str, float]:
-    """Fraction of problems with rank strictly above the class median.  Item 757.
-
-    fraction = count(rank > median) / n per class.
-    All-same -> 0.0.  Empty -> {}.  Pure; no I/O.
-    """
-    if not problems:
-        return {}
-    ranks_by_class: dict[str, list[int]] = {}
-    for p in problems:
-        cls = p.problem_class
-        if cls not in ranks_by_class:
-            ranks_by_class[cls] = []
-        ranks_by_class[cls].append(_SEVERITY_RANK.get(p.severity, 0))
-    result: dict[str, float] = {}
-    for cls, ranks in ranks_by_class.items():
-        n = len(ranks)
-        sorted_ranks = sorted(ranks)
-        mid = n // 2
-        median = (
-            (sorted_ranks[mid - 1] + sorted_ranks[mid]) / 2.0
-            if n % 2 == 0
-            else float(sorted_ranks[mid])
-        )
-        result[cls] = float(sum(1 for r in ranks if r > median)) / n
-    return result
-
-
-def fid_severity_rank_above_median(problems: list[Problem]) -> dict[str, float]:
-    """Fraction of problems with rank strictly above the fid median.  Item 758.
-
-    Fid-axis complement of class_severity_rank_above_median (item 757).
-    fraction = count(rank > median) / n per fid.
-    All-same -> 0.0.  Empty -> {}.  Pure; no I/O.
-    """
-    if not problems:
-        return {}
-    ranks_by_fid: dict[str, list[int]] = {}
-    for p in problems:
-        fid = p.finding_id
-        if fid not in ranks_by_fid:
-            ranks_by_fid[fid] = []
-        ranks_by_fid[fid].append(_SEVERITY_RANK.get(p.severity, 0))
-    result: dict[str, float] = {}
-    for fid, ranks in ranks_by_fid.items():
-        n = len(ranks)
-        sorted_ranks = sorted(ranks)
-        mid = n // 2
-        median = (
-            (sorted_ranks[mid - 1] + sorted_ranks[mid]) / 2.0
-            if n % 2 == 0
-            else float(sorted_ranks[mid])
-        )
-        result[fid] = float(sum(1 for r in ranks if r > median)) / n
-    return result
-
-
-def class_severity_rank_above_median(problems: list[Problem]) -> dict[str, float]:
     """Fraction of problems with rank strictly above the median rank per class.  Item 757.
 
     fraction = count(rank > median) / n.  Median uses the standard formula
@@ -14650,4 +14593,59 @@ def fid_severity_rank_above_median(problems: list[Problem]) -> dict[str, float]:
             median = (sorted_ranks[n // 2 - 1] + sorted_ranks[n // 2]) / 2.0
         count_above = sum(1 for r in ranks if r > median)
         result[fid] = float(count_above) / n
+    return result
+
+
+def class_severity_rank_below_median(problems: list[Problem]) -> dict[str, float]:
+    """Fraction of problems with rank strictly below the median rank per class.  Item 759.
+
+    fraction = count(rank < median) / n.  Median uses standard formula.
+    All-same -> 0.0.  Empty -> {}.  Pure; no I/O.
+    """
+    if not problems:
+        return {}
+    ranks_by_class: dict[str, list[int]] = {}
+    for p in problems:
+        cls = p.problem_class
+        if cls not in ranks_by_class:
+            ranks_by_class[cls] = []
+        ranks_by_class[cls].append(_SEVERITY_RANK.get(p.severity, 0))
+    result: dict[str, float] = {}
+    for cls, ranks in ranks_by_class.items():
+        n = len(ranks)
+        sorted_ranks = sorted(ranks)
+        if n % 2 == 1:
+            median = float(sorted_ranks[n // 2])
+        else:
+            median = (sorted_ranks[n // 2 - 1] + sorted_ranks[n // 2]) / 2.0
+        count_below = sum(1 for r in ranks if r < median)
+        result[cls] = float(count_below) / n
+    return result
+
+
+def fid_severity_rank_below_median(problems: list[Problem]) -> dict[str, float]:
+    """Fraction of problems with rank strictly below the median rank per fid.  Item 760.
+
+    Fid-axis complement of class_severity_rank_below_median (item 759).
+    fraction = count(rank < median) / n per fid.
+    All-same -> 0.0.  Empty -> {}.  Pure; no I/O.
+    """
+    if not problems:
+        return {}
+    ranks_by_fid: dict[str, list[int]] = {}
+    for p in problems:
+        fid = p.finding_id
+        if fid not in ranks_by_fid:
+            ranks_by_fid[fid] = []
+        ranks_by_fid[fid].append(_SEVERITY_RANK.get(p.severity, 0))
+    result: dict[str, float] = {}
+    for fid, ranks in ranks_by_fid.items():
+        n = len(ranks)
+        sorted_ranks = sorted(ranks)
+        if n % 2 == 1:
+            median = float(sorted_ranks[n // 2])
+        else:
+            median = (sorted_ranks[n // 2 - 1] + sorted_ranks[n // 2]) / 2.0
+        count_below = sum(1 for r in ranks if r < median)
+        result[fid] = float(count_below) / n
     return result
