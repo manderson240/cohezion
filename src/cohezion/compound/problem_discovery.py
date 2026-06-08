@@ -6757,3 +6757,44 @@ def problem_count_for_class(problems: list[Problem], target_class: str) -> int:
     Pure (no I/O, no SurrealDB).
     """
     return sum(1 for p in problems if p.problem_class == target_class)
+
+
+def problem_count_for_severity(problems: list[Problem], target_severity: str) -> int:
+    """Return the total record count for a specific severity label — item 397.
+
+    Mirrors :func:`problem_count_for_class` on the severity axis.  The empty
+    string ``''`` is a valid *target_severity* that counts unlabelled records.
+
+    Args:
+        problems: List of :class:`Problem` instances.
+        target_severity: The severity string to count records for.  ``''``
+            counts unlabelled records.
+
+    Returns:
+        Integer count of records with ``severity == target_severity``.
+        ``0`` when not found.
+
+    Pure (no I/O, no SurrealDB).
+    """
+    return sum(1 for p in problems if p.severity == target_severity)
+
+
+def problem_count_for_severity(problems: list[Problem], target_severity: str) -> int:
+    """Return the total Problem record count for a specific severity — item 397.
+
+    Counts all :class:`Problem` records where :attr:`Problem.severity` equals
+    *target_severity*.  The empty string ``''`` is a valid target and returns
+    the count of unlabelled records.  Returns ``0`` when the severity is absent
+    or *problems* is empty — never raises.
+
+    Args:
+        problems: List of :class:`Problem` instances.
+        target_severity: The severity label to count records for (``''`` for
+            unlabelled).
+
+    Returns:
+        Integer count of records with *target_severity*.  ``0`` when not found.
+
+    Pure (no I/O, no SurrealDB).
+    """
+    return sum(1 for p in problems if p.severity == target_severity)
