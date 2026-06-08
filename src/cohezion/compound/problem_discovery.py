@@ -3001,3 +3001,40 @@ def top_classes_by_severity(
             counts[p.problem_class] = counts.get(p.problem_class, 0) + 1
     ranked = sorted(counts, key=lambda cls: (-counts[cls], cls))
     return ranked[:n]
+
+
+def any_class_above_severity_fraction(
+    problems: list[Problem],
+    severity: str,
+    min_fraction: float,
+) -> bool:
+    """Return True if any class has ≥ *min_fraction* of its problems at *severity*.
+
+    The fraction is computed **per class** as::
+
+        count_at_severity_for_class / total_problems_in_class
+
+    The denominator includes all problems for that class (all severities plus
+    unlabelled).  This is distinct from the global
+    :func:`severity_fraction`, which uses all labelled problems as the
+    denominator.
+
+    Args:
+        problems:     List of :class:`Problem` instances from a scan.
+        severity:     Exact severity string (case-sensitive).
+        min_fraction: Inclusive lower bound on the per-class fraction.
+
+    Returns:
+        ``True`` if at least one class satisfies the threshold; ``False``
+        otherwise (including empty input).
+
+    Pure (no I/O, no SurrealDB).
+    """
+    # Build per-class total count and at-severity count in a single pass.
+    total: dict[str, int] = {}
+    at_sev: dict[str, int] = {}
+    for p in problems:
+        total[p.problem_class] = total.get(p.problem_class, 0) + 1
+        if p.severity == severity:
+            at_sev[p.problem_class] = at_sev.get(p.problem_class, 0) + 1
+    return any(cnt / total[cls] >= min_fraction for cls, cnt in at_sev.items())
