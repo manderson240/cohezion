@@ -11865,3 +11865,27 @@ def class_severity_concentration(problems: list[Problem]) -> dict[str, float]:
         cls: float(max(bucket.values())) / totals[cls]
         for cls, bucket in sev_counts.items()
     }
+
+
+def fid_severity_concentration(problems: list[Problem]) -> dict[str, float]:
+    """Return the dominance fraction of the most frequent severity per fid.  Item 623.
+
+    FID-axis complement of class_severity_concentration (item 622).
+    concentration = max_severity_count / total_fid_problems.
+    1.0 means all problems for that fid share a single severity bucket.
+    Empty -> {}.  Float in (0, 1].  Pure; no I/O.
+    """
+    if not problems:
+        return {}
+    sev_counts: dict[str, dict[str, int]] = {}
+    totals: dict[str, int] = {}
+    for p in problems:
+        if p.finding_id not in sev_counts:
+            sev_counts[p.finding_id] = {}
+        sev = p.severity if p.severity else ""
+        sev_counts[p.finding_id][sev] = sev_counts[p.finding_id].get(sev, 0) + 1
+        totals[p.finding_id] = totals.get(p.finding_id, 0) + 1
+    return {
+        fid: float(max(bucket.values())) / totals[fid]
+        for fid, bucket in sev_counts.items()
+    }
