@@ -8095,3 +8095,28 @@ def severity_cv(problems: list[Problem]) -> float:
     variance = sum((v - mean) ** 2 for v in values) / n
     stdev = variance**0.5
     return stdev / mean
+
+
+def severity_mean_count(problems: list[Problem]) -> float:
+    """Return the mean record count per distinct severity -- item 459.
+
+    Computes the arithmetic mean of the per-severity record counts:
+    ``total_records / distinct_severity_count``.
+
+    Special cases:
+    - Empty *problems* → ``0.0``
+
+    Args:
+        problems: List of :class:`Problem` instances.
+
+    Returns:
+        Non-negative float.  Arithmetic mean of all per-severity counts.
+
+    Pure (no I/O, no SurrealDB).
+    """
+    if not problems:
+        return 0.0
+    counts: dict[str, int] = {}
+    for p in problems:
+        counts[p.severity] = counts.get(p.severity, 0) + 1
+    return float(sum(counts.values()) / len(counts))
