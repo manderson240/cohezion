@@ -14980,10 +14980,7 @@ def class_severity_rank_mode_value(problems: list[Problem]) -> dict[str, float]:
     Ties broken by min rank.  All-same -> float(rank).  Empty -> {}.  Pure; no I/O.
     Wires over class_problem_rank_majority_class (item 746), converting int -> float.
     """
-    return {
-        cls: float(rank)
-        for cls, rank in class_problem_rank_majority_class(problems).items()
-    }
+    return {cls: float(rank) for cls, rank in class_problem_rank_majority_class(problems).items()}
 
 
 def fid_severity_rank_mode_value(problems: list[Problem]) -> dict[str, float]:
@@ -14993,10 +14990,7 @@ def fid_severity_rank_mode_value(problems: list[Problem]) -> dict[str, float]:
     Most-frequent rank per fid; ties -> min rank.  Empty -> {}.  Pure; no I/O.
     Wires over fid_problem_rank_majority_class (item 747), converting int -> float.
     """
-    return {
-        fid: float(rank)
-        for fid, rank in fid_problem_rank_majority_class(problems).items()
-    }
+    return {fid: float(rank) for fid, rank in fid_problem_rank_majority_class(problems).items()}
 
 
 def class_severity_rank_mode_count(problems: list[Problem]) -> dict[str, int]:
