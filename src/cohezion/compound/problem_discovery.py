@@ -15898,7 +15898,7 @@ def fid_max_severity_rank(problems: list[Problem]) -> dict[str, int]:
     return result
 
 
-def class_min_severity_rank(problems: list["Problem"]) -> dict[str, int]:
+def class_min_severity_rank(problems: list[Problem]) -> dict[str, int]:
     """Minimum severity rank per class.  Item 824.
     Returns the lowest _SEVERITY_RANK value observed for each class. Empty -> {}."""
     if not problems:
@@ -15912,7 +15912,7 @@ def class_min_severity_rank(problems: list["Problem"]) -> dict[str, int]:
     return result
 
 
-def fid_min_severity_rank(problems: list["Problem"]) -> dict[str, int]:
+def fid_min_severity_rank(problems: list[Problem]) -> dict[str, int]:
     """Minimum severity rank per fid.  Item 825. Fid-axis complement of 824.
     Returns the lowest _SEVERITY_RANK value observed for each finding_id. Empty -> {}."""
     if not problems:
@@ -15924,3 +15924,37 @@ def fid_min_severity_rank(problems: list["Problem"]) -> dict[str, int]:
         if fid not in result or rank < result[fid]:
             result[fid] = rank
     return result
+
+
+def class_mean_severity_rank(problems: list["Problem"]) -> dict[str, float]:
+    """Mean severity rank per class.  Item 826.
+    Returns float average of _SEVERITY_RANK values for each class. Empty -> {}."""
+    if not problems:
+        return {}
+    totals: dict[str, int] = {}
+    counts: dict[str, int] = {}
+    for p in problems:
+        cls = p.problem_class
+        if cls not in totals:
+            totals[cls] = 0
+            counts[cls] = 0
+        totals[cls] += _SEVERITY_RANK.get(p.severity, 0)
+        counts[cls] += 1
+    return {cls: float(totals[cls]) / counts[cls] for cls in totals}
+
+
+def fid_mean_severity_rank(problems: list["Problem"]) -> dict[str, float]:
+    """Mean severity rank per fid.  Item 827. Fid-axis complement of 826.
+    Returns float average of _SEVERITY_RANK values for each finding_id. Empty -> {}."""
+    if not problems:
+        return {}
+    totals: dict[str, int] = {}
+    counts: dict[str, int] = {}
+    for p in problems:
+        fid = p.finding_id
+        if fid not in totals:
+            totals[fid] = 0
+            counts[fid] = 0
+        totals[fid] += _SEVERITY_RANK.get(p.severity, 0)
+        counts[fid] += 1
+    return {fid: float(totals[fid]) / counts[fid] for fid in totals}
