@@ -248,6 +248,41 @@ class TournamentSnapshotDiff:
     unchanged: set[str]
 
 
+def diff_summary(diff: TournamentSnapshotDiff) -> str:
+    """Return a compact human-readable audit-log string for *diff* — item 166.
+
+    Converts a :class:`TournamentSnapshotDiff` into a plain-text report
+    suitable for audit logs and debug output.  Each partition (added /
+    removed / changed) is rendered as one line per task entry.  Unchanged
+    tasks are intentionally omitted — they carry no audit-relevant signal.
+
+    Args:
+        diff: A frozen :class:`TournamentSnapshotDiff` from
+            :func:`tournament_snapshot_diff`.
+
+    Returns:
+        ``"No changes."`` when the diff is empty (no added, removed, or
+        changed tasks).  Otherwise, a multi-line string with one entry per
+        changed task and a trailing newline stripped.
+
+    Pure (no I/O, no SurrealDB).
+    """
+    lines: list[str] = []
+
+    for task_value, model_id in sorted(diff.added.items()):
+        lines.append(f"added:   {task_value} → {model_id}")
+
+    for task_value in sorted(diff.removed):
+        lines.append(f"removed: {task_value}")
+
+    for task_value, (old_model, new_model) in sorted(diff.changed.items()):
+        lines.append(f"changed: {task_value}  {old_model} → {new_model}")
+
+    if not lines:
+        return "No changes."
+    return "\n".join(lines)
+
+
 def tournament_snapshot_diff(
     before: TournamentSnapshot,
     after: TournamentSnapshot,
