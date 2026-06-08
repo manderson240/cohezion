@@ -10130,3 +10130,30 @@ def fid_score_median(
             fid_totals.get(p.finding_id, 0.0) + weights.get(p.severity, 0.0)
         )
     return float(_stats.median(fid_totals.values()))
+
+
+def class_score_mad(
+    problems: list[Problem],
+    weights: dict[str, float],
+) -> float:
+    """Return the median absolute deviation (MAD) of class total weighted scores.
+
+    MAD = median(|x - median(x)|).  Doubly outlier-resistant: both center and
+    spread use the median.  0.0 for empty or single class.  Item 537.
+    """
+    import statistics as _statistics
+
+    if not problems:
+        return 0.0
+    class_totals: dict[str, float] = {}
+    for p in problems:
+        class_totals[p.problem_class] = (
+            class_totals.get(p.problem_class, 0.0) + weights.get(p.severity, 0.0)
+        )
+    n = len(class_totals)
+    if n < 2:
+        return 0.0
+    values = list(class_totals.values())
+    med = _statistics.median(values)
+    abs_devs = [abs(v - med) for v in values]
+    return float(_statistics.median(abs_devs))
