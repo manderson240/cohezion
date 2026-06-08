@@ -13226,3 +13226,21 @@ def class_severity_rank_max(problems: list[Problem]) -> dict[str, int]:
         if cls not in result or rank > result[cls]:
             result[cls] = rank
     return result
+
+
+def fid_severity_rank_max(problems: list[Problem]) -> dict[str, int]:
+    """Return maximum severity rank per fid as int.  Item 699.
+
+    Fid-axis complement of class_severity_rank_max (item 698).
+    Unknown severities rank as 0.
+    Returns {fid: max_rank}.  Empty -> {}.  Pure; no I/O.
+    """
+    if not problems:
+        return {}
+    result: dict[str, int] = {}
+    for p in problems:
+        fid = p.finding_id
+        rank = _SEVERITY_RANK.get(p.severity, 0)
+        if fid not in result or rank > result[fid]:
+            result[fid] = rank
+    return result
