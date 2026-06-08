@@ -7342,3 +7342,37 @@ def class_gini_impurity(problems: list[Problem]) -> float:
     return 1.0 - sum((c / total) ** 2 for c in counts.values())
 
 
+def class_balance_score(problems: list[Problem]) -> float:
+    """Return the normalised class balance score -- item 426.
+
+    Computes ``H / log2(n)`` where ``H`` is :func:`class_entropy` and ``n``
+    is the number of distinct classes.  The score is 1.0 when all classes have
+    equal record counts (maximum balance) and approaches 0.0 when one class
+    dominates.
+
+    Special cases:
+
+    - Empty *problems* -> 1.0 (vacuously balanced)
+    - Single class -> 1.0 (trivially balanced; entropy = 0, max_entropy = 0,
+      so the ratio is defined as 1.0 by convention)
+
+    Args:
+        problems: List of :class:`Problem` instances.
+
+    Returns:
+        Normalised balance score as a float in ``[0.0, 1.0]``.
+
+    Pure (no I/O, no SurrealDB).
+    """
+    if not problems:
+        return 1.0
+    counts: dict[str, int] = {}
+    for p in problems:
+        counts[p.problem_class] = counts.get(p.problem_class, 0) + 1
+    n = len(counts)
+    if n == 1:
+        return 1.0
+    total = len(problems)
+    entropy = -sum((c / total) * math.log2(c / total) for c in counts.values())
+    max_entropy = math.log2(n)
+    return entropy / max_entropy
