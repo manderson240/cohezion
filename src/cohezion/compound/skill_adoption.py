@@ -16,6 +16,7 @@ from __future__ import annotations
 
 import json
 from collections.abc import Iterable
+from dataclasses import dataclass
 from pathlib import Path
 
 
@@ -117,3 +118,72 @@ def least_adopted(
     counts = _counts_per_registered_skill(usage_events, registry_skills, registry_path)
     ranked = sorted(counts.items(), key=lambda kv: (kv[1], kv[0]))
     return ranked[: max(0, n)]
+
+
+# ---------------------------------------------------------------------------
+# Item 82 — Skill-firing concentration (Thread A)
+# ---------------------------------------------------------------------------
+
+
+@dataclass(frozen=True)
+class FiringConcentration:
+    """The top-heaviness scalar of registered-skill usage (item 82). Report-only.
+
+    Attributes:
+        top_skill_share: Fraction of ALL registered firings captured by the single
+            most-fired skill.  0.0 when there are no firings.
+        unused_share: Fraction of ALL REGISTERED skills with zero firings.
+            1.0 when the entire registry is idle.
+        total_firings: Total firing count over registered skills (unregistered
+            firings are excluded from all three figures).
+    """
+
+    top_skill_share: float
+    unused_share: float
+    total_firings: int
+
+
+def firing_concentration(
+    usage_events: Iterable[dict],
+    registry_skills: Iterable[str] | None = None,
+    *,
+    registry_path: Path | None = None,
+) -> FiringConcentration:
+    """The top-heaviness scalar that EXPLAINS item-60's long tail (item 82). READ-ONLY.
+
+    A single number answers "how skewed is the firing distribution?" — a few skills hogging
+    firings while many sit unused.  Shares ``_counts_per_registered_skill`` with item-60.
+
+    All three figures operate over REGISTERED skills only; unregistered firings are excluded:
+    - ``top_skill_share`` = firings_of_most_fired_skill / total_registered_firings (0.0 if none).
+    - ``unused_share``    = never_fired_skills / total_registered_skills (1.0 if none fired).
+    - ``total_firings``   = sum of registered-skill firing counts (not the raw event count).
+
+    No ZeroDivision: when total_firings == 0, top_skill_share = 0.0; when registry is empty,
+    unused_share = 0.0.  Never reads SurrealDB (caller injects events).
+    """
+    counts = _counts_per_registered_skill(usage_events, registry_skills, registry_path)
+
+    total_registered = len(counts)
+    total_firings = sum(counts.values())
+    never_fired = sum(1 for c in counts.values() if c == 0)
+
+    top_skill_share = max(counts.values()) / total_firings if total_firings > 0 else 0.0
+    unused_share = never_fired / total_registered if total_registered > 0 else 0.0
+
+    return FiringConcentration(
+        top_skill_share=top_skill_share,
+        unused_share=unused_share,
+        total_firings=total_firings,
+    )
+
+
+# ---------------------------------------------------------------------------
+# ## FUTURE HOOKS
+# ---------------------------------------------------------------------------
+# 82b: Expose firing_concentration via the compound health dashboard
+#      (CompoundHealthResponse) so operators can see distribution skew at a glance.
+# 82c: Feed into SkillRefiner: when top_skill_share > 0.7, the over-fired skill
+#      is a candidate for decomposition (too broad → too general).
+# 82d: Track concentration trend over ticks — convergence toward 1.0 means the
+#      loop is increasingly relying on a single skill (brittleness signal).
