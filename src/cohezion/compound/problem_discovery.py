@@ -3325,6 +3325,29 @@ def labelled_problem_count(problems: list[Problem]) -> int:
     return sum(1 for p in problems if p.severity)
 
 
+def labelled_fraction(problems: list[Problem]) -> float:
+    """Return the fraction of problems that carry a non-empty severity label — item 381.
+
+    Scalar labelling-coverage metric: ``labelled_count / total_count``.
+    Equivalent to :func:`labelling_coverage`; provided as an alternative name
+    that reads naturally alongside :func:`labelled_problem_count`.
+
+    Args:
+        problems: List of :class:`Problem` instances.  Empty → ``0.0``.
+
+    Returns:
+        Float in ``[0.0, 1.0]``.  ``0.0`` when *problems* is empty or all
+        problems are unlabelled.  ``1.0`` when every problem has a non-empty
+        ``severity`` field.
+
+    Pure (no I/O, no SurrealDB).
+    """
+    total = len(problems)
+    if total == 0:
+        return 0.0
+    return sum(1 for p in problems if p.severity) / total
+
+
 def labelling_coverage(problems: list[Problem]) -> float:
     """Return the fraction of problems that have a non-empty severity label.
 
