@@ -584,6 +584,37 @@ def filter_problems(
     return [p for p in problems if predicate(p)]
 
 
+def group_problems_by_class(problems: list[Problem]) -> dict[str, list[Problem]]:
+    """Group a TIDE finding list by ``problem_class`` — item 176.
+
+    Structural complement of :func:`problem_count_by_class` (item 160): where
+    that function returns ``{problem_class: count}``, this one returns
+    ``{problem_class: [Problem, ...]}``.  Callers that need the actual
+    ``finding_id`` values per class (e.g. the diff pipeline, CI gates) should
+    use this function; callers that only need counts should use
+    :func:`problem_count_by_class`.
+
+    Finding order within each group is the same as the input list order.
+    Classes absent from *problems* are absent from the result.
+
+    Args:
+        problems:
+            A list of :class:`Problem` instances.  Empty list → ``{}``.
+
+    Returns:
+        A ``dict`` mapping each ``problem_class`` to the list of
+        :class:`Problem` instances of that class, in input order.
+
+    Pure (no I/O, no SurrealDB).
+    """
+    result: dict[str, list[Problem]] = {}
+    for p in problems:
+        if p.problem_class not in result:
+            result[p.problem_class] = []
+        result[p.problem_class].append(p)
+    return result
+
+
 def default_template_classes() -> frozenset[str]:
     """Return the exact set of ``problem_class`` names in :func:`default_templates` — item 158.
 
