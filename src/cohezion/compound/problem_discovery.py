@@ -12189,3 +12189,29 @@ def class_fid_gini(problems: list[Problem]) -> dict[str, float]:
         total = totals[cls]
         result[cls] = 1.0 - sum((cnt / total) ** 2 for cnt in bucket.values())
     return result
+
+
+def fid_class_gini(problems: list[Problem]) -> dict[str, float]:
+    """Return Gini impurity of per-class problem counts for each fid.  Item 638.
+
+    FID-axis complement of class_fid_gini (item 637).
+    gini = 1 - sum(p_i^2) where p_i = class_count_i / total_fid_count.
+    0.0 = single class dominates; approaches 1.0 = perfectly uniform class spread.
+    float in [0, 1).
+    """
+    if not problems:
+        return {}
+    class_counts: dict[str, dict[str, int]] = {}
+    totals: dict[str, int] = {}
+    for p in problems:
+        if p.finding_id not in class_counts:
+            class_counts[p.finding_id] = {}
+        class_counts[p.finding_id][p.problem_class] = (
+            class_counts[p.finding_id].get(p.problem_class, 0) + 1
+        )
+        totals[p.finding_id] = totals.get(p.finding_id, 0) + 1
+    result: dict[str, float] = {}
+    for fid, bucket in class_counts.items():
+        total = totals[fid]
+        result[fid] = 1.0 - sum((cnt / total) ** 2 for cnt in bucket.values())
+    return result
