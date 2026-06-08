@@ -50,11 +50,9 @@ def test_value_is_frozenset_not_list() -> None:
     result = finding_id_class_map(problems)
     assert "fid0" in result, "fid0 must be in result; got " + repr(result)
     val = result["fid0"]
-    assert isinstance(val, frozenset), (
-        "value must be frozenset; got " + repr(type(val))
-    )
-    assert val == frozenset({"alpha"}), (
-        "fid0 in alpha only -> frozenset({'alpha'}); got " + repr(val)
+    assert isinstance(val, frozenset), "value must be frozenset; got " + repr(type(val))
+    assert val == frozenset({"alpha"}), "fid0 in alpha only -> frozenset({'alpha'}); got " + repr(
+        val
     )
 
 
