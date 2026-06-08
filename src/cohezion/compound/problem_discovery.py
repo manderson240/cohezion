@@ -13716,3 +13716,54 @@ def fid_severity_rank_std(problems: list[Problem]) -> dict[str, float]:
             variance = sum((r - mean) ** 2 for r in ranks) / n
             result[fid] = math.sqrt(variance)
     return result
+
+
+def class_severity_rank_variance(problems: list[Problem]) -> dict[str, float]:
+    """Population variance of severity ranks per class.  Item 726.
+
+    variance = mean((rank - mean_rank)^2).  Single-problem -> 0.0.
+    Returns {class: variance}.  Empty -> {}.  Pure; no I/O.
+    """
+    if not problems:
+        return {}
+    ranks_by_class: dict[str, list[int]] = {}
+    for p in problems:
+        cls = p.problem_class
+        if cls not in ranks_by_class:
+            ranks_by_class[cls] = []
+        ranks_by_class[cls].append(_SEVERITY_RANK.get(p.severity, 0))
+    result: dict[str, float] = {}
+    for cls, ranks in ranks_by_class.items():
+        n = len(ranks)
+        if n <= 1:
+            result[cls] = 0.0
+        else:
+            mean = sum(ranks) / n
+            result[cls] = sum((r - mean) ** 2 for r in ranks) / n
+    return result
+
+
+def fid_severity_rank_variance(problems: list[Problem]) -> dict[str, float]:
+    """Population variance of severity ranks per fid.  Item 727.
+
+    Fid-axis complement of class_severity_rank_variance (item 726).
+    variance = mean((rank - mean_rank)^2).  Single-problem -> 0.0.
+    Returns {fid: variance}.  Empty -> {}.  Pure; no I/O.
+    """
+    if not problems:
+        return {}
+    ranks_by_fid: dict[str, list[int]] = {}
+    for p in problems:
+        fid = p.finding_id
+        if fid not in ranks_by_fid:
+            ranks_by_fid[fid] = []
+        ranks_by_fid[fid].append(_SEVERITY_RANK.get(p.severity, 0))
+    result: dict[str, float] = {}
+    for fid, ranks in ranks_by_fid.items():
+        n = len(ranks)
+        if n <= 1:
+            result[fid] = 0.0
+        else:
+            mean = sum(ranks) / n
+            result[fid] = sum((r - mean) ** 2 for r in ranks) / n
+    return result
