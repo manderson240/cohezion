@@ -12790,3 +12790,56 @@ def class_fid_problem_rate(problems: list[Problem]) -> dict[str, dict[str, float
         cls: {fid: count / total for fid, count in inner.items()}
         for cls, inner in counts.items()
     }
+
+
+def class_fid_problem_rank(problems: list[Problem]) -> dict[str, dict[str, int]]:
+    """Return dense rank of each class × fid cell by problem count (descending).  Item 671.
+
+    Rank 1 = most problems within the class.  Ties share the lower rank (dense ranking:
+    counts 5,3,3 → ranks 1,2,2 not 1,3,3).  Rankings are computed per-class independently.
+    Returns {class: {fid: rank}}.  int >= 1.  Sparse.  Empty -> {}.  Pure; no I/O.
+    """
+    if not problems:
+        return {}
+    # Step 1: count per (class, fid)
+    counts: dict[str, dict[str, int]] = {}
+    for p in problems:
+        cls = p.problem_class
+        fid = p.finding_id
+        if cls not in counts:
+            counts[cls] = {}
+        counts[cls][fid] = counts[cls].get(fid, 0) + 1
+    # Step 2: dense rank within each class (descending by count)
+    result: dict[str, dict[str, int]] = {}
+    for cls, fid_counts in counts.items():
+        # Sorted distinct counts descending → rank mapping
+        distinct_counts = sorted(set(fid_counts.values()), reverse=True)
+        rank_of = {cnt: idx + 1 for idx, cnt in enumerate(distinct_counts)}
+        result[cls] = {fid: rank_of[cnt] for fid, cnt in fid_counts.items()}
+    return result
+
+
+def class_fid_problem_rank(problems: list[Problem]) -> dict[str, dict[str, int]]:
+    """Return dense rank of each class x fid cell by problem count (descending).  Item 671.
+
+    rank 1 = most problems in that class.  Ties share the same (lower) rank.
+    Dense rank: ranks are contiguous (1, 2, 2, 3, ...).
+    Returns {class: {fid: rank}}.  Sparse.  Empty -> {}.  Pure; no I/O.
+    """
+    if not problems:
+        return {}
+    # Build counts per class x fid
+    counts: dict[str, dict[str, int]] = {}
+    for p in problems:
+        cls = p.problem_class
+        fid = p.finding_id
+        if cls not in counts:
+            counts[cls] = {}
+        counts[cls][fid] = counts[cls].get(fid, 0) + 1
+    result: dict[str, dict[str, int]] = {}
+    for cls, fid_counts in counts.items():
+        # Get unique counts sorted descending
+        sorted_unique = sorted(set(fid_counts.values()), reverse=True)
+        rank_for_count = {count: rank + 1 for rank, count in enumerate(sorted_unique)}
+        result[cls] = {fid: rank_for_count[count] for fid, count in fid_counts.items()}
+    return result
