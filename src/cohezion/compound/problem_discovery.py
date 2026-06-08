@@ -3597,3 +3597,32 @@ def top_severity_pairs(
             counts[key] = counts.get(key, 0) + 1
     ranked = sorted(counts.items(), key=lambda kv: (-kv[1], kv[0][0], kv[0][1]))
     return [(cls, sev, cnt) for (cls, sev), cnt in ranked[:n]]
+
+
+def class_severity_vector(
+    problems: list[Problem], cls: str, severities: list[str]
+) -> tuple[int, ...]:
+    """Return a fixed-order count vector for *cls* indexed by *severities*.
+
+    Each element of the returned tuple is the count of problems in *cls*
+    with the corresponding severity (exact match).  The order mirrors
+    *severities* exactly — absent severities get count 0.
+
+    Args:
+        problems:   List of :class:`Problem` instances from a scan.
+        cls:        Class name to build the vector for.
+        severities: Ordered list of severity labels.
+
+    Returns:
+        tuple of int counts, one per entry in *severities* in the same order.
+        Returns ``()`` when *severities* is empty.
+
+    Pure (no I/O, no SurrealDB).
+    """
+    if not severities:
+        return ()
+    counts: dict[str, int] = {}
+    for p in problems:
+        if p.problem_class == cls and p.severity:
+            counts[p.severity] = counts.get(p.severity, 0) + 1
+    return tuple(counts.get(sev, 0) for sev in severities)
