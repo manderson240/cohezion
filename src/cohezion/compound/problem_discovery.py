@@ -12316,3 +12316,28 @@ def class_fid_dominance_ratio(problems: list[Problem]) -> dict[str, float]:
         mn = min(bucket.values())
         result[cls] = float(mx) / mn
     return result
+
+
+def fid_class_dominance_ratio(problems: list[Problem]) -> dict[str, float]:
+    """Return the dominance ratio (max/min) of per-class counts for each fid.  Item 643.
+
+    FID-axis complement of class_fid_dominance_ratio (item 642).
+    dominance_ratio = max_class_count / min_class_count.
+    1.0 = all classes equal; > 1.0 = dominant class exists. float >= 1.0.
+    Single-class -> 1.0.
+    """
+    if not problems:
+        return {}
+    class_counts: dict[str, dict[str, int]] = {}
+    for p in problems:
+        if p.finding_id not in class_counts:
+            class_counts[p.finding_id] = {}
+        class_counts[p.finding_id][p.problem_class] = (
+            class_counts[p.finding_id].get(p.problem_class, 0) + 1
+        )
+    result: dict[str, float] = {}
+    for fid, bucket in class_counts.items():
+        mx = max(bucket.values())
+        mn = min(bucket.values())
+        result[fid] = float(mx) / mn
+    return result

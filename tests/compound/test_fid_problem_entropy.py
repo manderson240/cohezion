@@ -47,9 +47,7 @@ def test_two_equal_classes_one_bit_entropy() -> None:
     problems = [_p("A", "f3")] * 4 + [_p("B", "f3")] * 4
     result = fid_problem_entropy(problems)
     assert "f3" in result
-    assert abs(result["f3"] - 1.0) < 1e-9, (
-        f"Equal classes [4,4] -> H=1.0; got {result['f3']}"
-    )
+    assert abs(result["f3"] - 1.0) < 1e-9, f"Equal classes [4,4] -> H=1.0; got {result['f3']}"
 
 
 def test_empty_returns_empty_dict() -> None:
@@ -66,6 +64,4 @@ def test_multiple_fids_independent() -> None:
     problems = [_p("A", "f4")] + [_p("A", "f5")] * 3 + [_p("B", "f5")] * 3
     result = fid_problem_entropy(problems)
     assert abs(result["f4"]) < 1e-9, f"f4 single-class -> H=0.0; got {result['f4']}"
-    assert abs(result["f5"] - 1.0) < 1e-9, (
-        f"f5 equal classes -> H=1.0; got {result['f5']}"
-    )
+    assert abs(result["f5"] - 1.0) < 1e-9, f"f5 equal classes -> H=1.0; got {result['f5']}"
