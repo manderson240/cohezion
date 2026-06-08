@@ -202,3 +202,97 @@ def test_audit_liveness_skips_cloud_and_cli_lanes() -> None:
             f"{item.model_id} got audited with non-local lane {item.lane!r}; "
             "cloud/CLI models should be filtered out."
         )
+
+
+# ---------------------------------------------------------------------------
+# Item 50 — Gemma-4 QAT q4_0 alternatives registration
+# ---------------------------------------------------------------------------
+
+_QAT_MODEL_IDS = {
+    "Gemma-4-E2B-it-qat-q4_0-GGUF",
+    "Gemma-4-E4B-it-qat-q4_0-GGUF",
+    "Gemma-4-26B-A4B-it-qat-q4_0-GGUF",
+    "Gemma-4-31B-it-qat-q4_0-GGUF",
+}
+
+_QAT_TO_PTQ = {
+    "Gemma-4-E2B-it-qat-q4_0-GGUF": "Gemma-4-E2B-it-GGUF",
+    "Gemma-4-E4B-it-qat-q4_0-GGUF": "Gemma-4-E4B-it-GGUF",
+    "Gemma-4-26B-A4B-it-qat-q4_0-GGUF": "Gemma-4-26B-A4B-it-GGUF",
+    "Gemma-4-31B-it-qat-q4_0-GGUF": "Gemma-4-31B-it-GGUF",
+}
+
+
+def test_qat_q4_0_all_four_symphony_tiers_registered() -> None:
+    """Item 50: all four QAT variants must be present in the default registry."""
+    registry = FleetRegistry()
+    present = set(registry.models)
+    missing = _QAT_MODEL_IDS - present
+    assert not missing, f"QAT variants missing from registry: {missing}"
+
+
+def test_qat_variants_unverified_working() -> None:
+    """Item 50: QAT models are alternatives pending the swap-proof — never auto-verified."""
+    registry = FleetRegistry()
+    for qat_id in _QAT_MODEL_IDS:
+        m = registry.models.get(qat_id)
+        assert m is not None, f"{qat_id} not in registry"
+        assert not m.verified_working, (
+            f"{qat_id} has verified_working=True before the swap-proof; "
+            "registration must be additive (verified_working=False) per item-50 policy"
+        )
+
+
+def test_qat_variants_surface_in_for_task() -> None:
+    """Item 50 falsifiable check: each QAT variant appears in for_task() for its tier's tasks."""
+    registry = FleetRegistry()
+    # E2B QAT → same task affinity as the PTQ E2B
+    e2b_ids = {m.model_id for m in registry.for_task(Task.SENSING)}
+    assert "Gemma-4-E2B-it-qat-q4_0-GGUF" in e2b_ids, (
+        "Gemma-4-E2B-it-qat-q4_0-GGUF must surface in for_task(SENSING)"
+    )
+    # E4B QAT → same as PTQ E4B
+    e4b_ids = {m.model_id for m in registry.for_task(Task.GOVERNANCE)}
+    assert "Gemma-4-E4B-it-qat-q4_0-GGUF" in e4b_ids, (
+        "Gemma-4-E4B-it-qat-q4_0-GGUF must surface in for_task(GOVERNANCE)"
+    )
+    # 26B QAT → same as PTQ 26B
+    m26_ids = {m.model_id for m in registry.for_task(Task.REASONING)}
+    assert "Gemma-4-26B-A4B-it-qat-q4_0-GGUF" in m26_ids, (
+        "Gemma-4-26B-A4B-it-qat-q4_0-GGUF must surface in for_task(REASONING)"
+    )
+    # 31B QAT → same as PTQ 31B
+    m31_ids = {m.model_id for m in registry.for_task(Task.ARCHITECT)}
+    assert "Gemma-4-31B-it-qat-q4_0-GGUF" in m31_ids, (
+        "Gemma-4-31B-it-qat-q4_0-GGUF must surface in for_task(ARCHITECT)"
+    )
+
+
+def test_qat_variants_non_displacing_priority() -> None:
+    """Item 50: QAT priority > PTQ priority so the unverified alternative never auto-displaces
+    the verified working model in for_task() ordering."""
+    registry = FleetRegistry()
+    for qat_id, ptq_id in _QAT_TO_PTQ.items():
+        qat = registry.models[qat_id]
+        ptq = registry.models[ptq_id]
+        assert qat.priority > ptq.priority, (
+            f"{qat_id} (priority={qat.priority}) must have LOWER preference than "
+            f"{ptq_id} (priority={ptq.priority}) — an unverified QAT must not displace "
+            "the verified PTQ model in routing. Set QAT priority = PTQ_priority + 1."
+        )
+
+
+def test_qat_variants_bind_to_same_silicon_as_ptq() -> None:
+    """Item 50: each QAT variant targets the same lane/endpoint as its PTQ counterpart
+    (same physical hardware, different GGUF file)."""
+    registry = FleetRegistry()
+    for qat_id, ptq_id in _QAT_TO_PTQ.items():
+        qat = registry.models[qat_id]
+        ptq = registry.models[ptq_id]
+        assert qat.lane == ptq.lane, (
+            f"{qat_id} lane={qat.lane} != {ptq_id} lane={ptq.lane}; "
+            "QAT variant must target the same silicon as its PTQ counterpart"
+        )
+        assert qat.endpoint == ptq.endpoint, (
+            f"{qat_id} endpoint={qat.endpoint} != {ptq_id} endpoint={ptq.endpoint}"
+        )

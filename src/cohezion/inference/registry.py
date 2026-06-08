@@ -427,6 +427,91 @@ def _build_default_registry() -> dict[str, ModelEntry]:
                 "Uses 1024-token sliding window attention."
             ),
         ),
+        # --- Item 50: Gemma-4 QAT q4_0 alternatives (registered additive-first, unverified) ---
+        # Official google/gemma-4-{E2B,E4B,26B-A4B,31B}-it-qat-q4_0-gguf GGUFs
+        # (model_info-verified, 1.5k–3.8k downloads, mmproj included). QAT beats
+        # post-training quant at the SAME 4-bit width → better quality at <= current memory.
+        # Registered as non-displacing alternatives (priority = PTQ_priority + 1).
+        # The SWAP (replacing PTQ with QAT) is gated behind a proof:
+        #   QAT SERVES + memory <= current + quality >= current at q4 on held-out set.
+        # Do NOT set verified_working=True or lower priority until the proof passes.
+        ModelEntry(
+            model_id="Gemma-4-E2B-it-qat-q4_0-GGUF",
+            lane=Lane.NPU,
+            endpoint="http://localhost:13306",
+            runtime_backend="flm",
+            task_affinity=frozenset({Task.SENSING, Task.ROUTING, Task.SUMMARIZATION}),
+            weight_quant=WeightQuant.INT4,  # QAT q4_0: same 4-bit width as PTQ, better quality
+            kv_quant=KVQuant(),  # AMD Ryzen AI compiler has no TBQ op as of 1.7.1
+            context_window=131072,
+            priority=11,  # non-displacing: PTQ E2B is 10; tries QAT only after PTQ fails
+            verified_working=False,  # needs-experiment: serve + benchmark before mark_verified
+            reasoning_mode=True,
+            notes=(
+                "Gemma-4-E2B QAT q4_0 — NPU alternative (item 50). "
+                "HF id: google/gemma-4-E2B-it-qat-q4_0-gguf (model_info-verified, 1.5k dl). "
+                "QAT beats PTQ at equal 4-bit width. SWAP-GATED: flip to priority < 10 only "
+                "after serves + memory <= 2.9 GB + quality >= PTQ on held-out set (K1/lane-up)."
+            ),
+        ),
+        ModelEntry(
+            model_id="Gemma-4-E4B-it-qat-q4_0-GGUF",
+            lane=Lane.IGPU_ROCWMMA,
+            endpoint="http://localhost:13307",
+            runtime_backend="llamacpp_hip",
+            task_affinity=frozenset({Task.STRUCTURED, Task.GOVERNANCE}),
+            weight_quant=WeightQuant.Q4_K_M,  # QAT q4_0: using Q4_K_M enum (no Q4_0 in enum)
+            kv_quant=kv8_q80,
+            context_window=131072,
+            priority=21,  # non-displacing: PTQ E4B is 20
+            verified_working=False,
+            reasoning_mode=True,
+            notes=(
+                "Gemma-4-E4B QAT q4_0 — iGPU alternative (item 50). "
+                "HF id: google/gemma-4-E4B-it-qat-q4_0-gguf (model_info-verified, 2.3k dl). "
+                "SWAP-GATED: flip to priority < 20 only after serves + memory <= 4.6 GB + quality "
+                ">= PTQ on held-out set (K1/lane-up)."
+            ),
+        ),
+        ModelEntry(
+            model_id="Gemma-4-26B-A4B-it-qat-q4_0-GGUF",
+            lane=Lane.IGPU_UNIFIED,
+            endpoint="http://localhost:13308",
+            runtime_backend="vllm_rocm",
+            task_affinity=frozenset({Task.REASONING, Task.CODE_GEN, Task.GENERAL}),
+            weight_quant=WeightQuant.MXFP4,  # QAT q4_0 on MoE; MXFP4 is closest available enum
+            kv_quant=kv8_q80,
+            context_window=262144,
+            priority=16,  # non-displacing: PTQ 26B is 15; above 12B QAT fallback (18)
+            verified_working=False,
+            reasoning_mode=True,
+            notes=(
+                "Gemma-4-26B-A4B QAT q4_0 — iGPU-Unified alternative (item 50). "
+                "HF id: google/gemma-4-26B-A4B-it-qat-q4_0-gguf (model_info-verified, 3.1k dl). "
+                "25.2B total / 3.8B active MoE. SWAP-GATED: flip to priority < 15 only after "
+                "serves + memory <= 15.7 GB + quality >= PTQ on held-out set (K1/lane-up)."
+            ),
+        ),
+        ModelEntry(
+            model_id="Gemma-4-31B-it-qat-q4_0-GGUF",
+            lane=Lane.CPU,
+            endpoint="http://localhost:13309",
+            runtime_backend="cpu",
+            task_affinity=frozenset({Task.ARCHITECT, Task.LONG_HORIZON}),
+            weight_quant=WeightQuant.Q4_K_M,  # QAT q4_0; AVX-VNNI dense
+            kv_quant=KVQuant(),  # No public AVX-512 TBQ kernels exist
+            context_window=262144,
+            priority=41,  # non-displacing: PTQ 31B is 40
+            verified_working=False,
+            reasoning_mode=True,
+            notes=(
+                "Gemma-4-31B QAT q4_0 — CPU alternative (item 50). "
+                "HF id: google/gemma-4-31B-it-qat-q4_0-gguf (model_info-verified, 3.8k dl). "
+                "Dense 30.7B, AVX-VNNI. SWAP-GATED: flip to priority < 40 only after "
+                "serves + quality >= PTQ on held-out set (K1/lane-up). Uses 1024-token "
+                "sliding window attention (same as PTQ 31B)."
+            ),
+        ),
         # --- Task-specialist models via Ollama (:11434) ---
         ModelEntry(
             model_id="phi4:latest",
