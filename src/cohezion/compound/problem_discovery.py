@@ -15541,3 +15541,41 @@ def fid_severity_rank_critical_count(problems: list[Problem]) -> dict[str, int]:
         if _SEVERITY_RANK.get(p.severity, 0) == 4:
             counts[fid] += 1
     return counts
+
+
+def class_severity_rank_info_count(problems: list[Problem]) -> dict[str, int]:
+    """Absolute count of problems with rank == 0 (INFO only) per class.  Item 804.
+
+    count = count(rank == 0) per class.
+    LOW (rank 1) is NOT included; only INFO (rank 0).
+    Zero-inclusive: class with no INFO still appears with count=0.
+    Empty -> {}.  Pure; no I/O.
+    """
+    if not problems:
+        return {}
+    counts: dict[str, int] = {}
+    for p in problems:
+        cls = p.problem_class
+        if cls not in counts:
+            counts[cls] = 0
+        if _SEVERITY_RANK.get(p.severity, 0) == 0:
+            counts[cls] += 1
+    return counts
+
+
+def fid_severity_rank_info_count(problems: list[Problem]) -> dict[str, int]:
+    """Absolute count of problems with rank == 0 (INFO only) per fid.  Item 805.
+
+    Fid-axis complement of class_severity_rank_info_count (item 804).
+    count = count(rank == 0) per fid.  Zero-inclusive.  Empty -> {}.  Pure; no I/O.
+    """
+    if not problems:
+        return {}
+    counts: dict[str, int] = {}
+    for p in problems:
+        fid = p.finding_id
+        if fid not in counts:
+            counts[fid] = 0
+        if _SEVERITY_RANK.get(p.severity, 0) == 0:
+            counts[fid] += 1
+    return counts
