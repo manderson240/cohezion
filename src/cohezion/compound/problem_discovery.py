@@ -10734,3 +10734,24 @@ def class_score_rank(
     sorted_scores = sorted(set(totals.values()), reverse=True)
     score_to_rank = {score: rank + 1 for rank, score in enumerate(sorted_scores)}
     return {cls: score_to_rank[score] for cls, score in totals.items()}
+
+
+def fid_score_ranks(
+    problems: list[Problem],
+    weights: dict[str, float],
+) -> dict[str, int]:
+    """Return dense rank dict for ALL fids by total weighted score (rank 1 = highest).  Item 567.
+
+    FID-axis complement of class_score_rank.
+    Distinct from fid_score_rank(problems, weights, finding_id) which returns a single rank.
+    Ties get the same rank; ranks are consecutive (dense ranking).
+    Empty -> {}.  Pure; no I/O.
+    """
+    if not problems:
+        return {}
+    totals: dict[str, float] = {}
+    for p in problems:
+        totals[p.finding_id] = totals.get(p.finding_id, 0.0) + weights.get(p.severity, 0.0)
+    sorted_scores = sorted(set(totals.values()), reverse=True)
+    score_to_rank = {score: rank + 1 for rank, score in enumerate(sorted_scores)}
+    return {fid: score_to_rank[score] for fid, score in totals.items()}
