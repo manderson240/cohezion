@@ -9767,3 +9767,39 @@ def fid_score_percentile(
         return 0.0
     strictly_lower = sum(1 for s in fid_totals.values() if s < target_score)
     return float(strictly_lower / (n - 1))
+
+
+def normalized_fid_scores(
+    problems: list[Problem],
+    weights: dict[str, float],
+) -> dict[str, float]:
+    """Return fid total scores mapped to the [0.0, 1.0] interval via min-max normalization.
+
+    Each fid's total weighted severity score is rescaled as
+    ``(score - min) / (max - min)``.  When all fids share the same score
+    (zero spread), every fid maps to ``0.0`` (avoids division by zero).
+    Single fid returns ``{fid: 0.0}``.  Empty input returns ``{}``.
+
+    Args:
+        problems: List of :class:`Problem` instances.
+        weights: Mapping of severity label to numeric score.
+
+    Returns:
+        ``dict[str, float]`` mapping each finding_id to its normalized score
+        in ``[0.0, 1.0]``.  Empty dict when *problems* is empty.
+
+    Pure (no I/O, no SurrealDB).  Item 524.
+    """
+    if not problems:
+        return {}
+    fid_totals: dict[str, float] = {}
+    for p in problems:
+        fid_totals[p.finding_id] = fid_totals.get(p.finding_id, 0.0) + weights.get(
+            p.severity, 0.0
+        )
+    min_score = min(fid_totals.values())
+    max_score = max(fid_totals.values())
+    spread = max_score - min_score
+    if spread == 0.0:
+        return dict.fromkeys(fid_totals, 0.0)
+    return {fid: (score - min_score) / spread for fid, score in fid_totals.items()}
