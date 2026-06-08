@@ -32,7 +32,7 @@ def test_fid_outer_critical_count_primary_discriminator() -> None:
     assert "X" not in result, f"Class 'X' must NOT be key; got {list(result)}"
     got = result["f1"]
     assert got == 2, f"[CRIT*2,HIGH*3] -> 2; got {got}"
-    assert got \!= 5, "Must not count HIGH"
+    assert got != 5, "Must not count HIGH"
     assert isinstance(got, int), f"Must be int; got {type(got)}"
 
 

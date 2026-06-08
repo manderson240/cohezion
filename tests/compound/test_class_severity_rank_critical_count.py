@@ -31,7 +31,7 @@ def test_critical_count_not_high_count_primary_discriminator() -> None:
     assert "A" in result, f"'A' must be key; got {list(result)}"
     got = result["A"]
     assert got == 2, f"[CRIT*2,HIGH*3] -> critical_count=2; got {got}"
-    assert got \!= 5, "Must be CRITICAL-only, not HIGH inclusive (5)"
+    assert got != 5, "Must be CRITICAL-only, not HIGH inclusive (5)"
     assert isinstance(got, int), f"Must be int not float; got {type(got)}"
 
 
