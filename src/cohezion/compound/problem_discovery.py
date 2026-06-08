@@ -10088,3 +10088,24 @@ def fid_score_cv(
     variance = sum((v - mean) ** 2 for v in values) / n
     std_dev = _math.sqrt(variance)
     return float(std_dev / mean)
+
+
+def class_score_median(
+    problems: list[Problem],
+    weights: dict[str, float],
+) -> float:
+    """Return median of per-class total weighted scores.  Item 535.
+
+    For even n, returns the average of the two middle values (standard median).
+    0.0 for empty.  Single class returns that class's total.  Pure; no I/O.
+    """
+    import statistics as _stats
+
+    if not problems:
+        return 0.0
+    class_totals: dict[str, float] = {}
+    for p in problems:
+        class_totals[p.problem_class] = (
+            class_totals.get(p.problem_class, 0.0) + weights.get(p.severity, 0.0)
+        )
+    return float(_stats.median(class_totals.values()))
