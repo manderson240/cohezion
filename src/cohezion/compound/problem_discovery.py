@@ -3626,3 +3626,35 @@ def class_severity_vector(
         if p.problem_class == cls and p.severity:
             counts[p.severity] = counts.get(p.severity, 0) + 1
     return tuple(counts.get(sev, 0) for sev in severities)
+
+
+def compare_severity_distributions(
+    scan_a: list[Problem], scan_b: list[Problem]
+) -> dict[str, int]:
+    """Return the per-severity delta between two scans (count_b - count_a).
+
+    Only labelled problems (severity != '') are counted.  Severities that
+    appear in only one scan use 0 for the other scan.
+
+    Args:
+        scan_a: List of :class:`Problem` instances from the baseline scan.
+        scan_b: List of :class:`Problem` instances from the comparison scan.
+
+    Returns:
+        dict mapping severity label → (count_b - count_a).  Positive values
+        mean the severity increased in scan_b; negative means it decreased.
+        Empty dict when both scans are empty or all problems are unlabelled.
+
+    Pure (no I/O, no SurrealDB).
+    """
+    def _counts(scan: list[Problem]) -> dict[str, int]:
+        c: dict[str, int] = {}
+        for p in scan:
+            if p.severity:
+                c[p.severity] = c.get(p.severity, 0) + 1
+        return c
+
+    counts_a = _counts(scan_a)
+    counts_b = _counts(scan_b)
+    all_severities = set(counts_a) | set(counts_b)
+    return {sev: counts_b.get(sev, 0) - counts_a.get(sev, 0) for sev in all_severities}
