@@ -7208,3 +7208,26 @@ def finding_id_coverage_ratio(problems: list[Problem]) -> dict[str, float]:
     for p in problems:
         counts[p.finding_id] = counts.get(p.finding_id, 0) + 1
     return {fid: count / total for fid, count in counts.items()}
+
+
+def dominant_class(problems: list[Problem]) -> str | None:
+    """Return the problem_class with the most records — item 421.
+
+    Ties are broken alphabetically ascending (the lexicographically smallest
+    class name wins).  Returns ``None`` when *problems* is empty.
+
+    Args:
+        problems: List of :class:`Problem` instances.
+
+    Returns:
+        The :attr:`Problem.problem_class` string with the highest record count,
+        or ``None`` when *problems* is empty.
+
+    Pure (no I/O, no SurrealDB).
+    """
+    if not problems:
+        return None
+    counts: dict[str, int] = {}
+    for p in problems:
+        counts[p.problem_class] = counts.get(p.problem_class, 0) + 1
+    return min(counts, key=lambda cls: (-counts[cls], cls))
