@@ -13484,3 +13484,57 @@ def fid_severity_rank_weighted_sum(
             result[fid] = 0.0
         result[fid] += weights.get(p.severity, 0.0)
     return result
+
+
+def class_severity_entropy_all(problems: list[Problem]) -> dict[str, float]:
+    """Shannon entropy of severity distribution per class (vectorized dict variant).  Item 715.
+
+    For each class computes H = -sum(p_i * log2(p_i)) over severity label distribution.
+    Single-severity class -> 0.0.  Returns {class: entropy_bits}.  Empty -> {}.  Pure; no I/O.
+    """
+    if not problems:
+        return {}
+    counts: dict[str, dict[str, int]] = {}
+    for p in problems:
+        cls = p.problem_class
+        if cls not in counts:
+            counts[cls] = {}
+        sev = p.severity if p.severity else "__unlabelled__"
+        counts[cls][sev] = counts[cls].get(sev, 0) + 1
+    result: dict[str, float] = {}
+    for cls, sev_counts in counts.items():
+        total = sum(sev_counts.values())
+        if total <= 1 or len(sev_counts) <= 1:
+            result[cls] = 0.0
+        else:
+            result[cls] = -sum(
+                (c / total) * math.log2(c / total) for c in sev_counts.values()
+            )
+    return result
+
+
+def fid_severity_entropy_all(problems: list[Problem]) -> dict[str, float]:
+    """Shannon entropy of severity distribution per fid (vectorized dict variant).  Item 716.
+
+    Fid-axis complement of class_severity_entropy_all (item 715).
+    Single-severity fid -> 0.0.  Returns {fid: entropy_bits}.  Empty -> {}.  Pure; no I/O.
+    """
+    if not problems:
+        return {}
+    counts: dict[str, dict[str, int]] = {}
+    for p in problems:
+        fid = p.finding_id
+        if fid not in counts:
+            counts[fid] = {}
+        sev = p.severity if p.severity else "__unlabelled__"
+        counts[fid][sev] = counts[fid].get(sev, 0) + 1
+    result: dict[str, float] = {}
+    for fid, sev_counts in counts.items():
+        total = sum(sev_counts.values())
+        if total <= 1 or len(sev_counts) <= 1:
+            result[fid] = 0.0
+        else:
+            result[fid] = -sum(
+                (c / total) * math.log2(c / total) for c in sev_counts.values()
+            )
+    return result
