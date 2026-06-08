@@ -3426,3 +3426,35 @@ def classes_above_problem_count(problems: list[Problem], min_count: int) -> froz
     for p in problems:
         counts[p.problem_class] = counts.get(p.problem_class, 0) + 1
     return frozenset(cls for cls, cnt in counts.items() if cnt >= min_count)
+
+
+def severity_rank_in_class(
+    problems: list[Problem], cls: str, severity: str
+) -> int | None:
+    """Return the 1-based frequency rank of *severity* among labelled problems in *cls*.
+
+    Rank 1 = most frequent.  Ties broken by severity string ascending.
+    Only labelled problems (severity != '') are included in the frequency counts.
+
+    Args:
+        problems: List of :class:`Problem` instances from a scan.
+        cls:      Class name to examine.
+        severity: Severity label to rank.
+
+    Returns:
+        1-based rank (int), or ``None`` when *severity* does not appear in
+        *cls*, when *cls* is absent, or when *cls* has no labelled problems.
+
+    Pure (no I/O, no SurrealDB).
+    """
+    if not severity:
+        return None
+    counts: dict[str, int] = {}
+    for p in problems:
+        if p.problem_class == cls and p.severity:
+            counts[p.severity] = counts.get(p.severity, 0) + 1
+    if severity not in counts:
+        return None
+    # Sort by (-count, severity_asc) to build rank order
+    ranked = sorted(counts.keys(), key=lambda s: (-counts[s], s))
+    return ranked.index(severity) + 1

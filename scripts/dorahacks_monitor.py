@@ -23,6 +23,7 @@ HUMAN GATE for sign-up:
 - Signing up requires Google OAuth at https://dorahacks.io — human action.
 - PushNotification is emitted for high-score hackathons.
 """
+
 from __future__ import annotations
 
 import argparse
@@ -46,11 +47,40 @@ DORAHACKS_URL = "https://dorahacks.io/hackathon"
 # Example: export DORAHACKS_COOKIE="aws-waf-token=<value>"
 COOKIE_ENV = "DORAHACKS_COOKIE"
 # Keyword fallback when LLM is not available
-AI_KEYWORDS = {"ai", "ml", "llm", "neural", "language model", "generative", "diffusion",
-               "rag", "agent", "embedding", "inference", "deep learning", "transformer",
-               "gpt", "open source", "blockchain", "web3", "solana", "ethereum"}
-RELEVANCE_KEYWORDS = {"ai", "ml", "llm", "generative", "language model", "neural",
-                      "deep learning", "transformer", "agent", "inference", "open source"}
+AI_KEYWORDS = {
+    "ai",
+    "ml",
+    "llm",
+    "neural",
+    "language model",
+    "generative",
+    "diffusion",
+    "rag",
+    "agent",
+    "embedding",
+    "inference",
+    "deep learning",
+    "transformer",
+    "gpt",
+    "open source",
+    "blockchain",
+    "web3",
+    "solana",
+    "ethereum",
+}
+RELEVANCE_KEYWORDS = {
+    "ai",
+    "ml",
+    "llm",
+    "generative",
+    "language model",
+    "neural",
+    "deep learning",
+    "transformer",
+    "agent",
+    "inference",
+    "open source",
+}
 
 
 # ---------------------------------------------------------------------------
@@ -134,6 +164,7 @@ def fetch_hackathons(url: str = DORAHACKS_URL) -> list[dict]:
     clear human-action message.
     """
     import os
+
     cookie = os.environ.get(COOKIE_ENV, "")
     headers = {
         "User-Agent": "Mozilla/5.0 (X11; Linux x86_64; rv:125.0) Gecko/20100101 Firefox/125.0",
@@ -185,10 +216,7 @@ def fetch_hackathons(url: str = DORAHACKS_URL) -> list[dict]:
 
 def score_keyword(hackathon: dict) -> int:
     """Fallback keyword-based relevance scoring (0–10)."""
-    text = (
-        hackathon.get("title", "") + " " +
-        " ".join(hackathon.get("tags", []))
-    ).lower()
+    text = (hackathon.get("title", "") + " " + " ".join(hackathon.get("tags", []))).lower()
     hits = sum(1 for kw in RELEVANCE_KEYWORDS if kw in text)
     return min(10, hits * 2)
 
@@ -209,12 +237,14 @@ def score_with_llm(hackathon: dict) -> int:
         f"Low relevance (0-3): cooking, sports, social media, crypto-only, gaming.\n"
         f"Answer (integer only):"
     )
-    payload = json.dumps({
-        "model": SCORE_MODEL,
-        "messages": [{"role": "user", "content": prompt}],
-        "temperature": 0.0,
-        "max_tokens": 5,
-    }).encode()
+    payload = json.dumps(
+        {
+            "model": SCORE_MODEL,
+            "messages": [{"role": "user", "content": prompt}],
+            "temperature": 0.0,
+            "max_tokens": 5,
+        }
+    ).encode()
     try:
         req = urllib.request.Request(  # noqa: S310
             f"{LEMONADE_URL}/api/v1/chat/completions",
@@ -283,7 +313,9 @@ def append_to_feed(hackathon: dict, score: int, ts: str) -> None:
 
 def main() -> int:
     parser = argparse.ArgumentParser(description="DoraHacks hackathon intelligence monitor")
-    parser.add_argument("--min-score", type=int, default=7, help="Minimum score to save (default 7)")
+    parser.add_argument(
+        "--min-score", type=int, default=7, help="Minimum score to save (default 7)"
+    )
     parser.add_argument("--dry-run", action="store_true", help="Print results without writing")
     parser.add_argument("--no-inference", action="store_true", help="Use keyword scoring only")
     parser.add_argument("--url", default=DORAHACKS_URL, help="Override listing URL")

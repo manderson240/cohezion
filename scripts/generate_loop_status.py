@@ -19,6 +19,7 @@ Usage:
 OOM safety: reads only already-loaded models; never calls lemonade --load; caps
 inference prompt to 200 tokens; --no-inference flag skips the Granite call entirely.
 """
+
 from __future__ import annotations
 
 import argparse
@@ -63,6 +64,7 @@ def get_loop_telemetry() -> dict:
     try:
         sys.path.insert(0, str(REPO / "src"))
         from cohezion.compound.loop_telemetry import loop_telemetry  # type: ignore
+
         t = loop_telemetry()
         return {
             "done": t.backlog_done,
@@ -72,14 +74,21 @@ def get_loop_telemetry() -> dict:
             "rounds": t.research_rounds,
         }
     except Exception as e:
-        return {"done": "?", "todo": "?", "blocked": "?", "swept": "?",
-                "rounds": "?", "error": str(e)}
+        return {
+            "done": "?",
+            "todo": "?",
+            "blocked": "?",
+            "swept": "?",
+            "rounds": "?",
+            "error": str(e),
+        }
 
 
 def get_oom_status() -> dict:
     try:
         from cohezion.inference.oom_fallback_audit import oom_fallback_gaps  # type: ignore
         from cohezion.inference.registry import get_registry  # type: ignore
+
         reg = get_registry()
         gaps = oom_fallback_gaps(reg)
         return {"gaps": gaps, "tasks_checked": 21, "ok": len(gaps) == 0}
@@ -111,7 +120,10 @@ def get_recent_commits(n: int = 8) -> list[dict]:
     try:
         r = subprocess.run(
             ["git", "log", f"-{n}", "--format=%h|%s|%ar"],
-            capture_output=True, text=True, timeout=5, cwd=str(REPO),
+            capture_output=True,
+            text=True,
+            timeout=5,
+            cwd=str(REPO),
         )
         commits = []
         for line in r.stdout.strip().splitlines():
@@ -127,15 +139,21 @@ def get_kaggle_status() -> dict:
     """Query Kaggle kernel status (best-effort; fails gracefully if offline)."""
     try:
         r = subprocess.run(
-            ["kaggle", "kernels", "status",
-             f"{NEMOTRON_USER}/{NEMOTRON_KERNEL}"],
-            capture_output=True, text=True, timeout=10,
+            ["kaggle", "kernels", "status", f"{NEMOTRON_USER}/{NEMOTRON_KERNEL}"],
+            capture_output=True,
+            text=True,
+            timeout=10,
         )
         output = (r.stdout + r.stderr).strip()
-        status = "running" if "running" in output.lower() else \
-                 "complete" if "complete" in output.lower() else \
-                 "queued" if "queue" in output.lower() else \
-                 "unknown"
+        status = (
+            "running"
+            if "running" in output.lower()
+            else "complete"
+            if "complete" in output.lower()
+            else "queued"
+            if "queue" in output.lower()
+            else "unknown"
+        )
         return {"kernel": NEMOTRON_KERNEL, "status": status, "raw": output[:200]}
     except Exception as e:
         return {"kernel": NEMOTRON_KERNEL, "status": "unreachable", "raw": str(e)}
@@ -151,12 +169,14 @@ def generate_narrative(telemetry: dict, memory: dict, fleet_models: int) -> str:
         f"Nemotron Kaggle v10 kernel running (0.84 banked, deadline June 15). "
         f"Be factual and concise. No markdown."
     )
-    payload = json.dumps({
-        "model": NARRATIVE_MODEL,
-        "messages": [{"role": "user", "content": prompt}],
-        "temperature": 0.3,
-        "max_tokens": 120,
-    }).encode()
+    payload = json.dumps(
+        {
+            "model": NARRATIVE_MODEL,
+            "messages": [{"role": "user", "content": prompt}],
+            "temperature": 0.3,
+            "max_tokens": 120,
+        }
+    ).encode()
     try:
         req = urllib.request.Request(
             f"{LEMONADE_URL}/api/v1/chat/completions",
@@ -182,7 +202,7 @@ def _pct_bar(pct: float, color: str = "#38bdf8") -> str:
     return (
         f'<div style="background:#192236;border-radius:4px;height:8px;overflow:hidden;">'
         f'<div style="background:{color};height:100%;width:{safe}%;transition:width .3s;"></div>'
-        f'</div>'
+        f"</div>"
     )
 
 
@@ -190,7 +210,7 @@ def _badge(text: str, color: str) -> str:
     return (
         f'<span style="font-size:11px;text-transform:uppercase;letter-spacing:1px;'
         f'padding:2px 8px;border:1px solid {color};border-radius:999px;color:{color};">'
-        f'{text}</span>'
+        f"{text}</span>"
     )
 
 
@@ -214,15 +234,14 @@ def _status_pill(text: str) -> str:
 
 def _kpi(label: str, value: str, delta: str = "", color: str = "#dbeafe") -> str:
     delta_html = (
-        f'<div style="font-size:12px;margin-top:6px;color:#22d3ee;">{delta}</div>'
-        if delta else ""
+        f'<div style="font-size:12px;margin-top:6px;color:#22d3ee;">{delta}</div>' if delta else ""
     )
     return (
         f'<div style="background:#111826;border:1px solid #192236;border-radius:12px;padding:18px;">'
         f'<div style="font-size:11px;color:#94a3b8;text-transform:uppercase;letter-spacing:.6px;margin-bottom:6px;">{label}</div>'
         f'<div style="font-size:28px;font-weight:700;color:{color};">{value}</div>'
-        f'{delta_html}'
-        f'</div>'
+        f"{delta_html}"
+        f"</div>"
     )
 
 
@@ -230,8 +249,8 @@ def _section(title: str, body: str) -> str:
     return (
         f'<div style="background:#111826;border:1px solid #192236;border-radius:12px;padding:20px;margin-bottom:16px;">'
         f'<h2 style="font-size:14px;margin:0 0 14px 0;color:#38bdf8;text-transform:uppercase;letter-spacing:.6px;">{title}</h2>'
-        f'{body}'
-        f'</div>'
+        f"{body}"
+        f"</div>"
     )
 
 
@@ -253,8 +272,14 @@ def render_html(
 
     # Categorize models
     categories = {
-        "text": [], "vision": [], "audio": [], "image": [],
-        "embed": [], "code": [], "reasoning": [], "flm": [],
+        "text": [],
+        "vision": [],
+        "audio": [],
+        "image": [],
+        "embed": [],
+        "code": [],
+        "reasoning": [],
+        "flm": [],
     }
     flm_keywords = ["FLM", "flm"]
     embed_keywords = ["embed", "nomic"]
@@ -288,39 +313,41 @@ def render_html(
     mem_html = (
         f'<div style="margin-bottom:8px;">'
         f'<div style="display:flex;justify-content:space-between;font-size:12px;margin-bottom:4px;">'
-        f'<span>RAM Used</span>'
-        f'<span style="color:{mem_color};">{memory.get("used_gb","?")} / {memory.get("total_gb","?")} GB ({mem_pct}%)</span>'
-        f'</div>'
-        f'{_pct_bar(mem_pct, mem_color)}'
-        f'</div>'
+        f"<span>RAM Used</span>"
+        f'<span style="color:{mem_color};">{memory.get("used_gb", "?")} / {memory.get("total_gb", "?")} GB ({mem_pct}%)</span>'
+        f"</div>"
+        f"{_pct_bar(mem_pct, mem_color)}"
+        f"</div>"
         f'<div style="font-size:12px;color:#94a3b8;margin-top:6px;">'
-        f'Available: <span style="color:#22d3ee;">{memory.get("avail_gb","?")} GB</span> &nbsp;|&nbsp; '
-        f'Swap: 39 GB (0 used)'
-        f'</div>'
+        f'Available: <span style="color:#22d3ee;">{memory.get("avail_gb", "?")} GB</span> &nbsp;|&nbsp; '
+        f"Swap: 39 GB (0 used)"
+        f"</div>"
     )
 
     # Backlog progress bar
     bp_done = telemetry.get("done", 0)
     bp_todo = telemetry.get("todo", 0)
     bp_blocked = telemetry.get("blocked", 0)
-    bp_total = (bp_done if isinstance(bp_done, int) else 0) + \
-               (bp_todo if isinstance(bp_todo, int) else 0) + \
-               (bp_blocked if isinstance(bp_blocked, int) else 0)
+    bp_total = (
+        (bp_done if isinstance(bp_done, int) else 0)
+        + (bp_todo if isinstance(bp_todo, int) else 0)
+        + (bp_blocked if isinstance(bp_blocked, int) else 0)
+    )
     done_pct = round(bp_done / bp_total * 100, 1) if bp_total else 0
     backlog_bar = (
         f'<div style="margin-bottom:8px;">'
         f'<div style="display:flex;justify-content:space-between;font-size:12px;margin-bottom:4px;">'
-        f'<span>Completion</span>'
+        f"<span>Completion</span>"
         f'<span style="color:#22d3ee;">{bp_done} / {bp_total} items ({done_pct}%)</span>'
-        f'</div>'
-        f'{_pct_bar(done_pct, "#22d3ee")}'
-        f'</div>'
+        f"</div>"
+        f"{_pct_bar(done_pct, '#22d3ee')}"
+        f"</div>"
         f'<div style="font-size:12px;color:#94a3b8;margin-top:6px;">'
         f'Todo: <span style="color:#facc15;">{bp_todo}</span> &nbsp;|&nbsp; '
         f'Blocked: <span style="color:#f87171;">{bp_blocked}</span> &nbsp;|&nbsp; '
-        f'Swept packages: <span style="color:#c084fc;">{telemetry.get("swept","?")}</span> &nbsp;|&nbsp; '
-        f'Research rounds: <span style="color:#38bdf8;">{telemetry.get("rounds","?")}</span>'
-        f'</div>'
+        f'Swept packages: <span style="color:#c084fc;">{telemetry.get("swept", "?")}</span> &nbsp;|&nbsp; '
+        f'Research rounds: <span style="color:#38bdf8;">{telemetry.get("rounds", "?")}</span>'
+        f"</div>"
     )
 
     # OOM status
@@ -328,49 +355,55 @@ def render_html(
     oom_gaps = oom.get("gaps", [])
     if oom_ok:
         oom_status = (
-            f'<div style="color:#22d3ee;font-size:13px;">✓ All {oom.get("tasks_checked","?")} tasks '
-            f'have iGPU safety nets — zero OOM fallback gaps</div>'
+            f'<div style="color:#22d3ee;font-size:13px;">✓ All {oom.get("tasks_checked", "?")} tasks '
+            f"have iGPU safety nets — zero OOM fallback gaps</div>"
         )
     elif oom_ok is False:
         oom_status = (
             f'<div style="color:#f87171;font-size:13px;">⚠ OOM gaps detected: '
-            f'{", ".join(oom_gaps)}</div>'
+            f"{', '.join(oom_gaps)}</div>"
         )
     else:
-        oom_status = f'<div style="color:#94a3b8;font-size:13px;">Audit unavailable: {oom.get("error","")}</div>'
+        oom_status = f'<div style="color:#94a3b8;font-size:13px;">Audit unavailable: {oom.get("error", "")}</div>'
 
     # Fleet model categories table
     cat_rows = ""
     cat_labels = {
-        "flm": ("FLM/NPU", "#c084fc"), "text": ("Text Gen", "#38bdf8"),
-        "reasoning": ("Reasoning", "#facc15"), "code": ("Code", "#22d3ee"),
-        "embed": ("Embedding", "#94a3b8"), "audio": ("Audio/TTS", "#fb923c"),
-        "image": ("Image Gen", "#f87171"), "vision": ("Vision/VL", "#4ade80"),
+        "flm": ("FLM/NPU", "#c084fc"),
+        "text": ("Text Gen", "#38bdf8"),
+        "reasoning": ("Reasoning", "#facc15"),
+        "code": ("Code", "#22d3ee"),
+        "embed": ("Embedding", "#94a3b8"),
+        "audio": ("Audio/TTS", "#fb923c"),
+        "image": ("Image Gen", "#f87171"),
+        "vision": ("Vision/VL", "#4ade80"),
     }
     for cat, (label, color) in cat_labels.items():
         mods = categories[cat]
         if mods:
-            mod_list = ", ".join(f'<code style="font-size:11px;color:{color};">{m[:30]}</code>' for m in mods)
+            mod_list = ", ".join(
+                f'<code style="font-size:11px;color:{color};">{m[:30]}</code>' for m in mods
+            )
             cat_rows += (
-                f'<tr>'
+                f"<tr>"
                 f'<td style="padding:8px 10px;color:{color};font-weight:600;font-size:12px;">{label}</td>'
                 f'<td style="padding:8px 10px;font-size:12px;text-align:right;color:#22d3ee;">{len(mods)}</td>'
                 f'<td style="padding:8px 10px;font-size:11px;">{mod_list}</td>'
-                f'</tr>'
+                f"</tr>"
             )
     fleet_table = (
         f'<div style="margin-bottom:10px;font-size:12px;color:#94a3b8;">'
-        f'Router :13305 &mdash; {fleet_count} models &mdash; '
-        f'{tps} TPS &mdash; {ttft_ms}ms TTFT'
-        f'</div>'
+        f"Router :13305 &mdash; {fleet_count} models &mdash; "
+        f"{tps} TPS &mdash; {ttft_ms}ms TTFT"
+        f"</div>"
         f'<table style="width:100%;border-collapse:collapse;">'
         f'<tr style="border-bottom:1px solid #192236;">'
         f'<th style="padding:6px 10px;color:#94a3b8;font-size:11px;text-align:left;">Category</th>'
         f'<th style="padding:6px 10px;color:#94a3b8;font-size:11px;text-align:right;">Count</th>'
         f'<th style="padding:6px 10px;color:#94a3b8;font-size:11px;text-align:left;">Models</th>'
-        f'</tr>'
-        f'{cat_rows}'
-        f'</table>'
+        f"</tr>"
+        f"{cat_rows}"
+        f"</table>"
     )
 
     # Recent commits
@@ -378,11 +411,11 @@ def render_html(
     for c in commits:
         msg = c["msg"][:70]
         commit_rows += (
-            f'<tr>'
+            f"<tr>"
             f'<td style="padding:7px 10px;font-family:monospace;font-size:11px;color:#c084fc;">{c["hash"]}</td>'
             f'<td style="padding:7px 10px;font-size:12px;">{msg}</td>'
             f'<td style="padding:7px 10px;font-size:11px;color:#94a3b8;white-space:nowrap;">{c["when"]}</td>'
-            f'</tr>'
+            f"</tr>"
         )
     commits_table = (
         f'<table style="width:100%;border-collapse:collapse;">'
@@ -390,9 +423,9 @@ def render_html(
         f'<th style="padding:6px 10px;color:#94a3b8;font-size:11px;text-align:left;">Hash</th>'
         f'<th style="padding:6px 10px;color:#94a3b8;font-size:11px;text-align:left;">Message</th>'
         f'<th style="padding:6px 10px;color:#94a3b8;font-size:11px;text-align:left;">When</th>'
-        f'</tr>'
-        f'{commit_rows}'
-        f'</table>'
+        f"</tr>"
+        f"{commit_rows}"
+        f"</table>"
     )
 
     # Kaggle status
@@ -400,11 +433,11 @@ def render_html(
     k_raw = kaggle.get("raw", "")
     kaggle_html = (
         f'<div style="margin-bottom:8px;">'
-        f'{_status_pill(k_status)}'
+        f"{_status_pill(k_status)}"
         f' <span style="font-size:13px;margin-left:8px;">'
         f'<a href="https://www.kaggle.com/code/{NEMOTRON_USER}/{NEMOTRON_KERNEL}" '
         f'style="color:#38bdf8;text-decoration:none;">{NEMOTRON_KERNEL}</a>'
-        f'</span></div>'
+        f"</span></div>"
         f'<div style="font-size:12px;color:#94a3b8;">0.84 banked (v9) &mdash; Deadline: Jun 15 2026 &mdash; $106K prize</div>'
         f'<div style="font-size:11px;color:#4b5563;margin-top:4px;font-family:monospace;">{k_raw[:150]}</div>'
     )
@@ -448,7 +481,7 @@ def render_html(
     {_kpi("Items Done", str(bp_done), f"{done_pct}% complete", "#22d3ee")}
     {_kpi("Items TODO", str(bp_todo), "pending ticks", "#facc15")}
     {_kpi("Items Blocked", str(bp_blocked), "await human", "#f87171")}
-    {_kpi("Research Rounds", str(telemetry.get('rounds','?')), f"{telemetry.get('swept','?')} pkgs swept", "#c084fc")}
+    {_kpi("Research Rounds", str(telemetry.get("rounds", "?")), f"{telemetry.get('swept', '?')} pkgs swept", "#c084fc")}
   </div>
 
   <div class="grid2">
@@ -498,10 +531,18 @@ def main() -> int:
     commits = get_recent_commits(8)
     kaggle = get_kaggle_status()
 
-    print(f"[status] Loop: {telemetry.get('done')} done / {telemetry.get('todo')} todo / {telemetry.get('blocked')} blocked")
-    print(f"[status] Fleet: {len(fleet.get('models',{}).get('data',[]))} models, {fleet.get('stats',{}).get('tokens_per_second',0):.1f} TPS")
-    print(f"[status] RAM: {memory.get('avail_gb','?')} GB available ({memory.get('pct_used','?')}% used)")
-    print(f"[status] OOM: {'SAFE' if oom.get('ok') else 'GAPS' if oom.get('ok') is False else 'UNKNOWN'}")
+    print(
+        f"[status] Loop: {telemetry.get('done')} done / {telemetry.get('todo')} todo / {telemetry.get('blocked')} blocked"
+    )
+    print(
+        f"[status] Fleet: {len(fleet.get('models', {}).get('data', []))} models, {fleet.get('stats', {}).get('tokens_per_second', 0):.1f} TPS"
+    )
+    print(
+        f"[status] RAM: {memory.get('avail_gb', '?')} GB available ({memory.get('pct_used', '?')}% used)"
+    )
+    print(
+        f"[status] OOM: {'SAFE' if oom.get('ok') else 'GAPS' if oom.get('ok') is False else 'UNKNOWN'}"
+    )
 
     if args.no_inference:
         narrative = "(Inference skipped — run without --no-inference for AI narrative)"
