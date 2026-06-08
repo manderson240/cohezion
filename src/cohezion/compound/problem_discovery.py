@@ -13584,3 +13584,43 @@ def fid_severity_dominant_label(problems: list[Problem]) -> dict[str, str]:
         tied = sorted(s for s, c in sev_counts.items() if c == max_count)
         result[fid] = tied[0]
     return result
+
+
+def class_severity_rank_percentile(problems: list[Problem], severity: str) -> dict[str, float]:
+    """Fraction of problems per class with rank <= rank of severity.  Item 720.
+
+    Returns {class: fraction_at_or_below} in [0.0, 1.0].
+    Empty -> {}.  Pure; no I/O.
+    """
+    if not problems:
+        return {}
+    threshold_rank = _SEVERITY_RANK.get(severity, 0)
+    counts: dict[str, list[int]] = {}  # [at_or_below, total]
+    for p in problems:
+        cls = p.problem_class
+        if cls not in counts:
+            counts[cls] = [0, 0]
+        counts[cls][1] += 1
+        if _SEVERITY_RANK.get(p.severity, 0) <= threshold_rank:
+            counts[cls][0] += 1
+    return {cls: float(v[0]) / v[1] for cls, v in counts.items()}
+
+
+def fid_severity_rank_percentile(problems: list[Problem], severity: str) -> dict[str, float]:
+    """Fraction of problems per fid with rank <= rank of severity.  Item 721.
+
+    Fid-axis complement of class_severity_rank_percentile (item 720).
+    Returns {fid: fraction_at_or_below} in [0.0, 1.0].  Empty -> {}.  Pure; no I/O.
+    """
+    if not problems:
+        return {}
+    threshold_rank = _SEVERITY_RANK.get(severity, 0)
+    counts: dict[str, list[int]] = {}  # [at_or_below, total]
+    for p in problems:
+        fid = p.finding_id
+        if fid not in counts:
+            counts[fid] = [0, 0]
+        counts[fid][1] += 1
+        if _SEVERITY_RANK.get(p.severity, 0) <= threshold_rank:
+            counts[fid][0] += 1
+    return {fid: float(v[0]) / v[1] for fid, v in counts.items()}
