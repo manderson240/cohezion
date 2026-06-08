@@ -3038,3 +3038,52 @@ def any_class_above_severity_fraction(
         if p.severity == severity:
             at_sev[p.problem_class] = at_sev.get(p.problem_class, 0) + 1
     return any(cnt / total[cls] >= min_fraction for cls, cnt in at_sev.items())
+
+
+def severity_concentration_report(
+    problems: list[Problem],
+    severity: str,
+    min_fraction: float,
+) -> dict[str, dict[str, object]]:
+    """Return a per-class severity concentration summary.
+
+    For every class with at least one problem, returns an inner dict with
+    exactly four keys::
+
+        {
+            "total":             int,   # total problems in this class
+            "at_severity":       int,   # problems at *severity* in this class
+            "fraction":          float, # at_severity / total (per-class)
+            "exceeds_threshold": bool,  # fraction >= min_fraction
+        }
+
+    Classes that have no problems at *severity* still appear with
+    ``at_severity=0`` and ``fraction=0.0``.
+
+    Args:
+        problems:     List of :class:`Problem` instances from a scan.
+        severity:     Exact severity string (case-sensitive).
+        min_fraction: Inclusive lower bound used to set ``exceeds_threshold``.
+
+    Returns:
+        ``{class_name: {…}}`` for every class present; empty input → ``{}``.
+
+    Pure (no I/O, no SurrealDB).
+    """
+    total: dict[str, int] = {}
+    at_sev: dict[str, int] = {}
+    for p in problems:
+        total[p.problem_class] = total.get(p.problem_class, 0) + 1
+        if p.severity == severity:
+            at_sev[p.problem_class] = at_sev.get(p.problem_class, 0) + 1
+    result: dict[str, dict[str, object]] = {}
+    for cls, tot in total.items():
+        cnt = at_sev.get(cls, 0)
+        frac = cnt / tot
+        result[cls] = {
+            "total": tot,
+            "at_severity": cnt,
+            "fraction": frac,
+            "exceeds_threshold": frac >= min_fraction,
+        }
+    return result
