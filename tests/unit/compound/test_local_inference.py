@@ -37,12 +37,35 @@ class TestLemonadeAvailable:
             mock_httpx.get.return_value = MagicMock(status_code=503)
             assert lemonade_available() is False
 
-    def test_uses_npu_port_by_default(self):
+    def test_uses_router_port_by_default(self):
+        """lemonade_available() probes :13305 (unified router) first (2026-06-07 topology)."""
         with patch("cohezion.compound.local_inference.httpx") as mock_httpx:
             mock_httpx.get.return_value = MagicMock(status_code=200)
             lemonade_available()
             called_url = mock_httpx.get.call_args[0][0]
-            assert "13306" in called_url
+            assert "13305" in called_url, (
+                "lemonade_available() must probe the unified Lemonade router (:13305) first. "
+                "Per-device ports (13306/13307/13309) are legacy fallback only."
+            )
+
+    def test_falls_back_to_npu_port_when_router_down(self):
+        """Falls back to :13306 direct NPU port when the router is unreachable."""
+        call_count = 0
+
+        def fake_get(url, **kwargs):
+            nonlocal call_count
+            call_count += 1
+            resp = MagicMock()
+            if "13305" in url:
+                raise Exception("connection refused")  # router unreachable
+            resp.status_code = 200  # direct NPU port responds
+            return resp
+
+        with patch("cohezion.compound.local_inference.httpx") as mock_httpx:
+            mock_httpx.get.side_effect = fake_get
+            result = lemonade_available()
+        assert result is True, "Should return True when :13306 fallback responds 200"
+        assert call_count == 2, "Should probe :13305 then :13306"
 
 
 # ---------------------------------------------------------------------------
