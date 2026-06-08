@@ -4929,28 +4929,30 @@ def class_count_by_severity(problems: list[Problem]) -> dict[str, int]:
     return {sev: len(classes) for sev, classes in sev_classes.items()}
 
 
-def class_count_by_severity(problems: list["Problem"]) -> dict[str, int]:
-    """Return the number of distinct classes that have ≥1 problem at each severity.
+def severity_coverage_ratio(problems: list["Problem"]) -> dict[str, float]:
+    """Return the fraction of all classes affected by each labelled severity.
 
-    For every distinct labelled severity label, count how many different class
-    names have at least one problem carrying that label.  A class with 5 HIGH
-    problems still counts as 1 for HIGH.  Unlabelled problems (severity='')
-    are excluded from both keys and counts.
+    Normalises :func:`class_count_by_severity` by the total number of distinct
+    classes present in the scan (including classes that have only unlabelled
+    problems).  A ratio of 1.0 means every class in the scan has at least one
+    problem at that severity.
+
+    Unlabelled problems (severity='') are excluded from the numerator but the
+    classes they belong to still count in the denominator.
 
     Args:
         problems: List of :class:`Problem` instances from a scan.
 
     Returns:
-        dict mapping severity_label → number of distinct classes with ≥1
-        problem at that severity.  Empty input → {}.
+        dict mapping severity_label → fraction of all classes affected (float
+        in [0.0, 1.0]).  Empty input → {}.
 
     Pure (no I/O, no SurrealDB).
     """
     if not problems:
         return {}
-    # Build severity → set of class names
-    sev_to_classes: dict[str, set[str]] = {}
-    for p in problems:
-        if p.severity:
-            sev_to_classes.setdefault(p.severity, set()).add(p.problem_class)
-    return {sev: len(classes) for sev, classes in sev_to_classes.items()}
+    total_classes = len({p.problem_class for p in problems})
+    counts = class_count_by_severity(problems)
+    return {sev: count / total_classes for sev, count in counts.items()}
+
+
