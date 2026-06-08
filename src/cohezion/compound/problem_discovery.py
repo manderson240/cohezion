@@ -139,6 +139,38 @@ def problem_count_by_class(problems: list[Problem]) -> dict[str, int]:
     return result
 
 
+def top_problem_classes(
+    problems: list[Problem],
+    *,
+    n: int = 5,
+) -> list[tuple[str, int]]:
+    """Return the top-N problem classes by finding count — item 161.
+
+    Ranks the output of :func:`problem_count_by_class` in descending order of
+    count, with ties broken alphabetically by class name for determinism.
+    Returns at most *n* entries; if fewer than *n* distinct classes exist in
+    *problems*, all classes are returned (no error, no padding).
+
+    Args:
+        problems:
+            A list of :class:`Problem` instances, typically the return value of
+            :func:`discover_problems`.  Empty list → empty list.
+        n:
+            Maximum number of entries to return.  Must be ≥ 1.  If *n* ≥ the
+            number of distinct classes in *problems*, all classes are returned.
+
+    Returns:
+        A list of ``(problem_class, count)`` pairs, sorted descending by count
+        then ascending by class name for equal counts.  Length ≤ *n*.
+
+    Pure (no I/O, no SurrealDB).  Composes with :func:`problem_count_by_class`.
+    """
+    counts = problem_count_by_class(problems)
+    # Sort key: primary = descending count (-count), secondary = ascending name
+    ranked = sorted(counts.items(), key=lambda item: (-item[1], item[0]))
+    return ranked[:n]
+
+
 def default_template_classes() -> frozenset[str]:
     """Return the exact set of ``problem_class`` names in :func:`default_templates` — item 158.
 
