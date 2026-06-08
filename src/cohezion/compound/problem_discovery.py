@@ -13406,3 +13406,42 @@ def fid_severity_at_threshold(problems: list[Problem], threshold: int) -> dict[s
         if _SEVERITY_RANK.get(p.severity, 0) == threshold:
             result[fid] += 1
     return result
+
+
+def class_severity_below_threshold(problems: list[Problem], threshold: int) -> dict[str, int]:
+    """Count problems per class whose severity rank is strictly below threshold.  Item 708.
+
+    Strictly below (rank < threshold, not <=).
+    Zero-inclusive: classes with no below-threshold problems appear with count 0.
+    Returns {class: count_below}.  Empty -> {}.  Pure; no I/O.
+    """
+    if not problems:
+        return {}
+    result: dict[str, int] = {}
+    for p in problems:
+        cls = p.problem_class
+        if cls not in result:
+            result[cls] = 0
+        if _SEVERITY_RANK.get(p.severity, 0) < threshold:
+            result[cls] += 1
+    return result
+
+
+def fid_severity_below_threshold(problems: list[Problem], threshold: int) -> dict[str, int]:
+    """Count problems per fid whose severity rank is strictly below threshold.  Item 709.
+
+    Fid-axis complement of class_severity_below_threshold (item 708).
+    Strictly below (rank < threshold, not <=).
+    Zero-inclusive: fids with no below-threshold problems appear with count 0.
+    Returns {fid: count_below}.  Empty -> {}.  Pure; no I/O.
+    """
+    if not problems:
+        return {}
+    result: dict[str, int] = {}
+    for p in problems:
+        fid = p.finding_id
+        if fid not in result:
+            result[fid] = 0
+        if _SEVERITY_RANK.get(p.severity, 0) < threshold:
+            result[fid] += 1
+    return result
