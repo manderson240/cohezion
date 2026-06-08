@@ -6485,3 +6485,30 @@ def top_n_classes_by_count(problems: list[Problem], n: int) -> list[str]:
         counts[p.problem_class] = counts.get(p.problem_class, 0) + 1
     ranked = sorted(counts.items(), key=lambda item: (-item[1], item[0]))
     return [cls for cls, _ in ranked[:n]]
+
+
+def top_n_finding_ids_by_count(problems: list[Problem], n: int) -> list[str]:
+    """Return the top-n finding_ids ranked by total occurrence count — item 384.
+
+    Mirror of :func:`top_n_classes_by_count` on the ``finding_id`` axis.
+    Finding_ids are sorted descending by their total occurrence count across
+    all classes.  Ties are broken lexicographically ascending.
+
+    Args:
+        problems: List of :class:`Problem` instances.  Empty → ``[]``.
+        n: Maximum number of finding_id strings to return.  ``0`` → ``[]``.
+
+    Returns:
+        ``list[str]`` of at most *n* finding_id strings, sorted by descending
+        occurrence count then ascending finding_id.  Empty when *problems* is
+        empty or *n* is ``0``.
+
+    Pure (no I/O, no SurrealDB).
+    """
+    if not problems or n <= 0:
+        return []
+    counts: dict[str, int] = {}
+    for p in problems:
+        counts[p.finding_id] = counts.get(p.finding_id, 0) + 1
+    ranked = sorted(counts.items(), key=lambda item: (-item[1], item[0]))
+    return [fid for fid, _ in ranked[:n]]
