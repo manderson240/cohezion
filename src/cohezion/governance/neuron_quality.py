@@ -9,6 +9,7 @@ write-time dedup; operates on an injected neuron list, so it never reads Surreal
 
 from __future__ import annotations
 
+import re
 from collections import Counter
 from collections.abc import Iterable, Mapping
 from dataclasses import dataclass
@@ -286,3 +287,51 @@ def memory_utilization(
         distillation_ratio=distillation_ratio,
         under_distilled=under_distilled,
     )
+
+
+# STRONG instance-specific (volatile) token patterns — structured volatility a bare number can NOT
+# match (so "retry 3 times" is not flagged; arXiv 2606.04703 ExpInternalization: abstract
+# principle-level memory beats instance-specific detail for stable multi-iteration self-evolution).
+_VOLATILE_PATTERNS: tuple[re.Pattern[str], ...] = (
+    re.compile(
+        r"\b(?=[\w./-]*[A-Za-z])[\w.-]+/[\w./-]+"
+    ),  # file path w/ a slash (a letter, not 3/4)
+    re.compile(
+        r"\b\w+\.(?:py|md|json|txt|ya?ml|toml|sh|js|ts|rs|cfg|ini)\b"
+    ),  # filename + code ext
+    re.compile(r"\b(?=[0-9a-f]*[0-9])[0-9a-f]{8,40}\b"),  # git SHA / hex id (>=8 hex, has a digit)
+    re.compile(r"\b[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}\b"),  # UUID
+    re.compile(r"\b\d{4}-\d{2}-\d{2}\b"),  # ISO date
+    re.compile(r"\b\d{2}:\d{2}:\d{2}\b"),  # wall-clock time
+    re.compile(r":\d+\b"),  # line-number reference (executor.py:42)
+    re.compile(r"\bline\s+\d+\b", re.IGNORECASE),  # "line 42"
+)
+
+
+def _volatile_token_count(content: str) -> int:
+    """Number of STRONG instance-specific tokens in ``content`` (paths/SHAs/UUIDs/timestamps/lines)."""
+    return sum(len(pat.findall(content)) for pat in _VOLATILE_PATTERNS)
+
+
+def abstraction_quality(neurons: Iterable[object], *, min_volatile: int = 1) -> list[str]:
+    """Neuron names whose ``content`` is INSTANCE-SPECIFIC, not principle-level (item 92). Report-only.
+
+    The 4th deposit-quality dimension (extends item-52's non-redundancy/evidence/format), grounded in
+    arXiv 2606.04703 (ExpInternalization, June 2026): abstract principle-level experience beats
+    instance-specific detail for stable self-evolution. Flags a neuron whose ``content`` carries
+    ``>= min_volatile`` STRONG volatile tokens — file paths, hex ids/SHAs, UUIDs, ISO dates,
+    wall-clock times, or line-number references. A bare incidental number (``"retry 3 times"``) is NOT
+    a strong token, so it never trips the flag (kills a naive "any digit → instance" impl). A neuron
+    with no ``content`` field, or non-dict entries, are ignored. Returns the sorted list of flagged
+    names. Pure — operates on the injected neuron list, no SurrealDB read, no writes.
+    """
+    flagged: list[str] = []
+    for neuron in neurons:
+        if not isinstance(neuron, dict):
+            continue
+        content = neuron.get("content")
+        if not content:
+            continue
+        if _volatile_token_count(str(content)) >= min_volatile:
+            flagged.append(str(neuron.get("name", "<unnamed>")))
+    return sorted(flagged)
