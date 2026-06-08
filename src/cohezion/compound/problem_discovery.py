@@ -8466,3 +8466,36 @@ def three_axis_matrix(
         sev_row = fid_row.setdefault(p.finding_id, {})
         sev_row[p.severity] = sev_row.get(p.severity, 0) + 1
     return tensor
+
+
+def problems_at_triple(
+    problems: list[Problem],
+    problem_class: str,
+    finding_id: str,
+    severity: str,
+) -> list[Problem]:
+    """Return Problem records matching ALL three axes -- item 475.
+
+    Filter complement to :func:`three_axis_count`: returns the actual
+    :class:`Problem` objects (not just the count) for the given
+    (class, fid, severity) triple.  Preserves insertion order.
+
+    Args:
+        problems: List of :class:`Problem` instances.
+        problem_class: Target class to filter on.
+        finding_id: Target finding_id to filter on.
+        severity: Target severity to filter on.
+
+    Returns:
+        List of matching :class:`Problem` objects.
+        Empty list when the triple is absent.
+
+    Pure (no I/O, no SurrealDB).
+    """
+    return [
+        p
+        for p in problems
+        if p.problem_class == problem_class
+        and p.finding_id == finding_id
+        and p.severity == severity
+    ]
