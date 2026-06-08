@@ -4651,3 +4651,35 @@ def problems_by_finding_id(
     for p in problems:
         result.setdefault(p.finding_id, []).append(p)
     return result
+
+
+def problem_class_pairs(
+    problems: list[Problem],
+) -> frozenset[frozenset[str]]:
+    """Return the set of all unordered pairs of distinct problem classes.
+
+    For every pair of distinct classes ``(a, b)`` both of which appear at
+    least once in *problems*, returns a 2-element ``frozenset({a, b})``.
+    Each unordered pair appears exactly once.  Classes with no problems are
+    excluded (irrelevant here since we derive classes from *problems*).
+
+    If *problems* contains fewer than 2 distinct classes, returns an empty
+    frozenset because no pair can be formed.
+
+    Args:
+        problems: Flat list of :class:`Problem` records.
+
+    Returns:
+        Frozenset of 2-element frozensets.  Returns ``frozenset()`` when
+        *problems* is empty or has fewer than 2 distinct classes.
+
+    Pure (no I/O, no SurrealDB).
+    """
+    classes = sorted({p.problem_class for p in problems})
+    if len(classes) < 2:
+        return frozenset()
+    return frozenset(
+        frozenset({classes[i], classes[j]})
+        for i in range(len(classes))
+        for j in range(i + 1, len(classes))
+    )
