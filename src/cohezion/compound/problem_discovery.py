@@ -15467,3 +15467,43 @@ def fid_severity_rank_low_count(problems: list[Problem]) -> dict[str, int]:
         if _SEVERITY_RANK.get(p.severity, 0) <= 1:
             counts[fid] += 1
     return counts
+
+
+def class_severity_rank_high_count(problems: list[Problem]) -> dict[str, int]:
+    """Absolute count of problems with rank >= 3 (HIGH or CRITICAL) per class.  Item 800.
+
+    count = count(rank >= 3) per class.
+    HIGH (rank 3) and CRITICAL (rank 4) included; MEDIUM and below excluded.
+    Zero-inclusive: class with no HIGH/CRITICAL still appears with count=0.
+    Empty -> {}.  Pure; no I/O.
+    """
+    if not problems:
+        return {}
+    counts: dict[str, int] = {}
+    for p in problems:
+        cls = p.problem_class
+        if cls not in counts:
+            counts[cls] = 0
+        if _SEVERITY_RANK.get(p.severity, 0) >= 3:
+            counts[cls] += 1
+    return counts
+
+
+def fid_severity_rank_high_count(problems: list[Problem]) -> dict[str, int]:
+    """Absolute count of problems with rank >= 3 (HIGH or CRITICAL) per fid.  Item 801.
+
+    Fid-axis complement of class_severity_rank_high_count (item 800).
+    count = count(rank >= 3) per fid.  Zero-inclusive.  Empty -> {}.  Pure; no I/O.
+    """
+    if not problems:
+        return {}
+    counts: dict[str, int] = {}
+    for p in problems:
+        fid = p.finding_id
+        if fid not in counts:
+            counts[fid] = 0
+        if _SEVERITY_RANK.get(p.severity, 0) >= 3:
+            counts[fid] += 1
+    return counts
+
+
