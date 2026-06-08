@@ -5283,3 +5283,35 @@ def single_severity_classes(problems: list["Problem"]) -> "frozenset[str]":
         if p.severity:
             class_severities.setdefault(p.problem_class, set()).add(p.severity)
     return frozenset(cls for cls, sevs in class_severities.items() if len(sevs) == 1)
+
+
+def severity_span(problems: list["Problem"]) -> dict[str, int]:
+    """Return the count of distinct labelled severity levels per class.
+
+    The span is the quantified form of the ``multi_severity_classes`` /
+    ``single_severity_classes`` dichotomy: ``span == 1`` means the class is
+    homogeneous (same severity for every labelled problem); ``span >= 2``
+    means heterogeneous.  The relationship holds exactly:
+
+    .. code-block:: python
+
+        multi_severity_classes(p) == {cls for cls, s in severity_span(p).items() if s >= 2}
+        single_severity_classes(p) == {cls for cls, s in severity_span(p).items() if s == 1}
+
+    Args:
+        problems: Flat list of :class:`Problem` records.
+
+    Returns:
+        ``{class_name: distinct_severity_count}`` for every class with at
+        least one labelled problem.  Classes with only unlabelled problems are
+        excluded.  Returns ``{}`` for empty input.
+
+    Pure (no I/O, no SurrealDB).
+    """
+    if not problems:
+        return {}
+    class_severities: dict[str, set[str]] = {}
+    for p in problems:
+        if p.severity:
+            class_severities.setdefault(p.problem_class, set()).add(p.severity)
+    return {cls: len(sevs) for cls, sevs in class_severities.items()}
