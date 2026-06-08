@@ -4453,3 +4453,33 @@ def most_volatile_class(
         deltas,
         key=lambda cls: (sum(abs(v) for v in deltas[cls].values()), [-ord(c) for c in cls]),
     )
+
+
+def severity_heatmap(
+    problems: list[Problem],
+) -> dict[str, dict[str, int]]:
+    """Return a class × severity count matrix for a single problem scan.
+
+    Builds a two-dimensional count of problems grouped by class and then by
+    severity.  Only labelled problems (``severity != ''``) contribute.  Classes
+    whose problems are all unlabelled are omitted from the result.
+
+    This is equivalent to calling :func:`problem_count_by_severity_in_class`
+    for every class simultaneously, but in a single pass.
+
+    Args:
+        problems: Flat list of :class:`Problem` records.
+
+    Returns:
+        ``{class_name: {severity: count}}``.  Inner dict only contains
+        severities with at least one problem (no zero-count keys).  Returns
+        ``{}`` when *problems* is empty or all problems are unlabelled.
+
+    Pure (no I/O, no SurrealDB).
+    """
+    result: dict[str, dict[str, int]] = {}
+    for p in problems:
+        if p.severity:
+            inner = result.setdefault(p.problem_class, {})
+            inner[p.severity] = inner.get(p.severity, 0) + 1
+    return result
