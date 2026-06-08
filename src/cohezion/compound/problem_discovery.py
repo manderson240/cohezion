@@ -4402,6 +4402,7 @@ def severity_delta_per_class(
 
     Pure (no I/O, no SurrealDB).
     """
+
     # Build per-(class, severity) counts for each scan, ignoring unlabelled.
     def _counts(scan: list[Problem]) -> dict[tuple[str, str], int]:
         c: dict[tuple[str, str], int] = {}
@@ -4711,3 +4712,27 @@ def unique_finding_ids_across_classes(
     for p in problems:
         id_to_classes.setdefault(p.finding_id, set()).add(p.problem_class)
     return frozenset(fid for fid, classes in id_to_classes.items() if len(classes) == 1)
+
+
+def problem_density_by_class(problems: list[Problem]) -> dict[str, float]:
+    """Return each class's share of total problems as a float in [0.0, 1.0].
+
+    Density is ``count(class) / len(problems)``.  All densities sum to 1.0
+    (within floating-point precision).
+
+    Args:
+        problems: Flat list of :class:`Problem` records.
+
+    Returns:
+        ``{class_name: density}`` where density ∈ [0.0, 1.0].  Returns ``{}``
+        when *problems* is empty.
+
+    Pure (no I/O, no SurrealDB).
+    """
+    if not problems:
+        return {}
+    total = len(problems)
+    counts: dict[str, int] = {}
+    for p in problems:
+        counts[p.problem_class] = counts.get(p.problem_class, 0) + 1
+    return {cls: cnt / total for cls, cnt in counts.items()}
