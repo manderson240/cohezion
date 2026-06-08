@@ -7,7 +7,7 @@ severity="" returns only unlabelled problems. Pure; no I/O.
 
 Discriminating tests — each kills a plausible wrong implementation:
 
-  1. PRIMARY DISC.: match is EXACT and CASE-SENSITIVE ("HIGH" \!= "high").
+  1. PRIMARY DISC.: match is EXACT and CASE-SENSITIVE ("HIGH" != "high").
      Kills impl doing case-insensitive comparison.
   2. Preserves input order among returned problems.
      Kills impl that sorts or reverses the result.
@@ -46,15 +46,15 @@ def _p(cls: str, idx: int) -> Problem:
 
 
 def test_match_is_case_sensitive() -> None:
-    """Match is EXACT and CASE-SENSITIVE: 'HIGH' \!= 'high'.
+    """Match is EXACT and CASE-SENSITIVE: 'HIGH' != 'high'.
 
     PRIMARY DISCRIMINATOR: kills impl doing case-insensitive comparison.
     """
     problems = [_ps("alpha", 0, "HIGH"), _ps("alpha", 1, "high")]
     result = problems_at_severity(problems, "HIGH")
     assert len(result) == 1, "Only 'HIGH' (uppercase) matches; got " + str(len(result))
-    assert result[0].finding_id == "alpha:0", (
-        "Matched wrong problem; got " + repr(result[0].finding_id)
+    assert result[0].finding_id == "alpha:0", "Matched wrong problem; got " + repr(
+        result[0].finding_id
     )
 
 
@@ -70,9 +70,7 @@ def test_preserves_input_order() -> None:
     ]
     result = problems_at_severity(problems, "HIGH")
     ids = [p.finding_id for p in result]
-    assert ids == ["gamma:2", "alpha:0", "beta:1"], (
-        "Order must match input; got " + repr(ids)
-    )
+    assert ids == ["gamma:2", "alpha:0", "beta:1"], "Order must match input; got " + repr(ids)
 
 
 def test_empty_input_returns_empty_list() -> None:
@@ -91,9 +89,9 @@ def test_empty_severity_returns_only_unlabelled() -> None:
     """
     problems = [
         _ps("alpha", 0, "HIGH"),
-        _p("beta", 1),          # severity="" (unlabelled)
+        _p("beta", 1),  # severity="" (unlabelled)
         _ps("gamma", 2, "LOW"),
-        _p("delta", 3),         # severity="" (unlabelled)
+        _p("delta", 3),  # severity="" (unlabelled)
     ]
     result = problems_at_severity(problems, "")
     assert len(result) == 2, "Only 2 unlabelled problems; got " + str(len(result))
