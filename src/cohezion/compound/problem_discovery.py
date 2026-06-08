@@ -3543,3 +3543,28 @@ def most_common_severity(problems: list[Problem]) -> str | None:
     if not counts:
         return None
     return max(counts, key=lambda s: (counts[s], [-ord(c) for c in s]))
+
+
+def severity_gini(problems: list[Problem]) -> float:
+    """Return the Gini impurity of the labelled severity distribution.
+
+    Gini impurity = 1 - Σ(p_i²) over non-empty severities.
+    Range: 0.0 (single severity, pure) to (1 - 1/k) maximum (k labels, uniform).
+
+    Args:
+        problems: List of :class:`Problem` instances from a scan.
+
+    Returns:
+        float Gini impurity in [0.0, 1.0).  0.0 when *problems* is empty,
+        all problems are unlabelled, or only one distinct severity exists.
+
+    Pure (no I/O, no SurrealDB).
+    """
+    counts: dict[str, int] = {}
+    for p in problems:
+        if p.severity:
+            counts[p.severity] = counts.get(p.severity, 0) + 1
+    total = sum(counts.values())
+    if total == 0:
+        return 0.0
+    return float(1.0 - sum((c / total) ** 2 for c in counts.values()))
