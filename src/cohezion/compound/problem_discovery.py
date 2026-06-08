@@ -4777,7 +4777,57 @@ def severity_density_by_class(
     return result
 
 
-def severity_entropy_by_class(problems: list["Problem"]) -> dict[str, float]:
+def severity_entropy_map(problems: list[Problem]) -> dict[str, float]:
+    """Return a Shannon-entropy value for each class's labelled-severity distribution.
+
+    For each class present in *problems*, computes::
+
+        H(class) = -sum(p_i * log2(p_i))
+
+    where ``p_i = count(class, severity_i) / total_labelled(class)``.  The
+    denominator is the count of **labelled** (non-empty severity) problems for
+    that class, mirroring the convention of
+    :func:`class_severity_entropy` (the existing per-class helper).
+
+    Unlabelled problems are excluded from both the counts and the total.
+    Classes that have **zero labelled problems** are still included in the
+    result, with ``H = 0.0`` (maximum certainty — there is nothing to be
+    uncertain about).  Classes with exactly one distinct labelled severity also
+    return ``H = 0.0``.
+
+    This is the batch counterpart of :func:`class_severity_entropy`.
+
+    Args:
+        problems: Flat list of :class:`Problem` records from a single scan.
+
+    Returns:
+        ``{class_name: entropy_in_bits}`` for every class observed in
+        *problems*.  Returns ``{}`` when *problems* is empty.
+
+    Pure (no I/O, no SurrealDB).
+    """
+    if not problems:
+        return {}
+    # Collect all classes and their labelled-severity counts.
+    all_classes: set[str] = set()
+    labelled_counts: dict[str, dict[str, int]] = {}
+    for p in problems:
+        all_classes.add(p.problem_class)
+        if p.severity:
+            inner = labelled_counts.setdefault(p.problem_class, {})
+            inner[p.severity] = inner.get(p.severity, 0) + 1
+    result: dict[str, float] = {}
+    for cls in all_classes:
+        counts = labelled_counts.get(cls, {})
+        total = sum(counts.values())
+        if total == 0:
+            result[cls] = 0.0
+        else:
+            result[cls] = float(-sum((c / total) * math.log2(c / total) for c in counts.values()))
+    return result
+
+
+def severity_entropy_by_class(problems: list[Problem]) -> dict[str, float]:
     """Return the Shannon entropy (bits) of the severity distribution for every class.
 
     For each class, computes H = -Σ p_i * log2(p_i) over the labelled severity
@@ -4814,7 +4864,5 @@ def severity_entropy_by_class(problems: list["Problem"]) -> dict[str, float]:
         if not counts:
             result[cls] = 0.0
         else:
-            result[cls] = float(
-                -sum((c / total) * math.log2(c / total) for c in counts.values())
-            )
+            result[cls] = float(-sum((c / total) * math.log2(c / total) for c in counts.values()))
     return result
