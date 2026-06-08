@@ -1332,3 +1332,41 @@ def problems_above_threshold(
         for p in problems
         if p.problem_class in thresholds and counts[p.problem_class] > thresholds[p.problem_class]
     ]
+
+
+def problems_within_threshold(
+    problems: list[Problem],
+    thresholds: dict[str, int],
+) -> list[Problem]:
+    """Return findings from monitored classes whose count is at or below the limit — item 201.
+
+    Complement of :func:`problems_above_threshold` — this keeps findings from
+    classes that are within tolerance, enabling selection of the "safe" subset::
+
+        safe_classes = problems_within_threshold(
+            findings, {"complexity_outlier": 5}
+        )
+
+    Args:
+        problems:
+            A list of :class:`Problem` instances.  Empty list → ``[]``.
+        thresholds:
+            ``{problem_class: max_allowed_count}`` mapping.  Only classes
+            present in *thresholds* are monitored; all others are excluded.
+            Empty *thresholds* → ``[]``.
+
+    Returns:
+        A new list containing only findings whose class is in *thresholds*
+        AND whose class count does NOT exceed the configured limit
+        (``count <= limit``).  Insertion order is preserved.
+
+    Pure (no I/O, no SurrealDB).
+    """
+    if not thresholds or not problems:
+        return []
+    counts = problem_count_by_class(problems)
+    return [
+        p
+        for p in problems
+        if p.problem_class in thresholds and counts[p.problem_class] <= thresholds[p.problem_class]
+    ]
