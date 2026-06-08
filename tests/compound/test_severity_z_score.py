@@ -20,7 +20,6 @@ Discriminating tests -- each kills a plausible wrong implementation:
 """
 
 from __future__ import annotations
-import math
 
 from cohezion.compound.problem_discovery import (
     Problem,
@@ -41,8 +40,8 @@ def test_z_score_not_rank_or_percentile() -> None:
     """
     problems = (
         [_p("c", f"f{i}", "HIGH") for i in range(6)]
-        + [_p("c", f"f{i+6}", "LOW") for i in range(2)]
-        + [_p("c", f"f{i+8}", "MED") for i in range(4)]
+        + [_p("c", f"f{i + 6}", "LOW") for i in range(2)]
+        + [_p("c", f"f{i + 8}", "MED") for i in range(4)]
     )
     result_high = severity_z_score(problems, "HIGH")
     result_low = severity_z_score(problems, "LOW")

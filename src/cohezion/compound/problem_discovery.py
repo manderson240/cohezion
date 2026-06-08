@@ -8021,7 +8021,7 @@ def severity_z_score(problems: list[Problem], severity: str) -> float:
     n = len(values)
     mean = sum(values) / n
     variance = sum((v - mean) ** 2 for v in values) / n
-    stdev = variance ** 0.5
+    stdev = variance**0.5
     if stdev == 0.0:
         return 0.0
     return (counts[severity] - mean) / stdev
