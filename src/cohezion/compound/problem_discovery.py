@@ -11157,3 +11157,61 @@ def classes_by_severity(problems: list[Problem]) -> dict[str, set[str]]:
                     result[sev] = set()
                 result[sev].add(cls)
     return result
+
+
+def fids_by_severity(problems: list[Problem]) -> dict[str, set[str]]:
+    """Group fid names by their dominant severity.  Item 587.
+
+    Returns {severity: {fid, ...}} where each severity key contains the fids
+    for which that severity has the highest count across that fid's problems.
+    Ties: a fid appears in ALL tied severity buckets.
+    FID-axis complement of classes_by_severity.
+    Empty -> {}.  Pure; no I/O.
+    """
+    if not problems:
+        return {}
+    # Build per-fid severity counts
+    sev_counts: dict[str, dict[str, int]] = {}
+    for p in problems:
+        if p.finding_id not in sev_counts:
+            sev_counts[p.finding_id] = {}
+        sev = p.severity or ""
+        sev_counts[p.finding_id][sev] = sev_counts[p.finding_id].get(sev, 0) + 1
+    # For each fid, find dominant (max-count) severities; add to output buckets
+    result: dict[str, set[str]] = {}
+    for fid, counts in sev_counts.items():
+        max_count = max(counts.values())
+        for sev, cnt in counts.items():
+            if cnt == max_count:
+                if sev not in result:
+                    result[sev] = set()
+                result[sev].add(fid)
+    return result
+
+
+def fids_by_severity(problems: list[Problem]) -> dict[str, set[str]]:
+    """Group fid names by their dominant severity.  Item 587.
+
+    Returns {severity: {fid, ...}} where each severity key contains the fids
+    for which that severity has the highest count.  Ties: a fid appears in ALL
+    tied severity buckets.
+    FID-axis complement of classes_by_severity.
+    Empty -> {}.  Pure; no I/O.
+    """
+    if not problems:
+        return {}
+    sev_counts: dict[str, dict[str, int]] = {}
+    for p in problems:
+        if p.finding_id not in sev_counts:
+            sev_counts[p.finding_id] = {}
+        sev = p.severity or ""
+        sev_counts[p.finding_id][sev] = sev_counts[p.finding_id].get(sev, 0) + 1
+    result: dict[str, set[str]] = {}
+    for fid, counts in sev_counts.items():
+        max_count = max(counts.values())
+        for sev, cnt in counts.items():
+            if cnt == max_count:
+                if sev not in result:
+                    result[sev] = set()
+                result[sev].add(fid)
+    return result
