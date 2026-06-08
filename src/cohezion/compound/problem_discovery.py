@@ -1724,3 +1724,30 @@ def deduplicate_by_finding_id(problems: list[Problem]) -> list[Problem]:
             seen.add(p.finding_id)
             result.append(p)
     return result
+
+
+def problems_not_in_class_set(
+    problems: list[Problem],
+    exclude: set[str],
+) -> list[Problem]:
+    """Return Problems whose class is NOT in the exclude set — item 213.
+
+    Inverse of :func:`problems_for_class_set`; useful for filtering out
+    noise classes while keeping signal::
+
+        signal = problems_not_in_class_set(findings, {"long_line", "whitespace"})
+
+    Args:
+        problems:
+            A list of :class:`Problem` instances.  Empty list → ``[]``.
+        exclude:
+            Set of ``problem_class`` values to remove.  Empty set → full
+            list returned unchanged.
+
+    Returns:
+        ``list[Problem]`` — Problems whose ``problem_class`` is not in
+        *exclude*, in input order.
+
+    Pure (no I/O, no SurrealDB).
+    """
+    return [p for p in problems if p.problem_class not in exclude]
