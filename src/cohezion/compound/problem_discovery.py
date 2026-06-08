@@ -2725,3 +2725,47 @@ def threshold_class_partition(
         "at_threshold": frozenset(at),
         "over_budget": frozenset(over),
     }
+
+
+def headroom_summary(
+    problems: list[Problem],
+    thresholds: dict[str, int],
+) -> dict[str, object]:
+    """Return a rich headroom report covering all monitored classes.
+
+    Builds on :func:`signed_headroom` to produce a summary with four keys::
+
+        {
+            "compliant": list[str],   # classes with headroom > 0, sorted asc
+            "exact":     list[str],   # classes with headroom == 0, sorted asc
+            "violated":  list[str],   # classes with headroom < 0, sorted asc
+            "worst":     str | None,  # class with lowest headroom, or None
+        }
+
+    The three lists are disjoint; their union (as a set) equals
+    ``frozenset(thresholds)``.  ``worst`` is ``None`` when there are no
+    violations.
+
+    Args:
+        problems:   List of :class:`Problem` instances from a scan.
+        thresholds: ``{problem_class: max_allowed_count}`` mapping.
+
+    Returns:
+        ``dict`` with keys ``"compliant"``, ``"exact"``, ``"violated"``,
+        ``"worst"``.
+
+    Pure (no I/O, no SurrealDB).
+    """
+    headroom = signed_headroom(problems, thresholds)
+    compliant: list[str] = sorted(cls for cls, h in headroom.items() if h > 0)
+    exact: list[str] = sorted(cls for cls, h in headroom.items() if h == 0)
+    violated: list[str] = sorted(cls for cls, h in headroom.items() if h < 0)
+    worst: str | None = (
+        min(violated, key=lambda cls: headroom[cls]) if violated else None
+    )
+    return {
+        "compliant": compliant,
+        "exact": exact,
+        "violated": violated,
+        "worst": worst,
+    }
