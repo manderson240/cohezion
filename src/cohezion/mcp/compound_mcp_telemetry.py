@@ -304,6 +304,32 @@ def get_tool_windowed_stats(
     }
 
 
+def get_tool_windowed_p95_ms(
+    tool_name: str,
+    window_ms: float,
+    *,
+    store: dict[str, list] | None = None,
+    now_ms: float | None = None,
+) -> float:
+    """Return the windowed p95 latency for a specific tool.  Item 922.
+
+    Lightweight shortcut for monitoring/alerting that avoids constructing the
+    full windowed stats dict when only p95 is needed.
+
+    Args:
+        tool_name:  The MCP tool name to look up.
+        window_ms:  Look-back window in milliseconds.
+        store:      Windowed telemetry store (injectable; defaults to
+                    ``_WINDOWED_TELEMETRY``).
+        now_ms:     Current time in ms (defaults to ``time.time() * 1000``).
+
+    Returns:
+        p95 latency in milliseconds from the windowed store.
+        0.0 for unknown tools or tools with no calls in the window.
+    """
+    return get_tool_windowed_stats(tool_name, window_ms, store=store, now_ms=now_ms)["p95_ms"]
+
+
 def record_tool_call_windowed(
     tool_name: str,
     latency_ms: float,
