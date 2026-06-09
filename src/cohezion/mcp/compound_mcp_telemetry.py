@@ -4035,6 +4035,44 @@ def get_windowed_tool_latency_robust_cv(
     return float((q3 - q1) / med)
 
 
+def get_windowed_tool_latency_z_score_max(
+    tool_name: str,
+    window_ms: float,
+    *,
+    store: dict | None = None,
+    now_ms: float | None = None,
+) -> float:
+    """Per-tool maximum z-score = (max_lat - mean) / std.  Item 1063.
+
+    Measures worst-case outlier severity in standard deviation units.
+    Returns 0.0 for n < 2 or std == 0.
+    Injectable store.  Pure function.
+
+    PRIMARY DISC.: lats [10,20,30,40,200] n=5
+      mean=60, std=70.7107
+      z_max=(200-60)/70.7107≈1.9799
+      (kills max/mean≈3.33; kills (max-mean)/IQR≠1.9799; correct z_max≈1.9799).
+    """
+    import math as _math
+
+    if store is None:
+        store = _WINDOWED_TELEMETRY
+    if now_ms is None:
+        now_ms = _time.time() * 1000.0
+    cutoff_ms = now_ms - window_ms
+    records = store.get(tool_name, [])
+    lats = [lat for ts, lat, _ok in records if ts >= cutoff_ms]
+    n = len(lats)
+    if n < 2:
+        return 0.0
+    mean = sum(lats) / n
+    variance = sum((x - mean) ** 2 for x in lats) / n
+    if variance == 0.0:
+        return 0.0
+    std = _math.sqrt(variance)
+    return float((max(lats) - mean) / std)
+
+
 def get_windowed_global_latency_cqv(
     window_ms: float,
     *,
