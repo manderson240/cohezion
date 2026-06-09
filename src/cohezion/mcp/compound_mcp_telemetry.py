@@ -778,6 +778,21 @@ def load_telemetry_snapshot(path: _Path | str) -> dict[str, dict]:
     return data
 
 
+def get_tool_max_latency_ms(tool_name: str) -> float:
+    """Return the maximum recorded latency for a tool.  Item 935.
+
+    Args:
+        tool_name: The MCP tool name to look up.
+
+    Returns:
+        Maximum latency value in milliseconds; 0.0 for unknown tools.
+    """
+    stats = _TELEMETRY.get(tool_name)
+    if not stats or not stats["latencies"]:
+        return 0.0
+    return float(max(stats["latencies"]))
+
+
 def get_tool_min_latency_ms(tool_name: str) -> float:
     """Return the minimum recorded latency for a tool.  Item 934.
 
