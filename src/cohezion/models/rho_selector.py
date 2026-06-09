@@ -214,3 +214,34 @@ def rho_selection_margin(
     top = counts[0]
     second = counts[1] if len(counts) > 1 else 0
     return top - second
+
+
+def rho_confident_proposal(
+    records: list[dict],
+    *,
+    min_margin: int = 2,
+    min_samples: int = 5,
+    fallback_threshold: float = 0.5,
+) -> dict:
+    """The item-42 proposal ANNOTATED with a confidence gate on the item-61 margin (item 91).
+
+    Composes :func:`rho_proposal_record` (item 42) + :func:`rho_selection_margin` (item 61):
+    returns the proposal dict plus ``{margin, confident}`` where
+    ``confident = margin is not None and margin >= min_margin``. A decisive winner (margin at or
+    above ``min_margin``) is surfaced high-confidence; a photo-finish (margin below the threshold)
+    is flagged low-confidence but the winner is STILL named (annotate, don't drop). An UNPROVEN
+    corpus (no winner → ``margin is None``) is never confident — the ``is not None`` guard makes
+    that explicit rather than crashing on ``None >= min_margin``.
+
+    The gate is on the MARGIN, not on winner-existence: a winner whose margin is below the
+    threshold is still not endorsed. Report-only — annotates for a reviewer, never auto-applies.
+    Pure (no I/O; input corpus not mutated).
+    """
+    proposal = rho_proposal_record(
+        records, min_samples=min_samples, fallback_threshold=fallback_threshold
+    )
+    margin = rho_selection_margin(
+        records, min_samples=min_samples, fallback_threshold=fallback_threshold
+    )
+    confident = margin is not None and margin >= min_margin
+    return {**proposal, "margin": margin, "confident": confident}
