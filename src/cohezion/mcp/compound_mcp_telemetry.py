@@ -5612,3 +5612,28 @@ def get_windowed_fleet_latency_burst_rate_per_ms(
         window_ms, burst_threshold_ms, store=store, now_ms=now_ms,
     )
     return float(fleet_count / window_ms)
+
+
+def get_windowed_fleet_latency_above_threshold_count(
+    window_ms: float,
+    threshold_ms: float,
+    *,
+    store: dict | None = None,
+    now_ms: float | None = None,
+) -> int:
+    """Fleet-wide int count of calls with latency strictly > threshold_ms.  Item 1117.
+
+    Returns int.  0 for empty window.  Pools all records across all tools.
+    PRIMARY DISC.: kills per-tool-max (sum not max), float fraction, per-tool-first.
+    """
+    if store is None:
+        store = _WINDOWED_TELEMETRY
+    if now_ms is None:
+        now_ms = _time.time() * 1000.0
+    cutoff_ms = now_ms - window_ms
+    total = 0
+    for records in store.values():
+        for ts, lat, _ok in records:
+            if ts >= cutoff_ms and lat > threshold_ms:
+                total += 1
+    return int(total)
