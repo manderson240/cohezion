@@ -7021,3 +7021,32 @@ def get_windowed_fleet_error_count_by_tool(
         if ts >= cutoff_ms and not ok:
             count += 1
     return count
+
+
+def get_windowed_fleet_latency_max_ms_by_tool(
+    window_ms: float,
+    tool_name: str,
+    *,
+    store: dict | None = None,
+    now_ms: float | None = None,
+) -> float:
+    """Per-tool maximum latency within the fleet store window.  Item 1172.
+
+    Returns float.  0.0 for unknown/empty tool or all-outside-window.
+    Includes ALL calls regardless of success/failure.
+    PRIMARY DISC.: max_a=200ms ≠ max_b=400ms ≠ fleet_max=400ms.
+    """
+    if store is None:
+        store = _WINDOWED_TELEMETRY
+    if now_ms is None:
+        now_ms = _time.time() * 1000.0
+    cutoff_ms = now_ms - window_ms
+    records = store.get(tool_name, [])
+    max_lat = 0.0
+    found = False
+    for ts, lat, _ok in records:
+        if ts >= cutoff_ms:
+            if not found or lat > max_lat:
+                max_lat = lat
+                found = True
+    return float(max_lat) if found else 0.0
