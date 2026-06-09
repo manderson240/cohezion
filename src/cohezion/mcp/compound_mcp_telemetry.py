@@ -3437,6 +3437,48 @@ def get_windowed_tool_latency_winsorized_mean_ms(
     return float(sum(clamped) / n)
 
 
+def get_windowed_global_latency_trimmed_mean_ms(
+    window_ms: float,
+    trim_pct: float = 0.1,
+    *,
+    store: dict | None = None,
+    now_ms: float | None = None,
+) -> float:
+    """Fleet-wide trimmed (truncated) mean of pooled latency.  Item 1038.
+
+    Pools ALL latencies across ALL tools, sorts them, discards
+    floor(trim_pct * n) values from each tail, and returns the mean
+    of the remaining values.
+    0.0 for empty store or when nothing remains after trimming.
+    Default trim_pct=0.1 (10% each tail).  Injectable store.  Pure function.
+
+    Fleet dual of get_windowed_tool_latency_trimmed_mean_ms (item 1034).
+    NOT an average of per-tool trimmed means.
+
+    PRIMARY DISC.: tool_a=[10,100] + tool_b=[20,30,40] trim_pct=0.2
+      pooled sorted=[10,20,30,40,100], n=5, k=1
+      keep [20,30,40] -> trimmed_mean=30.0
+      (kills full_mean=40.0; kills per-tool-then-avg=42.5; correct=30.0).
+    """
+    if store is None:
+        store = _WINDOWED_TELEMETRY
+    if now_ms is None:
+        now_ms = _time.time() * 1000.0
+    cutoff_ms = now_ms - window_ms
+    all_lats: list[float] = []
+    for records in store.values():
+        all_lats.extend(lat for ts, lat, _ok in records if ts >= cutoff_ms)
+    n = len(all_lats)
+    if n == 0:
+        return 0.0
+    lats = sorted(all_lats)
+    k = int(n * trim_pct)  # floor via int
+    trimmed = lats[k: n - k] if k > 0 else lats
+    if not trimmed:
+        return 0.0
+    return float(sum(trimmed) / len(trimmed))
+
+
 def get_windowed_global_latency_mad_ms(
     window_ms: float,
     *,
