@@ -778,6 +778,24 @@ def load_telemetry_snapshot(path: _Path | str) -> dict[str, dict]:
     return data
 
 
+def get_global_error_rate() -> float:
+    """Return the overall error rate across all tools.  Item 945.
+
+    Computed as ``total_error_count / total_call_count`` (pooled / weighted
+    average) — NOT the average of per-tool error rates.  When tool call counts
+    differ, pooling gives the correct aggregate; naive averaging over-weights
+    low-traffic tools.
+
+    Returns:
+        Global error rate in [0.0, 1.0]; 0.0 when no calls have been recorded.
+    """
+    total_calls = sum(stats["call_count"] for stats in _TELEMETRY.values())
+    if total_calls == 0:
+        return 0.0
+    total_errors = sum(stats["error_count"] for stats in _TELEMETRY.values())
+    return float(total_errors) / total_calls
+
+
 def get_total_error_count() -> int:
     """Return the total number of errors recorded across all tools.  Item 944.
 
