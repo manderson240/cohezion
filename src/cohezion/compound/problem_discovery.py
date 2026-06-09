@@ -15926,7 +15926,7 @@ def fid_min_severity_rank(problems: list[Problem]) -> dict[str, int]:
     return result
 
 
-def class_mean_severity_rank(problems: list["Problem"]) -> dict[str, float]:
+def class_mean_severity_rank(problems: list[Problem]) -> dict[str, float]:
     """Mean severity rank per class.  Item 826.
     Returns float average of _SEVERITY_RANK values for each class. Empty -> {}."""
     if not problems:
@@ -15943,7 +15943,7 @@ def class_mean_severity_rank(problems: list["Problem"]) -> dict[str, float]:
     return {cls: float(totals[cls]) / counts[cls] for cls in totals}
 
 
-def fid_mean_severity_rank(problems: list["Problem"]) -> dict[str, float]:
+def fid_mean_severity_rank(problems: list[Problem]) -> dict[str, float]:
     """Mean severity rank per fid.  Item 827. Fid-axis complement of 826.
     Returns float average of _SEVERITY_RANK values for each finding_id. Empty -> {}."""
     if not problems:
@@ -15960,7 +15960,7 @@ def fid_mean_severity_rank(problems: list["Problem"]) -> dict[str, float]:
     return {fid: float(totals[fid]) / counts[fid] for fid in totals}
 
 
-def class_severity_rank_spread(problems: list["Problem"]) -> dict[str, int]:
+def class_severity_rank_spread(problems: list[Problem]) -> dict[str, int]:
     """Severity rank spread (max - min) per class.  Item 828.
     Single-problem class -> 0.  Empty -> {}.  Pure; no I/O."""
     if not problems:
@@ -15981,7 +15981,7 @@ def class_severity_rank_spread(problems: list["Problem"]) -> dict[str, int]:
     return {cls: max_ranks[cls] - min_ranks[cls] for cls in min_ranks}
 
 
-def fid_severity_rank_spread(problems: list["Problem"]) -> dict[str, int]:
+def fid_severity_rank_spread(problems: list[Problem]) -> dict[str, int]:
     """Severity rank spread (max - min) per fid.  Item 829. Fid-axis complement of 828.
     Single-problem fid -> 0.  Empty -> {}.  Pure; no I/O."""
     if not problems:
@@ -16002,7 +16002,7 @@ def fid_severity_rank_spread(problems: list["Problem"]) -> dict[str, int]:
     return {fid: max_ranks[fid] - min_ranks[fid] for fid in min_ranks}
 
 
-def count_distinct_fids_per_class(problems: list["Problem"]) -> dict[str, int]:
+def count_distinct_fids_per_class(problems: list[Problem]) -> dict[str, int]:
     """Count of distinct finding_id values per class.  Item 830.
     Returns number of unique fids observed for each problem_class. Empty -> {}."""
     if not problems:
@@ -16013,10 +16013,10 @@ def count_distinct_fids_per_class(problems: list["Problem"]) -> dict[str, int]:
         if cls not in fid_sets:
             fid_sets[cls] = set()
         fid_sets[cls].add(p.finding_id)
-    return {cls: int(len(s)) for cls, s in fid_sets.items()}
+    return {cls: len(s) for cls, s in fid_sets.items()}
 
 
-def count_distinct_classes_per_fid(problems: list["Problem"]) -> dict[str, int]:
+def count_distinct_classes_per_fid(problems: list[Problem]) -> dict[str, int]:
     """Count of distinct problem_class values per fid.  Item 831.
     Returns number of unique classes observed for each finding_id. Empty -> {}."""
     if not problems:
@@ -16027,4 +16027,4 @@ def count_distinct_classes_per_fid(problems: list["Problem"]) -> dict[str, int]:
         if fid not in class_sets:
             class_sets[fid] = set()
         class_sets[fid].add(p.problem_class)
-    return {fid: int(len(s)) for fid, s in class_sets.items()}
+    return {fid: len(s) for fid, s in class_sets.items()}
