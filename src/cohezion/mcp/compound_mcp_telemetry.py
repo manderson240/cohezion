@@ -5700,3 +5700,48 @@ def get_windowed_fleet_call_gap_stddev_ms(
     mean = sum(gaps) / m
     variance = sum((g - mean) ** 2 for g in gaps) / m
     return float(variance ** 0.5)
+
+
+def get_windowed_tool_latency_mean_burst_length(
+    tool_name: str,
+    window_ms: float,
+    burst_threshold_ms: float,
+    *,
+    store: dict | None = None,
+    now_ms: float | None = None,
+) -> float:
+    """Mean number of calls per burst (run length) in window.  Item 1123.
+
+    A "burst" is a contiguous above-threshold run (lat > burst_threshold_ms, strict >).
+    "Length" = number of calls in the run.  Returns mean length over all bursts.
+    0.0 for empty window or zero bursts.
+    PRIMARY DISC.: kills max_burst_length (mean not max), burst_count (count not length),
+    above_fraction (run-average not overall fraction).
+    """
+    if store is None:
+        store = _WINDOWED_TELEMETRY
+    if now_ms is None:
+        now_ms = _time.time() * 1000.0
+    cutoff_ms = now_ms - window_ms
+    records = store.get(tool_name, [])
+    windowed = sorted(
+        [(ts, lat) for ts, lat, _ok in records if ts >= cutoff_ms],
+        key=lambda x: x[0],
+    )
+    burst_lengths: list[int] = []
+    current_length = 0
+    in_burst = False
+    for _, lat in windowed:
+        if lat > burst_threshold_ms:
+            current_length += 1
+            in_burst = True
+        else:
+            if in_burst:
+                burst_lengths.append(current_length)
+                current_length = 0
+                in_burst = False
+    if in_burst and current_length > 0:
+        burst_lengths.append(current_length)
+    if not burst_lengths:
+        return 0.0
+    return float(sum(burst_lengths) / len(burst_lengths))
