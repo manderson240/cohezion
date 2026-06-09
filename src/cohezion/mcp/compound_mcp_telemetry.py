@@ -141,6 +141,22 @@ def get_tool_p50_ms(tool_name: str) -> float:
     return _percentile(sorted(stats["latencies"]), 50.0)
 
 
+def get_tool_p95_ms(tool_name: str) -> float:
+    """Return the p95 latency for a specific tool.  Item 915.
+
+    Args:
+        tool_name: The MCP tool name to look up.
+
+    Returns:
+        p95 latency in milliseconds from the cumulative store.
+        Returns 0.0 for unknown tools or tools with no recorded calls.
+    """
+    stats = _TELEMETRY.get(tool_name)
+    if not stats or not stats["latencies"]:
+        return 0.0
+    return _percentile(sorted(stats["latencies"]), 95.0)
+
+
 def record_tool_call_windowed(
     tool_name: str,
     latency_ms: float,
