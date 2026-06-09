@@ -3113,3 +3113,34 @@ def get_windowed_global_latency_above_budget_ms(
         for ts, lat, _ok in records
         if ts >= cutoff_ms
     ))
+
+
+def get_windowed_tool_above_budget_call_rate(
+    tool_name: str,
+    window_ms: float,
+    budget_ms: float,
+    *,
+    store: dict | None = None,
+    now_ms: float | None = None,
+) -> float:
+    """Return fraction of calls exceeding *budget_ms* for *tool_name*.  Item 1025.
+
+    above_budget_count / total_count in window.
+    0.0 for unknown tools or when no recent calls exist.
+    Complements item-1023 (excess sum) with a rate/fraction view.
+
+    PRIMARY DISC.: lats [50, 150, 200, 300] budget=100 -> 3 of 4 above -> 0.75
+      (kills count=3 int; kills excess_sum=350.0 float; correct rate=0.75).
+    """
+    if store is None:
+        store = _WINDOWED_TELEMETRY
+    if now_ms is None:
+        now_ms = _time.time() * 1000.0
+    cutoff_ms = now_ms - window_ms
+    records = store.get(tool_name, [])
+    recent = [(ts, lat) for ts, lat, _ok in records if ts >= cutoff_ms]
+    total = len(recent)
+    if total == 0:
+        return 0.0
+    above = sum(1 for _ts, lat in recent if lat > budget_ms)
+    return float(above / total)
