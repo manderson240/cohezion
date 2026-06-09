@@ -2197,3 +2197,33 @@ def get_windowed_tool_error_rate(
         return 0.0
     errors = sum(1 for (ok,) in recent if not ok)
     return float(errors / n)
+
+
+def get_windowed_tool_success_rate(
+    tool_name: str,
+    window_ms: float,
+    *,
+    store: dict | None = None,
+    now_ms: float | None = None,
+) -> float:
+    """Return the windowed success rate for *tool_name*.  Item 986.
+
+    Complement of get_windowed_tool_error_rate (item 985).
+    success_rate = success_count / call_count.
+    Property: error_rate + success_rate == 1.0 for any non-empty window.
+
+    Returns 0.0 for unknown tools or when no recent calls exist.
+    PRIMARY DISC.: 5 calls with 2 failures -> 0.6 (not success_count=3, not error_rate=0.4).
+    """
+    if store is None:
+        store = _WINDOWED_TELEMETRY
+    if now_ms is None:
+        now_ms = _time.time() * 1000.0
+    cutoff_ms = now_ms - window_ms
+    records = store.get(tool_name, [])
+    recent = [ok for ts, _lat, ok in records if ts >= cutoff_ms]
+    n = len(recent)
+    if n == 0:
+        return 0.0
+    successes = sum(1 for ok in recent if ok)
+    return float(successes / n)
