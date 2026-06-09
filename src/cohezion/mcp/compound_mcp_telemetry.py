@@ -414,6 +414,32 @@ def get_all_tool_windowed_stats(
     return result
 
 
+def get_tool_windowed_p50_ms(
+    tool_name: str,
+    window_ms: float,
+    *,
+    store: dict[str, list] | None = None,
+    now_ms: float | None = None,
+) -> float:
+    """Return the windowed p50 latency for a specific tool.  Item 927.
+
+    Windowed complement of ``get_tool_p50_ms`` (item 914).
+    Mirrors ``get_tool_windowed_p95_ms`` (item 922) for the p50 axis.
+
+    Args:
+        tool_name:  The MCP tool name to look up.
+        window_ms:  Look-back window in milliseconds.
+        store:      Windowed telemetry store (injectable; defaults to
+                    ``_WINDOWED_TELEMETRY``).
+        now_ms:     Current time in ms (defaults to ``time.time() * 1000``).
+
+    Returns:
+        p50 latency in milliseconds from the windowed store.
+        0.0 for unknown tools or tools with no calls in the window.
+    """
+    return get_tool_windowed_stats(tool_name, window_ms, store=store, now_ms=now_ms)["p50_ms"]
+
+
 def record_tool_call_windowed(
     tool_name: str,
     latency_ms: float,
