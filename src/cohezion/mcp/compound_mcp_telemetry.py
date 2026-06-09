@@ -330,6 +330,32 @@ def get_tool_windowed_p95_ms(
     return get_tool_windowed_stats(tool_name, window_ms, store=store, now_ms=now_ms)["p95_ms"]
 
 
+def get_tool_windowed_error_rate(
+    tool_name: str,
+    window_ms: float,
+    *,
+    store: dict[str, list] | None = None,
+    now_ms: float | None = None,
+) -> float:
+    """Return the windowed error rate for a specific tool.  Item 923.
+
+    Single-metric shortcut mirroring ``get_tool_windowed_p95_ms`` (item 922)
+    for the error-rate axis.
+
+    Args:
+        tool_name:  The MCP tool name to look up.
+        window_ms:  Look-back window in milliseconds.
+        store:      Windowed telemetry store (injectable; defaults to
+                    ``_WINDOWED_TELEMETRY``).
+        now_ms:     Current time in ms (defaults to ``time.time() * 1000``).
+
+    Returns:
+        Error rate (0.0–1.0) from the windowed store.
+        0.0 for unknown tools or tools with no calls in the window.
+    """
+    return get_tool_windowed_stats(tool_name, window_ms, store=store, now_ms=now_ms)["error_rate"]
+
+
 def record_tool_call_windowed(
     tool_name: str,
     latency_ms: float,
