@@ -16343,3 +16343,75 @@ def fid_severity_rank_at_or_below_threshold(
         if _SEVERITY_RANK.get(p.severity, 0) <= threshold:
             result[fid] += 1
     return result
+
+
+def class_severity_dominant_rank(problems: list[Problem]) -> dict[str, int]:
+    """Rank R that maximises R*count(R) per class.  Item 852.
+    Ties broken by highest rank. Empty -> {}. Pure; no I/O."""
+    if not problems:
+        return {}
+    rank_counts: dict[str, dict[int, int]] = {}
+    for p in problems:
+        cls = p.problem_class
+        rank = _SEVERITY_RANK.get(p.severity, 0)
+        if cls not in rank_counts:
+            rank_counts[cls] = {}
+        rank_counts[cls][rank] = rank_counts[cls].get(rank, 0) + 1
+    result: dict[str, int] = {}
+    for cls, counts in rank_counts.items():
+        result[cls] = max(counts.keys(), key=lambda r: (r * counts[r], r))
+    return result
+
+
+def fid_severity_dominant_rank(problems: list[Problem]) -> dict[str, int]:
+    """Rank R that maximises R*count(R) per fid.  Item 853. Fid-axis complement of 852.
+    Ties broken by highest rank. Empty -> {}. Pure; no I/O."""
+    if not problems:
+        return {}
+    rank_counts: dict[str, dict[int, int]] = {}
+    for p in problems:
+        fid = p.finding_id
+        rank = _SEVERITY_RANK.get(p.severity, 0)
+        if fid not in rank_counts:
+            rank_counts[fid] = {}
+        rank_counts[fid][rank] = rank_counts[fid].get(rank, 0) + 1
+    result: dict[str, int] = {}
+    for fid, counts in rank_counts.items():
+        result[fid] = max(counts.keys(), key=lambda r: (r * counts[r], r))
+    return result
+
+
+def class_severity_dominant_rank(problems: list[Problem]) -> dict[str, int]:
+    """Rank with highest rank*count weighted contribution per class.  Item 852.
+    Ties broken by highest rank. Empty -> {}. Pure; no I/O."""
+    if not problems:
+        return {}
+    rank_counts: dict[str, dict[int, int]] = {}
+    for p in problems:
+        cls = p.problem_class
+        rank = _SEVERITY_RANK.get(p.severity, 0)
+        if cls not in rank_counts:
+            rank_counts[cls] = {}
+        rank_counts[cls][rank] = rank_counts[cls].get(rank, 0) + 1
+    return {
+        cls: max(counts.keys(), key=lambda r: (r * counts[r], r))
+        for cls, counts in rank_counts.items()
+    }
+
+
+def fid_severity_dominant_rank(problems: list[Problem]) -> dict[str, int]:
+    """Rank with highest rank*count weighted contribution per fid.  Item 853.
+    Fid-axis complement of 852. Ties broken by highest rank. Empty -> {}. Pure; no I/O."""
+    if not problems:
+        return {}
+    rank_counts: dict[str, dict[int, int]] = {}
+    for p in problems:
+        fid = p.finding_id
+        rank = _SEVERITY_RANK.get(p.severity, 0)
+        if fid not in rank_counts:
+            rank_counts[fid] = {}
+        rank_counts[fid][rank] = rank_counts[fid].get(rank, 0) + 1
+    return {
+        fid: max(counts.keys(), key=lambda r: (r * counts[r], r))
+        for fid, counts in rank_counts.items()
+    }
