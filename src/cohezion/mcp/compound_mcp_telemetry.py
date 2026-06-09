@@ -96,6 +96,19 @@ def get_tool_call_count(tool_name: str) -> int:
     return _TELEMETRY.get(tool_name, {}).get("call_count", 0)
 
 
+def get_tool_error_count(tool_name: str) -> int:
+    """Return the cumulative error count for a specific tool.  Item 912.
+
+    Args:
+        tool_name: The MCP tool name to look up.
+
+    Returns:
+        Total number of failed calls recorded for *tool_name*.
+        Returns 0 for tools with no recorded calls or zero errors (never raises KeyError).
+    """
+    return _TELEMETRY.get(tool_name, {}).get("error_count", 0)
+
+
 def record_tool_call_windowed(
     tool_name: str,
     latency_ms: float,
