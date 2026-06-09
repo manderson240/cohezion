@@ -6147,3 +6147,28 @@ def get_windowed_fleet_latency_count(
             if ts >= cutoff_ms:
                 count += 1
     return count
+
+
+def get_windowed_fleet_error_count(
+    window_ms: float,
+    *,
+    store: dict | None = None,
+    now_ms: float | None = None,
+) -> int:
+    """Fleet-wide total error (success=False) call count across all tools.  Item 1137.
+
+    Returns int.  0 for empty window or all-success window.
+    PRIMARY DISC.: kills per-tool-avg (1.5 for tool_a=2 errors/tool_b=1 error) —
+    correct is the INTEGER sum of error records: 2+1=3.
+    """
+    if store is None:
+        store = _WINDOWED_TELEMETRY
+    if now_ms is None:
+        now_ms = _time.time() * 1000.0
+    cutoff_ms = now_ms - window_ms
+    errors = 0
+    for records in store.values():
+        for ts, _lat, ok in records:
+            if ts >= cutoff_ms and not ok:
+                errors += 1
+    return errors
