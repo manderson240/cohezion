@@ -1775,3 +1775,30 @@ def get_windowed_latency_percentile(
     if not recent_lats:
         return 0.0
     return _percentile(recent_lats, percentile)
+
+
+def get_windowed_global_latency_percentile(
+    percentile: float,
+    window_ms: float,
+    *,
+    store: dict | None = None,
+    now_ms: float | None = None,
+) -> float:
+    """Return an arbitrary *percentile* (0–100) of ALL windowed latencies fleet-wide.
+
+    All recent latencies from every tool are pooled into a single sorted list
+    before computing the percentile — NOT an average of per-tool percentiles.
+    Returns 0.0 when the pool is empty (no recent calls at all).
+    """
+    if store is None:
+        store = _WINDOWED_TELEMETRY
+    if now_ms is None:
+        now_ms = _time.time() * 1000.0
+    cutoff_ms = now_ms - window_ms
+    all_lats: list[float] = []
+    for records in store.values():
+        all_lats.extend(lat for ts, lat, _ok in records if ts >= cutoff_ms)
+    if not all_lats:
+        return 0.0
+    all_lats.sort()
+    return _percentile(all_lats, percentile)
