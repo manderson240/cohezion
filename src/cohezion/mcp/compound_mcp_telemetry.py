@@ -7370,3 +7370,38 @@ def get_windowed_fleet_latency_skewness_by_tool(
         return 0.0
     third_moment = sum((x - mean) ** 3 for x in lats) / n
     return float(third_moment / (stddev ** 3))
+
+
+def get_windowed_fleet_latency_kurtosis_by_tool(
+    window_ms: float,
+    tool_name: str,
+    *,
+    store: dict | None = None,
+    now_ms: float | None = None,
+) -> float:
+    """Per-tool latency excess kurtosis (fourth standardised moment minus 3).  Item 1185.
+
+    Formula: sum((x - mean)^4) / (n * stddev^4) - 3.
+    Returns float.  0.0 for unknown/empty tool or when stddev == 0.
+    Excess kurtosis > 0 = heavy tails (latency spikes more extreme than Gaussian).
+    Excess kurtosis < 0 = light tails (bounded, uniform-like).
+    PRIMARY DISC.: kurtosis_a=-1.3 (uniform-like) ≠ kurtosis_b=1.0 (concentrated+outliers).
+    """
+    import math as _math
+    if store is None:
+        store = _WINDOWED_TELEMETRY
+    if now_ms is None:
+        now_ms = _time.time() * 1000.0
+    cutoff_ms = now_ms - window_ms
+    records = store.get(tool_name, [])
+    lats = [lat for ts, lat, _ok in records if ts >= cutoff_ms]
+    n = len(lats)
+    if n < 2:
+        return 0.0
+    mean = sum(lats) / n
+    variance = sum((x - mean) ** 2 for x in lats) / n
+    stddev = _math.sqrt(variance)
+    if stddev == 0.0:
+        return 0.0
+    fourth_moment = sum((x - mean) ** 4 for x in lats) / n
+    return float(fourth_moment / (stddev ** 4) - 3.0)
