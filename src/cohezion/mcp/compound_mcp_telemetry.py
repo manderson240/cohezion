@@ -7724,3 +7724,25 @@ def get_windowed_fleet_latency_p90_ms_by_tool(
     return get_windowed_fleet_latency_percentile_ms_by_tool(
         window_ms, tool_name, 90, store=store, now_ms=now_ms
     )
+
+
+def get_windowed_fleet_latency_ipr80_ms_by_tool(
+    window_ms: float,
+    tool_name: str,
+    *,
+    store=None,
+    now_ms=None,
+) -> float:
+    """Per-tool 80th-interpercentile range (p90 - p10) within window. Item 1200.
+
+    Captures bulk-minus-tail spread: broader than IQR (25-75),
+    still excluding extreme outliers. Returns 0.0 for unknown/empty tool
+    or fewer than 2 calls.
+    """
+    p10 = get_windowed_fleet_latency_p10_ms_by_tool(
+        window_ms, tool_name, store=store, now_ms=now_ms
+    )
+    p90 = get_windowed_fleet_latency_p90_ms_by_tool(
+        window_ms, tool_name, store=store, now_ms=now_ms
+    )
+    return float(p90 - p10)
