@@ -211,6 +211,29 @@ def get_top_n_tools_by_call_count(n: int) -> list[str]:
     return sorted_tools[:n]
 
 
+def get_top_n_tools_by_error_rate(n: int) -> list[str]:
+    """Return up to N tool names sorted by descending error rate.  Item 919.
+
+    Only tools that have been called at least once are included (error rate is
+    only defined when call_count > 0).  Ties broken by ascending tool name.
+
+    Args:
+        n: Number of top error-prone tools to return.  n ≤ 0 returns [].
+
+    Returns:
+        List of up to *n* tool names, most error-prone first.
+        Empty list when store is empty or *n* ≤ 0.
+    """
+    if n <= 0:
+        return []
+    eligible = [t for t, stats in _TELEMETRY.items() if stats["call_count"] > 0]
+    sorted_tools = sorted(
+        eligible,
+        key=lambda t: (-get_tool_error_rate(t), t),
+    )
+    return sorted_tools[:n]
+
+
 def record_tool_call_windowed(
     tool_name: str,
     latency_ms: float,
