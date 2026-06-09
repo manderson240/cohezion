@@ -7779,3 +7779,39 @@ def get_windowed_fleet_latency_tail_ratio_by_tool(
         window_ms, tool_name, 99, store=store, now_ms=now_ms
     )
     return float(p99 / p50)
+
+
+def get_windowed_fleet_latency_mad_ms_by_tool(
+    window_ms: float,
+    tool_name: str,
+    *,
+    store=None,
+    now_ms=None,
+) -> float:
+    """Per-tool Median Absolute Deviation (MAD) of latency within window. Item 1202.
+
+    Formula: median(|lat_i - median(lats)|).
+    Robust scale estimator — outliers only inflate MAD if they shift the median.
+    Returns 0.0 for unknown/empty tool or fewer than 2 calls.
+    """
+    import math as _math
+
+    if store is None:
+        store = _WINDOWED_TELEMETRY
+    if now_ms is None:
+        now_ms = _time.time() * 1000.0
+    cutoff_ms = now_ms - window_ms
+    records = store.get(tool_name, [])
+    lats = sorted(lat for ts, lat, _ok in records if ts >= cutoff_ms)
+    n = len(lats)
+    if n < 2:
+        return 0.0
+    # Median of sorted latencies (nearest middle for odd; average for even)
+    mid = n // 2
+    median = lats[mid] if n % 2 == 1 else (lats[mid - 1] + lats[mid]) / 2.0
+    # Median of absolute deviations
+    devs = sorted(abs(x - median) for x in lats)
+    m2 = n // 2
+    if n % 2 == 1:
+        return float(devs[m2])
+    return float((devs[m2 - 1] + devs[m2]) / 2.0)
