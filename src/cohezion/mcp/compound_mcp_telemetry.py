@@ -2412,3 +2412,29 @@ def get_windowed_global_throughput_per_sec(
     if total == 0:
         return 0.0
     return float(total / (window_ms / 1000.0))
+
+
+def get_windowed_tool_latency_iqr_ms(
+    tool_name: str,
+    window_ms: float,
+    *,
+    store: dict | None = None,
+    now_ms: float | None = None,
+) -> float:
+    """Return per-tool interquartile range (IQR = p75 - p25) of latency in window.  Item 999.
+
+    IQR is a robust spread metric resistant to latency outliers (e.g., occasional
+    10s timeout spikes inflate stddev and range but leave IQR stable).
+
+    Computes: get_windowed_latency_percentile(tool, 75, ...) - get_windowed_latency_percentile(tool, 25, ...)
+
+    Returns 0.0 for unknown tools or when no recent calls exist (single call also
+    returns 0.0 since p75 == p25 for a 1-element distribution).
+
+    PRIMARY DISC.: lats [10,20,30,40,50] -> IQR=20.0
+      p75=idx=0.75*4=3.0 -> 40.0; p25=idx=0.25*4=1.0 -> 20.0; IQR=20.0
+      (kills range=50-10=40.0; kills stddev≈14.14).
+    """
+    p75 = get_windowed_latency_percentile(tool_name, 75.0, window_ms, store=store, now_ms=now_ms)
+    p25 = get_windowed_latency_percentile(tool_name, 25.0, window_ms, store=store, now_ms=now_ms)
+    return float(p75 - p25)
