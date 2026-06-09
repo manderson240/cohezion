@@ -383,6 +383,37 @@ def get_tool_windowed_call_count(
     )
 
 
+def get_all_tool_windowed_stats(
+    window_ms: float,
+    *,
+    store: dict[str, list] | None = None,
+    now_ms: float | None = None,
+) -> dict[str, dict]:
+    """Return windowed stats for all tools that have calls within the window.  Item 925.
+
+    Windowed complement of ``get_all_tool_stats`` — only tools with ≥1 call
+    in the last *window_ms* ms appear in the result.
+
+    Args:
+        window_ms:  Look-back window in milliseconds.
+        store:      Windowed telemetry store (injectable; defaults to
+                    ``_WINDOWED_TELEMETRY``).
+        now_ms:     Current time in ms (defaults to ``time.time() * 1000``).
+
+    Returns:
+        {tool_name: {call_count, error_rate, p50_ms, p95_ms}} for active tools only.
+        Empty dict when store is empty or no tool has calls within the window.
+    """
+    if store is None:
+        store = _WINDOWED_TELEMETRY
+    result: dict[str, dict] = {}
+    for tool_name in store:
+        stats = get_tool_windowed_stats(tool_name, window_ms, store=store, now_ms=now_ms)
+        if stats["call_count"] > 0:
+            result[tool_name] = stats
+    return result
+
+
 def record_tool_call_windowed(
     tool_name: str,
     latency_ms: float,
