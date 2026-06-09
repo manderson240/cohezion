@@ -16704,3 +16704,49 @@ def fid_severity_rank_above_mean(problems: list[Problem]) -> dict[str, int]:
         mean = sum(ranks) / len(ranks)
         result[fid] = sum(1 for r in ranks if r > mean)
     return result
+
+
+def class_severity_rank_below_mean(problems: list[Problem]) -> dict[str, int]:
+    """Count of problems with rank strictly below the class mean rank.  Item 876.
+
+    For each class, computes the arithmetic mean of all ranks, then returns
+    the count of problems whose rank is strictly less than that mean.
+    All-same-rank -> 0.  Single problem -> 0.  Empty -> {}.  Pure; no I/O.
+    """
+    if not problems:
+        return {}
+    class_ranks: dict[str, list[int]] = {}
+    for p in problems:
+        cls = p.problem_class
+        rank = _SEVERITY_RANK.get(p.severity, 0)
+        if cls not in class_ranks:
+            class_ranks[cls] = []
+        class_ranks[cls].append(rank)
+    result: dict[str, int] = {}
+    for cls, ranks in class_ranks.items():
+        mean = sum(ranks) / len(ranks)
+        result[cls] = sum(1 for r in ranks if r < mean)
+    return result
+
+
+def fid_severity_rank_below_mean(problems: list[Problem]) -> dict[str, int]:
+    """Count of problems with rank strictly below the fid mean rank.  Item 877.
+
+    Fid-axis complement of class_severity_rank_below_mean (item 876).
+    For each finding_id counts problems whose rank strictly falls below the fid
+    mean rank.  Empty -> {}.  Pure; no I/O.
+    """
+    if not problems:
+        return {}
+    fid_ranks2: dict[str, list[int]] = {}
+    for p in problems:
+        fid = p.finding_id
+        rank = _SEVERITY_RANK.get(p.severity, 0)
+        if fid not in fid_ranks2:
+            fid_ranks2[fid] = []
+        fid_ranks2[fid].append(rank)
+    result2: dict[str, int] = {}
+    for fid, ranks in fid_ranks2.items():
+        mean = sum(ranks) / len(ranks)
+        result2[fid] = sum(1 for r in ranks if r < mean)
+    return result2
