@@ -2441,6 +2441,32 @@ def get_windowed_global_latency_p5_ms(
     )
 
 
+def get_windowed_global_p5_p95_ratio(
+    window_ms: float,
+    *,
+    store: dict | None = None,
+    now_ms: float | None = None,
+) -> float:
+    """Fleet-wide p5/p95 tail symmetry index (pooled raw values).  Item 1047.
+
+    ratio = global_p5 / global_p95.  Returns 0.0 if global_p95 == 0.0.
+    Pools ALL tool latencies before computing percentiles (NOT per-tool avg).
+    Injectable store.  Pure function.  Fleet dual of per-tool item 1045.
+
+    PRIMARY DISC.: tool_a=[10,10,10,10] + tool_b=[100]
+      pooled [10,10,10,10,100] n=5
+      p5=10.0 (idx=0.2 -> 10+0.2*0=10.0),
+      p95=82.0 (idx=3.8 -> 10+0.8*(100-10)=82.0)
+      ratio=10.0/82.0≈0.12195
+      (kills per-tool-avg=1.0; kills ratio=1.0 symmetric assumption).
+    """
+    p5 = get_windowed_global_latency_percentile(5.0, window_ms, store=store, now_ms=now_ms)
+    p95 = get_windowed_global_latency_percentile(95.0, window_ms, store=store, now_ms=now_ms)
+    if p95 == 0.0:
+        return 0.0
+    return float(p5 / p95)
+
+
 def get_windowed_global_p75_ms(
     window_ms: float,
     *,
