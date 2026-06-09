@@ -6516,3 +6516,34 @@ def get_windowed_fleet_latency_below_threshold_count(
             if ts >= cutoff_ms and lat < threshold_ms:
                 count += 1
     return count
+
+
+def get_windowed_fleet_latency_sla_compliance_rate(
+    window_ms: float,
+    sla_ms: float,
+    *,
+    store: dict | None = None,
+    now_ms: float | None = None,
+) -> float:
+    """Fleet-wide SLA compliance rate: fraction of calls with latency <= sla_ms.  Item 1150.
+
+    Returns float in [0.0, 1.0].  1.0 for empty window (vacuous no-violation).
+    Uses <= (inclusive): a call at exactly sla_ms IS compliant.
+    PRIMARY DISC.: pooled [10,50,200,300] sla=100ms → 2/4 = 0.5; kills always-1.0.
+    """
+    if store is None:
+        store = _WINDOWED_TELEMETRY
+    if now_ms is None:
+        now_ms = _time.time() * 1000.0
+    cutoff_ms = now_ms - window_ms
+    total = 0
+    compliant = 0
+    for records in store.values():
+        for ts, lat, _ok in records:
+            if ts >= cutoff_ms:
+                total += 1
+                if lat <= sla_ms:
+                    compliant += 1
+    if total == 0:
+        return 1.0
+    return float(compliant / total)
