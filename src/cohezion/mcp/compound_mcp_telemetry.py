@@ -2345,3 +2345,36 @@ def get_windowed_global_p99_ms(
     return get_windowed_global_latency_percentile(
         99.0, window_ms, store=store, now_ms=now_ms
     )
+
+
+def get_windowed_tool_throughput_per_sec(
+    tool_name: str,
+    window_ms: float,
+    *,
+    store: dict | None = None,
+    now_ms: float | None = None,
+) -> float:
+    """Return per-tool call throughput in calls/second over the recent window.  Item 996.
+
+    Counts ALL calls (success + failures) that fall within the last *window_ms*
+    milliseconds and divides by the window duration in seconds.
+
+    Formula: call_count_in_window / (window_ms / 1000.0)
+
+    Returns 0.0 for unknown tools or when no recent calls exist.
+
+    PRIMARY DISC.: 5 calls in 1000ms window -> 5.0/sec
+      (kills impl returning raw count=5; kills calls/window_ms=0.005).
+    """
+    if store is None:
+        store = _WINDOWED_TELEMETRY
+    if now_ms is None:
+        now_ms = _time.time() * 1000.0
+    records = store.get(tool_name)
+    if not records:
+        return 0.0
+    cutoff_ms = now_ms - window_ms
+    count = sum(1 for ts, _lat, _ok in records if ts >= cutoff_ms)
+    if count == 0:
+        return 0.0
+    return float(count / (window_ms / 1000.0))
