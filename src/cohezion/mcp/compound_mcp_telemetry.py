@@ -3245,3 +3245,41 @@ def get_windowed_tool_p10_p90_ratio(
     if p90 == 0.0:
         return 0.0
     return float(p10 / p90)
+
+
+def get_windowed_tool_latency_kurtosis(
+    tool_name: str,
+    window_ms: float,
+    *,
+    store: dict | None = None,
+    now_ms: float | None = None,
+) -> float:
+    """Per-tool excess kurtosis (4th standardised moment, Fisher definition).  Item 1030.
+
+    excess_kurtosis = (1/n) * sum((lat - mean)^4) / pop_stddev^4 - 3.0
+
+    Fisher definition: normal distribution = 0.0.
+    Positive = heavy-tailed (outlier-prone); negative = light-tailed.
+    0.0 for n<4 or stddev=0.  Injectable store.  Pure function.
+
+    PRIMARY DISC.: lats [10,10,10,10,100]
+      mean=28, stddev=36, raw_kurt=3.25, excess=0.25
+      (kills variance=1296; kills stddev=36; kills raw_kurt=3.25; correct excess=0.25).
+    """
+    if store is None:
+        store = _WINDOWED_TELEMETRY
+    if now_ms is None:
+        now_ms = _time.time() * 1000.0
+    cutoff_ms = now_ms - window_ms
+    records = store.get(tool_name, [])
+    lats = [lat for ts, lat, _ok in records if ts >= cutoff_ms]
+    n = len(lats)
+    if n < 4:
+        return 0.0
+    mean = sum(lats) / n
+    pop_variance = sum((lat - mean) ** 2 for lat in lats) / n
+    if pop_variance == 0.0:
+        return 0.0
+    pop_stddev = pop_variance ** 0.5
+    raw_kurt = sum((lat - mean) ** 4 for lat in lats) / (n * pop_stddev ** 4)
+    return float(raw_kurt - 3.0)
