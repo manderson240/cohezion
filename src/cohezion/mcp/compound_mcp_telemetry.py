@@ -3183,6 +3183,25 @@ def get_windowed_global_above_budget_call_rate(
     return float(above / total)
 
 
+def get_windowed_tool_p5_ms(
+    tool_name: str,
+    window_ms: float,
+    *,
+    store: dict | None = None,
+    now_ms: float | None = None,
+) -> float:
+    """5th-percentile latency alias for get_windowed_latency_percentile(tool, 5.0, ...).  Item 1043.
+
+    Thin delegate extending the percentile family to the lower extreme tail.
+    Linear interpolation.  Returns 0.0 for unknown/empty tool.
+
+    PRIMARY DISC.: lats [10,20,...,100] n=10 -> idx=0.05*9=0.45
+      -> 10 + 0.45*(20-10) = 14.5
+      (kills p10=19.0; kills nearest-rank=10.0; correct=14.5).
+    """
+    return get_windowed_latency_percentile(tool_name, 5.0, window_ms, store=store, now_ms=now_ms)
+
+
 def get_windowed_tool_p10_ms(
     tool_name: str,
     window_ms: float,
