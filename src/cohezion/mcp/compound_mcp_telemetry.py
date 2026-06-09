@@ -232,3 +232,55 @@ def detect_error_spike(
         baseline_err = sum(1 for (ok,) in baseline if not ok) / len(baseline)
         result[tool_name] = (recent_err - baseline_err) > delta_threshold
     return result
+
+
+def get_telemetry_health_snapshot(
+    store: dict[str, list],
+    window_ms: float,
+    baseline_window_ms: float,
+    *,
+    now_ms: float | None = None,
+) -> dict[str, dict]:
+    """Unified per-tool health snapshot.  Item 905.
+
+    Aggregates detect_latency_spike, detect_error_spike, and get_windowed_summary
+    into a single per-tool dict:
+        {tool_name: {latency_spike, error_spike, recent_p95, recent_error_rate}}
+
+    Only tools with recent calls (in [now-window_ms, now]) are included.
+    Tools with no baseline data have latency_spike=False, error_spike=False
+    (cannot compute ratio/delta; conservative default is no spike rather than
+    excluding the tool from observability).
+
+    Args:
+        store:               _WINDOWED_TELEMETRY dict (injectable for test isolation).
+        window_ms:           Recent look-back window in ms.
+        baseline_window_ms:  Older baseline window in ms.
+        now_ms:              Current time in ms (defaults to time.time()*1000).
+
+    Returns:
+        {tool_name: {latency_spike: bool, error_spike: bool,
+                     recent_p95: float, recent_error_rate: float}}
+        Empty dict when no recent calls in store.
+    """
+    if now_ms is None:
+        now_ms = _time.time() * 1000.0
+
+    # Windowed summary anchors which tools appear (tools with recent data only)
+    summary = get_windowed_summary(store, window_ms, now_ms=now_ms)
+    if not summary:
+        return {}
+
+    # Spike dicts exclude tools with no baseline — default to False for those
+    lat_spikes = detect_latency_spike(store, window_ms, baseline_window_ms, now_ms=now_ms)
+    err_spikes = detect_error_spike(store, window_ms, baseline_window_ms, now_ms=now_ms)
+
+    result: dict[str, dict] = {}
+    for tool_name, stats in summary.items():
+        result[tool_name] = {
+            "latency_spike": bool(lat_spikes.get(tool_name, False)),
+            "error_spike": bool(err_spikes.get(tool_name, False)),
+            "recent_p95": float(stats["p95_ms"]),
+            "recent_error_rate": float(stats["error_rate"]),
+        }
+    return result
