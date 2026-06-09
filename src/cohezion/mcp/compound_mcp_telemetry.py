@@ -6490,3 +6490,29 @@ def get_windowed_fleet_latency_tail_ratio(
         window_ms, tail_pct, store=store, now_ms=now_ms
     )
     return float(p_tail / p50)
+
+
+def get_windowed_fleet_latency_below_threshold_count(
+    window_ms: float,
+    threshold_ms: float,
+    *,
+    store: dict | None = None,
+    now_ms: float | None = None,
+) -> int:
+    """Fleet-wide count of calls with latency strictly < threshold_ms.  Item 1149.
+
+    Returns int.  0 for empty window or all-above window.
+    Dual of get_windowed_fleet_latency_above_threshold_count (strict inequalities).
+    PRIMARY DISC.: kills always-0; pooled [10,50,200,300] threshold=100ms → 2 below.
+    """
+    if store is None:
+        store = _WINDOWED_TELEMETRY
+    if now_ms is None:
+        now_ms = _time.time() * 1000.0
+    cutoff_ms = now_ms - window_ms
+    count = 0
+    for records in store.values():
+        for ts, lat, _ok in records:
+            if ts >= cutoff_ms and lat < threshold_ms:
+                count += 1
+    return count
