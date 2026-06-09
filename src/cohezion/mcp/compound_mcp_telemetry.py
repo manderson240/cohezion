@@ -2378,3 +2378,37 @@ def get_windowed_tool_throughput_per_sec(
     if count == 0:
         return 0.0
     return float(count / (window_ms / 1000.0))
+
+
+def get_windowed_global_throughput_per_sec(
+    window_ms: float,
+    *,
+    store: dict | None = None,
+    now_ms: float | None = None,
+) -> float:
+    """Return fleet-wide call throughput in calls/second over the recent window.  Item 997.
+
+    Pools the total call count across ALL tools that fall within the last
+    *window_ms* milliseconds and divides by the window duration in seconds.
+
+    Formula: total_call_count_all_tools / (window_ms / 1000.0)
+
+    Returns 0.0 when no recent calls exist anywhere in the fleet.
+
+    PRIMARY DISC.: tool_a 3 calls + tool_b 2 calls in 1000ms -> 5.0/sec
+      (kills avg-of-per-tool-throughput=(3+2)/2=2.5; kills max-per-tool=3.0).
+    """
+    if store is None:
+        store = _WINDOWED_TELEMETRY
+    if now_ms is None:
+        now_ms = _time.time() * 1000.0
+    cutoff_ms = now_ms - window_ms
+    total = sum(
+        1
+        for records in store.values()
+        for ts, _lat, _ok in records
+        if ts >= cutoff_ms
+    )
+    if total == 0:
+        return 0.0
+    return float(total / (window_ms / 1000.0))
