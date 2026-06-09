@@ -2935,3 +2935,51 @@ def get_windowed_tool_last_call_ts(
     if not recent_ts:
         return None
     return float(max(recent_ts))
+
+
+def get_windowed_tool_call_rate_per_sec(
+    tool_name: str,
+    window_ms: float,
+    *,
+    store: dict | None = None,
+    now_ms: float | None = None,
+) -> float:
+    """Return per-tool call rate in calls/second over the recent window.  Item 1018.
+
+    Semantic alias for get_windowed_tool_throughput_per_sec — same computation,
+    "rate" vocabulary for callers that prefer it over "throughput".
+    0.0 for unknown tools or when no recent calls exist.
+
+    Formula: call_count_in_window / (window_ms / 1000.0)
+
+    PRIMARY DISC.: 10 calls in 2000ms window -> 10/(2000/1000) = 5.0 calls/sec
+      (kills count=10 int; kills calls/ms=0.005; correct calls/sec=5.0).
+    """
+    return get_windowed_tool_throughput_per_sec(
+        tool_name, window_ms, store=store, now_ms=now_ms
+    )
+
+
+def get_windowed_tool_latency_sum_ms(
+    tool_name: str,
+    window_ms: float,
+    *,
+    store: dict | None = None,
+    now_ms: float | None = None,
+) -> float:
+    """Return the sum of all latencies in the window for *tool_name*.  Item 1019.
+
+    total_latency_ms = sum(latency_ms for all calls in window).
+    0.0 for unknown tools or when no recent calls exist.
+    Enables mean recomputation without another pass: mean = sum / count.
+
+    PRIMARY DISC.: lats [10, 50, 200] -> sum=260.0
+      (kills count=3 int; kills mean=86.67 float; kills max=200; correct sum=260.0).
+    """
+    if store is None:
+        store = _WINDOWED_TELEMETRY
+    if now_ms is None:
+        now_ms = _time.time() * 1000.0
+    cutoff_ms = now_ms - window_ms
+    records = store.get(tool_name, [])
+    return float(sum(lat for ts, lat, _ok in records if ts >= cutoff_ms))
