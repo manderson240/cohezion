@@ -5249,3 +5249,57 @@ def get_windowed_fleet_latency_percentile_ms(
     rank = _math.ceil(percentile / 100.0 * n)
     idx = max(0, min(n - 1, rank - 1))
     return float(lats[idx])
+
+
+def get_windowed_fleet_latency_r2_score(
+    window_ms: float,
+    *,
+    store: dict | None = None,
+    now_ms: float | None = None,
+) -> float:
+    """Fleet OLS R^2 over ALL pooled (timestamp, latency) pairs.  Item 1099.
+
+    Pools every windowed (ts, lat) record from all tools, fits a single OLS
+    line through the pooled scatter, and returns R^2 = 1 - SS_res/SS_tot.
+    Returns 0.0 for <2 pooled calls or zero latency variance.
+    Uses relative timestamps to avoid floating-point cancellation.
+    Injectable store.  Pure function.
+
+    PRIMARY DISC.: tool_a upward [10,20,30]ms, tool_b downward [30,20,10]ms
+      each sharing timestamps [t-400,t-200,t-0].
+      pooled 6 points: OLS slope=0, R^2=0.0
+      (kills per-tool-avg-R2: each R2=1.0, avg=1.0 != 0.0;
+       opposing trends destroy the fleet linear relationship).
+    """
+    if store is None:
+        store = _WINDOWED_TELEMETRY
+    if now_ms is None:
+        now_ms = _time.time() * 1000.0
+    cutoff_ms = now_ms - window_ms
+    pairs: list[tuple[float, float]] = []
+    for records in store.values():
+        for ts, lat, _ok in records:
+            if ts >= cutoff_ms:
+                pairs.append((ts, lat))
+    n = len(pairs)
+    if n < 2:
+        return 0.0
+    # Relative timestamps to avoid floating-point cancellation
+    ts0 = pairs[0][0]
+    ts_vals = [ts - ts0 for ts, _ in pairs]
+    lat_vals = [lat for _, lat in pairs]
+    t_mean = sum(ts_vals) / n
+    l_mean = sum(lat_vals) / n
+    ss_tot = sum((lat_vals[i] - l_mean) ** 2 for i in range(n))
+    if ss_tot == 0.0:
+        return 0.0
+    numer = sum((ts_vals[i] - t_mean) * (lat_vals[i] - l_mean) for i in range(n))
+    denom = sum((ts_vals[i] - t_mean) ** 2 for i in range(n))
+    if denom == 0.0:
+        return 0.0
+    slope = numer / denom
+    intercept = l_mean - slope * t_mean
+    ss_res = sum((lat_vals[i] - (slope * ts_vals[i] + intercept)) ** 2 for i in range(n))
+    r2 = 1.0 - ss_res / ss_tot
+    # Clamp to [0.0, 1.0] to guard against tiny floating-point negatives
+    return float(max(0.0, min(1.0, r2)))
