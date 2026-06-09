@@ -4999,3 +4999,37 @@ def get_windowed_tool_latency_above_threshold_fraction(
         return 0.0
     above = sum(1 for lat in windowed if lat > threshold_ms)
     return float(above / total)
+
+
+def get_windowed_fleet_above_threshold_fraction(
+    window_ms: float,
+    threshold_ms: float,
+    *,
+    store: dict | None = None,
+    now_ms: float | None = None,
+) -> float:
+    """Fleet-wide fraction of ALL pooled calls where latency > threshold_ms.  Item 1088.
+
+    Pools all windowed latency values from all tools, counts those above threshold.
+    Returns 0.0 for empty window. Range [0, 1].
+    Injectable store. Pure function. Fleet dual of item 1087.
+
+    PRIMARY DISC.: tool_a 2/3 above, tool_b 2/4 above -> pooled 4/7≈0.5714
+      (kills per-tool-avg-fractions=0.583 -- different denominator weighting).
+    """
+    if store is None:
+        store = _WINDOWED_TELEMETRY
+    if now_ms is None:
+        now_ms = _time.time() * 1000.0
+    cutoff_ms = now_ms - window_ms
+    total = 0
+    above = 0
+    for records in store.values():
+        for ts, lat, _ok in records:
+            if ts >= cutoff_ms:
+                total += 1
+                if lat > threshold_ms:
+                    above += 1
+    if total == 0:
+        return 0.0
+    return float(above / total)
