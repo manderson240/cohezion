@@ -84,3 +84,28 @@ def register_data_products(
             DomainEndpoint(name=domain, priority=_domain_priority(prods), query=query)
         )
     return federation
+
+
+def federation_routing_order(
+    products: dict[str, DataProduct] | None = None,
+) -> list[tuple[str, int]]:
+    """The federation failover/routing order over the canonical products (report-only).
+
+    Builds the federation via :func:`register_data_products`, then reads it back as the
+    priority-ordered ``[(domain, priority), ...]`` a unified query would honor: lower priority
+    first (GOLD domains ahead of SILVER ahead of BRONZE), ties broken by domain name for a
+    deterministic order. A domain's priority is its BEST product tier — a domain with one GOLD
+    and three BRONZE products routes at GOLD priority, not BRONZE (``_domain_priority`` = min).
+
+    This gives the otherwise build-ahead-of-consumer :func:`register_data_products` (and the
+    dormant ``FederationLayer`` it populates) a real read-back consumer. Read-only: builds a
+    fresh in-memory layer ($0, backendless query), never mutates external state.
+    """
+    federation = register_data_products(products=products)
+    rows: list[tuple[str, int]] = []
+    for domain in federation.list_domains():
+        endpoint = federation.endpoint(domain)
+        if endpoint is not None:
+            rows.append((domain, endpoint.priority))
+    rows.sort(key=lambda row: (row[1], row[0]))
+    return rows
