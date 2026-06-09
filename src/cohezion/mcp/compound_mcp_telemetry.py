@@ -6795,3 +6795,34 @@ def get_windowed_fleet_latency_p25_ms(
     return get_windowed_fleet_latency_percentile_ms(
         window_ms, 25.0, store=store, now_ms=now_ms
     )
+
+
+def get_windowed_fleet_error_rate_by_tool(
+    window_ms: float,
+    tool_name: str,
+    *,
+    store: dict | None = None,
+    now_ms: float | None = None,
+) -> float:
+    """Per-tool error rate within the fleet store.  Item 1163.
+
+    Returns float in [0.0, 1.0].
+    Returns 1.0 for unknown/empty tool (no in-window calls = vacuous all-error).
+    PRIMARY DISC.: tool_a=[T,F,F] → 2/3≈0.667 ≠ fleet_error_rate=2/5=0.4 ≠ tool_b=0.0.
+    """
+    if store is None:
+        store = _WINDOWED_TELEMETRY
+    if now_ms is None:
+        now_ms = _time.time() * 1000.0
+    cutoff_ms = now_ms - window_ms
+    records = store.get(tool_name, [])
+    total = 0
+    errors = 0
+    for ts, _lat, ok in records:
+        if ts >= cutoff_ms:
+            total += 1
+            if not ok:
+                errors += 1
+    if total == 0:
+        return 1.0
+    return float(errors / total)
