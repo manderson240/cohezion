@@ -5392,3 +5392,40 @@ def get_windowed_fleet_call_gap_max_ms(
     timestamps.sort()
     max_gap = max(timestamps[i + 1] - timestamps[i] for i in range(n - 1))
     return float(max_gap)
+
+
+def get_windowed_fleet_call_gap_mean_ms(
+    window_ms: float,
+    *,
+    store: dict | None = None,
+    now_ms: float | None = None,
+) -> float:
+    """Mean gap (ms) between consecutive timestamps across ALL pooled fleet calls.  Item 1102.
+
+    = total_span / (n - 1) where n is the total number of pooled windowed calls.
+    Equivalent to the arithmetic mean of all n-1 consecutive inter-call gaps in
+    the pooled sorted stream.  Returns 0.0 for <2 pooled calls.
+    Injectable store.  Pure function.
+
+    PRIMARY DISC.: tool_a=[t-500,t-300], tool_b=[t-400,t-200,t-0]
+      pooled sorted=[t-500,t-400,t-300,t-200,t-0]; n=5, span=500ms
+      fleet_mean_gap = 500/4 = 125ms
+      (kills per-tool-avg: tool_a=200ms, tool_b=200ms, avg=200ms != 125ms;
+       inter-tool calls fill the span, reducing the average gap).
+    """
+    if store is None:
+        store = _WINDOWED_TELEMETRY
+    if now_ms is None:
+        now_ms = _time.time() * 1000.0
+    cutoff_ms = now_ms - window_ms
+    timestamps: list[float] = []
+    for records in store.values():
+        for ts, _lat, _ok in records:
+            if ts >= cutoff_ms:
+                timestamps.append(ts)
+    n = len(timestamps)
+    if n < 2:
+        return 0.0
+    timestamps.sort()
+    span_ms = timestamps[-1] - timestamps[0]
+    return float(span_ms / (n - 1))
