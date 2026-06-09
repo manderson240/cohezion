@@ -2227,3 +2227,37 @@ def get_windowed_tool_success_rate(
         return 0.0
     successes = sum(1 for ok in recent if ok)
     return float(successes / n)
+
+
+def get_windowed_global_success_rate(
+    window_ms: float,
+    *,
+    store: dict | None = None,
+    now_ms: float | None = None,
+) -> float:
+    """Return the fleet-wide windowed success rate.  Item 988.
+
+    Complement of get_windowed_global_error_rate (item 987).
+    global_success_rate = global_success_count / global_call_count.
+    Pools ALL calls across all tools in the window — NOT an average of per-tool rates.
+
+    Property: global_success_rate + global_error_rate == 1.0 for non-empty window.
+    Returns 0.0 when no recent calls exist.
+    PRIMARY DISC.: tool_a 1/1 success + tool_b 0/3 successes -> pooled=0.25 (not 0.5).
+    """
+    if store is None:
+        store = _WINDOWED_TELEMETRY
+    if now_ms is None:
+        now_ms = _time.time() * 1000.0
+    cutoff_ms = now_ms - window_ms
+    all_outcomes = [
+        ok
+        for records in store.values()
+        for ts, _lat, ok in records
+        if ts >= cutoff_ms
+    ]
+    n = len(all_outcomes)
+    if n == 0:
+        return 0.0
+    successes = sum(1 for ok in all_outcomes if ok)
+    return float(successes / n)
