@@ -4842,3 +4842,43 @@ def get_windowed_tool_latency_burst_count(
         else:
             in_burst = False
     return burst_count
+
+
+def get_windowed_tool_latency_max_burst_length(
+    tool_name: str,
+    window_ms: float,
+    burst_threshold_ms: float,
+    *,
+    store: dict | None = None,
+    now_ms: float | None = None,
+) -> int:
+    """Length (in calls) of the longest consecutive above-threshold run.  Item 1084.
+
+    Returns 0 if no above-threshold calls.
+    Threshold comparison is strict (> not >=).
+    Injectable store. Pure function.
+
+    PRIMARY DISC.: [10,80,90,20,70,85,95,100,15] threshold=50
+      -> max_burst=4 (the run [70,85,95,100])
+      (kills burst_count=2; kills total-above=6; correct max_burst=4).
+    """
+    if store is None:
+        store = _WINDOWED_TELEMETRY
+    if now_ms is None:
+        now_ms = _time.time() * 1000.0
+    cutoff_ms = now_ms - window_ms
+    records = store.get(tool_name, [])
+    windowed = sorted(
+        [(ts, lat) for ts, lat, _ok in records if ts >= cutoff_ms],
+        key=lambda x: x[0],
+    )
+    max_len = 0
+    cur_len = 0
+    for _, lat in windowed:
+        if lat > burst_threshold_ms:
+            cur_len += 1
+            if cur_len > max_len:
+                max_len = cur_len
+        else:
+            cur_len = 0
+    return max_len
