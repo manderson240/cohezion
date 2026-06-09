@@ -4484,3 +4484,33 @@ def get_windowed_tools_above_p95_threshold_count(
         if p95 > threshold_ms:
             count += 1
     return count
+
+
+def get_windowed_worst_tool_by_p99_latency_ms(
+    window_ms: float,
+    *,
+    store: dict | None = None,
+    now_ms: float | None = None,
+) -> tuple[str, float]:
+    """(tool_name, p99_ms) for the tool with the highest windowed p99 latency.  Item 1075.
+
+    Identifies the worst tail-latency offender fleet-wide.
+    Returns ("", 0.0) for empty store or when no tool has windowed data.
+    Injectable store. Pure function.
+
+    PRIMARY DISC.: tool_a p99=49.6, tool_b p99=784.0, tool_c p99=24.8
+      -> ("wtp_b", 784.0)
+      (kills argmax-by-mean; kills argmax-by-p95; correct argmax-by-p99).
+    """
+    if store is None:
+        store = _WINDOWED_TELEMETRY
+    if now_ms is None:
+        now_ms = _time.time() * 1000.0
+    best_tool = ""
+    best_p99 = 0.0
+    for tool_name in store:
+        p99 = get_windowed_latency_percentile(tool_name, 99.0, window_ms, store=store, now_ms=now_ms)
+        if p99 > best_p99:
+            best_p99 = p99
+            best_tool = tool_name
+    return (best_tool, best_p99)
