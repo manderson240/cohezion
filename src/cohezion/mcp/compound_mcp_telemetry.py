@@ -6883,3 +6883,38 @@ def get_windowed_fleet_latency_mean_ms_by_tool(
     if count == 0:
         return 0.0
     return total_lat / count
+
+
+def get_windowed_fleet_latency_percentile_ms_by_tool(
+    window_ms: float,
+    tool_name: str,
+    percentile: float,
+    *,
+    store: dict | None = None,
+    now_ms: float | None = None,
+) -> float:
+    """Per-tool nearest-rank percentile latency within the fleet store window.  Item 1166.
+
+    Returns float.  0.0 for unknown/empty tool or all-outside-window.
+    Uses the same nearest-rank formula as get_windowed_fleet_latency_percentile_ms
+    but filters to a single tool before sorting.
+    PRIMARY DISC.: tool_a P95=100ms ≠ tool_b P95=5ms ≠ fleet P95 (different pool).
+    """
+    import math as _math
+
+    if store is None:
+        store = _WINDOWED_TELEMETRY
+    if now_ms is None:
+        now_ms = _time.time() * 1000.0
+    cutoff_ms = now_ms - window_ms
+    records = store.get(tool_name, [])
+    lats: list[float] = [
+        lat for ts, lat, _ok in records if ts >= cutoff_ms
+    ]
+    n = len(lats)
+    if n == 0:
+        return 0.0
+    lats.sort()
+    rank = _math.ceil(percentile / 100.0 * n)
+    idx = max(0, min(n - 1, rank - 1))
+    return float(lats[idx])
