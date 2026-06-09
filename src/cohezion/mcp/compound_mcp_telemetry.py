@@ -6547,3 +6547,21 @@ def get_windowed_fleet_latency_sla_compliance_rate(
     if total == 0:
         return 1.0
     return float(compliant / total)
+
+
+def get_windowed_fleet_latency_sla_violation_rate(
+    window_ms: float,
+    sla_ms: float,
+    *,
+    store: dict | None = None,
+    now_ms: float | None = None,
+) -> float:
+    """Fleet-wide SLA violation rate: fraction of calls with latency > sla_ms.  Item 1151.
+
+    Returns float in [0.0, 1.0].  0.0 for empty window (vacuous no-violation).
+    Thin composition: 1.0 - get_windowed_fleet_latency_sla_compliance_rate(...)
+    PRIMARY DISC.: pooled [10,50,200] sla=100ms → violation_rate=1/3≈0.333.
+    """
+    return 1.0 - get_windowed_fleet_latency_sla_compliance_rate(
+        window_ms, sla_ms, store=store, now_ms=now_ms
+    )
