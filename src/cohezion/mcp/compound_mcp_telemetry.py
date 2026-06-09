@@ -3011,3 +3011,43 @@ def get_windowed_global_latency_sum_ms(
         for ts, lat, _ok in records
         if ts >= cutoff_ms
     ))
+
+
+def get_windowed_tool_latency_skewness(
+    tool_name: str,
+    window_ms: float,
+    *,
+    store: dict | None = None,
+    now_ms: float | None = None,
+) -> float:
+    """Per-tool latency skewness (3rd standardised moment).  Item 1022.
+
+    population_skewness = (1/n) * sum((lat - mean)^3) / pop_stddev^3
+
+    0.0 for <3 calls (not enough data) or stddev=0 (uniform distribution).
+    Injectable store.  Pure function.
+
+    Positive skew -> right tail (slow outliers).
+    Negative skew -> left tail (fast outliers).
+
+    PRIMARY DISC.: lats [10, 10, 10, 100]
+      n=4, mean=32.5, pop_variance=1518.75, pop_stddev≈38.9712
+      skewness ≈ 1.1554 (positive right-tail outlier at 100ms)
+      kills stddev≈38.97 (wrong answer); kills variance≈1518.75 (wrong answer).
+    """
+    if store is None:
+        store = _WINDOWED_TELEMETRY
+    if now_ms is None:
+        now_ms = _time.time() * 1000.0
+    cutoff_ms = now_ms - window_ms
+    records = store.get(tool_name, [])
+    lats = [lat for ts, lat, _ok in records if ts >= cutoff_ms]
+    n = len(lats)
+    if n < 3:
+        return 0.0
+    mean = sum(lats) / n
+    pop_variance = sum((lat - mean) ** 2 for lat in lats) / n
+    if pop_variance == 0.0:
+        return 0.0
+    pop_stddev = pop_variance ** 0.5
+    return float(sum((lat - mean) ** 3 for lat in lats) / (n * pop_stddev ** 3))
