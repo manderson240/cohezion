@@ -7148,3 +7148,35 @@ def get_windowed_fleet_latency_iqr_ms_by_tool(
         window_ms, tool_name, store=store, now_ms=now_ms
     )
     return float(p75 - p25)
+
+
+def get_windowed_fleet_sla_compliance_rate_by_tool(
+    window_ms: float,
+    tool_name: str,
+    threshold_ms: float,
+    *,
+    store: dict | None = None,
+    now_ms: float | None = None,
+) -> float:
+    """Per-tool SLA compliance rate: fraction of calls with latency <= threshold_ms.  Item 1176.
+
+    Returns float in [0.0, 1.0].  0.0 for unknown/empty tool or all-outside-window.
+    Threshold is inclusive (<=).  Includes ALL calls regardless of success/failure.
+    PRIMARY DISC.: compliance_a=2/3 ≠ compliance_b=0.0 ≠ fleet_compliance=0.4.
+    """
+    if store is None:
+        store = _WINDOWED_TELEMETRY
+    if now_ms is None:
+        now_ms = _time.time() * 1000.0
+    cutoff_ms = now_ms - window_ms
+    records = store.get(tool_name, [])
+    total = 0
+    compliant = 0
+    for ts, lat, _ok in records:
+        if ts >= cutoff_ms:
+            total += 1
+            if lat <= threshold_ms:
+                compliant += 1
+    if total == 0:
+        return 0.0
+    return float(compliant / total)
