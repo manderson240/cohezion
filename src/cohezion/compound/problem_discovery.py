@@ -16237,3 +16237,39 @@ def fid_weighted_severity_score(problems: list[Problem]) -> dict[str, int]:
         fid = p.finding_id
         result[fid] = result.get(fid, 0) + _SEVERITY_RANK.get(p.severity, 0)
     return result
+
+
+def class_severity_normalized_score(problems: list[Problem]) -> dict[str, float]:
+    """Mean severity rank divided by 4.0 per class.  Item 846.
+    Returns a float in [0, 1]: 0.0 = all INFO, 1.0 = all CRITICAL.
+    Empty -> {}. Pure; no I/O."""
+    if not problems:
+        return {}
+    totals: dict[str, int] = {}
+    counts: dict[str, int] = {}
+    for p in problems:
+        cls = p.problem_class
+        if cls not in totals:
+            totals[cls] = 0
+            counts[cls] = 0
+        totals[cls] += _SEVERITY_RANK.get(p.severity, 0)
+        counts[cls] += 1
+    return {cls: float(totals[cls]) / counts[cls] / 4.0 for cls in totals}
+
+
+def fid_severity_normalized_score(problems: list[Problem]) -> dict[str, float]:
+    """Mean severity rank divided by 4.0 per fid.  Item 847. Fid-axis complement of 846.
+    Returns a float in [0, 1]: 0.0 = all INFO, 1.0 = all CRITICAL.
+    Empty -> {}. Pure; no I/O."""
+    if not problems:
+        return {}
+    totals: dict[str, int] = {}
+    counts: dict[str, int] = {}
+    for p in problems:
+        fid = p.finding_id
+        if fid not in totals:
+            totals[fid] = 0
+            counts[fid] = 0
+        totals[fid] += _SEVERITY_RANK.get(p.severity, 0)
+        counts[fid] += 1
+    return {fid: float(totals[fid]) / counts[fid] / 4.0 for fid in totals}
