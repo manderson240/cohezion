@@ -1258,3 +1258,41 @@ def get_windowed_global_call_count(
         for ts, _lat, _ok in records
         if ts >= cutoff_ms
     )
+
+
+def get_windowed_global_mean_latency_ms(
+    window_ms: float,
+    *,
+    store: dict[str, list] | None = None,
+    now_ms: float | None = None,
+) -> float:
+    """Return mean latency across all tools in the recent window (pooled).  Item 955.
+
+    Windowed complement of :func:`get_global_mean_latency_ms` — queries
+    ``_WINDOWED_TELEMETRY``.  Computes ``total_latency / total_calls`` pooled
+    across all tools, NOT the average of per-tool means.
+
+    Args:
+        window_ms: Look-back window in milliseconds.
+        store:     Windowed telemetry store (injectable; defaults to
+                   ``_WINDOWED_TELEMETRY``).
+        now_ms:    Current time in ms (defaults to ``time.time() * 1000``).
+
+    Returns:
+        Arithmetic mean latency in milliseconds; 0.0 when no recent calls.
+    """
+    if store is None:
+        store = _WINDOWED_TELEMETRY
+    if now_ms is None:
+        now_ms = _time.time() * 1000.0
+    cutoff_ms = now_ms - window_ms
+    total_lat = 0.0
+    total_calls = 0
+    for records in store.values():
+        for ts, lat, _ok in records:
+            if ts >= cutoff_ms:
+                total_lat += lat
+                total_calls += 1
+    if total_calls == 0:
+        return 0.0
+    return total_lat / total_calls
