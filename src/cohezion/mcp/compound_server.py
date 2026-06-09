@@ -464,7 +464,6 @@ async def cohezion_skill_matrix() -> dict[str, Any]:
         matrix=matrix,
     )
 
-
 # ══════════════════════════ HEALTH & LIFECYCLE ═════════════════════════════
 
 
