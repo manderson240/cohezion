@@ -7833,3 +7833,24 @@ def get_windowed_fleet_latency_stability_score_by_tool(
         window_ms, tool_name, store=store, now_ms=now_ms
     )
     return float(1.0 / (1.0 + cv))
+
+
+def get_windowed_fleet_latency_weight_ms_by_tool(
+    window_ms: float,
+    tool_name: str,
+    *,
+    store=None,
+    now_ms=None,
+) -> float:
+    """Per-tool total latency weight (sum of all latencies) within window. Item 1204.
+
+    Returns 0.0 for unknown/empty tool or all calls outside window.
+    Useful for total latency exposure: weight = mean * count.
+    """
+    if store is None:
+        store = _WINDOWED_TELEMETRY
+    if now_ms is None:
+        now_ms = _time.time() * 1000.0
+    cutoff_ms = now_ms - window_ms
+    records = store.get(tool_name, [])
+    return float(sum(lat for ts, lat, _ok in records if ts >= cutoff_ms))
