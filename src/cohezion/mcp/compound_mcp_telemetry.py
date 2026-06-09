@@ -134,3 +134,55 @@ def get_windowed_summary(
             "p95_ms": _percentile(sorted_lats, 95.0),
         }
     return result
+
+
+def detect_latency_spike(
+    store: dict[str, list],
+    window_ms: float,
+    baseline_window_ms: float,
+    *,
+    now_ms: float | None = None,
+    spike_ratio_threshold: float = 2.0,
+) -> dict[str, bool]:
+    """Detect per-tool p95 latency spikes vs a baseline window.  Item 903.
+
+    Compares the p95 latency of the most-recent ``window_ms`` milliseconds
+    against the p95 of the preceding ``baseline_window_ms`` milliseconds.
+    A spike is declared when ``recent_p95 / baseline_p95 > spike_ratio_threshold``.
+
+    Args:
+        store:                   The _WINDOWED_TELEMETRY dict (injectable for tests).
+        window_ms:               Recent look-back window length in ms.
+        baseline_window_ms:      Historical baseline window length in ms (must cover
+                                 older period: [now - window_ms - baseline_window_ms,
+                                 now - window_ms]).
+        now_ms:                  Current timestamp in ms (defaults to time.time()*1000).
+        spike_ratio_threshold:   Ratio strictly above which a spike is declared (default 2.0).
+
+    Returns:
+        {tool_name: bool} — True = spike detected.  Tools with no recent calls
+        OR no baseline calls are excluded (can't compute ratio).  Empty when store is
+        empty or no tool has both recent and baseline calls.
+    """
+    if now_ms is None:
+        now_ms = _time.time() * 1000.0
+    recent_cutoff = now_ms - window_ms
+    baseline_cutoff = recent_cutoff - baseline_window_ms
+
+    result: dict[str, bool] = {}
+    for tool_name, records in store.items():
+        recent_lats = sorted(
+            lat for ts, lat, _ok in records if ts >= recent_cutoff
+        )
+        baseline_lats = sorted(
+            lat for ts, lat, _ok in records if baseline_cutoff <= ts < recent_cutoff
+        )
+        if not recent_lats or not baseline_lats:
+            continue
+        recent_p95 = _percentile(recent_lats, 95.0)
+        baseline_p95 = _percentile(baseline_lats, 95.0)
+        if baseline_p95 == 0.0:
+            continue  # can't compute ratio; exclude tool
+        ratio = recent_p95 / baseline_p95
+        result[tool_name] = ratio > spike_ratio_threshold
+    return result
