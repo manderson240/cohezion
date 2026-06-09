@@ -16028,3 +16028,27 @@ def count_distinct_classes_per_fid(problems: list[Problem]) -> dict[str, int]:
             class_sets[fid] = set()
         class_sets[fid].add(p.problem_class)
     return {fid: len(s) for fid, s in class_sets.items()}
+
+
+def problems_per_class_per_fid(problems: list["Problem"]) -> dict[tuple[str, str], int]:
+    """Count of problems in each (class, fid) cell.  Item 832.
+    Returns {(problem_class, finding_id): count} for each unique pair. Empty -> {}."""
+    if not problems:
+        return {}
+    result: dict[tuple[str, str], int] = {}
+    for p in problems:
+        key = (p.problem_class, p.finding_id)
+        result[key] = result.get(key, 0) + 1
+    return result
+
+
+def severity_profile(problems: list["Problem"]) -> dict[str, int]:
+    """Count of each severity level across all problems.  Item 833.
+    Returns {severity_string: count}; absent severities omitted. Empty -> {}."""
+    if not problems:
+        return {}
+    result: dict[str, int] = {}
+    for p in problems:
+        sev = p.severity
+        result[sev] = result.get(sev, 0) + 1
+    return result
