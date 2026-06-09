@@ -8147,3 +8147,23 @@ def get_windowed_fleet_latency_percentile_p99_ms_by_tool(
     return get_windowed_fleet_latency_percentile_ms_by_tool(
         window_ms, tool_name, 99, store=store, now_ms=now_ms
     )
+
+
+def get_windowed_fleet_latency_ipr98_ms_by_tool(
+    window_ms: float,
+    tool_name: str,
+    *,
+    store=None,
+    now_ms=None,
+) -> float:
+    """Per-tool 98th-interpercentile range (p99 - p1) within window. Item 1217.
+
+    Returns 0.0 for unknown/empty tool or all calls outside window.
+    """
+    p1 = get_windowed_fleet_latency_percentile_p1_ms_by_tool(
+        window_ms, tool_name, store=store, now_ms=now_ms
+    )
+    p99 = get_windowed_fleet_latency_percentile_p99_ms_by_tool(
+        window_ms, tool_name, store=store, now_ms=now_ms
+    )
+    return float(p99 - p1)
