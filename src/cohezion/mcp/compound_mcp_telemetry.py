@@ -2392,6 +2392,30 @@ def get_windowed_global_p99_ms(
     )
 
 
+def get_windowed_global_p25_ms(
+    window_ms: float,
+    *,
+    store: dict | None = None,
+    now_ms: float | None = None,
+) -> float:
+    """Return the fleet-wide p25 (lower quartile) latency in the window.  Item 1011.
+
+    Shortcut for get_windowed_global_latency_percentile(25.0, window_ms, ...).
+    Pools ALL recent latencies from all tools before computing the percentile --
+    NOT an average of per-tool p25 values.
+    Returns 0.0 when no recent calls exist.
+    global_iqr == get_windowed_global_p75_ms - get_windowed_global_p25_ms.
+
+    PRIMARY DISC.: tool_a [50,100] + tool_b [200,400]
+      pooled sorted [50,100,200,400] (n=4), idx=0.25*3=0.75
+      -> 50 + 0.75*(100-50) = 87.5
+      (kills floor=50.0; kills ceil=100.0).
+    """
+    return get_windowed_global_latency_percentile(
+        25.0, window_ms, store=store, now_ms=now_ms
+    )
+
+
 def get_windowed_global_p75_ms(
     window_ms: float,
     *,
