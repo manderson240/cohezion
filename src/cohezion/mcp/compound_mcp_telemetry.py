@@ -778,6 +778,22 @@ def load_telemetry_snapshot(path: _Path | str) -> dict[str, dict]:
     return data
 
 
+def get_slowest_tool() -> str | None:
+    """Return the name of the tool with the highest p95 latency.  Item 939.
+
+    Enables dashboards to surface the current SLO risk at a glance.
+    Ties in p95 are broken alphabetically (ascending) for determinism.
+
+    Returns:
+        Tool name with the highest p95 latency; ``None`` when store is empty.
+    """
+    if not _TELEMETRY:
+        return None
+    max_p95 = max(get_tool_p95_ms(t) for t in _TELEMETRY)
+    candidates = [t for t in _TELEMETRY if abs(get_tool_p95_ms(t) - max_p95) < 1e-9]
+    return min(candidates)  # alphabetically first among p95-tied tools
+
+
 def get_tool_success_rate(tool_name: str) -> float:
     """Return the success rate for a tool.  Item 938.
 
