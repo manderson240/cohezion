@@ -16000,3 +16000,31 @@ def fid_severity_rank_spread(problems: list["Problem"]) -> dict[str, int]:
             if r > max_ranks[fid]:
                 max_ranks[fid] = r
     return {fid: max_ranks[fid] - min_ranks[fid] for fid in min_ranks}
+
+
+def count_distinct_fids_per_class(problems: list["Problem"]) -> dict[str, int]:
+    """Count of distinct finding_id values per class.  Item 830.
+    Returns number of unique fids observed for each problem_class. Empty -> {}."""
+    if not problems:
+        return {}
+    fid_sets: dict[str, set] = {}
+    for p in problems:
+        cls = p.problem_class
+        if cls not in fid_sets:
+            fid_sets[cls] = set()
+        fid_sets[cls].add(p.finding_id)
+    return {cls: int(len(s)) for cls, s in fid_sets.items()}
+
+
+def count_distinct_classes_per_fid(problems: list["Problem"]) -> dict[str, int]:
+    """Count of distinct problem_class values per fid.  Item 831.
+    Returns number of unique classes observed for each finding_id. Empty -> {}."""
+    if not problems:
+        return {}
+    class_sets: dict[str, set] = {}
+    for p in problems:
+        fid = p.finding_id
+        if fid not in class_sets:
+            class_sets[fid] = set()
+        class_sets[fid].add(p.problem_class)
+    return {fid: int(len(s)) for fid, s in class_sets.items()}
