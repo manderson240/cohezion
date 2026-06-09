@@ -16346,42 +16346,6 @@ def fid_severity_rank_at_or_below_threshold(
 
 
 def class_severity_dominant_rank(problems: list[Problem]) -> dict[str, int]:
-    """Rank R that maximises R*count(R) per class.  Item 852.
-    Ties broken by highest rank. Empty -> {}. Pure; no I/O."""
-    if not problems:
-        return {}
-    rank_counts: dict[str, dict[int, int]] = {}
-    for p in problems:
-        cls = p.problem_class
-        rank = _SEVERITY_RANK.get(p.severity, 0)
-        if cls not in rank_counts:
-            rank_counts[cls] = {}
-        rank_counts[cls][rank] = rank_counts[cls].get(rank, 0) + 1
-    result: dict[str, int] = {}
-    for cls, counts in rank_counts.items():
-        result[cls] = max(counts.keys(), key=lambda r: (r * counts[r], r))
-    return result
-
-
-def fid_severity_dominant_rank(problems: list[Problem]) -> dict[str, int]:
-    """Rank R that maximises R*count(R) per fid.  Item 853. Fid-axis complement of 852.
-    Ties broken by highest rank. Empty -> {}. Pure; no I/O."""
-    if not problems:
-        return {}
-    rank_counts: dict[str, dict[int, int]] = {}
-    for p in problems:
-        fid = p.finding_id
-        rank = _SEVERITY_RANK.get(p.severity, 0)
-        if fid not in rank_counts:
-            rank_counts[fid] = {}
-        rank_counts[fid][rank] = rank_counts[fid].get(rank, 0) + 1
-    result: dict[str, int] = {}
-    for fid, counts in rank_counts.items():
-        result[fid] = max(counts.keys(), key=lambda r: (r * counts[r], r))
-    return result
-
-
-def class_severity_dominant_rank(problems: list[Problem]) -> dict[str, int]:
     """Rank with highest rank*count weighted contribution per class.  Item 852.
     Ties broken by highest rank. Empty -> {}. Pure; no I/O."""
     if not problems:
@@ -16415,3 +16379,68 @@ def fid_severity_dominant_rank(problems: list[Problem]) -> dict[str, int]:
         fid: max(counts.keys(), key=lambda r: (r * counts[r], r))
         for fid, counts in rank_counts.items()
     }
+
+
+_TOTAL_RANK_COUNT: float = 5.0  # INFO/LOW/MEDIUM/HIGH/CRITICAL
+
+
+def class_severity_rank_coverage(problems: list[Problem]) -> dict[str, float]:
+    """Fraction of the 5 possible severity ranks present per class.  Item 854.
+    distinct_rank_count / 5.0; all-5-ranks -> 1.0; single-rank -> 0.2.
+    Empty -> {}. Pure; no I/O."""
+    if not problems:
+        return {}
+    ranks_by_class: dict[str, set[int]] = {}
+    for p in problems:
+        cls = p.problem_class
+        if cls not in ranks_by_class:
+            ranks_by_class[cls] = set()
+        ranks_by_class[cls].add(_SEVERITY_RANK.get(p.severity, 0))
+    return {cls: float(len(ranks)) / _TOTAL_RANK_COUNT for cls, ranks in ranks_by_class.items()}
+
+
+def fid_severity_rank_coverage(problems: list[Problem]) -> dict[str, float]:
+    """Fraction of the 5 possible severity ranks present per fid.  Item 855.
+    Fid-axis complement of 854. distinct_rank_count / 5.0; empty -> {}. Pure; no I/O."""
+    if not problems:
+        return {}
+    ranks_by_fid: dict[str, set[int]] = {}
+    for p in problems:
+        fid = p.finding_id
+        if fid not in ranks_by_fid:
+            ranks_by_fid[fid] = set()
+        ranks_by_fid[fid].add(_SEVERITY_RANK.get(p.severity, 0))
+    return {fid: float(len(ranks)) / _TOTAL_RANK_COUNT for fid, ranks in ranks_by_fid.items()}
+
+
+_TOTAL_SEVERITY_RANKS: int = 5  # INFO/LOW/MEDIUM/HIGH/CRITICAL
+
+
+def class_severity_rank_coverage(problems: list[Problem]) -> dict[str, float]:
+    """Fraction of distinct severity ranks present per class.  Item 854.
+    Returns distinct_rank_count / 5.0 per class.  All 5 ranks -> 1.0; one rank -> 0.2.
+    Empty -> {}. Pure; no I/O."""
+    if not problems:
+        return {}
+    seen: dict[str, set[int]] = {}
+    for p in problems:
+        cls = p.problem_class
+        if cls not in seen:
+            seen[cls] = set()
+        seen[cls].add(_SEVERITY_RANK.get(p.severity, 0))
+    return {cls: len(ranks) / _TOTAL_SEVERITY_RANKS for cls, ranks in seen.items()}
+
+
+def fid_severity_rank_coverage(problems: list[Problem]) -> dict[str, float]:
+    """Fraction of distinct severity ranks present per fid.  Item 855.
+    Fid-axis complement of 854. Returns distinct_rank_count / 5.0 per fid.
+    Empty -> {}. Pure; no I/O."""
+    if not problems:
+        return {}
+    seen: dict[str, set[int]] = {}
+    for p in problems:
+        fid = p.finding_id
+        if fid not in seen:
+            seen[fid] = set()
+        seen[fid].add(_SEVERITY_RANK.get(p.severity, 0))
+    return {fid: len(ranks) / _TOTAL_SEVERITY_RANKS for fid, ranks in seen.items()}
