@@ -4328,3 +4328,39 @@ def get_windowed_global_latency_robust_cv(
     q1_f = _interp(fleet_lats, 25.0)
     q3_f = _interp(fleet_lats, 75.0)
     return float((q3_f - q1_f) / med_f)
+
+
+def get_windowed_global_latency_percentile_at_budget_ms(
+    window_ms: float,
+    budget_ms: float,
+    *,
+    store: dict | None = None,
+    now_ms: float | None = None,
+) -> float:
+    """Fleet-wide fraction of calls with latency <= budget_ms.  Item 1065.
+
+    Pools ALL tool calls then computes the empirical CDF at budget_ms.
+    Returns fraction in [0, 1]; 0.0 for empty pool.
+    Injectable store.  Pure function.  Fleet dual of per-tool item 1064.
+
+    PRIMARY DISC.: tool_a=[10,20,30,40] + tool_b=[90,100]
+      pooled n=6, budget_ms=50 -> count_within=4, fraction=4/6=2/3≈0.6667
+      (kills per-tool fraction avg: (1.0+0.0)/2=0.5 != pooled 2/3;
+       correct pooled=4/6=2/3).
+    """
+    if store is None:
+        store = _WINDOWED_TELEMETRY
+    if now_ms is None:
+        now_ms = _time.time() * 1000.0
+    cutoff_ms = now_ms - window_ms
+    total = 0
+    within = 0
+    for records in store.values():
+        for ts, lat, _ok in records:
+            if ts >= cutoff_ms:
+                total += 1
+                if lat <= budget_ms:
+                    within += 1
+    if total == 0:
+        return 0.0
+    return float(within / total)
