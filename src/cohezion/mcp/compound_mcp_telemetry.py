@@ -5591,3 +5591,24 @@ def get_windowed_fleet_latency_burst_count(
             tool_name, window_ms, burst_threshold_ms, store=store, now_ms=now_ms,
         )
     return int(total)
+
+
+def get_windowed_fleet_latency_burst_rate_per_ms(
+    window_ms: float,
+    burst_threshold_ms: float,
+    *,
+    store: dict | None = None,
+    now_ms: float | None = None,
+) -> float:
+    """Fleet-wide burst rate = fleet_burst_count / window_ms.  Item 1115.
+
+    Returns float (bursts per ms).  0.0 for empty window or window_ms <= 0.
+    Normalises item-1114 fleet_burst_count by the observation window.
+    PRIMARY DISC.: kills unnormalized count; kills span-based rate.
+    """
+    if window_ms <= 0.0:
+        return 0.0
+    fleet_count = get_windowed_fleet_latency_burst_count(
+        window_ms, burst_threshold_ms, store=store, now_ms=now_ms,
+    )
+    return float(fleet_count / window_ms)
