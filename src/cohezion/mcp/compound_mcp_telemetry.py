@@ -6202,3 +6202,19 @@ def get_windowed_fleet_success_rate(
     if total == 0:
         return 1.0
     return float(successes / total)
+
+
+def get_windowed_fleet_error_rate(
+    window_ms: float,
+    *,
+    store: dict | None = None,
+    now_ms: float | None = None,
+) -> float:
+    """Fleet-wide error rate (fraction of failed calls) across all tools.  Item 1139.
+
+    Returns float in [0.0, 1.0].  0.0 for empty window (vacuous no-error).
+    Thin composition: 1.0 - get_windowed_fleet_success_rate(...)
+    PRIMARY DISC.: kills per-tool-avg (0.333 for tool_a=2/3 err, tool_b=0/2) —
+    correct is pooled: 2/5 = 0.4.
+    """
+    return 1.0 - get_windowed_fleet_success_rate(window_ms, store=store, now_ms=now_ms)
