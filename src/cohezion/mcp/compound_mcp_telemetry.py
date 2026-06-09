@@ -5429,3 +5429,31 @@ def get_windowed_fleet_call_gap_mean_ms(
     timestamps.sort()
     span_ms = timestamps[-1] - timestamps[0]
     return float(span_ms / (n - 1))
+
+
+def get_windowed_tool_latency_burst_rate_per_ms(
+    tool_name: str,
+    window_ms: float,
+    burst_threshold_ms: float,
+    *,
+    store: dict | None = None,
+    now_ms: float | None = None,
+) -> float:
+    """Burst rate (bursts/ms) = burst_count / window_ms.  Item 1103.
+
+    Normalizes the burst count (item 1083) by the observation window size to
+    give a time-normalized burst frequency independent of window length.
+    Returns 0.0 for empty window or zero window_ms.
+    Injectable store.  Pure function.
+
+    PRIMARY DISC.: 3 bursts over 1000ms window -> 3/1000 = 0.003 bursts/ms
+      (kills burst_count=3 (not normalized);
+       kills burst_count/actual_span (different denominator);
+       correct: burst_count / window_ms = 0.003 bursts/ms).
+    """
+    if window_ms <= 0.0:
+        return 0.0
+    burst_count = get_windowed_tool_latency_burst_count(
+        tool_name, window_ms, burst_threshold_ms, store=store, now_ms=now_ms
+    )
+    return float(burst_count / window_ms)
