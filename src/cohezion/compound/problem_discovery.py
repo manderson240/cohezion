@@ -16499,3 +16499,54 @@ def fid_severity_rank_supermajority(problems: list[Problem]) -> dict[str, bool]:
         fid: any(count / totals[fid] >= _SUPERMAJORITY_THRESHOLD for count in rank_counts[fid].values())
         for fid in rank_counts
     }
+
+
+def class_severity_rank_relative_frequency(problems: list[Problem]) -> dict[str, dict[int, float]]:
+    """Fraction of problems at each rank per class.  Item 862.
+
+    Returns {class: {rank: fraction}} where fraction = count(rank) / total_for_class.
+    All fractions per class sum to 1.0.  Only observed ranks appear as inner keys.
+    Empty -> {}.  Pure; no I/O.
+    """
+    if not problems:
+        return {}
+    rank_counts: dict[str, dict[int, int]] = {}
+    totals: dict[str, int] = {}
+    for p in problems:
+        cls = p.problem_class
+        rank = _SEVERITY_RANK.get(p.severity, 0)
+        if cls not in rank_counts:
+            rank_counts[cls] = {}
+            totals[cls] = 0
+        rank_counts[cls][rank] = rank_counts[cls].get(rank, 0) + 1
+        totals[cls] += 1
+    return {
+        cls: {rank: count / totals[cls] for rank, count in rank_counts[cls].items()}
+        for cls in rank_counts
+    }
+
+
+def fid_severity_rank_relative_frequency(problems: list[Problem]) -> dict[str, dict[int, float]]:
+    """Fraction of problems at each rank per fid.  Item 863.
+
+    Fid-axis complement of class_severity_rank_relative_frequency (item 862).
+    Returns {fid: {rank: fraction}} where fraction = count(rank) / total_for_fid.
+    All fractions per fid sum to 1.0.  Only observed ranks appear as inner keys.
+    Empty -> {}.  Pure; no I/O.
+    """
+    if not problems:
+        return {}
+    rank_counts: dict[str, dict[int, int]] = {}
+    totals: dict[str, int] = {}
+    for p in problems:
+        fid = p.finding_id
+        rank = _SEVERITY_RANK.get(p.severity, 0)
+        if fid not in rank_counts:
+            rank_counts[fid] = {}
+            totals[fid] = 0
+        rank_counts[fid][rank] = rank_counts[fid].get(rank, 0) + 1
+        totals[fid] += 1
+    return {
+        fid: {rank: count / totals[fid] for rank, count in rank_counts[fid].items()}
+        for fid in rank_counts
+    }
