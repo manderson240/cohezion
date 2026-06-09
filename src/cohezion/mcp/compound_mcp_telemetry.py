@@ -1296,3 +1296,41 @@ def get_windowed_global_mean_latency_ms(
     if total_calls == 0:
         return 0.0
     return total_lat / total_calls
+
+
+def get_windowed_global_p50_ms(
+    window_ms: float,
+    *,
+    store: dict[str, list] | None = None,
+    now_ms: float | None = None,
+) -> float:
+    """Return the pooled p50 latency across all tools in the recent window.  Item 956.
+
+    Windowed complement of :func:`get_global_p50_ms` — pools all latency
+    records from ``_WINDOWED_TELEMETRY`` within the last *window_ms* ms and
+    computes p50 on the combined list.
+
+    Args:
+        window_ms: Look-back window in milliseconds.
+        store:     Windowed telemetry store (injectable; defaults to
+                   ``_WINDOWED_TELEMETRY``).
+        now_ms:    Current time in ms (defaults to ``time.time() * 1000``).
+
+    Returns:
+        p50 latency in milliseconds over the combined pool of recent records.
+        0.0 when no recent calls exist.
+    """
+    if store is None:
+        store = _WINDOWED_TELEMETRY
+    if now_ms is None:
+        now_ms = _time.time() * 1000.0
+    cutoff_ms = now_ms - window_ms
+    pooled: list[float] = [
+        lat
+        for records in store.values()
+        for ts, lat, _ok in records
+        if ts >= cutoff_ms
+    ]
+    if not pooled:
+        return 0.0
+    return float(_percentile(sorted(pooled), 50.0))
