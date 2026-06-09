@@ -8196,3 +8196,31 @@ def get_windowed_fleet_latency_geometric_mean_ms_by_tool(
     if any(lat <= 0.0 for lat in lats):
         return 0.0
     return float(_math.exp(sum(_math.log(lat) for lat in lats) / n))
+
+
+def get_windowed_fleet_latency_harmonic_mean_ms_by_tool(
+    window_ms: float,
+    tool_name: str,
+    *,
+    store=None,
+    now_ms=None,
+) -> float:
+    """Per-tool harmonic mean latency within window. Item 1219.
+
+    Formula: n / sum(1/lat_i).
+    Returns 0.0 for unknown/empty tool, all calls outside window, or any
+    latency value == 0.0 (division by zero guard).
+    """
+    if store is None:
+        store = _WINDOWED_TELEMETRY
+    if now_ms is None:
+        now_ms = _time.time() * 1000.0
+    cutoff_ms = now_ms - window_ms
+    records = store.get(tool_name, [])
+    lats = [lat for ts, lat, _ok in records if ts >= cutoff_ms]
+    n = len(lats)
+    if n == 0:
+        return 0.0
+    if any(lat == 0.0 for lat in lats):
+        return 0.0
+    return float(n / sum(1.0 / lat for lat in lats))
