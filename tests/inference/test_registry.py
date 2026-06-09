@@ -63,7 +63,7 @@ def test_claude_tier_has_ascending_cost() -> None:
     registry = FleetRegistry()
     haiku = registry.models["claude-haiku-4-5"]
     sonnet = registry.models["claude-sonnet-4-6"]
-    opus = registry.models["claude-opus-4-7"]
+    opus = registry.models["claude-opus-4-8"]
     assert (
         haiku.cost_per_1k_output_usd < sonnet.cost_per_1k_output_usd < opus.cost_per_1k_output_usd
     )

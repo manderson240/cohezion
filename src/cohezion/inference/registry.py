@@ -549,7 +549,7 @@ def _build_default_registry() -> dict[str, ModelEntry]:
             notes="Sonnet 4.6 via headless `claude -p --model sonnet-4-6`",
         ),
         ModelEntry(
-            model_id="claude-opus-4-7",
+            model_id="claude-opus-4-8",
             lane=Lane.CLOUD_CLAUDE,
             endpoint="cli:claude",
             runtime_backend="",
@@ -559,7 +559,23 @@ def _build_default_registry() -> dict[str, ModelEntry]:
             cost_per_1k_input_usd=0.015,
             cost_per_1k_output_usd=0.075,
             priority=100,
-            notes="Opus 4.7 via headless `claude -p --model opus-4-7`",
+            notes="Opus 4.8 via headless `claude -p --model opus-4-8`",
+        ),
+        ModelEntry(
+            # Fable 5: GA 2026-06-09, Anthropic's most capable GA model (above Opus class).
+            # MUST be registered or fleet.route/extend_claude reject it with
+            # "Unknown claude_model claude-fable-5" — the cause of the dispatch errors.
+            model_id="claude-fable-5",
+            lane=Lane.CLOUD_CLAUDE,
+            endpoint="cli:claude",
+            runtime_backend="",
+            task_affinity=frozenset({Task.REASONING, Task.LONG_HORIZON, Task.ARCHITECT}),
+            weight_quant=WeightQuant.API,
+            context_window=200000,
+            cost_per_1k_input_usd=0.010,
+            cost_per_1k_output_usd=0.050,
+            priority=110,  # above Opus — reserved for the hardest tasks (used sparingly)
+            notes="Fable 5 via headless `claude -p --model claude-fable-5`",
         ),
         # --- Headless `gemini` CLI ---
         ModelEntry(

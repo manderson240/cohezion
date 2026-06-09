@@ -10,7 +10,8 @@ Same loop on Sonnet = $0.18. Over 1000 cycles/month = $180 saved.
 Cloud token pricing (as of 2026):
   Haiku 4.5:  $0.80/M input, $4.00/M output
   Sonnet 4.6: $3.00/M input, $15.00/M output
-  Opus 4.7:   $15.00/M input, $75.00/M output
+  Opus 4.7/4.8: $15.00/M input, $75.00/M output
+  Fable 5:    $10.00/M input, $50.00/M output  (GA 2026-06-09, above Opus class)
 """
 
 from __future__ import annotations
@@ -26,7 +27,8 @@ logger = logging.getLogger(__name__)
 _CLOUD_PRICING: dict[str, tuple[float, float]] = {
     "claude-haiku-4-5": (0.80, 4.00),
     "claude-sonnet-4-6": (3.00, 15.00),
-    "claude-opus-4-7": (15.00, 75.00),
+    "claude-opus-4-8": (15.00, 75.00),
+    "claude-fable-5": (10.00, 50.00),
     "gemini-flash": (0.075, 0.30),
     "gemini-pro": (1.25, 5.00),
     "default_cloud": (3.00, 15.00),  # conservative default

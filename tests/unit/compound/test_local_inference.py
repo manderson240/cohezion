@@ -193,7 +193,8 @@ class TestTokenUsageWiring:
     def test_is_cloud_model_claude(self):
         assert _is_cloud_model("claude-sonnet-4-6")
         assert _is_cloud_model("claude-haiku-4-5")
-        assert _is_cloud_model("claude-opus-4-7")
+        assert _is_cloud_model("claude-opus-4-8")
+        assert _is_cloud_model("claude-fable-5")
 
     def test_is_cloud_model_gemini(self):
         assert _is_cloud_model("gemini-2.5-flash")
@@ -274,6 +275,12 @@ class TestTokenUsageWiring:
 
         assert r.local_tokens > before
         assert metrics["session_local_tokens"] == r.local_tokens
+
+
+# NOTE: the durable usage-sink wiring moved OUT of make_local_execute_fn into
+# TieredOrchestrator.run (the universal chokepoint that also covers run_batch). Its
+# discriminating tests now live in tests/inference/test_orchestrator_usage_logging.py.
+# The wrapper retains only the in-memory TokenUsageRecord update (TestTokenUsageWiring).
 
 
 # ---------------------------------------------------------------------------

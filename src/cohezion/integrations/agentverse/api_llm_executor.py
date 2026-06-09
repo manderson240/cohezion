@@ -60,7 +60,8 @@ class APILLMExecutor:
         },
         "anthropic": {
             "claude-sonnet-4-6": {"input": 3.00, "output": 15.00},
-            "claude-opus-4-6": {"input": 15.00, "output": 75.00},
+            "claude-opus-4-8": {"input": 15.00, "output": 75.00},
+            "claude-fable-5": {"input": 10.00, "output": 50.00},
         },
     }
 

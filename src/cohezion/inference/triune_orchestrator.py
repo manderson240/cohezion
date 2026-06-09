@@ -34,6 +34,46 @@ def _check_port(port: int, timeout: float = 1.0) -> bool:
 # starved the live bot, item 113). Cap concurrent in-flight requests for fleet fairness.
 _TRIUNE_MAX_CONCURRENT = 4
 
+# Cloud escalation ladder — cheapest-first. Local silicon (tiers 0-2) is tried first and
+# always dominates on amplitude; these cloud rungs are reached ONLY when a local quality
+# gate fails. Defined once so both build sites (RAM-low cloud-only path + the main path)
+# share one source of truth and the ladder is tunable in one place.
+# Token asymmetry (per 1M tok, in/out): Haiku $0.80/$4 · Sonnet $3/$15 · Opus $15/$75.
+_CLOUD_LADDER_BASE: tuple[str, ...] = ("claude-haiku-4-5", "claude-sonnet-4-6")
+
+# Premium rungs — reserved for genuinely difficult tasks, OFF by default
+# (include_premium=False): auto-escalating to these top-tier models is a cost-increasing,
+# default-on behaviour change which the 2026-06-09 audit (STRAT) warns against shipping
+# unmeasured. Flip on per call once the usage monitor (scripts/usage_monitor.py) shows
+# budget headroom. Order is capability-ascending (escalate to the more capable model on a
+# gate failure): Opus → Fable. Reached only after Sonnet fails, so Fable is intrinsically
+# "sparing" — only the very hardest tasks ever reach it.
+#   claude-opus-4-8: $15/$75 per 1M (in/out).
+#   claude-fable-5:  $10/$50 per 1M — GA 2026-06-09, Anthropic's most capable GA model
+#     (above the Opus class). Note: cheaper PER TOKEN than Opus but kept as the final rung
+#     per the operator's "escalate to Opus, THEN Fable (sparingly)" intent. (Mythos 5 is the
+#     same model with safeguards lifted — NOT generally available, Project Glasswing only —
+#     so it is intentionally NOT wired.)
+_CLOUD_LADDER_PREMIUM: tuple[str, ...] = ("claude-opus-4-8", "claude-fable-5")
+
+# Extension slot for any future rung above Fable. Empty — Fable (the prior "unknown") is now
+# resolved and lives in the premium tuple above.
+_CLOUD_LADDER_EXTENSION: tuple[str, ...] = ()
+
+
+def _cloud_ladder(include_premium: bool = False) -> list[tuple]:
+    """Cloud escalation tiers as ``(model, QualityGate.TRUST)`` tuples, cheapest-first.
+
+    Default = Haiku → Sonnet. ``include_premium=True`` appends Opus as a final, priciest
+    rung. The inert extension slot ("Fable") is always appended last but is empty until a
+    real model id is resolved.
+    """
+    models = list(_CLOUD_LADDER_BASE)
+    if include_premium:
+        models += list(_CLOUD_LADDER_PREMIUM)
+    models += list(_CLOUD_LADDER_EXTENSION)
+    return [(m, QualityGate.TRUST) for m in models]  # type: ignore[list-item]
+
 
 def build_triune_orchestrator(
     *,
@@ -41,8 +81,10 @@ def build_triune_orchestrator(
     igpu_port: int = 13307,  # allow-direct-port: CLaSp verify_port — direct iGPU connection required for speculative decoding
     cpu_port: int = 13309,  # allow-direct-port: N2 harness invariant — preserved per harness.md N2
     router_cpu_port: int = 13305,
-    clasp_draft_port: int | None = 13308,  # allow-direct-port: CLaSp speculative decoding — dual-port by design
+    clasp_draft_port: int
+    | None = 13308,  # allow-direct-port: CLaSp speculative decoding — dual-port by design
     include_cloud: bool = True,
+    include_premium: bool = False,
 ) -> TieredOrchestrator:
     """
     Constructs a TieredOrchestrator mapped to the Triune Substrate.
@@ -77,8 +119,7 @@ def build_triune_orchestrator(
             )
             tiers_cloud_only: list[tuple] = []
             if include_cloud:
-                tiers_cloud_only.append(("claude-haiku-4-5", QualityGate.TRUST))  # type: ignore[arg-type]
-                tiers_cloud_only.append(("claude-sonnet-4-6", QualityGate.TRUST))  # type: ignore[arg-type]
+                tiers_cloud_only = _cloud_ladder(include_premium)
             if not tiers_cloud_only:
                 logger.warning(
                     "OOM guard: include_cloud=False and RAM low — proceeding with local (risk accepted)."
@@ -99,7 +140,6 @@ def build_triune_orchestrator(
     # Direct HTTP is proven correct (exp_OOOO3/PPPP3, 2026-05-30, round 13).
     from cohezion.inference.direct_tier import (
         build_direct_cpu_tier,
-        build_direct_igpu_tier,
         build_router_cpu_tier,
         build_router_igpu_tier,
         build_router_npu_tier,
@@ -193,13 +233,15 @@ def build_triune_orchestrator(
         tiers.append((cpu_tier, QualityGate(min_chars=10)))  # CPU reasoner: AVX-512, $0
 
     if include_cloud:
-        # Haiku 4.5: cloud tier 1 — 3.75× cheaper than Sonnet, covers CPU gate failures
-        tiers.append(("claude-haiku-4-5", QualityGate.TRUST))  # type: ignore[arg-type]
-        # Sonnet 4.6: cloud tier 2 — final fallback for BBQ low-and-slow synthesis
-        tiers.append(("claude-sonnet-4-6", QualityGate.TRUST))  # type: ignore[arg-type]
+        # Cloud escalation ladder (cheapest-first): Haiku → Sonnet, + Opus when premium is on.
+        cloud_tiers = _cloud_ladder(include_premium)
+        tiers.extend(cloud_tiers)
+        ladder = "→".join(m for m, _ in cloud_tiers)
         logger.info(
-            "Triune: %d-tier tapestry (NPU→iGPU→[CPU]→Haiku→Sonnet), include_cloud=True",
+            "Triune: %d-tier tapestry (NPU→iGPU→[CPU]→%s), include_cloud=True, premium=%s",
             len(tiers),
+            ladder,
+            include_premium,
         )
     else:
         logger.info("Triune: %d-tier local-only (NPU→iGPU→[CPU]), include_cloud=False", len(tiers))
@@ -209,5 +251,7 @@ def build_triune_orchestrator(
         tiers=tiers,
         pre_dispatch_classifier=router,  # overrides quality gate per output_type
     )
-    orch._max_concurrent = _TRIUNE_MAX_CONCURRENT  # F3: bound run_batch on the single :13305 (item 113)
+    orch._max_concurrent = (
+        _TRIUNE_MAX_CONCURRENT  # F3: bound run_batch on the single :13305 (item 113)
+    )
     return orch
