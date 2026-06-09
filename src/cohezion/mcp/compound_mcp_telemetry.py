@@ -4882,3 +4882,58 @@ def get_windowed_tool_latency_max_burst_length(
         else:
             cur_len = 0
     return max_len
+
+
+def get_windowed_tool_latency_recovery_rate_ms_per_ms(
+    tool_name: str,
+    window_ms: float,
+    burst_threshold_ms: float,
+    *,
+    store: dict | None = None,
+    now_ms: float | None = None,
+) -> float:
+    """Average latency recovery rate (ms/ms) per burst-to-below transition.  Item 1085.
+
+    For each burst ending at ts_end with peak latency p, followed by the first
+    below-threshold call at ts_next with latency l_next:
+      rate = (p - l_next) / (ts_next - ts_end)
+    Returns the average of all such rates.
+    Returns 0.0 if no burst-to-recovery transitions exist.
+    Injectable store. Pure function.
+
+    PRIMARY DISC.: [10@t-300, 100@t-200, 20@t-100, 80@t-50, 10@t-0] threshold=50
+      burst1 rate=0.8, burst2 rate=1.4 -> avg=1.1 ms/ms
+      (kills avg_below_latency=15ms; kills slope).
+    """
+    if store is None:
+        store = _WINDOWED_TELEMETRY
+    if now_ms is None:
+        now_ms = _time.time() * 1000.0
+    cutoff_ms = now_ms - window_ms
+    records = store.get(tool_name, [])
+    windowed = sorted(
+        [(ts, lat) for ts, lat, _ok in records if ts >= cutoff_ms],
+        key=lambda x: x[0],
+    )
+    rates: list[float] = []
+    in_burst = False
+    burst_peak = 0.0
+    burst_end_ts = 0.0
+    for ts, lat in windowed:
+        if lat > burst_threshold_ms:
+            if not in_burst:
+                in_burst = True
+                burst_peak = lat
+            elif lat > burst_peak:
+                burst_peak = lat
+            burst_end_ts = ts
+        else:
+            if in_burst:
+                dt = ts - burst_end_ts
+                if dt > 0.0:
+                    rates.append((burst_peak - lat) / dt)
+                in_burst = False
+            burst_peak = 0.0
+    if not rates:
+        return 0.0
+    return float(sum(rates) / len(rates))
