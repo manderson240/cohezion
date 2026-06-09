@@ -1415,3 +1415,43 @@ def get_windowed_slowest_tool(
     max_p95 = max(p95s.values())
     candidates = [t for t, p in p95s.items() if abs(p - max_p95) < 1e-9]
     return min(candidates)
+
+
+def get_windowed_fastest_tool(
+    window_ms: float,
+    *,
+    store: dict[str, list] | None = None,
+    now_ms: float | None = None,
+) -> str | None:
+    """Return the tool with the lowest windowed p50 latency.  Item 959.
+
+    Windowed analog of :func:`get_fastest_tool` (cumulative, item 941).
+    Returns the tool_name whose windowed p50 latency is lowest.  When multiple
+    tools tie, the alphabetically first name is returned.
+
+    Args:
+        window_ms: Look-back window in milliseconds.
+        store:     Windowed telemetry store (injectable; defaults to
+                   ``_WINDOWED_TELEMETRY``).
+        now_ms:    Current time in ms (defaults to ``time.time() * 1000``).
+
+    Returns:
+        The name of the fastest tool (by windowed p50), or ``None`` when the
+        store is empty or no calls fall within the window.
+    """
+    if store is None:
+        store = _WINDOWED_TELEMETRY
+    if now_ms is None:
+        now_ms = _time.time() * 1000.0
+    cutoff_ms = now_ms - window_ms
+    # Build {tool: windowed_p50} for tools with ≥1 recent latency record
+    p50s: dict[str, float] = {}
+    for tool, records in store.items():
+        recent_lats = sorted(lat for ts, lat, _ok in records if ts >= cutoff_ms)
+        if recent_lats:
+            p50s[tool] = _percentile(recent_lats, 50.0)
+    if not p50s:
+        return None
+    min_p50 = min(p50s.values())
+    candidates = [t for t, p in p50s.items() if abs(p - min_p50) < 1e-9]
+    return min(candidates)
