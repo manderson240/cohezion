@@ -256,6 +256,54 @@ def get_top_n_tools_by_p95_ms(n: int) -> list[str]:
     return sorted_tools[:n]
 
 
+def get_tool_windowed_stats(
+    tool_name: str,
+    window_ms: float,
+    *,
+    store: dict[str, list] | None = None,
+    now_ms: float | None = None,
+) -> dict:
+    """Return windowed per-tool stats for a specific tool.  Item 921.
+
+    Windowed complement of ``get_tool_stats`` — queries ``_WINDOWED_TELEMETRY``
+    rather than the cumulative ``_TELEMETRY`` store.
+
+    Args:
+        tool_name:  The MCP tool name to look up.
+        window_ms:  Look-back window in milliseconds.
+        store:      Windowed telemetry store to query (injectable for test isolation;
+                    defaults to ``_WINDOWED_TELEMETRY``).
+        now_ms:     Current time in ms (defaults to ``time.time() * 1000``).
+
+    Returns:
+        {call_count, error_rate, p50_ms, p95_ms} for calls in the last *window_ms* ms.
+        All-zero dict (call_count=0, error_rate=0.0, p50_ms=0.0, p95_ms=0.0) when
+        the tool is unknown or has no calls in the window.
+        Note: no ``error_count`` key — matches ``get_windowed_summary`` schema.
+    """
+    _zero: dict = {"call_count": 0, "error_rate": 0.0, "p50_ms": 0.0, "p95_ms": 0.0}
+    if store is None:
+        store = _WINDOWED_TELEMETRY
+    if now_ms is None:
+        now_ms = _time.time() * 1000.0
+    records = store.get(tool_name)
+    if not records:
+        return _zero
+    cutoff_ms = now_ms - window_ms
+    recent = [(lat, ok) for ts, lat, ok in records if ts >= cutoff_ms]
+    if not recent:
+        return _zero
+    n = len(recent)
+    errors = sum(1 for _, ok in recent if not ok)
+    sorted_lats = sorted(lat for lat, _ in recent)
+    return {
+        "call_count": n,
+        "error_rate": float(errors) / n,
+        "p50_ms": _percentile(sorted_lats, 50.0),
+        "p95_ms": _percentile(sorted_lats, 95.0),
+    }
+
+
 def record_tool_call_windowed(
     tool_name: str,
     latency_ms: float,
