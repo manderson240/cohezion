@@ -6853,3 +6853,33 @@ def get_windowed_fleet_call_count_by_tool(
         if ts >= cutoff_ms:
             count += 1
     return count
+
+
+def get_windowed_fleet_latency_mean_ms_by_tool(
+    window_ms: float,
+    tool_name: str,
+    *,
+    store: dict | None = None,
+    now_ms: float | None = None,
+) -> float:
+    """Per-tool mean latency within the fleet store window.  Item 1165.
+
+    Returns float.  0.0 for unknown/empty tool or all-outside-window.
+    Includes ALL calls regardless of success/failure.
+    PRIMARY DISC.: mean_a=50ms ≠ fleet_mean=150ms ≠ mean_b=250ms.
+    """
+    if store is None:
+        store = _WINDOWED_TELEMETRY
+    if now_ms is None:
+        now_ms = _time.time() * 1000.0
+    cutoff_ms = now_ms - window_ms
+    records = store.get(tool_name, [])
+    total_lat = 0.0
+    count = 0
+    for ts, lat, _ok in records:
+        if ts >= cutoff_ms:
+            total_lat += lat
+            count += 1
+    if count == 0:
+        return 0.0
+    return total_lat / count
