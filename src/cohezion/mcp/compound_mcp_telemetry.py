@@ -2323,3 +2323,25 @@ def get_windowed_tool_p99_ms(
     return get_windowed_latency_percentile(
         tool_name, 99.0, window_ms, store=store, now_ms=now_ms
     )
+
+
+def get_windowed_global_p99_ms(
+    window_ms: float,
+    *,
+    store: dict | None = None,
+    now_ms: float | None = None,
+) -> float:
+    """Return the fleet-wide p99 latency in the window.  Item 993.
+
+    Shortcut for get_windowed_global_latency_percentile(99.0, window_ms, ...).
+    Pools ALL recent latencies from all tools before computing the percentile --
+    NOT an average of per-tool p99 values.
+    Returns 0.0 when no recent calls exist.
+
+    PRIMARY DISC.: tool_a[10,50] + tool_b[20,30] -> pooled [10,20,30,50]
+      idx=0.99*3=2.97; p99=30+0.97*(50-30)=49.4
+      (kills avg-of-per-tool-p99=39.75; kills max-per-tool-p99=49.6).
+    """
+    return get_windowed_global_latency_percentile(
+        99.0, window_ms, store=store, now_ms=now_ms
+    )
