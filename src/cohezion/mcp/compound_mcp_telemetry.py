@@ -6723,3 +6723,20 @@ def get_windowed_fleet_latency_p95_ms(
     return get_windowed_fleet_latency_percentile_ms(
         window_ms, 95.0, store=store, now_ms=now_ms
     )
+
+
+def get_windowed_fleet_latency_p99_ms(
+    window_ms: float,
+    *,
+    store: dict | None = None,
+    now_ms: float | None = None,
+) -> float:
+    """Fleet-wide 99th percentile latency.  Item 1159.
+
+    Thin composition: get_windowed_fleet_latency_percentile_ms(window_ms, 99.0, ...).
+    Returns float (ms).  0.0 for empty window.
+    PRIMARY DISC.: [10..1000] step=10, n=100 → P99=990ms ≠ P95=950ms ≠ mean=505ms.
+    """
+    return get_windowed_fleet_latency_percentile_ms(
+        window_ms, 99.0, store=store, now_ms=now_ms
+    )
