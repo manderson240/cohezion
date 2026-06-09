@@ -1,4 +1,5 @@
 """Item 863: fid_severity_rank_relative_frequency() -- fraction per rank per fid."""
+
 from __future__ import annotations
 from cohezion.compound.problem_discovery import Problem, fid_severity_rank_relative_frequency
 
@@ -11,8 +12,10 @@ def test_fid_outer_two_level_float_primary_discriminator() -> None:
     # fid f1: 2 HIGH(3)+2 LOW(1)+1 INFO(0) -> {3:0.4, 1:0.4, 0:0.2}
     # class-outer wrong; count-impl wrong; flat-dict wrong
     problems = [
-        _p("A", "f1", "HIGH"), _p("B", "f1", "HIGH"),
-        _p("A", "f1", "LOW"), _p("B", "f1", "LOW"),
+        _p("A", "f1", "HIGH"),
+        _p("B", "f1", "HIGH"),
+        _p("A", "f1", "LOW"),
+        _p("B", "f1", "LOW"),
         _p("A", "f1", "INFO"),
     ]
     result = fid_severity_rank_relative_frequency(problems)
@@ -24,8 +27,11 @@ def test_fid_outer_two_level_float_primary_discriminator() -> None:
 
 def test_fractions_sum_to_one() -> None:
     problems = [
-        _p("A", "f2", "INFO"), _p("A", "f2", "LOW"),
-        _p("A", "f2", "MEDIUM"), _p("A", "f2", "HIGH"), _p("A", "f2", "CRITICAL"),
+        _p("A", "f2", "INFO"),
+        _p("A", "f2", "LOW"),
+        _p("A", "f2", "MEDIUM"),
+        _p("A", "f2", "HIGH"),
+        _p("A", "f2", "CRITICAL"),
     ]
     result = fid_severity_rank_relative_frequency(problems)
     assert abs(sum(result["f2"].values()) - 1.0) < 1e-9
@@ -47,10 +53,7 @@ def test_two_equal_ranks_give_half() -> None:
 
 def test_multiple_fids_independent() -> None:
     # f10: 2 CRITICAL -> {4:1.0}; f11: HIGH+LOW -> {3:0.5,1:0.5}
-    problems = (
-        [_p("A", "f10", "CRITICAL")] * 2
-        + [_p("A", "f11", "HIGH"), _p("A", "f11", "LOW")]
-    )
+    problems = [_p("A", "f10", "CRITICAL")] * 2 + [_p("A", "f11", "HIGH"), _p("A", "f11", "LOW")]
     result = fid_severity_rank_relative_frequency(problems)
     assert abs(result["f10"][4] - 1.0) < 1e-9
     assert abs(result["f11"][3] - 0.5) < 1e-9
