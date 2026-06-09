@@ -7619,3 +7619,24 @@ def get_windowed_fleet_latency_floor_ms_by_tool(
     return get_windowed_fleet_latency_min_ms_by_tool(
         window_ms, tool_name, store=store, now_ms=now_ms
     )
+
+
+def get_windowed_fleet_latency_spread_ms_by_tool(
+    window_ms: float,
+    tool_name: str,
+    *,
+    store=None,
+    now_ms=None,
+) -> float:
+    """Per-tool latency spread (IQR: p75 - p25) within the window. Item 1194.
+
+    Returns 0.0 for unknown/empty tool or fewer than 2 calls within window.
+    More robust than range against single outliers.
+    """
+    p25 = get_windowed_fleet_latency_p25_ms_by_tool(
+        window_ms, tool_name, store=store, now_ms=now_ms
+    )
+    p75 = get_windowed_fleet_latency_p75_ms_by_tool(
+        window_ms, tool_name, store=store, now_ms=now_ms
+    )
+    return float(p75 - p25)
