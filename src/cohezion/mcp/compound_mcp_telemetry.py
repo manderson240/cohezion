@@ -3388,3 +3388,50 @@ def get_windowed_tool_latency_trimmed_mean_ms(
     if not trimmed:
         return 0.0
     return float(sum(trimmed) / len(trimmed))
+
+
+def get_windowed_tool_latency_winsorized_mean_ms(
+    tool_name: str,
+    window_ms: float,
+    winsor_pct: float = 0.1,
+    *,
+    store: dict | None = None,
+    now_ms: float | None = None,
+) -> float:
+    """Winsorized mean of per-tool latency in the window.  Item 1035.
+
+    Clamp the bottom and top floor(winsor_pct * n) values to their respective
+    boundary values; compute the mean of all n clamped values.
+    0.0 for unknown/empty tool.  Injectable store.  Pure function.
+    Default winsor_pct=0.1 (clamp 10% each tail).
+
+    Unlike trimmed mean (which discards k values from each tail, reducing n),
+    winsorized mean RETAINS all n values in the denominator — outliers are
+    replaced by the boundary value, not removed.  This preserves statistical
+    power while reducing outlier sensitivity.
+
+    PRIMARY DISC.: lats [10,20,30,40,100] winsor_pct=0.2
+      n=5, k=floor(0.2*5)=1
+      sorted=[10,20,30,40,100]; lo=sorted[1]=20, hi=sorted[3]=40
+      clamped=[20,20,30,40,40]   (10→20, 100→40)
+      winsor_mean=(20+20+30+40+40)/5=150/5=30.0
+      (kills full_mean=40.0; kills boundary_pair=[20,40]; correct=30.0 with n=5).
+    """
+    if store is None:
+        store = _WINDOWED_TELEMETRY
+    if now_ms is None:
+        now_ms = _time.time() * 1000.0
+    cutoff_ms = now_ms - window_ms
+    records = store.get(tool_name, [])
+    lats = sorted(lat for ts, lat, _ok in records if ts >= cutoff_ms)
+    n = len(lats)
+    if n == 0:
+        return 0.0
+    k = int(n * winsor_pct)  # floor via int
+    if k == 0:
+        # no clamping — identical to full mean
+        return float(sum(lats) / n)
+    lo = lats[k]
+    hi = lats[n - 1 - k]
+    clamped = [max(lo, min(hi, lat)) for lat in lats]
+    return float(sum(clamped) / n)
