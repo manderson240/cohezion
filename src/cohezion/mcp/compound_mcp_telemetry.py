@@ -1868,3 +1868,27 @@ def get_windowed_tool_error_count(
     cutoff_ms = now_ms - window_ms
     records = store.get(tool_name, [])
     return sum(1 for ts, _lat, ok in records if ts >= cutoff_ms and not ok)
+
+
+def get_windowed_global_error_count(
+    window_ms: float,
+    *,
+    store: dict | None = None,
+    now_ms: float | None = None,
+) -> int:
+    """Return the total count of failed calls fleet-wide in the window.
+
+    Sums failed (ok=False) calls across ALL tools.
+    Returns 0 when the store is empty or no recent calls exist.
+    Property: success_count + error_count == total_call_count.
+    Always returns int.
+    """
+    if store is None:
+        store = _WINDOWED_TELEMETRY
+    if now_ms is None:
+        now_ms = _time.time() * 1000.0
+    cutoff_ms = now_ms - window_ms
+    total: int = 0
+    for records in store.values():
+        total += sum(1 for ts, _lat, ok in records if ts >= cutoff_ms and not ok)
+    return total
