@@ -7258,3 +7258,34 @@ def get_windowed_fleet_call_rate_by_tool(
     if count == 0:
         return 0.0
     return float(count / (window_ms / 1000.0))
+
+
+def get_windowed_fleet_success_rate_by_tool(
+    window_ms: float,
+    tool_name: str,
+    *,
+    store: dict | None = None,
+    now_ms: float | None = None,
+) -> float:
+    """Per-tool success rate: fraction of calls where success == True.  Item 1181.
+
+    Returns float in [0.0, 1.0].  0.0 for unknown/empty tool (vacuous).
+    Composition invariant: success_rate + error_rate == 1.0.
+    PRIMARY DISC.: success_rate_a=2/3 ≠ success_rate_b=0.0 ≠ fleet_rate=0.4.
+    """
+    if store is None:
+        store = _WINDOWED_TELEMETRY
+    if now_ms is None:
+        now_ms = _time.time() * 1000.0
+    cutoff_ms = now_ms - window_ms
+    records = store.get(tool_name, [])
+    total = 0
+    successes = 0
+    for ts, _lat, ok in records:
+        if ts >= cutoff_ms:
+            total += 1
+            if ok:
+                successes += 1
+    if total == 0:
+        return 0.0
+    return float(successes / total)
