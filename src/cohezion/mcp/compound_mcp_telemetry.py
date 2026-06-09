@@ -2416,6 +2416,31 @@ def get_windowed_global_p25_ms(
     )
 
 
+def get_windowed_global_latency_p5_ms(
+    window_ms: float,
+    *,
+    store: dict | None = None,
+    now_ms: float | None = None,
+) -> float:
+    """Return the fleet-wide p5 (5th percentile) latency in the window.  Item 1046.
+
+    Shortcut for get_windowed_global_latency_percentile(5.0, window_ms, ...).
+    Pools ALL recent latencies from all tools before computing the percentile --
+    NOT an average of per-tool p5 values.
+    Returns 0.0 when no recent calls exist.
+
+    PRIMARY DISC.: tool_a=[10,20,30] + tool_b=[40,50]
+      pooled [10,20,30,40,50] (n=5), idx=0.05*4=0.2
+      -> 10 + 0.2*(20-10) = 12.0
+      (kills per-tool-then-avg=(12.0+42.0)/2=27.0 -- NOT pooled;
+       kills nearest-rank=10.0 -- no interpolation;
+       correct pooled p5=12.0).
+    """
+    return get_windowed_global_latency_percentile(
+        5.0, window_ms, store=store, now_ms=now_ms
+    )
+
+
 def get_windowed_global_p75_ms(
     window_ms: float,
     *,
