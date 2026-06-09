@@ -1594,3 +1594,34 @@ def get_all_windowed_tool_telemetry_full(
         if profile["call_count"] > 0:
             result[tool_name] = profile
     return result
+
+
+def get_windowed_top_n_tools_by_call_count(
+    n: int,
+    window_ms: float,
+    *,
+    store: dict | None = None,
+    now_ms: float | None = None,
+) -> list[str]:
+    """Return up to *n* tool names sorted descending by windowed call count.
+
+    Ties broken alphabetically ascending.  Tools with no calls in the window
+    are excluded.  Returns [] when n<=0, store empty, or no recent calls.
+    """
+    if store is None:
+        store = _WINDOWED_TELEMETRY
+    if now_ms is None:
+        now_ms = _time.time() * 1000.0
+    if n <= 0:
+        return []
+    cutoff_ms = now_ms - window_ms
+    counts: dict[str, int] = {}
+    for tool, records in store.items():
+        cnt = sum(1 for ts, _lat, _ok in records if ts >= cutoff_ms)
+        if cnt > 0:
+            counts[tool] = cnt
+    if not counts:
+        return []
+    # Sort: descending count, then ascending name for ties
+    ranked = sorted(counts.keys(), key=lambda t: (-counts[t], t))
+    return ranked[:n]
