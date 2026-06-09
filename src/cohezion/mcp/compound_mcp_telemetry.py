@@ -378,7 +378,9 @@ def get_tool_windowed_call_count(
         Integer count of calls in the last *window_ms* ms.
         0 for unknown tools or tools with no calls in the window.
     """
-    return int(get_tool_windowed_stats(tool_name, window_ms, store=store, now_ms=now_ms)["call_count"])
+    return int(
+        get_tool_windowed_stats(tool_name, window_ms, store=store, now_ms=now_ms)["call_count"]
+    )
 
 
 def record_tool_call_windowed(
