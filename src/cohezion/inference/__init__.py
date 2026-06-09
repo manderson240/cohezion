@@ -14,14 +14,14 @@ Public API:
     health = check_fleet()
     print(health.local_lanes_up, "local lanes up")
 
-Lane layout (Strix Halo Symphony — see STRIX_HALO_SYMPHONY_GUIDE.md):
+Lane layout (router-centric topology, Phase 2+):
 
-- NPU (XDNA 2)        :13306  Gemma-4-E2B     Sensing / Doer
-- iGPU ROCWMMA        :13307  Gemma-4-E4B     Governance / Knower
-- iGPU Unified        :13308  Gemma-4-26B-A4B Reasoning / Thinker  (MoE)
-- CPU AVX-VNNI        :13309  Gemma-4-31B     Architect / Safety
-- Ollama local        :11434  phi4, qwen3-coder, deepseek-r1
-- Ollama cloud        :11434  deepseek-v3.2, gemini-3-flash
+All local lemonade models are served through the unified router at :13305.
+The router dispatches to the appropriate backend on demand.
+
+- Router (unified)    :13305  NPU / iGPU / CPU  all lemonade models
+- Ollama local        :11434  phi4, qwen3-coder, deepseek-r1  (Phase 4 migration)  # allow-direct-port: Ollama models, Class A migration deferred to Phase 4
+- Ollama cloud        :11434  deepseek-v3.2, gemini-3-flash  # allow-direct-port: Ollama cloud models, Class A migration deferred to Phase 4
 - Anthropic API       https://api.anthropic.com  claude-haiku|sonnet|opus
 
 The ``turboquant_axis`` injection (SU(2) spinor coherence → KV cache rotation
@@ -76,6 +76,7 @@ from cohezion.inference.registry import (
     Task,
     get_registry,
 )
+from cohezion.inference.router_client import LemonadeRouterClient
 from cohezion.inference.unified_orchestrator import (
     UnifiedOrchestrator,
     create_default_orchestrator,
@@ -91,6 +92,7 @@ __all__ = [
     "Lane",
     "LaneHealth",
     "LaneStatus",
+    "LemonadeRouterClient",
     "ModelEntry",
     "OrchestrationResult",
     "QualityGate",

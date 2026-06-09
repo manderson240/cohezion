@@ -34,11 +34,15 @@ def test_gemma_lanes_bind_to_correct_silicon() -> None:
 
 
 def test_gemma_lane_ports_match_symphony_launch_script() -> None:
+    """Phase 2 (2026-06-09): all lemonade models point at the unified router :13305.
+    The old per-port endpoints (:13306/:13307/:13308/:13309) are retired from registry
+    metadata. This test was updated from per-port to router-centric in Phase 2.
+    """
     registry = FleetRegistry()
-    assert "13306" in registry.models["Gemma-4-E2B-it-GGUF"].endpoint
-    assert "13307" in registry.models["Gemma-4-E4B-it-GGUF"].endpoint
-    assert "13308" in registry.models["Gemma-4-26B-A4B-it-GGUF"].endpoint
-    assert "13309" in registry.models["Gemma-4-31B-it-GGUF"].endpoint
+    assert "13305" in registry.models["Gemma-4-E2B-it-GGUF"].endpoint
+    assert "13305" in registry.models["Gemma-4-E4B-it-GGUF"].endpoint
+    assert "13305" in registry.models["Gemma-4-26B-A4B-it-GGUF"].endpoint
+    assert "13305" in registry.models["Gemma-4-31B-it-GGUF"].endpoint
 
 
 def test_for_task_returns_sorted_by_priority() -> None:

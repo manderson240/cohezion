@@ -157,7 +157,7 @@ def build_gaia_native_tier(
     model_id: str = "Gemma-4-E2B-it-GGUF",
     *,
     silent: bool = True,
-    base_url: str | None = "http://localhost:13306/v1",
+    base_url: str | None = "http://localhost:13305/v1",  # router-centric (Phase 2)
 ) -> GaiaAgentTier:
     """Instantiate a GAIA Agent bound to a specific lane, wrap as a tier.
 
@@ -188,7 +188,7 @@ def build_gaia_mcp_tier(
     *,
     mcp_servers: dict[str, Any] | None = None,
     silent: bool = True,
-    base_url: str | None = "http://localhost:13306/v1",
+    base_url: str | None = "http://localhost:13305/v1",  # router-centric (Phase 2)
 ) -> GaiaAgentTier:
     """Instantiate a GAIA MCPAgent bound to a specific lane with tools, wrap as a tier."""
     try:

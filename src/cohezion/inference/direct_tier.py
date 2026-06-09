@@ -112,7 +112,12 @@ def build_direct_npu_tier(
     *,
     silent: bool = True,
 ) -> DirectLemonadeTier:
-    """NPU tier via direct HTTP — bypasses GAIA singleton."""
+    """NPU tier via direct HTTP — bypasses GAIA singleton.
+
+    DEPRECATED (Phase 2, 2026-06-09): prefer ``build_router_npu_tier`` which targets the
+    router (:13305) and does not depend on a dedicated :13306 server being up.
+    Retained non-destructively per the non-destructive-wiring policy.
+    """
     return DirectLemonadeTier(port=port, model_id=model_id, max_tokens=256)
 
 
@@ -120,7 +125,12 @@ def build_direct_igpu_tier(
     port: int = 13307,
     model_id: str = "Gemma-4-E4B-it-GGUF",
 ) -> DirectLemonadeTier:
-    """iGPU tier via direct HTTP."""
+    """iGPU tier via direct HTTP.
+
+    DEPRECATED (Phase 2, 2026-06-09): prefer ``build_router_igpu_tier`` which targets the
+    router (:13305) and does not depend on a dedicated :13307 server being up.
+    Retained non-destructively per the non-destructive-wiring policy.
+    """
     return DirectLemonadeTier(port=port, model_id=model_id, max_tokens=512)
 
 
@@ -227,3 +237,150 @@ def build_router_cpu_tier(
     for the legacy dedicated :13309 server.
     """
     return RouterCpuTier(port=port, model_id=model_id, ctx_size=ctx_size, backend=backend)
+
+
+# ---------------------------------------------------------------------------
+# RouterTier — generic router-centric tier for NPU and iGPU lanes (Phase 2)
+# ---------------------------------------------------------------------------
+# Mirrors RouterCpuTier exactly but accepts any backend string.
+# Targets :13305 (unified lemonade router) so callers don't depend on a
+# dedicated per-port server being up.  N3 OOM guard is inherited: bounded
+# ctx_size (≤16384) is pre-loaded via POST /api/v1/load before the first
+# chat request.
+# ---------------------------------------------------------------------------
+
+
+class RouterTier(DirectLemonadeTier):
+    """Generic router-centric tier via the lemonade router (:13305).
+
+    Unlike ``DirectLemonadeTier`` (which targets a dedicated per-port server),
+    this tier talks exclusively to the unified router and selects the backend
+    via a per-load ``backend`` hint.  This makes NPU and iGPU lanes available
+    even when the dedicated :13306/:13307 servers are down.
+
+    OOM safety (N3): identical to ``RouterCpuTier`` — the model is pre-loaded
+    with a BOUNDED ``ctx_size`` (≤16384) and ``save_options=true`` before the
+    first chat request, preventing the router from auto-loading at ctx_size=0.
+
+    Parameters
+    ----------
+    backend : str
+        Routing hint sent to the router's load endpoint.  Values:
+        ``"npu"``    — FLM recipe (omits ``llamacpp_backend`` key in payload)
+        ``"vulkan"`` — iGPU Vulkan/RDNA (``llamacpp_backend=vulkan``)
+        ``"cpu"``    — CPU AVX-512 (``llamacpp_backend=cpu``)
+        ``"auto"``   — router decides (omits the key entirely)
+    """
+
+    # FLM-recipe models: the router's load endpoint does NOT accept
+    # ``llamacpp_backend`` for FLM-served models.  Mirror the frozenset from
+    # router_client.py to avoid a circular import.
+    _FLM_RECIPE_MODELS: frozenset[str] = frozenset(
+        {
+            "llama3.2-1b-FLM",
+            "gemma3-4b-FLM",
+            "deepseek-r1-0528-8b-FLM",
+            "qwen3.5-4b-FLM",
+        }
+    )
+
+    def __init__(
+        self,
+        *,
+        port: int = 13305,
+        model_id: str,
+        backend: str = "auto",
+        ctx_size: int = _ROUTER_CPU_CTX_SIZE,
+        max_tokens: int = 512,
+        temperature: float = 0.3,
+    ) -> None:
+        # Clamp ctx to the bounded ceiling — N3 forbids unbounded (0 / huge) ctx.
+        ctx_size = min(max(1, ctx_size), _ROUTER_CPU_CTX_SIZE)
+        super().__init__(
+            port=port, model_id=model_id, max_tokens=max_tokens, temperature=temperature
+        )
+        self.ctx_size = ctx_size
+        self.backend = backend
+        self.label = f"router:{model_id}"
+        self._load_url = f"http://localhost:{port}/api/v1/load"
+        self._loaded = False
+
+    def _build_load_payload(self) -> dict:
+        """Build the /api/v1/load payload, omitting llamacpp_backend for FLM models."""
+        payload: dict = {
+            "model_name": self.model_id,
+            "ctx_size": self.ctx_size,  # N3: bounded ≤16384, never 0
+            "save_options": True,
+        }
+        # FLM-recipe models do not accept llamacpp_backend; npu/auto also omit it.
+        if self.backend not in ("npu", "auto") and self.model_id not in self._FLM_RECIPE_MODELS:
+            payload["llamacpp_backend"] = self.backend
+        return payload
+
+    async def _ensure_loaded(self) -> None:
+        """Pre-load the model on the router with a bounded ctx_size (N3). Fail-soft."""
+        if self._loaded:
+            return
+        import httpx
+
+        try:
+            async with httpx.AsyncClient(timeout=120.0) as client:
+                resp = await client.post(self._load_url, json=self._build_load_payload())
+                resp.raise_for_status()
+        except Exception as exc:  # non-fatal: chat still runs; persisted card bound applies
+            logger.debug(
+                "RouterTier pre-load (%s, backend=%s, ctx=%d) failed: %s",
+                self.model_id,
+                self.backend,
+                self.ctx_size,
+                exc,
+            )
+        finally:
+            self._loaded = True
+
+    async def run(self, prompt: str, **kwargs: object) -> OrchestrationResult:
+        await self._ensure_loaded()
+        return await super().run(prompt, **kwargs)
+
+
+def build_router_npu_tier(
+    port: int = 13305,
+    model_id: str = "llama3.2-1b-FLM",
+    *,
+    ctx_size: int = _ROUTER_CPU_CTX_SIZE,
+) -> RouterTier:
+    """PRIMARY NPU tier — router :13305 with FLM recipe, bounded ctx (N3).
+
+    Targets the unified lemonade router instead of the dedicated :13306 server, so this
+    tier works even when the per-port NPU daemon is down.  FLM-recipe models omit
+    ``llamacpp_backend`` in the load payload (the router recognises them by model_id).
+    """
+    return RouterTier(
+        port=port, model_id=model_id, backend="npu", ctx_size=ctx_size, max_tokens=256
+    )
+
+
+def build_router_igpu_tier(
+    port: int = 13305,
+    model_id: str = "deepseek-r1-0528-8b-FLM",
+    *,
+    ctx_size: int = _ROUTER_CPU_CTX_SIZE,
+) -> RouterTier:
+    """PRIMARY iGPU tier — router :13305 with Vulkan/RDNA backend, bounded ctx (N3).
+
+    Targets the unified lemonade router instead of the dedicated :13307 server, so this
+    tier works even when the per-port iGPU daemon is down.
+    """
+    return RouterTier(
+        port=port, model_id=model_id, backend="vulkan", ctx_size=ctx_size, max_tokens=512
+    )
+
+
+# ---------------------------------------------------------------------------
+# ## FUTURE HOOKS
+# ---------------------------------------------------------------------------
+# FH-1 (Phase 3): when router gains a /api/v1/backend-hint RPC, remove the
+#        _build_load_payload() workaround and pass backend via that endpoint.
+# FH-2 (Phase 4): retire build_direct_npu_tier / build_direct_igpu_tier once
+#        the per-port :13306/:13307 daemons are fully decommissioned.
+# ---------------------------------------------------------------------------

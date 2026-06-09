@@ -602,7 +602,8 @@ class LemonadeAdapter:
         2. Load new model into slot (POST /api/load)
         3. Update internal state
 
-    The Lemonade server at localhost:13307 uses OpenAI-compatible API.
+    The Lemonade unified router at localhost:13305 uses OpenAI-compatible API.
+    Router dispatches to the appropriate backend (NPU / iGPU / CPU) on demand.
     """
 
     # Slot → backend mapping for Lemonade server
@@ -612,7 +613,7 @@ class LemonadeAdapter:
         "cpu": "onnx",  # ONNX int4 (CPU only)
     }
 
-    def __init__(self, lemonade_base_url: str = "http://localhost:13307"):
+    def __init__(self, lemonade_base_url: str = "http://localhost:13305"):  # router-centric (Phase 2)
         self.base_url = lemonade_base_url.rstrip("/")
         self._loaded_models: dict[str, str] = {"npu": "", "gpu": "", "cpu": ""}
 

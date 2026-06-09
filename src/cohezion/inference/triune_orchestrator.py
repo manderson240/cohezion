@@ -31,21 +31,21 @@ def _check_port(port: int, timeout: float = 1.0) -> bool:
 
 def build_triune_orchestrator(
     *,
-    npu_port: int = 13306,
-    igpu_port: int = 13307,
-    cpu_port: int = 13309,
+    npu_port: int = 13306,  # allow-direct-port: API-stability param — body uses router post-Phase2; CLaSp igpu_port uses direct
+    igpu_port: int = 13307,  # allow-direct-port: CLaSp verify_port — direct iGPU connection required for speculative decoding
+    cpu_port: int = 13309,  # allow-direct-port: N2 harness invariant — preserved per harness.md N2
     router_cpu_port: int = 13305,
-    clasp_draft_port: int | None = 13308,
+    clasp_draft_port: int | None = 13308,  # allow-direct-port: CLaSp speculative decoding — dual-port by design
     include_cloud: bool = True,
 ) -> TieredOrchestrator:
     """
     Constructs a TieredOrchestrator mapped to the Triune Substrate.
 
-    Tiers (rich tapestry):
-    0. NPU (FastFlowLM): llama3.2-1b-FLM (Port 13306) — fits in XDNA2 SRAM, 42 TPS, $0
-    1. iGPU (CLaSp/TurboKV Wave32): Gemma-4-E4B-it-GGUF (Port 13307), $0
-       With CLaSp: draft via Gemma-4-E2B-it-GGUF (Port 13308, optional)
-    2. CPU (Vectorized AVX-512): Gemma-4-31B-it-GGUF (Port 13309, lemonade), $0
+    Tiers (rich tapestry, router-centric post-Phase 2):
+    0. NPU (FastFlowLM): llama3.2-1b-FLM → router :13305 (was :13306 pre-Phase2)  # allow-direct-port: docstring topology reference
+    1. iGPU (CLaSp/TurboKV Wave32): Gemma-4-E4B-it-GGUF → router :13305  # allow-direct-port: docstring topology reference; CLaSp uses :13307/:13308 directly
+       With CLaSp: draft via Gemma-4-E2B-it-GGUF (:13308) + verify (:13307) — speculative decode only  # allow-direct-port: CLaSp retained dual-port
+    2. CPU (Vectorized AVX-512): Gemma-4-31B-it-GGUF → router :13305 (direct :13309 fallback)  # allow-direct-port: docstring topology reference
     3. Haiku 4.5 (cloud): 3.75× cheaper than Sonnet, covers CPU quality gate failures
     4. Sonnet 4.6 (cloud): final fallback for BBQ low-and-slow and complex synthesis
 
@@ -92,18 +92,21 @@ def build_triune_orchestrator(
     from cohezion.inference.direct_tier import (
         build_direct_cpu_tier,
         build_direct_igpu_tier,
-        build_direct_npu_tier,
         build_router_cpu_tier,
+        build_router_igpu_tier,
+        build_router_npu_tier,
     )
 
-    npu_tier = build_direct_npu_tier(port=npu_port, model_id="llama3.2-1b-FLM")
+    # NPU Tier — router-centric (Phase 2): targets :13305 unified router.
+    # npu_port param retained in signature for API stability; not used in body post-Phase2.
+    npu_tier = build_router_npu_tier(model_id="llama3.2-1b-FLM")
 
     # 2. iGPU Tier — deep context analysis, Wave32 ROCWMMA
     # CLaSp speculative drafting only when BOTH draft and verify ports are live.
-    # If either port is offline, fall back to direct HTTP iGPU tier immediately.
-    # iGPU FLM model: deepseek-r1-0528-8b-FLM on port 13307 (harness N1/N2 spec).
-    # CLaSp speculative decoding is only available when port 13308 (E2B draft) is live.
-    # When 13308 is offline (default), use direct FLM iGPU tier instead.
+    # If either port is offline, fall back to router iGPU tier.
+    # iGPU FLM model: deepseek-r1-0528-8b-FLM (harness N1/N2 spec).
+    # CLaSp speculative decoding: port 13308 (E2B draft) + port 13307 (E4B verify) — retained dual-port.  # allow-direct-port: CLaSp topology documentation
+    # When CLaSp draft port is offline (default), router iGPU tier is used.
     _igpu_live = _check_port(igpu_port)
     _draft_live = clasp_draft_port is not None and _check_port(clasp_draft_port)
     if _igpu_live and _draft_live:
@@ -123,12 +126,13 @@ def build_triune_orchestrator(
                 igpu_port,
             )
         except Exception as exc:
-            logger.warning("CLaSp tier unavailable (%s), falling back to direct FLM iGPU", exc)
-            igpu_tier = build_direct_igpu_tier(port=igpu_port, model_id="deepseek-r1-0528-8b-FLM")
+            logger.warning("CLaSp tier unavailable (%s), falling back to router iGPU tier", exc)
+            igpu_tier = build_router_igpu_tier(model_id="deepseek-r1-0528-8b-FLM")
     else:
         if not _igpu_live:
-            logger.debug("iGPU port %d offline — iGPU slot unavailable", igpu_port)
-        igpu_tier = build_direct_igpu_tier(port=igpu_port, model_id="deepseek-r1-0528-8b-FLM")
+            logger.debug("iGPU port %d offline — using router iGPU tier as fallback", igpu_port)
+        # iGPU non-CLaSp path: router-centric (Phase 2), targets :13305 unified router.
+        igpu_tier = build_router_igpu_tier(model_id="deepseek-r1-0528-8b-FLM")
 
     # 3. CPU Tier — Gemma-4-31B reasoner ($0). The dedicated direct :13309 server is the default
     # alternative (N2); when it is unreachable, fall back to the router (:13305) with

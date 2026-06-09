@@ -35,16 +35,24 @@ def _build_local_only(**kwargs):
 
 
 def test_build_triune_orchestrator_structure():
-    """3 local tiers with correct model IDs (N2 invariant). Cloud/CLaSp tested separately."""
+    """3 local tiers with correct model IDs (N2 invariant). Cloud/CLaSp tested separately.
+
+    Phase 2 (2026-06-09): NPU and iGPU tiers now use router-centric RouterTier (label
+    prefix 'router:') instead of direct per-port DirectLemonadeTier ('direct:').
+    The N2 invariant — llama3.2-1b-FLM for NPU — is preserved; only the transport changes.
+    CPU tier uses direct :13309 when live (hence 'direct:' label in _build_local_only).
+    """
     orch = _build_local_only()
     assert len(orch.tiers) == 3
     labels = [tier[0].label for tier in orch.tiers]
     # N2: NPU must use llama3.2-1b-FLM (fits XDNA2 SRAM, 42 TPS — NOT qwen3.5-4b-FLM at 8.6 TPS)
-    assert "direct:llama3.2-1b-FLM" in labels, "N2: NPU tier must use llama3.2-1b-FLM"
-    assert "direct:qwen3.5-4b-FLM" not in labels, "N2: qwen3.5-4b-FLM is banned from NPU tier"
-    # iGPU: deepseek-r1-0528-8b-FLM per harness N1/N2 spec
-    assert "direct:deepseek-r1-0528-8b-FLM" in labels, "iGPU must use deepseek-r1-0528-8b-FLM"
-    assert "direct:Gemma-4-31B-it-GGUF" in labels, "CPU tier must use Gemma-4-31B"
+    # Phase 2: NPU tier uses RouterTier → label is "router:llama3.2-1b-FLM"
+    assert "router:llama3.2-1b-FLM" in labels, "N2: NPU tier must use llama3.2-1b-FLM via router"
+    assert "router:qwen3.5-4b-FLM" not in labels, "N2: qwen3.5-4b-FLM is banned from NPU tier"
+    assert "direct:qwen3.5-4b-FLM" not in labels, "N2: qwen3.5-4b-FLM must not appear in any form"
+    # iGPU: deepseek-r1-0528-8b-FLM via router (Phase 2)
+    assert "router:deepseek-r1-0528-8b-FLM" in labels, "iGPU must use deepseek-r1-0528-8b-FLM via router"
+    assert "direct:Gemma-4-31B-it-GGUF" in labels, "CPU tier uses direct :13309 when live"
 
 
 def test_build_triune_orchestrator_quality_gates():
@@ -68,11 +76,15 @@ def test_build_triune_orchestrator_pre_dispatch_classifier_wired():
 
 
 def test_build_triune_orchestrator_npu_first():
-    """NPU at tier 0, iGPU at tier 1, CPU at tier 2 — cheapest first."""
+    """NPU at tier 0, iGPU at tier 1, CPU at tier 2 — cheapest first.
+
+    Phase 2 (2026-06-09): NPU and iGPU use RouterTier (label prefix 'router:');
+    CPU still uses DirectLemonadeTier for direct :13309 path when port is live.
+    """
     orch = _build_local_only()
-    assert orch.tiers[0][0].label == "direct:llama3.2-1b-FLM", "NPU must be tier 0"
-    assert orch.tiers[1][0].label == "direct:deepseek-r1-0528-8b-FLM", "iGPU must be tier 1"
-    assert orch.tiers[2][0].label == "direct:Gemma-4-31B-it-GGUF", "CPU must be tier 2"
+    assert orch.tiers[0][0].label == "router:llama3.2-1b-FLM", "NPU must be tier 0 (router)"
+    assert orch.tiers[1][0].label == "router:deepseek-r1-0528-8b-FLM", "iGPU must be tier 1 (router)"
+    assert orch.tiers[2][0].label == "direct:Gemma-4-31B-it-GGUF", "CPU must be tier 2 (direct :13309)"
 
 
 def test_build_triune_orchestrator_cloud_tiers():
