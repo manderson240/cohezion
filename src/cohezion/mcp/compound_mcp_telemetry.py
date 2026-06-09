@@ -5886,3 +5886,33 @@ def get_windowed_fleet_latency_percentile_gap_ms(
         window_ms, p_high, store=store, now_ms=now_ms,
     )
     return float(p_hi - p_lo)
+
+
+def get_windowed_fleet_latency_stddev_ms(
+    window_ms: float,
+    *,
+    store: dict | None = None,
+    now_ms: float | None = None,
+) -> float:
+    """Fleet-wide population stddev of pooled latencies across all tools.  Item 1128.
+
+    Returns float (ms).  0.0 for empty window or a single call.
+    PRIMARY DISC.: kills per-tool-then-average (tool_a stddev=40, tool_b=0, avg=20ms)
+    vs. pooled stddev≈28.28ms for [10,50,50,90].  Pool first, then stddev, not reverse.
+    """
+    if store is None:
+        store = _WINDOWED_TELEMETRY
+    if now_ms is None:
+        now_ms = _time.time() * 1000.0
+    cutoff_ms = now_ms - window_ms
+    latencies: list[float] = []
+    for records in store.values():
+        for ts, lat, _ok in records:
+            if ts >= cutoff_ms:
+                latencies.append(lat)
+    n = len(latencies)
+    if n < 2:
+        return 0.0
+    mean = sum(latencies) / n
+    variance = sum((lat - mean) ** 2 for lat in latencies) / n
+    return float(variance ** 0.5)
