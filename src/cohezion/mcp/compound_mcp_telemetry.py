@@ -5791,3 +5791,51 @@ def get_windowed_tool_latency_total_burst_duration_ms(
     if in_burst and burst_start_ts is not None and burst_last_ts is not None:
         total_duration += burst_last_ts - burst_start_ts
     return float(total_duration)
+
+
+def get_windowed_tool_latency_burst_fraction(
+    tool_name: str,
+    window_ms: float,
+    burst_threshold_ms: float,
+    *,
+    store: dict | None = None,
+    now_ms: float | None = None,
+) -> float:
+    """Fraction of windowed calls that are in a multi-call burst (run >=2).  Item 1125.
+
+    A call is "in a burst" only when it belongs to a consecutive run of >=2 calls
+    with latency strictly > burst_threshold_ms.  Solo spikes (run=1) are NOT counted.
+    Returns float (0.0 for empty window, no above-threshold calls, or only solo spikes).
+    PRIMARY DISC.: kills above_fraction (counts solos too), kills burst_count (counts runs not calls).
+    """
+    if store is None:
+        store = _WINDOWED_TELEMETRY
+    if now_ms is None:
+        now_ms = _time.time() * 1000.0
+    cutoff_ms = now_ms - window_ms
+    records = store.get(tool_name, [])
+    windowed = sorted(
+        [(ts, lat) for ts, lat, _ok in records if ts >= cutoff_ms],
+        key=lambda x: x[0],
+    )
+    total = len(windowed)
+    if total == 0:
+        return 0.0
+    # Build run-length list for above-threshold spans
+    burst_call_counts: list[int] = []
+    current_run = 0
+    in_burst = False
+    for _, lat in windowed:
+        if lat > burst_threshold_ms:
+            current_run += 1
+            in_burst = True
+        else:
+            if in_burst:
+                burst_call_counts.append(current_run)
+                current_run = 0
+                in_burst = False
+    if in_burst and current_run > 0:
+        burst_call_counts.append(current_run)
+    # Sum only runs with >=2 calls
+    in_burst_calls = sum(n for n in burst_call_counts if n >= 2)
+    return float(in_burst_calls / total)
