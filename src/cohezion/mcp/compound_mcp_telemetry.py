@@ -5667,3 +5667,36 @@ def get_windowed_tool_call_gap_stddev_ms(
     mean = sum(gaps) / m
     variance = sum((g - mean) ** 2 for g in gaps) / m
     return float(variance ** 0.5)
+
+
+def get_windowed_fleet_call_gap_stddev_ms(
+    window_ms: float,
+    *,
+    store: dict | None = None,
+    now_ms: float | None = None,
+) -> float:
+    """Fleet-wide population stddev of call-arrival gaps in window.  Item 1121.
+
+    Treats all tool timestamps as a single chronological stream, computes gaps,
+    then returns population stddev.  0.0 for <3 fleet calls.
+    PRIMARY DISC.: kills per-tool-then-average (uses pooled stream, not tool averages).
+    """
+    if store is None:
+        store = _WINDOWED_TELEMETRY
+    if now_ms is None:
+        now_ms = _time.time() * 1000.0
+    cutoff_ms = now_ms - window_ms
+    timestamps: list[float] = []
+    for records in store.values():
+        for ts, _lat, _ok in records:
+            if ts >= cutoff_ms:
+                timestamps.append(ts)
+    n = len(timestamps)
+    if n < 3:
+        return 0.0
+    timestamps.sort()
+    gaps = [timestamps[i + 1] - timestamps[i] for i in range(n - 1)]
+    m = len(gaps)
+    mean = sum(gaps) / m
+    variance = sum((g - mean) ** 2 for g in gaps) / m
+    return float(variance ** 0.5)
