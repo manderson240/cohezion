@@ -778,6 +778,24 @@ def load_telemetry_snapshot(path: _Path | str) -> dict[str, dict]:
     return data
 
 
+def get_global_p50_ms() -> float:
+    """Return the p50 (median) latency over all tools combined (pooled).  Item 947.
+
+    Pools all latency records from every tool and computes p50 on the combined
+    list.  This gives the correct aggregate median — averaging per-tool p50
+    values would over-weight low-traffic tools.
+
+    Returns:
+        p50 latency in milliseconds; 0.0 when no calls have been recorded.
+    """
+    all_lats: list[float] = []
+    for stats in _TELEMETRY.values():
+        all_lats.extend(stats["latencies"])
+    if not all_lats:
+        return 0.0
+    return _percentile(sorted(all_lats), 50.0)
+
+
 def get_global_p95_ms() -> float:
     """Return the p95 latency over all tools combined (pooled).  Item 946.
 
