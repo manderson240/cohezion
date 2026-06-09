@@ -3825,3 +3825,56 @@ def get_windowed_tool_latency_entropy_bits(
             p = b / n
             h -= p * _math.log2(p)
     return float(h)
+
+
+def get_windowed_global_latency_entropy_bits(
+    window_ms: float,
+    n_bins: int = 10,
+    *,
+    store: dict | None = None,
+    now_ms: float | None = None,
+) -> float:
+    """Fleet-wide Shannon entropy of pooled latency distribution (bits).  Item 1051.
+
+    Pools ALL tool latencies in window into one list, then bins into n_bins
+    equal-width buckets over [min, max].
+    H = -sum(p * log2(p)) over non-empty bins.
+    Returns 0.0 when fewer than 2 pooled samples or all samples are equal.
+    Injectable store.  Pure function.  Fleet dual of per-tool item 1050.
+
+    PRIMARY DISC.: tool_a=[10,10] + tool_b=[100,100]
+      pooled [10,10,100,100] n=4, n_bins=2
+      bin[0]={10,10} p=0.5, bin[1]={100,100} p=0.5 -> H=1.0 bit
+      (kills per-tool entropy avg: each all-equal -> H=0.0 each -> avg=0.0;
+       kills H=0.0 single-bin assumption; correct pooled H=1.0 bit).
+    """
+    import math as _math
+
+    if store is None:
+        store = _WINDOWED_TELEMETRY
+    if now_ms is None:
+        now_ms = _time.time() * 1000.0
+    cutoff_ms = now_ms - window_ms
+    all_lats: list[float] = []
+    for records in store.values():
+        all_lats.extend(lat for ts, lat, _ok in records if ts >= cutoff_ms)
+    n = len(all_lats)
+    if n < 2:
+        return 0.0
+    lo = min(all_lats)
+    hi = max(all_lats)
+    if hi == lo:
+        return 0.0
+    width = (hi - lo) / n_bins
+    bins: list[int] = [0] * n_bins
+    for lat in all_lats:
+        idx = int((lat - lo) / width)
+        if idx >= n_bins:
+            idx = n_bins - 1
+        bins[idx] += 1
+    h = 0.0
+    for b in bins:
+        if b > 0:
+            p = b / n
+            h -= p * _math.log2(p)
+    return float(h)
