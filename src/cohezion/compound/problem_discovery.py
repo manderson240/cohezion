@@ -16454,3 +16454,48 @@ def fid_severity_rank_majority(problems: list[Problem]) -> dict[str, bool]:
         fid: any(count / totals[fid] > 0.5 for count in rank_counts[fid].values())
         for fid in rank_counts
     }
+
+
+_SUPERMAJORITY_THRESHOLD: float = 2.0 / 3.0
+
+
+def class_severity_rank_supermajority(problems: list[Problem]) -> dict[str, bool]:
+    """Whether any single rank accounts for >=2/3 of problems per class.  Item 858.
+    Single-problem class -> True. Stricter than majority (>0.5). Empty -> {}. Pure; no I/O."""
+    if not problems:
+        return {}
+    rank_counts: dict[str, dict[int, int]] = {}
+    totals: dict[str, int] = {}
+    for p in problems:
+        cls = p.problem_class
+        rank = _SEVERITY_RANK.get(p.severity, 0)
+        if cls not in rank_counts:
+            rank_counts[cls] = {}
+            totals[cls] = 0
+        rank_counts[cls][rank] = rank_counts[cls].get(rank, 0) + 1
+        totals[cls] += 1
+    return {
+        cls: any(count / totals[cls] >= _SUPERMAJORITY_THRESHOLD for count in rank_counts[cls].values())
+        for cls in rank_counts
+    }
+
+
+def fid_severity_rank_supermajority(problems: list[Problem]) -> dict[str, bool]:
+    """Whether any single rank accounts for >=2/3 of problems per fid.  Item 859.
+    Fid-axis complement of 858. Single-problem -> True. Empty -> {}. Pure; no I/O."""
+    if not problems:
+        return {}
+    rank_counts: dict[str, dict[int, int]] = {}
+    totals: dict[str, int] = {}
+    for p in problems:
+        fid = p.finding_id
+        rank = _SEVERITY_RANK.get(p.severity, 0)
+        if fid not in rank_counts:
+            rank_counts[fid] = {}
+            totals[fid] = 0
+        rank_counts[fid][rank] = rank_counts[fid].get(rank, 0) + 1
+        totals[fid] += 1
+    return {
+        fid: any(count / totals[fid] >= _SUPERMAJORITY_THRESHOLD for count in rank_counts[fid].values())
+        for fid in rank_counts
+    }
