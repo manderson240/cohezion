@@ -5,6 +5,8 @@ Composes three VERIFIED measurement tools into one snapshot, adding no new measu
   - `marginal_power_w` (item 17) — per-lane SoC ΔP from idle/load samples;
   - `deposit_cerebellum_neuron` (item 24) — the ONE write: a stabilized routing pattern → one
     procedural-memory neuron.
+  - `persistently_dropped_findings` (item 125) — verified research levers the loop keeps noticing
+    but never integrates (surfaced read-only from the SAME feed/backlog the telemetry reads; no write).
 
 Everything is read-only EXCEPT that single gated cerebellum deposit, which only fires for a
 genuinely stable routing pattern and, with an injected ``store``, never touches the real graph
@@ -19,6 +21,7 @@ from dataclasses import dataclass
 from pathlib import Path
 
 from cohezion.compound.loop_telemetry import LoopTelemetry, loop_telemetry
+from cohezion.compound.research_feed_parser import persistently_dropped_findings
 from cohezion.governance.knowledge_bridge import deposit_cerebellum_neuron
 from cohezion.substrate.hardware_monitor import marginal_power_w
 
@@ -31,6 +34,9 @@ class FleetHealthSnapshot:
     telemetry: LoopTelemetry
     lane_power_w: dict[str, float | None]
     cerebellum_deposited: dict | None
+    persistent_misses: list[
+        tuple[str, list[int]]
+    ]  # item 125: verified levers the loop keeps dropping
 
 
 class FleetHealthSpecialist:
@@ -59,6 +65,14 @@ class FleetHealthSpecialist:
         deposited: dict | None = None
         if routing_records:
             deposited = deposit_cerebellum_neuron(routing_records, store=store)
+        # Surface the research levers the loop keeps dropping (item 125) from the SAME feed/backlog
+        # the telemetry already read — passing the injected paths through (no hidden default read).
+        persistent_misses = persistently_dropped_findings(
+            feed_path=feed_path, backlog_path=backlog_path
+        )
         return FleetHealthSnapshot(
-            telemetry=telemetry, lane_power_w=lane_power, cerebellum_deposited=deposited
+            telemetry=telemetry,
+            lane_power_w=lane_power,
+            cerebellum_deposited=deposited,
+            persistent_misses=persistent_misses,
         )

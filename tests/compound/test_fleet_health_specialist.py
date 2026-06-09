@@ -13,6 +13,8 @@ Each test fails a plausible wrong impl:
 
 from __future__ import annotations
 
+from pathlib import Path
+
 from cohezion.compound.fleet_health_specialist import FleetHealthSpecialist
 from cohezion.compound.loop_telemetry import loop_telemetry
 
@@ -60,3 +62,39 @@ def test_store_none_under_pytest_does_not_write_real_graph() -> None:
     # a dict here.
     snap = FleetHealthSpecialist().snapshot(routing_records=_stable(), store=None)
     assert snap.cerebellum_deposited is None
+
+
+# --- item 125 wired into the snapshot: persistent_misses from the INJECTED feed/backlog ------
+
+_MISS_FEED = (
+    "## Round 1 — d\n| Finding | Verified | Class | Fleet seam | Notes |\n|---|---|---|---|---|\n"
+    "| **`synthmiss`** | y | NEW | s | n |\n\n"
+    "## Round 2 — d\n| Finding | Verified | Class | Fleet seam | Notes |\n|---|---|---|---|---|\n"
+    "| **`synthmiss`** | y | NEW | s | n |\n"
+)
+
+
+def test_persistent_misses_wired_from_injected_paths(tmp_path: Path) -> None:
+    feed = tmp_path / "FEED.md"
+    feed.write_text(_MISS_FEED)
+    backlog = tmp_path / "BACKLOG.md"
+    backlog.write_text(
+        "| 1 | A | unrelated item | v | additive | TODO |\n"
+    )  # synthmiss NOT actioned
+    snap = FleetHealthSpecialist().snapshot(feed_path=feed, backlog_path=backlog)
+    # 'synthmiss' is a synthetic id absent from the real repo feed: a wrong wiring that called
+    # persistently_dropped_findings() with NO args (reading the real files) could never produce it.
+    # This exact result proves the injected paths are passed through AND the conjunction flows.
+    assert snap.persistent_misses == [("synthmiss", [1, 2])]
+
+
+def test_persistent_misses_single_round_not_flagged(tmp_path: Path) -> None:
+    feed = tmp_path / "FEED1.md"
+    feed.write_text(
+        "## Round 1 — d\n| Finding | Verified | Class | Fleet seam | Notes |\n|---|---|---|---|---|\n"
+        "| **`synthmiss`** | y | NEW | s | n |\n"
+    )
+    backlog = tmp_path / "BACKLOG1.md"
+    backlog.write_text("| 1 | A | unrelated | v | additive | TODO |\n")
+    snap = FleetHealthSpecialist().snapshot(feed_path=feed, backlog_path=backlog)
+    assert snap.persistent_misses == []  # 1 round -> conjunction excludes (not just "all dropped")
