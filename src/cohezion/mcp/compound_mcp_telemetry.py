@@ -778,6 +778,25 @@ def load_telemetry_snapshot(path: _Path | str) -> dict[str, dict]:
     return data
 
 
+def get_busiest_tool() -> str | None:
+    """Return the name of the tool with the most recorded calls.  Item 942.
+
+    Enables dashboards to identify the highest-traffic tool at a glance.
+    Ties in call count are broken alphabetically (ascending).
+
+    Returns:
+        Tool name with the highest call count; ``None`` when store is empty.
+    """
+    if not _TELEMETRY:
+        return None
+    max_count = max(get_tool_call_count(t) for t in _TELEMETRY)
+    candidates = [
+        t for t in _TELEMETRY
+        if get_tool_call_count(t) == max_count
+    ]
+    return min(candidates)  # alphabetically first among count-tied tools
+
+
 def get_fastest_tool() -> str | None:
     """Return the name of the tool with the lowest p50 latency.  Item 941.
 
