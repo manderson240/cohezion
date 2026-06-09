@@ -1625,3 +1625,37 @@ def get_windowed_top_n_tools_by_call_count(
     # Sort: descending count, then ascending name for ties
     ranked = sorted(counts.keys(), key=lambda t: (-counts[t], t))
     return ranked[:n]
+
+
+def get_windowed_top_n_tools_by_error_rate(
+    n: int,
+    window_ms: float,
+    *,
+    store: dict | None = None,
+    now_ms: float | None = None,
+) -> list[str]:
+    """Return up to *n* tool names sorted descending by windowed error RATE.
+
+    Ties broken alphabetically ascending.  Tools with no calls in the window
+    are excluded.  Returns [] when n<=0, store empty, or no recent calls.
+    """
+    if store is None:
+        store = _WINDOWED_TELEMETRY
+    if now_ms is None:
+        now_ms = _time.time() * 1000.0
+    if n <= 0:
+        return []
+    cutoff_ms = now_ms - window_ms
+    rates: dict[str, float] = {}
+    for tool, records in store.items():
+        recent = [(ok,) for ts, _lat, ok in records if ts >= cutoff_ms]
+        if not recent:
+            continue
+        cnt = len(recent)
+        errors = sum(1 for (ok,) in recent if not ok)
+        rates[tool] = float(errors) / cnt
+    if not rates:
+        return []
+    # Sort: descending rate, then ascending name for ties
+    ranked = sorted(rates.keys(), key=lambda t: (-rates[t], t))
+    return ranked[:n]
