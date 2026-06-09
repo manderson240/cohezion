@@ -104,6 +104,29 @@ def record_tool_call_windowed(
     _WINDOWED_TELEMETRY[tool_name].append((ts_ms, latency_ms, success))
 
 
+def record_tool_call_all(
+    tool_name: str,
+    latency_ms: float,
+    success: bool,
+    *,
+    ts_ms: float | None = None,
+) -> None:
+    """Record one tool call in BOTH the cumulative and windowed stores.  Item 909.
+
+    Convenience wrapper that calls ``record_tool_call`` and
+    ``record_tool_call_windowed`` together, eliminating dual-call boilerplate
+    for callers that want both stores populated.
+
+    Args:
+        tool_name:  The MCP tool name.
+        latency_ms: End-to-end latency in milliseconds.
+        success:    True if the call succeeded; False on error.
+        ts_ms:      Timestamp in ms for the windowed record.  Defaults to now.
+    """
+    record_tool_call(tool_name, latency_ms, success)
+    record_tool_call_windowed(tool_name, latency_ms, success, ts_ms=ts_ms)
+
+
 def get_windowed_summary(
     store: dict[str, list],
     window_ms: float,
