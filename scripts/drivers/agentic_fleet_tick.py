@@ -11,9 +11,19 @@ AMD silicon (NPU / iGPU / CPU) using ALREADY-LOADED lemonade models — $0 and O
     aware: discovers residents and fails soft when a tier is down (e.g. CPU :13309
     with nothing loaded is honestly skipped, not faked).
 
+Two modes (the swarm flag is the roadmap's final "CLI ergonomics" nicety — the
+capability already exists in ``swarm_tick``):
+
+  - FLEET (default): distribute a prompt across resident silicon tiers.
+  - SWARM (``--swarm``/``--intent``): plan + execute a skill/specialist team for an
+    intent via ``swarm_tick`` — the same Chronos-gated, HITL-visible, $0 local run,
+    but routed through ``plan_team`` so any of the 225 skills / 7 specialists relevant
+    to the intent are composed in.
+
 Usage:
     uv run python scripts/drivers/agentic_fleet_tick.py
     uv run python scripts/drivers/agentic_fleet_tick.py "your task prompt"
+    uv run python scripts/drivers/agentic_fleet_tick.py --swarm "audit SurrealDB schema + bitemporal writes"
 """
 
 from __future__ import annotations
@@ -24,6 +34,9 @@ import time
 import urllib.request
 
 from cohezion.compound.agentic_loop import agentic_tick
+
+
+_DEFAULT_PROMPT = "federate the canonical data products across domains"
 
 
 # Router-centric topology: NPU is its own daemon; the iGPU + full catalog are served
@@ -116,12 +129,34 @@ def fleet_improvement(prompt: str):
     return _work
 
 
+def parse_mode(argv: list[str]) -> tuple[str, str]:
+    """Parse the driver's argv tail (``sys.argv[1:]``) into ``(mode, prompt)``. Pure — the
+    testable core of the CLI.
+
+    ``--swarm <intent>`` (or its alias ``--intent <intent>``) selects the SWARM path: the
+    following token is the intent. A bare ``--swarm`` with no following token falls back to the
+    default prompt but STAYS in swarm mode (never an IndexError). Anything else is the FLEET
+    path with the first positional as the prompt (or the default) — preserving the original
+    ``sys.argv[1] or default`` behavior exactly.
+    """
+    args = list(argv)
+    for flag in ("--swarm", "--intent"):
+        if flag in args:
+            rest = args[args.index(flag) + 1 :]
+            return "swarm", (rest[0] if rest else _DEFAULT_PROMPT)
+    return "fleet", (args[0] if args else _DEFAULT_PROMPT)
+
+
 def main() -> int:
-    prompt = (
-        sys.argv[1] if len(sys.argv) > 1 else "federate the canonical data products across domains"
-    )
-    result = agentic_tick(improvement_fn=fleet_improvement(prompt), context_fn=lambda: [])
-    print("=== AGENTIC FLEET TICK (local silicon, already-loaded models, $0) ===")
+    mode, prompt = parse_mode(sys.argv[1:])
+    if mode == "swarm":
+        from cohezion.compound.swarm_tick import swarm_tick
+
+        result = swarm_tick(prompt)
+        print("=== AGENTIC SWARM TICK (skill/specialist swarm, Chronos-gated, $0) ===")
+    else:
+        result = agentic_tick(improvement_fn=fleet_improvement(prompt), context_fn=lambda: [])
+        print("=== AGENTIC FLEET TICK (local silicon, already-loaded models, $0) ===")
     chronos = "headroom OK" if result.ran else f"DEFERRED {result.deferred_jobs}"
     print(f"  prompt: {prompt!r}")
     print(f"  ran: {result.ran} | Chronos: {chronos} | knowledge_owner: {result.knowledge_owner}")

@@ -61,8 +61,11 @@ these — it inherits them.
 - The 225-skill registry reachable by the swarm; a tick targets skills by intent — ✅
   (already via `CapabilityRegistry.find`, verified + locked by `test_skill_reach.py`).
 - A driver usable with a swarm/skill intent producing a Chronos-gated, HITL-visible, $0 local
-  run — ✅ (`swarm_tick(intent)`; convenience CLI flag on `agentic_fleet_tick` is the only
-  remaining nicety, not a missing capability).
+  run — ✅ (`swarm_tick(intent)`, now exposed on the CLI via
+  `agentic_fleet_tick.py --swarm "<intent>"` / `--intent` — landed 2026-06-09; the convenience
+  flag that was the last remaining nicety. Pure `parse_mode` routes swarm-vs-fleet; the prior
+  positional→fleet behavior is preserved exactly; swarm import stays lazy. 5 discriminating
+  arg-parse tests).
 
 **Net (2026-06-07):** "extend to all skills and specialists" is functionally ACHIEVED — both
 are reachable now, governed (Chronos), local ($0), and tested. What remained turned out to be

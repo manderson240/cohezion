@@ -11,6 +11,7 @@ _spec = importlib.util.spec_from_file_location("agentic_fleet_tick", _DRIVER)
 _mod = importlib.util.module_from_spec(_spec)
 _spec.loader.exec_module(_mod)
 pick_model = _mod.pick_model
+parse_mode = _mod.parse_mode
 
 
 class TestPickModel:
@@ -33,3 +34,33 @@ class TestPickModel:
 
     def test_fallback_to_any_resident_when_no_pref_match(self):
         assert pick_model(["Qwen3-8B-GGUF"], ["Granite"]) == "Qwen3-8B-GGUF"
+
+
+class TestParseMode:
+    """The CLI flag that routes to swarm_tick (roadmap's final ergonomics nicety)."""
+
+    def test_swarm_flag_selects_swarm_mode_with_next_arg_as_intent(self):
+        # DISCRIMINATING: --swarm must (a) switch mode to 'swarm' AND (b) take the FOLLOWING
+        # token as the intent. An impl that ignores the flag returns ('fleet', '--swarm');
+        # one that returns the flag token itself returns ('swarm', '--swarm'). Both fail this.
+        assert parse_mode(["--swarm", "audit SurrealDB schema"]) == (
+            "swarm",
+            "audit SurrealDB schema",
+        )
+
+    def test_intent_alias_also_selects_swarm(self):
+        assert parse_mode(["--intent", "wire data products"]) == ("swarm", "wire data products")
+
+    def test_bare_positional_is_fleet_mode(self):
+        # Preserves the original behavior: a positional prompt → fleet tier-distribution.
+        assert parse_mode(["distribute this task"]) == ("fleet", "distribute this task")
+
+    def test_no_args_defaults_to_fleet_with_default_prompt(self):
+        mode, prompt = parse_mode([])
+        assert mode == "fleet" and prompt == _mod._DEFAULT_PROMPT
+
+    def test_bare_swarm_flag_falls_back_without_crashing(self):
+        # A --swarm with no following intent must NOT IndexError; it stays in swarm mode and
+        # uses the default prompt. (Kills a naive `rest[0]` impl.)
+        mode, prompt = parse_mode(["--swarm"])
+        assert mode == "swarm" and prompt == _mod._DEFAULT_PROMPT
