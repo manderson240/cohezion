@@ -7583,3 +7583,21 @@ def get_windowed_fleet_latency_recent_trend_by_tool(
     if var_t == 0.0:
         return 0.0
     return float(cov_tl / var_t)
+
+
+def get_windowed_fleet_latency_peak_ms_by_tool(
+    window_ms: float,
+    tool_name: str,
+    *,
+    store=None,
+    now_ms=None,
+) -> float:
+    """Per-tool peak (maximum) latency within the window. Item 1192.
+
+    Thin alias for get_windowed_fleet_latency_max_ms_by_tool exposed under
+    the 'peak' name used by dashboard consumers.
+    Returns 0.0 for unknown/empty tool or all calls outside window.
+    """
+    return get_windowed_fleet_latency_max_ms_by_tool(
+        window_ms, tool_name, store=store, now_ms=now_ms
+    )
