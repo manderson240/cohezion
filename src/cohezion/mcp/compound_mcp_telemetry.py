@@ -2438,3 +2438,27 @@ def get_windowed_tool_latency_iqr_ms(
     p75 = get_windowed_latency_percentile(tool_name, 75.0, window_ms, store=store, now_ms=now_ms)
     p25 = get_windowed_latency_percentile(tool_name, 25.0, window_ms, store=store, now_ms=now_ms)
     return float(p75 - p25)
+
+
+def get_windowed_global_latency_iqr_ms(
+    window_ms: float,
+    *,
+    store: dict | None = None,
+    now_ms: float | None = None,
+) -> float:
+    """Return fleet-wide IQR (p75 - p25) of pooled latency in the window.  Item 1000.
+
+    Fleet-wide dual of get_windowed_tool_latency_iqr_ms (item 999).
+    Pools ALL recent latencies from all tools before computing the IQR —
+    NOT an average of per-tool IQR values.
+
+    Computes: get_windowed_global_latency_percentile(75, ...) - get_windowed_global_latency_percentile(25, ...)
+
+    Returns 0.0 when no recent calls exist.
+
+    PRIMARY DISC.: tool_a [10,50] + tool_b [20,30] -> pooled [10,20,30,50]
+      p75=35.0, p25=17.5, IQR=17.5 (kills avg-of-per-tool-IQR=12.5).
+    """
+    p75 = get_windowed_global_latency_percentile(75.0, window_ms, store=store, now_ms=now_ms)
+    p25 = get_windowed_global_latency_percentile(25.0, window_ms, store=store, now_ms=now_ms)
+    return float(p75 - p25)
