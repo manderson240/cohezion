@@ -1802,3 +1802,24 @@ def get_windowed_global_latency_percentile(
         return 0.0
     all_lats.sort()
     return _percentile(all_lats, percentile)
+
+
+def get_windowed_tool_success_count(
+    tool_name: str,
+    window_ms: float,
+    *,
+    store: dict | None = None,
+    now_ms: float | None = None,
+) -> int:
+    """Return the count of *successful* calls (ok=True) in the window for *tool_name*.
+
+    Returns 0 when the tool is absent or has no calls in the window.
+    Always returns int (not float).
+    """
+    if store is None:
+        store = _WINDOWED_TELEMETRY
+    if now_ms is None:
+        now_ms = _time.time() * 1000.0
+    cutoff_ms = now_ms - window_ms
+    records = store.get(tool_name, [])
+    return sum(1 for ts, _lat, ok in records if ts >= cutoff_ms and ok)
