@@ -4073,6 +4073,30 @@ def get_windowed_tool_latency_z_score_max(
     return float((max(lats) - mean) / std)
 
 
+def get_windowed_tool_latency_tail_ratio_ms(
+    tool_name: str,
+    window_ms: float,
+    *,
+    store: dict | None = None,
+    now_ms: float | None = None,
+) -> float:
+    """Per-tool tail ratio = p99 / p50.  Item 1066.
+
+    Thin composition: p99 / p50.
+    Returns 0.0 for empty window or p50 == 0.
+    Injectable store.  Pure function.
+
+    PRIMARY DISC.: lats [10,20,30,40,200] n=5
+      p50=30.0, p99=193.6, tail_ratio=193.6/30≈6.4533
+      (kills p99/mean≈3.227; kills p95/p50=5.6; correct p99/p50≈6.4533).
+    """
+    p50 = get_windowed_latency_percentile(tool_name, 50.0, window_ms, store=store, now_ms=now_ms)
+    if p50 == 0.0:
+        return 0.0
+    p99 = get_windowed_latency_percentile(tool_name, 99.0, window_ms, store=store, now_ms=now_ms)
+    return float(p99 / p50)
+
+
 def get_windowed_tool_latency_percentile_at_budget_ms(
     tool_name: str,
     window_ms: float,
