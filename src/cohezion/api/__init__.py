@@ -1595,15 +1595,23 @@ class CompoundHealthResponse(BaseModel):
     model_usage: dict[str, int] = {}
     top_refined_skills: list[dict[str, Any]] = []
     compound_score_trend: list[dict[str, Any]] = []
+    # Item 888: per-tool MCP call telemetry matching Claude connector directory format
+    mcp_telemetry: dict = {}
 
 
 @app.get("/compound/health", response_model=CompoundHealthResponse)
 async def compound_health():
-    """Return compound system health from the metrics collector."""
+    """Return compound system health from the metrics collector.
+
+    Includes mcp_telemetry (item 888) -- per-tool call/error/latency stats matching
+    the Claude connector directory observability format.
+    """
     from cohezion.compound.metrics import get_collector
+    from cohezion.mcp.compound_mcp_telemetry import get_tool_telemetry_summary
 
     collector = get_collector()
-    return CompoundHealthResponse(**collector.to_health_dict())
+    health_data = {**collector.to_health_dict(), "mcp_telemetry": get_tool_telemetry_summary()}
+    return CompoundHealthResponse(**health_data)
 
 
 class CompoundHistoryResponse(BaseModel):
