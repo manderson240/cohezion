@@ -4130,3 +4130,43 @@ def get_windowed_global_latency_bimodality_coefficient(
     skewness = sum((x - mean) ** 3 for x in lats) / (n * std ** 3)
     kurtosis_raw = sum((x - mean) ** 4 for x in lats) / (n * std ** 4)
     return float((skewness ** 2 + 1.0) / kurtosis_raw)
+
+
+def get_windowed_global_latency_gini_coefficient(
+    window_ms: float,
+    *,
+    store: dict | None = None,
+    now_ms: float | None = None,
+) -> float:
+    """Fleet-wide Gini coefficient (pooled).  Item 1059.
+
+    Pools ALL tool latencies then applies the Gini formula on sorted values.
+    G = (2*sum(i*x_i) - (n+1)*sum(x_i)) / (n*sum(x_i)), x_i sorted 1-indexed.
+    Returns 0.0 for n_pooled < 2 or sum == 0.
+    Injectable store.  Pure function.  Fleet dual of per-tool item 1058.
+
+    PRIMARY DISC.: tool_a=[10,10] + tool_b=[50,50]
+      pooled sorted=[10,10,50,50] n=4, sum=120, ranked_sum=380
+      G=(2*380-5*120)/(4*120)=160/480=1/3≈0.3333
+      (kills per-tool Gini avg: each all-equal -> G=0, avg=0.0 != 1/3;
+       correct pooled Gini=1/3).
+    """
+    if store is None:
+        store = _WINDOWED_TELEMETRY
+    if now_ms is None:
+        now_ms = _time.time() * 1000.0
+    cutoff_ms = now_ms - window_ms
+    global_lats: list[float] = []
+    for records in store.values():
+        for ts, lat, _ok in records:
+            if ts >= cutoff_ms:
+                global_lats.append(lat)
+    global_lats.sort()
+    n_g = len(global_lats)
+    if n_g < 2:
+        return 0.0
+    total_g = sum(global_lats)
+    if total_g == 0.0:
+        return 0.0
+    ranked_sum_g = sum((i + 1) * x for i, x in enumerate(global_lats))
+    return float((2 * ranked_sum_g - (n_g + 1) * total_g) / (n_g * total_g))
