@@ -10,9 +10,11 @@ Windowed store (_WINDOWED_TELEMETRY) for time-window metrics (spike detection).
 Pure in-memory stores (no DB write).  Thread-safe via GIL for CPython.
 Reset store.clear() for test isolation.
 """
+
 from __future__ import annotations
 
 import time as _time
+
 
 _TELEMETRY: dict[str, dict] = {}
 # Windowed store: {tool_name: [(ts_ms, latency_ms, success), ...]}
@@ -171,9 +173,7 @@ def detect_latency_spike(
 
     result: dict[str, bool] = {}
     for tool_name, records in store.items():
-        recent_lats = sorted(
-            lat for ts, lat, _ok in records if ts >= recent_cutoff
-        )
+        recent_lats = sorted(lat for ts, lat, _ok in records if ts >= recent_cutoff)
         baseline_lats = sorted(
             lat for ts, lat, _ok in records if baseline_cutoff <= ts < recent_cutoff
         )
@@ -185,4 +185,50 @@ def detect_latency_spike(
             continue  # can't compute ratio; exclude tool
         ratio = recent_p95 / baseline_p95
         result[tool_name] = ratio > spike_ratio_threshold
+    return result
+
+
+def detect_error_spike(
+    store: dict[str, list],
+    window_ms: float,
+    baseline_window_ms: float,
+    *,
+    now_ms: float | None = None,
+    delta_threshold: float = 0.2,
+) -> dict[str, bool]:
+    """Per-tool error-rate spike flag via absolute rate delta.  Item 904.
+
+    Compares the error rate in the recent ``window_ms`` milliseconds against the
+    error rate in the preceding ``baseline_window_ms`` milliseconds.  A spike is
+    declared when ``recent_error_rate - baseline_error_rate > delta_threshold``.
+
+    Recent window:   [now - window_ms, now]
+    Baseline window: [now - window_ms - baseline_window_ms, now - window_ms)
+
+    Tools with no recent OR no baseline calls are excluded from the result.
+
+    Args:
+        store:           The _WINDOWED_TELEMETRY dict (injectable for tests).
+        window_ms:       Recent look-back window in ms.
+        baseline_window_ms: Older baseline window length in ms.
+        now_ms:          Current time in ms (defaults to time.time()*1000).
+        delta_threshold: Absolute error-rate increase above which spike fires (default 0.2).
+
+    Returns:
+        {tool_name: bool} — True = spike detected.  Empty dict when no data.
+    """
+    if now_ms is None:
+        now_ms = _time.time() * 1000.0
+    recent_cutoff = now_ms - window_ms
+    baseline_cutoff = recent_cutoff - baseline_window_ms
+
+    result: dict[str, bool] = {}
+    for tool_name, records in store.items():
+        recent = [(ok,) for ts, _lat, ok in records if ts >= recent_cutoff]
+        baseline = [(ok,) for ts, _lat, ok in records if baseline_cutoff <= ts < recent_cutoff]
+        if not recent or not baseline:
+            continue
+        recent_err = sum(1 for (ok,) in recent if not ok) / len(recent)
+        baseline_err = sum(1 for (ok,) in baseline if not ok) / len(baseline)
+        result[tool_name] = (recent_err - baseline_err) > delta_threshold
     return result
