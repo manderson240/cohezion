@@ -1175,3 +1175,90 @@ def get_windowed_global_p95_ms(
     if not pooled:
         return 0.0
     return float(_percentile(sorted(pooled), 95.0))
+
+
+def get_windowed_global_error_rate(
+    window_ms: float,
+    *,
+    store: dict[str, list] | None = None,
+    now_ms: float | None = None,
+) -> float:
+    """Return the overall error rate across all tools in the recent window.  Item 953.
+
+    Windowed complement of :func:`get_global_error_rate` — queries
+    ``_WINDOWED_TELEMETRY`` rather than the cumulative store.  Computes::
+
+        total_windowed_errors / total_windowed_calls
+
+    across **every** tool, weighting by call count.  Averaging per-tool error
+    rates would incorrectly up-weight low-traffic tools.
+
+    Args:
+        window_ms: Look-back window in milliseconds.
+        store:     Windowed telemetry store (injectable; defaults to
+                   ``_WINDOWED_TELEMETRY``).
+        now_ms:    Current time in ms (defaults to ``time.time() * 1000``).
+
+    Returns:
+        Error rate (0.0–1.0).  0.0 when no recent calls exist.
+    """
+    if store is None:
+        store = _WINDOWED_TELEMETRY
+    if now_ms is None:
+        now_ms = _time.time() * 1000.0
+    cutoff_ms = now_ms - window_ms
+    total_calls = 0
+    total_errors = 0
+    for records in store.values():
+        for ts, _lat, ok in records:
+            if ts >= cutoff_ms:
+                total_calls += 1
+                if not ok:
+                    total_errors += 1
+    if total_calls == 0:
+        return 0.0
+    return float(total_errors) / total_calls
+
+
+def get_windowed_global_error_rate(
+    window_ms: float,
+    *,
+    store: dict[str, list] | None = None,
+    now_ms: float | None = None,
+) -> float:
+    """Return the overall error rate across all tools in the recent window.  Item 953.
+
+    Windowed complement of :func:`get_global_error_rate` — queries
+    ``_WINDOWED_TELEMETRY`` rather than the cumulative store.  Computes
+    ``total_windowed_errors / total_windowed_calls`` (pooled / weighted) —
+    NOT the average of per-tool windowed error rates.
+
+    When tool call counts differ, naive averaging over-weights low-traffic
+    tools and gives the wrong aggregate.
+
+    Args:
+        window_ms: Look-back window in milliseconds.
+        store:     Windowed telemetry store (injectable; defaults to
+                   ``_WINDOWED_TELEMETRY``).
+        now_ms:    Current time in ms (defaults to ``time.time() * 1000``).
+
+    Returns:
+        Error rate in [0.0, 1.0] over all recent records across all tools.
+        0.0 when no recent calls exist.
+    """
+    if store is None:
+        store = _WINDOWED_TELEMETRY
+    if now_ms is None:
+        now_ms = _time.time() * 1000.0
+    cutoff_ms = now_ms - window_ms
+    total_calls = 0
+    total_errors = 0
+    for records in store.values():
+        for ts, _lat, ok in records:
+            if ts >= cutoff_ms:
+                total_calls += 1
+                if not ok:
+                    total_errors += 1
+    if total_calls == 0:
+        return 0.0
+    return float(total_errors) / total_calls
