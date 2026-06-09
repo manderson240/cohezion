@@ -2105,3 +2105,63 @@ def get_windowed_global_latency_range_ms(
     if not all_lats:
         return 0.0
     return float(max(all_lats) - min(all_lats))
+
+
+def get_windowed_global_latency_stddev_ms(
+    window_ms: float,
+    *,
+    store: dict | None = None,
+    now_ms: float | None = None,
+) -> float:
+    """Return the population standard deviation of ALL windowed latencies fleet-wide.  Item 983.
+
+    Pools ALL recent call latencies from all tools in the window and computes the
+    population stddev (divides by n). Returns 0.0 when no recent calls exist or
+    when fewer than 2 calls exist (a single observation has no spread).
+
+    Fleet-wide dual of get_windowed_tool_latency_stddev_ms (item 982).
+    PRIMARY DISC.: tool_a [10] + tool_b [10,10,90] -> pooled stddev≈34.641
+    (not per-tool stddev average, not per-tool mean average).
+    """
+    if store is None:
+        store = _WINDOWED_TELEMETRY
+    if now_ms is None:
+        now_ms = _time.time() * 1000.0
+    cutoff_ms = now_ms - window_ms
+    all_lats = [
+        lat
+        for records in store.values()
+        for ts, lat, _ok in records
+        if ts >= cutoff_ms
+    ]
+    n = len(all_lats)
+    if n < 2:
+        return 0.0
+    mean = sum(all_lats) / n
+    variance = sum((lat - mean) ** 2 for lat in all_lats) / n
+    return float(variance ** 0.5)
+
+
+def get_windowed_tool_call_count(
+    tool_name: str,
+    window_ms: float,
+    *,
+    store: dict | None = None,
+    now_ms: float | None = None,
+) -> int:
+    """Return the windowed call count for *tool_name*.  Item 982.
+
+    Standalone accessor for the `call_count` field from
+    get_windowed_tool_telemetry_full() (item 961); avoids forcing callers to
+    unpack the full profile dict when only the count is needed.
+
+    Counts ALL calls (successes + failures) within the window.
+    Returns 0 for unknown tools or when no recent calls exist.
+    """
+    if store is None:
+        store = _WINDOWED_TELEMETRY
+    if now_ms is None:
+        now_ms = _time.time() * 1000.0
+    cutoff_ms = now_ms - window_ms
+    records = store.get(tool_name, [])
+    return sum(1 for ts, _lat, _ok in records if ts >= cutoff_ms)
