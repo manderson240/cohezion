@@ -458,6 +458,11 @@ def record_tool_call_all(
     record_tool_call_windowed(tool_name, latency_ms, success, ts_ms=ts_ms)
 
 
+#: Alias for :func:`record_tool_call_all` with a name that makes the
+#: windowed-store intent explicit.  Item 926.
+record_tool_call_all_windowed = record_tool_call_all
+
+
 def clear_telemetry_stores() -> None:
     """Reset both in-memory telemetry stores to empty.  Item 910.
 
