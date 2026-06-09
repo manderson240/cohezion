@@ -2497,3 +2497,39 @@ def get_windowed_tool_latency_variance_ms(
     mean = sum(recent_lats) / n
     variance = sum((lat - mean) ** 2 for lat in recent_lats) / n
     return float(variance)
+
+
+def get_windowed_global_latency_variance_ms(
+    window_ms: float,
+    *,
+    store: dict | None = None,
+    now_ms: float | None = None,
+) -> float:
+    """Return fleet-wide population variance of pooled latency in the window.  Item 1002.
+
+    Fleet-wide dual of get_windowed_tool_latency_variance_ms (item 1001).
+    Pools ALL recent latencies from all tools before computing the population variance —
+    NOT an average of per-tool variance values.
+
+    Returns 0.0 when fewer than 2 pooled calls exist in the window.
+
+    PRIMARY DISC.: tool_a [10,30] + tool_b [20,40] -> pooled [10,20,30,40]
+      mean=25.0; var=125.0 (kills avg-of-per-tool-var=100.0).
+    """
+    if store is None:
+        store = _WINDOWED_TELEMETRY
+    if now_ms is None:
+        now_ms = _time.time() * 1000.0
+    cutoff_ms = now_ms - window_ms
+    all_lats = [
+        lat
+        for records in store.values()
+        for ts, lat, _ok in records
+        if ts >= cutoff_ms
+    ]
+    n = len(all_lats)
+    if n < 2:
+        return 0.0
+    mean = sum(all_lats) / n
+    variance = sum((lat - mean) ** 2 for lat in all_lats) / n
+    return float(variance)
