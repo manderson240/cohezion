@@ -778,6 +778,24 @@ def load_telemetry_snapshot(path: _Path | str) -> dict[str, dict]:
     return data
 
 
+def get_global_p95_ms() -> float:
+    """Return the p95 latency over all tools combined (pooled).  Item 946.
+
+    Pools / concatenates all latency records from every tool in ``_TELEMETRY``
+    and computes p95 on the combined list.  This is the correct aggregate —
+    averaging per-tool p95 values would over-weight low-traffic tools.
+
+    Returns:
+        p95 latency in milliseconds; 0.0 when no calls have been recorded.
+    """
+    all_lats: list[float] = []
+    for stats in _TELEMETRY.values():
+        all_lats.extend(stats["latencies"])
+    if not all_lats:
+        return 0.0
+    return _percentile(sorted(all_lats), 95.0)
+
+
 def get_global_error_rate() -> float:
     """Return the overall error rate across all tools.  Item 945.
 
