@@ -778,6 +778,25 @@ def load_telemetry_snapshot(path: _Path | str) -> dict[str, dict]:
     return data
 
 
+def get_most_error_prone_tool() -> str | None:
+    """Return the name of the tool with the highest error rate.  Item 940.
+
+    Enables dashboards to surface the tool most at risk of reliability issues.
+    Ties in error rate are broken alphabetically (ascending) for determinism.
+
+    Returns:
+        Tool name with the highest error rate; ``None`` when store is empty.
+    """
+    if not _TELEMETRY:
+        return None
+    max_rate = max(get_tool_error_rate(t) for t in _TELEMETRY)
+    candidates = [
+        t for t in _TELEMETRY
+        if abs(get_tool_error_rate(t) - max_rate) < 1e-9
+    ]
+    return min(candidates)  # alphabetically first among rate-tied tools
+
+
 def get_slowest_tool() -> str | None:
     """Return the name of the tool with the highest p95 latency.  Item 939.
 
