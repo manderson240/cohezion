@@ -6565,3 +6565,28 @@ def get_windowed_fleet_latency_sla_violation_rate(
     return 1.0 - get_windowed_fleet_latency_sla_compliance_rate(
         window_ms, sla_ms, store=store, now_ms=now_ms
     )
+
+
+def get_windowed_fleet_success_count(
+    window_ms: float,
+    *,
+    store: dict | None = None,
+    now_ms: float | None = None,
+) -> int:
+    """Fleet-wide count of successful (success=True) calls in the window.  Item 1152.
+
+    Returns int.  0 for empty window.
+    PRIMARY DISC.: kills error_count (counts failures), total_count (counts all),
+    and always-0.  Composition: success_count + error_count == total_count.
+    """
+    if store is None:
+        store = _WINDOWED_TELEMETRY
+    if now_ms is None:
+        now_ms = _time.time() * 1000.0
+    cutoff_ms = now_ms - window_ms
+    count = 0
+    for records in store.values():
+        for ts, _lat, ok in records:
+            if ts >= cutoff_ms and ok:
+                count += 1
+    return count
