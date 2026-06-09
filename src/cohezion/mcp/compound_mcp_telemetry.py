@@ -778,6 +778,24 @@ def load_telemetry_snapshot(path: _Path | str) -> dict[str, dict]:
     return data
 
 
+def get_tool_total_latency_ms(tool_name: str) -> float:
+    """Return the sum of all recorded latencies for a tool.  Item 932.
+
+    Useful for computing average latency (total / call_count) without re-reading
+    the raw latency list separately.
+
+    Args:
+        tool_name: The MCP tool name to look up.
+
+    Returns:
+        Sum of all latency values in milliseconds; 0.0 for unknown tools.
+    """
+    stats = _TELEMETRY.get(tool_name)
+    if not stats:
+        return 0.0
+    return float(sum(stats["latencies"]))
+
+
 def get_tool_count() -> int:
     """Return the count of distinct tools ever recorded.  Item 930.
 
