@@ -6279,3 +6279,36 @@ def get_windowed_fleet_latency_mean_ms(
     if count == 0:
         return 0.0
     return float(total / count)
+
+
+def get_windowed_fleet_latency_median_ms(
+    window_ms: float,
+    *,
+    store: dict | None = None,
+    now_ms: float | None = None,
+) -> float:
+    """Fleet-wide median of pooled latencies (ms).  Item 1142.
+
+    Returns float (ms).  0.0 for empty window.
+    Even n: average of the two middle values.
+    PRIMARY DISC.: kills per-tool-avg-of-medians (non-linear when pooling
+    tools with unequal counts); also robust to outliers unlike mean.
+    """
+    if store is None:
+        store = _WINDOWED_TELEMETRY
+    if now_ms is None:
+        now_ms = _time.time() * 1000.0
+    cutoff_ms = now_ms - window_ms
+    latencies: list[float] = []
+    for records in store.values():
+        for ts, lat, _ok in records:
+            if ts >= cutoff_ms:
+                latencies.append(lat)
+    n = len(latencies)
+    if n == 0:
+        return 0.0
+    latencies.sort()
+    mid = n // 2
+    if n % 2 == 1:
+        return float(latencies[mid])
+    return float((latencies[mid - 1] + latencies[mid]) / 2)
