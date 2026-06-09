@@ -6995,3 +6995,29 @@ def get_windowed_fleet_success_count_by_tool(
         if ts >= cutoff_ms and ok:
             count += 1
     return count
+
+
+def get_windowed_fleet_error_count_by_tool(
+    window_ms: float,
+    tool_name: str,
+    *,
+    store: dict | None = None,
+    now_ms: float | None = None,
+) -> int:
+    """Per-tool count of error (success=False) calls in the window.  Item 1171.
+
+    Returns int.  0 for unknown/empty tool or all-success tool.
+    Symmetry: success_count_by_tool + error_count_by_tool == call_count_by_tool.
+    PRIMARY DISC.: error_a=2 ≠ error_b=0.
+    """
+    if store is None:
+        store = _WINDOWED_TELEMETRY
+    if now_ms is None:
+        now_ms = _time.time() * 1000.0
+    cutoff_ms = now_ms - window_ms
+    records = store.get(tool_name, [])
+    count = 0
+    for ts, _lat, ok in records:
+        if ts >= cutoff_ms and not ok:
+            count += 1
+    return count
