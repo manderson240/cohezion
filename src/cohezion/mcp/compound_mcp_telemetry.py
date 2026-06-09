@@ -3996,3 +3996,30 @@ def get_windowed_global_latency_cqv(
     if denom == 0.0:
         return 0.0
     return float((q3 - q1) / denom)
+
+
+def get_windowed_tool_latency_decile_range_ms(
+    tool_name: str,
+    window_ms: float,
+    *,
+    store: dict | None = None,
+    now_ms: float | None = None,
+) -> float:
+    """Per-tool D9-D1 inter-decile range (p90 - p10) in the window.  Item 1055.
+
+    Thin composition: p90 - p10.
+    Wider than IQR (p75-p25) but tighter than full range (max-min).
+    Returns 0.0 for unknown/empty tool (both p10 and p90 return 0.0 then).
+    Injectable store.  Pure function.
+
+    PRIMARY DISC.: lats [10,20,...,100] n=10
+      p10=19.0 (idx=0.9 -> 10+0.9*(20-10)=19.0),
+      p90=91.0 (idx=8.1 -> 90+0.1*(100-90)=91.0),
+      decile_range=91.0-19.0=72.0
+      (kills IQR=45.0 -- narrower p75-p25;
+       kills range=90 -- max-min too wide;
+       correct D9-D1=72.0).
+    """
+    p10 = get_windowed_latency_percentile(tool_name, 10.0, window_ms, store=store, now_ms=now_ms)
+    p90 = get_windowed_latency_percentile(tool_name, 90.0, window_ms, store=store, now_ms=now_ms)
+    return float(p90 - p10)
