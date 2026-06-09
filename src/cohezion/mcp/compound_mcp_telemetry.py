@@ -109,6 +109,22 @@ def get_tool_error_count(tool_name: str) -> int:
     return _TELEMETRY.get(tool_name, {}).get("error_count", 0)
 
 
+def get_tool_error_rate(tool_name: str) -> float:
+    """Return the cumulative error rate for a specific tool.  Item 913.
+
+    Args:
+        tool_name: The MCP tool name to look up.
+
+    Returns:
+        error_count / call_count for *tool_name*, as a float in [0.0, 1.0].
+        Returns 0.0 for unknown tools or tools with no calls (never raises).
+    """
+    stats = _TELEMETRY.get(tool_name)
+    if not stats or stats["call_count"] == 0:
+        return 0.0
+    return float(stats["error_count"]) / stats["call_count"]
+
+
 def record_tool_call_windowed(
     tool_name: str,
     latency_ms: float,
