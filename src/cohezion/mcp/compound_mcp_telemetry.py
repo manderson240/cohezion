@@ -6068,3 +6068,31 @@ def get_windowed_fleet_latency_iqr_ms(
     return get_windowed_fleet_latency_percentile_gap_ms(
         window_ms, 25.0, 75.0, store=store, now_ms=now_ms,
     )
+
+
+def get_windowed_fleet_latency_range_ms(
+    window_ms: float,
+    *,
+    store: dict | None = None,
+    now_ms: float | None = None,
+) -> float:
+    """Fleet-wide range (max - min) of pooled latencies (ms).  Item 1134.
+
+    Returns float (ms).  0.0 for empty window or a single call.
+    PRIMARY DISC.: kills per-tool-then-average (tools with non-overlapping value ranges):
+      tool_a range=40ms, tool_b range=30ms, per-tool-avg=35ms;
+      pooled range=80ms (global max - global min).
+    """
+    if store is None:
+        store = _WINDOWED_TELEMETRY
+    if now_ms is None:
+        now_ms = _time.time() * 1000.0
+    cutoff_ms = now_ms - window_ms
+    latencies: list[float] = []
+    for records in store.values():
+        for ts, lat, _ok in records:
+            if ts >= cutoff_ms:
+                latencies.append(lat)
+    if len(latencies) < 2:
+        return 0.0
+    return float(max(latencies) - min(latencies))
