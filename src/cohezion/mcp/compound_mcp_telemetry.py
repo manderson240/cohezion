@@ -5537,3 +5537,34 @@ def get_windowed_fleet_call_failure_count(
             if ts >= cutoff_ms and not ok:
                 total += 1
     return int(total)
+
+
+def get_windowed_fleet_call_failure_rate(
+    window_ms: float,
+    *,
+    store: dict | None = None,
+    now_ms: float | None = None,
+) -> float:
+    """Fleet-wide failure rate = failures / total_calls in window.  Item 1109.
+
+    Returns float in [0.0, 1.0].  0.0 for empty window (zero total calls).
+    Pools all records from all tools; failure_rate = count(ok==False) / count(all).
+    PRIMARY DISC.: kills per-tool-average-rate (uses pooled totals, not tool averages);
+    kills int failure_count (normalized by total).
+    """
+    if store is None:
+        store = _WINDOWED_TELEMETRY
+    if now_ms is None:
+        now_ms = _time.time() * 1000.0
+    cutoff_ms = now_ms - window_ms
+    total = 0
+    failures = 0
+    for records in store.values():
+        for ts, _lat, ok in records:
+            if ts >= cutoff_ms:
+                total += 1
+                if not ok:
+                    failures += 1
+    if total == 0:
+        return 0.0
+    return float(failures / total)
