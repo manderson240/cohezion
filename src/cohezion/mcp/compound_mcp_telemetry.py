@@ -383,6 +383,32 @@ def get_tool_windowed_call_count(
     )
 
 
+def get_tool_windowed_p50_ms(
+    tool_name: str,
+    window_ms: float,
+    *,
+    store: dict[str, list] | None = None,
+    now_ms: float | None = None,
+) -> float:
+    """Return the windowed p50 latency for a specific tool.  Item 927.
+
+    Windowed complement of ``get_tool_p50_ms`` — median latency restricted
+    to calls within the last *window_ms* ms.
+
+    Args:
+        tool_name:  The MCP tool name to look up.
+        window_ms:  Look-back window in milliseconds.
+        store:      Windowed telemetry store (injectable; defaults to
+                    ``_WINDOWED_TELEMETRY``).
+        now_ms:     Current time in ms (defaults to ``time.time() * 1000``).
+
+    Returns:
+        p50 latency in milliseconds from windowed calls.
+        0.0 for unknown tools or tools with no calls in the window.
+    """
+    return get_tool_windowed_stats(tool_name, window_ms, store=store, now_ms=now_ms)["p50_ms"]
+
+
 def get_all_tool_windowed_stats(
     window_ms: float,
     *,
@@ -753,6 +779,18 @@ def load_telemetry_snapshot(path: _Path | str) -> dict[str, dict]:
     except _json.JSONDecodeError as exc:
         raise ValueError(f"Malformed telemetry snapshot at {src}: {exc}") from exc
     return data
+
+
+def get_tool_count() -> int:
+    """Return the count of distinct tools ever recorded.  Item 930.
+
+    Counts unique tool names in ``_TELEMETRY`` — not the total number of calls.
+    Five calls across three distinct tools returns 3, not 5.
+
+    Returns:
+        Number of distinct tool names; 0 when no calls have been recorded.
+    """
+    return len(_TELEMETRY)
 
 
 def get_all_tool_names() -> list[str]:
