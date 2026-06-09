@@ -5033,3 +5033,37 @@ def get_windowed_fleet_above_threshold_fraction(
     if total == 0:
         return 0.0
     return float(above / total)
+
+
+def get_windowed_tool_call_gap_max_ms(
+    tool_name: str,
+    window_ms: float,
+    *,
+    store: dict | None = None,
+    now_ms: float | None = None,
+) -> float:
+    """Maximum gap (ms) between consecutive windowed calls.  Item 1089.
+
+    Returns 0.0 for <2 windowed calls.
+    Gaps are computed on call timestamps, not on latency values.
+    Injectable store. Pure function.
+
+    PRIMARY DISC.: ts=[t-400,t-300,t-100,t-0] -> gaps=[100,200,100] -> max=200ms
+      (kills mean_gap=133.3ms; kills last_gap=100ms; correct max=200ms).
+    """
+    if store is None:
+        store = _WINDOWED_TELEMETRY
+    if now_ms is None:
+        now_ms = _time.time() * 1000.0
+    cutoff_ms = now_ms - window_ms
+    records = store.get(tool_name, [])
+    timestamps = sorted(ts for ts, _lat, _ok in records if ts >= cutoff_ms)
+    n = len(timestamps)
+    if n < 2:
+        return 0.0
+    max_gap = 0.0
+    for i in range(1, n):
+        gap = timestamps[i] - timestamps[i - 1]
+        if gap > max_gap:
+            max_gap = gap
+    return float(max_gap)
