@@ -4454,3 +4454,33 @@ def get_windowed_global_latency_tail_ratio_ms(
         return 0.0
     p99 = get_windowed_global_latency_percentile(99.0, window_ms, store=store, now_ms=now_ms)
     return float(p99 / p50)
+
+
+def get_windowed_tools_above_p95_threshold_count(
+    window_ms: float,
+    threshold_ms: float,
+    *,
+    store: dict | None = None,
+    now_ms: float | None = None,
+) -> int:
+    """Count of tools whose windowed p95 latency exceeds threshold_ms.  Item 1074.
+
+    Operational SLO-violation headcount: iterates all tools in the store,
+    computes per-tool p95 via get_windowed_latency_percentile, counts those
+    strictly above threshold_ms. Returns 0 for empty store or no violations.
+    Injectable store. Pure function.
+
+    PRIMARY DISC.: tool_a p95=48.0, tool_b p95=480.0, tool_c p95=24.0; threshold=50ms
+      -> count=1 (only tool_b violates)
+      (kills per-call-count (different semantics); correct tool-level SLO headcount=1).
+    """
+    if store is None:
+        store = _WINDOWED_TELEMETRY
+    if now_ms is None:
+        now_ms = _time.time() * 1000.0
+    count = 0
+    for tool_name in store:
+        p95 = get_windowed_latency_percentile(tool_name, 95.0, window_ms, store=store, now_ms=now_ms)
+        if p95 > threshold_ms:
+            count += 1
+    return count
