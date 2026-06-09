@@ -137,11 +137,17 @@ def make_local_execute_fn(task_description: str = ""):
             record = get_session_token_record()
             input_tokens = _estimate_tokens(prompt)
             output_tokens = _estimate_tokens(result.text)
-            if _is_cloud_model(model):
+            is_cloud = _is_cloud_model(model)
+            if is_cloud:
                 cost = record.add_cloud(input_tokens, output_tokens, model=model)
             else:
                 record.add_local(input_tokens + output_tokens, model=model)
                 cost = result.cost_usd  # already 0.0 for local
+
+            # NOTE: the durable usage sink lives in TieredOrchestrator.run (via
+            # record_dispatch) — the universal chokepoint that ALSO covers run_batch.
+            # Logging here would double-count, so this wrapper only updates the
+            # in-memory session TokenUsageRecord (above) for live metrics.
 
             return result.text, {
                 "model": model,
@@ -149,7 +155,7 @@ def make_local_execute_fn(task_description: str = ""):
                 "latency_ms": result.latency_ms,
                 "escalation_count": result.escalation_count,
                 "cost_usd": cost,
-                "local_silicon": not _is_cloud_model(model),
+                "local_silicon": not is_cloud,
                 "tokens_input": input_tokens,
                 "tokens_output": output_tokens,
                 "session_local_tokens": record.local_tokens,

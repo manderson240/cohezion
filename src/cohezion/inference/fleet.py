@@ -722,11 +722,31 @@ async def extend_claude(
             quality_threshold=quality_threshold,
         )
         if decision != "cloud" and local_result is not None:
-            logger.info("extend_claude: quota=%s → staying local (no cloud escalation)", claude_quota)
+            logger.info(
+                "extend_claude: quota=%s → staying local (no cloud escalation)", claude_quota
+            )
             return local_result
 
     result = await route(prompt, task=Task.REASONING, prefer=claude_model, timeout=timeout)
     result.escalated_to_cloud = True
+    # Durable usage sink: this is the PAID escalation — the budget-critical event the
+    # monitor exists to watch. extend_claude is a separate dispatch root from the
+    # orchestrator (which logs in run()), so logging here does not double-count. The
+    # free local attempts above are not separately metered (they cost $0). Fail-soft.
+    try:
+        from cohezion.inference.usage_log import record_dispatch
+
+        record_dispatch(
+            prompt=prompt,
+            text=result.text,
+            model=result.model or claude_model,
+            cost_usd=result.cost_usd,
+            latency_ms=result.latency_ms,
+            lane=result.lane or None,
+            source="extend_claude",
+        )
+    except Exception:
+        pass
     return result
 
 
@@ -753,9 +773,7 @@ def _live_claude_quota(
 
         records = load_usage_records(projects_dir)
         summary = summarize_usage(records, now_ts=time.time(), windows={"week": window_secs})
-        return usage_guard(
-            summary, window="week", soft_budget=soft_budget, hard_budget=hard_budget
-        )
+        return usage_guard(summary, window="week", soft_budget=soft_budget, hard_budget=hard_budget)
     except Exception:
         return "proceed"  # probe failure is advisory — never block work
 

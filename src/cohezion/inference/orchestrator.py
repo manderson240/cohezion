@@ -160,6 +160,29 @@ class TieredOrchestrator:
         sub = await target.run(prompt, budget_usd=remaining_budget)
         return sub, sub.cost_usd, sub.ttft_ms
 
+    def _log_dispatch(self, prompt: str, result: OrchestrationResult) -> OrchestrationResult:
+        """Persist ONE durable usage record per logical dispatch, then return ``result``.
+
+        This is the universal orchestrator chokepoint: every tier (local Runnable + cloud
+        ``route()``) and every ``run_batch`` item flows through ``run()``, so logging here
+        — with the dispatch's TOTAL accumulated cost — captures the whole orchestrator
+        family exactly once. Fail-soft: a sink error never breaks the dispatch path.
+        """
+        try:
+            from cohezion.inference.usage_log import record_dispatch
+
+            record_dispatch(
+                prompt=prompt,
+                text=result.text,
+                model=result.final_model,
+                cost_usd=result.cost_usd,
+                latency_ms=result.latency_ms,
+                source="orchestrator",
+            )
+        except Exception:
+            pass
+        return result
+
     async def run(self, prompt: str, *, budget_usd: float | None = None) -> OrchestrationResult:
         """Execute tier 0, escalate while gates fail, honor budget.
 
@@ -530,33 +553,39 @@ class TieredOrchestrator:
                         )
                     except Exception:
                         pass
-                return OrchestrationResult(
-                    text=view.text,
-                    primary_model=self.tiers[0][0]
-                    if isinstance(self.tiers[0][0], str)
-                    else type(self.tiers[0][0]).__name__,
-                    final_model=last_model or model_name,
-                    escalation_count=idx,
-                    tier_path=path,
-                    cost_usd=accumulated_cost,
-                    latency_ms=(time.perf_counter() - start) * 1000,
-                    ttft_ms=path[0].ttft_ms if path else None,
-                    error=None,
+                return self._log_dispatch(
+                    prompt,
+                    OrchestrationResult(
+                        text=view.text,
+                        primary_model=self.tiers[0][0]
+                        if isinstance(self.tiers[0][0], str)
+                        else type(self.tiers[0][0]).__name__,
+                        final_model=last_model or model_name,
+                        escalation_count=idx,
+                        tier_path=path,
+                        cost_usd=accumulated_cost,
+                        latency_ms=(time.perf_counter() - start) * 1000,
+                        ttft_ms=path[0].ttft_ms if path else None,
+                        error=None,
+                    ),
                 )
 
         # O7: exhausted — every tier failed. Return structured error, don't raise.
-        return OrchestrationResult(
-            text=last_text,
-            primary_model=self.tiers[0][0]
-            if isinstance(self.tiers[0][0], str)
-            else type(self.tiers[0][0]).__name__,
-            final_model=last_model,
-            escalation_count=len([p for p in path if not p.passed]),
-            tier_path=path,
-            cost_usd=accumulated_cost,
-            latency_ms=(time.perf_counter() - start) * 1000,
-            ttft_ms=path[0].ttft_ms if path else None,
-            error="all tiers exhausted",
+        return self._log_dispatch(
+            prompt,
+            OrchestrationResult(
+                text=last_text,
+                primary_model=self.tiers[0][0]
+                if isinstance(self.tiers[0][0], str)
+                else type(self.tiers[0][0]).__name__,
+                final_model=last_model,
+                escalation_count=len([p for p in path if not p.passed]),
+                tier_path=path,
+                cost_usd=accumulated_cost,
+                latency_ms=(time.perf_counter() - start) * 1000,
+                ttft_ms=path[0].ttft_ms if path else None,
+                error="all tiers exhausted",
+            ),
         )
 
     async def run_batch(
