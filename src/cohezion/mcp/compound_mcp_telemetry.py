@@ -7746,3 +7746,36 @@ def get_windowed_fleet_latency_ipr80_ms_by_tool(
         window_ms, tool_name, store=store, now_ms=now_ms
     )
     return float(p90 - p10)
+
+
+def get_windowed_fleet_latency_tail_ratio_by_tool(
+    window_ms: float,
+    tool_name: str,
+    *,
+    store=None,
+    now_ms=None,
+) -> float:
+    """Per-tool tail ratio (p99 / p50) within window. Item 1201.
+
+    Quantifies how much worse the 99th-percentile is vs the median.
+    A ratio of 1.0 means no tail; 10.0 means 1% tail is 10× the median.
+    Returns 0.0 for unknown/empty tool, fewer than 2 calls, or p50==0.
+    """
+    if store is None:
+        store = _WINDOWED_TELEMETRY
+    if now_ms is None:
+        now_ms = _time.time() * 1000.0
+    cutoff_ms = now_ms - window_ms
+    records = store.get(tool_name, [])
+    lats = [lat for ts, lat, _ok in records if ts >= cutoff_ms]
+    if len(lats) < 2:
+        return 0.0
+    p50 = get_windowed_fleet_latency_p50_ms_by_tool(
+        window_ms, tool_name, store=store, now_ms=now_ms
+    )
+    if p50 == 0.0:
+        return 0.0
+    p99 = get_windowed_fleet_latency_percentile_ms_by_tool(
+        window_ms, tool_name, 99, store=store, now_ms=now_ms
+    )
+    return float(p99 / p50)
