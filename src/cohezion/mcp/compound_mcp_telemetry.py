@@ -3771,3 +3771,57 @@ def get_windowed_global_latency_mad_ms(
     mid2 = n // 2
     mad = devs[mid2] if n % 2 == 1 else (devs[mid2 - 1] + devs[mid2]) / 2.0
     return float(mad)
+
+
+def get_windowed_tool_latency_entropy_bits(
+    tool_name: str,
+    window_ms: float,
+    n_bins: int = 10,
+    *,
+    store: dict | None = None,
+    now_ms: float | None = None,
+) -> float:
+    """Shannon entropy of the per-tool latency distribution in the window.  Item 1050.
+
+    Bins latency values into n_bins equal-width buckets over [min, max].
+    H = -sum(p * log2(p)) over non-empty bins (bits).
+    Returns 0.0 when fewer than 2 samples in window or all samples are equal.
+    Injectable store.  Pure function.
+
+    HIGH entropy = spread or multi-modal distribution.
+    LOW entropy = concentrated/deterministic latency profile.
+
+    PRIMARY DISC. (all-equal): [50]*8 -> H=0.0
+      (kills H=log2(8)=3.0 uniform-8 assumption; correct H=0.0).
+    PRIMARY DISC. (uniform 5-bin): [10,20,30,40,50] n_bins=5 -> H=log2(5)≈2.322
+      (kills H=0.0; kills H=log2(10)≈3.32 wrong-bins; correct H=log2(5)≈2.322).
+    """
+    import math as _math
+
+    if store is None:
+        store = _WINDOWED_TELEMETRY
+    if now_ms is None:
+        now_ms = _time.time() * 1000.0
+    cutoff_ms = now_ms - window_ms
+    records = store.get(tool_name, [])
+    lats = [lat for ts, lat, _ok in records if ts >= cutoff_ms]
+    n = len(lats)
+    if n < 2:
+        return 0.0
+    lo = min(lats)
+    hi = max(lats)
+    if hi == lo:
+        return 0.0
+    width = (hi - lo) / n_bins
+    bins: list[int] = [0] * n_bins
+    for lat in lats:
+        idx = int((lat - lo) / width)
+        if idx >= n_bins:
+            idx = n_bins - 1
+        bins[idx] += 1
+    h = 0.0
+    for b in bins:
+        if b > 0:
+            p = b / n
+            h -= p * _math.log2(p)
+    return float(h)
