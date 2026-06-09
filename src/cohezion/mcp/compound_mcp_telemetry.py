@@ -2283,6 +2283,29 @@ def get_windowed_tool_p50_ms(
     )
 
 
+def get_windowed_tool_p25_ms(
+    tool_name: str,
+    window_ms: float,
+    *,
+    store: dict | None = None,
+    now_ms: float | None = None,
+) -> float:
+    """Return the p25 (lower quartile) latency in the window for *tool_name*.  Item 1010.
+
+    Convenience shortcut for get_windowed_latency_percentile(tool_name, 25, ...).
+    Completes the named-percentile quintet alongside p50/p75/p95/p99.
+    p25 is the lower quartile; IQR = p75 - p25.
+    Returns 0.0 for unknown tools or when no recent calls exist.
+
+    PRIMARY DISC.: lats [10,20,50,100,200,300,500,1000] (n=8)
+      idx = 0.25 * (8-1) = 1.75 -> 20 + 0.75*(50-20) = 42.5
+      (kills floor=20.0; kills ceil=50.0).
+    """
+    return get_windowed_latency_percentile(
+        tool_name, 25.0, window_ms, store=store, now_ms=now_ms
+    )
+
+
 def get_windowed_tool_p75_ms(
     tool_name: str,
     window_ms: float,
