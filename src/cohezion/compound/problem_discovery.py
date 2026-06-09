@@ -16030,7 +16030,7 @@ def count_distinct_classes_per_fid(problems: list[Problem]) -> dict[str, int]:
     return {fid: len(s) for fid, s in class_sets.items()}
 
 
-def problems_per_class_per_fid(problems: list["Problem"]) -> dict[tuple[str, str], int]:
+def problems_per_class_per_fid(problems: list[Problem]) -> dict[tuple[str, str], int]:
     """Count of problems in each (class, fid) cell.  Item 832.
     Returns {(problem_class, finding_id): count} for each unique pair. Empty -> {}."""
     if not problems:
@@ -16042,7 +16042,7 @@ def problems_per_class_per_fid(problems: list["Problem"]) -> dict[tuple[str, str
     return result
 
 
-def severity_profile(problems: list["Problem"]) -> dict[str, int]:
+def severity_profile(problems: list[Problem]) -> dict[str, int]:
     """Count of each severity level across all problems.  Item 833.
     Returns {severity_string: count}; absent severities omitted. Empty -> {}."""
     if not problems:
@@ -16054,7 +16054,7 @@ def severity_profile(problems: list["Problem"]) -> dict[str, int]:
     return result
 
 
-def class_severity_profile(problems: list["Problem"]) -> dict[str, dict[str, int]]:
+def class_severity_profile(problems: list[Problem]) -> dict[str, dict[str, int]]:
     """Severity histogram per class.  Item 834.
     Returns {class: {severity_string: count}}. Absent severities omitted. Empty -> {}."""
     if not problems:
@@ -16068,7 +16068,7 @@ def class_severity_profile(problems: list["Problem"]) -> dict[str, dict[str, int
     return result
 
 
-def fid_severity_profile(problems: list["Problem"]) -> dict[str, dict[str, int]]:
+def fid_severity_profile(problems: list[Problem]) -> dict[str, dict[str, int]]:
     """Severity histogram per fid.  Item 835. Fid-axis complement of 834.
     Returns {finding_id: {severity_string: count}}. Absent severities omitted. Empty -> {}."""
     if not problems:
@@ -16079,4 +16079,58 @@ def fid_severity_profile(problems: list["Problem"]) -> dict[str, dict[str, int]]
         if fid not in result:
             result[fid] = {}
         result[fid][p.severity] = result[fid].get(p.severity, 0) + 1
+    return result
+
+
+def class_severity_rank_std_dev(problems: list[Problem]) -> dict[str, float]:
+    """Population standard deviation of severity ranks per class.  Item 836.
+    n=1 -> 0.0. Empty -> {}. Pure; no I/O."""
+    if not problems:
+        return {}
+    totals: dict[str, int] = {}
+    sq_totals: dict[str, int] = {}
+    counts: dict[str, int] = {}
+    for p in problems:
+        cls = p.problem_class
+        rank = _SEVERITY_RANK.get(p.severity, 0)
+        if cls not in counts:
+            totals[cls] = 0
+            sq_totals[cls] = 0
+            counts[cls] = 0
+        totals[cls] += rank
+        sq_totals[cls] += rank * rank
+        counts[cls] += 1
+    result: dict[str, float] = {}
+    for cls in counts:
+        n = counts[cls]
+        mean = totals[cls] / n
+        variance = sq_totals[cls] / n - mean * mean
+        result[cls] = float((variance ** 0.5) if variance > 0 else 0.0)
+    return result
+
+
+def fid_severity_rank_std_dev(problems: list[Problem]) -> dict[str, float]:
+    """Population standard deviation of severity ranks per fid.  Item 837.
+    Fid-axis complement of 836. n=1 -> 0.0. Empty -> {}. Pure; no I/O."""
+    if not problems:
+        return {}
+    totals: dict[str, int] = {}
+    sq_totals: dict[str, int] = {}
+    counts: dict[str, int] = {}
+    for p in problems:
+        fid = p.finding_id
+        rank = _SEVERITY_RANK.get(p.severity, 0)
+        if fid not in counts:
+            totals[fid] = 0
+            sq_totals[fid] = 0
+            counts[fid] = 0
+        totals[fid] += rank
+        sq_totals[fid] += rank * rank
+        counts[fid] += 1
+    result: dict[str, float] = {}
+    for fid in counts:
+        n = counts[fid]
+        mean = totals[fid] / n
+        variance = sq_totals[fid] / n - mean * mean
+        result[fid] = float((variance ** 0.5) if variance > 0 else 0.0)
     return result
