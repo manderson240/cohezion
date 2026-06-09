@@ -6049,3 +6049,22 @@ def get_windowed_fleet_latency_mad_ms(
         return 0.0
     mean = sum(latencies) / n
     return float(sum(abs(lat - mean) for lat in latencies) / n)
+
+
+def get_windowed_fleet_latency_iqr_ms(
+    window_ms: float,
+    *,
+    store: dict | None = None,
+    now_ms: float | None = None,
+) -> float:
+    """Fleet-wide interquartile range (P75 - P25) of pooled latencies (ms).  Item 1133.
+
+    Returns float (ms).  0.0 for empty window.
+    Thin composition over get_windowed_fleet_latency_percentile_ms (nearest-rank).
+    PRIMARY DISC.: kills per-tool-then-average:
+      two tools with separated value ranges → pooled IQR reflects full spread;
+      per-tool-avg only reflects within-tool spread, misses between-tool gap.
+    """
+    return get_windowed_fleet_latency_percentile_gap_ms(
+        window_ms, 25.0, 75.0, store=store, now_ms=now_ms,
+    )
