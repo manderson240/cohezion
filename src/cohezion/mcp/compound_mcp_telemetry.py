@@ -2624,3 +2624,37 @@ def get_windowed_global_slow_call_count(
         for ts, lat, _ok in records
         if ts >= cutoff_ms and lat > threshold_ms
     ))
+
+
+def get_windowed_global_slow_call_rate(
+    window_ms: float,
+    threshold_ms: float,
+    *,
+    store: dict | None = None,
+    now_ms: float | None = None,
+) -> float:
+    """Return fleet-wide SLO violation rate: slow_count / total_count.  Item 1006.
+
+    Pools ALL tools — slow_call_count_all_tools / total_call_count_all_tools.
+    Returns float in [0, 1].  0.0 when no recent calls.
+    Strictly greater than: calls with latency exactly equal to threshold_ms do NOT count.
+
+    PRIMARY DISC.: tool_a [10,200] + tool_b [300,50] threshold=100 -> 0.5
+      (2 slow [200,300] / 4 total = 0.5; kills slow_count=2 int; kills total=4 int).
+    """
+    if store is None:
+        store = _WINDOWED_TELEMETRY
+    if now_ms is None:
+        now_ms = _time.time() * 1000.0
+    cutoff_ms = now_ms - window_ms
+    all_recent = [
+        lat
+        for records in store.values()
+        for ts, lat, _ok in records
+        if ts >= cutoff_ms
+    ]
+    total = len(all_recent)
+    if total == 0:
+        return 0.0
+    slow = sum(1 for lat in all_recent if lat > threshold_ms)
+    return float(slow / total)
