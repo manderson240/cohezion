@@ -4663,3 +4663,48 @@ def get_windowed_tool_latency_slope_ms_per_ms(
     if denominator == 0.0:
         return 0.0
     return float(numerator / denominator)
+
+
+def get_windowed_global_latency_slope_ms_per_ms(
+    window_ms: float,
+    *,
+    store: dict | None = None,
+    now_ms: float | None = None,
+) -> float:
+    """Fleet-wide latency trend: OLS slope across all pooled tool latencies.  Item 1080.
+
+    Pools all (ts, lat) pairs from all tools within the window, sorts by ts,
+    then applies OLS linear regression.
+    Positive = fleet worsening; negative = fleet improving.
+    Returns 0.0 for <2 pooled samples or zero timestamp variance.
+    Injectable store. Pure function. Fleet dual of item 1079.
+
+    PRIMARY DISC.: interleaved 2-tool data -> pooled OLS=+0.057 ms/ms
+      (kills per-tool avg slope=-0.267 ms/ms — opposite sign; pooled captures
+      true fleet-wide temporal trend across interleaved timestamps).
+    """
+    if store is None:
+        store = _WINDOWED_TELEMETRY
+    if now_ms is None:
+        now_ms = _time.time() * 1000.0
+    cutoff_ms = now_ms - window_ms
+    pooled: list[tuple[float, float]] = []
+    for records in store.values():
+        for ts, lat, _ok in records:
+            if ts >= cutoff_ms:
+                pooled.append((ts, lat))
+    n = len(pooled)
+    if n < 2:
+        return 0.0
+    pooled.sort(key=lambda x: x[0])
+    # Use relative timestamps to avoid floating-point cancellation
+    ts0 = pooled[0][0]
+    ts_vals = [ts - ts0 for ts, _ in pooled]
+    lat_vals = [lat for _, lat in pooled]
+    t_mean = sum(ts_vals) / n
+    l_mean = sum(lat_vals) / n
+    numerator = sum((ts_vals[i] - t_mean) * (lat_vals[i] - l_mean) for i in range(n))
+    denominator = sum((ts_vals[i] - t_mean) ** 2 for i in range(n))
+    if denominator == 0.0:
+        return 0.0
+    return float(numerator / denominator)
