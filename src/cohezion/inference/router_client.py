@@ -22,12 +22,16 @@ Ollama protocol translation (R1): ``from_ollama_options()`` maps the flat
 ``/api/generate`` shape (prompt string + options dict) onto OpenAI
 ``/v1/chat/completions`` (messages list).  No Ollama field is silently
 dropped — unknown options are recorded in ``RouterResult.dropped_options``.
+The ``_stop_sequences`` set by ``from_ollama_options()`` are forwarded in
+every ``run()``/``chat()`` dispatch payload as the ``stop`` field.
 
 This module generalises ``RouterCpuTier`` from ``direct_tier.py`` (added
 2026-06-09 commit 711690049).  Migration callers should replace
 ``build_router_cpu_tier()`` with ``LemonadeRouterClient(..., backend="cpu")``.
 
 Validated in consolidation plan Phase 0a (2026-06-09).
+R1 wiring fix applied in Phase 1 (2026-06-09): stop sequences and
+dropped_options now correctly flow through _dispatch().
 """
 
 from __future__ import annotations
@@ -156,6 +160,7 @@ class LemonadeRouterClient:
 
         self._loaded: bool = False
         # Set by from_ollama_options(); defaults so every client has them.
+        # R1 fix: _stop_sequences IS forwarded in _dispatch(); it is NOT merely stored.
         self._stop_sequences: list[str] | None = None
         self._dropped_ollama_opts: dict[str, Any] = {}
 
@@ -236,18 +241,21 @@ class LemonadeRouterClient:
         text = ""
         error: str | None = None
 
+        # R1 fix: build payload with stop sequences if set by from_ollama_options()
+        payload: dict[str, Any] = {
+            "model": self.model_id,
+            "messages": messages,
+            "max_tokens": self.max_tokens,
+            "temperature": self.temperature,
+            "stream": False,
+        }
+        # R1: forward stop sequences into the OpenAI chat payload
+        if self._stop_sequences:
+            payload["stop"] = self._stop_sequences
+
         try:
             async with httpx.AsyncClient(timeout=self.timeout_s) as client:
-                resp = await client.post(
-                    self._chat_url,
-                    json={
-                        "model": self.model_id,
-                        "messages": messages,
-                        "max_tokens": self.max_tokens,
-                        "temperature": self.temperature,
-                        "stream": False,
-                    },
-                )
+                resp = await client.post(self._chat_url, json=payload)
                 resp.raise_for_status()
                 data = resp.json()
                 text = data["choices"][0]["message"]["content"].strip()
@@ -268,6 +276,8 @@ class LemonadeRouterClient:
             label=self.label,
             error=error,
             latency_ms=latency_ms,
+            # R1: dropped_options from from_ollama_options() appear in the result
+            dropped_options=dict(self._dropped_ollama_opts),
         )
 
     # ------------------------------------------------------------------
@@ -294,8 +304,8 @@ class LemonadeRouterClient:
         +-------------------+------------------+-----------------------------------+
         | ``temperature``   | ``temperature``  | Direct mapping                    |
         +-------------------+------------------+-----------------------------------+
-        | ``stop``          | stored; passed   | Caller can retrieve via            |
-        |                   | to chat payload  | ``client.stop_sequences``         |
+        | ``stop``          | stored; passed   | Forwarded as ``stop`` in chat     |
+        |                   | to chat payload  | payload via _stop_sequences       |
         +-------------------+------------------+-----------------------------------+
         | ``num_ctx``       | ``ctx_size``     | Mapped + clamped to N3 ceiling    |
         +-------------------+------------------+-----------------------------------+
@@ -318,7 +328,7 @@ class LemonadeRouterClient:
         max_tokens = int(opts.get("num_predict", 512))
         temperature = float(opts.get("temperature", 0.3))
         ctx_size = int(opts.get("num_ctx", _MAX_CTX_SIZE))
-        stop = opts.get("stop")  # kept for callers that need it
+        stop = opts.get("stop")  # forwarded into chat payload via _stop_sequences
 
         # Track options we cannot map — exposed in RouterResult for audit.
         _KNOWN_OLLAMA_KEYS = {"num_predict", "temperature", "num_ctx", "stop"}

@@ -24,7 +24,7 @@ class LemonadeProvider(ModelProvider):
     - OpenAI-compatible API
 
     Configuration:
-        base_url: Lemonade API URL (default: http://localhost:13307)
+        base_url: Lemonade API URL (default: http://localhost:13305 — canonical router)
         timeout: Request timeout in seconds (default: 120)
     """
 
@@ -36,7 +36,7 @@ class LemonadeProvider(ModelProvider):
         """
         super().__init__(config)
 
-        self.base_url = self.config.get("base_url", "http://localhost:13307")
+        self.base_url = self.config.get("base_url", "http://localhost:13305")
         self.timeout = self.config.get("timeout", 120)
 
         self._session: aiohttp.ClientSession | None = None
@@ -98,7 +98,9 @@ class LemonadeProvider(ModelProvider):
                         "precision": turbo_quant.get("precision", "default"),
                     }
 
-                tokens_used = usage.get("prompt_tokens", 0) + usage.get("completion_tokens", 0)
+                tokens_used = (
+                    usage.get("prompt_tokens", 0) + usage.get("completion_tokens", 0)
+                )
                 return GenerationResult(
                     response=content,
                     model=model,

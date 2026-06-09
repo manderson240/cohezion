@@ -21,7 +21,10 @@ import httpx
 
 logger = logging.getLogger(__name__)
 
-OLLAMA_HOST = "http://localhost:11434"
+LEMONADE_ROUTER_URL = "http://localhost:13305"
+# Deprecated: OLLAMA_HOST retained for any callers that import this constant.
+# Phase 4 retirement target per docs/plans/2026-06-09-lemonade-13305-consolidation.md
+OLLAMA_HOST = LEMONADE_ROUTER_URL  # allow-direct-port: deprecated constant alias — callers migrate via LEMONADE_ROUTER_URL (R2)
 METRICS_PATH = Path(__file__).parent.parent / "knowledge_graph" / "model_metrics.json"
 
 
@@ -115,21 +118,29 @@ class OllamaModelManager:
         METRICS_PATH.write_text(json.dumps(data, indent=2))
 
     async def list_models(self) -> list[dict[str, Any]]:
-        """List installed Ollama models."""
+        """List available models via lemonade router (OpenAI /v1/models)."""
         try:
-            resp = await self.http_client.get(f"{self.ollama_host}/api/tags")
+            resp = await self.http_client.get(f"{self.ollama_host}/v1/models")
             resp.raise_for_status()
             data = resp.json()
-            return data.get("models", [])
+            # OpenAI format: {"data": [{"id": "...", ...}, ...]}
+            raw = data.get("data", data.get("models", []))
+            return [{"name": m["id"]} if "id" in m else m for m in raw]
         except Exception as e:
             logger.error(f"Failed to list models: {e}")
             return []
 
     async def pull_model(self, model_name: str) -> bool:
-        """Pull a model from Ollama registry."""
+        """Pull a model — no router equivalent; uses Ollama shim if reachable.
+
+        The lemonade router does not expose a model-pull endpoint. This method
+        retains the Ollama API call for operators that still have a local Ollama
+        instance running alongside the router.
+        # allow-direct-port: no router equivalent for pull/delete model ops (R2)
+        """
         try:
             resp = await self.http_client.post(
-                f"{self.ollama_host}/api/pull",
+                "http://localhost:11434/api/pull",  # allow-direct-port: no router equivalent for pull/delete model ops (R2)
                 json={"name": model_name},
                 timeout=600.0,  # Long timeout for large models
             )
@@ -139,10 +150,13 @@ class OllamaModelManager:
             return False
 
     async def delete_model(self, model_name: str) -> bool:
-        """Delete a model to free storage."""
+        """Delete a model — no router equivalent; uses Ollama shim if reachable.
+
+        # allow-direct-port: no router equivalent for pull/delete model ops (R2)
+        """
         try:
             resp = await self.http_client.delete(
-                f"{self.ollama_host}/api/delete",
+                "http://localhost:11434/api/delete",  # allow-direct-port: no router equivalent for pull/delete model ops (R2)
                 json={"name": model_name},
             )
             return resp.status_code == 200
@@ -170,14 +184,17 @@ class OllamaModelManager:
 
         start = time.perf_counter()
         try:
-            resp = await self.http_client.post(
-                f"{self.ollama_host}/api/generate",
-                json={"model": model_name, "prompt": safe_prompt, "stream": False},
-                timeout=60.0,
+            from cohezion.inference.router_client import LemonadeRouterClient
+
+            client = LemonadeRouterClient.from_ollama_options(
+                self.ollama_host,
+                model_id=model_name,
+                options={"num_predict": 100},
             )
+            result = await client.run(safe_prompt)
             latency_ms = (time.perf_counter() - start) * 1000
 
-            success = resp.status_code == 200
+            success = not bool(result.error)
             quality = 0.7 if success else 0.0  # Basic quality estimate
 
             metrics.update(latency_ms, success, quality)

@@ -1,4 +1,4 @@
-# class attrs treated as immutable config; never mutated per-instance
+# ruff: noqa: RUF012  # class attrs treated as immutable config; never mutated per-instance
 """3-tier model pool lifecycle manager for Ollama models.
 
 Manages hot/warm/cold model rotation, health checks, and automatic
@@ -57,7 +57,7 @@ class ModelPoolManager:
         self,
         config: TierConfig | None = None,
         ollama_host: str = OLLAMA_HOST,
-        lemonade_port: int = 13307,
+        lemonade_port: int = 13307,  # allow-direct-port: lemond subprocess spawn port forwarded to LemonadeManager — not a routing target (R2)
     ) -> None:
         self._config = config or TierConfig()
         self._ollama_host = ollama_host

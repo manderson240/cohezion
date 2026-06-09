@@ -10,7 +10,7 @@ Usage::
 
     # Single request (cached)
     client = TokenEfficientClient(
-        ollama_base_url="http://localhost:11434",
+        ollama_base_url="http://localhost:13305",
         router=AdaptiveRouterAdapter(selector),
         config=CohezionConfig()
     )
@@ -56,7 +56,7 @@ class ResilientOllamaClient:
 
     def __init__(
         self,
-        base_url: str = "http://localhost:11434",
+        base_url: str = "http://localhost:13305",
         timeout: float = 1200.0,
         max_retries: int = 3,
     ):
@@ -96,32 +96,32 @@ class ResilientOllamaClient:
                     messages.append({"role": "system", "content": system})
                 messages.append({"role": "user", "content": prompt})
 
-                # Normalize base URL: strip trailing slashes, /api, or /v1 to prevent doubling
+                # Normalize base URL: strip trailing slashes to prevent doubling
                 clean_base = self.base_url.rstrip("/")
                 if clean_base.endswith("/api"):
                     clean_base = clean_base[:-4]
                 if clean_base.endswith("/v1"):
                     clean_base = clean_base[:-3]
 
-                # Using /api/chat for better compatibility with message structures
+                # Use OpenAI /v1/chat/completions (lemonade router + Ollama compatible)
                 num_predict = kwargs.get("max_tokens", 2048)
                 async with httpx.AsyncClient(timeout=self.timeout) as client:
                     response = await client.post(
-                        f"{clean_base}/api/chat",
+                        f"{clean_base}/v1/chat/completions",
                         json={
                             "model": model,
                             "messages": messages,
+                            "max_tokens": num_predict,
                             "stream": False,
-                            "options": {
-                                "num_predict": num_predict,
-                            },
                         },
                     )
                 response.raise_for_status()
 
                 data = response.json()
-                content = data.get("message", {}).get("content", "")
-                tokens = data.get("eval_count", 0) + data.get("prompt_eval_count", 0)
+                # OpenAI chat completions format
+                content = data.get("choices", [{}])[0].get("message", {}).get("content", "")
+                usage = data.get("usage", {})
+                tokens = usage.get("prompt_tokens", 0) + usage.get("completion_tokens", 0)
 
                 return content, tokens
 
@@ -171,7 +171,7 @@ class TokenEfficientClient:
 
     def __init__(
         self,
-        ollama_base_url: str = "http://localhost:11434",
+        ollama_base_url: str = "http://localhost:13305",
         router: Any = None,
         config: CohezionConfig | None = None,
         use_persistent_cache: bool = True,

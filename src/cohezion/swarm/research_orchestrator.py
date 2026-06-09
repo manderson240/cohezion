@@ -466,13 +466,13 @@ class SynthesisEngine:
         findings: list[ResearchFinding],
     ) -> CompoundSynthesis | None:
         """Create synthesis from related findings."""
-        sources = {f.source for f in findings}
+        sources = set(f.source for f in findings)
 
         if len(sources) < 2:
             return None  # Need cross-source insight
 
         # Determine insight type
-        categories = {f.category for f in findings}
+        categories = set(f.category for f in findings)
         if "paper" in categories and "repo" in categories:
             insight_type = "implementation"
         elif "model" in categories:
@@ -504,7 +504,7 @@ class SynthesisEngine:
     ) -> str:
         """Generate human-readable description."""
         titles = [f.title for f in findings[:3]]
-        sources = {f.source for f in findings}
+        sources = set(f.source for f in findings)
 
         return (
             f"Cross-source insight on '{tag}': Found {len(findings)} relevant items "

@@ -9,7 +9,7 @@ class TestResilientOllamaClient:
     def test_init_defaults(self):
         client = ResilientOllamaClient()
         assert client.model == "phi3:mini"
-        assert client.base_url == "http://localhost:11434"
+        assert client.base_url == "http://localhost:13305"  # Phase 1: migrated to lemonade router
         assert client.max_retries == 2
         assert client.circuit is not None
 

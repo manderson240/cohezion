@@ -57,7 +57,7 @@ class BaseScout(ABC):
     def __init__(
         self,
         model: str,
-        ollama_url: str = "http://localhost:11434",
+        ollama_url: str = "http://localhost:13305",
         cooldown: float = 2.0,
     ) -> None:
         self.model = model
@@ -145,18 +145,19 @@ class BaseScout(ABC):
 
                 async with httpx.AsyncClient(timeout=180.0) as client:
                     response = await client.post(
-                        f"{self.ollama_url}/api/generate",
+                        f"{self.ollama_url}/v1/chat/completions",
                         json={
                             "model": self.model,
-                            "prompt": prompt,
+                            "messages": [{"role": "user", "content": prompt}],
+                            "max_tokens": 2048,
                             "stream": False,
-                            "format": "json",
                         },
                     )
                     response.raise_for_status()
                     breaker.record_success()
                     logger.info("LLM call successful.")
-                    return response.json().get("response", "")
+                    data = response.json()
+                    return data.get("choices", [{}])[0].get("message", {}).get("content", "")
             except Exception as e:
                 breaker.record_failure()
                 logger.error(f"LLM call failed: {e}")

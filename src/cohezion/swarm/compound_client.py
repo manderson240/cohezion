@@ -24,7 +24,7 @@ logger = logging.getLogger(__name__)
 
 def create_compound_client(
     strategy: str = "efficiency",
-    ollama_host: str = "http://localhost:11434",
+    ollama_host: str = "http://localhost:13305",
     cache_max_size: int = 512,
 ) -> Any:
     """Create a new :class:`TokenEfficientClient` wired with SmartRouter.

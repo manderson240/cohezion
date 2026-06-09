@@ -257,7 +257,7 @@ class TriuneAGI:
 
         logger.info("Bidirectional pathways established")
 
-    def recursive_step(self, context: dict[str, Any | None] | None = None) -> TriuneState:
+    def recursive_step(self, context: dict[str, Any | None] = None) -> TriuneState:
         """
         Execute one complete cycle of recursive self-reference.
 

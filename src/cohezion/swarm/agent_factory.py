@@ -1,4 +1,4 @@
-# class attrs treated as immutable config; never mutated per-instance
+# ruff: noqa: RUF012  # class attrs treated as immutable config; never mutated per-instance
 """Agent Factory pattern for Cohezion swarm.
 
 Implements decorator-based registration and dynamic agent loading

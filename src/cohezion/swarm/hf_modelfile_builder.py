@@ -1,4 +1,4 @@
-# nested with for clarity
+# ruff: noqa: SIM117  # nested with for clarity
 """Automated HuggingFace GGUF downloading and custom Ollama instance creation."""
 
 import argparse
@@ -72,7 +72,7 @@ class HFModelfileBuilder:
     def create_ollama_model(self, model_name: str, modelfile_path: Path) -> None:
         """Issue an `ollama create` command pointing to the newly built Modelfile."""
         logger.info(f"Creating Ollama model {model_name} from {modelfile_path}")
-        result = subprocess.run(
+        result = subprocess.run(  # noqa: S603 - model_name and modelfile_path are internally controlled
             [_OLLAMA, "create", model_name, "-f", str(modelfile_path)],
             capture_output=True,
             text=True,

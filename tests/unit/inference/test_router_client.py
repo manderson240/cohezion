@@ -1,4 +1,4 @@
-"""Tests for cohezion.inference.router_client (Phase 0a gate).
+"""Tests for cohezion.inference.router_client (Phase 0a gate + Phase 1 R1 fix).
 
 Test matrix:
   1. Leaf-module isolation: importing router_client does NOT pull in any
@@ -16,13 +16,14 @@ Test matrix:
   8. base_url normalization: trailing /api/v1 suffix is stripped.
   9. Backend "npu" omits llamacpp_backend from load payload.
  10. FLM-recipe models omit llamacpp_backend regardless of backend value.
+ 11. R1 wiring fix: stop sequences are sent as "stop" in chat payload.
+ 12. R1 wiring fix: dropped_options appear in RouterResult.dropped_options.
 """
 
 from __future__ import annotations
 
-import json
-import subprocess
-import sys
+import ast
+import pathlib
 from typing import Any
 from unittest.mock import AsyncMock, MagicMock, patch
 
@@ -59,9 +60,6 @@ def test_leaf_module_no_cohezion_imports() -> None:
     3. This is the authoritative "no cohezion import in source" check that the plan
        refers to as the R4 cycle-safety constraint.
     """
-    import ast
-    import pathlib
-
     src_path = pathlib.Path(__file__).parent.parent.parent.parent / "src" / "cohezion" / "inference" / "router_client.py"
     assert src_path.exists(), f"router_client.py not found at {src_path}"
 
@@ -501,3 +499,109 @@ async def test_no_think_injected_for_qualifying_models() -> None:
         await client.run("hello")
 
     assert captured_messages[0] == {"role": "system", "content": "/no_think"}
+
+
+# ---------------------------------------------------------------------------
+# 11. R1 wiring fix: stop sequences sent in chat payload
+# ---------------------------------------------------------------------------
+
+
+@pytest.mark.asyncio
+async def test_stop_sequences_forwarded_to_chat_payload() -> None:
+    """R1 fix: _stop_sequences set by from_ollama_options must appear as 'stop' in chat payload."""
+    client = LemonadeRouterClient.from_ollama_options(
+        model_id="Gemma-4-E4B-it-GGUF",
+        options={"stop": ["<|end|>", "User:"]},
+    )
+    captured_payload: dict[str, Any] = {}
+
+    async def fake_post(url: str, **kwargs: Any) -> MagicMock:
+        captured_payload.update(kwargs.get("json", {}))
+        return _mock_openai_response("ok")
+
+    with patch("httpx.AsyncClient") as mock_cls:
+        mock_acm = AsyncMock()
+        mock_cls.return_value.__aenter__ = AsyncMock(return_value=mock_acm)
+        mock_cls.return_value.__aexit__ = AsyncMock(return_value=False)
+        mock_acm.post = fake_post
+
+        await client.run("test")
+
+    assert "stop" in captured_payload, (
+        "R1 fix: stop sequences must be forwarded in chat payload, not just stored"
+    )
+    assert captured_payload["stop"] == ["<|end|>", "User:"]
+
+
+@pytest.mark.asyncio
+async def test_no_stop_field_when_no_stop_sequences() -> None:
+    """When no stop sequences are set, 'stop' key must not appear in payload."""
+    client = LemonadeRouterClient(model_id="Gemma-4-E4B-it-GGUF")
+    captured_payload: dict[str, Any] = {}
+
+    async def fake_post(url: str, **kwargs: Any) -> MagicMock:
+        captured_payload.update(kwargs.get("json", {}))
+        return _mock_openai_response("ok")
+
+    with patch("httpx.AsyncClient") as mock_cls:
+        mock_acm = AsyncMock()
+        mock_cls.return_value.__aenter__ = AsyncMock(return_value=mock_acm)
+        mock_cls.return_value.__aexit__ = AsyncMock(return_value=False)
+        mock_acm.post = fake_post
+
+        await client.run("test")
+
+    assert "stop" not in captured_payload, (
+        "No stop key should appear when _stop_sequences is None"
+    )
+
+
+# ---------------------------------------------------------------------------
+# 12. R1 wiring fix: dropped_options in RouterResult
+# ---------------------------------------------------------------------------
+
+
+@pytest.mark.asyncio
+async def test_dropped_options_appear_in_router_result() -> None:
+    """R1 fix: dropped Ollama options must appear in RouterResult.dropped_options."""
+    client = LemonadeRouterClient.from_ollama_options(
+        model_id="Gemma-4-E4B-it-GGUF",
+        options={
+            "num_predict": 256,
+            "top_k": 40,
+            "top_p": 0.9,
+        },
+    )
+
+    with patch("httpx.AsyncClient") as mock_cls:
+        mock_acm = AsyncMock()
+        mock_cls.return_value.__aenter__ = AsyncMock(return_value=mock_acm)
+        mock_cls.return_value.__aexit__ = AsyncMock(return_value=False)
+        mock_acm.post = AsyncMock(return_value=_mock_openai_response("hello"))
+
+        result = await client.run("test")
+
+    assert "top_k" in result.dropped_options, (
+        "R1 fix: top_k must appear in RouterResult.dropped_options"
+    )
+    assert "top_p" in result.dropped_options, (
+        "R1 fix: top_p must appear in RouterResult.dropped_options"
+    )
+    assert result.dropped_options["top_k"] == 40
+    assert result.dropped_options["top_p"] == 0.9
+
+
+@pytest.mark.asyncio
+async def test_dropped_options_empty_for_plain_client() -> None:
+    """A client not constructed via from_ollama_options must have empty dropped_options."""
+    client = LemonadeRouterClient(model_id="Gemma-4-E4B-it-GGUF")
+
+    with patch("httpx.AsyncClient") as mock_cls:
+        mock_acm = AsyncMock()
+        mock_cls.return_value.__aenter__ = AsyncMock(return_value=mock_acm)
+        mock_cls.return_value.__aexit__ = AsyncMock(return_value=False)
+        mock_acm.post = AsyncMock(return_value=_mock_openai_response("hi"))
+
+        result = await client.run("test")
+
+    assert result.dropped_options == {}

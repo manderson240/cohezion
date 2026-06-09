@@ -533,7 +533,7 @@ class ComputeBackendRouter:
         self,
         model: str,
         prompt: str,
-        port: int = 13306,
+        port: int = 13306,  # allow-direct-port: FLM NPU direct port — CLaSp-style sub-request routing, no router equivalent (R2)
         **kwargs: Any,
     ) -> str:
         """Execute via FLM NPU backend."""
@@ -563,24 +563,21 @@ class ComputeBackendRouter:
         prompt: str,
         **kwargs: Any,
     ) -> str:
-        """Execute via Ollama cloud/local backend."""
-        import aiohttp
+        """Execute via Ollama/lemonade router backend."""
+        from cohezion.inference.router_client import LemonadeRouterClient
 
-        async with aiohttp.ClientSession() as session:
-            try:
-                async with session.post(
-                    "http://localhost:11434/api/generate",
-                    json={
-                        "model": model,
-                        "prompt": prompt,
-                        "stream": False,
-                    },
-                    timeout=aiohttp.ClientTimeout(total=60),
-                ) as resp:
-                    data = await resp.json()
-                    return data["response"]
-            except Exception as e:
-                raise RuntimeError(f"Ollama execution failed: {e}") from e
+        client = LemonadeRouterClient.from_ollama_options(
+            "http://localhost:13305",
+            model_id=model,
+            options={"num_predict": kwargs.get("max_tokens", 2048)},
+        )
+        try:
+            result = await client.run(prompt)
+            if result.error:
+                raise RuntimeError(f"Router execution failed: {result.error}")
+            return result.text
+        except Exception as e:
+            raise RuntimeError(f"Ollama execution failed: {e}") from e
 
     def get_status_report(self) -> dict[str, Any]:
         """Generate status report for vault logging."""

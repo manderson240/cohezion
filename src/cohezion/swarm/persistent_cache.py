@@ -1,4 +1,4 @@
-# long lines: SQL/URLs/docstrings — wrapping reduces readability
+# ruff: noqa: E501  # long lines: SQL/URLs/docstrings — wrapping reduces readability
 """PersistentCache - Phase 1 Bottleneck #2: Session persistence and recovery.
 
 JSONL-backed cache that survives process restarts, enabling cross-session

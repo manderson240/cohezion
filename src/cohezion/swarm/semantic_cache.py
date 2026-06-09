@@ -1,4 +1,4 @@
-# math/physics symbols intentional
+# ruff: noqa: E501, RUF002  # math/physics symbols intentional
 """SemanticCache - Phase 2 Task #2.2 + Phase 5A Task #5A.1: Fuzzy matching with semantic embeddings.
 
 Implements L2 cache tier for fuzzy prompt matching using semantic embeddings.
@@ -72,7 +72,7 @@ class DistilledEmbeddingModel(EmbeddingModel):
         self,
         model_name: str = "phi3:mini",
         embedding_dim: int = 384,
-        ollama_base_url: str = "http://localhost:11434",
+        ollama_base_url: str = "http://localhost:13305",
     ):
         """Initialize distilled embedding model.
 

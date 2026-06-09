@@ -235,7 +235,7 @@ class PhaseOptimizer:
 
         # Total lifecycles tracked
         lifecycle_count = len(
-            {h["lifecycle_id"] for h in self.lifecycle_history if h.get("lifecycle_id")}
+            set(h["lifecycle_id"] for h in self.lifecycle_history if h.get("lifecycle_id"))
         )
 
         return {

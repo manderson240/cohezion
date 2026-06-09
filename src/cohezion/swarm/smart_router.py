@@ -270,7 +270,7 @@ class SmartRouter:
 
     def __init__(
         self,
-        ollama_host: str = "http://localhost:11434",
+        ollama_host: str = "http://localhost:13305",
         strategy: str = "efficiency",
         log_actions: bool = True,
     ):
@@ -289,13 +289,15 @@ class SmartRouter:
         self.action_log_dir.mkdir(parents=True, exist_ok=True)
 
     async def refresh_models(self):
-        """Check which models are available."""
+        """Check which models are available via lemonade router."""
         try:
-            resp = await self.client.get(f"{self.ollama_host}/api/tags")
+            # Use router /api/v1/models instead of Ollama /api/tags
+            resp = await self.client.get(f"{self.ollama_host}/api/v1/models")
             if resp.status_code == 200:
-                models = resp.json().get("models", [])
+                data = resp.json()
+                models = data.get("data", data) if isinstance(data, dict) else data
                 for m in models:
-                    name = m["name"]
+                    name = m.get("id") or m.get("name", "")
                     if name in LOCAL_MODELS:
                         self.available_models[name] = LOCAL_MODELS[name]
                 logger.info(f"Available models: {list(self.available_models.keys())}")
@@ -400,26 +402,28 @@ class SmartRouter:
                     messages.append({"role": "system", "content": system_prompt})
                 messages.append({"role": "user", "content": prompt})
 
+                # Phase 1: use OpenAI chat completions shape on lemonade router
                 clean_host = self.ollama_host.rstrip("/")
-                if clean_host.endswith("/api"):
-                    clean_host = clean_host[:-4]
-                if clean_host.endswith("/v1"):
-                    clean_host = clean_host[:-3]
-
+                messages = []
+                if system_prompt:
+                    messages.append({"role": "system", "content": system_prompt})
+                messages.append({"role": "user", "content": prompt})
                 resp = await self.client.post(
-                    f"{clean_host}/api/generate",
+                    f"{clean_host}/v1/chat/completions",
                     json={
                         "model": model,
-                        "prompt": prompt,
-                        "system": system_prompt,
+                        "messages": messages,
                         "stream": False,
                     },
                 )
                 resp.raise_for_status()
 
                 data = await resp.json()
-                response = data.get("response", "")
-                data.get("eval_count", 0) + data.get("prompt_eval_count", 0)
+                # Parse OpenAI chat completions shape (Phase 1 migration)
+                if "choices" in data:
+                    response = data["choices"][0]["message"]["content"]
+                else:
+                    response = data.get("response", "")
                 success = True
                 break
 

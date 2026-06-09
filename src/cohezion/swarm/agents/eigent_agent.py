@@ -46,7 +46,7 @@ class EigentAgent(BaseScout):
     def __init__(
         self,
         model: str = "Gemma-4-E2B-it-GGUF",
-        lemonade_url: str = "http://localhost:13307",
+        lemonade_url: str = "http://localhost:13305",
         role: str = "System Architect",
         **kwargs,
     ) -> None:

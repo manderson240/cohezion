@@ -21,7 +21,7 @@ from cohezion.reliability.monitor import get_resource_monitor
 
 logger = logging.getLogger(__name__)
 
-_DEFAULT_BASE_URL = "http://localhost:11434"
+_DEFAULT_BASE_URL = "http://localhost:13305"
 _DEFAULT_TIMEOUT = 120.0
 
 
@@ -140,26 +140,27 @@ class ResilientOllamaClient:
         **kwargs: Any,
     ) -> str:
         """Call Ollama with exponential backoff retry."""
+        messages: list[dict[str, str]] = []
+        if system:
+            messages.append({"role": "system", "content": system})
+        messages.append({"role": "user", "content": prompt})
+
         payload: dict[str, Any] = {
             "model": model,
-            "prompt": prompt,
+            "messages": messages,
+            "max_tokens": num_predict,
+            "temperature": temperature,
             "stream": False,
-            "options": {
-                "temperature": temperature,
-                "num_predict": num_predict,
-            },
         }
-        if system:
-            payload["system"] = system
-        payload.update(kwargs)
+        payload.update({k: v for k, v in kwargs.items() if k not in payload})
 
         last_exc: Exception | None = None
         for attempt in range(self.max_retries + 1):
             try:
-                resp = await self.client.post("/api/generate", json=payload)
+                resp = await self.client.post("/v1/chat/completions", json=payload)
                 resp.raise_for_status()
                 data = resp.json()
-                return data.get("response", "")
+                return data.get("choices", [{}])[0].get("message", {}).get("content", "")
             except httpx.HTTPError as exc:
                 last_exc = exc
                 if attempt < self.max_retries:

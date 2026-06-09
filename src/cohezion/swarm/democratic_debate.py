@@ -1,4 +1,4 @@
-# long lines: SQL/URLs/docstrings — wrapping reduces readability
+# ruff: noqa: N814, E501  # long lines: SQL/URLs/docstrings — wrapping reduces readability
 """
 Democratic Debate Orchestrator - Multi-agent consensus building.
 
@@ -202,7 +202,7 @@ class DemocraticDebate:
 
     def __init__(
         self,
-        ollama_host: str = "http://localhost:11434",
+        ollama_host: str = "http://localhost:13305",
         token_client: "TokenEfficientClient | None" = None,
     ):
 
@@ -228,20 +228,25 @@ class DemocraticDebate:
                 logger.error(f"TokenEfficientClient call for {persona.name} failed: {e}")
                 return f"[{persona.name} error: {e}]"
 
-        # Fallback: direct httpx POST (original path)
+        # Fallback: direct httpx POST using OpenAI /v1/chat/completions (lemonade router)
         try:
+            messages: list[dict[str, str]] = [
+                {"role": "system", "content": persona.system_prompt()},
+                {"role": "user", "content": prompt},
+            ]
             response = await self.client.post(
-                f"{self.ollama_host}/api/generate",
+                f"{self.ollama_host}/v1/chat/completions",
                 json={
                     "model": persona.model,
-                    "prompt": prompt,
-                    "system": persona.system_prompt(),
+                    "messages": messages,
+                    "max_tokens": 512,
+                    "temperature": 0.8,
                     "stream": False,
-                    "options": {"temperature": 0.8, "num_predict": 512},
                 },
             )
             if response.status_code == 200:
-                return response.json().get("response", "").strip()
+                data = response.json()
+                return data.get("choices", [{}])[0].get("message", {}).get("content", "").strip()
             return f"[{persona.name} unavailable]"
         except Exception as e:
             logger.error(f"Agent {persona.name} failed: {e}")

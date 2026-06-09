@@ -123,8 +123,12 @@ class SwarmConfig:
     max_ram_gb: float = 120.0  # Reserve 8GB for OS
     cache_ttl_seconds: int = 3600
 
-    # Ollama connection
-    ollama_base_url: str = "http://localhost:11434"
+    # Lemonade router connection (canonical: :13305)
+    lemonade_router_url: str = "http://localhost:13305"
+
+    # Deprecated: kept for backward-compat; prefer lemonade_router_url.
+    # Phase 4 retirement target per docs/plans/2026-06-09-lemonade-13305-consolidation.md
+    ollama_base_url: str = "http://localhost:11434"  # allow-direct-port: deprecated alias — callers migrate via lemonade_router_url (R6)
 
     # Phase # Security
     strict_security: bool = False

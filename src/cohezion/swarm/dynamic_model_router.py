@@ -301,124 +301,20 @@ class DynamicModelRouter:
             ),
         }
 
-    def get_conformity_score(self, model: ModelConfig, task_type: str) -> float:
-        """Estimate model conformity (success probability) for a task type."""
-        if model.is_cloud:
-            return 0.95
-
-        # Check model name for specialized coding indicators
-        is_coder = "coder" in model.name.lower() or "phi" in model.name.lower()
-
-        if task_type == "coding":
-            if is_coder:
-                if model.size_gb >= 50.0:
-                    return 0.85
-                elif model.size_gb >= 10.0:
-                    return 0.75
-                elif model.size_gb >= 5.0:
-                    return 0.60
-                else:
-                    return 0.40
-            else:
-                if model.size_gb >= 50.0:
-                    return 0.70
-                elif model.size_gb >= 10.0:
-                    return 0.50
-                elif model.size_gb >= 5.0:
-                    return 0.30
-                else:
-                    return 0.20
-        elif task_type in ("complex_reasoning", "architecture"):
-            if model.size_gb >= 50.0:
-                return 0.75
-            elif model.size_gb >= 10.0:
-                return 0.55
-            elif model.size_gb >= 5.0:
-                return 0.35
-            else:
-                return 0.15
-        else:  # general, formatting, etc.
-            if model.size_gb >= 50.0:
-                return 0.90
-            elif model.size_gb >= 10.0:
-                return 0.85
-            elif model.size_gb >= 5.0:
-                return 0.80
-            else:
-                return 0.70
-
-    def calculate_conformal_prediction_set(
-        self, request: dict[str, Any], alpha: float = 0.1
-    ) -> list[ModelConfig]:
-        """Construct prediction set using Conformal Prediction with error tolerance alpha.
-
-        Guarantees that the selected set contains a competent model with 1 - alpha confidence.
-        """
-        import math
-
-        task_type = request.get("task_type", "general")
-
-        # 1. Collect non-conformity scores (1 - conformity_score) from history
-        calibration_scores = []
-        for hist in self.performance_history:
-            h_model_name = hist.get("model")
-            h_success = hist.get("success", True)
-            h_task = hist.get("task_type", "general")
-
-            h_model = self.models.get(h_model_name)
-            if h_model:
-                conf = self.get_conformity_score(h_model, h_task)
-                non_conf = 1.0 - conf if h_success else 1.0
-                calibration_scores.append(non_conf)
-
-        # Pad calibration set to prevent zero-sample issues
-        if len(calibration_scores) < 5:
-            # Synthetic calibration priors: represent typical local/cloud runs
-            calibration_scores.extend([0.05, 0.15, 0.25, 0.40, 0.60])
-
-        # 2. Compute the (1 - alpha) quantile threshold
-        sorted_scores = sorted(calibration_scores)
-        n = len(sorted_scores)
-        # Standard conformal prediction index calculation: ceil((n + 1) * (1 - alpha))
-        idx = min(n - 1, max(0, math.ceil((n + 1) * (1 - alpha)) - 1))
-        q_threshold = sorted_scores[idx]
-
-        # 3. Filter models by threshold: non-conformity <= q_threshold
-        prediction_set = []
-        for model in self.models.values():
-            conf = self.get_conformity_score(model, task_type)
-            non_conf = 1.0 - conf
-            if non_conf <= q_threshold:
-                prediction_set.append(model)
-
-        logger.info(
-            "Conformal Prediction Set (alpha=%.2f, q_threshold=%.3f, size=%d): %s",
-            alpha,
-            q_threshold,
-            len(prediction_set),
-            [m.name for m in prediction_set],
-        )
-        return prediction_set
-
     async def select_optimal_model(self, request: dict[str, Any]) -> ModelConfig:
-        """Intelligent model selection using Conformal Prediction routing"""
+        """Intelligent model selection using compound engineering algorithm"""
         ide = IDEPriority(request.get("ide_priority", 1))
         task_type: str = str(request.get("task_type", "general"))
-        alpha: float = float(request.get("alpha", 0.1))
+        request.get("context_length", 0)
+        request.get("urgency", "medium")
 
-        # Get conformal prediction set
-        prediction_set = self.calculate_conformal_prediction_set(request, alpha)
-
-        # Filter by IDE compatibility
-        compatible_models = [m for m in prediction_set if ide in m.optimal_for_ide]
-
-        # Fallback to full prediction set if IDE constraint leaves it empty
-        if not compatible_models:
-            compatible_models = prediction_set
-
-        # Calculate routing score based on multiple factors (cost, latency, memory fit)
+        # Calculate routing score based on multiple factors
         memory_pressure = self.memory_analyzer.analyze_memory_pressure()
 
+        # Filter by IDE compatibility
+        compatible_models = [m for m in self.models.values() if ide in m.optimal_for_ide]
+
+        # Score each model based on current conditions
         scored_models: list[tuple[float, ModelConfig]] = []
         for model in compatible_models:
             score = self.calculate_model_score(model, request, memory_pressure)
@@ -430,7 +326,7 @@ class DynamicModelRouter:
         if scored_models:
             optimal_model = scored_models[0][1]
             logger.info(
-                f"Selected {optimal_model.name} for {task_type} via Conformal Prediction - Score: {scored_models[0][0]}"
+                f"Selected {optimal_model.name} for {task_type} - Score: {scored_models[0][1]}"
             )
             return optimal_model
         else:
@@ -565,12 +461,13 @@ class DynamicModelRouter:
     async def ollama_generate(
         self, model: ModelConfig, request: dict[str, Any], max_context: int
     ) -> dict[str, Any]:
-        """Execute Ollama generation via HTTP API.
+        """Execute generation via lemonade router (:13305).
 
-        Uses ``httpx.AsyncClient`` to POST to ``/api/generate`` on the
-        local Ollama server instead of spawning a subprocess.
+        Phase 1 migration: was Ollama /api/generate; now uses LemonadeRouterClient
+        per docs/plans/2026-06-09-lemonade-13305-consolidation.md §Phase 1.
         """
-        import httpx
+        from cohezion.inference.router_client import LemonadeRouterClient
+        from cohezion.swarm.providers.ollama_provider import _OLLAMA_TO_ROUTER as _MODEL_MAP
 
         # Token Burn Security Check
         requested_tokens: int = int(request.get("max_tokens", 4096))
@@ -578,7 +475,7 @@ class DynamicModelRouter:
 
         if requested_tokens > max_safe_tokens:
             logger.warning(
-                "🚨 TOKEN BURN SECURITY ALERT: "
+                "TOKEN BURN SECURITY ALERT: "
                 f"Requested {requested_tokens} tokens for "
                 f"local offload model {model.name}. "
                 f"Hard-capping to {max_safe_tokens} "
@@ -586,35 +483,32 @@ class DynamicModelRouter:
             )
             requested_tokens = max_safe_tokens
 
-        payload = {
-            "model": model.name,
-            "prompt": request.get("prompt", ""),
-            "system": request.get("system", ""),
-            "stream": False,
-            "options": {
+        # R2: map Ollama model name to router model id
+        router_model = _MODEL_MAP.get(model.name, model.name)
+
+        client = LemonadeRouterClient.from_ollama_options(
+            "http://localhost:13305",
+            model_id=router_model,
+            options={
                 "num_ctx": max_context,
                 "temperature": request.get("temperature", 0.7),
-                "top_p": request.get("top_p", 0.9),
                 "num_predict": requested_tokens,
             },
-        }
+        )
 
-        try:
-            async with httpx.AsyncClient(timeout=300.0) as client:
-                resp = await client.post(
-                    "http://localhost:11434/api/generate",
-                    json=payload,
-                )
-                _ = resp.raise_for_status()
-                data = resp.json()
-                return {"text": data.get("response", ""), **data}
+        prompt = request.get("prompt", "")
+        system_msg = request.get("system", "")
+        if system_msg:
+            result = await client.chat(
+                [{"role": "system", "content": system_msg}, {"role": "user", "content": prompt}]
+            )
+        else:
+            result = await client.run(prompt)
 
-        except httpx.TimeoutException:
-            logger.error("Ollama request timed out for model %s", model.name)
-            return {"text": "", "error": "timeout"}
-        except Exception as e:
-            logger.error("Ollama HTTP error: %s", e)
-            return {"text": "", "error": str(e)}
+        if result.error:
+            logger.error("Router generation error for model %s: %s", model.name, result.error)
+            return {"text": "", "error": result.error}
+        return {"text": result.text}
 
     def record_performance(self, model: ModelConfig, execution_time: float, response_length: int):
         """Record performance metrics for compound learning"""
