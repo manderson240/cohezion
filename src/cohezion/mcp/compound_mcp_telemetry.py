@@ -6312,3 +6312,38 @@ def get_windowed_fleet_latency_median_ms(
     if n % 2 == 1:
         return float(latencies[mid])
     return float((latencies[mid - 1] + latencies[mid]) / 2)
+
+
+def get_windowed_fleet_latency_trimmed_mean_ms(
+    window_ms: float,
+    trim_frac: float = 0.1,
+    *,
+    store: dict | None = None,
+    now_ms: float | None = None,
+) -> float:
+    """Fleet-wide trimmed mean of pooled latencies (ms).  Item 1143.
+
+    Discards floor(n * trim_frac) values from each end of the sorted pooled latencies.
+    Returns float (ms).  0.0 for empty window or when trimming removes all values.
+    PRIMARY DISC.: trim_frac=0.2 on [1,10,20,30,100] → discard 1 each end → mean([10,20,30])=20ms
+    vs full mean=32.2ms (outlier-robust).
+    """
+    if store is None:
+        store = _WINDOWED_TELEMETRY
+    if now_ms is None:
+        now_ms = _time.time() * 1000.0
+    cutoff_ms = now_ms - window_ms
+    latencies: list[float] = []
+    for records in store.values():
+        for ts, lat, _ok in records:
+            if ts >= cutoff_ms:
+                latencies.append(lat)
+    n = len(latencies)
+    if n == 0:
+        return 0.0
+    k = int(n * trim_frac)  # number to trim from each end
+    latencies.sort()
+    trimmed = latencies[k: n - k] if k > 0 else latencies
+    if not trimmed:
+        return 0.0
+    return float(sum(trimmed) / len(trimmed))
