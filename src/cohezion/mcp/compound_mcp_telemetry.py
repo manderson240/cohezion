@@ -3322,3 +3322,32 @@ def get_windowed_tool_latency_mad_ms(
     mid2 = n // 2
     mad = devs[mid2] if n % 2 == 1 else (devs[mid2 - 1] + devs[mid2]) / 2.0
     return float(mad)
+
+
+def get_windowed_tool_latency_mad_stddev_ratio(
+    tool_name: str,
+    window_ms: float,
+    *,
+    store: dict | None = None,
+    now_ms: float | None = None,
+) -> float:
+    """MAD/stddev ratio — outlier sensitivity index.  Item 1033.
+
+    ratio = MAD / stddev.
+    0.0 if stddev == 0 (guard) or no recent calls.
+
+    For a normal distribution: ratio ≈ 0.7979.
+    ratio → 0.0  stddev is outlier-dominated (MAD stayed near 0, stddev inflated).
+    ratio → 1.0  uniform-ish data, both measures agree.
+
+    Injectable store.  Pure function.
+
+    PRIMARY DISC.: lats [10,10,10,10,100]
+      median=10, MAD=0.0, stddev=36.0, ratio=0.0
+      (kills MAD/stddev standalone; kills ratio=1.0; correct ratio=0.0).
+    """
+    mad = get_windowed_tool_latency_mad_ms(tool_name, window_ms, store=store, now_ms=now_ms)
+    stddev = get_windowed_tool_latency_stddev_ms(tool_name, window_ms, store=store, now_ms=now_ms)
+    if stddev == 0.0:
+        return 0.0
+    return float(mad / stddev)
