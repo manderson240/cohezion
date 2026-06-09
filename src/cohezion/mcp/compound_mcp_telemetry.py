@@ -3217,3 +3217,31 @@ def get_windowed_tool_p90_ms(
       (kills max=50.0; kills p75=32.5; correct interpolated p90=46.0).
     """
     return get_windowed_latency_percentile(tool_name, 90.0, window_ms, store=store, now_ms=now_ms)
+
+
+def get_windowed_tool_p10_p90_ratio(
+    tool_name: str,
+    window_ms: float,
+    *,
+    store: dict | None = None,
+    now_ms: float | None = None,
+) -> float:
+    """p10/p90 tail symmetry index for per-tool latency.  Item 1029.
+
+    ratio = p10 / p90.
+    0.0 if p90 == 0.0 (guard against division by zero).
+    Always in (0, 1] for non-degenerate distributions (p10 <= p90).
+
+    ratio → 1.0  symmetric distribution (e.g. all-equal latencies).
+    ratio → 0.0  extreme right tail (slow outliers dominate).
+
+    Uses the same injectable store/now_ms path as p10 and p90 delegates.
+
+    PRIMARY DISC.: lats [10,20,30,40,50] -> p10=14.0, p90=46.0 -> ratio≈0.30435
+      (kills p90/p10≈3.286 inverted; kills p10-p90=32.0 difference; correct=0.30435).
+    """
+    p10 = get_windowed_latency_percentile(tool_name, 10.0, window_ms, store=store, now_ms=now_ms)
+    p90 = get_windowed_latency_percentile(tool_name, 90.0, window_ms, store=store, now_ms=now_ms)
+    if p90 == 0.0:
+        return 0.0
+    return float(p10 / p90)
