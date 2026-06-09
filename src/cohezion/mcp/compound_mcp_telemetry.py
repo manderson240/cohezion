@@ -778,6 +778,25 @@ def load_telemetry_snapshot(path: _Path | str) -> dict[str, dict]:
     return data
 
 
+def get_fastest_tool() -> str | None:
+    """Return the name of the tool with the lowest p50 latency.  Item 941.
+
+    Enables dashboards to show which tool responds fastest (lowest median
+    latency). Ties in p50 are broken alphabetically (ascending).
+
+    Returns:
+        Tool name with the lowest p50 latency; ``None`` when store is empty.
+    """
+    if not _TELEMETRY:
+        return None
+    min_p50 = min(get_tool_p50_ms(t) for t in _TELEMETRY)
+    candidates = [
+        t for t in _TELEMETRY
+        if abs(get_tool_p50_ms(t) - min_p50) < 1e-9
+    ]
+    return min(candidates)  # alphabetically first among p50-tied tools
+
+
 def get_most_error_prone_tool() -> str | None:
     """Return the name of the tool with the highest error rate.  Item 940.
 
