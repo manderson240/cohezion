@@ -778,6 +778,23 @@ def load_telemetry_snapshot(path: _Path | str) -> dict[str, dict]:
     return data
 
 
+def get_global_mean_latency_ms() -> float:
+    """Return the mean latency over all tools combined (weighted).  Item 948.
+
+    Computed as ``total_latency_sum / total_call_count`` (pooled / weighted) —
+    NOT the average of per-tool means.  When tool call counts differ, pooling
+    gives the correct aggregate; naive averaging over-weights low-traffic tools.
+
+    Returns:
+        Arithmetic mean latency in milliseconds; 0.0 when no calls recorded.
+    """
+    total_calls = sum(stats["call_count"] for stats in _TELEMETRY.values())
+    if total_calls == 0:
+        return 0.0
+    total_lat = sum(sum(stats["latencies"]) for stats in _TELEMETRY.values())
+    return float(total_lat) / total_calls
+
+
 def get_global_p50_ms() -> float:
     """Return the p50 (median) latency over all tools combined (pooled).  Item 947.
 
