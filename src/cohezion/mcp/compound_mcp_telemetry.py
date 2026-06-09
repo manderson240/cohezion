@@ -3923,6 +3923,42 @@ def get_windowed_tool_bimodality_coefficient(
     return float((skewness ** 2 + 1.0) / kurtosis_raw)
 
 
+def get_windowed_tool_latency_gini_coefficient(
+    tool_name: str,
+    window_ms: float,
+    *,
+    store: dict | None = None,
+    now_ms: float | None = None,
+) -> float:
+    """Per-tool Gini coefficient of latency distribution.  Item 1058.
+
+    Gini in [0,1]; 0.0 for n<2 or all-equal (sum==0).
+    Formula: G = (2*sum(i*x_i) - (n+1)*sum(x_i)) / (n*sum(x_i))
+      where x_i are sorted latencies (1-indexed).
+    Injectable store.  Pure function.
+
+    PRIMARY DISC.: lats [10,20,30,40,50] n=5
+      sorted_sum=150, sum(i*x_i)=550
+      G=(2*550-6*150)/(5*150)=200/750=4/15≈0.2667
+      (kills CV=std/mean≈0.471; kills G=0 (wrong for non-equal); correct=4/15).
+    """
+    if store is None:
+        store = _WINDOWED_TELEMETRY
+    if now_ms is None:
+        now_ms = _time.time() * 1000.0
+    cutoff_ms = now_ms - window_ms
+    records = store.get(tool_name, [])
+    lats = sorted(lat for ts, lat, _ok in records if ts >= cutoff_ms)
+    n = len(lats)
+    if n < 2:
+        return 0.0
+    total = sum(lats)
+    if total == 0.0:
+        return 0.0
+    ranked_sum = sum((i + 1) * x for i, x in enumerate(lats))
+    return float((2 * ranked_sum - (n + 1) * total) / (n * total))
+
+
 def get_windowed_tool_latency_coefficient_of_quartile_variation(
     tool_name: str,
     window_ms: float,
