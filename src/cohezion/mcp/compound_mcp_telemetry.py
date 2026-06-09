@@ -5863,3 +5863,26 @@ def get_windowed_tool_latency_percentile_gap_ms(
         tool_name, window_ms, p_high, store=store, now_ms=now_ms,
     )
     return float(p_hi - p_lo)
+
+
+def get_windowed_fleet_latency_percentile_gap_ms(
+    window_ms: float,
+    p_low: float,
+    p_high: float,
+    *,
+    store: dict | None = None,
+    now_ms: float | None = None,
+) -> float:
+    """Fleet-wide gap between two percentiles using pooled nearest-rank latencies.  Item 1127.
+
+    Returns float (ms).  0.0 for empty window or when p_low == p_high.
+    Uses the same nearest-rank method as get_windowed_fleet_latency_percentile_ms.
+    PRIMARY DISC.: kills per-tool-then-average (pool first, then percentile, not reverse).
+    """
+    p_lo = get_windowed_fleet_latency_percentile_ms(
+        window_ms, p_low, store=store, now_ms=now_ms,
+    )
+    p_hi = get_windowed_fleet_latency_percentile_ms(
+        window_ms, p_high, store=store, now_ms=now_ms,
+    )
+    return float(p_hi - p_lo)
