@@ -778,6 +778,18 @@ def load_telemetry_snapshot(path: _Path | str) -> dict[str, dict]:
     return data
 
 
+def get_total_call_count() -> int:
+    """Return the total number of calls recorded across all tools.  Item 943.
+
+    Sum of ``call_count`` for every tool in ``_TELEMETRY``.  Distinct from
+    :func:`get_tool_count` (which counts distinct tools, not total calls).
+
+    Returns:
+        Total calls across all tools; 0 when no calls have been recorded.
+    """
+    return sum(stats["call_count"] for stats in _TELEMETRY.values())
+
+
 def get_busiest_tool() -> str | None:
     """Return the name of the tool with the most recorded calls.  Item 942.
 
