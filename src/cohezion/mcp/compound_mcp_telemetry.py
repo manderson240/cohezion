@@ -3144,3 +3144,40 @@ def get_windowed_tool_above_budget_call_rate(
         return 0.0
     above = sum(1 for _ts, lat in recent if lat > budget_ms)
     return float(above / total)
+
+
+def get_windowed_global_above_budget_call_rate(
+    window_ms: float,
+    budget_ms: float,
+    *,
+    store: dict | None = None,
+    now_ms: float | None = None,
+) -> float:
+    """Fleet-wide SLA breach rate across all tools in the window.  Item 1026.
+
+    global_rate = count(lat > budget_ms, all tools) / total_count(all tools)
+
+    0.0 for empty store.  Pools ALL calls before dividing (not average of per-tool rates).
+    Injectable store.  Pure function.
+    Fleet-wide dual of get_windowed_tool_above_budget_call_rate (item 1025).
+
+    PRIMARY DISC.: tool_a [100, 200] + tool_b [200] budget=100
+      pooled above=2, pooled total=3 -> rate=2/3≈0.6667
+      (kills naive-avg-per-tool=(0.5+1.0)/2=0.75; correct pooled=0.6667 float).
+    """
+    if store is None:
+        store = _WINDOWED_TELEMETRY
+    if now_ms is None:
+        now_ms = _time.time() * 1000.0
+    cutoff_ms = now_ms - window_ms
+    above = 0
+    total = 0
+    for records in store.values():
+        for ts, lat, _ok in records:
+            if ts >= cutoff_ms:
+                total += 1
+                if lat > budget_ms:
+                    above += 1
+    if total == 0:
+        return 0.0
+    return float(above / total)
