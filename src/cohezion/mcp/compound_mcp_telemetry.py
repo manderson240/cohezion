@@ -7525,3 +7525,27 @@ def get_windowed_fleet_latency_sla_violation_count_by_tool(
     cutoff_ms = now_ms - window_ms
     records = store.get(tool_name, [])
     return sum(1 for ts, lat, _ok in records if ts >= cutoff_ms and lat > threshold_ms)
+
+
+def get_windowed_fleet_latency_sla_compliance_count_by_tool(
+    window_ms: float,
+    tool_name: str,
+    threshold_ms: float,
+    *,
+    store: dict | None = None,
+    now_ms: float | None = None,
+) -> int:
+    """Per-tool count of SLA-compliant calls (latency <= threshold_ms).  Item 1190.
+
+    Returns int.  0 for unknown/empty tool.
+    Threshold is inclusive: latency == threshold IS compliant.
+    Composition: compliance_count + violation_count == total_call_count.
+    PRIMARY DISC.: count_a=2 ≠ count_b=0.
+    """
+    if store is None:
+        store = _WINDOWED_TELEMETRY
+    if now_ms is None:
+        now_ms = _time.time() * 1000.0
+    cutoff_ms = now_ms - window_ms
+    records = store.get(tool_name, [])
+    return sum(1 for ts, lat, _ok in records if ts >= cutoff_ms and lat <= threshold_ms)
