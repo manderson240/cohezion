@@ -4546,3 +4546,41 @@ def get_windowed_best_tool_by_p50_latency_ms(
     if best_tool == "":
         return ("", 0.0)
     return (best_tool, best_p50)
+
+
+def get_windowed_tool_latency_ewma_ms(
+    tool_name: str,
+    window_ms: float,
+    alpha: float,
+    *,
+    store: dict | None = None,
+    now_ms: float | None = None,
+) -> float:
+    """Per-tool EWMA latency (ordered by timestamp, oldest-to-newest).  Item 1077.
+
+    alpha = smoothing factor (0 < alpha <= 1).  alpha=1.0 returns the most recent
+    latency; alpha close to 0 gives negligible weight to new observations.
+    Returns 0.0 for empty window.
+    Injectable store. Pure function.
+
+    PRIMARY DISC.: lats [10,50,20] oldest-to-newest, alpha=0.5
+      -> v0=10; v1=0.5*50+0.5*10=30; v2=0.5*20+0.5*30=25.0
+      (kills simple mean=26.67; kills last-value=20; correct EWMA=25.0).
+    """
+    if store is None:
+        store = _WINDOWED_TELEMETRY
+    if now_ms is None:
+        now_ms = _time.time() * 1000.0
+    cutoff_ms = now_ms - window_ms
+    records = store.get(tool_name, [])
+    # Filter to window and sort by timestamp ascending (oldest first)
+    windowed = sorted(
+        [(ts, lat) for ts, lat, _ok in records if ts >= cutoff_ms],
+        key=lambda x: x[0],
+    )
+    if not windowed:
+        return 0.0
+    ewma = windowed[0][1]
+    for _, lat in windowed[1:]:
+        ewma = alpha * lat + (1.0 - alpha) * ewma
+    return float(ewma)
