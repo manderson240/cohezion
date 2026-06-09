@@ -5209,3 +5209,43 @@ def get_windowed_tool_latency_percentile_ms(
     # Clamp: p=0 gives rank=0 -> index -1 -> clip to 0; p=100 gives rank=n -> index n-1
     idx = max(0, min(n - 1, rank - 1))
     return float(lats[idx])
+
+
+def get_windowed_fleet_latency_percentile_ms(
+    window_ms: float,
+    percentile: float,
+    *,
+    store: dict | None = None,
+    now_ms: float | None = None,
+) -> float:
+    """Fleet-wide p-th percentile latency (ms) using nearest-rank.  Item 1094.
+
+    Pools ALL windowed latency values across every tool in the store, then
+    applies the same nearest-rank method as get_windowed_tool_latency_percentile_ms.
+    Returns 0.0 for an empty pool.
+    Injectable store.  Pure function.
+
+    PRIMARY DISC.: tool_a=[10,90]ms, tool_b=[50,50,50]ms
+      pooled sorted=[10,50,50,50,90], p80: ceil(0.8*5)=4, index=3, value=50ms
+      (kills per-tool-avg-percentile: (90+50)/2=70ms != 50ms;
+       pooled distribution is the correct fleet view).
+    """
+    import math as _math
+
+    if store is None:
+        store = _WINDOWED_TELEMETRY
+    if now_ms is None:
+        now_ms = _time.time() * 1000.0
+    cutoff_ms = now_ms - window_ms
+    lats: list[float] = []
+    for records in store.values():
+        for ts, lat, _ok in records:
+            if ts >= cutoff_ms:
+                lats.append(lat)
+    n = len(lats)
+    if n == 0:
+        return 0.0
+    lats.sort()
+    rank = _math.ceil(percentile / 100.0 * n)
+    idx = max(0, min(n - 1, rank - 1))
+    return float(lats[idx])
