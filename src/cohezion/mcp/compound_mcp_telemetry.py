@@ -2815,3 +2815,69 @@ def get_windowed_global_latency_cv(
     variance = sum((lat - mean) ** 2 for lat in all_lats) / n
     stddev = variance ** 0.5
     return float(stddev / mean)
+
+
+def get_windowed_tool_consecutive_error_count(
+    tool_name: str,
+    window_ms: float,
+    *,
+    store: dict | None = None,
+    now_ms: float | None = None,
+) -> int:
+    """Return number of consecutive errors at the END of the window.  Item 1014.
+
+    Counts from the most-recent call backwards until a success is found.
+    Detects active error storms / outages.
+    0 when the last call succeeded, or when no recent calls exist.
+
+    PRIMARY DISC.: [True, False, True, False, False] (oldest->newest) -> 2
+      (not total_errors=3; streak stops at the True in position -3).
+    """
+    if store is None:
+        store = _WINDOWED_TELEMETRY
+    if now_ms is None:
+        now_ms = _time.time() * 1000.0
+    cutoff_ms = now_ms - window_ms
+    records = store.get(tool_name, [])
+    recent = sorted(
+        [(ts, ok) for ts, _lat, ok in records if ts >= cutoff_ms],
+        key=lambda x: x[0],  # sort oldest-first by timestamp
+    )
+    count = 0
+    for _ts, ok in reversed(recent):  # iterate newest-first
+        if not ok:
+            count += 1
+        else:
+            break
+    return int(count)
+
+
+def get_windowed_tool_last_call_success(
+    tool_name: str,
+    window_ms: float,
+    *,
+    store: dict | None = None,
+    now_ms: float | None = None,
+) -> bool | None:
+    """Return the success flag of the most-recent call in the window.  Item 1015.
+
+    True  — most-recent call succeeded.
+    False — most-recent call errored.
+    None  — no recent calls exist (unknown/empty tool or all calls outside window).
+
+    Instant health pulse without rate aggregation.
+
+    PRIMARY DISC.: records where last call (highest ts) has success=False -> False
+      (not float error_rate; not bool True; not None; strictly the last call's success flag).
+    """
+    if store is None:
+        store = _WINDOWED_TELEMETRY
+    if now_ms is None:
+        now_ms = _time.time() * 1000.0
+    cutoff_ms = now_ms - window_ms
+    records = store.get(tool_name, [])
+    recent = [(ts, ok) for ts, _lat, ok in records if ts >= cutoff_ms]
+    if not recent:
+        return None
+    _ts, ok = max(recent, key=lambda x: x[0])  # most-recent by timestamp
+    return bool(ok)
