@@ -7405,3 +7405,33 @@ def get_windowed_fleet_latency_kurtosis_by_tool(
         return 0.0
     fourth_moment = sum((x - mean) ** 4 for x in lats) / n
     return float(fourth_moment / (stddev ** 4) - 3.0)
+
+
+def get_windowed_fleet_latency_sla_budget_consumed_by_tool(
+    window_ms: float,
+    tool_name: str,
+    threshold_ms: float,
+    *,
+    store: dict | None = None,
+    now_ms: float | None = None,
+) -> float:
+    """Per-tool SLA budget consumed: sum of latency overage above threshold_ms.  Item 1186.
+
+    Formula: sum(max(0, lat - threshold_ms)) for each call in window.
+    Returns float.  0.0 for unknown/empty tool or all-compliant calls.
+    Captures both frequency AND magnitude of violations (richer than violation rate).
+    PRIMARY DISC.: budget_a=30ms (tool_a=[10,30,50], threshold=25) ≠ budget_b=250ms.
+    """
+    if store is None:
+        store = _WINDOWED_TELEMETRY
+    if now_ms is None:
+        now_ms = _time.time() * 1000.0
+    cutoff_ms = now_ms - window_ms
+    records = store.get(tool_name, [])
+    total = 0.0
+    for ts, lat, _ok in records:
+        if ts >= cutoff_ms:
+            overage = lat - threshold_ms
+            if overage > 0.0:
+                total += overage
+    return float(total)
