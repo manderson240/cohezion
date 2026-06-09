@@ -5355,3 +5355,40 @@ def get_windowed_fleet_latency_autocorrelation_lag1(
     if denom == 0.0:
         return 0.0
     return float(numer / denom)
+
+
+def get_windowed_fleet_call_gap_max_ms(
+    window_ms: float,
+    *,
+    store: dict | None = None,
+    now_ms: float | None = None,
+) -> float:
+    """Max gap (ms) between consecutive timestamps across ALL pooled fleet calls.  Item 1101.
+
+    Pools every windowed call timestamp from all tools, sorts them, and returns
+    the largest consecutive difference.  Reveals the longest quiet period in
+    fleet traffic, which per-tool max cannot detect (it misses inter-tool gaps).
+    Returns 0.0 for <2 pooled calls.
+    Injectable store.  Pure function.
+
+    PRIMARY DISC.: tool_a=[t-600,t-200], tool_b=[t-500,t-100]
+      pooled sorted=[t-600,t-500,t-200,t-100]; gaps=[100,300,100]; max=300ms
+      (kills per-tool-avg: tool_a max=400ms, tool_b max=400ms, avg=400ms != 300ms;
+       pooling fills gaps with the other tool's calls, reducing the observed max).
+    """
+    if store is None:
+        store = _WINDOWED_TELEMETRY
+    if now_ms is None:
+        now_ms = _time.time() * 1000.0
+    cutoff_ms = now_ms - window_ms
+    timestamps: list[float] = []
+    for records in store.values():
+        for ts, _lat, _ok in records:
+            if ts >= cutoff_ms:
+                timestamps.append(ts)
+    n = len(timestamps)
+    if n < 2:
+        return 0.0
+    timestamps.sort()
+    max_gap = max(timestamps[i + 1] - timestamps[i] for i in range(n - 1))
+    return float(max_gap)
