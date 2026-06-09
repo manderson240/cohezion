@@ -778,6 +778,23 @@ def load_telemetry_snapshot(path: _Path | str) -> dict[str, dict]:
     return data
 
 
+def get_tool_success_count(tool_name: str) -> int:
+    """Return the number of successful calls for a tool.  Item 937.
+
+    ``call_count - error_count``: avoids arithmetic boilerplate at call sites.
+
+    Args:
+        tool_name: The MCP tool name to look up.
+
+    Returns:
+        Number of successful calls; 0 for unknown tools.
+    """
+    stats = _TELEMETRY.get(tool_name)
+    if not stats:
+        return 0
+    return stats["call_count"] - stats["error_count"]
+
+
 def get_tool_latency_range_ms(tool_name: str) -> tuple[float, float]:
     """Return (min, max) latency range for a tool.  Item 936.
 
