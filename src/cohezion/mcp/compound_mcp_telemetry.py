@@ -7336,3 +7336,37 @@ def get_windowed_fleet_latency_cv_by_tool(
         window_ms, tool_name, store=store, now_ms=now_ms
     )
     return float(stddev / mean)
+
+
+def get_windowed_fleet_latency_skewness_by_tool(
+    window_ms: float,
+    tool_name: str,
+    *,
+    store: dict | None = None,
+    now_ms: float | None = None,
+) -> float:
+    """Per-tool latency skewness (third standardised central moment).  Item 1184.
+
+    Formula: sum((x - mean)^3) / (n * stddev^3).
+    Returns float.  0.0 for unknown/empty tool or when stddev == 0.
+    Positive skew = right tail (rare slow outliers); negative = rare fast calls.
+    PRIMARY DISC.: skewness_b≈1.1547 (right-skewed) ≠ skewness_a=0.0 (symmetric).
+    """
+    import math as _math
+    if store is None:
+        store = _WINDOWED_TELEMETRY
+    if now_ms is None:
+        now_ms = _time.time() * 1000.0
+    cutoff_ms = now_ms - window_ms
+    records = store.get(tool_name, [])
+    lats = [lat for ts, lat, _ok in records if ts >= cutoff_ms]
+    n = len(lats)
+    if n < 2:
+        return 0.0
+    mean = sum(lats) / n
+    variance = sum((x - mean) ** 2 for x in lats) / n
+    stddev = _math.sqrt(variance)
+    if stddev == 0.0:
+        return 0.0
+    third_moment = sum((x - mean) ** 3 for x in lats) / n
+    return float(third_moment / (stddev ** 3))
