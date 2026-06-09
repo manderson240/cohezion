@@ -4756,3 +4756,49 @@ def get_windowed_global_latency_slope_ms_per_ms(
     if denominator == 0.0:
         return 0.0
     return float(numerator / denominator)
+
+
+def get_windowed_tool_latency_autocorrelation_lag1(
+    tool_name: str,
+    window_ms: float,
+    *,
+    store: dict | None = None,
+    now_ms: float | None = None,
+) -> float:
+    """Per-tool lag-1 Pearson autocorrelation of latency values.  Item 1082.
+
+    Computes Pearson r between lats[i] and lats[i+1] for consecutive windowed
+    samples (ordered by timestamp ascending).
+    Range [-1, 1]. Returns 0.0 for <2 samples or zero variance.
+    Injectable store. Pure function.
+
+    PRIMARY DISC.: alternating [10,50,10,50] -> lag-1 pairs (10,50),(50,10),(10,50)
+      -> r=-1.0 (kills autocorr=0 assumption; alternating = maximally anti-correlated).
+    """
+    if store is None:
+        store = _WINDOWED_TELEMETRY
+    if now_ms is None:
+        now_ms = _time.time() * 1000.0
+    cutoff_ms = now_ms - window_ms
+    records = store.get(tool_name, [])
+    windowed = sorted(
+        [(ts, lat) for ts, lat, _ok in records if ts >= cutoff_ms],
+        key=lambda x: x[0],
+    )
+    n = len(windowed)
+    if n < 2:
+        return 0.0
+    lats = [lat for _, lat in windowed]
+    # Build lag-1 pairs: x = lats[:-1], y = lats[1:]
+    x = lats[:-1]
+    y = lats[1:]
+    m = len(x)  # = n - 1
+    xm = sum(x) / m
+    ym = sum(y) / m
+    numer = sum((x[i] - xm) * (y[i] - ym) for i in range(m))
+    var_x = sum((x[i] - xm) ** 2 for i in range(m))
+    var_y = sum((y[i] - ym) ** 2 for i in range(m))
+    denom = (var_x * var_y) ** 0.5
+    if denom == 0.0:
+        return 0.0
+    return float(numer / denom)
