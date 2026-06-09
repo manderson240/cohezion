@@ -3996,6 +3996,45 @@ def get_windowed_tool_latency_coefficient_of_quartile_variation(
     return float((q3 - q1) / denom)
 
 
+def get_windowed_tool_latency_robust_cv(
+    tool_name: str,
+    window_ms: float,
+    *,
+    store: dict | None = None,
+    now_ms: float | None = None,
+) -> float:
+    """Per-tool robust coefficient of variation = IQR / median.  Item 1061.
+
+    Outlier-resistant relative spread (unlike CV = std/mean which is sensitive
+    to extreme latency outliers).
+    Returns 0.0 for n < 4 or median == 0.
+    Injectable store.  Pure function.
+
+    PRIMARY DISC.: lats [10,20,30,40,10000] n=5
+      Q1=20, Q3=40, IQR=20, median=30
+      robust_CV=20/30=2/3≈0.6667
+      (kills CV=std/mean≈1.975 because outlier 10000 inflates std/mean dramatically;
+       robust_CV unchanged by outlier; correct=2/3).
+    """
+    if store is None:
+        store = _WINDOWED_TELEMETRY
+    if now_ms is None:
+        now_ms = _time.time() * 1000.0
+    cutoff_ms = now_ms - window_ms
+    records = store.get(tool_name, [])
+    lats = sorted(lat for ts, lat, _ok in records if ts >= cutoff_ms)
+    n = len(lats)
+    if n < 4:
+        return 0.0
+    # Median via linear interpolation (consistent with other percentile functions)
+    med = get_windowed_latency_percentile(tool_name, 50.0, window_ms, store=store, now_ms=now_ms)
+    if med == 0.0:
+        return 0.0
+    q1 = get_windowed_latency_percentile(tool_name, 25.0, window_ms, store=store, now_ms=now_ms)
+    q3 = get_windowed_latency_percentile(tool_name, 75.0, window_ms, store=store, now_ms=now_ms)
+    return float((q3 - q1) / med)
+
+
 def get_windowed_global_latency_cqv(
     window_ms: float,
     *,
