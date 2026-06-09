@@ -7469,3 +7469,36 @@ def get_windowed_fleet_latency_sla_mean_overage_by_tool(
     if violation_count == 0:
         return 0.0
     return float(total_overage / violation_count)
+
+
+def get_windowed_fleet_latency_sla_max_overage_by_tool(
+    window_ms: float,
+    tool_name: str,
+    threshold_ms: float,
+    *,
+    store: dict | None = None,
+    now_ms: float | None = None,
+) -> float:
+    """Per-tool maximum single-call latency overage above threshold_ms.  Item 1188.
+
+    Formula: max(max(0, lat - threshold_ms)) for each call in window.
+    Returns float.  0.0 for unknown/empty tool or all-compliant calls.
+    Worst-case single violation — tail risk signal.
+    PRIMARY DISC.: max_overage_a=25ms ≠ max_overage_b=175ms.
+    """
+    if store is None:
+        store = _WINDOWED_TELEMETRY
+    if now_ms is None:
+        now_ms = _time.time() * 1000.0
+    cutoff_ms = now_ms - window_ms
+    records = store.get(tool_name, [])
+    max_overage = 0.0
+    found = False
+    for ts, lat, _ok in records:
+        if ts >= cutoff_ms:
+            overage = lat - threshold_ms
+            if overage > 0.0:
+                if not found or overage > max_overage:
+                    max_overage = overage
+                    found = True
+    return float(max_overage)
