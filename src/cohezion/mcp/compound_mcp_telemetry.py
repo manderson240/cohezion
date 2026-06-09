@@ -4023,3 +4023,30 @@ def get_windowed_tool_latency_decile_range_ms(
     p10 = get_windowed_latency_percentile(tool_name, 10.0, window_ms, store=store, now_ms=now_ms)
     p90 = get_windowed_latency_percentile(tool_name, 90.0, window_ms, store=store, now_ms=now_ms)
     return float(p90 - p10)
+
+
+def get_windowed_global_latency_decile_range_ms(
+    window_ms: float,
+    *,
+    store: dict | None = None,
+    now_ms: float | None = None,
+) -> float:
+    """Fleet-wide D9-D1 (global_p90 - global_p10) inter-decile range.  Item 1056.
+
+    Thin composition: global_p90 - global_p10.
+    Pools ALL tool latencies before computing percentiles (NOT per-tool avg).
+    Returns 0.0 for empty pool.
+    Injectable store.  Pure function.  Fleet dual of per-tool item 1055.
+
+    PRIMARY DISC.: tool_a=[10,20,30] + tool_b=[70,80,90,100]
+      pooled [10,20,30,70,80,90,100] n=7
+      p10=16.0 (idx=0.6 -> 10+0.6*10=16),
+      p90=94.0 (idx=5.4 -> 90+0.4*10=94),
+      D9-D1=94.0-16.0=78.0
+      (kills per-tool D9-D1 avg≈22.1;
+       kills range=max-min=90;
+       correct pooled D9-D1=78.0).
+    """
+    p10 = get_windowed_global_latency_percentile(10.0, window_ms, store=store, now_ms=now_ms)
+    p90 = get_windowed_global_latency_percentile(90.0, window_ms, store=store, now_ms=now_ms)
+    return float(p90 - p10)
