@@ -20,6 +20,7 @@ from cohezion.compound.research_feed_parser import (
     FeedRecord,
     feed_dedup_hits,
     parse_research_feed,
+    persistently_dropped_findings,
 )
 
 
@@ -90,4 +91,80 @@ def test_missing_empty(tmp_path: Path) -> None:
     assert parse_research_feed(tmp_path / "nope.md") == []
     (tmp_path / "empty.md").write_text("")
     assert parse_research_feed(tmp_path / "empty.md") == []
+
+
+# --- item 125: persistently_dropped_findings (DROPPED AND recurring conjunction) -------------
+#
+# Fixture covers the discriminating TRIPLE so each plausible wrong impl fails on a distinct row:
+#   dropthrice  rounds {1,2,3}, no backlog row  -> DROPPED + recurring -> FLAGGED (sorts first)
+#   droptwice   rounds {1,2},   no backlog row  -> DROPPED + recurring -> FLAGGED (sorts second)
+#   droponce    round  {1},     no backlog row  -> dropped but 1 round  -> NOT (kills "all dropped")
+#   kepttwice   rounds {1,2},   has backlog row -> recurring but actioned -> NOT (kills "all dedup")
+
+
+def _conj_fixture(tmp_path: Path) -> tuple[Path, Path]:
+    feed = tmp_path / "FEED_CONJ.md"
+    feed.write_text(
+        "## Round 1 — d1\n"
+        "| Finding | Verified | Class | Fleet seam | Notes |\n"
+        "|---|---|---|---|---|\n"
+        "| **`dropthrice`** | ✅ | NEW | s1 | n |\n"
+        "| **`droptwice`** | ✅ | NEW | s2 | n |\n"
+        "| **`droponce`** | ✅ | NEW | s3 | n |\n"
+        "| **`kepttwice`** | ✅ | NEW | s4 | n |\n"
+        "\n"
+        "## Round 2 — d2\n"
+        "| Finding | Verified | Class | Fleet seam | Notes |\n"
+        "|---|---|---|---|---|\n"
+        "| **`dropthrice`** | ✅ | NEW | s1 | n |\n"
+        "| **`droptwice`** | ✅ | NEW | s2 | n |\n"
+        "| **`kepttwice`** | ✅ | NEW | s4 | n |\n"
+        "\n"
+        "## Round 3 — d3\n"
+        "| Finding | Verified | Class | Fleet seam | Notes |\n"
+        "|---|---|---|---|---|\n"
+        "| **`dropthrice`** | ✅ | NEW | s1 | n |\n"
+    )
+    backlog = tmp_path / "BACKLOG_CONJ.md"
+    # Only `kepttwice` has a backlog row -> ACTIONED; the three drop* findings have none.
+    backlog.write_text(
+        "| 200 | A | a lever that uses kepttwice here | verify | additive | TODO |\n"
+    )
+    return feed, backlog
+
+
+def test_persistently_dropped_conjunction_and_order(tmp_path: Path) -> None:
+    feed, backlog = _conj_fixture(tmp_path)
+    out = persistently_dropped_findings(feed_path=feed, backlog_path=backlog)
+    # Exact result: only DROPPED-and-recurring findings, most-persistent first (round count desc).
+    assert out == [("dropthrice", [1, 2, 3]), ("droptwice", [1, 2])]
+    flagged = {f for f, _ in out}
+    assert "droponce" not in flagged  # single-round drop -> kills the "return all dropped" impl
+    assert "kepttwice" not in flagged  # actioned -> kills the "return all dedup-hits" impl
+
+
+def test_persistently_dropped_single_round_not_flagged(tmp_path: Path) -> None:
+    feed, backlog = _conj_fixture(tmp_path)
+    out = dict(persistently_dropped_findings(feed_path=feed, backlog_path=backlog))
+    assert "droponce" not in out  # a one-off drop (1 round) is normal, not a persistent miss
+
+
+def test_persistently_dropped_actioned_not_flagged(tmp_path: Path) -> None:
+    feed, backlog = _conj_fixture(tmp_path)
+    out = dict(persistently_dropped_findings(feed_path=feed, backlog_path=backlog))
+    assert "kepttwice" not in out  # recurred in 2 rounds but already integrated -> excluded
+
+
+def test_persistently_dropped_empty(tmp_path: Path) -> None:
+    out = persistently_dropped_findings(
+        feed_path=tmp_path / "nope.md", backlog_path=tmp_path / "nope2.md"
+    )
+    assert out == []
+
+
+def test_persistently_dropped_readonly(tmp_path: Path) -> None:
+    feed, backlog = _conj_fixture(tmp_path)
+    before = (feed.read_bytes(), backlog.read_bytes())
+    persistently_dropped_findings(feed_path=feed, backlog_path=backlog)
+    assert (feed.read_bytes(), backlog.read_bytes()) == before  # pure: inputs unchanged
     assert feed_dedup_hits([]) == {}

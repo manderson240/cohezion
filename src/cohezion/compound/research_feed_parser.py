@@ -151,3 +151,28 @@ def feed_dedup_hits(records: Iterable[FeedRecord]) -> dict[str, list[int]]:
     return {
         finding: sorted(rounds) for finding, rounds in rounds_by_finding.items() if len(rounds) >= 2
     }
+
+
+def persistently_dropped_findings(
+    *, feed_path: Path | None = None, backlog_path: Path | None = None
+) -> list[tuple[str, list[int]]]:
+    """Findings the research loop keeps NOTICING but never INTEGRATES (item 125) — report-only.
+
+    The CONJUNCTION of item-71 :func:`feed_backlog_crossref` (DROPPED — no backlog row) AND item-49
+    :func:`feed_dedup_hits` (RE-SURFACED in >=2 distinct rounds): a finding that is both is a
+    stronger "you keep ignoring this verified lever" signal than either alone. Returns
+    ``[(finding, [sorted rounds]), ...]`` sorted most-persistent-first (round count desc, then id),
+    so it reads as a prioritized "reconsider these" list.
+
+    The conjunction is load-bearing: an ACTIONED finding is excluded even if it recurs (it is already
+    integrated, so it is in ``crossref.actioned`` not ``.dropped``); a single-round drop is excluded
+    (a one-off drop is normal, not a persistent miss). Report-only — proposes reconsideration, never
+    auto-creates a backlog item (that is the build loop's call). Pure/read-only; missing/unreadable
+    inputs → ``[]`` (never raises).
+    """
+    records = parse_research_feed(feed_path)
+    dropped = set(feed_backlog_crossref(feed_path=feed_path, backlog_path=backlog_path).dropped)
+    recurring = feed_dedup_hits(records)
+    flagged = [(finding, rounds) for finding, rounds in recurring.items() if finding in dropped]
+    flagged.sort(key=lambda item: (-len(item[1]), item[0]))
+    return flagged
