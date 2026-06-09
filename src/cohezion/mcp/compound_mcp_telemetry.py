@@ -4802,3 +4802,43 @@ def get_windowed_tool_latency_autocorrelation_lag1(
     if denom == 0.0:
         return 0.0
     return float(numer / denom)
+
+
+def get_windowed_tool_latency_burst_count(
+    tool_name: str,
+    window_ms: float,
+    burst_threshold_ms: float,
+    *,
+    store: dict | None = None,
+    now_ms: float | None = None,
+) -> int:
+    """Count of consecutive runs where latency > burst_threshold_ms.  Item 1083.
+
+    Each unbroken sequence of above-threshold calls (ordered by timestamp) = 1 burst.
+    Returns 0 if no calls or no above-threshold calls.
+    Threshold comparison is strict (> not >=).
+    Injectable store. Pure function.
+
+    PRIMARY DISC.: [10,80,90,20,70,85,95,15] threshold=50 -> 2 bursts
+      (kills total-above=5 individual calls; kills fraction=5/8; correct bursts=2).
+    """
+    if store is None:
+        store = _WINDOWED_TELEMETRY
+    if now_ms is None:
+        now_ms = _time.time() * 1000.0
+    cutoff_ms = now_ms - window_ms
+    records = store.get(tool_name, [])
+    windowed = sorted(
+        [(ts, lat) for ts, lat, _ok in records if ts >= cutoff_ms],
+        key=lambda x: x[0],
+    )
+    burst_count = 0
+    in_burst = False
+    for _, lat in windowed:
+        if lat > burst_threshold_ms:
+            if not in_burst:
+                burst_count += 1
+                in_burst = True
+        else:
+            in_burst = False
+    return burst_count
