@@ -4622,3 +4622,44 @@ def get_windowed_global_latency_ewma_ms(
     for _, lat in pooled[1:]:
         ewma = alpha * lat + (1.0 - alpha) * ewma
     return float(ewma)
+
+
+def get_windowed_tool_latency_slope_ms_per_ms(
+    tool_name: str,
+    window_ms: float,
+    *,
+    store: dict | None = None,
+    now_ms: float | None = None,
+) -> float:
+    """Per-tool latency trend: OLS linear regression slope (ms/ms).  Item 1079.
+
+    Positive = worsening latency; negative = improving.
+    Returns 0.0 for <2 windowed samples or zero timestamp variance.
+    Injectable store. Pure function.
+
+    PRIMARY DISC.: ts=[t-200,t-50,t-0], lats=[10,50,20]
+      relative ts: [0,150,200]; t_mean=116.667, l_mean=26.667
+      slope = Σ(ti-tm)(li-lm)/Σ(ti-tm)^2 = 2166.67/21666.67 = 0.1 ms/ms
+      (kills naive=(last-first)/span=(20-10)/200=0.05 ms/ms).
+    """
+    if store is None:
+        store = _WINDOWED_TELEMETRY
+    if now_ms is None:
+        now_ms = _time.time() * 1000.0
+    cutoff_ms = now_ms - window_ms
+    records = store.get(tool_name, [])
+    windowed = [(ts, lat) for ts, lat, _ok in records if ts >= cutoff_ms]
+    n = len(windowed)
+    if n < 2:
+        return 0.0
+    # Use relative timestamps to avoid floating-point cancellation
+    ts0 = windowed[0][0]
+    ts_vals = [ts - ts0 for ts, _ in windowed]
+    lat_vals = [lat for _, lat in windowed]
+    t_mean = sum(ts_vals) / n
+    l_mean = sum(lat_vals) / n
+    numerator = sum((ts_vals[i] - t_mean) * (lat_vals[i] - l_mean) for i in range(n))
+    denominator = sum((ts_vals[i] - t_mean) ** 2 for i in range(n))
+    if denominator == 0.0:
+        return 0.0
+    return float(numerator / denominator)
