@@ -157,6 +157,28 @@ def get_tool_p95_ms(tool_name: str) -> float:
     return _percentile(sorted(stats["latencies"]), 95.0)
 
 
+def get_tool_stats(tool_name: str) -> dict:
+    """Return a unified per-tool profile dict.  Item 916.
+
+    Composes the five individual accessors into a single dict, eliminating
+    5-call boilerplate for callers wanting the full per-tool profile.
+
+    Args:
+        tool_name: The MCP tool name to look up.
+
+    Returns:
+        {call_count, error_count, error_rate, p50_ms, p95_ms} — all zeros for
+        unknown tools (never raises KeyError).
+    """
+    return {
+        "call_count": get_tool_call_count(tool_name),
+        "error_count": get_tool_error_count(tool_name),
+        "error_rate": get_tool_error_rate(tool_name),
+        "p50_ms": get_tool_p50_ms(tool_name),
+        "p95_ms": get_tool_p95_ms(tool_name),
+    }
+
+
 def record_tool_call_windowed(
     tool_name: str,
     latency_ms: float,
