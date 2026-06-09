@@ -6122,3 +6122,28 @@ def get_windowed_fleet_latency_sum_ms(
             if ts >= cutoff_ms:
                 total += lat
     return float(total)
+
+
+def get_windowed_fleet_latency_count(
+    window_ms: float,
+    *,
+    store: dict | None = None,
+    now_ms: float | None = None,
+) -> int:
+    """Fleet-wide total call count across all tools in the window.  Item 1136.
+
+    Returns int.  0 for empty window.
+    PRIMARY DISC.: kills per-tool-avg (2.5 for tool_a=3/tool_b=2) — correct is
+    the INTEGER sum of all call counts: 3+2=5.
+    """
+    if store is None:
+        store = _WINDOWED_TELEMETRY
+    if now_ms is None:
+        now_ms = _time.time() * 1000.0
+    cutoff_ms = now_ms - window_ms
+    count = 0
+    for records in store.values():
+        for ts, _lat, _ok in records:
+            if ts >= cutoff_ms:
+                count += 1
+    return count
