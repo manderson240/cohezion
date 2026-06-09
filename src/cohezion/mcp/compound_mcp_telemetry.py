@@ -6618,3 +6618,31 @@ def get_windowed_fleet_latency_max_ms(
                     max_lat = lat
                     found = True
     return float(max_lat) if found else 0.0
+
+
+def get_windowed_fleet_latency_min_ms(
+    window_ms: float,
+    *,
+    store: dict | None = None,
+    now_ms: float | None = None,
+) -> float:
+    """Fleet-wide minimum latency across all pooled calls in the window.  Item 1154.
+
+    Returns float (ms).  0.0 for empty window.
+    PRIMARY DISC.: tool_a=[300,10], tool_b=[200,50] → fleet_min=10.0 ms.
+    Kills max=300, mean≈140, always-0.  Invariant: min <= mean <= max.
+    """
+    if store is None:
+        store = _WINDOWED_TELEMETRY
+    if now_ms is None:
+        now_ms = _time.time() * 1000.0
+    cutoff_ms = now_ms - window_ms
+    min_lat = 0.0
+    found = False
+    for records in store.values():
+        for ts, lat, _ok in records:
+            if ts >= cutoff_ms:
+                if not found or lat < min_lat:
+                    min_lat = lat
+                    found = True
+    return float(min_lat) if found else 0.0
