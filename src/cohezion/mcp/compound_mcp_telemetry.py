@@ -1659,3 +1659,33 @@ def get_windowed_top_n_tools_by_error_rate(
     # Sort: descending rate, then ascending name for ties
     ranked = sorted(rates.keys(), key=lambda t: (-rates[t], t))
     return ranked[:n]
+
+
+def get_windowed_top_n_tools_by_p95_latency(
+    n: int,
+    window_ms: float,
+    *,
+    store: dict | None = None,
+    now_ms: float | None = None,
+) -> list[str]:
+    """Return up to *n* tool names sorted descending by windowed p95 latency.
+
+    Ties broken alphabetically ascending.  Tools with no calls in the window
+    are excluded.  Returns [] when n<=0, store empty, or no recent calls.
+    """
+    if store is None:
+        store = _WINDOWED_TELEMETRY
+    if now_ms is None:
+        now_ms = _time.time() * 1000.0
+    if n <= 0:
+        return []
+    cutoff_ms = now_ms - window_ms
+    p95s: dict[str, float] = {}
+    for tool, records in store.items():
+        recent_lats = sorted(lat for ts, lat, _ok in records if ts >= cutoff_ms)
+        if recent_lats:
+            p95s[tool] = _percentile(recent_lats, 95.0)
+    if not p95s:
+        return []
+    ranked = sorted(p95s.keys(), key=lambda t: (-p95s[t], t))
+    return ranked[:n]
