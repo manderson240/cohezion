@@ -778,6 +778,24 @@ def load_telemetry_snapshot(path: _Path | str) -> dict[str, dict]:
     return data
 
 
+def get_tool_success_rate(tool_name: str) -> float:
+    """Return the success rate for a tool.  Item 938.
+
+    The complement of :func:`get_tool_error_rate`: ``1.0 - error_rate``.
+    Unknown tools return ``1.0`` — no failures have been observed.
+
+    Args:
+        tool_name: The MCP tool name to look up.
+
+    Returns:
+        Success rate in [0.0, 1.0]; 1.0 for unknown tools.
+    """
+    stats = _TELEMETRY.get(tool_name)
+    if not stats or stats["call_count"] == 0:
+        return 1.0
+    return 1.0 - float(stats["error_count"]) / stats["call_count"]
+
+
 def get_tool_success_count(tool_name: str) -> int:
     """Return the number of successful calls for a tool.  Item 937.
 
