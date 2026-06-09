@@ -1560,3 +1560,37 @@ def get_windowed_tool_telemetry_full(
         "p50_ms": _percentile(sorted_lats, 50.0),
         "p95_ms": _percentile(sorted_lats, 95.0),
     }
+
+
+def get_all_windowed_tool_telemetry_full(
+    window_ms: float,
+    *,
+    store: dict[str, list] | None = None,
+    now_ms: float | None = None,
+) -> dict[str, dict]:
+    """Return the full 6-key windowed profile for every active tool.  Item 962.
+
+    Windowed analog of :func:`get_all_tool_telemetry_full` (cumulative, item 950).
+    Only tools with ≥1 call in the window are included — tools that exist in the
+    store but have no recent records are excluded.
+
+    Args:
+        window_ms: Look-back window in milliseconds.
+        store:     Windowed telemetry store (injectable; defaults to
+                   ``_WINDOWED_TELEMETRY``).
+        now_ms:    Current time in ms (defaults to ``time.time() * 1000``).
+
+    Returns:
+        ``{tool_name: get_windowed_tool_telemetry_full(tool_name, ...)}`` for each
+        tool with ≥1 recent call.  Empty dict when no tools have recent calls.
+    """
+    if store is None:
+        store = _WINDOWED_TELEMETRY
+    result: dict[str, dict] = {}
+    for tool_name in store:
+        profile = get_windowed_tool_telemetry_full(
+            tool_name, window_ms, store=store, now_ms=now_ms
+        )
+        if profile["call_count"] > 0:
+            result[tool_name] = profile
+    return result
