@@ -4209,3 +4209,51 @@ def get_windowed_global_latency_gini_coefficient(
         return 0.0
     ranked_sum_g = sum((i + 1) * x for i, x in enumerate(global_lats))
     return float((2 * ranked_sum_g - (n_g + 1) * total_g) / (n_g * total_g))
+
+
+def get_windowed_global_latency_robust_cv(
+    window_ms: float,
+    *,
+    store: dict | None = None,
+    now_ms: float | None = None,
+) -> float:
+    """Fleet-wide robust coefficient of variation = pooled_IQR / pooled_median.  Item 1062.
+
+    Pools ALL tool latencies before computing IQR and median.
+    Returns 0.0 for n_pooled < 4 or pooled_median == 0.
+    Injectable store.  Pure function.  Fleet dual of per-tool item 1061.
+
+    PRIMARY DISC.: tool_a=[10,10,10,10] + tool_b=[90,90,90,90]
+      pooled n=8, Q1=10, Q3=90, IQR=80, median=50
+      robust_CV=80/50=1.6
+      (kills per-tool robust_CV avg: each all-same -> IQR=0 -> 0.0, avg=0 != 1.6;
+       correct pooled robust_CV=1.6).
+    """
+    if store is None:
+        store = _WINDOWED_TELEMETRY
+    if now_ms is None:
+        now_ms = _time.time() * 1000.0
+    cutoff_ms = now_ms - window_ms
+    fleet_lats: list[float] = []
+    for records in store.values():
+        for ts, lat, _ok in records:
+            if ts >= cutoff_ms:
+                fleet_lats.append(lat)
+    n_f = len(fleet_lats)
+    if n_f < 4:
+        return 0.0
+    fleet_lats.sort()
+    # Linear interpolation for Q1, Q3, median
+    def _interp(arr: list[float], pct: float) -> float:
+        n = len(arr)
+        idx = (pct / 100.0) * (n - 1)
+        lo = int(idx)
+        hi = min(lo + 1, n - 1)
+        return arr[lo] + (idx - lo) * (arr[hi] - arr[lo])
+
+    med_f = _interp(fleet_lats, 50.0)
+    if med_f == 0.0:
+        return 0.0
+    q1_f = _interp(fleet_lats, 25.0)
+    q3_f = _interp(fleet_lats, 75.0)
+    return float((q3_f - q1_f) / med_f)
