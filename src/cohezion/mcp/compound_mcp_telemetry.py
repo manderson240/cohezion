@@ -4035,6 +4035,30 @@ def get_windowed_tool_latency_robust_cv(
     return float((q3 - q1) / med)
 
 
+def get_windowed_tool_latency_interquartile_range_ms(
+    tool_name: str,
+    window_ms: float,
+    *,
+    store: dict | None = None,
+    now_ms: float | None = None,
+) -> float:
+    """Per-tool IQR = Q3 - Q1 (p75 - p25).  Item 1068.
+
+    Absolute spread of the central half of latencies; outlier-resistant.
+    Returns 0.0 for empty window. Thin composition via get_windowed_latency_percentile.
+    Injectable store. Pure function.
+
+    PRIMARY DISC.: lats [10,20,30,40,50] n=5
+      Q1=idx=0.25*4=1.0 -> 20.0 (exact)
+      Q3=idx=0.75*4=3.0 -> 40.0 (exact)
+      IQR = 40.0 - 20.0 = 20.0
+      (kills range=max-min=40; kills half-IQR=10; correct IQR=20.0).
+    """
+    q1 = get_windowed_latency_percentile(tool_name, 25.0, window_ms, store=store, now_ms=now_ms)
+    q3 = get_windowed_latency_percentile(tool_name, 75.0, window_ms, store=store, now_ms=now_ms)
+    return float(q3 - q1)
+
+
 def get_windowed_tool_latency_z_score_max(
     tool_name: str,
     window_ms: float,
