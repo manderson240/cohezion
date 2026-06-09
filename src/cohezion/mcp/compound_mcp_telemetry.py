@@ -778,6 +778,33 @@ def load_telemetry_snapshot(path: _Path | str) -> dict[str, dict]:
     return data
 
 
+def get_tool_telemetry_full(tool_name: str) -> dict:
+    """Return a complete per-tool profile dict with 8 keys.  Item 949.
+
+    Extends :func:`get_tool_stats` (5 keys) with ``min_ms``, ``max_ms``, and
+    ``success_rate``.  Unknown tools return a safe all-zero dict except
+    ``success_rate`` which defaults to ``1.0`` (no failures observed).
+
+    Args:
+        tool_name: The MCP tool name to look up.
+
+    Returns:
+        Dict with exactly 8 keys:
+        ``{call_count, error_count, error_rate, success_rate,
+           p50_ms, p95_ms, min_ms, max_ms}``.
+    """
+    return {
+        "call_count": get_tool_call_count(tool_name),
+        "error_count": get_tool_error_count(tool_name),
+        "error_rate": get_tool_error_rate(tool_name),
+        "success_rate": get_tool_success_rate(tool_name),
+        "p50_ms": get_tool_p50_ms(tool_name),
+        "p95_ms": get_tool_p95_ms(tool_name),
+        "min_ms": get_tool_min_latency_ms(tool_name),
+        "max_ms": get_tool_max_latency_ms(tool_name),
+    }
+
+
 def get_global_mean_latency_ms() -> float:
     """Return the mean latency over all tools combined (weighted).  Item 948.
 
