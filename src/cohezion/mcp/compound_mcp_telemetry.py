@@ -1133,3 +1133,45 @@ def get_all_tool_telemetry_full() -> dict[str, dict]:
         success_rate, p50_ms, p95_ms, min_ms, max_ms}``.
     """
     return {tool: get_tool_telemetry_full(tool) for tool in _TELEMETRY}
+
+
+def get_windowed_global_p95_ms(
+    window_ms: float,
+    *,
+    store: dict[str, list] | None = None,
+    now_ms: float | None = None,
+) -> float:
+    """Return the pooled p95 latency across all tools in the recent window.  Item 952.
+
+    Windowed complement of :func:`get_global_p95_ms` — queries
+    ``_WINDOWED_TELEMETRY`` rather than the cumulative store.  Pools all
+    latency records from **every tool** that fall within the last *window_ms* ms
+    and computes p95 on the combined list.
+
+    Pooling is critical: averaging per-tool p95 values over-weights low-traffic
+    tools and gives the wrong aggregate when call counts differ.
+
+    Args:
+        window_ms: Look-back window in milliseconds.
+        store:     Windowed telemetry store (injectable; defaults to
+                   ``_WINDOWED_TELEMETRY``).
+        now_ms:    Current time in ms (defaults to ``time.time() * 1000``).
+
+    Returns:
+        p95 latency in milliseconds over the combined pool of recent records
+        across all tools.  0.0 when no recent calls exist.
+    """
+    if store is None:
+        store = _WINDOWED_TELEMETRY
+    if now_ms is None:
+        now_ms = _time.time() * 1000.0
+    cutoff_ms = now_ms - window_ms
+    pooled: list[float] = [
+        lat
+        for records in store.values()
+        for ts, lat, _ok in records
+        if ts >= cutoff_ms
+    ]
+    if not pooled:
+        return 0.0
+    return float(_percentile(sorted(pooled), 95.0))
