@@ -5637,3 +5637,33 @@ def get_windowed_fleet_latency_above_threshold_count(
             if ts >= cutoff_ms and lat > threshold_ms:
                 total += 1
     return int(total)
+
+
+def get_windowed_tool_call_gap_stddev_ms(
+    tool_name: str,
+    window_ms: float,
+    *,
+    store: dict | None = None,
+    now_ms: float | None = None,
+) -> float:
+    """Population stddev of consecutive call-arrival gaps in window.  Item 1120.
+
+    Returns float (ms).  0.0 for <3 calls in window (need >=2 gaps).
+    Uses population stddev (divide by n), not sample stddev (divide by n-1).
+    PRIMARY DISC.: kills max_gap, kills mean_gap, kills sample_stddev (n-1).
+    """
+    if store is None:
+        store = _WINDOWED_TELEMETRY
+    if now_ms is None:
+        now_ms = _time.time() * 1000.0
+    cutoff_ms = now_ms - window_ms
+    records = store.get(tool_name, [])
+    timestamps = sorted(ts for ts, _lat, _ok in records if ts >= cutoff_ms)
+    n = len(timestamps)
+    if n < 3:
+        return 0.0
+    gaps = [timestamps[i + 1] - timestamps[i] for i in range(n - 1)]
+    m = len(gaps)
+    mean = sum(gaps) / m
+    variance = sum((g - mean) ** 2 for g in gaps) / m
+    return float(variance ** 0.5)
