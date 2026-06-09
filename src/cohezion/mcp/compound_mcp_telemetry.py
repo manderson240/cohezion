@@ -5916,3 +5916,34 @@ def get_windowed_fleet_latency_stddev_ms(
     mean = sum(latencies) / n
     variance = sum((lat - mean) ** 2 for lat in latencies) / n
     return float(variance ** 0.5)
+
+
+def get_windowed_fleet_latency_variance_ms(
+    window_ms: float,
+    *,
+    store: dict | None = None,
+    now_ms: float | None = None,
+) -> float:
+    """Fleet-wide population variance of pooled latencies (ms²).  Item 1129.
+
+    Returns float (ms²).  0.0 for empty window or a single call.
+    PRIMARY DISC.: kills per-tool-then-average (unequal-count case):
+      tool_a=[10,20,30] var≈66.67, tool_b=[100] n=1 var=0, avg≈33.33ms²
+      pooled [10,20,30,100] mean=40, variance=1250ms²≠33.33ms².
+    Pool first, then population variance (divide by n), not per-tool-then-average.
+    """
+    if store is None:
+        store = _WINDOWED_TELEMETRY
+    if now_ms is None:
+        now_ms = _time.time() * 1000.0
+    cutoff_ms = now_ms - window_ms
+    latencies: list[float] = []
+    for records in store.values():
+        for ts, lat, _ok in records:
+            if ts >= cutoff_ms:
+                latencies.append(lat)
+    n = len(latencies)
+    if n < 2:
+        return 0.0
+    mean = sum(latencies) / n
+    return float(sum((lat - mean) ** 2 for lat in latencies) / n)
