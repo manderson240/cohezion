@@ -7956,3 +7956,40 @@ def get_windowed_fleet_latency_failure_success_ratio_by_tool(
     if mean_succ == 0.0:
         return 0.0
     return float(mean_fail / mean_succ)
+
+
+def get_windowed_fleet_latency_percentile_p5_ms_by_tool(
+    window_ms: float,
+    tool_name: str,
+    *,
+    store=None,
+    now_ms=None,
+) -> float:
+    """Per-tool 5th-percentile latency within window.
+
+    Returns 0.0 for unknown/empty tool or all calls outside window.
+    Thin wrapper over get_windowed_fleet_latency_percentile_ms_by_tool(..., 5).
+    Item 1209.
+    """
+    return get_windowed_fleet_latency_percentile_ms_by_tool(
+        window_ms, tool_name, 5, store=store, now_ms=now_ms
+    )
+
+
+def get_windowed_fleet_latency_percentile_p95_ms_by_tool(
+    window_ms: float,
+    tool_name: str,
+    *,
+    store=None,
+    now_ms=None,
+) -> float:
+    """Per-tool 95th-percentile latency within window.
+
+    Returns 0.0 for unknown/empty tool or all calls outside window.
+    Thin wrapper over get_windowed_fleet_latency_percentile_ms_by_tool(..., 95).
+    Pairs with p5 to form the 90th-interpercentile range (IPR90 = p95 - p5).
+    Item 1210.
+    """
+    return get_windowed_fleet_latency_percentile_ms_by_tool(
+        window_ms, tool_name, 95, store=store, now_ms=now_ms
+    )
