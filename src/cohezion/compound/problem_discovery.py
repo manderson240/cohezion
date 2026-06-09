@@ -16273,3 +16273,38 @@ def fid_severity_normalized_score(problems: list[Problem]) -> dict[str, float]:
         totals[fid] += _SEVERITY_RANK.get(p.severity, 0)
         counts[fid] += 1
     return {fid: float(totals[fid]) / counts[fid] / 4.0 for fid in totals}
+
+
+def class_severity_rank_above_threshold(
+    problems: list[Problem], threshold: int
+) -> dict[str, int]:
+    """Count of problems with rank strictly > threshold per class.  Item 848.
+    Zero-inclusive: classes with no qualifying problems still appear with count=0.
+    Empty -> {}. Pure; no I/O."""
+    if not problems:
+        return {}
+    result: dict[str, int] = {}
+    for p in problems:
+        cls = p.problem_class
+        if cls not in result:
+            result[cls] = 0
+        if _SEVERITY_RANK.get(p.severity, 0) > threshold:
+            result[cls] += 1
+    return result
+
+
+def fid_severity_rank_above_threshold(
+    problems: list[Problem], threshold: int
+) -> dict[str, int]:
+    """Count of problems with rank strictly > threshold per fid.  Item 849.
+    Fid-axis complement of 848. Zero-inclusive. Empty -> {}. Pure; no I/O."""
+    if not problems:
+        return {}
+    result: dict[str, int] = {}
+    for p in problems:
+        fid = p.finding_id
+        if fid not in result:
+            result[fid] = 0
+        if _SEVERITY_RANK.get(p.severity, 0) > threshold:
+            result[fid] += 1
+    return result
