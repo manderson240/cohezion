@@ -5947,3 +5947,38 @@ def get_windowed_fleet_latency_variance_ms(
         return 0.0
     mean = sum(latencies) / n
     return float(sum((lat - mean) ** 2 for lat in latencies) / n)
+
+
+def get_windowed_fleet_latency_skewness(
+    window_ms: float,
+    *,
+    store: dict | None = None,
+    now_ms: float | None = None,
+) -> float:
+    """Fleet-wide skewness (3rd standardised moment) of pooled latencies.  Item 1130.
+
+    Returns float (dimensionless).  0.0 for <3 pooled calls or zero variance.
+    Uses population Fisher-Pearson formula: mean(((x-μ)/σ)³).
+    PRIMARY DISC.: kills per-tool-then-average (symmetric tool_a skewness=0 halves
+    the per-tool-avg, while the pooled value reflects the full right-tail contribution).
+    Pool first, compute as a single distribution, return float.
+    """
+    if store is None:
+        store = _WINDOWED_TELEMETRY
+    if now_ms is None:
+        now_ms = _time.time() * 1000.0
+    cutoff_ms = now_ms - window_ms
+    latencies: list[float] = []
+    for records in store.values():
+        for ts, lat, _ok in records:
+            if ts >= cutoff_ms:
+                latencies.append(lat)
+    n = len(latencies)
+    if n < 3:
+        return 0.0
+    mean = sum(latencies) / n
+    variance = sum((lat - mean) ** 2 for lat in latencies) / n
+    if variance == 0.0:
+        return 0.0
+    stddev = variance ** 0.5
+    return float(sum((lat - mean) ** 3 for lat in latencies) / (n * stddev ** 3))
