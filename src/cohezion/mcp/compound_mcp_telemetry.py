@@ -5097,3 +5097,37 @@ def get_windowed_tool_call_gap_mean_ms(
         return 0.0
     # total_span / (n-1) = same as sum(consecutive_gaps) / (n-1)
     return float((timestamps[-1] - timestamps[0]) / (n - 1))
+
+
+def get_windowed_tool_call_rate_per_second(
+    tool_name: str,
+    window_ms: float,
+    *,
+    store: dict | None = None,
+    now_ms: float | None = None,
+) -> float:
+    """Call rate (calls/second) = (n-1) / span_seconds.  Item 1091.
+
+    Returns 0.0 for <2 windowed calls or zero time span.
+    Uses actual call span, NOT the window_ms size.
+    Injectable store. Pure function.
+
+    PRIMARY DISC.: 4 calls over 400ms span -> (4-1)/0.4 = 7.5 calls/sec
+      (kills n/window_ms*1000 = 4/400*1000 = 10 calls/sec -- wrong denominator;
+       kills n/span = 4/0.4 = 10 -- off-by-one; correct (n-1)/span_s = 7.5).
+    """
+    if store is None:
+        store = _WINDOWED_TELEMETRY
+    if now_ms is None:
+        now_ms = _time.time() * 1000.0
+    cutoff_ms = now_ms - window_ms
+    records = store.get(tool_name, [])
+    timestamps = sorted(ts for ts, _lat, _ok in records if ts >= cutoff_ms)
+    n = len(timestamps)
+    if n < 2:
+        return 0.0
+    span_ms = timestamps[-1] - timestamps[0]
+    if span_ms <= 0.0:
+        return 0.0
+    # Convert span from ms to seconds: / 1000.0
+    return float((n - 1) / (span_ms / 1000.0))
