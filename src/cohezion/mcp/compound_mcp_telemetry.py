@@ -7289,3 +7289,25 @@ def get_windowed_fleet_success_rate_by_tool(
     if total == 0:
         return 0.0
     return float(successes / total)
+
+
+def get_windowed_fleet_total_call_count_by_tool(
+    window_ms: float,
+    tool_name: str,
+    *,
+    store: dict | None = None,
+    now_ms: float | None = None,
+) -> int:
+    """Per-tool total call count (success + error) within the fleet store window.  Item 1182.
+
+    Returns int.  0 for unknown/empty tool.
+    Composition: total == success_count + error_count.
+    PRIMARY DISC.: count_a=4 ≠ count_b=2 ≠ fleet_count=6.
+    """
+    if store is None:
+        store = _WINDOWED_TELEMETRY
+    if now_ms is None:
+        now_ms = _time.time() * 1000.0
+    cutoff_ms = now_ms - window_ms
+    records = store.get(tool_name, [])
+    return sum(1 for ts, _lat, _ok in records if ts >= cutoff_ms)
