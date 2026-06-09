@@ -1720,3 +1720,33 @@ def get_windowed_error_budget_used(
     errors = sum(1 for (ok,) in recent if not ok)
     actual_rate = float(errors) / n
     return actual_rate / budget_rate
+
+
+def get_windowed_tools_over_error_budget(
+    budget_rate: float,
+    window_ms: float,
+    *,
+    store: dict | None = None,
+    now_ms: float | None = None,
+) -> list[str]:
+    """Return sorted list of tools with windowed error rate strictly > *budget_rate*.
+
+    Tools with no recent calls are excluded.  Result is alphabetically sorted.
+    Returns [] when none exceed the budget or no recent calls.
+    """
+    if store is None:
+        store = _WINDOWED_TELEMETRY
+    if now_ms is None:
+        now_ms = _time.time() * 1000.0
+    cutoff_ms = now_ms - window_ms
+    over: list[str] = []
+    for tool, records in store.items():
+        recent = [(ok,) for ts, _lat, ok in records if ts >= cutoff_ms]
+        if not recent:
+            continue
+        n = len(recent)
+        errors = sum(1 for (ok,) in recent if not ok)
+        rate = float(errors) / n
+        if rate > budget_rate:
+            over.append(tool)
+    return sorted(over)
