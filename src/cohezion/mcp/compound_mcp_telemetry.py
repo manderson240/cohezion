@@ -6385,3 +6385,37 @@ def get_windowed_fleet_latency_winsorized_mean_ms(
     hi = latencies[n - 1 - k]
     winsorized = [lo] * k + latencies[k: n - k] + [hi] * k
     return float(sum(winsorized) / n)
+
+
+def get_windowed_fleet_latency_gini(
+    window_ms: float,
+    *,
+    store: dict | None = None,
+    now_ms: float | None = None,
+) -> float:
+    """Fleet-wide Gini coefficient of pooled latencies (latency inequality).  Item 1145.
+
+    Returns float in [0.0, 1.0].  0.0 for empty window or all-equal latencies.
+    Formula (sorted ascending x[0]..x[n-1]):
+      Gini = (2 * sum((i+1)*x[i])) / (n * sum(x)) - (n+1)/n
+    PRIMARY DISC.: pooled [10,90] → Gini=0.4 (non-zero, kills always-zero impl).
+    """
+    if store is None:
+        store = _WINDOWED_TELEMETRY
+    if now_ms is None:
+        now_ms = _time.time() * 1000.0
+    cutoff_ms = now_ms - window_ms
+    latencies: list[float] = []
+    for records in store.values():
+        for ts, lat, _ok in records:
+            if ts >= cutoff_ms:
+                latencies.append(lat)
+    n = len(latencies)
+    if n == 0:
+        return 0.0
+    total = sum(latencies)
+    if total == 0.0:
+        return 0.0
+    latencies.sort()
+    weighted_sum = sum((i + 1) * x for i, x in enumerate(latencies))
+    return float((2 * weighted_sum) / (n * total) - (n + 1) / n)
