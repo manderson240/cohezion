@@ -1689,3 +1689,34 @@ def get_windowed_top_n_tools_by_p95_latency(
         return []
     ranked = sorted(p95s.keys(), key=lambda t: (-p95s[t], t))
     return ranked[:n]
+
+
+def get_windowed_error_budget_used(
+    tool_name: str,
+    budget_rate: float,
+    window_ms: float,
+    *,
+    store: dict | None = None,
+    now_ms: float | None = None,
+) -> float:
+    """Return fraction of error budget consumed by *tool_name* in the window.
+
+    Result = actual_windowed_error_rate / budget_rate.
+    Returns 0.0 when tool absent, no recent calls, or budget_rate==0.
+    May exceed 1.0 when over-budget (not clamped).
+    """
+    if store is None:
+        store = _WINDOWED_TELEMETRY
+    if now_ms is None:
+        now_ms = _time.time() * 1000.0
+    if budget_rate == 0.0:
+        return 0.0
+    cutoff_ms = now_ms - window_ms
+    records = store.get(tool_name, [])
+    recent = [(ok,) for ts, _lat, ok in records if ts >= cutoff_ms]
+    if not recent:
+        return 0.0
+    n = len(recent)
+    errors = sum(1 for (ok,) in recent if not ok)
+    actual_rate = float(errors) / n
+    return actual_rate / budget_rate
