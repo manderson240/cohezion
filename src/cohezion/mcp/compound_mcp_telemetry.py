@@ -1966,3 +1966,27 @@ def get_windowed_tool_latency_range_ms(
     if not recent_lats:
         return 0.0
     return float(max(recent_lats) - min(recent_lats))
+
+
+def get_windowed_tool_mean_latency_ms(
+    tool_name: str,
+    window_ms: float,
+    *,
+    store: dict | None = None,
+    now_ms: float | None = None,
+) -> float:
+    """Return the arithmetic mean latency (ms) in the window for *tool_name*.
+
+    Returns 0.0 when the tool is absent or has no recent calls.
+    Note: mean([10,20,90]) = 40.0 != p50([10,20,90]) = 20.0 (primary discriminator).
+    """
+    if store is None:
+        store = _WINDOWED_TELEMETRY
+    if now_ms is None:
+        now_ms = _time.time() * 1000.0
+    cutoff_ms = now_ms - window_ms
+    records = store.get(tool_name, [])
+    recent_lats = [lat for ts, lat, _ok in records if ts >= cutoff_ms]
+    if not recent_lats:
+        return 0.0
+    return float(sum(recent_lats) / len(recent_lats))
