@@ -356,6 +356,31 @@ def get_tool_windowed_error_rate(
     return get_tool_windowed_stats(tool_name, window_ms, store=store, now_ms=now_ms)["error_rate"]
 
 
+def get_tool_windowed_call_count(
+    tool_name: str,
+    window_ms: float,
+    *,
+    store: dict[str, list] | None = None,
+    now_ms: float | None = None,
+) -> int:
+    """Return the windowed call count for a specific tool.  Item 924.
+
+    Completes the windowed fast-path trio: p95 (922) + error_rate (923) + call_count (924).
+
+    Args:
+        tool_name:  The MCP tool name to look up.
+        window_ms:  Look-back window in milliseconds.
+        store:      Windowed telemetry store (injectable; defaults to
+                    ``_WINDOWED_TELEMETRY``).
+        now_ms:     Current time in ms (defaults to ``time.time() * 1000``).
+
+    Returns:
+        Integer count of calls in the last *window_ms* ms.
+        0 for unknown tools or tools with no calls in the window.
+    """
+    return int(get_tool_windowed_stats(tool_name, window_ms, store=store, now_ms=now_ms)["call_count"])
+
+
 def record_tool_call_windowed(
     tool_name: str,
     latency_ms: float,
