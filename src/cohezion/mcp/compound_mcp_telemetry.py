@@ -8015,3 +8015,32 @@ def get_windowed_fleet_latency_ipr90_ms_by_tool(
         window_ms, tool_name, store=store, now_ms=now_ms
     )
     return float(p95 - p5)
+
+
+def get_windowed_fleet_latency_mean_absolute_deviation_from_median_ms_by_tool(
+    window_ms: float,
+    tool_name: str,
+    *,
+    store=None,
+    now_ms=None,
+) -> float:
+    """Per-tool Mean Absolute Deviation from the median (MADM).
+
+    Returns 0.0 for unknown/empty tool, single call, or all calls outside window.
+    Formula: sum(|lat_i - median(lats)|) / n.
+    Distinct from MAD (item 1202) which is the MEDIAN of absolute deviations.
+    Item 1212.
+    """
+    if store is None:
+        store = _WINDOWED_TELEMETRY
+    if now_ms is None:
+        now_ms = _time.time() * 1000.0
+    cutoff_ms = now_ms - window_ms
+    records = store.get(tool_name, [])
+    lats = sorted(lat for ts, lat, _ok in records if ts >= cutoff_ms)
+    n = len(lats)
+    if n < 2:
+        return 0.0
+    mid = n // 2
+    median = lats[mid] if n % 2 == 1 else (lats[mid - 1] + lats[mid]) / 2.0
+    return float(sum(abs(x - median) for x in lats) / n)
