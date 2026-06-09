@@ -6918,3 +6918,54 @@ def get_windowed_fleet_latency_percentile_ms_by_tool(
     rank = _math.ceil(percentile / 100.0 * n)
     idx = max(0, min(n - 1, rank - 1))
     return float(lats[idx])
+
+
+def get_windowed_fleet_latency_p50_ms_by_tool(
+    window_ms: float,
+    tool_name: str,
+    *,
+    store: dict | None = None,
+    now_ms: float | None = None,
+) -> float:
+    """Per-tool P50 (median nearest-rank) latency.  Item 1167.
+
+    Thin composition: get_windowed_fleet_latency_percentile_ms_by_tool(..., 50.0).
+    Returns 0.0 for unknown/empty tool or all-outside-window.
+    """
+    return get_windowed_fleet_latency_percentile_ms_by_tool(
+        window_ms, tool_name, 50.0, store=store, now_ms=now_ms
+    )
+
+
+def get_windowed_fleet_latency_p75_ms_by_tool(
+    window_ms: float,
+    tool_name: str,
+    *,
+    store: dict | None = None,
+    now_ms: float | None = None,
+) -> float:
+    """Per-tool P75 latency.  Item 1168.
+
+    Thin composition: get_windowed_fleet_latency_percentile_ms_by_tool(..., 75.0).
+    Returns 0.0 for unknown/empty tool or all-outside-window.
+    """
+    return get_windowed_fleet_latency_percentile_ms_by_tool(
+        window_ms, tool_name, 75.0, store=store, now_ms=now_ms
+    )
+
+
+def get_windowed_fleet_latency_p95_ms_by_tool(
+    window_ms: float,
+    tool_name: str,
+    *,
+    store: dict | None = None,
+    now_ms: float | None = None,
+) -> float:
+    """Per-tool P95 latency.  Item 1169.
+
+    Thin composition: get_windowed_fleet_latency_percentile_ms_by_tool(..., 95.0).
+    Returns 0.0 for unknown/empty tool or all-outside-window.
+    """
+    return get_windowed_fleet_latency_percentile_ms_by_tool(
+        window_ms, tool_name, 95.0, store=store, now_ms=now_ms
+    )
