@@ -1455,3 +1455,49 @@ def get_windowed_fastest_tool(
     min_p50 = min(p50s.values())
     candidates = [t for t, p in p50s.items() if abs(p - min_p50) < 1e-9]
     return min(candidates)
+
+
+def get_windowed_most_error_prone_tool(
+    window_ms: float,
+    *,
+    store: dict[str, list] | None = None,
+    now_ms: float | None = None,
+) -> str | None:
+    """Return the tool with the highest windowed error rate.  Item 960.
+
+    Windowed analog of :func:`get_most_error_prone_tool` (cumulative, item 940).
+    Returns the tool_name whose windowed error rate is highest.  When multiple
+    tools tie, the alphabetically first name is returned.  Tools with no recent
+    calls are excluded (their windowed error rate is undefined, not 0.0).
+
+    Uses error rate (not error count) so a tool with 2/2 failures is ranked
+    higher than a tool with 10/1000 failures.
+
+    Args:
+        window_ms: Look-back window in milliseconds.
+        store:     Windowed telemetry store (injectable; defaults to
+                   ``_WINDOWED_TELEMETRY``).
+        now_ms:    Current time in ms (defaults to ``time.time() * 1000``).
+
+    Returns:
+        The name of the most error-prone tool (by windowed error rate), or
+        ``None`` when the store is empty or no calls fall within the window.
+    """
+    if store is None:
+        store = _WINDOWED_TELEMETRY
+    if now_ms is None:
+        now_ms = _time.time() * 1000.0
+    cutoff_ms = now_ms - window_ms
+    # Build {tool: windowed_error_rate} for tools with ≥1 recent call
+    rates: dict[str, float] = {}
+    for tool, records in store.items():
+        recent = [(ok,) for ts, _lat, ok in records if ts >= cutoff_ms]
+        if recent:
+            n = len(recent)
+            errors = sum(1 for (ok,) in recent if not ok)
+            rates[tool] = float(errors) / n
+    if not rates:
+        return None
+    max_rate = max(rates.values())
+    candidates = [t for t, r in rates.items() if abs(r - max_rate) < 1e-9]
+    return min(candidates)
