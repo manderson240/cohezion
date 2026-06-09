@@ -6172,3 +6172,33 @@ def get_windowed_fleet_error_count(
             if ts >= cutoff_ms and not ok:
                 errors += 1
     return errors
+
+
+def get_windowed_fleet_success_rate(
+    window_ms: float,
+    *,
+    store: dict | None = None,
+    now_ms: float | None = None,
+) -> float:
+    """Fleet-wide success rate (fraction of successful calls) across all tools.  Item 1138.
+
+    Returns float in [0.0, 1.0].  1.0 for empty window (vacuous).
+    PRIMARY DISC.: kills per-tool-avg (0.667 for tool_a=1/3, tool_b=2/2) —
+    correct is pooled: count_success_all / count_all = 3/5 = 0.6.
+    """
+    if store is None:
+        store = _WINDOWED_TELEMETRY
+    if now_ms is None:
+        now_ms = _time.time() * 1000.0
+    cutoff_ms = now_ms - window_ms
+    total = 0
+    successes = 0
+    for records in store.values():
+        for ts, _lat, ok in records:
+            if ts >= cutoff_ms:
+                total += 1
+                if ok:
+                    successes += 1
+    if total == 0:
+        return 1.0
+    return float(successes / total)
