@@ -83,6 +83,19 @@ def get_tool_telemetry_summary() -> dict[str, dict]:
     return result
 
 
+def get_tool_call_count(tool_name: str) -> int:
+    """Return the cumulative call count for a specific tool.  Item 911.
+
+    Args:
+        tool_name: The MCP tool name to look up.
+
+    Returns:
+        Total number of calls recorded for *tool_name*.
+        Returns 0 for tools with no recorded calls (never raises KeyError).
+    """
+    return _TELEMETRY.get(tool_name, {}).get("call_count", 0)
+
+
 def record_tool_call_windowed(
     tool_name: str,
     latency_ms: float,
