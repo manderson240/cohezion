@@ -6250,3 +6250,32 @@ def get_windowed_fleet_latency_cv(
         return 0.0
     variance = sum((lat - mean) ** 2 for lat in latencies) / n
     return float((variance ** 0.5) / mean)
+
+
+def get_windowed_fleet_latency_mean_ms(
+    window_ms: float,
+    *,
+    store: dict | None = None,
+    now_ms: float | None = None,
+) -> float:
+    """Fleet-wide arithmetic mean of pooled latencies (ms).  Item 1141.
+
+    Returns float (ms).  0.0 for empty window.
+    PRIMARY DISC.: kills per-tool-avg-of-means (unequal-count tools shift pooled mean):
+      tool_a n=3 mean=20ms, tool_b n=2 mean=50ms; per-tool-avg=35ms; fleet_mean=32ms.
+    """
+    if store is None:
+        store = _WINDOWED_TELEMETRY
+    if now_ms is None:
+        now_ms = _time.time() * 1000.0
+    cutoff_ms = now_ms - window_ms
+    total = 0.0
+    count = 0
+    for records in store.values():
+        for ts, lat, _ok in records:
+            if ts >= cutoff_ms:
+                total += lat
+                count += 1
+    if count == 0:
+        return 0.0
+    return float(total / count)
