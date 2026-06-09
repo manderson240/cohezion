@@ -304,3 +304,30 @@ def persist_telemetry_snapshot(path: _Path | str) -> None:
     tmp = dest.with_suffix(".tmp")
     tmp.write_text(payload, encoding="utf-8")
     tmp.rename(dest)
+
+
+def load_telemetry_snapshot(path: _Path | str) -> dict[str, dict]:
+    """Read a persisted telemetry snapshot back from disk.  Item 908.
+
+    Inverse of ``persist_telemetry_snapshot``.  Does NOT mutate ``_TELEMETRY``.
+
+    Args:
+        path: Path to the JSON file written by ``persist_telemetry_snapshot``.
+
+    Returns:
+        {tool_name: {call_count, error_rate, p50_ms, p95_ms}} — same shape as
+        ``get_tool_telemetry_summary()``.
+
+    Raises:
+        FileNotFoundError: If *path* does not exist.
+        ValueError: If the file contents are not valid JSON.
+    """
+    src = _Path(path)
+    if not src.exists():
+        raise FileNotFoundError(f"Telemetry snapshot not found: {src}")
+    text = src.read_text(encoding="utf-8")
+    try:
+        data = _json.loads(text)
+    except _json.JSONDecodeError as exc:
+        raise ValueError(f"Malformed telemetry snapshot at {src}: {exc}") from exc
+    return data
