@@ -6777,3 +6777,21 @@ def get_windowed_fleet_latency_p75_ms(
     return get_windowed_fleet_latency_percentile_ms(
         window_ms, 75.0, store=store, now_ms=now_ms
     )
+
+
+def get_windowed_fleet_latency_p25_ms(
+    window_ms: float,
+    *,
+    store: dict | None = None,
+    now_ms: float | None = None,
+) -> float:
+    """Fleet-wide 25th percentile latency.  Item 1162.
+
+    Thin composition: get_windowed_fleet_latency_percentile_ms(window_ms, 25.0, ...).
+    Returns float (ms).  0.0 for empty window.
+    IQR check: p75_ms - p25_ms == iqr_ms.
+    PRIMARY DISC.: n=10 → P25=30ms kills P50=50ms, P75=80ms, mean=55ms.
+    """
+    return get_windowed_fleet_latency_percentile_ms(
+        window_ms, 25.0, store=store, now_ms=now_ms
+    )
