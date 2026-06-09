@@ -16381,38 +16381,6 @@ def fid_severity_dominant_rank(problems: list[Problem]) -> dict[str, int]:
     }
 
 
-_TOTAL_RANK_COUNT: float = 5.0  # INFO/LOW/MEDIUM/HIGH/CRITICAL
-
-
-def class_severity_rank_coverage(problems: list[Problem]) -> dict[str, float]:
-    """Fraction of the 5 possible severity ranks present per class.  Item 854.
-    distinct_rank_count / 5.0; all-5-ranks -> 1.0; single-rank -> 0.2.
-    Empty -> {}. Pure; no I/O."""
-    if not problems:
-        return {}
-    ranks_by_class: dict[str, set[int]] = {}
-    for p in problems:
-        cls = p.problem_class
-        if cls not in ranks_by_class:
-            ranks_by_class[cls] = set()
-        ranks_by_class[cls].add(_SEVERITY_RANK.get(p.severity, 0))
-    return {cls: float(len(ranks)) / _TOTAL_RANK_COUNT for cls, ranks in ranks_by_class.items()}
-
-
-def fid_severity_rank_coverage(problems: list[Problem]) -> dict[str, float]:
-    """Fraction of the 5 possible severity ranks present per fid.  Item 855.
-    Fid-axis complement of 854. distinct_rank_count / 5.0; empty -> {}. Pure; no I/O."""
-    if not problems:
-        return {}
-    ranks_by_fid: dict[str, set[int]] = {}
-    for p in problems:
-        fid = p.finding_id
-        if fid not in ranks_by_fid:
-            ranks_by_fid[fid] = set()
-        ranks_by_fid[fid].add(_SEVERITY_RANK.get(p.severity, 0))
-    return {fid: float(len(ranks)) / _TOTAL_RANK_COUNT for fid, ranks in ranks_by_fid.items()}
-
-
 _TOTAL_SEVERITY_RANKS: int = 5  # INFO/LOW/MEDIUM/HIGH/CRITICAL
 
 
@@ -16444,3 +16412,45 @@ def fid_severity_rank_coverage(problems: list[Problem]) -> dict[str, float]:
             seen[fid] = set()
         seen[fid].add(_SEVERITY_RANK.get(p.severity, 0))
     return {fid: len(ranks) / _TOTAL_SEVERITY_RANKS for fid, ranks in seen.items()}
+
+
+def class_severity_rank_majority(problems: list[Problem]) -> dict[str, bool]:
+    """Whether any single rank accounts for strictly >50% of problems per class.  Item 856.
+    Single-problem class -> True. Exact 50/50 split -> False. Empty -> {}. Pure; no I/O."""
+    if not problems:
+        return {}
+    rank_counts: dict[str, dict[int, int]] = {}
+    totals: dict[str, int] = {}
+    for p in problems:
+        cls = p.problem_class
+        rank = _SEVERITY_RANK.get(p.severity, 0)
+        if cls not in rank_counts:
+            rank_counts[cls] = {}
+            totals[cls] = 0
+        rank_counts[cls][rank] = rank_counts[cls].get(rank, 0) + 1
+        totals[cls] += 1
+    return {
+        cls: any(count / totals[cls] > 0.5 for count in rank_counts[cls].values())
+        for cls in rank_counts
+    }
+
+
+def fid_severity_rank_majority(problems: list[Problem]) -> dict[str, bool]:
+    """Whether any single rank accounts for strictly >50% of problems per fid.  Item 857.
+    Fid-axis complement of 856. Single-problem -> True. 50/50 -> False. Empty -> {}. Pure; no I/O."""
+    if not problems:
+        return {}
+    rank_counts: dict[str, dict[int, int]] = {}
+    totals: dict[str, int] = {}
+    for p in problems:
+        fid = p.finding_id
+        rank = _SEVERITY_RANK.get(p.severity, 0)
+        if fid not in rank_counts:
+            rank_counts[fid] = {}
+            totals[fid] = 0
+        rank_counts[fid][rank] = rank_counts[fid].get(rank, 0) + 1
+        totals[fid] += 1
+    return {
+        fid: any(count / totals[fid] > 0.5 for count in rank_counts[fid].values())
+        for fid in rank_counts
+    }
