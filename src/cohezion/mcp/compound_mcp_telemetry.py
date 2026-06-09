@@ -8077,3 +8077,39 @@ def get_windowed_fleet_latency_trimmed_mean_ms_by_tool(
     if len(trimmed) < 2:
         return 0.0
     return float(sum(trimmed) / len(trimmed))
+
+
+def get_windowed_fleet_latency_winsorized_mean_ms_by_tool(
+    window_ms: float,
+    tool_name: str,
+    winsor_pct: float = 10.0,
+    *,
+    store=None,
+    now_ms=None,
+) -> float:
+    """Per-tool Winsorized mean latency within window.
+
+    Extremes are clamped to p(winsor_pct) / p(100-winsor_pct) boundaries.
+    All n values are used (none discarded); extremes are clamped, not removed.
+    Returns 0.0 for unknown/empty tool or all calls outside window.
+    Default winsor_pct=10.0.
+    Item 1214.
+    """
+    if store is None:
+        store = _WINDOWED_TELEMETRY
+    if now_ms is None:
+        now_ms = _time.time() * 1000.0
+    cutoff_ms = now_ms - window_ms
+    records = store.get(tool_name, [])
+    lats = [lat for ts, lat, _ok in records if ts >= cutoff_ms]
+    n = len(lats)
+    if n == 0:
+        return 0.0
+    lo = get_windowed_fleet_latency_percentile_ms_by_tool(
+        window_ms, tool_name, winsor_pct, store=store, now_ms=now_ms
+    )
+    hi = get_windowed_fleet_latency_percentile_ms_by_tool(
+        window_ms, tool_name, 100.0 - winsor_pct, store=store, now_ms=now_ms
+    )
+    clamped = [max(lo, min(hi, x)) for x in lats]
+    return float(sum(clamped) / n)
