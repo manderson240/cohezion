@@ -135,6 +135,41 @@ def correspondence_margin(corpus: dict[str, list[str]], encoder: Encoder) -> flo
     return (sum(intra) / len(intra)) - (sum(inter) / len(inter))
 
 
+def novelty_density(
+    items: Iterable[str],
+    corpus: Iterable[dict],
+    *,
+    encoder: Encoder,
+    novelty_threshold: float = 0.5,
+) -> float:
+    """Fraction of ``items`` that are geometrically NOVEL vs ``corpus`` (item 95). Report-only.
+
+    Eagleman memory-density theory of subjective time: novelty → rich/dense memory, routine →
+    compressed/impoverished. A self-monitor over the loop's OWN output. For each item text, its MAX
+    geometric correspondence to the corpus is computed (via :func:`geometric_correspondence`); the
+    item is NOVEL when that max is strictly BELOW ``novelty_threshold`` (geometrically distinct from
+    all prior work) and ROUTINE when at/above it (the loop near-duplicating — an item already in the
+    corpus scores ≈ 1.0 → routine). Returns the novel fraction in ``[0, 1]``: HIGH = a healthy
+    exploring regime, LOW = a spinning / near-duplicating regime. Empty ``items`` → ``0.0`` (no
+    ZeroDivision); empty ``corpus`` → every item novel (nothing to resemble). Report-only — flags,
+    never gates. Pure given the injected ``encoder``. Distinct from item-80 journey-novelty (FLUME
+    trajectories); this is novelty of BACKLOG ITEMS. Caveat: inherits geometric-correspondence's
+    short-title imperfection (item 68) → advisory only.
+    """
+    item_list = [str(t) for t in items]
+    if not item_list:
+        return 0.0
+    corpus_list = list(corpus)  # materialize: iterated once per item (avoid generator exhaustion)
+    novel = 0
+    for text in item_list:
+        # floor=-1.0 keeps EVERY corpus item a candidate so top_k=1 is the true maximum correspondence.
+        matches = geometric_correspondence(text, corpus_list, encoder=encoder, top_k=1, floor=-1.0)
+        max_corr = matches[0].score if matches else -1.0
+        if max_corr < novelty_threshold:
+            novel += 1
+    return novel / len(item_list)
+
+
 def _flume_encoder() -> Encoder:
     """Default encoder: the FLUME 256D text encoder (hash-embedding fallback if no VAE checkpoint).
 
