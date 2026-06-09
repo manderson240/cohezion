@@ -3283,3 +3283,42 @@ def get_windowed_tool_latency_kurtosis(
     pop_stddev = pop_variance ** 0.5
     raw_kurt = sum((lat - mean) ** 4 for lat in lats) / (n * pop_stddev ** 4)
     return float(raw_kurt - 3.0)
+
+
+def get_windowed_tool_latency_mad_ms(
+    tool_name: str,
+    window_ms: float,
+    *,
+    store: dict | None = None,
+    now_ms: float | None = None,
+) -> float:
+    """Median Absolute Deviation (MAD) of per-tool latency in the window.  Item 1032.
+
+    MAD = median(|lat - median(lats)|) for all calls in window.
+    0.0 for unknown/empty tool.  Injectable store.  Pure function.
+
+    Robust spread measure: unaffected by outliers until >50% of calls are extreme.
+    Complementary to stddev (sensitive to outliers) and IQR (quartile-based).
+
+    PRIMARY DISC.: lats [10,20,30,40,100]
+      median=30, abs_devs=[20,10,0,10,70], sorted=[0,10,10,20,70], MAD=10.0
+      (kills stddev≈32; kills mean_abs_dev=24; kills range=90; correct MAD=10.0).
+    """
+    if store is None:
+        store = _WINDOWED_TELEMETRY
+    if now_ms is None:
+        now_ms = _time.time() * 1000.0
+    cutoff_ms = now_ms - window_ms
+    records = store.get(tool_name, [])
+    lats = sorted(lat for ts, lat, _ok in records if ts >= cutoff_ms)
+    n = len(lats)
+    if n == 0:
+        return 0.0
+    # compute median of latencies
+    mid = n // 2
+    med = lats[mid] if n % 2 == 1 else (lats[mid - 1] + lats[mid]) / 2.0
+    # compute median of absolute deviations
+    devs = sorted(abs(lat - med) for lat in lats)
+    mid2 = n // 2
+    mad = devs[mid2] if n % 2 == 1 else (devs[mid2 - 1] + devs[mid2]) / 2.0
+    return float(mad)
