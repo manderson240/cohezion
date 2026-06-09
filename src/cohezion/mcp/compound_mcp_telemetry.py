@@ -383,32 +383,6 @@ def get_tool_windowed_call_count(
     )
 
 
-def get_tool_windowed_p50_ms(
-    tool_name: str,
-    window_ms: float,
-    *,
-    store: dict[str, list] | None = None,
-    now_ms: float | None = None,
-) -> float:
-    """Return the windowed p50 latency for a specific tool.  Item 927.
-
-    Windowed complement of ``get_tool_p50_ms`` — median latency restricted
-    to calls within the last *window_ms* ms.
-
-    Args:
-        tool_name:  The MCP tool name to look up.
-        window_ms:  Look-back window in milliseconds.
-        store:      Windowed telemetry store (injectable; defaults to
-                    ``_WINDOWED_TELEMETRY``).
-        now_ms:     Current time in ms (defaults to ``time.time() * 1000``).
-
-    Returns:
-        p50 latency in milliseconds from windowed calls.
-        0.0 for unknown tools or tools with no calls in the window.
-    """
-    return get_tool_windowed_stats(tool_name, window_ms, store=store, now_ms=now_ms)["p50_ms"]
-
-
 def get_all_tool_windowed_stats(
     window_ms: float,
     *,
@@ -489,6 +463,29 @@ def get_windowed_tool_names(
     """
     active = get_all_tool_windowed_stats(window_ms, store=store, now_ms=now_ms)
     return sorted(active.keys())
+
+
+def get_windowed_tool_count(
+    window_ms: float,
+    *,
+    store: dict[str, list] | None = None,
+    now_ms: float | None = None,
+) -> int:
+    """Return count of distinct tools active within the window.  Item 931.
+
+    Windowed complement of :func:`get_tool_count` — only tools with ≥1 call
+    within the last *window_ms* milliseconds are counted.
+
+    Args:
+        window_ms:  Look-back window in milliseconds.
+        store:      Windowed telemetry store (injectable; defaults to
+                    ``_WINDOWED_TELEMETRY``).
+        now_ms:     Current time in ms (defaults to ``time.time() * 1000``).
+
+    Returns:
+        Number of distinct tool names active in the window; 0 when none.
+    """
+    return len(get_windowed_tool_names(window_ms, store=store, now_ms=now_ms))
 
 
 def record_tool_call_windowed(
