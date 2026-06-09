@@ -778,6 +778,26 @@ def load_telemetry_snapshot(path: _Path | str) -> dict[str, dict]:
     return data
 
 
+def get_tool_mean_latency_ms(tool_name: str) -> float:
+    """Return the arithmetic mean latency for a tool.  Item 933.
+
+    Note: mean and p50 coincide for symmetric distributions but diverge for
+    skewed ones (e.g. [10, 20, 60] → mean=30.0, p50=20.0).  Use p50/p95 for
+    latency SLO work; use mean for aggregate-cost estimates.
+
+    Args:
+        tool_name: The MCP tool name to look up.
+
+    Returns:
+        Arithmetic mean of all recorded latencies in milliseconds.
+        Returns 0.0 for unknown tools or tools with no calls.
+    """
+    stats = _TELEMETRY.get(tool_name)
+    if not stats or stats["call_count"] == 0:
+        return 0.0
+    return float(sum(stats["latencies"])) / stats["call_count"]
+
+
 def get_tool_total_latency_ms(tool_name: str) -> float:
     """Return the sum of all recorded latencies for a tool.  Item 932.
 
