@@ -2261,3 +2261,23 @@ def get_windowed_global_success_rate(
         return 0.0
     successes = sum(1 for ok in all_outcomes if ok)
     return float(successes / n)
+
+
+def get_windowed_tool_p50_ms(
+    tool_name: str,
+    window_ms: float,
+    *,
+    store: dict | None = None,
+    now_ms: float | None = None,
+) -> float:
+    """Return the p50 (median) latency in the window for *tool_name*.  Item 990.
+
+    Convenience shortcut for get_windowed_latency_percentile(tool_name, 50, ...).
+    Returns 0.0 for unknown tools or when no recent calls exist.
+
+    PRIMARY DISC.: lats [10,20,30,40,90] -> p50=30.0 (not mean=38.0, not max=90.0).
+    Even-count interpolation: [10,20,30,40] -> idx=1.5 -> 20+0.5*10=25.0.
+    """
+    return get_windowed_latency_percentile(
+        tool_name, 50.0, window_ms, store=store, now_ms=now_ms
+    )
