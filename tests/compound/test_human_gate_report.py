@@ -19,8 +19,11 @@ from __future__ import annotations
 from pathlib import Path
 
 from cohezion.compound.scope_frontier import (
+    HumanGateDecision,
+    HumanGateDelta,
     ScopeProposal,
     gated_reasons_from_ledger,
+    human_gate_delta,
     human_gate_report,
     human_gate_report_from_state,
 )
@@ -86,3 +89,47 @@ def test_reasons_map_missing_ledger_empty(tmp_path: Path) -> None:
 def test_from_state_returns_list() -> None:
     # Live composition must not crash and must return a list (fail-soft over registry + ledger).
     assert isinstance(human_gate_report_from_state(), list)
+
+
+# --- item 81: human_gate_delta (resolution-tracking over two human_gate_report snapshots) ----
+
+
+def _dec(target: str, reason: str) -> HumanGateDecision:
+    return HumanGateDecision(target=target, kind="unswept_package", gate_reason=reason)
+
+
+def test_human_gate_delta_classifies_each() -> None:
+    # keepblock: in both, reason shifted -> reason_changed (NOT resolved/introduced)
+    # resolveme: before-only -> resolved | newblock: after-only -> introduced
+    # samereason: in both, identical reason -> in NO list
+    before = [_dec("keepblock", "old reason"), _dec("resolveme", "rA"), _dec("samereason", "rS")]
+    after = [_dec("keepblock", "new reason"), _dec("newblock", "rN"), _dec("samereason", "rS")]
+    delta = human_gate_delta(before, after)
+    assert isinstance(delta, HumanGateDelta)
+    assert delta.resolved == ["resolveme"]
+    assert delta.introduced == ["newblock"]
+    assert delta.reason_changed == ["keepblock"]
+    # samereason changed nothing -> kills an impl that reports every common target
+    everywhere = set(delta.resolved) | set(delta.introduced) | set(delta.reason_changed)
+    assert "samereason" not in everywhere
+
+
+def test_human_gate_delta_reason_changed_not_double_counted() -> None:
+    # The tuple-set-diff killer: a (target,reason)-tuple diff would put keepblock in BOTH
+    # resolved (old tuple gone) AND introduced (new tuple appeared). Correct impl: reason_changed ONLY.
+    before = [_dec("keepblock", "old reason")]
+    after = [_dec("keepblock", "new reason")]
+    delta = human_gate_delta(before, after)
+    assert delta.reason_changed == ["keepblock"]
+    assert delta.resolved == [] and delta.introduced == []  # NOT in resolved/introduced
+
+
+def test_human_gate_delta_identical_snapshots_empty() -> None:
+    snap = [_dec("a", "r1"), _dec("b", "r2")]
+    delta = human_gate_delta(snap, snap)
+    assert delta.resolved == [] and delta.introduced == [] and delta.reason_changed == []
+
+
+def test_human_gate_delta_empty_inputs() -> None:
+    delta = human_gate_delta([], [])
+    assert delta.resolved == [] and delta.introduced == [] and delta.reason_changed == []

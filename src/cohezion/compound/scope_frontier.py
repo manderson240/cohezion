@@ -280,3 +280,39 @@ def human_gate_report_from_state() -> list[HumanGateDecision]:
         propose_scope_frontier_from_state(),
         gated_reasons=gated_reasons_from_ledger(),
     )
+
+
+@dataclass(frozen=True)
+class HumanGateDelta:
+    """What changed between two ``human_gate_report`` snapshots (item 81). Targets, sorted."""
+
+    resolved: list[str]  # gated in `before`, gone in `after` — the human unblocked it
+    introduced: list[str]  # new in `after` — a new blocker appeared
+    reason_changed: list[
+        str
+    ]  # gated in BOTH, gate_reason text shifted (still blocked, differently)
+
+
+def human_gate_delta(
+    before: list[HumanGateDecision], after: list[HumanGateDecision]
+) -> HumanGateDelta:
+    """Resolution-tracking over item-59: did a human ACT between two snapshots? (item 81). Pure.
+
+    Identity is the ``target`` (the gate is per-target). A target gated in ``before`` but absent in
+    ``after`` is *resolved*; one new in ``after`` is *introduced*; one present in BOTH whose
+    ``gate_reason`` changed is *reason_changed*. Crucially a reason-changed target is NEITHER resolved
+    NOR introduced (a shifted blocker is still a blocker) — so this keys resolved/introduced by target
+    identity, NOT by ``(target, reason)`` tuples (a tuple set-diff would wrongly list it in both). A
+    target in both with the SAME reason is in no list (no change). Report-only; no I/O.
+    """
+    before_reasons = {d.target: d.gate_reason for d in before}
+    after_reasons = {d.target: d.gate_reason for d in after}
+    before_targets, after_targets = set(before_reasons), set(after_reasons)
+    reason_changed = [
+        t for t in (before_targets & after_targets) if before_reasons[t] != after_reasons[t]
+    ]
+    return HumanGateDelta(
+        resolved=sorted(before_targets - after_targets),
+        introduced=sorted(after_targets - before_targets),
+        reason_changed=sorted(reason_changed),
+    )
