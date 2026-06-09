@@ -5839,3 +5839,27 @@ def get_windowed_tool_latency_burst_fraction(
     # Sum only runs with >=2 calls
     in_burst_calls = sum(n for n in burst_call_counts if n >= 2)
     return float(in_burst_calls / total)
+
+
+def get_windowed_tool_latency_percentile_gap_ms(
+    tool_name: str,
+    window_ms: float,
+    p_low: float,
+    p_high: float,
+    *,
+    store: dict | None = None,
+    now_ms: float | None = None,
+) -> float:
+    """Gap between two nearest-rank percentiles: P(p_high) - P(p_low).  Item 1126.
+
+    Returns float (ms).  0.0 for empty window or when both percentiles are equal.
+    Uses the same nearest-rank method as get_windowed_tool_latency_percentile_ms.
+    PRIMARY DISC.: kills linear-interpolation gap; kills wrong-percentile IQR.
+    """
+    p_lo = get_windowed_tool_latency_percentile_ms(
+        tool_name, window_ms, p_low, store=store, now_ms=now_ms,
+    )
+    p_hi = get_windowed_tool_latency_percentile_ms(
+        tool_name, window_ms, p_high, store=store, now_ms=now_ms,
+    )
+    return float(p_hi - p_lo)
