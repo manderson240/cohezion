@@ -13,7 +13,9 @@ Reset store.clear() for test isolation.
 
 from __future__ import annotations
 
+import json as _json
 import time as _time
+from pathlib import Path as _Path
 
 
 _TELEMETRY: dict[str, dict] = {}
@@ -284,3 +286,21 @@ def get_telemetry_health_snapshot(
             "recent_error_rate": float(stats["error_rate"]),
         }
     return result
+
+
+def persist_telemetry_snapshot(path: _Path | str) -> None:
+    """Write the cumulative telemetry summary to disk as JSON.  Item 907.
+
+    Atomic write: data is written to a temporary file beside the destination,
+    then renamed into place so readers never see a partial file.
+
+    Args:
+        path: Destination file path (``pathlib.Path`` or ``str``).
+              Parent directory must exist.
+    """
+    dest = _Path(path)
+    summary = get_tool_telemetry_summary()
+    payload = _json.dumps(summary, indent=2)
+    tmp = dest.with_suffix(".tmp")
+    tmp.write_text(payload, encoding="utf-8")
+    tmp.rename(dest)
