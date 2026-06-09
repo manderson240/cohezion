@@ -7906,3 +7906,26 @@ def get_windowed_fleet_latency_mean_per_failure_ms_by_tool(
     if n == 0:
         return 0.0
     return float(sum(lats) / n)
+
+
+def get_windowed_fleet_failure_count_by_tool(
+    window_ms: float,
+    tool_name: str,
+    *,
+    store=None,
+    now_ms=None,
+) -> int:
+    """Per-tool count of FAILED calls (ok=False) within window.
+
+    Returns int. 0 for unknown/empty tool or no failed calls in window.
+    Formula: count(ok=False calls in window).
+    Composition: failure_count + success_count == total_call_count.
+    Item 1207.
+    """
+    if store is None:
+        store = _WINDOWED_TELEMETRY
+    if now_ms is None:
+        now_ms = _time.time() * 1000.0
+    cutoff_ms = now_ms - window_ms
+    records = store.get(tool_name, [])
+    return sum(1 for ts, _lat, ok in records if ts >= cutoff_ms and not ok)
