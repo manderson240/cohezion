@@ -3202,6 +3202,32 @@ def get_windowed_tool_p5_ms(
     return get_windowed_latency_percentile(tool_name, 5.0, window_ms, store=store, now_ms=now_ms)
 
 
+def get_windowed_tool_p5_p95_ratio(
+    tool_name: str,
+    window_ms: float,
+    *,
+    store: dict | None = None,
+    now_ms: float | None = None,
+) -> float:
+    """p5/p95 tail symmetry index for a single tool in the window.  Item 1045.
+
+    Thin composition: p5 / p95.  Returns 0.0 if p95 == 0.0 (no data or all zero).
+    Wider tail coverage than p10/p90 ratio (item 1029).
+    Injectable store.  Pure function.
+
+    PRIMARY DISC.: lats [10,20,...,100] n=10
+      -> p5=14.5, p95=95.5, ratio=14.5/95.5≈0.1518
+      (kills p10/p90 ratio≈0.2088 -- wrong percentile pair;
+       kills ratio=1.0 -- symmetric assumption;
+       correct=14.5/95.5≈0.1518 via linear interpolation).
+    """
+    p5 = get_windowed_latency_percentile(tool_name, 5.0, window_ms, store=store, now_ms=now_ms)
+    p95 = get_windowed_latency_percentile(tool_name, 95.0, window_ms, store=store, now_ms=now_ms)
+    if p95 == 0.0:
+        return 0.0
+    return float(p5 / p95)
+
+
 def get_windowed_tool_p10_ms(
     tool_name: str,
     window_ms: float,
