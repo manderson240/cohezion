@@ -4584,3 +4584,41 @@ def get_windowed_tool_latency_ewma_ms(
     for _, lat in windowed[1:]:
         ewma = alpha * lat + (1.0 - alpha) * ewma
     return float(ewma)
+
+
+def get_windowed_global_latency_ewma_ms(
+    window_ms: float,
+    alpha: float,
+    *,
+    store: dict | None = None,
+    now_ms: float | None = None,
+) -> float:
+    """Fleet-wide EWMA across ALL tool latencies ordered by timestamp.  Item 1078.
+
+    Pools all (ts, lat) pairs from all tools in the window, sorts by timestamp
+    ascending, then applies EWMA with smoothing factor alpha.
+    Returns 0.0 for empty pool.
+    Injectable store. Pure function. Fleet dual of item 1077.
+
+    PRIMARY DISC.: 3 single-call tools at t1/t2/t3 with lats 10/50/20, alpha=0.5
+      -> global EWMA=25.0 (kills per-tool EWMA avg=26.67).
+    """
+    if store is None:
+        store = _WINDOWED_TELEMETRY
+    if now_ms is None:
+        now_ms = _time.time() * 1000.0
+    cutoff_ms = now_ms - window_ms
+    # Pool all (ts, lat) pairs across all tools within the window
+    pooled: list[tuple[float, float]] = []
+    for records in store.values():
+        for ts, lat, _ok in records:
+            if ts >= cutoff_ms:
+                pooled.append((ts, lat))
+    if not pooled:
+        return 0.0
+    # Sort by timestamp ascending (oldest first)
+    pooled.sort(key=lambda x: x[0])
+    ewma = pooled[0][1]
+    for _, lat in pooled[1:]:
+        ewma = alpha * lat + (1.0 - alpha) * ewma
+    return float(ewma)
