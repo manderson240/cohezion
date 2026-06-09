@@ -16134,3 +16134,27 @@ def fid_severity_rank_std_dev(problems: list[Problem]) -> dict[str, float]:
         variance = sq_totals[fid] / n - mean * mean
         result[fid] = float((variance ** 0.5) if variance > 0 else 0.0)
     return result
+
+
+def top_n_classes_with_counts(problems: list[Problem], n: int) -> list[tuple[str, int]]:
+    """Top-N classes by problem count as (class, count) tuples.  Item 838.
+    Sorted descending by count; ties broken by class name ascending. Empty -> []. n<=0 -> []."""
+    if not problems or n <= 0:
+        return []
+    counts: dict[str, int] = {}
+    for p in problems:
+        counts[p.problem_class] = counts.get(p.problem_class, 0) + 1
+    ranked = sorted(counts.items(), key=lambda kv: (-kv[1], kv[0]))
+    return [(cls, cnt) for cls, cnt in ranked[:n]]
+
+
+def top_n_fids_with_counts(problems: list[Problem], n: int) -> list[tuple[str, int]]:
+    """Top-N fids by problem count as (fid, count) tuples.  Item 839.
+    Fid-axis complement of 838. Sorted descending by count; ties by fid name ascending. Empty -> []."""
+    if not problems or n <= 0:
+        return []
+    counts: dict[str, int] = {}
+    for p in problems:
+        counts[p.finding_id] = counts.get(p.finding_id, 0) + 1
+    ranked = sorted(counts.items(), key=lambda kv: (-kv[1], kv[0]))
+    return [(fid, cnt) for fid, cnt in ranked[:n]]
