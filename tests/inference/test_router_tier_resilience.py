@@ -138,6 +138,33 @@ async def test_router_tier_dispatches_to_13305_and_returns_content():
     assert result.error is None
 
 
+@pytest.mark.asyncio
+async def test_dispatch_falls_back_to_reasoning_content_for_thinking_models():
+    """F2 (adversarial audit): thinking models (deepseek-r1, FLM) emit the answer in
+    ``reasoning_content`` with empty ``content``. The tier path read only ``content``, so the
+    iGPU reasoning lane systematically returned '' and escalated. It must fall back to
+    reasoning_content. Discriminating: content is empty, the answer is ONLY in reasoning."""
+    tier = RouterTier(model_id="deepseek-r1-0528-8b-FLM", backend="vulkan")
+
+    async def _router_post(url, **_kwargs):
+        resp = MagicMock()
+        resp.raise_for_status = MagicMock(return_value=None)
+        if "/v1/chat/completions" in url:
+            resp.json = MagicMock(
+                return_value={
+                    "choices": [{"message": {"content": "", "reasoning_content": "the real answer"}}]
+                }
+            )
+        return resp
+
+    post = AsyncMock(side_effect=_router_post)
+    with _patch_async_post(post):
+        result = await tier.run("solve this")
+
+    assert result.text == "the real answer", f"dropped reasoning_content: {result.text!r}"
+    assert result.error is None
+
+
 def test_build_triune_orchestrator_sets_concurrency_cap():
     """F3: build_triune_orchestrator must bound run_batch concurrency (item 113), else
     asyncio.gather is unbounded against the single :13305. Pre-fix returns None."""
