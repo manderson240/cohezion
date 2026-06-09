@@ -1118,3 +1118,18 @@ def get_all_tool_names() -> list[str]:
         Empty list when no calls have been recorded yet.
     """
     return sorted(_TELEMETRY.keys())
+
+
+def get_all_tool_telemetry_full() -> dict[str, dict]:
+    """Return the complete 8-key profile for every recorded tool.  Item 950.
+
+    Delegates to :func:`get_tool_telemetry_full` for each tool currently in
+    ``_TELEMETRY``, assembling the results into a single map.
+
+    Returns:
+        ``{tool_name: get_tool_telemetry_full(tool_name)}`` for all recorded
+        tools.  Empty dict when no calls have been recorded yet.  Each nested
+        dict has exactly 8 keys: ``{call_count, error_count, error_rate,
+        success_rate, p50_ms, p95_ms, min_ms, max_ms}``.
+    """
+    return {tool: get_tool_telemetry_full(tool) for tool in _TELEMETRY}
