@@ -2369,6 +2369,29 @@ def get_windowed_global_p99_ms(
     )
 
 
+def get_windowed_global_p75_ms(
+    window_ms: float,
+    *,
+    store: dict | None = None,
+    now_ms: float | None = None,
+) -> float:
+    """Return the fleet-wide p75 latency in the window.  Item 1009.
+
+    Shortcut for get_windowed_global_latency_percentile(75.0, window_ms, ...).
+    Pools ALL recent latencies from all tools before computing the percentile --
+    NOT an average of per-tool p75 values.
+    Returns 0.0 when no recent calls exist.
+
+    PRIMARY DISC.: tool_a [50,100] + tool_b [200,400]
+      pooled sorted [50,100,200,400] (n=4), idx=0.75*3=2.25
+      -> 200 + 0.25*(400-200) = 250.0
+      (kills per-tool-avg approach which gives a different result).
+    """
+    return get_windowed_global_latency_percentile(
+        75.0, window_ms, store=store, now_ms=now_ms
+    )
+
+
 def get_windowed_tool_throughput_per_sec(
     tool_name: str,
     window_ms: float,
