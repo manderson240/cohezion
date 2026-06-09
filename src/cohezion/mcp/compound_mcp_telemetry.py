@@ -2562,3 +2562,34 @@ def get_windowed_tool_slow_call_count(
     cutoff_ms = now_ms - window_ms
     records = store.get(tool_name, [])
     return int(sum(1 for ts, lat, _ok in records if ts >= cutoff_ms and lat > threshold_ms))
+
+
+def get_windowed_tool_slow_call_rate(
+    tool_name: str,
+    window_ms: float,
+    threshold_ms: float,
+    *,
+    store: dict | None = None,
+    now_ms: float | None = None,
+) -> float:
+    """Return the fraction of calls with latency_ms > threshold_ms in the window.  Item 1004.
+
+    SLO violation rate: slow_call_count / total_call_count.
+
+    Returns 0.0 when the tool is unknown or no recent calls exist.
+    Strictly greater than: latency exactly equal to threshold_ms does NOT count.
+
+    PRIMARY DISC.: lats [10,50,200,300] threshold=100 -> 0.5 (2 slow / 4 total).
+    """
+    if store is None:
+        store = _WINDOWED_TELEMETRY
+    if now_ms is None:
+        now_ms = _time.time() * 1000.0
+    cutoff_ms = now_ms - window_ms
+    records = store.get(tool_name, [])
+    recent = [(lat,) for ts, lat, _ok in records if ts >= cutoff_ms]
+    total = len(recent)
+    if total == 0:
+        return 0.0
+    slow = sum(1 for (lat,) in recent if lat > threshold_ms)
+    return float(slow / total)
