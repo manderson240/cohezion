@@ -4937,3 +4937,34 @@ def get_windowed_tool_latency_recovery_rate_ms_per_ms(
     if not rates:
         return 0.0
     return float(sum(rates) / len(rates))
+
+
+def get_windowed_fleet_burst_hotspot(
+    window_ms: float,
+    burst_threshold_ms: float,
+    *,
+    store: dict | None = None,
+    now_ms: float | None = None,
+) -> tuple[str, int]:
+    """(tool_name, burst_count) for the tool with the most windowed bursts.  Item 1086.
+
+    Returns ("", 0) if no tool has any bursts.
+    Injectable store. Pure function. Delegates to get_windowed_tool_latency_burst_count.
+
+    PRIMARY DISC.: tool_a=3 bursts, tool_b=1, tool_c=2 -> ("hotspot_a", 3)
+      (kills argmax-by-total-above-count -- distinct burst runs matter, not call count).
+    """
+    if store is None:
+        store = _WINDOWED_TELEMETRY
+    if now_ms is None:
+        now_ms = _time.time() * 1000.0
+    best_tool = ""
+    best_count = 0
+    for tool_name in store:
+        count = get_windowed_tool_latency_burst_count(
+            tool_name, window_ms, burst_threshold_ms, store=store, now_ms=now_ms
+        )
+        if count > best_count:
+            best_count = count
+            best_tool = tool_name
+    return (best_tool, best_count)
