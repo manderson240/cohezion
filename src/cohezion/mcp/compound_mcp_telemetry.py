@@ -2983,3 +2983,31 @@ def get_windowed_tool_latency_sum_ms(
     cutoff_ms = now_ms - window_ms
     records = store.get(tool_name, [])
     return float(sum(lat for ts, lat, _ok in records if ts >= cutoff_ms))
+
+
+def get_windowed_global_latency_sum_ms(
+    window_ms: float,
+    *,
+    store: dict | None = None,
+    now_ms: float | None = None,
+) -> float:
+    """Return fleet-wide sum of all latencies in the window.  Item 1020.
+
+    Pools ALL tool latencies. 0.0 when no recent calls exist.
+    Enables fleet mean without per-tool iteration:
+      fleet_mean = global_latency_sum_ms / global_call_count.
+
+    PRIMARY DISC.: tool_a [10,50] + tool_b [200,300] -> 560.0
+      (kills per-tool-sum-a=60; kills per-tool-sum-b=500; correct pooled=560.0).
+    """
+    if store is None:
+        store = _WINDOWED_TELEMETRY
+    if now_ms is None:
+        now_ms = _time.time() * 1000.0
+    cutoff_ms = now_ms - window_ms
+    return float(sum(
+        lat
+        for records in store.values()
+        for ts, lat, _ok in records
+        if ts >= cutoff_ms
+    ))
