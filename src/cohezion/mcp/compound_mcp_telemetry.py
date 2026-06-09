@@ -7435,3 +7435,37 @@ def get_windowed_fleet_latency_sla_budget_consumed_by_tool(
             if overage > 0.0:
                 total += overage
     return float(total)
+
+
+def get_windowed_fleet_latency_sla_mean_overage_by_tool(
+    window_ms: float,
+    tool_name: str,
+    threshold_ms: float,
+    *,
+    store: dict | None = None,
+    now_ms: float | None = None,
+) -> float:
+    """Per-tool mean latency overage for SLA-violating calls only.  Item 1187.
+
+    Formula: budget_consumed / violation_count.
+    Returns float.  0.0 for unknown/empty tool or all-compliant calls.
+    Distinguishes a few severe violations from many mild ones (vs. violation rate).
+    PRIMARY DISC.: mean_overage_a=15ms ≠ mean_overage_b=125ms.
+    """
+    if store is None:
+        store = _WINDOWED_TELEMETRY
+    if now_ms is None:
+        now_ms = _time.time() * 1000.0
+    cutoff_ms = now_ms - window_ms
+    records = store.get(tool_name, [])
+    total_overage = 0.0
+    violation_count = 0
+    for ts, lat, _ok in records:
+        if ts >= cutoff_ms:
+            overage = lat - threshold_ms
+            if overage > 0.0:
+                total_overage += overage
+                violation_count += 1
+    if violation_count == 0:
+        return 0.0
+    return float(total_overage / violation_count)
