@@ -5067,3 +5067,33 @@ def get_windowed_tool_call_gap_max_ms(
         if gap > max_gap:
             max_gap = gap
     return float(max_gap)
+
+
+def get_windowed_tool_call_gap_mean_ms(
+    tool_name: str,
+    window_ms: float,
+    *,
+    store: dict | None = None,
+    now_ms: float | None = None,
+) -> float:
+    """Mean gap (ms) between consecutive windowed calls.  Item 1090.
+
+    Equals total_span / (n-1) = sum(consecutive_gaps) / (n-1).
+    Returns 0.0 for <2 windowed calls.
+    Injectable store. Pure function.
+
+    PRIMARY DISC.: ts=[t-400,t-300,t-100,t-0] -> mean=400/3≈133.33ms
+      (kills max_gap=200ms; kills first_gap=100ms; correct mean=133.33ms).
+    """
+    if store is None:
+        store = _WINDOWED_TELEMETRY
+    if now_ms is None:
+        now_ms = _time.time() * 1000.0
+    cutoff_ms = now_ms - window_ms
+    records = store.get(tool_name, [])
+    timestamps = sorted(ts for ts, _lat, _ok in records if ts >= cutoff_ms)
+    n = len(timestamps)
+    if n < 2:
+        return 0.0
+    # total_span / (n-1) = same as sum(consecutive_gaps) / (n-1)
+    return float((timestamps[-1] - timestamps[0]) / (n - 1))
