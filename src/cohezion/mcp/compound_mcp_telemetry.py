@@ -127,6 +127,18 @@ def record_tool_call_all(
     record_tool_call_windowed(tool_name, latency_ms, success, ts_ms=ts_ms)
 
 
+def clear_telemetry_stores() -> None:
+    """Reset both in-memory telemetry stores to empty.  Item 910.
+
+    Idempotent: calling on already-empty stores is a no-op.
+    Useful for test isolation and operator resets.
+    Does NOT affect custom dicts passed as the ``store`` parameter
+    to injectable functions.
+    """
+    _TELEMETRY.clear()
+    _WINDOWED_TELEMETRY.clear()
+
+
 def get_windowed_summary(
     store: dict[str, list],
     window_ms: float,
