@@ -248,6 +248,26 @@ def check_fleet(*, force: bool = False) -> FleetHealth:
         "gemini": _probe_gemini(),
     }
 
+    # Router-centric reconciliation (F1 fix, adversarial audit 2026-06-09): the
+    # lemonade router on :13305 serves every local lane on demand, and the dedicated
+    # per-port daemons (:13306-:13309) are often down + redundant in the router-centric
+    # topology. If a local lane's dedicated daemon is not UP but the router IS, the lane
+    # is still servable via the router — mark it UP so route()/extend_claude do not
+    # silently escalate every local request to the paid cloud CLI.
+    router = _probe_openai_endpoint("router", "http://localhost:13305")
+    lanes["router"] = router
+    if router.status == LaneStatus.UP:
+        for lane_name in ("npu", "igpu_rocwmma", "igpu_unified", "cpu"):
+            if lanes[lane_name].status != LaneStatus.UP:
+                lanes[lane_name] = LaneHealth(
+                    lane=lane_name,
+                    endpoint="http://localhost:13305",
+                    status=LaneStatus.UP,
+                    latency_ms=router.latency_ms,
+                    models_available=router.models_available,
+                    detail="via router :13305",
+                )
+
     result = FleetHealth(
         checked_at=now,
         lanes=lanes,

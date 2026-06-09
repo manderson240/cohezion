@@ -56,6 +56,34 @@ def test_check_fleet_npu_up_marks_lane():
     assert health.local_lanes_up == 1
 
 
+def test_local_lanes_up_via_router_when_per_port_daemons_down():
+    """F1 regression (adversarial audit 2026-06-09): in the router-centric topology
+    the dedicated per-port daemons (:13306-:13309) are DOWN and :13305 serves every
+    local lane on demand. A local lane MUST report UP (served via router) so that
+    route()/extend_claude do not silently escalate to the paid cloud CLI.
+
+    Discriminating: per-port probes all fail; ONLY :13305 answers. A naive impl that
+    gates purely on the per-port probe leaves all four lanes DOWN (the regression).
+    The mirror case (router ALSO down -> lanes DOWN) is guarded by
+    test_check_fleet_all_down_returns_down_status, so this fix cannot blanket-UP.
+    """
+
+    def fake_get(url, **kwargs):
+        if "13305" in url:
+            return _mock_response(200, {"data": [{"id": "Gemma-4-E2B-it-GGUF"}]})
+        raise httpx.ConnectError("refused")  # 13306-13309 + ollama all down
+
+    with patch("httpx.get", side_effect=fake_get):
+        health = check_fleet(force=True)
+
+    for lane_name in ("npu", "igpu_rocwmma", "igpu_unified", "cpu"):
+        assert health.lanes[lane_name].status == LaneStatus.UP, (
+            f"{lane_name} marked {health.lanes[lane_name].status} though :13305 is up "
+            "-> route()/extend_claude would escalate to paid cloud"
+        )
+    assert health.local_lanes_up == 4
+
+
 def test_check_fleet_caches_between_calls():
     with patch("httpx.get", side_effect=httpx.ConnectError("refused")) as mock_get:
         check_fleet(force=True)

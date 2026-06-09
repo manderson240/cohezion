@@ -29,6 +29,12 @@ def _check_port(port: int, timeout: float = 1.0) -> bool:
         return False
 
 
+# F3 (adversarial audit 2026-06-09): run_batch reads orchestrator._max_concurrent; left
+# unset it ran an UNBOUNDED asyncio.gather against the single :13305 (the saturation that
+# starved the live bot, item 113). Cap concurrent in-flight requests for fleet fairness.
+_TRIUNE_MAX_CONCURRENT = 4
+
+
 def build_triune_orchestrator(
     *,
     npu_port: int = 13306,  # allow-direct-port: API-stability param — body uses router post-Phase2; CLaSp igpu_port uses direct
@@ -78,7 +84,9 @@ def build_triune_orchestrator(
                     "OOM guard: include_cloud=False and RAM low — proceeding with local (risk accepted)."
                 )
             else:
-                return TieredOrchestrator(tiers=tiers_cloud_only)
+                orch_cloud = TieredOrchestrator(tiers=tiers_cloud_only)
+                orch_cloud._max_concurrent = _TRIUNE_MAX_CONCURRENT  # F3: fleet-fairness cap
+                return orch_cloud
         logger.debug("OOM guard: %.1f GB available — local tiers safe to load.", snap.available_gb)
     except ValueError:
         raise  # Re-raise programming errors (e.g., empty tiers list)
@@ -197,7 +205,9 @@ def build_triune_orchestrator(
         logger.info("Triune: %d-tier local-only (NPU→iGPU→[CPU]), include_cloud=False", len(tiers))
 
     router = PrefillActivationRouter(base_classifier=classify_task)
-    return TieredOrchestrator(
+    orch = TieredOrchestrator(
         tiers=tiers,
         pre_dispatch_classifier=router,  # overrides quality gate per output_type
     )
+    orch._max_concurrent = _TRIUNE_MAX_CONCURRENT  # F3: bound run_batch on the single :13305 (item 113)
+    return orch

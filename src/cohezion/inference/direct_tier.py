@@ -11,6 +11,7 @@ Validated in exp_OOOO3 and exp_PPPP3 (2026-05-30, autoresearch round 13).
 
 from __future__ import annotations
 
+import asyncio
 import logging
 import time
 
@@ -189,35 +190,43 @@ class RouterCpuTier(DirectLemonadeTier):
         self.label = f"router:{model_id}"
         self._load_url = f"http://localhost:{port}/api/v1/load"
         self._loaded = False
+        self._load_lock = asyncio.Lock()  # F3: serialize concurrent preloads (item 113)
 
     async def _ensure_loaded(self) -> None:
-        """Pre-load the reasoner on the router with a bounded ctx_size (N3). Fail-soft."""
+        """Pre-load the reasoner on the router with a bounded ctx_size (N3).
+
+        F3: a lock serializes concurrent preloads (one ``/api/v1/load``, not N — item 113).
+        F4: ``_loaded`` is set ONLY on success — a failed preload retries the BOUNDED load
+        next call rather than letting the router auto-load at an unbounded ctx (N3).
+        """
         if self._loaded:
             return
         import httpx
 
-        try:
-            async with httpx.AsyncClient(timeout=120.0) as client:
-                resp = await client.post(
-                    self._load_url,
-                    json={
-                        "model_name": self.model_id,
-                        "llamacpp_backend": self.backend,
-                        "ctx_size": self.ctx_size,  # N3: bounded ≤16384, never 0
-                        "save_options": True,
-                    },
+        async with self._load_lock:
+            if self._loaded:  # another coroutine completed the load while we waited
+                return
+            try:
+                async with httpx.AsyncClient(timeout=120.0) as client:
+                    resp = await client.post(
+                        self._load_url,
+                        json={
+                            "model_name": self.model_id,
+                            "llamacpp_backend": self.backend,
+                            "ctx_size": self.ctx_size,  # N3: bounded ≤16384, never 0
+                            "save_options": True,
+                        },
+                    )
+                    resp.raise_for_status()
+                self._loaded = True  # F4: only mark loaded on SUCCESS
+            except Exception as exc:  # F4: do NOT mark loaded — next call retries bounded load
+                logger.debug(
+                    "RouterCpuTier pre-load (%s, backend=%s, ctx=%d) failed: %s",
+                    self.model_id,
+                    self.backend,
+                    self.ctx_size,
+                    exc,
                 )
-                resp.raise_for_status()
-        except Exception as exc:  # non-fatal: chat still runs; persisted card bound applies
-            logger.debug(
-                "RouterCpuTier pre-load (%s, backend=%s, ctx=%d) failed: %s",
-                self.model_id,
-                self.backend,
-                self.ctx_size,
-                exc,
-            )
-        finally:
-            self._loaded = True
 
     async def run(self, prompt: str, **kwargs: object) -> OrchestrationResult:
         await self._ensure_loaded()
@@ -304,6 +313,7 @@ class RouterTier(DirectLemonadeTier):
         self.label = f"router:{model_id}"
         self._load_url = f"http://localhost:{port}/api/v1/load"
         self._loaded = False
+        self._load_lock = asyncio.Lock()  # F3: serialize concurrent preloads (item 113)
 
     def _build_load_payload(self) -> dict:
         """Build the /api/v1/load payload, omitting llamacpp_backend for FLM models."""
@@ -318,25 +328,33 @@ class RouterTier(DirectLemonadeTier):
         return payload
 
     async def _ensure_loaded(self) -> None:
-        """Pre-load the model on the router with a bounded ctx_size (N3). Fail-soft."""
+        """Pre-load the model on the router with a bounded ctx_size (N3).
+
+        F3: a lock serializes concurrent preloads so N ``run_batch`` coroutines fire ONE
+        ``/api/v1/load``, not N (the storm that saturated :13305 / starved the bot, item 113).
+        F4: ``_loaded`` is set ONLY on a successful load — a failed preload retries the BOUNDED
+        load on the next call rather than letting the router auto-load at an unbounded ctx (N3).
+        """
         if self._loaded:
             return
         import httpx
 
-        try:
-            async with httpx.AsyncClient(timeout=120.0) as client:
-                resp = await client.post(self._load_url, json=self._build_load_payload())
-                resp.raise_for_status()
-        except Exception as exc:  # non-fatal: chat still runs; persisted card bound applies
-            logger.debug(
-                "RouterTier pre-load (%s, backend=%s, ctx=%d) failed: %s",
-                self.model_id,
-                self.backend,
-                self.ctx_size,
-                exc,
-            )
-        finally:
-            self._loaded = True
+        async with self._load_lock:
+            if self._loaded:  # another coroutine completed the load while we waited
+                return
+            try:
+                async with httpx.AsyncClient(timeout=120.0) as client:
+                    resp = await client.post(self._load_url, json=self._build_load_payload())
+                    resp.raise_for_status()
+                self._loaded = True  # F4: only mark loaded on SUCCESS
+            except Exception as exc:  # F4: do NOT mark loaded — next call retries bounded load
+                logger.debug(
+                    "RouterTier pre-load (%s, backend=%s, ctx=%d) failed: %s",
+                    self.model_id,
+                    self.backend,
+                    self.ctx_size,
+                    exc,
+                )
 
     async def run(self, prompt: str, **kwargs: object) -> OrchestrationResult:
         await self._ensure_loaded()
