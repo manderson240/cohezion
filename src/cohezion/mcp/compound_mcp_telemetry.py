@@ -1992,6 +1992,38 @@ def get_windowed_tool_mean_latency_ms(
     return float(sum(recent_lats) / len(recent_lats))
 
 
+def get_windowed_tool_latency_stddev_ms(
+    tool_name: str,
+    window_ms: float,
+    *,
+    store: dict | None = None,
+    now_ms: float | None = None,
+) -> float:
+    """Return the population standard deviation of latencies (ms) in the window for *tool_name*.
+
+    Uses population stddev (divides by n) because the window contains the full observed
+    population of calls, not a sample. Returns 0.0 when the tool is absent, has no recent
+    calls, or has only one recent call.
+
+    PRIMARY DISC.: lats [10, 20, 30] -> stddev≈8.165 (not range=20.0, not mean=20.0).
+    Two-call discriminator: lats [10, 30] -> stddev=10.0 = |30-10|/2 = 10.0.
+    Failed calls contribute their latency (latency is measured regardless of outcome).
+    """
+    if store is None:
+        store = _WINDOWED_TELEMETRY
+    if now_ms is None:
+        now_ms = _time.time() * 1000.0
+    cutoff_ms = now_ms - window_ms
+    records = store.get(tool_name, [])
+    recent_lats = [lat for ts, lat, _ok in records if ts >= cutoff_ms]
+    n = len(recent_lats)
+    if n < 2:
+        return 0.0
+    mean = sum(recent_lats) / n
+    variance = sum((lat - mean) ** 2 for lat in recent_lats) / n
+    return float(variance ** 0.5)
+
+
 def get_windowed_global_min_latency_ms(
     window_ms: float,
     *,
@@ -2017,3 +2049,31 @@ def get_windowed_global_min_latency_ms(
     if not all_lats:
         return 0.0
     return float(min(all_lats))
+
+
+def get_windowed_global_max_latency_ms(
+    window_ms: float,
+    *,
+    store: dict | None = None,
+    now_ms: float | None = None,
+) -> float:
+    """Return the global maximum latency fleet-wide in the window.  Item 980.
+
+    Pools ALL recent call latencies from all tools and returns the maximum.
+    Returns 0.0 when the store is empty or no recent calls exist.
+    Fleet-wide dual of get_windowed_tool_max_latency_ms (item 975).
+    """
+    if store is None:
+        store = _WINDOWED_TELEMETRY
+    if now_ms is None:
+        now_ms = _time.time() * 1000.0
+    cutoff_ms = now_ms - window_ms
+    all_lats = [
+        lat
+        for records in store.values()
+        for ts, lat, _ok in records
+        if ts >= cutoff_ms
+    ]
+    if not all_lats:
+        return 0.0
+    return float(max(all_lats))
