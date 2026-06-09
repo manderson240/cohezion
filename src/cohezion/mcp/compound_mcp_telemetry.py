@@ -5982,3 +5982,38 @@ def get_windowed_fleet_latency_skewness(
         return 0.0
     stddev = variance ** 0.5
     return float(sum((lat - mean) ** 3 for lat in latencies) / (n * stddev ** 3))
+
+
+def get_windowed_fleet_latency_kurtosis(
+    window_ms: float,
+    *,
+    store: dict | None = None,
+    now_ms: float | None = None,
+) -> float:
+    """Fleet-wide excess kurtosis (4th standardised moment - 3) of pooled latencies.  Item 1131.
+
+    Returns float (dimensionless).  0.0 for <4 pooled calls or zero variance.
+    Uses population Fisher definition: excess_kurtosis = mean(((x-μ)/σ)⁴) - 3.
+    Normal distribution → 0.0; positive → heavy-tailed; negative → light-tailed.
+    PRIMARY DISC.: kills per-tool-then-average (pooled accounts for cross-tool mean shift).
+    """
+    if store is None:
+        store = _WINDOWED_TELEMETRY
+    if now_ms is None:
+        now_ms = _time.time() * 1000.0
+    cutoff_ms = now_ms - window_ms
+    latencies: list[float] = []
+    for records in store.values():
+        for ts, lat, _ok in records:
+            if ts >= cutoff_ms:
+                latencies.append(lat)
+    n = len(latencies)
+    if n < 4:
+        return 0.0
+    mean = sum(latencies) / n
+    variance = sum((lat - mean) ** 2 for lat in latencies) / n
+    if variance == 0.0:
+        return 0.0
+    stddev = variance ** 0.5
+    raw_kurt = sum((lat - mean) ** 4 for lat in latencies) / (n * stddev ** 4)
+    return float(raw_kurt - 3.0)
