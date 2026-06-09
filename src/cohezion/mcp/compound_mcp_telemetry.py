@@ -3958,3 +3958,41 @@ def get_windowed_tool_latency_coefficient_of_quartile_variation(
     if denom == 0.0:
         return 0.0
     return float((q3 - q1) / denom)
+
+
+def get_windowed_global_latency_cqv(
+    window_ms: float,
+    *,
+    store: dict | None = None,
+    now_ms: float | None = None,
+) -> float:
+    """Fleet-wide Coefficient of Quartile Variation (CQV) — pooled raw values.  Item 1054.
+
+    CQV = (global_Q3 - global_Q1) / (global_Q3 + global_Q1).
+    Returns 0.0 when denominator == 0 or fewer than 4 pooled samples.
+    Uses get_windowed_global_latency_percentile for Q1/Q3 (linear interpolation).
+    Injectable store.  Pure function.  Fleet dual of per-tool item 1053.
+
+    PRIMARY DISC.: tool_a=[10,30] + tool_b=[70,90]
+      pooled [10,30,70,90] n=4, Q1=25.0, Q3=75.0
+      CQV=(75-25)/(75+25)=50/100=0.5
+      (kills per-tool CQV avg=(0.5+0.125)/2=0.3125 -- NOT pooled;
+       correct pooled CQV=0.5).
+    """
+    if store is None:
+        store = _WINDOWED_TELEMETRY
+    if now_ms is None:
+        now_ms = _time.time() * 1000.0
+    cutoff_ms = now_ms - window_ms
+    n_pooled = sum(
+        1 for records in store.values()
+        for ts, _lat, _ok in records if ts >= cutoff_ms
+    )
+    if n_pooled < 4:
+        return 0.0
+    q1 = get_windowed_global_latency_percentile(25.0, window_ms, store=store, now_ms=now_ms)
+    q3 = get_windowed_global_latency_percentile(75.0, window_ms, store=store, now_ms=now_ms)
+    denom = q3 + q1
+    if denom == 0.0:
+        return 0.0
+    return float((q3 - q1) / denom)
