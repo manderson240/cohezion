@@ -3199,3 +3199,21 @@ def get_windowed_tool_p10_ms(
       (kills min=10.0; kills p25=17.5; correct interpolated p10=14.0).
     """
     return get_windowed_latency_percentile(tool_name, 10.0, window_ms, store=store, now_ms=now_ms)
+
+
+def get_windowed_tool_p90_ms(
+    tool_name: str,
+    window_ms: float,
+    *,
+    store: dict | None = None,
+    now_ms: float | None = None,
+) -> float:
+    """90th-percentile latency alias for get_windowed_latency_percentile(tool, 90.0, ...).  Item 1028.
+
+    Extends percentile family above p75.  Linear interpolation.
+    Returns 0.0 for unknown/empty tool (consistent with other p-series delegates).
+
+    PRIMARY DISC.: lats [10,20,30,40,50] -> idx=3.6 -> 40+0.6*(50-40)=46.0
+      (kills max=50.0; kills p75=32.5; correct interpolated p90=46.0).
+    """
+    return get_windowed_latency_percentile(tool_name, 90.0, window_ms, store=store, now_ms=now_ms)
