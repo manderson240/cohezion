@@ -3921,3 +3921,40 @@ def get_windowed_tool_bimodality_coefficient(
     skewness = sum((x - mean) ** 3 for x in lats) / (n * std ** 3)
     kurtosis_raw = sum((x - mean) ** 4 for x in lats) / (n * std ** 4)
     return float((skewness ** 2 + 1.0) / kurtosis_raw)
+
+
+def get_windowed_tool_latency_coefficient_of_quartile_variation(
+    tool_name: str,
+    window_ms: float,
+    *,
+    store: dict | None = None,
+    now_ms: float | None = None,
+) -> float:
+    """Coefficient of Quartile Variation (CQV) of per-tool latency.  Item 1053.
+
+    CQV = (Q3 - Q1) / (Q3 + Q1) — robust relative spread measure.
+    Returns 0.0 when Q3 + Q1 == 0 or fewer than 4 samples in window.
+    Uses linear interpolation for Q1/Q3 (same as get_windowed_latency_percentile).
+    Injectable store.  Pure function.
+
+    PRIMARY DISC.: lats [10,20,30,40,50] n=5
+      Q1=20.0 (idx=0.25*4=1.0, exact), Q3=40.0 (idx=0.75*4=3.0, exact)
+      CQV=(40-20)/(40+20)=20/60=1/3≈0.3333
+      (kills CV=stddev/mean≈0.526 -- wrong formula;
+       kills range/(max+min)=40/60≈0.667 -- range-based not quartile;
+       correct CQV=(Q3-Q1)/(Q3+Q1)=1/3).
+    """
+    _store = store if store is not None else _WINDOWED_TELEMETRY
+    if now_ms is None:
+        now_ms = _time.time() * 1000.0
+    cutoff_ms = now_ms - window_ms
+    records = _store.get(tool_name, [])
+    lats = [lat for ts, lat, _ok in records if ts >= cutoff_ms]
+    if len(lats) < 4:
+        return 0.0
+    q1 = get_windowed_latency_percentile(tool_name, 25.0, window_ms, store=store, now_ms=now_ms)
+    q3 = get_windowed_latency_percentile(tool_name, 75.0, window_ms, store=store, now_ms=now_ms)
+    denom = q3 + q1
+    if denom == 0.0:
+        return 0.0
+    return float((q3 - q1) / denom)
