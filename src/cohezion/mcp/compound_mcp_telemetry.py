@@ -7180,3 +7180,33 @@ def get_windowed_fleet_sla_compliance_rate_by_tool(
     if total == 0:
         return 0.0
     return float(compliant / total)
+
+
+def get_windowed_fleet_sla_violation_rate_by_tool(
+    window_ms: float,
+    tool_name: str,
+    threshold_ms: float,
+    *,
+    store: dict | None = None,
+    now_ms: float | None = None,
+) -> float:
+    """Per-tool SLA violation rate: fraction of calls with latency > threshold_ms.  Item 1177.
+
+    Thin composition: 1.0 - sla_compliance_rate_by_tool(...).
+    Returns float in [0.0, 1.0].  1.0 for unknown/empty tool (vacuous all-violation).
+    Composition invariant: violation + compliance == 1.0.
+    PRIMARY DISC.: violation_a=1/3 ≠ violation_b=1.0.
+    """
+    if store is None:
+        store = _WINDOWED_TELEMETRY
+    if now_ms is None:
+        now_ms = _time.time() * 1000.0
+    cutoff_ms = now_ms - window_ms
+    records = store.get(tool_name, [])
+    total = sum(1 for ts, _lat, _ok in records if ts >= cutoff_ms)
+    if total == 0:
+        return 1.0
+    compliance = get_windowed_fleet_sla_compliance_rate_by_tool(
+        window_ms, tool_name, threshold_ms, store=store, now_ms=now_ms
+    )
+    return float(1.0 - compliance)
