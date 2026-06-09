@@ -7993,3 +7993,25 @@ def get_windowed_fleet_latency_percentile_p95_ms_by_tool(
     return get_windowed_fleet_latency_percentile_ms_by_tool(
         window_ms, tool_name, 95, store=store, now_ms=now_ms
     )
+
+
+def get_windowed_fleet_latency_ipr90_ms_by_tool(
+    window_ms: float,
+    tool_name: str,
+    *,
+    store=None,
+    now_ms=None,
+) -> float:
+    """Per-tool 90th-interpercentile range (p95 - p5) within window.
+
+    Returns 0.0 for unknown/empty tool or uniform distribution.
+    Formula: p95 - p5.
+    Item 1211.
+    """
+    p5 = get_windowed_fleet_latency_percentile_p5_ms_by_tool(
+        window_ms, tool_name, store=store, now_ms=now_ms
+    )
+    p95 = get_windowed_fleet_latency_percentile_p95_ms_by_tool(
+        window_ms, tool_name, store=store, now_ms=now_ms
+    )
+    return float(p95 - p5)
