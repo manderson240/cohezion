@@ -3437,6 +3437,47 @@ def get_windowed_tool_latency_winsorized_mean_ms(
     return float(sum(clamped) / n)
 
 
+def get_windowed_global_latency_skewness(
+    window_ms: float,
+    *,
+    store: dict | None = None,
+    now_ms: float | None = None,
+) -> float:
+    """Fleet-wide population skewness of pooled latency.  Item 1040.
+
+    Pools ALL latencies across ALL tools, then:
+      skewness = sum((lat - mean)^3) / (n * pop_stddev^3)
+    0.0 for n < 3 or pop_stddev = 0.0 (all equal).
+    Injectable store.  Pure function.
+
+    Fleet dual of get_windowed_tool_latency_skewness (item 1022).
+    NOT an average of per-tool skewness values.
+
+    PRIMARY DISC.: tool_a=[10,10,10] + tool_b=[100]
+      pooled n=4, mean=32.5, sum_cubed=273375.0, pop_std=38.971...
+      skewness = 2/sqrt(3) ≈ 1.1547
+      (kills per-tool-avg=0.0 — each tool alone has skewness=0;
+       correct pooled skewness ≈ 1.1547).
+    """
+    if store is None:
+        store = _WINDOWED_TELEMETRY
+    if now_ms is None:
+        now_ms = _time.time() * 1000.0
+    cutoff_ms = now_ms - window_ms
+    all_lats: list[float] = []
+    for records in store.values():
+        all_lats.extend(lat for ts, lat, _ok in records if ts >= cutoff_ms)
+    n = len(all_lats)
+    if n < 3:
+        return 0.0
+    mean = sum(all_lats) / n
+    pop_variance = sum((lat - mean) ** 2 for lat in all_lats) / n
+    if pop_variance == 0.0:
+        return 0.0
+    pop_stddev = pop_variance ** 0.5
+    return float(sum((lat - mean) ** 3 for lat in all_lats) / (n * pop_stddev ** 3))
+
+
 def get_windowed_global_latency_winsorized_mean_ms(
     window_ms: float,
     winsor_pct: float = 0.1,
