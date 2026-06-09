@@ -1,15 +1,22 @@
-"""MCP connector telemetry — item 878.
+"""MCP connector telemetry — items 878, 882/885.
 
 Tracks per-tool call count, error rate, and latency percentiles (p50/p95)
 in the format expected by the Claude connector directory observability dashboard
 (https://claude.com/blog/observability-for-developers-building-connectors).
 
-Pure in-memory store (no DB write).  Thread-safe via GIL for CPython.
-Reset _TELEMETRY.clear() for test isolation.
+Cumulative store (_TELEMETRY) for all-time metrics.
+Windowed store (_WINDOWED_TELEMETRY) for time-window metrics (spike detection).
+
+Pure in-memory stores (no DB write).  Thread-safe via GIL for CPython.
+Reset store.clear() for test isolation.
 """
 from __future__ import annotations
 
+import time as _time
+
 _TELEMETRY: dict[str, dict] = {}
+# Windowed store: {tool_name: [(ts_ms, latency_ms, success), ...]}
+_WINDOWED_TELEMETRY: dict[str, list] = {}
 
 
 def record_tool_call(tool_name: str, latency_ms: float, success: bool) -> None:
@@ -66,6 +73,63 @@ def get_tool_telemetry_summary() -> dict[str, dict]:
         result[tool_name] = {
             "call_count": n,
             "error_rate": stats["error_count"] / n,
+            "p50_ms": _percentile(sorted_lats, 50.0),
+            "p95_ms": _percentile(sorted_lats, 95.0),
+        }
+    return result
+
+
+def record_tool_call_windowed(
+    tool_name: str,
+    latency_ms: float,
+    success: bool,
+    ts_ms: float | None = None,
+) -> None:
+    """Record one tool call with a timestamp for windowed analysis.  Item 882/885.
+
+    Args:
+        tool_name: The MCP tool name.
+        latency_ms: End-to-end latency in milliseconds.
+        success: True if the call succeeded; False on error.
+        ts_ms: Timestamp in milliseconds since epoch.  Defaults to now.
+    """
+    if ts_ms is None:
+        ts_ms = _time.time() * 1000.0
+    if tool_name not in _WINDOWED_TELEMETRY:
+        _WINDOWED_TELEMETRY[tool_name] = []
+    _WINDOWED_TELEMETRY[tool_name].append((ts_ms, latency_ms, success))
+
+
+def get_windowed_summary(
+    store: dict[str, list],
+    window_ms: float,
+    now_ms: float | None = None,
+) -> dict[str, dict]:
+    """Return per-tool summary for calls within the last window_ms ms.  Item 882/885.
+
+    Args:
+        store: The _WINDOWED_TELEMETRY dict (injectable for test isolation).
+        window_ms: Look-back window in milliseconds.
+        now_ms: Current time in ms (defaults to time.time()*1000).
+
+    Returns:
+        {tool_name: {call_count, error_rate, p50_ms, p95_ms}}
+        Tools with no calls in window are excluded.  Empty dict if none.
+    """
+    if now_ms is None:
+        now_ms = _time.time() * 1000.0
+    cutoff_ms = now_ms - window_ms
+    result: dict[str, dict] = {}
+    for tool_name, records in store.items():
+        recent = [(lat, ok) for ts, lat, ok in records if ts >= cutoff_ms]
+        if not recent:
+            continue
+        n = len(recent)
+        errors = sum(1 for _, ok in recent if not ok)
+        sorted_lats = sorted(lat for lat, _ in recent)
+        result[tool_name] = {
+            "call_count": n,
+            "error_rate": float(errors) / n,
             "p50_ms": _percentile(sorted_lats, 50.0),
             "p95_ms": _percentile(sorted_lats, 95.0),
         }
