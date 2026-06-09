@@ -3181,3 +3181,21 @@ def get_windowed_global_above_budget_call_rate(
     if total == 0:
         return 0.0
     return float(above / total)
+
+
+def get_windowed_tool_p10_ms(
+    tool_name: str,
+    window_ms: float,
+    *,
+    store: dict | None = None,
+    now_ms: float | None = None,
+) -> float:
+    """10th-percentile latency alias for get_windowed_latency_percentile(tool, 10.0, ...).  Item 1027.
+
+    Extends the percentile family below p25.  Linear interpolation.
+    Returns 0.0 for unknown/empty tool (consistent with other p-series delegates).
+
+    PRIMARY DISC.: lats [10,20,30,40,50] -> idx=0.4 -> 10+0.4*(20-10)=14.0
+      (kills min=10.0; kills p25=17.5; correct interpolated p10=14.0).
+    """
+    return get_windowed_latency_percentile(tool_name, 10.0, window_ms, store=store, now_ms=now_ms)
