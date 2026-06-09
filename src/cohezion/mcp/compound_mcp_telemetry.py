@@ -7549,3 +7549,37 @@ def get_windowed_fleet_latency_sla_compliance_count_by_tool(
     cutoff_ms = now_ms - window_ms
     records = store.get(tool_name, [])
     return sum(1 for ts, lat, _ok in records if ts >= cutoff_ms and lat <= threshold_ms)
+
+
+def get_windowed_fleet_latency_recent_trend_by_tool(
+    window_ms: float,
+    tool_name: str,
+    *,
+    store: dict | None = None,
+    now_ms: float | None = None,
+) -> float:
+    """Per-tool latency trend: OLS linear regression slope (ms per ms elapsed).  Item 1191.
+
+    Positive slope = latency increasing over time; negative = improving.
+    Returns float.  0.0 for unknown/empty tool or fewer than 2 calls in window.
+    Uses Welford-stable OLS: slope = cov(t, lat) / var(t) (timestamps centered).
+    PRIMARY DISC.: slope_a=+0.2 (rising) ≠ slope_b=-0.2 (falling).
+    """
+    if store is None:
+        store = _WINDOWED_TELEMETRY
+    if now_ms is None:
+        now_ms = _time.time() * 1000.0
+    cutoff_ms = now_ms - window_ms
+    records = store.get(tool_name, [])
+    points = [(ts, lat) for ts, lat, _ok in records if ts >= cutoff_ms]
+    n = len(points)
+    if n < 2:
+        return 0.0
+    # OLS slope via centered timestamps for numerical stability
+    mean_t = sum(ts for ts, _lat in points) / n
+    mean_lat = sum(lat for _ts, lat in points) / n
+    cov_tl = sum((ts - mean_t) * (lat - mean_lat) for ts, lat in points)
+    var_t = sum((ts - mean_t) ** 2 for ts, _lat in points)
+    if var_t == 0.0:
+        return 0.0
+    return float(cov_tl / var_t)
