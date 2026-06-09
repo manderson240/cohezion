@@ -7601,3 +7601,21 @@ def get_windowed_fleet_latency_peak_ms_by_tool(
     return get_windowed_fleet_latency_max_ms_by_tool(
         window_ms, tool_name, store=store, now_ms=now_ms
     )
+
+
+def get_windowed_fleet_latency_floor_ms_by_tool(
+    window_ms: float,
+    tool_name: str,
+    *,
+    store=None,
+    now_ms=None,
+) -> float:
+    """Per-tool floor (minimum) latency within the window. Item 1193.
+
+    Thin alias for get_windowed_fleet_latency_min_ms_by_tool exposed under
+    the 'floor' name used by SLA baseline consumers.
+    Returns 0.0 for unknown/empty tool or all calls outside window.
+    """
+    return get_windowed_fleet_latency_min_ms_by_tool(
+        window_ms, tool_name, store=store, now_ms=now_ms
+    )
