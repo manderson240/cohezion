@@ -7210,3 +7210,25 @@ def get_windowed_fleet_sla_violation_rate_by_tool(
         window_ms, tool_name, threshold_ms, store=store, now_ms=now_ms
     )
     return float(1.0 - compliance)
+
+
+def get_windowed_fleet_latency_range_ms_by_tool(
+    window_ms: float,
+    tool_name: str,
+    *,
+    store: dict | None = None,
+    now_ms: float | None = None,
+) -> float:
+    """Per-tool latency range (max - min) within the fleet store window.  Item 1178.
+
+    Thin composition: max_by_tool - min_by_tool.
+    Returns float.  0.0 for unknown/empty tool.
+    PRIMARY DISC.: range_a=190ms ≠ range_b=399ms ≠ fleet_range=399ms.
+    """
+    mx = get_windowed_fleet_latency_max_ms_by_tool(
+        window_ms, tool_name, store=store, now_ms=now_ms
+    )
+    mn = get_windowed_fleet_latency_min_ms_by_tool(
+        window_ms, tool_name, store=store, now_ms=now_ms
+    )
+    return float(mx - mn)
