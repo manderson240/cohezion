@@ -16213,3 +16213,27 @@ def fid_severity_rank_mode(problems: list["Problem"]) -> dict[str, int]:
     for fid, counts in rank_counts.items():
         result[fid] = min(counts.keys(), key=lambda r: (-counts[r], r))
     return result
+
+
+def class_weighted_severity_score(problems: list["Problem"]) -> dict[str, int]:
+    """Sum of severity ranks per class.  Item 844.
+    Each problem contributes its _SEVERITY_RANK value. Empty -> {}. Pure; no I/O."""
+    if not problems:
+        return {}
+    result: dict[str, int] = {}
+    for p in problems:
+        cls = p.problem_class
+        result[cls] = result.get(cls, 0) + _SEVERITY_RANK.get(p.severity, 0)
+    return result
+
+
+def fid_weighted_severity_score(problems: list["Problem"]) -> dict[str, int]:
+    """Sum of severity ranks per fid.  Item 845. Fid-axis complement of 844.
+    Each problem contributes its _SEVERITY_RANK value. Empty -> {}. Pure; no I/O."""
+    if not problems:
+        return {}
+    result: dict[str, int] = {}
+    for p in problems:
+        fid = p.finding_id
+        result[fid] = result.get(fid, 0) + _SEVERITY_RANK.get(p.severity, 0)
+    return result
