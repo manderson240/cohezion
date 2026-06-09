@@ -8044,3 +8044,36 @@ def get_windowed_fleet_latency_mean_absolute_deviation_from_median_ms_by_tool(
     mid = n // 2
     median = lats[mid] if n % 2 == 1 else (lats[mid - 1] + lats[mid]) / 2.0
     return float(sum(abs(x - median) for x in lats) / n)
+
+
+def get_windowed_fleet_latency_trimmed_mean_ms_by_tool(
+    window_ms: float,
+    tool_name: str,
+    trim_pct: float = 10.0,
+    *,
+    store=None,
+    now_ms=None,
+) -> float:
+    """Per-tool trimmed mean latency within window.
+
+    Removes the bottom and top trim_pct% of calls before computing the mean.
+    Returns 0.0 for unknown/empty tool or if trimming leaves <2 calls.
+    Default trim_pct=10.0 (10% each end = 80% trimmed mean).
+    Item 1213.
+    """
+    import math as _math
+    if store is None:
+        store = _WINDOWED_TELEMETRY
+    if now_ms is None:
+        now_ms = _time.time() * 1000.0
+    cutoff_ms = now_ms - window_ms
+    records = store.get(tool_name, [])
+    lats = sorted(lat for ts, lat, _ok in records if ts >= cutoff_ms)
+    n = len(lats)
+    if n == 0:
+        return 0.0
+    k = _math.ceil(trim_pct / 100.0 * n)
+    trimmed = lats[k : n - k] if n - k > k else []
+    if len(trimmed) < 2:
+        return 0.0
+    return float(sum(trimmed) / len(trimmed))
