@@ -3437,6 +3437,48 @@ def get_windowed_tool_latency_winsorized_mean_ms(
     return float(sum(clamped) / n)
 
 
+def get_windowed_global_latency_kurtosis(
+    window_ms: float,
+    *,
+    store: dict | None = None,
+    now_ms: float | None = None,
+) -> float:
+    """Fleet-wide excess kurtosis (Fisher definition) of pooled latency.  Item 1041.
+
+    Pools ALL latencies across ALL tools, then:
+      raw_kurtosis = sum((lat - mean)^4) / (n * pop_stddev^4)
+      excess_kurtosis = raw_kurtosis - 3.0
+    0.0 for n < 4 or pop_stddev = 0.0 (all equal).
+    Injectable store.  Pure function.
+
+    Fleet dual of get_windowed_tool_latency_kurtosis (item 1030).
+    NOT an average of per-tool kurtosis values.
+
+    PRIMARY DISC.: tool_a=[10,10,10,10] + tool_b=[100]
+      pooled n=5, mean=28, pop_std=36 (exact),
+      sum4=27293760, raw_kurt=3.25, excess=0.25
+      (kills per-tool-avg=0.0; kills raw_kurt=3.25 w/o -3; correct=0.25).
+    """
+    if store is None:
+        store = _WINDOWED_TELEMETRY
+    if now_ms is None:
+        now_ms = _time.time() * 1000.0
+    cutoff_ms = now_ms - window_ms
+    all_lats: list[float] = []
+    for records in store.values():
+        all_lats.extend(lat for ts, lat, _ok in records if ts >= cutoff_ms)
+    n = len(all_lats)
+    if n < 4:
+        return 0.0
+    mean = sum(all_lats) / n
+    pop_variance = sum((lat - mean) ** 2 for lat in all_lats) / n
+    if pop_variance == 0.0:
+        return 0.0
+    pop_stddev = pop_variance ** 0.5
+    raw_kurt = sum((lat - mean) ** 4 for lat in all_lats) / (n * pop_stddev ** 4)
+    return float(raw_kurt - 3.0)
+
+
 def get_windowed_global_latency_skewness(
     window_ms: float,
     *,
