@@ -4514,3 +4514,35 @@ def get_windowed_worst_tool_by_p99_latency_ms(
             best_p99 = p99
             best_tool = tool_name
     return (best_tool, best_p99)
+
+
+def get_windowed_best_tool_by_p50_latency_ms(
+    window_ms: float,
+    *,
+    store: dict | None = None,
+    now_ms: float | None = None,
+) -> tuple[str, float]:
+    """(tool_name, p50_ms) for the tool with the LOWEST windowed p50.  Item 1076.
+
+    Identifies the most responsive tool fleet-wide (complement of item 1075).
+    Returns ("", 0.0) for empty store or when no tool has windowed data.
+    Injectable store. Pure function.
+
+    PRIMARY DISC.: tool_a p50=30.0, tool_b p50=200.0, tool_c p50=8.0
+      -> ("wbp_c", 8.0)
+      (kills argmax -- wrong direction; kills argmin-by-mean; correct argmin-by-p50).
+    """
+    if store is None:
+        store = _WINDOWED_TELEMETRY
+    if now_ms is None:
+        now_ms = _time.time() * 1000.0
+    best_tool = ""
+    best_p50 = float("inf")
+    for tool_name in store:
+        p50 = get_windowed_latency_percentile(tool_name, 50.0, window_ms, store=store, now_ms=now_ms)
+        if p50 > 0.0 and p50 < best_p50:
+            best_p50 = p50
+            best_tool = tool_name
+    if best_tool == "":
+        return ("", 0.0)
+    return (best_tool, best_p50)
