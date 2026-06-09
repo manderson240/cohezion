@@ -20,7 +20,7 @@ Usage::
     adapter = NgrokAIGateway(
         ngrok_endpoint="https://xxxxx.ngrok.app/v1",
         ngrok_api_key="your-ngrok-key",
-        fallback_ollama_url="http://localhost:11434",
+        fallback_ollama_url="http://localhost:13305",
         enable_failover=True,
     )
 
@@ -104,7 +104,7 @@ class NgrokAIGateway:
         self,
         ngrok_endpoint: str | None = None,
         ngrok_api_key: str | None = None,
-        fallback_ollama_url: str = "http://localhost:11434",
+        fallback_ollama_url: str = "http://localhost:13305",
         enable_failover: bool = True,
         enable_cost_optimization: bool = True,
         timeout: float = 300.0,

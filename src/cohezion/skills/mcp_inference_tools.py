@@ -55,7 +55,7 @@ def elite_ocr_analysis(args: dict[str, Any]) -> dict[str, Any]:
             "stream": False,
             "options": {
                 "temperature": 0.3,  # More deterministic for OCR
-                "num_ctx": 128000,
+                "num_ctx": 16384,  # N3: clamped from 128000; lemonade router ctx ceiling
             },
         }
 
@@ -64,7 +64,7 @@ def elite_ocr_analysis(args: dict[str, Any]) -> dict[str, Any]:
             "-s",
             "-X",
             "POST",
-            "http://localhost:11434/api/generate",
+            "http://localhost:13305/api/generate",  # lemonade router (:13305)
             "-H",
             "Content-Type: application/json",
             "-d",
@@ -174,7 +174,7 @@ Generate production-ready, maintainable code that follows industry standards.
             "stream": False,
             "options": {
                 "temperature": 0.7 if output_type != "code-only" else 0.3,
-                "num_ctx": 262144,
+                "num_ctx": 16384,  # N3: clamped from 262144; lemonade router ctx ceiling
                 "repeat_penalty": 1.05,
             },
         }
@@ -184,7 +184,7 @@ Generate production-ready, maintainable code that follows industry standards.
             "-s",
             "-X",
             "POST",
-            "http://localhost:11434/api/generate",
+            "http://localhost:13305/api/generate",  # lemonade router (:13305)
             "-H",
             "Content-Type: application/json",
             "-d",

@@ -13,7 +13,7 @@ Features:
 Usage:
     from cohezion.gateway.demo_gateway import DemoGateway
 
-    gateway = DemoGateway(ollama_url="http://localhost:11434")
+    gateway = DemoGateway(ollama_url="http://localhost:13305")
     response, tokens = await gateway.generate(
         prompt="Hello",
         model="qwen3-coder:30b"
@@ -63,7 +63,7 @@ class DemoGateway:
 
     def __init__(
         self,
-        ollama_url: str = "http://localhost:11434",
+        ollama_url: str = "http://localhost:13305",
         timeout: float = 300.0,
         max_retries: int = 3,
     ):

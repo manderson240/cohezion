@@ -76,7 +76,7 @@ class GatewayManager:
         # Primary: Vault Warden, Fallback: Environment
         ollama_url = (
             get_credentials().get_secret("COHEZION_OLLAMA_URL", env_var="OLLAMA_BASE_URL")
-            or "http://localhost:11434"
+            or "http://localhost:13305"
         )
 
         self.gateways[self.default_gateway_id] = DemoGateway(
@@ -92,7 +92,7 @@ class GatewayManager:
     def create_gateway(
         self,
         gateway_id: str,
-        ollama_url: str = "http://localhost:11434",
+        ollama_url: str = "http://localhost:13305",
     ) -> DemoGateway:
         """Create and register a new gateway."""
         gateway = DemoGateway(ollama_url=ollama_url)
@@ -190,8 +190,8 @@ async def list_tools() -> list[Tool]:
                     "gateway_id": {"type": "string", "description": "Gateway ID"},
                     "ollama_url": {
                         "type": "string",
-                        "description": "Local Ollama URL",
-                        "default": "http://localhost:11434",
+                        "description": "Lemonade router URL (backwards-compat: accepts ollama_url)",
+                        "default": "http://localhost:13305",
                     },
                 },
                 "required": ["gateway_id", "agent_id"],
@@ -384,7 +384,7 @@ async def call_tool(name: str, arguments: dict[str, Any]) -> list[TextContent]:
             try:
                 gateway = manager.create_gateway(
                     gateway_id=arguments["gateway_id"],
-                    ollama_url=arguments.get("ollama_url", "http://localhost:11434"),
+                    ollama_url=arguments.get("ollama_url", "http://localhost:13305"),
                 )
 
                 return [

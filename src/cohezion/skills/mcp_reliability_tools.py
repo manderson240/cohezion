@@ -72,7 +72,7 @@ def offload_task(
             "-s",
             "-X",
             "POST",
-            "http://localhost:11434/api/generate",
+            "http://localhost:13305/api/generate",  # lemonade router (:13305)
             "-d",
             payload_json,
         ]
@@ -135,7 +135,7 @@ def batch_offload(tasks: list[dict[str, Any]], model: str | None = None) -> dict
             "-s",
             "-X",
             "POST",
-            "http://localhost:11434/api/generate",
+            "http://localhost:13305/api/generate",  # lemonade router (:13305)
             "-d",
             payload_json,
         ]
