@@ -2462,3 +2462,38 @@ def get_windowed_global_latency_iqr_ms(
     p75 = get_windowed_global_latency_percentile(75.0, window_ms, store=store, now_ms=now_ms)
     p25 = get_windowed_global_latency_percentile(25.0, window_ms, store=store, now_ms=now_ms)
     return float(p75 - p25)
+
+
+def get_windowed_tool_latency_variance_ms(
+    tool_name: str,
+    window_ms: float,
+    *,
+    store: dict | None = None,
+    now_ms: float | None = None,
+) -> float:
+    """Return per-tool population variance of latency in the window.  Item 1001.
+
+    Population variance (divide by n, not n-1) of all latency values
+    (success + failure calls) within the last *window_ms* ms.
+
+    Complements get_windowed_tool_latency_stddev_ms: variance == stddev ** 2.
+
+    Returns 0.0 for unknown tools or when fewer than 2 calls exist in the window
+    (consistent with the stddev convention: single observation has no spread).
+
+    PRIMARY DISC.: lats [10,20,30] -> var=200/3≈66.67
+      (kills sample_var dividing by n-1=2 -> 100.0; kills stddev=sqrt(66.67)≈8.165).
+    """
+    if store is None:
+        store = _WINDOWED_TELEMETRY
+    if now_ms is None:
+        now_ms = _time.time() * 1000.0
+    cutoff_ms = now_ms - window_ms
+    records = store.get(tool_name, [])
+    recent_lats = [lat for ts, lat, _ok in records if ts >= cutoff_ms]
+    n = len(recent_lats)
+    if n < 2:
+        return 0.0
+    mean = sum(recent_lats) / n
+    variance = sum((lat - mean) ** 2 for lat in recent_lats) / n
+    return float(variance)
