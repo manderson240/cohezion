@@ -3351,3 +3351,40 @@ def get_windowed_tool_latency_mad_stddev_ratio(
     if stddev == 0.0:
         return 0.0
     return float(mad / stddev)
+
+
+def get_windowed_tool_latency_trimmed_mean_ms(
+    tool_name: str,
+    window_ms: float,
+    trim_pct: float = 0.1,
+    *,
+    store: dict | None = None,
+    now_ms: float | None = None,
+) -> float:
+    """Trimmed (truncated) mean of per-tool latency.  Item 1034.
+
+    Discards floor(trim_pct * n) values from EACH tail, returns mean of remainder.
+    0.0 for unknown/empty tool or when nothing remains after trimming.
+    Default trim_pct=0.1 (10% each tail).  Injectable store.  Pure function.
+
+    More robust than full mean (outliers discarded), less extreme than median.
+
+    PRIMARY DISC.: lats [10,20,30,40,100] trim_pct=0.2
+      k=floor(0.2*5)=1 -> keep [20,30,40] -> trimmed_mean=30.0
+      (kills full_mean=40.0; kills k=0/no-trim=40.0; correct=30.0).
+    """
+    if store is None:
+        store = _WINDOWED_TELEMETRY
+    if now_ms is None:
+        now_ms = _time.time() * 1000.0
+    cutoff_ms = now_ms - window_ms
+    records = store.get(tool_name, [])
+    lats = sorted(lat for ts, lat, _ok in records if ts >= cutoff_ms)
+    n = len(lats)
+    if n == 0:
+        return 0.0
+    k = int(n * trim_pct)  # floor via int
+    trimmed = lats[k: n - k] if k > 0 else lats
+    if not trimmed:
+        return 0.0
+    return float(sum(trimmed) / len(trimmed))
