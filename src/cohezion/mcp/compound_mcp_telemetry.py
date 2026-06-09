@@ -7815,3 +7815,21 @@ def get_windowed_fleet_latency_mad_ms_by_tool(
     if n % 2 == 1:
         return float(devs[m2])
     return float((devs[m2 - 1] + devs[m2]) / 2.0)
+
+
+def get_windowed_fleet_latency_stability_score_by_tool(
+    window_ms: float,
+    tool_name: str,
+    *,
+    store=None,
+    now_ms=None,
+) -> float:
+    """Per-tool latency stability score in [0.0, 1.0] within window. Item 1203.
+
+    Formula: 1.0 / (1.0 + cv) where cv = stddev / mean.
+    1.0 = perfectly stable (constant latency or no calls); lower = more variable.
+    """
+    cv = get_windowed_fleet_latency_cv_by_tool(
+        window_ms, tool_name, store=store, now_ms=now_ms
+    )
+    return float(1.0 / (1.0 + cv))
