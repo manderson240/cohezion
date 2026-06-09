@@ -272,3 +272,16 @@ print('U1 OK: all 7 substrates = 1.0 at HIHO', results)
   real findings.
 - **Verification**: `grep "safe-env.sh" scripts/ci/deploy_harness_agents.sh`
   returns a non-empty result.
+
+## Port-Bypass Guard Invariant (2026-06-09, Phase 0b)
+
+### N4: No direct port bypass in live inference paths
+- Pattern `\b(11434|1330[6-9])\b` must not appear in `src/cohezion/**` outside the allow-list
+  (see full allow-list with reasons in `scripts/ci/check_inference_port_bypass.sh`)
+- Permanent allow-list entries: dead/benchmark/archive files, `clasp_tier.py` (CLaSp dual-port
+  speculative decoding — no router equivalent), `direct_tier.py` legacy builders (non-destructive
+  retention), `health.py` tier dashboard, `triune_orchestrator.py` `cpu_port: int = 13309` (N2)
+- Inline override: `# allow-direct-port: <reason>` on any source line grants per-line exemption
+- Guard runs in **report mode** (`--report`) during migration phases 0–4; activated to fail mode
+  in Phase 5 after all migration phases complete
+- **Verification**: `bash scripts/ci/check_inference_port_bypass.sh` exits 0
