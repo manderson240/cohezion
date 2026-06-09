@@ -1,10 +1,13 @@
 """Item 882/885: get_windowed_summary() -- time-windowed telemetry filtering."""
+
 from __future__ import annotations
+
 import time
+
 from cohezion.mcp.compound_mcp_telemetry import (
-    record_tool_call_windowed,
-    get_windowed_summary,
     _WINDOWED_TELEMETRY,
+    get_windowed_summary,
+    record_tool_call_windowed,
 )
 
 
@@ -23,7 +26,7 @@ def test_windowed_excludes_old_calls_primary_discriminator() -> None:
         record_tool_call_windowed("t1", 15.0, True, ts_ms=now_ts)
     summary = get_windowed_summary(_WINDOWED_TELEMETRY, window_ms=5000)
     assert "t1" in summary
-    assert summary["t1"]["call_count"] == 2   # only recent 2, not all 5
+    assert summary["t1"]["call_count"] == 2  # only recent 2, not all 5
 
 
 def test_empty_window_gives_empty_dict() -> None:
@@ -48,7 +51,7 @@ def test_windowed_error_rate_only_recent() -> None:
     old_ts = (time.time() - 200) * 1000
     now_ts = time.time() * 1000
     record_tool_call_windowed("t4", 10.0, False, ts_ms=old_ts)  # old error
-    record_tool_call_windowed("t4", 10.0, True, ts_ms=now_ts)   # recent success
+    record_tool_call_windowed("t4", 10.0, True, ts_ms=now_ts)  # recent success
     summary = get_windowed_summary(_WINDOWED_TELEMETRY, window_ms=5000)
     # only recent call -> 0 errors -> error_rate = 0.0
     assert summary["t4"]["error_rate"] == 0.0
