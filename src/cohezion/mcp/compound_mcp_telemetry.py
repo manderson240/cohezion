@@ -234,6 +234,28 @@ def get_top_n_tools_by_error_rate(n: int) -> list[str]:
     return sorted_tools[:n]
 
 
+def get_top_n_tools_by_p95_ms(n: int) -> list[str]:
+    """Return up to N tool names sorted by descending p95 latency.  Item 920.
+
+    Closes the top-N ranking trio (call_count + error_rate + p95).
+    Ties broken by ascending tool name (deterministic).
+
+    Args:
+        n: Number of top high-latency tools to return.  n ≤ 0 returns [].
+
+    Returns:
+        List of up to *n* tool names, highest-p95 first.
+        Empty list when store is empty or *n* ≤ 0.
+    """
+    if n <= 0:
+        return []
+    sorted_tools = sorted(
+        _TELEMETRY.keys(),
+        key=lambda t: (-get_tool_p95_ms(t), t),
+    )
+    return sorted_tools[:n]
+
+
 def record_tool_call_windowed(
     tool_name: str,
     latency_ms: float,
