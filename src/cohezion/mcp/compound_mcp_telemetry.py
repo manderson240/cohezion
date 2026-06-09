@@ -5485,3 +5485,29 @@ def get_windowed_tool_latency_above_threshold_count(
     cutoff_ms = now_ms - window_ms
     records = store.get(tool_name, [])
     return int(sum(1 for ts, lat, _ok in records if ts >= cutoff_ms and lat > threshold_ms))
+
+
+def get_windowed_tool_call_failure_count(
+    tool_name: str,
+    window_ms: float,
+    *,
+    store: dict | None = None,
+    now_ms: float | None = None,
+) -> int:
+    """Count of calls with success=False in the window.  Item 1107.
+
+    Returns int.  Returns 0 for unknown tool, empty window, or all successes.
+    Injectable store.  Pure function.
+
+    PRIMARY DISC.: 5 calls, 2 with ok=False -> count=2
+      (kills success_count=3 (counts True not False);
+       kills total_count=5 (counts all outcomes);
+       kills failure_rate=0.4 (fraction not int count)).
+    """
+    if store is None:
+        store = _WINDOWED_TELEMETRY
+    if now_ms is None:
+        now_ms = _time.time() * 1000.0
+    cutoff_ms = now_ms - window_ms
+    records = store.get(tool_name, [])
+    return int(sum(1 for ts, _lat, ok in records if ts >= cutoff_ms and not ok))
