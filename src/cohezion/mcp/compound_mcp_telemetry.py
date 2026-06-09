@@ -6590,3 +6590,31 @@ def get_windowed_fleet_success_count(
             if ts >= cutoff_ms and ok:
                 count += 1
     return count
+
+
+def get_windowed_fleet_latency_max_ms(
+    window_ms: float,
+    *,
+    store: dict | None = None,
+    now_ms: float | None = None,
+) -> float:
+    """Fleet-wide maximum latency across all pooled calls in the window.  Item 1153.
+
+    Returns float (ms).  0.0 for empty window.
+    PRIMARY DISC.: tool_a=[10,300], tool_b=[50,200] → fleet_max=300.0 ms.
+    Kills mean≈140, min=10, always-0.
+    """
+    if store is None:
+        store = _WINDOWED_TELEMETRY
+    if now_ms is None:
+        now_ms = _time.time() * 1000.0
+    cutoff_ms = now_ms - window_ms
+    max_lat = 0.0
+    found = False
+    for records in store.values():
+        for ts, lat, _ok in records:
+            if ts >= cutoff_ms:
+                if not found or lat > max_lat:
+                    max_lat = lat
+                    found = True
+    return float(max_lat) if found else 0.0
