@@ -213,6 +213,21 @@ class TieredOrchestrator:
                     # Also override tier 1's gate: classifier knows the expected output length,
                     # so a 300-char function shouldn't escalate to CPU due to gate=2000.
                     _gate_override[1] = QualityGate(min_chars=decision.quality_gate_chars)
+                    # Reasoning lane: genuine multi-step reasoning must reach the CPU reasoner,
+                    # NOT be trusted at the mid (iGPU) tier. A high gate alone is insufficient
+                    # because the iGPU model (deepseek-r1) is a thinking model that emits long
+                    # chain-of-thought — a verbose-but-shallow answer would PASS a length gate.
+                    # So skip iGPU entirely and start at the CPU tier. Clamp to the last tier so
+                    # a short fleet (e.g. CPU omitted by the OOM guard, no cloud) still runs
+                    # something rather than exhausting with empty text.
+                    if decision.output_type == "reasoning":
+                        _start_tier = min(2, len(self.tiers) - 1)
+                        # The reasoning start tier IS the designated reasoner (CPU, or the last
+                        # tier when CPU/cloud are absent). Trust its non-empty output — don't
+                        # re-apply the high iGPU gate=2000 here, which would otherwise reject a
+                        # valid CPU/last-tier answer and exhaust the fleet.
+                        _gate_override[_start_tier] = QualityGate.TRUST  # type: ignore[attr-defined]
+                        _gate_override.pop(1, None)
                 else:
                     # Override tier-0 gate based on expected output length
                     _gate_override[0] = QualityGate(min_chars=decision.quality_gate_chars)

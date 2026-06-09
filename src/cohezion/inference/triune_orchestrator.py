@@ -34,6 +34,7 @@ def build_triune_orchestrator(
     npu_port: int = 13306,
     igpu_port: int = 13307,
     cpu_port: int = 13309,
+    router_cpu_port: int = 13305,
     clasp_draft_port: int | None = 13308,
     include_cloud: bool = True,
 ) -> TieredOrchestrator:
@@ -92,6 +93,7 @@ def build_triune_orchestrator(
         build_direct_cpu_tier,
         build_direct_igpu_tier,
         build_direct_npu_tier,
+        build_router_cpu_tier,
     )
 
     npu_tier = build_direct_npu_tier(port=npu_port, model_id="llama3.2-1b-FLM")
@@ -128,8 +130,45 @@ def build_triune_orchestrator(
             logger.debug("iGPU port %d offline — iGPU slot unavailable", igpu_port)
         igpu_tier = build_direct_igpu_tier(port=igpu_port, model_id="deepseek-r1-0528-8b-FLM")
 
-    # 3. CPU Tier — AVX-512 reasoning fallback ($0)
-    cpu_tier = build_direct_cpu_tier(port=cpu_port, model_id="Gemma-4-31B-it-GGUF")
+    # 3. CPU Tier — Gemma-4-31B reasoner ($0). The dedicated direct :13309 server is the default
+    # alternative (N2); when it is unreachable, fall back to the router (:13305) with
+    # llamacpp_backend=cpu — the canonical unified interface that serves the catalog on demand
+    # (router-centric topology: the dedicated per-port servers are frequently down). This mirrors
+    # the iGPU CLaSp-vs-direct selection above: pick the live path at build time.
+    #
+    # OOM gate (N3, mirrors the guard at the top of this fn): the 31B reasoner needs a bounded
+    # ctx_size (≤16384) AND enough free RAM. We require the same 16 GB MemorySnapshot buffer used
+    # above plus the reasoner's own footprint. If RAM is unsafe we OMIT the CPU tier entirely so
+    # escalation falls through to the cloud reasoner rather than risk an OOM hang (N3 incident).
+    _CPU_REASONER_SIZE_GB = 20.0  # Gemma-4-31B ~Q4 weights; bounded-ctx KV adds little
+    _cpu_ram_safe = True
+    try:
+        from cohezion.competition.orchestrator.resource_guard import MemorySnapshot
+
+        _snap = MemorySnapshot.capture()
+        _cpu_ram_safe = _snap.available_gb >= (16.0 + _CPU_REASONER_SIZE_GB)
+    except Exception as _rg_err:  # fail-soft: don't block tier build on a probe error
+        logger.debug("CPU RAM gate check failed (non-blocking): %s", _rg_err)
+
+    cpu_tier = None
+    if _cpu_ram_safe:
+        if _check_port(cpu_port):
+            cpu_tier = build_direct_cpu_tier(port=cpu_port, model_id="Gemma-4-31B-it-GGUF")
+            logger.info("CPU reasoner tier: direct :%d (Gemma-4-31B)", cpu_port)
+        else:
+            cpu_tier = build_router_cpu_tier(port=router_cpu_port, model_id="Gemma-4-31B-it-GGUF")
+            logger.info(
+                "CPU reasoner tier: direct :%d down → router :%d (llamacpp_backend=cpu, "
+                "bounded ctx)",
+                cpu_port,
+                router_cpu_port,
+            )
+    else:
+        logger.warning(
+            "OOM guard: CPU reasoner (Gemma-4-31B, ~%.0f GB) omitted — RAM unsafe. "
+            "Reasoning tasks escalate to cloud.",
+            _CPU_REASONER_SIZE_GB,
+        )
 
     # Quality gates for DirectLemonadeTier (direct HTTP inference).
     # Note: pre_dispatch_classifier overrides tier-0 and tier-1 gates based on output_type.
@@ -137,17 +176,21 @@ def build_triune_orchestrator(
     tiers: list[tuple] = [
         (npu_tier, QualityGate(min_chars=1)),  # NPU: XDNA2 SRAM, 40 TPS, $0
         (igpu_tier, QualityGate(min_chars=5)),  # iGPU: ROCWMMA, $0
-        (cpu_tier, QualityGate(min_chars=10)),  # CPU: AVX-512, $0
     ]
+    if cpu_tier is not None:
+        tiers.append((cpu_tier, QualityGate(min_chars=10)))  # CPU reasoner: AVX-512, $0
 
     if include_cloud:
         # Haiku 4.5: cloud tier 1 — 3.75× cheaper than Sonnet, covers CPU gate failures
         tiers.append(("claude-haiku-4-5", QualityGate.TRUST))  # type: ignore[arg-type]
         # Sonnet 4.6: cloud tier 2 — final fallback for BBQ low-and-slow synthesis
         tiers.append(("claude-sonnet-4-6", QualityGate.TRUST))  # type: ignore[arg-type]
-        logger.info("Triune: 5-tier tapestry (NPU→iGPU→CPU→Haiku→Sonnet), include_cloud=True")
+        logger.info(
+            "Triune: %d-tier tapestry (NPU→iGPU→[CPU]→Haiku→Sonnet), include_cloud=True",
+            len(tiers),
+        )
     else:
-        logger.info("Triune: 3-tier local-only (NPU→iGPU→CPU), include_cloud=False")
+        logger.info("Triune: %d-tier local-only (NPU→iGPU→[CPU]), include_cloud=False", len(tiers))
 
     router = PrefillActivationRouter(base_classifier=classify_task)
     return TieredOrchestrator(

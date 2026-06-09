@@ -57,6 +57,13 @@ _TYPE_CONFIG: dict[str, tuple[Literal["npu", "gpu"], int]] = {
     "long_generation": ("gpu", 0),  # essay, detailed explanation
     "code": ("gpu", 0),  # code output
     "math_reasoning": ("gpu", 0),  # multi-step calculation
+    # Genuine multi-step reasoning (analyze→recommend, compare tradeoffs, causal "why",
+    # multi-criteria decisions). node="gpu" auto-skips the NPU tier (orchestrator start_tier=1);
+    # the HIGH gate flows straight into the iGPU tier gate (orchestrator.py line ~215) so a
+    # verbose-but-shallow iGPU answer FAILS the gate and escalates to the CPU reasoner
+    # (Gemma-4-31B). 2000 is far above any faithful iGPU reasoning answer length, guaranteeing
+    # escalation past iGPU without trusting it. THE GAP fix.
+    "reasoning": ("gpu", 2000),  # multi-step reasoning — force escalation to CPU reasoner
 }
 
 
@@ -1109,6 +1116,79 @@ _BACKTICK_VERB_ENGINEERING_PATTERN = re.compile(
     re.I,
 )
 
+# ── Reasoning lane (multi-step analytical reasoning → CPU reasoner) ──────────
+# Genuine reasoning tasks: ANALYZE/COMPARE/EVALUATE + recommend/justify, causal "why does/is",
+# multi-criteria decisions, explicit "reason about" / "think step by step". These need the CPU
+# reasoner (Gemma-4-31B), not a verbose-but-shallow iGPU answer.
+#
+# SCOPING (must not collide with pinned tests):
+#   - Bare "prove X" / "derive X" / "Prove ... showing each step" stay on the math/long_generation
+#     path (test pins "Prove that P != NP showing each step" → long_generation).
+#   - "Write an essay ... in detail" stays long_generation (document generation).
+#   - These fire as a PRE-GPU override, AFTER the NPU-protecting overrides (categorical / what-is /
+#     describe / how-does / status-question), so CL1/CL2/CL3 are untouched.
+_REASONING_PATTERNS = [
+    # "Analyze/Compare/Evaluate/Assess X ... and recommend/justify/decide/choose" — analyze-then-act
+    (
+        re.compile(
+            r"\b(?:analyze|analyse|compare|evaluate|assess|weigh)\b.{0,120}\b(?:recommend|justify|decide|choose|pick|select|conclude|determine|propose)\b",
+            re.I | re.S,
+        ),
+        0.88,
+        "analyze-and-recommend reasoning",
+    ),
+    # "Compare/weigh the tradeoffs/trade-offs/pros and cons of X" — explicit tradeoff analysis
+    (
+        re.compile(
+            r"\b(?:compare|weigh|evaluate|assess|analyze|analyse|consider|discuss)\b.{0,40}\b(?:trade.?offs?|pros\s+and\s+cons|advantages\s+and\s+disadvantages|costs?\s+and\s+benefits?|benefits?\s+and\s+(?:costs?|risks?|drawbacks?))\b",
+            re.I | re.S,
+        ),
+        0.86,
+        "tradeoff reasoning",
+    ),
+    # Causal "why does/is/do/are X [cause/affect/...]" — explanatory reasoning (≥25 chars of content
+    # after the verb so short "Why is X?" definitional questions stay on the short-answer path).
+    (
+        re.compile(
+            r"\bwhy\s+(?:does|do|is|are)\b.{25,}",
+            re.I | re.S,
+        ),
+        0.84,
+        "causal why-reasoning",
+    ),
+    # Explicit reasoning directives — "reason about X", "think step by step about X",
+    # "reason through X", "walk through the reasoning"
+    (
+        re.compile(
+            r"\b(?:reason\s+(?:about|through|over)|think\s+(?:step.by.step|through|carefully)\s+about|work\s+through\s+the\s+(?:reasoning|logic|implications))\b",
+            re.I,
+        ),
+        0.86,
+        "explicit reasoning directive",
+    ),
+    # Multi-criteria decisions — "Should we A or B given/considering X, Y, Z?" — weighs criteria.
+    # Requires a decision framing (should/whether ... or) AND a criteria clause (given/considering/
+    # based on/taking into account) to avoid firing on simple binary questions.
+    (
+        re.compile(
+            r"\b(?:should\s+(?:we|i|you|they)|whether\s+(?:to|we|i))\b.{0,80}\b(?:or|vs\.?|versus)\b.{0,80}\b(?:given|considering|based\s+on|taking\s+into\s+account|in\s+light\s+of|weigh|with\s+respect\s+to)\b",
+            re.I | re.S,
+        ),
+        0.84,
+        "multi-criteria decision reasoning",
+    ),
+    # "Evaluate/Decide whether to X and justify/explain why" — decision with justification
+    (
+        re.compile(
+            r"\b(?:evaluate|decide|determine|assess|judge)\s+whether\s+to\b.{0,120}\b(?:justify|explain\s+why|and\s+why|with\s+(?:reasoning|justification|rationale)|trade.?offs?)\b",
+            re.I | re.S,
+        ),
+        0.84,
+        "decision-with-justification reasoning",
+    ),
+]
+
+
 _calibrated_overrides: dict[str, Any] | None = None
 _overrides_loaded = False
 
@@ -1315,6 +1395,22 @@ def classify(prompt: str) -> RouteDecision:
             reason="backtick-prefixed engineering command",
         )
 
+    # 5. Reasoning lane — genuine multi-step reasoning → CPU reasoner (Gemma-4-31B).
+    # Fires AFTER the NPU-protecting overrides (categorical / what-is / describe / how-does /
+    # status-question) so CL1/CL2/CL3 stay intact, but BEFORE the GPU pattern scan so analytical
+    # prompts that would otherwise resolve to long_generation (and be trusted at iGPU) are tagged
+    # as `reasoning` with a high gate that forces iGPU→CPU escalation. node="gpu" auto-skips NPU.
+    for r_pat, r_conf, r_reason in _REASONING_PATTERNS:
+        if r_pat.search(prompt):
+            node, gate = _TYPE_CONFIG["reasoning"]
+            return RouteDecision(
+                node=node,
+                output_type="reasoning",
+                quality_gate_chars=gate,
+                confidence=r_conf,
+                reason=r_reason,
+            )
+
     # ── Check GPU patterns first (highest cost to mis-route) ────────────────
     # Normalize backtick-quoted verbs: `port` → port (backtick prevents \s+ after \bport\b)
     # Only used for GPU scan — pre-GPU overrides still use the original prompt.
@@ -1386,9 +1482,7 @@ def classify(prompt: str) -> RouteDecision:
         )
 
 
-def classify_with_harness(
-    prompt: str, *, tool_task: bool = False
-) -> tuple[RouteDecision, Harness]:
+def classify_with_harness(prompt: str, *, tool_task: bool = False) -> tuple[RouteDecision, Harness]:
     """``classify`` + an advisory harness recommendation for the chosen node.
 
     Returns the EXISTING ``RouteDecision`` unchanged (routing/CL invariants intact) paired

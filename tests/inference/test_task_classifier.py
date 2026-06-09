@@ -522,3 +522,74 @@ class TestBacktickNormalizationNonEngineeringPath:
     def test_backtick_parse_routes_gpu_via_extended_verb(self):
         d = classify("`parse` the JSON schemas for the API validation layer")
         assert d.node == "gpu"
+
+
+class TestReasoningLane:
+    """Reasoning lane: genuine multi-step reasoning → CPU reasoner (Gemma-4-31B).
+
+    The `reasoning` output_type has node="gpu" (auto-skips NPU) and a HIGH quality gate
+    (2000) so a verbose-but-shallow iGPU answer fails the gate and escalates to the CPU
+    reasoner — THE GAP fix. These tests pin the classifier side; the orchestrator-side
+    escalation is covered in test_triune_orchestrator.py.
+    """
+
+    def test_analyze_and_recommend_is_reasoning(self):
+        d = classify("Analyze the tradeoffs between Redis and Memcached and recommend one.")
+        assert d.output_type == "reasoning"
+        assert d.node == "gpu"
+        assert d.quality_gate_chars == 2000
+
+    def test_compare_tradeoffs_is_reasoning(self):
+        d = classify("Compare the tradeoffs of optimistic vs pessimistic locking.")
+        assert d.output_type == "reasoning"
+        assert d.node == "gpu"
+
+    def test_causal_why_does_is_reasoning(self):
+        d = classify("Why does increasing batch size reduce throughput under heavy load?")
+        assert d.output_type == "reasoning"
+        assert d.node == "gpu"
+
+    def test_reason_about_directive_is_reasoning(self):
+        d = classify("Reason about whether we should shard the database now or later.")
+        assert d.output_type == "reasoning"
+        assert d.node == "gpu"
+
+    def test_think_step_by_step_about_is_reasoning(self):
+        d = classify("Think step by step about how to migrate the auth system safely.")
+        assert d.output_type == "reasoning"
+        assert d.node == "gpu"
+
+    def test_multi_criteria_decision_is_reasoning(self):
+        d = classify(
+            "Should we use a monolith or microservices given our team size and scaling needs?"
+        )
+        assert d.output_type == "reasoning"
+        assert d.node == "gpu"
+
+    def test_evaluate_whether_with_justification_is_reasoning(self):
+        d = classify("Evaluate whether to adopt event sourcing for the order service and justify.")
+        assert d.output_type == "reasoning"
+        assert d.node == "gpu"
+
+    # ── Discriminating cases: must NOT be misclassified as reasoning ──────────
+
+    def test_short_why_is_definitional_not_reasoning(self):
+        # Short "Why is X?" definitional question stays on the short-answer/NPU path (CL3).
+        d = classify("Why is the sky blue?")
+        assert d.output_type != "reasoning"
+        assert d.node == "npu"
+
+    def test_bare_prove_stays_long_generation_not_reasoning(self):
+        # Pinned test elsewhere asserts this is long_generation — reasoning must not steal it.
+        d = classify("Prove that P != NP showing each step.")
+        assert d.output_type == "long_generation"
+
+    def test_what_is_stays_short_answer_not_reasoning(self):
+        d = classify("What is a semaphore?")
+        assert d.output_type == "short_answer"
+        assert d.node == "npu"
+
+    def test_code_generation_not_reasoning(self):
+        d = classify("Write a Python function to reverse a linked list.")
+        assert d.output_type == "code"
+        assert d.node == "gpu"
