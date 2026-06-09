@@ -6419,3 +6419,51 @@ def get_windowed_fleet_latency_gini(
     latencies.sort()
     weighted_sum = sum((i + 1) * x for i, x in enumerate(latencies))
     return float((2 * weighted_sum) / (n * total) - (n + 1) / n)
+
+
+def get_windowed_fleet_latency_entropy_bits(
+    window_ms: float,
+    n_bins: int = 10,
+    *,
+    store: dict | None = None,
+    now_ms: float | None = None,
+) -> float:
+    """Fleet-wide Shannon entropy (bits) of pooled latency histogram.  Item 1146.
+
+    Bins latencies into n_bins equal-width buckets; computes p_i = count_i / total;
+    returns -sum(p_i * log2(p_i)) for non-zero bins.
+    Returns float >= 0.0.  0.0 for empty window or single bin.
+    Max value = log2(n_bins) when distribution is uniform across all bins.
+    PRIMARY DISC.: [10,10,90,90] with n_bins=2 → two equal bins → entropy=1.0 bit.
+    """
+    import math as _math
+    if store is None:
+        store = _WINDOWED_TELEMETRY
+    if now_ms is None:
+        now_ms = _time.time() * 1000.0
+    cutoff_ms = now_ms - window_ms
+    latencies: list[float] = []
+    for records in store.values():
+        for ts, lat, _ok in records:
+            if ts >= cutoff_ms:
+                latencies.append(lat)
+    n = len(latencies)
+    if n == 0:
+        return 0.0
+    lo = min(latencies)
+    hi = max(latencies)
+    if lo == hi:
+        return 0.0  # all in one bin
+    bin_width = (hi - lo) / n_bins
+    counts = [0] * n_bins
+    for lat in latencies:
+        idx = int((lat - lo) / bin_width)
+        if idx >= n_bins:
+            idx = n_bins - 1
+        counts[idx] += 1
+    entropy = 0.0
+    for c in counts:
+        if c > 0:
+            p = c / n
+            entropy -= p * _math.log2(p)
+    return float(entropy)
