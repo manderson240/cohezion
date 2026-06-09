@@ -778,6 +778,17 @@ def load_telemetry_snapshot(path: _Path | str) -> dict[str, dict]:
     return data
 
 
+def get_total_error_count() -> int:
+    """Return the total number of errors recorded across all tools.  Item 944.
+
+    Sum of ``error_count`` for every tool in ``_TELEMETRY``.
+
+    Returns:
+        Total failed calls across all tools; 0 when none recorded.
+    """
+    return sum(stats["error_count"] for stats in _TELEMETRY.values())
+
+
 def get_total_call_count() -> int:
     """Return the total number of calls recorded across all tools.  Item 943.
 
