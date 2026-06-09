@@ -189,6 +189,28 @@ def get_all_tool_stats() -> dict[str, dict]:
     return {tool_name: get_tool_stats(tool_name) for tool_name in _TELEMETRY}
 
 
+def get_top_n_tools_by_call_count(n: int) -> list[str]:
+    """Return up to N tool names sorted by descending call count.  Item 918.
+
+    Ties in call count are broken by ascending tool name (alphabetical) for
+    deterministic results.
+
+    Args:
+        n: Number of top tools to return.  n ≤ 0 returns [].
+
+    Returns:
+        List of up to *n* tool names, busiest first.
+        Empty list when store is empty or *n* ≤ 0.
+    """
+    if n <= 0:
+        return []
+    sorted_tools = sorted(
+        _TELEMETRY.keys(),
+        key=lambda t: (-_TELEMETRY[t]["call_count"], t),
+    )
+    return sorted_tools[:n]
+
+
 def record_tool_call_windowed(
     tool_name: str,
     latency_ms: float,
