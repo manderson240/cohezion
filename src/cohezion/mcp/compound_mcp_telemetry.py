@@ -3437,6 +3437,32 @@ def get_windowed_tool_latency_winsorized_mean_ms(
     return float(sum(clamped) / n)
 
 
+def get_windowed_global_latency_mad_stddev_ratio(
+    window_ms: float,
+    *,
+    store: dict | None = None,
+    now_ms: float | None = None,
+) -> float:
+    """Fleet-wide MAD/stddev ratio (outlier sensitivity index).  Item 1042.
+
+    ratio = pooled_MAD / pooled_stddev
+    0.0 if pooled_stddev == 0.0 (guard against division by zero).
+    Injectable store.  Pure function.
+
+    Fleet dual of get_windowed_tool_latency_mad_stddev_ratio (item 1033).
+    Composes get_windowed_global_latency_mad_ms + get_windowed_global_latency_stddev_ms.
+
+    PRIMARY DISC.: tool_a=[10,10,10,10] + tool_b=[100]
+      pooled median=10, MAD=0.0, stddev=36.0 -> ratio=0.0
+      (kills ratio=1.0; correct=0.0 showing outlier-dominated stddev).
+    """
+    mad = get_windowed_global_latency_mad_ms(window_ms, store=store, now_ms=now_ms)
+    stddev = get_windowed_global_latency_stddev_ms(window_ms, store=store, now_ms=now_ms)
+    if stddev == 0.0:
+        return 0.0
+    return float(mad / stddev)
+
+
 def get_windowed_global_latency_kurtosis(
     window_ms: float,
     *,
