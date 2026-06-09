@@ -1334,3 +1334,44 @@ def get_windowed_global_p50_ms(
     if not pooled:
         return 0.0
     return float(_percentile(sorted(pooled), 50.0))
+
+
+def get_windowed_busiest_tool(
+    window_ms: float,
+    *,
+    store: dict[str, list] | None = None,
+    now_ms: float | None = None,
+) -> str | None:
+    """Return the tool with the most calls in the recent window.  Item 957.
+
+    Windowed analog of :func:`get_busiest_tool` (cumulative, item 942).
+    Returns the tool_name whose windowed call count is highest.  When multiple
+    tools tie for the maximum, the alphabetically first name is returned for
+    deterministic output.
+
+    Args:
+        window_ms: Look-back window in milliseconds.
+        store:     Windowed telemetry store (injectable; defaults to
+                   ``_WINDOWED_TELEMETRY``).
+        now_ms:    Current time in ms (defaults to ``time.time() * 1000``).
+
+    Returns:
+        The name of the busiest tool in the window, or ``None`` when the store
+        is empty or no calls fall within the window.
+    """
+    if store is None:
+        store = _WINDOWED_TELEMETRY
+    if now_ms is None:
+        now_ms = _time.time() * 1000.0
+    cutoff_ms = now_ms - window_ms
+    # Build {tool: windowed_call_count} for tools with ≥1 recent call
+    counts: dict[str, int] = {}
+    for tool, records in store.items():
+        n = sum(1 for ts, _lat, _ok in records if ts >= cutoff_ms)
+        if n > 0:
+            counts[tool] = n
+    if not counts:
+        return None
+    max_count = max(counts.values())
+    candidates = [t for t, n in counts.items() if n == max_count]
+    return min(candidates)
