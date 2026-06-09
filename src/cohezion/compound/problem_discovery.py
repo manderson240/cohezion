@@ -16052,3 +16052,31 @@ def severity_profile(problems: list["Problem"]) -> dict[str, int]:
         sev = p.severity
         result[sev] = result.get(sev, 0) + 1
     return result
+
+
+def class_severity_profile(problems: list["Problem"]) -> dict[str, dict[str, int]]:
+    """Severity histogram per class.  Item 834.
+    Returns {class: {severity_string: count}}. Absent severities omitted. Empty -> {}."""
+    if not problems:
+        return {}
+    result: dict[str, dict[str, int]] = {}
+    for p in problems:
+        cls = p.problem_class
+        if cls not in result:
+            result[cls] = {}
+        result[cls][p.severity] = result[cls].get(p.severity, 0) + 1
+    return result
+
+
+def fid_severity_profile(problems: list["Problem"]) -> dict[str, dict[str, int]]:
+    """Severity histogram per fid.  Item 835. Fid-axis complement of 834.
+    Returns {finding_id: {severity_string: count}}. Absent severities omitted. Empty -> {}."""
+    if not problems:
+        return {}
+    result: dict[str, dict[str, int]] = {}
+    for p in problems:
+        fid = p.finding_id
+        if fid not in result:
+            result[fid] = {}
+        result[fid][p.severity] = result[fid].get(p.severity, 0) + 1
+    return result
