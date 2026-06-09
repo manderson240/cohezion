@@ -1501,3 +1501,62 @@ def get_windowed_most_error_prone_tool(
     max_rate = max(rates.values())
     candidates = [t for t, r in rates.items() if abs(r - max_rate) < 1e-9]
     return min(candidates)
+
+
+def get_windowed_tool_telemetry_full(
+    tool_name: str,
+    window_ms: float,
+    *,
+    store: dict[str, list] | None = None,
+    now_ms: float | None = None,
+) -> dict:
+    """Return the full 6-key windowed profile for a single tool.  Item 961.
+
+    Windowed analog of :func:`get_tool_telemetry_full` (cumulative, item 949).
+    Extends the 4-key :func:`get_tool_windowed_stats` result with two additional
+    keys: ``error_count`` (exact integer count) and ``success_rate`` (= 1 -
+    ``error_rate``), matching the full-profile contract.
+
+    Args:
+        tool_name: The MCP tool name to look up.
+        window_ms: Look-back window in milliseconds.
+        store:     Windowed telemetry store (injectable; defaults to
+                   ``_WINDOWED_TELEMETRY``).
+        now_ms:    Current time in ms (defaults to ``time.time() * 1000``).
+
+    Returns:
+        ``{call_count, error_count, error_rate, success_rate, p50_ms, p95_ms}``.
+        All-zero dict with ``success_rate=1.0`` for unknown tools or when no
+        calls fall within the window.
+    """
+    _zero: dict = {
+        "call_count": 0,
+        "error_count": 0,
+        "error_rate": 0.0,
+        "success_rate": 1.0,
+        "p50_ms": 0.0,
+        "p95_ms": 0.0,
+    }
+    if store is None:
+        store = _WINDOWED_TELEMETRY
+    if now_ms is None:
+        now_ms = _time.time() * 1000.0
+    records = store.get(tool_name)
+    if not records:
+        return dict(_zero)
+    cutoff_ms = now_ms - window_ms
+    recent = [(lat, ok) for ts, lat, ok in records if ts >= cutoff_ms]
+    if not recent:
+        return dict(_zero)
+    n = len(recent)
+    errors = sum(1 for _, ok in recent if not ok)
+    sorted_lats = sorted(lat for lat, _ in recent)
+    error_rate = float(errors) / n
+    return {
+        "call_count": n,
+        "error_count": errors,
+        "error_rate": error_rate,
+        "success_rate": 1.0 - error_rate,
+        "p50_ms": _percentile(sorted_lats, 50.0),
+        "p95_ms": _percentile(sorted_lats, 95.0),
+    }
