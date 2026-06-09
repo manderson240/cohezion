@@ -2533,3 +2533,32 @@ def get_windowed_global_latency_variance_ms(
     mean = sum(all_lats) / n
     variance = sum((lat - mean) ** 2 for lat in all_lats) / n
     return float(variance)
+
+
+def get_windowed_tool_slow_call_count(
+    tool_name: str,
+    window_ms: float,
+    threshold_ms: float,
+    *,
+    store: dict | None = None,
+    now_ms: float | None = None,
+) -> int:
+    """Return the count of calls with latency_ms strictly > threshold_ms in the window.  Item 1003.
+
+    SLO compliance query: "how many calls exceeded the threshold in the last window_ms ms?"
+
+    Counts ALL calls (success + failures) whose recorded latency is strictly greater than
+    *threshold_ms*.  Calls with latency exactly equal to *threshold_ms* do NOT count.
+
+    Returns 0 for unknown tools or when no recent calls exist.
+
+    PRIMARY DISC.: lats [10,50,200,300] with threshold=100 -> 2
+      (kills count-all=4; strictly > so threshold=50 with lats [10,50,200] -> 1 not 2).
+    """
+    if store is None:
+        store = _WINDOWED_TELEMETRY
+    if now_ms is None:
+        now_ms = _time.time() * 1000.0
+    cutoff_ms = now_ms - window_ms
+    records = store.get(tool_name, [])
+    return int(sum(1 for ts, lat, _ok in records if ts >= cutoff_ms and lat > threshold_ms))
