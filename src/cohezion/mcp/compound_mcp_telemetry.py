@@ -7854,3 +7854,29 @@ def get_windowed_fleet_latency_weight_ms_by_tool(
     cutoff_ms = now_ms - window_ms
     records = store.get(tool_name, [])
     return float(sum(lat for ts, lat, _ok in records if ts >= cutoff_ms))
+
+
+def get_windowed_fleet_latency_mean_per_success_ms_by_tool(
+    window_ms: float,
+    tool_name: str,
+    *,
+    store=None,
+    now_ms=None,
+) -> float:
+    """Per-tool mean latency of successful calls only (ok=True). Item 1205.
+
+    Returns 0.0 for unknown/empty tool or no successful calls in window.
+    Distinguishes healthy-path latency from total latency (which includes
+    slow failing calls).
+    """
+    if store is None:
+        store = _WINDOWED_TELEMETRY
+    if now_ms is None:
+        now_ms = _time.time() * 1000.0
+    cutoff_ms = now_ms - window_ms
+    records = store.get(tool_name, [])
+    lats = [lat for ts, lat, ok in records if ts >= cutoff_ms and ok]
+    n = len(lats)
+    if n == 0:
+        return 0.0
+    return float(sum(lats) / n)
