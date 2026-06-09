@@ -5457,3 +5457,31 @@ def get_windowed_tool_latency_burst_rate_per_ms(
         tool_name, window_ms, burst_threshold_ms, store=store, now_ms=now_ms
     )
     return float(burst_count / window_ms)
+
+
+def get_windowed_tool_latency_above_threshold_count(
+    tool_name: str,
+    window_ms: float,
+    threshold_ms: float,
+    *,
+    store: dict | None = None,
+    now_ms: float | None = None,
+) -> int:
+    """Count of windowed calls with latency strictly > threshold_ms.  Item 1104.
+
+    Returns an int (not float).  Returns 0 for empty window.
+    Uses strict inequality (>) — calls at exactly threshold_ms are NOT counted.
+    Injectable store.  Pure function.
+
+    PRIMARY DISC.: 10 calls [10..100]ms, threshold=50ms -> count=5
+      (calls 60,70,80,90,100 > 50ms; strictly > not >=)
+      (kills fraction=0.5 (float not int);
+       kills count>=threshold: lat=50 included -> count=6 != 5).
+    """
+    if store is None:
+        store = _WINDOWED_TELEMETRY
+    if now_ms is None:
+        now_ms = _time.time() * 1000.0
+    cutoff_ms = now_ms - window_ms
+    records = store.get(tool_name, [])
+    return int(sum(1 for ts, lat, _ok in records if ts >= cutoff_ms and lat > threshold_ms))
