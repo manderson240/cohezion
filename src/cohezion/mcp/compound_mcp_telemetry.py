@@ -2302,3 +2302,24 @@ def get_windowed_tool_p95_ms(
     return get_windowed_latency_percentile(
         tool_name, 95.0, window_ms, store=store, now_ms=now_ms
     )
+
+
+def get_windowed_tool_p99_ms(
+    tool_name: str,
+    window_ms: float,
+    *,
+    store: dict | None = None,
+    now_ms: float | None = None,
+) -> float:
+    """Return the p99 latency in the window for *tool_name*.  Item 992.
+
+    Convenience shortcut for get_windowed_latency_percentile(tool_name, 99, ...).
+    Returns 0.0 for unknown tools or when no recent calls exist.
+
+    PRIMARY DISC.: lats [10,20,30,40,50] -> p99=49.6 (not p95=48.0, not max=50.0).
+    idx = 0.99 * (n-1) = 3.96; 40 + 0.96*(50-40) = 49.6.
+    Order constraint: p99 >= p95 >= p50 for any non-empty window.
+    """
+    return get_windowed_latency_percentile(
+        tool_name, 99.0, window_ms, store=store, now_ms=now_ms
+    )
