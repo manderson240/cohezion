@@ -2593,3 +2593,34 @@ def get_windowed_tool_slow_call_rate(
         return 0.0
     slow = sum(1 for (lat,) in recent if lat > threshold_ms)
     return float(slow / total)
+
+
+def get_windowed_global_slow_call_count(
+    window_ms: float,
+    threshold_ms: float,
+    *,
+    store: dict | None = None,
+    now_ms: float | None = None,
+) -> int:
+    """Return fleet-wide count of calls with latency_ms > threshold_ms in the window.  Item 1005.
+
+    Fleet-wide dual of get_windowed_tool_slow_call_count (item 1003).
+    Pools ALL tools — a call from ANY tool that exceeds the threshold is counted.
+
+    Returns 0 when no recent calls exist.
+    Strictly greater than: calls with latency exactly equal to threshold_ms do NOT count.
+
+    PRIMARY DISC.: tool_a [10,200,500] + tool_b [50] threshold=100 -> 2
+      (2 slow from tool_a, 0 from tool_b; fleet total = 2).
+    """
+    if store is None:
+        store = _WINDOWED_TELEMETRY
+    if now_ms is None:
+        now_ms = _time.time() * 1000.0
+    cutoff_ms = now_ms - window_ms
+    return int(sum(
+        1
+        for records in store.values()
+        for ts, lat, _ok in records
+        if ts >= cutoff_ms and lat > threshold_ms
+    ))
