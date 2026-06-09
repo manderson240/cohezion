@@ -16589,3 +16589,71 @@ def fid_bottom_severity(problems: list[Problem]) -> dict[str, str]:
         if fid not in min_rank or rank < min_rank[fid]:
             min_rank[fid] = rank
     return {fid: _RANK_TO_SEVERITY[r] for fid, r in min_rank.items()}
+
+
+import math as _math  # noqa: E402 — late import to avoid polluting top-level
+
+
+def class_severity_rank_z_scores(problems: list[Problem]) -> dict[str, list[float]]:
+    """Per-problem z-score of severity rank within its class.  Item 872.
+
+    For each class returns a list of z-scores in input order:
+        z = (rank - mean) / std
+    When std == 0 (all problems share the same rank), all z-scores are 0.0.
+    Empty -> {}.  Pure; no I/O.
+    """
+    if not problems:
+        return {}
+    # Group ranks per class in input order
+    class_ranks: dict[str, list[int]] = {}
+    class_indices: dict[str, list[int]] = {}
+    for i, p in enumerate(problems):
+        cls = p.problem_class
+        rank = _SEVERITY_RANK.get(p.severity, 0)
+        if cls not in class_ranks:
+            class_ranks[cls] = []
+            class_indices[cls] = []
+        class_ranks[cls].append(rank)
+        class_indices[cls].append(i)
+
+    result: dict[str, list[float]] = {}
+    for cls, ranks in class_ranks.items():
+        n = len(ranks)
+        mean = sum(ranks) / n
+        variance = sum((r - mean) ** 2 for r in ranks) / n
+        std = _math.sqrt(variance)
+        if std == 0.0:
+            result[cls] = [0.0] * n
+        else:
+            result[cls] = [(r - mean) / std for r in ranks]
+    return result
+
+
+def fid_severity_rank_z_scores(problems: list[Problem]) -> dict[str, list[float]]:
+    """Per-problem z-score of severity rank within its fid.  Item 873.
+
+    Fid-axis complement of class_severity_rank_z_scores (item 872).
+    For each finding_id returns a list of z-scores in input order.
+    When std == 0 all z-scores are 0.0.  Empty -> {}.  Pure; no I/O.
+    """
+    if not problems:
+        return {}
+    fid_ranks: dict[str, list[int]] = {}
+    for p in problems:
+        fid = p.finding_id
+        rank = _SEVERITY_RANK.get(p.severity, 0)
+        if fid not in fid_ranks:
+            fid_ranks[fid] = []
+        fid_ranks[fid].append(rank)
+
+    result: dict[str, list[float]] = {}
+    for fid, ranks in fid_ranks.items():
+        n = len(ranks)
+        mean = sum(ranks) / n
+        variance = sum((r - mean) ** 2 for r in ranks) / n
+        std = _math.sqrt(variance)
+        if std == 0.0:
+            result[fid] = [0.0] * n
+        else:
+            result[fid] = [(r - mean) / std for r in ranks]
+    return result
