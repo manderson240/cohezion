@@ -4050,3 +4050,47 @@ def get_windowed_global_latency_decile_range_ms(
     p10 = get_windowed_global_latency_percentile(10.0, window_ms, store=store, now_ms=now_ms)
     p90 = get_windowed_global_latency_percentile(90.0, window_ms, store=store, now_ms=now_ms)
     return float(p90 - p10)
+
+
+def get_windowed_global_latency_bimodality_coefficient(
+    window_ms: float,
+    *,
+    store: dict | None = None,
+    now_ms: float | None = None,
+) -> float:
+    """Fleet-wide bimodality coefficient BC=(skewness^2+1)/kurtosis_raw.  Item 1057.
+
+    Pools ALL tool latencies before computing BC (NOT per-tool then average).
+    Returns 0.0 for n_pooled < 4 or variance == 0.
+    Injectable store.  Pure function.  Fleet dual of per-tool item 1052.
+
+    PRIMARY DISC.: tool_a=[10,10,10,10] + tool_b=[100,100,100,100]
+      pooled [10,10,10,10,100,100,100,100] n=8
+      mean=55, var=2025, std=45, skewness=0 (symmetric bimodal),
+      kurtosis_raw=1.0, BC=(0+1)/1.0=1.0
+      (kills per-tool BC avg: each all-equal -> variance=0 -> BC=0, avg=0.0 != 1.0;
+       correct pooled bimodal BC=1.0).
+    """
+    import math as _math
+
+    if store is None:
+        store = _WINDOWED_TELEMETRY
+    if now_ms is None:
+        now_ms = _time.time() * 1000.0
+    cutoff_ms = now_ms - window_ms
+    lats: list[float] = []
+    for records in store.values():
+        for ts, lat, _ok in records:
+            if ts >= cutoff_ms:
+                lats.append(lat)
+    n = len(lats)
+    if n < 4:
+        return 0.0
+    mean = sum(lats) / n
+    variance = sum((x - mean) ** 2 for x in lats) / n
+    if variance == 0.0:
+        return 0.0
+    std = _math.sqrt(variance)
+    skewness = sum((x - mean) ** 3 for x in lats) / (n * std ** 3)
+    kurtosis_raw = sum((x - mean) ** 4 for x in lats) / (n * std ** 4)
+    return float((skewness ** 2 + 1.0) / kurtosis_raw)
