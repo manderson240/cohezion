@@ -16550,3 +16550,42 @@ def fid_severity_rank_relative_frequency(problems: list[Problem]) -> dict[str, d
         fid: {rank: count / totals[fid] for rank, count in rank_counts[fid].items()}
         for fid in rank_counts
     }
+
+
+# Inverse severity-rank map: int rank -> severity label string
+_RANK_TO_SEVERITY: dict[int, str] = {v: k for k, v in _SEVERITY_RANK.items()}
+
+
+def class_bottom_severity(problems: list[Problem]) -> dict[str, str]:
+    """Least severe problem severity label per class.  Item 866.
+
+    Returns the severity STRING label corresponding to the minimum rank for
+    each class.  Empty -> {}.  Pure; no I/O.
+    """
+    if not problems:
+        return {}
+    min_rank: dict[str, int] = {}
+    for p in problems:
+        cls = p.problem_class
+        rank = _SEVERITY_RANK.get(p.severity, 0)
+        if cls not in min_rank or rank < min_rank[cls]:
+            min_rank[cls] = rank
+    return {cls: _RANK_TO_SEVERITY[r] for cls, r in min_rank.items()}
+
+
+def fid_bottom_severity(problems: list[Problem]) -> dict[str, str]:
+    """Least severe problem severity label per fid.  Item 867.
+
+    Fid-axis complement of class_bottom_severity (item 866).
+    Returns the severity STRING label corresponding to the minimum rank for
+    each finding_id.  Empty -> {}.  Pure; no I/O.
+    """
+    if not problems:
+        return {}
+    min_rank: dict[str, int] = {}
+    for p in problems:
+        fid = p.finding_id
+        rank = _SEVERITY_RANK.get(p.severity, 0)
+        if fid not in min_rank or rank < min_rank[fid]:
+            min_rank[fid] = rank
+    return {fid: _RANK_TO_SEVERITY[r] for fid, r in min_rank.items()}
