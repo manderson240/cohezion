@@ -179,6 +179,16 @@ def get_tool_stats(tool_name: str) -> dict:
     }
 
 
+def get_all_tool_stats() -> dict[str, dict]:
+    """Return a per-tool stats map for every tool in the cumulative store.  Item 917.
+
+    Returns:
+        {tool_name: get_tool_stats(tool_name)} for every tool recorded.
+        Empty dict when no tools have been recorded.
+    """
+    return {tool_name: get_tool_stats(tool_name) for tool_name in _TELEMETRY}
+
+
 def record_tool_call_windowed(
     tool_name: str,
     latency_ms: float,
