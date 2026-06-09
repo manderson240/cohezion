@@ -4414,6 +4414,26 @@ def get_windowed_global_latency_percentile_at_budget_ms(
     return float(within / total)
 
 
+def get_windowed_global_latency_interquartile_range_ms(
+    window_ms: float,
+    *,
+    store: dict | None = None,
+    now_ms: float | None = None,
+) -> float:
+    """Fleet-wide IQR = pooled_Q3 - pooled_Q1.  Item 1069.
+
+    Pools ALL tool latencies and computes Q3 - Q1 on the pooled distribution.
+    0.0 for empty pool. Thin composition via get_windowed_global_latency_percentile.
+    Injectable store. Pure function. Fleet dual of item 1068.
+
+    PRIMARY DISC.: tool_a=[10,20,30,40,50]+tool_b=[100,200,300]
+      -> pooled IQR=97.5 (kills per-tool avg=60).
+    """
+    q1 = get_windowed_global_latency_percentile(25.0, window_ms, store=store, now_ms=now_ms)
+    q3 = get_windowed_global_latency_percentile(75.0, window_ms, store=store, now_ms=now_ms)
+    return float(q3 - q1)
+
+
 def get_windowed_global_latency_tail_ratio_ms(
     window_ms: float,
     *,
