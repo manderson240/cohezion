@@ -3061,42 +3061,6 @@ def get_windowed_tool_latency_above_budget_ms(
     store: dict | None = None,
     now_ms: float | None = None,
 ) -> float:
-    """Total excess latency above SLA budget for a tool in the window.  Item 1023.
-
-    excess_sum = sum(max(0, latency_ms - budget_ms) for all calls in window)
-
-    0.0 for unknown/empty tool, all calls outside window, or all calls at/below budget.
-    Includes failed calls (budget applies to wall-clock time regardless of success).
-    Injectable store.  Pure function.
-
-    Measures cumulative latency "debt" above SLA — distinguishes a single 200ms
-    overrun from four 50ms overruns where count_above_budget would be equal.
-
-    PRIMARY DISC.: lats [50, 150, 300] budget=100
-      excess = [0, 50, 200] -> sum = 250.0
-      (kills count_above_budget=2 int; kills sum_all=500 float; correct excess=250.0).
-    """
-    if store is None:
-        store = _WINDOWED_TELEMETRY
-    if now_ms is None:
-        now_ms = _time.time() * 1000.0
-    cutoff_ms = now_ms - window_ms
-    records = store.get(tool_name, [])
-    return float(sum(
-        max(0.0, lat - budget_ms)
-        for ts, lat, _ok in records
-        if ts >= cutoff_ms
-    ))
-
-
-def get_windowed_tool_latency_above_budget_ms(
-    tool_name: str,
-    window_ms: float,
-    budget_ms: float,
-    *,
-    store: dict | None = None,
-    now_ms: float | None = None,
-) -> float:
     """Return total excess latency above *budget_ms* for *tool_name* in the window.  Item 1023.
 
     Computes sum(max(0, lat - budget_ms)) for every call in the window.
