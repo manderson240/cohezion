@@ -6096,3 +6096,29 @@ def get_windowed_fleet_latency_range_ms(
     if len(latencies) < 2:
         return 0.0
     return float(max(latencies) - min(latencies))
+
+
+def get_windowed_fleet_latency_sum_ms(
+    window_ms: float,
+    *,
+    store: dict | None = None,
+    now_ms: float | None = None,
+) -> float:
+    """Fleet-wide sum of all pooled latencies in the window (ms).  Item 1135.
+
+    Returns float (ms).  0.0 for empty window.
+    PRIMARY DISC.: kills per-tool-avg-sum (always sums ALL individual latencies):
+      tool_a lats=[10,20,30]ms (sum=60), tool_b lats=[100,200]ms (sum=300);
+      per-tool-avg-sum=(60+300)/2=180ms; fleet_sum=360ms.
+    """
+    if store is None:
+        store = _WINDOWED_TELEMETRY
+    if now_ms is None:
+        now_ms = _time.time() * 1000.0
+    cutoff_ms = now_ms - window_ms
+    total = 0.0
+    for records in store.values():
+        for ts, lat, _ok in records:
+            if ts >= cutoff_ms:
+                total += lat
+    return float(total)
