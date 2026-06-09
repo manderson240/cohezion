@@ -2077,3 +2077,31 @@ def get_windowed_global_max_latency_ms(
     if not all_lats:
         return 0.0
     return float(max(all_lats))
+
+
+def get_windowed_global_latency_range_ms(
+    window_ms: float,
+    *,
+    store: dict | None = None,
+    now_ms: float | None = None,
+) -> float:
+    """Return the global latency range (max - min) fleet-wide in the window.  Item 981.
+
+    Pools ALL recent call latencies, computes global_max - global_min.
+    Returns 0.0 when the store is empty, has a single recent call, or all
+    latencies are identical.  Composes items 979 (global min) + 980 (global max).
+    """
+    if store is None:
+        store = _WINDOWED_TELEMETRY
+    if now_ms is None:
+        now_ms = _time.time() * 1000.0
+    cutoff_ms = now_ms - window_ms
+    all_lats = [
+        lat
+        for records in store.values()
+        for ts, lat, _ok in records
+        if ts >= cutoff_ms
+    ]
+    if not all_lats:
+        return 0.0
+    return float(max(all_lats) - min(all_lats))
