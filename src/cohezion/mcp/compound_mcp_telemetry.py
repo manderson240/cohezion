@@ -7706,3 +7706,21 @@ def get_windowed_fleet_latency_p10_ms_by_tool(
     return get_windowed_fleet_latency_percentile_ms_by_tool(
         window_ms, tool_name, 10, store=store, now_ms=now_ms
     )
+
+
+def get_windowed_fleet_latency_p90_ms_by_tool(
+    window_ms: float,
+    tool_name: str,
+    *,
+    store=None,
+    now_ms=None,
+) -> float:
+    """Per-tool 90th-percentile latency within the window. Item 1199.
+
+    Thin wrapper around get_windowed_fleet_latency_percentile_ms_by_tool at p=90.
+    Returns 0.0 for unknown/empty tool or all calls outside window.
+    Pairs with p10 to form the 80th-interpercentile range.
+    """
+    return get_windowed_fleet_latency_percentile_ms_by_tool(
+        window_ms, tool_name, 90, store=store, now_ms=now_ms
+    )
