@@ -3082,3 +3082,34 @@ def get_windowed_tool_latency_above_budget_ms(
         for ts, lat, _ok in records
         if ts >= cutoff_ms
     ))
+
+
+def get_windowed_global_latency_above_budget_ms(
+    window_ms: float,
+    budget_ms: float,
+    *,
+    store: dict | None = None,
+    now_ms: float | None = None,
+) -> float:
+    """Fleet-wide total excess latency above SLA budget.  Item 1024.
+
+    global_excess = sum(max(0, lat - budget_ms)) for ALL tools × calls in window.
+
+    0.0 for empty store or all calls at/below budget.  Injectable store.  Pure.
+    Fleet-wide dual of get_windowed_tool_latency_above_budget_ms (item 1023).
+
+    PRIMARY DISC.: tool_a [50,150] + tool_b [200,300] budget=100
+      tool_a excess = 50; tool_b excess = 300; global = 350.0
+      (kills per-tool-a=50; kills per-tool-b=300; correct pooled=350.0 float).
+    """
+    if store is None:
+        store = _WINDOWED_TELEMETRY
+    if now_ms is None:
+        now_ms = _time.time() * 1000.0
+    cutoff_ms = now_ms - window_ms
+    return float(sum(
+        max(0.0, lat - budget_ms)
+        for records in store.values()
+        for ts, lat, _ok in records
+        if ts >= cutoff_ms
+    ))
