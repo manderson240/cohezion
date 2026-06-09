@@ -6969,3 +6969,29 @@ def get_windowed_fleet_latency_p95_ms_by_tool(
     return get_windowed_fleet_latency_percentile_ms_by_tool(
         window_ms, tool_name, 95.0, store=store, now_ms=now_ms
     )
+
+
+def get_windowed_fleet_success_count_by_tool(
+    window_ms: float,
+    tool_name: str,
+    *,
+    store: dict | None = None,
+    now_ms: float | None = None,
+) -> int:
+    """Per-tool count of successful (success=True) calls in the window.  Item 1170.
+
+    Returns int.  0 for unknown/empty tool or all-outside-window.
+    Only counts records with the success flag True.
+    PRIMARY DISC.: success_a=2 ≠ success_b=1 ≠ fleet_success=3.
+    """
+    if store is None:
+        store = _WINDOWED_TELEMETRY
+    if now_ms is None:
+        now_ms = _time.time() * 1000.0
+    cutoff_ms = now_ms - window_ms
+    records = store.get(tool_name, [])
+    count = 0
+    for ts, _lat, ok in records:
+        if ts >= cutoff_ms and ok:
+            count += 1
+    return count
