@@ -6017,3 +6017,35 @@ def get_windowed_fleet_latency_kurtosis(
     stddev = variance ** 0.5
     raw_kurt = sum((lat - mean) ** 4 for lat in latencies) / (n * stddev ** 4)
     return float(raw_kurt - 3.0)
+
+
+def get_windowed_fleet_latency_mad_ms(
+    window_ms: float,
+    *,
+    store: dict | None = None,
+    now_ms: float | None = None,
+) -> float:
+    """Fleet-wide mean absolute deviation of pooled latencies (ms).  Item 1132.
+
+    MAD = mean(|lat - pooled_mean|).  Returns float (ms).  0.0 for empty window.
+    More robust to outliers than stddev.
+    PRIMARY DISC.: kills per-tool-then-average (unequal-count case):
+      tool_a=[10,20,30] MAD≈6.67ms, tool_b=[100] MAD=0ms, per-tool-avg≈3.33ms
+      pooled [10,20,30,100] mean=40, MAD=30ms≠3.33ms.
+    Pool first, compute MAD against the pooled mean, not per-tool MADs.
+    """
+    if store is None:
+        store = _WINDOWED_TELEMETRY
+    if now_ms is None:
+        now_ms = _time.time() * 1000.0
+    cutoff_ms = now_ms - window_ms
+    latencies: list[float] = []
+    for records in store.values():
+        for ts, lat, _ok in records:
+            if ts >= cutoff_ms:
+                latencies.append(lat)
+    n = len(latencies)
+    if n == 0:
+        return 0.0
+    mean = sum(latencies) / n
+    return float(sum(abs(lat - mean) for lat in latencies) / n)
