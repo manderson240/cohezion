@@ -4073,6 +4073,39 @@ def get_windowed_tool_latency_z_score_max(
     return float((max(lats) - mean) / std)
 
 
+def get_windowed_tool_latency_percentile_at_budget_ms(
+    tool_name: str,
+    window_ms: float,
+    budget_ms: float,
+    *,
+    store: dict | None = None,
+    now_ms: float | None = None,
+) -> float:
+    """Per-tool fraction of windowed calls with latency <= budget_ms.  Item 1064.
+
+    Empirical CDF evaluated at budget_ms.  Returns fraction in [0, 1].
+    Returns 0.0 for empty window.
+    Injectable store.  Pure function.
+
+    PRIMARY DISC.: lats [10,20,30,40,50,60,70,80,90,100] n=10, budget_ms=50
+      count_within=5 (boundary-inclusive), fraction=5/10=0.5
+      (kills boundary-exclusive count=4/10=0.4;
+       kills sum-based≈0.273; correct=0.5).
+    """
+    if store is None:
+        store = _WINDOWED_TELEMETRY
+    if now_ms is None:
+        now_ms = _time.time() * 1000.0
+    cutoff_ms = now_ms - window_ms
+    records = store.get(tool_name, [])
+    lats = [lat for ts, lat, _ok in records if ts >= cutoff_ms]
+    n = len(lats)
+    if n == 0:
+        return 0.0
+    within = sum(1 for lat in lats if lat <= budget_ms)
+    return float(within / n)
+
+
 def get_windowed_global_latency_cqv(
     window_ms: float,
     *,
