@@ -7689,3 +7689,20 @@ def get_windowed_fleet_latency_sla_compliance_rate_by_tool(
         window_ms, tool_name, threshold_ms, store=store, now_ms=now_ms
     )
     return float(compliant / total)
+
+
+def get_windowed_fleet_latency_p10_ms_by_tool(
+    window_ms: float,
+    tool_name: str,
+    *,
+    store=None,
+    now_ms=None,
+) -> float:
+    """Per-tool 10th-percentile latency within the window. Item 1198.
+
+    Thin wrapper around get_windowed_fleet_latency_percentile_ms_by_tool at p=10.
+    Returns 0.0 for unknown/empty tool or all calls outside window.
+    """
+    return get_windowed_fleet_latency_percentile_ms_by_tool(
+        window_ms, tool_name, 10, store=store, now_ms=now_ms
+    )
