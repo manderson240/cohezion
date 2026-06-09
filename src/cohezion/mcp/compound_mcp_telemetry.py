@@ -440,6 +440,31 @@ def get_tool_windowed_p50_ms(
     return get_tool_windowed_stats(tool_name, window_ms, store=store, now_ms=now_ms)["p50_ms"]
 
 
+def get_windowed_tool_names(
+    window_ms: float,
+    *,
+    store: dict[str, list] | None = None,
+    now_ms: float | None = None,
+) -> list[str]:
+    """Return sorted list of tool names active within the window.  Item 928.
+
+    Enables dashboards to discover which tools are currently active without
+    constructing the full stats dict.
+
+    Args:
+        window_ms:  Look-back window in milliseconds.
+        store:      Windowed telemetry store (injectable; defaults to
+                    ``_WINDOWED_TELEMETRY``).
+        now_ms:     Current time in ms (defaults to ``time.time() * 1000``).
+
+    Returns:
+        Alphabetically sorted list of tool names that have ≥1 call in the window.
+        Empty list when store is empty or no tool has calls in the window.
+    """
+    active = get_all_tool_windowed_stats(window_ms, store=store, now_ms=now_ms)
+    return sorted(active.keys())
+
+
 def record_tool_call_windowed(
     tool_name: str,
     latency_ms: float,
