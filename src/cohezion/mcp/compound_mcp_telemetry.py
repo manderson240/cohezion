@@ -5745,3 +5745,49 @@ def get_windowed_tool_latency_mean_burst_length(
     if not burst_lengths:
         return 0.0
     return float(sum(burst_lengths) / len(burst_lengths))
+
+
+def get_windowed_tool_latency_total_burst_duration_ms(
+    tool_name: str,
+    window_ms: float,
+    burst_threshold_ms: float,
+    *,
+    store: dict | None = None,
+    now_ms: float | None = None,
+) -> float:
+    """Total time in latency bursts = sum of (last_ts - first_ts) per burst.  Item 1124.
+
+    For each contiguous above-threshold run, the duration is the timestamp span
+    from first to last call in that run (0.0 for single-call bursts).
+    Returns float (ms).  0.0 for empty window or zero bursts.
+    PRIMARY DISC.: kills burst_count, mean_burst_length, lat-value-sum.
+    """
+    if store is None:
+        store = _WINDOWED_TELEMETRY
+    if now_ms is None:
+        now_ms = _time.time() * 1000.0
+    cutoff_ms = now_ms - window_ms
+    records = store.get(tool_name, [])
+    windowed = sorted(
+        [(ts, lat) for ts, lat, _ok in records if ts >= cutoff_ms],
+        key=lambda x: x[0],
+    )
+    total_duration = 0.0
+    burst_start_ts: float | None = None
+    burst_last_ts: float | None = None
+    in_burst = False
+    for ts, lat in windowed:
+        if lat > burst_threshold_ms:
+            if not in_burst:
+                burst_start_ts = ts
+                in_burst = True
+            burst_last_ts = ts
+        else:
+            if in_burst:
+                total_duration += (burst_last_ts or 0.0) - (burst_start_ts or 0.0)
+                in_burst = False
+                burst_start_ts = None
+                burst_last_ts = None
+    if in_burst and burst_start_ts is not None and burst_last_ts is not None:
+        total_duration += burst_last_ts - burst_start_ts
+    return float(total_duration)
