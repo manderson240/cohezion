@@ -7050,3 +7050,32 @@ def get_windowed_fleet_latency_max_ms_by_tool(
                 max_lat = lat
                 found = True
     return float(max_lat) if found else 0.0
+
+
+def get_windowed_fleet_latency_min_ms_by_tool(
+    window_ms: float,
+    tool_name: str,
+    *,
+    store: dict | None = None,
+    now_ms: float | None = None,
+) -> float:
+    """Per-tool minimum latency within the fleet store window.  Item 1173.
+
+    Returns float.  0.0 for unknown/empty tool or all-outside-window.
+    Includes ALL calls regardless of success/failure.
+    PRIMARY DISC.: min_a=10ms ≠ min_b=1ms ≠ fleet_min=1ms.
+    """
+    if store is None:
+        store = _WINDOWED_TELEMETRY
+    if now_ms is None:
+        now_ms = _time.time() * 1000.0
+    cutoff_ms = now_ms - window_ms
+    records = store.get(tool_name, [])
+    min_lat = 0.0
+    found = False
+    for ts, lat, _ok in records:
+        if ts >= cutoff_ms:
+            if not found or lat < min_lat:
+                min_lat = lat
+                found = True
+    return float(min_lat) if found else 0.0
