@@ -16160,7 +16160,7 @@ def top_n_fids_with_counts(problems: list[Problem], n: int) -> list[tuple[str, i
     return [(fid, cnt) for fid, cnt in ranked[:n]]
 
 
-def avg_problems_per_class(problems: list["Problem"]) -> float:
+def avg_problems_per_class(problems: list[Problem]) -> float:
     """Global average: total problems / distinct classes.  Item 840.
     6 problems across 2 classes -> 3.0.  Empty -> 0.0.  Pure; no I/O."""
     if not problems:
@@ -16169,7 +16169,7 @@ def avg_problems_per_class(problems: list["Problem"]) -> float:
     return float(len(problems)) / distinct
 
 
-def avg_problems_per_fid(problems: list["Problem"]) -> float:
+def avg_problems_per_fid(problems: list[Problem]) -> float:
     """Global average: total problems / distinct finding_ids.  Item 841.
     Fid-axis complement of 840. 6 problems across 3 fids -> 2.0. Empty -> 0.0."""
     if not problems:
@@ -16178,7 +16178,7 @@ def avg_problems_per_fid(problems: list["Problem"]) -> float:
     return float(len(problems)) / distinct
 
 
-def class_severity_rank_mode(problems: list["Problem"]) -> dict[str, int]:
+def class_severity_rank_mode(problems: list[Problem]) -> dict[str, int]:
     """Most frequent severity rank per class.  Item 840.
     Ties broken by lowest rank. Empty -> {}. Pure; no I/O."""
     if not problems:
@@ -16197,7 +16197,7 @@ def class_severity_rank_mode(problems: list["Problem"]) -> dict[str, int]:
     return result
 
 
-def fid_severity_rank_mode(problems: list["Problem"]) -> dict[str, int]:
+def fid_severity_rank_mode(problems: list[Problem]) -> dict[str, int]:
     """Most frequent severity rank per fid.  Item 841. Fid-axis complement of 840.
     Ties broken by lowest rank. Empty -> {}. Pure; no I/O."""
     if not problems:
@@ -16215,7 +16215,7 @@ def fid_severity_rank_mode(problems: list["Problem"]) -> dict[str, int]:
     return result
 
 
-def class_weighted_severity_score(problems: list["Problem"]) -> dict[str, int]:
+def class_weighted_severity_score(problems: list[Problem]) -> dict[str, int]:
     """Sum of severity ranks per class.  Item 844.
     Each problem contributes its _SEVERITY_RANK value. Empty -> {}. Pure; no I/O."""
     if not problems:
@@ -16227,7 +16227,7 @@ def class_weighted_severity_score(problems: list["Problem"]) -> dict[str, int]:
     return result
 
 
-def fid_weighted_severity_score(problems: list["Problem"]) -> dict[str, int]:
+def fid_weighted_severity_score(problems: list[Problem]) -> dict[str, int]:
     """Sum of severity ranks per fid.  Item 845. Fid-axis complement of 844.
     Each problem contributes its _SEVERITY_RANK value. Empty -> {}. Pure; no I/O."""
     if not problems:
