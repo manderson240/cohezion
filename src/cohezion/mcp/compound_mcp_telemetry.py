@@ -5171,3 +5171,41 @@ def get_windowed_fleet_call_rate_per_second(
     if span_ms <= 0.0:
         return 0.0
     return float((n - 1) / (span_ms / 1000.0))
+
+
+def get_windowed_tool_latency_percentile_ms(
+    tool_name: str,
+    window_ms: float,
+    percentile: float,
+    *,
+    store: dict | None = None,
+    now_ms: float | None = None,
+) -> float:
+    """p-th percentile latency (ms) using nearest-rank method.  Item 1093.
+
+    nearest-rank index = ceil(percentile / 100 * n) - 1  (1-based, then 0-based).
+    Clipped to [0, n-1].  Returns 0.0 for empty window.
+    Injectable store.  Pure function.
+
+    PRIMARY DISC.: n=10, lats=[10,20,...,100]ms, percentile=95
+      nearest-rank: ceil(0.95*10)=10, index=9, value=100ms
+      (kills linear-interpolation: 0.95*(10-1)=8.55 -> 90+0.55*10=95.5ms != 100ms;
+       nearest-rank selects the actual ranked observation, not an interpolated value).
+    """
+    import math as _math
+
+    if store is None:
+        store = _WINDOWED_TELEMETRY
+    if now_ms is None:
+        now_ms = _time.time() * 1000.0
+    cutoff_ms = now_ms - window_ms
+    records = store.get(tool_name, [])
+    lats = sorted(lat for ts, lat, _ok in records if ts >= cutoff_ms)
+    n = len(lats)
+    if n == 0:
+        return 0.0
+    # Nearest-rank: 1-based rank = ceil(p/100 * n), convert to 0-based index
+    rank = _math.ceil(percentile / 100.0 * n)
+    # Clamp: p=0 gives rank=0 -> index -1 -> clip to 0; p=100 gives rank=n -> index n-1
+    idx = max(0, min(n - 1, rank - 1))
+    return float(lats[idx])
