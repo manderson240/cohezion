@@ -7311,3 +7311,28 @@ def get_windowed_fleet_total_call_count_by_tool(
     cutoff_ms = now_ms - window_ms
     records = store.get(tool_name, [])
     return sum(1 for ts, _lat, _ok in records if ts >= cutoff_ms)
+
+
+def get_windowed_fleet_latency_cv_by_tool(
+    window_ms: float,
+    tool_name: str,
+    *,
+    store: dict | None = None,
+    now_ms: float | None = None,
+) -> float:
+    """Per-tool coefficient of variation (stddev / mean) of latency.  Item 1183.
+
+    CV is dimensionless — measures relative dispersion across tools of different scales.
+    Returns float.  0.0 for unknown/empty tool or when mean == 0 (uniform / single call).
+    Composition: cv == stddev_by_tool / mean_by_tool (when mean > 0).
+    PRIMARY DISC.: cv_a≈0.4714 ≠ cv_b=0.0.
+    """
+    mean = get_windowed_fleet_latency_mean_ms_by_tool(
+        window_ms, tool_name, store=store, now_ms=now_ms
+    )
+    if mean == 0.0:
+        return 0.0
+    stddev = get_windowed_fleet_latency_stddev_ms_by_tool(
+        window_ms, tool_name, store=store, now_ms=now_ms
+    )
+    return float(stddev / mean)
