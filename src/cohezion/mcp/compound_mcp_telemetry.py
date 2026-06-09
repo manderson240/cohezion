@@ -6646,3 +6646,35 @@ def get_windowed_fleet_latency_min_ms(
                     min_lat = lat
                     found = True
     return float(min_lat) if found else 0.0
+
+
+def get_windowed_fleet_latency_below_threshold_rate(
+    window_ms: float,
+    threshold_ms: float,
+    *,
+    store: dict | None = None,
+    now_ms: float | None = None,
+) -> float:
+    """Fleet-wide fraction of calls with latency < threshold_ms.  Item 1156.
+
+    Returns float in [0.0, 1.0].  0.0 for empty window.
+    Strict less-than: calls exactly at threshold_ms excluded from both below and above.
+    PRIMARY DISC.: [10,50,100,200] threshold=100ms → below_rate=0.5 ≠ above_fraction=0.25.
+    At-boundary invariant: below_rate + above_fraction < 1.0 when any call == threshold_ms.
+    """
+    if store is None:
+        store = _WINDOWED_TELEMETRY
+    if now_ms is None:
+        now_ms = _time.time() * 1000.0
+    cutoff_ms = now_ms - window_ms
+    total = 0
+    below = 0
+    for records in store.values():
+        for ts, lat, _ok in records:
+            if ts >= cutoff_ms:
+                total += 1
+                if lat < threshold_ms:
+                    below += 1
+    if total == 0:
+        return 0.0
+    return float(below / total)
