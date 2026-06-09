@@ -6705,3 +6705,21 @@ def get_windowed_fleet_latency_at_threshold_count(
             if ts >= cutoff_ms and lat == threshold_ms:
                 count += 1
     return count
+
+
+def get_windowed_fleet_latency_p95_ms(
+    window_ms: float,
+    *,
+    store: dict | None = None,
+    now_ms: float | None = None,
+) -> float:
+    """Fleet-wide 95th percentile latency.  Item 1158.
+
+    Thin composition: get_windowed_fleet_latency_percentile_ms(window_ms, 95.0, ...).
+    Returns float (ms).  0.0 for empty window.
+    PRIMARY DISC.: [10..100, 1000] n=11 → P95=1000ms (nearest-rank index 10).
+    Kills P50=60ms and mean≈141ms.
+    """
+    return get_windowed_fleet_latency_percentile_ms(
+        window_ms, 95.0, store=store, now_ms=now_ms
+    )
