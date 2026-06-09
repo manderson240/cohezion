@@ -3435,3 +3435,47 @@ def get_windowed_tool_latency_winsorized_mean_ms(
     hi = lats[n - 1 - k]
     clamped = [max(lo, min(hi, lat)) for lat in lats]
     return float(sum(clamped) / n)
+
+
+def get_windowed_global_latency_mad_ms(
+    window_ms: float,
+    *,
+    store: dict | None = None,
+    now_ms: float | None = None,
+) -> float:
+    """Fleet-wide Median Absolute Deviation (MAD) of pooled latency.  Item 1037.
+
+    Pools ALL latencies across ALL tools in the window into one list, then:
+      MAD = median(|lat - median(pooled)|)
+    0.0 for empty store or all calls outside window.
+    Injectable store.  Pure function.
+
+    Fleet dual of get_windowed_tool_latency_mad_ms (item 1032).
+    NOT an average of per-tool MADs — pooling first gives a different (correct)
+    fleet-level spread measure.
+
+    PRIMARY DISC.: tool_a=[10,20,30] + tool_b=[100]
+      pooled=[10,20,30,100], median=25.0,
+      sorted_devs=[5,5,15,75], MAD=(5+15)/2=10.0
+      (kills per_tool_avg=(10+0)/2=5.0; kills mean_abs_dev=25.0; correct=10.0).
+    """
+    if store is None:
+        store = _WINDOWED_TELEMETRY
+    if now_ms is None:
+        now_ms = _time.time() * 1000.0
+    cutoff_ms = now_ms - window_ms
+    all_lats: list[float] = []
+    for records in store.values():
+        all_lats.extend(lat for ts, lat, _ok in records if ts >= cutoff_ms)
+    n = len(all_lats)
+    if n == 0:
+        return 0.0
+    lats = sorted(all_lats)
+    # compute median of pooled latencies
+    mid = n // 2
+    med = lats[mid] if n % 2 == 1 else (lats[mid - 1] + lats[mid]) / 2.0
+    # compute median of absolute deviations
+    devs = sorted(abs(lat - med) for lat in lats)
+    mid2 = n // 2
+    mad = devs[mid2] if n % 2 == 1 else (devs[mid2 - 1] + devs[mid2]) / 2.0
+    return float(mad)
