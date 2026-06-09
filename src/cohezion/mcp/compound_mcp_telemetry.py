@@ -3878,3 +3878,46 @@ def get_windowed_global_latency_entropy_bits(
             p = b / n
             h -= p * _math.log2(p)
     return float(h)
+
+
+def get_windowed_tool_bimodality_coefficient(
+    tool_name: str,
+    window_ms: float,
+    *,
+    store: dict | None = None,
+    now_ms: float | None = None,
+) -> float:
+    """Bimodality coefficient (BC) of per-tool latency distribution.  Item 1052.
+
+    BC = (skewness^2 + 1) / kurtosis_raw
+    where kurtosis_raw = kurtosis_excess + 3 = sum((x-mean)^4) / (n * std^4).
+    BC > 5/9 ≈ 0.556 suggests a bimodal distribution.
+    Returns 0.0 when n < 4 or std == 0.
+    Injectable store.  Pure function.
+
+    PRIMARY DISC.: uniform [10,20,...,100] n=10
+      skewness=0, kurtosis_raw≈1.7758, BC=(0+1)/1.7758≈0.563 > 5/9
+      (flat/uniform data triggers bimodal test;
+       kills BC=0.0 (zero-for-non-bimodal assumption);
+       kills BC=1.0 (maximum bimodal assumption)).
+    """
+    import math as _math
+
+    if store is None:
+        store = _WINDOWED_TELEMETRY
+    if now_ms is None:
+        now_ms = _time.time() * 1000.0
+    cutoff_ms = now_ms - window_ms
+    records = store.get(tool_name, [])
+    lats = [lat for ts, lat, _ok in records if ts >= cutoff_ms]
+    n = len(lats)
+    if n < 4:
+        return 0.0
+    mean = sum(lats) / n
+    variance = sum((x - mean) ** 2 for x in lats) / n
+    if variance == 0.0:
+        return 0.0
+    std = _math.sqrt(variance)
+    skewness = sum((x - mean) ** 3 for x in lats) / (n * std ** 3)
+    kurtosis_raw = sum((x - mean) ** 4 for x in lats) / (n * std ** 4)
+    return float((skewness ** 2 + 1.0) / kurtosis_raw)
