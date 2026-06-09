@@ -753,3 +753,18 @@ def load_telemetry_snapshot(path: _Path | str) -> dict[str, dict]:
     except _json.JSONDecodeError as exc:
         raise ValueError(f"Malformed telemetry snapshot at {src}: {exc}") from exc
     return data
+
+
+def get_all_tool_names() -> list[str]:
+    """Return sorted list of all tool names ever recorded.  Item 929.
+
+    Cumulative complement of :func:`get_windowed_tool_names` — includes every
+    tool that has ever been passed to :func:`record_tool_call`, regardless of
+    when the calls occurred.  Enables dashboards to enumerate the full tool
+    catalog without filtering by recency.
+
+    Returns:
+        Alphabetically sorted list of all tool names in ``_TELEMETRY``.
+        Empty list when no calls have been recorded yet.
+    """
+    return sorted(_TELEMETRY.keys())
