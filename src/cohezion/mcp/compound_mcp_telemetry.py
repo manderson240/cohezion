@@ -6347,3 +6347,41 @@ def get_windowed_fleet_latency_trimmed_mean_ms(
     if not trimmed:
         return 0.0
     return float(sum(trimmed) / len(trimmed))
+
+
+def get_windowed_fleet_latency_winsorized_mean_ms(
+    window_ms: float,
+    winsor_frac: float = 0.1,
+    *,
+    store: dict | None = None,
+    now_ms: float | None = None,
+) -> float:
+    """Fleet-wide Winsorized mean of pooled latencies (ms).  Item 1144.
+
+    Clamps the bottom floor(n*winsor_frac) and top floor(n*winsor_frac) values to their
+    respective boundary values, then returns mean of the clamped array.
+    Returns float (ms).  0.0 for empty window.
+    PRIMARY DISC. (vs trimmed mean): Winsorized keeps n, clamped → higher mean than trim
+    when outliers are clamped in rather than removed.
+    """
+    if store is None:
+        store = _WINDOWED_TELEMETRY
+    if now_ms is None:
+        now_ms = _time.time() * 1000.0
+    cutoff_ms = now_ms - window_ms
+    latencies: list[float] = []
+    for records in store.values():
+        for ts, lat, _ok in records:
+            if ts >= cutoff_ms:
+                latencies.append(lat)
+    n = len(latencies)
+    if n == 0:
+        return 0.0
+    latencies.sort()
+    k = int(n * winsor_frac)
+    if k == 0:
+        return float(sum(latencies) / n)
+    lo = latencies[k]
+    hi = latencies[n - 1 - k]
+    winsorized = [lo] * k + latencies[k: n - k] + [hi] * k
+    return float(sum(winsorized) / n)
