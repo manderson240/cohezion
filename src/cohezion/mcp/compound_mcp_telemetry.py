@@ -4968,3 +4968,34 @@ def get_windowed_fleet_burst_hotspot(
             best_count = count
             best_tool = tool_name
     return (best_tool, best_count)
+
+
+def get_windowed_tool_latency_above_threshold_fraction(
+    tool_name: str,
+    window_ms: float,
+    threshold_ms: float,
+    *,
+    store: dict | None = None,
+    now_ms: float | None = None,
+) -> float:
+    """Fraction of windowed calls where latency > threshold_ms.  Item 1087.
+
+    Returns 0.0 for empty window. Range [0, 1].
+    Threshold comparison is strict (> not >=).
+    Injectable store. Pure function.
+
+    PRIMARY DISC.: [10,80,90,20,70,85,95,15] threshold=50 -> 5/8=0.625
+      (kills burst_count=2 -- runs not fraction; kills above-count=5 -- integer).
+    """
+    if store is None:
+        store = _WINDOWED_TELEMETRY
+    if now_ms is None:
+        now_ms = _time.time() * 1000.0
+    cutoff_ms = now_ms - window_ms
+    records = store.get(tool_name, [])
+    windowed = [lat for ts, lat, _ok in records if ts >= cutoff_ms]
+    total = len(windowed)
+    if total == 0:
+        return 0.0
+    above = sum(1 for lat in windowed if lat > threshold_ms)
+    return float(above / total)
