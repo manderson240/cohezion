@@ -6740,3 +6740,22 @@ def get_windowed_fleet_latency_p99_ms(
     return get_windowed_fleet_latency_percentile_ms(
         window_ms, 99.0, store=store, now_ms=now_ms
     )
+
+
+def get_windowed_fleet_latency_p50_ms(
+    window_ms: float,
+    *,
+    store: dict | None = None,
+    now_ms: float | None = None,
+) -> float:
+    """Fleet-wide 50th percentile latency (nearest-rank).  Item 1160.
+
+    Thin composition: get_windowed_fleet_latency_percentile_ms(window_ms, 50.0, ...).
+    Returns float (ms).  0.0 for empty window.
+    NOTE: differs from arithmetic median for even n.
+    n=10: P50 index=4 → 50ms; arithmetic median = (50+60)/2 = 55ms.
+    PRIMARY DISC.: kills arithmetic median for even n in one fixture.
+    """
+    return get_windowed_fleet_latency_percentile_ms(
+        window_ms, 50.0, store=store, now_ms=now_ms
+    )
