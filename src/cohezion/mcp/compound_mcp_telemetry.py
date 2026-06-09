@@ -6467,3 +6467,26 @@ def get_windowed_fleet_latency_entropy_bits(
             p = c / n
             entropy -= p * _math.log2(p)
     return float(entropy)
+
+
+def get_windowed_fleet_latency_tail_ratio(
+    window_ms: float,
+    tail_frac: float = 0.1,
+    *,
+    store: dict | None = None,
+    now_ms: float | None = None,
+) -> float:
+    """Fleet-wide tail ratio: P(100*(1-tail_frac)) / P50 of pooled latencies.  Item 1147.
+
+    Returns float >= 1.0.  1.0 for empty window, single call, or zero-median.
+    Uses nearest-rank for P_tail; average-of-two-middle for P50 (even n).
+    PRIMARY DISC.: kills always-1.0; pooled [10,20,30,100] tail_frac=0.25 → P75=30, P50=25, ratio=1.2.
+    """
+    p50 = get_windowed_fleet_latency_median_ms(window_ms, store=store, now_ms=now_ms)
+    if p50 == 0.0:
+        return 1.0
+    tail_pct = 100.0 * (1.0 - tail_frac)
+    p_tail = get_windowed_fleet_latency_percentile_ms(
+        window_ms, tail_pct, store=store, now_ms=now_ms
+    )
+    return float(p_tail / p50)
