@@ -2750,3 +2750,68 @@ def get_windowed_global_slow_call_rate(
         return 0.0
     slow = sum(1 for lat in all_recent if lat > threshold_ms)
     return float(slow / total)
+
+
+def get_windowed_tool_latency_cv(
+    tool_name: str,
+    window_ms: float,
+    *,
+    store: dict | None = None,
+    now_ms: float | None = None,
+) -> float:
+    """Return the per-tool coefficient of variation (CV) of latency.  Item 1012.
+
+    CV = stddev_ms / mean_ms — a dimensionless ratio measuring relative spread.
+    0.0 for unknown tools, empty windows, single calls, or when mean=0 (divide-by-zero guard).
+    CV > 1 means high relative variability; CV < 0.5 means tight/predictable.
+
+    PRIMARY DISC.: lats [10,20,30,40,50]
+      mean=30, variance=200 (population), stddev=sqrt(200)≈14.1421
+      CV=14.1421/30≈0.4714 (kills stddev float; kills mean float; correct CV float).
+    """
+    mean = get_windowed_tool_mean_latency_ms(tool_name, window_ms, store=store, now_ms=now_ms)
+    if mean == 0.0:
+        return 0.0
+    stddev = get_windowed_tool_latency_stddev_ms(tool_name, window_ms, store=store, now_ms=now_ms)
+    return float(stddev / mean)
+
+
+def get_windowed_global_latency_cv(
+    window_ms: float,
+    *,
+    store: dict | None = None,
+    now_ms: float | None = None,
+) -> float:
+    """Return the fleet-wide coefficient of variation (CV) of latency.  Item 1013.
+
+    CV = fleet_stddev_ms / fleet_mean_ms — both computed from pooled latencies.
+    NOT an average of per-tool CVs.
+    0.0 when no recent calls exist or fleet mean=0.
+
+    PRIMARY DISC.: tool_a [10,50] + tool_b [90,150]
+      pooled mean=75, pooled variance=((65^2+25^2+15^2+75^2)/4)=2362.5,
+      stddev≈48.606, CV=48.606/75≈0.6481
+      (kills avg-per-tool-CV; correct pooled-CV≈0.6481).
+    """
+    if store is None:
+        store = _WINDOWED_TELEMETRY
+    if now_ms is None:
+        now_ms = _time.time() * 1000.0
+    cutoff_ms = now_ms - window_ms
+    all_lats = [
+        lat
+        for records in store.values()
+        for ts, lat, _ok in records
+        if ts >= cutoff_ms
+    ]
+    n = len(all_lats)
+    if n == 0:
+        return 0.0
+    mean = sum(all_lats) / n
+    if mean == 0.0:
+        return 0.0
+    if n < 2:
+        return 0.0
+    variance = sum((lat - mean) ** 2 for lat in all_lats) / n
+    stddev = variance ** 0.5
+    return float(stddev / mean)
