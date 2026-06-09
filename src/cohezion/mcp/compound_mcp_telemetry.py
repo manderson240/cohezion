@@ -7232,3 +7232,29 @@ def get_windowed_fleet_latency_range_ms_by_tool(
         window_ms, tool_name, store=store, now_ms=now_ms
     )
     return float(mx - mn)
+
+
+def get_windowed_fleet_call_rate_by_tool(
+    window_ms: float,
+    tool_name: str,
+    *,
+    store: dict | None = None,
+    now_ms: float | None = None,
+) -> float:
+    """Per-tool call rate (calls per second) within the fleet store window.  Item 1179.
+
+    Formula: total_calls_in_window / (window_ms / 1000.0).
+    Returns float.  0.0 for unknown/empty tool.
+    Counts both successes and errors.
+    PRIMARY DISC.: rate_a=3.0 ≠ rate_b=1.0 ≠ fleet_rate=4.0.
+    """
+    if store is None:
+        store = _WINDOWED_TELEMETRY
+    if now_ms is None:
+        now_ms = _time.time() * 1000.0
+    cutoff_ms = now_ms - window_ms
+    records = store.get(tool_name, [])
+    count = sum(1 for ts, _lat, _ok in records if ts >= cutoff_ms)
+    if count == 0:
+        return 0.0
+    return float(count / (window_ms / 1000.0))
