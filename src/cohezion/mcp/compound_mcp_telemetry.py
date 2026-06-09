@@ -4665,6 +4665,54 @@ def get_windowed_tool_latency_slope_ms_per_ms(
     return float(numerator / denominator)
 
 
+def get_windowed_tool_latency_r2_score(
+    tool_name: str,
+    window_ms: float,
+    *,
+    store: dict | None = None,
+    now_ms: float | None = None,
+) -> float:
+    """Per-tool R² (coefficient of determination) for the OLS linear trend.  Item 1081.
+
+    R²=1.0 = latency perfectly linear in time; R²≈0 = no linear trend.
+    Returns 0.0 for <2 windowed samples or zero total latency variance.
+    Injectable store. Pure function.
+
+    PRIMARY DISC.: ts=[t-300..t-0], lats=[10,50,20,40]
+      slope=0.06; SStot=1000; SSres=820; R²=0.18
+      (kills r=sqrt(0.18)≈0.424 -- Pearson correlation, different scale).
+    """
+    if store is None:
+        store = _WINDOWED_TELEMETRY
+    if now_ms is None:
+        now_ms = _time.time() * 1000.0
+    cutoff_ms = now_ms - window_ms
+    records = store.get(tool_name, [])
+    windowed = [(ts, lat) for ts, lat, _ok in records if ts >= cutoff_ms]
+    n = len(windowed)
+    if n < 2:
+        return 0.0
+    ts0 = windowed[0][0]
+    ts_vals = [ts - ts0 for ts, _ in windowed]
+    lat_vals = [lat for _, lat in windowed]
+    t_mean = sum(ts_vals) / n
+    l_mean = sum(lat_vals) / n
+    # Total sum of squares
+    ss_tot = sum((lat_vals[i] - l_mean) ** 2 for i in range(n))
+    if ss_tot == 0.0:
+        return 0.0
+    # OLS slope (same formula as get_windowed_tool_latency_slope_ms_per_ms)
+    numerator = sum((ts_vals[i] - t_mean) * (lat_vals[i] - l_mean) for i in range(n))
+    denominator = sum((ts_vals[i] - t_mean) ** 2 for i in range(n))
+    if denominator == 0.0:
+        return 0.0
+    slope = numerator / denominator
+    intercept = l_mean - slope * t_mean
+    # Residual sum of squares
+    ss_res = sum((lat_vals[i] - (slope * ts_vals[i] + intercept)) ** 2 for i in range(n))
+    return float(1.0 - ss_res / ss_tot)
+
+
 def get_windowed_global_latency_slope_ms_per_ms(
     window_ms: float,
     *,
