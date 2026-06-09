@@ -16158,3 +16158,58 @@ def top_n_fids_with_counts(problems: list[Problem], n: int) -> list[tuple[str, i
         counts[p.finding_id] = counts.get(p.finding_id, 0) + 1
     ranked = sorted(counts.items(), key=lambda kv: (-kv[1], kv[0]))
     return [(fid, cnt) for fid, cnt in ranked[:n]]
+
+
+def avg_problems_per_class(problems: list["Problem"]) -> float:
+    """Global average: total problems / distinct classes.  Item 840.
+    6 problems across 2 classes -> 3.0.  Empty -> 0.0.  Pure; no I/O."""
+    if not problems:
+        return 0.0
+    distinct = len({p.problem_class for p in problems})
+    return float(len(problems)) / distinct
+
+
+def avg_problems_per_fid(problems: list["Problem"]) -> float:
+    """Global average: total problems / distinct finding_ids.  Item 841.
+    Fid-axis complement of 840. 6 problems across 3 fids -> 2.0. Empty -> 0.0."""
+    if not problems:
+        return 0.0
+    distinct = len({p.finding_id for p in problems})
+    return float(len(problems)) / distinct
+
+
+def class_severity_rank_mode(problems: list["Problem"]) -> dict[str, int]:
+    """Most frequent severity rank per class.  Item 840.
+    Ties broken by lowest rank. Empty -> {}. Pure; no I/O."""
+    if not problems:
+        return {}
+    rank_counts: dict[str, dict[int, int]] = {}
+    for p in problems:
+        cls = p.problem_class
+        rank = _SEVERITY_RANK.get(p.severity, 0)
+        if cls not in rank_counts:
+            rank_counts[cls] = {}
+        rank_counts[cls][rank] = rank_counts[cls].get(rank, 0) + 1
+    result: dict[str, int] = {}
+    for cls, counts in rank_counts.items():
+        # Mode: max count, tie-break by lowest rank
+        result[cls] = min(counts.keys(), key=lambda r: (-counts[r], r))
+    return result
+
+
+def fid_severity_rank_mode(problems: list["Problem"]) -> dict[str, int]:
+    """Most frequent severity rank per fid.  Item 841. Fid-axis complement of 840.
+    Ties broken by lowest rank. Empty -> {}. Pure; no I/O."""
+    if not problems:
+        return {}
+    rank_counts: dict[str, dict[int, int]] = {}
+    for p in problems:
+        fid = p.finding_id
+        rank = _SEVERITY_RANK.get(p.severity, 0)
+        if fid not in rank_counts:
+            rank_counts[fid] = {}
+        rank_counts[fid][rank] = rank_counts[fid].get(rank, 0) + 1
+    result: dict[str, int] = {}
+    for fid, counts in rank_counts.items():
+        result[fid] = min(counts.keys(), key=lambda r: (-counts[r], r))
+    return result
