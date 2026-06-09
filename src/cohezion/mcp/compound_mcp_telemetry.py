@@ -4388,3 +4388,25 @@ def get_windowed_global_latency_percentile_at_budget_ms(
     if total == 0:
         return 0.0
     return float(within / total)
+
+
+def get_windowed_global_latency_tail_ratio_ms(
+    window_ms: float,
+    *,
+    store: dict | None = None,
+    now_ms: float | None = None,
+) -> float:
+    """Fleet-wide tail ratio = global_p99 / global_p50. Item 1067.
+
+    Pools ALL tool latencies and computes p99/p50 on the pooled distribution.
+    0.0 for empty pool or p50==0.0. Thin composition: global_p99/global_p50.
+    Injectable store. Pure function. Fleet dual of item 1066.
+
+    PRIMARY DISC.: tool_a=[10,20,30]+tool_b=[40,50,200] -> pooled tail_ratio=5.5
+      (kills per-tool tail_ratio avg≈2.715).
+    """
+    p50 = get_windowed_global_latency_percentile(50.0, window_ms, store=store, now_ms=now_ms)
+    if p50 == 0.0:
+        return 0.0
+    p99 = get_windowed_global_latency_percentile(99.0, window_ms, store=store, now_ms=now_ms)
+    return float(p99 / p50)
