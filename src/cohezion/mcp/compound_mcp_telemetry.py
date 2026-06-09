@@ -5131,3 +5131,43 @@ def get_windowed_tool_call_rate_per_second(
         return 0.0
     # Convert span from ms to seconds: / 1000.0
     return float((n - 1) / (span_ms / 1000.0))
+
+
+def get_windowed_fleet_call_rate_per_second(
+    window_ms: float,
+    *,
+    store: dict | None = None,
+    now_ms: float | None = None,
+) -> float:
+    """Fleet-wide call rate (calls/s) = (n-1) / span_seconds.  Item 1092.
+
+    Pools ALL call timestamps across every tool in the store, then applies
+    the same (n-1)/span_seconds formula used by the per-tool variant.
+    Returns 0.0 for <2 pooled calls or zero span.
+    Injectable store. Pure function.
+
+    PRIMARY DISC.: tool_a=[t-500,t-300], tool_b=[t-400,t-200,t-0]
+      pooled sorted: [t-500,t-400,t-300,t-200,t-0]; n=5, span=500ms
+      -> fleet_rate = (5-1)/0.5 = 8.0 calls/sec
+      (kills per-tool-avg: tool_a=5, tool_b=5, avg=5.0 calls/sec != 8.0;
+       fleet pools ALL timestamps; correct rate=8.0).
+    """
+    if store is None:
+        store = _WINDOWED_TELEMETRY
+    if now_ms is None:
+        now_ms = _time.time() * 1000.0
+    cutoff_ms = now_ms - window_ms
+    # Pool all timestamps from all tools within the window
+    timestamps: list[float] = []
+    for records in store.values():
+        for ts, _lat, _ok in records:
+            if ts >= cutoff_ms:
+                timestamps.append(ts)
+    n = len(timestamps)
+    if n < 2:
+        return 0.0
+    timestamps.sort()
+    span_ms = timestamps[-1] - timestamps[0]
+    if span_ms <= 0.0:
+        return 0.0
+    return float((n - 1) / (span_ms / 1000.0))
