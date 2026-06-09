@@ -5303,3 +5303,55 @@ def get_windowed_fleet_latency_r2_score(
     r2 = 1.0 - ss_res / ss_tot
     # Clamp to [0.0, 1.0] to guard against tiny floating-point negatives
     return float(max(0.0, min(1.0, r2)))
+
+
+def get_windowed_fleet_latency_autocorrelation_lag1(
+    window_ms: float,
+    *,
+    store: dict | None = None,
+    now_ms: float | None = None,
+) -> float:
+    """Fleet-wide Pearson lag-1 autocorrelation of latencies.  Item 1100.
+
+    Pools ALL windowed (ts, lat) records from every tool, sorts by timestamp,
+    then applies the same Pearson lag-1 formula used by the per-tool variant
+    (item 1082):  r = cov(x, y) / sqrt(var(x) * var(y))
+    where x = lats[:-1], y = lats[1:].
+
+    Returns 0.0 for <3 pooled calls (need >=2 consecutive pairs to compute
+    Pearson correlation) or when variance of either lag series is zero.
+    Injectable store.  Pure function.
+
+    PRIMARY DISC.: interleaving two tools with opposite patterns produces
+    a pooled lag-1 sequence that is different from either tool's individual
+    autocorrelation.  Per-tool-avg would miss the inter-tool serial structure
+    exposed by sorting across all tools chronologically.
+    """
+    if store is None:
+        store = _WINDOWED_TELEMETRY
+    if now_ms is None:
+        now_ms = _time.time() * 1000.0
+    cutoff_ms = now_ms - window_ms
+    pairs: list[tuple[float, float]] = []
+    for records in store.values():
+        for ts, lat, _ok in records:
+            if ts >= cutoff_ms:
+                pairs.append((ts, lat))
+    n = len(pairs)
+    if n < 3:
+        return 0.0
+    # Sort by timestamp to get chronological fleet stream
+    pairs.sort(key=lambda p: p[0])
+    lats = [lat for _, lat in pairs]
+    x = lats[:-1]
+    y = lats[1:]
+    m = len(x)  # = n - 1
+    xm = sum(x) / m
+    ym = sum(y) / m
+    numer = sum((x[i] - xm) * (y[i] - ym) for i in range(m))
+    var_x = sum((x[i] - xm) ** 2 for i in range(m))
+    var_y = sum((y[i] - ym) ** 2 for i in range(m))
+    denom = (var_x * var_y) ** 0.5
+    if denom == 0.0:
+        return 0.0
+    return float(numer / denom)
