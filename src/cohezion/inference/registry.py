@@ -167,6 +167,9 @@ class ModelEntry:
     # a reasoning-mode lane (local_environment_quirks.md: "reasoning models
     # need max_tokens >= 128 headroom").
     reasoning_mode: bool = False
+    # True = research / showcase use ONLY; never auto-selected for product/hosted surfaces.
+    # Use for_product_task() when dispatching from a product path; for_task() returns all.
+    research_only: bool = False
     notes: str = ""
 
     @property
@@ -859,6 +862,42 @@ def _build_default_registry() -> dict[str, ModelEntry]:
                 "limits (128 GiB unified memory, 16 GB OOM buffer leaves >100 GB available)."
             ),
         ),
+        # --- Item 93: Higgs-Audio-v3-TTS-4B — RESEARCH-ONLY AUDIO_TTS tier ---
+        # VERIFIED access: bosonai/higgs-audio-v3-tts-4b (research round 18).
+        # User delegated the license call -> research-only path chosen.
+        # HARD GUARDRAIL: research_only=True prevents for_product_task() from ever
+        # selecting this entry. PocketTTS/kokoro-v1 remain the default product path.
+        # Runs via HF Transformers (AutoModelForSeq2SeqLM) / SGLang -- NOT lemonade/GGUF.
+        # The SERVING PROOF (4B + transformers -> non-empty audio artifact + K1/rule-5
+        # memory check) is the behavior-change gate. Until then, verified_working=False.
+        ModelEntry(
+            model_id="Higgs-Audio-v3-TTS-4B",
+            lane=Lane.CPU,  # transformers / SGLang CPU path; flips to IGPU post serving proof
+            endpoint="local://hf.transformers/higgs-audio-v3-tts-4b",
+            runtime_backend="hf_transformers",  # AutoModelForSeq2SeqLM / SGLang, NOT lemonade
+            task_affinity=frozenset({Task.AUDIO_TTS}),
+            weight_quant=WeightQuant.FP16,  # Higgs serves in FP16 via transformers
+            context_window=4096,  # text char limit; TTS has no token context window
+            priority=35,  # lower priority than product-licensed entries (25=CosmoNarrator, 20=kokoro)
+            size_gb=8.0,  # 4B FP16 ~= 8 GB resident (K1/rule-5 gate: check free -h before load)
+            verified_working=False,  # transformers serving + memory proof NOT yet run
+            research_only=True,  # RESEARCH / SHOWCASE only -- NEVER auto-selected for product
+            notes=(
+                "Higgs-Audio-v3-TTS-4B (bosonai/higgs-audio-v3-tts-4b) -- research-only "
+                "AUDIO_TTS alternative (item 93, research round 18 VERIFIED). Capabilities: "
+                "zero-shot voice cloning, 21 emotion tokens, prosody/SFX, 100+ languages. "
+                "License: research-noncommercial -- NEVER auto-dispatched from product/hosted "
+                "surfaces (Genesis narrator, A2UI, any API). Use for_product_task(AUDIO_TTS) in "
+                "product paths; use for_task(AUDIO_TTS) only for explicit research/showcase. "
+                "research_only=True enforces this guard in the registry. PocketTTS (item 85) "
+                "remains the DEFAULT permissive productizable AUDIO_TTS path. "
+                "Serving: HF Transformers (AutoModelForSeq2SeqLM) / SGLang -- NOT lemonade. "
+                "verified_working flips True only after: (1) transformers serving smoke produces "
+                "a non-empty audio artifact for a chosen voice, AND (2) memory fits K1/rule-5 "
+                "(free -h, not while swap >50%). HF id: bosonai/higgs-audio-v3-tts-4b. "
+                "K1/rule-5 OOM gate: ~8 GB FP16 -- check free -h before load; skip if swap >50%."
+            ),
+        ),
     ]
     return {entry.model_id: entry for entry in entries}
 
@@ -873,6 +912,25 @@ class FleetRegistry:
         """Candidates for a task, sorted by priority (lowest first = preferred)."""
         return sorted(
             (m for m in self.models.values() if task in m.task_affinity),
+            key=lambda m: m.priority,
+        )
+
+    def for_product_task(self, task: Task) -> list[ModelEntry]:
+        """Candidates for a task on a product/hosted surface.
+
+        Identical to for_task() but excludes entries marked research_only=True.
+        Use this in any production dispatch path (Genesis narrator, A2UI, APIs)
+        to guarantee research-gated models never reach end users.
+
+        Research-only models (e.g. Higgs-Audio, SD-Turbo) can be retrieved via
+        for_task() for explicit research/showcase invocations.
+        """
+        return sorted(
+            (
+                m
+                for m in self.models.values()
+                if task in m.task_affinity and not m.research_only
+            ),
             key=lambda m: m.priority,
         )
 
