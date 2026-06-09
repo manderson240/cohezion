@@ -1990,3 +1990,30 @@ def get_windowed_tool_mean_latency_ms(
     if not recent_lats:
         return 0.0
     return float(sum(recent_lats) / len(recent_lats))
+
+
+def get_windowed_global_min_latency_ms(
+    window_ms: float,
+    *,
+    store: dict | None = None,
+    now_ms: float | None = None,
+) -> float:
+    """Return the global minimum latency fleet-wide in the window.  Item 979.
+
+    Pools ALL recent call latencies from all tools and returns the minimum.
+    Returns 0.0 when the store is empty or no recent calls exist.
+    """
+    if store is None:
+        store = _WINDOWED_TELEMETRY
+    if now_ms is None:
+        now_ms = _time.time() * 1000.0
+    cutoff_ms = now_ms - window_ms
+    all_lats = [
+        lat
+        for records in store.values()
+        for ts, lat, _ok in records
+        if ts >= cutoff_ms
+    ]
+    if not all_lats:
+        return 0.0
+    return float(min(all_lats))
