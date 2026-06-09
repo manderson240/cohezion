@@ -6678,3 +6678,30 @@ def get_windowed_fleet_latency_below_threshold_rate(
     if total == 0:
         return 0.0
     return float(below / total)
+
+
+def get_windowed_fleet_latency_at_threshold_count(
+    window_ms: float,
+    threshold_ms: float,
+    *,
+    store: dict | None = None,
+    now_ms: float | None = None,
+) -> int:
+    """Fleet-wide count of calls with latency exactly == threshold_ms.  Item 1157.
+
+    Returns int.  0 for empty window or no exact matches.
+    Completes the triple: below_count + at_count + above_count == total_count.
+    PRIMARY DISC.: [10,50,100,200] threshold=100ms → at_count=1.
+    Kills below=2, above=1, total=4, always-0.
+    """
+    if store is None:
+        store = _WINDOWED_TELEMETRY
+    if now_ms is None:
+        now_ms = _time.time() * 1000.0
+    cutoff_ms = now_ms - window_ms
+    count = 0
+    for records in store.values():
+        for ts, lat, _ok in records:
+            if ts >= cutoff_ms and lat == threshold_ms:
+                count += 1
+    return count
