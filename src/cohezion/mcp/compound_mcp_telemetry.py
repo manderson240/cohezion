@@ -7109,3 +7109,42 @@ def get_windowed_fleet_latency_stddev_ms_by_tool(
     mean = sum(lats) / n
     variance = sum((x - mean) ** 2 for x in lats) / n
     return float(_math.sqrt(variance))
+
+
+def get_windowed_fleet_latency_p25_ms_by_tool(
+    window_ms: float,
+    tool_name: str,
+    *,
+    store: dict | None = None,
+    now_ms: float | None = None,
+) -> float:
+    """Per-tool P25 latency.  Prerequisite for IQR.
+
+    Thin composition: get_windowed_fleet_latency_percentile_ms_by_tool(..., 25.0).
+    Returns 0.0 for unknown/empty tool or all-outside-window.
+    """
+    return get_windowed_fleet_latency_percentile_ms_by_tool(
+        window_ms, tool_name, 25.0, store=store, now_ms=now_ms
+    )
+
+
+def get_windowed_fleet_latency_iqr_ms_by_tool(
+    window_ms: float,
+    tool_name: str,
+    *,
+    store: dict | None = None,
+    now_ms: float | None = None,
+) -> float:
+    """Per-tool IQR (P75 - P25 nearest-rank) latency.  Item 1175.
+
+    Returns float.  0.0 for unknown/empty tool.
+    Composition: p75_by_tool(tool) - p25_by_tool(tool).
+    PRIMARY DISC.: iqr_a=50ms ≠ iqr_b=0ms ≠ fleet_iqr (pooled).
+    """
+    p75 = get_windowed_fleet_latency_p75_ms_by_tool(
+        window_ms, tool_name, store=store, now_ms=now_ms
+    )
+    p25 = get_windowed_fleet_latency_p25_ms_by_tool(
+        window_ms, tool_name, store=store, now_ms=now_ms
+    )
+    return float(p75 - p25)
