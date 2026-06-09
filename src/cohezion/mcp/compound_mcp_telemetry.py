@@ -2881,3 +2881,57 @@ def get_windowed_tool_last_call_success(
         return None
     _ts, ok = max(recent, key=lambda x: x[0])  # most-recent by timestamp
     return bool(ok)
+
+
+def get_windowed_tool_first_call_ts(
+    tool_name: str,
+    window_ms: float,
+    *,
+    store: dict | None = None,
+    now_ms: float | None = None,
+) -> float | None:
+    """Return the timestamp (ms) of the oldest call in the window.  Item 1016.
+
+    Lowest ts_ms among recent records. None if no recent calls.
+    Used to compute window age and detect cold-start vs warm-path.
+
+    PRIMARY DISC.: ts [_NOW-40, _NOW-20, _NOW-10] -> _NOW-40
+      (kills last_ts=_NOW-10; kills None when records exist).
+    """
+    if store is None:
+        store = _WINDOWED_TELEMETRY
+    if now_ms is None:
+        now_ms = _time.time() * 1000.0
+    cutoff_ms = now_ms - window_ms
+    records = store.get(tool_name, [])
+    recent_ts = [ts for ts, _lat, _ok in records if ts >= cutoff_ms]
+    if not recent_ts:
+        return None
+    return float(min(recent_ts))
+
+
+def get_windowed_tool_last_call_ts(
+    tool_name: str,
+    window_ms: float,
+    *,
+    store: dict | None = None,
+    now_ms: float | None = None,
+) -> float | None:
+    """Return the timestamp (ms) of the most-recent call in the window.  Item 1017.
+
+    Highest ts_ms among recent records. None if no recent calls.
+    Dual of get_windowed_tool_first_call_ts; pair gives window coverage [first_ts, last_ts].
+
+    PRIMARY DISC.: ts [_NOW-40, _NOW-20, _NOW-10] -> _NOW-10
+      (kills first_ts=_NOW-40; kills mean-ts; correct newest ts).
+    """
+    if store is None:
+        store = _WINDOWED_TELEMETRY
+    if now_ms is None:
+        now_ms = _time.time() * 1000.0
+    cutoff_ms = now_ms - window_ms
+    records = store.get(tool_name, [])
+    recent_ts = [ts for ts, _lat, _ok in records if ts >= cutoff_ms]
+    if not recent_ts:
+        return None
+    return float(max(recent_ts))
