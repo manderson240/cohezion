@@ -5511,3 +5511,29 @@ def get_windowed_tool_call_failure_count(
     cutoff_ms = now_ms - window_ms
     records = store.get(tool_name, [])
     return int(sum(1 for ts, _lat, ok in records if ts >= cutoff_ms and not ok))
+
+
+def get_windowed_fleet_call_failure_count(
+    window_ms: float,
+    *,
+    store: dict | None = None,
+    now_ms: float | None = None,
+) -> int:
+    """Fleet-wide count of windowed calls with success=False across all tools.  Item 1108.
+
+    Returns int.  0 for empty window.  Pools all records from all tools and
+    counts those with ok==False whose timestamp falls within the window.
+    PRIMARY DISC.: kills per-tool-max (sum not max), per-tool-first (all tools),
+    inverted success count (counts failures not successes).
+    """
+    if store is None:
+        store = _WINDOWED_TELEMETRY
+    if now_ms is None:
+        now_ms = _time.time() * 1000.0
+    cutoff_ms = now_ms - window_ms
+    total = 0
+    for records in store.values():
+        for ts, _lat, ok in records:
+            if ts >= cutoff_ms and not ok:
+                total += 1
+    return int(total)
