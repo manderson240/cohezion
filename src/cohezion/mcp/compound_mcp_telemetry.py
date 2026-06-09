@@ -5568,3 +5568,26 @@ def get_windowed_fleet_call_failure_rate(
     if total == 0:
         return 0.0
     return float(failures / total)
+
+
+def get_windowed_fleet_latency_burst_count(
+    window_ms: float,
+    burst_threshold_ms: float,
+    *,
+    store: dict | None = None,
+    now_ms: float | None = None,
+) -> int:
+    """Fleet-wide total burst count = sum of per-tool burst counts.  Item 1114.
+
+    A "burst" is a contiguous run of calls with latency strictly > burst_threshold_ms
+    (per-tool, ordered by timestamp).  Returns int sum across all tools.
+    PRIMARY DISC.: kills hotspot (max not sum), kills first-tool-only.
+    """
+    if store is None:
+        store = _WINDOWED_TELEMETRY
+    total = 0
+    for tool_name in store:
+        total += get_windowed_tool_latency_burst_count(
+            tool_name, window_ms, burst_threshold_ms, store=store, now_ms=now_ms,
+        )
+    return int(total)
