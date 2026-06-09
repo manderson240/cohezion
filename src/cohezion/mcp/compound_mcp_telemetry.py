@@ -7079,3 +7079,33 @@ def get_windowed_fleet_latency_min_ms_by_tool(
                 min_lat = lat
                 found = True
     return float(min_lat) if found else 0.0
+
+
+def get_windowed_fleet_latency_stddev_ms_by_tool(
+    window_ms: float,
+    tool_name: str,
+    *,
+    store: dict | None = None,
+    now_ms: float | None = None,
+) -> float:
+    """Per-tool population standard deviation of latency in the window.  Item 1174.
+
+    Returns float.  0.0 for unknown/empty tool, single call, or all-outside-window.
+    Uses population stddev: sqrt(sum((x-mean)^2)/n).  Includes ALL calls.
+    PRIMARY DISC.: stddev_a=40ms ≠ stddev_b=50ms ≠ fleet_stddev (heterogeneous pool).
+    """
+    import math as _math
+
+    if store is None:
+        store = _WINDOWED_TELEMETRY
+    if now_ms is None:
+        now_ms = _time.time() * 1000.0
+    cutoff_ms = now_ms - window_ms
+    records = store.get(tool_name, [])
+    lats: list[float] = [lat for ts, lat, _ok in records if ts >= cutoff_ms]
+    n = len(lats)
+    if n < 2:
+        return 0.0
+    mean = sum(lats) / n
+    variance = sum((x - mean) ** 2 for x in lats) / n
+    return float(_math.sqrt(variance))
