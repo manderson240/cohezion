@@ -1916,3 +1916,28 @@ def get_windowed_tool_min_latency_ms(
     if not recent_lats:
         return 0.0
     return float(min(recent_lats))
+
+
+def get_windowed_tool_max_latency_ms(
+    tool_name: str,
+    window_ms: float,
+    *,
+    store: dict | None = None,
+    now_ms: float | None = None,
+) -> float:
+    """Return the maximum call latency in the window for *tool_name*.
+
+    The dual of `get_windowed_tool_min_latency_ms`.
+    Includes latencies from both successful and failed calls.
+    Returns 0.0 when the tool is absent or has no calls in the window.
+    """
+    if store is None:
+        store = _WINDOWED_TELEMETRY
+    if now_ms is None:
+        now_ms = _time.time() * 1000.0
+    cutoff_ms = now_ms - window_ms
+    records = store.get(tool_name, [])
+    recent_lats = [lat for ts, lat, _ok in records if ts >= cutoff_ms]
+    if not recent_lats:
+        return 0.0
+    return float(max(recent_lats))
