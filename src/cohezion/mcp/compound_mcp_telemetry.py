@@ -6218,3 +6218,35 @@ def get_windowed_fleet_error_rate(
     correct is pooled: 2/5 = 0.4.
     """
     return 1.0 - get_windowed_fleet_success_rate(window_ms, store=store, now_ms=now_ms)
+
+
+def get_windowed_fleet_latency_cv(
+    window_ms: float,
+    *,
+    store: dict | None = None,
+    now_ms: float | None = None,
+) -> float:
+    """Fleet-wide coefficient of variation (stddev / mean) of pooled latencies.  Item 1140.
+
+    Returns float (dimensionless ratio, e.g. 0.884 = 88.4%).
+    0.0 for empty window, single call, or zero mean.
+    PRIMARY DISC.: CV is not linear in tool-groups; CV(pooled) ≠ avg(CV per tool).
+    """
+    if store is None:
+        store = _WINDOWED_TELEMETRY
+    if now_ms is None:
+        now_ms = _time.time() * 1000.0
+    cutoff_ms = now_ms - window_ms
+    latencies: list[float] = []
+    for records in store.values():
+        for ts, lat, _ok in records:
+            if ts >= cutoff_ms:
+                latencies.append(lat)
+    n = len(latencies)
+    if n < 2:
+        return 0.0
+    mean = sum(latencies) / n
+    if mean == 0.0:
+        return 0.0
+    variance = sum((lat - mean) ** 2 for lat in latencies) / n
+    return float((variance ** 0.5) / mean)
