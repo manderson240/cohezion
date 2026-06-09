@@ -7664,3 +7664,28 @@ def get_windowed_fleet_latency_sla_violation_rate_by_tool(
         window_ms, tool_name, threshold_ms, store=store, now_ms=now_ms
     )
     return float(violations / total)
+
+
+def get_windowed_fleet_latency_sla_compliance_rate_by_tool(
+    window_ms: float,
+    tool_name: str,
+    threshold_ms: float,
+    *,
+    store=None,
+    now_ms=None,
+) -> float:
+    """Per-tool SLA compliance rate (fraction of calls <= threshold_ms). Item 1196.
+
+    Returns float in [0.0, 1.0]. 0.0 for unknown/empty tool.
+    Formula: compliance_count / total_count.
+    Composition: compliance_rate + violation_rate == 1.0.
+    """
+    total = get_windowed_fleet_total_call_count_by_tool(
+        window_ms, tool_name, store=store, now_ms=now_ms
+    )
+    if total == 0:
+        return 0.0
+    compliant = get_windowed_fleet_latency_sla_compliance_count_by_tool(
+        window_ms, tool_name, threshold_ms, store=store, now_ms=now_ms
+    )
+    return float(compliant / total)
