@@ -1750,3 +1750,28 @@ def get_windowed_tools_over_error_budget(
         if rate > budget_rate:
             over.append(tool)
     return sorted(over)
+
+
+def get_windowed_latency_percentile(
+    tool_name: str,
+    percentile: float,
+    window_ms: float,
+    *,
+    store: dict | None = None,
+    now_ms: float | None = None,
+) -> float:
+    """Return an arbitrary *percentile* (0–100) of windowed latencies for *tool_name*.
+
+    Uses the same linear-interpolation algorithm as `_percentile()`.
+    Returns 0.0 when the tool is absent or has no calls in the window.
+    """
+    if store is None:
+        store = _WINDOWED_TELEMETRY
+    if now_ms is None:
+        now_ms = _time.time() * 1000.0
+    cutoff_ms = now_ms - window_ms
+    records = store.get(tool_name, [])
+    recent_lats = sorted(lat for ts, lat, _ok in records if ts >= cutoff_ms)
+    if not recent_lats:
+        return 0.0
+    return _percentile(recent_lats, percentile)
