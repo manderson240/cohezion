@@ -130,10 +130,30 @@ class BaseAgent(ABC):
         # Gateway 12: Memory Recovery Protocol (MRP)
         self._compound_engine = CompoundLogicEngine(registry=self.registry)
         self._background_tasks: set[asyncio.Task] = set()
-        if self.config.mrp_sync:
+        self._pending_mrp_sync = self.config.mrp_sync
+        self._schedule_background_tasks()
+
+    def _schedule_background_tasks(self) -> None:
+        # Schedule MRP sync on the running loop; defer if no loop yet.
+        # __init__ may run outside an event loop (sync callers, factory stubs,
+        # direct unit-test instantiation). When that happens we mark the
+        # MRP sync as pending and retry from the first async method
+        # (_ensure_background_tasks).
+        if not self._pending_mrp_sync:
+            return
+        try:
             _task = asyncio.create_task(self._synchronize_mrp())
             self._background_tasks.add(_task)
             _task.add_done_callback(self._background_tasks.discard)
+            self._pending_mrp_sync = False
+        except RuntimeError:
+            # No event loop yet — defer to the first async entry point.
+            pass
+
+    async def _ensure_background_tasks(self) -> None:
+        # Async hook subclasses/entry points can await on first use.
+        if self._pending_mrp_sync:
+            self._schedule_background_tasks()
 
     @property
     def client(self) -> Any:

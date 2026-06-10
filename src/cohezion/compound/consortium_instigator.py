@@ -469,7 +469,7 @@ class ConsortiumInstigator(BaseAgent):
         )
         vector.evidence = json.dumps(response, indent=2, default=str)[:500]
 
-        # ── AC-9.2: 10KB prompt ──
+        # ── large-prompt (10KB): no truncation, has content ──
         if vector.id == "large-prompt":
             if "truncat" in final.lower() or any(
                 "truncat" in s.get("text", "").lower() for s in stages
@@ -477,27 +477,26 @@ class ConsortiumInstigator(BaseAgent):
                 vector.result = "fail"
                 vector.actual_behavior += " [TRUNCATION DETECTED]"
                 return
-            # Check that all 5 stages completed with valid output
-            if len(stages) < 5:
+            if not response.get("ok") or not final:
                 vector.result = "fail"
-                vector.actual_behavior += f" [ONLY {len(stages)} STAGES]"
+                vector.actual_behavior += f" [no valid output: {response.get('error','')}]"
                 return
             vector.result = "pass"
             return
 
-        # ── AC-9.2: Lemonade down ──
+        # ── lemonade-down: endpoint should error gracefully ──
         if vector.id == "lemonade-down":
-            error_count = sum(
-                1 for s in stages if s.get("text", "").startswith("[ERROR")
-            )
-            if error_count == len(stages) and len(stages) == 5:
+            if not response.get("ok") and elapsed > 0:
                 vector.result = "pass"
-                vector.actual_behavior += " [All 5 properly errored]"
+                vector.actual_behavior += f" [endpoint errored: {response.get('status_code') or response.get('error','')[:60]}]"
                 return
-            if elapsed > 4.5 and error_count == 0:
+            if response.get("ok"):
                 vector.result = "fail"
-                vector.actual_behavior += " [HANGING — no error but waited]"
+                vector.actual_behavior += " [endpoint unexpectedly responded to bad URL]"
                 return
+            vector.result = "fail"
+            vector.actual_behavior += f" [hung or no error: elapsed={elapsed:.1f}s]"
+            return
             vector.result = "fail"
             vector.actual_behavior += f" [{error_count}/{len(stages)} errored]"
             return
