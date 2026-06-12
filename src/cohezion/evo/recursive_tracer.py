@@ -56,9 +56,9 @@ class TraceResult:
     step_index: int
     coherence_before: float
     coherence_after: float
-    latent_delta: float       # RMS magnitude of latent vector change this step
+    latent_delta: float  # RMS magnitude of latent vector change this step
     modalities_invoked: list[str]
-    phi: float                # HIHO score at this step: 4 * c_after * (1 - c_after)
+    phi: float  # HIHO score at this step: 4 * c_after * (1 - c_after)
     latency_ms: float
     synthesis_text: str = ""  # LLM insight from TextModality (empty when offline)
 
@@ -240,9 +240,7 @@ class RecursiveTracer:
             ValueError: When called before any trace_step()
         """
         if not self._steps:
-            raise ValueError(
-                "RecursiveTracer: no steps traced — call trace_step() at least once"
-            )
+            raise ValueError("RecursiveTracer: no steps traced — call trace_step() at least once")
 
         final_phi = self._steps[-1].phi
         final_snapshot = self._agent.latent_state.latent_vector[:16].tolist()
@@ -267,7 +265,7 @@ class RecursiveTracer:
         )
 
         # Dual-write: SurrealDB (batched) + Obsidian (vault MCP)
-        self._tracker.emit_evo_voyage(voyage)
+        self._tracker.emit_evo_voyage(voyage, skill_id=skill_id)
 
         # Constitution §3 gate: no self-modification from degenerate state.
         # Log gate_probability so borderline voyages (high variance near threshold)
