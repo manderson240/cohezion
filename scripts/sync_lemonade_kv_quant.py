@@ -35,7 +35,7 @@ import urllib.request
 from cohezion.inference.registry import FleetRegistry, Lane, ModelEntry
 
 
-LEMONADE_BASE_DEFAULT = "http://localhost:13307"
+LEMONADE_BASE_DEFAULT = "http://localhost:13305"
 IGPU_LANES = {Lane.IGPU_ROCWMMA, Lane.IGPU_UNIFIED}
 
 

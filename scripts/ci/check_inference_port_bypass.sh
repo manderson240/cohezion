@@ -15,9 +15,9 @@
 #   bash scripts/ci/check_inference_port_bypass.sh --report   # report mode (migration phases 0–4)
 #
 # ACTIVATION NOTE
-#   This guard is committed in REPORT mode during migration phases 0–4.
-#   Flip to fail mode (remove --report from Makefile / CI invocation) only after
-#   Phase 4 completes and the violation count reaches 0.  See plan:
+#   Phase 3 migration completed 2026-06-12.  TEMPORARY-PHASE2 entries removed.
+#   Guard is committed in REPORT mode; flip to fail mode (Phase 5) once all
+#   violation counts reach 0 across src/cohezion.  See plan:
 #   docs/plans/2026-06-09-lemonade-13305-consolidation.md §Phase 5a.
 #
 # PATTERN
@@ -69,25 +69,14 @@ ALLOWLIST_PATHS=(
     # Simulation benchmark — performance measurement, not live routing
     "src/cohezion/simulations/symphony_max_benchmark.py|simulation benchmark — not live routing code|PERMANENT"
 
-    # --- ARCHITECTURAL EXCEPTIONS (PERMANENT) ---
-    # CLaSp speculative decoding: draft (E2B, :13308) + verify (E4B, :13307).
-    # Lemonade router has no mechanism for server-side speculative decoding
-    # across backends — this is sub-request two-model coordination.
-    # Exception ruled in Phase 2 CLaSp decision gate (plan §Phase 2, Risk R3).
-    # Both :13307 and :13308 are intentional here; they are NOT migration targets.
-    "src/cohezion/inference/clasp_tier.py|CLaSp speculative decoding — dual-port by design (E2B draft :13308 + E4B verify :13307); no router equivalent exists|PERMANENT"
+    # direct_tier.py: Phase 3 migrated all defaults to :13305.  Deprecated builders
+    # (build_direct_npu_tier / build_direct_igpu_tier / build_direct_cpu_tier) now
+    # default to port=13305; no direct-port references remain.  TEMPORARY-PHASE2 entry
+    # removed 2026-06-12.
 
-    # direct_tier.py retains builder functions as legacy reference/fallback.
-    # build_direct_npu_tier/build_direct_igpu_tier/build_direct_cpu_tier carry
-    # explicit port defaults (13306/13307/13309) for callers that need a dedicated
-    # server — they are being deprecated in Phase 2 but the builders are retained
-    # non-destructively per the non-destructive-wiring policy.
-    "src/cohezion/inference/direct_tier.py|legacy builder functions retained non-destructively; migrating callers to LemonadeRouterClient in Phase 2|TEMPORARY-PHASE2"
-
-    # inference/health.py probes all four per-port servers by design — it IS the
-    # health dashboard for the multi-port topology.  When the topology moves to
-    # router-only, this file is updated in Phase 2/4.
-    "src/cohezion/inference/health.py|health dashboard probes all tier ports by design; update in Phase 2/4|TEMPORARY-PHASE2"
+    # inference/health.py: Phase 3 migrated iGPU + CPU probes to :13305.  Retained
+    # probes (:13306 NPU historical, :13308 CLaSp permanent) use inline
+    # # allow-direct-port: comments.  TEMPORARY-PHASE2 entry removed 2026-06-12.
 )
 
 # ---------------------------------------------------------------------------
@@ -98,22 +87,11 @@ ALLOWLIST_PATHS=(
 # Do NOT whole-file-allow a file just to protect a single line.
 # ---------------------------------------------------------------------------
 ALLOWLIST_LINE_PATTERNS=(
-    # N2 invariant: cpu_port: int = 13309 in triune_orchestrator.py is retained.
-    # The CPU tier's dedicated direct :13309 server is the default; the router
-    # fallback (RouterCpuTier) is additive.  N2 verification: grep for
-    # "cpu_port: int = 13309" must return results.  Phase 2 will migrate
-    # npu_port=13306 and igpu_port=13307 but must NOT touch cpu_port=13309.
-    "src/cohezion/inference/triune_orchestrator.py:cpu_port: int = 13309"
-
-    # triune_orchestrator.py also has comment/docstring references to :13309 as
-    # the CPU tier description — these are documentation of the retained behavior.
-    "src/cohezion/inference/triune_orchestrator.py:CPU.*13309"
-    "src/cohezion/inference/triune_orchestrator.py:13309.*CPU"
-    "src/cohezion/inference/triune_orchestrator.py:Port 13309"
-    "src/cohezion/inference/triune_orchestrator.py:port 13309"
-    "src/cohezion/inference/triune_orchestrator.py:direct.*13309"
-    "src/cohezion/inference/triune_orchestrator.py:13309.*direct"
-    "src/cohezion/inference/triune_orchestrator.py::13309"
+    # Phase 3 (2026-06-12): triune_orchestrator.py deprecated port params
+    # (npu_port=13306, igpu_port=13307, cpu_port=13309, clasp_draft_port=13308)
+    # now carry inline # allow-direct-port: comments — handled by is_line_allowed().
+    # ALLOWLIST_LINE_PATTERNS entries for triune_orchestrator.py removed.
+    # No entries needed here for Phase 3+.
 )
 
 # ---------------------------------------------------------------------------

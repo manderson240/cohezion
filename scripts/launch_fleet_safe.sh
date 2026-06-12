@@ -97,58 +97,19 @@ if [ "${FORCE_RESTART:-0}" = "1" ]; then
     sleep 2
 fi
 
-# --- 4. NPU Lane (:13306) — Gemma-4-E2B ---------------------------------------
-if probe_port 13306; then
-    echo "🎻 NPU :13306 already UP — skipping"
-else
-    echo "🎻 Starting NPU lane (Gemma-4-E2B-it-GGUF via FLM)..."
-    lemonade load Gemma-4-E2B-it-GGUF --port 13306 --llamacpp flm &
-    wait_for_port 13306 "NPU" 60 "Gemma-4-E2B-it-GGUF" || echo "    WARN: NPU did not come up / wrong model"
-fi
+# --- 4. NPU Lane — DECOMMISSIONED (Phase 2+) -----------------------------------
+# llama3.2-1b-FLM is served on-demand by the unified router on :13305.
+# The dedicated :13306 daemon is no longer needed and wastes RAM.
+# Old: lemonade load Gemma-4-E2B-it-GGUF --port 13306 --llamacpp flm
 
-# --- 5. iGPU Lane 1 (:13307) — Gemma-4-E4B via ROCWMMA ------------------------
-if [ "${SKIP_IGPU:-0}" = "1" ]; then
-    echo "⏭️   SKIP_IGPU=1: skipping :13307 and :13308"
-else
-    if probe_port 13307; then
-        echo "🎺 iGPU ROCWMMA :13307 already UP — skipping"
-    else
-        echo "🎺 Starting Steering Lane (Gemma-4-E4B, iGPU ROCWMMA)..."
-        lemonade load Gemma-4-E4B-it-GGUF --port 13307 --llamacpp rocm --llamacpp-args "-fa 1 -ngl 99" &
-        wait_for_port 13307 "iGPU ROCWMMA" 120 "Gemma-4-E4B-it-GGUF" || {
-            echo "    ERROR: iGPU E4B did not come up OR wrong model served. Aborting staged launch."
-            echo "    If rocm-smi shows zombie VRAM, cold-boot recovery required."
-            exit 2
-        }
-    fi
-
-    # --- 6. iGPU Lane 2 (:13308) — Gemma-4-26B-A4B MoE ------------------------
-    if probe_port 13308; then
-        echo "🏗️  iGPU Unified :13308 already UP — skipping"
-    else
-        echo "🏗️  Starting Building Lane (Gemma-4-26B-A4B MoE, iGPU Unified 120GB GTT)..."
-        echo "    (waiting 5s post-E4B before loading 26B to avoid concurrent JIT)"
-        sleep 5
-        lemonade load Gemma-4-26B-A4B-it-GGUF --port 13308 --llamacpp rocm --llamacpp-args "-fa 1 -ngl 99" &
-        wait_for_port 13308 "iGPU Unified" 180 "Gemma-4-26B-A4B-it-GGUF" || {
-            echo "    ERROR: iGPU 26B did not come up OR wrong model served. Aborting."
-            exit 3
-        }
-    fi
-fi
-
-# --- 7. CPU Lane (:13309) — Gemma-4-31B via AVX-VNNI --------------------------
-if [ "${SKIP_CPU:-0}" = "1" ]; then
-    echo "⏭️   SKIP_CPU=1: skipping :13309"
-else
-    if probe_port 13309; then
-        echo "🏛️  CPU :13309 already UP — skipping"
-    else
-        echo "🏛️  Starting Architect Lane (Gemma-4-31B, CPU AVX-VNNI)..."
-        lemonade load Gemma-4-31B-it-GGUF --port 13309 --llamacpp cpu --ctx-size 32768 &
-        wait_for_port 13309 "CPU" 120 "Gemma-4-31B-it-GGUF" || echo "    WARN: CPU lane did not come up / wrong model"
-    fi
-fi
+# --- 5-7. iGPU Lanes + CPU Lane — DECOMMISSIONED Phase 3+ ----------------------
+# Router :13305 serves all models on-demand; dedicated per-port daemons are
+# redundant and add resident memory pressure. Models load lazily when requested.
+#
+# If you need to re-enable a dedicated lane (e.g. for CLaSp benchmarking):
+#   lemonade load Gemma-4-E4B-it-GGUF --port 13307 --llamacpp rocm --llamacpp-args "-fa 1 -ngl 99"
+#   lemonade load Gemma-4-26B-A4B-it-GGUF --port 13308 --llamacpp rocm --llamacpp-args "-fa 1 -ngl 99"
+#   lemonade load Gemma-4-31B-it-GGUF --port 13309 --llamacpp cpu --ctx-size 32768
 
 echo ""
 echo "======================================================================"

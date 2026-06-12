@@ -113,6 +113,90 @@
         "-y",
         "n8n-mcp"
       ]
+    },
+    "cohezion-compound": {
+      "command": "/home/mike-anderson/dev/cohezion/.venv/bin/python",
+      "args": [
+        "-m",
+        "cohezion.mcp.compound_server"
+      ],
+      "env": {
+        "PYTHONPATH": "/home/mike-anderson/dev/cohezion/src",
+        "MCP_TRANSPORT": "stdio",
+        "BMAD_DATA_PATH": "/home/mike-anderson/dev/cohezion/_bmad"
+      }
+    },
+    "cohezion-rewards": {
+      "command": "/home/mike-anderson/dev/cohezion/.venv/bin/python",
+      "args": [
+        "-m",
+        "cohezion.mcp.servers.rewards.server"
+      ],
+      "env": {
+        "PYTHONPATH": "/home/mike-anderson/dev/cohezion/src",
+        "MCP_TRANSPORT": "stdio",
+        "BMAD_DATA_PATH": "/home/mike-anderson/dev/cohezion/_bmad"
+      }
+    },
+    "cohezion-security": {
+      "command": "/home/mike-anderson/dev/cohezion/.venv/bin/python",
+      "args": [
+        "-m",
+        "cohezion.mcp.servers.security.server"
+      ],
+      "env": {
+        "PYTHONPATH": "/home/mike-anderson/dev/cohezion/src",
+        "MCP_TRANSPORT": "stdio",
+        "BMAD_DATA_PATH": "/home/mike-anderson/dev/cohezion/_bmad"
+      }
+    },
+    "cohezion-journey": {
+      "command": "/home/mike-anderson/dev/cohezion/.venv/bin/python",
+      "args": [
+        "-m",
+        "cohezion.mcp.servers.journey.server"
+      ],
+      "env": {
+        "PYTHONPATH": "/home/mike-anderson/dev/cohezion/src",
+        "MCP_TRANSPORT": "stdio",
+        "BMAD_DATA_PATH": "/home/mike-anderson/dev/cohezion/_bmad"
+      }
+    },
+    "cohezion-github": {
+      "command": "/home/mike-anderson/dev/cohezion/.venv/bin/python",
+      "args": [
+        "-m",
+        "cohezion.mcp.servers.github.server"
+      ],
+      "env": {
+        "PYTHONPATH": "/home/mike-anderson/dev/cohezion/src",
+        "MCP_TRANSPORT": "stdio",
+        "BMAD_DATA_PATH": "/home/mike-anderson/dev/cohezion/_bmad"
+      }
+    },
+    "cohezion-huggingface": {
+      "command": "/home/mike-anderson/dev/cohezion/.venv/bin/python",
+      "args": [
+        "-m",
+        "cohezion.mcp.servers.huggingface.server"
+      ],
+      "env": {
+        "PYTHONPATH": "/home/mike-anderson/dev/cohezion/src",
+        "MCP_TRANSPORT": "stdio",
+        "BMAD_DATA_PATH": "/home/mike-anderson/dev/cohezion/_bmad"
+      }
+    },
+    "cohezion-traceability": {
+      "command": "/home/mike-anderson/dev/cohezion/.venv/bin/python",
+      "args": [
+        "-m",
+        "cohezion.mcp.servers.traceability.server"
+      ],
+      "env": {
+        "PYTHONPATH": "/home/mike-anderson/dev/cohezion/src",
+        "MCP_TRANSPORT": "stdio",
+        "BMAD_DATA_PATH": "/home/mike-anderson/dev/cohezion/_bmad"
+      }
     }
   }
 }

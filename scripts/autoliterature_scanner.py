@@ -76,14 +76,14 @@ MODEL_SCOUT_OPEN_LICENSES = {
 MODEL_SCOUT_BLOCKED_LIBS = {"diffusers", "tortoise-tts", "tensorflowtts"}  # not LLMs
 MODEL_SCOUT_TASK_FILTER = "text-generation"
 
-# ── local inference: multi-lane (NPU + iGPU + CPU) on Lemonade port 13307 ────
+# ── local inference: multi-lane (NPU + iGPU + CPU) on Lemonade router :13305 ─
 # Single server, three hardware paths via the model's `recipe`:
 #   flm       → AMD Ryzen AI NPU (fastest, small models only)
 #   llamacpp  → Radeon 8060S iGPU via ROCWMMA (best quality, large models)
 #   llamacpp  → CPU (Ryzen AI MAX+ 395 16C/32T, fallback when iGPU busy)
 # We try lanes in priority order with a short timeout; first to respond wins.
 # Track which lane scored each paper for hardware-utilization analytics.
-LEMONADE_BASE = "http://localhost:13307/v1"
+LEMONADE_BASE = "http://localhost:13305/v1"
 # Per-lane preferred-and-fallback model lists. The scanner probes them in order
 # inside each lane, so when AMD/FastFlowLM ships Gemma-4 NPU into Lemonade
 # (FLM v0.9.39 added gemma4-it:e2b — pending Lemonade bundle update per AMD's

@@ -24,12 +24,12 @@ class NodeStats:
 
 
 async def get_npu_stats() -> NodeStats:
-    """Check NPU via Lemonade/FLM on port 13306."""
-    start = time.perf_counter()
+    """Check NPU via router :13305 (llama3.2-1b-FLM served on-demand, Phase 2+)."""
+    _start = time.perf_counter()
     try:
         async with aiohttp.ClientSession() as session:
             # Simple health and version check
-            async with session.get("http://localhost:13306/health", timeout=2.0) as resp:
+            async with session.get("http://localhost:13305/health", timeout=2.0) as resp:
                 if resp.status == 200:
                     # In a real scenario, we'd run a 1-token prompt to get TPS
                     # For the report, we use the verified stats from local_environment_quirks.md

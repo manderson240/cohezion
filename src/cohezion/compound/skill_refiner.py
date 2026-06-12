@@ -13,10 +13,11 @@ Features:
 - Non-blocking persistence (failures don't crash execution)
 """
 
+import fcntl
 import logging
 import re
 from dataclasses import dataclass
-from datetime import datetime
+from datetime import UTC, datetime
 from pathlib import Path
 from typing import Any
 
@@ -35,6 +36,7 @@ class ExecutionMetrics:
     quality_score: float
     anomaly_score: float
     cached_hits: int
+    gate_probability: float = 0.0  # PhiDistribution gate_probability from EVO voyages
 
 
 @dataclass
@@ -221,6 +223,7 @@ class SkillRefiner:
         tokens_used = token_metrics.get("tokens_used", 0)
         anomaly_score = metrics_dict.get("anomaly_score", 0.5)
         cached_hits = token_metrics.get("cache_hits", 0)
+        gate_probability = metrics_dict.get("gate_probability", 0.0)
 
         # Calculate quality score (lower is better quality)
         quality_score = 1.0 - anomaly_score
@@ -236,6 +239,7 @@ class SkillRefiner:
             quality_score=quality_score,
             anomaly_score=anomaly_score,
             cached_hits=cached_hits,
+            gate_probability=gate_probability,
         )
 
     def _generate_learning_signal(
@@ -256,16 +260,29 @@ class SkillRefiner:
         """
         insights = []
 
-        # Check quality score
-        if metrics.quality_score > 0.8:
-            insights.append("high quality execution (low anomaly score)")
+        # φ-based HIHO coherence insight (primary signal from EVO voyages).
+        # quality_score = final_phi = 4c(1-c) set by RecursiveTracer via anomaly_score.
+        phi = metrics.quality_score
+        if phi >= 0.75:
+            insights.append("strong HIHO coherence — optimal compound engineering state")
+        elif phi >= 0.5:
+            insights.append("HIHO coherence above median — synthesis quality nominal")
+        elif phi >= 0.3:
+            insights.append("HIHO coherence in gate zone — compound loop viable")
+
+        # Gate probability from PhiDistribution (only meaningful when > 0).
+        # Round to 1 decimal so concurrent ticks with p=0.87 vs p=0.91 deduplicate.
+        if metrics.gate_probability > 0.7:
+            gate_p = round(metrics.gate_probability, 1)
+            insights.append(f"high gate confidence (p={gate_p:.1f}) — reliable refinement signal")
 
         # Check cache efficiency
         if metrics.cached_hits > 0:
             insights.append(f"cache hits improved throughput ({metrics.cached_hits})")
 
-        # Check token efficiency
-        if metrics.token_efficiency < 500:  # tokens/sec threshold
+        # Token efficiency: only when actual LLM tokens were used.
+        # When tokens_used==0 (physics-only EVO), efficiency=0 is vacuous.
+        if metrics.tokens_used > 0 and metrics.token_efficiency < 500:
             insights.append("efficient token usage")
 
         if not insights:
@@ -279,7 +296,14 @@ class SkillRefiner:
             f"Duration: {metrics.duration_seconds:.2f}s"
         )
         recommendation = self._generate_recommendation(metrics, operation_type)
-        confidence = min(0.95, metrics.quality_score)
+        # SAGE skill-integrated reward (arXiv:2512.17102): weight confidence by
+        # φ × gate_prob so that both outcome quality AND reliability of the gate
+        # contribute. High φ voyages with uncertain gate probability get penalized;
+        # only consistently above-gate voyages reach the Lemonade reflection threshold.
+        if metrics.gate_probability > 0.0:
+            confidence = min(0.95, metrics.quality_score * metrics.gate_probability)
+        else:
+            confidence = min(0.95, metrics.quality_score)
 
         return LearningSignal(
             skill_name=skill_name,
@@ -343,42 +367,63 @@ class SkillRefiner:
             Path to refined file if successful, None otherwise
         """
         try:
-            # Read current file
-            content = prime_file.read_text(encoding="utf-8")
+            # Atomic read-check-write via exclusive flock to prevent concurrent-tick races.
+            # Without LOCK_EX, N concurrent ticks all read before any writes and all append.
+            with prime_file.open("r+", encoding="utf-8") as fh:
+                fcntl.flock(fh, fcntl.LOCK_EX)
+                try:
+                    content = fh.read()
 
-            # Extract current version
-            version_match = re.search(r"## Version: (\d+\.\d+\.\d+)", content)
-            current_version = version_match.group(1) if version_match else "1.0.0"
+                    # Dedup: skip if this exact insight already appeared today.
+                    # Splits on section headers so each section is checked independently.
+                    # Race is closed by LOCK_EX above — this check + write is atomic.
 
-            # Bump patch version
-            new_version = self._bump_version(current_version)
+                    today_prefix = datetime.now(tz=UTC).strftime("%Y-%m-%dT")
+                    today_insights: list[str] = []
+                    for section in re.split(r"\n## ", content):
+                        if section.startswith(f"Learned Refinement ({today_prefix}"):
+                            m = re.search(r"\*\*Insight\*\*: ([^\n]+)", section)
+                            if m:
+                                today_insights.append(m.group(1).strip())
+                    if signal.key_insight in today_insights:
+                        logger.debug(
+                            "Skipping duplicate insight '%s' (already recorded today) for %s",
+                            signal.key_insight,
+                            prime_file.name,
+                        )
+                        return prime_file  # counts as refined without writing
 
-            # Create refinement section
-            refinement = self._create_refinement_section(signal)
+                    # Extract current version
+                    version_match = re.search(r"## Version: (\d+\.\d+\.\d+)", content)
+                    current_version = version_match.group(1) if version_match else "1.0.0"
+                    new_version = self._bump_version(current_version)
 
-            # Find insertion point (before Version line)
-            version_line = f"## Version: {current_version}"
-            if version_line not in content:
-                # Fallback: append before Keywords
-                insertion_point = content.rfind("## Keywords:")
-            else:
-                insertion_point = content.find(version_line)
+                    refinement = self._create_refinement_section(signal)
 
-            if insertion_point == -1:
-                logger.debug("Could not find insertion point in PRIME file")
-                return None
+                    version_line = f"## Version: {current_version}"
+                    if version_line not in content:
+                        insertion_point = content.rfind("## Keywords:")
+                    else:
+                        insertion_point = content.find(version_line)
 
-            # Insert refinement and update version
-            new_content = (
-                content[:insertion_point]
-                + refinement
-                + "\n"
-                + f"## Version: {new_version}\n"
-                + content[insertion_point + len(version_line) + 1 :]
-            )
+                    if insertion_point == -1:
+                        logger.debug("Could not find insertion point in PRIME file")
+                        return None
 
-            # Write back
-            prime_file.write_text(new_content, encoding="utf-8")
+                    new_content = (
+                        content[:insertion_point]
+                        + refinement
+                        + "\n"
+                        + f"## Version: {new_version}\n"
+                        + content[insertion_point + len(version_line) + 1 :]
+                    )
+
+                    fh.seek(0)
+                    fh.write(new_content)
+                    fh.truncate()
+                finally:
+                    fcntl.flock(fh, fcntl.LOCK_UN)
+
             logger.info(f"Refined PRIME file: {prime_file.name} → v{new_version}")
 
             return prime_file

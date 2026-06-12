@@ -8,7 +8,7 @@ Experiment tiers (run sequentially, loop forever until SIGINT):
   E11: JEPA surprise integration (world model surprise → Ouroboros exhaust)
   E12: Witness mark accumulation (persistent EVO across 50+ deliberations)
 
-Local inference: port 13307 (Lemonade iGPU ROCWMMA — all Gemma-4 models).
+Local inference: router :13305 (Lemonade unified router — Phase 3+).
 OOM safety: serial voice queries (one model at a time, 30s timeout each).
 Fallback: heuristic evaluators if model unavailable or timeout.
 
@@ -65,10 +65,10 @@ def _get_autoresearch_engine():
 
 
 # Lemonade endpoint (port 13307, all Gemma-4 models available)
-LEMONADE_BASE = "http://localhost:13307/v1"
+LEMONADE_BASE = "http://localhost:13305/v1"
 
 # Voice → model mapping.
-# All 4 voices use Gemma-4-E4B (current live governance model at port 13307).
+# All 4 voices use Gemma-4-E4B (served via router :13305, Phase 3+).
 # OOM-safe: single model, no slot switching between voices.
 # Quality-over-speed: 4-E4B is the Strix Halo governance lane (iGPU ROCWMMA).
 # When Lemonade has loaded a larger model in-slot, we'll use that automatically

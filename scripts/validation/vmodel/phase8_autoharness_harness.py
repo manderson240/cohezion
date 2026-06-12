@@ -73,7 +73,7 @@ def _run_lint(file_path: str) -> dict:
     t0 = time.perf_counter()
     try:
         result = subprocess.run(
-            ["ruff", "check", file_path],
+            ["uv", "run", "ruff", "check", file_path],
             cwd=str(PROJECT_ROOT),
             capture_output=True,
             text=True,
@@ -104,12 +104,13 @@ def _run_typecheck(file_path: str) -> dict:
     t0 = time.perf_counter()
     try:
         result = subprocess.run(
-            ["mypy", file_path, "--ignore-missing-imports"],
+            ["uv", "run", "mypy", file_path, "--ignore-missing-imports"],
             cwd=str(PROJECT_ROOT),
             capture_output=True,
             text=True,
             timeout=60,
         )
+
         elapsed = time.perf_counter() - t0
         passed = result.returncode == 0
         return {

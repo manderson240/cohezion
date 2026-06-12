@@ -7,9 +7,20 @@ description: >
 trigger: "lemond ctx-size | lemonade context size | llama-server --ctx-size | LEMONADE_CTX_SIZE"
 ---
 
-# lemond ctx-size — Hardcoded 4096 (All Overrides Fail)
+# lemond ctx-size — version-dependent (4096 hardcode was an OLD version)
 
-**Confirmed on:** lemond Vulkan backend, Strix Halo gfx1151, 2026-04-29
+> **⚠ CORRECTED 2026-06-09 (lemonade 10.6.0):** The "all overrides fail / hardcoded 4096"
+> claim below is TRUE only for the ~2026-04 build. **lemonade 10.6.0 DOES honor per-model
+> `ctx_size`** via `recipe_options.json` (`/var/lib/lemonade/.cache/lemonade/`), keyed by
+> canonical id (`user.<name>`). Resolution priority: per-request `/api/v1/load {ctx_size,save_options:true}`
+> > `recipe_options.json` > global `config.json ctx_size` (default 4096, env `LEMONADE_CTX_SIZE`).
+> `ctx_size:0` → literal `--ctx-size 0` = full trained context = unbounded KV → **OOM hard-hang**
+> on Strix Halo (confirmed crash 2026-06-09; see `~/.claude/rules/harness.md` N3). `0` is NOT
+> special-cased (source `to_cli_options`). Read live: `GET :13305/api/v1/models/<id>.recipe_options.ctx_size`.
+> No global hard cap exists — an explicit per-model `0` overrides global, so bounding is per-model.
+> The section below is retained as the historical (old-version) investigation trail.
+
+**Originally confirmed on:** lemond Vulkan backend, Strix Halo gfx1151, 2026-04-29
 
 ## The Hard Truth
 

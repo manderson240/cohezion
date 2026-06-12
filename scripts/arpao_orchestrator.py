@@ -58,7 +58,7 @@ BUDGET_SECONDS = 300  # 5 min per experiment
 UCB_C = math.sqrt(2)
 KAGGLE_PUSH_THRESHOLD = 0.025  # Only push to Kaggle if solve_rate > 2.5%
 
-LEMONADE_URL = "http://localhost:13307/v1/chat/completions"
+LEMONADE_URL = "http://localhost:13305/v1/chat/completions"
 OLLAMA_URL = "http://localhost:11434/api/generate"
 
 # ════════════════════════════════════════════════════════════════

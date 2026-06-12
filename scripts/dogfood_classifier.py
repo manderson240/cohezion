@@ -220,7 +220,7 @@ PROMPTS = [
 
 
 async def main():
-    npu = LemonadeTier("NPU", "http://localhost:13306/v1", "llama3.2-1b-FLM")
+    npu = LemonadeTier("NPU", "http://localhost:13305/v1", "llama3.2-1b-FLM")
     gpu = LemonadeTier("GPU", "http://localhost:13305/v1", "Gemma-4-E4B-it-GGUF")
 
     orch_with = DogfoodOrchestrator(

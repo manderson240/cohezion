@@ -200,6 +200,19 @@ async def _run_config_A_claude_only(
                 )
                 continue
             data = json.loads(stdout_b.decode(errors="replace"))
+            if isinstance(data, list):
+                result_item = next(
+                    (
+                        item
+                        for item in data
+                        if isinstance(item, dict) and item.get("type") == "result"
+                    ),
+                    None,
+                )
+                if result_item:
+                    data = result_item
+                else:
+                    data = data[-1] if data and isinstance(data[-1], dict) else {}
             cost = float(data.get("total_cost_usd", 0.0))
             # Claude CLI doesn't emit TTFT separately; proxy is total latency.
             # Flagged in the report as estimated, not measured-streaming.

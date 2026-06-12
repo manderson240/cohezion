@@ -46,9 +46,9 @@ def verify_invariants() -> bool:
     # F1: 4 Gemma 4 Symphony entries with the correct ports.
     expected = {
         "Gemma-4-E2B-it-GGUF": "13306",
-        "Gemma-4-E4B-it-GGUF": "13307",
+        "Gemma-4-E4B-it-GGUF": "13305",
         "Gemma-4-26B-A4B-it-GGUF": "13308",
-        "Gemma-4-31B-it-GGUF": "13309",
+        "Gemma-4-31B-it-GGUF": "13305",
     }
     for model_id, port in expected.items():
         if model_id not in registry.models:
@@ -57,7 +57,7 @@ def verify_invariants() -> bool:
         if port not in registry.models[model_id].endpoint:
             _fail("F1", f"{model_id} endpoint missing port {port}")
             return False
-    _pass("F1", "4 Gemma 4 Symphony entries on ports 13306/13307/13308/13309")
+    _pass("F1", "4 Gemma 4 Symphony entries — iGPU/CPU via router :13305 (Phase 3+)")
 
     # F2: No duplicate model_ids
     ids = [m.model_id for m in registry.models.values()]

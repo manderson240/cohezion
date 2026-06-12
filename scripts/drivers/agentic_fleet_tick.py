@@ -39,12 +39,13 @@ from cohezion.compound.agentic_loop import agentic_tick
 _DEFAULT_PROMPT = "federate the canonical data products across domains"
 
 
-# Router-centric topology: NPU is its own daemon; the iGPU + full catalog are served
-# by the router on :13305; the CPU lane lives on :13309 when a CPU model is loaded.
+# Router-centric topology: all tiers routed through :13305 unified lemonade router (Phase 2+).
+# NPU dedicated daemon (:13306) decommissioned — llama3.2-1b-FLM served on-demand by router.
+# CPU lane lives on :13309 when a dedicated CPU model is loaded (fallback: router :13305).
 TIERS: list[tuple[str, int]] = [
-    ("NPU", 13306),
+    ("NPU", 13305),
     ("iGPU", 13305),
-    ("CPU", 13309),
+    ("CPU", 13305),
 ]
 
 # Preferred resident model per tier (substring match, in priority order). The tier

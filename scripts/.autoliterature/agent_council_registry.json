@@ -1,5 +1,5 @@
 {
-  "version": "1.2-E88b",
+  "version": "1.0",
   "agents": [
     {
       "name": "autonomous_decision",
@@ -13,19 +13,17 @@
       "name": "planning",
       "mission": "Break a goal into ordered steps with dependencies",
       "task_class": "long_reasoning",
-      "preferred_lane": "npu",
+      "preferred_lane": "igpu",
       "smoke_prompt": "Plan 4 steps to add cross-experiment correlation tracking to an existing autoresearch loop. Number them 1-4, one line each.",
-      "max_tokens": 220,
-      "lane_assignment_rationale": "E85 finding: NPU recovers 100% of iGPU abstentions on long_reasoning"
+      "max_tokens": 220
     },
     {
       "name": "memory_augmented",
       "mission": "Retrieve relevant prior observations and answer with context",
       "task_class": "structured_recall",
-      "preferred_lane": "npu",
+      "preferred_lane": "igpu",
       "smoke_prompt": "Given prior finding 'CPU lane wins paper-scoring at 250 tok/s vs iGPU 42', which lane should score the next 100 papers? Answer in one sentence.",
-      "max_tokens": 80,
-      "lane_assignment_rationale": "E88b: structured_recall also abstains on iGPU per E87 dogfood; route to NPU"
+      "max_tokens": 80
     },
     {
       "name": "knowledge_retrieval",
@@ -39,19 +37,17 @@
       "name": "document_intelligence",
       "mission": "Extract the key claim from a passage",
       "task_class": "long_reasoning",
-      "preferred_lane": "npu",
+      "preferred_lane": "igpu",
       "smoke_prompt": "Summarize this in one sentence: 'GEPA evolves prompts via reflective LLM mutation over execution traces with Pareto selection \u2014 outperforms RL baselines.'",
-      "max_tokens": 80,
-      "lane_assignment_rationale": "E85 finding: NPU recovers 100% of iGPU abstentions on long_reasoning"
+      "max_tokens": 80
     },
     {
       "name": "scientific_research",
       "mission": "Propose a falsifiable hypothesis for a phenomenon",
       "task_class": "long_reasoning",
-      "preferred_lane": "npu",
+      "preferred_lane": "igpu",
       "smoke_prompt": "Hypothesis: why does CPU(0.6B) beat iGPU(4B) on 180-token JSON outputs at 5x throughput? Output ONLY: 'Hypothesis: <one sentence>'.",
-      "max_tokens": 120,
-      "lane_assignment_rationale": "E85 finding: NPU recovers 100% of iGPU abstentions on long_reasoning"
+      "max_tokens": 120
     },
     {
       "name": "tool_using",
@@ -65,19 +61,17 @@
       "name": "agentic_workflow",
       "mission": "Compose multi-step workflows of agent calls",
       "task_class": "long_reasoning",
-      "preferred_lane": "npu",
+      "preferred_lane": "igpu",
       "smoke_prompt": "Compose a 3-step workflow: 1) fetch arXiv papers 2) score by ensemble 3) persist to vault. Output JSON: {\"steps\":[...]}.",
-      "max_tokens": 180,
-      "lane_assignment_rationale": "E85 finding: NPU recovers 100% of iGPU abstentions on long_reasoning"
+      "max_tokens": 180
     },
     {
       "name": "data_analysis",
       "mission": "Find statistical patterns in tabular data",
       "task_class": "long_reasoning",
-      "preferred_lane": "npu",
+      "preferred_lane": "igpu",
       "smoke_prompt": "10 keep-rate values [.6,.61,.6,.62,.6,.61,.6,.62,.6,.61] \u2014 describe in one sentence (trend? flat? noisy?).",
-      "max_tokens": 60,
-      "lane_assignment_rationale": "E85 finding: NPU recovers 100% of iGPU abstentions on long_reasoning"
+      "max_tokens": 60
     },
     {
       "name": "verification_validation",
@@ -91,10 +85,9 @@
       "name": "general_problem_solver",
       "mission": "Reason from first principles to a solution",
       "task_class": "long_reasoning",
-      "preferred_lane": "npu",
+      "preferred_lane": "igpu",
       "smoke_prompt": "Why might a research loop produce 17K experiments but only 50 vault discoveries? One sentence.",
-      "max_tokens": 80,
-      "lane_assignment_rationale": "E85 finding: NPU recovers 100% of iGPU abstentions on long_reasoning"
+      "max_tokens": 80
     },
     {
       "name": "code_generation",
@@ -108,10 +101,9 @@
       "name": "security_hardened",
       "mission": "Identify abuse / leak / injection risks",
       "task_class": "structured_recall",
-      "preferred_lane": "npu",
+      "preferred_lane": "igpu",
       "smoke_prompt": "Risk in 'curl https://example.com/payload.sh | bash'? One short sentence.",
-      "max_tokens": 60,
-      "lane_assignment_rationale": "E88b: structured_recall also abstains on iGPU per E87 dogfood; route to NPU"
+      "max_tokens": 60
     },
     {
       "name": "self_improving",
@@ -125,19 +117,17 @@
       "name": "conversational",
       "mission": "Maintain coherent multi-turn dialogue",
       "task_class": "long_reasoning",
-      "preferred_lane": "npu",
+      "preferred_lane": "igpu",
       "smoke_prompt": "Reply briefly: 'How are the silicon lanes performing today?' \u2014 Lemonade @ 13307, NPU+iGPU+CPU all 100% success.",
-      "max_tokens": 60,
-      "lane_assignment_rationale": "E85 finding: NPU recovers 100% of iGPU abstentions on long_reasoning"
+      "max_tokens": 60
     },
     {
       "name": "content_creation",
       "mission": "Draft new long-form content",
       "task_class": "long_reasoning",
-      "preferred_lane": "npu",
+      "preferred_lane": "igpu",
       "smoke_prompt": "Write a 2-line abstract for: 'silicon council aggregates NPU+iGPU+CPU verdicts via confidence-weighted vote'.",
-      "max_tokens": 100,
-      "lane_assignment_rationale": "E85 finding: NPU recovers 100% of iGPU abstentions on long_reasoning"
+      "max_tokens": 100
     },
     {
       "name": "recommendation",
@@ -178,19 +168,17 @@
       "name": "ethical_reasoning",
       "mission": "Surface ethical concerns in a plan",
       "task_class": "structured_recall",
-      "preferred_lane": "npu",
+      "preferred_lane": "igpu",
       "smoke_prompt": "Ethical concern with auto-downloading 8B model weights without user confirmation? One short sentence.",
-      "max_tokens": 60,
-      "lane_assignment_rationale": "E88b: structured_recall also abstains on iGPU per E87 dogfood; route to NPU"
+      "max_tokens": 60
     },
     {
       "name": "explainable",
       "mission": "Explain why a prior decision was made",
       "task_class": "long_reasoning",
-      "preferred_lane": "npu",
+      "preferred_lane": "igpu",
       "smoke_prompt": "Why was Llama-3.1-8B chosen over gpt-oss-20b on Strix Halo? One sentence (hint: hardware fit).",
-      "max_tokens": 60,
-      "lane_assignment_rationale": "E85 finding: NPU recovers 100% of iGPU abstentions on long_reasoning"
+      "max_tokens": 60
     },
     {
       "name": "healthcare_intelligence",
@@ -228,10 +216,9 @@
       "name": "education_intelligence",
       "mission": "Tailor explanations to a learner's level",
       "task_class": "long_reasoning",
-      "preferred_lane": "npu",
+      "preferred_lane": "igpu",
       "smoke_prompt": "Explain 'silicon council' in one sentence to someone who knows Python but not LLMs.",
-      "max_tokens": 60,
-      "lane_assignment_rationale": "E85 finding: NPU recovers 100% of iGPU abstentions on long_reasoning"
+      "max_tokens": 60
     },
     {
       "name": "collective_intelligence",
@@ -264,6 +251,5 @@
     "igpu": "Gemma-4-E4B-it-GGUF",
     "cpu": "Qwen3-0.6B-GGUF"
   },
-  "saved_at": "2026-05-03T04:09:18Z",
-  "notes": "E84 found 17/30 agents abstained on iGPU (L369). E85 ensemble retry recovered 100% of those via NPU. Dispatcher updated: long_reasoning -> NPU primary, iGPU reserved for code_generation only. Coverage: 22/30 silicon-backed, 4 reserved (vision/audio/embodied \u2014 need V-JEPA 2 / VLM / ASR model loads), 4 ensemble-only."
+  "saved_at": "2026-06-10T14:04:22Z"
 }
