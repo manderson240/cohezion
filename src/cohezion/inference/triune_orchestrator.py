@@ -6,6 +6,7 @@ Seamlessly routes complex tasks across NPU, iGPU, and CPU on AMD Strix Halo.
 from __future__ import annotations
 
 import logging
+from typing import Any
 
 from cohezion.inference.activation_router import PrefillActivationRouter
 from cohezion.inference.orchestrator import (
@@ -60,6 +61,94 @@ _CLOUD_LADDER_PREMIUM: tuple[str, ...] = ("claude-opus-4-8", "claude-fable-5")
 # resolved and lives in the premium tuple above.
 _CLOUD_LADDER_EXTENSION: tuple[str, ...] = ()
 
+# ── Cohezion Omni model presets ──────────────────────────────────────────────
+# Custom omni models registered via `recipe: collection.omni` in Lemonade's
+# user_models.json. Each bundles a planner LLM (tool-calling label) with image,
+# TTS, and ASR components — enabling unified multimodal dispatches through :13305.
+# See plan Task G in ~/.claude/plans/i-mispoke-the-extraneous-radiant-dongarra.md.
+OMNI_LITE_MODEL_ID = "Cohezion-Omni-Lite"   # Gemma-4-E4B + SD-Turbo (~8 GB)
+OMNI_DENSE_MODEL_ID = "Cohezion-Omni-Dense"  # Qwen3.6-35B + Flux-2-Klein (~40+ GB)
+_OMNI_DENSE_RAM_GB = 36.0   # Dense planner: ~20 GB weights + KV overhead
+_OMNI_LITE_RAM_GB = 12.0    # Lite planner:  ~4 GB weights  + KV overhead
+
+
+class OmniRequest:
+    """Multimodal request: text prompt + per-call image model override."""
+
+    def __init__(self, prompt: str, image_model: str = "SD-Turbo") -> None:
+        self.prompt = prompt
+        self.image_model = image_model
+
+
+class OmniTier:
+    """Local multimodal tier: planner LLM + image generation via :13305 router.
+
+    Satisfies the ``Runnable`` protocol — accepts both a plain string (called by
+    ``TieredOrchestrator``) and an ``OmniRequest`` (called by ``OmniRunnable``).
+    N3 guard is the router's responsibility; this tier NEVER triggers model loads.
+    """
+
+    def __init__(self, planner_model: str, image_model: str, model_id: str) -> None:
+        self._planner_model = planner_model
+        self._image_model = image_model
+        self.model_id = model_id
+
+    async def run(self, prompt_or_req: Any, **kwargs: Any) -> Any:
+        from cohezion.inference.orchestrator import OrchestrationResult
+
+        prompt = (
+            prompt_or_req.prompt
+            if isinstance(prompt_or_req, OmniRequest)
+            else str(prompt_or_req)
+        )
+        # Forward to :13305 omni recipe (collection.omni); fail-soft stub for now —
+        # full multimodal dispatch wired after custom model registration (plan Task G).
+        return OrchestrationResult(
+            text=prompt,
+            primary_model=self.model_id,
+            final_model=self.model_id,
+            escalation_count=0,
+        )
+
+
+def build_omni_lite_tier() -> OmniTier:
+    """Cohezion-Omni-Lite: Gemma-4-E4B planner + SD-Turbo image (~8 GB RAM)."""
+    return OmniTier(
+        planner_model="Gemma-4-E4B-it-GGUF",
+        image_model="SD-Turbo",
+        model_id=OMNI_LITE_MODEL_ID,
+    )
+
+
+def build_omni_dense_tier() -> OmniTier:
+    """Cohezion-Omni-Dense: Qwen3.6-35B planner + Flux-2-Klein image (~40+ GB RAM)."""
+    return OmniTier(
+        planner_model="Qwen3.6-35B-A3B-MTP-GGUF",
+        image_model="Flux-2-Klein-9B-GGUF",
+        model_id=OMNI_DENSE_MODEL_ID,
+    )
+
+
+def build_omni_tier() -> OmniTier:
+    """Backwards-compatible alias → Dense preset (original OMNI_MODEL_ID intent)."""
+    return build_omni_dense_tier()
+
+
+class OmniRunnable:
+    """Async runner: wraps an OmniTier and dispatches OmniRequest objects.
+
+    ``_tier`` can be replaced after construction (test injection pattern):
+        runnable._tier = fake_tier
+    """
+
+    def __init__(self, image_model: str = "SD-Turbo") -> None:
+        self._image_model = image_model
+        self._tier: Any = build_omni_lite_tier()
+
+    async def run(self, prompt: str) -> Any:
+        req = OmniRequest(prompt=prompt, image_model=self._image_model)
+        return await self._tier.run(req)
+
 
 def _cloud_ladder(include_premium: bool = False) -> list[tuple]:
     """Cloud escalation tiers as ``(model, QualityGate.TRUST)`` tuples, cheapest-first.
@@ -85,6 +174,7 @@ def build_triune_orchestrator(
     | None = 13308,  # allow-direct-port: CLaSp speculative decoding — dual-port by design
     include_cloud: bool = True,
     include_premium: bool = False,
+    include_omni: bool = False,
 ) -> TieredOrchestrator:
     """
     Constructs a TieredOrchestrator mapped to the Triune Substrate.
@@ -231,6 +321,32 @@ def build_triune_orchestrator(
     ]
     if cpu_tier is not None:
         tiers.append((cpu_tier, QualityGate(min_chars=10)))  # CPU reasoner: AVX-512, $0
+
+    # 4. Omni tier — Lite or Dense, selected by available RAM (opt-in via include_omni).
+    # N3 guard: this tier NEVER loads models — it dispatches to :13305 which has already
+    # bounded ctx_size for all heavy models (recipe_options.ctx_size=16384, 2026-06-09 fix).
+    if include_omni:
+        _omni_available_gb = 0.0
+        try:
+            from cohezion.competition.orchestrator.resource_guard import MemorySnapshot as _OmniMS
+
+            _omni_available_gb = _OmniMS.capture().available_gb
+        except Exception as _omni_err:
+            logger.debug("Omni RAM probe failed (non-blocking): %s", _omni_err)
+        if _omni_available_gb >= _OMNI_DENSE_RAM_GB:
+            _omni_tier = build_omni_dense_tier()
+            tiers.append((_omni_tier, QualityGate(min_chars=5)))
+            logger.info("Omni tier: Dense (%s, %.0f GB available)", OMNI_DENSE_MODEL_ID, _omni_available_gb)
+        elif _omni_available_gb >= _OMNI_LITE_RAM_GB:
+            _omni_tier = build_omni_lite_tier()
+            tiers.append((_omni_tier, QualityGate(min_chars=5)))
+            logger.info("Omni tier: Lite (%s, %.0f GB available)", OMNI_LITE_MODEL_ID, _omni_available_gb)
+        else:
+            logger.info(
+                "Omni tier omitted: insufficient RAM (%.0f GB < %.0f GB min)",
+                _omni_available_gb,
+                _OMNI_LITE_RAM_GB,
+            )
 
     if include_cloud:
         # Cloud escalation ladder (cheapest-first): Haiku → Sonnet, + Opus when premium is on.
