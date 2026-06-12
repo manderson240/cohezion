@@ -526,6 +526,56 @@ class JourneyTracker:
 
         return point
 
+    def track_evo_step(
+        self,
+        task_description: str,
+        operation_type: str,
+        coherence: float,
+        efficiency: float,
+        success: bool = True,
+        duration_seconds: float = 0.0,
+    ) -> TrajectoryPoint:
+        """Track a RecursiveTracer EVO step as a 12D trajectory point.
+
+        Accepts the raw physics metrics from recursive_tracer.trace_step() rather
+        than an ExecutionResult, then delegates to the existing trajectory pipeline.
+        Called once per step in the HIHO trace monad.
+        """
+        latent_2048d = self._text_to_latent(task_description)
+        projection_12d = self._holographic_project(latent_2048d)
+        axiomatic_12d = self._step_to_axiomatic(
+            projection_12d, operation_type, coherence, efficiency
+        )
+        smoothness, convergence = 0.5, 0.5
+        if len(self._recent_points) >= 2:
+            quality = self.compute_trajectory_quality(self._recent_points)
+            smoothness = quality["smoothness"]
+            convergence = quality["convergence"]
+        phi_score = self._compute_phi_score(
+            coherence=coherence, smoothness=smoothness, convergence=convergence
+        )
+        point = TrajectoryPoint(
+            dimensions=axiomatic_12d,
+            timestamp=duration_seconds,
+            coherence=coherence,
+            efficiency=efficiency,
+            operation_type=operation_type,
+            task_description=task_description,
+            metadata={
+                "phi_score": phi_score,
+                "success": success,
+                "observer_consistency": self._compute_observer_consistency(axiomatic_12d),
+            },
+        )
+        self._recent_points.append(point)
+        if len(self._recent_points) > self.TRAJECTORY_WINDOW:
+            self._recent_points = self._recent_points[-self.TRAJECTORY_WINDOW :]
+        try:
+            self._persist_to_surreal(point)
+        except Exception:
+            pass
+        return point
+
     def _persist_to_surreal(self, point: TrajectoryPoint) -> None:
         """Buffer trajectory point for batched SurrealDB persistence.
 
