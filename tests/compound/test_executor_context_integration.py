@@ -20,8 +20,19 @@ from cohezion.compound.executor import CompoundExecutor, ExecutionResult
 from cohezion.core.mcp_client import MCPClient
 
 
+class _MockVirtualMemory:
+    percent = 50.0  # Below guardrail threshold
+
+
 class TestCompoundExecutorContextIntegration:
     """[P0] Integration tests for CompoundExecutor with context system."""
+
+    def setup_method(self):
+        self._psutil_patcher = patch("psutil.virtual_memory", return_value=_MockVirtualMemory())
+        self._psutil_patcher.start()
+
+    def teardown_method(self):
+        self._psutil_patcher.stop()
 
     @pytest.fixture()
     def temp_context_structure(self, tmp_path):

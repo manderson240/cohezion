@@ -88,7 +88,7 @@ def _run_harness_bash_check(t0: float) -> dict:
     if not deploy_script.exists():
         issues.append(f"missing: {deploy_script}")
     elif "safe-env.sh" not in deploy_script.read_text():
-        issues.append(f"deploy script does not source safe-env.sh")
+        issues.append("deploy script does not source safe-env.sh")
     if issues:
         return {
             "check": "harness-bash",

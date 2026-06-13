@@ -275,6 +275,7 @@ class TestMCPClient(unittest.TestCase):
         # Set up context search response
         tool_response = MagicMock()
         tool_response.status_code = 200
+        tool_response.raise_for_status = MagicMock()
         context_json = json.dumps(
             [{"path": "decisions/test.md", "category": "decision", "match_count": 3}]
         )
@@ -285,7 +286,7 @@ class TestMCPClient(unittest.TestCase):
                 "result": {"content": [{"type": "text", "text": context_json}]},
             }
         )
-        mock_client.post.return_value = tool_response
+        mock_client.post = AsyncMock(return_value=tool_response)
 
         result = asyncio.run(client.vault_find_relevant_context("test query"))
 

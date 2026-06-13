@@ -120,7 +120,9 @@ class ContextManager:
 
         Cached per-cwd at the class level — first call traverses the
         filesystem, subsequent calls from the same cwd return the cached
-        :class:`Path` immediately.
+        :class:`Path` immediately. Falls back to the nearest directory
+        containing pyproject.toml or CLAUDE.md when no .context directory
+        exists, so tests and installs without a .context scaffold still work.
 
         Returns:
             Path to project root
@@ -136,11 +138,18 @@ class ContextManager:
             return cached
 
         current = cwd
+        fallback: Path | None = None
         while current != current.parent:
             if (current / ".context").exists():
                 cls._cache_put(cls._root_cache, cwd_key, current)
                 return current
+            if fallback is None and (
+                (current / "pyproject.toml").exists() or (current / "CLAUDE.md").exists()
+            ):
+                fallback = current
             current = current.parent
+        if fallback is not None:
+            return fallback
         raise ContextLoadError("Project root not found (no .context directory)")
 
     def load_manifest(self) -> dict[str, Any] | None:

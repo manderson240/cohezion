@@ -297,64 +297,9 @@ Workflows with `runs-on: self-hosted` stay in `queued` status indefinitely when 
 ### Learning 381: "Fix the tests themselves" — un-skip quarantines with root cause not workarounds
 User directive mid-sprint: "I think we need to fix the tests themselves" after I'd quarantined 4 pre-existing failing test groups. Forced a re-framing: the 14 quarantined tests split into (a) missing source implementation (12x TestPrecipitationGate needed `check_precipitation()`), (b) mis-scoped test calling through 12-layer call stack (test_adversarial_flood routed through BaseAgent instead of ResourceMonitor seam), (c) missing teardown fixture (TestSandboxManagerExecution hit ResourceMonitor heartbeat), (d) asserted-but-not-always-true contracts (test_demo_scale_integration marked flaky, actually passed). All 14 now green. **Principle**: quarantine is admission of giving up on a test — replace with root-cause fix whenever the test's CLAIM is worth keeping. Zero new quarantines introduced.
 
-### Learning 382: Thread-Safe Sync-to-Async Bridge (`_run_async`) (2026-05-22)
-Calling `loop.run_until_complete()` or `asyncio.run()` from synchronous code when an event loop is already active (e.g., under async-orchestrated pytest runners) throws a `RuntimeError: Event loop is already running`. **Fix**: Use a background thread with its own independent event loop and a thread-safe `concurrent.futures.Future[Any]` to execute, block, and fetch the coroutine's result safely.
-*12D State Vector*: `[12D State: Space=Software-Orchestration, Time=May 2026, Physics=Loop-Isolated, Brane=Thread-Mesh]`
-
-### Learning 383: SurrealDB Query Mock Structure for `InMemoryStore` (2026-05-22)
-Raw SurrealDB client queries expect structured database responses matching the schema `[{"result": [...], "status": "OK"}]` rather than flat lists of dictionaries. Returning flat lists will cause subsequent `.get("result")` accesses to fail with `AttributeError`. **Fix**: Standardize mock query responses in `InMemoryStore.query` to wrap results inside a list of dicts with the `"result"` key.
-*12D State Vector*: `[12D State: Space=Persistence-Abstraction, Time=May 2026, Physics=Mock-Structured, Brane=SurrealDB-Mesh]`
-
-### Learning 384: Heuristic Routing Accuracy Measurement via Log Mining (2026-05-29)
-To optimize model routing in compound execution loops without calling expensive models, developers can run heuristic regex-based routers on local user prompt histories (~/.claude/projects/ JSONL files). Extracting and filtering prompts >50 chars and running them through the zero-latency task classifier showed that standard engineering tasks are often misrouted to NPU because they lack specific words like "bug" or "error" or contain local-inference-specific terminology (e.g. lemonade, compound lift). Fix: Add general "fix/update" verb-noun rules that target coding components/test harnesses and include project domain concepts (e.g., OOM guardrails, triune) directly in the classifier. This increased GPU routing accuracy and mapped code tasks to the proper 'code' output type (+17% improvement in code-type accuracy).
-*12D State Vector*: `[12D State: Space=Cognitive-Routing, Time=May 2026, Physics=Log-Mining, Brane=Heuristic-Accuracy-Mesh]`
-
-### Learning 385: Git Index Bloat Mitigation (OOM Prevention) (2026-06-03)
-The git index grew to 14,413 files (exceeding the strict 10k file limit rule) because `.archives/` and `archives/` directories (which store legacy session files, backups, and configs) were tracked by git. This caused Node.js OOM crashes in the agent environment when scanning status and index. **Fix**: Untrack `.archives/` and `archives/` from the index using `git rm -r --cached` (leaving them safe on disk) and add them to `.gitignore`. This reduced the git index size to 5,168 files (~64% reduction), resolving the OOM issues.
-*12D State Vector*: `[12D State: Space=Repository-Architecture, Time=June 2026, Physics=Index-Compaction, Brane=Resource-Safety-Mesh]`
-
-### Learning 386: Hardcoded Port and Systemd Crash Loops (2026-06-03)
-Systemd-coredump was launching DrKonqi repeatedly because `gnome-session-init-worker` and `wireplumber` were crashing in a loop triggered by `chrome-remote-desktop@mike-anderson.service` restarting on headless displays. Additionally, `entire-sync.service` failed because its `SURREALDB_URL` was hardcoded to `http://localhost:8000` while SurrealDB listens on `8001`. **Fix**: Corrected `entire-sync.service` config to point to `8001`, reloaded/restarted, and disabled/stopped the `chrome-remote-desktop` service to halt the crash loop alerts.
-*12D State Vector*: `[12D State: Space=Autonomic-Healing, Time=June 2026, Physics=Daemon-Stabilization, Brane=Systemd-Port-Mesh]`
-
-### Learning 387: Asynchronous Background Execution and Real-Time Log Piping via tmux (2026-06-03)
-Running long-running processes (tests, swarms, migrations) directly in the shell is vulnerable to connection dropouts and prompt context terminations. Using named, detached tmux sessions preserves execution state. Paging outputs via `tmux pipe-pane -o 'cat >> log_file'` allows real-time telemetry extraction without manual pane attachment, while capturing `$?` to a sentinel file reliably signals process termination.
-*12D State Vector*: `[12D State: Space=Terminal-Orchestration, Time=June 2026, Physics=Log-Piping-Isolation, Brane=Tmux-Swarm-Mesh]`
-
-### Learning 388: Autonomic Systemd Path Validation and Surgical File Rollback (2026-06-03)
-To prevent silent daemon crash loops, the self-diagnosis loop must validate `ExecStart` and `WorkingDirectory` path existence for all registered services (e.g. `surrealdb.service`, `cohezion-compound.service`). Furthermore, autonomous file modifications must be wrapped in a secure rollback harness: writing a `.bak` backup file before modifying the target file, running pytest verification, and automatically reverting the target file state if verification checks fail or raise exceptions.
-*12D State Vector*: `[12D State: Space=Autonomic-Healing, Time=June 2026, Physics=Verification-Rollback, Brane=Stale-Path-Mesh]`
-
-### Learning 389: EVO Analogue Smart Routing Gate (2026-06-04)
-Successfully integrated an Exotic Vacuum Object (EVO) confidence margin check into the TieredOrchestrator to safeguard local accelerated execution paths (NPU/iGPU). If the FLUME vacuum phase classification margin falls below 0.01, routing to local accelerators is blocked, falling back to CPU or cloud models. Added robust checks to ignore fallback vectors (norm == 0.38) and missing atlas files (phase == "unknown"), allowing tests and fallback environments to run safely.
-*12D State Vector*: `[12D State: Space=Cognitive-Routing, Time=June 2026, Physics=EVO-Stability-Gate, Brane=FLUME-Manifold-Mesh]`
-
-### Learning 390: AutoHarness Synthesis and Local Verifier Generation (2026-06-04)
-Implemented dynamic verifier synthesis via local model `phi4` on Ollama to generate deterministic `Code-as-action-verifier` scripts. This allows verification checks to run locally at zero cost and latency, completely bypassing expensive LLM-as-a-judge calls at runtime.
-*12D State Vector*: `[12D State: Space=Software-Orchestration, Time=June 2026, Physics=AutoHarness-Synthesis, Brane=Local-Validation-Mesh]`
-
-### Learning 391: Semantic Rules Overlap Audit & Context Cache Optimization (2026-06-04)
-Developed an automated semantic overlap script using `nomic-embed-text:v1.5` embeddings and cosine similarity to map and prune redundant rules between `MEMORY.md`, `coding-standards.md`, and `CLAUDE.md`. This yields a projected savings of ~3.2k tokens per agent turn (approx 45% prompt cache savings).
-*12D State Vector*: `[12D State: Space=Prompt-Architecture, Time=June 2026, Physics=Semantic-Pruning, Brane=Cache-Optimization-Mesh]`
-
-### Learning 395: Zero-Cost Dynamic Context Pruning (DCC-PSP) (2026-06-04)
-Integrated zero-cost Jaccard/overlap coefficient and keyword relevance pruning directly into `TokenEfficientCompoundExecutor`. This dynamically deduplicates and filters rule blocks from the system context based on task description keywords, reducing prompt context sizes by thousands of tokens dynamically while preserving caching alignment across multi-turn reasoning steps.
-*12D State Vector*: `[12D State: Space=Prompt-Architecture, Time=June 2026, Physics=Context-Pruning, Brane=Zero-Cost-Optimization-Mesh]`
-
 | Learning | Keyword | Status | Wave Source |
 |----------|---------|--------|-------------|
 | L378 | **agent-claim-verification** | `agent-claim-verification` skill | Wave Omega Patch 1 — synthetic-sniffing-panda Wave 5B fabrication |
 | L379 | **stacked-branch squash-cascade** | `stacked-branch-cherry-pick-cascade` skill | Wave Psi — polish 5-branch squash cascade |
 | L380 | **CI-saturation handling** | `polish-campaign-orchestrator` L380 | Wave Psi — concurrent-PR limit |
 | L381 | **xfail-strict bridge** | `xfail-strict-bug-bridge-pattern` skill | Wave Sigma — zeta-executor-source-bugs |
-| L382 | **sync-async bridge** | `SYNC_ASYNC_BRIDGE_PRIME` skill | Wave StealthSkater — sync-to-async loop isolation |
-| L383 | **SurrealDB mock persistence** | `SURREALDB_MOCK_PERSISTENCE_PRIME` skill | Wave StealthSkater — structured query mock wrapping |
-| L384 | **routing-accuracy-measurement** | `LOCAL_INFERENCE_ROUTING` skill | Wave StealthSkater — heuristic routing accuracy and domain calibration |
-| L385 | **git-index-bloat-mitigation** | `git-index-bloat-mitigation` skill | Wave StealthSkater — git index size optimization for OOM prevention |
-| L386 | **hardcoded-port-crash-loops** | `systemd-service-stabilization` skill | Wave StealthSkater — systemd port mapping and crash-loop remediation |
-| L387 | **tmux-orchestration** | `TMUX_ORCHESTRATION_PRIME` skill | Wave StealthSkater — persistent background execution and log piping |
-| L388 | **autonomic-systemd-rollback** | `self-healing` skill | Wave StealthSkater — systemd path verification and file rollback |
-| L389 | **evo-analogue-routing** | `EVO_ANALOGUE_ROUTING_PRIME` skill | Wave StealthSkater — EVO confidence margin routing gate |
-| L390 | **autoharness-synthesis** | `autoharness-synthesis` skill | Wave AutoHarness — phi4 dynamic verifier generation |
-| L391 | **semantic-rules-audit** | `redundancy-suppression-prime` skill | Wave AutoHarness — semantic rules overlap audit and cache trim |
-| L395 | **dynamic-context-pruning** | `token-efficient-executor` skill | Wave AutoHarness — zero-cost overlap and keyword relevance pruner |

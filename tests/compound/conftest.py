@@ -21,6 +21,7 @@ from pathlib import Path
 from unittest.mock import MagicMock, patch
 
 import pytest
+import pytest_asyncio
 
 from cohezion.core.mcp_client import MCPClient
 
@@ -57,8 +58,8 @@ def _mock_psutil_resources():
         yield
 
 
-@pytest.fixture
-def mcp_client():
+@pytest_asyncio.fixture
+async def mcp_client():
     """Create mock MCP client for testing."""
     return MagicMock(spec=MCPClient)
 
