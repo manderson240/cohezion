@@ -163,7 +163,7 @@ Built on AMD Strix Halo: Ryzen AI MAX+ 395 (16C/32T), Radeon 8060S (unified memo
 - Friston FEP: https://doi.org/10.1038/nrn2787
 - Levin bioelectric: https://doi.org/10.1016/j.biosystems.2022.104787
 - HIHO convergence: `src/cohezion/physics/cosmogony.py`
-- Research paper: `research/papers/physics-grounded-training-universes.md`
+- Anthropic Universes fit (self-verifying): `docs/anthropic-universes-fit.md` (`make resume`)
 
 ## License
 

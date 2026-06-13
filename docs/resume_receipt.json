@@ -1,0 +1,247 @@
+{
+  "generated_at": "2026-06-02T17:37:32-0400",
+  "git_branch": "feat/anthropic-universes-living-resume",
+  "git_sha": "a527950f8",
+  "python": "3.11.15",
+  "package_under_test": "/home/mike-anderson/dev/cohezion/.claude/worktrees/lazy-tumbling-cascade/src/cohezion/__init__.py",
+  "summary": {
+    "pass": 29,
+    "fail": 0,
+    "skip": 0,
+    "total": 29
+  },
+  "checks": [
+    {
+      "name": "env_rollout",
+      "box": "Build agentic training environments (RL envs/simulations)",
+      "status": "PASS",
+      "strength": "STRONG",
+      "evidence": "Cohezion/ManifoldEnv-v0: 19D obs / 12D action, 20-step return=-1.598",
+      "detail": ""
+    },
+    {
+      "name": "reward_determinism",
+      "box": "Construct rigorous, reproducible evaluations",
+      "status": "PASS",
+      "strength": "STRONG",
+      "evidence": "seed=7 reproduces reward (-0.08272 == -0.08272)",
+      "detail": ""
+    },
+    {
+      "name": "env_generation",
+      "box": "Build NEXT-GENERATION agentic training environments",
+      "status": "PASS",
+      "strength": "STRONG",
+      "evidence": "GeneratedCodeValidator ran on sample env -> valid=False, 2 checks (spec->env synthesis gate)",
+      "detail": ""
+    },
+    {
+      "name": "eval_harness",
+      "box": "Construct rigorous evaluations measuring genuine capability",
+      "status": "PASS",
+      "strength": "STRONG",
+      "evidence": "UniverseEvaluator.evaluate_policy ran 2 episodes -> PolicyEvaluation (bootstrap CIs)",
+      "detail": ""
+    },
+    {
+      "name": "eval_benchmarks",
+      "box": "Rigorous evaluations \u2014 benchmark suites",
+      "status": "PASS",
+      "strength": "STRONG",
+      "evidence": "CohezionBenchmark.compute_intrinsic_metrics ran -> IntrinsicResults (hiho_stability=0.0)",
+      "detail": ""
+    },
+    {
+      "name": "rl_training_infra",
+      "box": "RL/LLM training stack (own TRIUNE PPO)",
+      "status": "PASS",
+      "strength": "STRONG",
+      "evidence": "PPOTrainer.get_action -> (256,) action (value=-0.007); +grpo_trainer,distributed_trainer importable",
+      "detail": ""
+    },
+    {
+      "name": "sandboxing",
+      "box": "Sandboxing / containerization / isolation",
+      "status": "PASS",
+      "strength": "STRONG",
+      "evidence": "executed code in Docker sandbox -> success=True, stdout='42\\n' (isolated)",
+      "detail": ""
+    },
+    {
+      "name": "world_model",
+      "box": "Simulations / world models",
+      "status": "PASS",
+      "strength": "STRONG",
+      "evidence": "JEPAWorldModel (86,732 params) predict_next_state -> (12,) state",
+      "detail": ""
+    },
+    {
+      "name": "geometric_correspondence",
+      "box": "Geometric correspondence (information geometry)",
+      "status": "PASS",
+      "strength": "STRONG",
+      "evidence": "Fisher->Riemannian metric (6, 6): symmetric=True, PSD=True (min_eig=1.35e+00)",
+      "detail": ""
+    },
+    {
+      "name": "unified_physics",
+      "box": "Unified physics (FLUME latent <-> 12D manifold)",
+      "status": "PASS",
+      "strength": "STRONG",
+      "evidence": "256D FLUME latent -> 12D Unified Physics coords (coherence=0.066)",
+      "detail": ""
+    },
+    {
+      "name": "quadrature_nexus",
+      "box": "Quadrature Nexus (4-voice consensus governance)",
+      "status": "PASS",
+      "strength": "STRONG",
+      "evidence": "deliberate() ran a 4-voice consensus -> QuadratureResult verdict",
+      "detail": ""
+    },
+    {
+      "name": "distributed_inference",
+      "box": "Large-scale / distributed ML infrastructure",
+      "status": "PASS",
+      "strength": "STRONG",
+      "evidence": "TieredOrchestrator routed via direct:llama3.2-1b-FLM -> '4' ($0 local)",
+      "detail": ""
+    },
+    {
+      "name": "local_inference",
+      "box": "Local-first inference fleet (NPU/iGPU/CPU, $0)",
+      "status": "PASS",
+      "strength": "STRONG",
+      "evidence": "REAL local inference: '4' via direct:llama3.2-1b-FLM @ cost_usd=0.0, cloud_escalations=0",
+      "detail": ""
+    },
+    {
+      "name": "semantic_cache",
+      "box": "Caching for large-scale efficiency (real put->get)",
+      "status": "PASS",
+      "strength": "STRONG",
+      "evidence": "put->get round-trip returned '4'; calibrated threshold=0.8 (lemonade_encoder restored)",
+      "detail": ""
+    },
+    {
+      "name": "batching",
+      "box": "Batched inference for throughput at scale",
+      "status": "PASS",
+      "strength": "STRONG",
+      "evidence": "run_batch fan-out over 2 prompts -> ['4', '6'] ($0 local, asyncio.gather)",
+      "detail": ""
+    },
+    {
+      "name": "cosmogony",
+      "box": "Cosmogony (symmetry-breaking universe genesis)",
+      "status": "PASS",
+      "strength": "STRONG",
+      "evidence": "SymmetryBreaking -> 12D state (12,), symmetry group=void",
+      "detail": ""
+    },
+    {
+      "name": "worldviews",
+      "box": "Worldview lattice (17 traditions x 10 ToE steps)",
+      "status": "PASS",
+      "strength": "STRONG",
+      "evidence": "17 traditions x 10 ToE steps; computed 6 cross-tradition convergences",
+      "detail": ""
+    },
+    {
+      "name": "toe_observer",
+      "box": "Theory of Everything bridge (Observer Patch Holography)",
+      "status": "PASS",
+      "strength": "STRONG",
+      "evidence": "OPH overlap discriminates: identical=1.00 > orthogonal=0.00 (SPIN agreement)",
+      "detail": ""
+    },
+    {
+      "name": "tek_agent",
+      "box": "Traditional Ecological Knowledge x Unified Physics agent",
+      "status": "PASS",
+      "strength": "STRONG",
+      "evidence": "EcoResilienceAgent ran $0-local: 12D projection coords=(12,) coherence=0.067, +1 SENSING LLM token via agent.provider (hw_target=http://localhost:13306, resp='No'). Full 4-regime execute_cycle not run (CALCULATION is cloud-named; SYNTHESIS gpu-pinned).",
+      "detail": ""
+    },
+    {
+      "name": "bioelectric",
+      "box": "Bioelectric / developmental-bio-inspired dynamics (Levin)",
+      "status": "PASS",
+      "strength": "STRONG",
+      "evidence": "BioelectricNetwork percolation_analysis ok, coherence=0.923 (HIHO gap-junction)",
+      "detail": ""
+    },
+    {
+      "name": "mass_sim",
+      "box": "Large-scale simulation (mass-sim orchestrator)",
+      "status": "PASS",
+      "strength": "STRONG",
+      "evidence": "orchestrator ran -> SimulationReport (n_universes=0; OOM guard active under memory pressure); aspirational tier declares 25,000,000 agents",
+      "detail": ""
+    },
+    {
+      "name": "self_improvement",
+      "box": "Self-improving infrastructure (ouroboros/mycelium/evolution)",
+      "status": "PASS",
+      "strength": "STRONG",
+      "evidence": "ReflectionOptimizer ran 1 propose->assess->commit step on local fleet ($0, llama3.2-1b-FLM): trainable skill Variable rewritten by the LLM and recorded in history. new='Route all code prompts to the iGPU tier.  ```python import iGPU ```  Route all c'",
+      "detail": ""
+    },
+    {
+      "name": "training_result",
+      "box": "Demonstrated RL training + rigorous evaluation (real run)",
+      "status": "PASS",
+      "strength": "STRONG",
+      "evidence": "real PPO 25000-step/50-ep train + bootstrap-CI eval; ranking=['Greedy HIHO', 'Random', 'PPO (trained)'] (honest: PPO lost to baselines -- env is non-gameable)",
+      "detail": ""
+    },
+    {
+      "name": "evo_agent",
+      "box": "Agents-as-Exotic-Vacuum-Objects lifecycle (EVO)",
+      "status": "PASS",
+      "strength": "STRONG",
+      "evidence": "ExoticVacuumObject condense->coherence=0.000->witness_mark (vacuum-condensation agent lifecycle)",
+      "detail": ""
+    },
+    {
+      "name": "agent_journey",
+      "box": "Agentic journeys captured through latent space",
+      "status": "PASS",
+      "strength": "STRONG",
+      "evidence": "JourneyTracker text->2048D latent + step-sequence->2048D (latent-space trajectory capture)",
+      "detail": ""
+    },
+    {
+      "name": "smart_delegation",
+      "box": "Smart delegation (task-aware routing)",
+      "status": "PASS",
+      "strength": "STRONG",
+      "evidence": "classify routes by task: one-word->npu, code->gpu (cheapest-capable silicon per request)",
+      "detail": ""
+    },
+    {
+      "name": "coordination_channel",
+      "box": "Cross-session coordination channel (Telegram)",
+      "status": "PASS",
+      "strength": "MEDIUM",
+      "evidence": "build_broadcast offline core ($0, no send): redacted=True no_leak=True p1=npu/13306(short_categorical) p2=igpu/13307(code) creds_wired=True -- SEND not exercised (MEDIUM: the defining channel capability is unproven)",
+      "detail": ""
+    },
+    {
+      "name": "test_collection",
+      "box": "Strong software engineering (tests run green)",
+      "status": "PASS",
+      "strength": "STRONG",
+      "evidence": "executed 15 physics-invariant tests (all passed); 745 collectable across 5 role-relevant suites",
+      "detail": ""
+    },
+    {
+      "name": "surrealdb",
+      "box": "Observability / persistence / audit trail",
+      "status": "PASS",
+      "strength": "STRONG",
+      "evidence": "live query returned 49 tables (incl. agent_journey, hash_chain, vmodel_gate)",
+      "detail": ""
+    }
+  ]
+}

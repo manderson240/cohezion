@@ -1,4 +1,4 @@
-.PHONY: help format lint lint-check type-check test all clean train evaluate benchmark demo validate compound-train training-history kernel-status kernel-cycle kernel-loop kernel-loop-dry kernel-report async-guard routing-guard hermes-restore
+.PHONY: help format lint lint-check type-check test all clean train evaluate benchmark demo validate compound-train training-history kernel-status kernel-cycle kernel-loop kernel-loop-dry kernel-report async-guard routing-guard hermes-restore resume
 
 help:  ## Show this help message
 	@echo "Available targets:"
@@ -28,6 +28,10 @@ type-check:  ## Run type checking with mypy
 test:  ## Run test suite
 	uv run pytest tests/
 	@echo "✓ Tests complete"
+
+resume:  ## Re-verify the Anthropic Universes living resume (docs/anthropic-universes-fit.md)
+	uv run python scripts/resume_verify.py --receipt
+	@echo "✓ Resume receipt refreshed: docs/resume_receipt.json"
 
 test-fast:  ## Run fast unit tests only (<1s each, no live services)
 	PYTHONPATH=src:scripts/ci uv run pytest tests/unit tests/ouroboros tests/mycelium tests/integrations tests/mcp tests/scripts --import-mode=append --tb=short -q -p no:warnings

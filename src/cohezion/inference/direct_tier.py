@@ -92,7 +92,9 @@ class DirectLemonadeTier:
                 # F2 (audit 2026-06-09): thinking models (deepseek-r1, FLM) emit the answer in
                 # reasoning_content with empty content; fall back so the tier doesn't drop the
                 # response and escalate. Mirrors fleet.py's _dispatch_openai_compatible.
-                text = (msg.get("content") or "").strip() or (msg.get("reasoning_content") or "").strip()
+                text = (msg.get("content") or "").strip() or (
+                    msg.get("reasoning_content") or ""
+                ).strip()
         except Exception as exc:
             error = f"{type(exc).__name__}: {exc}"
             logger.debug("DirectLemonadeTier %s port %d: %s", self.model_id, self.port, error)

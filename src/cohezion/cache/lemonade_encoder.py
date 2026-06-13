@@ -1,102 +1,95 @@
-"""Lemonade-backed semantic text encoder using nomic-embed-text-v2-moe-GGUF.
+"""Lemonade nomic-embed text encoder (768D) for the semantic cache.
 
-768D embeddings with clean semantic discrimination:
-  near-duplicate similarity: 0.96-0.98
-  unrelated similarity: 0.15-0.20
-  optimal threshold: 0.58
+Primary embedding backend on AMD Strix Halo / XDNA2, where sentence-transformers
+segfaults under ROCm. Serves `nomic-embed-text-v2-moe-GGUF` over lemonade's
+OpenAI-compatible ``/v1/embeddings`` endpoint (router port 13305, ~6ms latency).
 
-Latency: ~6ms per embedding (vs 500ms+ for cache miss savings → 80x+ ROI).
+Calibration (harness invariant CA1, exp_OOOO2, 2026-05-29):
+  - 768D nomic-embed similarity threshold = 0.58 (0% false positives, 100% hit rate;
+    near-duplicate similarity 0.963-0.977, unrelated 0.15-0.20).
+
+This module is import-safe with NO network at import time: ``get_lemonade_encoder()``
+builds a lazy client and ``is_available()`` probes the endpoint on demand, so the
+semantic cache imports cleanly even when the local fleet is offline (it then falls
+back to the next encoder tier).
 """
+
+from __future__ import annotations
 
 import json
 import logging
-import urllib.error
 import urllib.request
 
 import numpy as np
 
-
 logger = logging.getLogger(__name__)
 
-_DEFAULT_BASE_URL = "http://localhost:13305/v1/embeddings"
+# Encoder-calibrated cosine threshold for 768D nomic-embed (harness CA1).
+OPTIMAL_THRESHOLD: float = 0.58
+
+_DEFAULT_BASE_URL = "http://localhost:13305"
 _DEFAULT_MODEL = "nomic-embed-text-v2-moe-GGUF"
-_DEFAULT_TIMEOUT = 8  # seconds
-
-# Threshold calibrated empirically (exp_OOOO2):
-# near-dupe range 0.963-0.977, unrelated range 0.154-0.202 → midpoint 0.58
-OPTIMAL_THRESHOLD = 0.58
-EMBEDDING_DIM = 768
+_EMBED_DIM = 768
 
 
-class LemonadeEmbedEncoder:
-    """Semantic encoder via lemonade /v1/embeddings API.
+class LemonadeEncoder:
+    """OpenAI-compatible embeddings client for lemonade-served nomic-embed.
 
-    Parameters
-    ----------
-    base_url : str
-        Lemonade embeddings endpoint URL
-    model : str
-        Embedding model name available on lemonade
-    timeout : float
-        Request timeout in seconds
+    Lazy: no network call until ``is_available()`` or ``encode()`` is invoked.
     """
 
     def __init__(
         self,
         base_url: str = _DEFAULT_BASE_URL,
         model: str = _DEFAULT_MODEL,
-        timeout: float = _DEFAULT_TIMEOUT,
-    ):
-        self.base_url = base_url
+        embedding_dim: int = _EMBED_DIM,
+        timeout: float = 5.0,
+    ) -> None:
+        self.base_url = base_url.rstrip("/")
         self.model = model
+        self.embedding_dim = embedding_dim
         self.timeout = timeout
-        self.embedding_dim = EMBEDDING_DIM
-        self._available: bool | None = None  # lazy probe
 
     def is_available(self) -> bool:
-        """Check if the lemonade embedding endpoint is reachable."""
-        if self._available is not None:
-            return self._available
+        """Return True if the lemonade embeddings endpoint is reachable."""
         try:
-            self._raw_embed("probe")
-            self._available = True
+            req = urllib.request.Request(f"{self.base_url}/v1/models")
+            with urllib.request.urlopen(req, timeout=2.0) as resp:  # noqa: S310 (fixed localhost)
+                return resp.status == 200
         except Exception:
-            self._available = False
-        return self._available
+            return False
 
-    def _raw_embed(self, text: str) -> np.ndarray:
-        payload = json.dumps({"model": self.model, "input": text}).encode()
+    def encode(self, text: str) -> np.ndarray:
+        """Embed ``text`` to an L2-normalized 768D vector via lemonade.
+
+        Raises on transport/parse failure so callers can fall back to the next
+        encoder tier (the semantic cache wraps this in try/except).
+        """
+        payload = json.dumps({"model": self.model, "input": text}).encode("utf-8")
         req = urllib.request.Request(
-            self.base_url,
+            f"{self.base_url}/v1/embeddings",
             data=payload,
             headers={"Content-Type": "application/json"},
         )
-        with urllib.request.urlopen(req, timeout=self.timeout) as resp:
-            d = json.loads(resp.read())
-        vec = np.array(d["data"][0]["embedding"], dtype=np.float32)
-        norm = np.linalg.norm(vec)
+        with urllib.request.urlopen(req, timeout=self.timeout) as resp:  # noqa: S310 (fixed localhost)
+            data = json.loads(resp.read())
+        vec = np.asarray(data["data"][0]["embedding"], dtype=np.float32)
+        norm = float(np.linalg.norm(vec))
         return vec / norm if norm > 0 else vec
 
-    def encode(self, text: str) -> np.ndarray:
-        """Encode text to normalized 768D embedding.
 
-        Returns zero vector (not cached) on failure.
-        """
-        if not text or not isinstance(text, str):
-            return np.zeros(self.embedding_dim, dtype=np.float32)
-        try:
-            return self._raw_embed(text[:512])
-        except Exception as e:
-            logger.debug(f"LemonadeEmbedEncoder.encode failed: {e}")
-            return np.zeros(self.embedding_dim, dtype=np.float32)
+_ENCODER: LemonadeEncoder | None = None
 
 
-_encoder_instance: LemonadeEmbedEncoder | None = None
+def get_lemonade_encoder() -> LemonadeEncoder:
+    """Return the process-wide lemonade encoder singleton (lazy, no network at call)."""
+    global _ENCODER
+    if _ENCODER is None:
+        _ENCODER = LemonadeEncoder()
+    return _ENCODER
 
 
-def get_lemonade_encoder() -> LemonadeEmbedEncoder:
-    """Get or create singleton lemonade encoder."""
-    global _encoder_instance
-    if _encoder_instance is None:
-        _encoder_instance = LemonadeEmbedEncoder()
-    return _encoder_instance
+def reset_lemonade_encoder() -> None:
+    """Reset the singleton (test isolation)."""
+    global _ENCODER
+    _ENCODER = None
