@@ -1,0 +1,32 @@
+# crontab.example — schedule for the daily researcher
+#
+# Install:
+#   1. Edit paths below to match your repo location + Python interpreter
+#   2. crontab crontab.example
+#   3. crontab -l   # verify
+#
+# Recommended schedule:
+#   04:00 daily  — run the four-lane daily researcher
+#   04:30 daily  — write a Telegram digest (WS2C followup)
+#   Every 6h     — sanity-check the box is still safe (zombie guard)
+#
+# Why 04:00?
+#   - Off-peak for the user (no contention with interactive inference)
+#   - After the daily research papers land on arXiv (Tue/Wed typically)
+#   - Early enough that the morning digest is ready by 09:00
+
+# Edit these to match your environment:
+COHEZION_REPO=/home/mike-anderson/dev/cohezion
+PYTHON_BIN=/home/mike-anderson/.local/bin/uv
+
+# Daily researcher cron — 04:00 every day
+0 4 * * *  cd ${COHEZION_REPO} && ${PYTHON_BIN} run python scripts/daily_researcher.py >> ~/.cache/cohezion/daily_researcher.log 2>&1
+
+# Zombie-guard check — every 6 hours, log + alert if box is in trouble
+0 */6 * * *  cd ${COHEZION_REPO} && bash scripts/preflight_fleet.sh --verbose >> ~/.cache/cohezion/preflight.log 2>&1
+
+# Daily researcher dry-run smoke test — 03:50 daily, ensures the cron
+# entry itself is healthy before the real run 10 min later
+50 3 * * *  cd ${COHEZION_REPO} && ${PYTHON_BIN} run python scripts/daily_researcher.py --dry-run --skip-preflight >> ~/.cache/cohezion/dryrun.log 2>&1
+
+# End of crontab.example

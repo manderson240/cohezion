@@ -1,7 +1,5 @@
 """Fixtures for compound integration tests.
 
-Compound test fixtures.
-
 Ensures the project ``.context/`` tree has the placeholder source files that
 ``cohezion.compound.context_integration.ContextManager`` expects when loading
 the traceability manifest. The manifest references files (e.g.
