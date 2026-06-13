@@ -43,7 +43,7 @@ def monitor() -> dict[str, Any]:
         data = json.loads(result.stdout)
         pct = data.get("percentage", 0.0) / 100.0
         status = data.get("status", "OK")
-    except (subprocess.TimeoutExpired, json.JSONDecodeError, OSError):
+    except (subprocess.TimeoutExpired, json.JSONDecodeError, FileNotFoundError, OSError):
         pct = 0.0
         status = "UNAVAILABLE"
     return {

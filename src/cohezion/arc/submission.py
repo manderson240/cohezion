@@ -5,7 +5,7 @@ against ARC evaluation requirements, and produces a reproducibility artifact
 bundle (``submission_package.zip``) for the Nov 2026 deadline.
 
 Key guarantees:
-- Every prediction grid is validated (0..9, ≤30×30, rectangular).
+- Every prediction grid is validated (0..9, <=30x30, rectangular).
 - SHA-256 manifest for deterministic auditing.
 - Compound-rule provenance: each task links to the ``CompoundRule`` that produced
   it (or marks ``fallback`` for heuristic / default outputs).
@@ -144,19 +144,20 @@ class SubmissionBuilder:
             task_ids = sorted(challenges.keys())
 
         submission: dict[str, list[dict[str, Any]]] = {}
-        import time
 
         for tid in task_ids:
             task = challenges[tid]
-            time.perf_counter()
 
             # 1. Extract rules from train examples
             rules = self.extractor.extract(task)
 
             # 2. Try top-K rules on every test example
             preds = []
+            train_examples = task.get("train", [])
             for ti, test_ex in enumerate(task.get("test", [])):
-                pred, prov = self._predict_with_rules(tid, ti, test_ex["input"], rules)
+                pred, prov = self._predict_with_rules(
+                    tid, ti, test_ex["input"], rules, train=train_examples
+                )
                 preds.append(pred)
                 self._provenance.extend(prov)
 
@@ -185,6 +186,7 @@ class SubmissionBuilder:
         test_index: int,
         test_input: Grid,
         rules: list[CompoundRule],
+        train: list[dict[str, Grid]] | None = None,
     ) -> tuple[Grid, list[PredictionProvenance]]:
         """Try each top rule; fall back to DSL search / LLM / zero grid."""
         import time
@@ -194,7 +196,7 @@ class SubmissionBuilder:
 
         # Try top-K compound rules
         for rule in rules[: self.top_k]:
-            pred = self._apply_rule(test_input, rule)
+            pred = self._apply_rule(test_input, rule, train=train)
             elapsed = (time.perf_counter() - start) * 1000
             if pred is not None and self._valid_grid(pred):
                 provenance.append(
@@ -211,9 +213,8 @@ class SubmissionBuilder:
                 )
                 return pred, provenance
 
-        # Fallback 1: brute-force DSL search on full task
-        # Reconstruct a synthetic train/test for the solver
-        pred_fb = self._fallback_dsl(test_input)
+        # Fallback 1: DSL search using train examples to find correct program
+        pred_fb = self._fallback_dsl(test_input, train=train)
         elapsed = (time.perf_counter() - start) * 1000
         if pred_fb is not None and self._valid_grid(pred_fb):
             provenance.append(
@@ -256,69 +257,83 @@ class SubmissionBuilder:
         )
         return default, provenance
 
-    def _apply_rule(self, grid: Grid, rule: CompoundRule) -> Grid | None:
-        """Apply a compound rule by name lookup from inline primitive registry."""
-        # Fast name->fn mapping from pattern_extractor (duplicated here for isolation)
-        from cohezion.arc.pattern_extractor import (
-            _fill_holes,
-            _flip_h,
-            _flip_v,
-            _gravity_down,
-            _gravity_up,
-            _identity,
-            _invert_colors,
-            _mirror_h,
-            _mirror_v,
-            _remove_bg,
-            _replace_color,
-            _rot90,
-            _rot180,
-            _transpose,
-        )
+    def _apply_rule(
+        self,
+        grid: Grid,
+        rule: CompoundRule,
+        train: list[dict[str, Grid]] | None = None,
+    ) -> Grid | None:
+        """Apply a compound rule by delegating to _build_strategy op map.
 
-        fn_map = {
-            "identity": _identity,
-            "transpose": _transpose,
-            "rot90": _rot90,
-            "rot180": _rot180,
-            "flip_h": _flip_h,
-            "flip_v": _flip_v,
-            "invert": _invert_colors,
-            "remove_bg": _remove_bg,
-            "fill_holes": _fill_holes,
-            "mirror_h": _mirror_h,
-            "mirror_v": _mirror_v,
-            "gravity_d": _gravity_down,
-            "gravity_u": _gravity_up,
-        }
+        Uses ``_build_strategy("all", train)`` so that all ops that
+        PatternExtractor can extract — including data-aware ``color_map``
+        and scaling ops (``upsample2``, ``upsample3``, ``downsample2``,
+        ``downsample3``) — are executable here too.
+
+        Parameters
+        ----------
+        grid : Grid
+            Test input grid.
+        rule : CompoundRule
+            Rule extracted by PatternExtractor.
+        train : list[dict[str, Grid]] | None
+            Training examples from the task.  Required for ``color_map``
+            (which learns its mapping from train).  Safe to pass ``None``
+            when the rule contains no data-aware ops.
+        """
+        from cohezion.arc.pattern_extractor import _build_strategy
+
+        # Build op map from the same source PatternExtractor uses so there
+        # is no desync between extraction and application.
+        _train: list[dict[str, Grid]] = train if train is not None else []
+        fn_map: dict[str, Any] = dict(_build_strategy("all", _train))
+
         g = deepcopy(grid)
         for op_name in rule.ops:
-            if op_name.startswith("replace_"):
-                parts = op_name.split("_")
-                if len(parts) == 3:
-                    old, new = int(parts[1]), int(parts[2])
-                    g = _replace_color(g, old, new)
-            else:
-                fn = fn_map.get(op_name)
-                if fn is None:
-                    return None
-                g = fn(g)
+            fn = fn_map.get(op_name)
+            if fn is None:
+                return None
+            g = fn(deepcopy(g))
             if g is None:
                 return None
         return g
 
-    def _fallback_dsl(self, test_input: Grid) -> Grid | None:
-        """Lightweight DSL search using only inline primitives."""
+    def _fallback_dsl(
+        self,
+        test_input: Grid,
+        train: list[dict[str, Grid]] | None = None,
+    ) -> Grid | None:
+        """DSL search using train examples to find the correct transformation program.
+
+        When train data is available, delegates to ``kaggle-dataset/arc_solver``
+        search_program which runs a proper BFS across the full op set.  Falls
+        back to an identity-probe when train data is absent.
+        """
+        _train = train if train is not None else []
+
+        if _train:
+            try:
+                from cohezion.competition.arc_solver import apply_program, search_program
+
+                program = search_program(_train, max_depth=3)
+                if program:
+                    pred = apply_program(test_input, program)
+                    if pred is not None and self._valid_grid(pred):
+                        return pred
+            except Exception:  # noqa: S110
+                pass
+
+        # Fallback: try any op that produces a valid grid (identity probe)
         from cohezion.arc.pattern_extractor import _build_strategy
 
-        synthetic_train = [{"input": test_input, "output": test_input}]  # no gold — identity probe
+        synthetic_train = [{"input": test_input, "output": test_input}]
         ops = _build_strategy("all", synthetic_train)
         # Try a tiny greedy identity probe (depth 1 only for speed)
         for _name, op in ops[:20]:
             pred = op(deepcopy(test_input))
             if pred is not None and self._valid_grid(pred):
                 return pred
-        return test_input  # identity fallback within DSL layer
+        return test_input
 
     def _fallback_llm(self, test_input: Grid) -> Grid | None:
         """Dynamic import of llm_fallback module if available."""
@@ -334,7 +349,82 @@ class SubmissionBuilder:
                 prog = mod.generate_program(test_input)
                 if callable(prog):
                     return prog(deepcopy(test_input))
-        except Exception:
+        except Exception:  # noqa: S110
+            pass
+        return None
+
+    def _fallback_llm_deepseek(
+        self,
+        test_input: Grid,
+        train: list[dict[str, Grid]] | None = None,
+        lemonade_url: str = "http://localhost:13307",
+        model: str = "DeepSeek-Qwen3-8B-GGUF",
+    ) -> Grid | None:
+        """DeepSeek-based LLM fallback via local Lemonade server.
+
+        Uses prompt-completion with examples as Python list literals to encourage
+        the model to output a valid grid on the first line of its response.
+        Requires a running Lemonade server (lemond --port 13307).
+        """
+        import ast
+        import re
+
+        _train = train if train is not None else []
+        if not _train:
+            return None
+        try:
+            import urllib.request  # lighter than requests for single call
+
+            prompt = (
+                "Find transformation. Output ONLY the result grid (list of lists, one line):\n\n"
+            )
+            for i, ex in enumerate(_train[:3], 1):
+                prompt += f"Ex {i}: In={ex['input']} Out={ex['output']}\n"
+            prompt += f"\nTest: In={test_input}\nOut="
+
+            data = {
+                "model": model,
+                "prompt": prompt,
+                "max_tokens": 300,
+                "stream": False,
+                "temperature": 0,
+            }
+            req = urllib.request.Request(  # noqa: S310
+                f"{lemonade_url}/v1/completions",
+                data=json.dumps(data).encode(),
+                headers={"Content-Type": "application/json"},
+                method="POST",
+            )
+            with urllib.request.urlopen(req, timeout=35) as resp:  # noqa: S310
+                result = json.loads(resp.read())
+            text = result.get("choices", [{}])[0].get("text", "").strip()
+
+            # Method 1: Python list literal on first line
+            for line in text.split("\n")[:5]:
+                line = line.strip()
+                if line.startswith("[["):
+                    try:
+                        parsed = ast.literal_eval(line)
+                        if (
+                            isinstance(parsed, list)
+                            and all(isinstance(r, list) for r in parsed)
+                            and self._valid_grid(parsed)
+                        ):
+                            return parsed
+                    except (ValueError, SyntaxError):
+                        pass
+
+            # Method 2: Row-by-row digit extraction
+            rows: list[list[int]] = []
+            for line in text.split("\n")[:35]:
+                nums = [int(m) for m in re.findall(r"\b([0-9])\b", line) if 0 <= int(m) <= 9]
+                if nums:
+                    rows.append(nums)
+                elif rows:
+                    break
+            if rows and self._valid_grid(rows):
+                return rows
+        except Exception:  # noqa: S110
             pass
         return None
 
