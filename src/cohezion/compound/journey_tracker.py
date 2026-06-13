@@ -115,12 +115,14 @@ class JourneyTracker:
     # Maximum entries in the projection cache
     MAX_CACHE_SIZE = 1000
 
-    def __init__(self, seed: int = 42):
+    def __init__(self, seed: int = 42, mcp_client=None):
         """Initialize journey tracker.
 
         Args:
             seed: Random seed for deterministic projections
+            mcp_client: Optional MCP client for vault_log_experiment calls
         """
+        self._mcp_client = mcp_client
         self.seed = seed
         self.rng = np.random.RandomState(seed)
 
@@ -533,6 +535,179 @@ class JourneyTracker:
 
         return point
 
+<<<<<<< Updated upstream
+=======
+    def track_evo_step(
+        self,
+        task_description: str,
+        operation_type: str,
+        coherence: float,
+        efficiency: float,
+        success: bool = True,
+        duration_seconds: float = 0.0,
+    ) -> TrajectoryPoint:
+        """Track a RecursiveTracer EVO step as a 12D trajectory point.
+
+        Accepts the raw physics metrics from recursive_tracer.trace_step() rather
+        than an ExecutionResult, then delegates to the existing trajectory pipeline.
+        Called once per step in the HIHO trace monad.
+        """
+        latent_2048d = self._text_to_latent(task_description)
+        projection_12d = self._holographic_project(latent_2048d)
+        axiomatic_12d = self._step_to_axiomatic(
+            projection_12d, operation_type, coherence, efficiency
+        )
+        smoothness, convergence = 0.5, 0.5
+        if len(self._recent_points) >= 2:
+            quality = self.compute_trajectory_quality(self._recent_points)
+            smoothness = quality["smoothness"]
+            convergence = quality["convergence"]
+        phi_score = self._compute_phi_score(
+            coherence=coherence, smoothness=smoothness, convergence=convergence
+        )
+        point = TrajectoryPoint(
+            dimensions=axiomatic_12d,
+            timestamp=duration_seconds,
+            coherence=coherence,
+            efficiency=efficiency,
+            operation_type=operation_type,
+            task_description=task_description,
+            metadata={
+                "phi_score": phi_score,
+                "success": success,
+                "observer_consistency": self._compute_observer_consistency(axiomatic_12d),
+            },
+        )
+        self._recent_points.append(point)
+        if len(self._recent_points) > self.TRAJECTORY_WINDOW:
+            self._recent_points = self._recent_points[-self.TRAJECTORY_WINDOW :]
+        try:
+            self._persist_to_surreal(point)
+        except Exception:
+            pass
+        return point
+
+    def emit_evo_voyage(
+        self,
+        voyage: object,
+        skill_id: str | None = None,
+    ) -> None:
+        """Dual-write a completed ExperientialVoyage to SurrealDB and Obsidian vault.
+
+        Writes to the evo_journey table (for _query_phi_trend σ adaptation) and
+        writes a cerebellum note (for _load_cerebellum_context RAG injection).
+        skill_id must be supplied to enable phi-trend queries per skill.
+        """
+        import base64
+        import datetime
+        import urllib.request
+
+        phi = float(getattr(voyage, "phi_score", 0.0))
+        voyage_id = str(getattr(voyage, "voyage_id", ""))
+        agent_id = str(getattr(voyage, "agent_id", ""))
+        journey_id = str(getattr(voyage, "journey_id", ""))
+        modalities = getattr(voyage, "modalities_used", [])
+        latent_snap = getattr(voyage, "latent_snapshot", [])[:16]
+        started_at = float(getattr(voyage, "started_at", 0.0))
+        completed_at = float(getattr(voyage, "completed_at", 0.0))
+        duration_s = completed_at - started_at
+        refined = bool(getattr(voyage, "skill_refinements", []))
+        phi_dist_obj = getattr(voyage, "phi_distribution", None)
+
+        gate_prob_val = "NONE"
+        if phi_dist_obj is not None:
+            try:
+                gate_prob_val = str(round(phi_dist_obj.gate_probability(), 6))
+            except Exception:
+                pass
+
+        phi_dist_str = "NONE"
+        if phi_dist_obj is not None:
+            try:
+                d = phi_dist_obj.as_dict()
+                phi_dist_str = (
+                    '{"bins": '
+                    + str(d.get("bins", []))
+                    + ', "probs": '
+                    + str(d.get("probs", []))
+                    + "}"
+                )
+            except Exception:
+                pass
+
+        sid = (skill_id or agent_id).replace("'", "")
+        mods_str = str(modalities)
+        snap_str = str([round(x, 6) for x in latent_snap])
+        surql = (
+            f"CREATE evo_journey SET "
+            f"voyage_id = '{voyage_id}', "
+            f"agent_id = '{agent_id}', "
+            f"journey_id = '{journey_id}', "
+            f"skill_id = '{sid}', "
+            f"phi_score = {phi}, "
+            f"modalities = {mods_str}, "
+            f"step_count = {len(self._recent_points)}, "
+            f"duration_s = {duration_s}, "
+            f"refined = {str(refined).lower()}, "
+            f"valid_from = time::now(), "
+            f"valid_to = NONE, "
+            f"latent_snap = {snap_str}, "
+            f"gate_prob = {gate_prob_val}, "
+            f"phi_dist = {phi_dist_str};"
+        )
+        # Append to write buffer so tests can inspect without triggering HTTP
+        self._write_buffer.append(surql)
+
+        req = urllib.request.Request(
+            "http://localhost:8001/sql",
+            data=surql.encode(),
+            headers={
+                "Accept": "application/json",
+                "surreal-ns": "cohezion",
+                "surreal-db": "cohezion",
+                "Authorization": "Basic " + base64.b64encode(b"root:root").decode(),
+            },
+            method="POST",
+        )
+        try:
+            urllib.request.urlopen(req, timeout=2)
+        except Exception:
+            pass
+
+        # Optional vault write via mcp_client (fail-soft)
+        if self._mcp_client is not None:
+            try:
+                self._mcp_client.vault_log_experiment(
+                    project="evo_compound",
+                    hypothesis=f"EVO voyage {voyage_id} phi={phi:.4f}",
+                    method="recursive_tracer",
+                    results={"phi_score": phi, "voyage_id": voyage_id, "skill_id": sid},
+                )
+            except Exception:
+                pass
+
+        # Cerebellum note for future ticks via _load_cerebellum_context RAG
+        if skill_id:
+            try:
+                from pathlib import Path
+
+                cerebellum_dir = Path.home() / "vaults" / "cohezion-vault" / "cerebellum"
+                cerebellum_dir.mkdir(parents=True, exist_ok=True)
+                date_str = datetime.date.today().isoformat()
+                slug = skill_id.lower()
+                note_path = cerebellum_dir / f"{date_str}-skill-refinement-{slug}.md"
+                gate_str = gate_prob_val if gate_prob_val != "NONE" else "n/a"
+                note_path.write_text(
+                    f"---\nskill: {skill_id}\ndate: {date_str}\n---\n"
+                    f"Insight: phi={phi:.3f} gate_prob={gate_str} "
+                    f"duration={duration_s:.1f}s modalities={modalities} "
+                    f"refined={refined}\n"
+                    f"Coherence: {phi:.4f}\n"
+                )
+            except Exception:
+                pass
+
+>>>>>>> Stashed changes
     def _persist_to_surreal(self, point: TrajectoryPoint) -> None:
         """Persist trajectory point to SurrealDB journey_transitions table.
 
