@@ -131,7 +131,7 @@ def main() -> int:
         "hidden_dim": 128,
         "gamma": 0.99,
         "action_scale": 0.01,
-        "kl_weight": 0.1,
+        "kl_weight": 0.01,  # was 0.1 — autoresearch 2026-05-15: β≥0.1 causes posterior collapse
     }
 
     best_coherence = 0.0
@@ -153,7 +153,9 @@ def main() -> int:
             vae_config = TrainConfig(
                 epochs=args.vae_epochs,
                 lr=params["learning_rate"],
-                kl_weight=params.get("kl_weight", 0.1),
+                kl_weight=params.get(
+                    "kl_weight", 0.01
+                ),  # default 0.01 — see autoresearch 2026-05-15
                 data_dir=args.data_dir,
                 checkpoint_dir=str(output_dir / f"vae_iter{iteration}"),
                 log_interval=5,

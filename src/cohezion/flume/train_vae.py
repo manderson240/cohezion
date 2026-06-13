@@ -11,6 +11,7 @@ Features:
 from __future__ import annotations
 
 import logging
+from pathlib import Path
 from typing import TYPE_CHECKING
 
 import torch
@@ -21,7 +22,61 @@ from cohezion.flume.vae import FlumeVAE, flume_vae_loss
 
 
 if TYPE_CHECKING:
-    from pathlib import Path
+    pass
+
+
+# Stealthskater corpus path — suppressed/classified physics concept embeddings
+STEALTHSKATER_CORPUS_PATH = Path(__file__).parent.parent / "skills" / "STEALTHSKATER_CORPUS.md"
+
+
+def load_stealthskater_corpus() -> list[str]:
+    """Extract text segments from STEALTHSKATER_CORPUS.md for embedding.
+
+    Splits on section headers and paragraph breaks, returning one string
+    per semantic unit (paragraph or description block). Skips YAML frontmatter,
+    trigger lists, and code blocks.
+    """
+    if not STEALTHSKATER_CORPUS_PATH.exists():
+        return []
+
+    text = STEALTHSKATER_CORPUS_PATH.read_text(encoding="utf-8")
+
+    # Strip YAML frontmatter
+    if text.startswith("---"):
+        end = text.find("\n---\n", 4)
+        if end != -1:
+            text = text[end + 5 :]
+
+    segments: list[str] = []
+    current: list[str] = []
+
+    for line in text.splitlines():
+        stripped = line.strip()
+        # Skip headers, empty lines flush current buffer
+        if stripped.startswith("#"):
+            if current:
+                seg = " ".join(current).strip()
+                if len(seg) > 40:
+                    segments.append(seg)
+                current = []
+        elif not stripped:
+            if current:
+                seg = " ".join(current).strip()
+                if len(seg) > 40:
+                    segments.append(seg)
+                current = []
+        elif stripped.startswith("-") or stripped.startswith("STEALTHSKATER_ARCHIVE_URL"):
+            # Skip bullet lists and URL constants — not embedding targets
+            pass
+        else:
+            current.append(stripped)
+
+    if current:
+        seg = " ".join(current).strip()
+        if len(seg) > 40:
+            segments.append(seg)
+
+    return segments
 
 
 logger = logging.getLogger(__name__)
@@ -67,7 +122,7 @@ class VAETrainer:
         self,
         data: torch.Tensor,
         epochs: int = 50,
-        batch_size: int = 64,
+        batch_size: int = 128,  # was 64 — autoresearch 2026-05-15: bs=128 gives +0.8% recon
         contrastive_pairs: list[tuple[int, int]] | None = None,
         lambda_contrastive: float = 0.0,
         lambda_sim_match: float = 0.0,

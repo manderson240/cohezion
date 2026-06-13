@@ -31,7 +31,18 @@ def main() -> None:
         help="Maximum total training samples (default: 10000)",
     )
     parser.add_argument("--epochs", type=int, default=50, help="Training epochs (default: 50)")
-    parser.add_argument("--batch-size", type=int, default=64, help="Batch size (default: 64)")
+    parser.add_argument(
+        "--batch-size",
+        type=int,
+        default=128,
+        help="Batch size (default: 128; was 64 — autoresearch 2026-05-15: bs=128 gives +0.8% reconstruction improvement)",
+    )
+    parser.add_argument(
+        "--kl-weight",
+        type=float,
+        default=0.01,
+        help="KL divergence weight (default: 0.01; was 0.1 — β≥0.1 causes posterior collapse)",
+    )
     parser.add_argument("--lr", type=float, default=1e-3, help="Learning rate (default: 0.001)")
     parser.add_argument("--seed", type=int, default=42, help="Random seed (default: 42)")
     parser.add_argument(

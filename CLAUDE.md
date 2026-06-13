@@ -170,6 +170,7 @@ See skill: `cohezion-vault-workflow` for vault API examples (log decisions, expe
 - **Repo Health**: SessionStart hooks validate settings.json schema + check .git/ size, branch count, LFS, remote, fsck
 
 ## The Compound Engineering Loop (Production-Ready)
+<!-- LIFE Framework (arXiv:2605.14892): L=Lay(PRIME+FlumeVAE) I=Integrate(Executor+Orchestrator) F=Find-faults(Retro+Degrade) E=Evolve(SkillRefiner+autoresearch) -->
 
 ```
 PRIME Skill (markdown)

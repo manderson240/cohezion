@@ -1,27 +1,14 @@
-"""Ionic Cluster — plasma HIHO equilibrium model.
+"""Itonic / Ionic cluster plasma resonance module.
 
-An ionic cluster is a stable, self-organised plasma configuration in which
-charged species (ions + electrons) form a bound collective state with
-well-defined resonance modes. The cluster is stable when the ionisation
-rate approximately equals the recombination rate — analogous to HIHO
-(half in, half out): half the species are ionised, half are neutral.
-
-Cohezion mapping:
-    plasma_density → fraction of "active" (ionised) species [0, 1]
-    hiho_equilibrium() → True when density ≈ 0.5 (±tolerance)
-    percolation logic mirrors BioelectricNetwork: below threshold, species
-    act independently; above threshold, collective plasma state emerges.
-
-The percolation threshold is shared with BioelectricNetwork (G_c = 0.5)
-and LENRHamiltonian (reaction_threshold = 0.5). All three use the same
-beta-binomial HIHO kernel, ensuring consistent phase-transition semantics
-across bioelectric, nuclear, and plasma sub-models.
+Models self-organizing ion cluster modes in weakly ionized plasma. The HIHO
+phase transition (Gamma_c = 172 coupling parameter) maps directly to Cohezion's
+HIHO dynamic equilibrium — the same 50% threshold governs plasma crystallization,
+bioelectric gap junction percolation, and LENR lattice coherence.
 
 References:
-    - Langmuir, I. (1928). "Oscillations in Ionized Gases" PNAS 14(8)
-      [Langmuir defined 'plasma'; ionic clusters are a structured plasma phase]
-    - Hooper, J.H. et al. (1990). "Clusters of Ions" Science 249(4973)
-    - Becker, K. et al. (2004). "Non-equilibrium Plasmas" J. Phys. D: Appl. Phys.
+    Briggs (1971). Plasma Physics 13(5). Magnetized plasma column oscillations.
+    Sato et al. (1988). Phys. Rev. Lett. 61(7). Unmagnetized plasma modes.
+    Ichimaru (1982). Rev. Mod. Phys. 54(4). Strongly coupled plasma physics.
 """
 
 from __future__ import annotations
@@ -29,90 +16,58 @@ from __future__ import annotations
 import logging
 from dataclasses import dataclass, field
 
-
 logger = logging.getLogger(__name__)
 
-# Shared HIHO threshold — same constant as LENR and BioelectricNetwork.
-_HIHO_THRESHOLD: float = 0.5
-
-# Tolerance band around 0.5 for equilibrium detection.
-_DEFAULT_TOLERANCE: float = 0.05
+_HIHO_THRESHOLD: float = 0.5  # shared with LENRHamiltonian and BioelectricNetwork
 
 
 @dataclass
 class IonicClusterState:
-    """State of a self-organised ionic cluster at plasma HIHO equilibrium.
+    """Plasma crystal / itonic cluster resonance state.
 
-    Parameters
-    ----------
-    plasma_density : float
-        Fraction of species in ionised (active) state [0, 1].
-        0.0 = fully neutral gas; 1.0 = fully ionised plasma.
-    cluster_size : int
-        Number of ions/neutral species in the cluster (default 100).
-    hiho_tolerance : float
-        Fractional width of the equilibrium band around 0.5 (default 0.05).
-        Equilibrium is declared when |density - 0.5| ≤ tolerance.
+    Tracks ionization fraction as it evolves toward or away from the HIHO
+    equilibrium point. The beta-binomial ionisation_rate() kernel mirrors
+    LENR reaction_rate() — both are peaked at 0.5 by the same invariant.
     """
 
-    plasma_density: float = _HIHO_THRESHOLD
-    cluster_size: int = 100
-    hiho_tolerance: float = _DEFAULT_TOLERANCE
-    _history: list[float] = field(default_factory=list, repr=False)
+    plasma_density: float = 0.0  # ionised fraction [0, 1]
+    cluster_size: int = 100  # number of ions in cluster
+    hiho_tolerance: float = 0.05  # equilibrium band width ±
 
-    def __post_init__(self) -> None:
-        self.plasma_density = max(0.0, min(1.0, float(self.plasma_density)))
+    _history: list[float] = field(default_factory=list, repr=False, compare=False)
 
     def hiho_equilibrium(self) -> bool:
-        """Return True when the plasma is at HIHO equilibrium.
-
-        Equilibrium condition:
-            |plasma_density - 0.5| ≤ hiho_tolerance
-
-        At equilibrium the cluster is neither collapsing to neutral gas (density→0)
-        nor fully ionising to hot plasma (density→1). The 50% point is the
-        stable phase for sustained self-organisation.
-
-        Returns
-        -------
-        bool
-        """
+        """True when |plasma_density - 0.5| ≤ hiho_tolerance."""
         return abs(self.plasma_density - _HIHO_THRESHOLD) <= self.hiho_tolerance
 
     def ionisation_rate(self) -> float:
-        """Collective ionisation rate — beta-binomial kernel.
+        """Beta-binomial ionisation rate, peaks at plasma_density = 0.5.
 
-        Matches LENR and BioelectricNetwork percolation math:
-            rate = 4 · density · (1 - density)
-
-        Peaks at density = 0.5 (HIHO), vanishes at 0 (no ions to transfer)
-        and 1 (no neutrals to ionise).
+        rate = 4 * density * (1 - density)   ∈ [0, 1]
+        Mirrors LENRHamiltonian.reaction_rate() with the same kernel.
         """
         d = self.plasma_density
         return 4.0 * d * (1.0 - d)
 
     def step(self, delta: float) -> None:
-        """Advance plasma density by delta, clamped to [0, 1].
-
-        Parameters
-        ----------
-        delta : float
-            Change in ionised fraction. Positive = more ionisation.
-        """
+        """Advance plasma density by delta, clamped to [0, 1]."""
         self._history.append(self.plasma_density)
-        self.plasma_density = max(0.0, min(1.0, self.plasma_density + float(delta)))
+        self.plasma_density = max(0.0, min(1.0, self.plasma_density + delta))
         logger.debug(
-            "IonicCluster step: density %.3f → %.3f (equilibrium=%s)",
-            self._history[-1],
+            "IonicCluster step: density=%.3f rate=%.4f equilibrium=%s",
             self.plasma_density,
+            self.ionisation_rate(),
             self.hiho_equilibrium(),
         )
 
     @property
     def active_ions(self) -> int:
-        """Number of ionised species = round(cluster_size × plasma_density)."""
+        """Number of active (ionized) ions in the cluster."""
         return round(self.cluster_size * self.plasma_density)
 
     @property
     def steps_taken(self) -> int:
         return len(self._history)
+
+
+__all__ = ["IonicClusterState"]

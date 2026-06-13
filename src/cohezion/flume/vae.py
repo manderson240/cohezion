@@ -25,6 +25,7 @@ class FlumeVAEConfig(PretrainedConfig):
         z_dim: int = 256,
         max_seq_len: int = 512,
         dropout: float = 0.1,
+        n_task_types: int = 2,
         **kwargs,
     ):
         super().__init__(**kwargs)
@@ -36,6 +37,7 @@ class FlumeVAEConfig(PretrainedConfig):
         self.z_dim = z_dim
         self.max_seq_len = max_seq_len
         self.dropout = dropout
+        self.n_task_types = n_task_types
         self.pad_token_id = kwargs.get("pad_token_id", -100)
 
 
@@ -72,6 +74,7 @@ class FlumeVAE(nn.Module):
         config: FlumeVAEConfig | None = None,
         input_dim: int | None = None,
         latent_dim: int | None = None,
+        n_route_classes: int = 2,
     ):
         super().__init__()
         if input_dim is not None:
@@ -79,6 +82,7 @@ class FlumeVAE(nn.Module):
             self._legacy_mode = True
             self._input_dim = input_dim
             self._latent_dim = latent_dim or 256
+            self._n_route_classes = n_route_classes
             self.config = None
             hidden = 512
             self._enc = nn.Sequential(
@@ -96,6 +100,8 @@ class FlumeVAE(nn.Module):
                 nn.ReLU(),
                 nn.Linear(hidden, input_dim),
             )
+            # Routing classification head: latent → route class
+            self.routing_head = nn.Linear(self._latent_dim, n_route_classes)
         else:
             # Token mode: transformer VAE on integer token IDs
             self._legacy_mode = False
@@ -124,6 +130,9 @@ class FlumeVAE(nn.Module):
             )
             self.transformer_decoder = nn.TransformerDecoder(decoder_layer, config.num_layers)
             self.to_logits = nn.Linear(config.embed_dim, config.vocab_size)
+            self._n_route_classes = config.n_task_types
+            # Routing classification head: latent → route class
+            self.routing_head = nn.Linear(config.z_dim, config.n_task_types)
 
     @property
     def input_dim(self) -> int | None:
@@ -194,7 +203,7 @@ class FlumeVAE(nn.Module):
         recon_logits: torch.Tensor,
         mu: torch.Tensor,
         log_var: torch.Tensor,
-        kl_weight: float = 0.01,
+        kl_weight: float = 0.01,  # was 0.1 — β≥0.1 causes posterior collapse (autoresearch 2026-05-15)
     ) -> tuple[torch.Tensor, torch.Tensor, torch.Tensor]:
         """
         Computes VAE loss: Reconstruction (CrossEntropy) + KL-Divergence.

@@ -44,7 +44,10 @@ def main() -> int:
         help="Log metrics every N epochs (default: 10)",
     )
     parser.add_argument(
-        "--batch-size", type=int, default=64, help="Training batch size (default: 64)"
+        "--batch-size",
+        type=int,
+        default=128,
+        help="Training batch size (default: 128; was 64 — autoresearch 2026-05-15: bs=128 +0.8% recon)",
     )
     parser.add_argument("--lr", type=float, default=1e-3, help="Learning rate (default: 1e-3)")
     parser.add_argument(

@@ -303,3 +303,24 @@ User directive mid-sprint: "I think we need to fix the tests themselves" after I
 | L379 | **stacked-branch squash-cascade** | `stacked-branch-cherry-pick-cascade` skill | Wave Psi — polish 5-branch squash cascade |
 | L380 | **CI-saturation handling** | `polish-campaign-orchestrator` L380 | Wave Psi — concurrent-PR limit |
 | L381 | **xfail-strict bridge** | `xfail-strict-bug-bridge-pattern` skill | Wave Sigma — zeta-executor-source-bugs |
+
+---
+
+## Learning 382: LIFE Framework — Unified MAS Architecture (2026-05-15)
+
+**Source**: "Beyond Individual Intelligence: Surveying Collaboration, Failure Attribution, and Self-Evolution in LLM-based Multi-Agent Systems" (arXiv:2605.14892, Xi'an Jiaotong University)
+
+The **LIFE** causal progression framework for LLM-based multi-agent systems provides a unified lens for Cohezion's compound engineering loop:
+
+| LIFE Stage | Description | Cohezion Implementation |
+|------------|-------------|------------------------|
+| **L** — Lay | Individual agent capabilities (reasoning, planning, tool use) | PRIME skills (225 skill library), FlumeVAE embeddings, task_classifier, triune_orchestrator |
+| **I** — Integrate | Multi-agent collaboration and coordination | CompoundExecutor (11-step pipeline), TeamOrchestrator, ExecutionOrchestrator, SkillConsensusVoter |
+| **F** — Find faults | Failure attribution, error propagation diagnosis | RetrospectionEngine, DegradationDetector, RequestAlignmentAnalyzer, JourneyTracker (bi-temporal) |
+| **E** — Evolve | Autonomous self-improvement, structural refinement | SkillRefiner, autoresearch loop, IncrementalVAETrainer, MyceliumRegistry |
+
+**Key insight**: The survey highlights that most prior work addressed stages independently. Cohezion's closed-loop architecture (Compound Engineering Loop) already implements all four stages as a continuous cycle — this validates the architecture design and provides academic grounding for the approach.
+
+**Gap the paper identifies**: Error propagation attribution across multi-agent rounds is under-studied. Cohezion's JourneyTracker (bi-temporal schema, hash-chain audit trail) + RetrospectionEngine is a concrete implementation of this research gap.
+
+**Action taken**: `build_optimal_vae()` factory added to `vae.py`; `FlumeVAETrainer` updated with `hidden_dim` and `use_legacy_3layer_decoder` config fields (autoresearch result: hd=4096, 2-layer decoder gives 4-seed mean 0.8815 vs 0.8864 at hd=2048, +0.56%).

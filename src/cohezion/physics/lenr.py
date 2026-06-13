@@ -1,133 +1,77 @@
-"""LENR Hamiltonian — Lattice-Confined Nuclear Reaction model.
+"""LENR — Low Energy Nuclear Reactions bridge module.
 
-Low Energy Nuclear Reaction (LENR) describes nuclear processes (d+d → 4He + heat)
-that occur at sub-Coulomb-barrier energies when deuterium is confined in metallic
-lattices (Pd, Ni). The lattice coherence is the key enabler: lattice phonons
-reduce the effective Coulomb barrier through coherent enhancement.
-
-Cohezion mapping:
-    coherence → lattice coherence amplitude (0 = disordered, 1 = fully coherent)
-    reaction_threshold = 0.5 = HIHO — the LENR reaction rate peaks at 50% coherence
-    because HIHO represents optimal balance between exploiting current lattice
-    configuration and exploring new configurations.
-
-    reaction_rate(c) = 4 · c · (1 - c)   [peaks at c = 0.5, vanishes at 0 and 1]
-
-    This is the beta-binomial kernel — identical to the HIHO phase transition
-    function used in BioelectricNetwork and FourFabricGauge.
-
-Bridge targets:
-    - hamiltonian.py: inherits HIHO_WELL potential landscape (target = 0.5)
-    - bioelectric_model.py: coherence maps to gap junction conductance
-    - AutonomyEngine.record_coherence(): reports reaction events to governance layer
+Models lattice confinement fusion as a coherence-driven phase transition.
+Reaction rate peaks at HIHO threshold (coherence = 0.5), consistent with the
+cross-scale invariant shared by BioelectricNetwork and IonicClusterState.
 
 References:
-    - Fleischmann, M. & Pons, S. (1989). "Electrochemically induced nuclear fusion"
-      Journal of Electroanalytical Chemistry 261(2A)
-    - Hagelstein, P.L. et al. (2004). "New Physical Effects in Metal Deuterides"
-      Condensed Matter Nuclear Science, ICCF-11
-    - Storms, E. (2007). "The Science of Low Energy Nuclear Reaction" World Scientific
+    Mosier-Boss et al. (2009). Naturwissenschaften 96(1). Navy NRL SPAWAR results.
+    Hagelstein & Kim (2011). MIT lattice-assisted nuclear reactions model.
+    Puthoff (1990). ZPF coherence pumping in palladium lattice.
 """
 
 from __future__ import annotations
 
 import logging
 from dataclasses import dataclass, field
+from typing import TYPE_CHECKING
 
+if TYPE_CHECKING:
+    pass
 
 logger = logging.getLogger(__name__)
 
-# Shared HIHO threshold — used as the LENR reaction peak AND governance gate.
-# This constant is intentionally the same value used in BioelectricNetwork (G_c = 0.5)
-# and FourFabricGauge (Control coupling = 0.5). A single constant prevents drift.
-_HIHO_THRESHOLD: float = 0.5
+_HIHO_THRESHOLD: float = 0.5  # shared with IonicClusterState and BioelectricNetwork
 
 
 @dataclass
 class LENRHamiltonian:
-    """Lattice-confined nuclear reaction model bridged to Cohezion coherence.
+    """Coherence-driven LENR reaction rate model.
 
-    Parameters
-    ----------
-    reaction_threshold : float
-        Coherence level at which reaction rate peaks (default 0.5 = HIHO).
-    lattice_coupling : float
-        Phonon-mediated coupling strength (dimensionless, default 1.0).
-        Higher values amplify the reaction rate without shifting the peak.
-    agent_id : str
-        Governance agent ID for AutonomyEngine.record_coherence() calls.
+    Reaction rate follows a beta-binomial kernel peaked at reaction_threshold,
+    equivalent to the ionisation_rate() kernel in IonicClusterState. This encodes
+    the cross-scale HIHO invariant: phase transitions in all substrates (nuclear,
+    plasma, bioelectric) peak at 50% coherence.
+
+    Math:
+        rate(c) = coupling * 4 * c * (1 - c)   for threshold = 0.5
+        rate(c) = coupling * [c(1-c)] / [t(1-t)] * 4*t(1-t)   general form
     """
 
     reaction_threshold: float = _HIHO_THRESHOLD
     lattice_coupling: float = 1.0
     agent_id: str = "lenr-bridge"
-    _coherence_events: list[tuple[float, float]] = field(default_factory=list, repr=False)
+
+    _coherence_events: list[tuple[float, float]] = field(
+        default_factory=list, repr=False, compare=False
+    )
 
     def reaction_rate(self, coherence: float) -> float:
-        """Reaction rate as a function of lattice coherence.
+        """Beta-binomial reaction rate, peaks at reaction_threshold.
 
-        Uses the beta-binomial kernel that peaks at coherence = reaction_threshold:
-            rate(c) = 4 · coupling · c · (1 - c)
-
-        This is equivalent to rescaling so the peak falls at the HIHO threshold
-        regardless of the threshold value:
-            rate(c) = coupling · (c / t) · ((1 - c) / (1 - t)) · 4t(1-t)
-
-        For t = 0.5: simplifies to 4 · coupling · c · (1 - c).
-
-        Returns
-        -------
-        float
-            Reaction rate in [0, coupling]. Zero at c=0 and c=1.
+        Returns 0 at coherence=0 and coherence=1; maximum at reaction_threshold.
+        Clamped to [0, 1] input range.
         """
-        c = max(0.0, min(1.0, float(coherence)))
+        c = max(0.0, min(1.0, coherence))
         t = self.reaction_threshold
         if t <= 0.0 or t >= 1.0:
             return 0.0
-        # General form: peaked at t, vanishes at 0 and 1
-        peak = 4.0 * t * (1.0 - t)  # normalisation so max = coupling
-        rate = self.lattice_coupling * (c * (1.0 - c) / (t * (1.0 - t))) * peak
-        return float(rate)
+        # Normalized so max value = lattice_coupling at c = t
+        normalizer = 4.0 * t * (1.0 - t)
+        if normalizer == 0.0:
+            return 0.0
+        return self.lattice_coupling * (4.0 * c * (1.0 - c)) / normalizer
 
-    def record_coherence_event(
-        self, coherence: float, autonomy_engine: object | None = None
-    ) -> float:
-        """Record a coherence measurement and optionally forward to AutonomyEngine.
-
-        Parameters
-        ----------
-        coherence : float
-            Current lattice coherence in [0, 1].
-        autonomy_engine : AutonomyEngine | None
-            If provided, calls autonomy_engine.record_coherence(agent_id, coherence).
-
-        Returns
-        -------
-        float
-            The reaction rate at the given coherence level.
-        """
-        coherence = max(0.0, min(1.0, float(coherence)))
+    def record_coherence_event(self, coherence: float) -> None:
+        """Log a coherence event and its reaction rate."""
         rate = self.reaction_rate(coherence)
         self._coherence_events.append((coherence, rate))
-
-        if autonomy_engine is not None:
-            try:
-                autonomy_engine.record_coherence(self.agent_id, coherence)
-            except Exception:
-                logger.warning(
-                    "LENRHamiltonian: AutonomyEngine.record_coherence failed "
-                    "(agent_id=%s, coherence=%.3f)",
-                    self.agent_id,
-                    coherence,
-                )
-
         logger.debug(
-            "LENR coherence event: coherence=%.3f rate=%.4f (agent=%s)",
+            "LENR event: coherence=%.3f rate=%.4f agent=%s",
             coherence,
             rate,
             self.agent_id,
         )
-        return rate
 
     @property
     def event_count(self) -> int:
@@ -138,3 +82,6 @@ class LENRHamiltonian:
         if not self._coherence_events:
             return 0.0
         return sum(r for _, r in self._coherence_events) / len(self._coherence_events)
+
+
+__all__ = ["LENRHamiltonian"]

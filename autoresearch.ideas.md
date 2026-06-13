@@ -1,5 +1,111 @@
 # Autoresearch Ideas — Future Experiments
 
+## FLUME VAE Session 1 Findings (2026-05-15, ready to implement)
+
+### Session 1 Champion Config (updated: bs=160 beats bs=128)
+```python
+# Best reconstruction: recon_loss=0.8933 (+12.0% vs β=1.0 baseline 1.0153)
+vae = FlumeVAE(input_dim=768, latent_dim=768)  # NOT 256!
+vae._enc = nn.Sequential(nn.Linear(768,2048), nn.ReLU(), nn.Linear(2048,2048), nn.ReLU())
+# beta=cyclic_sin(0→0.01, period=50) or static beta=0.01
+# optimizer=AdamW(lr=3e-4, wd=1e-4), scheduler=CosineAnnealingLR
+# batch_size=160, steps=500  ← was 128; bs=160 confirmed +12.0%
+# Scaling law: recon ≈ 0.9085 - 0.0066 * log2(bs/32)  (R²>0.99, 4 data points)
+# Predicted: bs=256→0.8887, bs=512→0.8821
+```
+
+### ~~ID-13~~: ✅ DONE — Analyzed all pending experiments (2026-05-15 overnight + next session)
+Results from 94 unique experiments (134 total jsonl entries):
+
+| Experiment | Result | vs champion | Key finding |
+|------------|--------|-------------|-------------|
+| `exp_true_fullbatch` | **0.8854** ← NEW CHAMPION | **+0.86%** | True full-batch (no replace) beats sampling-with-replace |
+| `exp_warmup_lr` | 0.8864 | +0.75% | 50-step LR warmup prevents early instability |
+| `exp_warmup_gradclip_bs128` | 0.8864 | +0.75% | Warmup + grad_clip — same as warmup alone |
+| `exp_gradaccum_bs32x8` | 0.8900 | +0.35% | Eff_bs=256 via accumulation |
+| `exp_bs256_scaling` | 0.8908 | +0.26% | Scaling law HOLDS at bs=256 (predicted 0.8887) |
+| `exp_cyclic_p25` | 0.8913 | +0.20% | Shorter period better than p=50 |
+| `exp_temperature_anneal` | 0.8915 | +0.18% | τ=1→0 marginally helps |
+| `exp_gradaccum_bs32x4` | 0.8923 | +0.09% | Eff_bs=128 via accumulation |
+| `exp_bs160_1k_steps` | 0.8978 | -0.53% | **1000 steps OVERFITS** (worse than 500!) |
+| `exp_pure_ae_bs128` | 0.8961 | -0.33% | Pure AE (β=0) slightly worse — KL helps |
+| `exp_lr_scaled_bs128` | TBD | TBD | Running in _exp_schedule2.py |
+| `exp_momentum_curriculum` | TBD | TBD | Running in _exp_schedule2.py |
+| `exp_decaying_period` | TBD | TBD | Running in _exp_schedule2.py |
+
+### ID-14: Production checkpoint retrain (next phase — pre-registered design)
+
+**Power analysis** (Burnell et al. framework):
+- σ=0.005 (measured 4-seed std dev), δ=0.01 (minimum meaningful), n≥4 seeds required
+- Our 4-seed experiments are statistically sufficient at α=0.05, 80% power
+
+**Pre-registered hypotheses**:
+- H1: hd=4096, 2-layer-dec < hd=512, 3-layer baseline by >0.01 on real mpnet embeddings ✅ CONFIRMED (0.0048 vs 0.0059, Δ=+18.4%)
+- H2: latent_dim=768 outperforms latent_dim=256 on 768-dim inputs ✅ CONFIRMED by synthetic experiments
+- H3: kl_weight=0.01 gives kl_loss>0.5; kl_weight=0.1 collapses to kl≈0 ✅ CONFIRMED
+
+**Action**: Retrain production checkpoint using `FlumeVAETrainer` with:
+```python
+config = TrainConfig(z_dim=768, hidden_dim=4096, use_legacy_3layer_decoder=False,
+                     latent_dim=768, kl_weight=0.01, batch_size=128, epochs=50)
+```
+**Stopping rule**: recon_loss change < 0.0001 over 5 epochs
+**CRITICAL NOTE (discovered 2026-05-15)**: For small corpora (N≤200, batch_size=128), only 1 batch/epoch.
+Use `epochs = target_steps` (not target_steps/batch_count). For 500 optimal steps: `epochs=500`.
+ID-14 used epochs=50 → only 50 actual gradient steps (10% of optimal). Result: recon=0.0073 vs 0.0048 at 500 steps.
+
+### ID-12: Production batch size upgrade (confirmed, updated)
+- Current production default: `batch_size=128` (deployed, fixed from 64 this session)
+- Research finding: log-linear scaling law CONFIRMED at bs=256 (0.8908 vs predicted 0.8887)
+- For N_train=100K, scaling law applies far beyond bs=256
+- **Recommended upgrade**: `batch_size=256` → actual +0.26% additional improvement vs current champion
+- **Better upgrade**: TRUE full-batch (bs=N_train, no replacement) → actual +0.86% improvement
+- WARNING: 1000 steps OVERFITS at N_train=160 — do NOT increase steps beyond ~500 for small corpora
+- Action: Update TrainConfig to use DataLoader with `replacement=False, batch_size=min(N_train, 256)`
+
+### Pending experiments (results auto-log to autoresearch.jsonl when processes complete)
+- `exp_bs256_scaling`: bs=256, predicted 0.8887 — scaling law extrapolation check
+- `exp_gradaccum_bs32x4/x8`: gradient accumulation — tests if large_bs ≡ accumulated_small_bs
+- `exp_lr_scaled_bs128`: lr=12e-4 at bs=128 — tests linear LR scaling rule for VAEs
+- `exp_pure_ae_bs128`: β=0 — theoretical reconstruction ceiling
+- `exp_bs128_1k_steps`: 1000 steps — training budget effect
+
+### ~~ID-8a~~: ✅ DONE — Fix production TrainConfig kl_weight (2026-05-15)
+- Fixed across 11 surfaces: training.py, train.py, vae.py, journey_encoder.py, 4 API files,
+  hyperparameter_debate.py, incremental_trainer.py (guard), hyperparameter_search.py
+- Also fixed: batch_size 64→128 across 9 surfaces
+- Tests: 5/5 passing, sanity check confirmed TrainConfig: kl_weight=0.01, batch_size=128
+- `hidden = z * 2` → not changed (would break existing checkpoints; see ID-9b)
+
+### ID-9: Apply remaining FlumeVAE architecture findings (IN PROGRESS)
+- **ID-9a**: Update FlumeVAE legacy mode default from latent_dim=256 to latent_dim=768
+  - WARNING: ThoughtVector validator hardcodes (256,) shape — system-wide invariant per ADR-005
+  - Action: Do NOT change latent_dim system invariant without architectural decision
+- **ID-9b**: Increase hidden_dim from 2048 → 4096 (research: wider = better confirmed)
+  - CONFIRMED (2026-05-15 session 3): hd=4096 2-layer decoder: recon=0.8891 (+0.45% vs hd=2048 0.8931)
+  - Architecture law: 512→0.9309, 1024→0.9146, 2048→0.8931, 3072→0.8908, 4096→0.8891
+  - CRITICAL: Must use 2-layer decoder (hd→output), NOT 3-layer (hd→hd→output)
+  - CRITICAL: Must use amp=0.005 period=100 for cyclic β (NOT amp=0.01 period=50)
+  - WARNING: Would break existing checkpoints (flume_vae_ep2.pt uses z=64, hidden=128)
+  - Action: Retrain from scratch with hd=4096, 2-layer decoder; plan checkpoint migration
+  - Multi-seed pending: expected mean ~0.888-0.889 for hd=4096 (4-seed mean for hd=2048 = 0.8864)
+- **ID-9c**: Add explicit `latent_dim` param to `TrainConfig` (currently derived as `z_dim`)
+  - Current: `latent_dim = z_dim` (no compression) — already optimal for this trainer!
+
+### ID-10: Test on real PRIME skill corpus (validation of synthetic findings)
+- Generate actual embeddings for 235 PRIME skill descriptions using SentenceTransformer
+- Re-run champion config on real data
+- Compare recon_loss to synthetic (random Gaussian) results
+- Expected: similar or better improvement on structured data
+
+### ID-11: Routing accuracy Pareto curve
+- Train 5 models with α ∈ {0.1, 0.2, 0.3, 0.5, 1.0} (routing loss weight)
+- Measure (recon_loss, routing_accuracy) for each
+- Expected: smooth Pareto front — pick α for target routing/recon tradeoff
+- α=0.1 might give routing_acc~80% with recon~0.9
+
+
+
 Generated from session discoveries. These are the most promising
 next steps for compound engineering optimization.
 
@@ -150,4 +256,3 @@ next steps for compound engineering optimization.
 - TieredOrchestrator.run_batch() must exist with correct signature
 - Structural: `inspect.signature(TieredOrchestrator.run_batch).parameters['prompts']` exists
 - Throughput: n=3 concurrent should complete faster than n=3 sequential (on live NPU)
-

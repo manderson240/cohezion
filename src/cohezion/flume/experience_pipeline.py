@@ -34,7 +34,7 @@ class ExperienceTrainingPipeline:
         min_real: int = 10,
         max_samples: int = 10_000,
         epochs: int = 50,
-        batch_size: int = 64,
+        batch_size: int = 128,  # was 64 — autoresearch 2026-05-15: bs=128 gives +0.8% recon
         lr: float = 1e-3,
         seed: int = 42,
         synthetic_fallback: bool = True,

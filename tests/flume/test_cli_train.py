@@ -91,7 +91,7 @@ class TestArgumentParsing:
         assert self._parse(["--batch-size", "32"]).batch_size == 32
 
     def test_batch_size_default(self):
-        assert self._parse([]).batch_size == 64
+        assert self._parse([]).batch_size == 128
 
     def test_lr_flag(self):
         args = self._parse(["--lr", "5e-4"])

@@ -26,7 +26,7 @@ from cohezion.physics.cellular_automata import (
 )
 from cohezion.physics.cosmogony import SymmetryBreaking, SymmetryGroup
 from cohezion.physics.dimension_extractor import DimensionExtractor
-from cohezion.physics.evo_model import ExoticVacuumObject
+from cohezion.physics.evo_model import ExoticVacuumObject, LENRCoupling
 from cohezion.physics.fiber_bundle import FiberBundle
 from cohezion.physics.gauge_theory import FourFabricGauge, GaugeConnection
 from cohezion.physics.information_geometry import FisherInformationMetric
@@ -55,13 +55,17 @@ __all__ = [
     "WolframClass",
     "ca_rl_step",
     "CoherenceRatchet",
+    "DielectricField",
     "DimensionExtractor",
     "ExoticVacuumObject",
     "FiberBundle",
     "FisherInformationMetric",
     "FourFabricGauge",
     "GaugeConnection",
+    "IonicClusterState",
     "LagrangianDynamics",
+    "LENRCoupling",
+    "LENRHamiltonian",
     "NaturalCapitalValuation",
     "RewardsBridge",
     "RiemannianMetric",

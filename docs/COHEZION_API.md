@@ -1,7 +1,7 @@
 # Cohezion API Reference
 
-> **Version:** 0.1.0  
-> **Base URL:** `http://localhost:8080` (default)  
+> **Version:** 0.1.0
+> **Base URL:** `http://localhost:8080` (default)
 > **Documentation:** Auto-generated at `/docs` (development mode)
 
 ---
@@ -688,10 +688,10 @@ Trigger FLUME VAE training on synthetic data.
 ```json
 {
   "epochs": 50,
-  "batch_size": 64,
+  "batch_size": 128,
   "lr": 0.001,
   "z_dim": 256,
-  "kl_weight": 0.1,
+  "kl_weight": 0.01,
   "coherence_weight": 0.05,
   "n_samples": 10000
 }
