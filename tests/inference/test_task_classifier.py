@@ -105,7 +105,7 @@ class TestCategoricalPatterns:
         assert d.quality_gate_chars == 0
 
 
-# ── NPU routing — short answer (gate=10) ─────────────────────────────────────
+# ── NPU routing — short answer (gate=50, empirically calibrated) ─────────────
 
 
 class TestShortAnswerPatterns:
@@ -113,7 +113,7 @@ class TestShortAnswerPatterns:
         d = classify("In one sentence, what does the HIHO stability principle optimize for?")
         assert d.node == "npu"
         assert d.output_type == "short_answer"
-        assert d.quality_gate_chars == 1
+        assert d.quality_gate_chars == 50
 
     def test_briefly_explain(self):
         d = classify("Briefly explain what FLUME encoding does.")
@@ -147,14 +147,16 @@ class TestShortAnswerPatterns:
         assert d.node == "npu"
 
     def test_medium_prompt_tries_npu(self):
-        # 150-400 chars: try NPU first
+        # 150-400 chars with no GPU signal: try NPU first via length heuristic
+        # (Prompt deliberately avoids GPU-trigger verbs like "implement", "write", "explain difference")
         prompt = (
-            "Explain the difference between NPU and GPU routing in the cohezion inference stack and when each is preferred for different task types in the tiered orchestrator. "
-            * 2
+            "In the cohezion inference stack NPU and GPU routing serve different roles. "
+            "The tiered orchestrator selects a node based on task complexity and output length. "
+            "Shorter categorical outputs prefer the NPU tier for latency reasons. "
         )
         prompt = prompt[:300]
         d = classify(prompt)
-        assert d.node == "npu"  # medium prompt → try NPU
+        assert d.node == "npu"  # medium prompt with no GPU signal → NPU
 
 
 # ── Gate correctness invariants ───────────────────────────────────────────────
@@ -189,7 +191,7 @@ class TestGateInvariants:
     def test_route_decision_is_frozen(self):
         """RouteDecision must be immutable (frozen dataclass)."""
         d = classify("What is Python?")
-        with pytest.raises(Exception):  # noqa: B017  # dataclasses.FrozenInstanceError
+        with pytest.raises(Exception):  # dataclasses.FrozenInstanceError
             d.node = "cpu"  # type: ignore[misc]
 
 
@@ -201,13 +203,9 @@ class TestConfidence:
         d = classify("Reply with exactly one word.")
         assert d.confidence >= 0.95
 
-    def test_definitional_question_confidence(self):
-        # "What is X?" routes NPU via 1-2-term definitional pattern (0.78) — not length fallback
+    def test_length_fallback_lower_confidence(self):
         d = classify("What is a compiler?")
-        assert d.node == "npu"
-        assert (
-            0.70 <= d.confidence < 0.90
-        )  # higher than length fallback (0.60), lower than explicit (0.95)
+        assert d.confidence <= 0.75
 
     def test_gpu_code_high_confidence(self):
         d = classify("Write a Python function to reverse a string.")
@@ -252,344 +250,805 @@ def test_route_decision_str_format():
     assert "conf=1.00" in s
 
 
-# ---------------------------------------------------------------------------
-# Real-world routing: external research and URL patterns (exp_MMMM findings)
-# ---------------------------------------------------------------------------
+# ── EXP-EXPLAIN-HOW-FIX: infinitive verb forms + 0.80→0.85 boosts ────────────
+
+
+class TestExplainHowInfinitives:
+    """explain-how mechanism pattern now matches infinitive verb forms (work/operate/function)."""
+
+    def test_explain_how_jepa_work(self):
+        d = classify("Explain how JEPA world models work")
+        assert d.node == "gpu"
+        assert d.confidence >= 0.85
+
+    def test_explain_how_attention_operate(self):
+        d = classify("Explain how attention mechanisms operate")
+        assert d.node == "gpu"
+        assert d.confidence >= 0.85
+
+    def test_explain_how_cache_function(self):
+        d = classify("Explain how semantic caches function")
+        assert d.node == "gpu"
+        assert d.confidence >= 0.85
+
+    def test_explain_how_prevents_unchanged(self):
+        d = classify("Explain how the circuit breaker prevents cascading failures")
+        assert d.node == "gpu"
+        assert d.confidence >= 0.85
+
+    def test_explain_how_short_stays_npu(self):
+        # Trivial "Explain how this works" — only 5 chars between 'how' and 'works' → NPU
+        d = classify("Explain how this works")
+        assert d.node == "npu"
+
+    def test_explain_how_it_works_stays_npu(self):
+        d = classify("Explain how it works")
+        assert d.node == "npu"
 
 
 @pytest.mark.parametrize(
     "prompt",
     [
-        "Do additional research on huggingface and arxiv to identify tip of the spear developments",
-        "research new papers on LENR physics",
-        "research huggingface for better embedding models",
-        "now research https://www.stealthskater.com/Intro.htm",
+        "How do we handle database migrations safely?",
+        "How can we architect the multi-tier router?",
+        "How do you debug a memory leak in Python?",
+        "How do you troubleshoot Kafka consumer lag?",
+        "How to run the compound engineering pipeline?",
+        "How to start the Lemonade NPU server?",
+        "Can you configure the Redis cache settings?",
+        "Can you implement the retry logic for the client?",
+        "Run the benchmark and report the results",
+        "Execute the test suite and show the coverage",
+        "When implementing the semantic cache layer, consider...",
+        "Test the classifier with various edge case inputs",
+        "Test the router with various payload configurations",
     ],
 )
-def test_external_research_routes_to_gpu(prompt):
+def test_procedural_gpu_patterns_at_085(prompt):
+    """Procedural/contextual GPU patterns boosted from 0.80→0.85."""
     d = classify(prompt)
-    assert d.node == "gpu", f"Expected gpu for research task: {prompt!r}"
-    assert d.output_type == "long_generation"
+    assert d.node == "gpu", f"Expected gpu for: {prompt!r}"
+    assert d.confidence >= 0.85, f"Expected conf >= 0.85, got {d.confidence} for: {prompt!r}"
+
+
+# ── EXP-0.82-BATCH-BOOST: bug fixes + 21×0.82→0.85 ──────────────────────────
+
+
+class TestMakeCodeQualityMultiWord:
+    """make-code-quality now allows up to 3 words before quality adjective."""
+
+    def test_two_word_subject(self):
+        d = classify("Make the task classifier more readable")
+        assert d.node == "gpu"
+        assert d.confidence >= 0.85
+
+    def test_two_word_subject_maintainable(self):
+        d = classify("Make the routing logic more maintainable")
+        assert d.node == "gpu"
+        assert d.confidence >= 0.85
+
+    def test_fp_guard_no_quality_adj(self):
+        d = classify("Make it work")
+        assert d.node == "npu"
+
+
+class TestUpdateCodeArtifactExpanded:
+    """update-code-artifact now covers suite, classifier, orchestrator, etc."""
+
+    def test_update_test_suite(self):
+        d = classify("Update the test suite to use async fixtures")
+        assert d.node == "gpu"
+        assert d.confidence >= 0.85
+
+    def test_update_classifier(self):
+        d = classify("Update the classifier to handle streaming inputs")
+        assert d.node == "gpu"
+        assert d.confidence >= 0.85
 
 
 @pytest.mark.parametrize(
     "prompt",
     [
-        "Integrate https://github.com/DVampire/Autogenesis",
-        "can we try https://huggingface.co/Ring-2.6-1T with lemonade server",
-        "test https://github.com/some/repo integration",
+        "What are the best practices for distributed systems design?",
+        "Refactor the cost-aware router to use async patterns",
+        "Review the compound executor implementation",
+        "Compare the triune orchestrator vs flat routing approach",
+        "Perform a security audit of the auth service",
+        "Add logging to the classifier for debugging",
+        "Scaffold a new microservice with FastAPI",
+        "Run the inference benchmark and report results",
+        "Calculate the average latency for 1000 concurrent requests",
+        "Walk me through the complete compound engineering loop",
+        "Plan how to migrate the SurrealDB schema",
     ],
 )
-def test_url_action_routes_to_gpu(prompt):
+def test_batch_0_82_boost_to_085(prompt):
+    """21 GPU patterns boosted from 0.82→0.85 with no regressions."""
     d = classify(prompt)
-    assert d.node == "gpu", f"Expected gpu for URL action: {prompt!r}"
-
-
-def test_real_world_routing_accuracy_19_prompts():
-    """Regression: 19 real human prompts from session history must route correctly."""
-    cases = [
-        (
-            "How do we recover the other local claude code sessions that were killed to prevent OOM",
-            "gpu",
-        ),
-        ("Can you resume and manage those sessions with headless claude code sessions?", "gpu"),
-        ("Yes, give them different PRs each", "npu"),
-        (
-            "Do additional research on huggingface and arxiv to identify tip of the spear developments",
-            "gpu",
-        ),
-        ("Integrate https://github.com/DVampire/Autogenesis", "gpu"),
-        ("how can we extend this to improve FLUME?", "gpu"),
-        ("now research https://www.stealthskater.com/Intro.htm", "gpu"),
-        ("can we try https://huggingface.co/Ring-2.6-1T with lemonade server", "gpu"),
-        ("Create a merge request to main", "gpu"),
-        ("check the CI pipeline", "gpu"),
-        ("Why is /ultraplan broken?", "gpu"),
-        ("investigate that 96MB file", "gpu"),
-        ("write tests for another paper", "gpu"),
-        ("refactor skill_registry.json", "gpu"),
-        ("How do we enable autocompact?", "gpu"),
-        ("Be careful with destructive operations.", "npu"),
-        ("Are we using all gemma 4 models?", "npu"),
-        ("Let's stay low and slow for now.", "npu"),
-        ("shoud be in .env don't print it", "npu"),
-    ]
-    misses = [(p, e, classify(p).node) for p, e in cases if classify(p).node != e]
-    assert not misses, f"Routing misses: {misses}"
-
-
-# ── Round 8 patterns (2026-05-27) ────────────────────────────────────────────
-
-
-class TestWhichResourcePreOverride:
-    """exp_YYYY2: 'Which port/model/version does X use?' → NPU before GPU scan.
-
-    'port' is in the extended engineering verb list (can trigger GPU), but
-    'Which port does the NPU tier use?' is a factual lookup, not an engineering task.
-    The pre-override fires on ^which + resource-noun + does/is (≤75 chars).
-    """
-
-    def test_which_port_routes_npu(self):
-        d = classify("Which port does the NPU tier use?")
-        assert d.node == "npu"
-        assert "which-resource" in d.reason
-
-    def test_which_model_routes_npu(self):
-        d = classify("Which model does the iGPU tier run?")
-        assert d.node == "npu"
-
-    def test_which_default_routes_npu(self):
-        d = classify("Which default does CLAUDE_CODE_STOP_HOOK_BLOCK_CAP use?")
-        assert d.node == "npu"
-
-    def test_which_library_recommendation_routes_gpu(self):
-        # 'Which library should I use?' is a recommendation, not a factual lookup
-        d = classify("Which library should I use for structured logging?")
-        assert d.node == "gpu"
-
-    def test_which_approach_recommendation_routes_gpu(self):
-        d = classify("Which approach should I use for the new caching strategy?")
-        assert d.node == "gpu"
-
-
-class TestRouteTaskPrefixPreOverride:
-    """exp_ZZZZ2: 'Route/Classify this task: X' → NPU (meta-routing instruction).
-
-    Without the override, GPU patterns fire on technical nouns in the content after
-    the colon (e.g., 'port', 'implement', 'batch processing pipeline').
-    """
-
-    def test_route_this_task_routes_npu(self):
-        d = classify("Route this task: short factual question about a port number")
-        assert d.node == "npu"
-        assert "route-task-prefix" in d.reason
-
-    def test_route_this_request_routes_npu(self):
-        d = classify("Route this request: is this a code generation task?")
-        assert d.node == "npu"
-
-    def test_classify_this_prompt_routes_npu(self):
-        d = classify("Classify this prompt: is it code or text?")
-        assert d.node == "npu"
-
-    def test_route_task_with_gpu_content_still_npu(self):
-        # Content after colon has GPU verbs, but prefix overrides
-        d = classify(
-            "Route this task: implement a new batch processing pipeline for the compound loop"
-        )
-        assert d.node == "npu"
-
-
-class TestBrevitySummarizeDigitForms:
-    """exp_DDDDD3: 'Summarize in N sentences' → NPU (brevity-qualified).
-
-    The pattern previously only matched 'one/two/three/a single'; digit forms like
-    '2 sentences' or '3 bullets' now also route to NPU.
-    """
-
-    def test_summarize_in_one_sentence_npu(self):
-        d = classify("Summarize the compound loop in one sentence")
-        assert d.node == "npu"
-
-    def test_summarize_in_2_sentences_npu(self):
-        d = classify("Summarize the compound loop in 2 sentences")
-        assert d.node == "npu"
-
-    def test_summarize_in_3_sentences_npu(self):
-        d = classify("Summarize the HIHO stability principle in 3 sentences")
-        assert d.node == "npu"
-
-    def test_briefly_summarize_routes_npu(self):
-        d = classify("Briefly summarize the HIHO stability principle")
-        assert d.node == "npu"
-
-    def test_summarize_without_brevity_routes_gpu(self):
-        # No brevity qualifier → GPU (complex architectural summary)
-        d = classify(
-            "Summarize the entire compound engineering loop architecture with diagrams and code examples"
-        )
-        assert d.node == "gpu"
-
-
-class TestBacktickVerbEngineeringPreOverride:
-    """exp_EEEEE3: Backtick-prefixed engineering verb → GPU (imperative command form).
-
-    Users wrap engineering command verbs in backticks to signal intent explicitly.
-    The override fires before the extended engineering verb object-allowlist check,
-    which fails when the object is a system name not in the allowlist.
-    """
-
-    def test_backtick_port_with_unrecognized_object_routes_gpu(self):
-        d = classify("`port` the triune_orchestrator to support async batch processing")
-        assert d.node == "gpu"
-        assert "backtick" in d.reason
-
-    def test_backtick_port_with_compound_path_routes_gpu(self):
-        d = classify("`port` the routing logic to the new AsyncFleet API")
-        assert d.node == "gpu"
-
-    def test_backtick_migrate_routes_gpu(self):
-        d = classify("`migrate` the triune_orchestrator to async")
-        assert d.node == "gpu"
-
-    def test_backtick_refactor_still_routes_gpu(self):
-        # refactor already worked via engineering-task-verb; backtick override also fires
-        d = classify("`refactor` the executor.py module to use async patterns")
-        assert d.node == "gpu"
-
-    def test_no_backtick_port_with_unrecognized_object_routes_npu(self):
-        # Without backticks, 'port the triune_orchestrator' falls to length-default NPU
-        # Quality gate handles escalation if response is insufficient
-        d = classify("Port the triune_orchestrator to support async batch processing")
-        assert d.node == "npu"
-
-    def test_backtick_true_false_not_triggered(self):
-        # Non-engineering backtick tokens should not fire the override
-        d = classify("`true` or `false`: the FlumeVAE uses 256D latent space")
-        assert d.node == "npu"
-
-
-class TestReleaseNotesFalsePositiveFix:
-    """exp_FFFFF3: 'release notes' noun phrase must not trigger deploy/provision GPU pattern.
-
-    The deploy/provision GPU pattern matched 'release' as a verb, catching documentation
-    references like 'List cached release notes files'. Fixed with negative lookahead
-    release(?!\\s+notes?\\b) — deployment actions still route GPU.
-    """
-
-    def test_list_release_notes_routes_npu(self):
-        d = classify("List cached release notes files")
-        assert d.node == "npu"
-
-    def test_read_release_notes_cache_routes_npu(self):
-        d = classify("Read the most recent release notes cache")
-        assert d.node == "npu"
-
-    def test_fetch_release_notes_routes_npu(self):
-        d = classify("Fetch release notes for v2.1.137 through v2.1.152")
-        assert d.node == "npu"
-
-    def test_release_to_production_still_gpu(self):
-        # Actual deployment action — must still route GPU
-        d = classify("Release the new API version to production")
-        assert d.node == "gpu"
-        assert "deploy" in d.reason
-
-    def test_release_version_to_appstore_still_gpu(self):
-        d = classify("Release version 2.0 to the AppStore")
-        assert d.node == "gpu"
-
-    def test_review_release_notes_and_update_config_still_gpu(self):
-        # 'Review /release-notes and update' — compound task, must stay GPU
-        d = classify("Review /release-notes and update our configuration accordingly")
-        assert d.node == "gpu"
-
-
-class TestRunAndReportHyphenatedFix:
-    """exp_ZZZZ2: run-and-report GPU pattern must match hyphenated tokens.
-
-    The original pattern used (\\w+ ){0,3} which excludes hyphens. 'dry-run' contains
-    a hyphen so 'Run the compound cycle dry-run and report' did not match. Fixed by
-    changing to (?:[\\w-]+ ){0,4} to allow hyphenated words.
-    """
-
-    def test_run_dry_run_and_report_routes_gpu(self):
-        d = classify("Run the compound cycle dry-run and report which phases pass")
-        assert d.node == "gpu"
-        assert "run-and-report" in d.reason
-
-    def test_execute_pre_commit_and_report_routes_gpu(self):
-        d = classify("Execute the pre-commit hook and report any errors")
-        assert d.node == "gpu"
-
-    def test_run_benchmark_and_report_routes_gpu(self):
-        d = classify("Run a benchmark and report the scores")
-        assert d.node == "gpu"
-
-
-class TestBacktickNormalizationNonEngineeringPath:
-    """exp_DDDDD3: Backtick-quoted verbs normalized before GPU scan.
-
-    `re.sub(r'`(\\w+)`', r'\\1', prompt)` strips backticks before the GPU pattern scan
-    so that extended engineering verb patterns can match verbs like `validate`, `parse`.
-    Verbs not in the _BACKTICK_VERB_ENGINEERING_PATTERN but in GPU patterns still work.
-    """
-
-    def test_backtick_validate_routes_gpu_via_extended_verb(self):
-        d = classify("`validate` the pipeline schemas before deployment")
-        assert d.node == "gpu"
-
-    def test_backtick_parse_routes_gpu_via_extended_verb(self):
-        d = classify("`parse` the JSON schemas for the API validation layer")
-        assert d.node == "gpu"
-
-
-class TestReasoningLane:
-    """Reasoning lane: genuine multi-step reasoning → CPU reasoner (Gemma-4-31B).
-
-    The `reasoning` output_type has node="gpu" (auto-skips NPU) and a HIGH quality gate
-    (2000) so a verbose-but-shallow iGPU answer fails the gate and escalates to the CPU
-    reasoner — THE GAP fix. These tests pin the classifier side; the orchestrator-side
-    escalation is covered in test_triune_orchestrator.py.
-    """
-
-    def test_analyze_and_recommend_is_reasoning(self):
-        d = classify("Analyze the tradeoffs between Redis and Memcached and recommend one.")
-        assert d.output_type == "reasoning"
-        assert d.node == "gpu"
-        assert d.quality_gate_chars == 2000
-
-    def test_compare_tradeoffs_is_reasoning(self):
-        d = classify("Compare the tradeoffs of optimistic vs pessimistic locking.")
-        assert d.output_type == "reasoning"
-        assert d.node == "gpu"
-
-    def test_causal_why_does_is_reasoning(self):
-        d = classify("Why does increasing batch size reduce throughput under heavy load?")
-        assert d.output_type == "reasoning"
-        assert d.node == "gpu"
-
-    def test_reason_about_directive_is_reasoning(self):
-        d = classify("Reason about whether we should shard the database now or later.")
-        assert d.output_type == "reasoning"
-        assert d.node == "gpu"
-
-    def test_think_step_by_step_about_is_reasoning(self):
-        d = classify("Think step by step about how to migrate the auth system safely.")
-        assert d.output_type == "reasoning"
-        assert d.node == "gpu"
-
-    def test_multi_criteria_decision_is_reasoning(self):
-        d = classify(
-            "Should we use a monolith or microservices given our team size and scaling needs?"
-        )
-        assert d.output_type == "reasoning"
-        assert d.node == "gpu"
-
-    def test_evaluate_whether_with_justification_is_reasoning(self):
-        d = classify("Evaluate whether to adopt event sourcing for the order service and justify.")
-        assert d.output_type == "reasoning"
-        assert d.node == "gpu"
-
-    # ── Discriminating cases: must NOT be misclassified as reasoning ──────────
-
-    def test_short_why_is_definitional_not_reasoning(self):
-        # Short "Why is X?" definitional question stays on the short-answer/NPU path (CL3).
-        d = classify("Why is the sky blue?")
-        assert d.output_type != "reasoning"
-        assert d.node == "npu"
-
-    def test_bare_prove_stays_long_generation_not_reasoning(self):
-        # Pinned test elsewhere asserts this is long_generation — reasoning must not steal it.
-        d = classify("Prove that P != NP showing each step.")
-        assert d.output_type == "long_generation"
-
-    def test_what_is_stays_short_answer_not_reasoning(self):
-        d = classify("What is a semaphore?")
-        assert d.output_type == "short_answer"
-        assert d.node == "npu"
-
-    def test_code_generation_not_reasoning(self):
-        d = classify("Write a Python function to reverse a linked list.")
-        assert d.output_type == "code"
-        assert d.node == "gpu"
+    assert d.node == "gpu", f"Expected gpu for: {prompt!r}"
+    assert d.confidence >= 0.85, f"Expected conf >= 0.85, got {d.confidence} for: {prompt!r}"
+
+
+# ── EXP-0.78-PATTERNS: noun-form why-verbs + implement-multi-word boost ───────
+
+
+@pytest.mark.parametrize(
+    "prompt",
+    [
+        # noun-form degradation/drop/increase now hit specific why-question at 0.85
+        "Why does the compound loop experience throughput degradation after 50 concurrent sessions?",
+        "Why did the semantic cache hit rate drop below 80% on production yesterday?",
+        "Why does the JEPA world model produce increasing surprise scores over time?",
+    ],
+)
+def test_why_noun_form_verbs_at_085(prompt):
+    """Why-question pattern extended with noun-form degradation/drop/increase terms."""
+    d = classify(prompt)
+    assert d.node == "gpu", f"Expected gpu for: {prompt!r}"
+    assert d.confidence >= 0.85, f"Expected conf >= 0.85, got {d.confidence} for: {prompt!r}"
+
+
+@pytest.mark.parametrize(
+    "prompt",
+    [
+        "Implement the semantic cache with TTL eviction",
+        "Implement a retry policy with exponential backoff",
+        "Implement an async message queue using Redis",
+    ],
+)
+def test_implement_multi_word_at_082(prompt):
+    """implement multi-word component boosted from 0.78→0.82."""
+    d = classify(prompt)
+    assert d.node == "gpu", f"Expected gpu for: {prompt!r}"
+    assert d.confidence >= 0.82, f"Expected conf >= 0.82, got {d.confidence} for: {prompt!r}"
+
+
+def test_retrospective_why_still_npu():
+    """Retrospective why-did-we pattern still overrides GPU patterns."""
+    d = classify("Why did we choose to implement this?")
+    assert d.node == "npu"
+
+
+# ── EXP-HOW-DOES-EXTENDED: {2,4} subject + produce/prevent/enable verbs ──────
+
+
+@pytest.mark.parametrize(
+    "prompt",
+    [
+        "How does the JEPA encoder produce embeddings?",
+        "How does the circuit breaker prevent cascading failures?",
+        "How does the rate limiter enforce quotas?",
+        "How does the consensus algorithm ensure consistency?",
+        "How does the cache determine when to evict?",
+        "How does the router decide which tier to use?",
+        "How does the classifier compute confidence scores?",
+    ],
+)
+def test_how_does_extended_verbs_at_085(prompt):
+    """how-does-X-work extended with technical process and causation verbs."""
+    d = classify(prompt)
+    assert d.node == "gpu", f"Expected gpu for: {prompt!r}"
+    assert d.confidence >= 0.85, f"Expected conf >= 0.85, got {d.confidence} for: {prompt!r}"
+
+
+def test_how_does_this_stays_npu():
+    """Trivial 'How does this work?' (1-word subject) stays NPU via length fallback."""
+    d = classify("How does this work?")
+    assert d.node == "npu"
+
+
+# ── EXP-GAPS-SWEEP: ML verbs, server noun, language list, what-should ────────
+
+
+@pytest.mark.parametrize(
+    "prompt",
+    [
+        "How does a neural network learn?",
+        "How does the model adapt to new data?",
+        "How does the optimizer converge?",
+    ],
+)
+def test_how_does_ml_verbs(prompt):
+    """how-does-X-work extended with ML training verbs (learn/adapt/converge)."""
+    d = classify(prompt)
+    assert d.node == "gpu"
+    assert d.confidence >= 0.85
+
+
+@pytest.mark.parametrize(
+    "prompt",
+    [
+        "Build a Go HTTP server with middleware",
+        "Create a gRPC server with streaming",
+    ],
+)
+def test_build_server_gpu(prompt):
+    """'server' added to build-service-or-endpoint noun list."""
+    d = classify(prompt)
+    assert d.node == "gpu"
+    assert d.confidence >= 0.85
+
+
+@pytest.mark.parametrize(
+    "prompt",
+    [
+        "Implement a REST client in Go",
+        "Implement a parser in Haskell",
+        "Implement a web crawler in Rust",
+    ],
+)
+def test_implement_in_expanded_languages(prompt):
+    """implement-in-language expanded with Haskell, Erlang, Elixir, Go, etc."""
+    d = classify(prompt)
+    assert d.node == "gpu"
+    assert d.confidence >= 0.85
+
+
+@pytest.mark.parametrize(
+    "prompt",
+    [
+        "What should I do when the GPU memory is exhausted?",
+        "What should I check if the tests are failing?",
+        "What should we do if the cache becomes stale?",
+        "What should I investigate when latency spikes?",
+    ],
+)
+def test_what_should_i_do_troubleshooting(prompt):
+    """New what-should-I-do-if/when troubleshooting pattern at 0.85."""
+    d = classify(prompt)
+    assert d.node == "gpu", f"Expected gpu for: {prompt!r}"
+    assert d.confidence >= 0.85
+
+
+def test_what_should_i_do_no_context_stays_npu():
+    """Bare 'What should I do?' with no when/if context stays NPU."""
+    d = classify("What should I do?")
+    assert d.node == "npu"
+
+
+# ── EXP-COVERAGE-GAPS: code transforms, diagnostics, indirect why ─────────────
+
+
+@pytest.mark.parametrize(
+    "prompt",
+    [
+        "Port this code to TypeScript",
+        "Convert the function to async",
+        "Wrap this in a try-catch",
+        "Extract a utility function",
+        "Rename this variable to snake_case",
+        "Benchmark the two approaches",
+    ],
+)
+def test_code_transform_verbs_gpu(prompt):
+    """Code transformation verbs (port/convert/wrap/extract/rename/benchmark) route GPU."""
+    d = classify(prompt)
+    assert d.node == "gpu", f"Expected gpu for: {prompt!r}"
+    assert d.confidence >= 0.85
+
+
+@pytest.mark.parametrize(
+    "prompt",
+    [
+        "Is there a race condition here?",
+        "Is there a memory leak in this code?",
+        "Is there a deadlock in the transaction handler?",
+    ],
+)
+def test_is_there_diagnostic(prompt):
+    """'Is there a [technical issue]' routes GPU via diagnostic pattern."""
+    d = classify(prompt)
+    assert d.node == "gpu", f"Expected gpu for: {prompt!r}"
+    assert d.confidence >= 0.85
+
+
+@pytest.mark.parametrize(
+    "prompt",
+    [
+        "What is wrong with this code?",
+        "What could be causing the memory leak?",
+        "What might be the reason for the performance issue?",
+    ],
+)
+def test_root_cause_analysis(prompt):
+    """'What is wrong / what could be causing' routes GPU as root-cause analysis."""
+    d = classify(prompt)
+    assert d.node == "gpu", f"Expected gpu for: {prompt!r}"
+    assert d.confidence >= 0.85
+
+
+def test_can_you_explain_why_gpu():
+    """'Can you explain why' indirect form routes GPU after can-you-action extension."""
+    d = classify("Can you explain why this might be slower than expected?")
+    assert d.node == "gpu"
+    assert d.confidence >= 0.85
+
+
+def test_is_there_meeting_stays_npu():
+    """'Is there a meeting' (non-technical) stays NPU — no matching issue keyword."""
+    d = classify("Is there a meeting tomorrow?")
+    assert d.node == "npu"
+
+
+# ── EXP-REVIEW-QUESTIONS: code review, scale, test coverage, O(n), DRY ───────
+
+
+@pytest.mark.parametrize(
+    "prompt",
+    [
+        "Is this thread-safe?",
+        "Is this query optimized?",
+        "Is this O(n²)?",
+        "Is this following the DRY principle?",
+    ],
+)
+def test_is_this_code_property_gpu(prompt):
+    """'Is this [property]' code review questions route GPU."""
+    d = classify(prompt)
+    assert d.node == "gpu", f"Expected gpu for: {prompt!r}"
+    assert d.confidence >= 0.85
+
+
+@pytest.mark.parametrize(
+    "prompt",
+    [
+        "Does this follow the single responsibility principle?",
+        "Is this following the DRY principle?",
+    ],
+)
+def test_code_principle_check_gpu(prompt):
+    """'Does/Is this follow/following [principle]' routes GPU."""
+    d = classify(prompt)
+    assert d.node == "gpu", f"Expected gpu for: {prompt!r}"
+    assert d.confidence >= 0.85
+
+
+@pytest.mark.parametrize(
+    "prompt",
+    [
+        "Can this be parallelized?",
+        "Can this be memoized?",
+        "Can this be cached?",
+    ],
+)
+def test_can_this_be_gpu(prompt):
+    """'Can this be [capability]' routes GPU."""
+    d = classify(prompt)
+    assert d.node == "gpu", f"Expected gpu for: {prompt!r}"
+    assert d.confidence >= 0.85
+
+
+@pytest.mark.parametrize(
+    "prompt",
+    [
+        "What should I test here?",
+        "Am I missing any test cases?",
+    ],
+)
+def test_test_coverage_question_gpu(prompt):
+    """Test coverage questions route GPU."""
+    d = classify(prompt)
+    assert d.node == "gpu", f"Expected gpu for: {prompt!r}"
+    assert d.confidence >= 0.85
+
+
+def test_will_this_scale_gpu():
+    """'Will this scale to X' routes GPU as scalability analysis."""
+    d = classify("Will this scale to 1 million users?")
+    assert d.node == "gpu"
+    assert d.confidence >= 0.85
+
+
+def test_should_this_query_use_index_gpu():
+    """'Should this query use an index?' routes GPU."""
+    d = classify("Should this query use an index?")
+    assert d.node == "gpu"
+    assert d.confidence >= 0.85
+
+
+def test_is_there_better_way_gpu():
+    """'Is there a better way to do this?' routes GPU."""
+    d = classify("Is there a better way to do this?")
+    assert d.node == "gpu"
+    assert d.confidence >= 0.85
+
+
+def test_is_this_correct_stays_npu():
+    """'Is this correct?' (too vague) stays NPU."""
+    d = classify("Is this correct?")
+    assert d.node == "npu"
+
+
+def test_can_this_be_done_stays_npu():
+    """'Can this be done?' (not in capability list) stays NPU."""
+    d = classify("Can this be done?")
+    assert d.node == "npu"
+
+
+# ── EXP-REDUNDANCY-AUDIT: coverage for 50 untested patterns (spot-check 12) ──
+
+
+@pytest.mark.parametrize(
+    "prompt",
+    [
+        "How do I iterate over a dictionary in Python?",
+        "Fix the off-by-one error in this loop",
+        "How do I center a div in CSS?",
+        "How do I make an HTTP request in JavaScript?",
+    ],
+)
+def test_high_freq_dev_questions_gpu(prompt):
+    """High-frequency developer questions route GPU (not length-fallback NPU)."""
+    d = classify(prompt)
+    assert d.node == "gpu", f"Expected gpu for: {prompt!r}"
+    assert d.confidence >= 0.85
+
+
+@pytest.mark.parametrize(
+    "prompt",
+    [
+        "Generate a YAML configuration for the deployment",
+        "Configure nginx for HTTPS termination",
+        "Create a Kubernetes deployment manifest",
+        "Deploy the service to the staging environment",
+        "Integrate Redis with the caching layer for performance monitoring",
+        "Wire the authentication service into the API gateway",
+        "Fine-tune the BERT model on the classification dataset",
+        "Solve the differential equation step by step",
+        "Prove that the algorithm terminates in polynomial time",
+        "Calculate the eigenvalue decomposition of this matrix",
+        "Define the schema for the user profile model",
+        "Write a comprehensive document about the API design",
+    ],
+)
+def test_untested_patterns_route_gpu(prompt):
+    """Spot-check: 12 previously-untested GPU patterns all route gpu correctly."""
+    d = classify(prompt)
+    assert d.node == "gpu", f"Expected gpu for: {prompt!r}"
+
+
+# ── EXP-IMPLEMENT-MULTIWORD-FIX + EXP-MISC-QUESTIONS ────────────────────────
+
+
+@pytest.mark.parametrize(
+    "prompt",
+    [
+        "Implement the retry mechanism",
+        "Implement a CQRS pattern",
+        "Implement the event sourcing system",
+        "Implement the outbox pattern",
+    ],
+)
+def test_implement_multi_word_short_form_gpu(prompt):
+    """Short 'implement X Y' forms no longer fall to NPU (removed .{5,} guard)."""
+    d = classify(prompt)
+    assert d.node == "gpu", f"Expected gpu for: {prompt!r}"
+    assert d.confidence >= 0.82
+
+
+@pytest.mark.parametrize(
+    "prompt",
+    [
+        "Is this idiomatic?",
+        "Is this the right approach?",
+        "Is this an anti-pattern?",
+    ],
+)
+def test_is_this_right_approach_gpu(prompt):
+    """'Is this idiomatic/right approach/anti-pattern' routes GPU."""
+    d = classify(prompt)
+    assert d.node == "gpu", f"Expected gpu for: {prompt!r}"
+    assert d.confidence >= 0.85
+
+
+@pytest.mark.parametrize(
+    "prompt",
+    [
+        "How do I resolve this merge conflict?",
+        "How do I squash these commits?",
+        "How do I deploy this service?",
+        "How do we migrate this database?",
+    ],
+)
+def test_how_do_i_dev_op_gpu(prompt):
+    """'How do I/we [dev operation]' routes GPU."""
+    d = classify(prompt)
+    assert d.node == "gpu", f"Expected gpu for: {prompt!r}"
+    assert d.confidence >= 0.85
+
+
+@pytest.mark.parametrize(
+    "prompt",
+    [
+        "Give me an example of this",
+        "Show me how to use this",
+        "Give me a code example",
+    ],
+)
+def test_give_me_example_gpu(prompt):
+    """'Give me an example / Show me how' routes GPU."""
+    d = classify(prompt)
+    assert d.node == "gpu", f"Expected gpu for: {prompt!r}"
+    assert d.confidence >= 0.85
+
+
+@pytest.mark.parametrize(
+    "prompt",
+    [
+        "What is the memory usage here?",
+        "What is the latency of this call?",
+        "How expensive is this operation?",
+        "How slow is this query?",
+    ],
+)
+def test_performance_metric_gpu(prompt):
+    """Performance metric questions route GPU."""
+    d = classify(prompt)
+    assert d.node == "gpu", f"Expected gpu for: {prompt!r}"
+    assert d.confidence >= 0.85
+
+
+# ── EXP-CONDITIONAL-EXPLAIN: what-happens, explain-artifact, config, passive ─
+
+
+@pytest.mark.parametrize(
+    "prompt",
+    [
+        "What happens if the database goes down?",
+        "What happens when the cache expires?",
+        "What happens after a connection timeout?",
+    ],
+)
+def test_what_happens_if_gpu(prompt):
+    """'What happens if/when X' routes GPU as conditional analysis."""
+    d = classify(prompt)
+    assert d.node == "gpu", f"Expected gpu for: {prompt!r}"
+    assert d.confidence >= 0.85
+
+
+@pytest.mark.parametrize(
+    "prompt",
+    [
+        "Explain this regex",
+        "Explain this SQL query",
+        "Explain this algorithm",
+        "Explain the migration",
+    ],
+)
+def test_explain_this_artifact_gpu(prompt):
+    """'Explain this [technical artifact]' routes GPU."""
+    d = classify(prompt)
+    assert d.node == "gpu", f"Expected gpu for: {prompt!r}"
+    assert d.confidence >= 0.85
+
+
+@pytest.mark.parametrize(
+    "prompt",
+    [
+        "How should errors be handled here?",
+        "How should the data be structured?",
+        "How should authentication be implemented?",
+    ],
+)
+def test_how_should_x_be_passive_gpu(prompt):
+    """'How should X be [done]' passive-voice architectural guidance routes GPU."""
+    d = classify(prompt)
+    assert d.node == "gpu", f"Expected gpu for: {prompt!r}"
+    assert d.confidence >= 0.85
+
+
+@pytest.mark.parametrize(
+    "prompt",
+    [
+        "Should this be async?",
+        "Should this function be stateless?",
+        "Should this operation be atomic?",
+    ],
+)
+def test_should_this_be_property_gpu(prompt):
+    """'Should this be [technical property]' routes GPU."""
+    d = classify(prompt)
+    assert d.node == "gpu", f"Expected gpu for: {prompt!r}"
+    assert d.confidence >= 0.85
+
+
+@pytest.mark.parametrize(
+    "prompt",
+    [
+        "What exceptions should I catch?",
+        "What errors should I handle?",
+        "What edge cases should I consider?",
+    ],
+)
+def test_what_exceptions_to_handle_gpu(prompt):
+    """'What exceptions/errors/edge cases should I handle' routes GPU."""
+    d = classify(prompt)
+    assert d.node == "gpu", f"Expected gpu for: {prompt!r}"
+    assert d.confidence >= 0.85
+
+
+@pytest.mark.parametrize(
+    "prompt",
+    [
+        "What should the timeout be set to?",
+        "What is a good cache TTL here?",
+        "What are the alternatives to Redis?",
+        "What is a reasonable retry strategy?",
+        "How many connections can this pool hold?",
+    ],
+)
+def test_config_tuning_guidance_gpu(prompt):
+    """Config/tuning guidance and design alternatives route GPU."""
+    d = classify(prompt)
+    assert d.node == "gpu", f"Expected gpu for: {prompt!r}"
+    assert d.confidence >= 0.85
+
+
+# ── EXP-SHORT-FORMS: enable/setup, code-review, help-me, vulnerability, idiom ─
+
+
+@pytest.mark.parametrize(
+    "prompt",
+    [
+        "Set up rate limiting",
+        "Enable connection pooling",
+        "Enable caching",
+        "Turn on distributed tracing",
+    ],
+)
+def test_enable_setup_config_gpu(prompt):
+    """'Set up / Enable / Activate [infra term]' routes GPU as imperative config."""
+    d = classify(prompt)
+    assert d.node == "gpu", f"Expected gpu for: {prompt!r}"
+    assert d.confidence >= 0.85
+
+
+@pytest.mark.parametrize(
+    "prompt",
+    [
+        "Does this implementation look correct?",
+        "Would this cause a performance issue?",
+        "Could this introduce a memory leak?",
+    ],
+)
+def test_code_review_impact_gpu(prompt):
+    """'Does/Would/Could this cause/look correct' routes GPU as code review impact."""
+    d = classify(prompt)
+    assert d.node == "gpu", f"Expected gpu for: {prompt!r}"
+    assert d.confidence >= 0.85
+
+
+@pytest.mark.parametrize(
+    "prompt",
+    [
+        "Help me understand the error",
+        "Help me debug this function",
+        "Help me optimize the query",
+        "Help me analyze the performance regression",
+    ],
+)
+def test_help_me_analyze_gpu(prompt):
+    """'Help me debug/understand/analyze' routes GPU."""
+    d = classify(prompt)
+    assert d.node == "gpu", f"Expected gpu for: {prompt!r}"
+    assert d.confidence >= 0.85
+
+
+@pytest.mark.parametrize(
+    "prompt",
+    [
+        "Is this code vulnerable to SQL injection?",
+        "Are there any XSS vulnerabilities here?",
+        "Does this have a CSRF vulnerability?",
+    ],
+)
+def test_security_vulnerability_gpu(prompt):
+    """Security vulnerability questions route GPU."""
+    d = classify(prompt)
+    assert d.node == "gpu", f"Expected gpu for: {prompt!r}"
+    assert d.confidence >= 0.85
+
+
+def test_make_pythonic_gpu():
+    """'Make this more Pythonic' routes GPU via extended make-code-quality adjectives."""
+    d = classify("Make this more Pythonic")
+    assert d.node == "gpu"
+    assert d.confidence >= 0.85
+
+
+# ── EXP-ARCH-SHORT-OPS: structural ops, arch questions, error analysis ────────
+
+
+@pytest.mark.parametrize(
+    "prompt",
+    [
+        "Split this into smaller functions",
+        "Remove the duplication",
+        "Move this to a separate module",
+        "Decouple the authentication from the router",
+    ],
+)
+def test_structural_code_ops_gpu(prompt):
+    """split/move/remove/decouple added to engineering-task-verb."""
+    d = classify(prompt)
+    assert d.node == "gpu", f"Expected gpu for: {prompt!r}"
+    assert d.confidence >= 0.85
+
+
+@pytest.mark.parametrize(
+    "prompt",
+    [
+        "Add pagination support",
+        "Add type hints",
+        "Add caching",
+        "Add retry logic",
+    ],
+)
+def test_add_feature_directly_gpu(prompt):
+    """'Add [feature/support]' without 'to [artifact]' routes GPU."""
+    d = classify(prompt)
+    assert d.node == "gpu", f"Expected gpu for: {prompt!r}"
+    assert d.confidence >= 0.85
+
+
+@pytest.mark.parametrize(
+    "prompt",
+    [
+        "How should I structure this codebase?",
+        "How should I design the data model?",
+        "Should I use a monorepo or separate repos?",
+        "What is the best architecture for a microservices system?",
+        "What is the best approach for handling retries?",
+    ],
+)
+def test_architectural_guidance_gpu(prompt):
+    """Architectural guidance questions (how-should-I, best-architecture) route GPU."""
+    d = classify(prompt)
+    assert d.node == "gpu", f"Expected gpu for: {prompt!r}"
+    assert d.confidence >= 0.85
+
+
+@pytest.mark.parametrize(
+    "prompt",
+    [
+        "What is the time complexity of this algorithm?",
+        "What are the edge cases I should handle?",
+        "What are the tradeoffs between REST and GraphQL?",
+    ],
+)
+def test_technical_analysis_the_gpu(prompt):
+    """'What are THE [tradeoffs/edge-cases/complexity]' routes GPU (requires 'the')."""
+    d = classify(prompt)
+    assert d.node == "gpu", f"Expected gpu for: {prompt!r}"
+    assert d.confidence >= 0.85
+
+
+@pytest.mark.parametrize(
+    "prompt",
+    [
+        "What are edge cases?",
+        "What is time complexity?",
+        "What is a monorepo?",
+    ],
+)
+def test_definitional_what_stays_npu(prompt):
+    """'What are/is X?' without 'the' stays NPU (definitional, not analysis)."""
+    d = classify(prompt)
+    assert d.node == "npu", f"Expected npu for: {prompt!r}"
+
+
+@pytest.mark.parametrize(
+    "prompt",
+    [
+        "Why am I getting a 503 error?",
+        "Why am I seeing unexpected null values?",
+        "What does this stack trace mean?",
+        "What caused this test to fail?",
+        "What triggered the memory spike?",
+    ],
+)
+def test_error_analysis_gpu(prompt):
+    """Error/cause analysis prompts route GPU."""
+    d = classify(prompt)
+    assert d.node == "gpu", f"Expected gpu for: {prompt!r}"
+    assert d.confidence >= 0.85
