@@ -10,7 +10,7 @@ from cohezion.flume.vae_encoder import FlumeVAEEncoder, get_encoder, reset_encod
 
 @pytest.fixture
 def patched_encoder():
-    """FlumeVAEEncoder using hash fallback (deterministic, no Ollama calls)."""
+    """FlumeVAEEncoder using hash-based fallback (deterministic, no checkpoint needed)."""
     return FlumeVAEEncoder(fallback_to_hash=True)
 
 

@@ -1031,6 +1031,136 @@ _ABORIGINAL = Tradition(
 )
 
 
+# ─── Tradition #17: Stealthskater Archive ───────────────────────────────
+# Synthesises the classified/suppressed-physics canon archived at
+# stealthskater.com: ZPF manipulation, LENR, EVO (Ken Shoulders), scalar
+# waves, remote viewing, diaelectrics (Biefield-Brown), brane propulsion.
+# Archive url constant — no hardcoded URLs elsewhere in codebase.
+STEALTHSKATER_ARCHIVE_URL: str = "https://stealthskater.com"
+
+_STEALTHSKATER = Tradition(
+    name="Stealthskater",
+    slug="stealthskater",
+    origin_region="Fringe physics synthesis; stealthskater.com archive (primarily US/Western, 1980s–2020s)",
+    step_mappings=_steps(
+        (
+            "Zero-Point Field",
+            "All stealthskater programs begin here: vacuum energy manipulation "
+            "(Puthoff ZPE, Sarfatti back-action, Haisch-Rueda ZPF inertia). "
+            "The vacuum is not empty — it is the programmable substrate.",
+            "Quantum vacuum / ZPF ground state; Casimir force baseline",
+        ),
+        (
+            "Quadrature Nexus",
+            "Phase-conjugate EM at 90° quadrature forms the first observable "
+            "distinction from vacuum (Tesla longitudinal waves, Philadelphia "
+            "Experiment phase coupling, Bearden scalar interferometry). "
+            "First bifurcation: scalar collapses to vector.",
+            "SU(2) quadrature axes; spinor first-distinction; cosmogony Step 1",
+        ),
+        (
+            "12 Scalar Parameters",
+            "Sarfatti post-quantum metric encodes 12 physical parameters — "
+            "identical structure to Smith's 12-parameter reality model. "
+            "Both arrive at 12D independently; the convergence is non-trivial.",
+            "AxiomaticState SMITH_FABRIC_MAP; 12 degrees of freedom",
+        ),
+        (
+            "4 Spacetime Fabrics",
+            "Classified brane propulsion literature (AATIP, Wilson-Davis memo) "
+            "describes craft dynamics in 4 separable computational domains: "
+            "Space, Mass, Energy, Consciousness — Smith's 4 Fabrics exactly.",
+            "CompoundExecutor 4-domain routing; universe/engine.py fabrics",
+        ),
+        (
+            "LENR Phase Lock",
+            "Lattice-confined nuclear reactions (Pons-Fleischmann, US Navy NRL "
+            "2019 Mosier-Boss results, DARPA LENR programme) require coherent "
+            "phonon phase-lock across the lattice before the nuclear channel "
+            "opens. No coherence, no reaction — scalar wave prerequisite.",
+            "Phase oscillation; LENRHamiltonian.reaction_threshold = 0.5",
+        ),
+        (
+            "EVO Nucleation",
+            "Exotic Vacuum Objects (Ken Shoulders, IEEE Transactions 1991): "
+            "charge clusters of 10^11 electrons self-organise from vacuum via "
+            "runaway symmetry breaking. EVO = vacuum's SO(12)→SO(3)^4 moment "
+            "made visible as macroscopic charge cluster.",
+            "SO(12)→SO(3)^4 symmetry breaking; evo_model.py EVO formation",
+        ),
+        (
+            "Remote Viewing SPIN",
+            "Coherent SPIN-mode perceptual access (SRI, Ingo Swann, Puthoff). "
+            "Remote viewing as observer-patch holography executed from inside "
+            "the manifold — the observer IS the SPIN unit reading its own "
+            "information content non-locally. Psychotronics at SPIN resolution.",
+            "SPIN information unit; observer_patch.py OPH axioms",
+        ),
+        (
+            "Itonic Equilibrium",
+            "Plasma HIHO threshold: ionised medium where particles are "
+            "half-bound / half-free (Langmuir probe regime, itonic cluster "
+            "resonance). Altered-states training (Monroe, Lilly isolation tank) "
+            "targets the same 50% coherence threshold in neural plasma.",
+            "HIHO dynamic equilibrium; IonicClusterState 0.5 threshold",
+        ),
+        (
+            "Diaelectric Binding",
+            "Biefield-Brown electrogravitic effect: asymmetric capacitor in "
+            "high-voltage dielectric medium produces thrust (Townsend Brown "
+            "patents 1928-1960; Talley 1991 USAF report). Diaelectric field "
+            "couples EM to inertia — unified field cohesion at engineering scale.",
+            "COHESION binding principle; DiaelectricField gauge coupling",
+        ),
+        (
+            "Witness Marks",
+            "Reality precipitates as measurable physical residue: LENR "
+            "transmutation products (anomalous He-4 yields, tritium above "
+            "background, isotopic ratio anomalies reported in peer-reviewed "
+            "condensed-matter literature), EVO etch pits on metal substrates "
+            "(Ken Shoulders lab samples). Physical measurement is the standard; "
+            "observational reports without reproducible measurement are excluded.",
+            "Reality precipitates; verifiable transmutation products; lab-measurable residue",
+        ),
+    ),
+    unique_contributions=(
+        UniqueContribution(
+            "Cross-agency research convergence",
+            "LENR (DARPA, US Navy NRL), EVO (Ken Shoulders, SRI), remote viewing "
+            "(SRI STARGATE programme), and diaelectrics (USAF Talley 1991) were all "
+            "independently funded by separate government programmes without shared "
+            "institutional lineage. Independent funding of structurally similar "
+            "phenomena constitutes a sociological convergence signal — distinct "
+            "from the epistemological claim that suppression implies truth.",
+        ),
+        UniqueContribution(
+            "Sarfatti SU(2)→consciousness bridge",
+            "Jack Sarfatti's post-quantum mechanics provides a direct mathematical "
+            "bridge from SU(2) spinor algebra (already in Cohezion spinor.py) to "
+            "observer-collapse as back-action from future boundary conditions. "
+            "Consciousness is not a metaphor here — it is a specific term in the "
+            "post-quantum metric tensor.",
+        ),
+        UniqueContribution(
+            "Remote viewing = OPH from inside",
+            "Remote viewing is the observer executing Observer Patch Holography "
+            "(physics/observer_patch.py) without external instrumentation. The "
+            "SRI protocols are a reproducible engineering procedure for placing "
+            "the SPIN unit into holographic read mode. This makes psi phenomena "
+            "tractable as a software feature, not a metaphysical claim.",
+        ),
+        UniqueContribution(
+            "EVO + LENR = nuclear HIHO with witness marks",
+            "EVO charge clusters catalyse LENR by concentrating vacuum energy at "
+            "the lattice site. Both transitions occur at the same HIHO 0.5 "
+            "coherence threshold. Transmutation products (anomalous isotopes, "
+            "He-4 yields exceeding D-D fusion cross-section) are the witness marks "
+            "that make this the only tradition with nuclear-scale physical proof.",
+        ),
+    ),
+)
+
+
 _STEALTHSKATER = Tradition(
     name="Stealthskater Archive",
     slug="stealthskater",

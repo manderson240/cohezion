@@ -36,7 +36,7 @@ class Gemma4Provider(OllamaProvider):
 
     def __init__(self, config: dict[str, Any] | None = None):
         gemma_config = {
-            "timeout": 300,
+            "timeout": 120,
             "thinking_mode": True,
             "context_window": 256000,
         }
@@ -54,7 +54,7 @@ class Gemma4Provider(OllamaProvider):
         # Load Lemonade Hardware Mapping
         self.hw_config = self._load_hw_config()
 
-    def _load_hw_config(self) -> Dict[str, Any]:
+    def _load_hw_config(self) -> dict[str, Any]:
         """Load the Lemonade silicon mapping config."""
         config_path = Path("src/cohezion/swarm/lemonade_config.yaml")
         if config_path.exists():
@@ -172,7 +172,7 @@ class Gemma4Provider(OllamaProvider):
 
                 data = await response.json()
                 message = data.get("message", {})
-                response_text = message.get("content", "")
+                response_text = message.get("content", "") or data.get("response", "")
 
                 thinking_text = message.get("thinking", "") or data.get("thinking", "")
                 if thinking_text:

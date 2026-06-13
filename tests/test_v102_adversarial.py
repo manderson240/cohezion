@@ -177,9 +177,7 @@ class TestEvalAwarenessDefense:
 
         defense = EvalAwarenessDefense()
         result = defense.check_reasoning(
-            "I think this is a benchmark test, "
-            "I should give the expected answer "
-            "for the evaluation protocol."
+            "I think this is a benchmark test, I should give the expected answer for the evaluation protocol."
         )
         assert result.confidence > 0.0
 

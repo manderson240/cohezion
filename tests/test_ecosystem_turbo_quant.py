@@ -3,6 +3,12 @@ import pytest
 from cohezion.swarm.providers.lemonade_provider import LemonadeProvider
 from cohezion.swarm.providers.ollama_provider import OllamaProvider
 
+# RED PHASE tests: turbo_quant feature not yet implemented in providers.
+# These tests exercise live services and require them to be running.
+pytestmark = pytest.mark.skip(
+    reason="RED PHASE: turbo_quant not implemented; requires live Lemonade/Ollama services"
+)
+
 
 @pytest.mark.asyncio
 @pytest.mark.xfail(reason="RED PHASE: turbo_quant metadata not yet in live Lemonade response")

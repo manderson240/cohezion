@@ -612,8 +612,7 @@ class DailyHealthDigest:
             )
         elif repo.size_gb < 4.0:
             recommendations.append(
-                f"⚠️  Repository size {repo.size_gb:.2f} GB below HIHO range. "
-                "Consider if critical data is missing."
+                f"⚠️  Repository size {repo.size_gb:.2f} GB below HIHO range. Consider if critical data is missing."
             )
 
         # Large file recommendations
@@ -624,8 +623,7 @@ class DailyHealthDigest:
             )
         elif repo.large_file_count > 50:
             recommendations.append(
-                f"⚠️  WARNING: {repo.large_file_count} large files. "
-                "Review for git-lfs migration candidates."
+                f"⚠️  WARNING: {repo.large_file_count} large files. Review for git-lfs migration candidates."
             )
 
         # Pack efficiency recommendations
@@ -642,32 +640,27 @@ class DailyHealthDigest:
         # Test recommendations
         if test.pass_rate < 0.90:
             recommendations.append(
-                f"❌ CRITICAL: Test pass rate {test.pass_rate:.1%} below 90%. "
-                "Fix failing tests immediately."
+                f"❌ CRITICAL: Test pass rate {test.pass_rate:.1%} below 90%. Fix failing tests immediately."
             )
         elif test.pass_rate < 0.95:
             recommendations.append(
-                f"⚠️  WARNING: Test pass rate {test.pass_rate:.1%} below target (95%). "
-                "Investigate failing tests."
+                f"⚠️  WARNING: Test pass rate {test.pass_rate:.1%} below target (95%). Investigate failing tests."
             )
 
         # Dependency recommendations
         if dep.vulnerable_dependencies > 0:
             recommendations.append(
-                f"❌ CRITICAL: {dep.vulnerable_dependencies} vulnerable dependencies. "
-                "Update immediately."
+                f"❌ CRITICAL: {dep.vulnerable_dependencies} vulnerable dependencies. Update immediately."
             )
         elif dep.outdated_dependencies > 5:
             recommendations.append(
-                f"⚠️  WARNING: {dep.outdated_dependencies} outdated dependencies. "
-                "Schedule update sprint."
+                f"⚠️  WARNING: {dep.outdated_dependencies} outdated dependencies. Schedule update sprint."
             )
 
         # HIHO stability recommendation
         if not hiho_stable:
             recommendations.append(
-                "⚠️  System outside HIHO stability range (0.4-0.6 coherence). "
-                "Review platform decisions for alignment."
+                "⚠️  System outside HIHO stability range (0.4-0.6 coherence). Review platform decisions for alignment."
             )
 
         # If no issues, celebrate!
@@ -789,6 +782,14 @@ Critical Issues:
             HealthStatus.CRITICAL: "❌",
         }
 
+        trend_label = (
+            "📈 Improving"
+            if digest.trend_7d > 0
+            else "📉 Declining"
+            if digest.trend_7d < 0
+            else "→ Stable"
+        )
+        hiho_label = "HIHO ✅" if digest.coherence_metrics.hiho_stable else "Outside HIHO ⚠️"
         output = f"""
 {"=" * 70}
 DAILY PLATFORM HEALTH DIGEST
@@ -797,11 +798,11 @@ Timestamp: {digest.timestamp.isoformat()}
 Overall Score: {digest.overall_health_score:.3f} / 1.0
 Status: {status_emoji[digest.overall_status]} {digest.overall_status.value.upper()}
 HIHO Stable: {"✅ Yes" if digest.hiho_stable else "⚠️  No"}
-Trend (7d): {digest.trend_7d:+.3f} ({"📈 Improving" if digest.trend_7d > 0 else "📉 Declining" if digest.trend_7d < 0 else "→ Stable"})
+Trend (7d): {digest.trend_7d:+.3f} ({trend_label})
 
 COHERENCE METRICS
 {"─" * 70}
-Coherence: {digest.coherence_metrics.coherence:.3f} ({"HIHO ✅" if digest.coherence_metrics.hiho_stable else "Outside HIHO ⚠️"})
+Coherence: {digest.coherence_metrics.coherence:.3f} ({hiho_label})
 Internal State: {digest.coherence_metrics.internal_state:.3f}
 External Alignment: {digest.coherence_metrics.external_alignment:.3f}
 Stability Score: {digest.coherence_metrics.stability_score:.3f}

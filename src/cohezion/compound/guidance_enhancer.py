@@ -240,8 +240,7 @@ class GuidanceEnhancer:
         chaotic = [r for r in failed if r.trajectory_smoothness < 0.3]
         if chaotic:
             warnings.append(
-                f"{len(chaotic)} similar tasks had chaotic trajectories "
-                f"(high variance across fabrics). Plan carefully."
+                f"{len(chaotic)} similar tasks had chaotic trajectories (high variance across fabrics). Plan carefully."
             )
 
         # Low convergence (didn't reach HIHO)

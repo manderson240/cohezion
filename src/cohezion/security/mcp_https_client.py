@@ -79,8 +79,11 @@ class MCPHTTPSClient:
             self._ssl_context.verify_mode = ssl.CERT_NONE
             logger.warning("SSL certificate verification disabled")
 
-        # Enforce strong TLS versions — minimum_version=TLSv1_2 disables all older protocols
+        # Enforce strong TLS versions — explicitly disable insecure protocols
         self._ssl_context.minimum_version = ssl.TLSVersion.TLSv1_2
+        self._ssl_context.options |= (
+            ssl.OP_NO_SSLv2 | ssl.OP_NO_SSLv3 | ssl.OP_NO_TLSv1 | ssl.OP_NO_TLSv1_1
+        )
 
         return self._ssl_context
 
@@ -119,7 +122,7 @@ class MCPHTTPSClient:
             logger.info("✓ Connection to %s:%d validated", self.host, self.port)
             return True
 
-        except OSError as e:
+        except (OSError, ssl.SSLError) as e:
             logger.error(
                 "✗ Connection to %s:%s failed: %s",
                 self.host,

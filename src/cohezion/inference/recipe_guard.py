@@ -122,9 +122,7 @@ class RecipeGuard:
             if not isinstance(func, ast.Name) or func.id != "extend_claude":
                 continue
             # If `params=` is in the kwargs, OK. Otherwise, violation.
-            has_params_kwarg = any(
-                kw.arg == "params" for kw in node.keywords
-            )
+            has_params_kwarg = any(kw.arg == "params" for kw in node.keywords)
             if has_params_kwarg:
                 continue
             violations.append(

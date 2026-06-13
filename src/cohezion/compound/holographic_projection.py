@@ -155,6 +155,11 @@ def encode_step_sequence(
             logger.debug("TemporalEncoder encoding failed, using fallback: %s", e)
 
     last_task = steps[-1].get("task_description", "")
+    if not last_task:
+        # Fall back to a deterministic text representation of the entire sequence.
+        # Include all fields (including lists via repr) so different step data
+        # produces different encodings even when scalar fields are identical.
+        last_task = " ".join(repr(sorted(s.items())) for s in steps)
     if last_task:
         return text_to_latent(last_task, flume_encoder=flume_encoder)
 

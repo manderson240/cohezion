@@ -130,7 +130,15 @@ exclude = [
     ".archives",
     "archives",
     "src/cohezion-archive",  # archived/legacy code — not actively maintained
+    ".git",
+    ".venv",
+    "__pycache__",
     "*.ipynb",
+    "sandbox",
+    "notebooks",
+    "cloud-vault-mcp",
+    "_bmad",
+    "scripts",
 ]
 
 # Linting configuration
@@ -158,6 +166,7 @@ ignore = [
     "RUF002",  # Docstring ambiguous unicode chars (em-dashes etc. are intentional)
     "RUF003",  # Comment ambiguous unicode chars (same)
     "RUF012",  # Mutable ClassVar not annotated with ClassVar[T] — defer to mypy for class-level typing
+    "F841",    # Local variable assigned but never used — common in large codebase, cosmetic
     # Naming conventions — ML/math/physics code uses uppercase per convention
     "N806",    # Variable in function should be lowercase (M, K, N, D — matrix dims)
     "N803",    # Argument name should be lowercase (same)
@@ -204,6 +213,18 @@ ignore = [
 ]
 "scripts/**/*.py" = [
     "E501",  # Research scripts use intentionally verbose description strings
+    "E722",  # Kaggle/system scripts use bare except for resilience
+    "F821",  # Scripts may reference names from runtime environment
+]
+"src/cohezion/competition/**/*.py" = [
+    "E722",  # Competition scripts use bare except for robustness
+    "E501",  # Competition scripts have verbose descriptions
+]
+"src/cohezion/skills/**/*.py" = [
+    "E501",  # Skill PRIME files contain long tool descriptions and examples
+]
+"src/cohezion/worldviews/**/*.py" = [
+    "E501",  # Worldview tradition data contains long narrative strings
 ]
 "examples/**/*.py" = [
     "E501",  # Demonstrator scripts use intentionally verbose evidence f-strings

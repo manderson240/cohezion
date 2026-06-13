@@ -400,8 +400,7 @@ class DynamicCompoundSystem:
         latency = data.get("avg_latency")
 
         logger.warning(
-            f"Reactive: Agent {agent} degraded "
-            f"(success: {success_rate:.1%}, latency: {latency:.0f}ms)"
+            f"Reactive: Agent {agent} degraded (success: {success_rate:.1%}, latency: {latency:.0f}ms)"
         )
 
         # Could trigger skill refinement here
@@ -438,8 +437,7 @@ class DynamicCompoundSystem:
             old_state = breaker.state
             breaker.state = state
             logger.warning(
-                f"Reactive: Circuit breaker for {backend} "
-                f"manually changed: {old_state} -> {state} ({reason})"
+                f"Reactive: Circuit breaker for {backend} manually changed: {old_state} -> {state} ({reason})"
             )
 
     # ═══════════════════════════════════════════════════════════════════

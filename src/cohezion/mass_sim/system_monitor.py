@@ -126,8 +126,7 @@ class MemoryGuard:
             # Throttle: halve batch size
             safe = max(50, requested // 2)
             logger.warning(
-                f"Memory pressure: RSS={v.rss_gb:.1f}GB, "
-                f"avail={v.available_ram_gb:.1f}GB, batch {requested}->{safe}"
+                f"Memory pressure: RSS={v.rss_gb:.1f}GB, avail={v.available_ram_gb:.1f}GB, batch {requested}->{safe}"
             )
             return safe
 

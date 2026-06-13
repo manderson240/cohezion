@@ -23,7 +23,7 @@ class MetaGuard(Guardian):
         try:
             content = filepath.read_text()
             tree = ast.parse(content)
-        except (SyntaxError, OSError):
+        except Exception:
             return
 
         # 1. Check inheritance

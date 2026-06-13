@@ -67,7 +67,11 @@ class TestVAETrainer:
     """Test the training loop."""
 
     def test_loss_decreases_over_epochs(self):
-        """Loss should decrease after a few training epochs on synthetic data."""
+        """Reconstruction loss should decrease after training on synthetic data.
+
+        Checks recon_loss (not total_loss) because KL annealing causes total_loss
+        to increase as beta warms up — even while the model learns to reconstruct.
+        """
         from cohezion.flume.train_vae import VAETrainer
         from cohezion.flume.vae import FlumeVAE
 
@@ -78,7 +82,7 @@ class TestVAETrainer:
         trainer = VAETrainer(model, lr=1e-3, max_beta=0.1, warmup_fraction=0.3)
         history = trainer.train(data, epochs=5, batch_size=32)
 
-        assert history[-1]["total_loss"] < history[0]["total_loss"]
+        assert history[-1]["recon_loss"] < history[0]["recon_loss"]
 
     def test_checkpoint_save_and_load(self, tmp_path: Path):
         """Checkpoint should save and load correctly."""

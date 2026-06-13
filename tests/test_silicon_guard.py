@@ -1,23 +1,21 @@
-from unittest.mock import patch
-
 from cohezion.core.silicon_guard import SiliconGuard
 
 
 def test_silicon_guard_thermal_throttling():
-    # Simulate high temperature with VRAM in safe range so thermal fires first
-    guard = SiliconGuard(temp_limit=30.0)  # Very low limit to trigger thermal
+    # Simulate high temperature — set VRAM limit high enough that only thermal fires
+    # (Strix Halo has 87.9GB+ VRAM, so use 200GB to prevent VRAM throttle from overriding)
+    guard = SiliconGuard(temp_limit=30.0, gtt_limit_gb=200.0)
 
     payload = {"prompt": "Analyze", "max_tokens": 1000}
 
-    # Mock GPU memory to be safe so only thermal triggers
-    with patch.object(SiliconGuard, "get_gpu_memory", return_value=5.0):
-        pressure = guard.check_safety()
-        assert pressure.is_throttled is True
-        assert "Thermal limit" in pressure.reason
+    # Manually check if it triggers a throttle based on the default 45C baseline
+    pressure = guard.check_safety()
+    assert pressure.is_throttled is True
+    assert "Thermal limit" in pressure.reason
 
-        throttled_payload = guard.apply_guardrails(payload)
-        assert throttled_payload["max_tokens"] == 128
-        assert throttled_payload["temperature"] == 0.1
+    throttled_payload = guard.apply_guardrails(payload)
+    assert throttled_payload["max_tokens"] == 128
+    assert throttled_payload["temperature"] == 0.1
 
 
 def test_silicon_guard_memory_limit_mock():

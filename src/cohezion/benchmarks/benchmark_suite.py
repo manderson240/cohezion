@@ -622,8 +622,7 @@ class CohezionBenchmark:
             findings.append(f"Large effect size (Cohen's d = {comparative.cohen_d:.2f})")
         if predictive and abs(predictive.coherence_reward_correlation) > 0.5:
             findings.append(
-                f"Strong coherence-reward correlation "
-                f"(r = {predictive.coherence_reward_correlation:.2f})"
+                f"Strong coherence-reward correlation (r = {predictive.coherence_reward_correlation:.2f})"
             )
 
         # 6. Recommendations

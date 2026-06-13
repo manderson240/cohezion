@@ -102,7 +102,10 @@ class RZeroEvolver:
             prompt += f"Example {i + 1}:\nInput: {ex['input']}\nOutput: {ex['output']}\n\n"
 
         prompt += f"Test Input: {test_input}\n\n"
-        prompt += "Provide your detailed reasoning, identifying the rule, then output ONLY the resulting 2D integer array for the Test Input. Output the grid in [[...]] format."
+        prompt += (
+            "Provide your detailed reasoning, identifying the rule, then output ONLY the"
+            " resulting 2D integer array for the Test Input. Output the grid in [[...]] format."
+        )
 
         client = get_compound_client()
         response_text, _ = await client.generate(

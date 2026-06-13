@@ -189,7 +189,9 @@ def test_route_by_capability_penalizes_weakness_matching_task():
             strengths=("long_context",),
         ),
     )
-    registry = type("R", (), {"models": {weak_for_long.model_id: weak_for_long, healthy.model_id: healthy}})()
+    registry = type(
+        "R", (), {"models": {weak_for_long.model_id: weak_for_long, healthy.model_id: healthy}}
+    )()
     with patch("cohezion.inference.route_by_capability.get_registry", return_value=registry):
         entry, _params = route_by_capability(
             task=Task.LONG_HORIZON,
@@ -213,7 +215,9 @@ def test_route_by_capability_filters_by_required_modes():
         task=Task.GENERAL,
         profile=_good_profile("with-tools", modes=("chat", "tool_use")),
     )
-    registry = type("R", (), {"models": {no_tools.model_id: no_tools, with_tools.model_id: with_tools}})()
+    registry = type(
+        "R", (), {"models": {no_tools.model_id: no_tools, with_tools.model_id: with_tools}}
+    )()
     with patch("cohezion.inference.route_by_capability.get_registry", return_value=registry):
         entry, _params = route_by_capability(
             task=Task.GENERAL,
@@ -249,6 +253,7 @@ def test_route_by_capability_returns_inference_params_with_card_aligned_sampling
     assert params.extra_body.get("temperature") == 0.6
     # The point is that the params are non-default (RecipeGuard.assert_aligned passes)
     from cohezion.inference.recipe_guard import RecipeGuard
+
     RecipeGuard.assert_aligned(params)
 
 
@@ -280,9 +285,9 @@ async def test_extend_claude_aligned_uses_params_model_id_not_registry_pick():
     # clear the gate.
     fake_result = (
         "this is a long enough response to clear the length gate",  # text
-        0.0,    # cost
-        None,   # ttft
-        None,   # tps
+        0.0,  # cost
+        None,  # ttft
+        None,  # tps
     )
     with patch("cohezion.inference.fleet._dispatch_one", AsyncMock(return_value=fake_result)):
         result = await extend_claude_aligned("hello", params=params)

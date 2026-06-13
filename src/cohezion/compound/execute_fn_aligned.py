@@ -104,9 +104,18 @@ def _twelve_d_from_card(
     __post_init__ which fills missing dims with 0.5).
     """
     twelve_d = {
-        "x": 0.5, "y": 0.5, "z": 0.5, "time": 0.5,
-        "physics": 0.5, "biology": 0.5, "logic": 0.5, "quantum": 0.5,
-        "field": 0.5, "control": 0.5, "novelty": 0.5, "precipitation": 0.5,
+        "x": 0.5,
+        "y": 0.5,
+        "z": 0.5,
+        "time": 0.5,
+        "physics": 0.5,
+        "biology": 0.5,
+        "logic": 0.5,
+        "quantum": 0.5,
+        "field": 0.5,
+        "control": 0.5,
+        "novelty": 0.5,
+        "precipitation": 0.5,
     }
     # Family fingerprint: lift the relevant dimension to 0.7
     dim = _FAMILY_TO_DIM.get(family)
@@ -125,8 +134,12 @@ def _twelve_d_from_card(
 
 
 def _emit_witness_mark(
-    *, params: InferenceParams, task: str, twelve_d: dict[str, float],
-    coherence: float, payload: dict[str, Any],
+    *,
+    params: InferenceParams,
+    task: str,
+    twelve_d: dict[str, float],
+    coherence: float,
+    payload: dict[str, Any],
 ) -> None:
     """Emit a WITNESS_MARK precipitation event. Never raises."""
     try:
@@ -164,7 +177,11 @@ def _slugify(s: str) -> str:
 
 
 def _write_vault_note(
-    *, params: InferenceParams, task: str, text: str, metrics: dict[str, Any],
+    *,
+    params: InferenceParams,
+    task: str,
+    text: str,
+    metrics: dict[str, Any],
     family: str,
 ) -> Path:
     """Write a vault note for the execution. Best-effort; never raises."""
@@ -239,6 +256,7 @@ async def _upsert_surreal_execution(
 
 def _b64(s: str) -> str:
     import base64
+
     return base64.b64encode(s.encode()).decode()
 
 
@@ -326,9 +344,7 @@ async def execute_fn_aligned(guidance: dict[str, Any]) -> tuple[str, dict[str, A
     try:
         async with FleetLock().acquire(lock_key, timeout=30.0):
             try:
-                result_obj = await extend_claude_aligned(
-                    task, params=params, timeout=60.0
-                )
+                result_obj = await extend_claude_aligned(task, params=params, timeout=60.0)
                 text = result_obj.text
                 escalated = bool(getattr(result_obj, "escalated_to_cloud", False))
                 if result_obj.error:

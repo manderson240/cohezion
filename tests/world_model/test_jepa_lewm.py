@@ -154,8 +154,7 @@ def test_regularizer_reduces_embedding_variance() -> None:
     dist_without = _dist_from_standard_normal(lam=0.0)
 
     assert dist_with < dist_without, (
-        f"Regularizer did not improve Gaussian alignment: "
-        f"with={dist_with:.4f}, without={dist_without:.4f}"
+        f"Regularizer did not improve Gaussian alignment: with={dist_with:.4f}, without={dist_without:.4f}"
     )
 
 

@@ -152,8 +152,7 @@ class UnslothBridge:
 
         # Last resort: empty dataset with a warning
         logger.warning(
-            "UnslothBridge: no data source available (API down, no local JSONL). "
-            "Writing empty dataset to %s",
+            "UnslothBridge: no data source available (API down, no local JSONL). Writing empty dataset to %s",
             out,
         )
         out.write_text("", encoding="utf-8")

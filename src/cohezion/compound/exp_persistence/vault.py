@@ -306,7 +306,9 @@ class VaultLogger:
 
                 filename = f"missions/{mission_id}.md"
                 # Add links to relevant project and skill for Obsidian Graph connectivity
-                content += f"\n\n--- \nTags: #retrospective #{data.get('agent', 'agent').lower()} #{data.get('skill_name', 'skill').lower()}\n"
+                agent_tag = data.get("agent", "agent").lower()
+                skill_tag = data.get("skill_name", "skill").lower()
+                content += f"\n\n--- \nTags: #retrospective #{agent_tag} #{skill_tag}\n"
 
                 _fire_vault_write(self.mcp, filename, content)
                 logger.info(f"Architectural insight persisted to Vault: {filename}")

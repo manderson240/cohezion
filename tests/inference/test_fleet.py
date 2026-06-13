@@ -175,8 +175,7 @@ async def test_extend_claude_rejects_unknown_model_before_local_loop():
         result = await extend_claude("test", claude_model="this-model-does-not-exist")
 
     assert route_mock.await_count == 0, (
-        "route() must not be called when claude_model is invalid; "
-        f"was called {route_mock.await_count} times"
+        f"route() must not be called when claude_model is invalid; was called {route_mock.await_count} times"
     )
     assert result.error is not None
     assert "this-model-does-not-exist" in result.error

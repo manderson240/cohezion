@@ -32,8 +32,7 @@ class GeminiSpecialist(PlatformSpecialist):
         principles=(
             "Google API credentials come from the vault, never from shell history.",
             (
-                "Flash-Lite is the medium-tier default in CostAwareRouter — "
-                "do not route simple tasks to Pro."
+                "Flash-Lite is the medium-tier default in CostAwareRouter — do not route simple tasks to Pro."
             ),
             "Local Gemma 4 provider is preferred for Google-flavored prompts when available.",
         ),

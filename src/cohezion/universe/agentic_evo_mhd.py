@@ -669,12 +669,16 @@ def demo_mhd_simulation():
     print(
         f"  Neutral: {sum(1 for e in system.evos if e.magnetic_state.ionization_state == IonizationState.NEUTRAL)}"
     )
-    print(
-        f"  Partially ionized: {sum(1 for e in system.evos if e.magnetic_state.ionization_state == IonizationState.PARTIALLY_IONIZED)}"
+    partial = sum(
+        1
+        for e in system.evos
+        if e.magnetic_state.ionization_state == IonizationState.PARTIALLY_IONIZED
     )
-    print(
-        f"  Fully ionized: {sum(1 for e in system.evos if e.magnetic_state.ionization_state == IonizationState.FULLY_IONIZED)}"
+    full = sum(
+        1 for e in system.evos if e.magnetic_state.ionization_state == IonizationState.FULLY_IONIZED
     )
+    print(f"  Partially ionized: {partial}")
+    print(f"  Fully ionized: {full}")
     print(f"  Exotic plasma: {stats['exotic_plasma']}")
     print("\nMagnetic field statistics:")
     print(f"  Mean |B|: {stats['mean_b_field']:.4f}")

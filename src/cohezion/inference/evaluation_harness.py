@@ -275,8 +275,7 @@ class EvaluationHarness:
         if best:
             b = best[0]
             recs.append(
-                f"Best config: temp={b.config.get('temperature')}, "
-                f"max_tokens={b.config.get('max_tokens')}"
+                f"Best config: temp={b.config.get('temperature')}, max_tokens={b.config.get('max_tokens')}"
             )
 
         if trends is None:

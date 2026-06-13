@@ -53,9 +53,7 @@ class MassSimOrchestrator:
 
         logger.info(f"Mass Simulation {run_id}")
         logger.info(
-            f"  Scale: {scale.name} | "
-            f"{scale.n_agents} agents x {scale.n_epochs} epochs x "
-            f"{scale.n_universes} universes"
+            f"  Scale: {scale.name} | {scale.n_agents} agents x {scale.n_epochs} epochs x {scale.n_universes} universes"
         )
         logger.info(f"  Navigator: {'FULL' if cfg.use_navigator else 'JITTER'}")
         self.guard.log_status("  Initial ")

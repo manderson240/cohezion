@@ -113,8 +113,7 @@ class BatchProcessor:
                     batch_result.failed_tasks.append(task)
 
         logger.info(
-            f"Batch complete: {len(batch_result.results)} tasks, "
-            f"{batch_result.success_rate:.1%} success rate"
+            f"Batch complete: {len(batch_result.results)} tasks, {batch_result.success_rate:.1%} success rate"
         )
 
         return batch_result

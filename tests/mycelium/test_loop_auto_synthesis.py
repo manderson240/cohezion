@@ -29,7 +29,6 @@ def test_mycelium_loop_run_tests_returns_float():
     """CoverageLoop.run_tests_and_get_coverage() must return a float
     in [0, 100]. Even on failure it returns 0.0 (not raises)."""
     from cohezion.mycelium.loop import CoverageLoop
-    from cohezion.mycelium.scripter import ShadowScripter
 
     scripter = MagicMock()
     # Use a real existing directory (the repo root) so subprocess.check_output

@@ -386,9 +386,7 @@ class AsyncGRPOTrainer(GRPOTrainer):
 
             if batch_idx % self.config.log_interval == 0:
                 logger.info(
-                    f"Step {metrics.step}: "
-                    f"loss={metrics.loss:.4f}, "
-                    f"reward={metrics.mean_reward:.4f}"
+                    f"Step {metrics.step}: loss={metrics.loss:.4f}, reward={metrics.mean_reward:.4f}"
                 )
 
         return {k: sum(v) / len(v) for k, v in epoch_metrics.items()}

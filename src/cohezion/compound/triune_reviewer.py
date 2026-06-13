@@ -48,9 +48,21 @@ class TriuneReviewer:
     def __init__(self, provider: Gemma4Provider):
         self.provider = provider
         self.personas = {
-            "physicist": "You are a Theoretical Physicist specializing in 12D Manifolds and HIHO Stability. Your goal is to identify physical impossibilities and instability in the proposed ecological strategy.",
-            "ecologist": "You are a TEK Specialist with deep expertise in Indigenous worldviews and ecosystem interconnectedness. Your goal is to ensure the strategy respects biological rhythms and systemic balance.",
-            "engineer": "You are a Hardware Architect specializing in AMD Strix Halo UMA. Your goal is to ensure the proposed simulation and deployment are computationally feasible and resource-efficient.",
+            "physicist": (
+                "You are a Theoretical Physicist specializing in 12D Manifolds and HIHO Stability."
+                " Your goal is to identify physical impossibilities and instability in the proposed"
+                " ecological strategy."
+            ),
+            "ecologist": (
+                "You are a TEK Specialist with deep expertise in Indigenous worldviews and ecosystem"
+                " interconnectedness. Your goal is to ensure the strategy respects biological rhythms"
+                " and systemic balance."
+            ),
+            "engineer": (
+                "You are a Hardware Architect specializing in AMD Strix Halo UMA. Your goal is to"
+                " ensure the proposed simulation and deployment are computationally feasible and"
+                " resource-efficient."
+            ),
         }
 
     async def review(self, strategy: str, manifold_coords: Any) -> TriuneReviewResult:
@@ -81,7 +93,7 @@ class TriuneReviewer:
                     score = float(data.get("score", 0.5))
                     critique = data.get("critique", "No critique")
                     suggestion = data.get("suggestion")
-                except:
+                except Exception:
                     score = 0.5
                     critique = res.response
                     suggestion = None

@@ -13,6 +13,11 @@ import json
 import re
 import statistics
 from collections import deque
+from typing import TYPE_CHECKING
+
+
+if TYPE_CHECKING:
+    from cohezion.swarm.specialist_agents import SpecialistAgent
 from dataclasses import dataclass, field
 from datetime import datetime
 from pathlib import Path

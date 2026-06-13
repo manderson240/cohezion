@@ -591,8 +591,7 @@ class GroupEvolutionEngine:
                     agent_id=target_agent_id,
                     target_area=_infer_target_area(trace),
                     description=(
-                        f"Adopt pattern from {trace.agent_id}: "
-                        f"{trace.content.get('summary', 'N/A')}"
+                        f"Adopt pattern from {trace.agent_id}: {trace.content.get('summary', 'N/A')}"
                     ),
                     source_traces=[trace.agent_id],
                     confidence=trace.quality_score,

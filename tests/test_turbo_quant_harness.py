@@ -1,8 +1,15 @@
-from unittest.mock import MagicMock, patch
+from unittest.mock import patch
 
 import torch
 
+from cohezion.core.silicon_guard import HardwarePressure, SiliconGuard
 from cohezion.flume.coherence_guard import TurboQuantHarness, apply_dummy_int8_quantization
+
+# Strix Halo has >87GB VRAM usage; patch silicon guard to not fire during unit tests
+_safe_guard = SiliconGuard(gtt_limit_gb=200.0, temp_limit=100.0)
+_not_throttled = HardwarePressure(
+    temp_c=40.0, gpu_mem_used_gb=50.0, npu_active=False, is_throttled=False, reason=""
+)
 
 
 def test_harness_coherence_calculation():
@@ -34,13 +41,8 @@ def test_verify_quantization_success():
     # Dummy quant should be close enough for low-noise tensors
     dequantized = apply_dummy_int8_quantization(original)
 
-    # Mock silicon guard so test is not flaky under high VRAM usage
-    mock_pressure = MagicMock()
-    mock_pressure.is_throttled = False
-    with patch("cohezion.flume.coherence_guard.get_silicon_guard") as mock_guard:
-        mock_guard.return_value.check_safety.return_value = mock_pressure
+    with patch("cohezion.flume.coherence_guard.get_silicon_guard", return_value=_safe_guard):
         result = harness.verify_quantization(original, dequantized)
-
     assert result["success"] is True
     assert result["mae"] < 0.1
 

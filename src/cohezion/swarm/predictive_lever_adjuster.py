@@ -223,7 +223,7 @@ class PredictiveLeverAdjuster:
             try:
                 last_dt = datetime.strptime(last_time, "%Y-%m-%dT%H:%M:%SZ")
                 hours_since = (datetime.utcnow() - last_dt).total_seconds() / 3600
-            except (ValueError, TypeError):
+            except Exception:
                 hours_since = 24  # Default to 24 hours
         else:
             hours_since = 0
@@ -400,8 +400,7 @@ class PredictiveLeverAdjuster:
                 f.write(json.dumps(request.__dict__) + "\n")
 
         logger.info(
-            f"Saved {len(self.approved_adjustments)} approved, "
-            f"{len(self.rejected_adjustments)} rejected adjustments"
+            f"Saved {len(self.approved_adjustments)} approved, {len(self.rejected_adjustments)} rejected adjustments"
         )
 
     def get_dashboard(self) -> dict[str, Any]:

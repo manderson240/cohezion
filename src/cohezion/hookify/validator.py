@@ -1,4 +1,3 @@
-# best-effort: ignored exceptions are intentional in init/cleanup paths
 """
 Hookify Rule Engine - Core Implementation
 Universal rule system with cross-platform MCP bridge support
@@ -6,39 +5,11 @@ Universal rule system with cross-platform MCP bridge support
 
 from __future__ import annotations
 
-import logging
 import os
 import re
 from dataclasses import dataclass, field
-from typing import TYPE_CHECKING, Any
-
-
-if TYPE_CHECKING:
-    from pathlib import Path
-
-
-logger = logging.getLogger(__name__)
-
-# Validates rule IDs from on-disk markdown before SQL interpolation
-# (Ω12 P1 Patch 7 — defense-in-depth against SurrealQL injection).
-_RULE_ID_RE = re.compile(r"^[a-zA-Z0-9_\-]+$")
-
-try:
-    from surrealdb.errors import SurrealDBMethodError
-except (ImportError, AttributeError):
-    SurrealDBMethodError = ()  # type: ignore[assignment,misc]
-
-
-logger = logging.getLogger(__name__)
-
-# Validates rule IDs from on-disk markdown before SQL interpolation
-# (Ω12 P1 Patch 7 — defense-in-depth against SurrealQL injection).
-_RULE_ID_RE = re.compile(r"^[a-zA-Z0-9_\-]+$")
-
-try:
-    from surrealdb.errors import SurrealDBMethodError
-except (ImportError, AttributeError):
-    SurrealDBMethodError = ()  # type: ignore[assignment,misc]
+from pathlib import Path
+from typing import Any
 
 
 @dataclass
@@ -82,8 +53,8 @@ class HookifyValidator:
         self.rules = rules or []
         self._db = None  # SurrealDB connection (lazy init)
         self._vault = None  # Vault logger (lazy init)
-        self._lever_overrides: dict[tuple[str, str], Any] = {}  # in-memory Tier 2 store
-        self._violation_logs: dict[str, list[dict[str, Any]]] = {}  # in-memory Tier 3 store
+        self._lever_overrides: dict[str, dict[str, object]] = {}
+        self._violation_logs: dict[str, list[dict]] = {}
 
         if rules_path:
             self.rules = self._load_rules_from_file(rules_path)
@@ -104,8 +75,8 @@ class HookifyValidator:
                 rule = self._parse_rule_section(section)
                 if rule:
                     rules.append(rule)
-            except Exception as e:
-                logger.debug("Invalid rule format, skipping: %s", e)
+            except Exception:
+                # Invalid rule format - skip gracefully
                 continue
 
         return rules
@@ -487,20 +458,12 @@ class HookifyValidator:
             self._db = self._init_surrealdb()
 
         if self._db:
-            # rule_id can come from on-disk markdown — validate before SQL
-            # (Ω12 P1 Patch 7 — SurrealQL injection defense).
-            if not _RULE_ID_RE.match(rule_id):
-                logger.warning("Skipping load_db_overrides: invalid rule_id %r", rule_id)
-                return {}
             try:
-                result = self._db.query(
-                    "LET $rid = $rule_id; SELECT * FROM hookify_rules WHERE rule_id = $rid",
-                    {"rule_id": rule_id},
-                )
+                result = self._db.query(f"SELECT * FROM hookify_rules WHERE rule_id = '{rule_id}'")
                 if result and len(result) > 0:
                     return result[0].get("lever_overrides", {})
-            except Exception as e:
-                logger.debug("load_db_overrides failed: %s", e)
+            except Exception:
+                pass
 
         return {}
 
@@ -513,14 +476,7 @@ class HookifyValidator:
             db = Surreal("ws://localhost:8001")
             # Connection logic here - signin, use namespace, etc.
             return db
-        except (
-            ImportError,
-            AttributeError,
-            OSError,
-            RuntimeError,
-            ValueError,
-            SurrealDBMethodError,
-        ):
+        except (ImportError, Exception):
             # SurrealDB not available or connection failed
             return None
 
@@ -571,24 +527,21 @@ class HookifyValidator:
     # =========================================================================
 
     def _save_lever_override(self, rule_id: str, lever_name: str, value: Any):
-        """Save runtime lever override to SurrealDB"""
-        # Placeholder - integrate with SurrealDB
-        pass
+        """Save runtime lever override (in-memory, SurrealDB integration deferred)."""
+        self._lever_overrides.setdefault(rule_id, {})[lever_name] = value
 
     def _load_lever_override(self, rule_id: str, lever_name: str) -> Any:
-        """Load runtime lever override from SurrealDB"""
-        # Placeholder - integrate with SurrealDB
-        return None
+        """Load runtime lever override (in-memory, SurrealDB integration deferred)."""
+        return self._lever_overrides.get(rule_id, {}).get(lever_name)
 
     def _log_violation(self, rule_id: str, context: dict, violation: dict):
-        """Log violation to vault for recursive learning"""
-        # Placeholder - integrate with VaultLogger
-        pass
+        """Log violation for recursive learning (in-memory, vault integration deferred)."""
+        entry = {**context, **violation}
+        self._violation_logs.setdefault(rule_id, []).append(entry)
 
     def _get_violation_logs(self, rule_id: str) -> list[dict]:
-        """Retrieve violation logs from vault"""
-        # Placeholder - integrate with VaultLogger
-        return []
+        """Retrieve violation logs (in-memory, vault integration deferred)."""
+        return self._violation_logs.get(rule_id, [])
 
     # =========================================================================
     # CONVENIENCE API
@@ -616,37 +569,23 @@ class HookifyValidator:
 
         return self._resolve_levers(rule_id, rule.levers, db_overrides, env_overrides)
 
-    def _save_lever_override(self, rule_id: str, lever_name: str, value: Any) -> None:
-        """Persist lever override in-memory (Tier 2 write-ahead store)."""
-        self._lever_overrides[(rule_id, lever_name)] = value
-
-    def _load_lever_override(self, rule_id: str, lever_name: str) -> Any:
-        """Load lever override from in-memory store. Returns None if not set."""
-        return self._lever_overrides.get((rule_id, lever_name))
-
-    def _log_violation(
-        self, rule_id: str, context: dict[str, Any], violation: dict[str, Any]
-    ) -> None:
-        """Append violation to in-memory log (Tier 3 audit trail)."""
-        if rule_id not in self._violation_logs:
-            self._violation_logs[rule_id] = []
-        self._violation_logs[rule_id].append({**context, "violation": violation})
-
-    def _get_violation_logs(self, rule_id: str) -> list[dict[str, Any]]:
-        """Return violation log entries for a rule."""
-        return self._violation_logs.get(rule_id, [])
-
     def set_lever_position(self, rule_id: str, lever_name: str, value: Any) -> dict[str, Any]:
-        """Set lever override (write-ahead: persists even for unknown rules).
+        """
+        Set lever position (saved to Tier 2: SurrealDB)
 
         Returns:
-            Dict with success status, previous and new values.
+            Dict with success status and previous value
         """
-        previous_value = self._load_lever_override(rule_id, lever_name)
         rule = self.get_rule(rule_id)
-        if rule and lever_name in rule.levers:
-            previous_value = rule.levers[lever_name]
+        if not rule:
+            return {"success": False, "error": f"Rule {rule_id} not found"}
 
+        if lever_name not in rule.levers:
+            return {"success": False, "error": f"Lever {lever_name} not found"}
+
+        previous_value = rule.levers.get(lever_name)
+
+        # Save to SurrealDB
         self._save_lever_override(rule_id, lever_name, value)
 
         return {

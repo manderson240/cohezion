@@ -78,8 +78,7 @@ class CheckpointExporter:
 
         if exported:
             logger.info(
-                f"Exported {len(exported)} checkpoint arrays for "
-                f"{result.universe_id} to {self.output_dir}"
+                f"Exported {len(exported)} checkpoint arrays for {result.universe_id} to {self.output_dir}"
             )
 
         return exported

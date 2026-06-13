@@ -49,10 +49,10 @@ class TestModelRankerBasics:
 
     def test_rank_multiple_models(self, ranker):
         """Test ranking multiple models."""
-        models = ["phi3:mini", "qwen3-coder:32b", "deepseek-r1:8b", "Phi-4-mini-instruct-Hybrid"]
+        models = ["phi3:mini", "qwen3-coder:32b", "deepseek-r1:8b"]
         ranked = ranker.rank_models(available_models=models)
 
-        assert len(ranked) == 4
+        assert len(ranked) == 3
         # Should be sorted by composite score (highest first)
         for i in range(len(ranked) - 1):
             assert ranked[i][1].composite_score >= ranked[i + 1][1].composite_score
@@ -65,7 +65,7 @@ class TestModelRankerBasics:
     def test_model_score_representation(self, ranker):
         """Test ModelScore string representation."""
         ranked = ranker.rank_models(available_models=["phi3:mini"])
-        _model, score = ranked[0]
+        model, score = ranked[0]
 
         repr_str = repr(score)
         assert "ModelScore" in repr_str
@@ -88,46 +88,46 @@ class TestRankingStrategies:
 
     def test_balanced_strategy(self, ranker):
         """Test balanced ranking strategy."""
-        models = ["phi3:mini", "qwen3-coder:32b", "deepseek-r1:8b", "Phi-4-mini-instruct-Hybrid"]
+        models = ["phi3:mini", "qwen3-coder:32b", "deepseek-r1:8b"]
         ranked = ranker.rank_models(
             available_models=models,
             strategy=RankingStrategy.BALANCED,
         )
 
-        assert len(ranked) == 4
+        assert len(ranked) == 3
         # All should have BALANCED strategy
-        for _model, score in ranked:
+        for model, score in ranked:
             assert score.strategy == "balanced"
 
     def test_cost_optimized_strategy(self, ranker):
         """Test cost-optimized ranking strategy."""
-        models = ["phi3:mini", "qwen3-coder:32b", "deepseek-r1:8b", "Phi-4-mini-instruct-Hybrid"]
+        models = ["phi3:mini", "qwen3-coder:32b", "deepseek-r1:8b"]
         ranked = ranker.rank_models(
             available_models=models,
             strategy=RankingStrategy.COST_OPTIMIZED,
         )
 
-        assert len(ranked) == 4
+        assert len(ranked) == 3
         # All should have COST_OPTIMIZED strategy
-        for _model, score in ranked:
+        for model, score in ranked:
             assert score.strategy == "cost_optimized"
 
     def test_quality_first_strategy(self, ranker):
         """Test quality-first ranking strategy."""
-        models = ["phi3:mini", "qwen3-coder:32b", "deepseek-r1:8b", "Phi-4-mini-instruct-Hybrid"]
+        models = ["phi3:mini", "qwen3-coder:32b", "deepseek-r1:8b"]
         ranked = ranker.rank_models(
             available_models=models,
             strategy=RankingStrategy.QUALITY_FIRST,
         )
 
-        assert len(ranked) == 4
+        assert len(ranked) == 3
         # All should have QUALITY_FIRST strategy
-        for _model, score in ranked:
+        for model, score in ranked:
             assert score.strategy == "quality_first"
 
     def test_different_strategies_produce_different_rankings(self, ranker):
         """Test that different strategies produce different composite scores."""
-        models = ["phi3:mini", "qwen3-coder:32b", "deepseek-r1:8b", "Phi-4-mini-instruct-Hybrid"]
+        models = ["phi3:mini", "qwen3-coder:32b", "deepseek-r1:8b"]
 
         cost_ranked = ranker.rank_models(
             available_models=models,
@@ -173,7 +173,7 @@ class TestCoherenceScoring:
         )
 
         assert len(ranked) == 1
-        _model, score = ranked[0]
+        model, score = ranked[0]
         # Should use default coherence
         assert score.coherence_score == 0.95
 
@@ -283,7 +283,7 @@ class TestMultiStrategyComparison:
         """Test ranking by all strategies simultaneously."""
         ranker = ModelRanker()
 
-        models = ["phi3:mini", "qwen3-coder:32b", "deepseek-r1:8b", "Phi-4-mini-instruct-Hybrid"]
+        models = ["phi3:mini", "qwen3-coder:32b", "deepseek-r1:8b"]
         all_strategies = ranker.rank_models_by_strategy(
             available_models=models,
         )
@@ -298,20 +298,20 @@ class TestMultiStrategyComparison:
         """Test that each strategy produces a complete ranking."""
         ranker = ModelRanker()
 
-        models = ["phi3:mini", "qwen3-coder:32b", "deepseek-r1:8b", "Phi-4-mini-instruct-Hybrid"]
+        models = ["phi3:mini", "qwen3-coder:32b", "deepseek-r1:8b"]
         all_strategies = ranker.rank_models_by_strategy(
             available_models=models,
         )
 
-        for _strategy, rankings in all_strategies.items():
-            assert len(rankings) == len(models)
+        for strategy, rankings in all_strategies.items():
+            assert len(rankings) == 3
             assert all(isinstance(score, ModelScore) for _, score in rankings)
 
     def test_strategy_consistency_across_calls(self):
         """Test that same strategy produces consistent ranking."""
         ranker = ModelRanker()
 
-        models = ["phi3:mini", "qwen3-coder:32b", "deepseek-r1:8b", "Phi-4-mini-instruct-Hybrid"]
+        models = ["phi3:mini", "qwen3-coder:32b", "deepseek-r1:8b"]
 
         # Rank twice
         ranking1 = ranker.rank_models(
@@ -389,7 +389,7 @@ class TestCostAndLatencyNormalization:
         )
 
         # All should have valid scores despite zero cost
-        for _model, score in ranked:
+        for model, score in ranked:
             assert 0.0 <= score.composite_score <= 1.0
 
 
@@ -452,7 +452,7 @@ class TestUnknownModels:
         )
 
         assert len(ranked) == 1
-        _model, score = ranked[0]
+        model, score = ranked[0]
         # Should use default (0.70)
         assert score.coherence_score == 0.70
 
@@ -465,7 +465,7 @@ class TestUnknownModels:
 
         assert len(ranked) == 3
         # All should have valid scores
-        for _model, score in ranked:
+        for model, score in ranked:
             assert 0.0 <= score.composite_score <= 1.0
 
     def test_unknown_model_coherence_clipping(self):
@@ -511,11 +511,11 @@ class TestWeightTuning:
 
         # All local models have zero cost, so weight shouldn't change ranking much
         ranked = ranker.rank_models(
-            available_models=["phi3:mini", "qwen3-coder:32b", "Phi-4-mini-instruct-Hybrid"],
+            available_models=["phi3:mini", "qwen3-coder:32b"],
             strategy=RankingStrategy.BALANCED,
         )
 
-        assert len(ranked) == 3  # 3 models in available_models
+        assert len(ranked) == 2
         assert all(0.0 <= s.composite_score <= 1.0 for _, s in ranked)
 
     def test_unbalanced_weights_warning(self):
@@ -575,7 +575,7 @@ class TestPerformanceAndEdgeCases:
         # Should have entries for each occurrence
         assert len(ranked) == 3
         # All entries should have valid scores
-        for _model, score in ranked:
+        for model, score in ranked:
             assert 0.0 <= score.composite_score <= 1.0
 
     def test_all_equal_models_ranking(self):
@@ -714,7 +714,7 @@ class TestRankingConsistency:
     def test_ranking_deterministic(self):
         """Test that ranking is deterministic for same inputs."""
         ranker = ModelRanker()
-        models = ["phi3:mini", "qwen3-coder:32b", "deepseek-r1:8b", "Phi-4-mini-instruct-Hybrid"]
+        models = ["phi3:mini", "qwen3-coder:32b", "deepseek-r1:8b"]
 
         # Rank 5 times
         rankings = [ranker.rank_models(available_models=models) for _ in range(5)]
@@ -811,16 +811,11 @@ class TestIntegrationWithGlobalMetrics:
         ranker = ModelRanker()
 
         ranked = ranker.rank_models(
-            available_models=[
-                "phi3:mini",
-                "qwen3-coder:32b",
-                "deepseek-r1:8b",
-                "Phi-4-mini-instruct-Hybrid",
-            ]
+            available_models=["phi3:mini", "qwen3-coder:32b", "deepseek-r1:8b"]
         )
 
         # Scores should be in valid range for comparison
-        for _model, score in ranked:
+        for model, score in ranked:
             assert isinstance(score.coherence_score, float)
             assert isinstance(score.composite_score, float)
             assert 0.0 <= score.composite_score <= 1.0

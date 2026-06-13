@@ -148,8 +148,7 @@ class TruthAnchorValidator:
                         observed=variance,
                         severity=min(1.0, (0.1 - variance) / 0.1 + drift),
                         description=(
-                            f"Zero-variance coherence ({variance:.6f}) at "
-                            f"mean={mean_coh:.3f} — possible groupthink"
+                            f"Zero-variance coherence ({variance:.6f}) at mean={mean_coh:.3f} — possible groupthink"
                         ),
                     )
                 )

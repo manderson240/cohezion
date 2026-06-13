@@ -291,9 +291,7 @@ class EmergentDetector:
                             cycle=cycle_idx,
                             magnitude=float(z),
                             description=(
-                                f"{aid} entered novel z-space "
-                                f"(z={z:.2f}, "
-                                f"dev={deviations[cycle_idx]:.4f})"
+                                f"{aid} entered novel z-space (z={z:.2f}, dev={deviations[cycle_idx]:.4f})"
                             ),
                             agent_ids=[aid],
                         )
@@ -334,9 +332,7 @@ class EmergentDetector:
                         cycle=cycle,
                         magnitude=float(density_ratio),
                         description=(
-                            f"Spontaneous clustering: "
-                            f"{density_ratio:.1%} of agents "
-                            f"within {threshold:.1f} distance"
+                            f"Spontaneous clustering: {density_ratio:.1%} of agents within {threshold:.1f} distance"
                         ),
                     )
                 )

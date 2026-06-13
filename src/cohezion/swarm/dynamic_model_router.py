@@ -461,13 +461,12 @@ class DynamicModelRouter:
     async def ollama_generate(
         self, model: ModelConfig, request: dict[str, Any], max_context: int
     ) -> dict[str, Any]:
-        """Execute generation via lemonade router (:13305).
+        """Execute Ollama generation via HTTP API.
 
-        Phase 1 migration: was Ollama /api/generate; now uses LemonadeRouterClient
-        per docs/plans/2026-06-09-lemonade-13305-consolidation.md §Phase 1.
+        Uses ``httpx.AsyncClient`` to POST to ``/api/generate`` on the
+        local Ollama server instead of spawning a subprocess.
         """
-        from cohezion.inference.router_client import LemonadeRouterClient
-        from cohezion.swarm.providers.ollama_provider import _OLLAMA_TO_ROUTER as _MODEL_MAP
+        import httpx
 
         # Token Burn Security Check
         requested_tokens: int = int(request.get("max_tokens", 4096))
@@ -475,7 +474,7 @@ class DynamicModelRouter:
 
         if requested_tokens > max_safe_tokens:
             logger.warning(
-                "TOKEN BURN SECURITY ALERT: "
+                "🚨 TOKEN BURN SECURITY ALERT: "
                 f"Requested {requested_tokens} tokens for "
                 f"local offload model {model.name}. "
                 f"Hard-capping to {max_safe_tokens} "
@@ -483,32 +482,35 @@ class DynamicModelRouter:
             )
             requested_tokens = max_safe_tokens
 
-        # R2: map Ollama model name to router model id
-        router_model = _MODEL_MAP.get(model.name, model.name)
-
-        client = LemonadeRouterClient.from_ollama_options(
-            "http://localhost:13305",
-            model_id=router_model,
-            options={
+        payload = {
+            "model": model.name,
+            "prompt": request.get("prompt", ""),
+            "system": request.get("system", ""),
+            "stream": False,
+            "options": {
                 "num_ctx": max_context,
                 "temperature": request.get("temperature", 0.7),
+                "top_p": request.get("top_p", 0.9),
                 "num_predict": requested_tokens,
             },
-        )
+        }
 
-        prompt = request.get("prompt", "")
-        system_msg = request.get("system", "")
-        if system_msg:
-            result = await client.chat(
-                [{"role": "system", "content": system_msg}, {"role": "user", "content": prompt}]
-            )
-        else:
-            result = await client.run(prompt)
+        try:
+            async with httpx.AsyncClient(timeout=300.0) as client:
+                resp = await client.post(
+                    "http://localhost:11434/api/generate",
+                    json=payload,
+                )
+                _ = resp.raise_for_status()
+                data = resp.json()
+                return {"text": data.get("response", ""), **data}
 
-        if result.error:
-            logger.error("Router generation error for model %s: %s", model.name, result.error)
-            return {"text": "", "error": result.error}
-        return {"text": result.text}
+        except httpx.TimeoutException:
+            logger.error("Ollama request timed out for model %s", model.name)
+            return {"text": "", "error": "timeout"}
+        except Exception as e:
+            logger.error("Ollama HTTP error: %s", e)
+            return {"text": "", "error": str(e)}
 
     def record_performance(self, model: ModelConfig, execution_time: float, response_length: int):
         """Record performance metrics for compound learning"""
@@ -582,8 +584,7 @@ async def main():
 
     for request in test_requests:
         logger.info(
-            f"\n🎯 Processing request: {request['task_type']} "
-            f"for IDE priority {request['ide_priority']}"
+            f"\n🎯 Processing request: {request['task_type']} for IDE priority {request['ide_priority']}"
         )
         result = await router.execute_request(request)
         logger.info(

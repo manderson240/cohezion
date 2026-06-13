@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import time
 from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
@@ -37,7 +38,7 @@ def tier_config() -> TierConfig:
 
 @pytest.fixture
 def pool(tier_config: TierConfig) -> ModelPoolManager:
-    """Pool manager with mocked MemoryBandwidthAnalyzer and LemonadeManager."""
+    """Pool manager with mocked MemoryBandwidthAnalyzer."""
     with patch("cohezion.swarm.model_pool_manager.MemoryBandwidthAnalyzer") as MockAnalyzer:
         mock_analyzer = MockAnalyzer.return_value
         mock_analyzer.analyze_memory_pressure.return_value = 0.5  # 50% pressure
@@ -46,13 +47,6 @@ def pool(tier_config: TierConfig) -> ModelPoolManager:
         mgr = ModelPoolManager(config=tier_config, ollama_host="http://test:11434")
     # Replace the analyzer with our mock after init
     mgr._memory = mock_analyzer
-    # Mock lemonade so tests don't wait 30s for health check
-    mock_lemonade = AsyncMock()
-    mock_lemonade.start = AsyncMock()
-    mock_lemonade.wait_until_ready = AsyncMock(return_value=False)
-    mock_lemonade.list_models = AsyncMock(return_value=[])
-    mock_lemonade.port = 13307
-    mgr.lemonade = mock_lemonade
     return mgr
 
 
@@ -83,9 +77,9 @@ class TestPooledModel:
 
     def test_mark_used(self):
         m = PooledModel(name="test:latest", tier=ModelTierPolicy.HOT, size_gb=1.0)
-        old_time = m.last_used  # default 0.0
+        old_time = m.last_used
+        time.sleep(0.01)
         m.mark_used()
-        # mark_used sets last_used=time.time() which is always > 0
         assert m.last_used > old_time
 
     def test_record_health_success(self):
@@ -124,13 +118,16 @@ class TestModelPoolManager:
         tags_resp = _mock_httpx_ok({"models": [{"name": "hot-model:latest", "size": 5 * 1024**3}]})
         ps_resp = _mock_httpx_ok({"models": [{"name": "hot-model:latest"}]})
 
-        lemonade_resp = _mock_httpx_ok({"data": []})
-        with patch("httpx.AsyncClient") as MockClient:
+        with (
+            patch("httpx.AsyncClient") as MockClient,
+            patch.object(pool.lemonade, "start", new_callable=AsyncMock),
+            patch.object(pool.lemonade, "wait_until_ready", return_value=True),
+            patch.object(pool, "_list_lemonade_models", return_value=[]),
+        ):
             mock_client = AsyncMock()
             MockClient.return_value.__aenter__ = AsyncMock(return_value=mock_client)
             MockClient.return_value.__aexit__ = AsyncMock(return_value=False)
-            # Order: /api/tags (Ollama), /api/v1/models (Lemonade), /api/ps (running)
-            mock_client.get = AsyncMock(side_effect=[tags_resp, lemonade_resp, ps_resp])
+            mock_client.get = AsyncMock(side_effect=[tags_resp, ps_resp])
 
             await pool.initialize()
 
@@ -328,7 +325,7 @@ class TestPoolManagerIntegration:
         pool_mgr.get_model("phi3:mini").healthy = True
 
         router = CostAwareRouter(pool_manager=pool_mgr)
-        decision, _can_proceed = router.select_model("Design a complex distributed system")
+        decision, can_proceed = router.select_model("Design a complex distributed system")
 
         # Should fall back to phi3:mini since it's the only available model
         assert decision.model == "phi3:mini"
@@ -338,7 +335,7 @@ class TestPoolManagerIntegration:
         from cohezion.swarm.cost_aware_router import CostAwareRouter
 
         router = CostAwareRouter(pool_manager=None)
-        decision, _can_proceed = router.select_model("What is Python?")
+        decision, can_proceed = router.select_model("What is Python?")
 
         # Normal routing, no pool interference
         assert decision.model in (
@@ -346,6 +343,8 @@ class TestPoolManagerIntegration:
             "qwen3-coder:32b",
             "deepseek-r1:8b",
             "Phi-4-mini-instruct-Hybrid",
+            "Qwen3-8B-Hybrid",
+            "Qwen3-14B-Hybrid",
         )
 
 
@@ -390,13 +389,14 @@ class TestPoolManagerEdgeCases:
     @pytest.mark.asyncio
     async def test_ollama_unreachable_on_initialize(self, pool: ModelPoolManager):
         """Pool should handle Ollama being down at initialization."""
-        import httpx
-
-        with patch("httpx.AsyncClient") as MockClient:
+        with (
+            patch("httpx.AsyncClient") as MockClient,
+            patch.object(pool.lemonade, "wait_until_ready", return_value=False),
+        ):
             mock_client = AsyncMock()
             MockClient.return_value.__aenter__ = AsyncMock(return_value=mock_client)
             MockClient.return_value.__aexit__ = AsyncMock(return_value=False)
-            mock_client.get = AsyncMock(side_effect=httpx.ConnectError("Connection refused"))
+            mock_client.get = AsyncMock(side_effect=Exception("Connection refused"))
 
             await pool.initialize()
 

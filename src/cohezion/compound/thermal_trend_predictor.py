@@ -160,8 +160,7 @@ class ThermalTrendPredictor:
         self._last_prediction = (predicted_temp, confidence)
 
         logger.debug(
-            f"30-min prediction: {predicted_temp:.1f}°C (confidence: {confidence:.2f}), "
-            f"trend: {trend:.2f}°C/30min"
+            f"30-min prediction: {predicted_temp:.1f}°C (confidence: {confidence:.2f}), trend: {trend:.2f}°C/30min"
         )
 
         return self._last_prediction
@@ -235,8 +234,7 @@ class ThermalTrendPredictor:
         predicted = current_temp + (trend * lookahead_minutes * damping)
 
         logger.debug(
-            f"Heuristic prediction: current={current_temp:.1f}°C, "
-            f"trend={trend:.2f}°C/min, predicted={predicted:.1f}°C"
+            f"Heuristic prediction: current={current_temp:.1f}°C, trend={trend:.2f}°C/min, predicted={predicted:.1f}°C"
         )
 
         return float(predicted)

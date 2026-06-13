@@ -76,8 +76,7 @@ class TestExperienceEncoderHIHO:
             vec = encoder.encode(self._make_experience(phi_score=phi))
             mean = float(np.mean(vec))
             assert _in_hiho_band(mean), (
-                f"phi={phi}: encoder mean={mean:.3f} outside HIHO band. "
-                "Encoder must normalize extreme inputs."
+                f"phi={phi}: encoder mean={mean:.3f} outside HIHO band. Encoder must normalize extreme inputs."
             )
 
     def test_encoder_trajectory_component_in_hiho_band(self) -> None:
@@ -300,8 +299,7 @@ class TestOuroborosVersionHealerHIHO:
 
         rate = healer.auto_heal_rate()
         assert rate >= 0.8, (
-            f"Auto-heal rate={rate:.2f} below target 0.8. "
-            "HIHO requires high self-healing efficiency."
+            f"Auto-heal rate={rate:.2f} below target 0.8. HIHO requires high self-healing efficiency."
         )
 
 

@@ -39,8 +39,7 @@ class OllamaSpecialist(PlatformSpecialist):
                 "check `torch.cuda.memory_reserved()` before large loads."
             ),
             (
-                "Ollama calls on CPU-only systems require `stream=True` "
-                "(see `ollama-cpu-streaming-timeout` skill)."
+                "Ollama calls on CPU-only systems require `stream=True` (see `ollama-cpu-streaming-timeout` skill)."
             ),
             "Prefer local Ollama over cloud API calls for tier-1 (70%) tasks.",
         ),

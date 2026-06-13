@@ -110,8 +110,7 @@ class DistributedPPOTrainer:
 
         torch.cuda.set_device(self.config.local_rank)
         logger.info(
-            f"Initialized rank {self.config.rank}/{self.config.world_size} "
-            f"on GPU {self.config.local_rank}"
+            f"Initialized rank {self.config.rank}/{self.config.world_size} on GPU {self.config.local_rank}"
         )
 
     def wrap_models(self, policy: torch.nn.Module, value: torch.nn.Module) -> None:

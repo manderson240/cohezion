@@ -1,5 +1,4 @@
 #!/usr/bin/env python3
-# long lines: SQL/URLs/docstrings — wrapping reduces readability
 """Traceability MCP Server - Autonomous repo health monitoring via MCP protocol.
 
 Usage:
@@ -25,7 +24,6 @@ Tools:
 from __future__ import annotations
 
 import os
-import shutil
 import subprocess
 from datetime import datetime
 from pathlib import Path
@@ -38,10 +36,6 @@ from mcp import Server
 MCP_PORT = int(os.environ.get("MCP_PORT", "8362"))
 PROJECT_ROOT = Path(os.environ.get("PROJECT_ROOT", "/home/mike-anderson/dev/cohezion"))
 TRACEABILITY_DIR = PROJECT_ROOT / "_bmad" / "_config" / "traceability"
-
-# Resolve external executable paths at module load to avoid S607 partial-path warnings.
-_UV = shutil.which("uv") or "/usr/local/bin/uv"
-_GIT = shutil.which("git") or "/usr/bin/git"
 
 # Create server
 app = Server("traceability")
@@ -62,7 +56,7 @@ def traceability_run_engine(self_trace: bool = False) -> dict[str, Any]:
     Returns:
         Dict with returncode, stdout, stderr, and matrix counts
     """
-    args = [_UV, "run", "python", str(TRACEABILITY_DIR / "traceability_engine.py")]
+    args = ["uv", "run", "python", str(TRACEABILITY_DIR / "traceability_engine.py")]
     if self_trace:
         args.append("--self-trace")
 
@@ -99,7 +93,7 @@ def traceability_run_health() -> dict[str, Any]:
         Dict with health score, category breakdown, and findings
     """
     result = subprocess.run(
-        [_UV, "run", "python", str(TRACEABILITY_DIR / "repo_health" / "repo_health_engine.py")],
+        ["uv", "run", "python", str(TRACEABILITY_DIR / "repo_health" / "repo_health_engine.py")],
         capture_output=True,
         text=True,
         cwd=PROJECT_ROOT,
@@ -128,7 +122,7 @@ def traceability_trigger_party() -> dict[str, Any]:
         Dict with findings count and severity breakdown
     """
     result = subprocess.run(
-        [_UV, "run", "python", str(TRACEABILITY_DIR / "workflows" / "run_party_review.py")],
+        ["uv", "run", "python", str(TRACEABILITY_DIR / "workflows" / "run_party_review.py")],
         capture_output=True,
         text=True,
         cwd=PROJECT_ROOT,
@@ -238,17 +232,17 @@ def traceability_auto_commit(
     """
     # Stage changes
     subprocess.run(
-        [_GIT, "add", "_bmad/_config/traceability/"], cwd=PROJECT_ROOT, capture_output=True
+        ["git", "add", "_bmad/_config/traceability/"], cwd=PROJECT_ROOT, capture_output=True
     )
 
     # Commit
     result = subprocess.run(
-        [_GIT, "commit", "-m", message], capture_output=True, text=True, cwd=PROJECT_ROOT
+        ["git", "commit", "-m", message], capture_output=True, text=True, cwd=PROJECT_ROOT
     )
 
     # Get commit hash
     hash_result = subprocess.run(
-        [_GIT, "rev-parse", "HEAD"], capture_output=True, text=True, cwd=PROJECT_ROOT
+        ["git", "rev-parse", "HEAD"], capture_output=True, text=True, cwd=PROJECT_ROOT
     )
 
     return {
@@ -286,13 +280,12 @@ async def get_findings_resource() -> str:
 def main():
     """Main entry point."""
     import asyncio
-    import sys
 
     from mcp.server import stdio
 
-    print(f"🔍 Traceability MCP Server starting on port {MCP_PORT}", file=sys.stderr)
-    print(f"📁 Project root: {PROJECT_ROOT}", file=sys.stderr)
-    print("📊 Tools: 6 (engine, health, party, dashboard, findings, commit)", file=sys.stderr)
+    print(f"🔍 Traceability MCP Server starting on port {MCP_PORT}")
+    print(f"📁 Project root: {PROJECT_ROOT}")
+    print("📊 Tools: 6 (engine, health, party, dashboard, findings, commit)")
 
     # Run server
     asyncio.run(stdio.run(app))

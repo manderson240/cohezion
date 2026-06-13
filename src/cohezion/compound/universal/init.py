@@ -1,7 +1,8 @@
-# best-effort: ignored exceptions are intentional in init/cleanup paths
 """
 Universal Cohezion Environment Initialization
-Activates in ANY environment that uses Cohezion (Claude Code, Gemini CLI, Zed IDE, Antigravity, Opencode, OpenClaw, Hermes Agent, terminals, APIs, etc.)
+
+Activates in ANY environment that uses Cohezion
+(Claude Code, Gemini CLI, Zed IDE, Antigravity, Opencode, OpenClaw, Hermes Agent, terminals, APIs, etc.)
 """
 
 import os
@@ -112,7 +113,7 @@ def is_cohezion_environment() -> bool:
     # Helps when launched from subdirectories
     try:
         cwd = Path.cwd()
-        for parent in [cwd, *list(cwd.parents)]:
+        for parent in [cwd] + list(cwd.parents):
             if any(
                 (parent / marker).exists()
                 for marker in ["src/cohezion/__init__.py", "pyproject.toml"]
@@ -165,7 +166,7 @@ def initialize_cohezion_environment() -> bool:
             # Verify it looks like a Cohezion project
             if not (project_root / "src" / "cohezion").exists():
                 # Try to find Cohezion root by looking up the directory tree
-                for parent in [project_root, *list(project_root.parents)]:
+                for parent in [project_root] + list(project_root.parents):
                     if (parent / "src" / "cohezion").exists():
                         project_root = parent
                         break

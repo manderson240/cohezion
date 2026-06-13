@@ -1,12 +1,8 @@
 import logging
-import shutil
 import subprocess
 
 
 logger = logging.getLogger(__name__)
-
-# Resolve git executable at module load to avoid S607 partial-path warnings.
-_GIT = shutil.which("git") or "/usr/bin/git"
 
 
 class ChangeObserver:
@@ -29,7 +25,7 @@ class ChangeObserver:
         """
         try:
             output = subprocess.check_output(
-                [_GIT, "diff", "--name-only", since_commit], cwd=self.root_dir
+                ["git", "diff", "--name-only", since_commit], cwd=self.root_dir
             ).decode("utf-8")
 
             files = [f.strip() for f in output.split("\n") if f.strip()]
@@ -53,7 +49,7 @@ class ChangeObserver:
         """
         try:
             output = subprocess.check_output(
-                [_GIT, "diff", since_commit, "--", file_path], cwd=self.root_dir
+                ["git", "diff", since_commit, "--", file_path], cwd=self.root_dir
             ).decode("utf-8")
             return output
         except subprocess.CalledProcessError as e:

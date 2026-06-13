@@ -118,8 +118,10 @@ async def test_cron_entry_runs_all_four_lanes(tmp_path: Path):
     researcher = DailyResearcher()
 
     # Patch the orchestrator's run() to return a fake report dict
-    fake_reports = {lane: DryRunReport(lane=lane, dry_run=False) for lane in
-                    ["model_scout", "harness_paper", "datamesh_synthesis", "verify_evolve"]}
+    fake_reports = {
+        lane: DryRunReport(lane=lane, dry_run=False)
+        for lane in ["model_scout", "harness_paper", "datamesh_synthesis", "verify_evolve"]
+    }
 
     with (
         patch.object(cron, "DailyResearcher", return_value=researcher),

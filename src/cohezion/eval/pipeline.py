@@ -499,7 +499,7 @@ class EvalPipeline:
             return
 
         try:
-            subprocess.run(
+            subprocess.run(  # noqa: S603
                 [git_path, "add", str(self.progress_path)],
                 check=True,
                 capture_output=True,
@@ -507,7 +507,7 @@ class EvalPipeline:
             commit_msg = (
                 f"eval: record progress - {self.progress.successful_episodes} successful episodes"
             )
-            subprocess.run(
+            subprocess.run(  # noqa: S603
                 [git_path, "commit", "-m", commit_msg],
                 check=True,
                 capture_output=True,

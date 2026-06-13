@@ -41,10 +41,11 @@ class TestModelSelectionOptimization:
                 "phi3:mini",
                 "qwen3-coder:32b",
                 "Phi-4-mini-instruct-Hybrid",
+                "Qwen3-8B-Hybrid",
             ], f"Failed for: {query}"
 
     def test_medium_query_optimizes_to_phi3_for_cost(self, router):
-        """Test that medium queries may downgrade to phi3 for cost savings."""
+        """Test that medium queries may downgrade to phi3-tier for cost savings."""
         medium_queries = [
             "Write a Python function",
             "Create a simple data processing script",
@@ -52,11 +53,12 @@ class TestModelSelectionOptimization:
 
         for query in medium_queries:
             decision, _ = router.select_model(query)
-            # Medium queries may optimize to phi3 if TPS acceptable
+            # Medium queries may optimize to phi3-tier if TPS acceptable
             assert decision.model in [
                 "phi3:mini",
                 "qwen3-coder:32b",
                 "Phi-4-mini-instruct-Hybrid",
+                "Qwen3-8B-Hybrid",
             ], f"Failed for: {query}"
 
     def test_complex_query_optimizes_to_faster_model_for_cost(self, router):
@@ -68,12 +70,14 @@ class TestModelSelectionOptimization:
 
         for query in complex_queries:
             decision, _ = router.select_model(query)
-            # Complex queries may optimize to qwen or phi3 if TPS/latency acceptable
+            # Complex queries may optimize to various models
             assert decision.model in [
                 "deepseek-r1:8b",
                 "qwen3-coder:32b",
                 "phi3:mini",
                 "Phi-4-mini-instruct-Hybrid",
+                "Qwen3-8B-Hybrid",
+                "Qwen3-14B-Hybrid",
             ], f"Failed for: {query}"
 
     def test_complexity_analysis_drives_base_selection(self, router):
@@ -108,7 +112,7 @@ class TestModelSelectionOptimization:
 
         # All scores should be valid model quality scores
         for score in quality_scores:
-            assert score in [0.6, 0.82, 0.85, 0.95], f"Invalid quality score: {score}"
+            assert score in [0.6, 0.82, 0.85, 0.90, 0.95], f"Invalid quality score: {score}"
 
     def test_model_selection_consistency(self, router):
         """Test that identical queries get identical model selections."""

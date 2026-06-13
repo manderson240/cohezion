@@ -141,7 +141,8 @@ class DeepAuditor(ast.NodeVisitor):
                                 child.lineno,
                                 "Warning",
                                 "Performance",
-                                f"Blocking 'subprocess.run' in async function '{node.name}'. Use 'asyncio.create_subprocess_exec' or run_in_executor.",
+                                f"Blocking 'subprocess.run' in async function '{node.name}'."
+                                " Use 'asyncio.create_subprocess_exec' or run_in_executor.",
                             )
                         )
 

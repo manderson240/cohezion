@@ -52,7 +52,8 @@ class AdversarialRedTeamAgent(BaseAgent):
             "Your goal is to FIND THE FAILURE. Search for contradictions between the "
             "biophysical constraints and the proposed action. Specifically, look for "
             "hallucinations where the model assumed TEK knowledge that was actually scrubbed.\n"
-            "Return your findings in structured format: [CONTRADICTION: True/False] [GAP: 0-1] [LEAKAGE: True/False] [CRITIQUE: text]"
+            "Return your findings in structured format:"
+            " [CONTRADICTION: True/False] [GAP: 0-1] [LEAKAGE: True/False] [CRITIQUE: text]"
         )
 
         res = await self.provider.generate(

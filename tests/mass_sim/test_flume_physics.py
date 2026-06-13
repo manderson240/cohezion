@@ -73,7 +73,8 @@ def test_bounds_metrics():
     # Inside elements: 0.5, 0.5, 0.5, 0.4 -> 4 elements out of 8 (0.5 pct)
     # Agents all inside: Agent 0 -> 1 out of 4 (0.25 pct)
     # Agents >80% inside: we need >80% to be true. Let's use 5 dims to test >80%.
-    # 5 dims means 5*0.8 = 4.0, so needs 5 inside to be >80% (actually wait >0.8 means strictly greater, 4/5=0.8 so needs 5/5. Let's do 10 dims).
+    # 5 dims means 5*0.8 = 4.0, so needs 5 inside to be >80%
+    # (>0.8 means strictly greater, 4/5=0.8 so needs 5/5. Let's do 10 dims).
 
     # Let's test with 10 dims to get exact 80% fractions
     # Agent 0: 10/10 in bounds

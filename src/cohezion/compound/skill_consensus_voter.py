@@ -61,11 +61,7 @@ class AgentVote:
     def __repr__(self) -> str:
         """Readable representation."""
         skills_str = ", ".join(s.skill_name for s in self.voted_skills[:3])
-        return (
-            f"AgentVote(agent={self.agent_id}, "
-            f"skills=[{skills_str}...], "
-            f"coherence={self.agent_coherence_score:.2f})"
-        )
+        return f"AgentVote(agent={self.agent_id}, skills=[{skills_str}...], coherence={self.agent_coherence_score:.2f})"
 
 
 @dataclass

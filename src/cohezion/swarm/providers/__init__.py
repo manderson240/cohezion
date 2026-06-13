@@ -36,10 +36,10 @@ from cohezion.swarm.providers.model_provider import (
 )
 
 
-# Auto-register local providers
+# Auto-register local providers (noqa: F401 - side-effect imports)
 try:
-    import cohezion.swarm.providers.gemini_provider
-    import cohezion.swarm.providers.gemma4_provider
+    import cohezion.swarm.providers.gemini_provider  # noqa: F401
+    import cohezion.swarm.providers.gemma4_provider  # noqa: F401
     import cohezion.swarm.providers.ollama_provider  # noqa: F401
 except ImportError:
     pass

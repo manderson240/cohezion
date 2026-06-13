@@ -411,8 +411,7 @@ class TestEffectivenessEvaluation:
             wrong_content = cross_check[spec.id]
             contaminated = any(wrong_content in block for block in context)
             assert not contaminated, (
-                f"Node {spec.name} received cross-contaminated context: "
-                f"'{wrong_content}' found in {context}"
+                f"Node {spec.name} received cross-contaminated context: '{wrong_content}' found in {context}"
             )
 
     @pytest.mark.asyncio

@@ -155,13 +155,11 @@ class NgrokAIGateway:
         """Validate ngrok configuration."""
         if not self.ngrok_endpoint and not self.enable_failover:
             logger.warning(
-                "ngrok endpoint not configured and failover disabled. "
-                "Set NGROK_ENDPOINT or enable_failover."
+                "ngrok endpoint not configured and failover disabled. Set NGROK_ENDPOINT or enable_failover."
             )
         elif self.ngrok_endpoint and not self.ngrok_api_key:
             logger.warning(
-                "ngrok endpoint configured but no API key provided. "
-                "Set NGROK_API_KEY for authenticated requests."
+                "ngrok endpoint configured but no API key provided. Set NGROK_API_KEY for authenticated requests."
             )
         elif self.ngrok_endpoint:
             from urllib.parse import urlparse

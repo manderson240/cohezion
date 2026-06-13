@@ -189,15 +189,13 @@ class ResearchSwarm:
             )
 
             insights.append(
-                f"Best performing strategy: {best_agent[0]} "
-                f"(metric: {best_agent[1]['best_metric']:.4f})"
+                f"Best performing strategy: {best_agent[0]} (metric: {best_agent[1]['best_metric']:.4f})"
             )
 
         # Check diversity
         if len(self.results.agent_results) > 1:
             insights.append(
-                f"Multi-agent diversity enabled exploration of "
-                f"{len(self.results.agent_results)} different strategies"
+                f"Multi-agent diversity enabled exploration of {len(self.results.agent_results)} different strategies"
             )
 
         self.results.collaboration_insights = insights

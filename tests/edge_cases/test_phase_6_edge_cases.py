@@ -102,7 +102,7 @@ class TestLongRunningExecutionEdgeCases:
 
     def test_extended_continuous_execution(self):
         """Simulate extended continuous execution."""
-        CostAwareRouter()
+        _router = CostAwareRouter()
         reset_anomaly_detector()
         detector = get_anomaly_detector()
 
@@ -119,7 +119,7 @@ class TestLongRunningExecutionEdgeCases:
         models = [f"model-{i}" for i in range(50)]
 
         for _ in range(1000):
-            ranker.rank_models(available_models=models)
+            _scores = ranker.rank_models(available_models=models)
 
         assert True  # If we got here without OOM, we passed
 
@@ -182,7 +182,7 @@ class TestConcurrencyEdgeCases:
         router = CostAwareRouter()
         results = []
         for _ in range(100):
-            decision, _can_proceed = router.select_model(query="concurrent")
+            decision, can_proceed = router.select_model(query="concurrent")
             results.append(decision)
 
         assert len(results) == 100
@@ -247,7 +247,7 @@ class TestRoutingConsistencyEdgeCases:
         """Test routing with only one model (no fallback)."""
         fallback = ModelFallbackStrategy()
 
-        selected, _is_fallback = fallback.select_model(
+        selected, is_fallback = fallback.select_model(
             primary_model="only-model", available_models=["only-model"]
         )
 
@@ -261,7 +261,7 @@ class TestRoutingConsistencyEdgeCases:
             for _ in range(10):
                 fallback.record_execution(f"model-{i}", success=False)
 
-        selected, _is_fallback = fallback.select_model(
+        selected, is_fallback = fallback.select_model(
             primary_model="model-0",
             available_models=["model-0", "model-1", "model-2", "model-3", "model-4"],
         )

@@ -555,7 +555,9 @@ class AdversarialReviewSystem:
                 SkillRefinementInput(
                     skill_name="systems_thinker",
                     performance_metric=max(0.0, 1.0 - len(latest_session.conflicts) * 0.1),
-                    feedback=f"High number of perspective conflicts detected ({len(latest_session.conflicts)} conflicts)",
+                    feedback=(
+                        f"High number of perspective conflicts detected ({len(latest_session.conflicts)} conflicts)"
+                    ),
                     context={
                         "conflicts_count": len(latest_session.conflicts),
                         "session_id": session_id,

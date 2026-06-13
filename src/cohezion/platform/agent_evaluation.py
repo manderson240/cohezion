@@ -417,8 +417,7 @@ class AnthropicAlignedEvaluator:
                     severity=ViolationSeverity.MEDIUM,
                     description="Execution violated HIHO stability range",
                     evidence=(
-                        f"Post-execution coherence {context.coherence_after:.3f} "
-                        f"(delta from HIHO: {hiho_delta:.3f})"
+                        f"Post-execution coherence {context.coherence_after:.3f} (delta from HIHO: {hiho_delta:.3f})"
                     ),
                     recommendation="Review execution for coherence impact",
                     requires_edl_review=False,

@@ -244,7 +244,10 @@ class ModelCardRegistry:
             supports_thinking=True,
             supports_reasoning=True,
             system_templates={
-                "reasoning": "You are an expert analyst with strong reasoning capabilities. Provide structured, thorough responses.",
+                "reasoning": (
+                    "You are an expert analyst with strong reasoning capabilities."
+                    " Provide structured, thorough responses."
+                ),
                 "creative": "You are a creative assistant with good judgment. Balance creativity with accuracy.",
                 "coding": "You are a coding specialist. Ensure all code is complete and syntactically correct.",
                 "default": "You are a helpful, harmless, and honest assistant.",

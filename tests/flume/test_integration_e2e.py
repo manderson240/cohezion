@@ -20,9 +20,16 @@ from cohezion.flume.experience_collector import ExperienceCollector
 from cohezion.flume.vae_encoder import FlumeVAEEncoder
 
 
+def _mock_embed(text: str) -> np.ndarray:
+    """Deterministic 768D mock embedding (hash-based, semantically consistent)."""
+    rng = np.random.RandomState(hash(text) % (2**31))
+    v = rng.randn(768).astype(np.float32)
+    return v / (np.linalg.norm(v) + 1e-8)
+
+
 @pytest.fixture
 def flume_encoder():
-    """FlumeVAEEncoder using hash fallback (deterministic, no Ollama calls)."""
+    """FlumeVAEEncoder using hash-based fallback (deterministic, no checkpoint needed)."""
     return FlumeVAEEncoder(fallback_to_hash=True)
 
 

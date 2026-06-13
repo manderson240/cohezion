@@ -44,12 +44,21 @@ def _load_build_parser():
 
 
 def _run_script(*args: str) -> subprocess.CompletedProcess:
-    """Run the CLI script as a subprocess."""
+    """Run the CLI script as a subprocess.
+
+    Forces CPU-only to avoid SIGSEGV from ROCm driver on AMD iGPU.
+    """
+    import os
+
+    env = os.environ.copy()
+    env["CUDA_VISIBLE_DEVICES"] = ""
+    env["HIP_VISIBLE_DEVICES"] = ""
     return subprocess.run(
         [sys.executable, str(_SCRIPT_PATH), *args],
         capture_output=True,
         text=True,
         cwd=str(_PROJECT_ROOT),
+        env=env,
     )
 
 

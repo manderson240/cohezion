@@ -17,10 +17,7 @@ class LemonadeManager:
     """Manages the private embeddable Lemonade server instance."""
 
     def __init__(
-        self,
-        base_dir: str | Path | None = None,
-        port: int = 13307,
-        host: str = "localhost",  # allow-direct-port: lemond subprocess spawn port — not a routing target (R2)
+        self, base_dir: str | Path | None = None, port: int = 13307, host: str = "localhost"
     ) -> None:
         self.base_dir = Path(base_dir or "vendor/lemonade").absolute()
         self.port = port

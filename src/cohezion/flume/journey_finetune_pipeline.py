@@ -112,7 +112,8 @@ class JourneyToFinetuneConverter:
 
 Input context: {input_preview}
 
-Execute this task following best practices for {skill}. Describe your reasoning, implement the solution, and verify correctness.
+Execute this task following best practices for {skill}.
+Describe your reasoning, implement the solution, and verify correctness.
 
 Response format: Show your reasoning, code, and verification steps."""
 
@@ -237,7 +238,8 @@ class OllamaFinetuner:
         top = examples[:top_examples]
 
         # Build system prompt with weighted examples
-        system_prompt = """You are Cohezion, an expert software engineering agent trained on high-quality journey executions.
+        system_prompt = """You are Cohezion, an expert software engineering agent
+trained on high-quality journey executions.
 
 ## Your Expertise
 - Research: Deep investigation, fact-checking, multi-source synthesis

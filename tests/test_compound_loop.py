@@ -46,9 +46,7 @@ class TestSkillRefiner:
         """Second refinement appends to existing LEARNED REFINEMENTS."""
         md_file = tmp_path / "TEST_SKILL_PRIME.md"
         md_file.write_text(
-            "# SKILL: TEST_SKILL_PRIME\n\n"
-            "## VERSION\n1.0\n\n"
-            "## LEARNED REFINEMENTS\n\n- First insight\n"
+            "# SKILL: TEST_SKILL_PRIME\n\n## VERSION\n1.0\n\n## LEARNED REFINEMENTS\n\n- First insight\n"
         )
 
         refiner = SkillRefiner(skills_dir=tmp_path)

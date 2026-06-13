@@ -888,7 +888,10 @@ def build_core_capability_suite() -> TaskSuite:
             task_id="code_gen_001",
             domain=TaskDomain.CODE_GENERATION,
             difficulty=Difficulty.EASY,
-            prompt="Write a Python function that checks if a string is a palindrome. The function should be named `is_palindrome` and return a boolean.",
+            prompt=(
+                "Write a Python function that checks if a string is a palindrome."
+                " The function should be named `is_palindrome` and return a boolean."
+            ),
             rubric=ScoringRubric(
                 criteria=[
                     ScoringCriterion(
@@ -906,7 +909,10 @@ def build_core_capability_suite() -> TaskSuite:
             task_id="code_gen_002",
             domain=TaskDomain.CODE_GENERATION,
             difficulty=Difficulty.MEDIUM,
-            prompt="Write a Python function `merge_sorted_lists(a, b)` that merges two sorted lists into a single sorted list in O(n+m) time without using built-in sort.",
+            prompt=(
+                "Write a Python function `merge_sorted_lists(a, b)` that merges two sorted lists"
+                " into a single sorted list in O(n+m) time without using built-in sort."
+            ),
             rubric=ScoringRubric(
                 criteria=[
                     ScoringCriterion(
@@ -931,7 +937,10 @@ def build_core_capability_suite() -> TaskSuite:
             task_id="code_gen_003",
             domain=TaskDomain.CODE_GENERATION,
             difficulty=Difficulty.HARD,
-            prompt="Implement a thread-safe LRU cache in Python with O(1) get and put operations. Use `collections.OrderedDict` or a custom doubly-linked list. Class name: `LRUCache`.",
+            prompt=(
+                "Implement a thread-safe LRU cache in Python with O(1) get and put operations."
+                " Use `collections.OrderedDict` or a custom doubly-linked list. Class name: `LRUCache`."
+            ),
             rubric=ScoringRubric(
                 criteria=[
                     ScoringCriterion(
@@ -966,7 +975,10 @@ def build_core_capability_suite() -> TaskSuite:
             task_id="reason_002",
             domain=TaskDomain.REASONING,
             difficulty=Difficulty.MEDIUM,
-            prompt="If it takes 5 machines 5 minutes to make 5 widgets, how long would it take 100 machines to make 100 widgets? Explain your reasoning step by step.",
+            prompt=(
+                "If it takes 5 machines 5 minutes to make 5 widgets, how long would it take"
+                " 100 machines to make 100 widgets? Explain your reasoning step by step."
+            ),
             rubric=ScoringRubric(
                 criteria=[
                     ScoringCriterion(

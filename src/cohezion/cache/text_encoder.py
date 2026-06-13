@@ -64,13 +64,11 @@ class SemanticTextEncoder:
             )
             self.model_available = True
             logger.info(
-                f"Loaded {self.model_name} on {device} "
-                f"(embedding_dim={self.model.get_sentence_embedding_dimension()})"
+                f"Loaded {self.model_name} on {device} (embedding_dim={self.model.get_sentence_embedding_dimension()})"
             )
         except ImportError:
             logger.warning(
-                "sentence_transformers not available. "
-                "Install with: uv pip install sentence-transformers"
+                "sentence_transformers not available. Install with: uv pip install sentence-transformers"
             )
             self.model_available = False
         except Exception as e:

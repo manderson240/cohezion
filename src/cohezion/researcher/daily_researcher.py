@@ -133,9 +133,7 @@ class PreflightFleetCheck:
     def _check_memory(cls) -> list[str]:
         reasons: list[str] = []
         try:
-            out = subprocess.run(
-                ["free", "-h"], capture_output=True, text=True, timeout=5
-            ).stdout
+            out = subprocess.run(["free", "-h"], capture_output=True, text=True, timeout=5).stdout
         except (FileNotFoundError, subprocess.TimeoutExpired):
             # `free` not available — don't fail open; we need this signal.
             return ["free(1) unavailable — cannot confirm memory state"]
@@ -149,8 +147,7 @@ class PreflightFleetCheck:
         avail_gb = cls._parse_size_to_gb(avail_str)
         if avail_gb is not None and avail_gb < cls.MIN_AVAILABLE_GB:
             reasons.append(
-                f"available memory {avail_gb:.1f} GiB is below "
-                f"the {cls.MIN_AVAILABLE_GB} GiB floor"
+                f"available memory {avail_gb:.1f} GiB is below the {cls.MIN_AVAILABLE_GB} GiB floor"
             )
         if swap_m:
             used_str = swap_m.group(2)
@@ -161,8 +158,7 @@ class PreflightFleetCheck:
                 pct = (used / total) * 100
                 if pct > cls.MAX_SWAP_USED_PCT:
                     reasons.append(
-                        f"swap used {pct:.0f}% exceeds the "
-                        f"{cls.MAX_SWAP_USED_PCT:.0f}% threshold"
+                        f"swap used {pct:.0f}% exceeds the {cls.MAX_SWAP_USED_PCT:.0f}% threshold"
                     )
         return reasons
 
@@ -177,15 +173,15 @@ class PreflightFleetCheck:
         val = float(m.group(1))
         unit = (m.group(2) or "").upper().rstrip("B")
         if unit in ("K", "KI"):
-            return val / (1024 ** 2)
+            return val / (1024**2)
         if unit in ("M", "MI"):
-            return val / (1024 ** 1)
+            return val / (1024**1)
         if unit in ("G", "GI"):
             return float(val)
         if unit in ("T", "TI"):
             return val * 1024
         # default: bytes
-        return val / (1024 ** 3)
+        return val / (1024**3)
 
     # ── rocm-smi check ─────────────────────────────────────────────────
 
@@ -224,8 +220,7 @@ class PreflightFleetCheck:
         # fresh user session may legitimately lack dmesg access.
         try:
             out = subprocess.run(
-                ["dmesg", "--since=-15min"],
-                capture_output=True, text=True, timeout=5
+                ["dmesg", "--since=-15min"], capture_output=True, text=True, timeout=5
             ).stdout
         except (FileNotFoundError, subprocess.TimeoutExpired, PermissionError):
             return reasons
@@ -408,8 +403,7 @@ class DailyResearcher:
         ok, reasons = self._preflight()
         if not ok:
             raise RuntimeError(
-                f"preflight failed; refusing to start daily researcher: "
-                f"{'; '.join(reasons)}"
+                f"preflight failed; refusing to start daily researcher: {'; '.join(reasons)}"
             )
         reports: dict[str, DryRunReport] = {}
         async with self._lock.acquire("fleet_lock:modelload", timeout=300):

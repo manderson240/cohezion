@@ -315,7 +315,8 @@ class SimpleSurrealStore:
 
         try:
             result = await self._client.query(
-                "SELECT count() as total_chunks, sum(token_count) as total_tokens FROM doc_chunks WHERE library_id = $library_id",
+                "SELECT count() as total_chunks, sum(token_count) as total_tokens"
+                " FROM doc_chunks WHERE library_id = $library_id",
                 {"library_id": library_id},
             )
             return result[0]["result"][0] if result[0]["result"] else {}

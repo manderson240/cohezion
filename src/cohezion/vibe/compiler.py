@@ -66,13 +66,11 @@ class VibeCompiler:
         for edge in vibe_spec.edge_descriptions:
             if edge.from_name not in name_to_id:
                 raise ValueError(
-                    f"Edge references unknown source node '{edge.from_name}'. "
-                    f"Known nodes: {list(name_to_id)}"
+                    f"Edge references unknown source node '{edge.from_name}'. Known nodes: {list(name_to_id)}"
                 )
             if edge.to_name not in name_to_id:
                 raise ValueError(
-                    f"Edge references unknown target node '{edge.to_name}'. "
-                    f"Known nodes: {list(name_to_id)}"
+                    f"Edge references unknown target node '{edge.to_name}'. Known nodes: {list(name_to_id)}"
                 )
 
         # Build NodeSpec list

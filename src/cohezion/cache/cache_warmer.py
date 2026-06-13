@@ -315,8 +315,7 @@ class CacheWarmer:
                     continue
 
             logger.info(
-                f"Warmed cache with {loaded} recent high-coherence executions "
-                f"(from {len(execution_data)} candidates)"
+                f"Warmed cache with {loaded} recent high-coherence executions (from {len(execution_data)} candidates)"
             )
             return loaded
 

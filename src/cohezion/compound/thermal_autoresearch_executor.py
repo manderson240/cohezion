@@ -269,8 +269,7 @@ class ThermalAutoresearchExecutor:
         results = []
 
         logger.info(
-            f"Domain '{domain.name}': {len(domain.hypotheses)} hypotheses, "
-            f"{domain.duration_hours}h duration"
+            f"Domain '{domain.name}': {len(domain.hypotheses)} hypotheses, {domain.duration_hours}h duration"
         )
 
         async with CompoundSessionManager() as mgr:
@@ -397,8 +396,7 @@ class ThermalAutoresearchExecutor:
         # Pre-execution thermal check
         metrics = self.monitor.get_current_metrics()
         logger.debug(
-            f"Pre-execution temps: GPU={metrics.gpu_temp_current}°C, "
-            f"CPU={metrics.cpu_temp_current}°C"
+            f"Pre-execution temps: GPU={metrics.gpu_temp_current}°C, CPU={metrics.cpu_temp_current}°C"
         )
 
         t0 = time.time()
@@ -429,8 +427,7 @@ class ThermalAutoresearchExecutor:
         # Post-execution thermal check
         metrics = self.monitor.get_current_metrics()
         logger.debug(
-            f"Post-execution temps: GPU={metrics.gpu_temp_current}°C, "
-            f"CPU={metrics.cpu_temp_current}°C"
+            f"Post-execution temps: GPU={metrics.gpu_temp_current}°C, CPU={metrics.cpu_temp_current}°C"
         )
 
         # Parse coherence
@@ -508,8 +505,7 @@ class ThermalAutoresearchExecutor:
         logger.info(f"Thermal events: {result['thermal_events_count']}")
         logger.info(f"TDP consumed: {result['tdp_consumed_percent']:.1f}%")
         logger.info(
-            f"Final temps: GPU={result['final_temps']['gpu_c']}°C, "
-            f"CPU={result['final_temps']['cpu_c']}°C"
+            f"Final temps: GPU={result['final_temps']['gpu_c']}°C, CPU={result['final_temps']['cpu_c']}°C"
         )
         logger.info("=" * 80)
 

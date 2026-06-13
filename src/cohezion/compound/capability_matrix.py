@@ -567,15 +567,27 @@ class CapabilityMatrix:
         known_overlaps = [
             {
                 "modules": "healing/ + resilience/",
-                "recommendation": "Both handle self-healing. healing/ provides DriftDetector+Diagnostician+Corrector (component-level). resilience/ provides AutonomicManager MAPE-K (system-level). Keep both but document ownership: healing/=component health, resilience/=system health.",
+                "recommendation": (
+                    "Both handle self-healing. healing/ provides DriftDetector+Diagnostician+Corrector"
+                    " (component-level). resilience/ provides AutonomicManager MAPE-K (system-level)."
+                    " Keep both but document ownership: healing/=component health, resilience/=system health."
+                ),
             },
             {
                 "modules": "eval/ + evaluation/",
-                "recommendation": "eval/ has CapabilityScorecard (6-axis EVO) + pipeline. evaluation/ has SelfEvaluationEngine (pre-flight). Both wired to CapabilityMatrix. Consider merging evaluation/self_eval.py into eval/.",
+                "recommendation": (
+                    "eval/ has CapabilityScorecard (6-axis EVO) + pipeline."
+                    " evaluation/ has SelfEvaluationEngine (pre-flight). Both wired to CapabilityMatrix."
+                    " Consider merging evaluation/self_eval.py into eval/."
+                ),
             },
             {
                 "modules": "pipeline/ + pipelines/",
-                "recommendation": "pipeline/ has active modules (weight_bridge, hyperparameter_debate). pipelines/ has only traceability stub. Merge traceability.py into pipeline/ and remove pipelines/.",
+                "recommendation": (
+                    "pipeline/ has active modules (weight_bridge, hyperparameter_debate)."
+                    " pipelines/ has only traceability stub."
+                    " Merge traceability.py into pipeline/ and remove pipelines/."
+                ),
             },
         ]
         return known_overlaps
@@ -595,7 +607,9 @@ class CapabilityMatrix:
             if gap.best_available_score < 0.3:
                 action = {
                     "gap": f"{gap.task_type}: best score {gap.best_available_score:.2f}",
-                    "action": f"Scout new model for {gap.task_type} capability (current best: {gap.best_available_score:.2f})",
+                    "action": (
+                        f"Scout new model for {gap.task_type} capability (current best: {gap.best_available_score:.2f})"
+                    ),
                     "priority": "HIGH",
                 }
             elif gap.best_available_score < 0.5:

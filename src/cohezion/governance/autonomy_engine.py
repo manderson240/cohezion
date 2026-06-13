@@ -248,11 +248,8 @@ class AutonomyEngine:
             state.average_coherence,
         )
 
-    def can_perform(self, agent_id: str, action_tier: AutonomyTier) -> bool:
-        """Check if an agent can perform an action at the given tier.
-
-        The governance check: does this agent's earned autonomy permit this action?
-        """
+    def can_perform_action(self, agent_id: str, action_tier: AutonomyTier) -> bool:
+        """Check if an agent can perform an action at the given tier."""
         current = self.get_tier(agent_id)
         return current.level >= action_tier.level
 

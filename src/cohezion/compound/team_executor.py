@@ -240,9 +240,7 @@ class TeamExecutor:
 
                 def execute_fn(guidance):
                     # Default execution: pass parent results as context
-                    parent_outputs = {
-                        parent_id: result.output for parent_id, result in parent_results.items()
-                    }
+                    parent_outputs = {parent_id: result.output for parent_id, result in parent_results.items()}
                     return f"Executed {task.task_id}", {"parent_context": parent_outputs}
 
             # Execute task
@@ -322,9 +320,7 @@ class TeamExecutor:
                 cache_hit_rate = r.execution_result.token_metrics.get("cache_hit_rate", 0.0)
                 efficiency_scores.append(cache_hit_rate)
 
-        avg_efficiency = (
-            sum(efficiency_scores) / len(efficiency_scores) if efficiency_scores else 0.5
-        )
+        avg_efficiency = sum(efficiency_scores) / len(efficiency_scores) if efficiency_scores else 0.5
 
         # Weighted combination
         compound = (success_rate * 0.6) + (avg_coherence * 0.25) + (avg_efficiency * 0.15)
@@ -399,11 +395,7 @@ class TeamExecutor:
                 result = await self._execute_task(
                     task,
                     agent,
-                    {
-                        dep_id: task_results[dep_id]
-                        for dep_id in task.dependencies
-                        if dep_id in task_results
-                    },
+                    {dep_id: task_results[dep_id] for dep_id in task.dependencies if dep_id in task_results},
                 )
 
                 task_results[task.task_id] = result

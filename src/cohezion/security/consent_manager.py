@@ -200,9 +200,6 @@ class ConsentManager:
                 continue
             if token.action == action and token.verify():
                 return token
-            # Session scope: match any action from the same user
-            if token.scope == ConsentScope.SESSION and token.verify():
-                return token
 
         return None
 

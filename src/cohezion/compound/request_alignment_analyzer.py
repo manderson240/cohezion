@@ -916,8 +916,7 @@ class RequestAlignmentAnalyzer:
                 f"Misalignment score: {alignment.misalignment_score:.2f} ({len(issues)} issues)"
             )
             learnings = (
-                f"Execution aligned well with request. "
-                f"Recommendations: {', '.join(recommendations)}"
+                f"Execution aligned well with request. Recommendations: {', '.join(recommendations)}"
                 if alignment.misalignment_score <= 0.3
                 else f"Moderate misalignment detected. {len(issues)} issues, retry recommended."
             )

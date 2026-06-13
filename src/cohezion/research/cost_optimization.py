@@ -216,8 +216,7 @@ class CostTracker:
             f.write(json.dumps(experiment_cost.to_dict()) + "\n")
 
         logger.info(
-            f"Experiment {experiment_id}: {tokens} tokens, ${cost:.6f} "
-            f"(total: ${self.total_cost:.6f})"
+            f"Experiment {experiment_id}: {tokens} tokens, ${cost:.6f} (total: ${self.total_cost:.6f})"
         )
 
         return experiment_cost

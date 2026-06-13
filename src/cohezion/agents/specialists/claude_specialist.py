@@ -36,8 +36,7 @@ class ClaudeSpecialist(PlatformSpecialist):
             "Agent Teams are experimental, disabled by default — do not assume availability.",
             "Never put API keys in `.env` or commits — vault-backed only.",
             (
-                "Model selection defers to CostAwareRouter; this specialist sets the profile, "
-                "not the dispatch."
+                "Model selection defers to CostAwareRouter; this specialist sets the profile, not the dispatch."
             ),
         ),
         prime_skill_ref="src/cohezion/skills/claude-specialist.md",

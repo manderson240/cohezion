@@ -3,23 +3,12 @@
 Tests how cost_threshold and latency_threshold parameters affect routing behavior.
 """
 
-from pathlib import Path
-
-import pytest
-
 from cohezion.cost_optimization.cost_tracker import SessionCostTracker
 from cohezion.swarm.cost_aware_router import (
     CostAwareRouter,
 )
 
 
-_YAML_AVAILABLE = (Path(__file__).parent.parent.parent / "config" / "model_profiles.yaml").exists()
-_skip_no_yaml = pytest.mark.skipif(
-    not _YAML_AVAILABLE, reason="config/model_profiles.yaml not found — fallback models differ"
-)
-
-
-@_skip_no_yaml
 class TestCostThresholdTuning:
     """Test cost_threshold parameter effects on routing."""
 
@@ -42,8 +31,20 @@ class TestCostThresholdTuning:
         decision_low, _ = router_low.select_model(query)
         decision_high, _ = router_high.select_model(query)
 
-        assert decision_low.model in ["phi3:mini", "qwen3-coder:32b", "Phi-4-mini-instruct-Hybrid"]
-        assert decision_high.model in ["phi3:mini", "qwen3-coder:32b", "Phi-4-mini-instruct-Hybrid"]
+        assert decision_low.model in [
+            "phi3:mini",
+            "qwen3-coder:32b",
+            "Phi-4-mini-instruct-Hybrid",
+            "Qwen3-8B-Hybrid",
+            "Qwen3-14B-Hybrid",
+        ]
+        assert decision_high.model in [
+            "phi3:mini",
+            "qwen3-coder:32b",
+            "Phi-4-mini-instruct-Hybrid",
+            "Qwen3-8B-Hybrid",
+            "Qwen3-14B-Hybrid",
+        ]
 
     def test_cost_threshold_parameter_persistence(self):
         """Test that cost_threshold parameter persists across multiple decisions."""
@@ -77,10 +78,15 @@ class TestCostThresholdTuning:
 
         for router, _threshold in zip(routers, thresholds, strict=False):
             decision, _ = router.select_model(query)
-            assert decision.model in ["phi3:mini", "qwen3-coder:32b", "Phi-4-mini-instruct-Hybrid"]
+            assert decision.model in [
+                "phi3:mini",
+                "qwen3-coder:32b",
+                "Phi-4-mini-instruct-Hybrid",
+                "Qwen3-8B-Hybrid",
+                "Qwen3-14B-Hybrid",
+            ]
 
 
-@_skip_no_yaml
 class TestLatencyThresholdTuning:
     """Test latency_threshold parameter effects on routing."""
 
@@ -99,8 +105,15 @@ class TestLatencyThresholdTuning:
             "phi3:mini",
             "qwen3-coder:32b",
             "Phi-4-mini-instruct-Hybrid",
+            "Qwen3-8B-Hybrid",
+            "Qwen3-14B-Hybrid",
         ]
-        assert decision_complex.model in ["deepseek-r1:8b", "qwen3-coder:32b"]
+        assert decision_complex.model in [
+            "deepseek-r1:8b",
+            "qwen3-coder:32b",
+            "Qwen3-8B-Hybrid",
+            "Qwen3-14B-Hybrid",
+        ]
 
     def test_latency_threshold_parameter_persistence(self):
         """Test that latency_threshold parameter persists."""
@@ -134,10 +147,16 @@ class TestLatencyThresholdTuning:
 
         for router, _threshold in zip(routers, thresholds, strict=False):
             decision, _ = router.select_model(query)
-            assert decision.model in ["deepseek-r1:8b", "qwen3-coder:32b", "phi3:mini"]
+            assert decision.model in [
+                "deepseek-r1:8b",
+                "qwen3-coder:32b",
+                "phi3:mini",
+                "Qwen3-8B-Hybrid",
+                "Qwen3-14B-Hybrid",
+                "Phi-4-mini-instruct-Hybrid",
+            ]
 
 
-@_skip_no_yaml
 class TestCombinedParameterTuning:
     """Test interactions between cost_threshold and latency_threshold."""
 
@@ -157,8 +176,15 @@ class TestCombinedParameterTuning:
             "phi3:mini",
             "qwen3-coder:32b",
             "Phi-4-mini-instruct-Hybrid",
+            "Qwen3-8B-Hybrid",
+            "Qwen3-14B-Hybrid",
         ]
-        assert decision_complex.model in ["deepseek-r1:8b", "qwen3-coder:32b"]
+        assert decision_complex.model in [
+            "deepseek-r1:8b",
+            "qwen3-coder:32b",
+            "Qwen3-8B-Hybrid",
+            "Qwen3-14B-Hybrid",
+        ]
 
     def test_both_thresholds_high_enables_optimization(self):
         """Test that high both thresholds enables aggressive optimization."""
@@ -175,7 +201,15 @@ class TestCombinedParameterTuning:
             decisions.append(decision.model)
 
         assert all(
-            m in ["phi3:mini", "qwen3-coder:32b", "Phi-4-mini-instruct-Hybrid"] for m in decisions
+            m
+            in [
+                "phi3:mini",
+                "qwen3-coder:32b",
+                "Phi-4-mini-instruct-Hybrid",
+                "Qwen3-8B-Hybrid",
+                "Qwen3-14B-Hybrid",
+            ]
+            for m in decisions
         )
 
     def test_parameter_tuning_convergence(self):
@@ -207,10 +241,24 @@ class TestCombinedParameterTuning:
             cons_decisions.append(d.model)
 
         assert all(
-            m in ["phi3:mini", "qwen3-coder:32b", "Phi-4-mini-instruct-Hybrid"]
+            m
+            in [
+                "phi3:mini",
+                "qwen3-coder:32b",
+                "Phi-4-mini-instruct-Hybrid",
+                "Qwen3-8B-Hybrid",
+                "Qwen3-14B-Hybrid",
+            ]
             for m in agg_decisions
         )
         assert all(
-            m in ["phi3:mini", "qwen3-coder:32b", "Phi-4-mini-instruct-Hybrid"]
+            m
+            in [
+                "phi3:mini",
+                "qwen3-coder:32b",
+                "Phi-4-mini-instruct-Hybrid",
+                "Qwen3-8B-Hybrid",
+                "Qwen3-14B-Hybrid",
+            ]
             for m in cons_decisions
         )

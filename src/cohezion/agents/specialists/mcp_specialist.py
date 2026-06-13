@@ -35,12 +35,10 @@ class MCPSpecialist(PlatformSpecialist):
         ),
         principles=(
             (
-                "AGENTS.md MUST have `name`+`description` frontmatter. "
-                "Missing = silent capability loss."
+                "AGENTS.md MUST have `name`+`description` frontmatter. Missing = silent capability loss."
             ),
             (
-                "Config lookups are lazy — no eager vault/Bitwarden checks at import time "
-                "(handshake timeout)."
+                "Config lookups are lazy — no eager vault/Bitwarden checks at import time (handshake timeout)."
             ),
             "stdout is the protocol channel — any module-scope print/log corrupts the stream.",
             (
@@ -48,8 +46,7 @@ class MCPSpecialist(PlatformSpecialist):
                 "orchestrator-only documentation in AGENTS.md."
             ),
             (
-                "New MCP servers copy from `cloud-vault-mcp` (proven FastMCP template), "
-                "not greenfield."
+                "New MCP servers copy from `cloud-vault-mcp` (proven FastMCP template), not greenfield."
             ),
         ),
         prime_skill_ref="src/cohezion/skills/mcp-specialist.md",

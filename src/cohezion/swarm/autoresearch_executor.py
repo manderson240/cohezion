@@ -93,8 +93,7 @@ class AutoresearchExecutor:
             "Test models on extremely long CoT paths with unstated false premises.",
             "Test models by asking questions about completely fictional entities "
             "to measure hallucination vs 'I don't know'.",
-            "Evaluate model confidence dynamically as context windows saturate "
-            "with irrelevant but plausible data.",
+            "Evaluate model confidence dynamically as context windows saturate with irrelevant but plausible data.",
         ]
 
         logger.info(

@@ -532,8 +532,7 @@ class EvolutionTrainingExporter:
             paths["instructions"] = path
 
         logger.info(
-            "Exported training data for generation %d: "
-            "%d DPO pairs, %d rewards, %d judgments, %d instructions",
+            "Exported training data for generation %d: %d DPO pairs, %d rewards, %d judgments, %d instructions",
             signals.generation,
             len(signals.dpo_pairs),
             len(signals.reward_records),
@@ -743,8 +742,7 @@ class EvolutionTrainingPipeline:
         total_instructions = sum(len(r.training_signals.instruction_tuning) for r in results)
 
         logger.info(
-            "Multi-generation complete (%d rounds): "
-            "%d total DPO pairs, %d reward records, %d instructions",
+            "Multi-generation complete (%d rounds): %d total DPO pairs, %d reward records, %d instructions",
             n_generations,
             total_dpo,
             total_rewards,

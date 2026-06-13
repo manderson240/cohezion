@@ -203,8 +203,7 @@ class ModelCircuitBreaker:
         """Transition to HALF_OPEN state (testing recovery)."""
         if self.state != CircuitBreakerState.HALF_OPEN:
             logger.info(
-                f"Circuit breaker HALF_OPEN for {self.model}: "
-                f"testing recovery after {self.recovery_timeout_sec}s"
+                f"Circuit breaker HALF_OPEN for {self.model}: testing recovery after {self.recovery_timeout_sec}s"
             )
             self.state = CircuitBreakerState.HALF_OPEN
             self.metrics.error_count = 0
@@ -419,8 +418,7 @@ class ModelFallbackStrategy:
         self.fallback_history.append((primary, fallback, time.time()))
 
         logger.info(
-            f"Fallback #{self.fallback_count}: {primary} → {fallback} "
-            f"(total degradations: {self.fallback_count})"
+            f"Fallback #{self.fallback_count}: {primary} → {fallback} (total degradations: {self.fallback_count})"
         )
 
     def get_fallback_stats(self) -> dict:

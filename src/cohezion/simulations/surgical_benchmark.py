@@ -30,9 +30,7 @@ class SurgicalRegimeBenchmark:
             start_time = time.perf_counter()
 
             # Use asyncio.wait_for to enforce timeout
-            res = await asyncio.wait_for(
-                provider.generate(model=model, prompt=prompt, regime=regime), timeout=timeout
-            )
+            res = await asyncio.wait_for(provider.generate(model=model, prompt=prompt, regime=regime), timeout=timeout)
 
             end_time = time.perf_counter()
             latency = end_time - start_time
@@ -82,9 +80,7 @@ class SurgicalRegimeBenchmark:
         baseline = await self.benchmark_regime_atomic(regime, model, prompt, timeout=45.0)
 
         # SOTA (with optimizations)
-        sota = await self.benchmark_regime_atomic(
-            regime, model, prompt + " (optimized)", timeout=45.0
-        )
+        sota = await self.benchmark_regime_atomic(regime, model, prompt + " (optimized)", timeout=45.0)
 
         return {"regime": regime, "baseline": baseline, "sota": sota}
 

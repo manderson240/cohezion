@@ -51,8 +51,7 @@ class TestEnergyConservation:
 
         rel_drift = abs(E_final - E_initial) / max(abs(E_initial), 1e-10)
         assert rel_drift < 0.05, (
-            f"Energy not conserved: E(0)={E_initial:.6f}, E(100)={E_final:.6f}, "
-            f"relative drift={rel_drift:.4%}"
+            f"Energy not conserved: E(0)={E_initial:.6f}, E(100)={E_final:.6f}, relative drift={rel_drift:.4%}"
         )
 
     @pytest.mark.unit
@@ -70,8 +69,7 @@ class TestEnergyConservation:
 
         rel_drift = abs(E_final - E_initial) / max(abs(E_initial), 1e-10)
         assert rel_drift < 0.10, (
-            f"Energy drift over 1000 steps: E(0)={E_initial:.6f}, E(1000)={E_final:.6f}, "
-            f"relative drift={rel_drift:.4%}"
+            f"Energy drift over 1000 steps: E(0)={E_initial:.6f}, E(1000)={E_final:.6f}, relative drift={rel_drift:.4%}"
         )
 
     @pytest.mark.unit

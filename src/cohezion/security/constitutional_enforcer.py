@@ -53,19 +53,19 @@ class ConstitutionalEnforcer:
     # Destructive commands that should never execute.
     # rm -rf / is caught but rm -rf /tmp/foo is intentionally allowed.
     DESTRUCTIVE_PATTERNS = [
-        r"rm\s+-rf\s+/(?!\w)",  # rm -rf / (not rm -rf /tmp/foo)
+        r"rm\s+-[rf]{2}\s+(?:--\S+\s+)*/(?!\w)",  # rm -rf / or rm -fr / with optional extra flags
         r"mkfs\b",  # Format filesystem
         r"dd\s+if=.*\s+of=/dev/",  # Raw disk writes
-        r":\(\)\s*\{\s*:\|:\s*&\s*\}",  # Fork bomb
+        r":\(\)\s*\{[^}]*:[^}]*:[^}]*&[^}]*\}",  # Fork bomb (any spacing)
         r"chmod\s+-R\s+777\s+/",  # World-writable root
     ]
 
     # Infrastructure attack patterns (Section 6: Critical Infrastructure).
     INFRA_ATTACK_PATTERNS = [
-        r"nmap\b",
-        r"masscan\b",
-        r"sqlmap\b",
-        r"hydra\b.*-l\b",  # Brute force with login flag
+        r"(?i)nmap\b",
+        r"(?i)masscan\b",
+        r"(?i)sqlmap\b",
+        r"(?i)hydra\b.*-l\b",  # Brute force with login flag
     ]
 
     # Secret exposure patterns — print/echo of credentials.

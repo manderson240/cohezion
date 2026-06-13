@@ -313,13 +313,11 @@ class TipOfTheSpearRouter:
         warnings = []
         if coherence < self.hiho_min:
             warnings.append(
-                f"Coherence too low ({coherence:.2f} < {self.hiho_min}): "
-                "Agent too uncertain, escalate to human"
+                f"Coherence too low ({coherence:.2f} < {self.hiho_min}): Agent too uncertain, escalate to human"
             )
         elif coherence > self.hiho_max:
             warnings.append(
-                f"Coherence too high ({coherence:.2f} > {self.hiho_max}): "
-                "Agent overconfident, inject uncertainty"
+                f"Coherence too high ({coherence:.2f} > {self.hiho_max}): Agent overconfident, inject uncertainty"
             )
 
         return hiho_stability, warnings
@@ -375,8 +373,7 @@ class TipOfTheSpearRouter:
         complexity = self.complexity_analyzer.analyze(request)
 
         logger.info(
-            f"Request domain: {domain}, complexity: {complexity.value}, "
-            f"starting tier: {initial_tier.value}"
+            f"Request domain: {domain}, complexity: {complexity.value}, starting tier: {initial_tier.value}"
         )
 
         # Step 4: Cascade through tiers with confidence checks
@@ -407,8 +404,7 @@ class TipOfTheSpearRouter:
             if next_tier is None:
                 # No more tiers to escalate to
                 logger.warning(
-                    f"Max escalations reached ({self.max_escalations}), "
-                    f"final confidence: {result['confidence']:.2f}"
+                    f"Max escalations reached ({self.max_escalations}), final confidence: {result['confidence']:.2f}"
                 )
                 break
 

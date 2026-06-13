@@ -119,7 +119,10 @@ class SemanticCache:
                 if guidance and guidance.get("relevant_context"):
                     logger.debug(f"📜 Vault L3 Hit for query: {query_text[:20]}...")
                     return {
-                        "response": f"VAULT GUIDANCE:\n{guidance.get('guidance', '')}\n\nCONTEXT:\n{json.dumps(guidance.get('relevant_context', []), indent=2)}",
+                        "response": (
+                            f"VAULT GUIDANCE:\n{guidance.get('guidance', '')}\n\n"
+                            f"CONTEXT:\n{json.dumps(guidance.get('relevant_context', []), indent=2)}"
+                        ),
                         "semantic_score": 0.5,  # Qualitative hit
                         "source": "vault",
                     }

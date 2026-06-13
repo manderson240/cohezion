@@ -160,7 +160,7 @@ def _ucb1_select(tree: dict) -> str:
         if win_vectors and "z_vector" in node:
             current_vec = np.array(node["z_vector"])
             # Calculate mean distance to wins (similarity)
-            similarities = [np.dot(current_vec, wv) for wv in win_vectors]
+            similarities = [np.dot(current_vec, wv) for win_vec in win_vectors for wv in [win_vec]]
             latent_bonus = max(similarities) * 0.2  # 20% influence from latent similarity
 
         score = mean + exploration + latent_bonus
@@ -177,20 +177,17 @@ def _ucb1_select(tree: dict) -> str:
         return "default=true"
 
 
-def _update_tree(tree: dict, outcome: ExperimentOutcome | str, reward: float) -> None:
+def _update_tree(tree: dict, outcome: ExperimentOutcome, reward: float) -> None:
     """Update node statistics and global trial count."""
-    # Accept both ExperimentOutcome and plain hypothesis string for backward compat
-    hypothesis = outcome if isinstance(outcome, str) else outcome.hypothesis
-    z_vector = [] if isinstance(outcome, str) else outcome.z_vector
     tree["total_trials"] += 1
     node = tree["nodes"].setdefault(
-        hypothesis,
+        outcome.hypothesis,
         {
-            "hypothesis": hypothesis,
+            "hypothesis": outcome.hypothesis,
             "wins": 0,
             "trials": 0,
             "metric_values": [],
-            "z_vector": z_vector,
+            "z_vector": outcome.z_vector,
         },
     )
     node["trials"] += 1
@@ -383,15 +380,15 @@ class AutoresearchDriver:
                 )
                 logs = proc.stdout + proc.stderr
                 metric_val = _extract_metric(logs, self.metric_name)
-                if metric_val is None or math.isnan(metric_val):
-                    metric_val = float("nan")
-                    status = "error"
-                elif self._baseline is None:
-                    status = "improvement"
-                elif self.direction == "minimize":
-                    status = "improvement" if metric_val < self._baseline else "regression"
+                if metric_val is None:
+                    metric_val, status = float("nan"), "error"
                 else:
-                    status = "improvement" if metric_val > self._baseline else "regression"
+                    if self._baseline is None:
+                        status = "improvement"
+                    elif self.direction == "minimize":
+                        status = "improvement" if metric_val < self._baseline else "regression"
+                    else:
+                        status = "improvement" if metric_val > self._baseline else "regression"
             except Exception as e:
                 metric_val, status, logs = float("nan"), "error", str(e)
 

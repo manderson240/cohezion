@@ -336,7 +336,11 @@ class TDDIntegration:
                 SkillRefinementInput(
                     skill_name="test_engineer",
                     performance_metric=len(tdd_state.failing_tests) / max(tdd_state.tests_run, 1),
-                    feedback=f"Failing tests detected: {', '.join(list(tdd_state.failing_tests)[:5])}{'...' if len(tdd_state.failing_tests) > 5 else ''}",
+                    feedback=(
+                        "Failing tests detected: "
+                        f"{', '.join(list(tdd_state.failing_tests)[:5])}"
+                        f"{'...' if len(tdd_state.failing_tests) > 5 else ''}"
+                    ),
                     context={
                         "failing_tests": list(tdd_state.failing_tests),
                         "session_id": session_id,

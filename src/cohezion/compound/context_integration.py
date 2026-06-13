@@ -207,8 +207,7 @@ class ContextManager:
                     coherence_threshold,
                 )
                 raise ContextCoherenceError(
-                    f"Coherence {self.coherence_state:.2f} below threshold "
-                    f"{coherence_threshold} for {file_path}"
+                    f"Coherence {self.coherence_state:.2f} below threshold {coherence_threshold} for {file_path}"
                 )
 
             try:

@@ -41,8 +41,7 @@ class MyceliumNetwork:
     async def broadcast_insight(self, spore: KnowledgeSpore) -> int:
         """Broadcast a newly learned intelligence spore to all connected EVOs."""
         logger.info(
-            f"EVO {spore.origin_evo_id} broadcasting spore "
-            f"on '{spore.topic}' with confidence {spore.confidence:.2f}"
+            f"EVO {spore.origin_evo_id} broadcasting spore on '{spore.topic}' with confidence {spore.confidence:.2f}"
         )
 
         receivers = 0

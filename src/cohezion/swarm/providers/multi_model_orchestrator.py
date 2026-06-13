@@ -195,7 +195,7 @@ class MultiModelOrchestrator(ModelProvider):
         size_str = model.split(":")[-1] if ":" in model else "7b"
         try:
             size = float(size_str.replace("b", "").replace("m", ".001"))
-        except ValueError:
+        except Exception:
             size = 7.0
 
         unit = ComputeUnit.CPU if size < 3.0 else ComputeUnit.GPU
@@ -275,7 +275,7 @@ class MultiModelOrchestrator(ModelProvider):
                 - latency_critical: Prioritize TTFT
                 - throughput_priority: Prioritize tokens/sec
         """
-        time.time()
+        _start_time = time.time()
 
         # Select compute unit
         unit = self.select_compute_unit(
@@ -316,6 +316,7 @@ class MultiModelOrchestrator(ModelProvider):
     ) -> GenerationResult:
         """Execute generation on specific compute unit."""
         session = await self._get_session()
+        start_time = time.time()
 
         # Optimize options for compute unit
         options = self._optimize_for_unit(unit, profile, max_tokens, temperature)
@@ -332,7 +333,6 @@ class MultiModelOrchestrator(ModelProvider):
         if unit in (ComputeUnit.GPU, ComputeUnit.HYBRID):
             payload["keep_alive"] = "5m"
 
-        start_time = time.time()
         try:
             async with session.post(
                 f"{endpoint}/api/generate",
@@ -495,8 +495,7 @@ async def demo():
     print("Model Profiles:")
     for name, profile in MultiModelOrchestrator.MODEL_PROFILES.items():
         print(
-            f"  {name}: {profile.size_b}B, {profile.preferred_unit.value}, "
-            f"~{profile.memory_gb}GB VRAM"
+            f"  {name}: {profile.size_b}B, {profile.preferred_unit.value}, ~{profile.memory_gb}GB VRAM"
         )
 
     # Test automatic routing

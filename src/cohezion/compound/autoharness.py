@@ -84,7 +84,7 @@ Return ONLY the python code inside ```python ... ``` blocks.
 """
             except Exception as e:
                 logger.error(f"[AutoHarness] LLM execution failed: {e}")
-                prompt = f"The previous attempt failed due to an execution error: {e}. Please try again. Return ONLY python code."
+                prompt = f"The previous attempt failed due to an execution error: {e}. Please try again. Return ONLY python code."  # noqa: E501
 
         logger.warning("[AutoHarness] Reached maximum iterations without complete success.")
         return code
@@ -135,7 +135,7 @@ Return ONLY the python code inside ```python ... ``` blocks.
 """
             except Exception as e:
                 logger.error(f"[AutoHarness] LLM execution failed: {e}")
-                prompt = f"The previous attempt failed due to an execution error: {e}. Please try again. Return ONLY python code."
+                prompt = f"The previous attempt failed due to an execution error: {e}. Please try again. Return ONLY python code."  # noqa: E501
 
         logger.warning("[AutoHarness] Reached maximum iterations without complete success.")
         return code

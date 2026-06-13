@@ -150,6 +150,8 @@ class GuardrailPipeline:
                     self.stats[guard_name].sanitized += 1
                     if result.modified_input:
                         current_text = result.modified_input
+                elif result.action == GuardrailAction.LOG_AND_ALLOW:
+                    self.stats[guard_name].allowed += 1
                 self.stats[guard_name].total_latency_ms += latency_ms
 
                 results.append(result)

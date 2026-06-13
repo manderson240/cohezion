@@ -5,6 +5,8 @@ cognitive load.  All methods are non-blocking: failures are logged and
 swallowed so the execution result is never lost.
 """
 
+from __future__ import annotations
+
 import asyncio
 import json
 import logging
@@ -482,7 +484,11 @@ class PostExecutionOrchestrator:
                             title=f"Degradation: {alert.metric}",
                             context=f"Task: {task_description}\n{alert.message}",
                             decision="Investigate degradation",
-                            rationale=f"Current: {alert.current_value:.3f}, Baseline: {alert.baseline_value:.3f}, Threshold: {alert.threshold:.3f}",
+                            rationale=(
+                                f"Current: {alert.current_value:.3f},"
+                                f" Baseline: {alert.baseline_value:.3f},"
+                                f" Threshold: {alert.threshold:.3f}"
+                            ),
                             project=project,
                         )
                         if dp:

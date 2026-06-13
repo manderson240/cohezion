@@ -311,8 +311,7 @@ class ConciergeAgent:
             "dedup_count": dedup_count,
             "unique_tasks": len(tasks) - dedup_count,
             "recommendation": (
-                f"Batch {sum(len(v) for v in batchable_groups.values())} tasks "
-                f"across {len(batchable_groups)} groups"
+                f"Batch {sum(len(v) for v in batchable_groups.values())} tasks across {len(batchable_groups)} groups"
                 if batchable_groups
                 else "Execute individually"
             ),

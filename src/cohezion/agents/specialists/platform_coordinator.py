@@ -34,20 +34,17 @@ class PlatformCoordinator(PlatformSpecialist):
         ),
         principles=(
             (
-                "Every LLM call routes through CostAwareRouter. "
-                "No direct provider SDK calls in production."
+                "Every LLM call routes through CostAwareRouter. No direct provider SDK calls in production."
             ),
             (
-                "Fallback chain: Ollama → Flash-Lite → Sonnet → Opus. "
-                "Automatic within the router, absent on bypass."
+                "Fallback chain: Ollama → Flash-Lite → Sonnet → Opus. Automatic within the router, absent on bypass."
             ),
             (
                 "Tier policy: 70% simple (free local), 20% medium ($3/M), 10% hard ($15/M). "
                 "Drift triggers an alert, not a silent escalation."
             ),
             (
-                "BudgetEnforcer only sees instrumented paths — "
-                "bypasses are invisible and a reliability bug."
+                "BudgetEnforcer only sees instrumented paths — bypasses are invisible and a reliability bug."
             ),
         ),
         prime_skill_ref="src/cohezion/skills/platform-coordinator.md",

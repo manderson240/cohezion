@@ -170,8 +170,7 @@ class CompoundTelemetry:
         self._current_pipeline.steps.append(self._current_step)
 
         logger.debug(
-            f"[telemetry] Step ended: {self._current_step.step_name} "
-            f"({self._current_step.latency_ms:.1f}ms)"
+            f"[telemetry] Step ended: {self._current_step.step_name} ({self._current_step.latency_ms:.1f}ms)"
         )
 
         self._current_step = None

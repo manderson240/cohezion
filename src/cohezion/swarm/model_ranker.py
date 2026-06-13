@@ -130,8 +130,7 @@ class ModelRanker:
         total_weight = sum([coherence_weight, cost_weight, latency_weight, freshness_weight])
         if not (0.9 <= total_weight <= 1.1):
             logger.warning(
-                f"Model ranking weights sum to {total_weight}, expected ~1.0. "
-                f"Scores will be normalized."
+                f"Model ranking weights sum to {total_weight}, expected ~1.0. Scores will be normalized."
             )
 
         # Cache for coherence scores

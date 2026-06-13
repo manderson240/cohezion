@@ -54,7 +54,8 @@ class MockBenchmarkEvaluator:
             ),
             (
                 "fibonacci",
-                "lambda n: n if n<=1 else __import__('functools').lru_cache(lambda n: n if n<=1 else fib(n-1)+fib(n-2))(n)",
+                "lambda n: n if n<=1 else __import__('functools').lru_cache("
+                "lambda n: n if n<=1 else fib(n-1)+fib(n-2))(n)",
                 ["0", "1", "10"],
                 ["0", "1", "55"],
             ),

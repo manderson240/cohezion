@@ -361,7 +361,7 @@ class OllamaContextManager:
         if "b" in size_indicator.lower():
             try:
                 size = float(size_indicator.lower().replace("b", ""))
-            except ValueError:
+            except Exception:
                 size = 7.0
         else:
             size = 7.0

@@ -1,4 +1,3 @@
-# ruff: noqa: RUF012  # class attrs treated as immutable config; never mutated per-instance
 """3-tier model pool lifecycle manager for Ollama models.
 
 Manages hot/warm/cold model rotation, health checks, and automatic
@@ -57,7 +56,7 @@ class ModelPoolManager:
         self,
         config: TierConfig | None = None,
         ollama_host: str = OLLAMA_HOST,
-        lemonade_port: int = 13307,  # allow-direct-port: lemond subprocess spawn port forwarded to LemonadeManager — not a routing target (R2)
+        lemonade_port: int = 13307,
     ) -> None:
         self._config = config or TierConfig()
         self._ollama_host = ollama_host
@@ -382,11 +381,9 @@ class ModelPoolManager:
         """Return a snapshot of the current pool state."""
         loaded = [m.name for m in self._pool.values() if m.loaded]
         healthy = [m.name for m in self._pool.values() if m.loaded and m.healthy]
-        # Cloud/edge models are remote — do not count toward local VRAM
+        local_tiers = (ModelTierPolicy.HOT, ModelTierPolicy.WARM, ModelTierPolicy.COLD)
         total_mem = sum(
-            m.size_gb
-            for m in self._pool.values()
-            if m.loaded and m.tier not in (ModelTierPolicy.CLOUD, ModelTierPolicy.EDGE)
+            m.size_gb for m in self._pool.values() if m.loaded and m.tier in local_tiers
         )
 
         return PoolStatus(
@@ -394,10 +391,7 @@ class ModelPoolManager:
             healthy_models=healthy,
             total_memory_gb=round(total_mem, 2),
             memory_pressure=round(self._memory.analyze_memory_pressure(), 3),
-            models={
-                name: asdict(m) if hasattr(m, "__dataclass_fields__") else vars(m)
-                for name, m in self._pool.items()
-            },
+            models={name: asdict(m) for name, m in self._pool.items()},
         )
 
     def get_model(self, model_name: str) -> PooledModel | None:

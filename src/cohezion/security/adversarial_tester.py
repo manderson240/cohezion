@@ -400,7 +400,10 @@ class AdversarialTester:
 """
         # Add recommendations based on results
         if self.metrics.false_negatives > 0:
-            report += f"- ⚠️ **{self.metrics.false_negatives} attacks bypassed detection** - Review failed patterns and enhance rules\n"
+            report += (
+                f"- ⚠️ **{self.metrics.false_negatives} attacks bypassed detection**"
+                " - Review failed patterns and enhance rules\n"
+            )
 
         if self.metrics.false_positives > 0:
             report += f"- ⚠️ **{self.metrics.false_positives} false positives** - Adjust detection thresholds\n"

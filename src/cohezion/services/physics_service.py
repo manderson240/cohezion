@@ -84,12 +84,7 @@ class PhysicsService:
             novelty = self._compute_novelty(content)
             coherence = self._compute_coherence(content, embedding)
 
-            # Σ2: PhysicsState in cohezion.core.persistence.surreal_client uses
-            # the 12D Spatial+Time+Brane schema (physics/biology/logic/quantum/...).
-            # This service still passes the legacy semantic-physics schema (mass/
-            # sentiment/complexity/...). Schema reconciliation tracked separately;
-            # silencing here to keep mypy clean without runtime change.
-            return PhysicsState(  # type: ignore[call-arg]
+            return PhysicsState(
                 x=x,
                 y=y,
                 z=z,
@@ -121,18 +116,15 @@ class PhysicsService:
             PhysicsAnalysis with metrics and recommendations.
         """
         try:
-            # Σ2: legacy semantic-physics schema; see PhysicsState constructor note.
             stability_score = (
-                getattr(state, "stability", 0.0) * 0.4
-                + getattr(state, "coherence", 0.0) * 0.3
-                + getattr(state, "connectivity", 0.0) * 0.3
+                state.stability * 0.4 + state.coherence * 0.3 + state.connectivity * 0.3
             )
 
-            coherence_score = getattr(state, "coherence", 0.0)
+            coherence_score = state.coherence
 
             novelty_score = state.novelty
 
-            connectivity_score = getattr(state, "connectivity", 0.0)
+            connectivity_score = state.connectivity
 
             overall_health = (
                 stability_score * 0.3
@@ -243,8 +235,7 @@ class PhysicsService:
             True if successful, False otherwise.
         """
         try:
-            result = await self._universe_repo.update(node_id, {"physics_state": updates})
-            return bool(result)
+            return await self._universe_repo.update(node_id, {"physics_state": updates})
 
         except Exception as e:
             logger.error(f"Failed to update physics state: {e}")
@@ -285,7 +276,7 @@ class PhysicsService:
         mass = min(1.0, len(content) / 10000.0)
 
         if embedding:
-            norm = float(np.linalg.norm(embedding))
+            norm = np.linalg.norm(embedding)
             mass = min(1.0, norm / 100.0)
 
         return mass
@@ -391,7 +382,7 @@ class PhysicsService:
     ) -> float:
         """Compute coherence score (0-1)."""
         if embedding and len(embedding) > 0:
-            norm = float(np.linalg.norm(embedding))
+            norm = np.linalg.norm(embedding)
             return min(1.0, norm / 50.0)
 
         return 0.8
@@ -400,17 +391,16 @@ class PhysicsService:
         """Generate recommendations based on physics state."""
         recommendations = []
 
-        # Σ2: legacy semantic-physics schema; see PhysicsState constructor note.
-        if getattr(state, "stability", 0.0) < self._config.stability_threshold:
+        if state.stability < self._config.stability_threshold:
             recommendations.append("Consider stabilizing: Reduce volatility in outputs")
 
-        if getattr(state, "coherence", 0.0) < self._config.coherence_threshold:
+        if state.coherence < self._config.coherence_threshold:
             recommendations.append("Improve coherence: Ensure logical flow")
 
         if state.novelty < 0.3:
             recommendations.append("Increase novelty: Explore new perspectives")
 
-        if getattr(state, "connectivity", 0.0) < 0.5:
+        if state.connectivity < 0.5:
             recommendations.append("Enhance connectivity: Build more relationships")
 
         if not recommendations:

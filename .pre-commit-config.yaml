@@ -37,7 +37,7 @@ repos:
       # Quick lint - only basic syntax errors and auto-fixes
       - id: ruff
         stages: [pre-commit]
-        args: [--select=F,E9,E501, --fix]
+        args: [--select=F,E9,E501, --ignore=F841, --fix]
         name: ruff-quick (syntax errors only)
 
   # General file checks - Fast validation

@@ -232,8 +232,7 @@ class AnomalyDetector:
             model=model,
             severity=severity,
             confidence=confidence,
-            description=f"Cost spike: {actual_cost:.4f} vs {forecasted_cost:.4f} "
-            f"({deviation * 100:+.1f}%)",
+            description=f"Cost spike: {actual_cost:.4f} vs {forecasted_cost:.4f} ({deviation * 100:+.1f}%)",
             metrics={
                 "actual": actual_cost,
                 "forecasted": forecasted_cost,
@@ -304,8 +303,7 @@ class AnomalyDetector:
             model=model,
             severity=severity,
             confidence=confidence,
-            description=f"Cost trend: rising {trend_slope * 3600:.6f} cost/hour "
-            f"over {self.trend_window_hours}h",
+            description=f"Cost trend: rising {trend_slope * 3600:.6f} cost/hour over {self.trend_window_hours}h",
             metrics={
                 "trend_slope": trend_slope,
                 "total_change": total_change,
@@ -362,8 +360,7 @@ class AnomalyDetector:
             model=model,
             severity=severity,
             confidence=confidence,
-            description=f"Quality-cost mismatch: high cost ({cost:.4f}) "
-            f"with low coherence ({coherence_score:.2f})",
+            description=f"Quality-cost mismatch: high cost ({cost:.4f}) with low coherence ({coherence_score:.2f})",
             metrics={
                 "cost": cost,
                 "coherence": coherence_score,

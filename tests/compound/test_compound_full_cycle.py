@@ -26,11 +26,7 @@ from cohezion.compound.skill_selector import SkillScore
 _SKILL = "FULL_CYCLE_TEST"
 _OP = "generate"
 
-_PRIME_CONTENT = (
-    "# FULL_CYCLE_TEST PRIME Skill\n\n"
-    "## Version: 1.0.0\n\n"
-    "## Keywords: test, integration, compound\n"
-)
+_PRIME_CONTENT = "# FULL_CYCLE_TEST PRIME Skill\n\n## Version: 1.0.0\n\n## Keywords: test, integration, compound\n"
 
 
 # ── Fixtures ─────────────────────────────────────────────────────────────────

@@ -7,22 +7,15 @@ from cohezion.inference.registry import (
     Lane,
     ModelEntry,
     Task,
+    WeightQuant,
     get_registry,
 )
 
 
 def test_default_registry_has_four_gemma_lanes() -> None:
     registry = FleetRegistry()
-    present = {m.model_id for m in registry.models.values() if m.model_id.startswith("Gemma-4-")}
-    symphony = {
-        "Gemma-4-E2B-it-GGUF",
-        "Gemma-4-E4B-it-GGUF",
-        "Gemma-4-26B-A4B-it-GGUF",
-        "Gemma-4-31B-it-GGUF",
-    }
-    # The 4-lane Symphony must be present; additional Gemma entries (e.g. the 12B-QAT mid-tier
-    # OOM-fallback, item 144) are allowed — assert the invariant, not a brittle total count.
-    assert symphony <= present, f"Symphony 4-lane Gemmas missing: {symphony - present}"
+    gemma_models = [m for m in registry.models.values() if m.model_id.startswith("Gemma-4-")]
+    assert len(gemma_models) == 4, "Expect E2B, E4B, 26B-A4B, 31B per Symphony Guide"
 
 
 def test_gemma_lanes_bind_to_correct_silicon() -> None:
@@ -34,15 +27,11 @@ def test_gemma_lanes_bind_to_correct_silicon() -> None:
 
 
 def test_gemma_lane_ports_match_symphony_launch_script() -> None:
-    """Phase 2 (2026-06-09): all lemonade models point at the unified router :13305.
-    The old per-port endpoints (:13306/:13307/:13308/:13309) are retired from registry
-    metadata. This test was updated from per-port to router-centric in Phase 2.
-    """
     registry = FleetRegistry()
-    assert "13305" in registry.models["Gemma-4-E2B-it-GGUF"].endpoint
-    assert "13305" in registry.models["Gemma-4-E4B-it-GGUF"].endpoint
-    assert "13305" in registry.models["Gemma-4-26B-A4B-it-GGUF"].endpoint
-    assert "13305" in registry.models["Gemma-4-31B-it-GGUF"].endpoint
+    assert "13306" in registry.models["Gemma-4-E2B-it-GGUF"].endpoint
+    assert "13307" in registry.models["Gemma-4-E4B-it-GGUF"].endpoint
+    assert "13308" in registry.models["Gemma-4-26B-A4B-it-GGUF"].endpoint
+    assert "13309" in registry.models["Gemma-4-31B-it-GGUF"].endpoint
 
 
 def test_for_task_returns_sorted_by_priority() -> None:
@@ -63,7 +52,7 @@ def test_claude_tier_has_ascending_cost() -> None:
     registry = FleetRegistry()
     haiku = registry.models["claude-haiku-4-5"]
     sonnet = registry.models["claude-sonnet-4-6"]
-    opus = registry.models["claude-opus-4-8"]
+    opus = registry.models["claude-opus-4-7"]
     assert (
         haiku.cost_per_1k_output_usd < sonnet.cost_per_1k_output_usd < opus.cost_per_1k_output_usd
     )
@@ -91,8 +80,6 @@ def test_get_registry_returns_singleton() -> None:
 
 
 def test_model_entry_is_dataclass_with_expected_fields() -> None:
-    from cohezion.inference.registry import WeightQuant
-
     sample = ModelEntry(
         model_id="x",
         lane=Lane.NPU,
@@ -203,6 +190,5 @@ def test_audit_liveness_skips_cloud_and_cli_lanes() -> None:
     local_lane_values = {"npu", "igpu_rocwmma", "igpu_unified", "cpu"}
     for item in audit.items:
         assert item.lane in local_lane_values, (
-            f"{item.model_id} got audited with non-local lane {item.lane!r}; "
-            "cloud/CLI models should be filtered out."
+            f"{item.model_id} got audited with non-local lane {item.lane!r}; cloud/CLI models should be filtered out."
         )

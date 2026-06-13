@@ -203,8 +203,7 @@ class IntakeSpecialist:
         )
 
         logger.info(
-            f"Created task: {task.task_id[:8]}... "
-            f"(op={operation_type}, skills={available_skill_names})"
+            f"Created task: {task.task_id[:8]}... (op={operation_type}, skills={available_skill_names})"
         )
 
         return task

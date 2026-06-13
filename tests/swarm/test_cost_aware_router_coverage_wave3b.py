@@ -73,10 +73,10 @@ def router(fresh_tracker, fresh_enforcer):
 
 class TestTierClassification:
     def test_simple_query_routes_to_phi3(self, router):
-        """SIMPLE complexity → TIER_SIMPLE (cheapest local)."""
+        """SIMPLE complexity → Phi-4-mini-instruct-Hybrid (cheapest local)."""
         decision, can_proceed = router.select_model("What is Python?")
         assert can_proceed is True
-        assert decision.model in ("phi3:mini", "Phi-4-mini-instruct-Hybrid")
+        assert decision.model == "Phi-4-mini-instruct-Hybrid"
         assert decision.complexity == QueryComplexity.SIMPLE
 
     def test_complex_query_routes_to_higher_tier(self, router):
@@ -92,7 +92,14 @@ class TestTierClassification:
         decision, _ = router.select_model(query)
         assert decision.complexity == QueryComplexity.COMPLEX
         # Optimizer swaps deepseek for cheaper qwen; either is acceptable
-        assert decision.model in {"qwen3-coder:32b", "deepseek-r1:8b", "phi3:mini"}
+        assert decision.model in {
+            "qwen3-coder:32b",
+            "deepseek-r1:8b",
+            "phi3:mini",
+            "Phi-4-mini-instruct-Hybrid",
+            "Qwen3-8B-Hybrid",
+            "Qwen3-14B-Hybrid",
+        }
 
     def test_medium_query_complexity_classification(self, router):
         """MEDIUM-complexity query is routed (model may be optimized to phi3)."""
@@ -187,7 +194,7 @@ class TestBudgetEnforcement:
         # Stub MODEL_COSTS so the selected model has a tangible cost
         router.MODEL_COSTS = dict(router.MODEL_COSTS)
         router.MODEL_COSTS["phi3:mini"] = 0.10  # $0.10 per 1k
-        router.MODEL_COSTS[router.TIER_SIMPLE] = 0.10  # also stub TIER_SIMPLE (may be Phi-4-mini)
+        router.MODEL_COSTS["Phi-4-mini-instruct-Hybrid"] = 0.10  # same cost, new name
 
         decision, can_proceed = router.select_model("What is X?", max_cost_usd=0.0001)
         # 80 tokens * 0.10/1000 = 0.008 USD > 0.0001 ceiling
@@ -235,22 +242,18 @@ class TestCostTracking:
         assert router.cost_per_model["phi3:mini"] == pytest.approx(0.003)
 
     def test_record_execution_increments_success_counter(self, router):
-        """record_execution(success=True) on TIER_SIMPLE → _phi3_success_count++."""
+        """record_execution(success=True) on simple-tier model increments success counter."""
         router.record_execution(
-            router.TIER_SIMPLE, actual_tokens=100, duration_ms=50.0, success=True
+            "Phi-4-mini-instruct-Hybrid", actual_tokens=100, duration_ms=50.0, success=True
         )
         assert router._phi3_success_count == 1
 
     def test_select_model_increments_query_count(self, router):
-        """select_model bumps query_count_per_model."""
+        """select_model bumps query_count_per_model for the selected model."""
         router.select_model("What is X?")
         router.select_model("What is Y?")
-        # Either phi3:mini or Phi-4-mini-instruct-Hybrid may be selected as TIER_SIMPLE
-        total = sum(
-            router.query_count_per_model.get(m, 0)
-            for m in ("phi3:mini", "Phi-4-mini-instruct-Hybrid")
-        )
-        assert total >= 2
+        primary = router.TIER_SIMPLE
+        assert router.query_count_per_model.get(primary, 0) >= 2
 
 
 # ---------- Statistics aggregation ----------
@@ -279,9 +282,11 @@ class TestStatistics:
 
 class TestConfidence:
     def test_confidence_low_for_misaligned_complex_to_phi3(self, router):
-        """COMPLEX task forced to phi3 → confidence < 0.8 (alignment penalty)."""
-        confidence = router._compute_routing_confidence("phi3:mini", QueryComplexity.COMPLEX)
-        assert confidence < 0.95  # penalty for misaligned complex→simple-tier model
+        """COMPLEX task forced to simple-tier → confidence < 0.95 (alignment penalty)."""
+        confidence = router._compute_routing_confidence(
+            "Phi-4-mini-instruct-Hybrid", QueryComplexity.COMPLEX
+        )
+        assert confidence < 0.95
 
     def test_confidence_higher_for_aligned_complex_to_deepseek(self, router):
         """COMPLEX → deepseek alignment is full → higher confidence."""
@@ -299,10 +304,10 @@ class TestContextWindowGuard:
         assert result == "phi3:mini"
 
     def test_overflow_escalates_to_larger_context_model(self, router):
-        """phi3 has 4096 ctx; 5000 tokens > 80% → escalation."""
-        result = router._check_context_window("phi3:mini", estimated_tokens=5000)
+        """Phi-4-mini has 4096 ctx; 5000 tokens > 80% → escalation."""
+        result = router._check_context_window("Phi-4-mini-instruct-Hybrid", estimated_tokens=5000)
         # Must escalate to one of the chain entries with bigger context
-        assert result != "phi3:mini"
+        assert result != "Phi-4-mini-instruct-Hybrid"
         assert result in router.MODEL_CONTEXT_LIMITS
 
 
@@ -318,7 +323,7 @@ class TestDegradationFeedback:
         alert.metric = "success_rate"
         router.apply_degradation_feedback([alert])
         assert router._degradation_cooldown == 5
-        assert router._degradation_upgrade_model == "deepseek-r1:8b"
+        assert router._degradation_upgrade_model == "Qwen3-14B-Hybrid"
 
     def test_critical_token_efficiency_alert_forces_qwen(self, router):
         """CRITICAL on token_efficiency → 3-query cooldown to qwen."""
@@ -328,7 +333,7 @@ class TestDegradationFeedback:
         alert.metric = "token_efficiency"
         router.apply_degradation_feedback([alert])
         assert router._degradation_cooldown == 3
-        assert router._degradation_upgrade_model == "qwen3-coder:32b"
+        assert router._degradation_upgrade_model == "Qwen3-8B-Hybrid"
 
     def test_degradation_override_forces_upgraded_model(self, router):
         """Active cooldown forces upgraded model regardless of complexity."""

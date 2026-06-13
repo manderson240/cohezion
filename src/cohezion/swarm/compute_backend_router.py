@@ -192,8 +192,7 @@ class ComputeBackendRouter:
             "Workaround: Use NPU or Vulkan backend."
         ),
         BackendType.GPU_VULKAN: (
-            "Requires vulkan-sdk package. Reported working by community "
-            "but not formally validated on this system."
+            "Requires vulkan-sdk package. Reported working by community but not formally validated on this system."
         ),
     }
 
@@ -398,8 +397,7 @@ class ComputeBackendRouter:
             # Check throughput constraint
             if constraints.min_throughput_tps > cap.typical_tps:
                 logger.debug(
-                    f"{backend.name}: TPS {cap.typical_tps} < "
-                    f"required {constraints.min_throughput_tps}"
+                    f"{backend.name}: TPS {cap.typical_tps} < required {constraints.min_throughput_tps}"
                 )
                 continue
 

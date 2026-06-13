@@ -50,9 +50,8 @@ class ExoticVacuumObject:
     Maps to:   idle   -> spawning   -> working  -> winding down -> idle
     """
 
-    def __init__(self, agent_id: str, universe_id: str | None = None) -> None:
+    def __init__(self, agent_id: str) -> None:
         self.agent_id = agent_id
-        self.universe_id = universe_id or "uncontained"
         self.state = "vacuum"
         self.coherence_history: list[float] = []
         self.witness_marks: list[WitnessMark] = []
@@ -87,11 +86,7 @@ class ExoticVacuumObject:
             self.binding_energy += excess
 
     def produce_witness_mark(self, mark_type: str, content: str) -> dict:
-        """Agent produces permanent trace: code commit, vault note, decision.
-
-        Emits a PrecipitationEvent of kind WITNESS_MARK so the artifact flows
-        through vault + surreal + git sinks atomically. Cosmogony Step 10.
-        """
+        """Agent produces permanent trace: code commit, vault note, decision."""
         if self.state != "coherent":
             raise ValueError(f"Cannot produce witness marks in state '{self.state}'")
         mark = WitnessMark(
@@ -103,10 +98,6 @@ class ExoticVacuumObject:
         logger.info(
             "EVO %s: witness mark [%s] at tick %d", self.agent_id, mark_type, self.lifetime_ticks
         )
-
-        # Precipitation emission — best effort, never raises into caller
-        _emit_witness_mark(self, mark)
-
         return {"mark_type": mark_type, "content": content, "tick": mark.tick}
 
     def dissolve(self) -> dict:
@@ -178,37 +169,6 @@ class ExoticVacuumObject:
             if self.coherence_history
             else 0.0,
         }
-
-
-def _emit_witness_mark(evo: ExoticVacuumObject, mark: WitnessMark) -> None:
-    """Precipitation emission for witness marks. Isolated so failures never raise."""
-    try:
-        # Lazy import to avoid hard coupling at module load.
-        from cohezion.precipitation import (
-            PrecipitationEvent,
-            PrecipitationKind,
-            emit,
-        )
-
-        current_coherence = evo.coherence_history[-1] if evo.coherence_history else 0.5
-        emit(
-            PrecipitationEvent(
-                kind=PrecipitationKind.WITNESS_MARK,
-                universe_id=evo.universe_id,
-                agent_id=evo.agent_id,
-                coherence=current_coherence,
-                payload={
-                    "mark_type": mark.mark_type,
-                    "content": mark.content,
-                    "tick": mark.tick,
-                    "evo_state": evo.state,
-                    "evo_coherence_metric": evo.evo_coherence_metric(),
-                    "binding_energy": evo.binding_energy,
-                },
-            )
-        )
-    except Exception:
-        logger.debug("Precipitation emit failed for EVO %s", evo.agent_id, exc_info=True)
 
 
 __all__ = [

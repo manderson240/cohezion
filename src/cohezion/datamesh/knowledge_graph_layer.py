@@ -523,8 +523,7 @@ class KnowledgeGraphLayer:
                 style = "dotted"
 
             lines.append(
-                f'    "{edge.source_id}" -> "{edge.target_id}" '
-                f'[label="{edge.relation.name}", style={style}];'
+                f'    "{edge.source_id}" -> "{edge.target_id}" [label="{edge.relation.name}", style={style}];'
             )
 
         lines.append("}")

@@ -474,7 +474,8 @@ class ThermalCheckpointManager:
             )
 
             logger.info(
-                f"Loaded checkpoint: {checkpoint.phase}, {checkpoint.hypotheses_completed}/{checkpoint.total_hypotheses} completed"
+                f"Loaded checkpoint: {checkpoint.phase},"
+                f" {checkpoint.hypotheses_completed}/{checkpoint.total_hypotheses} completed"
             )
             return checkpoint
 

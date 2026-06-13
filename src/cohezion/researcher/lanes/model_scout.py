@@ -72,9 +72,7 @@ async def _fetch_arxiv_abstract(client: httpx.AsyncClient, arxiv_id: str) -> str
 async def _fetch_hf_model_card(client: httpx.AsyncClient, model_id: str) -> str:
     """Fetch a HuggingFace model card README."""
     try:
-        r = await client.get(
-            f"{_HF_BASE}/{model_id}/raw/main/README.md", timeout=10.0
-        )
+        r = await client.get(f"{_HF_BASE}/{model_id}/raw/main/README.md", timeout=10.0)
         r.raise_for_status()
         return r.text
     except (httpx.HTTPError, httpx.TimeoutException) as e:
@@ -124,8 +122,7 @@ class ModelScoutLane:
                 # Drop candidates that don't beat any default for any task
                 if not self._beats_any_default(profile):
                     report.notes.append(
-                        f"dropped no_improvement: {model_id} "
-                        f"(no task beats the default registry)"
+                        f"dropped no_improvement: {model_id} (no task beats the default registry)"
                     )
                     continue
                 report.candidates.append(model_id)

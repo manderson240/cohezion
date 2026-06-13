@@ -17,7 +17,7 @@ from dataclasses import dataclass, field
 logger = logging.getLogger(__name__)
 
 
-@dataclass
+@dataclass(frozen=True)
 class ProvenanceRecord:
     """An immutable provenance record for an artifact."""
 

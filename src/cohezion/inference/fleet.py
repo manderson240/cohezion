@@ -26,6 +26,7 @@ from __future__ import annotations
 
 import asyncio
 import logging
+import os
 import time
 from dataclasses import dataclass, field
 from typing import Any
@@ -42,11 +43,6 @@ from cohezion.inference.registry import (
 
 
 logger = logging.getLogger(__name__)
-
-# Reasoning-model content guard: when a thinking model (DeepSeek-R1, Gemma-4 FLM) produces
-# content shorter than this threshold, the response is likely a bare numerical answer with
-# all reasoning hidden in reasoning_content. Fall back to reasoning_content in that case.
-_REASONING_MIN_TOKENS = 50
 
 
 @dataclass
@@ -162,16 +158,22 @@ def _inject_symmetry_axis(payload: dict[str, Any], coherence: float | None) -> d
     """Inject ``turboquant_axis`` into the payload via the SymmetryHardwareBridge."""
     if coherence is None:
         return payload
+    strict = os.environ.get("COHEZION_STRICT_AXIS") == "1"
     try:
         from cohezion.core.symmetry_hardware_bridge import get_symmetry_bridge
 
         bridge = get_symmetry_bridge()
         return bridge.apply_to_payload(payload, coherence)
     except (ImportError, AttributeError, KeyError, TypeError, ValueError) as exc:
-        import os
-
-        if os.environ.get("COHEZION_STRICT_AXIS"):
-            raise RuntimeError(f"Symmetry bridge unavailable (strict mode): {exc}") from exc
+        # ImportError — bridge module missing (expected on fresh checkouts)
+        # AttributeError — get_symmetry_bridge or apply_to_payload signature drift
+        # KeyError / TypeError / ValueError — malformed payload the bridge rejects
+        # Anything else (MemoryError, KeyboardInterrupt, custom BridgeError)
+        # must propagate so the caller sees it rather than getting silent no-op.
+        if strict:
+            raise RuntimeError(
+                f"strict axis mode (COHEZION_STRICT_AXIS=1): bridge unavailable: {exc}"
+            ) from exc
         logger.debug("Symmetry bridge unavailable: %s", exc)
         return payload
 
@@ -208,16 +210,7 @@ async def _dispatch_openai_compatible(
             resp = await client.post(f"{model.endpoint}/v1/chat/completions", json=payload)
             resp.raise_for_status()
             data = resp.json()
-        msg = data["choices"][0]["message"]
-        content = msg.get("content") or ""
-        reasoning = msg.get("reasoning_content") or ""
-        # Thinking models (DeepSeek-R1, Gemma-4 FLM) put CoT in reasoning_content
-        # and a concise answer in content. Fall back to reasoning when content is short.
-        text = (
-            content
-            if len(content.strip()) >= _REASONING_MIN_TOKENS
-            else (reasoning.strip() or content)
-        )
+        text = data["choices"][0]["message"]["content"]
         usage = data.get("usage", {})
         in_tok = usage.get("prompt_tokens", 0)
         out_tok = usage.get("completion_tokens", 0)
@@ -234,7 +227,6 @@ async def _dispatch_openai_compatible(
     start = _time.perf_counter()
     first_chunk_at: float | None = None
     chunks: list[str] = []
-    reasoning_chunks: list[str] = []
     in_tok = 0
     out_tok = 0
 
@@ -267,22 +259,13 @@ async def _dispatch_openai_compatible(
                 first_chunk_at = _time.perf_counter()
             if visible:
                 chunks.append(visible)
-            if thinking:
-                reasoning_chunks.append(thinking)
             usage = chunk.get("usage")
             if usage:
                 in_tok = usage.get("prompt_tokens", in_tok)
                 out_tok = usage.get("completion_tokens", out_tok)
 
     end = _time.perf_counter()
-    content_text = "".join(chunks)
-    reasoning_text = "".join(reasoning_chunks)
-    # Thinking model fallback: use reasoning when content is very short (same threshold as non-streaming)
-    text = (
-        content_text
-        if len(content_text.strip()) >= _REASONING_MIN_TOKENS
-        else (reasoning_text.strip() or content_text)
-    )
+    text = "".join(chunks)
     ttft_ms = ((first_chunk_at - start) * 1000) if first_chunk_at else None
     gen_duration = end - (first_chunk_at or end)
     tokens_per_sec = len(text.split()) / gen_duration if gen_duration > 0.01 and text else None
@@ -489,12 +472,6 @@ async def route(
     task_enum = _classify_task(prompt, task)
     coherence = _get_symmetry_coherence()
 
-    # reasoning_mode: thinking models need larger max_tokens to avoid truncating CoT before the answer.
-    # DeepSeek-R1 and Gemma-4 FLM thinking variants require 4k+ tokens for full reasoning traces.
-    reasoning_mode = task_enum == Task.REASONING
-    if reasoning_mode and max_tokens < 4096:
-        max_tokens = 4096
-
     # Build candidate ordering.
     candidates = registry.for_task(task_enum)
     if prefer and prefer in registry.models:
@@ -568,7 +545,7 @@ async def route(
                 self_reported_confidence=confidence,
                 attempts=attempts,
             )
-        except Exception as exc:
+        except (TimeoutError, httpx.HTTPError, Exception) as exc:
             last_error = f"{candidate.model_id}: {exc}"
             logger.warning("Dispatch to %s failed: %s", candidate.model_id, exc)
             continue
@@ -643,98 +620,3 @@ async def extend_claude(
     result = await route(prompt, task=Task.REASONING, prefer=claude_model, timeout=timeout)
     result.escalated_to_cloud = True
     return result
-
-
-# ── NEW (WS2A): extend_claude_aligned ────────────────────────────────────────
-#
-# This is the card-aligned sibling of extend_claude. The behavior is the
-# same (local-first, escalate on quality-gate failure) but the local
-# dispatch honors the caller-supplied InferenceParams — it does NOT let
-# the registry re-pick a different model.
-#
-# `params` is keyword-only and required. Calling without it is a TypeError
-# (recipe_guard rule: default params are a bug, not a fallback).
-
-
-async def extend_claude_aligned(
-    prompt: str,
-    *,
-    params,  # InferenceParams — kept untyped to avoid an import cycle; runtime-checked below
-    claude_model: str = "claude-sonnet-4-6",
-    quality_threshold: float = 0.8,
-    max_local_attempts: int = 2,
-    timeout: float = 30.0,
-):
-    """Card-aligned extend_claude. Local-first, escalate on quality-gate failure.
-
-    `params` is required and keyword-only. The local dispatch goes to
-    `params.model_id` (not a registry-picked alternative).
-
-    The quality gate is the same as extend_claude: length >= 40 AND
-    (no self-reported confidence OR confidence >= quality_threshold).
-    On failure, escalate to `claude_model`.
-    """
-    from cohezion.inference.model_card_harness import InferenceParams
-    from cohezion.inference.recipe_guard import RecipeGuard
-
-    if not isinstance(params, InferenceParams):
-        raise TypeError(
-            f"extend_claude_aligned requires params=InferenceParams(...); "
-            f"got {type(params).__name__}. Build params via "
-            f"ModelCardHarness.aligned_params(model_id, task)."
-        )
-    RecipeGuard.assert_aligned(params)
-
-    registry = get_registry()
-
-    # Fail fast if the caller named a cloud fallback that does not exist.
-    if claude_model not in registry.models:
-        return RouteResult(
-            text="",
-            model="",
-            lane="",
-            latency_ms=0.0,
-            error=f"Unknown claude_model {claude_model}",
-        )
-
-    for _ in range(max_local_attempts):
-        # Dispatch to the model the caller named. We do NOT use route()
-        # here because route() would re-pick — the whole point of the
-        # _aligned variant is to honor the caller's choice.
-        text, cost, _ttft, _tps = await _dispatch_one(
-            registry.models[params.model_id], prompt, None, timeout
-        )
-        local_result = RouteResult(
-            text=text,
-            model=params.model_id,
-            lane=str(registry.models[params.model_id].lane.value),
-            latency_ms=0.0,  # _dispatch_one doesn't surface a single latency
-            cost_usd=cost,
-            self_reported_confidence=None,
-            escalated_to_cloud=False,
-            error=None if text else "empty",
-        )
-        confidence = local_result.self_reported_confidence
-        length_ok = local_result.error is None and len(local_result.text) >= 40
-        confidence_ok = confidence is None or confidence >= quality_threshold
-        if length_ok and confidence_ok:
-            return local_result
-        logger.info(
-            "Aligned local attempt insufficient (%s, confidence=%s); retrying",
-            local_result.error or "short output",
-            confidence,
-        )
-
-    cloud_text, cloud_cost, _ttft, _tps = await _dispatch_one(
-        registry.models[claude_model], prompt, None, timeout
-    )
-    return RouteResult(
-        text=cloud_text,
-        model=claude_model,
-        lane=str(registry.models[claude_model].lane.value),
-        latency_ms=0.0,
-        cost_usd=cloud_cost,
-        self_reported_confidence=None,
-        escalated_to_cloud=True,
-        error=None if cloud_text else "empty",
-    )

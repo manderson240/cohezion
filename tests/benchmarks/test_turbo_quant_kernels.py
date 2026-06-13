@@ -2,8 +2,9 @@ import time
 
 import pytest
 import torch
-import triton
-import triton.language as tl
+
+triton = pytest.importorskip("triton", reason="triton not available (no GPU drivers)")
+tl = pytest.importorskip("triton.language", reason="triton not available (no GPU drivers)")
 
 
 # --- Placeholder Turbo Quant Kernel ---

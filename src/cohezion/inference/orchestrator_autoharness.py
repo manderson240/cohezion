@@ -359,7 +359,7 @@ class MultiNodeOrchestrator:
         while not stop_event.is_set():
             try:
                 # Non-blocking wait
-                _priority, _, _task_id, task = await asyncio.wait_for(
+                priority, _, task_id, task = await asyncio.wait_for(
                     self.task_queue.get(), timeout=1.0
                 )
 

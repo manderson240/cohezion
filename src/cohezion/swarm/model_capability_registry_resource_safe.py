@@ -110,7 +110,7 @@ class ResourceGuard:
         size = size.lower().replace("b", "")
         try:
             return float(size)
-        except ValueError:
+        except Exception:
             return 4.0  # Default 4GB
 
     async def pre_benchmark(self) -> bool:
@@ -188,7 +188,7 @@ class ResourceSafeModelCapabilityRegistry(ModelCapabilityRegistry):
                 data = json.loads(self._checkpoint_file.read_text())
                 self._completed_models = set(data.get("completed", []))
                 logger.info(f"Loaded checkpoint: {len(self._completed_models)} models completed")
-            except (json.JSONDecodeError, OSError):
+            except Exception:
                 pass
 
     def _save_checkpoint(self):
@@ -231,7 +231,7 @@ class ResourceSafeModelCapabilityRegistry(ModelCapabilityRegistry):
         """Get size in GB for comparison."""
         try:
             return float(size.lower().replace("b", ""))
-        except ValueError:
+        except Exception:
             return 4.0
 
     async def benchmark_model(self, model_name: str) -> ModelBenchmark:

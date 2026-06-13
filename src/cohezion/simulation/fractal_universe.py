@@ -479,7 +479,9 @@ class FractalSimulator:
                     "spatial_pos": [float(sample_agent.x), float(sample_agent.y)],
                     "energy_level": sample_agent.energy,
                     "phi_score": sample_agent.coherence,
-                    "narration": f"Agent {sample_agent.id} moved to {sector.manifold_type} sector to stabilize entropy.",
+                    "narration": (
+                        f"Agent {sample_agent.id} moved to {sector.manifold_type} sector to stabilize entropy."
+                    ),
                 }
             )
 

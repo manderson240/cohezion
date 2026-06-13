@@ -414,8 +414,7 @@ class CapabilityRegistry:
                 number=0,
                 title=f"Capability snapshot ({reason})",
                 content=(
-                    f"Registry contains {len(self.capabilities)} capabilities. "
-                    f"Top 10 by usage:\n{cap_summary}"
+                    f"Registry contains {len(self.capabilities)} capabilities. Top 10 by usage:\n{cap_summary}"
                 ),
                 date=datetime.now().strftime("%Y-%m-%d"),
                 tags=["capability", "snapshot", reason],

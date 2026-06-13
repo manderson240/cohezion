@@ -209,6 +209,8 @@ class MetaLearner:
         if not self.current_strategy:
             return None
 
+        _current_success = self._calculate_base_success_rate()
+
         # Analyze what has worked in history
         successful_patterns = self._extract_successful_patterns()
 

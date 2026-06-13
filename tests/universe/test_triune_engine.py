@@ -46,19 +46,16 @@ async def test_engine_step_persistence(initial_state):
     mock_surreal.log_trajectory.assert_called_once()
     mock_obsidian.store_state_summary.assert_called_once()
 
-    # log_trajectory is called with keyword args — check via kwargs
+    # Verify state was updated (e.g. doer should have changed if we implement simple drift)
+    # For now, we just check that coherence was passed (called with keyword args)
     kwargs = mock_surreal.log_trajectory.call_args.kwargs
-    assert kwargs["trajectory_id"] == "step_test_1"
-    assert isinstance(kwargs["coherence"], float)
+    assert kwargs.get("trajectory_id") == "step_test_1"
+    assert isinstance(kwargs.get("coherence"), float)
 
 
 @pytest.mark.asyncio
 async def test_engine_step_persistence_failure(initial_state):
-    """Test that persistence failures are non-fatal (swallowed with warning).
-
-    The engine treats persistence errors as non-fatal — step completes without
-    raising so the simulation can continue even if the logger is unavailable.
-    """
+    """Test handling of persistence failure during step."""
     mock_surreal = AsyncMock()
     mock_surreal.log_trajectory.side_effect = Exception("Surreal Failure")
     mock_obsidian = AsyncMock()
@@ -67,6 +64,7 @@ async def test_engine_step_persistence_failure(initial_state):
         state=initial_state, surreal_logger=mock_surreal, obsidian_mcp=mock_obsidian
     )
 
-    # Should NOT raise — persistence failures are intentionally non-fatal
+    # Engine swallows persistence exceptions (non-fatal by design) — step should NOT raise
     await engine.step(dt=0.1, environment=torch.ones(12), trajectory_id="fail_test")
+    # Verify the failure was logged (surreal called but raised)
     mock_surreal.log_trajectory.assert_called_once()

@@ -545,7 +545,9 @@ DEFINE FIELD stability_score ON TABLE universe_nodes VALUE (
 
                     return [{"result": [mission] if mission else [], "status": "OK"}]
                 if "FROM agent_thought" in sql:
-                    # Handle queries like: SELECT content, metadata.query_hash as qh, metadata.agent as agent FROM agent_thought ORDER BY timestamp DESC LIMIT 100
+                    # Handle queries like:
+                    # SELECT content, metadata.query_hash as qh, metadata.agent as agent
+                    # FROM agent_thought ORDER BY timestamp DESC LIMIT 100
                     all_nodes = self._client.get_all(1000)
                     # Filter for agent_thought type
                     matches = [n for n in all_nodes if n.get("node_type") == "agent_thought"]
@@ -615,7 +617,8 @@ DEFINE FIELD stability_score ON TABLE universe_nodes VALUE (
                                 continue
 
                             # Physics check (Mocking the SQL logic: physics_state.dim_12_coherence > 0.9)
-                            # We just return them if they are snapshots, assuming the caller filters or we mock the success
+                            # We just return them if they are snapshots,
+                            # assuming the caller filters or we mock the success
                             # But let's try to be a bit specific if possible
                             ps = item.get("physics_state", {})
 

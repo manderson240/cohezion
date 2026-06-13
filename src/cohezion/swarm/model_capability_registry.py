@@ -13,7 +13,6 @@ This enables intelligent task → model mapping.
 from __future__ import annotations
 
 import asyncio
-import contextlib
 import json
 import logging
 import subprocess
@@ -377,8 +376,10 @@ class ModelCapabilityRegistry:
             logger.warning(f"{model_name}: TTFT measurement failed: {e}")
 
         # Memory measurement
-        with contextlib.suppress(OSError):
+        try:
             benchmark.memory_mb = await self._measure_memory()
+        except Exception:
+            pass
 
         # Capability tests
         (
@@ -404,7 +405,7 @@ class ModelCapabilityRegistry:
             try:
                 result = await self._run_cmd(["flm", "info", model_name], timeout=10)
                 return result.returncode == 0
-            except TimeoutError:
+            except Exception:
                 return False
         else:
             # For GPU Vulkan/ROCm, assume available if file exists
@@ -550,7 +551,7 @@ class ModelCapabilityRegistry:
 
         candidates = []
 
-        for _name, profile in self.profiles.items():
+        for name, profile in self.profiles.items():
             # Filter: must be available and tested
             if not profile.available:
                 continue

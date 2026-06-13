@@ -334,8 +334,7 @@ def _build_default_registry() -> dict[str, ModelEntry]:
             priority=15,
             reasoning_mode=True,
             notes=(
-                "Solar Fire (Thinker) — 25.2B total / 3.8B active MoE "
-                "(8 active / 128 total experts + 1 shared expert)."
+                "Solar Fire (Thinker) — 25.2B total / 3.8B active MoE (8 active / 128 total experts + 1 shared expert)."
             ),
         ),
         ModelEntry(
@@ -434,8 +433,7 @@ def _build_default_registry() -> dict[str, ModelEntry]:
             priority=40,
             reasoning_mode=True,
             notes=(
-                "Safety / System Architect — dense 30.7B on AVX-VNNI. "
-                "Uses 1024-token sliding window attention."
+                "Safety / System Architect — dense 30.7B on AVX-VNNI. Uses 1024-token sliding window attention."
             ),
         ),
         # --- Task-specialist models via Ollama (:11434) ---  # allow-direct-port: Ollama models, Class A migration deferred to Phase 4
@@ -618,6 +616,7 @@ def _build_default_registry() -> dict[str, ModelEntry]:
     # (the route_by_capability router filters those out).
     try:
         from cohezion.inference.default_profiles import DEFAULT_PROFILES
+
         for entry in entries:
             entry.profile = DEFAULT_PROFILES.get(entry.model_id)
     except ImportError:

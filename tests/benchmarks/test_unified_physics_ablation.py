@@ -245,8 +245,7 @@ class TestUnifiedPhysicsAblation:
 
         # Expected: Coherence std < 0.15 (HIHO should keep it near 0.5)
         assert result.coherence_std < 0.15, (
-            f"Full physics coherence std {result.coherence_std:.4f} exceeds 0.15 "
-            "(HIHO not stabilizing coherence)"
+            f"Full physics coherence std {result.coherence_std:.4f} exceeds 0.15 (HIHO not stabilizing coherence)"
         )
 
         # Verify coherence converged to HIHO target (0.5 ± 0.1)
@@ -327,8 +326,7 @@ class TestUnifiedPhysicsAblation:
         drift_increase = ablated_result.avg_drift - full_result.avg_drift
 
         assert drift_increase > 0.005, (
-            f"Orch-OR ablation drift increase {drift_increase:.4f} is negligible "
-            "(morphogenetic fields not observable)"
+            f"Orch-OR ablation drift increase {drift_increase:.4f} is negligible (morphogenetic fields not observable)"
         )
 
     def test_ablation_without_swarm_gravity_increases_dispersion(self):
@@ -414,7 +412,7 @@ class TestUnifiedPhysicsAblation:
         full_dev = np.mean(
             [np.mean([abs(c - 0.5) for c in r.coherence_history]) for r in results["FULL"]]
         )
-        _ = np.mean([r.avg_drift for r in results["FULL"]])  # computed but not compared
+        full_drift = np.mean([r.avg_drift for r in results["FULL"]])  # noqa: F841
 
         print("\n" + "=" * 80)
         print("UNIFIED PHYSICS ABLATION STUDY - STATISTICAL RESULTS")
@@ -441,8 +439,7 @@ class TestUnifiedPhysicsAblation:
             _, p_value = stats.ttest_ind(full_coh_history, ablated_coh_history, equal_var=False)
 
             print(
-                f"{name:<25} {coh_dev:<12.6f} {drift:<12.4f} "
-                f"{dev_increase:>+12.6f}   {p_value:<.6f}"
+                f"{name:<25} {coh_dev:<12.6f} {drift:<12.4f} {dev_increase:>+12.6f}   {p_value:<.6f}"
             )
 
         print("=" * 80)

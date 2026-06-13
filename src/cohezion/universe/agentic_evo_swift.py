@@ -436,8 +436,7 @@ def demo_agentic_evo_simulation():
         if step % 20 == 0:
             stats = sim.get_statistics()
             print(
-                f"  Step {step}: coherence={stats['avg_coherence']:.3f}, "
-                f"journey_len={stats['total_journey_steps']}"
+                f"  Step {step}: coherence={stats['avg_coherence']:.3f}, journey_len={stats['total_journey_steps']}"
             )
 
     # Generate SWIFT ICs

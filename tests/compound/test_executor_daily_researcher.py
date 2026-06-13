@@ -19,6 +19,7 @@ import pytest
 def _reset_singleton():
     """Reset the ExecutorFactory singleton between tests."""
     from cohezion.compound.executor_factory import ExecutorFactory
+
     ExecutorFactory.reset_singleton()
     yield
     ExecutorFactory.reset_singleton()
@@ -33,6 +34,7 @@ def test_default_daily_researcher_flag_is_true():
     import inspect
 
     from cohezion.compound.executor_factory import ExecutorFactory
+
     sig = inspect.signature(ExecutorFactory.create)
     assert sig.parameters["enable_daily_researcher"].default is True
 

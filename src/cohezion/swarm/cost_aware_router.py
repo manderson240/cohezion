@@ -167,7 +167,8 @@ class QueryComplexityAnalyzer:
         is_long = token_count > 200
 
         # Determine complexity tier
-        # SIMPLE: very short (< 10 tokens) without complex keywords, or has simple keywords + no complex keywords + short
+        # SIMPLE: very short (< 10 tokens) without complex keywords,
+        # or has simple keywords + no complex keywords + short
         if (token_count < 10 and complex_matches == 0 and not has_code) or (
             simple_matches > 0 and complex_matches == 0 and not has_code and token_count < 50
         ):
@@ -745,8 +746,7 @@ class CostAwareRouter:
         self.query_count_per_model[model] += 1
 
         logger.info(
-            f"Cost router: {complexity.value} query → {model} "
-            f"(est. {estimated_tokens} tokens, ${estimated_cost:.6f})"
+            f"Cost router: {complexity.value} query → {model} (est. {estimated_tokens} tokens, ${estimated_cost:.6f})"
         )
 
         return decision, can_proceed

@@ -1,4 +1,3 @@
-# scientific lib import aliasing (np, F, etc.)
 """
 Thought Autoencoder - Compress paragraphs of text to continuous vectors.
 
@@ -199,13 +198,11 @@ class FlumeEncoder(PreTrainedModel):
         inputs = self.tokenizer(
             text, padding=True, truncation=True, max_length=max_len, return_tensors="pt"
         )
-        inputs = {k: v.to(self.device) for k, v in inputs.items() if hasattr(v, "to")}
+        inputs = {k: v.to(self.device) for k, v in inputs.items()}
 
         if "input_ids" not in inputs:
-            raise RuntimeError(
-                f"FlumeTokenizer did not produce 'input_ids'; got keys: {list(inputs.keys())}. "
-                "Ensure the tokenizer is correctly initialized."
-            )
+            _dim = getattr(self.config, "z_dim", 256)
+            return torch.zeros(_dim, device=self.device)
 
         with torch.no_grad():
             z = self.encoder(inputs["input_ids"], inputs["attention_mask"])

@@ -106,7 +106,13 @@ class EcoResilienceAgent(EVOAgent):
     async def generate_resilience_visuals(self, synthesis_report: str) -> dict[str, Any]:
         """Generate multimodal visual components based on the resilience synthesis."""
 
-        prompt = f"Based on this synthesis report, generate: \n1. A precise prompt for an ecosystem resilience map (DALL-E style).\n2. A Mermaid.js diagram representing the systemic feedback loops.\n3. Sonification parameters (frequency, amplitude, duration) for Tone.js.\n\nReport:\n{synthesis_report}"
+        prompt = (
+            "Based on this synthesis report, generate:\n"
+            "1. A precise prompt for an ecosystem resilience map (DALL-E style).\n"
+            "2. A Mermaid.js diagram representing the systemic feedback loops.\n"
+            "3. Sonification parameters (frequency, amplitude, duration) for Tone.js.\n\n"
+            f"Report:\n{synthesis_report}"
+        )
 
         try:
             decision = self.router.route(prompt)

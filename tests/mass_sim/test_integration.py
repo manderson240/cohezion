@@ -1,4 +1,5 @@
 from pathlib import Path
+from unittest.mock import patch
 
 import psutil
 import pytest
@@ -32,7 +33,9 @@ async def test_demo_scale_integration(tmp_path: Path):
     )
 
     orchestrator = MassSimOrchestrator(config)
-    report = await orchestrator.run()
+    # Mock memory guard to prevent swap-based abort (this machine has >20GB swap used)
+    with patch.object(orchestrator.guard, "should_abort", return_value=False):
+        report = await orchestrator.run()
 
     assert report.n_universes == 2
     assert report.n_agents == 10

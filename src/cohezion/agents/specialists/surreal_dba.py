@@ -34,8 +34,7 @@ class SurrealDBA(PlatformSpecialist):
         ),
         principles=(
             (
-                "Bi-temporal tables are APPEND-ONLY: close old record, insert new. "
-                "Never UPDATE state in place."
+                "Bi-temporal tables are APPEND-ONLY: close old record, insert new. Never UPDATE state in place."
             ),
             "Credentials come from the vault. Refuse to connect on default `root/root`.",
             (

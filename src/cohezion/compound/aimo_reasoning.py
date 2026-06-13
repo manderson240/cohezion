@@ -231,7 +231,10 @@ class AIMOScaler:
                             exec_res, final_code = await self._execute_and_correct(
                                 code_match.group(1)
                             )
-                            res = f"Strategy: {prompts[i][1]}\nCode:\n```python\n{final_code}\n```\nResults: {exec_res.get('results')}"
+                            res = (
+                                f"Strategy: {prompts[i][1]}\nCode:\n```python\n"
+                                f"{final_code}\n```\nResults: {exec_res.get('results')}"
+                            )
                         score = self.prm.evaluate_step(res, question)
                         if "python" in res:
                             score *= 10.0

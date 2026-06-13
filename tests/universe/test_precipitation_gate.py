@@ -51,8 +51,7 @@ class TestPrecipitationGate:
         # Note: SPIN weighting affects coherence, so state with raw 0.6
         # values might have lower actual coherence due to SPIN misalignment
         assert result["precipitate"] is True or result["coherence"] > 0.48, (
-            f"Should precipitate or be close to threshold when all dims=0.6, "
-            f"got coherence={result['coherence']}"
+            f"Should precipitate or be close to threshold when all dims=0.6, got coherence={result['coherence']}"
         )
         # HIHO stability depends on actual coherence after SPIN weighting
         assert 0 <= result["hiho_stability"] <= 1.0, (
@@ -195,8 +194,7 @@ class TestPrecipitationGate:
         expected_temp = 1.0 - state_spontaneous.temporal  # temporal = awareness
         expected_f = result["coherence"] - expected_temp * result["shannon_entropy_bits"]
         assert result["free_energy"] == pytest.approx(expected_f, abs=0.01), (
-            f"Free energy calculation incorrect. "
-            f"Expected {expected_f:.3f}, got {result['free_energy']:.3f}"
+            f"Free energy calculation incorrect. Expected {expected_f:.3f}, got {result['free_energy']:.3f}"
         )
 
     def test_precipitation_mechanism_documented(self):
@@ -266,8 +264,7 @@ class TestPrecipitationGate:
 
         # HIHO stability should be low (coherence far from 0.5)
         assert result["hiho_stability"] <= 0.2, (
-            f"HIHO stability should be low when coherence={result['coherence']}, "
-            f"got {result['hiho_stability']}"
+            f"HIHO stability should be low when coherence={result['coherence']}, got {result['hiho_stability']}"
         )
 
     def test_coherence_value_included_in_result(self):
@@ -294,8 +291,7 @@ class TestPrecipitationGate:
         # Coherence should match state's coherence_score()
         expected_coherence = state.coherence_score()
         assert result["coherence"] == pytest.approx(expected_coherence, abs=0.01), (
-            f"Result coherence {result['coherence']:.3f} should match "
-            f"state coherence {expected_coherence:.3f}"
+            f"Result coherence {result['coherence']:.3f} should match state coherence {expected_coherence:.3f}"
         )
 
     def test_awareness_parameter_affects_temperature(self):

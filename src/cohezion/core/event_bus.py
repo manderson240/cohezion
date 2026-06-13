@@ -173,8 +173,8 @@ class EventBus:
     async def publish(self, event: Event) -> bool:
         """Publish event to all subscribers."""
         try:
-            # Priority queue: (-priority, event)
-            await self._queue.put((-event.priority, event))
+            # put_nowait raises QueueFull immediately on backpressure
+            self._queue.put_nowait((-event.priority, event))
             self._metrics["published"] += 1
             return True
         except asyncio.QueueFull:
@@ -210,20 +210,20 @@ class EventBus:
             return
 
         # Execute all handlers concurrently
-        results = await asyncio.gather(
-            *[self._safe_handle(h, event) for h in handlers], return_exceptions=True
-        )
+        results = await asyncio.gather(*[self._safe_handle(h, event) for h in handlers])
 
-        delivered = sum(1 for r in results if r is None)
+        delivered = sum(1 for r in results if r is True)
         self._metrics["delivered"] += delivered
 
-    async def _safe_handle(self, handler: EventHandler, event: Event) -> None:
-        """Execute handler with error isolation."""
+    async def _safe_handle(self, handler: EventHandler, event: Event) -> bool:
+        """Execute handler with error isolation. Returns True on success."""
         try:
             await handler(event)
+            return True
         except Exception as e:
             logger.error(f"Handler error for {event.type}: {e}")
             self._metrics["errors"] += 1
+            return False
 
     def get_metrics(self) -> dict[str, Any]:
         """Get bus metrics."""

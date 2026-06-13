@@ -467,9 +467,75 @@ class CompoundExecutor(CompoundContextMixin, ExecutorIntegrationMixin):
             fetch_experience_guidance,
         )
 
-        return fetch_experience_guidance(
+        base_guidance = fetch_experience_guidance(
             self.logger, task_description, project=project, operation_type=operation_type
         )
+
+        # Step 2: Enhance with trajectory search (if available)
+        try:
+            from cohezion.compound.guidance_enhancer import GuidanceEnhancer
+            from cohezion.compound.trajectory_search import TrajectorySearchEngine
+            from cohezion.flume.experience_collector import ExperienceCollector
+            from cohezion.flume.experience_encoder import ExperienceEncoder
+
+            collector = ExperienceCollector()
+            encoder = ExperienceEncoder()
+            search = TrajectorySearchEngine(collector, encoder)
+            enhancer = GuidanceEnhancer()
+
+            trajectory_results = search.find_similar_trajectories(
+                task_description=task_description,
+                operation_type=operation_type,
+                top_k=5,
+                min_coherence=0.4,  # HIHO threshold
+            )
+
+            enhanced = enhancer.enhance_guidance(base_guidance, trajectory_results)
+            result = enhancer.to_dict(enhanced)
+
+            logger.info(
+                "Guidance enhanced with %d similar trajectories (confidence=%.2f)",
+                enhanced.similar_task_count,
+                enhanced.confidence,
+            )
+
+        except (ImportError, AttributeError, RuntimeError, ValueError) as e:
+            logger.debug(
+                "Trajectory search failed (non-blocking): %s. Using base guidance only.",
+                e,
+                exc_info=True,
+            )
+            result = base_guidance
+
+        # Step 3: Query SurrealDB for recent retrospection decisions (closes feedback loop)
+        try:
+            import json
+            import urllib.request
+            from base64 import b64encode
+
+            req = urllib.request.Request(
+                "http://localhost:8001/sql",
+                data=b"SELECT skill, should_refine, compound_score, recommendation"
+                b" FROM retrospection ORDER BY created DESC LIMIT 3;",
+                headers={
+                    "Accept": "application/json",
+                    "surreal-ns": "cohezion",
+                    "surreal-db": "cohezion",
+                    "Authorization": "Basic " + b64encode(b"root:root").decode(),
+                },
+                method="POST",
+            )
+            resp = urllib.request.urlopen(req, timeout=2)
+            data = json.loads(resp.read())
+            if data and data[0].get("status") == "OK" and data[0]["result"]:
+                result["recent_retrospections"] = data[0]["result"]
+                logger.debug(
+                    "Guidance enriched with %d recent retrospections", len(data[0]["result"])
+                )
+        except (OSError, ValueError, KeyError):
+            pass  # Non-blocking: SurrealDB may be unavailable
+
+        return result
 
     def suggest_skills(
         self,
@@ -923,7 +989,10 @@ class CompoundExecutor(CompoundContextMixin, ExecutorIntegrationMixin):
                         title=f"Critical anomaly in {skill_name}",
                         context=f"Task: {task_description}\nIssues: {'; '.join(anomaly.issues)}",
                         decision="Re-execution recommended",
-                        rationale=f"Quality score {anomaly.score:.2f}, {anomaly.recommendations[0] if anomaly.recommendations else 'Investigate issues'}",
+                        rationale=(
+                            f"Quality score {anomaly.score:.2f}, "
+                            f"{anomaly.recommendations[0] if anomaly.recommendations else 'Investigate issues'}"
+                        ),
                         project=project,
                     )
                     if decision_path:
@@ -1216,8 +1285,7 @@ class CompoundExecutor(CompoundContextMixin, ExecutorIntegrationMixin):
                         self._degradation_mode = True
                         metrics["execution_degraded"] = True
                         logger.warning(
-                            "Entering degradation mode: %d CRITICAL alerts, "
-                            "cohesion=%.2f outside HIHO band",
+                            "Entering degradation mode: %d CRITICAL alerts, cohesion=%.2f outside HIHO band",
                             len(critical_alerts),
                             coherence_val,
                         )

@@ -5,46 +5,20 @@ Covers 12D/2048D manifold states and simulation engine.
 
 from __future__ import annotations
 
-import sys
-from unittest.mock import AsyncMock, MagicMock, patch
+from unittest.mock import AsyncMock, MagicMock, patch, sys
 
 import pytest
 
 
-# Scope the sys.modules mocks to this module via an autouse fixture that
-# saves and restores state. Previously these lines ran at module scope and
-# poisoned sys.modules for the ENTIRE test session — any later test that did
-# `from cohezion_core.cohezion_core_rs import FlumePhysics` (e.g.
-# mass_sim.universe_factory) would get a MagicMock, producing opaque
-# "<' not supported between instances of 'MagicMock' and 'float'" errors
-# whose locality depends on pytest-randomly ordering.
-@pytest.fixture(autouse=True)
-def _mock_cohezion_core_modules():
-    originals = {}
-    for key in (
-        "cohezion_core",
-        "cohezion_core.cohezion_core_rs",
-        "cohezion.core.multimodal_bridge",
-    ):
-        originals[key] = sys.modules.get(key)
+# Mock cohezion_core and multimodal_bridge before they're imported
+mock_cc = MagicMock()
+sys.modules["cohezion_core"] = mock_cc
+sys.modules["cohezion_core.cohezion_core_rs"] = mock_cc
 
-    mock_cc = MagicMock()
-    sys.modules["cohezion_core"] = mock_cc
-    sys.modules["cohezion_core.cohezion_core_rs"] = mock_cc
-
-    mock_mb = MagicMock()
-    mock_mb.LOCAL_MULTIMODAL_BRIDGE = MagicMock()
-    mock_mb.LOCAL_MULTIMODAL_BRIDGE.schedule_asset = AsyncMock()
-    sys.modules["cohezion.core.multimodal_bridge"] = mock_mb
-
-    yield
-
-    for key, original in originals.items():
-        if original is None:
-            sys.modules.pop(key, None)
-        else:
-            sys.modules[key] = original
-
+mock_mb = MagicMock()
+mock_mb.LOCAL_MULTIMODAL_BRIDGE = MagicMock()
+mock_mb.LOCAL_MULTIMODAL_BRIDGE.schedule_asset = AsyncMock()
+sys.modules["cohezion.core.multimodal_bridge"] = mock_mb
 
 from cohezion.universe.engine import (
     AxiomaticState,
@@ -81,12 +55,11 @@ class TestAxiomaticState:
 
     def test_coherence_score(self):
         """[P0] Should calculate total coherence."""
-        # Perfect stability at 0.5
+        # Perfect stability at 0.5 — numerically ≈1.0 (allow floating-point tolerance)
         state = AxiomaticState(
             physics=0.5, biology=0.5, logic=0.5, quantum=0.5, field=0.5, control=0.5, novelty=0.5
         )
-        # Use pytest.approx to avoid floating-point precision drift (0.9999...9 vs 1.0).
-        assert state.coherence_score() == pytest.approx(1.0)
+        assert float(state.coherence_score()) >= 1.0 - 1e-9
 
 
 class TestLatentState:

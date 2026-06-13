@@ -1,4 +1,3 @@
-# ruff: noqa: N814, E501  # long lines: SQL/URLs/docstrings — wrapping reduces readability
 """
 Democratic Debate Orchestrator - Multi-agent consensus building.
 
@@ -20,7 +19,6 @@ import aiofiles
 
 if TYPE_CHECKING:
     from cohezion.swarm.token_client import TokenEfficientClient
-    from cohezion.swarm.token_client import TokenEfficientClient as _TC
 
 import httpx
 
@@ -202,9 +200,10 @@ class DemocraticDebate:
 
     def __init__(
         self,
-        ollama_host: str = "http://localhost:13305",
+        ollama_host: str = "http://localhost:11434",
         token_client: "TokenEfficientClient | None" = None,
     ):
+        from cohezion.swarm.token_client import TokenEfficientClient as _TC
 
         self.ollama_host = ollama_host
         self.personas = AGENT_PERSONAS
@@ -228,25 +227,20 @@ class DemocraticDebate:
                 logger.error(f"TokenEfficientClient call for {persona.name} failed: {e}")
                 return f"[{persona.name} error: {e}]"
 
-        # Fallback: direct httpx POST using OpenAI /v1/chat/completions (lemonade router)
+        # Fallback: direct httpx POST (original path)
         try:
-            messages: list[dict[str, str]] = [
-                {"role": "system", "content": persona.system_prompt()},
-                {"role": "user", "content": prompt},
-            ]
             response = await self.client.post(
-                f"{self.ollama_host}/v1/chat/completions",
+                f"{self.ollama_host}/api/generate",
                 json={
                     "model": persona.model,
-                    "messages": messages,
-                    "max_tokens": 512,
-                    "temperature": 0.8,
+                    "prompt": prompt,
+                    "system": persona.system_prompt(),
                     "stream": False,
+                    "options": {"temperature": 0.8, "num_predict": 512},
                 },
             )
             if response.status_code == 200:
-                data = response.json()
-                return data.get("choices", [{}])[0].get("message", {}).get("content", "").strip()
+                return response.json().get("response", "").strip()
             return f"[{persona.name} unavailable]"
         except Exception as e:
             logger.error(f"Agent {persona.name} failed: {e}")
@@ -298,7 +292,7 @@ class DemocraticDebate:
             if proposals:
                 # Simple: use synthesizer's proposal as the integrated view
                 debate_round.winning_proposal = proposals.get(
-                    "synthesizer", next(iter(proposals.values()))
+                    "synthesizer", list(proposals.values())[0]
                 )
 
             session.rounds.append(debate_round)

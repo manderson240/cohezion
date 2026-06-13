@@ -153,10 +153,7 @@ class PlanGraph:
             safe_step = step.replace(".", "_")
             task_id = f"{slug}__{safe_step}"
             await self._sql(
-                f"CREATE task:{task_id} SET "
-                "title = $title, "
-                "status = 'pending', "
-                "step_number = $step;",
+                f"CREATE task:{task_id} SET title = $title, status = 'pending', step_number = $step;",
                 {"title": title, "step": step},
             )
             # Edge: plan -> task
@@ -253,8 +250,7 @@ class PlanGraph:
     async def plans_for_file(self, path: str) -> list[str]:
         """Return plan slugs that touched a given file path."""
         result = await self._sql(
-            "SELECT <-task_modifies<-task<-plan_has_task<-plan.slug AS slugs "
-            "FROM file WHERE path = $path;",
+            "SELECT <-task_modifies<-task<-plan_has_task<-plan.slug AS slugs FROM file WHERE path = $path;",
             {"path": path},
         )
         row = _first_result(result)

@@ -25,7 +25,10 @@ a2a_router = APIRouter(tags=["a2a"])
 _a2a_server = A2AServer(
     agent_card=AgentCard(
         name="Cohezion Portfolio Agent",
-        description="FLUME VAE latent space navigation, Compound Loop engineering, Universe Simulation, Swarm Orchestration, and Evaluation Infrastructure",
+        description=(
+            "FLUME VAE latent space navigation, Compound Loop engineering,"
+            " Universe Simulation, Swarm Orchestration, and Evaluation Infrastructure"
+        ),
         url=os.getenv("PUBLIC_API_URL", "http://localhost:8080"),
         version="1.0.2",
         capabilities=[

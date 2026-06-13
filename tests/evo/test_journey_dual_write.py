@@ -1,7 +1,7 @@
 """Tests for JourneyTracker EVO dual-write: SurrealDB + Obsidian vault."""
 
 import time
-from unittest.mock import MagicMock, patch
+from unittest.mock import MagicMock
 
 
 def _make_voyage(**kwargs):

@@ -129,7 +129,11 @@ class SelfEvolvingRefiner:
             else:
                 mutation_prefix = "GENERAL IMPROVEMENT: "
 
-            refinement = f"\\n\\n### Evolutionary Mutation ({mutation_prefix})\\n- **Attribution**: {analysis.attribution}\\n- **Fix**: {analysis.suggested_fix}\\n"
+            refinement = (
+                f"\\n\\n### Evolutionary Mutation ({mutation_prefix})\\n"
+                f"- **Attribution**: {analysis.attribution}\\n"
+                f"- **Fix**: {analysis.suggested_fix}\\n"
+            )
 
             # We prepend the mutation to the top of the skill's 'Instructions' section
             # to ensure the LLM sees the most recent evolution first.

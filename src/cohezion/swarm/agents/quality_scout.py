@@ -40,7 +40,9 @@ class QualityScout(BaseScout):
                     type="anti_pattern",
                     name="High Cyclomatic Complexity",
                     category="complexity",
-                    description=f"File has cyclomatic complexity of {ast_summary.complexity_score}, exceeding threshold of 15.",
+                    description=(
+                        f"File has cyclomatic complexity of {ast_summary.complexity_score}, exceeding threshold of 15."
+                    ),
                     file_path=rel_path,
                     line_range=(1, ast_summary.loc),
                     confidence=1.0,
@@ -79,7 +81,9 @@ class QualityScout(BaseScout):
                                 type="anti_pattern",
                                 name="Deep Nesting",
                                 category="complexity",
-                                description=f"Function '{node.name}' reached nesting depth of {max_depth} (threshold: 4).",
+                                description=(
+                                    f"Function '{node.name}' reached nesting depth of {max_depth} (threshold: 4)."
+                                ),
                                 file_path=rel_path,
                                 line_range=(node.lineno, node.end_lineno),
                                 confidence=1.0,

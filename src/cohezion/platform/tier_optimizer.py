@@ -147,8 +147,7 @@ class TierOptimizer:
                     current_tier=current_tier,
                     recommended_tier=target,
                     reason=(
-                        f"High usage: {hours_per_day:.2f} h/day avg, "
-                        f"{session_pct:.0%} session penetration."
+                        f"High usage: {hours_per_day:.2f} h/day avg, {session_pct:.0%} session penetration."
                     ),
                     recommendation=TierRecommendation.PROMOTE,
                     confidence=round(confidence, 3),
@@ -166,8 +165,7 @@ class TierOptimizer:
                     current_tier=current_tier,
                     recommended_tier=target,
                     reason=(
-                        f"Unused for {days_since_use:.0f} days "
-                        f"(threshold: {self.DEMOTE_UNUSED_DAYS} days)."
+                        f"Unused for {days_since_use:.0f} days (threshold: {self.DEMOTE_UNUSED_DAYS} days)."
                     ),
                     recommendation=TierRecommendation.DEMOTE,
                     confidence=round(confidence, 3),

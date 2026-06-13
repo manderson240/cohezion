@@ -1,4 +1,4 @@
-# Generated from SKILL_1_PRIME v1.0 at 2026-05-07T19:00:22
+# Generated from SKILL_1_PRIME v1.0 at 2026-05-13T16:11:50
 """Auto-generated executable agent for SKILL_1_PRIME."""
 
 from __future__ import annotations
@@ -17,7 +17,11 @@ _PLAN = ExecutablePlan(
             params={"search_type": "capability"},
             description="Search for items in category 1",
         ),
-        PlanStep(operation="generate", params={}, description="Generate a summary"),
+        PlanStep(
+            operation="generate",
+            params={},
+            description="Generate a summary",
+        ),
     ],
     domain="Domain for skill 1.",
 )

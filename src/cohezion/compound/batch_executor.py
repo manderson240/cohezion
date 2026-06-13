@@ -147,8 +147,7 @@ class BatchableExecutor:
             )
             self.batch_size = predicted_batch_size
             logger.info(
-                f"Batch sizing: predicted size={predicted_batch_size} "
-                f"(confidence={prediction_confidence:.2f})"
+                f"Batch sizing: predicted size={predicted_batch_size} (confidence={prediction_confidence:.2f})"
             )
 
         try:
@@ -225,8 +224,7 @@ class BatchableExecutor:
                 throttle_detected=monitor.is_thermal_throttling(),
             )
             logger.debug(
-                f"Recorded thermal metrics: temp={metrics.gpu_temp_current:.1f}°C, "
-                f"batch_size={predicted_batch_size}"
+                f"Recorded thermal metrics: temp={metrics.gpu_temp_current:.1f}°C, batch_size={predicted_batch_size}"
             )
         except Exception as e:
             logger.debug(f"Failed to record thermal metrics (non-blocking): {e}")

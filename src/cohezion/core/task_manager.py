@@ -68,7 +68,8 @@ class TaskManager:
     def __init__(self, max_concurrent: int = 100):
         self._tasks: dict[str, asyncio.Task] = {}
         self._info: dict[str, TaskInfo] = {}
-        self._callbacks: dict[str, list[Callable[[TaskInfo], Awaitable[None]]]] = {}
+        self._on_complete: dict[str, Callable[[TaskInfo], Awaitable[None]]] = {}
+        self._on_error: dict[str, Callable[[TaskInfo], Awaitable[None]]] = {}
         self._semaphore = asyncio.Semaphore(max_concurrent)
         self._lock = asyncio.Lock()
         self._counter = 0
@@ -111,13 +112,11 @@ class TaskManager:
             self._info[task_id] = info
             self._metrics["created"] += 1
 
-            # Store callbacks
-            if on_complete or on_error:
-                self._callbacks[task_id] = []
-                if on_complete:
-                    self._callbacks[task_id].append(on_complete)
-                if on_error:
-                    self._callbacks[task_id].append(on_error)
+            # Store callbacks separately so only the right one fires
+            if on_complete:
+                self._on_complete[task_id] = on_complete
+            if on_error:
+                self._on_error[task_id] = on_error
 
             # Create wrapped coroutine
             async def wrapped():
@@ -130,10 +129,10 @@ class TaskManager:
                         info.completed_at = datetime.now()
                         self._metrics["completed"] += 1
 
-                        # Call on_complete callbacks
-                        for callback in self._callbacks.get(task_id, []):
+                        # Call on_complete callback only
+                        if cb := self._on_complete.get(task_id):
                             try:
-                                await callback(info)
+                                await cb(info)
                             except Exception as e:
                                 logger.error(f"Task callback error: {e}")
 
@@ -153,10 +152,10 @@ class TaskManager:
 
                         logger.error(f"Task {task_id} failed: {e}")
 
-                        # Call on_error callbacks
-                        for callback in self._callbacks.get(task_id, []):
+                        # Call on_error callback only
+                        if cb := self._on_error.get(task_id):
                             try:
-                                await callback(info)
+                                await cb(info)
                             except Exception as cb_e:
                                 logger.error(f"Task error callback failed: {cb_e}")
 
@@ -178,7 +177,8 @@ class TaskManager:
         async with self._lock:
             self._tasks.pop(task_id, None)
             self._info.pop(task_id, None)
-            self._callbacks.pop(task_id, None)
+            self._on_complete.pop(task_id, None)
+            self._on_error.pop(task_id, None)
 
     async def cancel_task(self, task_id: str, wait: bool = False) -> bool:
         """Cancel a running task.
@@ -255,7 +255,8 @@ class TaskManager:
 
             self._tasks.clear()
             self._info.clear()
-            self._callbacks.clear()
+            self._on_complete.clear()
+            self._on_error.clear()
 
             return counts
 

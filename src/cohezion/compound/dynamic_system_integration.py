@@ -289,8 +289,7 @@ class EventLoggingAdapter:
 
         if event == SystemEvent.CIRCUIT_OPENED:
             logger.warning(
-                f"🚨 CIRCUIT_OPENED | backend={backend} | "
-                f"failures={failures} | routing_around_failure"
+                f"🚨 CIRCUIT_OPENED | backend={backend} | failures={failures} | routing_around_failure"
             )
         elif event == SystemEvent.CIRCUIT_CLOSED:
             logger.info(f"✅ CIRCUIT_CLOSED | backend={backend} | recovered, restoring_traffic")

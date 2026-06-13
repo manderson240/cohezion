@@ -1,4 +1,3 @@
-# random used for simulation/jitter, not cryptography
 """Training data pipeline for FLUME VAE v2.
 
 Generates synthetic task descriptions across 5 operation types,
@@ -184,8 +183,12 @@ _DEFAULT_CACHE_DIR = Path("data/flume/embedding_cache")
 
 
 def _cache_key(texts: list[str], seed: int | None) -> str:
-    """Deterministic cache key from sorted text list and seed."""
-    content = json.dumps([*sorted(set(texts)), str(seed)], sort_keys=True)
+    """Deterministic cache key from sorted text list and seed.
+
+    Sorted for order-independence; NOT deduplicated so duplicate-containing
+    inputs produce a distinct key from their deduplicated counterparts.
+    """
+    content = json.dumps(sorted(texts) + [str(seed)], sort_keys=True)
     return hashlib.sha256(content.encode()).hexdigest()[:16]
 
 

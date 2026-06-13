@@ -146,8 +146,7 @@ class TaskQueue:
         self.metrics.max_depth_seen = max(self.metrics.max_depth_seen, self.metrics.current_depth)
 
         logger.debug(
-            f"Enqueued task {task.task_id} "
-            f"(priority={task.priority.name}, queue_depth={self.size()})"
+            f"Enqueued task {task.task_id} (priority={task.priority.name}, queue_depth={self.size()})"
         )
 
         return True
@@ -168,12 +167,17 @@ class TaskQueue:
             while queue:
                 task = queue.pop(0)
 
-                # Check expiry
+                # Check expiry and retry exhaustion
                 if task.has_expired():
                     logger.debug(
                         f"Task {task.task_id} expired after {time.time() - task.enqueued_at:.1f}s"
                     )
                     self.metrics.total_expired += 1
+                    continue
+                if not task.can_retry():
+                    logger.debug(
+                        f"Task {task.task_id} exhausted ({task.attempts}/{task.max_attempts} attempts)"
+                    )
                     continue
 
                 # Task is valid

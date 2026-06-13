@@ -186,8 +186,7 @@ async def dispatch_through_harness(
 
         if proc.returncode != 0:
             raise RuntimeError(
-                f"{slot.harness.value} exit {proc.returncode}: "
-                f"{stderr_b.decode(errors='replace')[:300]}"
+                f"{slot.harness.value} exit {proc.returncode}: {stderr_b.decode(errors='replace')[:300]}"
             )
 
         text = stdout_b.decode(errors="replace").strip()
