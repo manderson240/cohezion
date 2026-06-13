@@ -20,7 +20,9 @@ async def test_guarded_stays_local_when_live_quota_halt() -> None:
     async def fake_route(prompt, **kwargs):
         from cohezion.inference.fleet import RouteResult
 
-        return RouteResult(text="hi", model="local", lane="npu", latency_ms=1.0)  # short → gate fails
+        return RouteResult(
+            text="hi", model="local", lane="npu", latency_ms=1.0
+        )  # short → gate fails
 
     with (
         patch("cohezion.inference.fleet._live_claude_quota", return_value="halt"),

@@ -8,6 +8,7 @@ the circuit-breaker integration, each written to fail a plausible wrong impl
 Status bands (budget=100): <80 OK · [80,90) WARNING · [90,95) CRITICAL ·
 [95,100) EXTREME · >=100 BLOCKED.
 """
+
 from __future__ import annotations
 
 from cohezion.cost_optimization.budget_enforcer import BudgetEnforcer, BudgetPolicy
@@ -23,9 +24,9 @@ def test_soft_stop_blocks_only_at_or_over_100pct_not_at_extreme() -> None:
     # Discriminates over-eager blocking: SOFT_STOP must still PROCEED at 99% (EXTREME),
     # and only block at >=100% (BLOCKED).
     enf = BudgetEnforcer(budget_usd=100.0, policy=BudgetPolicy.SOFT_STOP)
-    assert enf.check_budget(99.0)[0] is True       # EXTREME -> still allowed
+    assert enf.check_budget(99.0)[0] is True  # EXTREME -> still allowed
     enf.reset()
-    blocked, reason = enf.check_budget(100.0)       # BLOCKED -> denied
+    blocked, reason = enf.check_budget(100.0)  # BLOCKED -> denied
     assert blocked is False and "exceeded" in reason.lower()
 
 

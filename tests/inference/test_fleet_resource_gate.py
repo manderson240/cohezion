@@ -31,8 +31,12 @@ def _all_lanes_up() -> None:
         checked_at=time.time(),
         lanes={
             "npu": LaneHealth("npu", "http://localhost:13306", LaneStatus.UP, 10.0),
-            "igpu_rocwmma": LaneHealth("igpu_rocwmma", "http://localhost:13307", LaneStatus.UP, 10.0),
-            "igpu_unified": LaneHealth("igpu_unified", "http://localhost:13308", LaneStatus.UP, 10.0),
+            "igpu_rocwmma": LaneHealth(
+                "igpu_rocwmma", "http://localhost:13307", LaneStatus.UP, 10.0
+            ),
+            "igpu_unified": LaneHealth(
+                "igpu_unified", "http://localhost:13308", LaneStatus.UP, 10.0
+            ),
             "cpu": LaneHealth("cpu", "http://localhost:13309", LaneStatus.UP, 10.0),
             "ollama": LaneHealth("ollama", "http://localhost:11434", LaneStatus.UP, 10.0),
             "claude": LaneHealth("claude", "https://api.anthropic.com", LaneStatus.UP),

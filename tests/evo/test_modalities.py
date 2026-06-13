@@ -7,10 +7,12 @@ from unittest.mock import MagicMock, patch
 
 def _make_chat_response(content: str, model: str = "Gemma-4-E4B-it-GGUF") -> bytes:
     """Build a minimal OpenAI-compatible chat/completions response."""
-    return json.dumps({
-        "model": model,
-        "choices": [{"message": {"role": "assistant", "content": content}}],
-    }).encode()
+    return json.dumps(
+        {
+            "model": model,
+            "choices": [{"message": {"role": "assistant", "content": content}}],
+        }
+    ).encode()
 
 
 def _mock_chat_urlopen(content: str, model: str = "Gemma-4-E4B-it-GGUF"):
@@ -27,7 +29,9 @@ class TestTextModality:
     def test_invoke_returns_modal_result(self):
         from cohezion.evo.modalities import ModalityResult, TextModality
 
-        with patch("urllib.request.urlopen", return_value=_mock_chat_urlopen("Latent coherence improved.")):
+        with patch(
+            "urllib.request.urlopen", return_value=_mock_chat_urlopen("Latent coherence improved.")
+        ):
             r = TextModality().invoke("EVO step description")
 
         assert isinstance(r, ModalityResult)
@@ -77,7 +81,9 @@ class TestTextModality:
         """Fail-soft: network failure returns structured failure, never raises."""
         from cohezion.evo.modalities import TextModality
 
-        with patch("urllib.request.urlopen", side_effect=urllib.error.URLError("Connection refused")):
+        with patch(
+            "urllib.request.urlopen", side_effect=urllib.error.URLError("Connection refused")
+        ):
             r = TextModality().invoke("will fail gracefully")
 
         assert r.modality == "text"
@@ -153,7 +159,9 @@ class TestAudioModality:
     def test_invoke_graceful_failure_when_lemonade_offline(self):
         from cohezion.evo.modalities import AudioModality
 
-        with patch("urllib.request.urlopen", side_effect=urllib.error.URLError("Connection refused")):
+        with patch(
+            "urllib.request.urlopen", side_effect=urllib.error.URLError("Connection refused")
+        ):
             r = AudioModality().invoke("will fail gracefully")
 
         assert r.modality == "audio"
@@ -194,7 +202,9 @@ class TestImageModality:
     def test_invoke_graceful_failure_when_lemonade_offline(self):
         from cohezion.evo.modalities import ImageModality
 
-        with patch("urllib.request.urlopen", side_effect=urllib.error.URLError("Connection refused")):
+        with patch(
+            "urllib.request.urlopen", side_effect=urllib.error.URLError("Connection refused")
+        ):
             r = ImageModality().invoke("will fail gracefully")
 
         assert r.success is False

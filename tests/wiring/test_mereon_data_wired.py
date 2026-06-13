@@ -4,6 +4,7 @@ Genuine Class-A orphan in physics/ (functions only — the first function re-exp
 sweep). Re-exported through `cohezion.physics`. Fails if the static edge is removed: asserts
 the functions resolve FROM the package AND are the source module's own objects.
 """
+
 from __future__ import annotations
 
 import cohezion.physics as physics

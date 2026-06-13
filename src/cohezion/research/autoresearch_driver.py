@@ -160,7 +160,7 @@ def _ucb1_select(tree: dict) -> str:
         if win_vectors and "z_vector" in node:
             current_vec = np.array(node["z_vector"])
             # Calculate mean distance to wins (similarity)
-            similarities = [np.dot(current_vec, wv) for win_vec in win_vectors for wv in [win_vec]]
+            similarities = [np.dot(current_vec, wv) for wv in win_vectors]
             latent_bonus = max(similarities) * 0.2  # 20% influence from latent similarity
 
         score = mean + exploration + latent_bonus

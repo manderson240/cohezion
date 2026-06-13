@@ -156,9 +156,7 @@ def propose_tuning_from_log(
 ) -> list[TuningProposal]:
     """Read the routing corpus and derive tuning proposals. No corpus → [] (honest UNPROVEN)."""
     records = read_routing_decisions(path=path)
-    return propose_tuning(
-        records, min_samples=min_samples, fallback_threshold=fallback_threshold
-    )
+    return propose_tuning(records, min_samples=min_samples, fallback_threshold=fallback_threshold)
 
 
 # ── item 14: Hebbian specialist recruitment (proposes, never registers) ──────────────────

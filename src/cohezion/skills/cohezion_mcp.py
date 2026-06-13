@@ -28,13 +28,13 @@ project_root = os.environ.get("COHEZION_ROOT", "/home/mike-anderson/dev/cohezion
 if project_root not in sys.path:
     sys.path.insert(0, project_root)
 
-from cohezion.skills import (
+from cohezion.skills import (  # noqa: E402
     mcp_inference_tools,
     mcp_model_tools,
     mcp_reliability_tools,
     mcp_skill_tools,
 )
-from cohezion.skills.mcp_paths import (
+from cohezion.skills.mcp_paths import (  # noqa: E402
     compound_config_path,
     knowledge_graph_path,
     load_json,
@@ -42,7 +42,7 @@ from cohezion.skills.mcp_paths import (
     skill_registry_path,
     workflow_registry_path,
 )
-from cohezion.skills.mcp_tool_definitions import build_tool_list
+from cohezion.skills.mcp_tool_definitions import build_tool_list  # noqa: E402
 
 
 try:

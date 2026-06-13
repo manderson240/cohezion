@@ -234,9 +234,7 @@ class LemonadeRouterClient:
         """Send a full messages list (OpenAI shape) to the router."""
         return await self._dispatch(list(messages))
 
-    async def _dispatch(
-        self, messages: list[dict[str, str]]
-    ) -> RouterResult:
+    async def _dispatch(self, messages: list[dict[str, str]]) -> RouterResult:
         start = time.perf_counter()
         text = ""
         error: str | None = None
@@ -261,9 +259,7 @@ class LemonadeRouterClient:
                 text = data["choices"][0]["message"]["content"].strip()
         except Exception as exc:
             error = f"{type(exc).__name__}: {exc}"
-            logger.debug(
-                "LemonadeRouterClient %s: %s", self.label, error
-            )
+            logger.debug("LemonadeRouterClient %s: %s", self.label, error)
 
         latency_ms = (time.perf_counter() - start) * 1000
 
@@ -361,9 +357,7 @@ class LemonadeRouterClient:
                 if isinstance(data, dict) and "data" in data:
                     return [m.get("id", "") for m in data["data"]]
                 if isinstance(data, list):
-                    return [
-                        m.get("id") or m.get("model_name") or "" for m in data
-                    ]
+                    return [m.get("id") or m.get("model_name") or "" for m in data]
         except Exception as exc:
             logger.debug("LemonadeRouterClient.list_models failed: %s", exc)
         return []

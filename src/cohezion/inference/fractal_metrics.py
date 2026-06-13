@@ -103,9 +103,7 @@ def feynman_path_weight(
     """
     lambda_cost = 100.0
     return (
-        quality_score
-        * math.exp(-lambda_cost * cost_usd)
-        * math.exp(-LAMBDA_ENERGY * energy_joules)
+        quality_score * math.exp(-lambda_cost * cost_usd) * math.exp(-LAMBDA_ENERGY * energy_joules)
     )
 
 

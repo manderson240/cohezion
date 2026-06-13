@@ -28,6 +28,15 @@ jobs:
       - name: Install uv
         run: pip install uv
 
+      - name: Free disk space (large ROCm torch wheel)
+        run: |
+          # The torch==*+rocm6.2 wheel extraction exhausts the default runner disk
+          # ("No space left on device"). Reclaim ~40GB of preinstalled toolchains we
+          # don't use. Do NOT touch /opt/hostedtoolcache — the job's Python lives there.
+          sudo rm -rf /usr/share/dotnet /opt/ghc /usr/local/lib/android /usr/local/share/boost /usr/local/.ghcup
+          sudo apt-get clean
+          df -h /
+
       - name: Sync dependencies
         run: uv sync --frozen --extra dev
 
@@ -38,6 +47,14 @@ jobs:
       - name: Ruff lint check
         run: uv run ruff check src/ tests/
         continue-on-error: true
+
+      # Gating: the two ruff steps above are advisory (annotations only) because of a
+      # large pre-existing backlog. This ratchet gives the lint job teeth — it FAILS if
+      # the ruff-check violation count exceeds the committed baseline (scripts/ci/lint_baseline.txt),
+      # so no PR can add new lint debt. Pay it down by lowering the baseline as the count
+      # drops; when it reaches 0, drop the ratchet and make `ruff check` itself gating.
+      - name: Ruff debt ratchet (gating)
+        run: uv run python scripts/ci/ruff_ratchet.py
 
   # ── Validate ──────────────────────────────────────────────────
   validate:
@@ -52,6 +69,15 @@ jobs:
 
       - name: Install uv
         run: pip install uv
+
+      - name: Free disk space (large ROCm torch wheel)
+        run: |
+          # The torch==*+rocm6.2 wheel extraction exhausts the default runner disk
+          # ("No space left on device"). Reclaim ~40GB of preinstalled toolchains we
+          # don't use. Do NOT touch /opt/hostedtoolcache — the job's Python lives there.
+          sudo rm -rf /usr/share/dotnet /opt/ghc /usr/local/lib/android /usr/local/share/boost /usr/local/.ghcup
+          sudo apt-get clean
+          df -h /
 
       - name: Sync dependencies
         run: uv sync --frozen --extra dev
@@ -93,6 +119,15 @@ jobs:
       - name: Install uv
         run: pip install uv
 
+      - name: Free disk space (large ROCm torch wheel)
+        run: |
+          # The torch==*+rocm6.2 wheel extraction exhausts the default runner disk
+          # ("No space left on device"). Reclaim ~40GB of preinstalled toolchains we
+          # don't use. Do NOT touch /opt/hostedtoolcache — the job's Python lives there.
+          sudo rm -rf /usr/share/dotnet /opt/ghc /usr/local/lib/android /usr/local/share/boost /usr/local/.ghcup
+          sudo apt-get clean
+          df -h /
+
       - name: Sync dependencies
         run: uv sync --frozen --extra dev
 
@@ -105,9 +140,14 @@ jobs:
           --cov-report=xml:coverage.xml
           --cov-report=term
 
+      # Gating: tests/inference/ must pass (verified 423 green). Unlike the broad
+      # integration step below, a failure here fails the job and blocks merge.
+      - name: Run inference tests (gating)
+        run: uv run pytest tests/inference/ -q --tb=short
+
       - name: Run integration tests
         run: >
-          uv run pytest tests/ --ignore=tests/unit/ -v
+          uv run pytest tests/ --ignore=tests/unit/ --ignore=tests/inference/ -v
           --tb=short
           --junitxml=integration-report.xml
         continue-on-error: true
@@ -144,6 +184,15 @@ jobs:
       - name: Install uv
         run: pip install uv
 
+      - name: Free disk space (large ROCm torch wheel)
+        run: |
+          # The torch==*+rocm6.2 wheel extraction exhausts the default runner disk
+          # ("No space left on device"). Reclaim ~40GB of preinstalled toolchains we
+          # don't use. Do NOT touch /opt/hostedtoolcache — the job's Python lives there.
+          sudo rm -rf /usr/share/dotnet /opt/ghc /usr/local/lib/android /usr/local/share/boost /usr/local/.ghcup
+          sudo apt-get clean
+          df -h /
+
       - name: Sync dependencies
         run: uv sync --frozen --extra dev
 
@@ -172,6 +221,15 @@ jobs:
 
       - name: Install uv
         run: pip install uv
+
+      - name: Free disk space (large ROCm torch wheel)
+        run: |
+          # The torch==*+rocm6.2 wheel extraction exhausts the default runner disk
+          # ("No space left on device"). Reclaim ~40GB of preinstalled toolchains we
+          # don't use. Do NOT touch /opt/hostedtoolcache — the job's Python lives there.
+          sudo rm -rf /usr/share/dotnet /opt/ghc /usr/local/lib/android /usr/local/share/boost /usr/local/.ghcup
+          sudo apt-get clean
+          df -h /
 
       - name: Sync dependencies
         run: uv sync --frozen --extra dev

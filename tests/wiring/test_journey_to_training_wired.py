@@ -6,6 +6,7 @@ test, no registry ref). The wiring-sweep loop re-exported its public bridge thro
 package AND are the SAME objects as the source module (a plain import-OK test would pass even
 with the wiring deleted, so it would not discriminate).
 """
+
 from __future__ import annotations
 
 import cohezion.compound as compound

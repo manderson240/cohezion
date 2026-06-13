@@ -6,6 +6,7 @@ NOT `ReasoningModel`, which collides with agi_reasoning.ReasoningModel (a surfac
 duplicate flagged for human review). Fails if the static edge is removed: asserts the names
 resolve FROM the package AND are aimo_reasoning's own objects.
 """
+
 from __future__ import annotations
 
 import cohezion.compound as compound

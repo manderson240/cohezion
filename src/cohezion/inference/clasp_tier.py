@@ -24,9 +24,12 @@ from __future__ import annotations
 import logging
 import time
 from dataclasses import dataclass, field
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:
+    pass
 
 from cohezion.inference.orchestrator import OrchestrationResult, QualityGate
-
 
 logger = logging.getLogger(__name__)
 
@@ -128,13 +131,11 @@ class CLaSpTier:
                     draft_ms,
                     len(draft_result.text),
                 )
-                draft_model_id = getattr(draft_result, "final_model", None) or getattr(
-                    draft_result, "model", "E2B"
-                )
+                draft_model = f"clasp-draft:{draft_result.final_model}"
                 return OrchestrationResult(
                     text=draft_result.text,
-                    primary_model=self.label,
-                    final_model=f"clasp-draft:{draft_model_id}",
+                    primary_model=draft_model,
+                    final_model=draft_model,
                     escalation_count=0,
                     cost_usd=draft_result.cost_usd,
                     latency_ms=draft_ms,
@@ -154,13 +155,13 @@ class CLaSpTier:
         verify_ms = (time.perf_counter() - verify_start) * 1000
         _clasp_stats.total_verify_ms += verify_ms
 
-        verify_model_id = getattr(verify_result, "final_model", None) or getattr(
-            verify_result, "model", "E4B"
+        draft_label = (
+            f"clasp-draft:{draft_result.final_model}" if draft_result else "clasp-draft:unavailable"
         )
         return OrchestrationResult(
             text=verify_result.text,
-            primary_model=self.label,
-            final_model=f"clasp-verify:{verify_model_id}",
+            primary_model=draft_label,
+            final_model=f"clasp-verify:{verify_result.final_model}",
             escalation_count=1,
             cost_usd=(draft_result.cost_usd if draft_result else 0.0) + verify_result.cost_usd,
             latency_ms=verify_ms + (draft_ms if draft_result else 0.0),
@@ -207,5 +208,5 @@ def build_clasp_igpu_tier(
         draft_tier=draft_tier,
         verify_tier=verify_tier,
         draft_gate=QualityGate(min_chars=draft_acceptance_chars),
-        label=f"clasp:{draft_model[:6]}→{verify_model[:6]}",
+        label=f"clasp:{draft_model}→{verify_model}",
     )

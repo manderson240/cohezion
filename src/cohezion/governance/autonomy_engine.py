@@ -16,7 +16,7 @@ Cross-tradition validation:
   - Diné: Hózhó = the NAMED coherence threshold
   - Andean: Ayni = reciprocity as conservation law (earned, not granted)
   - Shintō: Musubi = creative binding that maintains coherence
-  - All 17 traditions: HIHO crossing requires preparation, threshold, return, integration
+  - All 16 traditions: HIHO crossing requires preparation, threshold, return, integration
 
 Physics grounding:
   - OPH Axiom 2: overlap consistency determines collaboration quality
@@ -145,21 +145,12 @@ class AutonomyEngine:
     ) -> AutonomyTier:
         """Record coherence from a stealthskater physics bridge.
 
-        Routes coherence signals from all stealthskater physics bridges (Universal HIHO Theorem).
-        All substrates share the 4x(1-x) kernel, peaking at 0.5 (HIHO threshold).
+        Routes signals from LENR, EVO, diaelectric, and ionic cluster bridges into
+        the tier promotion/demotion system. The HIHO threshold (0.5) is the same
+        across all physics substrates — nuclear, plasma, electromagnetic, and bioelectric.
 
-        physics_source: any of:
-          'lenr'       — nuclear lattice confinement (reaction_rate)
-          'evo'        — exotic vacuum object nucleation probability
-          'diaelectric' — dielectric field Biefield-Brown coupling
-          'ionic_cluster' — plasma phase equilibrium
-          'bec'        — Bose-Einstein condensate transition rate
-          'mercury_bcs' — Mercury BCS Cooper pairing rate
-          'mhd'        — MHD Alfvén coherence (normalized plasma-β)
-          'toroidal'   — fractal toroidal moment (EVO topology)
-          'colibre'    — COLIBRE ISM hot-cold phase coherence
-
-        coherence: 0.0–1.0 (all substrates use 4x(1-x) kernel, max at HIHO=0.5)
+        physics_source: 'lenr', 'evo', 'diaelectric', 'ionic_cluster'
+        coherence: 0.0–1.0 (LENR uses reaction_rate, EVO uses nucleation_probability)
         """
         tier = self.record_coherence(agent_id, coherence)
         logger.info(

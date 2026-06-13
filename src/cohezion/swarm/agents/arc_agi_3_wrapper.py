@@ -44,6 +44,7 @@ class RecursiveChainOfThought(torch.nn.Module):
     LoopViT-inspired weight-tied recurrence for reasoning depth.
     Features Dynamic Exit based on predictive entropy.
     """
+
     def __init__(self, dim=256, depth=8, threshold=0.1):
         super().__init__()
         self.dim = dim

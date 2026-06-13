@@ -43,7 +43,9 @@ def _all_up() -> None:
     health_mod._LAST_RESULT = FleetHealth(
         checked_at=time.time(),
         lanes={
-            "igpu_rocwmma": LaneHealth("igpu_rocwmma", "http://localhost:13307", LaneStatus.UP, 10.0),
+            "igpu_rocwmma": LaneHealth(
+                "igpu_rocwmma", "http://localhost:13307", LaneStatus.UP, 10.0
+            ),
         },
     )
     health_mod._LAST_CHECK_AT = time.time()

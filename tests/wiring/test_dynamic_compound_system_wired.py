@@ -4,6 +4,7 @@ Genuine Class-A orphan (no production importer, no test, no registry ref). Re-ex
 through `cohezion.compound`. Fails if the static edge is removed: asserts the names resolve
 FROM the package AND are the SAME objects as the source module.
 """
+
 from __future__ import annotations
 
 import cohezion.compound as compound

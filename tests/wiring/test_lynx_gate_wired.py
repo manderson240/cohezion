@@ -4,6 +4,7 @@ First genuine Class-A orphan wired in the inference/ package (the only one — t
 tests-only). Re-exported through `cohezion.inference`. Fails if the static edge is removed:
 asserts the name resolves FROM the package AND is the source module's own object.
 """
+
 from __future__ import annotations
 
 import cohezion.inference as inference

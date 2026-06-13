@@ -61,6 +61,9 @@ class BECState:
 
     def __post_init__(self) -> None:
         self.condensate_fraction = max(0.0, min(1.0, float(self.condensate_fraction)))
+        # Atom count is a physical population; clamp negatives so condensed_atoms
+        # and thermal_atoms can never go negative.
+        self.atom_count = max(0, int(self.atom_count))
 
     def hiho_equilibrium(self) -> bool:
         """True when the BEC is at quantum HIHO equilibrium (f_c ≈ 0.5 ± tolerance).
@@ -126,6 +129,9 @@ class MercuryLattice:
 
     def __post_init__(self) -> None:
         self.coherence = max(0.0, min(1.0, float(self.coherence)))
+        # Phonon coupling is a non-negative strength; a negative value would flip
+        # the sign of bcs_gap_rate, producing a negative (unphysical) pairing rate.
+        self.lattice_coupling = max(0.0, float(self.lattice_coupling))
 
     def bcs_gap_rate(self) -> float:
         """Cooper pairing rate — same 4×c×(1-c) HIHO kernel as LENR."""

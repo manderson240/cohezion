@@ -7,6 +7,7 @@ proposal. Each test fails a plausible wrong impl:
   - one that returns a proposal on an EMPTY corpus instead of honest UNPROVEN ([]),
   - one that doesn't rank the worst-offending task class first.
 """
+
 from __future__ import annotations
 
 from pathlib import Path
@@ -59,9 +60,7 @@ def test_worst_offender_ranked_first() -> None:
 def test_from_log_roundtrips_and_no_log_is_unproven(tmp_path: Path) -> None:
     sink = tmp_path / "routing_log.jsonl"
     for _ in range(6):
-        record_routing_decision(
-            task_class="ocr_doc", chosen_model=None, fell_back=True, path=sink
-        )
+        record_routing_decision(task_class="ocr_doc", chosen_model=None, fell_back=True, path=sink)
     proposals = propose_tuning_from_log(path=sink)
     assert proposals and proposals[0].target == "ocr_doc"
     # No corpus at all → honest UNPROVEN (empty), never a fabricated proposal.

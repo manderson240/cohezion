@@ -8,7 +8,7 @@ version = "1.0.2"
 description = "Training environments, evaluation systems, and ML infrastructure for agentic AI operating in simulated universes"
 readme = "README.md"
 requires-python = "==3.11.*"
-license = {text = "MIT"}
+license = {text = "AGPL-3.0-or-later"}
 authors = [
     {name = "Mike Anderson", email = "manderson240@users.noreply.github.com"},
 ]
@@ -24,6 +24,7 @@ keywords = [
 ]
 classifiers = [
     "Development Status :: 4 - Beta",
+    "License :: OSI Approved :: GNU Affero General Public License v3 or later (AGPLv3+)",
     "Intended Audience :: Science/Research",
     "Topic :: Scientific/Engineering :: Artificial Intelligence",
     "Programming Language :: Python :: 3.11",
@@ -114,6 +115,12 @@ audio = [
 unsloth = [
     "unsloth",
 ]
+# mem0: LLM-extracted conversational memory layer (add/search/consolidate facts).
+# Complements SemanticCache/SurrealDB/JourneyTracker — does NOT replace them.
+# Wired local-first to Lemonade (OpenAI-compatible) via cohezion.memory.mem0_adapter.
+memory = [
+    "mem0ai>=2.0.0",
+]
 
 [tool.ruff]
 target-version = "py311"
@@ -196,6 +203,9 @@ ignore = [
 ]
 "scripts/**/*.py" = [
     "E501",  # Research scripts use intentionally verbose description strings
+]
+"examples/**/*.py" = [
+    "E501",  # Demonstrator scripts use intentionally verbose evidence f-strings
 ]
 # Import sorting configuration
 [tool.ruff.lint.isort]

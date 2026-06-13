@@ -53,11 +53,7 @@ def test_nested_def_is_its_own_entry(tmp_path: Path) -> None:
     f = tmp_path / "m.py"
     # outer spans the whole thing; inner is its own 3-line def — BOTH exceed threshold 2.
     f.write_text(
-        "def outer():\n"
-        "    def inner():\n"
-        "        x = 1\n"
-        "        return x\n"
-        "    return inner()\n"
+        "def outer():\n    def inner():\n        x = 1\n        return x\n    return inner()\n"
     )
     names = {n for n, _ in long_functions([tmp_path], threshold=2)}
     assert "m.py::outer" in names and "m.py::inner" in names  # nested def appears separately

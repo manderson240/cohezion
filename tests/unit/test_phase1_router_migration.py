@@ -134,10 +134,15 @@ class TestOllamaProviderR2Routing:
             from cohezion.swarm.providers.model_provider import GenerationResult
 
             mock_router.return_value = GenerationResult(
-                response="test", model="Qwen3-8B-GGUF", provider="lemonade",
-                confidence=0.9, tokens_used=10, latency_ms=100.0, metadata={}
+                response="test",
+                model="Qwen3-8B-GGUF",
+                provider="lemonade",
+                confidence=0.9,
+                tokens_used=10,
+                latency_ms=100.0,
+                metadata={},
             )
-            result = await provider.generate("qwen3:8b", "hello")
+            _ = await provider.generate("qwen3:8b", "hello")
             mock_router.assert_called_once()
             # Verify the router model name was used, not the Ollama name
             call_args = mock_router.call_args
@@ -149,14 +154,21 @@ class TestOllamaProviderR2Routing:
         from cohezion.swarm.providers.ollama_provider import OllamaProvider
 
         provider = OllamaProvider()
-        with patch.object(provider, "_generate_via_ollama_shim", new_callable=AsyncMock) as mock_shim:
+        with patch.object(
+            provider, "_generate_via_ollama_shim", new_callable=AsyncMock
+        ) as mock_shim:
             from cohezion.swarm.providers.model_provider import GenerationResult
 
             mock_shim.return_value = GenerationResult(
-                response="test", model="phi4:latest", provider="ollama",
-                confidence=0.8, tokens_used=5, latency_ms=50.0, metadata={}
+                response="test",
+                model="phi4:latest",
+                provider="ollama",
+                confidence=0.8,
+                tokens_used=5,
+                latency_ms=50.0,
+                metadata={},
             )
-            result = await provider.generate("phi4:latest", "hello")
+            _ = await provider.generate("phi4:latest", "hello")
             mock_shim.assert_called_once()
 
     @pytest.mark.asyncio
@@ -165,14 +177,21 @@ class TestOllamaProviderR2Routing:
         from cohezion.swarm.providers.ollama_provider import OllamaProvider
 
         provider = OllamaProvider()
-        with patch.object(provider, "_generate_via_ollama_shim", new_callable=AsyncMock) as mock_shim:
+        with patch.object(
+            provider, "_generate_via_ollama_shim", new_callable=AsyncMock
+        ) as mock_shim:
             from cohezion.swarm.providers.model_provider import GenerationResult
 
             mock_shim.return_value = GenerationResult(
-                response="test", model="phi3:mini", provider="ollama",
-                confidence=0.8, tokens_used=5, latency_ms=50.0, metadata={}
+                response="test",
+                model="phi3:mini",
+                provider="ollama",
+                confidence=0.8,
+                tokens_used=5,
+                latency_ms=50.0,
+                metadata={},
             )
-            result = await provider.generate("phi3:mini", "hello")
+            _ = await provider.generate("phi3:mini", "hello")
             mock_shim.assert_called_once()
 
     @pytest.mark.asyncio
@@ -185,10 +204,15 @@ class TestOllamaProviderR2Routing:
             from cohezion.swarm.providers.model_provider import GenerationResult
 
             mock_router.return_value = GenerationResult(
-                response="test", model="DeepSeek-Qwen3-8B-GGUF", provider="lemonade",
-                confidence=0.9, tokens_used=10, latency_ms=100.0, metadata={}
+                response="test",
+                model="DeepSeek-Qwen3-8B-GGUF",
+                provider="lemonade",
+                confidence=0.9,
+                tokens_used=10,
+                latency_ms=100.0,
+                metadata={},
             )
-            result = await provider.generate("deepseek-r1:7b", "hello")
+            _ = await provider.generate("deepseek-r1:7b", "hello")
             mock_router.assert_called_once()
             assert mock_router.call_args[0][0] == "DeepSeek-Qwen3-8B-GGUF"
 
@@ -243,15 +267,15 @@ class TestOpenAIPayloadShape:
             captured["body"] = json
             mock_resp = MagicMock()
             mock_resp.raise_for_status = MagicMock()
-            mock_resp.json.return_value = {
-                "choices": [{"message": {"content": "hello"}}]
-            }
+            mock_resp.json.return_value = {"choices": [{"message": {"content": "hello"}}]}
             return mock_resp
 
         mock_client = MagicMock()
         mock_client.post = mock_post
 
-        with patch.object(type(client), "client", new_callable=lambda: property(lambda self: mock_client)):
+        with patch.object(
+            type(client), "client", new_callable=lambda: property(lambda self: mock_client)
+        ):
             await client._call_with_retry(
                 prompt="test",
                 model="phi3:mini",
@@ -268,7 +292,6 @@ class TestOpenAIPayloadShape:
     @pytest.mark.asyncio
     async def test_token_client_resilient_posts_openai_payload(self):
         """ResilientOllamaClient (token_client) must POST to /v1/chat/completions."""
-        import httpx
         from cohezion.swarm.token_client import ResilientOllamaClient as TRC
 
         client = TRC(base_url="http://localhost:13305")
@@ -327,9 +350,7 @@ class TestModelManagerEndpoints:
 
         mock_resp = MagicMock()
         mock_resp.raise_for_status = MagicMock()
-        mock_resp.json.return_value = {
-            "data": [{"id": "Qwen3-8B-GGUF"}, {"id": "phi4"}]
-        }
+        mock_resp.json.return_value = {"data": [{"id": "Qwen3-8B-GGUF"}, {"id": "phi4"}]}
 
         async def mock_get(url, **kwargs):
             captured["url"] = url
@@ -399,7 +420,10 @@ class TestOllamaProviderRouterIntegration:
             async def __aexit__(self, *args):
                 return False
 
-        with patch("cohezion.swarm.providers.ollama_provider.aiohttp.ClientSession", return_value=FakeSession()):
+        with patch(
+            "cohezion.swarm.providers.ollama_provider.aiohttp.ClientSession",
+            return_value=FakeSession(),
+        ):
             result = await provider.generate("phi4:latest", "say hello", max_tokens=50)
 
         assert "/api/generate" in captured["url"]

@@ -13,6 +13,7 @@ degradation loop, or each load attempt), or â€” for true kernel-event driving â€
 Linux PSI (``/proc/pressure/memory``). The event-on-transition contract is identical regardless
 of driver, which is what makes the rest of the system event-driven rather than poll-coupled.
 """
+
 from __future__ import annotations
 
 import logging

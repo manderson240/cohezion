@@ -19,7 +19,6 @@ Allow-listed Ollama shim (no router equivalent as of 2026-06-09):
 
 from __future__ import annotations
 
-import asyncio
 import logging
 import time
 from typing import Any
@@ -140,9 +139,7 @@ class OllamaProvider(ModelProvider):
                 model, prompt, max_tokens, temperature, **kwargs
             )
         # Unknown model: attempt router with literal model name
-        return await self._generate_via_router(
-            model, prompt, max_tokens, temperature, **kwargs
-        )
+        return await self._generate_via_router(model, prompt, max_tokens, temperature, **kwargs)
 
     async def _generate_via_router(
         self,
@@ -272,6 +269,7 @@ class OllamaProvider(ModelProvider):
         """
         try:
             from cohezion.inference.router_client import LemonadeRouterClient
+
             client = LemonadeRouterClient(self.router_url, model_id="placeholder")
             router_models = await client.list_models()
             if router_models:

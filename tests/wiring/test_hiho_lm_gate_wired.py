@@ -7,6 +7,7 @@ test fails if that static edge is removed (the whole point of the wiring): a pla
 re-exported names are reachable FROM the package AND are the SAME objects as in the source
 module (proving it's a real re-export, not an accidental name collision).
 """
+
 from __future__ import annotations
 
 import cohezion.compound as compound

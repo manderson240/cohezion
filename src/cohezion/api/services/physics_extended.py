@@ -7,38 +7,14 @@ Follows the router pattern established in genesis.py.
 from __future__ import annotations
 
 import logging
-from typing import TYPE_CHECKING, Any
 
 from fastapi import APIRouter
 from pydantic import BaseModel, Field
 
 
-if TYPE_CHECKING:
-    from cohezion.physics.ionic_cluster import IonicClusterState
-    from cohezion.physics.lenr import LENRHamiltonian
-
-
 logger = logging.getLogger(__name__)
 
 physics_ext_router = APIRouter(prefix="/physics", tags=["physics-extended"])
-
-
-def _sanitize_numpy(val: Any) -> Any:
-    import numpy as np
-
-    if isinstance(val, dict):
-        return {k: _sanitize_numpy(v) for k, v in val.items()}
-    elif isinstance(val, list):
-        return [_sanitize_numpy(v) for v in val]
-    elif isinstance(val, np.integer):
-        return int(val)
-    elif isinstance(val, np.floating):
-        return float(val)
-    elif isinstance(val, np.bool_):
-        return bool(val)
-    elif isinstance(val, np.ndarray):
-        return val.tolist()
-    return val
 
 
 # ─── Response Models ───────────────────────────────────────────────
@@ -152,94 +128,6 @@ class EmergenceDetectResponse(BaseModel):
     events: list[dict]
 
 
-class LenrSimulateResponse(BaseModel):
-    """Result of a LENR Hamiltonian coherence simulation."""
-
-    reaction_threshold: float
-    lattice_coupling: float
-    coherence: float
-    reaction_rate: float
-
-
-class LenrEventRequest(BaseModel):
-    """Payload to record a LENR coherence event."""
-
-    coherence: float = Field(..., ge=0.0, le=1.0)
-    agent_id: str = "lenr-bridge"
-
-
-class LenrEventResponse(BaseModel):
-    """Result of recording a LENR coherence event."""
-
-    coherence: float
-    reaction_rate: float
-    event_count: int
-    mean_rate: float
-    agent_id: str
-
-
-class IonicClusterStatusResponse(BaseModel):
-    """State snapshot of an IonicCluster."""
-
-    plasma_density: float
-    cluster_size: int
-    hiho_tolerance: float
-    hiho_equilibrium: bool
-    ionisation_rate: float
-    active_ions: int
-    steps_taken: int
-
-
-class IonicClusterStepRequest(BaseModel):
-    """Payload to advance an IonicCluster's density state."""
-
-    delta: float
-    agent_id: str = "ionic-cluster-bridge"
-
-
-class IonicClusterStepResponse(BaseModel):
-    """Result of an IonicCluster state step."""
-
-    previous_density: float
-    plasma_density: float
-    hiho_equilibrium: bool
-    active_ions: int
-    steps_taken: int
-
-
-class DielectricPolarizationResponse(BaseModel):
-    """Polarization and U(1) gauge metrics for a DielectricField."""
-
-    voltage: float
-    electrode_separation: float
-    permittivity_diagonal: list[float]
-    mean_permittivity: float
-    biefield_brown_force: list[float]
-    gauge_connection_potential: list[list[float]]
-
-
-class SarfattiResponse(BaseModel):
-    """Sarfatti retrocausal back-action and metric coupling state."""
-
-    coherence: float
-    destiny_weight: float
-    back_action_amplitude: float
-    metric_coupling: float
-    hiho_attractor_engaged: bool
-
-
-class QuarkGluonPlasmaResponse(BaseModel):
-    """Quark-Gluon Plasma crossover status and deconfinement rate."""
-
-    quark_coherence: float
-    temperature_mev: float
-    deconfinement_rate: float
-    qcd_hiho: bool
-    is_deconfined: bool
-    chromatic_coherence: float
-    lenr_analogy_rate: float
-
-
 # ─── Endpoints ─────────────────────────────────────────────────────
 
 
@@ -295,10 +183,10 @@ async def get_natural_capital(
 
     projection = valuation.seventh_generation_projection(metrics.total_natural_capital)
 
-    raw_data = metrics.to_dict()
-    raw_data["seventh_generation"] = projection.to_dict()
-    sanitized = _sanitize_numpy(raw_data)
-    return NaturalCapitalResponse(**sanitized)
+    return NaturalCapitalResponse(
+        **metrics.to_dict(),
+        seventh_generation=projection.to_dict(),
+    )
 
 
 @physics_ext_router.get("/cosmogony/full-chain", response_model=CosmogonyChainResponse)
@@ -612,214 +500,6 @@ async def get_emergence_detect(
         event_count=report.event_count,
         complexity_score=report.complexity_score,
         events=events_dicts,
-    )
-
-
-# ─── Stealthskater Routing State and Handlers ──────────────────────
-
-_lenr_instances: dict[str, LENRHamiltonian] = {}
-_ionic_instances: dict[str, IonicClusterState] = {}
-
-
-def get_lenr_bridge(
-    agent_id: str, reaction_threshold: float = 0.5, lattice_coupling: float = 1.0
-) -> LENRHamiltonian:
-    from cohezion.physics.lenr import LENRHamiltonian
-
-    if agent_id not in _lenr_instances:
-        _lenr_instances[agent_id] = LENRHamiltonian(
-            reaction_threshold=reaction_threshold,
-            lattice_coupling=lattice_coupling,
-            agent_id=agent_id,
-        )
-    else:
-        bridge = _lenr_instances[agent_id]
-        bridge.reaction_threshold = reaction_threshold
-        bridge.lattice_coupling = lattice_coupling
-    return _lenr_instances[agent_id]
-
-
-def get_ionic_cluster(
-    agent_id: str,
-    plasma_density: float = 0.5,
-    cluster_size: int = 100,
-    hiho_tolerance: float = 0.05,
-) -> IonicClusterState:
-    from cohezion.physics.ionic_cluster import IonicClusterState
-
-    if agent_id not in _ionic_instances:
-        _ionic_instances[agent_id] = IonicClusterState(
-            plasma_density=plasma_density,
-            cluster_size=cluster_size,
-            hiho_tolerance=hiho_tolerance,
-        )
-    return _ionic_instances[agent_id]
-
-
-@physics_ext_router.get("/lenr/simulate", response_model=LenrSimulateResponse)
-async def get_lenr_simulate(
-    coherence: float = 0.5,
-    reaction_threshold: float = 0.5,
-    lattice_coupling: float = 1.0,
-    agent_id: str = "lenr-bridge",
-) -> LenrSimulateResponse:
-    """Simulate LENR Hamiltonian dynamics for a given coherence level."""
-    bridge = get_lenr_bridge(
-        agent_id=agent_id,
-        reaction_threshold=reaction_threshold,
-        lattice_coupling=lattice_coupling,
-    )
-    rate = bridge.reaction_rate(coherence)
-    return LenrSimulateResponse(
-        reaction_threshold=bridge.reaction_threshold,
-        lattice_coupling=bridge.lattice_coupling,
-        coherence=coherence,
-        reaction_rate=rate,
-    )
-
-
-@physics_ext_router.post("/lenr/event", response_model=LenrEventResponse)
-async def post_lenr_event(
-    payload: LenrEventRequest,
-) -> LenrEventResponse:
-    """Record a LENR coherence event and forward to governance."""
-    from cohezion.governance.autonomy_engine import get_autonomy_engine
-
-    bridge = get_lenr_bridge(agent_id=payload.agent_id)
-    engine = get_autonomy_engine()
-    rate = bridge.record_coherence_event(payload.coherence, autonomy_engine=engine)
-    return LenrEventResponse(
-        coherence=payload.coherence,
-        reaction_rate=rate,
-        event_count=bridge.event_count,
-        mean_rate=bridge.mean_rate,
-        agent_id=payload.agent_id,
-    )
-
-
-@physics_ext_router.get("/ionic-cluster/status", response_model=IonicClusterStatusResponse)
-async def get_ionic_cluster_status(
-    agent_id: str = "ionic-cluster-bridge",
-    plasma_density: float = 0.5,
-    cluster_size: int = 100,
-    hiho_tolerance: float = 0.05,
-) -> IonicClusterStatusResponse:
-    """Get the current status of an ionic cluster state."""
-    cluster = get_ionic_cluster(
-        agent_id=agent_id,
-        plasma_density=plasma_density,
-        cluster_size=cluster_size,
-        hiho_tolerance=hiho_tolerance,
-    )
-    return IonicClusterStatusResponse(
-        plasma_density=cluster.plasma_density,
-        cluster_size=cluster.cluster_size,
-        hiho_tolerance=cluster.hiho_tolerance,
-        hiho_equilibrium=cluster.hiho_equilibrium(),
-        ionisation_rate=cluster.ionisation_rate(),
-        active_ions=cluster.active_ions,
-        steps_taken=cluster.steps_taken,
-    )
-
-
-@physics_ext_router.post("/ionic-cluster/step", response_model=IonicClusterStepResponse)
-async def post_ionic_cluster_step(
-    payload: IonicClusterStepRequest,
-) -> IonicClusterStepResponse:
-    """Advance the plasma density of the ionic cluster by delta."""
-    cluster = get_ionic_cluster(agent_id=payload.agent_id)
-    prev = cluster.plasma_density
-    cluster.step(payload.delta)
-    return IonicClusterStepResponse(
-        previous_density=prev,
-        plasma_density=cluster.plasma_density,
-        hiho_equilibrium=cluster.hiho_equilibrium(),
-        active_ions=cluster.active_ions,
-        steps_taken=cluster.steps_taken,
-    )
-
-
-@physics_ext_router.get("/dielectric/polarization", response_model=DielectricPolarizationResponse)
-async def get_dielectric_polarization(
-    voltage: float = 1e4,
-    electrode_separation: float = 1e-2,
-    permittivity_diagonal: str = "1.0,1.0,1.0",
-    fabric_name: str = "Field",
-) -> DielectricPolarizationResponse:
-    """Calculate EHD force and gauge connection for a DielectricField."""
-    import numpy as np
-
-    from cohezion.physics.dielectric import DielectricField
-
-    try:
-        diag_vals = [float(v.strip()) for v in permittivity_diagonal.split(",")]
-        if len(diag_vals) != 3:
-            raise ValueError
-    except Exception:
-        diag_vals = [1.0, 1.0, 1.0]
-
-    tensor = np.diag(diag_vals)
-    field = DielectricField(
-        permittivity_tensor=tensor,
-        electrode_separation=electrode_separation,
-        voltage=voltage,
-        fabric_name=fabric_name,
-    )
-
-    force = field.biefield_brown_force()
-    conn = field.to_gauge_connection()
-
-    return DielectricPolarizationResponse(
-        voltage=field.voltage,
-        electrode_separation=field.electrode_separation,
-        permittivity_diagonal=diag_vals,
-        mean_permittivity=field.mean_permittivity,
-        biefield_brown_force=force.tolist(),
-        gauge_connection_potential=conn.potential.tolist(),
-    )
-
-
-@physics_ext_router.get("/sarfatti/backaction", response_model=SarfattiResponse)
-async def get_sarfatti_backaction(
-    coherence: float = 0.5,
-    destiny_weight: float = 0.5,
-) -> SarfattiResponse:
-    """Calculate Sarfatti retrocausal back-action and metric coupling."""
-    from cohezion.physics.sarfatti_bridge import SarfattiBackAction
-
-    backaction = SarfattiBackAction(
-        coherence=coherence,
-        destiny_weight=destiny_weight,
-    )
-    return SarfattiResponse(
-        coherence=backaction.coherence,
-        destiny_weight=backaction.destiny_weight,
-        back_action_amplitude=backaction.back_action_amplitude(),
-        metric_coupling=backaction.metric_coupling(),
-        hiho_attractor_engaged=backaction.hiho_attractor_engaged(),
-    )
-
-
-@physics_ext_router.get("/qgp/status", response_model=QuarkGluonPlasmaResponse)
-async def get_qgp_status(
-    quark_coherence: float = 0.5,
-    temperature_mev: float = 155.0,
-) -> QuarkGluonPlasmaResponse:
-    """Retrieve Quark-Gluon Plasma crossover status and deconfinement rate."""
-    from cohezion.physics.sarfatti_bridge import QuarkGluonPlasma
-
-    qgp = QuarkGluonPlasma(
-        quark_coherence=quark_coherence,
-        temperature_mev=temperature_mev,
-    )
-    return QuarkGluonPlasmaResponse(
-        quark_coherence=qgp.quark_coherence,
-        temperature_mev=qgp.temperature_mev,
-        deconfinement_rate=qgp.deconfinement_rate(),
-        qcd_hiho=qgp.qcd_hiho(),
-        is_deconfined=qgp.is_deconfined(),
-        chromatic_coherence=qgp.chromatic_coherence(),
-        lenr_analogy_rate=qgp.to_lenr_analogy(),
     )
 
 

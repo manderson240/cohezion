@@ -96,7 +96,9 @@ class TestTraceState:
         from cohezion.evo.trace_monad import TraceState
 
         s0 = TraceState()
-        s1 = s0.advance(coherence=0.5, phi=1.0, modalities=[], latent=[], latency_ms=42.5, latent_delta=0.003)
+        s1 = s0.advance(
+            coherence=0.5, phi=1.0, modalities=[], latent=[], latency_ms=42.5, latent_delta=0.003
+        )
         assert s1.latency_ms == 42.5
         assert s1.latent_delta == 0.003
 
@@ -122,7 +124,9 @@ class TestMonadPipeline:
         """bind steps that only modify state leave the value untouched."""
         from cohezion.evo.trace_monad import TraceMonad, TraceState
 
-        state_advancer = lambda v, s: TraceMonad(v, s.advance(coherence=0.6, phi=0.96, modalities=[], latent=[]))
+        state_advancer = lambda v, s: TraceMonad(
+            v, s.advance(coherence=0.6, phi=0.96, modalities=[], latent=[])
+        )
         result = TraceMonad.unit("sentinel-value", TraceState()) >> state_advancer >> state_advancer
         assert result.value == "sentinel-value"
 

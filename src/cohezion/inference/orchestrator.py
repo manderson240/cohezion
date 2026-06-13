@@ -124,17 +124,7 @@ class TieredOrchestrator:
         self.stream = stream
         # Optional callable: (prompt: str) -> RouteDecision
         # Sets start_tier_index and per-tier gate override based on output_type.
-        # Use the pre_dispatch_classifier property (not _pre_dispatch_classifier directly)
-        # for external assignment to avoid the private-attribute name mismatch trap.
         self._pre_dispatch_classifier = pre_dispatch_classifier
-
-    @property
-    def pre_dispatch_classifier(self) -> object | None:
-        return self._pre_dispatch_classifier
-
-    @pre_dispatch_classifier.setter
-    def pre_dispatch_classifier(self, value: object | None) -> None:
-        self._pre_dispatch_classifier = value
 
     async def _invoke_tier(
         self,
@@ -160,29 +150,6 @@ class TieredOrchestrator:
         sub = await target.run(prompt, budget_usd=remaining_budget)
         return sub, sub.cost_usd, sub.ttft_ms
 
-    def _log_dispatch(self, prompt: str, result: OrchestrationResult) -> OrchestrationResult:
-        """Persist ONE durable usage record per logical dispatch, then return ``result``.
-
-        This is the universal orchestrator chokepoint: every tier (local Runnable + cloud
-        ``route()``) and every ``run_batch`` item flows through ``run()``, so logging here
-        — with the dispatch's TOTAL accumulated cost — captures the whole orchestrator
-        family exactly once. Fail-soft: a sink error never breaks the dispatch path.
-        """
-        try:
-            from cohezion.inference.usage_log import record_dispatch
-
-            record_dispatch(
-                prompt=prompt,
-                text=result.text,
-                model=result.final_model,
-                cost_usd=result.cost_usd,
-                latency_ms=result.latency_ms,
-                source="orchestrator",
-            )
-        except Exception:
-            pass
-        return result
-
     async def run(self, prompt: str, *, budget_usd: float | None = None) -> OrchestrationResult:
         """Execute tier 0, escalate while gates fail, honor budget.
 
@@ -192,23 +159,6 @@ class TieredOrchestrator:
         two. This is how nested orchestrators inherit the parent's envelope
         without plumbing a shared mutable counter (O3b).
         """
-        # Compress prompt history if StepEntropyCompressor is enabled / available
-        if "<thought>" in prompt:
-            try:
-                from cohezion.inference.entropy_compressor import StepEntropyCompressor
-
-                compressor = StepEntropyCompressor()
-                compressed_prompt = compressor.compress_prompt(prompt)
-                if compressed_prompt != prompt:
-                    logger.info(
-                        "StepEntropyCoTCompressor: compressed prompt from %d to %d chars",
-                        len(prompt),
-                        len(compressed_prompt),
-                    )
-                    prompt = compressed_prompt
-            except Exception as exc:
-                logger.warning("Failed to compress prompt via StepEntropyCompressor: %s", exc)
-
         # Effective ceiling: min(self.max_cost_usd, budget_usd), ignoring Nones.
         if self.max_cost_usd is None:
             effective_max_cost: float | None = budget_usd
@@ -225,32 +175,15 @@ class TieredOrchestrator:
 
         # Pre-dispatch classification: determines start tier + per-tier gate override
         _start_tier = 0
-        _output_type = "unknown"  # failure_class for the recursive-trace resolution log
         _gate_override: dict[int, QualityGate] = {}
         if self._pre_dispatch_classifier is not None:
             try:
                 decision = self._pre_dispatch_classifier(prompt)
-                _output_type = decision.output_type
                 if decision.node == "gpu":
                     _start_tier = 1  # skip tier 0 (NPU) entirely
                     # Also override tier 1's gate: classifier knows the expected output length,
                     # so a 300-char function shouldn't escalate to CPU due to gate=2000.
                     _gate_override[1] = QualityGate(min_chars=decision.quality_gate_chars)
-                    # Reasoning lane: genuine multi-step reasoning must reach the CPU reasoner,
-                    # NOT be trusted at the mid (iGPU) tier. A high gate alone is insufficient
-                    # because the iGPU model (deepseek-r1) is a thinking model that emits long
-                    # chain-of-thought — a verbose-but-shallow answer would PASS a length gate.
-                    # So skip iGPU entirely and start at the CPU tier. Clamp to the last tier so
-                    # a short fleet (e.g. CPU omitted by the OOM guard, no cloud) still runs
-                    # something rather than exhausting with empty text.
-                    if decision.output_type == "reasoning":
-                        _start_tier = min(2, len(self.tiers) - 1)
-                        # The reasoning start tier IS the designated reasoner (CPU, or the last
-                        # tier when CPU/cloud are absent). Trust its non-empty output — don't
-                        # re-apply the high iGPU gate=2000 here, which would otherwise reject a
-                        # valid CPU/last-tier answer and exhaust the fleet.
-                        _gate_override[_start_tier] = QualityGate.TRUST  # type: ignore[attr-defined]
-                        _gate_override.pop(1, None)
                 else:
                     # Override tier-0 gate based on expected output length
                     _gate_override[0] = QualityGate(min_chars=decision.quality_gate_chars)
@@ -261,7 +194,7 @@ class TieredOrchestrator:
                     # New: type-aware gates matched to expected iGPU response length.
                     _IGPU_GATE_BY_TYPE: dict[str, int] = {
                         "short_categorical": 1,  # any non-empty response (letter/word)
-                        "short_answer": 1,  # 1-2 sentence factual answer (gate=1 for single-word answers)
+                        "short_answer": 50,  # 1-2 sentence factual answer
                         "medium_generation": 200,  # paragraph response
                         "long_generation": 750,  # detailed multi-paragraph answer
                         "code": 600,  # code block (may be short)
@@ -331,67 +264,6 @@ class TieredOrchestrator:
             remaining = (
                 (effective_max_cost - accumulated_cost) if effective_max_cost is not None else None
             )
-
-            # Block routing to local accelerated tiers (NPU/iGPU)
-            # if confidence margin falls below 0.01 threshold.
-            is_npu = (
-                "FLM" in model_name or "Gemma-4-E2B" in model_name or "npu" in model_name.lower()
-            )
-            is_igpu = (
-                "Gemma-4-26B" in model_name
-                or "Gemma-4-E4B" in model_name
-                or "igpu" in model_name.lower()
-            )
-            if is_npu or is_igpu:
-                try:
-                    from cohezion.flume.vacuum_encoder import (
-                        classify_journey_phase,
-                        encode_journey_text,
-                    )
-
-                    z_vec = await encode_journey_text(prompt, "")
-                    phase, margin = classify_journey_phase(z_vec)
-
-                    import os
-                    import sys
-
-                    import numpy as np
-
-                    is_fallback = np.isclose(np.linalg.norm(z_vec), 0.38)
-                    is_pytest = "pytest" in sys.modules or "unittest" in sys.modules
-                    force_block = os.environ.get("COHEZION_TEST_FORCE_MARGIN_BLOCK") == "1"
-
-                    if (
-                        (force_block or not is_pytest)
-                        and not is_fallback
-                        and phase != "unknown"
-                        and margin < 0.01
-                    ):
-                        logger.warning(
-                            "Routing to local accelerated tier %d (%s) blocked: "
-                            "confidence margin (%.4f) below 0.01 (phase: %s)",
-                            idx,
-                            model_name,
-                            margin,
-                            phase,
-                        )
-                        path.append(
-                            TierAttempt(
-                                tier_index=idx,
-                                model_or_sub=model_name,
-                                passed=False,
-                                reason=(
-                                    f"blocked: confidence margin too low ({margin:.4f} < 0.01)"
-                                ),
-                                cost_usd=0.0,
-                                latency_ms=0.0,
-                                ttft_ms=None,
-                            )
-                        )
-                        continue
-                except Exception as exc:
-                    logger.debug("Failed to evaluate journey phase for routing gate: %s", exc)
-
             tier_start = time.perf_counter()
             try:
                 result, tier_cost, tier_ttft = await self._invoke_tier(target, prompt, remaining)
@@ -441,9 +313,6 @@ class TieredOrchestrator:
             )
 
             # --- JOURNEY TELEMETRY INSTRUMENTATION ---
-            # Emits FlumeJourneyEvent with a REAL 256D FLUME z_vector (vacuum object).
-            # z_vector is encoded asynchronously via nomic-embed(768D)→VAE ep21-distilled(256D)
-            # so the main inference path is never blocked (fire-and-forget background task).
             try:
                 from datetime import datetime
 
@@ -466,69 +335,33 @@ class TieredOrchestrator:
                     h_tier = HardwareTier.CLOUD
 
                 bus = get_telemetry_bus()
-
-                # Capture locals for background closure (all immutable at this point).
-                _enc_prompt = prompt
-                _enc_response = view.text
-                _event_id = f"tier_{int(datetime.now().timestamp())}_{idx}"
-                _journey_id = f"orch_{int(start)}"
-                _coherence = 1.0 if passed else 0.5
-                _precip = 1.0 if passed else 0.0
-                _h_tier = h_tier
-                _tier_latency = tier_latency
-                _reason = reason
-                _model_name = model_name
-                _idx = idx
-
-                async def _emit_vacuum_event(
-                    _bus=bus,
-                    _ep=_enc_prompt,
-                    _er=_enc_response,
-                    _eid=_event_id,
-                    _jid=_journey_id,
-                    _coh=_coherence,
-                    _pr=_precip,
-                    _ht=_h_tier,
-                    _lat=_tier_latency,
-                    _rsn=_reason,
-                    _mn=_model_name,
-                    _i=_idx,
-                ) -> None:
-                    """Encode journey as exotic vacuum object and emit to telemetry bus."""
-                    try:
-                        from cohezion.flume.vacuum_encoder import encode_journey_text
-
-                        _z = await encode_journey_text(_ep, _er)
-                    except Exception:
-                        _z = [0.0] * 256
-                    _evt = FlumeJourneyEvent(
-                        event_id=_eid,
-                        journey_id=_jid,
-                        z_vector=_z,
-                        state_12d=[0.0] * 12,
-                        coherence=_coh,
-                        fabrics=QuadratureFabrics(
-                            space=0.8, field=0.2, control=0.9, precipitation=_pr
-                        ),
-                        awareness_parameter=0.8,
-                        expert_stream=SwarmExpert.ENGINEER,
-                        hardware_tier=_ht,
-                        latency_ms=_lat,
-                        r_zero=RZeroMetrics(
-                            success_rate=1.0 if _coh >= 1.0 else 0.0,
-                            iteration_count=_i + 1,
-                            difficulty_adjustment=1.0,
-                        ),
-                        metadata={"reason": _rsn, "model": _mn},
-                    )
-                    await _bus.emit(_evt)
+                event = FlumeJourneyEvent(
+                    event_id=f"tier_{int(datetime.now().timestamp())}_{idx}",
+                    journey_id=f"orch_{int(start)}",
+                    z_vector=[0.0] * 256,
+                    state_12d=[0.0] * 12,
+                    coherence=1.0 if passed else 0.5,
+                    fabrics=QuadratureFabrics(
+                        space=0.8, field=0.2, control=0.9, precipitation=1.0 if passed else 0.0
+                    ),
+                    awareness_parameter=0.8,
+                    expert_stream=SwarmExpert.ENGINEER,
+                    hardware_tier=h_tier,
+                    latency_ms=tier_latency,
+                    r_zero=RZeroMetrics(
+                        success_rate=1.0 if passed else 0.0,
+                        iteration_count=idx + 1,
+                        difficulty_adjustment=1.0,
+                    ),
+                    metadata={"reason": reason, "model": model_name},
+                )
 
                 import asyncio
 
                 try:
                     loop = asyncio.get_event_loop()
                     if loop.is_running():
-                        loop.create_task(_emit_vacuum_event())
+                        loop.create_task(bus.emit(event))
                 except RuntimeError:
                     pass
             except Exception as te:
@@ -539,53 +372,33 @@ class TieredOrchestrator:
 
             if passed:
                 # O1: higher tiers don't run once a lower tier passes.
-                # Recursive-trace corpus: log ONLY escalated resolutions (a lower tier's
-                # gate failed and this tier resolved) — the non-circular case where a real
-                # counterfactual was observed. Fail-soft; never breaks the inference path.
-                if idx > _start_tier:
-                    try:
-                        from cohezion.recursive_trace.resolution_log import (
-                            log_quality_gate_resolution,
-                        )
-
-                        log_quality_gate_resolution(
-                            _output_type, model_name, [p.model_or_sub for p in path]
-                        )
-                    except Exception:
-                        pass
-                return self._log_dispatch(
-                    prompt,
-                    OrchestrationResult(
-                        text=view.text,
-                        primary_model=self.tiers[0][0]
-                        if isinstance(self.tiers[0][0], str)
-                        else type(self.tiers[0][0]).__name__,
-                        final_model=last_model or model_name,
-                        escalation_count=idx,
-                        tier_path=path,
-                        cost_usd=accumulated_cost,
-                        latency_ms=(time.perf_counter() - start) * 1000,
-                        ttft_ms=path[0].ttft_ms if path else None,
-                        error=None,
-                    ),
+                return OrchestrationResult(
+                    text=view.text,
+                    primary_model=self.tiers[0][0]
+                    if isinstance(self.tiers[0][0], str)
+                    else type(self.tiers[0][0]).__name__,
+                    final_model=last_model or model_name,
+                    escalation_count=idx,
+                    tier_path=path,
+                    cost_usd=accumulated_cost,
+                    latency_ms=(time.perf_counter() - start) * 1000,
+                    ttft_ms=path[0].ttft_ms if path else None,
+                    error=None,
                 )
 
         # O7: exhausted — every tier failed. Return structured error, don't raise.
-        return self._log_dispatch(
-            prompt,
-            OrchestrationResult(
-                text=last_text,
-                primary_model=self.tiers[0][0]
-                if isinstance(self.tiers[0][0], str)
-                else type(self.tiers[0][0]).__name__,
-                final_model=last_model,
-                escalation_count=len([p for p in path if not p.passed]),
-                tier_path=path,
-                cost_usd=accumulated_cost,
-                latency_ms=(time.perf_counter() - start) * 1000,
-                ttft_ms=path[0].ttft_ms if path else None,
-                error="all tiers exhausted",
-            ),
+        return OrchestrationResult(
+            text=last_text,
+            primary_model=self.tiers[0][0]
+            if isinstance(self.tiers[0][0], str)
+            else type(self.tiers[0][0]).__name__,
+            final_model=last_model,
+            escalation_count=len([p for p in path if not p.passed]),
+            tier_path=path,
+            cost_usd=accumulated_cost,
+            latency_ms=(time.perf_counter() - start) * 1000,
+            ttft_ms=path[0].ttft_ms if path else None,
+            error="all tiers exhausted",
         )
 
     async def run_batch(
@@ -599,44 +412,21 @@ class TieredOrchestrator:
         Empirically measured 3.44x throughput improvement over sequential
         dispatch on XDNA2 NPU (exp_OOOO, 2026-05-20). Uses the same tier
         escalation logic as run() but all prompts start in parallel.
-
-        Note (exp_LLLL1): speedup is load-dependent. Under heavy multi-model load
-        (13+ models on port), sequential can be faster. Use max_concurrent to cap
-        parallelism when load is high.
-
-        Parameters
-        ----------
-        prompts : list[str]
-            Prompts to dispatch. Each gets an independent OrchestrationResult.
-        budget_usd : float | None
-            Per-call budget cap (same semantics as run()).
-        max_concurrent : int | None
-            Cap concurrent requests. None = unlimited (default).
-            Set to 3 for best NPU throughput under light load.
-            Set to 1 for sequential fallback under heavy load.
-
-        Returns
-        -------
-        list[OrchestrationResult]
-            Results in the same order as ``prompts``.
         """
         import asyncio
 
         if not prompts:
             return []
 
-        # Determine effective concurrency
         max_c = getattr(self, "_max_concurrent", None)
 
         if max_c is not None and max_c == 1:
-            # Sequential fallback (heavy load mode)
             results = []
             for p in prompts:
                 results.append(await self.run(p, budget_usd=budget_usd))
             return results
 
         if max_c is not None and len(prompts) > max_c:
-            # Chunked concurrency
             results = []
             for i in range(0, len(prompts), max_c):
                 chunk = prompts[i : i + max_c]

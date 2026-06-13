@@ -10,6 +10,7 @@ plausible wrong impl:
   - a rate that doesn't reflect the real success ratio,
   - difficulty_adjustment thresholded at >= 0.8 instead of > 0.8.
 """
+
 from __future__ import annotations
 
 from cohezion.optimization.r_zero import LocalModelOptimizer

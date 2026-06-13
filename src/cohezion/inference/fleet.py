@@ -28,20 +28,9 @@ import asyncio
 import logging
 import time
 from dataclasses import dataclass, field
-from typing import TYPE_CHECKING, Any
-
-
-if TYPE_CHECKING:
-    from cohezion.competition.orchestrator.resource_guard import MemorySnapshot
-    from cohezion.inference.lynx_gate import EscalationProbe
+from typing import Any
 
 import httpx
-
-
-# Reasoning-model content guard: when a thinking model (DeepSeek-R1, Gemma-4 FLM) produces
-# content shorter than this threshold, the response is likely a bare numerical answer with
-# all reasoning hidden in reasoning_content. Fall back to reasoning_content in that case.
-_REASONING_MIN_TOKENS = 50
 
 from cohezion.inference.registry import (
     FleetRegistry,
@@ -53,6 +42,11 @@ from cohezion.inference.registry import (
 
 
 logger = logging.getLogger(__name__)
+
+# Reasoning-model content guard: when a thinking model (DeepSeek-R1, Gemma-4 FLM) produces
+# content shorter than this threshold, the response is likely a bare numerical answer with
+# all reasoning hidden in reasoning_content. Fall back to reasoning_content in that case.
+_REASONING_MIN_TOKENS = 50
 
 
 @dataclass
@@ -218,10 +212,7 @@ async def _dispatch_openai_compatible(
         content = msg.get("content") or ""
         reasoning = msg.get("reasoning_content") or ""
         # Thinking models (DeepSeek-R1, Gemma-4 FLM) put CoT in reasoning_content
-        # and a concise answer in content. When content is very short (<_REASONING_MIN_TOKENS chars),
-        # fall back to reasoning so quality gates see the full work, not a bare "4.".
-        # This keeps rich reasoning traces flowing through the compound loop
-        # while still preferring substantive content answers when they exist.
+        # and a concise answer in content. Fall back to reasoning when content is short.
         text = (
             content
             if len(content.strip()) >= _REASONING_MIN_TOKENS
@@ -276,7 +267,7 @@ async def _dispatch_openai_compatible(
                 first_chunk_at = _time.perf_counter()
             if visible:
                 chunks.append(visible)
-            elif thinking:
+            if thinking:
                 reasoning_chunks.append(thinking)
             usage = chunk.get("usage")
             if usage:
@@ -447,23 +438,6 @@ async def _dispatch_one(
     )
 
 
-def _candidate_oom_deferred(candidate: ModelEntry, snapshot: MemorySnapshot | None) -> str | None:
-    """Per-candidate OOM headroom check (item 132). Defer reason, or None if it fits / unknown.
-
-    Defers a local candidate that individually won't fit (avail < ``size_gb`` * 1.2) even when the
-    fleet-wide OOM buffer (item 131) passed. Returns None when the candidate has no ``size_gb``
-    (never fabricate a size) or no snapshot is available. Reuses the resource_aware_route headroom
-    branch — its OOM-guard branch is a no-op here because the global gate already ran.
-    """
-    size = getattr(candidate, "size_gb", None)
-    if size is None or snapshot is None:
-        return None
-    from cohezion.inference.resource_aware_router import resource_aware_route
-
-    decision = resource_aware_route(float(size), snapshot=snapshot)
-    return decision.reason if decision.action == "defer" else None
-
-
 async def route(
     prompt: str,
     *,
@@ -474,7 +448,6 @@ async def route(
     registry: FleetRegistry | None = None,
     stream: bool = False,
     max_tokens: int = 512,
-    resource_snapshot: MemorySnapshot | None = None,
 ) -> RouteResult:
     """Dispatch a prompt to the optimal lane of the fleet.
 
@@ -553,29 +526,6 @@ async def route(
     attempts: list[str] = []
     last_error: str | None = None
 
-    # Resource-aware OOM gate (real consumer of resource_aware_route, item 122 / 2026-06-07).
-    # Under memory pressure a local dispatch piles onto a saturated lane and the bot replies
-    # empty (the 2026-06-06 saturation). When the live/injected snapshot trips the K1/rule-5
-    # OOM buffer we DEFER local lanes here — cloud candidates (no local RAM) still proceed,
-    # and if none exist route() returns an honest oom error instead of a saturated-lane empty.
-    # Fail-open: a memory PROBE failure is advisory (not a security gate), so it never blocks.
-    oom_defer_reason: str | None = None
-    snapshot = resource_snapshot
-    if snapshot is None:
-        try:
-            from cohezion.competition.orchestrator.resource_guard import MemorySnapshot
-
-            snapshot = MemorySnapshot.capture()
-        except Exception:
-            # probe failure is advisory (not a security gate) — never block dispatch
-            snapshot = None
-    if snapshot is not None:
-        from cohezion.inference.resource_aware_router import resource_aware_route
-
-        decision = resource_aware_route(0.0, snapshot=snapshot)
-        if decision.action == "defer":
-            oom_defer_reason = decision.reason
-
     for candidate in candidates:
         # Check lane health for local candidates.
         if candidate.lane in {
@@ -584,17 +534,6 @@ async def route(
             Lane.IGPU_UNIFIED,
             Lane.CPU,
         }:
-            if oom_defer_reason is not None:
-                attempts.append(f"{candidate.model_id}(oom-defer: {oom_defer_reason})")
-                last_error = oom_defer_reason
-                continue
-            # Per-candidate headroom (item 132): defer THIS local candidate if its own size
-            # won't fit even when the fleet-wide buffer is OK. Skipped when size is unknown.
-            headroom_reason = _candidate_oom_deferred(candidate, snapshot)
-            if headroom_reason is not None:
-                attempts.append(f"{candidate.model_id}(headroom-defer: {headroom_reason})")
-                last_error = headroom_reason
-                continue
             if health is None:
                 health = check_fleet()
             lane_key = candidate.lane.value
@@ -651,8 +590,6 @@ async def extend_claude(
     quality_threshold: float = 0.8,
     max_local_attempts: int = 2,
     timeout: float = 30.0,
-    claude_quota: str | None = None,
-    escalation_probe: EscalationProbe | None = None,
 ) -> RouteResult:
     """Route through the local fleet first; escalate to Claude only if local insufficient.
 
@@ -679,7 +616,6 @@ async def extend_claude(
             error=f"Unknown claude_model {claude_model}",
         )
 
-    local_result: RouteResult | None = None
     for _ in range(max_local_attempts):
         local_result = await route(
             prompt,
@@ -687,104 +623,23 @@ async def extend_claude(
             budget_usd=0.0,  # local only
             timeout=timeout,
         )
-        # Quality gate. When an EscalationProbe is supplied (item 139), use its learned
-        # length/vocab/completeness signal to decide local-sufficiency — a richer gate than the
-        # raw length heuristic. Otherwise fall back to: non-empty, long-enough response AND (if the
-        # model self-reported a confidence) the confidence clears the threshold (ARC Lesson 7).
+        # Quality gate: non-empty, long-enough response — AND if the model
+        # self-reported a confidence, it must clear the threshold. This lets
+        # a calibrated model force an escalation on ambiguous answers even
+        # when the text is long enough to pass the length heuristic
+        # (ARC Lesson 7). No-op for callers whose prompts don't ask for
+        # confidence — the field stays None and only the length heuristic fires.
         confidence = local_result.self_reported_confidence
-        if escalation_probe is not None:
-            if local_result.error is None:
-                should_escalate, _ = escalation_probe.predict_escalate(local_result.text)
-                if not should_escalate:
-                    return local_result
-        else:
-            length_ok = local_result.error is None and len(local_result.text) >= 40
-            confidence_ok = confidence is None or confidence >= quality_threshold
-            if length_ok and confidence_ok:
-                return local_result
+        length_ok = local_result.error is None and len(local_result.text) >= 40
+        confidence_ok = confidence is None or confidence >= quality_threshold
+        if length_ok and confidence_ok:
+            return local_result
         logger.info(
             "Local attempt insufficient (%s, confidence=%s); retrying",
             local_result.error or "short output",
             confidence,
         )
 
-    # Hybrid quota gate (item 137): local was insufficient. Escalate to cloud ONLY if the Claude
-    # quota allows it — when throttled/halted, return the best local result rather than exhaust the
-    # plan quota ("never run out of Claude", doctrine bullet 5). claude_quota=None → escalate as
-    # before (backward-compatible default; callers opt into quota-awareness by passing the guard).
-    if claude_quota is not None:
-        from cohezion.inference.hybrid_router import hybrid_route_decision
-
-        decision = hybrid_route_decision(
-            local_capacity="defer",  # local already failed the gate this call
-            claude_quota=claude_quota,  # type: ignore[arg-type]
-            local_quality=0.0,
-            quality_threshold=quality_threshold,
-        )
-        if decision != "cloud" and local_result is not None:
-            logger.info(
-                "extend_claude: quota=%s → staying local (no cloud escalation)", claude_quota
-            )
-            return local_result
-
     result = await route(prompt, task=Task.REASONING, prefer=claude_model, timeout=timeout)
     result.escalated_to_cloud = True
-    # Durable usage sink: this is the PAID escalation — the budget-critical event the
-    # monitor exists to watch. extend_claude is a separate dispatch root from the
-    # orchestrator (which logs in run()), so logging here does not double-count. The
-    # free local attempts above are not separately metered (they cost $0). Fail-soft.
-    try:
-        from cohezion.inference.usage_log import record_dispatch
-
-        record_dispatch(
-            prompt=prompt,
-            text=result.text,
-            model=result.model or claude_model,
-            cost_usd=result.cost_usd,
-            latency_ms=result.latency_ms,
-            lane=result.lane or None,
-            source="extend_claude",
-        )
-    except Exception:
-        pass
     return result
-
-
-def _live_claude_quota(
-    *,
-    soft_budget: int = 26_000_000_000,
-    hard_budget: int = 33_000_000_000,
-    projects_dir: str = "~/.claude/projects",
-    window_secs: float = 7 * 86400.0,
-) -> str:
-    """Compute the live Claude-Code plan-quota action from transcript token spend (item 138).
-
-    Reads the Claude Code transcripts and runs ``usage_guard`` over the weekly window. Returns
-    ``"proceed"`` / ``"throttle"`` / ``"halt"``. Fail-open to ``"proceed"`` on any read error — a
-    quota PROBE failure must not block work (advisory gate, like the fleet OOM probe). Budgets
-    default to the same values as ``scripts/loop_usage_guard.py`` (override via env there).
-    """
-    try:
-        from cohezion.observability.claude_usage import (
-            load_usage_records,
-            summarize_usage,
-            usage_guard,
-        )
-
-        records = load_usage_records(projects_dir)
-        summary = summarize_usage(records, now_ts=time.time(), windows={"week": window_secs})
-        return usage_guard(summary, window="week", soft_budget=soft_budget, hard_budget=hard_budget)
-    except Exception:
-        return "proceed"  # probe failure is advisory — never block work
-
-
-async def extend_claude_guarded(prompt: str, **kwargs: Any) -> RouteResult:
-    """`extend_claude` with the LIVE Claude-quota gate wired in (item 138, the prod activation).
-
-    Computes the current quota from transcript spend and passes it through, so the cloud
-    escalation conserves Claude under load ("never run out", doctrine bullet 5). All other
-    ``extend_claude`` kwargs pass through. This is the quota-aware entry point the delegate CLI
-    (and other live callers) should use instead of raw ``extend_claude``.
-    """
-    quota = _live_claude_quota()
-    return await extend_claude(prompt, claude_quota=quota, **kwargs)

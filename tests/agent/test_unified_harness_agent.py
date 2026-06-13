@@ -9,6 +9,7 @@ test fails a plausible wrong impl:
 FINDING (pin-actual, minor): autocontext_monitor ignores `history` and always returns
 warn=False/critical=False — a context monitor that can never fire. Pinned below.
 """
+
 from __future__ import annotations
 
 import asyncio

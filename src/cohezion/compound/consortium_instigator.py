@@ -29,7 +29,7 @@ import json
 import logging
 import time
 from dataclasses import dataclass
-from datetime import UTC, datetime
+from datetime import datetime, timezone
 from enum import Enum
 from pathlib import Path
 from typing import Any
@@ -309,7 +309,7 @@ class ConsortiumInstigator(BaseAgent):
         """
         run_id = f"instigator-{int(time.time())}"
         t0 = time.perf_counter()
-        timestamp = datetime.now(UTC).isoformat()
+        timestamp = datetime.now(timezone.utc).isoformat()
 
         logger.info("Instigator run %s: %d vectors queued", run_id, len(self.attack_vectors))
 
@@ -348,7 +348,9 @@ class ConsortiumInstigator(BaseAgent):
         prev_pass = 0
         if self._run_history:
             prev_pass = self._run_history[-1].passed
-        if passed > prev_pass or passed < prev_pass:
+        if passed > prev_pass:
+            compound_delta = (passed - prev_pass) / max(len(active_vectors), 1)
+        elif passed < prev_pass:
             compound_delta = (passed - prev_pass) / max(len(active_vectors), 1)
 
         result = AttackRunResult(

@@ -41,7 +41,7 @@ class TraceState:
     """
 
     coherence: float = 0.5
-    phi: float = 1.0           # 4*c*(1-c) HIHO kernel evaluated at coherence
+    phi: float = 1.0  # 4*c*(1-c) HIHO kernel evaluated at coherence
     step_index: int = 0
     modalities_used: tuple[str, ...] = ()
     latent_snapshot: tuple[float, ...] = ()

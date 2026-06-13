@@ -112,19 +112,14 @@ class LENRHamiltonian:
 
         if autonomy_engine is not None:
             try:
-                # Use record_physics_coherence to preserve the 'lenr' source label in logs
-                autonomy_engine.record_physics_coherence(self.agent_id, "lenr", coherence)
-            except (AttributeError, TypeError):
-                # Fallback for autonomy engines that don't have record_physics_coherence
-                try:
-                    autonomy_engine.record_coherence(self.agent_id, coherence)
-                except Exception:
-                    logger.warning(
-                        "LENRHamiltonian: AutonomyEngine.record_coherence failed "
-                        "(agent_id=%s, coherence=%.3f)",
-                        self.agent_id,
-                        coherence,
-                    )
+                autonomy_engine.record_coherence(self.agent_id, coherence)
+            except Exception:
+                logger.warning(
+                    "LENRHamiltonian: AutonomyEngine.record_coherence failed "
+                    "(agent_id=%s, coherence=%.3f)",
+                    self.agent_id,
+                    coherence,
+                )
 
         logger.debug(
             "LENR coherence event: coherence=%.3f rate=%.4f (agent=%s)",

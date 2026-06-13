@@ -6,6 +6,7 @@ the set of deferrable jobs Chronos advises holding. Each test fails a plausible 
   - one whose logged set differs from registry.resource_advisory() (drift),
   - one that writes to the real advisory log during pytest.
 """
+
 from __future__ import annotations
 
 from pathlib import Path
@@ -29,13 +30,13 @@ def test_advises_only_on_rising_critical_edge(tmp_path: Path) -> None:
     m = MemoryPressureMonitor()
     m.subscribe(advisor.on_event)
 
-    m.evaluate(snapshot=(50.0, 10.0))   # OK start → no advisory
+    m.evaluate(snapshot=(50.0, 10.0))  # OK start → no advisory
     assert advisor.advisories == []
-    m.evaluate(snapshot=(50.0, 35.0))   # WARNING → must NOT advise
+    m.evaluate(snapshot=(50.0, 35.0))  # WARNING → must NOT advise
     assert advisor.advisories == []
-    m.evaluate(snapshot=(50.0, 60.0))   # CRITICAL rising → advise once
+    m.evaluate(snapshot=(50.0, 60.0))  # CRITICAL rising → advise once
     assert len(advisor.advisories) == 1
-    m.evaluate(snapshot=(50.0, 65.0))   # sustained CRITICAL → no new advisory
+    m.evaluate(snapshot=(50.0, 65.0))  # sustained CRITICAL → no new advisory
     assert len(advisor.advisories) == 1
 
 
@@ -65,7 +66,7 @@ def test_install_wires_to_monitor(tmp_path: Path) -> None:
     m = MemoryPressureMonitor()
     advisor = install_chronos_advisor(monitor=m, registry=reg)
     m.evaluate(snapshot=(50.0, 10.0))
-    m.evaluate(snapshot=(50.0, 60.0))   # rising CRITICAL → advisor fires
+    m.evaluate(snapshot=(50.0, 60.0))  # rising CRITICAL → advisor fires
     assert len(advisor.advisories) == 1
 
 

@@ -66,10 +66,10 @@ _CLOUD_LADDER_EXTENSION: tuple[str, ...] = ()
 # user_models.json. Each bundles a planner LLM (tool-calling label) with image,
 # TTS, and ASR components — enabling unified multimodal dispatches through :13305.
 # See plan Task G in ~/.claude/plans/i-mispoke-the-extraneous-radiant-dongarra.md.
-OMNI_LITE_MODEL_ID = "Cohezion-Omni-Lite"   # Gemma-4-E4B + SD-Turbo (~8 GB)
+OMNI_LITE_MODEL_ID = "Cohezion-Omni-Lite"  # Gemma-4-E4B + SD-Turbo (~8 GB)
 OMNI_DENSE_MODEL_ID = "Cohezion-Omni-Dense"  # Qwen3.6-35B + Flux-2-Klein (~40+ GB)
-_OMNI_DENSE_RAM_GB = 36.0   # Dense planner: ~20 GB weights + KV overhead
-_OMNI_LITE_RAM_GB = 12.0    # Lite planner:  ~4 GB weights  + KV overhead
+_OMNI_DENSE_RAM_GB = 36.0  # Dense planner: ~20 GB weights + KV overhead
+_OMNI_LITE_RAM_GB = 12.0  # Lite planner:  ~4 GB weights  + KV overhead
 
 
 class OmniRequest:
@@ -97,9 +97,7 @@ class OmniTier:
         from cohezion.inference.orchestrator import OrchestrationResult
 
         prompt = (
-            prompt_or_req.prompt
-            if isinstance(prompt_or_req, OmniRequest)
-            else str(prompt_or_req)
+            prompt_or_req.prompt if isinstance(prompt_or_req, OmniRequest) else str(prompt_or_req)
         )
         # Forward to :13305 omni recipe (collection.omni); fail-soft stub for now —
         # full multimodal dispatch wired after custom model registration (plan Task G).
@@ -336,11 +334,15 @@ def build_triune_orchestrator(
         if _omni_available_gb >= _OMNI_DENSE_RAM_GB:
             _omni_tier = build_omni_dense_tier()
             tiers.append((_omni_tier, QualityGate(min_chars=5)))
-            logger.info("Omni tier: Dense (%s, %.0f GB available)", OMNI_DENSE_MODEL_ID, _omni_available_gb)
+            logger.info(
+                "Omni tier: Dense (%s, %.0f GB available)", OMNI_DENSE_MODEL_ID, _omni_available_gb
+            )
         elif _omni_available_gb >= _OMNI_LITE_RAM_GB:
             _omni_tier = build_omni_lite_tier()
             tiers.append((_omni_tier, QualityGate(min_chars=5)))
-            logger.info("Omni tier: Lite (%s, %.0f GB available)", OMNI_LITE_MODEL_ID, _omni_available_gb)
+            logger.info(
+                "Omni tier: Lite (%s, %.0f GB available)", OMNI_LITE_MODEL_ID, _omni_available_gb
+            )
         else:
             logger.info(
                 "Omni tier omitted: insufficient RAM (%.0f GB < %.0f GB min)",

@@ -52,16 +52,11 @@ class PhiDistribution:
         Returns a value in [0, 1]. A voyage at phi=0.249 that spent several steps above
         0.3 returns a meaningful probability; one that monotonically decayed returns ~0.
         """
-        return sum(
-            p for b, p in zip(self.bins, self.probs) if b >= threshold
-        )
+        return sum(p for b, p in zip(self.bins, self.probs) if b >= threshold)
 
     def expected_phi(self) -> float:
         """E[phi] using bin midpoints as representatives."""
-        midpoints = [
-            (self.bins[i] + self.bins[i + 1]) / 2.0
-            for i in range(len(self.bins) - 1)
-        ]
+        midpoints = [(self.bins[i] + self.bins[i + 1]) / 2.0 for i in range(len(self.bins) - 1)]
         return sum(m * p for m, p in zip(midpoints, self.probs))
 
     def as_dict(self) -> dict:

@@ -1,6 +1,5 @@
 """Tests for RecursiveTracer: constitution gate, OOM guard, journey integration."""
 
-import time
 from unittest.mock import MagicMock, patch
 
 import numpy as np
@@ -140,9 +139,7 @@ class TestOOMGuard:
         agent = _make_agent()
         tracer = RecursiveTracer(agent, _make_tracker())
 
-        with patch(
-            "cohezion.competition.orchestrator.resource_guard.MemorySnapshot"
-        ) as MockMS:
+        with patch("cohezion.competition.orchestrator.resource_guard.MemorySnapshot") as MockMS:
             MockMS.capture.return_value = mock_snap
             with pytest.raises(RuntimeError, match="OOM guard"):
                 tracer.trace_step("low ram step")
@@ -157,9 +154,7 @@ class TestOOMGuard:
         agent = _make_agent()
         tracer = RecursiveTracer(agent, _make_tracker())
 
-        with patch(
-            "cohezion.competition.orchestrator.resource_guard.MemorySnapshot"
-        ) as MockMS:
+        with patch("cohezion.competition.orchestrator.resource_guard.MemorySnapshot") as MockMS:
             MockMS.capture.return_value = mock_snap
             result = tracer.trace_step("sufficient ram step")
             assert result.step_index == 0  # step proceeded
@@ -215,6 +210,7 @@ class TestMonadIntegration:
                 def invoke(self, prompt, **kw):
                     invoked.append(name)
                     return ModalityResult(modality=name, success=True, output="")
+
             return _Handler()
 
         with patch("cohezion.evo.modalities.get_modality", side_effect=fake_get_modality):
@@ -237,6 +233,7 @@ class TestMonadIntegration:
             class _Bad:
                 def invoke(self, prompt, **kw):
                     raise RuntimeError("lemonade offline")
+
             return _Bad()
 
         with patch("cohezion.evo.modalities.get_modality", side_effect=exploding_modality):

@@ -60,7 +60,13 @@ def test_leaf_module_no_cohezion_imports() -> None:
     3. This is the authoritative "no cohezion import in source" check that the plan
        refers to as the R4 cycle-safety constraint.
     """
-    src_path = pathlib.Path(__file__).parent.parent.parent.parent / "src" / "cohezion" / "inference" / "router_client.py"
+    src_path = (
+        pathlib.Path(__file__).parent.parent.parent.parent
+        / "src"
+        / "cohezion"
+        / "inference"
+        / "router_client.py"
+    )
     assert src_path.exists(), f"router_client.py not found at {src_path}"
 
     tree = ast.parse(src_path.read_text())
@@ -85,15 +91,12 @@ def test_leaf_module_no_cohezion_imports() -> None:
 # Helpers
 # ---------------------------------------------------------------------------
 
+
 def _mock_openai_response(content: str) -> MagicMock:
     """Build a minimal mock httpx Response that looks like an OAI completion."""
     resp = MagicMock()
     resp.raise_for_status = MagicMock()
-    resp.json = MagicMock(
-        return_value={
-            "choices": [{"message": {"content": content}}]
-        }
-    )
+    resp.json = MagicMock(return_value={"choices": [{"message": {"content": content}}]})
     return resp
 
 
@@ -279,8 +282,8 @@ def test_from_ollama_options_records_dropped_options() -> None:
         options={
             "num_predict": 256,
             "temperature": 0.5,
-            "top_k": 40,       # no OpenAI equivalent
-            "top_p": 0.9,      # not forwarded by canonical client
+            "top_k": 40,  # no OpenAI equivalent
+            "top_p": 0.9,  # not forwarded by canonical client
             "repeat_penalty": 1.1,  # no OpenAI equivalent
         },
     )
@@ -307,7 +310,7 @@ def test_from_ollama_options_empty_options() -> None:
         model_id="Gemma-4-E4B-it-GGUF",
         options={},
     )
-    assert client.max_tokens == 512   # default
+    assert client.max_tokens == 512  # default
     assert client._dropped_ollama_opts == {}
 
 
@@ -551,9 +554,7 @@ async def test_no_stop_field_when_no_stop_sequences() -> None:
 
         await client.run("test")
 
-    assert "stop" not in captured_payload, (
-        "No stop key should appear when _stop_sequences is None"
-    )
+    assert "stop" not in captured_payload, "No stop key should appear when _stop_sequences is None"
 
 
 # ---------------------------------------------------------------------------

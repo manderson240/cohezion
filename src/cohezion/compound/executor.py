@@ -17,7 +17,6 @@ from collections.abc import Callable
 from dataclasses import dataclass
 from datetime import datetime
 from functools import cached_property
-from pathlib import Path
 from typing import TYPE_CHECKING, Any
 
 from cohezion.compound.context_integration import (
@@ -98,7 +97,8 @@ class CompoundExecutor(CompoundContextMixin, ExecutorIntegrationMixin):
         retrospection_engine: Any | None = None,
         universe_bridge: Any | None = None,
         skill_health_tracker: Any | None = None,
-        inference_provider: Any | None = None,
+        memory_service: Any | None = None,
+        enable_memory: bool = False,
     ):
         """Initialize compound executor.
 
@@ -141,10 +141,6 @@ class CompoundExecutor(CompoundContextMixin, ExecutorIntegrationMixin):
             skill_health_tracker: Optional SkillHealthTracker for recording per-skill
                 usage metrics (invocations, success rate, tokens, quality).
                 If None, no health tracking recorded.
-            inference_provider: Optional TieredOrchestrator for local AMD silicon
-                inference (NPU→iGPU→CPU via GAIA/Lemonade). When set, execute_task
-                uses this as the default execute_fn when none is supplied by the
-                caller. Use make_local_execute_fn() from compound.local_inference.
         """
         self.mcp_client = mcp_client
         self.token_client = token_client
@@ -161,7 +157,8 @@ class CompoundExecutor(CompoundContextMixin, ExecutorIntegrationMixin):
         self._model_quality_classifier = model_quality_classifier
         self._retrospection_engine = retrospection_engine
         self._universe_bridge = universe_bridge
-        self._inference_provider = inference_provider
+        self._memory_service = memory_service  # CohezionMemory (mem0+SurrealDB); lazy
+        self._enable_memory = enable_memory
         self._drr_generator = None
         self._drr_session_id = ""
         try:
@@ -188,16 +185,6 @@ class CompoundExecutor(CompoundContextMixin, ExecutorIntegrationMixin):
             logger.debug("GeometricLatentBridge not available")
 
         self._degradation_mode = False  # HIHO band violation flag
-        # Mycelium bus subscriber guard (set True after first subscribe to
-        # avoid double-firing events on repeated execute_task calls)
-        self._bus_subscribed = False
-        self._bus_myc_registry: Any | None = None
-        # OuroborosRecorder (WS1A, 2026-06-04): start a flight recorder in
-        # the background to capture system vitals + bus trajectories.
-        # Lifecycle matches executor lifetime; started in start_recorder()
-        # (called explicitly, NOT in __init__, to keep __init__ side-effect
-        # free for tests). Best-effort: None if module unavailable.
-        self._ouroboros_recorder: Any | None = None
         # Lazy import to avoid circular dependency
         if inflection_detector:
             self.inflection_detector = inflection_detector
@@ -270,6 +257,27 @@ class CompoundExecutor(CompoundContextMixin, ExecutorIntegrationMixin):
             logger.debug("Initialized default alignment analyzer")
 
         return self._alignment_analyzer
+
+    @property
+    def memory_service(self) -> Any | None:
+        """Lazy CohezionMemory (mem0 + SurrealDB conversational memory).
+
+        Opt-in: returns None unless ``enable_memory=True`` was passed (default off,
+        so arbitrary CompoundExecutor callers never pay the synchronous mem0.add tax).
+        The singleton self-disables gracefully if the optional `memory` extra is
+        absent or the local nodes are offline, so remember() is a safe no-op then.
+        """
+        if not self._enable_memory:
+            return None
+        if self._memory_service is None:
+            try:
+                from cohezion.memory import CohezionMemory
+
+                self._memory_service = CohezionMemory.get_instance()
+            except Exception as e:  # import/init failure must never block execution
+                logger.debug("CohezionMemory unavailable (non-blocking): %s", e)
+                self._enable_memory = False
+        return self._memory_service
 
     @cached_property
     def _bioelectric_network(self) -> Any:
@@ -381,7 +389,7 @@ class CompoundExecutor(CompoundContextMixin, ExecutorIntegrationMixin):
         task_description: str,
         skill_name: str,
         operation_type: str,
-        execute_fn: Callable | None = None,
+        execute_fn: Callable,
         project: str = "cohezion",
         human_request: str | None = None,
     ) -> ExecutionResult:
@@ -463,6 +471,11 @@ class CompoundExecutor(CompoundContextMixin, ExecutorIntegrationMixin):
         # Step 1: Get experience guidance (enhanced with trajectory search)
         guidance = self.get_experience_guidance(task_description, project, operation_type)
         logger.debug("Experience guidance: %s", guidance)
+
+        # Note: conversational-memory *recall* is intentionally not wired here yet —
+        # no execute_fn consumes guidance["recalled_memories"], so a search() on every
+        # task would pay latency for data nothing reads. The write path (remember, below)
+        # is what makes executions compound; recall lands when a consumer exists.
 
         # Step 1.3: Template matching — check cache for similar completed task
         # If a high-similarity match exists, skip the LLM call entirely
@@ -568,36 +581,6 @@ class CompoundExecutor(CompoundContextMixin, ExecutorIntegrationMixin):
                     vault_experiment_path=experiment_path,
                 )
 
-        # Resolve execute_fn: prefer caller-supplied; fall back to local AMD silicon.
-        if execute_fn is None and self._inference_provider is not None:
-            from cohezion.compound.local_inference import (
-                lemonade_available,
-                make_local_execute_fn,
-            )
-            from cohezion.compound.telegram_notify import notify_lemonade_offline
-
-            if lemonade_available():
-                execute_fn = make_local_execute_fn(task_description)
-                logger.debug("Using local Triune inference (NPU→iGPU→CPU)")
-            else:
-                notify_lemonade_offline(13306)
-                logger.warning("Lemonade offline — execute_fn unavailable; skipping task body")
-
-                def _offline_fn(guidance: str) -> tuple[str, dict]:
-                    return "", {"local_silicon": False, "error": "lemonade_offline"}
-
-                execute_fn = _offline_fn
-
-        if execute_fn is None:
-            logger.error("No execute_fn provided and no inference_provider configured")
-            return ExecutionResult(
-                success=False,
-                output="",
-                metrics={"error": "no_execute_fn"},
-                duration_seconds=time.time() - start_seconds,
-                vault_experiment_path="",
-            )
-
         # Capture token metrics before execution (if token_client available)
         token_metrics_before = None
         if self.token_client:
@@ -645,6 +628,23 @@ class CompoundExecutor(CompoundContextMixin, ExecutorIntegrationMixin):
 
         duration_seconds = time.time() - start_seconds
         metrics["duration_seconds"] = duration_seconds
+
+        # Step 3.9: Record this turn to conversational memory (best-effort, success only).
+        # mem0 extracts salient facts; this is what makes every execution compound into
+        # the project's memory. Synchronous + guarded so it can never break execution.
+        if success:
+            _mem = self.memory_service  # property returns None when disabled/unavailable
+            if _mem is not None:
+                try:
+                    _mem.remember(
+                        [
+                            {"role": "user", "content": task_description},
+                            {"role": "assistant", "content": output[:4000]},
+                        ],
+                        agent_id=project,
+                    )
+                except Exception as e:  # remember must never block execution
+                    logger.debug("Memory remember failed (non-blocking): %s", e)
 
         # Step 4: Log execution results
         self.logger.log_execution_result(
@@ -1249,7 +1249,9 @@ class CompoundExecutor(CompoundContextMixin, ExecutorIntegrationMixin):
                 from cohezion.learning.mycelium_registry import JournalEntry, MyceliumRegistry
 
                 if not hasattr(self, "_mycelium_registry"):
-                    self._mycelium_registry = MyceliumRegistry()
+                    # Shared singleton so synthesized skills are visible to the
+                    # mycelium API reader (closes the recursion loop).
+                    self._mycelium_registry = MyceliumRegistry.get_instance()
                 entry = JournalEntry(
                     entry_id=f"exec_{int(time.time())}_{skill_name}",
                     content=f"Executed {skill_name}: {task_description[:200]}",
@@ -1272,123 +1274,6 @@ class CompoundExecutor(CompoundContextMixin, ExecutorIntegrationMixin):
                 logger.debug("Mycelium: captured execution as pattern entry")
         except Exception:
             pass  # Non-blocking: mycelium may not be available
-
-        # WS1B (2026-06-04): wire the OuroborosHealer into the failure path.
-        # On every execute_task failure, call healer.analyze_and_heal()
-        # which emits a HEALING_EVENT to the bus. This closes the
-        # previously-broken self-healing loop. Best-effort.
-        if not success and error_msg:
-            try:
-                from cohezion.ouroboros.healer import HealerAgent
-
-                if not hasattr(self, "_healer"):
-                    self._healer = HealerAgent()
-                # Build a log excerpt that includes the exception type
-                full_log = (
-                    f"Task: {task_description}\n"
-                    f"Skill: {skill_name}\n"
-                    f"Error: {error_msg}\n"
-                    f"Exception type: {metrics.get('error_type', 'unknown')}"
-                )
-                self._healer.analyze_and_heal(failure_log=full_log, target=skill_name)
-            except (ImportError, AttributeError, RuntimeError, OSError) as heal_err:
-                logger.debug(
-                    "OuroborosHealer.analyze_and_heal failed (non-blocking): %s",
-                    heal_err,
-                )
-
-        # Step 10.53: WS1C — log the session to the Obsidian vault via
-        # OuroborosWikiBridge.log_session() (best-effort, non-blocking).
-        # Creates a per-execution note at
-        # wiki/ouroboros/improvements/<ts>_<skill>.md so the success
-        # is durable and discoverable for retrospection.
-        if success:
-            try:
-                from cohezion.ouroboros.wiki_integration import OuroborosWikiBridge
-
-                if not hasattr(self, "_wiki_bridge"):
-                    # Lazy init: build on first use with a sane default
-                    # vault path. If the path doesn't exist, the bridge's
-                    # mkdir will create it; if it can't, the helper
-                    # returns None and we log at debug.
-                    default_vault = Path(__file__).resolve().parent.parent.parent
-                    # try several common locations for the vault
-                    for candidate in [
-                        default_vault / "data" / "vault",
-                        Path.home() / "vaults" / "cohezion-vault",
-                    ]:
-                        if candidate.exists():
-                            default_vault = candidate
-                            break
-                    self._wiki_bridge = OuroborosWikiBridge(vault_path=default_vault)
-                self._wiki_bridge.log_session(
-                    skill_name=skill_name,
-                    task_description=task_description,
-                    metrics=metrics,
-                    execution_id=f"exec_{int(time.time())}_{skill_name}",
-                )
-            except (ImportError, AttributeError, RuntimeError, OSError) as wiki_err:
-                logger.debug(
-                    "OuroborosWikiBridge.log_session failed (non-blocking): %s",
-                    wiki_err,
-                )
-
-        # Step 10.55: Emit WITNESS MARK to the precipitation bus (non-blocking).
-        # This is the bridge between the executor's journal-based mycelium
-        # (which tracks per-skill execution) and the bus-based mycelium
-        # (which clusters across universes and auto-promotes to vault+DB
-        # when cross-universe patterns emerge). The bus subscriber in
-        # cohezion.mycelium.registry.MyceliumRegistry will pick this up
-        # automatically; the auto-promotion is gated by a `len(universes)
-        # >= 2` cooldown so a single agent's events don't spam the vault.
-        # Idempotency: self._bus_subscribed guards against double-subscribe.
-        if success:
-            try:
-                if not getattr(self, "_bus_subscribed", False):
-                    try:
-                        from cohezion.mycelium.registry import (
-                            MyceliumRegistry as BusMyceliumRegistry,
-                        )
-                        from cohezion.precipitation.bus import get_bus
-                        from cohezion.precipitation.events import (
-                            PrecipitationEvent,
-                            PrecipitationKind,
-                        )
-
-                        self._bus_myc_registry = BusMyceliumRegistry(bus=get_bus())
-                        self._bus_myc_registry.subscribe()
-                        self._bus_subscribed = True
-                        logger.debug(
-                            "Mycelium bus subscriber registered for executor %s",
-                            id(self),
-                        )
-                    except (ImportError, AttributeError, RuntimeError) as e:
-                        logger.debug("Mycelium bus subscriber unavailable (non-blocking): %s", e)
-
-                if getattr(self, "_bus_subscribed", False):
-                    from cohezion.precipitation.events import (
-                        PrecipitationEvent,
-                        PrecipitationKind,
-                    )
-
-                    coherence = float(metrics.get("coherence", 0.5))
-                    get_bus().emit(
-                        PrecipitationEvent(
-                            kind=PrecipitationKind.WITNESS_MARK,
-                            universe_id=f"cohezion.execution.{skill_name}",
-                            coherence=coherence,
-                            agent_id="compound-executor",
-                            payload={
-                                "skill_name": skill_name,
-                                "operation_type": operation_type,
-                                "task_description": task_description[:200],
-                                "success": True,
-                                "duration_seconds": duration_seconds,
-                            },
-                        )
-                    )
-            except (ImportError, AttributeError, RuntimeError) as e:
-                logger.debug("WITNESS MARK emission failed (non-blocking): %s", e)
 
         # Step 10.7: Persist prompt artifact (L183)
         # Record prompt/response pair to SurrealDB for retrospective analysis
@@ -1475,138 +1360,12 @@ class CompoundExecutor(CompoundContextMixin, ExecutorIntegrationMixin):
         logger.info("Compound session started")
         return summary
 
-    def _maybe_kick_mycelium_loop(self, file_path: str, code_context: str) -> None:
-        """WS1D (2026-06-04): kick off the MyceliumLoop + ShadowScripter
-        for a newly-created .py file.
-
-        Best-effort: any failure is caught and logged at debug level.
-        Constructs ShadowScripter + CoverageLoop on first call; both
-        are then reused for subsequent calls.
-
-        Args:
-            file_path: Path to the .py file (must exist on disk).
-            code_context: Optional string context (the file's source).
-        """
-        if not file_path or not file_path.endswith(".py"):
-            return
-        if "/src/cohezion/" not in file_path:
-            return
-        try:
-            from cohezion.mycelium.scripter import ShadowScripter
-
-            if not hasattr(self, "_shadow_scripter"):
-                self._shadow_scripter = ShadowScripter()
-            if not hasattr(self, "_mycelium_loop"):
-                from cohezion.mycelium.loop import CoverageLoop
-
-                self._mycelium_loop = CoverageLoop(
-                    scripter=self._shadow_scripter,
-                    root_dir=str(Path(__file__).resolve().parent.parent.parent),
-                )
-            if not hasattr(self, "_loop_scheduled_paths"):
-                self._loop_scheduled_paths: set[str] = set()
-            if file_path in self._loop_scheduled_paths:
-                return
-            self._loop_scheduled_paths.add(file_path)
-            import asyncio as _asyncio
-
-            try:
-                try:
-                    _asyncio.get_running_loop()
-                    # Already in a loop: schedule as task
-                    _asyncio.ensure_future(self._mycelium_loop.execute(file_path, code_context))
-                except RuntimeError:
-                    # No running loop: create a fresh one and run to completion
-                    new_loop = _asyncio.new_event_loop()
-                    try:
-                        new_loop.run_until_complete(
-                            self._mycelium_loop.execute(file_path, code_context)
-                        )
-                    finally:
-                        new_loop.close()
-                logger.debug("MyceliumLoop kicked off for %s", file_path)
-            except (RuntimeError, OSError, ValueError) as e:
-                logger.debug("MyceliumLoop.execute failed (non-blocking): %s", e)
-        except (ImportError, AttributeError, RuntimeError, OSError) as loop_err:
-            logger.debug(
-                "MyceliumLoop wiring unavailable (non-blocking): %s",
-                loop_err,
-            )
-
-    def start_recorder(self, interval_seconds: float = 30.0) -> bool:
-        """Start the OuroborosRecorder (flight recorder) in the background.
-
-        Lifecycle matches the executor instance. Best-effort: returns
-        False if OuroborosRecorder is unavailable (e.g. import error
-        or no asyncio event loop). Idempotent: subsequent calls are
-        no-ops.
-
-        Returns:
-            True if recorder was started (or already running), False otherwise.
-        """
-        if self._ouroboros_recorder is None:
-            try:
-                from cohezion.ouroboros.recorder import OuroborosRecorder
-
-                self._ouroboros_recorder = OuroborosRecorder(interval_seconds=interval_seconds)
-            except (ImportError, AttributeError, RuntimeError, OSError) as e:
-                logger.debug("OuroborosRecorder unavailable (non-blocking): %s", e)
-                self._ouroboros_recorder = None
-                return False
-
-        if getattr(self._ouroboros_recorder, "_running", False):
-            return True  # already running; idempotent no-op
-
-        try:
-            import asyncio as _asyncio
-
-            try:
-                loop = _asyncio.get_event_loop()
-                if loop.is_running():
-                    _asyncio.ensure_future(self._ouroboros_recorder.start())
-                else:
-                    loop.run_until_complete(self._ouroboros_recorder.start())
-            except RuntimeError:
-                _asyncio.run(self._ouroboros_recorder.start())
-            logger.debug("OuroborosRecorder started (interval=%ss)", interval_seconds)
-            return True
-        except Exception as e:
-            logger.debug("OuroborosRecorder.start() failed (non-blocking): %s", e)
-            return False
-
-    def stop_recorder(self) -> bool:
-        """Stop the OuroborosRecorder (best-effort, idempotent).
-
-        Returns:
-            True if stopped cleanly, False otherwise.
-        """
-        if self._ouroboros_recorder is None:
-            return True
-        try:
-            import asyncio as _asyncio
-
-            try:
-                loop = _asyncio.get_event_loop()
-                if loop.is_running():
-                    _asyncio.ensure_future(self._ouroboros_recorder.stop())
-                else:
-                    loop.run_until_complete(self._ouroboros_recorder.stop())
-            except RuntimeError:
-                _asyncio.run(self._ouroboros_recorder.stop())
-            return True
-        except Exception as e:
-            logger.debug("OuroborosRecorder.stop() failed (non-blocking): %s", e)
-            return False
-
     def end_session(self) -> dict[str, Any]:
         """End compound session: archive outcome and persist state.
 
         Returns:
             Session summary dict
         """
-        # Stop the ouroboros recorder (best-effort) — same lifecycle as the
-        # executor instance
-        self.stop_recorder()
         # Gather outcome from context state if available
         outcome: dict[str, Any] = {}
         with contextlib.suppress(Exception):

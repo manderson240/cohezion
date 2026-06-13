@@ -152,7 +152,9 @@ async def test_dispatch_falls_back_to_reasoning_content_for_thinking_models():
         if "/v1/chat/completions" in url:
             resp.json = MagicMock(
                 return_value={
-                    "choices": [{"message": {"content": "", "reasoning_content": "the real answer"}}]
+                    "choices": [
+                        {"message": {"content": "", "reasoning_content": "the real answer"}}
+                    ]
                 }
             )
         return resp

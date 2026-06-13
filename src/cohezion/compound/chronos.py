@@ -298,7 +298,9 @@ class ChronosAdvisor:
 
             if self._log_path is None and ("pytest" in sys.modules or "unittest" in sys.modules):
                 return
-            sink = self._log_path or (Path.home() / ".cohezion-research" / "logs" / "chronos_advisory.jsonl")
+            sink = self._log_path or (
+                Path.home() / ".cohezion-research" / "logs" / "chronos_advisory.jsonl"
+            )
             sink.parent.mkdir(parents=True, exist_ok=True)
             line = json.dumps({"defer": [j.name for j in advised]})
             with sink.open("a", encoding="utf-8") as fh:
@@ -355,12 +357,20 @@ class ChronosController:
     def _control(self, action: str, verb: str, job: ChronosJob, apply: bool) -> ControlResult:
         if not job.deferrable:
             return ControlResult(
-                action, job.name, None, False, True,
+                action,
+                job.name,
+                None,
+                False,
+                True,
                 "refused: system-critical (non-deferrable) job is never paused/resumed",
             )
         if job.source != "systemd":
             return ControlResult(
-                action, job.name, None, False, True,
+                action,
+                job.name,
+                None,
+                False,
+                True,
                 f"refused: control not wired for source '{job.source}' (systemd only)",
             )
         cmd = ["systemctl", "--user", verb, job.job_id]

@@ -4,6 +4,7 @@ Genuine Class-A orphan in physics/ (cycle-safe). Re-exported through `cohezion.p
 Fails if the static edge is removed: asserts the name resolves FROM the package AND is the
 source module's own object.
 """
+
 from __future__ import annotations
 
 import cohezion.physics as physics

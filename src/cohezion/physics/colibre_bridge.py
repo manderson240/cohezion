@@ -87,6 +87,10 @@ class ColibreState:
     def __post_init__(self) -> None:
         # Clamp fractions to [0, 1]
         self.ism_hot_fraction = max(0.0, min(1.0, float(self.ism_hot_fraction)))
+        # Redshift is non-negative. A value < -1 made cosmic_time_gyr compute
+        # (1 + z) ** 1.5 on a negative base, yielding a complex number that the
+        # ZeroDivisionError guard did not catch (crashed float serialization).
+        self.redshift = max(0.0, float(self.redshift))
         # COLIBRE coherence: 4×f_hot×(1-f_hot) — identical to LENR/IonicCluster kernel
         self._colibre_coherence = 4.0 * self.ism_hot_fraction * (1.0 - self.ism_hot_fraction)
 

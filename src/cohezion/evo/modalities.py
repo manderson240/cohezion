@@ -29,9 +29,9 @@ from typing import Any
 logger = logging.getLogger(__name__)
 
 _LEMONADE_BASE = "http://localhost:13305"
-_TTS_TIMEOUT = 15      # seconds — kokoro-v1 is fast
-_IMAGE_TIMEOUT = 30    # seconds — diffusion takes longer
-_TEXT_TIMEOUT = 30     # seconds — synthesis via 35B reasoner can take ~1.5s
+_TTS_TIMEOUT = 15  # seconds — kokoro-v1 is fast
+_IMAGE_TIMEOUT = 30  # seconds — diffusion takes longer
+_TEXT_TIMEOUT = 30  # seconds — synthesis via 35B reasoner can take ~1.5s
 
 # NoThinking variant: same Qwen3.6-35B weights but with reasoning tokens disabled.
 # The MTP/default variants put all tokens into <think> blocks before generating content,
@@ -46,7 +46,7 @@ class ModalityResult:
 
     modality: str
     success: bool
-    output: str          # text, audio size string, image URL, or empty on failure
+    output: str  # text, audio size string, image URL, or empty on failure
     error: str | None = None
     latency_ms: float = 0.0
 
@@ -74,16 +74,18 @@ class TextModality:
         model = kwargs.get("text_model", _TEXT_MODEL)
         t0 = time.perf_counter()
         try:
-            payload = json.dumps({
-                "model": model,
-                "messages": [
-                    {"role": "system", "content": self._SYSTEM},
-                    {"role": "user", "content": prompt[:500]},
-                ],
-                "max_tokens": 80,
-                "temperature": 0.4,
-                "stream": False,
-            }).encode()
+            payload = json.dumps(
+                {
+                    "model": model,
+                    "messages": [
+                        {"role": "system", "content": self._SYSTEM},
+                        {"role": "user", "content": prompt[:500]},
+                    ],
+                    "max_tokens": 80,
+                    "temperature": 0.4,
+                    "stream": False,
+                }
+            ).encode()
             req = urllib.request.Request(
                 f"{_LEMONADE_BASE}/v1/chat/completions",
                 data=payload,
@@ -93,30 +95,36 @@ class TextModality:
             with urllib.request.urlopen(req, timeout=_TEXT_TIMEOUT) as resp:
                 data = json.load(resp)
             latency_ms = (time.perf_counter() - t0) * 1000
-            text = (
-                data.get("choices", [{}])[0]
-                .get("message", {})
-                .get("content", "")
-                .strip()
-            )
+            text = data.get("choices", [{}])[0].get("message", {}).get("content", "").strip()
             model_used = data.get("model", "unknown")
             if not text:
                 return ModalityResult(
-                    modality="text", success=False, output="",
-                    error="empty response from router", latency_ms=latency_ms,
+                    modality="text",
+                    success=False,
+                    output="",
+                    error="empty response from router",
+                    latency_ms=latency_ms,
                 )
             logger.debug(
                 "TextModality: synthesis via %s (%.0fms): %s",
-                model_used, latency_ms, text[:80],
+                model_used,
+                latency_ms,
+                text[:80],
             )
             return ModalityResult(
-                modality="text", success=True, output=text, latency_ms=latency_ms,
+                modality="text",
+                success=True,
+                output=text,
+                latency_ms=latency_ms,
             )
         except Exception as exc:
             logger.debug("TextModality LLM failed (non-blocking, falling back): %s", exc)
             # Fail-soft: return echo so the EVO pipeline can continue without a live server
             return ModalityResult(
-                modality="text", success=False, output=prompt[:200], error=str(exc),
+                modality="text",
+                success=False,
+                output=prompt[:200],
+                error=str(exc),
             )
 
 
@@ -137,12 +145,14 @@ class AudioModality:
         voice = kwargs.get("voice", "af_heart")
         t0 = time.perf_counter()
         try:
-            payload = json.dumps({
-                "model": "kokoro-v1",
-                "input": prompt[:1000],   # cap to avoid unbounded TTS requests
-                "voice": voice,
-                "response_format": "mp3",
-            }).encode()
+            payload = json.dumps(
+                {
+                    "model": "kokoro-v1",
+                    "input": prompt[:1000],  # cap to avoid unbounded TTS requests
+                    "voice": voice,
+                    "response_format": "mp3",
+                }
+            ).encode()
             req = urllib.request.Request(
                 f"{_LEMONADE_BASE}/v1/audio/speech",
                 data=payload,
@@ -181,12 +191,14 @@ class ImageModality:
         model = kwargs.get("image_model", self._model)
         t0 = time.perf_counter()
         try:
-            payload = json.dumps({
-                "model": model,
-                "prompt": prompt[:300],
-                "n": 1,
-                "size": "512x512",
-            }).encode()
+            payload = json.dumps(
+                {
+                    "model": model,
+                    "prompt": prompt[:300],
+                    "n": 1,
+                    "size": "512x512",
+                }
+            ).encode()
             req = urllib.request.Request(
                 f"{_LEMONADE_BASE}/v1/images/generations",
                 data=payload,

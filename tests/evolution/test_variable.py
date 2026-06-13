@@ -7,6 +7,7 @@ trainable prompt component). Each test fails a plausible wrong impl:
   - __str__ that returns repr instead of the raw value (would corrupt prompt composition),
   - from_prime_section that drops require_grad.
 """
+
 from __future__ import annotations
 
 from cohezion.evolution.variable import Variable, from_prime_section
@@ -17,7 +18,7 @@ def test_add_gradient_dedups_and_skips_empty() -> None:
     v = Variable(name="intro", value="hello")
     v.add_gradient("be more specific")
     v.add_gradient("be more specific")  # duplicate -> ignored
-    v.add_gradient("")                  # empty -> ignored
+    v.add_gradient("")  # empty -> ignored
     v.add_gradient("add an example")
     assert v.gradients == ["be more specific", "add an example"]
 

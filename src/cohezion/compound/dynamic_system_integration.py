@@ -613,7 +613,9 @@ class LemonadeAdapter:
         "cpu": "onnx",  # ONNX int4 (CPU only)
     }
 
-    def __init__(self, lemonade_base_url: str = "http://localhost:13305"):  # router-centric (Phase 2)
+    def __init__(
+        self, lemonade_base_url: str = "http://localhost:13305"
+    ):  # router-centric (Phase 2)
         self.base_url = lemonade_base_url.rstrip("/")
         self._loaded_models: dict[str, str] = {"npu": "", "gpu": "", "cpu": ""}
 

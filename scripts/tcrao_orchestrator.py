@@ -58,25 +58,13 @@ BUDGET_SECONDS = 300  # 5 min per experiment
 UCB_C = math.sqrt(2)
 
 TARGETS = {
-    "arc_solver": {
-        "metric": "solve_rate",
-        "direction": "maximize",
-        "path": COHEZION_ROOT / "kaggle-dataset" / "arc_solver.py",
-    },
-    "jepa_world_model": {
-        "metric": "loss",
-        "direction": "minimize",
-        "path": COHEZION_ROOT / "src" / "cohezion" / "world_model" / "jepa_world_model.py",
-    },
-    "flume_vae": {
-        "metric": "reconstruction_loss",
-        "direction": "minimize",
-        "path": COHEZION_ROOT / "src" / "cohezion" / "flume" / "train_vae.py",
-    },
+    "arc_solver": {"metric": "solve_rate", "direction": "maximize"},
+    "jepa_world_model": {"metric": "loss", "direction": "minimize"},
+    "flume_vae": {"metric": "reconstruction_loss", "direction": "minimize"},
 }
 
 # Endpoints (confirmed running on this machine)
-LEMONADE_URL = "http://localhost:13305/v1/chat/completions"
+LEMONADE_URL = "http://localhost:13307/v1/chat/completions"
 OLLAMA_URL = "http://localhost:11434/api/generate"
 
 # Active Kaggle competitions
@@ -116,12 +104,10 @@ def _load_tree(target: str, hypotheses: list[str]) -> dict:
             return json.loads(p.read_text())
         except Exception:
             pass
-    direction = TARGETS[target]["direction"]
-    initial_best = float("-inf") if direction == "maximize" else float("inf")
     return {
         "target": target,
         "total_trials": 0,
-        "best_score": initial_best,
+        "best_score": float("-inf"),
         "nodes": {
             h: {"hypothesis": h, "wins": 0, "trials": 0, "metric_values": []} for h in hypotheses
         },
@@ -172,14 +158,14 @@ def _update_tree(tree: dict, outcome: ExperimentOutcome, reward: float) -> None:
 
 
 def _igpu_infer(prompt: str, max_tokens: int = 4096) -> str | None:
-    """iGPU via Lemonade (router :13305, Phase 3+)."""
+    """iGPU via Lemonade (Gemma-4-E4B on port 13307)."""
     try:
         import requests
 
         resp = requests.post(
             LEMONADE_URL,
             json={
-                "model": "Gemma-4-E4B-it-GGUF",
+                "model": "gemma-4-e4b-it",
                 "messages": [
                     {
                         "role": "system",
@@ -313,12 +299,12 @@ def _verify_code(code: str, target: str) -> tuple[bool, str]:
         tmp.unlink(missing_ok=True)
 
 
-# Cohezion venv Python — always use this for evaluator subprocess to guarantee
-# torch and other project deps are available (sys.executable may not have them).
-_VENNY_PYTHON = COHEZION_ROOT / ".venv" / "bin" / "python3"
+# ════════════════════════════════════════════════════════════════
+# EVALUATION
+# ════════════════════════════════════════════════════════════════
 
 
-def _evaluate_arc_solver(code: str, timeout: int = 900) -> tuple[float, str]:
+def _evaluate_arc_solver(code: str, timeout: int = 60) -> tuple[float, str]:
     """Real ARC evaluation using local eval harness."""
     # Write variant to temp file
     tmp_solver = Path(f"/tmp/tcrao_arc_solver_{uuid.uuid4().hex[:8]}.py")
@@ -327,7 +313,7 @@ def _evaluate_arc_solver(code: str, timeout: int = 900) -> tuple[float, str]:
     try:
         proc = subprocess.run(
             [
-                str(_VENNY_PYTHON),
+                sys.executable,
                 str(COHEZION_ROOT / "scripts" / "eval_arc_solver.py"),
                 "--solver",
                 str(tmp_solver),
@@ -335,8 +321,6 @@ def _evaluate_arc_solver(code: str, timeout: int = 900) -> tuple[float, str]:
                 "3000",
                 "--max-depth",
                 "3",
-                "--max-tasks",
-                "10",
             ],
             capture_output=True,
             text=True,

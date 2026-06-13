@@ -63,7 +63,6 @@ def test_executor_init_succeeds_when_recorder_init_fails():
     # We need to force the failure path BEFORE the executor reads it.
     # Since the import is module-level, we mock the class so that when
     # the executor calls OuroborosRecorder() it raises.
-    import importlib
 
     # Reload the executor module to force re-init
     with patch.dict("sys.modules", {"cohezion.ouroboros.recorder": None}):
@@ -92,6 +91,7 @@ def test_executor_recorder_idempotent_under_repeated_execute_task():
         return  # Skip if recorder unavailable
     # First execute: should leave recorder state unchanged
     initial_running = ex._ouroboros_recorder._running
+
     # If running, second call should not double-start
     def trivial_fn(guidance: str) -> tuple[str, dict]:
         return "ok", {"coherence": 0.5, "duration_seconds": 0.001}
@@ -134,7 +134,6 @@ def test_executor_start_recorder_recovers_from_none():
     """If the recorder was never started, start_recorder() should attempt
     to construct it. With ouroboros module available (which it is in
     this env), it should return True and set self._ouroboros_recorder."""
-    import asyncio as _asyncio
 
     ex = _make_executor_with_mocks()
     # Force recorder to None (simulate prior import failure)
@@ -147,7 +146,7 @@ def test_executor_start_recorder_recovers_from_none():
         assert ex._ouroboros_recorder is not None
         # Stop the recorder we just started
         ex.stop_recorder()
-    except Exception as e:
+    except Exception:
         # If start_recorder can't run (e.g. no event loop in test env),
         # that's also acceptable — the contract is "best effort"
         pass

@@ -18,11 +18,11 @@ SCRIPT_PATH = Path(__file__).resolve()
 PROJECT_ROOT = SCRIPT_PATH.parent.parent.parent.parent.parent
 sys.path.insert(0, str(PROJECT_ROOT / "src"))
 
-from cohezion.audio.narrator import get_narrator
-from cohezion.ouroboros.detector import AnomalyDetector
-from cohezion.ouroboros.healer import HealerAgent
-from cohezion.ouroboros.monitor import OuroborosMonitor
-from cohezion.universe.engine import UniverseSimulationEngine
+from cohezion.audio.narrator import get_narrator  # noqa: E402
+from cohezion.ouroboros.detector import AnomalyDetector  # noqa: E402
+from cohezion.ouroboros.healer import HealerAgent  # noqa: E402
+from cohezion.ouroboros.monitor import OuroborosMonitor  # noqa: E402
+from cohezion.universe.engine import UniverseSimulationEngine  # noqa: E402
 
 
 # Configure logging

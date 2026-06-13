@@ -14,6 +14,7 @@ loop. The latent-retrieval components (`TraceMemory`, `LatentStateTracker`) that
 would jump-start from past successes via LeWM embeddings are Stage-2 and remain
 deliberately minimal — they are NOT on the gate's critical path and are marked so.
 """
+
 from __future__ import annotations
 
 from collections.abc import Callable, Mapping, Sequence
