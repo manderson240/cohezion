@@ -69,3 +69,24 @@
 [submodule ".pi/git/github.com/tmustier/pi-extensions"]
 	path = .pi/git/github.com/tmustier/pi-extensions
 	url = https://github.com/tmustier/pi-extensions.git
+
+# Archives (backup submodules)
+[submodule "archives/backups/research/turboquant"]
+	path = archives/backups/research/turboquant
+	url = https://TODO.example.invalid/turboquant.git
+	# Gitlink commit: 7ac9b8d165a3f7d5e6df33b0450bc1f88ec0d4d5
+
+[submodule "archives/backups/tools/kaggle-mcp"]
+	path = archives/backups/tools/kaggle-mcp
+	url = https://TODO.example.invalid/kaggle-mcp.git
+	# Gitlink commit: 7d2554c0a0419dbcc64bb910a28d94e1786c81c8
+
+[submodule "archives/backups/tools/kaggle-skill"]
+	path = archives/backups/tools/kaggle-skill
+	url = https://TODO.example.invalid/kaggle-skill.git
+	# Gitlink commit: f5105ab792ac6699d0e69861e32f09835e5706a6
+
+[submodule "archives/backups/vendor/kaggle-skill"]
+	path = archives/backups/vendor/kaggle-skill
+	url = https://TODO.example.invalid/kaggle-skill.git
+	# Gitlink commit: f5105ab792ac6699d0e69861e32f09835e5706a6
