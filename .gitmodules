@@ -56,3 +56,16 @@
 	path = archives/backups/tools/mcp/ollama-mcp
 	url = https://TODO.example.invalid/ollama-mcp.git
 	# Gitlink commit: 91030faf1f19c066d9503c5e1d3f10e7a336bb3c
+
+# Pi Extensions (active)
+[submodule ".pi/git/github.com/VTSTech/pi-coding-agent"]
+	path = .pi/git/github.com/VTSTech/pi-coding-agent
+	url = https://github.com/VTSTech/pi-coding-agent.git
+
+[submodule ".pi/git/github.com/davebcn87/pi-autoresearch"]
+	path = .pi/git/github.com/davebcn87/pi-autoresearch
+	url = https://github.com/davebcn87/pi-autoresearch.git
+
+[submodule ".pi/git/github.com/tmustier/pi-extensions"]
+	path = .pi/git/github.com/tmustier/pi-extensions
+	url = https://github.com/tmustier/pi-extensions.git
