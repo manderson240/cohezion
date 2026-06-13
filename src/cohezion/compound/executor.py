@@ -49,6 +49,35 @@ else:
 logger = logging.getLogger(__name__)
 
 
+def _call_execute_fn(execute_fn: Callable, guidance: dict) -> tuple[Any, dict]:
+    """Call execute_fn with the guidance dict. If it returns a coroutine,
+    run it to completion. The compound loop is sync; the aligned
+    execute_fn is async — this helper bridges the two.
+
+    If there's no running event loop, asyncio.run() is used. If a
+    loop IS running (we're inside an async caller), we delegate
+    back to the caller's loop via a new task and block on it.
+    """
+    result = execute_fn(guidance)
+    if not asyncio.iscoroutine(result):
+        return result
+    # We have a coroutine. Run it.
+    try:
+        asyncio.get_running_loop()
+    except RuntimeError:
+        # No running loop — safe to use asyncio.run
+        return asyncio.run(result)
+    # There IS a running loop. We can't await from a sync function.
+    # The compound loop is sync; if the caller is async, they need
+    # to use a different entry point. Log and fall back to a thread.
+    import concurrent.futures
+    with concurrent.futures.ThreadPoolExecutor(max_workers=1) as pool:
+        return pool.submit(asyncio.run, result).result()
+
+
+# ── Model class ──────────────────────────────────────────────────────────────
+
+
 @dataclass
 class ExecutionResult:
     """Result of a compound execution."""
@@ -586,8 +615,34 @@ class CompoundExecutor(CompoundContextMixin, ExecutorIntegrationMixin):
         if self.token_client:
             token_metrics_before = self.token_client.get_metrics()
 
+        # If the caller didn't supply an execute_fn, fall back to the
+        # card-aligned execute_fn (PR 1). This is the new default: the
+        # compound loop routes through the WS1+WS2 card-aligned local
+        # fleet automatically, and feeds evidence back into the
+        # datamesh on every execution.
+        if execute_fn is None:
+            try:
+                from cohezion.compound.execute_fn_aligned import (
+                    execute_fn_aligned,
+                )
+                execute_fn = execute_fn_aligned
+                logger.debug("Using default card-aligned execute_fn")
+            except ImportError as e:
+                logger.debug(
+                    "execute_fn_aligned unavailable, execute_task requires "
+                    "an explicit execute_fn: %s",
+                    e,
+                )
+                return ExecutionResult(
+                    success=False,
+                    output="Error: no execute_fn provided and the card-aligned default is unavailable",
+                    metrics={"error": "no_execute_fn"},
+                    duration_seconds=time.time() - start_seconds,
+                    vault_experiment_path=experiment_path,
+                )
+
         try:
-            output, metrics = execute_fn(guidance)
+            output, metrics = _call_execute_fn(execute_fn, guidance)
             success = True
             logger.info("Task completed successfully")
         except Exception as e:
