@@ -114,6 +114,7 @@ class TieredOrchestrator:
         max_tokens: int = 600,
         stream: bool = True,
         pre_dispatch_classifier: object | None = None,
+        tier_timeout_s: float = 30.0,
     ) -> None:
         if not tiers:
             raise ValueError("TieredOrchestrator requires at least one tier")
@@ -122,6 +123,10 @@ class TieredOrchestrator:
         self.task = task
         self.max_tokens = max_tokens
         self.stream = stream
+        # Per-tier dispatch timeout in seconds. Calibrated to DampedRoutingOscillator
+        # settle_time_2pct at critical damping (ζ=1): 4/(ζ·ω₀). Default 30s matches
+        # the fleet.route() default; build_triune_orchestrator() narrows to ~16s via physics.
+        self.tier_timeout_s = tier_timeout_s
         # Optional callable: (prompt: str) -> RouteDecision
         # Sets start_tier_index and per-tier gate override based on output_type.
         self._pre_dispatch_classifier = pre_dispatch_classifier
@@ -149,6 +154,7 @@ class TieredOrchestrator:
                 budget_usd=remaining_budget,
                 stream=self.stream,
                 max_tokens=self.max_tokens,
+                timeout=self.tier_timeout_s,
             )
             return r, r.cost_usd, r.ttft_ms
         # Nested orchestrator (O4: composable recursion). O3b: the parent's

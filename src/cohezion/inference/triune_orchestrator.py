@@ -409,10 +409,25 @@ def build_triune_orchestrator(
     else:
         logger.info("Triune: %d-tier local-only (NPU→iGPU→[CPU]), include_cloud=False", len(tiers))
 
+    # Physics-principled tier timeout: DampedRoutingOscillator settle_time_2pct at
+    # critical damping (ζ=1) with ω₀=0.25 rad/s → 4/(1·0.25) = 16s.
+    # Critical damping = fastest convergence without overshoot = HIHO equilibrium.
+    # ω₀=0.25 calibrated to local silicon inference latencies (~200-800ms/call).
+    _tier_timeout_s = 30.0  # default (cloud-safe)
+    try:
+        from cohezion.physics.damped_routing_oscillator import DampedRoutingOscillator
+
+        _tier_timeout_s = DampedRoutingOscillator(
+            damping_ratio=1.0, natural_frequency=0.25
+        ).settle_time_2pct
+    except Exception:
+        pass  # Non-blocking: physics module may not be available
+
     router = PrefillActivationRouter(base_classifier=classify_task)
     orch = TieredOrchestrator(
         tiers=tiers,
         pre_dispatch_classifier=router,  # overrides quality gate per output_type
+        tier_timeout_s=_tier_timeout_s,
     )
     orch._max_concurrent = (
         _TRIUNE_MAX_CONCURRENT  # F3: bound run_batch on the single :13305 (item 113)

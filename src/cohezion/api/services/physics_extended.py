@@ -901,4 +901,157 @@ async def get_qgp_status(
     )
 
 
+class HihoCompositeResponse(BaseModel):
+    """Composite HIHO score from three independent physics formalisms."""
+
+    hiho_reciprocity: float
+    hiho_condensate: float
+    hiho_damping: float
+    composite: float
+    routing_tier: str
+    condensate_phase: str
+    is_critically_damped: bool
+    quality_budget: float
+
+
+@physics_ext_router.get("/hiho-composite", response_model=HihoCompositeResponse)
+async def get_hiho_composite(
+    quality_budget: float = 0.0,
+) -> HihoCompositeResponse:
+    """Return composite HIHO score from three physics formalisms.
+
+    Aggregates three orthogonal routing quality signals:
+    - hiho_reciprocity (NonReciprocalHamiltonian): routing asymmetry between tiers
+    - hiho_condensate (TwoComponentCondensate): tier load balance (order parameter)
+    - hiho_damping (DampedRoutingOscillator): routing convergence stability
+
+    All three map to the HIHO kernel 4·u·(1-u); composite = arithmetic mean.
+    """
+    from cohezion.physics.damped_routing_oscillator import make_triune_oscillator
+    from cohezion.physics.non_reciprocal_hamiltonian import make_triune_routing_hamiltonian
+    from cohezion.physics.two_component_bec import make_triune_bec, suggest_routing_from_bec
+
+    quality_signal = quality_budget * 2.0  # map budget to [-1,1] range
+
+    nrh = make_triune_routing_hamiltonian()
+    bec = make_triune_bec(quality_budget=quality_budget)
+    osc = make_triune_oscillator(quality_signal=max(-1.0, min(1.0, quality_signal)))
+
+    r = nrh.hiho_reciprocity_score()
+    c = bec.hiho_condensate_score()
+    d = osc.hiho_damping_score()
+    composite = (r + c + d) / 3.0
+
+    return HihoCompositeResponse(
+        hiho_reciprocity=r,
+        hiho_condensate=c,
+        hiho_damping=d,
+        composite=composite,
+        routing_tier=suggest_routing_from_bec(quality_budget),
+        condensate_phase=bec.phase().value,
+        is_critically_damped=osc.is_critically_damped(),
+        quality_budget=quality_budget,
+    )
+
+
+# NonReciprocalHamiltonian routes
+
+
+class NrhStatusResponse(BaseModel):
+    """Non-reciprocal Hamiltonian routing state."""
+
+    hiho_reciprocity_score: float
+    symmetrization_error: float
+    is_hiho_symmetric: bool
+    n_dof: int
+
+
+@physics_ext_router.get("/nrh/status", response_model=NrhStatusResponse)
+async def get_nrh_status() -> NrhStatusResponse:
+    """Return non-reciprocal Hamiltonian routing state for Triune tier coupling."""
+    from cohezion.physics.non_reciprocal_hamiltonian import make_triune_routing_hamiltonian
+
+    nrh = make_triune_routing_hamiltonian()
+    return NrhStatusResponse(
+        hiho_reciprocity_score=nrh.hiho_reciprocity_score(),
+        symmetrization_error=nrh.symmetrization_error(),
+        is_hiho_symmetric=nrh.is_hiho_reciprocal(),
+        n_dof=nrh.n_dof,
+    )
+
+
+# TwoComponentCondensate routes
+
+
+class BecStatusResponse(BaseModel):
+    """Two-component BEC routing state."""
+
+    phase: str
+    rho1: float
+    rho2: float
+    hiho_condensate_score: float
+    is_first_order_regime: bool
+    routing_tier: str
+    quality_budget: float
+
+
+@physics_ext_router.get("/bec2c/status", response_model=BecStatusResponse)
+async def get_bec2c_status(
+    quality_budget: float = 0.0,
+) -> BecStatusResponse:
+    """Return two-component exciton condensate routing state (Qi et al. 2026) for given quality budget."""
+    from cohezion.physics.two_component_bec import make_triune_bec, suggest_routing_from_bec
+
+    bec = make_triune_bec(quality_budget=quality_budget)
+    ops = bec.order_parameters()
+    return BecStatusResponse(
+        phase=bec.phase().value,
+        rho1=ops["rho1"],
+        rho2=ops["rho2"],
+        hiho_condensate_score=bec.hiho_condensate_score(),
+        is_first_order_regime=bec.is_first_order_regime(),
+        routing_tier=suggest_routing_from_bec(quality_budget),
+        quality_budget=quality_budget,
+    )
+
+
+# DampedRoutingOscillator routes
+
+
+class OscillatorStatusResponse(BaseModel):
+    """Damped routing oscillator state."""
+
+    damping_ratio: float
+    hiho_damping_score: float
+    is_critically_damped: bool
+    settle_time_2pct: float
+    routing_tier: str
+    pid_kp: float
+    pid_kd: float
+
+
+@physics_ext_router.get("/oscillator/status", response_model=OscillatorStatusResponse)
+async def get_oscillator_status(
+    quality_signal: float = 0.0,
+    damping_ratio: float = 1.0,
+) -> OscillatorStatusResponse:
+    """Return damped routing oscillator state for given quality signal."""
+    from cohezion.physics.damped_routing_oscillator import make_triune_oscillator
+
+    osc = make_triune_oscillator(
+        quality_signal=max(-1.0, min(1.0, quality_signal)),
+        damping_ratio=damping_ratio,
+    )
+    pid = osc.pid_coefficients()
+    return OscillatorStatusResponse(
+        damping_ratio=osc.damping_ratio,
+        hiho_damping_score=osc.hiho_damping_score(),
+        is_critically_damped=osc.is_critically_damped(),
+        settle_time_2pct=osc.settle_time_2pct,
+        routing_tier=osc.routing_tier(),
+        pid_kp=pid["Kp"],
+        pid_kd=pid["Kd"],
+    )
+
+
 __all__ = ["physics_ext_router"]
