@@ -61,6 +61,97 @@ _CLOUD_LADDER_PREMIUM: tuple[str, ...] = ("claude-opus-4-8", "claude-fable-5")
 # resolved and lives in the premium tuple above.
 _CLOUD_LADDER_EXTENSION: tuple[str, ...] = ()
 
+# ── Triune substrate collection definitions ────────────────────────────────
+# Named Lemonade collections bundling the three local tiers so the router can
+# reference them as a unit. Registered via POST :13305/v1/pull.
+# Sized to fit in 128 GB unified RAM with ≥30 GB buffer for OS + other ops.
+#
+#   TruineBase  ≈ 27 GB: NPU (1.3 GB) + iGPU (6 GB) + CPU (20 GB)
+#   TruineDense ≈ 32 GB: TruineBase + embed (0.5 GB) + CLaSp draft (4 GB)
+#
+# ctx_size=16384 on all heavy models (N3 harness invariant).
+_TRIUNE_COLLECTIONS: dict[str, dict] = {
+    "user.TruineBase": {
+        "recipe": "collection.omni",
+        "estimated_gb": 27.0,
+        "components": [
+            {"label": "npu", "model_name": "llama3.2-1b-FLM"},
+            {"label": "igpu", "model_name": "Gemma-4-E4B-it-GGUF"},
+            {"label": "cpu", "model_name": "Gemma-4-31B-it-GGUF", "ctx_size": 16384},
+        ],
+    },
+    "user.TruineDense": {
+        "recipe": "collection.omni",
+        "estimated_gb": 32.0,
+        "components": [
+            {"label": "npu", "model_name": "llama3.2-1b-FLM"},
+            {"label": "igpu", "model_name": "Gemma-4-E4B-it-GGUF"},
+            {"label": "cpu", "model_name": "Gemma-4-31B-it-GGUF", "ctx_size": 16384},
+            {"label": "embed", "model_name": "nomic-embed-text-v2-moe-GGUF"},
+            {"label": "clasp_draft", "model_name": "Gemma-4-E2B-it-GGUF"},
+        ],
+    },
+}
+_TRIUNE_RAM_BUFFER_GB = 30.0  # minimum free RAM to leave for OS + other workloads
+
+
+def register_triune_collections(
+    router_port: int = 13305,
+    collections: dict[str, dict] | None = None,
+    available_ram_gb: float = 128.0,
+) -> dict[str, bool]:
+    """Register named Lemonade model collections for triune routing.
+
+    Sends POST :router_port/v1/pull for each collection that fits within
+    available_ram_gb minus the RAM buffer. Returns {collection_name: success}.
+
+    Skips registration when the router is unreachable (non-blocking).
+    """
+    import json as _json
+    import urllib.request
+
+    target_collections = collections if collections is not None else _TRIUNE_COLLECTIONS
+    results: dict[str, bool] = {}
+    usable_gb = available_ram_gb - _TRIUNE_RAM_BUFFER_GB
+
+    for coll_name, coll_def in target_collections.items():
+        estimated_gb = coll_def.get("estimated_gb", 0.0)
+        if estimated_gb > usable_gb:
+            logger.info(
+                "Skipping collection %s: %.0f GB needed > %.0f GB usable",
+                coll_name,
+                estimated_gb,
+                usable_gb,
+            )
+            results[coll_name] = False
+            continue
+        payload = {
+            "model_name": coll_name,
+            "recipe": coll_def["recipe"],
+            "components": coll_def["components"],
+        }
+        try:
+            req = urllib.request.Request(
+                f"http://localhost:{router_port}/v1/pull",
+                data=_json.dumps(payload).encode(),
+                headers={"Content-Type": "application/json"},
+                method="POST",
+            )
+            with urllib.request.urlopen(req, timeout=5.0) as resp:  # noqa: S310
+                results[coll_name] = resp.status == 200
+                logger.info(
+                    "Registered collection %s (%.0f GB) → status %d",
+                    coll_name,
+                    estimated_gb,
+                    resp.status,
+                )
+        except Exception as exc:
+            logger.debug("Collection registration skipped for %s: %s", coll_name, exc)
+            results[coll_name] = False
+
+    return results
+
+
 # ── Cohezion Omni model presets ──────────────────────────────────────────────
 # Custom omni models registered via `recipe: collection.omni` in Lemonade's
 # user_models.json. Each bundles a planner LLM (tool-calling label) with image,
@@ -162,15 +253,53 @@ def _cloud_ladder(include_premium: bool = False) -> list[tuple]:
     return [(m, QualityGate.TRUST) for m in models]  # type: ignore[list-item]
 
 
+# ── GAIA-native hot-model preference lists ────────────────────────────────────
+# Order matters: first match in the router's hot catalog wins.
+_NPU_MODELS: tuple[str, ...] = ("llama3.2-1b-FLM", "gemma3-4b-FLM")
+_IGPU_MODELS: tuple[str, ...] = (
+    "Granite-4.1-8B-GGUF",
+    "deepseek-r1-0528-8b-FLM",
+    "Gemma-4-E4B-it-GGUF",
+)
+_CPU_MODELS: tuple[str, ...] = ("Gemma-4-31B-it-GGUF", "gemma-4-31b", "qwen3-30b")
+
+
+def build_gaia_native_tier(
+    port: int,
+    *,
+    device_class: str = "npu",
+    fallback_model_id: str = "llama3.2-1b-FLM",
+    max_tokens: int = 256,
+) -> Any:
+    """Build a tier via GAIA-native hot-model discovery on the router.
+
+    Queries the router's hot catalog for the best model matching ``device_class``,
+    falling back to ``fallback_model_id`` when discovery fails or no preferred model
+    is hot.
+    """
+    from cohezion.compound.fleet_client import LemonadeRouterClient, RouterLemonadeTier
+
+    router = LemonadeRouterClient(port=port)
+    prefer = {"npu": _NPU_MODELS, "gpu": _IGPU_MODELS, "cpu": _CPU_MODELS}.get(device_class, ())
+    try:
+        hot_by_name = {m.model_name: m for m in router.hot_models() if m.device == device_class}
+        for model_name in prefer:
+            if model_name in hot_by_name:
+                return RouterLemonadeTier(router, model_name, max_tokens=max_tokens)
+    except Exception as _err:
+        logger.debug("build_gaia_native_tier hot-model discovery failed: %s", _err)
+    return RouterLemonadeTier(router, fallback_model_id, max_tokens=max_tokens)
+
+
 def build_triune_orchestrator(
     *,
-    npu_port: int = 13306,  # allow-direct-port: API-stability param — body uses router post-Phase2; CLaSp igpu_port uses direct
-    igpu_port: int = 13307,  # allow-direct-port: CLaSp verify_port — direct iGPU connection required for speculative decoding
+    npu_port: int = 13306,  # allow-direct-port: PATH B direct fallback; PATH A uses router_port
+    igpu_port: int = 13307,  # allow-direct-port: PATH B direct fallback
     cpu_port: int = 13309,  # allow-direct-port: N2 harness invariant — preserved per harness.md N2
-    router_cpu_port: int = 13305,
+    router_port: int = 13305,
     clasp_draft_port: int
     | None = 13308,  # allow-direct-port: CLaSp speculative decoding — dual-port by design
-    include_cloud: bool = True,
+    include_cloud: bool = False,
     include_premium: bool = False,
     include_omni: bool = False,
 ) -> TieredOrchestrator:
@@ -193,132 +322,48 @@ def build_triune_orchestrator(
     draft acceptance rate is ≥50%. Harness invariant N2 preserved (NPU = llama3.2-1b-FLM).
     """
 
-    # OOM guard: check available RAM before loading any local model tiers.
-    # ResourceGuard enforces a 16 GB safety buffer — skips local tiers if unsafe.
-    try:
-        from cohezion.competition.orchestrator.resource_guard import MemorySnapshot
+    # PATH A / PATH B routing: use router-centric GAIA-native discovery when the router is
+    # reachable; fall back to direct-port builders when it is not.
+    from cohezion.compound.fleet_client import LemonadeRouterClient
 
-        snap = MemorySnapshot.capture()
-        if snap.available_gb < 16.0:
-            logger.warning(
-                "OOM guard: only %.1f GB RAM available (need 16 GB buffer). "
-                "Local tiers skipped — cloud-only orchestration.",
-                snap.available_gb,
-            )
-            tiers_cloud_only: list[tuple] = []
-            if include_cloud:
-                tiers_cloud_only = _cloud_ladder(include_premium)
-            if not tiers_cloud_only:
-                logger.warning(
-                    "OOM guard: include_cloud=False and RAM low — proceeding with local (risk accepted)."
-                )
-            else:
-                orch_cloud = TieredOrchestrator(tiers=tiers_cloud_only)
-                orch_cloud._max_concurrent = _TRIUNE_MAX_CONCURRENT  # F3: fleet-fairness cap
-                return orch_cloud
-        logger.debug("OOM guard: %.1f GB available — local tiers safe to load.", snap.available_gb)
-    except ValueError:
-        raise  # Re-raise programming errors (e.g., empty tiers list)
-    except Exception as _oom_err:
-        logger.debug("OOM guard check failed (non-blocking): %s", _oom_err)
-
-    # 1. NPU Tier — fast routing/classification (XDNA2 SRAM, 40 TPS, $0)
-    # Uses DirectLemonadeTier (direct httpx) to bypass GAIA LemonadeManager singleton.
-    # GAIA singleton conflict: class-level _initialized means all tiers share one port.
-    # Direct HTTP is proven correct (exp_OOOO3/PPPP3, 2026-05-30, round 13).
-    from cohezion.inference.direct_tier import (
-        build_direct_cpu_tier,
-        build_router_cpu_tier,
-        build_router_igpu_tier,
-        build_router_npu_tier,
-    )
-
-    # NPU Tier — router-centric (Phase 2): targets :13305 unified router.
-    # npu_port param retained in signature for API stability; not used in body post-Phase2.
-    npu_tier = build_router_npu_tier(model_id="llama3.2-1b-FLM")
-
-    # 2. iGPU Tier — deep context analysis, Wave32 ROCWMMA
-    # CLaSp speculative drafting only when BOTH draft and verify ports are live.
-    # If either port is offline, fall back to router iGPU tier.
-    # iGPU FLM model: deepseek-r1-0528-8b-FLM (harness N1/N2 spec).
-    # CLaSp speculative decoding: port 13308 (E2B draft) + port 13307 (E4B verify) — retained dual-port.  # allow-direct-port: CLaSp topology documentation
-    # When CLaSp draft port is offline (default), router iGPU tier is used.
-    _igpu_live = _check_port(igpu_port)
-    _draft_live = clasp_draft_port is not None and _check_port(clasp_draft_port)
-    if _igpu_live and _draft_live:
-        try:
-            from cohezion.inference.clasp_tier import build_clasp_igpu_tier
-
-            igpu_tier = build_clasp_igpu_tier(
-                draft_port=clasp_draft_port,
-                verify_port=igpu_port,
-                draft_model="Gemma-4-E2B-it-GGUF",
-                verify_model="Gemma-4-E4B-it-GGUF",
-                silent=True,
-            )
-            logger.info(
-                "CLaSp iGPU tier enabled: E2B draft (port %d) → E4B verify (port %d)",
-                clasp_draft_port,
-                igpu_port,
-            )
-        except Exception as exc:
-            logger.warning("CLaSp tier unavailable (%s), falling back to router iGPU tier", exc)
-            igpu_tier = build_router_igpu_tier(model_id="deepseek-r1-0528-8b-FLM")
+    _router_probe = LemonadeRouterClient(port=router_port)
+    if _router_probe.available():
+        # PATH A — router is live: build all tiers via GAIA-native hot-model discovery.
+        logger.debug(
+            "PATH A: router :%d reachable — using GAIA-native tier discovery.", router_port
+        )
+        npu_tier = build_gaia_native_tier(
+            router_port, device_class="npu", fallback_model_id="llama3.2-1b-FLM", max_tokens=256
+        )
+        igpu_tier = build_gaia_native_tier(
+            router_port,
+            device_class="gpu",
+            fallback_model_id="deepseek-r1-0528-8b-FLM",
+            max_tokens=512,
+        )
+        cpu_tier = build_gaia_native_tier(
+            router_port, device_class="cpu", fallback_model_id="Gemma-4-31B-it-GGUF", max_tokens=512
+        )
     else:
-        if not _igpu_live:
-            logger.debug("iGPU port %d offline — using router iGPU tier as fallback", igpu_port)
-        # iGPU non-CLaSp path: router-centric (Phase 2), targets :13305 unified router.
-        igpu_tier = build_router_igpu_tier(model_id="deepseek-r1-0528-8b-FLM")
-
-    # 3. CPU Tier — Gemma-4-31B reasoner ($0). The dedicated direct :13309 server is the default
-    # alternative (N2); when it is unreachable, fall back to the router (:13305) with
-    # llamacpp_backend=cpu — the canonical unified interface that serves the catalog on demand
-    # (router-centric topology: the dedicated per-port servers are frequently down). This mirrors
-    # the iGPU CLaSp-vs-direct selection above: pick the live path at build time.
-    #
-    # OOM gate (N3, mirrors the guard at the top of this fn): the 31B reasoner needs a bounded
-    # ctx_size (≤16384) AND enough free RAM. We require the same 16 GB MemorySnapshot buffer used
-    # above plus the reasoner's own footprint. If RAM is unsafe we OMIT the CPU tier entirely so
-    # escalation falls through to the cloud reasoner rather than risk an OOM hang (N3 incident).
-    _CPU_REASONER_SIZE_GB = 20.0  # Gemma-4-31B ~Q4 weights; bounded-ctx KV adds little
-    _cpu_ram_safe = True
-    try:
-        from cohezion.competition.orchestrator.resource_guard import MemorySnapshot
-
-        _snap = MemorySnapshot.capture()
-        _cpu_ram_safe = _snap.available_gb >= (16.0 + _CPU_REASONER_SIZE_GB)
-    except Exception as _rg_err:  # fail-soft: don't block tier build on a probe error
-        logger.debug("CPU RAM gate check failed (non-blocking): %s", _rg_err)
-
-    cpu_tier = None
-    if _cpu_ram_safe:
-        if _check_port(cpu_port):
-            cpu_tier = build_direct_cpu_tier(port=cpu_port, model_id="Gemma-4-31B-it-GGUF")
-            logger.info("CPU reasoner tier: direct :%d (Gemma-4-31B)", cpu_port)
-        else:
-            cpu_tier = build_router_cpu_tier(port=router_cpu_port, model_id="Gemma-4-31B-it-GGUF")
-            logger.info(
-                "CPU reasoner tier: direct :%d down → router :%d (llamacpp_backend=cpu, "
-                "bounded ctx)",
-                cpu_port,
-                router_cpu_port,
-            )
-    else:
-        logger.warning(
-            "OOM guard: CPU reasoner (Gemma-4-31B, ~%.0f GB) omitted — RAM unsafe. "
-            "Reasoning tasks escalate to cloud.",
-            _CPU_REASONER_SIZE_GB,
+        # PATH B — router unreachable: fall back to direct per-port builders.
+        logger.debug(
+            "PATH B: router :%d unreachable — using direct-port tier builders.", router_port
+        )
+        from cohezion.inference.direct_tier import (
+            build_direct_cpu_tier,
+            build_direct_igpu_tier,
+            build_direct_npu_tier,
         )
 
-    # Quality gates for DirectLemonadeTier (direct HTTP inference).
-    # Note: pre_dispatch_classifier overrides tier-0 and tier-1 gates based on output_type.
-    # These static values are the fallback when the classifier is not set.
+        npu_tier = build_direct_npu_tier(port=npu_port, model_id="llama3.2-1b-FLM")
+        igpu_tier = build_direct_igpu_tier(port=igpu_port, model_id="deepseek-r1-0528-8b-FLM")
+        cpu_tier = build_direct_cpu_tier(port=cpu_port, model_id="Gemma-4-31B-it-GGUF")
+
     tiers: list[tuple] = [
         (npu_tier, QualityGate(min_chars=1)),  # NPU: XDNA2 SRAM, 40 TPS, $0
         (igpu_tier, QualityGate(min_chars=5)),  # iGPU: ROCWMMA, $0
+        (cpu_tier, QualityGate(min_chars=10)),  # CPU reasoner: AVX-512, $0
     ]
-    if cpu_tier is not None:
-        tiers.append((cpu_tier, QualityGate(min_chars=10)))  # CPU reasoner: AVX-512, $0
 
     # 4. Omni tier — Lite or Dense, selected by available RAM (opt-in via include_omni).
     # N3 guard: this tier NEVER loads models — it dispatches to :13305 which has already

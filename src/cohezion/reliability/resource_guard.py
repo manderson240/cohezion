@@ -20,6 +20,8 @@ class SystemVitals:
     ram_available_mb: int
     ram_percent: float
     swap_used_mb: int
+    disk_free_gb: float = 0.0
+    disk_percent: float = 0.0
 
 
 class ResourceGuard:
@@ -33,11 +35,15 @@ class ResourceGuard:
         min_ram_available_mb: int = 16384,  # 16GB
         max_ram_percent: float = 90.0,
         model_load_margin_mb: int = 2048,  # headroom kept free after a model load
+        min_disk_free_gb: float = 1.0,
+        max_disk_percent: float = 95.0,
     ) -> None:
         self.max_cpu_load = max_cpu_load
         self.min_ram_available_mb = min_ram_available_mb
         self.max_ram_percent = max_ram_percent
         self.model_load_margin_mb = model_load_margin_mb
+        self.min_disk_free_gb = min_disk_free_gb
+        self.max_disk_percent = max_disk_percent
 
     def get_vitals(self) -> SystemVitals:
         """Get current system metrics."""
@@ -45,11 +51,14 @@ class ResourceGuard:
         virtual_mem = psutil.virtual_memory()
         swap_mem = psutil.swap_memory()
 
+        disk = psutil.disk_usage("/")
         return SystemVitals(
             cpu_load_1m=load_avg,
             ram_available_mb=virtual_mem.available // (1024 * 1024),
             ram_percent=virtual_mem.percent,
             swap_used_mb=swap_mem.used // (1024 * 1024),
+            disk_free_gb=disk.free / (1024**3),
+            disk_percent=disk.percent,
         )
 
     def is_healthy(self) -> tuple[bool, str]:
@@ -58,6 +67,12 @@ class ResourceGuard:
 
         if vitals.cpu_load_1m > self.max_cpu_load:
             return False, f"CPU load too high: {vitals.cpu_load_1m}"
+
+        if vitals.disk_free_gb < self.min_disk_free_gb:
+            return False, f"Disk space too low: {vitals.disk_free_gb:.2f}GB free"
+
+        if vitals.disk_percent > self.max_disk_percent:
+            return False, f"Disk utilization too high: {vitals.disk_percent}%"
 
         if vitals.ram_available_mb < self.min_ram_available_mb:
             return False, f"RAM available too low: {vitals.ram_available_mb}MB"

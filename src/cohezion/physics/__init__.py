@@ -35,6 +35,9 @@ from cohezion.physics.natural_capital import NaturalCapitalValuation
 from cohezion.physics.rewards_bridge import CoherenceRatchet, RewardsBridge
 from cohezion.physics.riemannian_metric import RiemannianMetric
 from cohezion.physics.spinor import SpinorState
+from cohezion.physics.mhd_mereon import MHDMereonOperator, MHDState
+from cohezion.physics.mereon_data import get_m120p_vertices, get_m144p_vertices
+from cohezion.physics.flier_routing import FLIERRouter
 
 
 __all__ = [
@@ -72,4 +75,9 @@ __all__ = [
     "SpinorState",
     "SymmetryBreaking",
     "SymmetryGroup",
+    "MHDMereonOperator",
+    "MHDState",
+    "get_m120p_vertices",
+    "get_m144p_vertices",
+    "FLIERRouter",
 ]

@@ -253,6 +253,10 @@ class AutonomyEngine:
         current = self.get_tier(agent_id)
         return current.level >= action_tier.level
 
+    def can_perform(self, agent_id: str, action_tier: AutonomyTier) -> bool:
+        """Alias for can_perform_action."""
+        return self.can_perform_action(agent_id, action_tier)
+
     def get_all_states(self) -> dict[str, dict]:
         """Get all agent autonomy states for monitoring."""
         return {

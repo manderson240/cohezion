@@ -56,15 +56,6 @@ class OuroborosFailureAnalyzer:
         suggested_mutation = "Investigate log context"
         is_recoverable = True
 
-        # Guard: trivially short logs are usually wrappers / banners, not failures.
-        if len(logs) < 100:
-            return FailureAnalysis(
-                root_cause="Log too short to analyze",
-                suggested_mutation="Capture more context (full stderr)",
-                learning_id=f"ouro_{target}_{int(time.time())}",
-                is_recoverable=True,
-            )
-
         if "OutOfMemoryError" in logs or "CUDA out of memory" in logs:
             root_cause = "GPU VRAM exhaustion (OOM)"
             suggested_mutation = "Reduce batch_size or increase VRAM reset frequency"

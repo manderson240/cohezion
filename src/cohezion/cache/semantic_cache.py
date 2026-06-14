@@ -13,6 +13,8 @@ Cache key is card-aligned (model_id, family, thinking_mode); a 1-hour-TTL row is
 written to SurrealDB on every put() so the cache participates in the datamesh.
 """
 
+from __future__ import annotations
+
 import asyncio
 import base64
 import hashlib
@@ -29,6 +31,20 @@ from cohezion.cache.lemonade_encoder import OPTIMAL_THRESHOLD as _LEMONADE_THRES
 from cohezion.cache.lemonade_encoder import get_lemonade_encoder
 from cohezion.cache.text_encoder import get_text_encoder
 from cohezion.flume.vae_encoder import get_encoder
+
+
+def get_project_root() -> Any:
+    """Return the repository root (patchable in tests)."""
+    from pathlib import Path
+
+    return Path(__file__).resolve().parent.parent.parent
+
+
+def get_config() -> Any:
+    """Return the unified config object (patchable in tests)."""
+    from cohezion.config.unified import get_config as _gc
+
+    return _gc()
 
 
 # ── SurrealDB upsert for the cache (PR 2 / Connection D) ────────────────────
@@ -136,8 +152,6 @@ class SemanticCache:
 
         try:
             from pathlib import Path
-
-            from cohezion.config.unified import get_config
 
             root_dir = Path(get_config().root_dir)
             profile_path = root_dir / "config" / "calibration_profiles.json"

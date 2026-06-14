@@ -718,4 +718,56 @@ async def get_tensor_metric_status(
     )
 
 
+class LENRSimulateResponse(BaseModel):
+    coherence: float
+    reaction_rate: float
+    reaction_threshold: float
+    lattice_coupling: float
+
+
+class LENREventRequest(BaseModel):
+    coherence: float
+    agent_id: str = "lenr-bridge"
+
+
+class LENREventResponse(BaseModel):
+    coherence: float
+    reaction_rate: float
+    mean_rate: float
+    event_count: int
+    agent_id: str
+
+
+@physics_ext_router.get("/lenr/simulate", response_model=LENRSimulateResponse)
+async def lenr_simulate(coherence: float = 0.5) -> LENRSimulateResponse:
+    """Simulate LENR Hamiltonian reaction rate at a given coherence."""
+    from cohezion.physics.lenr import LENRHamiltonian
+
+    h = LENRHamiltonian()
+    rate = h.reaction_rate(coherence)
+    return LENRSimulateResponse(
+        coherence=coherence,
+        reaction_rate=rate,
+        reaction_threshold=h.reaction_threshold,
+        lattice_coupling=h.lattice_coupling,
+    )
+
+
+@physics_ext_router.post("/lenr/event", response_model=LENREventResponse)
+async def lenr_event(request: LENREventRequest) -> LENREventResponse:
+    """Record a LENR coherence event and return aggregate statistics."""
+    from cohezion.physics.lenr import LENRHamiltonian
+
+    h = LENRHamiltonian(agent_id=request.agent_id)
+    h.record_coherence_event(request.coherence)
+    rate = h.reaction_rate(request.coherence)
+    return LENREventResponse(
+        coherence=request.coherence,
+        reaction_rate=rate,
+        mean_rate=h.mean_rate,
+        event_count=h.event_count,
+        agent_id=request.agent_id,
+    )
+
+
 __all__ = ["physics_ext_router"]

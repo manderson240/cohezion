@@ -254,6 +254,8 @@ async def main(hours: float = 2.0, use_llm: bool = True) -> None:
     global _STOP
     _install_sigint()
 
+    from cohezion.research.autocontext import monitor as ctx_monitor, compress as ctx_compress, budget as ctx_budget  # noqa: E501
+
     # Import experiment functions from the overnight loop
     import importlib.util
 
@@ -352,6 +354,10 @@ async def main(hours: float = 2.0, use_llm: bool = True) -> None:
     cycle = 0
 
     while not _STOP and timeit.default_timer() < DEADLINE:
+        _ctx = ctx_monitor()
+        if _ctx.get("warn"):
+            ctx_compress(SESSION_LOG, keep_recent=200)
+
         remaining_s = DEADLINE - timeit.default_timer()
         print(
             f"\n{'=' * 60}\n[autorun_2h] Cycle {cycle} — {remaining_s / 60:.1f} min remaining\n{'=' * 60}",
@@ -403,6 +409,10 @@ async def main(hours: float = 2.0, use_llm: bool = True) -> None:
 
             await run_autoresearch_analysis(all_timings, cycle)
             run_autoharness_check(all_timings, cycle)
+
+        _budget = ctx_budget()
+        if not _budget.get("safe_to_continue", True):
+            break
 
         cycle += 1
 

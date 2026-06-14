@@ -126,6 +126,14 @@ class TieredOrchestrator:
         # Sets start_tier_index and per-tier gate override based on output_type.
         self._pre_dispatch_classifier = pre_dispatch_classifier
 
+    @property
+    def pre_dispatch_classifier(self):
+        return self._pre_dispatch_classifier
+
+    @pre_dispatch_classifier.setter
+    def pre_dispatch_classifier(self, value):
+        self._pre_dispatch_classifier = value
+
     async def _invoke_tier(
         self,
         target: str | Runnable,
