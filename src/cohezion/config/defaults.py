@@ -1,25 +1,21 @@
 """Centralized infrastructure defaults for Cohezion.
 
 Single source of truth for ports, hardware topology, model roster, swarm
-tuning constants, and computed base URLs.  Every value that was previously
-hardcoded across ``distributed_swarm``, ``latent_engine``, ``telegram_bot``,
-``tri_compute_orchestrator``, and ``orchestrator`` now lives here and is
-overridable via environment variable.
+tuning constants, and computed base URLs.
+
+Architecture (2026-06-14): ALL local inference routes through the unified
+Lemonade OmniRouter on port 13305.  Per-lane ports (13306-13309) are
+decommissioned — use LEMONADE_ROUTER_PORT exclusively.
 
 Usage::
 
-    from cohezion.config.defaults import OLLAMA_PORT, OLLAMA_BASE_URL
-    from cohezion.config.defaults import CPU_SMALL_MODELS, LANE_PORTS
+    from cohezion.config.defaults import LEMONADE_ROUTER_PORT
+    from cohezion.config.defaults import CPU_SMALL_MODELS
 
 Environment variables (all optional — sensible defaults provided):
 
     OLLAMA_PORT            – Ollama HTTP port           (default 11434)
-    LEMONADE_ROUTER_PORT   – Lemonade OpenAI router     (default 13305)
-    LEMONADE_NPU_PORT      – Lemonade NPU lane port     (default 13306)
-    LEMONADE_IGPU_ROCWMMA_PORT  – iGPU ROCWMMA port    (default 13307)
-    LEMONADE_IGPU_UNIFIED_PORT  – iGPU Unified port    (default 13308)
-    LEMONADE_CPU_PORT      – Lemonade CPU lane port     (default 13309)
-    NPU_FLM_PORT           – NPU FLM inference port     (default 8004)
+    LEMONADE_ROUTER_PORT   – Lemonade OmniRouter port   (default 13305)
     SWARM_CPU_WORKERS      – CPU-parallel worker count   (default 6)
     SWARM_SCORE_WINDOW     – Adaptive scoring window     (default 20)
     SWARM_MIN_QUALITY      – Min quality to accept       (default 0.45)
@@ -41,35 +37,7 @@ OLLAMA_PORT: int = int(os.environ.get("OLLAMA_PORT", "11434"))
 """Default Ollama HTTP API port."""
 
 LEMONADE_ROUTER_PORT: int = int(os.environ.get("LEMONADE_ROUTER_PORT", "13305"))
-"""Lemonade always-up OpenAI-compatible router port (NPU/iGPU/CPU fleet)."""
-
-LEMONADE_NPU_PORT: int = int(os.environ.get("LEMONADE_NPU_PORT", "13306"))
-"""Lemonade lane port for NPU (XDNA2)."""
-
-LEMONADE_IGPU_ROCWMMA_PORT: int = int(os.environ.get("LEMONADE_IGPU_ROCWMMA_PORT", "13307"))
-"""Lemonade lane port for iGPU ROCWMMA."""
-
-LEMONADE_IGPU_UNIFIED_PORT: int = int(os.environ.get("LEMONADE_IGPU_UNIFIED_PORT", "13308"))
-"""Lemonade lane port for iGPU unified memory."""
-
-LEMONADE_CPU_PORT: int = int(os.environ.get("LEMONADE_CPU_PORT", "13309"))
-"""Lemonade lane port for CPU."""
-
-NPU_FLM_PORT: int = int(os.environ.get("NPU_FLM_PORT", "8004"))
-"""NPU FLM (FastFlowLM) inference port used by tri-compute orchestrator."""
-
-
-# ---------------------------------------------------------------------------
-# Strix Halo Symphony lane port map (computed from individual port vars)
-# ---------------------------------------------------------------------------
-
-LANE_PORTS: dict[str, int] = {
-    "npu": LEMONADE_NPU_PORT,
-    "igpu_rocwmma": LEMONADE_IGPU_ROCWMMA_PORT,
-    "igpu_unified": LEMONADE_IGPU_UNIFIED_PORT,
-    "cpu": LEMONADE_CPU_PORT,
-}
-"""Strix Halo Symphony lane ports — matches registry.py."""
+"""Unified Lemonade OmniRouter port — the ONLY inference port for app code."""
 
 
 # ---------------------------------------------------------------------------
@@ -79,8 +47,8 @@ LANE_PORTS: dict[str, int] = {
 OLLAMA_BASE_URL: str = f"http://localhost:{OLLAMA_PORT}"
 """Ollama HTTP API base URL."""
 
-LEMONADE_NPU_BASE_URL: str = f"http://localhost:{LEMONADE_NPU_PORT}"
-"""Lemonade NPU lane base URL."""
+LEMONADE_ROUTER_BASE_URL: str = f"http://localhost:{LEMONADE_ROUTER_PORT}"
+"""Lemonade OmniRouter base URL — all local inference routes here."""
 
 
 # ---------------------------------------------------------------------------
