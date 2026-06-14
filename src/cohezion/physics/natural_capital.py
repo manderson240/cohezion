@@ -130,7 +130,7 @@ class NaturalCapitalValuation:
         carbon_storage = float(np.mean(np.abs(state_12d)))
 
         # 3. Water Yield: energy flow = connectivity × stability
-        stability = 1.0 - np.std(state_12d)
+        stability = float(1.0 - np.std(state_12d))
         water_yield = connectivity * max(0.0, stability)
 
         # 4. Pollination: knowledge transfer density
@@ -140,7 +140,7 @@ class NaturalCapitalValuation:
         sediment_retention = 1.0 / (1.0 + gauge_curvature)
 
         # Weighted aggregate
-        total = (
+        total = float(
             self.weights["habitat_quality"] * habitat_quality
             + self.weights["carbon_storage"] * carbon_storage
             + self.weights["water_yield"] * water_yield
@@ -193,7 +193,7 @@ class NaturalCapitalValuation:
         # Project forward
         projected = current_capital * (1.0 + growth_rate) ** SEVENTH_GENERATION_HORIZON
 
-        is_sustainable = projected >= current_capital
+        is_sustainable = bool(projected >= current_capital)
 
         # Estimate depletion time (if declining)
         depletion = None

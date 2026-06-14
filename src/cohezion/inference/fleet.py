@@ -620,3 +620,44 @@ async def extend_claude(
     result = await route(prompt, task=Task.REASONING, prefer=claude_model, timeout=timeout)
     result.escalated_to_cloud = True
     return result
+
+
+async def extend_claude_aligned(
+    prompt: str,
+    *,
+    params: Any,  # InferenceParams — typed loosely to avoid circular import
+    claude_model: str = "claude-sonnet-4-6",
+    quality_threshold: float = 0.8,
+    max_local_attempts: int = 2,
+    timeout: float = 30.0,
+) -> RouteResult:
+    """Card-aligned variant of extend_claude: honors params.model_id for local dispatch.
+
+    The ``params`` argument is keyword-only and required. Raises TypeError if omitted.
+    Uses the model identified in ``params.model_id`` for local attempts instead of
+    letting the router choose freely — preserves card-alignment guarantees. Escalation
+    to ``claude_model`` on quality-gate failure behaves identically to extend_claude.
+    """
+    model_id: str = params.model_id
+    for _ in range(max_local_attempts):
+        local_result = await route(
+            prompt,
+            task=Task.REASONING,
+            prefer=model_id,
+            budget_usd=0.0,
+            timeout=timeout,
+        )
+        confidence = local_result.self_reported_confidence
+        length_ok = local_result.error is None and len(local_result.text) >= 40
+        confidence_ok = confidence is None or confidence >= quality_threshold
+        if length_ok and confidence_ok:
+            return local_result
+        logger.info(
+            "Aligned local attempt insufficient (%s, confidence=%s); retrying",
+            local_result.error or "short output",
+            confidence,
+        )
+
+    result = await route(prompt, task=Task.REASONING, prefer=claude_model, timeout=timeout)
+    result.escalated_to_cloud = True
+    return result

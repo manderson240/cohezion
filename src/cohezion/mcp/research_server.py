@@ -3,10 +3,69 @@ import logging
 import os
 import random
 import time
+import xml.etree.ElementTree as ET
 from typing import Any
 
 import requests
 from aiohttp import web
+
+_ARXIV_CATEGORIES: dict[str, str] = {
+    "cs.AI": "Artificial Intelligence",
+    "cs.LG": "Machine Learning",
+    "cs.CL": "Computation and Language",
+    "cs.CV": "Computer Vision and Pattern Recognition",
+    "cs.MA": "Multiagent Systems",
+    "cs.NE": "Neural and Evolutionary Computing",
+    "cs.RO": "Robotics",
+    "cs.SE": "Software Engineering",
+    "cs.CR": "Cryptography and Security",
+    "stat.ML": "Machine Learning (Statistics)",
+}
+
+_HF_TASKS: list[str] = [
+    "text-generation",
+    "text-classification",
+    "image-classification",
+    "object-detection",
+    "reinforcement-learning",
+    "question-answering",
+    "summarization",
+    "translation",
+    "token-classification",
+    "fill-mask",
+    "feature-extraction",
+    "image-segmentation",
+    "automatic-speech-recognition",
+]
+
+
+def _parse_arxiv_xml(xml_text: str) -> list[dict[str, Any]]:
+    """Parse arXiv Atom XML into a list of paper dicts."""
+    ns = {"atom": "http://www.w3.org/2005/Atom"}
+    root = ET.fromstring(xml_text)
+    papers: list[dict[str, Any]] = []
+    for entry in root.findall("atom:entry", ns):
+        entry_id = (entry.findtext("atom:id", "", ns) or "").split("/abs/")[-1]
+        title = (entry.findtext("atom:title", "", ns) or "").strip()
+        summary = (entry.findtext("atom:summary", "", ns) or "").strip()
+        authors = [a.findtext("atom:name", "", ns) or "" for a in entry.findall("atom:author", ns)]
+        categories = [c.get("term", "") for c in entry.findall("atom:category", ns)]
+        pdf_url = ""
+        for link in entry.findall("atom:link", ns):
+            if link.get("title") == "pdf":
+                pdf_url = link.get("href", "")
+                break
+        papers.append(
+            {
+                "id": entry_id,
+                "title": title,
+                "summary": summary,
+                "authors": authors,
+                "categories": categories,
+                "pdf_url": pdf_url,
+            }
+        )
+    return papers
 
 
 logger = logging.getLogger(__name__)
@@ -88,6 +147,78 @@ class ResearchMinerServer:
     def list_research_channels(self) -> list[str]:
         """List available research channels."""
         return list(self.sources.keys())
+
+    def search_arxiv_advanced(
+        self,
+        query: str,
+        category: str = "",
+        date_from: str = "",
+        date_to: str = "",
+        limit: int = 10,
+    ) -> list[dict[str, Any]]:
+        """Search arXiv with optional category and date filters."""
+        if category and category not in _ARXIV_CATEGORIES:
+            return [
+                {
+                    "error": f"Unknown category '{category}'",
+                    "valid_categories": list(_ARXIV_CATEGORIES),
+                }
+            ]
+        search_query = f"all:{query}"
+        if category:
+            search_query += f" AND cat:{category}"
+        if date_from and date_to:
+            search_query += f" AND submittedDate:[{date_from}0000 TO {date_to}2359]"
+        try:
+            resp = requests.get(
+                self.sources["arxiv"],
+                params={"search_query": search_query, "max_results": str(limit)},
+                timeout=15,
+            )
+            resp.raise_for_status()
+            return _parse_arxiv_xml(resp.text)
+        except requests.exceptions.Timeout:
+            return [{"error": "arxiv request timed out after 15s"}]
+        except Exception as e:
+            logger.error(f"search_arxiv_advanced failed: {e}")
+            return [{"error": str(e)}]
+
+    def get_hf_trending_models(self, limit: int = 10, task: str = "") -> list[dict[str, Any]]:
+        """Fetch trending HuggingFace models, optionally filtered by task."""
+        if task and task not in _HF_TASKS:
+            return [
+                {
+                    "error": f"Unknown task '{task}'",
+                    "valid_tasks": list(_HF_TASKS),
+                }
+            ]
+        try:
+            params: dict[str, Any] = {"limit": limit, "sort": "trending"}
+            if task:
+                params["pipeline_tag"] = task
+            resp = requests.get("https://huggingface.co/api/models", params=params, timeout=10)
+            resp.raise_for_status()
+            models = resp.json()
+            return [
+                {
+                    "id": m.get("id", ""),
+                    "task": m.get("pipeline_tag", ""),
+                    "likes": m.get("likes", 0),
+                    "downloads": m.get("downloads", 0),
+                }
+                for m in models[:limit]
+            ]
+        except Exception as e:
+            logger.error(f"get_hf_trending_models failed: {e}")
+            return [{"error": str(e)}]
+
+    def list_arxiv_categories(self) -> list[dict[str, str]]:
+        """Return all supported arXiv category codes and descriptions."""
+        return [{"code": k, "description": v} for k, v in _ARXIV_CATEGORIES.items()]
+
+    def list_hf_tasks(self) -> list[str]:
+        """Return all supported HuggingFace task names."""
+        return list(_HF_TASKS)
 
 
 # Singleton

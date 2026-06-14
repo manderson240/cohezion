@@ -9,6 +9,7 @@ Design: pure-heuristic, zero latency (< 0.1ms), no model calls.
 
 from __future__ import annotations
 
+import enum
 import re
 from dataclasses import dataclass
 from typing import Literal
@@ -1282,3 +1283,45 @@ def classify(prompt: str) -> RouteDecision:
             confidence=0.60,
             reason=f"long prompt ({prompt_len} chars), routing to GPU",
         )
+
+
+# ---------------------------------------------------------------------------
+# Harness-aware routing (Lin et al. 2026 — arXiv 2605.30621, item 7)
+# Harness-BENEFIT is non-monotonic: mid-tier gains most; NPU must stay harness-free.
+# ---------------------------------------------------------------------------
+
+
+class Harness(enum.Enum):
+    """Scaffold strategy for a given tier (Lin et al. 2026)."""
+
+    REACT = "react"
+    COT = "cot"
+    MINIMAL = "minimal"
+
+
+_TIER_HARNESS: dict[str, dict[bool, Harness]] = {
+    # NPU (1B): weak models don't faithfully follow scaffolds — always plain CoT
+    "npu": {True: Harness.COT, False: Harness.COT},
+    # iGPU mid-tier: benefits most from ReAct on tool tasks, CoT otherwise
+    "igpu": {True: Harness.REACT, False: Harness.COT},
+    "igpu_rocwmma": {True: Harness.REACT, False: Harness.COT},
+    "gpu": {True: Harness.REACT, False: Harness.COT},
+    # Strong/cloud: already capable — minimal scaffold, let model self-direct
+    "cpu": {True: Harness.MINIMAL, False: Harness.MINIMAL},
+    "cloud": {True: Harness.MINIMAL, False: Harness.MINIMAL},
+}
+
+
+def select_harness(tier: str, *, tool_task: bool = False) -> Harness:
+    """Return the scaffold strategy for ``tier`` given whether the task is agentic/tool-using."""
+    entry = _TIER_HARNESS.get(tier)
+    if entry is None:
+        return Harness.COT
+    return entry[tool_task]
+
+
+def classify_with_harness(prompt: str, *, tool_task: bool = False) -> tuple[RouteDecision, Harness]:
+    """Pair the existing routing decision with a harness recommendation. Advisory; does not gate."""
+    decision = classify(prompt)
+    harness = select_harness(decision.node, tool_task=tool_task)
+    return decision, harness
