@@ -770,4 +770,135 @@ async def lenr_event(request: LENREventRequest) -> LENREventResponse:
     )
 
 
+# ─── Ionic Cluster, Dielectric, Sarfatti, QGP ────────────────────
+
+
+class IonicClusterStatusResponse(BaseModel):
+    """Ionic cluster plasma resonance state."""
+
+    plasma_density: float
+    ionisation_rate: float
+    hiho_equilibrium: bool
+    active_ions: int
+    steps_taken: int
+
+
+class IonicClusterStepRequest(BaseModel):
+    delta: float
+    agent_id: str = "ionic-bridge"
+
+
+@physics_ext_router.get("/ionic-cluster/status", response_model=IonicClusterStatusResponse)
+async def get_ionic_cluster_status(
+    agent_id: str = "ionic-bridge",
+) -> IonicClusterStatusResponse:
+    """Return fresh IonicClusterState — stateless per-request snapshot."""
+    from cohezion.physics.ionic_cluster import IonicClusterState
+
+    state = IonicClusterState()
+    return IonicClusterStatusResponse(
+        plasma_density=state.plasma_density,
+        ionisation_rate=state.ionisation_rate(),
+        hiho_equilibrium=state.hiho_equilibrium(),
+        active_ions=state.active_ions,
+        steps_taken=state.steps_taken,
+    )
+
+
+@physics_ext_router.post("/ionic-cluster/step", response_model=IonicClusterStatusResponse)
+async def post_ionic_cluster_step(
+    request: IonicClusterStepRequest,
+) -> IonicClusterStatusResponse:
+    """Advance IonicClusterState by delta and return new state."""
+    from cohezion.physics.ionic_cluster import IonicClusterState
+
+    state = IonicClusterState()
+    state.step(request.delta)
+    return IonicClusterStatusResponse(
+        plasma_density=state.plasma_density,
+        ionisation_rate=state.ionisation_rate(),
+        hiho_equilibrium=state.hiho_equilibrium(),
+        active_ions=state.active_ions,
+        steps_taken=state.steps_taken,
+    )
+
+
+class DielectricPolarizationResponse(BaseModel):
+    """Dielectric EHD polarization metrics."""
+
+    voltage: float
+    biefield_brown_force: float
+    mean_permittivity: float
+
+
+@physics_ext_router.get("/dielectric/polarization", response_model=DielectricPolarizationResponse)
+async def get_dielectric_polarization(
+    voltage: float = 10000.0,
+) -> DielectricPolarizationResponse:
+    """Return Biefield-Brown EHD force for the given voltage."""
+    from cohezion.physics.dielectric import DielectricField
+
+    field = DielectricField(voltage=max(0.0, voltage))
+    force_vec = field.biefield_brown_force()
+    return DielectricPolarizationResponse(
+        voltage=voltage,
+        biefield_brown_force=float(force_vec[2]),
+        mean_permittivity=field.mean_permittivity,
+    )
+
+
+class SarfattiBackActionResponse(BaseModel):
+    """Sarfatti post-quantum back-action state."""
+
+    coherence: float
+    back_action_amplitude: float
+    metric_coupling: float
+    hiho_attractor_engaged: bool
+
+
+@physics_ext_router.get("/sarfatti/backaction", response_model=SarfattiBackActionResponse)
+async def get_sarfatti_backaction(
+    coherence: float = 0.5,
+    destiny_weight: float = 0.5,
+) -> SarfattiBackActionResponse:
+    """Return Sarfatti retrocausal back-action amplitude for given coherence."""
+    from cohezion.physics.sarfatti_bridge import SarfattiBackAction
+
+    sa = SarfattiBackAction(coherence=coherence, destiny_weight=destiny_weight)
+    return SarfattiBackActionResponse(
+        coherence=sa.coherence,
+        back_action_amplitude=sa.back_action_amplitude(),
+        metric_coupling=sa.metric_coupling(),
+        hiho_attractor_engaged=sa.hiho_attractor_engaged(),
+    )
+
+
+class QGPStatusResponse(BaseModel):
+    """Quark-Gluon Plasma HIHO deconfinement state."""
+
+    quark_coherence: float
+    deconfinement_rate: float
+    qcd_hiho: bool
+    is_deconfined: bool
+    chromatic_coherence: float
+
+
+@physics_ext_router.get("/qgp/status", response_model=QGPStatusResponse)
+async def get_qgp_status(
+    quark_coherence: float = 0.5,
+    temperature_mev: float = 155.0,
+) -> QGPStatusResponse:
+    """Return QGP deconfinement state for given quark coherence."""
+    from cohezion.physics.sarfatti_bridge import QuarkGluonPlasma
+
+    qgp = QuarkGluonPlasma(quark_coherence=quark_coherence, temperature_mev=temperature_mev)
+    return QGPStatusResponse(
+        quark_coherence=qgp.quark_coherence,
+        deconfinement_rate=qgp.deconfinement_rate(),
+        qcd_hiho=qgp.qcd_hiho(),
+        is_deconfined=qgp.is_deconfined(),
+        chromatic_coherence=qgp.chromatic_coherence(),
+    )
+
+
 __all__ = ["physics_ext_router"]

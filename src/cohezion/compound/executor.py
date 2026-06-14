@@ -141,6 +141,7 @@ class CompoundExecutor(CompoundContextMixin, ExecutorIntegrationMixin):
         enable_memory: bool = False,
         semantic_cache: Any | None = None,
         enable_semantic_cache: bool = False,
+        inference_provider: Any | None = None,
     ):
         """Initialize compound executor.
 
@@ -215,6 +216,7 @@ class CompoundExecutor(CompoundContextMixin, ExecutorIntegrationMixin):
                 semantic_cache = None
         self._semantic_cache = semantic_cache
         self._enable_semantic_cache = enable_semantic_cache and semantic_cache is not None
+        self._inference_provider = inference_provider
         self._drr_generator = None
         self._drr_session_id = ""
         try:
