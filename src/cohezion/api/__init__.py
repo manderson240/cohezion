@@ -1595,15 +1595,37 @@ class CompoundHealthResponse(BaseModel):
     model_usage: dict[str, int] = {}
     top_refined_skills: list[dict[str, Any]] = []
     compound_score_trend: list[dict[str, Any]] = []
+    # Item 888: per-tool MCP call telemetry matching Claude connector directory format
+    mcp_telemetry: dict = {}
+    # Item 906: windowed health snapshot (spike flags + recent p95/error_rate per tool)
+    mcp_windowed_health: dict = {}
 
 
 @app.get("/compound/health", response_model=CompoundHealthResponse)
 async def compound_health():
-    """Return compound system health from the metrics collector."""
+    """Return compound system health from the metrics collector.
+
+    Includes mcp_telemetry (item 888) -- per-tool call/error/latency stats matching
+    the Claude connector directory observability format.
+    Includes mcp_windowed_health (item 906) -- per-tool windowed spike flags + metrics.
+    """
     from cohezion.compound.metrics import get_collector
+    from cohezion.mcp.compound_mcp_telemetry import (
+        _WINDOWED_TELEMETRY,
+        get_tool_telemetry_summary,
+        get_telemetry_health_snapshot,
+    )
 
     collector = get_collector()
-    return CompoundHealthResponse(**collector.to_health_dict())
+    health_data = {
+        **collector.to_health_dict(),
+        "mcp_telemetry": get_tool_telemetry_summary(),
+        # Item 906: windowed spike flags + recent metrics (60s recent, 5min baseline)
+        "mcp_windowed_health": get_telemetry_health_snapshot(
+            _WINDOWED_TELEMETRY, window_ms=60_000, baseline_window_ms=300_000
+        ),
+    }
+    return CompoundHealthResponse(**health_data)
 
 
 class CompoundHistoryResponse(BaseModel):
@@ -1748,6 +1770,15 @@ try:
     app.include_router(training_router)
 except ImportError:
     pass  # training routes not available
+
+
+# Portfolio tracker — competition and project tracking
+try:
+    from cohezion.api.services.portfolio import portfolio_router
+
+    app.include_router(portfolio_router, prefix="/api")
+except ImportError:
+    pass  # portfolio module not available
 
 
 __all__ = [

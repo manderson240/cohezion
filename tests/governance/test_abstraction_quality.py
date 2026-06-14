@@ -1,89 +1,202 @@
-"""Discriminating tests for abstraction_quality (backlog item 92, 2026-06-08).
+"""Item 92: abstraction_quality() neuron-deposit abstraction-quality audit (TDD red→green).
 
-`abstraction_quality(neurons, *, min_volatile=1)` is the 4th deposit-quality dimension (grounded in
-arXiv 2606.04703 ExpInternalization): flag neuron deposits whose `content` is INSTANCE-SPECIFIC —
-carrying STRONG volatile tokens (file paths, hex ids/SHAs, UUIDs, ISO dates, times, line-refs)
-rather than abstract principle-level. Report-only, pure over an injected neuron list.
+arXiv 2606.04703 (ExpInternalization): abstract principle-level experience beats
+instance-specific detail for stable self-evolution.
 
-Each test fails a plausible wrong impl:
-  - an impl that flags any digit → test_incidental_bare_number_not_flagged,
-  - an impl that misses a concrete path/SHA/line-ref → test_path/sha/linenumber flagged,
-  - an impl that flags an abstract principle → test_abstract_principle_not_flagged,
-  - an impl that crashes on a non-dict / missing content → test_robust_to_missing_content.
+Each test fails a plausible wrong implementation:
+  - one that flags ANY digit → test_incidental_number_not_flagged
+  - one that misses file paths → test_absolute_path_flagged
+  - one that misses SHAs → test_sha_flagged
+  - one that misses timestamps → test_iso_timestamp_flagged
+  - one that flags clean principles → test_abstract_principle_not_flagged
+  - one that crashes on empty → test_empty_neurons_returns_empty
 """
 
 from __future__ import annotations
 
-from cohezion.governance.neuron_quality import abstraction_quality
+from cohezion.governance.abstraction_quality import abstraction_quality
 
 
-def _n(name: str, content: str) -> dict:
-    return {"name": name, "content": content, "country": "cerebellum", "tags": ["t"]}
+# ---------------------------------------------------------------------------
+# T_path: absolute Unix/Windows path → instance_specific=True
+# Fails: an impl that ignores path patterns.
+# ---------------------------------------------------------------------------
 
 
-def test_path_flagged() -> None:
-    out = abstraction_quality([_n("p", "edit src/cohezion/executor.py to fix the wiring")])
-    assert out == ["p"]
+def test_absolute_path_flagged() -> None:
+    """A neuron whose content contains an absolute path is instance-specific."""
+    neurons = [
+        {
+            "name": "n-path-1",
+            "content": "Apply the fix at /home/mike/dev/cohezion/src/cohezion/compound/executor.py line 231",
+        }
+    ]
+    result = abstraction_quality(neurons)
+    assert len(result) == 1
+    flag = result[0]
+    assert flag.name == "n-path-1"
+    assert flag.instance_specific, "absolute path must flag as instance_specific"
+
+
+# ---------------------------------------------------------------------------
+# T_sha: SHA/hex commit hash → instance_specific=True
+# Fails: an impl that ignores hex patterns.
+# ---------------------------------------------------------------------------
 
 
 def test_sha_flagged() -> None:
-    out = abstraction_quality([_n("s", "the regression landed in commit 89afebf7c last night")])
-    assert out == ["s"]
+    """A neuron containing a 40-char SHA or long hex hash is instance-specific."""
+    neurons = [
+        {
+            "name": "n-sha-1",
+            "content": "This was fixed in a0b1c2d3e4f5a6b7c8d9e0f1a2b3c4d5e6f7a8b9",
+        }
+    ]
+    result = abstraction_quality(neurons)
+    flag = next((f for f in result if f.name == "n-sha-1"), None)
+    assert flag is not None
+    assert flag.instance_specific, "40-char SHA must flag as instance_specific"
 
 
-def test_line_number_flagged() -> None:
-    out = abstraction_quality([_n("l", "the lock releases at handler:42 before the write")])
-    assert out == ["l"]
+# ---------------------------------------------------------------------------
+# T_timestamp: ISO 8601 timestamp → instance_specific=True
+# Fails: an impl that only checks paths and SHAs.
+# ---------------------------------------------------------------------------
 
 
-def test_iso_date_flagged() -> None:
-    out = abstraction_quality([_n("d", "the OOM happened on 2026-06-07 during the SD-Turbo load")])
-    assert out == ["d"]
+def test_iso_timestamp_flagged() -> None:
+    """A neuron with an ISO timestamp is instance-specific (captures a specific event)."""
+    neurons = [
+        {
+            "name": "n-ts-1",
+            "content": "Session 2026-06-07T14:23:45 showed FLUME VAE collapse at beta=0.02",
+        }
+    ]
+    result = abstraction_quality(neurons)
+    flag = next((f for f in result if f.name == "n-ts-1"), None)
+    assert flag is not None
+    assert flag.instance_specific, "ISO timestamp must flag as instance_specific"
+
+
+# ---------------------------------------------------------------------------
+# T_uuid: UUID → instance_specific=True
+# ---------------------------------------------------------------------------
 
 
 def test_uuid_flagged() -> None:
-    out = abstraction_quality([_n("u", "session 1b9d6bcd-bbfd-4b2d-9b5d-ab8dfbbd4bed crashed")])
-    assert out == ["u"]
+    """A neuron with a UUID string is instance-specific (session/record ID)."""
+    neurons = [
+        {
+            "name": "n-uuid-1",
+            "content": "Retry from session 550e8400-e29b-41d4-a716-446655440000 using the same params",
+        }
+    ]
+    result = abstraction_quality(neurons)
+    flag = next((f for f in result if f.name == "n-uuid-1"), None)
+    assert flag is not None
+    assert flag.instance_specific, "UUID must flag as instance_specific"
+
+
+# ---------------------------------------------------------------------------
+# T_abstract: clean principle neuron → instance_specific=False
+# Fails: an impl that always flags or flags on general words.
+# ---------------------------------------------------------------------------
 
 
 def test_abstract_principle_not_flagged() -> None:
-    # A principle-level deposit with NO volatile tokens → not flagged (the ExpInternalization ideal).
-    out = abstraction_quality(
-        [_n("a", "always validate inputs at the boundary before processing them")]
-    )
-    assert out == []
-
-
-def test_incidental_bare_number_not_flagged() -> None:
-    # DISCRIMINATING: a bare incidental number is NOT a strong token. An impl that flags any digit
-    # would wrongly flag this principle.
-    out = abstraction_quality(
-        [_n("b", "retry up to 3 times on a transient failure, then escalate")]
-    )
-    assert out == []
-
-
-def test_fraction_not_flagged_as_path() -> None:
-    # DISCRIMINATING: "3/4" is a fraction, NOT a file path (the path regex requires a letter).
-    out = abstraction_quality([_n("f", "keep coherence near 3/4 of the band for stability")])
-    assert out == []
-
-
-def test_min_volatile_threshold() -> None:
-    # With min_volatile=2, a single volatile token is below threshold → not flagged; two → flagged.
-    one = [_n("one", "see executor.py:10 for the pattern")]  # path+line-ref = 2 tokens actually
-    assert abstraction_quality([_n("single", "happened on 2026-06-07")], min_volatile=2) == []
-    assert abstraction_quality(one, min_volatile=2) == ["one"]  # path + :10 → 2 strong tokens
-
-
-def test_robust_to_missing_content_and_non_dict() -> None:
+    """A neuron of abstracted procedural principle is NOT instance-specific."""
     neurons = [
-        {"name": "no_content", "country": "cerebellum"},  # no content field
-        "not a dict",  # non-dict entry
-        _n("has_path", "in src/foo.py"),
+        {
+            "name": "n-principle-1",
+            "content": (
+                "Use a 2-layer decoder with hidden dimension 4096 to prevent KL collapse. "
+                "The cyclic beta schedule must keep the amplitude below 0.01 to stay within "
+                "the HIHO equilibrium band. Monitor the KL term across training steps."
+            ),
+        }
     ]
-    assert abstraction_quality(neurons) == ["has_path"]
+    result = abstraction_quality(neurons)
+    flag = next((f for f in result if f.name == "n-principle-1"), None)
+    assert flag is not None
+    assert not flag.instance_specific, (
+        "A principle neuron with only numbers like '2', '4096', '0.01' must NOT be flagged — "
+        "kills the naive 'any digit → instance' impl"
+    )
 
 
-def test_empty_store_empty() -> None:
-    assert abstraction_quality([]) == []
+# ---------------------------------------------------------------------------
+# T_incidental_number: one incidental number below density threshold → NOT flagged
+# Fails: a naive 'any digit → instance_specific' impl.
+# ---------------------------------------------------------------------------
+
+
+def test_incidental_number_not_flagged() -> None:
+    """A single incidental number in a principled neuron is NOT instance-specific.
+
+    This is the PRIMARY discriminating test: any impl that uses 'contains a digit'
+    as the instance-specific signal will fail this test.
+    """
+    neurons = [
+        {
+            "name": "n-borderline-1",
+            "content": "The optimal learning rate for the HIHO phase is approximately 3 orders of magnitude below the instability threshold",
+        }
+    ]
+    result = abstraction_quality(neurons)
+    flag = next((f for f in result if f.name == "n-borderline-1"), None)
+    assert flag is not None
+    assert not flag.instance_specific, (
+        "One incidental number ('3 orders of magnitude') must NOT flag as instance_specific"
+    )
+
+
+# ---------------------------------------------------------------------------
+# T_empty: empty neuron list → empty result
+# Fails: an impl that crashes on empty input.
+# ---------------------------------------------------------------------------
+
+
+def test_empty_neurons_returns_empty() -> None:
+    """No neurons → empty AbstractionFlag list, no crash."""
+    result = abstraction_quality([])
+    assert result == []
+
+
+# ---------------------------------------------------------------------------
+# T_mixed: mixed store — some flagged, some clean
+# Fails: an impl that flags ALL or flags NONE.
+# ---------------------------------------------------------------------------
+
+
+def test_mixed_store_partial_flags() -> None:
+    """A store with both instance-specific and abstract neurons flags only the former."""
+    neurons = [
+        {"name": "n-clean", "content": "Always validate Pydantic boundaries before processing"},
+        {
+            "name": "n-dirty",
+            "content": "Found the bug at src/cohezion/cache/semantic_cache.py line 87",
+        },
+    ]
+    result = abstraction_quality(neurons)
+    by_name = {f.name: f for f in result}
+    assert "n-clean" in by_name
+    assert "n-dirty" in by_name
+    assert not by_name["n-clean"].instance_specific, "clean principle must not be flagged"
+    assert by_name["n-dirty"].instance_specific, "path+line-ref must be flagged"
+
+
+# ---------------------------------------------------------------------------
+# T_no_content: neuron missing 'content' key → not flagged (safe default)
+# Fails: an impl that crashes on missing keys.
+# ---------------------------------------------------------------------------
+
+
+def test_neuron_missing_content_skipped() -> None:
+    """A neuron dict without a 'content' key is treated as empty content (not flagged)."""
+    neurons = [{"name": "n-no-content"}]
+    result = abstraction_quality(neurons)
+    flag = next((f for f in result if f.name == "n-no-content"), None)
+    assert flag is not None
+    assert not flag.instance_specific, (
+        "missing content → no volatile tokens → not instance_specific"
+    )

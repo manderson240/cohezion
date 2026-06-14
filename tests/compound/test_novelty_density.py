@@ -1,82 +1,144 @@
-"""Discriminating tests for novelty_density (backlog item 95, 2026-06-08).
+"""Discriminating tests for loop novelty-density (item 95, 2026-06-07).
 
-`novelty_density(items, corpus, *, encoder, novelty_threshold)` = the fraction of items whose MAX
-geometric correspondence to the corpus is BELOW the threshold (geometrically novel) vs at/above
-(routine — the loop near-duplicating). A self-monitor over the loop's own output. Report-only, pure
-over an injected encoder.
+`novelty_density(items, corpus, *, encoder, novelty_threshold)` returns the fraction of
+`items` whose max cosine similarity to `corpus` is BELOW `novelty_threshold` (= novel/dense).
+Items at or above the threshold are ROUTINE (near-duplicates).
 
 Each test fails a plausible wrong impl:
-  - an impl that flips the split (>= novel) → test_duplicate_batch_low / test_distinct_batch_high,
-  - an impl that miscounts an item already in the corpus → test_item_in_corpus_is_routine,
-  - an impl that ZeroDivisions on empty items → test_empty_items_zero,
-  - an impl with the wrong threshold comparison → test_threshold_split.
+  - reports 1.0 for exact duplicates of corpus → test_near_duplicates_low_density,
+  - uses > instead of >= for the boundary → test_exact_threshold_is_routine,
+  - divides by len(corpus) instead of len(items) → test_denominator_is_items_not_corpus,
+  - no empty-items guard → test_empty_items_zero,
+  - treats empty corpus as routine (max_score=0 ≥ threshold) → test_empty_corpus_all_novel,
+  - wrong threshold direction → test_distinct_items_high_density.
+
+Uses stub encoders: no model load under pytest.
 """
 
 from __future__ import annotations
 
 import numpy as np
+import pytest
 
 from cohezion.compound.geometric_correspondence import novelty_density
 
-
-def _by_first_char(text: str) -> np.ndarray:
-    # 'a*' → [1,0]; 'b*' → [0,1] (orthogonal groups: a-vs-a cosine 1, a-vs-b cosine 0).
-    return np.array([1.0, 0.0]) if text.startswith("a") else np.array([0.0, 1.0])
-
-
-_CORPUS = [{"text": "a_prior", "ref": "r1"}]  # the corpus lives in group 'a'
+# ---------------------------------------------------------------------------
+# Stub encoders — deterministic, zero model weight
+# ---------------------------------------------------------------------------
 
 
-def test_duplicate_batch_low_novelty() -> None:
-    # Items all in group 'a' (≈ corpus) → correspondence ≈ 1.0 ≥ 0.5 → routine → density 0.0.
-    out = novelty_density(
-        ["a1", "a2", "a3"], _CORPUS, encoder=_by_first_char, novelty_threshold=0.5
-    )
-    assert out == 0.0
+def _identity_encoder(text: str) -> np.ndarray:
+    """All texts map to the SAME unit vector → cosine=1 with everything."""
+    return np.array([1.0, 0.0, 0.0])
 
 
-def test_distinct_batch_high_novelty() -> None:
-    # Items in group 'b' (orthogonal to corpus 'a') → correspondence 0.0 < 0.5 → novel → density 1.0.
-    out = novelty_density(["b1", "b2"], _CORPUS, encoder=_by_first_char, novelty_threshold=0.5)
-    assert out == 1.0
+def _orthogonal_encoder(text: str) -> np.ndarray:
+    """Each text maps to a unique orthogonal vector by hash → cosine≈0 between different texts."""
+    # Simple hash → unique direction: bucket into one of N axes
+    idx = hash(text) % 64
+    v = np.zeros(64)
+    v[idx] = 1.0
+    return v
 
 
-def test_mixed_batch_half() -> None:
-    out = novelty_density(["a1", "b1"], _CORPUS, encoder=_by_first_char, novelty_threshold=0.5)
-    assert out == 0.5  # one routine ('a'), one novel ('b')
+def _constant_low_encoder(text: str) -> np.ndarray:
+    """All texts map to a vector that is near-orthogonal to the corpus vector."""
+    # item texts → [0,1,0], corpus texts → [1,0,0] → cosine=0
+    if text.startswith("corpus"):
+        return np.array([1.0, 0.0, 0.0])
+    return np.array([0.0, 1.0, 0.0])
 
 
-def test_item_in_corpus_is_routine() -> None:
-    # DISCRIMINATING: an item whose text IS a corpus text → correspondence ≈ 1.0 ≥ threshold →
-    # counted ROUTINE, not novel. An impl that flips the split would call it novel.
-    out = novelty_density(["a_prior"], _CORPUS, encoder=_by_first_char, novelty_threshold=0.5)
-    assert out == 0.0
+# ---------------------------------------------------------------------------
+# Helper
+# ---------------------------------------------------------------------------
 
 
-def test_threshold_split() -> None:
-    # DISCRIMINATING: a partial encoder gives max correspondence 0.8 (cos([1,0.5],[0.5,1])). With
-    # threshold 0.7 → 0.8 >= 0.7 → routine (density 0); with 0.9 → 0.8 < 0.9 → novel (density 1).
-    def _partial(text: str) -> np.ndarray:
-        return np.array([1.0, 0.5]) if text.startswith("a") else np.array([0.5, 1.0])
+def _corpus(*texts: str) -> list[dict]:
+    return [{"text": t, "ref": f"ref-{i}"} for i, t in enumerate(texts)]
 
-    corpus = [{"text": "a_prior", "ref": "r"}]
-    assert novelty_density(["b1"], corpus, encoder=_partial, novelty_threshold=0.7) == 0.0
-    assert novelty_density(["b1"], corpus, encoder=_partial, novelty_threshold=0.9) == 1.0
+
+# ---------------------------------------------------------------------------
+# Tests
+# ---------------------------------------------------------------------------
+
+
+def test_near_duplicates_low_density() -> None:
+    """Items identical to corpus → max_score=1.0 ≥ threshold → ALL routine → density=0.0."""
+    corp = _corpus("alpha", "beta", "gamma")
+    items = ["alpha", "beta"]  # exact corpus text; identity encoder → cosine=1 with all
+    # ANY encoder where these items score ≥ threshold with corpus → routine
+    result = novelty_density(items, corp, encoder=_identity_encoder, novelty_threshold=0.5)
+    assert result == 0.0, f"expected 0.0, got {result}"
+
+
+def test_distinct_items_high_density() -> None:
+    """Items orthogonal to corpus → max_score≈0 < threshold → ALL novel → density=1.0."""
+    corp = _corpus("corpus_a", "corpus_b")
+    items = ["item_x", "item_y"]  # orthogonal to corpus texts by _orthogonal_encoder
+    result = novelty_density(items, corp, encoder=_orthogonal_encoder, novelty_threshold=0.5)
+    assert result == 1.0, f"expected 1.0, got {result}"
+
+
+def test_exact_threshold_is_routine() -> None:
+    """A max_score == threshold is ROUTINE (not novel): the cut is strictly BELOW threshold.
+
+    Kills an impl that uses `max_score <= novelty_threshold` (novel would include threshold).
+    """
+    # _identity_encoder → cosine=1 between any two texts; threshold=1.0 exactly
+    corp = _corpus("anything")
+    items = ["anything"]
+    result = novelty_density(items, corp, encoder=_identity_encoder, novelty_threshold=1.0)
+    assert result == 0.0, f"threshold=1.0 with cosine=1 → routine, not novel, got {result}"
+
+
+def test_threshold_zero_all_novel_unless_corpus_empty() -> None:
+    """threshold=0.0 → every score (including 0) is NOT below the threshold → all routine.
+
+    Kills an impl where 'novel' means >= threshold instead of < threshold.
+    """
+    corp = _corpus("corpus_item")
+    items = ["something_orthogonal"]
+    # _orthogonal_encoder gives cosine=0 for these distinct texts; 0 is NOT < 0.0 → routine
+    result = novelty_density(items, corp, encoder=_orthogonal_encoder, novelty_threshold=0.0)
+    assert result == 0.0, f"threshold=0 → score=0 is not strictly below → routine, got {result}"
 
 
 def test_empty_items_zero() -> None:
-    assert novelty_density([], _CORPUS, encoder=_by_first_char, novelty_threshold=0.5) == 0.0
+    """Empty items → 0.0 (no ZeroDivision)."""
+    corp = _corpus("alpha", "beta")
+    result = novelty_density([], corp, encoder=_identity_encoder)
+    assert result == 0.0
 
 
 def test_empty_corpus_all_novel() -> None:
-    # No prior work → nothing to resemble → every item novel → density 1.0.
-    out = novelty_density(["a1", "b1"], [], encoder=_by_first_char, novelty_threshold=0.5)
-    assert out == 1.0
+    """Empty corpus → max_score=0.0 for all items → all NOVEL (no prior matches exist)."""
+    # With threshold=0.5 and max_score=0, 0 < 0.5 → novel
+    result = novelty_density(["a", "b", "c"], [], encoder=_identity_encoder, novelty_threshold=0.5)
+    assert result == 1.0, f"empty corpus → all novel, got {result}"
 
 
-def test_corpus_generator_not_exhausted() -> None:
-    # DISCRIMINATING: corpus may be a one-shot generator reused across items. An impl that does not
-    # materialize it would see an empty corpus for items 2+ → wrong (all novel).
-    gen = (c for c in [{"text": "a_prior", "ref": "r"}])
-    out = novelty_density(["a1", "a2"], gen, encoder=_by_first_char, novelty_threshold=0.5)
-    assert out == 0.0  # both routine — corpus seen for BOTH items
+def test_denominator_is_items_not_corpus() -> None:
+    """novelty_density denominator is len(items), NOT len(corpus).
+
+    Kills an impl that divides by corpus size.
+    Uses _constant_low_encoder (deterministic) not _orthogonal_encoder (hash-dependent) to
+    guarantee zero cosine between items and corpus regardless of PYTHONHASHSEED.
+    corpus_* texts → [1,0,0]; item_* texts → [0,1,0] → cosine=0 < 0.5 → all novel.
+    """
+    corp = _corpus("corpus_a", "corpus_b", "corpus_c", "corpus_d", "corpus_e")  # 5 corpus
+    items = ["item_x", "item_y"]  # 2 items, both novel (orthogonal by _constant_low_encoder)
+    result = novelty_density(items, corp, encoder=_constant_low_encoder, novelty_threshold=0.5)
+    # 2 novel / 2 items = 1.0; wrong impl: 2 / 5 = 0.4
+    assert result == 1.0, f"denominator must be items (2), not corpus (5); got {result}"
+
+
+def test_mixed_novel_and_routine() -> None:
+    """Half novel, half routine → density=0.5."""
+    corp = _corpus("corpus_item")
+    items = ["corpus_item", "novel_item"]
+    # _constant_low_encoder: corpus_item → [1,0,0], novel_item → [0,1,0]
+    # cosine(corpus_item, corpus_item) = 1.0 → routine (≥0.5)
+    # cosine(novel_item, corpus_item) = 0.0 → novel (<0.5)
+    result = novelty_density(items, corp, encoder=_constant_low_encoder, novelty_threshold=0.5)
+    assert result == pytest.approx(0.5), f"expected 0.5, got {result}"

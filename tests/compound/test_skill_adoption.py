@@ -115,3 +115,78 @@ def test_malformed_events_do_not_crash() -> None:
     events = [{"skill_name": "alpha"}, {}, {"skill_name": None}, "junk"]  # type: ignore[list-item]
     rep = low_adoption_report(events, ["alpha", "beta"], min_uses=2)
     assert rep == {"alpha": 1, "beta": 0}
+
+
+# --- item 82: firing_concentration (top-heaviness scalar) ------------------------------------
+
+from cohezion.compound.skill_adoption import FiringConcentration, firing_concentration
+
+
+def test_top_skill_share_9_of_10() -> None:
+    """1 of 4 registered skills gets 9 of 10 firings → top_skill_share == 0.9.
+
+    The backlog falsifiable check verbatim.  An impl using event-count denominator
+    OR incorrectly including unregistered firings changes the value.
+    """
+    registry = ["alpha", "beta", "gamma", "delta"]
+    events = _evn("alpha", 9) + _evn("beta", 1)
+    result = firing_concentration(events, registry)
+    assert isinstance(result, FiringConcentration)
+    assert result.top_skill_share == 0.9, f"expected 0.9, got {result.top_skill_share}"
+    assert result.total_firings == 10
+
+
+def test_unused_share_denominator_is_registry_size_not_fired_count() -> None:
+    """unused_share uses len(registry) as denominator, NOT len(fired_skills).
+
+    4 registered skills, only 1 fires → unused_share = 3/4 = 0.75.
+    A wrong impl dividing by fired-skill count (1) gives 3/1 = 3.0 — fails this test.
+    """
+    registry = ["alpha", "beta", "gamma", "delta"]
+    events = _evn("alpha", 5)  # only alpha fires; beta/gamma/delta never fire
+    result = firing_concentration(events, registry)
+    assert result.unused_share == 0.75, (
+        f"denominator must be registry size (4), not fired-skill count (1); got {result.unused_share}"
+    )
+
+
+def test_zero_events_no_zerodivision() -> None:
+    """Zero events → top_skill_share=0.0, unused_share=1.0, total_firings=0. No ZeroDivision."""
+    registry = ["alpha", "beta", "gamma"]
+    result = firing_concentration([], registry)
+    assert result.top_skill_share == 0.0
+    assert result.unused_share == 1.0
+    assert result.total_firings == 0
+
+
+def test_unregistered_firings_excluded_from_top_share_and_total() -> None:
+    """Unregistered skill fires 99× while 1 registered fires once → top_skill_share=1.0, total=1.
+
+    An impl including unregistered firings gives top_skill_share=1/100=0.01 and total=100 — fails.
+    """
+    registry = ["alpha"]
+    events = _evn("alpha", 1) + _evn("not_in_registry", 99)
+    result = firing_concentration(events, registry)
+    assert result.top_skill_share == 1.0, (
+        f"unregistered firings must not reduce top_skill_share; got {result.top_skill_share}"
+    )
+    assert result.total_firings == 1, (
+        f"total_firings must count only registered firings; got {result.total_firings}"
+    )
+
+
+def test_empty_registry_no_zerodivision() -> None:
+    """Empty registry → unused_share=0.0, top_skill_share=0.0, total_firings=0. No ZeroDivision."""
+    result = firing_concentration(_evn("alpha", 5), [])
+    assert result.unused_share == 0.0
+    assert result.top_skill_share == 0.0
+    assert result.total_firings == 0
+
+
+def test_all_skills_active_unused_share_zero() -> None:
+    """When every registered skill fires at least once, unused_share == 0.0."""
+    registry = ["alpha", "beta", "gamma"]
+    events = _evn("alpha", 3) + _evn("beta", 2) + _evn("gamma", 1)
+    result = firing_concentration(events, registry)
+    assert result.unused_share == 0.0
+    assert result.total_firings == 6

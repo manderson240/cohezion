@@ -1,0 +1,73 @@
+"""Item 787: fid_severity_rank_fraction_at_or_above() -- fraction at or above threshold per fid.
+
+fid_severity_rank_fraction_at_or_above(problems, threshold: int) -> dict[str, float].
+Fid-axis complement of class_severity_rank_fraction_at_or_above (item 786).
+fraction = count(rank >= threshold) / n per fid.
+Empty -> {}.  Pure; no I/O.
+
+Discriminating tests:
+  1. PRIMARY DISC.: outer key is FID; [CRIT*3,HIGH*2] fraction_at_or_above(3)=1.0;
+     class-outer wrong; count_at_rank(3)/n=0.4 wrong.
+  2. Threshold above all -> 0.0.
+  3. Empty -> {}.
+  4. Multiple fids independent.
+  5. Return type is float.
+"""
+
+from __future__ import annotations
+import math
+
+from cohezion.compound.problem_discovery import Problem, fid_severity_rank_fraction_at_or_above
+
+
+def _p(fid: str, sev: str) -> Problem:
+    return Problem(problem_class="A", finding_id=fid, severity=sev)
+
+
+def test_fid_outer_fraction_at_or_above_primary_discriminator() -> None:
+    """PRIMARY DISC.: outer key is FID; fraction_at_or_above(3)=1.0; class-outer wrong.
+
+    fid f1: [CRITICAL(4)*3, HIGH(3)*2] -> count(rank>=3)=5/5=1.0.
+    """
+    problems = [_p("f1", "CRITICAL")] * 3 + [_p("f1", "HIGH")] * 2
+    result = fid_severity_rank_fraction_at_or_above(problems, 3)
+    assert isinstance(result, dict), "Must return dict"
+    assert "f1" in result, f"'f1' must be outer key; got {list(result)}"
+    assert "A" not in result, f"Class 'A' must NOT be key; got {list(result)}"
+    got = result["f1"]
+    assert math.isclose(got, 1.0, abs_tol=1e-9), f"fraction_at_or_above(3)=1.0; got {got}"
+    assert not math.isclose(got, 0.4, abs_tol=1e-6), "Must be at-or-above not exact"
+
+
+def test_threshold_above_all_gives_zero() -> None:
+    """Threshold above all ranks -> 0.0."""
+    problems = [_p("f2", "HIGH")] * 3  # rank=3
+    result = fid_severity_rank_fraction_at_or_above(problems, 4)
+    got = result.get("f2")
+    assert got is not None and math.isclose(got, 0.0, abs_tol=1e-9), (
+        f"All HIGH(3) with threshold=4 -> 0.0; got {got}"
+    )
+
+
+def test_empty_returns_empty_dict() -> None:
+    """Empty -> {}."""
+    assert fid_severity_rank_fraction_at_or_above([], 3) == {}
+
+
+def test_multiple_fids_independent() -> None:
+    """Two fids computed independently."""
+    problems = (
+        [_p("fA", "CRITICAL")] * 3
+        + [_p("fA", "HIGH")] * 2  # at_or_above(4)=0.6
+        + [_p("fB", "HIGH")] * 4  # at_or_above(4)=0.0
+    )
+    result = fid_severity_rank_fraction_at_or_above(problems, 4)
+    assert math.isclose(result["fA"], 0.6, abs_tol=1e-9), f"fA -> 0.6; got {result['fA']}"
+    assert math.isclose(result["fB"], 0.0, abs_tol=1e-9), f"fB -> 0.0; got {result['fB']}"
+
+
+def test_return_type_is_float() -> None:
+    """Result values must be float."""
+    problems = [_p("f3", "CRITICAL"), _p("f3", "INFO")]
+    result = fid_severity_rank_fraction_at_or_above(problems, 3)
+    assert isinstance(result["f3"], float), f"Must be float; got {type(result['f3'])}"

@@ -1,77 +1,128 @@
-"""Discriminating tests for firing_concentration (backlog item 82, 2026-06-08).
+"""Item 82: skill-firing concentration scalar (report-only, TDD red→green).
 
-`firing_concentration(usage_events, registry_skills)` → `{top_skill_share, unused_share,
-total_firings}`: the top-heaviness scalar behind item-60's long tail. Shares item-60's
-`_counts_per_registered_skill` core (unregistered firings ignored; never-fired registered skills
-count toward unused_share). Report-only, pure over injected events.
+`firing_concentration(usage_events, registry_skills)` → `FiringConcentration`
+with `{top_skill_share, unused_share, total_firings}`.
 
 Each test fails a plausible wrong impl:
-  - an impl that divides unused by FIRED-skill count, not registered count → test_unused_share_over_all_registered,
-  - an impl that counts unregistered firings → test_unregistered_firings_excluded,
-  - an impl that ZeroDivisions on no events / empty registry → test_zero_events / test_empty_registry,
-  - an impl that picks a non-max skill for the top share → test_top_share_is_the_max.
+  - divides unused_share by fired-skill count (not registry size)  -> test_unused_share_over_registry
+  - counts unregistered firings in total_firings                    -> test_unregistered_excluded
+  - ZeroDivision on empty event stream                              -> test_zero_events_no_crash
+  - top_skill_share uses event count not registered-firing count    -> test_top_skill_share_excludes_unregistered
 """
 
 from __future__ import annotations
 
+import pytest
+
 from cohezion.compound.skill_adoption import FiringConcentration, firing_concentration
 
 
-def _events(*names: str) -> list[dict]:
-    return [{"skill_name": n} for n in names]
+# ---------------------------------------------------------------------------
+# Helpers
+# ---------------------------------------------------------------------------
 
 
-def test_nine_of_ten_to_one_skill() -> None:
-    # registry {A,B,C,D}; A fires 9, B fires 1 → top_skill_share 0.9, unused {C,D} → 0.5.
-    out = firing_concentration(_events(*(["A"] * 9 + ["B"])), ["A", "B", "C", "D"])
-    assert out.top_skill_share == 0.9
-    assert out.unused_share == 0.5
-    assert out.total_firings == 10
+def _evt(skill: str) -> dict:
+    return {"skill_name": skill}
 
 
-def test_unused_share_over_all_registered() -> None:
-    # DISCRIMINATING: 2 of 4 registered skills never fire. unused_share must be 2/4 == 0.5, NOT
-    # 2/2 (an impl dividing by the count of FIRED skills) and NOT 0.
-    out = firing_concentration(_events("A", "A", "B"), ["A", "B", "C", "D"])
-    assert out.unused_share == 0.5
+# ---------------------------------------------------------------------------
+# Core discrimination tests
+# ---------------------------------------------------------------------------
 
 
-def test_unregistered_firings_excluded() -> None:
-    # DISCRIMINATING: registry {A}; A fires twice, unregistered X fires 5 times. total_firings is 2
-    # (NOT 7), and top_skill_share is 2/2 == 1.0 (X excluded from both numerator and denominator).
-    out = firing_concentration(_events("A", "A", "X", "X", "X", "X", "X"), ["A"])
-    assert out.total_firings == 2
-    assert out.top_skill_share == 1.0
-    assert out.unused_share == 0.0
+class TestTopSkillShare:
+    """top_skill_share = most_fired / total_registered_firings."""
+
+    def test_one_skill_dominates(self) -> None:
+        """1 of 4 skills gets 9 of 10 firings → top_skill_share == 0.9."""
+        events = [_evt("alpha")] * 9 + [_evt("beta")]
+        result = firing_concentration(events, registry_skills=["alpha", "beta", "gamma", "delta"])
+        assert result.top_skill_share == pytest.approx(0.9)
+
+    def test_uniform_distribution(self) -> None:
+        """When all registered skills fire equally, top_share = 1/N."""
+        events = [_evt("A"), _evt("B"), _evt("C"), _evt("D")]
+        result = firing_concentration(events, registry_skills=["A", "B", "C", "D"])
+        assert result.top_skill_share == pytest.approx(0.25)
+
+    def test_single_skill_all_firings(self) -> None:
+        """One registered skill with all firings → top_skill_share == 1.0."""
+        events = [_evt("X")] * 5
+        result = firing_concentration(events, registry_skills=["X", "Y"])
+        assert result.top_skill_share == pytest.approx(1.0)
+
+    def test_top_skill_share_excludes_unregistered(self) -> None:
+        """Unregistered firings are excluded from both numerator and denominator."""
+        # 3 registered firings (all to "A"), 7 unregistered firings → share = 3/3 = 1.0
+        events = [_evt("A")] * 3 + [_evt("unregistered")] * 7
+        result = firing_concentration(events, registry_skills=["A", "B"])
+        assert result.total_firings == 3
+        assert result.top_skill_share == pytest.approx(1.0)
 
 
-def test_zero_events() -> None:
-    # DISCRIMINATING: no events → top_skill_share 0.0 (no ZeroDivision), unused_share 1.0, total 0.
-    out = firing_concentration([], ["A", "B", "C"])
-    assert out.top_skill_share == 0.0
-    assert out.unused_share == 1.0
-    assert out.total_firings == 0
+class TestUnusedShare:
+    """unused_share = never_fired / total_registered (NOT / fired-skill count)."""
+
+    def test_unused_share_over_registry(self) -> None:
+        """MAIN DISCRIMINATOR: unused_share divides by registry size, not fired-skill count.
+
+        3 registered skills; only 1 fires; unused = 2.
+        unused_share = 2/3, NOT 2/1 (the wrong impl divides by 1 fired skill).
+        """
+        events = [_evt("A")]
+        result = firing_concentration(events, registry_skills=["A", "B", "C"])
+        assert result.unused_share == pytest.approx(2 / 3)
+
+    def test_all_skills_fire(self) -> None:
+        """When every registered skill fires at least once, unused_share == 0.0."""
+        events = [_evt("A"), _evt("B"), _evt("C")]
+        result = firing_concentration(events, registry_skills=["A", "B", "C"])
+        assert result.unused_share == pytest.approx(0.0)
+
+    def test_no_skills_fire(self) -> None:
+        """When nothing fires (empty events), all registered skills are unused → share == 1.0."""
+        result = firing_concentration([], registry_skills=["A", "B", "C"])
+        assert result.unused_share == pytest.approx(1.0)
 
 
-def test_empty_registry() -> None:
-    # DISCRIMINATING: empty registry → no ZeroDivision on unused_share; firings to unregistered
-    # skills are ignored, so total_firings is 0 and all shares are 0.0.
-    out = firing_concentration(_events("A", "B"), [])
-    assert out.top_skill_share == 0.0
-    assert out.unused_share == 0.0
-    assert out.total_firings == 0
+class TestTotalFirings:
+    """total_firings counts only registered firings."""
+
+    def test_unregistered_excluded(self) -> None:
+        """Unregistered skill firings are NOT counted in total_firings."""
+        events = [_evt("registered")] * 4 + [_evt("ghost")] * 10
+        result = firing_concentration(events, registry_skills=["registered", "other"])
+        assert result.total_firings == 4
+
+    def test_zero_events(self) -> None:
+        """Empty event stream → total_firings == 0."""
+        result = firing_concentration([], registry_skills=["A", "B"])
+        assert result.total_firings == 0
 
 
-def test_top_share_is_the_max() -> None:
-    # DISCRIMINATING: top_skill_share is the MAX skill's share, regardless of insertion order.
-    out = firing_concentration(_events("B", "A", "A", "A", "B", "B", "B", "B"), ["A", "B"])
-    # B fires 5, A fires 3, total 8 → top is B's 5/8.
-    assert out.top_skill_share == 5 / 8
-    assert out.total_firings == 8
-    assert out.unused_share == 0.0
+class TestEdgeCases:
+    """Zero-division guards and trivial inputs."""
 
+    def test_zero_events_no_crash(self) -> None:
+        """Empty event stream must not raise ZeroDivisionError."""
+        result = firing_concentration([], registry_skills=["A", "B", "C"])
+        assert isinstance(result, FiringConcentration)
+        assert result.top_skill_share == pytest.approx(0.0)
+        assert result.unused_share == pytest.approx(1.0)
+        assert result.total_firings == 0
 
-def test_returns_dataclass() -> None:
-    out = firing_concentration(_events("A"), ["A", "B"])
-    assert isinstance(out, FiringConcentration)
-    assert out.total_firings == 1 and out.top_skill_share == 1.0 and out.unused_share == 0.5
+    def test_empty_registry_no_crash(self) -> None:
+        """Empty registry (no registered skills) must not crash."""
+        result = firing_concentration([_evt("X")], registry_skills=[])
+        assert isinstance(result, FiringConcentration)
+        assert result.top_skill_share == pytest.approx(0.0)
+        assert result.unused_share == pytest.approx(0.0)
+        assert result.total_firings == 0
+
+    def test_result_type(self) -> None:
+        result = firing_concentration([_evt("A")], registry_skills=["A"])
+        assert isinstance(result, FiringConcentration)
+        assert 0.0 <= result.top_skill_share <= 1.0
+        assert 0.0 <= result.unused_share <= 1.0
+        assert result.total_firings >= 0

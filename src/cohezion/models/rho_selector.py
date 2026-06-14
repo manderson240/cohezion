@@ -219,23 +219,29 @@ def rho_selection_margin(
 def rho_confident_proposal(
     records: list[dict],
     *,
-    min_margin: int = 2,
+    min_margin: int,
     min_samples: int = 5,
     fallback_threshold: float = 0.5,
 ) -> dict:
-    """The item-42 proposal ANNOTATED with a confidence gate on the item-61 margin (item 91).
+    """Annotate the item-42 RHO proposal with a confidence gate (item 91). Report-only.
 
     Composes :func:`rho_proposal_record` (item 42) + :func:`rho_selection_margin` (item 61):
-    returns the proposal dict plus ``{margin, confident}`` where
-    ``confident = margin is not None and margin >= min_margin``. A decisive winner (margin at or
-    above ``min_margin``) is surfaced high-confidence; a photo-finish (margin below the threshold)
-    is flagged low-confidence but the winner is STILL named (annotate, don't drop). An UNPROVEN
-    corpus (no winner → ``margin is None``) is never confident — the ``is not None`` guard makes
-    that explicit rather than crashing on ``None >= min_margin``.
+    returns the full proposal dict from item-42 PLUS two extra keys:
 
-    The gate is on the MARGIN, not on winner-existence: a winner whose margin is below the
-    threshold is still not endorsed. Report-only — annotates for a reviewer, never auto-applies.
-    Pure (no I/O; input corpus not mutated).
+    - ``margin``: the integer win-margin from :func:`rho_selection_margin`, or ``None`` when
+      there is no winner (UNPROVEN corpus).
+    - ``confident``: ``True`` iff ``margin is not None and margin >= min_margin``.
+
+    A decisive winner (large margin) is surfaced as high-confidence; a photo-finish (small
+    margin, or a single candidate with ``margin == 0``) is ``confident=False`` — the reviewer
+    is warned that the "winner" barely won.  An UNPROVEN corpus (``winner_id=None``) is always
+    ``confident=False`` regardless of ``min_margin``.
+
+    The winner is NEVER dropped: ``winner_id`` is preserved even when ``confident=False``
+    (a photo-finish still names the leading candidate — confidence is an annotation, not a veto).
+
+    ``min_margin=0`` makes any margin (including 0) confident — useful for "tell me the
+    winner even if uncontested".  Pure: no SurrealDB read, no skill-file write.
     """
     proposal = rho_proposal_record(
         records, min_samples=min_samples, fallback_threshold=fallback_threshold
@@ -245,3 +251,14 @@ def rho_confident_proposal(
     )
     confident = margin is not None and margin >= min_margin
     return {**proposal, "margin": margin, "confident": confident}
+
+
+# ---------------------------------------------------------------------------
+# ## FUTURE HOOKS
+# ---------------------------------------------------------------------------
+# 91b: Surface rho_confident_proposal on the compound health dashboard so the
+#      operator can see BOTH the proposal and its confidence at a glance.
+# 91c: Feed into SkillRefiner: when confident=True AND winner_id is not None,
+#      auto-queue the proposal for human review (not auto-apply — still gated).
+# 91d: confidence_trend(snapshots) — track how the margin evolves across build
+#      ticks; a falling margin signals the tournament is becoming a coin-flip.

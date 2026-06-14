@@ -171,6 +171,33 @@ def loop_progress_delta(before: LoopTelemetry, after: LoopTelemetry) -> LoopProg
     )
 
 
+# ---------------------------------------------------------------------------
+# Item 78 — Regressed-items identifier (Thread A)
+# ---------------------------------------------------------------------------
+
+_BACKLOG_ROW_NUMBERED = re.compile(r"^\|\s*(\d+)\s*\|")
+
+
+def _parse_backlog_item_statuses(text: str) -> dict[int, str]:
+    """Parse a backlog snapshot text into ``{item_number: status_first_word}`` (upper-cased).
+
+    Only numbered rows (``| <N> | …``) are included.  The status is the first word of the last
+    pipe-delimited cell, which matches ``_status_first_word``'s behaviour.  Missing/empty status
+    cells produce ``""`` (safe to compare against "DONE"/"TODO"/"BLOCKED").
+
+    Pure — no I/O; the caller supplies the text.
+    """
+    statuses: dict[int, str] = {}
+    for line in text.splitlines():
+        m = _BACKLOG_ROW_NUMBERED.match(line)
+        if not m:
+            continue
+        item_num = int(m.group(1))
+        status = _status_first_word(line).upper()
+        statuses[item_num] = status
+    return statuses
+
+
 @dataclass(frozen=True)
 class RegressionReport:
     """Verdict of comparing two snapshots for a REGRESSION (item 58). REPORT-ONLY."""

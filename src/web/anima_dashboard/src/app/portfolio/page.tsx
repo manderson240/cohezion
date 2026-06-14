@@ -1,8 +1,155 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Link from "next/link";
-import { Github, Mail, Linkedin, ChevronRight } from "lucide-react";
+import { Github, Mail, Linkedin, ChevronRight, Trophy, Clock, AlertTriangle } from "lucide-react";
+
+// Competition tracker types
+interface PortfolioSummary {
+  id: string;
+  name: string;
+  competition: string | null;
+  deadline: string | null;
+  prize: number | null;
+  status: string;
+  score_label: string | null;
+  days_to_deadline: number | null;
+  is_urgent: boolean;
+}
+
+const STATUS_COLORS: Record<string, string> = {
+  active:    "bg-blue-500/20 text-blue-400 border-blue-500/30",
+  running:   "bg-amber-500/20 text-amber-400 border-amber-500/30",
+  complete:  "bg-teal-500/20 text-teal-400 border-teal-500/30",
+  submitted: "bg-purple-500/20 text-purple-400 border-purple-500/30",
+  banked:    "bg-emerald-500/20 text-emerald-400 border-emerald-500/30",
+  deferred:  "bg-gray-500/20 text-gray-500 border-gray-500/30",
+};
+
+function CompetitionRow({ project }: { project: PortfolioSummary }) {
+  const colorClass = STATUS_COLORS[project.status] ?? STATUS_COLORS.active;
+  const prizeStr = project.prize ? `$${project.prize.toLocaleString()}` : "non-cash";
+  const deadlineStr = project.deadline
+    ? new Date(project.deadline).toLocaleDateString("en-US", { month: "short", day: "numeric" })
+    : "—";
+  const daysStr = project.days_to_deadline !== null ? `${project.days_to_deadline}d` : "—";
+
+  return (
+    <tr className={`border-b border-white/5 hover:bg-white/[0.02] transition-colors ${project.is_urgent ? "bg-red-500/5" : ""}`}>
+      <td className="py-3 px-4">
+        <div className="flex items-center gap-2">
+          {project.is_urgent && <AlertTriangle className="w-3 h-3 text-red-400 shrink-0" />}
+          <span className="font-mono text-sm text-white font-semibold">{project.name}</span>
+        </div>
+        {project.competition && (
+          <div className="text-[10px] text-gray-600 font-mono mt-0.5">{project.competition}</div>
+        )}
+      </td>
+      <td className="py-3 px-4">
+        <span className={`text-[10px] font-mono px-2 py-1 rounded border ${colorClass}`}>
+          {project.status.toUpperCase()}
+        </span>
+      </td>
+      <td className="py-3 px-4 font-mono text-sm text-cyan-400">
+        {project.score_label ?? "—"}
+      </td>
+      <td className="py-3 px-4">
+        <div className="font-mono text-sm text-white">{deadlineStr}</div>
+        <div className={`text-[10px] font-mono ${project.is_urgent ? "text-red-400" : "text-gray-500"}`}>{daysStr}</div>
+      </td>
+      <td className="py-3 px-4 font-mono text-sm text-emerald-400 font-semibold">{prizeStr}</td>
+    </tr>
+  );
+}
+
+function CompetitionTracker() {
+  const [projects, setProjects] = useState<PortfolioSummary[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    fetch("/api/portfolio")
+      .then((r) => {
+        if (!r.ok) throw new Error(`HTTP ${r.status}`);
+        return r.json();
+      })
+      .then((data: PortfolioSummary[]) => {
+        setProjects(data);
+        setLoading(false);
+      })
+      .catch((err) => {
+        setError(err.message);
+        setLoading(false);
+      });
+  }, []);
+
+  const totalPrize = projects.reduce((acc, p) => acc + (p.prize ?? 0), 0);
+  const urgentCount = projects.filter((p) => p.is_urgent).length;
+
+  return (
+    <section className="max-w-6xl mx-auto px-6 py-16">
+      <div className="flex items-center gap-3 mb-8">
+        <Trophy className="w-6 h-6 text-amber-400" />
+        <h2 className="text-3xl font-bold font-mono">Active Competitions</h2>
+        {urgentCount > 0 && (
+          <span className="px-2 py-1 bg-red-500/20 border border-red-500/30 rounded text-xs font-mono text-red-400">
+            {urgentCount} URGENT
+          </span>
+        )}
+      </div>
+
+      {/* Prize summary */}
+      {!loading && !error && (
+        <div className="flex gap-6 mb-6">
+          <div className="bg-white/[0.02] border border-white/10 rounded-xl px-5 py-3">
+            <div className="text-xs text-gray-500 font-mono">TOTAL PRIZE POOL</div>
+            <div className="text-2xl font-bold font-mono text-emerald-400">
+              ${totalPrize.toLocaleString()}
+            </div>
+          </div>
+          <div className="bg-white/[0.02] border border-white/10 rounded-xl px-5 py-3">
+            <div className="text-xs text-gray-500 font-mono">ACTIVE TRACKS</div>
+            <div className="text-2xl font-bold font-mono text-cyan-400">
+              {projects.filter((p) => p.status !== "deferred").length}
+            </div>
+          </div>
+        </div>
+      )}
+
+      <div className="bg-white/[0.02] backdrop-blur-xl border border-white/10 rounded-2xl overflow-hidden">
+        {loading && (
+          <div className="p-8 text-center text-gray-500 font-mono text-sm animate-pulse">
+            Loading competition tracker...
+          </div>
+        )}
+        {error && (
+          <div className="p-8 text-center text-gray-600 font-mono text-sm">
+            <Clock className="w-5 h-5 mx-auto mb-2 opacity-40" />
+            Portfolio API not yet running — seed with <code>scripts/portfolio_init.py</code>
+          </div>
+        )}
+        {!loading && !error && (
+          <table className="w-full">
+            <thead>
+              <tr className="border-b border-white/10">
+                <th className="py-3 px-4 text-left text-xs font-mono text-gray-500">PROJECT</th>
+                <th className="py-3 px-4 text-left text-xs font-mono text-gray-500">STATUS</th>
+                <th className="py-3 px-4 text-left text-xs font-mono text-gray-500">SCORE</th>
+                <th className="py-3 px-4 text-left text-xs font-mono text-gray-500">DEADLINE</th>
+                <th className="py-3 px-4 text-left text-xs font-mono text-gray-500">PRIZE</th>
+              </tr>
+            </thead>
+            <tbody>
+              {projects.map((p) => (
+                <CompetitionRow key={p.id} project={p} />
+              ))}
+            </tbody>
+          </table>
+        )}
+      </div>
+    </section>
+  );
+}
 
 // Portfolio Pillar Card Component
 interface PillarCardProps {
@@ -291,6 +438,9 @@ export default function PortfolioPage() {
             ))}
           </div>
         </section>
+
+        {/* Competition Tracker */}
+        <CompetitionTracker />
 
         {/* Technical Highlights */}
         <section className="max-w-4xl mx-auto px-6 py-16">

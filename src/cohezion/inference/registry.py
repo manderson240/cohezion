@@ -4,20 +4,15 @@ Maps the Strix Halo Symphony (4-lane Gemma 4 deployment) plus specialist task
 models and cloud fallbacks into a unified table that every other module in
 ``cohezion.inference`` consumes.
 
-Lane layout (router-centric topology, Phase 2+):
-
-All local lemonade models are served through the unified router at :13305.
-The router dispatches to the appropriate backend (NPU / iGPU / CPU) on demand.
-Dedicated per-port servers (CLaSp speculative decoding only) are retained
-for dual-port speculative inference; all other callers target :13305.
+Lane layout (per STRIX_HALO_SYMPHONY_GUIDE.md):
 
 ============  ======  ================================  ===============================
-Lane          Router  Model                             Role (manifest translation)
+Lane          Port    Model                             Role (manifest translation)
 ============  ======  ================================  ===============================
-NPU XDNA2     13305   Gemma-4-E2B-it-GGUF               Sensing (Fire by Friction / Doer)
-iGPU ROCWMMA  13305   Gemma-4-E4B-it-GGUF               Steering (Governance / Knower)
-iGPU Unified  13305   Gemma-4-26B-A4B-it-GGUF (MoE)     Building (Solar Fire / Thinker)
-CPU AVX-VNNI  13305   Gemma-4-31B-it-GGUF               Architect (Safety)
+NPU XDNA2     13306   Gemma-4-E2B-it-GGUF               Sensing (Fire by Friction / Doer)
+iGPU ROCWMMA  13307   Gemma-4-E4B-it-GGUF               Steering (Governance / Knower)
+iGPU Unified  13308   Gemma-4-26B-A4B-it-GGUF (MoE)     Building (Solar Fire / Thinker)
+CPU AVX-VNNI  13309   Gemma-4-31B-it-GGUF               Architect (Safety)
 ============  ======  ================================  ===============================
 
 Task affinity informs ``fleet.route()`` when the caller doesn't pin a model.
@@ -147,12 +142,6 @@ class ModelEntry:
     cost_per_1k_input_usd: float = 0.0
     cost_per_1k_output_usd: float = 0.0
     priority: int = 100  # lower = preferred
-    # Card-aligned recipe (WS2A). Default None preserves the
-    # pre-WS2A behavior: route() and friends work fine without a
-    # profile. The route_by_capability router filters out entries
-    # whose profile is None (recipe_guard rule: cardless entries
-    # cannot be dispatched).
-    profile: CapabilityProfile | None = field(default=None)  # type: ignore[name-defined]  # noqa: F821
     # HISTORICAL marker — True means this model was successfully invoked at least
     # once (see `FleetRegistry.mark_verified` / `last_verified_at`). It does NOT
     # mean the endpoint is reachable right now. For LIVE status, use
@@ -178,6 +167,9 @@ class ModelEntry:
     # a reasoning-mode lane (local_environment_quirks.md: "reasoning models
     # need max_tokens >= 128 headroom").
     reasoning_mode: bool = False
+    # True = research / showcase use ONLY; never auto-selected for product/hosted surfaces.
+    # Use for_product_task() when dispatching from a product path; for_task() returns all.
+    research_only: bool = False
     notes: str = ""
 
     @property
@@ -218,7 +210,7 @@ def _build_default_registry() -> dict[str, ModelEntry]:
             model_id="Gemma-4-E2B-it-GGUF",
             size_gb=2.9,  # measured GGUF on disk: gemma-4-E2B-it-Q4_K_M.gguf (non-fabricated)
             lane=Lane.NPU,
-            endpoint="http://localhost:13305",  # router-centric (Phase 2)
+            endpoint="http://localhost:13306",
             runtime_backend="flm",
             task_affinity=frozenset({Task.SENSING, Task.ROUTING, Task.SUMMARIZATION}),
             weight_quant=WeightQuant.INT4,
@@ -245,8 +237,8 @@ def _build_default_registry() -> dict[str, ModelEntry]:
             model_id="Gemma-4-E4B-it-GGUF",
             size_gb=4.6,  # measured GGUF on disk: gemma-4-E4B-it-Q4_K_M.gguf (non-fabricated)
             lane=Lane.IGPU_ROCWMMA,
-            endpoint="http://localhost:13305",  # router-centric (Phase 2)
-            runtime_backend="llamacpp_hip",  # served by Lemonade router :13305
+            endpoint="http://localhost:13307",
+            runtime_backend="llamacpp_hip",  # served by Lemonade (lemond :13307)
             task_affinity=frozenset({Task.STRUCTURED, Task.GOVERNANCE}),
             weight_quant=WeightQuant.Q4_K_M,
             kv_quant=kv8_q80,
@@ -262,7 +254,7 @@ def _build_default_registry() -> dict[str, ModelEntry]:
         ModelEntry(
             model_id="LFM2.5-VL-1.6B-Extract-GGUF",
             lane=Lane.IGPU_ROCWMMA,
-            endpoint="http://localhost:13305",  # router-centric (Phase 2)
+            endpoint="http://localhost:13307",
             runtime_backend="llamacpp_hip",  # vision needs --mmproj (llama-mtmd) — unproven on lemonade
             task_affinity=frozenset({Task.EXTRACTION, Task.VISION}),
             weight_quant=WeightQuant.Q4_K_M,  # actual GGUF is Q4_0 (~696 MB); F16 ~2.34 GB
@@ -284,7 +276,7 @@ def _build_default_registry() -> dict[str, ModelEntry]:
         ModelEntry(
             model_id="Qwen3-Reranker-0.6B-GGUF",
             lane=Lane.IGPU_ROCWMMA,
-            endpoint="http://localhost:13305",  # router-centric (Phase 2)
+            endpoint="http://localhost:13307",
             runtime_backend="llamacpp_hip",  # needs --pooling rank (llama-server reranker mode)
             task_affinity=frozenset({Task.RERANK}),
             weight_quant=WeightQuant.Q5_K_M,  # ~0.6B; Q5_K_M GGUF ~520 MB, low VRAM
@@ -302,7 +294,7 @@ def _build_default_registry() -> dict[str, ModelEntry]:
         ModelEntry(
             model_id="Granite-4.1-3b-GGUF",
             lane=Lane.IGPU_ROCWMMA,
-            endpoint="http://localhost:13305",  # router-centric (Phase 2)
+            endpoint="http://localhost:13307",
             runtime_backend="llamacpp_hip",  # tool-calling needs template/tool-token alignment
             task_affinity=frozenset({Task.FUNCTION_CALL}),
             weight_quant=WeightQuant.Q4_K_M,  # ~3B; Q4_K_M GGUF ~2 GB, low VRAM
@@ -323,7 +315,7 @@ def _build_default_registry() -> dict[str, ModelEntry]:
             model_id="Gemma-4-26B-A4B-it-GGUF",
             size_gb=15.7,  # measured GGUF on disk via measure_gguf_sizes (item 136, non-fabricated)
             lane=Lane.IGPU_UNIFIED,
-            endpoint="http://localhost:13305",  # router-centric (Phase 2)
+            endpoint="http://localhost:13308",
             # DECLARED vllm_rocm; today served via Lemonade (llamacpp) when loaded.
             runtime_backend="vllm_rocm",
             task_affinity=frozenset({Task.REASONING, Task.CODE_GEN, Task.GENERAL}),
@@ -334,14 +326,15 @@ def _build_default_registry() -> dict[str, ModelEntry]:
             priority=15,
             reasoning_mode=True,
             notes=(
-                "Solar Fire (Thinker) — 25.2B total / 3.8B active MoE (8 active / 128 total experts + 1 shared expert)."
+                "Solar Fire (Thinker) — 25.2B total / 3.8B active MoE "
+                "(8 active / 128 total experts + 1 shared expert)."
             ),
         ),
         ModelEntry(
             model_id="Gemma-4-12B-it-qat-q4_0-GGUF",
             size_gb=6.5,  # google/gemma-4-12B-it-qat-q4_0-gguf q4_0 = 6.50 GiB (item 144, model_info-verified)
             lane=Lane.IGPU_ROCWMMA,
-            endpoint="http://localhost:13305",  # router-centric (Phase 2)
+            endpoint="http://localhost:13307",
             runtime_backend="llamacpp_hip",
             task_affinity=frozenset({Task.REASONING, Task.CODE_GEN, Task.GENERAL}),
             weight_quant=WeightQuant.Q4_K_M,  # QAT q4_0: near-FP quality at q4 (quantization-aware training)
@@ -362,7 +355,7 @@ def _build_default_registry() -> dict[str, ModelEntry]:
         ModelEntry(
             model_id="GLM-OCR-GGUF",
             lane=Lane.IGPU_ROCWMMA,
-            endpoint="http://localhost:13305",  # router-centric (Phase 2)
+            endpoint="http://localhost:13307",
             runtime_backend="llamacpp_hip",  # vision/OCR needs --mmproj (llama-mtmd) — shares item 18
             task_affinity=frozenset({Task.OCR_DOC}),
             weight_quant=WeightQuant.Q4_K_M,  # GGUF: GLM-OCR-Q8_0 + GLM-OCR-f16 + mmproj-GLM-OCR-Q8_0
@@ -378,10 +371,37 @@ def _build_default_registry() -> dict[str, ModelEntry]:
                 "after a real OCR/doc proof — SHARES item 18's vision-projector experiment."
             ),
         ),
+        # --- Item 54: PaddleOCR-VL-1.6-GGUF second OCR_DOC specialist (additive-first) ---
+        # PaddlePaddle/PaddleOCR-VL-1.6-GGUF (model_info: official apache-2.0, GGUF + mmproj,
+        # 0.9B, 96.33% OmniDocBench v1.6 SOTA). Registered as a SECOND OCR_DOC candidate
+        # alongside GLM-OCR-GGUF. for_task(OCR_DOC) returns both, priority-sorted.
+        # Priority=26 (non-displacing: GLM-OCR is 25). Bake-off is the experiment:
+        #   OmniDocBench field-accuracy >= GLM-OCR AND memory <= K1/rule-5 → raise priority;
+        #   else keep GLM-OCR as primary. Shares item-18 mmproj serving path (llama-mtmd).
+        ModelEntry(
+            model_id="PaddleOCR-VL-1.6-GGUF",
+            lane=Lane.IGPU_ROCWMMA,
+            endpoint="http://localhost:13307",
+            runtime_backend="llamacpp_hip",  # vision/OCR needs --mmproj (llama-mtmd) — shares item 18
+            task_affinity=frozenset({Task.OCR_DOC}),
+            weight_quant=WeightQuant.Q4_K_M,  # 0.9B VLM; GGUF + mmproj (official PaddlePaddle)
+            context_window=4096,  # OCR/document task (natural 2K-4K for structured doc parsing)
+            priority=26,  # non-displacing: GLM-OCR is 25; raise only after bake-off proof passes
+            verified_working=False,  # mmproj serving proof + OmniDocBench bake-off not yet run
+            notes=(
+                "PaddleOCR-VL-1.6 second OCR_DOC specialist (item 54). "
+                "PaddlePaddle/PaddleOCR-VL-1.6-GGUF (model_info-verified: official apache-2.0, "
+                "GGUF + mmproj, 0.9B, 96.33% OmniDocBench v1.6 SOTA). Strong alternative to "
+                "GLM-OCR-GGUF for document parsing. 0.9B → tiny memory footprint, easy K1/rule-5. "
+                "mmproj-GATED: shares item-18 serving path (llama-mtmd sidecar). "
+                "verified_working flips True only after real OCR/doc proof AND OmniDocBench "
+                "field-accuracy >= GLM-OCR at <= its memory — THEN raise priority below 25 to prefer."
+            ),
+        ),
         ModelEntry(
             model_id="Mellum-4b-base-GGUF",
             lane=Lane.IGPU_ROCWMMA,
-            endpoint="http://localhost:13305",  # router-centric (Phase 2)
+            endpoint="http://localhost:13307",
             runtime_backend="llamacpp_hip",  # FIM completion via /api/v1/completions (NOT chat)
             task_affinity=frozenset({Task.FIM}),
             weight_quant=WeightQuant.INT8,  # GGUF mellum-4b-base.Q8_0 (≈8-bit); enum has no Q8_0
@@ -395,6 +415,102 @@ def _build_default_registry() -> dict[str, ModelEntry]:
                 "/api/v1/completions with <fim_prefix>…<fim_suffix>…<fim_middle> tokens — NOT a "
                 "chat model. Q8_0 ≈ 4 GB → load on-demand, do NOT pin (K1/rule-5). "
                 "verified_working flips True only after a real FIM-completion serving proof."
+            ),
+        ),
+        # --- Item 85: CosmoNarrator (PocketTTS) — AUDIO_TTS seed (additive-first) ---
+        # cohezion already has audio/narrator.py::CosmoNarrator + audio/moshi_client.py.
+        # PocketTTS (Kyutai Labs) is a local voice synthesis library (ONNX CPU).
+        # Registered additive-first (verified_working=False) like items 4/19/21/23/28.
+        # The SERVING SMOKE (narrator.speak() emits a non-empty audio artifact) is the
+        # verification gate. Until then, for_task(AUDIO_TTS) returns this entry as a
+        # registered-but-unverified candidate — the registry does not auto-dispatch it.
+        # Lane: CPU (PocketTTS ONNX; voice generation is CPU-resident, not iGPU).
+        ModelEntry(
+            model_id="CosmoNarrator-PocketTTS",
+            lane=Lane.CPU,
+            endpoint="local://cohezion.audio.narrator",  # Python library call, not HTTP
+            runtime_backend="pocket_tts",  # dispatch via CosmoNarrator.speak(), not llama.cpp
+            task_affinity=frozenset({Task.AUDIO_TTS}),
+            weight_quant=WeightQuant.FP16,  # PocketTTS ONNX uses FP16 voice models
+            context_window=4096,  # text char limit (TTS has no token context window)
+            priority=25,  # the AUDIO_TTS specialist seed (first and only; like FIM)
+            verified_working=False,  # TTS smoke (non-empty audio artifact) not yet run
+            notes=(
+                "CosmoNarrator (PocketTTS, Kyutai Labs) — the AUDIO_TTS seed for cohezion's "
+                "audio-output tier (item 85). The seam already exists: "
+                "src/cohezion/audio/narrator.py::CosmoNarrator, voices (default 'alma'), "
+                "audio/moshi_client.py (full-duplex). PocketTTS is a Python library "
+                "(`pip install pocket_tts`); serving is a LOCAL CALL, NOT an HTTP server — "
+                "endpoint is a library-dispatch marker. verified_working flips True only after "
+                "a real TTS smoke test (CosmoNarrator().speak(text) → non-empty audio bytes). "
+                "K1/rule-5 OOM gate: PocketTTS ONNX models are <1GB, well within K1 limits. "
+                "HF id: kyutai/pocket-tts (official Kyutai Labs release)."
+            ),
+        ),
+        # --- Item 103: kokoro-v1 — second AUDIO_TTS candidate (additive-first) ---
+        # Roster finding 2026-06-06: `kokoro-v1` = `mikkoph/kokoro-onnx` (base: hexgrad/Kokoro-82M,
+        # Apache-2.0 — permissive, unlike Higgs item 93's research-noncommercial). ALREADY served
+        # on :13305 (lemonade router). Supersedes item-85's "needs serving proof" — the artifact
+        # already exists. Registered additive-first (verified_working=False) like items 4/19/21/23/85.
+        # The TTS SMOKE (:13305 kokoro-v1 → non-empty audio artifact) is the verification gate;
+        # registration alone changes no routing behavior (CosmoNarrator stays as the item-85 seed).
+        # Priority: 20 (preferred over CosmoNarrator-PocketTTS at 25 — artifact is HTTP-served).
+        # License: Apache-2.0 (HF card hexgrad/Kokoro-82M) — no research-only guard needed.
+        ModelEntry(
+            model_id="kokoro-v1",
+            lane=Lane.CPU,  # ONNX runtime; lemonade dispatches small ONNX models CPU-side
+            endpoint="http://localhost:13305",  # the ALWAYS-UP lemonade router
+            runtime_backend="lemonade",  # served via lemonade HTTP catalog on :13305
+            task_affinity=frozenset({Task.AUDIO_TTS}),
+            weight_quant=WeightQuant.FP16,  # Kokoro-82M ONNX uses FP16 voice models
+            context_window=4096,  # text char limit (TTS has no token context window)
+            priority=20,  # preferred over CosmoNarrator-PocketTTS (already HTTP-served)
+            size_gb=0.3,  # 82M params ONNX ≈ 0.16–0.3 GB resident
+            verified_working=False,  # TTS smoke (:13305 kokoro-v1 → non-empty audio) not yet run
+            notes=(
+                "kokoro-v1 (hexgrad/Kokoro-82M, Apache-2.0) — the second AUDIO_TTS candidate "
+                "(item 103). Served via `mikkoph/kokoro-onnx` on the always-up lemonade router "
+                ":13305; no separate serving setup required (supersedes item-85's 'needs proof'). "
+                "Permissive license (Apache-2.0): no research-only guard needed (unlike Higgs "
+                "item 93). verified_working flips True only after a live TTS smoke: "
+                "GET http://localhost:13305/v1/audio/speech?model=kokoro-v1&input=hello "
+                "returns a non-empty audio artifact. K1/rule-5 OOM gate: ~0.3 GB, well inside "
+                "K1 limits. HF base model: hexgrad/Kokoro-82M; ONNX port: mikkoph/kokoro-onnx."
+            ),
+        ),
+        # --- Item 123: Ideogram4-GGUF — IMAGE_GEN candidate (additive-first) ---
+        # Research round 27, VERIFIED: leejet/ideogram-4-GGUF (9B text-to-image, Q4_0, 5.64GB).
+        # Runs on stable-diffusion.cpp (shares item-86 sd.cpp-Vulkan-on-gfx1151 infra).
+        # Registered additive-first (verified_working=False) like items 4/19/21/23/85/103.
+        # The SERVING PROOF (sd.cpp Vulkan on gfx1151 + image smoke + head-to-head vs SD-Turbo)
+        # is the verification gate — gated under item-86. Registration alone changes no behavior:
+        # for_task(IMAGE_GEN) returns this entry as declared-but-unverified; the registry does
+        # NOT auto-dispatch it until verified_working flips True post-experiment.
+        # License: ideogram-4-fp8 — local serving fine; no redistribution without review.
+        # Lane: CPU (stable-diffusion.cpp CPU fallback; Vulkan/IGPU is the item-86 experiment).
+        ModelEntry(
+            model_id="Ideogram4-GGUF",
+            lane=Lane.CPU,  # sd.cpp CPU fallback; flips to IGPU_ROCWMMA post item-86 Vulkan proof
+            endpoint="local://sd.cpp/ideogram4",  # dispatch marker; sd.cpp CLI, not HTTP server
+            runtime_backend="stable_diffusion_cpp",  # stable-diffusion.cpp -DSD_VULKAN=ON
+            task_affinity=frozenset({Task.IMAGE_GEN}),
+            weight_quant=WeightQuant.INT4,  # Q4_0 (4-bit) — the verified GGUF quant
+            context_window=0,  # text-to-image model: prompt length, not token context window
+            priority=30,  # IMAGE_GEN seed (first and only; like AUDIO_TTS CosmoNarrator at 25)
+            size_gb=5.64,  # Q4_0 9B ≈ 5.64 GB resident (K1/rule-5: 29 GB free; within budget)
+            verified_working=False,  # sd.cpp serving + image smoke + quality proof not yet run
+            notes=(
+                "Ideogram4-GGUF (leejet/ideogram-4-GGUF, 9B text-to-image, Q4_0, 5.64GB) — "
+                "the IMAGE_GEN seed for cohezion's image-output tier (item 123, research round 27 "
+                "VERIFIED). Runs on stable-diffusion.cpp (shares item-86 sd.cpp-Vulkan-on-"
+                "gfx1151 infra — build with -DSD_VULKAN=ON). The head-to-head bake-off vs "
+                "SD-Turbo is the serving experiment. verified_working flips True only after: "
+                "(1) sd.cpp Vulkan build on gfx1151 succeeds (item 86), (2) the 5.64GB GGUF "
+                "+ text-encoder + VAE serve + a real image is generated at the JSON-prompt spec, "
+                "(3) memory ≤ K1/rule-5 budget, (4) quality ≥ SD-Turbo. If quality < SD-Turbo, "
+                "keep SD-Turbo as primary (NEVER auto-swapped). License: ideogram-4-fp8 — "
+                "local serving fine; review before any redistribution. Lane will flip to "
+                "IGPU_ROCWMMA post item-86 Vulkan proof. HF: leejet/ideogram-4-GGUF."
             ),
         ),
         ModelEntry(
@@ -414,16 +530,16 @@ def _build_default_registry() -> dict[str, ModelEntry]:
                 "Extends agent availability with $0 local inference: the verified-live, "
                 "NO-THINKING, tool-capable Granite-4.1-8B served by the always-up lemonade router "
                 ":13305 (the same model Hermes runs). Registered because the registry's other local "
-                "REASONING model (Gemma-4-26B-A4B) pointed at the DOWN iGPU-unified lane — so "
-                "route(REASONING, $0) was returning 'all candidates exhausted' and silently escalating "
-                "to cloud. This is the local-first target for extend_claude. No thinking-trap "
-                "(reasoning_content empty on plain turns); finish_reason=tool_calls on tool turns."
+                "REASONING model (Gemma-4-26B-A4B) points at the DOWN :13308 lane — so route(REASONING,"
+                " $0) was returning 'all candidates exhausted' and silently escalating to cloud. This "
+                "is the local-first target for extend_claude. No thinking-trap (reasoning_content "
+                "empty on plain turns); finish_reason=tool_calls on tool turns."
             ),
         ),
         ModelEntry(
             model_id="Gemma-4-31B-it-GGUF",
             lane=Lane.CPU,
-            endpoint="http://localhost:13305",  # router-centric (Phase 2)
+            endpoint="http://localhost:13309",
             runtime_backend="cpu",
             task_affinity=frozenset({Task.ARCHITECT, Task.LONG_HORIZON}),
             weight_quant=WeightQuant.Q4_K_M,
@@ -433,26 +549,145 @@ def _build_default_registry() -> dict[str, ModelEntry]:
             priority=40,
             reasoning_mode=True,
             notes=(
-                "Safety / System Architect — dense 30.7B on AVX-VNNI. Uses 1024-token sliding window attention."
+                "Safety / System Architect — dense 30.7B on AVX-VNNI. "
+                "Uses 1024-token sliding window attention."
             ),
         ),
-        # --- Task-specialist models via Ollama (:11434) ---  # allow-direct-port: Ollama models, Class A migration deferred to Phase 4
+        # --- Item 50: Gemma-4 QAT q4_0 alternatives (registered additive-first, unverified) ---
+        # Official google/gemma-4-{E2B,E4B,26B-A4B,31B}-it-qat-q4_0-gguf GGUFs
+        # (model_info-verified, 1.5k–3.8k downloads, mmproj included). QAT beats
+        # post-training quant at the SAME 4-bit width → better quality at <= current memory.
+        # Registered as non-displacing alternatives (priority = PTQ_priority + 1).
+        # The SWAP (replacing PTQ with QAT) is gated behind a proof:
+        #   QAT SERVES + memory <= current + quality >= current at q4 on held-out set.
+        # Do NOT set verified_working=True or lower priority until the proof passes.
+        ModelEntry(
+            model_id="Gemma-4-E2B-it-qat-q4_0-GGUF",
+            lane=Lane.NPU,
+            endpoint="http://localhost:13306",
+            runtime_backend="flm",
+            task_affinity=frozenset({Task.SENSING, Task.ROUTING, Task.SUMMARIZATION}),
+            weight_quant=WeightQuant.INT4,  # QAT q4_0: same 4-bit width as PTQ, better quality
+            kv_quant=KVQuant(),  # AMD Ryzen AI compiler has no TBQ op as of 1.7.1
+            context_window=131072,
+            priority=11,  # non-displacing: PTQ E2B is 10; tries QAT only after PTQ fails
+            verified_working=False,  # needs-experiment: serve + benchmark before mark_verified
+            reasoning_mode=True,
+            notes=(
+                "Gemma-4-E2B QAT q4_0 — NPU alternative (item 50). "
+                "HF id: google/gemma-4-E2B-it-qat-q4_0-gguf (model_info-verified, 1.5k dl). "
+                "QAT beats PTQ at equal 4-bit width. SWAP-GATED: flip to priority < 10 only "
+                "after serves + memory <= 2.9 GB + quality >= PTQ on held-out set (K1/lane-up)."
+            ),
+        ),
+        ModelEntry(
+            model_id="Gemma-4-E4B-it-qat-q4_0-GGUF",
+            lane=Lane.IGPU_ROCWMMA,
+            endpoint="http://localhost:13307",
+            runtime_backend="llamacpp_hip",
+            task_affinity=frozenset({Task.STRUCTURED, Task.GOVERNANCE}),
+            weight_quant=WeightQuant.Q4_K_M,  # QAT q4_0: using Q4_K_M enum (no Q4_0 in enum)
+            kv_quant=kv8_q80,
+            context_window=131072,
+            priority=21,  # non-displacing: PTQ E4B is 20
+            verified_working=False,
+            reasoning_mode=True,
+            notes=(
+                "Gemma-4-E4B QAT q4_0 — iGPU alternative (item 50). "
+                "HF id: google/gemma-4-E4B-it-qat-q4_0-gguf (model_info-verified, 2.3k dl). "
+                "SWAP-GATED: flip to priority < 20 only after serves + memory <= 4.6 GB + quality "
+                ">= PTQ on held-out set (K1/lane-up)."
+            ),
+        ),
+        ModelEntry(
+            model_id="Gemma-4-26B-A4B-it-qat-q4_0-GGUF",
+            lane=Lane.IGPU_UNIFIED,
+            endpoint="http://localhost:13308",
+            runtime_backend="vllm_rocm",
+            task_affinity=frozenset({Task.REASONING, Task.CODE_GEN, Task.GENERAL}),
+            weight_quant=WeightQuant.MXFP4,  # QAT q4_0 on MoE; MXFP4 is closest available enum
+            kv_quant=kv8_q80,
+            context_window=262144,
+            priority=16,  # non-displacing: PTQ 26B is 15; above 12B QAT fallback (18)
+            verified_working=False,
+            reasoning_mode=True,
+            notes=(
+                "Gemma-4-26B-A4B QAT q4_0 — iGPU-Unified alternative (item 50). "
+                "HF id: google/gemma-4-26B-A4B-it-qat-q4_0-gguf (model_info-verified, 3.1k dl). "
+                "25.2B total / 3.8B active MoE. SWAP-GATED: flip to priority < 15 only after "
+                "serves + memory <= 15.7 GB + quality >= PTQ on held-out set (K1/lane-up)."
+            ),
+        ),
+        ModelEntry(
+            model_id="Gemma-4-31B-it-qat-q4_0-GGUF",
+            lane=Lane.CPU,
+            endpoint="http://localhost:13309",
+            runtime_backend="cpu",
+            task_affinity=frozenset({Task.ARCHITECT, Task.LONG_HORIZON}),
+            weight_quant=WeightQuant.Q4_K_M,  # QAT q4_0; AVX-VNNI dense
+            kv_quant=KVQuant(),  # No public AVX-512 TBQ kernels exist
+            context_window=262144,
+            priority=41,  # non-displacing: PTQ 31B is 40
+            verified_working=False,
+            reasoning_mode=True,
+            notes=(
+                "Gemma-4-31B QAT q4_0 — CPU alternative (item 50). "
+                "HF id: google/gemma-4-31B-it-qat-q4_0-gguf (model_info-verified, 3.8k dl). "
+                "Dense 30.7B, AVX-VNNI. SWAP-GATED: flip to priority < 40 only after "
+                "serves + quality >= PTQ on held-out set (K1/lane-up). Uses 1024-token "
+                "sliding window attention (same as PTQ 31B)."
+            ),
+        ),
+        # --- Item 53: Qwen3.6-35B-A3B-MTP-GGUF iGPU main-tier MTP candidate (additive-first) ---
+        # byteshape/Qwen3.6-35B-A3B-MTP-GGUF (model_info: 33,361 dl, apache-2.0, IQ2_S→IQ4_XS,
+        # MTP heads baked in). Targets the IGPU_UNIFIED main tier (the 26B-A4B slot).
+        # ~1.7-1.9× tok/s via `llama-server --spec-type draft-mtp --spec-draft-n-max 3`.
+        # Registered NON-DISPLACING (priority > 26B-PTQ primary at 15).
+        # SWAP is gated: MTP SERVES + tok/s >= 1.5× baseline + IQ4_XS memory <= K1/rule-5 gate.
+        # lemonade has no --spec-type flag; serving requires direct llama-server + a lanes-up window.
+        ModelEntry(
+            model_id="Qwen3.6-35B-A3B-MTP-GGUF",
+            lane=Lane.IGPU_UNIFIED,
+            endpoint="http://localhost:13308",
+            runtime_backend="llamacpp_hip",  # MTP needs direct llama-server --spec-type draft-mtp
+            task_affinity=frozenset({Task.REASONING, Task.CODE_GEN, Task.GENERAL}),
+            weight_quant=WeightQuant.Q4_K_M,  # IQ4_XS ≈ 4-bit; Q4_K_M is the closest enum value
+            kv_quant=kv8_q80,
+            # Qwen3 native 32K; YaRN extends to 131K. Using native context for the registration.
+            context_window=32768,
+            # priority=17 is above the 26B-PTQ (15) and 26B-QAT (16), below the 12B OOM fallback (18).
+            # Routing cascade on IGPU_UNIFIED: 26B-PTQ → 26B-QAT → MTP-candidate → (12B on ROCWMMA).
+            priority=17,
+            verified_working=False,  # SWAP-GATED: needs llama-server --spec-type proof before mark_verified
+            notes=(
+                "iGPU main-tier MTP candidate (item 53). byteshape/Qwen3.6-35B-A3B-MTP-GGUF "
+                "(model_info-verified: 33,361 dl, apache-2.0, IQ2_S→IQ4_XS, MTP heads baked). "
+                "35B total / 3.6B active MoE. ~1.7-1.9× tok/s via --spec-type draft-mtp "
+                "--spec-draft-n-max 3 at $0. IQ4_XS ~17-20 GB → K1/rule-5 gate (<= 20 GB). "
+                "Qwen3 native 32K ctx; YaRN extends to 131K (declare only proven native). "
+                "SWAP-GATED: flip priority < 15 ONLY after tok/s >= 1.5x 26B-PTQ baseline "
+                "AND IQ4_XS memory fits free -h (not while swap >50%) AND quality >= PTQ. "
+                "Serving requires direct llama-server (lemonade has no --spec-type) "
+                "+ a lanes-up maintenance window; NEVER auto-swapped."
+            ),
+        ),
+        # --- Task-specialist models via Ollama (:11434) ---
         ModelEntry(
             model_id="phi4:latest",
             lane=Lane.CPU,
-            endpoint="http://localhost:11434",  # allow-direct-port: Ollama model, Class A migration deferred to Phase 4
+            endpoint="http://localhost:11434",
             runtime_backend="",
             task_affinity=frozenset({Task.REASONING, Task.GENERAL}),
             weight_quant=WeightQuant.Q4_K_M,
             context_window=16384,
             priority=50,
             verified_working=True,
-            notes="Verified live via Ollama :11434",  # allow-direct-port: Ollama model, Class A migration deferred to Phase 4
+            notes="Verified live via Ollama :11434",
         ),
         ModelEntry(
             model_id="qwen3-coder:30b",
             lane=Lane.CPU,
-            endpoint="http://localhost:11434",  # allow-direct-port: Ollama model, Class A migration deferred to Phase 4
+            endpoint="http://localhost:11434",
             runtime_backend="",
             task_affinity=frozenset({Task.CODE_GEN, Task.LONG_HORIZON}),
             weight_quant=WeightQuant.Q4_K_M,
@@ -470,7 +705,7 @@ def _build_default_registry() -> dict[str, ModelEntry]:
         ModelEntry(
             model_id="deepseek-r1:70b",
             lane=Lane.CPU,
-            endpoint="http://localhost:11434",  # allow-direct-port: Ollama model, Class A migration deferred to Phase 4
+            endpoint="http://localhost:11434",
             runtime_backend="",
             task_affinity=frozenset({Task.LONG_HORIZON, Task.REASONING, Task.MATH}),
             weight_quant=WeightQuant.Q4_K_M,
@@ -495,7 +730,7 @@ def _build_default_registry() -> dict[str, ModelEntry]:
         ModelEntry(
             model_id="deepseek-v3.2:cloud",
             lane=Lane.CLOUD_OLLAMA,
-            endpoint="http://localhost:11434",  # allow-direct-port: Ollama cloud model, Class A migration deferred to Phase 4
+            endpoint="http://localhost:11434",
             runtime_backend="",
             task_affinity=frozenset({Task.REASONING, Task.CODE_GEN}),
             weight_quant=WeightQuant.API,
@@ -509,7 +744,7 @@ def _build_default_registry() -> dict[str, ModelEntry]:
         ModelEntry(
             model_id="gemini-3-flash-preview:cloud",
             lane=Lane.CLOUD_OLLAMA,
-            endpoint="http://localhost:11434",  # allow-direct-port: Ollama cloud model, Class A migration deferred to Phase 4
+            endpoint="http://localhost:11434",
             runtime_backend="",
             task_affinity=frozenset({Task.GENERAL, Task.SUMMARIZATION}),
             weight_quant=WeightQuant.API,
@@ -553,7 +788,7 @@ def _build_default_registry() -> dict[str, ModelEntry]:
             notes="Sonnet 4.6 via headless `claude -p --model sonnet-4-6`",
         ),
         ModelEntry(
-            model_id="claude-opus-4-8",
+            model_id="claude-opus-4-7",
             lane=Lane.CLOUD_CLAUDE,
             endpoint="cli:claude",
             runtime_backend="",
@@ -563,23 +798,7 @@ def _build_default_registry() -> dict[str, ModelEntry]:
             cost_per_1k_input_usd=0.015,
             cost_per_1k_output_usd=0.075,
             priority=100,
-            notes="Opus 4.8 via headless `claude -p --model opus-4-8`",
-        ),
-        ModelEntry(
-            # Fable 5: GA 2026-06-09, Anthropic's most capable GA model (above Opus class).
-            # MUST be registered or fleet.route/extend_claude reject it with
-            # "Unknown claude_model claude-fable-5" — the cause of the dispatch errors.
-            model_id="claude-fable-5",
-            lane=Lane.CLOUD_CLAUDE,
-            endpoint="cli:claude",
-            runtime_backend="",
-            task_affinity=frozenset({Task.REASONING, Task.LONG_HORIZON, Task.ARCHITECT}),
-            weight_quant=WeightQuant.API,
-            context_window=200000,
-            cost_per_1k_input_usd=0.010,
-            cost_per_1k_output_usd=0.050,
-            priority=110,  # above Opus — reserved for the hardest tasks (used sparingly)
-            notes="Fable 5 via headless `claude -p --model claude-fable-5`",
+            notes="Opus 4.7 via headless `claude -p --model opus-4-7`",
         ),
         # --- Headless `gemini` CLI ---
         ModelEntry(
@@ -608,21 +827,78 @@ def _build_default_registry() -> dict[str, ModelEntry]:
             priority=85,
             notes="Gemini 3 Pro via headless `gemini -p -m gemini-3-pro -o json`",
         ),
+        # --- Item 123: ideogram-4-GGUF — IMAGE_GEN seed (additive-first, 2026-06-08) ---
+        # Research round 27, VERIFIED artifact: leejet/ideogram-4-GGUF on HuggingFace.
+        # 9B text-to-image diffusion model, Q4_0 quantisation, ~5.64 GB GGUF on disk.
+        # Runs on stable-diffusion.cpp with Vulkan backend (same path as item-86 SD-Turbo).
+        # Registered additive-first (verified_working=False) like items 4/19/21/23/28/85/103.
+        # The SERVING PROOF (sd.cpp -DSD_VULKAN=ON + a real image generation) is gated
+        # behind item 86 (sd.cpp Vulkan on gfx1151).  Until item 86 resolves, for_task
+        # returns this entry as a registered-but-unverified IMAGE_GEN candidate.
+        # Lane: IGPU_UNIFIED — stable-diffusion.cpp uses Vulkan on the iGPU (gfx1151 / RDNA 3.5).
+        # License: local serving is fine; redistribution of derived weights needs review.
+        ModelEntry(
+            model_id="ideogram-4-GGUF",
+            lane=Lane.IGPU_UNIFIED,  # sd.cpp Vulkan on gfx1151 (RDNA 3.5 iGPU)
+            endpoint="local://stable-diffusion.cpp",  # library-dispatch marker; not HTTP-served yet
+            runtime_backend="sd_cpp_vulkan",  # stable-diffusion.cpp with -DSD_VULKAN=ON
+            task_affinity=frozenset({Task.IMAGE_GEN}),
+            weight_quant=WeightQuant.INT4,  # Q4_0 ≈ INT4 4-bit fixed quantisation
+            context_window=512,  # CLIP-based text encoder; sd.cpp prompt length cap
+            size_gb=5.64,  # non-fabricated: Q4_0 GGUF disk size from leejet/ideogram-4-GGUF
+            priority=50,  # IMAGE_GEN seed; lower priority than serving-proven models
+            verified_working=False,  # sd.cpp Vulkan serving proof NOT yet run — see item 86
+            notes=(
+                "ideogram-4-GGUF (leejet/ideogram-4-GGUF) — the IMAGE_GEN seed for cohezion's "
+                "image-output tier (item 123). 9B text-to-image diffusion model, Q4_0, ~5.64 GB. "
+                "Runs on stable-diffusion.cpp with Vulkan backend on gfx1151 (Strix Halo RDNA 3.5). "
+                "Serving path: build sd.cpp with -DSD_VULKAN=ON, load ideogram-4-GGUF + VAE + "
+                "text-encoder, generate via sd.cpp JSON-prompt spec. This is the SERVING PROOF "
+                "gate (item 86). verified_working flips True only after a real image-gen smoke "
+                "test (sd.cpp → a non-empty image artifact). License: ideogram-4 weights are "
+                "publicly available on HuggingFace for local inference; redistribution of derived "
+                "weights requires a license review. HF artifact: leejet/ideogram-4-GGUF. "
+                "K1/rule-5 OOM gate: 5.64 GB model + ~2 GB runtime ≈ 7.6 GB — well within K1 "
+                "limits (128 GiB unified memory, 16 GB OOM buffer leaves >100 GB available)."
+            ),
+        ),
+        # --- Item 93: Higgs-Audio-v3-TTS-4B — RESEARCH-ONLY AUDIO_TTS tier ---
+        # VERIFIED access: bosonai/higgs-audio-v3-tts-4b (research round 18).
+        # User delegated the license call -> research-only path chosen.
+        # HARD GUARDRAIL: research_only=True prevents for_product_task() from ever
+        # selecting this entry. PocketTTS/kokoro-v1 remain the default product path.
+        # Runs via HF Transformers (AutoModelForSeq2SeqLM) / SGLang -- NOT lemonade/GGUF.
+        # The SERVING PROOF (4B + transformers -> non-empty audio artifact + K1/rule-5
+        # memory check) is the behavior-change gate. Until then, verified_working=False.
+        ModelEntry(
+            model_id="Higgs-Audio-v3-TTS-4B",
+            lane=Lane.CPU,  # transformers / SGLang CPU path; flips to IGPU post serving proof
+            endpoint="local://hf.transformers/higgs-audio-v3-tts-4b",
+            runtime_backend="hf_transformers",  # AutoModelForSeq2SeqLM / SGLang, NOT lemonade
+            task_affinity=frozenset({Task.AUDIO_TTS}),
+            weight_quant=WeightQuant.FP16,  # Higgs serves in FP16 via transformers
+            context_window=4096,  # text char limit; TTS has no token context window
+            priority=35,  # lower priority than product-licensed entries (25=CosmoNarrator, 20=kokoro)
+            size_gb=8.0,  # 4B FP16 ~= 8 GB resident (K1/rule-5 gate: check free -h before load)
+            verified_working=False,  # transformers serving + memory proof NOT yet run
+            research_only=True,  # RESEARCH / SHOWCASE only -- NEVER auto-selected for product
+            notes=(
+                "Higgs-Audio-v3-TTS-4B (bosonai/higgs-audio-v3-tts-4b) -- research-only "
+                "AUDIO_TTS alternative (item 93, research round 18 VERIFIED). Capabilities: "
+                "zero-shot voice cloning, 21 emotion tokens, prosody/SFX, 100+ languages. "
+                "License: research-noncommercial -- NEVER auto-dispatched from product/hosted "
+                "surfaces (Genesis narrator, A2UI, any API). Use for_product_task(AUDIO_TTS) in "
+                "product paths; use for_task(AUDIO_TTS) only for explicit research/showcase. "
+                "research_only=True enforces this guard in the registry. PocketTTS (item 85) "
+                "remains the DEFAULT permissive productizable AUDIO_TTS path. "
+                "Serving: HF Transformers (AutoModelForSeq2SeqLM) / SGLang -- NOT lemonade. "
+                "verified_working flips True only after: (1) transformers serving smoke produces "
+                "a non-empty audio artifact for a chosen voice, AND (2) memory fits K1/rule-5 "
+                "(free -h, not while swap >50%). HF id: bosonai/higgs-audio-v3-tts-4b. "
+                "K1/rule-5 OOM gate: ~8 GB FP16 -- check free -h before load; skip if swap >50%."
+            ),
+        ),
     ]
-    # WS2A: attach hand-built CapabilityProfile records to the default
-    # entries. The profile carries card-derived strengths/weaknesses,
-    # sampling sweet spot, and known failure modes. Entries whose
-    # model_id has no profile in default_profiles get profile=None
-    # (the route_by_capability router filters those out).
-    try:
-        from cohezion.inference.default_profiles import DEFAULT_PROFILES
-
-        for entry in entries:
-            entry.profile = DEFAULT_PROFILES.get(entry.model_id)
-    except ImportError:
-        # Optional dep — keep registry building even if default_profiles
-        # somehow isn't on the path (e.g. during a partial install).
-        pass
     return {entry.model_id: entry for entry in entries}
 
 
@@ -636,6 +912,21 @@ class FleetRegistry:
         """Candidates for a task, sorted by priority (lowest first = preferred)."""
         return sorted(
             (m for m in self.models.values() if task in m.task_affinity),
+            key=lambda m: m.priority,
+        )
+
+    def for_product_task(self, task: Task) -> list[ModelEntry]:
+        """Candidates for a task on a product/hosted surface.
+
+        Identical to for_task() but excludes entries marked research_only=True.
+        Use this in any production dispatch path (Genesis narrator, A2UI, APIs)
+        to guarantee research-gated models never reach end users.
+
+        Research-only models (e.g. Higgs-Audio, SD-Turbo) can be retrieved via
+        for_task() for explicit research/showcase invocations.
+        """
+        return sorted(
+            (m for m in self.models.values() if task in m.task_affinity and not m.research_only),
             key=lambda m: m.priority,
         )
 

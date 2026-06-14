@@ -18,7 +18,76 @@ from collections.abc import Callable, Iterable
 from dataclasses import dataclass
 
 from cohezion.inference.fleet_routing_specialist import FleetRoutingSpecialist
-from cohezion.inference.registry import FleetRegistry, ModelEntry
+from cohezion.inference.registry import ModelEntry
+
+
+# ---------------------------------------------------------------------------
+# Item 98 — Model use-case coverage (the INVERSE of item-62 coverage_gaps)
+# ---------------------------------------------------------------------------
+
+
+@dataclass(frozen=True)
+class UsecaseCoverageReport:
+    """Audit of whether every served fleet model maps to ≥1 Task (item 98). Report-only.
+
+    Attributes
+    ----------
+    covered:
+        Served model_ids that have ≥1 Task in their ``task_affinity`` — they earn
+        a routing slot in the local fleet.
+    no_usecase:
+        Served model_ids with empty ``task_affinity`` OR not present in the registry
+        at all — they occupy compute with no routing purpose.
+    """
+
+    covered: frozenset[str]
+    no_usecase: frozenset[str]
+
+
+def model_usecase_coverage(
+    served_models: Iterable[str],
+    registry: Iterable[ModelEntry],
+) -> UsecaseCoverageReport:
+    """Audit which served fleet models map to ≥1 Task and which have no routing purpose (item 98).
+
+    The INVERSE of item-62 ``coverage_gaps``: that function asks "which Tasks have no local
+    specialist?"; this function asks "which served models serve no Task?" — two orthogonal
+    diagnostic axes over the same fleet.
+
+    Args:
+        served_models: model_ids currently being served (e.g. from the :13305 roster).
+            Injected — no live serving call is made.
+        registry: the fleet registry entries.  Injected — use the live
+            ``get_registry().models.values()`` at call sites or a stub for tests.
+
+    Returns:
+        A :class:`UsecaseCoverageReport` with:
+
+        - ``covered``   — served model_ids mapped to ≥1 Task via ``task_affinity``.
+        - ``no_usecase`` — served model_ids with empty affinity OR absent from registry.
+
+        A model in the registry but NOT in ``served_models`` appears in NEITHER set
+        (that model's routing coverage is item 62's concern, not ours).
+        Empty ``served_models`` → both sets empty (no ZeroDivision).
+
+    Pure (injected inputs; no inference, no registry singleton call).
+    """
+    registry_by_id: dict[str, ModelEntry] = {e.model_id: e for e in registry}
+
+    covered: set[str] = set()
+    no_usecase: set[str] = set()
+
+    for model_id in served_models:
+        entry = registry_by_id.get(model_id)
+        if entry is not None and entry.task_affinity:
+            covered.add(model_id)
+        else:
+            no_usecase.add(model_id)
+
+    return UsecaseCoverageReport(
+        covered=frozenset(covered),
+        no_usecase=frozenset(no_usecase),
+    )
 
 
 @dataclass(frozen=True)
@@ -81,46 +150,30 @@ def coverage_gaps(
     return gaps
 
 
-@dataclass(frozen=True)
-class CoverageGapDelta:
-    """Whether local-specialist coverage gaps are being CLOSED between two snapshots (item 94)."""
+def coverage_gap_delta(
+    before: set[str],
+    after: set[str],
+) -> dict[str, set[str]]:
+    """Delta between two item-62 ``coverage_gaps`` snapshots — the gap-closure tracker (item 94).
 
-    filled: list[str]  # gaps in `before` but NOT `after` — a $0 specialist got registered (good)
-    opened: list[str]  # gaps new in `after` — a Task gained queries with no specialist (bad)
+    Args:
+        before: Task-gap set from an earlier ``coverage_gaps`` call.
+        after:  Task-gap set from a later ``coverage_gaps`` call.
 
+    Returns:
+        A dict with two keys:
 
-def coverage_gap_delta(before: set[str], after: set[str]) -> CoverageGapDelta:
-    """Gap-closure tracker over two item-62 ``coverage_gaps`` sets (item 94). Report-only.
+        - ``"filled"``: gaps present in ``before`` but absent in ``after`` — a local specialist
+          was registered for the task between the two scans (the fleet improved coverage).
+        - ``"opened"``: gaps absent in ``before`` but present in ``after`` — a new coverage
+          hole appeared (a new Task was added without a specialist, or one was removed).
 
-    item-62 ``coverage_gaps`` says WHICH task gaps exist now; this says whether they are being
-    CLOSED. ``filled`` = gaps in ``before`` but NOT ``after`` (a local $0 specialist was registered
-    for that Task — progress); ``opened`` = gaps new in ``after`` (a Task gained queries but still has
-    no specialist, or a new Task appeared — regression). A gap present in BOTH is in NEITHER list
-    (unchanged); identical sets → both empty. Mirrors the harness-blessed ``DegradationDetector.
-    diff_snapshots`` (CB11) + the items 39/57/74 pure-delta family. Pure (injected ``set[str]``, no
-    inference, no I/O). Both lists are sorted for determinism.
+        Gaps present in BOTH snapshots appear in NEITHER list (stable unresolved gaps).
+        Identical snapshots → both sets empty.
+
+    Pure (operates on injected sets; no inference, no registry read).
     """
-    before_set, after_set = set(before), set(after)
-    return CoverageGapDelta(
-        filled=sorted(before_set - after_set),
-        opened=sorted(after_set - before_set),
-    )
-
-
-def model_usecase_coverage(served_models: Iterable[str], registry: FleetRegistry) -> list[str]:
-    """Served fleet models with NO Task affinity — "this model earns no routing slot" (item 98).
-
-    The INVERSE of item-62 ``coverage_gaps`` (which finds Tasks with no model; this finds served
-    models with no Task). A served model (from the :13305 roster, injected here) is COVERED when its
-    registry entry has a non-empty ``task_affinity``; it is flagged ``no_usecase`` when it has NO
-    registry entry at all, OR a registry entry with an EMPTY ``task_affinity`` — both mean no Task
-    will ever route to it. A registered Task with no served model is NOT this report's concern (that
-    is item 62). Returns the sorted, de-duplicated ``no_usecase`` list. Report-only, pure (injected
-    model list + registry; no live serving).
-    """
-    no_usecase: list[str] = []
-    for model in served_models:
-        entry = registry.models.get(str(model))
-        if entry is None or not entry.task_affinity:
-            no_usecase.append(str(model))
-    return sorted(set(no_usecase))
+    return {
+        "filled": before - after,  # in before but not after → gap was closed
+        "opened": after - before,  # in after but not before → new gap appeared
+    }

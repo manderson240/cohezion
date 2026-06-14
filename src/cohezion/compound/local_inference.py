@@ -99,12 +99,34 @@ def get_recommended_concurrency(npu_port: int = 13306, timeout_s: float = 1.5) -
     return 3  # safe default when probe fails
 
 
-def lemonade_available(npu_port: int = 13306, timeout_s: float = 1.5) -> bool:
-    """Non-blocking liveness check for the NPU Lemonade server.
+def lemonade_router_available(router_port: int = 13305, timeout_s: float = 1.5) -> bool:
+    """Non-blocking liveness check for the unified Lemonade router on :13305.
 
-    Returns False (instead of raising) when the server is unreachable.
-    Callers should fall back to their own execute_fn when this returns False.
+    Preferred over ``lemonade_available()`` — the router exposes all loaded
+    models by name so callers never need to know device-specific ports.
     """
+    try:
+        resp = httpx.get(f"http://localhost:{router_port}/api/v1/health", timeout=timeout_s)
+        return resp.status_code == 200
+    except Exception:
+        return False
+
+
+def lemonade_available(npu_port: int = 13306, timeout_s: float = 1.5) -> bool:
+    """Non-blocking liveness check for the Lemonade inference stack.
+
+    Probes the unified router (:13305) first; falls back to the legacy direct
+    NPU port (``npu_port``) when the router is unreachable.  Returns False
+    (instead of raising) when both are unreachable.
+
+    .. deprecated::
+        Prefer ``lemonade_router_available()`` for new callers — it uses the
+        router-centric topology and does not depend on a specific device port.
+    """
+    # Try the router first (preferred topology as of 2026-06-07).
+    if lemonade_router_available(timeout_s=timeout_s):
+        return True
+    # Legacy fallback: direct NPU port (13306).
     try:
         resp = httpx.get(f"http://localhost:{npu_port}/v1/models", timeout=timeout_s)
         return resp.status_code == 200

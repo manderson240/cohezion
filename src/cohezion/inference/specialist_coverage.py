@@ -1,20 +1,26 @@
-"""Specialist verification-gap report (item 38, 2026-06-06) — report-only.
+"""Specialist verification-gap report (items 38 + 77, 2026-06-06/08) — report-only.
 
-Surfaces the gap between two orthogonal registry states for the 6 specialist Tasks:
+Item 38 surfaces the gap between two orthogonal registry states for the 6 specialist Tasks:
   - REGISTERED  — a ``ModelEntry`` exists for the Task (additive; items 4/19/21/23/28
     drove this to 6/6).
   - SERVING-VERIFIED — ``verified_working=True``, i.e. the model was actually invoked
     successfully at least once (needs-experiment; currently 0/6, pending lanes-up proofs).
 
+Item 77 adds live-lane reachability: ``specialist_liveness_gaps`` partitions the 6 Tasks
+into ``ready`` (lane UP → a verification attempt is possible today) vs ``lane_down`` (lane
+DOWN or gap → explains why the verification campaign is stuck). Injectable ``check_fleet_fn``
+keeps it deterministic in tests.
+
 A read-only instrument in the family of ``loop_telemetry`` (item 25) and
-``skill_adoption_report`` (item 32): pure function over an injectable ``FleetRegistry``,
-no writes, no graph, no live health probe (that is ``FleetRegistry.audit_liveness``).
+``skill_adoption_report`` (item 32): pure functions over an injectable ``FleetRegistry``,
+no writes, no graph.
 """
 
 from __future__ import annotations
 
 from collections.abc import Callable
 from dataclasses import dataclass
+from typing import Any
 
 from cohezion.inference.registry import FleetRegistry, Task, get_registry
 
@@ -136,55 +142,199 @@ def specialist_coverage_delta(
     )
 
 
-@dataclass(frozen=True)
-class SpecialistLivenessGaps:
-    """Registered specialists partitioned by whether a verification attempt is possible NOW.
+# ---------------------------------------------------------------------------
+# Item 77 — Specialist liveness gaps (live-lane reachability partition)
+# ---------------------------------------------------------------------------
 
-    ``ready`` — the specialist's preferred lane is live UP, so a serving-verification attempt is
-    possible right now. ``lane_down`` — the lane is DOWN/degraded/unknown, so it can't be tested
-    now (this explains why the item-38 verification campaign is stuck at 0/6). The two lists are
-    DISJOINT and together COVER every registered specialist; gap Tasks (no model) are in neither.
+
+@dataclass(frozen=True)
+class SpecialistLivenessReport:
+    """Partition of specialist Tasks by live-lane reachability (item 77). Report-only.
+
+    ``ready`` tasks: the specialist's lane is UP today — a verification attempt is
+    feasible right now.  ``lane_down`` tasks: the lane is DOWN or the Task has no
+    registered model (gap) — explains why the verification campaign is stuck.
+
+    Invariant: ``{r.task for r in ready} ∩ {r.task for r in lane_down} == ∅``
+    Invariant: ``len(ready) + len(lane_down) == len(SPECIALIST_TASKS)``
     """
 
-    ready: list[str]
-    lane_down: list[str]
+    ready: list[SpecialistCoverage]  # lane UP → verification possible
+    lane_down: list[SpecialistCoverage]  # lane DOWN or gap → can't test now
+
+    @property
+    def unverifiable_tasks(self) -> list[str]:
+        """Task names blocked from verification because their lane is down (or gap)."""
+        return [r.task for r in self.lane_down]
+
+    @property
+    def verifiable_tasks(self) -> list[str]:
+        """Task names whose lane is currently UP — verification attempts are possible."""
+        return [r.task for r in self.ready]
 
 
 def specialist_liveness_gaps(
     *,
     registry: FleetRegistry | None = None,
-    check_fleet_fn: Callable[[], object] | None = None,
-) -> SpecialistLivenessGaps:
-    """Partition registered specialists into testable-now vs lane-down (item 77). Report-only.
+    check_fleet_fn: Callable[[], Any] | None = None,
+) -> SpecialistLivenessReport:
+    """Partition specialist Tasks by live-lane reachability (item 77). Pure/read-only.
 
-    Ties item-38 ``specialist_coverage_report`` (which specialist Tasks are REGISTERED) to the
-    LIVE lane health that ``FleetRegistry.audit_liveness`` reconciles against — reusing that same
-    health contract (``health.lanes[lane_key].status.value == "up"``). For each registered
-    specialist, resolve its preferred lane's live status and bucket it:
+    Composes item-38 ``specialist_coverage_report`` with ``FleetRegistry.audit_liveness``
+    to answer the operator question: *which specialist Tasks can even be verified right now?*
 
-      * ``ready``     — lane status is ``"up"`` → a verification ATTEMPT is possible (regardless of
-        whether it has already been ``verified_working`` — readiness is attemptability, not history);
-      * ``lane_down`` — lane status is anything else (down/degraded/unknown) → can't test now.
+    A specialist Task is ``ready`` when its registered model's lane is live (``live_status
+    == "up"``).  It is ``lane_down`` when: (a) the Task has no registered model (gap), or
+    (b) the lane hosting its model is unreachable or unknown.
 
-    A specialist Task with NO registered model is a coverage GAP (item-38's concern) and appears in
-    NEITHER partition. ``check_fleet_fn`` is injectable for deterministic tests; it defaults to the
-    live prober in ``cohezion.inference.health`` (no live probe under pytest when injected). Pure
-    given the injected health — no writes, no mutation.
+    Args:
+        registry: injectable ``FleetRegistry`` (module singleton by default).
+        check_fleet_fn: injectable no-arg callable that returns a health object with a
+            ``.lanes`` dict matching the ``FleetRegistry.audit_liveness`` protocol. Defaults
+            to ``cohezion.inference.health.check_fleet``. **Always inject in tests** — the
+            default triggers live network probes.
+
+    Returns:
+        :class:`SpecialistLivenessReport` with ``ready`` and ``lane_down`` partitions.
     """
     reg = registry if registry is not None else get_registry()
-    if check_fleet_fn is None:
-        from cohezion.inference.health import check_fleet as check_fleet_fn  # live default
+    coverage = specialist_coverage_report(reg)
+    audit = reg.audit_liveness(check_fleet_fn)
 
-    health = check_fleet_fn()
-    lanes = getattr(health, "lanes", {})
-    ready: list[str] = []
-    lane_down: list[str] = []
-    for task in SPECIALIST_TASKS:
+    up_model_ids: frozenset[str] = frozenset(
+        item.model_id for item in audit.items if item.live_status == "up"
+    )
+
+    ready: list[SpecialistCoverage] = []
+    lane_down: list[SpecialistCoverage] = []
+    for row in coverage.rows:
+        if row.model_id is None:
+            lane_down.append(row)  # no model registered — gap always blocks
+        elif row.model_id in up_model_ids:
+            ready.append(row)
+        else:
+            lane_down.append(row)
+
+    return SpecialistLivenessReport(ready=ready, lane_down=lane_down)
+
+
+# ---------------------------------------------------------------------------
+# FUTURE HOOKS
+# ---------------------------------------------------------------------------
+# [ ] Item 77b: expose ``specialist_liveness_gaps`` on the /api/compound/health
+#     endpoint alongside ``DegradationDetector.get_health_summary()`` — complete
+#     the loop from "lane probe" to "operator dashboard visibility".
+# [ ] Item 77c: wire ``SpecialistLivenessReport.unverifiable_tasks`` into the
+#     autoresearch loop's campaign planner so it silently skips tasks whose lane
+#     is down (rather than surfacing a misleading "can't verify" failure).
+# [ ] Item 77d: stream-delta variant — emit a ``SpecialistLivenessReport`` diff
+#     on each autoresearch round so the operator can track lane-recovery events.
+
+
+# ---------------------------------------------------------------------------
+# Item 84 — Modality-coverage report (Thread M)
+# ---------------------------------------------------------------------------
+
+# The five I/O modalities the report tracks, mapped to the single most-representative
+# FleetRegistry Task for each.  Text = GENERAL (the broadest generation Task);
+# the three output modalities map to the Tasks added in item 83.
+_MODALITY_TASKS: dict[str, Task] = {
+    "text": Task.GENERAL,
+    "vision_in": Task.VISION,
+    "image_out": Task.IMAGE_GEN,
+    "audio_out": Task.AUDIO_TTS,
+    "video_out": Task.VIDEO_GEN,
+}
+
+# Three-state coverage per modality.
+MODALITY_COVERED = "covered"  # ≥1 verified ModelEntry exists
+MODALITY_REGISTERED_UNVERIFIED = "registered_unverified"  # entry exists, none verified
+MODALITY_GAP = "gap"  # no ModelEntry at all
+
+
+@dataclass(frozen=True)
+class ModalityCoverageRow:
+    """Coverage for one I/O modality. ``status`` is a three-state string (item 84)."""
+
+    modality: str  # human name: "text", "vision_in", "image_out", "audio_out", "video_out"
+    status: str  # MODALITY_COVERED | MODALITY_REGISTERED_UNVERIFIED | MODALITY_GAP
+    model_ids: list[str]  # IDs of all registered ModelEntries for this modality (empty if gap)
+
+
+@dataclass(frozen=True)
+class ModalityCoverageReport:
+    """Per-modality three-state coverage for the 5 I/O modalities (item 84). Report-only.
+
+    The five modalities: text, vision_in (input), image_out, audio_out, video_out (outputs).
+    Each row is one of three states: ``covered`` (≥1 verified), ``registered_unverified``
+    (registered but awaiting serving proof), or ``gap`` (no model registered).
+
+    ``registered_unverified`` is DISTINCT from both ``covered`` and ``gap`` — the binary
+    "is there a model?" is insufficient to express the verification campaign's state.
+    """
+
+    rows: list[ModalityCoverageRow]
+
+    @property
+    def gaps(self) -> list[str]:
+        return [r.modality for r in self.rows if r.status == MODALITY_GAP]
+
+    @property
+    def covered(self) -> list[str]:
+        return [r.modality for r in self.rows if r.status == MODALITY_COVERED]
+
+    @property
+    def registered_unverified(self) -> list[str]:
+        return [r.modality for r in self.rows if r.status == MODALITY_REGISTERED_UNVERIFIED]
+
+
+def modality_coverage_report(
+    registry: FleetRegistry | None = None,
+) -> ModalityCoverageReport:
+    """Report three-state coverage for each I/O modality in the local fleet (item 84). READ-ONLY.
+
+    For each of the five modalities (text, vision_in, image_out, audio_out, video_out):
+    - **covered**: at least ONE ``ModelEntry`` for the modality's Task has ``verified_working=True``.
+    - **registered_unverified**: ≥1 entry exists but NONE are verified (the verification
+      campaign's work-in-progress state — distinct from a true gap).
+    - **gap**: no ``ModelEntry`` registered for the modality's Task at all.
+
+    Coverage is checked across ALL registered candidates for the Task (not just the top
+    priority one) — a secondary low-priority model that IS verified counts as covered.
+
+    Composes item-38/57 specialist-coverage family. Pure — no inference, no I/O.
+    """
+    reg = registry if registry is not None else get_registry()
+    rows: list[ModalityCoverageRow] = []
+    for modality, task in _MODALITY_TASKS.items():
         candidates = reg.for_task(task)
         if not candidates:
-            continue  # gap (no model) — a coverage hole, not a liveness-partition member
-        lane_key = candidates[0].lane.value
-        lane_health = lanes.get(lane_key)
-        live_status = lane_health.status.value if lane_health is not None else "unknown"
-        (ready if live_status == "up" else lane_down).append(str(task))
-    return SpecialistLivenessGaps(ready=sorted(ready), lane_down=sorted(lane_down))
+            rows.append(ModalityCoverageRow(modality=modality, status=MODALITY_GAP, model_ids=[]))
+        elif any(c.verified_working for c in candidates):
+            rows.append(
+                ModalityCoverageRow(
+                    modality=modality,
+                    status=MODALITY_COVERED,
+                    model_ids=[c.model_id for c in candidates],
+                )
+            )
+        else:
+            rows.append(
+                ModalityCoverageRow(
+                    modality=modality,
+                    status=MODALITY_REGISTERED_UNVERIFIED,
+                    model_ids=[c.model_id for c in candidates],
+                )
+            )
+    return ModalityCoverageReport(rows=rows)
+
+
+# ---------------------------------------------------------------------------
+# ## FUTURE HOOKS
+# ---------------------------------------------------------------------------
+# 84b: Expose modality_coverage_report on /api/compound/health so the operator
+#      can see modality-coverage state at a glance alongside DegradationDetector.
+# 84c: Wire into the autoresearch experiment planner — a GAP modality is a
+#      higher-priority research target than a registered_unverified one.
+# 84d: modality_coverage_delta(before, after) — track campaign progress over ticks
+#      (mirrors specialist_coverage_delta, item 57).

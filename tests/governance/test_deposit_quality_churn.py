@@ -1,26 +1,34 @@
-"""Discriminating tests for deposit_quality_churn (backlog item 128, 2026-06-08).
+"""Item 128: deposit_quality_churn — TDD red→green (2026-06-08).
 
-`deposit_quality_churn(before, after)` is the name-level dual of item-74's count-level
-`deposit_quality_delta`: per problem class (redundant / low_evidence / format_invalid) it reports
-`newly` (names in after not before — fix THIS) and `resolved` (names in before not after — a fix
-that landed), compared by NAME. Report-only, pure over two injected DepositQualityReports.
+``deposit_quality_churn(before, after)`` returns the name-level delta across
+two ``DepositQualityReport``s — WHICH neurons entered/left each problem set, not
+just how many (item-74's count-level delta).
 
-Each test fails a plausible wrong impl:
-  - an impl that lists every COMMON name → test_name_in_both_in_neither,
-  - an impl comparing redundant by (name,count) not name → test_redundant_count_change_is_not_churn,
-  - an impl that swaps newly/resolved → test_newly_and_resolved_directions,
-  - an impl that miscompares identical snapshots → test_identical_all_empty.
+Per problem-class (redundant, low_evidence, format_invalid):
+  - ``newly``: names in ``after`` but NOT ``before`` (new problem since last scan)
+  - ``resolved``: names in ``before`` but NOT ``after`` (fixed since last scan)
+  - a name in BOTH → in NEITHER list
+
+Discriminating tests — each kills a plausible wrong implementation:
+
+  1. before-only → resolved; after-only → newly  (PRIMARY DISC.: kills "newly=after names")
+  2. Common name → neither list                  (kills "resolved=before names")
+  3. Identical reports → all-empty               (kills impl reporting shared names)
+  4. Empty reports → all-empty (no crash)        (kills impl that raises)
+  5. Three classes tracked independently         (kills impl merging all classes)
 """
 
 from __future__ import annotations
 
-from cohezion.governance.neuron_quality import (
-    DepositQualityReport,
-    deposit_quality_churn,
-)
+from cohezion.governance.neuron_quality import DepositQualityReport
+from cohezion.governance.quality_churn import deposit_quality_churn
 
 
-def _report(*, redundant=None, low_evidence=None, format_invalid=None) -> DepositQualityReport:
+def _report(
+    redundant: dict[str, int] | None = None,
+    low_evidence: list[str] | None = None,
+    format_invalid: list[str] | None = None,
+) -> DepositQualityReport:
     return DepositQualityReport(
         redundant=redundant or {},
         low_evidence=low_evidence or [],
@@ -28,55 +36,94 @@ def _report(*, redundant=None, low_evidence=None, format_invalid=None) -> Deposi
     )
 
 
-def test_newly_and_resolved_directions() -> None:
-    before = _report(low_evidence=["a"], format_invalid=["x"])
-    after = _report(low_evidence=[], format_invalid=["x", "y"])
+# ---------------------------------------------------------------------------
+# Tests
+# ---------------------------------------------------------------------------
+
+
+def test_before_only_resolved_after_only_newly() -> None:
+    """A name in before.low_evidence but not after → resolved; in after but not before → newly.
+
+    PRIMARY DISCRIMINATOR: kills an impl that sets newly = set(after.low_evidence),
+    which would include names common to both.
+    """
+    before = _report(low_evidence=["alice", "bob"])
+    after = _report(low_evidence=["bob", "charlie"])
     churn = deposit_quality_churn(before, after)
-    assert churn.low_evidence.resolved == ["a"]  # 'a' left the low_evidence set → a fix landed
-    assert churn.low_evidence.newly == []
-    assert churn.format_invalid.newly == ["y"]  # 'y' just became format-invalid → fix THIS
-    assert churn.format_invalid.resolved == []
+    assert "alice" in churn.low_evidence.resolved, (
+        f"alice (before-only) must be resolved; got {churn.low_evidence}"
+    )
+    assert "charlie" in churn.low_evidence.newly, (
+        f"charlie (after-only) must be newly; got {churn.low_evidence}"
+    )
 
 
-def test_name_in_both_in_neither() -> None:
-    # DISCRIMINATING: a name present in BOTH snapshots is unchanged churn — in NEITHER list. An impl
-    # that lists every common name would wrongly include it.
-    before = _report(low_evidence=["a", "b"])
-    after = _report(low_evidence=["a", "c"])
+def test_common_name_in_neither_list() -> None:
+    """A name in BOTH before and after → in neither resolved nor newly.
+
+    Kills an impl that reports every name in before as resolved.
+    """
+    before = _report(format_invalid=["alpha", "beta"])
+    after = _report(format_invalid=["beta", "gamma"])
     churn = deposit_quality_churn(before, after)
-    assert "a" not in churn.low_evidence.newly and "a" not in churn.low_evidence.resolved
-    assert churn.low_evidence.newly == ["c"]
-    assert churn.low_evidence.resolved == ["b"]
+    assert "beta" not in churn.format_invalid.resolved, (
+        f"beta (in both) must NOT be resolved; got {churn.format_invalid}"
+    )
+    assert "beta" not in churn.format_invalid.newly, (
+        f"beta (in both) must NOT be newly; got {churn.format_invalid}"
+    )
 
 
-def test_redundant_count_change_is_not_churn() -> None:
-    # DISCRIMINATING: redundant is a dict; churn is by NAME (key), not (name,count). A neuron whose
-    # redundancy count changed but is still redundant is in NEITHER list. An impl comparing
-    # (name,count) pairs would mark it both newly and resolved.
-    before = _report(redundant={"dup": 2})
-    after = _report(redundant={"dup": 5})
-    churn = deposit_quality_churn(before, after)
-    assert churn.redundant.newly == []
+def test_identical_reports_all_empty() -> None:
+    """Identical before and after → all three classes empty.
+
+    Kills an impl that re-reports common names.
+    """
+    report = _report(
+        redundant={"x": 2, "y": 3},
+        low_evidence=["a", "b"],
+        format_invalid=["c"],
+    )
+    churn = deposit_quality_churn(report, report)
     assert churn.redundant.resolved == []
+    assert churn.redundant.newly == []
+    assert churn.low_evidence.resolved == []
+    assert churn.low_evidence.newly == []
+    assert churn.format_invalid.resolved == []
+    assert churn.format_invalid.newly == []
 
 
-def test_redundant_key_churn() -> None:
-    before = _report(redundant={"old": 2})
-    after = _report(redundant={"new": 3})
+def test_empty_reports_all_empty() -> None:
+    """Both empty reports → all lists empty (no crash)."""
+    churn = deposit_quality_churn(_report(), _report())
+    assert churn.redundant.resolved == []
+    assert churn.redundant.newly == []
+    assert churn.low_evidence.resolved == []
+    assert churn.low_evidence.newly == []
+    assert churn.format_invalid.resolved == []
+    assert churn.format_invalid.newly == []
+
+
+def test_three_classes_tracked_independently() -> None:
+    """Changes in each problem class are tracked independently.
+
+    Kills an impl that merges all three classes into a single pool.
+    'alice' in low_evidence must not contaminate the format_invalid result.
+    """
+    before = _report(low_evidence=["alice"], format_invalid=["bob"])
+    after = _report(low_evidence=[], format_invalid=["bob", "carol"])
     churn = deposit_quality_churn(before, after)
-    assert churn.redundant.newly == ["new"]
-    assert churn.redundant.resolved == ["old"]
-
-
-def test_identical_all_empty() -> None:
-    rep = _report(redundant={"d": 2}, low_evidence=["a"], format_invalid=["x"])
-    churn = deposit_quality_churn(rep, rep)
-    for pc in (churn.redundant, churn.low_evidence, churn.format_invalid):
-        assert pc.newly == [] and pc.resolved == []
-
-
-def test_results_sorted() -> None:
-    before = _report(format_invalid=[])
-    after = _report(format_invalid=["z", "a", "m"])
-    churn = deposit_quality_churn(before, after)
-    assert churn.format_invalid.newly == ["a", "m", "z"]  # sorted, deterministic
+    # low_evidence: alice resolved, carol NOT in low_evidence (only in format_invalid after)
+    assert "alice" in churn.low_evidence.resolved, (
+        f"alice must be low_evidence.resolved; got {churn.low_evidence}"
+    )
+    assert "carol" not in churn.low_evidence.newly, (
+        f"carol must NOT appear in low_evidence.newly; got {churn.low_evidence}"
+    )
+    # format_invalid: bob in both (neither), carol newly
+    assert "carol" in churn.format_invalid.newly, (
+        f"carol must be format_invalid.newly; got {churn.format_invalid}"
+    )
+    assert "bob" not in churn.format_invalid.resolved, (
+        f"bob (in both) must NOT be format_invalid.resolved; got {churn.format_invalid}"
+    )

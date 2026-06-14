@@ -1,0 +1,365 @@
+"""Items 151 + 153 + 159 + 162: Tournament-winner neuron deposition & recall (2026-06-08).
+
+Item 151 — ``deposit_tournament_winner``:
+    Closes the tournament→memory write loop: after ``model_tournament`` confirms
+    a winner for a ``Task``, deposits a ``country='inference'`` neuron so future
+    loop ticks can recall the preferred model via ``loop_recall_context``
+    (item 108) without re-running the tournament.
+
+Item 153 — ``tournament_recall``:
+    The read-side complement of item 151.  Given a ``Task`` and an injectable
+    neuron store, returns the ``content`` (= ``model_id``) of the most recently
+    appended neuron whose ``tags`` contain BOTH ``task.value`` AND
+    ``"tournament-winner"``, or ``None`` if no such neuron exists.
+
+Item 159 — ``tournament_recall_all``:
+    Extends item 153 from single-task to all-tasks.  Scans the neuron store
+    once and returns ``{task.value: model_id}`` for EVERY task that has at
+    least one deposited winner (last-write-wins per task).  Tasks with no
+    winner are absent from the dict (never present with a ``None`` value).
+
+All three functions share the item-15 injectable-store pattern.  Pure given
+injected store — no I/O, no SurrealDB write in pytest.
+"""
+
+from __future__ import annotations
+
+from dataclasses import dataclass, field
+
+from cohezion.inference.model_tournament import TournamentResult
+from cohezion.inference.registry import Task
+
+
+def deposit_tournament_winner(
+    result: TournamentResult,
+    *,
+    store: list[dict] | None = None,
+) -> dict | None:
+    """Deposit a country='inference' neuron recording the tournament winner.
+
+    If ``result.winner`` is ``None`` (UNPROVEN — no candidates or tie with no
+    preference function) nothing is deposited and ``None`` is returned.
+
+    Args:
+        result:
+            :class:`~cohezion.inference.model_tournament.TournamentResult` from
+            :func:`~cohezion.inference.model_tournament.model_tournament`.
+        store:
+            Optional list to append the neuron dict to.  Provided in tests for
+            round-trip inspection.  ``None`` → production path (SurrealDB via
+            ``deposit_inference_neuron_record``); under ``pytest`` the production
+            path is a no-op (fail-soft pytest-skip pattern, item 15).
+
+    Returns:
+        The deposited neuron dict, or ``None`` if nothing was deposited.
+
+    Pure write path — no registry reads.  Fail-soft: never raises.
+    """
+    if result.winner is None:
+        return None
+
+    neuron = {
+        "name": f"{result.task.value}:tournament-winner",
+        "content": result.winner.model_id,
+        "country": "inference",
+        "tags": [result.task.value, "tournament-winner"],
+        "embedding": [],
+        "reward": 1.0,
+    }
+
+    if store is not None:
+        store.append(neuron)
+        return neuron
+
+    # Production path — fail-soft: never break the loop if SurrealDB is unavailable.
+    try:
+        import sys
+
+        if "pytest" in sys.modules or "unittest" in sys.modules:
+            return None  # never touch the real graph during tests
+        from cohezion.governance.knowledge_bridge import deposit_inference_neuron_record
+
+        deposit_inference_neuron_record(neuron)
+        return neuron
+    except Exception:
+        return None
+
+
+def tournament_recall(
+    task: Task,
+    neurons: list[dict],
+) -> str | None:
+    """Recall the most recently deposited tournament-winner model_id for *task*.
+
+    Scans *neurons* (the injectable neuron store) for the most recently appended
+    entry whose ``tags`` list contains BOTH ``task.value`` AND
+    ``"tournament-winner"``.  Returns ``neuron["content"]`` (the ``model_id``)
+    of the last such match, or ``None`` if no winner has been deposited yet.
+
+    "Most recently appended" is defined as the highest list-index — consistent
+    with the append-only write path of :func:`deposit_tournament_winner`.
+
+    Args:
+        task:
+            The :class:`~cohezion.inference.registry.Task` whose winner is being
+            recalled.
+        neurons:
+            Iterable of neuron dicts (same shape as the item-15 injectable store).
+            Only dicts whose ``"tags"`` list contains ``task.value`` AND
+            ``"tournament-winner"`` are considered.
+
+    Returns:
+        The ``content`` (= ``model_id``) of the most recently deposited winner
+        neuron for *task*, or ``None`` when no such neuron exists.
+
+    Pure (no I/O, no SurrealDB).  Use an injected neuron list in tests.
+    """
+    winner: str | None = None
+    for neuron in neurons:
+        if not isinstance(neuron, dict):
+            continue
+        tags = neuron.get("tags") or []
+        if task.value in tags and "tournament-winner" in tags:
+            winner = str(neuron.get("content") or "")
+    return winner if winner else None
+
+
+def tournament_recall_all(neurons: list[dict]) -> dict[str, str]:
+    """Recall the most recently deposited tournament-winner for every task that has one.
+
+    Extends :func:`tournament_recall` from single-task to all-tasks.  Scans
+    *neurons* once; for every task that has at least one deposited winner,
+    records the most recently appended winner (last-write-wins per task).
+    Tasks with no winner neuron are absent from the returned dict (never
+    present with a ``None`` value).
+
+    A neuron qualifies if its ``"tags"`` list contains BOTH
+    ``"tournament-winner"`` AND a valid :class:`~cohezion.inference.registry.Task`
+    value.  Neurons with only ``"tournament-winner"`` (no task.value tag) are
+    excluded — they cannot be attributed to any task.
+
+    Args:
+        neurons:
+            Iterable of neuron dicts (same shape as the item-15 injectable
+            store).
+
+    Returns:
+        ``{task.value: model_id}`` for every task with at least one deposited
+        winner.  Empty dict when no winners have been deposited.
+
+    Pure (no I/O, no SurrealDB).  Use an injected neuron list in tests.
+    """
+    valid_task_values: frozenset[str] = frozenset(t.value for t in Task)
+    result: dict[str, str] = {}
+    for neuron in neurons:
+        if not isinstance(neuron, dict):
+            continue
+        tags = neuron.get("tags") or []
+        if "tournament-winner" not in tags:
+            continue
+        # Find the task.value tag — the one that is NOT "tournament-winner"
+        # and IS a recognised Task enum value.  A neuron that carries only
+        # "tournament-winner" (no task tag) is skipped.
+        for tag in tags:
+            if tag != "tournament-winner" and tag in valid_task_values:
+                content = str(neuron.get("content") or "")
+                if content:
+                    result[tag] = content
+                break
+    return result
+
+
+@dataclass(frozen=True)
+class TournamentSnapshot:
+    """Typed envelope around the output of :func:`tournament_recall_all` — item 162.
+
+    Wraps the raw ``{task.value: model_id}`` dict from item 159 in a named,
+    immutable dataclass so callers have a stable typed interface:
+
+    Attributes:
+        winners: ``{task.value: model_id}`` for every task with a deposited winner.
+        task_count: Number of tasks with at least one winner (== ``len(winners)``).
+
+    Methods:
+        has_winner_for(task): Returns True if *task* has a deposited winner.
+        from_neurons(neurons): Class-method constructor (delegates to
+            :func:`tournament_recall_all`).
+
+    Pure; no I/O.  Use :meth:`from_neurons` with an injected neuron list in tests.
+    """
+
+    winners: dict[str, str] = field(default_factory=dict)
+    task_count: int = 0
+
+    def has_winner_for(self, task: Task) -> bool:
+        """Return ``True`` if *task* has a deposited tournament winner.
+
+        Args:
+            task: The :class:`~cohezion.inference.registry.Task` to check.
+
+        Returns:
+            ``True`` when ``task.value`` is a key in :attr:`winners`.
+        """
+        return task.value in self.winners
+
+    @classmethod
+    def from_neurons(cls, neurons: list[dict]) -> TournamentSnapshot:
+        """Build a :class:`TournamentSnapshot` from an injectable neuron store.
+
+        Delegates to :func:`tournament_recall_all` for winner discovery;
+        computes :attr:`task_count` from the resulting dict.
+
+        Args:
+            neurons: Iterable of neuron dicts (same shape as the item-15
+                injectable store).
+
+        Returns:
+            A new :class:`TournamentSnapshot` instance.
+        """
+        winners = tournament_recall_all(neurons)
+        return cls(winners=winners, task_count=len(winners))
+
+
+@dataclass(frozen=True)
+class TournamentSnapshotDiff:
+    """Diff between two :class:`TournamentSnapshot` instances — item 164.
+
+    Classifies every task winner into exactly one of four partitions:
+
+    Attributes:
+        added:     ``{task.value: new_model_id}`` — tasks in *after* but NOT in
+                   *before*.  These are newly deposited winners.
+        removed:   ``{task.value}`` — task values present in *before* but NOT in
+                   *after*.  These winners are no longer recorded.
+        changed:   ``{task.value: (old_model_id, new_model_id)}`` — tasks
+                   present in BOTH but with a different ``model_id``.
+        unchanged: ``{task.value}`` — tasks present in BOTH with the SAME
+                   ``model_id``.  Stable winners.
+
+    Every key in ``before.winners | after.winners`` appears in exactly one
+    partition.  Construct via :func:`tournament_snapshot_diff`.
+
+    Pure (no I/O).  Frozen (immutable).
+    """
+
+    added: dict[str, str]
+    removed: set[str]
+    changed: dict[str, tuple[str, str]]
+    unchanged: set[str]
+
+
+def diff_summary(diff: TournamentSnapshotDiff) -> str:
+    """Return a compact human-readable audit-log string for *diff* — item 166.
+
+    Converts a :class:`TournamentSnapshotDiff` into a plain-text report
+    suitable for audit logs and debug output.  Each partition (added /
+    removed / changed) is rendered as one line per task entry.  Unchanged
+    tasks are intentionally omitted — they carry no audit-relevant signal.
+
+    Args:
+        diff: A frozen :class:`TournamentSnapshotDiff` from
+            :func:`tournament_snapshot_diff`.
+
+    Returns:
+        ``"No changes."`` when the diff is empty (no added, removed, or
+        changed tasks).  Otherwise, a multi-line string with one entry per
+        changed task and a trailing newline stripped.
+
+    Pure (no I/O, no SurrealDB).
+    """
+    lines: list[str] = []
+
+    for task_value, model_id in sorted(diff.added.items()):
+        lines.append(f"added:   {task_value} → {model_id}")
+
+    for task_value in sorted(diff.removed):
+        lines.append(f"removed: {task_value}")
+
+    for task_value, (old_model, new_model) in sorted(diff.changed.items()):
+        lines.append(f"changed: {task_value}  {old_model} → {new_model}")
+
+    if not lines:
+        return "No changes."
+    return "\n".join(lines)
+
+
+def tournament_snapshot_diff(
+    before: TournamentSnapshot,
+    after: TournamentSnapshot,
+) -> TournamentSnapshotDiff:
+    """Compute the diff between two :class:`TournamentSnapshot` instances — item 164.
+
+    Compares *before* and *after* winner dicts and classifies each task into
+    one of four partitions (added / removed / changed / unchanged).  Every key
+    in ``before.winners | after.winners`` lands in exactly one partition.
+
+    Args:
+        before: The earlier snapshot (typically from a prior scan).
+        after:  The later snapshot (typically from a more recent scan).
+
+    Returns:
+        A frozen :class:`TournamentSnapshotDiff`.
+
+    Pure (no I/O, no SurrealDB).
+    """
+    before_keys = set(before.winners)
+    after_keys = set(after.winners)
+
+    added: dict[str, str] = {k: after.winners[k] for k in after_keys - before_keys}
+    removed: set[str] = before_keys - after_keys
+    changed: dict[str, tuple[str, str]] = {}
+    unchanged: set[str] = set()
+
+    for k in before_keys & after_keys:
+        if before.winners[k] != after.winners[k]:
+            changed[k] = (before.winners[k], after.winners[k])
+        else:
+            unchanged.add(k)
+
+    return TournamentSnapshotDiff(
+        added=added,
+        removed=removed,
+        changed=changed,
+        unchanged=unchanged,
+    )
+
+
+def snapshot_pipeline(
+    neurons: list[dict],
+    *,
+    second_neurons: list[dict] | None = None,
+) -> tuple[TournamentSnapshot, TournamentSnapshot, TournamentSnapshotDiff, str]:
+    """End-to-end TournamentSnapshot round-trip pipeline — item 168.
+
+    Exercises the full deposit→recall→diff→summary chain in a single call:
+
+    1. ``before = TournamentSnapshot.from_neurons(neurons)``
+    2. ``after  = TournamentSnapshot.from_neurons(second_neurons or neurons)``
+    3. ``diff   = tournament_snapshot_diff(before, after)``
+    4. ``report = diff_summary(diff)``
+
+    When *second_neurons* is ``None``, ``before`` and ``after`` are built from
+    the same neuron list, so the diff is all-unchanged and the report is
+    ``"No changes."``.
+
+    Args:
+        neurons:
+            The "before" injectable neuron store.
+        second_neurons:
+            Optional "after" injectable neuron store.  ``None`` → same list
+            as *neurons* (self-diff, always produces ``"No changes."``).
+
+    Returns:
+        A 4-tuple ``(before, after, diff, report)`` in that order:
+        - ``before``: :class:`TournamentSnapshot` from *neurons*.
+        - ``after``:  :class:`TournamentSnapshot` from *second_neurons*.
+        - ``diff``:   :class:`TournamentSnapshotDiff` between them.
+        - ``report``: Human-readable string from :func:`diff_summary`.
+
+    Pure (no I/O, no SurrealDB).  Use injectable neuron lists in tests.
+    """
+    before = TournamentSnapshot.from_neurons(neurons)
+    after = TournamentSnapshot.from_neurons(neurons if second_neurons is None else second_neurons)
+    diff = tournament_snapshot_diff(before, after)
+    report = diff_summary(diff)
+    return (before, after, diff, report)

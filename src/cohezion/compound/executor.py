@@ -12,6 +12,7 @@ import asyncio
 import contextlib
 import json
 import logging
+from pathlib import Path
 import time
 from collections.abc import Callable
 from dataclasses import dataclass
@@ -240,6 +241,19 @@ class CompoundExecutor(CompoundContextMixin, ExecutorIntegrationMixin):
             logger.debug("GeometricLatentBridge not available")
 
         self._degradation_mode = False  # HIHO band violation flag
+        # Mycelium bus subscriber guard (set True after first subscribe to
+        # avoid double-firing events on repeated execute_task calls)
+        self._bus_subscribed = False
+        self._bus: Any | None = (
+            None  # cached get_bus() result; avoids UnboundLocalError on 2nd call
+        )
+        self._bus_myc_registry: Any | None = None
+        # OuroborosRecorder (WS1A, 2026-06-04): start a flight recorder in
+        # the background to capture system vitals + bus trajectories.
+        # Lifecycle matches executor lifetime; started in start_recorder()
+        # (called explicitly, NOT in __init__, to keep __init__ side-effect
+        # free for tests). Best-effort: None if module unavailable.
+        self._ouroboros_recorder: Any | None = None
         # Lazy import to avoid circular dependency
         if inflection_detector:
             self.inflection_detector = inflection_detector
@@ -1569,6 +1583,124 @@ class CompoundExecutor(CompoundContextMixin, ExecutorIntegrationMixin):
                 logger.debug("Mycelium: captured execution as pattern entry")
         except Exception:
             pass  # Non-blocking: mycelium may not be available
+
+        # WS1B (2026-06-04): wire the OuroborosHealer into the failure path.
+        # On every execute_task failure, call healer.analyze_and_heal()
+        # which emits a HEALING_EVENT to the bus. This closes the
+        # previously-broken self-healing loop. Best-effort.
+        if not success and error_msg:
+            try:
+                from cohezion.ouroboros.healer import HealerAgent
+
+                if not hasattr(self, "_healer"):
+                    self._healer = HealerAgent()
+                # Build a log excerpt that includes the exception type
+                full_log = (
+                    f"Task: {task_description}\n"
+                    f"Skill: {skill_name}\n"
+                    f"Error: {error_msg}\n"
+                    f"Exception type: {metrics.get('error_type', 'unknown')}"
+                )
+                self._healer.analyze_and_heal(failure_log=full_log, target=skill_name)
+            except (ImportError, AttributeError, RuntimeError, OSError) as heal_err:
+                logger.debug(
+                    "OuroborosHealer.analyze_and_heal failed (non-blocking): %s",
+                    heal_err,
+                )
+
+        # Step 10.53: WS1C — log the session to the Obsidian vault via
+        # OuroborosWikiBridge.log_session() (best-effort, non-blocking).
+        # Creates a per-execution note at
+        # wiki/ouroboros/improvements/<ts>_<skill>.md so the success
+        # is durable and discoverable for retrospection.
+        if success:
+            try:
+                from cohezion.ouroboros.wiki_integration import OuroborosWikiBridge
+
+                if not hasattr(self, "_wiki_bridge"):
+                    # Lazy init: build on first use with a sane default
+                    # vault path. If the path doesn't exist, the bridge's
+                    # mkdir will create it; if it can't, the helper
+                    # returns None and we log at debug.
+                    default_vault = Path(__file__).resolve().parent.parent.parent
+                    # try several common locations for the vault
+                    for candidate in [
+                        default_vault / "data" / "vault",
+                        Path.home() / "vaults" / "cohezion-vault",
+                    ]:
+                        if candidate.exists():
+                            default_vault = candidate
+                            break
+                    self._wiki_bridge = OuroborosWikiBridge(vault_path=default_vault)
+                self._wiki_bridge.log_session(
+                    skill_name=skill_name,
+                    task_description=task_description,
+                    metrics=metrics,
+                    execution_id=f"exec_{int(time.time())}_{skill_name}",
+                )
+            except (ImportError, AttributeError, RuntimeError, OSError) as wiki_err:
+                logger.debug(
+                    "OuroborosWikiBridge.log_session failed (non-blocking): %s",
+                    wiki_err,
+                )
+
+        # Step 10.55: Emit WITNESS MARK to the precipitation bus (non-blocking).
+        # This is the bridge between the executor's journal-based mycelium
+        # (which tracks per-skill execution) and the bus-based mycelium
+        # (which clusters across universes and auto-promotes to vault+DB
+        # when cross-universe patterns emerge). The bus subscriber in
+        # cohezion.mycelium.registry.MyceliumRegistry will pick this up
+        # automatically; the auto-promotion is gated by a `len(universes)
+        # >= 2` cooldown so a single agent's events don't spam the vault.
+        # Idempotency: self._bus_subscribed guards against double-subscribe.
+        if success:
+            try:
+                if not getattr(self, "_bus_subscribed", False):
+                    try:
+                        from cohezion.mycelium.registry import (
+                            MyceliumRegistry as BusMyceliumRegistry,
+                        )
+                        from cohezion.precipitation.bus import get_bus
+                        from cohezion.precipitation.events import (
+                            PrecipitationEvent,
+                            PrecipitationKind,
+                        )
+
+                        self._bus = get_bus()  # cache ref; get_bus is only in scope inside this try
+                        self._bus_myc_registry = BusMyceliumRegistry(bus=self._bus)
+                        self._bus_myc_registry.subscribe()
+                        self._bus_subscribed = True
+                        logger.debug(
+                            "Mycelium bus subscriber registered for executor %s",
+                            id(self),
+                        )
+                    except (ImportError, AttributeError, RuntimeError) as e:
+                        logger.debug("Mycelium bus subscriber unavailable (non-blocking): %s", e)
+
+                if getattr(self, "_bus_subscribed", False):
+                    from cohezion.precipitation.events import (
+                        PrecipitationEvent,
+                        PrecipitationKind,
+                    )
+
+                    coherence = float(metrics.get("coherence", 0.5))
+                    self._bus.emit(
+                        PrecipitationEvent(
+                            kind=PrecipitationKind.WITNESS_MARK,
+                            universe_id=f"cohezion.execution.{skill_name}",
+                            coherence=coherence,
+                            agent_id="compound-executor",
+                            payload={
+                                "skill_name": skill_name,
+                                "operation_type": operation_type,
+                                "task_description": task_description[:200],
+                                "success": True,
+                                "duration_seconds": duration_seconds,
+                            },
+                        )
+                    )
+            except (ImportError, AttributeError, RuntimeError) as e:
+                logger.debug("WITNESS MARK emission failed (non-blocking): %s", e)
 
         # Step 10.7: Persist prompt artifact (L183)
         # Record prompt/response pair to SurrealDB for retrospective analysis

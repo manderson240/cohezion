@@ -106,70 +106,6 @@ def correspondence_is_discriminating(corpus: dict[str, list[str]], encoder: Enco
     return (sum(intra) / len(intra)) > (sum(inter) / len(inter))
 
 
-def correspondence_margin(corpus: dict[str, list[str]], encoder: Encoder) -> float:
-    """HOW discriminating is the encoder — ``mean_intra - mean_inter`` (item 117). Report-only.
-
-    The quantified dual of item-68 ``correspondence_is_discriminating`` (which returns only a
-    boolean): the calibration CONFIDENCE of the FLUME substrate. Composes the SAME intra/inter
-    pairwise computation, returning the DIFFERENCE of the means instead of the ``>`` boolean. A large
-    positive margin = the geometric index reliably separates related from unrelated items; a margin
-    near 0 = item-66 results are near-noise (the honest open question); a negative margin = the index
-    is anti-correlated (worse than chance). Mirrors item-61 ``rho_selection_margin``.
-
-    A perfectly-separating encoder (intra ≈ 1, inter ≈ 0) → margin ≈ 1.0; a degenerate encoder
-    (intra == inter) → 0.0; a vacuous corpus (< 2 items, or no within/cross pair to compare) → 0.0.
-    Pure (injected encoder, no writes).
-    """
-    items = [(g, t) for g, texts in corpus.items() for t in texts]
-    if len(items) < 2:
-        return 0.0  # vacuous — nothing to compare
-    vecs = [(g, encoder(t)) for g, t in items]
-    intra: list[float] = []
-    inter: list[float] = []
-    for i in range(len(vecs)):
-        for j in range(i + 1, len(vecs)):
-            c = _cosine(vecs[i][1], vecs[j][1])
-            (intra if vecs[i][0] == vecs[j][0] else inter).append(c)
-    if not intra or not inter:
-        return 0.0  # only one group, or all singletons → no discrimination measurable (vacuous)
-    return (sum(intra) / len(intra)) - (sum(inter) / len(inter))
-
-
-def novelty_density(
-    items: Iterable[str],
-    corpus: Iterable[dict],
-    *,
-    encoder: Encoder,
-    novelty_threshold: float = 0.5,
-) -> float:
-    """Fraction of ``items`` that are geometrically NOVEL vs ``corpus`` (item 95). Report-only.
-
-    Eagleman memory-density theory of subjective time: novelty → rich/dense memory, routine →
-    compressed/impoverished. A self-monitor over the loop's OWN output. For each item text, its MAX
-    geometric correspondence to the corpus is computed (via :func:`geometric_correspondence`); the
-    item is NOVEL when that max is strictly BELOW ``novelty_threshold`` (geometrically distinct from
-    all prior work) and ROUTINE when at/above it (the loop near-duplicating — an item already in the
-    corpus scores ≈ 1.0 → routine). Returns the novel fraction in ``[0, 1]``: HIGH = a healthy
-    exploring regime, LOW = a spinning / near-duplicating regime. Empty ``items`` → ``0.0`` (no
-    ZeroDivision); empty ``corpus`` → every item novel (nothing to resemble). Report-only — flags,
-    never gates. Pure given the injected ``encoder``. Distinct from item-80 journey-novelty (FLUME
-    trajectories); this is novelty of BACKLOG ITEMS. Caveat: inherits geometric-correspondence's
-    short-title imperfection (item 68) → advisory only.
-    """
-    item_list = [str(t) for t in items]
-    if not item_list:
-        return 0.0
-    corpus_list = list(corpus)  # materialize: iterated once per item (avoid generator exhaustion)
-    novel = 0
-    for text in item_list:
-        # floor=-1.0 keeps EVERY corpus item a candidate so top_k=1 is the true maximum correspondence.
-        matches = geometric_correspondence(text, corpus_list, encoder=encoder, top_k=1, floor=-1.0)
-        max_corr = matches[0].score if matches else -1.0
-        if max_corr < novelty_threshold:
-            novel += 1
-    return novel / len(item_list)
-
-
 def _flume_encoder() -> Encoder:
     """Default encoder: the FLUME 256D text encoder (hash-embedding fallback if no VAE checkpoint).
 
@@ -246,3 +182,103 @@ def compound_context_for(
     ]
     lines.extend(f"  - {m.ref} (correspondence {m.score:.2f}): {m.text}" for m in matches)
     return "\n".join(lines)
+
+
+# ---------------------------------------------------------------------------
+# Item 117 — Correspondence discrimination MARGIN (quantified dual of item 68)
+# ---------------------------------------------------------------------------
+
+
+def correspondence_margin(corpus: dict[str, list[str]], encoder: Encoder) -> float:
+    """Return mean_intra − mean_inter: the quantified discrimination margin (item 117). Pure.
+
+    This is the calibration CONFIDENCE for the FLUME geometric substrate:
+      - margin ≈ 1.0  → encoder perfectly separates related vs unrelated items
+      - margin == 0.0 → degenerate encoder (no discrimination; item-66 results near-noise)
+      - 0 < margin < 1 → partial discrimination
+
+    Mirrors item-68's ``correspondence_is_discriminating`` (boolean dual): where
+    item 68 answers "is it discriminating AT ALL?", item 117 answers "HOW discriminating
+    is it?" — the signed gap that calibrates confidence in the geometric index.
+
+    Vacuous cases (corpus with <2 items, or no cross-group pair, or no within-group pair)
+    return 0.0 (honest "unknown" rather than spurious confidence).
+
+    Args:
+        corpus:
+            Mapping of group-label → list of member texts.  Mirrors item-68's input.
+        encoder:
+            Injected encoder ``(text: str) → np.ndarray``.  No live :13305 / VAE under pytest
+            — pass a stub (e.g. identity-like or directional encoder).
+
+    Returns:
+        ``mean_intra − mean_inter`` as a float.  Range is nominally [−1, 1] (cosine
+        differences), but in practice [0, 1] for useful encoders.  0.0 when vacuous.
+
+    Pure (injected encoder; no writes, no I/O).  Report-only.
+    """
+    items = [(g, t) for g, texts in corpus.items() for t in texts]
+    if len(items) < 2:
+        return 0.0
+
+    vecs = [(g, encoder(t)) for g, t in items]
+
+    intra: list[float] = []
+    inter: list[float] = []
+    for i in range(len(vecs)):
+        for j in range(i + 1, len(vecs)):
+            c = _cosine(vecs[i][1], vecs[j][1])
+            (intra if vecs[i][0] == vecs[j][0] else inter).append(c)
+
+    if not intra or not inter:
+        return 0.0  # vacuous: only one group, or all singletons
+
+    return (sum(intra) / len(intra)) - (sum(inter) / len(inter))
+
+
+# ---------------------------------------------------------------------------
+# Item 95 — Loop novelty-density (Eagleman memory-density self-monitor)
+# ---------------------------------------------------------------------------
+
+
+def novelty_density(
+    items: list[str],
+    corpus: list[dict],
+    *,
+    encoder: Encoder,
+    novelty_threshold: float = 0.5,
+) -> float:
+    """Fraction of ``items`` that are geometrically NOVEL vs ``corpus`` (item 95). Report-only.
+
+    Operationalizes Eagleman's memory-density theory: a batch of near-duplicate items produces a
+    LOW novelty_density (loop is SPINNING); a batch of geometrically-distinct items produces a HIGH
+    novelty_density (loop is EVOLVING).
+
+    For each item the MAX :func:`geometric_correspondence` score against ``corpus`` is computed; if
+    that score is BELOW ``novelty_threshold``, the item is counted as NOVEL (no close prior).  An
+    item whose max score is ≥ ``novelty_threshold`` is ROUTINE (near-duplicate of something in
+    corpus).
+
+    Args:
+        items: the batch of items to assess (backlog item texts, loop outputs, etc.).
+        corpus: the reference collection — same format as :func:`geometric_correspondence`.
+        encoder: INJECTABLE — do NOT load a model in pytest; pass a stub encoder.
+        novelty_threshold: cosine-similarity boundary. Default 0.5 (moderate overlap = routine).
+
+    Returns:
+        Float in [0.0, 1.0]: fraction of ``items`` that are novel.
+        Empty ``items`` → 0.0 (no ZeroDivision).
+
+    Note: inherits the ``geometric_correspondence`` short-title imperfection (item 68) — advisory
+    only; a single number, not a verdict.
+    """
+    if not items:
+        return 0.0
+    novel_count = 0
+    for item in items:
+        # top_k=1 + floor=-1.0 → always returns the single best match (or nothing for empty corpus)
+        matches = geometric_correspondence(item, corpus, encoder=encoder, top_k=1, floor=-1.0)
+        max_score = matches[0].score if matches else 0.0
+        if max_score < novelty_threshold:
+            novel_count += 1
+    return novel_count / len(items)

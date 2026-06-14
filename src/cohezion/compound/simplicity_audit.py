@@ -223,48 +223,150 @@ def long_functions(paths: Iterable[Path], *, threshold: int = 50) -> list[tuple[
     return sorted(out, key=lambda t: (-t[1], t[0]))
 
 
-@dataclass(frozen=True)
-class CompoundSmell:
-    """A function flagged on MULTIPLE simplicity axes — a higher-priority refactor candidate."""
+def _boolean_default_count(func: ast.FunctionDef | ast.AsyncFunctionDef) -> int:
+    """Count params of ``func`` whose default value is a boolean literal (``True``/``False``).
 
-    qualified_name: str  # ``<filename>::<funcname>`` (the shared key across all four audits)
-    dimensions: tuple[str, ...]  # which axes flagged it, sorted
-    count: int  # == len(dimensions)
-
-
-def compound_smells(paths: Iterable[Path], *, min_dimensions: int = 2) -> list[CompoundSmell]:
-    """Functions flagged by ``>= min_dimensions`` of the four per-function simplicity audits (item 105).
-
-    The cost basis is now complete — complexity (item 43), nesting (47), parameters (63), size (64) —
-    so this finds functions bad on MULTIPLE axes at once: compounded smells are higher-priority
-    refactor candidates than single-axis ones. Composes the four existing report functions (each at
-    its OWN default threshold), keyed on their shared ``<filename>::<funcname>`` name. A function
-    flagged on exactly ONE axis is ABSENT at the default ``min_dimensions=2`` (this is NOT a union of
-    single-axis flags). The dimension count is EXACT — the number of DISTINCT axes. Report-only, pure
-    (composes four pure AST audits; no writes).
-
-    Known limitation (inherited): the key is the four audits' shared ``<filename>::<funcname>``, which
-    is NOT unique when one file has several same-named methods (e.g. multiple ``__init__``). Such
-    methods alias to one row; the count is still over DISTINCT axes (the same axis hitting two aliased
-    methods counts once), so a same-named collision can never inflate the dimension count.
+    The flag-argument dimension (item 97 — CONTROL COUPLING): a boolean default signals the
+    function branches on caller intent ("secretly does N things"). Both positional defaults
+    (``args.defaults``) and keyword-only defaults (``args.kw_defaults``) are inspected; a param
+    without a default contributes nothing (no default → not a flag). ``bool`` is checked
+    SPECIFICALLY, not any truthy constant — ``bool`` is an ``int`` subclass, so ``isinstance(1,
+    bool)`` is ``False`` and ``a=1`` / ``a=0`` are NOT counted, only real ``True``/``False`` are.
+    Pure: inspects the AST node, never executes.
     """
-    materialized = list(paths)  # may be a one-shot generator — reused across four audits
-    by_axis = {
-        "complexity": complexity_outliers(materialized),
-        "nesting": nesting_outliers(materialized),
-        "parameters": long_parameter_lists(materialized),
-        "size": long_functions(materialized),
-    }
-    dims_by_fn: dict[str, set[str]] = {}
-    for axis, flagged in by_axis.items():
-        for qualified_name, _value in flagged:
-            dims_by_fn.setdefault(qualified_name, set()).add(axis)  # DISTINCT axes only
-    out = [
-        CompoundSmell(qualified_name=fn, dimensions=tuple(sorted(dims)), count=len(dims))
-        for fn, dims in dims_by_fn.items()
-        if len(dims) >= min_dimensions
-    ]
-    return sorted(out, key=lambda s: (-s.count, s.qualified_name))
+    a = func.args
+    # args.defaults are expr nodes; kw_defaults is a parallel list whose entries are Python None
+    # (not an AST node) for kw-only params lacking a default — those are skipped by the isinstance.
+    defaults = list(a.defaults) + list(a.kw_defaults)
+    return sum(1 for d in defaults if isinstance(d, ast.Constant) and isinstance(d.value, bool))
+
+
+def boolean_flag_params(paths: Iterable[Path], *, threshold: int = 2) -> list[tuple[str, int]]:
+    """Functions with ``>= threshold`` boolean-literal-default params — the flag-argument smell. READ-ONLY.
+
+    Control coupling (item 97), distinct from the data-clump COUNT of :func:`long_parameter_lists`
+    (item 63) and the SIZE of :func:`long_functions` (item 64): a function with several boolean
+    defaults branches on caller intent rather than being split into focused functions. Returns
+    ``[(qualified_name, bool_default_count)]`` for every function/method with ``count >= threshold``,
+    sorted by count descending then name. ``qualified_name`` is ``<filename>::<funcname>``. Params
+    with no default and non-boolean defaults (``0``, ``""``, ``None``) are not counted (see
+    :func:`_boolean_default_count`). Note the boundary is ``>=`` (a function AT the threshold is the
+    smallest flagged offender), unlike the strict ``>`` of the count/size siblings. A clean/empty
+    set of files → ``[]``. Pure (stdlib ast, no writes) — a number is a smell flagged for judgment,
+    not a verdict.
+    """
+    out: list[tuple[str, int]] = []
+    for path in _iter_python_files(paths):
+        try:
+            tree = ast.parse(path.read_text(encoding="utf-8", errors="replace"))
+        except (OSError, SyntaxError, ValueError):
+            continue  # unreadable / not valid Python → skip, never crash the audit
+        for node in ast.walk(tree):
+            if isinstance(node, ast.FunctionDef | ast.AsyncFunctionDef):
+                count = _boolean_default_count(node)
+                if count >= threshold:  # item-97 spec: >= (a function AT the threshold is flagged)
+                    out.append((f"{path.name}::{node.name}", count))
+    return sorted(out, key=lambda t: (-t[1], t[0]))
+
+
+# The mutable built-in constructors whose call form (`list()`/`dict()`/`set()`) shares the footgun.
+# `frozenset`/`tuple` are immutable and deliberately excluded.
+_MUTABLE_CTOR_NAMES = frozenset({"list", "dict", "set"})
+
+
+def _mutable_default_count(func: ast.FunctionDef | ast.AsyncFunctionDef) -> int:
+    """Count params of ``func`` whose default is a MUTABLE literal — the shared-default footgun (item 147).
+
+    A default created once and mutated across calls leaks state between invocations. Mutable forms:
+    a list/dict/set DISPLAY (``[]``, ``{}``, ``{1}`` → ``ast.List``/``ast.Dict``/``ast.Set``), a
+    list/dict/set COMPREHENSION (``[i for i in r]`` → ``ast.ListComp``/``ast.DictComp``/``ast.SetComp``
+    — item 149, also a fresh container built once), or a ``list()``/``dict()``/``set()`` CALL.
+    Immutable defaults are NOT counted: ``ast.Constant`` (``0``/``""``/``None``/``True``), an
+    ``ast.Tuple`` (``()`` is immutable — never conflate with ``[]``), a generator expression
+    (``(i for i in r)`` → ``ast.GeneratorExp``, a one-shot iterator, not a container), and
+    ``frozenset()``/``tuple()`` calls. Both positional (``args.defaults``) and keyword-only
+    (``args.kw_defaults``) defaults are inspected. Pure: inspects the AST, never executes.
+
+    **Scope boundary:** defaults that are ``ast.Lambda`` nodes (``lambda: []``) or ``ast.Name``
+    references to a module-level mutable sentinel (``EMPTY = []; def f(x=EMPTY)``) are NOT
+    detected — static analysis cannot evaluate the runtime value of arbitrary expressions. This is
+    intentional: the function targets the common, unambiguous footgun forms only.
+    """
+    a = func.args
+    defaults = list(a.defaults) + list(a.kw_defaults)
+    count = 0
+    for d in defaults:
+        # Literal displays AND comprehensions (item 149) all build a FRESH mutable container once
+        # at def time. A GeneratorExp is deliberately excluded: it is a one-shot iterator, not a
+        # mutable container (and is not in this isinstance tuple).
+        if isinstance(d, ast.List | ast.Dict | ast.Set | ast.ListComp | ast.DictComp | ast.SetComp):
+            count += 1
+        elif (
+            isinstance(d, ast.Call)
+            and isinstance(d.func, ast.Name)
+            and d.func.id in _MUTABLE_CTOR_NAMES
+        ):
+            count += 1  # list()/dict()/set() — frozenset()/tuple() excluded (immutable)
+    return count
+
+
+def mutable_default_args(paths: Iterable[Path]) -> list[tuple[str, int]]:
+    """Functions with one or more mutable-literal default arguments — a CORRECTNESS smell. READ-ONLY.
+
+    Extends item-97's default-inspection thread from control-coupling to the classic Python
+    shared-mutable-default footgun (``def f(x=[])`` reuses the SAME list across calls). Returns
+    ``[(qualified_name, mutable_default_count)]`` for every function/method with ``count >= 1``,
+    sorted by count descending then name. ``qualified_name`` is ``<filename>::<funcname>``. Only
+    list/dict/set displays and ``list()``/``dict()``/``set()`` calls count; immutable defaults
+    (constants, tuples, ``frozenset()``) do not (see :func:`_mutable_default_count`). A clean/empty
+    set of files → ``[]``. Pure (stdlib ast, no writes) — a number is a smell flagged for judgment.
+    """
+    out: list[tuple[str, int]] = []
+    for path in _iter_python_files(paths):
+        try:
+            tree = ast.parse(path.read_text(encoding="utf-8", errors="replace"))
+        except (OSError, SyntaxError, ValueError):
+            continue  # unreadable / not valid Python → skip, never crash the audit
+        for node in ast.walk(tree):
+            if isinstance(node, ast.FunctionDef | ast.AsyncFunctionDef):
+                count = _mutable_default_count(node)
+                if count >= 1:  # any mutable default is the footgun — no threshold needed
+                    out.append((f"{path.name}::{node.name}", count))
+    return sorted(out, key=lambda t: (-t[1], t[0]))
+
+
+def _is_test_path(path: Path) -> bool:
+    """True if ``path`` is a test module (legitimately uses ``assert``).
+
+    A module is "test" if its filename starts with ``test_`` OR any path segment is ``tests``
+    (covers ``tests/`` trees and their ``conftest.py``/helpers). Pure: inspects the path only.
+    """
+    return path.name.startswith("test_") or "tests" in path.parts
+
+
+def production_asserts(paths: Iterable[Path]) -> list[tuple[str, int]]:
+    """`assert` statements in NON-test production modules — a silent-failure footgun. READ-ONLY.
+
+    Asserts are STRIPPED under ``python -O`` (optimized runs), so an ``assert`` used for runtime
+    VALIDATION in shipping code silently vanishes there — the guard does nothing in production. This
+    flags every ``assert`` (module-level OR in-function — both are stripped) in non-test modules;
+    test modules (see :func:`_is_test_path`) legitimately use ``assert`` and are skipped. Sibling of
+    :func:`stealth_bare_excepts` on the correctness-smell thread. Returns ``[(<filename>, lineno)]``
+    sorted by name then line. A clean/empty set of files → ``[]``. Pure (stdlib ast, no writes) —
+    the fix (raise an explicit exception) is a behavior decision, never auto-applied.
+    """
+    out: list[tuple[str, int]] = []
+    for path in _iter_python_files(paths):
+        if _is_test_path(path):
+            continue  # test code legitimately uses assert
+        try:
+            tree = ast.parse(path.read_text(encoding="utf-8", errors="replace"))
+        except (OSError, SyntaxError, ValueError):
+            continue  # unreadable / not valid Python → skip, never crash the audit
+        for node in ast.walk(tree):
+            if isinstance(node, ast.Assert):
+                out.append((path.name, node.lineno))
+    return sorted(out, key=lambda t: (t[0], t[1]))
 
 
 _CATCHALL_EXCEPTIONS = frozenset({"Exception", "BaseException"})
@@ -315,53 +417,6 @@ def stealth_bare_excepts(paths: Iterable[Path]) -> list[tuple[str, str]]:
                 out.append((loc, "stealth-tuple"))
             else:
                 out.append((loc, sorted(catchall)[0]))
-    return sorted(out)
-
-
-def _silent_swallow_kind(handler: ast.ExceptHandler) -> str | None:
-    """``"pass"``/``"ellipsis"`` iff the handler body is EXACTLY a lone ``pass`` or ``...``.
-
-    A body of any other length, or a single statement that is neither ``pass`` nor the Ellipsis
-    constant (e.g. a logging call, a ``raise``, a ``return``, or even a ``"docstring"`` — a string
-    Constant is NOT Ellipsis), is not a silent swallow.
-    """
-    if len(handler.body) != 1:
-        return None
-    stmt = handler.body[0]
-    if isinstance(stmt, ast.Pass):
-        return "pass"
-    if (
-        isinstance(stmt, ast.Expr)
-        and isinstance(stmt.value, ast.Constant)
-        and stmt.value.value is Ellipsis
-    ):
-        return "ellipsis"
-    return None
-
-
-def silent_except_swallows(paths: Iterable[Path]) -> list[tuple[str, str]]:
-    """Flag except handlers that DROP the error silently — body is exactly ``pass``/``...`` (item 110).
-
-    The DUAL of item-65 ``stealth_bare_excepts`` (which flags catch-all WIDTH): this flags silent
-    DROP regardless of width — a narrow ``except ValueError: pass`` is still an error caught and
-    discarded with no log / re-raise / handling (the ``except: pass`` anti-pattern that hides
-    failures). Returns ``[(location, kind)]`` with ``kind`` in ``{"pass", "ellipsis"}``; ``location``
-    is ``<filename>:<lineno>``. An except that logs / re-raises / returns, or one with ``pass`` PLUS
-    other statements, is NOT flagged. Report-only — a candidate to add handling, a human call. Pure
-    (stdlib ast, no writes). Composes the same ``_iter_python_files`` + ``ast.ExceptHandler`` walk.
-    """
-    out: list[tuple[str, str]] = []
-    for path in _iter_python_files(paths):
-        try:
-            tree = ast.parse(path.read_text(encoding="utf-8", errors="replace"))
-        except (OSError, SyntaxError, ValueError):
-            continue  # unreadable / not valid Python → skip, never crash the audit
-        for node in ast.walk(tree):
-            if not isinstance(node, ast.ExceptHandler):
-                continue
-            kind = _silent_swallow_kind(node)
-            if kind is not None:
-                out.append((f"{path.name}:{node.lineno}", kind))
     return sorted(out)
 
 
@@ -499,3 +554,184 @@ def needless_passthroughs(paths: Iterable[Path]) -> list[NeedlessPassthrough]:
         if count <= 1:
             out.append(NeedlessPassthrough(qualified_name=q, caller_count=count, orphan=count == 0))
     return sorted(out, key=lambda n: n.qualified_name)
+
+
+# ---------------------------------------------------------------------------
+# Item 110 — Silent-except-swallow audit (Thread A, error-handling)
+# ---------------------------------------------------------------------------
+
+
+def _body_is_purely_silent(handler: ast.ExceptHandler) -> bool:
+    """True iff the except handler's body consists of ONLY a ``pass`` statement or a lone ``...``
+    (``ast.Constant`` with ``Ellipsis`` value), with no other statements.
+
+    A single ``pass`` or ``...`` with no logging / re-raise / side effects is the "silent swallow"
+    anti-pattern: the error is caught and dropped invisibly.  Two or more statements (even if one
+    is ``pass``) means SOMETHING is happening — not purely silent.
+    """
+    body = handler.body
+    if len(body) != 1:
+        return False  # multiple statements → not purely silent
+    stmt = body[0]
+    if isinstance(stmt, ast.Pass):
+        return True
+    # `...` parses as ast.Expr(value=ast.Constant(value=Ellipsis))
+    if (
+        isinstance(stmt, ast.Expr)
+        and isinstance(stmt.value, ast.Constant)
+        and stmt.value.value is ...
+    ):
+        return True
+    return False
+
+
+def silent_except_swallows(paths: Iterable[Path]) -> list[tuple[str, str]]:
+    """Flag except handlers that silently drop errors with no logging or re-raise (item 110).
+
+    An except handler is a "silent swallow" when its body is EXACTLY one statement: a bare ``pass``
+    or a lone ``...`` (Ellipsis).  Any additional statement — logging, re-raise, return, assignment
+    — means the error is being handled (not purely dropped).
+
+    Distinct from :func:`stealth_bare_excepts` (item 65), which flags CATCH-ALL WIDTH (catching
+    ``Exception`` / bare ``except``).  A narrow ``except ValueError: pass`` is NOT flagged by item
+    65, but IS flagged here (a silent swallow regardless of how narrow the catch is).
+
+    Returns ``[(location, kind)]`` sorted by location, where ``location`` is
+    ``<filename>:<lineno>`` and ``kind`` is ``"pass"`` or ``"ellipsis"``.  READ-ONLY — report-only;
+    pure (stdlib ast, no writes).
+    """
+    out: list[tuple[str, str]] = []
+    for path in _iter_python_files(paths):
+        try:
+            tree = ast.parse(path.read_text(encoding="utf-8", errors="replace"))
+        except (OSError, SyntaxError, ValueError):
+            continue
+        for node in ast.walk(tree):
+            if not isinstance(node, ast.ExceptHandler):
+                continue
+            if not _body_is_purely_silent(node):
+                continue
+            # Determine whether the silent body was `pass` or `...`
+            stmt = node.body[0]
+            kind = "pass" if isinstance(stmt, ast.Pass) else "ellipsis"
+            loc = f"{path.name}:{node.lineno}"
+            out.append((loc, kind))
+    return sorted(out)
+
+
+# Logger method names whose message arg is built eagerly by the CALLER (before the level check).
+_LOG_METHODS = frozenset(
+    {"debug", "info", "warning", "warn", "error", "critical", "exception", "log"}
+)
+
+
+def _is_interpolated_fstring(node: ast.expr) -> bool:
+    """True if ``node`` is an f-string that actually interpolates (has ≥1 ``FormattedValue``).
+
+    A constant-only f-string (``f"started"`` → ``ast.JoinedStr`` of only ``Constant``) has no eager
+    formatting cost and is NOT the smell. Pure: inspects the AST node.
+    """
+    return isinstance(node, ast.JoinedStr) and any(
+        isinstance(v, ast.FormattedValue) for v in node.values
+    )
+
+
+def eager_log_fstrings(paths: Iterable[Path]) -> list[tuple[str, int]]:
+    """Logger calls whose message is an interpolating f-string — eager formatting. READ-ONLY.
+
+    ``log.info(f"x={x}")`` builds the string EAGERLY in the caller, even when the log level is
+    disabled; the lazy form ``log.info("x=%s", x)`` defers formatting to the handler (only paid if
+    the record is emitted). Flags calls to a logger method (see :data:`_LOG_METHODS`, matched on the
+    attribute name — ``<anything>.info(...)``) whose FIRST positional arg is an interpolating
+    f-string. Constant-only f-strings and the ``%``-style lazy form are NOT flagged. Returns
+    ``[(<filename>, lineno)]`` sorted by name then line. A clean/empty set → ``[]``. Pure (stdlib
+    ast, no writes). **Heuristic note:** matches on method NAME only, so a non-logger object with an
+    ``.info``/``.log`` method + an f-string arg is a possible false positive — a smell flagged for
+    judgment, not a verdict (consistent with the rest of this module).
+    """
+    out: list[tuple[str, int]] = []
+    for path in _iter_python_files(paths):
+        try:
+            tree = ast.parse(path.read_text(encoding="utf-8", errors="replace"))
+        except (OSError, SyntaxError, ValueError):
+            continue  # unreadable / not valid Python → skip, never crash the audit
+        for node in ast.walk(tree):
+            if (
+                isinstance(node, ast.Call)
+                and isinstance(node.func, ast.Attribute)
+                and node.func.attr in _LOG_METHODS
+                and node.args
+                and _is_interpolated_fstring(node.args[0])
+            ):
+                out.append((path.name, node.lineno))
+    return sorted(out, key=lambda t: (t[0], t[1]))
+
+
+# ---------------------------------------------------------------------------
+# Item 105 — Compound-smell aggregator (multi-axis worst-offenders)
+# ---------------------------------------------------------------------------
+
+
+@dataclass(frozen=True)
+class CompoundSmell:
+    """A function bad on multiple smell axes — highest-priority refactor candidate (item 105).
+
+    ``qualified_name`` matches the ``<filename>::<funcname>`` format of the per-axis audits.
+    ``dimension_count`` is the EXACT number of axes tripped (2..4) — an impl that over/under-counts
+    produces the wrong value and is killed by :func:`test_dimension_count_exact`.
+    ``dimensions`` names which axes: ``"complexity"``, ``"nesting"``, ``"params"``, ``"size"``.
+    """
+
+    qualified_name: str  # <filename>::<funcname>
+    dimension_count: int  # exact count of axes tripped (2..4)
+    dimensions: frozenset[str]  # which axes tripped
+
+
+def compound_smells(
+    paths: Iterable[Path],
+    *,
+    min_dimensions: int = 2,
+) -> list[CompoundSmell]:
+    """Functions flagged on >= ``min_dimensions`` of {complexity, nesting, params, size}. READ-ONLY.
+
+    Composes all four per-axis smell audits (items 43/47/63/64) at their DEFAULT thresholds and
+    returns only the functions that trip MULTIPLE axes simultaneously — the worst-offenders (higher-
+    priority refactor candidates than single-axis outliers).
+
+    The orthogonal-basis dual of the per-axis audits: each axis measures a DIFFERENT dimension of
+    complexity; a function that exceeds thresholds on two or more independent dimensions is harder to
+    read, test, and modify than one that only barely trips a single threshold.
+
+    Args:
+        paths: source paths to audit (dirs → all ``*.py`` recursively; files directly).
+        min_dimensions: minimum number of axes a function must trip to appear in the report.
+            Defaults to 2 (a "compound" smell). Set to 1 to recover the union of all per-axis
+            reports (equivalent to running the four audits separately).
+
+    Returns:
+        Sorted :class:`CompoundSmell` list — by ``dimension_count`` descending, then
+        ``qualified_name``.  Empty input or all-clean source → ``[]``.
+        Pure — composes four pure AST audits; no writes, no third-party deps.
+        Report-only: a count is a smell flagged for judgment, never a verdict.
+    """
+    plist = list(paths)
+    # Run each per-axis audit; extract just the names (values are per-axis magnitudes we don't need).
+    flagged_by_axis: dict[str, set[str]] = {
+        "complexity": {name for name, _ in complexity_outliers(plist)},
+        "nesting": {name for name, _ in nesting_outliers(plist)},
+        "params": {name for name, _ in long_parameter_lists(plist)},
+        "size": {name for name, _ in long_functions(plist)},
+    }
+    all_flagged: set[str] = set().union(*flagged_by_axis.values())
+    out: list[CompoundSmell] = []
+    for name in all_flagged:
+        dims = frozenset(axis for axis, names in flagged_by_axis.items() if name in names)
+        if len(dims) >= min_dimensions:
+            out.append(
+                CompoundSmell(
+                    qualified_name=name,
+                    dimension_count=len(dims),
+                    dimensions=dims,
+                )
+            )
+    return sorted(out, key=lambda s: (-s.dimension_count, s.qualified_name))
