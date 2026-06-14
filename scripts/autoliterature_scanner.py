@@ -50,40 +50,67 @@ SEEN_MODELS_PATH = STATE_DIR / "seen_model_ids.json"
 #   * Reject > 70B params (won't fit even quantized)
 MODEL_SCOUT_MAX_PARAMS = 35_000_000_000  # 35B param cap for QLoRA on Strix Halo
 MODEL_SCOUT_OPEN_LICENSES = {
-    "apache-2.0", "mit", "bsd-3-clause", "bsd-2-clause",
-    "llama2", "llama3", "llama3.1", "llama3.2", "llama3.3", "llama4",
-    "gemma", "gemma-3", "gemma-4",
-    "qwen", "qwen-research", "qwen-license",
-    "deepseek-license", "deepseek",
-    "openrail", "openrail++", "creativeml-openrail-m",
+    "apache-2.0",
+    "mit",
+    "bsd-3-clause",
+    "bsd-2-clause",
+    "llama2",
+    "llama3",
+    "llama3.1",
+    "llama3.2",
+    "llama3.3",
+    "llama4",
+    "gemma",
+    "gemma-3",
+    "gemma-4",
+    "qwen",
+    "qwen-research",
+    "qwen-license",
+    "deepseek-license",
+    "deepseek",
+    "openrail",
+    "openrail++",
+    "creativeml-openrail-m",
     # Mistral/codestral are non-commercial — NOT included.
 }
 MODEL_SCOUT_BLOCKED_LIBS = {"diffusers", "tortoise-tts", "tensorflowtts"}  # not LLMs
 MODEL_SCOUT_TASK_FILTER = "text-generation"
 
-# ── local inference: multi-lane (NPU + iGPU + CPU) on Lemonade port 13307 ────
-# Single server, three hardware paths via the model's `recipe`:
+# ── local inference: unified Lemonade router on port 13305 ────
+# Single router serves NPU/iGPU/CPU on-demand via model recipe:
 #   flm       → AMD Ryzen AI NPU (fastest, small models only)
 #   llamacpp  → Radeon 8060S iGPU via ROCWMMA (best quality, large models)
 #   llamacpp  → CPU (Ryzen AI MAX+ 395 16C/32T, fallback when iGPU busy)
 # We try lanes in priority order with a short timeout; first to respond wins.
 # Track which lane scored each paper for hardware-utilization analytics.
-LEMONADE_BASE = "http://localhost:13307/v1"
+LEMONADE_BASE = "http://localhost:13305/v1"
 # Per-lane preferred-and-fallback model lists. The scanner probes them in order
 # inside each lane, so when AMD/FastFlowLM ships Gemma-4 NPU into Lemonade
 # (FLM v0.9.39 added gemma4-it:e2b — pending Lemonade bundle update per AMD's
 # Day-0 Gemma 4 announcement), the scanner switches to it automatically without
 # any code change.
 LEMONADE_LANES = [
-    {"name": "npu",  "model": "gemma3-4b-FLM",
-     "preferred_models": ["gemma4-it:e2b", "Gemma-4-E2B-FLM", "gemma3-4b-FLM"],
-     "timeout": 12.0, "max_tokens": 180},  # bumped 8→12 for cold-load tolerance
-    {"name": "igpu", "model": "Gemma-4-E4B-it-GGUF",
-     "preferred_models": ["Gemma-4-E4B-it-GGUF", "Gemma-4-E2B-it-GGUF"],
-     "timeout": 20.0, "max_tokens": 180},
-    {"name": "cpu",  "model": "Qwen3-0.6B-GGUF",
-     "preferred_models": ["Qwen3-0.6B-GGUF", "Gemma-4-E2B-it-GGUF"],
-     "timeout": 15.0, "max_tokens": 180},
+    {
+        "name": "npu",
+        "model": "gemma3-4b-FLM",
+        "preferred_models": ["gemma4-it:e2b", "Gemma-4-E2B-FLM", "gemma3-4b-FLM"],
+        "timeout": 12.0,
+        "max_tokens": 180,
+    },  # bumped 8→12 for cold-load tolerance
+    {
+        "name": "igpu",
+        "model": "Gemma-4-E4B-it-GGUF",
+        "preferred_models": ["Gemma-4-E4B-it-GGUF", "Gemma-4-E2B-it-GGUF"],
+        "timeout": 20.0,
+        "max_tokens": 180,
+    },
+    {
+        "name": "cpu",
+        "model": "Qwen3-0.6B-GGUF",
+        "preferred_models": ["Qwen3-0.6B-GGUF", "Gemma-4-E2B-it-GGUF"],
+        "timeout": 15.0,
+        "max_tokens": 180,
+    },
 ]
 # Round-robin starting offset bumps each call so load spreads across lanes
 # (writes back to the seen-cache state file so it persists across invocations)

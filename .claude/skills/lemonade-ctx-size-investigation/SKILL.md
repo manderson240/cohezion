@@ -1,11 +1,34 @@
 ---
 name: lemonade-ctx-size-investigation
+version: 2.0.0
+status: superseded
+superseded_by: "harness.md N3"
 description: >
-  Documents lemond's hardcoded ctx-size=4096 behavior and the complete
-  investigation trail showing every override attempt fails. Use when
-  troubleshooting lemond context limits or attempting to increase ctx-size.
-trigger: "lemond ctx-size | lemonade context size | llama-server --ctx-size | LEMONADE_CTX_SIZE"
+  SUPERSEDED (2026-06-09). Original skill claimed ctx-size hardcoded at 4096 with all overrides failing.
+  FALSE for lemonade 10.6.0+. See harness.md N3 for the corrected fix: pre-load with bounded ctx_size
+  via POST :13305/api/v1/load {ctx_size:16384, save_options:true}. Kept for historical reference only.
+trigger: "lemonade ctx-size | ctx_size=0 crash | 2026-06-09 oom"
 ---
+
+# ⚠️ SUPERSEDED: lemond ctx-size Investigation (See harness.md N3)
+
+**Status:** Superseded 2026-06-09. Original claim (ctx-size hardcoded=4096, all overrides fail) is FALSE for lemonade 10.6.0+.
+
+**Corrected Fix (harness.md N3, verified 2026-06-09):**
+```bash
+# Pre-load with bounded ctx AND persist:
+curl -s -X POST http://localhost:13305/api/v1/load \
+  -H "Content-Type: application/json" \
+  -d '{"model_name": "Qwen3.6-35B-A3B-ThinkingCoder", "ctx_size": 16384, "save_options": true}'
+# Verify:
+curl -s http://localhost:13305/api/v1/models/Qwen3.6-35B-A3B-ThinkingCoder \
+  | python3 -c "import sys,json; d=json.load(sys.stdin); print('ctx_size:', d.get('recipe_options',{}).get('ctx_size'))"
+# Expected: ctx_size: 16384
+```
+
+---
+
+## Original Investigation (Historical Reference, OUTDATED)
 
 # lemond ctx-size — Hardcoded 4096 (All Overrides Fail)
 

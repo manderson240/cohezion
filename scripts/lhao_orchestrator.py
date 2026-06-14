@@ -64,7 +64,7 @@ UCB_C = math.sqrt(2)  # Exploration constant
 
 # Model endpoints
 OLLAMA_URL = "http://localhost:11434/api/generate"
-LEMONADE_URL = "http://localhost:13307/v1/chat/completions"
+LEMONADE_URL = "http://localhost:13305/v1/chat/completions"
 
 # ── K-Search Tree ──────────────────────────────────────────────────
 

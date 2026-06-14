@@ -18,8 +18,8 @@ Internal flow:
 
 This module does NOT implement its own inference HTTP client — it delegates
 to ``cohezion.swarm.providers`` (Lemonade, Ollama, Gemini, Anthropic) and to
-direct httpx calls for the OpenAI-compatible Lemonade endpoints, which is what
-the Symphony launch script exposes on :13306–:13309.
+direct httpx calls for the OpenAI-compatible Lemonade endpoints on the
+unified router at :13305.
 """
 
 from __future__ import annotations
