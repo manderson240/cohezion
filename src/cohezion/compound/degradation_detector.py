@@ -141,6 +141,12 @@ class DegradationDetector:
             "coherence": MetricBaseline("coherence"),
             "duration_seconds": MetricBaseline("duration_seconds"),
             "success_rate": MetricBaseline("success_rate"),
+            # HIHO physics signals — three orthogonal routing quality metrics
+            # plus consensus (mean across all three frameworks)
+            "hiho_reciprocity": MetricBaseline("hiho_reciprocity"),
+            "hiho_condensate": MetricBaseline("hiho_condensate"),
+            "hiho_damping": MetricBaseline("hiho_damping"),
+            "hiho_consensus": MetricBaseline("hiho_consensus"),
         }
 
         # Alert history for deduplication
@@ -265,6 +271,49 @@ class DegradationDetector:
                 )
                 if self._should_emit_alert(alert):
                     alerts.append(alert)
+
+        # HIHO physics checks — routing quality signals from three independent formalisms
+        # hiho_reciprocity: routing bias (NonReciprocalHamiltonian — asymmetric escalation)
+        # hiho_condensate:  tier load balance (TwoComponentCondensate — order parameter)
+        # hiho_damping:     routing stability (DampedRoutingOscillator — convergence quality)
+        # hiho_consensus:   mean across all three frameworks (HihoConsensus)
+        # All four are in [0,1]; score < 0.2 = severe imbalance in that formalism
+        for hiho_key in ("hiho_reciprocity", "hiho_condensate", "hiho_damping", "hiho_consensus"):
+            hiho_val = metrics.get(hiho_key)
+            if hiho_val is None:
+                continue
+            if self._baselines[hiho_key].is_established:
+                baseline_hiho = self._baselines[hiho_key].mean
+                drop = baseline_hiho - hiho_val
+                if drop > 0.3:  # >30% drop from established HIHO balance baseline
+                    hiho_alert = DegradationAlert(
+                        metric=hiho_key,
+                        severity=AlertSeverity.WARNING,
+                        message=(
+                            f"{hiho_key} dropped {drop:.2f} from baseline "
+                            f"({hiho_val:.3f} vs {baseline_hiho:.3f}) — routing imbalance"
+                        ),
+                        current_value=hiho_val,
+                        baseline_value=baseline_hiho,
+                        threshold=baseline_hiho - 0.3,
+                    )
+                    if self._should_emit_alert(hiho_alert):
+                        alerts.append(hiho_alert)
+            elif hiho_val < 0.2:  # Absolute floor before baseline establishes
+                hiho_alert = DegradationAlert(
+                    metric=hiho_key,
+                    severity=AlertSeverity.WARNING,
+                    message=(
+                        f"{hiho_key} = {hiho_val:.3f} — severe routing imbalance "
+                        "(HIHO kernel below 0.2)"
+                    ),
+                    current_value=hiho_val,
+                    baseline_value=0.5,
+                    threshold=0.2,
+                )
+                if self._should_emit_alert(hiho_alert):
+                    alerts.append(hiho_alert)
+            self._baselines[hiho_key].add_sample(hiho_val)
 
         # NOW add samples to baselines (after all checks completed)
         # This ensures checks compare against established baseline, not polluted by current value

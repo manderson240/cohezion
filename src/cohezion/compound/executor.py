@@ -1286,6 +1286,19 @@ class CompoundExecutor(CompoundContextMixin, ExecutorIntegrationMixin):
                     degradation_metrics["tokens_per_second"] = token_metrics.get(
                         "tokens_per_second", 0.0
                     )
+                # HIHO physics signals — three orthogonal routing quality metrics
+                # aggregated via HihoConsensus for cross-framework consistency.
+                # coherence_val ∈ [0,1] mapped to quality_budget ∈ [-0.5, 0.5].
+                try:
+                    from cohezion.physics.hiho_universality import HihoConsensus
+
+                    _consensus = HihoConsensus(quality_budget=coherence_val - 0.5)
+                    degradation_metrics["hiho_reciprocity"] = _consensus.reciprocity_score()
+                    degradation_metrics["hiho_condensate"] = _consensus.condensate_score()
+                    degradation_metrics["hiho_damping"] = _consensus.damping_score()
+                    degradation_metrics["hiho_consensus"] = _consensus.consensus()
+                except Exception:
+                    pass  # Non-blocking: physics modules may not be available
                 alerts = self._degradation_detector.check_degradation(degradation_metrics)
                 if alerts:
                     metrics["degradation_alerts"] = len(alerts)
