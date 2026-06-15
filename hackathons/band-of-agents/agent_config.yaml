@@ -1,0 +1,77 @@
+---
+# Cohezion Compound AI Enterprise Pipeline — Band Agent Configuration
+name: cohezion-enterprise-pipeline
+version: "1.0.0"
+description: >
+  Three specialized Cohezion agents coordinating via Band for enterprise
+  code review and implementation. Each agent maps to a Cohezion inference
+  tier: NPU (classification), iGPU (analysis), CPU (synthesis).
+
+channel:
+  name: cohezion-pipeline
+  description: Enterprise AI code review coordination channel
+
+agents:
+  orchestrator:
+    id: cohezion-orchestrator
+    name: Orchestrator Agent
+    model: claude-haiku-4-5  # Fast — maps to Cohezion NPU tier (13306)
+    role: task_classification_and_planning
+    prompt_file: prompts/orchestrator.md
+    outputs:
+      - artifact_type: plan
+        schema:
+          task_id: string
+          complexity: "low|medium|high"
+          phases: list[dict]
+          estimated_files: list[str]
+          risk_flags: list[str]
+
+  analyst:
+    id: cohezion-analyst
+    name: Analyst Agent
+    model: claude-sonnet-4-5  # Semantic — maps to Cohezion iGPU tier (13307)
+    role: semantic_analysis_and_context_enrichment
+    prompt_file: prompts/analyst.md
+    cohezion_integration:
+      semantic_cache: true
+      flume_vae: true
+      similarity_threshold: 0.58  # nomic-embed-text-v2-moe calibrated
+    inputs:
+      - artifact_type: plan
+    outputs:
+      - artifact_type: enriched_context
+        schema:
+          similar_patterns: list[dict]
+          risk_analysis: dict
+          implementation_hints: list[str]
+          cache_hit_rate: float
+
+  engineer:
+    id: cohezion-engineer
+    name: Engineer Agent
+    model: claude-sonnet-4-5  # Synthesis — maps to Cohezion CPU tier (13309)
+    role: implementation_and_skill_refinement
+    prompt_file: prompts/engineer.md
+    cohezion_integration:
+      compound_executor: true
+      skill_refiner: true
+    inputs:
+      - artifact_type: enriched_context
+    outputs:
+      - artifact_type: implementation
+        schema:
+          code_patches: list[dict]
+          test_recommendations: list[str]
+          skill_updates: list[dict]
+          confidence_score: float
+
+pipeline:
+  mode: sequential  # orchestrator → analyst → engineer
+  timeout_seconds: 120
+  fallback: local_simulation  # works without Band credentials
+
+band:
+  coordination_model: artifact_passing
+  state_persistence: channel_history
+  agent_discovery: channel_roster
