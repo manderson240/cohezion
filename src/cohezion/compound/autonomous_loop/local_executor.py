@@ -73,6 +73,9 @@ class LocalImprovementExecutor:
     Includes pre-call RAM guard (C1) to avoid OOM on heavy models.
     """
 
+    # PoLar: monotonic test-time scaling — hard tasks get up to this many variants.
+    _MAX_VARIANTS: int = 3
+
     def __init__(self, config: LoopConfig | None = None):
         self.config = config or LoopConfig()
         self._base_url = self.config.local_base_url
@@ -227,6 +230,20 @@ class LocalImprovementExecutor:
                 task, worktree_path, model, system_role, sweep_context, variant=1
             )
 
+        # PoLar: hard tasks justify a 3rd variant with minimal-footprint beam enumeration.
+        # The paper shows monotonic test-time scaling for "hard" inputs (deep token budget
+        # or structurally complex categories). Variant 2 explicitly enumerates candidate
+        # fixes before committing, selecting the one with the smallest code footprint.
+        if not result["success"] and self._is_hard_task(task):
+            logger.info(
+                "Task %s: hard task still failing after prior variants — "
+                "attempting variant 2 (minimal-footprint beam)",
+                task.id,
+            )
+            result = self._attempt(
+                task, worktree_path, model, system_role, sweep_context, variant=2
+            )
+
         return result
 
     def _attempt(
@@ -239,7 +256,9 @@ class LocalImprovementExecutor:
         variant: int = 0,
     ) -> dict[str, Any]:
         """Single inference → STATUS gate → plan extraction → apply → verify cycle."""
-        prompt = self._build_prompt(task, sweep_context, variant=variant)
+        prompt = self._build_prompt(
+            task, sweep_context, variant=variant, worktree_path=worktree_path
+        )
         response_text, tokens_used = self._call_lemonade(prompt, model, system_role)
 
         if not response_text:
@@ -311,18 +330,31 @@ class LocalImprovementExecutor:
             "returncode": 0 if success else 1,
         }
 
-    def _build_prompt(self, task: LoopTask, sweep_context: str = "", variant: int = 0) -> str:
+    def _build_prompt(
+        self,
+        task: LoopTask,
+        sweep_context: str = "",
+        variant: int = 0,
+        worktree_path: str = "",
+    ) -> str:
         """Build a BMAD-scaffolded task prompt for the local model.
 
         variant=0 (default): forward-planning BMAD specialist.
           Model declares a === PLAN === (file list + approach) before writing any code.
-          This enforces scope commitment upfront — the plan is used to reject out-of-scope
-          patches during apply_suggestions.
+          Injects a lightweight import-graph section (SeeRepo: structural context at
+          fault-localization stage reduces token cost 26% with no quality loss).
 
         variant=1: root-cause-first framing.
           Swaps the ROLE to diagnostic analyst and adds a DIAGNOSIS section before the
           implementation checklist. Activates an alternative computational pathway
-          when variant 0 produces STATUS:FAILED.
+          when variant 0 produces STATUS:FAILED. No structural context (SeeRepo: repair
+          stage shows degraded performance with graph context).
+
+        variant=2: minimal-footprint beam (PoLar: hard tasks only).
+          Enumerates three candidate fixes before committing; selects the smallest
+          footprint fix. No structural context — the model should reason from code
+          already seen in variants 0/1. Different from v0 (plan-forward) and v1
+          (root-cause-first): v2 maximises diversity in the search.
         """
         context_section = f"\n## CONTEXT FROM VAULT/DB\n{sweep_context}\n" if sweep_context else ""
 
@@ -348,6 +380,29 @@ Answer these three questions first:
 
 Write your answers here before producing any === FILE === blocks.
 """
+            repo_structure_section = ""
+
+        elif variant == 2:
+            role_section = (
+                "You are a surgical precision coder. "
+                "You find the MINIMUM change — often a single expression, one line, or one "
+                "parameter — that makes the failing test pass without touching anything else. "
+                "You enumerate three candidate fixes of different approaches, then select the "
+                "one with the smallest code footprint."
+            )
+            diagnosis_section = """
+## BEAM CANDIDATES (enumerate BEFORE writing any code)
+
+Consider three candidate fixes with different approaches:
+1. **Minimal** — The smallest possible change (1-3 lines). What is it?
+2. **Structural** — A slightly larger change that prevents future regressions.
+3. **Conservative** — The safest change that definitely will not break other tests.
+
+Choose the fix with the smallest footprint that satisfies all acceptance criteria.
+State your selection here before producing any === FILE === blocks.
+"""
+            repo_structure_section = ""
+
         else:
             role_section = (
                 "You are a Python code repair specialist with deep expertise in the "
@@ -355,6 +410,11 @@ Write your answers here before producing any === FILE === blocks.
                 "You NEVER add features, refactor unrelated code, or touch files the task does not require."
             )
             diagnosis_section = ""
+            # SeeRepo: inject import-graph at fault-localization (planning) stage only.
+            # Graph context helps the model identify affected files but hurts at repair stage.
+            repo_structure_section = (
+                self._build_import_graph(worktree_path) if worktree_path else ""
+            )
 
         return f"""## ROLE
 
@@ -365,7 +425,7 @@ Write your answers here before producing any === FILE === blocks.
 **Description:** {task.description}
 **Category:** {task.category}
 **Priority:** {task.priority}
-{context_section}{diagnosis_section}
+{context_section}{repo_structure_section}{diagnosis_section}
 ## ACCEPTANCE CRITERIA
 
 The fix is COMPLETE when ALL of the following are true:
@@ -430,6 +490,65 @@ or
 STATUS: FAILED — <one-sentence reason why the task cannot be completed safely>
 ```
 """
+
+    def _is_hard_task(self, task: LoopTask) -> bool:
+        """Hard tasks justify a 3rd variant (PoLar: monotonic test-time scaling).
+
+        A task is "hard" when it has a large token budget or belongs to a category
+        whose typical fix touches type annotations, test internals, or both — cases
+        where two sequential alternatives often still miss the underlying issue.
+        """
+        return task.estimated_tokens > 500 or task.category in {"type_fix", "test_fix"}
+
+    def _build_import_graph(self, worktree_path: str) -> str:
+        """Build a lightweight import-dependency map for fault-localization context.
+
+        SeeRepo (2606.14061): structural context at the planning stage reduces
+        token cost 26% with no quality loss; graph-based (not vision) layout is
+        best. Only Cohezion-internal imports are included to keep the section
+        compact and relevant.
+
+        Returns an empty string if no Cohezion imports are found (so the
+        prompt is unchanged from the pre-SeeRepo baseline in that case).
+        """
+        from pathlib import Path
+
+        root = Path(worktree_path)
+        src_dir = root / "src" / "cohezion"
+        if not src_dir.exists():
+            src_dir = root / "src"
+        if not src_dir.exists():
+            return ""
+
+        lines: list[str] = []
+        for fpath in sorted(src_dir.rglob("*.py"))[:20]:
+            try:
+                source = fpath.read_text(encoding="utf-8", errors="ignore")
+                tree = ast.parse(source, filename=str(fpath))
+            except SyntaxError:
+                continue
+
+            cohezion_imports: list[str] = []
+            for node in ast.walk(tree):
+                if isinstance(node, ast.Import):
+                    for alias in node.names:
+                        if "cohezion" in alias.name:
+                            cohezion_imports.append(alias.name)
+                elif isinstance(node, ast.ImportFrom) and node.module:
+                    if "cohezion" in node.module:
+                        names = ", ".join(a.name for a in node.names[:3])
+                        cohezion_imports.append(f"{node.module} ({names})")
+
+            if cohezion_imports:
+                try:
+                    rel = fpath.relative_to(root)
+                except ValueError:
+                    rel = fpath
+                lines.append(f"  {rel}: {', '.join(cohezion_imports[:4])}")
+
+        if not lines:
+            return ""
+        return "## REPOSITORY STRUCTURE\n\nKey internal imports:\n" + "\n".join(lines) + "\n\n"
 
     def _call_lemonade(self, prompt: str, model: str, system_role: str = "") -> tuple[str, int]:
         """POST to Lemonade /v1/chat/completions and return (response_text, tokens_used).

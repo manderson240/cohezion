@@ -241,10 +241,14 @@ class TestVariantRetry:
         assert result["success"] is True
         assert (tmp_path / "target.py").exists()
 
-    def test_status_failed_variant1_does_not_retry_again(self, tmp_path: Path) -> None:
-        """STATUS:FAILED on variant=1 is a final failure — no third attempt."""
+    def test_status_failed_variant1_is_final_for_easy_tasks(self, tmp_path: Path) -> None:
+        """For easy tasks (lint_fix), STATUS:FAILED on variant=1 is final — no v2 attempt.
+
+        Hard tasks (test_fix/type_fix or estimated_tokens>500) DO get a variant=2
+        attempt; that behaviour is tested in TestPoLarVariant2.
+        """
         exec_ = _make_executor(tmp_path)
-        task = _make_task()
+        task = _make_task(category="lint_fix")  # easy — not in hard-task set
 
         failed_response = "STATUS: FAILED — task is unsafe at every framing\n"
         call_count = 0
@@ -266,12 +270,16 @@ class TestVariantRetry:
             result = exec_.execute_task(task, str(tmp_path))
 
         assert result["success"] is False
-        assert call_count == 2  # variant 0 + variant 1, no more
+        assert call_count == 2  # variant 0 + variant 1; no v2 for easy tasks
 
-    def test_verification_failure_does_not_trigger_variant_retry(self, tmp_path: Path) -> None:
-        """Variant retry only fires on STATUS:FAILED — not on verification failure."""
+    def test_verification_failure_does_not_trigger_variant1_retry(self, tmp_path: Path) -> None:
+        """Variant=1 retry only fires on STATUS:FAILED — not on verification failure.
+
+        Note: hard tasks (test_fix) DO get a variant=2 beam attempt on any failure.
+        This test scopes to lint_fix (easy) to isolate the v1-retry gate.
+        """
         exec_ = _make_executor(tmp_path)
-        task = _make_task()
+        task = _make_task(category="lint_fix")  # easy — no v2
 
         # STATUS:DONE but tests fail — this is a real failure, not a model decline
         fail_verify_response = (
@@ -299,7 +307,7 @@ class TestVariantRetry:
             result = exec_.execute_task(task, str(tmp_path))
 
         assert result["success"] is False
-        assert call_count == 1  # no retry on verification failure
+        assert call_count == 1  # no v1 retry on verification failure for easy task
 
 
 class TestPromptVariants:
@@ -346,3 +354,218 @@ class TestPromptVariants:
             return "\n".join(result)
 
         assert role_text(p0) != role_text(p1)
+
+
+class TestPoLarVariant2:
+    """PoLar (2606.06574): hard tasks get a 3rd variant with minimal-footprint beam."""
+
+    def test_max_variants_constant_is_3(self, tmp_path: Path) -> None:
+        from cohezion.compound.autonomous_loop.local_executor import LocalImprovementExecutor
+
+        assert LocalImprovementExecutor._MAX_VARIANTS == 3
+
+    def test_is_hard_task_true_for_test_fix(self, tmp_path: Path) -> None:
+        exec_ = _make_executor(tmp_path)
+        task = _make_task(category="test_fix")
+        assert exec_._is_hard_task(task) is True
+
+    def test_is_hard_task_true_for_type_fix(self, tmp_path: Path) -> None:
+        exec_ = _make_executor(tmp_path)
+        task = _make_task(category="type_fix")
+        assert exec_._is_hard_task(task) is True
+
+    def test_is_hard_task_true_for_large_token_budget(self, tmp_path: Path) -> None:
+        from cohezion.compound.autonomous_loop.coordinator import LoopTask
+
+        exec_ = _make_executor(tmp_path)
+        task = LoopTask(
+            id="big",
+            description="big task",
+            priority=1,
+            category="refactor",
+            verification="echo ok",
+            estimated_tokens=501,
+        )
+        assert exec_._is_hard_task(task) is True
+
+    def test_is_hard_task_false_for_lint_fix_small_budget(self, tmp_path: Path) -> None:
+        exec_ = _make_executor(tmp_path)
+        task = _make_task(category="lint_fix")  # estimated_tokens=100
+        assert exec_._is_hard_task(task) is False
+
+    def test_hard_task_gets_variant2_after_both_prior_variants_fail(self, tmp_path: Path) -> None:
+        """test_fix task: v0 STATUS:FAILED → v1 STATUS:FAILED → v2 fires."""
+        exec_ = _make_executor(tmp_path)
+        task = _make_task(category="test_fix")
+
+        success_response = (
+            "=== PLAN ===\nfiles: target.py\napproach: beam fix\n=== END PLAN ===\n"
+            "=== FILE: target.py ===\nx = 42\n=== END FILE ===\n"
+            "STATUS: DONE — found minimal fix via beam enumeration\n"
+        )
+        failed_response = "STATUS: FAILED — cannot fix safely\n"
+
+        call_responses = iter(
+            [(failed_response, 20), (failed_response, 20), (success_response, 60)]
+        )
+
+        with (
+            patch.object(
+                exec_, "_call_lemonade", side_effect=lambda *a, **kw: next(call_responses)
+            ),
+            patch.object(exec_, "_sweeper") as mock_sweeper,
+            patch.object(exec_, "_run_verification", return_value=(True, "")),
+            patch(
+                "cohezion.compound.autonomous_loop.coordinator.LoopCoordinator._check_ram_before_load",
+                return_value=True,
+            ),
+        ):
+            mock_sweeper.build_task_context.return_value = ""
+            result = exec_.execute_task(task, str(tmp_path))
+
+        assert result["success"] is True
+        assert (tmp_path / "target.py").read_text() == "x = 42\n"
+
+    def test_easy_task_does_not_get_variant2(self, tmp_path: Path) -> None:
+        """lint_fix: all variants fail, but v2 is NOT triggered (easy task)."""
+        exec_ = _make_executor(tmp_path)
+        task = _make_task(category="lint_fix")
+
+        failed_response = "STATUS: FAILED — cannot fix\n"
+        call_count = 0
+
+        def count_calls(*args, **kwargs):
+            nonlocal call_count
+            call_count += 1
+            return (failed_response, 20)
+
+        with (
+            patch.object(exec_, "_call_lemonade", side_effect=count_calls),
+            patch.object(exec_, "_sweeper") as mock_sweeper,
+            patch(
+                "cohezion.compound.autonomous_loop.coordinator.LoopCoordinator._check_ram_before_load",
+                return_value=True,
+            ),
+        ):
+            mock_sweeper.build_task_context.return_value = ""
+            result = exec_.execute_task(task, str(tmp_path))
+
+        assert result["success"] is False
+        assert call_count == 2  # v0 + v1 only; no v2 for easy tasks
+
+    def test_variant2_prompt_has_beam_candidates_section(self, tmp_path: Path) -> None:
+        exec_ = _make_executor(tmp_path)
+        task = _make_task()
+        prompt = exec_._build_prompt(task, variant=2)
+        assert "BEAM CANDIDATES" in prompt
+        assert "Minimal" in prompt
+        assert "Structural" in prompt
+        assert "Conservative" in prompt
+
+    def test_variant2_role_differs_from_v0_and_v1(self, tmp_path: Path) -> None:
+        """Discriminating: v2 role must differ from both v0 and v1."""
+        exec_ = _make_executor(tmp_path)
+        task = _make_task()
+
+        def role_text(p: str) -> str:
+            for line in p.split("\n"):
+                if line.startswith("You are"):
+                    return line
+            return ""
+
+        r0 = role_text(exec_._build_prompt(task, variant=0))
+        r1 = role_text(exec_._build_prompt(task, variant=1))
+        r2 = role_text(exec_._build_prompt(task, variant=2))
+        assert r2 != r0
+        assert r2 != r1
+        assert r0 != r1  # sanity check
+
+    def test_variant2_lacks_diagnosis_section(self, tmp_path: Path) -> None:
+        exec_ = _make_executor(tmp_path)
+        task = _make_task()
+        prompt = exec_._build_prompt(task, variant=2)
+        assert "DIAGNOSIS" not in prompt
+
+
+class TestSeeRepoImportGraph:
+    """SeeRepo (2606.14061): import-graph context at fault-localization stage only."""
+
+    def test_variant0_with_worktree_injects_repo_structure(self, tmp_path: Path) -> None:
+        """Discriminating: variant=0 with a worktree containing .py files gets the
+        ## REPOSITORY STRUCTURE section; a wrong implementation would omit it."""
+        exec_ = _make_executor(tmp_path)
+        task = _make_task()
+
+        # Write a Python file with a cohezion import into the worktree
+        src_dir = tmp_path / "src" / "cohezion"
+        src_dir.mkdir(parents=True)
+        (src_dir / "example.py").write_text(
+            "from cohezion.compound.executor import CompoundExecutor\n"
+        )
+
+        prompt = exec_._build_prompt(task, variant=0, worktree_path=str(tmp_path))
+        assert "## REPOSITORY STRUCTURE" in prompt
+        assert "cohezion" in prompt
+
+    def test_variant1_does_not_inject_repo_structure(self, tmp_path: Path) -> None:
+        """SeeRepo: repair stage (v1) with structural context shows degraded performance."""
+        exec_ = _make_executor(tmp_path)
+        task = _make_task()
+
+        src_dir = tmp_path / "src" / "cohezion"
+        src_dir.mkdir(parents=True)
+        (src_dir / "example.py").write_text(
+            "from cohezion.compound.executor import CompoundExecutor\n"
+        )
+
+        prompt = exec_._build_prompt(task, variant=1, worktree_path=str(tmp_path))
+        assert "## REPOSITORY STRUCTURE" not in prompt
+
+    def test_variant2_does_not_inject_repo_structure(self, tmp_path: Path) -> None:
+        exec_ = _make_executor(tmp_path)
+        task = _make_task()
+
+        src_dir = tmp_path / "src" / "cohezion"
+        src_dir.mkdir(parents=True)
+        (src_dir / "example.py").write_text(
+            "from cohezion.compound.executor import CompoundExecutor\n"
+        )
+
+        prompt = exec_._build_prompt(task, variant=2, worktree_path=str(tmp_path))
+        assert "## REPOSITORY STRUCTURE" not in prompt
+
+    def test_import_graph_includes_cohezion_internal_imports(self, tmp_path: Path) -> None:
+        exec_ = _make_executor(tmp_path)
+
+        src_dir = tmp_path / "src" / "cohezion"
+        src_dir.mkdir(parents=True)
+        (src_dir / "module.py").write_text(
+            "import os\nfrom cohezion.flume.vae import FlumeVAE\nimport json\n"
+        )
+
+        graph = exec_._build_import_graph(str(tmp_path))
+        # stdlib (os, json) must NOT appear; cohezion import must appear
+        assert "cohezion" in graph
+        assert "FlumeVAE" in graph or "cohezion.flume.vae" in graph
+
+    def test_import_graph_empty_when_no_cohezion_imports(self, tmp_path: Path) -> None:
+        exec_ = _make_executor(tmp_path)
+
+        src_dir = tmp_path / "src" / "cohezion"
+        src_dir.mkdir(parents=True)
+        (src_dir / "pure_stdlib.py").write_text("import os\nimport json\n")
+
+        graph = exec_._build_import_graph(str(tmp_path))
+        assert graph == ""
+
+    def test_import_graph_empty_when_no_src_dir(self, tmp_path: Path) -> None:
+        exec_ = _make_executor(tmp_path)
+        graph = exec_._build_import_graph(str(tmp_path))
+        assert graph == ""
+
+    def test_variant0_without_worktree_has_no_repo_structure(self, tmp_path: Path) -> None:
+        """When worktree_path is empty string (default), no repo structure is injected."""
+        exec_ = _make_executor(tmp_path)
+        task = _make_task()
+        prompt = exec_._build_prompt(task, variant=0)
+        assert "## REPOSITORY STRUCTURE" not in prompt
