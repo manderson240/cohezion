@@ -330,6 +330,8 @@ class LoopCoordinator:
             self._results.append(
                 {
                     "task_id": task.id,
+                    "category": task.category,
+                    "success": task.status == "done",
                     "status": task.status,
                     "result": task.result,
                     "tokens": task.tokens_used,

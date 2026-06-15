@@ -9,6 +9,10 @@ Scans the codebase for:
 - Dead imports
 
 Tasks are prioritized by impact: test fixes > lint > types > refactoring.
+
+Priority is adjusted based on historical loop learnings (loop_learnings.jsonl):
+categories that consistently fail in recent runs are deprioritized (+penalty),
+so the loop naturally focuses on tasks where local inference succeeds.
 """
 
 from __future__ import annotations
@@ -18,27 +22,130 @@ import logging
 import os
 import re
 import subprocess
+from collections import defaultdict
 from pathlib import Path
 
 
 logger = logging.getLogger(__name__)
 
+# Default location mirrors LoopConfig.results_path parent directory
+_DEFAULT_LEARNINGS_PATH = "/tmp/cohezion-autonomous-loop/loop_learnings.jsonl"
+
+# How many recent JSONL entries (loop runs) to consider
+_LEARNING_WINDOW = 5
+
+# Priority penalty applied per 10% above the failure threshold
+# e.g. 80% failure rate → 3 penalty levels → priority += 3
+_FAILURE_THRESHOLD = 0.4  # below this = healthy, no penalty
+_MAX_PENALTY = 5
+
 
 class TaskGenerator:
-    """Generate prioritized improvement tasks from real codebase issues."""
+    """Generate prioritized improvement tasks from real codebase issues.
 
-    def __init__(self, repo_root: str = "/home/mike-anderson/dev/cohezion"):
+    Args:
+        repo_root: Path to the repository root.
+        learnings_path: Path to loop_learnings.jsonl. If None, uses the
+            default location under /tmp/cohezion-autonomous-loop/. Pass an
+            empty string "" to disable learning-based priority adjustment.
+    """
+
+    def __init__(
+        self,
+        repo_root: str = "/home/mike-anderson/dev/cohezion",
+        learnings_path: str | None = None,
+    ):
         self.repo_root = Path(repo_root)
+        if learnings_path is None:
+            self._learnings_path: Path | None = Path(_DEFAULT_LEARNINGS_PATH)
+        elif learnings_path == "":
+            self._learnings_path = None
+        else:
+            self._learnings_path = Path(learnings_path)
+
+        self._category_stats: dict[str, dict[str, int]] = {}
+        self._load_category_stats()
+
+    def _load_category_stats(self) -> None:
+        """Read loop_learnings.jsonl and compute per-category success/failure counts.
+
+        Only considers the last _LEARNING_WINDOW runs so stale history doesn't
+        permanently penalize a category that has since been fixed.
+        """
+        if self._learnings_path is None or not self._learnings_path.exists():
+            return
+
+        entries: list[dict] = []
+        try:
+            for line in self._learnings_path.read_text().splitlines():
+                line = line.strip()
+                if line:
+                    entries.append(json.loads(line))
+        except Exception as exc:
+            logger.debug("Could not load loop learnings: %s", exc)
+            return
+
+        # Most recent window only
+        recent = entries[-_LEARNING_WINDOW:]
+
+        stats: dict[str, dict[str, int]] = defaultdict(lambda: {"attempts": 0, "successes": 0})
+        for entry in recent:
+            for task_result in entry.get("results", []):
+                cat = task_result.get("category", "")
+                if not cat:
+                    continue
+                stats[cat]["attempts"] += 1
+                if task_result.get("success", False):
+                    stats[cat]["successes"] += 1
+
+        self._category_stats = dict(stats)
+        if self._category_stats:
+            summary = {
+                cat: f"{d['successes']}/{d['attempts']}" for cat, d in self._category_stats.items()
+            }
+            logger.info("Loop learnings loaded (last %d runs): %s", len(recent), summary)
+
+    def _priority_penalty(self, category: str) -> int:
+        """Return the priority penalty for a category based on its historical failure rate.
+
+        Returns 0 when the category has no history or failure rate is below threshold.
+        Returns up to _MAX_PENALTY for consistently failing categories.
+        """
+        stats = self._category_stats.get(category)
+        if not stats or stats["attempts"] == 0:
+            return 0
+
+        failure_rate = 1.0 - (stats["successes"] / stats["attempts"])
+        if failure_rate <= _FAILURE_THRESHOLD:
+            return 0
+
+        # Scale penalty linearly from threshold to 1.0
+        # e.g. 0.4 threshold: 0.8 failure rate = (0.8-0.4)/(1.0-0.4) = 0.67 → 3 penalty
+        normalized = (failure_rate - _FAILURE_THRESHOLD) / (1.0 - _FAILURE_THRESHOLD)
+        return min(_MAX_PENALTY, int(normalized * (_MAX_PENALTY + 1)))
 
     def generate_all(self) -> list[dict]:
-        """Generate all task categories, sorted by priority."""
+        """Generate all task categories, sorted by priority.
+
+        Priority is adjusted based on recent loop learnings: categories with
+        high failure rates are deprioritized so the loop focuses on tasks where
+        local inference has demonstrated success.
+        """
         tasks = []
         tasks.extend(self._detect_test_collection_errors())
         tasks.extend(self._detect_ruff_issues())
         tasks.extend(self._detect_long_functions())
         tasks.extend(self._detect_missing_init_files())
         tasks.extend(self._detect_dead_imports())
-        # Sort by priority (0 = highest)
+
+        # Apply learning-based priority adjustment
+        for task in tasks:
+            penalty = self._priority_penalty(task.get("category", ""))
+            if penalty > 0:
+                task["priority"] += penalty
+                task["_learning_penalty"] = penalty  # visible in backlog for inspection
+
+        # Sort by adjusted priority (0 = highest)
         tasks.sort(key=lambda t: t["priority"])
         return tasks
 
