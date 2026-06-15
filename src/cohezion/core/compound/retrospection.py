@@ -1,4 +1,8 @@
-"""Retrospection engine for compound engineering pattern analysis."""
+"""Retrospection engine for compound engineering pattern analysis.
+
+Memory-R1 split (2026-06-14): responsibilities separated into MemoryManager
+(state storage) and DecisionAgent (policy). RetrospectionEngine composes both.
+"""
 
 from __future__ import annotations
 
@@ -6,6 +10,7 @@ import logging
 import re
 from dataclasses import dataclass, field
 from pathlib import Path
+from typing import Any
 
 
 logger = logging.getLogger(__name__)
@@ -13,6 +18,46 @@ logger = logging.getLogger(__name__)
 # Path constants
 _PROJECT_ROOT = Path(__file__).parent.parent.parent.parent.parent
 _KG_DIR = _PROJECT_ROOT / "src" / "cohezion" / "knowledge_graph"
+
+
+class MemoryManager:
+    """Key-value store for retrospection state (Memory-R1 split).
+
+    Provides isolated, snapshot-safe state storage per engine instance.
+    """
+
+    def __init__(self) -> None:
+        self._store: dict[str, Any] = {}
+
+    def store(self, key: str, value: Any) -> None:
+        self._store[key] = value
+
+    def retrieve(self, key: str, default: Any = None) -> Any:
+        return self._store.get(key, default)
+
+    def clear(self) -> None:
+        self._store.clear()
+
+    def summarize(self) -> dict[str, Any]:
+        """Return a snapshot copy — mutations do not affect stored state."""
+        return dict(self._store)
+
+
+class DecisionAgent:
+    """Policy decisions for skill updates and escalations (Memory-R1 split).
+
+    Encapsulates the decision logic so RetrospectionEngine stays analysis-only.
+    """
+
+    def should_update_skill(self, _context: Any, findings: dict) -> bool:
+        """Return True when findings contain an 'improvement' or 'issue' key."""
+        return any("improvement" in k or "issue" in k for k in findings)
+
+    def should_escalate(self, _context: Any, findings: dict) -> bool:
+        """Return True when error_rate > 0.3 OR coherence < 0.4."""
+        error_rate = findings.get("error_rate", 0.0)
+        coherence = findings.get("coherence", 1.0)
+        return error_rate > 0.3 or coherence < 0.4
 
 
 @dataclass
@@ -78,6 +123,16 @@ class RetrospectionEngine:
         self.kg_dir = kg_dir or _KG_DIR
         self._learnings: list[LearningPattern] = []
         self._journal_entries: list[dict] = []
+        self._memory_manager = MemoryManager()
+        self._decision_agent = DecisionAgent()
+
+    @property
+    def memory_manager(self) -> MemoryManager:
+        return self._memory_manager
+
+    @property
+    def decision_agent(self) -> DecisionAgent:
+        return self._decision_agent
 
     def analyze_learnings(self) -> list[LearningPattern]:
         """Parse KEY_LEARNINGS.md, extract tagged patterns, count cross-references.
@@ -555,6 +610,11 @@ class RetrospectionEngine:
             "phi_score": phi_score,
             "degraded": degraded,
         }
+
+        # Memory-R1: store analysis state for cross-invocation access
+        self._memory_manager.store(f"last_analysis_{skill_name}", analysis)
+        self._memory_manager.store("last_coherence", coherence)
+        self._memory_manager.store("last_should_refine", should_refine)
 
         # Persist retrospection decision to SurrealDB (non-blocking, closes middle loop)
         try:

@@ -12,10 +12,10 @@ from cohezion.flume.turbo_quant import TurboQuantCPU
 
 
 async def run_npu_experiment(iters=100):
-    print("Executing Experiment Node A: NPU (FLM)...")
-    url = "http://localhost:13306/v1/chat/completions"
+    print("Executing Experiment Node A: NPU via OmniRouter (Port 13305)...")
+    url = "http://localhost:13305/v1/chat/completions"
     payload = {
-        "model": "qwen3.5-4b-FLM",
+        "model": "llama3.2-1b-FLM",
         "messages": [{"role": "user", "content": "Benchmark prompt."}],
         "max_tokens": 10,
         "stream": False,
@@ -28,7 +28,7 @@ async def run_npu_experiment(iters=100):
                 start = time.perf_counter()
                 async with session.post(url, json=payload, timeout=5) as resp:
                     if resp.status == 200:
-                        data = await resp.json()
+                        data = await resp.json()  # noqa: F841
                         duration = time.perf_counter() - start
                         # Approximate 10 tokens
                         results.append({"tps": 10 / duration, "latency": duration})
