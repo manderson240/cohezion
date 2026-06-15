@@ -97,6 +97,7 @@ class CompoundExecutor(CompoundContextMixin, ExecutorIntegrationMixin):
         universe_bridge: Any | None = None,
         skill_health_tracker: Any | None = None,
         maker_checker: Any | None = None,
+        process_reward_model: Any | None = None,
     ):
         """Initialize compound executor.
 
@@ -143,6 +144,10 @@ class CompoundExecutor(CompoundContextMixin, ExecutorIntegrationMixin):
                 verification (lushbinary loop engineering pattern). When provided,
                 the Checker runs after execute_fn succeeds and adds checker_verdict
                 to metrics. If None, no verification step is added.
+            process_reward_model: Optional ProcessRewardModel for step-level dense
+                reward scoring (arXiv:2509.02547 PRM pattern). When provided,
+                each key step is scored individually and prm_* metrics are added.
+                If None, no step-level scoring is performed.
         """
         self.mcp_client = mcp_client
         self.token_client = token_client
@@ -160,6 +165,7 @@ class CompoundExecutor(CompoundContextMixin, ExecutorIntegrationMixin):
         self._retrospection_engine = retrospection_engine
         self._universe_bridge = universe_bridge
         self._maker_checker = maker_checker
+        self._process_reward_model = process_reward_model
         self._drr_generator = None
         self._drr_session_id = ""
         try:
@@ -575,10 +581,30 @@ class CompoundExecutor(CompoundContextMixin, ExecutorIntegrationMixin):
         if self.token_client:
             token_metrics_before = self.token_client.get_metrics()
 
+        # Step 3 PRM: begin step-scoring for this execution
+        _prm_record_id: str | None = None
+        if self._process_reward_model is not None:
+            try:
+                _prm_record_id = self._process_reward_model.begin_execution(task_description)
+            except Exception:
+                pass
+
         try:
             output, metrics = execute_fn(guidance)
             success = True
             logger.info("Task completed successfully")
+            # Score the execute_fn step
+            if _prm_record_id is not None and self._process_reward_model is not None:
+                try:
+                    self._process_reward_model.record_step(
+                        _prm_record_id,
+                        "3",
+                        "execute_fn",
+                        output[:800],
+                        "Produce the task output",
+                    )
+                except Exception:
+                    pass
         except Exception as e:
             # User-supplied execute_fn can raise anything; record failure metric and continue.
             # SystemExit/KeyboardInterrupt/MemoryError still propagate (they don't inherit Exception).
@@ -611,6 +637,22 @@ class CompoundExecutor(CompoundContextMixin, ExecutorIntegrationMixin):
                     )
             except Exception as mc_exc:
                 logger.debug("Maker-Checker step failed (non-blocking): %s", mc_exc)
+
+        # Step 3.5 PRM: score the checker step and finalize dense reward
+        if _prm_record_id is not None and self._process_reward_model is not None:
+            try:
+                checker_verdict = metrics.get("checker_verdict", "skipped")
+                self._process_reward_model.record_step(
+                    _prm_record_id,
+                    "3.5",
+                    "maker_checker",
+                    checker_verdict,
+                    "Verify maker output quality",
+                )
+                prm_record = self._process_reward_model.finalize(_prm_record_id)
+                metrics.update(self._process_reward_model.to_metrics_dict(prm_record))
+            except Exception:
+                pass
 
         # Capture token metrics after execution (if token_client available)
         if self.token_client:

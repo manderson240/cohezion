@@ -41,6 +41,7 @@ class ExecutorFactory:
         universe_bridge: Any | None = None,
         skill_health_tracker: Any | None = None,
         maker_checker: Any | None = None,
+        process_reward_model: Any | None = None,
     ) -> CompoundExecutor:
         """Create a new compound executor.
 
@@ -58,6 +59,18 @@ class ExecutorFactory:
                 )
             except Exception:
                 logger.debug("MakerCheckerVerifier not available (non-blocking)")
+
+        # Auto-create ProcessRewardModel (PRM — arXiv:2509.02547 step-level dense reward)
+        if process_reward_model is None:
+            try:
+                from cohezion.compound.process_reward_model import build_process_reward_model
+
+                process_reward_model = build_process_reward_model()
+                logger.debug(
+                    "ExecutorFactory: auto-created ProcessRewardModel (step-level dense reward)"
+                )
+            except Exception:
+                logger.debug("ProcessRewardModel not available (non-blocking)")
 
         # Auto-create RetrospectionEngine if not provided (closes middle loop)
         if retrospection_engine is None:
@@ -115,6 +128,7 @@ class ExecutorFactory:
             universe_bridge=universe_bridge,
             skill_health_tracker=skill_health_tracker,
             maker_checker=maker_checker,
+            process_reward_model=process_reward_model,
         )
 
     @staticmethod

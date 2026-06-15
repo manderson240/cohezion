@@ -45,12 +45,31 @@ class SynthesizedSkill:
 
 
 @dataclass
+class HyperedgePattern:
+    """N-ary relationship captured from an executor trace.
+
+    Unlike pairwise graph edges, a hyperedge models many-to-many participation:
+    e.g. [Act, Checker, Refiner] all co-produced one ExecutionResult.
+
+    Inspired by Hyper-Extract (yifanfeng97/Hyper-Extract) applied to execution
+    traces instead of text corpora.
+    """
+
+    nodes: list[str]  # executor step names that participated
+    relation: str  # "co_produced" | "co_verified" | "co_refined"
+    source_domains: list[str]  # task domains this pattern appeared in
+    weight: float = 1.0  # occurrence count (incremented on dedup)
+    timestamp: float = field(default_factory=time.time)
+
+
+@dataclass
 class AuditReport:
     """Result of a Mycelium Audit cycle."""
 
     entries_scanned: int
     skills_synthesized: int
     skills_updated: int
+    hyperedges_captured: int = 0
     timestamp: float = field(default_factory=time.time)
 
 
@@ -62,6 +81,9 @@ class MyceliumRegistry:
         self._entries: list[JournalEntry] = []
         self._skills: dict[str, SynthesizedSkill] = {}
         self._audit_history: list[AuditReport] = []
+        self._hyperedges: list[HyperedgePattern] = []
+        # dedup index: sorted(nodes)+relation → list index
+        self._hyperedge_index: dict[str, int] = {}
 
     @classmethod
     def get_instance(cls) -> MyceliumRegistry:
@@ -133,6 +155,7 @@ class MyceliumRegistry:
             entries_scanned=len(self._entries),
             skills_synthesized=synthesized,
             skills_updated=updated,
+            hyperedges_captured=len(self._hyperedges),
         )
         self._audit_history.append(report)
 
@@ -143,6 +166,50 @@ class MyceliumRegistry:
             updated,
         )
         return report
+
+    @property
+    def hyperedges(self) -> list[HyperedgePattern]:
+        """Read-only snapshot of captured hyperedge patterns."""
+        return list(self._hyperedges)
+
+    def ingest_execution_trace(
+        self,
+        step_names: list[str],
+        domains: list[str] | None = None,
+        relation: str = "co_produced",
+    ) -> HyperedgePattern:
+        """Capture an n-ary relationship from one executor trace.
+
+        Deduplicates by (sorted step_names, relation): repeated traces increment
+        weight rather than adding duplicate hyperedges.
+
+        Args:
+            step_names: Executor step names that participated (e.g. ["Act", "Checker"]).
+            domains: Task domains this trace came from.
+            relation: Relationship type ("co_produced", "co_verified", "co_refined").
+
+        Returns:
+            The HyperedgePattern (new or updated existing).
+        """
+        key = f"{','.join(sorted(step_names))}::{relation}"
+        if key in self._hyperedge_index:
+            existing = self._hyperedges[self._hyperedge_index[key]]
+            existing.weight += 1.0
+            if domains:
+                for d in domains:
+                    if d not in existing.source_domains:
+                        existing.source_domains.append(d)
+            return existing
+
+        pattern = HyperedgePattern(
+            nodes=list(step_names),
+            relation=relation,
+            source_domains=list(domains or []),
+        )
+        self._hyperedge_index[key] = len(self._hyperedges)
+        self._hyperedges.append(pattern)
+        logger.debug("MyceliumRegistry: new hyperedge %s (relation=%s)", step_names, relation)
+        return pattern
 
     def _synthesize_content(self, domain: str, entries: list[JournalEntry]) -> str:
         """Synthesize skill content from journal entries."""

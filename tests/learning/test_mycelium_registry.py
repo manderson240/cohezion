@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 from cohezion.learning.mycelium_registry import (
+    HyperedgePattern,
     JournalEntry,
     MyceliumRegistry,
 )
@@ -80,3 +81,61 @@ class TestMyceliumRegistry:
         skill = registry.skills["PATTERN_SYNTHESIZED"]
         assert "e1" in skill.source_entries
         assert "e2" in skill.source_entries
+
+
+class TestHyperedgePattern:
+    """Discriminating tests for Hyper-Extract-inspired hyperedge tracking."""
+
+    def test_ingest_new_hyperedge(self):
+        """First ingest creates a new HyperedgePattern."""
+        registry = MyceliumRegistry()
+        result = registry.ingest_execution_trace(["Act", "Checker"], ["code"])
+        assert isinstance(result, HyperedgePattern)
+        assert set(result.nodes) == {"Act", "Checker"}
+        assert result.relation == "co_produced"
+        assert result.weight == 1.0
+        assert len(registry.hyperedges) == 1
+
+    def test_dedup_increments_weight(self):
+        """Repeated identical trace increments weight instead of adding duplicate."""
+        registry = MyceliumRegistry()
+        registry.ingest_execution_trace(["Act", "Checker"], ["code"])
+        registry.ingest_execution_trace(["Checker", "Act"], ["analysis"])  # order-invariant
+        assert len(registry.hyperedges) == 1
+        assert registry.hyperedges[0].weight == 2.0
+
+    def test_different_relation_is_separate_hyperedge(self):
+        """Same nodes with different relation = distinct hyperedge."""
+        registry = MyceliumRegistry()
+        registry.ingest_execution_trace(["Act", "Refiner"], relation="co_produced")
+        registry.ingest_execution_trace(["Act", "Refiner"], relation="co_refined")
+        assert len(registry.hyperedges) == 2
+
+    def test_domain_accumulation_on_dedup(self):
+        """Repeated trace from different domain appends domain to source_domains."""
+        registry = MyceliumRegistry()
+        registry.ingest_execution_trace(["Act", "Checker"], ["code"])
+        registry.ingest_execution_trace(["Act", "Checker"], ["analysis"])
+        pattern = registry.hyperedges[0]
+        assert "code" in pattern.source_domains
+        assert "analysis" in pattern.source_domains
+
+    def test_audit_report_includes_hyperedge_count(self):
+        """AuditReport.hyperedges_captured reflects current hyperedge count."""
+        registry = MyceliumRegistry(min_entries_for_pattern=2)
+        registry.ingest_execution_trace(["Step3", "Step3.5", "Step7"])
+        registry.ingest_entry(JournalEntry("e1", "A", "pattern"))
+        registry.ingest_entry(JournalEntry("e2", "B", "pattern"))
+        report = registry.run_audit()
+        assert report.hyperedges_captured == 1
+
+    def test_n_ary_hyperedge_three_nodes(self):
+        """Hyperedge correctly captures three-way co-participation."""
+        registry = MyceliumRegistry()
+        result = registry.ingest_execution_trace(
+            ["execute_fn", "maker_checker", "skill_refiner"],
+            ["reasoning"],
+            relation="co_produced",
+        )
+        assert len(result.nodes) == 3
+        assert "execute_fn" in result.nodes
