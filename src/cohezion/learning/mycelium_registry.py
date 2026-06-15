@@ -211,6 +211,63 @@ class MyceliumRegistry:
         logger.debug("MyceliumRegistry: new hyperedge %s (relation=%s)", step_names, relation)
         return pattern
 
+    def get_hyperedge_patterns(self, min_weight: float = 0.01) -> list[HyperedgePattern]:
+        """Return hyperedge patterns at or above the given weight threshold.
+
+        Weight is stored as a raw occurrence count.  Callers that want a ratio
+        should divide by the total count themselves.  Passing ``min_weight=0.01``
+        (the default) effectively returns all patterns.
+
+        Args:
+            min_weight: Minimum occurrence weight (inclusive).
+
+        Returns:
+            Snapshot list of matching HyperedgePattern objects.
+        """
+        return [p for p in self._hyperedges if p.weight >= min_weight]
+
+    def ingest_agent_tool_trace(
+        self,
+        agents: list[str],
+        tools: list[str],
+        outcome: str,
+        metadata: dict | None = None,
+    ) -> HyperedgePattern:
+        """Capture an n-ary execution trace expressed as agents + tools + outcome.
+
+        Hyper-Extract-flavoured entry point (yifanfeng97/Hyper-Extract) that maps
+        agent/tool/outcome vocabulary onto the existing hyperedge storage without
+        touching ``ingest_execution_trace``'s signature.
+
+        Deduplication key: ``sorted(agents + tools)`` + ``outcome`` used as relation.
+        Repeated calls with the same participants increment weight.
+
+        Non-blocking: errors are logged and a graceful HyperedgePattern is returned.
+
+        Args:
+            agents: Agent identifiers involved (e.g. ["planner", "executor"]).
+            tools: Tool names used (e.g. ["file_read", "surreal_query"]).
+            outcome: Short label for the result (e.g. "success", "partial", "error").
+            metadata: Optional dict with task_type, latency_ms, etc.
+
+        Returns:
+            The HyperedgePattern (new or updated).
+        """
+        try:
+            step_names = sorted(set(agents) | set(tools))
+            relation = outcome if outcome else "co_produced"
+            domains: list[str] = []
+            if metadata:
+                task_type = metadata.get("task_type")
+                if task_type:
+                    domains = [str(task_type)]
+            return self.ingest_execution_trace(step_names, domains or None, relation)
+        except Exception:
+            logger.exception(
+                "MyceliumRegistry.ingest_agent_tool_trace: unexpected error — returning empty pattern"
+            )
+            return HyperedgePattern(nodes=[], relation="error", source_domains=[])
+
     def _synthesize_content(self, domain: str, entries: list[JournalEntry]) -> str:
         """Synthesize skill content from journal entries."""
         lines = [f"# {domain.title()} Skill (Auto-Synthesized)", ""]
