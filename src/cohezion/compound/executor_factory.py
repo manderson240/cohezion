@@ -40,12 +40,25 @@ class ExecutorFactory:
         retrospection_engine: Any | None = None,
         universe_bridge: Any | None = None,
         skill_health_tracker: Any | None = None,
+        maker_checker: Any | None = None,
     ) -> CompoundExecutor:
         """Create a new compound executor.
 
         When token_client is provided, attempts to use TokenEfficientCompoundExecutor
         for automatic API prompt caching (40-60% token savings).
         """
+        # Auto-create MakerCheckerVerifier (lushbinary Maker-Checker split — closes verification loop)
+        if maker_checker is None:
+            try:
+                from cohezion.compound.maker_checker import build_maker_checker
+
+                maker_checker = build_maker_checker()
+                logger.debug(
+                    "ExecutorFactory: auto-created MakerCheckerVerifier (verification loop)"
+                )
+            except Exception:
+                logger.debug("MakerCheckerVerifier not available (non-blocking)")
+
         # Auto-create RetrospectionEngine if not provided (closes middle loop)
         if retrospection_engine is None:
             try:
@@ -101,6 +114,7 @@ class ExecutorFactory:
             retrospection_engine=retrospection_engine,
             universe_bridge=universe_bridge,
             skill_health_tracker=skill_health_tracker,
+            maker_checker=maker_checker,
         )
 
     @staticmethod

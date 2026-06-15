@@ -535,8 +535,6 @@ class JourneyTracker:
 
         return point
 
-<<<<<<< Updated upstream
-=======
     def track_evo_step(
         self,
         task_description: str,
@@ -707,7 +705,6 @@ class JourneyTracker:
             except Exception:
                 pass
 
->>>>>>> Stashed changes
     def _persist_to_surreal(self, point: TrajectoryPoint) -> None:
         """Persist trajectory point to SurrealDB journey_transitions table.
 

@@ -96,6 +96,7 @@ class CompoundExecutor(CompoundContextMixin, ExecutorIntegrationMixin):
         retrospection_engine: Any | None = None,
         universe_bridge: Any | None = None,
         skill_health_tracker: Any | None = None,
+        maker_checker: Any | None = None,
     ):
         """Initialize compound executor.
 
@@ -138,6 +139,10 @@ class CompoundExecutor(CompoundContextMixin, ExecutorIntegrationMixin):
             skill_health_tracker: Optional SkillHealthTracker for recording per-skill
                 usage metrics (invocations, success rate, tokens, quality).
                 If None, no health tracking recorded.
+            maker_checker: Optional MakerCheckerVerifier for asymmetric Maker-Checker
+                verification (lushbinary loop engineering pattern). When provided,
+                the Checker runs after execute_fn succeeds and adds checker_verdict
+                to metrics. If None, no verification step is added.
         """
         self.mcp_client = mcp_client
         self.token_client = token_client
@@ -154,6 +159,7 @@ class CompoundExecutor(CompoundContextMixin, ExecutorIntegrationMixin):
         self._model_quality_classifier = model_quality_classifier
         self._retrospection_engine = retrospection_engine
         self._universe_bridge = universe_bridge
+        self._maker_checker = maker_checker
         self._drr_generator = None
         self._drr_session_id = ""
         try:
@@ -580,6 +586,31 @@ class CompoundExecutor(CompoundContextMixin, ExecutorIntegrationMixin):
             output = f"Error: {error_msg}"
             metrics = {"error": error_msg, "error_type": type(e).__name__}
             logger.error("Task failed: %s", error_msg, exc_info=True)
+
+        # Step 3.5: Maker-Checker verification (non-blocking, additive)
+        # Checker runs async with bounded timeout so it never delays the result path.
+        # Verdict lands in metrics["checker_verdict"] for observability.
+        if success and self._maker_checker is not None:
+            try:
+                checker_result = self._maker_checker.verify_async(
+                    task_description=task_description,
+                    maker_output=output,
+                )
+                metrics.update(checker_result.to_metrics_dict())
+                if checker_result.verdict == "fail":
+                    logger.warning(
+                        "Maker-Checker: FAIL (confidence=%.2f) — %s",
+                        checker_result.confidence,
+                        checker_result.reason,
+                    )
+                else:
+                    logger.debug(
+                        "Maker-Checker: %s (confidence=%.2f)",
+                        checker_result.verdict,
+                        checker_result.confidence,
+                    )
+            except Exception as mc_exc:
+                logger.debug("Maker-Checker step failed (non-blocking): %s", mc_exc)
 
         # Capture token metrics after execution (if token_client available)
         if self.token_client:
