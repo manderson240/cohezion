@@ -217,7 +217,7 @@ class LemonadeInference:
         temperature: float = 0.7,
     ) -> dict:
         """Execute inference with memory tracking."""
-        import aiohttp
+        import aiohttp  # type: ignore[import]
 
         url = f"{self.base_url}/v1/chat/completions"
         payload = {
@@ -254,7 +254,7 @@ class LemonadeInference:
 
     async def embed(self, text: str) -> list[float] | None:
         """Get embeddings via Lemonade router or direct backend."""
-        import aiohttp
+        import aiohttp  # type: ignore[import]
 
         # Try router first, then direct backend
         urls = [
@@ -292,6 +292,8 @@ class RecursiveExpansionEngine:
         surreal_db: str = "expansion",
     ):
         self.engine_id = engine_id or f"aree_{uuid.uuid4().hex[:8]}"
+        self.surreal_ns = surreal_ns
+        self.surreal_db = surreal_db
         self.vault = VaultGrounding(vault_path)
         self.oom_guard = OOMGuard()
         self.lemonade = LemonadeInference()
@@ -497,12 +499,17 @@ Output in PRIME format with PHASE, CONSTRAINTS, OUTPUT."""
         # Compound: prior skills enable better orchestration
         skill_count = len(self.state.cumulative_scope)
 
-        # Query mycelium for patterns
+        # Query mycelium for patterns — use the singleton's .skills property
         try:
             from cohezion.learning.mycelium_registry import MyceliumRegistry
 
-            mycelium = MyceliumRegistry()
-            patterns = mycelium.query_patterns("agentic")
+            mycelium = MyceliumRegistry.get_instance()
+            skills = mycelium.skills
+            patterns = [
+                {"pattern": name, "skill": skill.skill_name}
+                for name, skill in skills.items()
+                if "agentic" in skill.skill_content.lower()
+            ]
             logger.info(f"Loaded {len(patterns)} mycelium patterns for orchestration")
         except Exception:
             patterns = []
@@ -594,7 +601,7 @@ Identify the next capability to unlock that maximizes compound returns."""
         """Persist tick to SurrealDB."""
         try:
             # Async SurrealDB insert
-            import aiohttp
+            import aiohttp  # type: ignore[import]
 
             record = {
                 "tick_id": ctx.tick_id,
@@ -621,19 +628,25 @@ Identify the next capability to unlock that maximizes compound returns."""
     async def _load_from_surreal(self) -> dict | None:
         """Load prior engine state from SurrealDB."""
         try:
-            import aiohttp
+            import aiohttp  # type: ignore[import]  # type: ignore[import]
 
+            sql = f"SELECT * FROM aree_state WHERE engine_id = '{self.engine_id}' ORDER BY timestamp DESC LIMIT 1;"
             async with aiohttp.ClientSession() as session:
                 async with session.post(
                     "http://localhost:8001/sql",
-                    json={
-                        "query": f"SELECT * FROM aree_state WHERE engine_id = '{self.engine_id}' ORDER BY timestamp DESC LIMIT 1"
+                    data=sql,
+                    headers={
+                        "Content-Type": "text/plain",
+                        "surreal-ns": self.surreal_ns,
+                        "surreal-db": self.surreal_db,
                     },
-                    timeout=5,
+                    auth=aiohttp.BasicAuth("root", "root"),
+                    timeout=aiohttp.ClientTimeout(total=5),
                 ) as resp:
                     if resp.status == 200:
                         result = await resp.json()
-                        return result.get("result", [{}])[0]
+                        rows = result[0].get("result", []) if result else []
+                        return rows[0] if rows else None
         except Exception:
             pass
         return None

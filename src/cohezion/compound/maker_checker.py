@@ -87,7 +87,9 @@ class MakerCheckerVerifier:
     """
 
     lemonade_url: str = "http://localhost:13305"
-    checker_model: str = "Granite-4.1-8B-Instruct-GGUF-Strix-Q4_K_M"
+    # Gemma-4-E4B: fast iGPU model, always present in :13305 catalog, ctx=16384.
+    # Granite-4.1-8B was the original intent but is not in the Strix Halo catalog.
+    checker_model: str = "Gemma-4-E4B-it-GGUF"
     timeout_seconds: float = _CHECKER_TIMEOUT_SECONDS
     enabled: bool = True
 
@@ -255,9 +257,10 @@ def build_maker_checker(
 ) -> MakerCheckerVerifier:
     """Build a MakerCheckerVerifier wired to Lemonade :13305.
 
-    Uses Granite-4.1-8B as the default checker model — it's bounded at
-    ctx_size=16384 (no OOM risk, N3 invariant), available in the standard
-    Lemonade catalog, and provides enough reasoning depth for output verification.
+    Uses Gemma-4-E4B as the default checker model — it's bounded at
+    ctx_size=16384 (no OOM risk, N3 invariant), always present in the Strix Halo
+    :13305 catalog, and provides enough reasoning depth for output verification.
+    (Granite-4.1-8B was the original intent but is not in the Strix Halo catalog.)
     """
     return MakerCheckerVerifier(
         lemonade_url=lemonade_url,
