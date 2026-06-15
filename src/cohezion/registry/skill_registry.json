@@ -3889,5 +3889,26 @@
     "name": "visual_validation",
     "path": "src/cohezion/skills/visual_validation.md",
     "version": "1.0.0"
+  },
+  "BRANDING_OPS_PRIME": {
+    "name": "BRANDING_OPS_PRIME",
+    "description": "Maintain, evolve, and operationalize the Cohezion \"Organic Modularity\" brand identity. Bridges hardware heritage (Framework/AMD) with ecological motifs while ensuring legal sovereignty via Inspired Motifs.",
+    "path": "src/cohezion/skills/BRANDING_OPS_PRIME.md",
+    "tags": [
+      "branding",
+      "identity",
+      "operations"
+    ]
+  },
+  "TENSOR_NETWORK_OPS_PRIME": {
+    "name": "TENSOR_NETWORK_OPS_PRIME",
+    "description": "HPC for quantum simulation and LLM compression using tensor networks on memory-constrained hardware. Covers MPS/TT decomposition, TensorGPT embedding compression, cotengra contraction-path optimization.",
+    "path": "src/cohezion/skills/TENSOR_NETWORK_OPS_PRIME.md",
+    "tags": [
+      "hpc",
+      "tensor-networks",
+      "quantum",
+      "llm-compression"
+    ]
   }
 }
