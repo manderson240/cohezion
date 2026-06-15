@@ -129,6 +129,7 @@ exclude = [
     ".archives",
     "src/cohezion-archive",  # archived/legacy code — not actively maintained
     "*.ipynb",
+    "hackathons",  # imported external hackathon submissions — not project code, not linted here
 ]
 
 # Linting configuration
