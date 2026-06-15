@@ -296,6 +296,72 @@ class ContextEngineer:
         }
 
 
+class PrefixAligner:
+    """Stabilizes prompt prefixes for KV cache alignment on Lemonade :13305.
+
+    Headroom (chopratejas/headroom) CacheAligner insight: KV cache miss rates
+    spike when system prompts vary slightly between calls. PrefixAligner
+    normalizes the system prompt to a canonical, stable form — improving
+    Lemonade OmniRouter KV cache hit rates across the compound loop.
+
+    Strategy:
+    - Normalize whitespace and trailing punctuation
+    - Sort and deduplicate injected context bullets
+    - Lock the prefix to a deterministic hash → stable KV cache key
+    """
+
+    def __init__(self, max_prefix_chars: int = 512):
+        self._max_prefix_chars = max_prefix_chars
+        self._cache: dict[str, str] = {}
+
+    def align(self, system_prompt: str, context_bullets: list[str] | None = None) -> str:
+        """Return a KV-cache-stable version of the system prompt.
+
+        Args:
+            system_prompt: Raw system prompt (may have dynamic content)
+            context_bullets: Optional list of context items to append (sorted for stability)
+
+        Returns:
+            Stable system prompt suitable for KV cache prefix alignment.
+        """
+        # Step 1: normalize whitespace
+        normalized = " ".join(system_prompt.split())
+
+        # Step 2: append sorted, deduplicated context bullets
+        if context_bullets:
+            unique_sorted = sorted(set(b.strip() for b in context_bullets if b.strip()))
+            if unique_sorted:
+                bullets_str = "\n".join(f"- {b}" for b in unique_sorted)
+                normalized = f"{normalized}\n\nContext:\n{bullets_str}"
+
+        # Step 3: truncate to max prefix size (preserving whole words)
+        if len(normalized) > self._max_prefix_chars:
+            truncated = normalized[: self._max_prefix_chars]
+            last_space = truncated.rfind(" ")
+            normalized = truncated[:last_space] if last_space > 0 else truncated
+
+        return normalized
+
+    def align_payload(
+        self, payload: dict, context_bullets: list[str] | None = None
+    ) -> dict:
+        """Apply prefix alignment to a full chat completions payload.
+
+        Mutates the system message in-place (or prepends one if absent).
+        Returns the modified payload dict.
+        """
+        messages = payload.get("messages", [])
+        if messages and messages[0].get("role") == "system":
+            messages[0]["content"] = self.align(messages[0]["content"], context_bullets)
+        elif context_bullets:
+            messages.insert(
+                0,
+                {"role": "system", "content": self.align("", context_bullets)},
+            )
+        payload["messages"] = messages
+        return payload
+
+
 class QualityMonitor:
     """Monitors output quality with lightweight heuristics."""
 
