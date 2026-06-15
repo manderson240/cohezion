@@ -50,6 +50,8 @@ from cohezion.inference.orchestrator import (
     TieredOrchestrator,
     default_hierarchy,
 )
+from cohezion.inference.context_engineering import PrefixAligner
+from cohezion.inference.omni_tier import OmniTier, OmniRequest, OmniResult, build_omni_tier
 from cohezion.inference.registry import (
     FleetRegistry,
     Lane,
@@ -60,6 +62,11 @@ from cohezion.inference.registry import (
 
 
 __all__ = [
+    "OmniRequest",
+    "OmniResult",
+    "OmniTier",
+    "PrefixAligner",
+    "build_omni_tier",
     "FleetHealth",
     "FleetRegistry",
     "Harness",

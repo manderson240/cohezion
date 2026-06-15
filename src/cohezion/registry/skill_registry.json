@@ -591,6 +591,18 @@
     "path": "src/cohezion/skills/COMPOUND_LOOP_CLOSURE_S104.md",
     "version": "1.0.0"
   },
+  "COMPOUND_LOOP_LATENCY_PRIME": {
+    "description": "---\nname: compound-loop-latency\ndescription: Characterize and optimize compound loop latency on AMD Strix Halo. Use when deriving per-step cost breakdowns, optimal asyncio batch sizes for throughput lift, or DegradationDetector thresholds for latency SLA gating.\ncategory: compound_amd\ntags: [latency...",
+    "keywords": [
+      "compound",
+      "latency",
+      "loop"
+    ],
+    "last_updated": "2026-06-14T20:23:56",
+    "name": "COMPOUND_LOOP_LATENCY_PRIME",
+    "path": "src/cohezion/skills/COMPOUND_LOOP_LATENCY_PRIME.md",
+    "version": "1.0.0"
+  },
   "COMPOUND_SELF_IMPROVEMENT_PRIME": {
     "description": "Use Cohezion's own compound engineering methodology (Execute \u2192 Retrospect \u2192 Refine) to improve Cohezion itself. This PRIME skill encodes the self-referential protocol for systematic codebase improvement using TDD, adversarial code review, Ouroboros self-healing, Mycelium test generation, and spec...",
     "keywords": [
@@ -1123,6 +1135,30 @@
     "path": "src/cohezion/skills/IDE_OPTIMIZATION_PRIME.md",
     "version": "1.0.0"
   },
+  "IGPU_ROCWMMA_COMPOUND_PRIME": {
+    "description": "---\nname: igpu-rocwmma-compound\ndescription: Design the iGPU RDNA 3.5 compound inference pipeline using ROCwMMA on AMD Strix Halo. Use when optimizing Gemma-4-E4B batch inference, ctx_size bounds for KV cache, or CLaSp speculative decoding acceptance rates.\ncategory: compound_amd\ntags: [igpu, rdna3....",
+    "keywords": [
+      "compound",
+      "igpu",
+      "rocwmma"
+    ],
+    "last_updated": "2026-06-14T20:23:56",
+    "name": "IGPU_ROCWMMA_COMPOUND_PRIME",
+    "path": "src/cohezion/skills/IGPU_ROCWMMA_COMPOUND_PRIME.md",
+    "version": "1.0.0"
+  },
+  "IMAGE_TIER_LOCAL_PRIME": {
+    "description": "---\nname: IMAGE_TIER_LOCAL_PRIME\ndescription: \"Local image generation via lemonade OmniRouter (:13305) + SD-Turbo (sd-cpp). Mirrors tts_tier.py pattern: typed async client, OpenAI-spec POST /v1/images/generations, structured error handling. SD-Turbo is a 1-step distilled model: steps=1 already produ...",
+    "keywords": [
+      "image",
+      "local",
+      "tier"
+    ],
+    "last_updated": "2026-06-14T20:23:56",
+    "name": "IMAGE_TIER_LOCAL_PRIME",
+    "path": "src/cohezion/skills/IMAGE_TIER_LOCAL_PRIME.md",
+    "version": "1.0.0"
+  },
   "INTERPRETABILITY_PRIME": {
     "description": "Expertise in mechanistic interpretability, latent manifold visualization, and \"Black Box\" transparency. Aligned with Anthropic's mission to create reliable and steerable agentic systems.",
     "keywords": [
@@ -1269,6 +1305,18 @@
     "path": "src/cohezion/skills/KNOWLEDGE_HARVESTING_PRIME.md",
     "version": "1.0.0"
   },
+  "KOKORO_TTS_TIER_PRIME": {
+    "description": "---\nname: KOKORO_TTS_TIER_PRIME\ndescription: \"Direct lemonade TTS tier for kokoro-v1. Bypasses GAIA LemonadeManager singleton (same pattern as direct_tier.py) and exposes lemonade's OpenAI-spec /v1/audio/speech endpoint as a typed async client. Closes the local voice loop on Strix Halo: 5 voices, 5 ...",
+    "keywords": [
+      "kokoro",
+      "tier",
+      "tts"
+    ],
+    "last_updated": "2026-06-14T20:23:56",
+    "name": "KOKORO_TTS_TIER_PRIME",
+    "path": "src/cohezion/skills/KOKORO_TTS_TIER_PRIME.md",
+    "version": "1.0.0"
+  },
   "LANGCHAIN_RAG_TIER_PRIME": {
     "description": "LangChain RAG pipeline as a TieredOrchestrator tier for document QA and retrieval-augmented generation",
     "keywords": [
@@ -1350,6 +1398,19 @@
     "last_updated": "2026-05-02T00:00:00",
     "name": "LLM_WIKI_PRIME",
     "path": "src/cohezion/skills/LLM_WIKI_PRIME.md",
+    "version": "1.0.0"
+  },
+  "LMX_OMNI_TOOL_CALLING_PRIME": {
+    "description": "---\nname: LMX_OMNI_TOOL_CALLING_PRIME\ndescription: \"Client-side orchestration of the LMX-Omni-52B-Halo bundle on Strix Halo. Composers Qwen3.6-35B-A3B-MTP-GGUF (planner, 22.1GB) + Flux-2-Klein-9B-GGUF (image+edit, 17.7GB) + Whisper-Large-v3-Turbo (ASR, 1.6GB) + kokoro-v1 (TTS, 0.35GB) into a single ...",
+    "keywords": [
+      "calling",
+      "lmx",
+      "omni",
+      "tool"
+    ],
+    "last_updated": "2026-06-14T20:23:56",
+    "name": "LMX_OMNI_TOOL_CALLING_PRIME",
+    "path": "src/cohezion/skills/LMX_OMNI_TOOL_CALLING_PRIME.md",
     "version": "1.0.0"
   },
   "LOCAL_INFERENCE_ROUTING": {
@@ -1634,6 +1695,18 @@
     "path": "src/cohezion/skills/NOETHER_CONSERVATION_PRIME.md",
     "version": "1.0.0"
   },
+  "NPU_TIER_OPTIMIZATION_PRIME": {
+    "description": "---\nname: npu-tier-optimization\ndescription: Optimize the XDNA2 NPU tier (llama3.2-1b-FLM, 42 TPS) for compound loop routing on AMD Strix Halo. Use when tuning task_classifier overhead, NPU escalation gates, or per-token cost delta for local vs cloud routing.\ncategory: compound_amd\ntags: [npu, xdna2...",
+    "keywords": [
+      "npu",
+      "optimization",
+      "tier"
+    ],
+    "last_updated": "2026-06-14T20:23:56",
+    "name": "NPU_TIER_OPTIMIZATION_PRIME",
+    "path": "src/cohezion/skills/NPU_TIER_OPTIMIZATION_PRIME.md",
+    "version": "1.0.0"
+  },
   "NVIDIA_HARDWARE_OPTIMIZATION_PRIME": {
     "description": "Expert in maximizing inference and training performance on NVIDIA GPU architectures (Hopper, Blackwell). Specializes in utilizing NVIDIA-specific toolkits like aitune, NIM, and ChatRTX patterns to achieve lowest-latency and highest-throughput reasoning.",
     "keywords": [
@@ -1905,6 +1978,18 @@
     "last_updated": "2026-02-05T00:00:00",
     "name": "RECOVERY_PRIME",
     "path": "src/cohezion/skills/RECOVERY_PRIME.md",
+    "version": "1.0.0"
+  },
+  "RECURSIVE_EXPANSION_ENGINE_PRIME": {
+    "description": "---\ntitle: \"RECURSIVE_EXPANSION_ENGINE_PRIME\"\ndescription: \"Autonomous self-improving recursive loop with compound engineering returns\"\ndate: 2026-06-13\nversion: \"0.1.0\"\ntags: [prime, compound, recursive, ouroboros, mycelium, lemonade]\naspect: \"skill\"\n---...",
+    "keywords": [
+      "engine",
+      "expansion",
+      "recursive"
+    ],
+    "last_updated": "2026-06-14T20:23:56",
+    "name": "RECURSIVE_EXPANSION_ENGINE_PRIME",
+    "path": "src/cohezion/skills/RECURSIVE_EXPANSION_ENGINE_PRIME.md",
     "version": "1.0.0"
   },
   "REDUCER_PRIME": {
@@ -2420,6 +2505,19 @@
     "path": "src/cohezion/skills/TEAM_ORCHESTRATION_PRIME.md",
     "version": "1.0.0"
   },
+  "TELEGRAM_LOCAL_FIRST_OMNIROUTER_PRIME": {
+    "description": "---\nname: TELEGRAM_LOCAL_FIRST_OMNIROUTER_PRIME\ndescription: \"Telegram bot local-first chat routing via the lemonade OmniRouter (:13305). Classifies each incoming query by complexity (SIMPLE/MEDIUM/COMPLEX) and steers a preferred-model hint to the OmniRouter; the router picks the actual NPU/iGPU/CPU...",
+    "keywords": [
+      "first",
+      "local",
+      "omnirouter",
+      "telegram"
+    ],
+    "last_updated": "2026-06-14T20:23:56",
+    "name": "TELEGRAM_LOCAL_FIRST_OMNIROUTER_PRIME",
+    "path": "src/cohezion/skills/TELEGRAM_LOCAL_FIRST_OMNIROUTER_PRIME.md",
+    "version": "1.0.0"
+  },
   "TEMPLATE_DRIVEN_DEVELOPMENT_PRIME": {
     "description": "You are a master of Template Driven Development (TDD) within the Cohezion ecosystem. You understand that \"As Above, So Below\" means every implementation must be preceded by a formal template or skill definition. You prioritize structural coherence and pattern consistency over ad-hoc coding. You u...",
     "keywords": [
@@ -2586,6 +2684,18 @@
     "path": "src/cohezion/skills/TRANSFORMER_ENGINE_FP4_OPTIMIZATION_PRIME.md",
     "version": "1.0.0"
   },
+  "TRIUNE_ROUTER_COMPOUND_PRIME": {
+    "description": "---\nname: triune-router-compound\ndescription: Synthesize the router-centric :13305 compound topology for AMD Strix Halo. Use when deriving LRU eviction policy, ctx_size hardening sequence, or TTFT comparisons across warm/cold/on-demand paths.\ncategory: compound_amd\ntags: [router, lemonade, triune, c...",
+    "keywords": [
+      "compound",
+      "router",
+      "triune"
+    ],
+    "last_updated": "2026-06-14T20:23:56",
+    "name": "TRIUNE_ROUTER_COMPOUND_PRIME",
+    "path": "src/cohezion/skills/TRIUNE_ROUTER_COMPOUND_PRIME.md",
+    "version": "1.0.0"
+  },
   "TRIUNE_SELF_PRIME": {
     "description": "Percival's Triune Self (Doer/Thinker/Knower) recursive learning loop for the Universe Research Engineer",
     "keywords": [
@@ -2644,6 +2754,18 @@
     "last_updated": "2026-05-02T00:00:00",
     "name": "TYPESCRIPT_ADVANCED_TYPES_PRIME",
     "path": "src/cohezion/skills/TYPESCRIPT_ADVANCED_TYPES_PRIME.md",
+    "version": "1.0.0"
+  },
+  "UNIFIED_MEMORY_TOPOLOGY_PRIME": {
+    "description": "---\nname: unified-memory-topology\ndescription: Map the 128GB Strix Halo unified memory topology for concurrent compound AI. Use when deriving allocation bounds for simultaneous NPU+iGPU+CPU tiers, MemorySnapshot gate thresholds, or Omni model tier selection.\ncategory: compound_amd\ntags: [unified-mem...",
+    "keywords": [
+      "memory",
+      "topology",
+      "unified"
+    ],
+    "last_updated": "2026-06-14T20:23:56",
+    "name": "UNIFIED_MEMORY_TOPOLOGY_PRIME",
+    "path": "src/cohezion/skills/UNIFIED_MEMORY_TOPOLOGY_PRIME.md",
     "version": "1.0.0"
   },
   "UNIVERSE_SIMULATION_PERSISTENCE_PRIME": {

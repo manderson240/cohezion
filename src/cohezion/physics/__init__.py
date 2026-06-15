@@ -17,10 +17,24 @@ from cohezion.physics.lagrangian import LagrangianDynamics
 from cohezion.physics.natural_capital import NaturalCapitalValuation
 from cohezion.physics.rewards_bridge import CoherenceRatchet, RewardsBridge
 from cohezion.physics.riemannian_metric import RiemannianMetric
+from cohezion.physics.observer_patch import (
+    OPH_N_CRC,
+    OPH_PIXEL_RATIO,
+    ObserverPatch,
+    oph_record_capacity_check,
+    overlap_fraction,
+    verify_observer_consistency,
+)
 from cohezion.physics.spinor import SpinorState
 
 
 __all__ = [
+    "OPH_N_CRC",
+    "OPH_PIXEL_RATIO",
+    "ObserverPatch",
+    "oph_record_capacity_check",
+    "overlap_fraction",
+    "verify_observer_consistency",
     "BioelectricNetwork",
     "CoherenceRatchet",
     "DimensionExtractor",

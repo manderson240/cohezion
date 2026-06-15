@@ -150,3 +150,8 @@ from cohezion.compound.tdd_adversarial.tdd_integration import (
 from cohezion.compound.tdd_adversarial.tdd_integration import (
     get_tdd_integration as get_tdd_integration,
 )
+from cohezion.compound.maker_checker import (
+    CheckerResult as CheckerResult,
+    MakerCheckerVerifier as MakerCheckerVerifier,
+    build_maker_checker as build_maker_checker,
+)
