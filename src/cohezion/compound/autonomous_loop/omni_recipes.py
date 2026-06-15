@@ -74,6 +74,24 @@ OMNI_PLANNER = LoopRecipe(
     llamacpp_backend="cuda",  # Strix Halo iGPU via ROCm/llamacpp
 )
 
+# Qwopus3.6-27B-Coder — 67% SWE-bench Verified (Q5_K_M), 27B dense GGUF.
+# Preferred over the 35B Omni planner for test_fix and type_fix when available:
+# smaller RAM footprint, coding-specialized training, agentic tool-use focus.
+# Model ID may vary by Lemonade catalog; fails gracefully to TEST_SPECIALIST if absent.
+QWOPUS_CODER = LoopRecipe(
+    model_name="Qwopus3.6-27B-Coder-Q5_K_M",
+    ctx_size=SAFE_CTX_SIZE,
+    task_categories=("test_fix", "type_fix"),
+    system_role=(
+        "You are a senior Python coding specialist with deep experience in "
+        "repository-level debugging, patch generation, and structured agentic "
+        "workflows. You apply surgical, minimal fixes — never rewriting more "
+        "than the task requires. You enumerate your reasoning before writing code."
+    ),
+    heavy=True,
+    llamacpp_backend="",  # GGUF via llamacpp, backend selected by router
+)
+
 TEST_SPECIALIST = LoopRecipe(
     model_name="Qwen3.6-35B-A3B-MTP-GGUF",
     ctx_size=SAFE_CTX_SIZE,
@@ -101,11 +119,14 @@ FAST_LINTER = LoopRecipe(
     llamacpp_backend="",
 )
 
-# Ordered: first match wins when a category appears in multiple recipes.
+# Ordered: first match with a loaded model wins.
+# QWOPUS_CODER is preferred for test_fix + type_fix when loaded (27B, lower RAM,
+# coding-specialized). TEST_SPECIALIST (35B MTP) is the fallback for test_fix.
 ALL_RECIPES: tuple[LoopRecipe, ...] = (
     FAST_LINTER,  # lint_fix → Gemma-4-E4B (fast, always fits)
-    TEST_SPECIALIST,  # test_fix → Qwen3.6-35B-A3B-MTP with test persona
-    OMNI_PLANNER,  # type_fix, refactor, feature, analysis → Omni planner
+    QWOPUS_CODER,  # test_fix, type_fix → 27B coding specialist when available
+    TEST_SPECIALIST,  # test_fix → Qwen3.6-35B-A3B-MTP with test persona (fallback)
+    OMNI_PLANNER,  # type_fix, refactor, feature, analysis → 35B Omni planner
 )
 
 # Stable fallback — 5 GB, always fits, never OOMs.

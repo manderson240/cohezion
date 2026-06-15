@@ -183,3 +183,91 @@ class TestRegistration:
                 f"Payload missing save_options=True: {payload}"
             )
             assert payload.get("ctx_size", 0) > 0, f"Payload has ctx_size=0 — OOM hazard: {payload}"
+
+
+class TestQwopusCoder:
+    """Qwopus3.6-27B-Coder preferred over 35B Omni for test_fix + type_fix when loaded.
+
+    Qwopus3.6-27B-Coder (Jackrong/Qwopus3.6-27B-Coder, 67% SWE-bench Verified at
+    Q5_K_M): smaller RAM footprint than Qwen3.6-35B-MTP, coding-specialized training.
+    The recipe degrades gracefully to the 35B fallback when not loaded.
+    """
+
+    def test_qwopus_preferred_over_35b_for_test_fix_when_loaded(self) -> None:
+        """Discriminating: if Qwopus IS in available_models, it wins over the 35B model."""
+        from cohezion.compound.autonomous_loop.omni_recipes import QWOPUS_CODER
+
+        registry = _make_registry()
+        model, role = registry.model_for_category(
+            "test_fix",
+            available_models=[
+                "Gemma-4-E4B-it-GGUF",
+                "Qwopus3.6-27B-Coder-Q5_K_M",
+                "Qwen3.6-35B-A3B-MTP-GGUF",
+            ],
+        )
+        assert model == QWOPUS_CODER.model_name
+        assert "coding" in role.lower() or "surgical" in role.lower()
+
+    def test_qwopus_preferred_over_35b_for_type_fix_when_loaded(self) -> None:
+        from cohezion.compound.autonomous_loop.omni_recipes import QWOPUS_CODER
+
+        registry = _make_registry()
+        model, _role = registry.model_for_category(
+            "type_fix",
+            available_models=["Qwopus3.6-27B-Coder-Q5_K_M", "Qwen3.6-35B-A3B-MTP-GGUF"],
+        )
+        assert model == QWOPUS_CODER.model_name
+
+    def test_qwopus_falls_back_to_35b_for_test_fix_when_absent(self) -> None:
+        """If Qwopus is not loaded, test_fix degrades to Qwen3.6-35B-MTP (TEST_SPECIALIST)."""
+        from cohezion.compound.autonomous_loop.omni_recipes import OMNI_PLANNER_MODEL
+
+        registry = _make_registry()
+        model, role = registry.model_for_category(
+            "test_fix",
+            available_models=["Gemma-4-E4B-it-GGUF", "Qwen3.6-35B-A3B-MTP-GGUF"],
+        )
+        assert model == OMNI_PLANNER_MODEL
+        assert "test" in role.lower()
+
+    def test_qwopus_not_selected_for_lint_fix(self) -> None:
+        """Qwopus recipe does not cover lint_fix — fast Gemma wins there."""
+        from cohezion.compound.autonomous_loop.omni_recipes import FAST_FALLBACK_MODEL
+
+        registry = _make_registry()
+        model, _role = registry.model_for_category(
+            "lint_fix",
+            available_models=["Gemma-4-E4B-it-GGUF", "Qwopus3.6-27B-Coder-Q5_K_M"],
+        )
+        assert model == FAST_FALLBACK_MODEL
+
+    def test_qwopus_recipe_has_safe_ctx_size(self) -> None:
+        """N3 compliance: Qwopus is a 27B heavy model, must use SAFE_CTX_SIZE."""
+        from cohezion.compound.autonomous_loop.omni_recipes import QWOPUS_CODER, SAFE_CTX_SIZE
+
+        assert QWOPUS_CODER.heavy is True
+        assert QWOPUS_CODER.ctx_size == SAFE_CTX_SIZE
+
+    def test_qwopus_recipe_is_in_all_recipes(self) -> None:
+        from cohezion.compound.autonomous_loop.omni_recipes import ALL_RECIPES, QWOPUS_CODER
+
+        assert QWOPUS_CODER in ALL_RECIPES
+
+    def test_qwopus_appears_before_test_specialist_in_all_recipes(self) -> None:
+        """Priority: Qwopus must appear before TEST_SPECIALIST so it wins when loaded."""
+        from cohezion.compound.autonomous_loop.omni_recipes import (
+            ALL_RECIPES,
+            QWOPUS_CODER,
+            TEST_SPECIALIST,
+        )
+
+        names = [r.model_name for r in ALL_RECIPES]
+        qwopus_idx = next(
+            i for i, r in enumerate(ALL_RECIPES) if r.model_name == QWOPUS_CODER.model_name
+        )
+        specialist_idx = next(i for i, r in enumerate(ALL_RECIPES) if r is TEST_SPECIALIST)
+        assert qwopus_idx < specialist_idx, (
+            f"QWOPUS_CODER at index {qwopus_idx} must precede TEST_SPECIALIST "
+            f"at index {specialist_idx} in ALL_RECIPES; got {names}"
+        )
