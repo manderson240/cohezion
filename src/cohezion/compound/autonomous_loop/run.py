@@ -17,7 +17,6 @@ import sys
 from pathlib import Path
 
 from .coordinator import LoopConfig, LoopCoordinator, LoopReport
-from .executor import ImprovementExecutor
 from .first_sprint import TestStabilizationSprint
 from .task_generator import TaskGenerator
 
@@ -31,43 +30,56 @@ logger = logging.getLogger("autonomous_loop")
 
 
 def cmd_run(args: argparse.Namespace) -> None:
-    """Run the full autonomous loop."""
+    """Run the full autonomous loop — Lemonade local inference by default."""
+    use_local = not getattr(args, "no_local", False)
     config = LoopConfig(
         max_wall_clock_hours=args.hours,
         checkpoint_interval_seconds=args.checkpoint_interval,
         resume_from_checkpoint=args.resume,
+        use_local_inference=use_local,
+        local_model=getattr(args, "local_model", LoopConfig.local_model),
+        local_base_url=getattr(args, "local_url", LoopConfig.local_base_url),
     )
 
-    # Initialize components
+    logger.info(
+        "Executor: %s (model=%s, url=%s)",
+        "local/Lemonade" if use_local else "cloud/Claude-CLI",
+        config.local_model if use_local else config.claude_model,
+        config.local_base_url if use_local else "subprocess",
+    )
+
     coordinator = LoopCoordinator(config)
-    executor = ImprovementExecutor(config)
 
     # Load or generate backlog
     backlog_path = config.backlog_path
     if Path(backlog_path).exists() and args.resume:
         logger.info("Loading existing backlog from %s", backlog_path)
-        _raw_tasks = json.loads(Path(backlog_path).read_text())
+        raw = json.loads(Path(backlog_path).read_text())
+        from .coordinator import LoopTask
+
+        coordinator._backlog = [LoopTask(**t) for t in raw]
     else:
         logger.info("Generating new backlog")
-        # First sprint: test stabilization
         sprint = TestStabilizationSprint(config.worktree_path)
         sprint_tasks = sprint.generate_tasks()
 
-        # Additional tasks from codebase scanning
         generator = TaskGenerator(config.worktree_path)
         additional_tasks = generator.generate_all()
 
-        # Combine: sprint tasks first (highest priority), then additional
-        all_tasks = sprint_tasks + additional_tasks
+        from .coordinator import LoopTask
 
-        # Save backlog
+        all_task_dicts = sprint_tasks + additional_tasks
         Path(backlog_path).parent.mkdir(parents=True, exist_ok=True)
-        Path(backlog_path).write_text(json.dumps(all_tasks, indent=2))
-        logger.info("Generated %d tasks", len(all_tasks))
+        Path(backlog_path).write_text(json.dumps(all_task_dicts, indent=2))
+        coordinator._backlog = [
+            LoopTask(**{k: v for k, v in t.items() if k in LoopTask.__dataclass_fields__})
+            for t in all_task_dicts
+        ]
+        logger.info("Generated %d tasks", len(coordinator._backlog))
 
-    # Run the loop
+    # Run — coordinator selects LocalImprovementExecutor or ImprovementExecutor per config
     logger.info("Starting autonomous loop (%.1fh budget)", config.max_wall_clock_hours)
-    report: LoopReport = coordinator.run(executor)
+    report: LoopReport = coordinator.run()  # no explicit executor — uses config.use_local_inference
 
     # Print report
     print("\n" + report.summary())
@@ -93,6 +105,99 @@ def cmd_run(args: argparse.Namespace) -> None:
         )
     )
     logger.info("Results saved to %s", results_path)
+
+    # Self-improvement feedback: persist learnings to vault via RetrospectionEngine
+    _persist_loop_learnings(report, config)
+
+
+def _persist_loop_learnings(report: LoopReport, config: LoopConfig) -> None:
+    """Feed loop results back into the compound self-improvement infrastructure.
+
+    Writes a structured learning record so the next loop iteration can build on
+    what worked and avoid what failed. Uses local Lemonade inference to synthesize
+    if available, otherwise writes raw metrics.
+    """
+    import json
+    import urllib.request
+    from datetime import datetime, timezone
+
+    learning = {
+        "ts": datetime.now(timezone.utc).isoformat(),
+        "loop_type": "local" if config.use_local_inference else "cloud",
+        "model": config.local_model if config.use_local_inference else config.claude_model,
+        "tasks_completed": report.tasks_completed,
+        "tasks_failed": report.tasks_failed,
+        "success_rate": report.success_rate,
+        "elapsed_hours": report.elapsed_hours,
+        "tokens_used": report.tokens_used,
+        "results": [r for r in report.results[-10:]],  # last 10 tasks
+    }
+
+    # Try to synthesize a 1-sentence learning using local Lemonade
+    if config.use_local_inference:
+        try:
+            payload = json.dumps(
+                {
+                    "model": config.local_fallback_model,  # fast model for synthesis
+                    "messages": [
+                        {
+                            "role": "user",
+                            "content": (
+                                f"Summarize this autonomous loop run in one sentence, "
+                                f"noting what category of tasks succeeded vs failed:\n{json.dumps(learning, indent=2)}"
+                            ),
+                        }
+                    ],
+                    "max_tokens": 100,
+                    "temperature": 0.0,
+                }
+            ).encode()
+            req = urllib.request.Request(
+                f"{config.local_base_url}/v1/chat/completions",
+                data=payload,
+                headers={"Content-Type": "application/json"},
+                method="POST",
+            )
+            with urllib.request.urlopen(req, timeout=15) as resp:
+                data = json.loads(resp.read())
+                learning["synthesis"] = data["choices"][0]["message"].get("content", "")
+        except Exception as exc:
+            logger.debug("Synthesis skipped: %s", exc)
+
+    # Write to SurrealDB experiment_runs table if available
+    try:
+        surreal_payload = (
+            f"CREATE experiment_runs SET "
+            f"event='autonomous_loop', "
+            f"success_rate={learning['success_rate']:.4f}, "
+            f"tasks_completed={learning['tasks_completed']}, "
+            f"tasks_failed={learning['tasks_failed']}, "
+            f"model='{learning['model']}', "
+            f"loop_type='{learning['loop_type']}', "
+            f"ts=time::now();"
+        )
+        req = urllib.request.Request(
+            "http://localhost:8001/sql",
+            data=surreal_payload.encode(),
+            headers={
+                "Content-Type": "text/plain",
+                "surreal-ns": "cohezion",
+                "surreal-db": "main",
+                "Authorization": "Basic cm9vdDpyb290",  # root:root
+            },
+            method="POST",
+        )
+        with urllib.request.urlopen(req, timeout=5) as _:
+            pass
+        logger.info("Loop learnings persisted to SurrealDB experiment_runs")
+    except Exception as exc:
+        logger.debug("SurrealDB write skipped: %s", exc)
+
+    # Always write to local JSONL for offline inspection
+    learning_path = Path(config.results_path).parent / "loop_learnings.jsonl"
+    with open(learning_path, "a") as f:
+        f.write(json.dumps(learning) + "\n")
+    logger.info("Loop learning appended to %s", learning_path)
 
 
 def cmd_generate(args: argparse.Namespace) -> None:
@@ -165,6 +270,19 @@ Examples:
     run_parser.add_argument("--resume", action="store_true", help="Resume from checkpoint")
     run_parser.add_argument(
         "--repo", default="/home/mike-anderson/dev/cohezion", help="Repository root"
+    )
+    run_parser.add_argument(
+        "--no-local", action="store_true", help="Use Claude CLI instead of Lemonade (cloud mode)"
+    )
+    run_parser.add_argument(
+        "--local-model",
+        default=LoopConfig.local_model,
+        help=f"Lemonade model name (default: {LoopConfig.local_model})",
+    )
+    run_parser.add_argument(
+        "--local-url",
+        default=LoopConfig.local_base_url,
+        help=f"Lemonade base URL (default: {LoopConfig.local_base_url})",
     )
 
     # generate
