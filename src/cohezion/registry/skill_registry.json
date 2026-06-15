@@ -73,7 +73,7 @@
     "version": "1.0.0"
   },
   "AGENTIC_DESIGN_PRIME": {
-    "description": "The art and science of \"Agentic Aesthetics\"\u2014creating high-fidelity, research-grade documentation (Resumes, Manifestos, Benchmarks) that communicates strategic system leadership and technical sovereignty.",
+    "description": "The art and science of \"Agentic Aesthetics\"—creating high-fidelity, research-grade documentation (Resumes, Manifestos, Benchmarks) that communicates strategic system leadership and technical sovereignty.",
     "keywords": [
       "abstract-first",
       "agentic",
@@ -107,7 +107,7 @@
     "version": "1.0.0"
   },
   "AGENT_CONFIG_PRIME": {
-    "description": "You are a specialist in agent configuration file authoring \u2014 creating and maintaining the global rules files that agentic coding tools read at session start: CLAUDE.md (Claude Code, project root) and GEMINI.md (Antigravity IDE, ~/.gemini/GEMINI.md). You know how to structure these files so an LLM re",
+    "description": "You are a specialist in agent configuration file authoring — creating and maintaining the global rules files that agentic coding tools read at session start: CLAUDE.md (Claude Code, project root) and GEMINI.md (Antigravity IDE, ~/.gemini/GEMINI.md). You know how to structure these files so an LLM re",
     "generated_from": "skill.md",
     "keywords": [
       "agent",
@@ -313,7 +313,7 @@
     "version": "1.0.0"
   },
   "AUTODQA_PRIME": {
-    "description": "AUTODQA \u2014 Automated Design Quality Assurance. Self-referential QA system dogfooding Cohezion inference stack. HIHO quality gate (score\u22650.45), security gates (injection/credentials/SurrealQL), Higuchi FD fractal health (target 1.4-1.6), SurrealDB bi-temporal persistence, Telegram Cohezion bot notifications.",
+    "description": "AUTODQA — Automated Design Quality Assurance. Self-referential QA system dogfooding Cohezion inference stack. HIHO quality gate (score≥0.45), security gates (injection/credentials/SurrealQL), Higuchi FD fractal health (target 1.4-1.6), SurrealDB bi-temporal persistence, Telegram Cohezion bot notifications.",
     "keywords": [
       "autodqa",
       "quality",
@@ -358,7 +358,7 @@
     "version": "1.0.0"
   },
   "AUTONOMIC_EVOLUTION_PRIME": {
-    "description": "You are a self\u2011evolving system architect focused on the recursive refinement and curation of skills. Your role is to bridge the gap between bug detection and architectural hardening, ensuring that every failure leads to a permanent upgrade of the system's \"Axiomatic Skills\" (PRIME.md files). You ...",
+    "description": "You are a self‑evolving system architect focused on the recursive refinement and curation of skills. Your role is to bridge the gap between bug detection and architectural hardening, ensuring that every failure leads to a permanent upgrade of the system's \"Axiomatic Skills\" (PRIME.md files). You ...",
     "keywords": [
       "as_above,_so_below",
       "autonomic",
@@ -389,7 +389,7 @@
     "version": "1.0.0"
   },
   "AUTONOMIC_QUALITY_GUARD_PRIME": {
-    "description": "You are a meta\u2011cognitive auditor specializing in systemic integrity and alignment. Your role is to monitor the system's own automation loops (Cron jobs, Swarm outputs, Skill refinements) and identify \"Semantic Drift\"--the gradual loss of coherence as autonomous processes compound over time.",
+    "description": "You are a meta‑cognitive auditor specializing in systemic integrity and alignment. Your role is to monitor the system's own automation loops (Cron jobs, Swarm outputs, Skill refinements) and identify \"Semantic Drift\"--the gradual loss of coherence as autonomous processes compound over time.",
     "keywords": [
       "autonomic",
       "feedback-into-prompt_fip",
@@ -604,7 +604,7 @@
     "version": "1.0.0"
   },
   "COMPOUND_SELF_IMPROVEMENT_PRIME": {
-    "description": "Use Cohezion's own compound engineering methodology (Execute \u2192 Retrospect \u2192 Refine) to improve Cohezion itself. This PRIME skill encodes the self-referential protocol for systematic codebase improvement using TDD, adversarial code review, Ouroboros self-healing, Mycelium test generation, and spec...",
+    "description": "Use Cohezion's own compound engineering methodology (Execute → Retrospect → Refine) to improve Cohezion itself. This PRIME skill encodes the self-referential protocol for systematic codebase improvement using TDD, adversarial code review, Ouroboros self-healing, Mycelium test generation, and spec...",
     "keywords": [
       "compound",
       "improvement",
@@ -616,7 +616,7 @@
     "version": "1.0.0"
   },
   "COMPOUND_TRAINING_CYCLE_PRIME": {
-    "description": "You are a Compound Training Engineer who runs the closed-loop RL training cycle: train \u2192 evaluate \u2192 persist \u2192 compare \u2192 refine skill \u2192 repeat. Every run compounds on prior runs' knowledge.",
+    "description": "You are a Compound Training Engineer who runs the closed-loop RL training cycle: train → evaluate → persist → compare → refine skill → repeat. Every run compounds on prior runs' knowledge.",
     "keywords": [
       "algorithm-reward_matrix_l248",
       "compound",
@@ -676,7 +676,7 @@
     "version": "1.0.0"
   },
   "CONTEXT_ENTROPY_MANAGEMENT_PRIME": {
-    "description": "You are a context window architect specializing in long\u2011horizon session stability. Your role is to combat \"Context Entropy\"--the gradual degradation of agent performance as session history bloats--by implementing semantic pruning and recursive summarization.",
+    "description": "You are a context window architect specializing in long‑horizon session stability. Your role is to combat \"Context Entropy\"--the gradual degradation of agent performance as session history bloats--by implementing semantic pruning and recursive summarization.",
     "keywords": [
       "context",
       "entropy",
@@ -790,7 +790,7 @@
     "keywords": [
       "belousov-zhabotinsky_bz_reaction_1959",
       "brusselator_model",
-      "b\u00e9nard_convection_1901",
+      "bénard_convection_1901",
       "dissipative",
       "haken's_synergetics",
       "ilya_prigogine",
@@ -1176,7 +1176,7 @@
     "version": "1.0.0"
   },
   "JEPA_WORLD_MODEL_PRIME": {
-    "description": "You are a specialist in Cohezion's JEPA (Joint Embedding Predictive Architecture) world model \u2014 a ~2M parameter causal masking predictor that runs CPU-locally. You understand how to train, evaluate, checkpoint, and integrate this model with the broader compound engineering loop.",
+    "description": "You are a specialist in Cohezion's JEPA (Joint Embedding Predictive Architecture) world model — a ~2M parameter causal masking predictor that runs CPU-locally. You understand how to train, evaluate, checkpoint, and integrate this model with the broader compound engineering loop.",
     "generated_from": "skill.md",
     "keywords": [
       "jepa",
@@ -1189,7 +1189,7 @@
     "version": "1.0.0"
   },
   "JOURNEY_DASHBOARD_PRIME": {
-    "description": "You are a full\u2011stack observability engineer specializing in high\u2011dimensional data visualization. Your role is to bridge the gap between raw 12D/2048D agent trajectories and human\u2011readable dashboards, ensuring that \"coherence\" and \"stability\" are visually intuitive.",
+    "description": "You are a full‑stack observability engineer specializing in high‑dimensional data visualization. Your role is to bridge the gap between raw 12D/2048D agent trajectories and human‑readable dashboards, ensuring that \"coherence\" and \"stability\" are visually intuitive.",
     "keywords": [
       "dashboard",
       "hiho_pulse",
@@ -1270,7 +1270,7 @@
     "version": "1.0.0"
   },
   "KNOWLEDGE_GRAPH_INTEGRATION_PRIME": {
-    "description": "You are a systems architect who bridges the skill registry with a knowledge graph representation of Cohezion\u2019s concepts, dependencies, and execution flows. You understand graph data models (RDF/Property Graph), semantic linking, and how to keep the graph in sync with the markdown\u2011based skill defi...",
+    "description": "You are a systems architect who bridges the skill registry with a knowledge graph representation of Cohezion’s concepts, dependencies, and execution flows. You understand graph data models (RDF/Property Graph), semantic linking, and how to keep the graph in sync with the markdown‑based skill defi...",
     "keywords": [
       "compound_engineering",
       "embedding_strategy",
@@ -1414,7 +1414,7 @@
     "version": "1.0.0"
   },
   "LOCAL_INFERENCE_ROUTING": {
-    "description": "Smart routing across NPU/iGPU/CPU/cloud tiers based on task type, cost asymmetry, accuracy, resource availability, and difficulty. Feynman path integral amplitudes (A=quality\u00d7exp(-\u03bb\u00d7cost)), Higuchi fractal dimension health checks, BBQ low-and-slow mode for very hard questions. Multi-perspective adversarial review for high-stakes decisions.",
+    "description": "Smart routing across NPU/iGPU/CPU/cloud tiers based on task type, cost asymmetry, accuracy, resource availability, and difficulty. Feynman path integral amplitudes (A=quality×exp(-λ×cost)), Higuchi fractal dimension health checks, BBQ low-and-slow mode for very hard questions. Multi-perspective adversarial review for high-stakes decisions.",
     "keywords": [
       "routing",
       "amd-silicon",
@@ -1503,7 +1503,7 @@
       "optimization",
       "physics",
       "spinor_algebra_su2",
-      "st\u00f6rmer-verlet_integration"
+      "störmer-verlet_integration"
     ],
     "last_updated": "2026-05-02T00:00:00",
     "name": "MANIFOLD_PHYSICS_OPTIMIZATION_PRIME",
@@ -1615,13 +1615,13 @@
     "version": "1.0.0"
   },
   "MODEL_ROUTING_PRIME": {
-    "description": "You are a specialist in local LLM orchestration using Ollama. You understand the trade\u2011offs between model size, RAM consumption, latency, and token cost. You can programmatically select the optimal model for a given task, spin up or shut down model servers, and route requests through a LangChain\u2011...",
+    "description": "You are a specialist in local LLM orchestration using Ollama. You understand the trade‑offs between model size, RAM consumption, latency, and token cost. You can programmatically select the optimal model for a given task, spin up or shut down model servers, and route requests through a LangChain‑...",
     "keywords": [
       "cache & deduplication",
       "code_standards",
       "embedding_strategy",
       "guardrails",
-      "memory\u2011aware scheduling",
+      "memory‑aware scheduling",
       "model",
       "ollama model catalog",
       "parallel execution",
@@ -1800,7 +1800,7 @@
       "boltzmann_gibbs",
       "einstein",
       "feynman",
-      "heisenberg_schr\u00f6dinger_dirac",
+      "heisenberg_schrödinger_dirac",
       "lagrange_hamilton",
       "lineage",
       "maxwell",
@@ -2113,7 +2113,7 @@
     "keywords": [
       "automatic skill scaffold",
       "metaphysics",
-      "meta\u2011pattern library",
+      "meta‑pattern library",
       "physics",
       "retrospective",
       "retrospective_skill",
@@ -2278,7 +2278,7 @@
     "version": "1.0.0"
   },
   "SMALL_MODEL_SPECIALIST_PRIME": {
-    "description": "`` SIMPLE Task \u2192 phi3:mini (2.2GB, <100ms) \u2193 (if low confidence) MEDIUM Task \u2192 qwen2-math:7b OR qwen2.5-coder:7b (4.4-4.7GB, ~200ms) \u2193 (if low confidence) COMPLEX Task \u2192 Cloud fallback (qwen3.5:cloud, minimax-m2.7:cloud) ``",
+    "description": "`` SIMPLE Task → phi3:mini (2.2GB, <100ms) ↓ (if low confidence) MEDIUM Task → qwen2-math:7b OR qwen2.5-coder:7b (4.4-4.7GB, ~200ms) ↓ (if low confidence) COMPLEX Task → Cloud fallback (qwen3.5:cloud, minimax-m2.7:cloud) ``",
     "keywords": [
       "model",
       "small",
@@ -2447,7 +2447,7 @@
     "version": "1.0.0"
   },
   "SYSTEM_MONITORING_PRIME": {
-    "description": "You are a performance engineer specialized in real\u2011time system monitoring on a high\u2011end Framework desktop (AMD\u202fRyzen\u202fAI\u202fMAX+\u202f395, 32 logical cores, 125\u202fGiB RAM, 8\u202fGiB swap, 1.6\u202fTiB SSD). You understand how to use tools like htop, iostat, vmstat, and nvidia\u2011smi (if GPUs are present) to identify CP...",
+    "description": "You are a performance engineer specialized in real‑time system monitoring on a high‑end Framework desktop (AMD Ryzen AI MAX+ 395, 32 logical cores, 125 GiB RAM, 8 GiB swap, 1.6 TiB SSD). You understand how to use tools like htop, iostat, vmstat, and nvidia‑smi (if GPUs are present) to identify CP...",
     "keywords": [
       "adaptive scaling",
       "code_standards",
@@ -2458,7 +2458,7 @@
       "model_routing",
       "monitoring",
       "parallel_orchestration",
-      "process\u2011level metrics",
+      "process‑level metrics",
       "retrospectives",
       "system",
       "visualization"
@@ -2655,7 +2655,7 @@
     "version": "1.0.0"
   },
   "TRAINING_DIAGNOSTIC_LOOP_PRIME": {
-    "description": "You are a Training Diagnostician specializing in the iterative train\u2192diagnose\u2192hypothesize\u2192retrain\u2192verify cycle for RL agent development. You persist every run and extract generalizable learnings.",
+    "description": "You are a Training Diagnostician specializing in the iterative train→diagnose→hypothesize→retrain→verify cycle for RL agent development. You persist every run and extract generalizable learnings.",
     "keywords": [
       "4-iteration_diagnostic_pattern_l241",
       "diagnostic",
@@ -2813,7 +2813,7 @@
     "version": "1.0.0"
   },
   "VECTOR_STORE_PRIME": {
-    "description": "You are an authority on persistent vector storage for semantic retrieval. You understand the operational, performance, and data\u2011integrity aspects of local and remote vector stores, including Mem0 MCP, FAISS, Chroma, and SQLite\u2011based embeddings.",
+    "description": "You are an authority on persistent vector storage for semantic retrieval. You understand the operational, performance, and data‑integrity aspects of local and remote vector stores, including Mem0 MCP, FAISS, Chroma, and SQLite‑based embeddings.",
     "keywords": [
       "chroma",
       "compound_engineering",
@@ -3037,7 +3037,7 @@
     "version": "1.0.0"
   },
   "code_standards": {
-    "description": "You are a software craftsmanship authority who defines and enforces rigorous coding standards across the entire Cohezion codebase. You understand Python best practices, static analysis tooling, automated formatting, type checking, security hardening, and continuous\u2011integration pipelines. Your goa...",
+    "description": "You are a software craftsmanship authority who defines and enforces rigorous coding standards across the entire Cohezion codebase. You understand Python best practices, static analysis tooling, automated formatting, type checking, security hardening, and continuous‑integration pipelines. Your goa...",
     "keywords": [
       "bandit",
       "black",
@@ -3049,8 +3049,8 @@
       "model_routing",
       "mypy",
       "parallel_orchestration",
-      "pep\u202f8",
-      "pre\u2011commit",
+      "pep 8",
+      "pre‑commit",
       "pytest",
       "retrospective_skill",
       "standards",
@@ -3077,7 +3077,7 @@
     "version": "1.0.0"
   },
   "compound_prompt": {
-    "description": "You are a prompt architect who builds compound prompts that orchestrate multiple existing skills in a single, coherent request. You understand how to chain the outputs of one skill as the inputs to another, how to expose meta\u2011instructions, and how to embed retrieval cues that let a language model...",
+    "description": "You are a prompt architect who builds compound prompts that orchestrate multiple existing skills in a single, coherent request. You understand how to chain the outputs of one skill as the inputs to another, how to expose meta‑instructions, and how to embed retrieval cues that let a language model...",
     "keywords": [
       "compound",
       "compound_engineering",
@@ -3088,7 +3088,7 @@
       "prompt",
       "prompt chaining",
       "retrospective_skill",
-      "self\u2011reference",
+      "self‑reference",
       "skill tags"
     ],
     "last_updated": "2026-02-05T00:00:00",
@@ -3139,15 +3139,15 @@
     "version": "1.0.0"
   },
   "embedding_strategy": {
-    "description": "You are a specialist in semantic representation for software\u2011engineered knowledge. You understand the trade\u2011offs between lightweight bag\u2011of\u2011words TF vectors, dense transformer\u2011based embeddings, and external vector stores. You can pick the right strategy for a given scale, latency, and resource bu...",
+    "description": "You are a specialist in semantic representation for software‑engineered knowledge. You understand the trade‑offs between lightweight bag‑of‑words TF vectors, dense transformer‑based embeddings, and external vector stores. You can pick the right strategy for a given scale, latency, and resource bu...",
     "keywords": [
       "compound_engineering",
       "embedding",
       "hybrid approach",
-      "mem0\u202fmcp / local vector stores",
-      "sentence\u2011transformers",
+      "mem0 mcp / local vector stores",
+      "sentence‑transformers",
       "skill_generator",
-      "sparse tf\u2011idf / count vectors",
+      "sparse tf‑idf / count vectors",
       "strategy",
       "vector_store"
     ],
@@ -3529,7 +3529,7 @@
     "version": "1.0.0"
   },
   "parallel_orchestration": {
-    "description": "You are a systems engineer who designs parallel, memory\u2011aware orchestration for local LLM workloads. You understand process\u2011level concurrency, inter\u2011process communication, task queuing, and resource budgeting on a machine with 128\u202fGB of unified RAM. You can translate high\u2011level job descriptions i...",
+    "description": "You are a systems engineer who designs parallel, memory‑aware orchestration for local LLM workloads. You understand process‑level concurrency, inter‑process communication, task queuing, and resource budgeting on a machine with 128 GB of unified RAM. You can translate high‑level job descriptions i...",
     "keywords": [
       "batching & chunking",
       "code_standards",
@@ -3720,7 +3720,7 @@
     "version": "1.0.0"
   },
   "self_evaluation": {
-    "description": "You are a meta\u2011engineer who automatically evaluates the quality, completeness, and alignment of generated artefacts (prompts, skill specifications, code snippets) against a set of objective criteria. You can invoke other skills (e.g., RETROSPECTIVE_SKILL, COMPOUND_PROMPT_PRIME) to gather evidence...",
+    "description": "You are a meta‑engineer who automatically evaluates the quality, completeness, and alignment of generated artefacts (prompts, skill specifications, code snippets) against a set of objective criteria. You can invoke other skills (e.g., RETROSPECTIVE_SKILL, COMPOUND_PROMPT_PRIME) to gather evidence...",
     "keywords": [
       "alignment score",
       "checklists & rubrics",
@@ -3731,7 +3731,7 @@
       "iterative improvement loop",
       "retrospective_skill",
       "self",
-      "self\u2011consistency",
+      "self‑consistency",
       "skill_generator"
     ],
     "last_updated": "2026-02-05T00:00:00",
@@ -3782,9 +3782,9 @@
     "version": "1.0.0"
   },
   "skill_generator": {
-    "description": "You are a meta\u2011engineer specializing in the automatic generation of new skills. You treat skill specifications as compressible data structures and provide a lightweight CLI\u2011style interface for scaffolding skill files from existing templates.",
+    "description": "You are a meta‑engineer specializing in the automatic generation of new skills. You treat skill specifications as compressible data structures and provide a lightweight CLI‑style interface for scaffolding skill files from existing templates.",
     "keywords": [
-      "cli pseudo\u2011command",
+      "cli pseudo‑command",
       "compound_engineering",
       "compression block",
       "generator",
@@ -3909,6 +3909,41 @@
       "tensor-networks",
       "quantum",
       "llm-compression"
+    ]
+  },
+  "PROCESS_REWARD_MODEL_PRIME": {
+    "description": "Step-level dense reward scoring for CompoundExecutor pipeline steps using Lemonade :13305 (arXiv:2509.02547)",
+    "file": "src/cohezion/skills/PROCESS_REWARD_MODEL_PRIME.md",
+    "tags": [
+      "compound",
+      "loop-engineering",
+      "rl",
+      "prm",
+      "reward",
+      "lemonade",
+      "step-scoring"
+    ]
+  },
+  "MAKER_CHECKER_PRIME": {
+    "description": "Asymmetric Maker-Checker verification for CompoundExecutor -- fast Maker, higher-effort Checker via Lemonade :13305",
+    "file": "src/cohezion/skills/MAKER_CHECKER_PRIME.md",
+    "tags": [
+      "compound",
+      "loop-engineering",
+      "verification",
+      "maker-checker",
+      "lemonade"
+    ]
+  },
+  "AUTONOMOUS_LOOP_PRIME": {
+    "description": "Subprocess-based autonomous compound engineering loop -- LoopCoordinator, TaskGenerator, ImprovementExecutor",
+    "file": "src/cohezion/skills/AUTONOMOUS_LOOP_PRIME.md",
+    "tags": [
+      "compound",
+      "loop-engineering",
+      "autonomous",
+      "subprocess",
+      "self-improvement"
     ]
   }
 }
