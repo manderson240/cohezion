@@ -569,3 +569,86 @@ class TestSeeRepoImportGraph:
         task = _make_task()
         prompt = exec_._build_prompt(task, variant=0)
         assert "## REPOSITORY STRUCTURE" not in prompt
+
+
+class TestMultiLabelRouting:
+    """Multi-label task categories (scikit-llm multi-label pattern).
+
+    LoopTask.categories is a tuple of task labels; __post_init__ derives it from
+    category when not supplied. Model selection and hard-task detection are any-match.
+    """
+
+    def test_loop_task_derives_categories_from_category(self) -> None:
+        """__post_init__ sets categories=(category,) when not supplied explicitly."""
+        task = _make_task(category="test_fix")
+        assert task.categories == ("test_fix",)
+
+    def test_loop_task_explicit_multi_label(self) -> None:
+        """Caller can supply explicit multi-label tuple."""
+        from cohezion.compound.autonomous_loop.coordinator import LoopTask
+
+        task = LoopTask(
+            id="ml1",
+            description="Fix test with type error",
+            priority=1,
+            category="test_fix",
+            verification="pytest",
+            estimated_tokens=300,
+            categories=("test_fix", "type_fix"),
+        )
+        assert task.categories == ("test_fix", "type_fix")
+
+    def test_categories_not_overridden_when_supplied(self) -> None:
+        """__post_init__ must NOT overwrite an explicitly supplied categories tuple."""
+        from cohezion.compound.autonomous_loop.coordinator import LoopTask
+
+        task = LoopTask(
+            id="ml2",
+            description="desc",
+            priority=0,
+            category="lint_fix",
+            verification="echo ok",
+            estimated_tokens=50,
+            categories=("lint_fix", "refactor"),
+        )
+        assert task.categories == ("lint_fix", "refactor")
+
+    def test_is_hard_task_any_match_positive(self, tmp_path: Path) -> None:
+        """Task with categories=("lint_fix", "test_fix") is hard (any-match)."""
+        from cohezion.compound.autonomous_loop.coordinator import LoopTask
+
+        exec_ = _make_executor(tmp_path)
+        task = LoopTask(
+            id="h1",
+            description="desc",
+            priority=0,
+            category="lint_fix",
+            verification="echo ok",
+            estimated_tokens=50,
+            categories=("lint_fix", "test_fix"),
+        )
+        assert exec_._is_hard_task(task) is True
+
+    def test_is_hard_task_single_easy_label(self, tmp_path: Path) -> None:
+        """Single easy label is still not hard."""
+        exec_ = _make_executor(tmp_path)
+        task = _make_task(category="lint_fix")
+        assert exec_._is_hard_task(task) is False
+
+    def test_prompt_shows_all_categories(self, tmp_path: Path) -> None:
+        """Category field in prompt lists all labels for multi-label tasks."""
+        from cohezion.compound.autonomous_loop.coordinator import LoopTask
+
+        exec_ = _make_executor(tmp_path)
+        task = LoopTask(
+            id="p1",
+            description="desc",
+            priority=0,
+            category="test_fix",
+            verification="echo ok",
+            estimated_tokens=100,
+            categories=("test_fix", "type_fix"),
+        )
+        prompt = exec_._build_prompt(task, variant=0)
+        assert "test_fix" in prompt
+        assert "type_fix" in prompt

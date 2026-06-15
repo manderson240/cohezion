@@ -271,3 +271,82 @@ class TestQwopusCoder:
             f"QWOPUS_CODER at index {qwopus_idx} must precede TEST_SPECIALIST "
             f"at index {specialist_idx} in ALL_RECIPES; got {names}"
         )
+
+
+class TestMultiLabelCategories:
+    """model_for_categories — multi-label task routing (scikit-llm multi-label pattern).
+
+    A task can belong to multiple categories simultaneously (e.g. "test_fix" + "type_fix").
+    model_for_categories finds the highest-priority recipe that covers ANY of the labels.
+    """
+
+    def test_single_label_matches_single_category(self) -> None:
+        """Single-element list behaves identically to model_for_category."""
+        from cohezion.compound.autonomous_loop.omni_recipes import FAST_FALLBACK_MODEL
+
+        registry = _make_registry()
+        model, role = registry.model_for_categories(
+            ["lint_fix"],
+            available_models=["Gemma-4-E4B-it-GGUF", "Qwen3.6-35B-A3B-MTP-GGUF"],
+        )
+        assert model == FAST_FALLBACK_MODEL
+        assert role
+
+    def test_multi_label_test_fix_type_fix_selects_qwopus_when_loaded(self) -> None:
+        """Qwopus covers both test_fix AND type_fix — wins for the joint label."""
+        from cohezion.compound.autonomous_loop.omni_recipes import QWOPUS_CODER
+
+        registry = _make_registry()
+        model, role = registry.model_for_categories(
+            ["test_fix", "type_fix"],
+            available_models=[
+                "Gemma-4-E4B-it-GGUF",
+                "Qwopus3.6-27B-Coder-Q5_K_M",
+                "Qwen3.6-35B-A3B-MTP-GGUF",
+            ],
+        )
+        assert model == QWOPUS_CODER.model_name
+
+    def test_multi_label_falls_back_when_preferred_absent(self) -> None:
+        """If Qwopus not loaded, test_fix+type_fix falls through to 35B MTP."""
+        from cohezion.compound.autonomous_loop.omni_recipes import OMNI_PLANNER_MODEL
+
+        registry = _make_registry()
+        model, _role = registry.model_for_categories(
+            ["test_fix", "type_fix"],
+            available_models=["Gemma-4-E4B-it-GGUF", "Qwen3.6-35B-A3B-MTP-GGUF"],
+        )
+        assert model == OMNI_PLANNER_MODEL
+
+    def test_partial_overlap_triggers_match(self) -> None:
+        """A recipe covering ONE of two requested labels still fires."""
+        from cohezion.compound.autonomous_loop.omni_recipes import FAST_FALLBACK_MODEL
+
+        registry = _make_registry()
+        # Gemma covers lint_fix; "analysis" has no dedicated recipe but is covered by OMNI
+        model, _role = registry.model_for_categories(
+            ["lint_fix", "analysis"],
+            available_models=["Gemma-4-E4B-it-GGUF", "Qwen3.6-35B-A3B-MTP-GGUF"],
+        )
+        # FAST_LINTER covers lint_fix and appears first in ALL_RECIPES → wins
+        assert model == FAST_FALLBACK_MODEL
+
+    def test_tuple_input_accepted(self) -> None:
+        """model_for_categories accepts tuple as well as list."""
+        from cohezion.compound.autonomous_loop.omni_recipes import FAST_FALLBACK_MODEL
+
+        registry = _make_registry()
+        model, _role = registry.model_for_categories(
+            ("lint_fix",),
+            available_models=["Gemma-4-E4B-it-GGUF"],
+        )
+        assert model == FAST_FALLBACK_MODEL
+
+    def test_model_for_category_delegates_to_model_for_categories(self) -> None:
+        """model_for_category is a wrapper — results must match model_for_categories([cat])."""
+        registry = _make_registry()
+        avail = ["Gemma-4-E4B-it-GGUF", "Qwen3.6-35B-A3B-MTP-GGUF"]
+        for cat in ("lint_fix", "test_fix", "type_fix", "refactor", "exotic"):
+            single = registry.model_for_category(cat, available_models=avail)
+            multi = registry.model_for_categories([cat], available_models=avail)
+            assert single == multi, f"Mismatch for category={cat!r}: {single} != {multi}"

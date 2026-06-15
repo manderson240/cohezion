@@ -133,19 +133,23 @@ class LocalImprovementExecutor:
         )
         self._available_models = []
 
-    def _select_model(self, category: str = "") -> str:
-        """Pick the best available model for a task category (recipe-aware).
+    def _select_model(self, categories: tuple[str, ...] | str = "") -> str:
+        """Pick the best available model for one or more task categories (recipe-aware).
 
         Delegates to LemonadeLoopRecipes for category-specific model selection:
           lint_fix  → Gemma-4-E4B (fast, always fits)
-          test_fix  → Qwen3.6-35B with test-fix persona
+          test_fix  → Qwen3.6-35B with test-fix persona (or Qwopus when loaded)
           type_fix / refactor / feature → Omni planner
           fallback  → configured model or Omni planner
 
+        Accepts a tuple for multi-label tasks (e.g. ("test_fix", "type_fix")):
+        the recipe that covers the most overlap wins.
+
         Never downgrades to arbitrary small models — quality over speed.
         """
-        if category:
-            model, _ = self._recipes.model_for_category(category, self._available_models or None)
+        if categories:
+            cats = [categories] if isinstance(categories, str) else list(categories)
+            model, _ = self._recipes.model_for_categories(cats, self._available_models or None)
             return model
 
         # No category — flat quality-first chain (back-compat with callers that
@@ -210,9 +214,9 @@ class LocalImprovementExecutor:
                 "returncode": -3,
             }
 
-        model = self._select_model(task.category)
-        _, system_role = self._recipes.model_for_category(
-            task.category, self._available_models or None
+        model = self._select_model(task.categories)
+        _, system_role = self._recipes.model_for_categories(
+            list(task.categories), self._available_models or None
         )
         sweep_context = self._sweeper.build_task_context(task.category, task.description)
 
@@ -423,7 +427,7 @@ State your selection here before producing any === FILE === blocks.
 ## TASK
 
 **Description:** {task.description}
-**Category:** {task.category}
+**Category:** {", ".join(task.categories)}
 **Priority:** {task.priority}
 {context_section}{repo_structure_section}{diagnosis_section}
 ## ACCEPTANCE CRITERIA
@@ -498,7 +502,8 @@ STATUS: FAILED — <one-sentence reason why the task cannot be completed safely>
         whose typical fix touches type annotations, test internals, or both — cases
         where two sequential alternatives often still miss the underlying issue.
         """
-        return task.estimated_tokens > 500 or task.category in {"type_fix", "test_fix"}
+        _hard_categories = {"type_fix", "test_fix"}
+        return task.estimated_tokens > 500 or bool(set(task.categories) & _hard_categories)
 
     def _build_import_graph(self, worktree_path: str) -> str:
         """Build a lightweight import-dependency map for fault-localization context.

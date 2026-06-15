@@ -44,6 +44,14 @@ class LoopTask:
     result: str = ""  # outcome summary
     duration_seconds: float = 0.0
     tokens_used: int = 0
+    # Multi-label categories (superset of category). Derived from category when not
+    # supplied explicitly — allows callers to set e.g. ("test_fix", "type_fix") for
+    # tasks that span both repair types so model selection finds the best intersection.
+    categories: tuple[str, ...] = field(default_factory=tuple)
+
+    def __post_init__(self) -> None:
+        if not self.categories:
+            self.categories = (self.category,)
 
 
 @dataclass

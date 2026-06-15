@@ -231,36 +231,52 @@ class LemonadeLoopRecipes:
             logger.debug("Recipe registration for %s failed: %s", recipe.model_name, exc)
             return False
 
+    def model_for_categories(
+        self,
+        categories: list[str] | tuple[str, ...],
+        available_models: list[str] | None = None,
+    ) -> tuple[str, str]:
+        """Return (model_name, system_role) for a multi-label task.
+
+        Walks ALL_RECIPES in priority order, returns the first recipe whose
+        task_categories has ANY overlap with the requested categories AND whose
+        model is available. A recipe covering more categories wins over one that
+        covers fewer, because priority order already encodes the preference.
+
+        Falls back to OMNI_PLANNER then FAST_FALLBACK regardless of availability.
+
+        Args:
+            categories: One or more task category strings. A task spanning
+                ("test_fix", "type_fix") will prefer QWOPUS_CODER (covers both)
+                over TEST_SPECIALIST (covers only test_fix).
+            available_models: Current /v1/models snapshot. None = any model allowed.
+
+        Returns:
+            (model_name, system_role) — always a non-empty tuple.
+        """
+        cats = set(categories)
+        avail = set(available_models) if available_models is not None else None
+
+        for recipe in ALL_RECIPES:
+            if not cats.intersection(recipe.task_categories):
+                continue
+            if avail is None or recipe.model_name in avail:
+                return recipe.model_name, recipe.system_role
+
+        # No category-specific recipe available — use Omni planner if loaded
+        if avail is None or OMNI_PLANNER_MODEL in avail:
+            return OMNI_PLANNER_MODEL, OMNI_PLANNER.system_role
+
+        # Last resort: Gemma-4-E4B always fits in 5 GB
+        return FAST_FALLBACK_MODEL, FAST_LINTER.system_role
+
     def model_for_category(
         self,
         category: str,
         available_models: list[str] | None = None,
     ) -> tuple[str, str]:
-        """Return (model_name, system_role) for a task category.
+        """Return (model_name, system_role) for a single task category.
 
-        Walks ALL_RECIPES in priority order (fast models first), returns
-        the first recipe whose model is available. Falls back to OMNI_PLANNER
-        then FAST_FALLBACK regardless of availability.
-
-        Args:
-            category: Task category string ("lint_fix", "test_fix", etc.)
-            available_models: Current /v1/models snapshot. If None, uses last
-                refresh (or allows any model through).
-
-        Returns:
-            (model_name, system_role) — always a non-empty tuple.
+        Convenience wrapper around model_for_categories for single-label callers.
         """
-        avail = set(available_models) if available_models is not None else None
-
-        for recipe in ALL_RECIPES:
-            if category not in recipe.task_categories:
-                continue
-            if avail is None or recipe.model_name in avail:
-                return recipe.model_name, recipe.system_role
-
-        # Category not explicitly mapped — use Omni planner if available
-        if avail is None or OMNI_PLANNER_MODEL in avail:
-            return OMNI_PLANNER_MODEL, OMNI_PLANNER.system_role
-
-        # Last resort: Gemma-4-E4B always fits
-        return FAST_FALLBACK_MODEL, FAST_LINTER.system_role
+        return self.model_for_categories([category], available_models=available_models)
