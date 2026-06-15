@@ -12,6 +12,7 @@ from __future__ import annotations
 
 import json
 import logging
+import os
 import time
 from dataclasses import asdict, dataclass, field
 from datetime import datetime
@@ -96,7 +97,10 @@ class LoopConfig:
     use_local_inference: bool = True
     local_model: str = "Qwen3.6-35B-A3B-MTP-GGUF"
     local_fallback_model: str = "Gemma-4-E4B-it-GGUF"
-    local_base_url: str = "http://localhost:13305"
+    # Resolved at instantiation time so LEMONADE_BASE_URL is honored per-process.
+    local_base_url: str = field(
+        default_factory=lambda: os.environ.get("LEMONADE_BASE_URL", "http://localhost:13305")
+    )
     cloud_escalation_threshold: int = 2  # escalate after N consecutive local failures
 
     # Paths
@@ -240,6 +244,14 @@ class LoopCoordinator:
 
         # Per-task consecutive local failure counter (reset on success or task change)
         _local_failures: dict[str, int] = {}
+        # Sprint window tracking
+        _sprint_start = time.time()
+        _sprint_local_tokens: int = 0
+        _sprint_cloud_tokens: int = 0
+        _sprint_completed: int = 0
+        _sprint_failed: int = 0
+        _sprint_skipped: int = 0
+        _category_stats: dict[str, dict[str, int]] = {}
 
         while not self.budget_exhausted:
             # C2: pre-sprint RAM guard
@@ -267,6 +279,8 @@ class LoopCoordinator:
                 and consecutive_failures >= self.config.cloud_escalation_threshold
             )
 
+            tokens_before = self._total_tokens
+
             if use_cloud and cloud_exec is not None:
                 logger.info(
                     "Escalating task %s to cloud executor (local failures: %d)",
@@ -277,14 +291,83 @@ class LoopCoordinator:
                     cloud_exec.start(self.config.worktree_path)
                 self._run_task(task, cloud_exec, is_cloud=True)
                 _local_failures.pop(task.id, None)
+                _sprint_cloud_tokens += self._total_tokens - tokens_before
             elif local_exec is not None:
                 self._run_task(task, local_exec, is_cloud=False)
                 if task.status == "failed":
                     _local_failures[task.id] = consecutive_failures + 1
+                    # If cloud escalation is available, this failure is provisional.
+                    # Reset to pending so the task can be re-dispatched or escalated
+                    # on the next iteration. Only mark failed permanently when there
+                    # is no cloud executor to escalate to.
+                    if cloud_exec is not None:
+                        task.status = "pending"
+                        self._tasks_failed -= 1  # undo premature final-failure count
                 else:
                     _local_failures.pop(task.id, None)
+                _sprint_local_tokens += self._total_tokens - tokens_before
             else:
                 break
+
+            # Update per-sprint counters
+            if task.status == "done":
+                _sprint_completed += 1
+            elif task.status == "failed":
+                _sprint_failed += 1
+            else:
+                _sprint_skipped += 1
+
+            # Update category stats for sweeper course correction
+            # Keys must match LoopTickSweeper.course_correct() expectations: attempts/successes
+            cat = task.category
+            if cat not in _category_stats:
+                _category_stats[cat] = {"attempts": 0, "successes": 0}
+            _category_stats[cat]["attempts"] += 1
+            if task.status == "done":
+                _category_stats[cat]["successes"] += 1
+
+            # Sprint boundary: flush when sprint window elapsed
+            sprint_elapsed = time.time() - _sprint_start
+            if sprint_elapsed >= self.config.sprint_duration_seconds:
+                sprint_result = SprintResult(
+                    sprint_number=self._sprint_number,
+                    tasks_completed=_sprint_completed,
+                    tasks_failed=_sprint_failed,
+                    tasks_skipped=_sprint_skipped,
+                    tokens_used=_sprint_local_tokens + _sprint_cloud_tokens,
+                    wall_clock_seconds=sprint_elapsed,
+                    local_tokens=_sprint_local_tokens,
+                    cloud_tokens=_sprint_cloud_tokens,
+                )
+                self._sprint_results.append(sprint_result)
+                self._sprint_number += 1
+                logger.info(
+                    "Sprint %d complete — %d done, %d failed, %d local tokens, %d cloud tokens",
+                    sprint_result.sprint_number,
+                    _sprint_completed,
+                    _sprint_failed,
+                    _sprint_local_tokens,
+                    _sprint_cloud_tokens,
+                )
+
+                # Course correction from tick sweeper (uses per-category success rates)
+                if local_exec is not None:
+                    try:
+                        recommendations = local_exec._sweeper.course_correct(
+                            [asdict(sprint_result)], _category_stats
+                        )
+                        if recommendations:
+                            logger.info("Sweeper course corrections: %s", recommendations)
+                    except Exception as exc:
+                        logger.debug("Sweeper course_correct skipped: %s", exc)
+
+                # Reset sprint accumulators
+                _sprint_start = time.time()
+                _sprint_local_tokens = 0
+                _sprint_cloud_tokens = 0
+                _sprint_completed = 0
+                _sprint_failed = 0
+                _sprint_skipped = 0
 
             if self.config.fail_fast and self._tasks_failed > 0:
                 logger.warning("Fail-fast triggered, stopping loop")

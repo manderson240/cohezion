@@ -13,9 +13,15 @@ Protocol:
   5. Run the task verification command
   6. Return structured result
 
-Model selection (quality over speed):
-  Primary: Qwen3.6-35B-A3B-MTP-GGUF (Omni planner, 62 TPS, multimodal, NPU+iGPU)
-  Fallback: Gemma-4-E4B-it-GGUF (iGPU, 5GB — used only when 35B-MTP is unloaded)
+Model selection (quality over speed, category-aware via LemonadeLoopRecipes):
+  lint_fix  → Gemma-4-E4B-it-GGUF (fast, 5GB, always fits)
+  test_fix  → Qwen3.6-35B-A3B-MTP-GGUF (test-fix persona)
+  type_fix  → Qwen3.6-35B-A3B-MTP-GGUF (Omni planner)
+  refactor  → Qwen3.6-35B-A3B-MTP-GGUF (Omni planner)
+  feature   → Qwen3.6-35B-A3B-MTP-GGUF (Omni planner)
+  fallback  → Gemma-4-E4B-it-GGUF (if Omni not loaded)
+
+All recipes registered at startup with ctx_size=16384 + save_options=true (N3).
 """
 
 from __future__ import annotations
@@ -29,22 +35,35 @@ import urllib.request
 from typing import Any
 
 from .coordinator import LoopConfig, LoopTask
+from .omni_recipes import (
+    FAST_FALLBACK_MODEL,
+    OMNI_PLANNER_MODEL,
+    LemonadeLoopRecipes,
+)
 
 
 logger = logging.getLogger(__name__)
 
-# Omni planner model — Qwen3.6-35B-A3B-MTP with vision label, 62 TPS on Strix Halo
-OMNI_PLANNER_MODEL = "Qwen3.6-35B-A3B-MTP-GGUF"
-# Fallback: quality iGPU model (5GB, always fits)
-FALLBACK_MODEL = "Gemma-4-E4B-it-GGUF"
-
-# Back-compat alias
+# Re-export for back-compat with anything that imported these from here
+FALLBACK_MODEL = FAST_FALLBACK_MODEL
 DEFAULT_MODEL = OMNI_PLANNER_MODEL
 
 # Timeout for a single Lemonade inference call (seconds)
 INFERENCE_TIMEOUT = 120
 # Timeout for the verification subprocess (seconds)
 VERIFICATION_TIMEOUT = 60
+
+# AMD Strix Halo silicon probe order (router → iGPU → NPU → CPU).
+# LocalImprovementExecutor tries these in order when the primary endpoint
+# is unreachable, adapting to whatever inference nodes are currently live.
+# The router (:13305) serves all models and is preferred; the per-port
+# servers are direct-tier fallbacks that survive a router restart.
+_AMD_SILICON_PROBES: list[str] = [
+    "http://localhost:13305",  # unified router — preferred, dispatches to hardware
+    "http://localhost:13307",  # iGPU direct (Gemma-4-E4B, ROCWMMA)
+    "http://localhost:13306",  # NPU direct (llama3.2-1b-FLM, XDNA2, 42 TPS)
+    "http://localhost:13309",  # CPU direct (Qwen3.6-35B, full reasoning)
+]
 
 
 class LocalImprovementExecutor:
@@ -65,34 +84,71 @@ class LocalImprovementExecutor:
         self._available_models: list[str] = []
         self._check_server()
 
+        # Recipe registry — registers Omni recipes with safe ctx_size at startup (N3).
+        self._recipes = LemonadeLoopRecipes(base_url=self._base_url)
+        self._recipes.register_all()
+
         # Per-tick context enrichment (vault + SurrealDB + research sweeps)
         from .tick_sweeper import LoopTickSweeper
 
         self._sweeper = LoopTickSweeper(lemonade_url=self._base_url)
 
     def _check_server(self) -> None:
-        """Check Lemonade server and discover available models."""
-        try:
-            req = urllib.request.Request(f"{self._base_url}/v1/models", method="GET")
-            with urllib.request.urlopen(req, timeout=5) as resp:
-                data = json.loads(resp.read())
-                self._available_models = [m.get("id", "") for m in data.get("data", [])]
-                logger.info(
-                    "Lemonade server online at %s — %d models available",
-                    self._base_url,
-                    len(self._available_models),
-                )
-        except Exception as exc:
-            logger.warning("Lemonade server not reachable at %s: %s", self._base_url, exc)
-            self._available_models = []
+        """Probe Lemonade endpoints and select the best live AMD silicon tier.
 
-    def _select_model(self) -> str:
-        """Pick the best available model, quality-first (Omni planner → fallback).
+        Tries the configured base_url first, then walks _AMD_SILICON_PROBES in
+        router→iGPU→NPU→CPU order. Updates self._base_url to the first live
+        endpoint found, so the executor adapts to whatever hardware is running.
+        """
+        candidates = [self._base_url] + [p for p in _AMD_SILICON_PROBES if p != self._base_url]
+        for url in candidates:
+            try:
+                req = urllib.request.Request(f"{url}/v1/models", method="GET")
+                with urllib.request.urlopen(req, timeout=5) as resp:
+                    data = json.loads(resp.read())
+                    self._available_models = [m.get("id", "") for m in data.get("data", [])]
+                    if url != self._base_url:
+                        logger.info(
+                            "Primary endpoint %s unreachable — adapted to %s (%d models)",
+                            self._base_url,
+                            url,
+                            len(self._available_models),
+                        )
+                        self._base_url = url
+                    else:
+                        logger.info(
+                            "Lemonade online at %s — %d models available",
+                            self._base_url,
+                            len(self._available_models),
+                        )
+                    return
+            except Exception:
+                continue
+        logger.warning(
+            "No Lemonade endpoint reachable (tried %d candidates) — proceeding without model list",
+            len(candidates),
+        )
+        self._available_models = []
+
+    def _select_model(self, category: str = "") -> str:
+        """Pick the best available model for a task category (recipe-aware).
+
+        Delegates to LemonadeLoopRecipes for category-specific model selection:
+          lint_fix  → Gemma-4-E4B (fast, always fits)
+          test_fix  → Qwen3.6-35B with test-fix persona
+          type_fix / refactor / feature → Omni planner
+          fallback  → configured model or Omni planner
 
         Never downgrades to arbitrary small models — quality over speed.
         """
+        if category:
+            model, _ = self._recipes.model_for_category(category, self._available_models or None)
+            return model
+
+        # No category — flat quality-first chain (back-compat with callers that
+        # don't pass a category)
         if not self._available_models:
-            return self._model  # try anyway; server may have loaded it since init
+            return self._model
         if self._model in self._available_models:
             return self._model
         if OMNI_PLANNER_MODEL in self._available_models:
@@ -104,7 +160,6 @@ class LocalImprovementExecutor:
                 FALLBACK_MODEL,
             )
             return FALLBACK_MODEL
-        # Last resort: use the configured model and let Lemonade auto-load it
         logger.warning(
             "Neither %s nor %s visible — requesting %s directly",
             OMNI_PLANNER_MODEL,
@@ -132,6 +187,10 @@ class LocalImprovementExecutor:
         - summary: str
         - tokens_used: int (from API usage field)
         - output: str (model response, last 2000 chars)
+
+        Two-variant dispatch (attribution graphs parallel pathways):
+          variant=0 — forward-planning BMAD specialist (declare scope, then write)
+          variant=1 — root-cause-first framing (retry when variant 0 STATUS:FAILED)
         """
         if not self._started:
             raise RuntimeError("Executor not started. Call start() first.")
@@ -148,10 +207,40 @@ class LocalImprovementExecutor:
                 "returncode": -3,
             }
 
-        model = self._select_model()
+        model = self._select_model(task.category)
+        _, system_role = self._recipes.model_for_category(
+            task.category, self._available_models or None
+        )
         sweep_context = self._sweeper.build_task_context(task.category, task.description)
-        prompt = self._build_prompt(task, sweep_context)
-        response_text, tokens_used = self._call_lemonade(prompt, model)
+
+        result = self._attempt(task, worktree_path, model, system_role, sweep_context, variant=0)
+
+        # STATUS:FAILED on first attempt → retry with root-cause-first framing.
+        # Activates an alternative computational pathway: instead of jumping straight
+        # to code generation, the model reasons through the root cause first.
+        if not result["success"] and result.pop("_variant_retry_eligible", False):
+            logger.info(
+                "Task %s: STATUS:FAILED on variant 0 — retrying with root-cause-first framing",
+                task.id,
+            )
+            result = self._attempt(
+                task, worktree_path, model, system_role, sweep_context, variant=1
+            )
+
+        return result
+
+    def _attempt(
+        self,
+        task: LoopTask,
+        worktree_path: str,
+        model: str,
+        system_role: str,
+        sweep_context: str,
+        variant: int = 0,
+    ) -> dict[str, Any]:
+        """Single inference → STATUS gate → plan extraction → apply → verify cycle."""
+        prompt = self._build_prompt(task, sweep_context, variant=variant)
+        response_text, tokens_used = self._call_lemonade(prompt, model, system_role)
 
         if not response_text:
             return {
@@ -162,8 +251,31 @@ class LocalImprovementExecutor:
                 "returncode": -4,
             }
 
-        # Apply any file changes suggested in the response (with AutoHarness syntax guard)
-        apply_ok, apply_errors = self._apply_suggestions(response_text, worktree_path)
+        # STATUS gate — check model's refusal circuit BEFORE touching disk.
+        # Models have a default-refusal feature suppressed by "known entity" recognition;
+        # STATUS:FAILED means the suppression did not fire and the task is unsafe to attempt.
+        status, reason = self._extract_status(response_text)
+        if status == "FAILED":
+            logger.info("Task %s: model declined (variant=%d) — %s", task.id, variant, reason)
+            return {
+                "success": False,
+                "summary": f"Model declined: {reason}",
+                "tokens_used": tokens_used,
+                "output": response_text[-2000:],
+                "returncode": -5,
+                # Eligible for variant retry only on first attempt; a second FAILED is final.
+                "_variant_retry_eligible": variant == 0,
+            }
+
+        # Plan commitment — extract declared file scope before applying patches.
+        # Forward planning: the model commits to a file list before generating code;
+        # patches outside that list are scope drift and are rejected.
+        plan = self._extract_plan(response_text)
+        plan_files = set(plan["files"]) if plan["files"] else None
+
+        apply_ok, apply_errors = self._apply_suggestions(
+            response_text, worktree_path, plan_files=plan_files
+        )
 
         # Run model-synthesized inline harness (fast pre-check before full verification)
         harness_cmd = self._extract_harness_cmd(response_text)
@@ -181,7 +293,6 @@ class LocalImprovementExecutor:
                     "returncode": 2,
                 }
 
-        # Run verification command
         verify_ok, verify_output = self._run_verification(task.verification, worktree_path)
 
         success = verify_ok and apply_ok
@@ -200,47 +311,142 @@ class LocalImprovementExecutor:
             "returncode": 0 if success else 1,
         }
 
-    def _build_prompt(self, task: LoopTask, sweep_context: str = "") -> str:
-        """Build a self-contained task prompt for the local model.
+    def _build_prompt(self, task: LoopTask, sweep_context: str = "", variant: int = 0) -> str:
+        """Build a BMAD-scaffolded task prompt for the local model.
 
-        Includes AutoHarness block: the model synthesizes a minimal inline
-        validation command that runs before the full verification command.
-        This catches 78%+ of failures (wrong types, missing attributes, syntax
-        errors) without running the full test suite.
+        variant=0 (default): forward-planning BMAD specialist.
+          Model declares a === PLAN === (file list + approach) before writing any code.
+          This enforces scope commitment upfront — the plan is used to reject out-of-scope
+          patches during apply_suggestions.
+
+        variant=1: root-cause-first framing.
+          Swaps the ROLE to diagnostic analyst and adds a DIAGNOSIS section before the
+          implementation checklist. Activates an alternative computational pathway
+          when variant 0 produces STATUS:FAILED.
         """
-        context_section = f"\nCONTEXT FROM VAULT/DB:\n{sweep_context}\n" if sweep_context else ""
-        return f"""You are an autonomous code improvement agent working on a Python codebase.
-{context_section}
-TASK: {task.description}
-CATEGORY: {task.category}
-PRIORITY: {task.priority}
+        context_section = f"\n## CONTEXT FROM VAULT/DB\n{sweep_context}\n" if sweep_context else ""
 
-VERIFICATION COMMAND (run this to confirm the fix worked):
+        ac_from_verification = (
+            f"Running `{task.verification}` exits with returncode 0"
+            if task.verification.strip()
+            else "All existing tests continue to pass"
+        )
+
+        if variant == 1:
+            role_section = (
+                "You are a root-cause analyst with deep Python debugging expertise. "
+                "You diagnose WHY code is failing before prescribing any fix. "
+                "You NEVER patch symptoms — you fix the root cause with the minimal possible change."
+            )
+            diagnosis_section = """
+## DIAGNOSIS (complete BEFORE writing any code)
+
+Answer these three questions first:
+1. What is the EXACT root cause of this failure? (not a symptom — the underlying defect)
+2. What is the MINIMAL change that eliminates the root cause?
+3. What regressions could this change introduce, and how will you prevent them?
+
+Write your answers here before producing any === FILE === blocks.
+"""
+        else:
+            role_section = (
+                "You are a Python code repair specialist with deep expertise in the "
+                "Cohezion compound AI codebase. You make surgical, minimal fixes. "
+                "You NEVER add features, refactor unrelated code, or touch files the task does not require."
+            )
+            diagnosis_section = ""
+
+        return f"""## ROLE
+
+{role_section}
+
+## TASK
+
+**Description:** {task.description}
+**Category:** {task.category}
+**Priority:** {task.priority}
+{context_section}{diagnosis_section}
+## ACCEPTANCE CRITERIA
+
+The fix is COMPLETE when ALL of the following are true:
+
+1. {ac_from_verification}
+2. No existing tests are broken by the change
+3. Only files directly related to the task are modified
+
+## VERIFICATION COMMAND
+
 ```
 {task.verification}
 ```
 
-INSTRUCTIONS:
-1. Analyze the task and identify what needs to change
-2. Provide the minimal code fix — be surgical, touch only what the task requires
-3. Format file changes as:
-   === FILE: path/to/file.py ===
-   <complete new content>
-   === END FILE ===
-4. Provide a quick inline harness (a single shell command that validates your fix
-   before the full verification runs — e.g. a python -c import check):
-   === HARNESS: <shell_command_here> ===
-5. State clearly: SUCCESS or FAILURE and why
+This command MUST exit 0 after your fix. If it cannot, state FAILED.
 
-Focus on correctness over speed. Only change what the task requires.
+## IMPLEMENTATION CHECKLIST (execute in order, check off each step)
+
+- [ ] 1. Read and understand the full task description
+- [ ] 2. Identify the minimal set of files that need to change (list them)
+- [ ] 3. Declare your plan (=== PLAN === block, see OUTPUT FORMAT)
+- [ ] 4. For each file: write the complete corrected content (not a diff)
+- [ ] 5. Write a single inline harness command that validates the fix in <5 seconds
+- [ ] 6. State DONE or FAILED with a one-sentence reason
+
+## CONSTRAINTS
+
+- NEVER touch files not required by this task
+- NEVER add imports, functions, or classes beyond what the task requires
+- NEVER refactor surrounding code
+- NEVER lie about what you changed — list every file you modified
+- If the task cannot be done safely, state FAILED immediately
+
+## OUTPUT FORMAT
+
+**First, declare your plan** (before any file content):
+```
+=== PLAN ===
+files: path/to/file1.py, path/to/file2.py
+approach: one-sentence description of the fix strategy
+=== END PLAN ===
+```
+
+For each file you change:
+```
+=== FILE: path/to/file.py ===
+<complete file content>
+=== END FILE ===
+```
+
+For the inline harness (a fast pre-check before full verification):
+```
+=== HARNESS: <single shell command, e.g. python -c "import mymod"> ===
+```
+
+Final status line (required):
+```
+STATUS: DONE — <one-sentence summary of what changed>
+```
+or
+```
+STATUS: FAILED — <one-sentence reason why the task cannot be completed safely>
+```
 """
 
-    def _call_lemonade(self, prompt: str, model: str) -> tuple[str, int]:
-        """POST to Lemonade /v1/chat/completions and return (response_text, tokens_used)."""
+    def _call_lemonade(self, prompt: str, model: str, system_role: str = "") -> tuple[str, int]:
+        """POST to Lemonade /v1/chat/completions and return (response_text, tokens_used).
+
+        Injects the BMAD-style system_role as a system message when provided.
+        The system message is separate from the task prompt so the model's
+        persona is established before it sees the task details.
+        """
+        messages: list[dict] = []
+        if system_role:
+            messages.append({"role": "system", "content": system_role})
+        messages.append({"role": "user", "content": prompt})
+
         payload = json.dumps(
             {
                 "model": model,
-                "messages": [{"role": "user", "content": prompt}],
+                "messages": messages,
                 "max_tokens": self.config.claude_max_tokens,
                 "temperature": 0.1,
                 "stream": False,
@@ -268,12 +474,19 @@ Focus on correctness over speed. Only change what the task requires.
             logger.error("Lemonade call failed: %s", exc)
             return "", 0
 
-    def _apply_suggestions(self, response: str, worktree_path: str) -> tuple[bool, list[str]]:
+    def _apply_suggestions(
+        self,
+        response: str,
+        worktree_path: str,
+        plan_files: set[str] | None = None,
+    ) -> tuple[bool, list[str]]:
         """Parse and apply file changes from model response.
 
-        AutoHarness gate: any .py file content is validated with ast.parse()
-        before writing. Syntactically invalid patches are rejected without
-        touching disk — preserving working file state.
+        Two gates before any write:
+        1. Scope guard (plan_files): if the model declared a === PLAN ===, patches
+           for files outside that declared set are rejected as scope drift.
+        2. AutoHarness syntax gate: .py patches are ast.parse()'d before writing;
+           syntactically invalid patches are rejected without touching disk.
 
         Returns (all_ok, error_list).
         """
@@ -288,6 +501,12 @@ Focus on correctness over speed. Only change what the task requires.
         errors: list[str] = []
         for file_path, content in matches:
             clean_path = file_path.strip()
+            # Scope guard — reject out-of-plan patches before any disk touch.
+            if plan_files is not None and clean_path not in plan_files:
+                msg = f"Scope drift: {clean_path} not in declared plan {sorted(plan_files)}"
+                logger.warning("AutoHarness rejected out-of-scope patch — %s", msg)
+                errors.append(msg)
+                continue
             full_path = Path(worktree_path) / clean_path
             # AutoHarness syntax gate for Python files
             if full_path.suffix == ".py":
@@ -321,6 +540,42 @@ Focus on correctness over speed. Only change what the task requires.
         if not match:
             return ""
         return match.group(1).strip()
+
+    def _extract_status(self, response: str) -> tuple[str, str]:
+        """Parse STATUS: DONE/FAILED from model response.
+
+        Returns (status, reason) where status is 'DONE', 'FAILED', or 'UNKNOWN'.
+        'UNKNOWN' means no STATUS line was found — caller should proceed normally
+        (the verification command is the final arbiter).
+        """
+        import re
+
+        match = re.search(r"STATUS:\s*(DONE|FAILED)\s*[—\-–]+\s*(.+?)$", response, re.MULTILINE)
+        if not match:
+            return "UNKNOWN", ""
+        return match.group(1), match.group(2).strip()
+
+    def _extract_plan(self, response: str) -> dict[str, Any]:
+        """Parse === PLAN === block for declared file list and approach.
+
+        Returns {"files": [...], "approach": "..."}.
+        Empty lists/strings when no plan block is present (no scope restriction applied).
+        """
+        import re
+
+        match = re.search(r"=== PLAN ===\n(.*?)=== END PLAN ===", response, re.DOTALL)
+        if not match:
+            return {"files": [], "approach": ""}
+        files: list[str] = []
+        approach = ""
+        for line in match.group(1).splitlines():
+            line = line.strip()
+            if line.startswith("files:"):
+                raw = line[len("files:") :].strip()
+                files = [f.strip() for f in raw.split(",") if f.strip()]
+            elif line.startswith("approach:"):
+                approach = line[len("approach:") :].strip()
+        return {"files": files, "approach": approach}
 
     def _run_verification(self, verification_cmd: str, worktree_path: str) -> tuple[bool, str]:
         """Run the task verification command and return (passed, output)."""
