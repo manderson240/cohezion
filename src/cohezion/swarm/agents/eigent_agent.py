@@ -29,6 +29,7 @@ except ImportError:
 from cohezion.core.event_bus import EventType, get_event_bus
 from cohezion.core.persistence.repositories.pattern_repository import PatternRepository
 from cohezion.core.persistence.surreal_client import SurrealClient
+from cohezion.inference.config import LEMONADE_BASE_URL
 from cohezion.swarm.agents.base_scout import BaseScout, Finding
 from cohezion.swarm.agents.code_review_swarm import CodeReviewSwarm
 from cohezion.universe.hiho_unified_engine import HIHOUnifiedEngine
@@ -46,7 +47,7 @@ class EigentAgent(BaseScout):
     def __init__(
         self,
         model: str = "Gemma-4-E2B-it-GGUF",
-        lemonade_url: str = "http://localhost:13307",
+        lemonade_url: str = LEMONADE_BASE_URL,
         role: str = "System Architect",
         **kwargs,
     ) -> None:

@@ -8,6 +8,7 @@ from typing import Any
 
 import aiohttp
 
+from cohezion.inference.config import LEMONADE_BASE_URL
 from cohezion.swarm.providers.model_provider import GenerationResult, ModelProvider
 
 
@@ -24,7 +25,7 @@ class LemonadeProvider(ModelProvider):
     - OpenAI-compatible API
 
     Configuration:
-        base_url: Lemonade API URL (default: http://localhost:13307)
+        base_url: Lemonade API URL (default: http://localhost:13305)
         timeout: Request timeout in seconds (default: 120)
     """
 
@@ -36,7 +37,7 @@ class LemonadeProvider(ModelProvider):
         """
         super().__init__(config)
 
-        self.base_url = self.config.get("base_url", "http://localhost:13307")
+        self.base_url = self.config.get("base_url", LEMONADE_BASE_URL)
         self.timeout = self.config.get("timeout", 120)
 
         self._session: aiohttp.ClientSession | None = None

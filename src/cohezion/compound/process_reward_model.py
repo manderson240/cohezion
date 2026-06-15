@@ -30,6 +30,8 @@ import uuid
 from dataclasses import dataclass, field
 from typing import Any
 
+from cohezion.inference.config import LEMONADE_BASE_URL
+
 
 logger = logging.getLogger(__name__)
 
@@ -105,7 +107,7 @@ class ProcessRewardModel:
 
     def __init__(
         self,
-        lemonade_url: str = "http://localhost:13305",
+        lemonade_url: str = LEMONADE_BASE_URL,
         model: str = "Gemma-4-E4B-it-GGUF",
         enabled: bool = True,
         timeout_seconds: float = _PRM_TIMEOUT_SECONDS,
@@ -256,7 +258,7 @@ class ProcessRewardModel:
 
 
 def build_process_reward_model(
-    lemonade_url: str = "http://localhost:13305",
+    lemonade_url: str = LEMONADE_BASE_URL,
     *,
     enabled: bool = True,
     timeout_seconds: float = _PRM_TIMEOUT_SECONDS,

@@ -1,11 +1,11 @@
-"""Autonomous compound engineering loop — subprocess-based execution.
+"""Autonomous compound engineering loop — local-inference-first execution.
 
-Each loop iteration is a fresh Claude Code subprocess, so context never grows
-within a single process. The coordinator manages budget (wall-clock + token),
-checkpoint/resume, and sprint tracking.
+Each loop iteration uses LocalImprovementExecutor (Lemonade :13305) by default.
+Claude Code subprocess is reserved for escalation after repeated local failures.
+The coordinator manages budget (wall-clock + token), checkpoint/resume, and sprint tracking.
 
 Architecture:
-  LoopCoordinator → TaskGenerator → ImprovementExecutor → Claude Code subprocess
+  LoopCoordinator → LocalImprovementExecutor (Lemonade) → escalate → ImprovementExecutor (Claude CLI)
 """
 
 from __future__ import annotations
@@ -16,11 +16,12 @@ import time
 from dataclasses import asdict, dataclass, field
 from datetime import datetime
 from pathlib import Path
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Any
 
 
 if TYPE_CHECKING:
     from .executor import ImprovementExecutor
+    from .local_executor import LocalImprovementExecutor
 
 
 logger = logging.getLogger(__name__)
@@ -55,6 +56,8 @@ class SprintResult:
     tokens_used: int
     wall_clock_seconds: float
     checkpoint_path: str = ""
+    local_tokens: int = 0
+    cloud_tokens: int = 0
 
 
 @dataclass
@@ -70,6 +73,7 @@ class LoopCheckpoint:
     tokens_used: int
     wall_clock_seconds: float
     current_task_id: str = ""
+    checkpoint_path: str = ""
     backlog: list[dict] = field(default_factory=list)
     sprint_results: list[dict] = field(default_factory=list)
 
@@ -88,6 +92,13 @@ class LoopConfig:
     claude_max_tokens: int = 16384
     checkpoint_interval_seconds: int = 900  # save state every 15 min
 
+    # Local inference (quarter-on-a-string) — defaults ON
+    use_local_inference: bool = True
+    local_model: str = "Qwen3.6-35B-A3B-MTP-GGUF"
+    local_fallback_model: str = "Gemma-4-E4B-it-GGUF"
+    local_base_url: str = "http://localhost:13305"
+    cloud_escalation_threshold: int = 2  # escalate after N consecutive local failures
+
     # Paths
     worktree_path: str = "/home/mike-anderson/dev/cohezion"
     checkpoint_path: str = "/tmp/cohezion-autonomous-loop/checkpoint.json"
@@ -95,9 +106,10 @@ class LoopConfig:
     results_path: str = "/tmp/cohezion-autonomous-loop/results.json"
 
     # Behavior
-    parallel_tasks: int = 1  # sequential by default (subprocess-based)
+    parallel_tasks: int = 1  # sequential by default
     fail_fast: bool = False  # stop on first failure
     resume_from_checkpoint: bool = True
+    min_free_ram_gb: float = 20.0  # refuse heavy inference below this threshold
 
 
 # ── LoopCoordinator ──────────────────────────────────────────────────────────
@@ -165,7 +177,7 @@ class LoopCoordinator:
         if self.config.resume_from_checkpoint:
             checkpoint = self._load_checkpoint()
             if checkpoint:
-                logger.info("Resuming from checkpoint: %s", checkpoint.checkpoint_path)
+                logger.info("Resuming from checkpoint: %s", self.config.checkpoint_path)
                 self._sprint_number = checkpoint.total_sprints
                 self._tasks_completed = checkpoint.tasks_completed
                 self._tasks_failed = checkpoint.tasks_failed
@@ -177,20 +189,68 @@ class LoopCoordinator:
 
         logger.info("Starting fresh autonomous loop")
 
-    def run(self, executor: ImprovementExecutor) -> LoopReport:
+    @staticmethod
+    def _check_ram_before_load(min_free_gb: float = 20.0) -> bool:
+        """Return True if enough RAM is free for a heavy model inference call."""
+        try:
+            import psutil
+
+            free_gb = psutil.virtual_memory().available / 1e9
+            if free_gb < min_free_gb:
+                logger.warning(
+                    "Low RAM: %.1f GB free (need %.1f GB) — skipping heavy model inference",
+                    free_gb,
+                    min_free_gb,
+                )
+                return False
+            return True
+        except ImportError:
+            return True  # psutil unavailable, proceed without guard
+
+    def run(self, executor: Any | None = None) -> LoopReport:
         """Main loop: run until budget exhausted.
 
-        Each sprint:
-        1. Check budget
-        2. Pick next pending task (highest priority)
-        3. Dispatch to executor
-        4. Record results
-        5. Checkpoint if needed
-        """
-        self.start()
-        executor.start(self.config.worktree_path)
+        Uses LocalImprovementExecutor (Lemonade) by default when use_local_inference=True.
+        Escalates to Claude CLI executor after cloud_escalation_threshold consecutive local
+        failures on the same task.
 
-        while not self._budget_exhausted:
+        Each iteration:
+        1. RAM check (C2 — skip heavy tasks if RAM too low)
+        2. Checkpoint if needed
+        3. Pick next pending task
+        4. Dispatch to local executor; on repeated failure → cloud escalation
+        5. Record results
+        """
+        from .executor import ImprovementExecutor
+        from .local_executor import LocalImprovementExecutor
+
+        self.start()
+
+        # Build executors
+        if self.config.use_local_inference:
+            local_exec: LocalImprovementExecutor = LocalImprovementExecutor(self.config)
+            local_exec.start(self.config.worktree_path)
+            cloud_exec: ImprovementExecutor | None = executor  # type: ignore[assignment]
+        else:
+            local_exec = None  # type: ignore[assignment]
+            if executor is None:
+                executor = ImprovementExecutor(self.config)
+            cloud_exec = executor  # type: ignore[assignment]
+            cloud_exec.start(self.config.worktree_path)  # type: ignore[union-attr]
+
+        # Per-task consecutive local failure counter (reset on success or task change)
+        _local_failures: dict[str, int] = {}
+
+        while not self.budget_exhausted:
+            # C2: pre-sprint RAM guard
+            if self.config.use_local_inference and not self._check_ram_before_load(
+                self.config.min_free_ram_gb
+            ):
+                logger.warning(
+                    "RAM below %.0f GB — routing to lightweight NPU model only this sprint",
+                    self.config.min_free_ram_gb,
+                )
+
             # Checkpoint if needed
             self._maybe_checkpoint()
 
@@ -201,16 +261,41 @@ class LoopCoordinator:
                 break
 
             self._current_task = task
-            self._run_task(task, executor)
+            consecutive_failures = _local_failures.get(task.id, 0)
+            use_cloud = (not self.config.use_local_inference) or (
+                cloud_exec is not None
+                and consecutive_failures >= self.config.cloud_escalation_threshold
+            )
 
-            # Check budget after each task
+            if use_cloud and cloud_exec is not None:
+                logger.info(
+                    "Escalating task %s to cloud executor (local failures: %d)",
+                    task.id,
+                    consecutive_failures,
+                )
+                if not getattr(cloud_exec, "_started", False):
+                    cloud_exec.start(self.config.worktree_path)
+                self._run_task(task, cloud_exec, is_cloud=True)
+                _local_failures.pop(task.id, None)
+            elif local_exec is not None:
+                self._run_task(task, local_exec, is_cloud=False)
+                if task.status == "failed":
+                    _local_failures[task.id] = consecutive_failures + 1
+                else:
+                    _local_failures.pop(task.id, None)
+            else:
+                break
+
             if self.config.fail_fast and self._tasks_failed > 0:
                 logger.warning("Fail-fast triggered, stopping loop")
                 break
 
         # Final checkpoint and report
         self._save_checkpoint()
-        executor.stop()
+        if local_exec is not None:
+            local_exec.stop()
+        if cloud_exec is not None and getattr(cloud_exec, "_started", False):
+            cloud_exec.stop()
         return self._build_report()
 
     def _pick_next_task(self) -> LoopTask | None:
@@ -223,7 +308,7 @@ class LoopCoordinator:
             return None
         return pending[0]
 
-    def _run_task(self, task: LoopTask, executor: ImprovementExecutor) -> None:
+    def _run_task(self, task: LoopTask, executor: Any, *, is_cloud: bool = False) -> None:
         """Execute one task through the improvement pipeline."""
         logger.info("Running task %s (%s, priority=%d)", task.id, task.category, task.priority)
         task.status = "running"
@@ -249,6 +334,7 @@ class LoopCoordinator:
                     "result": task.result,
                     "tokens": task.tokens_used,
                     "duration": task.duration_seconds,
+                    "is_cloud": is_cloud,
                 }
             )
 
@@ -267,7 +353,7 @@ class LoopCoordinator:
     def _save_checkpoint(self) -> None:
         """Persist loop state to disk."""
         checkpoint = LoopCheckpoint(
-            started_at=datetime.fromisoformat(datetime.fromtimestamp(self._start_time).isoformat()),
+            started_at=datetime.fromtimestamp(self._start_time).isoformat(),
             last_updated=datetime.now().isoformat(),
             total_sprints=self._sprint_number,
             tasks_completed=self._tasks_completed,

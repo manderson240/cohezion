@@ -20,6 +20,7 @@ import logging
 import time
 from dataclasses import dataclass
 
+from cohezion.inference.config import LEMONADE_BASE_URL
 from cohezion.inference.orchestrator import (
     OrchestrationResult,
     QualityGate,
@@ -218,7 +219,7 @@ class _GaiaLLMClientShim:
 def build_gaia_llm_tier(
     model_id: str = "Granite-4.1-8B-GGUF",
     *,
-    base_url: str = "http://localhost:13305/api/v1",
+    base_url: str = f"{LEMONADE_BASE_URL}/api/v1",
     max_tokens: int = 512,
     temperature: float = 0.0,
     silent: bool = True,

@@ -33,6 +33,8 @@ from enum import Enum, auto
 from pathlib import Path
 from typing import Any, Callable
 
+from cohezion.inference.config import LEMONADE_BASE_URL
+
 
 logger = logging.getLogger(__name__)
 
@@ -203,9 +205,9 @@ tags: [{", ".join(tags)}]
 
 
 class LemonadeInference:
-    """Local inference via Lemonade on port 13305 with OOM guards."""
+    """Local inference via Lemonade with OOM guards."""
 
-    def __init__(self, base_url: str = "http://localhost:13305"):
+    def __init__(self, base_url: str = LEMONADE_BASE_URL):
         self.base_url = base_url
         self._session: Any = None
 

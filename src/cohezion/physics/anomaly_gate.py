@@ -49,7 +49,9 @@ __all__ = [
     "adjudicate",
 ]
 
-ROUTER = "http://localhost:13305/api/v1/chat/completions"
+from cohezion.inference.config import LEMONADE_BASE_URL as _LEMONADE_BASE_URL
+
+ROUTER = f"{_LEMONADE_BASE_URL}/api/v1/chat/completions"
 
 
 class InvariantKind(StrEnum):

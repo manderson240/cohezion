@@ -35,12 +35,13 @@ from pathlib import Path
 from typing import Any
 
 from cohezion.agents.base import BaseAgent
+from cohezion.inference.config import LEMONADE_BASE_URL
 
 
 logger = logging.getLogger(__name__)
 
 # ── LEMONADE target (same as consortium) ─────────────────────
-LEMONADE_URL = "http://localhost:13305/v1/chat/completions"
+LEMONADE_URL = f"{LEMONADE_BASE_URL}/v1/chat/completions"
 DEFAULT_TIMEOUT = 30
 
 

@@ -452,7 +452,7 @@ class RetrospectionEngine:
 
         return insights
 
-    def analyze_recursive_trace(self, trace: object, skill_name: str = "") -> dict:
+    def analyze_recursive_trace(self, trace: Any, skill_name: str = "") -> dict:
         """Retrospect over a RECURSIVE execution trace tree (A-Evolve Diagnose substrate).
 
         Duck-typed: ``trace`` need only provide ``aggregate() -> dict`` (the recursive-trace

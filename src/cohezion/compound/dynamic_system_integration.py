@@ -18,6 +18,7 @@ from cohezion.compound.proactive_reactive_engine import (
     SystemEvent,
 )
 from cohezion.core.mcp_client import MCPClient
+from cohezion.inference.config import LEMONADE_BASE_URL
 from cohezion.swarm.compute_backend_router import (
     BackendType,
     ComputeBackendRouter,
@@ -602,7 +603,7 @@ class LemonadeAdapter:
         2. Load new model into slot (POST /api/load)
         3. Update internal state
 
-    The Lemonade server at localhost:13307 uses OpenAI-compatible API.
+    The Lemonade server uses OpenAI-compatible API (default: LEMONADE_BASE_URL).
     """
 
     # Slot → backend mapping for Lemonade server
@@ -612,7 +613,7 @@ class LemonadeAdapter:
         "cpu": "onnx",  # ONNX int4 (CPU only)
     }
 
-    def __init__(self, lemonade_base_url: str = "http://localhost:13307"):
+    def __init__(self, lemonade_base_url: str = LEMONADE_BASE_URL):
         self.base_url = lemonade_base_url.rstrip("/")
         self._loaded_models: dict[str, str] = {"npu": "", "gpu": "", "cpu": ""}
 

@@ -25,6 +25,8 @@ import urllib.request
 from dataclasses import dataclass, field
 from typing import Any
 
+from cohezion.inference.config import LEMONADE_BASE_URL
+
 
 logger = logging.getLogger(__name__)
 
@@ -86,7 +88,7 @@ class MakerCheckerVerifier:
         metrics.update(checker_result.to_metrics_dict())
     """
 
-    lemonade_url: str = "http://localhost:13305"
+    lemonade_url: str = LEMONADE_BASE_URL
     # Gemma-4-E4B: fast iGPU model, always present in :13305 catalog, ctx=16384.
     # Granite-4.1-8B was the original intent but is not in the Strix Halo catalog.
     checker_model: str = "Gemma-4-E4B-it-GGUF"
@@ -250,7 +252,7 @@ class MakerCheckerVerifier:
 
 
 def build_maker_checker(
-    lemonade_url: str = "http://localhost:13305",
+    lemonade_url: str = LEMONADE_BASE_URL,
     *,
     enabled: bool = True,
     timeout_seconds: float = _CHECKER_TIMEOUT_SECONDS,
