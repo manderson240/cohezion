@@ -152,6 +152,10 @@ class DegradationDetector:
         # Routing feedback callback (wired by CompoundExecutor)
         self._routing_callback: Any = None
 
+        # Serialization counters (CB7/CB9)
+        self._call_count: int = 0
+        self._alert_history: list[DegradationAlert] = []
+
         logger.debug("DegradationDetector initialized with thresholds")
 
     def set_routing_callback(self, callback: Any) -> None:
@@ -172,6 +176,7 @@ class DegradationDetector:
         Returns:
             List of DegradationAlert if degradation detected, empty list otherwise
         """
+        self._call_count += 1
         alerts = []
 
         # Extract metrics
@@ -351,7 +356,7 @@ class DegradationDetector:
 
         # Run healing pipeline + resilience notification on alerts (non-blocking)
         if alerts and self._healing_enabled:
-            self._run_healing_pipeline(alerts, metrics)
+            self._run_healing_pipeline(alerts)
             self._notify_resilience_manager(alerts)
 
         # Route degradation feedback to CostAwareRouter (non-blocking)
@@ -378,13 +383,12 @@ class DegradationDetector:
 
         if now - last_time >= self._alert_cooldown_seconds:
             self._last_alert_time[alert_key] = now
+            self._alert_history.append(alert)
             return True
 
         return False
 
-    def _run_healing_pipeline(
-        self, alerts: list[DegradationAlert], metrics: dict[str, Any]
-    ) -> None:
+    def _run_healing_pipeline(self, alerts: list[DegradationAlert]) -> None:
         """Route degradation alerts through healing's Diagnostician + Corrector.
 
         Non-blocking: all healing ops wrapped in try/except.
@@ -479,6 +483,146 @@ class DegradationDetector:
             baseline.samples.clear()
         self._last_alert_time.clear()
         logger.debug("Degradation detector baselines reset")
+
+    def suggest_routing_tier(self) -> str:
+        """CB12: Actionable tier recommendation based on composite health score.
+
+        Returns "npu" (score≥80), "igpu" (50≤score<80 or grace period), "cpu" (score<50).
+        Grace period (no baselines established) → "igpu" safe middle-tier default.
+        Always returns a string from {"npu", "igpu", "cpu"} — never raises, never None.
+        """
+        established = [b for b in self._baselines.values() if b.is_established]
+        if not established:
+            return "igpu"  # Grace period — baselines not yet established
+
+        # Build composite score from established baselines (0–100 scale)
+        score = 100.0
+        cache_bl = self._baselines.get("cache_hit_rate")
+        coherence_bl = self._baselines.get("coherence")
+
+        if cache_bl and cache_bl.is_established:
+            cache_ratio = cache_bl.mean / max(self.cache_hit_rate_threshold, 0.01)
+            score = min(score, cache_ratio * 50.0)  # max 50 pts from cache
+
+        if coherence_bl and coherence_bl.is_established:
+            coh_ratio = coherence_bl.mean / max(self.coherence_threshold, 0.01)
+            score = min(score + coh_ratio * 50.0, 100.0)
+
+        if score >= 80:
+            return "npu"
+        if score >= 50:
+            return "igpu"
+        return "cpu"
+
+    def get_health_summary(self) -> dict[str, Any]:
+        """CB6: Tri-state health summary for each monitored metric.
+
+        Returns dict with metric → True/False/None.
+        None = baseline not yet established (grace period).
+        True = healthy, False = degraded.
+        """
+        summary: dict[str, Any] = {}
+        for metric, baseline in self._baselines.items():
+            if not baseline.is_established:
+                summary[metric] = None
+                continue
+            thresholds = {
+                "cache_hit_rate": self.cache_hit_rate_threshold,
+                "coherence": self.coherence_threshold,
+            }
+            if metric in thresholds:
+                summary[metric] = baseline.mean >= thresholds[metric]
+            else:
+                summary[metric] = True  # No explicit threshold — assume healthy
+        return summary
+
+    def get_alert_summary(self) -> dict[str, Any]:
+        """CB9: Dashboard aggregation API for alert history.
+
+        Returns {"total": int, "by_severity": {}, "by_metric": {}, "most_recent_per_metric": {}}.
+        """
+        by_severity: dict[str, int] = {}
+        by_metric: dict[str, int] = {}
+        most_recent: dict[str, DegradationAlert] = {}
+
+        for alert in self._alert_history:
+            sev = alert.severity.name if hasattr(alert.severity, "name") else str(alert.severity)
+            by_severity[sev] = by_severity.get(sev, 0) + 1
+            by_metric[alert.metric] = by_metric.get(alert.metric, 0) + 1
+            existing = most_recent.get(alert.metric)
+            if existing is None or getattr(alert, "timestamp", 0) >= getattr(
+                existing, "timestamp", 0
+            ):
+                most_recent[alert.metric] = alert
+
+        return {
+            "total": len(self._alert_history),
+            "by_severity": by_severity,
+            "by_metric": by_metric,
+            "most_recent_per_metric": {k: v.__dict__ for k, v in most_recent.items()},
+        }
+
+    def snapshot(self) -> dict[str, Any]:
+        """CB11: Capture a point-in-time detector snapshot."""
+        return {
+            "call_count": self._call_count,
+            "baselines_established": sum(1 for b in self._baselines.values() if b.is_established),
+            "health_summary": self.get_health_summary(),
+            "composite_score": None,  # Grace period until baselines established
+            "alert_summary": self.get_alert_summary(),
+            "health_trend": [],
+        }
+
+    def record_snapshot(self) -> dict[str, Any]:
+        """CB11: Append a snapshot to history (capped at 20 entries)."""
+        if not hasattr(self, "_snapshot_history"):
+            self._snapshot_history: list[dict[str, Any]] = []
+        snap = self.snapshot()
+        self._snapshot_history.append(snap)
+        self._snapshot_history = self._snapshot_history[-20:]
+        return snap
+
+    @staticmethod
+    def diff_snapshots(before: dict[str, Any], after: dict[str, Any]) -> dict[str, Any]:
+        """CB11: Pure dict diff between two snapshots. No detector state used."""
+        score_before = before.get("composite_score")
+        score_after = after.get("composite_score")
+        score_delta = None
+        if score_before is not None and score_after is not None:
+            score_delta = score_after - score_before
+
+        health_changes: dict[str, Any] = {}
+        h_before = before.get("health_summary", {})
+        h_after = after.get("health_summary", {})
+        for key in set(h_before) | set(h_after):
+            if h_before.get(key) != h_after.get(key):
+                health_changes[key] = {"before": h_before.get(key), "after": h_after.get(key)}
+
+        alert_before = before.get("alert_summary", {}).get("total", 0)
+        alert_after = after.get("alert_summary", {}).get("total", 0)
+        return {
+            "score_delta": score_delta,
+            "health_changes": health_changes,
+            "alert_count_delta": alert_after - alert_before,
+        }
+
+    def to_dict(self) -> dict[str, Any]:
+        """CB7: JSON-safe serialization of baselines and call count."""
+        return {
+            "call_count": self._call_count,
+            "baselines": {k: list(v.samples) for k, v in self._baselines.items()},
+        }
+
+    @classmethod
+    def from_dict(cls, state: dict[str, Any], **kwargs: Any) -> "DegradationDetector":
+        """CB7: Restore from serialized state."""
+        instance = cls(**kwargs)
+        instance._call_count = state.get("call_count", 0)
+        for metric, samples in state.get("baselines", {}).items():
+            if metric in instance._baselines:
+                for s in samples:
+                    instance._baselines[metric].add_sample(s)
+        return instance
 
 
 __all__ = [
