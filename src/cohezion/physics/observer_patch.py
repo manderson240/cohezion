@@ -159,6 +159,44 @@ class ConsistencyResult:
     detail: str = ""
 
 
+# OPH geometric fixed-point constants (FloatingPragma repo, 2026 update)
+# P ≈ 1.631: pixel-ratio fixed point (cell geometry ↔ EM observation boundary).
+# The ratio emerges from the self-consistency constraint on holographic patch overlap:
+# adjacent patches share exactly 1/P of their area at the boundary → stable fixed point.
+OPH_PIXEL_RATIO: float = 1.631
+"""Pixel ratio P — fixed point relating holographic cell geometry to EM boundary observation."""
+
+# N_CRC: minimum number of minimal-resolution observer patches to cover S².
+# Minimal patch: angular_radius = π/P (so that adjacent patch centres are 2π/P apart
+# and share exactly the pixel-ratio overlap). Solid angle of each minimal patch:
+#   Ω_min = 2π(1 − cos(π/P))  (with P=1.631, π/P ≈ 1.925 rad, cos≈−0.355)
+#   Ω_min ≈ 2π × 1.355 ≈ 8.51 sr  → N_CRC = ⌈4π / Ω_min⌉ ≈ 2 (hemisphere coverage)
+# Note: N_CRC is approximate until the FloatingPragma derivation is available locally.
+_oph_min_angle = math.pi / OPH_PIXEL_RATIO
+_omega_min = 2.0 * math.pi * (1.0 - math.cos(_oph_min_angle))
+OPH_N_CRC: float = 4.0 * math.pi / _omega_min if _omega_min > 0 else float("inf")
+"""Record-capacity N_CRC — minimal observer count for full holographic boundary reconstruction."""
+
+
+def oph_record_capacity_check(patch: ObserverPatch) -> dict[str, float]:
+    """Check a patch's angular resolution against OPH pixel-ratio fixed point.
+
+    A patch is 'OPH-resolved' when its angular_radius ≤ 2π/P (pixel-resolution threshold).
+    Below this threshold, the patch can participate in boundary reconstruction (N_CRC record).
+
+    Returns metrics for monitoring patch resolution compliance.
+    """
+    pixel_threshold = 2.0 * math.pi / OPH_PIXEL_RATIO
+    ratio = patch.angular_radius / pixel_threshold if pixel_threshold > 0 else float("inf")
+    return {
+        "angular_radius": patch.angular_radius,
+        "pixel_threshold": pixel_threshold,
+        "resolution_ratio": ratio,
+        "oph_resolved": ratio <= 1.0,
+        "n_crc": OPH_N_CRC,
+    }
+
+
 def evo_observer_consistency(
     agent_a_id: str,
     agent_a_spinor: SpinorState,
