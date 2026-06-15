@@ -47,6 +47,7 @@ from __future__ import annotations
 import base64
 import json
 import logging
+import os
 import time
 from dataclasses import dataclass
 from pathlib import Path
@@ -261,27 +262,42 @@ class OmniTier:
     to ``DirectLemonadeImageTier().render(...)``).
     """
 
-    DEFAULT_PORT = 13305
+    DEFAULT_BASE_URL: str = os.environ.get("LEMONADE_BASE_URL", "http://localhost:13305")
+    DEFAULT_PORT = 13305  # kept for callers that extract the port int directly
     DEFAULT_PLANNER = "Qwen3.6-35B-A3B-MTP-GGUF"
 
     def __init__(
         self,
-        port: int = DEFAULT_PORT,
+        port: int | None = None,
         planner_model: str = DEFAULT_PLANNER,
         *,
+        base_url: str | None = None,
         timeout_s: float = 120.0,
     ) -> None:
-        self.port = port
+        # Resolve base_url: explicit kwarg > env var > port-derived > default
+        if base_url is not None:
+            self._base_url = base_url.rstrip("/")
+        elif port is not None:
+            self._base_url = f"http://localhost:{port}"
+        else:
+            self._base_url = os.environ.get(
+                "LEMONADE_BASE_URL", f"http://localhost:{self.DEFAULT_PORT}"
+            )
+        # Derive port for sub-tiers that still use int ports
+        try:
+            self.port = int(self._base_url.rsplit(":", 1)[-1])
+        except ValueError:
+            self.port = self.DEFAULT_PORT
         self.planner_model = planner_model
         self.timeout_s = timeout_s
         # Image and STT live on the OmniRouter (:13305); TTS lives on its
         # own port (:8008 — the legacy kokoro server). The TTS tier knows
         # its own default; pass that through rather than overriding.
-        self.image_tier = DirectLemonadeImageTier(port=port)
+        self.image_tier = DirectLemonadeImageTier(port=self.port)
         self.tts_tier = DirectLemonadeTTSTier()  # uses kokoro's own port (8008)
-        self.stt_tier = DirectLemonadeSTTTier(port=port)
+        self.stt_tier = DirectLemonadeSTTTier(port=self.port)
         self._last_image_b64: str | None = None
-        self._chat_url = f"http://localhost:{port}/v1/chat/completions"
+        self._chat_url = f"{self._base_url}/v1/chat/completions"
         # KV cache prefix stabilizer — normalizes the system prompt so
         # Lemonade :13305 hits the same KV prefix on every call.
         self._prefix_aligner = PrefixAligner(max_prefix_chars=2048)
@@ -462,7 +478,7 @@ class OmniTier:
             # with the source PNG bytes. We dispatch via httpx directly
             # because the typed tier doesn't expose an edit() method yet
             # (the typed tier is gen-only; edit is LMX-Omni-specific).
-            edit_url = f"http://localhost:{self.port}/v1/images/edits"
+            edit_url = f"{self._base_url}/v1/images/edits"
             try:
                 files = {
                     "image": ("source.png", base64.b64decode(self._last_image_b64), "image/png"),
@@ -583,6 +599,6 @@ def _tc_unpack(tc: Any) -> tuple[str, str, dict]:
     )
 
 
-def build_omni_tier(port: int = OmniTier.DEFAULT_PORT) -> OmniTier:
+def build_omni_tier(port: int | None = None, *, base_url: str | None = None) -> OmniTier:
     """Factory mirroring build_image_tier / build_kokoro_tier / build_stt_tier."""
-    return OmniTier(port=port)
+    return OmniTier(port=port, base_url=base_url)

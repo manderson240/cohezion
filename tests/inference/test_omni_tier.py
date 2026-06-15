@@ -74,6 +74,20 @@ def test_omni_tier_custom_port() -> None:
     assert t.stt_tier.port == 13000
 
 
+def test_omni_tier_base_url_kwarg() -> None:
+    """base_url kwarg overrides the port-derived URL (D refactor)."""
+    t = OmniTier(base_url="http://remote-host:9999")
+    assert t._base_url == "http://remote-host:9999"
+    assert t._chat_url == "http://remote-host:9999/v1/chat/completions"
+    assert t.port == 9999
+
+
+def test_omni_tier_factory_base_url() -> None:
+    """build_omni_tier passes base_url through to OmniTier."""
+    t = build_omni_tier(base_url="http://custom:8080")
+    assert t._base_url == "http://custom:8080"
+
+
 def test_omni_tier_factory() -> None:
     t = build_omni_tier()
     assert isinstance(t, OmniTier)
