@@ -197,6 +197,20 @@ class CompoundExecutor(CompoundContextMixin, ExecutorIntegrationMixin):
 
         self._context_policy = ContextPolicy(vault_logger=self.logger)
         self.set_context_policy(self._context_policy)
+        self._prefix_aligner: Any = None  # lazy-init on first use
+
+    @cached_property
+    def prefix_aligner(self) -> Any:
+        """KV cache prefix stabilizer for Lemonade :13305 inference calls.
+
+        Callers can pass any chat completions payload through
+        ``executor.prefix_aligner.align_payload(payload)`` before sending
+        to the local inference endpoint.  The aligner normalizes whitespace
+        and sorts context bullets so the KV prefix is stable across calls.
+        """
+        from cohezion.inference.context_engineering import PrefixAligner
+
+        return PrefixAligner(max_prefix_chars=2048)
 
     @property
     def guardrail_pipeline(self) -> GuardrailPipeline | None:
