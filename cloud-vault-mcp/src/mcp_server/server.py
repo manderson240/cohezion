@@ -60,6 +60,7 @@ def create_server(config: ServerConfig) -> FastMCP:
     mcp = FastMCP(
         "Cloud Vault",
         stateless_http=True,
+        host=config.host,  # 0.0.0.0 disables auto-DNS-rebinding-protection, allowing ngrok hostnames
         instructions=(
             "A knowledge vault MCP server for compound engineering. "
             "Read, write, search, and link Obsidian notes. "

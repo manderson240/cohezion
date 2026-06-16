@@ -8,10 +8,10 @@ from cohezion.flume.turbo_quant import TurboQuantCPU
 
 
 async def probe_npu():
-    print("Probing NPU (Port 13306 - FLM Backend)...")
-    url = "http://localhost:13306/v1/chat/completions"
+    print("Probing NPU via OmniRouter (Port 13305)...")
+    url = "http://localhost:13305/v1/chat/completions"
     payload = {
-        "model": "qwen3.5-4b-FLM",
+        "model": "llama3.2-1b-FLM",
         "messages": [{"role": "user", "content": "Tell me a very long story about a robot."}],
         "max_tokens": 128,
         "stream": False,
@@ -50,7 +50,7 @@ def probe_cpu():
     compressed = tq.compress_kv(test_kv)
     end_comp = time.perf_counter()
 
-    recovered = tq.decompress_kv(compressed)
+    recovered = tq.decompress_kv(compressed)  # noqa: F841
     end_decomp = time.perf_counter()
 
     comp_time = (end_comp - start) * 1000
