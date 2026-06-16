@@ -21,20 +21,20 @@ def build_triune_orchestrator(
     *,
     npu_port: int = 13306,
     igpu_port: int = 13307,
-    cpu_port: int = 11434,
+    cpu_port: int = 13309,  # N2: lemonade CPU port (NOT 11434/Ollama — migrated 2026-05-21)
 ) -> TieredOrchestrator:
     """
     Constructs a TieredOrchestrator mapped to the Triune Substrate.
 
     Tiers:
-    0. NPU (FastFlowLM): qwen3.5-4b-FLM (Port 13306)
-    1. iGPU (TurboKV Wave32): Gemma-4-E4B-it-GGUF (Port 13307)
-    2. CPU (Vectorized AVX-512): Gemma-4-31B-it-GGUF (Port 11434)
+    0. NPU (FastFlowLM): llama3.2-1b-FLM (Port 13306, 42 TPS — NOT qwen3.5-4b-FLM)
+    1. iGPU (RDNA3.5): Gemma-4-E4B-it-GGUF (Port 13307)
+    2. CPU (AVX-512 / lemonade): Gemma-4-31B-it-GGUF (Port 13309)
     """
 
-    # 1. NPU Tier - Initial analytical pass
+    # 1. NPU Tier — N1: llama3.2-1b-FLM only; qwen3.5-4b-FLM is 5x slower on XDNA2
     npu_tier = build_gaia_native_tier(
-        model_id="qwen3.5-4b-FLM", base_url=f"http://localhost:{npu_port}/v1", silent=True
+        model_id="llama3.2-1b-FLM", base_url=f"http://localhost:{npu_port}/v1", silent=True
     )
 
     # 2. iGPU Tier - Deep context analysis (Wave32 unlocked)
@@ -42,7 +42,7 @@ def build_triune_orchestrator(
         model_id="Gemma-4-E4B-it-GGUF", base_url=f"http://localhost:{igpu_port}/v1", silent=True
     )
 
-    # 3. CPU Tier - Ultimate fallback reasoning (AVX-512)
+    # 3. CPU Tier — lemonade :13309 (AVX-512); N2: NOT Ollama :11434
     cpu_tier = build_gaia_native_tier(
         model_id="Gemma-4-31B-it-GGUF", base_url=f"http://localhost:{cpu_port}/v1", silent=True
     )

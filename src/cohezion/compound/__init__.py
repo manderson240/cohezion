@@ -38,6 +38,7 @@ from cohezion.compound.executor import CompoundExecutor as LegacyCompoundExecuto
 from cohezion.compound.executor_factory import (  # noqa: F401
     ExecutorFactory as CompoundExecutorFactory,
 )
+from cohezion.compound.executor_factory import make_executor as make_executor  # noqa: F401
 
 # New Simplified API
 from cohezion.compound.models import (

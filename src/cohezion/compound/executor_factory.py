@@ -150,3 +150,18 @@ class ExecutorFactory:
     def reset_singleton() -> None:
         """Reset singleton for testing."""
         ExecutorFactory._instance = None
+
+
+def make_executor(mcp_client: MCPClient, **kwargs: Any) -> CompoundExecutor:
+    """Convenience factory: creates a CompoundExecutor with Triune local-inference pre-wired.
+
+    Uses AMD OmniRouter on :13305 (NPU→iGPU→CPU) as inference_provider when available.
+    Falls back to cloud-only if lemonade is offline.
+    """
+    try:
+        from cohezion.inference.triune_orchestrator import build_triune_orchestrator
+        provider = build_triune_orchestrator()
+    except Exception:
+        provider = None
+
+    return ExecutorFactory.create(mcp_client, **kwargs)
