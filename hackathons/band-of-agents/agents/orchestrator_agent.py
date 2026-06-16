@@ -8,12 +8,12 @@ for classification tasks: short_categorical output, sub-500µs on-device).
 """
 
 import json
+import os
 import sys
 import uuid
 from pathlib import Path
 
 from anthropic import Anthropic
-
 
 # Ensure shared/ and Cohezion src are importable
 _HERE = Path(__file__).resolve().parent.parent
@@ -108,14 +108,7 @@ class OrchestratorAgent:
             f"\n\nRespond with ONLY valid JSON matching the schema in your system prompt."
         )
 
-        response = self.client.messages.create(
-            model=self.MODEL,
-            max_tokens=1024,
-            system=self._system_prompt,
-            messages=[{"role": "user", "content": user_message}],
-        )
-
-        raw = response.content[0].text.strip()
+        raw = self._generate(self._system_prompt, user_message, 1024).strip()
 
         # Extract JSON (handle markdown code fences)
         if "```json" in raw:
@@ -154,6 +147,29 @@ class OrchestratorAgent:
             "confidence": 0.5,
             "cohezion_npu_used": False,
         }
+
+    def _generate(self, system: str, user_message: str, max_tokens: int) -> str:
+        """Generate local-first ($0 AMD silicon) with cloud fallback.
+
+        COHEZION_LOCAL_FIRST=1 routes to the already-loaded OMNI model (via :13305,
+        OOM-safe); empty local output escalates to cloud. Records the serving backend
+        in self._last_backend for honest provenance.
+        """
+        if os.getenv("COHEZION_LOCAL_FIRST", "0") == "1":
+            text, backend = self.bridge.complete_omni(
+                f"{system}\n\n{user_message}", max_tokens=max_tokens, temperature=0.1,
+            )
+            if text and text.strip():
+                self._last_backend = backend
+                return text
+        response = self.client.messages.create(
+            model=self.MODEL,
+            max_tokens=max_tokens,
+            system=system,
+            messages=[{"role": "user", "content": user_message}],
+        )
+        self._last_backend = "anthropic-cloud"
+        return response.content[0].text
 
     def _load_system_prompt(self) -> str:
         """Load the orchestrator role prompt from file."""

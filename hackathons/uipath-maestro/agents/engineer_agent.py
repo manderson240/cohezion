@@ -19,10 +19,9 @@ import os
 import time
 from typing import TYPE_CHECKING
 
-
 if TYPE_CHECKING:
-    from shared.cohezion_bridge import CohezionBridge
     from shared.uipath_client import UiPathMaestroClient
+    from shared.cohezion_bridge import CohezionBridge, LemonadeClient
 
 try:
     from uipath import activity as uipath_activity  # type: ignore[import-untyped]
@@ -145,11 +144,11 @@ class EngineerAgent:
         return implementation
 
     def _run_cpu(self, enriched: dict, plan: dict | None) -> dict | None:
-        """Try Cohezion CPU tier (Gemma-4-31B-it-GGUF)."""
-        from shared.cohezion_bridge import LemonadeClient
-        cpu = LemonadeClient("cpu")
-        if not cpu.is_available():
-            return None
+        """Try local inference ($0): dedicated CPU tier, then the already-loaded OMNI
+        model on the :13305 router. The dedicated per-tier ports (CPU :13309) are often
+        down in the router-centric topology, so the omni router is what actually serves
+        local generation -- OOM-safe (already-loaded model only, never auto-loads)."""
+        from shared.cohezion_bridge import CohezionBridge, LemonadeClient  # noqa: PLC0415
 
         hints = "\n".join(f"- {h}" for h in enriched.get("implementation_hints", []))
         high_risks = "\n".join(f"- {r}" for r in enriched.get("risk_analysis", {}).get("high", []))
@@ -164,8 +163,19 @@ class EngineerAgent:
             f"\"test_recommendations\": [...], \"confidence_score\": 0.85, "
             f"\"skill_updates\": [...], \"claude_code_commands\": [...]}}"
         )
-        raw = cpu.complete(prompt, max_tokens=2048, temperature=0.15)
-        return _parse_json(raw)
+
+        # 1) dedicated CPU tier (:13309) if it's up
+        cpu = LemonadeClient("cpu")
+        if cpu.is_available():
+            impl = _parse_json(cpu.complete(prompt, max_tokens=2048, temperature=0.15))
+            if impl:
+                return impl
+
+        # 2) already-loaded OMNI model on the :13305 router ($0, OOM-safe)
+        text, _backend = CohezionBridge().complete_omni(prompt, max_tokens=2048, temperature=0.15)
+        if text and text.strip():
+            return _parse_json(text)
+        return None
 
     def _run_cloud(self, enriched: dict, plan: dict | None) -> dict:
         """Fall back to Anthropic claude-sonnet-4-5."""
@@ -179,8 +189,8 @@ class EngineerAgent:
             f"Task: {task_summary}\n\n"
             f"Enriched context: {enriched.get('enriched_context', '')[:600]}\n\n"
             f"Implementation hints:\n" + "\n".join(f"- {h}" for h in hints) + "\n\n"
-            "High-priority risks:\n" + "\n".join(f"- {r}" for r in high_risks) + "\n\n"
-            "Security checklist:\n" + "\n".join(f"- {s}" for s in security_checklist) + "\n"
+            f"High-priority risks:\n" + "\n".join(f"- {r}" for r in high_risks) + "\n\n"
+            f"Security checklist:\n" + "\n".join(f"- {s}" for s in security_checklist) + "\n"
         )
 
         msg = self._client.messages.create(
@@ -251,7 +261,7 @@ class EngineerAgent:
                 "integration": "uipath-for-coding-agents",
                 "output_preview": (msg.content[0].text if msg.content else "")[:300],
             }
-        except Exception:
+        except Exception:  # noqa: BLE001
             return {
                 "invoked": False,
                 "agent": "claude-code",
@@ -277,7 +287,7 @@ class EngineerAgent:
                         confidence=implementation.get("confidence_score", 0.8),
                     )
             return len(patterns) > 0
-        except Exception:
+        except Exception:  # noqa: BLE001
             return False
 
 
@@ -290,8 +300,8 @@ def run_engineer(case_id: str) -> dict:
     Invoked by Maestro via REST after AnalystAgent completes.
     Input JSON: {"case_id": "..."}. Returns implementation dict and closes case.
     """
-    from shared.cohezion_bridge import CohezionBridge
-    from shared.uipath_client import UiPathMaestroClient
+    from shared.uipath_client import UiPathMaestroClient  # noqa: PLC0415
+    from shared.cohezion_bridge import CohezionBridge  # noqa: PLC0415
     maestro = UiPathMaestroClient()
     bridge = CohezionBridge()
     agent = EngineerAgent(maestro, bridge)

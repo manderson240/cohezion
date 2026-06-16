@@ -14,10 +14,9 @@ import os
 import time
 from typing import TYPE_CHECKING
 
-
 if TYPE_CHECKING:
-    from shared.cohezion_bridge import CohezionBridge
     from shared.uipath_client import UiPathMaestroClient
+    from shared.cohezion_bridge import CohezionBridge, LemonadeClient
 
 try:
     from uipath import activity as uipath_activity  # type: ignore[import-untyped]
@@ -126,11 +125,10 @@ class AnalystAgent:
         return enriched
 
     def _run_igpu(self, plan: dict, similar_patterns: list) -> dict | None:
-        """Try Cohezion iGPU tier (deepseek-r1-0528-8b-FLM)."""
-        from shared.cohezion_bridge import LemonadeClient
-        igpu = LemonadeClient("igpu")
-        if not igpu.is_available():
-            return None
+        """Try local inference ($0): dedicated iGPU tier, then the already-loaded OMNI
+        model on the :13305 router (dedicated ports often down in the router-centric
+        topology -- omni router is what actually serves; OOM-safe, already-loaded only)."""
+        from shared.cohezion_bridge import CohezionBridge, LemonadeClient  # noqa: PLC0415
 
         patterns_text = ""
         if similar_patterns:
@@ -151,8 +149,17 @@ class AnalystAgent:
             f"\"similar_patterns\": [...], \"implementation_hints\": [...], "
             f"\"security_checklist\": [...]}}"
         )
-        raw = igpu.complete(prompt, max_tokens=1024, temperature=0.2)
-        return _parse_json(raw)
+
+        igpu = LemonadeClient("igpu")
+        if igpu.is_available():
+            impl = _parse_json(igpu.complete(prompt, max_tokens=1024, temperature=0.2))
+            if impl:
+                return impl
+
+        text, _backend = CohezionBridge().complete_omni(prompt, max_tokens=1024, temperature=0.2)
+        if text and text.strip():
+            return _parse_json(text)
+        return None
 
     def _run_cloud(self, plan: dict, similar_patterns: list) -> dict:
         """Fall back to Anthropic claude-sonnet-4-5."""
@@ -204,8 +211,8 @@ def run_analyst(case_id: str) -> dict:
     Invoked by Maestro via REST after OrchestratorAgent completes.
     Input JSON: {"case_id": "..."}. Returns enriched_context dict.
     """
-    from shared.cohezion_bridge import CohezionBridge
-    from shared.uipath_client import UiPathMaestroClient
+    from shared.uipath_client import UiPathMaestroClient  # noqa: PLC0415
+    from shared.cohezion_bridge import CohezionBridge  # noqa: PLC0415
     maestro = UiPathMaestroClient()
     bridge = CohezionBridge()
     agent = AnalystAgent(maestro, bridge)

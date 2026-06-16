@@ -9,11 +9,11 @@ to synthesize risk analysis and implementation hints.
 """
 
 import json
+import os
 import sys
 from pathlib import Path
 
 from anthropic import Anthropic
-
 
 _HERE = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(_HERE))
@@ -56,7 +56,7 @@ class AnalystAgent:
         Returns:
             The enriched_context dict posted to Band, or an error dict.
         """
-        print("\n[Analyst] Reading plan from Band channel...")
+        print(f"\n[Analyst] Reading plan from Band channel...")
 
         # Step 1: Read Orchestrator's plan from Band
         plan = self.band.get_artifact("plan")
@@ -143,14 +143,7 @@ class AnalystAgent:
             f"\n\nRespond with ONLY valid JSON matching your system prompt schema."
         )
 
-        response = self.client.messages.create(
-            model=self.MODEL,
-            max_tokens=2048,
-            system=self._system_prompt,
-            messages=[{"role": "user", "content": user_message}],
-        )
-
-        raw = response.content[0].text.strip()
+        raw = self._generate(self._system_prompt, user_message, 2048).strip()
         if "```json" in raw:
             raw = raw.split("```json")[1].split("```")[0].strip()
         elif "```" in raw:
@@ -175,6 +168,29 @@ class AnalystAgent:
             ],
             "note": "enrichment degraded — LLM output parse failure",
         }
+
+    def _generate(self, system: str, user_message: str, max_tokens: int) -> str:
+        """Generate local-first ($0 AMD silicon) with cloud fallback.
+
+        COHEZION_LOCAL_FIRST=1 routes to the already-loaded OMNI model (via :13305,
+        OOM-safe); empty local output escalates to cloud. Records the serving backend
+        in self._last_backend for honest provenance.
+        """
+        if os.getenv("COHEZION_LOCAL_FIRST", "0") == "1":
+            text, backend = self.bridge.complete_omni(
+                f"{system}\n\n{user_message}", max_tokens=max_tokens, temperature=0.1,
+            )
+            if text and text.strip():
+                self._last_backend = backend
+                return text
+        response = self.client.messages.create(
+            model=self.MODEL,
+            max_tokens=max_tokens,
+            system=system,
+            messages=[{"role": "user", "content": user_message}],
+        )
+        self._last_backend = "anthropic-cloud"
+        return response.content[0].text
 
     def _load_system_prompt(self) -> str:
         if _PROMPT_FILE.exists():

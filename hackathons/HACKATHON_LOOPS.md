@@ -41,10 +41,12 @@ with an UNMET goal and the nearest deadline, does ONE increment, verifies, updat
   from a reachability probe).
 - `progress:` bridge primitives added; agent wiring PENDING.
 
-### slack-cohezion-agent — Slack Agent Builder — DUE Jul 13
-- **Goal:** `/cohezion ask|review|search` run on the live fleet; upgrade `ask_handler` single-tier
-  call to `complete_with_fallback` (full NPU→iGPU→CPU→omni escalation) + `complete_omni` vision for
-  image messages.
+### slack-cohezion-agent — Slack Agent Builder Challenge — DUE Jul 13 (REVENUE: prize competition)
+- **RECOVERED 2026-06-16.** This is a PRIZE HACKATHON, not a personal tool — the user doesn't use
+  Slack personally, but winning the competition is a revenue opportunity. Keep it in scope.
+- **Goal (verifiable):** `/cohezion ask|review|search` run on the live fleet at $0; upgrade
+  `ask_handler` single-tier call to full NPU→omni escalation, and add `complete_omni` vision so
+  image messages are handled locally (a differentiator for the MCP-server track).
 - `progress:` bridge primitives added; ask_handler already honest/local-first; escalation+omni upgrade PENDING.
 
 ### Kaggriculture — Google AI Agents capstone — opens ~Jun 19

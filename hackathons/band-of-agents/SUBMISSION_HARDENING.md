@@ -14,22 +14,21 @@ submission. See the global skill `local-inference-hackathon-hardening` for the f
   image. Verified live: `complete_omni("Reply with OK")` → `Gemma-4-E4B-it-GGUF` → "OK".
   N3-safe (these models are bounded-ctx / no-KV-risk; never an unbounded `ctx_size=0` load).
 
-## REVIEW — honesty gap (your call; affects the "$0/loop on AMD silicon" claim)
+## RESOLVED — the "$0 on AMD silicon" claim is now real
 
-The agents currently generate via **cloud Anthropic** (`self.client.messages.create(...)` in
-`agents/*.py`), while `engineer_agent.py:83` sets
-`implementation["cohezion_cpu_tier_used"] = self.bridge.lemonade_available("cpu")` — that flag
-reports tier *reachability*, not that the tier *generated* anything. So the artifact can claim
-"cpu tier used" / "$0/loop" while the work ran on cloud.
+All three agents (orchestrator, analyst, engineer) now generate via a `_generate()` helper that
+is **local-first with cloud fallback**: when `COHEZION_LOCAL_FIRST=1`, generation routes to the
+fleet's already-loaded OMNI model (`Gemma-4-E4B`, via `:13305`, OOM-safe); an empty local reply
+escalates to the cloud model (calibration-as-signal). The serving backend is recorded in
+`self._last_backend` and reported HONESTLY:
+- `implementation["generation_backend"]` = what ACTUALLY served generation.
+- `implementation["cohezion_local_silicon_used"]` = True only when a local backend served it
+  (replaces the old `cohezion_cpu_tier_used`, which mislabeled a reachability probe).
+- The demo prints the real backend (`Generated on local AMD silicon: Gemma-4-E4B-it-GGUF ($0)`).
 
-Two honest options:
-1. **Make the claim true** — route generation through `bridge.complete_with_fallback(prompt,
-   cloud_fn=lambda p: <anthropic call>)` and set the metric from the returned `backend`. Gate
-   behind an env flag (e.g. `COHEZION_LOCAL_FIRST`) so the default demo path is unchanged.
-   Note: local SLMs produce lower-quality *structured JSON* than Claude, so task-appropriate
-   routing (classify→NPU, structured codegen→cloud) is legitimate — don't force local on codegen.
-2. **Make the metric honest** — report `generation_backend: "anthropic-cloud"` (or the actual
-   backend) instead of labeling a reachability probe as "used".
+Default (`COHEZION_LOCAL_FIRST` unset) keeps the cloud path, so the demo never regresses; set the
+flag to showcase genuine $0 local execution. Verified live: orchestrator + engineer served on
+`Gemma-4-E4B`; the fallback correctly escalates when a local tier returns empty.
 
 ## Pre-submit checklist
 

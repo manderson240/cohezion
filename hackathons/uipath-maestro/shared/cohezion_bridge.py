@@ -12,7 +12,7 @@ works without Cohezion installed (pure Anthropic API fallback).
 
 import os
 import sys
-from typing import Any
+from typing import Any, Optional
 
 import requests
 
@@ -28,7 +28,7 @@ if _COHEZION_SRC not in sys.path:
 def _try_import_semantic_cache():
     """Import SemanticCache or return None."""
     try:
-        from cohezion.cache.semantic_cache import SemanticCache
+        from cohezion.cache.semantic_cache import SemanticCache  # noqa: PLC0415
         return SemanticCache
     except ImportError:
         return None
@@ -37,7 +37,7 @@ def _try_import_semantic_cache():
 def _try_import_task_classifier():
     """Import task_classifier.classify or return None."""
     try:
-        from cohezion.inference.task_classifier import classify
+        from cohezion.inference.task_classifier import classify  # noqa: PLC0415
         return classify
     except ImportError:
         return None
@@ -46,7 +46,7 @@ def _try_import_task_classifier():
 def _try_import_compound_executor():
     """Import CompoundExecutor factory or return None."""
     try:
-        from cohezion.compound import make_executor
+        from cohezion.compound import make_executor  # noqa: PLC0415
         return make_executor
     except ImportError:
         return None
@@ -151,7 +151,7 @@ class CohezionBridge:
         self._SemanticCache = _try_import_semantic_cache()
         self._classify = _try_import_task_classifier()
         self._make_executor = _try_import_compound_executor()
-        self._cache_instance: Any | None = None
+        self._cache_instance: Optional[Any] = None
 
     # ------------------------------------------------------------------
     # Availability probes
@@ -195,7 +195,7 @@ class CohezionBridge:
         *,
         max_tokens: int = 512,
         temperature: float = 0.1,
-        cloud_fn: Any | None = None,
+        cloud_fn: Optional[Any] = None,
         tiers: tuple[str, ...] = ("npu", "igpu", "cpu"),
         use_omni: bool = True,
     ) -> tuple[str, str]:
@@ -241,7 +241,7 @@ class CohezionBridge:
         if cloud_fn is not None:
             try:
                 return cloud_fn(prompt), "cloud"
-            except Exception:
+            except Exception:  # noqa: BLE001
                 return "", "none"
         return "", "none"
 
@@ -249,11 +249,11 @@ class CohezionBridge:
         self,
         prompt: str,
         *,
-        image_url: str | None = None,
-        model: str | None = None,
+        image_url: Optional[str] = None,
+        model: Optional[str] = None,
         max_tokens: int = 512,
         temperature: float = 0.1,
-        cloud_fn: Any | None = None,
+        cloud_fn: Optional[Any] = None,
     ) -> tuple[str, str]:
         """Complete via the fleet's OMNI (vision + tool-calling) models on the :13305 router.
 
@@ -322,7 +322,7 @@ class CohezionBridge:
         if cloud_fn is not None:
             try:
                 return cloud_fn(prompt), "cloud"
-            except Exception:
+            except Exception:  # noqa: BLE001
                 return "", "none"
         return "", "none"
 
@@ -330,14 +330,14 @@ class CohezionBridge:
     # SemanticCache integration
     # ------------------------------------------------------------------
 
-    def _get_cache(self) -> Any | None:
+    def _get_cache(self) -> Optional[Any]:
         """Get or create the SemanticCache singleton."""
         if self._SemanticCache is None:
             return None
         if self._cache_instance is None:
             try:
                 self._cache_instance = self._SemanticCache.get_instance()
-            except Exception:
+            except Exception:  # noqa: BLE001
                 self._cache_instance = None
         return self._cache_instance
 
@@ -375,7 +375,7 @@ class CohezionBridge:
                         "source": "semantic_cache:L2",
                     })
                 return results[:top_k]
-        except Exception:
+        except Exception:  # noqa: BLE001
             pass
 
         return []
@@ -388,14 +388,14 @@ class CohezionBridge:
         try:
             stats = cache.get_stats() if hasattr(cache, "get_stats") else {}
             return {"available": True, **stats}
-        except Exception:
+        except Exception:  # noqa: BLE001
             return {"available": True, "error": "stats unavailable"}
 
     # ------------------------------------------------------------------
     # Task classification (NPU tier)
     # ------------------------------------------------------------------
 
-    def classify_task(self, description: str) -> dict | None:
+    def classify_task(self, description: str) -> Optional[dict]:
         """Classify a task using Cohezion's NPU-tier task classifier.
 
         Routed to llama3.2-1b-FLM (42 TPS, sub-500µs) when available.
@@ -416,14 +416,14 @@ class CohezionBridge:
                 "output_type": result.output_type,
                 "confidence": getattr(result, "confidence", 0.0),
             }
-        except Exception:
+        except Exception:  # noqa: BLE001
             return None
 
     # ------------------------------------------------------------------
     # Compound executor
     # ------------------------------------------------------------------
 
-    def make_executor(self, mcp_client: Any = None) -> Any | None:
+    def make_executor(self, mcp_client: Any = None) -> Optional[Any]:
         """Create a CompoundExecutor with the Triune orchestrator.
 
         Returns None when Cohezion is not installed.
@@ -432,5 +432,5 @@ class CohezionBridge:
             return None
         try:
             return self._make_executor(mcp_client)
-        except Exception:
+        except Exception:  # noqa: BLE001
             return None

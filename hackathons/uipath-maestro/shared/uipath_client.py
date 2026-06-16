@@ -13,6 +13,7 @@ import os
 import time
 import uuid
 from pathlib import Path
+from typing import Optional
 
 import requests
 
@@ -138,7 +139,7 @@ class UiPathMaestroClient:
             _save_sim_state(state)
         print(f"  [UiPath:{self.mode}] Artifact '{artifact_type}' posted to case #{case_id}")
 
-    def get_artifact(self, case_id: str, artifact_type: str) -> dict | None:
+    def get_artifact(self, case_id: str, artifact_type: str) -> Optional[dict]:
         """Retrieve a typed artifact from the case. Returns None if not found."""
         if self._live:
             try:

@@ -1,6 +1,6 @@
 # Cohezion Compound AI Enterprise Pipeline on Band
 
-**Band of Agents Hackathon — Multi-Agent Software Development Track**
+**Band of Agents Hackathon — Multi-Agent Software Development Track**  
 Built by [@manderson240](https://github.com/manderson240) | Deadline: June 19, 2026
 
 ---

@@ -9,11 +9,11 @@ into Cohezion's self-improving compound engineering loop.
 """
 
 import json
+import os
 import sys
 from pathlib import Path
 
 from anthropic import Anthropic
-
 
 _HERE = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(_HERE))
@@ -58,7 +58,7 @@ class EngineerAgent:
         Returns:
             The implementation dict posted to Band.
         """
-        print("\n[Engineer] Reading enriched context from Band channel...")
+        print(f"\n[Engineer] Reading enriched context from Band channel...")
 
         # Step 1: Read Analyst's enriched context from Band
         context = self.band.get_artifact("enriched_context")
@@ -81,7 +81,9 @@ class EngineerAgent:
         implementation["skill_updates"] = skill_updates
         implementation["compound_loop_recorded"] = len(skill_updates) > 0
         implementation["task_id"] = task_id
-        implementation["cohezion_cpu_tier_used"] = self.bridge.lemonade_available("cpu")
+        backend = getattr(self, "_last_backend", "anthropic-cloud")
+        implementation["generation_backend"] = backend  # honest: what ACTUALLY served generation
+        implementation["cohezion_local_silicon_used"] = backend not in ("anthropic-cloud", "cloud", "none")
 
         # Step 5: Post implementation to Band — pipeline complete
         success = self.band.post_artifact(self.AGENT_ID, "implementation", implementation)
@@ -103,6 +105,31 @@ class EngineerAgent:
     # Internal
     # ------------------------------------------------------------------
 
+    def _generate(self, system: str, user_message: str) -> str:
+        """Generate text local-first ($0 AMD silicon) with cloud fallback.
+
+        When COHEZION_LOCAL_FIRST=1, route generation to the fleet's already-loaded
+        OMNI model (vision + tool-calling, via the :13305 router, OOM-safe). If the
+        local model returns empty (a calibration signal), escalate to the cloud model.
+        Records the backend that ACTUALLY served the request in self._last_backend so
+        the artifact reports honest provenance (not a reachability probe).
+        """
+        if os.getenv("COHEZION_LOCAL_FIRST", "0") == "1":
+            text, backend = self.bridge.complete_omni(
+                f"{system}\n\n{user_message}", max_tokens=4096, temperature=0.1,
+            )
+            if text and text.strip():
+                self._last_backend = backend
+                return text
+        response = self.client.messages.create(
+            model=self.MODEL,
+            max_tokens=4096,
+            system=system,
+            messages=[{"role": "user", "content": user_message}],
+        )
+        self._last_backend = "anthropic-cloud"
+        return response.content[0].text
+
     def _synthesize_implementation(self, plan: dict | None, context: dict) -> dict:
         """Use multi-step LLM reasoning to produce implementation patches."""
         plan_text = json.dumps(plan, indent=2) if plan else "Not available"
@@ -115,14 +142,7 @@ class EngineerAgent:
             f"Include real code in code_patches[].code where possible."
         )
 
-        response = self.client.messages.create(
-            model=self.MODEL,
-            max_tokens=4096,
-            system=self._system_prompt,
-            messages=[{"role": "user", "content": user_message}],
-        )
-
-        raw = response.content[0].text.strip()
+        raw = self._generate(self._system_prompt, user_message).strip()
         if "```json" in raw:
             raw = raw.split("```json")[1].split("```")[0].strip()
         elif "```" in raw:
@@ -177,7 +197,7 @@ class EngineerAgent:
                     "cohezion_executor_used": True,
                 }
             ]
-        except Exception:
+        except Exception:  # noqa: BLE001
             return []
 
     def _fallback_implementation(self, context: dict) -> dict:

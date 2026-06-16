@@ -1,6 +1,6 @@
 # Cohezion Compound AI Enterprise Review Pipeline on UiPath Maestro
 
-**UiPath AgentHack — Maestro Case Track**
+**UiPath AgentHack — Maestro Case Track**  
 Three coded AI agents. AMD silicon inference at $0/loop. UiPath Maestro as the governance backbone.
 
 Built by [@manderson240](https://github.com/manderson240) | Deadline: June 29, 2026
@@ -87,7 +87,7 @@ Band channels, Slack threads, and message queues lose context on failure. A Maes
 ### 2. Exception Handling Is Built In
 Code review is exception-heavy by nature:
 - Security risk detected → route to security team (not just the engineer)
-- SLA breach → escalate to human reviewer
+- SLA breach → escalate to human reviewer  
 - Confidence < 70% → request additional context before closing
 
 All of this is configuration in `agent_config.yaml`, not code.

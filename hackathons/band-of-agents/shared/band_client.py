@@ -14,7 +14,7 @@ import os
 import time
 from dataclasses import asdict, dataclass, field
 from pathlib import Path
-from typing import Any
+from typing import Any, Optional
 
 import requests
 
@@ -31,7 +31,7 @@ class BandMessage:
     content: dict
     channel_id: str
     timestamp: float = field(default_factory=time.time)
-    message_id: str | None = None
+    message_id: Optional[str] = None
 
     def to_dict(self) -> dict:
         return asdict(self)
@@ -101,7 +101,7 @@ class BandClient:
         else:
             return self._sim_post(msg)
 
-    def get_artifact(self, artifact_type: str) -> dict | None:
+    def get_artifact(self, artifact_type: str) -> Optional[dict]:
         """Get the most recent artifact of the given type from the channel.
 
         Args:
@@ -158,7 +158,7 @@ class BandClient:
             print(f"[Band:error] POST failed: {exc}")
             return False
 
-    def _api_get(self, artifact_type: str) -> dict | None:
+    def _api_get(self, artifact_type: str) -> Optional[dict]:
         """GET latest artifact of type from Band channel."""
         url = (
             f"{BAND_API_BASE}/v1/workspaces/{self.workspace_id}"
@@ -206,7 +206,7 @@ class BandClient:
         )
         return True
 
-    def _sim_get(self, artifact_type: str) -> dict | None:
+    def _sim_get(self, artifact_type: str) -> Optional[dict]:
         """Read from in-memory state."""
         record = self._local_state.get(artifact_type)
         if record:

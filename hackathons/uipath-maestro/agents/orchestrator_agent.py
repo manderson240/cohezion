@@ -13,10 +13,9 @@ import os
 import time
 from typing import TYPE_CHECKING
 
-
 if TYPE_CHECKING:
-    from shared.cohezion_bridge import CohezionBridge
     from shared.uipath_client import UiPathMaestroClient
+    from shared.cohezion_bridge import CohezionBridge, LemonadeClient
 
 # Graceful UiPath activity decorator — no-op when uipath package not installed
 try:
@@ -94,11 +93,9 @@ class OrchestratorAgent:
         return plan
 
     def _run_npu(self, task: str) -> dict | None:
-        """Try Cohezion NPU tier (llama3.2-1b-FLM)."""
-        from shared.cohezion_bridge import LemonadeClient
-        npu = LemonadeClient("npu")
-        if not npu.is_available():
-            return None
+        """Try local inference ($0): dedicated NPU tier, then the already-loaded OMNI
+        model on the :13305 router (OOM-safe, already-loaded only, never auto-loads)."""
+        from shared.cohezion_bridge import CohezionBridge, LemonadeClient  # noqa: PLC0415
 
         prompt = (
             f"You are an enterprise task orchestrator. Analyze this task and respond with JSON only.\n\n"
@@ -107,8 +104,17 @@ class OrchestratorAgent:
             f"\"phases\": [...], \"risk_flags\": [...], \"recommended_tier\": \"npu|igpu|cpu\", "
             f"\"estimated_effort\": \"X hours\"}}"
         )
-        raw = npu.complete(prompt, max_tokens=512, temperature=0.1)
-        return _parse_json(raw)
+
+        npu = LemonadeClient("npu")
+        if npu.is_available():
+            impl = _parse_json(npu.complete(prompt, max_tokens=512, temperature=0.1))
+            if impl:
+                return impl
+
+        text, _backend = CohezionBridge().complete_omni(prompt, max_tokens=512, temperature=0.1)
+        if text and text.strip():
+            return _parse_json(text)
+        return None
 
     def _run_cloud(self, task: str) -> dict:
         """Fall back to Anthropic claude-haiku-4-5."""
@@ -147,8 +153,8 @@ def run_orchestrator(task: str, case_id: str) -> dict:
     Invoked by Maestro via REST. Input JSON: {"task": "...", "case_id": "..."}.
     Returns plan dict posted to the case.
     """
-    from shared.cohezion_bridge import CohezionBridge
-    from shared.uipath_client import UiPathMaestroClient
+    from shared.uipath_client import UiPathMaestroClient  # noqa: PLC0415
+    from shared.cohezion_bridge import CohezionBridge  # noqa: PLC0415
     maestro = UiPathMaestroClient()
     bridge = CohezionBridge()
     agent = OrchestratorAgent(maestro, bridge)
