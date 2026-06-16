@@ -8,6 +8,7 @@ from __future__ import annotations
 
 import asyncio
 import contextlib
+import itertools
 import logging
 import time
 from abc import ABC, abstractmethod
@@ -38,6 +39,13 @@ class EventType(Enum):
     SYSTEM_HEALTH = auto()
     JOURNEY_STEP = auto()
     CUSTOM = auto()
+
+    # DataMesh domain events (DataMeshEventBridge, CorpusQualityConsumer)
+    DATA_PRODUCT_CREATED = auto()
+    DATA_PRODUCT_UPDATED = auto()
+    DATA_PRODUCT_QUALITY_ALERT = auto()
+    LINEAGE_UPDATED = auto()
+    DOMAIN_HEALTH_DEGRADED = auto()
 
 
 @dataclass(frozen=True, slots=True)
@@ -110,9 +118,10 @@ class EventBus:
     def __init__(self, max_queue_size: int = 10000):
         self._handlers: dict[EventType, list[EventHandler]] = defaultdict(list)
         self._wildcard_handlers: list[EventHandler] = []
-        self._queue: asyncio.PriorityQueue[tuple[int, Event]] = asyncio.PriorityQueue(
+        self._queue: asyncio.PriorityQueue[tuple[int, int, Event]] = asyncio.PriorityQueue(
             maxsize=max_queue_size
         )
+        self._seq = itertools.count()  # monotonic tie-breaker — prevents Event.__lt__ comparison
         self._processor_task: asyncio.Task | None = None
         self._running = False
         self._metrics = {
@@ -173,8 +182,8 @@ class EventBus:
     async def publish(self, event: Event) -> bool:
         """Publish event to all subscribers."""
         try:
-            # Priority queue: (-priority, event)
-            await self._queue.put((-event.priority, event))
+            # Priority queue: (-priority, seq, event) — seq prevents Event comparison on tie
+            await self._queue.put((-event.priority, next(self._seq), event))
             self._metrics["published"] += 1
             return True
         except asyncio.QueueFull:
@@ -186,7 +195,7 @@ class EventBus:
         """Main processing loop."""
         while self._running:
             try:
-                _, event = await self._queue.get()
+                _, _, event = await self._queue.get()
                 await self._dispatch(event)
                 self._queue.task_done()
             except asyncio.CancelledError:

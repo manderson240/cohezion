@@ -12,21 +12,42 @@ from pathlib import Path
 
 logger = logging.getLogger(__name__)
 
+# RAM safety buffer: keep this much free before starting lemond (bytes).
+# The 2026-06-09 OOM crash happened with only 81 GB free and a large model load.
+# 20 GB buffer covers the OmniRouter's own KV cache + OS page cache headroom.
+_MIN_FREE_RAM_BYTES = 20 * 1024**3  # 20 GiB
+
+
+def _free_ram_bytes() -> int:
+    """Return available RAM in bytes from /proc/meminfo MemAvailable."""
+    try:
+        for line in Path("/proc/meminfo").read_text().splitlines():
+            if line.startswith("MemAvailable:"):
+                return int(line.split()[1]) * 1024  # kB → bytes
+    except Exception:
+        pass
+    return 2**63  # unknown → allow (fail-open)
+
 
 class LemonadeManager:
     """Manages the private embeddable Lemonade server instance."""
 
     def __init__(
-        self, base_dir: str | Path | None = None, port: int = 13307, host: str = "localhost"
+        self,
+        base_dir: str | Path | None = None,
+        port: int = 13305,
+        host: str = "localhost",
+        min_free_ram_bytes: int = _MIN_FREE_RAM_BYTES,
     ) -> None:
         self.base_dir = Path(base_dir or "vendor/lemonade").absolute()
         self.port = port
         self.host = host
         self.process: subprocess.Popen | None = None
         self._executable = self.base_dir / "lemond"
+        self._min_free_ram = min_free_ram_bytes
 
     async def start(self) -> bool:
-        """Spawn the lemond process."""
+        """Spawn the lemond process — guarded by pre-launch RAM check."""
         if self.process and self.process.poll() is None:
             logger.info("Lemonade server already running (PID %d)", self.process.pid)
             return True
@@ -34,6 +55,23 @@ class LemonadeManager:
         if not self._executable.exists():
             logger.error("Lemonade executable not found at %s", self._executable)
             return False
+
+        # OOM guard (N3): refuse to start if available RAM is below the safety floor.
+        free = _free_ram_bytes()
+        if free < self._min_free_ram:
+            logger.error(
+                "OOM guard: refusing to start lemond — only %.1f GiB free (need %.1f GiB). "
+                "Free memory or reduce loaded models before retrying.",
+                free / 1024**3,
+                self._min_free_ram / 1024**3,
+            )
+            return False
+
+        logger.info(
+            "RAM check passed: %.1f GiB free (threshold %.1f GiB)",
+            free / 1024**3,
+            self._min_free_ram / 1024**3,
+        )
 
         # Prepare environment
         env = os.environ.copy()

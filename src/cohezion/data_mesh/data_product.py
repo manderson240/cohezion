@@ -120,6 +120,29 @@ class DataProduct:
         availability = 1.0 - self.error_rate
         return availability >= self.availability_target
 
+    @classmethod
+    def from_unified_record(cls, record: Any) -> DataProduct:
+        """Convert a datamesh UnifiedRecord to a canonical DataProduct.
+
+        Accepts any object duck-typed as a UnifiedRecord — data_mesh/ never
+        hard-imports datamesh/ (which transitively imports torch and aiofiles).
+        Field mapping:
+          - id         → product_id (str)
+          - metadata title / type.name → name
+          - content (truncated)        → description
+          - lineage.origin             → owner_domain
+        """
+        name: str = record.metadata.get("title") or record.type.name
+        description: str = (
+            record.content[:200] if record.content else f"Datamesh {record.type.name}"
+        )
+        return cls(
+            product_id=str(record.id),
+            name=name,
+            description=description,
+            owner_domain=record.lineage.origin,
+        )
+
     def to_registry_entry(self) -> dict[str, Any]:
         """Serialize for the MCP registry catalog."""
         return {

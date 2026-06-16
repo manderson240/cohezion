@@ -10,6 +10,8 @@
 #   pre-commit run --all-files                   # Run all hooks, all stages
 #   pre-commit run --all-files --hook-stage=commit # Run only fast checks
 
+exclude: '^(\.claude/|\.gitmodules$)'
+
 repos:
   # ============================================================================
   # FAST CHECKS (commit stage) - Quick syntax and formatting validation
@@ -49,7 +51,7 @@ repos:
         exclude: '\.patch$'
       - id: end-of-file-fixer
         stages: [pre-commit]
-        exclude: '\.patch$'
+        exclude: '(\.patch$|^\.claude/|^\.gitmodules$|^scripts/)'
       - id: check-yaml
         stages: [pre-commit]
       - id: check-added-large-files
