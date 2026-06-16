@@ -18,14 +18,12 @@ Slash commands:
 
 import os
 import sys
-
+import time
 
 _REPO = os.path.dirname(os.path.abspath(__file__))
 sys.path.insert(0, _REPO)
 
 from dotenv import load_dotenv
-
-
 load_dotenv()
 
 try:
@@ -37,14 +35,11 @@ except ImportError:
     App = None  # type: ignore[misc,assignment]
     SocketModeHandler = None  # type: ignore[misc,assignment]
 
-import contextlib
-
+from shared.cohezion_mcp_client import CohezionMCPClient
 from handlers.ask_handler import handle_ask
 from handlers.review_handler import handle_review
 from handlers.search_handler import handle_search
 from handlers.status_handler import handle_status
-from shared.cohezion_mcp_client import CohezionMCPClient
-
 
 _mcp = CohezionMCPClient()
 
@@ -115,7 +110,7 @@ def build_app() -> "App":
                     ts=thinking["ts"],
                     text=f"{result['answer']}\n\n{footer}",
                 )
-            except Exception:
+            except Exception:  # noqa: BLE001
                 say(text=f"{result['answer']}\n\n{footer}", channel=channel)
 
         elif subcommand == "review":
@@ -131,19 +126,21 @@ def build_app() -> "App":
 
             def post_progress(stage: str, msg: str) -> None:
                 icon = {"orchestrator": ":gear:", "analyst": ":microscope:", "engineer": ":hammer:"}.get(stage, ":arrow_right:")
-                with contextlib.suppress(Exception):
+                try:
                     client.chat_postMessage(
                         channel=channel,
                         thread_ts=thread_ts,
                         text=f"{icon} *{stage.title()}*: {msg}",
                     )
+                except Exception:  # noqa: BLE001
+                    pass
 
             result = handle_review(task=args, progress_callback=post_progress)
 
             # Post final summary to thread
             impl = result.get("implementation", {})
             patches = impl.get("code_patches", [])
-            impl.get("confidence_score", 0)
+            confidence = impl.get("confidence_score", 0)
 
             blocks = [
                 {
@@ -176,7 +173,7 @@ def build_app() -> "App":
                     blocks=blocks,
                     text=result["summary"],
                 )
-            except Exception:
+            except Exception:  # noqa: BLE001
                 say(text=result["summary"], channel=channel)
 
         elif subcommand == "search":
@@ -190,7 +187,7 @@ def build_app() -> "App":
             result = handle_status()
             try:
                 say(blocks=result["blocks"], text=result["text"], channel=channel)
-            except Exception:
+            except Exception:  # noqa: BLE001
                 say(text=result["text"], channel=channel)
 
         else:
@@ -204,7 +201,7 @@ def build_app() -> "App":
     def handle_mention(event, say):
         text = event.get("text", "")
         # Strip the bot mention
-        import re
+        import re  # noqa: PLC0415
         question = re.sub(r"<@[A-Z0-9]+>", "", text).strip()
         if not question:
             say(text=_HELP_TEXT, thread_ts=event.get("ts"))

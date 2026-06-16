@@ -15,7 +15,6 @@ import os
 import sys
 from typing import Any
 
-
 _REPO = os.path.dirname(os.path.abspath(__file__))
 sys.path.insert(0, _REPO)
 
@@ -25,11 +24,10 @@ from handlers.search_handler import handle_search
 from handlers.status_handler import handle_status
 from shared.cohezion_mcp_client import CohezionMCPClient
 
-
 try:
-    import uvicorn
     from fastapi import FastAPI, HTTPException, Request
     from fastapi.responses import JSONResponse
+    import uvicorn
     HAS_FASTAPI = True
 except ImportError:
     HAS_FASTAPI = False
@@ -107,7 +105,7 @@ def create_app():
             return result
         except ValueError as e:
             raise HTTPException(status_code=404, detail=str(e))
-        except Exception as e:
+        except Exception as e:  # noqa: BLE001
             raise HTTPException(status_code=500, detail=f"Tool error: {e}")
 
     return app
@@ -118,6 +116,7 @@ def create_app():
 def _run_simple_server() -> None:
     """Run a minimal HTTP server using only stdlib."""
     import http.server
+    import urllib.parse
 
     _mcp_client = CohezionMCPClient()
 
@@ -151,7 +150,7 @@ def _run_simple_server() -> None:
                     self._send_json(result)
                 except ValueError as e:
                     self._send_json({"error": str(e)}, 404)
-                except Exception as e:
+                except Exception as e:  # noqa: BLE001
                     self._send_json({"error": str(e)}, 500)
             else:
                 self._send_json({"error": "Not found"}, 404)
@@ -165,7 +164,7 @@ def _run_simple_server() -> None:
 if __name__ == "__main__":
     print(f"[Cohezion MCP Server] Starting on port {_MCP_PORT}")
     if HAS_FASTAPI:
-        import uvicorn
+        import uvicorn  # noqa: PLC0415
         uvicorn.run(create_app(), host="0.0.0.0", port=_MCP_PORT, log_level="info")
     else:
         print("[Cohezion MCP] FastAPI not available, using stdlib HTTP server")

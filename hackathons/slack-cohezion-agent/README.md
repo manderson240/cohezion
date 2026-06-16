@@ -1,6 +1,6 @@
 # Cohezion Intelligence Agent for Slack — Compound AI at $0/query
 
-**Slack Agent Builder Challenge — New Slack Agent Track (MCP Server Integration)**
+**Slack Agent Builder Challenge — New Slack Agent Track (MCP Server Integration)**  
 Built by [@manderson240](https://github.com/manderson240) | Deadline: July 13, 2026
 
 ---
@@ -73,7 +73,7 @@ Any MCP-compatible client (Slack, Claude Desktop, other agents) can discover and
 | iGPU | 13307 | deepseek-r1-0528-8b | ~200ms | **$0** |
 | CPU | 13309 | Gemma-4-31B-it-GGUF | ~800ms | **$0** |
 
-10,000 Slack queries/month on local silicon: **$0.00**
+10,000 Slack queries/month on local silicon: **$0.00**  
 Same on Anthropic Sonnet: **$180.00**
 
 The task classifier (NPU, sub-500µs) routes each question to the right tier automatically — short answers to NPU, generation to iGPU, reasoning to CPU. Cloud (claude-haiku-4-5) activates only when local silicon is offline.

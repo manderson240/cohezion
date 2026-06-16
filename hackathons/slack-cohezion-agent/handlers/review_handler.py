@@ -14,14 +14,11 @@ import json
 import os
 import sys
 import time
-from collections.abc import Callable
-from typing import Any
-
+from typing import Any, Callable
 
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 from shared.cohezion_bridge import CohezionBridge, LemonadeClient
-
 
 _bridge = CohezionBridge()
 
@@ -29,7 +26,7 @@ _bridge = CohezionBridge()
 def _call_claude(system: str, prompt: str, model: str = "claude-sonnet-4-5") -> str:
     """Call Anthropic API and return text response."""
     try:
-        import anthropic
+        import anthropic  # noqa: PLC0415
         client = anthropic.Anthropic(api_key=os.environ.get("ANTHROPIC_API_KEY", ""))
         response = client.messages.create(
             model=model,
@@ -38,17 +35,25 @@ def _call_claude(system: str, prompt: str, model: str = "claude-sonnet-4-5") -> 
             messages=[{"role": "user", "content": prompt}],
         )
         return response.content[0].text if response.content else ""
-    except Exception:
+    except Exception:  # noqa: BLE001
         return ""
 
 
 def _lemonade_or_claude(tier: str, system: str, prompt: str) -> tuple[str, bool]:
-    """Try local AMD silicon first, fall back to Claude. Returns (text, used_local)."""
+    """Try local AMD silicon first, fall back to Claude. Returns (text, used_local).
+
+    Order: dedicated tier -> already-loaded OMNI model on the :13305 router -> cloud.
+    The dedicated per-tier ports are often down in the router-centric topology, so the
+    omni router is what actually serves $0. OOM-safe: already-loaded model only.
+    """
     if _bridge.lemonade_available(tier):
         lm = LemonadeClient(tier)
         text = lm.complete(f"{system}\n\n{prompt}", max_tokens=1024)
         if text:
             return text, True
+    omni_text, _backend = _bridge.complete_omni(f"{system}\n\n{prompt}", max_tokens=1024)
+    if omni_text and omni_text.strip():
+        return omni_text, True
     return _call_claude(system, prompt), False
 
 

@@ -13,6 +13,8 @@ MCP Tool Registry:
 from __future__ import annotations
 
 import os
+import time
+from typing import Any
 
 import requests
 
@@ -120,7 +122,7 @@ class CohezionMCPClient:
     def _direct_dispatch(self, tool_name: str, arguments: dict) -> dict:
         """Call Cohezion handlers directly without MCP server."""
         if tool_name == "cohezion_ask":
-            from handlers.ask_handler import handle_ask
+            from handlers.ask_handler import handle_ask  # noqa: PLC0415
             result = handle_ask(
                 question=arguments["question"],
                 tier=arguments.get("tier", "auto"),
@@ -128,12 +130,12 @@ class CohezionMCPClient:
             return {"content": [{"type": "text", "text": result["answer"]}], "meta": result}
 
         if tool_name == "cohezion_code_review":
-            from handlers.review_handler import handle_review
+            from handlers.review_handler import handle_review  # noqa: PLC0415
             result = handle_review(task=arguments["task"])
             return {"content": [{"type": "text", "text": result["summary"]}], "meta": result}
 
         if tool_name == "cohezion_search":
-            from handlers.search_handler import handle_search
+            from handlers.search_handler import handle_search  # noqa: PLC0415
             result = handle_search(
                 query=arguments["query"],
                 top_k=arguments.get("top_k", 3),
@@ -141,7 +143,7 @@ class CohezionMCPClient:
             return {"content": [{"type": "text", "text": result["formatted"]}], "meta": result}
 
         if tool_name == "cohezion_get_status":
-            from handlers.status_handler import handle_status
+            from handlers.status_handler import handle_status  # noqa: PLC0415
             result = handle_status()
             return {"content": [{"type": "text", "text": result["text"]}], "meta": result}
 

@@ -10,25 +10,24 @@ Usage:
 """
 
 import argparse
+import json
 import sys
 import time
 from pathlib import Path
 
-
 _REPO = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(_REPO))
 
+from shared.cohezion_bridge import CohezionBridge
 from handlers.ask_handler import handle_ask
 from handlers.review_handler import handle_review
 from handlers.search_handler import handle_search
 from handlers.status_handler import handle_status
-from shared.cohezion_bridge import CohezionBridge
-
 
 try:
     from rich.console import Console
-    from rich.panel import Panel
     from rich.rule import Rule
+    from rich.panel import Panel
     console = Console()
     HAS_RICH = True
 except ImportError:
@@ -51,13 +50,13 @@ def _print(text: str, style: str = "") -> None:
 
 
 def demo_ask(question: str) -> None:
-    _header("/cohezion ask")
+    _header(f"/cohezion ask")
     _print(f"  Question: {question}", "dim")
     print()
 
     t0 = time.time()
     result = handle_ask(question=question)
-    time.time() - t0
+    elapsed = time.time() - t0
 
     tier_icon = "⚡" if result["local_silicon"] else "☁"
     _print(f"{result['answer']}", "green")

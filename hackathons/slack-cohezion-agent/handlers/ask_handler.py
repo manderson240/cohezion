@@ -10,14 +10,13 @@ Tier routing:
 from __future__ import annotations
 
 import os
-import sys
 import time
+from typing import Any
 
-
+import sys
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 from shared.cohezion_bridge import CohezionBridge, LemonadeClient
-
 
 _bridge = CohezionBridge()
 
@@ -79,9 +78,28 @@ def handle_ask(question: str, tier: str = "auto", user_id: str = "") -> dict:
                 "local_silicon": True,
             }
 
+    # ── Already-loaded OMNI model on the :13305 router ($0, OOM-safe) ──
+    # The dedicated per-tier ports are often down in the router-centric topology, so the
+    # omni router (vision + tool-calling, already-loaded model only) is what actually
+    # serves local generation at $0 before paying for cloud.
+    omni_text, omni_backend = _bridge.complete_omni(
+        f"{_SYSTEM_PROMPT}\n\nUser: {question}\n\nAssistant:",
+        max_tokens=800,
+        temperature=0.1,
+    )
+    if omni_text and omni_text.strip():
+        return {
+            "answer": omni_text,
+            "tier_used": omni_backend,
+            "latency_ms": int((time.time() - start) * 1000),
+            "cost_usd": 0.0,
+            "model": omni_backend,
+            "local_silicon": True,
+        }
+
     # ── Cloud fallback (Anthropic) ────────────────────────────────────
     try:
-        import anthropic
+        import anthropic  # noqa: PLC0415
         client = anthropic.Anthropic(api_key=os.environ.get("ANTHROPIC_API_KEY", ""))
         response = client.messages.create(
             model="claude-haiku-4-5",
@@ -104,7 +122,7 @@ def handle_ask(question: str, tier: str = "auto", user_id: str = "") -> dict:
             "model": "claude-haiku-4-5",
             "local_silicon": False,
         }
-    except Exception:
+    except Exception:  # noqa: BLE001
         pass
 
     return {
