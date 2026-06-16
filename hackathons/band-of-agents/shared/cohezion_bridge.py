@@ -60,16 +60,14 @@ class LemonadeClient:
     Bypasses Python imports entirely — useful when Cohezion package
     isn't installed but local AMD silicon is running.
 
-    Ports (from harness invariants):
-      13306 — NPU  (llama3.2-1b-FLM, 42 TPS, classification)
-      13307 — iGPU (deepseek-r1-0528-8b-FLM, generation)
-      13309 — CPU  (Gemma-4-31B-it-GGUF, reasoning)
+    Router-centric: ALL local inference goes through the SINGLE :13305 router, which
+    dispatches to NPU/iGPU/CPU by model. There are no separate per-tier ports.
     """
 
     _PORTS = {
-        "npu": int(os.getenv("LEMONADE_NPU_PORT", "13306")),
-        "igpu": int(os.getenv("LEMONADE_IGPU_PORT", "13307")),
-        "cpu": int(os.getenv("LEMONADE_CPU_PORT", "13309")),
+        "npu": int(os.getenv("LEMONADE_ROUTER_PORT", "13305")),
+        "igpu": int(os.getenv("LEMONADE_ROUTER_PORT", "13305")),
+        "cpu": int(os.getenv("LEMONADE_ROUTER_PORT", "13305")),
     }
 
     def __init__(self, tier: str = "igpu"):
@@ -203,10 +201,10 @@ class CohezionBridge:
 
         Embodies the local-inference-default doctrine with empty-response-as-escalation
         (an empty local reply is a calibration signal to escalate, NOT a bug to retry).
-        Dedicated per-tier ports (13306/07/09) are tried first; because those are often
-        down in the router-centric topology, ``use_omni`` then routes to the fleet's
-        OMNI (vision + tool-calling) models on the :13305 router so local inference is
-        actually exercised. N3-safe: only the bounded-ctx / no-KV-risk omni models are
+        All local inference goes through the SINGLE :13305 router (router-centric
+        topology); there are NO separate per-tier ports. ``use_omni`` routes to the
+        fleet's already-loaded OMNI (vision + tool-calling) models so local inference
+        is actually exercised. N3-safe: only the bounded-ctx / no-KV-risk omni models are
         requested -- never an unbounded ctx_size=0 heavy load.
 
         Returns (text, backend) where ``backend`` is the tier/model/'cloud' that ACTUALLY
@@ -225,19 +223,14 @@ class CohezionBridge:
         Returns:
             (text, backend) with backend in {"npu","igpu","cpu",<omni-model-id>,"cloud","none"}.
         """
-        for tier in tiers:
-            client = LemonadeClient(tier)
-            if not client.is_available():
-                continue
-            text = client.complete(prompt, max_tokens=max_tokens, temperature=temperature)
-            if text and text.strip():
-                return text, tier
-        if use_omni:
-            text, backend = self.complete_omni(
-                prompt, max_tokens=max_tokens, temperature=temperature,
-            )
-            if text and text.strip():
-                return text, backend
+        # ALL local inference goes through the SINGLE :13305 router (router-centric topology) --
+        # there are NO separate per-tier ports; the router dispatches to NPU/iGPU/CPU by model.
+        # `tiers`/`use_omni` are retained for signature compatibility but are no-ops.
+        text, backend = self.complete_omni(
+            prompt, max_tokens=max_tokens, temperature=temperature,
+        )
+        if text and text.strip():
+            return text, backend
         if cloud_fn is not None:
             try:
                 return cloud_fn(prompt), "cloud"

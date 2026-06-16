@@ -144,10 +144,10 @@ class EngineerAgent:
         return implementation
 
     def _run_cpu(self, enriched: dict, plan: dict | None) -> dict | None:
-        """Try local inference ($0): dedicated CPU tier, then the already-loaded OMNI
-        model on the :13305 router. The dedicated per-tier ports (CPU :13309) are often
-        down in the router-centric topology, so the omni router is what actually serves
-        local generation -- OOM-safe (already-loaded model only, never auto-loads)."""
+        """Try local inference ($0) via the SINGLE :13305 router (router-centric
+        topology -- there are NO separate per-tier ports). The omni router serves
+        local generation by dispatching the already-loaded OMNI model -- OOM-safe
+        (already-loaded model only, never auto-loads)."""
         from shared.cohezion_bridge import CohezionBridge, LemonadeClient  # noqa: PLC0415
 
         hints = "\n".join(f"- {h}" for h in enriched.get("implementation_hints", []))
@@ -164,7 +164,7 @@ class EngineerAgent:
             f"\"skill_updates\": [...], \"claude_code_commands\": [...]}}"
         )
 
-        # 1) dedicated CPU tier (:13309) if it's up
+        # 1) CPU lane via the :13305 router (LemonadeClient now router-centric)
         cpu = LemonadeClient("cpu")
         if cpu.is_available():
             impl = _parse_json(cpu.complete(prompt, max_tokens=2048, temperature=0.15))

@@ -11,10 +11,11 @@ from shared.cohezion_bridge import CohezionBridge
 
 _bridge = CohezionBridge()
 
+# Router-centric: all served by the single :13305 router (dispatches by model).
 _TIER_MODELS = {
-    "npu": ("13306", "llama3.2-1b-FLM", "42 TPS"),
-    "igpu": ("13307", "deepseek-r1-8b", "~200ms"),
-    "cpu": ("13309", "Gemma-4-31B", "~800ms"),
+    "npu": ("13305", "llama3.2-1b-FLM", "42 TPS"),
+    "igpu": ("13305", "Gemma-4-E4B-it-GGUF", "~200ms"),
+    "cpu": ("13305", "Gemma-4-31B-it-GGUF", "~800ms"),
 }
 
 

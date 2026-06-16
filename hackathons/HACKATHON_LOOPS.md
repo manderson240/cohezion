@@ -18,6 +18,15 @@ with an UNMET goal and the nearest deadline, does ONE increment, verifies, updat
 4. **Report** a 2-line status to `@CohezionBot` each cycle (advanced what / blocked on what).
 5. **Verify before claiming done.** A packaging/import error reads identically to "it failed" —
    confirm the artifact actually ran.
+6. **Harness gate (autoharness).** Any increment that touches code MUST pass
+   `bash scripts/ci/check_labs_router_only.sh` (router-only :13305 invariant) AND an
+   `ast.parse` compile-check on every touched file BEFORE you update `progress:`. On RED,
+   revert the increment this cycle — a regression is not progress.
+7. **Stay lean (autocontext).** Delegate research/synthesis to `gaia_local.delegate`; write
+   findings to files, not the chat. Heavy reasoning goes to local inference, not your context.
+8. **Goals are bmad acceptance criteria.** An entry is DONE only when its `AC:` command runs
+   green — not when the code "looks wired". If an entry lacks an `AC:` line, add a testable one
+   before working it.
 
 ## Portfolio (priority by deadline)
 
@@ -34,11 +43,17 @@ with an UNMET goal and the nearest deadline, does ONE increment, verifies, updat
 - **Increment path:** wire each agent's generation through `bridge.complete_with_fallback(...,
   cloud_fn=<anthropic>)` behind `COHEZION_LOCAL_FIRST`; set the backend metric from the returned
   `backend`. Keep structured-codegen on cloud if local JSON quality is insufficient (task-routing).
+- `AC:` `cd band-of-agents && COHEZION_LOCAL_FIRST=1 python demo/run_demo.py` exits 0 AND the
+  run log shows `generation_backend` in {Gemma-4-E4B-it-GGUF, <omni-model-id>} for ≥1 agent
+  (i.e. local silicon actually served it), not "cloud"/reachability-probe.
 - `progress:` bridge primitives added (complete_with_fallback + complete_omni); agent wiring + honesty-metric PENDING.
 
 ### uipath-maestro — UiPath AgentHack — DUE Jun 29
 - **Goal:** Maestro-case flow runs end-to-end; honest backend attribution (no `cpu_tier_used`
   from a reachability probe).
+- `AC:` `cd uipath-maestro && python -m agents.orchestrator_agent --selftest` (or the demo entry)
+  exits 0 AND emits `generation_backend` reflecting the model that actually served — never a
+  literal `cpu_tier_used` flag derived from a `is_available()` probe.
 - `progress:` bridge primitives added; agent wiring PENDING.
 
 ### slack-cohezion-agent — Slack Agent Builder Challenge — DUE Jul 13 (REVENUE: prize competition)
@@ -47,6 +62,8 @@ with an UNMET goal and the nearest deadline, does ONE increment, verifies, updat
 - **Goal (verifiable):** `/cohezion ask|review|search` run on the live fleet at $0; upgrade
   `ask_handler` single-tier call to full NPU→omni escalation, and add `complete_omni` vision so
   image messages are handled locally (a differentiator for the MCP-server track).
+- `AC:` `cd slack-cohezion-agent && python -c "from handlers.ask_handler import handle_ask; print(handle_ask('explain HIHO'))"`
+  returns a non-empty answer with a local `backend`, AND `status_handler` reports all tiers on :13305.
 - `progress:` bridge primitives added; ask_handler already honest/local-first; escalation+omni upgrade PENDING.
 
 ### Kaggriculture — Google AI Agents capstone — opens ~Jun 19
