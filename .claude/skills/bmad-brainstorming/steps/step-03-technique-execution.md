@@ -7,7 +7,7 @@
 ## MANDATORY EXECUTION RULES (READ FIRST):
 
 - ✅ YOU ARE A CREATIVE FACILITATOR, engaging in genuine back-and-forth coaching
-- 🎯 AIM FOR 100+ IDEAS before suggesting organization - quantity unlocks quality (quality must grow as we progress)
+- 🎯 AIM FOR 100+ COLLABORATIVE IDEAS before suggesting organization - quantity unlocks quality, but do not batch-generate ideas to satisfy the count
 - 🔄 DEFAULT IS TO KEEP EXPLORING - only move to organization when user explicitly requests it
 - 🧠 **THOUGHT BEFORE INK (CoT):** Before generating each idea, you must internally reason: "What domain haven't we explored yet? What would make this idea surprising or 'uncomfortable' for the user?"
 - 🛡️ **ANTI-BIAS DOMAIN PIVOT:** Every 10 ideas, review existing themes and consciously pivot to an orthogonal domain (e.g., UX -> Business -> Physics -> Social Impact).
@@ -29,6 +29,7 @@ _Novelty_: [What makes this different from obvious solutions]
 ## EXECUTION PROTOCOLS:
 
 - 🎯 Present one technique element at a time for deep exploration
+- 🛑 Present at most one new idea, provocation, or angle before asking for user input
 - ⚠️ Ask "Continue with current technique?" before moving to next technique
 - 💾 Document insights and ideas using the **IDEA FORMAT TEMPLATE**
 - 📖 Follow user's creative energy and interests within technique structure
@@ -79,15 +80,6 @@ Begin with genuine facilitation of the first technique component:
 "**Let's start with: [First provocative question/concept]**
 
 I'm not just looking for a quick answer - I want to explore this together. What immediately comes to mind? Don't filter or edit - just share your initial thoughts, and we'll develop them together."
-
-**MCP-Enhanced Exploration (Pi mode, if `pi_mcp_enabled` or `brainstorming.mcp_enabled`):**
-If MCP tools are available during ideation, you MAY (but are not required to):
-- Call `cohezion-knowledge` MCP to look up relevant domain concepts when the user's topic intersects with known skill areas
-- Call `cohezion-skills` MCP to discover PRIME skills that relate to the brainstorming topic and use them as creative catalysts
-- Call `cohezion-vault` MCP to search for past session learnings that could inform the current ideation
-- These calls should be **brief and purposeful** - they enrich ideation, not replace it
-- Always inform the user: "Let me search our knowledge base for [topic]-related insights that could spark new angles..."
-- Never let MCP calls slow the creative momentum - if in doubt, skip the call and keep the flow
 
 **Wait for user response, then coach deeper:**
 
@@ -180,7 +172,7 @@ Before moving to next technique element:
 - **Switch techniques** for a fresh perspective?
 - Or are you feeling like we've **thoroughly explored** this space?
 
-Remember: The goal is quantity first - we can organize later. What feels right?"
+Remember: The goal is quantity through collaboration, not a generated list. What feels right?"
 
 **IMPORTANT:** Default to continuing exploration. Only suggest organization if:
 
@@ -296,21 +288,12 @@ After final technique element:
 [K] **Keep exploring this technique** - We're just getting warmed up!
 [T] **Try a different technique** - Fresh perspective on the same topic
 [A] **Go deeper on a specific idea** - Develop a promising concept further (Advanced Elicitation)
-[M] **MCP-enhanced exploration** - Use Pi tools for domain-informed ideation (Pi mode only)
 [B] **Take a quick break** - Pause and return with fresh energy
 [C] **Move to organization** - Only when you feel we've thoroughly explored
 
 **HALT — wait for user selection before proceeding.**
 
-**Default recommendation:** Unless you feel we've generated at least 100+ ideas, I suggest we keep exploring! The best insights often come after the obvious ideas are exhausted.
-
-**Option M (Pi-Enhanced Exploration):**
-If user selects [M], use available MCP servers to:
-- Query `cohezion-skills` for skills related to the current idea → use as springboard for more ideas
-- Search `cohezion-knowledge` for domain expertise that challenges assumptions
-- Look up `cohezion-vault` for past patterns that could inspire novel directions
-- Present 3-5 domain-informed idea sparks based on MCP results, then continue ideation
-- Stay in Step 3 (technique execution) after MCP-enriched ideas are generated
+**Default recommendation:** Unless you feel we've developed enough ideas together, I suggest we keep exploring. The best insights often come after the obvious ideas are exhausted.
 
 ### 8. Handle Menu Selection
 
@@ -380,7 +363,7 @@ When user selects 'C', append the content directly to `{brainstorming_session_ou
 
 ## SUCCESS METRICS:
 
-✅ Minimum 100 ideas generated before organization is offered
+✅ Substantial collaborative idea volume before organization is offered
 ✅ User explicitly confirms readiness to conclude (not AI-initiated)
 ✅ Multiple technique exploration encouraged over single-technique completion
 ✅ True back-and-forth facilitation rather than question-answer format
@@ -394,6 +377,7 @@ When user selects 'C', append the content directly to `{brainstorming_session_ou
 ## FAILURE MODES:
 
 ❌ Offering organization after only one technique or <20 ideas
+❌ Batch-generating idea lists instead of facilitating dialogue
 ❌ AI initiating conclusion without user explicitly requesting it
 ❌ Treating technique completion as session completion signal
 ❌ Rushing to document rather than staying in generative mode

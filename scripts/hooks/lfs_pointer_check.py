@@ -17,6 +17,7 @@ Non-zero exit blocks the commit; guidance message tells the user how to fix.
 
 from __future__ import annotations
 
+import subprocess
 import sys
 from pathlib import Path
 
@@ -44,11 +45,20 @@ def matches_any(path: str, patterns: list[str]) -> bool:
     return any(path.endswith(p.lstrip("*")) for p in patterns)
 
 
-def is_lfs_pointer(path: Path) -> bool:
-    """True if the file's first 50 bytes begin with the LFS pointer magic."""
-    with path.open("rb") as fh:
-        head = fh.read(50)
-    return head.startswith(LFS_POINTER_MAGIC)
+def is_lfs_pointer_in_index(path: str) -> bool:
+    """Check the INDEX (staged) version of the file for LFS pointer magic.
+
+    Must check the index, not the working tree — git lfs smudge always expands
+    pointers to real content in the working tree, so a working-tree check always
+    fails for properly-configured LFS files.
+    """
+    result = subprocess.run(  # noqa: S603,S607
+        ["git", "cat-file", "blob", f":{path}"],
+        capture_output=True,
+    )
+    if result.returncode != 0:
+        return True  # not staged — nothing to check
+    return result.stdout[:50].startswith(LFS_POINTER_MAGIC)
 
 
 def main(argv: list[str]) -> int:
@@ -66,7 +76,7 @@ def main(argv: list[str]) -> int:
         size = path.stat().st_size
         if size <= MIN_CHECK_BYTES:
             continue
-        if not is_lfs_pointer(path):
+        if not is_lfs_pointer_in_index(arg):
             size_mb = size / 1048576
             errors.append(f"{arg} ({size_mb:.0f}MB) matches LFS pattern but is NOT an LFS pointer")
 

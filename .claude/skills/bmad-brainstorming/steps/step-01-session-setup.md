@@ -29,32 +29,14 @@ Initialize the brainstorming workflow by detecting continuation state and settin
 
 ## INITIALIZATION SEQUENCE:
 
-### 0. Detect Runtime Environment
-
-Before starting the session, detect which harness is running:
-
-- Check if `.pi/settings.json` exists in project root → **Pi mode**
-- Otherwise → **Standard mode**
-
-**If Pi mode detected:**
-- Load `.pi/settings.json` and extract any `brainstorming.*` keys
-- Check `.pi/sessions/` for matching Pi session logs (do NOT read contents, only list filenames)
-- Note Pi session IDs for cross-referencing
-- If `brainstorming.mcp_enabled` is `true`, inform user that enhanced tooling is available
-
-**Pi Mode Banner (if detected):**
-"🎯 **Pi Integration Active** — Session logging, MCP tools, and vault persistence are available based on your `.pi/settings.json` configuration."
-
 ### 1. Check for Existing Sessions
 
 First, check the brainstorming sessions folder for existing sessions:
 
-- List all files in `{resolved_output_dir}/brainstorming/` (path resolved per workflow.md)
-- ** Also check** `.pi/sessions/` for any Pi session logs with "brainstorm" in the filename (list only, do NOT read)
+- List all files in `{output_folder}/brainstorming/`
 - **DO NOT read any file contents** - only list filenames
 - If files exist, identify the most recent by date/time in the filename
 - If no files exist, this is a fresh workflow
-- Merge results from both locations, deduplicating by date/time
 
 ### 2. Handle Existing Sessions (If Files Found)
 
@@ -103,15 +85,13 @@ cp "../template.md" "{brainstorming_session_output_file}"
 
 **Context Loading:** [If context_file provided, indicate context is loaded]
 **Context-Based Guidance:** [If context available, briefly mention focus areas]
-**Pi Integration:** [If Pi mode, indicate active features: session tracking, MCP tools, vault persistence]
 
 **Let's set up your session for maximum creativity and productivity:**
 
 **Session Discovery Questions:**
 
 1. **What are we brainstorming about?** (The central topic or challenge)
-2. **What specific outcomes are you hoping for?** (Types of ideas, solutions, or insights)
-3. **Would you like to leverage any Pi-specific features?** (If Pi mode: MCP-enhanced research, vault persistence, skill-informed ideation — skip in Standard mode)
+2. **What specific outcomes are you hoping for?** (Types of ideas, solutions, or insights)"
 
 #### D. Process User Responses
 
@@ -174,11 +154,8 @@ When user selects approach, append the session overview content directly to `{br
 [2] AI-Recommended Techniques - Get customized suggestions based on your goals
 [3] Random Technique Selection - Discover unexpected creative methods
 [4] Progressive Technique Flow - Start broad, then systematically narrow focus
-[5] Pi-Enhanced Session - AI-recommended with MCP tool integration (Pi mode only)
 
-Which approach appeals to you most? (Enter 1-5)"
-
-**Note:** Option [5] is only shown in Pi mode. It selects AI-recommended techniques AND enables MCP calls during ideation for domain-informed brainstorming (searching the vault, querying skills, knowledge lookup). It routes to step-02b-ai-recommended.md with `pi_mcp_enabled: true` in frontmatter.
+Which approach appeals to you most? (Enter 1-4)"
 
 **HALT — wait for user selection before proceeding.**
 
@@ -198,7 +175,6 @@ After user selects approach number:
 - **If 2:** Load `./step-02b-ai-recommended.md`
 - **If 3:** Load `./step-02c-random-selection.md`
 - **If 4:** Load `./step-02d-progressive-flow.md`
-- **If 5:** Load `./step-02b-ai-recommended.md` (with `pi_mcp_enabled: true` in frontmatter — Pi mode only)
 
 ## SUCCESS METRICS:
 

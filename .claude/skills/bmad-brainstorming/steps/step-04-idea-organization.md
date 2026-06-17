@@ -246,15 +246,8 @@ Provide final session wrap-up and forward guidance:
 3. **Share** promising concepts with stakeholders if relevant
 4. **Schedule** follow-up sessions as ideas develop
 
-**Pi Session Persistence:**
-If running in Pi mode and `brainstorming.vault_persistence` is `true`:
-- This session will be persisted to the Cohezion vault via MCP for long-term knowledge retention
-- Future brainstorming sessions can reference these insights
-- Session trajectory is logged in `.pi/sessions/`
-
 **Ready to complete your session documentation?**
 [C] Complete - Generate final brainstorming session document
-[V] Complete + Vault - Generate document and persist to Cohezion vault (Pi mode only)
 
 **HALT — wait for user selection before proceeding.**
 
@@ -266,16 +259,6 @@ If running in Pi mode and `brainstorming.vault_persistence` is `true`:
 - Update frontmatter: `stepsCompleted: [1, 2, 3, 4]`
 - Set `session_active: false` and `workflow_completed: true`
 - Complete workflow with positive closure message
-
-#### If [V] Complete + Vault (Pi mode only):
-
-- Perform all [C] Complete steps above
-- **Additionally persist to Cohezion vault:**
-  - Call `cohezion-vault` MCP server to store session document
-  - Store under `_bmad-output/brainstorming/` path in vault
-  - Tag with: `brainstorming`, `{session_topic}`, session date
-  - Log the vault storage reference in `.pi/sessions/` for future cross-referencing
-  - Inform user: "Your session has been persisted to the Cohezion vault for future reference and pattern mining."
 
 ## APPEND TO DOCUMENT:
 
