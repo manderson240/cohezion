@@ -39,8 +39,8 @@ logger = logging.getLogger("agentic_loop")
 
 def _check_router(base_url: str) -> bool:
     try:
-        req = urllib.request.Request(f"{base_url}/api/v1/models", method="GET")  # noqa: S310
-        with urllib.request.urlopen(req, timeout=3) as resp:  # noqa: S310
+        req = urllib.request.Request(f"{base_url}/api/v1/models", method="GET")
+        with urllib.request.urlopen(req, timeout=3) as resp:
             d = json.loads(resp.read())
             models = d if isinstance(d, list) else d.get("models", d.get("data", []))
             logger.info("OmniRouter healthy: %d models available", len(models))
@@ -77,7 +77,7 @@ def _query_bughunt_state() -> dict:
         "FROM vault_neuron WHERE category = 'code_quality' GROUP ALL;"
     )
     try:
-        req = urllib.request.Request(  # noqa: S310
+        req = urllib.request.Request(
             "http://localhost:8001/sql",
             data=sql.encode(),
             headers={
@@ -89,7 +89,7 @@ def _query_bughunt_state() -> dict:
             },
             method="POST",
         )
-        with urllib.request.urlopen(req, timeout=3.0) as resp:  # noqa: S310
+        with urllib.request.urlopen(req, timeout=3.0) as resp:
             data = json.loads(resp.read())
         results = data[0].get("result", []) if isinstance(data, list) else []
         row = results[0] if results else {}
@@ -107,7 +107,7 @@ def _query_vault_context() -> str:
         "FROM vault_neuron GROUP BY category ORDER BY n DESC LIMIT 5;"
     )
     try:
-        req = urllib.request.Request(  # noqa: S310
+        req = urllib.request.Request(
             "http://localhost:8001/sql",
             data=sql.encode(),
             headers={
@@ -119,7 +119,7 @@ def _query_vault_context() -> str:
             },
             method="POST",
         )
-        with urllib.request.urlopen(req, timeout=3.0) as resp:  # noqa: S310
+        with urllib.request.urlopen(req, timeout=3.0) as resp:
             data = json.loads(resp.read())
         results = data[0].get("result", []) if isinstance(data, list) else []
         lines = [
@@ -137,9 +137,15 @@ def _build_backlog(n: int) -> list[LoopTask]:
     """Build a loop backlog from PRIME skills + live infrastructure state.
 
     Queries SurrealDB to avoid adding tasks that are already saturated and
-    to size pyright bughunt batches based on current WIN rate.
+    to size pyright bughunt batches based on current WIN rate. Uses a Markov
+    chain quality tracker to weight task priority by expected improvement delta.
     """
+    from cohezion.compound.autonomous_loop.quality_tracker import MarkovQualityTracker
     from cohezion.core.template_engine import TemplateEngine
+
+    # Build Markov quality tracker from vault history
+    tracker = MarkovQualityTracker.from_vault()
+    logger.info("Quality tracker states:\n%s", tracker.summary())
 
     engine = TemplateEngine()
     specs = engine.parse_all()
@@ -148,15 +154,34 @@ def _build_backlog(n: int) -> list[LoopTask]:
 
     tasks: list[LoopTask] = []
     for i, spec in enumerate(selected):
-        instruction = spec.instructions[0] if spec.instructions else f"Analyze {spec.name}"
+        # Build a rich task that uses the skill's actual content
+        domain = (spec.domain_expertise or "").strip()[:400]
+        all_instructions = spec.instructions[:5] if spec.instructions else [f"Analyze {spec.name}"]
+        instructions_str = "\n".join(
+            f"  {j + 1}. {inst}" for j, inst in enumerate(all_instructions)
+        )
+        description = (
+            f"[SKILL: {spec.name}]\n"
+            f"Domain: {domain}\n"
+            f"Instructions:\n{instructions_str}\n\n"
+            f"Apply this skill pattern to the Cohezion codebase (src/cohezion/). "
+            f"Identify 1-2 concrete improvements: state the file path and specific change needed. "
+            f"Be precise — file:line and what to change."
+        )
+        # Markov-weighted priority: high P(improve) → higher priority
+        markov_weight = tracker.suggest_priority_weight("skill_improvement")
+        base_priority = 10 - (i % 10)
+        priority = max(1, min(10, round(base_priority * markov_weight)))
         tasks.append(
             LoopTask(
                 id=f"skill-{i + 1:03d}-{spec.name[:20].replace(' ', '_')}",
-                description=f"[SKILL: {spec.name}] {instruction}",
+                description=description,
                 category="skill_improvement",
-                priority=10 - (i % 10),
-                verification=f"Verify {spec.name} improvement is concrete and actionable",
-                estimated_tokens=300,
+                priority=priority,
+                verification=(
+                    f"Output names a specific file in src/cohezion/ with a concrete change for {spec.name}"
+                ),
+                estimated_tokens=500,
             )
         )
 
@@ -247,14 +272,134 @@ def _build_backlog(n: int) -> list[LoopTask]:
         )
     )
 
+    # --- BMAD tasks: structured adversarial review + architecture + course correction ---
+
+    # BMAD code review — adversarial 3-reviewer pass on recent src/cohezion changes
+    bmad_review_weight = tracker.suggest_priority_weight("bmad_review")
+    bmad_review_priority = max(1, min(10, round(9 * bmad_review_weight)))
+    tasks.append(
+        LoopTask(
+            id="bmad-review-recent-changes-001",
+            description=(
+                "[BMAD: Dev (James) — Code Review]\n"
+                "Apply BMAD v6.3.0 adversarial 3-reviewer pattern to recent src/cohezion/ changes.\n\n"
+                "1. Gather context: run `git diff HEAD~3 --stat` to identify changed files\n"
+                "2. Blind Hunter review: read diff only — flag logic errors, dead code, type mismatches\n"
+                "3. Edge Case Hunter review: target boundary conditions, null guards, off-by-one errors\n"
+                "4. Acceptance Auditor: verify test coverage exists for changed functions\n"
+                "5. Triage findings into P0 (critical/block), P1 (high), P2 (medium)\n\n"
+                "Output: structured list — file:line + finding + severity (P0/P1/P2). "
+                "Flag any P0 explicitly at the top."
+            ),
+            category="bmad_review",
+            priority=bmad_review_priority,
+            verification="Output contains structured findings with file:line and P0/P1/P2 severity labels.",
+            estimated_tokens=600,
+        )
+    )
+
+    # BMAD architecture assessment — Winston persona reviews compound loop architecture
+    bmad_arch_weight = tracker.suggest_priority_weight("bmad_architecture")
+    bmad_arch_priority = max(1, min(10, round(8 * bmad_arch_weight)))
+    tasks.append(
+        LoopTask(
+            id="bmad-arch-compound-loop-001",
+            description=(
+                "[BMAD: Architect (Winston) — Architecture Assessment]\n"
+                "Apply BMAD v6.3.0 architecture review to the compound autonomous loop.\n\n"
+                "Target: src/cohezion/compound/autonomous_loop/ and scripts/run_agentic_loop.py\n\n"
+                "1. Gather context: read coordinator.py, local_executor.py, quality_tracker.py\n"
+                "2. Assess: does the Markov→priority feedback loop close correctly?\n"
+                "3. Assess: is vault_neuron write-back idempotent (no duplicate inserts on retry)?\n"
+                "4. Assess: does the BMAD Challenger/Solver pattern have a concrete wiring target?\n"
+                "5. Output: 1-2 concrete architectural improvement recommendations — "
+                "state the file:line and the specific change, no speculation."
+            ),
+            category="bmad_architecture",
+            priority=bmad_arch_priority,
+            verification=(
+                "Output contains architecture findings with specific file:line references "
+                "and actionable improvement recommendations."
+            ),
+            estimated_tokens=500,
+        )
+    )
+
+    # BMAD correct-course — fires with elevated priority if quality tracker shows regression
+    bmad_course_state = tracker._current.get("skill_improvement", "failing")  # noqa: SLF001
+    bmad_course_priority = 10 if bmad_course_state == "regressing" else 5
+    tasks.append(
+        LoopTask(
+            id="bmad-correct-course-001",
+            description=(
+                "[BMAD: PM (John) — Correct Course]\n"
+                f"Current Markov quality state for skill_improvement: {bmad_course_state.upper()}\n\n"
+                "Apply BMAD v6.3.0 correct-course pattern to detect loop drift:\n\n"
+                "1. Query vault_neuron: SELECT category, avg(quality_score), count() "
+                "FROM vault_neuron GROUP BY category ORDER BY avg_quality ASC LIMIT 5\n"
+                "2. Compare: which categories have avg_quality < 0.5 (drifting)?\n"
+                "3. Identify: is the drift from poor task descriptions, model routing, "
+                "or systemic issues (e.g., all NPU fallbacks going to CPU)?\n"
+                "4. Recommend: minimum-change correction — 1 specific adjustment to "
+                "task priority, model routing, or skill selection that addresses root cause.\n\n"
+                "Output: root cause + one concrete correction. No infrastructure. No new modules."
+            ),
+            category="bmad_governance",
+            priority=bmad_course_priority,
+            verification=(
+                "Output identifies at least 1 drifting category with avg_quality < 0.5 "
+                "OR confirms all categories are healthy (avg >= 0.7)."
+            ),
+            estimated_tokens=350,
+        )
+    )
+
     infra_count = 5
+    bmad_count = 3
     logger.info(
-        "Backlog built: %d tasks (%d from skills, %d infrastructure)",
+        "Backlog built: %d tasks (%d from skills, %d infrastructure, %d BMAD)",
         len(tasks),
         len(selected),
         infra_count,
+        bmad_count,
     )
     return tasks
+
+
+def _run_rzero(base_url: str, n_tasks: int, n_episodes: int) -> None:
+    """Run R-Zero Challenger/Solver co-evolution episodes and print results."""
+    from cohezion.compound.autonomous_loop.rzero_challenger import RZeroChallengerExecutor
+
+    logger.info("=" * 60)
+    logger.info("R-Zero Co-Evolution Mode")
+    logger.info("  Episodes : %d", n_episodes)
+    logger.info("  Tasks/ep : %d", n_tasks)
+    logger.info("  Challenger model: llama3.2-1b-FLM (NPU)")
+    logger.info("  Solver model    : Gemma-4-E4B-it-GGUF (iGPU)")
+    logger.info("=" * 60)
+
+    executor = RZeroChallengerExecutor(base_url=base_url)
+    all_rewards: list[float] = []
+
+    try:
+        for ep in range(1, n_episodes + 1):
+            logger.info("Episode %d/%d …", ep, n_episodes)
+            result = executor.run_episode(n_tasks=n_tasks)
+            all_rewards.append(result.challenger_reward)
+    except KeyboardInterrupt:
+        logger.info("R-Zero interrupted by user")
+
+    if all_rewards:
+        logger.info("=" * 60)
+        logger.info("R-Zero summary: %d episodes", len(all_rewards))
+        logger.info(
+            "  Challenger rewards: %s",
+            " | ".join(f"{r:.2f}" for r in all_rewards),
+        )
+        logger.info("  Mean reward: %.2f", sum(all_rewards) / len(all_rewards))
+        logger.info("  (0.5 = perfect 50%% calibration; 1.0 = impossible)")
+        logger.info("  Results pushed to vault_neuron (category=skill_improvement)")
+        logger.info("=" * 60)
 
 
 def main() -> None:
@@ -270,6 +415,17 @@ def main() -> None:
     )
     parser.add_argument("--dry-run", action="store_true", help="Check connectivity and exit")
     parser.add_argument("--base-url", default=LEMONADE_BASE_URL, help="OmniRouter base URL")
+    parser.add_argument(
+        "--rzero",
+        action="store_true",
+        help="Run R-Zero Challenger/Solver co-evolution instead of standard loop",
+    )
+    parser.add_argument(
+        "--rzero-tasks", type=int, default=8, help="Tasks per R-Zero episode (default: 8)"
+    )
+    parser.add_argument(
+        "--rzero-episodes", type=int, default=3, help="Number of R-Zero episodes (default: 3)"
+    )
     args = parser.parse_args()
 
     logger.info("=" * 60)
@@ -285,7 +441,7 @@ def main() -> None:
         logger.error("Aborting: OmniRouter not reachable. Start with: lemond --port 13305")
         sys.exit(1)
 
-    all_bounded, violations = verify_all_bounded(args.base_url)
+    _, violations = verify_all_bounded(args.base_url)
     if violations:
         logger.error("N3 VIOLATION: heavy models with ctx_size=0: %s", violations)
         logger.error("Run: oom_guard.scan_and_harden() to fix before continuing")
@@ -304,6 +460,11 @@ def main() -> None:
         logger.info("Dry run complete — all pre-flight checks passed")
         return
 
+    # R-Zero co-evolution mode
+    if args.rzero:
+        _run_rzero(args.base_url, n_tasks=args.rzero_tasks, n_episodes=args.rzero_episodes)
+        return
+
     # Build backlog
     tasks = _build_backlog(args.skills)
 
@@ -318,8 +479,7 @@ def main() -> None:
     )
 
     coordinator = LoopCoordinator(config)
-    coordinator._backlog = tasks  # noqa: SLF001
-
+    coordinator._backlog = tasks
     logger.info(
         "Starting loop: %d tasks, %.0fs sprints, %d token budget",
         len(tasks),
@@ -377,6 +537,58 @@ def main() -> None:
             ms,
             r.get("tokens", 0),
         )
+
+    _push_loop_results_to_vault(report.results, elapsed)
+
+
+def _push_loop_results_to_vault(results: list[dict], elapsed_s: float) -> None:
+    """Push per-task results to vault_neuron for quality tracking.
+
+    quality_score = 1.0 (WIN) if model produced non-empty output, else 0.0 (LOSS).
+    Enables _query_vault_context() on the next run to show real win rates.
+    """
+    wins = sum(1 for r in results if r.get("success"))
+    total = len(results)
+    win_rate = wins / total if total > 0 else 0.0
+
+    rows = []
+    for r in results:
+        tid = r["task_id"].replace("'", "")[:80]
+        success_str = "true" if r.get("success") else "false"
+        quality = 1.0 if r.get("success") else 0.0
+        node = r.get("node", "?").replace("'", "")[:20]
+        tokens = r.get("tokens", 0)
+        rows.append(
+            f"{{task_id: 'loop:{tid}', category: 'skill_improvement', "
+            f"success: {success_str}, quality_score: {quality}, "
+            f"node: '{node}', tokens: {tokens}, recorded_at: time::now()}}"
+        )
+
+    # Batch insert
+    sql = "INSERT INTO vault_neuron [" + ", ".join(rows) + "];"
+    try:
+        req = urllib.request.Request(
+            "http://localhost:8001/sql",
+            data=sql.encode(),
+            headers={
+                "Content-Type": "text/plain",
+                "surreal-ns": "cohezion",
+                "surreal-db": "main",
+                "Accept": "application/json",
+                "Authorization": "Basic cm9vdDpyb290",
+            },
+            method="POST",
+        )
+        with urllib.request.urlopen(req, timeout=5.0) as resp:
+            resp.read()
+        logger.info(
+            "Vault: pushed %d task results (%.0f%% WIN rate, %.1fs elapsed)",
+            total,
+            win_rate * 100,
+            elapsed_s,
+        )
+    except Exception as exc:
+        logger.debug("Vault push failed (non-fatal): %s", exc)
 
 
 if __name__ == "__main__":

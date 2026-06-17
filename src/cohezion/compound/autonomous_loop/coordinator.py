@@ -221,5 +221,9 @@ class LoopCoordinator:
                 "tokens": tokens,
                 "is_cloud": is_cloud,
                 "success": success,
+                "node": result.get("node", "cloud" if is_cloud else "?"),
+                "model": result.get("model", "?"),
+                "elapsed_ms": result.get("elapsed_ms", 0),
+                "fallback": result.get("fallback", False),
             }
         )
