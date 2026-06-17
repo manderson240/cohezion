@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import asyncio
+from typing import Any
 import logging
 import time
 from dataclasses import dataclass
@@ -35,7 +36,7 @@ class ModelContextProfile:
 
 
 def _mk(
-    model_name: str, num_ctx: int, size_gb: float, flash_attention: bool = True, **kw: object
+    model_name: str, num_ctx: int, size_gb: float, flash_attention: bool = True, **kw: Any
 ) -> ModelContextProfile:
     return ModelContextProfile(
         model_name=model_name,

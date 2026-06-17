@@ -39,7 +39,11 @@ _PYTHON_BIN = _REPO_ROOT / ".venv" / "bin" / "python3"
 
 # ── Inference ─────────────────────────────────────────────────────────────────
 _LEMONADE_URL = "http://localhost:13305/v1/chat/completions"
-_MODEL = "llama3.2-1b-FLM"
+# Use iGPU reasoning model for code tasks — 1B NPU model (llama3.2-1b-FLM) is too small
+# to reliably generate valid JSON edits for complex Pyright type errors (produces malformed
+# JSON, hallucinates unrelated fixes). Gemma-4-E4B has code understanding sufficient for
+# reportAttributeAccessIssue / reportArgumentType patterns.
+_MODEL = "Gemma-4-E4B-it-GGUF"
 
 # ── Skip rules ────────────────────────────────────────────────────────────────
 # These require package installs, not code edits
@@ -136,7 +140,7 @@ def _query_lemonade(prompt: str, timeout: float = 20.0) -> str | None:
         {
             "model": _MODEL,
             "messages": [{"role": "user", "content": prompt}],
-            "max_tokens": 400,
+            "max_tokens": 1500,  # thinking models consume tokens for reasoning chain
             "temperature": 0.0,
         }
     ).encode()
@@ -149,7 +153,10 @@ def _query_lemonade(prompt: str, timeout: float = 20.0) -> str | None:
     try:
         with urllib.request.urlopen(req, timeout=timeout) as resp:  # noqa: S310
             data = json.loads(resp.read())
-        return data["choices"][0]["message"]["content"].strip()
+        msg = data["choices"][0]["message"]
+        # Gemma-4 thinking models put the answer in reasoning_content when content is empty
+        content = msg.get("content") or msg.get("reasoning_content") or ""
+        return content.strip()
     except Exception as exc:
         print(f"  [13305 offline] {exc}")
         return None
@@ -483,15 +490,26 @@ def _process_one(target: dict, t_start: datetime) -> dict | None:
 
     print("  Querying :13305...")
     prompt = _build_fix_prompt(target, context)
-    response = _query_lemonade(prompt)
+    response = _query_lemonade(prompt, timeout=60.0)
 
     fix_old = fix_new = explanation = ""
     if response:
+        # Strip markdown code fences (```json ... ```) emitted by reasoning models
+        if "```" in response:
+            import re as _re
+
+            m = _re.search(r"```(?:json)?\s*(\{.*?\})\s*```", response, _re.DOTALL)
+            if m:
+                response = m.group(1)
         json_start = response.find("{")
         json_end = response.rfind("}") + 1
         if json_start >= 0 and json_end > json_start:
+            candidate = response[json_start:json_end]
+            # Strip trailing duplicate braces emitted by some model variants (e.g. "...}}"))
+            while candidate.endswith("}}") and not candidate.endswith('"}}'):
+                candidate = candidate[:-1]
             try:
-                fix_data = json.loads(response[json_start:json_end])
+                fix_data = json.loads(candidate)
                 fix_old = fix_data.get("old_string", "")
                 fix_new = fix_data.get("new_string", "")
                 explanation = fix_data.get("explanation", "")

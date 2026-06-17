@@ -30,6 +30,7 @@ from __future__ import annotations
 import re
 from collections.abc import Callable
 from dataclasses import dataclass
+from typing import Any
 
 
 __all__ = [
@@ -103,7 +104,7 @@ class SkillUpdate:
         }
 
 
-def attribute_fault(trace: object) -> FaultAttribution | None:
+def attribute_fault(trace: Any) -> FaultAttribution | None:
     """Find the first actionable fault step across the recursive trace, in execution order.
 
     Walks the trace tree pre-order (``walk()`` — parent before children, approximating execution
@@ -163,10 +164,10 @@ class AcceptanceCheck:
 
 
 def adapt_skill(
-    trace: object,
+    trace: Any,
     *,
     acceptance: AcceptanceCheck | None = None,
-    trust: object | None = None,
+    trust: Any | None = None,
 ) -> dict:
     """Run the full step-level adaptation: attribute → propose → accept → (optionally) record.
 

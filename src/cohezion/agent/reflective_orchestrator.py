@@ -55,6 +55,7 @@ from __future__ import annotations
 
 import asyncio
 import logging
+from typing import Any
 
 from cohezion.agent.error_loop import ErrorClassifier, ReDispatchLedger, error_signature, reflect
 
@@ -82,15 +83,15 @@ def _trace_is_success(trace: object) -> bool:
 
 
 async def run_with_reflection(
-    agent: object,
-    task: object,
+    agent: Any,
+    task: Any,
     *,
     ledger: ReDispatchLedger,
     env: dict | None = None,
     timeout: int = 1800,
     max_redispatch: int = 3,
     classifier: ErrorClassifier | None = None,
-    trust: object | None = None,
+    trust: Any | None = None,
     prior_signature: str | None = None,
 ) -> dict:
     """Dispatch ``agent.run_task``, reflect on the returned trace, and bounded-re-dispatch.

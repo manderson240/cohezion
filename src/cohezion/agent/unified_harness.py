@@ -224,7 +224,7 @@ class UnifiedAgent:
         executor: LLMExecutor | None = None,
         tools: ToolRegistry | None = None,
         *,
-        guidance: object | None = None,
+        guidance: Any | None = None,
         guidance_min_trust: float = 0.6,
         guidance_max_facts: int = 5,
     ):
