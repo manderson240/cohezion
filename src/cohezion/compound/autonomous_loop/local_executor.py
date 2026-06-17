@@ -52,7 +52,7 @@ def warmup_tiers(base_url: str = LEMONADE_BASE_URL) -> dict[str, bool]:
     """Pre-load NPU/iGPU/CPU tiers via the lemonade CLI.
 
     Uses the lemonade CLI for bulk tier pre-loading at startup. For in-flight
-    NPU recovery after a 500 error, use _recover_npu() (REST API, no subprocess).
+    NPU recovery after a 500 error, use _recover_model() (REST API, no subprocess).
     Reloading the FLM model resets stale NPU context (fixes HTTP 500 errors).
 
     Returns {tier_name: success}.
@@ -91,18 +91,23 @@ def get_tier_health(base_url: str = LEMONADE_BASE_URL) -> dict[str, str]:
         return {}
 
 
-def _recover_npu(base_url: str, model_name: str, ctx_size: int = 16384) -> bool:
-    """API-first NPU context recovery: unload then reload with bounded ctx_size.
+def _recover_model(base_url: str, model_name: str, ctx_size: int = 16384) -> bool:
+    """API-first tier recovery: unload then reload with bounded ctx_size.
 
+    Works for any model tier (NPU/FLM, iGPU/vulkan, CPU/llamacpp).
     Uses POST /api/v1/unload + POST /api/v1/load rather than a subprocess call
     so it works from PID-namespaced environments (sandboxes, systemd units).
     See skill: flm-npu-context-recovery v1.1.0.
+
+    GPU-tier 500s are typically caused by LRU eviction triggering a vulkan driver
+    cleanup that transiently takes the iGPU backend offline. Unload+reload brings
+    it back to a known-good state.
 
     Returns True if reload succeeded and the model is ready to serve.
     """
     base = base_url.rstrip("/")
     try:
-        # Step 1: unload stale context
+        # Step 1: unload stale/crashed context
         unload_payload = json.dumps({"model_name": model_name}).encode()
         req = urllib.request.Request(  # noqa: S310
             f"{base}/api/v1/unload",
@@ -112,9 +117,9 @@ def _recover_npu(base_url: str, model_name: str, ctx_size: int = 16384) -> bool:
         )
         with urllib.request.urlopen(req, timeout=10.0) as resp:  # noqa: S310
             resp.read()
-        logger.debug("NPU recovery: unloaded %s", model_name)
+        logger.debug("model recovery: unloaded %s", model_name)
     except Exception as exc:
-        logger.warning("NPU recovery: unload failed (%s): %s", model_name, exc)
+        logger.warning("model recovery: unload failed (%s): %s", model_name, exc)
         # Non-fatal — proceed to load anyway (model may already be unloaded)
 
     try:
@@ -128,11 +133,33 @@ def _recover_npu(base_url: str, model_name: str, ctx_size: int = 16384) -> bool:
         )
         with urllib.request.urlopen(req, timeout=30.0) as resp:  # noqa: S310
             resp.read()
-        logger.info("NPU recovery: reloaded %s (ctx_size=%d)", model_name, ctx_size)
+        logger.info("model recovery: reloaded %s (ctx_size=%d)", model_name, ctx_size)
         return True
     except Exception as exc:
-        logger.warning("NPU recovery: load failed (%s): %s", model_name, exc)
+        logger.warning("model recovery: load failed (%s): %s", model_name, exc)
         return False
+
+
+def _compute_slp(resp: dict[str, Any]) -> float | None:
+    """Compute S_LP (Learning Potential) score from a chat completion response.
+
+    S_LP = -mean(logprobs) across output tokens — higher means more surprising
+    output (greater learning signal). Returns None when logprobs are unavailable
+    (FLM / NPU tier does not expose per-token log-probabilities).
+    """
+    choices = resp.get("choices", [])
+    if not choices:
+        return None
+    logprobs_obj = choices[0].get("logprobs")
+    if logprobs_obj is None:
+        return None
+    content = logprobs_obj.get("content")
+    if not content:
+        return None
+    logprob_vals = [tok["logprob"] for tok in content if "logprob" in tok]
+    if not logprob_vals:
+        return None
+    return -sum(logprob_vals) / len(logprob_vals)
 
 
 def _classify_node(task_description: str) -> str:
@@ -205,10 +232,11 @@ class LocalImprovementExecutor:
     since each tier runs on separate silicon, they do not contend for compute.
     """
 
-    def __init__(self, base_url: str = LEMONADE_BASE_URL) -> None:
+    def __init__(self, base_url: str = LEMONADE_BASE_URL, degradation_detector: Any = None) -> None:
         self._base_url = base_url
         self._started = False
         self._sweeper = LoopTickSweeper()
+        self._degradation_detector = degradation_detector
 
     def start(self, worktree_path: str) -> None:
         safe, free_gb = check_ram(_MIN_FREE_RAM_GB)
@@ -218,6 +246,7 @@ class LocalImprovementExecutor:
                 free_gb,
                 _MIN_FREE_RAM_GB,
             )
+        warmup_tiers(self._base_url)
         self._started = True
         logger.info("LocalImprovementExecutor started (OmniRouter: %s)", self._base_url)
 
@@ -252,7 +281,7 @@ class LocalImprovementExecutor:
             if exc.code == 500 and node == "npu" and model != _DEFAULT_MODEL:
                 npu_model = model
                 resp = None
-                if _recover_npu(self._base_url, npu_model):
+                if _recover_model(self._base_url, npu_model):
                     logger.info("task %s: NPU recovery succeeded, retrying %s", task_id, npu_model)
                     try:
                         resp = _chat_complete(
@@ -277,6 +306,33 @@ class LocalImprovementExecutor:
                     except Exception as exc2:
                         logger.error("execute_task %s fallback failed: %s", task_id, exc2)
                         return _error_result(task_id, model, node, str(exc2), returncode=1)
+            elif exc.code == 500 and node in ("gpu", "igpu"):
+                # iGPU vulkan backend can transiently 500 during LRU-eviction driver cleanup
+                # (the OmniRouter auto-loads a new model → evicts an existing one → GPU driver
+                # reset window ~200-500ms → all vulkan requests fail). Attempt unload+reload to
+                # bring the model back to a known-good state, then retry once.
+                gpu_model = model
+                resp = None
+                if _recover_model(self._base_url, gpu_model):
+                    logger.info("task %s: GPU recovery succeeded, retrying %s", task_id, gpu_model)
+                    try:
+                        resp = _chat_complete(
+                            self._base_url, gpu_model, prompt, max_tokens=400, timeout=90.0
+                        )
+                    except Exception as exc2:
+                        logger.warning(
+                            "task %s: GPU retry failed after recovery: %s", task_id, exc2
+                        )
+                        return _error_result(task_id, gpu_model, node, str(exc2), returncode=1)
+                else:
+                    logger.warning(
+                        "task %s: %s HTTP 500 (GPU driver reset, recovery failed)",
+                        task_id,
+                        gpu_model,
+                    )
+                    return _error_result(
+                        task_id, gpu_model, node, "HTTP 500 (GPU recovery failed)", returncode=2
+                    )
             else:
                 logger.warning("OmniRouter HTTP %d for task %s: %s", exc.code, task_id, exc)
                 return _error_result(task_id, model, node, f"HTTP {exc.code}: {exc}", returncode=2)
@@ -301,6 +357,7 @@ class LocalImprovementExecutor:
             return _error_result(task_id, model, node, str(exc), returncode=1)
 
         success = bool(output.strip())
+        token_surprisal = _compute_slp(resp)
         tried_str = "→".join(m[:20] for m in tried_models)
         logger.info(
             "task %s [%s→%s] %s in %.0fms (%d tokens)",
@@ -321,6 +378,8 @@ class LocalImprovementExecutor:
             "node": node,
             "elapsed_ms": elapsed_ms,
             "returncode": 0 if success else 1,
+            "token_surprisal": token_surprisal,
+            "tried_models": tried_models,
         }
 
     def execute_batch(
@@ -369,4 +428,6 @@ def _error_result(
         "model": model,
         "node": node,
         "returncode": returncode,
+        "token_surprisal": None,
+        "tried_models": [model],
     }
