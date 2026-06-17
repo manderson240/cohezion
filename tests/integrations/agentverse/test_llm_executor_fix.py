@@ -90,11 +90,14 @@ class TestRetryLogic:
         mock_response_200.status_code = 200
         mock_response_200.json.return_value = {"response": "Success after retry!"}
 
-        with patch.object(
-            executor._client,
-            "post",
-            new=AsyncMock(side_effect=[mock_response_500, mock_response_200]),
-        ), patch("asyncio.sleep", new=AsyncMock()):
+        with (
+            patch.object(
+                executor._client,
+                "post",
+                new=AsyncMock(side_effect=[mock_response_500, mock_response_200]),
+            ),
+            patch("asyncio.sleep", new=AsyncMock()),
+        ):
             result = await executor._generate("Prompt", "test_model")
             assert result == "Success after retry!"
             assert executor._client.post.call_count == 2
@@ -112,11 +115,14 @@ class TestRetryLogic:
         mock_response_200.status_code = 200
         mock_response_200.json.return_value = {"response": "Success!"}
 
-        with patch.object(
-            executor._client,
-            "post",
-            new=AsyncMock(side_effect=[mock_response_429, mock_response_200]),
-        ), patch("asyncio.sleep", new=AsyncMock()):
+        with (
+            patch.object(
+                executor._client,
+                "post",
+                new=AsyncMock(side_effect=[mock_response_429, mock_response_200]),
+            ),
+            patch("asyncio.sleep", new=AsyncMock()),
+        ):
             result = await executor._generate("Prompt", "test_model")
             assert result == "Success!"
 
@@ -129,11 +135,14 @@ class TestRetryLogic:
         mock_response_500.status_code = 500
         mock_response_500.aread = AsyncMock(return_value=b"500 Error")
 
-        with patch.object(
-            executor._client,
-            "post",
-            new=AsyncMock(return_value=mock_response_500),
-        ), patch("asyncio.sleep", new=AsyncMock()):
+        with (
+            patch.object(
+                executor._client,
+                "post",
+                new=AsyncMock(return_value=mock_response_500),
+            ),
+            patch("asyncio.sleep", new=AsyncMock()),
+        ):
             with pytest.raises(RuntimeError) as exc_info:
                 await executor._generate("Prompt", "test_model", max_retries=3)
 
@@ -145,17 +154,20 @@ class TestRetryLogic:
         """Timeout exceptions trigger retry."""
         executor = LLMExecutor()
 
-        with patch.object(
-            executor._client,
-            "post",
-            new=AsyncMock(
-                side_effect=[
-                    httpx.TimeoutException("Timeout"),
-                    httpx.TimeoutException("Timeout"),
-                    httpx.TimeoutException("Timeout"),
-                ]
+        with (
+            patch.object(
+                executor._client,
+                "post",
+                new=AsyncMock(
+                    side_effect=[
+                        httpx.TimeoutException("Timeout"),
+                        httpx.TimeoutException("Timeout"),
+                        httpx.TimeoutException("Timeout"),
+                    ]
+                ),
             ),
-        ), patch("asyncio.sleep", new=AsyncMock()):
+            patch("asyncio.sleep", new=AsyncMock()),
+        ):
             with pytest.raises(RuntimeError) as exc_info:
                 await executor._generate("Prompt", "test_model", max_retries=3)
 
@@ -208,6 +220,96 @@ def test_status_codes_are_retryable(status_code):
     """Verify the configured retryable status codes."""
     assert status_code in RETRYABLE_STATUS_CODES
     assert status_code in {429, 500, 502, 503, 504}
+
+
+class TestLemonadeBackend:
+    """Tests for Lemonade OmniRouter backend selection and generation."""
+
+    def test_normalize_model_strips_prefix(self):
+        """Strip lemonade: prefix while preserving the actual model name."""
+        assert LLMExecutor._normalize_model("lemonade:Gemma-4-31B-it-GGUF") == "Gemma-4-31B-it-GGUF"
+        assert LLMExecutor._normalize_model("Gemma-4-31B-it-GGUF") == "Gemma-4-31B-it-GGUF"
+
+    def test_resolve_provider_auto_ollama(self):
+        """Ollama-style names route to Ollama when provider=auto."""
+        executor = LLMExecutor(model="qwen3.5:cloud")
+        assert executor._resolve_provider("qwen3.5:cloud") == "ollama"
+        assert executor._resolve_provider("phi4:latest") == "ollama"
+
+    def test_resolve_provider_auto_lemonade_known(self):
+        """Known local catalog names route to Lemonade when provider=auto."""
+        executor = LLMExecutor(model="Gemma-4-31B-it-GGUF")
+        assert executor._resolve_provider("Gemma-4-31B-it-GGUF") == "lemonade"
+        assert executor._resolve_provider("llama3.2-1b-FLM") == "lemonade"
+
+    def test_resolve_provider_auto_lemonade_prefix(self):
+        """Explicit lemonade: prefix forces Lemonade routing."""
+        executor = LLMExecutor(model="lemonade:Some-Model")
+        assert executor._resolve_provider("lemonade:Some-Model") == "lemonade"
+
+    def test_resolve_provider_explicit_overrides_heuristic(self):
+        """Explicit provider=lemonade/ollama overrides auto-detection."""
+        ollama_exec = LLMExecutor(model="Gemma-4-31B-it-GGUF", provider="ollama")
+        assert ollama_exec._resolve_provider("Gemma-4-31B-it-GGUF") == "ollama"
+
+        lemonade_exec = LLMExecutor(model="qwen3.5:cloud", provider="lemonade")
+        assert lemonade_exec._resolve_provider("qwen3.5:cloud") == "lemonade"
+
+    @pytest.mark.asyncio
+    async def test_generate_lemonade_success(self):
+        """Lemonade chat/completions payload is parsed correctly."""
+        executor = LLMExecutor(model="lemonade:Gemma-4-31B-it-GGUF")
+
+        mock_response = MagicMock()
+        mock_response.status_code = 200
+        mock_response.json.return_value = {
+            "choices": [{"message": {"content": "Local AMD silicon says hello"}}]
+        }
+
+        with patch.object(executor._client, "post", new=AsyncMock(return_value=mock_response)):
+            result = await executor._generate("Prompt", "lemonade:Gemma-4-31B-it-GGUF")
+            assert result == "Local AMD silicon says hello"
+            executor._client.post.assert_called_once()
+            call_kwargs = executor._client.post.call_args.kwargs
+            assert "json" in call_kwargs
+            payload = call_kwargs["json"]
+            assert payload["model"] == "Gemma-4-31B-it-GGUF"
+            assert payload["messages"] == [
+                {"role": "user", "content": "Prompt"},
+            ]
+
+    @pytest.mark.asyncio
+    async def test_generate_lemonade_with_system(self):
+        """System prompt is injected as the first message for Lemonade."""
+        executor = LLMExecutor(model="lemonade:Gemma-4-31B-it-GGUF")
+
+        mock_response = MagicMock()
+        mock_response.status_code = 200
+        mock_response.json.return_value = {"choices": [{"message": {"content": "ok"}}]}
+
+        with patch.object(executor._client, "post", new=AsyncMock(return_value=mock_response)):
+            await executor._generate("Prompt", "lemonade:Gemma-4-31B-it-GGUF", system="Be concise")
+            payload = executor._client.post.call_args.kwargs["json"]
+            assert payload["messages"][0] == {"role": "system", "content": "Be concise"}
+            assert payload["messages"][1] == {"role": "user", "content": "Prompt"}
+
+    @pytest.mark.asyncio
+    async def test_generate_lemonade_non_retryable_error(self):
+        """Non-retryable Lemonade errors surface immediately."""
+        executor = LLMExecutor(model="lemonade:Gemma-4-31B-it-GGUF")
+
+        mock_response = MagicMock()
+        mock_response.status_code = 400
+        mock_response.aread = AsyncMock(return_value=b"Bad request")
+
+        with (
+            patch.object(executor._client, "post", new=AsyncMock(return_value=mock_response)),
+            patch("asyncio.sleep", new=AsyncMock()),
+        ):
+            with pytest.raises(RuntimeError) as exc_info:
+                await executor._generate("Prompt", "lemonade:Gemma-4-31B-it-GGUF", max_retries=2)
+
+            assert "Lemonade API error 400" in str(exc_info.value)
 
 
 if __name__ == "__main__":

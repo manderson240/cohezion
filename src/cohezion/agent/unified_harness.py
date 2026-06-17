@@ -477,5 +477,15 @@ OR
         return "\n".join(history) if history else "None yet"
 
 
+def autocontext_monitor(_history: list[dict[str, Any]]) -> dict[str, Any]:
+    """Stub context monitor used by the unified harness.
+
+    Returns a neutral reading regardless of conversation length or content.
+    The harness wires this into planning so callers can swap in a real
+    context-percentage implementation later without changing the agent loop.
+    """
+    return {"pct": 0.0, "warn": False, "critical": False}
+
+
 # Default instance
 default_agent = UnifiedAgent()

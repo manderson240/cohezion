@@ -1,7 +1,7 @@
 """LLM Executor for autonomous compound benchmarking.
 
-Uses Ollama cloud models to execute benchmark tasks and evaluate
-skill performance with real LLM judgments.
+Uses Ollama cloud models or local Lemonade (:13305) models to execute
+benchmark tasks and evaluate skill performance with real LLM judgments.
 """
 
 from __future__ import annotations
@@ -23,6 +23,25 @@ logger = logging.getLogger(__name__)
 DEFAULT_CLOUD_MODEL = "qwen3.5:cloud"
 DEFAULT_JUDGE_MODEL = "qwen3.5:cloud"
 OLLAMA_BASE_URL = "http://localhost:11434"
+LEMONADE_BASE_URL = "http://localhost:13305"
+
+# Known Lemonade model names (OmniRouter catalog). Names matching this set are
+# auto-routed to the Lemonade backend when provider="auto".
+KNOWN_LEMONADE_MODELS: frozenset[str] = frozenset(
+    {
+        "llama3.2-1b-FLM",
+        "Gemma-4-E4B-it-GGUF",
+        "Gemma-4-31B-it-GGUF",
+        "Gemma-4-E2B-it-GGUF",
+        "deepseek-r1-0528-8b-FLM",
+        "Qwen3.6-35B-A3B-NoThinking",
+        "Qwen3.6-35B-A3B-ThinkingCoder",
+        "Qwen3.6-35B-A3B-GGUF-Strix-Q4_K_M",
+        "nomic-embed-text-v2-moe-GGUF",
+        "Gemma-4-9B-it-GGUF",
+        "Gemma-4-27B-it-GGUF",
+    }
+)
 
 # Retry configuration with exponential backoff and jitter
 RETRY_BASE_DELAY = 1.0
@@ -103,22 +122,31 @@ class CircuitBreaker:
 
 
 class LLMExecutor:
-    """Execute benchmark tasks via Ollama cloud models.
+    """Execute benchmark tasks via Ollama cloud or Lemonade local models.
 
-    Uses cloud models (qwen3.5:cloud, minimax-m2.7:cloud, etc.)
-    for task execution and coherence evaluation.
+    Supports both Ollama (``qwen3.5:cloud``, ``phi4:latest``, etc.) and
+    local Lemonade OmniRouter models served on :13305
+    (``Gemma-4-31B-it-GGUF``, ``llama3.2-1b-FLM``, etc.).
+
+    Lemonade models are selected automatically when ``provider="auto"`` and the
+    model name is in the known catalog, or explicitly via the ``lemonade:``
+    prefix (e.g. ``lemonade:Gemma-4-31B-it-GGUF``).
 
     Includes circuit breaker and exponential backoff with jitter
-    for resilience against transient cloud failures.
+    for resilience against transient failures.
 
     Parameters
     ----------
     model : str
-        Cloud model to use (default: qwen3.5:cloud)
+        Model to use (default: qwen3.5:cloud)
     judge_model : str
         Model to use for coherence judgment
+    provider : str
+        Backend selector: "auto", "ollama", or "lemonade".
     ollama_base_url : str
         Ollama API base URL
+    lemonade_base_url : str
+        Lemonade OmniRouter base URL
     timeout : float
         Request timeout in seconds
 
@@ -130,19 +158,26 @@ class LLMExecutor:
     ...     skill="python_PRIME"
     ... )
     >>> print(f"Coherence: {result.coherence:.2f}")
+
+    >>> local_executor = LLMExecutor(model="Gemma-4-31B-it-GGUF")
+    >>> # or explicitly: LLMExecutor(model="lemonade:Gemma-4-31B-it-GGUF")
     """
 
     def __init__(
         self,
         model: str = DEFAULT_CLOUD_MODEL,
         judge_model: str | None = None,
+        provider: str = "auto",
         ollama_base_url: str = OLLAMA_BASE_URL,
+        lemonade_base_url: str = LEMONADE_BASE_URL,
         timeout: float = 60.0,
     ) -> None:
         """Initialize LLM executor."""
         self.model = model
         self.judge_model = judge_model or model
+        self.provider = provider.lower()
         self.ollama_base_url = ollama_base_url
+        self.lemonade_base_url = lemonade_base_url
         self.timeout = timeout
         self._client = httpx.AsyncClient(timeout=timeout)
         self._circuit_breaker = CircuitBreaker()
@@ -260,6 +295,28 @@ class LLMExecutor:
         jitter = random.uniform(0, RETRY_JITTER_MAX)
         return delay + jitter
 
+    @staticmethod
+    def _normalize_model(model: str) -> str:
+        """Strip explicit ``lemonade:`` prefix from model names."""
+        if model.lower().startswith("lemonade:"):
+            return model.split(":", 1)[1]
+        return model
+
+    def _resolve_provider(self, model: str) -> str:
+        """Resolve backend provider for a model name.
+
+        Explicit ``provider`` init value overrides heuristics. With ``auto``,
+        model names in KNOWN_LEMONADE_MODELS or prefixed with ``lemonade:``
+        route to Lemonade; everything else stays on Ollama.
+        """
+        if self.provider in ("ollama", "lemonade"):
+            return self.provider
+
+        normalized = self._normalize_model(model)
+        if model.lower().startswith("lemonade:") or normalized in KNOWN_LEMONADE_MODELS:
+            return "lemonade"
+        return "ollama"
+
     async def _generate(
         self,
         prompt: str,
@@ -267,10 +324,9 @@ class LLMExecutor:
         system: str | None = None,
         max_retries: int = 3,
     ) -> str:
-        """Generate response from Ollama model with retry.
+        """Generate response from the selected backend with retry.
 
-        Uses exponential backoff with jitter and circuit breaker pattern
-        to handle transient cloud failures gracefully.
+        Routes to Ollama or Lemonade based on ``provider`` / model name.
 
         Parameters
         ----------
@@ -293,6 +349,20 @@ class LLMExecutor:
         RuntimeError
             If all retries exhausted or circuit breaker is open
         """
+        backend = self._resolve_provider(model)
+        normalized_model = self._normalize_model(model)
+        if backend == "lemonade":
+            return await self._generate_lemonade(prompt, normalized_model, system, max_retries)
+        return await self._generate_ollama(prompt, normalized_model, system, max_retries)
+
+    async def _generate_ollama(
+        self,
+        prompt: str,
+        model: str,
+        system: str | None = None,
+        max_retries: int = 3,
+    ) -> str:
+        """Generate response from Ollama model with retry."""
         url = f"{self.ollama_base_url}/api/generate"
         endpoint = f"{self.ollama_base_url}/{model}"
 
@@ -372,6 +442,112 @@ class LLMExecutor:
                 last_error = f"HTTP error calling {model}: {e}"
                 logger.warning(
                     "Ollama HTTP error on attempt %d/%d: %s, retrying in %.1fs",
+                    attempt + 1,
+                    max_retries,
+                    e,
+                    delay,
+                )
+                self._circuit_breaker.record_failure(endpoint)
+                if attempt == max_retries - 1:
+                    raise RuntimeError(last_error) from None
+                await asyncio.sleep(delay)
+
+            except Exception as e:
+                # Non-retryable unexpected error
+                self._circuit_breaker.record_failure(endpoint)
+                raise RuntimeError(f"Unexpected error calling {model}: {e}") from e
+
+        raise RuntimeError(last_error or f"Failed after {max_retries} attempts")
+
+    async def _generate_lemonade(
+        self,
+        prompt: str,
+        model: str,
+        system: str | None = None,
+        max_retries: int = 3,
+    ) -> str:
+        """Generate response from Lemonade OmniRouter with retry.
+
+        Uses the OpenAI-compatible ``/v1/chat/completions`` endpoint.
+        """
+        url = f"{self.lemonade_base_url}/v1/chat/completions"
+        endpoint = f"{self.lemonade_base_url}/{model}"
+
+        # Check circuit breaker first
+        if self._circuit_breaker.is_open(endpoint):
+            raise RuntimeError(f"Circuit breaker open for {endpoint}. Too many recent failures.")
+
+        messages: list[dict[str, str]] = []
+        if system:
+            messages.append({"role": "system", "content": system})
+        messages.append({"role": "user", "content": prompt})
+
+        payload: dict[str, Any] = {
+            "model": model,
+            "messages": messages,
+            "max_tokens": 2048,
+            "temperature": 0.7,
+            "stream": False,
+        }
+
+        last_error = None
+        for attempt in range(max_retries):
+            try:
+                response = await self._client.post(url, json=payload, timeout=120.0)
+
+                if response.status_code == 200:
+                    self._circuit_breaker.record_success(endpoint)
+                    data = response.json()
+                    return data["choices"][0]["message"].get("content", "")
+
+                error_text = await response.aread()
+                error_text_str = (
+                    error_text.decode("utf-8", errors="replace")
+                    if isinstance(error_text, bytes)
+                    else error_text
+                )
+                error_ref_match = re.search(r"ref:\s*([a-f0-9-]+)", error_text_str)
+                error_ref = f" (ref: {error_ref_match.group(1)})" if error_ref_match else ""
+
+                is_retryable = response.status_code in RETRYABLE_STATUS_CODES
+
+                if not is_retryable or attempt == max_retries - 1:
+                    self._circuit_breaker.record_failure(endpoint)
+                    raise RuntimeError(
+                        f"Lemonade API error {response.status_code}{error_ref}: {error_text[:200]}"
+                    )
+
+                delay = self._calculate_retry_delay(attempt)
+                logger.warning(
+                    "Lemonade returned %d%s on attempt %d/%d, retrying in %.1fs",
+                    response.status_code,
+                    error_ref,
+                    attempt + 1,
+                    max_retries,
+                    delay,
+                )
+                self._circuit_breaker.record_failure(endpoint)
+                await asyncio.sleep(delay)
+
+            except httpx.TimeoutException:
+                delay = self._calculate_retry_delay(attempt)
+                last_error = f"Timeout calling {model}"
+                logger.warning(
+                    "Lemonade timeout on attempt %d/%d, retrying in %.1fs",
+                    attempt + 1,
+                    max_retries,
+                    delay,
+                )
+                self._circuit_breaker.record_failure(endpoint)
+                if attempt == max_retries - 1:
+                    raise RuntimeError(last_error) from None
+                await asyncio.sleep(delay)
+
+            except httpx.HTTPStatusError as e:
+                delay = self._calculate_retry_delay(attempt)
+                last_error = f"HTTP error calling {model}: {e}"
+                logger.warning(
+                    "Lemonade HTTP error on attempt %d/%d: %s, retrying in %.1fs",
                     attempt + 1,
                     max_retries,
                     e,
