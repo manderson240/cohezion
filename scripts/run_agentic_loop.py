@@ -354,8 +354,37 @@ def _build_backlog(n: int) -> list[LoopTask]:
         )
     )
 
+    # BMAD Spec (v6.8.0) — distill current codebase improvement intent into SPEC.md kernel
+    tasks.append(
+        LoopTask(
+            id="bmad-spec-loop-intent-001",
+            description=(
+                "[BMAD: bmad-spec v6.8.0 — Spec Distillation]\n"
+                "Distill the current autonomous loop's improvement intent into a 5-field "
+                "SPEC.md kernel (Why / Capabilities / Constraints / Non-goals / Success signal).\n\n"
+                "Input: the backlog categories observed so far — skill_improvement, code_quality, "
+                "bmad_review, bmad_architecture, repo_health, compound_health.\n\n"
+                "1. Why: what problem the compound loop solves (compound engineering on local silicon)\n"
+                "2. Capabilities: 3-5 concrete, testable capabilities this loop provides\n"
+                "   - Each must have intent (WHAT) and success signal (measurable outcome)\n"
+                "3. Constraints: what actually constrains design (ctx_size, token budget, :13305 only)\n"
+                "4. Non-goals: at least 1 explicit non-goal (e.g., not a cloud-first system)\n"
+                "5. Success signal: concrete, demonstrable (e.g., avg_quality > 0.7 in vault_neuron)\n\n"
+                "Output: a compact SPEC.md block (under 30 lines) following BMAD Spec Law "
+                "(lean prose, load-bearing only, no decoration). Print it directly — no files."
+            ),
+            category="bmad_spec",
+            priority=7,
+            verification=(
+                "Output contains all 5 kernel fields with at least 1 capability "
+                "that has both intent and a measurable success signal."
+            ),
+            estimated_tokens=400,
+        )
+    )
+
     infra_count = 5
-    bmad_count = 3
+    bmad_count = 4
     logger.info(
         "Backlog built: %d tasks (%d from skills, %d infrastructure, %d BMAD)",
         len(tasks),
